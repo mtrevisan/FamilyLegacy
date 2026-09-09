@@ -122,7 +122,7 @@ public class DateStructureDialog extends JDialog{
 	/**
 	 * Returns the saved DATE_STRUCTURE record, or {@code null} if canceled or no data.
 	 *
-	 * @return the DATE_STRUCTURE record, or null
+	 * @return the DATE_STRUCTURE record, or {@code null}
 	 */
 	public FLEFRecord getRecord(){
 		return (saved? result: null);

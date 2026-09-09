@@ -163,7 +163,7 @@ public class DateStructurePanel extends JPanel{
 	/**
 	 * Loads data from a DATE wrapper record.
 	 *
-	 * @param record	the DATE record (wrapper), or null
+	 * @param record	the DATE record (wrapper), or {@code null}
 	 */
 	public void load(final FLEFRecord record){
 		clear();
@@ -209,7 +209,7 @@ public class DateStructurePanel extends JPanel{
 	/**
 	 * Saves the current data into a DATE wrapper record.
 	 *
-	 * @return the DATE record, or null if no data
+	 * @return the DATE record, or {@code null} if no data
 	 */
 	public FLEFRecord save(){
 		if(!hasData())

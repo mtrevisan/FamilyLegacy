@@ -40,6 +40,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Predicate;
 
 
 /**
@@ -56,17 +57,21 @@ public class AncestorTreeMutator{
 	private static final String TAG_TARGET = "target";
 	private static final String TAG_SEX = "sex";
 
-	private static final String ENUM_TYPE_CHILD = "child";
 	private static final String ENUM_TYPE_PARTNER = "partner";
 
 
+	private final Predicate<String> treeTypeFilter;
+
 	private final FLEFModel model;
+
 	private final BiologicalTreeService treeService;
 	private final TreeChangeListener listener;
 
 
-	public AncestorTreeMutator(final FLEFModel model, final BiologicalTreeService treeService,
-		final TreeChangeListener listener){
+	public AncestorTreeMutator(final Predicate<String> treeTypeFilter, final FLEFModel model,
+			final BiologicalTreeService treeService, final TreeChangeListener listener){
+		this.treeTypeFilter = treeTypeFilter;
+
 		this.model = Objects.requireNonNull(model, "Model cannot be null");
 		this.treeService = Objects.requireNonNull(treeService, "Tree service cannot be null");
 		this.listener = listener;
@@ -94,17 +99,18 @@ public class AncestorTreeMutator{
 	 * @param motherId  the ID of the female parent
 	 * @param newChild           the child record to link
 	 */
-	public void addChildToParents(final String fatherId, final String motherId, final FLEFRecord newChild){
+	public void addChildToParents(final String fatherId, final String motherId, final FLEFRecord newChild,
+			final String fatherRelationshipType, final String motherRelationshipType){
 		if(newChild == null)
 			return;
 
 		// Create relationship record for father if present
 		if(fatherId != null)
-			createRelationship(fatherId, newChild.getId(), ENUM_TYPE_CHILD);
+			createRelationship(newChild.getId(), fatherId, fatherRelationshipType);
 
 		// Create relationship record for mother if present
 		if(motherId != null)
-			createRelationship(motherId, newChild.getId(), ENUM_TYPE_CHILD);
+			createRelationship(newChild.getId(), motherId, motherRelationshipType);
 	}
 
 	/**
@@ -114,7 +120,7 @@ public class AncestorTreeMutator{
 	 *
 	 * @param subjectId the individual id that is the subject of the relationship
 	 * @param targetId  the individual id that is the target of the relationship
-	 * @param type      the type of relationship (e.g., "child", "spouse", "parent")
+	 * @param type      the type of relationship (e.g., "biological_child", "spouse", "parent")
 	 */
 	private void createRelationship(final String subjectId, final String targetId, final String type){
 		final FLEFRecord relationship = FLEFRecord.createMainRecord(RelationshipHandler.TYPE, model)
@@ -134,17 +140,18 @@ public class AncestorTreeMutator{
 	 * Adds or links a parent to a target child individual.
 	 * If a parent of the same sex already exists, it is replaced.
 	 *
-	 * @param childId       the ID of the child
+	 * @param childrenId    the ID of the children
 	 * @param newParent     the parent record to add (must have sex defined)
 	 */
-	public void addParentToChild(final String childId, final FLEFRecord newParent){
+	public void addParentToChild(final List<String> childrenId, final FLEFRecord newParent,
+			final List<String> relationshipTypes){
 		if(newParent == null)
 			return;
 
 		// Get the target individual record
-		final FLEFRecord child = model.getRecordById(childId);
-		if(child == null)
-			throw new IllegalArgumentException("Child individual not found: " + childId);
+		final List<FLEFRecord> children = new ArrayList<>(childrenId.size());
+		for(final String childId : childrenId)
+			children.add(model.getRecordById(childId));
 
 		// Ensure parent exists in model
 		if(!model.hasRecord(newParent.getId()))
@@ -158,11 +165,11 @@ public class AncestorTreeMutator{
 			final List<FLEFRecord> toRemove = new ArrayList<>();
 			for(final FLEFRecord relationship : relationships){
 				final String type = FLEFRecordHelper.getChildValue(relationship, TAG_TYPE);
-				if(!ENUM_TYPE_CHILD.equals(type))
+				if(!treeTypeFilter.test(type))
 					continue;
 
 				final String subjectId = relationship.extractReferencedId(TAG_SUBJECT, IndividualHandler.TYPE);
-				if(!childId.equals(subjectId))
+				if(!childrenId.contains(subjectId))
 					continue;
 
 				final String targetId = relationship.extractReferencedId(TAG_TARGET, IndividualHandler.TYPE);
@@ -182,7 +189,11 @@ public class AncestorTreeMutator{
 		}
 
 		// Create new child relationship
-		createRelationship(child.getId(), newParent.getId(), ENUM_TYPE_CHILD);
+		for(int i = 0, size = children.size(); i < size; i ++){
+			final String childId = childrenId.get(i);
+			final String relationshipType = relationshipTypes.get(i);
+			createRelationship(childId, newParent.getId(), relationshipType);
+		}
 	}
 
 	/**

@@ -478,7 +478,7 @@ if(preferredImageUri != null)
 	}
 
 	private static String composePreferredImageKey(final String preferredImage, final Rectangle preferredImageCropRect){
-		return preferredImage
+		return (StringUtils.isNotEmpty(preferredImage)? preferredImage: StringUtils.EMPTY)
 			+ (preferredImageCropRect != null? TAG_PIPE + (int)preferredImageCropRect.getX() + DOT
 			+ (int)preferredImageCropRect.getY() + DOT + (int)preferredImageCropRect.getWidth() + DOT
 			+ (int)preferredImageCropRect.getHeight(): StringUtils.EMPTY);

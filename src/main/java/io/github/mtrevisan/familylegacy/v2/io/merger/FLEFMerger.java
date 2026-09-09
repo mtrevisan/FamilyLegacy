@@ -158,8 +158,8 @@ public class FLEFMerger{
 	 * Optimized for large datasets using caching and leader‑based clustering.
 	 *
 	 * @param allRecords all records to process
-	 * @param header1    header from the first model (or null)
-	 * @param header2    header from the second model (or null)
+	 * @param header1    header from the first model (or {@code null})
+	 * @param header2    header from the second model (or {@code null})
 	 * @return the final MergeReport
 	 */
 	private MergeReport processRecords(final List<FLEFRecord> allRecords, final FLEFRecord header1,

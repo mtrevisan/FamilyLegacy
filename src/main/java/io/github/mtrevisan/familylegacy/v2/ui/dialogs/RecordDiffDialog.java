@@ -338,7 +338,7 @@ public class RecordDiffDialog extends JDialog{
 	 *
 	 * @param before the "before" record
 	 * @param after  the "after" record
-	 * @return the chosen record, or null if the dialog was canceled
+	 * @return the chosen record, or {@code null} if the dialog was canceled
 	 */
 	public FLEFRecord getSelectedRecord(final FLEFRecord before, final FLEFRecord after){
 		if(!accepted)

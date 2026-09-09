@@ -317715,15 +317715,19 @@ solteiro rezidente no Pau Gigante"""
 	}
 
 	event E10104 {
-		type marriage_bann
+		type marriage
 		date.value.point.full_date {
-			value 28 APR 1927
+			value 28 JUL 1927
 			calendar gregorian
 		}
 		place.place P51
 		source {
-			source S1648
-			location #103
+			source S1256
+			location #156
+		}
+		source {
+			source S1330
+			location #214
 		}
 		audit.creation.date 2026-09-09T00:00:00Z
 	}
@@ -317750,19 +317754,15 @@ solteiro rezidente no Pau Gigante"""
 	}
 
 	event E10105 {
-		type marriage
+		type marriage_bann
 		date.value.point.full_date {
-			value 28 JUL 1927
+			value 28 APR 1927
 			calendar gregorian
 		}
 		place.place P51
 		source {
-			source S1256
-			location #156
-		}
-		source {
-			source S1330
-			location #214
+			source S1648
+			location #103
 		}
 		audit.creation.date 2026-09-09T00:00:00Z
 	}
@@ -333664,19 +333664,23 @@ femmine assenti: 1"""
 	}
 
 	event E10307 {
-		type marriage_bann
+		type religious_marriage
 		date.value.point.full_date {
-			value 13 FEB 1908
+			value 10 APR 1908
 			calendar gregorian
 		}
 		place.place P216
 		note {
-			text ore 15:30+01:00
+			text ore 08:30-01:00
 			audit.creation.date 2026-09-09T00:00:00Z
 		}
 		source {
-			source S1405
-			location #21
+			source S2827
+			location pag. 5, #4
+		}
+		source {
+			source S1576
+			location #49
 		}
 		audit.creation.date 2026-09-09T00:00:00Z
 	}
@@ -333703,23 +333707,19 @@ femmine assenti: 1"""
 	}
 
 	event E10308 {
-		type religious_marriage
+		type marriage_bann
 		date.value.point.full_date {
-			value 10 APR 1908
+			value 13 FEB 1908
 			calendar gregorian
 		}
 		place.place P216
 		note {
-			text ore 08:30-01:00
+			text ore 15:30+01:00
 			audit.creation.date 2026-09-09T00:00:00Z
 		}
 		source {
-			source S2827
-			location pag. 5, #4
-		}
-		source {
-			source S1576
-			location #49
+			source S1405
+			location #21
 		}
 		audit.creation.date 2026-09-09T00:00:00Z
 	}
@@ -335984,20 +335984,12 @@ Giovan Fassina de 27 annos de idade solteiro lavorador residente no Rio Treviso"
 	}
 
 	event E10344 {
-		type marriage_bann
+		type marriage
 		date.value.point.full_date {
-			value 18 JAN 1929
+			value 9 FEB 1929
 			calendar gregorian
 		}
-		place.place P51
-		note {
-			text ore 11:20+01:00
-			audit.creation.date 2026-09-09T00:00:00Z
-		}
-		source {
-			source S1655
-			location #15
-		}
+		place.place P2
 		audit.creation.date 2026-09-09T00:00:00Z
 	}
 
@@ -336023,12 +336015,20 @@ Giovan Fassina de 27 annos de idade solteiro lavorador residente no Rio Treviso"
 	}
 
 	event E10345 {
-		type marriage
+		type marriage_bann
 		date.value.point.full_date {
-			value 9 FEB 1929
+			value 18 JAN 1929
 			calendar gregorian
 		}
-		place.place P2
+		place.place P51
+		note {
+			text ore 11:20+01:00
+			audit.creation.date 2026-09-09T00:00:00Z
+		}
+		source {
+			source S1655
+			location #15
+		}
 		audit.creation.date 2026-09-09T00:00:00Z
 	}
 
@@ -336282,14 +336282,16 @@ Giovan Fassina de 27 annos de idade solteiro lavorador residente no Rio Treviso"
 	}
 
 	event E10350 {
-		type marriage_bann
-		date.value.point.full_date {
-			value 10 FEB 1908
-			calendar gregorian
-		}
-		source {
-			source S1401
-			location #63
+		type marriage
+		date.value.bounded {
+			not_before.full_date {
+				value 27 FEB 1908
+				calendar gregorian
+			}
+			not_after.full_date {
+				value 23 AUG 1908
+				calendar gregorian
+			}
 		}
 		audit.creation.date 2026-09-09T00:00:00Z
 	}
@@ -336316,16 +336318,14 @@ Giovan Fassina de 27 annos de idade solteiro lavorador residente no Rio Treviso"
 	}
 
 	event E10351 {
-		type marriage
-		date.value.bounded {
-			not_before.full_date {
-				value 27 FEB 1908
-				calendar gregorian
-			}
-			not_after.full_date {
-				value 23 AUG 1908
-				calendar gregorian
-			}
+		type marriage_bann
+		date.value.point.full_date {
+			value 10 FEB 1908
+			calendar gregorian
+		}
+		source {
+			source S1401
+			location #63
 		}
 		audit.creation.date 2026-09-09T00:00:00Z
 	}
@@ -336636,15 +336636,19 @@ Giovan Fassina de 27 annos de idade solteiro lavorador residente no Rio Treviso"
 	}
 
 	event E10356 {
-		type marriage_bann
+		type religious_marriage
 		date.value.point.full_date {
-			value 25 MAR 1927
+			value 30 APR 1927
 			calendar gregorian
 		}
-		place.place P51
+		place.place P53
 		source {
-			source S1649
-			location pag 14, #26
+			source S1183
+			location #66
+		}
+		source {
+			source S1650
+			location #4
 		}
 		audit.creation.date 2026-09-09T00:00:00Z
 	}
@@ -336671,19 +336675,15 @@ Giovan Fassina de 27 annos de idade solteiro lavorador residente no Rio Treviso"
 	}
 
 	event E10357 {
-		type religious_marriage
+		type marriage_bann
 		date.value.point.full_date {
-			value 30 APR 1927
+			value 25 MAR 1927
 			calendar gregorian
 		}
-		place.place P53
+		place.place P51
 		source {
-			source S1183
-			location #66
-		}
-		source {
-			source S1650
-			location #4
+			source S1649
+			location pag 14, #26
 		}
 		audit.creation.date 2026-09-09T00:00:00Z
 	}
@@ -337342,13 +337342,13 @@ Giovan Fassina de 27 annos de idade solteiro lavorador residente no Rio Treviso"
 	}
 
 	event E10365 {
-		type marriage_bann
+		type religious_marriage
 		date.value.point.full_date {
-			value 27 JAN 1771
+			value 11 FEB 1771
 			calendar gregorian
 		}
-		place.place P53
-		source.source S732
+		place.place P972
+		source.source S733
 		audit.creation.date 2026-09-09T00:00:00Z
 	}
 
@@ -337374,13 +337374,13 @@ Giovan Fassina de 27 annos de idade solteiro lavorador residente no Rio Treviso"
 	}
 
 	event E10366 {
-		type religious_marriage
+		type marriage_bann
 		date.value.point.full_date {
-			value 11 FEB 1771
+			value 27 JAN 1771
 			calendar gregorian
 		}
-		place.place P972
-		source.source S733
+		place.place P53
+		source.source S732
 		audit.creation.date 2026-09-09T00:00:00Z
 	}
 
@@ -340582,15 +340582,10 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10406 {
-		type marriage_bann
-		date.value.point.full_date {
-			value 29 OCT 1929
+		type marriage
+		date.value.bounded.not_before.full_date {
+			value 14 NOV 1929
 			calendar gregorian
-		}
-		place.place P51
-		source {
-			source S1652
-			location #247
 		}
 		audit.creation.date 2026-09-09T00:00:00Z
 	}
@@ -340617,10 +340612,15 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10407 {
-		type marriage
-		date.value.bounded.not_before.full_date {
-			value 14 NOV 1929
+		type marriage_bann
+		date.value.point.full_date {
+			value 29 OCT 1929
 			calendar gregorian
+		}
+		place.place P51
+		source {
+			source S1652
+			location #247
 		}
 		audit.creation.date 2026-09-09T00:00:00Z
 	}
@@ -342386,15 +342386,19 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10430 {
-		type marriage_bann
+		type religious_marriage
 		date.value.point.full_date {
-			value 26 OCT 1927
+			value 19 NOV 1927
 			calendar gregorian
 		}
-		place.place P51
+		place.place P75
 		source {
-			source S1646
-			location #233
+			source S1272
+			location #51
+		}
+		source {
+			source S1647
+			location pag 115, #20
 		}
 		audit.creation.date 2026-09-09T00:00:00Z
 	}
@@ -342421,19 +342425,15 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10431 {
-		type religious_marriage
+		type marriage_bann
 		date.value.point.full_date {
-			value 19 NOV 1927
+			value 26 OCT 1927
 			calendar gregorian
 		}
-		place.place P75
+		place.place P51
 		source {
-			source S1272
-			location #51
-		}
-		source {
-			source S1647
-			location pag 115, #20
+			source S1646
+			location #233
 		}
 		audit.creation.date 2026-09-09T00:00:00Z
 	}
@@ -361010,15 +361010,15 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10707 {
-		type marriage_bann
+		type marriage
 		date.value.point.full_date {
-			value 24 SEP 1928
+			value 27 OCT 1928
 			calendar gregorian
 		}
-		place.place P51
+		place.place P216
 		source {
-			source S907
-			location pag 99, #196
+			source S1896
+			location pag 27, #78
 		}
 		audit.creation.date 2026-09-09T00:00:00Z
 	}
@@ -361045,15 +361045,15 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10708 {
-		type marriage
+		type marriage_bann
 		date.value.point.full_date {
-			value 27 OCT 1928
+			value 24 SEP 1928
 			calendar gregorian
 		}
-		place.place P216
+		place.place P51
 		source {
-			source S1896
-			location pag 27, #78
+			source S907
+			location pag 99, #196
 		}
 		audit.creation.date 2026-09-09T00:00:00Z
 	}
@@ -367760,15 +367760,23 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10816 {
-		type marriage_bann
+		type civil_marriage
 		date.value.point.full_date {
-			value 14 FEB 1908
+			value 1 MAR 1908
 			calendar gregorian
 		}
-		place.place P51
+		place.place P6222
+		note {
+			text ore 11:20+00:49
+			audit.creation.date 2026-09-09T00:00:00Z
+		}
 		source {
-			source S1405
-			location #22
+			source S1404
+			location #4
+		}
+		source {
+			source S1138
+			location #105
 		}
 		audit.creation.date 2026-09-09T00:00:00Z
 	}
@@ -367795,23 +367803,15 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10817 {
-		type civil_marriage
+		type marriage_bann
 		date.value.point.full_date {
-			value 1 MAR 1908
+			value 14 FEB 1908
 			calendar gregorian
 		}
-		place.place P6222
-		note {
-			text ore 11:20+00:49
-			audit.creation.date 2026-09-09T00:00:00Z
-		}
+		place.place P51
 		source {
-			source S1404
-			location #4
-		}
-		source {
-			source S1138
-			location #105
+			source S1405
+			location #22
 		}
 		audit.creation.date 2026-09-09T00:00:00Z
 	}

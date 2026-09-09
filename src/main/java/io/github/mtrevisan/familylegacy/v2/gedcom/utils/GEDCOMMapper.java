@@ -162,6 +162,7 @@ public final class GEDCOMMapper{
 		RELATIONSHIP_TYPE_MAP.put("engaged_partner", "engaged_partner");
 		RELATIONSHIP_TYPE_MAP.put("group_member", "group_member");
 		RELATIONSHIP_TYPE_MAP.put("associate", "associate");
+		RELATIONSHIP_TYPE_MAP.put("part_of", "part_of");
 
 		// ------------------------------
 		// Roles

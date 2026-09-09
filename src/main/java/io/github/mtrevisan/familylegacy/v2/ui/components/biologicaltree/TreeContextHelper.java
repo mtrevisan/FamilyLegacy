@@ -24,13 +24,18 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.components.biologicaltree;
 
+import io.github.mtrevisan.familylegacy.v2.ui.components.individual.IndividualData;
 import io.github.mtrevisan.familylegacy.v2.ui.components.individual.IndividualPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.partners.PartnersPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.partners.Side;
+import io.github.mtrevisan.familylegacy.v2.ui.components.siblings.SiblingsData;
 import io.github.mtrevisan.familylegacy.v2.ui.components.siblings.SiblingsPanel;
 
 import java.awt.Component;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 
 /**
@@ -47,22 +52,21 @@ public final class TreeContextHelper{
 	public static class Context{
 		public enum Type{
 			CHILD,
-			PARENT,
-			PARTNER
+			PARENT
 		}
 
 		public final Type type;
 		public final PartnersPanel partnerPanel;
 		public final Side side;
-		public final String childId;
+		public final List<String> childrenId;
 		public final String targetId;
 
-		private Context(final Type type, final PartnersPanel partnerPanel, final Side side, final String childId,
+		private Context(final Type type, final PartnersPanel partnerPanel, final Side side, List<String> childrenId,
 				final String targetId){
 			this.type = type;
 			this.partnerPanel = partnerPanel;
 			this.side = side;
-			this.childId = childId;
+			this.childrenId = childrenId;
 			this.targetId = targetId;
 		}
 
@@ -70,12 +74,8 @@ public final class TreeContextHelper{
 			return new Context(Type.CHILD, null, null, null, null);
 		}
 
-		public static Context forParent(final PartnersPanel panel, final Side side, final String childId){
-			return new Context(Type.PARENT, panel, side, childId, null);
-		}
-
-		public static Context forPartner(final PartnersPanel panel, final Side side, final String targetId){
-			return new Context(Type.PARTNER, panel, side, null, targetId);
+		public static Context forPartner(final PartnersPanel panel, final Side side, final List<String> childrenId, final String targetId){
+			return new Context(Type.PARENT, panel, side, childrenId, targetId);
 		}
 	}
 
@@ -85,7 +85,7 @@ public final class TreeContextHelper{
 	 *
 	 * @param selectedPanel  the panel that was clicked
 	 * @param nodeToPanelMap map from AncestorNode to PartnersPanel (to find child ID)
-	 * @return the Context, or null if cannot be determined
+	 * @return the Context, or {@code null} if cannot be determined
 	 */
 	public static Context determineContext(final IndividualPanel selectedPanel,
 			final Map<AncestorNode, PartnersPanel> nodeToPanelMap){
@@ -103,25 +103,27 @@ public final class TreeContextHelper{
 		if(side == null)
 			return null;
 
-		boolean addParent = partnerPanel.isEmpty();
-		if(addParent){
-			// Context: add a parent to the child associated with this PartnersPanel
-			final String childId = nodeToPanelMap.entrySet().stream()
-				.filter(entry -> entry.getValue() == partnerPanel)
-				.findFirst()
-				.map(Map.Entry::getKey)
-				.map(AncestorNode::getIndividualId)
-				.orElse(null);
-			return (childId != null? Context.forParent(partnerPanel, side, childId): null);
-		}
-		else{
-			// Context: add a partner to the existing individual on the opposite side
-			final IndividualPanel oppositePanel = (side == Side.LEFT
-				? partnerPanel.getMotherPanel()
-				: partnerPanel.getFatherPanel());
-			final String targetId = oppositePanel.getData().getIndividualId();
-			return (targetId != null? Context.forPartner(partnerPanel, side, targetId): null);
-		}
+		// Context: add a parent to the existing individual on the opposite side and to the children associated with
+		// this PartnersPanel
+		final List<String> childrenId = nodeToPanelMap.entrySet().stream()
+			.filter(entry -> entry.getValue() == partnerPanel)
+			.map(Map.Entry::getKey)
+			.map(node -> {
+				// For the couple container, children are stored here
+				return (node.getIndividual() == null
+					? node.getBiologicalChildrenData().getSiblings().stream()
+						.map(IndividualData::getIndividualId)
+						.toList()
+					: List.of(node.getIndividualId()));
+			})
+			.flatMap(List::stream)
+			.toList();
+		final IndividualPanel oppositePanel = (side == Side.LEFT
+			? partnerPanel.getMotherPanel()
+			: partnerPanel.getFatherPanel());
+		final String targetId = oppositePanel.getData()
+			.getIndividualId();
+		return (targetId != null? Context.forPartner(partnerPanel, side, childrenId, targetId): null);
 	}
 
 	/**

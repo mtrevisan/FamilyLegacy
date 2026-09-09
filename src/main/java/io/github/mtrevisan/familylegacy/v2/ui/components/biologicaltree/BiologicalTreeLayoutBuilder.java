@@ -209,12 +209,12 @@ public final class BiologicalTreeLayoutBuilder{
 		});
 
 		if(node != null){
-			final AncestorNode fatherNode = node.getFather();
-			final AncestorNode motherNode = node.getMother();
-			final AncestorNode fatherFather = (fatherNode != null? fatherNode.getFather(): null);
-			final AncestorNode fatherMother = (fatherNode != null? fatherNode.getMother(): null);
-			final AncestorNode motherFather = (motherNode != null? motherNode.getFather(): null);
-			final AncestorNode motherMother = (motherNode != null? motherNode.getMother(): null);
+			final AncestorNode father = node.getFather();
+			final AncestorNode mother = node.getMother();
+			final AncestorNode fatherFather = (father != null? father.getFather(): null);
+			final AncestorNode fatherMother = (father != null? father.getMother(): null);
+			final AncestorNode motherFather = (mother != null? mother.getFather(): null);
+			final AncestorNode motherMother = (mother != null? mother.getMother(): null);
 
 			panel.getFatherPanel()
 				.withParent(
@@ -225,8 +225,6 @@ public final class BiologicalTreeLayoutBuilder{
 					(motherFather != null? motherFather.getIndividual(): null),
 					(motherMother != null? motherMother.getIndividual(): null));
 
-			final AncestorNode father = node.getFather();
-			final AncestorNode mother = node.getMother();
 			final IndividualData fatherData = (father != null? father.getIndividualData(): null);
 			final IndividualData motherData = (mother != null? mother.getIndividualData(): null);
 			panel.withBiologicalParents(fatherData, motherData);

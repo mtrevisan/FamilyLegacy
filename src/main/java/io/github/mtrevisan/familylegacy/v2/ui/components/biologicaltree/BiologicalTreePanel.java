@@ -67,11 +67,13 @@ import java.io.InputStream;
 import java.io.Serial;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 
@@ -94,9 +96,15 @@ public class BiologicalTreePanel extends JPanel implements TreeChangeListener, I
 	private static final String TAG_TARGET = "target";
 	private static final String TAG_SUBJECT = "subject";
 
-	private static final String ENUM_TYPE_ENDS_WITH_CHILD = "child";
+	private static final String ENUM_TYPE_BIOLOGICAL_CHILD = "biological_child";
+	private static final String ENUM_TYPE_ADOPTIVE_CHILD = "adoptive_child";
+	private static final String ENUM_TYPE_STEP_CHILD = "step_child";
+	private static final String ENUM_TYPE_FOSTER_CHILD = "foster_child";
+	private static final String ENUM_TYPE_GUARDED_CHILD = "guarded_child";
 
 
+	private final TreeType treeType;
+	private final Predicate<String> treeTypeFilter;
 	private TreeLayout treeLayout;
 	private boolean showPartner;
 
@@ -117,13 +125,24 @@ public class BiologicalTreePanel extends JPanel implements TreeChangeListener, I
 	private IndividualPanel selectedPanel;
 
 
-	public BiologicalTreePanel(final TreeLayout treeLayout, final FLEFModel model){
+	public BiologicalTreePanel(final TreeType treeType, final TreeLayout treeLayout, final FLEFModel model){
+		this.treeType = treeType;
+		treeTypeFilter = switch(treeType){
+			case BIOLOGICAL -> type -> type.equalsIgnoreCase(ENUM_TYPE_BIOLOGICAL_CHILD);
+			case FAMILY -> type -> (type.equalsIgnoreCase(ENUM_TYPE_BIOLOGICAL_CHILD)
+				|| type.equalsIgnoreCase(ENUM_TYPE_ADOPTIVE_CHILD)
+				|| type.equalsIgnoreCase(ENUM_TYPE_STEP_CHILD)
+				|| type.equalsIgnoreCase(ENUM_TYPE_FOSTER_CHILD)
+				|| type.equalsIgnoreCase(ENUM_TYPE_GUARDED_CHILD));
+			//TODO?
+//			case GROUP ->
+		};
 		this.treeLayout = treeLayout;
 
 		this.model = model;
 
-		this.treeService = new BiologicalTreeService(model);
-		this.treeMutator = new AncestorTreeMutator(model, treeService, this);
+		this.treeService = new BiologicalTreeService(treeTypeFilter, model);
+		this.treeMutator = new AncestorTreeMutator(treeTypeFilter, model, treeService, this);
 
 		setBackground(BACKGROUND_COLOR_APPLICATION);
 		setOpaque(true);
@@ -289,8 +308,6 @@ public class BiologicalTreePanel extends JPanel implements TreeChangeListener, I
 				SexType sex = null;
 				if(ctx != null && ctx.type == TreeContextHelper.Context.Type.PARENT)
 					sex = (ctx.side == Side.LEFT? SexType.MALE: SexType.FEMALE);
-				else if(ctx != null && ctx.type == TreeContextHelper.Context.Type.PARTNER)
-					sex = (ctx.side == Side.LEFT? SexType.FEMALE: SexType.MALE);
 				return fnOperation.apply(sex);
 			},
 			father, mother,
@@ -311,7 +328,8 @@ public class BiologicalTreePanel extends JPanel implements TreeChangeListener, I
 		final Window window = SwingUtilities.getWindowAncestor(this);
 		final Dialog parent = (window instanceof Dialog dialog? dialog: null);
 
-		final UnlinkRelationshipsDialog dialog = new UnlinkRelationshipsDialog(parent, model, individual.getId());
+		final UnlinkRelationshipsDialog dialog = new UnlinkRelationshipsDialog(parent, model, treeTypeFilter,
+			individual.getId());
 		dialog.setVisible(true);
 
 		final List<String> selectedIds = dialog.getSelectedRelationshipIds();
@@ -344,7 +362,7 @@ public class BiologicalTreePanel extends JPanel implements TreeChangeListener, I
 		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
 		for(final FLEFRecord relationship : relationships){
 			final String type = FLEFRecordHelper.getChildValue(relationship, TAG_TYPE);
-			if(!type.endsWith(ENUM_TYPE_ENDS_WITH_CHILD))
+			if(!type.equalsIgnoreCase(ENUM_TYPE_BIOLOGICAL_CHILD))
 				continue;
 
 			// The target must be the individual
@@ -438,8 +456,8 @@ public class BiologicalTreePanel extends JPanel implements TreeChangeListener, I
 	 * Performs the core logic for adding, linking, or pasting an individual.
 	 *
 	 * @param individualSupplier provides the individual to be added/linked/pasted
-	 * @param father             the father record (may be null)
-	 * @param mother             the mother record (may be null)
+	 * @param father             the father record (it may be {@code null})
+	 * @param mother             the mother record (it may be {@code null})
 	 * @param isPaste            if true, the source individual will be unlinked from all previous relations
 	 * @param rootId             the current root id for refreshing the tree
 	 */
@@ -459,27 +477,89 @@ public class BiologicalTreePanel extends JPanel implements TreeChangeListener, I
 			treeMutator.removeRelationships(relIds);
 		}
 
-		final String fatherId = (father != null? father.getId(): null);
-		final String motherId = (mother != null? mother.getId(): null);
+		final String[] allowedTypes = getAllowedRelationshipTypes();
 
-		switch(ctx.type){
-			case CHILD:
-				treeMutator.addChildToParents(fatherId, motherId, individual);
-
-				break;
-
-			case PARENT:
-				treeMutator.addParentToChild(ctx.childId, individual);
-
-				break;
-
-			case PARTNER:
-				// Optionally check gender compatibility here if needed
-				treeMutator.addPartnerToIndividual(ctx.targetId, individual);
-		}
+		if(Objects.requireNonNull(ctx.type) == TreeContextHelper.Context.Type.CHILD)
+			performRelationOperationChild(father, mother, allowedTypes, individual);
+		else if(ctx.type == TreeContextHelper.Context.Type.PARENT)
+			performRelationOperationParent(ctx, allowedTypes, individual);
 
 		// Invalidate cache and refresh tree
 		treeMutator.invalidateAndNotifyTreeChanged(rootId);
+	}
+
+	private String[] getAllowedRelationshipTypes(){
+		return switch(treeType){
+			case BIOLOGICAL -> new String[]{ENUM_TYPE_BIOLOGICAL_CHILD};
+			case FAMILY -> new String[]{ENUM_TYPE_BIOLOGICAL_CHILD, ENUM_TYPE_ADOPTIVE_CHILD, ENUM_TYPE_FOSTER_CHILD,
+				ENUM_TYPE_GUARDED_CHILD, ENUM_TYPE_STEP_CHILD};
+		};
+	}
+
+	private void performRelationOperationChild(final FLEFRecord father, final FLEFRecord mother,
+			final String[] allowedTypes, final FLEFRecord individual){
+		final List<String> selectedTypes;
+		if(allowedTypes.length == 1)
+			selectedTypes = Collections.nCopies(2, allowedTypes[0]);
+		else{
+			// We need to choose a type for the father and mother separately
+			final List<RelationshipTypeSelectionDialog.Item> items = new ArrayList<>();
+
+			final String fatherLabel = (father != null
+				? IndividualHandler.getInstance().getDisplayText(father, model)
+				: "Father");
+			final String motherLabel = (mother != null
+				? IndividualHandler.getInstance().getDisplayText(mother, model)
+				: "Mother");
+
+			items.add(new RelationshipTypeSelectionDialog.Item(fatherLabel, allowedTypes[0]));
+			items.add(new RelationshipTypeSelectionDialog.Item(motherLabel, allowedTypes[0]));
+
+			selectedTypes = RelationshipTypeSelectionDialog.showDialog(null, items, allowedTypes);
+			if(selectedTypes == null)
+				return;
+		}
+
+		final String fatherType = selectedTypes.getFirst();
+		final String motherType = selectedTypes.getLast();
+		final String fatherId = (father != null? father.getId(): null);
+		final String motherId = (mother != null? mother.getId(): null);
+		treeMutator.addChildToParents(fatherId, motherId, individual, fatherType, motherType);
+	}
+
+	private void performRelationOperationParent(final TreeContextHelper.Context ctx, final String[] allowedTypes,
+			final FLEFRecord individual){
+		// We need to choose a type for each child we are linking this parent to.
+		// Determine which children.
+		if(ctx.childrenId.isEmpty())
+			return;
+
+		final List<String> selectedTypes;
+		if(allowedTypes.length == 1)
+			selectedTypes = Collections.nCopies(2, allowedTypes[0]);
+		else{
+			// Build items: each child label + default type
+			final List<RelationshipTypeSelectionDialog.Item> items = new ArrayList<>();
+			for(final String childId : ctx.childrenId){
+				final FLEFRecord child = model.getRecordById(childId);
+				if(child == null)
+					continue;
+
+				final String label = IndividualHandler.getInstance().getDisplayText(child, model);
+				items.add(new RelationshipTypeSelectionDialog.Item(label, allowedTypes[0]));
+			}
+			if(items.isEmpty())
+				return;
+
+			selectedTypes = RelationshipTypeSelectionDialog.showDialog(null, items, allowedTypes);
+			if(selectedTypes == null)
+				return;
+		}
+
+		// Link this parent to each child with its selected type
+		treeMutator.addParentToChild(ctx.childrenId, individual, selectedTypes);
+
+		treeMutator.addPartnerToIndividual(ctx.targetId, individual);
 	}
 
 	/**
@@ -535,9 +615,9 @@ public class BiologicalTreePanel extends JPanel implements TreeChangeListener, I
 	}
 
 	private void toggleLayout(){
-		this.treeLayout = (this.treeLayout == TreeLayout.VERTICAL)
+		this.treeLayout = (this.treeLayout == TreeLayout.VERTICAL
 			? TreeLayout.HORIZONTAL
-			: TreeLayout.VERTICAL;
+			: TreeLayout.VERTICAL);
 
 		refreshTree();
 
@@ -568,7 +648,7 @@ public class BiologicalTreePanel extends JPanel implements TreeChangeListener, I
 		final FLEFModel model = parser.parse(content);
 
 		SwingUtilities.invokeLater(() -> {
-			final BiologicalTreePanel panel = new BiologicalTreePanel(TreeLayout.VERTICAL, model)
+			final BiologicalTreePanel panel = new BiologicalTreePanel(TreeType.BIOLOGICAL, TreeLayout.VERTICAL, model)
 				.withShowPartner();
 			panel.loadTree(rootIndividualId, maxGenerations);
 

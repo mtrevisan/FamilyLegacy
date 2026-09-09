@@ -89,7 +89,7 @@ public class SearchCriteria{
 	 *
 	 * @param key the filter key
 	 * @param <T> the expected type
-	 * @return the value, or null if not present
+	 * @return the value, or {@code null} if not present
 	 */
 	@SuppressWarnings("unchecked")
 	public <T> T getFilterFor(final String key){

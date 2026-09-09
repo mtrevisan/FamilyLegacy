@@ -51,9 +51,9 @@ public final class SimilarityMetrics{
 	 * The Jaro‑Winkler algorithm is a variant of the Jaro distance that gives higher
 	 * weight to common prefixes. It is well‑suited for short strings like names.
 	 *
-	 * @param s1 first string (may be null)
-	 * @param s2 second string (may be null)
-	 * @return similarity in [0,1], or 1.0 if both are null or empty
+	 * @param s1 first string (it may be {@code null})
+	 * @param s2 second string (it may be {@code null})
+	 * @return similarity in [0,1], or 1.0 if both are {@code null} or empty
 	 */
 	public static double jaroWinkler(String s1, String s2){
 		if(s1 == null && s2 == null)

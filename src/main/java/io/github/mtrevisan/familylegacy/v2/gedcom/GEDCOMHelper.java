@@ -282,7 +282,7 @@ public class GEDCOMHelper{
 	 * Handles CONC and CONT children to concatenate lines correctly.
 	 *
 	 * @param noteNode the GEDCOM NOTE node
-	 * @return the full text, or null if no text found
+	 * @return the full text, or {@code null} if no text found
 	 */
 	public static String extractFullText(GEDCOMNode noteNode){
 		if(noteNode == null)

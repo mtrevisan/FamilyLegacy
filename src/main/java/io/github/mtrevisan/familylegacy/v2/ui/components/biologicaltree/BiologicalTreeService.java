@@ -55,6 +55,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 
@@ -70,10 +71,11 @@ public class BiologicalTreeService{
 	private static final String TAG_PARTICIPANT = "participant";
 	private static final String TAG_EVENT = "event";
 
-	private static final String ENUM_TYPE_ENDS_WITH_CHILD = "child";
 	private static final String ENUM_TYPE_FAMILY = "family";
 	private static final String ENUM_TYPE_PARTNER = "partner";
 
+
+	private final Predicate<String> treeTypeFilter;
 
 	private final FLEFModel model;
 
@@ -86,7 +88,9 @@ public class BiologicalTreeService{
 	private final Set<String> individualsWithDescendantsSet = new HashSet<>();
 
 
-	public BiologicalTreeService(final FLEFModel model){
+	public BiologicalTreeService(final Predicate<String> treeTypeFilter, final FLEFModel model){
+		this.treeTypeFilter = treeTypeFilter;
+
 		this.model = model;
 	}
 
@@ -354,7 +358,7 @@ public class BiologicalTreeService{
 			if(subjectId == null || targetId == null)
 				continue;
 
-			if(type.endsWith(ENUM_TYPE_ENDS_WITH_CHILD)){
+			if(treeTypeFilter.test(type)){
 				final FLEFRecord child = model.getRecordById(subjectId);
 				final FLEFRecord parent = model.getRecordById(targetId);
 				if(parent != null)
@@ -431,9 +435,9 @@ public class BiologicalTreeService{
 		final FLEFModel model = parser.parse(content);
 
 
-		final BiologicalTreeService service = new BiologicalTreeService(model);
-		final AncestorNode root = service.buildTree(recordId, true, generations);
-		System.out.println(root);
+		final Predicate<String> treeTypeFilter = type -> type.equalsIgnoreCase("biological_child");
+		final BiologicalTreeService service = new BiologicalTreeService(treeTypeFilter, model);
+		service.buildTree(recordId, true, generations);
 	}
 
 

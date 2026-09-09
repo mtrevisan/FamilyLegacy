@@ -55,6 +55,7 @@ import java.io.Serial;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Predicate;
 
 
 /**
@@ -77,7 +78,6 @@ public class UnlinkRelationshipsDialog extends JDialog{
 
 	private static final String NO_DATA = "?";
 
-	private static final String ENUM_TYPE_CHILD = "child";
 	private static final String ENUM_TYPE_PARTNER = "partner";
 
 	private static final Cursor HAND_CURSOR = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
@@ -93,15 +93,19 @@ public class UnlinkRelationshipsDialog extends JDialog{
 
 
 	private final FLEFModel model;
+	private final Predicate<String> treeTypeFilter;
 	private final String individualId;
+
 	private final List<RelationshipCheckbox> checkboxes = new ArrayList<>();
 	private boolean confirmed;
 
 
-	public UnlinkRelationshipsDialog(final Dialog parent, final FLEFModel model, final String individualId){
+	public UnlinkRelationshipsDialog(final Dialog parent, final FLEFModel model, final Predicate<String> treeTypeFilter,
+			final String individualId){
 		super(parent, "Unlink Relationships", ModalityType.APPLICATION_MODAL);
 
 		this.model = model;
+		this.treeTypeFilter = treeTypeFilter;
 		this.individualId = individualId;
 
 		initComponents();
@@ -187,9 +191,7 @@ public class UnlinkRelationshipsDialog extends JDialog{
 				: (otherId != null? otherId: NO_DATA));
 			final String relationshipId = relationship.getId();
 
-			final boolean isChildRel = type.endsWith(ENUM_TYPE_CHILD);
-			final boolean isPartnerRel = type.endsWith(ENUM_TYPE_PARTNER);
-			if(isChildRel){
+			if(treeTypeFilter.test(type)){
 				if(individualId.equals(subjectId))
 					// individual is the child -> other is a parent
 					parents.add(new RelationshipInfo(relationshipId, otherId, otherName));
@@ -197,7 +199,7 @@ public class UnlinkRelationshipsDialog extends JDialog{
 					// individual is the parent -> other is a child
 					children.add(new RelationshipInfo(relationshipId, otherId, otherName));
 			}
-			else if(isPartnerRel)
+			else if(type.equalsIgnoreCase(ENUM_TYPE_PARTNER))
 				partners.add(new RelationshipInfo(relationshipId, otherId, otherName));
 			// Ignore other relationship types (e.g., adoption, etc.)
 		}

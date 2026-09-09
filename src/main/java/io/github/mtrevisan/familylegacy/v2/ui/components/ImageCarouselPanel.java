@@ -112,7 +112,7 @@ public class ImageCarouselPanel extends JPanel{
 	 * Sets the list of image URIs to display as thumbnails.
 	 * The thumbnails are loaded asynchronously.
 	 *
-	 * @param uris the list of image URIs (null or empty means no images)
+	 * @param uris the list of image URIs ({@code null} or empty means no images)
 	 */
 	public void setImageUris(final List<String> uris){
 		imageUris = (uris != null)? uris: new ArrayList<>();

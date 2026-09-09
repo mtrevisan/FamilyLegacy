@@ -120,7 +120,7 @@ public class NoteConverter{
 	 * Handles CONC and CONT children to concatenate lines correctly.
 	 *
 	 * @param noteNode the GEDCOM NOTE node
-	 * @return the full text, or null if no text found
+	 * @return the full text, or {@code null} if no text found
 	 */
 	private String getFullNoteText(GEDCOMNode noteNode){
 		if(noteNode.getValue() != null && !noteNode.getValue().isBlank()){

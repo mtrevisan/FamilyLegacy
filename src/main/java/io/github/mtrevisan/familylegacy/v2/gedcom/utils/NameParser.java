@@ -45,7 +45,7 @@ public class NameParser {
 	/**
 	 * Parses a GEDCOM NAME node into a FLEF "name" structure.
 	 * @param nameNode the GEDCOM node with tag "NAME"
-	 * @return a FLEF record with tag "name", or null if no data
+	 * @return a FLEF record with tag "name", or {@code null} if no data
 	 */
 	public FLEFRecord parse(GEDCOMNode nameNode) {
 		if (nameNode == null) return null;

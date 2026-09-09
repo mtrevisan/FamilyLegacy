@@ -247,7 +247,7 @@ public class SingleDatePanel extends JPanel{
 	 * The target record will contain the chosen date tag (FULL_DATE, DECADE, or CENTURY)
 	 * and optionally APPROXIMATE.
 	 *
-	 * @return the target record (or null if no data)
+	 * @return the target record (or {@code null} if no data)
 	 */
 	public FLEFRecord save(){
 		if(!hasData())

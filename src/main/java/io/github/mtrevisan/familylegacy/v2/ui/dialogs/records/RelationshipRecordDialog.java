@@ -119,7 +119,7 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 		"group_member", "associate"
 	);
 	private static final List<String> GROUP_TO_GROUP_TYPES = List.of(
-		"associate"
+		"associate", "part_of"
 	);
 	private static final List<String> GROUP_TO_INDIVIDUAL_TYPES = Collections.emptyList();
 
@@ -160,7 +160,7 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 			StringUtils.EMPTY,
 			"biological_child", "adoptive_child", "foster_child", "guarded_child", "step_child",
 			"civil_spouse", "religious_spouse", "customary_spouse", "cohabiting_partner", "engaged_partner",
-			"group_member", "associate"
+			"group_member", "associate", "part_of"
 		});
 		subjectTypeCombo.setEditable(true);
 		subjectRoleField = new BoundTextField(TAG_ROLE);
