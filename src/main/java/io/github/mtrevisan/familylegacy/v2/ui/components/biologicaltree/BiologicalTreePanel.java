@@ -1,3 +1,27 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
 package io.github.mtrevisan.familylegacy.v2.ui.components.biologicaltree;
 
 import io.github.mtrevisan.familylegacy.v2.io.FLEFParser;
@@ -54,7 +78,7 @@ import java.util.function.Supplier;
 /**
  * Generalized panel responsible for rendering an N-generation genealogical tree layout dynamically.
  */
-public class BiologicalTreePanel extends JPanel implements BiologicalTreeChangeListener, IndividualListener{
+public class BiologicalTreePanel extends JPanel implements TreeChangeListener, IndividualListener{
 
 	@Serial
 	private static final long serialVersionUID = 9011391311012465249L;
@@ -131,8 +155,8 @@ public class BiologicalTreePanel extends JPanel implements BiologicalTreeChangeL
 		}
 
 		// Build tree hierarchy from model
-		final AncestorNode rootIndividualNode = treeService.buildAncestorTree(currentRootIndividualId,
-			showPartner, currentMaxGenerations - 1);
+		final AncestorNode rootIndividualNode = treeService.buildTree(currentRootIndividualId, showPartner,
+			currentMaxGenerations - 1);
 
 		// Clear previous UI sub-components
 		removeAll();
@@ -142,7 +166,7 @@ public class BiologicalTreePanel extends JPanel implements BiologicalTreeChangeL
 		if(rootIndividualNode != null && showPartner){
 			final IndividualData partnerData = rootIndividualNode.getPartnerData();
 			final String partnerId = (partnerData != null? partnerData.getIndividualId(): null);
-			final AncestorNode partnerNode = treeService.buildAncestorTree(partnerId, showPartner,
+			final AncestorNode partnerNode = treeService.buildTree(partnerId, showPartner,
 				currentMaxGenerations - 1);
 			final SexType sex = rootIndividualNode.getIndividualData()
 				.getIndividualSex();
@@ -174,8 +198,8 @@ public class BiologicalTreePanel extends JPanel implements BiologicalTreeChangeL
 	 * Each node represents a couple (individual and partner).
 	 */
 	private void buildLayout(){
-		final TreeLayoutBuilder.LayoutResult result = TreeLayoutBuilder.buildLayout(this, rootNode,
-			showPartner, currentMaxGenerations, model, nodeToPanelMap, this, treeMutator, treeLayout);
+		final BiologicalTreeLayoutBuilder.LayoutResult result = BiologicalTreeLayoutBuilder.buildLayout(this,
+			rootNode, showPartner, currentMaxGenerations, model, nodeToPanelMap, this, treeMutator, treeLayout);
 
 		this.childrenPanel = result.childrenPanel();
 	}
@@ -191,7 +215,7 @@ public class BiologicalTreePanel extends JPanel implements BiologicalTreeChangeL
 			g2.setColor(CONNECTION_LINE_COLOR);
 			g2.setStroke(PartnersPanel.CONNECTION_STROKE);
 
-			TreeRenderer.drawTree(g2, treeLayout, rootNode, nodeToPanelMap, childrenPanel, this);
+			BiologicalTreeRenderer.drawTree(g2, treeLayout, rootNode, nodeToPanelMap, childrenPanel, this);
 		}
 	}
 
@@ -371,8 +395,8 @@ public class BiologicalTreePanel extends JPanel implements BiologicalTreeChangeL
 		final FLEFRecord[] result = {null};
 		@SuppressWarnings("unchecked")
 		final RecordSelectionDialog dialog = RecordSelectionDialog.createWithAllowRecordCreation(parent, model,
-				(record, handler) -> result[0] = record,
-				IndividualHandler.class);
+			(record, handler) -> result[0] = record,
+			IndividualHandler.class);
 		if(sex != null)
 			dialog.withFilter("sex", sex.name().toLowerCase());
 		dialog.setVisible(true);

@@ -1,9 +1,34 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
 package io.github.mtrevisan.familylegacy.v2.ui.components.socialnetworkgraph;
 
 import io.github.mtrevisan.familylegacy.v2.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.components.searches.RecordSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.GroupRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.IndividualRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
@@ -11,6 +36,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 import org.graphstream.graph.Edge;
 import org.graphstream.graph.Graph;
@@ -22,6 +48,8 @@ import org.graphstream.ui.view.Viewer;
 import org.graphstream.ui.view.ViewerListener;
 import org.graphstream.ui.view.ViewerPipe;
 
+import javax.swing.AbstractAction;
+import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
@@ -30,6 +58,7 @@ import javax.swing.UIManager;
 import javax.swing.WindowConstants;
 import java.awt.BorderLayout;
 import java.awt.Dialog;
+import java.awt.event.ActionEvent;
 import java.io.InputStream;
 import java.io.Serial;
 import java.nio.charset.StandardCharsets;
@@ -80,21 +109,30 @@ public class SocialNetworkGraphPanel extends JPanel implements ViewerListener{
 		}
 		""";
 
+
 	private final Dialog parentDialog;
 	private final FLEFModel model;
 
 	private final Graph graph;
+	private final DefaultView view;
 	private final ViewerPipe viewerPipe;
 	private final Timer pumpTimer;
 
+	private String targetIndividualId;
+	private Double targetZoomLevel;
 	private boolean loop = true;
 
 
 	public SocialNetworkGraphPanel(final Dialog parentDialog, final FLEFModel model){
+		this(parentDialog, model, null);
+	}
+
+	public SocialNetworkGraphPanel(final Dialog parentDialog, final FLEFModel model, final String centerIndividualId){
 		super(new BorderLayout());
 
 		this.parentDialog = parentDialog;
 		this.model = Objects.requireNonNull(model);
+		targetIndividualId = centerIndividualId;
 
 		System.setProperty("gs.ui.renderer", "org.graphstream.ui.j2dviewer.J2DGraphRenderer");
 		graph = new SingleGraph("SocialNetwork");
@@ -107,7 +145,7 @@ public class SocialNetworkGraphPanel extends JPanel implements ViewerListener{
 		final SwingViewer viewer = new SwingViewer(graph, Viewer.ThreadingModel.GRAPH_IN_GUI_THREAD);
 		viewer.enableAutoLayout();
 
-		final DefaultView view = (DefaultView)viewer.addDefaultView(false);
+		view = (DefaultView)viewer.addDefaultView(false);
 
 		// Completely disable the native shortcut manager and remove default listeners
 		view.setShortcutManager(null);
@@ -125,17 +163,49 @@ public class SocialNetworkGraphPanel extends JPanel implements ViewerListener{
 
 		add(view, BorderLayout.CENTER);
 
+		setupKeyboardShortcuts();
+
 		viewerPipe = viewer.newViewerPipe();
 		viewerPipe.addViewerListener(this);
 		viewerPipe.addSink(graph);
 
 		pumpTimer = new Timer(50, e -> {
-			if(loop)
+			if(loop){
 				viewerPipe.pump();
+
+				centerCameraOnTargetNode();
+			}
 		});
 		pumpTimer.start();
 
 		buildGraph();
+	}
+
+	public void centerAndZoomOnIndividual(final String individualId){
+		centerAndZoomOnIndividual(individualId, 0.5);
+	}
+
+	public void centerAndZoomOnIndividual(final String individualId, final double zoomLevel){
+		this.targetIndividualId = individualId;
+		this.targetZoomLevel = zoomLevel;
+	}
+
+	private void setupKeyboardShortcuts(){
+		getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(GUIHelper.CTRL_F_STROKE, "openSearchDialog");
+		getActionMap().put("openSearchDialog", new AbstractAction(){
+			@Override
+			public void actionPerformed(final ActionEvent e){
+				openSearchDialog();
+			}
+		});
+	}
+
+	private void openSearchDialog(){
+		@SuppressWarnings("unchecked")
+		final RecordSelectionDialog dialog = RecordSelectionDialog.create(null, model,
+			(record, handler) -> centerAndZoomOnIndividual(record.getId()),
+			IndividualHandler.class, GroupHandler.class);
+		dialog.setVisible(true);
 	}
 
 	public final void buildGraph(){
@@ -219,6 +289,31 @@ public class SocialNetworkGraphPanel extends JPanel implements ViewerListener{
 				groupsToRemove.add(node);
 		for(final Node node : groupsToRemove)
 			graph.removeNode(node);
+	}
+
+	private void centerCameraOnTargetNode(){
+		if(targetIndividualId == null)
+			return;
+
+		final Node targetNode = graph.getNode(targetIndividualId);
+		if(targetNode != null && targetNode.hasAttribute("xyz")){
+			final Object[] xyz = (Object[])targetNode.getAttribute("xyz");
+			if(xyz != null && xyz.length >= 2){
+				final double x = ((Number)xyz[0]).doubleValue();
+				final double y = ((Number)xyz[1]).doubleValue();
+				final double z = (xyz.length > 2? ((Number)xyz[2]).doubleValue(): 0.);
+
+				view.getCamera().setViewCenter(x, y, z);
+
+				if(targetZoomLevel != null){
+					view.getCamera().setViewPercent(targetZoomLevel);
+					targetZoomLevel = null;
+				}
+
+				// Reset target ID to allow free panning/navigation afterwards
+				targetIndividualId = null;
+			}
+		}
 	}
 
 	private String getRecordLabel(final FLEFRecord record, final String type){

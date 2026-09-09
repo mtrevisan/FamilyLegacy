@@ -22,27 +22,64 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.v2.ui.components.searches;
+package io.github.mtrevisan.familylegacy.v2.ui.components.grouptree;
 
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 
-import java.util.function.Predicate;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 
 /**
- * Strategy for filtering records of a specific type based on search criteria.
+ * Represents a single node within a non-biological group or entity tree.
  */
-public interface SearchStrategy {
+public final class GroupTreeNode{
 
-	/**
-	 * Builds a predicate that tests whether a record matches the given criteria.
-	 *
-	 * @param criteria the search criteria
-	 * @return a predicate for filtering records
-	 */
-	Predicate<FLEFRecord> buildPredicate(SearchCriteria criteria, FLEFModel model);
+	private final FLEFRecord record;
 
-	String getDisplayText(FLEFRecord record, FLEFModel model);
+	private final List<GroupTreeNode> parents = new ArrayList<>();
+
+	private final List<GroupTreeNode> members = new ArrayList<>();
+
+	private final int generation;
+
+
+	public GroupTreeNode(final FLEFRecord record, final int generation){
+		this.record = record;
+
+		this.generation = generation;
+	}
+
+
+	public FLEFRecord getRecord(){
+		return record;
+	}
+
+	public String getRecordId(){
+		return (record != null? record.getId(): null);
+	}
+
+	public int getGeneration(){
+		return generation;
+	}
+
+	public List<GroupTreeNode> getParents(){
+		return Collections.unmodifiableList(parents);
+	}
+
+	public void addParent(final GroupTreeNode parentNode){
+		if(parentNode != null)
+			parents.add(parentNode);
+	}
+
+	public List<GroupTreeNode> getMembers(){
+		return Collections.unmodifiableList(members);
+	}
+
+	public void addMember(final GroupTreeNode memberNode){
+		if(memberNode != null)
+			members.add(memberNode);
+	}
 
 }

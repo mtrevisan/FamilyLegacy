@@ -1,0 +1,18 @@
+GroupIndividualTreePanel (Modello A — Individui come Box)
+Concetto: Rappresenta gli individui e le loro appartenenze/ruoli all'interno dei gruppi.
+Uso principale: Famiglie, nuclei domestici, adozioni, affidi.
+
+GroupHierarchyTreePanel (Modello B — Gerarchia di Gruppi)
+Concetto: Rappresenta la struttura gerarchica e la filiazione tra gruppi stessi.
+Uso principale: Casate, gilde, associazioni, federazioni, tribù.
+
+
+io.github.mtrevisan.familylegacy.v2.ui.components.grouptree
+├── AbstractGroupTreePanel.java
+├── GroupIndividualTreePanel.java  // Modello A (Individui/Membri nei box)
+├── GroupHierarchyTreePanel.java   // Modello B (Gruppi/Sotto-gruppi nei box)
+├── GroupTreeNode.java
+├── GroupTreeService.java
+└── renderers/
+    ├── GroupIndividualTreeRenderer.java
+    └── GroupHierarchyTreeRenderer.java

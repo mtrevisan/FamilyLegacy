@@ -123,6 +123,8 @@ public final class GUIHelper{
 
 	public static final KeyStroke CTRL_L_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_L, KeyEvent.CTRL_DOWN_MASK);
 
+	public static final KeyStroke CTRL_F_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_F, KeyEvent.CTRL_DOWN_MASK);
+
 	private static final Color COLOR_BACKGROUND = UIManager.getColor("TextField.background");
 	public static final Color COLOR_FOREGROUND_ENABLED = UIManager.getColor("TextField.foreground");
 	public static final Color COLOR_FOREGROUND_DISABLED = UIManager.getColor("Label.disabledForeground");
