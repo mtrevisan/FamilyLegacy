@@ -474,10 +474,11 @@ record RelationshipRecord {
     customary_spouse,     // (Individual -> Individual) marriage recognized by local custom or tradition
     cohabiting_partner,   // (Individual -> Individual) non-marital domestic partnership
     engaged_partner,      // (Individual -> Individual) promise or agreement to marry
-    group_member,         // (Individual -> Group) membership in a group
+    group_member,         // (Individual -> Group) membership of an individual in a group
     associate             // (Individual -> Individual | Individual -> Group | Group -> Group) general association
+    part_of               // (Group -> Group) membership of a group within a larger group
   } | Text
-  role?: Text                        // the function, position, capacity or responsibility held by the SUBJECT relative to the TARGET. This field provides additional contextual, contextual, organizational, legal, social, or cultural interpretation that is not fully expressed by TYPE alone. ROLE supplements TYPE and SHOULD NOT contradict it. Implementations SHOULD verify that ROLE is semantically compatible with TYPE (ex. biological_child/adoptive_child/foster_child/guarded_child/step_child/civil_spouse/religious_spouse/customary_spouse/cohabiting_partner/engaged_partner -> ROLE is normally unnecessary and SHOULD be omitted, group_member -> examples include member, president, secretary, treasurer, resident, head_of_household, tribal_leader, elder, custodian, ..., associate -> any role MAY be supplied because the relationship itself is generic).
+  role?: Text                        // the function, position, capacity or responsibility held by the SUBJECT relative to the TARGET. This field provides additional contextual, organizational, legal, social, or cultural interpretation that is not fully expressed by TYPE alone. ROLE supplements TYPE and SHOULD NOT contradict it. Implementations SHOULD verify that ROLE is semantically compatible with TYPE (ex. biological_child/adoptive_child/foster_child/guarded_child/step_child/civil_spouse/religious_spouse/customary_spouse/cohabiting_partner/engaged_partner/part_of -> ROLE is normally unnecessary and SHOULD be omitted, group_member -> examples include member, president, secretary, treasurer, resident, head_of_household, tribal_leader, elder, custodian, ..., associate -> any role MAY be supplied because the relationship itself is generic).
   status?: enum {
     active,   // relationship currently exists
     ended,    // relationship no longer exists
