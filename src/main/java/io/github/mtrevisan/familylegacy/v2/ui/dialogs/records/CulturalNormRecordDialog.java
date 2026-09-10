@@ -43,7 +43,7 @@ import org.apache.commons.lang3.StringUtils;
 import javax.swing.BorderFactory;
 import javax.swing.JPanel;
 import javax.swing.border.TitledBorder;
-import java.awt.Dialog;
+import java.awt.Window;
 import java.io.IOException;
 import java.io.Serial;
 
@@ -116,17 +116,17 @@ public class CulturalNormRecordDialog extends BaseRecordDialog{
 	private final DateField validToField;
 
 
-	public static CulturalNormRecordDialog createNew(final Dialog parent, final FLEFModel model){
+	public static CulturalNormRecordDialog createNew(final Window parent, final FLEFModel model){
 		return createNew(parent, model, CulturalNormRecordDialog::new);
 	}
 
-	public static CulturalNormRecordDialog createEdit(final Dialog parent, final FLEFModel model,
+	public static CulturalNormRecordDialog createEdit(final Window parent, final FLEFModel model,
 			final FLEFRecord record){
 		return createEdit(parent, model, record, CulturalNormRecordDialog::new);
 	}
 
 
-	private CulturalNormRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+	private CulturalNormRecordDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, CulturalNormHandler.getInstance());
 
 		titleField = new BoundTextField(TAG_TITLE);

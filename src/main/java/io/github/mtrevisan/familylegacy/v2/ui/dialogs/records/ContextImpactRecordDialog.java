@@ -51,7 +51,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JPanel;
-import java.awt.Dialog;
+import java.awt.Window;
 import java.io.Serial;
 import java.util.function.Consumer;
 
@@ -102,17 +102,17 @@ public class ContextImpactRecordDialog extends BaseRecordDialog{
 	private final JPanel propertiesPanel;
 
 
-	public static ContextImpactRecordDialog createNew(final Dialog parent, final FLEFModel model){
+	public static ContextImpactRecordDialog createNew(final Window parent, final FLEFModel model){
 		return createNew(parent, model, ContextImpactRecordDialog::new);
 	}
 
-	public static ContextImpactRecordDialog createEdit(final Dialog parent, final FLEFModel model,
+	public static ContextImpactRecordDialog createEdit(final Window parent, final FLEFModel model,
 		final FLEFRecord record){
 		return createEdit(parent, model, record, ContextImpactRecordDialog::new);
 	}
 
 
-	private ContextImpactRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+	private ContextImpactRecordDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, ContextImpactHandler.getInstance());
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]10[]10[]");

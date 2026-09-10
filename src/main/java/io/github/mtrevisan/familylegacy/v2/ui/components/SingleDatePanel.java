@@ -41,8 +41,8 @@ import javax.swing.SwingUtilities;
 import java.awt.CardLayout;
 import java.awt.Component;
 import java.awt.Container;
-import java.awt.Dialog;
 import java.awt.Dimension;
+import java.awt.Window;
 import java.io.Serial;
 import java.util.EnumMap;
 import java.util.Map;
@@ -114,7 +114,7 @@ public class SingleDatePanel extends JPanel{
 	private final Map<DateType, BoundTextField> fieldMap = new EnumMap<>(DateType.class);
 
 
-	public SingleDatePanel(final Dialog parent, final FLEFModel model){
+	public SingleDatePanel(final Window parent, final FLEFModel model){
 		fullDateValueField = new BoundTextField(TAG_FULL_DATE_VALUE);
 		decadeStartYearField = new BoundTextField(TAG_DECADE_START_YEAR);
 		centuryOrdinalField = new BoundTextField(TAG_CENTURY_ORDINAL);

@@ -39,6 +39,7 @@ import javax.swing.JDialog;
 import javax.swing.JPanel;
 import java.awt.BorderLayout;
 import java.awt.Dialog;
+import java.awt.Window;
 import java.io.Serial;
 import java.util.List;
 
@@ -66,7 +67,7 @@ public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
 	private final String path;
 
 
-	public ExtractListPanel(final String path, final Dialog parent, final String panelTitle, final FLEFModel model){
+	public ExtractListPanel(final String path, final Window parent, final String panelTitle, final FLEFModel model){
 		super(parent, panelTitle, model);
 
 		this.path = path;

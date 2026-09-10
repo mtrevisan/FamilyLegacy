@@ -54,7 +54,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
 import javax.swing.JPanel;
-import java.awt.Dialog;
+import java.awt.Window;
 import java.io.IOException;
 import java.io.Serial;
 
@@ -133,17 +133,17 @@ public class ResearchQuestionRecordDialog extends BaseRecordDialog{
 	private final BoundTextArea rationaleArea;
 
 
-	public static ResearchQuestionRecordDialog createNew(final Dialog parent, final FLEFModel model){
+	public static ResearchQuestionRecordDialog createNew(final Window parent, final FLEFModel model){
 		return createNew(parent, model, ResearchQuestionRecordDialog::new);
 	}
 
-	public static ResearchQuestionRecordDialog createEdit(final Dialog parent, final FLEFModel model,
+	public static ResearchQuestionRecordDialog createEdit(final Window parent, final FLEFModel model,
 			final FLEFRecord record){
 		return createEdit(parent, model, record, ResearchQuestionRecordDialog::new);
 	}
 
 
-	private ResearchQuestionRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+	private ResearchQuestionRecordDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, ResearchQuestionHandler.getInstance());
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]10[]10[]10[]");

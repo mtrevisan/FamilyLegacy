@@ -31,7 +31,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.ResearchActivityRe
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
-import java.awt.Dialog;
+import java.awt.Window;
 
 
 /**
@@ -89,12 +89,13 @@ public class ResearchActivityHandler extends AbstractRecordTypeHandler<ResearchA
 	}
 
 	@Override
-	public ResearchActivityRecordDialog createNewDialog(Dialog parent, FLEFModel model){
+	public ResearchActivityRecordDialog createNewDialog(final Window parent, final FLEFModel model){
 		return ResearchActivityRecordDialog.createNew(parent, model);
 	}
 
 	@Override
-	public ResearchActivityRecordDialog createEditDialog(Dialog parent, FLEFModel model, FLEFRecord record){
+	public ResearchActivityRecordDialog createEditDialog(final Window parent, final FLEFModel model,
+			final FLEFRecord record){
 		return ResearchActivityRecordDialog.createEdit(parent, model, record);
 	}
 

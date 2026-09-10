@@ -43,6 +43,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 
@@ -367,7 +368,7 @@ public class IndividualConverter {
 //						if("FAM".equals(typeNode.getValue())){}
 //						else if("INDI".equals(typeNode.getValue())){}
 						GEDCOMNode relaNode = GEDCOMHelper.findFirstChild(child, "RELA");
-						String relation = (relaNode != null && StringUtils.isNotEmpty(relaNode.getValue())? relaNode.getValue(): "unknown");
+						String relation = (relaNode != null && StringUtils.isNotEmpty(relaNode.getValue())? relaNode.getValue().toLowerCase(Locale.ROOT): "unknown");
 
 						FLEFRecord relationship = FLEFRecord.createMainRecord(IDGenerator.nextId(RelationshipHandler.ID_PREFIX), RelationshipHandler.TYPE)
 							// subject: child
@@ -380,8 +381,17 @@ public class IndividualConverter {
 									(GEDCOMHelper.cleanId(child.getValue()).startsWith("I")? "individual": "group"),
 									GEDCOMHelper.cleanId(child.getValue())
 								))
-							)
-							.addChild(FLEFRecord.createChildWithTagAndValue("type", relation));
+							);
+						if("biological_child".equals(relation) || "adoptive_child".equals(relation)
+								|| "foster_child".equals(relation) || "guarded_child".equals(relation)
+								|| "step_child".equals(relation) || "civil_spouse".equals(relation)
+								|| "religious_spouse".equals(relation) || "customary_spouse".equals(relation)
+								|| "cohabiting_partner".equals(relation) || "engaged_partner".equals(relation)
+								|| "group_member".equals(relation)|| "associate".equals(relation)|| "part_of".equals(relation))
+							relationship.addChild(FLEFRecord.createChildWithTagAndValue("type", relation));
+						else
+							relationship.addChild(FLEFRecord.createChildWithTagAndValue("type", "associate"))
+								.addChild(FLEFRecord.createChildWithTagAndValue("role", relation));
 						relationship.addChild(AuditBuilder.build(node));
 
 						// ---- Sources (SOUR) ----

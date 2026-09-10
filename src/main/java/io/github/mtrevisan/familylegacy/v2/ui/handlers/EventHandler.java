@@ -30,7 +30,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.EventRecordDialog;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 
-import java.awt.Dialog;
+import java.awt.Window;
 
 
 public class EventHandler extends AbstractRecordTypeHandler<EventRecordDialog>{
@@ -96,12 +96,12 @@ public class EventHandler extends AbstractRecordTypeHandler<EventRecordDialog>{
 	}
 
 	@Override
-	public EventRecordDialog createNewDialog(final Dialog parent, final FLEFModel model){
+	public EventRecordDialog createNewDialog(final Window parent, final FLEFModel model){
 		return EventRecordDialog.createNew(parent, model);
 	}
 
 	@Override
-	public EventRecordDialog createEditDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+	public EventRecordDialog createEditDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
 		return EventRecordDialog.createEdit(parent, model, record);
 	}
 

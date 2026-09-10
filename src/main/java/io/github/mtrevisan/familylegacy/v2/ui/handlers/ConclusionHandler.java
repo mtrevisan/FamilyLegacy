@@ -31,7 +31,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.ConclusionRecordDi
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
-import java.awt.Dialog;
+import java.awt.Window;
 
 
 public class ConclusionHandler extends AbstractRecordTypeHandler<ConclusionRecordDialog>{
@@ -87,12 +87,12 @@ public class ConclusionHandler extends AbstractRecordTypeHandler<ConclusionRecor
 	}
 
 	@Override
-	public ConclusionRecordDialog createNewDialog(final Dialog parent, final FLEFModel model){
+	public ConclusionRecordDialog createNewDialog(final Window parent, final FLEFModel model){
 		return ConclusionRecordDialog.createNew(parent, model);
 	}
 
 	@Override
-	public ConclusionRecordDialog createEditDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+	public ConclusionRecordDialog createEditDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
 		return ConclusionRecordDialog.createEdit(parent, model, record);
 	}
 

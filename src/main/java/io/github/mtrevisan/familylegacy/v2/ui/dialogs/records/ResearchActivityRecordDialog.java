@@ -53,7 +53,7 @@ import org.apache.commons.lang3.StringUtils;
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import java.awt.Dialog;
+import java.awt.Window;
 import java.io.IOException;
 import java.io.Serial;
 
@@ -137,17 +137,17 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 	private final EntityField parentActivityField;
 
 
-	public static ResearchActivityRecordDialog createNew(final Dialog parent, final FLEFModel model){
+	public static ResearchActivityRecordDialog createNew(final Window parent, final FLEFModel model){
 		return createNew(parent, model, ResearchActivityRecordDialog::new);
 	}
 
-	public static ResearchActivityRecordDialog createEdit(final Dialog parent, final FLEFModel model,
+	public static ResearchActivityRecordDialog createEdit(final Window parent, final FLEFModel model,
 			final FLEFRecord record){
 		return createEdit(parent, model, record, ResearchActivityRecordDialog::new);
 	}
 
 
-	private ResearchActivityRecordDialog(Dialog parent, FLEFModel model, FLEFRecord record){
+	private ResearchActivityRecordDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, ResearchActivityHandler.getInstance());
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]5[]10[]");
@@ -185,7 +185,8 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 			StringUtils.EMPTY,
 			"low", "medium", "high"});
 
-		parentActivityField = EntityField.createForRecordFromReference(TAG_PARENT_ACTIVITY, this, model, ResearchActivityHandler.class);
+		parentActivityField = EntityField.createForRecordFromReference(TAG_PARENT_ACTIVITY, this, model,
+			ResearchActivityHandler.class);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)

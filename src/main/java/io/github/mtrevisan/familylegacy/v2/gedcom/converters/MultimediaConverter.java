@@ -157,7 +157,7 @@ public class MultimediaConverter{
 				}
 				// ---- 5b. FILE/FORM/TYPE ----
 				GEDCOMNode typeNode = GEDCOMHelper.findFirstChild(formNode, "TYPE");
-				if(typeNode != null && typeNode.getValue() != null){
+				if(typeNode != null && StringUtils.isNotEmpty(typeNode.getValue())){
 					FLEFRecord note = FLEFRecord.createChildWithTag("note")
 						.addChild(FLEFRecord.createChildWithTagAndValue("text", "Media type: " + typeNode.getValue()))
 						.addChild(AuditBuilder.build(objNode));

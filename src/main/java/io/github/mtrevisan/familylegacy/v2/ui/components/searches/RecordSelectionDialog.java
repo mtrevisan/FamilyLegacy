@@ -27,7 +27,6 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.searches;
 import io.github.mtrevisan.familylegacy.v2.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.ui.components.biologicaltree.BiologicalTreePanel;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
@@ -61,8 +60,8 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import java.awt.BorderLayout;
 import java.awt.Component;
-import java.awt.Dialog;
 import java.awt.Dimension;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -144,14 +143,14 @@ public class RecordSelectionDialog extends JDialog{
 
 
 	@SuppressWarnings("unchecked")
-	public static RecordSelectionDialog create(final Dialog parent, final FLEFModel model,
+	public static RecordSelectionDialog create(final Window parent, final FLEFModel model,
 			final BiConsumer<FLEFRecord, RecordTypeHandler<?>> onSelect,
 			final Class<? extends RecordTypeHandler<?>>... handlerTypes){
 		return new RecordSelectionDialog(parent, model, onSelect, handlerTypes);
 	}
 
 	@SuppressWarnings("unchecked")
-	public static RecordSelectionDialog createWithAllowRecordCreation(final Dialog parent, final FLEFModel model,
+	public static RecordSelectionDialog createWithAllowRecordCreation(final Window parent, final FLEFModel model,
 			final BiConsumer<FLEFRecord, RecordTypeHandler<?>> onSelect,
 			final Class<? extends RecordTypeHandler<?>>... handlerTypes){
 		return new RecordSelectionDialog(parent, model, onSelect, true, handlerTypes);
@@ -159,14 +158,14 @@ public class RecordSelectionDialog extends JDialog{
 
 
 	@SafeVarargs
-	private RecordSelectionDialog(final Dialog parent, final FLEFModel model,
+	private RecordSelectionDialog(final Window parent, final FLEFModel model,
 			final BiConsumer<FLEFRecord, RecordTypeHandler<?>> onSelect,
 			final Class<? extends RecordTypeHandler<?>>... handlerTypes){
 		this(parent, model, onSelect, false, handlerTypes);
 	}
 
 	@SafeVarargs
-	private RecordSelectionDialog(final Dialog parent, final FLEFModel model,
+	private RecordSelectionDialog(final Window parent, final FLEFModel model,
 			final BiConsumer<FLEFRecord, RecordTypeHandler<?>> onSelect,
 			final boolean allowCreation, final Class<? extends RecordTypeHandler<?>>... handlerTypes){
 		super(parent, "Select Record", ModalityType.APPLICATION_MODAL);
@@ -591,7 +590,7 @@ public class RecordSelectionDialog extends JDialog{
 		final String modelUri = "/tests/TGMZ.flef";
 
 		final String content;
-		try(final InputStream is = BiologicalTreePanel.class.getResourceAsStream(modelUri)){
+		try(final InputStream is = RecordSelectionDialog.class.getResourceAsStream(modelUri)){
 			content = new String(Objects.requireNonNull(is).readAllBytes(), StandardCharsets.UTF_8);
 		}
 

@@ -34,8 +34,8 @@ import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
-import java.awt.Dialog;
 import java.awt.Rectangle;
+import java.awt.Window;
 import java.io.IOException;
 import java.io.Serial;
 import java.util.List;
@@ -67,7 +67,7 @@ public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
 	private final DocumentHandler documentHandler = DocumentHandler.getInstance();
 
 
-	public DocumentPartListPanel(final String path, final Dialog parent, final String panelTitle, final FLEFModel model){
+	public DocumentPartListPanel(final String path, final Window parent, final String panelTitle, final FLEFModel model){
 		super(parent, panelTitle, model);
 
 		this.path = path;

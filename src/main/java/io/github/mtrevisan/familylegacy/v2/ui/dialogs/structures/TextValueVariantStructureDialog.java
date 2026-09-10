@@ -38,8 +38,8 @@ import javax.swing.ButtonGroup;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
-import java.awt.Dialog;
 import java.awt.FlowLayout;
+import java.awt.Window;
 import java.io.Serial;
 
 
@@ -108,16 +108,16 @@ public class TextValueVariantStructureDialog extends BaseRecordDialog{
 	private final BoundTextField valueField;
 
 
-	public static TextValueVariantStructureDialog createNew(final Dialog parent, final FLEFModel model){
+	public static TextValueVariantStructureDialog createNew(final Window parent, final FLEFModel model){
 		return createNew(parent, model, TextValueVariantStructureDialog::new);
 	}
 
-	public static TextValueVariantStructureDialog createEdit(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+	public static TextValueVariantStructureDialog createEdit(final Window parent, final FLEFModel model, final FLEFRecord record){
 		return createEdit(parent, model, record, TextValueVariantStructureDialog::new);
 	}
 
 
-	private TextValueVariantStructureDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+	private TextValueVariantStructureDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, TextValueVariantHandler.getInstance());
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(0, "[]15[]5[]5[]5[]");

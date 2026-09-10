@@ -40,7 +40,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.helpers.LocaleHelper;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JPanel;
-import java.awt.Dialog;
+import java.awt.Window;
 import java.io.Serial;
 
 
@@ -96,16 +96,16 @@ public class NoteStructureDialog extends BaseRecordDialog{
 	private final TranslationListPanel translationPanel;
 
 
-	public static NoteStructureDialog createNew(final Dialog parent, final FLEFModel model){
+	public static NoteStructureDialog createNew(final Window parent, final FLEFModel model){
 		return createNew(parent, model, NoteStructureDialog::new);
 	}
 
-	public static NoteStructureDialog createEdit(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+	public static NoteStructureDialog createEdit(final Window parent, final FLEFModel model, final FLEFRecord record){
 		return createEdit(parent, model, record, NoteStructureDialog::new);
 	}
 
 
-	private NoteStructureDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+	private NoteStructureDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, NoteHandler.getInstance());
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]5[]5[]10[]");

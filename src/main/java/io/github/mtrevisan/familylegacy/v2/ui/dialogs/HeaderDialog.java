@@ -38,7 +38,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import java.awt.BorderLayout;
-import java.awt.Dialog;
+import java.awt.Window;
 import java.io.IOException;
 import java.io.Serial;
 import java.time.LocalDate;
@@ -120,7 +120,7 @@ public class HeaderDialog extends BaseRecordDialog{
 	private final BoundTextArea scopeArea;
 
 
-	public HeaderDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+	public HeaderDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, model.getHeader(), HeaderHandler.getInstance());
 
 		final String sourceName = ProjectInfo.getAppName();

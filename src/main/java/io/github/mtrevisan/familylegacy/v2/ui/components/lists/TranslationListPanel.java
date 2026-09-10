@@ -36,6 +36,7 @@ import javax.swing.JDialog;
 import javax.swing.JPanel;
 import java.awt.BorderLayout;
 import java.awt.Dialog;
+import java.awt.Window;
 import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
@@ -57,7 +58,7 @@ public class TranslationListPanel extends AbstractListPanel<FLEFRecord>{
 	private final String path;
 
 
-	public TranslationListPanel(final String path, final Dialog parent, final String panelTitle){
+	public TranslationListPanel(final String path, final Window parent, final String panelTitle){
 		super(parent, panelTitle, null);
 
 		this.path = path;

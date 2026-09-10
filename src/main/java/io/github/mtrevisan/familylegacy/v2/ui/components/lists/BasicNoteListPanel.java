@@ -34,6 +34,7 @@ import javax.swing.JDialog;
 import javax.swing.JPanel;
 import java.awt.BorderLayout;
 import java.awt.Dialog;
+import java.awt.Window;
 import java.io.Serial;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
@@ -64,7 +65,7 @@ public class BasicNoteListPanel extends AbstractListPanel<FLEFRecord>{
 	 * @param parent	the parent dialog
 	 * @param panelTitle	the border title, or {@code null} for no border
 	 */
-	public BasicNoteListPanel(final String path, final Dialog parent, final String panelTitle, final String recordTag){
+	public BasicNoteListPanel(final String path, final Window parent, final String panelTitle, final String recordTag){
 		super(parent, panelTitle, null);
 
 		this.path = path;

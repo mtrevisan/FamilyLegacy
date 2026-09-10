@@ -26,8 +26,12 @@ package io.github.mtrevisan.familylegacy.v2.gedcom;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 
@@ -45,12 +49,59 @@ import java.util.Map;
 public final class Deduplicator{
 
 	private static final Map<String, FLEFRecord> CANONICAL_MAP = new HashMap<>();
+	private static final Map<String, FLEFRecord> CANONICAL_MAP_RELATIONSHIP = new HashMap<>();
 
 
 	private Deduplicator(){}
 
 
 	public static String getDeduplicatedRecordId(FLEFModel model, FLEFRecord record){
+		if(record.getTag().equalsIgnoreCase(RelationshipHandler.TYPE)){
+			String type = FLEFRecordHelper.getChildValue(record, "type");
+			if("biological_child".equals(type)){
+				FLEFRecord subject = FLEFRecordHelper.findChild(record, "subject");
+				String subjectId = subject.getTheOnlyChild()
+					.getValue();
+				FLEFRecord target = FLEFRecordHelper.findChild(record, "target");
+				String targetId = target.getTheOnlyChild()
+					.getValue();
+
+				List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
+				for(final FLEFRecord relationship : relationships){
+					if(!"adoptive_child".equalsIgnoreCase(FLEFRecordHelper.getChildValue(relationship, "type")))
+						continue;
+					if(!subjectId.equalsIgnoreCase(relationship.extractReferencedId("subject", IndividualHandler.TYPE)))
+						continue;
+					if(!targetId.equalsIgnoreCase(relationship.extractReferencedId("target", IndividualHandler.TYPE)))
+						continue;
+
+					//relationship duplicate found
+					return relationship.getId();
+				}
+
+				StringBuilder sb = new StringBuilder();
+				sb.append("|subject:");
+				sb.append(GEDCOMHelper.computeSignature(subject));
+				sb.append("|target:");
+				sb.append(GEDCOMHelper.computeSignature(target));
+				String thisSignature = sb.toString();
+
+				FLEFRecord existingRecord = CANONICAL_MAP_RELATIONSHIP.get(thisSignature);
+				if(existingRecord == null){
+					CANONICAL_MAP_RELATIONSHIP.put(thisSignature, record);
+
+					model.addRecord(record);
+
+					return record.getId();
+				}
+
+				String existingRecordId = existingRecord.getId();
+				record.setId(existingRecordId);
+
+				return existingRecordId;
+			}
+		}
+
 		String thisSignature = GEDCOMHelper.computeSignature(record);
 		FLEFRecord existingRecord = CANONICAL_MAP.get(thisSignature);
 		if(existingRecord == null){

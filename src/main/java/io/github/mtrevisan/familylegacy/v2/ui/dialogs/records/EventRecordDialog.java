@@ -42,7 +42,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JPanel;
 import javax.swing.border.TitledBorder;
-import java.awt.Dialog;
+import java.awt.Window;
 import java.io.IOException;
 import java.io.Serial;
 
@@ -130,16 +130,16 @@ public class EventRecordDialog extends BaseRecordDialog{
 	private final EvidenceQualifiersPanel causeEvidencePanel;
 
 
-	public static EventRecordDialog createNew(final Dialog parent, final FLEFModel model){
+	public static EventRecordDialog createNew(final Window parent, final FLEFModel model){
 		return createNew(parent, model, EventRecordDialog::new);
 	}
 
-	public static EventRecordDialog createEdit(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+	public static EventRecordDialog createEdit(final Window parent, final FLEFModel model, final FLEFRecord record){
 		return createEdit(parent, model, record, EventRecordDialog::new);
 	}
 
 
-	private EventRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+	private EventRecordDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, EventHandler.getInstance());
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]15[]10[]15[]15[]15[]");

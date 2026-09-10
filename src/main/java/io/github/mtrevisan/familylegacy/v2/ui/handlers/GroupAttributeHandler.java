@@ -31,7 +31,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.GroupAttributeReco
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 
-import java.awt.Dialog;
+import java.awt.Window;
 import java.util.List;
 
 
@@ -114,12 +114,12 @@ public class GroupAttributeHandler extends AbstractRecordTypeHandler<GroupAttrib
 	}
 
 	@Override
-	public GroupAttributeRecordDialog createNewDialog(final Dialog parent, final FLEFModel model){
+	public GroupAttributeRecordDialog createNewDialog(final Window parent, final FLEFModel model){
 		return GroupAttributeRecordDialog.createNew(parent, model);
 	}
 
 	@Override
-	public GroupAttributeRecordDialog createEditDialog(final Dialog parent, final FLEFModel model,
+	public GroupAttributeRecordDialog createEditDialog(final Window parent, final FLEFModel model,
 			final FLEFRecord record){
 		return GroupAttributeRecordDialog.createEdit(parent, model, record);
 	}

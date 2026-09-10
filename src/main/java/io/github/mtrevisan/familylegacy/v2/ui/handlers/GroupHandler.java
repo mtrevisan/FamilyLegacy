@@ -30,7 +30,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.GroupRecordDialog;
 import org.apache.commons.lang3.StringUtils;
 
-import java.awt.Dialog;
+import java.awt.Window;
 
 
 public class GroupHandler extends AbstractRecordTypeHandler<GroupRecordDialog>{
@@ -103,12 +103,12 @@ public class GroupHandler extends AbstractRecordTypeHandler<GroupRecordDialog>{
 	}
 
 	@Override
-	public GroupRecordDialog createNewDialog(final Dialog parent, final FLEFModel model){
+	public GroupRecordDialog createNewDialog(final Window parent, final FLEFModel model){
 		return GroupRecordDialog.createNew(parent, model);
 	}
 
 	@Override
-	public GroupRecordDialog createEditDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+	public GroupRecordDialog createEditDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
 		return GroupRecordDialog.createEdit(parent, model, record);
 	}
 

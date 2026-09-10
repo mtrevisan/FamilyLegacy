@@ -28,7 +28,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 
-import java.awt.Dialog;
+import java.awt.Window;
 import java.util.List;
 
 
@@ -102,7 +102,7 @@ public interface RecordTypeHandler<T extends BaseRecordDialog>{
 	 * @param model	The FLEF model.
 	 * @return	The dialog (already configured but not shown).
 	 */
-	T createNewDialog(Dialog parent, FLEFModel model);
+	T createNewDialog(Window parent, FLEFModel model);
 
 	/**
 	 * Creates a dialog to edit an existing record.
@@ -112,6 +112,6 @@ public interface RecordTypeHandler<T extends BaseRecordDialog>{
 	 * @param record	The record to edit.
 	 * @return	The dialog (already configured but not shown).
 	 */
-	T createEditDialog(Dialog parent, FLEFModel model, FLEFRecord record);
+	T createEditDialog(Window parent, FLEFModel model, FLEFRecord record);
 
 }

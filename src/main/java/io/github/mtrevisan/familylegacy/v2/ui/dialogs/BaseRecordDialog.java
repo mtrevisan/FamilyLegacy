@@ -54,7 +54,7 @@ import javax.swing.text.JTextComponent;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Container;
-import java.awt.Dialog;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.io.Serial;
 import java.util.ArrayList;
@@ -94,7 +94,7 @@ public abstract class BaseRecordDialog extends JDialog{
 	protected final ImageCarouselPanel imageCarouselPanel = new ImageCarouselPanel();
 
 
-	protected BaseRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record,
+	protected BaseRecordDialog(final Window parent, final FLEFModel model, final FLEFRecord record,
 			final RecordTypeHandler<?> handler){
 		super(parent, ModalityType.APPLICATION_MODAL);
 
@@ -107,7 +107,7 @@ public abstract class BaseRecordDialog extends JDialog{
 	}
 
 
-	protected void finalizeDialog(final Dialog parent){
+	protected void finalizeDialog(final Window parent){
 		initComponents();
 
 		loadData();
@@ -334,7 +334,7 @@ public abstract class BaseRecordDialog extends JDialog{
 	 * Collapses the {@code createNew(Dialog, FLEFModel)} boilerplate that used to be duplicated, near-verbatim, in every
 	 * subclass. Call it from the subclass's own {@code createNew}, passing its constructor as a method reference:
 	 * <pre>
-	 * public static NoteRecordDialog createNew(final Dialog parent, final FLEFModel model){
+	 * public static NoteRecordDialog createNew(final Window parent, final FLEFModel model){
 	 *     return createNew(parent, model, NoteRecordDialog::new);
 	 * }
 	 * </pre>
@@ -344,7 +344,7 @@ public abstract class BaseRecordDialog extends JDialog{
 	 * @param factory	Reference to the subclass's private constructor (e.g. {@code NoteRecordDialog::new}).
 	 * @return	A new dialog instance, for a new record.
 	 */
-	protected static <T extends BaseRecordDialog> T createNew(final Dialog parent, final FLEFModel model,
+	protected static <T extends BaseRecordDialog> T createNew(final Window parent, final FLEFModel model,
 			final DialogFactory<T> factory){
 		return factory.create(parent, model, null);
 	}
@@ -354,7 +354,7 @@ public abstract class BaseRecordDialog extends JDialog{
 	 * guard) that used to be duplicated, near-verbatim, in every subclass. Call it from the subclass's own
 	 * {@code createEdit}, passing its constructor as a method reference:
 	 * <pre>
-	 * public static NoteRecordDialog createEdit(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+	 * public static NoteRecordDialog createEdit(final Window parent, final FLEFModel model, final FLEFRecord record){
 	 *     return createEdit(parent, model, record, NoteRecordDialog::new);
 	 * }
 	 * </pre>
@@ -365,7 +365,7 @@ public abstract class BaseRecordDialog extends JDialog{
 	 * @param factory	Reference to the subclass's private constructor (e.g. {@code NoteRecordDialog::new}).
 	 * @return	A new dialog instance, for editing an existing record.
 	 */
-	protected static <T extends BaseRecordDialog> T createEdit(final Dialog parent, final FLEFModel model,
+	protected static <T extends BaseRecordDialog> T createEdit(final Window parent, final FLEFModel model,
 			final FLEFRecord record, final DialogFactory<T> factory){
 		Objects.requireNonNull(record, "Record cannot be null");
 

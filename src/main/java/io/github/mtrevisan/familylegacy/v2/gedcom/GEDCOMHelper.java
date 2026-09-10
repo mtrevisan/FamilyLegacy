@@ -367,10 +367,12 @@ public class GEDCOMHelper{
 			fullText = extractFullText(rawNote);
 		}
 
-		FLEFRecord note = FLEFRecord.createChildWithTag("note")
-			.addChild(FLEFRecord.createChildWithTagAndValue("text", fullText.trim()))
-			.addChild(AuditBuilder.build(node));
-		parent.addChild(note);
+		if(!fullText.trim().isEmpty()){
+			FLEFRecord note = FLEFRecord.createChildWithTag("note")
+				.addChild(FLEFRecord.createChildWithTagAndValue("text", fullText.trim()))
+				.addChild(AuditBuilder.build(node));
+			parent.addChild(note);
+		}
 	}
 
 
@@ -875,7 +877,7 @@ public class GEDCOMHelper{
 
 		// Age at event → inline note (with audit)
 		GEDCOMNode ageNode = findFirstChild(node, "AGE");
-		if(ageNode != null && ageNode.getValue() != null){
+		if(ageNode != null && StringUtils.isNotEmpty(ageNode.getValue())){
 			FLEFRecord note = FLEFRecord.createChildWithTag("note")
 				.addChild(FLEFRecord.createChildWithTagAndValue("text", "Age at event: " + ageNode.getValue()))
 				.addChild(AuditBuilder.build(node));
@@ -963,8 +965,8 @@ public class GEDCOMHelper{
 			.addChild(FLEFRecord.createChildWithTag("target")
 				.addChild(FLEFRecord.createChildWithTagAndValue(targetTag, targetXrefId))
 			)
-			.addChild(FLEFRecord.createChildWithTagAndValue("type", (node.getTag().equalsIgnoreCase("ADOP")? "adoptive_child": "biological_child")));
-		relationship.addChild(AuditBuilder.build(node));
+			.addChild(FLEFRecord.createChildWithTagAndValue("type", (node.getTag().equalsIgnoreCase("ADOP")? "adoptive_child": "biological_child")))
+			.addChild(AuditBuilder.build(node));
 
 		// ---- Notes (GEDCOM NOTE) – inline structs ----
 		for (GEDCOMNode noteNode : findChildren(famcNode, "NOTE")) {
@@ -972,10 +974,12 @@ public class GEDCOMHelper{
 				noteNode, noteRawMap);
 		}
 
-		FLEFRecord note1 = FLEFRecord.createChildWithTag("note")
-			.addChild(FLEFRecord.createChildWithTagAndValue("text", sb.toString().trim()))
-			.addChild(AuditBuilder.build(node));
-		relationship.addChild(note1);
+		if(!sb.toString().trim().isEmpty()){
+			FLEFRecord note1 = FLEFRecord.createChildWithTag("note")
+				.addChild(FLEFRecord.createChildWithTagAndValue("text", sb.toString().trim()))
+				.addChild(AuditBuilder.build(node));
+			relationship.addChild(note1);
+		}
 
 		FLEFRecord note2 = FLEFRecord.createChildWithTag("note")
 			.addChild(FLEFRecord.createChildWithTagAndValue("text", "TO BE REVISED: the relationship should be with a biological father and a biological mother instead?"))
@@ -1000,7 +1004,7 @@ public class GEDCOMHelper{
 					.addChild(FLEFRecord.createChildWithTag("target")
 						.addChild(FLEFRecord.createChildWithTagAndValue("group", cleanId(famsNode.getValue())))
 					)
-					.addChild(FLEFRecord.createChildWithTagAndValue("type", "spouse"));
+					.addChild(FLEFRecord.createChildWithTagAndValue("type", "civil_spouse"));
 				relationship.addChild(AuditBuilder.build(node));
 
 				// ---- Notes (GEDCOM NOTE) – inline structs ----
@@ -1078,7 +1082,7 @@ public class GEDCOMHelper{
 			eventParticipation.addChild(FLEFRecord.createChildWithTagAndValue("role", (mappedRole != null? role: null)));
 		}
 
-		if(entityAge != null){
+		if(StringUtils.isNotEmpty(entityAge)){
 			FLEFRecord note = FLEFRecord.createChildWithTag("note")
 				.addChild(FLEFRecord.createChildWithTagAndValue("text", "Age: " + entityAge))
 				.addChild(AuditBuilder.build(node));

@@ -38,7 +38,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JPanel;
-import java.awt.Dialog;
+import java.awt.Window;
 import java.io.IOException;
 import java.io.Serial;
 
@@ -102,16 +102,16 @@ public class GroupRecordDialog extends BaseRecordDialog{
 	private final BoundComboBox<String> typeCombo;
 
 
-	public static GroupRecordDialog createNew(final Dialog parent, final FLEFModel model){
+	public static GroupRecordDialog createNew(final Window parent, final FLEFModel model){
 		return createNew(parent, model, GroupRecordDialog::new);
 	}
 
-	public static GroupRecordDialog createEdit(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+	public static GroupRecordDialog createEdit(final Window parent, final FLEFModel model, final FLEFRecord record){
 		return createEdit(parent, model, record, GroupRecordDialog::new);
 	}
 
 
-	private GroupRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+	private GroupRecordDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, GroupHandler.getInstance());
 
 		preferredImagePanel = new PreferredImagePanel(TAG_PREFERRED_IMAGE, this);

@@ -34,7 +34,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.ContactNameHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 
 import javax.swing.JPanel;
-import java.awt.Dialog;
+import java.awt.Window;
 import java.io.Serial;
 
 
@@ -68,17 +68,17 @@ public class ContactNameStructureDialog extends BaseRecordDialog{
 	private final TextValueVariantListPanel variantPanel;
 
 
-	public static ContactNameStructureDialog createNew(final Dialog parent, final FLEFModel model){
+	public static ContactNameStructureDialog createNew(final Window parent, final FLEFModel model){
 		return createNew(parent, model, ContactNameStructureDialog::new);
 	}
 
-	public static ContactNameStructureDialog createEdit(final Dialog parent, final FLEFModel model,
+	public static ContactNameStructureDialog createEdit(final Window parent, final FLEFModel model,
 			final FLEFRecord record){
 		return createEdit(parent, model, record, ContactNameStructureDialog::new);
 	}
 
 
-	private ContactNameStructureDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+	private ContactNameStructureDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, ContactNameHandler.getInstance());
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]");

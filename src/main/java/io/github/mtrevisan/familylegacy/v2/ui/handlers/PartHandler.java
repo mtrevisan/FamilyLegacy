@@ -32,7 +32,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 
-import java.awt.Dialog;
+import java.awt.Window;
 
 
 public class PartHandler extends AbstractRecordTypeHandler<PartStructureDialog>{
@@ -116,12 +116,12 @@ public class PartHandler extends AbstractRecordTypeHandler<PartStructureDialog>{
 	}
 
 	@Override
-	public PartStructureDialog createNewDialog(final Dialog parent, final FLEFModel model){
+	public PartStructureDialog createNewDialog(final Window parent, final FLEFModel model){
 		return PartStructureDialog.createNew(parent, model);
 	}
 
 	@Override
-	public PartStructureDialog createEditDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+	public PartStructureDialog createEditDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
 		return PartStructureDialog.createEdit(parent, model, record);
 	}
 

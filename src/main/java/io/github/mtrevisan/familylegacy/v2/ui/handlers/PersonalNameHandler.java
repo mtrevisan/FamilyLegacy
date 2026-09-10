@@ -31,7 +31,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.dialogs.structures.PersonalNameStr
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
-import java.awt.Dialog;
+import java.awt.Window;
 import java.util.List;
 
 
@@ -122,12 +122,13 @@ public class PersonalNameHandler extends AbstractRecordTypeHandler<PersonalNameS
 	}
 
 	@Override
-	public PersonalNameStructureDialog createNewDialog(final Dialog parent, final FLEFModel model){
+	public PersonalNameStructureDialog createNewDialog(final Window parent, final FLEFModel model){
 		return PersonalNameStructureDialog.createNew(parent, model);
 	}
 
 	@Override
-	public PersonalNameStructureDialog createEditDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+	public PersonalNameStructureDialog createEditDialog(final Window parent, final FLEFModel model,
+			final FLEFRecord record){
 		return PersonalNameStructureDialog.createEdit(parent, model, record);
 	}
 

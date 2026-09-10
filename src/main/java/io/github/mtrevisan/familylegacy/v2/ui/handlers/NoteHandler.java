@@ -31,7 +31,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.dialogs.structures.NoteStructureDi
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
-import java.awt.Dialog;
+import java.awt.Window;
 
 
 public class NoteHandler extends AbstractRecordTypeHandler<NoteStructureDialog>{
@@ -81,13 +81,12 @@ public class NoteHandler extends AbstractRecordTypeHandler<NoteStructureDialog>{
 	}
 
 	@Override
-	public NoteStructureDialog createNewDialog(final Dialog parent, final FLEFModel model){
+	public NoteStructureDialog createNewDialog(final Window parent, final FLEFModel model){
 		return NoteStructureDialog.createNew(parent, model);
 	}
 
 	@Override
-	public NoteStructureDialog createEditDialog(final Dialog parent, final FLEFModel model,
-			final FLEFRecord record){
+	public NoteStructureDialog createEditDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
 		return NoteStructureDialog.createEdit(parent, model, record);
 	}
 

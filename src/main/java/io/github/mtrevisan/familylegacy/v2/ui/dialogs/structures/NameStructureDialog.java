@@ -39,7 +39,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.helpers.LocaleHelper;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JPanel;
-import java.awt.Dialog;
+import java.awt.Window;
 import java.io.Serial;
 
 
@@ -94,17 +94,17 @@ public class NameStructureDialog extends BaseRecordDialog{
 	private final BoundFilteredComboBox<String> localeCombo;
 
 
-	public static NameStructureDialog createNew(final Dialog parent, final FLEFModel model){
+	public static NameStructureDialog createNew(final Window parent, final FLEFModel model){
 		return createNew(parent, model, NameStructureDialog::new);
 	}
 
-	public static NameStructureDialog createEdit(final Dialog parent, final FLEFModel model,
+	public static NameStructureDialog createEdit(final Window parent, final FLEFModel model,
 			final FLEFRecord record){
 		return createEdit(parent, model, record, NameStructureDialog::new);
 	}
 
 
-	private NameStructureDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+	private NameStructureDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, NameHandler.getInstance());
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]15[]");

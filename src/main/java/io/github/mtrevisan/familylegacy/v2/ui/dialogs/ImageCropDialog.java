@@ -34,10 +34,10 @@ import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import java.awt.BorderLayout;
-import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.GraphicsEnvironment;
 import java.awt.Rectangle;
+import java.awt.Window;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -59,20 +59,20 @@ public class ImageCropDialog extends JDialog{
 	private boolean isSaved;
 
 
-	public static ImageCropDialog create(final Dialog parent){
+	public static ImageCropDialog create(final Window parent){
 		final ImageCropDialog dialog = new ImageCropDialog(parent);
 		dialog.initialize(false);
 		return dialog;
 	}
 
-	public static ImageCropDialog createViewOnly(final Dialog parent){
+	public static ImageCropDialog createViewOnly(final Window parent){
 		final ImageCropDialog dialog = new ImageCropDialog(parent);
 		dialog.initialize(true);
 		return dialog;
 	}
 
 
-	private ImageCropDialog(final Dialog parent){
+	private ImageCropDialog(final Window parent){
 		super(parent, ModalityType.APPLICATION_MODAL);
 	}
 

@@ -33,7 +33,7 @@ import javax.swing.BorderFactory;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.border.TitledBorder;
-import java.awt.Dialog;
+import java.awt.Window;
 import java.io.Serial;
 
 
@@ -64,7 +64,7 @@ public class BoundedDatePanel extends JPanel{
 	private final SingleDatePanel notAfterPanel;
 
 
-	public BoundedDatePanel(final Dialog parent, final FLEFModel model){
+	public BoundedDatePanel(final Window parent, final FLEFModel model){
 		this.notBeforePanel = new SingleDatePanel(parent, model);
 		this.notAfterPanel = new SingleDatePanel(parent, model);
 

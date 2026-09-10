@@ -30,7 +30,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
 import io.github.mtrevisan.familylegacy.v2.ui.components.PreferredImagePanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
-import io.github.mtrevisan.familylegacy.v2.ui.components.individual.SexType;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
@@ -39,7 +38,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JPanel;
-import java.awt.Dialog;
+import java.awt.Window;
 import java.io.IOException;
 import java.io.Serial;
 
@@ -151,17 +150,17 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 	private final BoundComboBox<String> sexCombo;
 
 
-	public static IndividualRecordDialog createNew(final Dialog parent, final FLEFModel model){
+	public static IndividualRecordDialog createNew(final Window parent, final FLEFModel model){
 		return createNew(parent, model, IndividualRecordDialog::new);
 	}
 
-	public static IndividualRecordDialog createEdit(final Dialog parent, final FLEFModel model,
+	public static IndividualRecordDialog createEdit(final Window parent, final FLEFModel model,
 			final FLEFRecord record){
 		return createEdit(parent, model, record, IndividualRecordDialog::new);
 	}
 
 
-	private IndividualRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+	private IndividualRecordDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, IndividualHandler.getInstance());
 
 		preferredImagePanel = new PreferredImagePanel(TAG_PREFERRED_IMAGE, this);

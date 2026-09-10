@@ -43,7 +43,7 @@ import org.apache.commons.lang3.Strings;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.ListCellRenderer;
-import java.awt.Dialog;
+import java.awt.Window;
 import java.io.Serial;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -117,36 +117,36 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 	private boolean isReference;
 
 
-	public static EntityListPanel createForEntityReference(final String path, final Dialog parent,
+	public static EntityListPanel createForEntityReference(final String path, final Window parent,
 			final String panelTitle, final FLEFModel model, final Class<? extends RecordTypeHandler<?>> handlerType){
 		return new EntityListPanel(path, parent, panelTitle, model, ListType.ENTITY_REFERENCE, null)
 			.withHandlerTypes(handlerType);
 	}
 
-	public static EntityListPanel createForStructure(final String path, final Dialog parent,
+	public static EntityListPanel createForStructure(final String path, final Window parent,
 			final String panelTitle, final FLEFModel model, final Class<? extends RecordTypeHandler<?>> handlerType){
 		return new EntityListPanel(path, parent, panelTitle, model, ListType.STRUCTURE, null)
 			.withHandlerTypes(handlerType);
 	}
 
-	public static EntityListPanel createForCitationWrapper(final String path, final Dialog parent,
+	public static EntityListPanel createForCitationWrapper(final String path, final Window parent,
 			final String panelTitle, final FLEFModel model, final Class<? extends RecordTypeHandler<?>> handlerType){
 		return new EntityListPanel(path, parent, panelTitle, model, ListType.CITATION_WRAPPER, null)
 			.withHandlerTypes(handlerType);
 	}
 
-	public static EntityListPanel createForOneOfReference(final String path, final Dialog parent,
+	public static EntityListPanel createForOneOfReference(final String path, final Window parent,
 			final String panelTitle, final FLEFModel model){
 		return new EntityListPanel(path, parent, panelTitle, model, ListType.ONEOF_REFERENCE, null);
 	}
 
-	public static EntityListPanel createForOneOfReference(final String path, final Dialog parent,
+	public static EntityListPanel createForOneOfReference(final String path, final Window parent,
 			final String panelTitle, final FLEFModel model, final ActorType actorType){
 		return new EntityListPanel(path, parent, panelTitle, model, ListType.ONEOF_REFERENCE, actorType);
 	}
 
 
-	protected EntityListPanel(final String path, final Dialog parent, final String panelTitle, final FLEFModel model,
+	protected EntityListPanel(final String path, final Window parent, final String panelTitle, final FLEFModel model,
 			final ListType type, final ActorType actorType){
 		super(parent, panelTitle, model);
 

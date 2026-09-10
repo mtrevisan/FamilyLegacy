@@ -56,7 +56,7 @@ import javax.swing.DefaultListCellRenderer;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import java.awt.Component;
-import java.awt.Dialog;
+import java.awt.Window;
 import java.io.IOException;
 import java.io.Serial;
 
@@ -118,16 +118,16 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 	private final BoundTextArea narrativeArea;
 
 
-	public static ConclusionRecordDialog createNew(final Dialog parent, final FLEFModel model){
+	public static ConclusionRecordDialog createNew(final Window parent, final FLEFModel model){
 		return createNew(parent, model, ConclusionRecordDialog::new);
 	}
 
-	public static ConclusionRecordDialog createEdit(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+	public static ConclusionRecordDialog createEdit(final Window parent, final FLEFModel model, final FLEFRecord record){
 		return createEdit(parent, model, record, ConclusionRecordDialog::new);
 	}
 
 
-	private ConclusionRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+	private ConclusionRecordDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, ConclusionHandler.getInstance());
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]5[]10[]10[]10[]");

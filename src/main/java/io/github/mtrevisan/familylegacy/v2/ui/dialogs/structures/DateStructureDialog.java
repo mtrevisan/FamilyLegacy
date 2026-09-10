@@ -34,7 +34,7 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import java.awt.BorderLayout;
-import java.awt.Dialog;
+import java.awt.Window;
 import java.io.Serial;
 import java.util.Objects;
 
@@ -58,7 +58,7 @@ public class DateStructureDialog extends JDialog{
 	 * @param model	The FLEF model.
 	 * @return	A new dialog instance.
 	 */
-	public static DateStructureDialog createNew(final Dialog parent, final FLEFModel model, final String title){
+	public static DateStructureDialog createNew(final Window parent, final FLEFModel model, final String title){
 		return new DateStructureDialog(parent, model, title, null);
 	}
 
@@ -70,7 +70,7 @@ public class DateStructureDialog extends JDialog{
 	 * @param record	The record to edit (must not be {@code null}).
 	 * @return	A new dialog instance.
 	 */
-	public static DateStructureDialog createEdit(final Dialog parent, final FLEFModel model, final String title,
+	public static DateStructureDialog createEdit(final Window parent, final FLEFModel model, final String title,
 			final FLEFRecord record){
 		Objects.requireNonNull(record, "Record cannot be null");
 
@@ -78,7 +78,7 @@ public class DateStructureDialog extends JDialog{
 	}
 
 
-	private DateStructureDialog(final Dialog parent, final FLEFModel model, final String title, final FLEFRecord record){
+	private DateStructureDialog(final Window parent, final FLEFModel model, final String title, final FLEFRecord record){
 		super(parent, title, ModalityType.APPLICATION_MODAL);
 
 		datePanel = new DateStructurePanel(this, model);

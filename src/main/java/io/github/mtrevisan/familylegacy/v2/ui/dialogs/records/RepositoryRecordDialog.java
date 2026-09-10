@@ -39,7 +39,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.RepositoryHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 
 import javax.swing.JPanel;
-import java.awt.Dialog;
+import java.awt.Window;
 import java.io.IOException;
 import java.io.Serial;
 
@@ -92,16 +92,16 @@ public class RepositoryRecordDialog extends BaseRecordDialog{
 	private final EntityListPanel contactPanel;
 
 
-	public static RepositoryRecordDialog createNew(final Dialog parent, final FLEFModel model){
+	public static RepositoryRecordDialog createNew(final Window parent, final FLEFModel model){
 		return createNew(parent, model, RepositoryRecordDialog::new);
 	}
 
-	public static RepositoryRecordDialog createEdit(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+	public static RepositoryRecordDialog createEdit(final Window parent, final FLEFModel model, final FLEFRecord record){
 		return createEdit(parent, model, record, RepositoryRecordDialog::new);
 	}
 
 
-	private RepositoryRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+	private RepositoryRecordDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, RepositoryHandler.getInstance());
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]5[]10[]");

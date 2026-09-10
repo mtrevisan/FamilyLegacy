@@ -37,11 +37,11 @@ import javax.swing.JButton;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import java.awt.Color;
-import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Rectangle;
+import java.awt.Window;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -80,7 +80,7 @@ public class PreferredImagePanel extends JPanel{
 
 	private final ImageCropDialog cropDialog;
 
-	private final Dialog parent;
+	private final Window parent;
 
 	private final String path;
 
@@ -95,7 +95,7 @@ public class PreferredImagePanel extends JPanel{
 	 *
 	 * @param parent	the parent dialog (for showing modal dialogs)
 	 */
-	public PreferredImagePanel(final String path, final Dialog parent){
+	public PreferredImagePanel(final String path, final Window parent){
 		this.parent = parent;
 
 		this.path = path;

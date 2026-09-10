@@ -40,7 +40,7 @@ import org.apache.commons.lang3.StringUtils;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
-import java.awt.Dialog;
+import java.awt.Window;
 import java.io.Serial;
 
 
@@ -100,16 +100,16 @@ public class SourceCitationDialog extends BaseRecordDialog{
 	private final ExtractListPanel extractPanel;
 
 
-	public static SourceCitationDialog createNew(final Dialog parent, final FLEFModel model){
+	public static SourceCitationDialog createNew(final Window parent, final FLEFModel model){
 		return createNew(parent, model, SourceCitationDialog::new);
 	}
 
-	public static SourceCitationDialog createEdit(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+	public static SourceCitationDialog createEdit(final Window parent, final FLEFModel model, final FLEFRecord record){
 		return createEdit(parent, model, record, SourceCitationDialog::new);
 	}
 
 
-	private SourceCitationDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+	private SourceCitationDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, SourceCitationHandler.getInstance());
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]");

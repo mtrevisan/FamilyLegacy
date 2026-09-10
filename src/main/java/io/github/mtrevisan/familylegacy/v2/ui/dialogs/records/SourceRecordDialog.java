@@ -41,7 +41,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JPanel;
-import java.awt.Dialog;
+import java.awt.Window;
 import java.io.IOException;
 import java.io.Serial;
 
@@ -104,16 +104,16 @@ public class SourceRecordDialog extends BaseRecordDialog{
 	private final BoundComboBox<String> mediaTypeCombo;
 
 
-	public static SourceRecordDialog createNew(final Dialog parent, final FLEFModel model){
+	public static SourceRecordDialog createNew(final Window parent, final FLEFModel model){
 		return createNew(parent, model, SourceRecordDialog::new);
 	}
 
-	public static SourceRecordDialog createEdit(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+	public static SourceRecordDialog createEdit(final Window parent, final FLEFModel model, final FLEFRecord record){
 		return createEdit(parent, model, record, SourceRecordDialog::new);
 	}
 
 
-	private SourceRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+	private SourceRecordDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, SourceHandler.getInstance());
 
 		titlePanel = EntityListPanel.createForStructure(TAG_TITLE, this, "Title*", model,

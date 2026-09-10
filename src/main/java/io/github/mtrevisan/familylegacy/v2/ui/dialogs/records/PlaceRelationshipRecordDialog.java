@@ -40,7 +40,7 @@ import org.apache.commons.lang3.StringUtils;
 import javax.swing.BorderFactory;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import java.awt.Dialog;
+import java.awt.Window;
 import java.io.IOException;
 import java.io.Serial;
 
@@ -101,17 +101,17 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 	private final DateField validToField;
 
 
-	public static PlaceRelationshipRecordDialog createNew(final Dialog parent, final FLEFModel model){
+	public static PlaceRelationshipRecordDialog createNew(final Window parent, final FLEFModel model){
 		return createNew(parent, model, PlaceRelationshipRecordDialog::new);
 	}
 
-	public static PlaceRelationshipRecordDialog createEdit(final Dialog parent, final FLEFModel model,
+	public static PlaceRelationshipRecordDialog createEdit(final Window parent, final FLEFModel model,
 			final FLEFRecord record){
 		return createEdit(parent, model, record, PlaceRelationshipRecordDialog::new);
 	}
 
 
-	private PlaceRelationshipRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+	private PlaceRelationshipRecordDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, PlaceRelationshipHandler.getInstance());
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]5[]10[]10[]10[]");

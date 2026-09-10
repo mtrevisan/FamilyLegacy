@@ -30,7 +30,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.structures.ContactStructureDialog;
 import org.apache.commons.lang3.StringUtils;
 
-import java.awt.Dialog;
+import java.awt.Window;
 
 
 public class ContactHandler extends AbstractRecordTypeHandler<ContactStructureDialog>{
@@ -96,12 +96,12 @@ public class ContactHandler extends AbstractRecordTypeHandler<ContactStructureDi
 	}
 
 	@Override
-	public ContactStructureDialog createNewDialog(final Dialog parent, final FLEFModel model){
+	public ContactStructureDialog createNewDialog(final Window parent, final FLEFModel model){
 		return ContactStructureDialog.createNew(parent, model);
 	}
 
 	@Override
-	public ContactStructureDialog createEditDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+	public ContactStructureDialog createEditDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
 		return ContactStructureDialog.createEdit(parent, model, record);
 	}
 

@@ -30,7 +30,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.RepositoryRecordDialog;
 import org.apache.commons.lang3.StringUtils;
 
-import java.awt.Dialog;
+import java.awt.Window;
 
 
 /**
@@ -89,12 +89,12 @@ public class RepositoryHandler extends AbstractRecordTypeHandler<RepositoryRecor
 	}
 
 	@Override
-	public RepositoryRecordDialog createNewDialog(final Dialog parent, final FLEFModel model){
+	public RepositoryRecordDialog createNewDialog(final Window parent, final FLEFModel model){
 		return RepositoryRecordDialog.createNew(parent, model);
 	}
 
 	@Override
-	public RepositoryRecordDialog createEditDialog(final Dialog parent, final FLEFModel model,
+	public RepositoryRecordDialog createEditDialog(final Window parent, final FLEFModel model,
 			final FLEFRecord record){
 		return RepositoryRecordDialog.createEdit(parent, model, record);
 	}

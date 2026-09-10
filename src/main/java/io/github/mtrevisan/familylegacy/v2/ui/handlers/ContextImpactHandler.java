@@ -30,7 +30,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.ContextImpactRecordDialog;
 import org.apache.commons.lang3.StringUtils;
 
-import java.awt.Dialog;
+import java.awt.Window;
 import java.util.List;
 
 
@@ -149,12 +149,12 @@ public class ContextImpactHandler extends AbstractRecordTypeHandler<ContextImpac
 	}
 
 	@Override
-	public ContextImpactRecordDialog createNewDialog(final Dialog parent, final FLEFModel model){
+	public ContextImpactRecordDialog createNewDialog(final Window parent, final FLEFModel model){
 		return ContextImpactRecordDialog.createNew(parent, model);
 	}
 
 	@Override
-	public ContextImpactRecordDialog createEditDialog(final Dialog parent, final FLEFModel model,
+	public ContextImpactRecordDialog createEditDialog(final Window parent, final FLEFModel model,
 		final FLEFRecord record){
 		return ContextImpactRecordDialog.createEdit(parent, model, record);
 	}

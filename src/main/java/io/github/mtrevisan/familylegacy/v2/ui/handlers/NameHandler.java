@@ -31,7 +31,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.dialogs.structures.NameStructureDi
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
-import java.awt.Dialog;
+import java.awt.Window;
 
 
 /**
@@ -102,12 +102,12 @@ public class NameHandler extends AbstractRecordTypeHandler<NameStructureDialog>{
 	}
 
 	@Override
-	public NameStructureDialog createNewDialog(final Dialog parent, final FLEFModel model){
+	public NameStructureDialog createNewDialog(final Window parent, final FLEFModel model){
 		return NameStructureDialog.createNew(parent, model);
 	}
 
 	@Override
-	public NameStructureDialog createEditDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+	public NameStructureDialog createEditDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
 		return NameStructureDialog.createEdit(parent, model, record);
 	}
 

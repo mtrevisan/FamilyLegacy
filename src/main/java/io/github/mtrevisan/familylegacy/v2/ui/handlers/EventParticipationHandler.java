@@ -30,7 +30,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.EventParticipationRecordDialog;
 import org.apache.commons.lang3.StringUtils;
 
-import java.awt.Dialog;
+import java.awt.Window;
 
 
 public class EventParticipationHandler extends AbstractRecordTypeHandler<EventParticipationRecordDialog>{
@@ -113,12 +113,12 @@ public class EventParticipationHandler extends AbstractRecordTypeHandler<EventPa
 	}
 
 	@Override
-	public EventParticipationRecordDialog createNewDialog(final Dialog parent, final FLEFModel model){
+	public EventParticipationRecordDialog createNewDialog(final Window parent, final FLEFModel model){
 		return EventParticipationRecordDialog.createNew(parent, model);
 	}
 
 	@Override
-	public EventParticipationRecordDialog createEditDialog(final Dialog parent, final FLEFModel model,
+	public EventParticipationRecordDialog createEditDialog(final Window parent, final FLEFModel model,
 			final FLEFRecord record){
 		return EventParticipationRecordDialog.createEdit(parent, model, record);
 	}

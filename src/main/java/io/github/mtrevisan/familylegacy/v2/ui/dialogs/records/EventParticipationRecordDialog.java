@@ -42,7 +42,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JPanel;
-import java.awt.Dialog;
+import java.awt.Window;
 import java.io.IOException;
 import java.io.Serial;
 
@@ -109,17 +109,17 @@ public class EventParticipationRecordDialog extends BaseRecordDialog{
 	private final BoundComboBox<String> roleCombo;
 
 
-	public static EventParticipationRecordDialog createNew(final Dialog parent, final FLEFModel model){
+	public static EventParticipationRecordDialog createNew(final Window parent, final FLEFModel model){
 		return createNew(parent, model, EventParticipationRecordDialog::new);
 	}
 
-	public static EventParticipationRecordDialog createEdit(final Dialog parent, final FLEFModel model,
+	public static EventParticipationRecordDialog createEdit(final Window parent, final FLEFModel model,
 			final FLEFRecord record){
 		return createEdit(parent, model, record, EventParticipationRecordDialog::new);
 	}
 
 
-	private EventParticipationRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+	private EventParticipationRecordDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, EventParticipationHandler.getInstance());
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]5[]");

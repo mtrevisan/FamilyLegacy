@@ -30,7 +30,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.CulturalNormRecordDialog;
 import org.apache.commons.lang3.StringUtils;
 
-import java.awt.Dialog;
+import java.awt.Window;
 
 
 /**
@@ -78,12 +78,12 @@ public class CulturalNormHandler extends AbstractRecordTypeHandler<CulturalNormR
 	}
 
 	@Override
-	public CulturalNormRecordDialog createNewDialog(final Dialog parent, final FLEFModel model){
+	public CulturalNormRecordDialog createNewDialog(final Window parent, final FLEFModel model){
 		return CulturalNormRecordDialog.createNew(parent, model);
 	}
 
 	@Override
-	public CulturalNormRecordDialog createEditDialog(final Dialog parent, final FLEFModel model,
+	public CulturalNormRecordDialog createEditDialog(final Window parent, final FLEFModel model,
 			final FLEFRecord record){
 		return CulturalNormRecordDialog.createEdit(parent, model, record);
 	}

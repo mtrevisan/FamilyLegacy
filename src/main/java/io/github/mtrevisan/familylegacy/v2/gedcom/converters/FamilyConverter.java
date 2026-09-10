@@ -50,6 +50,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -252,10 +253,10 @@ public class FamilyConverter{
 			// ---- Set group name ----
 			String husbandName = getDisplayName(link.husbandId);
 			String wifeName = getDisplayName(link.wifeId);
-			String groupName = "Family of " + husbandName + (wifeName.isEmpty()? "": " and " + wifeName);
-			if(!groupName.equals("Family of ")){
+			String groupName = husbandName + (wifeName.isEmpty()? "": " and " + wifeName);
+			if(!groupName.isEmpty()){
 				FLEFRecord nameRec = FLEFRecord.createChildWithTag("name")
-					.addChild(FLEFRecord.createChildWithTagAndValue("value", groupName));
+					.addChild(FLEFRecord.createChildWithTagAndValue("value", groupName + " family"));
 				group.addChild(nameRec);
 			}
 
@@ -281,9 +282,18 @@ public class FamilyConverter{
 					)
 					.addChild(FLEFRecord.createChildWithTag("target")
 						.addChild(FLEFRecord.createChildWithTagAndValue("individual", link.wifeId))
-					)
-					.addChild(FLEFRecord.createChildWithTagAndValue("type", ((marriageType == null)? "civil_spouse": marriageType + "_spouse")))
-					.addChild(FLEFRecord.createChildWithTagAndValue("status", (hasDivorce? "ended": "active")));
+					);
+				if(("civil".equalsIgnoreCase(marriageType) || "religious".equalsIgnoreCase(marriageType)))
+					relationship.addChild(FLEFRecord.createChildWithTagAndValue("type", marriageType.toLowerCase(Locale.ROOT) + "_spouse"));
+				else
+					relationship.addChild(FLEFRecord.createChildWithTagAndValue("type", "civil_spouse"))
+						.addChild(FLEFRecord.createChildWithTag("note")
+							.addChild(FLEFRecord.createChildWithTagAndValue("text",
+								(StringUtils.isNotEmpty(marriageType)? marriageType + " -- ": "")
+								+ "TO BE REVISED: is it civil or religious or else?"))
+							.addChild(AuditBuilder.build(null))
+					);
+				relationship.addChild(FLEFRecord.createChildWithTagAndValue("status", (hasDivorce? "ended": "active")));
 
 				// Add date from MARR event (valid_from)
 				for(GEDCOMNode evt : link.eventNodes){
@@ -292,35 +302,12 @@ public class FamilyConverter{
 						if(dateStruct != null){
 							dateStruct.setTag("valid_from");
 							relationship.addChild(dateStruct);
-						}
 
-						break;
+							break;
+						}
 					}
 				}
-				relationship.addChild(AuditBuilder.build(link.famNode));
-				Deduplicator.getDeduplicatedRecordId(model, relationship);
 
-				relationship = FLEFRecord.createMainRecord(IDGenerator.nextId(RelationshipHandler.ID_PREFIX), RelationshipHandler.TYPE)
-					.addChild(FLEFRecord.createChildWithTag("subject")
-						.addChild(FLEFRecord.createChildWithTagAndValue("individual", link.husbandId))
-					)
-					.addChild(FLEFRecord.createChildWithTag("target")
-						.addChild(FLEFRecord.createChildWithTagAndValue("individual", link.wifeId))
-					)
-					.addChild(FLEFRecord.createChildWithTagAndValue("type", "partner"));
-
-				// Add date from MARR event (valid_from)
-				for(GEDCOMNode evt : link.eventNodes){
-					if("MARR".equals(evt.getTag())){
-						FLEFRecord dateStruct = structParser.parseDateStructure(evt);
-						if(dateStruct != null){
-							dateStruct.setTag("valid_from");
-							relationship.addChild(dateStruct);
-						}
-
-						break;
-					}
-				}
 				relationship.addChild(AuditBuilder.build(link.famNode));
 				Deduplicator.getDeduplicatedRecordId(model, relationship);
 			}
@@ -667,9 +654,10 @@ public class FamilyConverter{
 				for(FLEFRecord part : name.getChildren()){
 					if("part".equals(part.getTag())){
 						String type = FLEFRecordHelper.getChildValue(part, "type");
-						if("given".equals(type)){
+						if("family".equals(type)){
 							String val = FLEFRecordHelper.getChildValue(part, "value");
-							if(val != null) return val;
+							if(val != null)
+								return val;
 						}
 					}
 				}

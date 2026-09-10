@@ -30,7 +30,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.HistoricEventRecordDialog;
 import org.apache.commons.lang3.StringUtils;
 
-import java.awt.Dialog;
+import java.awt.Window;
 
 
 /**
@@ -78,12 +78,13 @@ public class HistoricEventHandler extends AbstractRecordTypeHandler<HistoricEven
 	}
 
 	@Override
-	public HistoricEventRecordDialog createNewDialog(final Dialog parent, final FLEFModel model){
+	public HistoricEventRecordDialog createNewDialog(final Window parent, final FLEFModel model){
 		return HistoricEventRecordDialog.createNew(parent, model);
 	}
 
 	@Override
-	public HistoricEventRecordDialog createEditDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+	public HistoricEventRecordDialog createEditDialog(final Window parent, final FLEFModel model,
+			final FLEFRecord record){
 		return HistoricEventRecordDialog.createEdit(parent, model, record);
 	}
 

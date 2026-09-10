@@ -28,7 +28,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.TextValueVariantHandler;
 
-import java.awt.Dialog;
+import java.awt.Window;
 import java.io.Serial;
 
 
@@ -41,7 +41,7 @@ public class TextValueVariantListPanel extends EntityListPanel{
 	private static final long serialVersionUID = -298718064629353117L;
 
 
-	public TextValueVariantListPanel(final String path, final Dialog parent, final String panelTitle,
+	public TextValueVariantListPanel(final String path, final Window parent, final String panelTitle,
 			final FLEFModel model){
 		super(path, parent, panelTitle, model, ListType.STRUCTURE, null);
 

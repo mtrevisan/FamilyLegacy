@@ -29,7 +29,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.IdentityHypothesisRecordDialog;
 
-import java.awt.Dialog;
+import java.awt.Window;
 import java.util.List;
 
 
@@ -95,12 +95,13 @@ public class IdentityHypothesisHandler extends AbstractRecordTypeHandler<Identit
 	}
 
 	@Override
-	public IdentityHypothesisRecordDialog createNewDialog(Dialog parent, FLEFModel model){
+	public IdentityHypothesisRecordDialog createNewDialog(final Window parent, final FLEFModel model){
 		return IdentityHypothesisRecordDialog.createNew(parent, model);
 	}
 
 	@Override
-	public IdentityHypothesisRecordDialog createEditDialog(Dialog parent, FLEFModel model, FLEFRecord record){
+	public IdentityHypothesisRecordDialog createEditDialog(final Window parent, final FLEFModel model,
+			final FLEFRecord record){
 		return IdentityHypothesisRecordDialog.createEdit(parent, model, record);
 	}
 

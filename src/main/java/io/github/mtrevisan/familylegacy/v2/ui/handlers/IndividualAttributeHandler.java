@@ -31,7 +31,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.IndividualAttribut
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 
-import java.awt.Dialog;
+import java.awt.Window;
 import java.util.List;
 
 
@@ -114,12 +114,12 @@ public class IndividualAttributeHandler extends AbstractRecordTypeHandler<Indivi
 	}
 
 	@Override
-	public IndividualAttributeRecordDialog createNewDialog(final Dialog parent, final FLEFModel model){
+	public IndividualAttributeRecordDialog createNewDialog(final Window parent, final FLEFModel model){
 		return IndividualAttributeRecordDialog.createNew(parent, model);
 	}
 
 	@Override
-	public IndividualAttributeRecordDialog createEditDialog(final Dialog parent, final FLEFModel model,
+	public IndividualAttributeRecordDialog createEditDialog(final Window parent, final FLEFModel model,
 			final FLEFRecord record){
 		return IndividualAttributeRecordDialog.createEdit(parent, model, record);
 	}

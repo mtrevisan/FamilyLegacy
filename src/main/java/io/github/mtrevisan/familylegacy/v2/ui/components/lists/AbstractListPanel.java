@@ -39,7 +39,7 @@ import javax.swing.JPanel;
 import javax.swing.ListSelectionModel;
 import javax.swing.border.TitledBorder;
 import java.awt.Component;
-import java.awt.Dialog;
+import java.awt.Window;
 import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
@@ -84,7 +84,7 @@ public abstract class AbstractListPanel<T> extends JPanel{
 	}
 
 
-	protected final Dialog parent;
+	protected final Window parent;
 	private final String title;
 
 	protected final FLEFModel model;
@@ -100,7 +100,7 @@ public abstract class AbstractListPanel<T> extends JPanel{
 	 * @param title	The border title, or {@code null} for no border.
 	 * @param model	The FLEF model.
 	 */
-	protected AbstractListPanel(final Dialog parent, final String title, final FLEFModel model){
+	protected AbstractListPanel(final Window parent, final String title, final FLEFModel model){
 		this.parent = parent;
 		this.title = title;
 
@@ -113,7 +113,7 @@ public abstract class AbstractListPanel<T> extends JPanel{
 	 * @param parent	The parent dialog.
 	 * @param model	The FLEF model.
 	 */
-	protected AbstractListPanel(final Dialog parent, final FLEFModel model){
+	protected AbstractListPanel(final Window parent, final FLEFModel model){
 		this(parent, null, model);
 	}
 

@@ -38,7 +38,7 @@ import javax.swing.JComboBox;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
-import java.awt.Dialog;
+import java.awt.Window;
 import java.io.Serial;
 
 
@@ -81,7 +81,7 @@ public class ApproximatePanel extends JPanel{
 	private final JTextField marginField = new JTextField(null);
 
 
-	public ApproximatePanel(String path, Dialog parent, FLEFModel model){
+	public ApproximatePanel(String path, Window parent, FLEFModel model){
 		this.path = path;
 
 		culturalNormPanel = EntityListPanel.createForEntityReference(TAG_CULTURAL_NORM, parent, "Cultural Norms",

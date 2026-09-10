@@ -43,7 +43,7 @@ import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import java.awt.BorderLayout;
-import java.awt.Dialog;
+import java.awt.Window;
 import java.io.Serial;
 
 
@@ -96,7 +96,7 @@ public class DateStructurePanel extends JPanel{
 	private final EvidenceQualifiersPanel qualifiers;
 
 
-	public DateStructurePanel(final Dialog parent, final FLEFModel model){
+	public DateStructurePanel(final Window parent, final FLEFModel model){
 		pointDateValuePanel = new SingleDatePanel(parent, model);
 		boundedDateValuePanel = new BoundedDatePanel(parent, model);
 		spanningDateValuePanel = new SpanningDatePanel(parent, model);

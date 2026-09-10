@@ -39,7 +39,7 @@ import org.apache.commons.lang3.StringUtils;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
-import java.awt.Dialog;
+import java.awt.Window;
 import java.io.Serial;
 
 
@@ -76,17 +76,17 @@ public class RepositoryCitationDialog extends BaseRecordDialog{
 	private final BoundTextField locatorField;
 
 
-	public static RepositoryCitationDialog createNew(final Dialog parent, final FLEFModel model){
+	public static RepositoryCitationDialog createNew(final Window parent, final FLEFModel model){
 		return createNew(parent, model, RepositoryCitationDialog::new);
 	}
 
-	public static RepositoryCitationDialog createEdit(final Dialog parent, final FLEFModel model,
+	public static RepositoryCitationDialog createEdit(final Window parent, final FLEFModel model,
 			final FLEFRecord record){
 		return createEdit(parent, model, record, RepositoryCitationDialog::new);
 	}
 
 
-	private RepositoryCitationDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+	private RepositoryCitationDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, RepositoryCitationHandler.getInstance());
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]");

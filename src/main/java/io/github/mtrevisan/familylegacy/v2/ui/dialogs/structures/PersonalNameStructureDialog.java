@@ -42,7 +42,7 @@ import org.apache.commons.lang3.StringUtils;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
-import java.awt.Dialog;
+import java.awt.Window;
 import java.io.Serial;
 
 
@@ -107,17 +107,17 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 	private final EntityListPanel culturalNormPanel;
 
 
-	public static PersonalNameStructureDialog createNew(final Dialog parent, final FLEFModel model){
+	public static PersonalNameStructureDialog createNew(final Window parent, final FLEFModel model){
 		return createNew(parent, model, PersonalNameStructureDialog::new);
 	}
 
-	public static PersonalNameStructureDialog createEdit(final Dialog parent, final FLEFModel model,
+	public static PersonalNameStructureDialog createEdit(final Window parent, final FLEFModel model,
 			final FLEFRecord record){
 		return createEdit(parent, model, record, PersonalNameStructureDialog::new);
 	}
 
 
-	private PersonalNameStructureDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+	private PersonalNameStructureDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, PersonalNameHandler.getInstance());
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]");

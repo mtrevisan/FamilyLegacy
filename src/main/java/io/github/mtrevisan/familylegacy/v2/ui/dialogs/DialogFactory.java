@@ -27,12 +27,12 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 
-import java.awt.Dialog;
+import java.awt.Window;
 
 
 /**
- * A reference to a record dialog's private constructor, used by {@link BaseRecordDialog#createNew(Dialog, FLEFModel, DialogFactory)}
- * and {@link BaseRecordDialog#createEdit(Dialog, FLEFModel, FLEFRecord, DialogFactory)} to collapse the identical
+ * A reference to a record dialog's private constructor, used by {@link BaseRecordDialog#createNew(Window, FLEFModel, DialogFactory)}
+ * and {@link BaseRecordDialog#createEdit(Window, FLEFModel, FLEFRecord, DialogFactory)} to collapse the identical
  * {@code createNew}/{@code createEdit} boilerplate that used to be duplicated in every subclass.
  * <p>
  * Every record dialog's private constructor already has the shape {@code (Dialog, FLEFModel, FLEFRecord)}, so a
@@ -43,6 +43,6 @@ import java.awt.Dialog;
 @FunctionalInterface
 public interface DialogFactory<T extends BaseRecordDialog>{
 
-	T create(Dialog parent, FLEFModel model, FLEFRecord record);
+	T create(Window parent, FLEFModel model, FLEFRecord record);
 
 }

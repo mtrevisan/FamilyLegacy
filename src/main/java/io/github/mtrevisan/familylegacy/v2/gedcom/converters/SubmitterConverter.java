@@ -32,6 +32,7 @@ import io.github.mtrevisan.familylegacy.v2.gedcom.utils.PlaceCache;
 import io.github.mtrevisan.familylegacy.v2.gedcom.utils.StructureParser;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Map;
 
@@ -118,7 +119,7 @@ public class SubmitterConverter{
 		for(GEDCOMNode child : subNode.getChildren()){
 			String tag = child.getTag();
 			if(tag.equals("RFN") /*|| tag.equals("RIN")*/){
-				if(child.getValue() != null){
+				if(StringUtils.isNotEmpty(child.getValue())){
 					FLEFRecord note = FLEFRecord.createChildWithTag("note")
 						.addChild(FLEFRecord.createChildWithTagAndValue("text", tag + ": " + child.getValue()))
 						.addChild(AuditBuilder.build(child));

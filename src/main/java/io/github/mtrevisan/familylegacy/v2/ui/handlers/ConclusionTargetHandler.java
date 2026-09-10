@@ -30,7 +30,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import org.apache.commons.lang3.Strings;
 
-import java.awt.Dialog;
+import java.awt.Window;
 import java.util.List;
 
 
@@ -107,13 +107,13 @@ public class ConclusionTargetHandler extends AbstractRecordTypeHandler<BaseRecor
 	}
 
 	@Override
-	public BaseRecordDialog createNewDialog(final Dialog parent, final FLEFModel model){
+	public BaseRecordDialog createNewDialog(final Window parent, final FLEFModel model){
 		final RecordTypeHandler<?> handler = getRecordHandler();
 		return handler.createNewDialog(parent, model);
 	}
 
 	@Override
-	public BaseRecordDialog createEditDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+	public BaseRecordDialog createEditDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
 		final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(record.getTag());
 		return handler.createEditDialog(parent, model, record);
 	}

@@ -30,7 +30,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.SourceRecordDialog;
 import org.apache.commons.lang3.StringUtils;
 
-import java.awt.Dialog;
+import java.awt.Window;
 
 
 /**
@@ -85,12 +85,12 @@ public class SourceHandler extends AbstractRecordTypeHandler<SourceRecordDialog>
 	}
 
 	@Override
-	public SourceRecordDialog createNewDialog(final Dialog parent, final FLEFModel model){
+	public SourceRecordDialog createNewDialog(final Window parent, final FLEFModel model){
 		return SourceRecordDialog.createNew(parent, model);
 	}
 
 	@Override
-	public SourceRecordDialog createEditDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+	public SourceRecordDialog createEditDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
 		return SourceRecordDialog.createEdit(parent, model, record);
 	}
 

@@ -1,0 +1,56 @@
+1. L'alternativa "Hub & Spoke" (Grafo Ego-Centrico Interattivo)
+Mantiene l'individuo al centro, orbitato da tutte le relazioni (famiglia, adozioni, gilde e associazioni) distinte
+visivamente per tipo di legame.
+
+Plaintext
+                     [Padre Adottivo: Marco]
+                               │ (adoptive_child)
+                               ▼
+[Madre: Anna] ──(biol)──   [ANTONIO]   ──(civil_spouse)── [Chiara]
+                               │
+               ┌───────────────┼───────────────┐
+               ▼               ▼               ▼
+        [Household 1881]  [Clan Taro]   [Guild of Venice]
+          (group_member)   (group_member)    (associate)
+
+
+
+2. L'alternativa "Matrix / Swimlane View" (Corsie Tematiche per Categorie)
+Organizza le informazioni dividendo lo spazio in "corsie" orizzontali (o verticali) dedicate ai diversi aspetti della
+vita e delle relazioni dell'individuo.
+
+Plaintext
+┌────────────────────────────────────────────────────────────────────────┐
+│ [ INDIVIDUO: ANTONIO ]                                                 │
+├────────────────────────────────────────────────────────────────────────┤
+│ 🧬 CORSIA DISCENDENZA / ASCENDENZA (Genitori & Famiglia)               │
+│    ├── Biologici: [Padre: Giovanni], [Madre: Anna]                     │
+│    └── Adottivi : [Padre Adottivo: Marco]                              │
+├────────────────────────────────────────────────────────────────────────┤
+│ 💍 CORSIA PARTNER & UNIONI                                             │
+│    └── Coniuge  : [Chiara] (civil_spouse)                              │
+├────────────────────────────────────────────────────────────────────────┤
+│ 🏛️ CORSIA GRUPPI & ASSOCIAZIONI (GroupRecord / Relationships)          │
+│    ├── Nucleo   : [Family Rossi], [Household Rossi 1881]               │
+│    └── Sociale  : [Clan Taro], [Guild of Venice] (associate)           │
+└────────────────────────────────────────────────────────────────────────┘
+
+
+
+3. Il "Graph Inspector" Ibrido (Split View: Box Centrale + Categorie Espandibili)
+A sinistra l'individuo con i contatori delle relazioni suddivise per natura, e a destra l'anteprima o il filtraggio
+dinamico dei nodi collegati quando clicchi su una categoria.
+
+Plaintext
+┌───────────────────────────────┐     ┌──────────────────────────────────┐
+│          [ANTONIO]            │     │ SELEZIONATO: Groups              │
+│                               │     ├──────────────────────────────────┤
+│   Parents              [4] ───┼────►│ • Family Rossi                   │
+│   (2 biologici, 2 adottivi)   │     │ • Household Rossi 1881           │
+│                               │     │ • Clan Taro                      │
+│   Partners             [1]    │     │ • Guild of Venice                │
+│   (1 civile)                  │     │                                  │
+│                               │     │ [Clic su un gruppo per centrarlo]│
+│   Groups               [4] ───┘     └──────────────────────────────────┤
+│   (famiglie, gilde, clan)     │                                        │
+└───────────────────────────────┘                                        │

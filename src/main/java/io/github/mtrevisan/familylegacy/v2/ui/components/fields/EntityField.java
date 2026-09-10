@@ -37,7 +37,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 
 import javax.swing.JOptionPane;
-import java.awt.Dialog;
+import java.awt.Window;
 import java.io.Serial;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -74,7 +74,7 @@ public class EntityField extends BoundTextField{
 	}
 
 
-	private final Dialog parent;
+	private final Window parent;
 
 	private final FLEFModel model;
 
@@ -91,13 +91,13 @@ public class EntityField extends BoundTextField{
 	 * @param model	the FLEF model
 	 * @return a new instance
 	 */
-	public static EntityField createForRecordFromOneofReference(final String path, final Dialog parent,
+	public static EntityField createForRecordFromOneofReference(final String path, final Window parent,
 			final FLEFModel model){
 		return new EntityField(path, parent, model,
 			EntityType.ONEOF_REFERENCE);
 	}
 
-	public static EntityField createForRecordFromReference(final String path, final Dialog parent,
+	public static EntityField createForRecordFromReference(final String path, final Window parent,
 			final FLEFModel model,
 			final Class<? extends RecordTypeHandler<?>> handlerType){
 		return new EntityField(path, parent, model,
@@ -105,7 +105,7 @@ public class EntityField extends BoundTextField{
 			.withHandlerTypes(handlerType);
 	}
 
-	public static EntityField createForStructureWithReference(final String path, final Dialog parent,
+	public static EntityField createForStructureWithReference(final String path, final Window parent,
 			final FLEFModel model,
 			final Class<? extends RecordTypeHandler<?>> handlerType){
 		return new EntityField(path, parent, model,
@@ -114,7 +114,7 @@ public class EntityField extends BoundTextField{
 	}
 
 
-	private EntityField(final String path, final Dialog parent, final FLEFModel model, final EntityType type){
+	private EntityField(final String path, final Window parent, final FLEFModel model, final EntityType type){
 		super(path);
 
 		this.parent = parent;

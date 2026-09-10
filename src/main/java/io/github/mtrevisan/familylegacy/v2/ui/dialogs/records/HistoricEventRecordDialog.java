@@ -39,7 +39,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JPanel;
-import java.awt.Dialog;
+import java.awt.Window;
 import java.io.IOException;
 import java.io.Serial;
 
@@ -93,17 +93,17 @@ public class HistoricEventRecordDialog extends BaseRecordDialog{
 	private final EntityField placeField;
 
 
-	public static HistoricEventRecordDialog createNew(final Dialog parent, final FLEFModel model){
+	public static HistoricEventRecordDialog createNew(final Window parent, final FLEFModel model){
 		return createNew(parent, model, HistoricEventRecordDialog::new);
 	}
 
-	public static HistoricEventRecordDialog createEdit(final Dialog parent, final FLEFModel model,
+	public static HistoricEventRecordDialog createEdit(final Window parent, final FLEFModel model,
 			final FLEFRecord record){
 		return createEdit(parent, model, record, HistoricEventRecordDialog::new);
 	}
 
 
-	private HistoricEventRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+	private HistoricEventRecordDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, HistoricEventHandler.getInstance());
 
 		typeCombo = new BoundComboBox<>(TAG_TYPE, new String[]{

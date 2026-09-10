@@ -35,7 +35,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JPanel;
 import javax.swing.border.TitledBorder;
-import java.awt.Dialog;
+import java.awt.Window;
 import java.io.Serial;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
@@ -88,7 +88,7 @@ public class AuditPanel extends JPanel{
 	 *
 	 * @param parent	the parent dialog (used for showing message dialogs)
 	 */
-	public AuditPanel(final Dialog parent){
+	public AuditPanel(final Window parent){
 		creationPanel = new JPanel(new MigLayout("fillx", "[grow]"));
 
 		creationCommentArea = new BoundTextArea(TAG_AUDIT_CREATION_COMMENT, 3, 25);

@@ -31,7 +31,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.DocumentRecordDial
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.FileHelper;
 import org.apache.commons.lang3.StringUtils;
 
-import java.awt.Dialog;
+import java.awt.Window;
 
 
 /**
@@ -96,12 +96,12 @@ public class DocumentHandler extends AbstractRecordTypeHandler<DocumentRecordDia
 	}
 
 	@Override
-	public DocumentRecordDialog createNewDialog(final Dialog parent, final FLEFModel model){
+	public DocumentRecordDialog createNewDialog(final Window parent, final FLEFModel model){
 		return DocumentRecordDialog.createNew(parent, model);
 	}
 
 	@Override
-	public DocumentRecordDialog createEditDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+	public DocumentRecordDialog createEditDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
 		return DocumentRecordDialog.createEdit(parent, model, record);
 	}
 

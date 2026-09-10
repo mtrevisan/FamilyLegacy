@@ -30,7 +30,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.PlaceRecordDialog;
 import org.apache.commons.lang3.StringUtils;
 
-import java.awt.Dialog;
+import java.awt.Window;
 
 
 /**
@@ -86,12 +86,12 @@ public class PlaceHandler extends AbstractRecordTypeHandler<PlaceRecordDialog>{
 	}
 
 	@Override
-	public PlaceRecordDialog createNewDialog(final Dialog parent, final FLEFModel model){
+	public PlaceRecordDialog createNewDialog(final Window parent, final FLEFModel model){
 		return PlaceRecordDialog.createNew(parent, model);
 	}
 
 	@Override
-	public PlaceRecordDialog createEditDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+	public PlaceRecordDialog createEditDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
 		return PlaceRecordDialog.createEdit(parent, model, record);
 	}
 

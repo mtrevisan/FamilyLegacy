@@ -37,7 +37,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JPanel;
-import java.awt.Dialog;
+import java.awt.Window;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serial;
@@ -90,16 +90,16 @@ public class DocumentRecordDialog extends BaseRecordDialog{
 	private final BoundTextArea descriptionArea;
 
 
-	public static DocumentRecordDialog createNew(final Dialog parent, final FLEFModel model){
+	public static DocumentRecordDialog createNew(final Window parent, final FLEFModel model){
 		return createNew(parent, model, DocumentRecordDialog::new);
 	}
 
-	public static DocumentRecordDialog createEdit(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+	public static DocumentRecordDialog createEdit(final Window parent, final FLEFModel model, final FLEFRecord record){
 		return createEdit(parent, model, record, DocumentRecordDialog::new);
 	}
 
 
-	private DocumentRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+	private DocumentRecordDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, DocumentHandler.getInstance());
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]5[]10[]");

@@ -40,7 +40,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JPanel;
 import javax.swing.border.TitledBorder;
-import java.awt.Dialog;
+import java.awt.Window;
 import java.io.IOException;
 import java.io.Serial;
 
@@ -114,16 +114,16 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 	private final EvidenceQualifiersPanel mapEvidencePanel;
 
 
-	public static PlaceRecordDialog createNew(final Dialog parent, final FLEFModel model){
+	public static PlaceRecordDialog createNew(final Window parent, final FLEFModel model){
 		return createNew(parent, model, PlaceRecordDialog::new);
 	}
 
-	public static PlaceRecordDialog createEdit(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+	public static PlaceRecordDialog createEdit(final Window parent, final FLEFModel model, final FLEFRecord record){
 		return createEdit(parent, model, record, PlaceRecordDialog::new);
 	}
 
 
-	private PlaceRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+	private PlaceRecordDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, PlaceHandler.getInstance());
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]10[]");

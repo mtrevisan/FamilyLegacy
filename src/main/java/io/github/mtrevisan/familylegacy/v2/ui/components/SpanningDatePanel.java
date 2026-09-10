@@ -33,7 +33,7 @@ import javax.swing.BorderFactory;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.border.TitledBorder;
-import java.awt.Dialog;
+import java.awt.Window;
 import java.io.Serial;
 
 
@@ -64,7 +64,7 @@ public class SpanningDatePanel extends JPanel{
 	private final SingleDatePanel toPanel;
 
 
-	public SpanningDatePanel(final Dialog parent, final FLEFModel model){
+	public SpanningDatePanel(final Window parent, final FLEFModel model){
 		this.fromPanel = new SingleDatePanel(parent, model);
 		this.toPanel = new SingleDatePanel(parent, model);
 

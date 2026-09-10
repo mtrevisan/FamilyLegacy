@@ -39,7 +39,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JPanel;
-import java.awt.Dialog;
+import java.awt.Window;
 import java.io.IOException;
 import java.io.Serial;
 
@@ -95,16 +95,17 @@ public class ResearchTaskRecordDialog extends BaseRecordDialog{
 	private final BoundTextArea outcomeArea;
 
 
-	public static ResearchTaskRecordDialog createNew(Dialog parent, FLEFModel model){
+	public static ResearchTaskRecordDialog createNew(final Window parent, final FLEFModel model){
 		return createNew(parent, model, ResearchTaskRecordDialog::new);
 	}
 
-	public static ResearchTaskRecordDialog createEdit(Dialog parent, FLEFModel model, FLEFRecord record){
+	public static ResearchTaskRecordDialog createEdit(final Window parent, final FLEFModel model,
+			final FLEFRecord record){
 		return createEdit(parent, model, record, ResearchTaskRecordDialog::new);
 	}
 
 
-	private ResearchTaskRecordDialog(Dialog parent, FLEFModel model, FLEFRecord record){
+	private ResearchTaskRecordDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, ResearchTaskHandler.getInstance());
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]10[]10[]10[]10[]");

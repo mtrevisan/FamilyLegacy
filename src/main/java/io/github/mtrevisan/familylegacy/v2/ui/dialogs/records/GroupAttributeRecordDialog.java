@@ -43,7 +43,7 @@ import org.apache.commons.lang3.StringUtils;
 import javax.swing.BorderFactory;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import java.awt.Dialog;
+import java.awt.Window;
 import java.io.IOException;
 import java.io.Serial;
 
@@ -120,17 +120,17 @@ public class GroupAttributeRecordDialog extends BaseRecordDialog{
 	private final EntityField placeField;
 
 
-	public static GroupAttributeRecordDialog createNew(final Dialog parent, final FLEFModel model){
+	public static GroupAttributeRecordDialog createNew(final Window parent, final FLEFModel model){
 		return createNew(parent, model, GroupAttributeRecordDialog::new);
 	}
 
-	public static GroupAttributeRecordDialog createEdit(final Dialog parent, final FLEFModel model,
+	public static GroupAttributeRecordDialog createEdit(final Window parent, final FLEFModel model,
 			final FLEFRecord record){
 		return createEdit(parent, model, record, GroupAttributeRecordDialog::new);
 	}
 
 
-	private GroupAttributeRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+	private GroupAttributeRecordDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, GroupAttributeHandler.getInstance());
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]5[]10[]10[]10[]");

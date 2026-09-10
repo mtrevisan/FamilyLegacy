@@ -34,7 +34,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JPanel;
 import javax.swing.JTextField;
-import java.awt.Dialog;
+import java.awt.Window;
 import java.io.Serial;
 
 
@@ -68,7 +68,7 @@ public class DateField extends JPanel{
 	private static final String TAG_TO = "TO";
 
 
-	private final Dialog parent;
+	private final Window parent;
 	private final String dialogTitle;
 
 	private final String path;
@@ -79,17 +79,17 @@ public class DateField extends JPanel{
 	private final JTextField displayField = new JTextField(null);
 
 
-	public static DateField create(final Dialog parent, final String dialogTitle, final FLEFModel model){
+	public static DateField create(final Window parent, final String dialogTitle, final FLEFModel model){
 		return new DateField(null, parent, dialogTitle, model);
 	}
 
-	public static DateField createWithWrapperTag(final String path, final Dialog parent, final String dialogTitle,
+	public static DateField createWithWrapperTag(final String path, final Window parent, final String dialogTitle,
 			final FLEFModel model){
 		return new DateField(path, parent, dialogTitle, model);
 	}
 
 
-	private DateField(final String path, final Dialog parent, final String dialogTitle, final FLEFModel model){
+	private DateField(final String path, final Window parent, final String dialogTitle, final FLEFModel model){
 		super(new MigLayout("ins 0,fillx", "[grow]"));
 
 		this.parent = parent;

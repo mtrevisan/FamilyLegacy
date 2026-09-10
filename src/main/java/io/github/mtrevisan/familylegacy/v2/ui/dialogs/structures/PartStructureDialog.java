@@ -36,7 +36,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JPanel;
-import java.awt.Dialog;
+import java.awt.Window;
 import java.io.Serial;
 
 
@@ -75,16 +75,16 @@ public class PartStructureDialog extends BaseRecordDialog{
 	private final TextValueVariantListPanel variantPanel;
 
 
-	public static PartStructureDialog createNew(final Dialog parent, final FLEFModel model){
+	public static PartStructureDialog createNew(final Window parent, final FLEFModel model){
 		return createNew(parent, model, PartStructureDialog::new);
 	}
 
-	public static PartStructureDialog createEdit(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+	public static PartStructureDialog createEdit(final Window parent, final FLEFModel model, final FLEFRecord record){
 		return createEdit(parent, model, record, PartStructureDialog::new);
 	}
 
 
-	private PartStructureDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+	private PartStructureDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, PartHandler.getInstance());
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(0, "[]10[]15[]");

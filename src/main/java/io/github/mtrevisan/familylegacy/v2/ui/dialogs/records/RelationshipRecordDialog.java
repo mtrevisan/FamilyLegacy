@@ -43,7 +43,7 @@ import org.apache.commons.lang3.Strings;
 import javax.swing.BorderFactory;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import java.awt.Dialog;
+import java.awt.Window;
 import java.io.IOException;
 import java.io.Serial;
 import java.util.Collections;
@@ -59,7 +59,7 @@ import java.util.List;
  *   id: LocalID
  *   subject: RelationshipParticipant
  *   target: RelationshipParticipant
- *   type: enum { biological_child, adoptive_child, foster_child, guarded_child, step_child, civil_spouse, religious_spouse, customary_spouse, cohabiting_partner, engaged_partner, group_member, associate } | Text
+ *   type: enum { biological_child, adoptive_child, foster_child, guarded_child, step_child, civil_spouse, religious_spouse, customary_spouse, cohabiting_partner, engaged_partner, group_member, associate, part_of }
  *   role?: Text
  *   status?: enum { active, ended, unknown }
  *   valid_from?: DateStructure
@@ -135,17 +135,17 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 	private final DateField validToField;
 
 
-	public static RelationshipRecordDialog createNew(final Dialog parent, final FLEFModel model){
+	public static RelationshipRecordDialog createNew(final Window parent, final FLEFModel model){
 		return createNew(parent, model, RelationshipRecordDialog::new);
 	}
 
-	public static RelationshipRecordDialog createEdit(final Dialog parent, final FLEFModel model,
+	public static RelationshipRecordDialog createEdit(final Window parent, final FLEFModel model,
 			final FLEFRecord record){
 		return createEdit(parent, model, record, RelationshipRecordDialog::new);
 	}
 
 
-	private RelationshipRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+	private RelationshipRecordDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, RelationshipHandler.getInstance());
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]5[]10[]5[]10[]10[]10[]");
@@ -162,7 +162,6 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 			"civil_spouse", "religious_spouse", "customary_spouse", "cohabiting_partner", "engaged_partner",
 			"group_member", "associate", "part_of"
 		});
-		subjectTypeCombo.setEditable(true);
 		subjectRoleField = new BoundTextField(TAG_ROLE);
 		statusCombo = new BoundComboBox<>(TAG_STATUS, new String[]{
 			StringUtils.EMPTY,

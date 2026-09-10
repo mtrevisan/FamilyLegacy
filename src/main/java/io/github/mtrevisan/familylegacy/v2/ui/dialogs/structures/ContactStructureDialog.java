@@ -39,7 +39,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JPanel;
-import java.awt.Dialog;
+import java.awt.Window;
 import java.io.Serial;
 
 
@@ -87,16 +87,16 @@ public class ContactStructureDialog extends BaseRecordDialog{
 	private final BoundTextArea noteArea;
 
 
-	public static ContactStructureDialog createNew(final Dialog parent, final FLEFModel model){
+	public static ContactStructureDialog createNew(final Window parent, final FLEFModel model){
 		return createNew(parent, model, ContactStructureDialog::new);
 	}
 
-	public static ContactStructureDialog createEdit(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+	public static ContactStructureDialog createEdit(final Window parent, final FLEFModel model, final FLEFRecord record){
 		return createEdit(parent, model, record, ContactStructureDialog::new);
 	}
 
 
-	private ContactStructureDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+	private ContactStructureDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, ContactHandler.getInstance());
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]5[]10[]10[]");

@@ -168,7 +168,7 @@ public class SourceConverter {
 		GEDCOMNode textNode = GEDCOMHelper.findFirstChild(sourNode, "TEXT");
 		if (textNode != null) {
 			String fullText = GEDCOMHelper.extractFullText(textNode);
-			if (fullText != null && !fullText.isBlank()) {
+			if (fullText != null && StringUtils.isNotEmpty(fullText)) {
 				FLEFRecord note = FLEFRecord.createChildWithTag("note")
 					.addChild(FLEFRecord.createChildWithTagAndValue("text", "Verbatim text: " + fullText))
 					.addChild(AuditBuilder.build(sourNode));
@@ -311,7 +311,7 @@ public class SourceConverter {
 
 		// FORM -> note (inline)
 		GEDCOMNode formNode = GEDCOMHelper.findFirstChild(objNode, "FORM");
-		if (formNode != null && formNode.getValue() != null) {
+		if (formNode != null && StringUtils.isNotEmpty(formNode.getValue())) {
 			FLEFRecord note = FLEFRecord.createChildWithTag("note")
 				.addChild(FLEFRecord.createChildWithTagAndValue("text", "Format: " + formNode.getValue()))
 				.addChild(AuditBuilder.build(objNode));

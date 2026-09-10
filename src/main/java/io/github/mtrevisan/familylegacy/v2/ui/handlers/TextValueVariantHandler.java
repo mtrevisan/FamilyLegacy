@@ -31,7 +31,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.dialogs.structures.TextValueVarian
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 
-import java.awt.Dialog;
+import java.awt.Window;
 import java.util.Locale;
 
 
@@ -117,12 +117,12 @@ public class TextValueVariantHandler extends AbstractRecordTypeHandler<TextValue
 	}
 
 	@Override
-	public TextValueVariantStructureDialog createNewDialog(final Dialog parent, final FLEFModel model){
+	public TextValueVariantStructureDialog createNewDialog(final Window parent, final FLEFModel model){
 		return TextValueVariantStructureDialog.createNew(parent, model);
 	}
 
 	@Override
-	public TextValueVariantStructureDialog createEditDialog(final Dialog parent, final FLEFModel model,
+	public TextValueVariantStructureDialog createEditDialog(final Window parent, final FLEFModel model,
 			final FLEFRecord record){
 		return TextValueVariantStructureDialog.createEdit(parent, model, record);
 	}

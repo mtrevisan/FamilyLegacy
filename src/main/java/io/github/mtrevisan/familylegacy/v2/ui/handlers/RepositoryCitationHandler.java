@@ -29,7 +29,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.citations.RepositoryCitationDialog;
 
-import java.awt.Dialog;
+import java.awt.Window;
 
 
 /**
@@ -95,12 +95,12 @@ public class RepositoryCitationHandler extends AbstractRecordTypeHandler<Reposit
 	}
 
 	@Override
-	public RepositoryCitationDialog createNewDialog(final Dialog parent, final FLEFModel model){
+	public RepositoryCitationDialog createNewDialog(final Window parent, final FLEFModel model){
 		return RepositoryCitationDialog.createNew(parent, model);
 	}
 
 	@Override
-	public RepositoryCitationDialog createEditDialog(final Dialog parent, final FLEFModel model,
+	public RepositoryCitationDialog createEditDialog(final Window parent, final FLEFModel model,
 			final FLEFRecord record){
 		return RepositoryCitationDialog.createEdit(parent, model, record);
 	}

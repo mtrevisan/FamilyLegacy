@@ -40,7 +40,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import java.awt.Dialog;
+import java.awt.Window;
 import java.io.IOException;
 import java.io.Serial;
 import java.util.List;
@@ -103,17 +103,17 @@ public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 	private final BoundTextArea commentArea;
 
 
-	public static IdentityHypothesisRecordDialog createNew(final Dialog parent, final FLEFModel model){
+	public static IdentityHypothesisRecordDialog createNew(final Window parent, final FLEFModel model){
 		return createNew(parent, model, IdentityHypothesisRecordDialog::new);
 	}
 
-	public static IdentityHypothesisRecordDialog createEdit(final Dialog parent, final FLEFModel model,
+	public static IdentityHypothesisRecordDialog createEdit(final Window parent, final FLEFModel model,
 			final FLEFRecord record){
 		return createEdit(parent, model, record, IdentityHypothesisRecordDialog::new);
 	}
 
 
-	private IdentityHypothesisRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+	private IdentityHypothesisRecordDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, IdentityHypothesisHandler.getInstance());
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]");
