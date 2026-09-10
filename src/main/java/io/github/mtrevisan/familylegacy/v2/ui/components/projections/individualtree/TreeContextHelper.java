@@ -98,7 +98,7 @@ public final class TreeContextHelper{
 
 		// Extract current individual record from the clicked panel if present
 		final FLEFRecord currentRecord = (selectedPanel instanceof IndividualPanel individualPanel
-			&& individualPanel.getData() != null
+				&& individualPanel.getData() != null
 			? model.getRecordById(individualPanel.getData().getId())
 			: null);
 

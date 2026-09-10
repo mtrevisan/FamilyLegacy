@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.TreeOperation;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualData;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualListener;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.partners.PartnersPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.partners.Side;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.siblings.SiblingsPanel;
@@ -73,7 +74,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.function.Supplier;
 
 
 /**
@@ -327,17 +327,14 @@ public class IndividualTreePanel extends JPanel implements TreeChangeListener, I
 			return;
 
 		// Resolve the specific parent record from the selected panel context
-		final TreeContextHelper.Context ctx = TreeContextHelper.determineContext(selectedPanel, nodeToPanelMap, model);
-		FLEFRecord targetFather = father;
-		FLEFRecord targetMother = mother;
-		if(targetFather == null && targetMother == null && ctx != null && ctx.individual != null){
-			final String rawSex = FLEFRecordHelper.getChildValue(individual, TAG_SEX);
-			final SexType sex = (rawSex != null? Enum.valueOf(SexType.class, rawSex.toUpperCase(Locale.ROOT)): null);
-			if(sex == SexType.MALE)
-				targetFather = ctx.individual;
-			else
-				targetMother = ctx.individual;
-		}
+		final FLEFRecord currentRecord = (selectedPanel instanceof IndividualPanel individualPanel
+			&& individualPanel.getData() != null
+			? model.getRecordById(individualPanel.getData().getId())
+			: null);
+		final String rawSex = FLEFRecordHelper.getChildValue(currentRecord, TAG_SEX);
+		final SexType sex = (rawSex != null? Enum.valueOf(SexType.class, rawSex.toUpperCase(Locale.ROOT)): null);
+		final FLEFRecord targetFather = (sex == SexType.MALE? currentRecord: null);
+		final FLEFRecord targetMother = (sex == SexType.MALE? null: currentRecord);
 
 		// Perform child relation operation
 		performChildRelationOperation(individual, targetFather, targetMother, false, rootIndividualId);
@@ -504,42 +501,6 @@ public class IndividualTreePanel extends JPanel implements TreeChangeListener, I
 		final String[] allowedTypes = getAllowedRelationshipTypes();
 		performRelationOperationParent(ctx, allowedTypes, individual);
 
-		treeMutator.invalidateAndNotifyTreeChanged(rootId);
-	}
-
-	/**
-	 * Performs the core logic for adding, connecting, or pasting an individual.
-	 *
-	 * @param individualSupplier provides the individual to be added/connected/pasted
-	 * @param father             the father record (it may be {@code null})
-	 * @param mother             the mother record (it may be {@code null})
-	 * @param isPaste            if true, the source individual will be unlinked from all previous relations
-	 * @param rootId             the current root id for refreshing the tree
-	 */
-	private void performRelationOperation(final Supplier<FLEFRecord> individualSupplier, final FLEFRecord father,
-			final FLEFRecord mother, final boolean isPaste, final String rootId){
-		final TreeContextHelper.Context ctx = TreeContextHelper.determineContext(selectedPanel, nodeToPanelMap, model);
-		if(ctx == null)
-			return;
-
-		final FLEFRecord individual = individualSupplier.get();
-		if(individual == null)
-			return;
-
-		// If paste, unlink from all previous relations
-		if(isPaste){
-			final List<String> relIds = extractRelationships(individual.getId());
-			treeMutator.removeRelationships(relIds);
-		}
-
-		final String[] allowedTypes = getAllowedRelationshipTypes();
-
-		if(Objects.requireNonNull(ctx.type) == TreeContextHelper.Context.Type.CHILD)
-			performRelationOperationChild(father, mother, allowedTypes, individual);
-		else if(ctx.type == TreeContextHelper.Context.Type.PARENT)
-			performRelationOperationParent(ctx, allowedTypes, individual);
-
-		// Invalidate cache and refresh tree
 		treeMutator.invalidateAndNotifyTreeChanged(rootId);
 	}
 
