@@ -142,7 +142,7 @@ public final class TreeContextHelper{
 			? oppositePanel.getData().getId()
 			: null);
 
-		return (targetId != null? Context.forPartner(currentRecord, partnerPanel, side, childrenId, targetId): null);
+		return Context.forPartner(currentRecord, partnerPanel, side, childrenId, targetId);
 	}
 
 	/**

@@ -33,9 +33,9 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.projections.TreeOperati
  */
 public interface IndividualListener extends EntityListener{
 
-	void onIndividualAddOrConnect(TreeOperation operation, FLEFRecord father, FLEFRecord mother);
+	void onIndividualAddOrConnect(TreeOperation operation);
 
-	void onChildAddOrConnect(TreeOperation operation, FLEFRecord father, FLEFRecord mother);
+	void onChildAddOrConnect(TreeOperation operation);
 
 	/**
 	 * Pastes the individual from the clipboard into the current context.

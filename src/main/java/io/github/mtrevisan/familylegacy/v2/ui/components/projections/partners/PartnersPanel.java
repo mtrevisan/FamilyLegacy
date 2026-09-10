@@ -26,7 +26,6 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.projections.partners;
 
 import io.github.mtrevisan.familylegacy.v2.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.BoxPanelType;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualData;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualListener;
@@ -147,17 +146,10 @@ public class PartnersPanel extends JPanel{
 	private final Predicate<String> treeTypeFilter;
 	private final TreeLayout treeLayout;
 
-	private FLEFRecord individual;
-	private FLEFRecord group;
-	private FLEFRecord spouse;
 	private IndividualData father;
 	private IndividualData mother;
 
 	private final FLEFModel model;
-
-	private PartnersData partners;
-
-	private IndividualListener listener;
 
 
 	public static PartnersPanel create(final BoxPanelType boxType, final Predicate<String> treeTypeFilter,
@@ -248,7 +240,7 @@ public class PartnersPanel extends JPanel{
 
 	@Override
 	protected final void paintComponent(final Graphics g){
-		if(father == null || mother == null)
+		if(!groupPanel.isVisible())
 			return;
 
 		if(g instanceof Graphics2D && arrowFatherPanel != null && arrowMotherPanel != null){
@@ -307,8 +299,6 @@ public class PartnersPanel extends JPanel{
 
 
 	public PartnersPanel withListener(final IndividualListener listener){
-		this.listener = listener;
-
 		fatherPanel.withListener(listener);
 		motherPanel.withListener(listener);
 
@@ -347,25 +337,15 @@ public class PartnersPanel extends JPanel{
 
 		final boolean hasFather = (father != null && !father.isEmpty());
 		final boolean hasMother = (mother != null && !mother.isEmpty());
-//		final boolean hasChildren = (partners != null && partners.hasChildren());
-		final boolean hasChildren = false;
-
-		// If there is only one partner and there are NO children, hide the other box and the groupPanel.
-		if ((!hasFather || !hasMother) && !hasChildren){
-			fatherPanel.setVisible(hasFather);
-			motherPanel.setVisible(hasMother);
-			// Conceals the central connector box.
-			groupPanel.setVisible(false);
+		final boolean hasChildren = (hasFather && fatherPanel.getData().hasChildren()
+			|| hasMother && motherPanel.getData().hasChildren());
+		if(!hasChildren){
+			if(!hasFather)
+				fatherPanel.setVisible(false);
+			if(!hasMother)
+				motherPanel.setVisible(false);
+			groupPanel.setVisible(hasFather && hasMother);
 		}
-		else{
-			// If there are children, display both boxes (even if one is empty) to maintain the couple structure.
-			fatherPanel.setVisible(true);
-			motherPanel.setVisible(true);
-			groupPanel.setVisible(true);
-		}
-
-		revalidate();
-		repaint();
 	}
 
 //	private boolean hasChildren(final String fatherId, final String motherId){
@@ -394,438 +374,6 @@ public class PartnersPanel extends JPanel{
 		return (PartnersPanel)parent;
 	}
 
-
-/*	public final void setGroupListener(final GroupListenerInterface groupListener){
-		if(groupListener != null){
-			groupPanel.addMouseListener(new MouseAdapter(){
-				@Override
-				public void mouseClicked(final MouseEvent evt){
-					if(evt.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(evt))
-						groupListener.onGroupEdit(BiologicalParentsPanel.this);
-				}
-			});
-
-			attachPopUpMenu(groupPanel, groupListener);
-
-
-			fatherPreviousParentsLabel.addMouseListener(new MouseAdapter(){
-				@Override
-				public void mouseClicked(final MouseEvent evt){
-					if(SwingUtilities.isLeftMouseButton(evt) && (Boolean)fatherPreviousParentsLabel.getClientProperty(KEY_ENABLED)){
-						final Map<String, Object> individual = fatherPanel.getIndividual();
-
-						//list the `groupID`s for the biological group and adopting groups of the `partner`
-						final Integer adopteeID = extractRecordID(individual);
-						final List<Integer> groupsIDs = getBiologicalAndAdoptingParentsIDs(adopteeID);
-
-						//find current parents in list
-						final Integer partnerParentsID = TreePanel.extractParentsGroupID(individual, store);
-						int newGroupID = -1;
-						final int parentsCount = groupsIDs.size();
-						for(int i = 0; i < parentsCount; i ++)
-							if(Objects.equals(partnerParentsID, groupsIDs.get(i))){
-								if(i > 0)
-									newGroupID = groupsIDs.get(i - 1);
-
-								break;
-							}
-
-						final TreeMap<Integer, Map<String, Object>> groups = getRecords(EntityManager.TABLE_NAME_GROUP);
-						final Map<String, Object> newParents = groups.getOrDefault(newGroupID, Collections.emptyMap());
-						groupListener.onIndividualChangeParents(BiologicalParentsPanel.this, fatherPanel, newParents);
-					}
-				}
-			});
-			fatherNextParentsLabel.addMouseListener(new MouseAdapter(){
-				@Override
-				public void mouseClicked(final MouseEvent evt){
-					if(SwingUtilities.isLeftMouseButton(evt) && (Boolean)fatherNextParentsLabel.getClientProperty(KEY_ENABLED)){
-						final Map<String, Object> individual = fatherPanel.getIndividual();
-
-						//list the `groupID`s for the biological group and adopting groups of the `partner`
-						final Integer adopteeID = extractRecordID(individual);
-						final List<Integer> groupsIDs = getBiologicalAndAdoptingParentsIDs(adopteeID);
-
-						//find current parents in list
-						final Integer partnerParentsID = TreePanel.extractParentsGroupID(individual, store);
-						int newGroupID = -1;
-						final int parentsCount = groupsIDs.size();
-						for(int i = 0; i < parentsCount; i ++)
-							if(Objects.equals(partnerParentsID, groupsIDs.get(i))){
-								if(i + 1 < parentsCount)
-									newGroupID = groupsIDs.get(i + 1);
-
-								break;
-							}
-
-						final TreeMap<Integer, Map<String, Object>> groups = getRecords(EntityManager.TABLE_NAME_GROUP);
-						final Map<String, Object> newParents = groups.getOrDefault(newGroupID, Collections.emptyMap());
-						groupListener.onIndividualChangeParents(BiologicalParentsPanel.this, fatherPanel, newParents);
-					}
-				}
-			});
-			fatherPreviousGroupLabel.setPreferredSize(NEXT_PREVIOUS_GROUP_PREFERRED_SIZE);
-			fatherPreviousGroupLabel.addMouseListener(new MouseAdapter(){
-				@Override
-				public void mouseClicked(final MouseEvent evt){
-					if(SwingUtilities.isLeftMouseButton(evt) && (Boolean)fatherPreviousGroupLabel.getClientProperty(KEY_ENABLED)){
-						final Map<String, Object> individual = motherPanel.getIndividual();
-
-						//list the `groupID`s for the groups of the `other partner`
-						final Integer otherPartnerID = extractRecordID(individual);
-						final List<Integer> otherPartnerGroupIDs = getGroupIDs(otherPartnerID);
-
-						//find current group in list
-						final Integer groupID = extractRecordID(group);
-						int newGroupID = -1;
-						final int otherPartnerGroupsCount = otherPartnerGroupIDs.size();
-						for(int i = 0; i < otherPartnerGroupsCount; i ++)
-							if(Objects.equals(groupID, otherPartnerGroupIDs.get(i))){
-								if(i > 0)
-									newGroupID = otherPartnerGroupIDs.get(i - 1);
-
-								break;
-							}
-
-						final TreeMap<Integer, Map<String, Object>> groups = getRecords(EntityManager.TABLE_NAME_GROUP);
-						final Map<String, Object> newGroup = groups.getOrDefault(newGroupID, Collections.emptyMap());
-
-						Map<String, Object> newPartner = Collections.emptyMap();
-						if(!newGroup.isEmpty()){
-							final TreeMap<Integer, Map<String, Object>> individuals = getRecords(EntityManager.TABLE_NAME_INDIVIDUAL);
-							final List<Integer> newIndividualIDs = getIndividualIDsInGroup(extractRecordID(newGroup));
-							for(int i = 0, length = newIndividualIDs.size(); i < length; i ++)
-								if(newIndividualIDs.get(i).equals(otherPartnerID)){
-									if(i > 0)
-										newPartner = individuals.get(newIndividualIDs.get(i - 1));
-
-									break;
-								}
-						}
-
-						groupListener.onIndividualChangeGroup(BiologicalParentsPanel.this, motherPanel, newPartner, newGroup);
-					}
-				}
-			});
-			fatherNextGroupLabel.setPreferredSize(NEXT_PREVIOUS_GROUP_PREFERRED_SIZE);
-			fatherNextGroupLabel.addMouseListener(new MouseAdapter(){
-				@Override
-				public void mouseClicked(final MouseEvent evt){
-					if(SwingUtilities.isLeftMouseButton(evt) && (Boolean)fatherNextGroupLabel.getClientProperty(KEY_ENABLED)){
-						final Map<String, Object> individual = motherPanel.getIndividual();
-
-						//list the `groupID`s for the groups of the `other partner`
-						final Integer otherPartnerID = extractRecordID(individual);
-						final List<Integer> otherPartnerGroupIDs = getGroupIDs(otherPartnerID);
-
-						//find current group in list
-						final Integer groupID = extractRecordID(group);
-						int newGroupID = -1;
-						final int otherPartnerGroupsCount = otherPartnerGroupIDs.size();
-						for(int i = 0; i < otherPartnerGroupsCount; i ++)
-							if(Objects.equals(groupID, otherPartnerGroupIDs.get(i))){
-								if(i + 1 < otherPartnerGroupsCount)
-									newGroupID = otherPartnerGroupIDs.get(i + 1);
-
-								break;
-							}
-
-						final TreeMap<Integer, Map<String, Object>> groups = getRecords(EntityManager.TABLE_NAME_GROUP);
-						final Map<String, Object> newGroup = groups.getOrDefault(newGroupID, Collections.emptyMap());
-
-						Map<String, Object> newPartner = Collections.emptyMap();
-						if(!newGroup.isEmpty()){
-							final TreeMap<Integer, Map<String, Object>> individuals = getRecords(EntityManager.TABLE_NAME_INDIVIDUAL);
-							final List<Integer> newIndividualIDs = getIndividualIDsInGroup(extractRecordID(newGroup));
-							for(int i = 0, length = newIndividualIDs.size(); i < length; i ++)
-								if(newIndividualIDs.get(i).equals(otherPartnerID)){
-									if(i + 1 < otherPartnerGroupsCount)
-										newPartner = individuals.get(newIndividualIDs.get(i + 1));
-
-									break;
-								}
-						}
-
-						groupListener.onIndividualChangeGroup(BiologicalParentsPanel.this, motherPanel, newPartner, newGroup);
-					}
-				}
-			});
-			motherPreviousParentsLabel.addMouseListener(new MouseAdapter(){
-				@Override
-				public void mouseClicked(final MouseEvent evt){
-					if(SwingUtilities.isLeftMouseButton(evt) && (Boolean)motherPreviousParentsLabel.getClientProperty(KEY_ENABLED)){
-						final Map<String, Object> individual = motherPanel.getIndividual();
-
-						//list the `groupID`s for the biological group and adopting groups of the `partner`
-						final Integer adopteeID = extractRecordID(individual);
-						final List<Integer> groupsIDs = getBiologicalAndAdoptingParentsIDs(adopteeID);
-
-						//find current parents in list
-						final Integer partnerParentsID = TreePanel.extractParentsGroupID(individual, store);
-						int newGroupID = -1;
-						final int parentsCount = groupsIDs.size();
-						for(int i = 0; i < parentsCount; i ++)
-							if(Objects.equals(partnerParentsID, groupsIDs.get(i))){
-								if(i > 0)
-									newGroupID = groupsIDs.get(i - 1);
-
-								break;
-							}
-
-						final TreeMap<Integer, Map<String, Object>> groups = getRecords(EntityManager.TABLE_NAME_GROUP);
-						final Map<String, Object> newParents = groups.getOrDefault(newGroupID, Collections.emptyMap());
-						groupListener.onIndividualChangeParents(BiologicalParentsPanel.this, motherPanel, newParents);
-					}
-				}
-			});
-			motherNextParentsLabel.addMouseListener(new MouseAdapter(){
-				@Override
-				public void mouseClicked(final MouseEvent evt){
-					if(SwingUtilities.isLeftMouseButton(evt) && (Boolean)motherNextParentsLabel.getClientProperty(KEY_ENABLED)){
-						final Map<String, Object> individual = motherPanel.getIndividual();
-
-						//list the `groupID`s for the biological group and adopting groups of the `partner`
-						final Integer adopteeID = extractRecordID(individual);
-						final List<Integer> groupsIDs = getBiologicalAndAdoptingParentsIDs(adopteeID);
-
-						//find current parents in list
-						final Integer partnerParentsID = TreePanel.extractParentsGroupID(individual, store);
-						int newGroupID = -1;
-						final int parentsCount = groupsIDs.size();
-						for(int i = 0; i < parentsCount; i ++)
-							if(Objects.equals(partnerParentsID, groupsIDs.get(i))){
-								if(i + 1 < parentsCount)
-									newGroupID = groupsIDs.get(i + 1);
-
-								break;
-							}
-
-						final TreeMap<Integer, Map<String, Object>> groups = getRecords(EntityManager.TABLE_NAME_GROUP);
-						final Map<String, Object> newParents = groups.getOrDefault(newGroupID, Collections.emptyMap());
-						groupListener.onIndividualChangeParents(BiologicalParentsPanel.this, motherPanel, newParents);
-					}
-				}
-			});
-			motherPreviousGroupLabel.addMouseListener(new MouseAdapter(){
-				@Override
-				public void mouseClicked(final MouseEvent evt){
-					if(SwingUtilities.isLeftMouseButton(evt) && (Boolean)motherPreviousGroupLabel.getClientProperty(KEY_ENABLED)){
-						final Map<String, Object> individual = fatherPanel.getIndividual();
-
-						//list the `groupID`s for the groups of the `other partner`
-						final Integer otherPartnerID = extractRecordID(individual);
-						final List<Integer> otherPartnerGroupIDs = getGroupIDs(otherPartnerID);
-
-						//find current group in list
-						final Integer groupID = extractRecordID(group);
-						int newGroupID = -1;
-						final int otherPartnerGroupsCount = otherPartnerGroupIDs.size();
-						for(int i = 0; i < otherPartnerGroupsCount; i ++)
-							if(Objects.equals(groupID, otherPartnerGroupIDs.get(i))){
-								newGroupID = otherPartnerGroupIDs.get(i - 1);
-
-								break;
-							}
-
-						final TreeMap<Integer, Map<String, Object>> groups = getRecords(EntityManager.TABLE_NAME_GROUP);
-						final Map<String, Object> newGroup = groups.get(newGroupID);
-
-						Map<String, Object> newPartner = Collections.emptyMap();
-						if(!newGroup.isEmpty()){
-							final TreeMap<Integer, Map<String, Object>> individuals = getRecords(EntityManager.TABLE_NAME_INDIVIDUAL);
-							final List<Integer> newIndividualIDs = getIndividualIDsInGroup(extractRecordID(newGroup));
-							for(int i = 0, length = newIndividualIDs.size(); i < length; i ++)
-								if(newIndividualIDs.get(i).equals(otherPartnerID)){
-									if(i > 0)
-										newPartner = individuals.get(newIndividualIDs.get(i - 1));
-
-									break;
-								}
-						}
-
-						groupListener.onIndividualChangeGroup(BiologicalParentsPanel.this, fatherPanel, newPartner, newGroup);
-					}
-				}
-			});
-			motherNextGroupLabel.addMouseListener(new MouseAdapter(){
-				@Override
-				public void mouseClicked(final MouseEvent evt){
-					if(SwingUtilities.isLeftMouseButton(evt) && (Boolean)motherNextGroupLabel.getClientProperty(KEY_ENABLED)){
-						final Map<String, Object> individual = fatherPanel.getIndividual();
-
-						//list the `groupID`s for the groups of the `other partner`
-						final Integer otherPartnerID = extractRecordID(individual);
-						final List<Integer> otherPartnerGroupIDs = getGroupIDs(otherPartnerID);
-
-						//find current group in list
-						final Integer groupID = extractRecordID(group);
-						int newGroupID = -1;
-						final int otherPartnerGroupsCount = otherPartnerGroupIDs.size();
-						for(int i = 0; i < otherPartnerGroupsCount; i ++)
-							if(Objects.equals(groupID, otherPartnerGroupIDs.get(i))){
-								if(i + 1 < otherPartnerGroupsCount)
-									newGroupID = otherPartnerGroupIDs.get(i + 1);
-
-								break;
-							}
-
-						final TreeMap<Integer, Map<String, Object>> groups = getRecords(EntityManager.TABLE_NAME_GROUP);
-						final Map<String, Object> newGroup = groups.get(newGroupID);
-
-						Map<String, Object> newPartner = Collections.emptyMap();
-						if(!newGroup.isEmpty()){
-							final TreeMap<Integer, Map<String, Object>> individuals = getRecords(EntityManager.TABLE_NAME_INDIVIDUAL);
-							final List<Integer> newIndividualIDs = getIndividualIDsInGroup(extractRecordID(newGroup));
-							for(int i = 0, length = newIndividualIDs.size(); i < length; i ++)
-								if(newIndividualIDs.get(i).equals(otherPartnerID)){
-									if(i + 1 < otherPartnerGroupsCount)
-										newPartner = individuals.get(newIndividualIDs.get(i + 1));
-
-									break;
-								}
-						}
-
-						groupListener.onIndividualChangeGroup(BiologicalParentsPanel.this, fatherPanel, newPartner, newGroup);
-					}
-				}
-			});
-		}
-	}
-
-	public final void setIndividualListener(final IndividualListenerInterface individualListener){
-		fatherPanel.setIndividualListener(individualListener);
-		motherPanel.setIndividualListener(individualListener);
-	}
-
-	private void attachPopUpMenu(final JComponent component, final GroupListenerInterface groupListener){
-		final JPopupMenu popupMenu = new JPopupMenu();
-
-		editGroupItem.addActionListener(e -> groupListener.onGroupEdit(this));
-		popupMenu.add(editGroupItem);
-
-		addGroupItem.addActionListener(e -> groupListener.onGroupAdd(this));
-		popupMenu.add(addGroupItem);
-
-//		connectGroupItem.addActionListener(e -> groupListener.onGroupConnect(this));
-//		popupMenu.add(connectGroupItem);
-
-		removeGroupItem.addActionListener(e -> groupListener.onGroupRemove(this));
-		popupMenu.add(removeGroupItem);
-
-		component.addMouseListener(new PopupMouseAdapter(popupMenu, component));
-	}
-
-
-	void loadData(final Map<String, Object> group, final Map<String, Object> father, final Map<String, Object> mother){
-		prepareData(group, father, mother);
-
-		loadData();
-	}
-
-	private void prepareData(Map<String, Object> group, Map<String, Object> father, Map<String, Object> mother){
-		if(group.isEmpty()){
-			final List<Map<String, Object>> groups = extractGroups(father);
-			if(!groups.isEmpty())
-				group = groups.getFirst();
-		}
-
-		if(!group.isEmpty()){
-			final Integer homeGroupID = extractRecordID(group);
-			final List<Integer> individualIDsInGroup = getIndividualIDsInGroup(homeGroupID);
-			Integer fatherID = extractRecordID(father);
-			if(fatherID != null && !individualIDsInGroup.contains(fatherID)){
-				LOGGER.warn("Individual {} does not belong to the group {} (this cannot be)", fatherID, homeGroupID);
-
-				father = Collections.emptyMap();
-			}
-			Integer motherID = extractRecordID(mother);
-			if(motherID != null && !individualIDsInGroup.contains(motherID)){
-				LOGGER.warn("Individual {} does not belong to the group {} (this cannot be)", motherID, homeGroupID);
-
-				mother = Collections.emptyMap();
-			}
-
-			if(father.isEmpty() || mother.isEmpty()){
-				final TreeMap<Integer, Map<String, Object>> individuals = getRecords(EntityManager.TABLE_NAME_INDIVIDUAL);
-
-				//extract the first two individuals from the group:
-				if(!father.isEmpty())
-					individualIDsInGroup.remove(extractRecordID(father));
-				if(!mother.isEmpty())
-					individualIDsInGroup.remove(extractRecordID(mother));
-				if(father.isEmpty() && !individualIDsInGroup.isEmpty()){
-					fatherID = individualIDsInGroup.getFirst();
-					if(individuals.containsKey(fatherID))
-						father = individuals.get(fatherID);
-					individualIDsInGroup.remove(fatherID);
-				}
-				if(mother.isEmpty() && !individualIDsInGroup.isEmpty()){
-					motherID = individualIDsInGroup.getFirst();
-					if(individuals.containsKey(motherID))
-						mother = individuals.get(motherID);
-					individualIDsInGroup.remove(motherID);
-				}
-			}
-		}
-
-		group = group;
-		this.father = father;
-		this.mother = mother;
-	}
-
-	private void loadData(){
-		fatherPanel.loadData(extractRecordID(father));
-		motherPanel.loadData(extractRecordID(mother));
-
-		if(boxType == BoxPanelType.PRIMARY){
-			final Integer groupID = extractRecordID(group);
-			updatePreviousNextGroupIcons(groupID, mother, fatherPreviousGroupLabel, fatherNextGroupLabel);
-			updatePreviousNextGroupIcons(groupID, father, motherPreviousGroupLabel, motherNextGroupLabel);
-
-			updatePreviousNextParentsIcons(father, fatherPreviousParentsLabel, fatherNextParentsLabel);
-			updatePreviousNextParentsIcons(mother, motherPreviousParentsLabel, motherNextParentsLabel);
-		}
-
-		fatherPanel.repaint();
-		motherPanel.repaint();
-	}
-
-	private List<Map<String, Object>> extractGroups(final Map<String, Object> individual){
-		final List<Map<String, Object>> groupGroups = new ArrayList<>(0);
-		if(!individual.isEmpty()){
-			final Integer individualID = extractRecordID(individual);
-			groupGroups.addAll(getGroupIDs(individualID));
-		}
-		return groupGroups;
-	}
-
-	private List<Map<String, Object>> getGroupIDs(final Integer individualID){
-		final TreeMap<Integer, Map<String, Object>> groups = getRecords(EntityManager.TABLE_NAME_GROUP);
-		return getRecords(EntityManager.TABLE_NAME_GROUP_JUNCTION)
-			.values().stream()
-			.filter(entry -> Objects.equals(EntityManager.TABLE_NAME_INDIVIDUAL, extractRecordReferenceTable(entry)))
-			.filter(entry -> Objects.equals(individualID, extractRecordReferenceID(entry)))
-			.filter(entry -> Objects.equals(EntityManager.GROUP_ROLE_PARTNER, extractRecordRole(entry)))
-			.map(EntityManager::extractRecordGroupID)
-			.map(groups::get)
-			.toList();
-	}
-
-	/** Should be called whenever a modification on the store causes modifications on the UI. */
-/*	@EventHandler
-	@SuppressWarnings("NumberEquality")
-	public final void refresh(final Integer actionCommand){
-		if(actionCommand != ActionCommand.ACTION_COMMAND_GROUP)
-			return;
-
-		final boolean hasData = !group.isEmpty();
-//		final boolean hasGroups = !getRecords(TABLE_NAME_GROUP).isEmpty();
-//		final boolean hasChildren = (getChildren().length > 0);
-		editGroupItem.setEnabled(hasData);
-		addGroupItem.setEnabled(!hasData);
-//		connectGroupItem.setEnabled(!hasData && hasGroups);
-		removeGroupItem.setEnabled(hasData);
-	}*/
 
 /*	private void updatePreviousNextGroupIcons(final Integer groupID, final Map<String, Object> otherPartner,
 			final JLabel previousLabel, final JLabel nextLabel){
@@ -902,67 +450,6 @@ public class PartnersPanel extends JPanel{
 		final List<Integer> otherPartnerGroupIDs = getGroupIDs(extractRecordID(isFather? mother: father));
 		final boolean hasMoreGroups = (otherPartnerGroupIDs.size() > 1);
 		(isFather? fatherArrowsSpacer: motherArrowsSpacer).setVisible(hasMoreParents && hasMoreGroups);
-	}
-
-
-/*	private TreeMap<Integer, Map<String, Object>> getRecords(final String tableName){
-		return store.computeIfAbsent(tableName, k -> new TreeMap<>());
-	}
-
-	protected final TreeMap<Integer, Map<String, Object>> getFilteredRecords(final String tableName, final String filterReferenceTable,
-			final Integer filterReferenceID){
-		return getRecords(tableName)
-			.entrySet().stream()
-			.filter(entry -> Objects.equals(filterReferenceTable, extractRecordReferenceTable(entry.getValue())))
-			.filter(entry -> Objects.equals(filterReferenceID, extractRecordReferenceID(entry.getValue())))
-			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
-	}
-
-	private List<Integer> getIndividualIDsInGroup(final Integer groupID){
-		return new ArrayList<>(getRecords(EntityManager.TABLE_NAME_GROUP_JUNCTION)
-			.values().stream()
-			.filter(entry -> EntityManager.TABLE_NAME_INDIVIDUAL.equals(extractRecordReferenceTable(entry)))
-			.filter(entry -> Objects.equals(groupID, extractRecordGroupID(entry)))
-			.filter(entry -> Objects.equals(EntityManager.GROUP_ROLE_PARTNER, extractRecordRole(entry)))
-			.map(EntityManager::extractRecordReferenceID)
-			.filter(Objects::nonNull)
-			.toList());
-	}
-
-	private List<Integer> getGroupIDs(final Integer partnerID){
-		return getRecords(EntityManager.TABLE_NAME_GROUP_JUNCTION)
-			.values().stream()
-			.filter(entry -> Objects.equals(EntityManager.TABLE_NAME_INDIVIDUAL, extractRecordReferenceTable(entry)))
-			.filter(entry -> Objects.equals(partnerID, extractRecordReferenceID(entry)))
-			.filter(entry -> Objects.equals(EntityManager.GROUP_ROLE_PARTNER, extractRecordRole(entry)))
-			.map(EntityManager::extractRecordGroupID)
-			.filter(Objects::nonNull)
-			.toList();
-	}
-
-	private List<Integer> getBiologicalAndAdoptingParentsIDs(final Integer adopteeID){
-		return getRecords(EntityManager.TABLE_NAME_GROUP_JUNCTION)
-			.values().stream()
-			.filter(entry -> Objects.equals(EntityManager.TABLE_NAME_INDIVIDUAL, extractRecordReferenceTable(entry)))
-			.filter(entry -> Objects.equals(adopteeID, extractRecordReferenceID(entry)))
-			.filter(entry -> Objects.equals(EntityManager.GROUP_ROLE_CHILD, extractRecordRole(entry))
-				|| Objects.equals(EntityManager.GROUP_ROLE_ADOPTEE, extractRecordRole(entry)))
-			.map(EntityManager::extractRecordGroupID)
-			.filter(Objects::nonNull)
-			.toList();
-	}
-
-	private List<Map<String, Object>> extractChildren(final Integer groupID){
-		final TreeMap<Integer, Map<String, Object>> individuals = getRecords(EntityManager.TABLE_NAME_INDIVIDUAL);
-		return getRecords(EntityManager.TABLE_NAME_GROUP_JUNCTION)
-			.values().stream()
-			.filter(entry -> EntityManager.TABLE_NAME_INDIVIDUAL.equals(extractRecordReferenceTable(entry)))
-			.filter(entry -> Objects.equals(groupID, extractRecordGroupID(entry)))
-			.filter(entry -> Objects.equals(EntityManager.GROUP_ROLE_CHILD, extractRecordRole(entry)))
-			.map(EntityManager::extractRecordReferenceID)
-			.filter(Objects::nonNull)
-			.map(individuals::get)
-			.toList();
 	}*/
 
 

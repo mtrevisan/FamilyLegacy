@@ -120,12 +120,13 @@ public final class IndividualData{
 
 	private static final String NO_DATA = "?";
 
-	private static final ImageIcon ADD_PHOTO = ResourceHelper.getImageFromResource("/images/add_photo.jpg");
+	private static final ImageIcon ADD_PHOTO = ResourceHelper.getImageFromResource("/images/preferred_image_placeholder.jpg");
 
 	private static final double PREFERRED_IMAGE_WIDTH = 48.;
 	private static final double IMAGE_ASPECT_RATIO = 4. / 3.;
 
 
+	private final FLEFRecord individual;
 	private final String id;
 	private final SexType sex;
 	private final String nameText;
@@ -133,6 +134,7 @@ public final class IndividualData{
 	private boolean isBiological;
 	private boolean hasParents;
 	private boolean hasPartner;
+	private boolean hasChildren;
 
 	private final String infoText;
 	private final String infoTooltip;
@@ -161,6 +163,7 @@ public final class IndividualData{
 
 	private IndividualData(final FLEFRecord individual, final Predicate<String> treeTypeFilter,
 			final Map<String, List<FLEFRecord>> eventsMap, final FLEFModel model){
+		this.individual = individual;
 		id = individual.getId();
 
 		final String rawSex = FLEFRecordHelper.getChildValue(individual, TAG_SEX);
@@ -178,17 +181,18 @@ public final class IndividualData{
 		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
 		for(final FLEFRecord relationship : relationships){
 			final String subjectId = relationship.extractReferencedId(TAG_SUBJECT, IndividualHandler.TYPE);
-			if(!subjectId.equals(id))
+			final String targetId = relationship.extractReferencedId(TAG_TARGET, IndividualHandler.TYPE);
+			if(subjectId == null || targetId == null || !subjectId.equals(id) && !targetId.equals(id))
 				continue;
 
-			final String targetId = relationship.extractReferencedId(TAG_TARGET, IndividualHandler.TYPE);
 			final String type = FLEFRecordHelper.getChildValue(relationship, TAG_TYPE);
 			if(type != null && treeTypeFilter.test(type)){
 				if(type.equalsIgnoreCase(ENUM_TYPE_BIOLOGICAL_CHILD))
 					isBiological = true;
 
-				// If current individual is the subject (child), they have parents (target)
-				if(targetId != null)
+				if(id.equals(targetId))
+					hasChildren = true;
+				else
 					hasParents = true;
 			}
 			else
@@ -196,7 +200,7 @@ public final class IndividualData{
 				if(id.equals(targetId))
 					hasPartner = true;
 
-			if(hasParents && hasPartner)
+			if(hasPartner && hasChildren)
 				break;
 		}
 
@@ -265,6 +269,10 @@ public final class IndividualData{
 	}
 
 
+	public FLEFRecord getIndividual(){
+		return individual;
+	}
+
 	public String getId(){
 		return id;
 	}
@@ -291,6 +299,10 @@ public final class IndividualData{
 
 	public boolean hasPartner(){
 		return hasPartner;
+	}
+
+	public boolean hasChildren(){
+		return hasChildren;
 	}
 
 	public String getInfoText(){

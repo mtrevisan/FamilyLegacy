@@ -317,11 +317,8 @@ public class GroupPanel extends JPanel{
 			final MouseAdapter selectedAdapter = new MouseAdapter(){
 				@Override
 				public void mousePressed(final MouseEvent e){
-					if(SwingUtilities.isLeftMouseButton(e) && listener != null && data != null){
-						final FLEFRecord group = getRecordFromData();
-						if(group != null)
-							listener.onEntitySelected(group);
-					}
+					if(SwingUtilities.isLeftMouseButton(e) && listener != null && data != null)
+						listener.onEntitySelected(data.getGroup());
 				}
 			};
 			nameLabel.addMouseListener(selectedAdapter);
@@ -331,11 +328,8 @@ public class GroupPanel extends JPanel{
 		addMouseListener(new MouseAdapter(){
 			@Override
 			public void mousePressed(final MouseEvent e){
-				if(e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e) && listener != null && data != null){
-					final FLEFRecord group = getRecordFromData();
-					if(group != null)
-						listener.onEntityEdit(group);
-				}
+				if(e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e) && listener != null && data != null)
+					listener.onEntityEdit(data.getGroup());
 			}
 		});
 	}
@@ -379,18 +373,10 @@ public class GroupPanel extends JPanel{
 	 */
 	private void addMenuItem(final JPopupMenu popup, final JMenuItem item, final Consumer<FLEFRecord> action){
 		item.addActionListener(e -> {
-			if(listener != null){
-				final FLEFRecord record = getRecordFromData();
-				action.accept(record);
-			}
+			if(listener != null && data != null)
+				action.accept(data.getGroup());
 		});
 		popup.add(item);
-	}
-
-	private FLEFRecord getRecordFromData(){
-		return (data != null && data.getId() != null
-			? model.getRecordById(data.getId())
-			: null);
 	}
 
 	public GroupData getData(){

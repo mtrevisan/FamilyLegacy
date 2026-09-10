@@ -66,7 +66,7 @@ public final class EgoNode{
 		if(egoRecord != null)
 			return egoRecord.getId();
 
-		return (egoData != null ? egoData.getId() : null);
+		return (egoData != null? egoData.getId(): null);
 	}
 
 	public void addRelationInfo(final String type, final String role, final boolean isInverse){

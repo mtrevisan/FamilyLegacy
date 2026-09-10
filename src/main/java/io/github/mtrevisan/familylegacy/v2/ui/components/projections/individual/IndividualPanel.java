@@ -34,7 +34,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.projections.TreeOperati
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.partners.PartnersPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.partners.Side;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.PopupMenuAdapter;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.PopupMouseAdapter;
@@ -74,7 +73,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serial;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -144,8 +142,8 @@ public class IndividualPanel extends JPanel{
 	// State
 	private FLEFRecord father;
 	private FLEFRecord mother;
+	private boolean enableAddChildMenu = true;
 	private final BoxPanelType boxType;
-	private final Predicate<String> treeTypeFilter;
 
 	private final FLEFModel model;
 
@@ -169,7 +167,6 @@ public class IndividualPanel extends JPanel{
 
 	private IndividualPanel(final BoxPanelType boxType, final Predicate<String> treeTypeFilter, final FLEFModel model){
 		this.boxType = boxType;
-		this.treeTypeFilter = treeTypeFilter;
 
 		this.model = model;
 
@@ -282,6 +279,12 @@ public class IndividualPanel extends JPanel{
 		return this;
 	}
 
+	public IndividualPanel withDisableAddChild(){
+		enableAddChildMenu = false;
+
+		return this;
+	}
+
 	public IndividualPanel withIndividualData(final IndividualData data){
 		this.data = data;
 
@@ -356,7 +359,7 @@ public class IndividualPanel extends JPanel{
 		final boolean hasIndividuals = model.hasRecordsByType(IndividualHandler.TYPE);
 		final boolean hasParents = (hasData && data.hasParents());
 		final boolean hasPartner = (hasData && data.hasPartner());
-		final boolean hasChildren = (hasData && hasChildren());
+		final boolean hasChildren = (hasData && data.hasChildren());
 		final boolean hasRelations = (hasParents || hasPartner || hasChildren);
 
 		// Update paste item
@@ -377,8 +380,8 @@ public class IndividualPanel extends JPanel{
 		addItem.setEnabled(!hasData);
 		// Allow connecting either when the box is empty and candidates exist OR when pasting from clipboard
 		connectItem.setEnabled(!hasData && hasIndividuals);
-		addChildItem.setEnabled(hasData);
-		connectChildItem.setEnabled(hasData && hasIndividuals);
+		addChildItem.setEnabled(hasData && enableAddChildMenu);
+		connectChildItem.setEnabled(hasData && hasIndividuals && enableAddChildMenu);
 		relocateItem.setEnabled(hasData);
 		deleteItem.setEnabled(hasData);
 		unlinkRelationshipsItem.setEnabled(hasRelations);
@@ -427,23 +430,6 @@ public class IndividualPanel extends JPanel{
 		return false;
 	}
 
-	private boolean hasChildren(){
-		if(data == null || data.getId() == null)
-			return false;
-
-		final String individualId = data.getId();
-		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
-		for(final FLEFRecord relationship : relationships){
-			final String type = FLEFRecordHelper.getChildValue(relationship, TAG_TYPE);
-			if(type != null && treeTypeFilter.test(type)){
-				final String targetId = relationship.extractReferencedId(TAG_TARGET, IndividualHandler.TYPE);
-				if(individualId.equals(targetId))
-					return true;
-			}
-		}
-		return false;
-	}
-
 	private static Font deriveInfoFont(final Font baseFont){
 		return baseFont.deriveFont(Font.PLAIN, baseFont.getSize() * INFO_FONT_SIZE_FACTOR);
 	}
@@ -453,11 +439,8 @@ public class IndividualPanel extends JPanel{
 			final MouseAdapter selectedAdapter = new MouseAdapter(){
 				@Override
 				public void mousePressed(final MouseEvent e){
-					if(SwingUtilities.isLeftMouseButton(e) && listener != null && data != null){
-						final FLEFRecord individual = getRecordFromData();
-						if(individual != null)
-							listener.onEntitySelected(individual);
-					}
+					if(SwingUtilities.isLeftMouseButton(e) && listener != null && data != null)
+						listener.onEntitySelected(data.getIndividual());
 				}
 			};
 			nameLabel.addMouseListener(selectedAdapter);
@@ -467,11 +450,8 @@ public class IndividualPanel extends JPanel{
 		addMouseListener(new MouseAdapter(){
 			@Override
 			public void mousePressed(final MouseEvent e){
-				if(e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e) && listener != null && data != null){
-					final FLEFRecord individual = getRecordFromData();
-					if(individual != null)
-						listener.onEntityEdit(individual);
-				}
+				if(e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e) && listener != null && data != null)
+					listener.onEntityEdit(data.getIndividual());
 			}
 		});
 	}
@@ -491,10 +471,11 @@ public class IndividualPanel extends JPanel{
 		});
 
 		addMenuItem(popup, editItem, listener::onEntityEdit);
-		addMenuItem(popup, addItem, record -> listener.onIndividualAddOrConnect(TreeOperation.ADD, father, mother));
-		addMenuItem(popup, connectItem, record -> listener.onIndividualAddOrConnect(TreeOperation.CONNECT, father, mother));
-		addMenuItem(popup, addChildItem, record -> listener.onChildAddOrConnect(TreeOperation.ADD, father, mother));
-		addMenuItem(popup, connectChildItem, record -> listener.onChildAddOrConnect(TreeOperation.CONNECT, father, mother));
+		addMenuItem(popup, addItem, record -> listener.onIndividualAddOrConnect(TreeOperation.ADD));
+		addMenuItem(popup, connectItem, record -> listener.onIndividualAddOrConnect(TreeOperation.CONNECT));
+		popup.addSeparator();
+		addMenuItem(popup, addChildItem, record -> listener.onChildAddOrConnect(TreeOperation.ADD));
+		addMenuItem(popup, connectChildItem, record -> listener.onChildAddOrConnect(TreeOperation.CONNECT));
 		popup.addSeparator();
 		addMenuItem(popup, relocateItem, listener::onEntityRelocate);
 		addMenuItem(popup, pasteItem, record -> listener.onIndividualPaste(father, mother));
@@ -520,18 +501,10 @@ public class IndividualPanel extends JPanel{
 	 */
 	private void addMenuItem(final JPopupMenu popup, final JMenuItem item, final Consumer<FLEFRecord> action){
 		item.addActionListener(e -> {
-			if(listener != null){
-				final FLEFRecord record = getRecordFromData();
-				action.accept(record);
-			}
+			if(listener != null)
+				action.accept(data != null? data.getIndividual(): null);
 		});
 		popup.add(item);
-	}
-
-	private FLEFRecord getRecordFromData(){
-		return (data != null && data.getId() != null
-			? model.getRecordById(data.getId())
-			: null);
 	}
 
 	public IndividualData getData(){

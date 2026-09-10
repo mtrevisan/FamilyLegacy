@@ -120,7 +120,7 @@ public class FLEFRecord{
 		if(handler != null){
 			try{
 				final String prefix = handler.getIdPrefix();
-				RESERVED_IDS.compute(prefix, (k, current) -> (current == null || current <= 0 ? 0 : current - 1));
+				RESERVED_IDS.compute(prefix, (k, current) -> (current == null || current <= 0? 0: current - 1));
 			}
 			catch(final UnsupportedOperationException ignored){}
 		}

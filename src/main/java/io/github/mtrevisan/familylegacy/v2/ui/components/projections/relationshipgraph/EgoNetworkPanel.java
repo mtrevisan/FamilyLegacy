@@ -51,7 +51,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 
@@ -331,31 +330,21 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener, Indiv
 	}
 
 	@Override
-	public void onIndividualAddOrConnect(final TreeOperation operation, final FLEFRecord father, final FLEFRecord mother){
-		final Function<FLEFRecord, FLEFRecord> fnOperation = (operation == TreeOperation.ADD
+	public void onIndividualAddOrConnect(final TreeOperation operation){
+		final Supplier<FLEFRecord> fnOperation = (operation == TreeOperation.ADD
 			? this::showCreateRecordDialog
 			: this::showSearchRecordDialog);
 
-		performRelationOperation(
-			() -> fnOperation.apply(father),
-			false
-		);
+		performRelationOperation(fnOperation, false);
 	}
 
 	@Override
-	public void onChildAddOrConnect(final TreeOperation operation, final FLEFRecord father, final FLEFRecord mother){
-		final Function<FLEFRecord, FLEFRecord> fnOperation = (operation == TreeOperation.ADD
+	public void onChildAddOrConnect(final TreeOperation operation){
+		final Supplier<FLEFRecord> fnOperation = (operation == TreeOperation.ADD
 			? this::showCreateRecordDialog
 			: this::showSearchRecordDialog);
 
-		// Target the specific individual panel that triggered the popup menu context
-		final EgoNode targetEgoNode = findNodeForPanel(selectedPanel);
-		final FLEFRecord parentRecord = (targetEgoNode != null? targetEgoNode.getEgoRecord(): null);
-
-		performRelationOperation(
-			() -> fnOperation.apply(parentRecord),
-			false
-		);
+		performRelationOperation(fnOperation, false);
 	}
 
 	/**
@@ -373,14 +362,11 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener, Indiv
 
 	@Override
 	public void onGroupAddOrConnect(final TreeOperation operation){
-		final Function<FLEFRecord, FLEFRecord> fnOperation = (operation == TreeOperation.ADD
+		final Supplier<FLEFRecord> fnOperation = (operation == TreeOperation.ADD
 			? this::showCreateRecordDialog
 			: this::showSearchRecordDialog);
 
-		performRelationOperation(
-			() -> fnOperation.apply(null),
-			false
-		);
+		performRelationOperation(fnOperation, false);
 	}
 
 	@Override
@@ -402,11 +388,8 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener, Indiv
 			JOptionPane.YES_NO_OPTION,
 			JOptionPane.WARNING_MESSAGE);
 		if(confirm == JOptionPane.YES_OPTION){
-			for(final String relId : selectedIds){
-				final FLEFRecord rel = model.getRecordById(relId);
-				if(rel != null)
-					model.removeRecord(rel.getId());
-			}
+			for(final String relationshipId : selectedIds)
+				model.removeRecord(relationshipId);
 
 			networkService.invalidateIndices();
 
@@ -459,12 +442,9 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener, Indiv
 			return;
 
 		if(isPaste){
-			final List<String> relIds = extractRelationships(targetRecord.getId());
-			for(final String relId : relIds){
-				final FLEFRecord rel = model.getRecordById(relId);
-				if(rel != null)
-					model.removeRecord(rel.getId());
-			}
+			final List<String> relationshipIds = extractRelationships(targetRecord.getId());
+			for(final String relationshipId : relationshipIds)
+				model.removeRecord(relationshipId);
 		}
 
 		networkService.invalidateIndices();
@@ -496,7 +476,7 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener, Indiv
 		return (dialog.isSaved()? dialog.getRecord(): null);
 	}
 
-	private FLEFRecord showCreateRecordDialog(final FLEFRecord contextRecord){
+	private FLEFRecord showCreateRecordDialog(){
 		final Window parent = SwingUtilities.getWindowAncestor(this);
 		final IndividualHandler handler = IndividualHandler.getInstance();
 		final IndividualRecordDialog dialog = handler.createNewDialog(parent, model);
@@ -505,7 +485,7 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener, Indiv
 		return (dialog.isSaved()? dialog.getRecord(): null);
 	}
 
-	private FLEFRecord showSearchRecordDialog(final FLEFRecord contextRecord){
+	private FLEFRecord showSearchRecordDialog(){
 		final FLEFRecord[] result = {null};
 		final Window parent = SwingUtilities.getWindowAncestor(this);
 		@SuppressWarnings("unchecked")

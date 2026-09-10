@@ -31,7 +31,6 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.TreeOperation;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualData;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualListener;
-import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.partners.PartnersPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.partners.Side;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.siblings.SiblingsPanel;
@@ -69,7 +68,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
@@ -94,7 +92,6 @@ public class IndividualTreePanel extends JPanel implements TreeChangeListener, I
 	private static final String TAG_TYPE = "type";
 	private static final String TAG_TARGET = "target";
 	private static final String TAG_SUBJECT = "subject";
-	private static final String TAG_SEX = "sex";
 
 	private static final String ENUM_TYPE_BIOLOGICAL_CHILD = "biological_child";
 	private static final String ENUM_TYPE_ADOPTIVE_CHILD = "adoptive_child";
@@ -221,7 +218,7 @@ public class IndividualTreePanel extends JPanel implements TreeChangeListener, I
 			rootNode, showPartner, currentMaxGenerations, model, nodeToPanelMap, this, treeMutator, treeTypeFilter,
 			treeLayout);
 
-		this.childrenPanel = result.childrenPanel();
+		childrenPanel = result.childrenPanel();
 	}
 
 	@Override
@@ -295,9 +292,7 @@ public class IndividualTreePanel extends JPanel implements TreeChangeListener, I
 	}
 
 	@Override
-	public void onIndividualAddOrConnect(final TreeOperation operation, final FLEFRecord father,
-			final FLEFRecord mother){
-		final String rootIndividualId = getRootIndividualId();
+	public void onIndividualAddOrConnect(final TreeOperation operation){
 		final Function<SexType, FLEFRecord> fnOperation = (operation == TreeOperation.ADD
 			? this::showCreateIndividualDialog
 			: this::showSearchIndividualDialog);
@@ -311,33 +306,30 @@ public class IndividualTreePanel extends JPanel implements TreeChangeListener, I
 		if(individual == null)
 			return;
 
-		performParentRelationOperation(individual, ctx, false, rootIndividualId);
+		performParentRelationOperation(individual, ctx, false, getRootIndividualId());
 	}
 
 	@Override
-	public void onChildAddOrConnect(final TreeOperation operation, final FLEFRecord father, final FLEFRecord mother){
-		final String rootIndividualId = getRootIndividualId();
+	public void onChildAddOrConnect(final TreeOperation operation){
 		final Function<SexType, FLEFRecord> fnOperation = (operation == TreeOperation.ADD
 			? this::showCreateIndividualDialog
 			: this::showSearchIndividualDialog);
-
-		// Do not preset sex for children
-		final FLEFRecord individual = fnOperation.apply(null);
-		if(individual == null)
+		final FLEFRecord child = fnOperation.apply(null);
+		if(child == null)
 			return;
 
-		// Resolve the specific parent record from the selected panel context
-		final FLEFRecord currentRecord = (selectedPanel instanceof IndividualPanel individualPanel
-			&& individualPanel.getData() != null
-			? model.getRecordById(individualPanel.getData().getId())
-			: null);
-		final String rawSex = FLEFRecordHelper.getChildValue(currentRecord, TAG_SEX);
-		final SexType sex = (rawSex != null? Enum.valueOf(SexType.class, rawSex.toUpperCase(Locale.ROOT)): null);
-		final FLEFRecord targetFather = (sex == SexType.MALE? currentRecord: null);
-		final FLEFRecord targetMother = (sex == SexType.MALE? null: currentRecord);
+		final TreeContextHelper.Context ctx = TreeContextHelper.determineContext(selectedPanel, nodeToPanelMap, model);
+		final IndividualData fatherData = ctx.partnerPanel.getFatherPanel()
+			.getData();
+		final IndividualData motherData = ctx.partnerPanel.getMotherPanel()
+			.getData();
+		final FLEFRecord targetFather = (fatherData != null? fatherData.getIndividual(): null);
+		final FLEFRecord targetMother = (motherData != null? motherData.getIndividual(): null);
 
 		// Perform child relation operation
-		performChildRelationOperation(individual, targetFather, targetMother, false, rootIndividualId);
+		performChildRelationOperation(child, targetFather, targetMother, false, getRootIndividualId());
+
+		onEntitySelected(targetFather != null? targetFather: targetMother);
 	}
 
 	/**
@@ -472,15 +464,15 @@ public class IndividualTreePanel extends JPanel implements TreeChangeListener, I
 	/**
 	 * Associates or creates a CHILD with respect to the given parents.
 	 */
-	private void performChildRelationOperation(final FLEFRecord individual, final FLEFRecord father,
+	private void performChildRelationOperation(final FLEFRecord child, final FLEFRecord father,
 			final FLEFRecord mother, final boolean isPaste, final String rootId){
 		if(isPaste){
-			final List<String> relIds = extractRelationships(individual.getId());
-			treeMutator.removeRelationships(relIds);
+			final List<String> relationshipIds = extractRelationships(child.getId());
+			treeMutator.removeRelationships(relationshipIds);
 		}
 
 		final String[] allowedTypes = getAllowedRelationshipTypes();
-		performRelationOperationChild(father, mother, allowedTypes, individual);
+		performRelationOperationChild(father, mother, allowedTypes, child);
 
 		treeMutator.invalidateAndNotifyTreeChanged(rootId);
 	}
@@ -561,7 +553,8 @@ public class IndividualTreePanel extends JPanel implements TreeChangeListener, I
 				if(child == null)
 					continue;
 
-				final String label = IndividualHandler.getInstance().getDisplayText(child, model);
+				final String label = IndividualHandler.getInstance()
+					.getDisplayText(child, model);
 				items.add(new RelationshipTypeSelectionDialog.Item(label, allowedTypes[0]));
 			}
 			if(items.isEmpty())

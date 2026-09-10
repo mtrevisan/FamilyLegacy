@@ -148,11 +148,6 @@ public class AncestorTreeMutator{
 		if(newParent == null)
 			return;
 
-		// Get the target individual record
-		final List<FLEFRecord> children = new ArrayList<>(childrenId.size());
-		for(final String childId : childrenId)
-			children.add(model.getRecordById(childId));
-
 		// Ensure parent exists in model
 		if(!model.hasRecord(newParent.getId()))
 			model.addRecord(newParent);
@@ -189,7 +184,7 @@ public class AncestorTreeMutator{
 		}
 
 		// Create new child relationship
-		for(int i = 0, size = children.size(); i < size; i ++){
+		for(int i = 0, size = childrenId.size(); i < size; i ++){
 			final String childId = childrenId.get(i);
 			final String relationshipType = relationshipTypes.get(i);
 			createRelationship(childId, newParent.getId(), relationshipType);
@@ -207,14 +202,9 @@ public class AncestorTreeMutator{
 		if(newPartner == null)
 			return;
 
-		// Get the target individual record
-		final FLEFRecord target = model.getRecordById(partnerId);
-		if(target == null)
-			throw new IllegalArgumentException("Target individual not found: " + partnerId);
-
 		// Create spouse relationships (bidirectional)
-		createRelationship(target.getId(), newPartner.getId(), ENUM_TYPE_PARTNER);
-		createRelationship(newPartner.getId(), target.getId(), ENUM_TYPE_PARTNER);
+		createRelationship(partnerId, newPartner.getId(), ENUM_TYPE_PARTNER);
+		createRelationship(newPartner.getId(), partnerId, ENUM_TYPE_PARTNER);
 	}
 
 

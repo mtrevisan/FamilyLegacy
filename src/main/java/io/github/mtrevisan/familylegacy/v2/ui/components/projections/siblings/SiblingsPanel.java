@@ -210,7 +210,7 @@ public class SiblingsPanel extends JPanel{
 			return true;
 
 		final List<IndividualData> siblings = data.getSiblings();
-		if(idx <  siblings.size()){
+		if(idx < siblings.size()){
 			final IndividualData child = siblings.get(idx);
 			return child.isBiological();
 		}
@@ -250,6 +250,7 @@ public class SiblingsPanel extends JPanel{
 			final List<IndividualData> siblings = data.getSiblings();
 			for(int i = 0, siblingsCount = siblings.size(); i < siblingsCount; i ++){
 				final IndividualData siblingData = siblings.get(i);
+
 				final String siblingId = siblingData.getId();
 				final boolean hasDescendants = data.hasDescendants(siblingId);
 
@@ -257,6 +258,7 @@ public class SiblingsPanel extends JPanel{
 				final IndividualPanel siblingBox = IndividualPanel.create(boxType, treeTypeFilter, model)
 					.withListener(listener)
 					.withParent(father, mother)
+					.withDisableAddChild()
 					.withIndividualData(siblingData);
 				boxContainer.add(siblingBox);
 				final String constraint = (showPartner || i < siblingsCount - 1

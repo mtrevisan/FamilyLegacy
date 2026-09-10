@@ -52,12 +52,13 @@ public final class GroupData{
 
 	private static final String NO_DATA = "?";
 
-	private static final ImageIcon ADD_PHOTO = ResourceHelper.getImageFromResource("/images/add_photo.jpg");
+	private static final ImageIcon ADD_PHOTO = ResourceHelper.getImageFromResource("/images/preferred_image_placeholder.jpg");
 
 	private static final double PREFERRED_IMAGE_WIDTH = 48.;
 	private static final double IMAGE_ASPECT_RATIO = 4. / 3.;
 
 
+	private final FLEFRecord group;
 	private final String id;
 	private final String nameText;
 	private String nameTooltip;
@@ -78,6 +79,7 @@ public final class GroupData{
 
 
 	private GroupData(final FLEFRecord group){
+		this.group = group;
 		id = group.getId();
 
 		final List<String> names = extractGroupNames(group);
@@ -96,6 +98,10 @@ public final class GroupData{
 		extractPreferredImage(group);
 	}
 
+
+	public FLEFRecord getGroup(){
+		return group;
+	}
 
 	public String getId(){
 		return id;
