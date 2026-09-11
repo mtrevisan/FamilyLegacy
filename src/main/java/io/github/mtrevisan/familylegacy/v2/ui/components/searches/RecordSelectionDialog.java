@@ -27,10 +27,11 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.searches;
 import io.github.mtrevisan.familylegacy.v2.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.ui.bindings.BindingsHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.bindings.Debouncer;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.helpers.Debouncer;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
@@ -124,7 +125,7 @@ public class RecordSelectionDialog extends JDialog{
 	private final JPanel filterPanelHolder = new JPanel(new BorderLayout());
 
 	private final DefaultListModel<DisplayItem> listModel = new DefaultListModel<>();
-	private final JList<DisplayItem> resultList = GUIHelper.createList(listModel);
+	private final JList<DisplayItem> resultList = BindingsHelper.createList(listModel);
 	private final JLabel statusLabel = new JLabel(" ");
 	private final JProgressBar progressBar = new JProgressBar(0, 100);
 
@@ -405,7 +406,8 @@ public class RecordSelectionDialog extends JDialog{
 		filterPanelHolder.removeAll();
 		if(handler != null){
 			final JPanel panel = FilterPanelFactory.createPanel(handler, criteria -> scheduleSearch());
-			filterPanelHolder.add(panel, BorderLayout.CENTER);
+			if(panel != null)
+				filterPanelHolder.add(panel, BorderLayout.CENTER);
 		}
 
 		filterPanelHolder.revalidate();

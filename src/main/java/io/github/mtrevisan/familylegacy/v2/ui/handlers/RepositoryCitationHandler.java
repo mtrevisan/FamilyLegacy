@@ -45,12 +45,11 @@ public class RepositoryCitationHandler extends AbstractRecordTypeHandler<Reposit
 
 	private static final class SingletonHelper{
 		private static final RepositoryCitationHandler INSTANCE = new RepositoryCitationHandler();
-
 	}
 
 
 	public static RepositoryCitationHandler getInstance(){
-		return RepositoryCitationHandler.SingletonHelper.INSTANCE;
+		return SingletonHelper.INSTANCE;
 	}
 
 
@@ -72,11 +71,6 @@ public class RepositoryCitationHandler extends AbstractRecordTypeHandler<Reposit
 	@Override
 	public String getCitedType(){
 		return (!isTopLevelEntity()? CITED_TYPE: null);
-	}
-
-	@Override
-	public String getIdPrefix(){
-		throw new UnsupportedOperationException("Not supported.");
 	}
 
 	@Override

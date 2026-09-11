@@ -22,61 +22,32 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.v2.ui.handlers;
+package io.github.mtrevisan.familylegacy.v2.ui.components;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.HeaderDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 
-import java.awt.Window;
+import javax.swing.JPanel;
 
 
 /**
- * Handler for HEADER records.
+ * Strategy interface to create a specific panel for a given record dialog configuration
+ * without coupling component keys to concrete handler types.
  */
-public class HeaderHandler extends AbstractRecordTypeHandler<HeaderDialog>{
+@FunctionalInterface
+public interface PanelFactory{
 
-	public static final String TYPE = "HEADER";
-
-
-	private static final class SingletonHelper{
-		private static final HeaderHandler INSTANCE = new HeaderHandler();
-	}
-
-
-	public static HeaderHandler getInstance(){
-		return SingletonHelper.INSTANCE;
-	}
-
-
-	@Override
-	public boolean isTopLevelEntity(){
-		return false;
-	}
-
-	@Override
-	public String getLabel(){
-		return "Header";
-	}
-
-	@Override
-	public String getType(){
-		return TYPE;
-	}
-
-	@Override
-	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
-		return "Header";
-	}
-
-	@Override
-	public HeaderDialog createNewDialog(final Window parent, final FLEFModel model){
-		return createEditDialog(parent, model, null);
-	}
-
-	@Override
-	public HeaderDialog createEditDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
-		return new HeaderDialog(parent, model, null);
-	}
+	/**
+	 * Creates a {@link JPanel} configured for the target record dialog context.
+	 *
+	 * @param owner  The parent dialog instance.
+	 * @param cfg    The entity reference configuration.
+	 * @param model  The FLEF model context.
+	 * @param record The target record bound to the dialog.
+	 * @return The constructed component panel.
+	 */
+	JPanel createPanel(BaseRecordDialog owner, RecordDialogBuilder.EntityReferenceConfig cfg, FLEFModel model,
+		FLEFRecord record);
 
 }

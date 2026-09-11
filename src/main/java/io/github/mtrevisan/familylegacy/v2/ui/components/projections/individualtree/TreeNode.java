@@ -32,13 +32,13 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.projections.siblings.Si
 /**
  * Represents a single node within the biological ancestor tree.
  */
-public final class AncestorNode{
+final class TreeNode{
 
 	private FLEFRecord individual;
 	private IndividualData individualData;
 
-	private AncestorNode father;
-	private AncestorNode mother;
+	private TreeNode father;
+	private TreeNode mother;
 
 	private FLEFRecord partner;
 	private IndividualData partnerData;
@@ -50,13 +50,13 @@ public final class AncestorNode{
 	private int generation;
 
 
-	public AncestorNode(final SiblingsData biologicalChildrenData){
+	public TreeNode(final SiblingsData biologicalChildrenData){
 		this.biologicalChildrenData = biologicalChildrenData;
 
 		generation = -1;
 	}
 
-	public AncestorNode(final FLEFRecord individual, final IndividualData individualData, final int generation){
+	public TreeNode(final FLEFRecord individual, final IndividualData individualData, final int generation){
 		this.individual = individual;
 		this.individualData = individualData;
 
@@ -79,20 +79,20 @@ public final class AncestorNode{
 		return (individualData != null? individualData.getId(): null);
 	}
 
-	public AncestorNode getFather(){
+	public TreeNode getFather(){
 		return father;
 	}
 
-	public void setFather(final AncestorNode ancestorNode){
-		father = ancestorNode;
+	public void setFather(final TreeNode treeNode){
+		father = treeNode;
 	}
 
-	public AncestorNode getMother(){
+	public TreeNode getMother(){
 		return mother;
 	}
 
-	public void setMother(final AncestorNode ancestorNode){
-		mother = ancestorNode;
+	public void setMother(final TreeNode treeNode){
+		mother = treeNode;
 	}
 
 	public FLEFRecord getPartner(){

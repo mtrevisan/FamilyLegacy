@@ -153,15 +153,15 @@ public final class IndividualData{
 			: null);
 	}
 
-	public static IndividualData create(final FLEFRecord individual, final Predicate<String> treeTypeFilter,
+	public static IndividualData create(final FLEFRecord individual, final Predicate<String> relationshipTypeFilter,
 			final Map<String, List<FLEFRecord>> eventsMap, final FLEFModel model){
 		return (individual != null
-			? new IndividualData(individual, treeTypeFilter, eventsMap, model)
+			? new IndividualData(individual, relationshipTypeFilter, eventsMap, model)
 			: null);
 	}
 
 
-	private IndividualData(final FLEFRecord individual, final Predicate<String> treeTypeFilter,
+	private IndividualData(final FLEFRecord individual, final Predicate<String> relationshipTypeFilter,
 			final Map<String, List<FLEFRecord>> eventsMap, final FLEFModel model){
 		this.individual = individual;
 		id = individual.getId();
@@ -186,7 +186,7 @@ public final class IndividualData{
 				continue;
 
 			final String type = FLEFRecordHelper.getChildValue(relationship, TAG_TYPE);
-			if(type != null && treeTypeFilter.test(type)){
+			if(type != null && relationshipTypeFilter.test(type)){
 				if(type.equalsIgnoreCase(ENUM_TYPE_BIOLOGICAL_CHILD))
 					isBiological = true;
 

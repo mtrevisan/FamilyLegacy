@@ -47,12 +47,11 @@ public class PartHandler extends AbstractRecordTypeHandler<PartStructureDialog>{
 
 	private static final class SingletonHelper{
 		private static final PartHandler INSTANCE = new PartHandler();
-
 	}
 
 
 	public static PartHandler getInstance(){
-		return PartHandler.SingletonHelper.INSTANCE;
+		return SingletonHelper.INSTANCE;
 	}
 
 
@@ -69,11 +68,6 @@ public class PartHandler extends AbstractRecordTypeHandler<PartStructureDialog>{
 	@Override
 	public String getType(){
 		return TYPE;
-	}
-
-	@Override
-	public String getIdPrefix(){
-		throw new UnsupportedOperationException("Not supported.");
 	}
 
 	@Override

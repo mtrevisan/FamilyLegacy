@@ -1,3 +1,27 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
 package io.github.mtrevisan.familylegacy.v2.ui.components.projections.relationshipgraph;
 
 import io.github.mtrevisan.familylegacy.v2.io.FLEFParser;
@@ -8,17 +32,21 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.projections.TreeOperati
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.group.GroupData;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.group.GroupListener;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.group.GroupPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.EgoNetworkGroupPopupMenuFactory;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.EgoNetworkIndividualPopupMenuFactory;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualListener;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.RelationshipTypeSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.TreeChangeListener;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.TreeLayout;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.UnlinkRelationshipsDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.partners.PartnersPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.RecordSelectionDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.IndividualRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.RelationClipboard;
 import net.miginfocom.swing.MigLayout;
@@ -45,12 +73,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serial;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 
@@ -70,16 +98,29 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener, Indiv
 	private static final Color BACKGROUND_COLOR_APPLICATION = new Color(242, 238, 228);
 	private static final Color CONNECTION_LINE_COLOR = Color.BLACK;
 
-	private static final String TAG_SUBJECT = "subject";
-	private static final String TAG_TARGET = "target";
+	private static final String[] INDIVIDUAL_TO_INDIVIDUAL_CHILD_TYPES = new String[]{
+		"biological_child", "adoptive_child", "foster_child", "guarded_child", "step_child"
+	};
+	private static final String[] INDIVIDUAL_TO_INDIVIDUAL_PARTNER_TYPES = new String[]{
+		"civil_spouse", "religious_spouse", "customary_spouse", "cohabiting_partner", "engaged_partner"
+	};
+	private static final String[] INDIVIDUAL_TO_GROUP_TYPES = new String[]{"group_member", "associate"};
+	private static final String[] GROUP_TO_GROUP_TYPES = new String[]{"part_of", "associate"};
 
 
 	private TreeLayout treeLayout;
+
 	private final FLEFModel model;
 	private final EgoNetworkService networkService;
+	private final EgoNetworkMutator networkMutator;
 
 	private String currentEgoId;
 	private EgoNode rootEgoNode;
+	private Set<EgoNode> parents;
+	private Set<EgoNode> partners;
+	private Set<EgoNode> associates;
+	private Set<FLEFRecord> groups;
+	private Set<EgoNode> children;
 
 	private final Map<EgoNode, JPanel> nodeToPanelMap = new HashMap<>();
 	private final Map<FLEFRecord, JPanel> groupToPanelMap = new HashMap<>();
@@ -91,6 +132,7 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener, Indiv
 		this.treeLayout = treeLayout;
 		this.model = model;
 		this.networkService = new EgoNetworkService(model);
+		this.networkMutator = new EgoNetworkMutator(model, networkService, this);
 
 		setBackground(BACKGROUND_COLOR_APPLICATION);
 		setOpaque(true);
@@ -132,23 +174,23 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener, Indiv
 	private void buildLayout(){
 		setLayout(new MigLayout("ins 20,align center center", "[grow,center]", "[grow,center]"));
 
-		final JPanel centerGrid = new JPanel(new MigLayout("ins 10", "[center][center][center]", "[center][center][center]"));
+		final JPanel centerGrid = new JPanel(new MigLayout("ins 10", "[grow 100,sg col,fill][center][grow 100,sg col,fill]", "[grow 100,sg row,fill][center][grow 100,sg row,fill]"));
 		centerGrid.setOpaque(false);
 
-		// 1. Center: Central Ego Panel
+		// Center: Central Ego Panel
 		final JPanel egoContainer = createEgoContainer(rootEgoNode);
-		centerGrid.add(egoContainer, "cell 1 1,grow");
+		centerGrid.add(egoContainer, "cell 1 1");
 
-		// 2. Top: Parents / Super-groups
-		final Set<EgoNode> parents = rootEgoNode.getRelatedNodes(EgoNode.RelationshipCategory.PARENT);
+		// Top: Parents / Super-groups
+		parents = rootEgoNode.getRelatedNodes(EgoNode.RelationshipCategory.PARENT);
 		if(!parents.isEmpty()){
 			final JPanel parentsContainer = createNodesContainer(parents);
-			centerGrid.add(parentsContainer, "cell 1 0,grow,gapbottom 15");
+			centerGrid.add(parentsContainer, "cell 1 0,align center bottom,gapbottom 15");
 		}
 
-		// 3. Left: Partners & Associates
-		final Set<EgoNode> partners = rootEgoNode.getRelatedNodes(EgoNode.RelationshipCategory.PARTNER);
-		final Set<EgoNode> associates = rootEgoNode.getRelatedNodes(EgoNode.RelationshipCategory.ASSOCIATE);
+		// Left: Partners & Associates
+		partners = rootEgoNode.getRelatedNodes(EgoNode.RelationshipCategory.PARTNER);
+		associates = rootEgoNode.getRelatedNodes(EgoNode.RelationshipCategory.ASSOCIATE);
 		if(!partners.isEmpty() || !associates.isEmpty()){
 			final JPanel leftContainer = new JPanel(new MigLayout("ins 0,wrap 1", "[grow,center]", "[grow,center]"));
 			leftContainer.setOpaque(false);
@@ -156,21 +198,21 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener, Indiv
 				leftContainer.add(createNodesContainer(partners), "grow");
 			if(!associates.isEmpty())
 				leftContainer.add(createNodesContainer(associates), "grow");
-			centerGrid.add(leftContainer, "cell 0 1, grow, gapright 15");
+			centerGrid.add(leftContainer, "cell 0 1,align right center,gapright 15");
 		}
 
-		// 4. Right: Groups
-		final Set<FLEFRecord> groups = rootEgoNode.getGroupRecords();
+		// Right: Groups
+		groups = rootEgoNode.getGroupRecords();
 		if(!groups.isEmpty()){
 			final JPanel groupsContainer = createGroupsContainer(groups);
-			centerGrid.add(groupsContainer, "cell 2 1,grow,gapleft 15");
+			centerGrid.add(groupsContainer, "cell 2 1,align left center,gapleft 15");
 		}
 
-		// 5. Bottom: Children / Sub-groups
-		final Set<EgoNode> children = rootEgoNode.getRelatedNodes(EgoNode.RelationshipCategory.CHILD);
+		// Bottom: Children / Sub-groups
+		children = rootEgoNode.getRelatedNodes(EgoNode.RelationshipCategory.CHILD);
 		if(!children.isEmpty()){
 			final JPanel childrenContainer = createNodesContainer(children);
-			centerGrid.add(childrenContainer, "cell 1 2,grow,gaptop 15");
+			centerGrid.add(childrenContainer, "cell 1 2,align center top,gaptop 15");
 		}
 
 		add(centerGrid, "grow");
@@ -209,7 +251,7 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener, Indiv
 		for(final FLEFRecord groupRecord : groups){
 			final GroupPanel panel = GroupPanel.create(BoxPanelType.SECONDARY, model)
 				.withGroupData(GroupData.create(groupRecord))
-				.withListener(this);
+				.withListener(this, new EgoNetworkGroupPopupMenuFactory());
 
 			final List<EgoNode.RelationInfo> relations = rootEgoNode.getGroupRelationInfo(groupRecord);
 			final String tooltipText = buildTooltipText(relations);
@@ -227,11 +269,11 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener, Indiv
 		if(record != null && GroupHandler.TYPE.equalsIgnoreCase(record.getTag()))
 			return GroupPanel.create(boxType, model)
 				.withGroupData(GroupData.create(record))
-				.withListener(this);
+				.withListener(this, new EgoNetworkGroupPopupMenuFactory());
 
 		return IndividualPanel.create(boxType, model)
 			.withIndividualData(node.getEgoData())
-			.withListener(this);
+			.withListener(this, new EgoNetworkIndividualPopupMenuFactory());
 	}
 
 	private String buildTooltipText(final List<EgoNode.RelationInfo> relations){
@@ -287,16 +329,14 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener, Indiv
 		if(editedRecord != null){
 			LOGGER.debug("Entity edited: {}", editedRecord.getId());
 
-			networkService.invalidateIndices();
-
-			refreshNetwork();
+			networkMutator.invalidateAndNotifyTreeChanged(currentEgoId);
 		}
 	}
 
 	@Override
 	public void onEntitySelected(final FLEFRecord record){
 		if(record != null && record.getId() != null)
-			loadNetwork(record.getId());
+			networkMutator.navigateToEgo(record.getId());
 	}
 
 	@Override
@@ -315,17 +355,12 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener, Indiv
 			JOptionPane.YES_NO_OPTION,
 			JOptionPane.WARNING_MESSAGE
 		);
-		if(confirm == JOptionPane.YES_OPTION){
-			model.removeRecord(record.getId());
-
-			networkService.invalidateIndices();
-
-			refreshNetwork();
-		}
+		if(confirm == JOptionPane.YES_OPTION)
+			networkMutator.removeEntity(record, currentEgoId);
 	}
 
 	@Override
-	public void onPanelSelected(final JPanel panel){
+	public void onEntitySelected(final JPanel panel){
 		this.selectedPanel = panel;
 	}
 
@@ -335,7 +370,7 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener, Indiv
 			? this::showCreateRecordDialog
 			: this::showSearchRecordDialog);
 
-		performRelationOperation(fnOperation, false);
+		performRelationOperation(fnOperation, false, INDIVIDUAL_TO_INDIVIDUAL_PARTNER_TYPES);
 	}
 
 	@Override
@@ -344,20 +379,7 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener, Indiv
 			? this::showCreateRecordDialog
 			: this::showSearchRecordDialog);
 
-		performRelationOperation(fnOperation, false);
-	}
-
-	/**
-	 * Helper method to locate the corresponding EgoNode for a given UI panel.
-	 */
-	private EgoNode findNodeForPanel(final JPanel panel){
-		if(panel == null)
-			return null;
-
-		for(final Map.Entry<EgoNode, JPanel> entry : nodeToPanelMap.entrySet())
-			if(entry.getValue() == panel)
-				return entry.getKey();
-		return null;
+		performRelationOperation(fnOperation, false, INDIVIDUAL_TO_INDIVIDUAL_CHILD_TYPES);
 	}
 
 	@Override
@@ -366,34 +388,129 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener, Indiv
 			? this::showCreateRecordDialog
 			: this::showSearchRecordDialog);
 
-		performRelationOperation(fnOperation, false);
+		final FLEFRecord egoRecord = (rootEgoNode != null? rootEgoNode.getEgoRecord(): null);
+		final String[] allowedTypes = (egoRecord != null && GroupHandler.TYPE.equalsIgnoreCase(egoRecord.getTag())
+			? GROUP_TO_GROUP_TYPES
+			: INDIVIDUAL_TO_GROUP_TYPES);
+		performRelationOperation(fnOperation, false, allowedTypes);
+	}
+
+	private void performRelationOperation(final Supplier<FLEFRecord> recordSupplier, final boolean isPaste,
+			final String[] allowedTypes){
+		final FLEFRecord targetRecord = recordSupplier.get();
+		if(targetRecord == null || currentEgoId == null || rootEgoNode == null)
+			return;
+
+		final FLEFRecord egoRecord = rootEgoNode.getEgoRecord();
+		if(egoRecord == null)
+			return;
+
+		if(!model.hasRecord(targetRecord.getId()))
+			model.addRecord(targetRecord);
+
+		if(isPaste)
+			networkMutator.unlinkRelationship(egoRecord, targetRecord, currentEgoId);
+
+		// Determine selected relationship type
+		final String selectedType;
+		if(allowedTypes.length == 1)
+			selectedType = allowedTypes[0];
+		else{
+			final Window parent = SwingUtilities.getWindowAncestor(this);
+			final String label = IndividualHandler.TYPE.equalsIgnoreCase(targetRecord.getTag())
+				? IndividualHandler.getInstance().getDisplayText(targetRecord, model)
+				: GroupHandler.getInstance().getDisplayText(targetRecord, model);
+
+			final List<RelationshipTypeSelectionDialog.Item> items = List.of(
+				new RelationshipTypeSelectionDialog.Item(label, allowedTypes[0])
+			);
+
+			final RelationshipTypeSelectionDialog dialog = new RelationshipTypeSelectionDialog(parent, items,
+				allowedTypes);
+			dialog.setVisible(true);
+
+			final List<String> result = dialog.getSelectedTypes();
+			if(result == null || result.isEmpty())
+				return;
+
+			selectedType = result.getFirst();
+		}
+
+		// Subject is ALWAYS the entity whose role is described relative to Target
+		// e.g., child -> parent, spouse -> spouse, member -> group
+		final String subjectId;
+		final String targetId;
+
+		if(isChildType(selectedType)){
+			// Target is the child (subject), Ego is the parent (target)
+			subjectId = targetRecord.getId();
+			targetId = egoRecord.getId();
+		}
+		else{
+			// Standard orientation (Ego -> Target)
+			subjectId = egoRecord.getId();
+			targetId = targetRecord.getId();
+		}
+
+		networkMutator.createRelationship(subjectId, targetId, selectedType);
+
+		networkMutator.invalidateAndNotifyTreeChanged(currentEgoId);
+	}
+
+	private boolean isChildType(final String type){
+		return ("biological_child".equals(type)
+			|| "adoptive_child".equals(type)
+			|| "foster_child".equals(type)
+			|| "guarded_child".equals(type)
+			|| "step_child".equals(type));
 	}
 
 	@Override
-	public void showUnlinkDialog(final FLEFRecord record){
-		if(record == null)
+	public void onEntityUnlink(final FLEFRecord record){
+		if(record == null || rootEgoNode == null)
 			return;
 
+		final Set<EgoNode> parents;
+		final Set<EgoNode> partners;
+		final Set<EgoNode> associates;
+		final Set<FLEFRecord> groups;
+		final Set<EgoNode> children;
+		if(record.getId().equals(currentEgoId)){
+			parents = this.parents;
+			partners = this.partners;
+			associates = this.associates;
+			groups = this.groups;
+			children = this.children;
+		}
+		else{
+			final EgoNode node = networkService.buildEgoNetwork(record.getId());
+			parents = node.getRelatedNodes(EgoNode.RelationshipCategory.PARENT);
+			partners = node.getRelatedNodes(EgoNode.RelationshipCategory.PARTNER);
+			associates = node.getRelatedNodes(EgoNode.RelationshipCategory.ASSOCIATE);
+			groups = node.getGroupRecords();
+			children = node.getRelatedNodes(EgoNode.RelationshipCategory.CHILD);
+		}
+		//TODO create another UnlinkRelationshipsDialog where the following data is passed directly (the id I mean)
+
 		final Window parent = SwingUtilities.getWindowAncestor(this);
-		final UnlinkRelationshipsDialog dialog = UnlinkRelationshipsDialog.create(parent, model, record.getId());
+		final UnlinkRelationshipsDialog dialog = UnlinkRelationshipsDialog.create(parent, model, relationshipTypeFilter,
+			record.getId());
 		dialog.setVisible(true);
 
 		final List<String> selectedIds = dialog.getSelectedRelationshipIds();
 		if(selectedIds.isEmpty())
 			return;
 
+		// Confirm with the user
 		final int confirm = JOptionPane.showConfirmDialog(this,
 			"Are you sure you want to remove the selected relationships?",
 			"Confirm Unlink",
 			JOptionPane.YES_NO_OPTION,
 			JOptionPane.WARNING_MESSAGE);
 		if(confirm == JOptionPane.YES_OPTION){
-			for(final String relationshipId : selectedIds)
-				model.removeRecord(relationshipId);
+			networkMutator.unlinkRelationship(rootEgoNode.getEgoRecord(), record, currentEgoId);
 
-			networkService.invalidateIndices();
-
-			refreshNetwork();
+			networkMutator.invalidateAndNotifyTreeChanged(currentEgoId);
 		}
 	}
 
@@ -441,36 +558,34 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener, Indiv
 		if(targetRecord == null || currentEgoId == null)
 			return;
 
-		if(isPaste){
-			final List<String> relationshipIds = extractRelationships(targetRecord.getId());
-			for(final String relationshipId : relationshipIds)
-				model.removeRecord(relationshipId);
-		}
+		// Ensure the record exists in the model
+		if(!model.hasRecord(targetRecord.getId()))
+			model.addRecord(targetRecord);
 
-		networkService.invalidateIndices();
+		final FLEFRecord egoRecord = rootEgoNode.getEgoRecord();
+		if(egoRecord == null)
+			return;
 
-		refreshNetwork();
-	}
+		if(isPaste)
+			networkMutator.unlinkRelationship(egoRecord, targetRecord, currentEgoId);
 
-	private List<String> extractRelationships(final String entityId){
-		final List<String> result = new ArrayList<>();
-		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
-		for(final FLEFRecord relationship : relationships){
-			final String subjectId = relationship.extractReferencedId(TAG_SUBJECT, IndividualHandler.TYPE);
-			final String targetId = relationship.extractReferencedId(TAG_TARGET, IndividualHandler.TYPE);
-			if(entityId.equals(subjectId) || entityId.equals(targetId))
-				result.add(relationship.getId());
-		}
-		return result;
+		// Default relationship type depending on target entity type
+		final String relationshipType = (GroupHandler.TYPE.equalsIgnoreCase(targetRecord.getTag())
+			? "member"
+			: "associate");
+
+		// Create bidirectional or directed relationship
+		networkMutator.createRelationship(egoRecord.getId(), targetRecord.getId(), relationshipType);
+
+		networkMutator.invalidateAndNotifyTreeChanged(currentEgoId);
 	}
 
 	private FLEFRecord showEditRecordDialog(final FLEFRecord record){
-		if(GroupHandler.TYPE.equalsIgnoreCase(record.getTag()))
-			return record;
-
 		final Window parent = SwingUtilities.getWindowAncestor(this);
-		final IndividualHandler handler = IndividualHandler.getInstance();
-		final IndividualRecordDialog dialog = handler.createEditDialog(parent, model, record);
+		final RecordTypeHandler<?> handler = (IndividualHandler.TYPE.equalsIgnoreCase(record.getTag())
+			? IndividualHandler.getInstance()
+			: GroupHandler.getInstance());
+		final BaseRecordDialog dialog = handler.createEditDialog(parent, model, record);
 		dialog.setVisible(true);
 
 		return (dialog.isSaved()? dialog.getRecord(): null);

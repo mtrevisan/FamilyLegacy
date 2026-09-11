@@ -50,12 +50,11 @@ public class RepositoryHandler extends AbstractRecordTypeHandler<RepositoryRecor
 
 	private static final class SingletonHelper{
 		private static final RepositoryHandler INSTANCE = new RepositoryHandler();
-
 	}
 
 
 	public static RepositoryHandler getInstance(){
-		return RepositoryHandler.SingletonHelper.INSTANCE;
+		return SingletonHelper.INSTANCE;
 	}
 
 

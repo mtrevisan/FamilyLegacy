@@ -41,12 +41,11 @@ public class EventHandler extends AbstractRecordTypeHandler<EventRecordDialog>{
 
 	private static final class SingletonHelper{
 		private static final EventHandler INSTANCE = new EventHandler();
-
 	}
 
 
 	public static EventHandler getInstance(){
-		return EventHandler.SingletonHelper.INSTANCE;
+		return SingletonHelper.INSTANCE;
 	}
 
 

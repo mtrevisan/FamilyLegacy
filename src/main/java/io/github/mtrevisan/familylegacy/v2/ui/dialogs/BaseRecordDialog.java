@@ -395,7 +395,7 @@ public abstract class BaseRecordDialog extends JDialog{
 			this::save,
 			() -> {
 				if(isNew)
-					FLEFRecord.releaseReservedId(handler.getType());
+					FLEFRecord.releaseReservedId(handler.getIdPrefix());
 
 				dispose();
 			});
@@ -445,8 +445,9 @@ public abstract class BaseRecordDialog extends JDialog{
 		final List<FLEFRecord> documents = FLEFRecordHelper.findChildren(source, TAG_DOCUMENT);
 		for(final FLEFRecord documentRef : documents){
 			final String documentId = documentRef.getValue();
-			final FLEFRecord documentR = model.getRecordById(documentId);
-			String uri = FLEFRecordHelper.getChildValue(documentR, TAG_URI);
+
+			final FLEFRecord doc = model.getRecordById(documentId);
+			String uri = FLEFRecordHelper.getChildValue(doc, TAG_URI);
 // TODO to be removed
 if(uri != null)
 	uri = "C:\\mauro\\heritage\\My Genealogy Projects\\Trevisan (Dorato)-Gallinaro-Masutti (Manfrin)-Zaros (Basso)" + uri;
@@ -505,7 +506,7 @@ if(uri != null)
 		if(!handler.isTopLevelEntity())
 			return FLEFRecord.createEmpty();
 
-		return FLEFRecord.createMainRecord(handler.getType(), model);
+		return FLEFRecord.createMainRecord(handler.getType(), handler.getIdPrefix(), model);
 	}
 
 

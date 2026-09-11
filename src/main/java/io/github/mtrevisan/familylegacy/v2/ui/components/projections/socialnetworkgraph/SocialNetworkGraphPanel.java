@@ -201,8 +201,9 @@ public class SocialNetworkGraphPanel extends JPanel implements ViewerListener{
 	}
 
 	private void openSearchDialog(){
+		final Window parent = SwingUtilities.getWindowAncestor(this);
 		@SuppressWarnings("unchecked")
-		final RecordSelectionDialog dialog = RecordSelectionDialog.create(null, model,
+		final RecordSelectionDialog dialog = RecordSelectionDialog.create(parent, model,
 			(record, handler) -> centerAndZoomOnIndividual(record.getId()),
 			IndividualHandler.class, GroupHandler.class);
 		dialog.setVisible(true);

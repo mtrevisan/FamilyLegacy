@@ -45,12 +45,11 @@ public class PlaceCitationHandler extends AbstractRecordTypeHandler<PlaceCitatio
 
 	private static final class SingletonHelper{
 		private static final PlaceCitationHandler INSTANCE = new PlaceCitationHandler();
-
 	}
 
 
 	public static PlaceCitationHandler getInstance(){
-		return PlaceCitationHandler.SingletonHelper.INSTANCE;
+		return SingletonHelper.INSTANCE;
 	}
 
 
@@ -72,11 +71,6 @@ public class PlaceCitationHandler extends AbstractRecordTypeHandler<PlaceCitatio
 	@Override
 	public String getCitedType(){
 		return (!isTopLevelEntity()? CITED_TYPE: null);
-	}
-
-	@Override
-	public String getIdPrefix(){
-		throw new UnsupportedOperationException("Not supported.");
 	}
 
 	@Override

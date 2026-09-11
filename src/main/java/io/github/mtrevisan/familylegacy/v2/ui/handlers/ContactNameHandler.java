@@ -55,12 +55,11 @@ public class ContactNameHandler extends AbstractRecordTypeHandler<ContactNameStr
 
 	private static final class SingletonHelper{
 		private static final ContactNameHandler INSTANCE = new ContactNameHandler();
-
 	}
 
 
 	public static ContactNameHandler getInstance(){
-		return ContactNameHandler.SingletonHelper.INSTANCE;
+		return SingletonHelper.INSTANCE;
 	}
 
 
@@ -77,11 +76,6 @@ public class ContactNameHandler extends AbstractRecordTypeHandler<ContactNameStr
 	@Override
 	public String getType(){
 		return TYPE;
-	}
-
-	@Override
-	public String getIdPrefix(){
-		throw new UnsupportedOperationException("Not supported.");
 	}
 
 	@Override

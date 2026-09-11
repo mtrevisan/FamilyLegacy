@@ -46,12 +46,11 @@ public class HistoricEventHandler extends AbstractRecordTypeHandler<HistoricEven
 
 	private static final class SingletonHelper{
 		private static final HistoricEventHandler INSTANCE = new HistoricEventHandler();
-
 	}
 
 
 	public static HistoricEventHandler getInstance(){
-		return HistoricEventHandler.SingletonHelper.INSTANCE;
+		return SingletonHelper.INSTANCE;
 	}
 
 

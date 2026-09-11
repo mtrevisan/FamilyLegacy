@@ -74,16 +74,17 @@ public class IdentityHypothesisSearchStrategy implements SearchStrategy{
 				boolean matched = false;
 				for(final FLEFRecord candidate : candidates){
 					final String targetRef = candidate.getValue();
-					if(targetRef != null){
-						final FLEFRecord targetRecord = model.getRecordById(targetRef);
-						if(targetRecord != null){
-							final String candidateDisplayText = HandlerRegistry.getHandler(targetRecord.getTag())
-								.getDisplayText(targetRecord, model);
-							if(TextSearchHelper.matchesText(candidateDisplayText, this.candidate, fuzzy, wholeWord, FUZZY_THRESHOLD)){
-								matched = true;
+					if(targetRef == null)
+						continue;
 
-								break;
-							}
+					final FLEFRecord targetRecord = model.getRecordById(targetRef);
+					if(targetRecord != null){
+						final String candidateDisplayText = HandlerRegistry.getHandler(targetRecord.getTag())
+							.getDisplayText(targetRecord, model);
+						if(TextSearchHelper.matchesText(candidateDisplayText, this.candidate, fuzzy, wholeWord, FUZZY_THRESHOLD)){
+							matched = true;
+
+							break;
 						}
 					}
 				}

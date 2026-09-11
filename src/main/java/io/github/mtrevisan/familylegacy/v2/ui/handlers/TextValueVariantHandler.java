@@ -48,12 +48,11 @@ public class TextValueVariantHandler extends AbstractRecordTypeHandler<TextValue
 
 	private static final class SingletonHelper{
 		private static final TextValueVariantHandler INSTANCE = new TextValueVariantHandler();
-
 	}
 
 
 	public static TextValueVariantHandler getInstance(){
-		return TextValueVariantHandler.SingletonHelper.INSTANCE;
+		return SingletonHelper.INSTANCE;
 	}
 
 
@@ -70,11 +69,6 @@ public class TextValueVariantHandler extends AbstractRecordTypeHandler<TextValue
 	@Override
 	public String getType(){
 		return TYPE;
-	}
-
-	@Override
-	public String getIdPrefix(){
-		throw new UnsupportedOperationException("Not supported.");
 	}
 
 	@Override

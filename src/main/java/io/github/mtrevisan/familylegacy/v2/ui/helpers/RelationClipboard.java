@@ -43,12 +43,11 @@ public final class RelationClipboard{
 
 	private static final class SingletonHelper{
 		private static final RelationClipboard INSTANCE = new RelationClipboard();
-
 	}
 
 
 	public static RelationClipboard getInstance(){
-		return RelationClipboard.SingletonHelper.INSTANCE;
+		return SingletonHelper.INSTANCE;
 	}
 
 

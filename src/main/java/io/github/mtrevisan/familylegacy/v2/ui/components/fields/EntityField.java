@@ -27,12 +27,13 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.fields;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.bindings.BindingsHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextField;
+import io.github.mtrevisan.familylegacy.v2.ui.bindings.MenuBuilder;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.RecordSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 
@@ -127,16 +128,16 @@ public class EntityField extends BoundTextField{
 
 
 	private void initComponents(){
-		final Consumer<GUIHelper.MenuBuilder> menuItems = (type == EntityType.CITATION_WRAPPER
+		final Consumer<MenuBuilder> menuItems = (type == EntityType.CITATION_WRAPPER
 			? createMenuItemsForCitationWrapper()
 			: createMenuItemsForDefault());
-		GUIHelper.installBehavior(this,
+		BindingsHelper.installBehavior(this,
 			this::editItem, (type == EntityType.CITATION_WRAPPER? this::editTargetItem: null),
 			null, null,
 			menuItems);
 	}
 
-	private Consumer<GUIHelper.MenuBuilder> createMenuItemsForDefault(){
+	private Consumer<MenuBuilder> createMenuItemsForDefault(){
 		return builder -> {
 			builder.item("Set…", this::addItem);
 			builder.separator();
@@ -145,7 +146,7 @@ public class EntityField extends BoundTextField{
 		};
 	}
 
-	private Consumer<GUIHelper.MenuBuilder> createMenuItemsForCitationWrapper(){
+	private Consumer<MenuBuilder> createMenuItemsForCitationWrapper(){
 		return builder -> {
 			if(handlers.size() == 1)
 				builder.item("Create New…", this::createNewItem);

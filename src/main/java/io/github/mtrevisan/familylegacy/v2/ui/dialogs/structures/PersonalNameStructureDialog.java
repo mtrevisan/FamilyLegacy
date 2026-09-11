@@ -68,7 +68,7 @@ import java.io.Serial;
  * struct PartStructure {
  *   type: enum {
  *     given, generation,
- *     patronymic, matronymic, kunya,
+ *     patronymic, matronymic, kunya (كُنيَة),
  *     family, family_nickname, lineage, house, clan, tribal, caste,
  *     toponymic,
  *     title, occupational, prefix, suffix,

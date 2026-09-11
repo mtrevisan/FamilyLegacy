@@ -50,12 +50,11 @@ public class IndividualAttributeHandler extends AbstractRecordTypeHandler<Indivi
 
 	private static final class SingletonHelper{
 		private static final IndividualAttributeHandler INSTANCE = new IndividualAttributeHandler();
-
 	}
 
 
 	public static IndividualAttributeHandler getInstance(){
-		return IndividualAttributeHandler.SingletonHelper.INSTANCE;
+		return SingletonHelper.INSTANCE;
 	}
 
 

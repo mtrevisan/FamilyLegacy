@@ -45,12 +45,11 @@ public class PlaceRelationshipHandler extends AbstractRecordTypeHandler<PlaceRel
 
 	private static final class SingletonHelper{
 		private static final PlaceRelationshipHandler INSTANCE = new PlaceRelationshipHandler();
-
 	}
 
 
 	public static PlaceRelationshipHandler getInstance(){
-		return PlaceRelationshipHandler.SingletonHelper.INSTANCE;
+		return SingletonHelper.INSTANCE;
 	}
 
 

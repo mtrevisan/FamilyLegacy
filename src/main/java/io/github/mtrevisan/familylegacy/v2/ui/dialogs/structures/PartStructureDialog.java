@@ -46,7 +46,7 @@ import java.io.Serial;
  * struct {
  *     type: enum {
  *       given, generation,
- *       patronymic, matronymic, kunya,
+ *       patronymic, matronymic, kunya (كُنيَة),
  *       family, family_nickname, lineage, house, clan, tribal, caste,
  *       toponymic,
  *       title, occupational, prefix, suffix,
@@ -92,7 +92,7 @@ public class PartStructureDialog extends BaseRecordDialog{
 		typeCombo = new BoundComboBox<>(TAG_TYPE, new String[]{
 			StringUtils.EMPTY,
 			"given", "generation",
-			"patronymic", "matronymic", "kunya",
+			"patronymic", "matronymic", "kunya (كُنيَة)",
 			"family", "family_nickname", "lineage", "house", "clan", "tribal", "caste",
 			"toponymic",
 			"title", "occupational", "prefix", "suffix",

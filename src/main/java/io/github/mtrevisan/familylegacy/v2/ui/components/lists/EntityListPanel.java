@@ -27,6 +27,8 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.lists;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.bindings.BindingsHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.bindings.MenuBuilder;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.RecordSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.EventParticipationRecordDialog;
@@ -36,7 +38,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.RelationshipRecord
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionTargetHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 
@@ -220,21 +221,21 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 	protected void initComponents(){
 		super.initComponents();
 
-		final Consumer<GUIHelper.MenuBuilder> menuItems;
+		final Consumer<MenuBuilder> menuItems;
 		if(type == ListType.CITATION_WRAPPER)
 			menuItems = createMenuItemsForCitationWrapper();
 		else
 			// ENTITY_REFERENCE, STRUCTURE, ONEOF_REFERENCE: default menu
 			menuItems = createMenuItemsForDefault();
 
-		GUIHelper.installBehavior(list,
+		BindingsHelper.installBehavior(list,
 			this::editItem,
 			(type == ListType.CITATION_WRAPPER)? this::editTargetItem: null,
 			this::createNewItem, this::removeItem,
 			menuItems);
 	}
 
-	private Consumer<GUIHelper.MenuBuilder> createMenuItemsForDefault(){
+	private Consumer<MenuBuilder> createMenuItemsForDefault(){
 		return builder -> {
 			builder.item("Create New…", this::createNewItem);
 			// Only show "Add Existing" for ENTITY_REFERENCE and ONEOF_REFERENCE (not for STRUCTURE)
@@ -247,7 +248,7 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 		};
 	}
 
-	private Consumer<GUIHelper.MenuBuilder> createMenuItemsForCitationWrapper(){
+	private Consumer<MenuBuilder> createMenuItemsForCitationWrapper(){
 		return builder -> {
 			builder.item("Create New…", this::createNewItem);
 			builder.item("Add Existing…", this::addItem);

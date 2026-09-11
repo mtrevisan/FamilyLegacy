@@ -27,12 +27,15 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.lists;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.bindings.BindingsHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.swing.BorderFactory;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
+import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -69,7 +72,8 @@ public abstract class AbstractListPanel<T> extends JPanel{
 		@Override
 		public Component getListCellRendererComponent(final JList<?> list, final Object value, final int index,
 				final boolean isSelected, final boolean cellHasFocus){
-			super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+			final JLabel label = (JLabel)super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+			label.setBorder(BorderFactory.createEmptyBorder(3, 4, 3, 4));
 
 			if(value != null){
 				@SuppressWarnings("unchecked")
@@ -78,6 +82,7 @@ public abstract class AbstractListPanel<T> extends JPanel{
 			}
 			else
 				setText("--");
+
 			return this;
 		}
 
@@ -123,10 +128,9 @@ public abstract class AbstractListPanel<T> extends JPanel{
 		if(title != null)
 			setBorder(new TitledBorder(title));
 
-		list = GUIHelper.createList(listModel);
+		list = BindingsHelper.createList(listModel);
 		list.setVisibleRowCount(getListVisibleRowCount());
 		list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-
 		list.setCellRenderer(new ItemCellRenderer());
 
 		add(GUIHelper.createScrollPane(list), "growx");
@@ -136,7 +140,7 @@ public abstract class AbstractListPanel<T> extends JPanel{
 	}
 
 	protected int getListVisibleRowCount(){
-		return 4;
+		return 5;
 	}
 
 

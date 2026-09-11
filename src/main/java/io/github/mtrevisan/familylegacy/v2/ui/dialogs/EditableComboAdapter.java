@@ -24,7 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
-import io.github.mtrevisan.familylegacy.v2.ui.helpers.Debouncer;
+import io.github.mtrevisan.familylegacy.v2.ui.bindings.Debouncer;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JComboBox;

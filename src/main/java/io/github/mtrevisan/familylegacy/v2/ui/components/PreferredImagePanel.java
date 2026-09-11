@@ -26,7 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.ImageCropDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.bindings.BindingsHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
@@ -116,7 +116,11 @@ public class PreferredImagePanel extends JPanel{
 		imageButton.setIcon(PLACEHOLDER_ICON);
 		imageButton.setToolTipText("Left-click to select an image, right-click for options");
 
-		GUIHelper.installBehavior(imageButton,
+		BindingsHelper.installBehavior(imageButton,
+			() -> {
+				final Icon icon = imageButton.getIcon();
+				return (icon != null && icon != PLACEHOLDER_ICON);
+			},
 			this::setNewItem, null,
 			null, null,
 			builder -> {

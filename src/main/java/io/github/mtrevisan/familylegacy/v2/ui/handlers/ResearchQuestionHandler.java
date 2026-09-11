@@ -48,12 +48,11 @@ public class ResearchQuestionHandler extends AbstractRecordTypeHandler<ResearchQ
 
 	private static final class SingletonHelper{
 		private static final ResearchQuestionHandler INSTANCE = new ResearchQuestionHandler();
-
 	}
 
 
 	public static ResearchQuestionHandler getInstance(){
-		return ResearchQuestionHandler.SingletonHelper.INSTANCE;
+		return SingletonHelper.INSTANCE;
 	}
 
 

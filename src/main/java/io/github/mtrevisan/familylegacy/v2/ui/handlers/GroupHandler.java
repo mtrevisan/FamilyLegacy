@@ -48,12 +48,11 @@ public class GroupHandler extends AbstractRecordTypeHandler<GroupRecordDialog>{
 
 	private static final class SingletonHelper{
 		private static final GroupHandler INSTANCE = new GroupHandler();
-
 	}
 
 
 	public static GroupHandler getInstance(){
-		return GroupHandler.SingletonHelper.INSTANCE;
+		return SingletonHelper.INSTANCE;
 	}
 
 

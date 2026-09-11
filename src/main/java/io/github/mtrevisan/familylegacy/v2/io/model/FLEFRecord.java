@@ -24,7 +24,6 @@
  */
 package io.github.mtrevisan.familylegacy.v2.io.model;
 
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 
@@ -69,9 +68,9 @@ public class FLEFRecord{
 		return record;
 	}
 
-	public static FLEFRecord createMainRecord(final String type, final FLEFModel model){
+	public static FLEFRecord createMainRecord(final String type, final String prefix, final FLEFModel model){
 		final FLEFRecord record = createEmpty();
-		record.setId(generateNewId(type, model));
+		record.setId(generateNewId(type, prefix, model));
 		record.setTag(type);
 		return record;
 	}
@@ -83,12 +82,10 @@ public class FLEFRecord{
 	 *
 	 * @return	A new unique ID.
 	 */
-	private static String generateNewId(final String type, final FLEFModel model){
-		var handler = HandlerRegistry.getHandler(type);
-		final String prefix = handler.getIdPrefix();
+	private static String generateNewId(final String type, final String prefix, final FLEFModel model){
 		Integer next = RESERVED_IDS.get(prefix);
 		if(next == null)
-			next = model.getRecordsByType(handler.getType()).stream()
+			next = model.getRecordsByType(type).stream()
 				.map(FLEFRecord::getId)
 				.filter(Objects::nonNull)
 				.filter(id -> id.startsWith(prefix))
@@ -96,7 +93,7 @@ public class FLEFRecord{
 					try{
 						return Integer.parseInt(id.substring(prefix.length()));
 					}
-					catch(NumberFormatException ignored){
+					catch(final NumberFormatException ignored){
 						return 0;
 					}
 				})
@@ -110,17 +107,16 @@ public class FLEFRecord{
 	}
 
 	/**
-	 * Releases a previously reserved ID for a given type.
-	 * This should be called when a record creation is cancelled or discarded.
+	 * Releases a previously reserved ID for a given prefix.
+	 * This should be called when a record creation is canceled or discarded.
 	 *
-	 * @param type the type of record (e.g., "individual", "relationship", etc.)
+	 * @param prefix the ID prefix of the record type
 	 */
-	public static void releaseReservedId(final String type){
-		var handler = HandlerRegistry.getHandler(type);
-		if(handler != null){
+	public static void releaseReservedId(final String prefix){
+		if(prefix != null){
 			try{
-				final String prefix = handler.getIdPrefix();
-				RESERVED_IDS.compute(prefix, (k, current) -> (current == null || current <= 0? 0: current - 1));
+				RESERVED_IDS.compute(prefix,
+					(k, current) -> (current == null || current <= 0? 0: current - 1));
 			}
 			catch(final UnsupportedOperationException ignored){}
 		}

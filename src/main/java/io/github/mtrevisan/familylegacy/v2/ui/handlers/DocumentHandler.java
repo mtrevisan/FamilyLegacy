@@ -47,12 +47,11 @@ public class DocumentHandler extends AbstractRecordTypeHandler<DocumentRecordDia
 
 	private static final class SingletonHelper{
 		private static final DocumentHandler INSTANCE = new DocumentHandler();
-
 	}
 
 
 	public static DocumentHandler getInstance(){
-		return DocumentHandler.SingletonHelper.INSTANCE;
+		return SingletonHelper.INSTANCE;
 	}
 
 

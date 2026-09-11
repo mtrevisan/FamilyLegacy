@@ -32,9 +32,6 @@ import io.github.mtrevisan.familylegacy.v2.io.grammar.FLEFGrammarParser;
 import io.github.mtrevisan.familylegacy.v2.io.grammar.FLEFGrammarValidator;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextField;
-import io.github.mtrevisan.familylegacy.v2.ui.components.ImagePreviewAccessory;
-import io.github.mtrevisan.familylegacy.v2.ui.components.PreferredImagePanel;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.io.FilenameUtils;
@@ -46,7 +43,6 @@ import javax.swing.Action;
 import javax.swing.ActionMap;
 import javax.swing.DefaultListModel;
 import javax.swing.DropMode;
-import javax.swing.Icon;
 import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -54,7 +50,6 @@ import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JList;
-import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
@@ -62,12 +57,8 @@ import javax.swing.JRootPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
-import javax.swing.JTextField;
 import javax.swing.KeyStroke;
-import javax.swing.ListModel;
-import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
-import javax.swing.Timer;
 import javax.swing.TransferHandler;
 import javax.swing.UIManager;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -76,11 +67,8 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.FlowLayout;
-import java.awt.FontMetrics;
-import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
-import java.awt.RenderingHints;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
@@ -98,11 +86,9 @@ import java.io.Serial;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 
 /**
@@ -125,15 +111,6 @@ public final class GUIHelper{
 
 	public static final KeyStroke CTRL_F_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_F, KeyEvent.CTRL_DOWN_MASK);
 
-	private static final Color COLOR_BACKGROUND = UIManager.getColor("TextField.background");
-	public static final Color COLOR_FOREGROUND_ENABLED = UIManager.getColor("TextField.foreground");
-	public static final Color COLOR_FOREGROUND_DISABLED = UIManager.getColor("Label.disabledForeground");
-
-
-	private static final String PLACEHOLDER_LIST = "(no items)";
-	private static final String PLACEHOLDER_TEXT = "(right-click to set)";
-	private static final String TOOLTIP_TEXT = "Right-click for actions, double‑click to edit";
-	private static final String TOOLTIP_DUAL_ACTION_TEXT = "Right-click for actions, double‑click to edit citation, shift+double-click to edit record";
 
 	private static final String ELLIPSIS = "…";
 
@@ -160,240 +137,12 @@ public final class GUIHelper{
 			ScrollableContainerHost.ScrollType.VERTICAL));
 	}
 
-	/**
-	 * Decorates or creates a JList that paints a placeholder when empty.
-	 */
-	public static <E> JList<E> createList(final ListModel<E> model){
-		return new JList<>(model){
-			@Serial
-			private static final long serialVersionUID = 1004864634885107966L;
-
-			@Override
-			protected void paintComponent(final Graphics g){
-				super.paintComponent(g);
-
-				// If the list is empty, draw the placeholder text directly on the JList graph.
-				if(getModel().getSize() == 0){
-					final Graphics2D g2 = (Graphics2D)g.create();
-					try{
-						g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-						g2.setColor(COLOR_FOREGROUND_DISABLED);
-						g2.setFont(getFont());
-
-						final FontMetrics fm = g2.getFontMetrics();
-						g2.drawString(PLACEHOLDER_LIST, 2, fm.getAscent() + 3);
-					}
-					finally{
-						g2.dispose();
-					}
-				}
-			}
-		};
-	}
-
-
-	/**
-	 * Installs behavior with full control over the popup menu structure.
-	 * <p>
-	 * The menu is built using a {@link MenuBuilder} that lets you specify the exact
-	 * sequence of items, separators, and their enabled state. The popup is re‑created
-	 * each time it is shown, so enabled states are always current.
-	 *
-	 * @param component	The component to enhance.
-	 * @param doubleClickAction	Action invoked on double‑click (it may be {@code null}).
-	 * @param keyInsertAction	Action invoked by the INSERT key (it may be {@code null}).
-	 * @param keyDeleteAction	Action invoked by the DELETE key (it may be {@code null}).
-	 * @param menuBuilder	Consumer that defines the popup menu structure.
-	 */
-	public static void installBehavior(final JComponent component,
-			final Runnable doubleClickAction, final Runnable shiftDoubleClickAction,
-			final Runnable keyInsertAction, final Runnable keyDeleteAction,
-			final Consumer<MenuBuilder> menuBuilder){
-		component.setBackground(COLOR_BACKGROUND);
-		component.setToolTipText(shiftDoubleClickAction == null? TOOLTIP_TEXT: TOOLTIP_DUAL_ACTION_TEXT);
-		if(component instanceof JTextComponent field)
-			field.setEditable(false);
-		else if(component instanceof JList<?> list)
-			list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-
-		// Collect the menu entries from the builder
-		final Supplier<Boolean> hasSelection = buildSelectionSupplier(component);
-		final MenuBuilder builder = new MenuBuilder(hasSelection);
-		menuBuilder.accept(builder);
-		final List<MenuEntry> entries = builder.getEntries();
-
-		// Mouse listener for popup trigger and double‑click
-		component.addMouseListener(new MouseAdapter(){
-			@Override
-			public void mousePressed(final MouseEvent e){
-				if(e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e) && hasSelection.get()){
-					if(shiftDoubleClickAction != null && e.isShiftDown())
-						shiftDoubleClickAction.run();
-					else if(doubleClickAction != null)
-						doubleClickAction.run();
-				}
-				else if(e.isPopupTrigger())
-					showPopup(e);
-			}
-
-			@Override
-			public void mouseReleased(final MouseEvent me){
-				if(me.isPopupTrigger())
-					showPopup(me);
-			}
-
-			private void showPopup(final MouseEvent me){
-				// Ensure the clicked item gets selected
-				if(component instanceof JList<?> list){
-					final int index = list.locationToIndex(me.getPoint());
-					if(index >= 0 && !list.isSelectedIndex(index))
-						list.setSelectedIndex(index);
-				}
-
-				// Build the popup from scratch (enabled states are evaluated now)
-				final JPopupMenu popup = buildPopup(entries);
-				popup.show(component, me.getX(), me.getY());
-			}
-		});
-
-		if(shiftDoubleClickAction != null){
-			if(component instanceof JList<?> list)
-				// Global Shift listener to change cursor even without focus
-				DualActionListEnhancer.install(list);
-			else if(component instanceof JTextField field)
-				// Global Shift listener to change cursor even without focus
-				DualActionTextFieldEnhancer.install(field);
-		}
-
-		// Keyboard shortcuts
-		if(keyInsertAction != null)
-			addKeyboardShortcut(component, KeyEvent.VK_INSERT, "insert-action", keyInsertAction);
-		if(keyDeleteAction != null){
-			addKeyboardShortcut(component, KeyEvent.VK_DELETE, "delete-action", () -> {
-				if(hasSelection.get())
-					keyDeleteAction.run();
-			});
-		}
-	}
-
-	private static Supplier<Boolean> buildSelectionSupplier(final JComponent component){
-		if(component instanceof JList<?> list)
-			return () -> (list.getSelectedIndex() != -1);
-
-		if(component instanceof JTextComponent)
-			return () -> true;
-
-		if(component instanceof JButton button)
-			return () -> {
-				final Icon icon = button.getIcon();
-				return (icon != null && icon != PreferredImagePanel.PLACEHOLDER_ICON);
-			};
-
-		// For other components, no meaningful selection; default to false
-		return () -> false;
-	}
-
-	public static String getText(final String value){
-		if(isPlaceholder(value))
-			return null;
-
-		return (value != null? value.trim(): null);
-	}
-
-	private static boolean isPlaceholder(final String text){
-		return PLACEHOLDER_TEXT.equals(text);
-	}
-
-	public static void setText(final String value, final JTextComponent component, final Consumer<String> setText){
-		if(StringUtils.isNotEmpty(value)){
-			setText.accept(value);
-			component.setForeground(COLOR_FOREGROUND_ENABLED);
-		}
-		else{
-			setText.accept(PLACEHOLDER_TEXT);
-			component.setForeground(COLOR_FOREGROUND_DISABLED);
-		}
-
-		if(component.isShowing()){
-			component.revalidate();
-			component.repaint();
-		}
-	}
 
 
 	public static String limitTextLength(final String text){
 		return (text.length() > 50? text.substring(0, 49) + ELLIPSIS: text);
 	}
 
-	public static void updateDisplay(final JTextComponent component, final Supplier<Boolean> hasData,
-			final Supplier<String> getText, final Consumer<String> setText){
-		if(!component.isShowing())
-			return;
-
-		if(hasData.get()){
-			setText.accept(getText.get());
-			component.setForeground(COLOR_FOREGROUND_ENABLED);
-		}
-		else{
-			setText.accept(PLACEHOLDER_TEXT);
-			component.setForeground(COLOR_FOREGROUND_DISABLED);
-		}
-
-		component.revalidate();
-		component.repaint();
-	}
-
-	public static void updateDisplay(final JTextComponent component, final Supplier<Boolean> hasData,
-			final Supplier<String> getText){
-		SwingUtilities.invokeLater(() -> {
-			final Timer timer = new Timer(100, e -> {
-				if(hasData.get()){
-					component.setText(getText.get());
-					component.setForeground(COLOR_FOREGROUND_ENABLED);
-				}
-				else{
-					if(component instanceof BoundTextField btf)
-						btf.forceSetText(PLACEHOLDER_TEXT);
-					else
-						component.setText(PLACEHOLDER_TEXT);
-					component.setForeground(COLOR_FOREGROUND_DISABLED);
-				}
-			});
-			timer.setRepeats(false);
-			timer.start();
-		});
-	}
-
-	private static void addKeyboardShortcut(final JComponent component, final int virtualKey, final String actionMapKey,
-		final Runnable action){
-		component.getInputMap()
-			.put(KeyStroke.getKeyStroke(virtualKey, 0), actionMapKey);
-		component.getActionMap()
-			.put(actionMapKey, new AbstractAction(){
-				@Serial
-				private static final long serialVersionUID = 3859254441434336995L;
-
-				@Override
-				public void actionPerformed(final ActionEvent ae){
-					action.run();
-				}
-			});
-	}
-
-	private static JPopupMenu buildPopup(final List<MenuEntry> entries){
-		final JPopupMenu popup = new JPopupMenu();
-		for(final MenuEntry entry : entries){
-			if(entry.isSeparator)
-				popup.addSeparator();
-			else{
-				final JMenuItem item = new JMenuItem(entry.label);
-				item.addActionListener(ev -> entry.action.run());
-				item.setEnabled(entry.enabledCondition.get());
-				popup.add(item);
-			}
-		}
-		return popup;
-	}
 
 
 	/**
@@ -481,81 +230,6 @@ public final class GUIHelper{
 		final JPopupMenu popup = component.getComponentPopupMenu();
 		if(popup != null)
 			popup.show(component, x, y);
-	}
-
-
-	/**
-	 * Builder that collects menu entries.
-	 * <p>
-	 * You can call {@link #item(String, Runnable)} to add a plain item,
-	 * {@link #selectionSensitiveItem(String, Runnable)} for an item that is enabled only when there is a selection, or
-	 * {@link #item(String, Runnable, Supplier)} for a fully custom enable condition.
-	 * {@link #separator()} inserts a separator.
-	 */
-	public static final class MenuBuilder{
-
-		private final Supplier<Boolean> hasSelection;
-		private final List<MenuEntry> entries = new ArrayList<>();
-
-
-		private MenuBuilder(final Supplier<Boolean> hasSelection){
-			this.hasSelection = hasSelection;
-		}
-
-		/**
-		 * Adds a menu item that is always enabled.
-		 *
-		 * @param label	The item label.
-		 * @param action	The action to run when clicked.
-		 * @return	This builder.
-		 */
-		public MenuBuilder item(final String label, final Runnable action){
-			entries.add(MenuEntry.createEntry(label, action, () -> true));
-
-			return this;
-		}
-
-		/**
-		 * Adds a menu item that is enabled only when {@link #hasSelection} is {@code true}.
-		 *
-		 * @param label	The item label.
-		 * @param action	The action to run when clicked.
-		 * @return	This builder.
-		 */
-		public MenuBuilder selectionSensitiveItem(final String label, final Runnable action){
-			entries.add(MenuEntry.createEntry(label, action, hasSelection));
-
-			return this;
-		}
-
-		/**
-		 * Adds a menu item with a custom enable condition.
-		 *
-		 * @param label	The item label.
-		 * @param action	The action to run when clicked.
-		 * @param enabledCondition	Supplier that returns {@code true} when the item should be enabled.
-		 * @return	This builder.
-		 */
-		public MenuBuilder item(final String label, final Runnable action, final Supplier<Boolean> enabledCondition){
-			entries.add(MenuEntry.createEntry(label, action, enabledCondition));
-
-			return this;
-		}
-
-		/**
-		 * Adds a separator.
-		 *
-		 * @return	This builder.
-		 */
-		public MenuBuilder separator(){
-			entries.add(MenuEntry.createSeparator());
-
-			return this;
-		}
-
-		private List<MenuEntry> getEntries(){
-			return entries;
-		}
 	}
 
 
@@ -647,21 +321,6 @@ public final class GUIHelper{
 			.put("escape", escapeAction);
 
 		return buttonPanel;
-	}
-
-
-	/**
-	 * Immutable record representing a menu entry.
-	 */
-	private record MenuEntry(String label, Runnable action, Supplier<Boolean> enabledCondition, boolean isSeparator){
-		private static MenuEntry createEntry(final String label, final Runnable action,
-				final Supplier<Boolean> enabledCondition){
-			return new MenuEntry(label, action, enabledCondition, false);
-		}
-
-		private static MenuEntry createSeparator(){
-			return new MenuEntry(null, null, null, true);
-		}
 	}
 
 

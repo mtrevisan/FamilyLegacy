@@ -76,10 +76,6 @@ public class UnlinkRelationshipsDialog extends JDialog{
 	private static final String TAG_SUBJECT = "subject";
 	private static final String TAG_TARGET = "target";
 
-	private static final String NO_DATA = "?";
-
-	private static final String ENUM_TYPE_PARTNER = "partner";
-
 	private static final Cursor HAND_CURSOR = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
 
 
@@ -93,7 +89,7 @@ public class UnlinkRelationshipsDialog extends JDialog{
 
 
 	private final FLEFModel model;
-	private final Predicate<String> treeTypeFilter;
+	private final Predicate<String> relationshipTypeFilter;
 	private final String individualId;
 
 	private final List<RelationshipCheckbox> checkboxes = new ArrayList<>();
@@ -106,17 +102,17 @@ public class UnlinkRelationshipsDialog extends JDialog{
 	}
 
 	public static UnlinkRelationshipsDialog create(final Window parent, final FLEFModel model,
-			final Predicate<String> treeTypeFilter, final String individualId){
-		return new UnlinkRelationshipsDialog(parent, model, treeTypeFilter, individualId);
+			final Predicate<String> relationshipTypeFilter, final String individualId){
+		return new UnlinkRelationshipsDialog(parent, model, relationshipTypeFilter, individualId);
 	}
 
 
-	private UnlinkRelationshipsDialog(final Window parent, final FLEFModel model, final Predicate<String> treeTypeFilter,
-		final String individualId){
+	private UnlinkRelationshipsDialog(final Window parent, final FLEFModel model,
+			final Predicate<String> relationshipTypeFilter, final String individualId){
 		super(parent, "Unlink Relationships", ModalityType.APPLICATION_MODAL);
 
 		this.model = model;
-		this.treeTypeFilter = treeTypeFilter;
+		this.relationshipTypeFilter = relationshipTypeFilter;
 		this.individualId = individualId;
 
 		initComponents();
@@ -143,20 +139,13 @@ public class UnlinkRelationshipsDialog extends JDialog{
 			"[grow 0,fill][grow 0,fill][grow 100,fill]"));
 
 		final List<RelationshipInfo> parents = new ArrayList<>();
-		final List<RelationshipInfo> partners = new ArrayList<>();
 		final List<RelationshipInfo> children = new ArrayList<>();
-		extractRelationships(parents, partners, children);
+		extractRelationships(parents, children);
 
 		// --- Parents section (fixed height) ---
 		if(!parents.isEmpty()){
 			final JPanel parentGroup = createGroupPanel("Parents", parents);
 			contentPanel.add(parentGroup, "wrap");
-		}
-
-		// --- Partner section (fixed height) ---
-		if(!partners.isEmpty()){
-			final JPanel partnerGroup = createGroupPanel("Partner", partners);
-			contentPanel.add(partnerGroup, "wrap");
 		}
 
 		// --- Children section (takes all remaining available vertical space) ---
@@ -181,8 +170,7 @@ public class UnlinkRelationshipsDialog extends JDialog{
 	/**
 	 * Extracts relationships from the model and groups them into parents, partners, and children.
 	 */
-	private void extractRelationships(final List<RelationshipInfo> parents,
-			final List<RelationshipInfo> partners, final List<RelationshipInfo> children){
+	private void extractRelationships(final List<RelationshipInfo> parents, final List<RelationshipInfo> children){
 		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
 		for(final FLEFRecord relationship : relationships){
 			final String type = FLEFRecordHelper.getChildValue(relationship, TAG_TYPE);
@@ -191,18 +179,19 @@ public class UnlinkRelationshipsDialog extends JDialog{
 
 			final String subjectId = relationship.extractReferencedId(TAG_SUBJECT, IndividualHandler.TYPE);
 			final String targetId = relationship.extractReferencedId(TAG_TARGET, IndividualHandler.TYPE);
-			final boolean involves = (individualId.equals(subjectId) || individualId.equals(targetId));
+			final boolean involves = (subjectId != null && targetId != null
+				&& (individualId.equals(subjectId) || individualId.equals(targetId)));
 			if(!involves)
 				continue;
 
 			final String otherId = (individualId.equals(subjectId)? targetId: subjectId);
-			final FLEFRecord other = (otherId != null? model.getRecordById(otherId): null);
+			final FLEFRecord other = model.getRecordById(otherId);
 			final String otherName = (other != null
 				? IndividualHandler.getInstance().getDisplayText(other, model)
-				: (otherId != null? otherId: NO_DATA));
+				: otherId);
 			final String relationshipId = relationship.getId();
 
-			if(treeTypeFilter.test(type)){
+			if(relationshipTypeFilter.test(type)){
 				if(individualId.equals(subjectId))
 					// individual is the child -> other is a parent
 					parents.add(new RelationshipInfo(relationshipId, otherId, otherName));
@@ -210,9 +199,7 @@ public class UnlinkRelationshipsDialog extends JDialog{
 					// individual is the parent -> other is a child
 					children.add(new RelationshipInfo(relationshipId, otherId, otherName));
 			}
-			else if(type.equalsIgnoreCase(ENUM_TYPE_PARTNER))
-				partners.add(new RelationshipInfo(relationshipId, otherId, otherName));
-			// Ignore other relationship types (e.g., adoption, etc.)
+			// Ignore other relationship types
 		}
 	}
 

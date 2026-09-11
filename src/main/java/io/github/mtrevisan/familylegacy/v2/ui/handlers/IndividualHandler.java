@@ -48,12 +48,11 @@ public class IndividualHandler extends AbstractRecordTypeHandler<IndividualRecor
 
 	private static final class SingletonHelper{
 		private static final IndividualHandler INSTANCE = new IndividualHandler();
-
 	}
 
 
 	public static IndividualHandler getInstance(){
-		return IndividualHandler.SingletonHelper.INSTANCE;
+		return SingletonHelper.INSTANCE;
 	}
 
 

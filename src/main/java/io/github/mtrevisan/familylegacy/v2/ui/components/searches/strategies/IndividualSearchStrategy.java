@@ -204,15 +204,15 @@ public class IndividualSearchStrategy implements SearchStrategy{
 			final String eventType = FLEFRecordHelper.getChildValue(event, TAG_TYPE);
 			if(ENUM_TYPE_BIRTH.equalsIgnoreCase(eventType)){
 				if(birthDate == null)
-					birthDate = SearchHelper.extractDate(event);
+					birthDate = FLEFRecordHelper.extractDate(event);
 				if(birthPlace == null)
-					birthPlace = SearchHelper.extractPlace(event, model);
+					birthPlace = FLEFRecordHelper.extractPlace(event, model);
 			}
 			else if(ENUM_TYPE_DEATH.equalsIgnoreCase(eventType)){
 				if(deathDate == null)
-					deathDate = SearchHelper.extractDate(event);
+					deathDate = FLEFRecordHelper.extractDate(event);
 				if(deathPlace == null)
-					deathPlace = SearchHelper.extractPlace(event, model);
+					deathPlace = FLEFRecordHelper.extractPlace(event, model);
 			}
 
 			if(birthDate != null && birthPlace != null && deathDate != null && deathPlace != null)

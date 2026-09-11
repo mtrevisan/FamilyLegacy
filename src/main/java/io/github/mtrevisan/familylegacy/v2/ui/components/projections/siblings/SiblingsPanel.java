@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.v2.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.BoxPanelType;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.EntityPopupMenuFactory;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualData;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualListener;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualPanel;
@@ -61,7 +62,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.function.Predicate;
 
 
 /**
@@ -87,7 +87,6 @@ public class SiblingsPanel extends JPanel{
 	private final FLEFRecord father;
 	private final FLEFRecord mother;
 	private final BoxPanelType boxType;
-	private final Predicate<String> treeTypeFilter;
 	private final boolean showPartner;
 	private final TreeLayout treeLayout;
 
@@ -97,25 +96,23 @@ public class SiblingsPanel extends JPanel{
 	private SiblingsData data;
 
 	private IndividualListener listener;
+	private EntityPopupMenuFactory<IndividualPanel, IndividualListener> popupMenuFactory;
 
 
 	public static SiblingsPanel create(final FLEFRecord father, final FLEFRecord mother, final BoxPanelType boxType,
-			final Predicate<String> treeTypeFilter, final FLEFModel model, final boolean showPartner,
-			final TreeLayout treeLayout){
-		return new SiblingsPanel(father, mother, boxType, treeTypeFilter, model, showPartner, treeLayout);
+			final FLEFModel model, final boolean showPartner, final TreeLayout treeLayout){
+		return new SiblingsPanel(father, mother, boxType, model, showPartner, treeLayout);
 	}
 
 
 	private SiblingsPanel(final FLEFRecord father, final FLEFRecord mother, final BoxPanelType boxType,
-			final Predicate<String> treeTypeFilter, final FLEFModel model, final boolean showPartner,
-			final TreeLayout treeLayout){
+			final FLEFModel model, final boolean showPartner, final TreeLayout treeLayout){
 		String iconDescendantsUri = (treeLayout == TreeLayout.VERTICAL? "/images/union.png": "/images/union_previous.png");
 		ICON_DESCENDANTS = ResourceHelper.getResizedImageFromResource(iconDescendantsUri, DESCENDANTS_SIZE);
 
 		this.father = father;
 		this.mother = mother;
 		this.boxType = boxType;
-		this.treeTypeFilter = treeTypeFilter;
 		this.showPartner = showPartner;
 		this.treeLayout = treeLayout;
 
@@ -223,8 +220,12 @@ public class SiblingsPanel extends JPanel{
 			GUIHelper.drawX(g2, enterPoint);
 	}
 
-	public SiblingsPanel withListener(final IndividualListener listener){
+
+	public SiblingsPanel withListener(final IndividualListener listener,
+			final EntityPopupMenuFactory<IndividualPanel, IndividualListener> factory){
 		this.listener = listener;
+		for(final IndividualPanel siblingBox : siblingBoxes)
+			siblingBox.withListener(listener, factory);
 
 		return this;
 	}
@@ -255,8 +256,8 @@ public class SiblingsPanel extends JPanel{
 				final boolean hasDescendants = data.hasDescendants(siblingId);
 
 				final JPanel boxContainer = createSiblingContainer(hasDescendants);
-				final IndividualPanel siblingBox = IndividualPanel.create(boxType, treeTypeFilter, model)
-					.withListener(listener)
+				final IndividualPanel siblingBox = IndividualPanel.create(boxType, model)
+					.withListener(listener, popupMenuFactory)
 					.withParent(father, mother)
 					.withDisableAddChild()
 					.withIndividualData(siblingData);
@@ -272,7 +273,7 @@ public class SiblingsPanel extends JPanel{
 //		if(data == null || !data.isOnlyRoot()){
 //			// Add empty placeholder box for adding a new sibling
 //			final JPanel emptyBoxContainer = createSiblingContainer(false);
-//			final IndividualPanel emptySiblingBox = IndividualPanel.create(boxType, treeTypeFilter, model)
+//			final IndividualPanel emptySiblingBox = IndividualPanel.create(boxType, model)
 //				.withListener(listener)
 //				.withParent(father, mother);
 //			emptyBoxContainer.add(emptySiblingBox);
@@ -343,9 +344,8 @@ public class SiblingsPanel extends JPanel{
 		final FLEFModel model = parser.parse(content);
 
 		EventQueue.invokeLater(() -> {
-			final Predicate<String> treeTypeFilter = type -> type.equalsIgnoreCase("biological_child");
-			final SiblingsPanel panel = SiblingsPanel.create(null, null, BoxPanelType.SECONDARY,
-				treeTypeFilter, model, true, TreeLayout.VERTICAL);
+			final SiblingsPanel panel = SiblingsPanel.create(null, null, BoxPanelType.SECONDARY, model,
+				true, TreeLayout.VERTICAL);
 
 			final JFrame frame = new JFrame();
 			final Container contentPane = frame.getContentPane();

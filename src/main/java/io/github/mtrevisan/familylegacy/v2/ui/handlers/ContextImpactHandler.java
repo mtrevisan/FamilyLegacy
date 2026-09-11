@@ -46,12 +46,11 @@ public class ContextImpactHandler extends AbstractRecordTypeHandler<ContextImpac
 
 	private static final class SingletonHelper{
 		private static final ContextImpactHandler INSTANCE = new ContextImpactHandler();
-
 	}
 
 
 	public static ContextImpactHandler getInstance(){
-		return ContextImpactHandler.SingletonHelper.INSTANCE;
+		return SingletonHelper.INSTANCE;
 	}
 
 

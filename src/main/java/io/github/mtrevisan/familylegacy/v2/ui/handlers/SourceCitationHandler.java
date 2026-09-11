@@ -45,12 +45,11 @@ public class SourceCitationHandler extends AbstractRecordTypeHandler<SourceCitat
 
 	private static final class SingletonHelper{
 		private static final SourceCitationHandler INSTANCE = new SourceCitationHandler();
-
 	}
 
 
 	public static SourceCitationHandler getInstance(){
-		return SourceCitationHandler.SingletonHelper.INSTANCE;
+		return SingletonHelper.INSTANCE;
 	}
 
 
@@ -72,11 +71,6 @@ public class SourceCitationHandler extends AbstractRecordTypeHandler<SourceCitat
 	@Override
 	public String getCitedType(){
 		return (!isTopLevelEntity()? CITED_TYPE: null);
-	}
-
-	@Override
-	public String getIdPrefix(){
-		throw new UnsupportedOperationException("Not supported.");
 	}
 
 	@Override

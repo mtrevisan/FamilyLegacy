@@ -50,12 +50,11 @@ public class GroupAttributeHandler extends AbstractRecordTypeHandler<GroupAttrib
 
 	private static final class SingletonHelper{
 		private static final GroupAttributeHandler INSTANCE = new GroupAttributeHandler();
-
 	}
 
 
 	public static GroupAttributeHandler getInstance(){
-		return GroupAttributeHandler.SingletonHelper.INSTANCE;
+		return SingletonHelper.INSTANCE;
 	}
 
 

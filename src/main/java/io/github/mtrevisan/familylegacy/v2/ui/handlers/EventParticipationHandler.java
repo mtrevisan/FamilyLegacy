@@ -45,12 +45,11 @@ public class EventParticipationHandler extends AbstractRecordTypeHandler<EventPa
 
 	private static final class SingletonHelper{
 		private static final EventParticipationHandler INSTANCE = new EventParticipationHandler();
-
 	}
 
 
 	public static EventParticipationHandler getInstance(){
-		return EventParticipationHandler.SingletonHelper.INSTANCE;
+		return SingletonHelper.INSTANCE;
 	}
 
 

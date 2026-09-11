@@ -43,12 +43,11 @@ public class NoteHandler extends AbstractRecordTypeHandler<NoteStructureDialog>{
 
 	private static final class SingletonHelper{
 		private static final NoteHandler INSTANCE = new NoteHandler();
-
 	}
 
 
 	public static NoteHandler getInstance(){
-		return NoteHandler.SingletonHelper.INSTANCE;
+		return SingletonHelper.INSTANCE;
 	}
 
 
@@ -65,11 +64,6 @@ public class NoteHandler extends AbstractRecordTypeHandler<NoteStructureDialog>{
 	@Override
 	public String getType(){
 		return TYPE;
-	}
-
-	@Override
-	public String getIdPrefix(){
-		throw new UnsupportedOperationException("Not supported.");
 	}
 
 	@Override

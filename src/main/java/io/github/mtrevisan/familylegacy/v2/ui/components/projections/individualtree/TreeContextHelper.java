@@ -42,7 +42,7 @@ import java.util.Map;
 /**
  * Helper class to determine the context (child, parent, partner) of a selected IndividualPanel.
  */
-public final class TreeContextHelper{
+final class TreeContextHelper{
 
 	private TreeContextHelper(){}
 
@@ -92,14 +92,14 @@ public final class TreeContextHelper{
 	 * @return the Context, or {@code null} if it cannot be determined
 	 */
 	public static Context determineContext(final JPanel selectedPanel,
-			final Map<AncestorNode, PartnersPanel> nodeToPanelMap, final FLEFModel model){
+			final Map<TreeNode, PartnersPanel> nodeToPanelMap, final FLEFModel model){
 		if(selectedPanel == null)
 			return null;
 
 		// Extract current individual record from the clicked panel if present
 		final FLEFRecord currentRecord = (selectedPanel instanceof IndividualPanel individualPanel
 				&& individualPanel.getData() != null
-			? model.getRecordById(individualPanel.getData().getId())
+			? individualPanel.getData().getIndividual()
 			: null);
 
 		// Check if inside a SiblingsPanel -> CHILD context

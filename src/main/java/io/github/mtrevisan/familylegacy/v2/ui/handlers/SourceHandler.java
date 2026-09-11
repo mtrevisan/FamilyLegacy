@@ -49,12 +49,11 @@ public class SourceHandler extends AbstractRecordTypeHandler<SourceRecordDialog>
 
 	private static final class SingletonHelper{
 		private static final SourceHandler INSTANCE = new SourceHandler();
-
 	}
 
 
 	public static SourceHandler getInstance(){
-		return SourceHandler.SingletonHelper.INSTANCE;
+		return SingletonHelper.INSTANCE;
 	}
 
 

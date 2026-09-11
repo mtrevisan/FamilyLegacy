@@ -1,3 +1,27 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
 package io.github.mtrevisan.familylegacy.v2.ui.components.projections.group;
 
 import io.github.mtrevisan.familylegacy.v2.io.FLEFParser;
@@ -5,23 +29,18 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.components.MultiLineLabel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.BoxPanelType;
-import io.github.mtrevisan.familylegacy.v2.ui.components.projections.TreeOperation;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.helpers.PopupMenuAdapter;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.EntityPopupMenuFactory;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.PopupMouseAdapter;
-import io.github.mtrevisan.familylegacy.v2.ui.helpers.RelationClipboard;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
-import javax.swing.event.PopupMenuEvent;
 import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -47,7 +66,6 @@ import java.io.Serial;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Objects;
-import java.util.function.Consumer;
 
 
 /**
@@ -87,15 +105,6 @@ public class GroupPanel extends JPanel{
 	private final JLabel typeLabel = new JLabel();
 	private final JLabel imageLabel = new JLabel();
 
-	// Menu items
-	private final JMenuItem editItem = new JMenuItem("Edit Group…", 'E');
-	private final JMenuItem addItem = new JMenuItem("Add Group…", 'A');
-	private final JMenuItem connectItem = new JMenuItem("Connect Group…", 'C');
-	private final JMenuItem relocateItem = new JMenuItem("Relocate Group", 'R');
-	private final JMenuItem pasteItem = new JMenuItem("Paste Group", 'P');
-	private final JMenuItem deleteItem = new JMenuItem("Delete Group", 'D');
-	private final JMenuItem unlinkRelationshipsItem = new JMenuItem("Unlink Relationships…", 'U');
-
 
 	// State
 	private final BoxPanelType boxType;
@@ -105,6 +114,9 @@ public class GroupPanel extends JPanel{
 	private GroupData data;
 
 	private String preferredImageKey;
+
+	// Strategy pattern for popup menu generation
+	private EntityPopupMenuFactory<GroupPanel, GroupListener> popupMenuFactory;
 
 	// Listener
 	private GroupListener listener;
@@ -205,11 +217,12 @@ public class GroupPanel extends JPanel{
 	}
 
 
-	public GroupPanel withListener(final GroupListener listener){
+	public GroupPanel withListener(final GroupListener listener,
+			final EntityPopupMenuFactory<GroupPanel, GroupListener> factory){
 		this.listener = listener;
+		popupMenuFactory = factory;
 
-		if(listener != null)
-			attachPopupMenu();
+		attachPopupMenu();
 
 		return this;
 	}
@@ -264,7 +277,7 @@ public class GroupPanel extends JPanel{
 			// Set the maximum width on the TwoLineLabel
 			nameLabel.setMaxWidth(maxTextWidth);
 
-			// Register the current key on the panel and start the asynchronous
+			// Register the current key on the panel and start asynchronous image loading
 			preferredImageKey = data.getPreferredImageKey();
 			data.loadPreferredImageAsync((key, images) -> {
 				if(images != null && Objects.equals(preferredImageKey, key))
@@ -280,32 +293,6 @@ public class GroupPanel extends JPanel{
 		nameLabel.setVisible(hasData);
 		typeLabel.setVisible(hasData);
 		imageLabel.setVisible(hasData);
-	}
-
-	private void updateGroupMenu(){
-		final boolean hasData = (data != null && !data.isEmpty());
-		final boolean hasGroups = model.hasRecordsByType(GroupHandler.TYPE);
-
-		final boolean canPaste = (!hasData && RelationClipboard.getInstance().hasRecord());
-		if(canPaste){
-			final FLEFRecord clippedRecord = RelationClipboard.getInstance()
-				.getRecord();
-			final String clippedName = GroupHandler.getInstance()
-				.getDisplayText(clippedRecord, model);
-			pasteItem.setText("Paste " + clippedName + " Here");
-			pasteItem.setEnabled(true);
-		}
-		else
-			pasteItem.setEnabled(false);
-
-		// Enable or disable options depending on panel state and clipboard contents
-		editItem.setEnabled(hasData);
-		addItem.setEnabled(!hasData);
-		// Allow connecting either when the box is empty and candidates exist OR when pasting from clipboard
-		connectItem.setEnabled(!hasData && hasGroups);
-		relocateItem.setEnabled(hasData);
-		deleteItem.setEnabled(hasData);
-		unlinkRelationshipsItem.setEnabled(hasData);
 	}
 
 	private static Font deriveInfoFont(final Font baseFont){
@@ -324,7 +311,7 @@ public class GroupPanel extends JPanel{
 			nameLabel.addMouseListener(selectedAdapter);
 		}
 
-		// Double-click to edit
+		// Double-click to edit group
 		addMouseListener(new MouseAdapter(){
 			@Override
 			public void mousePressed(final MouseEvent e){
@@ -335,28 +322,12 @@ public class GroupPanel extends JPanel{
 	}
 
 	private void attachPopupMenu(){
-		final JPopupMenu popup = new JPopupMenu();
+		if(popupMenuFactory == null)
+			return;
 
-		// Re-evaluate state right before opening the popup
-		popup.addPopupMenuListener(new PopupMenuAdapter(){
-			@Override
-			public void popupMenuWillBecomeVisible(final PopupMenuEvent e){
-				if(listener != null)
-					listener.onPanelSelected(GroupPanel.this);
+		final JPopupMenu popup = popupMenuFactory.createPopupMenu(this, listener, model);
 
-				updateGroupMenu();
-			}
-		});
-
-		addMenuItem(popup, editItem, listener::onEntityEdit);
-		addMenuItem(popup, addItem, record -> listener.onGroupAddOrConnect(TreeOperation.ADD));
-		addMenuItem(popup, connectItem, record -> listener.onGroupAddOrConnect(TreeOperation.CONNECT));
-		addMenuItem(popup, relocateItem, listener::onEntityRelocate);
-		addMenuItem(popup, deleteItem, listener::onEntityRemove);
-		popup.addSeparator();
-		addMenuItem(popup, unlinkRelationshipsItem, listener::showUnlinkDialog);
-
-		// Register the popup listener recursively on this and all child components
+		// Register the popup listener recursively on this panel and all child components
 		attachMouseListenerRecursively(this, new PopupMouseAdapter(popup, this));
 	}
 
@@ -366,17 +337,6 @@ public class GroupPanel extends JPanel{
 		if(component instanceof Container container)
 			for(final Component child : container.getComponents())
 				attachMouseListenerRecursively(child, listener);
-	}
-
-	/**
-	 * Helper method to register an action listener and attach a JMenuItem to the popup menu.
-	 */
-	private void addMenuItem(final JPopupMenu popup, final JMenuItem item, final Consumer<FLEFRecord> action){
-		item.addActionListener(e -> {
-			if(listener != null && data != null)
-				action.accept(data.getGroup());
-		});
-		popup.add(item);
 	}
 
 	public GroupData getData(){
@@ -403,10 +363,10 @@ public class GroupPanel extends JPanel{
 
 
 		SwingUtilities.invokeLater(() -> {
-			final GroupPanel panel = GroupPanel.create(BoxPanelType.PRIMARY, model);
 			final FLEFRecord groupRecord = model.getRecordById(recordId);
 			final GroupData data = GroupData.create(groupRecord);
-			panel.withGroupData(data);
+			final GroupPanel panel = GroupPanel.create(BoxPanelType.PRIMARY, model)
+				.withGroupData(data);
 
 			final JFrame frame = new JFrame();
 			frame.setLayout(new BorderLayout());

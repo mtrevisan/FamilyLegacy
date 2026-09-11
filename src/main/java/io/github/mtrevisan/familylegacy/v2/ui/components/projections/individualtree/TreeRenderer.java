@@ -39,9 +39,9 @@ import java.util.Queue;
 /**
  * Utility class for rendering genealogical tree connections.
  */
-public final class IndividualTreeRenderer{
+final class TreeRenderer{
 
-	private IndividualTreeRenderer(){}
+	private TreeRenderer(){}
 
 
 	/**
@@ -53,8 +53,8 @@ public final class IndividualTreeRenderer{
 	 * @param childrenPanel      the children panel
 	 * @param container          the parent container for coordinate conversion
 	 */
-	public static void drawTree(final Graphics2D g2, final TreeLayout treeLayout, final AncestorNode rootNode,
-			final Map<AncestorNode, PartnersPanel> nodeToPanelMap, final SiblingsPanel childrenPanel,
+	public static void drawTree(final Graphics2D g2, final TreeLayout treeLayout, final TreeNode rootNode,
+			final Map<TreeNode, PartnersPanel> nodeToPanelMap, final SiblingsPanel childrenPanel,
 			final Component container){
 		if(rootNode == null)
 			return;
@@ -68,14 +68,14 @@ public final class IndividualTreeRenderer{
 	 * Iteratively traverses all tree nodes using a Queue (BFS) to draw connection lines between parents and children.
 	 */
 	private static void drawTreeConnections(final Graphics2D g2, final TreeLayout treeLayout,
-			final AncestorNode rootNode, final Map<AncestorNode, PartnersPanel> nodeToPanelMap, final Component container){
-		final Queue<AncestorNode> queue = new ArrayDeque<>();
+			final TreeNode rootNode, final Map<TreeNode, PartnersPanel> nodeToPanelMap, final Component container){
+		final Queue<TreeNode> queue = new ArrayDeque<>();
 		queue.add(rootNode);
 		while(!queue.isEmpty()){
-			final AncestorNode node = queue.poll();
+			final TreeNode node = queue.poll();
 			final PartnersPanel nodePanel = nodeToPanelMap.get(node);
 
-			final AncestorNode father = node.getFather();
+			final TreeNode father = node.getFather();
 			if(father != null){
 				final PartnersPanel fatherPanel = nodeToPanelMap.get(father);
 				if(fatherPanel != null && nodePanel != null){
@@ -86,7 +86,7 @@ public final class IndividualTreeRenderer{
 				queue.add(father);
 			}
 
-			final AncestorNode mother = node.getMother();
+			final TreeNode mother = node.getMother();
 			if(mother != null){
 				final PartnersPanel motherPanel = nodeToPanelMap.get(mother);
 				if(motherPanel != null && nodePanel != null){
@@ -131,7 +131,7 @@ public final class IndividualTreeRenderer{
 	}
 
 	private static void drawChildrenConnections(final Graphics2D g2, final TreeLayout treeLayout,
-			final AncestorNode rootNode, final Map<AncestorNode, PartnersPanel> nodeToPanelMap,
+			final TreeNode rootNode, final Map<TreeNode, PartnersPanel> nodeToPanelMap,
 			final SiblingsPanel childrenPanel, final Component container){
 		if(childrenPanel == null)
 			return;

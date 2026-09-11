@@ -43,12 +43,11 @@ public class ConclusionTargetHandler extends AbstractRecordTypeHandler<BaseRecor
 
 	private static final class SingletonHelper{
 		private static final ConclusionTargetHandler INSTANCE = new ConclusionTargetHandler();
-
 	}
 
 
 	public static ConclusionTargetHandler getInstance(){
-		return ConclusionTargetHandler.SingletonHelper.INSTANCE;
+		return SingletonHelper.INSTANCE;
 	}
 
 
@@ -65,11 +64,6 @@ public class ConclusionTargetHandler extends AbstractRecordTypeHandler<BaseRecor
 	@Override
 	public String getType(){
 		return TYPE;
-	}
-
-	@Override
-	public String getIdPrefix(){
-		throw new UnsupportedOperationException("Not supported.");
 	}
 
 	@Override

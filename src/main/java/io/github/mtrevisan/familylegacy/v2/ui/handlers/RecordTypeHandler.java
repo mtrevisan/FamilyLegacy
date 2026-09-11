@@ -70,7 +70,9 @@ public interface RecordTypeHandler<T extends BaseRecordDialog>{
 	/**
 	 * Returns the record ID prefix (e.g., "I", "F").
 	 */
-	String getIdPrefix();
+	default String getIdPrefix(){
+		return null;
+	}
 
 	default RecordTypeHandler<?> getRecordHandler(){
 		return null;

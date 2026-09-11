@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2024 Mauro Trevisan
+ * Copyright (c) 2026 Mauro Trevisan
  * <p>
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -22,42 +22,28 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.v2.ui.helpers;
+package io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual;
 
-import io.github.mtrevisan.familylegacy.v2.JavaHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 
-import java.io.NotSerializableException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.Serial;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 
 
-public class ZeroException extends Exception{
+/**
+ * Strategy interface for creating dynamic context popup menus for an {@link IndividualPanel}.
+ */
+@FunctionalInterface
+public interface EntityPopupMenuFactory<T extends JPanel, L extends EntityListener>{
 
-	@Serial
-	private static final long serialVersionUID = -1960874856936000015L;
-
-
-	public static ZeroException create(final String message, final Object... parameters){
-		return new ZeroException(JavaHelper.textFormat(message, parameters));
-	}
-
-
-	private ZeroException(final String message){
-		super(message);
-	}
-
-
-	@Serial
-	@SuppressWarnings("unused")
-	private void writeObject(final ObjectOutputStream os) throws NotSerializableException{
-		throw new NotSerializableException(getClass().getName());
-	}
-
-	@Serial
-	@SuppressWarnings("unused")
-	private void readObject(final ObjectInputStream is) throws NotSerializableException{
-		throw new NotSerializableException(getClass().getName());
-	}
+	/**
+	 * Creates and configures a context-specific {@link JPopupMenu}.
+	 *
+	 * @param panel    The source panel invoking the menu.
+	 * @param listener The listener handling user actions.
+	 * @param model    The FLEF model used for evaluating dynamic states and menu items.
+	 * @return The fully configured popup menu.
+	 */
+	JPopupMenu createPopupMenu(T panel, L listener, FLEFModel model);
 
 }

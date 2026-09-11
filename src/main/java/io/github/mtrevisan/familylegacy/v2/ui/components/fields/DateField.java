@@ -27,8 +27,8 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.fields;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.bindings.BindingsHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.structures.DateStructureDialog;
-import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -115,7 +115,7 @@ public class DateField extends JPanel{
 
 	private void setupField(final JTextField field,
 			final Runnable newAction, final Runnable editAction, final Runnable clearAction){
-		GUIHelper.installBehavior(field,
+		BindingsHelper.installBehavior(field,
 			editAction, null,
 			null, null,
 			builder -> {
@@ -187,7 +187,7 @@ public class DateField extends JPanel{
 	}
 
 	private void updateDisplay(){
-		GUIHelper.updateDisplay(displayField,
+		BindingsHelper.updateDisplay(displayField,
 			this::hasData,
 			() -> getDateValueDisplayText(record));
 	}
@@ -320,7 +320,7 @@ public class DateField extends JPanel{
 	public String toString(){
 		final StringBuilder sb = new StringBuilder();
 		sb.append("value: ");
-		final String text = GUIHelper.getText(displayField.getText());
+		final String text = BindingsHelper.getText(displayField.getText());
 		sb.append(text != null? (text.isEmpty()? "''": text): "<null>")
 			.append(", path: ")
 			.append(path);

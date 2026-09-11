@@ -44,12 +44,11 @@ public class ContactHandler extends AbstractRecordTypeHandler<ContactStructureDi
 
 	private static final class SingletonHelper{
 		private static final ContactHandler INSTANCE = new ContactHandler();
-
 	}
 
 
 	public static ContactHandler getInstance(){
-		return ContactHandler.SingletonHelper.INSTANCE;
+		return SingletonHelper.INSTANCE;
 	}
 
 
@@ -66,11 +65,6 @@ public class ContactHandler extends AbstractRecordTypeHandler<ContactStructureDi
 	@Override
 	public String getType(){
 		return TYPE;
-	}
-
-	@Override
-	public String getIdPrefix(){
-		throw new UnsupportedOperationException("Not supported.");
 	}
 
 	@Override

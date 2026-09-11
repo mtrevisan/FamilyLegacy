@@ -24,8 +24,6 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.images;
 
-import io.github.mtrevisan.familylegacy.v2.ui.helpers.ZeroException;
-
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;

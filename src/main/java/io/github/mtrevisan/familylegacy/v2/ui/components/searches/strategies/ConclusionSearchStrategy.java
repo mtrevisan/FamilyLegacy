@@ -99,7 +99,7 @@ public class ConclusionSearchStrategy implements SearchStrategy{
 				boolean matched = false;
 				for(final FLEFRecord researchRef : researchRefs){
 					final String questionRef = researchRef.getValue();
-					if(questionRef != null)
+					if(questionRef == null)
 						continue;
 
 					final FLEFRecord questionRecord = model.getRecordById(questionRef);

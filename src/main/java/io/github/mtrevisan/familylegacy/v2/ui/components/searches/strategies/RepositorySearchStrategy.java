@@ -99,8 +99,7 @@ public class RepositorySearchStrategy implements SearchStrategy{
 					final FLEFRecord placeRecord = model.getRecordById(placeId);
 					final String place = PlaceHandler.getInstance()
 						.getDisplayText(placeRecord, model);
-					if(!TextSearchHelper.matchesText(place, place, fuzzy, wholeWord, FUZZY_THRESHOLD))
-						return false;
+					return TextSearchHelper.matchesText(place, place, fuzzy, wholeWord, FUZZY_THRESHOLD);
 				}
 			}
 
@@ -112,7 +111,7 @@ public class RepositorySearchStrategy implements SearchStrategy{
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
 		final String baseDisplayText = HANDLER.getDisplayText(record, model);
 
-		final String place = SearchHelper.extractPlace(record, model);
+		final String place = FLEFRecordHelper.extractPlace(record, model);
 
 		final StringJoiner details = new StringJoiner(", ", " (", ")");
 		details.setEmptyValue(StringUtils.EMPTY);

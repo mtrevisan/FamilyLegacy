@@ -32,7 +32,6 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
 
-// TODO used?
 public class PopupMouseAdapter extends MouseAdapter{
 
 	private final JPopupMenu popupMenu;

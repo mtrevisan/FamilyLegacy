@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.projections.partners;
 import io.github.mtrevisan.familylegacy.v2.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.BoxPanelType;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.EntityPopupMenuFactory;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualData;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualListener;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualPanel;
@@ -60,7 +61,6 @@ import java.io.InputStream;
 import java.io.Serial;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
-import java.util.function.Predicate;
 
 
 /**
@@ -143,7 +143,6 @@ public class PartnersPanel extends JPanel{
 	private JPanel arrowMotherPanel;
 
 	private final BoxPanelType boxType;
-	private final Predicate<String> treeTypeFilter;
 	private final TreeLayout treeLayout;
 
 	private IndividualData father;
@@ -152,16 +151,13 @@ public class PartnersPanel extends JPanel{
 	private final FLEFModel model;
 
 
-	public static PartnersPanel create(final BoxPanelType boxType, final Predicate<String> treeTypeFilter,
-			final TreeLayout treeLayout, final FLEFModel model){
-		return new PartnersPanel(boxType, treeTypeFilter, treeLayout, model);
+	public static PartnersPanel create(final BoxPanelType boxType, final TreeLayout treeLayout, final FLEFModel model){
+		return new PartnersPanel(boxType, treeLayout, model);
 	}
 
 
-	private PartnersPanel(final BoxPanelType boxType, final Predicate<String> treeTypeFilter,
-			final TreeLayout treeLayout, final FLEFModel model){
+	private PartnersPanel(final BoxPanelType boxType, final TreeLayout treeLayout, final FLEFModel model){
 		this.boxType = boxType;
-		this.treeTypeFilter = treeTypeFilter;
 		this.treeLayout = treeLayout;
 
 		this.model = model;
@@ -180,8 +176,8 @@ public class PartnersPanel extends JPanel{
 		groupPanel.setBackground(GROUP_BACKGROUND);
 		groupPanel.setBorder(BorderFactory.createDashedBorder(BORDER_COLOR));
 
-		fatherPanel = IndividualPanel.create(boxType, treeTypeFilter, model);
-		motherPanel = IndividualPanel.create(boxType, treeTypeFilter, model);
+		fatherPanel = IndividualPanel.create(boxType, model);
+		motherPanel = IndividualPanel.create(boxType, model);
 
 		fatherArrowsSpacer.setPreferredSize(new Dimension(DESCENDANTS_ARROWS_WIDTH, 0));
 		motherArrowsSpacer.setPreferredSize(new Dimension(DESCENDANTS_ARROWS_WIDTH, 0));
@@ -298,9 +294,10 @@ public class PartnersPanel extends JPanel{
 	}
 
 
-	public PartnersPanel withListener(final IndividualListener listener){
-		fatherPanel.withListener(listener);
-		motherPanel.withListener(listener);
+	public PartnersPanel withListener(final IndividualListener listener,
+			final EntityPopupMenuFactory<IndividualPanel, IndividualListener> factory){
+		fatherPanel.withListener(listener, factory);
+		motherPanel.withListener(listener, factory);
 
 		return this;
 	}
@@ -335,16 +332,18 @@ public class PartnersPanel extends JPanel{
 //			updatePreviousNextParentsIcons(mother, motherPreviousParentsLabel, motherNextParentsLabel);
 //		}
 
-		final boolean hasFather = (father != null && !father.isEmpty());
-		final boolean hasMother = (mother != null && !mother.isEmpty());
-		final boolean hasChildren = (hasFather && fatherPanel.getData().hasChildren()
-			|| hasMother && motherPanel.getData().hasChildren());
-		if(!hasChildren){
-			if(!hasFather)
-				fatherPanel.setVisible(false);
-			if(!hasMother)
-				motherPanel.setVisible(false);
-			groupPanel.setVisible(hasFather && hasMother);
+		if(isPrimaryBox()){
+			final boolean hasFather = (father != null && !father.isEmpty());
+			final boolean hasMother = (mother != null && !mother.isEmpty());
+			final boolean hasChildren = (hasFather && fatherPanel.getData().hasChildren()
+				|| hasMother && motherPanel.getData().hasChildren());
+			if(!hasChildren){
+				if(!hasFather)
+					fatherPanel.setVisible(false);
+				if(!hasMother)
+					motherPanel.setVisible(false);
+				groupPanel.setVisible(hasFather && hasMother);
+			}
 		}
 	}
 
@@ -352,7 +351,7 @@ public class PartnersPanel extends JPanel{
 //		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
 //		for(final FLEFRecord relationship : relationships){
 //			final String type = FLEFRecordHelper.getChildValue(relationship, TAG_TYPE);
-//			if(type != null && treeTypeFilter.test(type)){
+//			if(type != null && relationshipTypeFilter.test(type)){
 //				final String targetId = relationship.extractReferencedId(TAG_TARGET, IndividualHandler.TYPE);
 //				if(fatherId.equals(targetId))
 //					return true;
@@ -453,6 +452,10 @@ public class PartnersPanel extends JPanel{
 	}*/
 
 
+	private boolean isPrimaryBox(){
+		return (boxType == BoxPanelType.PRIMARY);
+	}
+
 	public final Point getPaintingFatherEnterPoint(){
 		final Point p;
 		if(treeLayout == TreeLayout.VERTICAL)
@@ -519,8 +522,7 @@ public class PartnersPanel extends JPanel{
 
 
 		EventQueue.invokeLater(() -> {
-			final Predicate<String> treeTypeFilter = type -> type.equalsIgnoreCase("biological_child");
-			final PartnersPanel panel = PartnersPanel.create(BoxPanelType.PRIMARY, treeTypeFilter, TreeLayout.VERTICAL, model);
+			final PartnersPanel panel = PartnersPanel.create(BoxPanelType.PRIMARY, TreeLayout.VERTICAL, model);
 //			panel.withBiologicalParents(recordId);
 //			panel.setGroupListener(groupListener);
 //			panel.setPersonListener(personListener);

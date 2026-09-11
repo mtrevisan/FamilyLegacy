@@ -26,7 +26,6 @@ package io.github.mtrevisan.familylegacy.v2.io.merger;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.components.searches.strategies.SearchHelper;
 import org.apache.commons.lang3.StringUtils;
 
 import java.time.LocalDate;
@@ -323,8 +322,8 @@ public final class SimilarityMetrics{
 	}
 
 	static double computeDateSimilarity(final FLEFRecord r1, final FLEFRecord r2){
-		final String date1 = SearchHelper.extractDate(r1);
-		final String date2 = SearchHelper.extractDate(r2);
+		final String date1 = FLEFRecordHelper.extractDate(r1);
+		final String date2 = FLEFRecordHelper.extractDate(r2);
 		return dateSimilarity(date1, date2);
 	}
 

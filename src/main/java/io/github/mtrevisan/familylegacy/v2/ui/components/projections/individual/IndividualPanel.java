@@ -27,17 +27,10 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual
 import io.github.mtrevisan.familylegacy.v2.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.components.MultiLineLabel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.BoxPanelType;
-import io.github.mtrevisan.familylegacy.v2.ui.components.projections.TreeOperation;
-import io.github.mtrevisan.familylegacy.v2.ui.components.projections.partners.PartnersPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.projections.partners.Side;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.helpers.PopupMenuAdapter;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.PopupMouseAdapter;
-import io.github.mtrevisan.familylegacy.v2.ui.helpers.RelationClipboard;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.BorderFactory;
@@ -49,7 +42,6 @@ import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
-import javax.swing.event.PopupMenuEvent;
 import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -75,8 +67,6 @@ import java.io.Serial;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Objects;
-import java.util.function.Consumer;
-import java.util.function.Predicate;
 
 
 /**
@@ -151,21 +141,19 @@ public class IndividualPanel extends JPanel{
 
 	private String preferredImageKey;
 
+	// Strategy pattern for popup menu generation
+	private EntityPopupMenuFactory<IndividualPanel, IndividualListener> popupMenuFactory;
+
 	// Listener
 	private IndividualListener listener;
 
 
 	public static IndividualPanel create(final BoxPanelType boxType, final FLEFModel model){
-		return new IndividualPanel(boxType, type -> true, model);
-	}
-
-	public static IndividualPanel create(final BoxPanelType boxType, final Predicate<String> treeTypeFilter,
-			final FLEFModel model){
-		return new IndividualPanel(boxType, treeTypeFilter, model);
+		return new IndividualPanel(boxType, model);
 	}
 
 
-	private IndividualPanel(final BoxPanelType boxType, final Predicate<String> treeTypeFilter, final FLEFModel model){
+	private IndividualPanel(final BoxPanelType boxType, final FLEFModel model){
 		this.boxType = boxType;
 
 		this.model = model;
@@ -263,11 +251,12 @@ public class IndividualPanel extends JPanel{
 	}
 
 
-	public IndividualPanel withListener(final IndividualListener listener){
+	public IndividualPanel withListener(final IndividualListener listener,
+			final EntityPopupMenuFactory<IndividualPanel, IndividualListener> factory){
 		this.listener = listener;
+		popupMenuFactory = factory;
 
-		if(listener != null)
-			attachPopupMenu();
+		attachPopupMenu();
 
 		return this;
 	}
@@ -336,7 +325,7 @@ public class IndividualPanel extends JPanel{
 			// Set the maximum width on the TwoLineLabel
 			nameLabel.setMaxWidth(maxTextWidth);
 
-			// Register the current key on the panel and start the asynchronous
+			// Register the current key on the panel and start asynchronous image loading
 			preferredImageKey = data.getPreferredImageKey();
 			data.loadPreferredImageAsync((key, images) -> {
 				if(images != null && Objects.equals(preferredImageKey, key))
@@ -352,82 +341,6 @@ public class IndividualPanel extends JPanel{
 		nameLabel.setVisible(hasData);
 		infoLabel.setVisible(hasData);
 		imageLabel.setVisible(hasData);
-	}
-
-	private void updateIndividualMenu(){
-		final boolean hasData = (data != null && !data.isEmpty());
-		final boolean hasIndividuals = model.hasRecordsByType(IndividualHandler.TYPE);
-		final boolean hasParents = (hasData && data.hasParents());
-		final boolean hasPartner = (hasData && data.hasPartner());
-		final boolean hasChildren = (hasData && data.hasChildren());
-		final boolean hasRelations = (hasParents || hasPartner || hasChildren);
-
-		// Update paste item
-		final boolean canPaste = (!hasData && isPasteAllowed());
-		if(canPaste){
-			final FLEFRecord clippedRecord = RelationClipboard.getInstance()
-				.getRecord();
-			final String clippedName = IndividualHandler.getInstance()
-				.getDisplayText(clippedRecord, model);
-			pasteItem.setText("Paste " + clippedName + " Here");
-			pasteItem.setEnabled(true);
-		}
-		else
-			pasteItem.setEnabled(false);
-
-		// Enable or disable options depending on panel state and clipboard contents
-		editItem.setEnabled(hasData);
-		addItem.setEnabled(!hasData);
-		// Allow connecting either when the box is empty and candidates exist OR when pasting from clipboard
-		connectItem.setEnabled(!hasData && hasIndividuals);
-		addChildItem.setEnabled(hasData && enableAddChildMenu);
-		connectChildItem.setEnabled(hasData && hasIndividuals && enableAddChildMenu);
-		relocateItem.setEnabled(hasData);
-		deleteItem.setEnabled(hasData);
-		unlinkRelationshipsItem.setEnabled(hasRelations);
-	}
-
-	/**
-	 * Checks if pasting is allowed based on gender compatibility if inside a PartnersPanel.
-	 */
-	private boolean isPasteAllowed(){
-		final boolean hasClippedRecord = RelationClipboard.getInstance()
-			.hasRecord();
-		if(hasClippedRecord){
-			// Check if we are in a PartnersPanel (and on which side)
-			final PartnersPanel partnersPanel = PartnersPanel.findContainingPartnersPanel(getParent());
-			if(partnersPanel == null)
-				// no restriction if not in a partner panel
-				return true;
-
-			final Side side = partnersPanel.getSideOf(this);
-			if(side == null)
-				return true;
-
-			// Get the other side panel
-			final IndividualPanel otherPanel = (side == Side.LEFT
-				? partnersPanel.getMotherPanel()
-				: partnersPanel.getFatherPanel());
-			// If the other side contains an individual, check the gender
-			final IndividualData otherData = otherPanel.getData();
-			if(otherData == null || otherData.isEmpty())
-				// no restriction if other side is empty
-				return true;
-
-			final FLEFRecord clipped = RelationClipboard.getInstance()
-				.getRecord();
-			if(clipped == null)
-				return false;
-
-			final String clippedSex = FLEFRecordHelper.getChildValue(clipped, TAG_SEX);
-			// The gender required for the glued one is the opposite of the other
-			final String otherSex = otherData.getSex()
-				.name()
-				.toLowerCase();
-			final String requiredSex = (otherSex.equals(ENUM_SEX_MALE)? ENUM_SEX_FEMALE: ENUM_SEX_MALE);
-			return requiredSex.equals(clippedSex);
-		}
-		return false;
 	}
 
 	private static Font deriveInfoFont(final Font baseFont){
@@ -446,7 +359,7 @@ public class IndividualPanel extends JPanel{
 			nameLabel.addMouseListener(selectedAdapter);
 		}
 
-		// Double-click to edit
+		// Double-click to edit individual
 		addMouseListener(new MouseAdapter(){
 			@Override
 			public void mousePressed(final MouseEvent e){
@@ -457,34 +370,12 @@ public class IndividualPanel extends JPanel{
 	}
 
 	private void attachPopupMenu(){
-		final JPopupMenu popup = new JPopupMenu();
+		if(popupMenuFactory == null)
+			return;
 
-		// Re-evaluate state right before opening the popup
-		popup.addPopupMenuListener(new PopupMenuAdapter(){
-			@Override
-			public void popupMenuWillBecomeVisible(final PopupMenuEvent e){
-				if(listener != null)
-					listener.onPanelSelected(IndividualPanel.this);
+		final JPopupMenu popup = popupMenuFactory.createPopupMenu(this, listener, model);
 
-				updateIndividualMenu();
-			}
-		});
-
-		addMenuItem(popup, editItem, listener::onEntityEdit);
-		addMenuItem(popup, addItem, record -> listener.onIndividualAddOrConnect(TreeOperation.ADD));
-		addMenuItem(popup, connectItem, record -> listener.onIndividualAddOrConnect(TreeOperation.CONNECT));
-		popup.addSeparator();
-		addMenuItem(popup, addChildItem, record -> listener.onChildAddOrConnect(TreeOperation.ADD));
-		addMenuItem(popup, connectChildItem, record -> listener.onChildAddOrConnect(TreeOperation.CONNECT));
-		popup.addSeparator();
-		addMenuItem(popup, relocateItem, listener::onEntityRelocate);
-		addMenuItem(popup, pasteItem, record -> listener.onIndividualPaste(father, mother));
-		addMenuItem(popup, deleteItem, listener::onEntityRemove);
-		popup.addSeparator();
-		addMenuItem(popup, unlinkRelationshipsItem, listener::showUnlinkDialog);
-
-
-		// Register the popup listener recursively on this and all child components
+		// Register the popup listener recursively on this panel and all child components
 		attachMouseListenerRecursively(this, new PopupMouseAdapter(popup, this));
 	}
 
@@ -496,19 +387,20 @@ public class IndividualPanel extends JPanel{
 				attachMouseListenerRecursively(child, listener);
 	}
 
-	/**
-	 * Helper method to register an action listener and attach a JMenuItem to the popup menu.
-	 */
-	private void addMenuItem(final JPopupMenu popup, final JMenuItem item, final Consumer<FLEFRecord> action){
-		item.addActionListener(e -> {
-			if(listener != null)
-				action.accept(data != null? data.getIndividual(): null);
-		});
-		popup.add(item);
-	}
-
 	public IndividualData getData(){
 		return data;
+	}
+
+	public FLEFRecord getFather(){
+		return father;
+	}
+
+	public FLEFRecord getMother(){
+		return mother;
+	}
+
+	public boolean isEnableAddChildMenu(){
+		return enableAddChildMenu;
 	}
 
 
@@ -531,11 +423,10 @@ public class IndividualPanel extends JPanel{
 
 
 		SwingUtilities.invokeLater(() -> {
-			final Predicate<String> treeTypeFilter = type -> type.equalsIgnoreCase("biological_child");
-			final IndividualPanel panel = IndividualPanel.create(BoxPanelType.PRIMARY, treeTypeFilter, model);
 			final FLEFRecord individualRecord = model.getRecordById(recordId);
 			final IndividualData data = IndividualData.create(individualRecord, null, model);
-			panel.withIndividualData(data);
+			final IndividualPanel panel = IndividualPanel.create(BoxPanelType.PRIMARY, model)
+				.withIndividualData(data);
 
 			final JFrame frame = new JFrame();
 			frame.setLayout(new BorderLayout());

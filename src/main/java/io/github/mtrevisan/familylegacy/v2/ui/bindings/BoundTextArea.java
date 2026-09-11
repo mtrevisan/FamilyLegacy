@@ -24,7 +24,6 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.bindings;
 
-import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JTextArea;
@@ -74,7 +73,7 @@ public class BoundTextArea extends JTextArea implements PathBound{
 
 	@Override
 	public String getText(){
-		return GUIHelper.getText(super.getText());
+		return BindingsHelper.getText(super.getText());
 	}
 
 	@Override
@@ -85,7 +84,7 @@ public class BoundTextArea extends JTextArea implements PathBound{
 		if(isEditable())
 			super.setText(value);
 		else
-			GUIHelper.updateDisplay(this,
+			BindingsHelper.updateDisplay(this,
 				() -> StringUtils.isNotEmpty(value),
 				() -> value,
 				this::forceSetText);

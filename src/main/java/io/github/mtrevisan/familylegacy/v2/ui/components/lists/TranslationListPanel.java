@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.lists;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.bindings.BindingsHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundFilteredComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextArea;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
@@ -72,7 +73,7 @@ public class TranslationListPanel extends AbstractListPanel<FLEFRecord>{
 	protected void initComponents(){
 		super.initComponents();
 
-		GUIHelper.installBehavior(list,
+		BindingsHelper.installBehavior(list,
 			this::editItem, null,
 			this::createNewItem, this::removeItem,
 			builder -> {

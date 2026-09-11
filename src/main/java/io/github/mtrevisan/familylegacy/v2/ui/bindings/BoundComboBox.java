@@ -24,12 +24,14 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.bindings;
 
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.ComponentUndoableEdit;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.WordUtils;
 
 import javax.swing.ComboBoxModel;
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.DefaultListCellRenderer;
 import javax.swing.JComboBox;
+import javax.swing.JList;
 import javax.swing.MutableComboBoxModel;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -44,7 +46,7 @@ public class BoundComboBox<E> extends JComboBox<E> implements PathBound{
 
 	private String path;
 
-	private final boolean readOnly;
+	private boolean readOnly;
 
 	private boolean isUpdatingItems;
 	private Object lastSelectedValue;
@@ -54,35 +56,43 @@ public class BoundComboBox<E> extends JComboBox<E> implements PathBound{
 	public BoundComboBox(final String path){
 		super();
 
-		clear();
-
-		this.path = path;
-
-		readOnly = false;
-
-		clear();
-		initUndoListener();
+		init(path, null);
 	}
 
 	public BoundComboBox(final String path, final E[] items){
 		super(items);
 
-		this.path = path;
-
-		readOnly = false;
-
-		clear();
-		initUndoListener();
+		init(path, null);
 	}
 
 	public BoundComboBox(final String path, final E[] items, final E readOnlyItem){
 		super(items);
 
-		this.path = path;
-		readOnly = true;
+		init(path, readOnlyItem);
+	}
 
-		if(readOnlyItem != null)
+	private void init(final String path, final E readOnlyItem){
+		this.path = path;
+
+		readOnly = (readOnlyItem != null);
+		if(readOnly)
 			super.setSelectedItem(readOnlyItem);
+
+		if(!readOnly)
+			clear();
+
+		setRenderer(new DefaultListCellRenderer(){
+			@Override
+			public Component getListCellRendererComponent(final JList<?> list, final Object value, final int index,
+					final boolean isSelected, final boolean cellHasFocus){
+				super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+
+				if(value instanceof String str)
+					setText(WordUtils.capitalizeFully(str.replace('_', ' ')));
+				return this;
+			}
+		});
+
 		initUndoListener();
 	}
 
@@ -308,9 +318,10 @@ public class BoundComboBox<E> extends JComboBox<E> implements PathBound{
 		final StringBuilder sb = new StringBuilder();
 		sb.append("value: ");
 		final String text = getText();
-		sb.append(text != null? (text.isEmpty()? "''": text): "<null>")
-			.append(", path: ")
-			.append(path);
+		sb.append(text != null? (text.isEmpty()? "''": text): "<null>");
+		if(path != null)
+			sb.append(", path: ")
+				.append(path);
 		return sb.toString();
 	}
 

@@ -143,7 +143,7 @@ struct PartStructure {
     // personal and birth names
     given, generation,
     // direct family relationships (descent)
-    patronymic, matronymic, kunya,
+    patronymic, matronymic, kunya (كُنيَة),
     // extended family and social belonging
     family, family_nickname, lineage, house, clan, tribal, caste,
     // geographical and territorial origin

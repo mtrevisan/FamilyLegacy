@@ -46,12 +46,11 @@ public class IdentityHypothesisHandler extends AbstractRecordTypeHandler<Identit
 
 	private static final class SingletonHelper{
 		private static final IdentityHypothesisHandler INSTANCE = new IdentityHypothesisHandler();
-
 	}
 
 
 	public static IdentityHypothesisHandler getInstance(){
-		return IdentityHypothesisHandler.SingletonHelper.INSTANCE;
+		return SingletonHelper.INSTANCE;
 	}
 
 

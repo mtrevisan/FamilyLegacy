@@ -62,7 +62,7 @@ import java.util.stream.Collectors;
 /**
  * Service for building and navigating genealogical ancestor trees.
  */
-public class IndividualTreeService{
+class TreeService{
 
 	private static final String TAG_TYPE = "type";
 	private static final String TAG_SUBJECT = "subject";
@@ -75,7 +75,7 @@ public class IndividualTreeService{
 	private static final String ENUM_TYPE_PARTNER = "partner";
 
 
-	private final Predicate<String> treeTypeFilter;
+	private final Predicate<String> relationshipTypeFilter;
 
 	private final FLEFModel model;
 
@@ -88,8 +88,8 @@ public class IndividualTreeService{
 	private final Set<String> individualsWithDescendantsSet = new HashSet<>();
 
 
-	public IndividualTreeService(final Predicate<String> treeTypeFilter, final FLEFModel model){
-		this.treeTypeFilter = treeTypeFilter;
+	public TreeService(final Predicate<String> relationshipTypeFilter, final FLEFModel model){
+		this.relationshipTypeFilter = relationshipTypeFilter;
 
 		this.model = model;
 	}
@@ -102,9 +102,9 @@ public class IndividualTreeService{
 	 *
 	 * @param rootIndividualId the root individual record ID
 	 * @param maxGenerations depth limit (0-based: 0 = target only, 1 = target + parents, etc.)
-	 * @return the root {@link AncestorNode} of the constructed tree, or {@code null} if root is {@code null}
+	 * @return the root {@link TreeNode} of the constructed tree, or {@code null} if root is {@code null}
 	 */
-	public AncestorNode buildTree(final String rootIndividualId, final boolean showPartner, final int maxGenerations){
+	public TreeNode buildTree(final String rootIndividualId, final boolean showPartner, final int maxGenerations){
 		if(StringUtils.isEmpty(rootIndividualId))
 			return null;
 		final FLEFRecord rootIndividual = model.getRecordById(rootIndividualId);
@@ -114,9 +114,9 @@ public class IndividualTreeService{
 		// Pre-index relationships, groups, and events in single-pass lookup tables
 		ensureIndices();
 
-		final IndividualData rootData = IndividualData.create(rootIndividual, treeTypeFilter, individualToEventMap,
+		final IndividualData rootData = IndividualData.create(rootIndividual, relationshipTypeFilter, individualToEventMap,
 			model);
-		final AncestorNode rootNode = new AncestorNode(rootIndividual, rootData, 0);
+		final TreeNode rootNode = new TreeNode(rootIndividual, rootData, 0);
 		if(showPartner){
 			final Map<IndividualData, SiblingsData> partnerChildrenDataMap = buildChildrenData(rootIndividualId);
 			if(!partnerChildrenDataMap.isEmpty()){
@@ -125,18 +125,16 @@ public class IndividualTreeService{
 					.findFirst()
 					.get();
 				final IndividualData partnerData = partnerChildrenData.getKey();
-				final FLEFRecord partner = (partnerData != null
-					? model.getRecordById(partnerData.getId())
-					: null);
+				final FLEFRecord partner = (partnerData != null? partnerData.getIndividual(): null);
 				final SiblingsData childrenData = partnerChildrenData.getValue();
 				rootNode.setPartnerAndBiologicalChildren(partner, partnerData, childrenData);
 			}
 		}
 
-		final Queue<AncestorNode> queue = new ArrayDeque<>();
+		final Queue<TreeNode> queue = new ArrayDeque<>();
 		queue.add(rootNode);
 		while(!queue.isEmpty()){
-			final AncestorNode currentNode = queue.poll();
+			final TreeNode currentNode = queue.poll();
 
 			final int currentGeneration = currentNode.getGeneration();
 			if(currentGeneration >= maxGenerations)
@@ -157,16 +155,15 @@ public class IndividualTreeService{
 			if(!parents.isEmpty() && mother == null)
 				mother = parents.removeFirst();
 
-			final IndividualData fatherData = IndividualData.create(father, treeTypeFilter, individualToEventMap, model);
-			final IndividualData motherData = IndividualData.create(mother, treeTypeFilter, individualToEventMap, model);
+			final IndividualData fatherData = IndividualData.create(father, relationshipTypeFilter, individualToEventMap,
+				model);
+			final IndividualData motherData = IndividualData.create(mother, relationshipTypeFilter, individualToEventMap,
+				model);
 
 			// PRUNING: Only instantiate father/mother nodes if the underlying record actually exists:
 			// Process Father
-//			List<FLEFRecord> fatherEvents = Collections.emptyList();
 			if(father != null){
-//				fatherEvents = individualToEventMap.get(father.getId());
-
-				final AncestorNode fatherNode = new AncestorNode(father, fatherData, nextGeneration);
+				final TreeNode fatherNode = new TreeNode(father, fatherData, nextGeneration);
 				setPartnerData(fatherNode, mother, motherData);
 				currentNode.setFather(fatherNode);
 
@@ -174,11 +171,8 @@ public class IndividualTreeService{
 			}
 
 			// Process Mother
-//			List<FLEFRecord> motherEvents = Collections.emptyList();
 			if(mother != null){
-//				motherEvents = individualToEventMap.get(mother.getId());
-
-				final AncestorNode motherNode = new AncestorNode(mother, motherData, nextGeneration);
+				final TreeNode motherNode = new TreeNode(mother, motherData, nextGeneration);
 				setPartnerData(motherNode, father, fatherData);
 				currentNode.setMother(motherNode);
 
@@ -189,14 +183,11 @@ public class IndividualTreeService{
 		return rootNode;
 	}
 
-	private void setPartnerData(final AncestorNode node, final FLEFRecord partner, final IndividualData partnerData){
-		if(partner == null)
-			return;
-
+	private void setPartnerData(final TreeNode node, final FLEFRecord partner, final IndividualData partnerData){
 		final Map<IndividualData, SiblingsData> childrenDataMap = buildChildrenData(node.getIndividualId());
-		final String partnerId = partner.getId();
+		final String partnerId = (partner != null? partner.getId(): null);
 		final SiblingsData childrenData = childrenDataMap.entrySet().stream()
-			.filter(entry -> entry.getKey() != null && partnerId.equals(entry.getKey().getId()))
+			.filter(entry -> (partnerId == null || partnerId.equals(entry.getKey().getId())))
 			.map(Map.Entry::getValue)
 			.findFirst()
 			.orElse(null);
@@ -260,12 +251,13 @@ public class IndividualTreeService{
 
 			// Create IndividualData for the second parent (will be null if otherParentRecord == null)
 			final IndividualData otherParentData = (otherParentRecord != null
-				? IndividualData.create(otherParentRecord, treeTypeFilter, individualToEventMap, model)
+				? IndividualData.create(otherParentRecord, relationshipTypeFilter, individualToEventMap, model)
 				: null);
 
 			final List<IndividualData> childrenDataList = new ArrayList<>();
 			for(final FLEFRecord childRecord : sharedChildren)
-				childrenDataList.add(IndividualData.create(childRecord, treeTypeFilter, individualToEventMap, model));
+				childrenDataList.add(IndividualData.create(childRecord, relationshipTypeFilter, individualToEventMap,
+					model));
 
 			final Set<String> childrenIdsWithDescendants = childrenDataList.stream()
 				.map(IndividualData::getId)
@@ -300,7 +292,7 @@ public class IndividualTreeService{
 
 		final List<IndividualData> siblingDataList = new ArrayList<>();
 		for(final FLEFRecord siblingRecord : siblingRecords)
-			siblingDataList.add(IndividualData.create(siblingRecord, treeTypeFilter, individualToEventMap, model));
+			siblingDataList.add(IndividualData.create(siblingRecord, relationshipTypeFilter, individualToEventMap, model));
 
 		final Set<String> siblingIdsWithDescendants = siblingDataList.stream()
 			.map(IndividualData::getId)
@@ -360,7 +352,7 @@ public class IndividualTreeService{
 			if(subjectId == null || targetId == null)
 				continue;
 
-			if(treeTypeFilter.test(type)){
+			if(relationshipTypeFilter.test(type)){
 				final FLEFRecord child = model.getRecordById(subjectId);
 				final FLEFRecord parent = model.getRecordById(targetId);
 				if(parent != null)
@@ -429,7 +421,7 @@ public class IndividualTreeService{
 		final int generations = 3;
 
 		final String content;
-		try(final InputStream is = IndividualTreeService.class.getResourceAsStream(modelUri)){
+		try(final InputStream is = TreeService.class.getResourceAsStream(modelUri)){
 			content = new String(Objects.requireNonNull(is).readAllBytes(), StandardCharsets.UTF_8);
 		}
 
@@ -437,8 +429,8 @@ public class IndividualTreeService{
 		final FLEFModel model = parser.parse(content);
 
 
-		final Predicate<String> treeTypeFilter = type -> type.equalsIgnoreCase("biological_child");
-		final IndividualTreeService service = new IndividualTreeService(treeTypeFilter, model);
+		final Predicate<String> relationshipTypeFilter = type -> type.equalsIgnoreCase("biological_child");
+		final TreeService service = new TreeService(relationshipTypeFilter, model);
 		service.buildTree(recordId, true, generations);
 	}
 

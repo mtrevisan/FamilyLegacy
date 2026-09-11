@@ -27,10 +27,10 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.lists;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.bindings.BindingsHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.components.ImageCropDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.RecordSelectionDialog;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.ImageCropDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.DocumentHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
@@ -83,7 +83,7 @@ public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
 	protected void initComponents(){
 		super.initComponents();
 
-		GUIHelper.installBehavior(list,
+		BindingsHelper.installBehavior(list,
 			this::editCrop, null,
 			null, this::removeItem,
 			builder -> {

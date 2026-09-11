@@ -58,12 +58,11 @@ public class PersonalNameHandler extends AbstractRecordTypeHandler<PersonalNameS
 
 	private static final class SingletonHelper{
 		private static final PersonalNameHandler INSTANCE = new PersonalNameHandler();
-
 	}
 
 
 	public static PersonalNameHandler getInstance(){
-		return PersonalNameHandler.SingletonHelper.INSTANCE;
+		return SingletonHelper.INSTANCE;
 	}
 
 
@@ -85,11 +84,6 @@ public class PersonalNameHandler extends AbstractRecordTypeHandler<PersonalNameS
 	@Override
 	public String getCitedType(){
 		return (!isTopLevelEntity()? CITED_TYPE: null);
-	}
-
-	@Override
-	public String getIdPrefix(){
-		throw new UnsupportedOperationException("Not supported.");
 	}
 
 	@Override

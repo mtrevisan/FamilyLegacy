@@ -52,12 +52,11 @@ public class NameHandler extends AbstractRecordTypeHandler<NameStructureDialog>{
 
 	private static final class SingletonHelper{
 		private static final NameHandler INSTANCE = new NameHandler();
-
 	}
 
 
 	public static NameHandler getInstance(){
-		return NameHandler.SingletonHelper.INSTANCE;
+		return SingletonHelper.INSTANCE;
 	}
 
 
@@ -79,11 +78,6 @@ public class NameHandler extends AbstractRecordTypeHandler<NameStructureDialog>{
 	@Override
 	public String getCitedType(){
 		return (!isTopLevelEntity()? CITED_TYPE: null);
-	}
-
-	@Override
-	public String getIdPrefix(){
-		throw new UnsupportedOperationException("Not supported.");
 	}
 
 	@Override

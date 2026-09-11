@@ -34,20 +34,24 @@ import java.util.Map;
 
 /**
  * Builder for {@link RecordDialogComponents}.
- * Provides sensible defaults but allows overriding every configurable parameter.
+ * Provides sensible defaults but allows overriding every configurable parameter and factory.
  */
 public final class RecordDialogBuilder{
 
 	/**
-	 * Configuration for panels that reference an entity.
+	 * Configuration for panels that reference an entity, supporting optional custom panel factories.
 	 */
 	public record EntityReferenceConfig(
 		String tag,
-		String title
-	){}
+		String title,
+		PanelFactory factory
+	){
+		public EntityReferenceConfig(final String tag, final String title){
+			this(tag, title, null);
+		}
+	}
 
-
-	// Required
+	// Required attributes
 	final BaseRecordDialog owner;
 	final FLEFModel model;
 	final FLEFRecord record;
@@ -62,6 +66,14 @@ public final class RecordDialogBuilder{
 	}
 
 
+	/**
+	 * Registers a panel configuration using the default factory bound to the {@link PanelKey}.
+	 *
+	 * @param key   The key representing the panel.
+	 * @param tag   The tag identifier.
+	 * @param title The UI title for the panel.
+	 * @return This builder instance for chaining.
+	 */
 	public RecordDialogBuilder withComponent(final PanelKey key, final String tag, final String title){
 		configs.put(key, new EntityReferenceConfig(tag, title));
 
@@ -69,7 +81,25 @@ public final class RecordDialogBuilder{
 	}
 
 	/**
+	 * Registers a panel configuration with a custom {@link PanelFactory}.
+	 *
+	 * @param key     The key representing the panel.
+	 * @param tag     The tag identifier.
+	 * @param title   The UI title for the panel.
+	 * @param factory The custom factory used to construct the panel.
+	 * @return This builder instance for chaining.
+	 */
+	public RecordDialogBuilder withComponent(final PanelKey key, final String tag, final String title,
+			final PanelFactory factory){
+		configs.put(key, new EntityReferenceConfig(tag, title, factory));
+
+		return this;
+	}
+
+	/**
 	 * Builds the {@link RecordDialogComponents} instance.
+	 *
+	 * @return The constructed components container.
 	 */
 	public RecordDialogComponents build(){
 		return new RecordDialogComponents(this);

@@ -46,12 +46,11 @@ public class ConclusionHandler extends AbstractRecordTypeHandler<ConclusionRecor
 
 	private static final class SingletonHelper{
 		private static final ConclusionHandler INSTANCE = new ConclusionHandler();
-
 	}
 
 
 	public static ConclusionHandler getInstance(){
-		return ConclusionHandler.SingletonHelper.INSTANCE;
+		return SingletonHelper.INSTANCE;
 	}
 
 

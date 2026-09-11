@@ -47,9 +47,9 @@ import java.util.function.Predicate;
  * Handles structural modifications to the biological tree, updating the underlying FLEFModel,
  * invalidating service indices, and notifying tree listeners.
  */
-public class AncestorTreeMutator{
+class TreeMutator{
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(AncestorTreeMutator.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(TreeMutator.class);
 
 
 	private static final String TAG_TYPE = "type";
@@ -60,17 +60,17 @@ public class AncestorTreeMutator{
 	private static final String ENUM_TYPE_PARTNER = "partner";
 
 
-	private final Predicate<String> treeTypeFilter;
+	private final Predicate<String> relationshipTypeFilter;
 
 	private final FLEFModel model;
 
-	private final IndividualTreeService treeService;
+	private final TreeService treeService;
 	private final TreeChangeListener listener;
 
 
-	public AncestorTreeMutator(final Predicate<String> treeTypeFilter, final FLEFModel model,
-			final IndividualTreeService treeService, final TreeChangeListener listener){
-		this.treeTypeFilter = treeTypeFilter;
+	public TreeMutator(final Predicate<String> relationshipTypeFilter, final FLEFModel model,
+			final TreeService treeService, final TreeChangeListener listener){
+		this.relationshipTypeFilter = relationshipTypeFilter;
 
 		this.model = Objects.requireNonNull(model, "Model cannot be null");
 		this.treeService = Objects.requireNonNull(treeService, "Tree service cannot be null");
@@ -123,7 +123,7 @@ public class AncestorTreeMutator{
 	 * @param type      the type of relationship (e.g., "biological_child", "spouse", "parent")
 	 */
 	private void createRelationship(final String subjectId, final String targetId, final String type){
-		final FLEFRecord relationship = FLEFRecord.createMainRecord(RelationshipHandler.TYPE, model)
+		final FLEFRecord relationship = FLEFRecord.createMainRecord(RelationshipHandler.TYPE, RelationshipHandler.ID_PREFIX, model)
 			.addChild(FLEFRecord.createChildWithTagAndValue(TAG_TYPE, type))
 			.addChild(FLEFRecord.createChildWithTag(TAG_SUBJECT)
 				.addChild(FLEFRecord.createChildWithTagAndValue(IndividualHandler.TYPE, subjectId))
@@ -160,7 +160,7 @@ public class AncestorTreeMutator{
 			final List<FLEFRecord> toRemove = new ArrayList<>();
 			for(final FLEFRecord relationship : relationships){
 				final String type = FLEFRecordHelper.getChildValue(relationship, TAG_TYPE);
-				if(!treeTypeFilter.test(type))
+				if(!relationshipTypeFilter.test(type))
 					continue;
 
 				final String subjectId = relationship.extractReferencedId(TAG_SUBJECT, IndividualHandler.TYPE);
@@ -205,21 +205,6 @@ public class AncestorTreeMutator{
 		// Create spouse relationships (bidirectional)
 		createRelationship(partnerId, newPartner.getId(), ENUM_TYPE_PARTNER);
 		createRelationship(newPartner.getId(), partnerId, ENUM_TYPE_PARTNER);
-	}
-
-
-	/**
-	 * Handles the post-editing process for an individual record,
-	 * invalidating service caches and refreshing the UI tree structure.
-	 *
-	 * @param individual    the edited individual record
-	 * @param currentRootId the active root ID to maintain view focus
-	 */
-	public void editIndividual(final FLEFRecord individual, final String currentRootId){
-		if(individual == null)
-			return;
-
-		invalidateAndNotifyTreeChanged(currentRootId);
 	}
 
 

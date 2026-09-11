@@ -46,12 +46,11 @@ public class CulturalNormHandler extends AbstractRecordTypeHandler<CulturalNormR
 
 	private static final class SingletonHelper{
 		private static final CulturalNormHandler INSTANCE = new CulturalNormHandler();
-
 	}
 
 
 	public static CulturalNormHandler getInstance(){
-		return CulturalNormHandler.SingletonHelper.INSTANCE;
+		return SingletonHelper.INSTANCE;
 	}
 
 

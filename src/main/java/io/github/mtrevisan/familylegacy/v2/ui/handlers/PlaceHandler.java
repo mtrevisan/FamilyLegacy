@@ -50,12 +50,11 @@ public class PlaceHandler extends AbstractRecordTypeHandler<PlaceRecordDialog>{
 
 	private static final class SingletonHelper{
 		private static final PlaceHandler INSTANCE = new PlaceHandler();
-
 	}
 
 
 	public static PlaceHandler getInstance(){
-		return PlaceHandler.SingletonHelper.INSTANCE;
+		return SingletonHelper.INSTANCE;
 	}
 
 

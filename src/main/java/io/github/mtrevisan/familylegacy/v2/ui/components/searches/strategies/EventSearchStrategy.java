@@ -129,8 +129,8 @@ public class EventSearchStrategy implements SearchStrategy{
 
 		final String type = FLEFRecordHelper.getChildValue(record, TAG_TYPE);
 		final FLEFRecord dateRecord = FLEFRecordHelper.findChild(record, TAG_DATE);
-		final String date = SearchHelper.extractDate(dateRecord);
-		final String place = SearchHelper.extractPlace(record, model);
+		final String date = FLEFRecordHelper.extractDate(dateRecord);
+		final String place = FLEFRecordHelper.extractPlace(record, model);
 
 		final StringJoiner details = new StringJoiner(", ", " (", ")");
 		details.setEmptyValue(StringUtils.EMPTY);

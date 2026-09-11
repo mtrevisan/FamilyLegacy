@@ -24,7 +24,6 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.bindings;
 
-import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JTextField;
@@ -68,7 +67,7 @@ public class BoundTextField extends JTextField implements PathBound{
 
 	@Override
 	public String getText(){
-		return GUIHelper.getText(super.getText());
+		return BindingsHelper.getText(super.getText());
 	}
 
 	@Override
@@ -79,7 +78,7 @@ public class BoundTextField extends JTextField implements PathBound{
 		if(isEditable())
 			forceSetText(value);
 		else
-			GUIHelper.setText(value, this, super::setText);
+			BindingsHelper.setText(value, this, super::setText);
 	}
 
 	public void forceSetText(final String value){
