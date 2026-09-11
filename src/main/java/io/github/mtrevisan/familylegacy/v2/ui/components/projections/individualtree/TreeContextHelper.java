@@ -24,7 +24,6 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree;
 
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualData;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualPanel;
@@ -40,9 +39,16 @@ import java.util.Map;
 
 
 /**
- * Helper class to determine the context (child, parent, partner) of a selected IndividualPanel.
+ * Helper class to determine the context (child, parent) of a selected
+ * {@link IndividualPanel} inside the ancestor tree.
+ * <p>
+ * The context describes what kind of entity the user clicked on and what
+ * entities are naturally related to it. Callers must always test
+ * {@link Context#type} before accessing the parent-specific fields
+ * ({@code partnerPanel}, {@code side}, {@code targetId}), because they are
+ * {@code null} when the context is {@link Context.Type#CHILD}.
  */
-final class TreeContextHelper{
+public final class TreeContextHelper{
 
 	private TreeContextHelper(){}
 
@@ -69,7 +75,7 @@ final class TreeContextHelper{
 			this.individual = individual;
 			this.partnerPanel = partnerPanel;
 			this.side = side;
-			this.childrenId = childrenId;
+			this.childrenId = (childrenId != null? List.copyOf(childrenId): List.of());
 			this.targetId = targetId;
 		}
 
@@ -78,8 +84,28 @@ final class TreeContextHelper{
 		}
 
 		public static Context forPartner(final FLEFRecord individual, final PartnersPanel panel, final Side side,
-				final List<String> childrenId, final String targetId){
+			final List<String> childrenId, final String targetId){
 			return new Context(Type.PARENT, individual, panel, side, childrenId, targetId);
+		}
+
+		/** Returns whether this is a CHILD context. */
+		public boolean isChildContext(){
+			return (type == Type.CHILD);
+		}
+
+		/** Returns whether this is a PARENT context. */
+		public boolean isParentContext(){
+			return (type == Type.PARENT);
+		}
+
+		/** Returns whether a partner panel is available. */
+		public boolean hasPartnerPanel(){
+			return (partnerPanel != null);
+		}
+
+		/** Returns whether the context carries at least one child id. */
+		public boolean hasChildren(){
+			return !childrenId.isEmpty();
 		}
 	}
 
@@ -87,24 +113,21 @@ final class TreeContextHelper{
 	/**
 	 * Determines the context of the selected panel.
 	 *
-	 * @param selectedPanel the panel that was clicked
-	 * @param nodeToPanelMap map from AncestorNode to PartnersPanel (to find child ID)
+	 * @param selectedPanel  the panel that was clicked
+	 * @param nodeToPanelMap map from {@code TreeNode} to {@code PartnersPanel}
 	 * @return the Context, or {@code null} if it cannot be determined
 	 */
-	public static Context determineContext(final JPanel selectedPanel,
-			final Map<TreeNode, PartnersPanel> nodeToPanelMap, final FLEFModel model){
+	static Context determineContext(final JPanel selectedPanel, final Map<TreeNode, PartnersPanel> nodeToPanelMap){
 		if(selectedPanel == null)
 			return null;
 
-		// Extract current individual record from the clicked panel if present
-		final FLEFRecord currentRecord = (selectedPanel instanceof IndividualPanel individualPanel
-				&& individualPanel.getData() != null
-			? individualPanel.getData().getIndividual()
+		// Extract the clicked individual record, if any
+		final FLEFRecord currentRecord = (selectedPanel instanceof IndividualPanel ip && ip.getData() != null
+			? ip.getData().getIndividual()
 			: null);
 
 		// Check if inside a SiblingsPanel -> CHILD context
-		final Component parent = findContainingSiblingsPanel(selectedPanel.getParent());
-		if(parent != null)
+		if(findContainingSiblingsPanel(selectedPanel.getParent()) != null)
 			return Context.forChild(currentRecord);
 
 		// Check if inside a PartnersPanel
@@ -112,28 +135,11 @@ final class TreeContextHelper{
 		if(partnerPanel == null)
 			return null;
 
-		final Side side = (selectedPanel instanceof IndividualPanel individualPanel
-			? partnerPanel.getSideOf(individualPanel)
-			: null);
+		final Side side = (selectedPanel instanceof IndividualPanel ip? partnerPanel.getSideOf(ip): null);
 		if(side == null)
 			return null;
 
-		// Context: add a parent to the existing individual on the opposite side and to the children associated with
-		// this PartnersPanel
-		final List<String> childrenId = new ArrayList<>();
-		// For the couple container, children are stored here
-		nodeToPanelMap.entrySet().stream()
-			.filter(entry -> entry.getValue() == partnerPanel)
-			.map(Map.Entry::getKey)
-			.filter(node -> node.getBiologicalChildrenData() != null)
-			.forEachOrdered(node -> {
-				if(node.getIndividual() == null)
-					node.getBiologicalChildrenData().getSiblings().stream()
-						.map(IndividualData::getId)
-						.forEach(childrenId::add);
-				else
-					childrenId.add(node.getIndividualId());
-			});
+		final List<String> childrenId = collectChildrenIds(partnerPanel, nodeToPanelMap);
 
 		final IndividualPanel oppositePanel = (side == Side.LEFT
 			? partnerPanel.getMotherPanel()
@@ -146,15 +152,46 @@ final class TreeContextHelper{
 	}
 
 	/**
-	 * Finds the nearest SiblingsPanel ancestor, if any.
-	 *
-	 * @param parent the component to start searching from
-	 * @return the SiblingsPanel ancestor, or {@code null} if none
+	 * Collects the ids of all children associated with the given couple
+	 * panel. Handles both individual nodes (whose id is the individual)
+	 * and couple-container nodes (whose id must be extracted from the
+	 * associated siblings data).
 	 */
-	private static SiblingsPanel findContainingSiblingsPanel(Component parent){
-		while(parent != null && !(parent instanceof SiblingsPanel))
-			parent = parent.getParent();
-		return (SiblingsPanel)parent;
+	private static List<String> collectChildrenIds(final PartnersPanel partnerPanel,
+		final Map<TreeNode, PartnersPanel> nodeToPanelMap){
+		final List<String> childrenId = new ArrayList<>();
+		for(final Map.Entry<TreeNode, PartnersPanel> entry : nodeToPanelMap.entrySet()){
+			if(entry.getValue() != partnerPanel)
+				continue;
+			final TreeNode node = entry.getKey();
+			if(node.getBiologicalChildrenData() == null)
+				continue;
+			if(node.getIndividual() == null){
+				// Couple-container node: expand the siblings list
+				node.getBiologicalChildrenData()
+					.getSiblings()
+					.stream()
+					.map(IndividualData::getId)
+					.forEach(childrenId::add);
+			}
+			else{
+				// Individual node with its own children data
+				final String id = node.getIndividualId();
+				if(id != null)
+					childrenId.add(id);
+			}
+		}
+		return childrenId;
+	}
+
+	/**
+	 * Finds the nearest SiblingsPanel ancestor, if any.
+	 */
+	private static SiblingsPanel findContainingSiblingsPanel(final Component parent){
+		Component current = parent;
+		while(current != null && !(current instanceof SiblingsPanel))
+			current = current.getParent();
+		return (SiblingsPanel)current;
 	}
 
 }

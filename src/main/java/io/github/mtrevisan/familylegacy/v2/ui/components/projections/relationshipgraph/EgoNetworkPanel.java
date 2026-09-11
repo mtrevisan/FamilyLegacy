@@ -36,20 +36,20 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.EgoNetworkIndividualPopupMenuFactory;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualListener;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.RelationshipTypeSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.TreeChangeListener;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.TreeLayout;
-import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.UnlinkRelationshipsDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.services.RelationshipTypeSelectionDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.services.UnlinkRelationshipsDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.partners.PartnersPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.RecordSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.IndividualRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.RelationClipboard;
 import net.miginfocom.swing.MigLayout;
+import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -75,16 +75,18 @@ import java.io.Serial;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 
 /**
  * Panel responsible for rendering an Ego-centric network (Hub & Spoke),
- * connecting an individual or group to parents, partners, children, groups, and associates.
+ * connecting an individual or group to parents, partners, children, groups,
+ * and associates.
  */
 public class EgoNetworkPanel extends JPanel implements TreeChangeListener, IndividualListener, GroupListener{
 
@@ -98,14 +100,25 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener, Indiv
 	private static final Color BACKGROUND_COLOR_APPLICATION = new Color(242, 238, 228);
 	private static final Color CONNECTION_LINE_COLOR = Color.BLACK;
 
+	private static final String ENUM_TYPE_GROUP_MEMBER = "group_member";
+	private static final String ENUM_TYPE_PART_OF = "part_of";
+
 	private static final String[] INDIVIDUAL_TO_INDIVIDUAL_CHILD_TYPES = new String[]{
 		"biological_child", "adoptive_child", "foster_child", "guarded_child", "step_child"
 	};
-	private static final String[] INDIVIDUAL_TO_INDIVIDUAL_PARTNER_TYPES = new String[]{
-		"civil_spouse", "religious_spouse", "customary_spouse", "cohabiting_partner", "engaged_partner"
+	/**
+	 * Relationship types allowed when the Ego is an individual and the other
+	 * entity is an individual. The list combines the five spouse types with
+	 * the generic {@code associate} type, which the FLEF protocol permits
+	 * between two individuals.
+	 */
+	private static final String[] INDIVIDUAL_TO_INDIVIDUAL_SOCIAL_TYPES = new String[]{
+		"civil_spouse", "religious_spouse", "customary_spouse", "cohabiting_partner", "engaged_partner", "associate"
 	};
-	private static final String[] INDIVIDUAL_TO_GROUP_TYPES = new String[]{"group_member", "associate"};
-	private static final String[] GROUP_TO_GROUP_TYPES = new String[]{"part_of", "associate"};
+	private static final String[] INDIVIDUAL_TO_GROUP_TYPES = new String[]{ENUM_TYPE_GROUP_MEMBER, "associate"};
+	private static final String[] GROUP_TO_GROUP_TYPES = new String[]{ENUM_TYPE_PART_OF, "associate"};
+
+	private static final String ACTION_TOGGLE_EGO_NETWORK_LAYOUT = "toggleEgoNetworkLayout";
 
 
 	private TreeLayout treeLayout;
@@ -174,7 +187,9 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener, Indiv
 	private void buildLayout(){
 		setLayout(new MigLayout("ins 20,align center center", "[grow,center]", "[grow,center]"));
 
-		final JPanel centerGrid = new JPanel(new MigLayout("ins 10", "[grow 100,sg col,fill][center][grow 100,sg col,fill]", "[grow 100,sg row,fill][center][grow 100,sg row,fill]"));
+		final JPanel centerGrid = new JPanel(new MigLayout("ins 10",
+			"[grow 100,sg col,fill][center][grow 100,sg col,fill]",
+			"[grow 100,sg row,fill][center][grow 100,sg row,fill]"));
 		centerGrid.setOpaque(false);
 
 		// Center: Central Ego Panel
@@ -273,9 +288,17 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener, Indiv
 
 		return IndividualPanel.create(boxType, model)
 			.withIndividualData(node.getEgoData())
-			.withListener(this, new EgoNetworkIndividualPopupMenuFactory());
+			.withListener(this,
+				(boxType == BoxPanelType.PRIMARY
+					? EgoNetworkIndividualPopupMenuFactory.createForEgo()
+					: EgoNetworkIndividualPopupMenuFactory.createForChild()));
 	}
 
+	/**
+	 * Builds an HTML tooltip from a list of relation metadata. All textual
+	 * content is escaped before being embedded, so that role and type values
+	 * coming from user-supplied data cannot break the HTML markup.
+	 */
 	private String buildTooltipText(final List<EgoNode.RelationInfo> relations){
 		if(relations == null || relations.isEmpty())
 			return null;
@@ -290,16 +313,24 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener, Indiv
 					.append("<br>");
 			if(info.type() != null)
 				sb.append("<b>Type:</b> ")
-					.append(info.type());
+					.append(escapeHtml(info.type()));
 			if(info.role() != null){
 				if(info.type() != null)
 					sb.append("<br>");
 				sb.append("<b>Role:</b> ")
-					.append(info.role());
+					.append(escapeHtml(info.role()));
 			}
 		}
 		sb.append("</html>");
 		return sb.toString();
+	}
+
+	private static String escapeHtml(final String text){
+		if(text == null)
+			return "";
+		return text.replace("&", "&amp;")
+			.replace("<", "&lt;")
+			.replace(">", "&gt;");
 	}
 
 	@Override
@@ -367,117 +398,165 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener, Indiv
 	@Override
 	public void onIndividualAddOrConnect(final TreeOperation operation){
 		final Supplier<FLEFRecord> fnOperation = (operation == TreeOperation.ADD
-			? this::showCreateRecordDialog
-			: this::showSearchRecordDialog);
+			? () -> showCreateRecordDialog(IndividualHandler.class)
+			: () -> showSearchRecordDialog(IndividualHandler.class));
 
-		performRelationOperation(fnOperation, false, INDIVIDUAL_TO_INDIVIDUAL_PARTNER_TYPES);
+		performRelationOperation(fnOperation, false, INDIVIDUAL_TO_INDIVIDUAL_SOCIAL_TYPES);
 	}
 
 	@Override
 	public void onChildAddOrConnect(final TreeOperation operation){
 		final Supplier<FLEFRecord> fnOperation = (operation == TreeOperation.ADD
-			? this::showCreateRecordDialog
-			: this::showSearchRecordDialog);
+			? () -> showCreateRecordDialog(IndividualHandler.class)
+			: () -> showSearchRecordDialog(IndividualHandler.class));
 
 		performRelationOperation(fnOperation, false, INDIVIDUAL_TO_INDIVIDUAL_CHILD_TYPES);
 	}
 
 	@Override
 	public void onGroupAddOrConnect(final TreeOperation operation){
+		// The entity being added / linked is always a Group, regardless of whether
+		// the Ego is an Individual (member -> group) or a Group (sub-group -> super-group).
 		final Supplier<FLEFRecord> fnOperation = (operation == TreeOperation.ADD
-			? this::showCreateRecordDialog
-			: this::showSearchRecordDialog);
+			? () -> showCreateRecordDialog(GroupHandler.class)
+			: () -> showSearchRecordDialog(GroupHandler.class));
 
 		final FLEFRecord egoRecord = (rootEgoNode != null? rootEgoNode.getEgoRecord(): null);
 		final String[] allowedTypes = (egoRecord != null && GroupHandler.TYPE.equalsIgnoreCase(egoRecord.getTag())
 			? GROUP_TO_GROUP_TYPES
 			: INDIVIDUAL_TO_GROUP_TYPES);
+
 		performRelationOperation(fnOperation, false, allowedTypes);
 	}
 
 	private void performRelationOperation(final Supplier<FLEFRecord> recordSupplier, final boolean isPaste,
-			final String[] allowedTypes){
+		final String[] allowedTypes){
 		final FLEFRecord targetRecord = recordSupplier.get();
-		if(targetRecord == null || currentEgoId == null || rootEgoNode == null)
+		if(targetRecord == null)
+			return;
+
+		performRelationOperationOnRecord(targetRecord, isPaste, allowedTypes);
+	}
+
+	/**
+	 * Performs a relationship mutation starting from an already-resolved target record.
+	 * <p>
+	 * According to the FLEF protocol, the SUBJECT is the entity whose role is described by TYPE
+	 * relative to the TARGET. For example, {@code biological_child(Alice -> John)} means Alice is
+	 * the biological child of John.
+	 */
+	private void performRelationOperationOnRecord(final FLEFRecord targetRecord, final boolean isPaste,
+		final String[] allowedTypes){
+		if(currentEgoId == null || rootEgoNode == null)
 			return;
 
 		final FLEFRecord egoRecord = rootEgoNode.getEgoRecord();
 		if(egoRecord == null)
 			return;
 
-		if(!model.hasRecord(targetRecord.getId()))
-			model.addRecord(targetRecord);
-
+		// On paste, first remove any pre-existing relationship between Ego and the target
 		if(isPaste)
 			networkMutator.unlinkRelationship(egoRecord, targetRecord, currentEgoId);
 
-		// Determine selected relationship type
-		final String selectedType;
-		if(allowedTypes.length == 1)
-			selectedType = allowedTypes[0];
-		else{
-			final Window parent = SwingUtilities.getWindowAncestor(this);
-			final String label = IndividualHandler.TYPE.equalsIgnoreCase(targetRecord.getTag())
-				? IndividualHandler.getInstance().getDisplayText(targetRecord, model)
-				: GroupHandler.getInstance().getDisplayText(targetRecord, model);
+		// Ask the user to choose the FLEF relationship type (when more than one is applicable)
+		final String selectedType = selectRelationshipType(targetRecord, allowedTypes);
+		if(selectedType == null)
+			return;
 
-			final List<RelationshipTypeSelectionDialog.Item> items = List.of(
-				new RelationshipTypeSelectionDialog.Item(label, allowedTypes[0])
-			);
-
-			final RelationshipTypeSelectionDialog dialog = new RelationshipTypeSelectionDialog(parent, items,
-				allowedTypes);
-			dialog.setVisible(true);
-
-			final List<String> result = dialog.getSelectedTypes();
-			if(result == null || result.isEmpty())
-				return;
-
-			selectedType = result.getFirst();
-		}
-
-		// Subject is ALWAYS the entity whose role is described relative to Target
-		// e.g., child -> parent, spouse -> spouse, member -> group
-		final String subjectId;
-		final String targetId;
-
-		if(isChildType(selectedType)){
-			// Target is the child (subject), Ego is the parent (target)
-			subjectId = targetRecord.getId();
-			targetId = egoRecord.getId();
-		}
-		else{
-			// Standard orientation (Ego -> Target)
-			subjectId = egoRecord.getId();
-			targetId = targetRecord.getId();
-		}
+		// Resolve subject/target according to FLEF semantics
+		final String[] pair = resolveSubjectTarget(selectedType, egoRecord, targetRecord);
+		final String subjectId = pair[0];
+		final String targetId = pair[1];
 
 		networkMutator.createRelationship(subjectId, targetId, selectedType);
-
 		networkMutator.invalidateAndNotifyTreeChanged(currentEgoId);
 	}
 
+	/**
+	 * Resolves the FLEF subject/target orientation for the given relationship type.
+	 *
+	 * @param type        the relationship type
+	 * @param egoRecord   the Ego record
+	 * @param otherRecord the newly added/linked record
+	 * @return a two-element array {@code [subjectId, targetId]}
+	 */
+	private String[] resolveSubjectTarget(final String type, final FLEFRecord egoRecord, final FLEFRecord otherRecord){
+		final String egoId = egoRecord.getId();
+		final String otherId = otherRecord.getId();
+		final boolean egoIsGroup = GroupHandler.TYPE.equalsIgnoreCase(egoRecord.getTag());
+
+		// Child types: SUBJECT = child, TARGET = parent
+		// The "other" record is always the child; the Ego is always the parent
+		if(isChildType(type))
+			return new String[]{otherId, egoId};
+
+		// group_member: (Individual -> Group)
+		// The individual is always the subject; the group is always the target
+		if(ENUM_TYPE_GROUP_MEMBER.equals(type)){
+			if(egoIsGroup)
+				// Ego is the group, the other record is the individual member
+				return new String[]{otherId, egoId};
+			// Ego is the individual, the other record is the group
+			return new String[]{egoId, otherId};
+		}
+
+		// part_of: (Group -> Group), sub-group -> super-group
+		// When linking from the Ego center, the Ego is treated as the sub-group
+		if(ENUM_TYPE_PART_OF.equals(type))
+			return new String[]{egoId, otherId};
+
+		// Symmetric types (spouse/partner, associate) or default
+		return new String[]{egoId, otherId};
+	}
+
+	/**
+	 * Shows the relationship type selection dialog when multiple types are allowed.
+	 * Returns {@code null} if the user cancels.
+	 */
+	private String selectRelationshipType(final FLEFRecord targetRecord, final String[] allowedTypes){
+		if(allowedTypes.length == 1)
+			return allowedTypes[0];
+
+		final Window parent = SwingUtilities.getWindowAncestor(this);
+		final String label = (GroupHandler.TYPE.equalsIgnoreCase(targetRecord.getTag())
+			? GroupHandler.getInstance().getDisplayText(targetRecord, model)
+			: IndividualHandler.getInstance().getDisplayText(targetRecord, model));
+
+		final List<RelationshipTypeSelectionDialog.Item> items = List.of(
+			new RelationshipTypeSelectionDialog.Item(label, allowedTypes[0])
+		);
+
+		final RelationshipTypeSelectionDialog dialog = new RelationshipTypeSelectionDialog(parent, items, allowedTypes);
+		dialog.setVisible(true);
+
+		final List<String> result = dialog.getSelectedTypes();
+		return (result == null || result.isEmpty()? null: result.getFirst());
+	}
+
 	private boolean isChildType(final String type){
-		return ("biological_child".equals(type)
-			|| "adoptive_child".equals(type)
-			|| "foster_child".equals(type)
-			|| "guarded_child".equals(type)
-			|| "step_child".equals(type));
+		return ArrayUtils.contains(INDIVIDUAL_TO_INDIVIDUAL_CHILD_TYPES, type.toLowerCase(Locale.ROOT));
 	}
 
 	@Override
 	public void onEntityUnlink(final FLEFRecord record){
-		if(record == null || rootEgoNode == null)
+		if(record == null || selectedPanel == null)
 			return;
 
+		final UnlinkRelationshipsDialog dialog = showUnlinkRelationshipsDialog(record);
+		final List<String> toRemove = dialog.getSelectedRelationshipIds();
+		if(!toRemove.isEmpty()){
+			networkMutator.removeRelationships(toRemove);
+			networkMutator.invalidateAndNotifyTreeChanged(currentEgoId);
+		}
+	}
+
+	private UnlinkRelationshipsDialog showUnlinkRelationshipsDialog(final FLEFRecord record){
 		final Set<EgoNode> parents;
-		final Set<EgoNode> partners;
 		final Set<EgoNode> associates;
 		final Set<FLEFRecord> groups;
 		final Set<EgoNode> children;
-		if(record.getId().equals(currentEgoId)){
+		if(Objects.equals(record.getId(), currentEgoId)){
 			parents = this.parents;
-			partners = this.partners;
 			associates = this.associates;
 			groups = this.groups;
 			children = this.children;
@@ -485,33 +564,31 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener, Indiv
 		else{
 			final EgoNode node = networkService.buildEgoNetwork(record.getId());
 			parents = node.getRelatedNodes(EgoNode.RelationshipCategory.PARENT);
-			partners = node.getRelatedNodes(EgoNode.RelationshipCategory.PARTNER);
 			associates = node.getRelatedNodes(EgoNode.RelationshipCategory.ASSOCIATE);
 			groups = node.getGroupRecords();
 			children = node.getRelatedNodes(EgoNode.RelationshipCategory.CHILD);
 		}
-		//TODO create another UnlinkRelationshipsDialog where the following data is passed directly (the id I mean)
-
 		final Window parent = SwingUtilities.getWindowAncestor(this);
-		final UnlinkRelationshipsDialog dialog = UnlinkRelationshipsDialog.create(parent, model, relationshipTypeFilter,
-			record.getId());
+		final UnlinkRelationshipsDialog dialog = new UnlinkRelationshipsDialog(parent, model, record.getId(),
+			extractNodeIds(parents), extractNodeIds(associates), extractRecordIds(groups),
+			extractNodeIds(children));
 		dialog.setVisible(true);
 
-		final List<String> selectedIds = dialog.getSelectedRelationshipIds();
-		if(selectedIds.isEmpty())
-			return;
+		return dialog;
+	}
 
-		// Confirm with the user
-		final int confirm = JOptionPane.showConfirmDialog(this,
-			"Are you sure you want to remove the selected relationships?",
-			"Confirm Unlink",
-			JOptionPane.YES_NO_OPTION,
-			JOptionPane.WARNING_MESSAGE);
-		if(confirm == JOptionPane.YES_OPTION){
-			networkMutator.unlinkRelationship(rootEgoNode.getEgoRecord(), record, currentEgoId);
+	private static Set<String> extractNodeIds(final Set<EgoNode> nodes){
+		return nodes.stream()
+			.map(EgoNode::getEgoId)
+			.filter(Objects::nonNull)
+			.collect(Collectors.toSet());
+	}
 
-			networkMutator.invalidateAndNotifyTreeChanged(currentEgoId);
-		}
+	private static Set<String> extractRecordIds(final Set<FLEFRecord> records){
+		return records.stream()
+			.map(FLEFRecord::getId)
+			.filter(Objects::nonNull)
+			.collect(Collectors.toSet());
 	}
 
 	@Override
@@ -540,44 +617,31 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener, Indiv
 		if(!clipboard.hasRecord())
 			return;
 
-		final FLEFRecord source = clipboard.getRecord();
-		performRelationOperation(
-			() -> source,
-			true
-		);
-
-		clipboard.clear();
-	}
-
-	private void performRelationOperation(final Supplier<FLEFRecord> recordSupplier, final boolean isPaste){
-//		final TreeContextHelper.Context ctx = TreeContextHelper.determineContext(selectedPanel, nodeToPanelMap);
-//		if(ctx == null)
-//			return;
-
-		final FLEFRecord targetRecord = recordSupplier.get();
-		if(targetRecord == null || currentEgoId == null)
+		if(rootEgoNode == null)
 			return;
-
-		// Ensure the record exists in the model
-		if(!model.hasRecord(targetRecord.getId()))
-			model.addRecord(targetRecord);
 
 		final FLEFRecord egoRecord = rootEgoNode.getEgoRecord();
 		if(egoRecord == null)
 			return;
 
-		if(isPaste)
-			networkMutator.unlinkRelationship(egoRecord, targetRecord, currentEgoId);
+		final FLEFRecord source = clipboard.getRecord();
 
-		// Default relationship type depending on target entity type
-		final String relationshipType = (GroupHandler.TYPE.equalsIgnoreCase(targetRecord.getTag())
-			? "member"
-			: "associate");
+		// Pick the allowed type list based on the participant types
+		final boolean egoIsGroup = GroupHandler.TYPE.equalsIgnoreCase(egoRecord.getTag());
+		final boolean sourceIsGroup = GroupHandler.TYPE.equalsIgnoreCase(source.getTag());
 
-		// Create bidirectional or directed relationship
-		networkMutator.createRelationship(egoRecord.getId(), targetRecord.getId(), relationshipType);
+		final String[] allowedTypes;
+		if(egoIsGroup && sourceIsGroup)
+			allowedTypes = GROUP_TO_GROUP_TYPES;
+		else if(!egoIsGroup && !sourceIsGroup)
+			allowedTypes = INDIVIDUAL_TO_INDIVIDUAL_SOCIAL_TYPES;
+		else
+			// Mixed case: individual <-> group (either direction)
+			allowedTypes = INDIVIDUAL_TO_GROUP_TYPES;
 
-		networkMutator.invalidateAndNotifyTreeChanged(currentEgoId);
+		performRelationOperationOnRecord(source, true, allowedTypes);
+
+		clipboard.clear();
 	}
 
 	private FLEFRecord showEditRecordDialog(final FLEFRecord record){
@@ -591,25 +655,62 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener, Indiv
 		return (dialog.isSaved()? dialog.getRecord(): null);
 	}
 
-	private FLEFRecord showCreateRecordDialog(){
+	/**
+	 * Shows the "create new record" dialog for the given handler type.
+	 * Used by the individual / group callbacks so that the correct record dialog
+	 * (IndividualRecordDialog vs GroupRecordDialog) is presented.
+	 *
+	 * @param handlerClass the handler class whose dialog should be used
+	 *                     ({@code IndividualHandler.class} or {@code GroupHandler.class})
+	 * @return the newly created record, or {@code null} if the user cancelled
+	 */
+	private FLEFRecord showCreateRecordDialog(final Class<? extends RecordTypeHandler<?>> handlerClass){
 		final Window parent = SwingUtilities.getWindowAncestor(this);
-		final IndividualHandler handler = IndividualHandler.getInstance();
-		final IndividualRecordDialog dialog = handler.createNewDialog(parent, model);
+		final RecordTypeHandler<?> handler = resolveHandler(handlerClass);
+
+		final BaseRecordDialog dialog = handler.createNewDialog(parent, model);
 		dialog.setVisible(true);
 
 		return (dialog.isSaved()? dialog.getRecord(): null);
 	}
 
-	private FLEFRecord showSearchRecordDialog(){
+	/**
+	 * Shows the record selection dialog (with optional inline creation) for the given handler type.
+	 *
+	 * @param handlerClass the handler class to search among
+	 *                     ({@code IndividualHandler.class} or {@code GroupHandler.class})
+	 * @return the selected record, or {@code null} if the user cancelled
+	 */
+	private FLEFRecord showSearchRecordDialog(final Class<? extends RecordTypeHandler<?>> handlerClass){
 		final FLEFRecord[] result = {null};
 		final Window parent = SwingUtilities.getWindowAncestor(this);
+
 		@SuppressWarnings("unchecked")
-		final RecordSelectionDialog dialog = RecordSelectionDialog.createWithAllowRecordCreation(parent, model,
+		final RecordSelectionDialog dialog = RecordSelectionDialog.createWithAllowRecordCreation(
+			parent, model,
 			(record, handler) -> result[0] = record,
-			IndividualHandler.class);
+			handlerClass);
 		dialog.setVisible(true);
 
 		return result[0];
+	}
+
+	/**
+	 * Resolves a handler class to its singleton instance.
+	 * Only IndividualHandler and GroupHandler are currently supported.
+	 *
+	 * @param handlerClass the handler class
+	 * @return the singleton handler instance
+	 * @throws IllegalArgumentException if the class is not supported
+	 */
+	private static RecordTypeHandler<?> resolveHandler(final Class<? extends RecordTypeHandler<?>> handlerClass){
+		if(GroupHandler.class.equals(handlerClass))
+			return GroupHandler.getInstance();
+
+		if(IndividualHandler.class.equals(handlerClass))
+			return IndividualHandler.getInstance();
+
+		throw new IllegalArgumentException("Unsupported handler class: " + handlerClass);
 	}
 
 	public String getCurrentEgoId(){
@@ -620,8 +721,8 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener, Indiv
 		final InputMap inputMap = component.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
 		final ActionMap actionMap = component.getActionMap();
 
-		inputMap.put(GUIHelper.CTRL_L_STROKE, "toggleEgoNetworkLayout");
-		actionMap.put("toggleEgoNetworkLayout", new AbstractAction(){
+		inputMap.put(GUIHelper.CTRL_L_STROKE, ACTION_TOGGLE_EGO_NETWORK_LAYOUT);
+		actionMap.put(ACTION_TOGGLE_EGO_NETWORK_LAYOUT, new AbstractAction(){
 			@Serial
 			private static final long serialVersionUID = -3819204812049102941L;
 
@@ -654,7 +755,7 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener, Indiv
 		catch(final Exception ignored){}
 
 		final String modelUri = "/tests/TGMZ.flef";
-		final String egoId = "I1";
+		final String individualId = "I1";
 
 		final String content;
 		try(final InputStream is = EgoNetworkPanel.class.getResourceAsStream(modelUri)){
@@ -666,7 +767,7 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener, Indiv
 
 		SwingUtilities.invokeLater(() -> {
 			final EgoNetworkPanel panel = new EgoNetworkPanel(TreeLayout.VERTICAL, model);
-			panel.loadNetwork(egoId);
+			panel.loadNetwork(individualId);
 
 			final JFrame frame = new JFrame("Ego Network View");
 			frame.setLayout(new BorderLayout());

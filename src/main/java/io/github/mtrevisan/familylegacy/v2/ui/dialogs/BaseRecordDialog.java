@@ -75,6 +75,9 @@ public abstract class BaseRecordDialog extends JDialog{
 	private static final String TAG_DOCUMENT = "DOCUMENT";
 	private static final String TAG_URI = "uri";
 
+	private static final String ACTION_GLOBAL_UNDO = "globalUndo";
+	private static final String ACTION_GLOBAL_REDO = "globalRedo";
+
 
 	protected final RecordTypeHandler<?> handler;
 	protected final FLEFModel model;
@@ -168,17 +171,17 @@ public abstract class BaseRecordDialog extends JDialog{
 	protected void setupKeyboardShortcuts(){
 		final JComponent rootPane = getRootPane();
 		final InputMap inputMap = rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
-		inputMap.put(GUIHelper.UNDO_STROKE, "GlobalUndo");
-		inputMap.put(GUIHelper.REDO_STROKE, "GlobalRedo");
+		inputMap.put(GUIHelper.UNDO_STROKE, ACTION_GLOBAL_UNDO);
+		inputMap.put(GUIHelper.REDO_STROKE, ACTION_GLOBAL_REDO);
 
 		final ActionMap actionMap = rootPane.getActionMap();
-		actionMap.put("GlobalUndo", new AbstractAction(){
+		actionMap.put(ACTION_GLOBAL_UNDO, new AbstractAction(){
 			@Override
 			public void actionPerformed(final ActionEvent e){
 				performUndo();
 			}
 		});
-		actionMap.put("GlobalRedo", new AbstractAction(){
+		actionMap.put(ACTION_GLOBAL_REDO, new AbstractAction(){
 			@Override
 			public void actionPerformed(final ActionEvent e){
 				performRedo();

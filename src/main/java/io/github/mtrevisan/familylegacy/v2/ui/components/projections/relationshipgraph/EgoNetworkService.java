@@ -44,6 +44,19 @@ import java.util.Map;
 /**
  * Service responsible for extracting and building an {@link EgoNode} network
  * from the FLEF model, covering both biological and non-biological relationships.
+ * <p>
+ * To avoid repeated full scans of the model, the service builds two reverse
+ * indices during {@link #ensureIndices()}:
+ * <ul>
+ *   <li>{@code relationshipsByEntityId} — for each entity id, the list of
+ *       {@code relationship} records in which the entity appears as subject
+ *       or target;</li>
+ *   <li>{@code eventsByEntityId} — for each entity id, the list of
+ *       {@code event} records in which the entity appears as a participant.</li>
+ * </ul>
+ * These indices let {@link #buildEgoNetwork(String)} answer in time
+ * proportional to the number of relationships actually touching the ego,
+ * instead of the total size of the model.
  */
 class EgoNetworkService{
 
@@ -53,6 +66,8 @@ class EgoNetworkService{
 	private static final String TAG_TARGET = "target";
 	private static final String TAG_PARTICIPANT = "participant";
 	private static final String TAG_EVENT = "event";
+	private static final String TAG_INDIVIDUAL = "individual";
+	private static final String TAG_GROUP = "group";
 
 	private static final String ENUM_TYPE_BIOLOGICAL_CHILD = "biological_child";
 	private static final String ENUM_TYPE_ADOPTIVE_CHILD = "adoptive_child";
@@ -71,7 +86,8 @@ class EgoNetworkService{
 
 	private final FLEFModel model;
 
-	private final Map<String, List<FLEFRecord>> individualToEventMap = new HashMap<>();
+	private final Map<String, List<FLEFRecord>> relationshipsByEntityId = new HashMap<>();
+	private final Map<String, List<FLEFRecord>> eventsByEntityId = new HashMap<>();
 	private boolean indicesBuilt;
 
 
@@ -97,11 +113,11 @@ class EgoNetworkService{
 
 		ensureIndices();
 
-		final IndividualData egoData = IndividualData.create(egoRecord, individualToEventMap, model);
+		final IndividualData egoData = IndividualData.create(egoRecord, eventsByEntityId, model);
 		final EgoNode egoNode = new EgoNode(egoRecord, egoData);
 
-		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
-		for(final FLEFRecord relationship : relationships){
+		// Only iterate over the relationships that actually touch the ego
+		for(final FLEFRecord relationship : relationshipsByEntityId.getOrDefault(egoId, List.of())){
 			final String type = FLEFRecordHelper.getChildValue(relationship, TAG_TYPE);
 			final String role = FLEFRecordHelper.getChildValue(relationship, TAG_ROLE);
 			if(type == null)
@@ -124,30 +140,34 @@ class EgoNetworkService{
 		return egoNode;
 	}
 
-	private void processEgoAsSubject(final EgoNode egoNode, final String type, final String role,
-			final String targetId){
+	private void processEgoAsSubject(final EgoNode egoNode, final String type, final String role, final String targetId){
 		final FLEFRecord targetRecord = model.getRecordById(targetId);
 		if(targetRecord == null)
 			return;
 
 		if(isChildType(type))
-			// Ego is child -> Target is a parent
-			getOrAddRelatedIndividual(egoNode, EgoNode.RelationshipCategory.PARENT, targetRecord, type, role, false);
+			// Ego is child -> target is a parent
+			getOrAddRelatedIndividual(egoNode, EgoNode.RelationshipCategory.PARENT, targetRecord, type, role,
+				false);
 		else if(isPartnerType(type))
-			// Ego is partner -> Target is a partner
-			getOrAddRelatedIndividual(egoNode, EgoNode.RelationshipCategory.PARTNER, targetRecord, type, role, false);
+			// Ego is partner -> target is a partner
+			getOrAddRelatedIndividual(egoNode, EgoNode.RelationshipCategory.PARTNER, targetRecord, type, role,
+				false);
 		else if(ENUM_TYPE_GROUP_MEMBER.equals(type) || ENUM_TYPE_PART_OF.equals(type)){
-			// Ego is member/sub-group -> Target is parent Group
-			if(GroupHandler.TYPE.equalsIgnoreCase(targetRecord.getTag()))
+			// group_member (Individual -> Group) and part_of (Group -> Group):
+			// Ego is the member/sub-group, the target is the enclosing group
+			if(isGroup(targetRecord))
 				getOrAddRelatedGroup(egoNode, targetRecord, type, role, false);
 			else
-				getOrAddRelatedIndividual(egoNode, EgoNode.RelationshipCategory.PARENT, targetRecord, type, role, false);
+				getOrAddRelatedIndividual(egoNode, EgoNode.RelationshipCategory.PARENT, targetRecord, type, role,
+					false);
 		}
 		else if(ENUM_TYPE_ASSOCIATE.equals(type)){
-			if(GroupHandler.TYPE.equalsIgnoreCase(targetRecord.getTag()))
+			if(isGroup(targetRecord))
 				getOrAddRelatedGroup(egoNode, targetRecord, type, role, false);
 			else
-				getOrAddRelatedIndividual(egoNode, EgoNode.RelationshipCategory.ASSOCIATE, targetRecord, type, role, false);
+				getOrAddRelatedIndividual(egoNode, EgoNode.RelationshipCategory.ASSOCIATE, targetRecord, type, role,
+					false);
 		}
 	}
 
@@ -159,21 +179,32 @@ class EgoNetworkService{
 
 		if(isChildType(type))
 			// Subject is child -> Ego is a parent
-			getOrAddRelatedIndividual(egoNode, EgoNode.RelationshipCategory.CHILD, subjectRecord, type, role, true);
+			getOrAddRelatedIndividual(egoNode, EgoNode.RelationshipCategory.CHILD, subjectRecord, type, role,
+				true);
 		else if(isPartnerType(type))
 			// Subject is partner -> Ego is a partner
-			getOrAddRelatedIndividual(egoNode, EgoNode.RelationshipCategory.PARTNER, subjectRecord, type, role, true);
-		else if(ENUM_TYPE_PART_OF.equals(type)){
-			// Subject is sub-group/member -> Ego is super-group
-			if(GroupHandler.TYPE.equalsIgnoreCase(subjectRecord.getTag()))
+			getOrAddRelatedIndividual(egoNode, EgoNode.RelationshipCategory.PARTNER, subjectRecord, type, role,
+				true);
+		else if(ENUM_TYPE_GROUP_MEMBER.equals(type) || ENUM_TYPE_PART_OF.equals(type)){
+			// group_member (Individual -> Group) and part_of (Group -> Group):
+			// Ego is the group/super-group, the subject is the member/sub-group
+			if(isGroup(subjectRecord))
 				getOrAddRelatedGroup(egoNode, subjectRecord, type, role, true);
 			else
-				getOrAddRelatedIndividual(egoNode, EgoNode.RelationshipCategory.CHILD, subjectRecord, type, role, true);
+				getOrAddRelatedIndividual(egoNode, EgoNode.RelationshipCategory.CHILD, subjectRecord, type, role,
+					true);
 		}
 		else if(ENUM_TYPE_ASSOCIATE.equals(type)){
-			if(!GroupHandler.TYPE.equalsIgnoreCase(subjectRecord.getTag()))
-				getOrAddRelatedIndividual(egoNode, EgoNode.RelationshipCategory.ASSOCIATE, subjectRecord, type, role, true);
+			if(isGroup(subjectRecord))
+				getOrAddRelatedGroup(egoNode, subjectRecord, type, role, true);
+			else
+				getOrAddRelatedIndividual(egoNode, EgoNode.RelationshipCategory.ASSOCIATE, subjectRecord, type, role,
+					true);
 		}
+	}
+
+	private static boolean isGroup(final FLEFRecord record){
+		return (GroupHandler.TYPE.equalsIgnoreCase(record.getTag()));
 	}
 
 	private static void getOrAddRelatedGroup(final EgoNode egoNode, final FLEFRecord record, final String type,
@@ -187,11 +218,12 @@ class EgoNetworkService{
 		for(final EgoNode existingNode : egoNode.getRelatedNodes(category))
 			if(record.getId().equals(existingNode.getEgoId())){
 				targetNode = existingNode;
+
 				break;
 			}
 
 		if(targetNode == null){
-			final IndividualData data = IndividualData.create(record, individualToEventMap, model);
+			final IndividualData data = IndividualData.create(record, eventsByEntityId, model);
 			targetNode = new EgoNode(record, data);
 			egoNode.addRelatedNode(category, targetNode);
 		}
@@ -200,9 +232,9 @@ class EgoNetworkService{
 	}
 
 	private String extractParticipantId(final FLEFRecord relRecord, final String fieldTag){
-		String refId = relRecord.extractReferencedId(fieldTag, IndividualHandler.TYPE);
+		String refId = relRecord.extractReferencedId(fieldTag, TAG_INDIVIDUAL);
 		if(refId == null)
-			refId = relRecord.extractReferencedId(fieldTag, GroupHandler.TYPE);
+			refId = relRecord.extractReferencedId(fieldTag, TAG_GROUP);
 		return refId;
 	}
 
@@ -222,34 +254,69 @@ class EgoNetworkService{
 			|| ENUM_TYPE_ENGAGED_PARTNER.equals(type));
 	}
 
+	/**
+	 * Builds the reverse indices used by {@link #buildEgoNetwork(String)}.
+	 * The method is idempotent and is invoked lazily the first time the
+	 * network is built.
+	 */
 	private void ensureIndices(){
 		if(indicesBuilt)
 			return;
 
+		// Index relationships by entity id.
+		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
+		for(final FLEFRecord relationship : relationships){
+			final String subjectId = extractParticipantId(relationship, TAG_SUBJECT);
+			final String targetId = extractParticipantId(relationship, TAG_TARGET);
+			if(subjectId != null)
+				relationshipsByEntityId.computeIfAbsent(subjectId, k -> new ArrayList<>())
+					.add(relationship);
+			if(targetId != null)
+				relationshipsByEntityId.computeIfAbsent(targetId, k -> new ArrayList<>())
+					.add(relationship);
+		}
+
+		// Index events by participant id. Only individuals and groups are
+		// indexed, because places have their own dedicated event views.
 		final List<FLEFRecord> eventParticipations = model.getRecordsByType(EventParticipationHandler.TYPE);
 		for(final FLEFRecord ep : eventParticipations){
 			final FLEFRecord participant = FLEFRecordHelper.findChild(ep, TAG_PARTICIPANT);
 			if(participant == null)
 				continue;
+
 			final FLEFRecord indRef = participant.getTheOnlyChild();
 			if(indRef == null || indRef.getValue() == null)
 				continue;
 
-			final String indId = indRef.getValue();
+			final String participantTag = indRef.getTag();
+			if(participantTag == null)
+				continue;
+
+			if(!IndividualHandler.TYPE.equalsIgnoreCase(participantTag)
+				&& !GroupHandler.TYPE.equalsIgnoreCase(participantTag))
+				continue;
+
+			final String participantId = indRef.getValue();
 			final String eventId = FLEFRecordHelper.getChildValue(ep, TAG_EVENT);
 			if(eventId == null)
 				continue;
 
 			final FLEFRecord event = model.getRecordById(eventId);
 			if(event != null && EventHandler.TYPE.equalsIgnoreCase(event.getTag()))
-				individualToEventMap.computeIfAbsent(indId, k -> new ArrayList<>()).add(event);
+				eventsByEntityId.computeIfAbsent(participantId, k -> new ArrayList<>())
+					.add(event);
 		}
 
 		indicesBuilt = true;
 	}
 
+	/**
+	 * Clears both reverse indices, forcing a rebuild on the next call to
+	 * {@link #buildEgoNetwork(String)}.
+	 */
 	public void invalidateIndices(){
-		individualToEventMap.clear();
+		relationshipsByEntityId.clear();
+		eventsByEntityId.clear();
 		indicesBuilt = false;
 	}
 

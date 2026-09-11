@@ -108,13 +108,17 @@ public final class GUIHelper{
 	public static final KeyStroke REDO_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_Y, KeyEvent.CTRL_DOWN_MASK);
 
 	public static final KeyStroke CTRL_L_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_L, KeyEvent.CTRL_DOWN_MASK);
-
 	public static final KeyStroke CTRL_F_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_F, KeyEvent.CTRL_DOWN_MASK);
+	public static final KeyStroke CTRL_K_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_K, KeyEvent.CTRL_DOWN_MASK);
+	public static final KeyStroke CTRL_E_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_E, InputEvent.CTRL_DOWN_MASK);
 
 
 	private static final String ELLIPSIS = "…";
 
-	public static final String PROPERTY_ASSOCIATED_LABEL = "__associatedLabel";
+	private static final String PROPERTY_ASSOCIATED_LABEL = "__associatedLabel";
+
+	private static final String ACTION_MOVE_UP = "moveUp";
+	private static final String ACTION_MOVE_DOWN = "moveDown";
 
 
 	private GUIHelper(){}
@@ -203,6 +207,11 @@ public final class GUIHelper{
 			parent.revalidate();
 			parent.repaint();
 		}
+	}
+
+	public static JLabel getLabeledComponent(final JComponent field){
+		final Object property = field.getClientProperty(GUIHelper.PROPERTY_ASSOCIATED_LABEL);
+		return (property instanceof JLabel label? label: null);
 	}
 
 
@@ -339,10 +348,10 @@ public final class GUIHelper{
 		final ActionMap actionMap = list.getActionMap();
 
 		// Keybindings: CTRL + UP / CTRL + DOWN
-		inputMap.put(GUIHelper.CTRL_UP_STROKE, "moveUp");
-		inputMap.put(GUIHelper.CTRL_DOWN_STROKE, "moveDown");
+		inputMap.put(GUIHelper.CTRL_UP_STROKE, ACTION_MOVE_UP);
+		inputMap.put(GUIHelper.CTRL_DOWN_STROKE, ACTION_MOVE_DOWN);
 
-		actionMap.put("moveUp", new AbstractAction(){
+		actionMap.put(ACTION_MOVE_UP, new AbstractAction(){
 			@Serial
 			private static final long serialVersionUID = 1557398991645410075L;
 
@@ -352,7 +361,7 @@ public final class GUIHelper{
 			}
 		});
 
-		actionMap.put("moveDown", new AbstractAction(){
+		actionMap.put(ACTION_MOVE_DOWN, new AbstractAction(){
 			@Serial
 			private static final long serialVersionUID = -8473405355379714143L;
 

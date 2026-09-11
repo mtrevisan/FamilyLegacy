@@ -41,13 +41,29 @@ import javax.swing.event.PopupMenuEvent;
  */
 public class EgoNetworkIndividualPopupMenuFactory implements EntityPopupMenuFactory<IndividualPanel, IndividualListener>{
 
+	private final boolean isEgo;
+
+
+	public static EgoNetworkIndividualPopupMenuFactory createForEgo(){
+		return new EgoNetworkIndividualPopupMenuFactory(true);
+	}
+
+	public static EgoNetworkIndividualPopupMenuFactory createForChild(){
+		return new EgoNetworkIndividualPopupMenuFactory(false);
+	}
+
+
+	private EgoNetworkIndividualPopupMenuFactory(final boolean isEgo){
+		this.isEgo = isEgo;
+	}
+
 
 	@Override
 	public JPopupMenu createPopupMenu(final IndividualPanel panel, final IndividualListener listener,
 			final FLEFModel model){
 		final JMenuItem editItem = new JMenuItem("Edit Individual…", 'E');
-		final JMenuItem addChildItem = new JMenuItem("Add Child…", 'C');
-		final JMenuItem connectChildItem = new JMenuItem("Connect Child…", 'C');
+		final JMenuItem addChildItem = (isEgo? new JMenuItem("Add Child…", 'A'): null);
+		final JMenuItem connectChildItem = (isEgo? new JMenuItem("Connect Child…", 'C'): null);
 		final JMenuItem deleteItem = new JMenuItem("Delete Individual", 'D');
 		final JMenuItem unlinkItem = new JMenuItem("Unlink Relationship", 'U');
 
@@ -72,17 +88,21 @@ public class EgoNetworkIndividualPopupMenuFactory implements EntityPopupMenuFact
 
 				// Enable/disable menu options depending on entity existence and capabilities
 				editItem.setEnabled(hasData);
-				addChildItem.setEnabled(hasData && panel.isEnableAddChildMenu());
-				connectChildItem.setEnabled(hasData && hasIndividuals && panel.isEnableAddChildMenu());
+				if(isEgo){
+					addChildItem.setEnabled(hasData && panel.isEnableAddChildMenu());
+					connectChildItem.setEnabled(hasData && hasIndividuals && panel.isEnableAddChildMenu());
+				}
 				deleteItem.setEnabled(hasData);
 			}
 		});
 
 		// Add menu items with their bound callbacks
 		PopupMenuHelper.addMenuItem(popup, editItem, panel, record -> listener.onEntityEdit(record));
-		popup.addSeparator();
-		PopupMenuHelper.addMenuItem(popup, addChildItem, panel, record -> listener.onChildAddOrConnect(TreeOperation.ADD));
-		PopupMenuHelper.addMenuItem(popup, connectChildItem, panel, record -> listener.onChildAddOrConnect(TreeOperation.CONNECT));
+		if(isEgo){
+			popup.addSeparator();
+			PopupMenuHelper.addMenuItem(popup, addChildItem, panel, record -> listener.onChildAddOrConnect(TreeOperation.ADD));
+			PopupMenuHelper.addMenuItem(popup, connectChildItem, panel, record -> listener.onChildAddOrConnect(TreeOperation.CONNECT));
+		}
 		popup.addSeparator();
 		PopupMenuHelper.addMenuItem(popup, deleteItem, panel, record -> listener.onEntityRemove(record));
 		popup.addSeparator();

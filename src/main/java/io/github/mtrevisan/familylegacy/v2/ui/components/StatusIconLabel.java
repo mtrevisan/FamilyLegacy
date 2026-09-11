@@ -107,7 +107,7 @@ class StatusIconLabel extends JLabel{
 				g2.drawRect(drawX, drawY, drawSize, drawSize);
 				// White checkmark inside
 				g2.setColor(Color.WHITE);
-				g2.setStroke(new BasicStroke(2f));
+				g2.setStroke(new BasicStroke(2.f));
 				final int cx = drawX + drawSize >> 1;
 				final int cy = drawY + drawSize >> 1;
 				g2.drawLine(cx - drawSize >> 2, cy,

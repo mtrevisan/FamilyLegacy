@@ -64,8 +64,22 @@ import java.util.Objects;
 
 
 /**
- * Panel representing a couple (two partners) with their biological parent information.
- * It displays two IndividualPanels side by side or vertically with a connector between them.
+ * Panel representing a couple (two partners) with their biological parent
+ * information.
+ * <p>
+ * The panel is built from three visual pieces: a father panel, a mother
+ * panel, and a central group panel between them. Arrow rows above each
+ * partner carry navigation shortcuts.
+ * <p>
+ * <b>Placeholder mode.</b> When the constructor receives a {@code null}
+ * model, the panel is built as a placeholder: it uses
+ * {@link IndividualPanel#createEmpty(BoxPanelType)} for both partners and
+ * skips every data-dependent update. The result is a panel with exactly
+ * the same preferred size as a real one, but with no individual data and
+ * no listeners. This is what allows empty ancestor slots in the tree to
+ * keep the same height as populated slots, so the root individual stays at
+ * a fixed vertical position regardless of how many generations of
+ * ancestors are actually present in the data.
  */
 public class PartnersPanel extends JPanel{
 
@@ -126,20 +140,20 @@ public class PartnersPanel extends JPanel{
 		ICON_UNION_PREVIOUS_ENABLED.getIconHeight());
 
 	// State
-	private final JPanel groupPanel = new JPanel();
+	private JPanel groupPanel;
 	private IndividualPanel fatherPanel;
 	private IndividualPanel motherPanel;
-	private final JLabel fatherArrowsSpacer = new JLabel();
-	private final JLabel motherArrowsSpacer = new JLabel();
-	private final JLabel fatherPreviousParentsLabel = new JLabel();
-	private final JLabel fatherNextParentsLabel = new JLabel();
-	private final JLabel fatherPreviousGroupLabel = new JLabel();
-	private final JLabel fatherNextGroupLabel = new JLabel();
-	private JPanel arrowFatherPanel;
-	private final JLabel motherPreviousParentsLabel = new JLabel();
-	private final JLabel motherNextParentsLabel = new JLabel();
-	private final JLabel motherPreviousGroupLabel = new JLabel();
-	private final JLabel motherNextGroupLabel = new JLabel();
+	private JLabel fatherArrowsSpacer;
+	private JLabel motherArrowsSpacer;
+	private JLabel fatherPreviousParentsLabel;
+	private JLabel fatherNextParentsLabel;
+	private JLabel fatherPreviousGroupLabel;
+	private JLabel fatherNextGroupLabel;
+	private JPanel panel;
+	private JLabel motherPreviousParentsLabel;
+	private JLabel motherNextParentsLabel;
+	private JLabel motherPreviousGroupLabel;
+	private JLabel motherNextGroupLabel;
 	private JPanel arrowMotherPanel;
 
 	private final BoxPanelType boxType;
@@ -153,6 +167,19 @@ public class PartnersPanel extends JPanel{
 
 	public static PartnersPanel create(final BoxPanelType boxType, final TreeLayout treeLayout, final FLEFModel model){
 		return new PartnersPanel(boxType, treeLayout, model);
+	}
+
+	/**
+	 * Creates a placeholder panel with no model, no data, and no listeners.
+	 * The panel has exactly the same preferred size as a real one, so it can
+	 * fill an empty ancestor slot without collapsing the row height.
+	 *
+	 * @param boxType    the panel type (PRIMARY or SECONDARY)
+	 * @param treeLayout the tree orientation
+	 * @return a placeholder panel
+	 */
+	public static PartnersPanel createEmpty(final BoxPanelType boxType, final TreeLayout treeLayout){
+		return new PartnersPanel(boxType, treeLayout, null);
 	}
 
 
@@ -171,17 +198,50 @@ public class PartnersPanel extends JPanel{
 
 
 	private void initComponents(){
+		// When no model is provided, use empty individual panels for both
+		// partners. The rest of the layout is built identically, so the
+		// placeholder ends up with the same preferred size as a real panel.
+		if(model == null){
+			final boolean isVertical = (treeLayout == TreeLayout.VERTICAL);
+
+			// Combine layout constraints dynamically based on direction
+			final String colConstraints = (isVertical? "[grow,fill]": "[left]");
+			final String rowConstraints = (isVertical
+				? (PREVIOUS_NEXT_SIZE.getHeight() + NAVIGATION_DESCENDANTS_ARROW_SEPARATION) + "[bottom]"
+				: "[bottom,grow]");
+
+			setLayout(new MigLayout("ins 0", colConstraints, rowConstraints));
+			setOpaque(false);
+
+			// Direct addition of the empty component
+			final JLabel label = new JLabel();
+			final Dimension size = IndividualPanel.getDimension(boxType);
+			label.setPreferredSize(size);
+			label.setMaximumSize(size);
+			add(label, isVertical? "right": StringUtils.EMPTY);
+
+			return;
+		}
+
+
+		fatherPanel = IndividualPanel.create(boxType, model);
+		motherPanel = IndividualPanel.create(boxType, model);
+
+		groupPanel = new JPanel();
 		groupPanel.setMinimumSize(GROUP_PANEL_DIMENSION);
 		groupPanel.setMaximumSize(GROUP_PANEL_DIMENSION);
 		groupPanel.setBackground(GROUP_BACKGROUND);
 		groupPanel.setBorder(BorderFactory.createDashedBorder(BORDER_COLOR));
 
-		fatherPanel = IndividualPanel.create(boxType, model);
-		motherPanel = IndividualPanel.create(boxType, model);
-
+		fatherArrowsSpacer = new JLabel();
+		motherArrowsSpacer = new JLabel();
 		fatherArrowsSpacer.setPreferredSize(new Dimension(DESCENDANTS_ARROWS_WIDTH, 0));
 		motherArrowsSpacer.setPreferredSize(new Dimension(DESCENDANTS_ARROWS_WIDTH, 0));
 
+		fatherPreviousParentsLabel = new  JLabel();
+		fatherNextParentsLabel = new  JLabel();
+		fatherPreviousGroupLabel = new  JLabel();
+		fatherNextGroupLabel = new  JLabel();
 		final JPanel arrow1Panel = new JPanel(new MigLayout("ins 0",
 			"[]0[grow]" + NAVIGATION_PARENTS_ARROW_SEPARATION + "[grow]0[]" + NAVIGATION_DESCENDANTS_ARROW_SEPARATION + "[]"));
 		arrow1Panel.add(fatherArrowsSpacer, StringUtils.EMPTY);
@@ -191,13 +251,17 @@ public class PartnersPanel extends JPanel{
 		arrow1Panel.add(fatherNextGroupLabel, "right");
 		arrow1Panel.setOpaque(false);
 
-		arrowFatherPanel = new JPanel(new MigLayout("ins 0",
+		panel = new JPanel(new MigLayout("ins 0",
 			"[grow,fill]",
 			"[" + PREVIOUS_NEXT_SIZE.getHeight() + "]" + NAVIGATION_DESCENDANTS_ARROW_SEPARATION + "[]"));
-		arrowFatherPanel.add(arrow1Panel, "wrap");
-		arrowFatherPanel.add(fatherPanel, "right");
-		arrowFatherPanel.setOpaque(false);
+		panel.add(arrow1Panel, "wrap");
+		panel.add(fatherPanel, "right");
+		panel.setOpaque(false);
 
+		motherPreviousGroupLabel = new JLabel();
+		motherNextGroupLabel = new JLabel();
+		motherPreviousParentsLabel = new JLabel();
+		motherNextParentsLabel = new JLabel();
 		final JPanel arrow2Panel = new JPanel(new MigLayout("ins 0",
 			"[]" + NAVIGATION_DESCENDANTS_ARROW_SEPARATION + "[]0[grow]" + NAVIGATION_PARENTS_ARROW_SEPARATION + "[grow]0[]"));
 		arrow2Panel.add(motherPreviousGroupLabel, "left");
@@ -218,7 +282,7 @@ public class PartnersPanel extends JPanel{
 			setLayout(new MigLayout("ins 0",
 				"[right,grow]" + HALF_PARTNER_SEPARATION + "[center,grow]" + HALF_PARTNER_SEPARATION + "[left,grow]",
 				"[bottom]"));
-			add(arrowFatherPanel, "right,grow");
+			add(panel, "right,grow");
 			add(groupPanel, "gapbottom " + GROUP_EXITING_HEIGHT);
 			add(arrowMotherPanel, "left,grow");
 		}
@@ -226,20 +290,19 @@ public class PartnersPanel extends JPanel{
 			setLayout(new MigLayout("ins 0",
 				"[left]",
 				"[bottom,grow]" + HALF_PARTNER_SEPARATION + "[center]" + HALF_PARTNER_SEPARATION + "[top,grow]"));
-			add(arrowFatherPanel, "wrap");
+			add(panel, "wrap");
 			add(groupPanel, "gapleft " + GROUP_EXITING_HEIGHT + ",gaptop " + NAVIGATION_ARROW_HEIGHT + ",wrap");
 			add(arrowMotherPanel, "grow");
 		}
-
 		setOpaque(false);
 	}
 
 	@Override
 	protected final void paintComponent(final Graphics g){
-		if(!groupPanel.isVisible())
+		if(groupPanel == null || !groupPanel.isVisible())
 			return;
 
-		if(g instanceof Graphics2D && arrowFatherPanel != null && arrowMotherPanel != null){
+		if(g instanceof Graphics2D && panel != null && arrowMotherPanel != null){
 			final Graphics2D g2 = (Graphics2D)g.create();
 			g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 			g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
@@ -248,17 +311,17 @@ public class PartnersPanel extends JPanel{
 			g2.setStroke(CONNECTION_STROKE);
 
 			if(treeLayout == TreeLayout.VERTICAL){
-				final int xFrom = arrowFatherPanel.getX() + arrowFatherPanel.getWidth();
+				final int xFrom = panel.getX() + panel.getWidth();
 				final int xTo = arrowMotherPanel.getX();
-				final int y = arrowFatherPanel.getY() + arrowFatherPanel.getHeight() - GROUP_CONNECTION_HEIGHT;
+				final int y = panel.getY() + panel.getHeight() - GROUP_CONNECTION_HEIGHT;
 
 				// Horizontal connection line between partners
 				g2.drawLine(xFrom, y,
 					xTo, y);
 			}
 			else{
-				final int x = arrowFatherPanel.getX() + GROUP_CONNECTION_HEIGHT;
-				final int yFrom = arrowFatherPanel.getY() + arrowFatherPanel.getHeight();
+				final int x = panel.getX() + GROUP_CONNECTION_HEIGHT;
+				final int yFrom = panel.getY() + panel.getHeight();
 				final int yTo = arrowMotherPanel.getY() + NAVIGATION_ARROW_HEIGHT;
 
 				// Vertical connection line between partners
@@ -294,15 +357,32 @@ public class PartnersPanel extends JPanel{
 	}
 
 
+	/**
+	 * Attaches the given listener and popup factory to both partner panels.
+	 * <p>
+	 * On a placeholder (no model), this method is a no-op, because
+	 * placeholders have no interactive content and no backing records.
+	 */
 	public PartnersPanel withListener(final IndividualListener listener,
 			final EntityPopupMenuFactory<IndividualPanel, IndividualListener> factory){
+		if(model == null)
+			return this;
+
 		fatherPanel.withListener(listener, factory);
 		motherPanel.withListener(listener, factory);
 
 		return this;
 	}
 
+	/**
+	 * Sets the biological parents of this couple.
+	 * <p>
+	 * On a placeholder (no model), this method is a no-op.
+	 */
 	public PartnersPanel withBiologicalParents(final IndividualData father, final IndividualData mother){
+		if(model == null)
+			return this;
+
 		this.father = father;
 		this.mother = mother;
 

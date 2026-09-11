@@ -126,7 +126,7 @@ public class RecordSelectionDialog extends JDialog{
 
 	private final DefaultListModel<DisplayItem> listModel = new DefaultListModel<>();
 	private final JList<DisplayItem> resultList = BindingsHelper.createList(listModel);
-	private final JLabel statusLabel = new JLabel(" ");
+	private final JLabel statusLabel = new JLabel(StringUtils.SPACE);
 	private final JProgressBar progressBar = new JProgressBar(0, 100);
 
 	// Services & Async tasks

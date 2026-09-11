@@ -27,22 +27,20 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual
 import io.github.mtrevisan.familylegacy.v2.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.TreeOperation;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.EntityPopupMenuFactory;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.EntityTreePopupMenuFactory;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualData;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualListener;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.services.KinshipDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.services.RelationshipOperationCoordinator;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.services.UnlinkRelationshipsDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.partners.PartnersPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.partners.Side;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.siblings.SiblingsPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.searches.RecordSelectionDialog;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.IndividualRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.SexType;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.RelationClipboard;
 import org.apache.commons.lang3.ArrayUtils;
@@ -69,19 +67,28 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serial;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
 
 /**
- * Generalized panel responsible for rendering an N-generation genealogical tree layout dynamically.
+ * Generalized panel responsible for rendering an N-generation genealogical
+ * tree layout dynamically.
+ * <p>
+ * The class is a thin orchestrator: it owns the root state, delegates
+ * layout and rendering to {@link TreeLayoutBuilder} and {@link TreeRenderer},
+ * delegates mutations to {@link TreeMutator} (through
+ * {@link io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.services.RelationshipOperationCoordinator}) and delegates all dialogs to
+ * {@link IndividualDialogProvider}. This keeps the panel focused on
+ * composition and on the Swing event flow.
  */
 public class IndividualTreePanel extends JPanel implements TreeChangeListener, IndividualListener{
 
@@ -95,19 +102,17 @@ public class IndividualTreePanel extends JPanel implements TreeChangeListener, I
 	private static final Color BACKGROUND_COLOR_APPLICATION = new Color(242, 238, 228);
 	private static final Color CONNECTION_LINE_COLOR = Color.BLACK;
 
-	private static final String TAG_TYPE = "type";
-	private static final String TAG_TARGET = "target";
-	private static final String TAG_SUBJECT = "subject";
-
 	private static final String ENUM_TYPE_BIOLOGICAL_CHILD = "biological_child";
 	private static final String ENUM_TYPE_ADOPTIVE_CHILD = "adoptive_child";
 	private static final String ENUM_TYPE_STEP_CHILD = "step_child";
 	private static final String ENUM_TYPE_FOSTER_CHILD = "foster_child";
 	private static final String ENUM_TYPE_GUARDED_CHILD = "guarded_child";
 
+	private static final String ACTION_OPEN_KINSHIP_DIALOG = "openKinshipDialog";
+	private static final String ACTION_TOGGLE_TREE_LAYOUT = "toggleTreeLayout";
 
-	private final TreeType treeType;
-	private final Predicate<String> relationshipTypeFilter;
+
+	private final String[] allowedRelationshipTypes;
 	private TreeLayout treeLayout;
 	private boolean showPartner;
 
@@ -115,11 +120,14 @@ public class IndividualTreePanel extends JPanel implements TreeChangeListener, I
 	private final TreeService treeService;
 	private final TreeMutator treeMutator;
 
+	private final IndividualDialogProvider dialogProvider;
+	private final RelationshipOperationCoordinator operationCoordinator;
+
 	private String currentRootIndividualId;
 	private TreeNode rootNode;
 	private int currentMaxGenerations;
 
-	// Map associating each AncestorNode with its UI BiologicalParentsPanel
+	// Map associating each TreeNode with its UI PartnersPanel
 	private final Map<TreeNode, PartnersPanel> nodeToPanelMap = new HashMap<>();
 
 	// Children block (Generation 1)
@@ -129,21 +137,26 @@ public class IndividualTreePanel extends JPanel implements TreeChangeListener, I
 
 
 	public IndividualTreePanel(final TreeType treeType, final TreeLayout treeLayout, final FLEFModel model){
-		this.treeType = treeType;
-		final String[] allowedTypes = getAllowedRelationshipTypes();
-		relationshipTypeFilter = type -> ArrayUtils.contains(allowedTypes, type.toLowerCase(Locale.ROOT));
+		this.allowedRelationshipTypes = computeAllowedRelationshipTypes(treeType);
 		this.treeLayout = treeLayout;
 
 		this.model = model;
 
+		final Predicate<String> relationshipTypeFilter = type -> ArrayUtils.contains(allowedRelationshipTypes,
+			type.toLowerCase(Locale.ROOT));
 		this.treeService = new TreeService(relationshipTypeFilter, model);
 		this.treeMutator = new TreeMutator(relationshipTypeFilter, model, treeService, this);
+
+		this.dialogProvider = new IndividualDialogProvider(model);
+		this.operationCoordinator = new RelationshipOperationCoordinator(model, treeMutator,
+			allowedRelationshipTypes);
 
 		setBackground(BACKGROUND_COLOR_APPLICATION);
 		setOpaque(true);
 
 
 		setupLayoutShortcut(this);
+		setupKinshipShortcut(this);
 	}
 
 
@@ -214,8 +227,8 @@ public class IndividualTreePanel extends JPanel implements TreeChangeListener, I
 	private void buildLayout(){
 		final EntityPopupMenuFactory<IndividualPanel, IndividualListener> popupFactory = new EntityTreePopupMenuFactory();
 		final TreeLayoutBuilder.LayoutResult result = TreeLayoutBuilder.buildLayout(this,
-			rootNode, showPartner, currentMaxGenerations, model, nodeToPanelMap, this, popupFactory, treeMutator,
-			treeLayout);
+			rootNode, showPartner, currentMaxGenerations, model, nodeToPanelMap, this, popupFactory,
+			treeMutator, treeLayout);
 
 		childrenPanel = result.childrenPanel();
 	}
@@ -238,7 +251,6 @@ public class IndividualTreePanel extends JPanel implements TreeChangeListener, I
 
 	@Override
 	public void onTreeStructureChanged(final String rootIndividualId){
-		// Run UI updates on the Swing Event Dispatch Thread
 		SwingUtilities.invokeLater(() -> loadTree(rootIndividualId, currentMaxGenerations));
 	}
 
@@ -248,7 +260,8 @@ public class IndividualTreePanel extends JPanel implements TreeChangeListener, I
 		if(individual == null)
 			return;
 
-		final FLEFRecord editedIndividual = showEditIndividualDialog(individual);
+		final Window parent = SwingUtilities.getWindowAncestor(this);
+		final FLEFRecord editedIndividual = dialogProvider.showEditDialog(parent, individual);
 		if(editedIndividual != null){
 			LOGGER.debug("Individual edited: {}", editedIndividual.getId());
 
@@ -296,11 +309,11 @@ public class IndividualTreePanel extends JPanel implements TreeChangeListener, I
 			? this::showCreateIndividualDialog
 			: this::showSearchIndividualDialog);
 
-		final TreeContextHelper.Context ctx = TreeContextHelper.determineContext(selectedPanel, nodeToPanelMap, model);
-		SexType sex = null;
-		if(ctx != null && ctx.side != null)
-			sex = (ctx.side == Side.LEFT? SexType.MALE: SexType.FEMALE);
+		final TreeContextHelper.Context ctx = TreeContextHelper.determineContext(selectedPanel, nodeToPanelMap);
+		if(ctx == null || ctx.isChildContext() || !ctx.hasPartnerPanel())
+			return;
 
+		final SexType sex = (ctx.side == Side.LEFT? SexType.MALE: SexType.FEMALE);
 		final FLEFRecord individual = fnOperation.apply(sex);
 		if(individual == null)
 			return;
@@ -310,6 +323,10 @@ public class IndividualTreePanel extends JPanel implements TreeChangeListener, I
 
 	@Override
 	public void onChildAddOrConnect(final TreeOperation operation){
+		final TreeContextHelper.Context ctx = TreeContextHelper.determineContext(selectedPanel, nodeToPanelMap);
+		if(ctx == null || ctx.isChildContext() || !ctx.hasPartnerPanel())
+			return;
+
 		final Function<SexType, FLEFRecord> fnOperation = (operation == TreeOperation.ADD
 			? this::showCreateIndividualDialog
 			: this::showSearchIndividualDialog);
@@ -317,31 +334,53 @@ public class IndividualTreePanel extends JPanel implements TreeChangeListener, I
 		if(child == null)
 			return;
 
-		final TreeContextHelper.Context ctx = TreeContextHelper.determineContext(selectedPanel, nodeToPanelMap, model);
-		final IndividualData fatherData = ctx.partnerPanel.getFatherPanel()
-			.getData();
-		final IndividualData motherData = ctx.partnerPanel.getMotherPanel()
-			.getData();
+		final IndividualPanel fatherPanel = ctx.partnerPanel.getFatherPanel();
+		final IndividualPanel motherPanel = ctx.partnerPanel.getMotherPanel();
+		final IndividualData fatherData = (fatherPanel != null? fatherPanel.getData(): null);
+		final IndividualData motherData = (motherPanel != null? motherPanel.getData(): null);
 		final FLEFRecord targetFather = (fatherData != null? fatherData.getIndividual(): null);
 		final FLEFRecord targetMother = (motherData != null? motherData.getIndividual(): null);
+		if(targetFather == null && targetMother == null)
+			return;
 
-		// Perform child relation operation
 		performChildRelationOperation(child, targetFather, targetMother, false, getRootIndividualId());
 
 		onEntitySelected(targetFather != null? targetFather: targetMother);
 	}
+
 
 	/**
 	 * Opens a dialog allowing the user to select which relationships of the given individual to unlink.
 	 */
 	@Override
 	public void onEntityUnlink(final FLEFRecord individual){
-		if(individual == null)
+		if(individual == null || selectedPanel == null)
 			return;
 
+		final TreeContextHelper.Context ctx = TreeContextHelper.determineContext(selectedPanel, nodeToPanelMap);
+		if(ctx == null || !ctx.hasPartnerPanel())
+			return;
+
+		final IndividualPanel parentPanel = (ctx.side == Side.LEFT
+			? ctx.partnerPanel.getFatherPanel()
+			: ctx.partnerPanel.getMotherPanel());
+		if(parentPanel == null)
+			return;
+
+		final FLEFRecord fatherRecord = parentPanel.getFather();
+		final FLEFRecord motherRecord = parentPanel.getMother();
+		final String targetFatherId = (fatherRecord != null? fatherRecord.getId(): null);
+		final String targetMotherId = (motherRecord != null? motherRecord.getId(): null);
+
 		final Window parent = SwingUtilities.getWindowAncestor(this);
-		final UnlinkRelationshipsDialog dialog = UnlinkRelationshipsDialog.create(parent, model, relationshipTypeFilter,
-			individual.getId());
+		final Set<String> parentsIds = new LinkedHashSet<>();
+		if(targetFatherId != null)
+			parentsIds.add(targetFatherId);
+		if(targetMotherId != null)
+			parentsIds.add(targetMotherId);
+		final Set<String> childrenIds = new LinkedHashSet<>(ctx.childrenId);
+		final UnlinkRelationshipsDialog dialog = new UnlinkRelationshipsDialog(parent, model, individual.getId(),
+			parentsIds, Collections.emptySet(), Collections.emptySet(), childrenIds);
 		dialog.setVisible(true);
 
 		final List<String> selectedIds = dialog.getSelectedRelationshipIds();
@@ -359,73 +398,6 @@ public class IndividualTreePanel extends JPanel implements TreeChangeListener, I
 
 			treeMutator.invalidateAndNotifyTreeChanged(getRootIndividualId());
 		}
-	}
-
-	/**
-	 * Finds all children of the given individual.
-	 * Searches for relationship records where the object is the individual
-	 * and the type is one of the parent‑child relationship types.
-	 *
-	 * @param individualId the ID of the parent (without @)
-	 * @return a list of FLEFRecord objects representing the children
-	 */
-	private List<FLEFRecord> findChildren(final String individualId){
-		final List<FLEFRecord> children = new ArrayList<>();
-		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
-		for(final FLEFRecord relationship : relationships){
-			final String type = FLEFRecordHelper.getChildValue(relationship, TAG_TYPE);
-			if(!type.equalsIgnoreCase(ENUM_TYPE_BIOLOGICAL_CHILD))
-				continue;
-
-			// The target must be the individual
-			final String objectId = relationship.extractReferencedId(TAG_TARGET, IndividualHandler.TYPE);
-			if(!individualId.equals(objectId))
-				continue;
-
-			// The subject is the child
-			final String childId = relationship.extractReferencedId(TAG_SUBJECT, IndividualHandler.TYPE);
-			if(childId == null)
-				continue;
-
-			final FLEFRecord child = model.getRecordById(childId);
-			if(child != null)
-				children.add(child);
-		}
-		return children;
-	}
-
-
-	private FLEFRecord showEditIndividualDialog(final FLEFRecord individual){
-		final Window parent = SwingUtilities.getWindowAncestor(this);
-		final IndividualHandler handler = IndividualHandler.getInstance();
-		final BaseRecordDialog dialog = handler.createEditDialog(parent, model, individual);
-		dialog.setVisible(true);
-
-		return (dialog.isSaved()? dialog.getRecord(): null);
-	}
-
-	private FLEFRecord showCreateIndividualDialog(final SexType sex){
-		final Window parent = SwingUtilities.getWindowAncestor(this);
-		final IndividualHandler handler = IndividualHandler.getInstance();
-		final IndividualRecordDialog dialog = handler.createNewDialog(parent, model);
-		dialog.witSex(sex);
-		dialog.setVisible(true);
-
-		return (dialog.isSaved()? dialog.getRecord(): null);
-	}
-
-	private FLEFRecord showSearchIndividualDialog(final SexType sex){
-		final Window parent = SwingUtilities.getWindowAncestor(this);
-		final FLEFRecord[] result = {null};
-		@SuppressWarnings("unchecked")
-		final RecordSelectionDialog dialog = RecordSelectionDialog.createWithAllowRecordCreation(parent, model,
-			(record, handler) -> result[0] = record,
-			IndividualHandler.class);
-		if(sex != null)
-			dialog.withFilter("sex", sex.name().toLowerCase());
-		dialog.setVisible(true);
-
-		return result[0];
 	}
 
 
@@ -448,30 +420,34 @@ public class IndividualTreePanel extends JPanel implements TreeChangeListener, I
 
 		final FLEFRecord source = clipboard.getRecord();
 
-		// If father/mother details are present, paste as child; otherwise paste as parent
+		// If father/mother details are present, paste as child; otherwise determine the context and paste as parent.
 		if(father != null || mother != null)
 			performChildRelationOperation(source, father, mother, true, getRootIndividualId());
 		else{
-			final TreeContextHelper.Context ctx = TreeContextHelper.determineContext(selectedPanel, nodeToPanelMap, model);
-			if(ctx != null)
+			final TreeContextHelper.Context ctx = TreeContextHelper.determineContext(selectedPanel, nodeToPanelMap);
+			if(ctx != null && ctx.isParentContext())
 				performParentRelationOperation(source, ctx, true, getRootIndividualId());
 		}
 
 		clipboard.clear();
 	}
 
+
 	/**
 	 * Associates or creates a CHILD with respect to the given parents.
 	 */
-	private void performChildRelationOperation(final FLEFRecord child, final FLEFRecord father,
-			final FLEFRecord mother, final boolean isPaste, final String rootId){
+	private void performChildRelationOperation(final FLEFRecord child, final FLEFRecord father, final FLEFRecord mother,
+			final boolean isPaste, final String rootId){
+		if(child == null)
+			return;
+
 		if(isPaste){
-			final List<String> relationshipIds = extractRelationships(child.getId());
+			final List<String> relationshipIds = treeService.getRelationshipIdsForIndividual(child.getId());
 			treeMutator.removeRelationships(relationshipIds);
 		}
 
-		final String[] allowedTypes = getAllowedRelationshipTypes();
-		performRelationOperationChild(father, mother, allowedTypes, child);
+		final Window parent = SwingUtilities.getWindowAncestor(this);
+		operationCoordinator.performChildOperation(parent, child, father, mother);
 
 		treeMutator.invalidateAndNotifyTreeChanged(rootId);
 	}
@@ -480,148 +456,81 @@ public class IndividualTreePanel extends JPanel implements TreeChangeListener, I
 	 * Associates or creates a PARENT/PARTNER.
 	 */
 	private void performParentRelationOperation(final FLEFRecord individual, final TreeContextHelper.Context ctx,
-			final boolean isPaste, final String rootId){
-		if(ctx == null)
+		final boolean isPaste, final String rootId){
+		if(individual == null || ctx == null)
 			return;
 
 		if(isPaste){
-			final List<String> relIds = extractRelationships(individual.getId());
+			final List<String> relIds = treeService.getRelationshipIdsForIndividual(individual.getId());
 			treeMutator.removeRelationships(relIds);
 		}
 
-		final String[] allowedTypes = getAllowedRelationshipTypes();
-		performRelationOperationParent(ctx, allowedTypes, individual);
+		final Window parent = SwingUtilities.getWindowAncestor(this);
+		operationCoordinator.performParentOperation(parent, individual, ctx);
 
 		treeMutator.invalidateAndNotifyTreeChanged(rootId);
 	}
 
-	private String[] getAllowedRelationshipTypes(){
-		return switch(treeType){
-			case BIOLOGICAL -> new String[]{ENUM_TYPE_BIOLOGICAL_CHILD};
-			case FAMILY -> new String[]{ENUM_TYPE_BIOLOGICAL_CHILD, ENUM_TYPE_ADOPTIVE_CHILD, ENUM_TYPE_FOSTER_CHILD,
-				ENUM_TYPE_GUARDED_CHILD, ENUM_TYPE_STEP_CHILD};
-		};
+
+	/* ======================================================================
+	 *                          Dialog shortcuts
+	 * ====================================================================== */
+
+	private FLEFRecord showCreateIndividualDialog(final SexType sex){
+		return dialogProvider.showCreateDialog(SwingUtilities.getWindowAncestor(this), sex);
 	}
 
-	private void performRelationOperationChild(final FLEFRecord father, final FLEFRecord mother,
-			final String[] allowedTypes, final FLEFRecord individual){
-		final List<String> selectedTypes;
-		if(allowedTypes.length == 1)
-			selectedTypes = Collections.nCopies(2, allowedTypes[0]);
-		else{
-			// We need to choose a type for the father and mother separately
-			final List<RelationshipTypeSelectionDialog.Item> items = new ArrayList<>();
-
-			final String fatherLabel = (father != null
-				? IndividualHandler.getInstance().getDisplayText(father, model)
-				: "Father");
-			final String motherLabel = (mother != null
-				? IndividualHandler.getInstance().getDisplayText(mother, model)
-				: "Mother");
-
-			items.add(new RelationshipTypeSelectionDialog.Item(fatherLabel, allowedTypes[0]));
-			items.add(new RelationshipTypeSelectionDialog.Item(motherLabel, allowedTypes[0]));
-
-			final Window parent = SwingUtilities.getWindowAncestor(this);
-			final RelationshipTypeSelectionDialog dialog = new RelationshipTypeSelectionDialog(parent, items,
-				allowedTypes);
-			dialog.setVisible(true);
-
-			selectedTypes = dialog.getSelectedTypes();
-			if(selectedTypes == null)
-				return;
-		}
-
-		final String fatherType = selectedTypes.getFirst();
-		final String motherType = selectedTypes.getLast();
-		final String fatherId = (father != null? father.getId(): null);
-		final String motherId = (mother != null? mother.getId(): null);
-		treeMutator.addChildToParents(fatherId, motherId, individual, fatherType, motherType);
+	private FLEFRecord showSearchIndividualDialog(final SexType sex){
+		return dialogProvider.showSearchDialog(SwingUtilities.getWindowAncestor(this), sex);
 	}
 
-	private void performRelationOperationParent(final TreeContextHelper.Context ctx, final String[] allowedTypes,
-			final FLEFRecord individual){
-		// We need to choose a type for each child we are connecting this parent to.
-		// Determine which children.
-		if(ctx.childrenId.isEmpty())
-			return;
 
-		final List<String> selectedTypes;
-		if(allowedTypes.length == 1)
-			selectedTypes = Collections.nCopies(2, allowedTypes[0]);
-		else{
-			// Build items: each child label + default type
-			final List<RelationshipTypeSelectionDialog.Item> items = new ArrayList<>();
-			for(final String childId : ctx.childrenId){
-				final FLEFRecord child = model.getRecordById(childId);
-				if(child == null)
-					continue;
-
-				final String label = IndividualHandler.getInstance()
-					.getDisplayText(child, model);
-				items.add(new RelationshipTypeSelectionDialog.Item(label, allowedTypes[0]));
-			}
-			if(items.isEmpty())
-				return;
-
-			final Window parent = SwingUtilities.getWindowAncestor(this);
-			final RelationshipTypeSelectionDialog dialog = new RelationshipTypeSelectionDialog(parent, items,
-				allowedTypes);
-			dialog.setVisible(true);
-
-			selectedTypes = dialog.getSelectedTypes();
-			if(selectedTypes == null)
-				return;
-		}
-
-		// Connect this parent to each child with its selected type
-		treeMutator.addParentToChild(ctx.childrenId, individual, selectedTypes);
-
-		treeMutator.addPartnerToIndividual(ctx.targetId, individual);
-	}
+	/* ======================================================================
+	 *                          Root id
+	 * ====================================================================== */
 
 	/**
-	 * Extracts relationships from the model and groups them into parents, partners, and children.
-	 */
-	private List<String> extractRelationships(final String individualId){
-		final List<String> result = new ArrayList<>();
-		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
-		for(final FLEFRecord relationship : relationships){
-			final String type = FLEFRecordHelper.getChildValue(relationship, TAG_TYPE);
-			if(type == null)
-				continue;
-
-			final String subjectId = relationship.extractReferencedId(TAG_SUBJECT, IndividualHandler.TYPE);
-			final String targetId = relationship.extractReferencedId(TAG_TARGET, IndividualHandler.TYPE);
-			final boolean involves = (individualId.equals(subjectId) || individualId.equals(targetId));
-			if(involves)
-				result.add(relationship.getId());
-		}
-		return result;
-	}
-
-
-	/**
-	 * Retrieves the ID of the current root individual rendered in the tree.
+	 * Returns the id of the current root individual rendered in the tree.
+	 * <p>
+	 * In couple-container mode (when {@code showPartner} is enabled and the
+	 * tree was rebuilt around a couple), the root node has no individual of
+	 * its own: the actual root individual is held by the father slot. This
+	 * method resolves both cases transparently.
 	 *
-	 * @return the record ID of the root individual, or {@code null} if no tree is loaded.
+	 * @return the id of the root individual, or {@code null} if no tree is
+	 * loaded
 	 */
 	public String getRootIndividualId(){
-		if(rootNode == null || rootNode.getFather() == null)
+		if(currentRootIndividualId != null)
+			return currentRootIndividualId;
+
+		if(rootNode == null)
 			return null;
 
-		return rootNode.getFather()
-			.getIndividual()
-			.getId();
+		// Couple-container node: the individual lives in the father slot.
+		final String ownId = rootNode.getIndividualId();
+		if(ownId != null)
+			return ownId;
+
+		final TreeNode father = rootNode.getFather();
+		if(father != null && father.getIndividual() != null)
+			return father.getIndividual()
+				.getId();
+
+		return null;
 	}
 
+
+	/* ======================================================================
+	 *                          Layout shortcut
+	 * ====================================================================== */
 
 	public void setupLayoutShortcut(final JComponent component){
 		final InputMap inputMap = component.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
 		final ActionMap actionMap = component.getActionMap();
 
-		inputMap.put(GUIHelper.CTRL_L_STROKE, "toggleTreeLayout");
-		actionMap.put("toggleTreeLayout", new AbstractAction(){
+		inputMap.put(GUIHelper.CTRL_L_STROKE, ACTION_TOGGLE_TREE_LAYOUT);
+		actionMap.put(ACTION_TOGGLE_TREE_LAYOUT, new AbstractAction(){
 			@Serial
 			private static final long serialVersionUID = -2768341528368853112L;
 
@@ -644,6 +553,52 @@ public class IndividualTreePanel extends JPanel implements TreeChangeListener, I
 			window.pack();
 			window.setLocationRelativeTo(null);
 		}
+	}
+
+	/**
+	 * Installs the Ctrl+K shortcut that opens the kinship dialog.
+	 *
+	 * @param component the component that receives the shortcut
+	 */
+	public void setupKinshipShortcut(final JComponent component){
+		final InputMap inputMap = component.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+		final ActionMap actionMap = component.getActionMap();
+
+		inputMap.put(GUIHelper.CTRL_K_STROKE, ACTION_OPEN_KINSHIP_DIALOG);
+		actionMap.put(ACTION_OPEN_KINSHIP_DIALOG, new AbstractAction(){
+			@Serial
+			private static final long serialVersionUID = -1043238887053155832L;
+
+			@Override
+			public void actionPerformed(final ActionEvent e){
+				openKinshipDialog();
+			}
+		});
+	}
+
+	/**
+	 * Opens the kinship dialog with the current root pre-selected as the
+	 * first individual. Uses the tree service to walk the ancestor graph.
+	 */
+	private void openKinshipDialog(){
+		final Window parent = SwingUtilities.getWindowAncestor(this);
+		final FLEFRecord initialA = (currentRootIndividualId != null
+			? model.getRecordById(currentRootIndividualId)
+			: null);
+		final KinshipDialog dialog = new KinshipDialog(parent, model, treeService, initialA, null);
+		dialog.setVisible(true);
+	}
+
+	/* ======================================================================
+	 *                          Helpers
+	 * ====================================================================== */
+
+	private static String[] computeAllowedRelationshipTypes(final TreeType treeType){
+		return switch(treeType){
+			case BIOLOGICAL -> new String[]{ENUM_TYPE_BIOLOGICAL_CHILD};
+			case FAMILY -> new String[]{ENUM_TYPE_BIOLOGICAL_CHILD, ENUM_TYPE_ADOPTIVE_CHILD, ENUM_TYPE_FOSTER_CHILD,
+				ENUM_TYPE_GUARDED_CHILD, ENUM_TYPE_STEP_CHILD};
+		};
 	}
 
 

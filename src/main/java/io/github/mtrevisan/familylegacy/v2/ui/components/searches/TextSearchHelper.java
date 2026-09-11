@@ -52,7 +52,7 @@ public final class TextSearchHelper{
 			return text;
 
 		String normalized = Normalizer.normalize(text, Normalizer.Form.NFD);
-		normalized = normalized.replaceAll("\\p{M}", "");
+		normalized = normalized.replaceAll("\\p{M}", StringUtils.EMPTY);
 
 		// Expand abbreviations
 		normalized = normalized.replaceAll("\\bSt\\b", "Street");

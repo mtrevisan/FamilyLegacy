@@ -394,7 +394,8 @@ public final class FLEFRecordHelper{
 				final String centuryOrdinal = FLEFRecordHelper.getChildValue(record, basePath + DOT + TAG_CENTURY_ORDINAL);
 				if(centuryOrdinal != null && !centuryOrdinal.isBlank()){
 					final String part = FLEFRecordHelper.getChildValue(record, basePath + DOT + TAG_CENTURY_PART);
-					dateStr = (part != null? part.replace('_', ' ') + " ": "") + centuryOrdinal + "th century";
+					dateStr = (part != null? part.replace('_', ' ')
+						+ StringUtils.SPACE: StringUtils.EMPTY) + centuryOrdinal + "th century";
 				}
 			}
 		}

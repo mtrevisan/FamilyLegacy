@@ -132,7 +132,7 @@ public class IndividualPanel extends JPanel{
 	// State
 	private FLEFRecord father;
 	private FLEFRecord mother;
-	private boolean enableAddChildMenu = true;
+	private boolean enableAddChildMenu;
 	private final BoxPanelType boxType;
 
 	private final FLEFModel model;
@@ -152,15 +152,24 @@ public class IndividualPanel extends JPanel{
 		return new IndividualPanel(boxType, model);
 	}
 
+	public static IndividualPanel createEmpty(final BoxPanelType boxType){
+		return new IndividualPanel(boxType, null);
+	}
+
 
 	private IndividualPanel(final BoxPanelType boxType, final FLEFModel model){
+		enableAddChildMenu = true;
 		this.boxType = boxType;
 
 		this.model = model;
 
-		initComponents();
+		if(model != null){
+			initComponents();
 
-		installMouseListeners();
+			installMouseListeners();
+		}
+		else
+			setBoxPreferredSize();
 	}
 
 
@@ -185,6 +194,10 @@ public class IndividualPanel extends JPanel{
 
 	@Override
 	protected final void paintComponent(final Graphics g){
+		if(model == null)
+			return;
+
+
 		if(g instanceof Graphics2D){
 			final Graphics2D g2 = (Graphics2D)g.create();
 			g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -285,9 +298,13 @@ public class IndividualPanel extends JPanel{
 	}
 
 	private void setBoxPreferredSize(){
-		final Dimension size = (isPrimaryBox()? BOX_DIMENSION_PRIMARY: BOX_DIMENSION_SECONDARY);
+		final Dimension size = getDimension(boxType);
 		setPreferredSize(size);
 		setMaximumSize(size);
+	}
+
+	public static Dimension getDimension(final BoxPanelType boxType){
+		return (boxType == BoxPanelType.PRIMARY? BOX_DIMENSION_PRIMARY: BOX_DIMENSION_SECONDARY);
 	}
 
 	private void updateData(){

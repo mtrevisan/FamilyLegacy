@@ -93,7 +93,7 @@ class MouseNavigationHandler extends MouseAdapter{
 					node.setAttribute("layout.frozen");
 
 					final Point3 mouseGu = camera.transformPxToGu(currentPoint.x, currentPoint.y);
-					node.setAttribute("xyz", mouseGu.x, mouseGu.y, 0.0);
+					node.setAttribute("xyz", mouseGu.x, mouseGu.y, 0.);
 				}
 			}
 			else if(initialViewCenter != null){

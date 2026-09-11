@@ -22,27 +22,24 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree;
+package io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.services;
 
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundComboBox;
 import net.miginfocom.swing.MigLayout;
-import org.apache.commons.text.WordUtils;
 
 import javax.swing.BorderFactory;
-import javax.swing.DefaultListCellRenderer;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
-import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Window;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 
@@ -70,7 +67,7 @@ public class RelationshipTypeSelectionDialog extends JDialog{
 	 * Constructor.
 	 *
 	 * @param owner        parent window
-	 * @param items        list of items to show (non‑empty)
+	 * @param items        list of items to show (non-empty)
 	 * @param allowedTypes the allowed relationship type strings
 	 */
 	public RelationshipTypeSelectionDialog(final Window owner, final List<Item> items, final String[] allowedTypes){
@@ -78,6 +75,8 @@ public class RelationshipTypeSelectionDialog extends JDialog{
 
 		if(items == null || items.isEmpty())
 			throw new IllegalArgumentException("Items list must not be empty");
+		if(allowedTypes == null || allowedTypes.length == 0)
+			throw new IllegalArgumentException("Allowed types must not be empty");
 
 		this.items = new ArrayList<>(items);
 		this.allowedTypes = allowedTypes;
@@ -89,6 +88,38 @@ public class RelationshipTypeSelectionDialog extends JDialog{
 		setMinimumSize(new Dimension(480, getPreferredSize().height));
 		setLocationRelativeTo(owner);
 	}
+
+
+	/**
+	 * Shows the dialog only when more than one relationship type is
+	 * available. When a single type is allowed, returns a list that
+	 * assigns that type to every item without opening any dialog.
+	 * <p>
+	 * This helper lets callers avoid duplicating the "single type" check
+	 * and keeps the "no choice" fast path in a single place.
+	 *
+	 * @param owner        parent window; may be {@code null}
+	 * @param items        the items to display; if empty, an empty list is
+	 *                     returned
+	 * @param allowedTypes the allowed relationship type strings
+	 * @return the selected types in the same order as the items, or
+	 *         {@code null} if the user cancelled the dialog
+	 */
+	public static List<String> showIfNeeded(final Window owner, final List<Item> items,
+		final String[] allowedTypes){
+		if(allowedTypes == null || allowedTypes.length == 0)
+			throw new IllegalArgumentException("Allowed types must not be empty");
+		if(items == null || items.isEmpty())
+			return Collections.emptyList();
+
+		if(allowedTypes.length == 1)
+			return Collections.nCopies(items.size(), allowedTypes[0]);
+
+		final RelationshipTypeSelectionDialog dialog = new RelationshipTypeSelectionDialog(owner, items, allowedTypes);
+		dialog.setVisible(true);
+		return dialog.getSelectedTypes();
+	}
+
 
 	private void initUI(){
 		final JPanel mainPanel = new JPanel(new MigLayout("ins 15,fill", "[grow]", "[][][grow][][30!]"));

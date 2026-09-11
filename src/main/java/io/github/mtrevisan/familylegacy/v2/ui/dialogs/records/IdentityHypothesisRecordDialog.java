@@ -224,8 +224,7 @@ public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 
 			final boolean choice = (entities.isEmpty() || entities.get(0).getId().equals(identity.getId()));
 			final EntityField field = (choice? identity1Field: identity2Field);
-			final JLabel label = (JLabel)(choice? identity2Field: identity1Field)
-				.getClientProperty(GUIHelper.PROPERTY_ASSOCIATED_LABEL);
+			final JLabel label = GUIHelper.getLabeledComponent(choice? identity2Field: identity1Field);
 
 			label.setText("Identity*:");
 			field.setEntity(FLEFRecord.createMainRecord(parentEntity.getText(), parentEntity.getPath()));

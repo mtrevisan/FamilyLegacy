@@ -257,6 +257,9 @@ public class DateField extends JPanel{
 	 * Extracts the actual date value from FULL_DATE, DECADE, or CENTURY (including CALENDAR).
 	 */
 	private static String getSingleDateDisplayText(final FLEFRecord parent){
+		if(parent == null)
+			return StringUtils.EMPTY;
+
 		final FLEFRecord fullDate = parent.getTheOnlyChild(TAG_FULL_DATE);
 		if(fullDate != null){
 			final String value = FLEFRecordHelper.getChildValue(fullDate, TAG_VALUE);

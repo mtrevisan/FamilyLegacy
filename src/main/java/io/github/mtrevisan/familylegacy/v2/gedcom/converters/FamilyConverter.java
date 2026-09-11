@@ -253,7 +253,7 @@ public class FamilyConverter{
 			// ---- Set group name ----
 			String husbandName = getDisplayName(link.husbandId);
 			String wifeName = getDisplayName(link.wifeId);
-			String groupName = husbandName + (wifeName.isEmpty()? "": " and " + wifeName);
+			String groupName = husbandName + (wifeName.isEmpty()? StringUtils.EMPTY: " and " + wifeName);
 			if(!groupName.isEmpty()){
 				FLEFRecord nameRec = FLEFRecord.createChildWithTag("name")
 					.addChild(FLEFRecord.createChildWithTagAndValue("value", groupName + " family"));
@@ -289,7 +289,7 @@ public class FamilyConverter{
 					relationship.addChild(FLEFRecord.createChildWithTagAndValue("type", "civil_spouse"))
 						.addChild(FLEFRecord.createChildWithTag("note")
 							.addChild(FLEFRecord.createChildWithTagAndValue("text",
-								(StringUtils.isNotEmpty(marriageType)? marriageType + " -- ": "")
+								(StringUtils.isNotEmpty(marriageType)? marriageType + " -- ": StringUtils.EMPTY)
 								+ "TO BE REVISED: is it civil or religious or else?"))
 							.addChild(AuditBuilder.build(null))
 					);
@@ -404,7 +404,7 @@ public class FamilyConverter{
 		}
 		String flefType = GEDCOMMapper.mapEvent(gedcomTag, (customType != null? customType: gedcomTag));
 		eventRecord.addChild(FLEFRecord.createChildWithTagAndValue("type",
-			("civil".equals(customType) || "religious".equals(customType)? customType + "_": "")
+			("civil".equals(customType) || "religious".equals(customType)? customType + "_": StringUtils.EMPTY)
 				+ flefType));
 
 		// Date
@@ -646,9 +646,9 @@ public class FamilyConverter{
 	// ------------------------------------------------------------------------
 
 	private String getDisplayName(String indiId){
-		if(indiId == null) return "";
+		if(indiId == null) return StringUtils.EMPTY;
 		FLEFRecord indi = individualMap.get(indiId);
-		if(indi == null) return "";
+		if(indi == null) return StringUtils.EMPTY;
 		for(FLEFRecord name : indi.getChildren()){
 			if("name".equals(name.getTag())){
 				for(FLEFRecord part : name.getChildren()){

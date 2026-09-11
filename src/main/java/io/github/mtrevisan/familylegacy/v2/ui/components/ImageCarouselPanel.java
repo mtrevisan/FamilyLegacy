@@ -199,7 +199,7 @@ public class ImageCarouselPanel extends JPanel{
 		g2.setColor(Color.LIGHT_GRAY);
 		g2.fillRect(0, 0, size, size);
 		g2.setColor(Color.DARK_GRAY);
-		g2.setFont(g2.getFont().deriveFont(10f));
+		g2.setFont(g2.getFont().deriveFont(10.f));
 		g2.drawString("No img", 10, size / 2);
 		g2.dispose();
 		return new ImageIcon(img);

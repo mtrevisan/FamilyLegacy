@@ -47,7 +47,7 @@ final class TreeNode{
 	private SiblingsData biologicalChildrenData;
 
 	// -1 = children, 0 = target, 1 = parents, 2 = grandparents...
-	private int generation;
+	private final int generation;
 
 
 	public TreeNode(final SiblingsData biologicalChildrenData){

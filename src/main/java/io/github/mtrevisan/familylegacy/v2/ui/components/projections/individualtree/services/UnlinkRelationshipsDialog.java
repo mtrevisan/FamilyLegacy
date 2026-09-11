@@ -22,12 +22,13 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree;
+package io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.services;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
@@ -54,17 +55,16 @@ import java.awt.event.MouseEvent;
 import java.io.Serial;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Predicate;
 
 
 /**
- * Dialog that displays all relationships of an individual, grouped by type,
- * with checkboxes to select which ones to remove.
- * The layout is fully resizable: parents and partner sections hold a fixed height,
- * while the children section takes all remaining space inside a scrollable viewport.
- * Each relationship row shows a checkbox and the display name of the related entity.
- * Double-clicking the display name opens the edit dialog for that entity.
+ * Dialog that displays all relationships of an ego entity, grouped by categories
+ * (Parents, Partners, Associates, Groups, Children), with checkboxes to select which ones to remove.
  */
 public class UnlinkRelationshipsDialog extends JDialog{
 
@@ -80,46 +80,80 @@ public class UnlinkRelationshipsDialog extends JDialog{
 
 
 	/**
-	 * Stores information about a relationship: the relationship record ID,
-	 * the ID of the referenced entity, and a human-readable description.
+	 * Represents an aggregated relationship entry toward a specific target entity.
+	 * Holds multiple relationship IDs (e.g. direct and inverse) to delete both at once.
 	 */
-	private record RelationshipInfo(String relationshipId, String entityId, String description){}
+	private static class RelationshipInfo{
+		final String entityId;
+		final String baseDescription;
+		final List<String> relationshipIds = new ArrayList<>();
+		boolean isDirect;
+		boolean isInverse;
 
-	private record RelationshipCheckbox(JCheckBox checkbox, String relationshipId, String entityId){}
+		RelationshipInfo(final String entityId, final String baseDescription){
+			this.entityId = entityId;
+			this.baseDescription = baseDescription;
+		}
+
+		void addRelationship(final String relId, final boolean direct){
+			relationshipIds.add(relId);
+			if(direct)
+				isDirect = true;
+			else
+				isInverse = true;
+		}
+
+		String getFormattedDescription(){
+			if(isDirect && isInverse)
+				return baseDescription + " [Bidirectional]";
+			if(isDirect)
+				return baseDescription + " [Direct]";
+			if(isInverse)
+				return baseDescription + " [Inverse]";
+			return baseDescription;
+		}
+	}
+
+	private record RelationshipCheckbox(JCheckBox checkbox, List<String> relationshipIds, String entityId){}
 
 
 	private final FLEFModel model;
 	private final Predicate<String> relationshipTypeFilter;
 	private final String individualId;
 
+	private final Set<String> parentIds;
+	private final Set<String> associateIds;
+	private final Set<String> groupIds;
+	private final Set<String> childIds;
+
 	private final List<RelationshipCheckbox> checkboxes = new ArrayList<>();
 	private boolean confirmed;
 
 
-	public static UnlinkRelationshipsDialog create(final Window parent, final FLEFModel model,
-			final String individualId){
-		return new UnlinkRelationshipsDialog(parent, model, type -> true, individualId);
+	public UnlinkRelationshipsDialog(final Window parent, final FLEFModel model, final String individualId,
+			final Set<String> parentsIds, final Set<String> associatesIds, final Set<String> groupsIds,
+			final Set<String> childrenIds){
+		this(parent, model, type -> true, individualId, parentsIds, associatesIds, groupsIds, childrenIds);
 	}
 
-	public static UnlinkRelationshipsDialog create(final Window parent, final FLEFModel model,
-			final Predicate<String> relationshipTypeFilter, final String individualId){
-		return new UnlinkRelationshipsDialog(parent, model, relationshipTypeFilter, individualId);
-	}
-
-
-	private UnlinkRelationshipsDialog(final Window parent, final FLEFModel model,
-			final Predicate<String> relationshipTypeFilter, final String individualId){
+	public UnlinkRelationshipsDialog(final Window parent, final FLEFModel model,
+			final Predicate<String> relationshipTypeFilter, final String individualId, final Set<String> parentsIds,
+			final Set<String> associatesIds, final Set<String> groupsIds, final Set<String> childrenIds){
 		super(parent, "Unlink Relationships", ModalityType.APPLICATION_MODAL);
 
 		this.model = model;
 		this.relationshipTypeFilter = relationshipTypeFilter;
 		this.individualId = individualId;
 
+		this.parentIds = parentsIds;
+		this.associateIds = associatesIds;
+		this.groupIds = groupsIds;
+		this.childIds = childrenIds;
+
 		initComponents();
 
 		pack();
 		setMinimumSize(new Dimension(380, 150));
-
 		final int maxHeight = (int)(getGraphicsConfiguration().getBounds().getHeight() * 0.45);
 		if(getHeight() > maxHeight)
 			setSize(getWidth(), maxHeight);
@@ -131,32 +165,30 @@ public class UnlinkRelationshipsDialog extends JDialog{
 	private void initComponents(){
 		setLayout(new BorderLayout());
 
-		// Main container:
-		// Rows: Parents (fixed), Partner (fixed), Children (fills remaining vertical space)
 		final JPanel contentPanel = new JPanel(new MigLayout(
 			"ins 5,gapy 5,fill",
 			"[grow,fill]",
-			"[grow 0,fill][grow 0,fill][grow 100,fill]"));
+			"[]"));
 
-		final List<RelationshipInfo> parents = new ArrayList<>();
-		final List<RelationshipInfo> children = new ArrayList<>();
-		extractRelationships(parents, children);
+		final List<RelationshipInfo> parentList = new ArrayList<>();
+		final List<RelationshipInfo> associateList = new ArrayList<>();
+		final List<RelationshipInfo> groupList = new ArrayList<>();
+		final List<RelationshipInfo> childList = new ArrayList<>();
+		extractRelationships(parentList, associateList, groupList, childList);
 
-		// --- Parents section (fixed height) ---
-		if(!parents.isEmpty()){
-			final JPanel parentGroup = createGroupPanel("Parents", parents);
-			contentPanel.add(parentGroup, "wrap");
-		}
+		if(!parentList.isEmpty())
+			contentPanel.add(createGroupPanel("Parents", parentList), "wrap");
+		if(!groupList.isEmpty())
+			contentPanel.add(createGroupPanel("Groups", groupList), "wrap");
+		if(!associateList.isEmpty())
+			contentPanel.add(createGroupPanel("Associates", associateList), "wrap");
+		if(!childList.isEmpty())
+			contentPanel.add(createScrollableGroupPanel("Children", childList), "grow,push");
 
-		// --- Children section (takes all remaining available vertical space) ---
-		if(!children.isEmpty()){
-			final JPanel childrenGroup = createScrollableGroupPanel("Children", children);
-			contentPanel.add(childrenGroup, "grow,push");
-		}
+		final JScrollPane mainScroll = new JScrollPane(contentPanel);
+		mainScroll.setBorder(BorderFactory.createEmptyBorder());
+		add(mainScroll, BorderLayout.CENTER);
 
-		add(contentPanel, BorderLayout.CENTER);
-
-		// Button panel (south)
 		final JPanel buttonPanel = GUIHelper.createButtonPanel(this,
 			"Confirm", () -> {
 				confirmed = true;
@@ -167,66 +199,93 @@ public class UnlinkRelationshipsDialog extends JDialog{
 		add(buttonPanel, BorderLayout.SOUTH);
 	}
 
-	/**
-	 * Extracts relationships from the model and groups them into parents, partners, and children.
-	 */
-	private void extractRelationships(final List<RelationshipInfo> parents, final List<RelationshipInfo> children){
+	private void extractRelationships(final List<RelationshipInfo> parentList,
+			final List<RelationshipInfo> associateList, final List<RelationshipInfo> groupList,
+			final List<RelationshipInfo> childList){
+		final Map<String, RelationshipInfo> parentMap = new HashMap<>();
+		final Map<String, RelationshipInfo> associateMap = new HashMap<>();
+		final Map<String, RelationshipInfo> groupMap = new HashMap<>();
+		final Map<String, RelationshipInfo> childMap = new HashMap<>();
 		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
 		for(final FLEFRecord relationship : relationships){
 			final String type = FLEFRecordHelper.getChildValue(relationship, TAG_TYPE);
-			if(type == null)
+			if(type == null || !relationshipTypeFilter.test(type))
 				continue;
 
-			final String subjectId = relationship.extractReferencedId(TAG_SUBJECT, IndividualHandler.TYPE);
-			final String targetId = relationship.extractReferencedId(TAG_TARGET, IndividualHandler.TYPE);
-			final boolean involves = (subjectId != null && targetId != null
-				&& (individualId.equals(subjectId) || individualId.equals(targetId)));
-			if(!involves)
+			final String subjectId = extractAnyReferencedId(relationship, TAG_SUBJECT);
+			final String targetId = extractAnyReferencedId(relationship, TAG_TARGET);
+			if(subjectId == null || targetId == null)
 				continue;
 
-			final String otherId = (individualId.equals(subjectId)? targetId: subjectId);
+			final boolean isDirect = individualId.equals(subjectId);
+			final boolean isInverse = individualId.equals(targetId);
+			if(!isDirect && !isInverse)
+				continue;
+
+			final String otherId = isDirect? targetId: subjectId;
 			final FLEFRecord other = model.getRecordById(otherId);
-			final String otherName = (other != null
-				? IndividualHandler.getInstance().getDisplayText(other, model)
-				: otherId);
-			final String relationshipId = relationship.getId();
+			final String baseDescription = getDisplayText(other, otherId);
+			final String relId = relationship.getId();
 
-			if(relationshipTypeFilter.test(type)){
-				if(individualId.equals(subjectId))
-					// individual is the child -> other is a parent
-					parents.add(new RelationshipInfo(relationshipId, otherId, otherName));
-				else
-					// individual is the parent -> other is a child
-					children.add(new RelationshipInfo(relationshipId, otherId, otherName));
+			Map<String, RelationshipInfo> targetCategoryMap = null;
+			if(parentIds.contains(otherId))
+				targetCategoryMap = parentMap;
+			else if(groupIds.contains(otherId))
+				targetCategoryMap = groupMap;
+			else if(associateIds.contains(otherId))
+				targetCategoryMap = associateMap;
+			else if(childIds.contains(otherId))
+				targetCategoryMap = childMap;
+
+			if(targetCategoryMap != null){
+				final RelationshipInfo info = targetCategoryMap.computeIfAbsent(
+					otherId, id -> new RelationshipInfo(id, baseDescription)
+				);
+				info.addRelationship(relId, isDirect);
 			}
-			// Ignore other relationship types
 		}
+
+		parentList.addAll(parentMap.values());
+		associateList.addAll(associateMap.values());
+		groupList.addAll(groupMap.values());
+		childList.addAll(childMap.values());
 	}
 
-	/**
-	 * Creates a non-scrollable panel for small sets (Parents / Partner).
-	 */
+	private String extractAnyReferencedId(final FLEFRecord relationship, final String tag){
+		String refId = relationship.extractReferencedId(tag, IndividualHandler.TYPE);
+		if(refId == null)
+			refId = relationship.extractReferencedId(tag, GroupHandler.TYPE);
+		return refId;
+	}
+
+	private String getDisplayText(final FLEFRecord record, final String fallbackId){
+		if(record == null)
+			return fallbackId;
+
+		if(GroupHandler.TYPE.equalsIgnoreCase(record.getTag()))
+			return GroupHandler.getInstance().getDisplayText(record, model);
+
+		return IndividualHandler.getInstance().getDisplayText(record, model);
+	}
+
 	private JPanel createGroupPanel(final String title, final List<RelationshipInfo> infos){
 		final JPanel outer = new JPanel(new MigLayout("ins 5,wrap 1,fillx,gapy 2", "[grow,fill]", "[]"));
 		outer.setBorder(BorderFactory.createTitledBorder(title));
 
 		for(final RelationshipInfo info : infos){
-			final JPanel row = createWrappedCheckbox(info.relationshipId, info.entityId, info.description);
+			final JPanel row = createWrappedCheckbox(info.relationshipIds, info.entityId, info.getFormattedDescription());
 			outer.add(row, "growx");
 		}
 		return outer;
 	}
 
-	/**
-	 * Creates a scrollable group panel designed to occupy remaining space gracefully.
-	 */
 	private JPanel createScrollableGroupPanel(final String title, final List<RelationshipInfo> infos){
 		final JPanel outer = new JPanel(new BorderLayout());
 		outer.setBorder(BorderFactory.createTitledBorder(title));
 
 		final JPanel inner = new JPanel(new MigLayout("ins 5,wrap 1,fillx,top,gapy 2", "[grow,fill]", "[]"));
 		for(final RelationshipInfo info : infos){
-			final JPanel row = createWrappedCheckbox(info.relationshipId, info.entityId, info.description);
+			final JPanel row = createWrappedCheckbox(info.relationshipIds, info.entityId, info.getFormattedDescription());
 			inner.add(row, "growx");
 		}
 
@@ -236,11 +295,8 @@ public class UnlinkRelationshipsDialog extends JDialog{
 		scrollPane.setBorder(BorderFactory.createEmptyBorder());
 
 		final Font font = UIManager.getFont("CheckBox.font");
-		final int unitIncrement = (font != null
-			? outer.getFontMetrics(font).getHeight()
-			: 16);
-		scrollPane.getVerticalScrollBar()
-			.setUnitIncrement(unitIncrement);
+		final int unitIncrement = (font != null? outer.getFontMetrics(font).getHeight(): 16);
+		scrollPane.getVerticalScrollBar().setUnitIncrement(unitIncrement);
 
 		SwingUtilities.invokeLater(() -> scrollPane.getVerticalScrollBar().setValue(0));
 
@@ -248,11 +304,8 @@ public class UnlinkRelationshipsDialog extends JDialog{
 		return outer;
 	}
 
-	/**
-	 * Creates a row consisting of a JCheckBox (for selection) and a JTextArea (for display).
-	 * The JTextArea shows the entity description and supports double-click to open the edit dialog.
-	 */
-	private JPanel createWrappedCheckbox(final String relationshipId, final String entityId, final String description){
+	private JPanel createWrappedCheckbox(final List<String> relationshipIds, final String entityId,
+			final String description){
 		final JPanel panel = new JPanel(new MigLayout("ins 2 0 2 0", "[]0[grow,fill,shrink]", "[]"));
 
 		final JCheckBox cb = new JCheckBox();
@@ -276,7 +329,7 @@ public class UnlinkRelationshipsDialog extends JDialog{
 		panel.add(cb);
 		panel.add(textArea);
 
-		checkboxes.add(new RelationshipCheckbox(cb, relationshipId, entityId));
+		checkboxes.add(new RelationshipCheckbox(cb, relationshipIds, entityId));
 		return panel;
 	}
 
@@ -289,7 +342,6 @@ public class UnlinkRelationshipsDialog extends JDialog{
 		textArea.setFont(cb.getFont());
 		textArea.setBorder(null);
 		textArea.setFocusable(false);
-
 		textArea.setCaretPosition(0);
 
 		// ---- Indicate that the text is clickable ----
@@ -328,7 +380,7 @@ public class UnlinkRelationshipsDialog extends JDialog{
 		final List<String> ids = new ArrayList<>();
 		for(final RelationshipCheckbox rc : checkboxes)
 			if(rc.checkbox.isSelected())
-				ids.add(rc.relationshipId);
+				ids.addAll(rc.relationshipIds);
 		return ids;
 	}
 

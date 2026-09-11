@@ -35,6 +35,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.projections.partners.Pa
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.siblings.SiblingsData;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.siblings.SiblingsPanel;
 import net.miginfocom.swing.MigLayout;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
 import javax.swing.JPanel;
@@ -52,6 +53,24 @@ import java.util.Map;
 
 /**
  * Utility class responsible for building the genealogical tree layout.
+ * <p>
+ * The layout reserves one cell per ancestor slot, from the root down to
+ * the configured maximum number of generations. Every cell is filled with
+ * a {@link PartnersPanel}: a real one when a {@link TreeNode} exists, or a
+ * placeholder one when it does not.
+ * <p>
+ * The placeholder panels exist to guarantee that every generation row has
+ * at least one panel of the same size as the real panels. Without them, a
+ * row with no ancestors would collapse to zero height, shifting the root
+ * individual upward. By filling every slot, the row height is always the
+ * panel height and the root stays at the same vertical position
+ * regardless of how many generations of ancestors are actually present in
+ * the data.
+ * <p>
+ * The children slot (below the root in vertical layout, to the left in
+ * horizontal layout) is intentionally left at its natural size: it does
+ * not influence the position of the root individual and may legitimately
+ * grow to fit its content (e.g. a large number of siblings).
  */
 final class TreeLayoutBuilder{
 
@@ -77,17 +96,17 @@ final class TreeLayoutBuilder{
 
 
 	/**
-	 * Builds the dynamic horizontal layout using cell placement.
+	 * Builds the dynamic layout using cell placement.
 	 * Each node represents a couple (individual + partner).
 	 *
 	 * @param mainPanel      the main layout panel
 	 * @param rootNode       the root node of the tree
 	 * @param maxGenerations the maximum number of generations to display
 	 * @param model          the FLEF model
-	 * @param nodeToPanelMap       map to store the node-to-panel association (will be populated)
+	 * @param nodeToPanelMap map to store the node-to-panel association (will be populated)
 	 * @param listener       the individual listener
 	 * @param mutator        the tree mutator for navigation
-	 * @return a LayoutResult containing the main panel, children panel, and its scroll pane
+	 * @return a LayoutResult containing the children panel
 	 */
 	static LayoutResult buildLayout(final JPanel mainPanel, final TreeNode rootNode, final boolean showPartner,
 			final int maxGenerations, final FLEFModel model, final Map<TreeNode, PartnersPanel> nodeToPanelMap,
@@ -117,39 +136,50 @@ final class TreeLayoutBuilder{
 			final int dimension = item.dimension;
 			final int span = item.span;
 
-			// PRUNING RULE: Do not render upper empty ancestor slots if node is null
-			if(node == null && depth > 0)
-				continue;
+			final String cellConstraints = (isVertical
+				? "cell " + dimension + StringUtils.SPACE + (maxDepth - depth) + ",span " + span + ",grow"
+				: "cell " + (depth + 1) + StringUtils.SPACE + dimension + ",span 1 " + span + ",grow");
 
-			// Create a panel for this node (or an empty placeholder if node is null)
-			final PartnersPanel partnerPanel = createPanelForNode(node,
-				(depth == 0? BoxPanelType.PRIMARY: BoxPanelType.SECONDARY), treeLayout, model, listener, popupFactory,
-				mutator);
+			// PRUNING RULE: do not render empty ancestor slots
+			if(node == null && depth > 0){
+				// Create the panel for this slot
+				final PartnersPanel partnerPanel = createEmptyPanelForNode(BoxPanelType.SECONDARY, treeLayout);
+
+				// Add the panel at the computed cell
+				mainPanel.add(partnerPanel, cellConstraints);
+
+				continue;
+			}
+
+			// Create the panel for this slot
+			final BoxPanelType boxPanelType = (depth == 0? BoxPanelType.PRIMARY: BoxPanelType.SECONDARY);
+			final PartnersPanel partnerPanel = createPanelForNode(node, boxPanelType, treeLayout, model, listener,
+				popupFactory, mutator);
 
 			if(node != null)
 				nodeToPanelMap.put(node, partnerPanel);
 
 			// Add the panel at the computed cell
-			final String cellConstraints = (isVertical
-				? "cell " + dimension + " " + (maxDepth - depth) + ",span " + span + ",grow"
-				: "cell " + (depth + 1) + " " + dimension + ",span 1 " + span + ",grow");
 			mainPanel.add(partnerPanel, cellConstraints);
 
-			// Push parents onto stack ONLY if the current node exists
-			// Push MOTHER first, then FATHER, so that FATHER is processed first (LIFO order).
-			if(depth < maxDepth && node != null){
+			// Expand every slot, real or placeholder, up to the maximum
+			// depth. For a real node, its actual parents are pushed; for a
+			// placeholder, two null nodes are pushed, so that the cells
+			// below it are still filled and the row height is preserved.
+			if(depth < maxDepth){
 				final int nextDepth = depth + 1;
 				final int halfSpan = span >> 1;
 
-				final TreeNode motherNode = node.getMother();
+				// Push MOTHER first, then FATHER, so that FATHER is processed first (LIFO order)
+				final TreeNode motherNode = (node != null? node.getMother(): null);
 				stack.push(new LayoutNodeItem(motherNode, nextDepth, dimension + halfSpan, halfSpan));
 
-				final TreeNode fatherNode = node.getFather();
+				final TreeNode fatherNode = (node != null? node.getFather(): null);
 				stack.push(new LayoutNodeItem(fatherNode, nextDepth, dimension, halfSpan));
 			}
 		}
 
-		// Extract root parent records for children panel
+		// Extract root parent records for the children panel
 		final FLEFRecord father = (rootNode != null && rootNode.getFather() != null
 			? rootNode.getFather().getIndividual()
 			: null);
@@ -161,7 +191,7 @@ final class TreeLayoutBuilder{
 			rootNode.setPartnerAndBiologicalChildren(null, null, rootSiblingsData);
 		}
 
-		// Add children (below/left)
+		// Add the children panel at the end of the primary axis
 		final SiblingsPanel childrenPanel = createChildrenPanel(father, mother, model, listener, popupFactory, rootNode,
 			showPartner, treeLayout);
 		final JScrollPane childrenScrollPane = createChildrenScrollPane(childrenPanel, treeLayout);
@@ -173,6 +203,22 @@ final class TreeLayoutBuilder{
 		return new LayoutResult(childrenPanel);
 	}
 
+	/**
+	 * Builds the constraint string for the primary axis (generation axis):
+	 * rows in vertical layout, columns in horizontal layout.
+	 * <p>
+	 * Every ancestor slot uses the plain {@code []} constraint (natural
+	 * size), because every cell is guaranteed to contain a panel. The
+	 * row height is therefore always equal to the panel height, and the
+	 * root stays at the same vertical position regardless of how many
+	 * generations of ancestors are present.
+	 * <p>
+	 * The children slot is also natural: it does not influence the
+	 * position of the root and may legitimately grow to fit its content.
+	 *
+	 * @param maxDepth the maximum ancestor depth (0 = root only)
+	 * @return the constraint string
+	 */
 	private static String buildPrimaryConstraints(final int maxDepth){
 		final StringBuilder constraints = new StringBuilder();
 		for(int i = 0; i <= maxDepth; i ++){
@@ -181,7 +227,7 @@ final class TreeLayoutBuilder{
 			constraints.append("[]");
 		}
 
-		// children row
+		// Children row (or column, in horizontal layout)
 		constraints.append(GENERATION_SEPARATOR_SIZE)
 			.append("[]");
 		return constraints.toString();
@@ -197,6 +243,10 @@ final class TreeLayoutBuilder{
 		return constraints.toString();
 	}
 
+	private static PartnersPanel createEmptyPanelForNode(final BoxPanelType type, final TreeLayout treeLayout){
+		return PartnersPanel.createEmpty(type, treeLayout);
+	}
+
 	private static PartnersPanel createPanelForNode(final TreeNode node, final BoxPanelType type,
 			final TreeLayout treeLayout, final FLEFModel model, final IndividualListener listener,
 			final EntityPopupMenuFactory<IndividualPanel, IndividualListener> popupFactory, final TreeMutator mutator){
@@ -205,6 +255,9 @@ final class TreeLayoutBuilder{
 		panel.addMouseListener(new MouseAdapter(){
 			@Override
 			public void mousePressed(final MouseEvent e){
+				if(node == null)
+					return;
+
 				if(SwingUtilities.isLeftMouseButton(e)){
 					final String clickedId = node.getIndividualId();
 					if(clickedId != null)
@@ -243,10 +296,10 @@ final class TreeLayoutBuilder{
 			final EntityPopupMenuFactory<IndividualPanel, IndividualListener> popupFactory, final TreeNode rootNode,
 			final boolean showPartner, final TreeLayout treeLayout){
 		final SiblingsPanel panel = SiblingsPanel.create(father, mother, BoxPanelType.SECONDARY, model, showPartner,
-				treeLayout)
-			.withListener(listener, popupFactory);
+			treeLayout);
 		if(rootNode != null)
 			panel.withSiblingsData(rootNode.getBiologicalChildrenData());
+		panel.withListener(listener, popupFactory);
 		return panel;
 	}
 

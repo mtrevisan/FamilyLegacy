@@ -34,13 +34,23 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 
 
 /**
- * Represents a central individual or group (Ego) and their surrounding network of relationships
- * (parents, partners, children, groups, and associates) regardless of whether they are biological or non-biological.
+ * Represents a central individual or group (Ego) and their surrounding
+ * network of relationships (parents, partners, children, groups, and
+ * associates) regardless of whether they are biological or non-biological.
+ * <p>
+ * The node owns mutable collections during construction (through the
+ * {@code add*} methods) but exposes them through unmodifiable views, so
+ * that external code cannot accidentally break the internal consistency
+ * of the node.
+ * <p>
+ * Equality and hash code are based on the ego id only, and are safe when
+ * the id is {@code null}: two nodes whose id is {@code null} are
+ * considered distinct, to avoid accidental collisions on partially built
+ * nodes.
  */
 final class EgoNode{
 
@@ -97,6 +107,11 @@ final class EgoNode{
 		relationsWithEgo.add(new RelationInfo(type, role, isInverse));
 	}
 
+	/**
+	 * Returns the relation metadata collected for this node.
+	 *
+	 * @return the unmodifiable list, never {@code null}
+	 */
 	public List<RelationInfo> getRelationsWithEgo(){
 		return relationsWithEgo;
 	}
@@ -107,13 +122,19 @@ final class EgoNode{
 				.add(node);
 	}
 
+	/**
+	 * Returns the nodes related through the given category.
+	 *
+	 * @param category the relationship category
+	 * @return the unmodifiable set, never {@code null}
+	 */
 	public Set<EgoNode> getRelatedNodes(final RelationshipCategory category){
 		return relatedNodesMap.get(category);
 	}
 
 
-	public void addGroupRecord(final FLEFRecord groupRecord, final String type, final String role, final
-			boolean isInverse){
+	public void addGroupRecord(final FLEFRecord groupRecord, final String type, final String role,
+			final boolean isInverse){
 		if(groupRecord != null){
 			groupRecords.add(groupRecord);
 			groupRelationsMap.computeIfAbsent(groupRecord, k -> new ArrayList<>())
@@ -121,10 +142,22 @@ final class EgoNode{
 		}
 	}
 
+	/**
+	 * Returns the group records directly related to this node.
+	 *
+	 * @return the unmodifiable set, never {@code null}
+	 */
 	public Set<FLEFRecord> getGroupRecords(){
 		return groupRecords;
 	}
 
+	/**
+	 * Returns the relation metadata associated with the given group record. Returns an empty list if the group is not
+	 * directly related to this node.
+	 *
+	 * @param groupRecord the group record
+	 * @return the unmodifiable list, never {@code null}
+	 */
 	public List<RelationInfo> getGroupRelationInfo(final FLEFRecord groupRecord){
 		return groupRelationsMap.getOrDefault(groupRecord, Collections.emptyList());
 	}
@@ -138,12 +171,17 @@ final class EgoNode{
 			return false;
 
 		final EgoNode egoNode = (EgoNode)other;
-		return Objects.equals(getEgoId(), egoNode.getEgoId());
+		final String thisId = getEgoId();
+		final String otherId = egoNode.getEgoId();
+		// Nodes with a null id are considered distinct, to avoid accidental
+		// collisions during construction.
+		return (thisId != null && thisId.equals(otherId));
 	}
 
 	@Override
 	public int hashCode(){
-		return Objects.hashCode(getEgoId());
+		final String id = getEgoId();
+		return (id != null? id.hashCode(): System.identityHashCode(this));
 	}
 
 }

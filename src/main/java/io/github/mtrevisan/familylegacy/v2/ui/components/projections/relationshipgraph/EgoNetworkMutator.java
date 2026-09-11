@@ -29,6 +29,9 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.TreeChangeListener;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventParticipationHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupAttributeHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualAttributeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
 import org.apache.commons.lang3.StringUtils;
@@ -41,8 +44,15 @@ import java.util.Objects;
 
 
 /**
- * Handles structural modifications to the ego network graph, updating the underlying FLEFModel,
- * invalidating service indices, and notifying tree listeners.
+ * Handles structural modifications to the ego network graph, updating the
+ * underlying {@link FLEFModel}, invalidating service indices, and notifying
+ * tree listeners.
+ * <p>
+ * Besides creating and removing relationships, the mutator is responsible
+ * for keeping the model free of dangling references when an entity is
+ * removed: every association record that references the removed entity is
+ * deleted together with it, so that the resulting model remains
+ * consistent.
  */
 class EgoNetworkMutator{
 
@@ -52,6 +62,9 @@ class EgoNetworkMutator{
 	private static final String TAG_TYPE = "type";
 	private static final String TAG_SUBJECT = "subject";
 	private static final String TAG_TARGET = "target";
+	private static final String TAG_PARTICIPANT = "participant";
+	private static final String TAG_INDIVIDUAL = "individual";
+	private static final String TAG_GROUP = "group";
 
 
 	private final FLEFModel model;
@@ -79,6 +92,10 @@ class EgoNetworkMutator{
 
 	/**
 	 * Creates a relationship between two entities in the network.
+	 *
+	 * @param subjectId the subject entity id
+	 * @param targetId  the target entity id
+	 * @param type      the FLEF relationship type
 	 */
 	public void createRelationship(final String subjectId, final String targetId, final String type){
 		if(StringUtils.isEmpty(subjectId) || StringUtils.isEmpty(targetId) || StringUtils.isEmpty(type))
@@ -99,29 +116,115 @@ class EgoNetworkMutator{
 	}
 
 	/**
-	 * Removes an entity record and all associated relationships.
+	 * Removes an entity record together with every record that references it.
+	 * <p>
+	 * The cleanup covers:
+	 * <ul>
+	 *   <li>{@code relationship} records where the entity appears as
+	 *       subject or target;</li>
+	 *   <li>{@code event_participation} records where the entity is the
+	 *       participant;</li>
+	 *   <li>{@code individual_attribute} records (for individual entities)
+	 *       whose owner is the entity;</li>
+	 *   <li>{@code group_attribute} records (for group entities) whose
+	 *       owner is the entity.</li>
+	 * </ul>
+	 *
+	 * @param record       the entity to remove
+	 * @param currentEgoId the current ego id (used to decide the fallback)
 	 */
 	public void removeEntity(final FLEFRecord record, final String currentEgoId){
 		if(record == null)
 			return;
 
 		final String targetId = record.getId();
-		final String newEgoId = targetId.equals(currentEgoId) ? null : currentEgoId;
+		if(targetId == null)
+			return;
 
-		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
-		final List<FLEFRecord> toRemove = new ArrayList<>();
-		for(final FLEFRecord relationship : relationships){
-			final String subjectId = relationship.extractReferencedId(TAG_SUBJECT, IndividualHandler.TYPE);
-			final String relTargetId = relationship.extractReferencedId(TAG_TARGET, IndividualHandler.TYPE);
-			if(targetId.equals(subjectId) || targetId.equals(relTargetId))
-				toRemove.add(relationship);
-		}
-		for(final FLEFRecord relationship : toRemove)
-			model.removeRecord(relationship.getId());
+		final boolean removingCurrentEgo = Objects.equals(targetId, currentEgoId);
+		final String newEgoId = (removingCurrentEgo? null: currentEgoId);
+
+		removeRelationshipsInvolving(targetId);
+		removeEventParticipationsInvolving(targetId);
+		removeAttributesInvolving(targetId);
 
 		model.removeRecord(targetId);
 
 		invalidateAndNotifyTreeChanged(newEgoId);
+	}
+
+	/**
+	 * Removes every {@code relationship} record that references the given
+	 * entity as subject or target.
+	 */
+	private void removeRelationshipsInvolving(final String targetId){
+		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
+		final List<String> toRemove = new ArrayList<>();
+		for(final FLEFRecord relationship : relationships){
+			final String subjectId = relationship.extractReferencedId(TAG_SUBJECT, TAG_INDIVIDUAL);
+			final String groupSubjectId = relationship.extractReferencedId(TAG_SUBJECT, TAG_GROUP);
+			final String targetSubjectId = (subjectId != null? subjectId: groupSubjectId);
+
+			final String relTargetId = relationship.extractReferencedId(TAG_TARGET, TAG_INDIVIDUAL);
+			final String groupTargetId = relationship.extractReferencedId(TAG_TARGET, TAG_GROUP);
+			final String targetTargetId = (relTargetId != null? relTargetId: groupTargetId);
+
+			if(targetId.equals(targetSubjectId) || targetId.equals(targetTargetId))
+				toRemove.add(relationship.getId());
+		}
+		for(final String id : toRemove)
+			model.removeRecord(id);
+	}
+
+	/**
+	 * Removes every {@code event_participation} record whose participant
+	 * references the given entity.
+	 */
+	private void removeEventParticipationsInvolving(final String targetId){
+		final List<FLEFRecord> participations = model.getRecordsByType(EventParticipationHandler.TYPE);
+		final List<String> toRemove = new ArrayList<>();
+		for(final FLEFRecord participation : participations){
+			final FLEFRecord participantField = FLEFRecordHelper.findChild(participation, TAG_PARTICIPANT);
+			if(participantField == null)
+				continue;
+
+			final FLEFRecord ref = participantField.getTheOnlyChild();
+			if(ref == null || ref.getValue() == null)
+				continue;
+
+			if(targetId.equals(ref.getValue()))
+				toRemove.add(participation.getId());
+		}
+		for(final String id : toRemove)
+			model.removeRecord(id);
+	}
+
+	/**
+	 * Removes every attribute record ({@code individual_attribute} or
+	 * {@code group_attribute}) whose owner references the given entity.
+	 */
+	private void removeAttributesInvolving(final String targetId){
+		removeAttributesInvolving(targetId, IndividualAttributeHandler.TYPE, TAG_INDIVIDUAL);
+		removeAttributesInvolving(targetId, GroupAttributeHandler.TYPE, TAG_GROUP);
+	}
+
+	private void removeAttributesInvolving(final String targetId, final String recordType, final String ownerTag){
+		final List<FLEFRecord> attributes = model.getRecordsByType(recordType);
+		final List<String> toRemove = new ArrayList<>();
+		for(final FLEFRecord attribute : attributes){
+			final FLEFRecord ownerField = FLEFRecordHelper.findChild(attribute, ownerTag);
+			if(ownerField == null)
+				continue;
+
+			final FLEFRecord ref = ownerField.getTheOnlyChild();
+			if(ref == null || ref.getValue() == null)
+				continue;
+
+			if(targetId.equals(ref.getValue()))
+				toRemove.add(attribute.getId());
+		}
+		for(final String id : toRemove)
+			model.removeRecord(id);
 	}
 
 	/**
@@ -133,10 +236,12 @@ class EgoNetworkMutator{
 			return;
 
 		final String sourceId = sourceRecord.getId();
-		final String sourceTag = sourceRecord.getTag();
 		final String targetId = targetRecord.getId();
-		final String targetTag = targetRecord.getTag();
+		if(sourceId == null || targetId == null)
+			return;
 
+		final String sourceTag = sourceRecord.getTag();
+		final String targetTag = targetRecord.getTag();
 		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
 		final List<String> toRemove = new ArrayList<>();
 		for(final FLEFRecord relationship : relationships){
@@ -158,7 +263,7 @@ class EgoNetworkMutator{
 	/**
 	 * Removes a list of relationship records by their IDs and refreshes the view.
 	 */
-	private void removeRelationships(final List<String> relationshipIds){
+	void removeRelationships(final List<String> relationshipIds){
 		if(relationshipIds == null || relationshipIds.isEmpty())
 			return;
 

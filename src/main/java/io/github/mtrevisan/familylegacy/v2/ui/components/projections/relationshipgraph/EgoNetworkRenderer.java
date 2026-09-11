@@ -65,23 +65,23 @@ final class EgoNetworkRenderer{
 
 		final Point centerPoint = getPanelCenter(centerPanel, container);
 
-		// 1. Connect to Parent nodes
+		// Connect to Parent nodes
 		connectCategoryNodes(g2, centerPoint, rootEgoNode.getRelatedNodes(EgoNode.RelationshipCategory.PARENT),
 			nodeToPanelMap, container);
 
-		// 2. Connect to Partner nodes
+		// Connect to Partner nodes
 		connectCategoryNodes(g2, centerPoint, rootEgoNode.getRelatedNodes(EgoNode.RelationshipCategory.PARTNER),
 			nodeToPanelMap, container);
 
-		// 3. Connect to Child nodes
+		// Connect to Child nodes
 		connectCategoryNodes(g2, centerPoint, rootEgoNode.getRelatedNodes(EgoNode.RelationshipCategory.CHILD),
 			nodeToPanelMap, container);
 
-		// 4. Connect to Associate nodes
+		// Connect to Associate nodes
 		connectCategoryNodes(g2, centerPoint, rootEgoNode.getRelatedNodes(EgoNode.RelationshipCategory.ASSOCIATE),
 			nodeToPanelMap, container);
 
-		// 5. Connect to Group cards
+		// Connect to Group cards
 		connectGroupRecords(g2, centerPoint, rootEgoNode.getGroupRecords(), groupToPanelMap, container);
 	}
 
@@ -117,8 +117,20 @@ final class EgoNetworkRenderer{
 
 	/**
 	 * Draws an orthogonal stepped line connecting two points.
+	 * <p>
+	 * When the two points share the same X or Y coordinate, the intermediate
+	 * segments degenerate to zero length; in that case a straight line is
+	 * drawn directly to avoid rendering artifacts produced by some
+	 * platform-specific stroke implementations on zero-length segments.
 	 */
 	private static void drawOrthogonalLine(final Graphics2D g2, final Point start, final Point end){
+		if(start.x == end.x || start.y == end.y){
+			g2.drawLine(start.x, start.y,
+				end.x, end.y);
+
+			return;
+		}
+
 		final int midX = (start.x + end.x) / 2;
 
 		// Horizontal segment to midpoint X

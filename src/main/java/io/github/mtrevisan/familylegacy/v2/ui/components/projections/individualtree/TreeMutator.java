@@ -47,7 +47,7 @@ import java.util.function.Predicate;
  * Handles structural modifications to the biological tree, updating the underlying FLEFModel,
  * invalidating service indices, and notifying tree listeners.
  */
-class TreeMutator{
+public class TreeMutator{
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(TreeMutator.class);
 
@@ -56,8 +56,6 @@ class TreeMutator{
 	private static final String TAG_SUBJECT = "subject";
 	private static final String TAG_TARGET = "target";
 	private static final String TAG_SEX = "sex";
-
-	private static final String ENUM_TYPE_PARTNER = "partner";
 
 
 	private final Predicate<String> relationshipTypeFilter;
@@ -95,9 +93,13 @@ class TreeMutator{
 	/**
 	 * Adds a child to parent individuals by creating parent-child relationship records.
 	 *
-	 * @param fatherId    the ID of the male parent
-	 * @param motherId    the ID of the female parent
-	 * @param newChild    the child record to connect
+	 * @param fatherId    the ID of the male parent; may be {@code null}
+	 * @param motherId    the ID of the female parent; may be {@code null}
+	 * @param newChild    the child record to connect (must not be {@code null})
+	 * @param fatherRelationshipType the FLEF type to use for the father link;
+	 *                               may be {@code null} if {@code fatherId} is {@code null}
+	 * @param motherRelationshipType the FLEF type to use for the mother link;
+	 *                               may be {@code null} if {@code motherId} is {@code null}
 	 */
 	public void addChildToParents(final String fatherId, final String motherId, final FLEFRecord newChild,
 			final String fatherRelationshipType, final String motherRelationshipType){
@@ -105,25 +107,24 @@ class TreeMutator{
 			return;
 
 		// Create relationship record for father if present
-		if(fatherId != null)
+		if(fatherId != null && fatherRelationshipType != null)
 			createRelationship(newChild.getId(), fatherId, fatherRelationshipType);
 
 		// Create relationship record for mother if present
-		if(motherId != null)
+		if(motherId != null && motherRelationshipType != null)
 			createRelationship(newChild.getId(), motherId, motherRelationshipType);
 	}
 
 	/**
 	 * Helper method to create a relationship record of the given type.
-	 * Assumes the model uses a record structure with "relationship" tag and
-	 * children: "type", "subject", "target" (each referencing an individual).
 	 *
 	 * @param subjectId the individual id that is the subject of the relationship
 	 * @param targetId  the individual id that is the target of the relationship
-	 * @param type      the type of relationship (e.g., "biological_child", "spouse", "parent")
+	 * @param type      the type of relationship
 	 */
 	private void createRelationship(final String subjectId, final String targetId, final String type){
-		final FLEFRecord relationship = FLEFRecord.createMainRecord(RelationshipHandler.TYPE, RelationshipHandler.ID_PREFIX, model)
+		final FLEFRecord relationship = FLEFRecord.createMainRecord(RelationshipHandler.TYPE,
+				RelationshipHandler.ID_PREFIX, model)
 			.addChild(FLEFRecord.createChildWithTagAndValue(TAG_TYPE, type))
 			.addChild(FLEFRecord.createChildWithTag(TAG_SUBJECT)
 				.addChild(FLEFRecord.createChildWithTagAndValue(IndividualHandler.TYPE, subjectId))
@@ -137,27 +138,29 @@ class TreeMutator{
 	}
 
 	/**
-	 * Adds or connects a parent to a target child individual.
-	 * If a parent of the same sex already exists, it is replaced.
+	 * Adds or connects a parent to a target list of children. If a parent
+	 * of the same sex already exists for any of the children, the existing
+	 * relationship is replaced.
 	 *
-	 * @param childrenId    the ID of the children
-	 * @param newParent     the parent record to add (must have sex defined)
+	 * @param childrenId       the IDs of the children (must not be empty and
+	 *                         must have the same size as {@code relationshipTypes})
+	 * @param newParent        the parent record to add (must not be {@code null})
+	 * @param relationshipTypes the FLEF type to use for each child link
 	 */
 	public void addParentToChild(final List<String> childrenId, final FLEFRecord newParent,
 			final List<String> relationshipTypes){
-		if(newParent == null)
+		if(newParent == null || childrenId == null || childrenId.isEmpty())
 			return;
-
-		// Ensure parent exists in model
-		if(!model.hasRecord(newParent.getId()))
-			model.addRecord(newParent);
+		if(relationshipTypes == null || relationshipTypes.size() != childrenId.size())
+			throw new IllegalArgumentException("relationshipTypes must match childrenId size");
 
 		// Get parent sex from the record
 		final String parentSex = FLEFRecordHelper.getChildValue(newParent, TAG_SEX);
 		if(parentSex != null){
+			final List<FLEFRecord> toRemove = new ArrayList<>();
+
 			// Find and remove existing parent of the same sex
 			final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
-			final List<FLEFRecord> toRemove = new ArrayList<>();
 			for(final FLEFRecord relationship : relationships){
 				final String type = FLEFRecordHelper.getChildValue(relationship, TAG_TYPE);
 				if(!relationshipTypeFilter.test(type))
@@ -183,28 +186,12 @@ class TreeMutator{
 				model.removeRecord(relationship.getId());
 		}
 
-		// Create new child relationship
+		// Create new child relationships
 		for(int i = 0, size = childrenId.size(); i < size; i ++){
 			final String childId = childrenId.get(i);
 			final String relationshipType = relationshipTypes.get(i);
 			createRelationship(childId, newParent.getId(), relationshipType);
 		}
-	}
-
-	/**
-	 * Adds or connectins a partner to a target individual.
-	 * Creates a spouse/partner relationship between the target and the new partner.
-	 *
-	 * @param partnerId     the ID of the individual to whom the partner will be added
-	 * @param newPartner    the partner record (may already exist in the model)
-	 */
-	public void addPartnerToIndividual(final String partnerId, final FLEFRecord newPartner){
-		if(newPartner == null)
-			return;
-
-		// Create spouse relationships (bidirectional)
-		createRelationship(partnerId, newPartner.getId(), ENUM_TYPE_PARTNER);
-		createRelationship(newPartner.getId(), partnerId, ENUM_TYPE_PARTNER);
 	}
 
 
@@ -225,8 +212,11 @@ class TreeMutator{
 		if(targetId.equals(currentRootId)){
 			final Map<IndividualData, SiblingsData> childrenData = treeService.buildChildrenData(targetId);
 			if(!childrenData.isEmpty()){
-				final SiblingsData siblings = childrenData.values().iterator().next();
-				if(!siblings.getSiblings().isEmpty())
+				final SiblingsData siblings = childrenData.values()
+					.iterator()
+					.next();
+				if(!siblings.getSiblings()
+					.isEmpty())
 					newRootId = siblings.getSiblings()
 						.getFirst()
 						.getId();

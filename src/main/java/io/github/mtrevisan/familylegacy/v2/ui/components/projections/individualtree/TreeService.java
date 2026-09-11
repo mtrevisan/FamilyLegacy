@@ -24,7 +24,6 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree;
 
-import io.github.mtrevisan.familylegacy.v2.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
@@ -37,10 +36,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.UIManager;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -52,7 +47,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -62,7 +56,7 @@ import java.util.stream.Collectors;
 /**
  * Service for building and navigating genealogical ancestor trees.
  */
-class TreeService{
+public class TreeService{
 
 	private static final String TAG_TYPE = "type";
 	private static final String TAG_SUBJECT = "subject";
@@ -70,9 +64,6 @@ class TreeService{
 	private static final String TAG_SEX = "sex";
 	private static final String TAG_PARTICIPANT = "participant";
 	private static final String TAG_EVENT = "event";
-
-	private static final String ENUM_TYPE_FAMILY = "family";
-	private static final String ENUM_TYPE_PARTNER = "partner";
 
 
 	private final Predicate<String> relationshipTypeFilter;
@@ -86,6 +77,10 @@ class TreeService{
 //	private final Map<String, FLEFRecord> individualToFamilyMap = new HashMap<>();
 	private final Map<String, List<FLEFRecord>> individualToEventMap = new HashMap<>();
 	private final Set<String> individualsWithDescendantsSet = new HashSet<>();
+	private final Map<String, List<String>> individualToRelationshipIdsMap = new HashMap<>();
+
+	// Lazy cache for buildChildrenData results, invalidated with the rest
+	private final Map<String, Map<IndividualData, SiblingsData>> childrenDataCache = new HashMap<>();
 
 
 	public TreeService(final Predicate<String> relationshipTypeFilter, final FLEFModel model){
@@ -114,16 +109,17 @@ class TreeService{
 		// Pre-index relationships, groups, and events in single-pass lookup tables
 		ensureIndices();
 
-		final IndividualData rootData = IndividualData.create(rootIndividual, relationshipTypeFilter, individualToEventMap,
-			model);
+		final IndividualData rootData = IndividualData.create(rootIndividual, relationshipTypeFilter,
+			individualToEventMap, model);
 		final TreeNode rootNode = new TreeNode(rootIndividual, rootData, 0);
 		if(showPartner){
 			final Map<IndividualData, SiblingsData> partnerChildrenDataMap = buildChildrenData(rootIndividualId);
 			if(!partnerChildrenDataMap.isEmpty()){
 				// choose partner and children at random
-				final Map.Entry<IndividualData, SiblingsData> partnerChildrenData = partnerChildrenDataMap.entrySet().stream()
-					.findFirst()
-					.get();
+				final Map.Entry<IndividualData, SiblingsData> partnerChildrenData =
+					partnerChildrenDataMap.entrySet().stream()
+						.findFirst()
+						.orElse(null);
 				final IndividualData partnerData = partnerChildrenData.getKey();
 				final FLEFRecord partner = (partnerData != null? partnerData.getIndividual(): null);
 				final SiblingsData childrenData = partnerChildrenData.getValue();
@@ -149,7 +145,7 @@ class TreeService{
 			final List<FLEFRecord> parents = getParents(currentIndividualId);
 			FLEFRecord father = extractParent(parents, SexType.MALE);
 			FLEFRecord mother = extractParent(parents, SexType.FEMALE);
-			// fallback to random if sex is unknown
+			// Fall back to positional assignment when sex is unknown
 			if(!parents.isEmpty() && father == null)
 				father = parents.removeFirst();
 			if(!parents.isEmpty() && mother == null)
@@ -195,35 +191,30 @@ class TreeService{
 		node.setPartnerAndBiologicalChildren(partner, partnerData, childrenData);
 	}
 
-	private boolean hasPartnerRelationships(final String partnerId){
-		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
-		final List<FLEFRecord> partnerRelationships = new ArrayList<>();
-		for(final FLEFRecord relationship : relationships){
-			final String type = FLEFRecordHelper.getChildValue(relationship, TAG_TYPE);
-			if(type == null || !type.endsWith(ENUM_TYPE_PARTNER))
-				continue;
-
-			final String subjectId = relationship.extractReferencedId(TAG_SUBJECT, IndividualHandler.TYPE);
-			final String targetRefId = relationship.extractReferencedId(TAG_TARGET, IndividualHandler.TYPE);
-			if(partnerId.equals(subjectId) || partnerId.equals(targetRefId))
-				partnerRelationships.add(relationship);
-		}
-		return !partnerRelationships.isEmpty();
-	}
-
 	/**
-	 * Extracts direct biological children for a given parent ID, grouped by the other parent.
+	 * Extracts direct biological children for a given parent ID, grouped by
+	 * the other parent. The result is cached per parent to avoid recomputing
+	 * it for individuals that appear multiple times in the tree (e.g. as
+	 * in-laws).
 	 *
 	 * @param parentId target parent individual ID
-	 * @return map where the key is the IndividualData of the other parent (or {@code null} if unknown),
-	 *         and the value is the SiblingsData containing the children shared with that parent
+	 * @return map where the key is the IndividualData of the other parent
+	 *         (or {@code null} if unknown), and the value is the
+	 *         SiblingsData containing the children shared with that parent
 	 */
 	public Map<IndividualData, SiblingsData> buildChildrenData(final String parentId){
+		if(parentId == null)
+			return Collections.emptyMap();
+		ensureIndices();
+		return childrenDataCache.computeIfAbsent(parentId, this::computeChildrenData);
+	}
+
+	private Map<IndividualData, SiblingsData> computeChildrenData(final String parentId){
 		final List<FLEFRecord> children = parentToChildrenMap.get(parentId);
 		if(children == null || children.isEmpty())
 			return Collections.emptyMap();
 
-		// Group children by the second parent (otherParent)
+		// Group children by the second parent.
 		final Map<FLEFRecord, List<FLEFRecord>> childrenByOtherParentMap = new LinkedHashMap<>();
 		for(final FLEFRecord child : children){
 			final List<FLEFRecord> parents = individualToParentsMap.get(child.getId());
@@ -273,11 +264,9 @@ class TreeService{
 
 	/**
 	 * Extracts and builds SiblingsData for an individual by finding all children sharing their parents.
-	 *
-	 * @param individualId target individual ID
-	 * @return SiblingsData containing sibling IndividualData instances
 	 */
 	public SiblingsData buildSiblingsData(final String individualId){
+		ensureIndices();
 		final List<FLEFRecord> parents = individualToParentsMap.get(individualId);
 		if(parents == null || parents.isEmpty())
 			return SiblingsData.create(null, null);
@@ -292,7 +281,8 @@ class TreeService{
 
 		final List<IndividualData> siblingDataList = new ArrayList<>();
 		for(final FLEFRecord siblingRecord : siblingRecords)
-			siblingDataList.add(IndividualData.create(siblingRecord, relationshipTypeFilter, individualToEventMap, model));
+			siblingDataList.add(IndividualData.create(siblingRecord, relationshipTypeFilter, individualToEventMap,
+				model));
 
 		final Set<String> siblingIdsWithDescendants = siblingDataList.stream()
 			.map(IndividualData::getId)
@@ -302,7 +292,26 @@ class TreeService{
 		return SiblingsData.create(siblingDataList, siblingIdsWithDescendants);
 	}
 
-	List<FLEFRecord> getParents(final String currentIndividualId){
+	/**
+	 * Returns the ids of every relationship record that involves the given
+	 * individual, either as subject or as target. Backed by a precomputed
+	 * index; the first call triggers the index build.
+	 *
+	 * @param individualId the individual id (may be {@code null})
+	 * @return a mutable copy of the list of relationship ids; empty if none
+	 */
+	public List<String> getRelationshipIdsForIndividual(final String individualId){
+		if(individualId == null)
+			return new ArrayList<>();
+		ensureIndices();
+		final List<String> ids = individualToRelationshipIdsMap.get(individualId);
+		return (ids != null? new ArrayList<>(ids): new ArrayList<>());
+	}
+
+	public List<FLEFRecord> getParents(final String currentIndividualId){
+		// Make sure the parent index is built before answering
+		ensureIndices();
+
 		List<FLEFRecord> parents = individualToParentsMap.get(currentIndividualId);
 		if(parents != null && !parents.isEmpty())
 			parents = new ArrayList<>(parents);
@@ -315,32 +324,34 @@ class TreeService{
 	}
 
 	FLEFRecord extractParent(final List<FLEFRecord> parents, final SexType sex){
-		FLEFRecord father = null;
+		FLEFRecord match = null;
 		final Iterator<FLEFRecord> itr = parents.iterator();
 		while(itr.hasNext()){
 			final FLEFRecord parent = itr.next();
 			final String rawSex = FLEFRecordHelper.getChildValue(parent, TAG_SEX);
-			final SexType parentSex = (rawSex != null? Enum.valueOf(SexType.class, rawSex.toUpperCase(Locale.ROOT)): null);
+			final SexType parentSex = (rawSex != null
+				? Enum.valueOf(SexType.class, rawSex.toUpperCase(Locale.ROOT))
+				: null);
 
 			if(sex == parentSex){
 				itr.remove();
-				father = parent;
+				match = parent;
 
 				break;
 			}
 		}
-		return father;
+		return match;
 	}
 
 	/**
-	 * Pre-indexes all relationships, group memberships, and marriage events in single passes.
+	 * Pre-indexes relationships, events, and relationship ids in a single
+	 * pass per record type.
 	 */
 	private void ensureIndices(){
-		if(!individualToParentsMap.isEmpty())
+		if(!individualToParentsMap.isEmpty() || !individualToRelationshipIdsMap.isEmpty())
 			return;
 
-		// Index parents and parent-child relationships
-		final Map<String, Set<String>> childToGroupIdsMap = new HashMap<>();
+		// Index parents, children and relationship ids.
 		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
 		for(final FLEFRecord relationship : relationships){
 			final String type = FLEFRecordHelper.getChildValue(relationship, TAG_TYPE);
@@ -351,6 +362,17 @@ class TreeService{
 			final String targetId = relationship.extractReferencedId(TAG_TARGET, IndividualHandler.TYPE);
 			if(subjectId == null || targetId == null)
 				continue;
+
+			// Index the relationship id by both endpoints (for unlink flows).
+			final String relationshipId = relationship.getId();
+			if(relationshipId != null){
+				individualToRelationshipIdsMap
+					.computeIfAbsent(subjectId, k -> new ArrayList<>())
+					.add(relationshipId);
+				individualToRelationshipIdsMap
+					.computeIfAbsent(targetId, k -> new ArrayList<>())
+					.add(relationshipId);
+			}
 
 			if(relationshipTypeFilter.test(type)){
 				final FLEFRecord child = model.getRecordById(subjectId);
@@ -365,26 +387,10 @@ class TreeService{
 					// Mark parent as having descendants
 					individualsWithDescendantsSet.add(targetId);
 				}
-
-				// Collect group candidate references for child
-				childToGroupIdsMap.computeIfAbsent(subjectId, k -> new HashSet<>())
-					.add(targetId);
 			}
 		}
 
-//		// Index family group records O(G)
-//		final List<FLEFRecord> groups = model.getRecordsByType(GroupHandler.TYPE);
-//		for(final FLEFRecord group : groups){
-//			final String type = FLEFRecordHelper.getChildValue(group, TAG_TYPE);
-//			if(!ENUM_TYPE_FAMILY.equals(type))
-//				continue;
-//
-//			for(final Map.Entry<String, Set<String>> entry : childToGroupIdsMap.entrySet())
-//				if(entry.getValue().contains(group.getId()))
-//					individualToFamilyMap.putIfAbsent(entry.getKey(), group);
-//		}
-
-		// Index events O(E)
+		// Index events by participant
 		final List<FLEFRecord> eventParticipations = model.getRecordsByType(EventParticipationHandler.TYPE);
 		for(final FLEFRecord eventParticipation : eventParticipations){
 			final FLEFRecord participant = FLEFRecordHelper.findChild(eventParticipation, TAG_PARTICIPANT);
@@ -409,42 +415,16 @@ class TreeService{
 		}
 	}
 
-
-	public static void main(final String[] args) throws IOException{
-		try{
-			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-		}
-		catch(final Exception ignored){}
-
-		final String modelUri = "/tests/TGMZ.flef";
-		final String recordId = "I1";
-		final int generations = 3;
-
-		final String content;
-		try(final InputStream is = TreeService.class.getResourceAsStream(modelUri)){
-			content = new String(Objects.requireNonNull(is).readAllBytes(), StandardCharsets.UTF_8);
-		}
-
-		final FLEFParser parser = new FLEFParser();
-		final FLEFModel model = parser.parse(content);
-
-
-		final Predicate<String> relationshipTypeFilter = type -> type.equalsIgnoreCase("biological_child");
-		final TreeService service = new TreeService(relationshipTypeFilter, model);
-		service.buildTree(recordId, true, generations);
-	}
-
-
 	/**
 	 * Invalidates all internal lookup indices and caches.
-	 * <p>
-	 * Forces a recalculation of relationships and events on the next tree build.
 	 */
 	public void invalidateIndices(){
 		individualToParentsMap.clear();
 		parentToChildrenMap.clear();
 		individualToEventMap.clear();
 		individualsWithDescendantsSet.clear();
+		individualToRelationshipIdsMap.clear();
+		childrenDataCache.clear();
 	}
 
 }
