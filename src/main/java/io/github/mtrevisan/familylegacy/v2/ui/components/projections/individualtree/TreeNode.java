@@ -32,7 +32,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.projections.siblings.Si
 /**
  * Represents a single node within the biological ancestor tree.
  */
-final class TreeNode{
+public final class TreeNode{
 
 	private FLEFRecord individual;
 	private IndividualData individualData;

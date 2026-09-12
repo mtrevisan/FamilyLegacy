@@ -50,6 +50,7 @@ import java.awt.Container;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.GradientPaint;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -87,6 +88,8 @@ public class IndividualPanel extends JPanel{
 	private static final Color BORDER_COLOR_SHADOW_SELECTED = Color.BLACK;
 	private static final Color BIRTH_DEATH_AGE_COLOR = new Color(110, 110, 110);
 	private static final Color IMAGE_LABEL_BORDER_COLOR = Color.WHITE;
+	private static final Color PEDIGREE_CIRCLE_INNER_COLOR = new Color(200, 55, 55, 240);
+	private static final Color PEDIGREE_CIRCLE_OUTER_COLOR = Color.WHITE;
 
 	// Dimensions
 	//double values for Horizontal and Vertical radius of corner arcs
@@ -96,6 +99,10 @@ public class IndividualPanel extends JPanel{
 
 	private static final Dimension BOX_DIMENSION_PRIMARY = new Dimension(270, 90);
 	private static final Dimension BOX_DIMENSION_SECONDARY = new Dimension(130, 66);
+
+	/** Diameter of the collapse badge, in pixels. */
+	private static final int BADGE_DIAMETER_PRIMARY = 20;
+	private static final int BADGE_DIAMETER_SECONDARY = 16;
 
 	private static final int NAME_IMAGE_GAP = 5;
 
@@ -141,6 +148,9 @@ public class IndividualPanel extends JPanel{
 
 	private String preferredImageKey;
 
+	/** Red badge displayed on panels whose individual appears multiple times. */
+	private final CollapseBadge collapseBadge = new CollapseBadge();
+
 	// Strategy pattern for popup menu generation
 	private EntityPopupMenuFactory<IndividualPanel, IndividualListener> popupMenuFactory;
 
@@ -182,14 +192,53 @@ public class IndividualPanel extends JPanel{
 
 		setBoxPreferredSize();
 
-		setLayout(new MigLayout("ins 7,gapx 5", "[grow,fill][grow 0,shrink 0]", "[]0[]10[]"));
+		final int badgeWidth = (isPrimaryBox()? BADGE_DIAMETER_PRIMARY: BADGE_DIAMETER_SECONDARY);
+		setLayout(new MigLayout("ins 7,gapx 5",
+			"[grow,fill][grow 0,shrink 0]",
+			"[]0[]10[]"));
 
 		final int imageWidth = (int)(PREFERRED_IMAGE_WIDTH / shrinkFactor);
-		add(nameLabel, "cell 0 0,top,growx,width ::100%-" + imageWidth + ",hidemode 3");
+		final int reservedRight = imageWidth + badgeWidth + 5;
+		add(nameLabel, "cell 0 0,top,growx,width ::100%-" + reservedRight + ",hidemode 3");
 		add(imageLabel, (isPrimaryBox()? "cell 1 0 1 3,top": "cell 1 0,top"));
 		add(infoLabel, (isPrimaryBox()? "cell 0 2,growx": "cell 0 2 2 1,growx"));
+		add(collapseBadge, "pos 0 0 0 0");
+
+		// Force the badge to the top of the Z-order, so that it receives
+		// mouse events even when its bounds overlap the info label. MigLayout
+		// can reorder children during layout, so the Z-order is reasserted
+		// here after every add.
+		setComponentZOrder(collapseBadge, 0);
 
 		setOpaque(false);
+	}
+
+	/**
+	 * Places the collapse badge at the bottom-right corner of the panel.
+	 * <p>
+	 * The badge is not managed by MigLayout: its bounds are assigned here,
+	 * after the rest of the layout has run. This keeps the badge entirely
+	 * independent from the grid, so toggling its visibility or changing its
+	 * preferred size never affects the surrounding layout.
+	 */
+	@Override
+	public void doLayout(){
+		super.doLayout();
+
+		if(collapseBadge.isVisible()){
+			final int d = collapseBadge.getPreferredSize().width;
+			final int margin = 3;
+			collapseBadge.setBounds(
+				getWidth() - d - margin,
+				getHeight() - d - margin,
+				d, d);
+
+			// Reassert the Z-order after every layout pass, because the
+			// MigLayout manager can move children around. Position 0 is the
+			// top of the stacking order.
+			if(getComponentZOrder(collapseBadge) != 0)
+				setComponentZOrder(collapseBadge, 0);
+		}
 	}
 
 	@Override
@@ -293,6 +342,26 @@ public class IndividualPanel extends JPanel{
 		setBoxPreferredSize();
 
 		updateData();
+
+		return this;
+	}
+
+	/**
+	 * Attaches the pedigree-collapse information to this panel.
+	 * <p>
+	 * When {@code count} is greater than 1, the badge is made visible; its
+	 * cell is always reserved by the layout, so showing or hiding the badge
+	 * does not require recomputing the width of the name label.
+	 *
+	 * @param count   the number of times the individual appears in the tree
+	 * @param tooltip the collapse tooltip in HTML; may be {@code null}
+	 * @return this panel, for chaining
+	 */
+	public IndividualPanel withCollapseInfo(final int count, final String tooltip){
+		collapseBadge.update(count, tooltip);
+
+		revalidate();
+		repaint();
 
 		return this;
 	}
@@ -418,6 +487,100 @@ public class IndividualPanel extends JPanel{
 
 	public boolean isEnableAddChildMenu(){
 		return enableAddChildMenu;
+	}
+
+
+	/**
+	 * Small round badge showing the number of times an individual appears in
+	 * the tree.
+	 * <p>
+	 * The badge is a real component, so it participates in the layout (it
+	 * occupies its own cell) and has its own tooltip. When the count is at
+	 * most 1, the badge is made invisible and its cell collapses thanks to
+	 * {@code hidemode 3}, leaving the space to the name and info labels.
+	 */
+	private final class CollapseBadge extends JComponent{
+
+		@Serial
+		private static final long serialVersionUID = -8268907512879360023L;
+
+
+		private int count;
+		private String tooltip;
+
+
+		CollapseBadge(){
+			setOpaque(false);
+
+			final int d = (isPrimaryBox()? BADGE_DIAMETER_PRIMARY: BADGE_DIAMETER_SECONDARY);
+			setPreferredSize(new Dimension(d, d));
+
+			setVisible(false);
+		}
+
+		/**
+		 * Updates the badge with the given count and tooltip.
+		 *
+		 * @param count   the occurrence count; values below 2 hide the badge
+		 * @param tooltip the tooltip in HTML; may be {@code null}
+		 */
+		void update(final int count, final String tooltip){
+			this.count = Math.max(0, count);
+			this.tooltip = tooltip;
+
+			// Set the tooltip eagerly, so that it is available as soon as the
+			// badge becomes visible. The default ToolTipManager implementation
+			// asks the component for its tooltip through getToolTipText, which
+			// reads the value set here.
+			setToolTipText(this.tooltip);
+			setVisible(this.count > 1);
+		}
+
+		/**
+		 * Returns the collapse tooltip only when the point is actually inside
+		 * the badge bounds. This prevents the tooltip from appearing when the
+		 * mouse is just outside the circular painted area but still within the
+		 * enclosing rectangular bounds.
+		 */
+		@Override
+		public String getToolTipText(final MouseEvent event){
+			if(count <= 1 || tooltip == null)
+				return null;
+
+			final Point p = event.getPoint();
+			if(p.x < 0 || p.y < 0 || p.x >= getWidth() || p.y >= getHeight())
+				return null;
+
+			return tooltip;
+		}
+
+		@Override
+		protected void paintComponent(final Graphics g){
+			if(count <= 1 || !(g instanceof Graphics2D g2))
+				return;
+
+			final int d = Math.min(getWidth(), getHeight());
+			if(d <= 2)
+				return;
+
+			g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+			g2.setColor(PEDIGREE_CIRCLE_INNER_COLOR);
+			g2.fillOval(0, 0, d, d);
+			g2.setColor(PEDIGREE_CIRCLE_OUTER_COLOR);
+			g2.setStroke(new BasicStroke(1f));
+			g2.drawOval(0, 0, d - 1, d - 1);
+
+			final String text = count + "x";
+			g2.setFont(new Font("Tahoma", Font.BOLD, (isPrimaryBox()? 10: 9)));
+			g2.setColor(Color.WHITE);
+			final FontMetrics fm = g2.getFontMetrics();
+			final int textWidth = fm.stringWidth(text);
+			final int textX = (d - textWidth) / 2;
+			final int textY = (d + fm.getAscent() - 1) / 2;
+			g2.drawString(text, textX, textY);
+		}
+
 	}
 
 

@@ -38,8 +38,8 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.TreeChangeListener;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.TreeLayout;
-import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.services.RelationshipTypeSelectionDialog;
-import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.services.UnlinkRelationshipsDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.services.relationship.RelationshipTypeSelectionDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.services.relationship.UnlinkRelationshipsDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.partners.PartnersPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.RecordSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;

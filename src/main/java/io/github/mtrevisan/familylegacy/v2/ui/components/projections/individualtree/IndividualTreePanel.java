@@ -33,9 +33,13 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualData;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualListener;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.services.KinshipDialog;
-import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.services.RelationshipOperationCoordinator;
-import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.services.UnlinkRelationshipsDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.services.kinship.KinshipDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.services.pedigree.PedigreeCollapse;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.services.pedigree.PedigreeCollapseDetector;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.services.pedigree.PedigreeCollapseDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.services.pedigree.PedigreePath;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.services.relationship.RelationshipOperationCoordinator;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.services.relationship.UnlinkRelationshipsDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.partners.PartnersPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.partners.Side;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.siblings.SiblingsPanel;
@@ -77,6 +81,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 
 /**
@@ -86,7 +91,7 @@ import java.util.function.Predicate;
  * The class is a thin orchestrator: it owns the root state, delegates
  * layout and rendering to {@link TreeLayoutBuilder} and {@link TreeRenderer},
  * delegates mutations to {@link TreeMutator} (through
- * {@link io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.services.RelationshipOperationCoordinator}) and delegates all dialogs to
+ * {@link io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.services.relationship.RelationshipOperationCoordinator}) and delegates all dialogs to
  * {@link IndividualDialogProvider}. This keeps the panel focused on
  * composition and on the Swing event flow.
  */
@@ -110,6 +115,7 @@ public class IndividualTreePanel extends JPanel implements TreeChangeListener, I
 
 	private static final String ACTION_OPEN_KINSHIP_DIALOG = "openKinshipDialog";
 	private static final String ACTION_TOGGLE_TREE_LAYOUT = "toggleTreeLayout";
+	private static final String ACTION_SHOW_PEDIGREE_COLLAPSE = "showPedigreeCollapse";
 
 
 	private final String[] allowedRelationshipTypes;
@@ -132,6 +138,9 @@ public class IndividualTreePanel extends JPanel implements TreeChangeListener, I
 
 	// Children block (Generation 1)
 	private SiblingsPanel childrenPanel;
+
+	/** Collapses detected in the current tree, keyed by individual id. */
+	private Map<String, PedigreeCollapse> collapsesByIndividualId = Map.of();
 
 	private JPanel selectedPanel;
 
@@ -157,6 +166,7 @@ public class IndividualTreePanel extends JPanel implements TreeChangeListener, I
 
 		setupLayoutShortcut(this);
 		setupKinshipShortcut(this);
+		setupCollapseShortcut(this);
 	}
 
 
@@ -209,7 +219,14 @@ public class IndividualTreePanel extends JPanel implements TreeChangeListener, I
 			}
 		}
 
+		// Detect pedigree collapses before building the layout, so that the
+		// resulting panels can carry the badge from the first paint.
+		final List<PedigreeCollapse> collapses = PedigreeCollapseDetector.detect(rootNode, model);
+		collapsesByIndividualId = collapses.stream()
+			.collect(Collectors.toMap(PedigreeCollapse::individualId, Function.identity()));
+
 		buildLayout();
+		applyCollapseBadges();
 
 		// Force Swing recalculate layout and repaint (including parent context if available)
 		revalidate();
@@ -231,6 +248,53 @@ public class IndividualTreePanel extends JPanel implements TreeChangeListener, I
 			treeMutator, treeLayout);
 
 		childrenPanel = result.childrenPanel();
+	}
+
+	/**
+	 * Walks the map of node-to-panel associations and applies the
+	 * pedigree-collapse badge to every individual panel whose individual
+	 * appears more than once in the tree.
+	 * <p>
+	 * The map is keyed by {@link TreeNode}, and each {@link PartnersPanel}
+	 * shows the two parents of the node (the {@code fatherPanel} on the left
+	 * and the {@code motherPanel} on the right). The method checks both slots
+	 * independently: the badge can appear on one, the other, or both.
+	 */
+	private void applyCollapseBadges(){
+		for(final Map.Entry<TreeNode, PartnersPanel> entry : nodeToPanelMap.entrySet()){
+			final TreeNode node = entry.getKey();
+			final PartnersPanel panel = entry.getValue();
+
+			applyCollapseBadgeToSlot(panel.getFatherPanel(),
+				(node.getFather() != null? node.getFather().getIndividualId(): null));
+			applyCollapseBadgeToSlot(panel.getMotherPanel(),
+				(node.getMother() != null? node.getMother().getIndividualId(): null));
+		}
+	}
+
+	private void applyCollapseBadgeToSlot(final IndividualPanel slot, final String individualId){
+		if(slot == null || individualId == null)
+			return;
+
+		final PedigreeCollapse collapse = collapsesByIndividualId.get(individualId);
+		if(collapse == null)
+			return;
+
+		slot.withCollapseInfo(collapse.occurrenceCount(), buildCollapseTooltip(collapse));
+	}
+
+	private static String buildCollapseTooltip(final PedigreeCollapse collapse){
+		final StringBuilder sb = new StringBuilder("<html><b>Pedigree collapse</b><br>");
+		sb.append("This individual appears ")
+			.append(collapse.occurrenceCount())
+			.append(" times in the tree.<br><br>");
+		sb.append("<b>Paths from the root:</b><br>");
+		for(final PedigreePath path : collapse.paths())
+			sb.append("&nbsp;&nbsp;").append(path.code())
+				.append(" — ").append(path.describe())
+				.append("<br>");
+		sb.append("</html>");
+		return sb.toString();
 	}
 
 	@Override
@@ -586,6 +650,35 @@ public class IndividualTreePanel extends JPanel implements TreeChangeListener, I
 			? model.getRecordById(currentRootIndividualId)
 			: null);
 		final KinshipDialog dialog = new KinshipDialog(parent, model, treeService, initialA, null);
+		dialog.setVisible(true);
+	}
+
+	/**
+	 * Installs the {@code Ctrl+P} shortcut that opens the pedigree-collapse
+	 * report dialog.
+	 *
+	 * @param component the component that receives the shortcut
+	 */
+	public void setupCollapseShortcut(final JComponent component){
+		final InputMap inputMap = component.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+		final ActionMap actionMap = component.getActionMap();
+
+		inputMap.put(GUIHelper.CTRL_P_STROKE, ACTION_SHOW_PEDIGREE_COLLAPSE);
+		actionMap.put(ACTION_SHOW_PEDIGREE_COLLAPSE, new AbstractAction(){
+			@Serial
+			private static final long serialVersionUID = 1152736519295769067L;
+
+			@Override
+			public void actionPerformed(final ActionEvent e){
+				showPedigreeCollapseDialog();
+			}
+		});
+	}
+
+	private void showPedigreeCollapseDialog(){
+		final Window parent = SwingUtilities.getWindowAncestor(this);
+		final List<PedigreeCollapse> collapses = List.copyOf(collapsesByIndividualId.values());
+		final PedigreeCollapseDialog dialog = new PedigreeCollapseDialog(parent, collapses);
 		dialog.setVisible(true);
 	}
 

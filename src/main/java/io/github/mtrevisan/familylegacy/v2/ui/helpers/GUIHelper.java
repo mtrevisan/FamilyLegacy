@@ -111,7 +111,7 @@ public final class GUIHelper{
 	public static final KeyStroke CTRL_F_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_F, KeyEvent.CTRL_DOWN_MASK);
 	public static final KeyStroke CTRL_K_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_K, KeyEvent.CTRL_DOWN_MASK);
 	public static final KeyStroke CTRL_E_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_E, InputEvent.CTRL_DOWN_MASK);
-
+	public static final KeyStroke CTRL_P_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_P, InputEvent.CTRL_DOWN_MASK);
 
 	private static final String ELLIPSIS = "…";
 
