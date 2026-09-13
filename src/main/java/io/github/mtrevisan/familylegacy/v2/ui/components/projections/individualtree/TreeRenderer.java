@@ -142,7 +142,7 @@ final class TreeRenderer{
 			homeExit = SwingUtilities.convertPoint(homePanel, homeExit, container);
 			if(treeLayout == TreeLayout.VERTICAL){
 				final Point childrenRight = SwingUtilities.convertPoint(childrenPanel,
-					new Point(0, 0), container);
+					new Point(0, 1), container);
 
 				g2.drawLine(homeExit.x, homeExit.y,
 					homeExit.x, childrenRight.y);

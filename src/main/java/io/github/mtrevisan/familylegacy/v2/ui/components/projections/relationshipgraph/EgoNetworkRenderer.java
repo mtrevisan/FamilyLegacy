@@ -28,18 +28,38 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
+import java.awt.BasicStroke;
 import java.awt.Component;
 import java.awt.Graphics2D;
 import java.awt.Point;
+import java.awt.Stroke;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 
 /**
- * Utility class for rendering orthogonal connection lines between the central Ego node
- * and satellite nodes (Parents, Partners, Children, Groups, Associates).
+ * Utility class for rendering orthogonal connection lines between the
+ * central Ego node and satellite nodes.
+ * <p>
+ * The stroke style encodes the aggregate relationship status:
+ * <ul>
+ *   <li>{@code active} — solid line;</li>
+ *   <li>{@code ended} — dashed line;</li>
+ *   <li>{@code unknown} or mixed — dotted line.</li>
+ * </ul>
+ * When a satellite is reached through several relations with different
+ * statuses, the "strongest" one wins: active beats ended, ended beats
+ * unknown.
  */
 final class EgoNetworkRenderer{
+
+	private static final Stroke STROKE_ACTIVE = new BasicStroke(1.2f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
+	private static final Stroke STROKE_ENDED = new BasicStroke(1.2f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND,
+		10f, new float[]{6f, 4f}, 0f);
+	private static final Stroke STROKE_UNKNOWN = new BasicStroke(1.2f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND,
+		10f, new float[]{2f, 4f}, 0f);
+
 
 	private EgoNetworkRenderer(){}
 
@@ -82,7 +102,7 @@ final class EgoNetworkRenderer{
 			nodeToPanelMap, container);
 
 		// Connect to Group cards
-		connectGroupRecords(g2, centerPoint, rootEgoNode.getGroupRecords(), groupToPanelMap, container);
+		connectGroupRecords(g2, centerPoint, rootEgoNode, groupToPanelMap, container);
 	}
 
 	private static void connectCategoryNodes(final Graphics2D g2, final Point centerPoint, final Set<EgoNode> nodes,
@@ -91,25 +111,50 @@ final class EgoNetworkRenderer{
 			final JPanel targetPanel = nodeToPanelMap.get(node);
 			if(targetPanel != null){
 				final Point targetPoint = getPanelCenter(targetPanel, container);
-				drawOrthogonalLine(g2, centerPoint, targetPoint);
+				final Stroke stroke = pickStroke(node.getRelationsWithEgo());
+				drawOrthogonalLine(g2, centerPoint, targetPoint, stroke);
 			}
 		}
 	}
 
-	private static void connectGroupRecords(final Graphics2D g2, final Point centerPoint, final Set<FLEFRecord> groups,
-			final Map<FLEFRecord, JPanel> groupToPanelMap, final Component container){
-		for(final FLEFRecord groupRecord : groups){
+	private static void connectGroupRecords(final Graphics2D g2, final Point centerPoint,
+			final EgoNode rootEgoNode, final Map<FLEFRecord, JPanel> groupToPanelMap, final Component container){
+		for(final FLEFRecord groupRecord : rootEgoNode.getGroupRecords()){
 			final JPanel targetPanel = groupToPanelMap.get(groupRecord);
 			if(targetPanel != null){
 				final Point targetPoint = getPanelCenter(targetPanel, container);
-				drawOrthogonalLine(g2, centerPoint, targetPoint);
+				final Stroke stroke = pickStroke(rootEgoNode.getGroupRelationInfo(groupRecord));
+				drawOrthogonalLine(g2, centerPoint, targetPoint, stroke);
 			}
 		}
 	}
 
 	/**
-	 * Computes the center coordinates of a Swing component relative to the specified container.
+	 * Aggregates the statuses of a list of relations and returns the
+	 * corresponding stroke.
 	 */
+	private static Stroke pickStroke(final List<EgoNode.RelationInfo> relations){
+		if(relations == null || relations.isEmpty())
+			return STROKE_UNKNOWN;
+
+		boolean hasActive = false;
+		boolean hasEnded = false;
+		for(final EgoNode.RelationInfo info : relations){
+			final String status = info.status();
+			if(status == null)
+				continue;
+			if("active".equalsIgnoreCase(status))
+				hasActive = true;
+			else if("ended".equalsIgnoreCase(status))
+				hasEnded = true;
+		}
+		if(hasActive)
+			return STROKE_ACTIVE;
+		if(hasEnded)
+			return STROKE_ENDED;
+		return STROKE_UNKNOWN;
+	}
+
 	private static Point getPanelCenter(final JPanel panel, final Component container){
 		final Point localCenter = new Point(panel.getWidth() / 2, panel.getHeight() / 2);
 		return SwingUtilities.convertPoint(panel, localCenter, container);
@@ -123,27 +168,34 @@ final class EgoNetworkRenderer{
 	 * drawn directly to avoid rendering artifacts produced by some
 	 * platform-specific stroke implementations on zero-length segments.
 	 */
-	private static void drawOrthogonalLine(final Graphics2D g2, final Point start, final Point end){
-		if(start.x == end.x || start.y == end.y){
+	private static void drawOrthogonalLine(final Graphics2D g2, final Point start, final Point end, final Stroke stroke){
+		final Stroke original = g2.getStroke();
+		try{
+			g2.setStroke(stroke);
+			if(start.x == end.x || start.y == end.y){
+				g2.drawLine(start.x, start.y,
+					end.x, end.y);
+
+				return;
+			}
+
+			final int midX = (start.x + end.x) / 2;
+
+			// Horizontal segment to midpoint X
 			g2.drawLine(start.x, start.y,
+				midX, start.y);
+
+			// Vertical segment to end Y
+			g2.drawLine(midX, start.y,
+				midX, end.y);
+
+			// Horizontal segment to end X
+			g2.drawLine(midX, end.y,
 				end.x, end.y);
-
-			return;
 		}
-
-		final int midX = (start.x + end.x) / 2;
-
-		// Horizontal segment to midpoint X
-		g2.drawLine(start.x, start.y,
-			midX, start.y);
-
-		// Vertical segment to end Y
-		g2.drawLine(midX, start.y,
-			midX, end.y);
-
-		// Horizontal segment to end X
-		g2.drawLine(midX, end.y,
-			end.x, end.y);
+		finally{
+			g2.setStroke(original);
+		}
 	}
 
 }

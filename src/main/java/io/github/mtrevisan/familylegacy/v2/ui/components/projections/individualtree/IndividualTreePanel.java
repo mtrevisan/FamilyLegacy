@@ -34,6 +34,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualListener;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.services.kinship.KinshipDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.services.lifespan.MultiLifespanStripPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.services.pedigree.PedigreeCollapse;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.services.pedigree.PedigreeCollapseDetector;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.services.pedigree.PedigreeCollapseDialog;
@@ -62,17 +63,26 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serial;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
@@ -116,6 +126,7 @@ public class IndividualTreePanel extends JPanel implements TreeChangeListener, I
 	private static final String ACTION_OPEN_KINSHIP_DIALOG = "openKinshipDialog";
 	private static final String ACTION_TOGGLE_TREE_LAYOUT = "toggleTreeLayout";
 	private static final String ACTION_SHOW_PEDIGREE_COLLAPSE = "showPedigreeCollapse";
+	private static final String ACTION_TOGGLE_LIFESPANS_STRIP = "toggleLifespansStrip";
 
 
 	private final String[] allowedRelationshipTypes;
@@ -134,10 +145,19 @@ public class IndividualTreePanel extends JPanel implements TreeChangeListener, I
 	private int currentMaxGenerations;
 
 	// Map associating each TreeNode with its UI PartnersPanel
-	private final Map<TreeNode, PartnersPanel> nodeToPanelMap = new HashMap<>();
+	private final Map<TreeNode, PartnersPanel> nodeToPanelMap = new LinkedHashMap<>();
 
 	// Children block (Generation 1)
 	private SiblingsPanel childrenPanel;
+
+	/** Canvas that hosts the tree layout. */
+	private final JPanel treeCanvas = new TreeCanvas();
+	/** Collapsible strip showing the lifespans of the visible individuals. */
+	private final MultiLifespanStripPanel lifespansStrip;
+	/** Toggle bar always visible at the bottom. */
+	private final ToggleBar toggleBar = new ToggleBar();
+	/** Whether the lifespan strip is currently expanded. */
+	private boolean stripVisible;
 
 	/** Collapses detected in the current tree, keyed by individual id. */
 	private Map<String, PedigreeCollapse> collapsesByIndividualId = Map.of();
@@ -167,6 +187,26 @@ public class IndividualTreePanel extends JPanel implements TreeChangeListener, I
 		setupLayoutShortcut(this);
 		setupKinshipShortcut(this);
 		setupCollapseShortcut(this);
+
+		// The tree canvas must already be configured with the tree layout, so
+		// the strip is initialized after the initial refresh (which happens on
+		// the first loadTree call).
+		this.lifespansStrip = new MultiLifespanStripPanel(model);
+
+	// The panel uses BorderLayout: center = tree canvas, south = bottom bar
+	// (toggle header + strip). This is the only structural change needed to
+	// accommodate the strip without disturbing the tree layout.
+		setLayout(new BorderLayout());
+		add(treeCanvas, BorderLayout.CENTER);
+
+		final JPanel bottom = new JPanel(new BorderLayout());
+		bottom.add(toggleBar, BorderLayout.NORTH);
+		bottom.add(lifespansStrip, BorderLayout.CENTER);
+		add(bottom, BorderLayout.SOUTH);
+
+		lifespansStrip.setVisible(false);
+
+		setupStripShortcut(this);
 	}
 
 
@@ -196,7 +236,7 @@ public class IndividualTreePanel extends JPanel implements TreeChangeListener, I
 			currentMaxGenerations - 1);
 
 		// Clear previous UI sub-components
-		removeAll();
+		treeCanvas.removeAll();
 		nodeToPanelMap.clear();
 
 		rootNode = rootIndividualNode;
@@ -219,16 +259,18 @@ public class IndividualTreePanel extends JPanel implements TreeChangeListener, I
 			}
 		}
 
-		// Detect pedigree collapses before building the layout, so that the
-		// resulting panels can carry the badge from the first paint.
+		// Detect pedigree collapses before building the layout.
 		final List<PedigreeCollapse> collapses = PedigreeCollapseDetector.detect(rootNode, model);
 		collapsesByIndividualId = collapses.stream()
 			.collect(Collectors.toMap(PedigreeCollapse::individualId, Function.identity()));
 
 		buildLayout();
 		applyCollapseBadges();
+		updateStripIndividuals();
 
 		// Force Swing recalculate layout and repaint (including parent context if available)
+		treeCanvas.revalidate();
+		treeCanvas.repaint();
 		revalidate();
 		repaint();
 		if(getParent() != null){
@@ -243,9 +285,9 @@ public class IndividualTreePanel extends JPanel implements TreeChangeListener, I
 	 */
 	private void buildLayout(){
 		final EntityPopupMenuFactory<IndividualPanel, IndividualListener> popupFactory = new EntityTreePopupMenuFactory();
-		final TreeLayoutBuilder.LayoutResult result = TreeLayoutBuilder.buildLayout(this,
-			rootNode, showPartner, currentMaxGenerations, model, nodeToPanelMap, this, popupFactory,
-			treeMutator, treeLayout);
+		final TreeLayoutBuilder.LayoutResult result = TreeLayoutBuilder.buildLayout(treeCanvas,
+			rootNode, showPartner, currentMaxGenerations, model, nodeToPanelMap, this, popupFactory, treeMutator,
+			treeLayout);
 
 		childrenPanel = result.childrenPanel();
 	}
@@ -295,21 +337,6 @@ public class IndividualTreePanel extends JPanel implements TreeChangeListener, I
 				.append("<br>");
 		sb.append("</html>");
 		return sb.toString();
-	}
-
-	@Override
-	protected void paintComponent(final Graphics g){
-		super.paintComponent(g);
-
-		if(g instanceof Graphics2D g2){
-			g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-			g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-			g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-			g2.setColor(CONNECTION_LINE_COLOR);
-			g2.setStroke(PartnersPanel.CONNECTION_STROKE);
-
-			TreeRenderer.drawTree(g2, treeLayout, rootNode, nodeToPanelMap, childrenPanel, this);
-		}
 	}
 
 
@@ -682,6 +709,191 @@ public class IndividualTreePanel extends JPanel implements TreeChangeListener, I
 		dialog.setVisible(true);
 	}
 
+	/**
+	 * Installs the {@code Ctrl+T} shortcut that toggles the lifespan strip.
+	 *
+	 * @param component the component that receives the shortcut
+	 */
+	public void setupStripShortcut(final JComponent component){
+		final InputMap inputMap = component.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+		final ActionMap actionMap = component.getActionMap();
+
+		inputMap.put(GUIHelper.CTRL_T_STROKE, ACTION_TOGGLE_LIFESPANS_STRIP);
+		actionMap.put(ACTION_TOGGLE_LIFESPANS_STRIP, new AbstractAction(){
+			@Serial
+			private static final long serialVersionUID = -2837918204710294817L;
+
+			@Override
+			public void actionPerformed(final ActionEvent e){
+				toggleStrip();
+			}
+		});
+	}
+
+	/**
+	 * Toggles the visibility of the lifespan strip. Called both by the
+	 * keyboard shortcut and by the mouse click on the toggle bar.
+	 */
+	private void toggleStrip(){
+		stripVisible = !stripVisible;
+		lifespansStrip.setVisible(stripVisible);
+
+		toggleBar.repaint();
+		revalidate();
+		repaint();
+	}
+
+	/**
+	 * Collects the ids of every individual currently displayed in the tree
+	 * and passes them to the lifespan strip.
+	 * <p>
+	 * The collection is performed by walking the whole component hierarchy
+	 * under {@link #treeCanvas} and picking up every {@link IndividualPanel}
+	 * that has data. This captures:
+	 * <ul>
+	 *   <li>the root individual and its partner;</li>
+	 *   <li>every ancestor (father and mother of each couple node);</li>
+	 *   <li>the partners shown next to each ancestor, when the
+	 *       {@code showPartner} flag is enabled;</li>
+	 *   <li>every sibling displayed in the children panel.</li>
+	 * </ul>
+	 * Walking the component tree rather than the {@link TreeNode} map is the
+	 * only way to include the partners, which are not represented as separate
+	 * tree nodes but only as panels inside a {@code PartnersPanel}.
+	 * Duplicates are removed automatically by the {@link Set}.
+	 */
+	private void updateStripIndividuals(){
+		final Set<String> ids = new LinkedHashSet<>();
+		collectIndividualIds(treeCanvas, ids);
+		lifespansStrip.setIndividuals(ids);
+	}
+
+	/**
+	 * Recursively collects the ids of every {@link IndividualPanel} with
+	 * non-empty data found in the subtree rooted at the given component.
+	 *
+	 * @param component the root of the subtree to walk
+	 * @param ids       the accumulator set
+	 */
+	private static void collectIndividualIds(final Component component, final Set<String> ids){
+		if(component instanceof IndividualPanel panel){
+			final IndividualData data = panel.getData();
+			if(data != null && !data.isEmpty() && data.getId() != null)
+				ids.add(data.getId());
+		}
+		if(component instanceof Container container)
+			for(final Component child : container.getComponents())
+				collectIndividualIds(child, ids);
+	}
+
+	/**
+	 * Thin header bar at the bottom of the panel. Clicking it toggles the
+	 * lifespan strip.
+	 */
+	private final class ToggleBar extends JPanel{
+
+		@Serial
+		private static final long serialVersionUID = 5172038401928374591L;
+
+		private static final int HEIGHT = 20;
+		private static final Color BG = new Color(238, 234, 226);
+		private static final Color BG_HOVER = new Color(230, 225, 214);
+		private static final Color BORDER = new Color(210, 205, 195);
+		private static final Color TEXT = new Color(70, 60, 40);
+		private static final Font FONT = new Font("Tahoma", Font.PLAIN, 11);
+
+		private boolean hovered;
+
+
+		ToggleBar(){
+			setPreferredSize(new Dimension(0, HEIGHT));
+			setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+			addMouseListener(new MouseAdapter(){
+				@Override
+				public void mouseClicked(final MouseEvent e){
+					toggleStrip();
+				}
+
+				@Override
+				public void mouseEntered(final MouseEvent e){
+					hovered = true;
+					repaint();
+				}
+
+				@Override
+				public void mouseExited(final MouseEvent e){
+					hovered = false;
+					repaint();
+				}
+			});
+		}
+
+		@Override
+		protected void paintComponent(final Graphics g){
+			super.paintComponent(g);
+			if(!(g instanceof Graphics2D g2))
+				return;
+			g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+			g2.setColor(hovered? BG_HOVER: BG);
+			g2.fillRect(0, 0, getWidth(), getHeight());
+			g2.setColor(BORDER);
+			g2.drawLine(0, 0, getWidth(), 0);
+
+			// Arrow: drawn with a Path2D rather than a font glyph, because the
+			// Unicode triangle characters (U+25B6, U+25BC) are not present in
+			// every font on every platform and may render as replacement glyphs.
+			final int arrowSize = 8;
+			final int arrowX = 10;
+			final int arrowY = (getHeight() - arrowSize) / 2;
+			drawArrow(g2, arrowX, arrowY, arrowSize, stripVisible);
+
+			// Label.
+			final String label = "Lifespans";
+			g2.setFont(FONT);
+			g2.setColor(TEXT);
+			final FontMetrics fm = g2.getFontMetrics();
+			g2.drawString(label, arrowX + arrowSize + 6,
+				(getHeight() + fm.getAscent()) / 2 - 2);
+		}
+
+		/**
+		 * Draws a solid triangle arrow.
+		 * <p>
+		 * When {@code expanded} is {@code true}, the triangle points down
+		 * (▼); otherwise it points right (▶). The triangle is drawn with a
+		 * Path2D so that rendering does not depend on the presence of Unicode
+		 * geometric-shape characters in the current font.
+		 *
+		 * @param g2       the graphics context
+		 * @param x        the left edge of the triangle
+		 * @param y        the top edge of the triangle
+		 * @param size     the side length of the triangle
+		 * @param expanded whether the triangle points down (expanded) or right
+		 */
+		private static void drawArrow(final Graphics2D g2, final int x, final int y, final int size,
+				final boolean expanded){
+			final java.awt.geom.Path2D.Double path = new java.awt.geom.Path2D.Double();
+			if(expanded){
+				// Downward triangle: top-left, top-right, bottom-center.
+				path.moveTo(x, y);
+				path.lineTo(x + size, y);
+				path.lineTo(x + size / 2.0, y + size);
+			}
+			else{
+				// Rightward triangle: top-left, bottom-left, right-center.
+				path.moveTo(x, y);
+				path.lineTo(x, y + size);
+				path.lineTo(x + size, y + size / 2.0);
+			}
+			path.closePath();
+
+			g2.setColor(TEXT);
+			g2.fill(path);
+		}
+
+	}
+
 	/* ======================================================================
 	 *                          Helpers
 	 * ====================================================================== */
@@ -727,6 +939,45 @@ public class IndividualTreePanel extends JPanel implements TreeChangeListener, I
 			frame.setLocationRelativeTo(null);
 			frame.setVisible(true);
 		});
+	}
+
+
+	/**
+	 * Sub-panel that hosts the tree layout and draws the connection lines.
+	 * <p>
+	 * The tree content is no longer hosted directly by
+	 * {@link IndividualTreePanel}, because the panel now also contains the
+	 * bottom strip. The canvas is the single child of the center region and
+	 * inherits all the painting responsibilities that used to belong to the
+	 * outer panel.
+	 */
+	private final class TreeCanvas extends JPanel{
+
+		@Serial
+		private static final long serialVersionUID = -4019283750192847103L;
+
+
+		TreeCanvas(){
+			setBackground(BACKGROUND_COLOR_APPLICATION);
+			setOpaque(true);
+		}
+
+		@Override
+		protected void paintComponent(final Graphics g){
+			super.paintComponent(g);
+
+			if(!(g instanceof Graphics2D g2))
+				return;
+
+			g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+			g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+			g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+			g2.setColor(CONNECTION_LINE_COLOR);
+			g2.setStroke(PartnersPanel.CONNECTION_STROKE);
+
+			TreeRenderer.drawTree(g2, treeLayout, rootNode, nodeToPanelMap, childrenPanel, this);
+		}
+
 	}
 
 }

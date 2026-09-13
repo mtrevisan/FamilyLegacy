@@ -34,25 +34,18 @@ Il protocollo è già strutturato per una vista di gruppo completa.
 
 1. **Vista di appartenenza nel tempo.**
    Nessuna vista mostra la linea temporale di un gruppo con i suoi membri che entrano ed escono. Il `GroupViewPanel` che abbiamo abbozzato è una JTree + JTable, che copre l'elenco statico ma non il tempo.
-
 2. **Multi-appartenenza di un individuo.**
    Un individuo può appartenere a più gruppi contemporaneamente. Nessuna vista mostra "tutte le appartenenze di questa persona nel tempo".
-
 3. **Gerarchia tra gruppi.**
    `part_of` è un DAG con date. Nessuna vista mostra "questo gruppo contiene questi sottogruppi in questo periodo".
-
 4. **Interazioni tra gruppi.**
    `associate` tra gruppi non è visualizzato. Non è possibile vedere "quali gruppi erano in contatto".
-
 5. **Ruoli nel tempo.**
    Un individuo può essere `member` nel 1780, `secretary` nel 1785, `president` nel 1790. Il ruolo non è statico. Nessuna vista lo mostra come carriera.
-
 6. **Eventi del gruppo.**
    Fondazione, fusione, scioglimento, assemblee, processioni: sono in `EventRecord` ma non c'è una vista che li collochi sulla storia del gruppo.
-
 7. **Attributi di gruppo nel tempo.**
    `member_count` che passa da 20 a 200 in cinquant'anni, `residence` che si sposta, `wealth` che cambia: sono dati registrati ma invisibili.
-
 8. **Contesto storico-territoriale del gruppo.**
    Le riforme napoleoniche hanno sciolto confraternite; le leggi razziali hanno chiuso associazioni; un'epidemia ha ridotto una comunità. `ContextImpactRecord` permette di modellarlo, nessuna vista lo mostra.
 
@@ -527,3 +520,122 @@ Il punto 5 è il più complesso dei cinque: richiede algoritmi di graph drawing 
 ---
 
 In sintesi: albero biologico + Ego Network sono complementari ma parziali. Per sfruttare appieno FLEF servono viste specializzate aggiuntive: timeline, grafo sociale, mappa GIS, vista di gruppo e grafo di parentela estesa.
+
+
+======
+
+Sì, è possibile, ed è il passo naturale che chiude il cerchio: le due viste del switcher mostrano la **struttura** (chi è collegato a chi), il dialog di edit mostra i **dati grezzi** (i campi), ma manca la **visualizzazione sintetica** che rende quei dati leggibili a colpo d'occhio. Ecco cosa si può fare, categoria per categoria, con la stessa logica a layer che abbiamo usato per le altre viste.
+
+---
+
+## Eventi
+
+**Cosa si può mostrare graficamente:**
+
+1. **Timeline globale del modello** — tutti gli eventi di tutti gli individui su un unico asse temporale, raggruppati per tipo (birth, death, marriage, immigration, military_service, …). Filtrabile per persona, tipo, luogo, periodo. È il "registro cronologico" della famiglia.
+2. **Life map per individuo** — una barra orizzontale da nascita a morte, con gli eventi come marker colorati per tipo. Mostra a colpo d'occhio quanto è vissuto e cosa è successo quando. È la risposta visiva alla domanda "com'è stata la vita di questa persona?".
+3. **Event heatmap** — una griglia anno × mese con il numero di eventi per cella. Utile per scoprire periodi di densità (guerre, epidemie, migrazioni di massa).
+4. **Event network** — un grafo in cui i nodi sono eventi e gli archi sono partecipanti o luoghi condivisi. Mostra "questa famiglia si è sposata tre volte nella stessa chiesa" o "questi cinque eventi coinvolgono tutti lo stesso notaio".
+
+**Cosa hai già:** `TemporalProjectionPanel` copre la EVENT track. Manca la vista **globale** e la vista **heatmap**.
+
+---
+
+## Attributi individuali
+
+**Cosa si può mostrare graficamente:**
+
+1. **Occupational career chart** — una Gantt semplificata per individuo: barre orizzontali per ogni attributo `occupation`, con `valid_from` e `valid_to`. Mostra "contadino dal 1840 al 1860, poi negoziante fino al 1880".
+2. **Residence evolution** — già coperta in parte da `GeoMapPanel`, ma con una vista dedicata che mostra gli spostamenti di residenza senza eventi.
+3. **Social class / title timeline** — un grafico a linee che mostra l'evoluzione di `social_class`, `title`, `wealth` nel tempo.
+4. **Attribute matrix** — righe = individui, colonne = tipi di attributo, celle = valore con heatmap per frequenza. Utile per confrontare intere generazioni.
+
+**Cosa hai già:** `TemporalProjectionPanel` copre la ATTRIBUTE track. Manca la visualizzazione **comparativa** (matrix) e le **carriere** (Gantt).
+
+---
+
+## Fonti, citazioni, repository, documenti
+
+Questi sono la parte più trascurata dalle viste attuali, ma il protocollo dedica loro un'intera sezione.
+
+**Cosa si può mostrare graficamente:**
+
+1. **Source tree** — un albero gerarchico `Repository → Source → Document → Extract` con `crop` sulla mappa del documento. Ogni fonte è un nodo espandibile.
+2. **Citation provenance** — per un asserto qualsiasi (una data, una relazione, un attributo), mostra la catena di citazioni che lo supporta. È il "come lo sappiamo" reso visibile.
+3. **Document gallery** — griglia di thumbnail dei documenti, con overlay del `CropRect` per evidenziare le zone citate. Click su una thumbnail → si apre il documento intero con la crop evidenziata.
+4. **Source usage heatmap** — quali fonti sono più citate, quali mai. Utile per capire dove concentrare la ricerca.
+5. **Citation network** — grafo delle citazioni incrociate tra fonti. Mostra "questa fonte deriva da quell'altra" o "queste due fonti si contraddicono".
+
+**Cosa hai già:** nulla. Solo il dialog di edit mostra le citazioni come testo.
+
+---
+
+## Luoghi
+
+**Cosa si può mostrare graficamente:**
+
+1. **Place hierarchy tree** — albero dei luoghi per `administrative_part_of`, `ecclesiastical_part_of`, `judicial_part_of`, `cadastral_part_of`. Diverso da `GeoMapPanel` perché mostra la **gerarchia** senza coordinate.
+2. **Historical jurisdiction timeline** — per un luogo, una barra temporale che mostra sotto quale giurisdizione era in ogni periodo (Veneto → Lombardo-Veneto → Italia).
+3. **Place events heatmap** — per ogni luogo, quanti eventi ci sono stati, in quale periodo.
+
+**Cosa hai già:** `GeoMapPanel` copre la parte cartografica. Manca la **gerarchia storica** (che pure è nel protocollo).
+
+---
+
+## Contesto (historic events, cultural norms, context impacts)
+
+**Cosa si può mostrare graficamente:**
+
+1. **Context overlay su qualsiasi vista** — bande di sfondo su una timeline, icone su un albero, badge su una mappa. `TemporalProjectionPanel` lo fa già per le bande. Si può estendere a tutte le viste.
+2. **Impact network** — grafo che collega `HistoricEventRecord` e `CulturalNormRecord` ai target che impattano. Mostra "questa epidemia ha causato queste emigrazioni" o "questa norma ha vincolato questi matrimoni".
+3. **Timeline contestuale** — una linea temporale con solo historic events e norme, senza individui. Utile per inquadrare il periodo storico.
+
+**Cosa hai già:** solo le bande in `TemporalProjectionPanel`. Manca la vista **dedicata al contesto** e la vista **impact network**.
+
+---
+
+## Meta-informazioni (privacy, audit, evidence)
+
+Questi non richiedono viste dedicate ma **overlay su viste esistenti**. Sono l'aggiunta più economica e ad alto valore.
+
+1. **Evidence badges** — su ogni box/connettore/marker delle viste esistenti, mostra un piccolo indicatore del `EvidenceQualifiers`: verde per `direct`, giallo per `indirect`, rosso per `negative`, e un bordo diverso per `original`/`derived`. Un colpo d'occhio e si vede la qualità delle fonti.
+2. **Privacy icons** — su ogni record con `PrivacyStructure.level != public`, una piccola icona a lucchetto. Quando si esporta o si condivide, sapere cosa è confidenziale è essenziale.
+3. **Audit tooltip** — sul tooltip di ogni record, mostra data di creazione e ultima modifica. Utile per capire "quando è stata inserita questa informazione".
+
+**Cosa hai già:** nulla. Ma sono le aggiunte più semplici: bastano piccoli marker sul rendering dei box esistenti, come hai fatto col badge del pedigree collapse.
+
+---
+
+## Priorità suggerita
+
+Se dovessi scegliere un ordine di implementazione, partirei dalle cose che **rendono visibile l'invisibile** senza richiedere nuove viste complete:
+
+**Priorità alta (overlay su viste esistenti):**
+1. **Evidence badges** su `IndividualPanel`, `PartnersPanel`, `GroupPanel`. Verde/giallo/rosso in base a `EvidenceQualifiers`. Piccolo, immediato.
+2. **Privacy icons** sugli stessi. Piccolo, immediato.
+3. **Status e date delle relazioni** sui connettori. Verde per active, tratteggiato per ended, puntinato per unknown. Già pronto nel renderer temporale, va solo portato su `TreeRenderer` e `EgoNetworkRenderer`.
+
+**Priorità media (viste nuove ma piccole):**
+4. **Source tree dialog** — un `Ctrl+Shift+S` che apre una `JTree` con Repository → Source → Document → Extract. Riusa il pattern del `GroupViewPanel` (che avevi scartato come vista di esplorazione, ma che qui va benissimo perché la gerarchia delle fonti è naturale).
+5. **Document gallery** — un pannello che mostra i documenti con le crop evidenziate. `Ctrl+Shift+D`.
+6. **Life map per individuo** — una piccola timeline orizzontale nella scheda individuo, non una vista separata.
+
+**Priorità bassa (viste complete):**
+7. **Global event timeline** — la vista `TemporalProjectionPanel` estesa a tutti gli individui.
+8. **Impact network** — il grafo dei `ContextImpactRecord`.
+9. **Citation network** — il grafo delle citazioni incrociate.
+
+---
+
+## Risposta diretta
+
+Sì, è possibile. Ma il punto non è "possiamo disegnare i campi", è **cosa vogliamo che l'utente veda a colpo d'occhio**. Le due viste del switcher dicono "chi è collegato a chi". La timeline dice "quando". La mappa dice "dove". Il sociale dice "con chi altro". Manca:
+
+- **"cosa ha fatto"** → timeline degli eventi + carriere
+- **"cosa sappiamo e quanto bene"** → evidence overlay + source tree
+- **"cosa lo ha influenzato"** → contesto + impact network
+- **"cosa resta da fare"** → research questions + conclusions
+
+Le prime tre sono visualizzabili oggi stesso con piccole aggiunte alle viste esistenti. Le ultime due richiedono viste nuove ma sono comunque implementabili con i pattern già usati.
+
+Se vuoi, posso partire da una di queste direzioni. La più economica e più utile è probabilmente l'**evidence overlay**: 20 righe di codice per pannello, e l'utente inizia a vedere la qualità delle informazioni direttamente sui box.

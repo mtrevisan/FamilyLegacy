@@ -62,6 +62,7 @@ class EgoNetworkService{
 
 	private static final String TAG_TYPE = "type";
 	private static final String TAG_ROLE = "role";
+	private static final String TAG_STATUS = "status";
 	private static final String TAG_SUBJECT = "subject";
 	private static final String TAG_TARGET = "target";
 	private static final String TAG_PARTICIPANT = "participant";
@@ -120,6 +121,7 @@ class EgoNetworkService{
 		for(final FLEFRecord relationship : relationshipsByEntityId.getOrDefault(egoId, List.of())){
 			final String type = FLEFRecordHelper.getChildValue(relationship, TAG_TYPE);
 			final String role = FLEFRecordHelper.getChildValue(relationship, TAG_ROLE);
+			final String status = normalizeStatus(FLEFRecordHelper.getChildValue(relationship, TAG_STATUS));
 			if(type == null)
 				continue;
 
@@ -130,17 +132,28 @@ class EgoNetworkService{
 
 			// Process relationships where Ego is the Subject
 			if(egoId.equals(subjectId))
-				processEgoAsSubject(egoNode, type, role, targetId);
+				processEgoAsSubject(egoNode, type, role, status, targetId);
 
 			// Process relationships where Ego is the Target
 			if(egoId.equals(targetId))
-				processEgoAsTarget(egoNode, type, role, subjectId);
+				processEgoAsTarget(egoNode, type, role, status, subjectId);
 		}
 
 		return egoNode;
 	}
 
-	private void processEgoAsSubject(final EgoNode egoNode, final String type, final String role, final String targetId){
+	private static String normalizeStatus(final String raw){
+		if(raw == null)
+			return "unknown";
+		return switch(raw.toLowerCase()) {
+			case "active" -> "active";
+			case "ended"  -> "ended";
+			default       -> "unknown";
+		};
+	}
+
+	private void processEgoAsSubject(final EgoNode egoNode, final String type, final String role, final String status,
+			final String targetId){
 		final FLEFRecord targetRecord = model.getRecordById(targetId);
 		if(targetRecord == null)
 			return;
@@ -148,30 +161,30 @@ class EgoNetworkService{
 		if(isChildType(type))
 			// Ego is child -> target is a parent
 			getOrAddRelatedIndividual(egoNode, EgoNode.RelationshipCategory.PARENT, targetRecord, type, role,
-				false);
+				status, false);
 		else if(isPartnerType(type))
 			// Ego is partner -> target is a partner
 			getOrAddRelatedIndividual(egoNode, EgoNode.RelationshipCategory.PARTNER, targetRecord, type, role,
-				false);
+				status, false);
 		else if(ENUM_TYPE_GROUP_MEMBER.equals(type) || ENUM_TYPE_PART_OF.equals(type)){
 			// group_member (Individual -> Group) and part_of (Group -> Group):
 			// Ego is the member/sub-group, the target is the enclosing group
 			if(isGroup(targetRecord))
-				getOrAddRelatedGroup(egoNode, targetRecord, type, role, false);
+				getOrAddRelatedGroup(egoNode, targetRecord, type, role, status, false);
 			else
 				getOrAddRelatedIndividual(egoNode, EgoNode.RelationshipCategory.PARENT, targetRecord, type, role,
-					false);
+					status, false);
 		}
 		else if(ENUM_TYPE_ASSOCIATE.equals(type)){
 			if(isGroup(targetRecord))
-				getOrAddRelatedGroup(egoNode, targetRecord, type, role, false);
+				getOrAddRelatedGroup(egoNode, targetRecord, type, role, status, false);
 			else
 				getOrAddRelatedIndividual(egoNode, EgoNode.RelationshipCategory.ASSOCIATE, targetRecord, type, role,
-					false);
+					status, false);
 		}
 	}
 
-	private void processEgoAsTarget(final EgoNode egoNode, final String type, final String role,
+	private void processEgoAsTarget(final EgoNode egoNode, final String type, final String role, final String status,
 			final String subjectId){
 		final FLEFRecord subjectRecord = model.getRecordById(subjectId);
 		if(subjectRecord == null)
@@ -180,26 +193,26 @@ class EgoNetworkService{
 		if(isChildType(type))
 			// Subject is child -> Ego is a parent
 			getOrAddRelatedIndividual(egoNode, EgoNode.RelationshipCategory.CHILD, subjectRecord, type, role,
-				true);
+				status, true);
 		else if(isPartnerType(type))
 			// Subject is partner -> Ego is a partner
 			getOrAddRelatedIndividual(egoNode, EgoNode.RelationshipCategory.PARTNER, subjectRecord, type, role,
-				true);
+				status, true);
 		else if(ENUM_TYPE_GROUP_MEMBER.equals(type) || ENUM_TYPE_PART_OF.equals(type)){
 			// group_member (Individual -> Group) and part_of (Group -> Group):
 			// Ego is the group/super-group, the subject is the member/sub-group
 			if(isGroup(subjectRecord))
-				getOrAddRelatedGroup(egoNode, subjectRecord, type, role, true);
+				getOrAddRelatedGroup(egoNode, subjectRecord, type, role, status, true);
 			else
 				getOrAddRelatedIndividual(egoNode, EgoNode.RelationshipCategory.CHILD, subjectRecord, type, role,
-					true);
+					status, true);
 		}
 		else if(ENUM_TYPE_ASSOCIATE.equals(type)){
 			if(isGroup(subjectRecord))
-				getOrAddRelatedGroup(egoNode, subjectRecord, type, role, true);
+				getOrAddRelatedGroup(egoNode, subjectRecord, type, role, status, true);
 			else
 				getOrAddRelatedIndividual(egoNode, EgoNode.RelationshipCategory.ASSOCIATE, subjectRecord, type, role,
-					true);
+					status, true);
 		}
 	}
 
@@ -208,12 +221,12 @@ class EgoNetworkService{
 	}
 
 	private static void getOrAddRelatedGroup(final EgoNode egoNode, final FLEFRecord record, final String type,
-			final String role, final boolean isInverse){
-		egoNode.addGroupRecord(record, type, role, isInverse);
+			final String role, final String status, final boolean isInverse){
+		egoNode.addGroupRecord(record, type, role, status, isInverse);
 	}
 
 	private void getOrAddRelatedIndividual(final EgoNode egoNode, final EgoNode.RelationshipCategory category,
-			final FLEFRecord record, final String type, final String role, final boolean isInverse){
+			final FLEFRecord record, final String type, final String role, final String status, final boolean isInverse){
 		EgoNode targetNode = null;
 		for(final EgoNode existingNode : egoNode.getRelatedNodes(category))
 			if(record.getId().equals(existingNode.getEgoId())){
@@ -228,7 +241,7 @@ class EgoNetworkService{
 			egoNode.addRelatedNode(category, targetNode);
 		}
 
-		targetNode.addRelationInfo(type, role, isInverse);
+		targetNode.addRelationInfo(type, role, status, isInverse);
 	}
 
 	private String extractParticipantId(final FLEFRecord relRecord, final String fieldTag){

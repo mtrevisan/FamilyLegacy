@@ -54,7 +54,7 @@ import java.util.Set;
  */
 final class EgoNode{
 
-	public record RelationInfo(String type, String role, boolean isInverse){}
+	public record RelationInfo(String type, String role, String status, boolean isInverse){}
 
 
 	/**
@@ -103,8 +103,8 @@ final class EgoNode{
 		return (egoData != null? egoData.getId(): null);
 	}
 
-	public void addRelationInfo(final String type, final String role, final boolean isInverse){
-		relationsWithEgo.add(new RelationInfo(type, role, isInverse));
+	public void addRelationInfo(final String type, final String role, final String status, final boolean isInverse){
+		relationsWithEgo.add(new RelationInfo(type, role, status, isInverse));
 	}
 
 	/**
@@ -133,12 +133,12 @@ final class EgoNode{
 	}
 
 
-	public void addGroupRecord(final FLEFRecord groupRecord, final String type, final String role,
+	public void addGroupRecord(final FLEFRecord groupRecord, final String type, final String role, final String status,
 			final boolean isInverse){
 		if(groupRecord != null){
 			groupRecords.add(groupRecord);
 			groupRelationsMap.computeIfAbsent(groupRecord, k -> new ArrayList<>())
-				.add(new RelationInfo(type, role, isInverse));
+				.add(new RelationInfo(type, role, status, isInverse));
 		}
 	}
 

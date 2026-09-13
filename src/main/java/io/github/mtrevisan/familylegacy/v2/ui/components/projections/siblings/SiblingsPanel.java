@@ -163,8 +163,8 @@ public class SiblingsPanel extends JPanel{
 							g2.setStroke(PartnersPanel.CONNECTION_STROKE_ADOPTED);
 
 						final Point point = enterPoints[i];
-						g2.drawLine(point.x, point.y,
-							point.x, 1);
+						g2.drawLine(point.x, 1,
+							point.x, point.y + 2);
 
 						if(!biological)
 							g2.setStroke(PartnersPanel.CONNECTION_STROKE);
