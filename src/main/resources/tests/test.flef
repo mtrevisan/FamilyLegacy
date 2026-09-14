@@ -468,7 +468,7 @@ records {
 	}
 
 	RELATIONSHIP RL2 {
-		TYPE custom
+		TYPE associate
 		ROLE president
 		SUBJECT.GROUP G1
 		TARGET.INDIVIDUAL I1

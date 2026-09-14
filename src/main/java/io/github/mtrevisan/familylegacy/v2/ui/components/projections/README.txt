@@ -251,28 +251,20 @@ Ogni `RelationshipRecord` porta `source`, `note`, `evidence`, `valid_from` / `va
 
 1. **Nessun calcolo di consanguineità.**
    Non esiste né il coefficiente di inbreeding di Wright `F` per un individuo, né il coefficiente di relazione `R` tra due individui.
-
 2. **Nessuna identificazione di antenati comuni.**
    "Chi è l'antenato comune più recente tra A e B?" non è calcolato da nessuna parte.
-
 3. **Nessuna gestione visiva del pedigree collapse.**
    L'albero genealogico standard duplica i nodi quando un individuo compare più volte nella stessa ascendenza. Con l'endogamia, la duplicazione esplode: un individuo che ha 6 generazioni di endogamia può avere alberi "virtuali" di milioni di nodi, ma solo poche centinaia di individui distinti.
-
 4. **Nessun grafo unificato.**
    Servirebbe un DAG in cui ogni individuo è un nodo singolo, con i legami di filiazione come archi diretti. La consanguineità diventa visibile come **convergenza di cammini**: due sposi che condividono un antenato sono collegati attraverso due percorsi che si ricongiungono.
-
 5. **Nessuna vista dei loop.**
    La consanguineità produce "anelli": A è figlio di B e C; B e C sono cugini; quindi A ha un antenato che appare due volte nel suo albero. Nessuna vista mostra questi anelli.
-
 6. **Nessuna vista delle unioni consanguinee.**
    Nella rete sociale, un matrimonio tra cugini è solo un matrimonio. Non viene segnalato come consanguineo.
-
 7. **Nessun coefficiente visibile.**
    Se due coniugi sono cugini primi, il coefficiente di relazione `R = 1/8`. Se sono zio-nipote, `R = 1/4`. Se sono fratelli, `R = 1/2`. Questi valori non sono calcolati né mostrati.
-
 8. **Nessuna query di parentela.**
    "Come sono imparentati A e B?" non ha risposta nell'applicazione attuale.
-
 9. **Nessuna gestione dei pedigree collapse reali.**
    Le genealogie nobiliari e le comunità chiuse (villaggi alpini, isole, comunità religiose) hanno collassi profondi. Servono strutture dati che non esplodano in memoria.
 
@@ -561,7 +553,7 @@ Questi sono la parte più trascurata dalle viste attuali, ma il protocollo dedic
 **Cosa si può mostrare graficamente:**
 
 1. **Source tree** — un albero gerarchico `Repository → Source → Document → Extract` con `crop` sulla mappa del documento. Ogni fonte è un nodo espandibile.
-2. **Citation provenance** — per un asserto qualsiasi (una data, una relazione, un attributo), mostra la catena di citazioni che lo supporta. È il "come lo sappiamo" reso visibile.
+2. **Citation provenance** — per un asserzione qualsiasi (una data, una relazione, un attributo), mostra la catena di citazioni che lo supporta. È il "come lo sappiamo" reso visibile.
 3. **Document gallery** — griglia di thumbnail dei documenti, con overlay del `CropRect` per evidenziare le zone citate. Click su una thumbnail → si apre il documento intero con la crop evidenziata.
 4. **Source usage heatmap** — quali fonti sono più citate, quali mai. Utile per capire dove concentrare la ricerca.
 5. **Citation network** — grafo delle citazioni incrociate tra fonti. Mostra "questa fonte deriva da quell'altra" o "queste due fonti si contraddicono".
@@ -639,3 +631,74 @@ Sì, è possibile. Ma il punto non è "possiamo disegnare i campi", è **cosa vo
 Le prime tre sono visualizzabili oggi stesso con piccole aggiunte alle viste esistenti. Le ultime due richiedono viste nuove ma sono comunque implementabili con i pattern già usati.
 
 Se vuoi, posso partire da una di queste direzioni. La più economica e più utile è probabilmente l'**evidence overlay**: 20 righe di codice per pannello, e l'utente inizia a vedere la qualità delle informazioni direttamente sui box.
+
+
+===
+
+Per essere davvero completo servirebbero almeno un NotePanel, un SourceViewer, un DateInspector, un EvidenceExplorer e
+un PlaceMap. Con questi cinque, la copertura dell'individuo e del gruppo sarebbe effettivamente esaustiva.
+
+
+===
+
+Dipende dall'obiettivo. Se l'obiettivo è **coprire il protocollo FLEF**, le priorità sono diverse da "rendere l'app più usabile". Ti do due liste separate.
+
+## Per coprire il protocollo FLEF
+
+Queste sono le UI che oggi **mancano del tutto** e che corrispondono a record type presenti nel protocollo:
+
+1. **Editor per `SourceRecord`, `RepositoryRecord`, `DocumentRecord`, `RepositoryCitation`, `ExtractStructure`.** Oggi il dossier mostra solo titolo e locator. Manca tutto il resto: `author`, `publisher`, `media_type`, `repository*`, `document*`, `extract.text`, `extract.type` (verbatim/summarized/translated/normalized), `extract.locale`, `extract.document_part.crop`. È l'area più scoperta.
+2. TODO **Vista "Research"**: question → activity → task → conclusion. Oggi `ResearchActivityRecord` e `ResearchTaskRecord` non hanno UI. Serve un pannello con:
+   - lista delle `ResearchQuestion` con status, confidence, rationale, closed_date
+   - timeline delle `ResearchActivity` collegate
+   - task list con priorità e due date
+   - link alle `Conclusion` che le risolvono
+3. DONE **Vista "Place"**: gerarchia dei luoghi tramite `PlaceRelationshipRecord`, con tipo di relazione (administrative, ecclesiastical, judicial, cadastral), validità, e un albero navigabile. Oggi i luoghi appaiono solo come etichette degli eventi.
+4. **Vista "Context"**: `HistoricEvent` e `CulturalNorm` come entità di prima classe, non solo come target di `ContextImpact`. Con la possibilità di creare/modificare eventi storici e norme culturali.
+5. DONE **Editor completo per `IdentityHypothesis`**: con visualizzazione side-by-side dei due candidati, differenze campo per campo, e pulsante "crea conclusion" che collega i due record.
+6. **Editor per `ContactStructure`, `CropRect`, `Approximate` (con `basis` e `margin`), `BoundedDate` e `SpanningDate`, `CenturyPart`.** Sono tipi embedded che il parser probabilmente legge ma l'editor non produce.
+7. **Privacy enforcement**: pannello impostazioni con "mostra dati confidential", filtro globale, e indicatore visivo nelle viste quando un record è `restricted` o `confidential`. Oggi la privacy è letta ma mai applicata.
+8. **Validation report**: alla apertura di un file, un pannello che elenca le violazioni delle regole del protocollo (reference rotte, cicli, `preferred` non in `resolves`, ecc.). Un pulsante "go to record" per ogni violazione.
+9. **Audit viewer**: dialog "Info record" che mostra `creation.date`, `creation.comment`, `update*`. Oggi l'audit non è mai mostrato.
+
+## Per usabilità generale
+
+Queste non sono richieste dal protocollo, ma cambiano molto l'esperienza d'uso:
+
+1. DONE **Ricerca globale** (Ctrl+F): per nome, per id, per luogo, per fonte. Con risultati raggruppati e click che apre il record nel contesto giusto.
+2. DONE**Cronologia di navigazione** (back/forward), come in un browser. Ogni re-rooting, ogni selezione è una tappa. Servirebbe soprattutto con il Sugiyama e l'EgoNetwork, dove ci si perde facilmente.
+3. DONE **Segnalibri / "viste salvate"**: salva un root, un insieme di individui visibili, un gruppo, etc, e richiamali con un click.
+4. **Status bar** in basso con: id dell'individuo selezionato, numero di record visibili, stato di modifica (`modificato` / `salvato`), eventuale messaggio.
+5. **Indicatore di modifiche non salvate** sulla title bar (`Family Legacy — file.flef *`), con dialog di conferma alla chiusura.
+6. TODO **Undo/redo** (Ctrl+Z / Ctrl+Y). Serve un command stack. Non è banale con un modello condiviso, ma è quello che manca di più dopo un edit sbagliato.
+7. **Autosalvataggio** ogni N minuti, con backup su file separato.
+8. TODO **Pannello "Modifiche recenti"**: ultime 50 modifiche con timestamp, record toccato, tipo di operazione. Utile in sessioni lunghe.
+9. DONE **Confronto side-by-side** di due individui: differenze campo per campo. Riusa la logica dell'`IdentityHypothesis`.
+10. **Filtri sul dossier**: mostra/nascondi sezioni, filtra per tipo di evento, per intervallo di date, per presenza di fonte. Oggi il dossier mostra tutto o niente.
+11. **Tooltip arricchiti** su tutti gli elementi: già fatti per alcuni (chronomap, lifespan), ma mancano su albero, Sugiyama, EgoNetwork. Un tooltip con nome completo, date, luogo di nascita/morte, e conteggio eventi.
+12. DONE F2 **Scorciatoie da tastiera** per le azioni frequenti: Ctrl+E per cambiare proiezione (esiste), Ctrl+F per ricerca, Ctrl+S per salvare, Ctrl+Z/Y undo/redo, F2 per edit, Canc per delete, frecce per navigare tra fratelli/genitori/figli.
+
+## DONE Per le viste grafiche
+
+1. **Albero**: filtri per mostrare/nascondere rami, espansione/collasso di sottoalberi, evidenziazione del percorso tra due individui.
+2. **Sugiyama**: possibilità di **trascinare i box** per riposizionarli manualmente, con "pin" della posizione. Oggi il layout è automatico e non negoziabile.
+3. **EgoNetwork**: filtro per tipo di relazione (mostra solo spouse, solo child, solo associate), e un toggle "includi gruppi / escludi gruppi".
+4. DONE **Lifespan strip**: colorazione per epoca, evidenziazione degli intervalli sovrapposti al passaggio del mouse, e click su una banda di attributo che apre il record.
+5. DONE **Chronomap**: layer multipli (confini storici, mappe antiche), filtro per tipo di evento, e un "trail" che mostra il percorso di una persona nel tempo invece del solo marker corrente.
+6. DONE **Vista "Agorà"**: pannello che mostra, per una data specifica, chi era vivo e dove. Utile per contestualizzare un evento.
+
+## Per l'import/export
+
+1. **Export PDF** del dossier di un individuo, con tutte le sezioni, sources incluse.
+2. **Export immagine** (PNG/SVG) di una vista grafica.
+3. **Export GEDCOM** (con perdita di fedeltà, ma richiesto da molti).
+4. **Export CSV** di sottoinsiemi (tutti gli individui nati in un luogo, tutti gli eventi di un tipo).
+5. **Stampa** del dossier o di una vista.
+
+## Se dovessi scegliere tre cose
+
+1. DONE **Ricerca globale + cronologia di navigazione**. Trasformano l'app da "esplorabile cliccando" a "usabile davvero".
+2. DONE **Editor completo per Source / Repository / Document / Extract**. È il buco più grosso rispetto al protocollo e sblocca la parte "evidence" che oggi è monca.
+3. **Validation report + privacy enforcement**. Sono i due aspetti in cui l'app oggi può produrre o mostrare dati che violano le regole.
+
+Il resto è rifinitura: utile, ma nessuna di queste tre è sostituibile con le altre.

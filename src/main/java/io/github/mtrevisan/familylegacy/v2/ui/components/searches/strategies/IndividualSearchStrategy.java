@@ -54,7 +54,6 @@ public class IndividualSearchStrategy implements SearchStrategy{
 	private static final String TAG_SEX = "sex";
 	private static final String TAG_TYPE = "type";
 	private static final String TAG_DATE = "date";
-	private static final String TAG_PLACE = "place";
 	private static final String TAG_PARTICIPANT = "participant";
 	private static final String TAG_INDIVIDUAL = "individual";
 	private static final String TAG_EVENT = "event";
@@ -167,7 +166,7 @@ public class IndividualSearchStrategy implements SearchStrategy{
 
 		// Location
 		if(StringUtils.isNotEmpty(eventLocation)){
-			final FLEFRecord placeCitation = FLEFRecordHelper.findChild(event, TAG_PLACE);
+			final FLEFRecord placeCitation = FLEFRecordHelper.findChild(event, PlaceHandler.TYPE);
 			if(placeCitation != null){
 				final String placeId = placeCitation.getTheOnlyChild().getValue();
 				final FLEFRecord placeRecord = model.getRecordById(placeId);

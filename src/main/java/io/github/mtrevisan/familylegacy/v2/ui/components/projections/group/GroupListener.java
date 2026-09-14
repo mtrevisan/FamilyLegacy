@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.components.projections.group;
 
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.TreeOperation;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.EntityListener;
 
@@ -34,6 +35,19 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.
 public interface GroupListener extends EntityListener{
 
 	void onGroupAddOrConnect(TreeOperation operation);
+
+	void onGroupUnlink(GroupPanel selectedPanel, FLEFRecord group);
+
+	/**
+	 * Called when the user selects a group panel by clicking on it
+	 * (outside the name label). Selection is a lighter action than
+	 * navigation: the panel is highlighted and any detail panel observing
+	 * the selection is populated, but the view is not re-rooted.
+	 *
+	 * @param selectedPanel the panel that was selected
+	 * @param group         the group displayed by the panel
+	 */
+	void onGroupSelected(GroupPanel selectedPanel, FLEFRecord group);
 
 	/**
 	 * Pastes the group from the clipboard into the current context.

@@ -33,8 +33,14 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ContextImpactHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventParticipationHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.IdentityHypothesisHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NameHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceRelationshipHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
@@ -98,13 +104,6 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 	private static final String TAG_PRIVACY = "PRIVACY";
 	private static final String TAG_AUDIT = "AUDIT";
 
-	private static final String TAG_PLACE_RELATIONSHIP = "PLACE_RELATIONSHIP";
-	private static final String TAG_EVENT_PARTICIPATION = "EVENT_PARTICIPATION";
-	private static final String TAG_CONTEXT_IMPACT = "CONTEXT_IMPACT";
-	private static final String TAG_CONCLUSION = "CONCLUSION";
-	private static final String TAG_IDENTITY_HYPOTHESIS = "IDENTITY_HYPOTHESIS";
-	private static final String TAG_RESEARCH_QUESTION = "RESEARCH_QUESTION";
-
 
 	private final JPanel propertiesPanel;
 
@@ -142,13 +141,13 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.PLACE_RELATIONSHIP_ON_SUBJECT, TAG_PLACE_RELATIONSHIP, "Members")
-			.withComponent(PanelKey.PLACE_RELATIONSHIP_ON_TARGET, TAG_PLACE_RELATIONSHIP, "Relationships")
-			.withComponent(PanelKey.EVENT_PARTICIPATION_ON_PARTICIPANT, TAG_EVENT_PARTICIPATION, "Participations")
-			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, TAG_CONTEXT_IMPACT, "Context Impacts")
-			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, TAG_CONCLUSION, "Conclusions")
-			.withComponent(PanelKey.IDENTITY_HYPOTHESIS_ON_IDENTITY, TAG_IDENTITY_HYPOTHESIS, "Identity Hypotheses")
-			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, TAG_RESEARCH_QUESTION, "Research Questions")
+			.withComponent(PanelKey.PLACE_RELATIONSHIP_ON_SUBJECT, PlaceRelationshipHandler.TYPE, "Members")
+			.withComponent(PanelKey.PLACE_RELATIONSHIP_ON_TARGET, PlaceRelationshipHandler.TYPE, "Relationships")
+			.withComponent(PanelKey.EVENT_PARTICIPATION_ON_PARTICIPANT, EventParticipationHandler.TYPE, "Participations")
+			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, ContextImpactHandler.TYPE, "Context Impacts")
+			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, "Conclusions")
+			.withComponent(PanelKey.IDENTITY_HYPOTHESIS_ON_IDENTITY, IdentityHypothesisHandler.TYPE, "Identity Hypotheses")
+			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, "Research Questions")
 			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources with Citations")
 			.withComponent(PanelKey.EVIDENCE, TAG_EVIDENCE, "Evidence")
 			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null)

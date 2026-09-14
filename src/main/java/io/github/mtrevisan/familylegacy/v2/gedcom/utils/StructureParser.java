@@ -547,7 +547,7 @@ public class StructureParser{
 			return null;
 		}
 
-		final StringBuilder fullAddr = new StringBuilder(addrNode.getValue() != null ? GEDCOMHelper.extractFullText(addrNode) : "");
+		final StringBuilder fullAddr = new StringBuilder(addrNode.getValue() != null? GEDCOMHelper.extractFullText(addrNode): StringUtils.EMPTY);
 		for(String subTag : List.of("ADR1", "ADR2", "ADR3", "CITY", "STAE", "POST", "CTRY")){
 			GEDCOMNode sub = GEDCOMHelper.findFirstChild(addrNode, subTag);
 			if(sub != null && sub.getValue() != null){

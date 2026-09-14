@@ -72,9 +72,6 @@ public class EgoNetworkIndividualPopupMenuFactory implements EntityPopupMenuFact
 		popup.addPopupMenuListener(new PopupMenuAdapter(){
 			@Override
 			public void popupMenuWillBecomeVisible(final PopupMenuEvent e){
-				if(listener != null)
-					listener.onEntitySelected(panel);
-
 				final IndividualData data = panel.getData();
 				final boolean hasData = (data != null && !data.isEmpty());
 				final boolean hasIndividuals = model.hasRecordsByType(IndividualHandler.TYPE);
@@ -100,13 +97,13 @@ public class EgoNetworkIndividualPopupMenuFactory implements EntityPopupMenuFact
 		PopupMenuHelper.addMenuItem(popup, editItem, panel, record -> listener.onEntityEdit(record));
 		if(isEgo){
 			popup.addSeparator();
-			PopupMenuHelper.addMenuItem(popup, addChildItem, panel, record -> listener.onChildAddOrConnect(TreeOperation.ADD));
-			PopupMenuHelper.addMenuItem(popup, connectChildItem, panel, record -> listener.onChildAddOrConnect(TreeOperation.CONNECT));
+			PopupMenuHelper.addMenuItem(popup, addChildItem, panel, record -> listener.onChildAddOrConnect(panel, TreeOperation.ADD));
+			PopupMenuHelper.addMenuItem(popup, connectChildItem, panel, record -> listener.onChildAddOrConnect(panel, TreeOperation.CONNECT));
 		}
 		popup.addSeparator();
 		PopupMenuHelper.addMenuItem(popup, deleteItem, panel, record -> listener.onEntityRemove(record));
 		popup.addSeparator();
-		PopupMenuHelper.addMenuItem(popup, unlinkItem, panel, record -> listener.onEntityUnlink(record));
+		PopupMenuHelper.addMenuItem(popup, unlinkItem, panel, record -> listener.onIndividualUnlink(panel, record));
 
 		return popup;
 	}

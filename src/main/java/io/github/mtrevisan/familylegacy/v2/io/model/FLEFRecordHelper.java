@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.v2.io.model;
 
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 
@@ -52,7 +53,6 @@ public final class FLEFRecordHelper{
 	private static final String DOT = ".";
 
 	private static final String TAG_DATE = "date";
-	private static final String TAG_PLACE = "place";
 	private static final String TAG_VALUE = "value";
 	private static final String TAG_POINT = "point";
 	private static final String TAG_BOUNDED = "bounded";
@@ -74,7 +74,7 @@ public final class FLEFRecordHelper{
 	private static final String TAG_CENTURY_APPROXIMATE_BASIS = TAG_CENTURY + DOT + TAG_APPROXIMATE + DOT + TAG_BASIS;
 	private static final String TAG_DECADE_APPROXIMATE_BASIS = TAG_DECADE + DOT + TAG_APPROXIMATE + DOT + TAG_BASIS;
 	private static final String TAG_FULL_DATE_APPROXIMATE_BASIS = TAG_FULL_DATE + DOT + TAG_APPROXIMATE + DOT + TAG_BASIS;
-	private static final String TAG_PLACE_PLACE = TAG_PLACE + DOT + TAG_PLACE;
+	private static final String TAG_PLACE_PLACE = PlaceHandler.TYPE + DOT + PlaceHandler.TYPE;
 	private static final String TAG_DATE_VALUE_BOUNDED_NOT_BEFORE = TAG_DATE + DOT + TAG_VALUE + DOT + TAG_BOUNDED + DOT + TAG_NOT_BEFORE;
 	private static final String TAG_DATE_VALUE_BOUNDED_NOT_AFTER = TAG_DATE + DOT + TAG_VALUE + DOT + TAG_BOUNDED + DOT + TAG_NOT_AFTER;
 	private static final String TAG_DATE_VALUE_SPANNING_FROM = TAG_DATE + DOT + TAG_VALUE + DOT + TAG_SPANNING + DOT + TAG_FROM;
@@ -84,7 +84,7 @@ public final class FLEFRecordHelper{
 	private static final String TAG_CENTURY_ORDINAL = TAG_CENTURY + DOT + TAG_ORDINAL;
 	private static final String TAG_NAME0_VALUE = TAG_NAME + "[0]" + DOT + TAG_VALUE;
 	private static final String TAG_CENTURY_PART = TAG_CENTURY + DOT + TAG_PART;
-	private static final String TAG_PLACE_ORIGINAL_TEXT = TAG_PLACE + DOT + TAG_ORIGINAL_TEXT;
+	private static final String TAG_PLACE_ORIGINAL_TEXT = PlaceHandler.TYPE + DOT + TAG_ORIGINAL_TEXT;
 	private static final String TAG_DATE_ORIGINAL_TEXT = TAG_DATE + DOT + TAG_ORIGINAL_TEXT;
 
 

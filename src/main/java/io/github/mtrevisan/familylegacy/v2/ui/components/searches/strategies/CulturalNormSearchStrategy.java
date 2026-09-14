@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchCriteria
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchStrategy;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.TextSearchHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.StringJoiner;
@@ -67,7 +68,7 @@ public class CulturalNormSearchStrategy implements SearchStrategy{
 	public Predicate<FLEFRecord> buildPredicate(final SearchCriteria criteria, final FLEFModel model){
 		title = criteria.getFilterFor(CulturalNormFilterPanel.FILTER_KEY_TITLE);
 		ruleType = criteria.getFilterFor(CulturalNormFilterPanel.FILTER_KEY_RULE_TYPE);
-		place = criteria.getFilterFor(CulturalNormFilterPanel.FILTER_KEY_PLACE);
+		place = criteria.getFilterFor(PlaceHandler.TYPE);
 		validFrom = criteria.getFilterFor(CulturalNormFilterPanel.FILTER_KEY_VALID_FROM);
 		calendarFrom = criteria.getFilterFor(CulturalNormFilterPanel.FILTER_KEY_CALENDAR_FROM);
 		validTo = criteria.getFilterFor(CulturalNormFilterPanel.FILTER_KEY_VALID_TO);

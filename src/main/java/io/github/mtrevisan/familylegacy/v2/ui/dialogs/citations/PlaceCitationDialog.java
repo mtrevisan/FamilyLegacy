@@ -66,7 +66,6 @@ public class PlaceCitationDialog extends BaseRecordDialog{
 	private static final long serialVersionUID = 6489523892351201199L;
 
 
-	private static final String TAG_PLACE = "PLACE";
 	private static final String TAG_ORIGINAL_TEXT = "ORIGINAL_TEXT";
 	private static final String TAG_SOURCE = "SOURCE";
 	private static final String TAG_EVIDENCE = "EVIDENCE";
@@ -92,7 +91,7 @@ public class PlaceCitationDialog extends BaseRecordDialog{
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]");
 
-		placeField = new BoundTextField(TAG_PLACE);
+		placeField = new BoundTextField(PlaceHandler.TYPE);
 		originalTextField = new BoundTextField(TAG_ORIGINAL_TEXT);
 
 		// Build common panels using the builder
@@ -173,7 +172,7 @@ public class PlaceCitationDialog extends BaseRecordDialog{
 
 	@Override
 	protected void saveData(){
-		FLEFRecordHelper.updateChildValue(record, TAG_PLACE, placeField.getText());
+		FLEFRecordHelper.updateChildValue(record, PlaceHandler.TYPE, placeField.getText());
 
 		components.save(record);
 	}

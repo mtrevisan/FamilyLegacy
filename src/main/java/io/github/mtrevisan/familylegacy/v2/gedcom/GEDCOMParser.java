@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.v2.gedcom;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 
 import java.io.BufferedReader;
@@ -91,14 +92,12 @@ public class GEDCOMParser{
 			// Concatenazione CONC / CONT esatta senza inserire spazi arbitrari
 			if("CONC".equals(tag) || "CONT".equals(tag)){
 				if(lastNode != null){
-					String current = lastNode.getValue() != null ? lastNode.getValue() : "";
-					String appendVal = value != null ? value : "";
-					if("CONC".equals(tag)){
+					String current = (lastNode.getValue() != null? lastNode.getValue(): StringUtils.EMPTY);
+					String appendVal = (value != null? value: StringUtils.EMPTY);
+					if("CONC".equals(tag))
 						current += appendVal;
-					}
-					else{
+					else
 						current += "\n" + appendVal;
-					}
 					lastNode.setValue(current);
 				}
 				continue;

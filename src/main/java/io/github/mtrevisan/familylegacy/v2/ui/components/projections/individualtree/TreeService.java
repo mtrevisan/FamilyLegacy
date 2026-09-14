@@ -96,14 +96,14 @@ public class TreeService{
 	 * Pruning rule: does not expand branches for non-existent individuals.
 	 *
 	 * @param rootIndividualId the root individual record ID
-	 * @param maxGenerations depth limit (0-based: 0 = target only, 1 = target + parents, etc.)
+	 * @param maxAncestors depth limit (0-based: 0 = target only, 1 = target + parents, etc.)
 	 * @return the root {@link TreeNode} of the constructed tree, or {@code null} if root is {@code null}
 	 */
-	public TreeNode buildTree(final String rootIndividualId, final boolean showPartner, final int maxGenerations){
+	public TreeNode buildTree(final String rootIndividualId, final boolean showPartner, final int maxAncestors){
 		if(StringUtils.isEmpty(rootIndividualId))
 			return null;
 		final FLEFRecord rootIndividual = model.getRecordById(rootIndividualId);
-		if(rootIndividual == null || maxGenerations < 0)
+		if(rootIndividual == null || maxAncestors < 0)
 			return null;
 
 		// Pre-index relationships, groups, and events in single-pass lookup tables
@@ -133,7 +133,7 @@ public class TreeService{
 			final TreeNode currentNode = queue.poll();
 
 			final int currentGeneration = currentNode.getGeneration();
-			if(currentGeneration >= maxGenerations)
+			if(currentGeneration >= maxAncestors)
 				continue;
 
 
@@ -341,6 +341,15 @@ public class TreeService{
 			}
 		}
 		return match;
+	}
+
+	/**
+	 * Returns the participant-to-event index, for callers that need to
+	 * build their own {@link IndividualData} instances.
+	 */
+	public Map<String, List<FLEFRecord>> getEventMap(){
+		ensureIndices();
+		return individualToEventMap;
 	}
 
 	/**

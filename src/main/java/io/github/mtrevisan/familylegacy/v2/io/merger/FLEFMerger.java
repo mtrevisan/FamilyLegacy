@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.io.merger;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -353,7 +354,7 @@ public class FLEFMerger{
 		final String given = SimilarityMetrics.extractNamePart(rec, "given");
 		final String family = SimilarityMetrics.extractNamePart(rec, "family");
 		final String year = extractBirthYear(rec);
-		String key = "";
+		String key = StringUtils.EMPTY;
 		if(!given.isEmpty())
 			key += given.charAt(0);
 		if(!family.isEmpty())

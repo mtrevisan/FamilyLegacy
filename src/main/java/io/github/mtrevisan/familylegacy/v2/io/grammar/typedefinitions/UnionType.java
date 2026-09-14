@@ -28,7 +28,6 @@ import io.github.mtrevisan.familylegacy.v2.io.grammar.FLEFGrammar;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -45,7 +44,7 @@ public final class UnionType extends TypeDefinition{
 	public UnionType(final String name, final Map<String, TypeDefinition> choices){
 		super(name);
 
-		this.choices = Collections.unmodifiableMap(new LinkedHashMap<>(choices));
+		this.choices = new LinkedHashMap<>(choices);
 	}
 
 

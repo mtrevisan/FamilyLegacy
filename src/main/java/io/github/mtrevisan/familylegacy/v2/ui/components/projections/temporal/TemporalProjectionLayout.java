@@ -25,7 +25,6 @@
 package io.github.mtrevisan.familylegacy.v2.ui.components.projections.temporal;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -110,7 +109,7 @@ public final class TemporalProjectionLayout{
 		if(!computedRows.isEmpty())
 			y -= ROW_GAP;
 
-		rows = Collections.unmodifiableList(computedRows);
+		rows = computedRows;
 		totalHeight = Math.max(0, y);
 	}
 
@@ -134,8 +133,7 @@ public final class TemporalProjectionLayout{
 			y -= TRACK_GAP;
 		y += ROW_PADDING;
 
-		return new RowLayout(row.entity(), yStart, y - yStart,
-			Collections.unmodifiableMap(trackLayouts));
+		return new RowLayout(row.entity(), yStart, y - yStart, trackLayouts);
 	}
 
 	private TrackLayout computeTrack(final TemporalTrack track, final int yStart){
@@ -176,8 +174,7 @@ public final class TemporalProjectionLayout{
 		final int laneCount = Math.max(1, laneEnds.size());
 		final int height = TRACK_PADDING * 2 + laneCount * ENTRY_HEIGHT + (laneCount - 1) * ENTRY_GAP;
 
-		return new TrackLayout(track.type(), yStart, height, laneCount,
-			Collections.unmodifiableMap(entryLane));
+		return new TrackLayout(track.type(), yStart, height, laneCount, entryLane);
 	}
 
 

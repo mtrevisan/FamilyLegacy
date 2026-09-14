@@ -69,6 +69,7 @@ import java.awt.Container;
 import java.awt.FlowLayout;
 import java.awt.Graphics2D;
 import java.awt.Point;
+import java.awt.Toolkit;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
@@ -100,19 +101,24 @@ public final class GUIHelper{
 	public static final KeyStroke INSERT_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_INSERT, 0);
 	public static final KeyStroke DELETE_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0);
 
-	public static final KeyStroke CTRL_UP_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_UP, InputEvent.CTRL_DOWN_MASK);
-	public static final KeyStroke CTRL_DOWN_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, InputEvent.CTRL_DOWN_MASK);
+	private static final int MENU_MASK = Toolkit.getDefaultToolkit()
+		.getMenuShortcutKeyMaskEx();
 
-	public static final KeyStroke UNDO_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_Z, KeyEvent.CTRL_DOWN_MASK);
-	public static final KeyStroke MAC_UNDO_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_Z, KeyEvent.CTRL_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK);
-	public static final KeyStroke REDO_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_Y, KeyEvent.CTRL_DOWN_MASK);
+	public static final KeyStroke CTRL_UP_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_UP, MENU_MASK);
+	public static final KeyStroke CTRL_DOWN_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, MENU_MASK);
 
-	public static final KeyStroke CTRL_L_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_L, KeyEvent.CTRL_DOWN_MASK);
-	public static final KeyStroke CTRL_F_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_F, KeyEvent.CTRL_DOWN_MASK);
-	public static final KeyStroke CTRL_K_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_K, KeyEvent.CTRL_DOWN_MASK);
-	public static final KeyStroke CTRL_E_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_E, InputEvent.CTRL_DOWN_MASK);
-	public static final KeyStroke CTRL_P_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_P, InputEvent.CTRL_DOWN_MASK);
-	public static final KeyStroke CTRL_T_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_T, InputEvent.CTRL_DOWN_MASK);
+	public static final KeyStroke UNDO_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_Z, MENU_MASK);
+	public static final KeyStroke MAC_UNDO_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_Z, MENU_MASK | InputEvent.SHIFT_DOWN_MASK);
+	public static final KeyStroke REDO_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_Y, MENU_MASK);
+
+	public static final KeyStroke CTRL_L_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_L, MENU_MASK);
+	public static final KeyStroke CTRL_F_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_F, MENU_MASK);
+	public static final KeyStroke CTRL_K_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_K, MENU_MASK);
+	public static final KeyStroke CTRL_E_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_E, MENU_MASK);
+	public static final KeyStroke CTRL_P_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_P, MENU_MASK);
+	public static final KeyStroke CTRL_T_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_T, MENU_MASK);
+	public static final KeyStroke CTRL_LEFT_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, MENU_MASK);
+	public static final KeyStroke CTRL_RIGHT_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, MENU_MASK);
 
 	private static final String ELLIPSIS = "…";
 
@@ -244,7 +250,7 @@ public final class GUIHelper{
 
 
 	public static void showValidationErrorAndFocus(final Component parentComponent, final String message,
-		final JTabbedPane tabbedPane, final JPanel tabbedPanel, final JComponent component){
+			final JTabbedPane tabbedPane, final JPanel tabbedPanel, final JComponent component){
 		JOptionPane.showMessageDialog(parentComponent,
 			message,
 			"Validation Error", JOptionPane.ERROR_MESSAGE);

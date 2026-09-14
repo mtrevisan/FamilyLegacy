@@ -94,7 +94,6 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 	private static final String TAG_TYPE = "TYPE";
 	private static final String TAG_PART = "PART";
 	private static final String TAG_LOCALE = "LOCALE";
-	private static final String TAG_CULTURAL_NORM = "CULTURAL_NORM";
 	private static final String TAG_SOURCE = "SOURCE";
 	private static final String TAG_NOTE = "NOTE";
 
@@ -140,7 +139,7 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 		localeCombo = new BoundFilteredComboBox<>(TAG_LOCALE, LocaleHelper.getAvailableLanguageTags());
 		localeCombo.setEditable(true);
 
-		culturalNormPanel = EntityListPanel.createForEntityReference(TAG_CULTURAL_NORM, parent, "Cultural Norms",
+		culturalNormPanel = EntityListPanel.createForEntityReference(CulturalNormHandler.TYPE, parent, "Cultural Norms",
 			model, CulturalNormHandler.class);
 
 		// Build common panels using the builder

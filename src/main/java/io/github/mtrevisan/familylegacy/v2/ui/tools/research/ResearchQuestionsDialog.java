@@ -1,0 +1,258 @@
+package io.github.mtrevisan.familylegacy.v2.ui.tools.research;
+
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
+import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolDialogs;
+
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
+import javax.swing.RowFilter;
+import javax.swing.SwingUtilities;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.table.AbstractTableModel;
+import javax.swing.table.TableRowSorter;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
+
+/**
+ * Modal dialog that lists every {@code ResearchQuestionRecord} with the
+ * count of activities, tasks, and conclusions that reference it, and
+ * allows the user to create, edit, and delete questions.
+ */
+public final class ResearchQuestionsDialog extends JDialog{
+
+	private final ToolContext context;
+	private final QuestionTableModel tableModel = new QuestionTableModel();
+	private final JTable table = new JTable(tableModel);
+	private final JTextField searchField = new JTextField(24);
+	private final JLabel statusLabel = new JLabel(" ");
+
+
+	public ResearchQuestionsDialog(final ToolContext context){
+		super(context.owner(), "Research Questions", ModalityType.APPLICATION_MODAL);
+		this.context = context;
+
+		setLayout(new BorderLayout(6, 6));
+		add(createToolbar(), BorderLayout.NORTH);
+		add(createTable(), BorderLayout.CENTER);
+		add(createFooter(), BorderLayout.SOUTH);
+
+		setPreferredSize(new Dimension(1100, 560));
+
+		ToolDialogs.installEscapeToClose(this);
+
+		pack();
+		setLocationRelativeTo(context.owner());
+
+		reload();
+	}
+
+
+	private JPanel createToolbar(){
+		final JPanel toolbar = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 6));
+		toolbar.setBorder(BorderFactory.createEmptyBorder(2, 4, 2, 4));
+
+		toolbar.add(new JLabel("Search:"));
+		toolbar.add(searchField);
+		searchField.getDocument().addDocumentListener(new DocumentListener(){
+			@Override public void insertUpdate(final DocumentEvent e){ applyFilter(); }
+			@Override public void removeUpdate(final DocumentEvent e){ applyFilter(); }
+			@Override public void changedUpdate(final DocumentEvent e){ applyFilter(); }
+		});
+
+		final JButton newButton = new JButton("New…");
+		newButton.addActionListener(e -> openEditor(null));
+		toolbar.add(newButton);
+
+		final JButton editButton = new JButton("Edit…");
+		editButton.addActionListener(e -> openEditor(selectedId()));
+		toolbar.add(editButton);
+
+		final JButton deleteButton = new JButton("Delete");
+		deleteButton.addActionListener(e -> deleteSelected());
+		toolbar.add(deleteButton);
+
+		return toolbar;
+	}
+
+	private JScrollPane createTable(){
+		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		table.setRowHeight(22);
+		table.setAutoCreateRowSorter(true);
+		table.getColumnModel().getColumn(0).setPreferredWidth(340);
+		table.getColumnModel().getColumn(1).setPreferredWidth(100);
+		table.getColumnModel().getColumn(2).setPreferredWidth(90);
+		table.getColumnModel().getColumn(3).setPreferredWidth(70);
+		table.getColumnModel().getColumn(4).setPreferredWidth(100);
+
+		table.addMouseListener(new MouseAdapter(){
+			@Override
+			public void mouseClicked(final MouseEvent e){
+				if(e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e))
+					openEditor(selectedId());
+			}
+		});
+
+		final JScrollPane scroll = new JScrollPane(table);
+		scroll.setBorder(BorderFactory.createTitledBorder("Research questions"));
+		return scroll;
+	}
+
+	private JPanel createFooter(){
+		final JPanel footer = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+		footer.setBorder(BorderFactory.createEmptyBorder(2, 6, 6, 6));
+		footer.add(statusLabel);
+		final JButton close = new JButton("Close");
+		close.addActionListener(e -> dispose());
+		footer.add(close);
+		return footer;
+	}
+
+
+	/**
+	 * Builds the table by precomputing the reference counts once, so the
+	 * loop over the questions does not scan the whole model per row.
+	 */
+	private void reload(){
+		final FLEFModel model = context.model();
+
+		final Map<String, Integer> activityCounts =
+			ResearchHelper.countReferences(ResearchHelper.listActivities(model),
+				ResearchHelper.TAG_QUESTION);
+		final Map<String, Integer> taskCounts =
+			ResearchHelper.countReferences(ResearchHelper.listTasks(model),
+				ResearchHelper.TAG_QUESTION);
+		final Map<String, Integer> conclusionCounts =
+			ResearchHelper.countReferences(ResearchHelper.listConclusions(model),
+				ResearchHelper.TAG_QUESTION);
+
+		final List<ResearchHelper.QuestionRow> rows = new ArrayList<>();
+		for(final FLEFRecord q : ResearchHelper.listQuestions(model))
+			rows.add(ResearchHelper.toQuestionRow(q, activityCounts, taskCounts, conclusionCounts));
+		tableModel.setRows(rows);
+		updateStatus(rows.size());
+	}
+
+	private void applyFilter(){
+		final String text = searchField.getText();
+		@SuppressWarnings("unchecked")
+		final TableRowSorter<QuestionTableModel> sorter =
+			(TableRowSorter<QuestionTableModel>)table.getRowSorter();
+		if(text == null || text.isBlank())
+			sorter.setRowFilter(null);
+		else{
+			final String needle = text.trim().toLowerCase(Locale.ROOT);
+			sorter.setRowFilter(new RowFilter<>(){
+				@Override
+				public boolean include(final Entry<? extends QuestionTableModel, ? extends Integer> entry){
+					final ResearchHelper.QuestionRow row = tableModel.getRow(entry.getIdentifier());
+					return contains(row.title(), needle) || contains(row.status(), needle);
+				}
+			});
+		}
+		updateStatus(table.getRowCount());
+	}
+
+	private static boolean contains(final String haystack, final String needle){
+		return haystack != null && haystack.toLowerCase(Locale.ROOT).contains(needle);
+	}
+
+	private String selectedId(){
+		final int viewRow = table.getSelectedRow();
+		if(viewRow < 0)
+			return null;
+		return tableModel.getRow(table.convertRowIndexToModel(viewRow)).id();
+	}
+
+	private void openEditor(final String questionId){
+		final ResearchQuestionHandler handler = ResearchQuestionHandler.getInstance();
+		final BaseRecordDialog dialog;
+		if(questionId == null)
+			dialog = handler.createNewDialog(this, context.model());
+		else{
+			final FLEFRecord record = context.model().getRecordById(questionId);
+			if(record == null)
+				return;
+			dialog = handler.createEditDialog(this, context.model(), record);
+		}
+		dialog.setVisible(true);
+		if(dialog.isSaved())
+			reload();
+	}
+
+	private void deleteSelected(){
+		final String questionId = selectedId();
+		if(questionId == null)
+			return;
+		final int confirm = JOptionPane.showConfirmDialog(this,
+			"Delete research question " + questionId + "?\n"
+				+ "Activities, tasks, and conclusions that reference it will be left dangling.",
+			"Confirm Deletion",
+			JOptionPane.YES_NO_OPTION,
+			JOptionPane.WARNING_MESSAGE);
+		if(confirm != JOptionPane.YES_OPTION)
+			return;
+		context.model().removeRecord(questionId);
+		reload();
+	}
+
+	private void updateStatus(final int count){
+		statusLabel.setText(count + (count == 1? " question": " questions"));
+	}
+
+
+	private static final class QuestionTableModel extends AbstractTableModel{
+
+		private static final String[] COLUMNS = {"Title", "Status", "Activities", "Tasks", "Conclusions"};
+
+		private final List<ResearchHelper.QuestionRow> rows = new ArrayList<>();
+
+		void setRows(final List<ResearchHelper.QuestionRow> rows){
+			this.rows.clear();
+			this.rows.addAll(rows);
+			fireTableDataChanged();
+		}
+
+		ResearchHelper.QuestionRow getRow(final int index){
+			return rows.get(index);
+		}
+
+		@Override public int getRowCount(){ return rows.size(); }
+		@Override public int getColumnCount(){ return COLUMNS.length; }
+		@Override public String getColumnName(final int column){ return COLUMNS[column]; }
+
+		@Override
+		public Object getValueAt(final int rowIndex, final int columnIndex){
+			final ResearchHelper.QuestionRow row = rows.get(rowIndex);
+			return switch(columnIndex){
+				case 0 -> row.title();
+				case 1 -> row.status();
+				case 2 -> row.activityCount();
+				case 3 -> row.taskCount();
+				case 4 -> row.conclusionCount();
+				default -> "";
+			};
+		}
+	}
+
+}

@@ -34,8 +34,12 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.EntityField;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ContextImpactHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceCitationHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
@@ -94,18 +98,13 @@ public class CulturalNormRecordDialog extends BaseRecordDialog{
 
 	private static final String TAG_TITLE = "TITLE";
 	private static final String TAG_RULE_TYPE = "RULE_TYPE";
-	private static final String TAG_PLACE = "PLACE";
 	private static final String TAG_EVIDENCE = "EVIDENCE";
-	private static final String TAG_PLACE_EVIDENCE = TAG_PLACE + DOT + TAG_EVIDENCE;
+	private static final String TAG_PLACE_EVIDENCE = PlaceHandler.TYPE + DOT + TAG_EVIDENCE;
 	private static final String TAG_VALID_FROM = "VALID_FROM";
 	private static final String TAG_VALID_TO = "VALID_TO";
 	private static final String TAG_SOURCE = "SOURCE";
 	private static final String TAG_NOTE = "NOTE";
 	private static final String TAG_AUDIT = "AUDIT";
-
-	private static final String TAG_CONTEXT_IMPACT = "CONTEXT_IMPACT";
-	private static final String TAG_CONCLUSION = "CONCLUSION";
-	private static final String TAG_RESEARCH_QUESTION = "RESEARCH_QUESTION";
 
 
 	private final BoundTextField titleField;
@@ -151,16 +150,16 @@ public class CulturalNormRecordDialog extends BaseRecordDialog{
 			"age_difference_convention", "generational_interval"
 		});
 		ruleTypeCombo.setEditable(true);
-		placeField = EntityField.createForStructureWithReference(TAG_PLACE, this, model, PlaceCitationHandler.class);
+		placeField = EntityField.createForStructureWithReference(PlaceHandler.TYPE, this, model, PlaceCitationHandler.class);
 		placeEvidencePanel = new EvidenceQualifiersPanel(TAG_PLACE_EVIDENCE, "Evidence");
 		validFromField = DateField.createWithWrapperTag(TAG_VALID_FROM, this, "From Date", model);
 		validToField = DateField.createWithWrapperTag(TAG_VALID_TO, this, "To Date", model);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.CONTEXT_IMPACT_ON_CONTEXT, TAG_CONTEXT_IMPACT, "Context Impacts")
-			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, TAG_CONCLUSION, "Conclusions")
-			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, TAG_RESEARCH_QUESTION, "Research Questions")
+			.withComponent(PanelKey.CONTEXT_IMPACT_ON_CONTEXT, ContextImpactHandler.TYPE, "Context Impacts")
+			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, "Conclusions")
+			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, "Research Questions")
 			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources with Citations")
 			.withComponent(PanelKey.NOTE, TAG_NOTE, null)
 			.withComponent(PanelKey.EVIDENCE, TAG_EVIDENCE, "Evidence")

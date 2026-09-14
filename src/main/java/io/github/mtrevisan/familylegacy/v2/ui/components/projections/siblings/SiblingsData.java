@@ -60,7 +60,7 @@ public final class SiblingsData{
 	private SiblingsData(final List<IndividualData> siblings, final Set<String> siblingIdsWithDescendants){
 		onlyRoot = (siblingIdsWithDescendants == null);
 		this.siblings = (siblings != null
-			? Collections.unmodifiableList(siblings)
+			? siblings
 			: Collections.emptyList());
 		this.siblingIdsWithDescendants = (siblingIdsWithDescendants != null
 			? siblingIdsWithDescendants

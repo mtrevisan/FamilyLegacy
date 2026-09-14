@@ -238,10 +238,10 @@ public class PartnersPanel extends JPanel{
 		fatherArrowsSpacer.setPreferredSize(new Dimension(DESCENDANTS_ARROWS_WIDTH, 0));
 		motherArrowsSpacer.setPreferredSize(new Dimension(DESCENDANTS_ARROWS_WIDTH, 0));
 
-		fatherPreviousParentsLabel = new  JLabel();
-		fatherNextParentsLabel = new  JLabel();
-		fatherPreviousGroupLabel = new  JLabel();
-		fatherNextGroupLabel = new  JLabel();
+		fatherPreviousParentsLabel = new JLabel();
+		fatherNextParentsLabel = new JLabel();
+		fatherPreviousGroupLabel = new JLabel();
+		fatherNextGroupLabel = new JLabel();
 		final JPanel arrow1Panel = new JPanel(new MigLayout("ins 0",
 			"[]0[grow]" + NAVIGATION_PARENTS_ARROW_SEPARATION + "[grow]0[]" + NAVIGATION_DESCENDANTS_ARROW_SEPARATION + "[]"));
 		arrow1Panel.add(fatherArrowsSpacer, StringUtils.EMPTY);

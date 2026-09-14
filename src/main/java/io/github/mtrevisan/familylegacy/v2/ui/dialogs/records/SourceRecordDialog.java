@@ -34,8 +34,11 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.EntityField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NameHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceCitationHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
@@ -84,13 +87,10 @@ public class SourceRecordDialog extends BaseRecordDialog{
 	private static final String TAG_AUTHOR = "AUTHOR";
 	private static final String TAG_PUBLISHER = "PUBLISHER";
 	private static final String TAG_DATE = "DATE";
-	private static final String TAG_PLACE = "PLACE";
 	private static final String TAG_MEDIA_TYPE = "MEDIA_TYPE";
 	private static final String TAG_REPOSITORY = "REPOSITORY";
 	private static final String TAG_DOCUMENT = "DOCUMENT";
 	private static final String TAG_NOTE = "NOTE";
-	private static final String TAG_CONCLUSION = "CONCLUSION";
-	private static final String TAG_RESEARCH_QUESTION = "RESEARCH_QUESTION";
 	private static final String TAG_RESEARCH_ACTIVITY = "RESEARCH_ACTIVITY";
 	private static final String TAG_PRIVACY = "PRIVACY";
 	private static final String TAG_AUDIT = "AUDIT";
@@ -121,7 +121,7 @@ public class SourceRecordDialog extends BaseRecordDialog{
 		authorField = new BoundTextField(TAG_AUTHOR);
 		publisherField = new BoundTextField(TAG_PUBLISHER);
 		dateField = DateField.createWithWrapperTag(TAG_DATE, this, "Valid Date", model);
-		placeField = EntityField.createForStructureWithReference(TAG_PLACE, this, model,
+		placeField = EntityField.createForStructureWithReference(PlaceHandler.TYPE, this, model,
 			PlaceCitationHandler.class);
 		mediaTypeCombo = new BoundComboBox<>(TAG_MEDIA_TYPE, new String[]{
 			StringUtils.EMPTY,
@@ -134,8 +134,8 @@ public class SourceRecordDialog extends BaseRecordDialog{
 		components = new RecordDialogBuilder(this, model, record)
 			.withComponent(PanelKey.REPOSITORY, TAG_REPOSITORY, "Repositories with Citations")
 			.withComponent(PanelKey.DOCUMENT, TAG_DOCUMENT, "Documents")
-			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, TAG_CONCLUSION, "Conclusions")
-			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, TAG_RESEARCH_QUESTION, "Research Questions")
+			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, "Conclusions")
+			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, "Research Questions")
 			.withComponent(PanelKey.RESEARCH_ACTIVITY_ON_SOURCE, TAG_RESEARCH_ACTIVITY, "Research Activities")
 			.withComponent(PanelKey.NOTE, TAG_NOTE, null)
 			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null)

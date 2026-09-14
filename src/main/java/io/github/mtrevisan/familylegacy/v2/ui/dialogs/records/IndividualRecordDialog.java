@@ -32,8 +32,15 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.PreferredImagePanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ContextImpactHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventParticipationHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.IdentityHypothesisHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualAttributeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PersonalNameHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
@@ -129,13 +136,6 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 	private static final String TAG_PREFERRED_IMAGE = "PREFERRED_IMAGE";
 	private static final String TAG_PERSONAL_NAME = "NAME";
 	private static final String TAG_SEX = "SEX";
-	private static final String TAG_INDIVIDUAL_ATTRIBUTE = "INDIVIDUAL_ATTRIBUTE";
-	private static final String TAG_RELATIONSHIP = "RELATIONSHIP";
-	private static final String TAG_EVENT_PARTICIPATION = "EVENT_PARTICIPATION";
-	private static final String TAG_CONTEXT_IMPACT = "CONTEXT_IMPACT";
-	private static final String TAG_CONCLUSION = "CONCLUSION";
-	private static final String TAG_IDENTITY_HYPOTHESIS = "IDENTITY_HYPOTHESIS";
-	private static final String TAG_RESEARCH_QUESTION = "RESEARCH_QUESTION";
 	private static final String TAG_SOURCE = "SOURCE";
 	private static final String TAG_NOTE = "NOTE";
 	private static final String TAG_PRIVACY = "PRIVACY";
@@ -170,14 +170,14 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 			ENUM_SEX_MALE, ENUM_SEX_FEMALE, "unknown"});
 
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.INDIVIDUAL_ATTRIBUTE, TAG_INDIVIDUAL_ATTRIBUTE, "Individual Attributes")
-			.withComponent(PanelKey.RELATIONSHIP_ON_SUBJECT, TAG_RELATIONSHIP, "Relationships / Group Memberships")
-			.withComponent(PanelKey.RELATIONSHIP_ON_TARGET, TAG_RELATIONSHIP, "Inverse Relationships")
-			.withComponent(PanelKey.EVENT_PARTICIPATION_ON_PARTICIPANT, TAG_EVENT_PARTICIPATION, "Participations")
-			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, TAG_CONTEXT_IMPACT, "Context Impacts")
-			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, TAG_CONCLUSION, "Conclusions")
-			.withComponent(PanelKey.IDENTITY_HYPOTHESIS_ON_IDENTITY, TAG_IDENTITY_HYPOTHESIS, "Identity Hypotheses")
-			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, TAG_RESEARCH_QUESTION, "Research Questions")
+			.withComponent(PanelKey.INDIVIDUAL_ATTRIBUTE, IndividualAttributeHandler.TYPE, "Individual Attributes")
+			.withComponent(PanelKey.RELATIONSHIP_ON_SUBJECT, RelationshipHandler.TYPE, "Relationships / Group Memberships")
+			.withComponent(PanelKey.RELATIONSHIP_ON_TARGET, RelationshipHandler.TYPE, "Inverse Relationships")
+			.withComponent(PanelKey.EVENT_PARTICIPATION_ON_PARTICIPANT, EventParticipationHandler.TYPE, "Participations")
+			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, ContextImpactHandler.TYPE, "Context Impacts")
+			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, "Conclusions")
+			.withComponent(PanelKey.IDENTITY_HYPOTHESIS_ON_IDENTITY, IdentityHypothesisHandler.TYPE, "Identity Hypotheses")
+			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, "Research Questions")
 			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources with Citations")
 			.withComponent(PanelKey.NOTE, TAG_NOTE, null)
 			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null)
@@ -336,6 +336,14 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 		personalNamePanel.save(record);
 
 		components.save(record);
+//		try{
+//			FLEFWriter.createCompact().write(model,
+//				new File("C://Users/mauro/IdeaProjects/FamilyLegacy/src/main/resources/tests/out.flef").toPath(),
+//				false);
+//		}
+//		catch(IOException e){
+//			throw new RuntimeException(e);
+//		}
 	}
 
 

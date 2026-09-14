@@ -42,10 +42,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.ScrollPaneConstants;
-import javax.swing.SwingUtilities;
 import java.awt.ComponentOrientation;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Map;
@@ -101,20 +98,18 @@ final class TreeLayoutBuilder{
 	 *
 	 * @param mainPanel      the main layout panel
 	 * @param rootNode       the root node of the tree
-	 * @param maxGenerations the maximum number of generations to display
+	 * @param maxAncestors the maximum number of generations to display
 	 * @param model          the FLEF model
 	 * @param nodeToPanelMap map to store the node-to-panel association (will be populated)
 	 * @param listener       the individual listener
-	 * @param mutator        the tree mutator for navigation
 	 * @return a LayoutResult containing the children panel
 	 */
 	static LayoutResult buildLayout(final JPanel mainPanel, final TreeNode rootNode, final boolean showPartner,
-			final int maxGenerations, final FLEFModel model, final Map<TreeNode, PartnersPanel> nodeToPanelMap,
+			final int maxAncestors, final FLEFModel model, final Map<TreeNode, PartnersPanel> nodeToPanelMap,
 			final IndividualListener listener,
-			final EntityPopupMenuFactory<IndividualPanel, IndividualListener> popupFactory, final TreeMutator mutator,
-			final TreeLayout treeLayout){
-		final int ancestorLevels = Math.max(1, maxGenerations - 1);
-		final int maxDepth = ancestorLevels - 1;
+			final EntityPopupMenuFactory<IndividualPanel, IndividualListener> popupFactory, final TreeLayout treeLayout){
+		final int ancestorLevels = Math.max(0, maxAncestors);
+		final int maxDepth = ancestorLevels;
 		final int maxLeafUnits = 1 << maxDepth;
 
 		final boolean isVertical = (treeLayout == TreeLayout.VERTICAL);
@@ -154,7 +149,7 @@ final class TreeLayoutBuilder{
 			// Create the panel for this slot
 			final BoxPanelType boxPanelType = (depth == 0? BoxPanelType.PRIMARY: BoxPanelType.SECONDARY);
 			final PartnersPanel partnerPanel = createPanelForNode(node, boxPanelType, treeLayout, model, listener,
-				popupFactory, mutator);
+				popupFactory);
 
 			if(node != null)
 				nodeToPanelMap.put(node, partnerPanel);
@@ -249,22 +244,9 @@ final class TreeLayoutBuilder{
 
 	private static PartnersPanel createPanelForNode(final TreeNode node, final BoxPanelType type,
 			final TreeLayout treeLayout, final FLEFModel model, final IndividualListener listener,
-			final EntityPopupMenuFactory<IndividualPanel, IndividualListener> popupFactory, final TreeMutator mutator){
+			final EntityPopupMenuFactory<IndividualPanel, IndividualListener> popupFactory){
 		final PartnersPanel panel = PartnersPanel.create(type, treeLayout, model)
 			.withListener(listener, popupFactory);
-		panel.addMouseListener(new MouseAdapter(){
-			@Override
-			public void mousePressed(final MouseEvent e){
-				if(node == null)
-					return;
-
-				if(SwingUtilities.isLeftMouseButton(e)){
-					final String clickedId = node.getIndividualId();
-					if(clickedId != null)
-						mutator.navigateToRoot(clickedId);
-				}
-			}
-		});
 
 		if(node != null){
 			final TreeNode father = node.getFather();

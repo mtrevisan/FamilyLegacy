@@ -33,17 +33,27 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.projections.TreeOperati
  */
 public interface IndividualListener extends EntityListener{
 
-	void onIndividualAddOrConnect(TreeOperation operation);
+	/**
+	 * Called when the user selects a panel by clicking on it (outside the
+	 * name label). The selection is a lighter action than navigation: the
+	 * panel is highlighted, and any detail panel observing the selection
+	 * is populated, but the tree is not re-rooted.
+	 *
+	 * @param selectedPanel the panel that was selected
+	 * @param individual the individual displayed by the panel
+	 */
+	void onIndividualSelected(IndividualPanel selectedPanel, FLEFRecord individual);
 
-	void onChildAddOrConnect(TreeOperation operation);
+	void onIndividualAddOrConnect(IndividualPanel selectedPanel, TreeOperation operation);
+
+	void onChildAddOrConnect(IndividualPanel selectedPanel, TreeOperation operation);
+
+	void onIndividualUnlink(IndividualPanel selectedPanel, FLEFRecord individual);
 
 	/**
 	 * Pastes the individual from the clipboard into the current context.
 	 * The source individual is unlinked from all previous relationships.
-	 *
-	 * @param father the father record (if context is a child)
-	 * @param mother the mother record (if context is a child)
 	 */
-	void onIndividualPaste(FLEFRecord father, FLEFRecord mother);
+	void onIndividualPaste(IndividualPanel selectedPanel);
 
 }

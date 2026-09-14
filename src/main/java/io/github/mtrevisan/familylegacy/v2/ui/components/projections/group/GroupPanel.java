@@ -69,7 +69,19 @@ import java.util.Objects;
 
 
 /**
- * A panel that displays a group's information (name, type, photo) in a genealogical box.
+ * A panel that displays a group's information (name, type, photo) in a
+ * genealogical box.
+ * <p>
+ * Interaction:
+ * <ul>
+ *   <li><b>single click on the name label</b> navigates (re-roots the view
+ *       on the group);</li>
+ *   <li><b>single click anywhere else</b> selects the group: the panel is
+ *       highlighted with a thicker border, and any detail panel observing
+ *       the selection is populated, without re-rooting the view;</li>
+ *   <li><b>double click</b> opens the edit dialog for the group record;</li>
+ *   <li><b>right click</b> opens the popup menu.</li>
+ * </ul>
  */
 public class GroupPanel extends JPanel{
 
@@ -82,8 +94,12 @@ public class GroupPanel extends JPanel{
 	private static final Color BACKGROUND_COLOR_FADE_TO = Color.WHITE;
 	private static final Color BACKGROUND_COLOR = new Color(225, 230, 240);
 	private static final Color BORDER_COLOR = new Color(150, 160, 180);
+	private static final Color BORDER_COLOR_SELECTED = new Color(220, 100, 60);
 	private static final Color TYPE_COLOR = new Color(100, 100, 110);
 	private static final Color IMAGE_LABEL_BORDER_COLOR = Color.WHITE;
+
+	private static final float BORDER_THICKNESS_NORMAL = 1.f;
+	private static final float BORDER_THICKNESS_SELECTED = 2.5f;
 
 	// Dimensions
 	private static final Dimension ARCS = new Dimension(10, 10);
@@ -114,6 +130,9 @@ public class GroupPanel extends JPanel{
 	private GroupData data;
 
 	private String preferredImageKey;
+
+	/** {@code true} when this panel is the current selection in its view. */
+	private boolean selected;
 
 	// Strategy pattern for popup menu generation
 	private EntityPopupMenuFactory<GroupPanel, GroupListener> popupMenuFactory;
@@ -179,12 +198,25 @@ public class GroupPanel extends JPanel{
 				panelWidth - 2, panelHeight - 2,
 				ARCS.width, ARCS.height);
 
-			g2.setColor(BORDER_COLOR);
+			// Border: dashed when empty, selected-red when selected,
+			// normal otherwise.
+			final Color borderColor;
+			final Stroke borderStroke;
 			if(data == null){
-				final Stroke dashedStroke = new BasicStroke(1.f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND,
+				borderColor = BORDER_COLOR;
+				borderStroke = new BasicStroke(1.f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND,
 					10.f, new float[]{5.f}, 0.f);
-				g2.setStroke(dashedStroke);
 			}
+			else if(selected){
+				borderColor = BORDER_COLOR_SELECTED;
+				borderStroke = new BasicStroke(BORDER_THICKNESS_SELECTED);
+			}
+			else{
+				borderColor = BORDER_COLOR;
+				borderStroke = new BasicStroke(BORDER_THICKNESS_NORMAL);
+			}
+			g2.setColor(borderColor);
+			g2.setStroke(borderStroke);
 			g2.drawRoundRect(1, 1,
 				panelWidth - 2, panelHeight - 2,
 				ARCS.width, ARCS.height);
@@ -194,11 +226,11 @@ public class GroupPanel extends JPanel{
 	}
 
 	private Color getBackgroundColor(){
-		return (data == null? BACKGROUND_COLOR_NO_ENTITY : BACKGROUND_COLOR);
+		return (data == null? BACKGROUND_COLOR_NO_ENTITY: BACKGROUND_COLOR);
 	}
 
 	private static void setPreferredSize(final JComponent component, final double baseWidth, final double aspectRatio,
-			final double shrinkFactor){
+		final double shrinkFactor){
 		final int width = (int)Math.ceil(baseWidth / shrinkFactor);
 		final int height = (int)Math.ceil(baseWidth * aspectRatio / shrinkFactor);
 		component.setPreferredSize(new Dimension(width, height));
@@ -218,7 +250,7 @@ public class GroupPanel extends JPanel{
 
 
 	public GroupPanel withListener(final GroupListener listener,
-			final EntityPopupMenuFactory<GroupPanel, GroupListener> factory){
+		final EntityPopupMenuFactory<GroupPanel, GroupListener> factory){
 		this.listener = listener;
 		popupMenuFactory = factory;
 
@@ -237,6 +269,25 @@ public class GroupPanel extends JPanel{
 		return this;
 	}
 
+	/**
+	 * Marks this panel as selected or not. A selected panel is drawn with
+	 * a thicker, reddish border, so that the current focus is visible at a
+	 * glance. The selection state is independent from the view root: a
+	 * selected group keeps its red border even when the cursor is
+	 * elsewhere.
+	 *
+	 * @param selected the new selection state
+	 * @return this panel, for chaining
+	 */
+	public GroupPanel withSelected(final boolean selected){
+		if(this.selected != selected){
+			this.selected = selected;
+			repaint();
+		}
+
+		return this;
+	}
+
 	private void setBoxPreferredSize(){
 		final Dimension size = (isPrimaryBox()? BOX_DIMENSION_PRIMARY: BOX_DIMENSION_SECONDARY);
 		setPreferredSize(size);
@@ -247,8 +298,7 @@ public class GroupPanel extends JPanel{
 		Font font = (isPrimaryBox()? FONT_PRIMARY: FONT_SECONDARY);
 		final Font infoFont = deriveInfoFont(font);
 		if(!isPrimaryBox()){
-			@SuppressWarnings("unchecked")
-			final Map<TextAttribute, Object> attributes = (Map<TextAttribute, Object>)font.getAttributes();
+			@SuppressWarnings("unchecked") final Map<TextAttribute, Object> attributes = (Map<TextAttribute, Object>)font.getAttributes();
 			attributes.put(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_LOW_ONE_PIXEL);
 			font = font.deriveFont(attributes);
 		}
@@ -300,18 +350,24 @@ public class GroupPanel extends JPanel{
 	}
 
 	private void installMouseListeners(){
+		// Single click on the name label: navigate (re-root the view).
+		// The event is consumed so that the panel-level selection listener
+		// (added below) does not also fire on the same click.
 		if(boxType == BoxPanelType.SECONDARY){
 			final MouseAdapter selectedAdapter = new MouseAdapter(){
 				@Override
 				public void mousePressed(final MouseEvent e){
-					if(SwingUtilities.isLeftMouseButton(e) && listener != null && data != null)
+					if(SwingUtilities.isLeftMouseButton(e) && listener != null && data != null){
 						listener.onEntitySelected(data.getGroup());
+
+						e.consume();
+					}
 				}
 			};
 			nameLabel.addMouseListener(selectedAdapter);
 		}
 
-		// Double-click to edit group
+		// Double-click to edit group.
 		addMouseListener(new MouseAdapter(){
 			@Override
 			public void mousePressed(final MouseEvent e){
@@ -319,6 +375,18 @@ public class GroupPanel extends JPanel{
 					listener.onEntityEdit(data.getGroup());
 			}
 		});
+
+		// Single click anywhere else on the panel selects the group. The
+		// listener is attached recursively because in Swing mouse events
+		// do not bubble up from a child to its parent.
+		final MouseAdapter selectionAdapter = new MouseAdapter(){
+			@Override
+			public void mousePressed(final MouseEvent e){
+				if(SwingUtilities.isLeftMouseButton(e) && e.getClickCount() == 1 && listener != null && data != null)
+					listener.onGroupSelected(GroupPanel.this, data.getGroup());
+			}
+		};
+		attachMouseListenerRecursively(this, selectionAdapter);
 	}
 
 	private void attachPopupMenu(){
@@ -348,7 +416,8 @@ public class GroupPanel extends JPanel{
 		try{
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		}
-		catch(final Exception ignored){}
+		catch(final Exception ignored){
+		}
 
 		String modelUri = "/tests/TGMZ.flef";
 		String recordId = "G1";

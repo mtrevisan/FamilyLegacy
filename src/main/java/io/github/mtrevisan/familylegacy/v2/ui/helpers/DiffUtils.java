@@ -33,6 +33,10 @@ import java.util.List;
  */
 public final class DiffUtils{
 
+	/** Two lines with the same tag, or very similar content, are MODIFIED. */
+	private static final double SIMILARITY_THRESHOLD = 0.7;
+
+
 	public enum Operation{
 		EQUAL,
 		INSERT,
@@ -156,14 +160,11 @@ public final class DiffUtils{
 				continue;
 			}
 
-			// Collect the maximal contiguous run of non-EQUAL entries (DELETE and INSERT may appear in either order
-			// within it)
+			// Collect the maximal contiguous run of non-EQUAL entries.
 			int hunkEnd = index;
 			while(hunkEnd < size && rawDiff.get(hunkEnd).operation() != Operation.EQUAL)
 				hunkEnd ++;
 
-			// Split the hunk into its DELETE and INSERT entries, each preserving its own relative (ascending line-index)
-			// order
 			final List<DiffEntry> deletes = new ArrayList<>();
 			final List<DiffEntry> inserts = new ArrayList<>();
 			for(int k = index; k < hunkEnd; k ++){
@@ -174,24 +175,98 @@ public final class DiffUtils{
 					inserts.add(entry);
 			}
 
+			// Pair DELETE[k] with INSERT[k]. Keep them as MODIFIED only when
+			// they look like two versions of the same line; otherwise keep
+			// them as a plain deletion and a plain insertion.
 			final int pairedCount = Math.min(deletes.size(), inserts.size());
+			int k = 0;
+			for(; k < pairedCount; k ++){
+				final String leftLine = deletes.get(k).leftLine();
+				final String rightLine = inserts.get(k).rightLine();
+				if(areModifiedVersions(leftLine, rightLine))
+					merged.add(new DiffEntry(Operation.MODIFIED, leftLine, rightLine));
+				else{
+					merged.add(deletes.get(k));
+					merged.add(inserts.get(k));
+				}
+			}
 
-			// Pair up DELETE[k] with INSERT[k] as MODIFIED entries
-			for(int k = 0; k < pairedCount; k ++)
-				merged.add(new DiffEntry(Operation.MODIFIED, deletes.get(k).leftLine(), inserts.get(k).rightLine()));
-
-			// Any leftover deletes (more deletes than inserts) stay as DELETE
-			for(int k = pairedCount, deletesSize = deletes.size(); k < deletesSize; k ++)
-				merged.add(deletes.get(k));
-
-			// Any leftover inserts (more inserts than deletes) stay as INSERT
-			for(int k = pairedCount, insertsSize = inserts.size(); k < insertsSize; k ++)
-				merged.add(inserts.get(k));
+			// Any leftover deletes / inserts stay on their own.
+			for(int d = k; d < deletes.size(); d ++)
+				merged.add(deletes.get(d));
+			for(int i = k; i < inserts.size(); i ++)
+				merged.add(inserts.get(i));
 
 			index = hunkEnd;
 		}
-
 		return merged;
+	}
+
+	/**
+	 * Decides whether two lines should be shown as MODIFIED rather than as
+	 * a deletion plus an insertion.
+	 * <p>
+	 * Two heuristics are combined:
+	 * <ol>
+	 *   <li>same tag: the first non-whitespace token is identical. This is
+	 *       the strong signal for FLEF data, where the tag is the field
+	 *       name and a change of tag means a different field, not a
+	 *       rewritten one;</li>
+	 *   <li>content similarity: the character-level LCS ratio is above
+	 *       {@link #SIMILARITY_THRESHOLD}. This catches tags that are
+	 *       slightly reworded but whose content is clearly the same line.</li>
+	 * </ol>
+	 */
+	private static boolean areModifiedVersions(final String leftLine, final String rightLine){
+		if(leftLine == null || rightLine == null)
+			return false;
+
+		final String leftTag = firstToken(leftLine);
+		final String rightTag = firstToken(rightLine);
+		if(!leftTag.isEmpty() && leftTag.equals(rightTag))
+			return true;
+
+		return (similarity(leftLine, rightLine) >= SIMILARITY_THRESHOLD);
+	}
+
+	/** First run of non-whitespace characters, or the empty string. */
+	private static String firstToken(final String line){
+		int i = 0;
+		while(i < line.length() && Character.isWhitespace(line.charAt(i)))
+			i ++;
+		final int start = i;
+		while(i < line.length() && !Character.isWhitespace(line.charAt(i)))
+			i ++;
+		return line.substring(start, i);
+	}
+
+	/** Character-level similarity in [0, 1]: 1 = identical, 0 = disjoint. */
+	private static double similarity(final String a, final String b){
+		if(a.isEmpty() && b.isEmpty())
+			return 1.;
+
+		final int lcs = lcsLength(a, b);
+		return 2. * lcs / (a.length() + b.length());
+	}
+
+	/** Length of the longest common subsequence of two strings. */
+	private static int lcsLength(final String a, final String b){
+		final int n = a.length(), m = b.length();
+		int[] prev = new int[m + 1];
+		int[] curr = new int[m + 1];
+		for(int i = 1; i <= n; i ++){
+			for(int j = 1; j <= m; j ++){
+				if(a.charAt(i - 1) == b.charAt(j - 1))
+					curr[j] = prev[j - 1] + 1;
+				else
+					curr[j] = Math.max(prev[j], curr[j - 1]);
+			}
+			final int[] tmp = prev;
+			prev = curr;
+			curr = tmp;
+			java.util.Arrays.fill(curr, 0);
+		}
+		return prev[m];
 	}
 
 }

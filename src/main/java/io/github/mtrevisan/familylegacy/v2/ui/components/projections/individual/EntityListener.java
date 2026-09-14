@@ -26,8 +26,6 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 
-import javax.swing.JPanel;
-
 
 public interface EntityListener{
 
@@ -37,11 +35,6 @@ public interface EntityListener{
 
 	void onEntityRemove(FLEFRecord individual);
 
-	void onEntitySelected(JPanel panel);
-
 	void onEntityRelocate(FLEFRecord individual);
-
-
-	void onEntityUnlink(FLEFRecord individual);
 
 }

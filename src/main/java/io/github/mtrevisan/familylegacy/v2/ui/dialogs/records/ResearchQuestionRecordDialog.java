@@ -34,6 +34,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ResearchQuestionStatusPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.DocumentHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
@@ -119,7 +120,6 @@ public class ResearchQuestionRecordDialog extends BaseRecordDialog{
 
 	private static final String TAG_RESEARCH_ACTIVITY = "RESEARCH_ACTIVITY";
 	private static final String TAG_RESEARCH_TASK = "RESEARCH_TASK";
-	private static final String TAG_CONCLUSION = "CONCLUSION";
 
 
 	private final JPanel propertiesPanel;
@@ -158,7 +158,7 @@ public class ResearchQuestionRecordDialog extends BaseRecordDialog{
 				HistoricEventHandler.class)
 			.withSaveAsVoid();
 		statusPanel = new ResearchQuestionStatusPanel();
-		conclusionArea = new BoundTextArea(TAG_CONCLUSION, 3, 30);
+		conclusionArea = new BoundTextArea(ConclusionHandler.TYPE, 3, 30);
 		conclusionConfidenceCombo = new BoundComboBox<>(TAG_CONCLUSION_CONFIDENCE, new String[]{
 			StringUtils.EMPTY,
 			"low", "medium", "high"});
@@ -166,7 +166,7 @@ public class ResearchQuestionRecordDialog extends BaseRecordDialog{
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.CONCLUSION_ON_RESEARCH, TAG_CONCLUSION, "Conclusions")
+			.withComponent(PanelKey.CONCLUSION_ON_RESEARCH, ConclusionHandler.TYPE, "Conclusions")
 			.withComponent(PanelKey.RESEARCH_ACTIVITY_ON_QUESTION, TAG_RESEARCH_ACTIVITY, "Research Activities")
 			.withComponent(PanelKey.RESEARCH_TASK_ON_QUESTION, TAG_RESEARCH_TASK, "Research Tasks")
 			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null)

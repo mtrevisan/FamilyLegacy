@@ -37,7 +37,6 @@ import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.SwingUtilities;
@@ -90,15 +89,18 @@ public class IndividualPanel extends JPanel{
 	private static final Color IMAGE_LABEL_BORDER_COLOR = Color.WHITE;
 	private static final Color PEDIGREE_CIRCLE_INNER_COLOR = new Color(200, 55, 55, 240);
 	private static final Color PEDIGREE_CIRCLE_OUTER_COLOR = Color.WHITE;
+	private static final float BORDER_THICKNESS_NORMAL = 1f;
+	private static final float BORDER_THICKNESS_HOVERED = 1.8f;
+	private static final Color BORDER_COLOR_SELECTED = new Color(220, 100, 60);
+	private static final float BORDER_THICKNESS_SELECTED = 2.5f;
 
 	// Dimensions
-	//double values for Horizontal and Vertical radius of corner arcs
 	private static final Dimension ARCS = new Dimension(10, 10);
 	private static final int PREFERRED_IMAGE_WIDTH = 48;
 	private static final double IMAGE_ASPECT_RATIO = 4. / 3.;
 
-	private static final Dimension BOX_DIMENSION_PRIMARY = new Dimension(270, 90);
-	private static final Dimension BOX_DIMENSION_SECONDARY = new Dimension(130, 66);
+	public static final Dimension BOX_DIMENSION_PRIMARY = new Dimension(270, 90);
+	public static final Dimension BOX_DIMENSION_SECONDARY = new Dimension(130, 66);
 
 	/** Diameter of the collapse badge, in pixels. */
 	private static final int BADGE_DIAMETER_PRIMARY = 20;
@@ -111,29 +113,11 @@ public class IndividualPanel extends JPanel{
 	private static final Font FONT_SECONDARY = new Font("Tahoma", Font.PLAIN, 12);
 	private static final float INFO_FONT_SIZE_FACTOR = 0.8f;
 
-	private static final String TAG_TYPE = "type";
-	private static final String TAG_TARGET = "target";
-	private static final String TAG_SEX = "sex";
-
-	private static final String ENUM_SEX_MALE = "male";
-	private static final String ENUM_SEX_FEMALE = "female";
-
 
 	// UI components
 	private final MultiLineLabel nameLabel = new MultiLineLabel(2);
 	private final JLabel infoLabel = new JLabel();
 	private final JLabel imageLabel = new JLabel();
-
-	// Menu items
-	private final JMenuItem editItem = new JMenuItem("Edit Individual…", 'E');
-	private final JMenuItem addItem = new JMenuItem("Add Individual…", 'A');
-	private final JMenuItem connectItem = new JMenuItem("Connect Individual…", 'C');
-	private final JMenuItem addChildItem = new JMenuItem("Add Child…", 'C');
-	private final JMenuItem connectChildItem = new JMenuItem("Connect Child…", 'C');
-	private final JMenuItem relocateItem = new JMenuItem("Relocate Individual", 'R');
-	private final JMenuItem pasteItem = new JMenuItem("Paste Individual", 'P');
-	private final JMenuItem deleteItem = new JMenuItem("Delete Individual", 'D');
-	private final JMenuItem unlinkRelationshipsItem = new JMenuItem("Unlink Relationships…", 'U');
 
 
 	// State
@@ -147,6 +131,11 @@ public class IndividualPanel extends JPanel{
 	private IndividualData data;
 
 	private String preferredImageKey;
+
+	/** {@code true} while the mouse is over this panel or one of its children. */
+	private boolean hovered;
+	/** {@code true} when this panel is the current selection in its view. */
+	private boolean selected;
 
 	/** Red badge displayed on panels whose individual appears multiple times. */
 	private final CollapseBadge collapseBadge = new CollapseBadge();
@@ -267,12 +256,28 @@ public class IndividualPanel extends JPanel{
 				panelWidth - 2, panelHeight - 2,
 				ARCS.width, ARCS.height);
 
-			g2.setColor(BORDER_COLOR);
+			// Border: dashed when empty, otherwise normal/hovered.
+			final Color borderColor;
+			final Stroke borderStroke;
 			if(data == null){
-				final Stroke dashedStroke = new BasicStroke(1.f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND,
+				borderColor = BORDER_COLOR;
+				borderStroke = new BasicStroke(1.f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND,
 					10.f, new float[]{5.f}, 0.f);
-				g2.setStroke(dashedStroke);
 			}
+			else if(selected){
+				borderColor = BORDER_COLOR_SELECTED;
+				borderStroke = new BasicStroke(BORDER_THICKNESS_SELECTED);
+			}
+			else if(hovered){
+				borderColor = BORDER_COLOR;
+				borderStroke = new BasicStroke(BORDER_THICKNESS_HOVERED);
+			}
+			else{
+				borderColor = BORDER_COLOR;
+				borderStroke = new BasicStroke(BORDER_THICKNESS_NORMAL);
+			}
+			g2.setColor(borderColor);
+			g2.setStroke(borderStroke);
 			g2.drawRoundRect(1, 1,
 				panelWidth - 2, panelHeight - 2,
 				ARCS.width, ARCS.height);
@@ -290,7 +295,7 @@ public class IndividualPanel extends JPanel{
 	}
 
 	private Color getBackgroundColor(){
-		return (data == null? BACKGROUND_COLOR_NO_ENTITY : BACKGROUND_COLOR);
+		return (data == null? BACKGROUND_COLOR_NO_ENTITY: BACKGROUND_COLOR);
 	}
 
 	private static void setPreferredSize(final JComponent component, final double baseWidth, final double aspectRatio,
@@ -348,20 +353,32 @@ public class IndividualPanel extends JPanel{
 
 	/**
 	 * Attaches the pedigree-collapse information to this panel.
-	 * <p>
-	 * When {@code count} is greater than 1, the badge is made visible; its
-	 * cell is always reserved by the layout, so showing or hiding the badge
-	 * does not require recomputing the width of the name label.
-	 *
-	 * @param count   the number of times the individual appears in the tree
-	 * @param tooltip the collapse tooltip in HTML; may be {@code null}
-	 * @return this panel, for chaining
 	 */
 	public IndividualPanel withCollapseInfo(final int count, final String tooltip){
 		collapseBadge.update(count, tooltip);
 
 		revalidate();
 		repaint();
+
+		return this;
+	}
+
+	/**
+	 * Marks this panel as selected or not. A selected panel is drawn with a
+	 * thicker, reddish border, so that the user can identify the current
+	 * focus at a glance. The selection state is independent from the hover
+	 * state: a selected panel keeps its red border even when the cursor is
+	 * elsewhere.
+	 *
+	 * @param selected the new selection state
+	 * @return this panel, for chaining
+	 */
+	public IndividualPanel withSelected(final boolean selected){
+		if(this.selected != selected){
+			this.selected = selected;
+
+			repaint();
+		}
 
 		return this;
 	}
@@ -438,8 +455,14 @@ public class IndividualPanel extends JPanel{
 			final MouseAdapter selectedAdapter = new MouseAdapter(){
 				@Override
 				public void mousePressed(final MouseEvent e){
-					if(SwingUtilities.isLeftMouseButton(e) && listener != null && data != null)
+					if(SwingUtilities.isLeftMouseButton(e) && listener != null && data != null){
 						listener.onEntitySelected(data.getIndividual());
+
+						// Consume the event so that the panel-level listener does
+						// not also fire a selection on the same click. Clicking
+						// the name is a navigation gesture, not a selection one.
+						e.consume();
+					}
 				}
 			};
 			nameLabel.addMouseListener(selectedAdapter);
@@ -453,6 +476,37 @@ public class IndividualPanel extends JPanel{
 					listener.onEntityEdit(data.getIndividual());
 			}
 		});
+
+		// Hover + single-click selection, applied to this panel and to
+		// every child component so that the border reacts no matter
+		// where the mouse enters the box.
+		final MouseAdapter hoverAdapter = new MouseAdapter(){
+			@Override
+			public void mousePressed(final MouseEvent e){
+				if(SwingUtilities.isLeftMouseButton(e) && e.getClickCount() == 1 && listener != null && data != null)
+					listener.onIndividualSelected(IndividualPanel.this, data.getIndividual());
+			}
+
+			@Override
+			public void mouseEntered(final MouseEvent e){
+				if(!hovered){
+					hovered = true;
+
+					repaint();
+				}
+			}
+
+			@Override
+			public void mouseExited(final MouseEvent e){
+				if(hovered){
+					hovered = false;
+
+					repaint();
+				}
+			}
+		};
+
+		attachMouseListenerRecursively(this, hoverAdapter);
 	}
 
 	private void attachPopupMenu(){

@@ -1,0 +1,252 @@
+package io.github.mtrevisan.familylegacy.v2.ui.tools.events;
+
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
+import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolDialogs;
+import io.github.mtrevisan.familylegacy.v2.ui.tools.places.PlaceHelper;
+
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
+import javax.swing.RowFilter;
+import javax.swing.SwingUtilities;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.table.AbstractTableModel;
+import javax.swing.table.TableRowSorter;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
+
+/**
+ * Modal dialog that lists every {@code EventRecord} with its date,
+ * place, and participant count, and allows the user to create, edit,
+ * and delete events.
+ */
+public final class EventManagementDialog extends JDialog{
+
+	private final ToolContext context;
+	private final EventTableModel tableModel = new EventTableModel();
+	private final JTable table = new JTable(tableModel);
+	private final JTextField searchField = new JTextField(24);
+	private final JLabel statusLabel = new JLabel(" ");
+
+
+	public EventManagementDialog(final ToolContext context){
+		super(context.owner(), "Manage Events", ModalityType.APPLICATION_MODAL);
+		this.context = context;
+
+		setLayout(new BorderLayout(6, 6));
+		add(createToolbar(), BorderLayout.NORTH);
+		add(createTable(), BorderLayout.CENTER);
+		add(createFooter(), BorderLayout.SOUTH);
+
+		setPreferredSize(new Dimension(1100, 560));
+
+		ToolDialogs.installEscapeToClose(this);
+
+		pack();
+		setLocationRelativeTo(context.owner());
+
+		reload();
+	}
+
+
+	private JPanel createToolbar(){
+		final JPanel toolbar = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 6));
+		toolbar.setBorder(BorderFactory.createEmptyBorder(2, 4, 2, 4));
+
+		toolbar.add(new JLabel("Search:"));
+		toolbar.add(searchField);
+		searchField.getDocument().addDocumentListener(new DocumentListener(){
+			@Override public void insertUpdate(final DocumentEvent e){ applyFilter(); }
+			@Override public void removeUpdate(final DocumentEvent e){ applyFilter(); }
+			@Override public void changedUpdate(final DocumentEvent e){ applyFilter(); }
+		});
+
+		final JButton newButton = new JButton("New…");
+		newButton.addActionListener(e -> openEditor(null));
+		toolbar.add(newButton);
+
+		final JButton editButton = new JButton("Edit…");
+		editButton.addActionListener(e -> openEditor(selectedEventId()));
+		toolbar.add(editButton);
+
+		final JButton deleteButton = new JButton("Delete");
+		deleteButton.addActionListener(e -> deleteSelected());
+		toolbar.add(deleteButton);
+
+		return toolbar;
+	}
+
+	private JScrollPane createTable(){
+		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		table.setRowHeight(22);
+		table.setAutoCreateRowSorter(true);
+		table.getColumnModel().getColumn(0).setPreferredWidth(140);
+		table.getColumnModel().getColumn(1).setPreferredWidth(120);
+		table.getColumnModel().getColumn(2).setPreferredWidth(220);
+		table.getColumnModel().getColumn(3).setPreferredWidth(70);
+		table.getColumnModel().getColumn(4).setPreferredWidth(300);
+
+		table.addMouseListener(new MouseAdapter(){
+			@Override
+			public void mouseClicked(final MouseEvent e){
+				if(e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e))
+					openEditor(selectedEventId());
+			}
+		});
+
+		final JScrollPane scroll = new JScrollPane(table);
+		scroll.setBorder(BorderFactory.createTitledBorder("Events"));
+		return scroll;
+	}
+
+	private JPanel createFooter(){
+		final JPanel footer = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+		footer.setBorder(BorderFactory.createEmptyBorder(2, 6, 6, 6));
+		footer.add(statusLabel);
+		final JButton close = new JButton("Close");
+		close.addActionListener(e -> dispose());
+		footer.add(close);
+		return footer;
+	}
+
+
+	private void reload(){
+		final FLEFModel model = context.model();
+		final Map<String, FLEFRecord> placesById = model.getPlacesById();
+		final Map<String, List<EventHelper.Participation>> participationsByEvent =
+			EventHelper.participationsByEvent(model);
+
+		final List<EventHelper.EventRow> rows = new ArrayList<>();
+		for(final FLEFRecord event : EventHelper.listAllEvents(model))
+			rows.add(EventHelper.toRow(event, placesById, participationsByEvent));
+
+		tableModel.setRows(rows);
+		updateStatus(rows.size());
+	}
+
+	private void applyFilter(){
+		final String text = searchField.getText();
+		@SuppressWarnings("unchecked")
+		final TableRowSorter<EventTableModel> sorter =
+			(TableRowSorter<EventTableModel>)table.getRowSorter();
+		if(text == null || text.isBlank())
+			sorter.setRowFilter(null);
+		else{
+			final String needle = text.trim().toLowerCase(Locale.ROOT);
+			sorter.setRowFilter(new RowFilter<>(){
+				@Override
+				public boolean include(final Entry<? extends EventTableModel, ? extends Integer> entry){
+					final EventHelper.EventRow row = tableModel.getRow(entry.getIdentifier());
+					return contains(row.type(), needle)
+						|| contains(row.date(), needle)
+						|| contains(row.placeName(), needle)
+						|| contains(row.description(), needle);
+				}
+			});
+		}
+		updateStatus(table.getRowCount());
+	}
+
+	private static boolean contains(final String haystack, final String needle){
+		return haystack != null && haystack.toLowerCase(Locale.ROOT).contains(needle);
+	}
+
+	private String selectedEventId(){
+		final int viewRow = table.getSelectedRow();
+		if(viewRow < 0)
+			return null;
+		return tableModel.getRow(table.convertRowIndexToModel(viewRow)).id();
+	}
+
+	private void openEditor(final String eventId){
+		final EventHandler handler = EventHandler.getInstance();
+		final BaseRecordDialog dialog;
+		if(eventId == null)
+			dialog = handler.createNewDialog(this, context.model());
+		else{
+			final FLEFRecord record = context.model().getRecordById(eventId);
+			if(record == null)
+				return;
+			dialog = handler.createEditDialog(this, context.model(), record);
+		}
+		dialog.setVisible(true);
+		if(dialog.isSaved())
+			reload();
+	}
+
+	private void deleteSelected(){
+		final String eventId = selectedEventId();
+		if(eventId == null)
+			return;
+		final int confirm = JOptionPane.showConfirmDialog(this,
+			"Delete event " + eventId + "?\n"
+				+ "Participations referencing this event will be left dangling.",
+			"Confirm Deletion",
+			JOptionPane.YES_NO_OPTION,
+			JOptionPane.WARNING_MESSAGE);
+		if(confirm != JOptionPane.YES_OPTION)
+			return;
+		context.model().removeRecord(eventId);
+		reload();
+	}
+
+	private void updateStatus(final int count){
+		statusLabel.setText(count + (count == 1? " event": " events"));
+	}
+
+
+	private static final class EventTableModel extends AbstractTableModel{
+
+		private static final String[] COLUMNS = {"Type", "Date", "Place", "Participants", "Description"};
+
+		private final List<EventHelper.EventRow> rows = new ArrayList<>();
+
+		void setRows(final List<EventHelper.EventRow> rows){
+			this.rows.clear();
+			this.rows.addAll(rows);
+			fireTableDataChanged();
+		}
+
+		EventHelper.EventRow getRow(final int index){
+			return rows.get(index);
+		}
+
+		@Override public int getRowCount(){ return rows.size(); }
+		@Override public int getColumnCount(){ return COLUMNS.length; }
+		@Override public String getColumnName(final int column){ return COLUMNS[column]; }
+
+		@Override
+		public Object getValueAt(final int rowIndex, final int columnIndex){
+			final EventHelper.EventRow row = rows.get(rowIndex);
+			return switch(columnIndex){
+				case 0 -> row.type();
+				case 1 -> row.date();
+				case 2 -> row.placeName();
+				case 3 -> row.participantCount();
+				case 4 -> row.description();
+				default -> "";
+			};
+		}
+	}
+
+}

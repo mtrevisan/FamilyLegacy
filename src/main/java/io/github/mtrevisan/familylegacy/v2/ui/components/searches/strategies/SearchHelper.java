@@ -43,7 +43,6 @@ import java.util.Map;
 public class SearchHelper{
 
 	private static final String TAG_DATE = "date";
-	private static final String TAG_PLACE = "place";
 	private static final String TAG_VALUE = "value";
 	private static final String TAG_CALENDAR = "calendar";
 	private static final String TAG_POINT = "point";
@@ -161,7 +160,7 @@ public class SearchHelper{
 		if(StringUtils.isEmpty(targetPlace))
 			return true;
 
-		final FLEFRecord placeCitation = FLEFRecordHelper.findChild(event, TAG_PLACE);
+		final FLEFRecord placeCitation = FLEFRecordHelper.findChild(event, PlaceHandler.TYPE);
 		if(placeCitation == null)
 			return true;
 

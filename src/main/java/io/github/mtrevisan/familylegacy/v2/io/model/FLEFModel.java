@@ -24,6 +24,10 @@
  */
 package io.github.mtrevisan.familylegacy.v2.io.model;
 
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -45,6 +49,9 @@ public class FLEFModel{
 
 	private final Map<String, List<FLEFRecord>> recordsByType = new HashMap<>();
 	private final Map<String, FLEFRecord> recordsById = new HashMap<>();
+	private final Map<String, FLEFRecord> placesById = new HashMap<>();
+	private final Map<String, FLEFRecord> eventsById = new HashMap<>();
+	private final Map<String, FLEFRecord> questionsById = new HashMap<>();
 
 
 	public FLEFRecord getHeader(){
@@ -71,6 +78,12 @@ public class FLEFModel{
 			removeRecord(id);
 
 		recordsById.put(id, record);
+		if(id.startsWith(PlaceHandler.ID_PREFIX))
+			placesById.put(id, record);
+		if(id.startsWith(EventHandler.ID_PREFIX))
+			eventsById.put(id, record);
+		if(id.startsWith(ResearchQuestionHandler.ID_PREFIX))
+			questionsById.put(id, record);
 
 		records.add(record);
 		if(record.getTag() != null)
@@ -90,6 +103,18 @@ public class FLEFModel{
 			return null;
 
 		return recordsById.get(id);
+	}
+
+	public Map<String, FLEFRecord> getPlacesById(){
+		return placesById;
+	}
+
+	public Map<String, FLEFRecord> getEventsById(){
+		return eventsById;
+	}
+
+	public Map<String, FLEFRecord> getQuestionsById(){
+		return questionsById;
 	}
 
 	public FLEFRecord removeRecord(final String id){

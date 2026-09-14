@@ -26,7 +26,6 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.searches;
 
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -97,7 +96,7 @@ public class SearchCriteria{
 	}
 
 	public Map<String, Object> getSpecificFilters(){
-		return Collections.unmodifiableMap(specificFilters);
+		return specificFilters;
 	}
 
 }

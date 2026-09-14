@@ -32,6 +32,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.EntityField;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.DocumentHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
@@ -114,7 +115,6 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 	private static final String TAG_SEARCH_SCOPE_DETAIL = TAG_SEARCH_SCOPE + DOT + "DETAIL";
 	private static final String TAG_RESULT = "RESULT";
 	private static final String TAG_OBSERVATION = "OBSERVATION";
-	private static final String TAG_CONCLUSION = "CONCLUSION";
 	private static final String TAG_CONCLUSION_CONFIDENCE = "CONCLUSION_CONFIDENCE";
 	private static final String TAG_PARENT_ACTIVITY = "PARENT_ACTIVITY";
 	private static final String TAG_TASK = "TASK";
@@ -180,7 +180,7 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 			"positive", "negative", "inconclusive", "conflicting", "unavailable"
 		});
 		observationArea = new BoundTextArea(TAG_OBSERVATION, 3, 30);
-		conclusionArea = new BoundTextArea(TAG_CONCLUSION, 3, 30);
+		conclusionArea = new BoundTextArea(ConclusionHandler.TYPE, 3, 30);
 		conclusionConfidenceCombo = new BoundComboBox<>(TAG_CONCLUSION_CONFIDENCE, new String[]{
 			StringUtils.EMPTY,
 			"low", "medium", "high"});

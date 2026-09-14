@@ -179,7 +179,7 @@ public class LifeMapPanel extends JPanel{
 
 	private final class Canvas extends JPanel{
 
-		@java.io.Serial
+		@Serial
 		private static final long serialVersionUID = 8431902748490191183L;
 
 

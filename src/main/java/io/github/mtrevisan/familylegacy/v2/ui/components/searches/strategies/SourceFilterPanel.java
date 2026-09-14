@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.searches.strategies;
 
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.RecordFilterPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchCriteria;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.BorderFactory;
@@ -49,7 +50,6 @@ public class SourceFilterPanel extends JPanel implements RecordFilterPanel{
 	static final String FILTER_KEY_AUTHOR = "author";
 	static final String FILTER_KEY_PUBLISHER = "publisher";
 	static final String FILTER_KEY_MEDIA_TYPE = "mediaType";
-	static final String FILTER_KEY_PLACE = "place";
 
 
 	private final JTextField titleField = new JTextField(20);
@@ -132,7 +132,7 @@ public class SourceFilterPanel extends JPanel implements RecordFilterPanel{
 		filters.put(FILTER_KEY_AUTHOR, getAuthor());
 		filters.put(FILTER_KEY_PUBLISHER, getPublisher());
 		filters.put(FILTER_KEY_MEDIA_TYPE, getMediaType());
-		filters.put(FILTER_KEY_PLACE, getPlace());
+		filters.put(PlaceHandler.TYPE, getPlace());
 		return filters;
 	}
 

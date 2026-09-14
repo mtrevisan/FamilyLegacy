@@ -68,33 +68,19 @@ Il protocollo è estremamente ricco sul piano temporale.
 ## Cosa manca ancora
 
 1. **Lifespan bar.** Ogni individuo non ha una barra continua da nascita a morte. Ha singoli marker (nascita, eventi, morte). Una vera "life map" dovrebbe mostrare la vita come una linea continua, con gli eventi come marker sopra di essa. Questo permette di vedere a colpo d'occhio "quanto è vissuto" e "quando è successo cosa".
-
 2. **Allineamento per generazione.** Le righe sono ordinate per tipo e label, non per generazione. Una timeline genealogica tipicamente raggruppa gli individui per generazione (nonni, genitori, figli), così da vedere sovrapposizioni tra generazioni.
-
 3. **Età agli eventi.** "A che età si è sposato?", "quanti anni aveva quando è emigrato?". Il calcolo non esiste. Ogni evento puntuale su una persona potrebbe mostrare l'età della persona a quella data, calcolata dalla nascita.
-
 4. **Durata delle relazioni.** "Quanto è durato il matrimonio?" Non calcolato. Un'unione con `valid_from` e `valid_to` ha una durata esplicita.
-
 5. **Analisi di sovrapposizione.** "Chi era vivo nel 1850?", "quali eventi erano simultanei?", "chi era presente alla nascita di X?". Query non implementate.
-
 6. **Confronto affiancato.** Due individui (o due rami) con assi sincronizzati. L'attuale vista è un singolo focus.
-
 7. **Heatmap temporale.** Istogramma della densità di eventi nel tempo. "In quali anni ci sono stati più eventi?" Non esiste.
-
 8. **Gruppi di eventi per categoria.** Attualmente tutto è un unico EVENT track. Una separazione per categoria (vital events, migration events, career events, military events, legal events) renderebbe la vista più leggibile.
-
 9. **Biografia narrativa.** Generare un testo sequenziale dal modello temporale: "Mario nacque nel 1850 a Treviso. Nel 1866 si arruolò. Nel 1870 sposò Anna. Nel 1880 emigrò in Argentina. Nel 1920 morì." Non esiste.
-
 10. **Dettaglio on-hover del contesto.** Passando il mouse su un marker, vedere il contesto storico/normativo che lo influenza (via `ContextImpactRecord`). Il tooltip attuale mostra solo dati dell'evento.
-
 11. **Confronto con historic events.** "Cosa succedeva nel mondo quando X è nato?" Il layer delle bande mostra il contesto, ma non c'è una query esplicita "mostra tutti gli historic events attivi tra il 1850 e il 1860".
-
 12. **Supporto calendari completi.** Mancano `hebrew`, `chinese`, `indian`, `buddhist`, `french_republican`, `soviet_eternal`, `mayan`. Attualmente `CalendarConverter` lancia `UnsupportedOperationException`. Almeno `french_republican` è rilevante per genealogie italiane del periodo napoleonico.
-
 13. **Time slider.** Uno slider che scorre l'asse temporale senza cambiare lo zoom, con un indicatore verticale mobile. Utile per "cosa era visibile in questo istante".
-
 14. **Export in formato tabellare.** Non c'è modo di estrarre la timeline come CSV/Excel per analisi esterne.
-
 15. **Evidenza negativa.** `EvidenceQualifiers.evidence_type = negative` non è visualizzato. Un "nessun evento in questo intervallo" dovrebbe essere rappresentato come spazio vuoto attivo, non come semplice assenza di barra.
 
 ---

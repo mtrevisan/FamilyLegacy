@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.services.kinship;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.List;
 
 
@@ -141,7 +143,7 @@ record KinshipResult(
 	 * @return the result
 	 */
 	static KinshipResult notRelated(final String idA, final String displayA, final String idB, final String displayB){
-		return new KinshipResult(idA, displayA, idB, displayB, "", "",
+		return new KinshipResult(idA, displayA, idB, displayB, StringUtils.EMPTY, StringUtils.EMPTY,
 			List.of(), List.of(), null, null, List.of(),
 			"No common ancestor found in the current data.", 0.,
 			false, 0, 0, 0);
@@ -156,7 +158,7 @@ record KinshipResult(
 	 */
 	static KinshipResult sameIndividual(final String id, final String display){
 		final ChainEntry self = new ChainEntry(id, display, 0);
-		return new KinshipResult(id, display, id, display, "", "",
+		return new KinshipResult(id, display, id, display, StringUtils.EMPTY, StringUtils.EMPTY,
 			List.of(self), List.of(self), null, null, List.of(),
 			"The two individuals are the same person.", 1.,
 			false, 0, 0, 0);

@@ -34,9 +34,13 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.EntityField;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ContextImpactHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupAttributeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceCitationHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
@@ -100,14 +104,10 @@ public class GroupAttributeRecordDialog extends BaseRecordDialog{
 	private static final String TAG_VALUE = "VALUE";
 	private static final String TAG_VALID_FROM = "VALID_FROM";
 	private static final String TAG_VALID_TO = "VALID_TO";
-	private static final String TAG_PLACE = "PLACE";
 	private static final String TAG_SOURCE = "SOURCE";
 	private static final String TAG_EVIDENCE = "EVIDENCE";
 	private static final String TAG_NOTE = "NOTE";
 	private static final String TAG_PRIVACY = "PRIVACY";
-	private static final String TAG_CONTEXT_IMPACT = "CONTEXT_IMPACT";
-	private static final String TAG_CONCLUSION = "CONCLUSION";
-	private static final String TAG_RESEARCH_QUESTION = "RESEARCH_QUESTION";
 	private static final String TAG_AUDIT = "AUDIT";
 
 
@@ -144,13 +144,13 @@ public class GroupAttributeRecordDialog extends BaseRecordDialog{
 		valueField = new BoundTextField(TAG_VALUE);
 		validFromField = DateField.createWithWrapperTag(TAG_VALID_FROM, this, "Valid From", model);
 		validToField = DateField.createWithWrapperTag(TAG_VALID_TO, this, "Valid To", model);
-		placeField = EntityField.createForStructureWithReference(TAG_PLACE, this, model, PlaceCitationHandler.class);
+		placeField = EntityField.createForStructureWithReference(PlaceHandler.TYPE, this, model, PlaceCitationHandler.class);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, TAG_CONTEXT_IMPACT, "Context Impacts")
-			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, TAG_CONCLUSION, "Conclusions")
-			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, TAG_RESEARCH_QUESTION, "Research Questions")
+			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, ContextImpactHandler.TYPE, "Context Impacts")
+			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, "Conclusions")
+			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, "Research Questions")
 			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources with Citations")
 			.withComponent(PanelKey.NOTE, TAG_NOTE, null)
 			.withComponent(PanelKey.EVIDENCE, TAG_EVIDENCE, "Evidence")
@@ -306,7 +306,7 @@ public class GroupAttributeRecordDialog extends BaseRecordDialog{
 	@Override
 	protected boolean validData(){
 		if(parentEntity.isEmpty()){
-			JOptionPane.showMessageDialog(null,
+			JOptionPane.showMessageDialog(this,
 				"Parent Group is required.",
 				"Validation Error", JOptionPane.ERROR_MESSAGE);
 

@@ -34,6 +34,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import javax.swing.JPanel;
 import java.util.EnumMap;
 import java.util.Map;
+import java.util.function.Consumer;
 
 
 /**
@@ -135,7 +136,7 @@ public final class RecordDialogComponents{
 			audit.load(record);
 	}
 
-	private void loadReferenceIfPresent(final PanelKey key, final java.util.function.Consumer<EntityListPanel> consumer){
+	private void loadReferenceIfPresent(final PanelKey key, final Consumer<EntityListPanel> consumer){
 		final JPanel panel = getPanel(key);
 		if(panel instanceof EntityListPanel elp)
 			consumer.accept(elp);

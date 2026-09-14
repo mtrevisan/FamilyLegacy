@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.TreeNode;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -79,7 +80,7 @@ public final class PedigreeCollapseDetector{
 		final Map<String, List<PedigreePath>> occurrences = new LinkedHashMap<>();
 
 		final Deque<TraversalEntry> stack = new ArrayDeque<>();
-		stack.push(new TraversalEntry(root, "", 0));
+		stack.push(new TraversalEntry(root, StringUtils.EMPTY, 0));
 		while(!stack.isEmpty()){
 			final TraversalEntry entry = stack.pop();
 			final TreeNode node = entry.node;

@@ -101,6 +101,7 @@ public class RecordSelectionDialog extends JDialog{
 	public static final String PROPERTY_TYPE_SELECTED = "type-selected";
 
 	private static final Dimension SCROLL_PANE_PREFERRED_SIZE = new Dimension(450, 200);
+	public static final String ACTION_CANCEL_SEARCH_OR_DIALOG = "cancelSearchOrDialog";
 
 
 	private record DisplayItem(FLEFRecord record, String displayText){}
@@ -364,9 +365,12 @@ public class RecordSelectionDialog extends JDialog{
 
 	private void setupEscapeKey(){
 		getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
-			.put(GUIHelper.ESCAPE_STROKE, "cancelSearchOrDialog");
+			.put(GUIHelper.ESCAPE_STROKE, ACTION_CANCEL_SEARCH_OR_DIALOG);
 		getRootPane().getActionMap()
-			.put("cancelSearchOrDialog", new AbstractAction(){
+			.put(ACTION_CANCEL_SEARCH_OR_DIALOG, new AbstractAction(){
+				@Serial
+				private static final long serialVersionUID = 160337908930039032L;
+
 				@Override
 				public void actionPerformed(final ActionEvent e){
 					if(currentWorker != null && !currentWorker.isDone())

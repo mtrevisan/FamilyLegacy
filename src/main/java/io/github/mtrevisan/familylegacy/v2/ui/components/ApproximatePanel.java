@@ -67,7 +67,6 @@ public class ApproximatePanel extends JPanel{
 
 
 	private static final String TAG_BASIS = "BASIS";
-	private static final String TAG_CULTURAL_NORM = "CULTURAL_NORM";
 	private static final String TAG_MARGIN = "MARGIN";
 
 
@@ -84,7 +83,7 @@ public class ApproximatePanel extends JPanel{
 	public ApproximatePanel(String path, Window parent, FLEFModel model){
 		this.path = path;
 
-		culturalNormPanel = EntityListPanel.createForEntityReference(TAG_CULTURAL_NORM, parent, "Cultural Norms",
+		culturalNormPanel = EntityListPanel.createForEntityReference(CulturalNormHandler.TYPE, parent, "Cultural Norms",
 			model, CulturalNormHandler.class);
 
 

@@ -27,7 +27,6 @@ package io.github.mtrevisan.familylegacy.v2.ui.helpers;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
@@ -63,8 +62,7 @@ public final class LocaleHelper{
 			final List<String> list = new ArrayList<>(tags.size() + 1);
 			list.add(StringUtils.EMPTY);
 			list.addAll(tags);
-
-			cachedLocaleCodes = Collections.unmodifiableList(list);
+			cachedLocaleCodes = list;
 		}
 		return cachedLocaleCodes;
 	}

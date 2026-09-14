@@ -28,7 +28,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Rectangle;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 
@@ -229,7 +228,7 @@ public final class TemporalAxis{
 		final long minStart = domainStartJdn - windowSpan;
 		final long maxStart = domainEndJdn + windowSpan - windowSpan;
 		long newStart = visibleStartJdn + deltaJdn;
-		newStart = Math.max(minStart, Math.min(maxStart, newStart));
+		newStart = Math.clamp(newStart, minStart, maxStart);
 		visibleStartJdn = newStart;
 		visibleEndJdn = newStart + windowSpan;
 	}
@@ -314,7 +313,7 @@ public final class TemporalAxis{
 		final int x2 = jdnToX(endJdn);
 
 		final int clampedX1 = Math.max(0, x1);
-		final int clampedX2 = Math.min(viewportWidth, Math.max(clampedX1 + 1, x2));
+		final int clampedX2 = Math.clamp(clampedX1 + 1, x2, viewportWidth);
 		if(clampedX2 <= 0 || clampedX1 >= viewportWidth)
 			return null;
 
@@ -360,7 +359,7 @@ public final class TemporalAxis{
 			case MONTH -> addMonthTicks(ticks);
 			case DAY -> addDayTicks(ticks);
 		}
-		return Collections.unmodifiableList(ticks);
+		return ticks;
 	}
 
 	private void addYearTicks(final List<Tick> ticks, final int intervalYears){

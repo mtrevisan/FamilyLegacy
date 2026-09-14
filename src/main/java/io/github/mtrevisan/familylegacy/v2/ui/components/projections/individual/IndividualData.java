@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.BoxPanelType;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.SexType;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.AsyncResourceLoader;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.ParsedGenealogicalDate;
@@ -78,7 +79,6 @@ public final class IndividualData{
 	private static final String TAG_CAUSE = "cause";
 	private static final String TAG_REASON = "reason";
 	private static final String TAG_DATE = "date";
-	private static final String TAG_PLACE = "place";
 	private static final String TAG_POINT = "point";
 	private static final String TAG_FULL_DATE = "full_date";
 	private static final String TAG_CALENDAR = "calendar";
@@ -91,7 +91,7 @@ public final class IndividualData{
 	private static final String TAG_HEIGHT = "height";
 	private static final String TAG_DATE_VALUE_POINT_FULL_DATE = TAG_DATE + DOT + TAG_VALUE + DOT + TAG_POINT + DOT + TAG_FULL_DATE;
 	private static final String TAG_NAME_VALUE = TAG_NAME + DOT + TAG_VALUE;
-	private static final String TAG_PLACE_PLACE = TAG_PLACE + DOT + TAG_PLACE;
+	private static final String TAG_PLACE_PLACE = PlaceHandler.TYPE + DOT + PlaceHandler.TYPE;
 	private static final String TAG_CAUSE_REASON = TAG_CAUSE + DOT + TAG_REASON;
 	private static final String TAG_PREFERRED_IMAGE_URI = TAG_PREFERRED_IMAGE + DOT + TAG_URI;
 	private static final String TAG_PREFERRED_IMAGE_CROP = TAG_PREFERRED_IMAGE + DOT + TAG_CROP;

@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchCriteria;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchStrategy;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.TextSearchHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import org.apache.commons.lang3.StringUtils;
 
@@ -74,7 +75,7 @@ public class SourceSearchStrategy implements SearchStrategy{
 		author = criteria.getFilterFor(SourceFilterPanel.FILTER_KEY_AUTHOR);
 		publisher = criteria.getFilterFor(SourceFilterPanel.FILTER_KEY_PUBLISHER);
 		mediaType = criteria.getFilterFor(SourceFilterPanel.FILTER_KEY_MEDIA_TYPE);
-		place = criteria.getFilterFor(SourceFilterPanel.FILTER_KEY_PLACE);
+		place = criteria.getFilterFor(PlaceHandler.TYPE);
 		fuzzy = criteria.isFuzzy();
 		wholeWord = criteria.isWholeWord();
 

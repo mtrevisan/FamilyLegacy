@@ -193,17 +193,16 @@ public final class FLEFGrammarParser{
 				if(Character.isWhitespace(c)){
 					i ++;
 				}
-				else if(Character.isLetterOrDigit(c) || c == '_' || c == '.'){
+				else if(isIdentifierChar(c)){
 					final int start = i;
-					while(i < length && (Character.isLetterOrDigit(line.charAt(i)) || line.charAt(i) == '_'
-						|| line.charAt(i) == '.'))
+					while(i < length && isIdentifierChar(line.charAt(i)))
 						i ++;
 					result.add(new Token(line.substring(start, i), lineNumber));
 				}
 				else if(SINGLE_CHAR_TOKENS.indexOf(c) != -1){
 					final String twoChars = line.substring(i, Math.min(i + 2, length));
 					if(twoChars.equals(NOT_EQUALS) || twoChars.equals(GREATER_THAN_OR_EQUALS)
-						|| twoChars.equals(LESS_THAN_OR_EQUALS) || twoChars.equals(EQUALS)){
+							|| twoChars.equals(LESS_THAN_OR_EQUALS) || twoChars.equals(EQUALS)){
 						result.add(new Token(twoChars, lineNumber));
 
 						i += 2;
@@ -219,6 +218,26 @@ public final class FLEFGrammarParser{
 			}
 		}
 		return result;
+	}
+
+	/**
+	 * Returns whether the given character can appear inside an identifier.
+	 * <p>
+	 * Accepts Unicode letters and digits, ASCII underscore and dot, and
+	 * Unicode combining marks. Combining marks are needed for scripts
+	 * such as Arabic, Hebrew, and Devanagari, where a base letter carries
+	 * one or more diacritics that are encoded as separate code points
+	 * (e.g. {@code كُنيَة}, where {@code ُ} and {@code َ} are combining
+	 * marks on top of the letters {@code ك} and {@code ن}).
+	 */
+	private static boolean isIdentifierChar(final char c){
+		if(Character.isLetterOrDigit(c) || c == '_' || c == '.')
+			return true;
+
+		final int type = Character.getType(c);
+		return type == Character.NON_SPACING_MARK
+			|| type == Character.COMBINING_SPACING_MARK
+			|| type == Character.ENCLOSING_MARK;
 	}
 
 
@@ -612,13 +631,49 @@ public final class FLEFGrammarParser{
 		expect(TAG_OPEN_CURLY_BRACE);
 		final List<String> values = new ArrayList<>();
 		while(!peekIs(TAG_CLOSE_CURLY_BRACE)){
+			// Skip any parenthesized display hint that may precede the value.
+			skipParenthesizedHint();
+
+			if(peekIs(TAG_CLOSE_CURLY_BRACE))
+				break;
+
 			values.add(next().toLowerCase(Locale.ROOT));
+
+			// Skip an optional parenthesized display hint following the
+			// value, e.g. "kunya (كُنيَة)". Hints are not part of the
+			// value itself: they only carry a rendering suggestion for
+			// scripts whose glyphs must be shown next to the ASCII name.
+			skipParenthesizedHint();
 
 			if(peekIs(TAG_COMMA))
 				next();
 		}
 		expect(TAG_CLOSE_CURLY_BRACE);
 		return values;
+	}
+
+	/**
+	 * Consumes a balanced {@code (...)} group, if present. Used to skip
+	 * display hints that may follow an enum value. Nesting is tracked in
+	 * case the hint itself contains parentheses.
+	 */
+	private void skipParenthesizedHint(){
+		if(!peekIs(TAG_OPEN_PARENTHESIS))
+			return;
+
+		next();
+		int depth = 1;
+		while(depth > 0){
+			final Token t = peekToken();
+			if(t == null)
+				throw new FLEFGrammarParseException("Unterminated parenthesized hint",
+					(tokens.isEmpty()? 0: tokens.getLast().line()));
+			if(TAG_OPEN_PARENTHESIS.equals(t.text()))
+				depth ++;
+			else if(TAG_CLOSE_PARENTHESIS.equals(t.text()))
+				depth --;
+			next();
+		}
 	}
 
 	/**

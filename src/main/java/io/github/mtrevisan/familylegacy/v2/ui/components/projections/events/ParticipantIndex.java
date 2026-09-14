@@ -33,6 +33,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.projections.temporal.Te
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventParticipationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -145,7 +146,7 @@ public final class ParticipantIndex{
 
 			String role = FLEFRecordHelper.getChildValue(participation, TAG_ROLE);
 			if(role == null)
-				role = "";
+				role = StringUtils.EMPTY;
 			if(!role.isBlank())
 				roles.add(role);
 
@@ -253,7 +254,7 @@ public final class ParticipantIndex{
 	 */
 	public List<ParticipantEntry> search(final String query, final String roleFilter){
 		final String q = (query != null? query.trim()
-			.toLowerCase(Locale.ROOT): "");
+			.toLowerCase(Locale.ROOT): StringUtils.EMPTY);
 		final boolean allRoles = (roleFilter == null || roleFilter.isBlank());
 
 		final List<ParticipantEntry> result = new ArrayList<>();

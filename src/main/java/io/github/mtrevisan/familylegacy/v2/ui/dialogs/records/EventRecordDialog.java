@@ -35,8 +35,13 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.EntityField;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ContextImpactHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventParticipationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceCitationHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
@@ -102,17 +107,12 @@ public class EventRecordDialog extends BaseRecordDialog{
 	private static final String TAG_TYPE = "TYPE";
 	private static final String TAG_DESCRIPTION = "DESCRIPTION";
 	private static final String TAG_DATE = "DATE";
-	private static final String TAG_PLACE = "PLACE";
 	private static final String TAG_AGENCY = "AGENCY";
 	private static final String TAG_CAUSE = "CAUSE";
 	private static final String TAG_REASON = "REASON";
 	private static final String TAG_CAUSE_REASON = TAG_CAUSE + DOT + TAG_REASON;
 	private static final String TAG_EVIDENCE = "EVIDENCE";
 	private static final String TAG_CAUSE_EVIDENCE = TAG_CAUSE + DOT + TAG_EVIDENCE;
-	private static final String TAG_CONTEXT_IMPACT = "CONTEXT_IMPACT";
-	private static final String TAG_CONCLUSION = "CONCLUSION";
-	private static final String TAG_EVENT_PARTICIPATION = "EVENT_PARTICIPATION";
-	private static final String TAG_RESEARCH_QUESTION = "RESEARCH_QUESTION";
 	private static final String TAG_SOURCE = "SOURCE";
 	private static final String TAG_NOTE = "NOTE";
 	private static final String TAG_PRIVACY = "PRIVACY";
@@ -158,17 +158,17 @@ public class EventRecordDialog extends BaseRecordDialog{
 		typeCombo.setEditable(true);
 		titleArea = new BoundTextArea(TAG_DESCRIPTION, 3, 25);
 		dateField = DateField.createWithWrapperTag(TAG_DATE, this, "Date", model);
-		placeField = EntityField.createForStructureWithReference(TAG_PLACE, this, model, PlaceCitationHandler.class);
+		placeField = EntityField.createForStructureWithReference(PlaceHandler.TYPE, this, model, PlaceCitationHandler.class);
 		agencyField = new BoundTextField(TAG_AGENCY);
 		causeReasonField = new BoundTextField(TAG_CAUSE_REASON);
 		causeEvidencePanel = new EvidenceQualifiersPanel(TAG_CAUSE_EVIDENCE, "Cause Evidence");
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, TAG_CONTEXT_IMPACT, "Context Impacts")
-			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, TAG_CONCLUSION, "Conclusions")
-			.withComponent(PanelKey.EVENT_PARTICIPATION_ON_EVENT, TAG_EVENT_PARTICIPATION, "Participations")
-			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, TAG_RESEARCH_QUESTION, "Research Questions")
+			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, ContextImpactHandler.TYPE, "Context Impacts")
+			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, "Conclusions")
+			.withComponent(PanelKey.EVENT_PARTICIPATION_ON_EVENT, EventParticipationHandler.TYPE, "Participations")
+			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, "Research Questions")
 			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources with Citations")
 			.withComponent(PanelKey.NOTE, TAG_NOTE, null)
 			.withComponent(PanelKey.EVIDENCE, TAG_EVIDENCE, "Evidence")

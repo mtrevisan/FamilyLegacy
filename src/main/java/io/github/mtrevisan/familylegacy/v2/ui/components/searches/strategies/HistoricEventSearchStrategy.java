@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchCriteria
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchStrategy;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.TextSearchHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HistoricEventHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.StringJoiner;
@@ -67,7 +68,7 @@ public class HistoricEventSearchStrategy implements SearchStrategy{
 		title = criteria.getFilterFor(HistoricEventFilterPanel.FILTER_KEY_TITLE);
 		date = criteria.getFilterFor(HistoricEventFilterPanel.FILTER_KEY_DATE);
 		calendar = criteria.getFilterFor(HistoricEventFilterPanel.FILTER_KEY_CALENDAR);
-		place = criteria.getFilterFor(HistoricEventFilterPanel.FILTER_KEY_PLACE);
+		place = criteria.getFilterFor(PlaceHandler.TYPE);
 		fuzzy = criteria.isFuzzy();
 		wholeWord = criteria.isWholeWord();
 

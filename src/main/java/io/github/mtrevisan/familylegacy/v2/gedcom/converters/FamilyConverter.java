@@ -253,12 +253,10 @@ public class FamilyConverter{
 			// ---- Set group name ----
 			String husbandName = getDisplayName(link.husbandId);
 			String wifeName = getDisplayName(link.wifeId);
-			String groupName = husbandName + (wifeName.isEmpty()? StringUtils.EMPTY: " and " + wifeName);
-			if(!groupName.isEmpty()){
-				FLEFRecord nameRec = FLEFRecord.createChildWithTag("name")
-					.addChild(FLEFRecord.createChildWithTagAndValue("value", groupName + " family"));
-				group.addChild(nameRec);
-			}
+			String groupName = (husbandName.isEmpty()? "?": husbandName) + " and " + (wifeName.isEmpty()? "?": wifeName);
+			FLEFRecord nameRec = FLEFRecord.createChildWithTag("name")
+				.addChild(FLEFRecord.createChildWithTagAndValue("value", groupName + " family"));
+			group.addChild(nameRec);
 
 			// ---- Spouse relationship (Inter-individual) ----
 			if(link.husbandId != null && link.wifeId != null){

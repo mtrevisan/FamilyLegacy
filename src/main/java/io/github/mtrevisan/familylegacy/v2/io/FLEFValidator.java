@@ -33,6 +33,9 @@ import io.github.mtrevisan.familylegacy.v2.io.grammar.typedefinitions.TypeDefini
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventParticipationHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.IdentityHypothesisHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
 import org.apache.commons.lang3.Strings;
 
 import java.nio.file.Path;
@@ -253,15 +256,15 @@ public class FLEFValidator{
 				validateIndividualDates(record, contextPath, errors);
 
 			// RelationshipRecord: valid_from must be before valid_to
-			if(Strings.CI.equals("relationship", tag))
+			if(Strings.CI.equals(RelationshipHandler.TYPE, tag))
 				validateRelationshipDates(record, contextPath, errors);
 
 			// IdentityHypothesisRecord: identity[0] != identity[1]
-			if(Strings.CI.equals("identity_hypothesis", tag))
+			if(Strings.CI.equals(IdentityHypothesisHandler.TYPE, tag))
 				validateIdentityHypothesis(record, contextPath, model, errors);
 
 			// EventParticipationRecord: event and participant must be valid
-			if(Strings.CI.equals("event_participation", tag))
+			if(Strings.CI.equals(EventParticipationHandler.TYPE, tag))
 				validateEventParticipation(record, contextPath, model, errors);
 		}
 

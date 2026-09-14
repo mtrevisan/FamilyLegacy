@@ -265,7 +265,7 @@ public class TreeMutator{
 			listener.onTreeStructureChanged(rootIndividualId);
 	}
 
-	void invalidateAndNotifyTreeChanged(final String rootIndividualId){
+	public void invalidateAndNotifyTreeChanged(final String rootIndividualId){
 		LOGGER.debug("Invalidate & Notify root changes to {}", rootIndividualId);
 
 		treeService.invalidateIndices();

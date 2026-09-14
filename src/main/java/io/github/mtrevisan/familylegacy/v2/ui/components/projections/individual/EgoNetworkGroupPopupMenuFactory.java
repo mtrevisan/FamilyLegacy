@@ -56,9 +56,6 @@ public class EgoNetworkGroupPopupMenuFactory implements EntityPopupMenuFactory<G
 		popup.addPopupMenuListener(new PopupMenuAdapter(){
 			@Override
 			public void popupMenuWillBecomeVisible(final PopupMenuEvent e){
-				if(listener != null)
-					listener.onEntitySelected(panel);
-
 				final GroupData data = panel.getData();
 				final boolean hasData = (data != null && !data.isEmpty());
 
@@ -82,7 +79,7 @@ public class EgoNetworkGroupPopupMenuFactory implements EntityPopupMenuFactory<G
 		popup.addSeparator();
 		PopupMenuHelper.addMenuItem(popup, deleteItem, panel, record -> listener.onEntityRemove(record));
 		popup.addSeparator();
-		PopupMenuHelper.addMenuItem(popup, unlinkItem, panel, record -> listener.onEntityUnlink(record));
+		PopupMenuHelper.addMenuItem(popup, unlinkItem, panel, record -> listener.onGroupUnlink(panel, record));
 
 		return popup;
 	}

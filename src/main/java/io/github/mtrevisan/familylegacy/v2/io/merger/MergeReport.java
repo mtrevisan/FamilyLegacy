@@ -27,7 +27,6 @@ package io.github.mtrevisan.familylegacy.v2.io.merger;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -60,10 +59,10 @@ public class MergeReport{
 		public Decision(final DecisionType type, final Set<String> recordIds, final String mergedId, final double score,
 				final List<String> conflicts, final String reason){
 			this.type = type;
-			this.recordIds = Collections.unmodifiableSet(recordIds);
+			this.recordIds = recordIds;
 			this.mergedId = mergedId;
 			this.score = score;
-			this.conflicts = (conflicts != null? Collections.unmodifiableList(conflicts): List.of());
+			this.conflicts = (conflicts != null? conflicts: List.of());
 			this.reason = reason != null? reason: StringUtils.EMPTY;
 		}
 
@@ -102,9 +101,9 @@ public class MergeReport{
 	public MergeReport(final FLEFModel mergedModel, final List<Decision> decisions, final Map<String, String> idMapping,
 			final Map<String, Set<String>> idToCluster){
 		this.mergedModel = mergedModel;
-		this.decisions = Collections.unmodifiableList(decisions);
-		this.idMapping = Collections.unmodifiableMap(idMapping);
-		this.idToCluster = Collections.unmodifiableMap(idToCluster);
+		this.decisions = decisions;
+		this.idMapping = idMapping;
+		this.idToCluster = idToCluster;
 	}
 
 

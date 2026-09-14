@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.searches.strategies;
 
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.RecordFilterPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchCriteria;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.BorderFactory;
@@ -49,7 +50,6 @@ public class HistoricEventFilterPanel extends JPanel implements RecordFilterPane
 	static final String FILTER_KEY_TITLE = "title";
 	static final String FILTER_KEY_DATE = "date";
 	static final String FILTER_KEY_CALENDAR = "calendar";
-	static final String FILTER_KEY_PLACE = "place";
 
 
 	private final JComboBox<String> typeCombo = new JComboBox<>(new String[]{
@@ -143,7 +143,7 @@ public class HistoricEventFilterPanel extends JPanel implements RecordFilterPane
 		filters.put(FILTER_KEY_TITLE, getTitle());
 		filters.put(FILTER_KEY_DATE, getDate());
 		filters.put(FILTER_KEY_CALENDAR, getCalendar());
-		filters.put(FILTER_KEY_PLACE, getPlace());
+		filters.put(PlaceHandler.TYPE, getPlace());
 		return filters;
 	}
 

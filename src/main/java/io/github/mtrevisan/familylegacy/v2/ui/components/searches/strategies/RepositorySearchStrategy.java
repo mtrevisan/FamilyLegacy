@@ -46,7 +46,6 @@ import java.util.function.Predicate;
 public class RepositorySearchStrategy implements SearchStrategy{
 
 	private static final String TAG_CUSTODIAN = "custodian";
-	private static final String TAG_PLACE = "place";
 
 	private static final double FUZZY_THRESHOLD = 0.05;
 
@@ -93,7 +92,7 @@ public class RepositorySearchStrategy implements SearchStrategy{
 
 			// Location filter
 			if(StringUtils.isNotEmpty(location)){
-				final FLEFRecord placeCitation = FLEFRecordHelper.findChild(repository, TAG_PLACE);
+				final FLEFRecord placeCitation = FLEFRecordHelper.findChild(repository, PlaceHandler.TYPE);
 				if(placeCitation != null){
 					final String placeId = placeCitation.getTheOnlyChild().getValue();
 					final FLEFRecord placeRecord = model.getRecordById(placeId);

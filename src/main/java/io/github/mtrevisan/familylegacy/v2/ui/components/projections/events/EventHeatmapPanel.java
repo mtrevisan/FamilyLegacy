@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.projections.events;
 import io.github.mtrevisan.familylegacy.v2.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.temporal.NormalizedDate;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -80,6 +81,7 @@ import java.util.TreeMap;
  * a cell opens a dialog listing them with type, date, place and
  * participants.
  */
+@Deprecated
 public class EventHeatmapPanel extends JPanel{
 
 	@Serial
@@ -291,7 +293,7 @@ public class EventHeatmapPanel extends JPanel{
 				sb.append("   participants:\n");
 				for(final EventIndex.Participant p : e.participants())
 					sb.append("     - ").append(p.name())
-						.append(p.isIndividual()? "": " (group)")
+						.append(p.isIndividual()? StringUtils.EMPTY: " (group)")
 						.append('\n');
 			}
 			if(i < events.size() - 1)
@@ -303,7 +305,7 @@ public class EventHeatmapPanel extends JPanel{
 	private static String formatKey(final YearMonth key){
 		if(key.month() == 0)
 			return key.year() + " (month unspecified)";
-		return MONTH_NAMES[key.month() - 1] + " " + key.year();
+		return MONTH_NAMES[key.month() - 1] + StringUtils.SPACE + key.year();
 	}
 
 
@@ -313,7 +315,7 @@ public class EventHeatmapPanel extends JPanel{
 
 	private final class HeatmapCanvas extends JPanel{
 
-		@java.io.Serial
+		@Serial
 		private static final long serialVersionUID = 3309182347194811032L;
 
 
@@ -443,8 +445,8 @@ public class EventHeatmapPanel extends JPanel{
 			return "?";
 		final int[] ymd = jdnToGregorian(date.jdn());
 		return switch(date.precision()){
-			case DAY -> ymd[2] + " " + MONTH_NAMES[ymd[1] - 1] + " " + ymd[0];
-			case MONTH -> MONTH_NAMES[ymd[1] - 1] + " " + ymd[0];
+			case DAY -> ymd[2] + StringUtils.SPACE + MONTH_NAMES[ymd[1] - 1] + StringUtils.SPACE + ymd[0];
+			case MONTH -> MONTH_NAMES[ymd[1] - 1] + StringUtils.SPACE + ymd[0];
 			case YEAR -> Integer.toString(ymd[0]);
 			case DECADE -> (ymd[0] / 10 * 10) + "s";
 			case CENTURY -> (ymd[0] / 100 + 1) + "th century";
@@ -453,7 +455,8 @@ public class EventHeatmapPanel extends JPanel{
 
 	private static String escape(final String s){
 		if(s == null)
-			return "";
+			return StringUtils.EMPTY;
+
 		return s.replace("&", "&amp;")
 			.replace("<", "&lt;")
 			.replace(">", "&gt;");

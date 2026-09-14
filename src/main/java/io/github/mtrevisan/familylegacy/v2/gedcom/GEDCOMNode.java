@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.v2.gedcom;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -82,7 +84,7 @@ public class GEDCOMNode{
 	@Override
 	public String toString(){
 		return "GEDCOMNode{" + "level=" + level + ", tag='" + tag + '\'' + ", value='" + value + '\'' +
-			(xrefId != null? ", xrefId='" + xrefId + '\'': "") + ", children=" + children.size() + '}';
+			(xrefId != null? ", xrefId='" + xrefId + '\'': StringUtils.EMPTY) + ", children=" + children.size() + '}';
 	}
 
 }

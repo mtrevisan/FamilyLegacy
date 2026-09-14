@@ -393,8 +393,8 @@ public class GEDCOMHelper{
 		transferValue(name, "type", typeNode);
 
 		// Parse inline value (e.g., "Joseph Tag /Torture/") into full text
-		String given = "";
-		String family = "";
+		String given = StringUtils.EMPTY;
+		String family = StringUtils.EMPTY;
 		String raw = extractFullText(nameNode);
 		if(StringUtils.isNotEmpty(raw)){
 			int slash1 = raw.indexOf('/');
@@ -1295,13 +1295,12 @@ public class GEDCOMHelper{
 //		}
 
 
-		final StringBuilder fullAddr = new StringBuilder(addrNode != null && addrNode.getValue() != null ? extractFullText(addrNode) : "");
+		final StringBuilder fullAddr = new StringBuilder(addrNode != null && addrNode.getValue() != null? extractFullText(addrNode): StringUtils.EMPTY);
 		for(String subTag : List.of("ADR1", "ADR2", "ADR3", "CITY", "STAE", "POST", "CTRY")){
 			GEDCOMNode sub = findFirstChild(addrNode, subTag);
 			if(sub != null && sub.getValue() != null){
-				if(!fullAddr.isEmpty()){
+				if(!fullAddr.isEmpty())
 					fullAddr.append("\n");
-				}
 				fullAddr.append(sub.getValue());
 			}
 		}
@@ -1365,13 +1364,12 @@ public class GEDCOMHelper{
 			return;
 		}
 
-		final StringBuilder fullAddr = new StringBuilder(addrNode.getValue() != null ? extractFullText(addrNode) : "");
+		final StringBuilder fullAddr = new StringBuilder(addrNode.getValue() != null? extractFullText(addrNode): StringUtils.EMPTY);
 		for(String subTag : List.of("ADR1", "ADR2", "ADR3", "CITY", "STAE", "POST", "CTRY")){
 			GEDCOMNode sub = findFirstChild(addrNode, subTag);
 			if(sub != null && sub.getValue() != null){
-				if(!fullAddr.isEmpty()){
+				if(!fullAddr.isEmpty())
 					fullAddr.append("\n");
-				}
 				fullAddr.append(sub.getValue());
 			}
 		}

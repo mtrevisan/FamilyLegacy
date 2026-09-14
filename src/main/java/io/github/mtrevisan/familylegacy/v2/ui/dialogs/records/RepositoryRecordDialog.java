@@ -35,6 +35,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.ContactHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NameHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceCitationHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RepositoryHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 
@@ -76,7 +77,6 @@ public class RepositoryRecordDialog extends BaseRecordDialog{
 
 	private static final String TAG_NAME = "NAME";
 	private static final String TAG_CUSTODIAN = "CUSTODIAN";
-	private static final String TAG_PLACE = "PLACE";
 	private static final String TAG_CONTACT = "CONTACT";
 	private static final String TAG_SOURCE = "SOURCE";
 	private static final String TAG_NOTE = "NOTE";
@@ -108,7 +108,7 @@ public class RepositoryRecordDialog extends BaseRecordDialog{
 
 		namePanel = EntityListPanel.createForStructure(TAG_NAME, this, "Names*", model, NameHandler.class);
 		custodianField = EntityField.createForRecordFromReference(TAG_CUSTODIAN, this, model, IndividualHandler.class);
-		placeField = EntityField.createForStructureWithReference(TAG_PLACE, this, model, PlaceCitationHandler.class);
+		placeField = EntityField.createForStructureWithReference(PlaceHandler.TYPE, this, model, PlaceCitationHandler.class);
 		contactPanel = EntityListPanel.createForStructure(TAG_CONTACT, this, "Contacts", model, ContactHandler.class);
 
 		// Build common panels using the builder

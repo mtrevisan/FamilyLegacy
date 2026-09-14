@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.gedcom.utils;
 import io.github.mtrevisan.familylegacy.v2.gedcom.GEDCOMHelper;
 import io.github.mtrevisan.familylegacy.v2.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 
@@ -119,7 +120,7 @@ public class NameParser {
 	 */
 	private void parseInlineName(String raw, FLEFRecord nameRec) {
 		String given;
-		String surname = "";
+		String surname = StringUtils.EMPTY;
 		int slash1 = raw.indexOf('/');
 		int slash2 = raw.indexOf('/', slash1 + 1);
 		if (slash1 >= 0 && slash2 > slash1) {

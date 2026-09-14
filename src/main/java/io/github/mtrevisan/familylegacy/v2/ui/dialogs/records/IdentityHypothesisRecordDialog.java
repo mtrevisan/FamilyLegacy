@@ -32,14 +32,22 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.EntityField;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.RecordDiffDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ContextImpactHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IdentityHypothesisHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 
+import javax.swing.JButton;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
+import java.awt.FlowLayout;
 import java.awt.Window;
 import java.io.IOException;
 import java.io.Serial;
@@ -90,9 +98,6 @@ public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 	private static final String TAG_SOURCE = "SOURCE";
 	private static final String TAG_NOTE = "NOTE";
 	private static final String TAG_EVIDENCE = "EVIDENCE";
-	private static final String TAG_CONTEXT_IMPACT = "CONTEXT_IMPACT";
-	private static final String TAG_CONCLUSION = "CONCLUSION";
-	private static final String TAG_RESEARCH_QUESTION = "RESEARCH_QUESTION";
 	private static final String TAG_AUDIT = "AUDIT";
 
 
@@ -101,6 +106,7 @@ public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 	private final EntityField identity1Field;
 	private final EntityField identity2Field;
 	private final BoundTextArea commentArea;
+	private final JButton compareIdentitiesButton = new JButton("Compare Identities…");
 
 
 	public static IdentityHypothesisRecordDialog createNew(final Window parent, final FLEFModel model){
@@ -126,9 +132,9 @@ public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, TAG_CONTEXT_IMPACT, "Context Impacts")
-			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, TAG_CONCLUSION, "Conclusions")
-			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, TAG_RESEARCH_QUESTION, "Research Questions")
+			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, ContextImpactHandler.TYPE, "Context Impacts")
+			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, "Conclusions")
+			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, "Research Questions")
 			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources with Citations")
 			.withComponent(PanelKey.NOTE, TAG_NOTE, null)
 			.withComponent(PanelKey.EVIDENCE, TAG_EVIDENCE, "Evidence")
@@ -137,6 +143,7 @@ public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 
 		components.bind(commentArea);
 
+		compareIdentitiesButton.addActionListener(e -> openIdentityComparison());
 
 		// Set up the image carousel selection listener on the source list
 		setupSourceListSelection();
@@ -152,6 +159,12 @@ public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 
 		// identity 2
 		GUIHelper.addLabeledComponent(propertiesPanel, "Identity 2*:", identity2Field);
+
+		// compare button, right under the two identity fields
+		final JPanel compareRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
+		compareRow.setOpaque(false);
+		compareRow.add(compareIdentitiesButton);
+		GUIHelper.addComponent(propertiesPanel, compareRow);
 
 		// comment
 		GUIHelper.addLabeledComponent(propertiesPanel, "Comment:", commentArea);
@@ -214,6 +227,42 @@ public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 	protected JPanel createAuditPanel(){
 		return components.getPanel(PanelKey.AUDIT);
 	}
+
+	/**
+	 * Opens a read-only {@link RecordDiffDialog} showing how the two
+	 * identity candidates differ. Both candidates must be set and must
+	 * resolve to a record in the model.
+	 */
+	private void openIdentityComparison(){
+		final FLEFRecord identity1Ref = identity1Field.getEntity();
+		final FLEFRecord identity2Ref = identity2Field.getEntity();
+		if(identity1Ref == null || identity1Ref.getId() == null || identity2Ref == null || identity2Ref.getId() == null){
+			JOptionPane.showMessageDialog(this,
+				"Both identities must be set before comparing them.",
+				"Compare Identities",
+				JOptionPane.WARNING_MESSAGE);
+
+			return;
+		}
+
+		final FLEFRecord identity1 = model.getRecordById(identity1Ref.getId());
+		final FLEFRecord identity2 = model.getRecordById(identity2Ref.getId());
+		if(identity1 == null || identity2 == null){
+			JOptionPane.showMessageDialog(this,
+				"One of the identities does not resolve to a record in the model.",
+				"Compare Identities",
+				JOptionPane.WARNING_MESSAGE);
+
+			return;
+		}
+
+		RecordDiffDialog.showComparison(
+			SwingUtilities.getWindowAncestor(this),
+			"Compare Identities",
+			identity1,
+			identity2);
+	}
+
 
 
 	public void withIdentity(final FLEFRecord identity){

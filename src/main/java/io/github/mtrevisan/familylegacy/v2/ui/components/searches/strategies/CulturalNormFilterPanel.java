@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.searches.strategies;
 
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.RecordFilterPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchCriteria;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.BorderFactory;
@@ -47,7 +48,6 @@ public class CulturalNormFilterPanel extends JPanel implements RecordFilterPanel
 
 	static final String FILTER_KEY_TITLE = "title";
 	static final String FILTER_KEY_RULE_TYPE = "ruleType";
-	static final String FILTER_KEY_PLACE = "place";
 	static final String FILTER_KEY_VALID_FROM = "validFrom";
 	static final String FILTER_KEY_CALENDAR_FROM = "calendarFrom";
 	static final String FILTER_KEY_VALID_TO = "validTo";
@@ -168,7 +168,7 @@ public class CulturalNormFilterPanel extends JPanel implements RecordFilterPanel
 		final Map<String, String> filters = new HashMap<>();
 		filters.put(FILTER_KEY_TITLE, getTitle());
 		filters.put(FILTER_KEY_RULE_TYPE, getRuleType());
-		filters.put(FILTER_KEY_PLACE, getPlace());
+		filters.put(PlaceHandler.TYPE, getPlace());
 		filters.put(FILTER_KEY_VALID_FROM, getValidFrom());
 		filters.put(FILTER_KEY_CALENDAR_FROM, getCalendarFrom());
 		filters.put(FILTER_KEY_VALID_TO, getValidTo());

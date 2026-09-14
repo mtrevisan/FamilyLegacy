@@ -59,9 +59,6 @@ public class EntityTreePopupMenuFactory implements EntityPopupMenuFactory<Indivi
 		popup.addPopupMenuListener(new PopupMenuAdapter(){
 			@Override
 			public void popupMenuWillBecomeVisible(final PopupMenuEvent e){
-				if(listener != null)
-					listener.onEntitySelected(panel);
-
 				final IndividualData data = panel.getData();
 				final boolean hasData = (data != null && !data.isEmpty());
 				final boolean hasIndividuals = model.hasRecordsByType(IndividualHandler.TYPE);
@@ -95,17 +92,17 @@ public class EntityTreePopupMenuFactory implements EntityPopupMenuFactory<Indivi
 
 		// Add menu items with their bound callbacks
 		PopupMenuHelper.addMenuItem(popup, editItem, panel, record -> listener.onEntityEdit(record));
-		PopupMenuHelper.addMenuItem(popup, addItem, panel, record -> listener.onIndividualAddOrConnect(TreeOperation.ADD));
-		PopupMenuHelper.addMenuItem(popup, connectItem, panel, record -> listener.onIndividualAddOrConnect(TreeOperation.CONNECT));
+		PopupMenuHelper.addMenuItem(popup, addItem, panel, record -> listener.onIndividualAddOrConnect(panel, TreeOperation.ADD));
+		PopupMenuHelper.addMenuItem(popup, connectItem, panel, record -> listener.onIndividualAddOrConnect(panel, TreeOperation.CONNECT));
 		popup.addSeparator();
-		PopupMenuHelper.addMenuItem(popup, addChildItem, panel, record -> listener.onChildAddOrConnect(TreeOperation.ADD));
-		PopupMenuHelper.addMenuItem(popup, connectChildItem, panel, record -> listener.onChildAddOrConnect(TreeOperation.CONNECT));
+		PopupMenuHelper.addMenuItem(popup, addChildItem, panel, record -> listener.onChildAddOrConnect(panel, TreeOperation.ADD));
+		PopupMenuHelper.addMenuItem(popup, connectChildItem, panel, record -> listener.onChildAddOrConnect(panel, TreeOperation.CONNECT));
 		popup.addSeparator();
 		PopupMenuHelper.addMenuItem(popup, relocateItem, panel, record -> listener.onEntityRelocate(record));
-		PopupMenuHelper.addMenuItem(popup, pasteItem, panel, record -> listener.onIndividualPaste(panel.getFather(), panel.getMother()));
+		PopupMenuHelper.addMenuItem(popup, pasteItem, panel, record -> listener.onIndividualPaste(panel));
 		PopupMenuHelper.addMenuItem(popup, deleteItem, panel, record -> listener.onEntityRemove(record));
 		popup.addSeparator();
-		PopupMenuHelper.addMenuItem(popup, unlinkItem, panel, record -> listener.onEntityUnlink(record));
+		PopupMenuHelper.addMenuItem(popup, unlinkItem, panel, record -> listener.onIndividualUnlink(panel, record));
 
 		return popup;
 	}

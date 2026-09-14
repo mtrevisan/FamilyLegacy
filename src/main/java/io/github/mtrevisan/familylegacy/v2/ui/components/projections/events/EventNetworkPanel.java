@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.temporal.NormalizedDate;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -430,7 +431,7 @@ public class EventNetworkPanel extends JPanel{
 
 	private final class Canvas extends JPanel{
 
-		@java.io.Serial
+		@Serial
 		private static final long serialVersionUID = 7305102956193742918L;
 
 
@@ -448,14 +449,17 @@ public class EventNetworkPanel extends JPanel{
 				.append(escape(hit.type()))
 				.append("</b>");
 			if(hit.hasDate())
-				sb.append(" — ").append(escape(formatDate(hit.date())));
+				sb.append(" — ")
+					.append(escape(formatDate(hit.date())));
 			if(hit.hasPlace())
-				sb.append("<br>Place: ").append(escape(hit.placeName()));
+				sb.append("<br>Place: ")
+					.append(escape(hit.placeName()));
 			if(!hit.participants().isEmpty()){
 				sb.append("<br>Participants:");
 				for(final EventIndex.Participant p : hit.participants())
-					sb.append("<br>&nbsp;&nbsp;• ").append(escape(p.name()))
-						.append(p.isIndividual()? "": " (group)");
+					sb.append("<br>&nbsp;&nbsp;• ")
+						.append(escape(p.name()))
+						.append(p.isIndividual()? StringUtils.EMPTY: " (group)");
 			}
 			sb.append("<br><i>Double-click to edit</i></html>");
 			return sb.toString();
@@ -566,7 +570,7 @@ public class EventNetworkPanel extends JPanel{
 	private static String shortLabel(final EventIndex.EventDatum e){
 		final String type = e.type();
 		final String date = (e.hasDate()? Integer.toString(jdnYear(e.date().jdn())): "?");
-		return type + " " + date;
+		return type + StringUtils.SPACE + date;
 	}
 
 	private static String formatDate(final NormalizedDate date){
@@ -574,8 +578,8 @@ public class EventNetworkPanel extends JPanel{
 			return "?";
 		final int[] ymd = jdnToGregorian(date.jdn());
 		return switch(date.precision()){
-			case DAY -> ymd[2] + " " + MONTH_NAMES[ymd[1] - 1] + " " + ymd[0];
-			case MONTH -> MONTH_NAMES[ymd[1] - 1] + " " + ymd[0];
+			case DAY -> ymd[2] + StringUtils.SPACE + MONTH_NAMES[ymd[1] - 1] + StringUtils.SPACE + ymd[0];
+			case MONTH -> MONTH_NAMES[ymd[1] - 1] + StringUtils.SPACE + ymd[0];
 			case YEAR -> Integer.toString(ymd[0]);
 			case DECADE -> (ymd[0] / 10 * 10) + "s";
 			case CENTURY -> (ymd[0] / 100 + 1) + "th century";
@@ -584,7 +588,8 @@ public class EventNetworkPanel extends JPanel{
 
 	private static String escape(final String s){
 		if(s == null)
-			return "";
+			return StringUtils.EMPTY;
+
 		return s.replace("&", "&amp;")
 			.replace("<", "&lt;")
 			.replace(">", "&gt;");

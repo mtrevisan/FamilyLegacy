@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.v2.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.BoxPanelType;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.SpatialNavigation;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.TreeOperation;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.group.GroupData;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.group.GroupListener;
@@ -38,9 +39,11 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.TreeChangeListener;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.TreeLayout;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.services.CollapsibleBar;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.services.relationship.RelationshipTypeSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.services.relationship.UnlinkRelationshipsDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.partners.PartnersPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.relationshipgraph.services.lifespan.GlobalEventTimelinePanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.RecordSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
@@ -48,8 +51,10 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.RelationClipboard;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.ViewportPanSupport;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,12 +65,20 @@ import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.ScrollPaneConstants;
+import javax.swing.Scrollable;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
@@ -74,19 +87,38 @@ import java.io.InputStream;
 import java.io.Serial;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 
 /**
  * Panel responsible for rendering an Ego-centric network (Hub & Spoke),
- * connecting an individual or group to parents, partners, children, groups,
- * and associates.
+ * connecting an individual or group to parents, partners, children,
+ * groups, and associates.
+ * <p>
+ * The network canvas is hosted inside a {@link JScrollPane}, so that when
+ * the layout (particularly the children row, which can grow arbitrarily)
+ * exceeds the viewport, scrollbars appear and all boxes remain reachable.
+ * <p>
+ * Selection and navigation are two distinct actions:
+ * <ul>
+ *   <li><b>single click on a name label</b> navigates, re-rooting the
+ *       network on that entity;</li>
+ *   <li><b>single click anywhere else on a panel</b> selects the entity:
+ *       the panel is highlighted with a red border and any detail panel
+ *       observing the selection is populated, without re-rooting the
+ *       network.</li>
+ * </ul>
+ * Two independent callbacks can be installed to forward the current
+ * selection to external panels: one for individuals, one for groups.
  */
 public class EgoNetworkPanel extends JPanel implements TreeChangeListener, IndividualListener, GroupListener{
 
@@ -107,10 +139,9 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener, Indiv
 		"biological_child", "adoptive_child", "foster_child", "guarded_child", "step_child"
 	};
 	/**
-	 * Relationship types allowed when the Ego is an individual and the other
-	 * entity is an individual. The list combines the five spouse types with
-	 * the generic {@code associate} type, which the FLEF protocol permits
-	 * between two individuals.
+	 * Relationship types allowed when the Ego is an individual and the
+	 * other entity is an individual. The list combines the five spouse
+	 * types with the generic associate type.
 	 */
 	private static final String[] INDIVIDUAL_TO_INDIVIDUAL_SOCIAL_TYPES = new String[]{
 		"civil_spouse", "religious_spouse", "customary_spouse", "cohabiting_partner", "engaged_partner", "associate"
@@ -119,6 +150,10 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener, Indiv
 	private static final String[] GROUP_TO_GROUP_TYPES = new String[]{ENUM_TYPE_PART_OF, "associate"};
 
 	private static final String ACTION_TOGGLE_EGO_NETWORK_LAYOUT = "toggleEgoNetworkLayout";
+	public static final String ACTION_TOGGLE_EVENTS_TIMELINE = "toggleEventsTimeline";
+
+	/** Outer padding of the canvas around the center grid, in pixels. */
+	private static final int CANVAS_PADDING = 20;
 
 
 	private TreeLayout treeLayout;
@@ -130,7 +165,6 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener, Indiv
 	private String currentEgoId;
 	private EgoNode rootEgoNode;
 	private Set<EgoNode> parents;
-	private Set<EgoNode> partners;
 	private Set<EgoNode> associates;
 	private Set<FLEFRecord> groups;
 	private Set<EgoNode> children;
@@ -138,7 +172,40 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener, Indiv
 	private final Map<EgoNode, JPanel> nodeToPanelMap = new HashMap<>();
 	private final Map<FLEFRecord, JPanel> groupToPanelMap = new HashMap<>();
 
-	private JPanel selectedPanel;
+	/** Canvas that hosts the ego network layout. */
+	private final NetworkCanvas networkCanvas = new NetworkCanvas();
+	/** Scroll pane that hosts the canvas, so the network is fully scrollable. */
+	private final JScrollPane networkScrollPane;
+	/** Collapsible event timeline, filtered to the visible entities. */
+	private final GlobalEventTimelinePanel timeline;
+	/** Collapsible bar at the bottom that toggles the timeline. */
+	private final CollapsibleBar toggleBar = new CollapsibleBar("Events");
+	/** Whether the timeline is currently expanded. */
+	private boolean timelineVisible;
+
+	/** Optional callback invoked whenever an individual is selected. */
+	private Consumer<String> selectionCallback;
+
+	/** Optional callback invoked whenever a group is selected. */
+	private Consumer<String> groupSelectionCallback;
+
+	/**
+	 * Id of the currently selected individual, or {@code null} when no
+	 * individual is selected.
+	 */
+	private String selectedIndividualId;
+
+	/**
+	 * Id of the currently selected group, or {@code null} when no group
+	 * is selected. A group and an individual cannot be selected at the
+	 * same time.
+	 */
+	private String selectedGroupId;
+
+	/** Optional callback invoked whenever the ego changes due to user navigation. */
+	private Consumer<String> navigationCallback;
+	/** When {@code true}, {@link #loadNetwork(String)} does not notify the navigation callback. */
+	private boolean suppressNavigationNotification;
 
 
 	public EgoNetworkPanel(final TreeLayout treeLayout, final FLEFModel model){
@@ -151,13 +218,52 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener, Indiv
 		setOpaque(true);
 
 		setupLayoutShortcut(this);
+
+
+		// Scroll pane around the network canvas. The canvas implements
+		// Scrollable so that when the content is smaller than the viewport
+		// it stretches to fill the viewport (and MigLayout centers it),
+		// while when it is larger, scrollbars appear.
+		this.networkScrollPane = new JScrollPane(networkCanvas,
+			ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+			ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		this.networkScrollPane.setBorder(null);
+		this.networkScrollPane.getVerticalScrollBar()
+			.setUnitIncrement(16);
+		this.networkScrollPane.getHorizontalScrollBar()
+			.setUnitIncrement(16);
+		this.networkScrollPane.setBackground(BACKGROUND_COLOR_APPLICATION);
+		this.networkScrollPane.getViewport()
+			.setBackground(BACKGROUND_COLOR_APPLICATION);
+		this.networkScrollPane.getViewport()
+			.setOpaque(true);
+
+		this.timeline = new GlobalEventTimelinePanel(model);
+		this.timeline.setVisible(false);
+
+		final JPanel bottom = new JPanel(new BorderLayout());
+		bottom.add(toggleBar, BorderLayout.NORTH);
+		bottom.add(timeline, BorderLayout.CENTER);
+
+		setLayout(new BorderLayout());
+		add(networkScrollPane, BorderLayout.CENTER);
+		add(bottom, BorderLayout.SOUTH);
+
+		toggleBar.withListener(this::toggleTimeline);
+
+		setupTimelineShortcut(this);
 	}
 
 
 	public void loadNetwork(final String egoId){
 		this.currentEgoId = egoId;
+		this.selectedIndividualId = null;
+		this.selectedGroupId = null;
 
 		refreshNetwork();
+
+		if(!suppressNavigationNotification && navigationCallback != null && egoId != null)
+			navigationCallback.accept(egoId);
 	}
 
 	private void refreshNetwork(){
@@ -169,12 +275,36 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener, Indiv
 
 		rootEgoNode = networkService.buildEgoNetwork(currentEgoId);
 
-		removeAll();
+		networkCanvas.removeAll();
 		nodeToPanelMap.clear();
 		groupToPanelMap.clear();
 
 		if(rootEgoNode != null)
 			buildLayout();
+
+		ViewportPanSupport.install(networkScrollPane, networkCanvas);
+
+		// Preserve the selection when the selected entity is still part
+		// of the network. Otherwise, fall back to the current ego.
+		if(selectedGroupId != null && groupToPanelMap.keySet().stream()
+			.noneMatch(g -> selectedGroupId.equals(g.getId())))
+			selectedGroupId = null;
+		if(selectedGroupId == null
+			&& (selectedIndividualId == null
+			|| nodeToPanelMap.keySet().stream()
+			.noneMatch(n -> selectedIndividualId.equals(n.getEgoId()))))
+			selectedIndividualId = currentEgoId;
+
+		applySelection();
+		updateTimelineParticipants();
+
+		networkCanvas.revalidate();
+		networkCanvas.repaint();
+
+		// Reset the scroll position to the top-left when the network is
+		// rebuilt, so that the user sees the new layout from its origin.
+		networkScrollPane.getViewport()
+			.setViewPosition(new Point(0, 0));
 
 		revalidate();
 		repaint();
@@ -184,27 +314,107 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener, Indiv
 		}
 	}
 
+	private void setupTimelineShortcut(final JComponent component){
+		final InputMap inputMap = component.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+		final ActionMap actionMap = component.getActionMap();
+
+		inputMap.put(GUIHelper.CTRL_T_STROKE, ACTION_TOGGLE_EVENTS_TIMELINE);
+		actionMap.put(ACTION_TOGGLE_EVENTS_TIMELINE, new AbstractAction(){
+			@Serial
+			private static final long serialVersionUID = -7201948301928374917L;
+
+			@Override
+			public void actionPerformed(final ActionEvent e){
+				toggleTimeline();
+			}
+		});
+	}
+
+	private void toggleTimeline(){
+		timelineVisible = !timelineVisible;
+		timeline.setVisible(timelineVisible);
+		toggleBar.setExpanded(timelineVisible);
+
+		revalidate();
+		repaint();
+	}
+
+	/**
+	 * Walks every panel currently hosted by the network and applies the
+	 * selection state to individuals and groups.
+	 */
+	private void applySelection(){
+		for(final Map.Entry<EgoNode, JPanel> entry : nodeToPanelMap.entrySet()){
+			final EgoNode node = entry.getKey();
+			final JPanel panel = entry.getValue();
+			final boolean isSelected = (selectedIndividualId != null
+				&& selectedIndividualId.equals(node.getEgoId()));
+
+			applyIndividualSelectionToPanel(panel, isSelected);
+		}
+		for(final Map.Entry<FLEFRecord, JPanel> entry : groupToPanelMap.entrySet()){
+			final FLEFRecord group = entry.getKey();
+			final JPanel panel = entry.getValue();
+			final boolean isSelected = (selectedGroupId != null
+				&& selectedGroupId.equals(group.getId()));
+
+			applyGroupSelectionToPanel(panel, isSelected);
+		}
+	}
+
+	private static void applyIndividualSelectionToPanel(final Component panel, final boolean isSelected){
+		if(panel instanceof IndividualPanel individualPanel)
+			individualPanel.withSelected(isSelected);
+		if(panel instanceof Container container)
+			for(final Component child : container.getComponents())
+				applyIndividualSelectionToPanel(child, isSelected);
+	}
+
+	private static void applyGroupSelectionToPanel(final Component panel, final boolean isSelected){
+		if(panel instanceof GroupPanel groupPanel)
+			groupPanel.withSelected(isSelected);
+		if(panel instanceof Container container)
+			for(final Component child : container.getComponents())
+				applyGroupSelectionToPanel(child, isSelected);
+	}
+
+	private void updateTimelineParticipants(){
+		final Set<String> ids = new HashSet<>();
+		for(final EgoNode node : nodeToPanelMap.keySet()){
+			final String id = node.getEgoId();
+			if(id != null)
+				ids.add(id);
+		}
+		for(final FLEFRecord group : groupToPanelMap.keySet()){
+			final String id = group.getId();
+			if(id != null)
+				ids.add(id);
+		}
+		timeline.setParticipantFilter(ids);
+	}
+
 	private void buildLayout(){
-		setLayout(new MigLayout("ins 20,align center center", "[grow,center]", "[grow,center]"));
+		networkCanvas.setLayout(new MigLayout("ins " + CANVAS_PADDING + ",align center center",
+			"[grow,center]", "[grow,center]"));
 
 		final JPanel centerGrid = new JPanel(new MigLayout("ins 10",
 			"[grow 100,sg col,fill][center][grow 100,sg col,fill]",
 			"[grow 100,sg row,fill][center][grow 100,sg row,fill]"));
 		centerGrid.setOpaque(false);
 
-		// Center: Central Ego Panel
+		// Center: Central Ego Panel.
 		final JPanel egoContainer = createEgoContainer(rootEgoNode);
 		centerGrid.add(egoContainer, "cell 1 1");
 
-		// Top: Parents / Super-groups
+		// Top: Parents / Super-groups.
 		parents = rootEgoNode.getRelatedNodes(EgoNode.RelationshipCategory.PARENT);
 		if(!parents.isEmpty()){
 			final JPanel parentsContainer = createNodesContainer(parents);
 			centerGrid.add(parentsContainer, "cell 1 0,align center bottom,gapbottom 15");
 		}
 
-		// Left: Partners & Associates
-		partners = rootEgoNode.getRelatedNodes(EgoNode.RelationshipCategory.PARTNER);
+		// Left: Partners & Associates.
+		final Set<EgoNode> partners = rootEgoNode.getRelatedNodes(EgoNode.RelationshipCategory.PARTNER);
 		associates = rootEgoNode.getRelatedNodes(EgoNode.RelationshipCategory.ASSOCIATE);
 		if(!partners.isEmpty() || !associates.isEmpty()){
 			final JPanel leftContainer = new JPanel(new MigLayout("ins 0,wrap 1", "[grow,center]", "[grow,center]"));
@@ -216,21 +426,31 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener, Indiv
 			centerGrid.add(leftContainer, "cell 0 1,align right center,gapright 15");
 		}
 
-		// Right: Groups
+		// Right: Groups.
 		groups = rootEgoNode.getGroupRecords();
 		if(!groups.isEmpty()){
 			final JPanel groupsContainer = createGroupsContainer(groups);
 			centerGrid.add(groupsContainer, "cell 2 1,align left center,gapleft 15");
 		}
 
-		// Bottom: Children / Sub-groups
+		// Bottom: Children / Sub-groups.
 		children = rootEgoNode.getRelatedNodes(EgoNode.RelationshipCategory.CHILD);
 		if(!children.isEmpty()){
 			final JPanel childrenContainer = createNodesContainer(children);
 			centerGrid.add(childrenContainer, "cell 1 2,align center top,gaptop 15");
 		}
 
-		add(centerGrid, "grow");
+		networkCanvas.add(centerGrid, "grow");
+
+		// Compute the content preferred size after the grid has been
+		// fully populated, and propagate it to the canvas, so that the
+		// enclosing scroll pane can decide whether to show scrollbars.
+		networkCanvas.revalidate();
+		final Dimension contentPref = centerGrid.getPreferredSize();
+		networkCanvas.setPreferredSize(new Dimension(
+			contentPref.width + 2 * CANVAS_PADDING,
+			contentPref.height + 2 * CANVAS_PADDING));
+		networkCanvas.revalidate();
 	}
 
 	private JPanel createEgoContainer(final EgoNode node){
@@ -247,7 +467,6 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener, Indiv
 		for(final EgoNode node : nodes){
 			final JPanel panel = createCardPanel(node, BoxPanelType.SECONDARY);
 
-			// Add Tooltip Popup for Relationship Type and Role
 			final String tooltipText = buildTooltipText(node.getRelationsWithEgo());
 			if(tooltipText != null)
 				panel.setToolTipText(tooltipText);
@@ -281,10 +500,15 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener, Indiv
 
 	private JPanel createCardPanel(final EgoNode node, final BoxPanelType boxType){
 		final FLEFRecord record = node.getEgoRecord();
-		if(record != null && GroupHandler.TYPE.equalsIgnoreCase(record.getTag()))
-			return GroupPanel.create(boxType, model)
+		if(record != null && GroupHandler.TYPE.equalsIgnoreCase(record.getTag())){
+			final GroupPanel groupPanel = GroupPanel.create(boxType, model)
 				.withGroupData(GroupData.create(record))
 				.withListener(this, new EgoNetworkGroupPopupMenuFactory());
+			if(boxType == BoxPanelType.PRIMARY)
+				groupPanel.withSelected(true);
+
+			return groupPanel;
+		}
 
 		return IndividualPanel.create(boxType, model)
 			.withIndividualData(node.getEgoData())
@@ -294,17 +518,12 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener, Indiv
 					: EgoNetworkIndividualPopupMenuFactory.createForChild()));
 	}
 
-	/**
-	 * Builds an HTML tooltip from a list of relation metadata. All textual
-	 * content is escaped before being embedded, so that role and type values
-	 * coming from user-supplied data cannot break the HTML markup.
-	 */
 	private String buildTooltipText(final List<EgoNode.RelationInfo> relations){
 		if(relations == null || relations.isEmpty())
 			return null;
 
 		final StringBuilder sb = new StringBuilder("<html>");
-		for(int i = 0; i < relations.size(); i ++){
+		for(int i = 0; i < relations.size(); i++){
 			final EgoNode.RelationInfo info = relations.get(i);
 			if(i > 0)
 				sb.append("<hr>");
@@ -327,23 +546,96 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener, Indiv
 
 	private static String escapeHtml(final String text){
 		if(text == null)
-			return "";
+			return StringUtils.EMPTY;
+
 		return text.replace("&", "&amp;")
 			.replace("<", "&lt;")
 			.replace(">", "&gt;");
 	}
 
-	@Override
-	protected void paintComponent(final Graphics g){
-		super.paintComponent(g);
+	public EgoNetworkPanel withSelectionCallback(final Consumer<String> callback){
+		this.selectionCallback = callback;
 
-		if(g instanceof Graphics2D g2){
+		return this;
+	}
+
+	public EgoNetworkPanel withGroupSelectionCallback(final Consumer<String> callback){
+		this.groupSelectionCallback = callback;
+
+		return this;
+	}
+
+	public String getSelectedEntityId(){
+		return (selectedIndividualId != null? selectedIndividualId: selectedGroupId);
+	}
+
+	/**
+	 * Sub-panel that hosts the ego network layout and draws the connection
+	 * lines.
+	 * <p>
+	 * The canvas implements {@link Scrollable} so that the enclosing
+	 * {@link JScrollPane} stretches it to fill the viewport when the
+	 * content is smaller than the viewport (and the MigLayout centers the
+	 * content), while keeping the natural preferred size — and therefore
+	 * showing scrollbars — when the content is larger.
+	 */
+	private final class NetworkCanvas extends JPanel implements Scrollable{
+
+		@Serial
+		private static final long serialVersionUID = -2194057381948273841L;
+
+
+		NetworkCanvas(){
+			setBackground(BACKGROUND_COLOR_APPLICATION);
+			setOpaque(true);
+		}
+
+		@Override
+		protected void paintComponent(final Graphics g){
+			super.paintComponent(g);
+			if(!(g instanceof Graphics2D g2))
+				return;
 			g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 			g2.setColor(CONNECTION_LINE_COLOR);
 			g2.setStroke(PartnersPanel.CONNECTION_STROKE);
 
 			EgoNetworkRenderer.drawNetworkLines(g2, rootEgoNode, nodeToPanelMap, groupToPanelMap, this);
 		}
+
+
+		/* ==================================================================
+		 *                          Scrollable
+		 * ================================================================== */
+
+		@Override
+		public Dimension getPreferredScrollableViewportSize(){
+			return getPreferredSize();
+		}
+
+		@Override
+		public int getScrollableUnitIncrement(final Rectangle visibleRect, final int orientation,
+			final int direction){
+			return 16;
+		}
+
+		@Override
+		public int getScrollableBlockIncrement(final Rectangle visibleRect, final int orientation,
+			final int direction){
+			return 64;
+		}
+
+		@Override
+		public boolean getScrollableTracksViewportWidth(){
+			final Container parent = getParent();
+			return (parent != null && getPreferredSize().width < parent.getWidth());
+		}
+
+		@Override
+		public boolean getScrollableTracksViewportHeight(){
+			final Container parent = getParent();
+			return (parent != null && getPreferredSize().height < parent.getHeight());
+		}
+
 	}
 
 	@Override
@@ -365,9 +657,37 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener, Indiv
 	}
 
 	@Override
+	public void onIndividualSelected(final IndividualPanel selectedPanel, final FLEFRecord individual){
+		if(individual == null || individual.getId() == null)
+			return;
+
+		selectedIndividualId = individual.getId();
+		selectedGroupId = null;
+
+		applySelection();
+		if(selectionCallback != null)
+			selectionCallback.accept(selectedIndividualId);
+	}
+
+	@Override
+	public void onGroupSelected(final GroupPanel selectedPanel, final FLEFRecord group){
+		if(group == null || group.getId() == null)
+			return;
+
+		selectedGroupId = group.getId();
+		selectedIndividualId = null;
+
+		applySelection();
+		if(groupSelectionCallback != null)
+			groupSelectionCallback.accept(selectedGroupId);
+	}
+
+	@Override
 	public void onEntitySelected(final FLEFRecord record){
-		if(record != null && record.getId() != null)
-			networkMutator.navigateToEgo(record.getId());
+		if(record == null || record.getId() == null)
+			return;
+
+		networkMutator.navigateToEgo(record.getId());
 	}
 
 	@Override
@@ -391,12 +711,7 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener, Indiv
 	}
 
 	@Override
-	public void onEntitySelected(final JPanel panel){
-		this.selectedPanel = panel;
-	}
-
-	@Override
-	public void onIndividualAddOrConnect(final TreeOperation operation){
+	public void onIndividualAddOrConnect(final IndividualPanel selectedPanel, final TreeOperation operation){
 		final Supplier<FLEFRecord> fnOperation = (operation == TreeOperation.ADD
 			? () -> showCreateRecordDialog(IndividualHandler.class)
 			: () -> showSearchRecordDialog(IndividualHandler.class));
@@ -405,7 +720,7 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener, Indiv
 	}
 
 	@Override
-	public void onChildAddOrConnect(final TreeOperation operation){
+	public void onChildAddOrConnect(final IndividualPanel selectedPanel, final TreeOperation operation){
 		final Supplier<FLEFRecord> fnOperation = (operation == TreeOperation.ADD
 			? () -> showCreateRecordDialog(IndividualHandler.class)
 			: () -> showSearchRecordDialog(IndividualHandler.class));
@@ -415,8 +730,6 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener, Indiv
 
 	@Override
 	public void onGroupAddOrConnect(final TreeOperation operation){
-		// The entity being added / linked is always a Group, regardless of whether
-		// the Ego is an Individual (member -> group) or a Group (sub-group -> super-group).
 		final Supplier<FLEFRecord> fnOperation = (operation == TreeOperation.ADD
 			? () -> showCreateRecordDialog(GroupHandler.class)
 			: () -> showSearchRecordDialog(GroupHandler.class));
@@ -438,13 +751,6 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener, Indiv
 		performRelationOperationOnRecord(targetRecord, isPaste, allowedTypes);
 	}
 
-	/**
-	 * Performs a relationship mutation starting from an already-resolved target record.
-	 * <p>
-	 * According to the FLEF protocol, the SUBJECT is the entity whose role is described by TYPE
-	 * relative to the TARGET. For example, {@code biological_child(Alice -> John)} means Alice is
-	 * the biological child of John.
-	 */
 	private void performRelationOperationOnRecord(final FLEFRecord targetRecord, final boolean isPaste,
 		final String[] allowedTypes){
 		if(currentEgoId == null || rootEgoNode == null)
@@ -454,16 +760,13 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener, Indiv
 		if(egoRecord == null)
 			return;
 
-		// On paste, first remove any pre-existing relationship between Ego and the target
 		if(isPaste)
 			networkMutator.unlinkRelationship(egoRecord, targetRecord, currentEgoId);
 
-		// Ask the user to choose the FLEF relationship type (when more than one is applicable)
 		final String selectedType = selectRelationshipType(targetRecord, allowedTypes);
 		if(selectedType == null)
 			return;
 
-		// Resolve subject/target according to FLEF semantics
 		final String[] pair = resolveSubjectTarget(selectedType, egoRecord, targetRecord);
 		final String subjectId = pair[0];
 		final String targetId = pair[1];
@@ -472,47 +775,26 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener, Indiv
 		networkMutator.invalidateAndNotifyTreeChanged(currentEgoId);
 	}
 
-	/**
-	 * Resolves the FLEF subject/target orientation for the given relationship type.
-	 *
-	 * @param type        the relationship type
-	 * @param egoRecord   the Ego record
-	 * @param otherRecord the newly added/linked record
-	 * @return a two-element array {@code [subjectId, targetId]}
-	 */
 	private String[] resolveSubjectTarget(final String type, final FLEFRecord egoRecord, final FLEFRecord otherRecord){
 		final String egoId = egoRecord.getId();
 		final String otherId = otherRecord.getId();
 		final boolean egoIsGroup = GroupHandler.TYPE.equalsIgnoreCase(egoRecord.getTag());
 
-		// Child types: SUBJECT = child, TARGET = parent
-		// The "other" record is always the child; the Ego is always the parent
 		if(isChildType(type))
 			return new String[]{otherId, egoId};
 
-		// group_member: (Individual -> Group)
-		// The individual is always the subject; the group is always the target
 		if(ENUM_TYPE_GROUP_MEMBER.equals(type)){
 			if(egoIsGroup)
-				// Ego is the group, the other record is the individual member
 				return new String[]{otherId, egoId};
-			// Ego is the individual, the other record is the group
 			return new String[]{egoId, otherId};
 		}
 
-		// part_of: (Group -> Group), sub-group -> super-group
-		// When linking from the Ego center, the Ego is treated as the sub-group
 		if(ENUM_TYPE_PART_OF.equals(type))
 			return new String[]{egoId, otherId};
 
-		// Symmetric types (spouse/partner, associate) or default
 		return new String[]{egoId, otherId};
 	}
 
-	/**
-	 * Shows the relationship type selection dialog when multiple types are allowed.
-	 * Returns {@code null} if the user cancels.
-	 */
 	private String selectRelationshipType(final FLEFRecord targetRecord, final String[] allowedTypes){
 		if(allowedTypes.length == 1)
 			return allowedTypes[0];
@@ -538,7 +820,20 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener, Indiv
 	}
 
 	@Override
-	public void onEntityUnlink(final FLEFRecord record){
+	public void onIndividualUnlink(final IndividualPanel selectedPanel, final FLEFRecord record){
+		if(record == null || selectedPanel == null)
+			return;
+
+		final UnlinkRelationshipsDialog dialog = showUnlinkRelationshipsDialog(record);
+		final List<String> toRemove = dialog.getSelectedRelationshipIds();
+		if(!toRemove.isEmpty()){
+			networkMutator.removeRelationships(toRemove);
+			networkMutator.invalidateAndNotifyTreeChanged(currentEgoId);
+		}
+	}
+
+	@Override
+	public void onGroupUnlink(final GroupPanel selectedPanel, final FLEFRecord record){
 		if(record == null || selectedPanel == null)
 			return;
 
@@ -603,7 +898,7 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener, Indiv
 	}
 
 	@Override
-	public void onIndividualPaste(final FLEFRecord father, final FLEFRecord mother){
+	public void onIndividualPaste(final IndividualPanel selectedPanel){
 		onEntityPaste();
 	}
 
@@ -626,7 +921,6 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener, Indiv
 
 		final FLEFRecord source = clipboard.getRecord();
 
-		// Pick the allowed type list based on the participant types
 		final boolean egoIsGroup = GroupHandler.TYPE.equalsIgnoreCase(egoRecord.getTag());
 		final boolean sourceIsGroup = GroupHandler.TYPE.equalsIgnoreCase(source.getTag());
 
@@ -636,7 +930,6 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener, Indiv
 		else if(!egoIsGroup && !sourceIsGroup)
 			allowedTypes = INDIVIDUAL_TO_INDIVIDUAL_SOCIAL_TYPES;
 		else
-			// Mixed case: individual <-> group (either direction)
 			allowedTypes = INDIVIDUAL_TO_GROUP_TYPES;
 
 		performRelationOperationOnRecord(source, true, allowedTypes);
@@ -655,15 +948,6 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener, Indiv
 		return (dialog.isSaved()? dialog.getRecord(): null);
 	}
 
-	/**
-	 * Shows the "create new record" dialog for the given handler type.
-	 * Used by the individual / group callbacks so that the correct record dialog
-	 * (IndividualRecordDialog vs GroupRecordDialog) is presented.
-	 *
-	 * @param handlerClass the handler class whose dialog should be used
-	 *                     ({@code IndividualHandler.class} or {@code GroupHandler.class})
-	 * @return the newly created record, or {@code null} if the user cancelled
-	 */
 	private FLEFRecord showCreateRecordDialog(final Class<? extends RecordTypeHandler<?>> handlerClass){
 		final Window parent = SwingUtilities.getWindowAncestor(this);
 		final RecordTypeHandler<?> handler = resolveHandler(handlerClass);
@@ -674,19 +958,11 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener, Indiv
 		return (dialog.isSaved()? dialog.getRecord(): null);
 	}
 
-	/**
-	 * Shows the record selection dialog (with optional inline creation) for the given handler type.
-	 *
-	 * @param handlerClass the handler class to search among
-	 *                     ({@code IndividualHandler.class} or {@code GroupHandler.class})
-	 * @return the selected record, or {@code null} if the user cancelled
-	 */
 	private FLEFRecord showSearchRecordDialog(final Class<? extends RecordTypeHandler<?>> handlerClass){
 		final FLEFRecord[] result = {null};
 		final Window parent = SwingUtilities.getWindowAncestor(this);
 
-		@SuppressWarnings("unchecked")
-		final RecordSelectionDialog dialog = RecordSelectionDialog.createWithAllowRecordCreation(
+		@SuppressWarnings("unchecked") final RecordSelectionDialog dialog = RecordSelectionDialog.createWithAllowRecordCreation(
 			parent, model,
 			(record, handler) -> result[0] = record,
 			handlerClass);
@@ -695,14 +971,6 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener, Indiv
 		return result[0];
 	}
 
-	/**
-	 * Resolves a handler class to its singleton instance.
-	 * Only IndividualHandler and GroupHandler are currently supported.
-	 *
-	 * @param handlerClass the handler class
-	 * @return the singleton handler instance
-	 * @throws IllegalArgumentException if the class is not supported
-	 */
 	private static RecordTypeHandler<?> resolveHandler(final Class<? extends RecordTypeHandler<?>> handlerClass){
 		if(GroupHandler.class.equals(handlerClass))
 			return GroupHandler.getInstance();
@@ -715,6 +983,115 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener, Indiv
 
 	public String getCurrentEgoId(){
 		return currentEgoId;
+	}
+
+	/**
+	 * Opens the edit dialog for the currently selected individual or
+	 * group, if any.
+	 * <p>
+	 * The selection is the entity highlighted with the red border, which
+	 * may differ from the current ego. When neither an individual nor a
+	 * group is selected, the call is a no-op.
+	 */
+	public void editCurrentSelection(){
+		final String id = (selectedIndividualId != null? selectedIndividualId: selectedGroupId);
+		if(id == null)
+			return;
+
+		final FLEFRecord record = model.getRecordById(id);
+		if(record != null)
+			onEntityEdit(record);
+	}
+
+	/**
+	 * Moves the visual selection to the closest entity in the given
+	 * direction.
+	 * <p>
+	 * The selection can be an individual or a group. When nothing is
+	 * selected, the search starts from the current ego. When the selection
+	 * has no neighbour in that direction, the call is a no-op.
+	 *
+	 * @param direction the direction to move; must not be {@code null}
+	 */
+	public void moveSelection(final SpatialNavigation.Direction direction){
+		final Map<String, Rectangle> bounds = collectVisibleBounds();
+		if(bounds.isEmpty())
+			return;
+
+		String current = (selectedIndividualId != null? selectedIndividualId: selectedGroupId);
+		if(current == null || !bounds.containsKey(current))
+			current = currentEgoId;
+		if(current == null || !bounds.containsKey(current))
+			return;
+
+		final String next = SpatialNavigation.next(bounds, current, direction);
+		if(next == null)
+			return;
+
+		// Determine whether the target is an individual or a group.
+		final FLEFRecord record = model.getRecordById(next);
+		if(record != null && GroupHandler.TYPE.equalsIgnoreCase(record.getTag())){
+			if(next.equals(selectedGroupId))
+				return;
+			selectedGroupId = next;
+			selectedIndividualId = null;
+		}
+		else{
+			if(next.equals(selectedIndividualId))
+				return;
+			selectedIndividualId = next;
+			selectedGroupId = null;
+		}
+
+		applySelection();
+	}
+
+	/**
+	 * Confirms the current selection by re-rooting the ego network on it.
+	 * <p>
+	 * Behaves like a click on a name: the network is rebuilt around the
+	 * selected entity, and the navigation is pushed into the history.
+	 * When nothing is selected, the call is a no-op.
+	 */
+	public void confirmSelection(){
+		final String id = (selectedIndividualId != null? selectedIndividualId: selectedGroupId);
+		if(id == null)
+			return;
+
+		final FLEFRecord record = model.getRecordById(id);
+		if(record != null)
+			onEntitySelected(record);
+	}
+
+	/**
+	 * Collects the on-screen bounds of every visible individual and group
+	 * panel.
+	 */
+	private Map<String, Rectangle> collectVisibleBounds(){
+		final Map<String, Rectangle> result = new LinkedHashMap<>();
+		for(final Map.Entry<EgoNode, JPanel> entry : nodeToPanelMap.entrySet()){
+			final String id = entry.getKey().getEgoId();
+			if(id != null)
+				addBounds(id, entry.getValue(), result);
+		}
+		for(final Map.Entry<FLEFRecord, JPanel> entry : groupToPanelMap.entrySet()){
+			final String id = entry.getKey().getId();
+			if(id != null)
+				addBounds(id, entry.getValue(), result);
+		}
+		return result;
+	}
+
+	private static void addBounds(final String id, final Component component,
+		final Map<String, Rectangle> out){
+		try{
+			final Point p = component.getLocationOnScreen();
+			out.putIfAbsent(id, new Rectangle(p.x, p.y,
+				component.getWidth(), component.getHeight()));
+		}
+		catch(final java.awt.IllegalComponentStateException ignored){
+			// The panel is not showing; skip it.
+		}
 	}
 
 	public void setupLayoutShortcut(final JComponent component){
@@ -747,12 +1124,43 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener, Indiv
 		}
 	}
 
+	/**
+	 * Registers a callback invoked whenever the ego of the network changes
+	 * due to user navigation (click on a name). Used by the enclosing
+	 * container to record the navigation in the back/forward history.
+	 *
+	 * @param callback the callback; may be {@code null} to remove it
+	 */
+	public EgoNetworkPanel withNavigationCallback(final Consumer<String> callback){
+		this.navigationCallback = callback;
+
+		return this;
+	}
+
+	/**
+	 * Loads the given individual as the new ego without notifying the
+	 * navigation callback. Used by the back/forward history to move the
+	 * cursor without generating a new history entry.
+	 *
+	 * @param egoId the individual id
+	 */
+	public void navigateTo(final String egoId){
+		suppressNavigationNotification = true;
+		try{
+			loadNetwork(egoId);
+		}
+		finally{
+			suppressNavigationNotification = false;
+		}
+	}
+
 
 	public static void main(final String[] args) throws IOException{
 		try{
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		}
-		catch(final Exception ignored){}
+		catch(final Exception ignored){
+		}
 
 		final String modelUri = "/tests/TGMZ.flef";
 		final String individualId = "I1";

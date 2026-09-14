@@ -33,6 +33,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import net.miginfocom.swing.MigLayout;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
 import javax.swing.DefaultComboBoxModel;
@@ -114,11 +115,9 @@ public class ParticipantSearchPanel extends JPanel{
 	private static final int COL_DATE = 4;
 	private static final int COL_PLACE = 5;
 
-	private static final Font LINK_FONT = new Font("Tahoma", Font.PLAIN, 12);
 	private static final Color LINK_COLOR = new Color(30, 80, 180);
 	private static final Color LINK_COLOR_SELECTED = Color.WHITE;
 	private static final Color SELECTION_BG = new Color(200, 220, 245);
-	private static final Color EMPTY_MSG_COLOR = new Color(120, 120, 120);
 
 	private static final String[] MONTH_NAMES = {
 		"Jan", "Feb", "Mar", "Apr", "May", "Jun",
@@ -265,7 +264,7 @@ public class ParticipantSearchPanel extends JPanel{
 		roleCombo.addActionListener(e -> applyFilter());
 
 		clearButton.addActionListener(e -> {
-			searchField.setText("");
+			searchField.setText(StringUtils.EMPTY);
 			roleCombo.setSelectedIndex(0);
 			applyFilter();
 		});
@@ -433,11 +432,12 @@ public class ParticipantSearchPanel extends JPanel{
 
 	private static String formatDate(final NormalizedDate date){
 		if(date == null)
-			return "";
+			return StringUtils.EMPTY;
+
 		final int[] ymd = jdnToGregorian(date.jdn());
 		return switch(date.precision()){
-			case DAY -> ymd[2] + " " + MONTH_NAMES[ymd[1] - 1] + " " + ymd[0];
-			case MONTH -> MONTH_NAMES[ymd[1] - 1] + " " + ymd[0];
+			case DAY -> ymd[2] + StringUtils.SPACE + MONTH_NAMES[ymd[1] - 1] + StringUtils.SPACE + ymd[0];
+			case MONTH -> MONTH_NAMES[ymd[1] - 1] + StringUtils.SPACE + ymd[0];
 			case YEAR -> Integer.toString(ymd[0]);
 			case DECADE -> (ymd[0] / 10 * 10) + "s";
 			case CENTURY -> (ymd[0] / 100 + 1) + "th c.";
@@ -464,7 +464,7 @@ public class ParticipantSearchPanel extends JPanel{
 
 	private static final class ParticipantTableModel extends AbstractTableModel{
 
-		@java.io.Serial
+		@Serial
 		private static final long serialVersionUID = -5920194587192830291L;
 
 
@@ -506,8 +506,8 @@ public class ParticipantSearchPanel extends JPanel{
 				case COL_ROLE -> e.role();
 				case COL_EVENT -> e.eventType();
 				case COL_DATE -> formatDate(e.eventDate());
-				case COL_PLACE -> (e.placeName() != null? e.placeName(): "");
-				default -> "";
+				case COL_PLACE -> (e.placeName() != null? e.placeName(): StringUtils.EMPTY);
+				default -> StringUtils.EMPTY;
 			};
 		}
 	}
@@ -524,7 +524,7 @@ public class ParticipantSearchPanel extends JPanel{
 	 */
 	private static final class LinkCellRenderer extends DefaultTableCellRenderer{
 
-		@java.io.Serial
+		@Serial
 		private static final long serialVersionUID = -1035928461029481039L;
 
 
@@ -536,12 +536,12 @@ public class ParticipantSearchPanel extends JPanel{
 			if(isSelected){
 				setForeground(LINK_COLOR_SELECTED);
 				setBackground(SELECTION_BG);
-				setText(value != null? value.toString(): "");
+				setText(value != null? value.toString(): StringUtils.EMPTY);
 			}
 			else{
 				setForeground(LINK_COLOR);
 				setBackground(table.getBackground());
-				setText(value != null? "<html><u>" + escape(value.toString()) + "</u></html>": "");
+				setText(value != null? "<html><u>" + escape(value.toString()) + "</u></html>": StringUtils.EMPTY);
 			}
 			return this;
 		}

@@ -38,9 +38,6 @@ import java.awt.Window;
 public class PlaceCitationHandler extends AbstractRecordTypeHandler<PlaceCitationDialog>{
 
 	public static final String TYPE = "PLACE_CITATION";
-	public static final String CITED_TYPE = "PLACE";
-
-	private static final String TAG_PLACE = "PLACE";
 
 
 	private static final class SingletonHelper{
@@ -70,7 +67,7 @@ public class PlaceCitationHandler extends AbstractRecordTypeHandler<PlaceCitatio
 
 	@Override
 	public String getCitedType(){
-		return (!isTopLevelEntity()? CITED_TYPE: null);
+		return (!isTopLevelEntity()? PlaceHandler.TYPE: null);
 	}
 
 	@Override
@@ -83,7 +80,7 @@ public class PlaceCitationHandler extends AbstractRecordTypeHandler<PlaceCitatio
 		if(record == null)
 			return "--";
 
-		final String xref = FLEFRecordHelper.getChildValue(record, TAG_PLACE);
+		final String xref = FLEFRecordHelper.getChildValue(record, PlaceHandler.TYPE);
 		final FLEFRecord place = model.getRecordById(xref);
 		return "❝ " + PlaceHandler.getInstance().getDisplayText(place, model);
 	}

@@ -26,7 +26,6 @@ package io.github.mtrevisan.familylegacy.v2.io.grammar;
 
 import io.github.mtrevisan.familylegacy.v2.io.grammar.typedefinitions.TypeDefinition;
 
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -55,7 +54,7 @@ public final class FLEFGrammar{
 	public FLEFGrammar(final FileDefinition fileDefinition,
 			final Map<String, TypeDefinition> types, final List<String> parseWarnings){
 		this.fileDefinition = fileDefinition;
-		this.types = Collections.unmodifiableMap(new LinkedHashMap<>(types));
+		this.types = new LinkedHashMap<>(types);
 		this.parseWarnings = List.copyOf(parseWarnings);
 	}
 
