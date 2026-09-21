@@ -45,7 +45,7 @@ import java.util.Locale;
  * other views that operate on the same records (e.g. the Ego Network and
  * the Social Network views). Instances are immutable and thread-safe.
  */
-final class IndividualDialogProvider{
+public final class IndividualDialogProvider{
 
 	private static final String TAG_SEX = "sex";
 

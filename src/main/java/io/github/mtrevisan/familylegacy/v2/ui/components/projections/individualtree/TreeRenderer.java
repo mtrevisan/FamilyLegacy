@@ -31,13 +31,12 @@ import javax.swing.SwingUtilities;
 import java.awt.Component;
 import java.awt.Graphics2D;
 import java.awt.Point;
-import java.util.ArrayDeque;
+import java.awt.geom.Path2D;
 import java.util.Map;
-import java.util.Queue;
 
 
 /**
- * Utility class for rendering genealogical tree connections.
+ * Utility class for pre-building and rendering genealogical tree connections.
  */
 final class TreeRenderer{
 
@@ -45,115 +44,103 @@ final class TreeRenderer{
 
 
 	/**
-	 * Draws all connection lines for the genealogical tree.
-	 *
-	 * @param g2                 the graphics context
-	 * @param rootNode           the root node of the tree
-	 * @param nodeToPanelMap     map from nodes to their UI panels
-	 * @param childrenPanel      the children panel
-	 * @param container          the parent container for coordinate conversion
+	 * Renders a pre-built path for high-performance painting.
 	 */
-	public static void drawTree(final Graphics2D g2, final TreeLayout treeLayout, final TreeNode rootNode,
+	public static void drawTree(final Graphics2D g2, final Path2D path){
+		if(path != null)
+			g2.draw(path);
+	}
+
+	/**
+	 * Builds a cached {@link Path2D} containing all connection lines for the tree.
+	 */
+	public static Path2D buildTreePath(final TreeLayout treeLayout, final TreeNode rootNode,
 			final Map<TreeNode, PartnersPanel> nodeToPanelMap, final SiblingsPanel childrenPanel,
 			final Component container){
 		if(rootNode == null)
-			return;
+			return new Path2D.Double();
 
-		drawTreeConnections(g2, treeLayout, rootNode, nodeToPanelMap, container);
-		if(!childrenPanel.getSiblingBoxes().isEmpty())
-			drawChildrenConnections(g2, treeLayout, rootNode, nodeToPanelMap, childrenPanel, container);
+		final Path2D path = new Path2D.Double();
+		buildTreeConnectionsRecursive(path, treeLayout, rootNode, nodeToPanelMap, container);
+		if(childrenPanel != null && !childrenPanel.getSiblingBoxes().isEmpty())
+			buildChildrenConnections(path, treeLayout, rootNode, nodeToPanelMap, childrenPanel, container);
+
+		return path;
 	}
 
-	/**
-	 * Iteratively traverses all tree nodes using a Queue (BFS) to draw connection lines between parents and children.
-	 */
-	private static void drawTreeConnections(final Graphics2D g2, final TreeLayout treeLayout,
-			final TreeNode rootNode, final Map<TreeNode, PartnersPanel> nodeToPanelMap, final Component container){
-		final Queue<TreeNode> queue = new ArrayDeque<>();
-		queue.add(rootNode);
-		while(!queue.isEmpty()){
-			final TreeNode node = queue.poll();
-			final PartnersPanel nodePanel = nodeToPanelMap.get(node);
+	private static void buildTreeConnectionsRecursive(final Path2D path, final TreeLayout treeLayout,
+		final TreeNode node, final Map<TreeNode, PartnersPanel> nodeToPanelMap, final Component container){
+		if(node == null)
+			return;
 
-			final TreeNode father = node.getFather();
-			if(father != null){
-				final PartnersPanel fatherPanel = nodeToPanelMap.get(father);
-				if(fatherPanel != null && nodePanel != null){
-					Point enter = nodePanel.getPaintingFatherEnterPoint();
-					enter = SwingUtilities.convertPoint(nodePanel, enter, container);
-					connectParentToChild(g2, treeLayout, fatherPanel, enter, container);
-				}
-				queue.add(father);
-			}
+		final PartnersPanel nodePanel = nodeToPanelMap.get(node);
 
-			final TreeNode mother = node.getMother();
-			if(mother != null){
-				final PartnersPanel motherPanel = nodeToPanelMap.get(mother);
-				if(motherPanel != null && nodePanel != null){
-					Point enter = nodePanel.getPaintingMotherEnterPoint();
-					enter = SwingUtilities.convertPoint(nodePanel, enter, container);
-					connectParentToChild(g2, treeLayout, motherPanel, enter, container);
-				}
-				queue.add(mother);
+		final TreeNode father = node.getFather();
+		if(father != null){
+			final PartnersPanel fatherPanel = nodeToPanelMap.get(father);
+			if(fatherPanel != null && nodePanel != null){
+				final Point enter = SwingUtilities.convertPoint(nodePanel, nodePanel.getPaintingFatherEnterPoint(), container);
+				connectParentToChild(path, treeLayout, fatherPanel, enter, container);
 			}
+			buildTreeConnectionsRecursive(path, treeLayout, father, nodeToPanelMap, container);
+		}
+
+		final TreeNode mother = node.getMother();
+		if(mother != null){
+			final PartnersPanel motherPanel = nodeToPanelMap.get(mother);
+			if(motherPanel != null && nodePanel != null){
+				final Point enter = SwingUtilities.convertPoint(nodePanel, nodePanel.getPaintingMotherEnterPoint(), container);
+				connectParentToChild(path, treeLayout, motherPanel, enter, container);
+			}
+			buildTreeConnectionsRecursive(path, treeLayout, mother, nodeToPanelMap, container);
 		}
 	}
 
-	/**
-	 * Connects a parent/super-group panel to a child/member panel with orthogonal lines.
-	 */
-	private static void connectParentToChild(final Graphics2D g2, final TreeLayout treeLayout,
+	private static void connectParentToChild(final Path2D path, final TreeLayout treeLayout,
 			final PartnersPanel parentGroupPanel, final Point childEnterPoint, final Component container){
 		Point parentExit = parentGroupPanel.getPaintingExitPoint();
 		parentExit = SwingUtilities.convertPoint(parentGroupPanel, parentExit, container);
 
 		if(treeLayout == TreeLayout.VERTICAL){
-			// Vertical line extending out from parent group
-			final int midY = (childEnterPoint.y + parentExit.y + PartnersPanel.GROUP_EXITING_HEIGHT) / 2;
-			g2.drawLine(parentExit.x, parentExit.y,
-				parentExit.x, midY);
+			final int midY = (childEnterPoint.y + parentExit.y + PartnersPanel.GROUP_EXITING_HEIGHT) >> 1;
 
-			// Vertical line entering into child panel
-			g2.drawLine(childEnterPoint.x, childEnterPoint.y,
-				childEnterPoint.x, midY);
+			path.moveTo(parentExit.x, parentExit.y);
+			path.lineTo(parentExit.x, midY);
 
-			// Horizontal connecting line
-			g2.drawLine(parentExit.x, midY,
-				childEnterPoint.x, midY);
+			path.moveTo(childEnterPoint.x, childEnterPoint.y);
+			path.lineTo(childEnterPoint.x, midY);
+
+			path.moveTo(parentExit.x, midY);
+			path.lineTo(childEnterPoint.x, midY);
 		}
 		else{
-			// Horizontal line extending leftwards/rightwards between child and parent
-			g2.drawLine(parentExit.x, parentExit.y,
-				childEnterPoint.x, parentExit.y);
-			g2.drawLine(childEnterPoint.x, parentExit.y,
-				childEnterPoint.x, childEnterPoint.y);
+			path.moveTo(parentExit.x, parentExit.y);
+			path.lineTo(childEnterPoint.x, parentExit.y);
+			path.lineTo(childEnterPoint.x, childEnterPoint.y);
 		}
 	}
 
-	private static void drawChildrenConnections(final Graphics2D g2, final TreeLayout treeLayout,
+	private static void buildChildrenConnections(final Path2D path, final TreeLayout treeLayout,
 			final TreeNode rootNode, final Map<TreeNode, PartnersPanel> nodeToPanelMap,
 			final SiblingsPanel childrenPanel, final Component container){
-		if(childrenPanel == null)
+		final PartnersPanel homePanel = nodeToPanelMap.get(rootNode);
+		if(homePanel == null)
 			return;
 
-		final PartnersPanel homePanel = nodeToPanelMap.get(rootNode);
-		if(homePanel != null){
-			Point homeExit = homePanel.getPaintingExitPoint();
-			homeExit = SwingUtilities.convertPoint(homePanel, homeExit, container);
-			if(treeLayout == TreeLayout.VERTICAL){
-				final Point childrenRight = SwingUtilities.convertPoint(childrenPanel,
-					new Point(0, 1), container);
+		Point homeExit = homePanel.getPaintingExitPoint();
+		homeExit = SwingUtilities.convertPoint(homePanel, homeExit, container);
 
-				g2.drawLine(homeExit.x, homeExit.y,
-					homeExit.x, childrenRight.y);
-			}
-			else{
-				final Point[] enterPoints = childrenPanel.getPaintingEnterPoints();
-				if(enterPoints.length > 0){
-					final Point targetPoint = SwingUtilities.convertPoint(childrenPanel, enterPoints[0], container);
-					g2.drawLine(homeExit.x, homeExit.y,
-						targetPoint.x, homeExit.y);
-				}
+		if(treeLayout == TreeLayout.VERTICAL){
+			final Point childrenRight = SwingUtilities.convertPoint(childrenPanel, new Point(0, 1), container);
+			path.moveTo(homeExit.x, homeExit.y);
+			path.lineTo(homeExit.x, childrenRight.y);
+		}
+		else{
+			final Point[] enterPoints = childrenPanel.getPaintingEnterPoints();
+			if(enterPoints.length > 0){
+				final Point targetPoint = SwingUtilities.convertPoint(childrenPanel, enterPoints[0], container);
+				path.moveTo(homeExit.x, homeExit.y);
+				path.lineTo(targetPoint.x, homeExit.y);
 			}
 		}
 	}

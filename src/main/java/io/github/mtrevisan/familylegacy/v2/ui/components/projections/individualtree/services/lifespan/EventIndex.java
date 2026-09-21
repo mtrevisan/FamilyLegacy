@@ -70,12 +70,11 @@ public final class EventIndex{
 
 
 	/** A participant of an event, resolved to a display name. */
-	public record Participant(String id, String name, boolean isIndividual){
-	}
+	public record Participant(String id, String name, boolean isIndividual){}
 
 	/** A single event, resolved. */
-	public record EventDatum(String id, String type, String description, NormalizedDate date,
-									 String placeId, String placeName, List<Participant> participants){
+	public record EventDatum(String id, String type, String description, NormalizedDate date, String placeId,
+									 String placeName, List<Participant> participants){
 		public boolean hasDate(){
 			return date != null;
 		}
@@ -94,9 +93,8 @@ public final class EventIndex{
 
 
 	private EventIndex(final List<EventDatum> allEvents, final Map<String, List<EventDatum>> eventsByType,
-		final Map<String, List<EventDatum>> eventsByParticipantId,
-		final Map<String, List<EventDatum>> eventsByPlaceId,
-		final Map<String, EventDatum> eventsById){
+			final Map<String, List<EventDatum>> eventsByParticipantId,
+			final Map<String, List<EventDatum>> eventsByPlaceId, final Map<String, EventDatum> eventsById){
 		this.allEvents = allEvents;
 		this.eventsByType = eventsByType;
 		this.eventsByParticipantId = eventsByParticipantId;
@@ -114,6 +112,7 @@ public final class EventIndex{
 			final String eventId = FLEFRecordHelper.getChildValue(p, TAG_EVENT);
 			if(eventId == null)
 				continue;
+
 			participationsByEvent.computeIfAbsent(eventId, k -> new ArrayList<>()).add(p);
 		}
 

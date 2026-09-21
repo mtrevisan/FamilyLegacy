@@ -1,3 +1,27 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
 package io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
@@ -64,12 +88,11 @@ public final class IndividualTreeListener implements IndividualListener{
 	private final Consumer<String> onSelectionChanged;
 
 
-	public IndividualTreeListener(final FLEFModel model, final TreeService treeService,
-		final TreeMutator treeMutator, final IndividualDialogProvider dialogProvider,
-		final RelationshipOperationCoordinator operationCoordinator,
-		final Component component, final Supplier<String> currentRootId,
-		final Supplier<Map<TreeNode, PartnersPanel>> nodeToPanelMapSupplier,
-		final Consumer<String> onSelectionChanged){
+	public IndividualTreeListener(final FLEFModel model, final TreeService treeService, final TreeMutator treeMutator,
+			final IndividualDialogProvider dialogProvider, final RelationshipOperationCoordinator operationCoordinator,
+			final Component component, final Supplier<String> currentRootId,
+			final Supplier<Map<TreeNode, PartnersPanel>> nodeToPanelMapSupplier,
+			final Consumer<String> onSelectionChanged){
 		this.model = model;
 		this.treeService = treeService;
 		this.treeMutator = treeMutator;
@@ -95,6 +118,7 @@ public final class IndividualTreeListener implements IndividualListener{
 		final FLEFRecord edited = dialogProvider.showEditDialog(parent, individual);
 		if(edited != null){
 			LOGGER.debug("Individual edited: {}", edited.getId());
+
 			treeMutator.invalidateAndNotifyTreeChanged(currentRootId.get());
 		}
 	}
@@ -103,6 +127,7 @@ public final class IndividualTreeListener implements IndividualListener{
 	public void onIndividualSelected(final IndividualPanel selectedPanel, final FLEFRecord individual){
 		if(individual == null || individual.getId() == null)
 			return;
+
 		if(onSelectionChanged != null)
 			onSelectionChanged.accept(individual.getId());
 	}
@@ -111,6 +136,7 @@ public final class IndividualTreeListener implements IndividualListener{
 	public void onEntitySelected(final FLEFRecord individual){
 		if(individual == null || individual.getId() == null)
 			return;
+
 		treeMutator.navigateToRoot(individual.getId());
 	}
 
@@ -140,8 +166,8 @@ public final class IndividualTreeListener implements IndividualListener{
 		final Function<SexType, FLEFRecord> fn = (operation == TreeOperation.ADD
 			? this::showCreateIndividualDialog: this::showSearchIndividualDialog);
 
-		final TreeContextHelper.Context ctx = TreeContextHelper.determineContext(
-			selectedPanel, nodeToPanelMapSupplier.get());
+		final TreeContextHelper.Context ctx = TreeContextHelper.determineContext(selectedPanel,
+			nodeToPanelMapSupplier.get());
 		if(ctx == null || ctx.isChildContext() || !ctx.hasPartnerPanel())
 			return;
 
@@ -155,8 +181,8 @@ public final class IndividualTreeListener implements IndividualListener{
 
 	@Override
 	public void onChildAddOrConnect(final IndividualPanel selectedPanel, final TreeOperation operation){
-		final TreeContextHelper.Context ctx = TreeContextHelper.determineContext(
-			selectedPanel, nodeToPanelMapSupplier.get());
+		final TreeContextHelper.Context ctx = TreeContextHelper.determineContext(selectedPanel,
+			nodeToPanelMapSupplier.get());
 		if(ctx == null || ctx.isChildContext() || !ctx.hasPartnerPanel())
 			return;
 
@@ -189,8 +215,8 @@ public final class IndividualTreeListener implements IndividualListener{
 		if(individual == null || selectedPanel == null)
 			return;
 
-		final TreeContextHelper.Context ctx = TreeContextHelper.determineContext(
-			selectedPanel, nodeToPanelMapSupplier.get());
+		final TreeContextHelper.Context ctx = TreeContextHelper.determineContext(selectedPanel,
+			nodeToPanelMapSupplier.get());
 		if(ctx == null || !ctx.hasPartnerPanel())
 			return;
 
@@ -232,7 +258,9 @@ public final class IndividualTreeListener implements IndividualListener{
 	public void onEntityRelocate(final FLEFRecord individual){
 		if(individual == null)
 			return;
+
 		LOGGER.debug("Relocate individual {} to clipboard", individual.getId());
+
 		RelationClipboard.getInstance().setRecord(individual);
 	}
 
@@ -262,10 +290,11 @@ public final class IndividualTreeListener implements IndividualListener{
 	 *                          Private helpers
 	 * ====================================================================== */
 
-	private void performChildRelationOperation(final FLEFRecord child, final FLEFRecord father,
-		final FLEFRecord mother, final boolean isPaste, final String rootId){
+	private void performChildRelationOperation(final FLEFRecord child, final FLEFRecord father, final FLEFRecord mother,
+			final boolean isPaste, final String rootId){
 		if(child == null)
 			return;
+
 		if(isPaste){
 			final List<String> relationshipIds =
 				treeService.getRelationshipIdsForIndividual(child.getId());
@@ -276,10 +305,11 @@ public final class IndividualTreeListener implements IndividualListener{
 		treeMutator.invalidateAndNotifyTreeChanged(rootId);
 	}
 
-	private void performParentRelationOperation(final FLEFRecord individual,
-		final TreeContextHelper.Context ctx, final boolean isPaste, final String rootId){
+	private void performParentRelationOperation(final FLEFRecord individual, final TreeContextHelper.Context ctx,
+			final boolean isPaste, final String rootId){
 		if(individual == null || ctx == null)
 			return;
+
 		if(isPaste){
 			final List<String> relIds =
 				treeService.getRelationshipIdsForIndividual(individual.getId());

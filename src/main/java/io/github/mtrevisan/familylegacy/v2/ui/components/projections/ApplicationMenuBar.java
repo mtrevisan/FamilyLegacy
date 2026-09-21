@@ -293,11 +293,6 @@ final class ApplicationMenuBar{
 		menu.add(projections);
 
 		menu.add(new JSeparator());
-		menu.add(accelerated("Zoom In", KeyEvent.VK_PLUS));
-		menu.add(accelerated("Zoom Out", KeyEvent.VK_MINUS));
-		menu.add(accelerated("Zoom Reset", KeyEvent.VK_0));
-		menu.add(placeholder("Fit to Window", 0));
-		menu.add(new JSeparator());
 
 		final JCheckBoxMenuItem fullScreen = new JCheckBoxMenuItem("Full Screen");
 		fullScreen.setMnemonic(KeyEvent.VK_F);
@@ -313,8 +308,6 @@ final class ApplicationMenuBar{
 		menu.add(placeholder("Show Status Bar", 0));
 		menu.add(placeholder("Show Sidebar", 0));
 		menu.add(placeholder("Show Minimap", 0));
-		menu.add(new JSeparator());
-		menu.add(placeholder("Refresh", 0));
 
 		return menu;
 	}
@@ -324,27 +317,21 @@ final class ApplicationMenuBar{
 	 *                          Individual
 	 * ====================================================================== */
 
-	private JMenu createIndividualMenu(){
+	private JMenu createIndividualMenu() {
 		final JMenu menu = new JMenu("Individual");
 		menu.setMnemonic(KeyEvent.VK_I);
 
-		for(final ToolOperation tool : IndividualToolRegistry.primaryTools())
-			menu.add(toolItem(tool, 0));
+		final List<ToolItemBinding> bindings = new ArrayList<>();
 
+		addToolsToMenu(menu, IndividualToolRegistry.primaryTools(), bindings);
 		menu.add(new JSeparator());
-
-		for(final ToolOperation tool : IndividualToolRegistry.relationshipTools())
-			menu.add(toolItem(tool, 0));
-
+		addToolsToMenu(menu, IndividualToolRegistry.relationshipTools(), bindings);
 		menu.add(new JSeparator());
-
-		for(final ToolOperation tool : IndividualToolRegistry.advancedTools())
-			menu.add(toolItem(tool, 0));
-
+		addToolsToMenu(menu, IndividualToolRegistry.advancedTools(), bindings);
 		menu.add(new JSeparator());
+		addToolsToMenu(menu, IndividualToolRegistry.navigationTools(), bindings);
 
-		for(final ToolOperation tool : IndividualToolRegistry.navigationTools())
-			menu.add(toolItem(tool, 0));
+		bindDynamicEnablement(menu, bindings);
 
 		return menu;
 	}
@@ -358,18 +345,15 @@ final class ApplicationMenuBar{
 		final JMenu menu = new JMenu("Group");
 		menu.setMnemonic(KeyEvent.VK_G);
 
-		for(final ToolOperation tool : GroupToolRegistry.primaryTools())
-			menu.add(toolItem(tool, 0));
+		final List<ToolItemBinding> bindings = new ArrayList<>();
 
+		addToolsToMenu(menu, GroupToolRegistry.primaryTools(), bindings);
 		menu.add(new JSeparator());
-
-		for(final ToolOperation tool : GroupToolRegistry.membershipTools())
-			menu.add(toolItem(tool, 0));
-
+		addToolsToMenu(menu, GroupToolRegistry.membershipTools(), bindings);
 		menu.add(new JSeparator());
+		addToolsToMenu(menu, GroupToolRegistry.advancedTools(), bindings);
 
-		for(final ToolOperation tool : GroupToolRegistry.advancedTools())
-			menu.add(toolItem(tool, 0));
+		bindDynamicEnablement(menu, bindings);
 
 		return menu;
 	}
@@ -383,13 +367,13 @@ final class ApplicationMenuBar{
 		final JMenu menu = new JMenu("Place");
 		menu.setMnemonic(KeyEvent.VK_L);
 
-		for(final ToolOperation tool : PlaceToolRegistry.primaryTools())
-			menu.add(toolItem(tool, 0));
+		final List<ToolItemBinding> bindings = new ArrayList<>();
 
+		addToolsToMenu(menu, PlaceToolRegistry.primaryTools(), bindings);
 		menu.add(new JSeparator());
+		addToolsToMenu(menu, PlaceToolRegistry.geoAndNormalizationTools(), bindings);
 
-		for(final ToolOperation tool : PlaceToolRegistry.geoAndNormalizationTools())
-			menu.add(toolItem(tool, 0));
+		bindDynamicEnablement(menu, bindings);
 
 		return menu;
 	}
@@ -403,23 +387,17 @@ final class ApplicationMenuBar{
 		final JMenu menu = new JMenu("Source");
 		menu.setMnemonic(KeyEvent.VK_S);
 
-		for(final ToolOperation tool : SourceToolRegistry.sourceTools())
-			menu.add(toolItem(tool, 0));
+		final List<ToolItemBinding> bindings = new ArrayList<>();
 
+		addToolsToMenu(menu, SourceToolRegistry.primaryTools(), bindings);
 		menu.add(new JSeparator());
-
-		for(final ToolOperation tool : SourceToolRegistry.repositoryTools())
-			menu.add(toolItem(tool, 0));
-
+		addToolsToMenu(menu, SourceToolRegistry.repositoryTools(), bindings);
 		menu.add(new JSeparator());
-
-		for(final ToolOperation tool : SourceToolRegistry.documentTools())
-			menu.add(toolItem(tool, 0));
-
+		addToolsToMenu(menu, SourceToolRegistry.documentTools(), bindings);
 		menu.add(new JSeparator());
+		addToolsToMenu(menu, SourceToolRegistry.citationTools(), bindings);
 
-		for(final ToolOperation tool : SourceToolRegistry.citationTools())
-			menu.add(toolItem(tool, 0));
+		bindDynamicEnablement(menu, bindings);
 
 		return menu;
 	}
@@ -433,18 +411,15 @@ final class ApplicationMenuBar{
 		final JMenu menu = new JMenu("Event");
 		menu.setMnemonic(KeyEvent.VK_T);
 
-		for(final ToolOperation tool : EventToolRegistry.primaryTools())
-			menu.add(toolItem(tool, 0));
+		final List<ToolItemBinding> bindings = new ArrayList<>();
 
+		addToolsToMenu(menu, EventToolRegistry.primaryTools(), bindings);
 		menu.add(new JSeparator());
-
-		for(final ToolOperation tool : EventToolRegistry.referenceTools())
-			menu.add(toolItem(tool, 0));
-
+		addToolsToMenu(menu, EventToolRegistry.referenceTools(), bindings);
 		menu.add(new JSeparator());
+		addToolsToMenu(menu, EventToolRegistry.analysisTools(), bindings);
 
-		for(final ToolOperation tool : EventToolRegistry.analysisTools())
-			menu.add(toolItem(tool, 0));
+		bindDynamicEnablement(menu, bindings);
 
 		return menu;
 	}
@@ -458,18 +433,15 @@ final class ApplicationMenuBar{
 		final JMenu menu = new JMenu("Research");
 		menu.setMnemonic(KeyEvent.VK_R);
 
-		for(final ToolOperation tool : ResearchToolRegistry.planningTools())
-			menu.add(toolItem(tool, 0));
+		final List<ToolItemBinding> bindings = new ArrayList<>();
 
+		addToolsToMenu(menu, ResearchToolRegistry.planningTools(), bindings);
 		menu.add(new JSeparator());
-
-		for(final ToolOperation tool : ResearchToolRegistry.analysisTools())
-			menu.add(toolItem(tool, 0));
-
+		addToolsToMenu(menu, ResearchToolRegistry.analysisTools(), bindings);
 		menu.add(new JSeparator());
+		addToolsToMenu(menu, ResearchToolRegistry.reportTools(), bindings);
 
-		for(final ToolOperation tool : ResearchToolRegistry.reportTools())
-			menu.add(toolItem(tool, 0));
+		bindDynamicEnablement(menu, bindings);
 
 		return menu;
 	}
@@ -770,6 +742,15 @@ final class ApplicationMenuBar{
 	 *                          Helpers
 	 * ====================================================================== */
 
+	private void addToolsToMenu(final JMenu menu, final List<ToolOperation> tools, final List<ToolItemBinding> bindings){
+		for(final ToolOperation tool : tools){
+			final JMenuItem item = toolItem(tool, 0);
+			menu.add(item);
+
+			bindings.add(new ToolItemBinding(item, tool));
+		}
+	}
+
 	/** Returns the platform menu shortcut mask (Ctrl on Windows/Linux, Cmd on macOS). */
 	private static int menuShortcutMask(){
 		return Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx();
@@ -782,8 +763,32 @@ final class ApplicationMenuBar{
 	private JMenuItem toolItem(final ToolOperation tool, final int mnemonic){
 		final JMenuItem item = new JMenuItem(tool.getName(), mnemonic);
 		item.addActionListener(e -> tool.run(frame.createToolContext()));
+		item.setEnabled(tool.isEnabled(frame.createToolContext()));
 		return item;
 	}
+
+	/**
+	 * Binds a MenuListener to dynamically update the enabled state of all tool items
+	 * based on ToolOperation#isEnabled(ToolContext).
+	 */
+	private void bindDynamicEnablement(final JMenu menu, final List<ToolItemBinding> bindings){
+		menu.addMenuListener(new MenuListener(){
+			@Override
+			public void menuSelected(final MenuEvent e){
+				final ToolContext context = frame.createToolContext();
+				for(final ToolItemBinding binding : bindings)
+					binding.item().setEnabled(binding.tool().isEnabled(context));
+			}
+
+			@Override
+			public void menuDeselected(final MenuEvent e){}
+
+			@Override
+			public void menuCanceled(final MenuEvent e){}
+		});
+	}
+
+	private record ToolItemBinding(JMenuItem item, ToolOperation tool){}
 
 	/**
 	 * Creates a menu item whose action shows a "not implemented yet"

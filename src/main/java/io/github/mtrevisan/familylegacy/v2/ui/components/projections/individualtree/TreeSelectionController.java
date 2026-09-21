@@ -1,3 +1,27 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
 package io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree;
 
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.SpatialNavigation;
@@ -42,8 +66,7 @@ public final class TreeSelectionController{
 	private final Consumer<String> onConfirmed;
 
 
-	public TreeSelectionController(final Consumer<String> onSelectionChanged,
-		final Consumer<String> onConfirmed){
+	public TreeSelectionController(final Consumer<String> onSelectionChanged, final Consumer<String> onConfirmed){
 		this.onSelectionChanged = onSelectionChanged;
 		this.onConfirmed = onConfirmed;
 	}
@@ -54,8 +77,7 @@ public final class TreeSelectionController{
 	 * Called after every rebuild, because the panels are recreated on
 	 * every {@code refreshTree}.
 	 */
-	public void updateTree(final Map<TreeNode, PartnersPanel> nodeToPanelMap,
-		final SiblingsPanel childrenPanel){
+	public void updateTree(final Map<TreeNode, PartnersPanel> nodeToPanelMap, final SiblingsPanel childrenPanel){
 		this.nodeToPanelMap = (nodeToPanelMap != null? nodeToPanelMap: Map.of());
 		this.childrenPanel = childrenPanel;
 	}
@@ -76,8 +98,11 @@ public final class TreeSelectionController{
 	public void onUserSelected(final String id){
 		if(id == null)
 			return;
+
 		selectedId = id;
+
 		apply();
+
 		if(onSelectionChanged != null)
 			onSelectionChanged.accept(id);
 	}
@@ -90,7 +115,9 @@ public final class TreeSelectionController{
 	public void setSelectedId(final String id){
 		if(Objects.equals(selectedId, id))
 			return;
+
 		selectedId = id;
+
 		apply();
 	}
 
@@ -113,9 +140,9 @@ public final class TreeSelectionController{
 	private void applyToSlot(final IndividualPanel panel){
 		if(panel == null)
 			return;
+
 		final IndividualData data = panel.getData();
-		final boolean isSelected = (data != null && data.getId() != null
-			&& data.getId().equals(selectedId));
+		final boolean isSelected = (data != null && data.getId() != null && data.getId().equals(selectedId));
 		panel.withSelected(isSelected);
 	}
 
@@ -127,8 +154,7 @@ public final class TreeSelectionController{
 	 * @param treeCanvas  the canvas to walk to compute the bounds
 	 * @param rootFallback the id to start from when nothing is selected
 	 */
-	public void move(final SpatialNavigation.Direction direction,
-		final Component treeCanvas, final String rootFallback){
+	public void move(final SpatialNavigation.Direction direction, final Component treeCanvas, final String rootFallback){
 		if(direction == null || treeCanvas == null)
 			return;
 

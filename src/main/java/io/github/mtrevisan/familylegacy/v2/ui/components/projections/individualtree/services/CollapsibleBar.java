@@ -145,8 +145,7 @@ public final class CollapsibleBar extends JPanel{
 	 * ====================================================================== */
 
 	/**
-	 * Installs the listener that is notified when the user clicks the
-	 * bar.
+	 * Installs the listener notified when the user clicks the bar.
 	 *
 	 * @param listener the listener, or {@code null} to remove any
 	 *                 previously installed listener
@@ -161,15 +160,14 @@ public final class CollapsibleBar extends JPanel{
 	/**
 	 * Sets the visual state of the arrow.
 	 * <p>
-	 * This method must be called by the caller whenever the controlled
+	 * The caller must call this method whenever the controlled
 	 * section is toggled by other means (keyboard shortcut, programmatic
 	 * action), so that the arrow reflects the actual state of the
 	 * section. It is not called automatically when the user clicks the
 	 * bar, because the caller is expected to control the section and
 	 * then sync the bar.
 	 *
-	 * @param expanded {@code true} to show the arrow pointing down
-	 *                 (expanded), {@code false} to show the arrow
+	 * @param expanded {@code true} to show the arrow pointing down (expanded), {@code false} to show the arrow
 	 *                 pointing right (collapsed)
 	 */
 	public void setExpanded(final boolean expanded){

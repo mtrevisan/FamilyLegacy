@@ -105,8 +105,7 @@ public class RelationshipTypeSelectionDialog extends JDialog{
 	 * @return the selected types in the same order as the items, or
 	 *         {@code null} if the user cancelled the dialog
 	 */
-	public static List<String> showIfNeeded(final Window owner, final List<Item> items,
-		final String[] allowedTypes){
+	public static List<String> showIfNeeded(final Window owner, final List<Item> items, final String[] allowedTypes){
 		if(allowedTypes == null || allowedTypes.length == 0)
 			throw new IllegalArgumentException("Allowed types must not be empty");
 		if(items == null || items.isEmpty())

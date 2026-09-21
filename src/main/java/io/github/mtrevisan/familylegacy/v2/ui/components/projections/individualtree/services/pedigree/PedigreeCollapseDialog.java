@@ -75,12 +75,14 @@ public class PedigreeCollapseDialog extends JDialog{
 	 */
 	public PedigreeCollapseDialog(final Window owner, final List<PedigreeCollapse> collapses){
 		super(owner, "Pedigree collapse report", ModalityType.APPLICATION_MODAL);
+
 		if(collapses == null)
 			throw new IllegalArgumentException("Collapses must not be null");
 
 		this.collapses = List.copyOf(collapses);
 
 		initComponents();
+
 		pack();
 		setMinimumSize(new Dimension(620, 420));
 		setLocationRelativeTo(owner);

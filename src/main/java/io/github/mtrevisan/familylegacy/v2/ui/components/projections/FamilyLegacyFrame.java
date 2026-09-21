@@ -272,11 +272,6 @@ public class FamilyLegacyFrame extends JFrame{
 			switcher.setGroupSelectionCallback(this::showGroupDossier);
 			switcher.setNavigationListener(this::syncDossier);
 
-			final IndividualDossierPanel newIndividualDossier =
-				new IndividualDossierPanel(newModel);
-			final GroupDossierPanel newGroupDossier =
-				new GroupDossierPanel(newModel);
-
 			// The dossiers are final fields, so we keep the instances
 			// and simply repopulate them. A more thorough refactoring
 			// would make them non-final, but for now repopulating works.

@@ -47,12 +47,6 @@ import java.util.Objects;
  * Handles structural modifications to the ego network graph, updating the
  * underlying {@link FLEFModel}, invalidating service indices, and notifying
  * tree listeners.
- * <p>
- * Besides creating and removing relationships, the mutator is responsible
- * for keeping the model free of dangling references when an entity is
- * removed: every association record that references the removed entity is
- * deleted together with it, so that the resulting model remains
- * consistent.
  */
 class EgoNetworkMutator{
 

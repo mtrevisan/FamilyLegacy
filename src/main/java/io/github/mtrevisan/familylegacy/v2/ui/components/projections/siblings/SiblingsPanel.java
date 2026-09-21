@@ -127,8 +127,9 @@ public class SiblingsPanel extends JPanel{
 		setOpaque(false);
 
 		setLayout(new MigLayout(treeLayout == TreeLayout.VERTICAL
-			? "flowx,ins " + DESCENDANTS_ARROW_HEIGHT + " 0 0 0,alignx center"
-			: "flowy,ins 0 0 0 " + DESCENDANTS_ARROW_HEIGHT + ",aligny center"));
+			? "flowx,ins " + DESCENDANTS_ARROW_HEIGHT + " 0 0 0,alignx center,nogrid"
+			: "flowy,ins 0 0 0 " + DESCENDANTS_ARROW_HEIGHT + ",aligny center,nogrid",
+			"[pref!]", "[]"));
 	}
 
 
@@ -152,11 +153,12 @@ public class SiblingsPanel extends JPanel{
 					final int firstChildX = enterPoints[0].x;
 					final int lastChildX = enterPoints[enterPoints.length - 1].x;
 
-					// Horizontal line spanning from first to last child
-					g2.drawLine(firstChildX, 1,
-						lastChildX, 1);
+					// Draw horizontal connection line across siblings only if there are multiple children
+					if(enterPoints.length > 1)
+						g2.drawLine(firstChildX, 1,
+							lastChildX, 1);
 
-					// Vertical line connecting the children
+					// Draw vertical stem entering each child box
 					for(int i = 0, length = enterPoints.length; i < length; i ++){
 						final boolean biological = isBiologicalChild(i);
 						if(!biological)
@@ -173,9 +175,11 @@ public class SiblingsPanel extends JPanel{
 				else{
 					final int firstChildY = enterPoints[0].y;
 					final int lastChildY = enterPoints[enterPoints.length - 1].y;
+
 					// Vertical line spanning from first to last child
-					g2.drawLine(enterPoints[0].x, firstChildY,
-						enterPoints[0].x, lastChildY);
+					if(enterPoints.length > 1)
+						g2.drawLine(enterPoints[0].x, firstChildY,
+							enterPoints[0].x, lastChildY);
 
 					// Horizontal line connecting each child to the vertical bar
 					for(int i = 0, length = enterPoints.length; i < length; i ++){

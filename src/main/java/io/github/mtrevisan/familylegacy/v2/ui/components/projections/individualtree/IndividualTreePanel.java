@@ -1,3 +1,27 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
 package io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree;
 
 import io.github.mtrevisan.familylegacy.v2.io.FLEFParser;
@@ -22,6 +46,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JViewport;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
@@ -32,6 +57,7 @@ import java.awt.Graphics2D;
 import java.awt.GridBagLayout;
 import java.awt.RenderingHints;
 import java.awt.Window;
+import java.awt.geom.Path2D;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serial;
@@ -71,7 +97,7 @@ public class IndividualTreePanel extends JPanel implements TreeChangeListener{
 	private static final long serialVersionUID = 9011391311012465249L;
 
 
-	private static final Color BACKGROUND_COLOR_APPLICATION = new Color(242, 238, 228);
+	private static final Color BACKGROUND_COLOR = new Color(242, 238, 228);
 	private static final Color CONNECTION_LINE_COLOR = Color.BLACK;
 
 	private static final String ENUM_TYPE_BIOLOGICAL_CHILD = "biological_child";
@@ -103,6 +129,8 @@ public class IndividualTreePanel extends JPanel implements TreeChangeListener{
 	private final Map<TreeNode, PartnersPanel> nodeToPanelMap = new LinkedHashMap<>();
 	private SiblingsPanel childrenPanel;
 
+	private Path2D cachedTreePath;
+
 	private final JPanel treeCanvas = new TreeCanvas();
 	private final JPanel centeringWrapper = new JPanel(new GridBagLayout());
 	private final JScrollPane treeScroll;
@@ -120,33 +148,33 @@ public class IndividualTreePanel extends JPanel implements TreeChangeListener{
 		final String[] allowedTypes = computeAllowedRelationshipTypes(treeType);
 		final Predicate<String> typeFilter = type ->
 			ArrayUtils.contains(allowedTypes, type.toLowerCase(Locale.ROOT));
-		this.treeService = new TreeService(typeFilter, model);
+		treeService = new TreeService(typeFilter, model);
 		final TreeMutator treeMutator = new TreeMutator(typeFilter, model, treeService, this);
 		final IndividualDialogProvider dialogProvider = new IndividualDialogProvider(model);
 		final RelationshipOperationCoordinator operationCoordinator = new RelationshipOperationCoordinator(model,
 			treeMutator, allowedTypes);
 
-		this.selection = new TreeSelectionController(
+		selection = new TreeSelectionController(
 			this::notifySelection,
 			this::confirmSelection);
-		this.collapses = new PedigreeCollapseController(model);
+		collapses = new PedigreeCollapseController(model);
 
 		final MultiLifespanStripPanel strip = new MultiLifespanStripPanel(model);
 		final CollapsibleBar toggleBar = new CollapsibleBar("Lifespans");
-		this.lifespanStrip = new LifespanStripController(strip, toggleBar, this::revalidate);
+		lifespanStrip = new LifespanStripController(strip, toggleBar, this::revalidate);
 		toggleBar.withListener(lifespanStrip::toggle);
 
-		this.treeListener = new IndividualTreeListener(model, treeService, treeMutator,
+		treeListener = new IndividualTreeListener(model, treeService, treeMutator,
 			dialogProvider, operationCoordinator, this,
 			this::getRootIndividualId,
 			() -> nodeToPanelMap,
 			this::notifySelection);
 
-		setBackground(BACKGROUND_COLOR_APPLICATION);
+		setBackground(BACKGROUND_COLOR);
 		setOpaque(true);
 		setLayout(new BorderLayout());
 
-		centeringWrapper.setBackground(BACKGROUND_COLOR_APPLICATION);
+		centeringWrapper.setBackground(BACKGROUND_COLOR);
 		centeringWrapper.setOpaque(true);
 		centeringWrapper.add(treeCanvas);
 
@@ -154,9 +182,13 @@ public class IndividualTreePanel extends JPanel implements TreeChangeListener{
 			ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
 			ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		treeScroll.setBorder(null);
-		treeScroll.getViewport().setBackground(BACKGROUND_COLOR_APPLICATION);
-		treeScroll.getVerticalScrollBar().setUnitIncrement(16);
-		treeScroll.getHorizontalScrollBar().setUnitIncrement(16);
+		final JViewport viewport = treeScroll.getViewport();
+		viewport.setScrollMode(JViewport.SIMPLE_SCROLL_MODE);
+		viewport.setBackground(BACKGROUND_COLOR);
+		treeScroll.getVerticalScrollBar()
+			.setUnitIncrement(16);
+		treeScroll.getHorizontalScrollBar()
+			.setUnitIncrement(16);
 		add(treeScroll, BorderLayout.CENTER);
 
 		final JPanel bottom = new JPanel(new BorderLayout());
@@ -178,16 +210,19 @@ public class IndividualTreePanel extends JPanel implements TreeChangeListener{
 
 	public IndividualTreePanel withShowPartner(){
 		showPartner = true;
+
 		return this;
 	}
 
 	public IndividualTreePanel withSelectionCallback(final Consumer<String> callback){
-		this.selectionCallback = callback;
+		selectionCallback = callback;
+
 		return this;
 	}
 
 	public IndividualTreePanel withNavigationCallback(final Consumer<String> callback){
-		this.navigationCallback = callback;
+		navigationCallback = callback;
+
 		return this;
 	}
 
@@ -203,25 +238,28 @@ public class IndividualTreePanel extends JPanel implements TreeChangeListener{
 	}
 
 	public void loadTree(final String rootIndividualId, final int maxAncestors){
-		this.currentRootIndividualId = rootIndividualId;
-		this.currentMaxAncestors = maxAncestors;
+		currentRootIndividualId = rootIndividualId;
+		currentMaxAncestors = maxAncestors;
+
 		refreshTree();
-		if(!suppressNavigationNotification && navigationCallback != null
-			&& rootIndividualId != null)
+
+		if(!suppressNavigationNotification && navigationCallback != null && rootIndividualId != null)
 			navigationCallback.accept(rootIndividualId);
 	}
 
 	public String getRootIndividualId(){
 		if(currentRootIndividualId != null)
 			return currentRootIndividualId;
+
 		if(rootNode == null)
 			return null;
+
 		final String ownId = rootNode.getIndividualId();
 		if(ownId != null)
 			return ownId;
+
 		final TreeNode father = rootNode.getFather();
-		return (father != null && father.getIndividual() != null
-			? father.getIndividual().getId(): null);
+		return (father != null && father.getIndividual() != null? father.getIndividual().getId(): null);
 	}
 
 	public String getSelectedIndividualId(){
@@ -233,6 +271,7 @@ public class IndividualTreePanel extends JPanel implements TreeChangeListener{
 		final String id = selection.selectedId();
 		if(id == null)
 			return;
+
 		final FLEFRecord record = model.getRecordById(id);
 		if(record != null)
 			treeListener.onEntityEdit(record);
@@ -271,67 +310,73 @@ public class IndividualTreePanel extends JPanel implements TreeChangeListener{
 	private void refreshTree(){
 		if(!SwingUtilities.isEventDispatchThread()){
 			SwingUtilities.invokeLater(this::refreshTree);
+
 			return;
 		}
 
-		final TreeNode rootIndividualNode = treeService.buildTree(
-			currentRootIndividualId, showPartner, currentMaxAncestors);
+		final TreeNode rootIndividualNode = treeService.buildTree(currentRootIndividualId, showPartner,
+			currentMaxAncestors);
 
-		nodeToPanelMap.clear();
-		treeCanvas.removeAll();
-		selection.clear();
+		centeringWrapper.setVisible(false);
 
-		rootNode = rootIndividualNode;
-		if(rootIndividualNode != null && showPartner){
-			final IndividualData partnerData = rootIndividualNode.getPartnerData();
-			final String partnerId = (partnerData != null? partnerData.getId(): null);
-			final TreeNode partnerNode = treeService.buildTree(partnerId, showPartner,
-				currentMaxAncestors);
-			final SexType sex = rootIndividualNode.getIndividualData().getSex();
+		try{
+			nodeToPanelMap.clear();
+			treeCanvas.removeAll();
+			selection.clear();
 
-			rootNode = new TreeNode(rootIndividualNode.getBiologicalChildrenData());
-			if(sex == SexType.FEMALE){
-				rootNode.setFather(partnerNode);
-				rootNode.setMother(rootIndividualNode);
+			rootNode = rootIndividualNode;
+			if(rootIndividualNode != null && showPartner){
+				final IndividualData partnerData = rootIndividualNode.getPartnerData();
+				final String partnerId = (partnerData != null? partnerData.getId(): null);
+				final TreeNode partnerNode = treeService.buildTree(partnerId, showPartner, currentMaxAncestors);
+				final SexType sex = rootIndividualNode.getIndividualData().getSex();
+
+				rootNode = new TreeNode(rootIndividualNode.getBiologicalChildrenData());
+				if(sex == SexType.FEMALE){
+					rootNode.setFather(partnerNode);
+					rootNode.setMother(rootIndividualNode);
+				}
+				else{
+					rootNode.setFather(rootIndividualNode);
+					rootNode.setMother(partnerNode);
+				}
 			}
-			else{
-				rootNode.setFather(rootIndividualNode);
-				rootNode.setMother(partnerNode);
-			}
+
+			collapses.detect(rootNode);
+			buildLayout();
+			collapses.apply(nodeToPanelMap);
+
+			selection.updateTree(nodeToPanelMap, childrenPanel);
+			if(selection.selectedId() == null && currentRootIndividualId != null)
+				selection.setSelectedId(currentRootIndividualId);
+			selection.apply();
+
+			lifespanStrip.update(treeCanvas);
+
+			// Pan support: idempotent on the persistent parts of the
+			// hierarchy, fresh on the panels that were just recreated.
+			ViewportPanSupport.install(treeScroll, centeringWrapper,
+				c -> (c instanceof JScrollPane && c != treeScroll));
 		}
-
-		collapses.detect(rootNode);
-		buildLayout();
-		collapses.apply(nodeToPanelMap);
-
-		selection.updateTree(nodeToPanelMap, childrenPanel);
-		if(selection.selectedId() == null && currentRootIndividualId != null)
-			selection.setSelectedId(currentRootIndividualId);
-		selection.apply();
-
-		lifespanStrip.update(treeCanvas);
-
-		// Pan support: idempotent on the persistent parts of the
-		// hierarchy, fresh on the panels that were just recreated.
-		ViewportPanSupport.install(treeScroll, centeringWrapper,
-			c -> c instanceof JScrollPane && c != treeScroll);
+		finally{
+			centeringWrapper.setVisible(true);
+		}
 
 		treeCanvas.revalidate();
 		treeCanvas.repaint();
 		revalidate();
 		repaint();
-		if(getParent() != null){
-			getParent().revalidate();
-			getParent().repaint();
-		}
+
+		SwingUtilities.invokeLater(() -> {
+			cachedTreePath = TreeRenderer.buildTreePath(treeLayout, rootNode, nodeToPanelMap, childrenPanel, treeCanvas);
+			treeCanvas.repaint();
+		});
 	}
 
 	private void buildLayout(){
-		final EntityPopupMenuFactory<IndividualPanel, IndividualListener> popupFactory =
-			new EntityTreePopupMenuFactory();
-		final TreeLayoutBuilder.LayoutResult result = TreeLayoutBuilder.buildLayout(
-			treeCanvas, rootNode, showPartner, currentMaxAncestors, model,
-			nodeToPanelMap, treeListener, popupFactory, treeLayout);
+		final EntityPopupMenuFactory<IndividualPanel, IndividualListener> popupFactory = new EntityTreePopupMenuFactory();
+		final TreeLayoutBuilder.LayoutResult result = TreeLayoutBuilder.buildLayout(treeCanvas, rootNode, showPartner,
+			currentMaxAncestors, model, nodeToPanelMap, treeListener, popupFactory, treeLayout);
 		childrenPanel = result.childrenPanel();
 	}
 
@@ -346,8 +391,7 @@ public class IndividualTreePanel extends JPanel implements TreeChangeListener{
 	 * ====================================================================== */
 
 	private void toggleLayout(){
-		this.treeLayout = (this.treeLayout == TreeLayout.VERTICAL
-			? TreeLayout.HORIZONTAL: TreeLayout.VERTICAL);
+		treeLayout = (treeLayout == TreeLayout.VERTICAL? TreeLayout.HORIZONTAL: TreeLayout.VERTICAL);
 		refreshTree();
 
 		final Window window = SwingUtilities.getWindowAncestor(this);
@@ -359,8 +403,7 @@ public class IndividualTreePanel extends JPanel implements TreeChangeListener{
 
 	private void openKinshipDialog(){
 		final Window parent = SwingUtilities.getWindowAncestor(this);
-		final FLEFRecord initialA = (currentRootIndividualId != null
-			? model.getRecordById(currentRootIndividualId): null);
+		final FLEFRecord initialA = (currentRootIndividualId != null? model.getRecordById(currentRootIndividualId): null);
 		final KinshipDialog dialog = new KinshipDialog(parent, model, treeService, initialA, null);
 		dialog.setVisible(true);
 	}
@@ -377,27 +420,24 @@ public class IndividualTreePanel extends JPanel implements TreeChangeListener{
 
 
 		TreeCanvas(){
-			setBackground(BACKGROUND_COLOR_APPLICATION);
+			setBackground(BACKGROUND_COLOR);
 			setOpaque(true);
 		}
 
 		@Override
 		protected void paintComponent(final Graphics g){
 			super.paintComponent(g);
+
 			if(!(g instanceof Graphics2D g2))
 				return;
 
-			g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-				RenderingHints.VALUE_ANTIALIAS_ON);
-			g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
-				RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-			g2.setRenderingHint(RenderingHints.KEY_RENDERING,
-				RenderingHints.VALUE_RENDER_QUALITY);
+			g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+			g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_SPEED);
 			g2.setColor(CONNECTION_LINE_COLOR);
 			g2.setStroke(PartnersPanel.CONNECTION_STROKE);
 
-			TreeRenderer.drawTree(g2, treeLayout, rootNode, nodeToPanelMap,
-				childrenPanel, this);
+			if(cachedTreePath != null)
+				TreeRenderer.drawTree(g2, cachedTreePath);
 		}
 
 	}
@@ -415,8 +455,7 @@ public class IndividualTreePanel extends JPanel implements TreeChangeListener{
 
 		final String content;
 		try(final InputStream is = IndividualTreePanel.class.getResourceAsStream(modelUri)){
-			content = new String(Objects.requireNonNull(is).readAllBytes(),
-				StandardCharsets.UTF_8);
+			content = new String(Objects.requireNonNull(is).readAllBytes(), StandardCharsets.UTF_8);
 		}
 
 		final FLEFParser parser = new FLEFParser();

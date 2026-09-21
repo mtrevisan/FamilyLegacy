@@ -74,7 +74,6 @@ public final class SugiyamaHierarchy{
 	private static final String PARTNER_PREFIX = "P";
 	/** Prefix used for the path signature of a child. */
 	private static final String CHILD_PREFIX = "C";
-	private static final String ARROW_RIGHT = "->";
 	private static final String DUMMY_ID_PREFIX = "__d";
 	private static final String ABOUT = "~";
 
@@ -87,10 +86,7 @@ public final class SugiyamaHierarchy{
 	/** Safety bound on the fixed-point iteration. */
 	private static final int MAX_EXPANSION_PASSES = 6;
 
-
-	public record Edge(String fromId, String toId){
-	}
-
+	public record Edge(String fromId, String toId){}
 
 	public record Hierarchy(
 		String rootId,
@@ -103,37 +99,33 @@ public final class SugiyamaHierarchy{
 		Map<String, String> pathById){
 
 		Map<String, String> buildParentMap(){
-			// Build the parent map: two individuals are parents if they
-			// share at least one child. The map is bidirectional.
-			final Map<String, String> parentOf = new HashMap<>();
-			final Map<String, Set<String>> partnersOf = new HashMap<>();
+			final Map<String, String> parentOf = new HashMap<>(parentsOf.size());
+			final Map<String, Set<String>> partnersOf = new HashMap<>(parentsOf.size());
+
 			for(final List<String> parents : parentsOf.values()){
 				final int size = parents.size();
 				if(size < 2)
 					continue;
 
-				for(int i = 0; i < size; i++)
-					for(int j = i + 1; j < size; j++){
-						final String a = parents.get(i);
+				for(int i = 0; i < size; i ++){
+					final String a = parents.get(i);
+					for(int j = i + 1; j < size; j ++){
 						final String b = parents.get(j);
-						if(a.equals(b))
-							continue;
-
-						partnersOf.computeIfAbsent(a, k -> new LinkedHashSet<>()).add(b);
-						partnersOf.computeIfAbsent(b, k -> new LinkedHashSet<>()).add(a);
+						if(!a.equals(b)){
+							partnersOf.computeIfAbsent(a, k -> new LinkedHashSet<>()).add(b);
+							partnersOf.computeIfAbsent(b, k -> new LinkedHashSet<>()).add(a);
+						}
 					}
+				}
 			}
-			for(final Map.Entry<String, Set<String>> e : partnersOf.entrySet()){
-				final String first = e.getValue().iterator().next();
-				parentOf.putIfAbsent(e.getKey(), first);
-			}
+			for(final Map.Entry<String, Set<String>> e : partnersOf.entrySet())
+				parentOf.putIfAbsent(e.getKey(), e.getValue().iterator().next());
 			return parentOf;
 		}
 	}
 
 
-	private SugiyamaHierarchy(){
-	}
+	private SugiyamaHierarchy(){}
 
 
 	/**
@@ -188,7 +180,8 @@ public final class SugiyamaHierarchy{
 		// ascending alone.
 		final List<Edge> extraEdges = new ArrayList<>();
 		if(showPartner){
-			for(int pass = 0; pass < MAX_EXPANSION_PASSES; pass++){
+			for(int pass = 0; pass < MAX_EXPANSION_PASSES; pass ++){
+				final int beforeSize = collected.size();
 				final Set<String> before = new LinkedHashSet<>(collected);
 
 				// Descend from every known node, up to maxDescendants.
@@ -202,7 +195,7 @@ public final class SugiyamaHierarchy{
 					bfsUpwards(model, newId, treeService, maxAncestors, eventMap,
 						collected, depthById, pathById, dataById);
 
-				if(collected.size() == before.size())
+				if(collected.size() == beforeSize)
 					break;
 			}
 		}
@@ -213,7 +206,7 @@ public final class SugiyamaHierarchy{
 		int maxDepth = 0;
 		for(final int d : depthById.values())
 			maxDepth = Math.max(maxDepth, d);
-		final Map<String, Integer> layerOf = new HashMap<>();
+		final Map<String, Integer> layerOf = new HashMap<>(depthById.size());
 		for(final Map.Entry<String, Integer> e : depthById.entrySet())
 			layerOf.put(e.getKey(), maxDepth - e.getValue());
 
@@ -222,21 +215,23 @@ public final class SugiyamaHierarchy{
 		// couple has unknown or same sex. The extra edges recovered from
 		// the partner resolution are merged on top.
 		final List<Edge> edges = new ArrayList<>();
-		final Set<String> edgeKeys = new HashSet<>();
-		final Map<String, List<String>> parentsOf = new HashMap<>();
-		final Map<String, List<String>> childrenOf = new HashMap<>();
+		final Set<Long> edgeKeys = new HashSet<>(); // Fast long hash key for edges instead of String concatenation
+		final Map<String, List<String>> parentsOf = new HashMap<>(collected.size());
+		final Map<String, List<String>> childrenOf = new HashMap<>(collected.size());
+
 		for(final String id : collected){
 			parentsOf.put(id, new ArrayList<>());
 			childrenOf.put(id, new ArrayList<>());
 		}
+
 		for(final String id : collected){
 			for(final FLEFRecord parent : treeService.getParents(id)){
 				final String pid = parent.getId();
 				if(pid == null || !collected.contains(pid))
 					continue;
 
-				final String ek = pid + ARROW_RIGHT + id;
-				if(!edgeKeys.add(ek))
+				final long key = (((long)pid.hashCode()) << 32) | (id.hashCode() & 0xFFFFFFFFL);
+				if(!edgeKeys.add(key))
 					continue;
 
 				edges.add(new Edge(pid, id));
@@ -244,12 +239,13 @@ public final class SugiyamaHierarchy{
 				childrenOf.get(pid).add(id);
 			}
 		}
+
 		for(final Edge e : extraEdges){
 			if(!collected.contains(e.fromId()) || !collected.contains(e.toId()))
 				continue;
 
-			final String ek = e.fromId() + ARROW_RIGHT + e.toId();
-			if(!edgeKeys.add(ek))
+			final long key = (((long)e.fromId().hashCode()) << 32) | (e.toId().hashCode() & 0xFFFFFFFFL);
+			if(!edgeKeys.add(key))
 				continue;
 
 			edges.add(e);
@@ -257,18 +253,19 @@ public final class SugiyamaHierarchy{
 			childrenOf.get(e.fromId()).add(e.toId());
 		}
 
-		// Normalization: dummy nodes for edges that span more than one
-		// layer.
+		// Normalization: dummy nodes for edges that span more than one layer
 		final Set<String> dummyIds = new HashSet<>();
 		final List<Edge> augEdges = new ArrayList<>();
-		final Map<String, List<String>> augParents = new HashMap<>();
-		final Map<String, List<String>> augChildren = new HashMap<>();
-		final Map<String, Integer> augLayer = new HashMap<>();
+		final Map<String, List<String>> augParents = new HashMap<>(collected.size());
+		final Map<String, List<String>> augChildren = new HashMap<>(collected.size());
+		final Map<String, Integer> augLayer = new HashMap<>(collected.size());
+
 		for(final String id : collected){
 			augParents.put(id, new ArrayList<>());
 			augChildren.put(id, new ArrayList<>());
 			augLayer.put(id, layerOf.getOrDefault(id, 0));
 		}
+
 		int dummyCounter = 0;
 		for(final Edge e : edges){
 			final int lp = layerOf.getOrDefault(e.fromId(), 0);
@@ -297,11 +294,14 @@ public final class SugiyamaHierarchy{
 		int maxLayer = 0;
 		for(final int l : augLayer.values())
 			maxLayer = Math.max(maxLayer, l);
+
 		final List<List<String>> layers = new ArrayList<>(maxLayer + 1);
-		for(int i = 0; i <= maxLayer; i++)
+		for(int i = 0; i <= maxLayer; i ++)
 			layers.add(new ArrayList<>());
+
 		for(final Map.Entry<String, Integer> e : augLayer.entrySet())
 			layers.get(e.getValue()).add(e.getKey());
+
 		for(final List<String> layer : layers)
 			layer.sort(Comparator
 				.comparing((String id) -> pathById.getOrDefault(id, ABOUT))
@@ -394,13 +394,10 @@ public final class SugiyamaHierarchy{
 			// (depth > 0) are leaves at the top of the graph: descending from
 			// them would pull in their other children (siblings of the root's
 			// ancestors), which are unrelated to the current focus.
-			if(parentDepth > 0)
-				continue;
-			if(-parentDepth >= maxDescendants)
+			if(parentDepth > 0 || -parentDepth >= maxDescendants)
 				continue;
 
-			final Map<IndividualData, SiblingsData> childrenByPartner =
-				treeService.buildChildrenData(parentId);
+			final Map<IndividualData, SiblingsData> childrenByPartner = treeService.buildChildrenData(parentId);
 			if(childrenByPartner.isEmpty())
 				continue;
 

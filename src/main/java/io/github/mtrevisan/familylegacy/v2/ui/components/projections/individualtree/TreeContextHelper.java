@@ -163,17 +163,18 @@ public final class TreeContextHelper{
 		for(final Map.Entry<TreeNode, PartnersPanel> entry : nodeToPanelMap.entrySet()){
 			if(entry.getValue() != partnerPanel)
 				continue;
+
 			final TreeNode node = entry.getKey();
 			if(node.getBiologicalChildrenData() == null)
 				continue;
-			if(node.getIndividual() == null){
+
+			if(node.getIndividual() == null)
 				// Couple-container node: expand the siblings list
 				node.getBiologicalChildrenData()
 					.getSiblings()
 					.stream()
 					.map(IndividualData::getId)
 					.forEach(childrenId::add);
-			}
 			else{
 				// Individual node with its own children data
 				final String id = node.getIndividualId();

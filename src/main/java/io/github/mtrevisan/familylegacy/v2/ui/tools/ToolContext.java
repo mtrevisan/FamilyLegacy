@@ -25,6 +25,19 @@
 package io.github.mtrevisan.familylegacy.v2.ui.tools;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.DocumentHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.IdentityHypothesisHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.RepositoryHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchActivityHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchTaskHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JFrame;
 import java.awt.Component;
@@ -226,6 +239,178 @@ public record ToolContext(
 	 */
 	public Component currentView(){
 		return currentViewSupplier.get();
+	}
+
+
+	/* ======================================================================
+	 *                          Helper methods for isEnabled
+	 * ====================================================================== */
+
+	/**
+	 * Returns whether a model is currently loaded and available.
+	 */
+	public boolean hasModel(){
+		return (model != null);
+	}
+
+	/**
+	 * Returns whether an entity is currently selected in the active projection.
+	 */
+	public boolean hasSelection(){
+		final String id = getCurrentSelectionId();
+		return StringUtils.isNotEmpty(id);
+	}
+
+	/**
+	 * Returns whether the selected entity exists in the model and is an Individual.
+	 */
+	public boolean hasSelectedIndividual(){
+		final String id = selectedIndividualId();
+		return (id != null && model.hasRecord(id) && id.startsWith(IndividualHandler.ID_PREFIX));
+	}
+
+	/**
+	 * Returns whether the selected entity exists in the model and is a Group.
+	 */
+	public boolean hasSelectedGroup(){
+		final String id = getCurrentSelectionId();
+		return (id != null && model.hasRecord(id) && id.startsWith(GroupHandler.ID_PREFIX));
+	}
+
+	/**
+	 * Returns whether the current model contains at least one place.
+	 */
+	public boolean hasAnyPlaces(){
+		return !model.getRecordsByType(PlaceHandler.TYPE)
+			.isEmpty();
+	}
+
+	/**
+	 * Returns whether the current model contains at least one place.
+	 */
+	public boolean hasAtLeastPlaces(final int count){
+		return (model.getRecordsByType(PlaceHandler.TYPE)
+			.size() >= count);
+	}
+
+	/**
+	 * Returns whether the selected entity exists in the model and is a Source.
+	 */
+	public boolean hasSelectedSource(){
+		final String id = getCurrentSelectionId();
+		return (id != null && model.hasRecord(id) && id.startsWith(SourceHandler.ID_PREFIX));
+	}
+
+	/**
+	 * Returns whether the selected entity exists in the model and is an Event.
+	 */
+	public boolean hasSelectedEvent(){
+		final String id = getCurrentSelectionId();
+		return (id != null && model.hasRecord(id) && id.startsWith(EventHandler.ID_PREFIX));
+	}
+
+	/**
+	 * Returns whether the current model contains at least one individual.
+	 */
+	public boolean hasAnyIndividuals(){
+		return !model.getRecordsByType(IndividualHandler.TYPE)
+			.isEmpty();
+	}
+
+	/**
+	 * Returns whether the current model contains at least `count` individuals.
+	 */
+	public boolean hasAtLeastIndividuals(final int count){
+		return (model.getRecordsByType(IndividualHandler.TYPE)
+			.size() >= count);
+	}
+
+	/**
+	 * Returns whether the current model contains at least one group.
+	 */
+	public boolean hasAnyGroups(){
+		return !model.getRecordsByType(GroupHandler.TYPE)
+			.isEmpty();
+	}
+
+	/**
+	 * Returns whether the current model contains at least one group.
+	 */
+	public boolean hasAtLeastGroups(final int count){
+		return (model.getRecordsByType(GroupHandler.TYPE)
+			.size() >= count);
+	}
+
+	/**
+	 * Returns whether the current model contains at least one source.
+	 */
+	public boolean hasAnySources(){
+		return !model.getRecordsByType(SourceHandler.TYPE)
+			.isEmpty();
+	}
+
+	/**
+	 * Returns whether the current model contains at least one document.
+	 */
+	public boolean hasAnyDocuments(){
+		return !model.getRecordsByType(DocumentHandler.TYPE)
+			.isEmpty();
+	}
+
+	/**
+	 * Returns whether the current model contains at least one repository.
+	 */
+	public boolean hasAnyRepositories(){
+		return !model.getRecordsByType(RepositoryHandler.TYPE)
+			.isEmpty();
+	}
+
+	/**
+	 * Returns whether the current model contains at least one event.
+	 */
+	public boolean hasAnyEvents(){
+		return !model.getRecordsByType(EventHandler.TYPE)
+			.isEmpty();
+	}
+
+	/**
+	 * Returns whether the current model contains at least one conclusion.
+	 */
+	public boolean hasAnyConclusions(){
+		return !model.getRecordsByType(ConclusionHandler.TYPE)
+			.isEmpty();
+	}
+
+	/**
+	 * Returns whether the current model contains at least one identity hypothesis.
+	 */
+	public boolean hasAnyIdentityHypotheses(){
+		return !model.getRecordsByType(IdentityHypothesisHandler.TYPE)
+			.isEmpty();
+	}
+
+	/**
+	 * Returns whether the current model contains at least one research activity.
+	 */
+	public boolean hasAnyResearchActivities(){
+		return !model.getRecordsByType(ResearchActivityHandler.TYPE)
+			.isEmpty();
+	}
+
+	/**
+	 * Returns whether the current model contains at least one research question.
+	 */
+	public boolean hasAnyResearchQuestions(){
+		return !model.getRecordsByType(ResearchQuestionHandler.TYPE)
+			.isEmpty();
+	}
+
+	/**
+	 * Returns whether the current model contains at least one research task.
+	 */
+	public boolean hasAnyResearchTasks(){
+		return !model.getRecordsByType(ResearchTaskHandler.TYPE)
+			.isEmpty();
 	}
 
 }

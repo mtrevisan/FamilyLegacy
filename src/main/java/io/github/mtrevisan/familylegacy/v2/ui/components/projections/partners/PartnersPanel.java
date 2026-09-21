@@ -149,7 +149,7 @@ public class PartnersPanel extends JPanel{
 	private JLabel fatherNextParentsLabel;
 	private JLabel fatherPreviousGroupLabel;
 	private JLabel fatherNextGroupLabel;
-	private JPanel panel;
+	private JPanel arrowFatherPanel;
 	private JLabel motherPreviousParentsLabel;
 	private JLabel motherNextParentsLabel;
 	private JLabel motherPreviousGroupLabel;
@@ -218,7 +218,7 @@ public class PartnersPanel extends JPanel{
 			final Dimension size = IndividualPanel.getDimension(boxType);
 			label.setPreferredSize(size);
 			label.setMaximumSize(size);
-			add(label, isVertical? "right": StringUtils.EMPTY);
+			add(label, (isVertical? "right": StringUtils.EMPTY));
 
 			return;
 		}
@@ -251,12 +251,12 @@ public class PartnersPanel extends JPanel{
 		arrow1Panel.add(fatherNextGroupLabel, "right");
 		arrow1Panel.setOpaque(false);
 
-		panel = new JPanel(new MigLayout("ins 0",
+		arrowFatherPanel = new JPanel(new MigLayout("ins 0",
 			"[grow,fill]",
 			"[" + PREVIOUS_NEXT_SIZE.getHeight() + "]" + NAVIGATION_DESCENDANTS_ARROW_SEPARATION + "[]"));
-		panel.add(arrow1Panel, "wrap");
-		panel.add(fatherPanel, "right");
-		panel.setOpaque(false);
+		arrowFatherPanel.add(arrow1Panel, "wrap");
+		arrowFatherPanel.add(fatherPanel, "right");
+		arrowFatherPanel.setOpaque(false);
 
 		motherPreviousGroupLabel = new JLabel();
 		motherNextGroupLabel = new JLabel();
@@ -279,18 +279,19 @@ public class PartnersPanel extends JPanel{
 		arrowMotherPanel.setOpaque(false);
 
 		if(treeLayout == TreeLayout.VERTICAL){
-			setLayout(new MigLayout("ins 0",
+			// "hidemode 3" ensures hidden partners or group panel take 0 space
+			setLayout(new MigLayout("hidemode 3,ins 0",
 				"[right,grow]" + HALF_PARTNER_SEPARATION + "[center,grow]" + HALF_PARTNER_SEPARATION + "[left,grow]",
 				"[bottom]"));
-			add(panel, "right,grow");
+			add(arrowFatherPanel, "right,grow");
 			add(groupPanel, "gapbottom " + GROUP_EXITING_HEIGHT);
 			add(arrowMotherPanel, "left,grow");
 		}
 		else{
-			setLayout(new MigLayout("ins 0",
+			setLayout(new MigLayout("hidemode 3,ins 0",
 				"[left]",
 				"[bottom,grow]" + HALF_PARTNER_SEPARATION + "[center]" + HALF_PARTNER_SEPARATION + "[top,grow]"));
-			add(panel, "wrap");
+			add(arrowFatherPanel, "wrap");
 			add(groupPanel, "gapleft " + GROUP_EXITING_HEIGHT + ",gaptop " + NAVIGATION_ARROW_HEIGHT + ",wrap");
 			add(arrowMotherPanel, "grow");
 		}
@@ -302,7 +303,7 @@ public class PartnersPanel extends JPanel{
 		if(groupPanel == null || !groupPanel.isVisible())
 			return;
 
-		if(g instanceof Graphics2D && panel != null && arrowMotherPanel != null){
+		if(g instanceof Graphics2D && arrowFatherPanel != null && arrowMotherPanel != null){
 			final Graphics2D g2 = (Graphics2D)g.create();
 			g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 			g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
@@ -311,17 +312,17 @@ public class PartnersPanel extends JPanel{
 			g2.setStroke(CONNECTION_STROKE);
 
 			if(treeLayout == TreeLayout.VERTICAL){
-				final int xFrom = panel.getX() + panel.getWidth();
+				final int xFrom = arrowFatherPanel.getX() + arrowFatherPanel.getWidth();
 				final int xTo = arrowMotherPanel.getX();
-				final int y = panel.getY() + panel.getHeight() - GROUP_CONNECTION_HEIGHT;
+				final int y = arrowFatherPanel.getY() + arrowFatherPanel.getHeight() - GROUP_CONNECTION_HEIGHT;
 
 				// Horizontal connection line between partners
 				g2.drawLine(xFrom, y,
 					xTo, y);
 			}
 			else{
-				final int x = panel.getX() + GROUP_CONNECTION_HEIGHT;
-				final int yFrom = panel.getY() + panel.getHeight();
+				final int x = arrowFatherPanel.getX() + GROUP_CONNECTION_HEIGHT;
+				final int yFrom = arrowFatherPanel.getY() + arrowFatherPanel.getHeight();
 				final int yTo = arrowMotherPanel.getY() + NAVIGATION_ARROW_HEIGHT;
 
 				// Vertical connection line between partners
@@ -422,7 +423,22 @@ public class PartnersPanel extends JPanel{
 					fatherPanel.setVisible(false);
 				if(!hasMother)
 					motherPanel.setVisible(false);
+
+				// Hide empty partner panels so hidemode 3 collapses their layout space
+				arrowFatherPanel.setVisible(hasFather);
+				arrowMotherPanel.setVisible(hasMother);
+
+				// Hide group connector if there isn't a couple
 				groupPanel.setVisible(hasFather && hasMother);
+
+				if(hasFather && hasMother)
+					setLayout(new MigLayout("ins 0,hidemode 3",
+						"[right]" + HALF_PARTNER_SEPARATION + "[center]" + HALF_PARTNER_SEPARATION + "[left]",
+						"[bottom]"));
+				else
+					setLayout(new MigLayout("ins 0,hidemode 3",
+						"[center,shrink 0]",
+						"[bottom]"));
 			}
 		}
 	}

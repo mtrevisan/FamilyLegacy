@@ -85,52 +85,54 @@ public class GEDCOMHelper{
 	static BufferedReader getBufferedReader(InputStream in) throws IOException{
 		if(!in.markSupported())
 			in = new BufferedInputStream(in);
-		in.mark(Integer.MAX_VALUE);
 
-		String charEncoding = readCorrectedCharsetName(in);
-		in.reset();
+		// 1. Primary check: Detect charset directly from byte sequence
+		String charEncoding = GEDCOMCharsetDetector.detectCharsetFromBytes(in);
 
-		if(charEncoding.isEmpty()){
-			//let's try again with a UTF-16 reader
-			final BufferedReader br = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_16));
-			charEncoding = readCorrectedCharsetName(br);
+		// 2. Fallback check: Read '1 CHAR' header if byte detection is inconclusive
+		if(charEncoding == null){
+			in.mark(Integer.MAX_VALUE);
+			charEncoding = readCorrectedCharsetName(in);
 			in.reset();
 
-			if("UTF-16".equals(charEncoding)){
-				//skip over junk at the beginning of the file
-				InputStreamReader reader = new InputStreamReader(in, StandardCharsets.UTF_16);
-				int cnt = 0;
-				int c;
-				while((c = reader.read()) != '0' && c != -1)
-					cnt ++;
-
+			// Retry reading header using UTF-16 reader if initial read failed
+			if(StringUtils.isEmpty(charEncoding)){
+				in.mark(Integer.MAX_VALUE);
+				try(BufferedReader br = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_16))){
+					charEncoding = readCorrectedCharsetName(br);
+				}
 				in.reset();
-				reader = new InputStreamReader(in, StandardCharsets.UTF_16);
-				for(int i = 0; i < cnt; i ++)
-					reader.read();
-				return new BufferedReader(reader);
 			}
 		}
 
-		if(charEncoding.isEmpty())
-			//default
+		// 3. Default fallback if no charset was detected
+		if(StringUtils.isEmpty(charEncoding))
 			charEncoding = AnselInputStreamReader.CHARACTER_ENCODING;
 
-		//skip over junk at the beginning of the file
-		in.reset();
-		int cnt = 0;
+		// 4. Skip initial garbage/junk characters before '0' (0 HEAD)
+		return buildBufferedReaderSkippingJunk(in, charEncoding);
+	}
+
+	private static BufferedReader buildBufferedReaderSkippingJunk(InputStream in, String charEncoding) throws IOException{
+		final InputStreamReader reader = AnselInputStreamReader.CHARACTER_ENCODING.equalsIgnoreCase(charEncoding)
+			? new AnselInputStreamReader(in)
+			: new InputStreamReader(in, charEncoding);
+
+		final BufferedReader bufferedReader = new BufferedReader(reader);
+
+		// Skip junk until the first GEDCOM record marker '0'
+		bufferedReader.mark(8192);
 		int c;
-		while((c = in.read()) != '0' && c != -1)
-			cnt ++;
+		while((c = bufferedReader.read()) != -1){
+			if(c == '0'){
+				bufferedReader.reset();
 
-		in.reset();
-		for(int i = 0; i < cnt; i ++)
-			in.read();
+				break;
+			}
+			bufferedReader.mark(8192);
+		}
 
-		final InputStreamReader reader = (AnselInputStreamReader.CHARACTER_ENCODING.equals(charEncoding)?
-			new AnselInputStreamReader(in): new InputStreamReader(in, charEncoding));
-
-		return new BufferedReader(reader);
+		return bufferedReader;
 	}
 
 	private static String readCorrectedCharsetName(final InputStream is) throws IOException{

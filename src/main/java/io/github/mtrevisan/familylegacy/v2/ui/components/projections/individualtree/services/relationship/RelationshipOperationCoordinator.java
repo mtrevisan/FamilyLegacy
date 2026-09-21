@@ -126,7 +126,7 @@ public final class RelationshipOperationCoordinator{
 	 *                   one child id)
 	 */
 	public void performParentOperation(final Window parent, final FLEFRecord individual,
-		final TreeContextHelper.Context ctx){
+			final TreeContextHelper.Context ctx){
 		if(individual == null || ctx == null || ctx.childrenId == null || ctx.childrenId.isEmpty())
 			return;
 

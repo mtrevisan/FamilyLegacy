@@ -43,4 +43,12 @@ public interface ToolOperation{
 	/** Runs the operation. */
 	void run(ToolContext context);
 
+	/**
+	 * Determines if the tool should be enabled based on the current context.
+	 * Defaults to true if not overridden.
+	 */
+	default boolean isEnabled(final ToolContext context){
+		return true;
+	}
+
 }

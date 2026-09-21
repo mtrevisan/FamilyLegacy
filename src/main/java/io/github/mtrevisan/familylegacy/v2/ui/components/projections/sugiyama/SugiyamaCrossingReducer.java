@@ -117,27 +117,29 @@ public final class SugiyamaCrossingReducer{
 		for(final Block b : blocks){
 			double sum = 0;
 			int n = 0;
-			for(final String id : b.members){
-				double s = 0;
-				int k = 0;
-				for(final String nb : neighborMap.getOrDefault(id, List.of())){
-					final Integer i = refIdx.get(nb);
-					if(i != null){
-						s += i;
-						k ++;
+			for(int m = 0; m < b.members.size(); m ++){
+				final String id = b.members.get(m);
+				final List<String> neighbors = neighborMap.get(id);
+				if(neighbors != null && !neighbors.isEmpty()){
+					double s = 0;
+					int k = 0;
+					for(int idx = 0; idx < neighbors.size(); idx ++){
+						final Integer i = refIdx.get(neighbors.get(idx));
+						if(i != null){
+							s += i;
+							k ++;
+						}
 					}
-				}
-				if(k > 0){
-					sum += s / k;
-					n ++;
+					if(k > 0){
+						sum += s / k;
+						n ++;
+					}
 				}
 			}
 			b.barycenter = (n > 0? sum / n: null);
 		}
 
-		// Candidate order: blocks sorted by barycenter, ties broken by
-		// current position to keep the result stable
-		final Map<String, Integer> blockPosition = new HashMap<>();
+		final Map<String, Integer> blockPosition = new HashMap<>(blocks.size());
 		for(int i = 0; i < blocks.size(); i ++)
 			blockPosition.put(blocks.get(i).members.getFirst(), i);
 
@@ -182,8 +184,8 @@ public final class SugiyamaCrossingReducer{
 	 * father (F) comes before the mother (M).
 	 */
 	private static List<Block> buildBlocks(final List<String> layer, final Map<String, String> partnerOf){
-		final Set<String> assigned = new HashSet<>();
-		final List<Block> blocks = new ArrayList<>();
+		final Set<String> assigned = new HashSet<>(layer.size());
+		final List<Block> blocks = new ArrayList<>(layer.size());
 		for(final String id : layer){
 			if(assigned.contains(id))
 				continue;
@@ -215,16 +217,26 @@ public final class SugiyamaCrossingReducer{
 	private static List<String> lookupReferenceLayer(final List<List<String>> layers, final int l,
 			final Map<String, List<String>> neighborMap){
 		if(l > 0){
-			for(final String id : layers.get(l))
-				for(final String nb : neighborMap.getOrDefault(id, List.of()))
-					if(layers.get(l - 1).contains(nb))
-						return layers.get(l - 1);
+			final List<String> currentLayer = layers.get(l);
+			final List<String> prevLayer = layers.get(l - 1);
+			for(final String id : currentLayer){
+				final List<String> nbs = neighborMap.get(id);
+				if(nbs != null)
+					for(final String nb : nbs)
+						if(prevLayer.contains(nb))
+							return prevLayer;
+			}
 		}
 		if(l + 1 < layers.size()){
-			for(final String id : layers.get(l))
-				for(final String nb : neighborMap.getOrDefault(id, List.of()))
-					if(layers.get(l + 1).contains(nb))
-						return layers.get(l + 1);
+			final List<String> currentLayer = layers.get(l);
+			final List<String> nextLayer = layers.get(l + 1);
+			for(final String id : currentLayer){
+				final List<String> nbs = neighborMap.get(id);
+				if(nbs != null)
+					for(final String nb : nbs)
+						if(nextLayer.contains(nb))
+							return nextLayer;
+			}
 		}
 		return List.of();
 	}
@@ -237,25 +249,42 @@ public final class SugiyamaCrossingReducer{
 	private static int countCrossings(final List<String> layer, final Map<String, List<String>> neighborMap,
 			final Map<String, Integer> refIdx){
 		int crossings = 0;
-		for(int i = 0; i < layer.size(); i ++){
+		final int layerSize = layer.size();
+		final int[][] neighborIndices = new int[layerSize][];
+
+		for(int i = 0; i < layerSize; i ++){
 			final String u = layer.get(i);
-			final List<Integer> uNeighbors = new ArrayList<>();
-			for(final String nb : neighborMap.getOrDefault(u, List.of())){
+
+			final List<String> nbs = neighborMap.get(u);
+			if(nbs == null || nbs.isEmpty()){
+				neighborIndices[i] = new int[0];
+
+				continue;
+			}
+
+			final List<Integer> temp = new ArrayList<>(nbs.size());
+			for(final String nb : nbs){
 				final Integer idx = refIdx.get(nb);
 				if(idx != null)
-					uNeighbors.add(idx);
+					temp.add(idx);
 			}
-			for(int j = i + 1; j < layer.size(); j ++){
-				final String v = layer.get(j);
-				for(final String nb : neighborMap.getOrDefault(v, List.of())){
-					final Integer idx = refIdx.get(nb);
-					if(idx == null)
-						continue;
+			final int[] arr = new int[temp.size()];
+			for(int k = 0; k < temp.size(); k ++)
+				arr[k] = temp.get(k);
+			neighborIndices[i] = arr;
+		}
 
+		for(int i = 0; i < layerSize; i ++){
+			final int[] uNeighbors = neighborIndices[i];
+			if(uNeighbors.length == 0)
+				continue;
+
+			for(int j = i + 1; j < layerSize; j ++){
+				final int[] vNeighbors = neighborIndices[j];
+				for(final int vIdx : vNeighbors)
 					for(final int uIdx : uNeighbors)
-						if(uIdx > idx)
+						if(uIdx > vIdx)
 							crossings ++;
-				}
 			}
 		}
 		return crossings;

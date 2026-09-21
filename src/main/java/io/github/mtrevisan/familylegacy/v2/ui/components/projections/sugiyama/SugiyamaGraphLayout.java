@@ -107,23 +107,27 @@ public final class SugiyamaGraphLayout{
 		final Map<Integer, Integer> trackCountByGap = computeHorizontalTrackCounts(h, xCoords);
 
 		// Layer Y: variable height, driven by the number of tracks and by the actual height of the boxes in each layer
-		final double[] layerTop = new double[h.layers().size()];
-		final int[] layerHeight = new int[h.layers().size()];
-		for(int l = 0; l < h.layers().size(); l ++)
-			layerHeight[l] = maxHeightInLayer(h.layers().get(l), h.dummyIds(), h.rootId());
+		final int layerCount = h.layers()
+			.size();
+		final double[] layerTop = new double[layerCount];
+		final int[] layerHeight = new int[layerCount];
+		for(int l = 0; l < layerCount; l ++)
+			layerHeight[l] = maxHeightInLayer(h.layers().get(l), h.dummyIds());
 		layerTop[0] = PADDING;
-		for(int l = 1; l < h.layers().size(); l ++){
+		for(int l = 1; l < layerCount; l ++){
 			final int t = trackCountByGap.getOrDefault(l - 1, 0);
 			final double gapHeight = (t + 1) * (double)TRACK_SPACING;
 			layerTop[l] = layerTop[l - 1] + layerHeight[l - 1] + gapHeight;
 		}
 
-		// X shift: bring the leftmost box's left edge to PADDING.
+		// X shift: bring the leftmost box's left edge to PADDING
 		double minCx = Double.POSITIVE_INFINITY;
 		double maxCx = Double.NEGATIVE_INFINITY;
-		for(final String id : xCoords.keySet()){
-			final double cx = xCoords.get(id);
-			final int w = widthOf(id, h.dummyIds(), h.rootId());
+		for(final Map.Entry<String, Double> entry : xCoords.entrySet()){
+			final String id = entry.getKey();
+			final double cx = entry.getValue();
+
+			final int w = widthOf(id, h.dummyIds());
 			minCx = Math.min(minCx, cx - w / 2.);
 			maxCx = Math.max(maxCx, cx + w / 2.);
 		}
@@ -133,14 +137,17 @@ public final class SugiyamaGraphLayout{
 		}
 		final double shift = PADDING - minCx;
 
-		// Final bounds. Nodes are bottom-aligned within their layer.
-		final Map<String, Rectangle> bounds = new LinkedHashMap<>();
-		for(int l = 0; l < h.layers().size(); l ++){
+		// Final bounds. Nodes are bottom-aligned within their layer
+		final Map<String, Rectangle> bounds = new LinkedHashMap<>(xCoords.size());
+		for(int l = 0; l < layerCount; l ++){
 			final int top = (int)Math.round(layerTop[l]);
 			final int rowH = layerHeight[l];
-			for(final String id : h.layers().get(l)){
-				final int w = widthOf(id, h.dummyIds(), h.rootId());
-				final int hh = heightOf(id, h.dummyIds(), h.rootId());
+			final List<String> layer = h.layers().get(l);
+			for(int i = 0; i < layer.size(); i ++){
+				final String id = layer.get(i);
+
+				final int w = widthOf(id, h.dummyIds());
+				final int hh = heightOf(id, h.dummyIds());
 				final int cx = (int)Math.round(xCoords.getOrDefault(id, 0.) + shift);
 				// Bottom-align: smaller boxes sit lower in the layer
 				final int y = top + (rowH - hh);
@@ -149,7 +156,7 @@ public final class SugiyamaGraphLayout{
 		}
 
 		final int contentW = (int)Math.ceil(maxCx - minCx) + 2 * PADDING;
-		final int contentH = (int)Math.ceil(layerTop[h.layers().size() - 1] + layerHeight[h.layers().size() - 1])
+		final int contentH = (int)Math.ceil(layerTop[layerCount - 1] + layerHeight[layerCount - 1])
 			+ PADDING;
 
 		return new Result(h.rootId(), bounds, h.dummyIds(), h.edges(), h.dataById(),
@@ -161,23 +168,22 @@ public final class SugiyamaGraphLayout{
 	 *                          Size helpers
 	 * ====================================================================== */
 
-	private static int widthOf(final String id, final Set<String> dummyIds, final String rootId){
-		if(dummyIds.contains(id))
-			return DUMMY_WIDTH;
-		return SECONDARY_WIDTH;
+	private static int widthOf(final String id, final Set<String> dummyIds){
+		return (dummyIds.contains(id)? DUMMY_WIDTH: SECONDARY_WIDTH);
 	}
 
-	private static int heightOf(final String id, final Set<String> dummyIds, final String rootId){
-		if(dummyIds.contains(id))
-			return DUMMY_HEIGHT;
-		return SECONDARY_HEIGHT;
+	private static int heightOf(final String id, final Set<String> dummyIds){
+		return (dummyIds.contains(id)? DUMMY_HEIGHT: SECONDARY_HEIGHT);
 	}
 
 	/** Returns the height of the tallest box in the layer. */
-	private static int maxHeightInLayer(final List<String> layer, final Set<String> dummyIds, final String rootId){
+	private static int maxHeightInLayer(final List<String> layer, final Set<String> dummyIds){
 		int max = 0;
-		for(final String id : layer)
-			max = Math.max(max, heightOf(id, dummyIds, rootId));
+		for(int i = 0; i < layer.size(); i ++){
+			final String id = layer.get(i);
+
+			max = Math.max(max, heightOf(id, dummyIds));
+		}
 		return max;
 	}
 
@@ -204,14 +210,16 @@ public final class SugiyamaGraphLayout{
 	 */
 	private static Map<String, Double> assignXCoordinates(final SugiyamaHierarchy.Hierarchy h){
 		final Map<String, Double> x = new HashMap<>();
-		final String rootId = h.rootId();
 
 		// Compute the widest layer, used to center every layer.
 		int maxUnits = 0;
-		for(final List<String> layer : h.layers()){
+		final List<List<String>> layers = h.layers();
+		for(int l = 0; l < layers.size(); l ++){
+			final List<String> layer = layers.get(l);
+
 			int u = 0;
 			for(int i = 0; i < layer.size(); i ++){
-				u += widthOf(layer.get(i), h.dummyIds(), rootId);
+				u += widthOf(layer.get(i), h.dummyIds());
 				if(i < layer.size() - 1)
 					u += HORIZONTAL_GAP;
 			}
@@ -219,21 +227,25 @@ public final class SugiyamaGraphLayout{
 		}
 
 		// Layer 0: no parents to sort by, keep the path order.
-		placeEvenly(h.layers().get(0), x, maxUnits, h, rootId);
+		placeEvenly(h.layers().get(0), x, maxUnits, h);
 
 		// Layers 1..N: sort by average parent X, then place evenly.
-		for(int l = 1; l < h.layers().size(); l ++){
-			final List<String> layer = h.layers().get(l);
+		for(int l = 1; l < layers.size(); l++){
+			final List<String> layer = layers.get(l);
 
 			// Average X of the parents of each node. Nodes with no parent
 			// X available (orphans, partners whose parents are not in the
 			// graph) get Double.MAX_VALUE and go to the end.
 			final Map<String, Double> parentAvgX = new HashMap<>(layer.size());
-			for(final String id : layer){
+			for(int i = 0; i < layer.size(); i ++){
+				final String id = layer.get(i);
+
 				final List<String> parents = h.parentsOf().getOrDefault(id, List.of());
 				double sum = 0;
 				int n = 0;
-				for(final String p : parents){
+				for(int j = 0; j < parents.size(); j ++){
+					final String p = parents.get(j);
+
 					final Double px = x.get(p);
 					if(px != null){
 						sum += px;
@@ -247,13 +259,13 @@ public final class SugiyamaGraphLayout{
 				.comparingDouble((String id) -> parentAvgX.getOrDefault(id, Double.MAX_VALUE))
 				.thenComparing(id -> id));
 
-			placeEvenly(layer, x, maxUnits, h, rootId);
+			placeEvenly(layer, x, maxUnits, h);
 		}
 
 		// Barycenter refinement, respects the order established above.
 		for(int iter = 0; iter < REFINEMENT_ITERATIONS; iter ++)
-			for(int l = 1; l < h.layers().size(); l ++)
-				placeLayer(h.layers().get(l), h.parentsOf(), x, h.dummyIds(), rootId);
+			for(int l = 1, size = layers.size(); l < size; l ++)
+				placeLayer(layers.get(l), h.parentsOf(), x, h.dummyIds());
 
 		return x;
 	}
@@ -262,33 +274,39 @@ public final class SugiyamaGraphLayout{
 	 * Places the nodes of a layer at even intervals, centered on the
 	 * widest layer.
 	 */
-	private static void placeEvenly(final List<String> layer, final Map<String, Double> x,
-		final int maxUnits, final SugiyamaHierarchy.Hierarchy h, final String rootId){
+	private static void placeEvenly(final List<String> layer, final Map<String, Double> x, final int maxUnits,
+			final SugiyamaHierarchy.Hierarchy h){
 		int row = 0;
 		for(int i = 0; i < layer.size(); i ++){
-			row += widthOf(layer.get(i), h.dummyIds(), rootId);
+			row += widthOf(layer.get(i), h.dummyIds());
 			if(i < layer.size() - 1)
 				row += HORIZONTAL_GAP;
 		}
 		double cx = (maxUnits - row) / 2.;
-		for(final String id : layer){
-			final double w = widthOf(id, h.dummyIds(), rootId);
+		for(int i = 0; i < layer.size(); i ++){
+			final String id = layer.get(i);
+
+			final double w = widthOf(id, h.dummyIds());
 			x.put(id, cx + w / 2.);
 			cx += w + HORIZONTAL_GAP;
 		}
 	}
 
 	private static void placeLayer(final List<String> layer, final Map<String, List<String>> neighborMap,
-		final Map<String, Double> x, final Set<String> dummyIds, final String rootId){
+			final Map<String, Double> x, final Set<String> dummyIds){
 		if(layer.size() <= 1)
 			return;
 
 		final Map<String, Double> targets = new HashMap<>(layer.size());
-		for(final String id : layer){
+		for(int i = 0; i < layer.size(); i ++){
+			final String id = layer.get(i);
+
 			final List<String> neighbors = neighborMap.getOrDefault(id, List.of());
 			double sum = 0;
 			int n = 0;
-			for(final String nb : neighbors){
+			for(int j = 0; j < neighbors.size(); j ++){
+				final String nb = neighbors.get(j);
+
 				final Double nx = x.get(nb);
 				if(nx != null){
 					sum += nx;
@@ -299,8 +317,10 @@ public final class SugiyamaGraphLayout{
 		}
 
 		double cursor = Double.NEGATIVE_INFINITY;
-		for(final String id : layer){
-			final double w = widthOf(id, dummyIds, rootId);
+		for(int i = 0; i < layer.size(); i ++){
+			final String id = layer.get(i);
+
+			final double w = widthOf(id, dummyIds);
 			final double halfW = w / 2.;
 			final double target = targets.getOrDefault(id, 0.);
 			final double cx = Math.max(target, cursor + halfW);
@@ -316,6 +336,8 @@ public final class SugiyamaGraphLayout{
 	 *                          Track coloring
 	 * ====================================================================== */
 
+	private record ParentGroupKey(List<String> sortedParents){}
+
 	/**
 	 * For every gap, count how many horizontal tracks are needed to
 	 * route the sibling groups without overlaps.
@@ -323,39 +345,49 @@ public final class SugiyamaGraphLayout{
 	private static Map<Integer, Integer> computeHorizontalTrackCounts(final SugiyamaHierarchy.Hierarchy h,
 			final Map<String, Double> xCoords){
 		final Map<Integer, Integer> counts = new HashMap<>();
-		for(int l = 0; l + 1 < h.layers().size(); l ++){
+		final List<List<String>> layers = h.layers();
+		for(int l = 0; l + 1 < layers.size(); l ++){
 			// Group children of layer l+1 by their parent set
-			final Map<String, List<String>> childrenBySig = new LinkedHashMap<>();
-			for(final String childId : h.layers().get(l + 1)){
+			final Map<ParentGroupKey, List<String>> childrenBySig = new LinkedHashMap<>();
+			final List<String> nextLayer = layers.get(l + 1);
+			for(int i = 0; i < nextLayer.size(); i ++){
+				final String childId = nextLayer.get(i);
+
 				final List<String> parents = h.parentsOf().getOrDefault(childId, List.of());
 				if(parents.isEmpty())
 					continue;
 
 				final List<String> sorted = new ArrayList<>(parents);
 				Collections.sort(sorted);
-				childrenBySig.computeIfAbsent(String.join(PIPE, sorted), k -> new ArrayList<>())
+				childrenBySig.computeIfAbsent(new ParentGroupKey(sorted), k -> new ArrayList<>())
 					.add(childId);
 			}
 
 			// Compute the horizontal span of each group
 			final List<int[]> spans = new ArrayList<>();
-			for(final Map.Entry<String, List<String>> entry : childrenBySig.entrySet()){
-				final String[] sig = StringUtils.split(entry.getKey(), PIPE);
+			for(final Map.Entry<ParentGroupKey, List<String>> entry : childrenBySig.entrySet()){
+				final List<String> sig = entry.getKey()
+					.sortedParents();
 				final List<String> children = entry.getValue();
-				// Collapse: one parent, one child, aligned.
-				if(sig.length == 1 && children.size() == 1){
-					final double px = xCoords.getOrDefault(sig[0], 0.);
-					final double cx = xCoords.getOrDefault(children.get(0), 0.);
+
+				// Collapse: one parent, one child, aligned
+				if(sig.size() == 1 && children.size() == 1){
+					final double px = xCoords.getOrDefault(sig.getFirst(), 0.);
+					final double cx = xCoords.getOrDefault(children.getFirst(), 0.);
 					if(Math.abs(px - cx) < 0.5)
 						continue;
 				}
 				int minC = Integer.MAX_VALUE, maxC = Integer.MIN_VALUE;
-				for(final String p : sig){
+				for(int i = 0; i < sig.size(); i ++){
+					final String p = sig.get(i);
+
 					final int pc = (int)Math.round(xCoords.getOrDefault(p, 0.));
 					minC = Math.min(minC, pc);
 					maxC = Math.max(maxC, pc);
 				}
-				for(final String c : children){
+				for(int i = 0; i < children.size(); i ++){
+					final String c = children.get(i);
+
 					final int cc = (int)Math.round(xCoords.getOrDefault(c, 0.));
 					minC = Math.min(minC, cc);
 					maxC = Math.max(maxC, cc);
@@ -367,13 +399,16 @@ public final class SugiyamaGraphLayout{
 			spans.sort(Comparator
 				.comparingInt((int[] s) -> s[0])
 				.thenComparingInt(s -> -s[1]));
+
 			final List<Integer> rightEnd = new ArrayList<>();
-			for(final int[] span : spans){
+			for(int i = 0; i < spans.size(); i ++){
+				final int[] span = spans.get(i);
+
 				int chosen = -1;
-				for(int i = 0; i < rightEnd.size(); i ++)
-					if(rightEnd.get(i) < span[0]){
-						chosen = i;
-						rightEnd.set(i, span[1]);
+				for(int j = 0; j < rightEnd.size(); j ++)
+					if(rightEnd.get(j) < span[0]){
+						chosen = j;
+						rightEnd.set(j, span[1]);
 
 						break;
 					}

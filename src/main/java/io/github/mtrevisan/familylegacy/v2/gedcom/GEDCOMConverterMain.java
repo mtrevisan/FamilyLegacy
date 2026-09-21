@@ -53,7 +53,7 @@ public class GEDCOMConverterMain{
 //		String outputPath = "src/main/resources/tests/TGC55C.flef";
 
 		String gedcomContent;
-		try(BufferedReader br = GEDCOMHelper.getBufferedReader(GEDCOMToFLEFConverter.class.getResourceAsStream(inputResource))){
+		try(BufferedReader br = GEDCOMHelper.getBufferedReader(GEDCOMConverterMain.class.getResourceAsStream(inputResource))){
 			gedcomContent = br.lines()
 				.collect(Collectors.joining(System.lineSeparator()));
 		}

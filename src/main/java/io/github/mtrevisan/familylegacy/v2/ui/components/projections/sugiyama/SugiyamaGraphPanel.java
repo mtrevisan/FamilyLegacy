@@ -40,9 +40,9 @@ import io.github.mtrevisan.familylegacy.v2.ui.helpers.ViewportPanSupport;
 import org.apache.commons.lang3.ArrayUtils;
 
 import javax.swing.JFrame;
-import javax.swing.JLayer;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JViewport;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
@@ -52,14 +52,12 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.GridBagLayout;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Window;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.geom.AffineTransform;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -67,24 +65,11 @@ import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 
-/**
- * Sugiyama view of the pedigree.
- * <p>
- * Every vertex is a real {@link IndividualPanel} positioned at the
- * coordinates computed by {@link SugiyamaGraphLayout}. Two spouses
- * appear as two adjacent boxes, because the vertex is the individual,
- * not the couple. The edges are drawn behind the panels.
- * <p>
- * No selection state: single-click re-roots the graph on the clicked
- * individual. A selection callback can be installed through
- * {@link #withSelectionCallback(Consumer)} so that an enclosing container
- * (typically a side panel or a dossier) is notified of the currently
- * focused individual.
- */
 public class SugiyamaGraphPanel extends JPanel implements TreeChangeListener{
 
 	private static final String[] INDIVIDUAL_TO_INDIVIDUAL_CHILD_TYPES = new String[]{
@@ -97,12 +82,8 @@ public class SugiyamaGraphPanel extends JPanel implements TreeChangeListener{
 
 	private SugiyamaGraphLayout.Result layout;
 
-	/** Centering offsets applied to the content when it is smaller than the viewport. */
-	private int centeringOffsetX;
-	private int centeringOffsetY;
-
 	private final Canvas canvas;
-	private final JLayer<Component> layer;
+	private final JPanel centeringWrapper = new JPanel(new GridBagLayout());
 	private final JScrollPane scrollPane;
 
 	private int currentMaxAncestors;
@@ -140,32 +121,26 @@ public class SugiyamaGraphPanel extends JPanel implements TreeChangeListener{
 		this.model = Objects.requireNonNull(model);
 		this.treeService = Objects.requireNonNull(treeService);
 
-		this.canvas = new Canvas();
-		this.layer = new JLayer<>(canvas);
-		this.scrollPane = new JScrollPane(layer,
+		canvas = new Canvas();
+		centeringWrapper.setBackground(SugiyamaEdgeRouter.BACKGROUND_COLOR);
+		centeringWrapper.setOpaque(true);
+		centeringWrapper.add(canvas);
+
+		scrollPane = new JScrollPane(centeringWrapper,
 			ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
 			ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-		this.scrollPane.setBorder(null);
-		this.scrollPane.getVerticalScrollBar()
-			.setUnitIncrement(16);
-		this.scrollPane.getHorizontalScrollBar()
-			.setUnitIncrement(16);
+		scrollPane.setBorder(null);
+
+		final JViewport viewport = scrollPane.getViewport();
+		viewport.setScrollMode(JViewport.BLIT_SCROLL_MODE);
+		viewport.setBackground(SugiyamaEdgeRouter.BACKGROUND_COLOR);
+
+		scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+		scrollPane.getHorizontalScrollBar().setUnitIncrement(16);
 
 		setLayout(new BorderLayout());
 		add(scrollPane, BorderLayout.CENTER);
 		setPreferredSize(new Dimension(1000, 700));
-
-		// Recompute the canvas size and the centering offsets whenever the
-		// viewport is resized, so that the graph stays centered when it is
-		// smaller than the visible area.
-		scrollPane.getViewport().addComponentListener(new ComponentAdapter(){
-			@Override
-			public void componentResized(final ComponentEvent e){
-				updateCanvasSize();
-
-				canvas.rebuild();
-			}
-		});
 	}
 
 
@@ -182,25 +157,39 @@ public class SugiyamaGraphPanel extends JPanel implements TreeChangeListener{
 		if(rootId == null)
 			return;
 
-		this.currentRootId = rootId;
-		this.currentMaxAncestors = maxAncestors;
-		this.currentMaxDescendants = maxDescendants;
+		currentRootId = rootId;
+		currentMaxAncestors = maxAncestors;
+		currentMaxDescendants = maxDescendants;
 		this.showPartner = showPartner;
 
-		this.layout = SugiyamaGraphLayout.compute(model, rootId, treeService, maxAncestors, maxDescendants, showPartner);
+		layout = SugiyamaGraphLayout.compute(model, rootId, treeService, maxAncestors, maxDescendants, showPartner);
 
-		// Compute the canvas size and the centering offsets BEFORE placing
-		// the panels, so the bounds applied in rebuild() and the translation
-		// applied in paintComponent() use the same offsets.
-		updateCanvasSize();
-		canvas.rebuild();
+		// Freeze hierarchy updating canvas bounds
+		centeringWrapper.setVisible(false);
+		try{
+			updateCanvasSize();
+			canvas.rebuild();
 
-		// (Re)install drag-to-pan on the newly created panels. The canvas itself
-		// is persistent, so the install is a no-op there; the panels are
-		// recreated on every rebuild and receive the adapter here.
-		ViewportPanSupport.install(scrollPane, canvas);
+			// (Re)install drag-to-pan on the newly created panels. The canvas itself
+			// is persistent, so the install is a no-op there; the panels are
+			// recreated on every rebuild and receive the adapter here.
+			ViewportPanSupport.install(scrollPane, canvas);
 
-		scrollPane.getViewport().setViewPosition(new Point(0, 0));
+			centeringWrapper.revalidate();
+			scrollPane.validate();
+
+			// Center the viewport scroll position atomically if content exceeds viewport
+			final JViewport viewport = scrollPane.getViewport();
+			final Dimension extent = viewport.getExtentSize();
+			final Dimension viewSize = centeringWrapper.getPreferredSize();
+
+			final int x = Math.max(0, (viewSize.width - extent.width) / 2);
+			final int y = Math.max(0, (viewSize.height - extent.height) / 2);
+			viewport.setViewPosition(new Point(x, y));
+		}
+		finally{
+			centeringWrapper.setVisible(true);
+		}
 
 		if(!suppressNavigationNotification && navigationCallback != null)
 			navigationCallback.accept(rootId);
@@ -221,7 +210,7 @@ public class SugiyamaGraphPanel extends JPanel implements TreeChangeListener{
 	 * @param callback the callback; may be {@code null} to remove it
 	 */
 	public SugiyamaGraphPanel withSelectionCallback(final Consumer<String> callback){
-		this.selectionCallback = callback;
+		selectionCallback = callback;
 
 		return this;
 	}
@@ -236,10 +225,7 @@ public class SugiyamaGraphPanel extends JPanel implements TreeChangeListener{
 	 * @return the id of the root individual, or {@code null}
 	 */
 	public String getRootIndividualId(){
-		if(layout == null)
-			return null;
-
-		return layout.rootId();
+		return (layout != null? layout.rootId(): null);
 	}
 
 	/**
@@ -342,7 +328,7 @@ public class SugiyamaGraphPanel extends JPanel implements TreeChangeListener{
 					panel.getWidth(), panel.getHeight()));
 			}
 			catch(final java.awt.IllegalComponentStateException ignored){
-				// The panel is not showing; skip it.
+				// Skip non-showing panels
 			}
 		}
 		return result;
@@ -366,7 +352,7 @@ public class SugiyamaGraphPanel extends JPanel implements TreeChangeListener{
 	}
 
 	public String getSelectedIndividualId(){
-		return layout.rootId();
+		return (layout != null? layout.rootId(): null);
 	}
 
 
@@ -381,27 +367,32 @@ public class SugiyamaGraphPanel extends JPanel implements TreeChangeListener{
 		Canvas(){
 			setLayout(null);
 			setOpaque(true);
-			setBackground(SugiyamaEdgeRouter.BACKGROUND);
+			setBackground(SugiyamaEdgeRouter.BACKGROUND_COLOR);
 		}
 
 		void rebuild(){
-			removeAll();
-			visiblePanels.clear();
-
 			if(layout == null)
 				return;
 
-			for(final Map.Entry<String, Rectangle> entry : layout.nodeBounds().entrySet()){
+			removeAll();
+			visiblePanels.clear();
+
+			final Map<String, Rectangle> nodeBounds = layout.nodeBounds();
+			final Map<String, IndividualData> dataById = layout.dataById();
+			final Set<String> dummyIds = layout.dummyIds();
+			final String rootId = layout.rootId();
+
+			for(final Map.Entry<String, Rectangle> entry : nodeBounds.entrySet()){
 				final String id = entry.getKey();
-				if(layout.dummyIds().contains(id))
+				if(dummyIds.contains(id))
 					continue;
 
-				final IndividualData data = layout.dataById().get(id);
+				final IndividualData data = dataById.get(id);
 				if(data == null || data.isEmpty())
 					continue;
 
-				final boolean isRoot = id.equals(layout.rootId());
-				final boolean isFocus = (focusId != null? focusId.equals(id): isRoot);
+				final boolean isRoot = id.equals(rootId);
+				final boolean isFocus = (focusId != null ? focusId.equals(id) : isRoot);
 				final IndividualPanel panel = IndividualPanel
 					.create(BoxPanelType.SECONDARY, model)
 					.withIndividualData(data)
@@ -410,11 +401,7 @@ public class SugiyamaGraphPanel extends JPanel implements TreeChangeListener{
 				// Apply the centering offsets, so that a graph smaller than the
 				// viewport is drawn in the middle of the canvas.
 				final Rectangle bounds = entry.getValue();
-				panel.setBounds(
-					bounds.x + centeringOffsetX,
-					bounds.y + centeringOffsetY,
-					bounds.width,
-					bounds.height);
+				panel.setBounds(bounds.x, bounds.y, bounds.width, bounds.height);
 
 				attachListeners(panel, id);
 				add(panel);
@@ -436,17 +423,7 @@ public class SugiyamaGraphPanel extends JPanel implements TreeChangeListener{
 			if(!(g instanceof Graphics2D g2) || layout == null)
 				return;
 
-			// Translate the drawing context by the centering offsets, so that
-			// the edges follow the panels. The original transform is restored
-			// at the end, so the rest of the painting pipeline is not affected.
-			final AffineTransform original = g2.getTransform();
-			try{
-				g2.translate(centeringOffsetX, centeringOffsetY);
-				SugiyamaEdgeRouter.drawEdges(g2, layout);
-			}
-			finally{
-				g2.setTransform(original);
-			}
+			SugiyamaEdgeRouter.drawEdges(g2, layout);
 		}
 
 		private void attachListeners(final Component component, final String id){
@@ -489,17 +466,11 @@ public class SugiyamaGraphPanel extends JPanel implements TreeChangeListener{
 			return;
 
 		final Rectangle content = layout.contentBounds();
-		final Dimension viewportSize = scrollPane.getViewport().getExtentSize();
-
 		final int contentW = Math.max(1, (int)Math.ceil(content.getWidth()));
 		final int contentH = Math.max(1, (int)Math.ceil(content.getHeight()));
-		final int w = Math.max(contentW, viewportSize.width);
-		final int h = Math.max(contentH, viewportSize.height);
 
-		centeringOffsetX = (w - contentW) / 2;
-		centeringOffsetY = (h - contentH) / 2;
-
-		canvas.setPreferredSize(new Dimension(w, h));
+		// Set canvas size strictly to content bounds without offset recalculations
+		canvas.setPreferredSize(new Dimension(contentW, contentH));
 		canvas.revalidate();
 	}
 
@@ -512,7 +483,7 @@ public class SugiyamaGraphPanel extends JPanel implements TreeChangeListener{
 	 * @param callback the callback; may be {@code null} to remove it
 	 */
 	public SugiyamaGraphPanel withNavigationCallback(final Consumer<String> callback){
-		this.navigationCallback = callback;
+		navigationCallback = callback;
 
 		return this;
 	}

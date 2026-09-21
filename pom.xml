@@ -72,6 +72,8 @@
 		<apache.tika-core.version>4.0.0</apache.tika-core.version>
 		<!-- https://mvnrepository.com/artifact/org.apache.commons/commons-text -->
 		<apache.commons-text.version>1.15.0</apache.commons-text.version>
+		<!-- https://mvnrepository.com/artifact/commons-io/commons-io -->
+		<apache.commons-io.version>2.22.0</apache.commons-io.version>
 
 		<!-- Thumbnailator -->
 		<!-- https://mvnrepository.com/artifact/net.coobird/thumbnailator -->
@@ -393,6 +395,11 @@
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-text</artifactId>
 			<version>${apache.commons-text.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>${apache.commons-io.version}</version>
 		</dependency>
 
 		<!-- ImgScalr -->

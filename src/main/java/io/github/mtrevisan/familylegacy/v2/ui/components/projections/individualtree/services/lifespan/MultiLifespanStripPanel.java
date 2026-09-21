@@ -176,8 +176,7 @@ public final class MultiLifespanStripPanel extends JPanel{
 	 * @param maxJdn     the JDN of the latest dated item
 	 */
 	private record Row(String id, String name, List<EventIndex.EventDatum> events,
-							 List<TemporalAttributeIndex.AttributeDatum> attributes, long minJdn, long maxJdn){
-	}
+							 List<TemporalAttributeIndex.AttributeDatum> attributes, long minJdn, long maxJdn){}
 
 
 	private final FLEFModel model;
@@ -450,7 +449,7 @@ public final class MultiLifespanStripPanel extends JPanel{
 		final long refMax = ref.maxJdn();
 
 		final boolean[] flags = new boolean[rows.size()];
-		for(int i = 0; i < rows.size(); i++){
+		for(int i = 0; i < rows.size(); i ++){
 			if(i == hoveredRow){
 				flags[i] = true;
 

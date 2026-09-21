@@ -44,19 +44,6 @@ import java.util.Map;
 /**
  * Service responsible for extracting and building an {@link EgoNode} network
  * from the FLEF model, covering both biological and non-biological relationships.
- * <p>
- * To avoid repeated full scans of the model, the service builds two reverse
- * indices during {@link #ensureIndices()}:
- * <ul>
- *   <li>{@code relationshipsByEntityId} — for each entity id, the list of
- *       {@code relationship} records in which the entity appears as subject
- *       or target;</li>
- *   <li>{@code eventsByEntityId} — for each entity id, the list of
- *       {@code event} records in which the entity appears as a participant.</li>
- * </ul>
- * These indices let {@link #buildEgoNetwork(String)} answer in time
- * proportional to the number of relationships actually touching the ego,
- * instead of the total size of the model.
  */
 class EgoNetworkService{
 
@@ -117,26 +104,26 @@ class EgoNetworkService{
 		final IndividualData egoData = IndividualData.create(egoRecord, eventsByEntityId, model);
 		final EgoNode egoNode = new EgoNode(egoRecord, egoData);
 
-		// Only iterate over the relationships that actually touch the ego
-		for(final FLEFRecord relationship : relationshipsByEntityId.getOrDefault(egoId, List.of())){
-			final String type = FLEFRecordHelper.getChildValue(relationship, TAG_TYPE);
-			final String role = FLEFRecordHelper.getChildValue(relationship, TAG_ROLE);
-			final String status = normalizeStatus(FLEFRecordHelper.getChildValue(relationship, TAG_STATUS));
-			if(type == null)
-				continue;
+		final List<FLEFRecord> rels = relationshipsByEntityId.get(egoId);
+		if(rels != null){
+			for(final FLEFRecord relationship : rels){
+				final String type = FLEFRecordHelper.getChildValue(relationship, TAG_TYPE);
+				final String role = FLEFRecordHelper.getChildValue(relationship, TAG_ROLE);
+				final String status = normalizeStatus(FLEFRecordHelper.getChildValue(relationship, TAG_STATUS));
+				if(type == null)
+					continue;
 
-			final String subjectId = extractParticipantId(relationship, TAG_SUBJECT);
-			final String targetId = extractParticipantId(relationship, TAG_TARGET);
-			if(subjectId == null || targetId == null)
-				continue;
+				final String subjectId = extractParticipantId(relationship, TAG_SUBJECT);
+				final String targetId = extractParticipantId(relationship, TAG_TARGET);
+				if(subjectId == null || targetId == null)
+					continue;
 
-			// Process relationships where Ego is the Subject
-			if(egoId.equals(subjectId))
-				processEgoAsSubject(egoNode, type, role, status, targetId);
+				if(egoId.equals(subjectId))
+					processEgoAsSubject(egoNode, type, role, status, targetId);
 
-			// Process relationships where Ego is the Target
-			if(egoId.equals(targetId))
-				processEgoAsTarget(egoNode, type, role, status, subjectId);
+				if(egoId.equals(targetId))
+					processEgoAsTarget(egoNode, type, role, status, subjectId);
+			}
 		}
 
 		return egoNode;
@@ -145,10 +132,11 @@ class EgoNetworkService{
 	private static String normalizeStatus(final String raw){
 		if(raw == null)
 			return "unknown";
-		return switch(raw.toLowerCase()) {
+
+		return switch(raw.toLowerCase()){
 			case "active" -> "active";
-			case "ended"  -> "ended";
-			default       -> "unknown";
+			case "ended" -> "ended";
+			default -> "unknown";
 		};
 	}
 
@@ -159,28 +147,22 @@ class EgoNetworkService{
 			return;
 
 		if(isChildType(type))
-			// Ego is child -> target is a parent
-			getOrAddRelatedIndividual(egoNode, EgoNode.RelationshipCategory.PARENT, targetRecord, type, role,
-				status, false);
+			getOrAddRelatedIndividual(egoNode, EgoNode.RelationshipCategory.PARENT, targetRecord, type, role, status, false);
 		else if(isPartnerType(type))
-			// Ego is partner -> target is a partner
-			getOrAddRelatedIndividual(egoNode, EgoNode.RelationshipCategory.PARTNER, targetRecord, type, role,
-				status, false);
+			getOrAddRelatedIndividual(egoNode, EgoNode.RelationshipCategory.PARTNER, targetRecord, type, role, status, false);
 		else if(ENUM_TYPE_GROUP_MEMBER.equals(type) || ENUM_TYPE_PART_OF.equals(type)){
 			// group_member (Individual -> Group) and part_of (Group -> Group):
 			// Ego is the member/sub-group, the target is the enclosing group
 			if(isGroup(targetRecord))
 				getOrAddRelatedGroup(egoNode, targetRecord, type, role, status, false);
 			else
-				getOrAddRelatedIndividual(egoNode, EgoNode.RelationshipCategory.PARENT, targetRecord, type, role,
-					status, false);
+				getOrAddRelatedIndividual(egoNode, EgoNode.RelationshipCategory.PARENT, targetRecord, type, role, status, false);
 		}
 		else if(ENUM_TYPE_ASSOCIATE.equals(type)){
 			if(isGroup(targetRecord))
 				getOrAddRelatedGroup(egoNode, targetRecord, type, role, status, false);
 			else
-				getOrAddRelatedIndividual(egoNode, EgoNode.RelationshipCategory.ASSOCIATE, targetRecord, type, role,
-					status, false);
+				getOrAddRelatedIndividual(egoNode, EgoNode.RelationshipCategory.ASSOCIATE, targetRecord, type, role, status, false);
 		}
 	}
 
@@ -191,28 +173,22 @@ class EgoNetworkService{
 			return;
 
 		if(isChildType(type))
-			// Subject is child -> Ego is a parent
-			getOrAddRelatedIndividual(egoNode, EgoNode.RelationshipCategory.CHILD, subjectRecord, type, role,
-				status, true);
+			getOrAddRelatedIndividual(egoNode, EgoNode.RelationshipCategory.CHILD, subjectRecord, type, role, status, true);
 		else if(isPartnerType(type))
-			// Subject is partner -> Ego is a partner
-			getOrAddRelatedIndividual(egoNode, EgoNode.RelationshipCategory.PARTNER, subjectRecord, type, role,
-				status, true);
+			getOrAddRelatedIndividual(egoNode, EgoNode.RelationshipCategory.PARTNER, subjectRecord, type, role, status, true);
 		else if(ENUM_TYPE_GROUP_MEMBER.equals(type) || ENUM_TYPE_PART_OF.equals(type)){
 			// group_member (Individual -> Group) and part_of (Group -> Group):
 			// Ego is the group/super-group, the subject is the member/sub-group
 			if(isGroup(subjectRecord))
 				getOrAddRelatedGroup(egoNode, subjectRecord, type, role, status, true);
 			else
-				getOrAddRelatedIndividual(egoNode, EgoNode.RelationshipCategory.CHILD, subjectRecord, type, role,
-					status, true);
+				getOrAddRelatedIndividual(egoNode, EgoNode.RelationshipCategory.CHILD, subjectRecord, type, role, status, true);
 		}
 		else if(ENUM_TYPE_ASSOCIATE.equals(type)){
 			if(isGroup(subjectRecord))
 				getOrAddRelatedGroup(egoNode, subjectRecord, type, role, status, true);
 			else
-				getOrAddRelatedIndividual(egoNode, EgoNode.RelationshipCategory.ASSOCIATE, subjectRecord, type, role,
-					status, true);
+				getOrAddRelatedIndividual(egoNode, EgoNode.RelationshipCategory.ASSOCIATE, subjectRecord, type, role, status, true);
 		}
 	}
 
@@ -282,11 +258,9 @@ class EgoNetworkService{
 			final String subjectId = extractParticipantId(relationship, TAG_SUBJECT);
 			final String targetId = extractParticipantId(relationship, TAG_TARGET);
 			if(subjectId != null)
-				relationshipsByEntityId.computeIfAbsent(subjectId, k -> new ArrayList<>())
-					.add(relationship);
+				relationshipsByEntityId.computeIfAbsent(subjectId, k -> new ArrayList<>()).add(relationship);
 			if(targetId != null)
-				relationshipsByEntityId.computeIfAbsent(targetId, k -> new ArrayList<>())
-					.add(relationship);
+				relationshipsByEntityId.computeIfAbsent(targetId, k -> new ArrayList<>()).add(relationship);
 		}
 
 		// Index events by participant id. Only individuals and groups are
@@ -306,7 +280,7 @@ class EgoNetworkService{
 				continue;
 
 			if(!IndividualHandler.TYPE.equalsIgnoreCase(participantTag)
-				&& !GroupHandler.TYPE.equalsIgnoreCase(participantTag))
+					&& !GroupHandler.TYPE.equalsIgnoreCase(participantTag))
 				continue;
 
 			final String participantId = indRef.getValue();
@@ -316,8 +290,7 @@ class EgoNetworkService{
 
 			final FLEFRecord event = model.getRecordById(eventId);
 			if(event != null && EventHandler.TYPE.equalsIgnoreCase(event.getTag()))
-				eventsByEntityId.computeIfAbsent(participantId, k -> new ArrayList<>())
-					.add(event);
+				eventsByEntityId.computeIfAbsent(participantId, k -> new ArrayList<>()).add(event);
 		}
 
 		indicesBuilt = true;
