@@ -619,7 +619,8 @@ public class GlobalEventTimelinePanel extends JPanel{
 			for(final TemporalAxis.Tick tick : axis.computeTicks()){
 				final int x = contentBounds.x + tick.x();
 				g2.setColor(AXIS_LINE);
-				g2.drawLine(x, axisBounds.y + axisBounds.height - 6, x, axisBounds.y + axisBounds.height);
+				g2.drawLine(x, axisBounds.y + axisBounds.height - 6,
+					x, axisBounds.y + axisBounds.height);
 				g2.setColor(LABEL);
 				final int tw = fm.stringWidth(tick.label());
 				g2.drawString(tick.label(), x - tw / 2, axisBounds.y + fm.getAscent() + 2);
@@ -638,7 +639,8 @@ public class GlobalEventTimelinePanel extends JPanel{
 				final String type = typeOrder.get(i);
 				final int y = headerBounds.y + i * ROW_HEIGHT;
 				g2.setColor(HEADER_BORDER);
-				g2.drawLine(headerBounds.x, y + ROW_HEIGHT, headerBounds.x + headerBounds.width, y + ROW_HEIGHT);
+				g2.drawLine(headerBounds.x, y + ROW_HEIGHT,
+					headerBounds.x + headerBounds.width, y + ROW_HEIGHT);
 
 				g2.setColor(typeColor(type));
 				g2.fillRect(4, y + ROW_HEIGHT / 2 - 3, 6, 6);
@@ -654,7 +656,8 @@ public class GlobalEventTimelinePanel extends JPanel{
 			g2.setColor(GRID);
 			for(final TemporalAxis.Tick tick : axis.computeTicks()){
 				final int x = contentBounds.x + tick.x();
-				g2.drawLine(x, contentBounds.y, x, contentBounds.y + contentBounds.height);
+				g2.drawLine(x, contentBounds.y,
+					x, contentBounds.y + contentBounds.height);
 			}
 
 			for(final EventIndex.EventDatum event : visibleEvents){

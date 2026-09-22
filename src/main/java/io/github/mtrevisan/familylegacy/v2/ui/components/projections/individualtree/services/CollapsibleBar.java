@@ -207,7 +207,8 @@ public final class CollapsibleBar extends JPanel{
 
 		// Top separator
 		g2.setColor(BORDER);
-		g2.drawLine(0, 0, getWidth(), 0);
+		g2.drawLine(0, 0,
+			getWidth(), 0);
 
 		// Arrow
 		final int arrowY = (getHeight() - ARROW_SIZE) / 2;

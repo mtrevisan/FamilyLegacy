@@ -159,8 +159,9 @@ public class TreeService{
 				final IndividualData fatherData = IndividualData.create(father, relationshipTypeFilter,
 					individualToEventMap, model);
 				final TreeNode fatherNode = new TreeNode(father, fatherData, nextGeneration);
-				setPartnerData(fatherNode, mother, (mother != null ? IndividualData.create(mother,
-					relationshipTypeFilter, individualToEventMap, model) : null));
+				setPartnerData(fatherNode, mother, (mother != null
+					? IndividualData.create(mother, relationshipTypeFilter, individualToEventMap, model)
+					: null));
 				currentNode.setFather(fatherNode);
 
 				queue.add(fatherNode);
@@ -171,8 +172,9 @@ public class TreeService{
 				final IndividualData motherData = IndividualData.create(mother, relationshipTypeFilter,
 					individualToEventMap, model);
 				final TreeNode motherNode = new TreeNode(mother, motherData, nextGeneration);
-				setPartnerData(motherNode, father, (father != null ? IndividualData.create(father,
-					relationshipTypeFilter, individualToEventMap, model) : null));
+				setPartnerData(motherNode, father, (father != null
+					? IndividualData.create(father, relationshipTypeFilter, individualToEventMap, model)
+					: null));
 				currentNode.setMother(motherNode);
 
 				queue.add(motherNode);

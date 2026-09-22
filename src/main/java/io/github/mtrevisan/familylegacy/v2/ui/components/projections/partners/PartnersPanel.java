@@ -31,7 +31,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualData;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualListener;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.TreeLayout;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.layout.TreeLayout;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.ResourceHelper;
 import net.miginfocom.swing.MigLayout;
@@ -158,6 +158,8 @@ public class PartnersPanel extends JPanel{
 
 	private final BoxPanelType boxType;
 	private final TreeLayout treeLayout;
+	/** {@code true} when the collapse badge should be hidden regardless of count (e.g., in Sugiyama layout). */
+	private boolean suppressCollapseBadge;
 
 	private IndividualData father;
 	private IndividualData mother;
@@ -166,7 +168,12 @@ public class PartnersPanel extends JPanel{
 
 
 	public static PartnersPanel create(final BoxPanelType boxType, final TreeLayout treeLayout, final FLEFModel model){
-		return new PartnersPanel(boxType, treeLayout, model);
+		return new PartnersPanel(boxType, false, treeLayout, model);
+	}
+
+	public static PartnersPanel createWithoutBadge(final BoxPanelType boxType, final TreeLayout treeLayout,
+			final FLEFModel model){
+		return new PartnersPanel(boxType, true, treeLayout, model);
 	}
 
 	/**
@@ -179,12 +186,14 @@ public class PartnersPanel extends JPanel{
 	 * @return a placeholder panel
 	 */
 	public static PartnersPanel createEmpty(final BoxPanelType boxType, final TreeLayout treeLayout){
-		return new PartnersPanel(boxType, treeLayout, null);
+		return new PartnersPanel(boxType, false, treeLayout, null);
 	}
 
 
-	private PartnersPanel(final BoxPanelType boxType, final TreeLayout treeLayout, final FLEFModel model){
+	private PartnersPanel(final BoxPanelType boxType, final boolean suppressCollapseBadge, final TreeLayout treeLayout,
+			final FLEFModel model){
 		this.boxType = boxType;
+		this.suppressCollapseBadge = suppressCollapseBadge;
 		this.treeLayout = treeLayout;
 
 		this.model = model;
@@ -388,6 +397,24 @@ public class PartnersPanel extends JPanel{
 		this.mother = mother;
 
 		updateData();
+
+		return this;
+	}
+
+	/**
+	 * Configures whether the collapse badge should be suppressed and never displayed.
+	 *
+	 * @param suppress {@code true} to hide the badge regardless of occurrence count
+	 * @return this panel, for chaining
+	 */
+	public PartnersPanel withSuppressCollapseBadge(final boolean suppress){
+		this.suppressCollapseBadge = suppress;
+
+		fatherPanel.withSuppressCollapseBadge(suppressCollapseBadge);
+		motherPanel.withSuppressCollapseBadge(suppressCollapseBadge);
+
+		revalidate();
+		repaint();
 
 		return this;
 	}

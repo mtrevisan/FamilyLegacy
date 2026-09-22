@@ -32,7 +32,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualData;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualListener;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.TreeLayout;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.layout.TreeLayout;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.partners.PartnersPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.ResourceHelper;

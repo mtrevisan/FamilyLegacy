@@ -292,10 +292,10 @@ public class RecordDiffDialog extends JDialog{
 				}
 				case DELETE -> {
 					leftStyled.add(new StyledLine(nullToEmpty(entry.leftLine()), COLOR_DELETE, false));
-					rightStyled.add(new StyledLine("", COLOR_DELETE, true));
+					rightStyled.add(new StyledLine(StringUtils.EMPTY, COLOR_DELETE, true));
 				}
 				case INSERT -> {
-					leftStyled.add(new StyledLine("", COLOR_INSERT, true));
+					leftStyled.add(new StyledLine(StringUtils.EMPTY, COLOR_INSERT, true));
 					rightStyled.add(new StyledLine(nullToEmpty(entry.rightLine()), COLOR_INSERT, false));
 				}
 				case MODIFIED -> {
@@ -384,7 +384,7 @@ public class RecordDiffDialog extends JDialog{
 	}
 
 	private static String nullToEmpty(final String s){
-		return (s != null? s: "");
+		return (s != null? s: StringUtils.EMPTY);
 	}
 
 	private void highlightLine(final DefaultHighlighter highlighter, final List<Integer> offsets,
@@ -554,7 +554,8 @@ public class RecordDiffDialog extends JDialog{
 				final int xStart = insetsLeft - h;
 				final int xEnd = insetsLeft + visibleWidth + h;
 				for(int x = xStart; x < xEnd; x += HATCH_SPACING)
-					g2.drawLine(x, y + h, x + h, y);
+					g2.drawLine(x, y + h,
+						x + h, y);
 
 				g2.setClip(oldClip);
 			}

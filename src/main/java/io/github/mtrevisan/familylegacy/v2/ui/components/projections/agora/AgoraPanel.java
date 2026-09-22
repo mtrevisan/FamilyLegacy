@@ -35,6 +35,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.projections.chronomap.C
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.chronomap.PlaceCoordinateResolver;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import net.miginfocom.swing.MigLayout;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -256,7 +257,7 @@ public final class AgoraPanel extends JPanel{
 		header.add(new JLabel("Filter:"), "right");
 		header.add(searchField, "growx");
 		final JButton clear = new JButton("Clear");
-		clear.addActionListener(e -> searchField.setText(""));
+		clear.addActionListener(e -> searchField.setText(StringUtils.EMPTY));
 		header.add(clear);
 
 		add(header, BorderLayout.NORTH);
@@ -388,20 +389,20 @@ public final class AgoraPanel extends JPanel{
 		if(pos == null)
 			return null;
 
-// Reason and place:
-//   1. if t falls exactly on an event, that event is the reason;
-//   2. otherwise, if t is inside an attribute interval, the attribute
-//      is the reason;
-//   3. otherwise, the most recent anchor before t is the reason,
-//      prefixed by its distance ("since 1832", "last: birth 1800").
-		String reason = "";
-		String place = "";
+		// Reason and place:
+		//   1. if t falls exactly on an event, that event is the reason;
+		//   2. otherwise, if t is inside an attribute interval, the attribute
+		//      is the reason;
+		//   3. otherwise, the most recent anchor before t is the reason,
+		//      prefixed by its distance ("since 1832", "last: birth 1800").
+		String reason = StringUtils.EMPTY;
+		String place = StringUtils.EMPTY;
 
-// 1. Exact event match.
+		// 1. Exact event match.
 		for(final GeoAnchor a : anchors)
 			if(a.startJdn() == a.endJdn() && a.startJdn() == t){
 				reason = describeKind(a.kind());
-				place = (a.placeName() != null? a.placeName(): "");
+				place = (a.placeName() != null? a.placeName(): StringUtils.EMPTY);
 				break;
 			}
 
@@ -410,7 +411,7 @@ public final class AgoraPanel extends JPanel{
 			for(final GeoAnchor a : anchors)
 				if(a.startJdn() < a.endJdn() && t >= a.startJdn() && t <= a.endJdn()){
 					reason = describeKind(a.kind());
-					place = (a.placeName() != null? a.placeName(): "");
+					place = (a.placeName() != null? a.placeName(): StringUtils.EMPTY);
 					break;
 				}
 
@@ -424,7 +425,7 @@ public final class AgoraPanel extends JPanel{
 			if(last != null){
 				final String kind = describeKind(last.kind());
 				reason = "last: " + kind;
-				place = (last.placeName() != null? last.placeName(): "");
+				place = (last.placeName() != null? last.placeName(): StringUtils.EMPTY);
 			}
 			else{
 				reason = "in transit";
@@ -479,7 +480,7 @@ public final class AgoraPanel extends JPanel{
 
 	private static String formatDate(final long jdn){
 		final int[] ymd = jdnToGregorian(jdn);
-		return ymd[2] + " " + MONTH_NAMES[ymd[1] - 1] + " " + ymd[0];
+		return ymd[2] + StringUtils.SPACE + MONTH_NAMES[ymd[1] - 1] + StringUtils.SPACE + ymd[0];
 	}
 
 

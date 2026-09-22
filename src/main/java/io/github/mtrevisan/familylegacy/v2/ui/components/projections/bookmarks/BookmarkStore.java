@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.components.projections.bookmarks;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -170,9 +171,9 @@ public final class BookmarkStore{
 
 	private static Bookmark parse(final String uuid, final Map<String, String> fields){
 		try{
-			final String name = fields.getOrDefault("name", "");
+			final String name = fields.getOrDefault("name", StringUtils.EMPTY);
 			final BookmarkType type = BookmarkType.valueOf(fields.getOrDefault("type", "TREE"));
-			final String rootId = fields.getOrDefault("root", "");
+			final String rootId = fields.getOrDefault("root", StringUtils.EMPTY);
 			final long createdAt = Long.parseLong(fields.getOrDefault("createdAt", "0"));
 
 			final Map<String, String> custom = new LinkedHashMap<>();

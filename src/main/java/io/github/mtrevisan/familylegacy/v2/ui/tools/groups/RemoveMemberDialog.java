@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolDialogs;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.places.PlaceHelper;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
@@ -191,7 +192,7 @@ public final class RemoveMemberDialog extends JDialog{
 		}
 
 		if(listModel.isEmpty())
-			listModel.addElement(new Entry("", "(no members)"));
+			listModel.addElement(new Entry(StringUtils.EMPTY, "(no members)"));
 	}
 
 	private void onConfirm(){

@@ -33,6 +33,10 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualData;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualListener;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.layout.GraphLayoutEngine;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.layout.LayoutEngine;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.layout.TreeLayout;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.layout.TreeLayoutBuilder;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.services.CollapsibleBar;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.services.kinship.KinshipDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.services.lifespan.MultiLifespanStripPanel;
@@ -76,10 +80,10 @@ import java.util.function.Predicate;
  * <p>
  * The panel is a thin orchestrator: it owns the root state, delegates
  * layout and rendering to {@link TreeLayoutBuilder} and
- * {@link TreeRenderer}, and delegates the other concerns to dedicated
+ * {@link LayoutEngine}, and delegates the other concerns to dedicated
  * collaborators:
  * <ul>
- *   <li>{@link IndividualTreeListener} handles the interaction events
+ *   <li>{@link IndividualTreeGraphListener} handles the interaction events
  *       (edit, remove, add, unlink, paste);</li>
  *   <li>{@link TreeSelectionController} manages the visual selection
  *       and the spatial navigation;</li>
@@ -91,7 +95,7 @@ import java.util.function.Predicate;
  * The panel keeps only the wiring, the root lifecycle, and the UI
  * composition.
  */
-public class IndividualTreePanel extends JPanel implements TreeChangeListener{
+public class IndividualTreeGraphPanel extends JPanel implements TreeChangeListener{
 
 	@Serial
 	private static final long serialVersionUID = 9011391311012465249L;
@@ -111,7 +115,7 @@ public class IndividualTreePanel extends JPanel implements TreeChangeListener{
 	private final TreeService treeService;
 
 	/** Interaction listener installed on every created panel. */
-	private final IndividualTreeListener treeListener;
+	private final IndividualTreeGraphListener treeListener;
 	/** Visual selection and spatial navigation. */
 	private final TreeSelectionController selection;
 	/** Pedigree collapse detection and badge application. */
@@ -120,6 +124,7 @@ public class IndividualTreePanel extends JPanel implements TreeChangeListener{
 	private final LifespanStripController lifespanStrip;
 
 	private TreeLayout treeLayout;
+	private LayoutEngine layoutEngine;
 	private boolean showPartner;
 
 	private String currentRootIndividualId;
@@ -140,9 +145,10 @@ public class IndividualTreePanel extends JPanel implements TreeChangeListener{
 	private boolean suppressNavigationNotification;
 
 
-	public IndividualTreePanel(final TreeType treeType, final TreeLayout treeLayout,
-		final FLEFModel model){
+	public IndividualTreeGraphPanel(final TreeType treeType, final TreeLayout treeLayout,
+			final LayoutEngine layoutEngine, final FLEFModel model){
 		this.treeLayout = treeLayout;
+		this.layoutEngine = layoutEngine;
 		this.model = model;
 
 		final String[] allowedTypes = computeAllowedRelationshipTypes(treeType);
@@ -156,7 +162,7 @@ public class IndividualTreePanel extends JPanel implements TreeChangeListener{
 
 		selection = new TreeSelectionController(
 			this::notifySelection,
-			this::confirmSelection);
+			this::rootConfirmSelection);
 		collapses = new PedigreeCollapseController(model);
 
 		final MultiLifespanStripPanel strip = new MultiLifespanStripPanel(model);
@@ -164,7 +170,7 @@ public class IndividualTreePanel extends JPanel implements TreeChangeListener{
 		lifespanStrip = new LifespanStripController(strip, toggleBar, this::revalidate);
 		toggleBar.withListener(lifespanStrip::toggle);
 
-		treeListener = new IndividualTreeListener(model, treeService, treeMutator,
+		treeListener = new IndividualTreeGraphListener(model, treeService, treeMutator,
 			dialogProvider, operationCoordinator, this,
 			this::getRootIndividualId,
 			() -> nodeToPanelMap,
@@ -208,36 +214,44 @@ public class IndividualTreePanel extends JPanel implements TreeChangeListener{
 	 *                          Public API
 	 * ====================================================================== */
 
-	public IndividualTreePanel withShowPartner(){
+	public IndividualTreeGraphPanel withLayoutEngine(final LayoutEngine layoutEngine){
+		this.layoutEngine = layoutEngine;
+
+		refreshTree();
+
+		return this;
+	}
+
+	public IndividualTreeGraphPanel withShowPartner(){
 		showPartner = true;
 
 		return this;
 	}
 
-	public IndividualTreePanel withSelectionCallback(final Consumer<String> callback){
+	public IndividualTreeGraphPanel withSelectionCallback(final Consumer<String> callback){
 		selectionCallback = callback;
 
 		return this;
 	}
 
-	public IndividualTreePanel withNavigationCallback(final Consumer<String> callback){
+	public IndividualTreeGraphPanel withNavigationCallback(final Consumer<String> callback){
 		navigationCallback = callback;
 
 		return this;
 	}
 
 	/** Loads the given root without notifying the navigation callback. */
-	public void navigateTo(final String individualId, final int maxAncestors){
+	public void navigateTo(final String individualId){
 		suppressNavigationNotification = true;
 		try{
-			loadTree(individualId, maxAncestors);
+			load(individualId, currentMaxAncestors);
 		}
 		finally{
 			suppressNavigationNotification = false;
 		}
 	}
 
-	public void loadTree(final String rootIndividualId, final int maxAncestors){
+	public void load(final String rootIndividualId, final int maxAncestors){
 		currentRootIndividualId = rootIndividualId;
 		currentMaxAncestors = maxAncestors;
 
@@ -283,13 +297,16 @@ public class IndividualTreePanel extends JPanel implements TreeChangeListener{
 	}
 
 	/** Confirms the selection, re-rooting the tree on it. */
-	public void confirmSelection(final String selectedId){
-		selection.confirm();
+	public void rootConfirmSelection(final String selectedId){
+		if(selectedId == null)
+			return;
+
+		onTreeStructureChanged(selectedId);
 	}
 
 	@Override
 	public void onTreeStructureChanged(final String rootIndividualId){
-		SwingUtilities.invokeLater(() -> loadTree(rootIndividualId, currentMaxAncestors));
+		SwingUtilities.invokeLater(() -> load(rootIndividualId, currentMaxAncestors));
 	}
 
 	public static String[] computeAllowedRelationshipTypes(final TreeType treeType){
@@ -368,19 +385,22 @@ public class IndividualTreePanel extends JPanel implements TreeChangeListener{
 		repaint();
 
 		SwingUtilities.invokeLater(() -> {
-			cachedTreePath = TreeRenderer.buildTreePath(treeLayout, rootNode, nodeToPanelMap, childrenPanel, treeCanvas);
+			cachedTreePath = layoutEngine.buildTreePath(treeLayout, rootNode, nodeToPanelMap, childrenPanel, treeCanvas);
 			treeCanvas.repaint();
 		});
 	}
 
 	private void buildLayout(){
 		final EntityPopupMenuFactory<IndividualPanel, IndividualListener> popupFactory = new EntityTreePopupMenuFactory();
-		final TreeLayoutBuilder.LayoutResult result = TreeLayoutBuilder.buildLayout(treeCanvas, rootNode, showPartner,
-			currentMaxAncestors, model, nodeToPanelMap, treeListener, popupFactory, treeLayout);
-		childrenPanel = result.childrenPanel();
+		childrenPanel = layoutEngine.buildLayout(treeCanvas, rootNode, showPartner, currentMaxAncestors, model,
+			nodeToPanelMap, treeListener, popupFactory, treeLayout);
 	}
 
 	private void notifySelection(final String id){
+		if(id != null){
+			selection.setSelectedId(id);
+			selection.apply();
+		}
 		if(selectionCallback != null && id != null)
 			selectionCallback.accept(id);
 	}
@@ -406,6 +426,14 @@ public class IndividualTreePanel extends JPanel implements TreeChangeListener{
 		final FLEFRecord initialA = (currentRootIndividualId != null? model.getRecordById(currentRootIndividualId): null);
 		final KinshipDialog dialog = new KinshipDialog(parent, model, treeService, initialA, null);
 		dialog.setVisible(true);
+	}
+
+	public LayoutEngine getLayoutEngine(){
+		return layoutEngine;
+	}
+
+	public void setLayoutEngine(final LayoutEngine layoutEngine){
+		this.layoutEngine = layoutEngine;
 	}
 
 
@@ -437,7 +465,7 @@ public class IndividualTreePanel extends JPanel implements TreeChangeListener{
 			g2.setStroke(PartnersPanel.CONNECTION_STROKE);
 
 			if(cachedTreePath != null)
-				TreeRenderer.drawTree(g2, cachedTreePath);
+				g2.draw(cachedTreePath);
 		}
 
 	}
@@ -449,12 +477,14 @@ public class IndividualTreePanel extends JPanel implements TreeChangeListener{
 		}
 		catch(final Exception ignored){}
 
-		final String modelUri = "/tests/TGMZ.flef";
-		final String rootIndividualId = "I1";
+//		final String modelUri = "/tests/TGMZ.flef";
+//		final String rootIndividualId = "I1";
+		final String modelUri = "/tests/out.flef";
+		final String rootIndividualId = "I4321";
 		final int maxAncestors = 2;
 
 		final String content;
-		try(final InputStream is = IndividualTreePanel.class.getResourceAsStream(modelUri)){
+		try(final InputStream is = IndividualTreeGraphPanel.class.getResourceAsStream(modelUri)){
 			content = new String(Objects.requireNonNull(is).readAllBytes(), StandardCharsets.UTF_8);
 		}
 
@@ -462,10 +492,12 @@ public class IndividualTreePanel extends JPanel implements TreeChangeListener{
 		final FLEFModel model = parser.parse(content);
 
 		SwingUtilities.invokeLater(() -> {
-			final IndividualTreePanel panel = new IndividualTreePanel(
-				TreeType.BIOLOGICAL, TreeLayout.VERTICAL, model)
+//			final LayoutEngine layoutEngine = new TreeLayoutEngine();
+			final LayoutEngine layoutEngine = new GraphLayoutEngine();
+			final IndividualTreeGraphPanel panel = new IndividualTreeGraphPanel(TreeType.BIOLOGICAL, TreeLayout.VERTICAL,
+					layoutEngine, model)
 				.withShowPartner();
-			panel.loadTree(rootIndividualId, maxAncestors);
+			panel.load(rootIndividualId, maxAncestors);
 
 			final JFrame frame = new JFrame();
 			frame.setLayout(new BorderLayout());

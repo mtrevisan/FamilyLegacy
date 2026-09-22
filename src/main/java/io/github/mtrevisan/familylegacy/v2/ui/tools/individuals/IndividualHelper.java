@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -110,7 +111,7 @@ public final class IndividualHelper{
 	 */
 	public static String displayName(final FLEFRecord individual){
 		if(individual == null)
-			return "";
+			return StringUtils.EMPTY;
 		for(final FLEFRecord nameBlock : individual.getChildren()){
 			if(!TAG_NAME.equalsIgnoreCase(nameBlock.getTag()))
 				continue;
@@ -132,7 +133,7 @@ public final class IndividualHelper{
 			if(direct != null && !direct.isBlank())
 				return direct;
 		}
-		return individual.getId() != null? individual.getId(): "";
+		return (individual.getId() != null? individual.getId(): StringUtils.EMPTY);
 	}
 
 	public static String sex(final FLEFRecord individual){

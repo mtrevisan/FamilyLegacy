@@ -372,7 +372,7 @@ public final class IndividualDossierService{
 			subtitle.append(place);
 		}
 
-		return new DossierEntry(label, (value != null? value: ""), subtitle.toString(),
+		return new DossierEntry(label, (value != null? value: StringUtils.EMPTY), subtitle.toString(),
 			buildEvidenceBadge(attribute), attribute, DossierEntry.Kind.NORMAL,
 			proofStatusFor(attribute));
 	}
@@ -487,7 +487,7 @@ public final class IndividualDossierService{
 			final String label = origin + " source";
 			final String subtitle = (StringUtils.isNotEmpty(locator)
 				? "locator: " + locator
-				: "");
+				: StringUtils.EMPTY);
 
 			entries.add(new DossierEntry(label, title, subtitle,
 				buildEvidenceBadge(citation), source, DossierEntry.Kind.NORMAL,
@@ -535,7 +535,7 @@ public final class IndividualDossierService{
 			final String rationale = FLEFRecordHelper.getChildValue(impact, TAG_RATIONALE);
 			final String subtitle = (StringUtils.isNotEmpty(rationale)
 				? rationale
-				: context.getTag() != null? context.getTag().replace('_', ' '): "");
+				: context.getTag() != null? context.getTag().replace('_', ' '): StringUtils.EMPTY);
 
 			entries.add(new DossierEntry(label, contextTitle, subtitle,
 				buildEvidenceBadge(impact), context, DossierEntry.Kind.NORMAL,
@@ -582,7 +582,7 @@ public final class IndividualDossierService{
 
 			entries.add(new DossierEntry("Possible duplicate",
 				(otherName != null? otherName: otherId),
-				(comment != null? comment: ""),
+				(comment != null? comment: StringUtils.EMPTY),
 				buildEvidenceBadge(hypothesis), hypothesis, DossierEntry.Kind.NORMAL,
 				proofStatusFor(hypothesis)));
 		}
@@ -622,7 +622,7 @@ public final class IndividualDossierService{
 
 			entries.add(new DossierEntry("Research question",
 				(StringUtils.isNotEmpty(title)? title: questionText),
-				subtitle.toString(), "", question, DossierEntry.Kind.NORMAL,
+				subtitle.toString(), StringUtils.EMPTY, question, DossierEntry.Kind.NORMAL,
 				proofStatusFor(question)));
 		}
 
@@ -642,7 +642,7 @@ public final class IndividualDossierService{
 			final String proof = FLEFRecordHelper.getChildValue(conclusion, TAG_PROOF_STATUS);
 			entries.add(new DossierEntry("Conclusion",
 				(StringUtils.isNotEmpty(issue)? issue: "?"),
-				(proof != null? proof: ""), "", conclusion, DossierEntry.Kind.NORMAL,
+				(proof != null? proof: StringUtils.EMPTY), StringUtils.EMPTY, conclusion, DossierEntry.Kind.NORMAL,
 				ProofStatus.fromString(proof)));
 		}
 
@@ -729,9 +729,9 @@ public final class IndividualDossierService{
 			final String value = (StringUtils.isNotEmpty(title)? title: text);
 			final String subtitle = (StringUtils.isNotEmpty(title) && StringUtils.isNotEmpty(text)
 				? text
-				: "");
+				: StringUtils.EMPTY);
 
-			entries.add(new DossierEntry(label, value, subtitle, "", parent,
+			entries.add(new DossierEntry(label, value, subtitle, StringUtils.EMPTY, parent,
 				DossierEntry.Kind.NORMAL, proofStatusFor(parent)));
 		}
 	}
@@ -875,7 +875,7 @@ public final class IndividualDossierService{
 	private static String buildEvidenceBadge(final FLEFRecord parent){
 		final FLEFRecord evidence = FLEFRecordHelper.findChild(parent, TAG_EVIDENCE);
 		if(evidence == null)
-			return "";
+			return StringUtils.EMPTY;
 
 		final String sourceType = FLEFRecordHelper.getChildValue(evidence, TAG_SOURCE_TYPE);
 		final String infoType = FLEFRecordHelper.getChildValue(evidence, TAG_INFORMATION_TYPE);

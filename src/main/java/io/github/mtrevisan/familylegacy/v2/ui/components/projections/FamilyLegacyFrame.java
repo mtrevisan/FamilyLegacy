@@ -32,22 +32,31 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.projections.bookmarks.B
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.bookmarks.BookmarkType;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.dossier.GroupDossierPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.dossier.IndividualDossierPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.searches.RecordSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.files.FileMenuController;
 
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
+import javax.swing.ButtonGroup;
 import javax.swing.InputMap;
+import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JSplitPane;
+import javax.swing.JToggleButton;
+import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
+import javax.swing.text.JTextComponent;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.KeyboardFocusManager;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
@@ -55,7 +64,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serial;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -111,11 +122,6 @@ public class FamilyLegacyFrame extends JFrame{
 	private static final String ACTION_NAVIGATE_BACK = "navigateBack";
 	private static final String ACTION_NAVIGATE_FORWARD = "navigateForward";
 	private static final String ACTION_EDIT_SELECTION = "editSelection";
-	private static final String ACTION_MOVE_UP = "moveUp";
-	private static final String ACTION_MOVE_DOWN = "moveDown";
-	private static final String ACTION_MOVE_LEFT = "moveLeft";
-	private static final String ACTION_MOVE_RIGHT = "moveRight";
-	private static final String ACTION_CONFIRM_SELECTION = "confirmSelection";
 
 
 	private FLEFModel model;
@@ -134,15 +140,26 @@ public class FamilyLegacyFrame extends JFrame{
 
 	private final JSplitPane split;
 
+	private final JToolBar toolBar;
+
+	private JToggleButton btnToggleSidebar;
+	private JToggleButton btnTree;
+	private JToggleButton btnSugiyama;
+	private JToggleButton btnEgo;
+	private JButton btnBack;
+	private JButton btnForward;
+
+	private boolean sidebarVisible = true;
+
 
 	public FamilyLegacyFrame(final FLEFModel model){
 		super("Family Legacy");
 
 		this.model = Objects.requireNonNull(model);
-		this.switcher = new ProjectionSwitcherPanel(model);
-		this.individualDossier = new IndividualDossierPanel(model);
-		this.groupDossier = new GroupDossierPanel(model);
-		this.fileController = new FileMenuController(this,
+		switcher = new ProjectionSwitcherPanel(model);
+		individualDossier = new IndividualDossierPanel(model);
+		groupDossier = new GroupDossierPanel(model);
+		fileController = new FileMenuController(this,
 			this::model,
 			this::replaceModel,
 			() -> {});
@@ -156,7 +173,9 @@ public class FamilyLegacyFrame extends JFrame{
 		// dossiers in sync with the active view.
 		switcher.setNavigationListener(this::syncDossier);
 
-		this.currentDossier = individualDossier;
+		currentDossier = individualDossier;
+
+		toolBar = createToolBar();
 
 		split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, switcher, currentDossier);
 		split.setResizeWeight(1.0);
@@ -164,6 +183,7 @@ public class FamilyLegacyFrame extends JFrame{
 		split.setContinuousLayout(true);
 
 		setLayout(new BorderLayout());
+		add(toolBar, BorderLayout.NORTH);
 		add(split, BorderLayout.CENTER);
 
 		setSize(SWITCHER_WIDTH + DOSSIER_WIDTH, 800);
@@ -176,6 +196,157 @@ public class FamilyLegacyFrame extends JFrame{
 		setupArrowShortcuts();
 
 		setJMenuBar(new ApplicationMenuBar(this).build());
+	}
+
+
+	/* ======================================================================
+	 *                          Toolbar
+	 * ====================================================================== */
+
+	private JToolBar createToolBar(){
+		final JToolBar tb = new JToolBar("Main Toolbar");
+		tb.setFloatable(false);
+
+		// File operations
+		final JButton btnNew = new JButton("New");
+		btnNew.setToolTipText("New File (Ctrl+N)");
+		btnNew.addActionListener(e -> fileController.newFile());
+
+		final JButton btnOpen = new JButton("Open");
+		btnOpen.setToolTipText("Open File (Ctrl+O)");
+		btnOpen.addActionListener(e -> fileController.openFile());
+
+		final JButton btnSave = new JButton("Save");
+		btnSave.setToolTipText("Save File (Ctrl+S)");
+		btnSave.addActionListener(e -> fileController.save());
+
+		tb.add(btnNew);
+		tb.add(btnOpen);
+		tb.add(btnSave);
+		tb.addSeparator();
+
+		// Navigation
+		btnBack = new JButton("◄");
+		btnBack.setToolTipText("Navigate Back (Ctrl+Left)");
+		btnBack.addActionListener(e -> {
+			if(switcher.canGoBack())
+				switcher.navigateBack();
+		});
+
+		btnForward = new JButton("►");
+		btnForward.setToolTipText("Navigate Forward (Ctrl+Right)");
+		btnForward.addActionListener(e -> {
+			if(switcher.canGoForward())
+				switcher.navigateForward();
+		});
+
+		final JButton btnJump = new JButton("Jump To…");
+		btnJump.setToolTipText("Jump to Individual or Group (Ctrl+J)");
+		btnJump.addActionListener(e -> openJumpToDialog());
+
+		final JButton btnEdit = new JButton("Edit");
+		btnEdit.setToolTipText("Edit Current Selection (F2)");
+		btnEdit.addActionListener(e -> editCurrentSelection());
+
+		tb.add(btnBack);
+		tb.add(btnForward);
+		tb.add(btnJump);
+		tb.add(btnEdit);
+		tb.addSeparator();
+
+		// Projection Switcher Buttons
+		btnTree = new JToggleButton("Tree");
+		btnTree.setToolTipText("Ancestor Tree (Ctrl+1)");
+		btnTree.setSelected(true);
+		btnTree.addActionListener(e -> switcher.setProjection(ProjectionType.TREE));
+
+		btnSugiyama = new JToggleButton("Sugiyama");
+		btnSugiyama.setToolTipText("Sugiyama Pedigree Graph (Ctrl+2)");
+		btnSugiyama.addActionListener(e -> switcher.setProjection(ProjectionType.GRAPH));
+
+		btnEgo = new JToggleButton("Ego Net");
+		btnEgo.setToolTipText("Ego Network (Ctrl+3)");
+		btnEgo.addActionListener(e -> switcher.setProjection(ProjectionType.EGO_NETWORK));
+
+		final ButtonGroup projectionGroup = new ButtonGroup();
+		projectionGroup.add(btnTree);
+		projectionGroup.add(btnSugiyama);
+		projectionGroup.add(btnEgo);
+
+		tb.add(btnTree);
+		tb.add(btnSugiyama);
+		tb.add(btnEgo);
+		tb.addSeparator();
+
+		// Layout & View Toggles
+		btnToggleSidebar = new JToggleButton("Sidebar", sidebarVisible);
+		btnToggleSidebar.setToolTipText("Toggle Dossier Sidebar Panel");
+		btnToggleSidebar.addActionListener(e -> setSidebarVisible(btnToggleSidebar.isSelected()));
+
+		tb.add(btnToggleSidebar);
+
+		return tb;
+	}
+
+	private void openJumpToDialog(){
+		final ProjectionType projection = switcher.getCurrentProjectionType();
+		final List<Class<? extends RecordTypeHandler<?>>> handlerList = new ArrayList<>();
+		handlerList.add(IndividualHandler.class);
+		if(projection == ProjectionType.EGO_NETWORK)
+			handlerList.add(GroupHandler.class);
+
+		@SuppressWarnings("unchecked")
+		final Class<? extends RecordTypeHandler<?>>[] handlers = handlerList.toArray(new Class[0]);
+
+		final RecordSelectionDialog dialog = RecordSelectionDialog.create(
+			this, model(),
+			(record, handler) -> {
+				if(record != null && record.getId() != null)
+					loadRoot(record.getId());
+			},
+			handlers);
+
+		dialog.setVisible(true);
+	}
+
+	/* ======================================================================
+	 *                          View Visibility API
+	 * ====================================================================== */
+
+	public boolean isFullScreen(){
+		return ((getExtendedState() & MAXIMIZED_BOTH) == MAXIMIZED_BOTH);
+	}
+
+	public void toggleFullScreen(){
+		setExtendedState(isFullScreen()? NORMAL: MAXIMIZED_BOTH);
+	}
+
+	public boolean isToolbarVisible(){
+		return (toolBar != null && toolBar.isVisible());
+	}
+
+	public void setToolbarVisible(final boolean visible){
+		if(toolBar != null){
+			toolBar.setVisible(visible);
+
+			revalidate();
+		}
+	}
+
+	public boolean isSidebarVisible(){
+		return sidebarVisible;
+	}
+
+	public void setSidebarVisible(final boolean visible){
+		sidebarVisible = visible;
+		if(visible){
+			split.setRightComponent(currentDossier);
+			split.setDividerLocation(SWITCHER_WIDTH);
+		}
+		else
+			split.setRightComponent(null);
+
+		revalidate();
 	}
 
 
@@ -313,6 +484,7 @@ public class FamilyLegacyFrame extends JFrame{
 
 	private void showIndividualDossier(final String individualId){
 		individualDossier.setIndividual(individualId);
+
 		swapDossier(individualDossier);
 	}
 
@@ -329,10 +501,12 @@ public class FamilyLegacyFrame extends JFrame{
 		if(target == currentDossier)
 			return;
 
-		final int divider = split.getDividerLocation();
-		split.setRightComponent(target);
-		split.setDividerLocation(divider);
 		currentDossier = target;
+		if(sidebarVisible){
+			final int divider = split.getDividerLocation();
+			split.setRightComponent(target);
+			split.setDividerLocation(divider);
+		}
 	}
 
 
@@ -397,68 +571,47 @@ public class FamilyLegacyFrame extends JFrame{
 	}
 
 	/**
-	 * Installs the arrow keys and Enter for spatial navigation.
-	 * <p>
-	 * The bindings are registered on the frame's root pane with
-	 * {@link JComponent#WHEN_IN_FOCUSED_WINDOW}, so they fire whenever
-	 * the frame has focus and no closer component claims the key first.
-	 * Text fields keep their own arrow behaviour, because their
-	 * {@code WHEN_FOCUSED} bindings take precedence over the frame's
-	 * {@code WHEN_IN_FOCUSED_WINDOW} ones.
+	 * Installs a global KeyEventDispatcher for spatial navigation arrow shortcuts.
+	 * This bypasses component-level InputMap consumption (e.g. JScrollPane).
 	 */
 	private void setupArrowShortcuts(){
-		final InputMap inputMap = getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
-		final ActionMap actionMap = getRootPane().getActionMap();
+		KeyboardFocusManager.getCurrentKeyboardFocusManager()
+			.addKeyEventDispatcher(e -> {
+			// Handle only KEY_PRESSED events when this frame is the active window
+			if(e.getID() != KeyEvent.KEY_PRESSED || !isFocused())
+				return false;
 
-		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0), ACTION_MOVE_UP);
-		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0), ACTION_MOVE_DOWN);
-		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0), ACTION_MOVE_LEFT);
-		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0), ACTION_MOVE_RIGHT);
-		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), ACTION_CONFIRM_SELECTION);
+			// Do not intercept arrow keys if a text component is currently focused
+			final Component focusOwner = KeyboardFocusManager.getCurrentKeyboardFocusManager()
+				.getFocusOwner();
+			if(focusOwner instanceof JTextComponent)
+				return false;
 
-		actionMap.put(ACTION_MOVE_UP, new AbstractAction(){
-			@Serial
-			private static final long serialVersionUID = -1029384756102938470L;
-
-			@Override
-			public void actionPerformed(final ActionEvent e){
-				switcher.moveSelection(SpatialNavigation.Direction.UP);
-			}
-		});
-		actionMap.put(ACTION_MOVE_DOWN, new AbstractAction(){
-			@Serial
-			private static final long serialVersionUID = -1029384756102938471L;
-
-			@Override
-			public void actionPerformed(final ActionEvent e){
-				switcher.moveSelection(SpatialNavigation.Direction.DOWN);
-			}
-		});
-		actionMap.put(ACTION_MOVE_LEFT, new AbstractAction(){
-			@Serial
-			private static final long serialVersionUID = -1029384756102938472L;
-
-			@Override
-			public void actionPerformed(final ActionEvent e){
-				switcher.moveSelection(SpatialNavigation.Direction.LEFT);
-			}
-		});
-		actionMap.put(ACTION_MOVE_RIGHT, new AbstractAction(){
-			@Serial
-			private static final long serialVersionUID = -1029384756102938473L;
-
-			@Override
-			public void actionPerformed(final ActionEvent e){
-				switcher.moveSelection(SpatialNavigation.Direction.RIGHT);
-			}
-		});
-		actionMap.put(ACTION_CONFIRM_SELECTION, new AbstractAction(){
-			@Serial
-			private static final long serialVersionUID = -1029384756102938474L;
-
-			@Override
-			public void actionPerformed(final ActionEvent e){
-				switcher.confirmSelection();
+			final int keyCode = e.getKeyCode();
+			switch(keyCode){
+				case KeyEvent.VK_UP -> {
+					switcher.moveSelection(SpatialNavigation.Direction.UP);
+					return true;
+				}
+				case KeyEvent.VK_DOWN -> {
+					switcher.moveSelection(SpatialNavigation.Direction.DOWN);
+					return true;
+				}
+				case KeyEvent.VK_LEFT -> {
+					switcher.moveSelection(SpatialNavigation.Direction.LEFT);
+					return true;
+				}
+				case KeyEvent.VK_RIGHT -> {
+					switcher.moveSelection(SpatialNavigation.Direction.RIGHT);
+					return true;
+				}
+				case KeyEvent.VK_ENTER -> {
+					switcher.confirmSelection();
+					return true;
+				}
+				default -> {
+					return false;
+				}
 			}
 		});
 	}
@@ -487,11 +640,13 @@ public class FamilyLegacyFrame extends JFrame{
 		switch(projection){
 			case TREE -> {
 				bookmarkType = BookmarkType.TREE;
-				rootId = switcher.getTreePanel().getRootIndividualId();
+				rootId = switcher.getTreeGraphPanel()
+					.getRootIndividualId();
 			}
-			case SUGIYAMA -> {
-				bookmarkType = BookmarkType.SUGIYAMA;
-				rootId = switcher.getSugiyamaGraphPanel().getRootIndividualId();
+			case GRAPH -> {
+				bookmarkType = BookmarkType.GRAPH;
+				rootId = switcher.getTreeGraphPanel()
+					.getRootIndividualId();
 				props.put("showPartner", "true");
 			}
 			default -> {
@@ -527,7 +682,7 @@ public class FamilyLegacyFrame extends JFrame{
 
 		final ProjectionType projection = switch(bookmark.type()){
 			case TREE -> ProjectionType.TREE;
-			case SUGIYAMA -> ProjectionType.SUGIYAMA;
+			case GRAPH -> ProjectionType.GRAPH;
 			case EGO_NETWORK -> ProjectionType.EGO_NETWORK;
 		};
 
@@ -563,7 +718,8 @@ public class FamilyLegacyFrame extends JFrame{
 		catch(final Exception ignored){
 		}
 
-		final String modelUri = "/tests/TGMZ.flef";
+//		final String modelUri = "/tests/TGMZ.flef";
+		final String modelUri = "/tests/out.flef";
 		final String rootIndividualId = "I1";
 
 		final String content;

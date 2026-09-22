@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.tools;
 
+import org.apache.commons.lang3.StringUtils;
+
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JEditorPane;
@@ -111,7 +113,8 @@ public final class ReportDialog extends JDialog{
 	/** Escapes text so it can be embedded in an HTML document. */
 	public static String escape(final String text){
 		if(text == null)
-			return "";
+			return StringUtils.EMPTY;
+
 		return text.replace("&", "&amp;")
 			.replace("<", "&lt;")
 			.replace(">", "&gt;");

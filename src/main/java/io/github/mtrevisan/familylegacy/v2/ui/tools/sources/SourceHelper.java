@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.DocumentHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RepositoryHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -120,7 +121,8 @@ public final class SourceHelper{
 	 */
 	public static String sourceTitle(final FLEFRecord source){
 		if(source == null)
-			return "";
+			return StringUtils.EMPTY;
+
 		for(final FLEFRecord child : source.getChildren()){
 			if(!TAG_TITLE.equalsIgnoreCase(child.getTag()))
 				continue;
@@ -131,7 +133,7 @@ public final class SourceHelper{
 			if(onlyChild != null && onlyChild.getValue() != null && !onlyChild.getValue().isBlank())
 				return onlyChild.getValue();
 		}
-		return source.getId() != null? source.getId(): "";
+		return (source.getId() != null? source.getId(): StringUtils.EMPTY);
 	}
 
 	/**
@@ -141,7 +143,8 @@ public final class SourceHelper{
 	 */
 	public static String repositoryName(final FLEFRecord repository){
 		if(repository == null)
-			return "";
+			return StringUtils.EMPTY;
+
 		for(final FLEFRecord child : repository.getChildren()){
 			if(!TAG_NAME.equalsIgnoreCase(child.getTag()))
 				continue;
@@ -149,7 +152,7 @@ public final class SourceHelper{
 			if(value != null && !value.isBlank())
 				return value;
 		}
-		return repository.getId() != null? repository.getId(): "";
+		return (repository.getId() != null? repository.getId(): StringUtils.EMPTY);
 	}
 
 	public static String documentUri(final FLEFRecord document){

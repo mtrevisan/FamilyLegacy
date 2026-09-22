@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.RecordDiffDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolDialogs;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -87,7 +88,7 @@ public final class DuplicateFinderDialog extends JDialog{
 		DuplicateFinderService.DEFAULT_MAX_RESULTS, 10, 100000, 50));
 	private final JCheckBox sameSexCheck = new JCheckBox("Same sex only", true);
 	private final JCheckBox skipExistingCheck = new JCheckBox("Skip existing hypotheses", true);
-	private final JLabel statusLabel = new JLabel(" ");
+	private final JLabel statusLabel = new JLabel(StringUtils.SPACE);
 	private final JTextArea detailsArea = new JTextArea();
 
 	private List<DuplicateFinderService.Candidate> allCandidates = List.of();
@@ -295,9 +296,10 @@ public final class DuplicateFinderDialog extends JDialog{
 	private void updateDetails(){
 		final DuplicateFinderService.Candidate c = selectedCandidate();
 		if(c == null){
-			detailsArea.setText("");
+			detailsArea.setText(StringUtils.EMPTY);
 			return;
 		}
+
 		final StringBuilder sb = new StringBuilder();
 		sb.append("Score: ").append(c.score()).append("\n\n");
 		sb.append("Left:  ").append(c.left().displayName())
@@ -373,7 +375,7 @@ public final class DuplicateFinderDialog extends JDialog{
 				case 2 -> c.right().displayName() + " [" + c.right().id() + "]";
 				case 3 -> summarizeMatches(c);
 				case 4 -> String.join(", ", c.differences());
-				default -> "";
+				default -> StringUtils.EMPTY;
 			};
 		}
 

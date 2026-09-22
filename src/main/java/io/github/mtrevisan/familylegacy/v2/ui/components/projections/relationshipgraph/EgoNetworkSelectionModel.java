@@ -80,9 +80,11 @@ class EgoNetworkSelectionModel{
 	public void applySelection(final Map<EgoNode, JPanel> nodeToPanelMap, final Map<FLEFRecord, JPanel> groupToPanelMap){
 		for(final Map.Entry<EgoNode, JPanel> entry : nodeToPanelMap.entrySet()){
 			final EgoNode node = entry.getKey();
-			final boolean isSelected = (selectedIndividualId != null && selectedIndividualId.equals(node.getEgoId()));
+			final String nodeIndividualId = node.getEgoId();
+			final boolean isSelected = (selectedIndividualId != null && selectedIndividualId.equals(nodeIndividualId));
 			applyIndividualSelectionToPanel(entry.getValue(), isSelected);
 		}
+
 		for(final Map.Entry<FLEFRecord, JPanel> entry : groupToPanelMap.entrySet()){
 			final FLEFRecord group = entry.getKey();
 			final boolean isSelected = (selectedGroupId != null && selectedGroupId.equals(group.getId()));
@@ -125,7 +127,7 @@ class EgoNetworkSelectionModel{
 	}
 
 	private Map<String, Rectangle> collectVisibleBounds(final Map<EgoNode, JPanel> nodeToPanelMap,
-			final Map<FLEFRecord, JPanel> groupToPanelMap){
+		final Map<FLEFRecord, JPanel> groupToPanelMap){
 		final Map<String, Rectangle> result = new LinkedHashMap<>();
 		for(final Map.Entry<EgoNode, JPanel> entry : nodeToPanelMap.entrySet()){
 			final String id = entry.getKey().getEgoId();

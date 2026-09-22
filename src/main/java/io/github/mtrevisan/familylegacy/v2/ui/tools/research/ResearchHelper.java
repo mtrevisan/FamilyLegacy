@@ -358,8 +358,8 @@ public final class ResearchHelper{
 			if(id != null)
 				candidates.add(id);
 		}
-		final String first = (candidates.size() > 0? candidates.get(0): "");
-		final String second = (candidates.size() > 1? candidates.get(1): "");
+		final String first = (candidates.size() > 0? candidates.get(0): StringUtils.EMPTY);
+		final String second = (candidates.size() > 1? candidates.get(1): StringUtils.EMPTY);
 		final String firstLabel = (StringUtils.isNotEmpty(first)? IndividualHandler.getInstance().getDisplayText(model.getRecordById(first), model): first);
 		final String secondLabel = (StringUtils.isNotEmpty(second)? IndividualHandler.getInstance().getDisplayText(model.getRecordById(second), model): first);
 		return new IdentityRow(hypothesis.getId(), firstLabel, secondLabel, identityComment(hypothesis));

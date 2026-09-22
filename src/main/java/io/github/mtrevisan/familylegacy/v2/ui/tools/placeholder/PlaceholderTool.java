@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.tools.placeholder;
 
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolOperation;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JOptionPane;
 import java.util.Objects;
@@ -58,7 +59,7 @@ public final class PlaceholderTool implements ToolOperation{
 	@Override
 	public void run(final ToolContext context){
 		JOptionPane.showMessageDialog(context.owner(),
-			"\"" + name.replace("…", "").trim() + "\" is not implemented yet.",
+			"\"" + name.replace("…", StringUtils.EMPTY).trim() + "\" is not implemented yet.",
 			"Feature Not Available",
 			JOptionPane.INFORMATION_MESSAGE);
 	}

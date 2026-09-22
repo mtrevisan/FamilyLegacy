@@ -27,8 +27,10 @@ package io.github.mtrevisan.familylegacy.v2.ui.tools.individuals;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.RecordSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.tools.ReportDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolDialogs;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -69,7 +71,7 @@ public final class LinkExistingIndividualDialog extends JDialog{
 	private final JTextField subjectField = new JTextField(24);
 	private final JTextField targetField = new JTextField(24);
 	private final JComboBox<String> typeCombo = new JComboBox<>();
-	private final JLabel previewLabel = new JLabel(" ");
+	private final JLabel previewLabel = new JLabel(StringUtils.SPACE);
 
 	private FLEFRecord subject;
 	private FLEFRecord target;
@@ -195,12 +197,12 @@ public final class LinkExistingIndividualDialog extends JDialog{
 
 	private void updatePreview(){
 		if(subject == null || target == null){
-			previewLabel.setText(" ");
+			previewLabel.setText(StringUtils.SPACE);
 			return;
 		}
 		final String type = (String)typeCombo.getSelectedItem();
 		if(type == null){
-			previewLabel.setText(" ");
+			previewLabel.setText(StringUtils.SPACE);
 			return;
 		}
 		previewLabel.setText("<html><i>"
@@ -233,9 +235,7 @@ public final class LinkExistingIndividualDialog extends JDialog{
 	}
 
 	private static String escape(final String s){
-		if(s == null)
-			return "";
-		return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
+		return ReportDialog.escape(s);
 	}
 
 }

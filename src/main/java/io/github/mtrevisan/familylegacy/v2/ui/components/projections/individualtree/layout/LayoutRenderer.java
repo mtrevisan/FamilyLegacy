@@ -22,54 +22,46 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree;
+package io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.layout;
 
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.TreeNode;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.partners.PartnersPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.siblings.SiblingsPanel;
 
+import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import java.awt.Component;
-import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.geom.Path2D;
 import java.util.Map;
 
 
-/**
- * Utility class for pre-building and rendering genealogical tree connections.
- */
-final class TreeRenderer{
+public final class LayoutRenderer{
 
-	private TreeRenderer(){}
+	private LayoutRenderer(){}
 
-
-	/**
-	 * Renders a pre-built path for high-performance painting.
-	 */
-	public static void drawTree(final Graphics2D g2, final Path2D path){
-		if(path != null)
-			g2.draw(path);
-	}
 
 	/**
 	 * Builds a cached {@link Path2D} containing all connection lines for the tree.
 	 */
 	public static Path2D buildTreePath(final TreeLayout treeLayout, final TreeNode rootNode,
-			final Map<TreeNode, PartnersPanel> nodeToPanelMap, final SiblingsPanel childrenPanel,
-			final Component container){
-		if(rootNode == null)
-			return new Path2D.Double();
-
+			final Map<TreeNode, PartnersPanel> nodeToPanelMap, final SiblingsPanel childrenPanel, final JPanel canvas){
 		final Path2D path = new Path2D.Double();
-		buildTreeConnectionsRecursive(path, treeLayout, rootNode, nodeToPanelMap, container);
-		if(childrenPanel != null && !childrenPanel.getSiblingBoxes().isEmpty())
-			buildChildrenConnections(path, treeLayout, rootNode, nodeToPanelMap, childrenPanel, container);
+		if(rootNode == null || nodeToPanelMap.isEmpty())
+			return path;
+
+		buildTreeConnections(path, treeLayout, rootNode, nodeToPanelMap, canvas);
+		if(childrenPanel != null && !childrenPanel.getSiblingBoxes().isEmpty()){
+			final PartnersPanel homePanel = nodeToPanelMap.get(rootNode);
+			if(homePanel != null)
+				buildChildrenConnections(path, treeLayout, homePanel, childrenPanel, canvas);
+		}
 
 		return path;
 	}
 
-	private static void buildTreeConnectionsRecursive(final Path2D path, final TreeLayout treeLayout,
-		final TreeNode node, final Map<TreeNode, PartnersPanel> nodeToPanelMap, final Component container){
+	private static void buildTreeConnections(final Path2D path, final TreeLayout treeLayout, final TreeNode node,
+			final Map<TreeNode, PartnersPanel> nodeToPanelMap, final Component container){
 		if(node == null)
 			return;
 
@@ -82,7 +74,7 @@ final class TreeRenderer{
 				final Point enter = SwingUtilities.convertPoint(nodePanel, nodePanel.getPaintingFatherEnterPoint(), container);
 				connectParentToChild(path, treeLayout, fatherPanel, enter, container);
 			}
-			buildTreeConnectionsRecursive(path, treeLayout, father, nodeToPanelMap, container);
+			buildTreeConnections(path, treeLayout, father, nodeToPanelMap, container);
 		}
 
 		final TreeNode mother = node.getMother();
@@ -92,7 +84,7 @@ final class TreeRenderer{
 				final Point enter = SwingUtilities.convertPoint(nodePanel, nodePanel.getPaintingMotherEnterPoint(), container);
 				connectParentToChild(path, treeLayout, motherPanel, enter, container);
 			}
-			buildTreeConnectionsRecursive(path, treeLayout, mother, nodeToPanelMap, container);
+			buildTreeConnections(path, treeLayout, mother, nodeToPanelMap, container);
 		}
 	}
 
@@ -106,12 +98,8 @@ final class TreeRenderer{
 
 			path.moveTo(parentExit.x, parentExit.y);
 			path.lineTo(parentExit.x, midY);
-
-			path.moveTo(childEnterPoint.x, childEnterPoint.y);
 			path.lineTo(childEnterPoint.x, midY);
-
-			path.moveTo(parentExit.x, midY);
-			path.lineTo(childEnterPoint.x, midY);
+			path.lineTo(childEnterPoint.x, childEnterPoint.y);
 		}
 		else{
 			path.moveTo(parentExit.x, parentExit.y);
@@ -121,12 +109,7 @@ final class TreeRenderer{
 	}
 
 	private static void buildChildrenConnections(final Path2D path, final TreeLayout treeLayout,
-			final TreeNode rootNode, final Map<TreeNode, PartnersPanel> nodeToPanelMap,
-			final SiblingsPanel childrenPanel, final Component container){
-		final PartnersPanel homePanel = nodeToPanelMap.get(rootNode);
-		if(homePanel == null)
-			return;
-
+			final PartnersPanel homePanel, final SiblingsPanel childrenPanel, final Component container){
 		Point homeExit = homePanel.getPaintingExitPoint();
 		homeExit = SwingUtilities.convertPoint(homePanel, homeExit, container);
 

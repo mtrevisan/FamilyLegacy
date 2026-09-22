@@ -33,6 +33,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.IdentityHypothesisHandler
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualAttributeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
+import org.apache.commons.lang3.StringUtils;
 
 import java.text.Normalizer;
 import java.util.ArrayList;
@@ -360,7 +361,7 @@ public final class DuplicateFinderService{
 			final String type = FLEFRecordHelper.getChildValue(attr, "type");
 			final String value = FLEFRecordHelper.getChildValue(attr, "value");
 			if(type != null)
-				attributeKeys.add(type + ":" + (value != null? normalize(value): ""));
+				attributeKeys.add(type + ":" + (value != null? normalize(value): StringUtils.EMPTY));
 		}
 
 		// Sources: from the individual itself, from its events, and from
@@ -461,12 +462,13 @@ public final class DuplicateFinderService{
 	 */
 	private static String normalize(final String text){
 		if(text == null)
-			return "";
+			return StringUtils.EMPTY;
+
 		String s = text.toLowerCase(Locale.ROOT);
 		s = Normalizer.normalize(s, Normalizer.Form.NFD);
-		s = s.replaceAll("\\p{M}+", "");
-		s = s.replaceAll("[\\p{Punct}]+", " ");
-		s = s.replaceAll("\\s+", " ").trim();
+		s = s.replaceAll("\\p{M}+", StringUtils.EMPTY);
+		s = s.replaceAll("[\\p{Punct}]+", StringUtils.SPACE);
+		s = s.replaceAll("\\s+", StringUtils.SPACE).trim();
 		return s;
 	}
 

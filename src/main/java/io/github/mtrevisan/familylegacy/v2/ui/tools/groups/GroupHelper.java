@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -107,7 +108,7 @@ public final class GroupHelper{
 	 */
 	public static String displayName(final FLEFRecord group){
 		if(group == null)
-			return "";
+			return StringUtils.EMPTY;
 		for(final FLEFRecord child : group.getChildren()){
 			if(!TAG_NAME.equalsIgnoreCase(child.getTag()))
 				continue;
@@ -118,7 +119,7 @@ public final class GroupHelper{
 			if(onlyChild != null && onlyChild.getValue() != null && !onlyChild.getValue().isBlank())
 				return onlyChild.getValue();
 		}
-		return group.getId() != null? group.getId(): "";
+		return (group.getId() != null? group.getId(): StringUtils.EMPTY);
 	}
 
 	/** Returns the type of a group, or {@code null} when missing. */

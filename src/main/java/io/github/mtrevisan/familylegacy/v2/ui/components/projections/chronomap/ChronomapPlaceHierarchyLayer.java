@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceRelationshipHandler;
+import org.apache.commons.lang3.StringUtils;
 import org.jxmapviewer.JXMapViewer;
 import org.jxmapviewer.viewer.GeoPosition;
 
@@ -173,7 +174,7 @@ public final class ChronomapPlaceHierarchyLayer implements ChronomapLayer{
 				continue;
 
 			final String type = FLEFRecordHelper.getChildValue(rel, TAG_TYPE);
-			result.add(new Edge(s.coordinate(), t.coordinate(), (type != null? type: "")));
+			result.add(new Edge(s.coordinate(), t.coordinate(), (type != null? type: StringUtils.EMPTY)));
 		}
 		return result;
 	}

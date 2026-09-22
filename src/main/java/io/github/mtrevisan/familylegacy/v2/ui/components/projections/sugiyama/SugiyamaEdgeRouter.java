@@ -142,14 +142,16 @@ public final class SugiyamaEdgeRouter{
 			}
 			final int barY = (topY + botY) / 2;
 
-			g2.drawLine(minCx, barY, maxCx, barY);
+			g2.drawLine(minCx, barY,
+				maxCx, barY);
 
 			for(int i = 0; i < parentBoxes.size(); i ++){
 				final Rectangle r = parentBoxes.get(i);
 				final int cx = r.x + r.width / 2;
 				final int cy = r.y + r.height;
 				if(cy < barY)
-					g2.drawLine(cx, cy, cx, barY);
+					g2.drawLine(cx, cy,
+						cx, barY);
 			}
 
 			for(int i = 0; i < childBoxes.size(); i ++){
@@ -157,7 +159,8 @@ public final class SugiyamaEdgeRouter{
 				final int cx = r.x + r.width / 2;
 				final int cy = r.y;
 				if(barY < cy)
-					g2.drawLine(cx, barY, cx, cy);
+					g2.drawLine(cx, barY,
+						cx, cy);
 			}
 		}
 	}
@@ -175,7 +178,8 @@ public final class SugiyamaEdgeRouter{
 			final int cx = r.x + r.width / 2;
 			final int cy = r.y + r.height / 2;
 			if(prevX != Integer.MIN_VALUE)
-				g2.drawLine(prevX, prevY, cx, cy);
+				g2.drawLine(prevX, prevY,
+					cx, cy);
 
 			prevX = cx;
 			prevY = cy;
@@ -188,7 +192,8 @@ public final class SugiyamaEdgeRouter{
 			final int cx = r.x + r.width / 2;
 			final int cy = r.y + r.height / 2;
 			if(prevX != Integer.MIN_VALUE)
-				g2.drawLine(prevX, prevY, cx, cy);
+				g2.drawLine(prevX, prevY,
+					cx, cy);
 
 			prevX = cx;
 			prevY = cy;

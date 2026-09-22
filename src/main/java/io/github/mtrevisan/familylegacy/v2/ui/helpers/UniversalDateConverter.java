@@ -89,8 +89,8 @@ public final class UniversalDateConverter{
 	};
 
 	private static PatternMatch createPattern(final String pattern,
-		final ParsedGenealogicalDate.DatePrecision precision, final boolean hasDay, final boolean hasMonth,
-		final boolean hasYear) {
+			final ParsedGenealogicalDate.DatePrecision precision, final boolean hasDay, final boolean hasMonth,
+			final boolean hasYear){
 		final DateTimeFormatter dtf = new DateTimeFormatterBuilder()
 			.parseCaseInsensitive()
 			.appendPattern(pattern)

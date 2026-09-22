@@ -71,9 +71,9 @@ import java.util.function.Supplier;
  * is provided through suppliers and consumers, so the listener stays
  * testable and the panel stays focused on composition.
  */
-public final class IndividualTreeListener implements IndividualListener{
+public final class IndividualTreeGraphListener implements IndividualListener{
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(IndividualTreeListener.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(IndividualTreeGraphListener.class);
 
 
 	private final FLEFModel model;
@@ -88,7 +88,7 @@ public final class IndividualTreeListener implements IndividualListener{
 	private final Consumer<String> onSelectionChanged;
 
 
-	public IndividualTreeListener(final FLEFModel model, final TreeService treeService, final TreeMutator treeMutator,
+	public IndividualTreeGraphListener(final FLEFModel model, final TreeService treeService, final TreeMutator treeMutator,
 			final IndividualDialogProvider dialogProvider, final RelationshipOperationCoordinator operationCoordinator,
 			final Component component, final Supplier<String> currentRootId,
 			final Supplier<Map<TreeNode, PartnersPanel>> nodeToPanelMapSupplier,
@@ -133,7 +133,7 @@ public final class IndividualTreeListener implements IndividualListener{
 	}
 
 	@Override
-	public void onEntitySelected(final FLEFRecord individual){
+	public void onRootEntitySelected(final FLEFRecord individual){
 		if(individual == null || individual.getId() == null)
 			return;
 
@@ -202,7 +202,7 @@ public final class IndividualTreeListener implements IndividualListener{
 			return;
 
 		performChildRelationOperation(child, targetFather, targetMother, false, currentRootId.get());
-		onEntitySelected(targetFather != null? targetFather: targetMother);
+		onRootEntitySelected(targetFather != null? targetFather: targetMother);
 	}
 
 

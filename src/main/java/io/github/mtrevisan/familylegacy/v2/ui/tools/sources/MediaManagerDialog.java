@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ReportDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolDialogs;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
@@ -215,7 +216,7 @@ public final class MediaManagerDialog extends JDialog{
 	private void rebuildGrid(){
 		listModel.clear();
 		final String needle = searchField.getText() == null
-			? ""
+			? StringUtils.EMPTY
 			: searchField.getText().trim().toLowerCase(Locale.ROOT);
 
 		final List<FLEFRecord> filtered = new ArrayList<>();
@@ -300,8 +301,8 @@ public final class MediaManagerDialog extends JDialog{
 	private class DocumentTileCellRenderer extends DefaultListCellRenderer{
 
 		private final JPanel tile = new JPanel(new BorderLayout(4, 4));
-		private final JLabel imageLabel = new JLabel("", JLabel.CENTER);
-		private final JLabel captionLabel = new JLabel("", JLabel.CENTER);
+		private final JLabel imageLabel = new JLabel(StringUtils.EMPTY, JLabel.CENTER);
+		private final JLabel captionLabel = new JLabel(StringUtils.EMPTY, JLabel.CENTER);
 
 		public DocumentTileCellRenderer(){
 			tile.setPreferredSize(new Dimension(TILE_WIDTH, TILE_HEIGHT));

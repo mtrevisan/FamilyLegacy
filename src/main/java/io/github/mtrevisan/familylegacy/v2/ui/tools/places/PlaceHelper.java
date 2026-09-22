@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceRelationshipHandler;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -80,7 +81,7 @@ public final class PlaceHelper{
 	 */
 	public static String displayName(final FLEFRecord place){
 		if(place == null)
-			return "";
+			return StringUtils.EMPTY;
 		for(final FLEFRecord child : place.getChildren()){
 			if(!TAG_NAME.equalsIgnoreCase(child.getTag()))
 				continue;
@@ -91,7 +92,7 @@ public final class PlaceHelper{
 			if(onlyChild != null && onlyChild.getValue() != null && !onlyChild.getValue().isBlank())
 				return onlyChild.getValue();
 		}
-		return place.getId() != null? place.getId(): "";
+		return place.getId() != null? place.getId(): StringUtils.EMPTY;
 	}
 
 	/** Returns the type of a place, or {@code null} when missing. */
@@ -174,7 +175,7 @@ public final class PlaceHelper{
 
 	private static String join(final List<String> values){
 		if(values.isEmpty())
-			return "";
+			return StringUtils.EMPTY;
 		if(values.size() <= 3)
 			return String.join(", ", values);
 		return values.get(0) + ", " + values.get(1) + ", " + values.get(2)

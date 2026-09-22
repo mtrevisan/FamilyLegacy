@@ -730,7 +730,7 @@ public final class MultiLifespanStripPanel extends JPanel{
 							sb.append("from ").append(escape(formatDate(a.fromJdn())));
 						if(a.hasTo()){
 							if(a.hasFrom())
-								sb.append(" ");
+								sb.append(StringUtils.SPACE);
 							sb.append("until ").append(escape(formatDate(a.toJdn())));
 						}
 					}
@@ -846,7 +846,8 @@ public final class MultiLifespanStripPanel extends JPanel{
 				if(x < contentBounds.x || x > contentBounds.x + contentBounds.width)
 					continue;
 				g2.setColor(AXIS_LINE);
-				g2.drawLine(x, AXIS_HEIGHT - 5, x, AXIS_HEIGHT);
+				g2.drawLine(x, AXIS_HEIGHT - 5,
+					x, AXIS_HEIGHT);
 				g2.setColor(AXIS_LABEL);
 				final int tw = fm.stringWidth(tick.label());
 				g2.drawString(tick.label(), x - tw / 2, fm.getAscent() + 1);
@@ -896,7 +897,8 @@ public final class MultiLifespanStripPanel extends JPanel{
 				g2.setStroke(new BasicStroke(1f));
 				for(final TemporalAxis.Tick tick : axis.computeTicks()){
 					final int x = contentBounds.x + tick.x();
-					g2.drawLine(x, y, x, y + ROW_HEIGHT);
+					g2.drawLine(x, y,
+						x, y + ROW_HEIGHT);
 				}
 
 				// Attribute bands, above the lifespan bar.

@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolDialogs;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -68,7 +69,7 @@ public final class SourceManagementDialog extends JDialog{
 	private final SourceTableModel tableModel = new SourceTableModel();
 	private final JTable table = new JTable(tableModel);
 	private final JTextField searchField = new JTextField(24);
-	private final JLabel statusLabel = new JLabel(" ");
+	private final JLabel statusLabel = new JLabel(StringUtils.SPACE);
 
 
 	public SourceManagementDialog(final ToolContext context){
@@ -263,7 +264,7 @@ public final class SourceManagementDialog extends JDialog{
 				case 2 -> row.publisher();
 				case 3 -> row.mediaType();
 				case 4 -> row.citationCount();
-				default -> "";
+				default -> StringUtils.EMPTY;
 			};
 		}
 	}

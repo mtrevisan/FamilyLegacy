@@ -63,12 +63,12 @@ public final class TreeSelectionController{
 	private SiblingsPanel childrenPanel;
 
 	private final Consumer<String> onSelectionChanged;
-	private final Consumer<String> onConfirmed;
+	private final Consumer<String> onRootConfirmed;
 
 
-	public TreeSelectionController(final Consumer<String> onSelectionChanged, final Consumer<String> onConfirmed){
+	public TreeSelectionController(final Consumer<String> onSelectionChanged, final Consumer<String> onRootConfirmed){
 		this.onSelectionChanged = onSelectionChanged;
-		this.onConfirmed = onConfirmed;
+		this.onRootConfirmed = onRootConfirmed;
 	}
 
 
@@ -184,8 +184,9 @@ public final class TreeSelectionController{
 	public void confirm(){
 		if(selectedId == null)
 			return;
-		if(onConfirmed != null)
-			onConfirmed.accept(selectedId);
+
+		if(onRootConfirmed != null)
+			onRootConfirmed.accept(selectedId);
 	}
 
 }

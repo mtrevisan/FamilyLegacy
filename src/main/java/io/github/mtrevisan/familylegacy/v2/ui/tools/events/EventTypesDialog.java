@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ReportDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolDialogs;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -71,7 +72,7 @@ public final class EventTypesDialog extends JDialog{
 	private final TypeTableModel tableModel = new TypeTableModel();
 	private final JTable table = new JTable(tableModel);
 	private final JTextField searchField = new JTextField(20);
-	private final JLabel statusLabel = new JLabel(" ");
+	private final JLabel statusLabel = new JLabel(StringUtils.SPACE);
 
 
 	public EventTypesDialog(final ToolContext context){
@@ -204,11 +205,11 @@ public final class EventTypesDialog extends JDialog{
 			body.append("<tr>");
 			body.append("<td>").append(ReportDialog.escape(event.getId())).append("</td>");
 			final String date = EventHelper.eventDateRaw(event);
-			body.append("<td>").append(ReportDialog.escape(date != null? date: "")).append("</td>");
+			body.append("<td>").append(ReportDialog.escape(date != null? date: StringUtils.EMPTY)).append("</td>");
 			final String placeId = EventHelper.eventPlaceId(event);
-			body.append("<td>").append(ReportDialog.escape(placeId != null? placeId: "")).append("</td>");
+			body.append("<td>").append(ReportDialog.escape(placeId != null? placeId: StringUtils.EMPTY)).append("</td>");
 			final String desc = EventHelper.eventDescription(event);
-			body.append("<td>").append(ReportDialog.escape(desc != null? desc: "")).append("</td>");
+			body.append("<td>").append(ReportDialog.escape(desc != null? desc: StringUtils.EMPTY)).append("</td>");
 			body.append("</tr>");
 		}
 		body.append("</table>");
@@ -254,7 +255,7 @@ public final class EventTypesDialog extends JDialog{
 				case 0 -> row.type();
 				case 1 -> row.eventCount();
 				case 2 -> row.declared()? "yes": "custom";
-				default -> "";
+				default -> StringUtils.EMPTY;
 			};
 		}
 	}

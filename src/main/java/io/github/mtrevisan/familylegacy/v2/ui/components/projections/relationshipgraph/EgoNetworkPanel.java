@@ -34,7 +34,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.projections.group.Group
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualListener;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.TreeChangeListener;
-import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.TreeLayout;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.layout.TreeLayout;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.services.CollapsibleBar;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.services.relationship.UnlinkRelationshipsDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.partners.PartnersPanel;
@@ -161,7 +161,7 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener, Indiv
 	private Consumer<String> groupSelectionCallback;
 	/** Optional callback invoked whenever the ego changes due to user navigation. */
 	private Consumer<String> navigationCallback;
-	/** When {@code true}, {@link #loadNetwork(String)} does not notify the navigation callback. */
+	/** When {@code true}, {@link #load(String)} does not notify the navigation callback. */
 	private boolean suppressNavigationNotification;
 
 
@@ -209,7 +209,7 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener, Indiv
 	}
 
 
-	public void loadNetwork(final String egoId){
+	public void load(final String egoId){
 		currentEgoId = egoId;
 		selectionModel.clearSelection();
 
@@ -399,7 +399,7 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener, Indiv
 
 	@Override
 	public void onTreeStructureChanged(final String rootEntityId){
-		SwingUtilities.invokeLater(() -> loadNetwork(rootEntityId));
+		SwingUtilities.invokeLater(() -> load(rootEntityId));
 	}
 
 	@Override
@@ -438,7 +438,7 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener, Indiv
 	}
 
 	@Override
-	public void onEntitySelected(final FLEFRecord record){
+	public void onRootEntitySelected(final FLEFRecord record){
 		if(record == null || record.getId() == null)
 			return;
 
@@ -611,14 +611,13 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener, Indiv
 	 * selected entity, and the navigation is pushed into the history.
 	 * When nothing is selected, the call is a no-op.
 	 */
-	public void confirmSelection(){
-		final String id = selectionModel.getSelectedEntityId();
-		if(id == null)
+	public void egoConfirmSelection(final String selectedId){
+		if(selectedId == null)
 			return;
 
-		final FLEFRecord record = model.getRecordById(id);
+		final FLEFRecord record = model.getRecordById(selectedId);
 		if(record != null)
-			onEntitySelected(record);
+			onRootEntitySelected(record);
 	}
 
 	public void setupLayoutShortcut(final JComponent component){
@@ -671,7 +670,7 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener, Indiv
 	public void navigateTo(final String egoId){
 		suppressNavigationNotification = true;
 		try{
-			loadNetwork(egoId);
+			load(egoId);
 		}
 		finally{
 			suppressNavigationNotification = false;
@@ -699,7 +698,7 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener, Indiv
 
 		SwingUtilities.invokeLater(() -> {
 			final EgoNetworkPanel panel = new EgoNetworkPanel(TreeLayout.VERTICAL, model);
-			panel.loadNetwork(individualId);
+			panel.load(individualId);
 
 			final JFrame frame = new JFrame("Ego Network View");
 			frame.setLayout(new BorderLayout());

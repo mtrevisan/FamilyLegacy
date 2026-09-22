@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolDialogs;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -71,7 +72,7 @@ public final class ResearchLogDialog extends JDialog{
 	private final LogTableModel tableModel = new LogTableModel();
 	private final JTable table = new JTable(tableModel);
 	private final JTextField searchField = new JTextField(24);
-	private final JLabel statusLabel = new JLabel(" ");
+	private final JLabel statusLabel = new JLabel(StringUtils.SPACE);
 
 
 	public ResearchLogDialog(final ToolContext context){
@@ -157,7 +158,7 @@ public final class ResearchLogDialog extends JDialog{
 		// is deterministic and does not require a date.
 		rows.sort(Comparator
 			.comparingInt((LogRow r) -> statusOrder(r.status()))
-			.thenComparing(r -> r.question() != null? r.question(): ""));
+			.thenComparing(r -> r.question() != null? r.question(): StringUtils.EMPTY));
 
 		tableModel.setRows(rows);
 		updateStatus(rows.size());
@@ -241,7 +242,7 @@ public final class ResearchLogDialog extends JDialog{
 				case 2 -> row.status();
 				case 3 -> row.action();
 				case 4 -> row.result();
-				default -> "";
+				default -> StringUtils.EMPTY;
 			};
 		}
 	}

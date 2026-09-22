@@ -84,7 +84,7 @@ public final class TreeContextHelper{
 		}
 
 		public static Context forPartner(final FLEFRecord individual, final PartnersPanel panel, final Side side,
-			final List<String> childrenId, final String targetId){
+				final List<String> childrenId, final String targetId){
 			return new Context(Type.PARENT, individual, panel, side, childrenId, targetId);
 		}
 

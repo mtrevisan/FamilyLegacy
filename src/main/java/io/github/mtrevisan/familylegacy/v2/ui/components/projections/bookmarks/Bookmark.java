@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.components.projections.bookmarks;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.Map;
 
 
@@ -55,11 +57,11 @@ public record Bookmark(
 		if(id == null || id.isBlank())
 			throw new IllegalArgumentException("Bookmark id must not be blank");
 		if(name == null)
-			name = "";
+			name = StringUtils.EMPTY;
 		if(type == null)
 			throw new IllegalArgumentException("Bookmark type must not be null");
 		if(rootId == null)
-			rootId = "";
+			rootId = StringUtils.EMPTY;
 		properties = (properties != null? Map.copyOf(properties): Map.of());
 	}
 

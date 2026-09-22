@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchTaskHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolDialogs;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -68,7 +69,7 @@ public final class ResearchTasksDialog extends JDialog{
 	private final TaskTableModel tableModel = new TaskTableModel();
 	private final JTable table = new JTable(tableModel);
 	private final JTextField searchField = new JTextField(24);
-	private final JLabel statusLabel = new JLabel(" ");
+	private final JLabel statusLabel = new JLabel(StringUtils.SPACE);
 
 
 	public ResearchTasksDialog(final ToolContext context){
@@ -262,7 +263,7 @@ public final class ResearchTasksDialog extends JDialog{
 				case 2 -> row.status();
 				case 3 -> row.priority();
 				case 4 -> row.dueDate();
-				default -> "";
+				default -> StringUtils.EMPTY;
 			};
 		}
 	}

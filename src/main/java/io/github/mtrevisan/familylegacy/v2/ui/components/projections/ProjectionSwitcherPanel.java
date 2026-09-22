@@ -26,14 +26,13 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.projections;
 
 import io.github.mtrevisan.familylegacy.v2.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.IndividualTreePanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.TreeLayout;
-import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.TreeService;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.IndividualTreeGraphPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.TreeType;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.layout.GraphLayoutEngine;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.layout.TreeLayout;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.layout.TreeLayoutEngine;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.relationshipgraph.EgoNetworkPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.projections.sugiyama.SugiyamaGraphPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
-import org.apache.commons.lang3.ArrayUtils;
 
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
@@ -56,10 +55,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serial;
 import java.nio.charset.StandardCharsets;
-import java.util.Locale;
 import java.util.Objects;
 import java.util.function.Consumer;
-import java.util.function.Predicate;
 
 
 /**
@@ -98,8 +95,6 @@ public final class ProjectionSwitcherPanel extends JPanel{
 
 	/** Default generation depth used when loading the tree or the graph. */
 	private static final int DEFAULT_MAX_ANCESTORS = 2;
-	/** Default descendant depth used when loading the Sugiyama graph. */
-	private static final int DEFAULT_MAX_DESCENDANTS = 2;
 
 	/** Background color of the container. Matches the Sugiyama canvas. */
 	private static final Color BACKGROUND = new Color(250, 249, 245);
@@ -108,10 +103,11 @@ public final class ProjectionSwitcherPanel extends JPanel{
 	private static final String ACTION_PROJECTION_TREE = "projectionTree";
 	private static final String ACTION_PROJECTION_SUGIYAMA = "projectionSugiyama";
 	private static final String ACTION_PROJECTION_EGO = "projectionEgo";
+	private static final TreeLayoutEngine TREE_LAYOUT_ENGINE = new TreeLayoutEngine();
+	private static final GraphLayoutEngine GRAPH_LAYOUT_ENGINE = new GraphLayoutEngine();
 
 
-	private final IndividualTreePanel treePanel;
-	private final SugiyamaGraphPanel graphPanel;
+	private final IndividualTreeGraphPanel treeGraphPanel;
 	private final EgoNetworkPanel egoPanel;
 
 	/** Shared browser-style navigation history across the three views. */
@@ -137,26 +133,19 @@ public final class ProjectionSwitcherPanel extends JPanel{
 		if(model == null)
 			throw new IllegalArgumentException("Model must not be null");
 
-		final TreeType treeType = TreeType.BIOLOGICAL;
-		final String[] relationshipTypes = IndividualTreePanel.computeAllowedRelationshipTypes(treeType);
-		final Predicate<String> relationshipTypeFilter = type -> ArrayUtils.contains(relationshipTypes,
-			type.toLowerCase(Locale.ROOT));
-		final TreeService treeService = new TreeService(relationshipTypeFilter, model);
-
-		this.treePanel = new IndividualTreePanel(treeType, TreeLayout.VERTICAL, model)
+		this.treeGraphPanel = new IndividualTreeGraphPanel(TreeType.BIOLOGICAL, TreeLayout.VERTICAL, TREE_LAYOUT_ENGINE,
+				model)
 			.withShowPartner();
-		this.graphPanel = new SugiyamaGraphPanel(model, treeService);
 		this.egoPanel = new EgoNetworkPanel(TreeLayout.VERTICAL, model);
 
 		setOpaque(true);
 		setBackground(BACKGROUND);
 
 		setLayout(new BorderLayout());
-		currentPanel = treePanel;
-		add(treePanel, BorderLayout.CENTER);
+		currentPanel = treeGraphPanel;
+		add(treeGraphPanel, BorderLayout.CENTER);
 
-		treePanel.withNavigationCallback(navigationHistory::push);
-		graphPanel.withNavigationCallback(navigationHistory::push);
+		treeGraphPanel.withNavigationCallback(navigationHistory::push);
 		egoPanel.withNavigationCallback(navigationHistory::push);
 
 		setupSwitchShortcut(this);
@@ -183,12 +172,10 @@ public final class ProjectionSwitcherPanel extends JPanel{
 		if(individualId == null)
 			return;
 
-		if(currentPanel == treePanel)
-			treePanel.loadTree(individualId, DEFAULT_MAX_ANCESTORS);
-		else if(currentPanel == graphPanel)
-			graphPanel.loadGraph(individualId, DEFAULT_MAX_ANCESTORS, DEFAULT_MAX_DESCENDANTS);
+		if(currentPanel == treeGraphPanel)
+			treeGraphPanel.load(individualId, DEFAULT_MAX_ANCESTORS);
 		else
-			egoPanel.loadNetwork(individualId);
+			egoPanel.load(individualId);
 
 		notifyNavigation(individualId);
 	}
@@ -199,16 +186,13 @@ public final class ProjectionSwitcherPanel extends JPanel{
 	 * @return the active projection type, never {@code null}
 	 */
 	public ProjectionType getCurrentProjectionType(){
-		if(currentPanel == treePanel)
-			return ProjectionType.TREE;
-		if(currentPanel == graphPanel)
-			return ProjectionType.SUGIYAMA;
+		if(currentPanel == treeGraphPanel)
+			return (treeGraphPanel.getLayoutEngine() == TREE_LAYOUT_ENGINE? ProjectionType.TREE: ProjectionType.GRAPH);
 		return ProjectionType.EGO_NETWORK;
 	}
 
 	/**
-	 * Switches to the given projection without loading a new root. When
-	 * the target is already active, the call is a no-op.
+	 * Switches to the given projection and synchronizes the current root.
 	 *
 	 * @param type the projection to activate; must not be {@code null}
 	 */
@@ -217,12 +201,23 @@ public final class ProjectionSwitcherPanel extends JPanel{
 			return;
 
 		final JPanel target = switch(type){
-			case TREE -> treePanel;
-			case SUGIYAMA -> graphPanel;
+			case TREE -> treeGraphPanel;
+			case GRAPH -> treeGraphPanel;
 			case EGO_NETWORK -> egoPanel;
 		};
-		if(target != currentPanel)
+
+		if(target != currentPanel){
+			// Synchronize the target projection's root before swapping
+			final String currentRootId = getSelectedEntityId();
+			if(currentRootId != null){
+				if(target == treeGraphPanel)
+					treeGraphPanel.load(currentRootId, DEFAULT_MAX_ANCESTORS);
+				else if(target == egoPanel)
+					egoPanel.load(currentRootId);
+			}
+
 			swapPanels(target);
+		}
 	}
 
 	/**
@@ -232,8 +227,7 @@ public final class ProjectionSwitcherPanel extends JPanel{
 	 * @param callback the callback; may be {@code null} to remove it
 	 */
 	public void setSelectionCallback(final Consumer<String> callback){
-		treePanel.withSelectionCallback(callback);
-		graphPanel.withSelectionCallback(callback);
+		treeGraphPanel.withSelectionCallback(callback);
 		egoPanel.withSelectionCallback(callback);
 	}
 
@@ -262,10 +256,8 @@ public final class ProjectionSwitcherPanel extends JPanel{
 	 * active projection.
 	 */
 	public void editCurrentSelection(){
-		if(currentPanel == treePanel)
-			treePanel.editCurrentSelection();
-		else if(currentPanel == graphPanel)
-			graphPanel.editCurrentRoot();
+		if(currentPanel == treeGraphPanel)
+			treeGraphPanel.editCurrentSelection();
 		else
 			egoPanel.editCurrentSelection();
 	}
@@ -280,10 +272,8 @@ public final class ProjectionSwitcherPanel extends JPanel{
 		if(direction == null)
 			return;
 
-		if(currentPanel == treePanel)
-			treePanel.moveSelection(direction);
-		else if(currentPanel == graphPanel)
-			graphPanel.moveFocus(direction);
+		if(currentPanel == treeGraphPanel)
+			treeGraphPanel.moveSelection(direction);
 		else
 			egoPanel.moveSelection(direction);
 	}
@@ -293,24 +283,19 @@ public final class ProjectionSwitcherPanel extends JPanel{
 	 * the new root.
 	 */
 	public void confirmSelection(){
-		if(currentPanel == treePanel)
-			treePanel.confirmSelection(getSelectedEntityId());
-		else if(currentPanel == graphPanel)
-			graphPanel.confirmFocus();
+		final String id = getSelectedEntityId();
+		if(currentPanel == treeGraphPanel)
+			treeGraphPanel.rootConfirmSelection(id);
 		else
-			egoPanel.confirmSelection();
+			egoPanel.egoConfirmSelection(id);
 	}
 
 	public JPanel getCurrentPanel(){
 		return currentPanel;
 	}
 
-	public IndividualTreePanel getTreePanel(){
-		return treePanel;
-	}
-
-	public SugiyamaGraphPanel getSugiyamaGraphPanel(){
-		return graphPanel;
+	public IndividualTreeGraphPanel getTreeGraphPanel(){
+		return treeGraphPanel;
 	}
 
 	public EgoNetworkPanel getEgoPanel(){
@@ -332,10 +317,8 @@ public final class ProjectionSwitcherPanel extends JPanel{
 	 * </ul>
 	 */
 	public String getSelectedEntityId(){
-		if(currentPanel == treePanel)
-			return treePanel.getSelectedIndividualId();
-		if(currentPanel == graphPanel)
-			return graphPanel.getSelectedIndividualId();
+		if(currentPanel == treeGraphPanel)
+			return treeGraphPanel.getSelectedIndividualId();
 		return egoPanel.getSelectedEntityId();
 	}
 
@@ -437,7 +420,7 @@ public final class ProjectionSwitcherPanel extends JPanel{
 			ProjectionType.TREE, ACTION_PROJECTION_TREE);
 		bindProjection(inputMap, actionMap,
 			KeyStroke.getKeyStroke(KeyEvent.VK_2, mask),
-			ProjectionType.SUGIYAMA, ACTION_PROJECTION_SUGIYAMA);
+			ProjectionType.GRAPH, ACTION_PROJECTION_SUGIYAMA);
 		bindProjection(inputMap, actionMap,
 			KeyStroke.getKeyStroke(KeyEvent.VK_3, mask),
 			ProjectionType.EGO_NETWORK, ACTION_PROJECTION_EGO);
@@ -463,34 +446,34 @@ public final class ProjectionSwitcherPanel extends JPanel{
 	 * ====================================================================== */
 
 	private void switchProjection(){
-		if(currentPanel == treePanel){
-			final String rootId = treePanel.getRootIndividualId();
-			if(rootId != null)
-				graphPanel.loadGraph(rootId, DEFAULT_MAX_ANCESTORS, DEFAULT_MAX_DESCENDANTS);
+		if(currentPanel == treeGraphPanel){
+			final String rootId = treeGraphPanel.getRootIndividualId();
+			if(rootId == null)
+				return;
 
-			swapPanels(graphPanel);
-		}
-		else if(currentPanel == graphPanel){
-			final String rootId = graphPanel.getRootIndividualId();
-			if(rootId != null)
-				egoPanel.loadNetwork(rootId);
+			if(treeGraphPanel.getLayoutEngine() == TREE_LAYOUT_ENGINE)
+				treeGraphPanel.setLayoutEngine(GRAPH_LAYOUT_ENGINE);
+			else{
+				egoPanel.load(rootId);
 
-			swapPanels(egoPanel);
+				swapPanels(egoPanel);
+			}
 		}
-		else{
+		else if(currentPanel == egoPanel){
 			final String rootId = egoPanel.getCurrentEgoId();
-			if(rootId != null)
-				treePanel.loadTree(rootId, DEFAULT_MAX_ANCESTORS);
+			if(rootId == null)
+				return;
 
-			swapPanels(treePanel);
+			treeGraphPanel.load(rootId, DEFAULT_MAX_ANCESTORS);
+			treeGraphPanel.setLayoutEngine(TREE_LAYOUT_ENGINE);
+
+			swapPanels(treeGraphPanel);
 		}
 	}
 
 	private void navigateCurrentViewTo(final String id){
-		if(currentPanel == treePanel)
-			treePanel.navigateTo(id, DEFAULT_MAX_ANCESTORS);
-		else if(currentPanel == graphPanel)
-			graphPanel.navigateTo(id, DEFAULT_MAX_ANCESTORS, DEFAULT_MAX_DESCENDANTS, true);
+		if(currentPanel == treeGraphPanel)
+			treeGraphPanel.navigateTo(id);
 		else
 			egoPanel.navigateTo(id);
 	}

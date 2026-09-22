@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolDialogs;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -69,7 +70,7 @@ public final class GroupManagementDialog extends JDialog{
 	private final GroupTableModel tableModel = new GroupTableModel();
 	private final JTable table = new JTable(tableModel);
 	private final JTextField searchField = new JTextField(24);
-	private final JLabel statusLabel = new JLabel(" ");
+	private final JLabel statusLabel = new JLabel(StringUtils.SPACE);
 
 
 	public GroupManagementDialog(final ToolContext context){
@@ -271,7 +272,7 @@ public final class GroupManagementDialog extends JDialog{
 				case 3 -> row.childCount();
 				case 4 -> row.parentCount();
 				case 5 -> row.sourceCount();
-				default -> "";
+				default -> StringUtils.EMPTY;
 			};
 		}
 	}

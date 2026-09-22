@@ -120,7 +120,8 @@ public final class TemporalProjectionPanel extends JPanel implements TreeChangeL
 		this.service = new TemporalProjectionService(flefModel);
 		this.layout = new TemporalProjectionLayout();
 		this.toolbar = new TemporalProjectionToolbar(new ToolbarListener());
-		this.zoomController = new TemporalZoomController(() -> axis).withListener(this::onAxisChanged);
+		this.zoomController = new TemporalZoomController(() -> axis)
+			.withListener(this::onAxisChanged);
 
 		this.contentCanvas = new ContentCanvas();
 		this.headerCanvas = new HeaderCanvas();

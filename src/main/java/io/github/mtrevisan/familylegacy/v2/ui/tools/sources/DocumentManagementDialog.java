@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.DocumentHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolDialogs;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
@@ -85,7 +86,7 @@ public final class DocumentManagementDialog extends JDialog{
 	private final DocumentTableModel tableModel = new DocumentTableModel();
 	private final JTable table = new JTable(tableModel);
 	private final JTextField searchField = new JTextField(24);
-	private final JLabel statusLabel = new JLabel(" ");
+	private final JLabel statusLabel = new JLabel(StringUtils.SPACE);
 	private final JLabel previewLabel = new JLabel("Select a document to preview", JLabel.CENTER);
 
 
@@ -244,7 +245,7 @@ public final class DocumentManagementDialog extends JDialog{
 		final String uri = SourceHelper.documentUri(doc);
 		final ImageIcon icon = tryLoadImage(uri);
 		if(icon != null){
-			previewLabel.setText("");
+			previewLabel.setText(StringUtils.EMPTY);
 			previewLabel.setIcon(scaleIcon(icon, PREVIEW_WIDTH, PREVIEW_HEIGHT));
 		}
 		else{
@@ -362,7 +363,7 @@ public final class DocumentManagementDialog extends JDialog{
 				case 1 -> row.description();
 				case 2 -> row.mapping();
 				case 3 -> row.referenceCount();
-				default -> "";
+				default -> StringUtils.EMPTY;
 			};
 		}
 	}

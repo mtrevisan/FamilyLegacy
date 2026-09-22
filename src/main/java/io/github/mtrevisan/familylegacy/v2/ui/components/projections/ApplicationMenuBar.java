@@ -42,6 +42,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.tools.individuals.IndividualToolRe
 import io.github.mtrevisan.familylegacy.v2.ui.tools.places.PlaceToolRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.research.ResearchToolRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.sources.SourceToolRegistry;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JMenu;
@@ -288,7 +289,7 @@ final class ApplicationMenuBar{
 		final JMenu projections = new JMenu("Projection");
 		projections.setMnemonic(KeyEvent.VK_P);
 		projections.add(projectionItem("Ancestor Tree", ProjectionType.TREE, KeyEvent.VK_1));
-		projections.add(projectionItem("Sugiyama Graph", ProjectionType.SUGIYAMA, KeyEvent.VK_2));
+		projections.add(projectionItem("Sugiyama Graph", ProjectionType.GRAPH, KeyEvent.VK_2));
 		projections.add(projectionItem("Ego Network", ProjectionType.EGO_NETWORK, KeyEvent.VK_3));
 		menu.add(projections);
 
@@ -297,17 +298,39 @@ final class ApplicationMenuBar{
 		final JCheckBoxMenuItem fullScreen = new JCheckBoxMenuItem("Full Screen");
 		fullScreen.setMnemonic(KeyEvent.VK_F);
 		fullScreen.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F11, 0));
-		fullScreen.addActionListener(e -> {
-			fullScreen.setSelected(!fullScreen.isSelected());
-			showNotImplemented("Full Screen");
-		});
+		fullScreen.setSelected(frame.isFullScreen());
+		fullScreen.addActionListener(e -> frame.toggleFullScreen());
 		menu.add(fullScreen);
 
 		menu.add(new JSeparator());
-		menu.add(placeholder("Show Toolbar", 0));
-		menu.add(placeholder("Show Status Bar", 0));
-		menu.add(placeholder("Show Sidebar", 0));
-		menu.add(placeholder("Show Minimap", 0));
+
+		final JCheckBoxMenuItem showToolbar = new JCheckBoxMenuItem("Show Toolbar");
+		showToolbar.setMnemonic(KeyEvent.VK_T);
+		showToolbar.setSelected(frame.isToolbarVisible());
+		showToolbar.addActionListener(e -> frame.setToolbarVisible(showToolbar.isSelected()));
+		menu.add(showToolbar);
+
+		final JCheckBoxMenuItem showSidebar = new JCheckBoxMenuItem("Show Sidebar");
+		showSidebar.setMnemonic(KeyEvent.VK_B);
+		showSidebar.setSelected(frame.isSidebarVisible());
+		showSidebar.addActionListener(e -> frame.setSidebarVisible(showSidebar.isSelected()));
+		menu.add(showSidebar);
+
+		// Synchronize checkbox states when the menu is selected
+		menu.addMenuListener(new MenuListener(){
+			@Override
+			public void menuSelected(final MenuEvent e){
+				fullScreen.setSelected(frame.isFullScreen());
+				showToolbar.setSelected(frame.isToolbarVisible());
+				showSidebar.setSelected(frame.isSidebarVisible());
+			}
+
+			@Override
+			public void menuDeselected(final MenuEvent e){}
+
+			@Override
+			public void menuCanceled(final MenuEvent e){}
+		});
 
 		return menu;
 	}
@@ -317,7 +340,7 @@ final class ApplicationMenuBar{
 	 *                          Individual
 	 * ====================================================================== */
 
-	private JMenu createIndividualMenu() {
+	private JMenu createIndividualMenu(){
 		final JMenu menu = new JMenu("Individual");
 		menu.setMnemonic(KeyEvent.VK_I);
 
@@ -797,7 +820,7 @@ final class ApplicationMenuBar{
 	 */
 	private JMenuItem placeholder(final String text, final int mnemonic){
 		final JMenuItem item = new JMenuItem(text, mnemonic);
-		item.addActionListener(e -> showNotImplemented(text.replace("…", "").trim()));
+		item.addActionListener(e -> showNotImplemented(text.replace("…", StringUtils.EMPTY).trim()));
 		return item;
 	}
 
@@ -809,7 +832,7 @@ final class ApplicationMenuBar{
 	private JMenuItem accelerated(final String text, final int keyCode, final int modifiers){
 		final JMenuItem item = new JMenuItem(text);
 		item.setAccelerator(KeyStroke.getKeyStroke(keyCode, menuShortcutMask() | modifiers));
-		item.addActionListener(e -> showNotImplemented(text.replace("…", "").trim()));
+		item.addActionListener(e -> showNotImplemented(text.replace("…", StringUtils.EMPTY).trim()));
 		return item;
 	}
 

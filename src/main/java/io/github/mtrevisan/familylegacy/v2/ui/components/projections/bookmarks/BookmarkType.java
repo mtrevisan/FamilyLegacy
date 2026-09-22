@@ -39,7 +39,7 @@ public enum BookmarkType{
 	TREE("Tree"),
 
 	/** Sugiyama pedigree graph loaded on a root individual. */
-	SUGIYAMA("Sugiyama graph"),
+	GRAPH("Sugiyama graph"),
 
 	/** Ego network loaded on a root individual or group. */
 	EGO_NETWORK("Ego network");

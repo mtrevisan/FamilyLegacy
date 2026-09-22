@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolDialogs;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -248,7 +249,7 @@ public final class AddCitationDialog extends JDialog{
 	}
 
 	private static String describe(final FLEFRecord record){
-		return record.getTag() + " " + record.getId();
+		return record.getTag() + StringUtils.SPACE + record.getId();
 	}
 
 }

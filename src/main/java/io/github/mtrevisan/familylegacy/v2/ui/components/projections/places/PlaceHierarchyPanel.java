@@ -29,6 +29,8 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.tools.ReportDialog;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
 import javax.swing.DefaultComboBoxModel;
@@ -113,7 +115,7 @@ public final class PlaceHierarchyPanel extends JPanel{
 
 	private final JTextField searchField = new JTextField(20);
 	private final JComboBox<String> relationTypeFilter = new JComboBox<>();
-	private final JLabel statusLabel = new JLabel(" ");
+	private final JLabel statusLabel = new JLabel(StringUtils.SPACE);
 
 	private PlaceDetailsPanel detailsPanel;
 
@@ -464,9 +466,10 @@ public final class PlaceHierarchyPanel extends JPanel{
 		void showPlace(final PlaceHierarchyService.PlaceReference place,
 			final PlaceHierarchyService.Hierarchy hierarchy){
 			if(place == null){
-				content.setText("");
+				content.setText(StringUtils.EMPTY);
 				return;
 			}
+
 			final StringBuilder sb = new StringBuilder();
 			sb.append("<html><body style='font-family:SansSerif;font-size:12px;padding:8px'>");
 			sb.append("<h2 style='margin:0 0 6px 0'>").append(escape(place.name())).append("</h2>");
@@ -524,9 +527,7 @@ public final class PlaceHierarchyPanel extends JPanel{
 		}
 
 		private static String escape(final String s){
-			if(s == null)
-				return "";
-			return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
+			return ReportDialog.escape(s);
 		}
 	}
 
@@ -558,7 +559,7 @@ public final class PlaceHierarchyPanel extends JPanel{
 				setIcon(null);
 			}
 			else
-				setText(value != null? value.toString(): "");
+				setText(value != null? value.toString(): StringUtils.EMPTY);
 			return this;
 		}
 
@@ -589,9 +590,7 @@ public final class PlaceHierarchyPanel extends JPanel{
 		}
 
 		private static String escape(final String s){
-			if(s == null)
-				return "";
-			return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
+			return ReportDialog.escape(s);
 		}
 	}
 

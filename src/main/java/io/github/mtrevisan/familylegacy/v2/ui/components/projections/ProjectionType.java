@@ -39,7 +39,7 @@ public enum ProjectionType{
 	TREE("Tree"),
 
 	/** Sugiyama pedigree graph. */
-	SUGIYAMA("Sugiyama graph"),
+	GRAPH("Sugiyama graph"),
 
 	/** Ego-centric network. */
 	EGO_NETWORK("Ego network");

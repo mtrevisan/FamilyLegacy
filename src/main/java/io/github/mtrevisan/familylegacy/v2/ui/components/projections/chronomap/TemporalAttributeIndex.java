@@ -32,6 +32,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.projections.temporal.Te
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupAttributeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualAttributeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -134,10 +135,10 @@ public final class TemporalAttributeIndex{
 
 		final String id = attribute.getId();
 		return new AttributeDatum(
-			(id != null? id: ""),
+			(id != null? id: StringUtils.EMPTY),
 			ownerId,
 			(type != null? type.replace('_', ' '): "attribute"),
-			(value != null? value: ""),
+			(value != null? value: StringUtils.EMPTY),
 			fromJdn, toJdn,
 			(from != null), (to != null),
 			position);

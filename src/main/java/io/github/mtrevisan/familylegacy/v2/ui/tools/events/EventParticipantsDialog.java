@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventParticipationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolDialogs;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -73,7 +74,7 @@ public final class EventParticipantsDialog extends JDialog{
 	private final ParticipationTableModel tableModel = new ParticipationTableModel();
 	private final JTable table = new JTable(tableModel);
 	private final JTextField searchField = new JTextField(24);
-	private final JLabel statusLabel = new JLabel(" ");
+	private final JLabel statusLabel = new JLabel(StringUtils.SPACE);
 
 
 	public EventParticipantsDialog(final ToolContext context){
@@ -170,9 +171,9 @@ public final class EventParticipantsDialog extends JDialog{
 			rows.add(new ParticipationRow(
 				p.participationId(),
 				eventLabel,
-				p.participantType() != null? p.participantType(): "",
-				p.participantId() != null? p.participantId(): "",
-				p.role() != null? p.role(): ""
+				(p.participantType() != null? p.participantType(): StringUtils.EMPTY),
+				(p.participantId() != null? p.participantId(): StringUtils.EMPTY),
+				(p.role() != null? p.role(): StringUtils.EMPTY)
 			));
 		}
 		tableModel.setRows(rows);

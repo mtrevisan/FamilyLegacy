@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolDialogs;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -224,7 +225,7 @@ public final class AddRelativeDialog extends JDialog{
 	private void onConfirm(){
 		if(other == null){
 			JOptionPane.showMessageDialog(this,
-				"Choose or create the " + labelForOther(role).replace(":", "").toLowerCase() + " first.",
+				"Choose or create the " + labelForOther(role).replace(":", StringUtils.EMPTY).toLowerCase() + " first.",
 				titleFor(role), JOptionPane.WARNING_MESSAGE);
 			return;
 		}

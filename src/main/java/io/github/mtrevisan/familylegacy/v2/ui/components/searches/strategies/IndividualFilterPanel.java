@@ -137,7 +137,7 @@ public class IndividualFilterPanel extends JPanel implements RecordFilterPanel{
 	}
 
 	@Override
-	public Map<String, String> getFilters() {
+	public Map<String, String> getFilters(){
 		final Map<String, String> filters = new HashMap<>();
 		filters.put(FILTER_KEY_SEX, getSex());
 		filters.put(FILTER_KEY_EVENT_TYPE, getEventType());

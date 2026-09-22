@@ -323,7 +323,7 @@ public final class GroupDossierService{
 				subtitle.append(place);
 			}
 
-			entries.add(new DossierEntry(label, (value != null? value: ""),
+			entries.add(new DossierEntry(label, (value != null? value: StringUtils.EMPTY),
 				subtitle.toString(), evidenceBadge(attribute), attribute,
 				DossierEntry.Kind.NORMAL, proofStatusFor(attribute)));
 		}
@@ -443,7 +443,7 @@ public final class GroupDossierService{
 			final String locator = FLEFRecordHelper.getChildValue(citation, TAG_LOCATOR);
 			final String label = origin + " source";
 			final String subtitle = (StringUtils.isNotEmpty(locator)
-				? "locator: " + locator: "");
+				? "locator: " + locator: StringUtils.EMPTY);
 
 			entries.add(new DossierEntry(label, title, subtitle,
 				evidenceBadge(citation), source, DossierEntry.Kind.NORMAL,
@@ -487,7 +487,7 @@ public final class GroupDossierService{
 			final String impactType = FLEFRecordHelper.getChildValue(impact, TAG_IMPACT_TYPE);
 			final String rationale = FLEFRecordHelper.getChildValue(impact, TAG_RATIONALE);
 			final String contextTitle = resolveContextTitle(context);
-			final String subtitle = (StringUtils.isNotEmpty(rationale)? rationale: "");
+			final String subtitle = (StringUtils.isNotEmpty(rationale)? rationale: StringUtils.EMPTY);
 
 			entries.add(new DossierEntry(
 				(impactType != null? impactType: "context"),
@@ -547,7 +547,7 @@ public final class GroupDossierService{
 
 			entries.add(new DossierEntry("Research question",
 				(StringUtils.isNotEmpty(title)? title: q),
-				subtitle.toString(), "", question, DossierEntry.Kind.NORMAL,
+				subtitle.toString(), StringUtils.EMPTY, question, DossierEntry.Kind.NORMAL,
 				proofStatusFor(question)));
 		}
 
@@ -567,7 +567,7 @@ public final class GroupDossierService{
 			final String proof = FLEFRecordHelper.getChildValue(conclusion, TAG_PROOF_STATUS);
 			entries.add(new DossierEntry("Conclusion",
 				(StringUtils.isNotEmpty(issue)? issue: "?"),
-				(proof != null? proof: ""), "", conclusion, DossierEntry.Kind.NORMAL,
+				(proof != null? proof: StringUtils.EMPTY), StringUtils.EMPTY, conclusion, DossierEntry.Kind.NORMAL,
 				ProofStatus.fromString(proof)));
 		}
 		return entries;
@@ -643,9 +643,9 @@ public final class GroupDossierService{
 			final String label = origin + " note";
 			final String value = (StringUtils.isNotEmpty(title)? title: text);
 			final String subtitle = (StringUtils.isNotEmpty(title) && StringUtils.isNotEmpty(text)
-				? text: "");
+				? text: StringUtils.EMPTY);
 
-			entries.add(new DossierEntry(label, value, subtitle, "", parent,
+			entries.add(new DossierEntry(label, value, subtitle, StringUtils.EMPTY, parent,
 				DossierEntry.Kind.NORMAL, proofStatusFor(parent)));
 		}
 	}
@@ -749,7 +749,7 @@ public final class GroupDossierService{
 	private static String evidenceBadge(final FLEFRecord parent){
 		final FLEFRecord evidence = FLEFRecordHelper.findChild(parent, TAG_EVIDENCE);
 		if(evidence == null)
-			return "";
+			return StringUtils.EMPTY;
 
 		final String st = FLEFRecordHelper.getChildValue(evidence, TAG_SOURCE_TYPE);
 		final String it = FLEFRecordHelper.getChildValue(evidence, TAG_INFORMATION_TYPE);

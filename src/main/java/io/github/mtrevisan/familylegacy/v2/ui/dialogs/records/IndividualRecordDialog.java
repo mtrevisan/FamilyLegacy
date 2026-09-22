@@ -81,7 +81,7 @@ public class RecordUpdateCommand extends AbstractUndoableEdit{
 
 }
 
-protected void onOk() {
+protected void onOk(){
   FLEFRecord copyBefore = record.clone();
   saveData(); // Salva i dati dal dialog al record corrente
 

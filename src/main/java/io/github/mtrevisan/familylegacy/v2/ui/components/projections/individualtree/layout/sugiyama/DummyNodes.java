@@ -22,35 +22,46 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.v2.ui.tools.files;
+package io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.layout.sugiyama;
 
-import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
-import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolOperation;
-import org.apache.commons.lang3.StringUtils;
-
-import javax.swing.JOptionPane;
+import java.util.ArrayList;
+import java.util.List;
 
 
-/**
- * Base class for the import/export tools that are not yet implemented.
- * <p>
- * Every subclass declares its own name; the {@link #run(ToolContext)}
- * method is shared and shows a placeholder dialog with a clear
- * description of the missing feature. When the actual implementation
- * lands, the subclass overrides {@code run} and the placeholder
- * disappears.
- * <p>
- * Keeping the placeholder behaviour in one place avoids ten copies of
- * the same dialog.
- */
-public abstract class PlaceholderFileTool implements ToolOperation{
+public class DummyNodes{
+
+	private DummyNodes(){}
 
 
-	@Override
-	public void run(final ToolContext context){
-		JOptionPane.showMessageDialog(context.owner(),
-			"\"" + getName().replace("…", StringUtils.EMPTY).trim() + "\" is not implemented yet.",
-			"Feature Not Available", JOptionPane.INFORMATION_MESSAGE);
+	public static void normalizeEdges(final Graph graph, final List<List<Graph.Node>> layers){
+		final List<Graph.Node> allNodes = new ArrayList<>(graph.getNodes().values());
+		int dummyCounter = 0;
+
+		for(final Graph.Node src : allNodes){
+			final List<Graph.Node> targets = new ArrayList<>(src.getOutgoing());
+
+			for(final Graph.Node tgt : targets){
+				if(tgt.getLayer() > src.getLayer() + 1){
+					graph.removeEdge(src, tgt);
+
+					Graph.Node previous = src;
+					for(int l = src.getLayer() + 1; l < tgt.getLayer(); l ++){
+						final String dummyId = "__dummy_" + (dummyCounter ++);
+						final Graph.Node dummy = graph.addNode(dummyId, null, true);
+						dummy.setLayer(l);
+						dummy.setWidth(10);
+						dummy.setHeight(10);
+
+						layers.get(l).add(dummy);
+
+						graph.addEdge(previous.getId(), dummy.getId());
+						previous = dummy;
+					}
+
+					graph.addEdge(previous.getId(), tgt.getId());
+				}
+			}
+		}
 	}
 
 }

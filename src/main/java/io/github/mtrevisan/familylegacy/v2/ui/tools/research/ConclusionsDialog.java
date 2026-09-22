@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolDialogs;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -66,7 +67,7 @@ public final class ConclusionsDialog extends JDialog{
 	private final ConclusionTableModel tableModel = new ConclusionTableModel();
 	private final JTable table = new JTable(tableModel);
 	private final JTextField searchField = new JTextField(24);
-	private final JLabel statusLabel = new JLabel(" ");
+	private final JLabel statusLabel = new JLabel(StringUtils.SPACE);
 
 
 	public ConclusionsDialog(final ToolContext context){
@@ -255,7 +256,7 @@ public final class ConclusionsDialog extends JDialog{
 				case 1 -> row.proofStatus();
 				case 2 -> row.resolvesCount();
 				case 3 -> row.narrative();
-				default -> "";
+				default -> StringUtils.EMPTY;
 			};
 		}
 	}

@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolDialogs;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.places.PlaceHelper;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -72,10 +73,10 @@ public final class TimelineViewDialog extends JDialog{
 	private final ToolContext context;
 	private final TimelineTableModel tableModel = new TimelineTableModel();
 	private final JTable table = new JTable(tableModel);
-	private final JTextField fromField = new JTextField("", 10);
-	private final JTextField toField = new JTextField("", 10);
-	private final JTextField participantField = new JTextField("", 14);
-	private final JLabel statusLabel = new JLabel(" ");
+	private final JTextField fromField = new JTextField(StringUtils.EMPTY, 10);
+	private final JTextField toField = new JTextField(StringUtils.EMPTY, 10);
+	private final JTextField participantField = new JTextField(StringUtils.EMPTY, 14);
+	private final JLabel statusLabel = new JLabel(StringUtils.SPACE);
 
 	private String participantId;
 
@@ -124,7 +125,7 @@ public final class TimelineViewDialog extends JDialog{
 		final JButton clearParticipant = new JButton("Clear");
 		clearParticipant.addActionListener(e -> {
 			participantId = null;
-			participantField.setText("");
+			participantField.setText(StringUtils.EMPTY);
 			reload();
 		});
 		toolbar.add(clearParticipant);
@@ -231,7 +232,7 @@ public final class TimelineViewDialog extends JDialog{
 
 	private static String describeParticipants(final List<EventHelper.Participation> participants){
 		if(participants.isEmpty())
-			return "";
+			return StringUtils.EMPTY;
 		final StringBuilder sb = new StringBuilder();
 		for(int i = 0; i < participants.size(); i++){
 			if(i > 0)
@@ -252,7 +253,7 @@ public final class TimelineViewDialog extends JDialog{
 		final List<EventHelper.Participation> participants =
 			EventHelper.participantsOf(event, context.model());
 		if(participants.isEmpty())
-			return "";
+			return StringUtils.EMPTY;
 		final StringBuilder sb = new StringBuilder();
 		for(int i = 0; i < participants.size(); i++){
 			if(i > 0)
@@ -321,7 +322,7 @@ public final class TimelineViewDialog extends JDialog{
 				case 2 -> row.participants();
 				case 3 -> row.place();
 				case 4 -> row.description();
-				default -> "";
+				default -> StringUtils.EMPTY;
 			};
 		}
 	}

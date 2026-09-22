@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IdentityHypothesisHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolDialogs;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -67,7 +68,7 @@ public final class IdentityHypothesesDialog extends JDialog{
 	private final HypothesisTableModel tableModel = new HypothesisTableModel();
 	private final JTable table = new JTable(tableModel);
 	private final JTextField searchField = new JTextField(24);
-	private final JLabel statusLabel = new JLabel(" ");
+	private final JLabel statusLabel = new JLabel(StringUtils.SPACE);
 
 
 	public IdentityHypothesesDialog(final ToolContext context){
@@ -255,7 +256,7 @@ public final class IdentityHypothesesDialog extends JDialog{
 				case 0 -> row.firstCandidate();
 				case 1 -> row.secondCandidate();
 				case 2 -> row.comment();
-				default -> "";
+				default -> StringUtils.EMPTY;
 			};
 		}
 	}

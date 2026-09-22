@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ReportDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolOperation;
+import org.apache.commons.lang3.StringUtils;
 
 import java.text.Normalizer;
 import java.util.ArrayList;
@@ -95,9 +96,9 @@ public final class NormalizePlaceNamesTool implements ToolOperation{
 	private static String normalize(final String name){
 		String s = name.toLowerCase(Locale.ROOT);
 		s = Normalizer.normalize(s, Normalizer.Form.NFD);
-		s = s.replaceAll("\\p{M}+", "");
-		s = s.replaceAll("[\\p{Punct}]+", " ");
-		s = s.replaceAll("\\s+", " ").trim();
+		s = s.replaceAll("\\p{M}+", StringUtils.EMPTY);
+		s = s.replaceAll("[\\p{Punct}]+", StringUtils.SPACE);
+		s = s.replaceAll("\\s+", StringUtils.SPACE).trim();
 		return s;
 	}
 
@@ -124,7 +125,7 @@ public final class NormalizePlaceNamesTool implements ToolOperation{
 				body.append("<td>").append(ReportDialog.escape(place.getId())).append("</td>");
 				body.append("<td>").append(ReportDialog.escape(PlaceHelper.displayName(place))).append("</td>");
 				final String type = PlaceHelper.placeType(place);
-				body.append("<td>").append(ReportDialog.escape(type != null? type: "")).append("</td>");
+				body.append("<td>").append(ReportDialog.escape(type != null? type: StringUtils.EMPTY)).append("</td>");
 				body.append("</tr>");
 			}
 			body.append("</table>");

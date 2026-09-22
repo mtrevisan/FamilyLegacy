@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ReportDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolOperation;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -148,7 +149,7 @@ public final class CitationAnalysisTool implements ToolOperation{
 				body.append("<tr>");
 				body.append("<td>").append(ReportDialog.escape(doc.getId())).append("</td>");
 				final String uri = SourceHelper.documentUri(doc);
-				body.append("<td>").append(ReportDialog.escape(uri != null? uri: "")).append("</td>");
+				body.append("<td>").append(ReportDialog.escape(uri != null? uri: StringUtils.EMPTY)).append("</td>");
 				body.append("</tr>");
 			}
 			body.append("</table>");

@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -81,7 +82,7 @@ public final class RecordNormalizer{
 		final List<FLEFRecord> children = new ArrayList<>(record.getChildren());
 		if(!ORDER_SIGNIFICANT_TAG.equals(record.getTag()))
 			children.sort(Comparator
-				.comparing((FLEFRecord r) -> r.getTag() != null? r.getTag(): "")
+				.comparing((FLEFRecord r) -> r.getTag() != null? r.getTag(): StringUtils.EMPTY)
 				.thenComparing(RecordNormalizer::canonicalKey));
 		for(final FLEFRecord child : children)
 			copy.addChild(normalize(child));
@@ -116,17 +117,17 @@ public final class RecordNormalizer{
 	 */
 	private static String canonicalKey(final FLEFRecord record){
 		final StringBuilder sb = new StringBuilder();
-		sb.append(record.getTag() != null? record.getTag(): "");
+		sb.append(record.getTag() != null? record.getTag(): StringUtils.EMPTY);
 		sb.append('=');
-		sb.append(record.getValue() != null? record.getValue(): "");
+		sb.append(record.getValue() != null? record.getValue(): StringUtils.EMPTY);
 		sb.append('#');
-		sb.append(record.getId() != null? record.getId(): "");
+		sb.append(record.getId() != null? record.getId(): StringUtils.EMPTY);
 		sb.append('[');
 
 		final List<FLEFRecord> children = new ArrayList<>(record.getChildren());
 		if(!ORDER_SIGNIFICANT_TAG.equals(record.getTag()))
 			children.sort(Comparator
-				.comparing((FLEFRecord r) -> r.getTag() != null? r.getTag(): "")
+				.comparing((FLEFRecord r) -> r.getTag() != null? r.getTag(): StringUtils.EMPTY)
 				.thenComparing(RecordNormalizer::canonicalKey));
 
 		for(final FLEFRecord child : children){

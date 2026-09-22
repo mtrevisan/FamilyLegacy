@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.RecordSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolDialogs;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -80,8 +81,8 @@ public final class MergeIndividualsDialog extends JDialog{
 
 	private final JTextField sourceField = new JTextField(24);
 	private final JTextField targetField = new JTextField(24);
-	private final JLabel sourcePreview = new JLabel(" ");
-	private final JLabel targetPreview = new JLabel(" ");
+	private final JLabel sourcePreview = new JLabel(StringUtils.SPACE);
+	private final JLabel targetPreview = new JLabel(StringUtils.SPACE);
 
 	private FLEFRecord source;
 	private FLEFRecord target;
@@ -384,7 +385,7 @@ public final class MergeIndividualsDialog extends JDialog{
 
 	private static String participantKey(final String participant, final String eventId,
 		final String role){
-		return participant + "|" + eventId + "|" + (role != null? role: "");
+		return participant + "|" + eventId + "|" + (role != null? role: StringUtils.EMPTY);
 	}
 
 	private String participantId(final FLEFRecord participation){
@@ -450,7 +451,7 @@ public final class MergeIndividualsDialog extends JDialog{
 
 	private static String attributeKey(final String individualId, final String type,
 		final String value){
-		return individualId + "|" + (type != null? type: "") + "|" + (value != null? value: "");
+		return individualId + "|" + (type != null? type: StringUtils.EMPTY) + "|" + (value != null? value: StringUtils.EMPTY);
 	}
 
 	private void setAttributeIndividualId(final FLEFRecord attr, final String newId){

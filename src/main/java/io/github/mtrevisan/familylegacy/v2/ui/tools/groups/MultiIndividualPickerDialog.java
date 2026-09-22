@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolDialogs;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.places.PlaceHelper;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
@@ -107,7 +108,7 @@ public final class MultiIndividualPickerDialog extends JDialog{
 				selectedIds.add(entry.id());
 		});
 
-		applyFilter("");
+		applyFilter(StringUtils.EMPTY);
 
 		setLayout(new BorderLayout(6, 6));
 
@@ -159,7 +160,7 @@ public final class MultiIndividualPickerDialog extends JDialog{
 
 
 	private void applyFilter(final String text){
-		final String needle = (text == null? "": text.trim().toLowerCase(Locale.ROOT));
+		final String needle = (text == null? StringUtils.EMPTY: text.trim().toLowerCase(Locale.ROOT));
 
 		// Remember the current selection before rebuilding the model.
 		final List<String> previouslySelected = new ArrayList<>(selectedIds);

@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolDialogs;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
 import javax.swing.DefaultComboBoxModel;
@@ -72,7 +73,7 @@ public final class PlaceRelationshipsDialog extends JDialog{
 	private final JTable table = new JTable(tableModel);
 	private final JTextField searchField = new JTextField(20);
 	private final JComboBox<String> typeFilter = new JComboBox<>();
-	private final JLabel statusLabel = new JLabel(" ");
+	private final JLabel statusLabel = new JLabel(StringUtils.SPACE);
 
 
 	public PlaceRelationshipsDialog(final ToolContext context){
@@ -216,7 +217,7 @@ public final class PlaceRelationshipsDialog extends JDialog{
 		if((text == null || text.isBlank()) && !hasTypeFilter)
 			sorter.setRowFilter(null);
 		else{
-			final String needle = (text == null? "": text.trim().toLowerCase(java.util.Locale.ROOT));
+			final String needle = (text == null? StringUtils.EMPTY: text.trim().toLowerCase(java.util.Locale.ROOT));
 			sorter.setRowFilter(new RowFilter<>(){
 				@Override
 				public boolean include(final Entry<? extends RelationshipsTableModel, ? extends Integer> entry){
@@ -317,13 +318,13 @@ public final class PlaceRelationshipsDialog extends JDialog{
 				case 1 -> row.childName();
 				case 2 -> row.relationType();
 				case 3 -> formatValidity(row.validFrom(), row.validTo());
-				default -> "";
+				default -> StringUtils.EMPTY;
 			};
 		}
 
 		private static String formatValidity(final String from, final String to){
 			if(from == null && to == null)
-				return "";
+				return StringUtils.EMPTY;
 			return (from != null? from: "?") + " – " + (to != null? to: "?");
 		}
 	}

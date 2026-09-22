@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceRelationshipHandler;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -319,7 +320,7 @@ public final class PlaceHierarchyService{
 		final String na = (ra != null? ra.name(): a);
 		final String nb = (rb != null? rb.name(): b);
 		return String.CASE_INSENSITIVE_ORDER.compare(
-			na != null? na: "", nb != null? nb: "");
+			(na != null? na: StringUtils.EMPTY), (nb != null? nb: StringUtils.EMPTY));
 	}
 
 }

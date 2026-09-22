@@ -22,7 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree;
+package io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.layout;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
@@ -31,10 +31,12 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualData;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualListener;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.TreeNode;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.partners.PartnersPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.siblings.SiblingsData;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.siblings.SiblingsPanel;
 import net.miginfocom.swing.MigLayout;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
 import javax.swing.JPanel;
@@ -69,7 +71,7 @@ import java.util.Map;
  * not influence the position of the root individual and may legitimately
  * grow to fit its content (e.g. a large number of siblings).
  */
-final class TreeLayoutBuilder{
+public final class TreeLayoutBuilder{
 
 	public static final int GENERATION_SEPARATOR_SIZE = 16;
 
@@ -83,13 +85,6 @@ final class TreeLayoutBuilder{
 	 * @param dimension	Column index if the genealogical tree is in horizontal, row otherwise.
 	 */
 	private record LayoutNodeItem(TreeNode node, int depth, int dimension, int span){}
-
-	/**
-	 * Result of building the tree layout.
-	 *
-	 * @param childrenPanel     the children panel
-	 */
-	public record LayoutResult(SiblingsPanel childrenPanel){}
 
 
 	/**
@@ -107,7 +102,7 @@ final class TreeLayoutBuilder{
 	 * @param treeLayout     the tree orientation layout
 	 * @return a LayoutResult containing the children panel
 	 */
-	static LayoutResult buildLayout(final JPanel mainPanel, final TreeNode rootNode, final boolean showPartner,
+	static SiblingsPanel buildLayout(final JPanel mainPanel, final TreeNode rootNode, final boolean showPartner,
 			final int maxAncestors, final FLEFModel model, final Map<TreeNode, PartnersPanel> nodeToPanelMap,
 			final IndividualListener listener,
 			final EntityPopupMenuFactory<IndividualPanel, IndividualListener> popupFactory, final TreeLayout treeLayout){
@@ -140,13 +135,13 @@ final class TreeLayoutBuilder{
 			// Assign full span (maxLeafUnits) to root depth (depth 0) to keep parents centered,
 			// otherwise use the calculated span for ancestor generations
 			final String cellConstraints = (isVertical
-				? "cell " + dimension + " " + (maxDepth - depth) + ",span " + span + " 1,align center"
-				: "cell " + (depth + 1) + " " + dimension + ",span 1 " + span + ",align center");
+				? "cell " + dimension + StringUtils.SPACE + (maxDepth - depth) + ",span " + span + " 1,align center"
+				: "cell " + (depth + 1) + StringUtils.SPACE + dimension + ",span 1 " + span + ",align center");
 
 			// Create the panel for this slot
 			final BoxPanelType boxPanelType = (depth == 0? BoxPanelType.PRIMARY: BoxPanelType.SECONDARY);
 			final PartnersPanel partnerPanel = createPanelForNode(node, boxPanelType, treeLayout, model, listener,
-				popupFactory);
+				popupFactory, false);
 
 			nodeToPanelMap.put(node, partnerPanel);
 
@@ -188,7 +183,7 @@ final class TreeLayoutBuilder{
 			: "cell 0 0,span 1 " + maxLeafUnits + ",align center,hmax pref");
 		mainPanel.add(childrenScrollPane, childrenCellConstraints);
 
-		return new LayoutResult(childrenPanel);
+		return childrenPanel;
 	}
 
 	/**
@@ -346,11 +341,13 @@ final class TreeLayoutBuilder{
 		return PartnersPanel.createEmpty(type, treeLayout);
 	}
 
-	private static PartnersPanel createPanelForNode(final TreeNode node, final BoxPanelType type,
+	public static PartnersPanel createPanelForNode(final TreeNode node, final BoxPanelType type,
 			final TreeLayout treeLayout, final FLEFModel model, final IndividualListener listener,
-			final EntityPopupMenuFactory<IndividualPanel, IndividualListener> popupFactory){
+			final EntityPopupMenuFactory<IndividualPanel, IndividualListener> popupFactory,
+			final boolean suppressCollapseBadge){
 		final PartnersPanel panel = PartnersPanel.create(type, treeLayout, model)
-			.withListener(listener, popupFactory);
+			.withListener(listener, popupFactory)
+			.withSuppressCollapseBadge(suppressCollapseBadge);
 
 		if(node != null){
 			final TreeNode father = node.getFather();
@@ -382,10 +379,10 @@ final class TreeLayoutBuilder{
 			final EntityPopupMenuFactory<IndividualPanel, IndividualListener> popupFactory, final TreeNode rootNode,
 			final boolean showPartner, final TreeLayout treeLayout){
 		final SiblingsPanel panel = SiblingsPanel.create(father, mother, BoxPanelType.SECONDARY, model, showPartner,
-			treeLayout);
+				treeLayout)
+			.withListener(listener, popupFactory);
 		if(rootNode != null)
 			panel.withSiblingsData(rootNode.getBiologicalChildrenData());
-		panel.withListener(listener, popupFactory);
 		return panel;
 	}
 

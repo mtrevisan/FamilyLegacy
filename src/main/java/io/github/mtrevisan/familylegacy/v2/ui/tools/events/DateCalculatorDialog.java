@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.tools.events;
 
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolDialogs;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -204,20 +205,20 @@ public final class DateCalculatorDialog extends JDialog{
 		final LocalDate from = parseDate(intervalFromField);
 		final LocalDate to = parseDate(intervalToField);
 		if(from == null || to == null){
-			intervalResultField.setText("");
+			intervalResultField.setText(StringUtils.EMPTY);
 			return;
 		}
 		final LocalDate a = (from.isBefore(to)? from: to);
 		final LocalDate b = (from.isBefore(to)? to: from);
 		final Period p = Period.between(a, b);
-		final String prefix = (from.isAfter(to)? "− ": "");
+		final String prefix = (from.isAfter(to)? "− ": StringUtils.EMPTY);
 		intervalResultField.setText(prefix + formatPeriod(p));
 	}
 
 	private void computeEstimatedBirth(){
 		final LocalDate reference = parseDate(ebReferenceField);
 		if(reference == null){
-			ebResultField.setText("");
+			ebResultField.setText(StringUtils.EMPTY);
 			return;
 		}
 		final Integer years = parseInt(ebYearsField);

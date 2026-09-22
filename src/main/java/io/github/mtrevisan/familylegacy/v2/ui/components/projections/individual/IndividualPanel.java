@@ -137,6 +137,8 @@ public class IndividualPanel extends JPanel{
 	/** {@code true} when this panel is the current selection in its view. */
 	private boolean selected;
 
+	/** {@code true} when the collapse badge should be hidden regardless of count (e.g., in Sugiyama layout). */
+	private boolean suppressCollapseBadge;
 	/** Red badge displayed on panels whose individual appears multiple times. */
 	private final CollapseBadge collapseBadge = new CollapseBadge();
 
@@ -214,8 +216,9 @@ public class IndividualPanel extends JPanel{
 	public void doLayout(){
 		super.doLayout();
 
-		if(collapseBadge.isVisible()){
-			final int d = collapseBadge.getPreferredSize().width;
+		if(!suppressCollapseBadge && collapseBadge.isVisible()){
+			final int d = collapseBadge.getPreferredSize()
+				.width;
 			final int margin = 3;
 			collapseBadge.setBounds(
 				getWidth() - d - margin,
@@ -352,10 +355,31 @@ public class IndividualPanel extends JPanel{
 	}
 
 	/**
+	 * Configures whether the collapse badge should be suppressed and never displayed.
+	 *
+	 * @param suppress {@code true} to hide the badge regardless of occurrence count
+	 * @return this panel, for chaining
+	 */
+	public IndividualPanel withSuppressCollapseBadge(final boolean suppress){
+		this.suppressCollapseBadge = suppress;
+
+		if(suppress)
+			collapseBadge.setVisible(false);
+
+		revalidate();
+		repaint();
+
+		return this;
+	}
+
+	/**
 	 * Attaches the pedigree-collapse information to this panel.
 	 */
 	public IndividualPanel withCollapseInfo(final int count, final String tooltip){
-		collapseBadge.update(count, tooltip);
+		if(suppressCollapseBadge)
+			collapseBadge.setVisible(false);
+		else
+			collapseBadge.update(count, tooltip);
 
 		revalidate();
 		repaint();
@@ -456,7 +480,7 @@ public class IndividualPanel extends JPanel{
 				@Override
 				public void mousePressed(final MouseEvent e){
 					if(SwingUtilities.isLeftMouseButton(e) && listener != null && data != null){
-						listener.onEntitySelected(data.getIndividual());
+						listener.onRootEntitySelected(data.getIndividual());
 
 						// Consume the event so that the panel-level listener does
 						// not also fire a selection on the same click. Clicking
@@ -625,7 +649,7 @@ public class IndividualPanel extends JPanel{
 			g2.setStroke(new BasicStroke(1f));
 			g2.drawOval(0, 0, d - 1, d - 1);
 
-			final String text = count + "x";
+			final String text = count + "×";
 			g2.setFont(new Font("Tahoma", Font.BOLD, (isPrimaryBox()? 10: 9)));
 			g2.setColor(Color.WHITE);
 			final FontMetrics fm = g2.getFontMetrics();

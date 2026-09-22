@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ReportDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolOperation;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -138,10 +139,10 @@ public final class ProofSummaryTool implements ToolOperation{
 			body.append("<tr>");
 			body.append("<td>").append(ReportDialog.escape(c.getId())).append("</td>");
 			final String issue = ResearchHelper.conclusionIssue(c);
-			body.append("<td>").append(ReportDialog.escape(issue != null? issue: "")).append("</td>");
+			body.append("<td>").append(ReportDialog.escape(issue != null? issue: StringUtils.EMPTY)).append("</td>");
 			final String narrative = ResearchHelper.firstTextValue(c,
 				ResearchHelper.TAG_NARRATIVE);
-			body.append("<td>").append(ReportDialog.escape(narrative != null? narrative: "")).append("</td>");
+			body.append("<td>").append(ReportDialog.escape(narrative != null? narrative: StringUtils.EMPTY)).append("</td>");
 			body.append("</tr>");
 		}
 		body.append("</table>");

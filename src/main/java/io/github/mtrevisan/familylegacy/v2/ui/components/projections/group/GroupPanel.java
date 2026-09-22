@@ -358,7 +358,7 @@ public class GroupPanel extends JPanel{
 				@Override
 				public void mousePressed(final MouseEvent e){
 					if(SwingUtilities.isLeftMouseButton(e) && listener != null && data != null){
-						listener.onEntitySelected(data.getGroup());
+						listener.onRootEntitySelected(data.getGroup());
 
 						e.consume();
 					}

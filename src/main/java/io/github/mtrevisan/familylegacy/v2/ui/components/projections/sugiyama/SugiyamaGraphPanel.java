@@ -29,7 +29,9 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.BoxPanelType;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.SpatialNavigation;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.TreeOperation;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualData;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualListener;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.TreeChangeListener;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.TreeService;
@@ -47,8 +49,6 @@ import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import java.awt.BorderLayout;
-import java.awt.Component;
-import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -56,8 +56,6 @@ import java.awt.GridBagLayout;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Window;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -70,7 +68,7 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 
-public class SugiyamaGraphPanel extends JPanel implements TreeChangeListener{
+public class SugiyamaGraphPanel extends JPanel implements TreeChangeListener, IndividualListener{
 
 	private static final String[] INDIVIDUAL_TO_INDIVIDUAL_CHILD_TYPES = new String[]{
 		"biological_child", "adoptive_child", "foster_child", "guarded_child", "step_child"
@@ -82,7 +80,7 @@ public class SugiyamaGraphPanel extends JPanel implements TreeChangeListener{
 
 	private SugiyamaGraphLayout.Result layout;
 
-	private final Canvas canvas;
+	private final Canvas canvas = new Canvas();
 	private final JPanel centeringWrapper = new JPanel(new GridBagLayout());
 	private final JScrollPane scrollPane;
 
@@ -121,7 +119,6 @@ public class SugiyamaGraphPanel extends JPanel implements TreeChangeListener{
 		this.model = Objects.requireNonNull(model);
 		this.treeService = Objects.requireNonNull(treeService);
 
-		canvas = new Canvas();
 		centeringWrapper.setBackground(SugiyamaEdgeRouter.BACKGROUND_COLOR);
 		centeringWrapper.setOpaque(true);
 		centeringWrapper.add(canvas);
@@ -130,13 +127,13 @@ public class SugiyamaGraphPanel extends JPanel implements TreeChangeListener{
 			ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
 			ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		scrollPane.setBorder(null);
-
 		final JViewport viewport = scrollPane.getViewport();
-		viewport.setScrollMode(JViewport.BLIT_SCROLL_MODE);
+		viewport.setScrollMode(JViewport.SIMPLE_SCROLL_MODE);
 		viewport.setBackground(SugiyamaEdgeRouter.BACKGROUND_COLOR);
-
-		scrollPane.getVerticalScrollBar().setUnitIncrement(16);
-		scrollPane.getHorizontalScrollBar().setUnitIncrement(16);
+		scrollPane.getVerticalScrollBar()
+			.setUnitIncrement(16);
+		scrollPane.getHorizontalScrollBar()
+			.setUnitIncrement(16);
 
 		setLayout(new BorderLayout());
 		add(scrollPane, BorderLayout.CENTER);
@@ -355,6 +352,53 @@ public class SugiyamaGraphPanel extends JPanel implements TreeChangeListener{
 		return (layout != null? layout.rootId(): null);
 	}
 
+	@Override
+	public void onIndividualSelected(IndividualPanel selectedPanel, FLEFRecord individual){
+		if(individual == null || individual.getId() == null)
+			return;
+
+		final String id = individual.getId();
+		focusId = id;
+		updateFocusVisuals();
+
+		if(selectionCallback != null)
+			selectionCallback.accept(id);
+	}
+
+	@Override
+	public void onIndividualAddOrConnect(IndividualPanel selectedPanel, TreeOperation operation){}
+
+	@Override
+	public void onChildAddOrConnect(IndividualPanel selectedPanel, TreeOperation operation){}
+
+	@Override
+	public void onIndividualUnlink(IndividualPanel selectedPanel, FLEFRecord individual){}
+
+	@Override
+	public void onIndividualPaste(IndividualPanel selectedPanel){}
+
+	@Override
+	public void onRootEntitySelected(FLEFRecord record){
+		if(record == null || record.getId() == null)
+			return;
+
+		final String id = record.getId();
+		focusId = id;
+		if(selectionCallback != null)
+			selectionCallback.accept(id);
+
+		loadGraph(id, currentMaxAncestors, currentMaxDescendants, showPartner);
+	}
+
+	@Override
+	public void onEntityEdit(FLEFRecord individual){}
+
+	@Override
+	public void onEntityRemove(FLEFRecord individual){}
+
+	@Override
+	public void onEntityRelocate(FLEFRecord individual){}
+
 
 	/* ======================================================================
 	 *                          Canvas
@@ -392,10 +436,10 @@ public class SugiyamaGraphPanel extends JPanel implements TreeChangeListener{
 					continue;
 
 				final boolean isRoot = id.equals(rootId);
-				final boolean isFocus = (focusId != null ? focusId.equals(id) : isRoot);
-				final IndividualPanel panel = IndividualPanel
-					.create(BoxPanelType.SECONDARY, model)
+				final boolean isFocus = (focusId != null? focusId.equals(id): isRoot);
+				final IndividualPanel panel = IndividualPanel.create(BoxPanelType.SECONDARY, model)
 					.withIndividualData(data)
+					.withListener(SugiyamaGraphPanel.this, null)
 					.withSelected(isFocus);
 
 				// Apply the centering offsets, so that a graph smaller than the
@@ -403,7 +447,6 @@ public class SugiyamaGraphPanel extends JPanel implements TreeChangeListener{
 				final Rectangle bounds = entry.getValue();
 				panel.setBounds(bounds.x, bounds.y, bounds.width, bounds.height);
 
-				attachListeners(panel, id);
 				add(panel);
 				visiblePanels.put(id, panel);
 			}
@@ -424,29 +467,6 @@ public class SugiyamaGraphPanel extends JPanel implements TreeChangeListener{
 				return;
 
 			SugiyamaEdgeRouter.drawEdges(g2, layout);
-		}
-
-		private void attachListeners(final Component component, final String id){
-			final MouseAdapter adapter = new MouseAdapter(){
-				@Override
-				public void mouseClicked(final MouseEvent e){
-					if(!SwingUtilities.isLeftMouseButton(e))
-						return;
-
-					if(e.getClickCount() == 1){
-						// Notify the enclosing container of the newly selected
-						// individual, then re-root the graph on it.
-						if(selectionCallback != null)
-							selectionCallback.accept(id);
-
-						loadGraph(id, currentMaxAncestors, currentMaxDescendants, showPartner);
-					}
-				}
-			};
-			component.addMouseListener(adapter);
-			if(component instanceof Container c)
-				for(final Component child : c.getComponents())
-					attachListeners(child, id);
 		}
 	}
 
