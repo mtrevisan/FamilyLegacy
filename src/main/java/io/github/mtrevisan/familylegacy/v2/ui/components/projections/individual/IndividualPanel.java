@@ -60,6 +60,7 @@ import java.awt.Stroke;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionAdapter;
 import java.awt.font.TextAttribute;
 import java.io.IOException;
 import java.io.InputStream;
@@ -426,9 +427,7 @@ public class IndividualPanel extends JPanel{
 			attributes.put(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_LOW_ONE_PIXEL);
 			font = font.deriveFont(attributes);
 		}
-		final Cursor cursor = Cursor.getPredefinedCursor(isPrimaryBox()? Cursor.DEFAULT_CURSOR: Cursor.HAND_CURSOR);
 		nameLabel.setFont(font);
-		nameLabel.setCursor(cursor);
 		infoLabel.setFont(infoFont);
 
 		final boolean hasData = (data != null && !data.isEmpty());
@@ -479,7 +478,8 @@ public class IndividualPanel extends JPanel{
 			final MouseAdapter selectedAdapter = new MouseAdapter(){
 				@Override
 				public void mousePressed(final MouseEvent e){
-					if(SwingUtilities.isLeftMouseButton(e) && listener != null && data != null){
+					if(SwingUtilities.isLeftMouseButton(e) && e.getClickCount() == 1 && listener != null && data != null
+							&& nameLabel.isTextHit(e.getPoint())){
 						listener.onRootEntitySelected(data.getIndividual());
 
 						// Consume the event so that the panel-level listener does
@@ -488,15 +488,29 @@ public class IndividualPanel extends JPanel{
 						e.consume();
 					}
 				}
+
+				@Override
+				public void mouseExited(final MouseEvent e){
+					nameLabel.setCursor(Cursor.getDefaultCursor());
+				}
 			};
 			nameLabel.addMouseListener(selectedAdapter);
+
+			nameLabel.addMouseMotionListener(new MouseMotionAdapter(){
+				@Override
+				public void mouseMoved(final MouseEvent e){
+					nameLabel.setCursor(nameLabel.isTextHit(e.getPoint())
+						? Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
+						: Cursor.getDefaultCursor());
+				}
+			});
 		}
 
 		// Double-click to edit individual
 		addMouseListener(new MouseAdapter(){
 			@Override
 			public void mousePressed(final MouseEvent e){
-				if(e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e) && listener != null && data != null)
+				if(SwingUtilities.isLeftMouseButton(e) && e.getClickCount() == 2 && listener != null && data != null)
 					listener.onEntityEdit(data.getIndividual());
 			}
 		});

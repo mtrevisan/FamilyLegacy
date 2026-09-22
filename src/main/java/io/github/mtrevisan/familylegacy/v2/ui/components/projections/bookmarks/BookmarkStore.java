@@ -145,6 +145,7 @@ public final class BookmarkStore{
 		}
 		catch(final IOException e){
 			LOGGER.warn("Could not load bookmarks from {}: {}", file, e.getMessage());
+
 			return;
 		}
 
@@ -185,6 +186,7 @@ public final class BookmarkStore{
 		}
 		catch(final RuntimeException ex){
 			LOGGER.warn("Skipping malformed bookmark {}: {}", uuid, ex.getMessage());
+
 			return null;
 		}
 	}

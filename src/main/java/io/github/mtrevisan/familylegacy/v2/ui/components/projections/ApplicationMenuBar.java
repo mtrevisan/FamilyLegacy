@@ -25,13 +25,9 @@
 package io.github.mtrevisan.familylegacy.v2.ui.components.projections;
 
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.bookmarks.BookmarkMenu;
-import io.github.mtrevisan.familylegacy.v2.ui.components.searches.RecordSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.help.DiagnosticsDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.help.HelpViewerDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.help.KeyboardShortcutsDialog;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolOperation;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.events.EventToolRegistry;
@@ -44,11 +40,13 @@ import io.github.mtrevisan.familylegacy.v2.ui.tools.research.ResearchToolRegistr
 import io.github.mtrevisan.familylegacy.v2.ui.tools.sources.SourceToolRegistry;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.swing.ButtonGroup;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
+import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JSeparator;
 import javax.swing.KeyStroke;
 import javax.swing.event.MenuEvent;
@@ -172,21 +170,11 @@ final class ApplicationMenuBar{
 			importMenu.add(toolItem(tool, 0));
 		menu.add(importMenu);
 
-		final JMenu exportMenu = new JMenu("Export");
-		exportMenu.setMnemonic(KeyEvent.VK_E);
-		for(final ToolOperation tool : FileToolRegistry.exportTools())
-			exportMenu.add(toolItem(tool, 0));
-		menu.add(exportMenu);
-
-		menu.add(new JSeparator());
-
-		final JMenuItem print = new JMenuItem("Print…", KeyEvent.VK_P);
-		print.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_P, menuShortcutMask()));
-		print.addActionListener(e -> new io.github.mtrevisan.familylegacy.v2.ui.tools.files.PrintTool()
-			.run(frame.createToolContext()));
-		menu.add(print);
-
-		menu.add(placeholder("Print Preview…", 0));
+//		final JMenu exportMenu = new JMenu("Export");
+//		exportMenu.setMnemonic(KeyEvent.VK_E);
+//		for(final ToolOperation tool : FileToolRegistry.exportTools())
+//			exportMenu.add(toolItem(tool, 0));
+//		menu.add(exportMenu);
 
 		menu.add(new JSeparator());
 
@@ -288,9 +276,40 @@ final class ApplicationMenuBar{
 
 		final JMenu projections = new JMenu("Projection");
 		projections.setMnemonic(KeyEvent.VK_P);
-		projections.add(projectionItem("Ancestor Tree", ProjectionType.TREE, KeyEvent.VK_1));
-		projections.add(projectionItem("Sugiyama Graph", ProjectionType.GRAPH, KeyEvent.VK_2));
-		projections.add(projectionItem("Ego Network", ProjectionType.EGO_NETWORK, KeyEvent.VK_3));
+
+		final JRadioButtonMenuItem treeItem = projectionItem(
+			"Ancestor Tree", ProjectionType.TREE, KeyEvent.VK_1);
+		final JRadioButtonMenuItem graphItem = projectionItem(
+			"Sugiyama Graph", ProjectionType.GRAPH, KeyEvent.VK_2);
+		final JRadioButtonMenuItem egoItem = projectionItem(
+			"Ego Network", ProjectionType.EGO_NETWORK, KeyEvent.VK_3);
+
+		final ButtonGroup projectionGroup = new ButtonGroup();
+		projectionGroup.add(treeItem);
+		projectionGroup.add(graphItem);
+		projectionGroup.add(egoItem);
+
+		projections.add(treeItem);
+		projections.add(graphItem);
+		projections.add(egoItem);
+
+		// Refresh the selected radio button every time the submenu is
+		// opened, so it reflects the active projection even when the
+		// switch was triggered by Ctrl+1/2/3 or by the toolbar toggles.
+		projections.addMenuListener(new MenuListener(){
+			@Override
+			public void menuSelected(final MenuEvent e){
+				switch(frame.switcher().getCurrentProjectionType()){
+					case TREE -> treeItem.setSelected(true);
+					case GRAPH -> graphItem.setSelected(true);
+					case EGO_NETWORK -> egoItem.setSelected(true);
+				}
+			}
+
+			@Override public void menuDeselected(final MenuEvent e){}
+			@Override public void menuCanceled(final MenuEvent e){}
+		});
+
 		menu.add(projections);
 
 		menu.add(new JSeparator());
@@ -596,26 +615,10 @@ final class ApplicationMenuBar{
 	}
 
 	private void openJumpToDialog(){
-		final ProjectionType projection = frame.switcher().getCurrentProjectionType();
-
-		final List<Class<? extends RecordTypeHandler<?>>> handlerList = new ArrayList<>();
-		handlerList.add(IndividualHandler.class);
-		if(projection == ProjectionType.EGO_NETWORK)
-			handlerList.add(GroupHandler.class);
-
-		@SuppressWarnings("unchecked")
-		final Class<? extends RecordTypeHandler<?>>[] handlers =
-			handlerList.toArray(new Class[0]);
-
-		final RecordSelectionDialog dialog = RecordSelectionDialog.create(
-			frame, frame.model(),
-			(record, handler) -> {
-				if(record != null && record.getId() != null)
-					frame.switcher().loadRoot(record.getId());
-			},
-			handlers);
-
-		dialog.setVisible(true);
+		final String id = JumpToIndividualDialog.showAndGet(frame, frame.model(),
+			frame.switcher().getCurrentProjectionType());
+		if(id != null)
+			frame.loadRoot(id);
 	}
 
 
@@ -627,8 +630,8 @@ final class ApplicationMenuBar{
 		final JMenu menu = new JMenu("Bookmarks");
 		menu.setMnemonic(KeyEvent.VK_B);
 
-		final BookmarkMenu bookmarkMenu = new BookmarkMenu(frame, frame.bookmarkStore(),
-			frame::captureCurrentState, frame::applyBookmark);
+		final BookmarkMenu bookmarkMenu = new BookmarkMenu(frame, frame.bookmarkStore(), frame::captureCurrentState,
+			frame::applyBookmark);
 
 		// Transfer the items of the existing BookmarkMenu into the new
 		// JMenu, so the rest of the menu bar keeps a consistent structure.
@@ -837,9 +840,8 @@ final class ApplicationMenuBar{
 	}
 
 	/** Creates a menu item that switches the active projection. */
-	private JMenuItem projectionItem(final String text, final ProjectionType projection,
-		final int keyCode){
-		final JMenuItem item = new JMenuItem(text);
+	private JRadioButtonMenuItem projectionItem(final String text, final ProjectionType projection, final int keyCode){
+		final JRadioButtonMenuItem item = new JRadioButtonMenuItem(text);
 		item.setAccelerator(KeyStroke.getKeyStroke(keyCode, menuShortcutMask()));
 		item.addActionListener(e -> frame.switcher().setProjection(projection));
 		return item;

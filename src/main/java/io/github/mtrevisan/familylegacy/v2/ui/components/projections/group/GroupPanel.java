@@ -59,6 +59,7 @@ import java.awt.Stroke;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionAdapter;
 import java.awt.font.TextAttribute;
 import java.io.IOException;
 import java.io.InputStream;
@@ -298,13 +299,12 @@ public class GroupPanel extends JPanel{
 		Font font = (isPrimaryBox()? FONT_PRIMARY: FONT_SECONDARY);
 		final Font infoFont = deriveInfoFont(font);
 		if(!isPrimaryBox()){
-			@SuppressWarnings("unchecked") final Map<TextAttribute, Object> attributes = (Map<TextAttribute, Object>)font.getAttributes();
+			@SuppressWarnings("unchecked")
+			final Map<TextAttribute, Object> attributes = (Map<TextAttribute, Object>)font.getAttributes();
 			attributes.put(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_LOW_ONE_PIXEL);
 			font = font.deriveFont(attributes);
 		}
-		final Cursor cursor = Cursor.getPredefinedCursor(isPrimaryBox()? Cursor.DEFAULT_CURSOR: Cursor.HAND_CURSOR);
 		nameLabel.setFont(font);
-		nameLabel.setCursor(cursor);
 		typeLabel.setFont(infoFont);
 
 		final boolean hasData = (data != null && !data.isEmpty());
@@ -357,21 +357,35 @@ public class GroupPanel extends JPanel{
 			final MouseAdapter selectedAdapter = new MouseAdapter(){
 				@Override
 				public void mousePressed(final MouseEvent e){
-					if(SwingUtilities.isLeftMouseButton(e) && listener != null && data != null){
+					if(SwingUtilities.isLeftMouseButton(e) && e.getClickCount() == 1 && listener != null && data != null){
 						listener.onRootEntitySelected(data.getGroup());
 
 						e.consume();
 					}
 				}
+
+				@Override
+				public void mouseExited(final MouseEvent e){
+					nameLabel.setCursor(Cursor.getDefaultCursor());
+				}
 			};
 			nameLabel.addMouseListener(selectedAdapter);
+
+			nameLabel.addMouseMotionListener(new MouseMotionAdapter(){
+				@Override
+				public void mouseMoved(final MouseEvent e){
+					nameLabel.setCursor(nameLabel.isTextHit(e.getPoint())
+						? Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
+						: Cursor.getDefaultCursor());
+				}
+			});
 		}
 
-		// Double-click to edit group.
+		// Double-click to edit group
 		addMouseListener(new MouseAdapter(){
 			@Override
 			public void mousePressed(final MouseEvent e){
-				if(e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e) && listener != null && data != null)
+				if(SwingUtilities.isLeftMouseButton(e) && e.getClickCount() == 2 && listener != null && data != null)
 					listener.onEntityEdit(data.getGroup());
 			}
 		});
@@ -382,7 +396,8 @@ public class GroupPanel extends JPanel{
 		final MouseAdapter selectionAdapter = new MouseAdapter(){
 			@Override
 			public void mousePressed(final MouseEvent e){
-				if(SwingUtilities.isLeftMouseButton(e) && e.getClickCount() == 1 && listener != null && data != null)
+				if(SwingUtilities.isLeftMouseButton(e) && e.getClickCount() == 1 && listener != null && data != null
+						&& nameLabel.isTextHit(e.getPoint()))
 					listener.onGroupSelected(GroupPanel.this, data.getGroup());
 			}
 		};

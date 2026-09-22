@@ -201,28 +201,29 @@ public class TreeMutator{
 	 * @param individual    the record to remove
 	 * @param currentRootId the current active root ID
 	 */
-	public void removeIndividual(final FLEFRecord individual, final String currentRootId){
+	public String removeIndividual(final FLEFRecord individual, final String currentRootId){
 		if(individual == null)
-			return;
+			return currentRootId;
 
 		final String targetId = individual.getId();
 
 		// Determine fallback root if removing current root
 		String newRootId = currentRootId;
 		if(targetId.equals(currentRootId)){
-			final Map<IndividualData, SiblingsData> childrenData = treeService.buildChildrenData(targetId);
-			if(!childrenData.isEmpty()){
-				final SiblingsData siblings = childrenData.values()
-					.iterator()
-					.next();
-				if(!siblings.getSiblings()
-					.isEmpty())
-					newRootId = siblings.getSiblings()
-						.getFirst()
-						.getId();
+			newRootId = findFallbackRoot(targetId);
+
+			if(newRootId == null){
+				final Map<IndividualData, SiblingsData> childrenData = treeService.buildChildrenData(targetId);
+				if(!childrenData.isEmpty()){
+					final SiblingsData siblings = childrenData.values()
+						.iterator()
+						.next();
+					if(!siblings.getSiblings().isEmpty())
+						newRootId = siblings.getSiblings()
+							.getFirst()
+							.getId();
+				}
 			}
-			else
-				newRootId = null;
 		}
 
 		// Remove all relationships associated with this individual
@@ -242,6 +243,59 @@ public class TreeMutator{
 
 		// Invalidate service cache & notify UI
 		invalidateAndNotifyTreeChanged(newRootId);
+
+		return newRootId;
+	}
+
+	/**
+	 * Returns a replacement root for the given individual, following the
+	 * priority partner → parent → child. Returns {@code null} when the
+	 * individual has no relative of any of those kinds.
+	 */
+	private String findFallbackRoot(final String individualId){
+		final String parent = findParent(individualId);
+		if(parent != null)
+			return parent;
+
+		return findChild(individualId);
+	}
+
+	/** First parent of the given individual, or {@code null}. */
+	private String findParent(final String individualId){
+		for(final FLEFRecord relationship : model.getRecordsByType(RelationshipHandler.TYPE)){
+			final String type = FLEFRecordHelper.getChildValue(relationship, TAG_TYPE);
+			if(type == null || !relationshipTypeFilter.test(type))
+				continue;
+
+			// Parent-child link: subject = child, target = parent.
+			final String subjectId = relationship.extractReferencedId(TAG_SUBJECT, IndividualHandler.TYPE);
+			if(!individualId.equals(subjectId))
+				continue;
+
+			final String parentId = relationship.extractReferencedId(TAG_TARGET, IndividualHandler.TYPE);
+			if(parentId != null && model.hasRecord(parentId))
+				return parentId;
+		}
+		return null;
+	}
+
+	/** First child of the given individual, or {@code null}. */
+	private String findChild(final String individualId){
+		for(final FLEFRecord relationship : model.getRecordsByType(RelationshipHandler.TYPE)){
+			final String type = FLEFRecordHelper.getChildValue(relationship, TAG_TYPE);
+			if(type == null || !relationshipTypeFilter.test(type))
+				continue;
+
+			// Parent-child link: subject = child, target = parent.
+			final String targetId = relationship.extractReferencedId(TAG_TARGET, IndividualHandler.TYPE);
+			if(!individualId.equals(targetId))
+				continue;
+
+			final String childId = relationship.extractReferencedId(TAG_SUBJECT, IndividualHandler.TYPE);
+			if(childId != null && model.hasRecord(childId))
+				return childId;
+		}
+		return null;
 	}
 
 	/**

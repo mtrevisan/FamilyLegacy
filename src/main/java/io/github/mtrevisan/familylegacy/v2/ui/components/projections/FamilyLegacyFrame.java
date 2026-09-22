@@ -32,10 +32,8 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.projections.bookmarks.B
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.bookmarks.BookmarkType;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.dossier.GroupDossierPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.dossier.IndividualDossierPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.searches.RecordSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.files.FileMenuController;
 
@@ -59,14 +57,13 @@ import java.awt.Dimension;
 import java.awt.KeyboardFocusManager;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
+import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serial;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -126,8 +123,8 @@ public class FamilyLegacyFrame extends JFrame{
 
 	private FLEFModel model;
 	private ProjectionSwitcherPanel switcher;
-	private final IndividualDossierPanel individualDossier;
-	private final GroupDossierPanel groupDossier;
+	private IndividualDossierPanel individualDossier;
+	private GroupDossierPanel groupDossier;
 	private final BookmarkStore bookmarkStore = new BookmarkStore();
 	private final FileMenuController fileController;
 
@@ -143,9 +140,9 @@ public class FamilyLegacyFrame extends JFrame{
 	private final JToolBar toolBar;
 
 	private JToggleButton btnToggleSidebar;
-	private JToggleButton btnTree;
-	private JToggleButton btnSugiyama;
-	private JToggleButton btnEgo;
+	private JToggleButton btnTreeLayout;
+	private JToggleButton btnGraphLayout;
+	private JToggleButton btnEgoLayout;
 	private JButton btnBack;
 	private JButton btnForward;
 
@@ -171,11 +168,17 @@ public class FamilyLegacyFrame extends JFrame{
 		// Navigation listener: fires for any root change, including
 		// bookmark applications and back/forward navigation. Keeps the
 		// dossiers in sync with the active view.
-		switcher.setNavigationListener(this::syncDossier);
+		switcher.withNavigationListener(this::syncDossier);
 
 		currentDossier = individualDossier;
 
 		toolBar = createToolBar();
+
+		// Keep the toolbar radio buttons in sync with the active projection,
+		// regardless of whether the change came from the toolbar, a keyboard
+		// shortcut (Ctrl+1/2/3) or a bookmark application.
+		switcher.setProjectionChangeListener(this::onProjectionChanged);
+		onProjectionChanged(switcher.getCurrentProjectionType());
 
 		split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, switcher, currentDossier);
 		split.setResizeWeight(1.0);
@@ -255,27 +258,27 @@ public class FamilyLegacyFrame extends JFrame{
 		tb.addSeparator();
 
 		// Projection Switcher Buttons
-		btnTree = new JToggleButton("Tree");
-		btnTree.setToolTipText("Ancestor Tree (Ctrl+1)");
-		btnTree.setSelected(true);
-		btnTree.addActionListener(e -> switcher.setProjection(ProjectionType.TREE));
+		btnTreeLayout = new JToggleButton("Tree");
+		btnTreeLayout.setToolTipText("Ancestor Tree (Ctrl+1)");
+		btnTreeLayout.setSelected(true);
+		btnTreeLayout.addActionListener(e -> switcher.setProjection(ProjectionType.TREE));
 
-		btnSugiyama = new JToggleButton("Sugiyama");
-		btnSugiyama.setToolTipText("Sugiyama Pedigree Graph (Ctrl+2)");
-		btnSugiyama.addActionListener(e -> switcher.setProjection(ProjectionType.GRAPH));
+		btnGraphLayout = new JToggleButton("Sugiyama");
+		btnGraphLayout.setToolTipText("Sugiyama Pedigree Graph (Ctrl+2)");
+		btnGraphLayout.addActionListener(e -> switcher.setProjection(ProjectionType.GRAPH));
 
-		btnEgo = new JToggleButton("Ego Net");
-		btnEgo.setToolTipText("Ego Network (Ctrl+3)");
-		btnEgo.addActionListener(e -> switcher.setProjection(ProjectionType.EGO_NETWORK));
+		btnEgoLayout = new JToggleButton("Ego Net");
+		btnEgoLayout.setToolTipText("Ego Network (Ctrl+3)");
+		btnEgoLayout.addActionListener(e -> switcher.setProjection(ProjectionType.EGO_NETWORK));
 
 		final ButtonGroup projectionGroup = new ButtonGroup();
-		projectionGroup.add(btnTree);
-		projectionGroup.add(btnSugiyama);
-		projectionGroup.add(btnEgo);
+		projectionGroup.add(btnTreeLayout);
+		projectionGroup.add(btnGraphLayout);
+		projectionGroup.add(btnEgoLayout);
 
-		tb.add(btnTree);
-		tb.add(btnSugiyama);
-		tb.add(btnEgo);
+		tb.add(btnTreeLayout);
+		tb.add(btnGraphLayout);
+		tb.add(btnEgoLayout);
 		tb.addSeparator();
 
 		// Layout & View Toggles
@@ -289,24 +292,25 @@ public class FamilyLegacyFrame extends JFrame{
 	}
 
 	private void openJumpToDialog(){
-		final ProjectionType projection = switcher.getCurrentProjectionType();
-		final List<Class<? extends RecordTypeHandler<?>>> handlerList = new ArrayList<>();
-		handlerList.add(IndividualHandler.class);
-		if(projection == ProjectionType.EGO_NETWORK)
-			handlerList.add(GroupHandler.class);
+		final String id = JumpToIndividualDialog.showAndGet(
+			this,
+			model(),
+			switcher.getCurrentProjectionType());
+		if(id != null)
+			loadRoot(id);
+	}
 
-		@SuppressWarnings("unchecked")
-		final Class<? extends RecordTypeHandler<?>>[] handlers = handlerList.toArray(new Class[0]);
-
-		final RecordSelectionDialog dialog = RecordSelectionDialog.create(
-			this, model(),
-			(record, handler) -> {
-				if(record != null && record.getId() != null)
-					loadRoot(record.getId());
-			},
-			handlers);
-
-		dialog.setVisible(true);
+	/**
+	 * Updates the toolbar's projection toggles to reflect the given
+	 * projection. Called from the switcher's projection listener, so it
+	 * also fires for Ctrl+1/2/3 and for bookmark applications.
+	 */
+	private void onProjectionChanged(final ProjectionType type){
+		switch(type){
+			case TREE -> btnTreeLayout.setSelected(true);
+			case GRAPH -> btnGraphLayout.setSelected(true);
+			case EGO_NETWORK -> btnEgoLayout.setSelected(true);
+		}
 	}
 
 	/* ======================================================================
@@ -433,32 +437,75 @@ public class FamilyLegacyFrame extends JFrame{
 		SwingUtilities.invokeLater(() -> {
 			this.model = newModel;
 
-			// Dispose the old content: the switcher and the dossiers
-			// hold references to the previous model that cannot be
-			// swapped in place.
-			remove(split);
-
 			this.switcher = new ProjectionSwitcherPanel(newModel);
 			switcher.setSelectionCallback(this::showIndividualDossier);
 			switcher.setGroupSelectionCallback(this::showGroupDossier);
-			switcher.setNavigationListener(this::syncDossier);
+			switcher.withNavigationListener(this::syncDossier);
+			switcher.setProjectionChangeListener(this::onProjectionChanged);
 
-			// The dossiers are final fields, so we keep the instances
-			// and simply repopulate them. A more thorough refactoring
-			// would make them non-final, but for now repopulating works.
-			this.individualDossier.setIndividual(null);
-			this.groupDossier.setGroup(null);
+			this.individualDossier = new IndividualDossierPanel(newModel);
+			this.groupDossier = new GroupDossierPanel(newModel);
 			this.currentDossier = this.individualDossier;
 
+			remove(split);
 			split.setLeftComponent(switcher);
 			split.setRightComponent(currentDossier);
 			split.setDividerLocation(SWITCHER_WIDTH);
-
 			add(split, BorderLayout.CENTER);
+			split.revalidate();
+			split.repaint();
 
-			revalidate();
-			repaint();
+			loadRoot(lowestIndividualId(newModel));
 		});
+	}
+
+	/**
+	 * Returns the id of the individual with the lowest numeric suffix,
+	 * or {@code null} when the model contains no individuals.
+	 * <p>
+	 * IDs are compared by their numeric part, not lexicographically:
+	 * {@code I2} is lower than {@code I10}.
+	 */
+	private static String lowestIndividualId(final FLEFModel model){
+		String bestId = null;
+		long bestNumber = Long.MAX_VALUE;
+
+		for(final FLEFRecord record : model.getRecords()){
+			if(!IndividualHandler.TYPE.equalsIgnoreCase(record.getTag()))
+				continue;
+
+			final String id = record.getId();
+			if(id == null)
+				continue;
+
+			final long number = numericSuffix(id);
+			if(number < bestNumber){
+				bestNumber = number;
+				bestId = id;
+			}
+		}
+		return bestId;
+	}
+
+	/**
+	 * Extracts the trailing digits from an id such as {@code I42} → {@code 42}.
+	 * When the id has no trailing digits, returns {@link Long#MAX_VALUE} so
+	 * such ids sort last.
+	 */
+	private static long numericSuffix(final String id){
+		int i = id.length();
+		while(i > 0 && Character.isDigit(id.charAt(i - 1)))
+			i --;
+
+		if(i == id.length())
+			return Long.MAX_VALUE;
+
+		try{
+			return Long.parseLong(id.substring(i));
+		}
+		catch(final NumberFormatException ex){
+			return Long.MAX_VALUE;
+		}
 	}
 
 
@@ -577,43 +624,53 @@ public class FamilyLegacyFrame extends JFrame{
 	private void setupArrowShortcuts(){
 		KeyboardFocusManager.getCurrentKeyboardFocusManager()
 			.addKeyEventDispatcher(e -> {
-			// Handle only KEY_PRESSED events when this frame is the active window
-			if(e.getID() != KeyEvent.KEY_PRESSED || !isFocused())
-				return false;
-
-			// Do not intercept arrow keys if a text component is currently focused
-			final Component focusOwner = KeyboardFocusManager.getCurrentKeyboardFocusManager()
-				.getFocusOwner();
-			if(focusOwner instanceof JTextComponent)
-				return false;
-
-			final int keyCode = e.getKeyCode();
-			switch(keyCode){
-				case KeyEvent.VK_UP -> {
-					switcher.moveSelection(SpatialNavigation.Direction.UP);
-					return true;
-				}
-				case KeyEvent.VK_DOWN -> {
-					switcher.moveSelection(SpatialNavigation.Direction.DOWN);
-					return true;
-				}
-				case KeyEvent.VK_LEFT -> {
-					switcher.moveSelection(SpatialNavigation.Direction.LEFT);
-					return true;
-				}
-				case KeyEvent.VK_RIGHT -> {
-					switcher.moveSelection(SpatialNavigation.Direction.RIGHT);
-					return true;
-				}
-				case KeyEvent.VK_ENTER -> {
-					switcher.confirmSelection();
-					return true;
-				}
-				default -> {
+				// Handle only KEY_PRESSED events when this frame is the active window
+				if(e.getID() != KeyEvent.KEY_PRESSED || !isFocused())
 					return false;
+
+				// Do not swallow arrow/enter keys when any modifier is held:
+				// Ctrl+Left / Ctrl+Right must reach the InputMap bindings for
+				// navigateBack / navigateForward, and Shift/Alt combinations
+				// may be used by other components (text selection, OS gestures).
+				// On macOS the menu shortcut is Cmd, which maps to META_DOWN_MASK.
+				final int modifiers = e.getModifiersEx();
+				if((modifiers & (InputEvent.CTRL_DOWN_MASK | InputEvent.META_DOWN_MASK | InputEvent.ALT_DOWN_MASK
+						| InputEvent.SHIFT_DOWN_MASK)) != 0)
+					return false;
+
+				// Do not intercept arrow keys if a text component is currently focused
+				final Component focusOwner = KeyboardFocusManager.getCurrentKeyboardFocusManager()
+					.getFocusOwner();
+				if(focusOwner instanceof JTextComponent)
+					return false;
+
+				final int keyCode = e.getKeyCode();
+				switch(keyCode){
+					case KeyEvent.VK_UP -> {
+						switcher.moveSelection(SpatialNavigation.Direction.UP);
+						return true;
+					}
+					case KeyEvent.VK_DOWN -> {
+						switcher.moveSelection(SpatialNavigation.Direction.DOWN);
+						return true;
+					}
+					case KeyEvent.VK_LEFT -> {
+						switcher.moveSelection(SpatialNavigation.Direction.LEFT);
+						return true;
+					}
+					case KeyEvent.VK_RIGHT -> {
+						switcher.moveSelection(SpatialNavigation.Direction.RIGHT);
+						return true;
+					}
+					case KeyEvent.VK_ENTER -> {
+						switcher.confirmSelection();
+						return true;
+					}
+					default -> {
+						return false;
+					}
 				}
-			}
-		});
+			});
 	}
 
 

@@ -215,8 +215,9 @@ public final class GroupHelper{
 	 * ====================================================================== */
 
 	/** Row for the group management table. */
-	public record GroupRow(String id, String name, String type,
-								  int memberCount, int childCount, int parentCount, int sourceCount){}
+	public record GroupRow(String id, String name, String type, int memberCount, int childCount, int parentCount,
+		int sourceCount){}
+
 
 	public static GroupRow toRow(final GroupProfile profile){
 		return new GroupRow(

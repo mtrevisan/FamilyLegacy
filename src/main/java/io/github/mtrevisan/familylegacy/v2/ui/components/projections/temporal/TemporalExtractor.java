@@ -77,8 +77,8 @@ public final class TemporalExtractor{
 	private static final String TAG_TARGET = "target";
 	private static final String TAG_IMPACT_TYPE = "impact_type";
 
-	private static final String TAG_RULE_TYPE    = "rule_type";
-	private static final String TAG_TITLE        = "title";
+	private static final String TAG_RULE_TYPE = "rule_type";
+	private static final String TAG_TITLE = "title";
 
 
 	private final FLEFModel model;
@@ -174,11 +174,11 @@ public final class TemporalExtractor{
 		if(refTag == null)
 			return false;
 		return switch(type){
-			case INDIVIDUAL     -> "individual".equalsIgnoreCase(refTag);
-			case GROUP          -> "group".equalsIgnoreCase(refTag);
-			case PLACE          -> "place".equalsIgnoreCase(refTag);
+			case INDIVIDUAL -> "individual".equalsIgnoreCase(refTag);
+			case GROUP -> "group".equalsIgnoreCase(refTag);
+			case PLACE -> "place".equalsIgnoreCase(refTag);
 			case HISTORIC_EVENT -> HistoricEventHandler.TYPE.equalsIgnoreCase(refTag);
-			case CULTURAL_NORM  -> CulturalNormHandler.TYPE.equalsIgnoreCase(refTag);
+			case CULTURAL_NORM -> CulturalNormHandler.TYPE.equalsIgnoreCase(refTag);
 		};
 	}
 

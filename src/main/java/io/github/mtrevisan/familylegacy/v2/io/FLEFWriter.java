@@ -64,6 +64,9 @@ public class FLEFWriter{
 	private final String indentSequence;
 	private final boolean compactMode;
 
+	private ProgressListener progressListener = ProgressListener.NOOP;
+	private int lastReportedPercent = -1;
+
 
 	/**
 	 * Helper class to keep track of the traversal state during non-recursive iteration.
@@ -178,9 +181,13 @@ public class FLEFWriter{
 	 * @return FLEF formatted string representation
 	 */
 	public String writeToString(final FLEFModel model){
+		return writeToString(model, null);
+	}
+
+	public String writeToString(final FLEFModel model, final ProgressListener listener){
 		final StringWriter sw = new StringWriter();
 		try{
-			write(model, sw);
+			write(model, sw, listener);
 		}
 		catch(final IOException e){
 			throw new IllegalStateException("Unexpected error writing to StringWriter", e);
@@ -196,15 +203,32 @@ public class FLEFWriter{
 	 * @throws	IOException	If writing fails.
 	 */
 	public void write(final FLEFModel model, final Writer writer) throws IOException{
+		write(model, writer, null);
+	}
+
+	public void write(final FLEFModel model, final Writer writer, final ProgressListener listener) throws IOException{
 		Objects.requireNonNull(model, "model cannot be null");
 		Objects.requireNonNull(writer, "writer cannot be null");
 
+		this.progressListener = (listener != null? listener: ProgressListener.NOOP);
+		this.lastReportedPercent = -1;
+
+		final List<FLEFRecord> records = model.getRecords();
+		final boolean hasHeader = (model.getHeader() != null);
+		// Each top-level record is one unit of work; the header counts too.
+		final int total = records.size() + (hasHeader? 1: 0);
+		int done = 0;
+
 		// Write header record if present
-		if(model.getHeader() != null)
+		if(hasHeader){
+			progressListener.onProgress(0, "Writing header…");
+
 			writeRecord(model.getHeader(), writer, 0);
 
+			done ++;
+		}
+
 		// Write top-level records
-		final List<FLEFRecord> records = model.getRecords();
 		if(!records.isEmpty()){
 			if(model.getHeader() != null)
 				writer.write(StringUtils.LF);
@@ -218,12 +242,32 @@ public class FLEFWriter{
 				writeRecord(record, writer, 1);
 				if(i < records.size() - 1)
 					writer.write(StringUtils.LF);
+
+				done ++;
+				reportProgress(done, total);
 			}
 			writer.write(TAG_CLOSE_CURLY_BRACE);
 			writer.write(StringUtils.LF);
 		}
 
 		writer.flush();
+
+		progressListener.onProgress(100, "Done");
+	}
+
+	/**
+	 * Reports the serialization progress when the integer percentage
+	 * changes. Called once per top-level record, so it must be cheap.
+	 */
+	private void reportProgress(final int done, final int total){
+		if(total == 0)
+			return;
+
+		final int percent = (int)(done * 100. / total);
+		if(percent != lastReportedPercent){
+			lastReportedPercent = percent;
+			progressListener.onProgress(percent, "Serializing… (" + done + "/" + total + ")");
+		}
 	}
 
 	/**

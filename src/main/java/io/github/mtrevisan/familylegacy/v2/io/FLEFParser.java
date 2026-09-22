@@ -66,6 +66,9 @@ public class FLEFParser{
 	private int length;
 	private int position;
 
+	private ProgressListener progressListener = ProgressListener.NOOP;
+	private int lastReportedPercent = -1;
+
 
 	/**
 	 * Parses a FLEF file from the given path.
@@ -76,9 +79,18 @@ public class FLEFParser{
 	 * @throws IOException if reading fails
 	 */
 	public FLEFModel parse(final Path path) throws IOException{
+		return parse(path, null);
+	}
+
+	public FLEFModel parse(final Path path, final ProgressListener listener) throws IOException{
+		final ProgressListener l = (listener != null? listener: ProgressListener.NOOP);
+		l.onProgress(0, "Reading file…");
+
 		final byte[] data = Files.readAllBytes(path);
 		final String content;
 		if(isGzipCompressed(data)){
+			l.onProgress(-1, "Decompressing…");
+
 			try(final ByteArrayInputStream bais = new ByteArrayInputStream(data);
 				 final GZIPInputStream gis = new GZIPInputStream(bais)){
 				content = new String(gis.readAllBytes(), StandardCharsets.UTF_8);
@@ -87,7 +99,7 @@ public class FLEFParser{
 		else
 			content = new String(data, StandardCharsets.UTF_8);
 
-		return parse(content);
+		return parse(content, l);
 	}
 
 	/**
@@ -99,6 +111,13 @@ public class FLEFParser{
 	 * @throws IOException if reading fails
 	 */
 	public FLEFModel parse(final InputStream inputStream) throws IOException{
+		return parse(inputStream, null);
+	}
+
+	public FLEFModel parse(final InputStream inputStream, final ProgressListener listener) throws IOException{
+		final ProgressListener l = (listener != null? listener: ProgressListener.NOOP);
+		l.onProgress(0, "Reading stream…");
+
 		final String content;
 
 		// Read the first few bytes to test for GZIP magic
@@ -107,6 +126,9 @@ public class FLEFParser{
 		final int read = pushback.read(header, 0, 2);
 		if(read == 2 && isGzipMagic(header)){
 			pushback.unread(header, 0, 2);
+
+			l.onProgress(-1, "Decompressing…");
+
 			try(final GZIPInputStream gis = new GZIPInputStream(pushback)){
 				content = new String(gis.readAllBytes(), StandardCharsets.UTF_8);
 			}
@@ -116,7 +138,7 @@ public class FLEFParser{
 			content = new String(pushback.readAllBytes(), StandardCharsets.UTF_8);
 		}
 
-		return parse(content);
+		return parse(content, l);
 	}
 
 	/**
@@ -132,6 +154,13 @@ public class FLEFParser{
 
 
 	public FLEFModel parse(final String text){
+		return parse(text, null);
+	}
+
+	public FLEFModel parse(final String text, final ProgressListener listener){
+		this.progressListener = (listener != null? listener: ProgressListener.NOOP);
+		this.lastReportedPercent = -1;
+
 		this.text = text;
 		length = text.length();
 		position = 0;
@@ -240,9 +269,29 @@ public class FLEFParser{
 			parent.addChild(parseRecord());
 
 			skipIgnored();
+
+			reportProgress();
 		}
 
 		throw error("Missing closing brace");
+	}
+
+	/**
+	 * Reports the parse progress to the listener when the integer
+	 * percentage has changed. Called from the hot loops
+	 * ({@link #parse(String, ProgressListener)} and {@link #parseBlock}),
+	 * so it must be cheap: it only does an integer division and a
+	 * comparison, and it fires the listener at most 100 times per parse.
+	 */
+	private void reportProgress(){
+		if(length == 0)
+			return;
+
+		final int percent = (int)(position * 100L / length);
+		if(percent != lastReportedPercent){
+			lastReportedPercent = percent;
+			progressListener.onProgress(percent, "Parsing…");
+		}
 	}
 
 	/**

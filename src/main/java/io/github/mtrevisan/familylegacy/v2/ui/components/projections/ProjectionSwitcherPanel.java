@@ -32,7 +32,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualt
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.layout.TreeLayout;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.layout.TreeLayoutEngine;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.relationshipgraph.EgoNetworkPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
@@ -99,7 +98,6 @@ public final class ProjectionSwitcherPanel extends JPanel{
 	/** Background color of the container. Matches the Sugiyama canvas. */
 	private static final Color BACKGROUND = new Color(250, 249, 245);
 
-	private static final String ACTION_SWITCH_PROJECTION = "switchProjection";
 	private static final String ACTION_PROJECTION_TREE = "projectionTree";
 	private static final String ACTION_PROJECTION_SUGIYAMA = "projectionSugiyama";
 	private static final String ACTION_PROJECTION_EGO = "projectionEgo";
@@ -127,6 +125,9 @@ public final class ProjectionSwitcherPanel extends JPanel{
 	 * sync with the active projection.
 	 */
 	private Consumer<String> navigationListener;
+
+	/** Listener fired whenever the active projection changes. */
+	private Consumer<ProjectionType> projectionChangeListener;
 
 
 	public ProjectionSwitcherPanel(final FLEFModel model){
@@ -188,6 +189,7 @@ public final class ProjectionSwitcherPanel extends JPanel{
 	public ProjectionType getCurrentProjectionType(){
 		if(currentPanel == treeGraphPanel)
 			return (treeGraphPanel.getLayoutEngine() == TREE_LAYOUT_ENGINE? ProjectionType.TREE: ProjectionType.GRAPH);
+
 		return ProjectionType.EGO_NETWORK;
 	}
 
@@ -201,23 +203,34 @@ public final class ProjectionSwitcherPanel extends JPanel{
 			return;
 
 		final JPanel target = switch(type){
-			case TREE -> treeGraphPanel;
-			case GRAPH -> treeGraphPanel;
+			case TREE -> {
+				treeGraphPanel.setLayoutEngine(TREE_LAYOUT_ENGINE);
+				yield treeGraphPanel;
+			}
+			case GRAPH -> {
+				treeGraphPanel.setLayoutEngine(GRAPH_LAYOUT_ENGINE);
+				yield treeGraphPanel;
+			}
 			case EGO_NETWORK -> egoPanel;
 		};
 
-		if(target != currentPanel){
-			// Synchronize the target projection's root before swapping
-			final String currentRootId = getSelectedEntityId();
-			if(currentRootId != null){
-				if(target == treeGraphPanel)
-					treeGraphPanel.load(currentRootId, DEFAULT_MAX_ANCESTORS);
-				else if(target == egoPanel)
-					egoPanel.load(currentRootId);
-			}
-
-			swapPanels(target);
+		// Synchronize the target projection's root before swapping
+		final String currentRootId = getSelectedEntityId();
+		if(currentRootId != null){
+			if(target == treeGraphPanel)
+				treeGraphPanel.load(currentRootId, DEFAULT_MAX_ANCESTORS);
+			else if(target == egoPanel)
+				egoPanel.load(currentRootId);
 		}
+
+		swapPanels(target);
+
+		notifyProjectionChanged(type);
+	}
+
+	private void notifyProjectionChanged(final ProjectionType type){
+		if(projectionChangeListener != null)
+			projectionChangeListener.accept(type);
 	}
 
 	/**
@@ -247,8 +260,21 @@ public final class ProjectionSwitcherPanel extends JPanel{
 	 *
 	 * @param listener the listener; may be {@code null} to remove it
 	 */
-	public void setNavigationListener(final Consumer<String> listener){
-		this.navigationListener = listener;
+	public ProjectionSwitcherPanel withNavigationListener(final Consumer<String> listener){
+		navigationListener = listener;
+
+		return this;
+	}
+
+	/**
+	 * Registers a listener invoked whenever the active projection changes.
+	 *
+	 * @param listener the listener; may be {@code null} to remove it
+	 */
+	public ProjectionSwitcherPanel setProjectionChangeListener(final Consumer<ProjectionType> listener){
+		projectionChangeListener = listener;
+
+		return this;
 	}
 
 	/**
@@ -403,17 +429,6 @@ public final class ProjectionSwitcherPanel extends JPanel{
 		final InputMap inputMap = component.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
 		final ActionMap actionMap = component.getActionMap();
 
-		inputMap.put(GUIHelper.CTRL_E_STROKE, ACTION_SWITCH_PROJECTION);
-		actionMap.put(ACTION_SWITCH_PROJECTION, new AbstractAction(){
-			@Serial
-			private static final long serialVersionUID = -5518239024119050317L;
-
-			@Override
-			public void actionPerformed(final ActionEvent e){
-				switchProjection();
-			}
-		});
-
 		final int mask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx();
 		bindProjection(inputMap, actionMap,
 			KeyStroke.getKeyStroke(KeyEvent.VK_1, mask),
@@ -444,32 +459,6 @@ public final class ProjectionSwitcherPanel extends JPanel{
 	/* ======================================================================
 	 *                          Switching
 	 * ====================================================================== */
-
-	private void switchProjection(){
-		if(currentPanel == treeGraphPanel){
-			final String rootId = treeGraphPanel.getRootIndividualId();
-			if(rootId == null)
-				return;
-
-			if(treeGraphPanel.getLayoutEngine() == TREE_LAYOUT_ENGINE)
-				treeGraphPanel.setLayoutEngine(GRAPH_LAYOUT_ENGINE);
-			else{
-				egoPanel.load(rootId);
-
-				swapPanels(egoPanel);
-			}
-		}
-		else if(currentPanel == egoPanel){
-			final String rootId = egoPanel.getCurrentEgoId();
-			if(rootId == null)
-				return;
-
-			treeGraphPanel.load(rootId, DEFAULT_MAX_ANCESTORS);
-			treeGraphPanel.setLayoutEngine(TREE_LAYOUT_ENGINE);
-
-			swapPanels(treeGraphPanel);
-		}
-	}
 
 	private void navigateCurrentViewTo(final String id){
 		if(currentPanel == treeGraphPanel)

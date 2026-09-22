@@ -64,7 +64,9 @@ public enum CalendarType{
 				return type;
 
 //		throw new IllegalArgumentException("Unsupported calendar: " + code);
+//
 //		LOGGER.warn("Unsupported calendar: {}, default to 'gregorian'", code);
+
 		return GREGORIAN;
 	}
 

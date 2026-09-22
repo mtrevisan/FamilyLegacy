@@ -27,12 +27,16 @@ package io.github.mtrevisan.familylegacy.v2.ui.components;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JTextArea;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Element;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Insets;
+import java.awt.Point;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.geom.Rectangle2D;
 
 
 public class MultiLineLabel extends JTextArea{
@@ -186,6 +190,65 @@ public class MultiLineLabel extends JTextArea{
 
 		// If maxWidth is set, use it as the preferred width; otherwise use the superclass width
 		return new Dimension((maxWidth > 0? maxWidth: super.getPreferredSize().width), height);
+	}
+
+	/**
+	 * Returns {@code true} when the given point (in this component's
+	 * coordinate space) falls inside the drawn text of the line under
+	 * the point.
+	 * <p>
+	 * A {@link JTextArea} fills its whole bounds with the text region,
+	 * including the empty space to the right of every line and the empty
+	 * area below the last line: a click in that empty space still maps to
+	 * a valid offset. This method rejects those clicks, so that only the
+	 * visible glyphs count as hits.
+	 *
+	 * @param p the point, in this component's coordinates; may be {@code null}
+	 * @return {@code true} when the point is over a drawn character
+	 */
+	public boolean isTextHit(final Point p){
+		if(p == null)
+			return false;
+
+		final String text = getText();
+		if(text.isEmpty())
+			return false;
+
+		final int offset = viewToModel2D(p);
+		if(offset < 0 || offset > text.length())
+			return false;
+
+		// Find the line containing the click.
+		final Element root = getDocument().getDefaultRootElement();
+		final int lineIndex = root.getElementIndex(offset);
+		final Element line = root.getElement(lineIndex);
+		final int lineStart = line.getStartOffset();
+		// exclude the trailing newline
+		final int lineEnd = line.getEndOffset() - 1;
+		if(lineStart >= lineEnd)
+			// empty line: nothing to click on
+			return false;
+
+		try{
+			// Horizontal extent of the drawn characters of that line.
+			final Rectangle2D startRect = modelToView2D(lineStart);
+			final Rectangle2D lastRect = modelToView2D(lineEnd - 1);
+			if(startRect == null || lastRect == null)
+				return false;
+
+			final double minX = startRect.getMinX();
+			final double maxX = lastRect.getMaxX();
+			// Vertical extent of the line. startRect and lastRect are on the
+			// same line, so either one is fine; use startRect for clarity.
+			final double minY = startRect.getMinY();
+			final double maxY = startRect.getMaxY();
+
+			return (p.x >= minX && p.x <= maxX
+				&& p.y >= minY && p.y <= maxY);
+		}
+		catch(final BadLocationException e){
+			return false;
+		}
 	}
 
 }

@@ -263,24 +263,22 @@ public final class ResearchHelper{
 	 * ====================================================================== */
 
 	/** Row for the research question table. */
-	public record QuestionRow(String id, String title, String status,
-									  int activityCount, int taskCount, int conclusionCount){}
+	public record QuestionRow(String id, String title, String status, int activityCount, int taskCount,
+		int conclusionCount){}
 
 	/** Row for the research activity table. */
-	public record ActivityRow(String id, String questionId, String questionTitle,
-									  String activityType, String status, String action, String result){}
+	public record ActivityRow(String id, String questionId, String questionTitle, String activityType, String status,
+		String action, String result){}
 
 	/** Row for the research task table. */
-	public record TaskRow(String id, String questionId, String description,
-								 String status, String priority, String dueDate){}
+	public record TaskRow(String id, String questionId, String description, String status, String priority,
+		String dueDate){}
 
 	/** Row for the conclusion table. */
-	public record ConclusionRow(String id, String issue, String proofStatus,
-										 int resolvesCount, String narrative){}
+	public record ConclusionRow(String id, String issue, String proofStatus, int resolvesCount, String narrative){}
 
 	/** Row for the identity hypothesis table. */
-	public record IdentityRow(String id, String firstCandidate, String secondCandidate,
-									  String comment){}
+	public record IdentityRow(String id, String firstCandidate, String secondCandidate, String comment){}
 
 
 	public static QuestionRow toQuestionRow(final FLEFRecord question,

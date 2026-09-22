@@ -250,8 +250,8 @@ public final class EventParticipantsDialog extends JDialog{
 	}
 
 
-	private record ParticipationRow(String id, String eventLabel,
-											  String participantType, String participantId, String role){}
+	private record ParticipationRow(String id, String eventLabel, String participantType, String participantId,
+		String role){}
 
 
 	private static final class ParticipationTableModel extends AbstractTableModel{

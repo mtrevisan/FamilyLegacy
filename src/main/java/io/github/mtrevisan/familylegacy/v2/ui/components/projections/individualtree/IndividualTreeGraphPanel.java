@@ -27,6 +27,8 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual
 import io.github.mtrevisan.familylegacy.v2.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.JumpToIndividualDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.ProjectionType;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.SpatialNavigation;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.EntityPopupMenuFactory;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.EntityTreePopupMenuFactory;
@@ -306,7 +308,31 @@ public class IndividualTreeGraphPanel extends JPanel implements TreeChangeListen
 
 	@Override
 	public void onTreeStructureChanged(final String rootIndividualId){
+		if(rootIndividualId == null){
+			// The deleted individual was the root and had no usable
+			// relative: ask the user to pick a new root through the
+			// Jump to Individual dialog. Deferred so the tree canvas has
+			// time to clear the old root before the modal dialog opens.
+			SwingUtilities.invokeLater(this::openJumpToDialogAfterDeletion);
+
+			return;
+		}
+
 		SwingUtilities.invokeLater(() -> load(rootIndividualId, currentMaxAncestors));
+	}
+
+	/**
+	 * Opens the Jump to Individual dialog after a deletion that left no
+	 * fallback root, and loads the chosen individual. Does nothing when
+	 * the user cancels.
+	 */
+	private void openJumpToDialogAfterDeletion(){
+		final Window owner = SwingUtilities.getWindowAncestor(this);
+		// Here the panel is either the tree or the Sugiyama graph; both
+		// offer only individuals, so ProjectionType.TREE is fine.
+		final String chosen = JumpToIndividualDialog.showAndGet(owner, model, ProjectionType.TREE);
+		if(chosen != null)
+			load(chosen, currentMaxAncestors);
 	}
 
 	public static String[] computeAllowedRelationshipTypes(final TreeType treeType){

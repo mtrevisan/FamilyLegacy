@@ -123,7 +123,7 @@ public class BindingsHelper{
 		component.addMouseListener(new MouseAdapter(){
 			@Override
 			public void mousePressed(final MouseEvent e){
-				if(e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e) && hasSelection.get()){
+				if(SwingUtilities.isLeftMouseButton(e) && e.getClickCount() == 2 && hasSelection.get()){
 					if(shiftDoubleClickAction != null && e.isShiftDown())
 						shiftDoubleClickAction.run();
 					else if(doubleClickAction != null)

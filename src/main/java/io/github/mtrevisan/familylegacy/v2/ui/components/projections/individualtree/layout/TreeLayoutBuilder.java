@@ -111,7 +111,7 @@ public final class TreeLayoutBuilder{
 		final int maxLeafUnits = (rootNode != null? calculateSubtreeLeafUnits(rootNode, 0, maxDepth): 1);
 
 		final boolean isVertical = (treeLayout == TreeLayout.VERTICAL);
-		final String mainPanelConstraints = (isVertical? "ins 0": "ins 10");
+		final String mainPanelConstraints = (isVertical? "debug,ins 0": "debug,ins 10");
 		final String primaryConstraints = buildPrimaryConstraints(maxDepth);
 		final String secondaryConstraints = buildSecondaryConstraints(maxLeafUnits);
 		if(isVertical)

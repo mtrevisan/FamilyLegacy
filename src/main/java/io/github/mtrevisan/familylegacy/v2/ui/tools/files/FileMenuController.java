@@ -27,16 +27,20 @@ package io.github.mtrevisan.familylegacy.v2.ui.tools.files;
 import io.github.mtrevisan.familylegacy.v2.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.v2.io.FLEFWriter;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.ProgressDialog;
 
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
+import javax.swing.SwingWorker;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import java.awt.Window;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.Objects;
+import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -158,21 +162,53 @@ public final class FileMenuController{
 		if(file == null || !file.exists())
 			return;
 
-		try{
-			final String content = Files.readString(file.toPath(), StandardCharsets.UTF_8);
-			final FLEFModel model = new FLEFParser().parse(content);
-			modelReplacer.accept(model);
-			currentFile = file;
-			lastDirectory = file.getParentFile();
-			dirty = false;
-			recentFiles.add(file);
-		}
-		catch(final IOException ex){
-			showError("Unable to open the file", ex);
-		}
-		catch(final RuntimeException ex){
-			showError("The file is not a valid FLEF document", ex);
-		}
+		final Window ownerWindow = owner;
+
+		// Must be created on the EDT, before the worker starts. The
+		// dialog is modal but pumps events while visible, so the worker
+		// can update it from its own thread via update().
+		final ProgressDialog progress = new ProgressDialog(ownerWindow,
+			"Open FLEF file", "Opening " + file.getName() + "…");
+
+		final SwingWorker<FLEFModel, Void> worker = new SwingWorker<>(){
+			@Override
+			protected FLEFModel doInBackground() throws Exception{
+				progress.update(0, "Reading file…");
+				return new FLEFParser()
+					.parse(file.toPath(), progress::update);
+			}
+
+			@Override
+			protected void done(){
+				// We are on the EDT: close the dialog, then apply the result.
+				progress.close();
+
+				try{
+					final FLEFModel model = get();
+
+					modelReplacer.accept(model);
+					currentFile = file;
+					lastDirectory = file.getParentFile();
+					dirty = false;
+					recentFiles.add(file);
+				}
+				catch(final InterruptedException ex){
+					Thread.currentThread().interrupt();
+				}
+				catch(final ExecutionException ex){
+					final Throwable cause = (ex.getCause() != null? ex.getCause(): ex);
+					if(cause instanceof IOException io)
+						showError("Unable to open the file", io);
+					else
+						showError("The file is not a valid FLEF document",
+							(cause instanceof RuntimeException re)? re: new RuntimeException(cause));
+				}
+			}
+		};
+
+		worker.execute();
+		// Modal: blocks the caller until done() disposes the dialog.
+		progress.setVisible(true);
 	}
 
 
@@ -252,17 +288,53 @@ public final class FileMenuController{
 		if(model == null)
 			return false;
 
-		try{
-			final String content = FLEFWriter.create().writeToString(model);
-			Files.writeString(file.toPath(), content, StandardCharsets.UTF_8);
-			dirty = false;
-			modelClean.run();
-			return true;
-		}
-		catch(final IOException ex){
-			showError("Unable to save the file", ex);
-			return false;
-		}
+		final ProgressDialog progress = new ProgressDialog(owner,
+			"Save FLEF file", "Saving " + file.getName() + "…");
+
+		// Holder for the result, read after the modal dialog returns.
+		final boolean[] success = { false };
+
+		final SwingWorker<Void, Void> worker = new SwingWorker<>(){
+			@Override
+			protected Void doInBackground() throws Exception{
+				progress.update(0, "Serializing…");
+				final String content = FLEFWriter.createCompact()
+					.writeToString(model, progress::update);
+
+				// The file write itself is a single blocking call, so we
+				// can only show it as an indeterminate step.
+				progress.update(-1, "Writing file…");
+				Files.writeString(file.toPath(), content, StandardCharsets.UTF_8);
+				return null;
+			}
+
+			@Override
+			protected void done(){
+				progress.close();
+				try{
+					get();
+					dirty = false;
+					modelClean.run();
+					success[0] = true;
+				}
+				catch(final InterruptedException ex){
+					Thread.currentThread().interrupt();
+				}
+				catch(final ExecutionException ex){
+					final Throwable cause = (ex.getCause() != null? ex.getCause(): ex);
+					if(cause instanceof IOException io)
+						showError("Unable to save the file", io);
+					else
+						showError("Unable to save the file", new RuntimeException(cause));
+				}
+			}
+		};
+
+		worker.execute();
+		// Modal: pumps events until done() disposes the dialog.
+		progress.setVisible(true);
+
+		return success[0];
 	}
 
 	/**

@@ -211,8 +211,8 @@ public final class TemporalProjectionService{
 	private static RecordTypeHandler<?> handlerFor(final TemporalEntityType type){
 		return switch(type){
 			case INDIVIDUAL -> IndividualHandler.getInstance();
-			case GROUP      -> GroupHandler.getInstance();
-			case PLACE      -> PlaceHandler.getInstance();
+			case GROUP -> GroupHandler.getInstance();
+			case PLACE -> PlaceHandler.getInstance();
 			default -> throw new IllegalArgumentException(
 				"No handler for row entity type: " + type);
 		};

@@ -82,7 +82,7 @@ public class GEDCOMHelper{
 
 
 	@SuppressWarnings({"ResultOfMethodCallIgnored", "IOResourceOpenedButNotSafelyClosed"})
-	static BufferedReader getBufferedReader(InputStream in) throws IOException{
+	public static BufferedReader getBufferedReader(InputStream in) throws IOException{
 		if(!in.markSupported())
 			in = new BufferedInputStream(in);
 

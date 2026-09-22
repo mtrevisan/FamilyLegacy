@@ -57,6 +57,16 @@ import java.util.Map;
  */
 public class GEDCOMToFLEFConverter {
 
+	@FunctionalInterface
+	public interface ProgressListener{
+		/**
+		 * @param percent 0-100, or a negative value for an indeterminate step
+		 * @param message short description of the current step
+		 */
+		void onProgress(int percent, String message);
+	}
+
+
 	private final FLEFModel model = new FLEFModel();
 
 	// Shared context maps
@@ -73,14 +83,21 @@ public class GEDCOMToFLEFConverter {
 
 	private final PlaceCache placeCache = new PlaceCache(model);
 
+
+	/** Convenience overload that runs the conversion without progress reporting. */
+	public FLEFModel convert(final List<GEDCOMNode> roots){
+		return convert(roots, (percent, message) -> {});
+	}
+
 	/**
 	 * Converts the GEDCOM forest into a FLEFModel.
 	 *
 	 * @param roots the list of top‑level GEDCOM nodes
 	 * @return a fully converted and validated FLEF model
 	 */
-	public FLEFModel convert(List<GEDCOMNode> roots) {
+	public FLEFModel convert(final List<GEDCOMNode> roots, final ProgressListener listener) {
 		// ---- 1. Register all existing IDs (for IDGenerator) ----
+		listener.onProgress(0, "Registering identifiers…");
 		registerIds(roots);
 
 		// collect all notes
@@ -104,6 +121,11 @@ public class GEDCOMToFLEFConverter {
 //		SubmitterConverter submitterConverter = new SubmitterConverter(model, submitterMap, placeCache);
 //		NoteConverter noteConverter = new NoteConverter(model, noteMap, noteRawMap);
 
+		listener.onProgress(10, "Parsing records…");
+
+		final int total = roots.size();
+		int done = 0;
+
 		// ---- 3. First pass: parse all records ----
 		for (GEDCOMNode node : roots) {
 			switch (node.getTag()) {
@@ -118,10 +140,18 @@ public class GEDCOMToFLEFConverter {
 				// SUBN (submission records) are ignored.
 				default -> { /* ignore unknown top‑level tags */ }
 			}
+
+			done ++;
+			final int percent = 10 + (int)(done * 60. / total);
+			listener.onProgress(percent, "Parsing " + node.getTag() + "…");
 		}
+
+		listener.onProgress(75, "Resolving family links…");
 
 		// ---- 4. Second pass: resolve family links ----
 		familyConverter.resolveLinks();
+
+		listener.onProgress(85, "Building model…");
 
 		// ---- 6. Add all records to the model ----
 		individualMap.values().forEach(model::addRecord);
@@ -131,7 +161,11 @@ public class GEDCOMToFLEFConverter {
 		multimediaMap.values().forEach(model::addRecord);
 		// Submitters are not added as top‑level records; they are included in the header.
 
+		listener.onProgress(95, "Inlining notes…");
+
 		inlineNotes(model, noteMap);
+
+		listener.onProgress(100, "Done");
 
 		return model;
 	}

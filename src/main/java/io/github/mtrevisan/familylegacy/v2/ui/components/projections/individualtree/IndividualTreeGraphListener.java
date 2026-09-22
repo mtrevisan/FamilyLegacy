@@ -145,12 +145,33 @@ public final class IndividualTreeGraphListener implements IndividualListener{
 		if(individual == null)
 			return;
 
+		final String displayText = IndividualHandler.getInstance()
+			.getDisplayText(individual, model);
+
+		// Count the relationship records that the deletion will also remove.
+		// getRelationshipIdsForIndividual returns the ids of every
+		// relationship where the individual is either subject or target,
+		// which is exactly the set removed by TreeMutator.removeIndividual.
+		final int linkCount = (individual.getId() != null
+			? treeService.getRelationshipIdsForIndividual(individual.getId()).size()
+			: 0);
+
+		final String message;
+		if(linkCount == 0)
+			message = "Are you sure you want to remove individual " + displayText + "?\n"
+				+ "This individual has no relationship links.";
+		else
+			message = "Are you sure you want to remove individual " + displayText + "?\n"
+				+ linkCount + (linkCount == 1
+				? " relationship link will also be removed."
+				: " relationship links will also be removed.");
+
 		final int confirm = JOptionPane.showConfirmDialog(component,
-			"Are you sure you want to remove individual "
-				+ IndividualHandler.getInstance().getDisplayText(individual, model) + "?",
+			message,
 			"Confirm Removal", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
 		if(confirm == JOptionPane.YES_OPTION){
 			LOGGER.debug("Individual remove {}", individual.getId());
+
 			treeMutator.removeIndividual(individual, currentRootId.get());
 		}
 	}

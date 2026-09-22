@@ -36,12 +36,18 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.Toolkit;
 import java.awt.Window;
+import java.awt.datatransfer.StringSelection;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -76,9 +82,8 @@ public final class FilePropertiesDialog extends JDialog{
 
 		final JButton copy = new JButton("Copy to Clipboard");
 		copy.addActionListener(e -> {
-			final java.awt.datatransfer.StringSelection selection =
-				new java.awt.datatransfer.StringSelection(area.getText());
-			java.awt.Toolkit.getDefaultToolkit()
+			final StringSelection selection = new StringSelection(area.getText());
+			Toolkit.getDefaultToolkit()
 				.getSystemClipboard()
 				.setContents(selection, selection);
 		});
@@ -100,7 +105,8 @@ public final class FilePropertiesDialog extends JDialog{
 
 
 	public static void show(final Window owner, final File file, final FLEFModel model){
-		new FilePropertiesDialog(owner, file, model).setVisible(true);
+		new FilePropertiesDialog(owner, file, model)
+			.setVisible(true);
 	}
 
 
@@ -121,7 +127,15 @@ public final class FilePropertiesDialog extends JDialog{
 	private static void appendFileInfo(final StringBuilder sb, final File file){
 		sb.append("--- File ---\n");
 		if(file == null){
-			sb.append("Not saved yet.\n\n");
+			sb.append("Name:           (unsaved)\n");
+			sb.append("Location:       —\n");
+			sb.append("Size:           —\n");
+			sb.append("Last modified:  —\n");
+			sb.append("Readable:       —\n");
+			sb.append("Writable:       —\n");
+			sb.append("Encoding:       ").append(detectEncoding(null)).append('\n');
+			sb.append('\n');
+
 			return;
 		}
 		sb.append("Name:           ").append(file.getName()).append('\n');
@@ -131,6 +145,7 @@ public final class FilePropertiesDialog extends JDialog{
 			Instant.ofEpochMilli(file.lastModified()))).append('\n');
 		sb.append("Readable:       ").append(file.canRead()? "yes": "no").append('\n');
 		sb.append("Writable:       ").append(file.canWrite()? "yes": "no").append('\n');
+		sb.append("Encoding:       ").append(detectEncoding(file)).append('\n');
 		sb.append('\n');
 	}
 
@@ -160,14 +175,36 @@ public final class FilePropertiesDialog extends JDialog{
 		}
 	}
 
+	private static String detectEncoding(final File file){
+		if(file == null)
+			return "UTF-8 (new document)";
+		if(!file.exists())
+			return "UTF-8";
+
+		try(final InputStream is = new FileInputStream(file)){
+			final byte[] bom = new byte[3];
+			final int read = is.read(bom);
+			if(read >= 3 && bom[0] == (byte)0xEF && bom[1] == (byte)0xBB && bom[2] == (byte)0xBF)
+				return "UTF-8 (BOM)";
+
+			if(read >= 2 && bom[0] == (byte)0xFF && bom[1] == (byte)0xFE)
+				return "UTF-16 LE";
+
+			if(read >= 2 && bom[0] == (byte)0xFE && bom[1] == (byte)0xFF)
+				return "UTF-16 BE";
+		}
+		catch(final IOException ignored){}
+		return "UTF-8";
+	}
+
 	private static String formatBytes(final long bytes){
 		final long kb = bytes / 1024L;
 		if(kb < 1024L)
 			return kb + " KB";
 		final long mb = kb / 1024L;
 		if(mb < 1024L)
-			return String.format("%.2f MB", kb / 1024.0);
-		return String.format("%.2f GB", mb / 1024.0);
+			return String.format(Locale.ENGLISH, "%.2f MB", kb / 1024.0);
+		return String.format(Locale.ENGLISH, "%.2f GB", mb / 1024.0);
 	}
 
 }

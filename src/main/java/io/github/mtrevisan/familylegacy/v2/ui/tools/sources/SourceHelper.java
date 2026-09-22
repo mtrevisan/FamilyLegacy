@@ -289,8 +289,8 @@ public final class SourceHelper{
 										 int sourceCount){}
 
 	/** Row for the document management table. */
-	public record DocumentRow(String id, String uri, String description,
-									  String mapping, int referenceCount){}
+	public record DocumentRow(String id, String uri, String description, String mapping, int referenceCount){}
+
 
 	/** Builds a {@link SourceRow} with the usage count. */
 	public static SourceRow toSourceRow(final FLEFRecord source,

@@ -296,7 +296,7 @@ public final class TemporalProjectionLayout{
 	 * @param entryLane the lane assignment for each entry
 	 */
 	public record TrackLayout(TemporalTrackType type, int y, int height, int laneCount,
-									  Map<TemporalEntry, Integer> entryLane){
+			Map<TemporalEntry, Integer> entryLane){
 
 		public TrackLayout{
 			if(type == null)

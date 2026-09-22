@@ -137,8 +137,7 @@ public final class PlaceHelper{
 
 
 	/** A row of the place management table. */
-	public record PlaceRow(String id, String name, String type,
-								  String parents, String children, String coordinates){}
+	public record PlaceRow(String id, String name, String type, String parents, String children, String coordinates){}
 
 	/**
 	 * Builds a compact row for the management table. Parents and children

@@ -26,7 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.tools.files;
 
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolOperation;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.files.exportation.ExportFlefTool;
-import io.github.mtrevisan.familylegacy.v2.ui.tools.files.importation.ImportFlefTool;
+import io.github.mtrevisan.familylegacy.v2.ui.tools.files.importation.ImportGedcomTool;
 
 import java.util.List;
 
@@ -43,7 +43,7 @@ public final class FileToolRegistry{
 
 	public static List<ToolOperation> importTools(){
 		return List.of(
-			new ImportFlefTool()//,
+			new ImportGedcomTool()//,
 //			new ImportGedcomTool(),
 //			new ImportCsvTool(),
 //			new ImportLegacyTool()

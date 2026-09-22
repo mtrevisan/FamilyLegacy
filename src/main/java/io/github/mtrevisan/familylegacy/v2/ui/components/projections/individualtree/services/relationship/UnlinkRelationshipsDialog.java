@@ -165,10 +165,7 @@ public class UnlinkRelationshipsDialog extends JDialog{
 	private void initComponents(){
 		setLayout(new BorderLayout());
 
-		final JPanel contentPanel = new JPanel(new MigLayout(
-			"ins 5,gapy 5,fill",
-			"[grow,fill]",
-			"[]"));
+		final JPanel contentPanel = new JPanel(new MigLayout("ins 5,gapy 5,fill", "[grow,fill]", "[]"));
 
 		final List<RelationshipInfo> parentList = new ArrayList<>();
 		final List<RelationshipInfo> associateList = new ArrayList<>();

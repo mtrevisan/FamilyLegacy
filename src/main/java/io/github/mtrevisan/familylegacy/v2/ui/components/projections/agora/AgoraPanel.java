@@ -135,8 +135,7 @@ public final class AgoraPanel extends JPanel{
 	 * @param age       the age in years at the chosen date, or {@code null}
 	 */
 	public record AgoraRow(String id, String name, String place, double latitude, double longitude,
-								  String reason, Integer age){
-	}
+		String reason, Integer age){}
 
 
 	private final FLEFModel model;
