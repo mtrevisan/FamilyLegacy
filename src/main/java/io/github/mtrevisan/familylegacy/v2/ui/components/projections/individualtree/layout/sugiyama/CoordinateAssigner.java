@@ -34,12 +34,14 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.IndividualTreeGraphListener;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.TreeNode;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.layout.TreeLayout;
-import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.layout.TreeLayoutBuilder;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.partners.PartnersPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.siblings.SiblingsData;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.siblings.SiblingsPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.SexType;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.BorderFactory;
 import javax.swing.JPanel;
@@ -48,134 +50,184 @@ import javax.swing.JScrollPane;
 import javax.swing.ScrollPaneConstants;
 import java.awt.ComponentOrientation;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 
 public class CoordinateAssigner{
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(CoordinateAssigner.class);
+
+
 	public static SiblingsPanel populateCanvas(final JPanel canvas, final List<List<Graph.Node>> layers,
-			final Map<Graph.Node, List<Long>> ahnentafelMap, final FLEFModel model,
-			final Map<TreeNode, PartnersPanel> nodeToPanelMap, final IndividualTreeGraphListener treeListener,
-			final EntityPopupMenuFactory<IndividualPanel, IndividualListener> popupFactory,
-			final TreeLayout treeLayout, final boolean showPartner){
+			final FLEFModel model, final Map<TreeNode, PartnersPanel> nodeToPanelMap,
+			final IndividualTreeGraphListener treeListener,
+			final EntityPopupMenuFactory<IndividualPanel, IndividualListener> popupFactory, final TreeLayout treeLayout,
+			final boolean showPartner){
 		canvas.removeAll();
 
 		final boolean isVertical = (treeLayout == TreeLayout.VERTICAL);
 		final String layoutConstraints = (isVertical? "fillx,ins 20,gap 20 40": "filly,ins 20,gap 40 20");
-		canvas.setLayout(new MigLayout(layoutConstraints, StringUtils.EMPTY, StringUtils.EMPTY));
+		canvas.setLayout(new MigLayout("debug," + layoutConstraints, StringUtils.EMPTY, StringUtils.EMPTY));
 
 		final int totalLayers = layers.size();
-		// Generation 0 is the subject (bottom layer), generation L increases upwards
-		int generationLevel = totalLayers - 1;
-		int maxTheoreticalSlots = 1 << generationLevel;
-		int slotColumnSpan = 1;
+
+		// Calculate max pair capacity based on the widest layer
+		int maxPairCapacity = 1;
+		for(final List<Graph.Node> layer : layers)
+			if(layer != null){
+				final int pairCount = Math.max(1, (layer.size() + 1) / 2);
+				if(pairCount > maxPairCapacity)
+					maxPairCapacity = pairCount;
+			}
+		final int maxGridColumns = maxPairCapacity;
 
 		TreeNode rootNode = null;
 		final Map<String, PartnersPanel> processedParentKeys = new HashMap<>();
-		final Set<Long> visibleAhnentafelSlots = new HashSet<>();
+		int gridRow = 0;
+		// 1. Pass: Build PartnersPanels, place on canvas grid, and populate processedParentKeys
 		for(int layerIndex = 0; layerIndex < totalLayers; layerIndex ++){
 			final List<Graph.Node> layerNodes = layers.get(layerIndex);
+			if(layerNodes == null || layerNodes.isEmpty())
+				continue;
 
-			// Track occupied column slots in the grid for this generation layer
-			final Set<Integer> occupiedGridSlots = new HashSet<>();
 			for(final Graph.Node node : layerNodes){
 				if(node.isDummy())
 					continue;
 
-				final TreeNode tn = node.getTreeNode();
-				if(tn == null)
-					// Consanguineous ancestor already placed
-					continue;
+				final TreeNode treeNode = node.getTreeNode();
+				if(treeNode != null && treeNode.getGeneration() == 0){
+					rootNode = treeNode;
 
-				if(tn.getGeneration() == 0)
-					rootNode = tn;
-
-				final String parentKey = getParentGroupKey(tn);
-				if(parentKey != null && processedParentKeys.containsKey(parentKey)){
-					final PartnersPanel panel = processedParentKeys.get(parentKey);
-					nodeToPanelMap.put(tn, panel);
-
-					continue;
-				}
-
-				final int parentLayerIndex = layerIndex - 1;
-				if(parentLayerIndex >= 0){
-					int minSlot = Integer.MAX_VALUE;
-					int maxSlot = Integer.MIN_VALUE;
-
-					for(final Graph.Node siblingNode : layerNodes){
-						if(siblingNode.isDummy())
-							continue;
-
-						final TreeNode siblingTn = siblingNode.getTreeNode();
-						if(siblingTn != null && isSameParentGroup(siblingTn, tn)){
-							final List<Long> ahnentafels = ahnentafelMap.getOrDefault(siblingNode, List.of(1l));
-							for(final Long ahn : ahnentafels){
-								visibleAhnentafelSlots.add(ahn);
-
-								final int slotIndex = (int)(ahn - (1l << generationLevel));
-								minSlot = Math.min(minSlot, slotIndex);
-								maxSlot = Math.max(maxSlot, slotIndex);
-							}
-						}
-					}
-
-					// Calculate grid column alignment
-					final int startCol = minSlot * slotColumnSpan;
-					final int colSpan = ((maxSlot - minSlot) + 1) * slotColumnSpan;
-					final String cellConstraints = isVertical
-						? "cell " + startCol + StringUtils.SPACE + parentLayerIndex + StringUtils.SPACE + colSpan + " 1,align center"
-						: "cell " + parentLayerIndex + StringUtils.SPACE + startCol + " 1 " + colSpan + ",align center";
-
-					PartnersPanel panel = nodeToPanelMap.get(tn);
-					if(panel == null){
-						final BoxPanelType boxType = (tn.getGeneration() == -1? BoxPanelType.PRIMARY: BoxPanelType.SECONDARY);
-						panel = TreeLayoutBuilder.createPanelForNode(tn, boxType, treeLayout, model, treeListener,
-							popupFactory, true);
-						nodeToPanelMap.put(tn, panel);
-					}
-
-					canvas.add(panel, cellConstraints);
-
-					if(parentKey != null)
-						processedParentKeys.put(parentKey, panel);
-
-					// Mark grid columns as occupied
-					for(int s = minSlot; s <= maxSlot; s ++)
-						occupiedGridSlots.add(s);
+					break;
 				}
 			}
 
-			// Render empty placeholder panels if parent slot is empty
-			for(int slot = 0; slot < maxTheoreticalSlots; slot ++)
-				if(!occupiedGridSlots.contains(slot)){
-					final long currentAhnentafel = (1l << generationLevel) + slot;
-					final long childAhnentafel = currentAhnentafel / 2;
+			final int rawCount = layerNodes.size();
+			final int pairCount = Math.max(1, (rawCount + 1) / 2);
+			final int slotWidth = Math.max(1, maxGridColumns / pairCount);
+			boolean rowHasPanels = false;
+			for(int i = 0; i < rawCount; i += 2){
+				final Graph.Node node1 = layerNodes.get(i);
+				final Graph.Node node2 = (i + 1 < rawCount? layerNodes.get(i + 1): null);
 
-					if(visibleAhnentafelSlots.contains(childAhnentafel)){
-						visibleAhnentafelSlots.add(currentAhnentafel);
+				final TreeNode tn1 = (!node1.isDummy()? node1.getTreeNode(): null);
+				final TreeNode tn2 = (node2 != null && !node2.isDummy()? node2.getTreeNode(): null);
+				if(tn1 == null && tn2 == null)
+					continue;
 
-						final int startCol = slot * slotColumnSpan;
-						final String cellConstraints = isVertical
-							? "cell " + startCol + StringUtils.SPACE + layerIndex + StringUtils.SPACE + slotColumnSpan + " 1,align center"
-							: "cell " + layerIndex + StringUtils.SPACE + startCol + " 1 " + slotColumnSpan + ",align center";
-
-						final BoxPanelType boxType = (generationLevel == -1? BoxPanelType.PRIMARY: BoxPanelType.SECONDARY);
-						final PartnersPanel emptyPanel = PartnersPanel.createEmpty(boxType, treeLayout);
-						canvas.add(emptyPanel, cellConstraints);
-					}
+				// Identify father (Male) and mother (Female) explicitly
+				TreeNode fatherTn = null;
+				TreeNode motherTn = null;
+				if(tn1 != null && tn1.getIndividualData() != null){
+					if(tn1.getIndividualData().getSex() == SexType.MALE)
+						fatherTn = tn1;
+					else if(tn1.getIndividualData().getSex() == SexType.FEMALE)
+						motherTn = tn1;
+				}
+				if(tn2 != null && tn2.getIndividualData() != null){
+					if(tn2.getIndividualData().getSex() == SexType.MALE)
+						fatherTn = tn2;
+					else if(tn2.getIndividualData().getSex() == SexType.FEMALE)
+						motherTn = tn2;
 				}
 
+				final String parentKey = getParentGroupKey(fatherTn, motherTn);
 
-			generationLevel --;
-			maxTheoreticalSlots >>>= 1;
-			slotColumnSpan <<= 1;
+				PartnersPanel panel = processedParentKeys.get(parentKey);
+				if(panel == null){
+					final BoxPanelType boxType = (fatherTn != null && fatherTn.getGeneration() == 0
+							|| motherTn != null && motherTn.getGeneration() == 0
+						? BoxPanelType.PRIMARY
+						: BoxPanelType.SECONDARY);
+
+					final IndividualData fatherData = (fatherTn != null? fatherTn.getIndividualData(): null);
+					final IndividualData motherData = (motherTn != null? motherTn.getIndividualData(): null);
+
+					// Create panel for this pair (this is the Parents Panel for their children)
+					panel = PartnersPanel.create(boxType, treeLayout, model)
+						.withBiologicalParents(fatherData, motherData)
+						.withListener(treeListener, popupFactory)
+						.withSuppressCollapseBadge(true);
+
+					// Wire upper connections to grandparents
+					final TreeNode fatherFather = (fatherTn != null? fatherTn.getFather(): null);
+					final TreeNode fatherMother = (fatherTn != null? fatherTn.getMother(): null);
+					final TreeNode motherFather = (motherTn != null? motherTn.getFather(): null);
+					final TreeNode motherMother = (motherTn != null? motherTn.getMother(): null);
+					panel.getFatherPanel().withParent(
+						(fatherFather != null? fatherFather.getIndividual(): null),
+						(fatherMother != null? fatherMother.getIndividual(): null)
+					);
+					panel.getMotherPanel().withParent(
+						(motherFather != null? motherFather.getIndividual(): null),
+						(motherMother != null? motherMother.getIndividual(): null)
+					);
+
+					processedParentKeys.put(parentKey, panel);
+				}
+
+				final int pairIndex = i / 2;
+				final int startCol = pairIndex * slotWidth;
+				final String cellConstraints = isVertical
+					? "cell " + startCol + StringUtils.SPACE + gridRow + StringUtils.SPACE + slotWidth + " 1,align center"
+					: "cell " + gridRow + StringUtils.SPACE + startCol + " 1 " + slotWidth + ",align center";
+
+				LOGGER.debug("add partner panel {} with constraints {}, layer {}, gridRow {}, pairIndex {}",
+					panel.toString(), cellConstraints, layerIndex, gridRow, pairIndex);
+
+				canvas.add(panel, cellConstraints);
+
+				rowHasPanels = true;
+			}
+
+			if(rowHasPanels)
+				gridRow ++;
 		}
 
-		// Extract parent records for children/siblings panel
+		// 2. Pass: Scan layers backwards (bottom to top) to populate nodeToPanelMap (Key: Child TreeNode -> Value: Parents PartnersPanel)
+		for(int layerIndex = totalLayers - 1; layerIndex >= 0; layerIndex --){
+			final List<Graph.Node> layerNodes = layers.get(layerIndex);
+			if(layerNodes == null || layerNodes.isEmpty())
+				continue;
+
+			for(final Graph.Node node : layerNodes){
+				if(node == null || node.isDummy() || node.getTreeNode() == null)
+					continue;
+
+				final TreeNode childNode = node.getTreeNode();
+				final String parentGroupKey = getParentGroupKey(childNode.getFather(), childNode.getMother());
+				final PartnersPanel parentPanel = processedParentKeys.get(parentGroupKey);
+				if(parentPanel != null)
+					nodeToPanelMap.put(childNode, parentPanel);
+			}
+		}
+
+		//TODO ?
+//		final TreeNode rootIndividualNode = layers.getLast()
+//			.getFirst()
+//			.getTreeNode();
+//		final TreeNode rootPartnerNode = layers.getLast()
+//			.getLast()
+//			.getTreeNode();
+//		final TreeNode rootNode2 = new TreeNode(rootIndividualNode.getBiologicalChildrenData());
+//		final String parentGroupKey = getParentGroupKey(rootIndividualNode, rootPartnerNode);
+//		final PartnersPanel parentPanel = processedParentKeys.get(parentGroupKey);
+//		if(parentPanel != null)
+//			nodeToPanelMap.put(rootNode2, parentPanel);
+
+		if(rootNode == null)
+			for(final List<Graph.Node> layer : layers){
+				for(final Graph.Node node : layer)
+					if(!node.isDummy() && node.getTreeNode() != null && node.getTreeNode().getGeneration() == 0){
+						rootNode = node.getTreeNode();
+
+						break;
+					}
+				if(rootNode != null)
+					break;
+			}
+
 		final IndividualData individualData = (rootNode != null? rootNode.getIndividualData(): null);
 		final IndividualData partnerData = (rootNode != null? rootNode.getPartnerData(): null);
 		FLEFRecord father = null;
@@ -196,16 +248,26 @@ public class CoordinateAssigner{
 		final SiblingsPanel siblingsPanel = SiblingsPanel.create(father, mother, BoxPanelType.SECONDARY, model,
 				showPartner, treeLayout)
 			.withListener(treeListener, popupFactory);
-		if(rootNode != null)
+
+		boolean hasChildren = false;
+		if(rootNode != null){
 			siblingsPanel.withSiblingsData(rootNode.getBiologicalChildrenData());
+			final List<IndividualData> children = (rootNode.getBiologicalChildrenData() != null
+				? rootNode.getBiologicalChildrenData().getSiblings()
+				: null);
+			hasChildren = (children != null && !children.isEmpty());
+		}
 
-		final JScrollPane childrenScrollPane = createChildrenScrollPane(siblingsPanel, treeLayout);
-		final int maxGridColumns = 1 << Math.max(totalLayers - 1, 0);
-		final String childrenCellConstraints = isVertical
-			? "cell 0 " + (totalLayers - 1) + ",span " + maxGridColumns + ",align center,wmax pref"
-			: "cell " + (totalLayers - 1) + " 0,span 1 " + maxGridColumns + ",align center,hmax pref";
+		if(hasChildren){
+			final JScrollPane childrenScrollPane = createChildrenScrollPane(siblingsPanel, treeLayout);
+			final String cellConstraints = (isVertical
+				? "cell 0 " + gridRow + ",span " + maxGridColumns + ",align center,wmax pref"
+				: "cell " + gridRow + " 0,span 1 " + maxGridColumns + ",align center,hmax pref");
 
-		canvas.add(childrenScrollPane, childrenCellConstraints);
+			LOGGER.debug("add children with constraints {}", cellConstraints);
+
+			canvas.add(childrenScrollPane, cellConstraints);
+		}
 
 		canvas.revalidate();
 		canvas.repaint();
@@ -213,22 +275,10 @@ public class CoordinateAssigner{
 		return siblingsPanel;
 	}
 
-	private static String getParentGroupKey(final TreeNode node){
-		final String fatherId = (node.getFather() != null && node.getFather().getIndividualData() != null
-			? node.getFather().getIndividualData().getIndividual().getId()
-			: "");
-		final String motherId = (node.getMother() != null && node.getMother().getIndividualData() != null
-			? node.getMother().getIndividualData().getIndividual().getId()
-			: "");
-		if(fatherId.isEmpty() && motherId.isEmpty())
-			return null;
-		return fatherId + "_" + motherId;
-	}
-
-	private static boolean isSameParentGroup(final TreeNode node1, final TreeNode node2){
-		final String key1 = getParentGroupKey(node1);
-		final String key2 = getParentGroupKey(node2);
-		return key1 != null && key1.equals(key2);
+	private static String getParentGroupKey(final TreeNode fatherNode, final TreeNode motherNode){
+		return (fatherNode != null? fatherNode.getIndividualId(): StringUtils.EMPTY)
+			+ "+"
+			+ (motherNode != null? motherNode.getIndividualId(): StringUtils.EMPTY);
 	}
 
 	private static JScrollPane createChildrenScrollPane(final JPanel content, final TreeLayout treeLayout){
@@ -244,7 +294,6 @@ public class CoordinateAssigner{
 			? ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
 			: ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 
-		// Dynamically compute horizontal scrollbar height without forcing container expansion
 		if(treeLayout == TreeLayout.VERTICAL){
 			final JScrollBar scrollBar = scrollPane.getHorizontalScrollBar();
 			final int scrollBarHeight = scrollBar.getPreferredSize().height;

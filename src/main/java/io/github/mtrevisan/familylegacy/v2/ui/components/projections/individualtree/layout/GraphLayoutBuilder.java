@@ -92,7 +92,7 @@ public final class GraphLayoutBuilder{
 		CrossingReducer.reduceCrossings(layers);
 
 		// Step 4: Populate Swing Canvas
-		final SiblingsPanel siblingsPanel = CoordinateAssigner.populateCanvas(canvas, layers, ahnentafelMap, model,
+		final SiblingsPanel siblingsPanel = CoordinateAssigner.populateCanvas(canvas, layers, model,
 			nodeToPanelMap, treeListener, popupFactory, treeLayout, showPartner);
 
 		canvas.setPreferredSize(canvas.getPreferredSize());

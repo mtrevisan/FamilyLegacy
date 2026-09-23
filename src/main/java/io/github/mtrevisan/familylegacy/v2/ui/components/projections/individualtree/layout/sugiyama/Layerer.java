@@ -63,7 +63,6 @@ public class Layerer{
 		// 3. Invert heights so ancestors occupy top layers (layer 0) and descendants lower layers
 		int minHeight = Integer.MAX_VALUE;
 		int maxHeight = Integer.MIN_VALUE;
-
 		for(final Graph.Node node : graph.getNodes().values()){
 			final int height = heightMap.getOrDefault(node, 0);
 			if(height < minHeight)
@@ -72,21 +71,31 @@ public class Layerer{
 				maxHeight = height;
 		}
 
-		final int totalLayers = maxHeight - minHeight;
+		// Map generation levels to positive 0-based layer indices:
+		// Oldest ancestors (minHeight) -> Layer 0 (top row)
+		// Root generation (maxHeight) -> Layer totalAncestorLayers (bottom row)
+		final int totalAncestorLayers = maxHeight - minHeight;
 		for(final Graph.Node node : graph.getNodes().values()){
-			final int currentHeight = heightMap.getOrDefault(node, 0);
+			final TreeNode tn = node.getTreeNode();
+
 			// Invert layer index: top ancestors get layer 0, subject gets highest layer index
-			node.setLayer(totalLayers - (currentHeight - minHeight));
+			final int gen = (tn != null? tn.getGeneration(): -heightMap.getOrDefault(node, 0));
+			final int assignedLayer = maxHeight - gen;
+			node.setLayer(assignedLayer);
 		}
 
 		// 4. Group nodes into discrete layer lists
 		final List<List<Graph.Node>> layers = new ArrayList<>();
-		for(int i = 0; i <= totalLayers; i ++)
+		for(int i = 0; i < totalAncestorLayers; i ++)
 			layers.add(new ArrayList<>());
-		for(final Graph.Node node : graph.getNodes().values())
-			layers.get(node.getLayer()).add(node);
+		for(final Graph.Node node : graph.getNodes().values()){
+			final int layer = node.getLayer() - 1;
+			if(layer >= 0 && layer < layers.size())
+				layers.get(layer)
+					.add(node);
+		}
 
-		// 5. Absolute Ahnentafel ordering
+		// 5. Absolute Ahnentafel ordering within each layer
 		for(final List<Graph.Node> layer : layers)
 			layer.sort(Comparator.comparingLong(n -> getMinAhnentafel(n, ahnentafelMap)));
 

@@ -71,8 +71,10 @@ public final class LayoutRenderer{
 		if(father != null){
 			final PartnersPanel fatherPanel = nodeToPanelMap.get(father);
 			if(fatherPanel != null && nodePanel != null){
+				final Point exit = SwingUtilities.convertPoint(fatherPanel, fatherPanel.getPaintingExitPoint(), container);
 				final Point enter = SwingUtilities.convertPoint(nodePanel, nodePanel.getPaintingFatherEnterPoint(), container);
-				connectParentToChild(path, treeLayout, fatherPanel, enter, container);
+
+				connectParentToChild(path, treeLayout, exit, enter);
 			}
 			buildTreeConnections(path, treeLayout, father, nodeToPanelMap, container);
 		}
@@ -81,29 +83,28 @@ public final class LayoutRenderer{
 		if(mother != null){
 			final PartnersPanel motherPanel = nodeToPanelMap.get(mother);
 			if(motherPanel != null && nodePanel != null){
+				final Point exit = SwingUtilities.convertPoint(motherPanel, motherPanel.getPaintingExitPoint(), container);
 				final Point enter = SwingUtilities.convertPoint(nodePanel, nodePanel.getPaintingMotherEnterPoint(), container);
-				connectParentToChild(path, treeLayout, motherPanel, enter, container);
+
+				connectParentToChild(path, treeLayout, exit, enter);
 			}
 			buildTreeConnections(path, treeLayout, mother, nodeToPanelMap, container);
 		}
 	}
 
 	private static void connectParentToChild(final Path2D path, final TreeLayout treeLayout,
-			final PartnersPanel parentGroupPanel, final Point childEnterPoint, final Component container){
-		Point parentExit = parentGroupPanel.getPaintingExitPoint();
-		parentExit = SwingUtilities.convertPoint(parentGroupPanel, parentExit, container);
-
+			final Point parentExitPoint, final Point childEnterPoint){
 		if(treeLayout == TreeLayout.VERTICAL){
-			final int midY = (childEnterPoint.y + parentExit.y + PartnersPanel.GROUP_EXITING_HEIGHT) >> 1;
+			final int midY = (childEnterPoint.y + parentExitPoint.y + PartnersPanel.GROUP_EXITING_HEIGHT) >> 1;
 
-			path.moveTo(parentExit.x, parentExit.y);
-			path.lineTo(parentExit.x, midY);
+			path.moveTo(parentExitPoint.x, parentExitPoint.y);
+			path.lineTo(parentExitPoint.x, midY);
 			path.lineTo(childEnterPoint.x, midY);
 			path.lineTo(childEnterPoint.x, childEnterPoint.y);
 		}
 		else{
-			path.moveTo(parentExit.x, parentExit.y);
-			path.lineTo(childEnterPoint.x, parentExit.y);
+			path.moveTo(parentExitPoint.x, parentExitPoint.y);
+			path.lineTo(childEnterPoint.x, parentExitPoint.y);
 			path.lineTo(childEnterPoint.x, childEnterPoint.y);
 		}
 	}

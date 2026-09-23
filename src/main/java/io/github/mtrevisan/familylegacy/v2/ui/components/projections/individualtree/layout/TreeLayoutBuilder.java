@@ -386,7 +386,7 @@ public final class TreeLayoutBuilder{
 		return panel;
 	}
 
-	private static JScrollPane createChildrenScrollPane(final JPanel content, final TreeLayout treeLayout){
+	public static JScrollPane createChildrenScrollPane(final JPanel content, final TreeLayout treeLayout){
 		final JScrollPane scrollPane = new JScrollPane(content);
 		scrollPane.setOpaque(false);
 		scrollPane.getViewport().setOpaque(false);

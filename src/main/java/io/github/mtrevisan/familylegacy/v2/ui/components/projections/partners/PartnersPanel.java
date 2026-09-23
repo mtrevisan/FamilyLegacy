@@ -625,6 +625,13 @@ public class PartnersPanel extends JPanel{
 		return (father == null && mother == null);
 	}
 
+	@Override
+	public String toString(){
+		return (father != null? father.getId(): "<null>")
+			+ "+"
+			+ (mother != null? mother.getId(): "<null>");
+	}
+
 
 	public static void main(String[] args) throws IOException{
 		try{

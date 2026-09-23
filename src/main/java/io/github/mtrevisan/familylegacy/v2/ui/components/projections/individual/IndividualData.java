@@ -172,7 +172,7 @@ public final class IndividualData{
 		final List<String> names = extractFullNames(individual);
 		if(!names.isEmpty()){
 			nameText = names.getFirst();
-			nameTooltip = TAG_HTML_OPEN + StringUtils.join(names, TAG_BR) + TAG_HTML_CLOSE;
+			nameTooltip = TAG_HTML_OPEN + "[" + id + "]" + TAG_BR + StringUtils.join(names, TAG_BR) + TAG_HTML_CLOSE;
 		}
 		else
 			nameText = NO_DATA;

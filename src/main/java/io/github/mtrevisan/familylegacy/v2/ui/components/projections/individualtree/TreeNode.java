@@ -79,6 +79,13 @@ public final class TreeNode{
 		return (individualData != null? individualData.getId(): null);
 	}
 
+	public String getPartnerId(){
+		if(partner != null)
+			return partner.getId();
+
+		return (partnerData != null? partnerData.getId(): null);
+	}
+
 	public TreeNode getFather(){
 		return father;
 	}
