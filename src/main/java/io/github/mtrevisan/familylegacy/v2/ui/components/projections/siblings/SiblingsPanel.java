@@ -107,7 +107,7 @@ public class SiblingsPanel extends JPanel{
 
 	private SiblingsPanel(final FLEFRecord father, final FLEFRecord mother, final BoxPanelType boxType,
 			final FLEFModel model, final boolean showPartner, final TreeLayout treeLayout){
-		String iconDescendantsUri = (treeLayout == TreeLayout.VERTICAL? "/images/union.png": "/images/union_previous.png");
+		final String iconDescendantsUri = (treeLayout == TreeLayout.VERTICAL? "/images/union_down.png": "/images/union_previous.png");
 		ICON_DESCENDANTS = ResourceHelper.getResizedImageFromResource(iconDescendantsUri, DESCENDANTS_SIZE);
 
 		this.father = father;
@@ -242,12 +242,12 @@ public class SiblingsPanel extends JPanel{
 	public SiblingsPanel withSiblingsData(final SiblingsData data){
 		this.data = data;
 
-		refreshData();
+		updateData();
 
 		return this;
 	}
 
-	private void refreshData(){
+	private void updateData(){
 		removeAll();
 		siblingBoxes.clear();
 

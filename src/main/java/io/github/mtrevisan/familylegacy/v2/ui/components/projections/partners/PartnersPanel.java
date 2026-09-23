@@ -120,24 +120,22 @@ public class PartnersPanel extends JPanel{
 	// Icons
 	//https://thenounproject.com/search/?q=cut&i=3132059
 	//https://snappygoat.com/free-public-domain-images-app_application_arrow_back_0/
-	private static final ImageIcon ICON_PARENTS_PREVIOUS_ENABLED = ResourceHelper.getResizedImageFromResource("/images/parents_previous.png",
-		PREVIOUS_NEXT_SIZE);
-	private static final ImageIcon ICON_PARENTS_PREVIOUS_DISABLED = new ImageIcon(
-		GrayFilter.createDisabledImage(ICON_PARENTS_PREVIOUS_ENABLED.getImage()));
-	private static final ImageIcon ICON_PARENTS_NEXT_ENABLED = ResourceHelper.getResizedImageFromResource("/images/parents_next.png",
-		PREVIOUS_NEXT_SIZE);
-	private static final ImageIcon ICON_PARENTS_NEXT_DISABLED = new ImageIcon(
-		GrayFilter.createDisabledImage(ICON_PARENTS_NEXT_ENABLED.getImage()));
-	private static final ImageIcon ICON_UNION_PREVIOUS_ENABLED = ResourceHelper.getResizedImageFromResource("/images/union_previous.png",
-		PREVIOUS_NEXT_SIZE);
-	private static final ImageIcon ICON_UNION_PREVIOUS_DISABLED = new ImageIcon(
-		GrayFilter.createDisabledImage(ICON_UNION_PREVIOUS_ENABLED.getImage()));
-	private static final ImageIcon ICON_UNION_NEXT_ENABLED = ResourceHelper.getResizedImageFromResource("/images/union_next.png",
-		PREVIOUS_NEXT_SIZE);
-	private static final ImageIcon ICON_UNION_NEXT_DISABLED = new ImageIcon(
-		GrayFilter.createDisabledImage(ICON_UNION_NEXT_ENABLED.getImage()));
-	private static final Dimension NEXT_PREVIOUS_GROUP_PREFERRED_SIZE = new Dimension(ICON_UNION_PREVIOUS_ENABLED.getIconWidth(),
-		ICON_UNION_PREVIOUS_ENABLED.getIconHeight());
+	private static final ImageIcon ICON_PARENTS_PREVIOUS_ENABLED = ResourceHelper.getResizedImageFromResource("/images/parents_previous.png", PREVIOUS_NEXT_SIZE);
+	private static final ImageIcon ICON_PARENTS_PREVIOUS_DISABLED = new ImageIcon(GrayFilter.createDisabledImage(ICON_PARENTS_PREVIOUS_ENABLED.getImage()));
+	private static final ImageIcon ICON_PARENTS_NEXT_ENABLED = ResourceHelper.getResizedImageFromResource("/images/parents_next.png", PREVIOUS_NEXT_SIZE);
+	private static final ImageIcon ICON_PARENTS_NEXT_DISABLED = new ImageIcon(GrayFilter.createDisabledImage(ICON_PARENTS_NEXT_ENABLED.getImage()));
+	private static final ImageIcon ICON_CHILDREN_ENABLED = ResourceHelper.getResizedImageFromResource("/images/union_previous.png", PREVIOUS_NEXT_SIZE);
+	private static final ImageIcon ICON_UNION_PREVIOUS_DISABLED = new ImageIcon(GrayFilter.createDisabledImage(ICON_CHILDREN_ENABLED.getImage()));
+	private static final ImageIcon ICON_ANCESTOR_ENABLED = ResourceHelper.getResizedImageFromResource("/images/union_next.png", PREVIOUS_NEXT_SIZE);
+	private static final ImageIcon ICON_UNION_NEXT_DISABLED = new ImageIcon(GrayFilter.createDisabledImage(ICON_ANCESTOR_ENABLED.getImage()));
+	private static final Dimension NEXT_PREVIOUS_GROUP_PREFERRED_SIZE = new Dimension(ICON_CHILDREN_ENABLED.getIconWidth(), ICON_CHILDREN_ENABLED.getIconHeight());
+
+	private static final int ASCENDANTS_HEIGHT = 12;
+	private static final double ASCENDANTS_ASPECT_RATIO = 3501. / 2662.;
+	private static final Dimension ASCENDANTS_SIZE = new Dimension((int)((float)ASCENDANTS_HEIGHT / ASCENDANTS_ASPECT_RATIO), ASCENDANTS_HEIGHT);
+
+	private static ImageIcon ICON_ASCENDANTS;
+
 
 	// State
 	private JPanel groupPanel;
@@ -192,6 +190,9 @@ public class PartnersPanel extends JPanel{
 
 	private PartnersPanel(final BoxPanelType boxType, final boolean suppressCollapseBadge, final TreeLayout treeLayout,
 			final FLEFModel model){
+		final String iconAscendantsUri = (treeLayout == TreeLayout.VERTICAL? "/images/union_up.png": "/images/union_next.png");
+		ICON_ASCENDANTS = ResourceHelper.getResizedImageFromResource(iconAscendantsUri, ASCENDANTS_SIZE);
+
 		this.boxType = boxType;
 		this.suppressCollapseBadge = suppressCollapseBadge;
 		this.treeLayout = treeLayout;
@@ -288,7 +289,6 @@ public class PartnersPanel extends JPanel{
 		arrowMotherPanel.setOpaque(false);
 
 		if(treeLayout == TreeLayout.VERTICAL){
-			// "hidemode 3" ensures hidden partners or group panel take 0 space
 			setLayout(new MigLayout("hidemode 3,ins 0",
 				"[right,grow]" + HALF_PARTNER_SEPARATION + "[center,grow]" + HALF_PARTNER_SEPARATION + "[left,grow]",
 				"[bottom]"));
@@ -297,11 +297,24 @@ public class PartnersPanel extends JPanel{
 			add(arrowMotherPanel, "left,grow");
 		}
 		else{
+			// In horizontal orientation the mother panel has the navigation
+			// arrows above the box, so the top of the box sits NAVIGATION_ARROW_HEIGHT
+			// pixels below the top of the panel. To center the group square
+			// between the two boxes (not between the two panels) we shift it
+			// down by half the arrow height: the gap above the square grows by
+			// NAVIGATION_ARROW_HEIGHT/2 and the gap below shrinks by the same
+			// amount, keeping the total distance between the two boxes unchanged.
+			// MigLayout allows negative row gaps: the small overlap here falls
+			// in the empty arrow region of the mother panel and is not visible.
+			final int halfArrows = NAVIGATION_ARROW_HEIGHT / 2;
+			final int gapAbove = HALF_PARTNER_SEPARATION + halfArrows;
+			final int gapBelow = HALF_PARTNER_SEPARATION - halfArrows;
+
 			setLayout(new MigLayout("hidemode 3,ins 0",
 				"[left]",
-				"[bottom,grow]" + HALF_PARTNER_SEPARATION + "[center]" + HALF_PARTNER_SEPARATION + "[top,grow]"));
+				"[bottom,grow]" + gapAbove + "[center]" + gapBelow + "[top,grow]"));
 			add(arrowFatherPanel, "wrap");
-			add(groupPanel, "gapleft " + GROUP_EXITING_HEIGHT + ",gaptop " + NAVIGATION_ARROW_HEIGHT + ",wrap");
+			add(groupPanel, "gapleft " + GROUP_EXITING_HEIGHT + ",wrap");
 			add(arrowMotherPanel, "grow");
 		}
 		setOpaque(false);
@@ -584,7 +597,7 @@ public class PartnersPanel extends JPanel{
 		if(treeLayout == TreeLayout.VERTICAL)
 			p = fatherPanel.getPaintingVerticalEnterPoint();
 		else
-			p = new Point(fatherPanel.getWidth() / 2, 0);
+			p = new Point(fatherPanel.getWidth(), (fatherPanel.getHeight() - 1) / 2);
 		return SwingUtilities.convertPoint(fatherPanel, p, this);
 	}
 
@@ -593,7 +606,7 @@ public class PartnersPanel extends JPanel{
 		if(treeLayout == TreeLayout.VERTICAL)
 			p = motherPanel.getPaintingVerticalEnterPoint();
 		else
-			p = new Point(motherPanel.getWidth() / 2, motherPanel.getHeight() - 1);
+			p = new Point(motherPanel.getWidth(), (motherPanel.getHeight() - 1) / 2);
 		return SwingUtilities.convertPoint(motherPanel, p, this);
 	}
 
@@ -605,6 +618,7 @@ public class PartnersPanel extends JPanel{
 			p2 = SwingUtilities.convertPoint(motherPanel, p2, this);
 			return new Point((p1.x + p2.x) / 2, getHeight() - GROUP_EXITING_HEIGHT - 1);
 		}
+
 		Point p1 = fatherPanel.getPaintingHorizontalEnterPoint();
 		p1 = SwingUtilities.convertPoint(fatherPanel, p1, this);
 		Point p2 = motherPanel.getPaintingHorizontalEnterPoint();

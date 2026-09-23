@@ -242,7 +242,7 @@ public class GroupPanel extends JPanel{
 	}
 
 	public final Point getPaintingVerticalEnterPoint(){
-		return new Point(getWidth() / 2, 0);
+		return new Point((getWidth() - 1) / 2, 0);
 	}
 
 	public final Point getPaintingHorizontalEnterPoint(){

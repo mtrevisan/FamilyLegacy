@@ -215,14 +215,14 @@ public class ImageCarouselPanel extends JPanel{
 		public Component getListCellRendererComponent(final JList<?> list, final Object value, final int index,
 				final boolean isSelected, final boolean cellHasFocus){
 			final JLabel label = (JLabel)super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-			if(value instanceof ThumbnailInfo info){
-				label.setIcon(info.icon);
+			if(value instanceof ThumbnailInfo(String uri, ImageIcon icon)){
+				label.setIcon(icon);
 				label.setText(null);
 				label.setHorizontalAlignment(SwingConstants.CENTER);
 				label.setVerticalAlignment(SwingConstants.CENTER);
 				label.setPreferredSize(new Dimension(THUMBNAIL_SIZE + GAP, THUMBNAIL_SIZE + GAP));
 				label.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
-				label.setToolTipText(info.uri);
+				label.setToolTipText(uri);
 			}
 			return label;
 		}

@@ -111,7 +111,7 @@ public final class TreeLayoutBuilder{
 		final int maxLeafUnits = (rootNode != null? calculateSubtreeLeafUnits(rootNode, 0, maxDepth): 1);
 
 		final boolean isVertical = (treeLayout == TreeLayout.VERTICAL);
-		final String mainPanelConstraints = (isVertical? "debug,ins 0": "debug,ins 10");
+		final String mainPanelConstraints = (isVertical? "ins 0": "ins 10");
 		final String primaryConstraints = buildPrimaryConstraints(maxDepth);
 		final String secondaryConstraints = buildSecondaryConstraints(maxLeafUnits);
 		if(isVertical)
@@ -392,12 +392,8 @@ public final class TreeLayoutBuilder{
 		scrollPane.getViewport().setOpaque(false);
 		scrollPane.setBorder(null);
 
-		scrollPane.setVerticalScrollBarPolicy(treeLayout == TreeLayout.VERTICAL
-			? ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER
-			: ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
-		scrollPane.setHorizontalScrollBarPolicy(treeLayout == TreeLayout.VERTICAL
-			? ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
-			: ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+		scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
+		scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 
 		// Dynamically compute horizontal scrollbar height without forcing container expansion
 		if(treeLayout == TreeLayout.VERTICAL){

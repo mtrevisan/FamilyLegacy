@@ -49,7 +49,7 @@ public class GraphLayoutEngine implements LayoutEngine{
 			final EntityPopupMenuFactory<IndividualPanel, IndividualListener> popupFactory, final TreeLayout treeLayout){
 		final Set<TreeNode> allTreeNodes = new HashSet<>();
 		collectAllTreeNodes(rootNode, allTreeNodes);
-		return GraphLayoutBuilder.buildLayout(canvas, allTreeNodes, showPartner, model, nodeToPanelMap,
+		return GraphLayoutBuilder.buildLayout(canvas, rootNode, allTreeNodes, showPartner, model, nodeToPanelMap,
 			treeListener, popupFactory, treeLayout);
 	}
 

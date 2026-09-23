@@ -50,9 +50,9 @@ public final class GraphLayoutBuilder{
 	private GraphLayoutBuilder(){}
 
 
-	public static SiblingsPanel buildLayout(final JPanel canvas, final Set<TreeNode> allTreeNodes,
-			final boolean showPartner, final FLEFModel model, final Map<TreeNode, PartnersPanel> nodeToPanelMap,
-			final IndividualTreeGraphListener treeListener,
+	public static SiblingsPanel buildLayout(final JPanel canvas, final TreeNode rootNode,
+			final Set<TreeNode> allTreeNodes, final boolean showPartner, final FLEFModel model,
+			final Map<TreeNode, PartnersPanel> nodeToPanelMap, final IndividualTreeGraphListener treeListener,
 			final EntityPopupMenuFactory<IndividualPanel, IndividualListener> popupFactory, final TreeLayout treeLayout){
 		if(allTreeNodes == null || allTreeNodes.isEmpty())
 			return null;
@@ -92,10 +92,8 @@ public final class GraphLayoutBuilder{
 		CrossingReducer.reduceCrossings(layers);
 
 		// Step 4: Populate Swing Canvas
-		final SiblingsPanel siblingsPanel = CoordinateAssigner.populateCanvas(canvas, layers, model,
+		final SiblingsPanel siblingsPanel = CoordinateAssigner.populateCanvas(canvas, rootNode, layers, model,
 			nodeToPanelMap, treeListener, popupFactory, treeLayout, showPartner);
-
-		canvas.setPreferredSize(canvas.getPreferredSize());
 
 		return siblingsPanel;
 	}

@@ -387,6 +387,12 @@ public class IndividualTreeGraphPanel extends JPanel implements TreeChangeListen
 
 			collapses.detect(rootNode);
 			buildLayout();
+			// Force the wrapper to recompute its preferred size (which includes the
+			// canvas), so the scroll pane updates its view size and shows scrollbars
+			// when needed. The canvas is either stretched (content smaller than the
+			// viewport) or scrolled (content larger), never clipped.
+			centeringWrapper.doLayout();
+			treeScroll.revalidate();
 			collapses.apply(nodeToPanelMap);
 
 			selection.updateTree(nodeToPanelMap, childrenPanel);

@@ -71,8 +71,10 @@ public final class LayoutRenderer{
 		if(father != null){
 			final PartnersPanel fatherPanel = nodeToPanelMap.get(father);
 			if(fatherPanel != null && nodePanel != null){
-				final Point exit = SwingUtilities.convertPoint(fatherPanel, fatherPanel.getPaintingExitPoint(), container);
-				final Point enter = SwingUtilities.convertPoint(nodePanel, nodePanel.getPaintingFatherEnterPoint(), container);
+				final Point exit = SwingUtilities.convertPoint(fatherPanel, fatherPanel.getPaintingExitPoint(),
+					container);
+				final Point enter = SwingUtilities.convertPoint(nodePanel, nodePanel.getPaintingFatherEnterPoint(),
+					container);
 
 				connectParentToChild(path, treeLayout, exit, enter);
 			}
@@ -83,8 +85,10 @@ public final class LayoutRenderer{
 		if(mother != null){
 			final PartnersPanel motherPanel = nodeToPanelMap.get(mother);
 			if(motherPanel != null && nodePanel != null){
-				final Point exit = SwingUtilities.convertPoint(motherPanel, motherPanel.getPaintingExitPoint(), container);
-				final Point enter = SwingUtilities.convertPoint(nodePanel, nodePanel.getPaintingMotherEnterPoint(), container);
+				final Point exit = SwingUtilities.convertPoint(motherPanel, motherPanel.getPaintingExitPoint(),
+					container);
+				final Point enter = SwingUtilities.convertPoint(nodePanel, nodePanel.getPaintingMotherEnterPoint(),
+					container);
 
 				connectParentToChild(path, treeLayout, exit, enter);
 			}
@@ -103,8 +107,11 @@ public final class LayoutRenderer{
 			path.lineTo(childEnterPoint.x, childEnterPoint.y);
 		}
 		else{
+			final int midX = (childEnterPoint.x + parentExitPoint.x - PartnersPanel.GROUP_EXITING_HEIGHT) >> 1;
+
 			path.moveTo(parentExitPoint.x, parentExitPoint.y);
-			path.lineTo(childEnterPoint.x, parentExitPoint.y);
+			path.lineTo(midX, parentExitPoint.y);
+			path.lineTo(midX, childEnterPoint.y);
 			path.lineTo(childEnterPoint.x, childEnterPoint.y);
 		}
 	}

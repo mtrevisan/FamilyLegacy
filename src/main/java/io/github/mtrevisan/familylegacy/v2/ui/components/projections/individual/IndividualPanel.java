@@ -143,10 +143,8 @@ public class IndividualPanel extends JPanel{
 	/** Red badge displayed on panels whose individual appears multiple times. */
 	private final CollapseBadge collapseBadge = new CollapseBadge();
 
-	// Strategy pattern for popup menu generation
 	private EntityPopupMenuFactory<IndividualPanel, IndividualListener> popupMenuFactory;
 
-	// Listener
 	private IndividualListener listener;
 
 
@@ -318,7 +316,7 @@ public class IndividualPanel extends JPanel{
 	}
 
 	public final Point getPaintingHorizontalEnterPoint(){
-		return new Point(0, (getHeight() - 1) / 2);
+		return new Point(0, getHeight() / 2);
 	}
 
 
