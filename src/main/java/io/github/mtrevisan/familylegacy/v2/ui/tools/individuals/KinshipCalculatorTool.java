@@ -24,8 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.tools.individuals;
 
-import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.TreeService;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.services.kinship.KinshipDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.GenealogyRepository;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.TreeService;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolOperation;
 
@@ -41,6 +42,14 @@ import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolOperation;
  */
 public final class KinshipCalculatorTool implements ToolOperation{
 
+	private final GenealogyRepository repository;
+
+
+	public KinshipCalculatorTool(final GenealogyRepository repository){
+		this.repository = repository;
+	}
+
+
 	@Override
 	public String getName(){
 		return "Kinship Calculator…";
@@ -48,10 +57,8 @@ public final class KinshipCalculatorTool implements ToolOperation{
 
 	@Override
 	public void run(final ToolContext context){
-		final String selected = context.selectedIndividualId();
-		final TreeService treeService = new TreeService(
-			type -> "biological_child".equalsIgnoreCase(type),
-			context.model());
+		final String selected = context.selectedEntityId();
+		final TreeService treeService = new TreeService(repository, context.model());
 		final io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord initialA =
 			(selected != null? context.model().getRecordById(selected): null);
 		final KinshipDialog dialog = new KinshipDialog(context.owner(),

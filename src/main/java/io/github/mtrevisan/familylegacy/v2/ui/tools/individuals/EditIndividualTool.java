@@ -24,8 +24,11 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.tools.individuals;
 
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.help.ShortcutRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolOperation;
+
+import javax.swing.KeyStroke;
 
 
 /**
@@ -39,17 +42,23 @@ public final class EditIndividualTool implements ToolOperation{
 
 	@Override
 	public String getName(){
-		return "Edit Individual…";
+		return ShortcutRegistry.EDIT_SELECTION.action();
+	}
+
+	@Override
+	public KeyStroke getAccelerator(){
+		return ShortcutRegistry.EDIT_SELECTION.keyStroke();
 	}
 
 	@Override
 	public void run(final ToolContext context){
-		context.editCurrentSelection();
+		context.editCurrentSelection()
+			.run();
 	}
 
 	@Override
 	public boolean isEnabled(final ToolContext context){
-		return (context != null && context.hasSelectedIndividual());
+		return (context != null && context.hasSelectedEntity());
 	}
 
 }

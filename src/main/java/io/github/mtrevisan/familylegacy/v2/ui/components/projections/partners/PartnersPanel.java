@@ -60,6 +60,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serial;
 import java.nio.charset.StandardCharsets;
+import java.util.EnumMap;
+import java.util.Map;
 import java.util.Objects;
 
 
@@ -92,10 +94,16 @@ public class PartnersPanel extends JPanel{
 	private static final Color BORDER_COLOR = Color.BLACK;
 
 	// Dimensions
-	private static final double PREVIOUS_NEXT_WIDTH = 12.;
-	private static final double PREVIOUS_NEXT_ASPECT_RATIO = 3501. / 2662.;
-	private static final Dimension PREVIOUS_NEXT_SIZE = new Dimension((int)PREVIOUS_NEXT_WIDTH,
-		(int)(PREVIOUS_NEXT_WIDTH * PREVIOUS_NEXT_ASPECT_RATIO));
+	private static final int ASCENDANTS_HEIGHT = 12;
+	private static final double ASCENDANTS_ASPECT_RATIO = 3501. / 2662.;
+	private static final Dimension ASCENDANTS_SIZE = new Dimension((int)((float)ASCENDANTS_HEIGHT / ASCENDANTS_ASPECT_RATIO), ASCENDANTS_HEIGHT);
+
+	private static final Map<TreeLayout, ImageIcon> ICON_ASCENDANTS_CACHE = new EnumMap<>(TreeLayout.class);
+
+	/** Distance between descendants arrow and box. */
+	public static final int NAVIGATION_ARROW_SEPARATION = 2;
+	public static final int ARROW_HEIGHT = (int)(ASCENDANTS_SIZE.getHeight() + NAVIGATION_ARROW_SEPARATION);
+
 	/** Height of the group line from the bottom of the individual panel [px]. */
 	private static final int GROUP_CONNECTION_HEIGHT = 15;
 	private static final Dimension GROUP_PANEL_DIMENSION = new Dimension(12, 12);
@@ -103,14 +111,8 @@ public class PartnersPanel extends JPanel{
 	private static final int HALF_PARTNER_SEPARATION = 6;
 	public static final int GROUP_SEPARATION = HALF_PARTNER_SEPARATION + GROUP_PANEL_DIMENSION.width
 		+ HALF_PARTNER_SEPARATION;
-	/** Distance between navigation group arrow and box. */
-	public static final int NAVIGATION_DESCENDANTS_ARROW_SEPARATION = 2;
-	/** Distance between navigation parents arrow and box. */
-	private static final int NAVIGATION_PARENTS_ARROW_SEPARATION = (NAVIGATION_DESCENDANTS_ARROW_SEPARATION << 1) + 3;
-	public static final int NAVIGATION_ARROW_HEIGHT = (int)(PREVIOUS_NEXT_SIZE.getHeight()
-		+ NAVIGATION_DESCENDANTS_ARROW_SEPARATION);
-	private static final int DESCENDANTS_ARROWS_WIDTH = (int)Math.round(PREVIOUS_NEXT_WIDTH
-		+ NAVIGATION_DESCENDANTS_ARROW_SEPARATION + PREVIOUS_NEXT_WIDTH);
+	/** Distance between ascendants arrow and box. */
+	private static final int NAVIGATION_ASCENDANTS_ARROW_SEPARATION = (NAVIGATION_ARROW_SEPARATION << 1) + 3;
 
 	public static final Stroke CONNECTION_STROKE = new BasicStroke(1.f, BasicStroke.CAP_BUTT,
 		BasicStroke.JOIN_BEVEL, 0.f);
@@ -120,44 +122,37 @@ public class PartnersPanel extends JPanel{
 	// Icons
 	//https://thenounproject.com/search/?q=cut&i=3132059
 	//https://snappygoat.com/free-public-domain-images-app_application_arrow_back_0/
-	private static final ImageIcon ICON_PARENTS_PREVIOUS_ENABLED = ResourceHelper.getResizedImageFromResource("/images/parents_previous.png", PREVIOUS_NEXT_SIZE);
+	private static final ImageIcon ICON_PARENTS_PREVIOUS_ENABLED = ResourceHelper.getResizedImageFromResource("/images/parents_previous.png", ASCENDANTS_SIZE);
 	private static final ImageIcon ICON_PARENTS_PREVIOUS_DISABLED = new ImageIcon(GrayFilter.createDisabledImage(ICON_PARENTS_PREVIOUS_ENABLED.getImage()));
-	private static final ImageIcon ICON_PARENTS_NEXT_ENABLED = ResourceHelper.getResizedImageFromResource("/images/parents_next.png", PREVIOUS_NEXT_SIZE);
+	private static final ImageIcon ICON_PARENTS_NEXT_ENABLED = ResourceHelper.getResizedImageFromResource("/images/parents_next.png", ASCENDANTS_SIZE);
 	private static final ImageIcon ICON_PARENTS_NEXT_DISABLED = new ImageIcon(GrayFilter.createDisabledImage(ICON_PARENTS_NEXT_ENABLED.getImage()));
-	private static final ImageIcon ICON_CHILDREN_ENABLED = ResourceHelper.getResizedImageFromResource("/images/union_previous.png", PREVIOUS_NEXT_SIZE);
+	private static final ImageIcon ICON_CHILDREN_ENABLED = ResourceHelper.getResizedImageFromResource("/images/union_previous.png", ASCENDANTS_SIZE);
 	private static final ImageIcon ICON_UNION_PREVIOUS_DISABLED = new ImageIcon(GrayFilter.createDisabledImage(ICON_CHILDREN_ENABLED.getImage()));
-	private static final ImageIcon ICON_ANCESTOR_ENABLED = ResourceHelper.getResizedImageFromResource("/images/union_next.png", PREVIOUS_NEXT_SIZE);
+	private static final ImageIcon ICON_ANCESTOR_ENABLED = ResourceHelper.getResizedImageFromResource("/images/union_up.png", ASCENDANTS_SIZE);
 	private static final ImageIcon ICON_UNION_NEXT_DISABLED = new ImageIcon(GrayFilter.createDisabledImage(ICON_ANCESTOR_ENABLED.getImage()));
 	private static final Dimension NEXT_PREVIOUS_GROUP_PREFERRED_SIZE = new Dimension(ICON_CHILDREN_ENABLED.getIconWidth(), ICON_CHILDREN_ENABLED.getIconHeight());
-
-	private static final int ASCENDANTS_HEIGHT = 12;
-	private static final double ASCENDANTS_ASPECT_RATIO = 3501. / 2662.;
-	private static final Dimension ASCENDANTS_SIZE = new Dimension((int)((float)ASCENDANTS_HEIGHT / ASCENDANTS_ASPECT_RATIO), ASCENDANTS_HEIGHT);
-
-	private static ImageIcon ICON_ASCENDANTS;
 
 
 	// State
 	private JPanel groupPanel;
 	private IndividualPanel fatherPanel;
 	private IndividualPanel motherPanel;
-	private JLabel fatherArrowsSpacer;
-	private JLabel motherArrowsSpacer;
-	private JLabel fatherPreviousParentsLabel;
-	private JLabel fatherNextParentsLabel;
-	private JLabel fatherPreviousGroupLabel;
-	private JLabel fatherNextGroupLabel;
+//	private JLabel fatherPreviousParentsLabel;
+//	private JLabel fatherNextParentsLabel;
+//	private JLabel fatherPreviousGroupLabel;
+//	private JLabel fatherNextGroupLabel;
+	private JLabel fatherAncestorsLabel;
 	private JPanel arrowFatherPanel;
-	private JLabel motherPreviousParentsLabel;
-	private JLabel motherNextParentsLabel;
-	private JLabel motherPreviousGroupLabel;
-	private JLabel motherNextGroupLabel;
+//	private JLabel motherPreviousParentsLabel;
+//	private JLabel motherNextParentsLabel;
+//	private JLabel motherPreviousGroupLabel;
+//	private JLabel motherNextGroupLabel;
+	private JLabel motherAncestorsLabel;
 	private JPanel arrowMotherPanel;
 
 	private final BoxPanelType boxType;
-	private final TreeLayout treeLayout;
-	/** {@code true} when the collapse badge should be hidden regardless of count (e.g., in Sugiyama layout). */
-	private boolean suppressCollapseBadge;
+	private TreeLayout treeLayout;
+	private boolean showAncestors;
 
 	private IndividualData father;
 	private IndividualData mother;
@@ -166,12 +161,7 @@ public class PartnersPanel extends JPanel{
 
 
 	public static PartnersPanel create(final BoxPanelType boxType, final TreeLayout treeLayout, final FLEFModel model){
-		return new PartnersPanel(boxType, false, treeLayout, model);
-	}
-
-	public static PartnersPanel createWithoutBadge(final BoxPanelType boxType, final TreeLayout treeLayout,
-			final FLEFModel model){
-		return new PartnersPanel(boxType, true, treeLayout, model);
+		return new PartnersPanel(boxType, treeLayout, model);
 	}
 
 	/**
@@ -184,17 +174,12 @@ public class PartnersPanel extends JPanel{
 	 * @return a placeholder panel
 	 */
 	public static PartnersPanel createEmpty(final BoxPanelType boxType, final TreeLayout treeLayout){
-		return new PartnersPanel(boxType, false, treeLayout, null);
+		return new PartnersPanel(boxType, treeLayout, null);
 	}
 
 
-	private PartnersPanel(final BoxPanelType boxType, final boolean suppressCollapseBadge, final TreeLayout treeLayout,
-			final FLEFModel model){
-		final String iconAscendantsUri = (treeLayout == TreeLayout.VERTICAL? "/images/union_up.png": "/images/union_next.png");
-		ICON_ASCENDANTS = ResourceHelper.getResizedImageFromResource(iconAscendantsUri, ASCENDANTS_SIZE);
-
+	private PartnersPanel(final BoxPanelType boxType, final TreeLayout treeLayout, final FLEFModel model){
 		this.boxType = boxType;
-		this.suppressCollapseBadge = suppressCollapseBadge;
 		this.treeLayout = treeLayout;
 
 		this.model = model;
@@ -204,6 +189,13 @@ public class PartnersPanel extends JPanel{
 //		attachPopupMenu();
 
 //		installMouseListeners();
+	}
+
+	private static ImageIcon getAscendantsIcon(final TreeLayout treeLayout){
+		return ICON_ASCENDANTS_CACHE.computeIfAbsent(treeLayout, layout -> {
+			final String iconAscendantsUri = (layout == TreeLayout.VERTICAL? "/images/union_up.png": "/images/union_next.png");
+			return ResourceHelper.getResizedImageFromResource(iconAscendantsUri, ASCENDANTS_SIZE);
+		});
 	}
 
 
@@ -217,7 +209,7 @@ public class PartnersPanel extends JPanel{
 			// Combine layout constraints dynamically based on direction
 			final String colConstraints = (isVertical? "[grow,fill]": "[left]");
 			final String rowConstraints = (isVertical
-				? (PREVIOUS_NEXT_SIZE.getHeight() + NAVIGATION_DESCENDANTS_ARROW_SEPARATION) + "[bottom]"
+				? (ASCENDANTS_SIZE.getHeight() + NAVIGATION_ARROW_SEPARATION) + "[bottom]"
 				: "[bottom,grow]");
 
 			setLayout(new MigLayout("ins 0", colConstraints, rowConstraints));
@@ -243,53 +235,73 @@ public class PartnersPanel extends JPanel{
 		groupPanel.setBackground(GROUP_BACKGROUND);
 		groupPanel.setBorder(BorderFactory.createDashedBorder(BORDER_COLOR));
 
-		fatherArrowsSpacer = new JLabel();
-		motherArrowsSpacer = new JLabel();
-		fatherArrowsSpacer.setPreferredSize(new Dimension(DESCENDANTS_ARROWS_WIDTH, 0));
-		motherArrowsSpacer.setPreferredSize(new Dimension(DESCENDANTS_ARROWS_WIDTH, 0));
+//		fatherPreviousParentsLabel = new JLabel();
+//		fatherNextParentsLabel = new JLabel();
+//		fatherPreviousGroupLabel = new JLabel();
+//		fatherNextGroupLabel = new JLabel();
+		fatherAncestorsLabel = new JLabel();
+		fatherAncestorsLabel.setPreferredSize(ASCENDANTS_SIZE);
+		final JPanel arrow1Panel = new JPanel(new MigLayout("flowy,ins 0",
+			"[grow,right]", "[]" + NAVIGATION_ARROW_SEPARATION + "[]"));
+		arrow1Panel.add(fatherAncestorsLabel);
 
-		fatherPreviousParentsLabel = new JLabel();
-		fatherNextParentsLabel = new JLabel();
-		fatherPreviousGroupLabel = new JLabel();
-		fatherNextGroupLabel = new JLabel();
-		final JPanel arrow1Panel = new JPanel(new MigLayout("ins 0",
-			"[]0[grow]" + NAVIGATION_PARENTS_ARROW_SEPARATION + "[grow]0[]" + NAVIGATION_DESCENDANTS_ARROW_SEPARATION + "[]"));
-		arrow1Panel.add(fatherArrowsSpacer, StringUtils.EMPTY);
-		arrow1Panel.add(fatherPreviousParentsLabel, "right");
-		arrow1Panel.add(fatherNextParentsLabel, "left");
-		arrow1Panel.add(fatherPreviousGroupLabel, "right");
-		arrow1Panel.add(fatherNextGroupLabel, "right");
+//		final JPanel arrow1Panel = new JPanel(new MigLayout("ins 0,hidemode 2",
+//			"[]0[grow]" + NAVIGATION_ASCENDANTS_ARROW_SEPARATION + "[grow]0[]0[]" + NAVIGATION_DESCENDANTS_ARROW_SEPARATION + "[]"));
+//		arrow1Panel.add(fatherArrowsSpacer, StringUtils.EMPTY);
+//		arrow1Panel.add(fatherPreviousParentsLabel, "right");
+//		arrow1Panel.add(fatherNextParentsLabel, "left");
+//		arrow1Panel.add(fatherPreviousGroupLabel, "right");
+//		arrow1Panel.add(fatherNextGroupLabel, "right");
+//		arrow1Panel.add(fatherAncestorsLabel, "right");
 		arrow1Panel.setOpaque(false);
 
 		arrowFatherPanel = new JPanel(new MigLayout("ins 0",
 			"[grow,fill]",
-			"[" + PREVIOUS_NEXT_SIZE.getHeight() + "]" + NAVIGATION_DESCENDANTS_ARROW_SEPARATION + "[]"));
+			"[" + ASCENDANTS_SIZE.getHeight() + "]" + NAVIGATION_ARROW_SEPARATION + "[]"));
 		arrowFatherPanel.add(arrow1Panel, "wrap");
 		arrowFatherPanel.add(fatherPanel, "right");
 		arrowFatherPanel.setOpaque(false);
 
-		motherPreviousGroupLabel = new JLabel();
-		motherNextGroupLabel = new JLabel();
-		motherPreviousParentsLabel = new JLabel();
-		motherNextParentsLabel = new JLabel();
-		final JPanel arrow2Panel = new JPanel(new MigLayout("ins 0",
-			"[]" + NAVIGATION_DESCENDANTS_ARROW_SEPARATION + "[]0[grow]" + NAVIGATION_PARENTS_ARROW_SEPARATION + "[grow]0[]"));
-		arrow2Panel.add(motherPreviousGroupLabel, "left");
-		arrow2Panel.add(motherNextGroupLabel, "left");
-		arrow2Panel.add(motherPreviousParentsLabel, "right");
-		arrow2Panel.add(motherNextParentsLabel, "left");
-		arrow2Panel.add(motherArrowsSpacer, "hidemode 2");
+//		motherPreviousGroupLabel = new JLabel();
+//		motherNextGroupLabel = new JLabel();
+//		motherPreviousParentsLabel = new JLabel();
+//		motherNextParentsLabel = new JLabel();
+		motherAncestorsLabel = new JLabel();
+		motherAncestorsLabel.setPreferredSize(ASCENDANTS_SIZE);
+		final JPanel arrow2Panel = new JPanel(new MigLayout("flowy,ins 0",
+			"[grow,right]", "[]" + NAVIGATION_ARROW_SEPARATION + "[]"));
+		arrow2Panel.add(motherAncestorsLabel);
+
+//		final JPanel arrow2Panel = new JPanel(new MigLayout("ins 0,hidemode 2",
+//			"[]" + NAVIGATION_DESCENDANTS_ARROW_SEPARATION + "[]0[grow]0[]" + NAVIGATION_ASCENDANTS_ARROW_SEPARATION + "[grow]0[]"));
+//		arrow2Panel.add(motherArrowsSpacer, StringUtils.EMPTY);
+//		arrow2Panel.add(motherPreviousGroupLabel, "left");
+//		arrow2Panel.add(motherNextGroupLabel, "left");
+//		arrow2Panel.add(motherPreviousParentsLabel, "right");
+//		arrow2Panel.add(motherNextParentsLabel, "left");
+//		arrow2Panel.add(motherAncestorsLabel, "right");
 		arrow2Panel.setOpaque(false);
 
 		arrowMotherPanel = new JPanel(new MigLayout("ins 0",
 			"[grow,fill]",
-			"[" + PREVIOUS_NEXT_SIZE.getHeight() + "]" + NAVIGATION_DESCENDANTS_ARROW_SEPARATION + "[]"));
+			"[" + ASCENDANTS_SIZE.getHeight() + "]" + NAVIGATION_ARROW_SEPARATION + "[]"));
 		arrowMotherPanel.add(arrow2Panel, "wrap");
 		arrowMotherPanel.add(motherPanel, "left");
 		arrowMotherPanel.setOpaque(false);
 
+		setOpaque(false);
+
+		applyLayoutConstraints();
+	}
+
+	private void applyLayoutConstraints(){
+		if(model == null)
+			return;
+
+		removeAll();
+
 		if(treeLayout == TreeLayout.VERTICAL){
-			setLayout(new MigLayout("hidemode 3,ins 0",
+			setLayout(new MigLayout("ins 0,hidemode 3",
 				"[right,grow]" + HALF_PARTNER_SEPARATION + "[center,grow]" + HALF_PARTNER_SEPARATION + "[left,grow]",
 				"[bottom]"));
 			add(arrowFatherPanel, "right,grow");
@@ -306,18 +318,17 @@ public class PartnersPanel extends JPanel{
 			// amount, keeping the total distance between the two boxes unchanged.
 			// MigLayout allows negative row gaps: the small overlap here falls
 			// in the empty arrow region of the mother panel and is not visible.
-			final int halfArrows = NAVIGATION_ARROW_HEIGHT / 2;
+			final int halfArrows = ARROW_HEIGHT / 2;
 			final int gapAbove = HALF_PARTNER_SEPARATION + halfArrows;
 			final int gapBelow = HALF_PARTNER_SEPARATION - halfArrows;
 
-			setLayout(new MigLayout("hidemode 3,ins 0",
+			setLayout(new MigLayout("ins 0,hidemode 3",
 				"[left]",
 				"[bottom,grow]" + gapAbove + "[center]" + gapBelow + "[top,grow]"));
 			add(arrowFatherPanel, "wrap");
 			add(groupPanel, "gapleft " + GROUP_EXITING_HEIGHT + ",wrap");
 			add(arrowMotherPanel, "grow");
 		}
-		setOpaque(false);
 	}
 
 	@Override
@@ -345,7 +356,7 @@ public class PartnersPanel extends JPanel{
 			else{
 				final int x = arrowFatherPanel.getX() + GROUP_CONNECTION_HEIGHT;
 				final int yFrom = arrowFatherPanel.getY() + arrowFatherPanel.getHeight();
-				final int yTo = arrowMotherPanel.getY() + NAVIGATION_ARROW_HEIGHT;
+				final int yTo = arrowMotherPanel.getY() + ARROW_HEIGHT;
 
 				// Vertical connection line between partners
 				g2.drawLine(x, yFrom,
@@ -397,15 +408,23 @@ public class PartnersPanel extends JPanel{
 		return this;
 	}
 
+	public PartnersPanel withTreeLayout(final TreeLayout treeLayout){
+		if(this.treeLayout != treeLayout){
+			this.treeLayout = treeLayout;
+
+			applyLayoutConstraints();
+
+			updateData();
+		}
+		return this;
+	}
+
 	/**
 	 * Sets the biological parents of this couple.
 	 * <p>
 	 * On a placeholder (no model), this method is a no-op.
 	 */
 	public PartnersPanel withBiologicalParents(final IndividualData father, final IndividualData mother){
-		if(model == null)
-			return this;
-
 		this.father = father;
 		this.mother = mother;
 
@@ -415,14 +434,24 @@ public class PartnersPanel extends JPanel{
 	}
 
 	/**
-	 * Configures whether the collapse badge should be suppressed and never displayed.
+	 * Configures whether ancestor arrows should be displayed above the partner panels.
 	 *
-	 * @param suppress {@code true} to hide the badge regardless of occurrence count
+	 * @param showAncestors {@code true} to display ancestor arrows if parents exist, {@code false} to hide them
 	 * @return this panel, for chaining
 	 */
-	public PartnersPanel withSuppressCollapseBadge(final boolean suppress){
-		this.suppressCollapseBadge = suppress;
+	public PartnersPanel withShowAncestors(final boolean showAncestors){
+		this.showAncestors = showAncestors;
 
+		return this;
+	}
+
+	/**
+	 * Configures whether the collapse badge should be suppressed and never displayed.
+	 *
+	 * @param suppressCollapseBadge {@code true} to hide the badge regardless of occurrence count
+	 * @return this panel, for chaining
+	 */
+	public PartnersPanel withSuppressCollapseBadge(final boolean suppressCollapseBadge){
 		fatherPanel.withSuppressCollapseBadge(suppressCollapseBadge);
 		motherPanel.withSuppressCollapseBadge(suppressCollapseBadge);
 
@@ -433,6 +462,9 @@ public class PartnersPanel extends JPanel{
 	}
 
 	private void updateData(){
+		if(model == null)
+			return;
+
 		fatherPanel.withIndividualData(father);
 		motherPanel.withIndividualData(mother);
 
@@ -452,6 +484,11 @@ public class PartnersPanel extends JPanel{
 //			updatePreviousNextParentsIcons(father, fatherPreviousParentsLabel, fatherNextParentsLabel);
 //			updatePreviousNextParentsIcons(mother, motherPreviousParentsLabel, motherNextParentsLabel);
 //		}
+
+		final boolean fatherHasAncestors = (showAncestors && father != null && father.hasParents());
+		final boolean motherHasAncestors = (showAncestors && mother != null && mother.hasParents());
+		fatherAncestorsLabel.setIcon(fatherHasAncestors? getAscendantsIcon(treeLayout): null);
+		motherAncestorsLabel.setIcon(motherHasAncestors? getAscendantsIcon(treeLayout): null);
 
 		if(isPrimaryBox()){
 			final boolean hasFather = (father != null && !father.isEmpty());
@@ -658,7 +695,7 @@ public class PartnersPanel extends JPanel{
 
 		final String content;
 		try(final InputStream is = PartnersPanel.class.getResourceAsStream(modelUri)){
-			content = new String(Objects.requireNonNull(is).readAllBytes(), StandardCharsets.UTF_8);
+			content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
 		}
 
 		final FLEFParser parser = new FLEFParser();

@@ -28,10 +28,8 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualData;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventParticipationHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.GenealogyRepository;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
 import org.apache.commons.lang3.StringUtils;
 
@@ -45,15 +43,13 @@ import java.util.Map;
  * Service responsible for extracting and building an {@link EgoNode} network
  * from the FLEF model, covering both biological and non-biological relationships.
  */
-class EgoNetworkService{
+public class EgoNetworkService{
 
 	private static final String TAG_TYPE = "type";
 	private static final String TAG_ROLE = "role";
 	private static final String TAG_STATUS = "status";
 	private static final String TAG_SUBJECT = "subject";
 	private static final String TAG_TARGET = "target";
-	private static final String TAG_PARTICIPANT = "participant";
-	private static final String TAG_EVENT = "event";
 	private static final String TAG_INDIVIDUAL = "individual";
 	private static final String TAG_GROUP = "group";
 
@@ -73,16 +69,21 @@ class EgoNetworkService{
 
 
 	private final FLEFModel model;
+	private final GenealogyRepository repository;
 
 	private final Map<String, List<FLEFRecord>> relationshipsByEntityId = new HashMap<>();
-	private final Map<String, List<FLEFRecord>> eventsByEntityId = new HashMap<>();
-	private boolean indicesBuilt;
+	private boolean relationshipsIndexed;
 
 
-	public EgoNetworkService(final FLEFModel model){
+	public EgoNetworkService(final GenealogyRepository repository, final FLEFModel model){
+		this.repository = repository;
 		this.model = model;
 	}
 
+
+	public GenealogyRepository getRepository(){
+		return repository;
+	}
 
 	/**
 	 * Builds an {@link EgoNode} for the specified ego entity ID, collecting all
@@ -99,14 +100,17 @@ class EgoNetworkService{
 		if(egoRecord == null)
 			return null;
 
-		ensureIndices();
+		repository.ensureIndices();
+		ensureRelationshipsIndex();
 
-		final IndividualData egoData = IndividualData.create(egoRecord, eventsByEntityId, model);
+		final IndividualData egoData = repository.getIndividualData(egoRecord);
 		final EgoNode egoNode = new EgoNode(egoRecord, egoData);
 
 		final List<FLEFRecord> rels = relationshipsByEntityId.get(egoId);
 		if(rels != null){
-			for(final FLEFRecord relationship : rels){
+			for(int i = 0, size = rels.size(); i < size; i ++){
+				final FLEFRecord relationship = rels.get(i);
+
 				final String type = FLEFRecordHelper.getChildValue(relationship, TAG_TYPE);
 				final String role = FLEFRecordHelper.getChildValue(relationship, TAG_ROLE);
 				final String status = normalizeStatus(FLEFRecordHelper.getChildValue(relationship, TAG_STATUS));
@@ -212,7 +216,7 @@ class EgoNetworkService{
 			}
 
 		if(targetNode == null){
-			final IndividualData data = IndividualData.create(record, eventsByEntityId, model);
+			final IndividualData data = repository.getIndividualData(record);
 			targetNode = new EgoNode(record, data);
 			egoNode.addRelatedNode(category, targetNode);
 		}
@@ -248,8 +252,8 @@ class EgoNetworkService{
 	 * The method is idempotent and is invoked lazily the first time the
 	 * network is built.
 	 */
-	private void ensureIndices(){
-		if(indicesBuilt)
+	private void ensureRelationshipsIndex(){
+		if(relationshipsIndexed)
 			return;
 
 		// Index relationships by entity id.
@@ -263,37 +267,7 @@ class EgoNetworkService{
 				relationshipsByEntityId.computeIfAbsent(targetId, k -> new ArrayList<>()).add(relationship);
 		}
 
-		// Index events by participant id. Only individuals and groups are
-		// indexed, because places have their own dedicated event views.
-		final List<FLEFRecord> eventParticipations = model.getRecordsByType(EventParticipationHandler.TYPE);
-		for(final FLEFRecord ep : eventParticipations){
-			final FLEFRecord participant = FLEFRecordHelper.findChild(ep, TAG_PARTICIPANT);
-			if(participant == null)
-				continue;
-
-			final FLEFRecord indRef = participant.getTheOnlyChild();
-			if(indRef == null || indRef.getValue() == null)
-				continue;
-
-			final String participantTag = indRef.getTag();
-			if(participantTag == null)
-				continue;
-
-			if(!IndividualHandler.TYPE.equalsIgnoreCase(participantTag)
-					&& !GroupHandler.TYPE.equalsIgnoreCase(participantTag))
-				continue;
-
-			final String participantId = indRef.getValue();
-			final String eventId = FLEFRecordHelper.getChildValue(ep, TAG_EVENT);
-			if(eventId == null)
-				continue;
-
-			final FLEFRecord event = model.getRecordById(eventId);
-			if(event != null && EventHandler.TYPE.equalsIgnoreCase(event.getTag()))
-				eventsByEntityId.computeIfAbsent(participantId, k -> new ArrayList<>()).add(event);
-		}
-
-		indicesBuilt = true;
+		relationshipsIndexed = true;
 	}
 
 	/**
@@ -301,9 +275,9 @@ class EgoNetworkService{
 	 * {@link #buildEgoNetwork(String)}.
 	 */
 	public void invalidateIndices(){
+		repository.invalidateIndices();
 		relationshipsByEntityId.clear();
-		eventsByEntityId.clear();
-		indicesBuilt = false;
+		relationshipsIndexed = false;
 	}
 
 }

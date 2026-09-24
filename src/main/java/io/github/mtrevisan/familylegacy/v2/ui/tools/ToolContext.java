@@ -65,7 +65,7 @@ import java.util.function.Supplier;
  *       entity currently selected in the active projection;</li>
  *   <li>{@link #currentSelectionId()} — the id of the entity currently
  *       selected in the active projection, or {@code null};</li>
- *   <li>{@link #selectedIndividualId()} — convenience alias for
+ *   <li>{@link #selectedEntityId()} — convenience alias for
  *       {@link #currentSelectionId()}, provided because most tools
  *       operate on individuals;</li>
  *   <li>{@link #loadRoot(String)} — loads an individual as the root of
@@ -120,6 +120,7 @@ public record ToolContext(
 	public ToolContext{
 		Objects.requireNonNull(model, "model must not be null");
 		Objects.requireNonNull(owner, "owner must not be null");
+
 		if(editCurrentSelection == null)
 			editCurrentSelection = () -> {};
 		if(currentSelectionId == null)
@@ -197,7 +198,7 @@ public record ToolContext(
 	 * that operates on groups or places uses {@code currentSelectionId}
 	 * directly, and a tool that operates on individuals can use either.
 	 */
-	public String selectedIndividualId(){
+	public String selectedEntityId(){
 		return currentSelectionId.get();
 	}
 
@@ -262,11 +263,11 @@ public record ToolContext(
 	}
 
 	/**
-	 * Returns whether the selected entity exists in the model and is an Individual.
+	 * Returns whether the selected entity exists in the model.
 	 */
-	public boolean hasSelectedIndividual(){
-		final String id = selectedIndividualId();
-		return (id != null && model.hasRecord(id) && id.startsWith(IndividualHandler.ID_PREFIX));
+	public boolean hasSelectedEntity(){
+		final String id = selectedEntityId();
+		return (id != null && model.hasRecord(id));
 	}
 
 	/**

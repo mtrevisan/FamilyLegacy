@@ -22,20 +22,37 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree;
+package io.github.mtrevisan.familylegacy.v2.ui.tools.individuals;
+
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.help.ShortcutRegistry;
+import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
+import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolOperation;
+
+import javax.swing.KeyStroke;
 
 
-/**
- * Event listener for changes in the biological tree structure or root node focus.
- */
-@FunctionalInterface
-public interface TreeChangeListener{
+public final class RelocateIndividualTool implements ToolOperation{
 
-	/**
-	 * Triggered when the tree structure is modified or the root individual changes.
-	 *
-	 * @param rootIndividualId the ID of the individual to focus as root
-	 */
-	void onTreeStructureChanged(String rootIndividualId);
+	@Override
+	public String getName(){
+		return ShortcutRegistry.EDIT_RELOCATE.action();
+	}
+
+	@Override
+	public KeyStroke getAccelerator(){
+		return ShortcutRegistry.EDIT_RELOCATE.keyStroke();
+	}
+
+	@Override
+	public void run(final ToolContext context){
+		//TODO
+//		context.relocateCurrentSelection()
+//			.run();
+	}
+
+	@Override
+	public boolean isEnabled(final ToolContext context){
+		return (context != null && context.hasSelectedEntity());
+	}
 
 }

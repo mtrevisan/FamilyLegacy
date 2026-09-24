@@ -59,14 +59,21 @@ public class CrossingReducer{
 	private static void sortLayerWithOrderPreservation(final List<Graph.Node> layer, final List<Graph.Node> refLayer,
 			final boolean lookAtIncoming){
 		// 1. Snapshot initial positions to preserve native sequence
-		final Map<Graph.Node, Integer> initialPositions = new HashMap<>();
-		for(int i = 0; i < layer.size(); i ++)
+		final int size = layer.size();
+		final Map<Graph.Node, Integer> initialPositions = new HashMap<>(size);
+		for(int i = 0; i < size; i ++)
 			initialPositions.put(layer.get(i), i);
+
+		final Map<Graph.Node, Integer> refLayerPositions = new HashMap<>(refLayer.size());
+		for(int i = 0; i < refLayer.size(); i ++)
+			refLayerPositions.put(refLayer.get(i), i);
 
 		// 2. Sort using weighted key combining barycenter and original index
 		layer.sort((n1, n2) -> {
-			final double key1 = calculateOrderPreservingKey(n1, refLayer, initialPositions.get(n1), lookAtIncoming);
-			final double key2 = calculateOrderPreservingKey(n2, refLayer, initialPositions.get(n2), lookAtIncoming);
+			final double key1 = calculateOrderPreservingKey(n1, refLayerPositions, initialPositions.get(n1),
+				lookAtIncoming);
+			final double key2 = calculateOrderPreservingKey(n2, refLayerPositions, initialPositions.get(n2),
+				lookAtIncoming);
 
 			int cmp = Double.compare(key1, key2);
 			if(cmp == 0)
@@ -76,8 +83,8 @@ public class CrossingReducer{
 		});
 	}
 
-	private static double calculateOrderPreservingKey(final Graph.Node node, final List<Graph.Node> refLayer,
-			final int originalIndex, final boolean lookAtIncoming){
+	private static double calculateOrderPreservingKey(final Graph.Node node,
+			final Map<Graph.Node, Integer> refLayerPositions, final int originalIndex, final boolean lookAtIncoming){
 		final List<Graph.Node> neighbors = (lookAtIncoming? node.getIncoming(): node.getOutgoing());
 
 		// Nodes without edges in refLayer strictly retain their original relative index
@@ -87,8 +94,8 @@ public class CrossingReducer{
 		double sum = 0.;
 		int count = 0;
 		for(final Graph.Node neighbor : neighbors){
-			final int index = refLayer.indexOf(neighbor);
-			if(index >= 0){
+			final Integer index = refLayerPositions.get(neighbor);
+			if(index != null){
 				sum += index;
 				count ++;
 			}

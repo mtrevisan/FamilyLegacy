@@ -34,6 +34,9 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualt
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.services.relationship.UnlinkRelationshipsDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.partners.PartnersPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.partners.Side;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.TreeMutator;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.TreeNode;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.TreeService;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.SexType;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.RelationClipboard;

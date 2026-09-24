@@ -606,7 +606,7 @@ public final class PlaceHierarchyPanel extends JPanel{
 
 		final String content;
 		try(final InputStream is = PlaceHierarchyPanel.class.getResourceAsStream(modelUri)){
-			content = new String(Objects.requireNonNull(is).readAllBytes(), StandardCharsets.UTF_8);
+			content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
 		}
 
 		final FLEFParser parser = new FLEFParser();

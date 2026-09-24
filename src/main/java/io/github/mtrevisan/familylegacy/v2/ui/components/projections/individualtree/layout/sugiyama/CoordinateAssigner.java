@@ -29,10 +29,10 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualListener;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.IndividualTreeGraphListener;
-import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.TreeNode;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.layout.TreeLayout;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.layout.TreeLayoutBuilder;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.partners.PartnersPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.TreeNode;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.siblings.SiblingsPanel;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
@@ -79,6 +79,7 @@ public class CoordinateAssigner{
 			final IndividualTreeGraphListener treeListener,
 			final EntityPopupMenuFactory<IndividualPanel, IndividualListener> popupFactory, final TreeLayout treeLayout,
 			final boolean showPartner){
+		final Map<TreeNode, PartnersPanel> existingPanels = new HashMap<>(nodeToPanelMap);
 		canvas.removeAll();
 
 		final boolean isVertical = (treeLayout == TreeLayout.VERTICAL);
@@ -112,7 +113,8 @@ public class CoordinateAssigner{
 			gridRow ++;
 		}
 
-		gridRow = buildLayerPanels(canvas, couplesInCanvasOrder, panelFactory, parentIndex, isVertical, gridRow);
+		gridRow = buildLayerPanels(canvas, couplesInCanvasOrder, panelFactory, parentIndex, isVertical, gridRow,
+			existingPanels, treeLayout);
 
 		if(isVertical && hasChildren)
 			addChildrenStrip(canvas, siblingsPanel, gridRow, isVertical, treeLayout);
@@ -158,12 +160,13 @@ public class CoordinateAssigner{
 	 */
 	private static int buildLayerPanels(final JPanel canvas, final List<List<TreeNode[]>> couplesPerLayer,
 			final PartnersPanelFactory panelFactory, final ParentPanelIndex parentIndex, final boolean isVertical,
-			final int startGridRow){
+			final int startGridRow, final Map<TreeNode, PartnersPanel> existingPanels, final TreeLayout treeLayout){
 		final String layerLayout = (isVertical? "ins 0,gapx 40,flowx": "ins 0,gapy 40,flowy");
 		final Map<String, PartnersPanel> byCoupleKey = new HashMap<>();
 
 		int gridRow = startGridRow;
-		for(int layerIndex = 0; layerIndex < couplesPerLayer.size(); layerIndex ++){
+		final int layerCouples = couplesPerLayer.size();
+		for(int layerIndex = 0; layerIndex < layerCouples; layerIndex ++){
 			final List<TreeNode[]> couples = couplesPerLayer.get(layerIndex);
 			if(couples.isEmpty())
 				continue;
@@ -182,7 +185,13 @@ public class CoordinateAssigner{
 
 				PartnersPanel panel = byCoupleKey.get(key);
 				if(panel == null){
-					panel = panelFactory.create(couple[0], couple[1]);
+					TreeNode matchNode = (couple[0] != null? couple[0]: couple[1]);
+					if(matchNode != null && existingPanels.containsKey(matchNode))
+						panel = existingPanels.get(matchNode).withTreeLayout(treeLayout);
+					else{
+						final int trueLayerIndex = (isVertical? layerIndex: layerCouples - layerIndex - 1);
+						panel = panelFactory.create(couple[0], couple[1], trueLayerIndex);
+					}
 					byCoupleKey.put(key, panel);
 					parentIndex.index(panel);
 				}

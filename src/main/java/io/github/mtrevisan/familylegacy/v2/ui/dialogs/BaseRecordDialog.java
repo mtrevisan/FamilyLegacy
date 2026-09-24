@@ -32,6 +32,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.ImageCarouselPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityListPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.help.ShortcutRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
@@ -171,8 +172,8 @@ public abstract class BaseRecordDialog extends JDialog{
 	protected void setupKeyboardShortcuts(){
 		final JComponent rootPane = getRootPane();
 		final InputMap inputMap = rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
-		inputMap.put(GUIHelper.UNDO_STROKE, ACTION_GLOBAL_UNDO);
-		inputMap.put(GUIHelper.REDO_STROKE, ACTION_GLOBAL_REDO);
+		inputMap.put(ShortcutRegistry.EDIT_UNDO.keyStroke(), ACTION_GLOBAL_UNDO);
+		inputMap.put(ShortcutRegistry.EDIT_REDO.keyStroke(), ACTION_GLOBAL_REDO);
 
 		final ActionMap actionMap = rootPane.getActionMap();
 		actionMap.put(ACTION_GLOBAL_UNDO, new AbstractAction(){
@@ -198,8 +199,8 @@ public abstract class BaseRecordDialog extends JDialog{
 
 		// Remove component-level shortcuts so they route through the dialog's RootPane
 		final InputMap inputMap = textComponent.getInputMap(JComponent.WHEN_FOCUSED);
-		inputMap.put(GUIHelper.UNDO_STROKE, "none");
-		inputMap.put(GUIHelper.REDO_STROKE, "none");
+		inputMap.put(ShortcutRegistry.EDIT_UNDO.keyStroke(), "none");
+		inputMap.put(ShortcutRegistry.EDIT_REDO.keyStroke(), "none");
 	}
 
 	protected void registerUndoSupport(final JComboBox<?> comboBox){
@@ -211,9 +212,8 @@ public abstract class BaseRecordDialog extends JDialog{
 			if(editorComp instanceof JTextComponent textComp){
 				// Remove local text component shortcuts
 				final InputMap compInputMap = textComp.getInputMap(JComponent.WHEN_FOCUSED);
-				compInputMap.put(GUIHelper.UNDO_STROKE, "none");
-				compInputMap.put(GUIHelper.REDO_STROKE, "none");
-				compInputMap.put(GUIHelper.MAC_UNDO_STROKE, "none");
+				compInputMap.put(ShortcutRegistry.EDIT_UNDO.keyStroke(), "none");
+				compInputMap.put(ShortcutRegistry.EDIT_REDO.keyStroke(), "none");
 
 				final EditableComboAdapter adapter = new EditableComboAdapter(comboBox, textComp, undoController);
 				textComp.addFocusListener(adapter);

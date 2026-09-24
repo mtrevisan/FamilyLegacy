@@ -58,10 +58,10 @@ public final class PartnersData{
 
 
 	//TODO extract value and connect to arrows in PartnersPanel, follow SiblingsPanel
-	/** True when the father has ancestors that exist in the model but are not displayed. */
-	private boolean fatherHasHiddenAncestors;
-	/** True when the mother has ancestors that exist in the model but are not displayed. */
-	private boolean motherHasHiddenAncestors;
+	/** True when the father has ancestors that exist in the model. */
+	private boolean fatherHasAncestors;
+	/** True when the mother has ancestors that exist in the model. */
+	private boolean motherHasAncestors;
 
 	private final String marriageTooltip;
 
@@ -159,12 +159,12 @@ public final class PartnersData{
 	}
 
 
-	public boolean isFatherHasHiddenAncestors(){
-		return fatherHasHiddenAncestors;
+	public boolean isFatherHasAncestors(){
+		return fatherHasAncestors;
 	}
 
-	public boolean isMotherHasHiddenAncestors(){
-		return motherHasHiddenAncestors;
+	public boolean isMotherHasAncestors(){
+		return motherHasAncestors;
 	}
 
 	public String getMarriageTooltip(){

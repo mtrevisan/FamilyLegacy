@@ -32,6 +32,8 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualt
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.layout.TreeLayout;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.layout.TreeLayoutEngine;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.relationshipgraph.EgoNetworkPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.GenealogyRepository;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.help.ShortcutRegistry;
 
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
@@ -47,9 +49,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Graphics;
-import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serial;
@@ -95,16 +95,23 @@ public final class ProjectionSwitcherPanel extends JPanel{
 	/** Default generation depth used when loading the tree or the graph. */
 	private static final int DEFAULT_MAX_ANCESTORS = 2;
 
+	private static final String ENUM_TYPE_BIOLOGICAL_CHILD = "biological_child";
+	private static final String ENUM_TYPE_ADOPTIVE_CHILD = "adoptive_child";
+	private static final String ENUM_TYPE_STEP_CHILD = "step_child";
+	private static final String ENUM_TYPE_FOSTER_CHILD = "foster_child";
+	private static final String ENUM_TYPE_GUARDED_CHILD = "guarded_child";
+
 	/** Background color of the container. Matches the Sugiyama canvas. */
 	private static final Color BACKGROUND = new Color(250, 249, 245);
 
-	private static final String ACTION_PROJECTION_TREE = "projectionTree";
-	private static final String ACTION_PROJECTION_SUGIYAMA = "projectionSugiyama";
+	private static final String ACTION_PROJECTION_ANCESTOR_TREE = "projectionTree";
+	private static final String ACTION_PROJECTION_SUGIYAMA_GRAPH = "projectionGraph";
 	private static final String ACTION_PROJECTION_EGO = "projectionEgo";
 	private static final TreeLayoutEngine TREE_LAYOUT_ENGINE = new TreeLayoutEngine();
 	private static final GraphLayoutEngine GRAPH_LAYOUT_ENGINE = new GraphLayoutEngine();
 
 
+	private final GenealogyRepository repository;
 	private final IndividualTreeGraphPanel treeGraphPanel;
 	private final EgoNetworkPanel egoPanel;
 
@@ -134,10 +141,13 @@ public final class ProjectionSwitcherPanel extends JPanel{
 		if(model == null)
 			throw new IllegalArgumentException("Model must not be null");
 
-		this.treeGraphPanel = new IndividualTreeGraphPanel(TreeType.BIOLOGICAL, TreeLayout.VERTICAL, TREE_LAYOUT_ENGINE,
+		final TreeType treeType = TreeType.BIOLOGICAL;
+		final String[] allowedTypes = computeAllowedRelationshipTypes(treeType);
+		repository = new GenealogyRepository(allowedTypes, model);
+		this.treeGraphPanel = new IndividualTreeGraphPanel(TreeLayout.VERTICAL, TREE_LAYOUT_ENGINE, repository,
 				model)
 			.withShowPartner();
-		this.egoPanel = new EgoNetworkPanel(TreeLayout.VERTICAL, model);
+		this.egoPanel = new EgoNetworkPanel(TreeLayout.VERTICAL, repository, model);
 
 		setOpaque(true);
 		setBackground(BACKGROUND);
@@ -152,6 +162,15 @@ public final class ProjectionSwitcherPanel extends JPanel{
 		setupSwitchShortcut(this);
 	}
 
+	public static String[] computeAllowedRelationshipTypes(final TreeType treeType){
+		return switch(treeType){
+			case BIOLOGICAL -> new String[]{ENUM_TYPE_BIOLOGICAL_CHILD};
+			case FAMILY -> new String[]{
+				ENUM_TYPE_BIOLOGICAL_CHILD, ENUM_TYPE_ADOPTIVE_CHILD,
+				ENUM_TYPE_FOSTER_CHILD, ENUM_TYPE_GUARDED_CHILD,
+				ENUM_TYPE_STEP_CHILD};
+		};
+	}
 
 	/* ======================================================================
 	 *                          Public API
@@ -348,6 +367,10 @@ public final class ProjectionSwitcherPanel extends JPanel{
 		return egoPanel.getSelectedEntityId();
 	}
 
+	public GenealogyRepository getRepository(){
+		return repository;
+	}
+
 
 	/* ======================================================================
 	 *                          Navigation history
@@ -429,15 +452,14 @@ public final class ProjectionSwitcherPanel extends JPanel{
 		final InputMap inputMap = component.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
 		final ActionMap actionMap = component.getActionMap();
 
-		final int mask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx();
 		bindProjection(inputMap, actionMap,
-			KeyStroke.getKeyStroke(KeyEvent.VK_1, mask),
-			ProjectionType.TREE, ACTION_PROJECTION_TREE);
+			ShortcutRegistry.VIEW_ANCESTOR_TREE.keyStroke(),
+			ProjectionType.TREE, ACTION_PROJECTION_ANCESTOR_TREE);
 		bindProjection(inputMap, actionMap,
-			KeyStroke.getKeyStroke(KeyEvent.VK_2, mask),
-			ProjectionType.GRAPH, ACTION_PROJECTION_SUGIYAMA);
+			ShortcutRegistry.VIEW_SUGIYAMA_GRAPH.keyStroke(),
+			ProjectionType.GRAPH, ACTION_PROJECTION_SUGIYAMA_GRAPH);
 		bindProjection(inputMap, actionMap,
-			KeyStroke.getKeyStroke(KeyEvent.VK_3, mask),
+			ShortcutRegistry.VIEW_EGO_NETWORK.keyStroke(),
 			ProjectionType.EGO_NETWORK, ACTION_PROJECTION_EGO);
 	}
 
@@ -527,7 +549,7 @@ public final class ProjectionSwitcherPanel extends JPanel{
 
 		final String content;
 		try(final InputStream is = ProjectionSwitcherPanel.class.getResourceAsStream(modelUri)){
-			content = new String(Objects.requireNonNull(is).readAllBytes(), StandardCharsets.UTF_8);
+			content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
 		}
 
 		final FLEFParser parser = new FLEFParser();

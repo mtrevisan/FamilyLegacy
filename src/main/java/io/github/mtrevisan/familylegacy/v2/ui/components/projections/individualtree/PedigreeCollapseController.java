@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualt
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.services.pedigree.PedigreeCollapseDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.services.pedigree.PedigreePath;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.partners.PartnersPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.TreeNode;
 
 import java.awt.Window;
 import java.util.List;

@@ -52,7 +52,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.StringJoiner;
 import java.util.function.BiConsumer;
-import java.util.function.Predicate;
 
 
 /**
@@ -97,6 +96,9 @@ public final class IndividualData{
 	private static final String TAG_PREFERRED_IMAGE_CROP = TAG_PREFERRED_IMAGE + DOT + TAG_CROP;
 
 	private static final String ENUM_TYPE_BIOLOGICAL_CHILD = "biological_child";
+	private static final String ENUM_TYPE_ENDS_WITH_CHILD = "_child";
+	private static final String ENUM_TYPE_ENDS_WITH_SPOUSE = "_spouse";
+	private static final String ENUM_TYPE_ENDS_WITH_PARTNER = "_partner";
 
 	private static final String EVENT_TYPE_BIRTH = "birth";
 	private static final String EVENT_TYPE_DEATH = "death";
@@ -149,20 +151,13 @@ public final class IndividualData{
 	public static IndividualData create(final FLEFRecord individual, final Map<String, List<FLEFRecord>> eventsMap,
 			final FLEFModel model){
 		return (individual != null
-			? new IndividualData(individual, type -> true, eventsMap, model)
-			: null);
-	}
-
-	public static IndividualData create(final FLEFRecord individual, final Predicate<String> relationshipTypeFilter,
-			final Map<String, List<FLEFRecord>> eventsMap, final FLEFModel model){
-		return (individual != null
-			? new IndividualData(individual, relationshipTypeFilter, eventsMap, model)
+			? new IndividualData(individual, eventsMap, model)
 			: null);
 	}
 
 
-	private IndividualData(final FLEFRecord individual, final Predicate<String> relationshipTypeFilter,
-			final Map<String, List<FLEFRecord>> eventsMap, final FLEFModel model){
+	private IndividualData(final FLEFRecord individual, final Map<String, List<FLEFRecord>> eventsMap,
+			final FLEFModel model){
 		this.individual = individual;
 		id = individual.getId();
 
@@ -185,22 +180,26 @@ public final class IndividualData{
 			if(subjectId == null || targetId == null || !subjectId.equals(id) && !targetId.equals(id))
 				continue;
 
-			final String type = FLEFRecordHelper.getChildValue(relationship, TAG_TYPE);
-			if(type != null && relationshipTypeFilter.test(type)){
-				if(type.equalsIgnoreCase(ENUM_TYPE_BIOLOGICAL_CHILD))
-					isBiological = true;
+			String type = FLEFRecordHelper.getChildValue(relationship, TAG_TYPE);
+			if(type != null){
+				type = type.toLowerCase(Locale.ROOT);
+				if(type.equalsIgnoreCase(ENUM_TYPE_BIOLOGICAL_CHILD)){
+					if(subjectId.equals(id)){
+						isBiological = true;
+						hasParents = true;
+					}
 
-				if(id.equals(targetId))
-					hasChildren = true;
-				else
+					if(targetId.equals(id))
+						hasChildren = true;
+				}
+				else if(subjectId.equals(id) && type.endsWith(ENUM_TYPE_ENDS_WITH_CHILD))
 					hasParents = true;
-			}
-			else
-				// Partner/Spouse relationship (non-child type)
-				if(id.equals(targetId))
+				else if(type.endsWith(ENUM_TYPE_ENDS_WITH_SPOUSE) || type.endsWith(ENUM_TYPE_ENDS_WITH_PARTNER))
+					// Partner/Spouse relationship (non-child type)
 					hasPartner = true;
+			}
 
-			if(hasPartner && hasChildren)
+			if(isBiological && hasPartner && hasChildren)
 				break;
 		}
 

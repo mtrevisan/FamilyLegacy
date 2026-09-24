@@ -52,7 +52,7 @@ import java.util.Set;
  * considered distinct, to avoid accidental collisions on partially built
  * nodes.
  */
-final class EgoNode{
+public final class EgoNode{
 
 	public record RelationInfo(String type, String role, String status, boolean isInverse){}
 

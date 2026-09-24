@@ -24,7 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.layout.sugiyama;
 
-import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.TreeNode;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.TreeNode;
 
 import java.util.ArrayList;
 import java.util.HashMap;

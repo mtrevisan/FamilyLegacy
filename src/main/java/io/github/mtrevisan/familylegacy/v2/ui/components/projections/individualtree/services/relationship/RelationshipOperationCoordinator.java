@@ -27,7 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.TreeContextHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.TreeMutator;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.TreeMutator;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 
 import java.awt.Window;
@@ -44,13 +44,13 @@ import java.util.List;
  * <ul>
  *   <li>asking the user which FLEF relationship type to use for each
  *       affected pair, when more than one type is applicable;</li>
- *   <li>invoking the correct {@link io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.TreeMutator} methods with the resolved
+ *   <li>invoking the correct {@link TreeMutator} methods with the resolved
  *       types;</li>
  *   <li>creating a companion spouse relationship when a second parent is
  *       added to a couple that already has one parent.</li>
  * </ul>
  * The coordinator does not touch the model directly; all mutations go
- * through {@link io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.TreeMutator}. Instances are immutable and not
+ * through {@link TreeMutator}. Instances are immutable and not
  * thread-safe (they are meant to be used from the Swing Event Dispatch
  * Thread, like the rest of the UI layer).
  */
@@ -69,7 +69,8 @@ public final class RelationshipOperationCoordinator{
 	 * @param allowedTypes the relationship types permitted by the current
 	 *                     tree type (must not be {@code null} or empty)
 	 */
-	public RelationshipOperationCoordinator(final FLEFModel model, final TreeMutator mutator, final String[] allowedTypes){
+	public RelationshipOperationCoordinator(final FLEFModel model, final TreeMutator mutator,
+			final String[] allowedTypes){
 		if(model == null)
 			throw new IllegalArgumentException("Model must not be null");
 		if(mutator == null)
@@ -79,7 +80,7 @@ public final class RelationshipOperationCoordinator{
 
 		this.model = model;
 		this.mutator = mutator;
-		this.allowedTypes = allowedTypes.clone();
+		this.allowedTypes = allowedTypes;
 	}
 
 

@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree;
 
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.help.ShortcutRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 
 import javax.swing.AbstractAction;
@@ -60,10 +61,10 @@ public final class TreeShortcutInstaller{
 	 */
 	public static void installAll(final JComponent component, final Runnable toggleLayout, final Runnable openKinship,
 			final Runnable showCollapse, final Runnable toggleStrip){
-		install(component, GUIHelper.CTRL_L_STROKE, "toggleTreeLayout", toggleLayout);
+		install(component, ShortcutRegistry.TREE_TOGGLE_LAYOUT.keyStroke(), "toggleTreeLayout", toggleLayout);
 		install(component, GUIHelper.CTRL_K_STROKE, "openKinshipDialog", openKinship);
 		install(component, GUIHelper.CTRL_P_STROKE, "showPedigreeCollapse", showCollapse);
-		install(component, GUIHelper.CTRL_T_STROKE, "toggleLifespansStrip", toggleStrip);
+		install(component, ShortcutRegistry.TREE_TOGGLE_LIFESPAN.keyStroke(), "toggleLifespansStrip", toggleStrip);
 	}
 
 
@@ -74,7 +75,7 @@ public final class TreeShortcutInstaller{
 		inputMap.put(stroke, actionKey);
 		actionMap.put(actionKey, new AbstractAction(){
 			@Serial
-			private static final long serialVersionUID = 1L;
+			private static final long serialVersionUID = -2917354001940760930L;
 
 			@Override
 			public void actionPerformed(final ActionEvent e){

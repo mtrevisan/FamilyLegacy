@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.tools.individuals;
 
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.GenealogyRepository;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolOperation;
 
 import java.util.List;
@@ -32,8 +33,7 @@ import java.util.List;
 /** Static catalogue of the operations exposed by the {@code Individual} menu. */
 public final class IndividualToolRegistry{
 
-	private IndividualToolRegistry(){
-	}
+	private IndividualToolRegistry(){}
 
 
 	/** CRUD tools. */
@@ -64,10 +64,10 @@ public final class IndividualToolRegistry{
 	}
 
 	/** Navigation tools. */
-	public static List<ToolOperation> navigationTools(){
+	public static List<ToolOperation> navigationTools(final GenealogyRepository repository){
 		return List.of(
 			new SetAsRootTool(),
-			new KinshipCalculatorTool()
+			new KinshipCalculatorTool(repository)
 		);
 	}
 

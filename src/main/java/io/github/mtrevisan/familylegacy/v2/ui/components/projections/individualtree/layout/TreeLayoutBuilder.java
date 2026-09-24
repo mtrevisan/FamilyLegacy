@@ -31,8 +31,8 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualData;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualListener;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.TreeNode;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.partners.PartnersPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.TreeNode;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.siblings.SiblingsData;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.siblings.SiblingsPanel;
 import net.miginfocom.swing.MigLayout;
@@ -73,7 +73,7 @@ import java.util.Map;
  */
 public final class TreeLayoutBuilder{
 
-	public static final int GENERATION_SEPARATOR_SIZE = 16;
+	public static final int GENERATION_SEPARATOR_SIZE = 20;
 
 
 	private TreeLayoutBuilder(){}
@@ -140,8 +140,9 @@ public final class TreeLayoutBuilder{
 
 			// Create the panel for this slot
 			final BoxPanelType boxPanelType = (depth == 0? BoxPanelType.PRIMARY: BoxPanelType.SECONDARY);
+			final boolean isTopLayer = (depth == maxDepth);
 			final PartnersPanel partnerPanel = createPanelForNode(node, boxPanelType, treeLayout, model, listener,
-				popupFactory, false);
+				popupFactory, isTopLayer, false);
 
 			nodeToPanelMap.put(node, partnerPanel);
 
@@ -344,9 +345,10 @@ public final class TreeLayoutBuilder{
 	public static PartnersPanel createPanelForNode(final TreeNode node, final BoxPanelType type,
 			final TreeLayout treeLayout, final FLEFModel model, final IndividualListener listener,
 			final EntityPopupMenuFactory<IndividualPanel, IndividualListener> popupFactory,
-			final boolean suppressCollapseBadge){
+			final boolean isTopLayer, final boolean suppressCollapseBadge){
 		final PartnersPanel panel = PartnersPanel.create(type, treeLayout, model)
 			.withListener(listener, popupFactory)
+			.withShowAncestors(isTopLayer)
 			.withSuppressCollapseBadge(suppressCollapseBadge);
 
 		if(node != null){

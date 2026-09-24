@@ -28,7 +28,7 @@ import io.github.mtrevisan.familylegacy.v2.gedcom.utils.AuditBuilder;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.TreeChangeListener;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.TreeChangeListener;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventParticipationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupAttributeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualAttributeHandler;
@@ -107,6 +107,10 @@ class EgoNetworkMutator{
 			.addChild(AuditBuilder.build());
 
 		model.addRecord(relationship);
+
+		// Delta update on repository
+		networkService.getRepository()
+			.notifyRelationshipAdded(subjectId, targetId, relationship.getId());
 	}
 
 	/**
@@ -143,6 +147,8 @@ class EgoNetworkMutator{
 		removeAttributesInvolving(targetId);
 
 		model.removeRecord(targetId);
+		networkService.getRepository()
+			.invalidateIndividual(targetId);
 
 		invalidateAndNotifyTreeChanged(newEgoId);
 	}
@@ -154,7 +160,9 @@ class EgoNetworkMutator{
 	private void removeRelationshipsInvolving(final String targetId){
 		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
 		final List<String> toRemove = new ArrayList<>();
-		for(final FLEFRecord relationship : relationships){
+		for(int i = 0, size = relationships.size(); i < size; i ++){
+			final FLEFRecord relationship = relationships.get(i);
+
 			final String subjectId = relationship.extractReferencedId(TAG_SUBJECT, TAG_INDIVIDUAL);
 			final String groupSubjectId = relationship.extractReferencedId(TAG_SUBJECT, TAG_GROUP);
 			final String targetSubjectId = (subjectId != null? subjectId: groupSubjectId);
@@ -166,8 +174,13 @@ class EgoNetworkMutator{
 			if(targetId.equals(targetSubjectId) || targetId.equals(targetTargetId))
 				toRemove.add(relationship.getId());
 		}
-		for(final String id : toRemove)
+		for(int i = 0, size = toRemove.size(); i < size; i ++){
+			final String id = toRemove.get(i);
+
 			model.removeRecord(id);
+			networkService.getRepository()
+				.notifyRelationshipRemoved(id);
+		}
 	}
 
 	/**
@@ -177,7 +190,9 @@ class EgoNetworkMutator{
 	private void removeEventParticipationsInvolving(final String targetId){
 		final List<FLEFRecord> participations = model.getRecordsByType(EventParticipationHandler.TYPE);
 		final List<String> toRemove = new ArrayList<>();
-		for(final FLEFRecord participation : participations){
+		for(int i = 0, size = participations.size(); i < size; i ++){
+			final FLEFRecord participation = participations.get(i);
+
 			final FLEFRecord participantField = FLEFRecordHelper.findChild(participation, TAG_PARTICIPANT);
 			if(participantField == null)
 				continue;
@@ -189,8 +204,8 @@ class EgoNetworkMutator{
 			if(targetId.equals(ref.getValue()))
 				toRemove.add(participation.getId());
 		}
-		for(final String id : toRemove)
-			model.removeRecord(id);
+		for(int i = 0, size = toRemove.size(); i < size; i ++)
+			model.removeRecord(toRemove.get(i));
 	}
 
 	/**
@@ -205,7 +220,9 @@ class EgoNetworkMutator{
 	private void removeAttributesInvolving(final String targetId, final String recordType, final String ownerTag){
 		final List<FLEFRecord> attributes = model.getRecordsByType(recordType);
 		final List<String> toRemove = new ArrayList<>();
-		for(final FLEFRecord attribute : attributes){
+		for(int i = 0, size = attributes.size(); i < size; i ++){
+			final FLEFRecord attribute = attributes.get(i);
+
 			final FLEFRecord ownerField = FLEFRecordHelper.findChild(attribute, ownerTag);
 			if(ownerField == null)
 				continue;
@@ -217,15 +234,15 @@ class EgoNetworkMutator{
 			if(targetId.equals(ref.getValue()))
 				toRemove.add(attribute.getId());
 		}
-		for(final String id : toRemove)
-			model.removeRecord(id);
+		for(int i = 0, size = toRemove.size(); i < size; i ++)
+			model.removeRecord(toRemove.get(i));
 	}
 
 	/**
 	 * Unlinks a specific relationship between two entities.
 	 */
 	public void unlinkRelationship(final FLEFRecord sourceRecord, final FLEFRecord targetRecord,
-			final String currentEgoId){
+		final String currentEgoId){
 		if(sourceRecord == null || targetRecord == null)
 			return;
 
@@ -238,7 +255,9 @@ class EgoNetworkMutator{
 		final String targetTag = targetRecord.getTag();
 		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
 		final List<String> toRemove = new ArrayList<>();
-		for(final FLEFRecord relationship : relationships){
+		for(int i = 0, size = relationships.size(); i < size; i++){
+			final FLEFRecord relationship = relationships.get(i);
+
 			final String type = FLEFRecordHelper.getChildValue(relationship, TAG_TYPE);
 			if(type == null)
 				continue;
@@ -261,8 +280,13 @@ class EgoNetworkMutator{
 		if(relationshipIds == null || relationshipIds.isEmpty())
 			return;
 
-		for(final String relationshipId : relationshipIds)
+		for(int i = 0, size = relationshipIds.size(); i < size; i ++){
+			final String relationshipId = relationshipIds.get(i);
+
 			model.removeRecord(relationshipId);
+			networkService.getRepository()
+				.notifyRelationshipRemoved(relationshipId);
+		}
 	}
 
 	private void notifyTreeChanged(final String egoId){

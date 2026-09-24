@@ -93,7 +93,7 @@ public interface RecordTypeHandler<T extends BaseRecordDialog>{
 	 *
 	 * @param record	the record
 	 * @param model	the FLEF model
-	 * @return the display name (e.g., "John Doe (I1)", "Smith Family (F1)")
+	 * @return the display name (e.g., "John Doe (I1)", "Smith Family (G1)")
 	 */
 	String getDisplayText(FLEFRecord record, FLEFModel model);
 

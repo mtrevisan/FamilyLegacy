@@ -571,7 +571,7 @@ public final class AgoraPanel extends JPanel{
 
 		final String content;
 		try(final InputStream is = AgoraPanel.class.getResourceAsStream("/tests/TGMZ.flef")){
-			content = new String(Objects.requireNonNull(is).readAllBytes(), StandardCharsets.UTF_8);
+			content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
 		}
 		final FLEFModel model = new FLEFParser().parse(content);
 

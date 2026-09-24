@@ -78,10 +78,11 @@ public class SiblingsPanel extends JPanel{
 	private static final Dimension DESCENDANTS_SIZE = new Dimension((int)((float)DESCENDANTS_HEIGHT / DESCENDANTS_ASPECT_RATIO), DESCENDANTS_HEIGHT);
 
 	private static ImageIcon ICON_DESCENDANTS;
+	private static Dimension ICON_DESCENDANTS_DIMENSION;
 
 	private static final int SIBLING_SEPARATION = 14;
-	public static final int DESCENDANTS_ARROW_HEIGHT = DESCENDANTS_HEIGHT
-		+ PartnersPanel.NAVIGATION_DESCENDANTS_ARROW_SEPARATION;
+
+	public static final int ARROW_HEIGHT = (int)(DESCENDANTS_SIZE.getHeight() + PartnersPanel.NAVIGATION_ARROW_SEPARATION);
 
 
 	private final FLEFRecord father;
@@ -127,8 +128,8 @@ public class SiblingsPanel extends JPanel{
 		setOpaque(false);
 
 		setLayout(new MigLayout(treeLayout == TreeLayout.VERTICAL
-			? "flowx,ins " + DESCENDANTS_ARROW_HEIGHT + " 0 0 0,alignx center,nogrid"
-			: "flowy,ins 0 0 0 " + DESCENDANTS_ARROW_HEIGHT + ",aligny center,nogrid",
+			? "flowx,ins " + ARROW_HEIGHT + " 0 0 0,alignx center,nogrid"
+			: "flowy,ins 0 0 0 " + ARROW_HEIGHT + ",aligny center,nogrid",
 			"[pref!]", "[]"));
 	}
 
@@ -191,7 +192,7 @@ public class SiblingsPanel extends JPanel{
 							.getComponent(0);
 
 						final Point point = enterPoints[i];
-						Point p = new Point(comp.getWidth(), (comp.getHeight() + DESCENDANTS_ARROW_HEIGHT - 1) / 2);
+						Point p = new Point(comp.getWidth(), (comp.getHeight() + ARROW_HEIGHT - 1) / 2);
 						p = SwingUtilities.convertPoint(comp, p, this);
 						g2.drawLine(point.x, point.y,
 							p.x, point.y);
@@ -290,18 +291,15 @@ public class SiblingsPanel extends JPanel{
 	}
 
 	private JPanel createSiblingContainer(final boolean hasDescendants){
-		final JPanel container;
-		if(treeLayout == TreeLayout.VERTICAL)
-			container = new JPanel(new MigLayout("flowy,ins 0", "[]", "[top]" + PartnersPanel.NAVIGATION_DESCENDANTS_ARROW_SEPARATION + "[]"));
-		else
-			container = new JPanel(new MigLayout("flowy,ins 0", "[right]" + PartnersPanel.NAVIGATION_DESCENDANTS_ARROW_SEPARATION + "[]", "[]"));
+		final JPanel container = new JPanel(new MigLayout("flowy,ins 0",
+				"[grow,right]", "[]" + PartnersPanel.NAVIGATION_ARROW_SEPARATION + "[]"));
 		container.setOpaque(false);
 
 		final JLabel descendantsLabel = new JLabel();
-		descendantsLabel.setPreferredSize(new Dimension(ICON_DESCENDANTS.getIconWidth(), ICON_DESCENDANTS.getIconHeight()));
+		descendantsLabel.setPreferredSize(DESCENDANTS_SIZE);
 		if(hasDescendants)
 			descendantsLabel.setIcon(ICON_DESCENDANTS);
-		container.add(descendantsLabel, (treeLayout == TreeLayout.VERTICAL? "right": "bottom"));
+		container.add(descendantsLabel);
 		return container;
 	}
 
@@ -315,7 +313,7 @@ public class SiblingsPanel extends JPanel{
 		if(treeLayout == TreeLayout.VERTICAL)
 			for(int i = 0; i < count; i ++){
 				final Component comp = getComponent(i);
-				final Point p = new Point(comp.getWidth() / 2, DESCENDANTS_ARROW_HEIGHT - 1);
+				final Point p = new Point(comp.getWidth() / 2, ARROW_HEIGHT - 1);
 				enterPoints[i] = SwingUtilities.convertPoint(comp, p, this);
 			}
 		else
@@ -324,7 +322,7 @@ public class SiblingsPanel extends JPanel{
 				// extract individual panel
 				final Component comp = container.getComponent(container.getComponentCount() - 1);
 
-				final Point p = new Point(comp.getWidth() + DESCENDANTS_ARROW_HEIGHT, (comp.getHeight() - 1) / 2);
+				final Point p = new Point(comp.getWidth() + ARROW_HEIGHT - 1, (comp.getHeight() - 1) / 2);
 				enterPoints[i] = SwingUtilities.convertPoint(comp, p, this);
 			}
 		return enterPoints;
@@ -341,7 +339,7 @@ public class SiblingsPanel extends JPanel{
 
 		final String content;
 		try(final InputStream is = SiblingsPanel.class.getResourceAsStream(modelUri)){
-			content = new String(Objects.requireNonNull(is).readAllBytes(), StandardCharsets.UTF_8);
+			content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
 		}
 
 		final FLEFParser parser = new FLEFParser();

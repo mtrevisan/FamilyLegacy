@@ -36,8 +36,6 @@ import java.util.Set;
  */
 public final class SiblingsData{
 
-	// whether only the root should be visile
-	private final boolean onlyRoot;
 	private final List<IndividualData> siblings;
 	private final Set<String> siblingIdsWithDescendants;
 
@@ -58,7 +56,6 @@ public final class SiblingsData{
 	 * @param siblingIdsWithDescendants     set of individual IDs that have descendants
 	 */
 	private SiblingsData(final List<IndividualData> siblings, final Set<String> siblingIdsWithDescendants){
-		onlyRoot = (siblingIdsWithDescendants == null);
 		this.siblings = (siblings != null
 			? siblings
 			: Collections.emptyList());
@@ -67,10 +64,6 @@ public final class SiblingsData{
 			: Collections.emptySet());
 	}
 
-
-	public boolean isOnlyRoot(){
-		return onlyRoot;
-	}
 
 	public List<IndividualData> getSiblings(){
 		return siblings;

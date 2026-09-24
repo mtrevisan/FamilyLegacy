@@ -48,7 +48,7 @@ class RecordDialogTest{
 	@BeforeEach
 	void setUp() throws IOException{
 		try(final InputStream is = ConclusionRecordDialog.class.getResourceAsStream("/tests/test.flef")){
-			content = new String(Objects.requireNonNull(is).readAllBytes(), StandardCharsets.UTF_8);
+			content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
 
 			parser = new FLEFParser();
 			originalModel = parser.parse(content);

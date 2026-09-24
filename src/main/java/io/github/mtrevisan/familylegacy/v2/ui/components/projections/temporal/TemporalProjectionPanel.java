@@ -27,7 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.projections.temporal;
 import io.github.mtrevisan.familylegacy.v2.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.TreeChangeListener;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.TreeChangeListener;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
@@ -573,7 +573,7 @@ public final class TemporalProjectionPanel extends JPanel implements TreeChangeL
 
 		final String content;
 		try(final InputStream is = TemporalProjectionPanel.class.getResourceAsStream(modelUri)){
-			content = new String(Objects.requireNonNull(is).readAllBytes(), StandardCharsets.UTF_8);
+			content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
 		}
 
 		final FLEFModel model = new FLEFParser().parse(content);

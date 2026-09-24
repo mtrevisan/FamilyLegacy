@@ -56,10 +56,11 @@ public record Bookmark(
 	public Bookmark{
 		if(id == null || id.isBlank())
 			throw new IllegalArgumentException("Bookmark id must not be blank");
-		if(name == null)
-			name = StringUtils.EMPTY;
 		if(type == null)
 			throw new IllegalArgumentException("Bookmark type must not be null");
+
+		if(name == null)
+			name = StringUtils.EMPTY;
 		if(rootId == null)
 			rootId = StringUtils.EMPTY;
 		properties = (properties != null? Map.copyOf(properties): Map.of());
@@ -81,6 +82,7 @@ public record Bookmark(
 		final String value = properties.get(key);
 		if(value == null)
 			return fallback;
+
 		try{
 			return Integer.parseInt(value);
 		}

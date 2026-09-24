@@ -61,4 +61,11 @@ public final class GroupToolRegistry{
 		);
 	}
 
+	/** Navigation tools. */
+	public static List<ToolOperation> navigationTools(){
+		return List.of(
+			new SetAsRootTool()
+		);
+	}
+
 }

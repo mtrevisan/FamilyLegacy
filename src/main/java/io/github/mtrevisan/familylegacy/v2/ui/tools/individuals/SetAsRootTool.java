@@ -40,7 +40,7 @@ public final class SetAsRootTool implements ToolOperation{
 
 	@Override
 	public void run(final ToolContext context){
-		final String id = context.selectedIndividualId();
+		final String id = context.selectedEntityId();
 		if(id == null){
 			JOptionPane.showMessageDialog(context.owner(),
 				"No individual is selected.",
@@ -52,7 +52,7 @@ public final class SetAsRootTool implements ToolOperation{
 
 	@Override
 	public boolean isEnabled(final ToolContext context){
-		return (context != null && context.hasSelectedIndividual() && context.hasAtLeastIndividuals(2));
+		return (context != null && context.hasSelectedEntity() && context.hasAtLeastIndividuals(2));
 	}
 
 }

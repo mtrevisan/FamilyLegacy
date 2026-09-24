@@ -32,9 +32,9 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualListener;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.IndividualTreeGraphListener;
-import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.TreeNode;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.layout.TreeLayout;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.partners.PartnersPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.TreeNode;
 
 
 /**
@@ -63,14 +63,16 @@ final class PartnersPanelFactory{
 	}
 
 
-	PartnersPanel create(final TreeNode fatherTn, final TreeNode motherTn){
+	PartnersPanel create(final TreeNode fatherTn, final TreeNode motherTn, final int layerIndex){
 		final BoxPanelType boxType = (isRootGeneration(fatherTn) || isRootGeneration(motherTn)
 			? BoxPanelType.PRIMARY
 			: BoxPanelType.SECONDARY);
 
+		final boolean isTopLayer = (layerIndex == 0);
 		final IndividualData fatherData = (fatherTn != null? fatherTn.getIndividualData(): null);
 		final IndividualData motherData = (motherTn != null? motherTn.getIndividualData(): null);
 		final PartnersPanel panel = PartnersPanel.create(boxType, treeLayout, model)
+			.withShowAncestors(isTopLayer)
 			.withBiologicalParents(fatherData, motherData)
 			.withListener(treeListener, popupFactory)
 			.withSuppressCollapseBadge(true);

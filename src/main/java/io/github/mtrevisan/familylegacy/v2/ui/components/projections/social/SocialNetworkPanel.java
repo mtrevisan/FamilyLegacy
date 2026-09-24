@@ -27,7 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.projections.social;
 import io.github.mtrevisan.familylegacy.v2.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.TreeChangeListener;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.TreeChangeListener;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.temporal.CalendarConverter;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.temporal.DatePrecision;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.temporal.NormalizedDate;
@@ -616,7 +616,7 @@ public final class SocialNetworkPanel extends JPanel implements TreeChangeListen
 		final String modelUri = "/tests/TGMZ.flef";
 		final String content;
 		try(final InputStream is = SocialNetworkPanel.class.getResourceAsStream(modelUri)){
-			content = new String(Objects.requireNonNull(is).readAllBytes(), StandardCharsets.UTF_8);
+			content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
 		}
 
 		final FLEFModel model = new FLEFParser().parse(content);

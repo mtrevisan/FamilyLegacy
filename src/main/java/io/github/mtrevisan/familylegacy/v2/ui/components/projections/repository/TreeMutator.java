@@ -22,7 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree;
+package io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository;
 
 import io.github.mtrevisan.familylegacy.v2.gedcom.utils.AuditBuilder;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
@@ -44,8 +44,8 @@ import java.util.function.Predicate;
 
 
 /**
- * Handles structural modifications to the biological tree, updating the underlying FLEFModel,
- * invalidating service indices, and notifying tree listeners.
+ * Handles structural modifications to the biological tree with targeted delta updates
+ * on the shared GenealogyRepository.
  */
 public class TreeMutator{
 
@@ -59,26 +59,19 @@ public class TreeMutator{
 
 
 	private final Predicate<String> relationshipTypeFilter;
-
 	private final FLEFModel model;
-
 	private final TreeService treeService;
 	private final TreeChangeListener listener;
 
 
-	public TreeMutator(final Predicate<String> relationshipTypeFilter, final FLEFModel model,
-			final TreeService treeService, final TreeChangeListener listener){
-		this.relationshipTypeFilter = relationshipTypeFilter;
-
+	public TreeMutator(final TreeService treeService, final TreeChangeListener listener, final FLEFModel model){
+		this.relationshipTypeFilter = treeService.getRelationshipTypeFilter();
 		this.model = Objects.requireNonNull(model, "Model cannot be null");
 		this.treeService = Objects.requireNonNull(treeService, "Tree service cannot be null");
 		this.listener = listener;
 	}
 
 
-	/**
-	 * Navigates to a new root individual node.
-	 */
 	public void navigateToRoot(final String newRootIndividualId){
 		if(StringUtils.isEmpty(newRootIndividualId))
 			return;
@@ -89,39 +82,18 @@ public class TreeMutator{
 		notifyTreeChanged(newRootIndividualId);
 	}
 
-
-	/**
-	 * Adds a child to parent individuals by creating parent-child relationship records.
-	 *
-	 * @param fatherId    the ID of the male parent; may be {@code null}
-	 * @param motherId    the ID of the female parent; may be {@code null}
-	 * @param newChild    the child record to connect (must not be {@code null})
-	 * @param fatherRelationshipType the FLEF type to use for the father link;
-	 *                               may be {@code null} if {@code fatherId} is {@code null}
-	 * @param motherRelationshipType the FLEF type to use for the mother link;
-	 *                               may be {@code null} if {@code motherId} is {@code null}
-	 */
 	public void addChildToParents(final String fatherId, final String motherId, final FLEFRecord newChild,
 			final String fatherRelationshipType, final String motherRelationshipType){
 		if(newChild == null)
 			return;
 
-		// Create relationship record for father if present
 		if(fatherId != null && fatherRelationshipType != null)
 			createRelationship(newChild.getId(), fatherId, fatherRelationshipType);
 
-		// Create relationship record for mother if present
 		if(motherId != null && motherRelationshipType != null)
 			createRelationship(newChild.getId(), motherId, motherRelationshipType);
 	}
 
-	/**
-	 * Helper method to create a relationship record of the given type.
-	 *
-	 * @param subjectId the individual id that is the subject of the relationship
-	 * @param targetId  the individual id that is the target of the relationship
-	 * @param type      the type of relationship
-	 */
 	private void createRelationship(final String subjectId, final String targetId, final String type){
 		final FLEFRecord relationship = FLEFRecord.createMainRecord(RelationshipHandler.TYPE,
 				RelationshipHandler.ID_PREFIX, model)
@@ -135,31 +107,22 @@ public class TreeMutator{
 			.addChild(AuditBuilder.build());
 
 		model.addRecord(relationship);
+
+		// Targeted Delta-Update in Repository
+		treeService.getRepository().notifyRelationshipAdded(subjectId, targetId, relationship.getId());
 	}
 
-	/**
-	 * Adds or connects a parent to a target list of children. If a parent
-	 * of the same sex already exists for any of the children, the existing
-	 * relationship is replaced.
-	 *
-	 * @param childrenId       the IDs of the children (must not be empty and
-	 *                         must have the same size as {@code relationshipTypes})
-	 * @param newParent        the parent record to add (must not be {@code null})
-	 * @param relationshipTypes the FLEF type to use for each child link
-	 */
 	public void addParentToChild(final List<String> childrenId, final FLEFRecord newParent,
 			final List<String> relationshipTypes){
 		if(newParent == null || childrenId == null || childrenId.isEmpty())
 			return;
+
 		if(relationshipTypes == null || relationshipTypes.size() != childrenId.size())
 			throw new IllegalArgumentException("relationshipTypes must match childrenId size");
 
-		// Get parent sex from the record
 		final String parentSex = FLEFRecordHelper.getChildValue(newParent, TAG_SEX);
 		if(parentSex != null){
 			final List<FLEFRecord> toRemove = new ArrayList<>();
-
-			// Find and remove existing parent of the same sex
 			final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
 			for(final FLEFRecord relationship : relationships){
 				final String type = FLEFRecordHelper.getChildValue(relationship, TAG_TYPE);
@@ -182,11 +145,13 @@ public class TreeMutator{
 				if(parentSex.equals(existingParentSex))
 					toRemove.add(relationship);
 			}
-			for(final FLEFRecord relationship : toRemove)
+
+			for(final FLEFRecord relationship : toRemove){
 				model.removeRecord(relationship.getId());
+				treeService.getRepository().notifyRelationshipRemoved(relationship.getId());
+			}
 		}
 
-		// Create new child relationships
 		for(int i = 0, size = childrenId.size(); i < size; i ++){
 			final String childId = childrenId.get(i);
 			final String relationshipType = relationshipTypes.get(i);
@@ -194,39 +159,24 @@ public class TreeMutator{
 		}
 	}
 
-
-	/**
-	 * Removes an individual record and all associated relationship records from the model.
-	 *
-	 * @param individual    the record to remove
-	 * @param currentRootId the current active root ID
-	 */
 	public String removeIndividual(final FLEFRecord individual, final String currentRootId){
 		if(individual == null)
 			return currentRootId;
 
 		final String targetId = individual.getId();
-
-		// Determine fallback root if removing current root
 		String newRootId = currentRootId;
 		if(targetId.equals(currentRootId)){
 			newRootId = findFallbackRoot(targetId);
-
 			if(newRootId == null){
 				final Map<IndividualData, SiblingsData> childrenData = treeService.buildChildrenData(targetId);
 				if(!childrenData.isEmpty()){
-					final SiblingsData siblings = childrenData.values()
-						.iterator()
-						.next();
+					final SiblingsData siblings = childrenData.values().iterator().next();
 					if(!siblings.getSiblings().isEmpty())
-						newRootId = siblings.getSiblings()
-							.getFirst()
-							.getId();
+						newRootId = siblings.getSiblings().getFirst().getId();
 				}
 			}
 		}
 
-		// Remove all relationships associated with this individual
 		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
 		final List<FLEFRecord> relationshipsToRemove = new ArrayList<>();
 		for(final FLEFRecord relationship : relationships){
@@ -235,39 +185,29 @@ public class TreeMutator{
 			if(targetId.equals(subjectId) || targetId.equals(relTargetId))
 				relationshipsToRemove.add(relationship);
 		}
-		for(final FLEFRecord relationship : relationshipsToRemove)
+		for(final FLEFRecord relationship : relationshipsToRemove){
 			model.removeRecord(relationship.getId());
+			treeService.getRepository().notifyRelationshipRemoved(relationship.getId());
+		}
 
-		// Remove individual record itself
 		model.removeRecord(individual.getId());
+		treeService.getRepository().invalidateIndividual(individual.getId());
 
-		// Invalidate service cache & notify UI
 		invalidateAndNotifyTreeChanged(newRootId);
-
 		return newRootId;
 	}
 
-	/**
-	 * Returns a replacement root for the given individual, following the
-	 * priority partner → parent → child. Returns {@code null} when the
-	 * individual has no relative of any of those kinds.
-	 */
 	private String findFallbackRoot(final String individualId){
 		final String parent = findParent(individualId);
-		if(parent != null)
-			return parent;
-
-		return findChild(individualId);
+		return (parent != null? parent: findChild(individualId));
 	}
 
-	/** First parent of the given individual, or {@code null}. */
 	private String findParent(final String individualId){
 		for(final FLEFRecord relationship : model.getRecordsByType(RelationshipHandler.TYPE)){
 			final String type = FLEFRecordHelper.getChildValue(relationship, TAG_TYPE);
 			if(type == null || !relationshipTypeFilter.test(type))
 				continue;
 
-			// Parent-child link: subject = child, target = parent.
 			final String subjectId = relationship.extractReferencedId(TAG_SUBJECT, IndividualHandler.TYPE);
 			if(!individualId.equals(subjectId))
 				continue;
@@ -279,14 +219,12 @@ public class TreeMutator{
 		return null;
 	}
 
-	/** First child of the given individual, or {@code null}. */
 	private String findChild(final String individualId){
 		for(final FLEFRecord relationship : model.getRecordsByType(RelationshipHandler.TYPE)){
 			final String type = FLEFRecordHelper.getChildValue(relationship, TAG_TYPE);
 			if(type == null || !relationshipTypeFilter.test(type))
 				continue;
 
-			// Parent-child link: subject = child, target = parent.
 			final String targetId = relationship.extractReferencedId(TAG_TARGET, IndividualHandler.TYPE);
 			if(!individualId.equals(targetId))
 				continue;
@@ -298,32 +236,23 @@ public class TreeMutator{
 		return null;
 	}
 
-	/**
-	 * Removes a list of relationship records by their IDs and refreshes the tree.
-	 *
-	 * @param relationshipIds list of relationship record IDs to remove
-	 */
 	public void removeRelationships(final List<String> relationshipIds){
 		if(relationshipIds == null || relationshipIds.isEmpty())
 			return;
 
-		for(final String relationshipId : relationshipIds)
+		for(final String relationshipId : relationshipIds){
 			model.removeRecord(relationshipId);
+			treeService.getRepository().notifyRelationshipRemoved(relationshipId);
+		}
 	}
 
-
 	private void notifyTreeChanged(final String rootIndividualId){
-		LOGGER.debug("Notify root changes to {}", rootIndividualId);
-
 		if(listener != null)
 			listener.onTreeStructureChanged(rootIndividualId);
 	}
 
 	public void invalidateAndNotifyTreeChanged(final String rootIndividualId){
-		LOGGER.debug("Invalidate & Notify root changes to {}", rootIndividualId);
-
 		treeService.invalidateIndices();
-
 		if(listener != null)
 			listener.onTreeStructureChanged(rootIndividualId);
 	}

@@ -25,7 +25,7 @@
 package io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.layout.sugiyama;
 
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualData;
-import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.TreeNode;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.TreeNode;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.SexType;
 import org.apache.commons.lang3.StringUtils;
 

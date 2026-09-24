@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.TreeOperation;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.help.ShortcutRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.PopupMenuAdapter;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.RelationClipboard;
@@ -61,7 +62,7 @@ public class EgoNetworkIndividualPopupMenuFactory implements EntityPopupMenuFact
 	@Override
 	public JPopupMenu createPopupMenu(final IndividualPanel panel, final IndividualListener listener,
 			final FLEFModel model){
-		final JMenuItem editItem = new JMenuItem("Edit Individual…", 'E');
+		final JMenuItem editItem = new JMenuItem(ShortcutRegistry.EDIT_SELECTION.action(), 'E');
 		final JMenuItem addChildItem = (isEgo? new JMenuItem("Add Child…", 'A'): null);
 		final JMenuItem connectChildItem = (isEgo? new JMenuItem("Connect Child…", 'C'): null);
 		final JMenuItem deleteItem = new JMenuItem("Delete Individual", 'D');

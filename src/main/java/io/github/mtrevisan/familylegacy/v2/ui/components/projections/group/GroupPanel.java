@@ -439,7 +439,7 @@ public class GroupPanel extends JPanel{
 
 		final String content;
 		try(final InputStream is = GroupPanel.class.getResourceAsStream(modelUri)){
-			content = new String(Objects.requireNonNull(is).readAllBytes(), StandardCharsets.UTF_8);
+			content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
 		}
 
 		final FLEFParser parser = new FLEFParser();

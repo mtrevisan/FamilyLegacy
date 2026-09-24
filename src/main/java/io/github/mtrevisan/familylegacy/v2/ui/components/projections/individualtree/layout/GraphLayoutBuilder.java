@@ -29,13 +29,13 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualListener;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.IndividualTreeGraphListener;
-import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.TreeNode;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.layout.sugiyama.CoordinateAssigner;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.layout.sugiyama.CrossingReducer;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.layout.sugiyama.DummyNodes;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.layout.sugiyama.Graph;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.layout.sugiyama.Layerer;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.partners.PartnersPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.TreeNode;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.siblings.SiblingsPanel;
 
 import javax.swing.JPanel;

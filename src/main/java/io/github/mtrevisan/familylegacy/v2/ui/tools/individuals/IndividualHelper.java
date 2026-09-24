@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.v2.gedcom.utils.AuditBuilder;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventParticipationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
 import org.apache.commons.lang3.StringUtils;
@@ -89,8 +90,7 @@ public final class IndividualHelper{
 		REL_COHABITING, REL_ENGAGED);
 
 
-	private IndividualHelper(){
-	}
+	private IndividualHelper(){}
 
 
 	public static List<FLEFRecord> listAllIndividuals(final FLEFModel model){
@@ -112,22 +112,26 @@ public final class IndividualHelper{
 	public static String displayName(final FLEFRecord individual){
 		if(individual == null)
 			return StringUtils.EMPTY;
+
 		for(final FLEFRecord nameBlock : individual.getChildren()){
 			if(!TAG_NAME.equalsIgnoreCase(nameBlock.getTag()))
 				continue;
+
 			final StringBuilder fullName = new StringBuilder();
 			for(final FLEFRecord part : nameBlock.getChildren()){
 				if(!"part".equalsIgnoreCase(part.getTag()))
 					continue;
+
 				final String value = FLEFRecordHelper.getChildValue(part, TAG_VALUE);
 				if(value != null && !value.isBlank()){
-					if(fullName.length() > 0)
+					if(!fullName.isEmpty())
 						fullName.append(' ');
 					fullName.append(value);
 				}
 			}
-			if(fullName.length() > 0)
+			if(!fullName.isEmpty())
 				return fullName.toString();
+
 			// Fallback: the name block might carry a direct value.
 			final String direct = FLEFRecordHelper.getChildValue(nameBlock, TAG_VALUE);
 			if(direct != null && !direct.isBlank())
@@ -183,11 +187,11 @@ public final class IndividualHelper{
 	 * Returns the ids of every relationship in which the given
 	 * individual appears as subject or target.
 	 */
-	public static List<String> relationshipIdsForIndividual(final FLEFModel model,
-		final String individualId){
+	public static List<String> relationshipIdsForIndividual(final FLEFModel model, final String individualId){
 		final List<String> result = new ArrayList<>();
 		if(individualId == null)
 			return result;
+
 		for(final FLEFRecord rel : model.getRecordsByType(RelationshipHandler.TYPE)){
 			final String subject = rel.extractReferencedId(TAG_SUBJECT, TYPE_INDIVIDUAL);
 			final String target = rel.extractReferencedId(TAG_TARGET, TYPE_INDIVIDUAL);
@@ -208,12 +212,14 @@ public final class IndividualHelper{
 		final List<String> mothers = new ArrayList<>();
 		for(final FLEFRecord rel : model.getRecordsByType(RelationshipHandler.TYPE)){
 			final String type = FLEFRecordHelper.getChildValue(rel, TAG_TYPE);
-			if(type == null || !REL_BIOLOGICAL_CHILD.equalsIgnoreCase(type))
+			if(!REL_BIOLOGICAL_CHILD.equalsIgnoreCase(type))
 				continue;
+
 			final String child = rel.extractReferencedId(TAG_SUBJECT, TYPE_INDIVIDUAL);
 			final String parent = rel.extractReferencedId(TAG_TARGET, TYPE_INDIVIDUAL);
 			if(!individualId.equals(child) || parent == null)
 				continue;
+
 			final FLEFRecord parentRecord = model.getRecordById(parent);
 			if(isMale(parentRecord))
 				fathers.add(parent);
@@ -236,8 +242,9 @@ public final class IndividualHelper{
 	public static String firstSpouseId(final FLEFModel model, final String individualId){
 		for(final FLEFRecord rel : model.getRecordsByType(RelationshipHandler.TYPE)){
 			final String type = FLEFRecordHelper.getChildValue(rel, TAG_TYPE);
-			if(type == null || !isSpouseType(type))
+			if(!isSpouseType(type))
 				continue;
+
 			final String subject = rel.extractReferencedId(TAG_SUBJECT, TYPE_INDIVIDUAL);
 			final String target = rel.extractReferencedId(TAG_TARGET, TYPE_INDIVIDUAL);
 			if(individualId.equals(subject) && target != null)
@@ -323,6 +330,7 @@ public final class IndividualHelper{
 	public static void deleteIndividualCascade(final FLEFModel model, final String individualId){
 		if(individualId == null)
 			return;
+
 		final List<String> relIds = relationshipIdsForIndividual(model, individualId);
 		for(final String relId : relIds)
 			model.removeRecord(relId);
@@ -335,8 +343,8 @@ public final class IndividualHelper{
 	 * ====================================================================== */
 
 	/** Row used by the merge dialog to preview the two records. */
-	public record MergePreview(String id, String name, String sex,
-										int parentCount, int childCount, int spouseCount, int eventCount){}
+	public record MergePreview(String id, String name, String sex, int parentCount, int childCount, int spouseCount,
+		int eventCount){}
 
 	/**
 	 * Builds a compact preview of an individual, used by the merge
@@ -355,6 +363,7 @@ public final class IndividualHelper{
 			final String type = FLEFRecordHelper.getChildValue(rel, TAG_TYPE);
 			if(type == null)
 				continue;
+
 			final String subject = rel.extractReferencedId(TAG_SUBJECT, TYPE_INDIVIDUAL);
 			final String target = rel.extractReferencedId(TAG_TARGET, TYPE_INDIVIDUAL);
 			if(REL_BIOLOGICAL_CHILD.equalsIgnoreCase(type)){
@@ -370,18 +379,19 @@ public final class IndividualHelper{
 		}
 
 		int eventCount = 0;
-		for(final FLEFRecord participation : model.getRecordsByType("event_participation")){
-			final FLEFRecord participantBlock = FLEFRecordHelper.findChild(participation,
-				"participant");
+		for(final FLEFRecord participation : model.getRecordsByType(EventParticipationHandler.TYPE)){
+			final FLEFRecord participantBlock = FLEFRecordHelper.findChild(participation, "participant");
 			if(participantBlock == null)
 				continue;
+
 			final FLEFRecord oneof = participantBlock.getTheOnlyChild();
 			if(oneof == null || !TYPE_INDIVIDUAL.equalsIgnoreCase(oneof.getTag()))
 				continue;
+
 			final FLEFRecord ref = oneof.getTheOnlyChild();
 			final String id = (ref != null? ref.getValue(): oneof.getValue());
 			if(individualId.equals(id))
-				eventCount++;
+				eventCount ++;
 		}
 
 		return new MergePreview(individualId, displayName(individual), sex(individual),

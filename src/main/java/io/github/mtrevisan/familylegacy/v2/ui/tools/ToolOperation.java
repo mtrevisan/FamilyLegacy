@@ -25,6 +25,9 @@
 package io.github.mtrevisan.familylegacy.v2.ui.tools;
 
 
+import javax.swing.KeyStroke;
+
+
 /**
  * A single operation exposed by the {@code Tools} menu.
  * <p>
@@ -39,6 +42,10 @@ public interface ToolOperation{
 
 	/** Menu label, including the trailing ellipsis when a dialog follows. */
 	String getName();
+
+	default KeyStroke getAccelerator(){
+		return null;
+	}
 
 	/** Runs the operation. */
 	void run(ToolContext context);

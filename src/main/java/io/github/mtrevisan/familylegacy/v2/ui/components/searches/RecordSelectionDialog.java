@@ -597,7 +597,7 @@ public class RecordSelectionDialog extends JDialog{
 
 		final String content;
 		try(final InputStream is = RecordSelectionDialog.class.getResourceAsStream(modelUri)){
-			content = new String(Objects.requireNonNull(is).readAllBytes(), StandardCharsets.UTF_8);
+			content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
 		}
 
 		final FLEFParser parser = new FLEFParser();

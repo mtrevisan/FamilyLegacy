@@ -25,9 +25,11 @@
 package io.github.mtrevisan.familylegacy.v2.ui.components.projections;
 
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.bookmarks.BookmarkMenu;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.GenealogyRepository;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.help.DiagnosticsDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.help.HelpViewerDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.help.KeyboardShortcutsDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.help.ShortcutRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolOperation;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.events.EventToolRegistry;
@@ -53,7 +55,6 @@ import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
 import java.awt.Desktop;
 import java.awt.Toolkit;
-import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
@@ -106,13 +107,12 @@ final class ApplicationMenuBar{
 	 *                          Build
 	 * ====================================================================== */
 
-	JMenuBar build(){
+	JMenuBar build(final GenealogyRepository repository){
 		final JMenuBar bar = new JMenuBar();
 		bar.add(createFileMenu());
-		//TODO remove comment
-//		bar.add(createEditMenu());
+		bar.add(createEditMenu());
 		bar.add(createViewMenu());
-		bar.add(createIndividualMenu());
+		bar.add(createIndividualMenu(repository));
 		bar.add(createGroupMenu());
 		bar.add(createPlaceMenu());
 		bar.add(createSourceMenu());
@@ -137,13 +137,13 @@ final class ApplicationMenuBar{
 
 		final FileMenuController fileController = frame.fileController();
 
-		final JMenuItem newFile = new JMenuItem("New File…", KeyEvent.VK_N);
-		newFile.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, menuShortcutMask()));
+		final JMenuItem newFile = new JMenuItem(ShortcutRegistry.FILE_NEW.action(), ShortcutRegistry.FILE_NEW.keyStrokeCode());
+		newFile.setAccelerator(ShortcutRegistry.FILE_NEW.keyStroke());
 		newFile.addActionListener(e -> fileController.newFile());
 		menu.add(newFile);
 
-		final JMenuItem openFile = new JMenuItem("Open File…", KeyEvent.VK_O);
-		openFile.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, menuShortcutMask()));
+		final JMenuItem openFile = new JMenuItem(ShortcutRegistry.FILE_OPEN.action(), ShortcutRegistry.FILE_OPEN.keyStrokeCode());
+		openFile.setAccelerator(ShortcutRegistry.FILE_OPEN.keyStroke());
 		openFile.addActionListener(e -> fileController.openFile());
 		menu.add(openFile);
 
@@ -151,14 +151,13 @@ final class ApplicationMenuBar{
 
 		menu.add(new JSeparator());
 
-		final JMenuItem save = new JMenuItem("Save", KeyEvent.VK_S);
-		save.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, menuShortcutMask()));
+		final JMenuItem save = new JMenuItem(ShortcutRegistry.FILE_SAVE.action(), ShortcutRegistry.FILE_SAVE.keyStrokeCode());
+		save.setAccelerator(ShortcutRegistry.FILE_SAVE.keyStroke());
 		save.addActionListener(e -> fileController.save());
 		menu.add(save);
 
-		final JMenuItem saveAs = new JMenuItem("Save As…", KeyEvent.VK_A);
-		saveAs.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S,
-			menuShortcutMask() | InputEvent.SHIFT_DOWN_MASK));
+		final JMenuItem saveAs = new JMenuItem(ShortcutRegistry.FILE_SAVE_AS.action(), ShortcutRegistry.FILE_SAVE_AS.keyStrokeCode());
+		saveAs.setAccelerator(ShortcutRegistry.FILE_SAVE_AS.keyStroke());
 		saveAs.addActionListener(e -> fileController.saveAs());
 		menu.add(saveAs);
 
@@ -184,8 +183,8 @@ final class ApplicationMenuBar{
 
 		menu.add(new JSeparator());
 
-		final JMenuItem exit = new JMenuItem("Exit", KeyEvent.VK_X);
-		exit.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Q, menuShortcutMask()));
+		final JMenuItem exit = new JMenuItem(ShortcutRegistry.FILE_EXIT.action(), ShortcutRegistry.FILE_EXIT.keyStrokeCode());
+		exit.setAccelerator(ShortcutRegistry.FILE_EXIT.keyStroke());
 		exit.addActionListener(e -> fileController.exit());
 		menu.add(exit);
 
@@ -245,22 +244,14 @@ final class ApplicationMenuBar{
 		final JMenu menu = new JMenu("Edit");
 		menu.setMnemonic(KeyEvent.VK_E);
 
-		menu.add(accelerated("Undo", KeyEvent.VK_Z));
-		menu.add(accelerated("Redo", KeyEvent.VK_Y));
+		menu.add(accelerated(ShortcutRegistry.EDIT_UNDO.action(), ShortcutRegistry.EDIT_UNDO.keyStrokeCode()));
+		menu.add(accelerated(ShortcutRegistry.EDIT_REDO.action(), ShortcutRegistry.EDIT_REDO.keyStrokeCode()));
 		menu.add(new JSeparator());
-		menu.add(accelerated("Cut", KeyEvent.VK_X));
-		menu.add(accelerated("Copy", KeyEvent.VK_C));
-		menu.add(accelerated("Paste", KeyEvent.VK_V));
-		menu.add(accelerated("Delete", KeyEvent.VK_DELETE));
-		menu.add(new JSeparator());
-		menu.add(accelerated("Select All", KeyEvent.VK_A));
-		menu.add(new JSeparator());
-		menu.add(accelerated("Find…", KeyEvent.VK_F));
-		menu.add(placeholder("Find Next", 0));
-		menu.add(placeholder("Find Previous", 0));
-		menu.add(placeholder("Replace…", 0));
-		menu.add(new JSeparator());
-		menu.add(placeholder("Preferences…", 0));
+		menu.add(accelerated(ShortcutRegistry.EDIT_RELOCATE.action(), ShortcutRegistry.EDIT_RELOCATE.keyStrokeCode()));
+		menu.add(accelerated(ShortcutRegistry.EDIT_PASTE.action(), ShortcutRegistry.EDIT_PASTE.keyStrokeCode()));
+		menu.add(accelerated(ShortcutRegistry.EDIT_DELETE.action(), ShortcutRegistry.EDIT_DELETE.keyStrokeCode()));
+//		menu.add(new JSeparator());
+//		menu.add(placeholder("Preferences…", 0));
 
 		return menu;
 	}
@@ -277,12 +268,9 @@ final class ApplicationMenuBar{
 		final JMenu projections = new JMenu("Projection");
 		projections.setMnemonic(KeyEvent.VK_P);
 
-		final JRadioButtonMenuItem treeItem = projectionItem(
-			"Ancestor Tree", ProjectionType.TREE, KeyEvent.VK_1);
-		final JRadioButtonMenuItem graphItem = projectionItem(
-			"Sugiyama Graph", ProjectionType.GRAPH, KeyEvent.VK_2);
-		final JRadioButtonMenuItem egoItem = projectionItem(
-			"Ego Network", ProjectionType.EGO_NETWORK, KeyEvent.VK_3);
+		final JRadioButtonMenuItem treeItem = projectionItem(ShortcutRegistry.VIEW_ANCESTOR_TREE.action(), ProjectionType.TREE, ShortcutRegistry.VIEW_ANCESTOR_TREE.keyStrokeCode());
+		final JRadioButtonMenuItem graphItem = projectionItem(ShortcutRegistry.VIEW_SUGIYAMA_GRAPH.action(), ProjectionType.GRAPH, ShortcutRegistry.VIEW_SUGIYAMA_GRAPH.keyStrokeCode());
+		final JRadioButtonMenuItem egoItem = projectionItem(ShortcutRegistry.VIEW_EGO_NETWORK.action(), ProjectionType.EGO_NETWORK, ShortcutRegistry.VIEW_EGO_NETWORK.keyStrokeCode());
 
 		final ButtonGroup projectionGroup = new ButtonGroup();
 		projectionGroup.add(treeItem);
@@ -314,9 +302,9 @@ final class ApplicationMenuBar{
 
 		menu.add(new JSeparator());
 
-		final JCheckBoxMenuItem fullScreen = new JCheckBoxMenuItem("Full Screen");
+		final JCheckBoxMenuItem fullScreen = new JCheckBoxMenuItem(ShortcutRegistry.VIEW_FULLSCREEN.action());
 		fullScreen.setMnemonic(KeyEvent.VK_F);
-		fullScreen.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F11, 0));
+		fullScreen.setAccelerator(KeyStroke.getKeyStroke(ShortcutRegistry.VIEW_FULLSCREEN.keyStrokeCode(), 0));
 		fullScreen.setSelected(frame.isFullScreen());
 		fullScreen.addActionListener(e -> frame.toggleFullScreen());
 		menu.add(fullScreen);
@@ -359,7 +347,7 @@ final class ApplicationMenuBar{
 	 *                          Individual
 	 * ====================================================================== */
 
-	private JMenu createIndividualMenu(){
+	private JMenu createIndividualMenu(final GenealogyRepository repository){
 		final JMenu menu = new JMenu("Individual");
 		menu.setMnemonic(KeyEvent.VK_I);
 
@@ -371,7 +359,7 @@ final class ApplicationMenuBar{
 		menu.add(new JSeparator());
 		addToolsToMenu(menu, IndividualToolRegistry.advancedTools(), bindings);
 		menu.add(new JSeparator());
-		addToolsToMenu(menu, IndividualToolRegistry.navigationTools(), bindings);
+		addToolsToMenu(menu, IndividualToolRegistry.navigationTools(repository), bindings);
 
 		bindDynamicEnablement(menu, bindings);
 
@@ -394,6 +382,8 @@ final class ApplicationMenuBar{
 		addToolsToMenu(menu, GroupToolRegistry.membershipTools(), bindings);
 		menu.add(new JSeparator());
 		addToolsToMenu(menu, GroupToolRegistry.advancedTools(), bindings);
+		menu.add(new JSeparator());
+		addToolsToMenu(menu, GroupToolRegistry.navigationTools(), bindings);
 
 		bindDynamicEnablement(menu, bindings);
 
@@ -547,16 +537,16 @@ final class ApplicationMenuBar{
 		final JMenu menu = new JMenu("Navigate");
 		menu.setMnemonic(KeyEvent.VK_N);
 
-		final JMenuItem back = new JMenuItem("Back", KeyEvent.VK_B);
-		back.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, menuShortcutMask()));
+		final JMenuItem back = new JMenuItem(ShortcutRegistry.NAV_BACK.action(), KeyEvent.VK_B);
+		back.setAccelerator(ShortcutRegistry.NAV_BACK.keyStroke());
 		back.addActionListener(e -> {
 			if(frame.switcher().canGoBack())
 				frame.switcher().navigateBack();
 		});
 		menu.add(back);
 
-		final JMenuItem forward = new JMenuItem("Forward", KeyEvent.VK_F);
-		forward.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, menuShortcutMask()));
+		final JMenuItem forward = new JMenuItem(ShortcutRegistry.NAV_FORWARD.action(), KeyEvent.VK_F);
+		forward.setAccelerator(ShortcutRegistry.NAV_FORWARD.keyStroke());
 		forward.addActionListener(e -> {
 			if(frame.switcher().canGoForward())
 				frame.switcher().navigateForward();
@@ -565,8 +555,8 @@ final class ApplicationMenuBar{
 
 		menu.add(new JSeparator());
 
-		final JMenuItem jumpTo = new JMenuItem("Jump to Individual…", KeyEvent.VK_J);
-		jumpTo.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_J, menuShortcutMask()));
+		final JMenuItem jumpTo = new JMenuItem(ShortcutRegistry.NAV_JUMP_TO_INDIVIDUAL.action(), KeyEvent.VK_J);
+		jumpTo.setAccelerator(ShortcutRegistry.NAV_JUMP_TO_INDIVIDUAL.keyStroke());
 		jumpTo.addActionListener(e -> openJumpToDialog());
 		menu.add(jumpTo);
 
@@ -598,8 +588,8 @@ final class ApplicationMenuBar{
 				final boolean ego = frame.switcher().getCurrentProjectionType()
 					== ProjectionType.EGO_NETWORK;
 				jumpTo.setText(ego
-					? "Jump to Individual or Group…"
-					: "Jump to Individual…");
+					? ShortcutRegistry.NAV_JUMP_TO_INDIVIDUAL_OR_GROUP.action()
+					: ShortcutRegistry.NAV_JUMP_TO_INDIVIDUAL.action());
 			}
 
 			@Override public void menuDeselected(final MenuEvent e){}
@@ -654,10 +644,9 @@ final class ApplicationMenuBar{
 		final JMenu menu = new JMenu("Help");
 		menu.setMnemonic(KeyEvent.VK_H);
 
-		final JMenuItem helpContents = new JMenuItem("Help Contents", KeyEvent.VK_H);
-		helpContents.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0));
-		helpContents.addActionListener(e -> HelpViewerDialog.show(frame,
-			"Help Contents", HelpContent.HELP_CONTENTS_HTML));
+		final JMenuItem helpContents = new JMenuItem(ShortcutRegistry.HELP_CONTENTS.action(), KeyEvent.VK_H);
+		helpContents.setAccelerator(ShortcutRegistry.HELP_CONTENTS.keyStroke());
+		helpContents.addActionListener(e -> HelpViewerDialog.show(frame, "Help Contents", HelpContent.HELP_CONTENTS_HTML));
 		menu.add(helpContents);
 
 		final JMenuItem shortcuts = new JMenuItem("Keyboard Shortcuts…", KeyEvent.VK_K);
@@ -771,6 +760,8 @@ final class ApplicationMenuBar{
 	private void addToolsToMenu(final JMenu menu, final List<ToolOperation> tools, final List<ToolItemBinding> bindings){
 		for(final ToolOperation tool : tools){
 			final JMenuItem item = toolItem(tool, 0);
+			if(tool.getAccelerator() != null)
+				item.setAccelerator(tool.getAccelerator());
 			menu.add(item);
 
 			bindings.add(new ToolItemBinding(item, tool));
@@ -834,7 +825,8 @@ final class ApplicationMenuBar{
 
 	private JMenuItem accelerated(final String text, final int keyCode, final int modifiers){
 		final JMenuItem item = new JMenuItem(text);
-		item.setAccelerator(KeyStroke.getKeyStroke(keyCode, menuShortcutMask() | modifiers));
+		final int mask = (modifiers == 0? menuShortcutMask(): modifiers);
+		item.setAccelerator(KeyStroke.getKeyStroke(keyCode, mask));
 		item.addActionListener(e -> showNotImplemented(text.replace("…", StringUtils.EMPTY).trim()));
 		return item;
 	}

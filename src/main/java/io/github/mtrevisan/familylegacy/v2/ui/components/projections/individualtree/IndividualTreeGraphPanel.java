@@ -44,10 +44,14 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualt
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.services.lifespan.MultiLifespanStripPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.services.relationship.RelationshipOperationCoordinator;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.partners.PartnersPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.GenealogyRepository;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.TreeChangeListener;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.TreeMutator;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.TreeNode;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.TreeService;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.siblings.SiblingsPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.SexType;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.ViewportPanSupport;
-import org.apache.commons.lang3.ArrayUtils;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -69,11 +73,9 @@ import java.io.InputStream;
 import java.io.Serial;
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
-import java.util.function.Predicate;
 
 
 /**
@@ -105,12 +107,6 @@ public class IndividualTreeGraphPanel extends JPanel implements TreeChangeListen
 
 	private static final Color BACKGROUND_COLOR = new Color(242, 238, 228);
 	private static final Color CONNECTION_LINE_COLOR = Color.BLACK;
-
-	private static final String ENUM_TYPE_BIOLOGICAL_CHILD = "biological_child";
-	private static final String ENUM_TYPE_ADOPTIVE_CHILD = "adoptive_child";
-	private static final String ENUM_TYPE_STEP_CHILD = "step_child";
-	private static final String ENUM_TYPE_FOSTER_CHILD = "foster_child";
-	private static final String ENUM_TYPE_GUARDED_CHILD = "guarded_child";
 
 
 	private final FLEFModel model;
@@ -147,20 +143,17 @@ public class IndividualTreeGraphPanel extends JPanel implements TreeChangeListen
 	private boolean suppressNavigationNotification;
 
 
-	public IndividualTreeGraphPanel(final TreeType treeType, final TreeLayout treeLayout,
-			final LayoutEngine layoutEngine, final FLEFModel model){
+	public IndividualTreeGraphPanel(final TreeLayout treeLayout, final LayoutEngine layoutEngine,
+			final GenealogyRepository sharedRepository, final FLEFModel model){
 		this.treeLayout = treeLayout;
 		this.layoutEngine = layoutEngine;
 		this.model = model;
 
-		final String[] allowedTypes = computeAllowedRelationshipTypes(treeType);
-		final Predicate<String> typeFilter = type ->
-			ArrayUtils.contains(allowedTypes, type.toLowerCase(Locale.ROOT));
-		treeService = new TreeService(typeFilter, model);
-		final TreeMutator treeMutator = new TreeMutator(typeFilter, model, treeService, this);
+		treeService = new TreeService(sharedRepository, model);
+		final TreeMutator treeMutator = new TreeMutator(treeService, this, model);
 		final IndividualDialogProvider dialogProvider = new IndividualDialogProvider(model);
 		final RelationshipOperationCoordinator operationCoordinator = new RelationshipOperationCoordinator(model,
-			treeMutator, allowedTypes);
+			treeMutator, sharedRepository.getRelationshipAllowedTypes());
 
 		selection = new TreeSelectionController(
 			this::notifySelection,
@@ -254,6 +247,9 @@ public class IndividualTreeGraphPanel extends JPanel implements TreeChangeListen
 	}
 
 	public void load(final String rootIndividualId, final int maxAncestors){
+		if(Objects.equals(currentRootIndividualId, rootIndividualId))
+			return;
+
 		currentRootIndividualId = rootIndividualId;
 		currentMaxAncestors = maxAncestors;
 
@@ -333,16 +329,6 @@ public class IndividualTreeGraphPanel extends JPanel implements TreeChangeListen
 		final String chosen = JumpToIndividualDialog.showAndGet(owner, model, ProjectionType.TREE);
 		if(chosen != null)
 			load(chosen, currentMaxAncestors);
-	}
-
-	public static String[] computeAllowedRelationshipTypes(final TreeType treeType){
-		return switch(treeType){
-			case BIOLOGICAL -> new String[]{ENUM_TYPE_BIOLOGICAL_CHILD};
-			case FAMILY -> new String[]{
-				ENUM_TYPE_BIOLOGICAL_CHILD, ENUM_TYPE_ADOPTIVE_CHILD,
-				ENUM_TYPE_FOSTER_CHILD, ENUM_TYPE_GUARDED_CHILD,
-				ENUM_TYPE_STEP_CHILD};
-		};
 	}
 
 
@@ -444,13 +430,50 @@ public class IndividualTreeGraphPanel extends JPanel implements TreeChangeListen
 
 	private void toggleLayout(){
 		treeLayout = (treeLayout == TreeLayout.VERTICAL? TreeLayout.HORIZONTAL: TreeLayout.VERTICAL);
-		refreshTree();
 
-		final Window window = SwingUtilities.getWindowAncestor(this);
-		if(window != null){
-			window.pack();
-			window.setLocationRelativeTo(null);
+		refreshLayoutOnly();
+
+		//NOTE if resize of the window is requested:
+//		final Window window = SwingUtilities.getWindowAncestor(this);
+//		if(window != null){
+//			window.pack();
+//			window.setLocationRelativeTo(null);
+//		}
+	}
+
+	private void refreshLayoutOnly(){
+		if(rootNode == null){
+			refreshTree();
+
+			return;
 		}
+
+		centeringWrapper.setVisible(false);
+		try{
+			nodeToPanelMap.clear();
+			treeCanvas.removeAll();
+
+			buildLayout();
+
+			centeringWrapper.doLayout();
+			treeScroll.revalidate();
+			collapses.apply(nodeToPanelMap);
+
+			selection.updateTree(nodeToPanelMap, childrenPanel);
+			selection.apply();
+			lifespanStrip.update(treeCanvas);
+		}
+		finally{
+			centeringWrapper.setVisible(true);
+		}
+
+		treeCanvas.revalidate();
+		treeCanvas.repaint();
+
+		SwingUtilities.invokeLater(() -> {
+			cachedTreePath = layoutEngine.buildTreePath(treeLayout, rootNode, nodeToPanelMap, childrenPanel, treeCanvas);
+			treeCanvas.repaint();
+		});
 	}
 
 	private void openKinshipDialog(){
@@ -517,7 +540,7 @@ public class IndividualTreeGraphPanel extends JPanel implements TreeChangeListen
 
 		final String content;
 		try(final InputStream is = IndividualTreeGraphPanel.class.getResourceAsStream(modelUri)){
-			content = new String(Objects.requireNonNull(is).readAllBytes(), StandardCharsets.UTF_8);
+			content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
 		}
 
 		final FLEFParser parser = new FLEFParser();
@@ -526,8 +549,10 @@ public class IndividualTreeGraphPanel extends JPanel implements TreeChangeListen
 		SwingUtilities.invokeLater(() -> {
 //			final LayoutEngine layoutEngine = new TreeLayoutEngine();
 			final LayoutEngine layoutEngine = new GraphLayoutEngine();
-			final IndividualTreeGraphPanel panel = new IndividualTreeGraphPanel(TreeType.BIOLOGICAL, TreeLayout.VERTICAL,
-					layoutEngine, model)
+			final String[] relationshipAllowedTypes = new String[]{"biological_child"};
+			final GenealogyRepository repository = new GenealogyRepository(relationshipAllowedTypes, model);
+			final IndividualTreeGraphPanel panel = new IndividualTreeGraphPanel(TreeLayout.VERTICAL,
+					layoutEngine, repository, model)
 				.withShowPartner();
 			panel.load(rootIndividualId, maxAncestors);
 

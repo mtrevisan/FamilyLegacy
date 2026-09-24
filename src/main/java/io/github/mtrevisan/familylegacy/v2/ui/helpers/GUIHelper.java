@@ -74,7 +74,6 @@ import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
-import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -107,18 +106,8 @@ public final class GUIHelper{
 	public static final KeyStroke CTRL_UP_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_UP, MENU_MASK);
 	public static final KeyStroke CTRL_DOWN_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, MENU_MASK);
 
-	public static final KeyStroke UNDO_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_Z, MENU_MASK);
-	public static final KeyStroke MAC_UNDO_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_Z, MENU_MASK | InputEvent.SHIFT_DOWN_MASK);
-	public static final KeyStroke REDO_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_Y, MENU_MASK);
-
-	public static final KeyStroke CTRL_L_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_L, MENU_MASK);
-	public static final KeyStroke CTRL_F_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_F, MENU_MASK);
 	public static final KeyStroke CTRL_K_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_K, MENU_MASK);
-	public static final KeyStroke CTRL_E_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_E, MENU_MASK);
 	public static final KeyStroke CTRL_P_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_P, MENU_MASK);
-	public static final KeyStroke CTRL_T_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_T, MENU_MASK);
-	public static final KeyStroke CTRL_LEFT_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, MENU_MASK);
-	public static final KeyStroke CTRL_RIGHT_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, MENU_MASK);
 
 	private static final String ELLIPSIS = "…";
 
@@ -590,7 +579,7 @@ public final class GUIHelper{
 			throws IOException{
 		final String content;
 		try(final InputStream is = GUIHelper.class.getResourceAsStream(modelUri)){
-			content = new String(Objects.requireNonNull(is).readAllBytes(), StandardCharsets.UTF_8);
+			content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
 		}
 
 		final FLEFParser parser = new FLEFParser();

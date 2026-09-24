@@ -27,7 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.EntityField;
-import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.TreeService;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.TreeService;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
@@ -92,8 +92,7 @@ public class KinshipDialog extends JDialog{
 	 *
 	 * @param owner    the parent window; may be {@code null}
 	 * @param model    the FLEF model (must not be {@code null})
-	 * @param service  the tree service used to walk the ancestor graph
-	 *                 (must not be {@code null})
+	 * @param service  the tree service used to walk the ancestor graph (must not be {@code null})
 	 * @param initialA the first individual, or {@code null}
 	 * @param initialB the second individual, or {@code null}
 	 */
