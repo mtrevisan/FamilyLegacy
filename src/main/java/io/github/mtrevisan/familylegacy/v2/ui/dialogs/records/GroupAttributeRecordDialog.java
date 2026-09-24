@@ -49,7 +49,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import java.awt.Window;
 import java.io.IOException;
-import java.io.Serial;
 
 
 /**
@@ -94,10 +93,6 @@ import java.io.Serial;
  * Tab 10 (Audit): audit
  */
 public class GroupAttributeRecordDialog extends BaseRecordDialog{
-
-	@Serial
-	private static final long serialVersionUID = -5939902730413020982L;
-
 
 	private static final String TAG_GROUP = "GROUP";
 	private static final String TAG_TYPE = "TYPE";

@@ -236,7 +236,8 @@ public final class DocumentManagementDialog extends JDialog{
 			previewLabel.setText("Select a document to preview");
 			return;
 		}
-		final FLEFRecord doc = context.model().getRecordById(docId);
+		final FLEFModel model = context.model();
+		final FLEFRecord doc = model.getRecordById(docId);
 		if(doc == null){
 			previewLabel.setIcon(null);
 			previewLabel.setText("Document not found");
@@ -298,15 +299,18 @@ public final class DocumentManagementDialog extends JDialog{
 	private void openEditor(final String documentId){
 		final DocumentHandler handler = DocumentHandler.getInstance();
 		final BaseRecordDialog dialog;
+		final FLEFModel model = context.model();
 		if(documentId == null)
-			dialog = handler.createNewDialog(this, context.model());
+			dialog = handler.createNewDialog(this, model);
 		else{
-			final FLEFRecord record = context.model().getRecordById(documentId);
+			final FLEFRecord record = model.getRecordById(documentId);
 			if(record == null)
 				return;
-			dialog = handler.createEditDialog(this, context.model(), record);
+
+			dialog = handler.createEditDialog(this, model, record);
 		}
 		dialog.setVisible(true);
+
 		if(dialog.isSaved())
 			reload();
 	}
@@ -315,6 +319,7 @@ public final class DocumentManagementDialog extends JDialog{
 		final String documentId = selectedDocumentId();
 		if(documentId == null)
 			return;
+
 		final int confirm = JOptionPane.showConfirmDialog(this,
 			"Delete document " + documentId + "?",
 			"Confirm Deletion",
@@ -322,7 +327,10 @@ public final class DocumentManagementDialog extends JDialog{
 			JOptionPane.WARNING_MESSAGE);
 		if(confirm != JOptionPane.YES_OPTION)
 			return;
-		context.model().removeRecord(documentId);
+
+		final FLEFModel model = context.model();
+		model.removeRecord(documentId);
+
 		reload();
 	}
 

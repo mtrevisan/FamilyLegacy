@@ -40,7 +40,6 @@ import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import java.awt.FlowLayout;
 import java.awt.Window;
-import java.io.Serial;
 
 
 /**
@@ -79,10 +78,6 @@ import java.io.Serial;
  * </pre>
  */
 public class TextValueVariantStructureDialog extends BaseRecordDialog{
-
-	@Serial
-	private static final long serialVersionUID = -4887775439277994973L;
-
 
 	private static final String DOT = ".";
 

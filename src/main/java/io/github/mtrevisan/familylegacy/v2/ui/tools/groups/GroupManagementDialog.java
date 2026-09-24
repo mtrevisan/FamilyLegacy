@@ -200,13 +200,14 @@ public final class GroupManagementDialog extends JDialog{
 	private void openEditor(final String groupId){
 		final GroupHandler handler = GroupHandler.getInstance();
 		final BaseRecordDialog dialog;
+		final FLEFModel model = context.model();
 		if(groupId == null)
-			dialog = handler.createNewDialog(this, context.model());
+			dialog = handler.createNewDialog(this, model);
 		else{
-			final FLEFRecord record = context.model().getRecordById(groupId);
+			final FLEFRecord record = model.getRecordById(groupId);
 			if(record == null)
 				return;
-			dialog = handler.createEditDialog(this, context.model(), record);
+			dialog = handler.createEditDialog(this, model, record);
 		}
 		dialog.setVisible(true);
 		if(dialog.isSaved())
@@ -218,7 +219,8 @@ public final class GroupManagementDialog extends JDialog{
 		if(groupId == null)
 			return;
 
-		final int memberCount = GroupHelper.membershipRelationshipIds(context.model(), groupId).size();
+		final FLEFModel model = context.model();
+		final int memberCount = GroupHelper.membershipRelationshipIds(model, groupId).size();
 		final String message = "Delete group " + groupId + "?\n"
 			+ "This will also delete " + memberCount + " membership relationship(s) "
 			+ "and any sub-group or parent-group link that involves this group.";
@@ -229,10 +231,10 @@ public final class GroupManagementDialog extends JDialog{
 
 		// Remove the relationships that involve the group, so nothing
 		// dangles, then remove the group itself.
-		final List<String> relIds = GroupHelper.allRelationshipIdsForGroup(context.model(), groupId);
-		for(final String relId : relIds)
-			context.model().removeRecord(relId);
-		context.model().removeRecord(groupId);
+		final List<String> relationshipIds = GroupHelper.allRelationshipIdsForGroup(model, groupId);
+		for(final String relationshipId : relationshipIds)
+			model.removeRecord(relationshipId);
+		model.removeRecord(groupId);
 
 		reload();
 	}

@@ -35,7 +35,6 @@ import javax.swing.JPanel;
 import javax.swing.ToolTipManager;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.Serial;
 
 
 /**
@@ -53,10 +52,6 @@ import java.io.Serial;
 * </pre>
  */
 public class EvidenceQualifiersPanel extends JPanel{
-
-	@Serial
-	private static final long serialVersionUID = 2385077249573544559L;
-
 
 	private static final String DOT = ".";
 

@@ -32,13 +32,18 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.projections.group.Group
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualListener;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.services.relationship.UnlinkRelationshipsDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.EgoNetworkMutator;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.helpers.RelationClipboard;
+import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
+import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolDispatcher;
+import io.github.mtrevisan.familylegacy.v2.ui.tools.individuals.DeleteIndividualTool;
+import io.github.mtrevisan.familylegacy.v2.ui.tools.individuals.PasteIndividualTool;
+import io.github.mtrevisan.familylegacy.v2.ui.tools.individuals.RelocateIndividualTool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import java.awt.Component;
 import java.util.List;
 import java.util.Set;
@@ -86,7 +91,7 @@ public final class EgoNetworkListener implements IndividualListener, GroupListen
 		Consumer<String> onGroupSelected
 	){}
 
-	private final Component parentComponent;
+	private final Component component;
 	private final FLEFModel model;
 	private final EgoNetworkService networkService;
 	private final EgoNetworkMutator networkMutator;
@@ -95,11 +100,11 @@ public final class EgoNetworkListener implements IndividualListener, GroupListen
 	private final SelectionCallbacks selectionCallbacks;
 
 
-	public EgoNetworkListener(final Component parentComponent, final FLEFModel model,
+	public EgoNetworkListener(final Component component, final FLEFModel model,
 			final EgoNetworkService networkService, final EgoNetworkMutator networkMutator,
 			final EgoNetworkActionHandler actionHandler, final ContextProvider contextProvider,
 			final SelectionCallbacks selectionCallbacks){
-		this.parentComponent = parentComponent;
+		this.component = component;
 		this.model = model;
 		this.networkService = networkService;
 		this.networkMutator = networkMutator;
@@ -107,6 +112,7 @@ public final class EgoNetworkListener implements IndividualListener, GroupListen
 		this.contextProvider = contextProvider;
 		this.selectionCallbacks = selectionCallbacks;
 	}
+
 
 	@Override
 	public void onEntityEdit(final FLEFRecord record){
@@ -136,9 +142,9 @@ public final class EgoNetworkListener implements IndividualListener, GroupListen
 	}
 
 	@Override
-	public void onRootEntitySelected(final FLEFRecord record){
-		if(record != null && record.getId() != null)
-			networkMutator.navigateToEgo(record.getId());
+	public void onRootEntitySelected(final String recordId){
+		if(recordId != null)
+			networkMutator.navigateToEgo(recordId);
 	}
 
 	@Override
@@ -146,16 +152,19 @@ public final class EgoNetworkListener implements IndividualListener, GroupListen
 		if(record == null)
 			return;
 
-		final String name = GroupHandler.TYPE.equalsIgnoreCase(record.getTag())
-			? GroupHandler.getInstance().getDisplayText(record, model)
-			: IndividualHandler.getInstance().getDisplayText(record, model);
+		final ToolContext context = new ToolContext(model, record::getId, () -> component,
+			new ToolDispatcher(){
+				@Override
+				public void removeEntity(final String id){
+					networkMutator.removeEntity(record, id);
+				}
 
-		final int confirm = JOptionPane.showConfirmDialog(
-			parentComponent, "Are you sure you want to remove " + name + "?", "Confirm Removal",
-			JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE
-		);
-		if(confirm == JOptionPane.YES_OPTION)
-			networkMutator.removeEntity(record, contextProvider.getCurrentEgoId());
+				@Override
+				public void loadRoot(final String id){
+					onRootEntitySelected(id);
+				}
+			});
+		new DeleteIndividualTool().run(context);
 	}
 
 	@Override
@@ -164,7 +173,8 @@ public final class EgoNetworkListener implements IndividualListener, GroupListen
 			(operation == TreeOperation.ADD
 				? () -> actionHandler.showCreateRecordDialog(IndividualHandler.class)
 				: () -> actionHandler.showSearchRecordDialog(IndividualHandler.class)),
-			false, INDIVIDUAL_TO_INDIVIDUAL_SOCIAL_TYPES, contextProvider.getCurrentEgoId(), contextProvider.getRootEgoNode());
+			false, INDIVIDUAL_TO_INDIVIDUAL_SOCIAL_TYPES, contextProvider.getCurrentEgoId(),
+			contextProvider.getRootEgoNode(), this);
 	}
 
 	@Override
@@ -173,7 +183,8 @@ public final class EgoNetworkListener implements IndividualListener, GroupListen
 			(operation == TreeOperation.ADD
 				? () -> actionHandler.showCreateRecordDialog(IndividualHandler.class)
 				: () -> actionHandler.showSearchRecordDialog(IndividualHandler.class)),
-			false, INDIVIDUAL_TO_INDIVIDUAL_CHILD_TYPES, contextProvider.getCurrentEgoId(), contextProvider.getRootEgoNode());
+			false, INDIVIDUAL_TO_INDIVIDUAL_CHILD_TYPES, contextProvider.getCurrentEgoId(),
+			contextProvider.getRootEgoNode(), this);
 	}
 
 	@Override
@@ -188,7 +199,7 @@ public final class EgoNetworkListener implements IndividualListener, GroupListen
 			(operation == TreeOperation.ADD
 				? () -> actionHandler.showCreateRecordDialog(GroupHandler.class)
 				: () -> actionHandler.showSearchRecordDialog(GroupHandler.class)),
-			false, allowedTypes, contextProvider.getCurrentEgoId(), rootEgoNode);
+			false, allowedTypes, contextProvider.getCurrentEgoId(), rootEgoNode, this);
 	}
 
 	@Override
@@ -205,8 +216,9 @@ public final class EgoNetworkListener implements IndividualListener, GroupListen
 		if(record == null)
 			return;
 
-		final UnlinkRelationshipsDialog dialog = actionHandler.showUnlinkRelationshipsDialog(record, contextProvider.getCurrentEgoId(),
-			networkService, contextProvider.getParents(), contextProvider.getAssociates(), contextProvider.getGroups(), contextProvider.getChildren());
+		final UnlinkRelationshipsDialog dialog = actionHandler.showUnlinkRelationshipsDialog(record,
+			contextProvider.getCurrentEgoId(), networkService, contextProvider.getParents(),
+			contextProvider.getAssociates(), contextProvider.getGroups(), contextProvider.getChildren());
 		final List<String> toRemove = dialog.getSelectedRelationshipIds();
 		if(!toRemove.isEmpty()){
 			networkMutator.removeRelationships(toRemove);
@@ -219,32 +231,49 @@ public final class EgoNetworkListener implements IndividualListener, GroupListen
 		if(record == null)
 			return;
 
-		LOGGER.debug("Relocate entity {} to clipboard", record.getId());
-
-		RelationClipboard.getInstance().setRecord(record);
+		final ToolContext context = new ToolContext(model, record::getId, () -> component, null);
+		new RelocateIndividualTool().run(context);
 	}
 
 	@Override
 	public void onIndividualPaste(final IndividualPanel selectedPanel){
-		onEntityPaste();
+		onEntityPaste(selectedPanel);
 	}
 
 	@Override
-	public void onGroupPaste(){
-		onEntityPaste();
+	public void onGroupPaste(final GroupPanel selectedPanel){
+		onEntityPaste(selectedPanel);
 	}
 
-	public void onEntityPaste(){
-		final RelationClipboard clipboard = RelationClipboard.getInstance();
+	public void onEntityPaste(final JPanel selectedPanel){
+		if(selectedPanel == null)
+			return;
+
+		final ToolContext context = new ToolContext(model, null, () -> selectedPanel,
+			new ToolDispatcher(){
+				@Override
+				public void paste(){
+					executePaste(selectedPanel);
+				}
+			});
+		new PasteIndividualTool().run(context);
+	}
+
+	private void executePaste(final JPanel selectedPanel){
 		final EgoNode rootEgoNode = contextProvider.getRootEgoNode();
-		if(!clipboard.hasRecord() || rootEgoNode == null)
+		if(rootEgoNode == null)
 			return;
 
 		final FLEFRecord egoRecord = rootEgoNode.getEgoRecord();
 		if(egoRecord == null)
 			return;
 
-		final FLEFRecord source = clipboard.getRecord();
+		final ToolContext context = new ToolContext(model, null, () -> selectedPanel, null);
+
+		final FLEFRecord source = context.clippedRecord();
+		if(source == null)
+			return;
+
 		final boolean egoIsGroup = GroupHandler.TYPE.equalsIgnoreCase(egoRecord.getTag());
 		final boolean sourceIsGroup = GroupHandler.TYPE.equalsIgnoreCase(source.getTag());
 
@@ -256,8 +285,9 @@ public final class EgoNetworkListener implements IndividualListener, GroupListen
 		else
 			allowedTypes = INDIVIDUAL_TO_GROUP_TYPES;
 
-		actionHandler.performRelationOperationOnRecord(source, true, allowedTypes, contextProvider.getCurrentEgoId(), rootEgoNode);
-		clipboard.clear();
+		actionHandler.performRelationOperationOnRecord(source, true, allowedTypes,
+			contextProvider.getCurrentEgoId(), rootEgoNode, this);
+		context.clearClippedRecord();
 	}
 
 }

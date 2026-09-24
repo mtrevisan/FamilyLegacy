@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.tools.groups;
 
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.RecordSelectionDialog;
@@ -151,8 +152,9 @@ public final class MergeGroupsDialog extends JDialog{
 
 	private void chooseSource(){
 		final FLEFRecord[] chosen = new FLEFRecord[1];
+		final FLEFModel model = context.model();
 		final RecordSelectionDialog dialog = RecordSelectionDialog.create(
-			this, context.model(),
+			this, model,
 			(record, handler) -> chosen[0] = record,
 			GroupHandler.class);
 		dialog.setVisible(true);
@@ -164,8 +166,9 @@ public final class MergeGroupsDialog extends JDialog{
 
 	private void chooseTarget(){
 		final FLEFRecord[] chosen = new FLEFRecord[1];
+		final FLEFModel model = context.model();
 		final RecordSelectionDialog dialog = RecordSelectionDialog.create(
-			this, context.model(),
+			this, model,
 			(record, handler) -> chosen[0] = record,
 			GroupHandler.class);
 		dialog.setVisible(true);
@@ -198,8 +201,9 @@ public final class MergeGroupsDialog extends JDialog{
 			return;
 
 		// Step 1 and 2: re-point the relationships.
-		final List<FLEFRecord> relationships =
-			context.model().getRecordsByType(GroupHelper.TYPE_RELATIONSHIP);
+		final FLEFModel model = context.model();
+		final List<FLEFRecord> relationships = model
+			.getRecordsByType(GroupHelper.TYPE_RELATIONSHIP);
 		for(final FLEFRecord rel : relationships){
 			final String type = FLEFRecordHelper.getChildValue(rel, GroupHelper.TAG_TYPE);
 			if(type == null)
@@ -224,11 +228,10 @@ public final class MergeGroupsDialog extends JDialog{
 
 		// Step 3: delete any remaining relationship that involves the
 		// source group, then delete the source group itself.
-		final List<String> leftovers = GroupHelper.allRelationshipIdsForGroup(
-			context.model(), source.getId());
+		final List<String> leftovers = GroupHelper.allRelationshipIdsForGroup(model, source.getId());
 		for(final String relId : leftovers)
-			context.model().removeRecord(relId);
-		context.model().removeRecord(source.getId());
+			model.removeRecord(relId);
+		model.removeRecord(source.getId());
 
 		dispose();
 	}

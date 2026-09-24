@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.BoxPanelType;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.PlaceholderImages;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.SexType;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
@@ -122,11 +123,6 @@ public final class IndividualData{
 
 	private static final String NO_DATA = "?";
 
-	private static final ImageIcon ADD_PHOTO = ResourceHelper.getImageFromResource("/images/preferred_image_placeholder.jpg");
-
-	private static final double PREFERRED_IMAGE_WIDTH = 48.;
-	private static final double IMAGE_ASPECT_RATIO = 4. / 3.;
-
 
 	private final FLEFRecord individual;
 	private final String id;
@@ -135,6 +131,8 @@ public final class IndividualData{
 	private String nameTooltip;
 	private boolean isBiological;
 	private boolean hasParents;
+	private boolean hasFather;
+	private boolean hasMother;
 	private boolean hasPartner;
 	private boolean hasChildren;
 
@@ -161,8 +159,7 @@ public final class IndividualData{
 		this.individual = individual;
 		id = individual.getId();
 
-		final String rawSex = FLEFRecordHelper.getChildValue(individual, TAG_SEX);
-		sex = (rawSex != null? Enum.valueOf(SexType.class, rawSex.toUpperCase(Locale.ROOT)): null);
+		sex = extractSex(individual);
 
 		final List<String> names = extractFullNames(individual);
 		if(!names.isEmpty()){
@@ -186,14 +183,30 @@ public final class IndividualData{
 				if(type.equalsIgnoreCase(ENUM_TYPE_BIOLOGICAL_CHILD)){
 					if(subjectId.equals(id)){
 						isBiological = true;
-						hasParents = true;
+
+						final FLEFRecord target = model.getRecordById(targetId);
+						final SexType targetSex = extractSex(target);
+						if(targetSex == SexType.MALE)
+							hasFather = true;
+						else if(targetSex == SexType.FEMALE)
+							hasMother = true;
+						else
+							hasParents = true;
 					}
 
 					if(targetId.equals(id))
 						hasChildren = true;
 				}
-				else if(subjectId.equals(id) && type.endsWith(ENUM_TYPE_ENDS_WITH_CHILD))
-					hasParents = true;
+				else if(subjectId.equals(id) && type.endsWith(ENUM_TYPE_ENDS_WITH_CHILD)){
+					final FLEFRecord target = model.getRecordById(targetId);
+					final SexType targetSex = extractSex(target);
+					if(targetSex == SexType.MALE)
+						hasFather = true;
+					else if(targetSex == SexType.FEMALE)
+						hasMother = true;
+					else
+						hasParents = true;
+				}
 				else if(type.endsWith(ENUM_TYPE_ENDS_WITH_SPOUSE) || type.endsWith(ENUM_TYPE_ENDS_WITH_PARTNER))
 					// Partner/Spouse relationship (non-child type)
 					hasPartner = true;
@@ -267,6 +280,13 @@ public final class IndividualData{
 		extractPreferredImage(individual);
 	}
 
+	public static SexType extractSex(final FLEFRecord individual){
+		final String targetRawSex = FLEFRecordHelper.getChildValue(individual, TAG_SEX);
+		return (targetRawSex != null
+			? Enum.valueOf(SexType.class, targetRawSex.toUpperCase(Locale.ROOT))
+			: SexType.UNKNOWN);
+	}
+
 
 	public FLEFRecord getIndividual(){
 		return individual;
@@ -292,8 +312,16 @@ public final class IndividualData{
 		return isBiological;
 	}
 
+	public boolean hasFather(){
+		return (hasFather || hasParents);
+	}
+
+	public boolean hasMother(){
+		return (hasMother || hasParents);
+	}
+
 	public boolean hasParents(){
-		return hasParents;
+		return (hasFather || hasMother || hasParents);
 	}
 
 	public boolean hasPartner(){
@@ -442,8 +470,8 @@ public final class IndividualData{
 		if(record == null){
 			preferredImageUri = null;
 			preferredImageCropRect = null;
-			imagePrimary = resize(ADD_PHOTO, BoxPanelType.PRIMARY);
-			imageSecondary = resize(ADD_PHOTO, BoxPanelType.SECONDARY);
+			imagePrimary = PlaceholderImages.placeholder(BoxPanelType.PRIMARY);
+			imageSecondary = PlaceholderImages.placeholder(BoxPanelType.SECONDARY);
 			preferredImageKey = StringUtils.EMPTY;
 
 			return;
@@ -465,9 +493,10 @@ if(preferredImageUri != null)
 		}
 		catch(final Exception ignored){}
 
+		final String rawSex = FLEFRecordHelper.getChildValue(record, TAG_SEX);
 		// Set the default image immediately
-		imagePrimary = resize(ADD_PHOTO, BoxPanelType.PRIMARY);
-		imageSecondary = resize(ADD_PHOTO, BoxPanelType.SECONDARY);
+		imagePrimary = PlaceholderImages.placeholderFor(rawSex, BoxPanelType.PRIMARY);
+		imageSecondary = PlaceholderImages.placeholderFor(rawSex, BoxPanelType.SECONDARY);
 		preferredImageKey = composePreferredImageKey(preferredImageUri, preferredImageCropRect);
 	}
 
@@ -480,8 +509,8 @@ if(preferredImageUri != null)
 			() -> {
 				final ImageIcon croppedImage = ResourceHelper.getCroppedImage(preferredImageUri, preferredImageCropRect);
 				if(croppedImage != null){
-					final ImageIcon imagePrimary = resize(croppedImage, BoxPanelType.PRIMARY);
-					final ImageIcon imageSecondary = resize(croppedImage, BoxPanelType.SECONDARY);
+					final ImageIcon imagePrimary = PlaceholderImages.resize(croppedImage, BoxPanelType.PRIMARY);
+					final ImageIcon imageSecondary = PlaceholderImages.resize(croppedImage, BoxPanelType.SECONDARY);
 					return new ImageIcon[]{imagePrimary, imageSecondary};
 				}
 				else{
@@ -499,13 +528,6 @@ if(preferredImageUri != null)
 				imageConsumer.accept(preferredImageKey, images);
 			}
 		);
-	}
-
-	private ImageIcon resize(final ImageIcon image, final BoxPanelType boxType){
-		final double shrinkFactor = (boxType == BoxPanelType.PRIMARY? 1.: 2.);
-		final int preferredImageWidth = (int)Math.ceil(PREFERRED_IMAGE_WIDTH / shrinkFactor);
-		final int preferredImageHeight = (int)Math.ceil(PREFERRED_IMAGE_WIDTH * IMAGE_ASPECT_RATIO / shrinkFactor);
-		return ResourceHelper.resize(image, preferredImageWidth, preferredImageHeight);
 	}
 
 	private static String composePreferredImageKey(final String preferredImage, final Rectangle preferredImageCropRect){

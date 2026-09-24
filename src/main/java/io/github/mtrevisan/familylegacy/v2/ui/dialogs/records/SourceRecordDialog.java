@@ -46,7 +46,6 @@ import org.apache.commons.lang3.StringUtils;
 import javax.swing.JPanel;
 import java.awt.Window;
 import java.io.IOException;
-import java.io.Serial;
 
 
 /**
@@ -78,10 +77,6 @@ import java.io.Serial;
  * Tab 10 (Audit): audit
  */
 public class SourceRecordDialog extends BaseRecordDialog{
-
-	@Serial
-	private static final long serialVersionUID = 8722200901398839002L;
-
 
 	private static final String TAG_TITLE = "TITLE";
 	private static final String TAG_AUTHOR = "AUTHOR";

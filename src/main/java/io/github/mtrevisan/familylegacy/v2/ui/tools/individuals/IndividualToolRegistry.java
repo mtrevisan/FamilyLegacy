@@ -39,19 +39,30 @@ public final class IndividualToolRegistry{
 	/** CRUD tools. */
 	public static List<ToolOperation> primaryTools(){
 		return List.of(
-			new NewIndividualTool(),
 			new EditIndividualTool(),
-			new DeleteIndividualTool()
+			new AddIndividualTool()
 		);
 	}
 
 	/** Relationship tools. */
 	public static List<ToolOperation> relationshipTools(){
 		return List.of(
-			new AddParentTool(),
-			new AddChildTool(),
-			new AddSiblingTool(),
-			new LinkExistingIndividualTool()
+			new AddChildTool()
+		);
+	}
+
+	/** CRUD tools. */
+	public static List<ToolOperation> secondaryTools(){
+		return List.of(
+			new RelocateIndividualTool(),
+			new DeleteIndividualTool()
+		);
+	}
+
+	/** CRUD tools. */
+	public static List<ToolOperation> tertiaryTools(){
+		return List.of(
+			new UnlinkRelationshipsTool()
 		);
 	}
 

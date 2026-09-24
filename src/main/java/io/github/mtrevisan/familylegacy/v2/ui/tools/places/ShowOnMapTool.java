@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.tools.places;
 
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.RecordSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
@@ -59,8 +60,9 @@ public final class ShowOnMapTool implements ToolOperation{
 	@Override
 	public void run(final ToolContext context){
 		final FLEFRecord[] chosen = new FLEFRecord[1];
+		final FLEFModel model = context.model();
 		final RecordSelectionDialog dialog = RecordSelectionDialog.create(
-			context.owner(), context.model(),
+			context.owner(), model,
 			(record, handler) -> chosen[0] = record,
 			PlaceHandler.class);
 		dialog.setVisible(true);

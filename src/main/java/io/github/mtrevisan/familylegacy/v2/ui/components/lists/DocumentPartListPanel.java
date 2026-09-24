@@ -37,7 +37,6 @@ import javax.swing.JOptionPane;
 import java.awt.Rectangle;
 import java.awt.Window;
 import java.io.IOException;
-import java.io.Serial;
 import java.util.List;
 
 
@@ -45,10 +44,6 @@ import java.util.List;
  * Panel for managing document parts with image cropping functionality.
  */
 public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
-
-	@Serial
-	private static final long serialVersionUID = -1788729052005475640L;
-
 
 	private static final String TAG_URI = "URI";
 	private static final String TAG_CROP = "CROP";

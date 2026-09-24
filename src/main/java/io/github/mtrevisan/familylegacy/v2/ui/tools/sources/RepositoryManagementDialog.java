@@ -194,15 +194,18 @@ public final class RepositoryManagementDialog extends JDialog{
 	private void openEditor(final String repositoryId){
 		final RepositoryHandler handler = RepositoryHandler.getInstance();
 		final BaseRecordDialog dialog;
+		final FLEFModel model = context.model();
 		if(repositoryId == null)
-			dialog = handler.createNewDialog(this, context.model());
+			dialog = handler.createNewDialog(this, model);
 		else{
-			final FLEFRecord record = context.model().getRecordById(repositoryId);
+			final FLEFRecord record = model.getRecordById(repositoryId);
 			if(record == null)
 				return;
-			dialog = handler.createEditDialog(this, context.model(), record);
+
+			dialog = handler.createEditDialog(this, model, record);
 		}
 		dialog.setVisible(true);
+
 		if(dialog.isSaved())
 			reload();
 	}
@@ -211,6 +214,7 @@ public final class RepositoryManagementDialog extends JDialog{
 		final String repositoryId = selectedRepositoryId();
 		if(repositoryId == null)
 			return;
+
 		final int confirm = JOptionPane.showConfirmDialog(this,
 			"Delete repository " + repositoryId + "?",
 			"Confirm Deletion",
@@ -218,7 +222,10 @@ public final class RepositoryManagementDialog extends JDialog{
 			JOptionPane.WARNING_MESSAGE);
 		if(confirm != JOptionPane.YES_OPTION)
 			return;
-		context.model().removeRecord(repositoryId);
+
+		final FLEFModel model = context.model();
+		model.removeRecord(repositoryId);
+
 		reload();
 	}
 

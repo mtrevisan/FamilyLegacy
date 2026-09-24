@@ -36,7 +36,6 @@ import javax.swing.JPanel;
 import java.awt.BorderLayout;
 import java.awt.Dialog;
 import java.awt.Window;
-import java.io.Serial;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
@@ -47,10 +46,6 @@ import java.util.List;
  * Panel for managing a list of a simple {@code NOTE} references according to FLEF 0.1.2.
  */
 public class BasicNoteListPanel extends AbstractListPanel<FLEFRecord>{
-
-	@Serial
-	private static final long serialVersionUID = 4276649156298328979L;
-
 
 	private static final String TAG_DATE = "DATE";
 

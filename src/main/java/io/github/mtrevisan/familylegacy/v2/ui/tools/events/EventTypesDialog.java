@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.tools.events;
 
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ReportDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
@@ -65,8 +66,6 @@ import java.util.Map;
  * and it lets the user see every event of a given type in one click.
  */
 public final class EventTypesDialog extends JDialog{
-
-	private static final String TAG_TYPE = "type";
 
 	private final ToolContext context;
 	private final TypeTableModel tableModel = new TypeTableModel();
@@ -149,7 +148,8 @@ public final class EventTypesDialog extends JDialog{
 
 		// Count the events by type. Custom types appear here for the
 		// first time.
-		for(final FLEFRecord event : EventHelper.listAllEvents(context.model())){
+		final FLEFModel model = context.model();
+		for(final FLEFRecord event : EventHelper.listAllEvents(model)){
 			final String type = EventHelper.eventType(event);
 			if(type == null || type.isBlank())
 				continue;
@@ -198,7 +198,8 @@ public final class EventTypesDialog extends JDialog{
 		int count = 0;
 		body.append("<table>");
 		body.append("<tr><th>Event</th><th>Date</th><th>Place</th><th>Description</th></tr>");
-		for(final FLEFRecord event : EventHelper.listAllEvents(context.model())){
+		final FLEFModel model = context.model();
+		for(final FLEFRecord event : EventHelper.listAllEvents(model)){
 			if(!type.equals(EventHelper.eventType(event)))
 				continue;
 			count++;

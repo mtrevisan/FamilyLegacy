@@ -47,7 +47,6 @@ import org.apache.commons.lang3.StringUtils;
 import javax.swing.JPanel;
 import java.awt.Window;
 import java.io.IOException;
-import java.io.Serial;
 
 
 /*
@@ -128,10 +127,6 @@ protected void onOk(){
  * Tab 10 (Audit): audit
  */
 public class IndividualRecordDialog extends BaseRecordDialog{
-
-	@Serial
-	private static final long serialVersionUID = -4670126000119212974L;
-
 
 	private static final String TAG_PREFERRED_IMAGE = "PREFERRED_IMAGE";
 	private static final String TAG_PERSONAL_NAME = "NAME";

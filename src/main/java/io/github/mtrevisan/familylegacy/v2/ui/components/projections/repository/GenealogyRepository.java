@@ -284,7 +284,10 @@ public class GenealogyRepository{
 		individualToEventMap.clear();
 		individualsWithDescendantsSet.clear();
 		individualToRelationshipIdsMap.clear();
+
+		// Clear the flyweight cache so IndividualData instances are recreated without deleted relations
 		individualDataCache.clear();
+
 		initialized = false;
 	}
 

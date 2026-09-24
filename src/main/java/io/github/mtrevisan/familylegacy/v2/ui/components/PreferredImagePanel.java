@@ -45,7 +45,6 @@ import java.awt.Window;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.io.Serial;
 
 
 /**
@@ -61,10 +60,6 @@ import java.io.Serial;
  * </pre>
  */
 public class PreferredImagePanel extends JPanel{
-
-	@Serial
-	private static final long serialVersionUID = 6086547520717314054L;
-
 
 	private static final String TAG_URI = "URI";
 	private static final String TAG_CROP = "CROP";

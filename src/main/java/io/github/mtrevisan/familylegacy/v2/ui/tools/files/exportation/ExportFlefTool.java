@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.v2.ui.tools.files.exportation;
 
 import io.github.mtrevisan.familylegacy.v2.io.FLEFWriter;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolOperation;
 
@@ -74,7 +75,9 @@ public final class ExportFlefTool implements ToolOperation{
 		}
 
 		try{
-			final String content = FLEFWriter.create().writeToString(context.model());
+			final FLEFModel model = context.model();
+			final String content = FLEFWriter.create()
+				.writeToString(model);
 			Files.writeString(target.toPath(), content, StandardCharsets.UTF_8);
 		}
 		catch(final IOException ex){

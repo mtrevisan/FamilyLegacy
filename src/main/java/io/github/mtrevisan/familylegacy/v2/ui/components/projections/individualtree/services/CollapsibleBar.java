@@ -36,7 +36,6 @@ import java.awt.RenderingHints;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Path2D;
-import java.io.Serial;
 
 
 /**
@@ -57,10 +56,6 @@ import java.io.Serial;
  * systems.
  */
 public final class CollapsibleBar extends JPanel{
-
-	@Serial
-	private static final long serialVersionUID = -7810294758192847103L;
-
 
 	/** Preferred height of the bar, in pixels. */
 	private static final int BAR_HEIGHT = 20;

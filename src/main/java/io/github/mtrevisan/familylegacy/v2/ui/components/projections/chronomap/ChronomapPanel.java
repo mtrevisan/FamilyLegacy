@@ -52,7 +52,6 @@ import java.awt.Image;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.Serial;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.Collection;
@@ -60,7 +59,6 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 
 
@@ -84,10 +82,6 @@ import java.util.Set;
 public class ChronomapPanel extends JPanel{
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ChronomapPanel.class);
-
-
-	@Serial
-	private static final long serialVersionUID = 9038174928374910231L;
 
 
 	/** Initial map center (Italy). */

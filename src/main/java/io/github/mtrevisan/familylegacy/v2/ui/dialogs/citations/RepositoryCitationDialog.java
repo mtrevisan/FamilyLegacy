@@ -40,7 +40,6 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import java.awt.Window;
-import java.io.Serial;
 
 
 /**
@@ -60,10 +59,6 @@ import java.io.Serial;
  * Tab 8 (Notes): note
  */
 public class RepositoryCitationDialog extends BaseRecordDialog{
-
-	@Serial
-	private static final long serialVersionUID = 7964432114921960068L;
-
 
 	private static final String TAG_REPOSITORY = "REPOSITORY";
 	private static final String TAG_LOCATOR = "LOCATOR";

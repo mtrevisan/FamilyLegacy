@@ -31,6 +31,11 @@ import io.github.mtrevisan.familylegacy.v2.ui.dialogs.help.ShortcutRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.PopupMenuAdapter;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.RelationClipboard;
+import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
+import io.github.mtrevisan.familylegacy.v2.ui.tools.individuals.AddChildTool;
+import io.github.mtrevisan.familylegacy.v2.ui.tools.individuals.DeleteIndividualTool;
+import io.github.mtrevisan.familylegacy.v2.ui.tools.individuals.EditIndividualTool;
+import io.github.mtrevisan.familylegacy.v2.ui.tools.individuals.UnlinkRelationshipsTool;
 
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
@@ -66,6 +71,7 @@ public class EgoNetworkIndividualPopupMenuFactory implements EntityPopupMenuFact
 		final JMenuItem addChildItem = (isEgo? new JMenuItem("Add Child…", 'A'): null);
 		final JMenuItem connectChildItem = (isEgo? new JMenuItem("Connect Child…", 'C'): null);
 		final JMenuItem deleteItem = new JMenuItem("Delete Individual", 'D');
+		final JMenuItem pasteItem = new JMenuItem("Paste", 'P');
 		final JMenuItem unlinkItem = new JMenuItem("Unlink Relationship", 'U');
 
 		// Evaluate item states right before display
@@ -77,8 +83,17 @@ public class EgoNetworkIndividualPopupMenuFactory implements EntityPopupMenuFact
 				final boolean hasData = (data != null && !data.isEmpty());
 				final boolean hasIndividuals = model.hasRecordsByType(IndividualHandler.TYPE);
 
+				final ToolContext context = new ToolContext(model, null, () -> panel, null);
+
 				// Update paste item state and title based on clipboard content
-				final boolean canPaste = (!hasData && PopupMenuHelper.isPasteAllowed(panel));
+				final boolean canPaste = (!hasData && PopupMenuHelper.isPasteAllowed(model, panel));
+				pasteItem.setEnabled(canPaste);
+				if(canPaste){
+					final String clippedName = context.getClippedRecordDisplayText();
+					pasteItem.setText("Paste " + clippedName);
+				}
+				else
+					pasteItem.setText("Paste");
 				if(canPaste){
 					final FLEFRecord clippedRecord = RelationClipboard.getInstance().getRecord();
 					final String clippedName = IndividualHandler.getInstance().getDisplayText(clippedRecord, model);
@@ -95,16 +110,27 @@ public class EgoNetworkIndividualPopupMenuFactory implements EntityPopupMenuFact
 		});
 
 		// Add menu items with their bound callbacks
-		PopupMenuHelper.addMenuItem(popup, editItem, panel, record -> listener.onEntityEdit(record));
+		PopupMenuHelper.addMenuItem(popup, editItem, panel, record -> {
+			final ToolContext context = new ToolContext(model, record::getId, () -> panel, null);
+			new EditIndividualTool().run(context);
+		});
 		if(isEgo){
 			popup.addSeparator();
-			PopupMenuHelper.addMenuItem(popup, addChildItem, panel, record -> listener.onChildAddOrConnect(panel, TreeOperation.ADD));
+			PopupMenuHelper.addMenuItem(popup, addChildItem, panel, record -> {
+				final ToolContext context = new ToolContext(model, record::getId, () -> panel, null);
+				new AddChildTool().run(context);
+			});
 			PopupMenuHelper.addMenuItem(popup, connectChildItem, panel, record -> listener.onChildAddOrConnect(panel, TreeOperation.CONNECT));
 		}
 		popup.addSeparator();
-		PopupMenuHelper.addMenuItem(popup, deleteItem, panel, record -> listener.onEntityRemove(record));
-		popup.addSeparator();
-		PopupMenuHelper.addMenuItem(popup, unlinkItem, panel, record -> listener.onIndividualUnlink(panel, record));
+		PopupMenuHelper.addMenuItem(popup, deleteItem, panel, record -> {
+			final ToolContext context = new ToolContext(model, record::getId, () -> panel, null);
+			new DeleteIndividualTool().run(context);
+		});
+		PopupMenuHelper.addMenuItem(popup, unlinkItem, panel, record -> {
+			final ToolContext context = new ToolContext(model, record::getId, () -> panel, null);
+			new UnlinkRelationshipsTool().run(context);
+		});
 
 		return popup;
 	}

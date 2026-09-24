@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.tools.sources;
 
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ReportDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
@@ -204,7 +205,8 @@ public final class MediaManagerDialog extends JDialog{
 
 	private void reload(){
 		documents.clear();
-		documents.addAll(SourceHelper.listAllDocuments(context.model()));
+		final FLEFModel model = context.model();
+		documents.addAll(SourceHelper.listAllDocuments(model));
 
 		rebuildGrid();
 	}

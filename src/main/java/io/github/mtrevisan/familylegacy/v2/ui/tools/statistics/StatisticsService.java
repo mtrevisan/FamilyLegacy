@@ -134,11 +134,11 @@ public final class StatisticsService{
 		for(final FLEFRecord individual : individuals){
 			final String sex = FLEFRecordHelper.getChildValue(individual, TAG_SEX);
 			if(VALUE_MALE.equalsIgnoreCase(sex))
-				male++;
+				male ++;
 			else if(VALUE_FEMALE.equalsIgnoreCase(sex))
-				female++;
+				female ++;
 			else
-				unknownSex++;
+				unknownSex ++;
 
 			final boolean hasName = individual.getChildren()
 				.stream()

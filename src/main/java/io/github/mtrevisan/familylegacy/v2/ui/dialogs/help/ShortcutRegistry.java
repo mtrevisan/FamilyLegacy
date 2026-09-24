@@ -79,7 +79,7 @@ public final class ShortcutRegistry{
 	public static final ShortcutDefinition EDIT_RELOCATE = register("Edit", "Relocate", KeyStroke.getKeyStroke(KeyEvent.VK_X, MENU_MASK), "Ctrl+X");
 	public static final ShortcutDefinition EDIT_PASTE = register("Edit", "Paste", KeyStroke.getKeyStroke(KeyEvent.VK_V, MENU_MASK), "Ctrl+V");
 	public static final ShortcutDefinition EDIT_DELETE = register("Edit", "Delete", KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "Del");
-	public static final ShortcutDefinition EDIT_SELECTION = register("Edit", "Edit current selection", KeyStroke.getKeyStroke(KeyEvent.VK_F2, 0), "F2");
+	public static final ShortcutDefinition EDIT_SELECTION = register("Edit", "Edit Individual", KeyStroke.getKeyStroke(KeyEvent.VK_F2, 0), "F2");
 
 	public static final ShortcutDefinition VIEW_ANCESTOR_TREE = register("View", "Ancestor tree", KeyStroke.getKeyStroke(KeyEvent.VK_1, MENU_MASK), "Ctrl+1");
 	public static final ShortcutDefinition VIEW_SUGIYAMA_GRAPH = register("View", "Sugiyama graph", KeyStroke.getKeyStroke(KeyEvent.VK_2, MENU_MASK), "Ctrl+2");
@@ -92,7 +92,7 @@ public final class ShortcutRegistry{
 	public static final ShortcutDefinition NAV_JUMP_TO_INDIVIDUAL_OR_GROUP = register("Navigate", "Jump to individual/Group…", KeyStroke.getKeyStroke(KeyEvent.VK_J, MENU_MASK), "Ctrl+J");
 
 	public static final ShortcutDefinition TREE_TOGGLE_LAYOUT = register("Ancestor Tree", "Toggle layout (vertical / horizontal)", KeyStroke.getKeyStroke(KeyEvent.VK_L, MENU_MASK), "Ctrl+L");
-	public static final ShortcutDefinition TREE_TOGGLE_LIFESPAN = register("Ancestor Tree", "Toggle lifespan strip", KeyStroke.getKeyStroke(KeyEvent.VK_T, MENU_MASK), "Ctrl+T");
+	public static final ShortcutDefinition TREE_TOGGLE_LIFESPAN_EVENTS_STRIP = register("Ancestor Tree", "Toggle lifespan strip", KeyStroke.getKeyStroke(KeyEvent.VK_T, MENU_MASK), "Ctrl+T");
 
 	public static final ShortcutDefinition HELP_CONTENTS = register("Help", "Help contents", KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0), "F1");
 

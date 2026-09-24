@@ -33,10 +33,6 @@ import javax.swing.KeyStroke;
 
 /**
  * Opens the editor for the currently selected individual.
- * <p>
- * The tool does not have direct access to the selection: it delegates
- * to the enclosing frame's {@code editCurrentSelection}, which knows
- * the active projection and the currently selected entity.
  */
 public final class EditIndividualTool implements ToolOperation{
 
@@ -52,8 +48,11 @@ public final class EditIndividualTool implements ToolOperation{
 
 	@Override
 	public void run(final ToolContext context){
-		context.editCurrentSelection()
-			.run();
+		final String id = context.selectedEntityId();
+		if(id == null)
+			return;
+
+		context.performEdit(id);
 	}
 
 	@Override

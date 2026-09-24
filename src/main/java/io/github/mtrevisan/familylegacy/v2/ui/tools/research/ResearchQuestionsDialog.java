@@ -213,15 +213,18 @@ public final class ResearchQuestionsDialog extends JDialog{
 	private void openEditor(final String questionId){
 		final ResearchQuestionHandler handler = ResearchQuestionHandler.getInstance();
 		final BaseRecordDialog dialog;
+		final FLEFModel model = context.model();
 		if(questionId == null)
-			dialog = handler.createNewDialog(this, context.model());
+			dialog = handler.createNewDialog(this, model);
 		else{
-			final FLEFRecord record = context.model().getRecordById(questionId);
+			final FLEFRecord record = model.getRecordById(questionId);
 			if(record == null)
 				return;
-			dialog = handler.createEditDialog(this, context.model(), record);
+
+			dialog = handler.createEditDialog(this, model, record);
 		}
 		dialog.setVisible(true);
+
 		if(dialog.isSaved())
 			reload();
 	}
@@ -230,6 +233,7 @@ public final class ResearchQuestionsDialog extends JDialog{
 		final String questionId = selectedId();
 		if(questionId == null)
 			return;
+
 		final int confirm = JOptionPane.showConfirmDialog(this,
 			"Delete research question " + questionId + "?\n"
 				+ "Activities, tasks, and conclusions that reference it will be left dangling.",
@@ -238,7 +242,10 @@ public final class ResearchQuestionsDialog extends JDialog{
 			JOptionPane.WARNING_MESSAGE);
 		if(confirm != JOptionPane.YES_OPTION)
 			return;
-		context.model().removeRecord(questionId);
+
+		final FLEFModel model = context.model();
+		model.removeRecord(questionId);
+
 		reload();
 	}
 

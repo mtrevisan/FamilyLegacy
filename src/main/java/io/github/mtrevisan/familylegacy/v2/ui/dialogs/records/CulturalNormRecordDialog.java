@@ -49,7 +49,6 @@ import javax.swing.JPanel;
 import javax.swing.border.TitledBorder;
 import java.awt.Window;
 import java.io.IOException;
-import java.io.Serial;
 
 
 /**
@@ -89,10 +88,6 @@ import java.io.Serial;
  * Tab 10 (Audit): audit
  */
 public class CulturalNormRecordDialog extends BaseRecordDialog{
-
-	@Serial
-	private static final long serialVersionUID = 950729006569948384L;
-
 
 	private static final String DOT = ".";
 

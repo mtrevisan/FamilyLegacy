@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.tools.places;
 
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
@@ -40,8 +41,9 @@ public final class NewPlaceTool implements ToolOperation{
 
 	@Override
 	public void run(final ToolContext context){
+		final FLEFModel model = context.model();
 		final BaseRecordDialog dialog = PlaceHandler.getInstance()
-			.createNewDialog(context.owner(), context.model());
+			.createNewDialog(context.owner(), model);
 		dialog.setVisible(true);
 	}
 

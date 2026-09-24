@@ -49,7 +49,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import java.awt.Window;
 import java.io.IOException;
-import java.io.Serial;
 
 
 /**
@@ -86,10 +85,6 @@ import java.io.Serial;
  * Tab 10 (Audit): audit
  */
 public class IndividualAttributeRecordDialog extends BaseRecordDialog{
-
-	@Serial
-	private static final long serialVersionUID = 4220284900986598102L;
-
 
 	private static final String TAG_INDIVIDUAL = "INDIVIDUAL";
 	private static final String TAG_TYPE = "TYPE";

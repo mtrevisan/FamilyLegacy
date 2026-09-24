@@ -26,7 +26,6 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualData;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.siblings.SiblingsData;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.SexType;
@@ -41,7 +40,6 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
@@ -253,9 +251,8 @@ public class TreeService{
 		final Iterator<FLEFRecord> itr = parents.iterator();
 		while(itr.hasNext()){
 			final FLEFRecord parent = itr.next();
-			final String rawSex = FLEFRecordHelper.getChildValue(parent, TAG_SEX);
-			final SexType parentSex = (rawSex != null? Enum.valueOf(SexType.class, rawSex.toUpperCase(Locale.ROOT)): null);
-			if(sex == parentSex){
+			final SexType parentSex = IndividualData.extractSex(parent);
+			if(parentSex != SexType.UNKNOWN && sex == parentSex){
 				itr.remove();
 
 				return parent;

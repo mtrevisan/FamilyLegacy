@@ -201,15 +201,18 @@ public final class ResearchTasksDialog extends JDialog{
 	private void openEditor(final String taskId){
 		final ResearchTaskHandler handler = ResearchTaskHandler.getInstance();
 		final BaseRecordDialog dialog;
+		final FLEFModel model = context.model();
 		if(taskId == null)
-			dialog = handler.createNewDialog(this, context.model());
+			dialog = handler.createNewDialog(this, model);
 		else{
-			final FLEFRecord record = context.model().getRecordById(taskId);
+			final FLEFRecord record = model.getRecordById(taskId);
 			if(record == null)
 				return;
-			dialog = handler.createEditDialog(this, context.model(), record);
+
+			dialog = handler.createEditDialog(this, model, record);
 		}
 		dialog.setVisible(true);
+
 		if(dialog.isSaved())
 			reload();
 	}
@@ -218,6 +221,7 @@ public final class ResearchTasksDialog extends JDialog{
 		final String taskId = selectedId();
 		if(taskId == null)
 			return;
+
 		final int confirm = JOptionPane.showConfirmDialog(this,
 			"Delete research task " + taskId + "?",
 			"Confirm Deletion",
@@ -225,7 +229,10 @@ public final class ResearchTasksDialog extends JDialog{
 			JOptionPane.WARNING_MESSAGE);
 		if(confirm != JOptionPane.YES_OPTION)
 			return;
-		context.model().removeRecord(taskId);
+
+		final FLEFModel model = context.model();
+		model.removeRecord(taskId);
+
 		reload();
 	}
 

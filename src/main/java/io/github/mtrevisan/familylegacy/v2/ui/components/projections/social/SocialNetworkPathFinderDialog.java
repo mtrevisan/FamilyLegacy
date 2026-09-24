@@ -152,8 +152,7 @@ public final class SocialNetworkPathFinderDialog extends JDialog{
 		});
 		cancelBtn.addActionListener(e -> dispose());
 
-		getRootPane()
-			.setDefaultButton(okBtn);
+		getRootPane().setDefaultButton(okBtn);
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 	}
 

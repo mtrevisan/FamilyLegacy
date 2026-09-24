@@ -34,7 +34,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.border.TitledBorder;
 import java.awt.Window;
-import java.io.Serial;
 
 
 /**
@@ -51,10 +50,6 @@ import java.io.Serial;
  * </pre>
  */
 public class BoundedDatePanel extends JPanel{
-
-	@Serial
-	private static final long serialVersionUID = 1351303209761075021L;
-
 
 	private static final String TAG_BOUNDED = "BOUNDED";
 	private static final String TAG_NOT_BEFORE = "NOT_BEFORE";

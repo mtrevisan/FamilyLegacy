@@ -32,17 +32,13 @@ import javax.swing.JProgressBar;
 import javax.swing.SwingUtilities;
 import java.awt.BorderLayout;
 import java.awt.Window;
-import java.io.Serial;
+
 
 /**
  * Modal progress dialog. Every mutator is safe to call from any
  * thread: it marshals to the EDT internally.
  */
 public final class ProgressDialog extends JDialog{
-
-	@Serial
-	private static final long serialVersionUID = 3743606341704752187L;
-
 
 	private final JProgressBar bar = new JProgressBar(0, 100);
 	private final JLabel message = new JLabel(" ");

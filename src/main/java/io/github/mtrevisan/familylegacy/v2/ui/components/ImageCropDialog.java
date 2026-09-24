@@ -41,14 +41,9 @@ import java.awt.Window;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.io.Serial;
 
 
 public class ImageCropDialog extends JDialog{
-
-	@Serial
-	private static final long serialVersionUID = 3777867436237271707L;
-
 
 	private static final float MAX_SCREEN_FRACTION = 0.75f;
 

@@ -82,12 +82,10 @@ import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.Serial;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
-import java.util.Objects;
 import java.util.function.Consumer;
 
 
@@ -271,9 +269,6 @@ public final class GUIHelper{
 		rootPane.setDefaultButton(saveButton);
 
 		final Action escapeAction = new AbstractAction(){
-			@Serial
-			private static final long serialVersionUID = 8267350842047854519L;
-
 			@Override
 			public void actionPerformed(final ActionEvent e){
 				cancel.run();
@@ -311,9 +306,6 @@ public final class GUIHelper{
 		selectButton.addActionListener(e -> select.run());
 
 		final Action escapeAction = new AbstractAction(){
-			@Serial
-			private static final long serialVersionUID = -2257752682016633238L;
-
 			@Override
 			public void actionPerformed(final ActionEvent e){
 				cancel.run();
@@ -348,9 +340,6 @@ public final class GUIHelper{
 		inputMap.put(GUIHelper.CTRL_DOWN_STROKE, ACTION_MOVE_DOWN);
 
 		actionMap.put(ACTION_MOVE_UP, new AbstractAction(){
-			@Serial
-			private static final long serialVersionUID = 1557398991645410075L;
-
 			@Override
 			public void actionPerformed(final ActionEvent e){
 				moveSelectedItemUp(list, listModel);
@@ -358,9 +347,6 @@ public final class GUIHelper{
 		});
 
 		actionMap.put(ACTION_MOVE_DOWN, new AbstractAction(){
-			@Serial
-			private static final long serialVersionUID = -8473405355379714143L;
-
 			@Override
 			public void actionPerformed(final ActionEvent e){
 				moveSelectedItemDown(list, listModel);
@@ -420,9 +406,6 @@ public final class GUIHelper{
 		});
 
 		list.setTransferHandler(new TransferHandler(){
-			@Serial
-			private static final long serialVersionUID = 5054623014198954269L;
-
 			private int sourceIndex = -1;
 
 

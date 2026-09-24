@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.tools.validate;
 
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ReportDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolOperation;
@@ -42,8 +43,8 @@ public final class ValidateFileTool implements ToolOperation{
 
 	@Override
 	public void run(final ToolContext context){
-		final FileValidationService.Report report =
-			FileValidationService.validate(context.model());
+		final FLEFModel model = context.model();
+		final FileValidationService.Report report = FileValidationService.validate(model);
 		ReportDialog.showHtml(context.owner(), "File Validation", report.toHtml());
 	}
 

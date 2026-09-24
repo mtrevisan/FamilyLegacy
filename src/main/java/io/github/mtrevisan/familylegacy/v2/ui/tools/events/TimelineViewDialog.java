@@ -243,17 +243,19 @@ public final class TimelineViewDialog extends JDialog{
 	}
 
 	private boolean participatesIn(final FLEFRecord event, final String participantId){
-		for(final EventHelper.Participation p : EventHelper.participantsOf(event, context.model()))
+		final FLEFModel model = context.model();
+		for(final EventHelper.Participation p : EventHelper.participantsOf(event, model))
 			if(participantId.equals(p.participantId()))
 				return true;
 		return false;
 	}
 
 	private String describeParticipants(final FLEFRecord event){
-		final List<EventHelper.Participation> participants =
-			EventHelper.participantsOf(event, context.model());
+		final FLEFModel model = context.model();
+		final List<EventHelper.Participation> participants = EventHelper.participantsOf(event, model);
 		if(participants.isEmpty())
 			return StringUtils.EMPTY;
+
 		final StringBuilder sb = new StringBuilder();
 		for(int i = 0; i < participants.size(); i++){
 			if(i > 0)
@@ -265,8 +267,9 @@ public final class TimelineViewDialog extends JDialog{
 
 	private void chooseParticipant(){
 		final FLEFRecord[] chosen = new FLEFRecord[1];
+		final FLEFModel model = context.model();
 		final RecordSelectionDialog dialog = RecordSelectionDialog.create(
-			this, context.model(),
+			this, model,
 			(record, handler) -> chosen[0] = record,
 			IndividualHandler.class);
 		dialog.setVisible(true);

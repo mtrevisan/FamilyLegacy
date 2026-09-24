@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.tools.places;
 
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ReportDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
@@ -62,7 +63,8 @@ public final class NormalizePlaceNamesTool implements ToolOperation{
 	@Override
 	public void run(final ToolContext context){
 		final Map<String, List<FLEFRecord>> groups = new TreeMap<>();
-		for(final FLEFRecord place : PlaceHelper.listAllPlaces(context.model())){
+		final FLEFModel model = context.model();
+		for(final FLEFRecord place : PlaceHelper.listAllPlaces(model)){
 			final String name = PlaceHelper.displayName(place);
 			if(name == null || name.isBlank())
 				continue;

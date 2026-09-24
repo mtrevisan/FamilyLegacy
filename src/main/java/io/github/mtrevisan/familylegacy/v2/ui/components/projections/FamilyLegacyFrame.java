@@ -29,11 +29,13 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.bookmarks.Bookmark;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.bookmarks.BookmarkStore;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.bookmarks.BookmarkType;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.TreeType;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.GenealogyRepository;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.services.DossierManager;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.services.GlobalKeyboardController;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.services.ModelUtils;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
+import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolDispatcher;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.files.FileMenuController;
 
 import javax.swing.JFrame;
@@ -43,11 +45,9 @@ import javax.swing.JToolBar;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import java.awt.BorderLayout;
-import java.awt.Component;
 import java.awt.Dimension;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.Serial;
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -59,14 +59,13 @@ import java.util.Objects;
  */
 public class FamilyLegacyFrame extends JFrame{
 
-	@Serial
-	private static final long serialVersionUID = 7829104738102938471L;
-
-
 	/** Initial width of the switcher side of the split pane. */
 	private static final int SWITCHER_WIDTH = 1000;
 	/** Initial width of the dossier side of the split pane. */
 	private static final int DOSSIER_WIDTH = 400;
+
+
+	private final TreeType treeType;
 
 	private FLEFModel model;
 	private ProjectionSwitcherPanel switcher;
@@ -80,11 +79,13 @@ public class FamilyLegacyFrame extends JFrame{
 	private final DossierManager dossierManager;
 
 
-	public FamilyLegacyFrame(final FLEFModel model){
+	public FamilyLegacyFrame(final TreeType treeType, final FLEFModel model){
 		super("Family Legacy");
 
+		this.treeType = treeType;
+
 		this.model = Objects.requireNonNull(model);
-		switcher = new ProjectionSwitcherPanel(model);
+		switcher = new ProjectionSwitcherPanel(treeType, model);
 		fileController = new FileMenuController(this, this::model, this::replaceModel, () -> {});
 
 		split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, switcher, null);
@@ -109,7 +110,7 @@ public class FamilyLegacyFrame extends JFrame{
 					switcher.navigateForward();
 			},
 			this::openJumpToDialog,
-			this::editCurrentSelection,
+			() -> editEntity(currentSelectionId()),
 			switcher::setProjection,
 			dossierManager::setSidebarVisible,
 			dossierManager.isSidebarVisible()
@@ -193,16 +194,12 @@ public class FamilyLegacyFrame extends JFrame{
 		return fileController;
 	}
 
-	void editCurrentSelection(){
-		switcher.editCurrentSelection();
+	void editEntity(final String id){
+		switcher.editEntity(id);
 	}
 
 	String currentSelectionId(){
 		return switcher.getSelectedEntityId();
-	}
-
-	Component currentView(){
-		return switcher.getCurrentPanel();
 	}
 
 	void replaceModel(final FLEFModel newModel){
@@ -212,7 +209,7 @@ public class FamilyLegacyFrame extends JFrame{
 		SwingUtilities.invokeLater(() -> {
 			model = newModel;
 
-			switcher = new ProjectionSwitcherPanel(newModel);
+			switcher = new ProjectionSwitcherPanel(treeType, newModel);
 			switcher.setSelectionCallback(dossierManager::showIndividualDossier);
 			switcher.setGroupSelectionCallback(dossierManager::showGroupDossier);
 			switcher.withNavigationListener(id -> dossierManager.syncDossier(id, newModel));
@@ -281,12 +278,30 @@ public class FamilyLegacyFrame extends JFrame{
 	ToolContext createToolContext(){
 		return new ToolContext(
 			model,
-			this,
-			this::editCurrentSelection,
 			this::currentSelectionId,
-			this::loadRoot,
-			this::replaceModel,
-			this::currentView);
+			switcher::getSelectedPanel,
+			new ToolDispatcher(){
+				@Override
+				public void editEntity(final String id){
+					switcher.editEntity(id);
+				}
+
+				@Override
+				public void loadRoot(final String id){
+					FamilyLegacyFrame.this.loadRoot(id);
+				}
+
+				@Override
+				public void replaceModel(final FLEFModel newModel){
+					FamilyLegacyFrame.this.replaceModel(newModel);
+				}
+
+				@Override
+				public void removeEntity(final String id){
+					switcher.removeEntity(id);
+				}
+			}
+		);
 	}
 
 
@@ -309,10 +324,16 @@ public class FamilyLegacyFrame extends JFrame{
 		final FLEFModel model = parser.parse(content);
 
 		SwingUtilities.invokeLater(() -> {
-			final FamilyLegacyFrame frame = new FamilyLegacyFrame(model);
+//			final TreeType treeType = TreeType.BIOLOGICAL;
+			final TreeType treeType = TreeType.FAMILY;
+			final FamilyLegacyFrame frame = new FamilyLegacyFrame(treeType, model);
 			frame.loadRoot(rootIndividualId);
 			frame.setVisible(true);
 		});
 	}
+
+	//TODO root caliman osvaldo, box dei nonni paterni piccoli
+	//	root caliman domenico, idem nonni materni
+	//	root c, idem
 
 }

@@ -36,7 +36,6 @@ import org.apache.commons.lang3.StringUtils;
 import javax.swing.JPanel;
 import javax.swing.border.TitledBorder;
 import java.awt.Window;
-import java.io.Serial;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
@@ -60,10 +59,6 @@ import java.time.temporal.ChronoUnit;
  * </pre>
  */
 public class AuditPanel extends JPanel{
-
-	@Serial
-	private static final long serialVersionUID = -8538135290834556766L;
-
 
 	private static final String DOT = ".";
 

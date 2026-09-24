@@ -187,8 +187,9 @@ public final class SocialCategorySelectionDialog extends JDialog{
 		panel.add(okBtn);
 		panel.add(cancelBtn);
 
-		getRootPane()
-			.setDefaultButton(okBtn);
+		getRootPane().setDefaultButton(okBtn);
+		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+
 		return panel;
 	}
 

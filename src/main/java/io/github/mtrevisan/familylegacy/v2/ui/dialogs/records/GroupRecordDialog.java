@@ -47,7 +47,6 @@ import org.apache.commons.lang3.StringUtils;
 import javax.swing.JPanel;
 import java.awt.Window;
 import java.io.IOException;
-import java.io.Serial;
 
 
 /**
@@ -83,10 +82,6 @@ import java.io.Serial;
  * Tab 10 (Audit): audit
  */
 public class GroupRecordDialog extends BaseRecordDialog{
-
-	@Serial
-	private static final long serialVersionUID = -4670126000119212972L;
-
 
 	private static final String TAG_NAME = "NAME";
 	private static final String TAG_TYPE = "TYPE";

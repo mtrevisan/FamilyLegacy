@@ -52,7 +52,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.Serial;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -179,9 +178,6 @@ public class BindingsHelper{
 			.put(KeyStroke.getKeyStroke(virtualKey, 0), actionMapKey);
 		component.getActionMap()
 			.put(actionMapKey, new AbstractAction(){
-				@Serial
-				private static final long serialVersionUID = 3859254441434336995L;
-
 				@Override
 				public void actionPerformed(final ActionEvent ae){
 					action.run();
@@ -294,9 +290,6 @@ public class BindingsHelper{
 	 */
 	public static <E> JList<E> createList(final ListModel<E> model){
 		return new JList<>(model){
-			@Serial
-			private static final long serialVersionUID = 1004864634885107966L;
-
 			@Override
 			protected void paintComponent(final Graphics g){
 				super.paintComponent(g);

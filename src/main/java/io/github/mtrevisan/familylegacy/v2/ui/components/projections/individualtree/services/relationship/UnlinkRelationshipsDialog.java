@@ -52,7 +52,6 @@ import java.awt.Font;
 import java.awt.Window;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.Serial;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -67,10 +66,6 @@ import java.util.function.Predicate;
  * (Parents, Partners, Associates, Groups, Children), with checkboxes to select which ones to remove.
  */
 public class UnlinkRelationshipsDialog extends JDialog{
-
-	@Serial
-	private static final long serialVersionUID = -6987495276841379033L;
-
 
 	private static final String TAG_TYPE = "type";
 	private static final String TAG_SUBJECT = "subject";

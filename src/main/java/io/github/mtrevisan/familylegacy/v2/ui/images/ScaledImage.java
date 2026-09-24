@@ -44,14 +44,9 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
-import java.io.Serial;
 
 
 public class ScaledImage extends JLabel{
-
-	@Serial
-	private static final long serialVersionUID = -2951121956660972171L;
-
 
 	private static final int NO_CROP_COORD = -1;
 

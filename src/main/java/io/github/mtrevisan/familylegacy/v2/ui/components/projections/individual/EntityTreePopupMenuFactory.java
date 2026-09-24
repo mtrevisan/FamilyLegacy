@@ -1,35 +1,18 @@
-/**
- * Copyright (c) 2026 Mauro Trevisan
- * <p>
- * Permission is hereby granted, free of charge, to any person
- * obtaining a copy of this software and associated documentation
- * files (the "Software"), to deal in the Software without
- * restriction, including without limitation the rights to use,
- * copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following
- * conditions:
- * <p>
- * The above copyright notice and this permission notice shall be
- * included in all copies or substantial portions of the Software.
- * <p>
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
- * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
- * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
- * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- * OTHER DEALINGS IN THE SOFTWARE.
- */
 package io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.TreeOperation;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.help.ShortcutRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.PopupMenuAdapter;
-import io.github.mtrevisan.familylegacy.v2.ui.helpers.RelationClipboard;
+import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
+import io.github.mtrevisan.familylegacy.v2.ui.tools.individuals.AddChildTool;
+import io.github.mtrevisan.familylegacy.v2.ui.tools.individuals.AddIndividualTool;
+import io.github.mtrevisan.familylegacy.v2.ui.tools.individuals.DeleteIndividualTool;
+import io.github.mtrevisan.familylegacy.v2.ui.tools.individuals.EditIndividualTool;
+import io.github.mtrevisan.familylegacy.v2.ui.tools.individuals.PasteIndividualTool;
+import io.github.mtrevisan.familylegacy.v2.ui.tools.individuals.RelocateIndividualTool;
+import io.github.mtrevisan.familylegacy.v2.ui.tools.individuals.UnlinkRelationshipsTool;
 
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
@@ -46,15 +29,17 @@ public class EntityTreePopupMenuFactory implements EntityPopupMenuFactory<Indivi
 			final FLEFModel model){
 		final JMenuItem editItem = new JMenuItem("Edit Individual…", 'E');
 		final JMenuItem addItem = new JMenuItem("Add Individual…", 'A');
-		final JMenuItem connectItem = new JMenuItem("Connect Individual…", 'C');
+		final JMenuItem connectItem = new JMenuItem("Connect Individual…");
 		final JMenuItem addChildItem = new JMenuItem("Add Child…", 'C');
-		final JMenuItem connectChildItem = new JMenuItem("Connect Child…", 'C');
+		final JMenuItem connectChildItem = new JMenuItem("Connect Child…");
 		final JMenuItem relocateItem = new JMenuItem("Relocate Individual", 'R');
+		relocateItem.setAccelerator(ShortcutRegistry.EDIT_RELOCATE.keyStroke());
 		final JMenuItem pasteItem = new JMenuItem("Paste Individual", 'P');
+		pasteItem.setAccelerator(ShortcutRegistry.EDIT_PASTE.keyStroke());
 		final JMenuItem deleteItem = new JMenuItem("Delete Individual", 'D');
+		deleteItem.setAccelerator(ShortcutRegistry.EDIT_DELETE.keyStroke());
 		final JMenuItem unlinkItem = new JMenuItem("Unlink Relationships…", 'U');
 
-		// Evaluate item states dynamically right before displaying the menu
 		final JPopupMenu popup = new JPopupMenu();
 		popup.addPopupMenuListener(new PopupMenuAdapter(){
 			@Override
@@ -67,18 +52,19 @@ public class EntityTreePopupMenuFactory implements EntityPopupMenuFactory<Indivi
 				final boolean hasChildren = (hasData && data.hasChildren());
 				final boolean hasRelations = (hasParents || hasPartner || hasChildren);
 
-				// Update paste item state and title based on clipboard content
-				final boolean canPaste = (!hasData && PopupMenuHelper.isPasteAllowed(panel));
+				final ToolContext context = new ToolContext(model, null, () -> panel, null);
+
+				final boolean canPaste = (!hasData && new PasteIndividualTool().isEnabled(context));
 				if(canPaste){
-					final FLEFRecord clippedRecord = RelationClipboard.getInstance().getRecord();
-					final String clippedName = IndividualHandler.getInstance().getDisplayText(clippedRecord, model);
+					final String clippedName = context.getClippedRecordDisplayText();
 					pasteItem.setText("Paste " + clippedName + " Here");
 					pasteItem.setEnabled(true);
 				}
-				else
+				else{
+					pasteItem.setText("Paste Individual");
 					pasteItem.setEnabled(false);
+				}
 
-				// Enable/disable menu options depending on entity existence and capabilities
 				editItem.setEnabled(hasData);
 				addItem.setEnabled(!hasData);
 				connectItem.setEnabled(!hasData && hasIndividuals);
@@ -90,19 +76,40 @@ public class EntityTreePopupMenuFactory implements EntityPopupMenuFactory<Indivi
 			}
 		});
 
-		// Add menu items with their bound callbacks
-		PopupMenuHelper.addMenuItem(popup, editItem, panel, record -> listener.onEntityEdit(record));
-		PopupMenuHelper.addMenuItem(popup, addItem, panel, record -> listener.onIndividualAddOrConnect(panel, TreeOperation.ADD));
+		// Add menu items with their bound callbacks delegating directly to ToolOperations
+		PopupMenuHelper.addMenuItem(popup, editItem, panel, record -> {
+			final ToolContext context = new ToolContext(model, record::getId, () -> panel, null);
+			new EditIndividualTool().run(context);
+		});
+		PopupMenuHelper.addMenuItem(popup, addItem, panel, record -> {
+			final ToolContext context = new ToolContext(model, record::getId, () -> panel, null);
+			new AddIndividualTool().run(context);
+		});
 		PopupMenuHelper.addMenuItem(popup, connectItem, panel, record -> listener.onIndividualAddOrConnect(panel, TreeOperation.CONNECT));
 		popup.addSeparator();
-		PopupMenuHelper.addMenuItem(popup, addChildItem, panel, record -> listener.onChildAddOrConnect(panel, TreeOperation.ADD));
+		PopupMenuHelper.addMenuItem(popup, addChildItem, panel, record -> {
+			final ToolContext context = new ToolContext(model, record::getId, () -> panel, null);
+			new AddChildTool().run(context);
+		});
 		PopupMenuHelper.addMenuItem(popup, connectChildItem, panel, record -> listener.onChildAddOrConnect(panel, TreeOperation.CONNECT));
 		popup.addSeparator();
-		PopupMenuHelper.addMenuItem(popup, relocateItem, panel, record -> listener.onEntityRelocate(record));
-		PopupMenuHelper.addMenuItem(popup, pasteItem, panel, record -> listener.onIndividualPaste(panel));
-		PopupMenuHelper.addMenuItem(popup, deleteItem, panel, record -> listener.onEntityRemove(record));
+		PopupMenuHelper.addMenuItem(popup, relocateItem, panel, record -> {
+			final ToolContext context = new ToolContext(model, record::getId, () -> panel, null);
+			new RelocateIndividualTool().run(context);
+		});
+		PopupMenuHelper.addMenuItem(popup, pasteItem, panel, record -> {
+			final ToolContext context = new ToolContext(model, null, () -> panel, null);
+			new PasteIndividualTool().run(context);
+		});
+		PopupMenuHelper.addMenuItem(popup, deleteItem, panel, record -> {
+			final ToolContext context = new ToolContext(model, record::getId, () -> panel, null);
+			new DeleteIndividualTool().run(context);
+		});
 		popup.addSeparator();
-		PopupMenuHelper.addMenuItem(popup, unlinkItem, panel, record -> listener.onIndividualUnlink(panel, record));
+		PopupMenuHelper.addMenuItem(popup, unlinkItem, panel, record -> {
+			final ToolContext context = new ToolContext(model, record::getId, () -> panel, null);
+			new UnlinkRelationshipsTool().run(context);
+		});
 
 		return popup;
 	}

@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.tools.research;
 
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionHandler;
@@ -153,7 +154,8 @@ public final class ConclusionsDialog extends JDialog{
 
 	private void reload(){
 		final List<ResearchHelper.ConclusionRow> rows = new ArrayList<>();
-		for(final FLEFRecord conclusion : ResearchHelper.listConclusions(context.model()))
+		final FLEFModel model = context.model();
+		for(final FLEFRecord conclusion : ResearchHelper.listConclusions(model))
 			rows.add(ResearchHelper.toConclusionRow(conclusion));
 		tableModel.setRows(rows);
 		updateStatus(rows.size());
@@ -195,15 +197,17 @@ public final class ConclusionsDialog extends JDialog{
 	private void openEditor(final String conclusionId){
 		final ConclusionHandler handler = ConclusionHandler.getInstance();
 		final BaseRecordDialog dialog;
+		final FLEFModel model = context.model();
 		if(conclusionId == null)
-			dialog = handler.createNewDialog(this, context.model());
+			dialog = handler.createNewDialog(this, model);
 		else{
-			final FLEFRecord record = context.model().getRecordById(conclusionId);
+			final FLEFRecord record = model.getRecordById(conclusionId);
 			if(record == null)
 				return;
-			dialog = handler.createEditDialog(this, context.model(), record);
+			dialog = handler.createEditDialog(this, model, record);
 		}
 		dialog.setVisible(true);
+
 		if(dialog.isSaved())
 			reload();
 	}
@@ -212,6 +216,7 @@ public final class ConclusionsDialog extends JDialog{
 		final String conclusionId = selectedId();
 		if(conclusionId == null)
 			return;
+
 		final int confirm = JOptionPane.showConfirmDialog(this,
 			"Delete conclusion " + conclusionId + "?",
 			"Confirm Deletion",
@@ -219,7 +224,10 @@ public final class ConclusionsDialog extends JDialog{
 			JOptionPane.WARNING_MESSAGE);
 		if(confirm != JOptionPane.YES_OPTION)
 			return;
-		context.model().removeRecord(conclusionId);
+
+		final FLEFModel model = context.model();
+		model.removeRecord(conclusionId);
+
 		reload();
 	}
 

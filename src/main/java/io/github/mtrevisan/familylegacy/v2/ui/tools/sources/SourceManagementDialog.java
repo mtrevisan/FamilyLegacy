@@ -202,15 +202,18 @@ public final class SourceManagementDialog extends JDialog{
 	private void openEditor(final String sourceId){
 		final SourceHandler handler = SourceHandler.getInstance();
 		final BaseRecordDialog dialog;
+		final FLEFModel model = context.model();
 		if(sourceId == null)
-			dialog = handler.createNewDialog(this, context.model());
+			dialog = handler.createNewDialog(this, model);
 		else{
-			final FLEFRecord record = context.model().getRecordById(sourceId);
+			final FLEFRecord record = model.getRecordById(sourceId);
 			if(record == null)
 				return;
-			dialog = handler.createEditDialog(this, context.model(), record);
+
+			dialog = handler.createEditDialog(this, model, record);
 		}
 		dialog.setVisible(true);
+
 		if(dialog.isSaved())
 			reload();
 	}
@@ -219,6 +222,7 @@ public final class SourceManagementDialog extends JDialog{
 		final String sourceId = selectedSourceId();
 		if(sourceId == null)
 			return;
+
 		final int confirm = JOptionPane.showConfirmDialog(this,
 			"Delete source " + sourceId + "?",
 			"Confirm Deletion",
@@ -226,7 +230,10 @@ public final class SourceManagementDialog extends JDialog{
 			JOptionPane.WARNING_MESSAGE);
 		if(confirm != JOptionPane.YES_OPTION)
 			return;
-		context.model().removeRecord(sourceId);
+
+		final FLEFModel model = context.model();
+		model.removeRecord(sourceId);
+
 		reload();
 	}
 

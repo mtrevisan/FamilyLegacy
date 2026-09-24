@@ -39,7 +39,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import java.awt.Window;
-import java.io.Serial;
 
 
 /**
@@ -61,10 +60,6 @@ import java.io.Serial;
  * </pre>
  */
 public class ApproximatePanel extends JPanel{
-
-	@Serial
-	private static final long serialVersionUID = 5106748907289247149L;
-
 
 	private static final String TAG_BASIS = "BASIS";
 	private static final String TAG_MARGIN = "MARGIN";

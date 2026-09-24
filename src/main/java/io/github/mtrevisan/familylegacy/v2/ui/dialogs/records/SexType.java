@@ -27,5 +27,6 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs.records;
 
 public enum SexType{
 	MALE,
-	FEMALE
+	FEMALE,
+	UNKNOWN;
 }

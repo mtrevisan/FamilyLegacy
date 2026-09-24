@@ -58,7 +58,6 @@ import javax.swing.JPanel;
 import java.awt.Component;
 import java.awt.Window;
 import java.io.IOException;
-import java.io.Serial;
 
 
 /**
@@ -90,10 +89,6 @@ import java.io.Serial;
  * Tab 10 (Audit): audit
  */
 public class ConclusionRecordDialog extends BaseRecordDialog{
-
-	@Serial
-	private static final long serialVersionUID = -2667811782933374258L;
-
 
 	public static final String PROPERTY_CONCLUSION = "conclusion";
 

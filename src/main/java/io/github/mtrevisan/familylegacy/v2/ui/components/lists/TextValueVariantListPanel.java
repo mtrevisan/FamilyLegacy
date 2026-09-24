@@ -29,17 +29,12 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.TextValueVariantHandler;
 
 import java.awt.Window;
-import java.io.Serial;
 
 
 /**
  * Panel for managing variants (phonetic and transcription) of a record.
  */
 public class TextValueVariantListPanel extends EntityListPanel{
-
-	@Serial
-	private static final long serialVersionUID = -298718064629353117L;
-
 
 	public TextValueVariantListPanel(final String path, final Window parent, final String panelTitle,
 			final FLEFModel model){

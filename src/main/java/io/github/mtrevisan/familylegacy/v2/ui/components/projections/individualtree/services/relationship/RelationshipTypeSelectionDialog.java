@@ -24,7 +24,13 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.services.relationship;
 
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundComboBox;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualListener;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
+import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolDispatcher;
+import io.github.mtrevisan.familylegacy.v2.ui.tools.individuals.EditIndividualTool;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.BorderFactory;
@@ -34,10 +40,14 @@ import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JSeparator;
+import javax.swing.SwingUtilities;
+import java.awt.BorderLayout;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Window;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -51,12 +61,18 @@ public class RelationshipTypeSelectionDialog extends JDialog{
 
 	/**
 	 * Represents one row in the dialog.
+	 *
+	 * @param id          the entity ID (used for opening edit dialog)
+	 * @param label       the display name/label
+	 * @param defaultType default relationship type
 	 */
-	public record Item(String label, String defaultType){}
+	public record Item(String id, String label, String defaultType){}
 
 
+	private final FLEFModel model;
 	private final List<Item> items;
 	private final String[] allowedTypes;
+	private final IndividualListener listener;
 
 	private final List<JComboBox<String>> comboBoxes = new ArrayList<>();
 	private List<String> selectedTypes;
@@ -69,8 +85,11 @@ public class RelationshipTypeSelectionDialog extends JDialog{
 	 * @param owner        parent window
 	 * @param items        list of items to show (non-empty)
 	 * @param allowedTypes the allowed relationship type strings
+	 * @param listener callback to edit an entity by ID
+	 * @param model        the FLEF model
 	 */
-	public RelationshipTypeSelectionDialog(final Window owner, final List<Item> items, final String[] allowedTypes){
+	public RelationshipTypeSelectionDialog(final Window owner, final List<Item> items,
+			final String[] allowedTypes, final IndividualListener listener, final FLEFModel model){
 		super(owner, "Select Relationship Types", ModalityType.APPLICATION_MODAL);
 
 		if(items == null || items.isEmpty())
@@ -78,10 +97,12 @@ public class RelationshipTypeSelectionDialog extends JDialog{
 		if(allowedTypes == null || allowedTypes.length == 0)
 			throw new IllegalArgumentException("Allowed types must not be empty");
 
-		this.items = new ArrayList<>(items);
+		this.model = model;
+		this.items = items;
 		this.allowedTypes = allowedTypes;
+		this.listener = listener;
 
-		initUI();
+		initComponents();
 
 		pack();
 
@@ -94,41 +115,35 @@ public class RelationshipTypeSelectionDialog extends JDialog{
 	 * Shows the dialog only when more than one relationship type is
 	 * available. When a single type is allowed, returns a list that
 	 * assigns that type to every item without opening any dialog.
-	 * <p>
-	 * This helper lets callers avoid duplicating the "single type" check
-	 * and keeps the "no choice" fast path in a single place.
 	 *
 	 * @param owner        parent window; may be {@code null}
-	 * @param items        the items to display; if empty, an empty list is
-	 *                     returned
+	 * @param items        the items to display; if empty, an empty list is returned
 	 * @param allowedTypes the allowed relationship type strings
-	 * @return the selected types in the same order as the items, or
-	 *         {@code null} if the user cancelled the dialog
+	 * @param listener     callback to edit an entity by ID
+	 * @param model        the FLEF model
+	 * @return the selected types in the same order as the items, or {@code null} if cancelled
 	 */
-	public static List<String> showIfNeeded(final Window owner, final List<Item> items, final String[] allowedTypes){
+	public static List<String> selectRelationshipType(final Window owner, final List<Item> items,
+			final String[] allowedTypes, final IndividualListener listener, final FLEFModel model){
 		if(allowedTypes == null || allowedTypes.length == 0)
 			throw new IllegalArgumentException("Allowed types must not be empty");
+
 		if(items == null || items.isEmpty())
 			return Collections.emptyList();
 
 		if(allowedTypes.length == 1)
 			return Collections.nCopies(items.size(), allowedTypes[0]);
 
-		final RelationshipTypeSelectionDialog dialog = new RelationshipTypeSelectionDialog(owner, items, allowedTypes);
+		final RelationshipTypeSelectionDialog dialog = new RelationshipTypeSelectionDialog(owner, items,
+			allowedTypes, listener, model);
 		dialog.setVisible(true);
+
 		return dialog.getSelectedTypes();
 	}
 
 
-	private void initUI(){
-		final JPanel mainPanel = new JPanel(new MigLayout("ins 15,fill", "[grow]", "[][][grow][][30!]"));
-
-		// Header Section
-		final JLabel header = new JLabel("Select relationship type for each entity:");
-		header.setFont(header.getFont().deriveFont(Font.BOLD));
-		mainPanel.add(header, "wrap, gapbottom 5");
-
-		mainPanel.add(new JSeparator(), "growx, wrap, gapbottom 10");
+	private void initComponents(){
+		setLayout(GUIHelper.createLabelFieldLayout(10, "[grow]"));
 
 		// Content Table
 		final JPanel tablePanel = new JPanel(new MigLayout("ins 0,fillx,gap 10 8", "[grow, fill][grow, fill]", "[]"));
@@ -144,6 +159,30 @@ public class RelationshipTypeSelectionDialog extends JDialog{
 
 		for(final Item item : items){
 			final JLabel itemLabel = new JLabel(item.label);
+			itemLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+
+			// Double click on target name triggers edit via ToolContext
+			itemLabel.addMouseListener(new MouseAdapter(){
+				@Override
+				public void mouseClicked(final MouseEvent e){
+					if(SwingUtilities.isLeftMouseButton(e) && e.getClickCount() == 2 && item.id() != null){
+						final ToolContext context = new ToolContext(
+							model,
+							item::id,
+							() -> itemLabel,
+							new ToolDispatcher(){
+								@Override
+								public void editEntity(final String id){
+									if(listener != null)
+										listener.onEntityEdit(model.getRecordById(id));
+								}
+							}
+						);
+						new EditIndividualTool().run(context);
+					}
+				}
+			});
+
 			tablePanel.add(itemLabel, "aligny center");
 
 			final JComboBox<String> combo = new BoundComboBox<>(null, allowedTypes);
@@ -158,24 +197,14 @@ public class RelationshipTypeSelectionDialog extends JDialog{
 		final int preferredHeight = Math.min(250, items.size() * 38 + 30);
 		scrollPane.setPreferredSize(new Dimension(450, preferredHeight));
 
-		mainPanel.add(scrollPane, "grow,wrap,gapbottom 10");
+		add(scrollPane, "grow,wrap,gapbottom 10");
 
-		mainPanel.add(new JSeparator(), "growx,wrap,gapbottom 10");
+		final JPanel buttonPanel = GUIHelper.createButtonPanel(this,
+			"Confirm", this::onOk,
+			"Cancel", this::onCancel);
+		add(buttonPanel, BorderLayout.SOUTH);
 
-		// Buttons
-		final JPanel buttonPanel = new JPanel(new MigLayout("ins 0", "[grow][100!][100!]", "[]"));
-		final JButton okButton = new JButton("OK");
-		okButton.addActionListener(e -> onOk());
-		final JButton cancelButton = new JButton("Cancel");
-		cancelButton.addActionListener(e -> onCancel());
-
-		buttonPanel.add(okButton, "cell 1 0,growx");
-		buttonPanel.add(cancelButton, "cell 2 0,growx");
-
-		mainPanel.add(buttonPanel, "growx,align right");
-
-		setContentPane(mainPanel);
-		getRootPane().setDefaultButton(okButton);
+		getRootPane().setDefaultButton((JButton)buttonPanel.getComponent(0));
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 	}
 

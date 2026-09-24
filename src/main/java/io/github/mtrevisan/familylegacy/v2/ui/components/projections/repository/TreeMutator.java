@@ -24,7 +24,6 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository;
 
-import io.github.mtrevisan.familylegacy.v2.gedcom.utils.AuditBuilder;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
@@ -33,8 +32,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.projections.siblings.Si
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,28 +44,20 @@ import java.util.function.Predicate;
  * Handles structural modifications to the biological tree with targeted delta updates
  * on the shared GenealogyRepository.
  */
-public class TreeMutator{
+public class TreeMutator extends AbstractProjectionMutator{
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(TreeMutator.class);
-
-
-	private static final String TAG_TYPE = "type";
-	private static final String TAG_SUBJECT = "subject";
-	private static final String TAG_TARGET = "target";
 	private static final String TAG_SEX = "sex";
 
 
 	private final Predicate<String> relationshipTypeFilter;
-	private final FLEFModel model;
 	private final TreeService treeService;
-	private final TreeChangeListener listener;
 
 
 	public TreeMutator(final TreeService treeService, final TreeChangeListener listener, final FLEFModel model){
-		this.relationshipTypeFilter = treeService.getRelationshipTypeFilter();
-		this.model = Objects.requireNonNull(model, "Model cannot be null");
+		super(model, listener);
+
 		this.treeService = Objects.requireNonNull(treeService, "Tree service cannot be null");
-		this.listener = listener;
+		this.relationshipTypeFilter = treeService.getRelationshipTypeFilter();
 	}
 
 
@@ -92,24 +81,6 @@ public class TreeMutator{
 
 		if(motherId != null && motherRelationshipType != null)
 			createRelationship(newChild.getId(), motherId, motherRelationshipType);
-	}
-
-	private void createRelationship(final String subjectId, final String targetId, final String type){
-		final FLEFRecord relationship = FLEFRecord.createMainRecord(RelationshipHandler.TYPE,
-				RelationshipHandler.ID_PREFIX, model)
-			.addChild(FLEFRecord.createChildWithTagAndValue(TAG_TYPE, type))
-			.addChild(FLEFRecord.createChildWithTag(TAG_SUBJECT)
-				.addChild(FLEFRecord.createChildWithTagAndValue(IndividualHandler.TYPE, subjectId))
-			)
-			.addChild(FLEFRecord.createChildWithTag(TAG_TARGET)
-				.addChild(FLEFRecord.createChildWithTagAndValue(IndividualHandler.TYPE, targetId))
-			)
-			.addChild(AuditBuilder.build());
-
-		model.addRecord(relationship);
-
-		// Targeted Delta-Update in Repository
-		treeService.getRepository().notifyRelationshipAdded(subjectId, targetId, relationship.getId());
 	}
 
 	public void addParentToChild(final List<String> childrenId, final FLEFRecord newParent,
@@ -160,10 +131,32 @@ public class TreeMutator{
 	}
 
 	public String removeIndividual(final FLEFRecord individual, final String currentRootId){
-		if(individual == null)
-			return currentRootId;
+		final String targetId = (individual != null? individual.getId(): null);
+		final String newRootId = (targetId != null? getFallbackFocusId(targetId, currentRootId): currentRootId);
 
-		final String targetId = individual.getId();
+		removeEntity(individual, currentRootId);
+
+		return newRootId;
+	}
+
+	@Override
+	protected void onRelationshipAdded(final String subjectId, final String targetId, final String relationshipId){
+		// Targeted Delta-Update in Repository
+		treeService.getRepository().notifyRelationshipAdded(subjectId, targetId, relationshipId);
+	}
+
+	@Override
+	protected void onRelationshipRemoved(final String relationshipId){
+		treeService.getRepository().notifyRelationshipRemoved(relationshipId);
+	}
+
+	@Override
+	protected void onEntityRemoved(final String entityId){
+		treeService.getRepository().invalidateIndividual(entityId);
+	}
+
+	@Override
+	protected String getFallbackFocusId(final String targetId, final String currentRootId){
 		String newRootId = currentRootId;
 		if(targetId.equals(currentRootId)){
 			newRootId = findFallbackRoot(targetId);
@@ -176,24 +169,6 @@ public class TreeMutator{
 				}
 			}
 		}
-
-		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
-		final List<FLEFRecord> relationshipsToRemove = new ArrayList<>();
-		for(final FLEFRecord relationship : relationships){
-			final String subjectId = relationship.extractReferencedId(TAG_SUBJECT, IndividualHandler.TYPE);
-			final String relTargetId = relationship.extractReferencedId(TAG_TARGET, IndividualHandler.TYPE);
-			if(targetId.equals(subjectId) || targetId.equals(relTargetId))
-				relationshipsToRemove.add(relationship);
-		}
-		for(final FLEFRecord relationship : relationshipsToRemove){
-			model.removeRecord(relationship.getId());
-			treeService.getRepository().notifyRelationshipRemoved(relationship.getId());
-		}
-
-		model.removeRecord(individual.getId());
-		treeService.getRepository().invalidateIndividual(individual.getId());
-
-		invalidateAndNotifyTreeChanged(newRootId);
 		return newRootId;
 	}
 
@@ -236,23 +211,14 @@ public class TreeMutator{
 		return null;
 	}
 
-	public void removeRelationships(final List<String> relationshipIds){
-		if(relationshipIds == null || relationshipIds.isEmpty())
-			return;
-
-		for(final String relationshipId : relationshipIds){
-			model.removeRecord(relationshipId);
-			treeService.getRepository().notifyRelationshipRemoved(relationshipId);
-		}
-	}
-
-	private void notifyTreeChanged(final String rootIndividualId){
-		if(listener != null)
-			listener.onTreeStructureChanged(rootIndividualId);
-	}
-
+	@Override
 	public void invalidateAndNotifyTreeChanged(final String rootIndividualId){
+		// Reset repository indices and clear individual flyweight cache
+		treeService.getRepository()
+			.invalidateIndices();
+
 		treeService.invalidateIndices();
+
 		if(listener != null)
 			listener.onTreeStructureChanged(rootIndividualId);
 	}

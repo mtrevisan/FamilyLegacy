@@ -57,12 +57,10 @@ import java.awt.event.MouseEvent;
 import java.awt.geom.Path2D;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.Serial;
 import java.nio.charset.StandardCharsets;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 
 /**
@@ -73,10 +71,6 @@ import java.util.Objects;
  * standard edit dialog for the backing record.
  */
 public class GroupDossierPanel extends JPanel{
-
-	@Serial
-	private static final long serialVersionUID = 8301924750192837461L;
-
 
 	private static final Color HEADER_BACKGROUND = new Color(240, 236, 228);
 	private static final Color HEADER_BACKGROUND_HOVER = new Color(232, 226, 214);
@@ -236,10 +230,6 @@ public class GroupDossierPanel extends JPanel{
 
 	private final class SectionPanel extends JPanel{
 
-		@Serial
-		private static final long serialVersionUID = -8910273510289374612L;
-
-
 		private final GroupDossierSectionType sectionType;
 		private final JPanel contentArea;
 		private final ArrowIndicator arrowIndicator;
@@ -318,10 +308,6 @@ public class GroupDossierPanel extends JPanel{
 	 * ====================================================================== */
 
 	private final class EntryRow extends JPanel{
-
-		@Serial
-		private static final long serialVersionUID = -3829104710238475612L;
-
 
 		private final DossierEntry entry;
 		private final Color baseBackground;
@@ -411,9 +397,6 @@ public class GroupDossierPanel extends JPanel{
 	 * ====================================================================== */
 
 	private static final class ArrowIndicator extends JComponent{
-
-		@Serial
-		private static final long serialVersionUID = 4091823047102938472L;
 
 		private static final int SIZE = 8;
 		private static final int PADDING_Y = 4;

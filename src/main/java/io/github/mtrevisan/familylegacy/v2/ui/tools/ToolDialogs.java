@@ -32,7 +32,6 @@ import javax.swing.InputMap;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import java.awt.event.ActionEvent;
-import java.io.Serial;
 
 
 /**
@@ -49,8 +48,7 @@ public final class ToolDialogs{
 	private static final String ACTION_CLOSE = "closeDialog";
 
 
-	private ToolDialogs(){
-	}
+	private ToolDialogs(){}
 
 
 	/**
@@ -76,9 +74,6 @@ public final class ToolDialogs{
 			.getActionMap();
 		inputMap.put(GUIHelper.ESCAPE_STROKE, ACTION_CLOSE);
 		actionMap.put(ACTION_CLOSE, new AbstractAction(){
-			@Serial
-			private static final long serialVersionUID = 8512390128374019283L;
-
 			@Override
 			public void actionPerformed(final ActionEvent e){
 				dialog.dispose();

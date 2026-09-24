@@ -55,9 +55,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.Serial;
 import java.nio.charset.StandardCharsets;
-import java.util.Objects;
 
 
 /*
@@ -90,10 +88,6 @@ Toggle toolbar → refresh (ricostruzione del modello con il filtro).
  * {@link TemporalZoomController}, so there is no horizontal scrollbar.
  */
 public final class TemporalProjectionPanel extends JPanel implements TreeChangeListener{
-
-	@Serial
-	private static final long serialVersionUID = 7192849102849102942L;
-
 
 	/** Minimum height, in pixels, reserved for the content canvas. */
 	private static final int MIN_CONTENT_HEIGHT = 100;

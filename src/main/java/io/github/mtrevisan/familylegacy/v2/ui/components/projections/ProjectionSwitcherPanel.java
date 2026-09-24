@@ -52,9 +52,7 @@ import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.Serial;
 import java.nio.charset.StandardCharsets;
-import java.util.Objects;
 import java.util.function.Consumer;
 
 
@@ -87,10 +85,6 @@ import java.util.function.Consumer;
  * frame identical to every subsequent one.
  */
 public final class ProjectionSwitcherPanel extends JPanel{
-
-	@Serial
-	private static final long serialVersionUID = 4815718233118059642L;
-
 
 	/** Default generation depth used when loading the tree or the graph. */
 	private static final int DEFAULT_MAX_ANCESTORS = 2;
@@ -137,11 +131,10 @@ public final class ProjectionSwitcherPanel extends JPanel{
 	private Consumer<ProjectionType> projectionChangeListener;
 
 
-	public ProjectionSwitcherPanel(final FLEFModel model){
+	public ProjectionSwitcherPanel(final TreeType treeType, final FLEFModel model){
 		if(model == null)
 			throw new IllegalArgumentException("Model must not be null");
 
-		final TreeType treeType = TreeType.BIOLOGICAL;
 		final String[] allowedTypes = computeAllowedRelationshipTypes(treeType);
 		repository = new GenealogyRepository(allowedTypes, model);
 		this.treeGraphPanel = new IndividualTreeGraphPanel(TreeLayout.VERTICAL, TREE_LAYOUT_ENGINE, repository,
@@ -297,14 +290,13 @@ public final class ProjectionSwitcherPanel extends JPanel{
 	}
 
 	/**
-	 * Opens the edit dialog for the currently selected entity in the
-	 * active projection.
+	 * Opens the edit dialog for the given entity.
 	 */
-	public void editCurrentSelection(){
+	public void editEntity(final String id){
 		if(currentPanel == treeGraphPanel)
-			treeGraphPanel.editCurrentSelection();
+			treeGraphPanel.editEntity(id);
 		else
-			egoPanel.editCurrentSelection();
+			egoPanel.editEntity(id);
 	}
 
 	/**
@@ -339,6 +331,16 @@ public final class ProjectionSwitcherPanel extends JPanel{
 		return currentPanel;
 	}
 
+	/**
+	 * Returns the panel (e.g., {@code IndividualPanel} or {@code GroupPanel}) currently selected
+	 * within the active projection view, or {@code null} if no panel is selected.
+	 */
+	public Component getSelectedPanel(){
+		if(currentPanel == treeGraphPanel)
+			return treeGraphPanel.getSelectedPanel();
+		return egoPanel.getSelectedPanel();
+	}
+
 	public IndividualTreeGraphPanel getTreeGraphPanel(){
 		return treeGraphPanel;
 	}
@@ -369,6 +371,21 @@ public final class ProjectionSwitcherPanel extends JPanel{
 
 	public GenealogyRepository getRepository(){
 		return repository;
+	}
+
+	/**
+	 * Removes the specified entity from the currently active projection view.
+	 *
+	 * @param id the id of the entity to remove
+	 */
+	public void removeEntity(final String id){
+		if(id == null)
+			return;
+
+		if(currentPanel == treeGraphPanel)
+			treeGraphPanel.removeEntity(id);
+		else
+			egoPanel.removeEntity(id);
 	}
 
 
@@ -467,9 +484,6 @@ public final class ProjectionSwitcherPanel extends JPanel{
 		final KeyStroke stroke, final ProjectionType type, final String actionKey){
 		inputMap.put(stroke, actionKey);
 		actionMap.put(actionKey, new AbstractAction(){
-			@Serial
-			private static final long serialVersionUID = 8512390128374019283L;
-
 			@Override
 			public void actionPerformed(final ActionEvent e){
 				setProjection(type);
@@ -556,7 +570,7 @@ public final class ProjectionSwitcherPanel extends JPanel{
 		final FLEFModel model = parser.parse(content);
 
 		SwingUtilities.invokeLater(() -> {
-			final ProjectionSwitcherPanel panel = new ProjectionSwitcherPanel(model);
+			final ProjectionSwitcherPanel panel = new ProjectionSwitcherPanel(TreeType.BIOLOGICAL, model);
 			panel.loadRoot(individualId);
 
 			final JFrame frame = new JFrame("Projection Switcher View");

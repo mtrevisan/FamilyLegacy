@@ -24,11 +24,14 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.tools.individuals;
 
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.help.ShortcutRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolOperation;
 
 import javax.swing.JOptionPane;
+import javax.swing.KeyStroke;
 import java.util.List;
 
 
@@ -41,35 +44,47 @@ public final class DeleteIndividualTool implements ToolOperation{
 
 	@Override
 	public String getName(){
-		return "Delete Individual…";
+		return ShortcutRegistry.EDIT_DELETE.action();
+	}
+
+	@Override
+	public KeyStroke getAccelerator(){
+		return ShortcutRegistry.EDIT_DELETE.keyStroke();
 	}
 
 	@Override
 	public void run(final ToolContext context){
 		final String id = context.selectedEntityId();
-		if(id == null){
-			JOptionPane.showMessageDialog(context.owner(),
-				"No individual is selected.",
-				"Delete Individual", JOptionPane.WARNING_MESSAGE);
-
+		if(id == null)
 			return;
-		}
 
-		final FLEFRecord individual = context.model().getRecordById(id);
+		final FLEFModel model = context.model();
+		final FLEFRecord individual = model.getRecordById(id);
 		if(individual == null)
 			return;
 
-		final List<String> relIds = IndividualHelper.relationshipIdsForIndividual(
-			context.model(), id);
-		final String message = "Delete individual "
-			+ IndividualHelper.displayName(individual) + " [" + id + "]?\n"
-			+ relIds.size() + " relationship(s) will also be removed.";
-		final int confirm = JOptionPane.showConfirmDialog(context.owner(), message,
-			"Confirm Deletion", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
-		if(confirm != JOptionPane.YES_OPTION)
-			return;
+		final List<String> relationshipIds = IndividualHelper.relationshipIdsForIndividual(id, model);
+		final String displayName = IndividualHelper.displayName(individual);
 
-		IndividualHelper.deleteIndividualCascade(context.model(), id);
+		final int relationshipCount = relationshipIds.size();
+		final String message = "Are you sure you want to remove individual " + displayName + " [" + id + "]?\n"
+			+ relationshipCount
+			+ (relationshipCount == 1? " relationship link will also be removed.": " relationship links will also be removed.");
+		final int confirm = JOptionPane.showConfirmDialog(
+			context.owner(),
+			message,
+			"Confirm Removal",
+			JOptionPane.YES_NO_OPTION,
+			JOptionPane.WARNING_MESSAGE
+		);
+		if(confirm == JOptionPane.YES_OPTION){
+			if(context.dispatcher() != null)
+				context.performRemove(id);
+			else{
+				IndividualHelper.deleteIndividual(id, model);
+				context.loadRoot(id);
+			}
+		}
 	}
 
 	@Override

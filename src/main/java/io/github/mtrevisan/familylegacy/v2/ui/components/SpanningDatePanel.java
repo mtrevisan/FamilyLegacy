@@ -34,7 +34,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.border.TitledBorder;
 import java.awt.Window;
-import java.io.Serial;
 
 
 /**
@@ -51,10 +50,6 @@ import java.io.Serial;
  * </pre>
  */
 public class SpanningDatePanel extends JPanel{
-
-	@Serial
-	private static final long serialVersionUID = 6538587318116402553L;
-
 
 	private static final String TAG_FROM = "FROM";
 	private static final String TAG_TO = "TO";

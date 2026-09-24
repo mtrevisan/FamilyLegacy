@@ -49,7 +49,6 @@ import javax.swing.JPanel;
 import javax.swing.border.TitledBorder;
 import java.awt.Window;
 import java.io.IOException;
-import java.io.Serial;
 
 
 /**
@@ -97,10 +96,6 @@ import java.io.Serial;
  * Tab 10 (Audit): audit
  */
 public class EventRecordDialog extends BaseRecordDialog{
-
-	@Serial
-	private static final long serialVersionUID = -9191829528682252778L;
-
 
 	private static final String DOT = ".";
 

@@ -57,7 +57,6 @@ import javax.swing.BorderFactory;
 import javax.swing.JPanel;
 import java.awt.Window;
 import java.io.IOException;
-import java.io.Serial;
 
 
 /**
@@ -105,10 +104,6 @@ import java.io.Serial;
  * Tab 10 (Audit): audit
  */
 public class ResearchQuestionRecordDialog extends BaseRecordDialog{
-
-	@Serial
-	private static final long serialVersionUID = 4693851314612375503L;
-
 
 	private static final String TAG_TITLE = "TITLE";
 	private static final String TAG_QUESTION = "QUESTION";

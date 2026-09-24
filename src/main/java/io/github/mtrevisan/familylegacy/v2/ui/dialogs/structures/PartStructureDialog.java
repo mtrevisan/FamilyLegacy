@@ -37,7 +37,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JPanel;
 import java.awt.Window;
-import java.io.Serial;
 
 
 /**
@@ -58,10 +57,6 @@ import java.io.Serial;
  * </pre>
  */
 public class PartStructureDialog extends BaseRecordDialog{
-
-	@Serial
-	private static final long serialVersionUID = 3227495851403391698L;
-
 
 	private static final String TAG_TYPE = "TYPE";
 	private static final String TAG_VALUE = "VALUE";

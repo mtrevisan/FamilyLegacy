@@ -34,7 +34,6 @@ import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
-import java.io.Serial;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -47,10 +46,6 @@ import java.util.function.Consumer;
  * the current state of the store.
  */
 public final class BookmarkMenu extends JMenu{
-
-	@Serial
-	private static final long serialVersionUID = 5129384756102938475L;
-
 
 	/** Callback that captures the current view as a bookmark. */
 	public interface Capture{

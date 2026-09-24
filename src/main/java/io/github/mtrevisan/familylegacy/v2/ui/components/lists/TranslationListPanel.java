@@ -38,7 +38,6 @@ import javax.swing.JPanel;
 import java.awt.BorderLayout;
 import java.awt.Dialog;
 import java.awt.Window;
-import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -47,10 +46,6 @@ import java.util.List;
  * Panel for managing a list of translations with value and locale.
  */
 public class TranslationListPanel extends AbstractListPanel<FLEFRecord>{
-
-	@Serial
-	private static final long serialVersionUID = -2934528588234172844L;
-
 
 	private static final String TAG_TEXT = "TEXT";
 	private static final String TAG_LOCALE = "LOCALE";

@@ -52,7 +52,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JPanel;
 import java.awt.Window;
-import java.io.Serial;
 import java.util.function.Consumer;
 
 
@@ -79,10 +78,6 @@ import java.util.function.Consumer;
  * Tab 10 (Audit): audit
  */
 public class ContextImpactRecordDialog extends BaseRecordDialog{
-
-	@Serial
-	private static final long serialVersionUID = -2171561180026896666L;
-
 
 	private static final String TAG_CONTEXT = "CONTEXT";
 	private static final String TAG_TARGET = "TARGET";

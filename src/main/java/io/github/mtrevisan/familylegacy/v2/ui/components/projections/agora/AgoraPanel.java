@@ -60,14 +60,12 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.Serial;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Objects;
 import java.util.function.Consumer;
 
 
@@ -96,10 +94,6 @@ import java.util.function.Consumer;
  * shared by the chronomap and its {@link PlaceCoordinateResolver}.
  */
 public final class AgoraPanel extends JPanel{
-
-	@Serial
-	private static final long serialVersionUID = 6182938471029384756L;
-
 
 	/** Hard cap on human lifespan, used when no death record exists. */
 	private static final int MAX_PLAUSIBLE_AGE_YEARS = 110;
@@ -488,9 +482,6 @@ public final class AgoraPanel extends JPanel{
 	 * ====================================================================== */
 
 	private static final class AgoraTableModel extends AbstractTableModel{
-
-		@Serial
-		private static final long serialVersionUID = -7182938475610293847L;
 
 		private static final String[] COLUMNS = {"Name", "Place", "Reason", "Age"};
 

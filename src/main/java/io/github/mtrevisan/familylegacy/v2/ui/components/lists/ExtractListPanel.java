@@ -41,7 +41,6 @@ import javax.swing.JPanel;
 import java.awt.BorderLayout;
 import java.awt.Dialog;
 import java.awt.Window;
-import java.io.Serial;
 import java.util.List;
 
 
@@ -49,10 +48,6 @@ import java.util.List;
  * Panel for managing a list of extracts with text, type, locale, and notes.
  */
 public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
-
-	@Serial
-	private static final long serialVersionUID = -259585503419013969L;
-
 
 	private static final String TAG_DOCUMENT = "DOCUMENT";
 	private static final String TAG_DOCUMENT_PART = "DOCUMENT_PART";

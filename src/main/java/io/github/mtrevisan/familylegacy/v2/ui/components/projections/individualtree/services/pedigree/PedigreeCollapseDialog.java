@@ -38,7 +38,6 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Window;
-import java.io.Serial;
 import java.util.List;
 import java.util.Locale;
 
@@ -56,10 +55,6 @@ import java.util.Locale;
  * The dialog is read-only: it does not modify the model nor the tree.
  */
 public class PedigreeCollapseDialog extends JDialog{
-
-	@Serial
-	private static final long serialVersionUID = 8823418394192481052L;
-
 
 	private static final Font MONO_FONT = new Font("Monospaced", Font.PLAIN, 12);
 
@@ -121,8 +116,8 @@ public class PedigreeCollapseDialog extends JDialog{
 		setLayout(new BorderLayout());
 		add(main, BorderLayout.CENTER);
 
-		getRootPane()
-			.setDefaultButton(closeButton);
+		getRootPane().setDefaultButton(closeButton);
+		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 	}
 
 

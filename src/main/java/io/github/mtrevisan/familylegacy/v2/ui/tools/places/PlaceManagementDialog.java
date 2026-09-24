@@ -36,6 +36,7 @@ import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -212,13 +213,14 @@ public final class PlaceManagementDialog extends JDialog{
 		final Window owner = this;
 		final PlaceHandler handler = PlaceHandler.getInstance();
 		final BaseRecordDialog dialog;
+		final FLEFModel model = context.model();
 		if(placeId == null)
-			dialog = handler.createNewDialog(owner, context.model());
+			dialog = handler.createNewDialog(owner, model);
 		else{
-			final FLEFRecord record = context.model().getRecordById(placeId);
+			final FLEFRecord record = model.getRecordById(placeId);
 			if(record == null)
 				return;
-			dialog = handler.createEditDialog(owner, context.model(), record);
+			dialog = handler.createEditDialog(owner, model, record);
 		}
 		dialog.setVisible(true);
 		if(dialog.isSaved())
@@ -229,14 +231,18 @@ public final class PlaceManagementDialog extends JDialog{
 		final String placeId = selectedPlaceId();
 		if(placeId == null)
 			return;
-		final int confirm = javax.swing.JOptionPane.showConfirmDialog(this,
+
+		final int confirm = JOptionPane.showConfirmDialog(this,
 			"Delete place " + placeId + "?",
 			"Confirm Deletion",
-			javax.swing.JOptionPane.YES_NO_OPTION,
-			javax.swing.JOptionPane.WARNING_MESSAGE);
-		if(confirm != javax.swing.JOptionPane.YES_OPTION)
+			JOptionPane.YES_NO_OPTION,
+			JOptionPane.WARNING_MESSAGE);
+		if(confirm != JOptionPane.YES_OPTION)
 			return;
-		context.model().removeRecord(placeId);
+
+		final FLEFModel model = context.model();
+		model.removeRecord(placeId);
+
 		reload();
 	}
 

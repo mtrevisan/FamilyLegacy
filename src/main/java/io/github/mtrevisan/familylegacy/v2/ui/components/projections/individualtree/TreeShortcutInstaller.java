@@ -33,7 +33,6 @@ import javax.swing.InputMap;
 import javax.swing.JComponent;
 import javax.swing.KeyStroke;
 import java.awt.event.ActionEvent;
-import java.io.Serial;
 
 
 /**
@@ -64,7 +63,7 @@ public final class TreeShortcutInstaller{
 		install(component, ShortcutRegistry.TREE_TOGGLE_LAYOUT.keyStroke(), "toggleTreeLayout", toggleLayout);
 		install(component, GUIHelper.CTRL_K_STROKE, "openKinshipDialog", openKinship);
 		install(component, GUIHelper.CTRL_P_STROKE, "showPedigreeCollapse", showCollapse);
-		install(component, ShortcutRegistry.TREE_TOGGLE_LIFESPAN.keyStroke(), "toggleLifespansStrip", toggleStrip);
+		install(component, ShortcutRegistry.TREE_TOGGLE_LIFESPAN_EVENTS_STRIP.keyStroke(), "toggleLifespansStrip", toggleStrip);
 	}
 
 
@@ -74,9 +73,6 @@ public final class TreeShortcutInstaller{
 		final ActionMap actionMap = component.getActionMap();
 		inputMap.put(stroke, actionKey);
 		actionMap.put(actionKey, new AbstractAction(){
-			@Serial
-			private static final long serialVersionUID = -2917354001940760930L;
-
 			@Override
 			public void actionPerformed(final ActionEvent e){
 				action.run();

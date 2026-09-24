@@ -255,6 +255,7 @@ public final class PlaceRelationshipsDialog extends JDialog{
 			JOptionPane.YES_NO_OPTION);
 		if(option != JOptionPane.YES_OPTION)
 			return;
+
 		final String id = (relationshipId != null? relationshipId: "<new>");
 		JOptionPane.showMessageDialog(this,
 			"Record editor for relationship " + id + " is not wired yet.",
@@ -266,6 +267,7 @@ public final class PlaceRelationshipsDialog extends JDialog{
 		final String relationshipId = selectedRelationshipId();
 		if(relationshipId == null)
 			return;
+
 		final int confirm = JOptionPane.showConfirmDialog(this,
 			"Delete place relationship " + relationshipId + "?",
 			"Confirm Deletion",
@@ -273,7 +275,9 @@ public final class PlaceRelationshipsDialog extends JDialog{
 			JOptionPane.WARNING_MESSAGE);
 		if(confirm != JOptionPane.YES_OPTION)
 			return;
-		context.model().removeRecord(relationshipId);
+
+		final FLEFModel model = context.model();
+		model.removeRecord(relationshipId);
 		reload();
 	}
 

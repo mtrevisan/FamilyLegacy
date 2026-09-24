@@ -34,8 +34,7 @@ import java.util.List;
  */
 public final class GroupToolRegistry{
 
-	private GroupToolRegistry(){
-	}
+	private GroupToolRegistry(){}
 
 
 	/** Primary CRUD tools, in menu order. */

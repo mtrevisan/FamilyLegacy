@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.tools.places;
 
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.places.PlaceHierarchyPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolOperation;
@@ -55,7 +56,8 @@ public final class PlaceHierarchyTool implements ToolOperation{
 		if(hierarchyFrame == null){
 			hierarchyFrame = new JFrame("Place Hierarchy");
 			hierarchyFrame.setLayout(new BorderLayout());
-			hierarchyPanel = new PlaceHierarchyPanel(context.model());
+			final FLEFModel model = context.model();
+			hierarchyPanel = new PlaceHierarchyPanel(model);
 			hierarchyFrame.add(hierarchyPanel, BorderLayout.CENTER);
 			hierarchyFrame.setSize(1000, 700);
 			hierarchyFrame.setLocationRelativeTo(context.owner());

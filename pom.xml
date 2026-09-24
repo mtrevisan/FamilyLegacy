@@ -47,7 +47,7 @@
 
 		<!-- Profiles & Build -->
 		<!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-deploy-plugin -->
-		<maven-deploy-plugin.version>3.1.4</maven-deploy-plugin.version>
+		<maven-deploy-plugin.version>3.2.0</maven-deploy-plugin.version>
 		<!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-gpg-plugin -->
 		<maven-gpg-plugin.version>3.2.8</maven-gpg-plugin.version>
 		<!-- https://mvnrepository.com/artifact/org.sonatype.plugins/nexus-staging-maven-plugin -->
@@ -93,7 +93,7 @@
 
 		<!-- Hibernate -->
 		<!-- https://mvnrepository.com/artifact/org.hibernate.orm/hibernate-core -->
-		<hibernate.hibernate-core.version>7.4.8.Final</hibernate.hibernate-core.version>
+		<hibernate.hibernate-core.version>7.4.9.Final</hibernate.hibernate-core.version>
 
 		<!-- Image processing -->
 		<!-- https://mvnrepository.com/artifact/org.bytedeco/opencv -->
@@ -138,8 +138,20 @@
 
 		<!-- TwelveMonkeys ImageIO -->
 		<!-- https://mvnrepository.com/artifact/com.twelvemonkeys.imageio/imageio-core -->
+		<!-- https://mvnrepository.com/artifact/com.twelvemonkeys.imageio/imageio-batik -->
+		<!-- https://mvnrepository.com/artifact/com.twelvemonkeys.imageio/imageio-bmp -->
+		<!-- https://mvnrepository.com/artifact/com.twelvemonkeys.imageio/imageio-icns -->
+		<!-- https://mvnrepository.com/artifact/com.twelvemonkeys.imageio/imageio-jpeg -->
+		<!-- https://mvnrepository.com/artifact/com.twelvemonkeys.imageio/imageio-pict -->
+		<!-- https://mvnrepository.com/artifact/com.twelvemonkeys.imageio/imageio-pnm -->
 		<!-- https://mvnrepository.com/artifact/com.twelvemonkeys.imageio/imageio-psd -->
-		<twelvemonkeys.imageio-core.version>3.15.0</twelvemonkeys.imageio-core.version>
+		<!-- https://mvnrepository.com/artifact/com.twelvemonkeys.imageio/imageio-tiff -->
+		<!-- https://mvnrepository.com/artifact/com.twelvemonkeys.imageio/imageio-webp -->
+		<twelvemonkeys.imageio-core.version>3.15.2</twelvemonkeys.imageio-core.version>
+		<!-- https://mvnrepository.com/artifact/org.apache.xmlgraphics/batik-transcoder -->
+		<!-- https://mvnrepository.com/artifact/org.apache.xmlgraphics/batik-svggen -->
+		<!-- https://mvnrepository.com/artifact/org.apache.xmlgraphics/batik-codec -->
+		<apache.xmlgraphics.batik.version>1.19</apache.xmlgraphics.batik.version>
 
 		<!-- Logging -->
 		<!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-api -->
@@ -479,12 +491,47 @@
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
+			<artifactId>imageio-batik</artifactId>
+			<version>${twelvemonkeys.imageio-core.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.xmlgraphics</groupId>
+			<artifactId>batik-transcoder</artifactId>
+			<version>${apache.xmlgraphics.batik.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.xmlgraphics</groupId>
+			<artifactId>batik-svggen</artifactId>
+			<version>${apache.xmlgraphics.batik.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.xmlgraphics</groupId>
+			<artifactId>batik-codec</artifactId>
+			<version>${apache.xmlgraphics.batik.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-bmp</artifactId>
 			<version>${twelvemonkeys.imageio-core.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
+			<artifactId>imageio-icns</artifactId>
+			<version>${twelvemonkeys.imageio-core.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-jpeg</artifactId>
+			<version>${twelvemonkeys.imageio-core.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.twelvemonkeys.imageio</groupId>
+			<artifactId>imageio-pict</artifactId>
+			<version>${twelvemonkeys.imageio-core.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.twelvemonkeys.imageio</groupId>
+			<artifactId>imageio-pnm</artifactId>
 			<version>${twelvemonkeys.imageio-core.version}</version>
 		</dependency>
 		<dependency>

@@ -42,7 +42,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import javax.swing.JPanel;
 import java.awt.Window;
 import java.io.IOException;
-import java.io.Serial;
 
 
 /**
@@ -70,10 +69,6 @@ import java.io.Serial;
  * Tab 10 (Audit): audit
  */
 public class RepositoryRecordDialog extends BaseRecordDialog{
-
-	@Serial
-	private static final long serialVersionUID = 3053114409506763765L;
-
 
 	private static final String TAG_NAME = "NAME";
 	private static final String TAG_CUSTODIAN = "CUSTODIAN";

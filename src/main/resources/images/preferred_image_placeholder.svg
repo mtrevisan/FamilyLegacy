@@ -1,71 +1,25 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!-- Created with Inkscape (http://www.inkscape.org/) -->
-
 <svg
-   width="210mm"
-   height="297mm"
-   viewBox="0 0 210 297"
+   width="590"
+   height="800"
+   viewBox="0 0 156.10416 211.66665"
    version="1.1"
    id="svg1"
-   inkscape:version="1.4.2 (f4327f4, 2025-05-13)"
-   sodipodi:docname="preferred_image_placeholder.svg"
-   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
-   xmlns="http://www.w3.org/2000/svg"
-   xmlns:svg="http://www.w3.org/2000/svg">
-  <sodipodi:namedview
-     id="namedview1"
-     pagecolor="#ffffff"
-     bordercolor="#000000"
-     borderopacity="0.25"
-     inkscape:showpageshadow="2"
-     inkscape:pageopacity="0.0"
-     inkscape:pagecheckerboard="0"
-     inkscape:deskcolor="#d1d1d1"
-     inkscape:document-units="mm"
-     inkscape:zoom="1"
-     inkscape:cx="398"
-     inkscape:cy="437.5"
-     inkscape:window-width="1920"
-     inkscape:window-height="1057"
-     inkscape:window-x="1912"
-     inkscape:window-y="-2"
-     inkscape:window-maximized="1"
-     inkscape:current-layer="layer1"
-     showgrid="false" />
+   xmlns="http://www.w3.org/2000/svg">
+   <title
+      id="title1">preferred image placeholder - unknown</title>
   <defs
-     id="defs1">
-    <rect
-       x="215"
-       y="176"
-       width="325"
-       height="468"
-       id="rect4" />
-    <rect
-       x="151"
-       y="194"
-       width="267"
-       height="290"
-       id="rect3" />
-    <rect
-       x="153.60796"
-       y="231.06838"
-       width="221.87816"
-       height="382.05056"
-       id="rect2" />
-  </defs>
+     id="defs1" />
   <g
-     inkscape:label="Layer 1"
-     inkscape:groupmode="layer"
      id="layer1">
     <rect
-       width="74.33532%"
-       height="71.268234%"
+       width="100%"
+       height="100%"
        fill="#eae6df"
        id="rect1"
        x="0"
        y="0"
-       style="stroke-width:0.933456" />
+       style="stroke-width:1" />
     <text
        xml:space="preserve"
        transform="matrix(0.46691281,0,0,0.46691272,-95.338063,-27.012172)"

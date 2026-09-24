@@ -25,13 +25,11 @@
 package io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.group.GroupData;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.group.GroupListener;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.group.GroupPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.PopupMenuAdapter;
-import io.github.mtrevisan.familylegacy.v2.ui.helpers.RelationClipboard;
+import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
 
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
@@ -43,15 +41,13 @@ import javax.swing.event.PopupMenuEvent;
  */
 public class EgoNetworkGroupPopupMenuFactory implements EntityPopupMenuFactory<GroupPanel, GroupListener>{
 
-
 	@Override
-	public JPopupMenu createPopupMenu(final GroupPanel panel, final GroupListener listener,
-			final FLEFModel model){
+	public JPopupMenu createPopupMenu(final GroupPanel panel, final GroupListener listener, final FLEFModel model){
 		final JMenuItem editItem = new JMenuItem("Edit Group…", 'E');
 		final JMenuItem deleteItem = new JMenuItem("Delete Group", 'D');
+		final JMenuItem pasteItem = new JMenuItem("Paste", 'P');
 		final JMenuItem unlinkItem = new JMenuItem("Unlink Relationship", 'U');
 
-		// Evaluate item states right before display
 		final JPopupMenu popup = new JPopupMenu();
 		popup.addPopupMenuListener(new PopupMenuAdapter(){
 			@Override
@@ -59,25 +55,29 @@ public class EgoNetworkGroupPopupMenuFactory implements EntityPopupMenuFactory<G
 				final GroupData data = panel.getData();
 				final boolean hasData = (data != null && !data.isEmpty());
 
-				// Update paste item state and title based on clipboard content
-				final boolean canPaste = (!hasData && PopupMenuHelper.isPasteAllowed(panel));
-				if(canPaste){
-					final FLEFRecord clippedRecord = RelationClipboard.getInstance()
-						.getRecord();
-					final String clippedName = GroupHandler.getInstance()
-						.getDisplayText(clippedRecord, model);
-				}
+				final ToolContext context = new ToolContext(model, null, () -> panel, null);
 
-				// Enable/disable menu options depending on entity existence and capabilities
+				final boolean canPaste = (!hasData && PopupMenuHelper.isPasteAllowed(model, panel) && context.canPaste());
+				pasteItem.setEnabled(canPaste);
+				if(canPaste){
+					final String clippedName = context.getClippedRecordDisplayText();
+					pasteItem.setText("Paste " + clippedName);
+				}
+				else
+					pasteItem.setText("Paste");
+
 				editItem.setEnabled(hasData);
 				deleteItem.setEnabled(hasData);
+				unlinkItem.setEnabled(hasData);
 			}
 		});
 
-		// Add menu items with their bound callbacks
-		PopupMenuHelper.addMenuItem(popup, editItem, panel, record -> listener.onEntityEdit(record));
+		PopupMenuHelper.addMenuItem(popup, editItem, panel, listener::onEntityEdit);
 		popup.addSeparator();
-		PopupMenuHelper.addMenuItem(popup, deleteItem, panel, record -> listener.onEntityRemove(record));
+		PopupMenuHelper.addMenuItem(popup, deleteItem, panel, listener::onEntityRemove);
+		popup.addSeparator();
+		popup.add(pasteItem);
+		pasteItem.addActionListener(e -> listener.onGroupPaste(panel));
 		popup.addSeparator();
 		PopupMenuHelper.addMenuItem(popup, unlinkItem, panel, record -> listener.onGroupUnlink(panel, record));
 

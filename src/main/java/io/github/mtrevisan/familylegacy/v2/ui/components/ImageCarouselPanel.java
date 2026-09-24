@@ -47,7 +47,6 @@ import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -57,10 +56,6 @@ import java.util.List;
  * The thumbnails are loaded in the background to avoid blocking the UI.
  */
 public class ImageCarouselPanel extends JPanel{
-
-	@Serial
-	private static final long serialVersionUID = 8132815632562553085L;
-
 
 	private static final int THUMBNAIL_SIZE = 80;
 	private static final int GAP = 4;
@@ -208,9 +203,6 @@ public class ImageCarouselPanel extends JPanel{
 	private record ThumbnailInfo(String uri, ImageIcon icon){}
 
 	private static class ThumbnailCellRenderer extends DefaultListCellRenderer{
-		@Serial
-		private static final long serialVersionUID = 8155363623055502967L;
-
 		@Override
 		public Component getListCellRendererComponent(final JList<?> list, final Object value, final int index,
 				final boolean isSelected, final boolean cellHasFocus){

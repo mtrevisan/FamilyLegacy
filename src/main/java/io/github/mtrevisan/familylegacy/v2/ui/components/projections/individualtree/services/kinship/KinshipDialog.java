@@ -43,7 +43,6 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Window;
-import java.io.Serial;
 import java.util.List;
 import java.util.Locale;
 
@@ -67,10 +66,6 @@ import java.util.Locale;
  * time and does not modify the model.
  */
 public class KinshipDialog extends JDialog{
-
-	@Serial
-	private static final long serialVersionUID = 5510483225841003492L;
-
 
 	private static final String DEFAULT_FONT_FAMILY = "Monospaced";
 	private static final int LABEL_COLUMN_WIDTH = 90;
@@ -172,8 +167,8 @@ public class KinshipDialog extends JDialog{
 		calculateButton.addActionListener(e -> onCalculate());
 		closeButton.addActionListener(e -> dispose());
 
-		getRootPane()
-			.setDefaultButton(calculateButton);
+		getRootPane().setDefaultButton(calculateButton);
+		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 	}
 
 	private static JPanel buildPickerRow(final String title, final EntityField field){

@@ -58,12 +58,10 @@ import java.awt.event.MouseEvent;
 import java.awt.geom.Path2D;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.Serial;
 import java.nio.charset.StandardCharsets;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 
 /**
@@ -87,10 +85,6 @@ import java.util.Objects;
  * the user selects an individual in the host view.
  */
 public class IndividualDossierPanel extends JPanel{
-
-	@Serial
-	private static final long serialVersionUID = 7291047591038475612L;
-
 
 	private static final Color HEADER_BACKGROUND = new Color(240, 236, 228);
 	private static final Color HEADER_BACKGROUND_HOVER = new Color(232, 226, 214);
@@ -288,10 +282,6 @@ public class IndividualDossierPanel extends JPanel{
 	 */
 	private final class SectionPanel extends JPanel{
 
-		@Serial
-		private static final long serialVersionUID = -8910273510289374611L;
-
-
 		private final DossierSectionType sectionType;
 		private final JPanel headerBar;
 		private final JPanel contentArea;
@@ -386,9 +376,6 @@ public class IndividualDossierPanel extends JPanel{
 	 */
 	private static final class ArrowIndicator extends JComponent{
 
-		@Serial
-		private static final long serialVersionUID = 4091823047102938471L;
-
 		/** Side of the triangle, in pixels. */
 		private static final int SIZE = 8;
 		/** Vertical padding used to center the triangle in the header. */
@@ -452,10 +439,6 @@ public class IndividualDossierPanel extends JPanel{
 	 * standard edit dialog for that record.
 	 */
 	private final class EntryRow extends JPanel{
-
-		@Serial
-		private static final long serialVersionUID = -3829104710238475611L;
-
 
 		private final DossierEntry entry;
 		private final Color baseBackground;

@@ -41,7 +41,6 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import java.awt.Window;
-import java.io.Serial;
 
 
 /**
@@ -80,10 +79,6 @@ import java.io.Serial;
  * Tab 9 (Privacy): privacy
  */
 public class SourceCitationDialog extends BaseRecordDialog{
-
-	@Serial
-	private static final long serialVersionUID = -7024588390352183760L;
-
 
 	private static final String TAG_SOURCE = "SOURCE";
 	private static final String TAG_LOCATOR = "LOCATOR";

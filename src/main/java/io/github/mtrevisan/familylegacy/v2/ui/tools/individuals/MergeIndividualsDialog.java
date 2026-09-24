@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.tools.individuals;
 
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.RecordSelectionDialog;
@@ -183,8 +184,9 @@ public final class MergeIndividualsDialog extends JDialog{
 
 	private void chooseSource(){
 		final FLEFRecord[] chosen = new FLEFRecord[1];
+		final FLEFModel model = context.model();
 		final RecordSelectionDialog dialog = RecordSelectionDialog.create(
-			this, context.model(),
+			this, model,
 			(record, handler) -> chosen[0] = record,
 			io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler.class);
 		dialog.setVisible(true);
@@ -198,8 +200,9 @@ public final class MergeIndividualsDialog extends JDialog{
 
 	private void chooseTarget(){
 		final FLEFRecord[] chosen = new FLEFRecord[1];
+		final FLEFModel model = context.model();
 		final RecordSelectionDialog dialog = RecordSelectionDialog.create(
-			this, context.model(),
+			this, model,
 			(record, handler) -> chosen[0] = record,
 			io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler.class);
 		dialog.setVisible(true);
@@ -212,8 +215,8 @@ public final class MergeIndividualsDialog extends JDialog{
 	}
 
 	private void updatePreview(final FLEFRecord individual, final JLabel label){
-		final IndividualHelper.MergePreview preview =
-			IndividualHelper.buildMergePreview(context.model(), individual.getId());
+		final FLEFModel model = context.model();
+		final IndividualHelper.MergePreview preview = IndividualHelper.buildMergePreview(model, individual.getId());
 		label.setText(String.format(
 			"%s, %s — parents: %d, children: %d, spouses: %d, events: %d",
 			preview.name(), preview.sex() != null? preview.sex(): "sex unknown",
@@ -264,11 +267,11 @@ public final class MergeIndividualsDialog extends JDialog{
 
 		// 4. Delete any remaining relationship that involves the source,
 		//    then delete the source record itself.
-		final List<String> leftovers = IndividualHelper.relationshipIdsForIndividual(
-			context.model(), sourceId);
+		final FLEFModel model = context.model();
+		final List<String> leftovers = IndividualHelper.relationshipIdsForIndividual(sourceId, model);
 		for(final String relId : leftovers)
-			context.model().removeRecord(relId);
-		context.model().removeRecord(sourceId);
+			model.removeRecord(relId);
+		model.removeRecord(sourceId);
 
 		dispose();
 	}
@@ -282,7 +285,8 @@ public final class MergeIndividualsDialog extends JDialog{
 	 */
 	private void repointRelationships(final String sourceId, final String targetId){
 		final Set<String> existingEdges = new LinkedHashSet<>();
-		for(final FLEFRecord rel : context.model().getRecordsByType(
+		final FLEFModel model = context.model();
+		for(final FLEFRecord rel : model.getRecordsByType(
 			IndividualHelper.TYPE_RELATIONSHIP)){
 			final String subject = rel.extractReferencedId(
 				IndividualHelper.TAG_SUBJECT, IndividualHelper.TYPE_INDIVIDUAL);
@@ -296,7 +300,7 @@ public final class MergeIndividualsDialog extends JDialog{
 		}
 
 		final List<String> toRemove = new ArrayList<>();
-		for(final FLEFRecord rel : context.model().getRecordsByType(
+		for(final FLEFRecord rel : model.getRecordsByType(
 			IndividualHelper.TYPE_RELATIONSHIP)){
 			final String subject = rel.extractReferencedId(
 				IndividualHelper.TAG_SUBJECT, IndividualHelper.TYPE_INDIVIDUAL);
@@ -336,7 +340,7 @@ public final class MergeIndividualsDialog extends JDialog{
 			existingEdges.add(key);
 		}
 		for(final String relId : toRemove)
-			context.model().removeRecord(relId);
+			model.removeRecord(relId);
 	}
 
 	private static String edgeKey(final String subject, final String target, final String type){
@@ -352,7 +356,8 @@ public final class MergeIndividualsDialog extends JDialog{
 	 */
 	private void repointEventParticipations(final String sourceId, final String targetId){
 		final Set<String> existingParticipations = new LinkedHashSet<>();
-		for(final FLEFRecord p : context.model().getRecordsByType("event_participation")){
+		final FLEFModel model = context.model();
+		for(final FLEFRecord p : model.getRecordsByType("event_participation")){
 			final String participant = participantId(p);
 			final String eventId = FLEFRecordHelper.getChildValue(p, "event");
 			final String role = FLEFRecordHelper.getChildValue(p, "role");
@@ -361,7 +366,7 @@ public final class MergeIndividualsDialog extends JDialog{
 		}
 
 		final List<String> toRemove = new ArrayList<>();
-		for(final FLEFRecord p : context.model().getRecordsByType("event_participation")){
+		for(final FLEFRecord p : model.getRecordsByType("event_participation")){
 			final String participant = participantId(p);
 			if(!sourceId.equals(participant))
 				continue;
@@ -380,7 +385,7 @@ public final class MergeIndividualsDialog extends JDialog{
 			existingParticipations.add(key);
 		}
 		for(final String id : toRemove)
-			context.model().removeRecord(id);
+			model.removeRecord(id);
 	}
 
 	private static String participantKey(final String participant, final String eventId,
@@ -421,7 +426,8 @@ public final class MergeIndividualsDialog extends JDialog{
 	 */
 	private void repointAttributeRecords(final String sourceId, final String targetId){
 		final Set<String> existingAttributes = new LinkedHashSet<>();
-		for(final FLEFRecord attr : context.model().getRecordsByType("individual_attribute")){
+		final FLEFModel model = context.model();
+		for(final FLEFRecord attr : model.getRecordsByType("individual_attribute")){
 			final String individualId = FLEFRecordHelper.getChildValue(attr, "individual");
 			if(individualId == null || sourceId.equals(individualId))
 				continue;
@@ -431,7 +437,7 @@ public final class MergeIndividualsDialog extends JDialog{
 		}
 
 		final List<String> toRemove = new ArrayList<>();
-		for(final FLEFRecord attr : context.model().getRecordsByType("individual_attribute")){
+		for(final FLEFRecord attr : model.getRecordsByType("individual_attribute")){
 			final String individualId = FLEFRecordHelper.getChildValue(attr, "individual");
 			if(!sourceId.equals(individualId))
 				continue;
@@ -446,7 +452,7 @@ public final class MergeIndividualsDialog extends JDialog{
 			existingAttributes.add(key);
 		}
 		for(final String id : toRemove)
-			context.model().removeRecord(id);
+			model.removeRecord(id);
 	}
 
 	private static String attributeKey(final String individualId, final String type,

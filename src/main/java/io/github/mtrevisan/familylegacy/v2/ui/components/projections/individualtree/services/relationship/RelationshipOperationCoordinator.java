@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualListener;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.TreeContextHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.TreeMutator;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
@@ -95,11 +96,11 @@ public final class RelationshipOperationCoordinator{
 	 * @param mother the mother, or {@code null}
 	 */
 	public void performChildOperation(final Window parent, final FLEFRecord child, final FLEFRecord father,
-		final FLEFRecord mother){
+			final FLEFRecord mother, final IndividualListener listener){
 		if(child == null || father == null && mother == null)
 			return;
 
-		final List<String> selectedTypes = selectChildTypes(parent, father, mother);
+		final List<String> selectedTypes = selectChildTypes(parent, father, mother, listener);
 		if(selectedTypes == null || selectedTypes.isEmpty())
 			return;
 
@@ -127,11 +128,11 @@ public final class RelationshipOperationCoordinator{
 	 *                   one child id)
 	 */
 	public void performParentOperation(final Window parent, final FLEFRecord individual,
-			final TreeContextHelper.Context ctx){
-		if(individual == null || ctx == null || ctx.childrenId == null || ctx.childrenId.isEmpty())
+			final TreeContextHelper.Context ctx, final IndividualListener listener){
+		if(individual == null || ctx == null || ctx.childrenId.isEmpty())
 			return;
 
-		final List<String> selectedTypes = selectParentTypes(parent, ctx.childrenId);
+		final List<String> selectedTypes = selectParentTypes(parent, ctx.childrenId, listener);
 		if(selectedTypes == null || selectedTypes.isEmpty())
 			return;
 
@@ -143,9 +144,10 @@ public final class RelationshipOperationCoordinator{
 	 *                          Type selection helpers
 	 * ====================================================================== */
 
-	private List<String> selectChildTypes(final Window parent, final FLEFRecord father, final FLEFRecord mother){
+	private List<String> selectChildTypes(final Window parent, final FLEFRecord father, final FLEFRecord mother,
+			final IndividualListener listener){
 		if(allowedTypes.length == 1)
-			return Collections.nCopies(2, allowedTypes[0]);
+			return Collections.nCopies((father != null? 1: 0) + (mother != null? 1: 0), allowedTypes[0]);
 
 		final List<RelationshipTypeSelectionDialog.Item> items = new ArrayList<>(2);
 		final IndividualHandler handler = IndividualHandler.getInstance();
@@ -157,13 +159,16 @@ public final class RelationshipOperationCoordinator{
 			? handler.getDisplayText(mother, model)
 			: "Mother");
 
-		items.add(new RelationshipTypeSelectionDialog.Item(fatherLabel, allowedTypes[0]));
-		items.add(new RelationshipTypeSelectionDialog.Item(motherLabel, allowedTypes[0]));
+		if(father != null)
+			items.add(new RelationshipTypeSelectionDialog.Item(father.getId(), fatherLabel, allowedTypes[0]));
+		if(mother != null)
+			items.add(new RelationshipTypeSelectionDialog.Item(mother.getId(), motherLabel, allowedTypes[0]));
 
-		return RelationshipTypeSelectionDialog.showIfNeeded(parent, items, allowedTypes);
+		return RelationshipTypeSelectionDialog.selectRelationshipType(parent, items, allowedTypes, listener, model);
 	}
 
-	private List<String> selectParentTypes(final Window parent, final List<String> childrenIds){
+	private List<String> selectParentTypes(final Window parent, final List<String> childrenIds,
+			final IndividualListener listener){
 		if(allowedTypes.length == 1)
 			return Collections.nCopies(childrenIds.size(), allowedTypes[0]);
 
@@ -175,12 +180,12 @@ public final class RelationshipOperationCoordinator{
 				continue;
 
 			final String label = handler.getDisplayText(child, model);
-			items.add(new RelationshipTypeSelectionDialog.Item(label, allowedTypes[0]));
+			items.add(new RelationshipTypeSelectionDialog.Item(childId, label, allowedTypes[0]));
 		}
 		if(items.isEmpty())
 			return null;
 
-		return RelationshipTypeSelectionDialog.showIfNeeded(parent, items, allowedTypes);
+		return RelationshipTypeSelectionDialog.selectRelationshipType(parent, items, allowedTypes, listener, model);
 	}
 
 }

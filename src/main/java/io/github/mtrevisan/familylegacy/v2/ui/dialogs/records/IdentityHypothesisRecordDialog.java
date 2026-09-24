@@ -50,7 +50,6 @@ import javax.swing.SwingUtilities;
 import java.awt.FlowLayout;
 import java.awt.Window;
 import java.io.IOException;
-import java.io.Serial;
 import java.util.List;
 import java.util.Objects;
 
@@ -88,10 +87,6 @@ import java.util.Objects;
  * Tab 10 (Audit): audit
  */
 public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
-
-	@Serial
-	private static final long serialVersionUID = -3743748718107492890L;
-
 
 	private static final String TAG_IDENTITY = "IDENTITY";
 	private static final String TAG_COMMENT = "COMMENT";

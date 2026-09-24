@@ -331,13 +331,15 @@ public final class FLEFRecordHelper{
 			}
 
 			final FLEFRecord referencedRecord = model.getRecordById(referencedId);
-			if(referencedRecord != null && !Strings.CI.equals(referencedRecord.getTag(), referencedTag)){
-				System.err.println("Referenced tag differs from reference " + reference + " from record " + record);
+			if(referencedRecord != null){
+				if(!Strings.CI.equals(referencedRecord.getTag(), referencedTag)){
+					System.err.println("Referenced tag differs from reference " + reference + " from record " + record);
 
-				continue;
+					continue;
+				}
+
+				referencedRecords.add(referencedRecord);
 			}
-
-			referencedRecords.add(referencedRecord);
 		}
 
 		return referencedRecords;

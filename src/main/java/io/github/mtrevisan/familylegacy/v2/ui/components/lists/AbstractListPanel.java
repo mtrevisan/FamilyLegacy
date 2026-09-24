@@ -43,7 +43,6 @@ import javax.swing.ListSelectionModel;
 import javax.swing.border.TitledBorder;
 import java.awt.Component;
 import java.awt.Window;
-import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -63,10 +62,6 @@ import java.util.List;
  * @param <T>	The type of elements managed in this list.
  */
 public abstract class AbstractListPanel<T> extends JPanel{
-
-	@Serial
-	private static final long serialVersionUID = -2135553287905371181L;
-
 
 	private class ItemCellRenderer extends DefaultListCellRenderer{
 		@Override

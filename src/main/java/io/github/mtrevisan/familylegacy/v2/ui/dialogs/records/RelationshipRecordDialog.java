@@ -48,7 +48,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import java.awt.Window;
 import java.io.IOException;
-import java.io.Serial;
 import java.util.Collections;
 import java.util.List;
 
@@ -90,10 +89,6 @@ import java.util.List;
  * Tab 10 (Audit): audit
  */
 public class RelationshipRecordDialog extends BaseRecordDialog{
-
-	@Serial
-	private static final long serialVersionUID = -6390551689993360839L;
-
 
 	private static final String TAG_SUBJECT = "SUBJECT";
 	private static final String TAG_TARGET = "TARGET";

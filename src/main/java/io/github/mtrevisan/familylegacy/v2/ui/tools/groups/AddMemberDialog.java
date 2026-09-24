@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.tools.groups;
 
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.RecordSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
@@ -156,8 +157,9 @@ public final class AddMemberDialog extends JDialog{
 
 	private void chooseGroup(){
 		final FLEFRecord[] chosen = new FLEFRecord[1];
+		final FLEFModel model = context.model();
 		final RecordSelectionDialog dialog = RecordSelectionDialog.create(
-			this, context.model(),
+			this, model,
 			(record, handler) -> chosen[0] = record,
 			GroupHandler.class);
 		dialog.setVisible(true);
@@ -168,12 +170,13 @@ public final class AddMemberDialog extends JDialog{
 	}
 
 	private void chooseMembers(){
-		final List<String> ids = MultiIndividualPickerDialog.pick(this, context.model());
+		final FLEFModel model = context.model();
+		final List<String> ids = MultiIndividualPickerDialog.pick(this, model);
 		if(ids.isEmpty())
 			return;
 		members.clear();
 		for(final String id : ids){
-			final FLEFRecord record = context.model().getRecordById(id);
+			final FLEFRecord record = model.getRecordById(id);
 			if(record != null)
 				members.add(record);
 		}
@@ -205,8 +208,10 @@ public final class AddMemberDialog extends JDialog{
 		}
 
 		final String role = roleField.getText();
+		final FLEFModel model = context.model();
+		final String groupId = group.getId();
 		for(final FLEFRecord member : members)
-			GroupHelper.createMembership(context.model(), member.getId(), group.getId(),
+			GroupHelper.createMembership(model, member.getId(), groupId,
 				role, RelationshipHandler.ID_PREFIX);
 
 		dispose();

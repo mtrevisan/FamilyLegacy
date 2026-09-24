@@ -44,7 +44,7 @@ import java.util.Map;
 /**
  * Manages entity selection state and spatial keyboard navigation within the ego network.
  */
-class EgoNetworkSelectionModel{
+class EgoNetworkSelectionController{
 
 	private String selectedIndividualId;
 	private String selectedGroupId;
@@ -70,6 +70,37 @@ class EgoNetworkSelectionModel{
 
 	public String getSelectedEntityId(){
 		return (selectedIndividualId != null? selectedIndividualId: selectedGroupId);
+	}
+
+	/**
+	 * Returns the {@link Component} (e.g., {@link IndividualPanel} or {@link GroupPanel})
+	 * currently selected within the ego network projection, or {@code null} if no entity is selected.
+	 */
+	public Component getSelectedPanel(final Map<EgoNode, JPanel> nodeToPanelMap,
+			final Map<FLEFRecord, JPanel> groupToPanelMap){
+		if(selectedIndividualId != null)
+			for(final Map.Entry<EgoNode, JPanel> entry : nodeToPanelMap.entrySet())
+				if(selectedIndividualId.equals(entry.getKey().getEgoId()))
+					return findPanelInstance(entry.getValue(), IndividualPanel.class);
+		if(selectedGroupId != null)
+			for(final Map.Entry<FLEFRecord, JPanel> entry : groupToPanelMap.entrySet())
+				if(selectedGroupId.equals(entry.getKey().getId()))
+					return findPanelInstance(entry.getValue(), GroupPanel.class);
+		return null;
+	}
+
+	private static <T> T findPanelInstance(final Component component, final Class<T> clazz){
+		if(clazz.isInstance(component))
+			return clazz.cast(component);
+
+		if(component instanceof Container container){
+			for(final Component child : container.getComponents()){
+				final T result = findPanelInstance(child, clazz);
+				if(result != null)
+					return result;
+			}
+		}
+		return null;
 	}
 
 	public void clearSelection(){

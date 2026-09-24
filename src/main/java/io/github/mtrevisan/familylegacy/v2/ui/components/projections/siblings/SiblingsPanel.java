@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.v2.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.BoxPanelType;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.TreeIcons;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.EntityPopupMenuFactory;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualData;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualListener;
@@ -35,11 +36,9 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.layout.TreeLayout;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.partners.PartnersPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.helpers.ResourceHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -49,7 +48,6 @@ import javax.swing.WindowConstants;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Container;
-import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -57,11 +55,9 @@ import java.awt.Point;
 import java.awt.RenderingHints;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.Serial;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 
 /**
@@ -69,20 +65,7 @@ import java.util.Objects;
  */
 public class SiblingsPanel extends JPanel{
 
-	@Serial
-	private static final long serialVersionUID = -4829104812837192834L;
-
-
-	private static final int DESCENDANTS_HEIGHT = 12;
-	private static final double DESCENDANTS_ASPECT_RATIO = 3501. / 2662.;
-	private static final Dimension DESCENDANTS_SIZE = new Dimension((int)((float)DESCENDANTS_HEIGHT / DESCENDANTS_ASPECT_RATIO), DESCENDANTS_HEIGHT);
-
-	private static ImageIcon ICON_DESCENDANTS;
-	private static Dimension ICON_DESCENDANTS_DIMENSION;
-
 	private static final int SIBLING_SEPARATION = 14;
-
-	public static final int ARROW_HEIGHT = (int)(DESCENDANTS_SIZE.getHeight() + PartnersPanel.NAVIGATION_ARROW_SEPARATION);
 
 
 	private final FLEFRecord father;
@@ -97,6 +80,8 @@ public class SiblingsPanel extends JPanel{
 	private SiblingsData data;
 
 	private IndividualListener listener;
+
+	// Strategy pattern for popup menu generation
 	private EntityPopupMenuFactory<IndividualPanel, IndividualListener> popupMenuFactory;
 
 
@@ -108,9 +93,6 @@ public class SiblingsPanel extends JPanel{
 
 	private SiblingsPanel(final FLEFRecord father, final FLEFRecord mother, final BoxPanelType boxType,
 			final FLEFModel model, final boolean showPartner, final TreeLayout treeLayout){
-		final String iconDescendantsUri = (treeLayout == TreeLayout.VERTICAL? "/images/union_down.png": "/images/union_previous.png");
-		ICON_DESCENDANTS = ResourceHelper.getResizedImageFromResource(iconDescendantsUri, DESCENDANTS_SIZE);
-
 		this.father = father;
 		this.mother = mother;
 		this.boxType = boxType;
@@ -128,8 +110,8 @@ public class SiblingsPanel extends JPanel{
 		setOpaque(false);
 
 		setLayout(new MigLayout(treeLayout == TreeLayout.VERTICAL
-			? "flowx,ins " + ARROW_HEIGHT + " 0 0 0,alignx center,nogrid"
-			: "flowy,ins 0 0 0 " + ARROW_HEIGHT + ",aligny center,nogrid",
+			? "flowx,ins " + TreeIcons.ARROW_HEIGHT + " 0 0 0,alignx center,nogrid"
+			: "flowy,ins 0 0 0 " + TreeIcons.ARROW_HEIGHT + ",aligny center,nogrid",
 			"[pref!]", "[]"));
 	}
 
@@ -192,7 +174,7 @@ public class SiblingsPanel extends JPanel{
 							.getComponent(0);
 
 						final Point point = enterPoints[i];
-						Point p = new Point(comp.getWidth(), (comp.getHeight() + ARROW_HEIGHT - 1) / 2);
+						Point p = new Point(comp.getWidth(), (comp.getHeight() + TreeIcons.ARROW_HEIGHT - 1) / 2);
 						p = SwingUtilities.convertPoint(comp, p, this);
 						g2.drawLine(point.x, point.y,
 							p.x, point.y);
@@ -227,10 +209,12 @@ public class SiblingsPanel extends JPanel{
 
 
 	public SiblingsPanel withListener(final IndividualListener listener,
-			final EntityPopupMenuFactory<IndividualPanel, IndividualListener> factory){
+			final EntityPopupMenuFactory<IndividualPanel, IndividualListener> popupMenuFactory){
 		this.listener = listener;
+		this.popupMenuFactory = popupMenuFactory;
+
 		for(final IndividualPanel siblingBox : siblingBoxes)
-			siblingBox.withListener(listener, factory);
+			siblingBox.withListener(listener, popupMenuFactory);
 
 		return this;
 	}
@@ -292,13 +276,13 @@ public class SiblingsPanel extends JPanel{
 
 	private JPanel createSiblingContainer(final boolean hasDescendants){
 		final JPanel container = new JPanel(new MigLayout("flowy,ins 0",
-				"[grow,right]", "[]" + PartnersPanel.NAVIGATION_ARROW_SEPARATION + "[]"));
+			"[grow,right]", "[]" + PartnersPanel.NAVIGATION_ARROW_SEPARATION + "[]"));
 		container.setOpaque(false);
 
 		final JLabel descendantsLabel = new JLabel();
-		descendantsLabel.setPreferredSize(DESCENDANTS_SIZE);
+		descendantsLabel.setPreferredSize(TreeIcons.ARROW_SIZE);
 		if(hasDescendants)
-			descendantsLabel.setIcon(ICON_DESCENDANTS);
+			descendantsLabel.setIcon(TreeIcons.descendants(treeLayout));
 		container.add(descendantsLabel);
 		return container;
 	}
@@ -313,7 +297,7 @@ public class SiblingsPanel extends JPanel{
 		if(treeLayout == TreeLayout.VERTICAL)
 			for(int i = 0; i < count; i ++){
 				final Component comp = getComponent(i);
-				final Point p = new Point(comp.getWidth() / 2, ARROW_HEIGHT - 1);
+				final Point p = new Point(comp.getWidth() / 2, TreeIcons.ARROW_HEIGHT - 1);
 				enterPoints[i] = SwingUtilities.convertPoint(comp, p, this);
 			}
 		else
@@ -322,7 +306,7 @@ public class SiblingsPanel extends JPanel{
 				// extract individual panel
 				final Component comp = container.getComponent(container.getComponentCount() - 1);
 
-				final Point p = new Point(comp.getWidth() + ARROW_HEIGHT - 1, (comp.getHeight() - 1) / 2);
+				final Point p = new Point(comp.getWidth() + TreeIcons.ARROW_HEIGHT - 1, (comp.getHeight() - 1) / 2);
 				enterPoints[i] = SwingUtilities.convertPoint(comp, p, this);
 			}
 		return enterPoints;

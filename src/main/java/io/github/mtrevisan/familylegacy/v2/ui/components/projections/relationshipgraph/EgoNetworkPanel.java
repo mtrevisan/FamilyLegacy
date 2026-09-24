@@ -32,15 +32,11 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualt
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.services.CollapsibleBar;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.partners.PartnersPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.relationshipgraph.services.lifespan.GlobalEventTimelinePanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.EgoNetworkMutator;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.GenealogyRepository;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.TreeChangeListener;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.help.ShortcutRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.ViewportPanSupport;
 
-import javax.swing.AbstractAction;
-import javax.swing.ActionMap;
-import javax.swing.InputMap;
-import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -51,6 +47,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -59,10 +56,8 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.Window;
-import java.awt.event.ActionEvent;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.Serial;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -74,24 +69,13 @@ import java.util.function.Consumer;
 
 /**
  * Panel responsible for rendering an Ego-centric network (Hub & Spoke).
- * Extracted delegation logic to {@link EgoNetworkSelectionModel}, {@link EgoNetworkLayoutBuilder},
+ * Extracted delegation logic to {@link EgoNetworkSelectionController}, {@link EgoNetworkLayoutBuilder},
  * {@link EgoNetworkActionHandler}, and {@link EgoNetworkListener}.
  */
 public class EgoNetworkPanel extends JPanel implements TreeChangeListener{
 
-	@Serial
-	private static final long serialVersionUID = 7192849102849102941L;
-
-
 	private static final Color BACKGROUND_COLOR = new Color(242, 238, 228);
 	private static final Color CONNECTION_LINE_COLOR = Color.BLACK;
-
-	private static final String ACTION_TOGGLE_EGO_NETWORK_LAYOUT = "toggleEgoNetworkLayout";
-	public static final String ACTION_TOGGLE_EVENTS_TIMELINE = "toggleEventsTimeline";
-
-	private static final String ACTION_RELOCATE = "relocateEntity";
-	private static final String ACTION_PASTE = "pasteEntity";
-	private static final String ACTION_DELETE = "deleteEntity";
 
 	/** Outer padding of the canvas around the center grid, in pixels. */
 	private static final int CANVAS_PADDING = 20;
@@ -101,7 +85,7 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener{
 
 	private final FLEFModel model;
 	private final EgoNetworkService networkService;
-	private final EgoNetworkSelectionModel selectionModel = new EgoNetworkSelectionModel();
+	private final EgoNetworkSelectionController selectionController = new EgoNetworkSelectionController();
 	private final EgoNetworkListener egoListener;
 
 	private String currentEgoId;
@@ -176,13 +160,13 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener{
 
 		final EgoNetworkListener.SelectionCallbacks selectionCallbacks = new EgoNetworkListener.SelectionCallbacks(
 			id -> {
-				selectionModel.setSelectedIndividualId(id);
+				selectionController.setSelectedIndividualId(id);
 				applySelection();
 				if(selectionCallback != null)
 					selectionCallback.accept(id);
 			},
 			id -> {
-				selectionModel.setSelectedGroupId(id);
+				selectionController.setSelectedGroupId(id);
 				applySelection();
 				if(groupSelectionCallback != null)
 					groupSelectionCallback.accept(id);
@@ -197,9 +181,6 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener{
 
 		setBackground(BACKGROUND_COLOR);
 		setOpaque(true);
-
-		setupLayoutShortcut(this);
-		setupKeyboardShortcuts(this);
 
 
 		// Scroll pane around the network canvas. The canvas implements
@@ -228,65 +209,10 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener{
 		add(bottom, BorderLayout.SOUTH);
 
 		toggleBar.withListener(this::toggleTimeline);
-	}
 
-	private void setupKeyboardShortcuts(final JComponent component){
-		final InputMap inputMap = component.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
-		final ActionMap actionMap = component.getActionMap();
-
-		inputMap.put(ShortcutRegistry.TREE_TOGGLE_LIFESPAN.keyStroke(), ACTION_TOGGLE_EVENTS_TIMELINE);
-		actionMap.put(ACTION_TOGGLE_EVENTS_TIMELINE, new AbstractAction(){
-			@Serial
-			private static final long serialVersionUID = -7201948301928374917L;
-
-			@Override
-			public void actionPerformed(final ActionEvent e){
-				toggleTimeline();
-			}
-		});
-
-		inputMap.put(ShortcutRegistry.EDIT_RELOCATE.keyStroke(), ACTION_RELOCATE);
-		actionMap.put(ACTION_RELOCATE, new AbstractAction(){
-			@Serial
-			private static final long serialVersionUID = 3863544419541504040L;
-
-			@Override
-			public void actionPerformed(final ActionEvent e){
-				final String selectedId = selectionModel.getSelectedEntityId();
-				if(selectedId != null){
-					final FLEFRecord record = model.getRecordById(selectedId);
-					if(record != null)
-						egoListener.onEntityRelocate(record);
-				}
-			}
-		});
-
-		inputMap.put(ShortcutRegistry.EDIT_PASTE.keyStroke(), ACTION_PASTE);
-		actionMap.put(ACTION_PASTE, new AbstractAction(){
-			@Serial
-			private static final long serialVersionUID = 4178597195689723703L;
-
-			@Override
-			public void actionPerformed(final ActionEvent e){
-				egoListener.onEntityPaste();
-			}
-		});
-
-		inputMap.put(ShortcutRegistry.EDIT_DELETE.keyStroke(), ACTION_DELETE);
-		actionMap.put(ACTION_DELETE, new AbstractAction(){
-			@Serial
-			private static final long serialVersionUID = 1016382646758826097L;
-
-			@Override
-			public void actionPerformed(final ActionEvent e){
-				final String selectedId = selectionModel.getSelectedEntityId();
-				if(selectedId != null){
-					final FLEFRecord record = model.getRecordById(selectedId);
-					if(record != null)
-						egoListener.onEntityRemove(record);
-				}
-			}
-		});
+		GraphShortcutInstaller.installAll(this,
+			this::toggleLayout,
+			this::toggleTimeline);
 	}
 
 	public void load(final String egoId){
@@ -294,7 +220,7 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener{
 			return;
 
 		currentEgoId = egoId;
-		selectionModel.clearSelection();
+		selectionController.clearSelection();
 
 		refreshNetwork();
 
@@ -327,14 +253,14 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener{
 
 		ViewportPanSupport.install(networkScrollPane, networkCanvas);
 
-		if(selectionModel.getSelectedGroupId() != null && groupToPanelMap.keySet().stream().noneMatch(
-				g -> selectionModel.getSelectedGroupId().equals(g.getId())))
-			selectionModel.setSelectedGroupId(null);
+		if(selectionController.getSelectedGroupId() != null && groupToPanelMap.keySet().stream().noneMatch(
+				g -> selectionController.getSelectedGroupId().equals(g.getId())))
+			selectionController.setSelectedGroupId(null);
 
-		if(selectionModel.getSelectedGroupId() == null
-				&& (selectionModel.getSelectedIndividualId() == null
-				|| nodeToPanelMap.keySet().stream().noneMatch(n -> selectionModel.getSelectedIndividualId().equals(n.getEgoId()))))
-			selectionModel.setSelectedIndividualId(currentEgoId);
+		if(selectionController.getSelectedGroupId() == null
+				&& (selectionController.getSelectedIndividualId() == null
+				|| nodeToPanelMap.keySet().stream().noneMatch(n -> selectionController.getSelectedIndividualId().equals(n.getEgoId()))))
+			selectionController.setSelectedIndividualId(currentEgoId);
 
 		applySelection();
 		updateTimelineParticipants();
@@ -366,7 +292,7 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener{
 	 * selection state to individuals and groups.
 	 */
 	private void applySelection(){
-		selectionModel.applySelection(nodeToPanelMap, groupToPanelMap);
+		selectionController.applySelection(nodeToPanelMap, groupToPanelMap);
 	}
 
 	private void updateTimelineParticipants(){
@@ -395,9 +321,29 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener{
 	public String getCurrentEgoId(){
 		return currentEgoId;
 	}
+
 	public String getSelectedEntityId(){
-		return selectionModel.getSelectedEntityId();
+		return selectionController.getSelectedEntityId();
 	}
+
+	public Component getSelectedPanel(){
+		return selectionController.getSelectedPanel(nodeToPanelMap, groupToPanelMap);
+	}
+
+	/**
+	 * Removes the specified entity from the ego network model and refreshes the layout.
+	 *
+	 * @param id the id of the individual or group to remove
+	 */
+	public void removeEntity(final String id){
+		if(id == null)
+			return;
+
+		final FLEFRecord record = model.getRecordById(id);
+		if(record != null)
+			egoListener.onEntityRemove(record);
+	}
+
 
 	/**
 	 * Sub-panel that hosts the ego network layout and draws the connection
@@ -410,10 +356,6 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener{
 	 * showing scrollbars — when the content is larger.
 	 */
 	private final class NetworkCanvas extends JPanel implements Scrollable{
-
-		@Serial
-		private static final long serialVersionUID = -2194057381948273841L;
-
 
 		NetworkCanvas(){
 			setBackground(BACKGROUND_COLOR);
@@ -467,6 +409,7 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener{
 
 	}
 
+
 	@Override
 	public void onTreeStructureChanged(final String rootEntityId){
 		SwingUtilities.invokeLater(() -> load(rootEntityId));
@@ -480,8 +423,7 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener{
 	 * may differ from the current ego. When neither an individual nor a
 	 * group is selected, the call is a no-op.
 	 */
-	public void editCurrentSelection(){
-		final String id = selectionModel.getSelectedEntityId();
+	public void editEntity(final String id){
 		if(id == null)
 			return;
 
@@ -501,7 +443,7 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener{
 	 * @param direction the direction to move; must not be {@code null}
 	 */
 	public void moveSelection(final SpatialNavigation.Direction direction){
-		selectionModel.moveSelection(direction, currentEgoId, model, nodeToPanelMap, groupToPanelMap);
+		selectionController.moveSelection(direction, currentEgoId, model, nodeToPanelMap, groupToPanelMap);
 	}
 
 	/**
@@ -512,28 +454,7 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener{
 	 * When nothing is selected, the call is a no-op.
 	 */
 	public void egoConfirmSelection(final String selectedId){
-		if(selectedId == null)
-			return;
-
-		final FLEFRecord record = model.getRecordById(selectedId);
-		if(record != null)
-			egoListener.onRootEntitySelected(record);
-	}
-
-	public void setupLayoutShortcut(final JComponent component){
-		final InputMap inputMap = component.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
-		final ActionMap actionMap = component.getActionMap();
-
-		inputMap.put(ShortcutRegistry.TREE_TOGGLE_LAYOUT.keyStroke(), ACTION_TOGGLE_EGO_NETWORK_LAYOUT);
-		actionMap.put(ACTION_TOGGLE_EGO_NETWORK_LAYOUT, new AbstractAction(){
-			@Serial
-			private static final long serialVersionUID = -3819204812049102941L;
-
-			@Override
-			public void actionPerformed(final ActionEvent e){
-				toggleLayout();
-			}
-		});
+		egoListener.onRootEntitySelected(selectedId);
 	}
 
 	private void toggleLayout(){

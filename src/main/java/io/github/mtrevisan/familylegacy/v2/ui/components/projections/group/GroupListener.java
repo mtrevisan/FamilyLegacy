@@ -53,6 +53,6 @@ public interface GroupListener extends EntityListener{
 	 * Pastes the group from the clipboard into the current context.
 	 * The source group is unlinked from all previous relationships.
 	 */
-	void onGroupPaste();
+	void onGroupPaste(GroupPanel selectedPanel);
 
 }

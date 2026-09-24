@@ -62,6 +62,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GridBagLayout;
@@ -70,11 +71,9 @@ import java.awt.Window;
 import java.awt.geom.Path2D;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.Serial;
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Objects;
 import java.util.function.Consumer;
 
 
@@ -101,10 +100,6 @@ import java.util.function.Consumer;
  */
 public class IndividualTreeGraphPanel extends JPanel implements TreeChangeListener{
 
-	@Serial
-	private static final long serialVersionUID = 9011391311012465249L;
-
-
 	private static final Color BACKGROUND_COLOR = new Color(242, 238, 228);
 	private static final Color CONNECTION_LINE_COLOR = Color.BLACK;
 
@@ -115,7 +110,7 @@ public class IndividualTreeGraphPanel extends JPanel implements TreeChangeListen
 	/** Interaction listener installed on every created panel. */
 	private final IndividualTreeGraphListener treeListener;
 	/** Visual selection and spatial navigation. */
-	private final TreeSelectionController selection;
+	private final TreeSelectionController selectionController;
 	/** Pedigree collapse detection and badge application. */
 	private final PedigreeCollapseController collapses;
 	/** Bottom lifespan strip. */
@@ -155,7 +150,7 @@ public class IndividualTreeGraphPanel extends JPanel implements TreeChangeListen
 		final RelationshipOperationCoordinator operationCoordinator = new RelationshipOperationCoordinator(model,
 			treeMutator, sharedRepository.getRelationshipAllowedTypes());
 
-		selection = new TreeSelectionController(
+		selectionController = new TreeSelectionController(
 			this::notifySelection,
 			this::rootConfirmSelection);
 		collapses = new PedigreeCollapseController(model);
@@ -247,8 +242,9 @@ public class IndividualTreeGraphPanel extends JPanel implements TreeChangeListen
 	}
 
 	public void load(final String rootIndividualId, final int maxAncestors){
-		if(Objects.equals(currentRootIndividualId, rootIndividualId))
-			return;
+		// NOTE: this should be commented, otherwise paste of individual does not trigger a reload
+//		if(Objects.equals(currentRootIndividualId, rootIndividualId))
+//			return;
 
 		currentRootIndividualId = rootIndividualId;
 		currentMaxAncestors = maxAncestors;
@@ -275,12 +271,11 @@ public class IndividualTreeGraphPanel extends JPanel implements TreeChangeListen
 	}
 
 	public String getSelectedIndividualId(){
-		return selection.selectedId();
+		return selectionController.selectedId();
 	}
 
 	/** Opens the editor for the currently selected individual. */
-	public void editCurrentSelection(){
-		final String id = selection.selectedId();
+	public void editEntity(final String id){
 		if(id == null)
 			return;
 
@@ -291,7 +286,7 @@ public class IndividualTreeGraphPanel extends JPanel implements TreeChangeListen
 
 	/** Moves the visual selection in the given direction. */
 	public void moveSelection(final SpatialNavigation.Direction direction){
-		selection.move(direction, treeCanvas, currentRootIndividualId);
+		selectionController.move(direction, treeCanvas, currentRootIndividualId);
 	}
 
 	/** Confirms the selection, re-rooting the tree on it. */
@@ -331,6 +326,20 @@ public class IndividualTreeGraphPanel extends JPanel implements TreeChangeListen
 			load(chosen, currentMaxAncestors);
 	}
 
+	/**
+	 * Removes the specified entity from the tree model and refreshes the layout.
+	 *
+	 * @param id the id of the individual or entity to remove
+	 */
+	public void removeEntity(final String id){
+		if(id == null)
+			return;
+
+		final FLEFRecord record = model.getRecordById(id);
+		if(record != null)
+			treeListener.onEntityRemove(record);
+	}
+
 
 	/* ======================================================================
 	 *                          Tree lifecycle
@@ -351,7 +360,7 @@ public class IndividualTreeGraphPanel extends JPanel implements TreeChangeListen
 		try{
 			nodeToPanelMap.clear();
 			treeCanvas.removeAll();
-			selection.clear();
+			selectionController.clear();
 
 			rootNode = rootIndividualNode;
 			if(rootIndividualNode != null && showPartner){
@@ -381,10 +390,10 @@ public class IndividualTreeGraphPanel extends JPanel implements TreeChangeListen
 			treeScroll.revalidate();
 			collapses.apply(nodeToPanelMap);
 
-			selection.updateTree(nodeToPanelMap, childrenPanel);
-			if(selection.selectedId() == null && currentRootIndividualId != null)
-				selection.setSelectedId(currentRootIndividualId);
-			selection.apply();
+			selectionController.updateTree(nodeToPanelMap, childrenPanel);
+			if(selectionController.selectedId() == null && currentRootIndividualId != null)
+				selectionController.setSelectedId(currentRootIndividualId);
+			selectionController.apply();
 
 			lifespanStrip.update(treeCanvas);
 
@@ -416,11 +425,15 @@ public class IndividualTreeGraphPanel extends JPanel implements TreeChangeListen
 
 	private void notifySelection(final String id){
 		if(id != null){
-			selection.setSelectedId(id);
-			selection.apply();
+			selectionController.setSelectedId(id);
+			selectionController.apply();
 		}
 		if(selectionCallback != null && id != null)
 			selectionCallback.accept(id);
+	}
+
+	public Component getSelectedPanel(){
+		return selectionController.getSelectedPanel();
 	}
 
 
@@ -459,8 +472,8 @@ public class IndividualTreeGraphPanel extends JPanel implements TreeChangeListen
 			treeScroll.revalidate();
 			collapses.apply(nodeToPanelMap);
 
-			selection.updateTree(nodeToPanelMap, childrenPanel);
-			selection.apply();
+			selectionController.updateTree(nodeToPanelMap, childrenPanel);
+			selectionController.apply();
 			lifespanStrip.update(treeCanvas);
 		}
 		finally{
@@ -489,6 +502,8 @@ public class IndividualTreeGraphPanel extends JPanel implements TreeChangeListen
 
 	public void setLayoutEngine(final LayoutEngine layoutEngine){
 		this.layoutEngine = layoutEngine;
+
+		refreshTree();
 	}
 
 
@@ -497,10 +512,6 @@ public class IndividualTreeGraphPanel extends JPanel implements TreeChangeListen
 	 * ====================================================================== */
 
 	private final class TreeCanvas extends JPanel{
-
-		@Serial
-		private static final long serialVersionUID = -4019283750192847103L;
-
 
 		TreeCanvas(){
 			setBackground(BACKGROUND_COLOR);

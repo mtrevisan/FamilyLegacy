@@ -48,7 +48,6 @@ import javax.swing.JPanel;
 import javax.swing.border.TitledBorder;
 import java.awt.Window;
 import java.io.IOException;
-import java.io.Serial;
 
 
 /**
@@ -86,10 +85,6 @@ import java.io.Serial;
  * Tab 10 (Audit): audit
  */
 public class PlaceRecordDialog extends BaseRecordDialog{
-
-	@Serial
-	private static final long serialVersionUID = -2581031991500033899L;
-
 
 	private static final String DOT = ".";
 

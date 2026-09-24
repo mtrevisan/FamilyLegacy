@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.tools.individuals;
 
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.help.ShortcutRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolOperation;
@@ -31,6 +33,9 @@ import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolOperation;
 import javax.swing.KeyStroke;
 
 
+/**
+ * Relocates the currently selected individual or group to the clipboard context.
+ */
 public final class RelocateIndividualTool implements ToolOperation{
 
 	@Override
@@ -45,9 +50,17 @@ public final class RelocateIndividualTool implements ToolOperation{
 
 	@Override
 	public void run(final ToolContext context){
-		//TODO
-//		context.relocateCurrentSelection()
-//			.run();
+		if(context == null)
+			return;
+
+		final String id = context.selectedEntityId();
+		if(id == null)
+			return;
+
+		final FLEFModel model = context.model();
+		final FLEFRecord record = model.getRecordById(id);
+		if(record != null)
+			context.setClippedRecord(record);
 	}
 
 	@Override

@@ -29,7 +29,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 
 public interface EntityListener{
 
-	void onRootEntitySelected(FLEFRecord record);
+	void onRootEntitySelected(String recordId);
 
 	void onEntityEdit(FLEFRecord individual);
 

@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.tools.groups;
 
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.RecordSelectionDialog;
@@ -151,8 +152,9 @@ public final class RemoveMemberDialog extends JDialog{
 
 	private void chooseGroup(){
 		final FLEFRecord[] chosen = new FLEFRecord[1];
+		final FLEFModel model = context.model();
 		final RecordSelectionDialog dialog = RecordSelectionDialog.create(
-			this, context.model(),
+			this, model,
 			(record, handler) -> chosen[0] = record,
 			GroupHandler.class);
 		dialog.setVisible(true);
@@ -171,21 +173,25 @@ public final class RemoveMemberDialog extends JDialog{
 
 		// Build the map id -> relationship once. This is the O(R) pass
 		// that replaces the O(R) per member.
-		for(final FLEFRecord rel : context.model().getRecordsByType(GroupHelper.TYPE_RELATIONSHIP)){
+		final FLEFModel model = context.model();
+		for(final FLEFRecord rel : model.getRecordsByType(GroupHelper.TYPE_RELATIONSHIP)){
 			final String type = FLEFRecordHelper.getChildValue(rel, GroupHelper.TAG_TYPE);
 			if(type == null || !GroupHelper.REL_GROUP_MEMBER.equalsIgnoreCase(type))
 				continue;
+
 			final String target = rel.extractReferencedId(GroupHelper.TAG_TARGET, GroupHelper.TYPE_GROUP);
 			if(!group.getId().equals(target))
 				continue;
+
 			final String subject = rel.extractReferencedId(GroupHelper.TAG_SUBJECT, GroupHelper.TYPE_INDIVIDUAL);
 			if(subject == null)
 				continue;
+
 			relationshipIdByMember.putIfAbsent(subject, rel.getId());
 		}
 
 		for(final Map.Entry<String, String> entry : relationshipIdByMember.entrySet()){
-			final FLEFRecord individual = context.model().getRecordById(entry.getKey());
+			final FLEFRecord individual = model.getRecordById(entry.getKey());
 			final String name = (individual != null? PlaceHelper.displayName(individual): entry.getKey());
 			listModel.addElement(new Entry(entry.getKey(),
 				(name != null? name: entry.getKey()) + "  [" + entry.getKey() + "]"));
@@ -200,13 +206,16 @@ public final class RemoveMemberDialog extends JDialog{
 			JOptionPane.showMessageDialog(this,
 				"Choose a group first.",
 				"Remove Members", JOptionPane.WARNING_MESSAGE);
+
 			return;
 		}
+
 		final List<Entry> selected = list.getSelectedValuesList();
 		if(selected.isEmpty()){
 			JOptionPane.showMessageDialog(this,
 				"Select at least one member.",
 				"Remove Members", JOptionPane.WARNING_MESSAGE);
+
 			return;
 		}
 
@@ -227,8 +236,9 @@ public final class RemoveMemberDialog extends JDialog{
 		if(confirm != JOptionPane.YES_OPTION)
 			return;
 
+		final FLEFModel model = context.model();
 		for(final String relId : toRemove)
-			context.model().removeRecord(relId);
+			model.removeRecord(relId);
 
 		dispose();
 	}

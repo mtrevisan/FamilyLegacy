@@ -87,6 +87,47 @@ public final class TreeSelectionController{
 		return selectedId;
 	}
 
+	/**
+	 * Returns the {@link IndividualPanel} matching the currently selected ID,
+	 * or {@code null} if no panel is selected or matched.
+	 */
+	public IndividualPanel getSelectedPanel(){
+		if(selectedId == null)
+			return null;
+
+		for(final Map.Entry<TreeNode, PartnersPanel> entry : nodeToPanelMap.entrySet()){
+			final PartnersPanel partners = entry.getValue();
+			if(partners == null)
+				continue;
+
+			final IndividualPanel father = partners.getFatherPanel();
+			if(father != null){
+				final IndividualData fatherData = father.getData();
+				if(fatherData != null && selectedId.equals(fatherData.getId()))
+					return father;
+			}
+
+			final IndividualPanel mother = partners.getMotherPanel();
+			if(mother != null){
+				final IndividualData motherData = mother.getData();
+				if(motherData != null && selectedId.equals(motherData.getId()))
+					return mother;
+			}
+		}
+
+		if(childrenPanel != null){
+			for(final IndividualPanel siblingBox : childrenPanel.getSiblingBoxes()){
+				if(siblingBox != null){
+					final IndividualData siblingData = siblingBox.getData();
+					if(siblingData != null && selectedId.equals(siblingData.getId()))
+						return siblingBox;
+				}
+			}
+		}
+
+		return null;
+	}
+
 	/** Clears the selection without notifying the callback. */
 	public void clear(){
 		selectedId = null;

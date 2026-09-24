@@ -40,7 +40,6 @@ import javax.swing.JTabbedPane;
 import java.awt.BorderLayout;
 import java.awt.Window;
 import java.io.IOException;
-import java.io.Serial;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 
@@ -75,10 +74,6 @@ import java.time.ZoneOffset;
  * Tab 11 (Submitter): name, contact, note
  */
 public class HeaderDialog extends BaseRecordDialog{
-
-	@Serial
-	private static final long serialVersionUID = 8685753096364050900L;
-
 
 	private static final String DOT = ".";
 

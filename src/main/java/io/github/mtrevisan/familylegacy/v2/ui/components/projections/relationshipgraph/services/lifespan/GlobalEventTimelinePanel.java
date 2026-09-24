@@ -59,15 +59,14 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.Serial;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
+
 
 /**
  * Global timeline of the events in the model.
@@ -100,10 +99,6 @@ import java.util.Set;
  * re-applies the current filter and view state.
  */
 public class GlobalEventTimelinePanel extends JPanel{
-
-	@Serial
-	private static final long serialVersionUID = 5281903752985610294L;
-
 
 	/** Width of the row header column, in pixels. */
 	private static final int HEADER_WIDTH = 160;
@@ -541,10 +536,6 @@ public class GlobalEventTimelinePanel extends JPanel{
 	 * ====================================================================== */
 
 	private final class Canvas extends JPanel{
-
-		@Serial
-		private static final long serialVersionUID = 4813729884621557321L;
-
 
 		Canvas(){
 			setBackground(BACKGROUND);

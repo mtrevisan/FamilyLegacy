@@ -163,8 +163,9 @@ public final class AddCitationDialog extends JDialog{
 
 	private void chooseTarget(){
 		final FLEFRecord[] chosen = new FLEFRecord[1];
+		final FLEFModel model = context.model();
 		final RecordSelectionDialog dialog = RecordSelectionDialog.create(
-			this, context.model(),
+			this, model,
 			(record, handler) -> chosen[0] = record,
 			io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler.class,
 			io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler.class,
@@ -180,8 +181,9 @@ public final class AddCitationDialog extends JDialog{
 
 	private void chooseSource(){
 		final FLEFRecord[] chosen = new FLEFRecord[1];
+		final FLEFModel model = context.model();
 		final RecordSelectionDialog dialog = RecordSelectionDialog.create(
-			this, context.model(),
+			this, model,
 			(record, handler) -> chosen[0] = record,
 			io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler.class);
 		dialog.setVisible(true);

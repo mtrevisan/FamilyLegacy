@@ -56,7 +56,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import java.awt.Window;
 import java.io.IOException;
-import java.io.Serial;
 
 
 /**
@@ -97,10 +96,6 @@ import java.io.Serial;
  * Tab 10 (Audit): audit
  */
 public class ResearchActivityRecordDialog extends BaseRecordDialog{
-
-	@Serial
-	private static final long serialVersionUID = -3243743327195324702L;
-
 
 	private static final String DOT = ".";
 

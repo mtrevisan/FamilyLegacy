@@ -206,13 +206,14 @@ public final class EventManagementDialog extends JDialog{
 	private void openEditor(final String eventId){
 		final EventHandler handler = EventHandler.getInstance();
 		final BaseRecordDialog dialog;
+		final FLEFModel model = context.model();
 		if(eventId == null)
-			dialog = handler.createNewDialog(this, context.model());
+			dialog = handler.createNewDialog(this, model);
 		else{
-			final FLEFRecord record = context.model().getRecordById(eventId);
+			final FLEFRecord record = model.getRecordById(eventId);
 			if(record == null)
 				return;
-			dialog = handler.createEditDialog(this, context.model(), record);
+			dialog = handler.createEditDialog(this, model, record);
 		}
 		dialog.setVisible(true);
 		if(dialog.isSaved())
@@ -223,6 +224,7 @@ public final class EventManagementDialog extends JDialog{
 		final String eventId = selectedEventId();
 		if(eventId == null)
 			return;
+
 		final int confirm = JOptionPane.showConfirmDialog(this,
 			"Delete event " + eventId + "?\n"
 				+ "Participations referencing this event will be left dangling.",
@@ -231,7 +233,10 @@ public final class EventManagementDialog extends JDialog{
 			JOptionPane.WARNING_MESSAGE);
 		if(confirm != JOptionPane.YES_OPTION)
 			return;
-		context.model().removeRecord(eventId);
+
+		final FLEFModel model = context.model();
+		model.removeRecord(eventId);
+
 		reload();
 	}
 

@@ -57,7 +57,6 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
-import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -68,10 +67,6 @@ import java.util.Objects;
  * Provides common functionality and utility methods.
  */
 public abstract class BaseRecordDialog extends JDialog{
-
-	@Serial
-	private static final long serialVersionUID = 6460878052412992481L;
-
 
 	private static final String TAG_DOCUMENT = "DOCUMENT";
 	private static final String TAG_URI = "uri";

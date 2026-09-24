@@ -35,7 +35,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 
 import javax.swing.JPanel;
 import java.awt.Window;
-import java.io.Serial;
 
 
 /**
@@ -53,10 +52,6 @@ import java.io.Serial;
  * Tab 1 (Properties): value, variant
  */
 public class ContactNameStructureDialog extends BaseRecordDialog{
-
-	@Serial
-	private static final long serialVersionUID = -6832652809158028331L;
-
 
 	private static final String TAG_VALUE = "VALUE";
 	private static final String TAG_VARIANT = "VARIANT";

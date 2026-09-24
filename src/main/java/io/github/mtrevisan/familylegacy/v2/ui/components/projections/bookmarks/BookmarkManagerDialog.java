@@ -39,7 +39,6 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Window;
-import java.io.Serial;
 import java.util.List;
 
 
@@ -47,10 +46,6 @@ import java.util.List;
  * Modal dialog that lets the user rename or delete saved bookmarks.
  */
 public final class BookmarkManagerDialog extends JDialog{
-
-	@Serial
-	private static final long serialVersionUID = -8102938475610293847L;
-
 
 	private final BookmarkStore store;
 	private final DefaultListModel<Bookmark> model = new DefaultListModel<>();

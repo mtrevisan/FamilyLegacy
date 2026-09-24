@@ -217,13 +217,15 @@ public final class EventParticipantsDialog extends JDialog{
 	private void openEditor(final String participationId){
 		final EventParticipationHandler handler = EventParticipationHandler.getInstance();
 		final BaseRecordDialog dialog;
+		final FLEFModel model = context.model();
 		if(participationId == null)
-			dialog = handler.createNewDialog(this, context.model());
+			dialog = handler.createNewDialog(this, model);
 		else{
-			final FLEFRecord record = context.model().getRecordById(participationId);
+			final FLEFRecord record = model.getRecordById(participationId);
 			if(record == null)
 				return;
-			dialog = handler.createEditDialog(this, context.model(), record);
+
+			dialog = handler.createEditDialog(this, model, record);
 		}
 		dialog.setVisible(true);
 		if(dialog.isSaved())
@@ -234,6 +236,7 @@ public final class EventParticipantsDialog extends JDialog{
 		final String participationId = selectedParticipationId();
 		if(participationId == null)
 			return;
+
 		final int confirm = JOptionPane.showConfirmDialog(this,
 			"Delete participation " + participationId + "?",
 			"Confirm Deletion",
@@ -241,7 +244,9 @@ public final class EventParticipantsDialog extends JDialog{
 			JOptionPane.WARNING_MESSAGE);
 		if(confirm != JOptionPane.YES_OPTION)
 			return;
-		context.model().removeRecord(participationId);
+
+		final FLEFModel model = context.model();
+		model.removeRecord(participationId);
 		reload();
 	}
 

@@ -187,16 +187,17 @@ public final class IndividualHelper{
 	 * Returns the ids of every relationship in which the given
 	 * individual appears as subject or target.
 	 */
-	public static List<String> relationshipIdsForIndividual(final FLEFModel model, final String individualId){
+	public static List<String> relationshipIdsForIndividual(final String individualId, final FLEFModel model){
 		final List<String> result = new ArrayList<>();
 		if(individualId == null)
 			return result;
 
-		for(final FLEFRecord rel : model.getRecordsByType(RelationshipHandler.TYPE)){
-			final String subject = rel.extractReferencedId(TAG_SUBJECT, TYPE_INDIVIDUAL);
-			final String target = rel.extractReferencedId(TAG_TARGET, TYPE_INDIVIDUAL);
+		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
+		for(final FLEFRecord relationship : relationships){
+			final String subject = relationship.extractReferencedId(TAG_SUBJECT, TYPE_INDIVIDUAL);
+			final String target = relationship.extractReferencedId(TAG_TARGET, TYPE_INDIVIDUAL);
 			if(individualId.equals(subject) || individualId.equals(target))
-				result.add(rel.getId());
+				result.add(relationship.getId());
 		}
 		return result;
 	}
@@ -324,17 +325,109 @@ public final class IndividualHelper{
 	 * involve it, in a single operation. The relationships are removed
 	 * first, so the model is never left with a dangling reference.
 	 *
-	 * @param model        the model
 	 * @param individualId the individual to delete
+	 * @param model        the model
 	 */
-	public static void deleteIndividualCascade(final FLEFModel model, final String individualId){
+	public static void deleteIndividual(final String individualId, final FLEFModel model){
 		if(individualId == null)
 			return;
 
-		final List<String> relIds = relationshipIdsForIndividual(model, individualId);
-		for(final String relId : relIds)
-			model.removeRecord(relId);
+		final List<String> relationshipIds = relationshipIdsForIndividual(individualId, model);
+		for(final String relationshipId : relationshipIds)
+			model.removeRecord(relationshipId);
+
 		model.removeRecord(individualId);
+	}
+
+
+	public static final String TYPE_GROUP = "group";
+	public static final String REL_GROUP_MEMBER = "group_member";
+
+
+	/**
+	 * Returns the set of IDs of all parents of the given individual (across all child relationship types).
+	 */
+	public static Set<String> parentIds(final String individualId, final FLEFModel model){
+		final Set<String> result = new LinkedHashSet<>();
+		if(individualId == null)
+			return result;
+
+		for(final FLEFRecord rel : model.getRecordsByType(RelationshipHandler.TYPE)){
+			final String type = FLEFRecordHelper.getChildValue(rel, TAG_TYPE);
+			if(!isChildType(type))
+				continue;
+
+			final String child = rel.extractReferencedId(TAG_SUBJECT, TYPE_INDIVIDUAL);
+			final String parent = rel.extractReferencedId(TAG_TARGET, TYPE_INDIVIDUAL);
+			if(individualId.equals(child) && parent != null)
+				result.add(parent);
+		}
+		return result;
+	}
+
+	/**
+	 * Returns the set of IDs of all associate/partner individuals linked to the given individual.
+	 */
+	public static Set<String> associateIds(final String individualId, final FLEFModel model){
+		final Set<String> result = new LinkedHashSet<>();
+		if(individualId == null)
+			return result;
+
+		for(final FLEFRecord rel : model.getRecordsByType(RelationshipHandler.TYPE)){
+			final String type = FLEFRecordHelper.getChildValue(rel, TAG_TYPE);
+			if(type == null || isChildType(type) || REL_GROUP_MEMBER.equalsIgnoreCase(type))
+				continue;
+
+			final String subject = rel.extractReferencedId(TAG_SUBJECT, TYPE_INDIVIDUAL);
+			final String target = rel.extractReferencedId(TAG_TARGET, TYPE_INDIVIDUAL);
+			if(individualId.equals(subject) && target != null)
+				result.add(target);
+			else if(individualId.equals(target) && subject != null)
+				result.add(subject);
+		}
+		return result;
+	}
+
+	/**
+	 * Returns the set of IDs of all groups in which the given individual is a member.
+	 */
+	public static Set<String> groupIds(final String individualId, final FLEFModel model){
+		final Set<String> result = new LinkedHashSet<>();
+		if(individualId == null)
+			return result;
+
+		for(final FLEFRecord rel : model.getRecordsByType(RelationshipHandler.TYPE)){
+			final String type = FLEFRecordHelper.getChildValue(rel, TAG_TYPE);
+			if(!REL_GROUP_MEMBER.equalsIgnoreCase(type))
+				continue;
+
+			final String subject = rel.extractReferencedId(TAG_SUBJECT, TYPE_INDIVIDUAL);
+			final String targetGroup = rel.extractReferencedId(TAG_TARGET, TYPE_GROUP);
+			if(individualId.equals(subject) && targetGroup != null)
+				result.add(targetGroup);
+		}
+		return result;
+	}
+
+	/**
+	 * Returns the set of IDs of all children of the given individual (across all child relationship types).
+	 */
+	public static Set<String> childIds(final String individualId, final FLEFModel model){
+		final Set<String> result = new LinkedHashSet<>();
+		if(individualId == null)
+			return result;
+
+		for(final FLEFRecord rel : model.getRecordsByType(RelationshipHandler.TYPE)){
+			final String type = FLEFRecordHelper.getChildValue(rel, TAG_TYPE);
+			if(!isChildType(type))
+				continue;
+
+			final String child = rel.extractReferencedId(TAG_SUBJECT, TYPE_INDIVIDUAL);
+			final String parent = rel.extractReferencedId(TAG_TARGET, TYPE_INDIVIDUAL);
+			if(individualId.equals(parent) && child != null)
+				result.add(child);
+		}
+		return result;
 	}
 
 

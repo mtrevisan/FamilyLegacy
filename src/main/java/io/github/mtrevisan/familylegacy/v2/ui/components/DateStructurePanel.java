@@ -44,7 +44,6 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import java.awt.BorderLayout;
 import java.awt.Window;
-import java.io.Serial;
 
 
 /**
@@ -67,10 +66,6 @@ import java.io.Serial;
  * </pre>
  */
 public class DateStructurePanel extends JPanel{
-
-	@Serial
-	private static final long serialVersionUID = 7489525613734145165L;
-
 
 	private static final String TAG_VALUE = "VALUE";
 	private static final String TAG_ORIGINAL_TEXT = "ORIGINAL_TEXT";

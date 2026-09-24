@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.projections.group;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.BoxPanelType;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.PlaceholderImages;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.AsyncResourceLoader;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.ResourceHelper;
 import org.apache.commons.lang3.StringUtils;
@@ -76,17 +77,12 @@ public final class GroupData{
 
 	private static final String NO_DATA = "?";
 
-	private static final ImageIcon ADD_PHOTO = ResourceHelper.getImageFromResource("/images/preferred_image_placeholder.jpg");
-
-	private static final double PREFERRED_IMAGE_WIDTH = 48.;
-	private static final double IMAGE_ASPECT_RATIO = 4. / 3.;
-
 
 	private final FLEFRecord group;
 	private final String id;
 	private final String nameText;
 	private String nameTooltip;
-	private final String yype;
+	private final String type;
 
 	private String preferredImageKey;
 	private String preferredImageUri;
@@ -117,7 +113,7 @@ public final class GroupData{
 		}
 
 		final String rawType = FLEFRecordHelper.getChildValue(group, TAG_TYPE);
-		yype = (rawType != null? rawType.replace('_', ' '): StringUtils.EMPTY);
+		type = (rawType != null? rawType.replace('_', ' '): StringUtils.EMPTY);
 
 		extractPreferredImage(group);
 	}
@@ -139,8 +135,8 @@ public final class GroupData{
 		return nameTooltip;
 	}
 
-	public String getYype(){
-		return yype;
+	public String getType(){
+		return type;
 	}
 
 	public String getPreferredImageKey(){
@@ -179,8 +175,8 @@ public final class GroupData{
 		if(record == null){
 			preferredImageUri = null;
 			preferredImageCropRect = null;
-			imagePrimary = resize(ADD_PHOTO, BoxPanelType.PRIMARY);
-			imageSecondary = resize(ADD_PHOTO, BoxPanelType.SECONDARY);
+			imagePrimary = PlaceholderImages.placeholder(BoxPanelType.PRIMARY);
+			imageSecondary = PlaceholderImages.placeholder(BoxPanelType.SECONDARY);
 			preferredImageKey = StringUtils.EMPTY;
 
 			return;
@@ -188,8 +184,8 @@ public final class GroupData{
 
 		preferredImageUri = FLEFRecordHelper.getChildValue(record, TAG_PREFERRED_IMAGE_URI);
 // TODO to be removed
-		if(preferredImageUri != null)
-			preferredImageUri = "C:\\mauro\\heritage\\My Genealogy Projects\\Trevisan (Dorato)-Gallinaro-Masutti (Manfrin)-Zaros (Basso)" + preferredImageUri;
+if(preferredImageUri != null)
+	preferredImageUri = "C:\\mauro\\heritage\\My Genealogy Projects\\Trevisan (Dorato)-Gallinaro-Masutti (Manfrin)-Zaros (Basso)" + preferredImageUri;
 		preferredImageCropRect = null;
 		try{
 			final FLEFRecord crop = FLEFRecordHelper.findChild(record, TAG_PREFERRED_IMAGE_CROP);
@@ -203,8 +199,8 @@ public final class GroupData{
 		catch(final Exception ignored){}
 
 		// Set the default image immediately
-		imagePrimary = resize(ADD_PHOTO, BoxPanelType.PRIMARY);
-		imageSecondary = resize(ADD_PHOTO, BoxPanelType.SECONDARY);
+		imagePrimary = PlaceholderImages.placeholder(BoxPanelType.PRIMARY);
+		imageSecondary = PlaceholderImages.placeholder(BoxPanelType.SECONDARY);
 		preferredImageKey = composePreferredImageKey(preferredImageUri, preferredImageCropRect);
 	}
 
@@ -217,8 +213,8 @@ public final class GroupData{
 			() -> {
 				final ImageIcon croppedImage = ResourceHelper.getCroppedImage(preferredImageUri, preferredImageCropRect);
 				if(croppedImage != null){
-					final ImageIcon imagePrimary = resize(croppedImage, BoxPanelType.PRIMARY);
-					final ImageIcon imageSecondary = resize(croppedImage, BoxPanelType.SECONDARY);
+					final ImageIcon imagePrimary = PlaceholderImages.resize(croppedImage, BoxPanelType.PRIMARY);
+					final ImageIcon imageSecondary = PlaceholderImages.resize(croppedImage, BoxPanelType.SECONDARY);
 					return new ImageIcon[]{imagePrimary, imageSecondary};
 				}
 				else{
@@ -236,13 +232,6 @@ public final class GroupData{
 				imageConsumer.accept(preferredImageKey, images);
 			}
 		);
-	}
-
-	private ImageIcon resize(final ImageIcon image, final BoxPanelType boxType){
-		final double shrinkFactor = (boxType == BoxPanelType.PRIMARY? 1.: 2.);
-		final int preferredImageWidth = (int)Math.ceil(PREFERRED_IMAGE_WIDTH / shrinkFactor);
-		final int preferredImageHeight = (int)Math.ceil(PREFERRED_IMAGE_WIDTH * IMAGE_ASPECT_RATIO / shrinkFactor);
-		return ResourceHelper.resize(image, preferredImageWidth, preferredImageHeight);
 	}
 
 	private static String composePreferredImageKey(final String preferredImage, final Rectangle preferredImageCropRect){

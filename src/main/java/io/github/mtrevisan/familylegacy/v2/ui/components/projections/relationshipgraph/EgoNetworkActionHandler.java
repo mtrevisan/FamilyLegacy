@@ -26,8 +26,10 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.projections.relationsh
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualListener;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.services.relationship.RelationshipTypeSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.services.relationship.UnlinkRelationshipsDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.EgoNetworkMutator;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.RecordSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
@@ -50,7 +52,7 @@ import java.util.stream.Collectors;
  * Encapsulates record dialog invocations and relationship creation workflows
  * for the ego network component.
  */
-class EgoNetworkActionHandler{
+public class EgoNetworkActionHandler{
 
 	private static final String[] INDIVIDUAL_TO_INDIVIDUAL_CHILD_TYPES = new String[]{
 		"biological_child", "adoptive_child", "foster_child", "guarded_child", "step_child"
@@ -69,16 +71,18 @@ class EgoNetworkActionHandler{
 	}
 
 	public void performRelationOperation(final Supplier<FLEFRecord> recordSupplier, final boolean isPaste,
-			final String[] allowedTypes, final String currentEgoId, final EgoNode rootEgoNode){
+			final String[] allowedTypes, final String currentEgoId, final EgoNode rootEgoNode,
+			final IndividualListener listener){
 		final FLEFRecord targetRecord = recordSupplier.get();
 		if(targetRecord == null)
 			return;
 
-		performRelationOperationOnRecord(targetRecord, isPaste, allowedTypes, currentEgoId, rootEgoNode);
+		performRelationOperationOnRecord(targetRecord, isPaste, allowedTypes, currentEgoId, rootEgoNode, listener);
 	}
 
 	public void performRelationOperationOnRecord(final FLEFRecord targetRecord, final boolean isPaste,
-		final String[] allowedTypes, final String currentEgoId, final EgoNode rootEgoNode){
+			final String[] allowedTypes, final String currentEgoId, final EgoNode rootEgoNode,
+			final IndividualListener listener){
 		if(currentEgoId == null || rootEgoNode == null)
 			return;
 
@@ -89,14 +93,26 @@ class EgoNetworkActionHandler{
 		if(isPaste)
 			networkMutator.unlinkRelationship(egoRecord, targetRecord, currentEgoId);
 
-		final String selectedType = selectRelationshipType(targetRecord, allowedTypes);
-		if(selectedType == null)
+		final Window parent = SwingUtilities.getWindowAncestor(parentComponent);
+		final String label = (GroupHandler.TYPE.equalsIgnoreCase(targetRecord.getTag())
+			? GroupHandler.getInstance().getDisplayText(targetRecord, model)
+			: IndividualHandler.getInstance().getDisplayText(targetRecord, model));
+
+		final List<RelationshipTypeSelectionDialog.Item> items = List.of(
+			new RelationshipTypeSelectionDialog.Item(targetRecord.getId(), label, allowedTypes[0])
+		);
+
+		final List<String> selectedTypes = RelationshipTypeSelectionDialog.selectRelationshipType(parent, items,
+			allowedTypes, listener, model);
+		if(selectedTypes == null || selectedTypes.isEmpty())
 			return;
 
+		final String selectedType = selectedTypes.getFirst();
 		final String[] pair = resolveSubjectTarget(selectedType, egoRecord, targetRecord);
 		networkMutator.createRelationship(pair[0], pair[1], selectedType);
 		networkMutator.invalidateAndNotifyTreeChanged(currentEgoId);
 	}
+
 
 	private String[] resolveSubjectTarget(final String type, final FLEFRecord egoRecord, final FLEFRecord otherRecord){
 		final String egoId = egoRecord.getId();
@@ -113,26 +129,6 @@ class EgoNetworkActionHandler{
 		}
 
 		return new String[]{egoId, otherId};
-	}
-
-	private String selectRelationshipType(final FLEFRecord targetRecord, final String[] allowedTypes){
-		if(allowedTypes.length == 1)
-			return allowedTypes[0];
-
-		final Window parent = SwingUtilities.getWindowAncestor(parentComponent);
-		final String label = (GroupHandler.TYPE.equalsIgnoreCase(targetRecord.getTag())
-			? GroupHandler.getInstance().getDisplayText(targetRecord, model)
-			: IndividualHandler.getInstance().getDisplayText(targetRecord, model));
-
-		final List<RelationshipTypeSelectionDialog.Item> items = List.of(
-			new RelationshipTypeSelectionDialog.Item(label, allowedTypes[0])
-		);
-
-		final RelationshipTypeSelectionDialog dialog = new RelationshipTypeSelectionDialog(parent, items, allowedTypes);
-		dialog.setVisible(true);
-
-		final List<String> result = dialog.getSelectedTypes();
-		return (result == null || result.isEmpty()? null: result.getFirst());
 	}
 
 	public FLEFRecord showEditRecordDialog(final FLEFRecord record){

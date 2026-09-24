@@ -33,7 +33,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JPanel;
-import java.io.Serial;
 
 
 /**
@@ -53,10 +52,6 @@ import java.io.Serial;
  * </pre>
  */
 public class PrivacyPanel extends JPanel{
-
-	@Serial
-	private static final long serialVersionUID = -8538135290834556765L;
-
 
 	private static final String DOT = ".";
 

@@ -43,7 +43,6 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import java.awt.Window;
-import java.io.Serial;
 
 
 /**
@@ -86,10 +85,6 @@ import java.io.Serial;
  * Tab 8 (Notes): note
  */
 public class PersonalNameStructureDialog extends BaseRecordDialog{
-
-	@Serial
-	private static final long serialVersionUID = 6814016756734554747L;
-
 
 	private static final String TAG_TYPE = "TYPE";
 	private static final String TAG_PART = "PART";

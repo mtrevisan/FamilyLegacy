@@ -41,7 +41,6 @@ import org.apache.commons.lang3.StringUtils;
 import javax.swing.JPanel;
 import java.awt.Window;
 import java.io.IOException;
-import java.io.Serial;
 
 
 /**
@@ -69,10 +68,6 @@ import java.io.Serial;
  * Tab 10 (Audit): audit
  */
 public class ResearchTaskRecordDialog extends BaseRecordDialog{
-
-	@Serial
-	private static final long serialVersionUID = -9146822186086957943L;
-
 
 	private static final String TAG_DESCRIPTION = "DESCRIPTION";
 	private static final String TAG_QUESTION = "QUESTION";

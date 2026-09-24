@@ -35,15 +35,10 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import java.awt.BorderLayout;
 import java.awt.Window;
-import java.io.Serial;
 import java.util.Objects;
 
 
 public class DateStructureDialog extends JDialog{
-
-	@Serial
-	private static final long serialVersionUID = 4594342471311960844L;
-
 
 	private final DateStructurePanel datePanel;
 

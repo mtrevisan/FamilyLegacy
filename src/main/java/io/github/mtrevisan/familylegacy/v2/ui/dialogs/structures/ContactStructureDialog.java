@@ -40,7 +40,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JPanel;
 import java.awt.Window;
-import java.io.Serial;
 
 
 /**
@@ -66,10 +65,6 @@ import java.io.Serial;
  * Tab 10 (Audit): audit
  */
 public class ContactStructureDialog extends BaseRecordDialog{
-
-	@Serial
-	private static final long serialVersionUID = 5523786168919512214L;
-
 
 	private static final String TAG_VALUE = "VALUE";
 	private static final String TAG_TYPE = "TYPE";

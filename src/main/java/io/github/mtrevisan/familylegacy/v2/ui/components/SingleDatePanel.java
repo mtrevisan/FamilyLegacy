@@ -43,7 +43,6 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Window;
-import java.io.Serial;
 import java.util.EnumMap;
 import java.util.Map;
 
@@ -73,10 +72,6 @@ import java.util.Map;
  * </pre>
  */
 public class SingleDatePanel extends JPanel{
-
-	@Serial
-	private static final long serialVersionUID = 3393161879295516317L;
-
 
 	private static final String DOT = ".";
 

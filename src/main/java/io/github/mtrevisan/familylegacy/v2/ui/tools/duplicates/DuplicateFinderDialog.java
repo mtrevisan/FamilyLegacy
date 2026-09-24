@@ -332,8 +332,10 @@ public final class DuplicateFinderDialog extends JDialog{
 		final DuplicateFinderService.Candidate c = selectedCandidate();
 		if(c == null)
 			return;
-		final FLEFRecord left = context.model().getRecordById(c.left().id());
-		final FLEFRecord right = context.model().getRecordById(c.right().id());
+
+		final FLEFModel model = context.model();
+		final FLEFRecord left = model.getRecordById(c.left().id());
+		final FLEFRecord right = model.getRecordById(c.right().id());
 		if(left == null || right == null)
 			return;
 		RecordDiffDialog.showComparison(this,

@@ -39,7 +39,6 @@ import org.apache.commons.lang3.Strings;
 
 import javax.swing.JOptionPane;
 import java.awt.Window;
-import java.io.Serial;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -54,10 +53,6 @@ import java.util.function.Consumer;
  * editing, and clearing an entity record via a popup menu.
  */
 public class EntityField extends BoundTextField{
-
-	@Serial
-	private static final long serialVersionUID = -8333332073516970045L;
-
 
 	public static final String PROPERTY_ENTITY_CHANGED = "entity-changed";
 

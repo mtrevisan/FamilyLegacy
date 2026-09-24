@@ -30,7 +30,6 @@ import javax.swing.JLabel;
 import javax.swing.JToolTip;
 import java.awt.FontMetrics;
 import java.awt.SystemColor;
-import java.io.Serial;
 
 
 /**
@@ -48,10 +47,6 @@ import java.io.Serial;
  * </pre>
  */
 public class LabelAutoToolTip extends JLabel{
-
-	@Serial
-	private static final long serialVersionUID = -3850625229732307986L;
-
 
 	private static final String TAG_HTML_OPEN = "<html>";
 	private static final String TAG_HTML_CLOSE = "</html>";

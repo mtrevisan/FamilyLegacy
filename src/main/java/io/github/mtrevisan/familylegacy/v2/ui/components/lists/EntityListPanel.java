@@ -45,7 +45,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.ListCellRenderer;
 import java.awt.Window;
-import java.io.Serial;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -73,10 +72,6 @@ import java.util.function.Consumer;
  * </ul>
  */
 public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
-
-	@Serial
-	private static final long serialVersionUID = 8040533307824167492L;
-
 
 	private static final String TAG_RESOLVES = "RESOLVES";
 

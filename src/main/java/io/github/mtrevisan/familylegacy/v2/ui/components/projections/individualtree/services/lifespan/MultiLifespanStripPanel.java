@@ -59,7 +59,6 @@ import java.awt.Window;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
-import java.io.Serial;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -107,10 +106,6 @@ import java.util.Locale;
  * of a view. It never modifies the model directly.
  */
 public final class MultiLifespanStripPanel extends JPanel{
-
-	@Serial
-	private static final long serialVersionUID = 4281904752198471039L;
-
 
 	/** Height of a single row, in pixels. */
 	private static final int ROW_HEIGHT = 18;
@@ -688,10 +683,6 @@ public final class MultiLifespanStripPanel extends JPanel{
 	 * ====================================================================== */
 
 	private final class StripCanvas extends JPanel{
-
-		@Serial
-		private static final long serialVersionUID = 8492037491820374821L;
-
 
 		StripCanvas(){
 			setBackground(BACKGROUND);

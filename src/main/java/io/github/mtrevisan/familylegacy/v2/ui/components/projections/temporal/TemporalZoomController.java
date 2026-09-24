@@ -84,6 +84,7 @@ public final class TemporalZoomController{
 
 	public TemporalZoomController withListener(final Listener listener){
 		this.listener = listener;
+
 		return this;
 	}
 

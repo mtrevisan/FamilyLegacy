@@ -31,6 +31,9 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.MultiLineLabel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.BoxPanelType;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.PopupMouseAdapter;
+import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
+import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolDispatcher;
+import io.github.mtrevisan.familylegacy.v2.ui.tools.individuals.EditIndividualTool;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.BorderFactory;
@@ -64,7 +67,6 @@ import java.awt.event.MouseMotionAdapter;
 import java.awt.font.TextAttribute;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.Serial;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Objects;
@@ -75,24 +77,21 @@ import java.util.Objects;
  */
 public class IndividualPanel extends JPanel{
 
-	@Serial
-	private static final long serialVersionUID = -300117824230109203L;
-
-
 	// Colors
 	private static final Color BACKGROUND_COLOR_NO_ENTITY = Color.WHITE;
 	private static final Color BACKGROUND_COLOR_FADE_TO = Color.WHITE;
 	private static final Color BACKGROUND_COLOR = new Color(221, 221, 221);
 	private static final Color BORDER_COLOR = new Color(165, 165, 165);
+	private static final Color BORDER_COLOR_SELECTED = new Color(220, 100, 60);
 	private static final Color BORDER_COLOR_SHADOW = new Color(131, 131, 131, 130);
 	private static final Color BORDER_COLOR_SHADOW_SELECTED = Color.BLACK;
 	private static final Color BIRTH_DEATH_AGE_COLOR = new Color(110, 110, 110);
 	private static final Color IMAGE_LABEL_BORDER_COLOR = Color.WHITE;
 	private static final Color PEDIGREE_CIRCLE_INNER_COLOR = new Color(200, 55, 55, 240);
 	private static final Color PEDIGREE_CIRCLE_OUTER_COLOR = Color.WHITE;
+
 	private static final float BORDER_THICKNESS_NORMAL = 1f;
 	private static final float BORDER_THICKNESS_HOVERED = 1.8f;
-	private static final Color BORDER_COLOR_SELECTED = new Color(220, 100, 60);
 	private static final float BORDER_THICKNESS_SELECTED = 2.5f;
 
 	// Dimensions
@@ -143,6 +142,7 @@ public class IndividualPanel extends JPanel{
 	/** Red badge displayed on panels whose individual appears multiple times. */
 	private final CollapseBadge collapseBadge = new CollapseBadge();
 
+	// Strategy pattern for popup menu generation
 	private EntityPopupMenuFactory<IndividualPanel, IndividualListener> popupMenuFactory;
 
 	private IndividualListener listener;
@@ -472,13 +472,15 @@ public class IndividualPanel extends JPanel{
 	}
 
 	private void installMouseListeners(){
+		// Single click on the name label: navigate (re-root the view).
+		// The event is consumed so that the panel-level selection listener
+		// (added below) does not also fire on the same click.
 		if(boxType == BoxPanelType.SECONDARY){
 			final MouseAdapter selectedAdapter = new MouseAdapter(){
 				@Override
 				public void mousePressed(final MouseEvent e){
-					if(SwingUtilities.isLeftMouseButton(e) && e.getClickCount() == 1 && listener != null && data != null
-							&& nameLabel.isTextHit(e.getPoint())){
-						listener.onRootEntitySelected(data.getIndividual());
+					if(SwingUtilities.isLeftMouseButton(e) && e.getClickCount() == 1 && listener != null && data != null){
+						listener.onRootEntitySelected(data.getId());
 
 						// Consume the event so that the panel-level listener does
 						// not also fire a selection on the same click. Clicking
@@ -508,8 +510,21 @@ public class IndividualPanel extends JPanel{
 		addMouseListener(new MouseAdapter(){
 			@Override
 			public void mousePressed(final MouseEvent e){
-				if(SwingUtilities.isLeftMouseButton(e) && e.getClickCount() == 2 && listener != null && data != null)
-					listener.onEntityEdit(data.getIndividual());
+				if(SwingUtilities.isLeftMouseButton(e) && e.getClickCount() == 2 && listener != null && data != null){
+					final ToolContext context = new ToolContext(
+						model,
+						data::getId,
+						() -> IndividualPanel.this,
+						new ToolDispatcher(){
+							@Override
+							public void editEntity(final String id){
+								if(listener != null)
+									listener.onEntityEdit(data.getIndividual());
+							}
+						}
+					);
+					new EditIndividualTool().run(context);
+				}
 			}
 		});
 
@@ -519,8 +534,14 @@ public class IndividualPanel extends JPanel{
 		final MouseAdapter hoverAdapter = new MouseAdapter(){
 			@Override
 			public void mousePressed(final MouseEvent e){
-				if(SwingUtilities.isLeftMouseButton(e) && e.getClickCount() == 1 && listener != null && data != null)
+				if(e.getClickCount() == 1 && listener != null && data != null){
 					listener.onIndividualSelected(IndividualPanel.this, data.getIndividual());
+
+					// Consume the event so that the panel-level listener does
+					// not also fire a selection on the same click. Clicking
+					// the name is a navigation gesture, not a selection one.
+					e.consume();
+				}
 			}
 
 			@Override
@@ -590,10 +611,6 @@ public class IndividualPanel extends JPanel{
 	 * {@code hidemode 3}, leaving the space to the name and info labels.
 	 */
 	private final class CollapseBadge extends JComponent{
-
-		@Serial
-		private static final long serialVersionUID = -8268907512879360023L;
-
 
 		private int count;
 		private String tooltip;

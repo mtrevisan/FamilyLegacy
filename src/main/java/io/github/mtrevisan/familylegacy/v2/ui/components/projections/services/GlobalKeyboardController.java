@@ -15,7 +15,6 @@ import java.awt.KeyboardFocusManager;
 import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
-import java.io.Serial;
 
 
 /**
@@ -35,9 +34,6 @@ public final class GlobalKeyboardController{
 		// Navigation Back / Forward
 		inputMap.put(ShortcutRegistry.NAV_BACK.keyStroke(), ACTION_NAVIGATE_BACK);
 		actionMap.put(ACTION_NAVIGATE_BACK, new AbstractAction(){
-			@Serial
-			private static final long serialVersionUID = -2472917274670701129L;
-
 			@Override
 			public void actionPerformed(final ActionEvent e){
 				if(switcher.canGoBack())
@@ -47,9 +43,6 @@ public final class GlobalKeyboardController{
 
 		inputMap.put(ShortcutRegistry.NAV_FORWARD.keyStroke(), ACTION_NAVIGATE_FORWARD);
 		actionMap.put(ACTION_NAVIGATE_FORWARD, new AbstractAction(){
-			@Serial
-			private static final long serialVersionUID = -7736620353955995616L;
-
 			@Override
 			public void actionPerformed(final ActionEvent e){
 				if(switcher.canGoForward())
@@ -60,12 +53,9 @@ public final class GlobalKeyboardController{
 		// Edit Selection (F2)
 		inputMap.put(ShortcutRegistry.EDIT_SELECTION.keyStroke(), ACTION_EDIT_SELECTION);
 		actionMap.put(ACTION_EDIT_SELECTION, new AbstractAction(){
-			@Serial
-			private static final long serialVersionUID = -6055994878369180523L;
-
 			@Override
 			public void actionPerformed(final ActionEvent e){
-				switcher.editCurrentSelection();
+				switcher.editEntity(switcher.getSelectedEntityId());
 			}
 		});
 

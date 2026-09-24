@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.tools.statistics;
 
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ReportDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolOperation;
@@ -39,8 +40,8 @@ public final class StatisticsTool implements ToolOperation{
 
 	@Override
 	public void run(final ToolContext context){
-		final StatisticsService.Report report =
-			StatisticsService.compute(context.model());
+		final FLEFModel model = context.model();
+		final StatisticsService.Report report = StatisticsService.compute(model);
 		ReportDialog.showHtml(context.owner(), "Statistics", report.toHtml());
 	}
 

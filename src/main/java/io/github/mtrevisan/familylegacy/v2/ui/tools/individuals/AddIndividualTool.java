@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.tools.individuals;
 
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
@@ -32,17 +33,18 @@ import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolOperation;
 
 
 /** Opens the "new individual" dialog. */
-public final class NewIndividualTool implements ToolOperation{
+public final class AddIndividualTool implements ToolOperation{
 
 	@Override
 	public String getName(){
-		return "New Individual…";
+		return "Add Individual…";
 	}
 
 	@Override
 	public void run(final ToolContext context){
+		final FLEFModel model = context.model();
 		final BaseRecordDialog dialog = IndividualHandler.getInstance()
-			.createNewDialog(context.owner(), context.model());
+			.createNewDialog(context.owner(), model);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved()){

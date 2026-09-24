@@ -38,8 +38,10 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.TreeNode;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.TreeService;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.SexType;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.RelationClipboard;
+import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
+import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolDispatcher;
+import io.github.mtrevisan.familylegacy.v2.ui.tools.individuals.DeleteIndividualTool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -136,11 +138,8 @@ public final class IndividualTreeGraphListener implements IndividualListener{
 	}
 
 	@Override
-	public void onRootEntitySelected(final FLEFRecord individual){
-		if(individual == null || individual.getId() == null)
-			return;
-
-		treeMutator.navigateToRoot(individual.getId());
+	public void onRootEntitySelected(final String individualId){
+		treeMutator.navigateToRoot(individualId);
 	}
 
 	@Override
@@ -148,35 +147,19 @@ public final class IndividualTreeGraphListener implements IndividualListener{
 		if(individual == null)
 			return;
 
-		final String displayText = IndividualHandler.getInstance()
-			.getDisplayText(individual, model);
+		final ToolContext context = new ToolContext(model, individual::getId, () -> component,
+			new ToolDispatcher(){
+				@Override
+				public void removeEntity(final String id){
+					treeMutator.removeIndividual(individual, id);
+				}
 
-		// Count the relationship records that the deletion will also remove.
-		// getRelationshipIdsForIndividual returns the ids of every
-		// relationship where the individual is either subject or target,
-		// which is exactly the set removed by TreeMutator.removeIndividual.
-		final int linkCount = (individual.getId() != null
-			? treeService.getRelationshipIdsForIndividual(individual.getId()).size()
-			: 0);
-
-		final String message;
-		if(linkCount == 0)
-			message = "Are you sure you want to remove individual " + displayText + "?\n"
-				+ "This individual has no relationship links.";
-		else
-			message = "Are you sure you want to remove individual " + displayText + "?\n"
-				+ linkCount + (linkCount == 1
-				? " relationship link will also be removed."
-				: " relationship links will also be removed.");
-
-		final int confirm = JOptionPane.showConfirmDialog(component,
-			message,
-			"Confirm Removal", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
-		if(confirm == JOptionPane.YES_OPTION){
-			LOGGER.debug("Individual remove {}", individual.getId());
-
-			treeMutator.removeIndividual(individual, currentRootId.get());
-		}
+				@Override
+				public void loadRoot(final String id){
+					onRootEntitySelected(id);
+				}
+			});
+		new DeleteIndividualTool().run(context);
 	}
 
 
@@ -185,8 +168,7 @@ public final class IndividualTreeGraphListener implements IndividualListener{
 	 * ====================================================================== */
 
 	@Override
-	public void onIndividualAddOrConnect(final IndividualPanel selectedPanel,
-		final TreeOperation operation){
+	public void onIndividualAddOrConnect(final IndividualPanel selectedPanel, final TreeOperation operation){
 		final Function<SexType, FLEFRecord> fn = (operation == TreeOperation.ADD
 			? this::showCreateIndividualDialog: this::showSearchIndividualDialog);
 
@@ -226,7 +208,7 @@ public final class IndividualTreeGraphListener implements IndividualListener{
 			return;
 
 		performChildRelationOperation(child, targetFather, targetMother, false, currentRootId.get());
-		onRootEntitySelected(targetFather != null? targetFather: targetMother);
+		onRootEntitySelected(targetFather != null? targetFather.getId(): targetMother.getId());
 	}
 
 
@@ -283,13 +265,19 @@ public final class IndividualTreeGraphListener implements IndividualListener{
 		if(individual == null)
 			return;
 
-		LOGGER.debug("Relocate individual {} to clipboard", individual.getId());
-
-		RelationClipboard.getInstance().setRecord(individual);
+		RelationClipboard.getInstance()
+			.setRecord(individual);
 	}
 
 	@Override
 	public void onIndividualPaste(final IndividualPanel selectedPanel){
+		if(selectedPanel == null)
+			return;
+
+		executePaste(selectedPanel);
+	}
+
+	private void executePaste(final IndividualPanel selectedPanel){
 		final RelationClipboard clipboard = RelationClipboard.getInstance();
 		if(!clipboard.hasRecord())
 			return;
@@ -325,7 +313,7 @@ public final class IndividualTreeGraphListener implements IndividualListener{
 			treeMutator.removeRelationships(relationshipIds);
 		}
 		final Window parent = SwingUtilities.getWindowAncestor(component);
-		operationCoordinator.performChildOperation(parent, child, father, mother);
+		operationCoordinator.performChildOperation(parent, child, father, mother, this);
 		treeMutator.invalidateAndNotifyTreeChanged(rootId);
 	}
 
@@ -335,12 +323,11 @@ public final class IndividualTreeGraphListener implements IndividualListener{
 			return;
 
 		if(isPaste){
-			final List<String> relIds =
-				treeService.getRelationshipIdsForIndividual(individual.getId());
-			treeMutator.removeRelationships(relIds);
+			final List<String> relationshipIds = treeService.getRelationshipIdsForIndividual(individual.getId());
+			treeMutator.removeRelationships(relationshipIds);
 		}
 		final Window parent = SwingUtilities.getWindowAncestor(component);
-		operationCoordinator.performParentOperation(parent, individual, ctx);
+		operationCoordinator.performParentOperation(parent, individual, ctx, this);
 		treeMutator.invalidateAndNotifyTreeChanged(rootId);
 	}
 

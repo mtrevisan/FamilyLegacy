@@ -68,13 +68,11 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.Serial;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -88,10 +86,6 @@ import java.util.function.Consumer;
 public class RecordSelectionDialog extends JDialog{
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(RecordSelectionDialog.class);
-
-
-	@Serial
-	private static final long serialVersionUID = -9150455030962766194L;
 
 
 	private static final String NO_MATCHING_RECORDS = "[No matching records]";
@@ -280,9 +274,6 @@ public class RecordSelectionDialog extends JDialog{
 		// Results Panel
 		resultList.setFixedCellHeight(22);
 		resultList.setCellRenderer(new DefaultListCellRenderer(){
-			@Serial
-			private static final long serialVersionUID = 695210076800270818L;
-
 			@Override
 			public Component getListCellRendererComponent(final JList<?> list, final Object value, final int index,
 					final boolean isSelected, final boolean cellHasFocus){
@@ -368,9 +359,6 @@ public class RecordSelectionDialog extends JDialog{
 			.put(GUIHelper.ESCAPE_STROKE, ACTION_CANCEL_SEARCH_OR_DIALOG);
 		getRootPane().getActionMap()
 			.put(ACTION_CANCEL_SEARCH_OR_DIALOG, new AbstractAction(){
-				@Serial
-				private static final long serialVersionUID = 160337908930039032L;
-
 				@Override
 				public void actionPerformed(final ActionEvent e){
 					if(currentWorker != null && !currentWorker.isDone())

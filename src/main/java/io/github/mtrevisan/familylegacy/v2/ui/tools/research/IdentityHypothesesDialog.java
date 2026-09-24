@@ -153,8 +153,8 @@ public final class IdentityHypothesesDialog extends JDialog{
 
 	private void reload(){
 		final List<ResearchHelper.IdentityRow> rows = new ArrayList<>();
-		FLEFModel model = context.model();
-		for(final FLEFRecord h : ResearchHelper.listIdentityHypotheses(context.model()))
+		final FLEFModel model = context.model();
+		for(final FLEFRecord h : ResearchHelper.listIdentityHypotheses(model))
 			rows.add(ResearchHelper.toIdentityRow(h, model));
 		tableModel.setRows(rows);
 		updateStatus(rows.size());
@@ -196,15 +196,18 @@ public final class IdentityHypothesesDialog extends JDialog{
 	private void openEditor(final String hypothesisId){
 		final IdentityHypothesisHandler handler = IdentityHypothesisHandler.getInstance();
 		final BaseRecordDialog dialog;
+		final FLEFModel model = context.model();
 		if(hypothesisId == null)
-			dialog = handler.createNewDialog(this, context.model());
+			dialog = handler.createNewDialog(this, model);
 		else{
-			final FLEFRecord record = context.model().getRecordById(hypothesisId);
+			final FLEFRecord record = model
+				.getRecordById(hypothesisId);
 			if(record == null)
 				return;
-			dialog = handler.createEditDialog(this, context.model(), record);
+			dialog = handler.createEditDialog(this, model, record);
 		}
 		dialog.setVisible(true);
+
 		if(dialog.isSaved())
 			reload();
 	}
@@ -213,6 +216,7 @@ public final class IdentityHypothesesDialog extends JDialog{
 		final String hypothesisId = selectedId();
 		if(hypothesisId == null)
 			return;
+
 		final int confirm = JOptionPane.showConfirmDialog(this,
 			"Delete identity hypothesis " + hypothesisId + "?",
 			"Confirm Deletion",
@@ -220,7 +224,9 @@ public final class IdentityHypothesesDialog extends JDialog{
 			JOptionPane.WARNING_MESSAGE);
 		if(confirm != JOptionPane.YES_OPTION)
 			return;
-		context.model().removeRecord(hypothesisId);
+
+		final FLEFModel model = context.model();
+		model.removeRecord(hypothesisId);
 		reload();
 	}
 

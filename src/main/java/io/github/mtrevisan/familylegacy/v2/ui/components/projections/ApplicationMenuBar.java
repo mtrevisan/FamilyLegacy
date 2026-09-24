@@ -36,7 +36,9 @@ import io.github.mtrevisan.familylegacy.v2.ui.tools.events.EventToolRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.files.FileMenuController;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.files.FileToolRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.groups.GroupToolRegistry;
+import io.github.mtrevisan.familylegacy.v2.ui.tools.individuals.DeleteIndividualTool;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.individuals.IndividualToolRegistry;
+import io.github.mtrevisan.familylegacy.v2.ui.tools.individuals.RelocateIndividualTool;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.places.PlaceToolRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.research.ResearchToolRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.sources.SourceToolRegistry;
@@ -244,14 +246,18 @@ final class ApplicationMenuBar{
 		final JMenu menu = new JMenu("Edit");
 		menu.setMnemonic(KeyEvent.VK_E);
 
+		final List<ToolItemBinding> bindings = new ArrayList<>();
+
 		menu.add(accelerated(ShortcutRegistry.EDIT_UNDO.action(), ShortcutRegistry.EDIT_UNDO.keyStrokeCode()));
 		menu.add(accelerated(ShortcutRegistry.EDIT_REDO.action(), ShortcutRegistry.EDIT_REDO.keyStrokeCode()));
 		menu.add(new JSeparator());
-		menu.add(accelerated(ShortcutRegistry.EDIT_RELOCATE.action(), ShortcutRegistry.EDIT_RELOCATE.keyStrokeCode()));
-		menu.add(accelerated(ShortcutRegistry.EDIT_PASTE.action(), ShortcutRegistry.EDIT_PASTE.keyStrokeCode()));
-		menu.add(accelerated(ShortcutRegistry.EDIT_DELETE.action(), ShortcutRegistry.EDIT_DELETE.keyStrokeCode()));
-//		menu.add(new JSeparator());
-//		menu.add(placeholder("Preferences…", 0));
+
+		addToolsToMenu(menu, List.of(
+			new RelocateIndividualTool(),
+			new DeleteIndividualTool()
+		), bindings);
+
+		bindDynamicEnablement(menu, bindings);
 
 		return menu;
 	}
@@ -356,6 +362,10 @@ final class ApplicationMenuBar{
 		addToolsToMenu(menu, IndividualToolRegistry.primaryTools(), bindings);
 		menu.add(new JSeparator());
 		addToolsToMenu(menu, IndividualToolRegistry.relationshipTools(), bindings);
+		menu.add(new JSeparator());
+		addToolsToMenu(menu, IndividualToolRegistry.secondaryTools(), bindings);
+		menu.add(new JSeparator());
+		addToolsToMenu(menu, IndividualToolRegistry.tertiaryTools(), bindings);
 		menu.add(new JSeparator());
 		addToolsToMenu(menu, IndividualToolRegistry.advancedTools(), bindings);
 		menu.add(new JSeparator());
@@ -794,7 +804,8 @@ final class ApplicationMenuBar{
 			public void menuSelected(final MenuEvent e){
 				final ToolContext context = frame.createToolContext();
 				for(final ToolItemBinding binding : bindings)
-					binding.item().setEnabled(binding.tool().isEnabled(context));
+					binding.item()
+						.setEnabled(binding.tool().isEnabled(context));
 			}
 
 			@Override

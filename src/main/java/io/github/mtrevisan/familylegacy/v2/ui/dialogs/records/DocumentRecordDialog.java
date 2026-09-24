@@ -42,7 +42,6 @@ import javax.swing.JPanel;
 import java.awt.Window;
 import java.io.File;
 import java.io.IOException;
-import java.io.Serial;
 
 
 /**
@@ -70,10 +69,6 @@ import java.io.Serial;
  * Tab 10 (Audit): audit
  */
 public class DocumentRecordDialog extends BaseRecordDialog{
-
-	@Serial
-	private static final long serialVersionUID = 6128827794273719284L;
-
 
 	private static final String TAG_URI = "URI";
 	private static final String TAG_MAPPING = "MAPPING";

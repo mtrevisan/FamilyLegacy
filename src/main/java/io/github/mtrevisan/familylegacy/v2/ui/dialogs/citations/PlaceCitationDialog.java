@@ -40,7 +40,6 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import java.awt.Window;
-import java.io.Serial;
 
 
 /**
@@ -61,10 +60,6 @@ import java.io.Serial;
  * Tab 7 (Sources): source
  */
 public class PlaceCitationDialog extends BaseRecordDialog{
-
-	@Serial
-	private static final long serialVersionUID = 6489523892351201199L;
-
 
 	private static final String TAG_ORIGINAL_TEXT = "ORIGINAL_TEXT";
 	private static final String TAG_SOURCE = "SOURCE";

@@ -31,6 +31,9 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.MultiLineLabel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.BoxPanelType;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.EntityPopupMenuFactory;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.PopupMouseAdapter;
+import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
+import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolDispatcher;
+import io.github.mtrevisan.familylegacy.v2.ui.tools.individuals.EditIndividualTool;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.BorderFactory;
@@ -63,7 +66,6 @@ import java.awt.event.MouseMotionAdapter;
 import java.awt.font.TextAttribute;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.Serial;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Objects;
@@ -86,10 +88,6 @@ import java.util.Objects;
  */
 public class GroupPanel extends JPanel{
 
-	@Serial
-	private static final long serialVersionUID = -712849120391204812L;
-
-
 	// Colors
 	private static final Color BACKGROUND_COLOR_NO_ENTITY = Color.WHITE;
 	private static final Color BACKGROUND_COLOR_FADE_TO = Color.WHITE;
@@ -100,6 +98,7 @@ public class GroupPanel extends JPanel{
 	private static final Color IMAGE_LABEL_BORDER_COLOR = Color.WHITE;
 
 	private static final float BORDER_THICKNESS_NORMAL = 1.f;
+	private static final float BORDER_THICKNESS_HOVERED = 1.8f;
 	private static final float BORDER_THICKNESS_SELECTED = 2.5f;
 
 	// Dimensions
@@ -132,6 +131,8 @@ public class GroupPanel extends JPanel{
 
 	private String preferredImageKey;
 
+	/** {@code true} while the mouse is over this panel or one of its children. */
+	private boolean hovered;
 	/** {@code true} when this panel is the current selection in its view. */
 	private boolean selected;
 
@@ -212,6 +213,10 @@ public class GroupPanel extends JPanel{
 				borderColor = BORDER_COLOR_SELECTED;
 				borderStroke = new BasicStroke(BORDER_THICKNESS_SELECTED);
 			}
+			else if(hovered){
+				borderColor = BORDER_COLOR;
+				borderStroke = new BasicStroke(BORDER_THICKNESS_HOVERED);
+			}
 			else{
 				borderColor = BORDER_COLOR;
 				borderStroke = new BasicStroke(BORDER_THICKNESS_NORMAL);
@@ -251,7 +256,7 @@ public class GroupPanel extends JPanel{
 
 
 	public GroupPanel withListener(final GroupListener listener,
-		final EntityPopupMenuFactory<GroupPanel, GroupListener> factory){
+			final EntityPopupMenuFactory<GroupPanel, GroupListener> factory){
 		this.listener = listener;
 		popupMenuFactory = factory;
 
@@ -312,7 +317,7 @@ public class GroupPanel extends JPanel{
 			nameLabel.setFormattedText(data.getNameText());
 			nameLabel.setToolTipText(data.getNameTooltip());
 
-			typeLabel.setText(data.getYype());
+			typeLabel.setText(data.getType());
 
 			// Set the default image/placeholder
 			imageLabel.setIcon(boxType == BoxPanelType.PRIMARY
@@ -358,8 +363,11 @@ public class GroupPanel extends JPanel{
 				@Override
 				public void mousePressed(final MouseEvent e){
 					if(SwingUtilities.isLeftMouseButton(e) && e.getClickCount() == 1 && listener != null && data != null){
-						listener.onRootEntitySelected(data.getGroup());
+						listener.onRootEntitySelected(data.getId());
 
+						// Consume the event so that the panel-level listener does
+						// not also fire a selection on the same click. Clicking
+						// the name is a navigation gesture, not a selection one.
 						e.consume();
 					}
 				}
@@ -385,8 +393,21 @@ public class GroupPanel extends JPanel{
 		addMouseListener(new MouseAdapter(){
 			@Override
 			public void mousePressed(final MouseEvent e){
-				if(SwingUtilities.isLeftMouseButton(e) && e.getClickCount() == 2 && listener != null && data != null)
-					listener.onEntityEdit(data.getGroup());
+				if(SwingUtilities.isLeftMouseButton(e) && e.getClickCount() == 2 && listener != null && data != null){
+					final ToolContext context = new ToolContext(
+						model,
+						data::getId,
+						() -> GroupPanel.this,
+						new ToolDispatcher(){
+							@Override
+							public void editEntity(final String id){
+								if(listener != null)
+									listener.onEntityEdit(data.getGroup());
+							}
+						}
+					);
+					new EditIndividualTool().run(context);
+				}
 			}
 		});
 
@@ -396,11 +417,35 @@ public class GroupPanel extends JPanel{
 		final MouseAdapter selectionAdapter = new MouseAdapter(){
 			@Override
 			public void mousePressed(final MouseEvent e){
-				if(SwingUtilities.isLeftMouseButton(e) && e.getClickCount() == 1 && listener != null && data != null
-						&& nameLabel.isTextHit(e.getPoint()))
+				if(e.getClickCount() == 1 && listener != null && data != null){
 					listener.onGroupSelected(GroupPanel.this, data.getGroup());
+
+					// Consume the event so that the panel-level listener does
+					// not also fire a selection on the same click. Clicking
+					// the name is a navigation gesture, not a selection one.
+					e.consume();
+				}
+			}
+
+			@Override
+			public void mouseEntered(final MouseEvent e){
+				if(!hovered){
+					hovered = true;
+
+					repaint();
+				}
+			}
+
+			@Override
+			public void mouseExited(final MouseEvent e){
+				if(hovered){
+					hovered = false;
+
+					repaint();
+				}
 			}
 		};
+
 		attachMouseListenerRecursively(this, selectionAdapter);
 	}
 

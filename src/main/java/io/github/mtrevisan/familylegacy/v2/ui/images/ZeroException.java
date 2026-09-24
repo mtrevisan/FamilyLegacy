@@ -34,10 +34,6 @@ import java.io.Serial;
 
 public class ZeroException extends Exception{
 
-	@Serial
-	private static final long serialVersionUID = -1960874856936000015L;
-
-
 	public static ZeroException create(final String message, final Object... parameters){
 		return new ZeroException(JavaHelper.textFormat(message, parameters));
 	}

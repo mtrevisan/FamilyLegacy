@@ -35,7 +35,6 @@ import org.apache.commons.lang3.StringUtils;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import java.awt.Window;
-import java.io.Serial;
 
 
 //TODO ParticipantField?
@@ -43,10 +42,6 @@ import java.io.Serial;
  * Component for selecting and displaying dates.
  */
 public class DateField extends JPanel{
-
-	@Serial
-	private static final long serialVersionUID = 4495716172290856838L;
-
 
 	private static final String TAG_VALUE = "VALUE";
 	private static final String TAG_START_YEAR = "START_YEAR";
