@@ -28,8 +28,8 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchCriteria;
+import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchMode;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchStrategy;
-import io.github.mtrevisan.familylegacy.v2.ui.components.searches.TextSearchHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RepositoryHandler;
@@ -56,8 +56,7 @@ public class RepositorySearchStrategy implements SearchStrategy{
 	private String name;
 	private String custodian;
 	private String location;
-	private boolean fuzzy;
-	private boolean wholeWord;
+	private SearchMode mode;
 
 
 	@Override
@@ -65,12 +64,11 @@ public class RepositorySearchStrategy implements SearchStrategy{
 		name = criteria.getFilterFor(RepositoryFilterPanel.FILTER_KEY_NAME);
 		custodian = criteria.getFilterFor(RepositoryFilterPanel.FILTER_KEY_CUSTODIAN);
 		location = criteria.getFilterFor(RepositoryFilterPanel.FILTER_KEY_LOCATION);
-		fuzzy = criteria.isFuzzy();
-		wholeWord = criteria.isWholeWord();
+		mode = criteria.mode();
 
 		return repository -> {
 			// Name filter
-			if(!SearchHelper.matchesName(repository, name, fuzzy, wholeWord, FUZZY_THRESHOLD))
+			if(!SearchHelper.matchesName(repository, name, mode, FUZZY_THRESHOLD))
 				return false;
 
 			// Custodian filter
@@ -80,7 +78,7 @@ public class RepositorySearchStrategy implements SearchStrategy{
 					final FLEFRecord custodianRecord = model.getRecordById(custodianRef);
 					if(custodianRecord != null){
 						final String custodianDisplayText = IndividualHandler.getInstance().getDisplayText(custodianRecord, model);
-						if(!TextSearchHelper.matchesText(custodianDisplayText, custodian, fuzzy, wholeWord, FUZZY_THRESHOLD))
+						if(!SearchHelper.matches(custodianDisplayText, custodian, mode))
 							return false;
 					}
 					else
@@ -98,7 +96,7 @@ public class RepositorySearchStrategy implements SearchStrategy{
 					final FLEFRecord placeRecord = model.getRecordById(placeId);
 					final String place = PlaceHandler.getInstance()
 						.getDisplayText(placeRecord, model);
-					return TextSearchHelper.matchesText(place, place, fuzzy, wholeWord, FUZZY_THRESHOLD);
+					return SearchHelper.matches(place, location, mode);
 				}
 			}
 

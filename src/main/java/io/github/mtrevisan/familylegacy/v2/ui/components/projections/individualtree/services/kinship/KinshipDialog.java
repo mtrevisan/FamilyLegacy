@@ -61,6 +61,12 @@ import java.util.Locale;
  * field also displays the current selection using the same formatting as the
  * rest of the application.
  * <p>
+ * The kinship is computed automatically as soon as both fields hold a
+ * record; there is no explicit "Calculate" action. Whenever either side
+ * changes, the result area is refreshed, so the user always sees the
+ * kinship of the current pair. When one of the two sides is empty, the
+ * result area is cleared instead of keeping a stale value on screen.
+ * <p>
  * The dialog is stateless with respect to the application: it receives
  * everything it needs (model, tree service, initial records) at construction
  * time and does not modify the model.
@@ -77,7 +83,6 @@ public class KinshipDialog extends JDialog{
 	private final EntityField fieldB;
 
 	private final JButton swapButton = new JButton("Swap");
-	private final JButton calculateButton = new JButton("Calculate");
 	private final JButton closeButton = new JButton("Close");
 	private final JTextArea resultArea = new JTextArea();
 
@@ -115,11 +120,17 @@ public class KinshipDialog extends JDialog{
 		fieldB.setEntity(initialB);
 
 		initComponents();
-		refreshCalculateButton();
 
-		// React to entity changes to update the button state.
-		fieldA.addPropertyChangeListener(EntityField.PROPERTY_ENTITY_CHANGED, e -> refreshCalculateButton());
-		fieldB.addPropertyChangeListener(EntityField.PROPERTY_ENTITY_CHANGED, e -> refreshCalculateButton());
+		// Recompute whenever either side changes. The listener fires on
+		// setEntity too, so the initial values passed by the caller are
+		// picked up automatically; the explicit call to onSelectionChanged()
+		// below covers the case where both fields were already populated
+		// before the listeners were installed.
+		fieldA.addPropertyChangeListener(EntityField.PROPERTY_ENTITY_CHANGED, e -> onSelectionChanged());
+		fieldB.addPropertyChangeListener(EntityField.PROPERTY_ENTITY_CHANGED, e -> onSelectionChanged());
+
+		// Trigger the initial computation when both records are already set.
+		onSelectionChanged();
 
 		pack();
 		setMinimumSize(new Dimension(720, 480));
@@ -138,11 +149,11 @@ public class KinshipDialog extends JDialog{
 		main.add(buildPickerRow("Individual A:", fieldA), "growx,wrap");
 		main.add(buildPickerRow("Individual B:", fieldB), "growx,wrap");
 
-		// Action row: swap + calculate
-		final JPanel actions = new JPanel(new MigLayout("ins 0", "[grow][][]", "[]"));
+		// Action row: swap only. The calculation is triggered automatically
+		// when both individuals are selected, so there is no Calculate button.
+		final JPanel actions = new JPanel(new MigLayout("ins 0", "[grow][]", "[]"));
 		actions.add(new JLabel(StringUtils.SPACE), "growx");
 		actions.add(swapButton);
-		actions.add(calculateButton);
 		main.add(actions, "growx,wrap");
 
 		// Result area
@@ -164,10 +175,8 @@ public class KinshipDialog extends JDialog{
 		add(main, BorderLayout.CENTER);
 
 		swapButton.addActionListener(e -> onSwap());
-		calculateButton.addActionListener(e -> onCalculate());
 		closeButton.addActionListener(e -> dispose());
 
-		getRootPane().setDefaultButton(calculateButton);
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 	}
 
@@ -196,6 +205,28 @@ public class KinshipDialog extends JDialog{
 		fieldB.setEntity(a);
 	}
 
+	/**
+	 * Invoked whenever either side of the dialog changes. Computes the
+	 * kinship when both fields hold a record and shows the result;
+	 * clears the result area otherwise, so a stale value from a previous
+	 * selection is never left on screen.
+	 */
+	private void onSelectionChanged(){
+		final FLEFRecord a = fieldA.getEntity();
+		final FLEFRecord b = fieldB.getEntity();
+
+		final boolean bothSet = (a != null && b != null);
+		swapButton.setEnabled(bothSet);
+
+		if(!bothSet){
+			resultArea.setText(StringUtils.EMPTY);
+
+			return;
+		}
+
+		onCalculate();
+	}
+
 	private void onCalculate(){
 		final FLEFRecord a = fieldA.getEntity();
 		final FLEFRecord b = fieldB.getEntity();
@@ -205,12 +236,6 @@ public class KinshipDialog extends JDialog{
 		final KinshipResult result = calculator.calculate(a.getId(), b.getId());
 		resultArea.setText(formatResult(result));
 		resultArea.setCaretPosition(0);
-	}
-
-	private void refreshCalculateButton(){
-		final boolean bothSet = (fieldA.hasData() && fieldB.hasData());
-		calculateButton.setEnabled(bothSet);
-		swapButton.setEnabled(bothSet);
 	}
 
 

@@ -202,7 +202,7 @@ public final class EventTypesDialog extends JDialog{
 		for(final FLEFRecord event : EventHelper.listAllEvents(model)){
 			if(!type.equals(EventHelper.eventType(event)))
 				continue;
-			count++;
+			count ++;
 			body.append("<tr>");
 			body.append("<td>").append(ReportDialog.escape(event.getId())).append("</td>");
 			final String date = EventHelper.eventDateRaw(event);

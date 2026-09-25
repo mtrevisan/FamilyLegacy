@@ -40,12 +40,14 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.util.List;
+import java.util.Locale;
 
 
 /**
@@ -128,7 +130,7 @@ public final class MergeGroupsDialog extends JDialog{
 		final JLabel hint = new JLabel("<html><i>Members and sub-groups of the source are "
 			+ "moved to the target.<br>The source's own sources, notes, and parent "
 			+ "links are not carried over.</i></html>");
-		hint.setForeground(java.awt.Color.GRAY);
+		hint.setForeground(Color.GRAY);
 		form.add(hint, gbc);
 
 		return form;
@@ -158,6 +160,7 @@ public final class MergeGroupsDialog extends JDialog{
 			(record, handler) -> chosen[0] = record,
 			GroupHandler.class);
 		dialog.setVisible(true);
+
 		if(chosen[0] != null){
 			source = chosen[0];
 			sourceField.setText(GroupHelper.displayName(source) + "  [" + source.getId() + "]");
@@ -172,6 +175,7 @@ public final class MergeGroupsDialog extends JDialog{
 			(record, handler) -> chosen[0] = record,
 			GroupHandler.class);
 		dialog.setVisible(true);
+
 		if(chosen[0] != null){
 			target = chosen[0];
 			targetField.setText(GroupHelper.displayName(target) + "  [" + target.getId() + "]");
@@ -208,7 +212,7 @@ public final class MergeGroupsDialog extends JDialog{
 			final String type = FLEFRecordHelper.getChildValue(rel, GroupHelper.TAG_TYPE);
 			if(type == null)
 				continue;
-			final String t = type.toLowerCase(java.util.Locale.ROOT);
+			final String t = type.toLowerCase(Locale.ROOT);
 
 			if(GroupHelper.REL_GROUP_MEMBER.equals(t)){
 				final String targetGroup = rel.extractReferencedId(GroupHelper.TAG_TARGET,

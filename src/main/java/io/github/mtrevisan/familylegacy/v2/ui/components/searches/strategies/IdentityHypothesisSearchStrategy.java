@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchCriteria;
+import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchMode;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchStrategy;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.TextSearchHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
@@ -56,16 +57,14 @@ public class IdentityHypothesisSearchStrategy implements SearchStrategy{
 
 	private String candidate;
 	private String comment;
-	private boolean fuzzy;
-	private boolean wholeWord;
+	private SearchMode mode;
 
 
 	@Override
 	public Predicate<FLEFRecord> buildPredicate(final SearchCriteria criteria, final FLEFModel model){
 		candidate = criteria.getFilterFor(IdentityHypothesisFilterPanel.FILTER_KEY_CANDIDATE);
 		comment = criteria.getFilterFor(IdentityHypothesisFilterPanel.FILTER_KEY_COMMENT);
-		fuzzy = criteria.isFuzzy();
-		wholeWord = criteria.isWholeWord();
+		mode = criteria.mode();
 
 		return hypothesis -> {
 			// Candidate filter (checks resolved display text for candidate records)
@@ -81,7 +80,7 @@ public class IdentityHypothesisSearchStrategy implements SearchStrategy{
 					if(targetRecord != null){
 						final String candidateDisplayText = HandlerRegistry.getHandler(targetRecord.getTag())
 							.getDisplayText(targetRecord, model);
-						if(TextSearchHelper.matchesText(candidateDisplayText, this.candidate, fuzzy, wholeWord, FUZZY_THRESHOLD)){
+						if(TextSearchHelper.matchesText(candidateDisplayText, this.candidate, mode, FUZZY_THRESHOLD)){
 							matched = true;
 
 							break;
@@ -95,7 +94,7 @@ public class IdentityHypothesisSearchStrategy implements SearchStrategy{
 			// Comment filter
 			if(StringUtils.isNotEmpty(comment)){
 				final String comment = FLEFRecordHelper.getChildValue(hypothesis, TAG_COMMENT);
-				if(!TextSearchHelper.matchesText(comment, this.comment, fuzzy, wholeWord, FUZZY_THRESHOLD))
+				if(!TextSearchHelper.matchesText(comment, this.comment, mode, FUZZY_THRESHOLD))
 					return false;
 			}
 

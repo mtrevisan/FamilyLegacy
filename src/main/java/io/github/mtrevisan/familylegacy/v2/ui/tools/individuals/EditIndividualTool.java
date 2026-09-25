@@ -38,12 +38,12 @@ public final class EditIndividualTool implements ToolOperation{
 
 	@Override
 	public String getName(){
-		return ShortcutRegistry.EDIT_SELECTION.action();
+		return ShortcutRegistry.EDIT_SELECTION_INDIVIDUAL.action();
 	}
 
 	@Override
 	public KeyStroke getAccelerator(){
-		return ShortcutRegistry.EDIT_SELECTION.keyStroke();
+		return ShortcutRegistry.EDIT_SELECTION_INDIVIDUAL.keyStroke();
 	}
 
 	@Override

@@ -38,7 +38,8 @@ public final class RemoveMemberTool implements ToolOperation{
 
 	@Override
 	public void run(final ToolContext context){
-		new RemoveMemberDialog(context).setVisible(true);
+		final RemoveMemberDialog dialog = new RemoveMemberDialog(context);
+		dialog.setVisible(true);
 	}
 
 	@Override

@@ -82,7 +82,7 @@ public final class CitationAnalysisTool implements ToolOperation{
 			int count = 0;
 			for(final FLEFRecord record : model.getRecordsByType(type))
 				if(!hasCitation(record))
-					count++;
+					count ++;
 			if(count > 0)
 				uncited.put(type, count);
 		}

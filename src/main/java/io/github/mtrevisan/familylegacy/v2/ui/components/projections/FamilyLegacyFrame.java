@@ -31,10 +31,12 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.projections.bookmarks.B
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.bookmarks.BookmarkType;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.TreeType;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.GenealogyRepository;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.ProjectionMutator;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.services.DossierManager;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.services.GlobalKeyboardController;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.services.ModelUtils;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
+import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContexts;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolDispatcher;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.files.FileMenuController;
 
@@ -276,10 +278,7 @@ public class FamilyLegacyFrame extends JFrame{
 	 * the tools are always wired to the same model, owner, and callbacks.
 	 */
 	ToolContext createToolContext(){
-		return new ToolContext(
-			model,
-			this::currentSelectionId,
-			switcher::getSelectedPanel,
+		return ToolContexts.custom(model, currentSelectionId(), switcher.getSelectedPanel(),
 			new ToolDispatcher(){
 				@Override
 				public void editEntity(final String id){
@@ -300,8 +299,12 @@ public class FamilyLegacyFrame extends JFrame{
 				public void removeEntity(final String id){
 					switcher.removeEntity(id);
 				}
-			}
-		);
+
+				@Override
+				public ProjectionMutator getMutator(){
+					return switcher.getMutator();
+				}
+			});
 	}
 
 
@@ -311,8 +314,8 @@ public class FamilyLegacyFrame extends JFrame{
 		}
 		catch(final Exception ignored){}
 
-//		final String modelUri = "/tests/TGMZ.flef";
-		final String modelUri = "/tests/out.flef";
+		final String modelUri = "/tests/TGMZ.flef";
+//		final String modelUri = "/tests/out.flef";
 		final String rootIndividualId = "I1";
 
 		final String content;

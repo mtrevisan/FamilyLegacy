@@ -175,7 +175,7 @@ public final class TemporalProjectionService{
 
 		// Recompute the sort order after sorting.
 		final List<TemporalRow> ordered = new ArrayList<>(rows.size());
-		for(int i = 0; i < rows.size(); i++)
+		for(int i = 0; i < rows.size(); i ++)
 			ordered.add(rows.get(i)
 				.withSortOrder(i));
 		return ordered;

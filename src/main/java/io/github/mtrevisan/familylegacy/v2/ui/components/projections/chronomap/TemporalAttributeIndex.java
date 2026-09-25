@@ -35,6 +35,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -116,7 +117,7 @@ public final class TemporalAttributeIndex{
 		}
 
 		for(final List<AttributeDatum> list : attributesByOwner.values())
-			list.sort(java.util.Comparator.comparingLong(AttributeDatum::fromJdn));
+			list.sort(Comparator.comparingLong(AttributeDatum::fromJdn));
 	}
 
 	private AttributeDatum parse(final FLEFRecord attribute, final String ownerId){

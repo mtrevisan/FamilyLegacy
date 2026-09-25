@@ -67,6 +67,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.regex.Pattern;
 
 
 /**
@@ -316,7 +317,7 @@ public final class AgoraPanel extends JPanel{
 		if(text == null || text.isBlank())
 			sorter.setRowFilter(null);
 		else
-			sorter.setRowFilter(RowFilter.regexFilter("(?i)" + java.util.regex.Pattern.quote(text.trim())));
+			sorter.setRowFilter(RowFilter.regexFilter("(?i)" + Pattern.quote(text.trim())));
 	}
 
 

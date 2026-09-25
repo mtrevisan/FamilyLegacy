@@ -234,7 +234,7 @@ public final class TimelineViewDialog extends JDialog{
 		if(participants.isEmpty())
 			return StringUtils.EMPTY;
 		final StringBuilder sb = new StringBuilder();
-		for(int i = 0; i < participants.size(); i++){
+		for(int i = 0; i < participants.size(); i ++){
 			if(i > 0)
 				sb.append(", ");
 			sb.append(participants.get(i).participantId());
@@ -257,7 +257,7 @@ public final class TimelineViewDialog extends JDialog{
 			return StringUtils.EMPTY;
 
 		final StringBuilder sb = new StringBuilder();
-		for(int i = 0; i < participants.size(); i++){
+		for(int i = 0; i < participants.size(); i ++){
 			if(i > 0)
 				sb.append(", ");
 			sb.append(participants.get(i).participantId());
@@ -273,9 +273,11 @@ public final class TimelineViewDialog extends JDialog{
 			(record, handler) -> chosen[0] = record,
 			IndividualHandler.class);
 		dialog.setVisible(true);
+
 		if(chosen[0] != null){
 			participantId = chosen[0].getId();
 			participantField.setText(participantId);
+
 			reload();
 		}
 	}

@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.v2.ui.helpers;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 
@@ -264,7 +265,7 @@ public final class DiffUtils{
 			final int[] tmp = prev;
 			prev = curr;
 			curr = tmp;
-			java.util.Arrays.fill(curr, 0);
+			Arrays.fill(curr, 0);
 		}
 		return prev[m];
 	}

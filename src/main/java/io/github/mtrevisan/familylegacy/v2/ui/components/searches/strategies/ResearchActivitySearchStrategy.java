@@ -28,8 +28,8 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchCriteria;
+import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchMode;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchStrategy;
-import io.github.mtrevisan.familylegacy.v2.ui.components.searches.TextSearchHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchActivityHandler;
 import org.apache.commons.lang3.StringUtils;
 
@@ -58,8 +58,7 @@ public class ResearchActivitySearchStrategy implements SearchStrategy{
 	private String action;
 	private String result;
 	private String observation;
-	private boolean fuzzy;
-	private boolean wholeWord;
+	private SearchMode mode;
 
 
 	@Override
@@ -69,8 +68,7 @@ public class ResearchActivitySearchStrategy implements SearchStrategy{
 		action = criteria.getFilterFor(ResearchActivityFilterPanel.FILTER_KEY_ACTION);
 		result = criteria.getFilterFor(ResearchActivityFilterPanel.FILTER_KEY_RESULT);
 		observation = criteria.getFilterFor(ResearchActivityFilterPanel.FILTER_KEY_OBSERVATION);
-		fuzzy = criteria.isFuzzy();
-		wholeWord = criteria.isWholeWord();
+		mode = criteria.mode();
 
 		return activity -> {
 			// Activity Type filter
@@ -89,8 +87,8 @@ public class ResearchActivitySearchStrategy implements SearchStrategy{
 
 			// Action filter
 			if(StringUtils.isNotEmpty(action)){
-				final String action = FLEFRecordHelper.getChildValue(activity, TAG_ACTION);
-				if(!TextSearchHelper.matchesText(action, this.action, fuzzy, wholeWord, FUZZY_THRESHOLD))
+				final String recordAction = FLEFRecordHelper.getChildValue(activity, TAG_ACTION);
+				if(!SearchHelper.matches(recordAction, action, mode))
 					return false;
 			}
 
@@ -103,8 +101,8 @@ public class ResearchActivitySearchStrategy implements SearchStrategy{
 
 			// Observation filter
 			if(StringUtils.isNotEmpty(observation)){
-				final String observation = FLEFRecordHelper.getChildValue(activity, TAG_OBSERVATION);
-				if(!TextSearchHelper.matchesText(observation, this.observation, fuzzy, wholeWord, FUZZY_THRESHOLD))
+				final String recordObservation = FLEFRecordHelper.getChildValue(activity, TAG_OBSERVATION);
+				if(!SearchHelper.matches(recordObservation, observation, mode))
 					return false;
 			}
 

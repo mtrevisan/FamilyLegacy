@@ -78,10 +78,10 @@ public final class EvidenceQualifiersTool implements ToolOperation{
 				final FLEFRecord qualifiers = FLEFRecordHelper.findChild(record,
 					ResearchHelper.TAG_EVIDENCE);
 				if(qualifiers == null){
-					withoutQualifiers++;
+					withoutQualifiers ++;
 					continue;
 				}
-				withQualifiers++;
+				withQualifiers ++;
 				merge(sourceTypes, ResearchHelper.firstTextValue(qualifiers,
 					ResearchHelper.TAG_SOURCE_TYPE));
 				merge(informationTypes, ResearchHelper.firstTextValue(qualifiers,

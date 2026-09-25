@@ -38,7 +38,8 @@ public final class ManageSourcesTool implements ToolOperation{
 
 	@Override
 	public void run(final ToolContext context){
-		new SourceManagementDialog(context).setVisible(true);
+		final SourceManagementDialog dialog = new SourceManagementDialog(context);
+		dialog.setVisible(true);
 	}
 
 	@Override

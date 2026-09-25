@@ -73,13 +73,12 @@ public final class ShortcutRegistry{
 	public static final ShortcutDefinition FILE_SAVE_AS = register("File", "Save as…", KeyStroke.getKeyStroke(KeyEvent.VK_S, MENU_MASK | InputEvent.SHIFT_DOWN_MASK), "Ctrl+Shift+S");
 	public static final ShortcutDefinition FILE_EXIT = register("File", "Exit", KeyStroke.getKeyStroke(KeyEvent.VK_Q, MENU_MASK), "Ctrl+Q");
 
-	//TODO connect relocate, paste, delete to popup menu
 	public static final ShortcutDefinition EDIT_UNDO = register("Edit", "Undo", KeyStroke.getKeyStroke(KeyEvent.VK_Z, MENU_MASK), (IS_MAC? "⌘Z": "Ctrl+Z"));
 	public static final ShortcutDefinition EDIT_REDO = register("Edit", "Redo", KeyStroke.getKeyStroke(KeyEvent.VK_Y, MENU_MASK), KeyStroke.getKeyStroke(KeyEvent.VK_Z, MENU_MASK | InputEvent.SHIFT_DOWN_MASK), (IS_MAC? "⌘⇧Z": "Ctrl+Y"));
 	public static final ShortcutDefinition EDIT_RELOCATE = register("Edit", "Relocate", KeyStroke.getKeyStroke(KeyEvent.VK_X, MENU_MASK), "Ctrl+X");
-	public static final ShortcutDefinition EDIT_PASTE = register("Edit", "Paste", KeyStroke.getKeyStroke(KeyEvent.VK_V, MENU_MASK), "Ctrl+V");
 	public static final ShortcutDefinition EDIT_DELETE = register("Edit", "Delete", KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "Del");
-	public static final ShortcutDefinition EDIT_SELECTION = register("Edit", "Edit Individual", KeyStroke.getKeyStroke(KeyEvent.VK_F2, 0), "F2");
+	public static final ShortcutDefinition EDIT_SELECTION_INDIVIDUAL = register("Edit", "Edit Individual…", KeyStroke.getKeyStroke(KeyEvent.VK_F2, 0), "F2");
+	public static final ShortcutDefinition EDIT_SELECTION_GROUP = register("Edit", "Edit Group…", KeyStroke.getKeyStroke(KeyEvent.VK_F2, 0), "F2");
 
 	public static final ShortcutDefinition VIEW_ANCESTOR_TREE = register("View", "Ancestor tree", KeyStroke.getKeyStroke(KeyEvent.VK_1, MENU_MASK), "Ctrl+1");
 	public static final ShortcutDefinition VIEW_SUGIYAMA_GRAPH = register("View", "Sugiyama graph", KeyStroke.getKeyStroke(KeyEvent.VK_2, MENU_MASK), "Ctrl+2");

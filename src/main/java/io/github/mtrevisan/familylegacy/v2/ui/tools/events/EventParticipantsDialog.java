@@ -228,6 +228,7 @@ public final class EventParticipantsDialog extends JDialog{
 			dialog = handler.createEditDialog(this, model, record);
 		}
 		dialog.setVisible(true);
+
 		if(dialog.isSaved())
 			reload();
 	}

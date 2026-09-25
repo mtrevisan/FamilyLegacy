@@ -28,8 +28,8 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchCriteria;
+import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchMode;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchStrategy;
-import io.github.mtrevisan.familylegacy.v2.ui.components.searches.TextSearchHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventParticipationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
@@ -77,8 +77,7 @@ public class IndividualSearchStrategy implements SearchStrategy{
 	private String eventDateTo;
 	private String calendarTo;
 	private String eventLocation;
-	private boolean fuzzy;
-	private boolean wholeWord;
+	private SearchMode mode;
 
 	private FLEFModel model;
 
@@ -96,8 +95,7 @@ public class IndividualSearchStrategy implements SearchStrategy{
 		eventDateTo = criteria.getFilterFor(IndividualFilterPanel.FILTER_KEY_EVENT_DATE_TO);
 		calendarTo = criteria.getFilterFor(IndividualFilterPanel.FILTER_KEY_EVENT_CALENDAR_TO);
 		eventLocation = criteria.getFilterFor(IndividualFilterPanel.FILTER_KEY_EVENT_LOCATION);
-		fuzzy = criteria.isFuzzy();
-		wholeWord = criteria.isWholeWord();
+		mode = criteria.mode();
 
 		this.model = model;
 
@@ -172,7 +170,7 @@ public class IndividualSearchStrategy implements SearchStrategy{
 				final FLEFRecord placeRecord = model.getRecordById(placeId);
 				final String place = PlaceHandler.getInstance()
 					.getDisplayText(placeRecord, model);
-				if(!TextSearchHelper.matchesText(place, eventLocation, fuzzy, wholeWord, FUZZY_THRESHOLD))
+				if(!SearchHelper.matches(place, eventLocation, mode))
 					return false;
 			}
 		}

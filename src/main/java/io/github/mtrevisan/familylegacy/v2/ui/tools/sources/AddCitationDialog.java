@@ -41,6 +41,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
@@ -135,7 +136,7 @@ public final class AddCitationDialog extends JDialog{
 		gbc.insets = new Insets(12, 4, 4, 4);
 		final JLabel hint = new JLabel("<html><i>After confirming, the dialog opens the "
 			+ "target record's editor so the citation can be completed in place.</i></html>");
-		hint.setForeground(java.awt.Color.GRAY);
+		hint.setForeground(Color.GRAY);
 		form.add(hint, gbc);
 
 		return form;
@@ -173,6 +174,7 @@ public final class AddCitationDialog extends JDialog{
 			io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler.class,
 			io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler.class);
 		dialog.setVisible(true);
+
 		if(chosen[0] != null){
 			targetRecord = chosen[0];
 			targetField.setText(describe(chosen[0]));
@@ -187,6 +189,7 @@ public final class AddCitationDialog extends JDialog{
 			(record, handler) -> chosen[0] = record,
 			io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler.class);
 		dialog.setVisible(true);
+
 		if(chosen[0] != null){
 			sourceRecord = chosen[0];
 			sourceField.setText(SourceHelper.sourceTitle(chosen[0]));

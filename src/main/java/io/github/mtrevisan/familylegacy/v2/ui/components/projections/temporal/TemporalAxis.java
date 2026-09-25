@@ -377,7 +377,7 @@ public final class TemporalAxis{
 			if(tickJdn > visibleEndJdn)
 				break;
 			ticks.add(new Tick(tickJdn, jdnToX(tickJdn), formatYear(year), true));
-			count++;
+			count ++;
 		}
 	}
 

@@ -229,9 +229,13 @@ public class EntityField extends BoundTextField{
 	 * @param record	the entity record (it may be {@code null})
 	 */
 	public void setEntity(final FLEFRecord record){
-		final boolean match = isInHandlerTypes(record);
-		if(match)
-			entityRef = record;
+		if(record != null){
+			final boolean match = isInHandlerTypes(record);
+			if(match)
+				entityRef = record;
+		}
+		else
+			entityRef = null;
 
 		firePropertyChange(PROPERTY_ENTITY_CHANGED, null, null);
 	}

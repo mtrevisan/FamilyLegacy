@@ -45,6 +45,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualt
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.services.relationship.RelationshipOperationCoordinator;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.partners.PartnersPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.GenealogyRepository;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.ProjectionMutator;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.TreeChangeListener;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.TreeMutator;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.TreeNode;
@@ -106,6 +107,8 @@ public class IndividualTreeGraphPanel extends JPanel implements TreeChangeListen
 
 	private final FLEFModel model;
 	private final TreeService treeService;
+	/** Mutator exposed to the tools through the ToolContext. */
+	private final TreeMutator treeMutator;
 
 	/** Interaction listener installed on every created panel. */
 	private final IndividualTreeGraphListener treeListener;
@@ -145,7 +148,7 @@ public class IndividualTreeGraphPanel extends JPanel implements TreeChangeListen
 		this.model = model;
 
 		treeService = new TreeService(sharedRepository, model);
-		final TreeMutator treeMutator = new TreeMutator(treeService, this, model);
+		treeMutator = new TreeMutator(treeService, this, model);
 		final IndividualDialogProvider dialogProvider = new IndividualDialogProvider(model);
 		final RelationshipOperationCoordinator operationCoordinator = new RelationshipOperationCoordinator(model,
 			treeMutator, sharedRepository.getRelationshipAllowedTypes());
@@ -504,6 +507,10 @@ public class IndividualTreeGraphPanel extends JPanel implements TreeChangeListen
 		this.layoutEngine = layoutEngine;
 
 		refreshTree();
+	}
+
+	public ProjectionMutator getMutator(){
+		return treeMutator;
 	}
 
 

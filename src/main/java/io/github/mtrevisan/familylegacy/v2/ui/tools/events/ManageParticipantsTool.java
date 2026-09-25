@@ -38,7 +38,8 @@ public final class ManageParticipantsTool implements ToolOperation{
 
 	@Override
 	public void run(final ToolContext context){
-		new EventParticipantsDialog(context).setVisible(true);
+		final EventParticipantsDialog dialog = new EventParticipantsDialog(context);
+		dialog.setVisible(true);
 	}
 
 	@Override

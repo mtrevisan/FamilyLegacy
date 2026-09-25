@@ -85,12 +85,6 @@ public final class UnlinkRelationshipsTool implements ToolOperation{
 			// Force a complete structural cache wipe and tree reload
 			mutator.invalidateAndNotifyTreeChanged(id);
 		}
-		else{
-			for(final String relId : relationshipIdsToRemove)
-				model.removeRecord(relId);
-
-			context.loadRoot(id);
-		}
 	}
 
 	@Override

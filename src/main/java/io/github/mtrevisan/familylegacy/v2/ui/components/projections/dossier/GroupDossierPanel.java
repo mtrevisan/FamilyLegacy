@@ -278,7 +278,7 @@ public class GroupDossierPanel extends JPanel{
 			int rowIndex = 0;
 			for(final DossierEntry entry : entries){
 				contentArea.add(new EntryRow(entry, (rowIndex % 2 == 1)), "growx");
-				rowIndex++;
+				rowIndex ++;
 			}
 
 			add(headerBar, BorderLayout.NORTH);
@@ -386,6 +386,7 @@ public class GroupDossierPanel extends JPanel{
 			final Window owner = SwingUtilities.getWindowAncestor(GroupDossierPanel.this);
 			final BaseRecordDialog dialog = handler.createEditDialog(owner, model, record);
 			dialog.setVisible(true);
+
 			if(dialog.isSaved())
 				refresh();
 		}

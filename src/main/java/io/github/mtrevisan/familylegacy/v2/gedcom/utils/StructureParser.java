@@ -398,10 +398,10 @@ public class StructureParser{
 			}
 		}
 
-		// PAGE -> location
+		// PAGE -> locator
 		GEDCOMNode pageNode = GEDCOMHelper.findFirstChild(sourNode, "PAGE");
 		if(pageNode != null && pageNode.getValue() != null){
-			sourceCitation.addChild(FLEFRecord.createChildWithTagAndValue("location", pageNode.getValue()));
+			sourceCitation.addChild(FLEFRecord.createChildWithTagAndValue("locator", pageNode.getValue()));
 		}
 
 		// ---- REPO (source repository citation) ----
@@ -411,10 +411,10 @@ public class StructureParser{
 				FLEFRecord repoRef = FLEFRecord.createChildWithTag("repository");
 				repoRef.setValue(GEDCOMHelper.cleanId(repoNode.getValue()));
 				repoCitation.addChild(repoRef);
-				// CALN -> location
+				// CALN -> locator
 				GEDCOMNode calnNode = GEDCOMHelper.findFirstChild(repoNode, "CALN");
 				if (calnNode != null && calnNode.getValue() != null) {
-					repoCitation.addChild(FLEFRecord.createChildWithTagAndValue("location", calnNode.getValue()));
+					repoCitation.addChild(FLEFRecord.createChildWithTagAndValue("locator", calnNode.getValue()));
 				}
 				// NOTE
 				for (GEDCOMNode noteNode : GEDCOMHelper.findChildren(repoNode, "NOTE")) {

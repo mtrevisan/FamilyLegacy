@@ -155,7 +155,7 @@ public final class TemporalProjectionLayout{
 			final long end = entry.span().maxJdn();
 
 			int lane = -1;
-			for(int i = 0; i < laneEnds.size(); i++){
+			for(int i = 0; i < laneEnds.size(); i ++){
 				if(laneEnds.get(i) < start){
 					lane = i;
 					break;

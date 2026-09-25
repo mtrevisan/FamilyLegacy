@@ -27,6 +27,8 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.searches.strategies;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchMatcher;
+import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchMode;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.TextSearchHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventParticipationHandler;
@@ -128,8 +130,28 @@ public class SearchHelper{
 	}
 
 
-	public static boolean matchesName(final FLEFRecord place, final String name, final boolean fuzzy,
-			final boolean wholeWord, final double fuzzyThreshold){
+	/**
+	 * Text match for a filter field, using the same admission mode as the
+	 * main query. Delegates to {@link io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchMatcher}, which owns the
+	 * scoring and the per-mode admission rules.
+	 * <p>
+	 * A blank query always passes, so an empty filter field does not
+	 * exclude the record.
+	 *
+	 * @param target the text to search in; may be {@code null}
+	 * @param query  the query typed in the filter field; may be {@code null} or blank
+	 * @return {@code true} when the target admits the query
+	 */
+	public static boolean matches(final String target, final String query, final SearchMode mode){
+		if(StringUtils.isBlank(query))
+			return true;
+
+		return SearchMatcher.score(query, target, mode)
+			.passes();
+	}
+
+	public static boolean matchesName(final FLEFRecord place, final String name, final SearchMode mode,
+			final double fuzzyThreshold){
 		if(StringUtils.isEmpty(name))
 			return true;
 
@@ -137,7 +159,7 @@ public class SearchHelper{
 		boolean matched = false;
 		for(final FLEFRecord nameStruct : names){
 			final String nameValue = FLEFRecordHelper.getChildValue(nameStruct, TAG_VALUE);
-			if(TextSearchHelper.matchesText(nameValue, name, fuzzy, wholeWord, fuzzyThreshold)){
+			if(TextSearchHelper.matchesText(nameValue, name, mode, fuzzyThreshold)){
 				matched = true;
 
 				break;
@@ -156,7 +178,7 @@ public class SearchHelper{
 	}
 
 	public static boolean matchesPlace(final FLEFRecord event, final String targetPlace, final FLEFModel model,
-		final boolean fuzzy, final boolean wholeWord, final double fuzzyThreshold){
+			final SearchMode mode, final double fuzzyThreshold){
 		if(StringUtils.isEmpty(targetPlace))
 			return true;
 
@@ -168,7 +190,7 @@ public class SearchHelper{
 		final FLEFRecord placeRecord = model.getRecordById(placeId);
 		final String place = PlaceHandler.getInstance()
 			.getDisplayText(placeRecord, model);
-		return TextSearchHelper.matchesText(place, targetPlace, fuzzy, wholeWord, fuzzyThreshold);
+		return TextSearchHelper.matchesText(place, targetPlace, mode, fuzzyThreshold);
 	}
 
 	static boolean isDateInRange(final FLEFRecord dateRecord, final Integer birthYear, final Integer deathYear,

@@ -36,6 +36,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -158,7 +159,7 @@ public final class GroupHelper{
 			final String type = FLEFRecordHelper.getChildValue(rel, TAG_TYPE);
 			if(type == null)
 				continue;
-			final String t = type.toLowerCase(java.util.Locale.ROOT);
+			final String t = type.toLowerCase(Locale.ROOT);
 
 			final String subject = rel.extractReferencedId(TAG_SUBJECT, TYPE_INDIVIDUAL);
 			final String subjectGroup = rel.extractReferencedId(TAG_SUBJECT, TYPE_GROUP);

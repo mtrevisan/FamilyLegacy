@@ -28,8 +28,8 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchCriteria;
+import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchMode;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchStrategy;
-import io.github.mtrevisan.familylegacy.v2.ui.components.searches.TextSearchHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HistoricEventHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import org.apache.commons.lang3.StringUtils;
@@ -58,8 +58,7 @@ public class HistoricEventSearchStrategy implements SearchStrategy{
 	private String date;
 	private String calendar;
 	private String place;
-	private boolean fuzzy;
-	private boolean wholeWord;
+	private SearchMode mode;
 
 
 	@Override
@@ -69,8 +68,7 @@ public class HistoricEventSearchStrategy implements SearchStrategy{
 		date = criteria.getFilterFor(HistoricEventFilterPanel.FILTER_KEY_DATE);
 		calendar = criteria.getFilterFor(HistoricEventFilterPanel.FILTER_KEY_CALENDAR);
 		place = criteria.getFilterFor(PlaceHandler.TYPE);
-		fuzzy = criteria.isFuzzy();
-		wholeWord = criteria.isWholeWord();
+		mode = criteria.mode();
 
 		return historicEvent -> {
 			// Type filter
@@ -82,8 +80,8 @@ public class HistoricEventSearchStrategy implements SearchStrategy{
 
 			// Title filter
 			if(StringUtils.isNotEmpty(title)){
-				final String title = FLEFRecordHelper.getChildValue(historicEvent, TAG_TITLE);
-				if(!TextSearchHelper.matchesText(title, this.title, fuzzy, wholeWord, FUZZY_THRESHOLD))
+				final String recordTitle = FLEFRecordHelper.getChildValue(historicEvent, TAG_TITLE);
+				if(!SearchHelper.matches(recordTitle, title, mode))
 					return false;
 			}
 
@@ -92,7 +90,7 @@ public class HistoricEventSearchStrategy implements SearchStrategy{
 				return false;
 
 			// Place filter
-			if(!SearchHelper.matchesPlace(historicEvent, place, model, fuzzy, wholeWord, FUZZY_THRESHOLD))
+			if(!SearchHelper.matchesPlace(historicEvent, place, model, mode, FUZZY_THRESHOLD))
 				return false;
 
 			return true;

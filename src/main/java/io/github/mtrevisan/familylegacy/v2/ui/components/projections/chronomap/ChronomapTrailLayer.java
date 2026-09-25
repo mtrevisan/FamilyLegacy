@@ -209,7 +209,7 @@ public final class ChronomapTrailLayer implements ChronomapLayer{
 		final List<GeoCoordinate> path, final Color base){
 		// All points except the last are waypoints; the last is the
 		// current position and receives a slightly larger dot.
-		for(int i = 0; i < path.size() - 1; i++){
+		for(int i = 0; i < path.size() - 1; i ++){
 			final GeoCoordinate p = path.get(i);
 			final Point2D pt = map.convertGeoPositionToPoint(
 				new GeoPosition(p.latitude(), p.longitude()));

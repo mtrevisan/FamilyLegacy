@@ -42,6 +42,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.tools.individuals.RelocateIndividu
 import io.github.mtrevisan.familylegacy.v2.ui.tools.places.PlaceToolRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.research.ResearchToolRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.sources.SourceToolRegistry;
+import io.github.mtrevisan.familylegacy.v2.ui.tools.tools.ToolToolRegistry;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.ButtonGroup;
@@ -120,8 +121,8 @@ final class ApplicationMenuBar{
 		bar.add(createSourceMenu());
 		bar.add(createEventMenu());
 		bar.add(createResearchMenu());
-		//TODO remove comment
-//		bar.add(createToolsMenu());
+		bar.add(createReportsMenu());
+		bar.add(createToolsMenu());
 		bar.add(createNavigateMenu());
 		bar.add(createBookmarkMenu());
 		bar.add(createHelpMenu());
@@ -162,6 +163,10 @@ final class ApplicationMenuBar{
 		saveAs.setAccelerator(ShortcutRegistry.FILE_SAVE_AS.keyStroke());
 		saveAs.addActionListener(e -> fileController.saveAs());
 		menu.add(saveAs);
+
+		menu.add(new JSeparator());
+
+		addToolsToMenu(menu, FileToolRegistry.maintenanceTools(), null);
 
 		menu.add(new JSeparator());
 
@@ -367,8 +372,6 @@ final class ApplicationMenuBar{
 		menu.add(new JSeparator());
 		addToolsToMenu(menu, IndividualToolRegistry.tertiaryTools(), bindings);
 		menu.add(new JSeparator());
-		addToolsToMenu(menu, IndividualToolRegistry.advancedTools(), bindings);
-		menu.add(new JSeparator());
 		addToolsToMenu(menu, IndividualToolRegistry.navigationTools(repository), bindings);
 
 		bindDynamicEnablement(menu, bindings);
@@ -407,7 +410,7 @@ final class ApplicationMenuBar{
 
 	private JMenu createPlaceMenu(){
 		final JMenu menu = new JMenu("Place");
-		menu.setMnemonic(KeyEvent.VK_L);
+		menu.setMnemonic(KeyEvent.VK_P);
 
 		final List<ToolItemBinding> bindings = new ArrayList<>();
 
@@ -493,47 +496,66 @@ final class ApplicationMenuBar{
 	 *                          Tools
 	 * ====================================================================== */
 
+	private JMenu createReportsMenu(){
+		final JMenu menu = new JMenu("Reports");
+
+		final List<ToolItemBinding> bindings = new ArrayList<>();
+
+		//TODO
+		menu.add(placeholder("Ancestor Report…", 0));
+		menu.add(placeholder("Descendant Report…", 0));
+		menu.add(placeholder("Family Group Sheet…", 0));
+		menu.add(placeholder("Individual Summary…", 0));
+		menu.add(placeholder("Relationship Report…", 0));
+		menu.add(placeholder("Bibliography…", 0));
+		menu.add(placeholder("Research Progress…", 0));
+
+		bindDynamicEnablement(menu, bindings);
+
+		return menu;
+	}
+
+
+	/* ======================================================================
+	 *                          Tools
+	 * ====================================================================== */
+
 	private JMenu createToolsMenu(){
 		final JMenu menu = new JMenu("Tools");
-		menu.setMnemonic(KeyEvent.VK_O);
+		menu.setMnemonic(KeyEvent.VK_T);
 
-		menu.add(placeholder("Validate File…", 0));
-		menu.add(placeholder("Check Consistency…", 0));
-		menu.add(placeholder("Detect Duplicates…", 0));
-		menu.add(new JSeparator());
+		final List<ToolItemBinding> bindings = new ArrayList<>();
 
-		final JMenu reports = new JMenu("Reports");
-		reports.setMnemonic(KeyEvent.VK_R);
-		reports.add(placeholder("Ancestor Report…", 0));
-		reports.add(placeholder("Descendant Report…", 0));
-		reports.add(placeholder("Family Group Sheet…", 0));
-		reports.add(placeholder("Individual Summary…", 0));
-		reports.add(placeholder("Relationship Report…", 0));
-		reports.add(placeholder("Bibliography…", 0));
-		reports.add(placeholder("Research Progress…", 0));
-		menu.add(reports);
+		addToolsToMenu(menu, ToolToolRegistry.primaryTools(), bindings);
+		menu.add(new JSeparator());
+		addToolsToMenu(menu, ToolToolRegistry.validationTools(), bindings);
+		menu.add(new JSeparator());
+		addToolsToMenu(menu, ToolToolRegistry.analysisTools(), bindings);
 
-		final JMenu charts = new JMenu("Charts");
-		charts.setMnemonic(KeyEvent.VK_C);
-		charts.add(placeholder("Ancestor Chart…", 0));
-		charts.add(placeholder("Descendant Chart…", 0));
-		charts.add(placeholder("Hourglass Chart…", 0));
-		charts.add(placeholder("Fan Chart…", 0));
-		charts.add(placeholder("Bowtie Chart…", 0));
-		charts.add(placeholder("Relationship Chart…", 0));
-		charts.add(placeholder("Map Chart…", 0));
-		menu.add(charts);
+		bindDynamicEnablement(menu, bindings);
 
-		menu.add(new JSeparator());
-		menu.add(placeholder("Statistics…", 0));
-		menu.add(placeholder("Data Cleanup…", 0));
-		menu.add(placeholder("Recompute Derived Data", 0));
-		menu.add(new JSeparator());
-		menu.add(placeholder("Backup…", 0));
-		menu.add(placeholder("Restore from Backup…", 0));
-		menu.add(placeholder("Compare Two Files…", 0));
-		menu.add(new JSeparator());
-		menu.add(placeholder("Plugins…", 0));
+		//TODO
+//		final JMenu charts = new JMenu("Charts");
+//		charts.setMnemonic(KeyEvent.VK_C);
+//		charts.add(placeholder("Ancestor Chart…", 0));
+//		charts.add(placeholder("Descendant Chart…", 0));
+//		charts.add(placeholder("Hourglass Chart…", 0));
+//		charts.add(placeholder("Fan Chart…", 0));
+//		charts.add(placeholder("Bowtie Chart…", 0));
+//		charts.add(placeholder("Relationship Chart…", 0));
+//		charts.add(placeholder("Map Chart…", 0));
+//		menu.add(charts);
+//
+//		menu.add(new JSeparator());
+//		menu.add(placeholder("Statistics…", 0));
+//		menu.add(placeholder("Data Cleanup…", 0));
+//		menu.add(placeholder("Recompute Derived Data", 0));
+//		menu.add(new JSeparator());
+//		menu.add(placeholder("Backup…", 0));
+//		menu.add(placeholder("Restore from Backup…", 0));
+//		menu.add(placeholder("Compare Two Files…", 0));
+//		menu.add(new JSeparator());
+//		menu.add(placeholder("Plugins…", 0));
 
 		return menu;
 	}
@@ -635,7 +657,7 @@ final class ApplicationMenuBar{
 
 		// Transfer the items of the existing BookmarkMenu into the new
 		// JMenu, so the rest of the menu bar keeps a consistent structure.
-		for(int i = 0; i < bookmarkMenu.getItemCount(); i++){
+		for(int i = 0; i < bookmarkMenu.getItemCount(); i ++){
 			final JMenuItem item = bookmarkMenu.getItem(i);
 			if(item == null)
 				menu.addSeparator();
@@ -774,7 +796,8 @@ final class ApplicationMenuBar{
 				item.setAccelerator(tool.getAccelerator());
 			menu.add(item);
 
-			bindings.add(new ToolItemBinding(item, tool));
+			if(bindings != null)
+				bindings.add(new ToolItemBinding(item, tool));
 		}
 	}
 

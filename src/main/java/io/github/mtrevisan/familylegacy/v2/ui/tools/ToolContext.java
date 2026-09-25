@@ -46,7 +46,6 @@ import javax.swing.SwingUtilities;
 import java.awt.Component;
 import java.awt.Window;
 import java.util.Objects;
-import java.util.function.Supplier;
 
 
 /**
@@ -54,8 +53,8 @@ import java.util.function.Supplier;
  */
 public record ToolContext(
 	FLEFModel model,
-	Supplier<String> entityIdSupplier,
-	Supplier<Component> selectedComponentSupplier,
+	String entityIdSupplier,
+	Component selectedComponentSupplier,
 	ToolDispatcher dispatcher
 ){
 
@@ -70,25 +69,23 @@ public record ToolContext(
 	public ToolContext{
 		Objects.requireNonNull(model, "model must not be null");
 
-		if(entityIdSupplier == null)
-			entityIdSupplier = () -> null;
-		if(selectedComponentSupplier == null)
-			selectedComponentSupplier = () -> null;
 		if(dispatcher == null)
 			dispatcher = new ToolDispatcher(){};
 	}
 
 
 	public Window owner(){
-		return SwingUtilities.getWindowAncestor(selectedComponentSupplier.get());
+		return (selectedComponentSupplier != null
+			? SwingUtilities.getWindowAncestor(selectedComponentSupplier)
+			: null);
 	}
 
 	public String selectedEntityId(){
-		return entityIdSupplier.get();
+		return entityIdSupplier;
 	}
 
 	public Component selectedComponent(){
-		return selectedComponentSupplier.get();
+		return selectedComponentSupplier;
 	}
 
 	public FLEFRecord clippedRecord(){

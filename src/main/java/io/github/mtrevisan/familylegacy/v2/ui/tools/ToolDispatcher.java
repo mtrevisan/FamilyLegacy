@@ -9,6 +9,8 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.
  */
 public interface ToolDispatcher{
 
+	default void editEntity(final String id){}
+
 	default void paste(){}
 
 	default void removeEntity(final String id){}
@@ -16,8 +18,6 @@ public interface ToolDispatcher{
 	default void loadRoot(final String id){}
 
 	default void replaceModel(final FLEFModel newModel){}
-
-	default void editEntity(final String id){}
 
 	/**
 	 * Returns the ProjectionMutator for the active projection view, if available.

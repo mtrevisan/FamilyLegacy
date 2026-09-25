@@ -38,7 +38,8 @@ public final class MediaManagerTool implements ToolOperation{
 
 	@Override
 	public void run(final ToolContext context){
-		new MediaManagerDialog(context).setVisible(true);
+		final MediaManagerDialog dialog = new MediaManagerDialog(context);
+		dialog.setVisible(true);
 	}
 
 	@Override

@@ -2,10 +2,13 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.TreeOperation;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.ProjectionMutator;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.help.ShortcutRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.PopupMenuAdapter;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
+import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContexts;
+import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolDispatcher;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.individuals.AddChildTool;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.individuals.AddIndividualTool;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.individuals.DeleteIndividualTool;
@@ -15,6 +18,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.tools.individuals.RelocateIndividu
 import io.github.mtrevisan.familylegacy.v2.ui.tools.individuals.UnlinkRelationshipsTool;
 
 import javax.swing.JMenuItem;
+import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.event.PopupMenuEvent;
 
@@ -28,6 +32,7 @@ public class EntityTreePopupMenuFactory implements EntityPopupMenuFactory<Indivi
 	public JPopupMenu createPopupMenu(final IndividualPanel panel, final IndividualListener listener,
 			final FLEFModel model){
 		final JMenuItem editItem = new JMenuItem("Edit Individual…", 'E');
+		editItem.setAccelerator(ShortcutRegistry.EDIT_SELECTION_INDIVIDUAL.keyStroke());
 		final JMenuItem addItem = new JMenuItem("Add Individual…", 'A');
 		final JMenuItem connectItem = new JMenuItem("Connect Individual…");
 		final JMenuItem addChildItem = new JMenuItem("Add Child…", 'C');
@@ -35,7 +40,6 @@ public class EntityTreePopupMenuFactory implements EntityPopupMenuFactory<Indivi
 		final JMenuItem relocateItem = new JMenuItem("Relocate Individual", 'R');
 		relocateItem.setAccelerator(ShortcutRegistry.EDIT_RELOCATE.keyStroke());
 		final JMenuItem pasteItem = new JMenuItem("Paste Individual", 'P');
-		pasteItem.setAccelerator(ShortcutRegistry.EDIT_PASTE.keyStroke());
 		final JMenuItem deleteItem = new JMenuItem("Delete Individual", 'D');
 		deleteItem.setAccelerator(ShortcutRegistry.EDIT_DELETE.keyStroke());
 		final JMenuItem unlinkItem = new JMenuItem("Unlink Relationships…", 'U');
@@ -52,7 +56,7 @@ public class EntityTreePopupMenuFactory implements EntityPopupMenuFactory<Indivi
 				final boolean hasChildren = (hasData && data.hasChildren());
 				final boolean hasRelations = (hasParents || hasPartner || hasChildren);
 
-				final ToolContext context = new ToolContext(model, null, () -> panel, null);
+				final ToolContext context = ToolContexts.withMutator(model, listener, panel, null);
 
 				final boolean canPaste = (!hasData && new PasteIndividualTool().isEnabled(context));
 				if(canPaste){
@@ -78,40 +82,69 @@ public class EntityTreePopupMenuFactory implements EntityPopupMenuFactory<Indivi
 
 		// Add menu items with their bound callbacks delegating directly to ToolOperations
 		PopupMenuHelper.addMenuItem(popup, editItem, panel, record -> {
-			final ToolContext context = new ToolContext(model, record::getId, () -> panel, null);
-			new EditIndividualTool().run(context);
+			final ToolContext context = ToolContexts.withMutator(model, listener, panel, record.getId());
+			new EditIndividualTool()
+				.run(context);
 		});
 		PopupMenuHelper.addMenuItem(popup, addItem, panel, record -> {
-			final ToolContext context = new ToolContext(model, record::getId, () -> panel, null);
-			new AddIndividualTool().run(context);
+			final ToolContext context = ToolContexts.withMutator(model, listener, panel, record.getId());
+			new AddIndividualTool()
+				.run(context);
 		});
-		PopupMenuHelper.addMenuItem(popup, connectItem, panel, record -> listener.onIndividualAddOrConnect(panel, TreeOperation.CONNECT));
+		PopupMenuHelper.addMenuItem(popup, connectItem, panel,
+			record -> listener.onIndividualAddOrConnect(panel, TreeOperation.CONNECT));
 		popup.addSeparator();
 		PopupMenuHelper.addMenuItem(popup, addChildItem, panel, record -> {
-			final ToolContext context = new ToolContext(model, record::getId, () -> panel, null);
-			new AddChildTool().run(context);
+			final ToolContext context = ToolContexts.withMutator(model, listener, panel, record.getId());
+			new AddChildTool()
+				.run(context);
 		});
-		PopupMenuHelper.addMenuItem(popup, connectChildItem, panel, record -> listener.onChildAddOrConnect(panel, TreeOperation.CONNECT));
+		PopupMenuHelper.addMenuItem(popup, connectChildItem, panel,
+			record -> listener.onChildAddOrConnect(panel, TreeOperation.CONNECT));
 		popup.addSeparator();
 		PopupMenuHelper.addMenuItem(popup, relocateItem, panel, record -> {
-			final ToolContext context = new ToolContext(model, record::getId, () -> panel, null);
-			new RelocateIndividualTool().run(context);
+			final ToolContext context = ToolContexts.withMutator(model, listener, panel, record.getId());
+			new RelocateIndividualTool()
+				.run(context);
 		});
 		PopupMenuHelper.addMenuItem(popup, pasteItem, panel, record -> {
-			final ToolContext context = new ToolContext(model, null, () -> panel, null);
-			new PasteIndividualTool().run(context);
+			final ToolContext context = ToolContexts.withMutator(model, listener, panel, null);
+			new PasteIndividualTool()
+				.run(context);
 		});
 		PopupMenuHelper.addMenuItem(popup, deleteItem, panel, record -> {
-			final ToolContext context = new ToolContext(model, record::getId, () -> panel, null);
-			new DeleteIndividualTool().run(context);
+			final ToolContext context = ToolContexts.withMutator(model, listener, panel, record.getId());
+			new DeleteIndividualTool()
+				.run(context);
 		});
 		popup.addSeparator();
 		PopupMenuHelper.addMenuItem(popup, unlinkItem, panel, record -> {
-			final ToolContext context = new ToolContext(model, record::getId, () -> panel, null);
-			new UnlinkRelationshipsTool().run(context);
+			final ToolContext context = ToolContexts.withMutator(model, listener, panel, record.getId());
+			new UnlinkRelationshipsTool()
+				.run(context);
 		});
 
 		return popup;
+	}
+
+	/**
+	 * Builds a {@link ToolContext} whose dispatcher exposes the projection
+	 * mutator obtained from the listener. Tools that mutate the
+	 * relationship graph ({@code UnlinkRelationshipsTool},
+	 * {@code DeleteIndividualTool}, {@code PasteIndividualTool}, ...) rely
+	 * on this dispatcher to invalidate the shared repository and tree
+	 * caches after the mutation; without it, they fall back to a direct
+	 * model mutation that leaves the caches stale and the tree drawing
+	 * outdated connections.
+	 */
+	static ToolContext toolContext(final FLEFModel model, final EntityListener listener, final JPanel panel,
+			final String entityId){
+		return new ToolContext(model, entityId, panel, new ToolDispatcher(){
+			@Override
+			public ProjectionMutator getMutator(){
+				return listener.getMutator();
+			}
+		});
 	}
 
 }

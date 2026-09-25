@@ -168,9 +168,9 @@ public final class IndividualHelper{
 	 * target is the parent.
 	 */
 	public static FLEFRecord createRelationship(final FLEFModel model,
-		final String subjectId, final String targetId, final String type,
-		final String idPrefix){
-		final FLEFRecord rel = FLEFRecord.createMainRecord(TYPE_RELATIONSHIP, idPrefix, model)
+			final String subjectId, final String targetId, final String type,
+			final String idPrefix){
+		final FLEFRecord relationship = FLEFRecord.createMainRecord(TYPE_RELATIONSHIP, idPrefix, model)
 			.addChild(FLEFRecord.createChildWithTagAndValue(TAG_TYPE, type))
 			.addChild(FLEFRecord.createChildWithTag(TAG_SUBJECT)
 				.addChild(FLEFRecord.createChildWithTagAndValue(TYPE_INDIVIDUAL, subjectId))
@@ -179,8 +179,8 @@ public final class IndividualHelper{
 				.addChild(FLEFRecord.createChildWithTagAndValue(TYPE_INDIVIDUAL, targetId))
 			)
 			.addChild(AuditBuilder.build());
-		model.addRecord(rel);
-		return rel;
+		model.addRecord(relationship);
+		return relationship;
 	}
 
 	/**
@@ -233,47 +233,6 @@ public final class IndividualHelper{
 		result.addAll(fathers);
 		result.addAll(mothers);
 		return result;
-	}
-
-	/**
-	 * Returns the id of the spouse of the given individual, or
-	 * {@code null} when none is recorded. When several spouses exist,
-	 * the first one is returned.
-	 */
-	public static String firstSpouseId(final FLEFModel model, final String individualId){
-		for(final FLEFRecord rel : model.getRecordsByType(RelationshipHandler.TYPE)){
-			final String type = FLEFRecordHelper.getChildValue(rel, TAG_TYPE);
-			if(!isSpouseType(type))
-				continue;
-
-			final String subject = rel.extractReferencedId(TAG_SUBJECT, TYPE_INDIVIDUAL);
-			final String target = rel.extractReferencedId(TAG_TARGET, TYPE_INDIVIDUAL);
-			if(individualId.equals(subject) && target != null)
-				return target;
-			if(individualId.equals(target) && subject != null)
-				return subject;
-		}
-		return null;
-	}
-
-	public static boolean isSpouseType(final String type){
-		if(type == null)
-			return false;
-		final String t = type.toLowerCase(Locale.ROOT);
-		for(final String s : SPOUSE_RELATION_TYPES)
-			if(s.equals(t))
-				return true;
-		return false;
-	}
-
-	public static boolean isChildType(final String type){
-		if(type == null)
-			return false;
-		final String t = type.toLowerCase(Locale.ROOT);
-		for(final String s : CHILD_RELATION_TYPES)
-			if(s.equals(t))
-				return true;
-		return false;
 	}
 
 	/**
@@ -489,6 +448,26 @@ public final class IndividualHelper{
 
 		return new MergePreview(individualId, displayName(individual), sex(individual),
 			parents.size(), children.size(), spouses.size(), eventCount);
+	}
+
+	public static boolean isSpouseType(final String type){
+		if(type == null)
+			return false;
+		final String t = type.toLowerCase(Locale.ROOT);
+		for(final String s : SPOUSE_RELATION_TYPES)
+			if(s.equals(t))
+				return true;
+		return false;
+	}
+
+	public static boolean isChildType(final String type){
+		if(type == null)
+			return false;
+		final String t = type.toLowerCase(Locale.ROOT);
+		for(final String s : CHILD_RELATION_TYPES)
+			if(s.equals(t))
+				return true;
+		return false;
 	}
 
 }

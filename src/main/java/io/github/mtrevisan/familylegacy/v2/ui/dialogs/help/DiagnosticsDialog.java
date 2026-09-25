@@ -42,6 +42,7 @@ import java.awt.datatransfer.StringSelection;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
@@ -149,7 +150,7 @@ public final class DiagnosticsDialog extends JDialog{
 		sb.append("OS arch:        ")
 			.append(System.getProperty("os.arch")).append("\n");
 		sb.append("Locale:         ")
-			.append(java.util.Locale.getDefault()).append("\n");
+			.append(Locale.getDefault()).append("\n");
 		sb.append("File encoding:  ")
 			.append(System.getProperty("file.encoding")).append("\n");
 		sb.append("Processors:     ")

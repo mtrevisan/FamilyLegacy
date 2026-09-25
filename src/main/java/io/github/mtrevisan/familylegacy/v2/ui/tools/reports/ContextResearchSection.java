@@ -1,0 +1,556 @@
+package io.github.mtrevisan.familylegacy.v2.ui.tools.reports;
+
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+
+
+/**
+ * Builds the historic-context and research sections.
+ *
+ * <p>Context impacts and research questions are matched by the complete set
+ * of records semantically tied to the root (see
+ * {@link ReportContext#relatedRecordIds()}), so every branch of the
+ * {@code ImpactTarget} and {@code ResearchTarget} oneofs is reachable:
+ * individual, group, place, event, relationship, individual_attribute,
+ * group_attribute, conclusion, event_participation, place_relationship,
+ * identity_hypothesis, cultural_norm, historic_event, source, document.</p>
+ */
+final class ContextResearchSection implements SectionBuilder{
+
+	private static final String TAG_TITLE = "title";
+	private static final String TAG_TYPE = "type";
+	private static final String TAG_QUESTION = "question";
+	private static final String TAG_STATUS = "status";
+	private static final String TAG_CONCLUSION = "conclusion";
+	private static final String TAG_CONCLUSION_CONFIDENCE = "conclusion_confidence";
+	private static final String TAG_ISSUE = "issue";
+	private static final String TAG_PROOF = "proof_status";
+	private static final String TAG_NARRATIVE = "narrative";
+	private static final String TAG_RATIONALE = "rationale";
+	private static final String TAG_COMMENT = "comment";
+	private static final String TAG_CLOSED_DATE = "closed_date";
+	private static final String TAG_IMPACT_TYPE = "impact_type";
+	private static final String TAG_TARGET = "target";
+	private static final String TAG_CONTEXT = "context";
+	private static final String TAG_RESOLVES = "resolves";
+	private static final String TAG_PREFERRED = "preferred";
+	private static final String TAG_RESEARCH = "research";
+	private static final String TAG_IDENTITY = "identity";
+	private static final String TAG_VOID = "void";
+
+	private static final String TAG_ACTIVITY_TYPE = "activity_type";
+	private static final String TAG_ACTION = "action";
+	private static final String TAG_SCOPE_TYPE = "search_scope.type";
+	private static final String TAG_SCOPE_DETAIL = "search_scope.detail";
+	private static final String TAG_RESULT = "result";
+	private static final String TAG_OBSERVATION = "observation";
+	private static final String TAG_PARENT_ACTIVITY = "parent_activity";
+	private static final String TAG_TASK = "task";
+	private static final String TAG_DESCRIPTION = "description";
+	private static final String TAG_CREATED_BY = "created_by";
+	private static final String TAG_PRIORITY = "priority";
+	private static final String TAG_DUE_DATE = "due_date";
+	private static final String TAG_OUTCOME = "outcome";
+
+	private static final String TYPE_RESEARCH_QUESTION = "research_question";
+	private static final String TYPE_RESEARCH_ACTIVITY = "research_activity";
+	private static final String TYPE_RESEARCH_TASK = "research_task";
+	private static final String TYPE_CONCLUSION = "conclusion";
+	private static final String TYPE_IDENTITY_HYPOTHESIS = "identity_hypothesis";
+
+
+	private final ReportContext ctx;
+
+
+	ContextResearchSection(final ReportContext ctx){
+		this.ctx = ctx;
+	}
+
+
+	@Override
+	public List<ReportSection> build(){
+		if(!ctx.config.contextAndResearch())
+			return List.of();
+		final List<ReportSection> out = new ArrayList<>();
+		appendContextImpacts(out);
+		appendResearchQuestions(out);
+		appendOrphanTasks(out);
+		appendConclusions(out);
+		appendIdentityHypotheses(out);
+		return out;
+	}
+
+
+	/* ======================================================================
+	 *                          Context impacts
+	 * ====================================================================== */
+
+	private void appendContextImpacts(final List<ReportSection> out){
+		final List<FLEFRecord> impacts = ctx.index.contextImpactsFor(ctx.relatedRecordIds());
+		if(impacts.isEmpty())
+			return;
+		out.add(new ReportSection.Heading(1, ctx.labels.contextSection()));
+		for(final FLEFRecord imp : impacts){
+			final String impactType = ReportFormatters.orEmpty(
+				FLEFRecordHelper.getChildValue(imp, TAG_IMPACT_TYPE));
+			out.add(new ReportSection.Heading(2,
+				ReportFormatters.escape(impactType) + ": "
+					+ ReportFormatters.escape(contextLabel(imp))));
+
+			final String rationale = FLEFRecordHelper.getChildValue(imp, TAG_RATIONALE);
+			if(rationale != null)
+				out.add(new ReportSection.Paragraph(ReportFormatters.escape(rationale)));
+
+			if(ctx.config.sources())
+				out.addAll(ctx.citations().citations(imp));
+			if(ctx.config.evidence())
+				ctx.citations().addEvidence(imp, out);
+			out.addAll(ctx.citations().audit(imp));
+		}
+	}
+
+	private String contextLabel(final FLEFRecord contextImpact){
+		final FLEFRecord contextField = FLEFRecordHelper.findChild(contextImpact, TAG_CONTEXT);
+		if(contextField == null)
+			return "";
+		final FLEFRecord ref = contextField.getTheOnlyChild();
+		if(ref == null)
+			return "";
+		final String refId = ref.getValue();
+		if(refId == null)
+			return "";
+		final String label = ctx.resolveContextLabel(refId);
+		return (label != null? label: "");
+	}
+
+
+	/* ======================================================================
+	 *                          Research questions
+	 * ====================================================================== */
+
+	private void appendResearchQuestions(final List<ReportSection> out){
+		final List<FLEFRecord> questions = ctx.index.researchQuestionsFor(ctx.relatedRecordIds());
+		if(questions.isEmpty())
+			return;
+		out.add(new ReportSection.Heading(1, ctx.labels.researchSection()));
+		for(final FLEFRecord q : questions)
+			appendQuestion(out, q);
+	}
+
+	private void appendQuestion(final List<ReportSection> out, final FLEFRecord q){
+		out.add(new ReportSection.Heading(2, ReportFormatters.escape(
+			ReportFormatters.orEmpty(FLEFRecordHelper.getChildValue(q, TAG_TITLE)))));
+
+		final String question = FLEFRecordHelper.getChildValue(q, TAG_QUESTION);
+		if(question != null)
+			out.add(new ReportSection.Paragraph(
+				"**" + ctx.labels.question() + ":** " + ReportFormatters.escape(question)));
+
+		final String status = FLEFRecordHelper.getChildValue(q, TAG_STATUS);
+		if(status != null)
+			out.add(new ReportSection.Paragraph(
+				"**" + ctx.labels.status() + ":** "
+					+ ReportFormatters.escape(ReportFormatters.orEmpty(
+					ReportFormatters.enumLabel(status)))));
+
+		final String conclusion = FLEFRecordHelper.getChildValue(q, TAG_CONCLUSION);
+		if(conclusion != null)
+			out.add(new ReportSection.Paragraph(
+				"**" + ctx.labels.conclusion() + ":** " + ReportFormatters.escape(conclusion)));
+
+		final String confidence = FLEFRecordHelper.getChildValue(q, TAG_CONCLUSION_CONFIDENCE);
+		if(confidence != null)
+			out.add(new ReportSection.Paragraph(
+				"**" + ctx.labels.researchConclusionConfidence() + ":** "
+					+ ReportFormatters.escape(ReportFormatters.orEmpty(
+					ReportFormatters.enumLabel(confidence)))));
+
+		final String rationale = FLEFRecordHelper.getChildValue(q, TAG_RATIONALE);
+		if(rationale != null)
+			out.add(new ReportSection.Paragraph(ReportFormatters.escape(rationale)));
+
+		final String closed = FLEFRecordHelper.getChildValue(q, TAG_CLOSED_DATE);
+		if(closed != null)
+			out.add(new ReportSection.Paragraph(
+				"**" + ctx.labels.researchClosedDate() + ":** "
+					+ ReportFormatters.escape(closed)));
+
+		final List<FLEFRecord> activities = activitiesForQuestion(q.getId());
+		if(!activities.isEmpty()){
+			out.add(new ReportSection.Heading(3, ctx.labels.researchActivities()));
+			for(final FLEFRecord a : activities)
+				appendActivity(out, a, 4);
+		}
+
+		final List<FLEFRecord> tasks = tasksForQuestion(q.getId());
+		if(!tasks.isEmpty()){
+			out.add(new ReportSection.Heading(3, ctx.labels.researchTasks()));
+			for(final FLEFRecord t : tasks)
+				appendTask(out, t, 4);
+		}
+
+		if(ctx.config.sources())
+			out.addAll(ctx.citations().citations(q));
+		if(ctx.config.evidence())
+			ctx.citations().addEvidence(q, out);
+		out.addAll(ctx.citations().audit(q));
+	}
+
+
+	/* ======================================================================
+	 *                          Activities
+	 * ====================================================================== */
+
+	private List<FLEFRecord> activitiesForQuestion(final String questionId){
+		final List<FLEFRecord> out = new ArrayList<>();
+		for(final FLEFRecord a : ctx.visibleRecordsByType(TYPE_RESEARCH_ACTIVITY)){
+			for(final FLEFRecord q : FLEFRecordHelper.findChildren(a, TAG_QUESTION))
+				if(Objects.equals(questionId, q.getValue())){
+					out.add(a);
+					break;
+				}
+		}
+		return out;
+	}
+
+	private void appendActivity(final List<ReportSection> out, final FLEFRecord a,
+		final int headingLevel){
+		final String type = ReportFormatters.enumLabel(
+			FLEFRecordHelper.getChildValue(a, TAG_ACTIVITY_TYPE));
+		final String action = FLEFRecordHelper.getChildValue(a, TAG_ACTION);
+		final StringBuilder heading = new StringBuilder();
+		if(type != null)
+			heading.append(type);
+		if(action != null && !action.isBlank()){
+			if(heading.length() > 0)
+				heading.append(" — ");
+			heading.append(action);
+		}
+		if(heading.length() == 0)
+			heading.append(ReportFormatters.orEmpty(a.getId()));
+		out.add(new ReportSection.Heading(headingLevel, ReportFormatters.escape(heading.toString())));
+
+		final List<String> meta = new ArrayList<>();
+		ReportFormatters.appendIfPresent(meta, ctx.labels.status(),
+			ReportFormatters.enumLabel(FLEFRecordHelper.getChildValue(a, TAG_STATUS)));
+		ReportFormatters.appendIfPresent(meta, ctx.labels.researchResult(),
+			ReportFormatters.enumLabel(FLEFRecordHelper.getChildValue(a, TAG_RESULT)));
+		ReportFormatters.appendIfPresent(meta, ctx.labels.researchConclusionConfidence(),
+			ReportFormatters.enumLabel(
+				FLEFRecordHelper.getChildValue(a, TAG_CONCLUSION_CONFIDENCE)));
+		if(!meta.isEmpty())
+			out.add(new ReportSection.BulletList(meta));
+
+		final String scopeType = FLEFRecordHelper.getChildValue(a, TAG_SCOPE_TYPE);
+		final String scopeDetail = FLEFRecordHelper.getChildValue(a, TAG_SCOPE_DETAIL);
+		if(scopeType != null || scopeDetail != null){
+			final StringBuilder sb = new StringBuilder();
+			sb.append("**").append(ctx.labels.researchSearchScope()).append(":** ");
+			if(scopeType != null)
+				sb.append(ReportFormatters.escape(
+					ReportFormatters.orEmpty(ReportFormatters.enumLabel(scopeType))));
+			if(scopeDetail != null){
+				if(scopeType != null)
+					sb.append(" — ");
+				sb.append(ReportFormatters.escape(scopeDetail));
+			}
+			out.add(new ReportSection.Paragraph(sb.toString()));
+		}
+
+		final String targetLabel = describeOneOf(FLEFRecordHelper.findChild(a, TAG_TARGET));
+		if(targetLabel != null)
+			out.add(new ReportSection.Paragraph(
+				"**" + ctx.labels.researchTarget() + ":** "
+					+ ReportFormatters.escape(targetLabel)));
+
+		final String obs = FLEFRecordHelper.getChildValue(a, TAG_OBSERVATION);
+		if(obs != null)
+			out.add(new ReportSection.Paragraph(
+				"**" + ctx.labels.researchObservation() + ":** "
+					+ ReportFormatters.escape(obs)));
+
+		final String conclusion = FLEFRecordHelper.getChildValue(a, TAG_CONCLUSION);
+		if(conclusion != null)
+			out.add(new ReportSection.Paragraph(
+				"**" + ctx.labels.conclusion() + ":** " + ReportFormatters.escape(conclusion)));
+
+		final String parentLabel = describeOneOf(
+			FLEFRecordHelper.findChild(a, TAG_PARENT_ACTIVITY));
+		if(parentLabel != null)
+			out.add(new ReportSection.Paragraph(
+				"**" + ctx.labels.researchParentActivity() + ":** "
+					+ ReportFormatters.escape(parentLabel)));
+
+		if(ctx.config.sources())
+			out.addAll(ctx.citations().citations(a));
+		if(ctx.config.evidence())
+			ctx.citations().addEvidence(a, out);
+		out.addAll(ctx.citations().audit(a));
+	}
+
+
+	/* ======================================================================
+	 *                          Tasks
+	 * ====================================================================== */
+
+	private List<FLEFRecord> tasksForQuestion(final String questionId){
+		final List<FLEFRecord> out = new ArrayList<>();
+		for(final FLEFRecord t : ctx.visibleRecordsByType(TYPE_RESEARCH_TASK)){
+			for(final FLEFRecord q : FLEFRecordHelper.findChildren(t, TAG_QUESTION))
+				if(Objects.equals(questionId, q.getValue())){
+					out.add(t);
+					break;
+				}
+		}
+		return out;
+	}
+
+	private void appendOrphanTasks(final List<ReportSection> out){
+		final Set<String> shown = new HashSet<>();
+		for(final FLEFRecord q : ctx.index.researchQuestionsFor(ctx.relatedRecordIds()))
+			for(final FLEFRecord t : tasksForQuestion(q.getId()))
+				shown.add(t.getId());
+
+		final List<FLEFRecord> orphans = new ArrayList<>();
+		for(final FLEFRecord t : ctx.visibleRecordsByType(TYPE_RESEARCH_TASK))
+			if(!shown.contains(t.getId()) && relatesToRoot(t))
+				orphans.add(t);
+
+		if(orphans.isEmpty())
+			return;
+
+		out.add(new ReportSection.Heading(1, ctx.labels.researchTasks()));
+		for(final FLEFRecord t : orphans)
+			appendTask(out, t, 2);
+	}
+
+	private boolean relatesToRoot(final FLEFRecord task){
+		for(final FLEFRecord q : FLEFRecordHelper.findChildren(task, TAG_QUESTION)){
+			final FLEFRecord qRec = ctx.model.getRecordById(q.getValue());
+			if(qRec == null)
+				continue;
+			for(final FLEFRecord t : ctx.index.researchQuestionsFor(ctx.relatedRecordIds()))
+				if(Objects.equals(t.getId(), qRec.getId()))
+					return true;
+		}
+		return false;
+	}
+
+	private void appendTask(final List<ReportSection> out, final FLEFRecord t,
+		final int headingLevel){
+		final String description = FLEFRecordHelper.getChildValue(t, TAG_DESCRIPTION);
+		out.add(new ReportSection.Heading(headingLevel, ReportFormatters.escape(
+			ReportFormatters.orEmpty(description))));
+
+		final List<String> meta = new ArrayList<>();
+		ReportFormatters.appendIfPresent(meta, ctx.labels.status(),
+			ReportFormatters.enumLabel(FLEFRecordHelper.getChildValue(t, TAG_STATUS)));
+		ReportFormatters.appendIfPresent(meta, ctx.labels.researchTaskPriority(),
+			ReportFormatters.enumLabel(FLEFRecordHelper.getChildValue(t, TAG_PRIORITY)));
+		ReportFormatters.appendIfPresent(meta, ctx.labels.researchTaskDueDate(),
+			FLEFRecordHelper.getChildValue(t, TAG_DUE_DATE));
+		if(!meta.isEmpty())
+			out.add(new ReportSection.BulletList(meta));
+
+		final String createdBy = describeOneOf(FLEFRecordHelper.findChild(t, TAG_CREATED_BY));
+		if(createdBy != null)
+			out.add(new ReportSection.Paragraph(
+				"**" + ctx.labels.researchTaskCreatedBy() + ":** "
+					+ ReportFormatters.escape(createdBy)));
+
+		final String outcome = FLEFRecordHelper.getChildValue(t, TAG_OUTCOME);
+		if(outcome != null)
+			out.add(new ReportSection.Paragraph(
+				"**" + ctx.labels.researchTaskOutcome() + ":** "
+					+ ReportFormatters.escape(outcome)));
+
+		out.addAll(ctx.citations().audit(t));
+	}
+
+
+	/* ======================================================================
+	 *                          Conclusions
+	 * ====================================================================== */
+
+	private void appendConclusions(final List<ReportSection> out){
+		final List<FLEFRecord> conclusions = conclusionsFor();
+		if(conclusions.isEmpty())
+			return;
+		out.add(new ReportSection.Heading(1, ctx.labels.conclusions()));
+		for(final FLEFRecord c : conclusions)
+			appendConclusion(out, c);
+	}
+
+	private List<FLEFRecord> conclusionsFor(){
+		final Set<String> related = ctx.relatedRecordIds();
+		final List<FLEFRecord> out = new ArrayList<>();
+		for(final FLEFRecord c : ctx.visibleRecordsByType(TYPE_CONCLUSION)){
+			for(final FLEFRecord t : FLEFRecordHelper.findChildren(c, TAG_RESOLVES)){
+				final FLEFRecord ref = t.getTheOnlyChild();
+				if(ref != null && related.contains(ref.getValue())){
+					out.add(c);
+					break;
+				}
+			}
+		}
+		return out;
+	}
+
+	private void appendConclusion(final List<ReportSection> out, final FLEFRecord c){
+		out.add(new ReportSection.Heading(2, ReportFormatters.escape(
+			ReportFormatters.orEmpty(FLEFRecordHelper.getChildValue(c, TAG_ISSUE)))));
+
+		final String proof = FLEFRecordHelper.getChildValue(c, TAG_PROOF);
+		if(proof != null)
+			out.add(new ReportSection.Paragraph(
+				"**" + ctx.labels.researchProofStatus() + ":** "
+					+ ReportFormatters.escape(ReportFormatters.orEmpty(
+					ReportFormatters.enumLabel(proof)))));
+
+		final String narrative = FLEFRecordHelper.getChildValue(c, TAG_NARRATIVE);
+		if(narrative != null)
+			out.add(new ReportSection.Paragraph(ReportFormatters.escape(narrative)));
+
+		final List<FLEFRecord> resolves = FLEFRecordHelper.findChildren(c, TAG_RESOLVES);
+		final List<String> resolvedLabels = new ArrayList<>();
+		String preferredLabel = describeOneOf(FLEFRecordHelper.findChild(c, TAG_PREFERRED));
+
+		for(final FLEFRecord r : resolves){
+			final String label = describeOneOf(r);
+			if(label != null)
+				resolvedLabels.add(label);
+		}
+
+		if(!resolvedLabels.isEmpty()){
+			out.add(new ReportSection.Paragraph(
+				"**" + ctx.labels.researchResolves() + ":**"));
+			final List<String> items = new ArrayList<>(resolvedLabels.size());
+			for(final String s : resolvedLabels){
+				final boolean preferred = (preferredLabel != null && preferredLabel.equals(s));
+				items.add(s + (preferred? "  ← *" + ctx.labels.researchPreferred() + "*": ""));
+			}
+			out.add(new ReportSection.BulletList(items));
+		}
+
+		final List<FLEFRecord> links = FLEFRecordHelper.findChildren(c, TAG_RESEARCH);
+		final List<String> qLabels = new ArrayList<>();
+		for(final FLEFRecord r : links){
+			final String qid = r.getValue();
+			if(qid == null)
+				continue;
+			final FLEFRecord q = ctx.visible(ctx.model.getRecordById(qid));
+			if(q == null)
+				continue;
+			final String title = FLEFRecordHelper.getChildValue(q, TAG_TITLE);
+			qLabels.add(title != null && !title.isBlank()
+				? title.trim()
+				: ReportFormatters.orEmpty(qid));
+		}
+		if(!qLabels.isEmpty()){
+			out.add(new ReportSection.Paragraph(
+				"**" + ctx.labels.researchLinkedQuestions() + ":**"));
+			out.add(new ReportSection.BulletList(qLabels.stream()
+				.map(ReportFormatters::escape)
+				.toList()));
+		}
+
+		if(ctx.config.sources())
+			out.addAll(ctx.citations().citations(c));
+		if(ctx.config.evidence())
+			ctx.citations().addEvidence(c, out);
+		out.addAll(ctx.citations().audit(c));
+	}
+
+
+	/* ======================================================================
+	 *                          Identity hypotheses
+	 * ====================================================================== */
+
+	private void appendIdentityHypotheses(final List<ReportSection> out){
+		final List<FLEFRecord> hyps = identityHypothesesFor();
+		if(hyps.isEmpty())
+			return;
+		out.add(new ReportSection.Heading(1, ctx.labels.identityHypotheses()));
+		for(final FLEFRecord h : hyps){
+			final List<String> candidates = new ArrayList<>();
+			for(final FLEFRecord cand : FLEFRecordHelper.findChildren(h, TAG_IDENTITY)){
+				final FLEFRecord ref = cand.getTheOnlyChild();
+				if(ref == null || TAG_VOID.equalsIgnoreCase(ref.getTag()))
+					continue;
+				final String id = ref.getValue();
+				final FLEFRecord rec = (id != null? ctx.model.getRecordById(id): null);
+				if(rec != null && !ctx.isVisible(rec))
+					continue;
+				candidates.add(rec != null? ctx.displayText(rec): ReportFormatters.orEmpty(id));
+			}
+			if(candidates.isEmpty())
+				continue;
+
+			out.add(new ReportSection.Paragraph(
+				"**" + ctx.labels.identityCandidates() + ":** "
+					+ ReportFormatters.escape(String.join(" ↔ ", candidates))));
+
+			final String comment = FLEFRecordHelper.getChildValue(h, TAG_COMMENT);
+			if(comment != null)
+				out.add(new ReportSection.Paragraph(
+					"**" + ctx.labels.identityComment() + ":** "
+						+ ReportFormatters.escape(comment)));
+
+			if(ctx.config.notes())
+				out.addAll(ctx.citations().notes(h));
+			if(ctx.config.sources())
+				out.addAll(ctx.citations().citations(h));
+			if(ctx.config.evidence())
+				ctx.citations().addEvidence(h, out);
+			out.addAll(ctx.citations().audit(h));
+		}
+	}
+
+	private List<FLEFRecord> identityHypothesesFor(){
+		final Set<String> related = ctx.relatedRecordIds();
+		final List<FLEFRecord> out = new ArrayList<>();
+		for(final FLEFRecord h : ctx.visibleRecordsByType(TYPE_IDENTITY_HYPOTHESIS)){
+			if(related.contains(h.getId())){
+				out.add(h);
+				continue;
+			}
+			for(final FLEFRecord cand : FLEFRecordHelper.findChildren(h, TAG_IDENTITY)){
+				final FLEFRecord ref = cand.getTheOnlyChild();
+				if(ref != null && related.contains(ref.getValue())){
+					out.add(h);
+					break;
+				}
+			}
+		}
+		return out;
+	}
+
+
+	/* ======================================================================
+	 *                          oneof resolver
+	 * ====================================================================== */
+
+	private String describeOneOf(final FLEFRecord field){
+		if(field == null)
+			return null;
+		final FLEFRecord ref = field.getTheOnlyChild();
+		if(ref == null || TAG_VOID.equalsIgnoreCase(ref.getTag()))
+			return null;
+		final String tag = ref.getTag();
+		final String id = ref.getValue();
+		if(id == null || id.isBlank())
+			return null;
+
+		final FLEFRecord rec = ctx.model.getRecordById(id);
+		if(rec == null || !ctx.isVisible(rec))
+			return tag + " " + id;
+		return ctx.displayText(rec);
+	}
+
+}

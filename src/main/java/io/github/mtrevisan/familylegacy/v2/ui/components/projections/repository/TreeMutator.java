@@ -212,12 +212,15 @@ public class TreeMutator extends AbstractProjectionMutator{
 	}
 
 	@Override
-	public void invalidateAndNotifyTreeChanged(final String rootIndividualId){
-		// Reset repository indices and clear individual flyweight cache
+	protected void invalidateCaches(){
 		treeService.getRepository()
 			.invalidateIndices();
-
 		treeService.invalidateIndices();
+	}
+
+	@Override
+	public void invalidateAndNotifyTreeChanged(final String rootIndividualId){
+		invalidateCaches();
 
 		if(listener != null)
 			listener.onTreeStructureChanged(rootIndividualId);

@@ -30,7 +30,7 @@ public class PopupMenuHelper{
 	 * if placed inside a {@code PartnersPanel}.
 	 */
 	public static boolean isPasteAllowed(final FLEFModel model, final IndividualPanel panel){
-		final ToolContext context = new ToolContext(model, null, () -> panel, null);
+		final ToolContext context = new ToolContext(model, null, panel, null);
 		if(context.canPaste()){
 			final PartnersPanel partnersPanel = PartnersPanel.findContainingPartnersPanel(panel.getParent());
 			if(partnersPanel == null)
@@ -65,7 +65,7 @@ public class PopupMenuHelper{
 	 * Checks if pasting a group from the clipboard is permitted.
 	 */
 	public static boolean isPasteAllowed(final FLEFModel model, final GroupPanel panel){
-		final ToolContext context = new ToolContext(model, null, () -> panel, null);
+		final ToolContext context = new ToolContext(model, null, panel, null);
 		if(context.canPaste()){
 			final GroupData otherData = panel.getData();
 			if(otherData == null || otherData.isEmpty())

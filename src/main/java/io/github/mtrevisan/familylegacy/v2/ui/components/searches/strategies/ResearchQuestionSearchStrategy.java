@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchCriteria;
+import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchMode;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchStrategy;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.TextSearchHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
@@ -56,8 +57,7 @@ public class ResearchQuestionSearchStrategy implements SearchStrategy{
 	private String question;
 	private String status;
 	private String confidence;
-	private boolean fuzzy;
-	private boolean wholeWord;
+	private SearchMode mode;
 
 
 	@Override
@@ -66,21 +66,20 @@ public class ResearchQuestionSearchStrategy implements SearchStrategy{
 		question = criteria.getFilterFor(ResearchQuestionFilterPanel.FILTER_KEY_QUESTION);
 		status = criteria.getFilterFor(ResearchQuestionFilterPanel.FILTER_KEY_STATUS);
 		confidence = criteria.getFilterFor(ResearchQuestionFilterPanel.FILTER_KEY_CONFIDENCE);
-		fuzzy = criteria.isFuzzy();
-		wholeWord = criteria.isWholeWord();
+		mode = criteria.mode();
 
 		return question -> {
 			// Title filter
 			if(StringUtils.isNotEmpty(title)){
-				final String title = FLEFRecordHelper.getChildValue(question, TAG_TITLE);
-				if(!TextSearchHelper.matchesText(title, this.title, fuzzy, wholeWord, FUZZY_THRESHOLD))
+				final String recordTitle = FLEFRecordHelper.getChildValue(question, TAG_TITLE);
+				if(!SearchHelper.matches(recordTitle, title, mode))
 					return false;
 			}
 
 			// Question text filter
 			if(StringUtils.isNotEmpty(this.question)){
 				final String questionText = FLEFRecordHelper.getChildValue(question, TAG_QUESTION);
-				if(!TextSearchHelper.matchesText(questionText, this.question, fuzzy, wholeWord, FUZZY_THRESHOLD))
+				if(!TextSearchHelper.matchesText(questionText, this.question, mode, FUZZY_THRESHOLD))
 					return false;
 			}
 

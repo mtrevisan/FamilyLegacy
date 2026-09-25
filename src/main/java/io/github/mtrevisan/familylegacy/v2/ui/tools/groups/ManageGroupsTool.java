@@ -38,7 +38,8 @@ public final class ManageGroupsTool implements ToolOperation{
 
 	@Override
 	public void run(final ToolContext context){
-		new GroupManagementDialog(context).setVisible(true);
+		final GroupManagementDialog dialog = new GroupManagementDialog(context);
+		dialog.setVisible(true);
 	}
 
 	@Override

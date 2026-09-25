@@ -334,7 +334,7 @@ public class IndividualDossierPanel extends JPanel{
 			for(final DossierEntry entry : entries){
 				final EntryRow row = new EntryRow(entry, (rowIndex % 2 == 1));
 				contentArea.add(row, "growx");
-				rowIndex++;
+				rowIndex ++;
 			}
 
 			add(headerBar, BorderLayout.NORTH);
@@ -628,6 +628,7 @@ public class IndividualDossierPanel extends JPanel{
 			final Window owner = SwingUtilities.getWindowAncestor(IndividualDossierPanel.this);
 			final BaseRecordDialog dialog = handler.createEditDialog(owner, model, record);
 			dialog.setVisible(true);
+
 			if(dialog.isSaved())
 				refresh();
 		}

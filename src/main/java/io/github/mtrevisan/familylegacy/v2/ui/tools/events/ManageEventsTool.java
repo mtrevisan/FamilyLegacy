@@ -38,7 +38,8 @@ public final class ManageEventsTool implements ToolOperation{
 
 	@Override
 	public void run(final ToolContext context){
-		new EventManagementDialog(context).setVisible(true);
+		final EventManagementDialog dialog = new EventManagementDialog(context);
+		dialog.setVisible(true);
 	}
 
 	@Override

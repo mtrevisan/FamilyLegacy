@@ -423,6 +423,7 @@ public class GlobalEventTimelinePanel extends JPanel{
 			? bar.getUnitIncrement(direction) * e.getUnitsToScroll()
 			: bar.getBlockIncrement(direction) * e.getWheelRotation());
 		bar.setValue(bar.getValue() + increment);
+
 		e.consume();
 	}
 
@@ -521,6 +522,7 @@ public class GlobalEventTimelinePanel extends JPanel{
 		final BaseRecordDialog dialog = EventHandler.getInstance()
 			.createEditDialog(owner, model, record);
 		dialog.setVisible(true);
+
 		if(dialog.isSaved()){
 			// Rebuild the event index and re-apply the current view state (participant filter, zoom, selection) so that
 			// the display reflects the updated event

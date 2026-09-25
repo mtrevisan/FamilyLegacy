@@ -31,6 +31,8 @@ import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolOperation;
 
 import javax.swing.JFrame;
 import java.awt.BorderLayout;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 
 /**
@@ -62,9 +64,9 @@ public final class PlaceHierarchyTool implements ToolOperation{
 			hierarchyFrame.setSize(1000, 700);
 			hierarchyFrame.setLocationRelativeTo(context.owner());
 			hierarchyFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-			hierarchyFrame.addWindowListener(new java.awt.event.WindowAdapter(){
+			hierarchyFrame.addWindowListener(new WindowAdapter(){
 				@Override
-				public void windowClosed(final java.awt.event.WindowEvent e){
+				public void windowClosed(final WindowEvent e){
 					hierarchyFrame = null;
 					hierarchyPanel = null;
 				}

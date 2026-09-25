@@ -6,11 +6,9 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.projections.group.Group
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualData;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.PopupMenuHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.help.ShortcutRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolOperation;
 
-import javax.swing.KeyStroke;
 import java.awt.Component;
 
 
@@ -21,12 +19,7 @@ public final class PasteIndividualTool implements ToolOperation{
 
 	@Override
 	public String getName(){
-		return ShortcutRegistry.EDIT_PASTE.action();
-	}
-
-	@Override
-	public KeyStroke getAccelerator(){
-		return ShortcutRegistry.EDIT_PASTE.keyStroke();
+		return "Paste";
 	}
 
 	@Override

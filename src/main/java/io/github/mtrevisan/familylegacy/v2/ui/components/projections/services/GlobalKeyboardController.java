@@ -51,7 +51,7 @@ public final class GlobalKeyboardController{
 		});
 
 		// Edit Selection (F2)
-		inputMap.put(ShortcutRegistry.EDIT_SELECTION.keyStroke(), ACTION_EDIT_SELECTION);
+		inputMap.put(ShortcutRegistry.EDIT_SELECTION_INDIVIDUAL.keyStroke(), ACTION_EDIT_SELECTION);
 		actionMap.put(ACTION_EDIT_SELECTION, new AbstractAction(){
 			@Override
 			public void actionPerformed(final ActionEvent e){

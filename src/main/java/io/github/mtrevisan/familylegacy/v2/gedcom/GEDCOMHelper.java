@@ -579,7 +579,7 @@ public class GEDCOMHelper{
 			Deduplicator.getDeduplicatedRecordId(model, source);
 
 			sourceCitation.addChild(FLEFRecord.createChildWithTagAndValue("source", sourValue));
-			transferValue(sourceCitation, "location", pageNode);
+			transferValue(sourceCitation, "locator", pageNode);
 			if(StringUtils.isNotEmpty(dataTextNode)){
 				sourceCitation.addChild(FLEFRecord.createChildWithTag("extract")
 					.addChild(FLEFRecord.createChildWithTagAndValue("text", dataTextNode))

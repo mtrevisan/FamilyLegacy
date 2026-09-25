@@ -96,7 +96,16 @@ public abstract class AbstractProjectionMutator implements ProjectionMutator{
 			onRelationshipRemoved(relationshipId);
 		}
 
-		invalidateAndNotifyTreeChanged(null);
+		invalidateCaches();
+	}
+
+	/**
+	 * Invalidates every cache that depends on the relationship graph.
+	 * Subclasses override to clear their local caches in addition to the
+	 * shared repository.
+	 */
+	protected void invalidateCaches(){
+		// Default: nothing. Subclasses with local caches must override.
 	}
 
 	@Override

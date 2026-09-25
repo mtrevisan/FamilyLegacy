@@ -66,14 +66,6 @@ public final class IndividualToolRegistry{
 		);
 	}
 
-	/** Advanced tools. */
-	public static List<ToolOperation> advancedTools(){
-		return List.of(
-			new MergeIndividualsTool(),
-			new FindSimilarIndividualsTool()
-		);
-	}
-
 	/** Navigation tools. */
 	public static List<ToolOperation> navigationTools(final GenealogyRepository repository){
 		return List.of(

@@ -57,6 +57,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchTaskHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -65,11 +66,28 @@ import java.util.function.Predicate;
 
 
 /**
- * Service that executes an advanced search using a strategy registry and text utilities.
+ * Service that executes an advanced search using a strategy registry and
+ * a word-level text matcher.
+ * <p>
+ * The search has two stages:
+ * <ol>
+ *   <li>the <b>structural filters</b> (sex, event type, date range, place,
+ *       ...) are applied by the per-type {@link SearchStrategy};</li>
+ *   <li>the <b>text query</b> is scored against the display text of each
+ *       surviving record by {@link SearchMatcher}.</li>
+ * </ol>
+ * The results are ranked by the number of matched query tokens first, by
+ * the sum of the per-token fuzzy scores second, and by display text third
+ * (stable, alphabetical tie-breaker). A record that matches both words of
+ * a two-word query always ranks above a record that matches only one.
+ * <p>
+ * When the query is blank, the text stage is skipped and the results are
+ * the structurally-filtered records in their original order.
  */
 public class SearchService{
 
 	private static final Map<Class<? extends RecordTypeHandler<?>>, SearchStrategy> REGISTRY = new HashMap<>();
+
 	static{
 		REGISTRY.put(ConclusionHandler.class, new ConclusionSearchStrategy());
 		REGISTRY.put(CulturalNormHandler.class, new CulturalNormSearchStrategy());
@@ -88,19 +106,20 @@ public class SearchService{
 	}
 
 
+	/**
+	 * A record that passed the text stage, together with the score that
+	 * determines its position in the result list.
+	 */
+	private record ScoredRecord(FLEFRecord record, String displayText, SearchMatcher.MatchScore match){}
+
+
 	private final FLEFModel model;
-	private final double fuzzyThreshold;
 
 	private SearchStrategy strategy;
 
 
 	public SearchService(final FLEFModel model){
-		this(model, 0.05);
-	}
-
-	public SearchService(final FLEFModel model, final double fuzzyThreshold){
 		this.model = model;
-		this.fuzzyThreshold = fuzzyThreshold;
 	}
 
 
@@ -108,7 +127,7 @@ public class SearchService{
 	 * Performs the search according to the given criteria.
 	 *
 	 * @param criteria the search criteria
-	 * @return a list of search results
+	 * @return a list of search results, ordered by match quality
 	 */
 	public List<FLEFRecord> search(final SearchCriteria criteria){
 		return search(criteria, null);
@@ -119,24 +138,78 @@ public class SearchService{
 	 *
 	 * @param criteria         the search criteria
 	 * @param progressCallback consumer for reporting progress percentage (0-100)
-	 * @return a list of search results
+	 * @return a list of search results, ordered by match quality
 	 */
 	public List<FLEFRecord> search(final SearchCriteria criteria, final Consumer<Integer> progressCallback){
-		if(criteria == null || criteria.getHandler() == null)
+		if(criteria == null)
 			return List.of();
 
-		strategy = REGISTRY.get(criteria.getHandler().getClassType());
+		final RecordTypeHandler<?> handler = criteria.handler();
+		strategy = REGISTRY.get(handler.getClassType());
 
-		// Build predicate using the strategy
-		// Apply text matching first (for performance)
-		final Predicate<FLEFRecord> predicate = buildTextPredicate(criteria)
-			.and(strategy.buildPredicate(criteria, model));
+		// Stage 1: structural filters (sex, event type, date range, place, ...).
+		final Predicate<FLEFRecord> structuralFilter = strategy.buildPredicate(criteria, model);
 
-		final List<FLEFRecord> records = model.getRecordsByType(criteria.getHandler().getType());
-		return executeSearch(records, predicate, progressCallback);
+		final List<FLEFRecord> records = model.getRecordsByType(handler.getType());
+
+		// Fast path: no text query. Structural filters only, no ranking.
+		final String query = criteria.query();
+		if(query.isEmpty())
+			return executeStructuralSearch(records, structuralFilter, progressCallback);
+
+		// Stage 2: text scoring and ranking. The display text used for
+		// scoring is the one returned by the handler, which is what the
+		// old TextSearchHelper path used; the enriched display text of
+		// the strategy (with the "[M] " prefix and the birth/death
+		// details) is only used for the final rendering, not for the
+		// text match, so that the behaviour of the search is unchanged.
+		final SearchMode mode = criteria.mode();
+		final List<ScoredRecord> scored = new ArrayList<>();
+		final int totalRecords = records.size();
+		for(int i = 0; i < totalRecords; i++){
+			if(Thread.currentThread().isInterrupted())
+				break;
+
+			final FLEFRecord record = records.get(i);
+			if(structuralFilter.test(record)){
+				final String displayText = handler.getDisplayText(record, model);
+				final SearchMatcher.MatchScore match = SearchMatcher.score(query, displayText, mode);
+				if(match.passes())
+					scored.add(new ScoredRecord(record, displayText, match));
+			}
+
+			if(progressCallback != null){
+				final int progressPercent = (int)(((i + 1) / (double)totalRecords) * 100);
+				progressCallback.accept(progressPercent);
+			}
+		}
+
+		// Ranking: number of matched query tokens first (a record matching
+		// "bort" and "gall" beats a record matching only one of the two),
+		// then the sum of the per-token fuzzy scores (a full match beats
+		// a fuzzy match), then display text for a stable, alphabetical
+		// tie-break.
+		scored.sort(Comparator
+			.comparingInt((ScoredRecord sr) -> sr.match().matchedTokens()).reversed()
+			.thenComparing(Comparator.comparingDouble(
+				(ScoredRecord sr) -> sr.match().score()).reversed())
+			.thenComparing(ScoredRecord::displayText, String.CASE_INSENSITIVE_ORDER));
+
+		final List<FLEFRecord> results = new ArrayList<>(scored.size());
+		for(final ScoredRecord sr : scored)
+			results.add(sr.record());
+		System.out.println("=== ordine finale ===");
+		for(final ScoredRecord sr : scored)
+			System.out.println("  " + sr.match().matchedTokens()
+				+ "  " + sr.match().score()
+				+ "  " + sr.record().getId());		return results;
 	}
 
-	private static List<FLEFRecord> executeSearch(final List<FLEFRecord> records,
+	/**
+	 * Structural search without a text query: applies the filters and
+	 * preserves the original order of the records.
+	 */
+	private static List<FLEFRecord> executeStructuralSearch(final List<FLEFRecord> records,
 			final Predicate<FLEFRecord> predicate, final Consumer<Integer> progressCallback){
 		final List<FLEFRecord> results = new ArrayList<>();
 		final int totalRecords = records.size();
@@ -156,21 +229,6 @@ public class SearchService{
 
 		return results;
 	}
-
-	private Predicate<FLEFRecord> buildTextPredicate(final SearchCriteria criteria){
-		final String searchText = criteria.getSearchText();
-		if(searchText == null || searchText.isEmpty())
-			return record -> true;
-
-		return record -> TextSearchHelper.matchesText(
-			criteria.getHandler().getDisplayText(record, model),
-			searchText,
-			criteria.isFuzzy(),
-			criteria.isWholeWord(),
-			fuzzyThreshold
-		);
-	}
-
 
 	public String getDisplayText(final FLEFRecord record){
 		return strategy.getDisplayText(record, model);

@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchCriteria;
+import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchMode;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchStrategy;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.TextSearchHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
@@ -66,8 +67,7 @@ public class EventSearchStrategy implements SearchStrategy{
 	private String location;
 	private String agency;
 	private String causeReason;
-	private boolean fuzzy;
-	private boolean wholeWord;
+	private SearchMode mode;
 
 
 	@Override
@@ -79,8 +79,7 @@ public class EventSearchStrategy implements SearchStrategy{
 		location = criteria.getFilterFor(EventFilterPanel.FILTER_KEY_LOCATION);
 		agency = criteria.getFilterFor(EventFilterPanel.FILTER_KEY_AGENCY);
 		causeReason = criteria.getFilterFor(EventFilterPanel.FILTER_KEY_CAUSE_REASON);
-		fuzzy = criteria.isFuzzy();
-		wholeWord = criteria.isWholeWord();
+		mode = criteria.mode();
 
 		return event -> {
 			// Event Type filter
@@ -92,8 +91,8 @@ public class EventSearchStrategy implements SearchStrategy{
 
 			// Description filter
 			if(StringUtils.isNotEmpty(description)){
-				final String description = FLEFRecordHelper.getChildValue(event, TAG_DESCRIPTION);
-				if(!TextSearchHelper.matchesText(description, this.description, fuzzy, wholeWord, FUZZY_THRESHOLD))
+				final String recordDescription = FLEFRecordHelper.getChildValue(event, TAG_DESCRIPTION);
+				if(!SearchHelper.matches(recordDescription, description, mode))
 					return false;
 			}
 
@@ -102,20 +101,20 @@ public class EventSearchStrategy implements SearchStrategy{
 				return false;
 
 			// Location filter
-			if(!SearchHelper.matchesPlace(event, location, model, fuzzy, wholeWord, FUZZY_THRESHOLD))
+			if(!SearchHelper.matchesPlace(event, location, model, mode, FUZZY_THRESHOLD))
 				return false;
 
 			// Agency filter
 			if(StringUtils.isNotEmpty(agency)){
 				final String agency = FLEFRecordHelper.getChildValue(event, TAG_AGENCY);
-				if(!TextSearchHelper.matchesText(agency, this.agency, fuzzy, wholeWord, FUZZY_THRESHOLD))
+				if(!TextSearchHelper.matchesText(agency, this.agency, mode, FUZZY_THRESHOLD))
 					return false;
 			}
 
 			// Cause Reason filter
 			if(StringUtils.isNotEmpty(causeReason)){
 				final String reason = FLEFRecordHelper.getChildValue(event, TAG_CAUSE_REASON);
-				if(!TextSearchHelper.matchesText(reason, causeReason, fuzzy, wholeWord, FUZZY_THRESHOLD))
+				if(!TextSearchHelper.matchesText(reason, causeReason, mode, FUZZY_THRESHOLD))
 					return false;
 			}
 

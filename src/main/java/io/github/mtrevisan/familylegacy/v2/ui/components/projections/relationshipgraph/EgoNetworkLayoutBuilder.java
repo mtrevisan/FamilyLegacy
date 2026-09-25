@@ -170,7 +170,7 @@ class EgoNetworkLayoutBuilder{
 			return null;
 
 		final StringBuilder sb = new StringBuilder("<html>");
-		for(int i = 0; i < relations.size(); i++){
+		for(int i = 0; i < relations.size(); i ++){
 			final EgoNode.RelationInfo info = relations.get(i);
 			if(i > 0)
 				sb.append("<hr>");

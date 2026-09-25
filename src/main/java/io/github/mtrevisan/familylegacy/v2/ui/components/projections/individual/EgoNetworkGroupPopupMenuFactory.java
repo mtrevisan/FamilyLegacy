@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.group.GroupData;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.group.GroupListener;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.group.GroupPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.help.ShortcutRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.PopupMenuAdapter;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
 
@@ -44,6 +45,7 @@ public class EgoNetworkGroupPopupMenuFactory implements EntityPopupMenuFactory<G
 	@Override
 	public JPopupMenu createPopupMenu(final GroupPanel panel, final GroupListener listener, final FLEFModel model){
 		final JMenuItem editItem = new JMenuItem("Edit Group…", 'E');
+		editItem.setAccelerator(ShortcutRegistry.EDIT_SELECTION_GROUP.keyStroke());
 		final JMenuItem deleteItem = new JMenuItem("Delete Group", 'D');
 		final JMenuItem pasteItem = new JMenuItem("Paste", 'P');
 		final JMenuItem unlinkItem = new JMenuItem("Unlink Relationship", 'U');
@@ -55,7 +57,7 @@ public class EgoNetworkGroupPopupMenuFactory implements EntityPopupMenuFactory<G
 				final GroupData data = panel.getData();
 				final boolean hasData = (data != null && !data.isEmpty());
 
-				final ToolContext context = new ToolContext(model, null, () -> panel, null);
+				final ToolContext context = EntityTreePopupMenuFactory.toolContext(model, listener, panel, null);
 
 				final boolean canPaste = (!hasData && PopupMenuHelper.isPasteAllowed(model, panel) && context.canPaste());
 				pasteItem.setEnabled(canPaste);

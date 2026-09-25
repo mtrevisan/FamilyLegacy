@@ -47,6 +47,8 @@ import org.apache.commons.lang3.Strings;
 import org.apache.commons.lang3.math.NumberUtils;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -163,6 +165,23 @@ public final class FLEFGrammarParser{
 		final List<Token> tokens = tokenize(content);
 		final FLEFGrammarParser parser = new FLEFGrammarParser(tokens);
 		return parser.parseGrammar();
+	}
+
+	/**
+	 * Parses a FLEF grammar from an input stream, reading it in UTF-8.
+	 * <p>
+	 * The stream is read fully and passed to {@link #parse(String)}; the
+	 * caller is responsible for closing it, typically with a
+	 * try-with-resources block.
+	 *
+	 * @param grammarStream the stream containing the grammar; must not be
+	 *                      {@code null}
+	 * @return the parsed grammar
+	 * @throws IOException if reading fails
+	 */
+	public static FLEFGrammar parse(final InputStream grammarStream) throws IOException{
+		final String content = new String(grammarStream.readAllBytes(), StandardCharsets.UTF_8);
+		return parse(content);
 	}
 
 

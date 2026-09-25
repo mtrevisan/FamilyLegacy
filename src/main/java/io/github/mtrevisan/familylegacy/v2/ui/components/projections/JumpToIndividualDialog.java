@@ -53,8 +53,7 @@ public final class JumpToIndividualDialog{
 	 *                   to the record types offered
 	 * @return the chosen record id, or {@code null} if cancelled
 	 */
-	public static String showAndGet(final Window owner, final FLEFModel model,
-		final ProjectionType projection){
+	public static String showAndGet(final Window owner, final FLEFModel model, final ProjectionType projection){
 		final List<Class<? extends RecordTypeHandler<?>>> handlerList = new ArrayList<>();
 		handlerList.add(IndividualHandler.class);
 		if(projection == ProjectionType.EGO_NETWORK)

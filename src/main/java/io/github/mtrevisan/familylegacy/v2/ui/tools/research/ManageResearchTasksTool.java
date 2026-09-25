@@ -38,7 +38,8 @@ public final class ManageResearchTasksTool implements ToolOperation{
 
 	@Override
 	public void run(final ToolContext context){
-		new ResearchTasksDialog(context).setVisible(true);
+		final ResearchTasksDialog dialog = new ResearchTasksDialog(context);
+		dialog.setVisible(true);
 	}
 
 	@Override

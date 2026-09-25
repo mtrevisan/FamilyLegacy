@@ -38,7 +38,8 @@ public final class MergeGroupsTool implements ToolOperation{
 
 	@Override
 	public void run(final ToolContext context){
-		new MergeGroupsDialog(context).setVisible(true);
+		final MergeGroupsDialog dialog = new MergeGroupsDialog(context);
+		dialog.setVisible(true);
 	}
 
 	@Override

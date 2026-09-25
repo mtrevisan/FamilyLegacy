@@ -30,6 +30,7 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -178,7 +179,7 @@ public final class ChronomapTimeline extends JPanel{
 		g2.drawLine(phX, 4,
 			phX, h - 4);
 
-		g2.setFont(getFont().deriveFont(10f).deriveFont(java.awt.Font.BOLD));
+		g2.setFont(getFont().deriveFont(10f).deriveFont(Font.BOLD));
 		final String timeLabel = formatYear((long)currentTime);
 		final int tw = g2.getFontMetrics().stringWidth(timeLabel);
 		g2.setColor(PLAYHEAD);
@@ -247,6 +248,7 @@ public final class ChronomapTimeline extends JPanel{
 	private void onMouseWheel(final MouseWheelEvent e){
 		if(e.isControlDown() || e.isMetaDown()){
 			e.consume();
+
 			final int rot = e.getWheelRotation();
 			if(rot != 0)
 				zoomAtCursor(rot < 0, e.getX());

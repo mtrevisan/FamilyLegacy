@@ -32,6 +32,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.PopupMenuAdapter;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.RelationClipboard;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
+import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContexts;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.individuals.AddChildTool;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.individuals.DeleteIndividualTool;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.individuals.EditIndividualTool;
@@ -67,7 +68,7 @@ public class EgoNetworkIndividualPopupMenuFactory implements EntityPopupMenuFact
 	@Override
 	public JPopupMenu createPopupMenu(final IndividualPanel panel, final IndividualListener listener,
 			final FLEFModel model){
-		final JMenuItem editItem = new JMenuItem(ShortcutRegistry.EDIT_SELECTION.action(), 'E');
+		final JMenuItem editItem = new JMenuItem(ShortcutRegistry.EDIT_SELECTION_INDIVIDUAL.action(), 'E');
 		final JMenuItem addChildItem = (isEgo? new JMenuItem("Add Child…", 'A'): null);
 		final JMenuItem connectChildItem = (isEgo? new JMenuItem("Connect Child…", 'C'): null);
 		final JMenuItem deleteItem = new JMenuItem("Delete Individual", 'D');
@@ -83,7 +84,7 @@ public class EgoNetworkIndividualPopupMenuFactory implements EntityPopupMenuFact
 				final boolean hasData = (data != null && !data.isEmpty());
 				final boolean hasIndividuals = model.hasRecordsByType(IndividualHandler.TYPE);
 
-				final ToolContext context = new ToolContext(model, null, () -> panel, null);
+				final ToolContext context = ToolContexts.withMutator(model, listener, panel, null);
 
 				// Update paste item state and title based on clipboard content
 				final boolean canPaste = (!hasData && PopupMenuHelper.isPasteAllowed(model, panel));
@@ -111,25 +112,29 @@ public class EgoNetworkIndividualPopupMenuFactory implements EntityPopupMenuFact
 
 		// Add menu items with their bound callbacks
 		PopupMenuHelper.addMenuItem(popup, editItem, panel, record -> {
-			final ToolContext context = new ToolContext(model, record::getId, () -> panel, null);
-			new EditIndividualTool().run(context);
+			final ToolContext context = ToolContexts.withMutator(model, listener, panel, record.getId());
+			new EditIndividualTool()
+				.run(context);
 		});
 		if(isEgo){
 			popup.addSeparator();
 			PopupMenuHelper.addMenuItem(popup, addChildItem, panel, record -> {
-				final ToolContext context = new ToolContext(model, record::getId, () -> panel, null);
-				new AddChildTool().run(context);
+				final ToolContext context = ToolContexts.withMutator(model, listener, panel, record.getId());
+				new AddChildTool()
+					.run(context);
 			});
 			PopupMenuHelper.addMenuItem(popup, connectChildItem, panel, record -> listener.onChildAddOrConnect(panel, TreeOperation.CONNECT));
 		}
 		popup.addSeparator();
 		PopupMenuHelper.addMenuItem(popup, deleteItem, panel, record -> {
-			final ToolContext context = new ToolContext(model, record::getId, () -> panel, null);
-			new DeleteIndividualTool().run(context);
+			final ToolContext context = ToolContexts.withMutator(model, listener, panel, record.getId());
+			new DeleteIndividualTool()
+				.run(context);
 		});
 		PopupMenuHelper.addMenuItem(popup, unlinkItem, panel, record -> {
-			final ToolContext context = new ToolContext(model, record::getId, () -> panel, null);
-			new UnlinkRelationshipsTool().run(context);
+			final ToolContext context = ToolContexts.withMutator(model, listener, panel, record.getId());
+			new UnlinkRelationshipsTool()
+				.run(context);
 		});
 
 		return popup;

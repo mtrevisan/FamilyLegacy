@@ -158,11 +158,12 @@ public final class RemoveMemberDialog extends JDialog{
 			(record, handler) -> chosen[0] = record,
 			GroupHandler.class);
 		dialog.setVisible(true);
-		if(chosen[0] == null)
-			return;
-		group = chosen[0];
-		groupField.setText(GroupHelper.displayName(group) + "  [" + group.getId() + "]");
-		loadMembers();
+
+		if(chosen[0] != null){
+			group = chosen[0];
+			groupField.setText(GroupHelper.displayName(group) + "  [" + group.getId() + "]");
+			loadMembers();
+		}
 	}
 
 	private void loadMembers(){

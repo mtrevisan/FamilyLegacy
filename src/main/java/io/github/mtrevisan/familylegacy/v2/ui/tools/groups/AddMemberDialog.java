@@ -163,6 +163,7 @@ public final class AddMemberDialog extends JDialog{
 			(record, handler) -> chosen[0] = record,
 			GroupHandler.class);
 		dialog.setVisible(true);
+
 		if(chosen[0] != null){
 			group = chosen[0];
 			groupField.setText(GroupHelper.displayName(group) + "  [" + group.getId() + "]");
@@ -181,7 +182,7 @@ public final class AddMemberDialog extends JDialog{
 				members.add(record);
 		}
 		final StringBuilder sb = new StringBuilder();
-		for(int i = 0; i < members.size(); i++){
+		for(int i = 0; i < members.size(); i ++){
 			if(i > 0)
 				sb.append('\n');
 			final String name = io.github.mtrevisan.familylegacy.v2.ui.tools.places.PlaceHelper

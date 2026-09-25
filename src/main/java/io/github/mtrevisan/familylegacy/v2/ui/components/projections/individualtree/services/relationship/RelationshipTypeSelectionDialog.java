@@ -29,7 +29,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualListener;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
-import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolDispatcher;
+import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContexts;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.individuals.EditIndividualTool;
 import net.miginfocom.swing.MigLayout;
 
@@ -161,24 +161,16 @@ public class RelationshipTypeSelectionDialog extends JDialog{
 			final JLabel itemLabel = new JLabel(item.label);
 			itemLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
-			// Double click on target name triggers edit via ToolContext
-			itemLabel.addMouseListener(new MouseAdapter(){
+			// Double-click to edit individual
+			addMouseListener(new MouseAdapter(){
 				@Override
-				public void mouseClicked(final MouseEvent e){
-					if(SwingUtilities.isLeftMouseButton(e) && e.getClickCount() == 2 && item.id() != null){
-						final ToolContext context = new ToolContext(
-							model,
-							item::id,
-							() -> itemLabel,
-							new ToolDispatcher(){
-								@Override
-								public void editEntity(final String id){
-									if(listener != null)
-										listener.onEntityEdit(model.getRecordById(id));
-								}
-							}
-						);
-						new EditIndividualTool().run(context);
+				public void mousePressed(final MouseEvent e){
+					if(SwingUtilities.isLeftMouseButton(e) && e.getClickCount() == 2 && listener != null){
+						final ToolContext context = ToolContexts.withMutatorAndEdit(model, listener,
+							RelationshipTypeSelectionDialog.this, item.id(),
+							id -> listener.onEntityEdit(model.getRecordById(id)));
+						new EditIndividualTool()
+							.run(context);
 					}
 				}
 			});

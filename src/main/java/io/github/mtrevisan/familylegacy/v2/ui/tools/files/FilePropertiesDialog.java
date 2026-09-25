@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.tools.files;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -47,7 +48,6 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -203,8 +203,8 @@ public final class FilePropertiesDialog extends JDialog{
 			return kb + " KB";
 		final long mb = kb / 1024L;
 		if(mb < 1024L)
-			return String.format(Locale.ENGLISH, "%.2f MB", kb / 1024.0);
-		return String.format(Locale.ENGLISH, "%.2f GB", mb / 1024.0);
+			return GUIHelper.format("%.2f MB", kb / 1024.0);
+		return GUIHelper.format("%.2f GB", mb / 1024.0);
 	}
 
 }

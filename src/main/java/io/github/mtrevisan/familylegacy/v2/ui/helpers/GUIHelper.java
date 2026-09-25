@@ -85,7 +85,11 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.function.Consumer;
 
 
@@ -93,6 +97,27 @@ import java.util.function.Consumer;
  * Utilities for installing UI behaviors (popup menus, double‑click, keyboard shortcuts).
  */
 public final class GUIHelper{
+
+	/**
+	 * Number formats used across the dialog. A space separates the
+	 * groups of three digits, a dot separates the decimal part.
+	 * <p>
+	 * The space is a non-breaking space ({@code U+00A0}) rather than a
+	 * regular space, so the value stays on one line when the cell is
+	 * rendered by Swing. If a regular space is preferred, change
+	 * {@code '\u00A0'} to {@code ' '}.
+	 * <p>
+	 * {@link java.text.DecimalFormat} is not thread-safe, but every call to these
+	 * formatters happens on the EDT, so the instances can be shared.
+	 */
+	private static final DecimalFormatSymbols SYMBOLS = new DecimalFormatSymbols(Locale.ROOT);
+	static{
+		SYMBOLS.setGroupingSeparator('\u00A0');
+		SYMBOLS.setDecimalSeparator('.');
+	}
+	private static final DecimalFormat INTEGER_FORMAT = new DecimalFormat("#,##0", SYMBOLS);
+	private static final DecimalFormat PERCENT_FORMAT = new DecimalFormat("#,##0.0'%'", SYMBOLS);
+
 
 	public static final KeyStroke ESCAPE_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
 	public static final KeyStroke INSERT_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_INSERT, 0);
@@ -116,6 +141,113 @@ public final class GUIHelper{
 
 
 	private GUIHelper(){}
+
+
+	/* ======================================================================
+	 *                          Number formatting
+	 * ====================================================================== */
+
+	public static String format(final String format, final Object... args){
+		final StringBuilder outFormat = new StringBuilder();
+		final List<Object> outArgs = new ArrayList<>();
+		int argIndex = 0;
+		int i = 0;
+
+		while(i < format.length()){
+			final char c = format.charAt(i);
+			if(c != '%'){
+				outFormat.append(c);
+				i ++;
+				continue;
+			}
+
+			if(i + 1 < format.length() && format.charAt(i + 1) == '%'){
+				outFormat.append("%%");
+				i += 2;
+				continue;
+			}
+
+			final int start = i;
+			i ++;
+
+			int explicitIndex = -1;
+			int j = i;
+			while(j < format.length() && Character.isDigit(format.charAt(j))) j++;
+			if(j > i && j < format.length() && format.charAt(j) == '$'){
+				explicitIndex = Integer.parseInt(format.substring(i, j)) - 1;
+				i = j + 1;
+			}
+
+			boolean grouping = false;
+			while(i < format.length() && "-+ 0,#".indexOf(format.charAt(i)) >= 0){
+				if(format.charAt(i) == ',') grouping = true;
+				i ++;
+			}
+
+			while(i < format.length() && Character.isDigit(format.charAt(i)))
+				i ++;
+
+			int precision = -1;
+			if(i < format.length() && format.charAt(i) == '.'){
+				i ++;
+				final int pStart = i;
+				while(i < format.length() && Character.isDigit(format.charAt(i))) i++;
+				precision = Integer.parseInt(format.substring(pStart, i));
+			}
+
+			if(i >= format.length())
+				throw new IllegalArgumentException("Formato non valido: " + format);
+
+			final char conv = format.charAt(i);
+			i ++;
+
+			final int currentArg = (explicitIndex >= 0 ? explicitIndex : argIndex++);
+			final Object arg = args[currentArg];
+
+			if("doxX".indexOf(conv) >= 0){
+				final long val = ((Number)arg).longValue();
+				final String s = grouping ? INTEGER_FORMAT.format(val) : Long.toString(val);
+				outFormat.append("%s");
+				outArgs.add(s);
+			}
+			else if("eEfgG".indexOf(conv) >= 0){
+				final double val = ((Number)arg).doubleValue();
+				final int dec = (precision >= 0 ? precision : 6);
+				final String s = formatDouble(val, dec, grouping);
+				outFormat.append("%s");
+				outArgs.add(s);
+			}
+			else{
+				outFormat.append(format, start, i);
+				outArgs.add(arg);
+			}
+		}
+
+		return String.format(Locale.ROOT, outFormat.toString(), outArgs.toArray());
+	}
+
+	public static String formatDouble(final double value, final int decimals, final boolean grouping){
+		final StringBuilder pattern = new StringBuilder(grouping ? "#,##0" : "0");
+		if(decimals > 0)
+			pattern.append('.')
+				.repeat("0", decimals);
+		return new DecimalFormat(pattern.toString(), SYMBOLS).format(value);
+	}
+
+	public static String formatDouble(final double value, final int decimals){
+		return formatDouble(value, decimals, true);
+	}
+
+	/**
+	 * Formats a percentage with one decimal place and a dot as the
+	 * decimal separator.
+	 *
+	 * @param value the percentage value (e.g. 45.3)
+	 * @return the formatted string, e.g. {@code "45.3%"}
+	 */
+	public static String formatPercent(final double value){
+		return PERCENT_FORMAT.format(value);
+	}
 
 
 	public static JScrollPane createScrollPane(final JList<?> list){

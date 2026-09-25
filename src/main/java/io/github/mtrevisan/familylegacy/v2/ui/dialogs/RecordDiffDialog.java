@@ -52,10 +52,12 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GridLayout;
 import java.awt.RenderingHints;
+import java.awt.Shape;
 import java.awt.Window;
 import java.awt.event.AdjustmentListener;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -323,7 +325,7 @@ public class RecordDiffDialog extends JDialog{
 		final Set<Integer> leftPlaceholders = new HashSet<>();
 		final Set<Integer> rightPlaceholders = new HashSet<>();
 
-		for(int i = 0; i < leftStyled.size(); i++){
+		for(int i = 0; i < leftStyled.size(); i ++){
 			final Color leftColor = leftStyled.get(i).color();
 			if(leftColor != null)
 				highlightLine(leftHighlighter, leftOffsets, alignedLeftText, i, leftColor);
@@ -374,7 +376,7 @@ public class RecordDiffDialog extends JDialog{
 	 */
 	private static String joinLines(final List<StyledLine> lines){
 		final StringBuilder sb = new StringBuilder();
-		for(int i = 0; i < lines.size(); i++){
+		for(int i = 0; i < lines.size(); i ++){
 			if(i > 0)
 				sb.append('\n');
 			sb.append(lines.get(i).text());
@@ -490,7 +492,7 @@ public class RecordDiffDialog extends JDialog{
 		 */
 		private List<int[]> placeholderRanges(){
 			final List<Integer> sorted = new ArrayList<>(placeholderLines);
-			java.util.Collections.sort(sorted);
+			Collections.sort(sorted);
 
 			final List<int[]> ranges = new ArrayList<>();
 			int start = -1;
@@ -544,7 +546,7 @@ public class RecordDiffDialog extends JDialog{
 				if(yBottom < 0 || y > getHeight())
 					return;
 
-				final java.awt.Shape oldClip = g2.getClip();
+				final Shape oldClip = g2.getClip();
 				g2.clipRect(insetsLeft, y, visibleWidth, h);
 
 				// One single loop over the whole block. The diagonals go from

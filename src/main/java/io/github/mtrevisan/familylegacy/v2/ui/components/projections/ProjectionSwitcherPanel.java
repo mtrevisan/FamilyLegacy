@@ -33,6 +33,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualt
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.layout.TreeLayoutEngine;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.relationshipgraph.EgoNetworkPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.GenealogyRepository;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.ProjectionMutator;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.help.ShortcutRegistry;
 
 import javax.swing.AbstractAction;
@@ -343,6 +344,10 @@ public final class ProjectionSwitcherPanel extends JPanel{
 
 	public IndividualTreeGraphPanel getTreeGraphPanel(){
 		return treeGraphPanel;
+	}
+
+	public ProjectionMutator getMutator(){
+		return treeGraphPanel.getMutator();
 	}
 
 	public EgoNetworkPanel getEgoPanel(){

@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchCriteria;
+import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchMode;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchStrategy;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
 import org.apache.commons.lang3.StringUtils;
@@ -52,20 +53,18 @@ public class GroupSearchStrategy implements SearchStrategy{
 
 	private String name;
 	private String type;
-	private boolean fuzzy;
-	private boolean wholeWord;
+	private SearchMode mode;
 
 
 	@Override
 	public Predicate<FLEFRecord> buildPredicate(final SearchCriteria criteria, final FLEFModel model){
 		name = criteria.getFilterFor(GroupFilterPanel.FILTER_KEY_NAME);
 		type = criteria.getFilterFor(GroupFilterPanel.FILTER_KEY_TYPE);
-		fuzzy = criteria.isFuzzy();
-		wholeWord = criteria.isWholeWord();
+		mode = criteria.mode();
 
 		return group -> {
 			// Name filter
-			if(!SearchHelper.matchesName(group, name, fuzzy, wholeWord, FUZZY_THRESHOLD))
+			if(!SearchHelper.matchesName(group, name, mode, FUZZY_THRESHOLD))
 				return false;
 
 			// Type filter

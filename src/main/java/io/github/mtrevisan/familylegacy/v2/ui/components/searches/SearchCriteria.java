@@ -26,77 +26,93 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.searches;
 
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Objects;
 
 
 /**
- * Container for all search parameters.
- * Generic text filters are always available; type‑specific filters are stored in a map.
+ * Immutable criteria of a record search: the record type, the free-text
+ * query, the admission mode, and the structural filters (sex, place,
+ * date range, ...) set by the dynamic filter panel.
+ * <p>
+ * The mode is a {@link SearchMode} rather than a pair of booleans, so the
+ * matcher in {@link SearchService} reads a single value and the dialog
+ * exposes exactly one selected mode at a time.
  */
-public class SearchCriteria{
+public final class SearchCriteria{
 
 	private final RecordTypeHandler<?> handler;
-
-	private final String searchText;
-	private final boolean fuzzy;
-	private final boolean wholeWord;
-
-	private final Map<String, Object> specificFilters = new HashMap<>();
+	private final String query;
+	private final SearchMode mode;
+	private final Map<String, String> filters = new LinkedHashMap<>();
 
 
-	public SearchCriteria(final RecordTypeHandler<?> handler, final String searchText, final boolean fuzzy,
-			final boolean wholeWord){
-		this.handler = handler;
-
-		this.searchText = searchText;
-		this.fuzzy = fuzzy;
-		this.wholeWord = wholeWord;
+	public SearchCriteria(final RecordTypeHandler<?> handler, final String query, final SearchMode mode){
+		this.handler = Objects.requireNonNull(handler, "handler must not be null");
+		this.query = (query != null? query: "");
+		this.mode = (mode != null? mode: SearchMode.FUZZY);
 	}
 
-	public RecordTypeHandler<?> getHandler(){
+
+	public RecordTypeHandler<?> handler(){
 		return handler;
 	}
 
-	public String getSearchText(){
-		return searchText;
+	public String query(){
+		return query;
 	}
 
-	public boolean isFuzzy(){
-		return fuzzy;
-	}
-
-	public boolean isWholeWord(){
-		return wholeWord;
+	public SearchMode mode(){
+		return mode;
 	}
 
 	/**
-	 * Adds a type‑specific filter.
+	 * Registers a structural filter. The key and value are opaque to this
+	 * class; the handler interprets them.
 	 *
-	 * @param key   the filter key (e.g., "eventType", "dateFrom")
+	 * @param key   the filter key (e.g., "sex", "place")
 	 * @param value the filter value
-	 * @return this instance for chaining
+	 * @return this criteria, for chaining
 	 */
-	public SearchCriteria withFilter(final String key, final Object value){
-		specificFilters.put(key, value);
+	public SearchCriteria withFilter(final String key, final String value){
+		if(key != null && value != null)
+			filters.put(key, value);
 
 		return this;
+	}
+
+	public Map<String, String> filters(){
+		return filters;
+	}
+
+	public String filter(final String key){
+		return filters.get(key);
+	}
+
+	public boolean hasFilter(final String key){
+		return filters.containsKey(key);
 	}
 
 	/**
 	 * Returns the value of a type‑specific filter.
 	 *
 	 * @param key the filter key
-	 * @param <T> the expected type
 	 * @return the value, or {@code null} if not present
 	 */
-	@SuppressWarnings("unchecked")
-	public <T> T getFilterFor(final String key){
-		return (T)specificFilters.get(key);
+	public String getFilterFor(final String key){
+		return filters.get(key);
 	}
 
-	public Map<String, Object> getSpecificFilters(){
-		return specificFilters;
+
+	@Override
+	public String toString(){
+		return "SearchCriteria["
+			+ "handler=" + handler.getType()
+			+ ", query='" + query + '\''
+			+ ", mode=" + mode
+			+ ", filters=" + filters
+			+ ']';
 	}
 
 }

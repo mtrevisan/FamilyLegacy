@@ -38,7 +38,8 @@ public final class ManageConclusionsTool implements ToolOperation{
 
 	@Override
 	public void run(final ToolContext context){
-		new ConclusionsDialog(context).setVisible(true);
+		final ConclusionsDialog dialog = new ConclusionsDialog(context);
+		dialog.setVisible(true);
 	}
 
 	@Override

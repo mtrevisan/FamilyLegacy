@@ -316,7 +316,7 @@ public final class SourceHelper{
 				if(TAG_REPOSITORY.equalsIgnoreCase(child.getTag())){
 					final String repoId = FLEFRecordHelper.getChildValue(child, TAG_REPOSITORY);
 					if(id != null && id.equals(repoId)){
-						sourceCount++;
+						sourceCount ++;
 						break;
 					}
 				}

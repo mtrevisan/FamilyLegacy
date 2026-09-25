@@ -155,6 +155,7 @@ public final class MultiIndividualPickerDialog extends JDialog{
 	public static List<String> pick(final Window owner, final FLEFModel model){
 		final MultiIndividualPickerDialog dialog = new MultiIndividualPickerDialog(owner, model);
 		dialog.setVisible(true);
+
 		return (dialog.accepted? new ArrayList<>(dialog.selectedIds): List.of());
 	}
 
@@ -172,7 +173,7 @@ public final class MultiIndividualPickerDialog extends JDialog{
 
 		// Restore the selection on the entries that survived the filter.
 		final List<Integer> indicesToSelect = new ArrayList<>();
-		for(int i = 0; i < listModel.size(); i++)
+		for(int i = 0; i < listModel.size(); i ++)
 			if(previouslySelected.contains(listModel.get(i).id()))
 				indicesToSelect.add(i);
 		list.setSelectedIndices(indicesToSelect.stream().mapToInt(Integer::intValue).toArray());

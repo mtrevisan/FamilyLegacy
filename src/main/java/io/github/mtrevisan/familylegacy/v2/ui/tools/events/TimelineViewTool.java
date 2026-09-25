@@ -38,7 +38,8 @@ public final class TimelineViewTool implements ToolOperation{
 
 	@Override
 	public void run(final ToolContext context){
-		new TimelineViewDialog(context).setVisible(true);
+		final TimelineViewDialog dialog = new TimelineViewDialog(context);
+		dialog.setVisible(true);
 	}
 
 	@Override

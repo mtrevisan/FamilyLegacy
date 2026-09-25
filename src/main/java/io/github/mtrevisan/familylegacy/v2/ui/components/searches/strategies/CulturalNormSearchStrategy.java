@@ -28,8 +28,8 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchCriteria;
+import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchMode;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchStrategy;
-import io.github.mtrevisan.familylegacy.v2.ui.components.searches.TextSearchHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import org.apache.commons.lang3.StringUtils;
@@ -60,8 +60,7 @@ public class CulturalNormSearchStrategy implements SearchStrategy{
 	private String calendarFrom;
 	private String validTo;
 	private String calendarTo;
-	private boolean fuzzy;
-	private boolean wholeWord;
+	private SearchMode mode;
 
 
 	@Override
@@ -73,14 +72,13 @@ public class CulturalNormSearchStrategy implements SearchStrategy{
 		calendarFrom = criteria.getFilterFor(CulturalNormFilterPanel.FILTER_KEY_CALENDAR_FROM);
 		validTo = criteria.getFilterFor(CulturalNormFilterPanel.FILTER_KEY_VALID_TO);
 		calendarTo = criteria.getFilterFor(CulturalNormFilterPanel.FILTER_KEY_CALENDAR_FROM);
-		fuzzy = criteria.isFuzzy();
-		wholeWord = criteria.isWholeWord();
+		mode = criteria.mode();
 
 		return culturalNorm -> {
 			// Title filter
 			if(StringUtils.isNotEmpty(title)){
-				final String title = FLEFRecordHelper.getChildValue(culturalNorm, TAG_TITLE);
-				if(!TextSearchHelper.matchesText(title, this.title, fuzzy, wholeWord, FUZZY_THRESHOLD))
+				final String recordTitle = FLEFRecordHelper.getChildValue(culturalNorm, TAG_TITLE);
+				if(!SearchHelper.matches(recordTitle, title, mode))
 					return false;
 			}
 
@@ -92,7 +90,7 @@ public class CulturalNormSearchStrategy implements SearchStrategy{
 			}
 
 			// Place filter
-			if(!SearchHelper.matchesPlace(culturalNorm, place, model, fuzzy, wholeWord, FUZZY_THRESHOLD))
+			if(!SearchHelper.matchesPlace(culturalNorm, place, model, mode, FUZZY_THRESHOLD))
 				return false;
 
 			// Date range

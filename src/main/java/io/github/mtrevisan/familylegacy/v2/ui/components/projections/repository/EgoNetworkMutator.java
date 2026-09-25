@@ -128,10 +128,15 @@ public class EgoNetworkMutator extends AbstractProjectionMutator{
 	}
 
 	@Override
-	public void invalidateAndNotifyTreeChanged(final String egoId){
-		LOGGER.debug("Invalidate & Notify ego changes to {}", egoId);
-
+	protected void invalidateCaches(){
+		networkService.getRepository()
+			.invalidateIndices();
 		networkService.invalidateIndices();
+	}
+
+	@Override
+	public void invalidateAndNotifyTreeChanged(final String egoId){
+		invalidateCaches();
 
 		if(listener != null)
 			listener.onTreeStructureChanged(egoId);

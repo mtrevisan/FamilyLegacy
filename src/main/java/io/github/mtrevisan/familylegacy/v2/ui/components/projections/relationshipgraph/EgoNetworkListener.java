@@ -33,9 +33,11 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.services.relationship.UnlinkRelationshipsDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.EgoNetworkMutator;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.ProjectionMutator;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
+import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContexts;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolDispatcher;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.individuals.DeleteIndividualTool;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.individuals.PasteIndividualTool;
@@ -152,7 +154,7 @@ public final class EgoNetworkListener implements IndividualListener, GroupListen
 		if(record == null)
 			return;
 
-		final ToolContext context = new ToolContext(model, record::getId, () -> component,
+		final ToolContext context = ToolContexts.custom(model, record.getId(), component,
 			new ToolDispatcher(){
 				@Override
 				public void removeEntity(final String id){
@@ -163,8 +165,14 @@ public final class EgoNetworkListener implements IndividualListener, GroupListen
 				public void loadRoot(final String id){
 					onRootEntitySelected(id);
 				}
+
+				@Override
+				public ProjectionMutator getMutator(){
+					return networkMutator;
+				}
 			});
-		new DeleteIndividualTool().run(context);
+		new DeleteIndividualTool()
+			.run(context);
 	}
 
 	@Override
@@ -231,8 +239,8 @@ public final class EgoNetworkListener implements IndividualListener, GroupListen
 		if(record == null)
 			return;
 
-		final ToolContext context = new ToolContext(model, record::getId, () -> component, null);
-		new RelocateIndividualTool().run(context);
+		new RelocateIndividualTool()
+			.run(ToolContexts.withMutator(model, this, component, record.getId()));
 	}
 
 	@Override
@@ -249,14 +257,20 @@ public final class EgoNetworkListener implements IndividualListener, GroupListen
 		if(selectedPanel == null)
 			return;
 
-		final ToolContext context = new ToolContext(model, null, () -> selectedPanel,
+		final ToolContext context = ToolContexts.custom(model, null, selectedPanel,
 			new ToolDispatcher(){
 				@Override
 				public void paste(){
 					executePaste(selectedPanel);
 				}
+
+				@Override
+				public ProjectionMutator getMutator(){
+					return networkMutator;
+				}
 			});
-		new PasteIndividualTool().run(context);
+		new PasteIndividualTool()
+			.run(context);
 	}
 
 	private void executePaste(final JPanel selectedPanel){
@@ -268,7 +282,9 @@ public final class EgoNetworkListener implements IndividualListener, GroupListen
 		if(egoRecord == null)
 			return;
 
-		final ToolContext context = new ToolContext(model, null, () -> selectedPanel, null);
+		// Only need a context for reading the clipboard here; no mutation
+		// happens through this context, so the default dispatcher is fine.
+		final ToolContext context = new ToolContext(model, null, selectedPanel, null);
 
 		final FLEFRecord source = context.clippedRecord();
 		if(source == null)
@@ -288,6 +304,12 @@ public final class EgoNetworkListener implements IndividualListener, GroupListen
 		actionHandler.performRelationOperationOnRecord(source, true, allowedTypes,
 			contextProvider.getCurrentEgoId(), rootEgoNode, this);
 		context.clearClippedRecord();
+	}
+
+
+	@Override
+	public ProjectionMutator getMutator(){
+		return networkMutator;
 	}
 
 }

@@ -29,11 +29,12 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.components.MultiLineLabel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.BoxPanelType;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.EntityMouseListeners;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.EntityPopupMenuFactory;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.PopupMouseAdapter;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
-import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolDispatcher;
-import io.github.mtrevisan.familylegacy.v2.ui.tools.individuals.EditIndividualTool;
+import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContexts;
+import io.github.mtrevisan.familylegacy.v2.ui.tools.groups.EditGroupTool;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.BorderFactory;
@@ -47,9 +48,6 @@ import javax.swing.UIManager;
 import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Component;
-import java.awt.Container;
-import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GradientPaint;
@@ -59,10 +57,6 @@ import java.awt.Paint;
 import java.awt.Point;
 import java.awt.RenderingHints;
 import java.awt.Stroke;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionAdapter;
 import java.awt.font.TextAttribute;
 import java.io.IOException;
 import java.io.InputStream;
@@ -355,98 +349,31 @@ public class GroupPanel extends JPanel{
 	}
 
 	private void installMouseListeners(){
-		// Single click on the name label: navigate (re-root the view).
-		// The event is consumed so that the panel-level selection listener
-		// (added below) does not also fire on the same click.
-		if(boxType == BoxPanelType.SECONDARY){
-			final MouseAdapter selectedAdapter = new MouseAdapter(){
-				@Override
-				public void mousePressed(final MouseEvent e){
-					if(SwingUtilities.isLeftMouseButton(e) && e.getClickCount() == 1 && listener != null && data != null){
-						listener.onRootEntitySelected(data.getId());
-
-						// Consume the event so that the panel-level listener does
-						// not also fire a selection on the same click. Clicking
-						// the name is a navigation gesture, not a selection one.
-						e.consume();
-					}
-				}
-
-				@Override
-				public void mouseExited(final MouseEvent e){
-					nameLabel.setCursor(Cursor.getDefaultCursor());
-				}
-			};
-			nameLabel.addMouseListener(selectedAdapter);
-
-			nameLabel.addMouseMotionListener(new MouseMotionAdapter(){
-				@Override
-				public void mouseMoved(final MouseEvent e){
-					nameLabel.setCursor(nameLabel.isTextHit(e.getPoint())
-						? Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
-						: Cursor.getDefaultCursor());
-				}
-			});
-		}
-
-		// Double-click to edit group
-		addMouseListener(new MouseAdapter(){
-			@Override
-			public void mousePressed(final MouseEvent e){
-				if(SwingUtilities.isLeftMouseButton(e) && e.getClickCount() == 2 && listener != null && data != null){
-					final ToolContext context = new ToolContext(
-						model,
-						data::getId,
-						() -> GroupPanel.this,
-						new ToolDispatcher(){
-							@Override
-							public void editEntity(final String id){
-								if(listener != null)
-									listener.onEntityEdit(data.getGroup());
-							}
-						}
-					);
-					new EditIndividualTool().run(context);
-				}
-			}
-		});
-
-		// Single click anywhere else on the panel selects the group. The
-		// listener is attached recursively because in Swing mouse events
-		// do not bubble up from a child to its parent.
-		final MouseAdapter selectionAdapter = new MouseAdapter(){
-			@Override
-			public void mousePressed(final MouseEvent e){
-				if(e.getClickCount() == 1 && listener != null && data != null){
-					listener.onGroupSelected(GroupPanel.this, data.getGroup());
-
-					// Consume the event so that the panel-level listener does
-					// not also fire a selection on the same click. Clicking
-					// the name is a navigation gesture, not a selection one.
-					e.consume();
-				}
-			}
-
-			@Override
-			public void mouseEntered(final MouseEvent e){
-				if(!hovered){
-					hovered = true;
-
+		EntityMouseListeners.builder(this)
+			.nameLabel(boxType == BoxPanelType.SECONDARY? nameLabel: null)
+			.recordSupplier(() -> (data != null? data.getGroup(): null))
+			.onRootSelected(id -> {
+				if(listener != null)
+					listener.onRootEntitySelected(id);
+			})
+			.onSelected(record -> {
+				if(listener != null)
+					listener.onGroupSelected(this, record);
+			})
+			.onEdit(record -> {
+				final ToolContext context = ToolContexts.withMutatorAndEdit(model, listener, this,
+					record.getId(), id -> listener.onEntityEdit(record));
+				new EditGroupTool()
+					.run(context);
+			})
+			.onHoverChanged(h -> {
+				if(hovered != h){
+					hovered = h;
 					repaint();
 				}
-			}
-
-			@Override
-			public void mouseExited(final MouseEvent e){
-				if(hovered){
-					hovered = false;
-
-					repaint();
-				}
-			}
-		};
-
-		attachMouseListenerRecursively(this, selectionAdapter);
+			})
+			.build()
+			.install();
 	}
 
 	private void attachPopupMenu(){
@@ -455,16 +382,7 @@ public class GroupPanel extends JPanel{
 
 		final JPopupMenu popup = popupMenuFactory.createPopupMenu(this, listener, model);
 
-		// Register the popup listener recursively on this panel and all child components
-		attachMouseListenerRecursively(this, new PopupMouseAdapter(popup, this));
-	}
-
-	private static void attachMouseListenerRecursively(final Component component, final MouseListener listener){
-		component.addMouseListener(listener);
-
-		if(component instanceof Container container)
-			for(final Component child : container.getComponents())
-				attachMouseListenerRecursively(child, listener);
+		EntityMouseListeners.attachRecursive(this, new PopupMouseAdapter(popup, this));
 	}
 
 	public GroupData getData(){

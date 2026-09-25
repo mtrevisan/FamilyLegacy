@@ -28,8 +28,8 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchCriteria;
+import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchMode;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchStrategy;
-import io.github.mtrevisan.familylegacy.v2.ui.components.searches.TextSearchHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.DocumentHandler;
 import org.apache.commons.lang3.StringUtils;
 
@@ -56,8 +56,7 @@ public class DocumentSearchStrategy implements SearchStrategy{
 	private String description;
 	private String mapping;
 	private String uri;
-	private boolean fuzzy;
-	private boolean wholeWord;
+	private SearchMode mode;
 
 
 	@Override
@@ -65,14 +64,13 @@ public class DocumentSearchStrategy implements SearchStrategy{
 		description = criteria.getFilterFor(DocumentFilterPanel.FILTER_KEY_DESCRIPTION);
 		mapping = criteria.getFilterFor(DocumentFilterPanel.FILTER_KEY_MAPPING);
 		uri = criteria.getFilterFor(DocumentFilterPanel.FILTER_KEY_URI);
-		fuzzy = criteria.isFuzzy();
-		wholeWord = criteria.isWholeWord();
+		mode = criteria.mode();
 
 		return document -> {
 			// Description filter
 			if(StringUtils.isNotEmpty(description)){
-				final String description = FLEFRecordHelper.getChildValue(document, TAG_DESCRIPTION);
-				if(!TextSearchHelper.matchesText(description, this.description, fuzzy, wholeWord, FUZZY_THRESHOLD))
+				final String recordDescription = FLEFRecordHelper.getChildValue(document, TAG_DESCRIPTION);
+				if(!SearchHelper.matches(recordDescription, description, mode))
 					return false;
 			}
 
@@ -85,8 +83,8 @@ public class DocumentSearchStrategy implements SearchStrategy{
 
 			// URI filter
 			if(StringUtils.isNotEmpty(uri)){
-				final String uri = FLEFRecordHelper.getChildValue(document, TAG_URI);
-				if(!TextSearchHelper.matchesText(uri, this.uri, fuzzy, wholeWord, FUZZY_THRESHOLD))
+				final String recordUri = FLEFRecordHelper.getChildValue(document, TAG_URI);
+				if(!SearchHelper.matches(recordUri, uri, mode))
 					return false;
 			}
 

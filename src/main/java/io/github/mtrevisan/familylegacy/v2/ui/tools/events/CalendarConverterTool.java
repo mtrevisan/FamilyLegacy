@@ -38,7 +38,8 @@ public final class CalendarConverterTool implements ToolOperation{
 
 	@Override
 	public void run(final ToolContext context){
-		new CalendarConverterDialog(context).setVisible(true);
+		final CalendarConverterDialog dialog = new CalendarConverterDialog(context);
+		dialog.setVisible(true);
 	}
 
 }

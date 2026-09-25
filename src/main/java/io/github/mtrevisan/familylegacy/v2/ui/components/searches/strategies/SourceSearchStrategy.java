@@ -28,8 +28,8 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchCriteria;
+import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchMode;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchStrategy;
-import io.github.mtrevisan.familylegacy.v2.ui.components.searches.TextSearchHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import org.apache.commons.lang3.StringUtils;
@@ -65,8 +65,7 @@ public class SourceSearchStrategy implements SearchStrategy{
 	private String publisher;
 	private String mediaType;
 	private String place;
-	private boolean fuzzy;
-	private boolean wholeWord;
+	private SearchMode mode;
 
 
 	@Override
@@ -76,16 +75,15 @@ public class SourceSearchStrategy implements SearchStrategy{
 		publisher = criteria.getFilterFor(SourceFilterPanel.FILTER_KEY_PUBLISHER);
 		mediaType = criteria.getFilterFor(SourceFilterPanel.FILTER_KEY_MEDIA_TYPE);
 		place = criteria.getFilterFor(PlaceHandler.TYPE);
-		fuzzy = criteria.isFuzzy();
-		wholeWord = criteria.isWholeWord();
+		mode = criteria.mode();
 
 		return source -> {
 			// Title filter
 			if(StringUtils.isNotEmpty(title)){
 				final List<FLEFRecord> titles = FLEFRecordHelper.findChildren(source, TAG_TITLE_VALUE);
 				boolean matched = false;
-				for(final FLEFRecord title : titles){
-					if(TextSearchHelper.matchesText(title.getValue(), this.title, fuzzy, wholeWord, FUZZY_THRESHOLD)){
+				for(final FLEFRecord recordTitle : titles){
+					if(SearchHelper.matches(recordTitle.getValue(), title, mode)){
 						matched = true;
 
 						break;
@@ -97,15 +95,15 @@ public class SourceSearchStrategy implements SearchStrategy{
 
 			// Author filter
 			if(StringUtils.isNotEmpty(author)){
-				final String author = FLEFRecordHelper.getChildValue(source, TAG_AUTHOR);
-				if(!TextSearchHelper.matchesText(author, this.author, fuzzy, wholeWord, FUZZY_THRESHOLD))
+				final String recordAuthor = FLEFRecordHelper.getChildValue(source, TAG_AUTHOR);
+				if(!SearchHelper.matches(recordAuthor, author, mode))
 					return false;
 			}
 
 			// Publisher filter
 			if(StringUtils.isNotEmpty(publisher)){
-				final String publisher = FLEFRecordHelper.getChildValue(source, TAG_PUBLISHER);
-				if(!TextSearchHelper.matchesText(publisher, this.publisher, fuzzy, wholeWord, FUZZY_THRESHOLD))
+				final String recordPublisher = FLEFRecordHelper.getChildValue(source, TAG_PUBLISHER);
+				if(!SearchHelper.matches(recordPublisher, place, mode))
 					return false;
 			}
 
@@ -117,7 +115,7 @@ public class SourceSearchStrategy implements SearchStrategy{
 			}
 
 			// Place filter
-			if(!SearchHelper.matchesPlace(source, place, model, fuzzy, wholeWord, FUZZY_THRESHOLD))
+			if(!SearchHelper.matchesPlace(source, place, model, mode, FUZZY_THRESHOLD))
 				return false;
 
 			return true;

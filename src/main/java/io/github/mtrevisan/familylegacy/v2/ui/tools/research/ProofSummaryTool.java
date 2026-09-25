@@ -34,6 +34,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 
@@ -66,7 +67,7 @@ public final class ProofSummaryTool implements ToolOperation{
 		for(final FLEFRecord conclusion : ResearchHelper.listConclusions(model)){
 			final String status = ResearchHelper.proofStatus(conclusion);
 			final String key = (status != null && !status.isBlank()
-				? status.toLowerCase(java.util.Locale.ROOT): "(not set)");
+				? status.toLowerCase(Locale.ROOT): "(not set)");
 			byStatus.computeIfAbsent(key, k -> new ArrayList<>()).add(conclusion);
 		}
 

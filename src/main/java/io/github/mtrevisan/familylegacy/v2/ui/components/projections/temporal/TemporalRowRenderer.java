@@ -196,7 +196,7 @@ public final class TemporalRowRenderer{
 		final int suffixWidth = fm.stringWidth(TRUNCATION_SUFFIX);
 		int end = text.length();
 		while(end > 0 && fm.stringWidth(text.substring(0, end)) + suffixWidth > maxWidth)
-			end--;
+			end --;
 		return (end > 0? text.substring(0, end) + TRUNCATION_SUFFIX: TRUNCATION_SUFFIX);
 	}
 

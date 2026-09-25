@@ -38,7 +38,8 @@ public final class ResearchLogTool implements ToolOperation{
 
 	@Override
 	public void run(final ToolContext context){
-		new ResearchLogDialog(context).setVisible(true);
+		final ResearchLogDialog dialog = new ResearchLogDialog(context);
+		dialog.setVisible(true);
 	}
 
 	@Override

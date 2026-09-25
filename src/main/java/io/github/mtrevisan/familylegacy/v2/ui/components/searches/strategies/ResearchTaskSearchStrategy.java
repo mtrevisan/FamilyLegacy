@@ -28,8 +28,8 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchCriteria;
+import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchMode;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchStrategy;
-import io.github.mtrevisan.familylegacy.v2.ui.components.searches.TextSearchHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchTaskHandler;
 import org.apache.commons.lang3.StringUtils;
 
@@ -56,8 +56,7 @@ public class ResearchTaskSearchStrategy implements SearchStrategy{
 	private String status;
 	private String priority;
 	private String outcome;
-	private boolean fuzzy;
-	private boolean wholeWord;
+	private SearchMode mode;
 
 
 	@Override
@@ -66,14 +65,13 @@ public class ResearchTaskSearchStrategy implements SearchStrategy{
 		status = criteria.getFilterFor(ResearchTaskFilterPanel.FILTER_KEY_STATUS);
 		priority = criteria.getFilterFor(ResearchTaskFilterPanel.FILTER_KEY_PRIORITY);
 		outcome = criteria.getFilterFor(ResearchTaskFilterPanel.FILTER_KEY_OUTCOME);
-		fuzzy = criteria.isFuzzy();
-		wholeWord = criteria.isWholeWord();
+		mode = criteria.mode();
 
 		return task -> {
 			// Description filter
 			if(StringUtils.isNotEmpty(description)){
-				final String description = FLEFRecordHelper.getChildValue(task, TAG_DESCRIPTION);
-				if(!TextSearchHelper.matchesText(description, this.description, fuzzy, wholeWord, FUZZY_THRESHOLD))
+				final String recordDescription = FLEFRecordHelper.getChildValue(task, TAG_DESCRIPTION);
+				if(!SearchHelper.matches(recordDescription, description, mode))
 					return false;
 			}
 
@@ -93,8 +91,8 @@ public class ResearchTaskSearchStrategy implements SearchStrategy{
 
 			// Outcome filter
 			if(StringUtils.isNotEmpty(outcome)){
-				final String outcome = FLEFRecordHelper.getChildValue(task, TAG_OUTCOME);
-				if(!TextSearchHelper.matchesText(outcome, this.outcome, fuzzy, wholeWord, FUZZY_THRESHOLD))
+				final String recordOutcome = FLEFRecordHelper.getChildValue(task, TAG_OUTCOME);
+				if(!SearchHelper.matches(recordOutcome, outcome, mode))
 					return false;
 			}
 

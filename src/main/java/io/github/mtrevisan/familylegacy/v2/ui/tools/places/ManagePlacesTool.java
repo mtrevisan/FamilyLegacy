@@ -38,7 +38,8 @@ public final class ManagePlacesTool implements ToolOperation{
 
 	@Override
 	public void run(final ToolContext context){
-		new PlaceManagementDialog(context).setVisible(true);
+		final PlaceManagementDialog dialog = new PlaceManagementDialog(context);
+		dialog.setVisible(true);
 	}
 
 	@Override

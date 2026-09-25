@@ -38,7 +38,8 @@ public final class ManageRepositoriesTool implements ToolOperation{
 
 	@Override
 	public void run(final ToolContext context){
-		new RepositoryManagementDialog(context).setVisible(true);
+		final RepositoryManagementDialog dialog = new RepositoryManagementDialog(context);
+		dialog.setVisible(true);
 	}
 
 	@Override

@@ -53,6 +53,7 @@ import javax.swing.event.DocumentListener;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Graphics2D;
@@ -410,20 +411,20 @@ public final class MediaManagerDialog extends JDialog{
 
 		try{
 			final URI parsed = URI.create(uri);
-			if(java.awt.Desktop.isDesktopSupported()
-				&& java.awt.Desktop.getDesktop().isSupported(java.awt.Desktop.Action.OPEN)){
+			final Desktop desktop = Desktop.getDesktop();
+			if(Desktop.isDesktopSupported() && desktop.isSupported(Desktop.Action.OPEN)){
 				final Path path;
 				if("file".equalsIgnoreCase(parsed.getScheme()))
 					path = Path.of(parsed);
 				else if(parsed.getScheme() == null)
 					path = Path.of(uri);
 				else{
-					java.awt.Desktop.getDesktop().browse(parsed);
+					desktop.browse(parsed);
 
 					return;
 				}
 				if(Files.isReadable(path))
-					java.awt.Desktop.getDesktop().open(path.toFile());
+					desktop.open(path.toFile());
 			}
 		}
 		catch(final Exception e){

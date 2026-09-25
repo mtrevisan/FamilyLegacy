@@ -38,7 +38,8 @@ public final class DateCalculatorTool implements ToolOperation{
 
 	@Override
 	public void run(final ToolContext context){
-		new DateCalculatorDialog(context).setVisible(true);
+		final DateCalculatorDialog dialog = new DateCalculatorDialog(context);
+		dialog.setVisible(true);
 	}
 
 }

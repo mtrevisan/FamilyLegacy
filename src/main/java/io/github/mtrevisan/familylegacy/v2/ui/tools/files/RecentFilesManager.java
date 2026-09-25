@@ -137,7 +137,7 @@ public final class RecentFilesManager{
 
 		try{
 			final int count = preferences.getInt(KEY_COUNT, 0);
-			for(int i = 0; i < count; i++){
+			for(int i = 0; i < count; i ++){
 				final String path = preferences.get(KEY_PREFIX + i, null);
 				if(path != null && !path.isBlank())
 					files.add(new File(path));
@@ -155,7 +155,7 @@ public final class RecentFilesManager{
 		try{
 			preferences.clear();
 			preferences.putInt(KEY_COUNT, files.size());
-			for(int i = 0; i < files.size(); i++)
+			for(int i = 0; i < files.size(); i ++)
 				preferences.put(KEY_PREFIX + i, files.get(i).getAbsolutePath());
 			preferences.flush();
 		}

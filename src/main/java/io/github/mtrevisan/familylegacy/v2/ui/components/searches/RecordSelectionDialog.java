@@ -80,8 +80,21 @@ import java.util.function.Consumer;
 
 /**
  * Unified dialog for selecting or creating a record across multiple record types.
- * Supports dynamic filtering strategies, text search modes (fuzzy, whole-word),
- * and optional creation of new records.
+ * Supports dynamic filtering strategies and three text search modes
+ * (whole word, fuzzy).
+ * <p>
+ * The three search modes are mutually exclusive and are selected through
+ * a group of checkboxes. Their semantics are documented on
+ * {@link SearchMode}; in short:
+ * <ul>
+ *   <li><b>Whole word</b>: exact equality between query and target token;</li>
+ *   <li><b>Fuzzy</b> (default): substring or small typographical
+ *       difference.</li>
+ * </ul>
+ * Whichever the mode, the records are ranked by the number of matched
+ * query tokens first, and by the sum of the per-token fuzzy scores
+ * second, so a record matching both words of a two-word query always
+ * ranks above a record matching only one.
  */
 public class RecordSelectionDialog extends JDialog{
 
@@ -108,14 +121,23 @@ public class RecordSelectionDialog extends JDialog{
 
 	private final Map<String, String> initialFilters = new HashMap<>();
 
-	// Cache display text for each record to avoid recomputing on repeated filtering operations
+	// Cache display text for each record to avoid recomputing on repeated
+	// filtering operations. Filled on the background thread during a
+	// search, and reused across searches of the same session.
 	private final Map<FLEFRecord, String> displayTextCache = new ConcurrentHashMap<>();
 
 	// UI Components
 	private final JComboBox<RecordTypeHandler<?>> typeCombo;
 	private final JTextField searchField = new JTextField();
-	private final JCheckBox fuzzyCheckBox = new JCheckBox("Fuzzy", false);
-	private final JCheckBox wholeWordCheckBox = new JCheckBox("Whole word", false);
+
+	// Search mode: three mutually exclusive checkboxes. Fuzzy is the
+	// default because it is the most permissive and it covers the most
+	// common case (the user remembers part of the name and is not sure
+	// of the exact spelling). The mutual exclusion is enforced manually:
+	// selecting one box deselects the others, and deselecting the active
+	// box without selecting another one falls back to Fuzzy.
+	private final JCheckBox fuzzyCheckBox = new JCheckBox(SearchMode.FUZZY.label(), true);
+	private final JCheckBox wholeWordCheckBox = new JCheckBox(SearchMode.WHOLE_WORD.label(), false);
 
 	private final JPanel filterPanelHolder = new JPanel(new BorderLayout());
 
@@ -242,7 +264,7 @@ public class RecordSelectionDialog extends JDialog{
 	private void initComponents(){
 		setLayout(new MigLayout("ins 10, fill", "[grow,fill]", "[][][grow][]"));
 
-		// Top Panel: Type + Text Search + Checkboxes
+		// Top Panel: Type + Text Search + Search-mode checkboxes
 		final JPanel topPanel = new JPanel(new MigLayout("wrap 2", "[][grow,fill]", "[]"));
 		topPanel.setBorder(BorderFactory.createTitledBorder("Search"));
 
@@ -252,19 +274,32 @@ public class RecordSelectionDialog extends JDialog{
 		}
 		topPanel.add(new JLabel("Search text:"));
 		topPanel.add(searchField, "growx");
-		topPanel.add(fuzzyCheckBox, "span 2,left");
-		topPanel.add(wholeWordCheckBox, "span 2,left");
 
-		fuzzyCheckBox.addActionListener(e -> {
-			if(fuzzyCheckBox.isSelected())
-				wholeWordCheckBox.setSelected(false);
-			scheduleSearch();
-		});
-		wholeWordCheckBox.addActionListener(e -> {
-			if(wholeWordCheckBox.isSelected())
-				fuzzyCheckBox.setSelected(false);
-			scheduleSearch();
-		});
+		// Search mode checkboxes, mutually exclusive. The three boxes are
+		// laid out in the second column so they line up with the search
+		// field, and span both columns of the grid.
+		topPanel.add(wholeWordCheckBox, "span 2,left");
+		topPanel.add(fuzzyCheckBox, "span 2,left");
+
+		// Mutual exclusion: selecting one mode deselects the others, and
+		// each change reschedules the search. If the user deselects the
+		// currently selected mode without selecting another one, the
+		// selection falls back to Fuzzy so that exactly one mode is
+		// always active.
+		final List<JCheckBox> modeBoxes = List.of(fuzzyCheckBox, wholeWordCheckBox);
+		for(final JCheckBox box : modeBoxes){
+			box.addActionListener(e -> {
+				if(box.isSelected()){
+					for(final JCheckBox other : modeBoxes)
+						if(other != box)
+							other.setSelected(false);
+				}
+				else
+					ensureOneModeSelected(modeBoxes);
+
+				scheduleSearch();
+			});
+		}
 
 		add(topPanel, "growx,wrap");
 
@@ -354,6 +389,22 @@ public class RecordSelectionDialog extends JDialog{
 		updateWindowTitle();
 	}
 
+	/**
+	 * Ensures that exactly one of the mode checkboxes is selected. Called
+	 * when the user deselects the currently active checkbox: the
+	 * selection falls back to Fuzzy, which is the most permissive mode
+	 * and therefore the safest default.
+	 */
+	private static void ensureOneModeSelected(final List<JCheckBox> modeBoxes){
+		for(final JCheckBox box : modeBoxes)
+			if(box.isSelected())
+				return;
+
+		// Nothing selected: restore the default (Fuzzy).
+		modeBoxes.getFirst()
+			.setSelected(true);
+	}
+
 	private void setupEscapeKey(){
 		getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
 			.put(GUIHelper.ESCAPE_STROKE, ACTION_CANCEL_SEARCH_OR_DIALOG);
@@ -389,6 +440,19 @@ public class RecordSelectionDialog extends JDialog{
 		return (typeCombo != null? (RecordTypeHandler<?>)typeCombo.getSelectedItem(): null);
 	}
 
+	/**
+	 * Returns the currently active search mode. Precedence is
+	 * deterministic and mirrors the checkbox layout: Whole word, then
+	 * Fuzzy. In practice exactly one box is ever selected,
+	 * so the precedence never actually matters.
+	 */
+	private SearchMode currentMode(){
+		if(wholeWordCheckBox.isSelected())
+			return SearchMode.WHOLE_WORD;
+
+		return SearchMode.FUZZY;
+	}
+
 	private void updateFilterPanel(){
 		displayTextCache.clear();
 
@@ -421,13 +485,12 @@ public class RecordSelectionDialog extends JDialog{
 			currentWorker.cancel(true);
 
 		criteria = new SearchCriteria(handler, searchField.getText()
-			.trim(),
-			fuzzyCheckBox.isSelected(), wholeWordCheckBox.isSelected());
+			.trim(), currentMode());
 
 		initialFilters.forEach(criteria::withFilter);
 
 		if(filterPanelHolder.getComponentCount() > 0
-				&& filterPanelHolder.getComponent(0) instanceof RecordFilterPanel filterPanel)
+			&& filterPanelHolder.getComponent(0) instanceof RecordFilterPanel filterPanel)
 			filterPanel.getFilters()
 				.forEach(criteria::withFilter);
 
@@ -440,13 +503,18 @@ public class RecordSelectionDialog extends JDialog{
 		currentWorker = new SwingWorker<>(){
 			@Override
 			protected List<DisplayItem> doInBackground(){
-				// Phase 1: Record filtering (0% - 50% of the progress bar)
+				// Phase 1: Record filtering and ranking (0% - 50% of the
+				// progress bar). The service returns the records already
+				// ordered by match quality: number of matched query tokens
+				// first, sum of per-token fuzzy scores second, display text
+				// third.
 				final List<FLEFRecord> records = searchService.search(criteria,
 					progress -> publish(progress / 2));
 				if(isCancelled())
 					return null;
 
-				// Phase 2: Compute or fetch cached display texts in background (50% - 100% of progress)
+				// Phase 2: Compute or fetch cached display texts in background
+				// (50% - 100% of progress).
 				final List<DisplayItem> items = new ArrayList<>(records.size());
 				final int total = records.size();
 				for(int i = 0; i < total; i ++){

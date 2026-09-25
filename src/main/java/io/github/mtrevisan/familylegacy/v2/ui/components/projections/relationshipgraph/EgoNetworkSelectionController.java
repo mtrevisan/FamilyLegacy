@@ -35,6 +35,7 @@ import javax.swing.JPanel;
 import java.awt.Component;
 import java.awt.Container;
 
+import java.awt.IllegalComponentStateException;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.util.LinkedHashMap;
@@ -178,7 +179,7 @@ class EgoNetworkSelectionController{
 			final Point p = component.getLocationOnScreen();
 			out.putIfAbsent(id, new Rectangle(p.x, p.y, component.getWidth(), component.getHeight()));
 		}
-		catch(final java.awt.IllegalComponentStateException ignored){
+		catch(final IllegalComponentStateException ignored){
 			// Panel not showing
 		}
 	}

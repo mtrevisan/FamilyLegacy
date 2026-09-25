@@ -40,7 +40,7 @@ public final class ToolBarBuilder{
 		btnJump.addActionListener(e -> onJump.run());
 
 		final JButton btnEdit = new JButton("Edit");
-		btnEdit.setToolTipText("Edit Current Selection (" + ShortcutRegistry.EDIT_SELECTION.displayKeys() + ")");
+		btnEdit.setToolTipText("Edit Current Selection (" + ShortcutRegistry.EDIT_SELECTION_INDIVIDUAL.displayKeys() + ")");
 		btnEdit.addActionListener(e -> onEdit.run());
 
 		toolBar.add(btnBack);

@@ -93,24 +93,22 @@ public final class TextSearchHelper{
 	 *
 	 * @param displayText the text to search in (e.g., record display text)
 	 * @param searchText  the search query
-	 * @param fuzzy       if true, uses trigram similarity (Jaccard)
-	 * @param wholeWord   if true, uses whole‑word regex match
 	 * @param threshold   the similarity threshold for fuzzy matching (ignored if fuzzy is false)
 	 * @return true if the text matches
 	 */
-	public static boolean matchesText(final String displayText, final String searchText, final boolean fuzzy,
-			final boolean wholeWord, final double threshold){
+	public static boolean matchesText(final String displayText, final String searchText, final SearchMode mode,
+			final double threshold){
 		if(StringUtils.isEmpty(searchText))
 			return true;
 
 		final String normalizedSearch = normalize(searchText);
 		final String normalizedDisplay = normalize(displayText);
 
-		if(wholeWord){
+		if(mode == SearchMode.WHOLE_WORD){
 			final Pattern pattern = Pattern.compile("\\b" + Pattern.quote(normalizedSearch) + "\\b");
 			return pattern.matcher(normalizedDisplay).find();
 		}
-		else if(fuzzy){
+		else if(mode == SearchMode.FUZZY){
 			final Set<String> searchTrigrams = getTrigrams(normalizedSearch);
 			final Set<String> displayTrigrams = getTrigrams(normalizedDisplay);
 			final double similarity = jaccardSimilarity(searchTrigrams, displayTrigrams);

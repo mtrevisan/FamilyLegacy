@@ -38,7 +38,8 @@ public final class ManageIdentityHypothesesTool implements ToolOperation{
 
 	@Override
 	public void run(final ToolContext context){
-		new IdentityHypothesesDialog(context).setVisible(true);
+		final IdentityHypothesesDialog dialog = new IdentityHypothesesDialog(context);
+		dialog.setVisible(true);
 	}
 
 	@Override

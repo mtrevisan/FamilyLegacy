@@ -38,7 +38,8 @@ public final class AddCitationTool implements ToolOperation{
 
 	@Override
 	public void run(final ToolContext context){
-		new AddCitationDialog(context).setVisible(true);
+		final AddCitationDialog dialog = new AddCitationDialog(context);
+		dialog.setVisible(true);
 	}
 
 }

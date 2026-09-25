@@ -28,8 +28,9 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchCriteria;
+import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchMatcher;
+import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchMode;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchStrategy;
-import io.github.mtrevisan.familylegacy.v2.ui.components.searches.TextSearchHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
 import org.apache.commons.lang3.StringUtils;
@@ -42,6 +43,13 @@ import java.util.function.Predicate;
 /**
  * Search strategy for Conclusion records.
  * Supports filtering by issue, proof status, narrative text, and linked research questions.
+ * <p>
+ * The text filters (issue, narrative, and the linked research question's
+ * display text) use the same admission mode as the main query, exposed by
+ * {@link SearchCriteria#mode()}: {@link SearchMode#WHOLE_WORD},
+ * or {@link SearchMode#FUZZY}. The scoring
+ * is delegated to {@link SearchMatcher}, so the behaviour is consistent
+ * with the main search field of the dialog.
  */
 public class ConclusionSearchStrategy implements SearchStrategy{
 
@@ -50,16 +58,13 @@ public class ConclusionSearchStrategy implements SearchStrategy{
 	private static final String TAG_NARRATIVE = "narrative";
 	private static final String TAG_RESEARCH = "research";
 
-	private static final double FUZZY_THRESHOLD = 0.05;
-
 	private static final ConclusionHandler HANDLER = ConclusionHandler.getInstance();
 
 	private String issue;
 	private String proofStatus;
 	private String narrative;
 	private String researchQuestion;
-	private boolean fuzzy;
-	private boolean wholeWord;
+	private SearchMode mode;
 
 
 	@Override
@@ -68,18 +73,17 @@ public class ConclusionSearchStrategy implements SearchStrategy{
 		proofStatus = criteria.getFilterFor(ConclusionFilterPanel.FILTER_KEY_PROOF_STATUS);
 		narrative = criteria.getFilterFor(ConclusionFilterPanel.FILTER_KEY_NARRATIVE);
 		researchQuestion = criteria.getFilterFor(ConclusionFilterPanel.FILTER_KEY_RESEARCH_QUESTION);
-		fuzzy = criteria.isFuzzy();
-		wholeWord = criteria.isWholeWord();
+		mode = criteria.mode();
 
 		return conclusion -> {
 			// Issue filter
 			if(StringUtils.isNotEmpty(issue)){
 				final String recordIssue = FLEFRecordHelper.getChildValue(conclusion, TAG_ISSUE);
-				if(!TextSearchHelper.matchesText(recordIssue, issue, fuzzy, wholeWord, FUZZY_THRESHOLD))
+				if(!SearchHelper.matches(recordIssue, issue, mode))
 					return false;
 			}
 
-			// Proof Status filter
+			// Proof Status filter (exact match, no text search)
 			if(StringUtils.isNotEmpty(proofStatus)){
 				final String recordStatus = FLEFRecordHelper.getChildValue(conclusion, TAG_PROOF_STATUS);
 				if(!proofStatus.equalsIgnoreCase(recordStatus))
@@ -89,11 +93,13 @@ public class ConclusionSearchStrategy implements SearchStrategy{
 			// Narrative filter
 			if(StringUtils.isNotEmpty(narrative)){
 				final String recordNarrative = FLEFRecordHelper.getChildValue(conclusion, TAG_NARRATIVE);
-				if(!TextSearchHelper.matchesText(recordNarrative, narrative, fuzzy, wholeWord, FUZZY_THRESHOLD))
+				if(!SearchHelper.matches(recordNarrative, narrative, mode))
 					return false;
 			}
 
-			// Linked Research Questions filter
+			// Linked Research Questions filter: the query is matched against
+			// the display text of the linked research question, not against
+			// the raw id.
 			if(StringUtils.isNotEmpty(researchQuestion)){
 				final List<FLEFRecord> researchRefs = FLEFRecordHelper.findChildren(conclusion, TAG_RESEARCH);
 				boolean matched = false;
@@ -108,8 +114,7 @@ public class ConclusionSearchStrategy implements SearchStrategy{
 
 					final String questionDisplayText = ResearchQuestionHandler.getInstance()
 						.getDisplayText(questionRecord, model);
-					if(TextSearchHelper.matchesText(questionDisplayText, researchQuestion, fuzzy, wholeWord,
-							FUZZY_THRESHOLD)){
+					if(SearchHelper.matches(questionDisplayText, researchQuestion, mode)){
 						matched = true;
 
 						break;

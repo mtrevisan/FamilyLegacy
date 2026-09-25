@@ -38,7 +38,8 @@ public final class ManageDocumentsTool implements ToolOperation{
 
 	@Override
 	public void run(final ToolContext context){
-		new DocumentManagementDialog(context).setVisible(true);
+		final DocumentManagementDialog dialog = new DocumentManagementDialog(context);
+		dialog.setVisible(true);
 	}
 
 	@Override

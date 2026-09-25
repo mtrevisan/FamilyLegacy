@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.tools.places;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolDialogs;
 import org.apache.commons.lang3.StringUtils;
@@ -43,6 +44,7 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.RowFilter;
+import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.table.AbstractTableModel;
@@ -50,9 +52,13 @@ import javax.swing.table.TableRowSorter;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeSet;
 
 
@@ -138,10 +144,10 @@ public final class PlaceRelationshipsDialog extends JDialog{
 		table.getColumnModel().getColumn(2).setPreferredWidth(180);
 		table.getColumnModel().getColumn(3).setPreferredWidth(200);
 
-		table.addMouseListener(new java.awt.event.MouseAdapter(){
+		table.addMouseListener(new MouseAdapter(){
 			@Override
-			public void mouseClicked(final java.awt.event.MouseEvent e){
-				if(e.getClickCount() == 2 && javax.swing.SwingUtilities.isLeftMouseButton(e))
+			public void mouseClicked(final MouseEvent e){
+				if(e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e))
 					openEditor(selectedRelationshipId());
 			}
 		});
@@ -170,13 +176,12 @@ public final class PlaceRelationshipsDialog extends JDialog{
 		final FLEFModel model = context.model();
 		final Map<String, FLEFRecord> placesById = model.getPlacesById();
 		final List<RelationshipRow> rows = new ArrayList<>();
-		final java.util.Set<String> types = new TreeSet<>();
+		final Set<String> types = new TreeSet<>();
 
 		for(final FLEFRecord rel : PlaceHelper.listAllRelationships(model)){
 			final String parentId = PlaceHelper.endpointPlaceId(rel, PlaceHelper.TAG_SUBJECT);
 			final String childId = PlaceHelper.endpointPlaceId(rel, PlaceHelper.TAG_TARGET);
-			final String type = io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper
-				.getChildValue(rel, PlaceHelper.TAG_TYPE);
+			final String type = FLEFRecordHelper.getChildValue(rel, PlaceHelper.TAG_TYPE);
 			final String from = PlaceHelper.dateValue(rel, PlaceHelper.TAG_VALID_FROM);
 			final String to = PlaceHelper.dateValue(rel, PlaceHelper.TAG_VALID_TO);
 
@@ -217,7 +222,7 @@ public final class PlaceRelationshipsDialog extends JDialog{
 		if((text == null || text.isBlank()) && !hasTypeFilter)
 			sorter.setRowFilter(null);
 		else{
-			final String needle = (text == null? StringUtils.EMPTY: text.trim().toLowerCase(java.util.Locale.ROOT));
+			final String needle = (text == null? StringUtils.EMPTY: text.trim().toLowerCase(Locale.ROOT));
 			sorter.setRowFilter(new RowFilter<>(){
 				@Override
 				public boolean include(final Entry<? extends RelationshipsTableModel, ? extends Integer> entry){
@@ -236,7 +241,7 @@ public final class PlaceRelationshipsDialog extends JDialog{
 	}
 
 	private static boolean contains(final String haystack, final String needle){
-		return haystack != null && haystack.toLowerCase(java.util.Locale.ROOT).contains(needle);
+		return haystack != null && haystack.toLowerCase(Locale.ROOT).contains(needle);
 	}
 
 	private String selectedRelationshipId(){

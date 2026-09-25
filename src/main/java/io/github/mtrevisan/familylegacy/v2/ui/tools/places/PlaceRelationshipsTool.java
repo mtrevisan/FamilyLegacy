@@ -38,7 +38,8 @@ public final class PlaceRelationshipsTool implements ToolOperation{
 
 	@Override
 	public void run(final ToolContext context){
-		new PlaceRelationshipsDialog(context).setVisible(true);
+		final PlaceRelationshipsDialog dialog = new PlaceRelationshipsDialog(context);
+		dialog.setVisible(true);
 	}
 
 	@Override

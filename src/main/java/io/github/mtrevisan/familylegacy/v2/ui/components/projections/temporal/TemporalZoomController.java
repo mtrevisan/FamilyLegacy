@@ -134,9 +134,11 @@ public final class TemporalZoomController{
 		// Ctrl/Cmd + wheel → zoom anchored at the cursor.
 		if(e.isControlDown() || e.isMetaDown()){
 			e.consume();
+
 			final int rotations = e.getWheelRotation();
 			if(rotations != 0)
 				zoomAtCursor(rotations < 0, e.getX());
+
 			return;
 		}
 
@@ -160,6 +162,7 @@ public final class TemporalZoomController{
 			increment = bar.getBlockIncrement(direction) * e.getWheelRotation();
 
 		bar.setValue(bar.getValue() + increment);
+
 		e.consume();
 	}
 

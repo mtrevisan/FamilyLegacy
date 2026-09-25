@@ -31,7 +31,9 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ReportDialog;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -174,7 +176,7 @@ public final class ConsistencyService{
 
 	private static boolean hasCycle(final String start, final Map<String, List<String>> parentsOf){
 		final Set<String> visited = new HashSet<>();
-		final java.util.Deque<String> stack = new java.util.ArrayDeque<>();
+		final Deque<String> stack = new ArrayDeque<>();
 		stack.push(start);
 		while(!stack.isEmpty()){
 			final String current = stack.pop();

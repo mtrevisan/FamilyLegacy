@@ -43,6 +43,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -111,8 +112,8 @@ public final class ChronomapIndex{
 	 *
 	 * @return the distinct event types; never {@code null}
 	 */
-	public java.util.Set<String> eventTypes(){
-		final java.util.Set<String> types = new java.util.TreeSet<>();
+	public Set<String> eventTypes(){
+		final Set<String> types = new TreeSet<>();
 		for(final List<GeoAnchor> list : anchorsByOwner.values())
 			for(final GeoAnchor a : list)
 				if(a.kind().startsWith("event:"))

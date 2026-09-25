@@ -53,6 +53,7 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.FlowLayout;
@@ -65,6 +66,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
@@ -317,12 +319,12 @@ public final class PlaceHierarchyPanel extends JPanel{
 	}
 
 	private static boolean matches(final PlaceHierarchyService.PlaceReference place, final String search){
-		final String needle = search.trim().toLowerCase(java.util.Locale.ROOT);
+		final String needle = search.trim().toLowerCase(Locale.ROOT);
 		if(needle.isEmpty())
 			return true;
-		if(place.name() != null && place.name().toLowerCase(java.util.Locale.ROOT).contains(needle))
+		if(place.name() != null && place.name().toLowerCase(Locale.ROOT).contains(needle))
 			return true;
-		if(place.type() != null && place.type().toLowerCase(java.util.Locale.ROOT).contains(needle))
+		if(place.type() != null && place.type().toLowerCase(Locale.ROOT).contains(needle))
 			return true;
 		return false;
 	}
@@ -331,7 +333,7 @@ public final class PlaceHierarchyPanel extends JPanel{
 		int row = 0;
 		while(row < tree.getRowCount() && tree.getPathForRow(row).getPathCount() <= levels){
 			tree.expandRow(row);
-			row++;
+			row ++;
 		}
 	}
 
@@ -339,7 +341,7 @@ public final class PlaceHierarchyPanel extends JPanel{
 		int row = 0;
 		while(row < tree.getRowCount()){
 			tree.expandRow(row);
-			row++;
+			row ++;
 		}
 	}
 
@@ -347,7 +349,7 @@ public final class PlaceHierarchyPanel extends JPanel{
 		int row = tree.getRowCount() - 1;
 		while(row >= 0){
 			tree.collapseRow(row);
-			row--;
+			row --;
 		}
 	}
 
@@ -372,6 +374,7 @@ public final class PlaceHierarchyPanel extends JPanel{
 		final BaseRecordDialog dialog = PlaceHandler.getInstance()
 			.createEditDialog(owner, model, record);
 		dialog.setVisible(true);
+
 		if(dialog.isSaved())
 			reload();
 	}
@@ -399,7 +402,7 @@ public final class PlaceHierarchyPanel extends JPanel{
 		// Walk the tree and select the first node that carries the given
 		// place id. The tree may contain the same place under several
 		// parents; the first match is enough for the user's purpose.
-		for(int row = 0; row < tree.getRowCount(); row++){
+		for(int row = 0; row < tree.getRowCount(); row ++){
 			final TreePath path = tree.getPathForRow(row);
 			if(path == null)
 				continue;
@@ -548,9 +551,9 @@ public final class PlaceHierarchyPanel extends JPanel{
 	private static final class PlaceTreeCellRenderer extends javax.swing.tree.DefaultTreeCellRenderer{
 
 		@Override
-		public java.awt.Component getTreeCellRendererComponent(final JTree tree,
-			final Object value, final boolean selected, final boolean expanded,
-			final boolean leaf, final int row, final boolean hasFocus){
+		public Component getTreeCellRendererComponent(final JTree tree,
+				final Object value, final boolean selected, final boolean expanded,
+				final boolean leaf, final int row, final boolean hasFocus){
 			super.getTreeCellRendererComponent(tree, value, selected, expanded, leaf, row, hasFocus);
 
 			if(value instanceof DefaultMutableTreeNode node

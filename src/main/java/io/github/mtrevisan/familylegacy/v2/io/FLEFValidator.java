@@ -47,15 +47,50 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Consumer;
 
 
 /**
  * Validates a {@link FLEFModel} structure and data against a {@link FLEFGrammar}.
+ * <p>
+ * Each validation issue is returned as a {@link ValidationError}, which
+ * carries both the human-readable message and, when the issue is about
+ * a specific record, the id of that record. The record id is populated
+ * at the source, at the point where the record is known, so consumers
+ * (report dialogs, editors) do not have to parse it back out of the
+ * message with a regex.
+ * <p>
+ * The older {@code List<String>} overloads are kept for compatibility
+ * with the callers that only need the message text; they simply
+ * delegate to the structured versions and discard the id.
  */
 public class FLEFValidator{
 
 	private static final String DOT = ".";
 	private static final String FIELD_HEADER = "header";
+
+
+	/**
+	 * A single validation issue.
+	 *
+	 * @param message  the human-readable description of the problem
+	 * @param recordId the id of the record the issue is about, or
+	 *                 {@code null} when the issue is not tied to a
+	 *                 specific record (e.g. a header-level error, or an
+	 *                 unresolved cross-reference whose target does not
+	 *                 exist)
+	 */
+	public record ValidationError(String message, String recordId){
+
+		public ValidationError{
+			Objects.requireNonNull(message, "message must not be null");
+		}
+
+		/** {@code true} when the error can be opened in the editor. */
+		public boolean hasRecord(){
+			return (recordId != null);
+		}
+	}
 
 
 	private final FLEFGrammar grammar;
@@ -66,84 +101,212 @@ public class FLEFValidator{
 	}
 
 
+	/* ======================================================================
+	 *                          Public API — structured
+	 * ====================================================================== */
+
 	/**
-	 * Performs complete validation (both syntactic and semantic).
+	 * Performs complete validation (both syntactic and semantic) and
+	 * returns the issues as structured errors. Validation short-circuits:
+	 * when the schema validation fails, integrity and business rules are
+	 * not run, because the model is structurally broken and the higher
+	 * checks would produce cascading noise.
+	 *
+	 * @param model the model to validate; may be {@code null}
+	 * @return the issues, never {@code null}
 	 */
-	public List<String> validateAll(final FLEFModel model){
-		final List<String> errors = new ArrayList<>();
+	public List<ValidationError> validateAllStructured(final FLEFModel model){
+		final List<ValidationError> errors = new ArrayList<>();
 
-		errors.addAll(validateSchema(model));
-
-		if(errors.isEmpty())
-			errors.addAll(validateIntegrity(model));
+		errors.addAll(validateSchemaStructured(model));
 
 		if(errors.isEmpty())
-			errors.addAll(validateBusinessRules(model));
+			errors.addAll(validateIntegrityStructured(model));
+
+		if(errors.isEmpty())
+			errors.addAll(validateBusinessRulesStructured(model));
 
 		return errors;
 	}
 
-
-	// ------------------------------------------------------------------------
-	// Syntactic Validation (Schema)
-	// ------------------------------------------------------------------------
-
 	/**
-	 * Syntactically validates the given {@link FLEFModel}.
-	 * Validates schema structure, types, cardinalities, enum constraints, and {@code require} constraints.
+	 * Syntactically validates the given {@link FLEFModel}. Validates
+	 * schema structure, types, cardinalities, enum constraints, and
+	 * {@code require} constraints.
 	 *
-	 * @param model	The model to validate.
-	 * @return	A list of validation error messages (empty if valid).
+	 * @param model the model to validate; may be {@code null}
+	 * @return the issues, never {@code null}
 	 */
-	public List<String> validateSchema(final FLEFModel model){
+	public List<ValidationError> validateSchemaStructured(final FLEFModel model){
 		if(model == null)
-			return List.of("Model is null");
+			return List.of(new ValidationError("Model is null", null));
 
 		final FileDefinition fileDef = grammar.getFileDefinition();
+		final List<ValidationError> errors = new ArrayList<>();
 
-		final List<String> errors = new ArrayList<>();
-
-		// Validate Header
+		// Header: no record id to attach, the header is not a record.
 		if(fileDef.headerField() != null && model.getHeader() != null){
 			final TypeDefinition headerType = grammar.getType(fileDef.headerField().type().getName());
 			if(headerType != null){
-				headerType.validate(FIELD_HEADER, model.getHeader(), model, grammar, errors);
+				for(final String msg : collect(em -> headerType.validate(FIELD_HEADER,
+					model.getHeader(), model, grammar, em)))
+					errors.add(new ValidationError(msg, null));
 
-				// Validate constraints on the header
-				validateConstraints(FIELD_HEADER, model.getHeader(), model, grammar, errors);
+				for(final String msg : collect(em -> validateConstraints(FIELD_HEADER,
+					model.getHeader(), model, grammar, em)))
+					errors.add(new ValidationError(msg, null));
 			}
 		}
 
-		// Validate Records
+		// Records: the top-level record's id is attached to every issue
+		// produced while validating that record and its descendants.
 		if(fileDef.recordsField() != null){
 			final TypeDefinition recordsType = grammar.getType(fileDef.recordsField().type().getName());
 			if(recordsType != null)
 				for(final FLEFRecord record : model.getRecords()){
 					final String contextPath = "records." + record.getTag();
-					recordsType.validate(contextPath, record, model, grammar, errors);
+					final String recordId = record.getId();
 
-					// Validate constraints on each record
-					validateConstraints(contextPath, record, model, grammar, errors);
+					for(final String msg : collect(em -> recordsType.validate(contextPath,
+						record, model, grammar, em)))
+						errors.add(new ValidationError(msg, recordId));
+
+					for(final String msg : collect(em -> validateConstraints(contextPath,
+						record, model, grammar, em)))
+						errors.add(new ValidationError(msg, recordId));
 				}
 		}
 
 		return errors;
 	}
 
-	private record RecordContext(FLEFRecord record, String path){}
+	/**
+	 * Semantically validates the given {@link FLEFModel}. Validates
+	 * referential integrity, symbol resolution, and ID uniqueness.
+	 *
+	 * @param model the model to validate
+	 * @return the issues, never {@code null}
+	 */
+	public List<ValidationError> validateIntegrityStructured(final FLEFModel model){
+		final List<ValidationError> errors = new ArrayList<>();
+
+		final Set<String> declaredIds = new HashSet<>();
+		collectDeclaredIdsStructured(model, declaredIds, errors);
+		verifyReferencesStructured(declaredIds, model, errors);
+
+		return errors;
+	}
 
 	/**
-	 * Validates all {@code require} constraints on a record and its descendants.
+	 * Validates business/logical rules that are not captured by the
+	 * grammar constraints.
+	 *
+	 * @param model the model to validate
+	 * @return the issues, never {@code null}
 	 */
+	public List<ValidationError> validateBusinessRulesStructured(final FLEFModel model){
+		final List<ValidationError> errors = new ArrayList<>();
+
+		for(final FLEFRecord record : model.getRecords()){
+			final String tag = record.getTag();
+			final String contextPath = "records." + tag;
+			final String recordId = record.getId();
+
+			if(Strings.CI.equals("individual", tag))
+				for(final String msg : collect(em -> validateIndividualDates(record, contextPath, em)))
+					errors.add(new ValidationError(msg, recordId));
+
+			if(Strings.CI.equals(RelationshipHandler.TYPE, tag))
+				for(final String msg : collect(em -> validateRelationshipDates(record, contextPath, em)))
+					errors.add(new ValidationError(msg, recordId));
+
+			if(Strings.CI.equals(IdentityHypothesisHandler.TYPE, tag))
+				for(final String msg : collect(em -> validateIdentityHypothesis(record, contextPath, model, em)))
+					errors.add(new ValidationError(msg, recordId));
+
+			if(Strings.CI.equals(EventParticipationHandler.TYPE, tag))
+				for(final String msg : collect(em -> validateEventParticipation(record, contextPath, model, em)))
+					errors.add(new ValidationError(msg, recordId));
+		}
+
+		return errors;
+	}
+
+
+	/* ======================================================================
+	 *                          Public API — legacy (List<String>)
+	 * ====================================================================== */
+
+	/**
+	 * Legacy overload: performs complete validation and returns only the
+	 * messages. Prefer {@link #validateAllStructured(FLEFModel)} when the
+	 * record id is needed.
+	 */
+	public List<String> validateAll(final FLEFModel model){
+		return toMessages(validateAllStructured(model));
+	}
+
+	/**
+	 * Legacy overload: see {@link #validateSchemaStructured(FLEFModel)}.
+	 */
+	public List<String> validateSchema(final FLEFModel model){
+		return toMessages(validateSchemaStructured(model));
+	}
+
+	/**
+	 * Legacy overload: see {@link #validateIntegrityStructured(FLEFModel)}.
+	 */
+	public List<String> validateIntegrity(final FLEFModel model){
+		return toMessages(validateIntegrityStructured(model));
+	}
+
+	/**
+	 * Legacy overload: see {@link #validateBusinessRulesStructured(FLEFModel)}.
+	 */
+	public List<String> validateBusinessRules(final FLEFModel model){
+		return toMessages(validateBusinessRulesStructured(model));
+	}
+
+	private static List<String> toMessages(final List<ValidationError> errors){
+		final List<String> out = new ArrayList<>(errors.size());
+		for(final ValidationError e : errors)
+			out.add(e.message());
+		return out;
+	}
+
+
+	/* ======================================================================
+	 *                          Internal — schema
+	 * ====================================================================== */
+
+	private record RecordContext(FLEFRecord record, String path){
+	}
+
+	/**
+	 * Runs the given operation against a fresh error list and returns
+	 * the collected messages. The operation is a lambda that appends to
+	 * the list passed to it, matching the contract of
+	 * {@code TypeDefinition.validate} and {@code Constraint.validate}.
+	 * <p>
+	 * This indirection is what allows the structured methods to attach
+	 * a record id to each message: the operation runs on a fresh list,
+	 * and the caller wraps each message with the id it knows about.
+	 */
+	private static List<String> collect(final Consumer<List<String>> operation){
+		final List<String> out = new ArrayList<>();
+		operation.accept(out);
+		return out;
+	}
+
 	private void validateConstraints(final String contextPath, final FLEFRecord root, final FLEFModel model,
-			final FLEFGrammar grammar, final List<String> errors){
+		final FLEFGrammar grammar, final List<String> errors){
 		final Deque<RecordContext> stack = new ArrayDeque<>();
 		stack.push(new RecordContext(root, contextPath));
 
 		while(!stack.isEmpty()){
 			final RecordContext current = stack.pop();
-			final FLEFRecord record = current.record;
-			final String path = current.path;
+			final FLEFRecord record = current.record();
+			final String path = current.path();
 
 			final TypeDefinition typeDef = grammar.getType(record.getTag());
 			if(typeDef instanceof StructType structType)
@@ -151,7 +314,7 @@ public class FLEFValidator{
 					constraint.validate(path, record, model, errors);
 
 			final List<FLEFRecord> children = record.getChildren();
-			for(int i = children.size() - 1; i >= 0; i --){
+			for(int i = children.size() - 1; i >= 0; i--){
 				final FLEFRecord child = children.get(i);
 				final String childPath = path + DOT + child.getTag();
 				stack.push(new RecordContext(child, childPath));
@@ -160,44 +323,21 @@ public class FLEFValidator{
 	}
 
 
-	// ------------------------------------------------------------------------
-	// Semantic Validation (Integrity)
-	// ------------------------------------------------------------------------
+	/* ======================================================================
+	 *                          Internal — integrity
+	 * ====================================================================== */
 
-	/**
-	 * Semantically validates the given {@link FLEFModel}.
-	 * Validates referential integrity, symbol resolution, and ID uniqueness.
-	 *
-	 * @param model	the model to validate
-	 * @return a list of validation error messages (empty if valid)
-	 */
-	public List<String> validateIntegrity(final FLEFModel model){
-		final List<String> errors = new ArrayList<>();
-
-		// First Pass: Collect all declared record IDs and verify uniqueness
-		final Set<String> declaredIds = new HashSet<>();
-		collectDeclaredIds(model, declaredIds, errors);
-
-		// Second Pass: Verify cross-reference resolution against declared IDs
-		verifyReferences(declaredIds, model, errors);
-
-		return errors;
-	}
-
-	/**
-	 * Iteratively traverses all records in the FLEFModel to collect declared IDs and detect duplicates.
-	 */
-	private void collectDeclaredIds(final FLEFModel model, final Set<String> declaredIds, final List<String> errors){
-		record TraversalNode(FLEFRecord record, String path){}
+	private void collectDeclaredIdsStructured(final FLEFModel model, final Set<String> declaredIds,
+		final List<ValidationError> errors){
+		record TraversalNode(FLEFRecord record, String path){
+		}
 
 		final Deque<TraversalNode> stack = new ArrayDeque<>();
 
-		// Push all top-level records from the model onto the stack
 		final List<FLEFRecord> topLevelRecords = model.getRecords();
-		for(int i = topLevelRecords.size() - 1; i >= 0; i --){
+		for(int i = topLevelRecords.size() - 1; i >= 0; i--){
 			final FLEFRecord topRecord = topLevelRecords.get(i);
-			final String path = topRecord.getTag();
-			stack.push(new TraversalNode(topRecord, path));
+			stack.push(new TraversalNode(topRecord, topRecord.getTag()));
 		}
 
 		while(!stack.isEmpty()){
@@ -205,14 +345,14 @@ public class FLEFValidator{
 			final FLEFRecord record = current.record();
 			final String path = current.path();
 
-			// Check if this record defines an ID
 			final String id = record.getId();
 			if(id != null && !declaredIds.add(id))
-				errors.add(String.format("Duplicate record ID '%s' found at '%s'", id, path));
+				errors.add(new ValidationError(
+					String.format("Duplicate record ID '%s' found at '%s'", id, path),
+					id));
 
-			// Push children onto the stack in reverse order to preserve original sequence
 			final List<FLEFRecord> children = record.getChildren();
-			for(int i = children.size() - 1; i >= 0; i --){
+			for(int i = children.size() - 1; i >= 0; i--){
 				final FLEFRecord child = children.get(i);
 				final String childPath = path + DOT + child.getTag();
 				stack.push(new TraversalNode(child, childPath));
@@ -220,81 +360,31 @@ public class FLEFValidator{
 		}
 	}
 
-	/**
-	 * Iteratively traverses all records in the FLEFModel to verify cross-reference resolution.
-	 */
-	private void verifyReferences(final Set<String> declaredIds, final FLEFModel model, final List<String> errors){
+	private void verifyReferencesStructured(final Set<String> declaredIds, final FLEFModel model,
+		final List<ValidationError> errors){
 		for(final String declaredId : declaredIds)
 			if(!model.hasRecord(declaredId))
-				errors.add(String.format("Unresolved cross-reference '%s': target record does not exist",
-					declaredId));
+				// No record to attach: the target does not exist, so the
+				// dialog has nothing to open.
+				errors.add(new ValidationError(
+					String.format("Unresolved cross-reference '%s': target record does not exist",
+						declaredId),
+					null));
 	}
 
 
-	// ------------------------------------------------------------------------
-	// Business Rule Validation
-	// ------------------------------------------------------------------------
-
-	/**
-	 * Validates business/logical rules that are not captured by the grammar constraints.
-	 * <p>
-	 * Examples:
-	 * - Death date must not precede birthdate.
-	 * - A relationship's {@code valid_from} must be before {@code valid_to} (if both present).
-	 * - Identity hypotheses must refer to distinct records.
-	 */
-	public List<String> validateBusinessRules(final FLEFModel model){
-		final List<String> errors = new ArrayList<>();
-
-		// Validate all records
-		for(final FLEFRecord record : model.getRecords()){
-			final String tag = record.getTag();
-			final String contextPath = "records." + tag;
-
-			// IndividualRecord: birthdate must be before death date
-			if(Strings.CI.equals("individual", tag))
-				validateIndividualDates(record, contextPath, errors);
-
-			// RelationshipRecord: valid_from must be before valid_to
-			if(Strings.CI.equals(RelationshipHandler.TYPE, tag))
-				validateRelationshipDates(record, contextPath, errors);
-
-			// IdentityHypothesisRecord: identity[0] != identity[1]
-			if(Strings.CI.equals(IdentityHypothesisHandler.TYPE, tag))
-				validateIdentityHypothesis(record, contextPath, model, errors);
-
-			// EventParticipationRecord: event and participant must be valid
-			if(Strings.CI.equals(EventParticipationHandler.TYPE, tag))
-				validateEventParticipation(record, contextPath, model, errors);
-		}
-
-		return errors;
-	}
-
-	// ------------------------------------------------------------------------
-	// Individual Business Rules
-	// ------------------------------------------------------------------------
+	/* ======================================================================
+	 *                          Internal — business rules
+	 * ====================================================================== */
 
 	private void validateIndividualDates(final FLEFRecord individual, final String contextPath,
-			final List<String> errors){
-		// Find birth and death events via EventParticipation records
-		// For simplicity, check if there's a birth event referenced and a death event
-		// referenced, and that the birth date is before the death date.
-
-		// This is a complex check that requires traversing the model to find
-		// events referenced by EventParticipation records. We'll implement a basic
-		// version that checks direct children for date fields.
-
-		// For now, we'll skip this complex check and rely on the grammar constraints
-		// The grammar may have constraints like `valid_from <= valid_to` etc.
+		final List<String> errors){
+		// Placeholder: the complex check requires traversing the model
+		// through event participations. Left empty for now.
 	}
 
-	// ------------------------------------------------------------------------
-	// Relationship Business Rules
-	// ------------------------------------------------------------------------
-
 	private void validateRelationshipDates(final FLEFRecord relationship, final String contextPath,
-			final List<String> errors){
+		final List<String> errors){
 		final String validFrom = FLEFRecordHelper.getChildValue(relationship, "VALID_FROM");
 		final String validTo = FLEFRecordHelper.getChildValue(relationship, "VALID_TO");
 
@@ -306,26 +396,21 @@ public class FLEFValidator{
 		}
 	}
 
-	// ------------------------------------------------------------------------
-	// Identity Hypothesis Business Rules
-	// ------------------------------------------------------------------------
-
-	private void validateIdentityHypothesis(final FLEFRecord hypothesis, final String contextPath, final FLEFModel model,
-			final List<String> errors){
-		// Grammar constraint should handle: `require identity[0] != identity[1]`
-		// We just add additional semantic checks
-
+	private void validateIdentityHypothesis(final FLEFRecord hypothesis, final String contextPath,
+		final FLEFModel model, final List<String> errors){
 		final List<FLEFRecord> identities = FLEFRecordHelper.findChildren(hypothesis, "IDENTITY");
-		if(identities == null || identities.size() != 2)
+		if(identities == null || identities.size() != 2){
 			errors.add(String.format(
 				"Constraint violation at '%s': IDENTITY must be present twice",
 				contextPath));
+			return;
+		}
 
 		final FLEFRecord identity1 = identities.get(0);
 		final FLEFRecord identity2 = identities.get(1);
 
 		if(identity1 == null || identity2 == null)
-			return; // Will be caught by grammar validation
+			return;
 
 		final String identity1Id = identity1.getValue();
 		final String identity2Id = identity2.getValue();
@@ -333,41 +418,17 @@ public class FLEFValidator{
 			errors.add(String.format(
 				"Constraint violation at '%s': IDENTITIES must be different records (both reference '%s')",
 				contextPath, identity1Id));
-
-		// Additional check: both references should exist (grammar validation already does this)
-		// Check that the referenced records are of compatible types (Individual, Group, Place)
 	}
-
-	// ------------------------------------------------------------------------
-	// Event Participation Business Rules
-	// ------------------------------------------------------------------------
 
 	private void validateEventParticipation(final FLEFRecord participation, final String contextPath,
-			final FLEFModel model, final List<String> errors){
-		// Check that the event reference exists (grammar validation already does this)
-		// Check that the participant reference exists (grammar validation already does this)
-
-		// Additional semantic checks could be added here:
-		// - The participant type must be compatible with the event type
-		// - The role must be appropriate for the event type
+		final FLEFModel model, final List<String> errors){
+		// Additional semantic checks can be added here.
 	}
 
-	// ------------------------------------------------------------------------
-	// Private Helpers
-	// ------------------------------------------------------------------------
 
-	/**
-	 * Checks if a date string is in ISO 8601 format (YYYY-MM-DD or YYYY-MM or YYYY).
-	 * This is a simple validation; the grammar should also validate the format.
-	 */
-	private boolean isValidDate(String date){
-		if(date == null)
-			// null is considered valid (optional field)
-			return true;
-
-		return date.matches("^\\d{4}(-\\d{2}(-\\d{2})?)?$");
-	}
-
+	/* ======================================================================
+	 *                          Bootstrap
+	 * ====================================================================== */
 
 	public static void main(final String[] args) throws Exception{
 		final Path path = Paths.get("src/main/resources/gedg/flef_0.1.2.gedg");
@@ -422,11 +483,12 @@ public class FLEFValidator{
 			""");
 
 		final FLEFValidator validator = new FLEFValidator(grammar);
-		final List<String> errors = validator.validateAll(model);
+		final List<ValidationError> errors = validator.validateAllStructured(model);
 
 		System.out.println("Validation errors: " + errors.size());
-		for(final String error : errors)
-			System.out.println("  - " + error);
+		for(final ValidationError e : errors)
+			System.out.println("  - " + e.message()
+				+ (e.hasRecord()? "   [record: " + e.recordId() + "]": ""));
 	}
 
 }

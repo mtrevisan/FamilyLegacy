@@ -56,6 +56,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 
@@ -181,7 +182,7 @@ public final class PlaceManagementDialog extends JDialog{
 		if(text == null || text.isBlank())
 			sorter.setRowFilter(null);
 		else{
-			final String needle = text.trim().toLowerCase(java.util.Locale.ROOT);
+			final String needle = text.trim().toLowerCase(Locale.ROOT);
 			sorter.setRowFilter(new RowFilter<>(){
 				@Override
 				public boolean include(final Entry<? extends PlaceTableModel, ? extends Integer> entry){
@@ -198,7 +199,7 @@ public final class PlaceManagementDialog extends JDialog{
 	}
 
 	private static boolean contains(final String haystack, final String needle){
-		return haystack != null && haystack.toLowerCase(java.util.Locale.ROOT).contains(needle);
+		return haystack != null && haystack.toLowerCase(Locale.ROOT).contains(needle);
 	}
 
 	private String selectedPlaceId(){
@@ -223,6 +224,7 @@ public final class PlaceManagementDialog extends JDialog{
 			dialog = handler.createEditDialog(owner, model, record);
 		}
 		dialog.setVisible(true);
+
 		if(dialog.isSaved())
 			reload();
 	}

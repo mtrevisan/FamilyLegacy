@@ -216,6 +216,7 @@ public final class EventManagementDialog extends JDialog{
 			dialog = handler.createEditDialog(this, model, record);
 		}
 		dialog.setVisible(true);
+
 		if(dialog.isSaved())
 			reload();
 	}

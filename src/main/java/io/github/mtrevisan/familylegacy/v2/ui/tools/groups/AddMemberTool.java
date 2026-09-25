@@ -38,7 +38,8 @@ public final class AddMemberTool implements ToolOperation{
 
 	@Override
 	public void run(final ToolContext context){
-		new AddMemberDialog(context).setVisible(true);
+		final AddMemberDialog dialog = new AddMemberDialog(context);
+		dialog.setVisible(true);
 	}
 
 	@Override

@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.ProjectionMutator;
 
 
 public interface EntityListener{
@@ -36,5 +37,23 @@ public interface EntityListener{
 	void onEntityRemove(FLEFRecord individual);
 
 	void onEntityRelocate(FLEFRecord individual);
+
+
+	/**
+	 * Returns the projection mutator that owns the structural changes to
+	 * the model backing this view, or {@code null} when the listener does
+	 * not support mutations (e.g. a read-only placeholder).
+	 * <p>
+	 * The popup menu factory uses this to build a {@link io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext}
+	 * whose dispatcher exposes the mutator to the tools that need it,
+	 * such as {@code UnlinkRelationshipsTool}. Without it, the tool falls
+	 * back to a direct model mutation and the shared caches are not
+	 * invalidated, so the tree keeps showing the old connections.
+	 *
+	 * @return the mutator, or {@code null}
+	 */
+	default ProjectionMutator getMutator(){
+		return null;
+	}
 
 }

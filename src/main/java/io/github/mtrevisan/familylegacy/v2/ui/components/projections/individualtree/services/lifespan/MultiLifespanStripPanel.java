@@ -488,6 +488,7 @@ public final class MultiLifespanStripPanel extends JPanel{
 			? bar.getUnitIncrement(direction) * e.getUnitsToScroll()
 			: bar.getBlockIncrement(direction) * e.getWheelRotation());
 		bar.setValue(bar.getValue() + increment);
+
 		e.consume();
 	}
 
@@ -643,6 +644,7 @@ public final class MultiLifespanStripPanel extends JPanel{
 		final BaseRecordDialog dialog = EventHandler.getInstance()
 			.createEditDialog(owner, model, record);
 		dialog.setVisible(true);
+
 		if(dialog.isSaved())
 			rebuildAndRefresh();
 	}
@@ -666,6 +668,7 @@ public final class MultiLifespanStripPanel extends JPanel{
 		final Window owner = SwingUtilities.getWindowAncestor(this);
 		final BaseRecordDialog dialog = handler.createEditDialog(owner, model, record);
 		dialog.setVisible(true);
+
 		if(dialog.isSaved())
 			rebuildAndRefresh();
 	}
@@ -854,7 +857,7 @@ public final class MultiLifespanStripPanel extends JPanel{
 			// into the name column, overlapping the labels.
 			final Shape originalClip = g2.getClip();
 
-			for(int i = 0; i < rows.size(); i++){
+			for(int i = 0; i < rows.size(); i ++){
 				final Row row = rows.get(i);
 				final int y = AXIS_HEIGHT + i * ROW_HEIGHT;
 				final boolean hovered = (i == hoveredRowIndex);

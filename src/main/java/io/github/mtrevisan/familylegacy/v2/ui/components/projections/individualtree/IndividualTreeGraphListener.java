@@ -34,12 +34,14 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualt
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.services.relationship.UnlinkRelationshipsDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.partners.PartnersPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.partners.Side;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.ProjectionMutator;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.TreeMutator;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.TreeNode;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.TreeService;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.SexType;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.RelationClipboard;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
+import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContexts;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolDispatcher;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.individuals.DeleteIndividualTool;
 import org.slf4j.Logger;
@@ -147,7 +149,7 @@ public final class IndividualTreeGraphListener implements IndividualListener{
 		if(individual == null)
 			return;
 
-		final ToolContext context = new ToolContext(model, individual::getId, () -> component,
+		final ToolContext context = ToolContexts.custom(model, individual.getId(), component,
 			new ToolDispatcher(){
 				@Override
 				public void removeEntity(final String id){
@@ -158,8 +160,14 @@ public final class IndividualTreeGraphListener implements IndividualListener{
 				public void loadRoot(final String id){
 					onRootEntitySelected(id);
 				}
+
+				@Override
+				public ProjectionMutator getMutator(){
+					return treeMutator;
+				}
 			});
-		new DeleteIndividualTool().run(context);
+		new DeleteIndividualTool()
+			.run(context);
 	}
 
 
@@ -295,6 +303,12 @@ public final class IndividualTreeGraphListener implements IndividualListener{
 				performParentRelationOperation(source, ctx, true, currentRootId.get());
 		}
 		clipboard.clear();
+	}
+
+
+	@Override
+	public ProjectionMutator getMutator(){
+		return treeMutator;
 	}
 
 

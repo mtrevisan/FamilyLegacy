@@ -93,7 +93,7 @@
 
 		<!-- Hibernate -->
 		<!-- https://mvnrepository.com/artifact/org.hibernate.orm/hibernate-core -->
-		<hibernate.hibernate-core.version>7.4.9.Final</hibernate.hibernate-core.version>
+		<hibernate.hibernate-core.version>7.4.10.Final</hibernate.hibernate-core.version>
 
 		<!-- Image processing -->
 		<!-- https://mvnrepository.com/artifact/org.bytedeco/opencv -->
@@ -128,7 +128,7 @@
 
 		<!-- JSON -->
 		<!-- https://mvnrepository.com/artifact/tools.jackson.core/jackson-databind -->
-<!--		<fasterxml.jackson-databind.version>3.2.2</fasterxml.jackson-databind.version>-->
+<!--		<fasterxml.jackson-databind.version>3.2.3</fasterxml.jackson-databind.version>-->
 		<!-- https://mvnrepository.com/artifact/com.jayway.jsonpath/json-path -->
 <!--		<jayway.json-path.version>3.0.0</jayway.json-path.version>-->
 		<!-- https://mvnrepository.com/artifact/com.github.fge/jackson-coreutils -->
@@ -153,9 +153,17 @@
 		<!-- https://mvnrepository.com/artifact/org.apache.xmlgraphics/batik-codec -->
 		<apache.xmlgraphics.batik.version>1.19</apache.xmlgraphics.batik.version>
 
+		<!-- Reports -->
+		<!-- PDF support -->
+		<!-- https://mvnrepository.com/artifact/com.github.librepdf/openpdf -->
+		<librepdf.openpdf.version>3.0.5</librepdf.openpdf.version>
+		<!-- DOCX support -->
+		<!-- https://mvnrepository.com/artifact/org.apache.poi/poi-ooxml -->
+		<apache.poi-ooxml.version>5.5.1</apache.poi-ooxml.version>
+
 		<!-- Logging -->
 		<!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-api -->
-		<slf4j.slf4j-api.version>2.0.19</slf4j.slf4j-api.version>
+		<slf4j.slf4j-api.version>2.0.20</slf4j.slf4j-api.version>
 		<!-- https://mvnrepository.com/artifact/ch.qos.logback/logback-classic -->
 		<logback.logback-classic.version>1.6.3</logback.logback-classic.version>
 
@@ -614,6 +622,20 @@
 <!--				</exclusion>-->
 <!--			</exclusions>-->
 <!--		</dependency>-->
+
+		<!-- Reports -->
+		<!-- PDF support -->
+		<dependency>
+			<groupId>com.github.librepdf</groupId>
+			<artifactId>openpdf</artifactId>
+			<version>${librepdf.openpdf.version}</version>
+		</dependency>
+		<!-- DOCX support -->
+		<dependency>
+			<groupId>org.apache.poi</groupId>
+			<artifactId>poi-ooxml</artifactId>
+			<version>${apache.poi-ooxml.version}</version>
+		</dependency>
 
 		<!-- Logger -->
 		<dependency>
