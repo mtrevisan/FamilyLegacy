@@ -40,7 +40,9 @@ public class RepositoryCitationHandler extends AbstractRecordTypeHandler<Reposit
 	public static final String TYPE = "REPOSITORY_CITATION";
 	public static final String CITED_TYPE = "REPOSITORY";
 
-	private static final String TAG_REPOSITORY = "REPOSITORY";
+	public static final String TAG_REPOSITORY = "REPOSITORY";
+	public static final String TAG_LOCATOR = "LOCATOR";
+	public static final String TAG_NOTE = "NOTE";
 
 
 	private static final class SingletonHelper{

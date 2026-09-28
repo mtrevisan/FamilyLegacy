@@ -49,6 +49,14 @@ public class IndividualHandler extends AbstractRecordTypeHandler<IndividualRecor
 	public static final String TAG_PRIVACY = "PRIVACY";
 	public static final String TAG_AUDIT = "AUDIT";
 
+	public static final String TAG_PERSONAL_NAME_TYPE = "TYPE";
+	public static final String TAG_PERSONAL_NAME_PART = "PART";
+	public static final String TAG_PERSONAL_NAME_LOCALE = "LOCALE";
+	// TODO
+	public static final String TAG_PERSONAL_NAME_CULTURAL_NORM = "CULTURAL_NORM";
+	public static final String TAG_PERSONAL_NAME_SOURCE = "SOURCE";
+	public static final String TAG_PERSONAL_NAME_NOTE = "NOTE";
+
 	public static final String ENUM_SEX_MALE = "male";
 	public static final String ENUM_SEX_FEMALE = "female";
 	public static final String ENUM_SEX_UNKNOWN = "unknown";

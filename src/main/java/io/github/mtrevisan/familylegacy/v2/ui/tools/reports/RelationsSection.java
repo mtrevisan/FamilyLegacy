@@ -45,7 +45,7 @@ import java.util.Set;
  * list spouse/associate connections of direct relations, together with the kinship
  * term of the direct relation they hang off and relevant context impacts.</p>
  */
-final class RelationsSection implements SectionBuilder {
+final class RelationsSection implements SectionBuilder{
 
 	private static final String TAG_SEX = "sex";
 

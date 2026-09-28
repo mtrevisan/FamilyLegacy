@@ -90,16 +90,7 @@ import java.io.IOException;
 public class CulturalNormRecordDialog extends BaseRecordDialog{
 
 	private static final String DOT = ".";
-
-	private static final String TAG_TITLE = "TITLE";
-	private static final String TAG_RULE_TYPE = "RULE_TYPE";
-	private static final String TAG_EVIDENCE = "EVIDENCE";
-	private static final String TAG_PLACE_EVIDENCE = PlaceHandler.TYPE + DOT + TAG_EVIDENCE;
-	private static final String TAG_VALID_FROM = "VALID_FROM";
-	private static final String TAG_VALID_TO = "VALID_TO";
-	private static final String TAG_SOURCE = "SOURCE";
-	private static final String TAG_NOTE = "NOTE";
-	private static final String TAG_AUDIT = "AUDIT";
+	private static final String TAG_PLACE_EVIDENCE = CulturalNormHandler.TAG_PLACE + DOT + CulturalNormHandler.TAG_EVIDENCE;
 
 
 	private final BoundTextField titleField;
@@ -123,8 +114,8 @@ public class CulturalNormRecordDialog extends BaseRecordDialog{
 	private CulturalNormRecordDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, CulturalNormHandler.getInstance());
 
-		titleField = new BoundTextField(TAG_TITLE);
-		ruleTypeCombo = new BoundComboBox<>(TAG_RULE_TYPE, new String[]{
+		titleField = new BoundTextField(CulturalNormHandler.TAG_TITLE);
+		ruleTypeCombo = new BoundComboBox<>(CulturalNormHandler.TAG_RULE_TYPE, new String[]{
 			StringUtils.EMPTY,
 			// Lifecycle and age-related customs:
 			"age_of_majority", "marriage_minimum_age", "baptism_age", "confirmation_age", "military_service_age",
@@ -147,18 +138,18 @@ public class CulturalNormRecordDialog extends BaseRecordDialog{
 		ruleTypeCombo.setEditable(true);
 		placeField = EntityField.createForStructureWithReference(PlaceHandler.TYPE, this, model, PlaceCitationHandler.class);
 		placeEvidencePanel = new EvidenceQualifiersPanel(TAG_PLACE_EVIDENCE, "Evidence");
-		validFromField = DateField.createWithWrapperTag(TAG_VALID_FROM, this, "From Date", model);
-		validToField = DateField.createWithWrapperTag(TAG_VALID_TO, this, "To Date", model);
+		validFromField = DateField.createWithWrapperTag(CulturalNormHandler.TAG_VALID_FROM, this, "From Date", model);
+		validToField = DateField.createWithWrapperTag(CulturalNormHandler.TAG_VALID_TO, this, "To Date", model);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
 			.withComponent(PanelKey.CONTEXT_IMPACT_ON_CONTEXT, ContextImpactHandler.TYPE, "Context Impacts")
 			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, "Conclusions")
 			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, "Research Questions")
-			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources with Citations")
-			.withComponent(PanelKey.NOTE, TAG_NOTE, null)
-			.withComponent(PanelKey.EVIDENCE, TAG_EVIDENCE, "Evidence")
-			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null)
+			.withComponent(PanelKey.SOURCE, CulturalNormHandler.TAG_SOURCE, "Sources with Citations")
+			.withComponent(PanelKey.NOTE, CulturalNormHandler.TAG_NOTE, null)
+			.withComponent(PanelKey.EVIDENCE, CulturalNormHandler.TAG_EVIDENCE, "Evidence")
+			.withComponent(PanelKey.AUDIT, CulturalNormHandler.TAG_AUDIT, null)
 			.build();
 
 		components.bind(titleField);

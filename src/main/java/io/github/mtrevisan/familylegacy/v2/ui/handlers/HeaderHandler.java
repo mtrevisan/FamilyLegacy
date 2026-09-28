@@ -38,6 +38,18 @@ public class HeaderHandler extends AbstractRecordTypeHandler<HeaderDialog>{
 
 	public static final String TYPE = "HEADER";
 
+	public static final String TAG_PROTOCOL = "PROTOCOL";
+	public static final String TAG_NAME = "NAME";
+	public static final String TAG_VERSION = "VERSION";
+	public static final String TAG_SOURCE = "SOURCE";
+	public static final String TAG_ORGANIZATION = "ORGANIZATION";
+	public static final String TAG_DATE = "DATE";
+	public static final String TAG_COPYRIGHT = "COPYRIGHT";
+	public static final String TAG_SUBMITTER = "SUBMITTER";
+	public static final String TAG_CONTACT = "CONTACT";
+	public static final String TAG_NOTE = "NOTE";
+	public static final String TAG_SCOPE = "SCOPE";
+
 
 	private static final class SingletonHelper{
 		private static final HeaderHandler INSTANCE = new HeaderHandler();

@@ -43,24 +43,25 @@ import java.awt.Window;
  */
 public class DateField extends JPanel{
 
-	private static final String TAG_VALUE = "VALUE";
-	private static final String TAG_START_YEAR = "START_YEAR";
-	private static final String TAG_POINT = "POINT";
-	private static final String TAG_BOUNDED = "BOUNDED";
-	private static final String TAG_SPANNING = "SPANNING";
-	private static final String TAG_APPROXIMATE = "APPROXIMATE";
-	private static final String TAG_BASIS = "BASIS";
-	private static final String TAG_MARGIN = "MARGIN";
-	private static final String TAG_CALENDAR = "CALENDAR";
-	private static final String TAG_FULL_DATE = "FULL_DATE";
-	private static final String TAG_DECADE = "DECADE";
-	private static final String TAG_CENTURY = "CENTURY";
-	private static final String TAG_ORDINAL = "ORDINAL";
-	private static final String TAG_PART = "PART";
-	private static final String TAG_NOT_BEFORE = "NOT_BEFORE";
-	private static final String TAG_NOT_AFTER = "NOT_AFTER";
-	private static final String TAG_FROM = "FROM";
-	private static final String TAG_TO = "TO";
+	public static final String TAG_VALUE = "VALUE";
+	public static final String TAG_ORIGINAL_TEXT = "ORIGINAL_TEXT";
+	public static final String TAG_START_YEAR = "START_YEAR";
+	public static final String TAG_POINT = "POINT";
+	public static final String TAG_BOUNDED = "BOUNDED";
+	public static final String TAG_SPANNING = "SPANNING";
+	public static final String TAG_APPROXIMATE = "APPROXIMATE";
+	public static final String TAG_BASIS = "BASIS";
+	public static final String TAG_MARGIN = "MARGIN";
+	public static final String TAG_CALENDAR = "CALENDAR";
+	public static final String TAG_FULL_DATE = "FULL_DATE";
+	public static final String TAG_DECADE = "DECADE";
+	public static final String TAG_CENTURY = "CENTURY";
+	public static final String TAG_ORDINAL = "ORDINAL";
+	public static final String TAG_PART = "PART";
+	public static final String TAG_NOT_BEFORE = "NOT_BEFORE";
+	public static final String TAG_NOT_AFTER = "NOT_AFTER";
+	public static final String TAG_FROM = "FROM";
+	public static final String TAG_TO = "TO";
 
 
 	private final Window parent;

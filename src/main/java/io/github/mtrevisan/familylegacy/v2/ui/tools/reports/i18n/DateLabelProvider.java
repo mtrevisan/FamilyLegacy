@@ -30,11 +30,12 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.Locale;
 
+
 /**
  * Handles localized display formatting for historical dates, age calculations,
  * century subdivisions, and plural-sensitive time units.
  */
-public final class DateLabelProvider {
+public final class DateLabelProvider{
 
 	private final ReportLabels labels;
 
@@ -42,16 +43,45 @@ public final class DateLabelProvider {
 		this.labels = labels;
 	}
 
-	public String dateDecade(){ return labels.getString("DATE_DECADE"); }
-	public String dateCentury(){ return labels.getString("DATE_CENTURY"); }
-	public String dateCenturyWithPart(){ return labels.getString("DATE_CENTURY_WITH_PART"); }
-	public String dateBetween(){ return labels.getString("DATE_BETWEEN"); }
-	public String dateAfter(){ return labels.getString("DATE_AFTER"); }
-	public String dateBefore(){ return labels.getString("DATE_BEFORE"); }
-	public String dateFromTo(){ return labels.getString("DATE_FROM_TO"); }
-	public String dateFrom(){ return labels.getString("DATE_FROM"); }
-	public String dateTo(){ return labels.getString("DATE_TO"); }
-	public String dateMargin(){ return labels.getString("DATE_MARGIN"); }
+	public String dateDecade(){
+		return labels.getString("DATE_DECADE");
+	}
+
+	public String dateCentury(){
+		return labels.getString("DATE_CENTURY");
+	}
+
+	public String dateCenturyWithPart(){
+		return labels.getString("DATE_CENTURY_WITH_PART");
+	}
+
+	public String dateBetween(){
+		return labels.getString("DATE_BETWEEN");
+	}
+
+	public String dateAfter(){
+		return labels.getString("DATE_AFTER");
+	}
+
+	public String dateBefore(){
+		return labels.getString("DATE_BEFORE");
+	}
+
+	public String dateFromTo(){
+		return labels.getString("DATE_FROM_TO");
+	}
+
+	public String dateFrom(){
+		return labels.getString("DATE_FROM");
+	}
+
+	public String dateTo(){
+		return labels.getString("DATE_TO");
+	}
+
+	public String dateMargin(){
+		return labels.getString("DATE_MARGIN");
+	}
 
 	public String approxBasisStated(){
 		return labels.getString("APPROX_BASIS_STATED");
@@ -84,7 +114,8 @@ public final class DateLabelProvider {
 		final String key = "CENTURY_PART_" + part.toUpperCase(Locale.ROOT);
 		try{
 			return labels.getString(key);
-		}catch(final Exception ignored){
+		}
+		catch(final Exception ignored){
 			return part.replace('_', ' ');
 		}
 	}
@@ -99,7 +130,8 @@ public final class DateLabelProvider {
 		final String key = "CALENDAR_" + code.toUpperCase(Locale.ROOT);
 		try{
 			return labels.getString(key);
-		}catch(final Exception ignored){
+		}
+		catch(final Exception ignored){
 			return code;
 		}
 	}

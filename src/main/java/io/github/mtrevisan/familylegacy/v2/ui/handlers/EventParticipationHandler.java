@@ -38,9 +38,14 @@ public class EventParticipationHandler extends AbstractRecordTypeHandler<EventPa
 	public static final String TYPE = "EVENT_PARTICIPATION";
 	public static final String ID_PREFIX = "EP";
 
-	private static final String TAG_PARTICIPANT = "PARTICIPANT";
-	private static final String TAG_ROLE = "ROLE";
-	private static final String TAG_EVENT = "EVENT";
+	public static final String TAG_PARTICIPANT = "PARTICIPANT";
+	public static final String TAG_EVENT = "EVENT";
+	public static final String TAG_ROLE = "ROLE";
+	public static final String TAG_SOURCE = "SOURCE";
+	public static final String TAG_NOTE = "NOTE";
+	public static final String TAG_EVIDENCE = "EVIDENCE";
+	public static final String TAG_PRIVACY = "PRIVACY";
+	public static final String TAG_AUDIT = "AUDIT";
 
 
 	private static final class SingletonHelper{

@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.projections.partners;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualData;
 import org.apache.commons.lang3.StringUtils;
 
@@ -46,9 +47,7 @@ public final class PartnersData{
 
 	private static final String TAG_DATE = "date";
 	private static final String TAG_VALUE = "value";
-	private static final String TAG_POINT = "point";
-	private static final String TAG_FULL_DATE = "full_date";
-	private static final String TAG_DATE_VALUE_POINT_FULL_DATE = TAG_DATE + DOT + TAG_VALUE + DOT + TAG_POINT + DOT + TAG_FULL_DATE;
+	private static final String TAG_DATE_VALUE_POINT_FULL_DATE = TAG_DATE + DOT + TAG_VALUE + DOT + DateField.TAG_POINT + DOT + DateField.TAG_FULL_DATE;
 
 	private static final String TAG_HTML_OPEN = "<html>";
 	private static final String TAG_HTML_CLOSE = "</html>";

@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.projections.dossier;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.components.EvidenceQualifiersPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.dossier.names.NameAnatomy;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.dossier.names.NameAnatomyService;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionHandler;
@@ -77,9 +78,6 @@ public final class GroupDossierService{
 	private static final String TAG_QUESTION = "question";
 	private static final String TAG_GROUP_TAG = "group";
 	private static final String TAG_EVIDENCE = "evidence";
-	private static final String TAG_SOURCE_TYPE = "source_type";
-	private static final String TAG_INFORMATION_TYPE = "information_type";
-	private static final String TAG_EVIDENCE_TYPE = "evidence_type";
 	private static final String TAG_RESOLVES = "resolves";
 	private static final String TAG_PREFERRED = "preferred";
 	private static final String TAG_PROOF_STATUS = "proof_status";
@@ -746,9 +744,9 @@ public final class GroupDossierService{
 		if(evidence == null)
 			return StringUtils.EMPTY;
 
-		final String st = FLEFRecordHelper.getChildValue(evidence, TAG_SOURCE_TYPE);
-		final String it = FLEFRecordHelper.getChildValue(evidence, TAG_INFORMATION_TYPE);
-		final String et = FLEFRecordHelper.getChildValue(evidence, TAG_EVIDENCE_TYPE);
+		final String st = FLEFRecordHelper.getChildValue(evidence, EvidenceQualifiersPanel.TAG_SOURCE_TYPE);
+		final String it = FLEFRecordHelper.getChildValue(evidence, EvidenceQualifiersPanel.TAG_INFORMATION_TYPE);
+		final String et = FLEFRecordHelper.getChildValue(evidence, EvidenceQualifiersPanel.TAG_EVIDENCE_TYPE);
 
 		final StringBuilder sb = new StringBuilder();
 		if(st != null)

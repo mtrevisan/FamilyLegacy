@@ -42,7 +42,12 @@ public class DocumentHandler extends AbstractRecordTypeHandler<DocumentRecordDia
 	public static final String TYPE = "DOCUMENT";
 	public static final String ID_PREFIX = "D";
 
-	private static final String TAG_URI = "URI";
+	public static final String TAG_URI = "URI";
+	public static final String TAG_MAPPING = "MAPPING";
+	public static final String TAG_DESCRIPTION = "DESCRIPTION";
+	public static final String TAG_NOTE = "NOTE";
+	public static final String TAG_PRIVACY = "PRIVACY";
+	public static final String TAG_AUDIT = "AUDIT";
 
 
 	private static final class SingletonHelper{

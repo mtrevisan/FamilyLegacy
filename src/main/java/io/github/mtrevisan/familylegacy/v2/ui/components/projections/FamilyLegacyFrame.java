@@ -35,6 +35,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.services.DossierManager;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.services.GlobalKeyboardController;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.services.ModelUtils;
+import io.github.mtrevisan.familylegacy.v2.ui.preferences.AppearanceManager;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContexts;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolDispatcher;
@@ -309,11 +310,6 @@ public class FamilyLegacyFrame extends JFrame{
 
 
 	public static void main(final String[] args) throws IOException{
-		try{
-			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-		}
-		catch(final Exception ignored){}
-
 		final String modelUri = "/tests/TGMZ.flef";
 		final String rootIndividualId = "I1";
 
@@ -326,6 +322,14 @@ public class FamilyLegacyFrame extends JFrame{
 		final FLEFModel model = parser.parse(content);
 
 		SwingUtilities.invokeLater(() -> {
+			try{
+				UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+			}
+			catch(final Exception ignored){}
+
+			// Apply persisted language and font before any window is created.
+			AppearanceManager.applySaved();
+
 //			final TreeType treeType = TreeType.BIOLOGICAL;
 			final TreeType treeType = TreeType.FAMILY;
 			final FamilyLegacyFrame frame = new FamilyLegacyFrame(treeType, model);

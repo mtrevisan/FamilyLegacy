@@ -61,11 +61,28 @@ public final class ReportGenerator{
 
 
 	public ReportDocument generate(){
-		final List<ReportSection> out = new ArrayList<>();
-		for(final SectionBuilder b : builders())
-			out.addAll(b.build());
+		return generate(ReportProgressListener.NOOP);
+	}
 
-		return new ReportDocument(ctx.displayText(ctx.root), ctx.labels.subtitle(), out);
+	/**
+	 * Builds the document, reporting progress after each section builder.
+	 * The listener is invoked from the calling thread; if the caller is a
+	 * {@link javax.swing.SwingWorker}, that thread is the worker thread.
+	 */
+	public ReportDocument generate(final ReportProgressListener listener){
+		final List<SectionBuilder> builders = builders();
+		final int total = builders.size();
+		final List<ReportSection> out = new ArrayList<>();
+
+		for(int i = 0; i < total; i++){
+			if(Thread.currentThread().isInterrupted())
+				throw new RuntimeException("Report generation cancelled");
+
+			out.addAll(builders.get(i).build());
+			listener.onProgress((i + 1) * 100 / total, null);
+		}
+
+		return new ReportDocument(ctx.displayText(ctx.root), ctx.labels.sections().subtitle(), out);
 	}
 
 
@@ -81,23 +98,23 @@ public final class ReportGenerator{
 				out.add(new DescendantsSection(ctx));
 				out.add(new RelationsSection(ctx));
 			}
-			case GROUP               -> {
+			case GROUP -> {
 				out.add(new GroupIntroductionSection(ctx));
 				out.add(new GroupStorySection(ctx));
 			}
-			case EVENT               -> out.add(new EventRootSection(ctx));
-			case SOURCE              -> out.add(new SourceRootSection(ctx));
-			case PLACE               -> out.add(new PlaceRootSection(ctx));
-			case REPOSITORY          -> out.add(new RepositoryRootSection(ctx));
-			case DOCUMENT            -> out.add(new DocumentRootSection(ctx));
-			case RESEARCH_QUESTION   -> out.add(new ResearchQuestionRootSection(ctx));
-			case RESEARCH_ACTIVITY   -> out.add(new ResearchActivityRootSection(ctx));
-			case RESEARCH_TASK       -> out.add(new ResearchTaskRootSection(ctx));
-			case CONCLUSION          -> out.add(new ConclusionRootSection(ctx));
+			case EVENT -> out.add(new EventRootSection(ctx));
+			case SOURCE -> out.add(new SourceRootSection(ctx));
+			case PLACE -> out.add(new PlaceRootSection(ctx));
+			case REPOSITORY -> out.add(new RepositoryRootSection(ctx));
+			case DOCUMENT -> out.add(new DocumentRootSection(ctx));
+			case RESEARCH_QUESTION -> out.add(new ResearchQuestionRootSection(ctx));
+			case RESEARCH_ACTIVITY -> out.add(new ResearchActivityRootSection(ctx));
+			case RESEARCH_TASK -> out.add(new ResearchTaskRootSection(ctx));
+			case CONCLUSION -> out.add(new ConclusionRootSection(ctx));
 			case IDENTITY_HYPOTHESIS -> out.add(new IdentityHypothesisRootSection(ctx));
-			case CULTURAL_NORM       -> out.add(new CulturalNormRootSection(ctx));
-			case HISTORIC_EVENT      -> out.add(new HistoricEventRootSection(ctx));
-			case OTHER               -> { /* common sections only */ }
+			case CULTURAL_NORM -> out.add(new CulturalNormRootSection(ctx));
+			case HISTORIC_EVENT -> out.add(new HistoricEventRootSection(ctx));
+			case OTHER -> { /* common sections only */ }
 		}
 
 		if(ctx.config.timeline())

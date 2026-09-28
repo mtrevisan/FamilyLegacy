@@ -38,12 +38,16 @@ public class GroupHandler extends AbstractRecordTypeHandler<GroupRecordDialog>{
 	public static final String TYPE = "GROUP";
 	public static final String ID_PREFIX = "G";
 
-	private static final String DOT = ".";
+	public static final String TAG_NAME = "NAME";
+	public static final String TAG_TYPE = "TYPE";
+	public static final String TAG_SOURCE = "SOURCE";
+	public static final String TAG_NOTE = "NOTE";
+	public static final String TAG_PREFERRED_IMAGE = "PREFERRED_IMAGE";
+	public static final String TAG_PRIVACY = "PRIVACY";
+	public static final String TAG_AUDIT = "AUDIT";
 
-	private static final String TAG_NAME = "NAME";
-	private static final String TAG_VALUE = "VALUE";
-	private static final String TAG_NAME_VALUE = TAG_NAME + DOT + TAG_VALUE;
-	private static final String TAG_TYPE = "TYPE";
+	private static final String DOT = ".";
+	private static final String TAG_NAME_VALUE = TAG_NAME + DOT + NameHandler.TAG_VALUE;
 
 
 	private static final class SingletonHelper{

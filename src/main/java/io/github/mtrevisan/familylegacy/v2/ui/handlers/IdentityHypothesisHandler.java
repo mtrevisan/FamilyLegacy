@@ -41,7 +41,12 @@ public class IdentityHypothesisHandler extends AbstractRecordTypeHandler<Identit
 	public static final String TYPE = "IDENTITY_HYPOTHESIS";
 	public static final String ID_PREFIX = "IH";
 
-	private static final String TAG_IDENTITY = "IDENTITY";
+	public static final String TAG_IDENTITY = "IDENTITY";
+	public static final String TAG_COMMENT = "COMMENT";
+	public static final String TAG_SOURCE = "SOURCE";
+	public static final String TAG_NOTE = "NOTE";
+	public static final String TAG_EVIDENCE = "EVIDENCE";
+	public static final String TAG_AUDIT = "AUDIT";
 
 
 	private static final class SingletonHelper{

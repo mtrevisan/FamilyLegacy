@@ -26,13 +26,14 @@ package io.github.mtrevisan.familylegacy.v2.ui.components;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
 
 
 public enum DateType{
 
-	FULL_DATE("Full Date", Constants.TAG_FULL_DATE, "Date is required for FULL DATE type."),
-	DECADE("Decade", Constants.TAG_DECADE, "Decade is required for DECADE type."),
-	CENTURY("Century", Constants.TAG_CENTURY, "Century is required for CENTURY type.");
+	FULL_DATE("Full Date", DateField.TAG_FULL_DATE, "Date is required for FULL DATE type."),
+	DECADE("Decade", DateField.TAG_DECADE, "Decade is required for DECADE type."),
+	CENTURY("Century", DateField.TAG_CENTURY, "Century is required for CENTURY type.");
 
 
 	private final String label;
@@ -71,13 +72,6 @@ public enum DateType{
 	@Override
 	public String toString(){
 		return label;
-	}
-
-
-	private static class Constants{
-		private static final String TAG_FULL_DATE = "FULL_DATE";
-		private static final String TAG_DECADE = "DECADE";
-		private static final String TAG_CENTURY = "CENTURY";
 	}
 
 }

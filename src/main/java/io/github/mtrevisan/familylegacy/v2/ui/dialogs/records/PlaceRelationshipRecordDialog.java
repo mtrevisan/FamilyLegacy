@@ -76,17 +76,6 @@ import java.io.IOException;
  */
 public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 
-	private static final String TAG_SUBJECT = "SUBJECT";
-	private static final String TAG_OBJECT = "OBJECT";
-	private static final String TAG_TYPE = "TYPE";
-	private static final String TAG_VALID_FROM = "VALID_FROM";
-	private static final String TAG_VALID_TO = "VALID_TO";
-	private static final String TAG_SOURCE = "SOURCE";
-	private static final String TAG_NOTE = "NOTE";
-	private static final String TAG_EVIDENCE = "EVIDENCE";
-	private static final String TAG_AUDIT = "AUDIT";
-
-
 	private final JPanel propertiesPanel;
 
 	private final EntityField subjectField;
@@ -111,28 +100,28 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]5[]10[]10[]10[]");
 
-		subjectField = EntityField.createForRecordFromOneofReference(TAG_SUBJECT, this, model)
+		subjectField = EntityField.createForRecordFromOneofReference(PlaceRelationshipHandler.TAG_SUBJECT, this, model)
 			.withHandlerTypes(PlaceHandler.class);
-		objectField = EntityField.createForRecordFromOneofReference(TAG_OBJECT, this, model)
+		objectField = EntityField.createForRecordFromOneofReference(PlaceRelationshipHandler.TAG_OBJECT, this, model)
 			.withHandlerTypes(PlaceHandler.class);
-		typeCombo = new BoundComboBox<>(TAG_TYPE, new String[]{
+		typeCombo = new BoundComboBox<>(PlaceRelationshipHandler.TAG_TYPE, new String[]{
 			StringUtils.EMPTY,
 			"administrative_part_of", "geographic_part_of", "ecclesiastical_part_of", "judicial_part_of",
 			"cadastral_part_of"
 		});
 		typeCombo.setEditable(true);
-		validFromField = DateField.createWithWrapperTag(TAG_VALID_FROM, this, "From Date", model);
-		validToField = DateField.createWithWrapperTag(TAG_VALID_TO, this, "To Date", model);
+		validFromField = DateField.createWithWrapperTag(PlaceRelationshipHandler.TAG_VALID_FROM, this, "From Date", model);
+		validToField = DateField.createWithWrapperTag(PlaceRelationshipHandler.TAG_VALID_TO, this, "To Date", model);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
 			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, ContextImpactHandler.TYPE, "Context Impacts")
 			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, "Conclusions")
 			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, "Research Questions")
-			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources with Citations")
-			.withComponent(PanelKey.NOTE, TAG_NOTE, null)
-			.withComponent(PanelKey.EVIDENCE, TAG_EVIDENCE, "Evidence")
-			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null)
+			.withComponent(PanelKey.SOURCE, PlaceRelationshipHandler.TAG_SOURCE, "Sources with Citations")
+			.withComponent(PanelKey.NOTE, PlaceRelationshipHandler.TAG_NOTE, null)
+			.withComponent(PanelKey.EVIDENCE, PlaceRelationshipHandler.TAG_EVIDENCE, "Evidence")
+			.withComponent(PanelKey.AUDIT, PlaceRelationshipHandler.TAG_AUDIT, null)
 			.build();
 
 		components.bind(typeCombo);

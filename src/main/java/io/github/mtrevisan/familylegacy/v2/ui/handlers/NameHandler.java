@@ -46,9 +46,12 @@ public class NameHandler extends AbstractRecordTypeHandler<NameStructureDialog>{
 	public static final String TYPE = "NAME_STRUCTURE";
 	public static final String CITED_TYPE = "NAME";
 
+	public static final String TAG_TYPE = "TYPE";
 	public static final String TAG_VALUE = "VALUE";
-	// TODO ???
-	private static final String TAG_TYPE = "TYPE";
+	public static final String TAG_LOCALE = "LOCALE";
+	public static final String TAG_VARIANT = "VARIANT";
+	public static final String TAG_SOURCE = "SOURCE";
+	public static final String TAG_NOTE = "NOTE";
 
 
 	private static final class SingletonHelper{

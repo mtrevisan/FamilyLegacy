@@ -371,7 +371,7 @@ final class IndividualLifeStorySection implements SectionBuilder{
 			header.append(ReportFormatters.escape(description));
 		}
 
-		out.add(new ReportSection.Heading(3, header.isEmpty() ? "Attribute" : header.toString()));
+		out.add(new ReportSection.Heading(3, header.isEmpty()? "Attribute": header.toString()));
 
 		final List<String> details = new ArrayList<>();
 

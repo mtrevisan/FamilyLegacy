@@ -83,15 +83,6 @@ import java.io.IOException;
  */
 public class GroupRecordDialog extends BaseRecordDialog{
 
-	private static final String TAG_NAME = "NAME";
-	private static final String TAG_TYPE = "TYPE";
-	private static final String TAG_SOURCE = "SOURCE";
-	private static final String TAG_NOTE = "NOTE";
-	private static final String TAG_PREFERRED_IMAGE = "PREFERRED_IMAGE";
-	private static final String TAG_PRIVACY = "PRIVACY";
-	private static final String TAG_AUDIT = "AUDIT";
-
-
 	private final PreferredImagePanel preferredImagePanel;
 	private final EntityListPanel namePanel;
 	private final BoundComboBox<String> typeCombo;
@@ -109,9 +100,9 @@ public class GroupRecordDialog extends BaseRecordDialog{
 	private GroupRecordDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, GroupHandler.getInstance());
 
-		preferredImagePanel = new PreferredImagePanel(TAG_PREFERRED_IMAGE, this);
-		namePanel = EntityListPanel.createForStructure(TAG_NAME, this, "Names", model, NameHandler.class);
-		typeCombo = new BoundComboBox<>(TAG_TYPE, new String[]{
+		preferredImagePanel = new PreferredImagePanel(GroupHandler.TAG_PREFERRED_IMAGE, this);
+		namePanel = EntityListPanel.createForStructure(GroupHandler.TAG_NAME, this, "Names", model, NameHandler.class);
+		typeCombo = new BoundComboBox<>(GroupHandler.TAG_TYPE, new String[]{
 			StringUtils.EMPTY,
 			"family", "household", "neighbourhood", "fraternity", "club", "literary_society",
 			"association", "organisation", "tribe"
@@ -127,10 +118,10 @@ public class GroupRecordDialog extends BaseRecordDialog{
 			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, "Conclusions")
 			.withComponent(PanelKey.IDENTITY_HYPOTHESIS_ON_IDENTITY, IdentityHypothesisHandler.TYPE, "Identity Hypotheses")
 			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, "Research Questions")
-			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources with Citations")
-			.withComponent(PanelKey.NOTE, TAG_NOTE, null)
-			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null)
-			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null)
+			.withComponent(PanelKey.SOURCE, GroupHandler.TAG_SOURCE, "Sources with Citations")
+			.withComponent(PanelKey.NOTE, GroupHandler.TAG_NOTE, null)
+			.withComponent(PanelKey.PRIVACY, GroupHandler.TAG_PRIVACY, null)
+			.withComponent(PanelKey.AUDIT, GroupHandler.TAG_AUDIT, null)
 			.build();
 
 		components.bind(typeCombo);

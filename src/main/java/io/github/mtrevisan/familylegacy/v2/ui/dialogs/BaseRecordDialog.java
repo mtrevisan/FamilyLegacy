@@ -33,6 +33,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.help.ShortcutRegistry;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.DocumentHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
@@ -67,9 +68,6 @@ import java.util.Objects;
  * Provides common functionality and utility methods.
  */
 public abstract class BaseRecordDialog extends JDialog{
-
-	private static final String TAG_DOCUMENT = "DOCUMENT";
-	private static final String TAG_URI = "uri";
 
 	private static final String ACTION_GLOBAL_UNDO = "globalUndo";
 	private static final String ACTION_GLOBAL_REDO = "globalRedo";
@@ -440,12 +438,12 @@ public abstract class BaseRecordDialog extends JDialog{
 
 		final String sourceId = FLEFRecordHelper.getChildValue(sourceCitation, SourceHandler.TYPE);
 		final FLEFRecord source = model.getRecordById(sourceId);
-		final List<FLEFRecord> documents = FLEFRecordHelper.findChildren(source, TAG_DOCUMENT);
+		final List<FLEFRecord> documents = FLEFRecordHelper.findChildren(source, SourceHandler.TAG_DOCUMENT);
 		for(final FLEFRecord documentRef : documents){
 			final String documentId = documentRef.getValue();
 
 			final FLEFRecord doc = model.getRecordById(documentId);
-			String uri = FLEFRecordHelper.getChildValue(doc, TAG_URI);
+			String uri = FLEFRecordHelper.getChildValue(doc, DocumentHandler.TAG_URI);
 // TODO to be removed
 if(uri != null)
 	uri = "C:\\mauro\\heritage\\My Genealogy Projects\\Trevisan (Dorato)-Gallinaro-Masutti (Manfrin)-Zaros (Basso)" + uri;

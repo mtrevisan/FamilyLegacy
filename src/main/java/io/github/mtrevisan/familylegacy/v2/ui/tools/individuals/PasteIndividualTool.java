@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.projections.group.Group
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualData;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.PopupMenuHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18n;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolOperation;
 
@@ -43,7 +44,7 @@ public final class PasteIndividualTool implements ToolOperation{
 
 	@Override
 	public String getName(){
-		return "Paste";
+		return I18n.t("menu.individual.paste");
 	}
 
 	@Override

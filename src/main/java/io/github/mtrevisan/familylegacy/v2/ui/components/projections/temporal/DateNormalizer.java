@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.projections.temporal;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
 
 import java.util.Locale;
 
@@ -45,27 +46,6 @@ import java.util.Locale;
  */
 public final class DateNormalizer{
 
-	// Tag paths inside a FLEF DateStructure.
-	private static final String TAG_VALUE = "value";
-	private static final String TAG_ORIGINAL = "original_text";
-	private static final String TAG_POINT = "point";
-	private static final String TAG_BOUNDED = "bounded";
-	private static final String TAG_SPANNING = "spanning";
-	private static final String TAG_FULL_DATE = "full_date";
-	private static final String TAG_DECADE = "decade";
-	private static final String TAG_CENTURY = "century";
-	private static final String TAG_APPROXIMATE = "approximate";
-	private static final String TAG_CALENDAR = "calendar";
-	private static final String TAG_START_YEAR = "start_year";
-	private static final String TAG_ORDINAL = "ordinal";
-	private static final String TAG_NOT_BEFORE = "not_before";
-	private static final String TAG_NOT_AFTER = "not_after";
-	private static final String TAG_FROM = "from";
-	private static final String TAG_TO = "to";
-	private static final String TAG_BASIS = "basis";
-	private static final String TAG_MARGIN = "margin";
-
-
 	private static final String[] MONTH_ABBREVIATIONS = {
 		"JAN", "FEB", "MAR", "APR", "MAY", "JUN",
 		"JUL", "AUG", "SEP", "OCT", "NOV", "DEC"
@@ -83,20 +63,20 @@ public final class DateNormalizer{
 		if(dateStructure == null)
 			return null;
 
-		final String originalText = FLEFRecordHelper.getChildValue(dateStructure, TAG_ORIGINAL);
-		final FLEFRecord value = FLEFRecordHelper.findChild(dateStructure, TAG_VALUE);
+		final String originalText = FLEFRecordHelper.getChildValue(dateStructure, DateField.TAG_ORIGINAL_TEXT);
+		final FLEFRecord value = FLEFRecordHelper.findChild(dateStructure, DateField.TAG_VALUE);
 		if(value == null)
 			return null;
 
-		final FLEFRecord point = FLEFRecordHelper.findChild(value, TAG_POINT);
+		final FLEFRecord point = FLEFRecordHelper.findChild(value, DateField.TAG_POINT);
 		if(point != null)
 			return normalizePoint(point, originalText);
 
-		final FLEFRecord bounded = FLEFRecordHelper.findChild(value, TAG_BOUNDED);
+		final FLEFRecord bounded = FLEFRecordHelper.findChild(value, DateField.TAG_BOUNDED);
 		if(bounded != null)
 			return normalizeBounded(bounded, originalText);
 
-		final FLEFRecord spanning = FLEFRecordHelper.findChild(value, TAG_SPANNING);
+		final FLEFRecord spanning = FLEFRecordHelper.findChild(value, DateField.TAG_SPANNING);
 		if(spanning != null)
 			return normalizeSpanning(spanning, originalText);
 
@@ -110,7 +90,7 @@ public final class DateNormalizer{
 	 * @return the original source expression, or {@code null}
 	 */
 	public String extractOriginalText(final FLEFRecord dateStructure){
-		return (dateStructure != null? FLEFRecordHelper.getChildValue(dateStructure, TAG_ORIGINAL): null);
+		return (dateStructure != null? FLEFRecordHelper.getChildValue(dateStructure, DateField.TAG_ORIGINAL_TEXT): null);
 	}
 
 
@@ -124,16 +104,16 @@ public final class DateNormalizer{
 	}
 
 	private TemporalSpan normalizeBounded(final FLEFRecord bounded, final String originalText){
-		final NormalizedDate notBefore = normalizeSubSingleDate(bounded, TAG_NOT_BEFORE, originalText);
-		final NormalizedDate notAfter = normalizeSubSingleDate(bounded, TAG_NOT_AFTER, originalText);
+		final NormalizedDate notBefore = normalizeSubSingleDate(bounded, DateField.TAG_NOT_BEFORE, originalText);
+		final NormalizedDate notAfter = normalizeSubSingleDate(bounded, DateField.TAG_NOT_AFTER, originalText);
 		if(notBefore == null && notAfter == null)
 			return null;
 		return TemporalSpan.bounded(notBefore, notAfter);
 	}
 
 	private TemporalSpan normalizeSpanning(final FLEFRecord spanning, final String originalText){
-		final NormalizedDate from = normalizeSubSingleDate(spanning, TAG_FROM, originalText);
-		final NormalizedDate to = normalizeSubSingleDate(spanning, TAG_TO, originalText);
+		final NormalizedDate from = normalizeSubSingleDate(spanning, DateField.TAG_FROM, originalText);
+		final NormalizedDate to = normalizeSubSingleDate(spanning, DateField.TAG_TO, originalText);
 		if(from == null && to == null)
 			return null;
 		return TemporalSpan.spanning(from, to);
@@ -150,15 +130,15 @@ public final class DateNormalizer{
 	 * ====================================================================== */
 
 	private NormalizedDate normalizeSingleDate(final FLEFRecord singleDate, final String originalText){
-		final FLEFRecord fullDate = FLEFRecordHelper.findChild(singleDate, TAG_FULL_DATE);
+		final FLEFRecord fullDate = FLEFRecordHelper.findChild(singleDate, DateField.TAG_FULL_DATE);
 		if(fullDate != null)
 			return normalizeFullDate(fullDate, originalText);
 
-		final FLEFRecord decade = FLEFRecordHelper.findChild(singleDate, TAG_DECADE);
+		final FLEFRecord decade = FLEFRecordHelper.findChild(singleDate, DateField.TAG_DECADE);
 		if(decade != null)
 			return normalizeDecade(decade, originalText);
 
-		final FLEFRecord century = FLEFRecordHelper.findChild(singleDate, TAG_CENTURY);
+		final FLEFRecord century = FLEFRecordHelper.findChild(singleDate, DateField.TAG_CENTURY);
 		if(century != null)
 			return normalizeCentury(century, originalText);
 
@@ -166,11 +146,11 @@ public final class DateNormalizer{
 	}
 
 	private NormalizedDate normalizeFullDate(final FLEFRecord fullDate, final String originalText){
-		final String raw = FLEFRecordHelper.getChildValue(fullDate, TAG_VALUE);
+		final String raw = FLEFRecordHelper.getChildValue(fullDate, DateField.TAG_VALUE);
 		if(raw == null || raw.isBlank())
 			return null;
 
-		final String calendar = defaultCalendar(FLEFRecordHelper.getChildValue(fullDate, TAG_CALENDAR));
+		final String calendar = defaultCalendar(FLEFRecordHelper.getChildValue(fullDate, DateField.TAG_CALENDAR));
 		final int[] ymd = parseHistoricalDate(raw);
 		if(ymd == null)
 			return null;
@@ -183,23 +163,23 @@ public final class DateNormalizer{
 	}
 
 	private NormalizedDate normalizeDecade(final FLEFRecord decade, final String originalText){
-		final String rawYear = FLEFRecordHelper.getChildValue(decade, TAG_START_YEAR);
+		final String rawYear = FLEFRecordHelper.getChildValue(decade, DateField.TAG_START_YEAR);
 		if(rawYear == null)
 			return null;
 		final int startYear = Integer.parseInt(rawYear.trim());
-		final String calendar = defaultCalendar(FLEFRecordHelper.getChildValue(decade, TAG_CALENDAR));
+		final String calendar = defaultCalendar(FLEFRecordHelper.getChildValue(decade, DateField.TAG_CALENDAR));
 		final long jdn = CalendarConverter.toJdnStartOfYear(calendar, startYear);
 		return applyApproximation(decade, jdn, DatePrecision.DECADE, calendar, originalText);
 	}
 
 	private NormalizedDate normalizeCentury(final FLEFRecord century, final String originalText){
-		final String rawOrdinal = FLEFRecordHelper.getChildValue(century, TAG_ORDINAL);
+		final String rawOrdinal = FLEFRecordHelper.getChildValue(century, DateField.TAG_ORDINAL);
 		if(rawOrdinal == null)
 			return null;
 		final int ordinal = Integer.parseInt(rawOrdinal.trim());
 		// Century N of the common era covers years (N-1)*100+1 .. N*100.
 		final int startYear = (ordinal - 1) * 100 + 1;
-		final String calendar = defaultCalendar(FLEFRecordHelper.getChildValue(century, TAG_CALENDAR));
+		final String calendar = defaultCalendar(FLEFRecordHelper.getChildValue(century, DateField.TAG_CALENDAR));
 		final long jdn = CalendarConverter.toJdnStartOfYear(calendar, startYear);
 		return applyApproximation(century, jdn, DatePrecision.CENTURY, calendar, originalText);
 	}
@@ -211,13 +191,13 @@ public final class DateNormalizer{
 
 	private static NormalizedDate applyApproximation(final FLEFRecord container, final long jdn,
 		final DatePrecision precision, final String calendar, final String originalText){
-		final FLEFRecord approx = FLEFRecordHelper.findChild(container, TAG_APPROXIMATE);
+		final FLEFRecord approx = FLEFRecordHelper.findChild(container, DateField.TAG_APPROXIMATE);
 		if(approx == null)
 			return NormalizedDate.exact(jdn, precision, calendar)
 				.withOriginalText(originalText);
 
-		final String basis = FLEFRecordHelper.getChildValue(approx, TAG_BASIS);
-		final String margin = FLEFRecordHelper.getChildValue(approx, TAG_MARGIN);
+		final String basis = FLEFRecordHelper.getChildValue(approx, DateField.TAG_BASIS);
+		final String margin = FLEFRecordHelper.getChildValue(approx, DateField.TAG_MARGIN);
 		return NormalizedDate.approximated(jdn, precision, calendar, basis, margin)
 			.withOriginalText(originalText);
 	}

@@ -18,7 +18,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
 
-public final class ResearchIndex {
+
+public final class ResearchIndex{
 
 	private final Map<String, List<FLEFRecord>> questionToActivitiesMap = new HashMap<>();
 	private final Map<String, List<FLEFRecord>> questionToTasksMap = new HashMap<>();
@@ -93,15 +94,15 @@ public final class ResearchIndex {
 	}
 
 	public List<FLEFRecord> activitiesForQuestion(final FLEFRecord q){
-		return (q != null && q.getId() != null) ? questionToActivitiesMap.getOrDefault(q.getId(), Collections.emptyList()) : Collections.emptyList();
+		return (q != null && q.getId() != null)? questionToActivitiesMap.getOrDefault(q.getId(), Collections.emptyList()): Collections.emptyList();
 	}
 
 	public List<FLEFRecord> tasksForQuestion(final FLEFRecord q){
-		return (q != null && q.getId() != null) ? questionToTasksMap.getOrDefault(q.getId(), Collections.emptyList()) : Collections.emptyList();
+		return (q != null && q.getId() != null)? questionToTasksMap.getOrDefault(q.getId(), Collections.emptyList()): Collections.emptyList();
 	}
 
 	public List<FLEFRecord> conclusionsForQuestion(final FLEFRecord q){
-		return (q != null && q.getId() != null) ? questionToConclusionsMap.getOrDefault(q.getId(), Collections.emptyList()) : Collections.emptyList();
+		return (q != null && q.getId() != null)? questionToConclusionsMap.getOrDefault(q.getId(), Collections.emptyList()): Collections.emptyList();
 	}
 
 	public List<FLEFRecord> tasksForActivity(final FLEFRecord activity){

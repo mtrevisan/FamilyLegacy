@@ -26,6 +26,8 @@ package io.github.mtrevisan.familylegacy.v2.ui.tools.reports;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.components.EvidenceQualifiersPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.PrivacyPanel;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -56,9 +58,6 @@ final class CitationRenderer{
 	private static final String TAG_LOCATOR = "locator";
 	private static final String TAG_NOTE = "note";
 	private static final String TAG_EVIDENCE = "evidence";
-	private static final String TAG_SOURCE_TYPE = "source_type";
-	private static final String TAG_INFO_TYPE = "information_type";
-	private static final String TAG_EVIDENCE_TYPE = "evidence_type";
 
 	private static final String TAG_AUDIT = "audit";
 	private static final String TAG_CREATION = "creation";
@@ -67,9 +66,6 @@ final class CitationRenderer{
 	private static final String TAG_COMMENT = "comment";
 
 	private static final String TAG_PRIVACY = "privacy";
-	private static final String TAG_LEVEL = "level";
-	private static final String TAG_REASON = "reason";
-	private static final String TAG_EXPIRES = "expires";
 
 
 	private final ReportContext ctx;
@@ -228,11 +224,11 @@ final class CitationRenderer{
 
 		final List<String> rows = new ArrayList<>();
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().evidenceSourceType(),
-			FLEFRecordHelper.getChildValue(ev, TAG_SOURCE_TYPE));
+			FLEFRecordHelper.getChildValue(ev, EvidenceQualifiersPanel.TAG_SOURCE_TYPE));
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().evidenceInformationType(),
-			FLEFRecordHelper.getChildValue(ev, TAG_INFO_TYPE));
+			FLEFRecordHelper.getChildValue(ev, EvidenceQualifiersPanel.TAG_INFORMATION_TYPE));
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().evidenceType(),
-			FLEFRecordHelper.getChildValue(ev, TAG_EVIDENCE_TYPE));
+			FLEFRecordHelper.getChildValue(ev, EvidenceQualifiersPanel.TAG_EVIDENCE_TYPE));
 
 		if(!rows.isEmpty())
 			out.add(new ReportSection.Paragraph(
@@ -328,11 +324,11 @@ final class CitationRenderer{
 
 		final List<String> rows = new ArrayList<>();
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().privacyLevel(),
-			FLEFRecordHelper.getChildValue(privacy, TAG_LEVEL));
+			FLEFRecordHelper.getChildValue(privacy, PrivacyPanel.TAG_LEVEL));
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().privacyReason(),
-			FLEFRecordHelper.getChildValue(privacy, TAG_REASON));
+			FLEFRecordHelper.getChildValue(privacy, PrivacyPanel.TAG_REASON));
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().privacyExpires(),
-			FLEFRecordHelper.getChildValue(privacy, TAG_EXPIRES));
+			FLEFRecordHelper.getChildValue(privacy, PrivacyPanel.TAG_EXPIRES));
 		if(rows.isEmpty())
 			return List.of();
 

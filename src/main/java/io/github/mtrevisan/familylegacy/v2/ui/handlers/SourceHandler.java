@@ -54,7 +54,6 @@ public class SourceHandler extends AbstractRecordTypeHandler<SourceRecordDialog>
 	public static final String TAG_AUDIT = "AUDIT";
 
 	private static final String DOT = ".";
-
 	private static final String TAG_TITLE_VALUE = TAG_TITLE + DOT + NameHandler.TAG_VALUE;
 
 

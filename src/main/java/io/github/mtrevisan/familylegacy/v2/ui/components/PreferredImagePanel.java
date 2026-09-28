@@ -61,12 +61,12 @@ import java.io.IOException;
  */
 public class PreferredImagePanel extends JPanel{
 
-	private static final String TAG_URI = "URI";
-	private static final String TAG_CROP = "CROP";
-	private static final String TAG_X = "X";
-	private static final String TAG_Y = "Y";
-	private static final String TAG_WIDTH = "WIDTH";
-	private static final String TAG_HEIGHT = "HEIGHT";
+	public static final String TAG_URI = "URI";
+	public static final String TAG_CROP = "CROP";
+	public static final String TAG_X = "X";
+	public static final String TAG_Y = "Y";
+	public static final String TAG_WIDTH = "WIDTH";
+	public static final String TAG_HEIGHT = "HEIGHT";
 
 	public static final Icon PLACEHOLDER_ICON = createPlaceholderIcon();
 

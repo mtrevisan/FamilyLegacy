@@ -51,8 +51,7 @@ public class PlaceHandler extends AbstractRecordTypeHandler<PlaceRecordDialog>{
 	public static final String TAG_AUDIT = "AUDIT";
 
 	private static final String DOT = ".";
-	private static final String TAG_VALUE = "VALUE";
-	private static final String TAG_NAME_VALUE = TAG_NAME + DOT + TAG_VALUE;
+	private static final String TAG_NAME_VALUE = TAG_NAME + DOT + NameHandler.TAG_VALUE;
 
 
 	private static final class SingletonHelper{

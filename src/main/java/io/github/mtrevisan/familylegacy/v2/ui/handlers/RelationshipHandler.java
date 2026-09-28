@@ -39,10 +39,18 @@ public class RelationshipHandler extends AbstractRecordTypeHandler<RelationshipR
 	public static final String TYPE = "RELATIONSHIP";
 	public static final String ID_PREFIX = "RL";
 
-	private static final String TAG_SUBJECT = "SUBJECT";
-	private static final String TAG_OBJECT = "OBJECT";
-	private static final String TAG_TYPE = "TYPE";
-	private static final String TAG_ROLE = "ROLE";
+	public static final String TAG_SUBJECT = "SUBJECT";
+	public static final String TAG_OBJECT = "OBJECT";
+	public static final String TAG_TYPE = "TYPE";
+	public static final String TAG_ROLE = "ROLE";
+	public static final String TAG_STATUS = "STATUS";
+	public static final String TAG_VALID_FROM = "VALID_FROM";
+	public static final String TAG_VALID_TO = "VALID_TO";
+	public static final String TAG_SOURCE = "SOURCE";
+	public static final String TAG_NOTE = "NOTE";
+	public static final String TAG_EVIDENCE = "EVIDENCE";
+	public static final String TAG_PRIVACY = "PRIVACY";
+	public static final String TAG_AUDIT = "AUDIT";
 
 
 	private static final class SingletonHelper{

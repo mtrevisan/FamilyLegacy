@@ -60,15 +60,16 @@ import java.time.temporal.ChronoUnit;
  */
 public class AuditPanel extends JPanel{
 
-	private static final String DOT = ".";
-
-	private static final String TAG_AUDIT = "AUDIT";
-	private static final String TAG_AUDIT_CREATION = TAG_AUDIT + DOT + "CREATION";
+	private static final String TAG_CREATION = "CREATION";
 	private static final String TAG_COMMENT = "COMMENT";
-	private static final String TAG_AUDIT_CREATION_COMMENT = TAG_AUDIT_CREATION + DOT + TAG_COMMENT;
 	private static final String TAG_UPDATE = "UPDATE";
 	private static final String TAG_DATE = "DATE";
 
+	private static final String DOT = ".";
+	private static final String TAG_CREATION_COMMENT = TAG_CREATION + DOT + TAG_COMMENT;
+
+
+	private final String path;
 
 	private final BindingManager bindingManager = new BindingManager();
 
@@ -83,11 +84,13 @@ public class AuditPanel extends JPanel{
 	 *
 	 * @param parent	the parent dialog (used for showing message dialogs)
 	 */
-	public AuditPanel(final Window parent){
+	public AuditPanel(final String path, final Window parent){
+		this.path = path;
+
 		creationPanel = new JPanel(new MigLayout("fillx", "[grow]"));
 
-		creationCommentArea = new BoundTextArea(TAG_AUDIT_CREATION_COMMENT, 3, 25);
-		updateListPanel = new BasicNoteListPanel(TAG_UPDATE, parent, "Updates", TAG_COMMENT);
+		creationCommentArea = new BoundTextArea(path + DOT + TAG_CREATION_COMMENT, 3, 25);
+		updateListPanel = new BasicNoteListPanel(path + DOT + TAG_UPDATE, parent, "Updates", TAG_COMMENT);
 
 
 		initComponents();
@@ -120,17 +123,15 @@ public class AuditPanel extends JPanel{
 			return;
 
 		// creation.date
-		final FLEFRecord creation = FLEFRecordHelper.findChild(record, TAG_AUDIT_CREATION);
-		creationDate = FLEFRecordHelper.getChildValue(creation, TAG_DATE);
+		final FLEFRecord creation = FLEFRecordHelper.findChild(record, path + DOT + TAG_CREATION);
+		creationDate = FLEFRecordHelper.getChildValue(creation, path + DOT + TAG_DATE);
 
 		if(creationDate != null)
 			creationPanel.setBorder(new TitledBorder("Creation Comment (" + creationDate + ")"));
 
 		bindingManager.load(record);
 
-		// update.comment
-		final FLEFRecord audit = FLEFRecordHelper.findChild(record, TAG_AUDIT);
-		updateListPanel.load(audit);
+		updateListPanel.load(record);
 	}
 
 	/**
@@ -140,16 +141,15 @@ public class AuditPanel extends JPanel{
 	 */
 	public void save(final FLEFRecord record){
 		// creation.date
-		final FLEFRecord creation = FLEFRecordHelper.getOrCreateTargetNode(record, TAG_AUDIT_CREATION);
+		final FLEFRecord creation = FLEFRecordHelper.getOrCreateTargetNode(record, path + DOT + TAG_CREATION);
 		if(StringUtils.isEmpty(creationDate))
 			creationDate = DateTimeFormatter.ISO_INSTANT.format(Instant.now().truncatedTo(ChronoUnit.SECONDS));
-		FLEFRecordHelper.addChildValue(creation, TAG_DATE, creationDate);
+		FLEFRecordHelper.addChildValue(creation, path + DOT + TAG_DATE, creationDate);
 
 		bindingManager.save(record);
 
 		// update
-		final FLEFRecord audit = FLEFRecordHelper.getOrCreateTargetNode(record, TAG_AUDIT);
-		updateListPanel.save(audit);
+		updateListPanel.save(record);
 	}
 
 	public void clear(){

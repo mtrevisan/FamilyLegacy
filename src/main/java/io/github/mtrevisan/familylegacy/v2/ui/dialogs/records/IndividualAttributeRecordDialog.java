@@ -86,18 +86,6 @@ import java.io.IOException;
  */
 public class IndividualAttributeRecordDialog extends BaseRecordDialog{
 
-	private static final String TAG_INDIVIDUAL = "INDIVIDUAL";
-	private static final String TAG_TYPE = "TYPE";
-	private static final String TAG_VALUE = "VALUE";
-	private static final String TAG_VALID_FROM = "VALID_FROM";
-	private static final String TAG_VALID_TO = "VALID_TO";
-	private static final String TAG_SOURCE = "SOURCE";
-	private static final String TAG_EVIDENCE = "EVIDENCE";
-	private static final String TAG_NOTE = "NOTE";
-	private static final String TAG_PRIVACY = "PRIVACY";
-	private static final String TAG_AUDIT = "AUDIT";
-
-
 	private final JPanel propertiesPanel;
 
 	private final BoundComboBox<String> typeCombo;
@@ -122,16 +110,16 @@ public class IndividualAttributeRecordDialog extends BaseRecordDialog{
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]5[]10[]10[]10[]");
 
-		typeCombo = new BoundComboBox<>(TAG_TYPE, new String[]{
+		typeCombo = new BoundComboBox<>(IndividualAttributeHandler.TAG_TYPE, new String[]{
 			StringUtils.EMPTY,
 			"characteristic", "residence", "occupation", "possession", "military_rank", "caste", "social_class",
 			"ethnicity", "citizenship", "nationality", "ssn", "title", "children_count", "marriages_count",
 			"religion", "language", "literacy", "education"
 		});
 		typeCombo.setEditable(true);
-		valueField = new BoundTextField(TAG_VALUE);
-		validFromField = DateField.createWithWrapperTag(TAG_VALID_FROM, this, "Valid From", model);
-		validToField = DateField.createWithWrapperTag(TAG_VALID_TO, this, "Valid To", model);
+		valueField = new BoundTextField(IndividualAttributeHandler.TAG_VALUE);
+		validFromField = DateField.createWithWrapperTag(IndividualAttributeHandler.TAG_VALID_FROM, this, "Valid From", model);
+		validToField = DateField.createWithWrapperTag(IndividualAttributeHandler.TAG_VALID_TO, this, "Valid To", model);
 		placeField = EntityField.createForStructureWithReference(PlaceHandler.TYPE, this, model, PlaceCitationHandler.class);
 
 		// Build common panels using the builder
@@ -139,11 +127,11 @@ public class IndividualAttributeRecordDialog extends BaseRecordDialog{
 			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, ContextImpactHandler.TYPE, "Context Impacts")
 			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, "Conclusions")
 			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, "Research Questions")
-			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources with Citations")
-			.withComponent(PanelKey.NOTE, TAG_NOTE, null)
-			.withComponent(PanelKey.EVIDENCE, TAG_EVIDENCE, "Evidence")
-			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null)
-			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null)
+			.withComponent(PanelKey.SOURCE, IndividualAttributeHandler.TAG_SOURCE, "Sources with Citations")
+			.withComponent(PanelKey.NOTE, IndividualAttributeHandler.TAG_NOTE, null)
+			.withComponent(PanelKey.EVIDENCE, IndividualAttributeHandler.TAG_EVIDENCE, "Evidence")
+			.withComponent(PanelKey.PRIVACY, IndividualAttributeHandler.TAG_PRIVACY, null)
+			.withComponent(PanelKey.AUDIT, IndividualAttributeHandler.TAG_AUDIT, null)
 			.build();
 
 		components.bind(typeCombo);
@@ -271,7 +259,7 @@ public class IndividualAttributeRecordDialog extends BaseRecordDialog{
 	@Override
 	protected void loadData(){
 		// load parent individual reference
-		final String individualId = FLEFRecordHelper.getChildValue(record, TAG_INDIVIDUAL);
+		final String individualId = FLEFRecordHelper.getChildValue(record, IndividualAttributeHandler.TAG_INDIVIDUAL);
 		if(StringUtils.isNotEmpty(individualId)){
 			final FLEFRecord temporary = FLEFRecord.createMainRecord(individualId, IndividualHandler.TYPE);
 			withParentEntity(temporary);
@@ -313,7 +301,7 @@ public class IndividualAttributeRecordDialog extends BaseRecordDialog{
 	@Override
 	protected void saveData(){
 		record.getChildren()
-			.removeIf(child -> TAG_INDIVIDUAL.equalsIgnoreCase(child.getTag()));
+			.removeIf(child -> IndividualAttributeHandler.TAG_INDIVIDUAL.equalsIgnoreCase(child.getTag()));
 		record.addChild(FLEFRecord.createChildWithTagAndValue(parentEntity.getPath(), parentEntity.getText()));
 
 

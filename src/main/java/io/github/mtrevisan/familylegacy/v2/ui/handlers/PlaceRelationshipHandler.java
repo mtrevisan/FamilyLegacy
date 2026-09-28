@@ -37,10 +37,15 @@ public class PlaceRelationshipHandler extends AbstractRecordTypeHandler<PlaceRel
 	public static final String TYPE = "PLACE_RELATIONSHIP";
 	public static final String ID_PREFIX = "PR";
 
-
-	private static final String TAG_SUBJECT = "SUBJECT";
-	private static final String TAG_OBJECT = "OBJECT";
-	private static final String TAG_TYPE = "TYPE";
+	public static final String TAG_SUBJECT = "SUBJECT";
+	public static final String TAG_OBJECT = "OBJECT";
+	public static final String TAG_TYPE = "TYPE";
+	public static final String TAG_VALID_FROM = "VALID_FROM";
+	public static final String TAG_VALID_TO = "VALID_TO";
+	public static final String TAG_SOURCE = "SOURCE";
+	public static final String TAG_NOTE = "NOTE";
+	public static final String TAG_EVIDENCE = "EVIDENCE";
+	public static final String TAG_AUDIT = "AUDIT";
 
 
 	private static final class SingletonHelper{

@@ -100,9 +100,6 @@ public final class ResearchHelper{
 	public static final String TAG_IDENTITY = "identity";
 	public static final String TAG_COMMENT = "comment";
 	public static final String TAG_EVIDENCE = "evidence";
-	public static final String TAG_SOURCE_TYPE = "source_type";
-	public static final String TAG_INFORMATION_TYPE = "information_type";
-	public static final String TAG_EVIDENCE_TYPE = "evidence_type";
 
 
 	private ResearchHelper(){

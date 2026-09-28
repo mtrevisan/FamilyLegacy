@@ -33,6 +33,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.projections.partners.Pa
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.ProjectionMutator;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18n;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolOperation;
 
@@ -50,7 +51,7 @@ public final class AddChildTool implements ToolOperation{
 
 	@Override
 	public String getName(){
-		return "Add Child…";
+		return I18n.t("menu.individual.add.child");
 	}
 
 	@Override

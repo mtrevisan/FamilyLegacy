@@ -152,8 +152,8 @@ public class ResearchQuestionRecordDialog extends BaseRecordDialog{
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
 			.withComponent(PanelKey.CONCLUSION_ON_RESEARCH, ConclusionHandler.TYPE, "Conclusions")
-			.withComponent(PanelKey.RESEARCH_ACTIVITY_ON_QUESTION, ResearchActivityHandler.TAG_RESEARCH_ACTIVITY, "Research Activities")
-			.withComponent(PanelKey.RESEARCH_TASK_ON_QUESTION, ResearchTaskHandler.TAG_RESEARCH_TASK, "Research Tasks")
+			.withComponent(PanelKey.RESEARCH_ACTIVITY_ON_QUESTION, ResearchActivityHandler.TYPE, "Research Activities")
+			.withComponent(PanelKey.RESEARCH_TASK_ON_QUESTION, ResearchTaskHandler.TYPE, "Research Tasks")
 			.withComponent(PanelKey.PRIVACY, ResearchQuestionHandler.TAG_PRIVACY, null)
 			.withComponent(PanelKey.AUDIT, ResearchQuestionHandler.TAG_AUDIT, null)
 			.build();

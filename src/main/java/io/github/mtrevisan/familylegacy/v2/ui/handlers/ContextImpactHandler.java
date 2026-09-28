@@ -39,9 +39,14 @@ public class ContextImpactHandler extends AbstractRecordTypeHandler<ContextImpac
 	public static final String TYPE = "CONTEXT_IMPACT";
 	public static final String ID_PREFIX = "CI";
 
-	private static final String TAG_CONTEXT = "CONTEXT";
-	private static final String TAG_TARGET = "TARGET";
-	private static final String TAG_IMPACT_TYPE = "IMPACT_TYPE";
+	public static final String TAG_CONTEXT = "CONTEXT";
+	public static final String TAG_TARGET = "TARGET";
+	public static final String TAG_IMPACT_TYPE = "IMPACT_TYPE";
+	public static final String TAG_RATIONALE = "RATIONALE";
+	public static final String TAG_CONFIDENCE = "CONFIDENCE";
+	public static final String TAG_SOURCE = "SOURCE";
+	public static final String TAG_EVIDENCE = "EVIDENCE";
+	public static final String TAG_AUDIT = "AUDIT";
 
 
 	private static final class SingletonHelper{

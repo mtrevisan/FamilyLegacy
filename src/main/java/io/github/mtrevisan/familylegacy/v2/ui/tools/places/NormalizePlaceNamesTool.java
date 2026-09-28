@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.tools.places;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18n;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ReportDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolOperation;
@@ -57,7 +58,7 @@ public final class NormalizePlaceNamesTool implements ToolOperation{
 
 	@Override
 	public String getName(){
-		return "Normalize Place Names…";
+		return I18n.t("menu.place.normalize.place.names");
 	}
 
 	@Override

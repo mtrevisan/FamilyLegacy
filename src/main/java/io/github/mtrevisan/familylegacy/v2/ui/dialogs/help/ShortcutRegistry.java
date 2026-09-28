@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.dialogs.help;
 
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18n;
+
 import javax.swing.KeyStroke;
 import java.awt.Toolkit;
 import java.awt.event.InputEvent;
@@ -75,10 +77,10 @@ public final class ShortcutRegistry{
 
 	public static final ShortcutDefinition EDIT_UNDO = register("Edit", "Undo", KeyStroke.getKeyStroke(KeyEvent.VK_Z, MENU_MASK), (IS_MAC? "⌘Z": "Ctrl+Z"));
 	public static final ShortcutDefinition EDIT_REDO = register("Edit", "Redo", KeyStroke.getKeyStroke(KeyEvent.VK_Y, MENU_MASK), KeyStroke.getKeyStroke(KeyEvent.VK_Z, MENU_MASK | InputEvent.SHIFT_DOWN_MASK), (IS_MAC? "⌘⇧Z": "Ctrl+Y"));
-	public static final ShortcutDefinition EDIT_RELOCATE = register("Edit", "Relocate", KeyStroke.getKeyStroke(KeyEvent.VK_X, MENU_MASK), "Ctrl+X");
-	public static final ShortcutDefinition EDIT_DELETE = register("Edit", "Delete", KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "Del");
-	public static final ShortcutDefinition EDIT_SELECTION_INDIVIDUAL = register("Edit", "Edit Individual…", KeyStroke.getKeyStroke(KeyEvent.VK_F2, 0), "F2");
-	public static final ShortcutDefinition EDIT_SELECTION_GROUP = register("Edit", "Edit Group…", KeyStroke.getKeyStroke(KeyEvent.VK_F2, 0), "F2");
+	public static final ShortcutDefinition EDIT_RELOCATE = register("Edit", I18n.t("menu.individual.relocate"), KeyStroke.getKeyStroke(KeyEvent.VK_X, MENU_MASK), "Ctrl+X");
+	public static final ShortcutDefinition EDIT_DELETE = register("Edit", I18n.t("menu.individual.delete"), KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "Del");
+	public static final ShortcutDefinition EDIT_SELECTION_INDIVIDUAL = register("Edit", I18n.t("menu.individual.edit.individual"), KeyStroke.getKeyStroke(KeyEvent.VK_F2, 0), "F2");
+	public static final ShortcutDefinition EDIT_SELECTION_GROUP = register("Edit", I18n.t("menu.group.edit.group"), KeyStroke.getKeyStroke(KeyEvent.VK_F2, 0), "F2");
 
 	public static final ShortcutDefinition VIEW_ANCESTOR_TREE = register("View", "Ancestor tree", KeyStroke.getKeyStroke(KeyEvent.VK_1, MENU_MASK), "Ctrl+1");
 	public static final ShortcutDefinition VIEW_SUGIYAMA_GRAPH = register("View", "Sugiyama graph", KeyStroke.getKeyStroke(KeyEvent.VK_2, MENU_MASK), "Ctrl+2");

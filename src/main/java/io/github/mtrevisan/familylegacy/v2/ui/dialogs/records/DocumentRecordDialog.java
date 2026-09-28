@@ -35,6 +35,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.DocumentHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
@@ -70,15 +71,6 @@ import java.io.IOException;
  */
 public class DocumentRecordDialog extends BaseRecordDialog{
 
-	private static final String TAG_URI = "URI";
-	private static final String TAG_MAPPING = "MAPPING";
-	private static final String TAG_DESCRIPTION = "DESCRIPTION";
-	private static final String TAG_SOURCE = "SOURCE";
-	private static final String TAG_NOTE = "NOTE";
-	private static final String TAG_PRIVACY = "PRIVACY";
-	private static final String TAG_AUDIT = "AUDIT";
-
-
 	private final JPanel propertiesPanel;
 
 	private final BoundTextField uriField;
@@ -100,7 +92,7 @@ public class DocumentRecordDialog extends BaseRecordDialog{
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]5[]10[]");
 
-		uriField = new BoundTextField(TAG_URI);
+		uriField = new BoundTextField(DocumentHandler.TAG_URI);
 		BindingsHelper.installBehavior(uriField,
 			this::setNewItem, null,
 			null, null,
@@ -109,20 +101,20 @@ public class DocumentRecordDialog extends BaseRecordDialog{
 				builder.separator();
 				builder.selectionSensitiveItem("Clear", uriField::clear);
 			});
-		mappingCombo = new BoundComboBox<>(TAG_MAPPING, new String[]{
+		mappingCombo = new BoundComboBox<>(DocumentHandler.TAG_MAPPING, new String[]{
 			StringUtils.EMPTY,
 			"planar", "spherical_equirectangular", "spherical_uv", "cubemap", "cylindrical_equirectangular_horizontal",
 			"cylindrical_equirectangular_vertical"});
 		mappingCombo.setEditable(true);
-		descriptionArea = new BoundTextArea(TAG_DESCRIPTION, 3, 25);
+		descriptionArea = new BoundTextArea(DocumentHandler.TAG_DESCRIPTION, 3, 25);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
 			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, "Research Questions")
-			.withComponent(PanelKey.SOURCE_ON_DOCUMENT, TAG_SOURCE, "Sources")
-			.withComponent(PanelKey.NOTE, TAG_NOTE, null)
-			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null)
-			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null)
+			.withComponent(PanelKey.SOURCE_ON_DOCUMENT, SourceHandler.TYPE, "Sources")
+			.withComponent(PanelKey.NOTE, DocumentHandler.TAG_NOTE, null)
+			.withComponent(PanelKey.PRIVACY, DocumentHandler.TAG_PRIVACY, null)
+			.withComponent(PanelKey.AUDIT, DocumentHandler.TAG_AUDIT, null)
 			.build();
 
 		components.bind(uriField);

@@ -101,9 +101,20 @@ public final class ResearchQuestionsDialog extends JDialog{
 		toolbar.add(new JLabel("Search:"));
 		toolbar.add(searchField);
 		searchField.getDocument().addDocumentListener(new DocumentListener(){
-			@Override public void insertUpdate(final DocumentEvent e){ applyFilter(); }
-			@Override public void removeUpdate(final DocumentEvent e){ applyFilter(); }
-			@Override public void changedUpdate(final DocumentEvent e){ applyFilter(); }
+			@Override
+			public void insertUpdate(final DocumentEvent e){
+				applyFilter();
+			}
+
+			@Override
+			public void removeUpdate(final DocumentEvent e){
+				applyFilter();
+			}
+
+			@Override
+			public void changedUpdate(final DocumentEvent e){
+				applyFilter();
+			}
 		});
 
 		final JButton newButton = new JButton("New…");
@@ -163,14 +174,11 @@ public final class ResearchQuestionsDialog extends JDialog{
 		final FLEFModel model = context.model();
 
 		final Map<String, Integer> activityCounts =
-			ResearchHelper.countReferences(ResearchHelper.listActivities(model),
-				ResearchHelper.TAG_QUESTION);
+			ResearchHelper.countReferences(ResearchHelper.listActivities(model), ResearchHelper.TAG_QUESTION);
 		final Map<String, Integer> taskCounts =
-			ResearchHelper.countReferences(ResearchHelper.listTasks(model),
-				ResearchHelper.TAG_QUESTION);
+			ResearchHelper.countReferences(ResearchHelper.listTasks(model), ResearchHelper.TAG_QUESTION);
 		final Map<String, Integer> conclusionCounts =
-			ResearchHelper.countReferences(ResearchHelper.listConclusions(model),
-				ResearchHelper.TAG_QUESTION);
+			ResearchHelper.countReferences(ResearchHelper.listConclusions(model), ResearchHelper.TAG_QUESTION);
 
 		final List<ResearchHelper.QuestionRow> rows = new ArrayList<>();
 		for(final FLEFRecord q : ResearchHelper.listQuestions(model))

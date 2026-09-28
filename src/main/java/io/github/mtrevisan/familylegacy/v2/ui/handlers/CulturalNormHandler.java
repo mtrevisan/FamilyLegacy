@@ -41,7 +41,15 @@ public class CulturalNormHandler extends AbstractRecordTypeHandler<CulturalNormR
 	public static final String TYPE = "CULTURAL_NORM";
 	public static final String ID_PREFIX = "CN";
 
-	private static final String TAG_TITLE = "TITLE";
+	public static final String TAG_TITLE = "TITLE";
+	public static final String TAG_RULE_TYPE = "RULE_TYPE";
+	public static final String TAG_PLACE = "PLACE";
+	public static final String TAG_VALID_FROM = "VALID_FROM";
+	public static final String TAG_VALID_TO = "VALID_TO";
+	public static final String TAG_NOTE = "NOTE";
+	public static final String TAG_SOURCE = "SOURCE";
+	public static final String TAG_EVIDENCE = "EVIDENCE";
+	public static final String TAG_AUDIT = "AUDIT";
 
 
 	private static final class SingletonHelper{

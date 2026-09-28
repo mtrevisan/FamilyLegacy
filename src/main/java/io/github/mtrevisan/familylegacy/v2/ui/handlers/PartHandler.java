@@ -43,9 +43,6 @@ public class PartHandler extends AbstractRecordTypeHandler<PartStructureDialog>{
 	public static final String TAG_VALUE = "VALUE";
 	public static final String TAG_VARIANT = "VARIANT";
 
-	public static final String TAG_PHONETIC = "PHONETIC";
-	public static final String TAG_TRANSCRIPTION = "TRANSCRIPTION";
-
 
 	private static final class SingletonHelper{
 		private static final PartHandler INSTANCE = new PartHandler();
@@ -93,7 +90,8 @@ public class PartHandler extends AbstractRecordTypeHandler<PartStructureDialog>{
 		// If it is a low-level element with no meaningful ID, the variant count is shown
 		int variantCount = 0;
 		for(final FLEFRecord child : FLEFRecordHelper.findChildren(record, TAG_VARIANT))
-			if(Strings.CI.equals(TAG_PHONETIC, child.getTag()) || Strings.CI.equals(TAG_TRANSCRIPTION, child.getTag()))
+			if(Strings.CI.equals(TextValueVariantHandler.TAG_PHONETIC, child.getTag())
+					|| Strings.CI.equals(TextValueVariantHandler.TAG_TRANSCRIPTION, child.getTag()))
 				variantCount ++;
 
 		if(variantCount > 0)

@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextField;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -39,15 +40,6 @@ import javax.swing.JPanel;
  * Provides visual indicators, status combo, and close/reopen buttons (mutually exclusive).
  */
 public class ResearchQuestionStatusPanel extends JPanel{
-
-	private static final String TAG_STATUS = "STATUS";
-	private static final String TAG_CLOSED_DATE = "CLOSED_DATE";
-
-	private static final String STATUS_OPEN = "open";
-	private static final String STATUS_ON_HOLD = "on_hold";
-	private static final String STATUS_RESOLVED = "resolved";
-	private static final String STATUS_DISPROVEN = "disproven";
-
 
 	private final BindingManager bindingManager = new BindingManager();
 
@@ -63,9 +55,10 @@ public class ResearchQuestionStatusPanel extends JPanel{
 		statusIcon = new StatusIconLabel();
 
 		// Status combo
-		statusCombo = new BoundComboBox<>(TAG_STATUS, new String[]{
-			STATUS_OPEN, STATUS_ON_HOLD, STATUS_RESOLVED, STATUS_DISPROVEN});
-		statusCombo.setSelectedItem(STATUS_OPEN);
+		statusCombo = new BoundComboBox<>(ResearchQuestionHandler.TAG_STATUS, new String[]{
+			ResearchQuestionHandler.ENUM_STATUS_OPEN, ResearchQuestionHandler.ENUM_STATUS_ON_HOLD,
+			ResearchQuestionHandler.ENUM_STATUS_RESOLVED, ResearchQuestionHandler.ENUM_STATUS_DISPROVEN});
+		statusCombo.setSelectedItem(ResearchQuestionHandler.ENUM_STATUS_OPEN);
 
 		// Button card panel with Close and Reopen buttons (same position)
 //		buttonCardLayout = new CardLayout();
@@ -82,7 +75,7 @@ public class ResearchQuestionStatusPanel extends JPanel{
 //		buttonCardPanel.add(closeButton, "close");
 //		buttonCardPanel.add(reopenButton, "reopen");
 
-		closedDate = new BoundTextField(TAG_CLOSED_DATE);
+		closedDate = new BoundTextField(ResearchQuestionHandler.TAG_CLOSED_DATE);
 		closedDate.setEnabled(false);
 
 
@@ -110,7 +103,7 @@ public class ResearchQuestionStatusPanel extends JPanel{
 	private void updateUIState(){
 		String status = (String)statusCombo.getSelectedItem();
 		if(status == null){
-			status = STATUS_OPEN;
+			status = ResearchQuestionHandler.ENUM_STATUS_OPEN;
 			statusCombo.setSelectedItem(status);
 		}
 
@@ -120,10 +113,10 @@ public class ResearchQuestionStatusPanel extends JPanel{
 
 		// Update tooltip
 		final String tooltip = switch(status){
-			case STATUS_OPEN -> "Open";
-			case STATUS_ON_HOLD -> "On Hold";
-			case STATUS_RESOLVED -> "Resolved" + (!closedDate.isEmpty()? " on " + closedDate.getText(): StringUtils.EMPTY);
-			case STATUS_DISPROVEN -> "Disproven" + (!closedDate.isEmpty()? " on " + closedDate.getText(): StringUtils.EMPTY);
+			case ResearchQuestionHandler.ENUM_STATUS_OPEN -> "Open";
+			case ResearchQuestionHandler.ENUM_STATUS_ON_HOLD -> "On Hold";
+			case ResearchQuestionHandler.ENUM_STATUS_RESOLVED -> "Resolved" + (!closedDate.isEmpty()? " on " + closedDate.getText(): StringUtils.EMPTY);
+			case ResearchQuestionHandler.ENUM_STATUS_DISPROVEN -> "Disproven" + (!closedDate.isEmpty()? " on " + closedDate.getText(): StringUtils.EMPTY);
 			default -> "Unknown";
 		};
 		statusIcon.setToolTipText(tooltip);
@@ -159,7 +152,7 @@ public class ResearchQuestionStatusPanel extends JPanel{
 			return;
 
 		if(!statusCombo.isEnabled())
-			statusCombo.setSelectedItem(STATUS_OPEN);
+			statusCombo.setSelectedItem(ResearchQuestionHandler.ENUM_STATUS_OPEN);
 	}
 
 	public void save(final FLEFRecord record){

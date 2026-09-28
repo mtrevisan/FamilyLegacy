@@ -43,9 +43,17 @@ public class IndividualAttributeHandler extends AbstractRecordTypeHandler<Indivi
 	public static final String TYPE = "INDIVIDUAL_ATTRIBUTE";
 	public static final String ID_PREFIX = "IA";
 
-	private static final String TAG_TYPE = "TYPE";
-	private static final String TAG_VALUE = "VALUE";
-	private static final String TAG_INDIVIDUAL = "INDIVIDUAL";
+	public static final String TAG_INDIVIDUAL = "INDIVIDUAL";
+	public static final String TAG_TYPE = "TYPE";
+	public static final String TAG_VALUE = "VALUE";
+	public static final String TAG_VALID_FROM = "VALID_FROM";
+	public static final String TAG_VALID_TO = "VALID_TO";
+	public static final String TAG_PLACE = "PLACE";
+	public static final String TAG_SOURCE = "SOURCE";
+	public static final String TAG_NOTE = "NOTE";
+	public static final String TAG_EVIDENCE = "EVIDENCE";
+	public static final String TAG_PRIVACY = "PRIVACY";
+	public static final String TAG_AUDIT = "AUDIT";
 
 
 	private static final class SingletonHelper{

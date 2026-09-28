@@ -29,7 +29,9 @@ import net.miginfocom.swing.MigLayout;
 import javax.swing.BorderFactory;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
+import java.awt.GridLayout;
 
 
 /**
@@ -40,9 +42,18 @@ import javax.swing.JPanel;
  * about the report in terms of intent (privacy, content, diagnostics, ...)
  * rather than by the underlying field order.</p>
  *
- * <p>{@link #toConfig(ReportLanguage)} reads the current state of the widgets and returns
- * a fresh immutable {@link ReportConfig}. The panel itself holds no state
- * beyond the widgets, so it can be shown, hidden or rebuilt without
+ * <p>Groups that lay their checkboxes out in two columns use
+ * {@link GridLayout} rather than {@link MigLayout}: because {@code GridLayout}
+ * forces both columns to the same width (half of the panel minus the gap),
+ * the split point is identical across every two-column group, and the
+ * checkboxes of the second column line up vertically from section to
+ * section. With {@code MigLayout} each group would compute its own column
+ * widths from its own natural content, producing the misalignment this
+ * layout is designed to prevent.</p>
+ *
+ * <p>{@link #toConfig(ReportLanguage)} reads the current state of the widgets
+ * and returns a fresh immutable {@link ReportConfig}. The panel itself holds
+ * no state beyond the widgets, so it can be shown, hidden or rebuilt without
  * leaking anything.</p>
  */
 public final class ReportOptionsPanel extends JPanel{
@@ -67,6 +78,7 @@ public final class ReportOptionsPanel extends JPanel{
 	private final JCheckBox descendants = cb("Descendants");
 	private final JCheckBox directRel = cb("Direct relations");
 	private final JCheckBox indirectRel = cb("Indirect relations");
+	private final JComboBox<CollateralScope> collaterals = new JComboBox<>(CollateralScope.values());
 
 
 	/* ======================================================================
@@ -157,6 +169,7 @@ public final class ReportOptionsPanel extends JPanel{
 		descendants.setSelected(initial.descendants());
 		directRel.setSelected(initial.directRelations());
 		indirectRel.setSelected(initial.indirectRelations());
+		collaterals.setSelectedItem(initial.collateralScope());
 
 		notes.setSelected(initial.notes());
 		sources.setSelected(initial.sources());
@@ -211,6 +224,7 @@ public final class ReportOptionsPanel extends JPanel{
 			descendants.isSelected(),
 			directRel.isSelected(),
 			indirectRel.isSelected(),
+			(CollateralScope)collaterals.getSelectedItem(),
 			notes.isSelected(),
 			sources.isSelected(),
 			media.isSelected(),
@@ -249,8 +263,12 @@ public final class ReportOptionsPanel extends JPanel{
 	}
 
 
+	/**
+	 * Two-column group. Uses {@link GridLayout} so both columns have exactly
+	 * the same width, regardless of the natural width of the labels.
+	 */
 	private JPanel narrativeGroup(){
-		final JPanel p = new JPanel(new MigLayout("ins 4 8 8 8,wrap 2,fillx", "[grow,fill]12[grow,fill]", "[]2[]2[]"));
+		final JPanel p = new JPanel(new GridLayout(0, 2, 12, 2));
 		p.setBorder(BorderFactory.createTitledBorder("Narrative"));
 		p.add(introduction);
 		p.add(descendants);
@@ -258,12 +276,15 @@ public final class ReportOptionsPanel extends JPanel{
 		p.add(directRel);
 		p.add(maternal);
 		p.add(indirectRel);
+		// A small label + combo, still inside the grid.
+		p.add(new JLabel("Collaterals:"));
+		p.add(collaterals);
 		return p;
 	}
 
 
 	private JPanel contentGroup(){
-		final JPanel p = new JPanel(new MigLayout("ins 4 8 8 8,wrap 2,fillx", "[grow,fill]12[grow,fill]", "[]2[]2[]2[]"));
+		final JPanel p = new JPanel(new GridLayout(0, 2, 12, 2));
 		p.setBorder(BorderFactory.createTitledBorder("Content sections"));
 		p.add(notes);
 		p.add(contextResearch);
@@ -278,7 +299,7 @@ public final class ReportOptionsPanel extends JPanel{
 
 
 	private JPanel groupsGroup(){
-		final JPanel p = new JPanel(new MigLayout("ins 4 8 8 8,wrap 1,fillx", "[grow,fill]", "[]2[]2[]2[]"));
+		final JPanel p = new JPanel(new GridLayout(0, 2, 12, 2));
 		p.setBorder(BorderFactory.createTitledBorder("Group report"));
 		p.add(groups);
 		p.add(groupMembers);
@@ -289,7 +310,7 @@ public final class ReportOptionsPanel extends JPanel{
 
 
 	private JPanel diagnosticsGroup(){
-		final JPanel p = new JPanel(new MigLayout("ins 4 8 8 8,wrap 1,fillx", "[grow,fill]", "[]2[]2[]2[]"));
+		final JPanel p = new JPanel(new GridLayout(0, 2, 12, 2));
 		p.setBorder(BorderFactory.createTitledBorder("Diagnostics"));
 		p.add(eventFull);
 		p.add(dateProvenance);

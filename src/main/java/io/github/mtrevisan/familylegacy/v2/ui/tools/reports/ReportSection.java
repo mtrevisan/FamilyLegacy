@@ -30,11 +30,14 @@ import java.util.List;
 
 public sealed interface ReportSection{
 
-	record Heading(int level, String text) implements ReportSection{}
+	record Heading(int level, String text) implements ReportSection{
+	}
 
-	record Paragraph(String text) implements ReportSection{}
+	record Paragraph(String text) implements ReportSection{
+	}
 
-	record Spacer() implements ReportSection{}
+	record Spacer() implements ReportSection{
+	}
 
 	record BulletList(List<String> items) implements ReportSection{
 		public BulletList{
@@ -49,10 +52,13 @@ public sealed interface ReportSection{
 		}
 	}
 
-	record Image(Path file, String caption) implements ReportSection{}
+	record Image(Path file, String caption) implements ReportSection{
+	}
 
-	record PageBreak() implements ReportSection{}
+	record PageBreak() implements ReportSection{
+	}
 
-	record HorizontalRule() implements ReportSection{}
+	record HorizontalRule() implements ReportSection{
+	}
 
 }

@@ -47,6 +47,7 @@ public record ReportConfig(
 	boolean directRelations,
 	// Additional sections
 	boolean indirectRelations,
+	CollateralScope collateralScope,
 	boolean notes,
 	boolean sources,
 	boolean media,
@@ -96,6 +97,7 @@ public record ReportConfig(
 			true,   // descendants
 			true,   // directRelations
 			false,  // indirectRelations
+			CollateralScope.NONE,
 			true,   // notes
 			true,   // sources
 			true,   // media

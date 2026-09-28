@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.v2.io.model;
 
+import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceCitationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
@@ -53,39 +55,22 @@ public final class FLEFRecordHelper{
 	private static final String DOT = ".";
 
 	private static final String TAG_DATE = "date";
-	private static final String TAG_VALUE = "value";
-	private static final String TAG_POINT = "point";
-	private static final String TAG_BOUNDED = "bounded";
-	private static final String TAG_NOT_BEFORE = "not_before";
-	private static final String TAG_NOT_AFTER = "not_after";
-	private static final String TAG_SPANNING = "spanning";
-	private static final String TAG_FROM = "from";
-	private static final String TAG_TO = "to";
-	private static final String TAG_FULL_DATE = "full_date";
-	private static final String TAG_DECADE = "decade";
-	private static final String TAG_START_YEAR = "start_year";
-	private static final String TAG_CENTURY = "century";
-	private static final String TAG_ORDINAL = "ordinal";
-	private static final String TAG_PART = "part";
 	private static final String TAG_NAME = "name";
-	private static final String TAG_ORIGINAL_TEXT = "original_text";
-	private static final String TAG_APPROXIMATE = "approximate";
-	private static final String TAG_BASIS = "basis";
-	private static final String TAG_CENTURY_APPROXIMATE_BASIS = TAG_CENTURY + DOT + TAG_APPROXIMATE + DOT + TAG_BASIS;
-	private static final String TAG_DECADE_APPROXIMATE_BASIS = TAG_DECADE + DOT + TAG_APPROXIMATE + DOT + TAG_BASIS;
-	private static final String TAG_FULL_DATE_APPROXIMATE_BASIS = TAG_FULL_DATE + DOT + TAG_APPROXIMATE + DOT + TAG_BASIS;
+	private static final String TAG_CENTURY_APPROXIMATE_BASIS = DateField.TAG_CENTURY + DOT + DateField.TAG_APPROXIMATE + DOT + DateField.TAG_BASIS;
+	private static final String TAG_DECADE_APPROXIMATE_BASIS = DateField.TAG_DECADE + DOT + DateField.TAG_APPROXIMATE + DOT + DateField.TAG_BASIS;
+	private static final String TAG_FULL_DATE_APPROXIMATE_BASIS = DateField.TAG_FULL_DATE + DOT + DateField.TAG_APPROXIMATE + DOT + DateField.TAG_BASIS;
 	private static final String TAG_PLACE_PLACE = PlaceHandler.TYPE + DOT + PlaceHandler.TYPE;
-	private static final String TAG_DATE_VALUE_BOUNDED_NOT_BEFORE = TAG_DATE + DOT + TAG_VALUE + DOT + TAG_BOUNDED + DOT + TAG_NOT_BEFORE;
-	private static final String TAG_DATE_VALUE_BOUNDED_NOT_AFTER = TAG_DATE + DOT + TAG_VALUE + DOT + TAG_BOUNDED + DOT + TAG_NOT_AFTER;
-	private static final String TAG_DATE_VALUE_SPANNING_FROM = TAG_DATE + DOT + TAG_VALUE + DOT + TAG_SPANNING + DOT + TAG_FROM;
-	private static final String TAG_DATE_VALUE_SPANNING_TO = TAG_DATE + DOT + TAG_VALUE + DOT + TAG_SPANNING + DOT + TAG_TO;
-	private static final String TAG_FULL_DATE_VALUE = TAG_FULL_DATE + DOT + TAG_VALUE;
-	private static final String TAG_DECADE_START_YEAR = TAG_DECADE + DOT + TAG_START_YEAR;
-	private static final String TAG_CENTURY_ORDINAL = TAG_CENTURY + DOT + TAG_ORDINAL;
-	private static final String TAG_NAME0_VALUE = TAG_NAME + "[0]" + DOT + TAG_VALUE;
-	private static final String TAG_CENTURY_PART = TAG_CENTURY + DOT + TAG_PART;
-	private static final String TAG_PLACE_ORIGINAL_TEXT = PlaceHandler.TYPE + DOT + TAG_ORIGINAL_TEXT;
-	private static final String TAG_DATE_ORIGINAL_TEXT = TAG_DATE + DOT + TAG_ORIGINAL_TEXT;
+	private static final String TAG_DATE_VALUE_BOUNDED_NOT_BEFORE = TAG_DATE + DOT + DateField.TAG_VALUE + DOT + DateField.TAG_BOUNDED + DOT + DateField.TAG_NOT_BEFORE;
+	private static final String TAG_DATE_VALUE_BOUNDED_NOT_AFTER = TAG_DATE + DOT + DateField.TAG_VALUE + DOT + DateField.TAG_BOUNDED + DOT + DateField.TAG_NOT_AFTER;
+	private static final String TAG_DATE_VALUE_SPANNING_FROM = TAG_DATE + DOT + DateField.TAG_VALUE + DOT + DateField.TAG_SPANNING + DOT + DateField.TAG_FROM;
+	private static final String TAG_DATE_VALUE_SPANNING_TO = TAG_DATE + DOT + DateField.TAG_VALUE + DOT + DateField.TAG_SPANNING + DOT + DateField.TAG_TO;
+	private static final String TAG_FULL_DATE_VALUE = DateField.TAG_FULL_DATE + DOT + DateField.TAG_VALUE;
+	private static final String TAG_DECADE_START_YEAR = DateField.TAG_DECADE + DOT + DateField.TAG_START_YEAR;
+	private static final String TAG_CENTURY_ORDINAL = DateField.TAG_CENTURY + DOT + DateField.TAG_ORDINAL;
+	private static final String TAG_NAME0_VALUE = TAG_NAME + "[0]" + DOT + DateField.TAG_VALUE;
+	private static final String TAG_CENTURY_PART = DateField.TAG_CENTURY + DOT + DateField.TAG_PART;
+	private static final String TAG_PLACE_ORIGINAL_TEXT = PlaceHandler.TYPE + DOT + PlaceCitationHandler.TAG_ORIGINAL_TEXT;
+	private static final String TAG_DATE_ORIGINAL_TEXT = TAG_DATE + DOT + DateField.TAG_ORIGINAL_TEXT;
 
 
 	private record Segment(String tag, int index){
@@ -352,7 +337,7 @@ public final class FLEFRecordHelper{
 			return originalText;
 
 		// Point Date
-		final String point = formatSingleDate(event, TAG_DATE + DOT + TAG_VALUE + DOT + TAG_POINT);
+		final String point = formatSingleDate(event, TAG_DATE + DOT + DateField.TAG_VALUE + DOT + DateField.TAG_POINT);
 		if(point != null)
 			return point;
 

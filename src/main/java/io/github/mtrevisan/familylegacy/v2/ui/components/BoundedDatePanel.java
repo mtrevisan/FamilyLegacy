@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.BorderFactory;
@@ -50,10 +51,6 @@ import java.awt.Window;
  * </pre>
  */
 public class BoundedDatePanel extends JPanel{
-
-	private static final String TAG_BOUNDED = "BOUNDED";
-	private static final String TAG_NOT_BEFORE = "NOT_BEFORE";
-	private static final String TAG_NOT_AFTER = "NOT_AFTER";
 
 	private final SingleDatePanel notBeforePanel;
 	private final SingleDatePanel notAfterPanel;
@@ -89,11 +86,11 @@ public class BoundedDatePanel extends JPanel{
 		if(record == null || record.isEmpty())
 			return;
 
-		final FLEFRecord notBefore = FLEFRecordHelper.findChild(record, TAG_NOT_BEFORE);
+		final FLEFRecord notBefore = FLEFRecordHelper.findChild(record, DateField.TAG_NOT_BEFORE);
 		if(notBefore != null)
 			notBeforePanel.load(notBefore);
 
-		final FLEFRecord notAfter = FLEFRecordHelper.findChild(record, TAG_NOT_AFTER);
+		final FLEFRecord notAfter = FLEFRecordHelper.findChild(record, DateField.TAG_NOT_AFTER);
 		if(notAfter != null)
 			notAfterPanel.load(notAfter);
 	}
@@ -103,15 +100,15 @@ public class BoundedDatePanel extends JPanel{
 
 		if(notBeforePanel.hasData()){
 			final FLEFRecord notBefore = notBeforePanel.save();
-			record.addChildWithTag(TAG_NOT_BEFORE, notBefore);
+			record.addChildWithTag(DateField.TAG_NOT_BEFORE, notBefore);
 		}
 
 		if(notAfterPanel.hasData()){
 			final FLEFRecord notAfter = notAfterPanel.save();
-			record.addChildWithTag(TAG_NOT_AFTER, notAfter);
+			record.addChildWithTag(DateField.TAG_NOT_AFTER, notAfter);
 		}
 
-		return (record.hasData()? record.setTag(TAG_BOUNDED): FLEFRecord.createEmpty());
+		return (record.hasData()? record.setTag(DateField.TAG_BOUNDED): FLEFRecord.createEmpty());
 	}
 
 	public void clear(){

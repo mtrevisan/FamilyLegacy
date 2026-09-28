@@ -39,14 +39,15 @@ import java.util.Objects;
 import java.util.PropertyResourceBundle;
 import java.util.ResourceBundle;
 
+
 /**
  * Lightweight facade and bundle manager for report internationalization.
  * Delegates localized formatting to specialized providers:
  * {@link SectionLabelProvider}, {@link NarrativeFormatter}, and {@link DateLabelProvider}.
  */
-public final class ReportLabels {
+public final class ReportLabels{
 
-	private static final String BUNDLE_BASE = "i18n.report_messages";
+	private static final String BUNDLE_BASE = "i18n.report.report_messages";
 
 	private final ReportLanguage language;
 	private final ResourceBundle bundle;
@@ -64,10 +65,21 @@ public final class ReportLabels {
 		this.dateLabels = new DateLabelProvider(this);
 	}
 
-	public ReportLanguage language(){ return language; }
-	public SectionLabelProvider sections(){ return sectionLabels; }
-	public NarrativeFormatter narrative(){ return narrativeFormatter; }
-	public DateLabelProvider dates(){ return dateLabels; }
+	public ReportLanguage language(){
+		return language;
+	}
+
+	public SectionLabelProvider sections(){
+		return sectionLabels;
+	}
+
+	public NarrativeFormatter narrative(){
+		return narrativeFormatter;
+	}
+
+	public DateLabelProvider dates(){
+		return dateLabels;
+	}
 
 	public String getString(final String key){
 		return bundle.getString(key);
@@ -106,91 +118,182 @@ public final class ReportLabels {
 	 *                          Backwards Compatibility Delegates
 	 * ====================================================================== */
 
-	public String subtitle(){ return sectionLabels.subtitle(); }
-	public String introduction(){ return sectionLabels.introduction(); }
-	public String statistics(){ return sectionLabels.statistics(); }
-	public String paternalAncestry(){ return sectionLabels.paternalAncestry(); }
-	public String maternalAncestry(){ return sectionLabels.maternalAncestry(); }
-	public String descendants(){ return sectionLabels.descendants(); }
-	public String directRelations(){ return sectionLabels.directRelations(); }
-	public String indirectRelations(){ return sectionLabels.indirectRelations(); }
-	public String notes(){ return sectionLabels.notes(); }
-	public String sources(){ return sectionLabels.sources(); }
-	public String media(){ return sectionLabels.media(); }
-	public String places(){ return sectionLabels.places(); }
-	public String documents(){ return sectionLabels.documents(); }
-	public String indexOfIndividuals(){ return sectionLabels.indexOfIndividuals(); }
-	public String indexOfPlaces(){ return sectionLabels.indexOfPlaces(); }
+	public String subtitle(){
+		return sectionLabels.subtitle();
+	}
 
-	public String lifeOf(){ return sectionLabels.lifeOf(); }
-	public String personalData(){ return sectionLabels.personalData(); }
-	public String lifeEvents(){ return sectionLabels.lifeEvents(); }
-	public String attributes(){ return sectionLabels.attributes(); }
-	public String relationships(){ return sectionLabels.relationships(); }
+	public String introduction(){
+		return sectionLabels.introduction();
+	}
+
+	public String statistics(){
+		return sectionLabels.statistics();
+	}
+
+	public String paternalAncestry(){
+		return sectionLabels.paternalAncestry();
+	}
+
+	public String maternalAncestry(){
+		return sectionLabels.maternalAncestry();
+	}
+
+	public String descendants(){
+		return sectionLabels.descendants();
+	}
+
+	public String directRelations(){
+		return sectionLabels.directRelations();
+	}
+
+	public String indirectRelations(){
+		return sectionLabels.indirectRelations();
+	}
+
+	public String notes(){
+		return sectionLabels.notes();
+	}
+
+	public String sources(){
+		return sectionLabels.sources();
+	}
+
+	public String media(){
+		return sectionLabels.media();
+	}
+
+	public String places(){
+		return sectionLabels.places();
+	}
+
+	public String documents(){
+		return sectionLabels.documents();
+	}
+
+	public String indexOfIndividuals(){
+		return sectionLabels.indexOfIndividuals();
+	}
+
+	public String indexOfPlaces(){
+		return sectionLabels.indexOfPlaces();
+	}
+
+	public String lifeOf(){
+		return sectionLabels.lifeOf();
+	}
+
+	public String personalData(){
+		return sectionLabels.personalData();
+	}
+
+	public String lifeEvents(){
+		return sectionLabels.lifeEvents();
+	}
+
+	public String attributes(){
+		return sectionLabels.attributes();
+	}
+
+	public String relationships(){
+		return sectionLabels.relationships();
+	}
 
 	public String narrativeBirth(final String name, final String date, final String place){
 		return narrativeFormatter.birth(name, date, place);
 	}
+
 	public String narrativeBirthUnknown(final String name){
 		return narrativeFormatter.birthUnknown(name);
 	}
+
 	public String narrativeMarriage(final String name, final String spouse, final String date, final String place){
 		return narrativeFormatter.marriage(name, spouse, date, place);
 	}
+
 	public String narrativeDivorce(final String name, final String spouse, final String date){
 		return narrativeFormatter.divorce(name, spouse, date);
 	}
+
 	public String narrativeChildrenGroup(final String name, final int count, final String groupLabel, final String names){
 		return narrativeFormatter.childrenGroup(name, count, groupLabel, names);
 	}
+
 	public String narrativeChildrenGroupWith(final String name, final String otherParent, final int count, final String groupLabel, final String names){
 		return narrativeFormatter.childrenGroupWith(name, otherParent, count, groupLabel, names);
 	}
+
 	public String narrativeOccupation(final String name, final String occupation){
 		return narrativeFormatter.occupation(name, occupation);
 	}
+
 	public String narrativeCharacteristic(final String name, final String value){
 		return narrativeFormatter.characteristic(name, value);
 	}
+
 	public String narrativeAttribute(final String name, final String label, final String value){
 		return narrativeFormatter.attribute(name, label, value);
 	}
+
 	public String narrativeResidence(final String name, final String place, final String from, final String to){
 		return narrativeFormatter.residence(name, place, from, to);
 	}
+
 	public String narrativeMove(final String name, final String place, final String from, final String to){
 		return narrativeFormatter.move(name, place, from, to);
 	}
+
 	public String narrativeDeath(final String name, final String date, final String place, final String cause){
 		return narrativeFormatter.death(name, date, place, cause);
 	}
+
 	public String narrativeTitle(final String name, final String title){
 		return narrativeFormatter.title(name, title);
 	}
+
 	public String narrativeBaptism(final String name, final String date, final String place){
 		return narrativeFormatter.baptism(name, date, place);
 	}
+
 	public String narrativeEmigration(final String name, final String date, final String place){
 		return narrativeFormatter.emigration(name, date, place);
 	}
+
 	public String narrativeImmigration(final String name, final String date, final String place){
 		return narrativeFormatter.immigration(name, date, place);
 	}
+
 	public String narrativeBurial(final String name, final String date, final String place){
 		return narrativeFormatter.burial(name, date, place);
 	}
+
 	public String narrativeCremation(final String name, final String date, final String place){
 		return narrativeFormatter.cremation(name, date, place);
 	}
+
 	public String childGroupLabel(final String relationshipType, final int count){
 		return narrativeFormatter.childGroupLabel(relationshipType, count);
 	}
 
-	public String ageYears(final int years){ return dateLabels.ageYears(years); }
-	public String marginYears(final int n){ return dateLabels.marginYears(n); }
-	public String marginMonths(final int n){ return dateLabels.marginMonths(n); }
-	public String marginWeeks(final int n){ return dateLabels.marginWeeks(n); }
-	public String marginDays(final int n){ return dateLabels.marginDays(n); }
+	public String ageYears(final int years){
+		return dateLabels.ageYears(years);
+	}
+
+	public String marginYears(final int n){
+		return dateLabels.marginYears(n);
+	}
+
+	public String marginMonths(final int n){
+		return dateLabels.marginMonths(n);
+	}
+
+	public String marginWeeks(final int n){
+		return dateLabels.marginWeeks(n);
+	}
+
+	public String marginDays(final int n){
+		return dateLabels.marginDays(n);
+	}
+
 	public String relationsCount(final int parents, final int spouses, final int children){
 		return dateLabels.relationsCount(parents, spouses, children);
 	}
@@ -204,10 +307,10 @@ public final class ReportLabels {
 	 * {@link ResourceBundle.Control} that loads {@code .properties} files as
 	 * UTF-8 instead of the ISO-8859-1 default.
 	 */
-	private static final class Utf8Control extends ResourceBundle.Control {
+	private static final class Utf8Control extends ResourceBundle.Control{
 		@Override
 		public ResourceBundle newBundle(final String baseName, final Locale locale,
-			final String format, final ClassLoader loader, final boolean reload) throws IOException, IllegalAccessException, InstantiationException {
+			final String format, final ClassLoader loader, final boolean reload) throws IOException, IllegalAccessException, InstantiationException{
 			if(!"java.properties".equals(format))
 				return super.newBundle(baseName, locale, format, loader, reload);
 

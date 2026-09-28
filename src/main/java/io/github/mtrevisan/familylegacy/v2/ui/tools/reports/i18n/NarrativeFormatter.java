@@ -29,11 +29,12 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.Locale;
 
+
 /**
  * Handles localized narrative sentence formatting for individual biographies
  * and group histories.
  */
-public final class NarrativeFormatter {
+public final class NarrativeFormatter{
 
 	private final ReportLabels labels;
 
@@ -45,8 +46,9 @@ public final class NarrativeFormatter {
 	 *                          Individual Biography
 	 * ====================================================================== */
 
-	public String introductionBody(){ return labels.getString("INTRODUCTION_BODY"); }
-	public String narrativeNote(){ return labels.getString("NARRATIVE_NOTE"); }
+	public String introductionBody(){
+		return labels.getString("INTRODUCTION_BODY");
+	}
 
 	public String birth(final String name, final String date, final String place){
 		return String.format(labels.getString("NARRATIVE_BIRTH_BASE"), name, dateFrag(date), placeFrag(place));
@@ -148,11 +150,25 @@ public final class NarrativeFormatter {
 	 *                          Group Narrative
 	 * ====================================================================== */
 
-	public String groupIntroductionBody(){ return labels.getString("GROUP_INTRODUCTION_BODY"); }
-	public String groupLifespan(){ return labels.getString("GROUP_LIFESPAN"); }
-	public String groupLifeOf(){ return labels.getString("GROUP_LIFE_OF"); }
-	public String groupData(){ return labels.getString("GROUP_DATA"); }
-	public String groupMembers(){ return labels.getString("GROUP_MEMBERS"); }
+	public String groupIntroductionBody(){
+		return labels.getString("GROUP_INTRODUCTION_BODY");
+	}
+
+	public String groupLifespan(){
+		return labels.getString("GROUP_LIFESPAN");
+	}
+
+	public String groupLifeOf(){
+		return labels.getString("GROUP_LIFE_OF");
+	}
+
+	public String groupData(){
+		return labels.getString("GROUP_DATA");
+	}
+
+	public String groupMembers(){
+		return labels.getString("GROUP_MEMBERS");
+	}
 
 	public String groupNarrativeFounding(final String name, final String date, final String place){
 		return String.format(labels.getString("GROUP_NARRATIVE_FOUNDING_BASE"), name, dateFrag(date), placeFrag(place));

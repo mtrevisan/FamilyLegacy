@@ -87,7 +87,6 @@ import java.io.IOException;
 public class PlaceRecordDialog extends BaseRecordDialog{
 
 	private static final String DOT = ".";
-
 	private static final String TAG_MAP_COORDINATES = PlaceHandler.TAG_MAP + DOT + PlaceHandler.TAG_COORDINATES;
 	private static final String TAG_MAP_EVIDENCE = PlaceHandler.TAG_MAP + DOT + PlaceHandler.TAG_EVIDENCE;
 

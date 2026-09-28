@@ -30,6 +30,8 @@ import io.github.mtrevisan.familylegacy.v2.ui.dialogs.help.DiagnosticsDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.help.HelpViewerDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.help.KeyboardShortcutsDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.help.ShortcutRegistry;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18n;
+import io.github.mtrevisan.familylegacy.v2.ui.preferences.AppearanceMenu;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolOperation;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.events.EventToolRegistry;
@@ -132,6 +134,7 @@ final class ApplicationMenuBar{
 		bar.add(createToolsMenu());
 		bar.add(createNavigateMenu());
 		bar.add(createBookmarkMenu());
+		bar.add(AppearanceMenu.create(frame));
 		bar.add(createHelpMenu());
 		return bar;
 	}
@@ -142,7 +145,7 @@ final class ApplicationMenuBar{
 	 * ====================================================================== */
 
 	private JMenu createFileMenu(){
-		final JMenu menu = new JMenu("File");
+		final JMenu menu = new JMenu(I18n.t("menu.file"));
 		menu.setMnemonic(KeyEvent.VK_F);
 
 		final FileMenuController fileController = frame.fileController();
@@ -177,7 +180,7 @@ final class ApplicationMenuBar{
 
 		menu.add(new JSeparator());
 
-		final JMenu importMenu = new JMenu("Import");
+		final JMenu importMenu = new JMenu(I18n.t("menu.file.import"));
 		importMenu.setMnemonic(KeyEvent.VK_I);
 		for(final ToolOperation tool : FileToolRegistry.importTools())
 			importMenu.add(toolItem(tool, 0));
@@ -213,7 +216,7 @@ final class ApplicationMenuBar{
 	 * list" entry is added at the bottom when the list is not empty.
 	 */
 	private JMenu createRecentFilesMenu(final FileMenuController fileController){
-		final JMenu menu = new JMenu("Open Recent");
+		final JMenu menu = new JMenu(I18n.t("menu.file.open.recent"));
 		menu.setMnemonic(KeyEvent.VK_R);
 
 		menu.addMenuListener(new MenuListener(){
@@ -255,7 +258,7 @@ final class ApplicationMenuBar{
 	 * ====================================================================== */
 
 	private JMenu createEditMenu(){
-		final JMenu menu = new JMenu("Edit");
+		final JMenu menu = new JMenu(I18n.t("menu.edit"));
 		menu.setMnemonic(KeyEvent.VK_E);
 
 		final List<ToolItemBinding> bindings = new ArrayList<>();
@@ -280,10 +283,10 @@ final class ApplicationMenuBar{
 	 * ====================================================================== */
 
 	private JMenu createViewMenu(){
-		final JMenu menu = new JMenu("View");
+		final JMenu menu = new JMenu(I18n.t("menu.view"));
 		menu.setMnemonic(KeyEvent.VK_V);
 
-		final JMenu projections = new JMenu("Projection");
+		final JMenu projections = new JMenu(I18n.t("menu.view.projection"));
 		projections.setMnemonic(KeyEvent.VK_P);
 
 		final JRadioButtonMenuItem treeItem = projectionItem(ShortcutRegistry.VIEW_ANCESTOR_TREE.action(), ProjectionType.TREE, ShortcutRegistry.VIEW_ANCESTOR_TREE.keyStrokeCode());
@@ -366,7 +369,7 @@ final class ApplicationMenuBar{
 	 * ====================================================================== */
 
 	private JMenu createIndividualMenu(final GenealogyRepository repository){
-		final JMenu menu = new JMenu("Individual");
+		final JMenu menu = new JMenu(I18n.t("menu.individual"));
 		menu.setMnemonic(KeyEvent.VK_I);
 
 		final List<ToolItemBinding> bindings = new ArrayList<>();
@@ -392,7 +395,7 @@ final class ApplicationMenuBar{
 	 * ====================================================================== */
 
 	private JMenu createGroupMenu(){
-		final JMenu menu = new JMenu("Group");
+		final JMenu menu = new JMenu(I18n.t("menu.group"));
 		menu.setMnemonic(KeyEvent.VK_G);
 
 		final List<ToolItemBinding> bindings = new ArrayList<>();
@@ -416,7 +419,7 @@ final class ApplicationMenuBar{
 	 * ====================================================================== */
 
 	private JMenu createPlaceMenu(){
-		final JMenu menu = new JMenu("Place");
+		final JMenu menu = new JMenu(I18n.t("menu.place"));
 		menu.setMnemonic(KeyEvent.VK_P);
 
 		final List<ToolItemBinding> bindings = new ArrayList<>();
@@ -436,7 +439,7 @@ final class ApplicationMenuBar{
 	 * ====================================================================== */
 
 	private JMenu createSourceMenu(){
-		final JMenu menu = new JMenu("Source");
+		final JMenu menu = new JMenu(I18n.t("menu.source"));
 		menu.setMnemonic(KeyEvent.VK_S);
 
 		final List<ToolItemBinding> bindings = new ArrayList<>();
@@ -460,7 +463,7 @@ final class ApplicationMenuBar{
 	 * ====================================================================== */
 
 	private JMenu createEventMenu(){
-		final JMenu menu = new JMenu("Event");
+		final JMenu menu = new JMenu(I18n.t("menu.event"));
 		menu.setMnemonic(KeyEvent.VK_T);
 
 		final List<ToolItemBinding> bindings = new ArrayList<>();
@@ -482,7 +485,7 @@ final class ApplicationMenuBar{
 	 * ====================================================================== */
 
 	private JMenu createResearchMenu(){
-		final JMenu menu = new JMenu("Research");
+		final JMenu menu = new JMenu(I18n.t("menu.research"));
 		menu.setMnemonic(KeyEvent.VK_R);
 
 		final List<ToolItemBinding> bindings = new ArrayList<>();
@@ -508,7 +511,7 @@ final class ApplicationMenuBar{
 	 * ====================================================================== */
 
 	private JMenu createReportsMenu(){
-		final JMenu menu = new JMenu("Reports");
+		final JMenu menu = new JMenu(I18n.t("menu.reports"));
 		menu.setMnemonic(KeyEvent.VK_R);
 
 		final List<ToolItemBinding> bindings = new ArrayList<>();
@@ -535,7 +538,7 @@ final class ApplicationMenuBar{
 	 * ====================================================================== */
 
 	private JMenu createToolsMenu(){
-		final JMenu menu = new JMenu("Tools");
+		final JMenu menu = new JMenu(I18n.t("menu.tools"));
 		menu.setMnemonic(KeyEvent.VK_T);
 
 		final List<ToolItemBinding> bindings = new ArrayList<>();
@@ -557,7 +560,7 @@ final class ApplicationMenuBar{
 	 * ====================================================================== */
 
 	private JMenu createNavigateMenu(){
-		final JMenu menu = new JMenu("Navigate");
+		final JMenu menu = new JMenu(I18n.t("menu.navigate"));
 		menu.setMnemonic(KeyEvent.VK_N);
 
 		final JMenuItem back = new JMenuItem(ShortcutRegistry.NAV_BACK.action(), KeyEvent.VK_B);
@@ -640,7 +643,7 @@ final class ApplicationMenuBar{
 	 * ====================================================================== */
 
 	private JMenu createBookmarkMenu(){
-		final JMenu menu = new JMenu("Bookmarks");
+		final JMenu menu = new JMenu(I18n.t("menu.bookmarks"));
 		menu.setMnemonic(KeyEvent.VK_B);
 
 		final BookmarkMenu bookmarkMenu = new BookmarkMenu(frame, frame.bookmarkStore(), frame::captureCurrentState,
@@ -664,7 +667,7 @@ final class ApplicationMenuBar{
 	 * ====================================================================== */
 
 	private JMenu createHelpMenu(){
-		final JMenu menu = new JMenu("Help");
+		final JMenu menu = new JMenu(I18n.t("menu.help"));
 		menu.setMnemonic(KeyEvent.VK_H);
 
 		final JMenuItem helpContents = new JMenuItem(ShortcutRegistry.HELP_CONTENTS.action(), KeyEvent.VK_H);

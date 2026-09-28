@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.tools.individuals;
 
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18n;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolOperation;
 
@@ -33,7 +34,7 @@ public final class SetAsRootTool implements ToolOperation{
 
 	@Override
 	public String getName(){
-		return "Set as Root";
+		return I18n.t("menu.individual.set.as.root");
 	}
 
 	@Override

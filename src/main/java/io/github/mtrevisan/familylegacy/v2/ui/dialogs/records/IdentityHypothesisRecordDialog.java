@@ -88,14 +88,6 @@ import java.util.Objects;
  */
 public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 
-	private static final String TAG_IDENTITY = "IDENTITY";
-	private static final String TAG_COMMENT = "COMMENT";
-	private static final String TAG_SOURCE = "SOURCE";
-	private static final String TAG_NOTE = "NOTE";
-	private static final String TAG_EVIDENCE = "EVIDENCE";
-	private static final String TAG_AUDIT = "AUDIT";
-
-
 	private final JPanel propertiesPanel;
 
 	private final EntityField identity1Field;
@@ -119,21 +111,21 @@ public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]");
 
-		identity1Field = EntityField.createForRecordFromOneofReference(TAG_IDENTITY, this, model)
+		identity1Field = EntityField.createForRecordFromOneofReference(IdentityHypothesisHandler.TAG_IDENTITY, this, model)
 			.withHandlerTypes(IndividualHandler.class, GroupHandler.class, PlaceHandler.class);
-		identity2Field = EntityField.createForRecordFromOneofReference(TAG_IDENTITY, this, model)
+		identity2Field = EntityField.createForRecordFromOneofReference(IdentityHypothesisHandler.TAG_IDENTITY, this, model)
 			.withHandlerTypes(IndividualHandler.class, GroupHandler.class, PlaceHandler.class);
-		commentArea = new BoundTextArea(TAG_COMMENT, 3, 30);
+		commentArea = new BoundTextArea(IdentityHypothesisHandler.TAG_COMMENT, 3, 30);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
 			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, ContextImpactHandler.TYPE, "Context Impacts")
 			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, "Conclusions")
 			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, "Research Questions")
-			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources with Citations")
-			.withComponent(PanelKey.NOTE, TAG_NOTE, null)
-			.withComponent(PanelKey.EVIDENCE, TAG_EVIDENCE, "Evidence")
-			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null)
+			.withComponent(PanelKey.SOURCE, IdentityHypothesisHandler.TAG_SOURCE, "Sources with Citations")
+			.withComponent(PanelKey.NOTE, IdentityHypothesisHandler.TAG_NOTE, null)
+			.withComponent(PanelKey.EVIDENCE, IdentityHypothesisHandler.TAG_EVIDENCE, "Evidence")
+			.withComponent(PanelKey.AUDIT, IdentityHypothesisHandler.TAG_AUDIT, null)
 			.build();
 
 		components.bind(commentArea);

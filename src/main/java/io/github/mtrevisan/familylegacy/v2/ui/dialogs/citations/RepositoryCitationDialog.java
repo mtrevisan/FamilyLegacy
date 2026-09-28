@@ -60,11 +60,6 @@ import java.awt.Window;
  */
 public class RepositoryCitationDialog extends BaseRecordDialog{
 
-	private static final String TAG_REPOSITORY = "REPOSITORY";
-	private static final String TAG_LOCATOR = "LOCATOR";
-	private static final String TAG_NOTE = "NOTE";
-
-
 	private final JPanel propertiesPanel;
 
 	private final BoundTextField repositoryField;
@@ -86,12 +81,12 @@ public class RepositoryCitationDialog extends BaseRecordDialog{
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]");
 
-		repositoryField = new BoundTextField(TAG_REPOSITORY);
-		locatorField = new BoundTextField(TAG_LOCATOR);
+		repositoryField = new BoundTextField(RepositoryCitationHandler.TAG_REPOSITORY);
+		locatorField = new BoundTextField(RepositoryCitationHandler.TAG_LOCATOR);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.NOTE, TAG_NOTE, null)
+			.withComponent(PanelKey.NOTE, RepositoryCitationHandler.TAG_NOTE, null)
 			.build();
 
 		components.bind(repositoryField);
@@ -160,7 +155,7 @@ public class RepositoryCitationDialog extends BaseRecordDialog{
 
 	@Override
 	protected void saveData(){
-		FLEFRecordHelper.updateChildValue(record, TAG_REPOSITORY, repositoryField.getText());
+		FLEFRecordHelper.updateChildValue(record, RepositoryCitationHandler.TAG_REPOSITORY, repositoryField.getText());
 
 		components.save(record);
 	}

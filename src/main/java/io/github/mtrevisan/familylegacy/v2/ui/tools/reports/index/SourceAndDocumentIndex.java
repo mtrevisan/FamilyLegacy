@@ -14,7 +14,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
 
-public final class SourceAndDocumentIndex {
+
+public final class SourceAndDocumentIndex{
 
 	private final Map<String, List<FLEFRecord>> sourceToCitationsMap = new HashMap<>();
 	private final Map<String, List<FLEFRecord>> sourceToDocumentsMap = new HashMap<>();
@@ -65,27 +66,27 @@ public final class SourceAndDocumentIndex {
 	}
 
 	public List<FLEFRecord> citationsOfSource(final FLEFRecord src){
-		return (src != null && src.getId() != null) ? sourceToCitationsMap.getOrDefault(src.getId(), Collections.emptyList()) : Collections.emptyList();
+		return (src != null && src.getId() != null)? sourceToCitationsMap.getOrDefault(src.getId(), Collections.emptyList()): Collections.emptyList();
 	}
 
 	public List<FLEFRecord> documentsOfSource(final FLEFRecord src){
-		return (src != null && src.getId() != null) ? sourceToDocumentsMap.getOrDefault(src.getId(), Collections.emptyList()) : Collections.emptyList();
+		return (src != null && src.getId() != null)? sourceToDocumentsMap.getOrDefault(src.getId(), Collections.emptyList()): Collections.emptyList();
 	}
 
 	public List<FLEFRecord> repositoriesOfSource(final FLEFRecord src){
-		return (src != null && src.getId() != null) ? sourceToRepositoriesMap.getOrDefault(src.getId(), Collections.emptyList()) : Collections.emptyList();
+		return (src != null && src.getId() != null)? sourceToRepositoriesMap.getOrDefault(src.getId(), Collections.emptyList()): Collections.emptyList();
 	}
 
 	public List<FLEFRecord> sourcesOfDocument(final FLEFRecord doc){
-		return (doc != null && doc.getId() != null) ? docToSourcesMap.getOrDefault(doc.getId(), Collections.emptyList()) : Collections.emptyList();
+		return (doc != null && doc.getId() != null)? docToSourcesMap.getOrDefault(doc.getId(), Collections.emptyList()): Collections.emptyList();
 	}
 
 	public List<FLEFRecord> citationsOfDocument(final FLEFRecord doc){
-		return (doc != null && doc.getId() != null) ? docToCitationsMap.getOrDefault(doc.getId(), Collections.emptyList()) : Collections.emptyList();
+		return (doc != null && doc.getId() != null)? docToCitationsMap.getOrDefault(doc.getId(), Collections.emptyList()): Collections.emptyList();
 	}
 
 	public List<FLEFRecord> sourcesOfRepository(final FLEFRecord repo){
-		return (repo != null && repo.getId() != null) ? repoToSourcesMap.getOrDefault(repo.getId(), Collections.emptyList()) : Collections.emptyList();
+		return (repo != null && repo.getId() != null)? repoToSourcesMap.getOrDefault(repo.getId(), Collections.emptyList()): Collections.emptyList();
 	}
 
 	public List<FLEFRecord> repositoryCitationsOf(final FLEFRecord repo){

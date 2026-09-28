@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.projections.group;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.components.PreferredImagePanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.BoxPanelType;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.PlaceholderImages;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.AsyncResourceLoader;
@@ -60,15 +61,9 @@ public final class GroupData{
 	private static final String TAG_TYPE = "type";
 	private static final String TAG_VALUE = "value";
 	private static final String TAG_PREFERRED_IMAGE = "preferred_image";
-	private static final String TAG_URI = "uri";
-	private static final String TAG_CROP = "crop";
-	private static final String TAG_X = "x";
-	private static final String TAG_Y = "y";
-	private static final String TAG_WIDTH = "width";
-	private static final String TAG_HEIGHT = "height";
 
-	private static final String TAG_PREFERRED_IMAGE_URI = TAG_PREFERRED_IMAGE + DOT + TAG_URI;
-	private static final String TAG_PREFERRED_IMAGE_CROP = TAG_PREFERRED_IMAGE + DOT + TAG_CROP;
+	private static final String TAG_PREFERRED_IMAGE_URI = TAG_PREFERRED_IMAGE + DOT + PreferredImagePanel.TAG_URI;
+	private static final String TAG_PREFERRED_IMAGE_CROP = TAG_PREFERRED_IMAGE + DOT + PreferredImagePanel.TAG_CROP;
 
 	private static final String TAG_HTML_OPEN = "<html>";
 	private static final String TAG_HTML_CLOSE = "</html>";
@@ -188,10 +183,10 @@ if(preferredImageUri != null)
 		preferredImageCropRect = null;
 		try{
 			final FLEFRecord crop = FLEFRecordHelper.findChild(record, TAG_PREFERRED_IMAGE_CROP);
-			final int cropX = Integer.parseInt(FLEFRecordHelper.getChildValue(crop, TAG_X));
-			final int cropY = Integer.parseInt(FLEFRecordHelper.getChildValue(crop, TAG_Y));
-			final int cropWidth = Integer.parseInt(FLEFRecordHelper.getChildValue(crop, TAG_WIDTH));
-			final int cropHeight = Integer.parseInt(FLEFRecordHelper.getChildValue(crop, TAG_HEIGHT));
+			final int cropX = Integer.parseInt(FLEFRecordHelper.getChildValue(crop, PreferredImagePanel.TAG_X));
+			final int cropY = Integer.parseInt(FLEFRecordHelper.getChildValue(crop, PreferredImagePanel.TAG_Y));
+			final int cropWidth = Integer.parseInt(FLEFRecordHelper.getChildValue(crop, PreferredImagePanel.TAG_WIDTH));
+			final int cropHeight = Integer.parseInt(FLEFRecordHelper.getChildValue(crop, PreferredImagePanel.TAG_HEIGHT));
 			if(cropX >= 0 && cropY >= 0 && cropWidth >= 0 && cropHeight >= 0)
 				preferredImageCropRect = new Rectangle(cropX, cropY, cropWidth, cropHeight);
 		}

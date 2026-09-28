@@ -12,7 +12,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
 
-public final class AttributeIndex {
+
+public final class AttributeIndex{
 
 	private final Map<String, List<FLEFRecord>> personToAttrsMap = new HashMap<>();
 

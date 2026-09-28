@@ -13,7 +13,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.function.Predicate;
 
-public final class EventIndex {
+
+public final class EventIndex{
 
 	private static final String TAG_PARTICIPANT = "participant";
 	private static final String TAG_ROLE = "role";
@@ -22,9 +23,11 @@ public final class EventIndex {
 	 * A participant of an event: the referenced record, its branch kind (e.g. "individual", "group"),
 	 * the role it plays (may be {@code null}), and the participation record itself.
 	 */
-	public record Participant(FLEFRecord record, String kind, String role, FLEFRecord participation){}
+	public record Participant(FLEFRecord record, String kind, String role, FLEFRecord participation){
+	}
 
-	private record Ref(String tag, String id){}
+	private record Ref(String tag, String id){
+	}
 
 	private final FLEFModel model;
 	private final Map<String, List<FLEFRecord>> personToEventsMap = new HashMap<>();

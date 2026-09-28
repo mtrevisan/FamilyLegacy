@@ -27,6 +27,8 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.components.PreferredImagePanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.BoxPanelType;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.PlaceholderImages;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.SexType;
@@ -79,22 +81,13 @@ public final class IndividualData{
 	private static final String TAG_CAUSE = "cause";
 	private static final String TAG_REASON = "reason";
 	private static final String TAG_DATE = "date";
-	private static final String TAG_POINT = "point";
-	private static final String TAG_FULL_DATE = "full_date";
-	private static final String TAG_CALENDAR = "calendar";
 	private static final String TAG_PREFERRED_IMAGE = "preferred_image";
-	private static final String TAG_URI = "uri";
-	private static final String TAG_CROP = "crop";
-	private static final String TAG_X = "x";
-	private static final String TAG_Y = "y";
-	private static final String TAG_WIDTH = "width";
-	private static final String TAG_HEIGHT = "height";
-	private static final String TAG_DATE_VALUE_POINT_FULL_DATE = TAG_DATE + DOT + TAG_VALUE + DOT + TAG_POINT + DOT + TAG_FULL_DATE;
+	private static final String TAG_DATE_VALUE_POINT_FULL_DATE = TAG_DATE + DOT + TAG_VALUE + DOT + DateField.TAG_POINT + DOT + DateField.TAG_FULL_DATE;
 	private static final String TAG_NAME_VALUE = TAG_NAME + DOT + TAG_VALUE;
 	private static final String TAG_PLACE_PLACE = PlaceHandler.TYPE + DOT + PlaceHandler.TYPE;
 	private static final String TAG_CAUSE_REASON = TAG_CAUSE + DOT + TAG_REASON;
-	private static final String TAG_PREFERRED_IMAGE_URI = TAG_PREFERRED_IMAGE + DOT + TAG_URI;
-	private static final String TAG_PREFERRED_IMAGE_CROP = TAG_PREFERRED_IMAGE + DOT + TAG_CROP;
+	private static final String TAG_PREFERRED_IMAGE_URI = TAG_PREFERRED_IMAGE + DOT + PreferredImagePanel.TAG_URI;
+	private static final String TAG_PREFERRED_IMAGE_CROP = TAG_PREFERRED_IMAGE + DOT + PreferredImagePanel.TAG_CROP;
 
 	private static final String ENUM_TYPE_BIOLOGICAL_CHILD = "biological_child";
 	private static final String ENUM_TYPE_ENDS_WITH_CHILD = "_child";
@@ -448,7 +441,7 @@ public final class IndividualData{
 		if(fullDate == null)
 			return null;
 
-		return FLEFRecordHelper.getChildValue(fullDate, TAG_CALENDAR);
+		return FLEFRecordHelper.getChildValue(fullDate, DateField.TAG_CALENDAR);
 	}
 
 	public static String extractPlace(final FLEFRecord event, final FLEFModel model){
@@ -484,10 +477,10 @@ if(preferredImageUri != null)
 		preferredImageCropRect = null;
 		try{
 			final FLEFRecord crop = FLEFRecordHelper.findChild(record, TAG_PREFERRED_IMAGE_CROP);
-			final int cropX = Integer.parseInt(FLEFRecordHelper.getChildValue(crop, TAG_X));
-			final int cropY = Integer.parseInt(FLEFRecordHelper.getChildValue(crop, TAG_Y));
-			final int cropWidth = Integer.parseInt(FLEFRecordHelper.getChildValue(crop, TAG_WIDTH));
-			final int cropHeight = Integer.parseInt(FLEFRecordHelper.getChildValue(crop, TAG_HEIGHT));
+			final int cropX = Integer.parseInt(FLEFRecordHelper.getChildValue(crop, PreferredImagePanel.TAG_X));
+			final int cropY = Integer.parseInt(FLEFRecordHelper.getChildValue(crop, PreferredImagePanel.TAG_Y));
+			final int cropWidth = Integer.parseInt(FLEFRecordHelper.getChildValue(crop, PreferredImagePanel.TAG_WIDTH));
+			final int cropHeight = Integer.parseInt(FLEFRecordHelper.getChildValue(crop, PreferredImagePanel.TAG_HEIGHT));
 			if(cropX >= 0 && cropY >= 0 && cropWidth >= 0 && cropHeight >= 0)
 				preferredImageCropRect = new Rectangle(cropX, cropY, cropWidth, cropHeight);
 		}

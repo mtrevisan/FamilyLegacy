@@ -84,9 +84,6 @@ final class IntroductionSection implements SectionBuilder{
 				ctx.index.spousesOf(ctx.root).size(),
 				ctx.index.childrenOf(ctx.root).size())
 		)));
-		out.add(new ReportSection.Paragraph(String.format(
-			ctx.labels.narrative().narrativeNote(),
-			"**" + ReportFormatters.escape(ctx.displayText(ctx.root)) + "**")));
 		return out;
 	}
 

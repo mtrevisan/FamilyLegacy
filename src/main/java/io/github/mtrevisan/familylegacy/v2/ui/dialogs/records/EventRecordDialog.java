@@ -98,26 +98,15 @@ import java.io.IOException;
 public class EventRecordDialog extends BaseRecordDialog{
 
 	private static final String DOT = ".";
+	private static final String TAG_CAUSE_REASON = EventHandler.TAG_CAUSE + DOT + EventHandler.TAG_REASON;
+	private static final String TAG_CAUSE_EVIDENCE = EventHandler.TAG_CAUSE + DOT + EventHandler.TAG_EVIDENCE;
 
-	private static final String TAG_TYPE = "TYPE";
-	private static final String TAG_DESCRIPTION = "DESCRIPTION";
-	private static final String TAG_DATE = "DATE";
-	private static final String TAG_AGENCY = "AGENCY";
-	private static final String TAG_CAUSE = "CAUSE";
-	private static final String TAG_REASON = "REASON";
-	private static final String TAG_CAUSE_REASON = TAG_CAUSE + DOT + TAG_REASON;
-	private static final String TAG_EVIDENCE = "EVIDENCE";
-	private static final String TAG_CAUSE_EVIDENCE = TAG_CAUSE + DOT + TAG_EVIDENCE;
-	private static final String TAG_SOURCE = "SOURCE";
-	private static final String TAG_NOTE = "NOTE";
-	private static final String TAG_PRIVACY = "PRIVACY";
-	private static final String TAG_AUDIT = "AUDIT";
 
 
 	private final JPanel propertiesPanel;
 
 	private final BoundComboBox<String> typeCombo;
-	private final BoundTextArea titleArea;
+	private final BoundTextArea descriptionArea;
 	private final DateField dateField;
 	private final EntityField placeField;
 	private final BoundTextField agencyField;
@@ -139,7 +128,7 @@ public class EventRecordDialog extends BaseRecordDialog{
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]15[]10[]15[]15[]15[]");
 
-		typeCombo = new BoundComboBox<>(TAG_TYPE, new String[]{
+		typeCombo = new BoundComboBox<>(EventHandler.TAG_TYPE, new String[]{
 			StringUtils.EMPTY,
 			"birth", "death", "adoption", "graduation", "immigration", "naturalization", "bankruptcy", "guardianship",
 			"coroner_report", "cremation", "burial", "education", "retirement", "military_induction",
@@ -151,10 +140,10 @@ public class EventRecordDialog extends BaseRecordDialog{
 			"divorce", "annulment"
 		});
 		typeCombo.setEditable(true);
-		titleArea = new BoundTextArea(TAG_DESCRIPTION, 3, 25);
-		dateField = DateField.createWithWrapperTag(TAG_DATE, this, "Date", model);
+		descriptionArea = new BoundTextArea(EventHandler.TAG_DESCRIPTION, 3, 25);
+		dateField = DateField.createWithWrapperTag(EventHandler.TAG_DATE, this, "Date", model);
 		placeField = EntityField.createForStructureWithReference(PlaceHandler.TYPE, this, model, PlaceCitationHandler.class);
-		agencyField = new BoundTextField(TAG_AGENCY);
+		agencyField = new BoundTextField(EventHandler.TAG_AGENCY);
 		causeReasonField = new BoundTextField(TAG_CAUSE_REASON);
 		causeEvidencePanel = new EvidenceQualifiersPanel(TAG_CAUSE_EVIDENCE, "Cause Evidence");
 
@@ -164,15 +153,15 @@ public class EventRecordDialog extends BaseRecordDialog{
 			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, "Conclusions")
 			.withComponent(PanelKey.EVENT_PARTICIPATION_ON_EVENT, EventParticipationHandler.TYPE, "Participations")
 			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, "Research Questions")
-			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources with Citations")
-			.withComponent(PanelKey.NOTE, TAG_NOTE, null)
-			.withComponent(PanelKey.EVIDENCE, TAG_EVIDENCE, "Evidence")
-			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null)
-			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null)
+			.withComponent(PanelKey.SOURCE, EventHandler.TAG_SOURCE, "Sources with Citations")
+			.withComponent(PanelKey.NOTE, EventHandler.TAG_NOTE, null)
+			.withComponent(PanelKey.EVIDENCE, EventHandler.TAG_EVIDENCE, "Evidence")
+			.withComponent(PanelKey.PRIVACY, EventHandler.TAG_PRIVACY, null)
+			.withComponent(PanelKey.AUDIT, EventHandler.TAG_AUDIT, null)
 			.build();
 
 		components.bind(typeCombo);
-		components.bind(titleArea);
+		components.bind(descriptionArea);
 		components.bind(agencyField);
 		components.bind(causeReasonField);
 
@@ -190,7 +179,7 @@ public class EventRecordDialog extends BaseRecordDialog{
 		GUIHelper.addLabeledComponent(propertiesPanel, "Type*:", typeCombo);
 
 		// description
-		GUIHelper.addLabeledComponent(propertiesPanel, "Description*:", titleArea);
+		GUIHelper.addLabeledComponent(propertiesPanel, "Description*:", descriptionArea);
 
 		// date
 		GUIHelper.addLabeledComponent(propertiesPanel, "Date:", dateField);
@@ -306,10 +295,10 @@ public class EventRecordDialog extends BaseRecordDialog{
 			return false;
 		}
 
-		if(titleArea.isEmpty()){
+		if(descriptionArea.isEmpty()){
 			GUIHelper.showValidationErrorAndFocus(this,
 				"Description is required.",
-				tabbedPane, propertiesPanel, titleArea);
+				tabbedPane, propertiesPanel, descriptionArea);
 
 			return false;
 		}

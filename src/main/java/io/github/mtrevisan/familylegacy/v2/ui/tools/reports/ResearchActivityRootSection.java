@@ -153,7 +153,7 @@ final class ResearchActivityRootSection implements SectionBuilder{
 		final String action = FLEFRecordHelper.getChildValue(parent, TAG_ACTION);
 		out.add(new ReportSection.Paragraph(
 			"**" + ctx.labels.sections().researchParentActivity() + ":** "
-				+ (type != null ? type + " — " : StringUtils.EMPTY) + action));
+				+ (type != null? type + " — ": StringUtils.EMPTY) + action));
 	}
 
 

@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.tools.sources;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18n;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolOperation;
 
@@ -36,7 +37,7 @@ public final class NewSourceTool implements ToolOperation{
 
 	@Override
 	public String getName(){
-		return "New Source…";
+		return I18n.t("menu.source.new.source");
 	}
 
 	@Override

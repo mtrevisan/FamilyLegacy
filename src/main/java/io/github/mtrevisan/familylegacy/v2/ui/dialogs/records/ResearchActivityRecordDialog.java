@@ -98,23 +98,8 @@ import java.io.IOException;
 public class ResearchActivityRecordDialog extends BaseRecordDialog{
 
 	private static final String DOT = ".";
-
-	private static final String TAG_QUESTION = "QUESTION";
-	private static final String TAG_ACTIVITY_TYPE = "ACTIVITY_TYPE";
-	private static final String TAG_STATUS = "STATUS";
-	private static final String TAG_ACTION = "ACTION";
-	private static final String TAG_TARGET = "TARGET";
-	private static final String TAG_SOURCE = "SOURCE";
-	private static final String TAG_SEARCH_SCOPE = "SEARCH_SCOPE";
-	private static final String TAG_SEARCH_SCOPE_TYPE = TAG_SEARCH_SCOPE + DOT + "TYPE";
-	private static final String TAG_SEARCH_SCOPE_DETAIL = TAG_SEARCH_SCOPE + DOT + "DETAIL";
-	private static final String TAG_RESULT = "RESULT";
-	private static final String TAG_OBSERVATION = "OBSERVATION";
-	private static final String TAG_CONCLUSION_CONFIDENCE = "CONCLUSION_CONFIDENCE";
-	private static final String TAG_PARENT_ACTIVITY = "PARENT_ACTIVITY";
-	private static final String TAG_TASK = "TASK";
-	private static final String TAG_PRIVACY = "PRIVACY";
-	private static final String TAG_AUDIT = "AUDIT";
+	private static final String TAG_SEARCH_SCOPE_TYPE = ResearchActivityHandler.TAG_SEARCH_SCOPE + DOT + ResearchActivityHandler.TAG_TYPE;
+	private static final String TAG_SEARCH_SCOPE_DETAIL = ResearchActivityHandler.TAG_SEARCH_SCOPE + DOT + ResearchActivityHandler.TAG_DETAIL;
 
 
 	private final JPanel propertiesPanel;
@@ -148,15 +133,15 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]5[]10[]");
 
 		// Initialize components
-		activityTypeCombo = new BoundComboBox<>(TAG_ACTIVITY_TYPE, new String[]{
+		activityTypeCombo = new BoundComboBox<>(ResearchActivityHandler.TAG_ACTIVITY_TYPE, new String[]{
 			"search", "review", "analysis", "correspondence", "interview", "hypothesis"
 		});
-		statusCombo = new BoundComboBox<>(TAG_STATUS, new String[]{
+		statusCombo = new BoundComboBox<>(ResearchActivityHandler.TAG_STATUS, new String[]{
 			"planned", "in_progress", "completed", "abandoned"
 		});
-		actionArea = new BoundTextArea(TAG_ACTION, 3, 30);
+		actionArea = new BoundTextArea(ResearchActivityHandler.TAG_ACTION, 3, 30);
 
-		targetField = EntityField.createForRecordFromOneofReference(TAG_TARGET, this, model)
+		targetField = EntityField.createForRecordFromOneofReference(ResearchActivityHandler.TAG_TARGET, this, model)
 			.withHandlerTypes(IndividualHandler.class, GroupHandler.class, EventHandler.class,
 				EventParticipationHandler.class, RelationshipHandler.class, IndividualAttributeHandler.class,
 				GroupAttributeHandler.class, PlaceHandler.class, PlaceRelationshipHandler.class, SourceHandler.class,
@@ -170,26 +155,26 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 		});
 		searchScopeDetailArea = new BoundTextArea(TAG_SEARCH_SCOPE_DETAIL, 3, 30);
 
-		resultCombo = new BoundComboBox<>(TAG_RESULT, new String[]{
+		resultCombo = new BoundComboBox<>(ResearchActivityHandler.TAG_RESULT, new String[]{
 			StringUtils.EMPTY,
 			"positive", "negative", "inconclusive", "conflicting", "unavailable"
 		});
-		observationArea = new BoundTextArea(TAG_OBSERVATION, 3, 30);
+		observationArea = new BoundTextArea(ResearchActivityHandler.TAG_OBSERVATION, 3, 30);
 		conclusionArea = new BoundTextArea(ConclusionHandler.TYPE, 3, 30);
-		conclusionConfidenceCombo = new BoundComboBox<>(TAG_CONCLUSION_CONFIDENCE, new String[]{
+		conclusionConfidenceCombo = new BoundComboBox<>(ResearchActivityHandler.TAG_CONCLUSION_CONFIDENCE, new String[]{
 			StringUtils.EMPTY,
 			"low", "medium", "high"});
 
-		parentActivityField = EntityField.createForRecordFromReference(TAG_PARENT_ACTIVITY, this, model,
+		parentActivityField = EntityField.createForRecordFromReference(ResearchActivityHandler.TAG_PARENT_ACTIVITY, this, model,
 			ResearchActivityHandler.class);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.RESEARCH_QUESTION, TAG_QUESTION, "Questions")
-			.withComponent(PanelKey.TASK, TAG_TASK, "Tasks")
-			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources with Citations")
-			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null)
-			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null)
+			.withComponent(PanelKey.RESEARCH_QUESTION, ResearchActivityHandler.TAG_QUESTION, "Questions")
+			.withComponent(PanelKey.TASK, ResearchActivityHandler.TAG_TASK, "Tasks")
+			.withComponent(PanelKey.SOURCE, ResearchActivityHandler.TAG_SOURCE, "Sources with Citations")
+			.withComponent(PanelKey.PRIVACY, ResearchActivityHandler.TAG_PRIVACY, null)
+			.withComponent(PanelKey.AUDIT, ResearchActivityHandler.TAG_AUDIT, null)
 			.build();
 
 		components.bind(activityTypeCombo);

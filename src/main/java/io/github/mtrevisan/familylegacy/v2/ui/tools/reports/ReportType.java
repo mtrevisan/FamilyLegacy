@@ -18,11 +18,11 @@ public enum ReportType{
 
 	private final String title;
 
-	ReportType(final String title) {
+	ReportType(final String title){
 		this.title = Objects.requireNonNull(title);
 	}
 
-	public String getTitle() {
+	public String getTitle(){
 		return title;
 	}
 

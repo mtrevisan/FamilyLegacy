@@ -90,20 +90,6 @@ import java.util.List;
  */
 public class RelationshipRecordDialog extends BaseRecordDialog{
 
-	private static final String TAG_SUBJECT = "SUBJECT";
-	private static final String TAG_OBJECT = "OBJECT";
-	private static final String TAG_TYPE = "TYPE";
-	private static final String TAG_ROLE = "ROLE";
-	private static final String TAG_STATUS = "STATUS";
-	private static final String TAG_VALID_FROM = "VALID_FROM";
-	private static final String TAG_VALID_TO = "VALID_TO";
-	private static final String TAG_SOURCE = "SOURCE";
-	private static final String TAG_NOTE = "NOTE";
-	private static final String TAG_EVIDENCE = "EVIDENCE";
-	private static final String TAG_PRIVACY = "PRIVACY";
-	private static final String TAG_AUDIT = "AUDIT";
-
-
 	private static final List<String> INDIVIDUAL_TO_INDIVIDUAL_TYPES = List.of(
 		"biological_child", "adoptive_child", "foster_child", "guarded_child", "step_child",
 		"civil_spouse", "religious_spouse", "customary_spouse", "cohabiting_partner", "engaged_partner",
@@ -144,36 +130,36 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]5[]10[]5[]10[]10[]10[]");
 
-		subjectField = EntityField.createForRecordFromOneofReference(TAG_SUBJECT, this, model)
+		subjectField = EntityField.createForRecordFromOneofReference(RelationshipHandler.TAG_SUBJECT, this, model)
 			.withHandlerTypes(IndividualHandler.class, GroupHandler.class);
 		subjectField.addPropertyChangeListener(EntityField.PROPERTY_ENTITY_CHANGED, e -> updateTypeCombo());
-		objectField = EntityField.createForRecordFromOneofReference(TAG_OBJECT, this, model)
+		objectField = EntityField.createForRecordFromOneofReference(RelationshipHandler.TAG_OBJECT, this, model)
 			.withHandlerTypes(IndividualHandler.class, GroupHandler.class);
 		objectField.addPropertyChangeListener(EntityField.PROPERTY_ENTITY_CHANGED, e -> updateTypeCombo());
-		subjectTypeCombo = new BoundComboBox<>(TAG_TYPE, new String[]{
+		subjectTypeCombo = new BoundComboBox<>(RelationshipHandler.TAG_TYPE, new String[]{
 			StringUtils.EMPTY,
 			"biological_child", "adoptive_child", "foster_child", "guarded_child", "step_child",
 			"civil_spouse", "religious_spouse", "customary_spouse", "cohabiting_partner", "engaged_partner",
 			"group_member", "associate", "part_of"
 		});
-		subjectRoleField = new BoundTextField(TAG_ROLE);
-		statusCombo = new BoundComboBox<>(TAG_STATUS, new String[]{
+		subjectRoleField = new BoundTextField(RelationshipHandler.TAG_ROLE);
+		statusCombo = new BoundComboBox<>(RelationshipHandler.TAG_STATUS, new String[]{
 			StringUtils.EMPTY,
 			"active", "ended", "unknown"
 		});
-		validFromField = DateField.createWithWrapperTag(TAG_VALID_FROM, this, "From Date", model);
-		validToField = DateField.createWithWrapperTag(TAG_VALID_TO, this, "To Date", model);
+		validFromField = DateField.createWithWrapperTag(RelationshipHandler.TAG_VALID_FROM, this, "From Date", model);
+		validToField = DateField.createWithWrapperTag(RelationshipHandler.TAG_VALID_TO, this, "To Date", model);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
 			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, ContextImpactHandler.TYPE, "Context Impacts")
 			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, "Conclusions")
 			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, "Research Questions")
-			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources with Citations")
-			.withComponent(PanelKey.NOTE, TAG_NOTE, null)
-			.withComponent(PanelKey.EVIDENCE, TAG_EVIDENCE, "Evidence")
-			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null)
-			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null)
+			.withComponent(PanelKey.SOURCE, RelationshipHandler.TAG_SOURCE, "Sources with Citations")
+			.withComponent(PanelKey.NOTE, RelationshipHandler.TAG_NOTE, null)
+			.withComponent(PanelKey.EVIDENCE, RelationshipHandler.TAG_EVIDENCE, "Evidence")
+			.withComponent(PanelKey.PRIVACY, RelationshipHandler.TAG_PRIVACY, null)
+			.withComponent(PanelKey.AUDIT, RelationshipHandler.TAG_AUDIT, null)
 			.build();
 
 		components.bind(subjectTypeCombo);

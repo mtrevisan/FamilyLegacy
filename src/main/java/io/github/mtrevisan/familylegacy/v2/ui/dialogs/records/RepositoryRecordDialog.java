@@ -35,8 +35,8 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.ContactHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NameHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceCitationHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RepositoryHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 
 import javax.swing.JPanel;
@@ -70,15 +70,6 @@ import java.io.IOException;
  */
 public class RepositoryRecordDialog extends BaseRecordDialog{
 
-	private static final String TAG_NAME = "NAME";
-	private static final String TAG_CUSTODIAN = "CUSTODIAN";
-	private static final String TAG_CONTACT = "CONTACT";
-	private static final String TAG_SOURCE = "SOURCE";
-	private static final String TAG_NOTE = "NOTE";
-	private static final String TAG_PRIVACY = "PRIVACY";
-	private static final String TAG_AUDIT = "AUDIT";
-
-
 	private final JPanel propertiesPanel;
 
 	private final EntityListPanel namePanel;
@@ -101,17 +92,17 @@ public class RepositoryRecordDialog extends BaseRecordDialog{
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]5[]10[]");
 
-		namePanel = EntityListPanel.createForStructure(TAG_NAME, this, "Names*", model, NameHandler.class);
-		custodianField = EntityField.createForRecordFromReference(TAG_CUSTODIAN, this, model, IndividualHandler.class);
-		placeField = EntityField.createForStructureWithReference(PlaceHandler.TYPE, this, model, PlaceCitationHandler.class);
-		contactPanel = EntityListPanel.createForStructure(TAG_CONTACT, this, "Contacts", model, ContactHandler.class);
+		namePanel = EntityListPanel.createForStructure(RepositoryHandler.TAG_NAME, this, "Names*", model, NameHandler.class);
+		custodianField = EntityField.createForRecordFromReference(RepositoryHandler.TAG_CUSTODIAN, this, model, IndividualHandler.class);
+		placeField = EntityField.createForStructureWithReference(RepositoryHandler.TAG_PLACE, this, model, PlaceCitationHandler.class);
+		contactPanel = EntityListPanel.createForStructure(RepositoryHandler.TAG_CONTACT, this, "Contacts", model, ContactHandler.class);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.SOURCE_ON_REPOSITORY, TAG_SOURCE, "Sources with Citations")
-			.withComponent(PanelKey.NOTE, TAG_NOTE, null)
-			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null)
-			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null)
+			.withComponent(PanelKey.SOURCE_ON_REPOSITORY, SourceHandler.TYPE, "Sources with Citations")
+			.withComponent(PanelKey.NOTE, RepositoryHandler.TAG_NOTE, null)
+			.withComponent(PanelKey.PRIVACY, RepositoryHandler.TAG_PRIVACY, null)
+			.withComponent(PanelKey.AUDIT, RepositoryHandler.TAG_AUDIT, null)
 			.build();
 
 

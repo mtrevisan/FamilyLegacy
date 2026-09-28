@@ -40,8 +40,15 @@ public class ConclusionHandler extends AbstractRecordTypeHandler<ConclusionRecor
 	public static final String ID_PREFIX = "CC";
 
 
-	private static final String TAG_ISSUE = "ISSUE";
-	private static final String TAG_PROOF_STATUS = "PROOF_STATUS";
+	public static final String TAG_ISSUE = "ISSUE";
+	public static final String TAG_PROOF_STATUS = "PROOF_STATUS";
+	public static final String TAG_NARRATIVE = "NARRATIVE";
+	public static final String TAG_RESOLVES = "RESOLVES";
+	public static final String TAG_PREFERRED = "PREFERRED";
+	public static final String TAG_RESEARCH = "RESEARCH";
+	public static final String TAG_SOURCE = "SOURCE";
+	public static final String TAG_PRIVACY = "PRIVACY";
+	public static final String TAG_AUDIT = "AUDIT";
 
 
 	private static final class SingletonHelper{

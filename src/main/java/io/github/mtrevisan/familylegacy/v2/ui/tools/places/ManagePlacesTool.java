@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.tools.places;
 
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18n;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolOperation;
 
@@ -33,7 +34,7 @@ public final class ManagePlacesTool implements ToolOperation{
 
 	@Override
 	public String getName(){
-		return "Manage Places…";
+		return I18n.t("menu.place.manage.places");
 	}
 
 	@Override

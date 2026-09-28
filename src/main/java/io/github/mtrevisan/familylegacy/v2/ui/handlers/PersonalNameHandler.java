@@ -59,6 +59,10 @@ public class PersonalNameHandler extends AbstractRecordTypeHandler<PersonalNameS
 	public static final String TAG_SOURCE = "SOURCE";
 	public static final String TAG_NOTE = "NOTE";
 
+	public static final String TAG_PART_TYPE = "TYPE";
+	public static final String TAG_PART_VALUE = "VALUE";
+	public static final String TAG_PART_VARIANT = "VARIANT";
+
 
 	private static final class SingletonHelper{
 		private static final PersonalNameHandler INSTANCE = new PersonalNameHandler();

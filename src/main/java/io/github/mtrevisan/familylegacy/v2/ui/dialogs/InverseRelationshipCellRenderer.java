@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.DefaultListCellRenderer;
@@ -38,11 +39,6 @@ import java.awt.Component;
 
 
 public class InverseRelationshipCellRenderer extends DefaultListCellRenderer{
-
-	private static final String TAG_TYPE = "type";
-	private static final String TAG_SUBJECT = "subject";
-	private static final String TAG_ROLE = "role";
-
 
 	private final FLEFModel model;
 
@@ -58,15 +54,15 @@ public class InverseRelationshipCellRenderer extends DefaultListCellRenderer{
 		final JLabel label = (JLabel)super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
 
 		if(value instanceof FLEFRecord record){
-			final String type = FLEFRecordHelper.getChildValue(record, TAG_TYPE);
-			final FLEFRecord subject = FLEFRecordHelper.extractRecordsFromOneOfReference(record, TAG_SUBJECT, model)
+			final String type = FLEFRecordHelper.getChildValue(record, RelationshipHandler.TAG_TYPE);
+			final FLEFRecord subject = FLEFRecordHelper.extractRecordsFromOneOfReference(record, RelationshipHandler.TAG_SUBJECT, model)
 				.getFirst();
 			String subjectDisplayText = "--";
 			if(subject != null){
 				final RecordTypeHandler<?> subjectHandler = HandlerRegistry.getHandler(subject.getTag());
 				subjectDisplayText = subjectHandler.getDisplayText(subject, model);
 			}
-			final String role = FLEFRecordHelper.getChildValue(record, TAG_ROLE);
+			final String role = FLEFRecordHelper.getChildValue(record, RelationshipHandler.TAG_ROLE);
 
 			final String categoryTag = switch(type){
 				case "biological_child" -> "[Biological]";

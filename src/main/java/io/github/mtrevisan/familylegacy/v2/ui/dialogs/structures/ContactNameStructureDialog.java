@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.TextValueVariantListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ContactHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ContactNameHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 
@@ -53,10 +54,6 @@ import java.awt.Window;
  */
 public class ContactNameStructureDialog extends BaseRecordDialog{
 
-	private static final String TAG_VALUE = "VALUE";
-	private static final String TAG_VARIANT = "VARIANT";
-
-
 	private final JPanel propertiesPanel;
 
 	private final BoundTextField valueField;
@@ -78,8 +75,8 @@ public class ContactNameStructureDialog extends BaseRecordDialog{
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]");
 
-		valueField = new BoundTextField(TAG_VALUE);
-		variantPanel = new TextValueVariantListPanel(TAG_VARIANT, this, "Variant", model);
+		valueField = new BoundTextField(ContactHandler.TAG_NAME_VALUE);
+		variantPanel = new TextValueVariantListPanel(ContactHandler.TAG_NAME_VARIANT, this, "Variant", model);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)

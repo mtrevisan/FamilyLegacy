@@ -77,22 +77,13 @@ public class HeaderDialog extends BaseRecordDialog{
 
 	private static final String DOT = ".";
 
-	private static final String TAG_NAME = "NAME";
-	private static final String TAG_VERSION = "VERSION";
-	private static final String TAG_PROTOCOL = "PROTOCOL";
-	private static final String TAG_PROTOCOL_NAME = TAG_PROTOCOL + DOT + TAG_NAME;
-	private static final String TAG_PROTOCOL_VERSION = TAG_PROTOCOL + DOT + TAG_VERSION;
-	private static final String TAG_SOURCE = "SOURCE";
-	private static final String TAG_SOURCE_NAME = TAG_SOURCE + DOT + TAG_NAME;
-	private static final String TAG_SOURCE_VERSION = TAG_SOURCE + DOT + TAG_VERSION;
-	private static final String TAG_SOURCE_ORGANIZATION = TAG_SOURCE + DOT + "ORGANIZATION";
-	private static final String TAG_DATE = "DATE";
-	private static final String TAG_COPYRIGHT = "COPYRIGHT";
-	private static final String TAG_SUBMITTER = "SUBMITTER";
-	private static final String TAG_SUBMITTER_CONTACT = TAG_SUBMITTER + DOT + "CONTACT";
-	private static final String TAG_NOTE = "NOTE";
-	private static final String TAG_SUBMITTER_NOTE = TAG_SUBMITTER + DOT + TAG_NOTE;
-	private static final String TAG_SCOPE = "SCOPE";
+	private static final String TAG_PROTOCOL_NAME = HeaderHandler.TAG_PROTOCOL + DOT + HeaderHandler.TAG_NAME;
+	private static final String TAG_PROTOCOL_VERSION = HeaderHandler.TAG_PROTOCOL + DOT + HeaderHandler.TAG_VERSION;
+	private static final String TAG_SOURCE_NAME = HeaderHandler.TAG_SOURCE + DOT + HeaderHandler.TAG_NAME;
+	private static final String TAG_SOURCE_VERSION = HeaderHandler.TAG_SOURCE + DOT + HeaderHandler.TAG_VERSION;
+	private static final String TAG_SOURCE_ORGANIZATION = HeaderHandler.TAG_SOURCE + DOT + HeaderHandler.TAG_ORGANIZATION;
+	private static final String TAG_SUBMITTER_CONTACT = HeaderHandler.TAG_SUBMITTER + DOT + HeaderHandler.TAG_CONTACT;
+	private static final String TAG_SUBMITTER_NOTE = HeaderHandler.TAG_SUBMITTER + DOT + HeaderHandler.TAG_NOTE;
 
 	private static final String PROTOCOL_NAME = "Family LEgacy Format";
 	private static final String PROTOCOL_VERSION = "0.1.3";
@@ -126,12 +117,12 @@ public class HeaderDialog extends BaseRecordDialog{
 		sourceNameField = new BoundTextField(TAG_SOURCE_NAME, sourceName);
 		sourceVersionField = new BoundTextField(TAG_SOURCE_VERSION, sourceVersion);
 		sourceOrganizationField = new BoundTextField(TAG_SOURCE_ORGANIZATION, SOURCE_ORGANIZATION);
-		dateField = new BoundTextField(TAG_DATE);
+		dateField = new BoundTextField(HeaderHandler.TAG_DATE);
 		dateField.setEnabled(false);
-		copyrightArea = new BoundTextArea(TAG_COPYRIGHT, 3, 25);
+		copyrightArea = new BoundTextArea(HeaderHandler.TAG_COPYRIGHT, 3, 25);
 		submitterContactListPanel = EntityListPanel.createForStructure(TAG_SUBMITTER_CONTACT, this, "Contacts", model, ContactHandler.class);
 		submitterNoteArea = new BoundTextArea(TAG_SUBMITTER_NOTE, 3, 25);
-		scopeArea = new BoundTextArea(TAG_SCOPE, 3, 25);
+		scopeArea = new BoundTextArea(HeaderHandler.TAG_SCOPE, 3, 25);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)

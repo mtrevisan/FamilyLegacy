@@ -87,16 +87,6 @@ import java.io.IOException;
  */
 public class EventParticipationRecordDialog extends BaseRecordDialog{
 
-	private static final String TAG_EVENT = "EVENT";
-	private static final String TAG_PARTICIPANT = "PARTICIPANT";
-	private static final String TAG_ROLE = "ROLE";
-	private static final String TAG_SOURCE = "SOURCE";
-	private static final String TAG_NOTE = "NOTE";
-	private static final String TAG_EVIDENCE = "EVIDENCE";
-	private static final String TAG_PRIVACY = "PRIVACY";
-	private static final String TAG_AUDIT = "AUDIT";
-
-
 	private final JPanel propertiesPanel;
 
 	private final EntityField participantField;
@@ -119,10 +109,10 @@ public class EventParticipationRecordDialog extends BaseRecordDialog{
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]5[]");
 
-		participantField = EntityField.createForRecordFromOneofReference(TAG_PARTICIPANT, this, model)
+		participantField = EntityField.createForRecordFromOneofReference(EventParticipationHandler.TAG_PARTICIPANT, this, model)
 			.withHandlerTypes(IndividualHandler.class, GroupHandler.class, PlaceHandler.class);
-		eventField = EntityField.createForRecordFromReference(TAG_EVENT, this, model, EventHandler.class);
-		roleCombo = new BoundComboBox<>(TAG_ROLE, new String[]{
+		eventField = EntityField.createForRecordFromReference(EventParticipationHandler.TAG_EVENT, this, model, EventHandler.class);
+		roleCombo = new BoundComboBox<>(EventParticipationHandler.TAG_ROLE, new String[]{
 			StringUtils.EMPTY,
 			"child", "parent", "spouse", "power_of_attorney", "prisoner", "witness",
 			"officiant", "informant", "executor", "grantor", "grantee",
@@ -136,11 +126,11 @@ public class EventParticipationRecordDialog extends BaseRecordDialog{
 			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, ContextImpactHandler.TYPE, "Context Impacts")
 			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, "Conclusions")
 			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, "Research Questions")
-			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources with Citations")
-			.withComponent(PanelKey.NOTE, TAG_NOTE, null)
-			.withComponent(PanelKey.EVIDENCE, TAG_EVIDENCE, "Evidence")
-			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null)
-			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null)
+			.withComponent(PanelKey.SOURCE, EventParticipationHandler.TAG_SOURCE, "Sources with Citations")
+			.withComponent(PanelKey.NOTE, EventParticipationHandler.TAG_NOTE, null)
+			.withComponent(PanelKey.EVIDENCE, EventParticipationHandler.TAG_EVIDENCE, "Evidence")
+			.withComponent(PanelKey.PRIVACY, EventParticipationHandler.TAG_PRIVACY, null)
+			.withComponent(PanelKey.AUDIT, EventParticipationHandler.TAG_AUDIT, null)
 			.build();
 
 		components.bind(roleCombo);

@@ -93,17 +93,6 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 	public static final String PROPERTY_CONCLUSION = "conclusion";
 
 
-	private static final String TAG_ISSUE = "ISSUE";
-	private static final String TAG_PROOF_STATUS = "PROOF_STATUS";
-	private static final String TAG_NARRATIVE = "NARRATIVE";
-	private static final String TAG_RESOLVES = "RESOLVES";
-	private static final String TAG_PREFERRED = "PREFERRED";
-	private static final String TAG_RESEARCH = "RESEARCH";
-	private static final String TAG_SOURCE = "SOURCE";
-	private static final String TAG_PRIVACY = "PRIVACY";
-	private static final String TAG_AUDIT = "AUDIT";
-
-
 	private final JPanel propertiesPanel;
 
 	private final BoundTextField issueField;
@@ -127,15 +116,15 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]5[]10[]10[]10[]");
 
-		issueField = new BoundTextField(TAG_ISSUE);
-		resolvesPanel = EntityListPanel.createForOneOfReference(TAG_RESOLVES, this, "Resolves", model)
+		issueField = new BoundTextField(ConclusionHandler.TAG_ISSUE);
+		resolvesPanel = EntityListPanel.createForOneOfReference(ConclusionHandler.TAG_RESOLVES, this, "Resolves", model)
 			.withHandlerTypes(EventHandler.class, EventParticipationHandler.class, RelationshipHandler.class,
 				IndividualHandler.class, IndividualAttributeHandler.class, GroupHandler.class, GroupAttributeHandler.class,
 				IdentityHypothesisHandler.class, PlaceHandler.class, PlaceRelationshipHandler.class, SourceHandler.class,
 				CulturalNormHandler.class, HistoricEventHandler.class)
 			.withSaveAsVoid();
 		resolvesPanel.addPropertyChangeListener(PROPERTY_CONCLUSION, evt -> updatePreferredCombo());
-		preferredCombo = new BoundComboBox<>(TAG_PREFERRED);
+		preferredCombo = new BoundComboBox<>(ConclusionHandler.TAG_PREFERRED);
 		preferredCombo.setRenderer(new DefaultListCellRenderer(){
 			@Override
 			public Component getListCellRendererComponent(final JList<?> list, final Object value, final int index,
@@ -151,18 +140,18 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 				return this;
 			}
 		});
-		proofStatusCombo = new BoundComboBox<>(TAG_PROOF_STATUS, new String[]{
+		proofStatusCombo = new BoundComboBox<>(ConclusionHandler.TAG_PROOF_STATUS, new String[]{
 			StringUtils.EMPTY,
 			"unresearched", "conflicting_evidence", "supported", "proven", "disproven"
 		});
-		narrativeArea = new BoundTextArea(TAG_NARRATIVE, 5, 30);
+		narrativeArea = new BoundTextArea(ConclusionHandler.TAG_NARRATIVE, 5, 30);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.RESEARCH_QUESTION, TAG_RESEARCH, "Questions")
-			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources with Citations")
-			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null)
-			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null)
+			.withComponent(PanelKey.RESEARCH_QUESTION, ConclusionHandler.TAG_RESEARCH, "Questions")
+			.withComponent(PanelKey.SOURCE, ConclusionHandler.TAG_SOURCE, "Sources with Citations")
+			.withComponent(PanelKey.PRIVACY, ConclusionHandler.TAG_PRIVACY, null)
+			.withComponent(PanelKey.AUDIT, ConclusionHandler.TAG_AUDIT, null)
 			.build();
 
 		components.bind(issueField);
@@ -241,7 +230,7 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 
 		if(record.hasChildren()){
 			// preferred
-			final FLEFRecord preferred = FLEFRecordHelper.extractRecordFromOneOfReference(record, TAG_PREFERRED, model);
+			final FLEFRecord preferred = FLEFRecordHelper.extractRecordFromOneOfReference(record, ConclusionHandler.TAG_PREFERRED, model);
 			if(preferred != null && !preferred.isEmpty())
 				// Find and select in combo
 				preferredCombo.setSelectedItem(preferred);
@@ -285,7 +274,7 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 		// preferred
 		final FLEFRecord selectedPreferred = (FLEFRecord)preferredCombo.getSelectedItem();
 		if(selectedPreferred != null){
-			final FLEFRecord preferred = FLEFRecordHelper.getOrCreateTargetNode(record, TAG_PREFERRED);
+			final FLEFRecord preferred = FLEFRecordHelper.getOrCreateTargetNode(record, ConclusionHandler.TAG_PREFERRED);
 			FLEFRecordHelper.updateChildValue(preferred, selectedPreferred.getTag(), selectedPreferred.getId());
 		}
 	}

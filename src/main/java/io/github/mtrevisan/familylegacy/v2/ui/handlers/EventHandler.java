@@ -38,6 +38,19 @@ public class EventHandler extends AbstractRecordTypeHandler<EventRecordDialog>{
 	public static final String TYPE = "EVENT";
 	public static final String ID_PREFIX = "E";
 
+	public static final String TAG_TYPE = "TYPE";
+	public static final String TAG_DESCRIPTION = "DESCRIPTION";
+	public static final String TAG_DATE = "DATE";
+	public static final String TAG_PLACE = "PLACE";
+	public static final String TAG_AGENCY = "AGENCY";
+	public static final String TAG_CAUSE = "CAUSE";
+	public static final String TAG_REASON = "REASON";
+	public static final String TAG_SOURCE = "SOURCE";
+	public static final String TAG_NOTE = "NOTE";
+	public static final String TAG_EVIDENCE = "EVIDENCE";
+	public static final String TAG_PRIVACY = "PRIVACY";
+	public static final String TAG_AUDIT = "AUDIT";
+
 
 	private static final class SingletonHelper{
 		private static final EventHandler INSTANCE = new EventHandler();

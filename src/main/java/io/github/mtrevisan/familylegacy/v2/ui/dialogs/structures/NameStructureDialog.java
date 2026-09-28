@@ -73,14 +73,6 @@ import java.awt.Window;
  */
 public class NameStructureDialog extends BaseRecordDialog{
 
-	private static final String TAG_VALUE = "VALUE";
-	private static final String TAG_TYPE = "TYPE";
-	private static final String TAG_VARIANT = "VARIANT";
-	private static final String TAG_LOCALE = "LOCALE";
-	private static final String TAG_SOURCE = "SOURCE";
-	private static final String TAG_NOTE = "NOTE";
-
-
 	private final JPanel propertiesPanel;
 
 	private final BoundTextField valueField;
@@ -104,8 +96,8 @@ public class NameStructureDialog extends BaseRecordDialog{
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]15[]");
 
-		valueField = new BoundTextField(TAG_VALUE);
-		typeCombo = new BoundComboBox<>(TAG_TYPE, new String[]{
+		valueField = new BoundTextField(NameHandler.TAG_VALUE);
+		typeCombo = new BoundComboBox<>(NameHandler.TAG_TYPE, new String[]{
 			StringUtils.EMPTY,
 			// official and legal names
 			"official", "legal",
@@ -125,14 +117,14 @@ public class NameStructureDialog extends BaseRecordDialog{
 			"administrative", "archival"
 		});
 		typeCombo.setEditable(true);
-		variantPanel = new TextValueVariantListPanel(TAG_VARIANT, this, "Variant", model);
-		localeCombo = new BoundFilteredComboBox<>(TAG_LOCALE, LocaleHelper.getAvailableLanguageTags());
+		variantPanel = new TextValueVariantListPanel(NameHandler.TAG_VARIANT, this, "Variant", model);
+		localeCombo = new BoundFilteredComboBox<>(NameHandler.TAG_LOCALE, LocaleHelper.getAvailableLanguageTags());
 		localeCombo.setEditable(true);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources with Citations")
-			.withComponent(PanelKey.NOTE, TAG_NOTE, null)
+			.withComponent(PanelKey.SOURCE, NameHandler.TAG_SOURCE, "Sources with Citations")
+			.withComponent(PanelKey.NOTE, NameHandler.TAG_NOTE, null)
 			.build();
 
 		components.bind(valueField);

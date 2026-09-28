@@ -32,6 +32,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.TextValueVariantListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PartHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.PersonalNameHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
@@ -58,11 +59,6 @@ import java.awt.Window;
  */
 public class PartStructureDialog extends BaseRecordDialog{
 
-	private static final String TAG_TYPE = "TYPE";
-	private static final String TAG_VALUE = "VALUE";
-	private static final String TAG_VARIANT = "VARIANT";
-
-
 	private final JPanel propertiesPanel;
 
 	private final BoundComboBox<String> typeCombo;
@@ -84,7 +80,7 @@ public class PartStructureDialog extends BaseRecordDialog{
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(0, "[]10[]15[]");
 
-		typeCombo = new BoundComboBox<>(TAG_TYPE, new String[]{
+		typeCombo = new BoundComboBox<>(PersonalNameHandler.TAG_PART_TYPE, new String[]{
 			StringUtils.EMPTY,
 			"given", "generation",
 			"patronymic", "matronymic", "kunya (كُنيَة)",
@@ -94,8 +90,8 @@ public class PartStructureDialog extends BaseRecordDialog{
 			"nickname", "regnal", "religious", "posthumous"
 		});
 		typeCombo.setEditable(true);
-		valueField = new BoundTextField(TAG_VALUE);
-		variantPanel = new TextValueVariantListPanel(TAG_VARIANT, this, "Variant", model);
+		valueField = new BoundTextField(PersonalNameHandler.TAG_PART_VALUE);
+		variantPanel = new TextValueVariantListPanel(PersonalNameHandler.TAG_PART_VARIANT, this, "Variant", model);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)

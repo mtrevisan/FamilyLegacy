@@ -55,13 +55,9 @@ public class PrivacyPanel extends JPanel{
 
 	private static final String DOT = ".";
 
-	private static final String TAG_PRIVACY = "PRIVACY";
-	private static final String TAG_PRIVACY_LEVEL = TAG_PRIVACY + DOT + "LEVEL";
-	private static final String TAG_PRIVACY_REASON = TAG_PRIVACY + DOT + "REASON";
-	private static final String TAG_PRIVACY_EXPIRES = TAG_PRIVACY + DOT + "EXPIRES";
-
-
-	private final String path;
+	public static final String TAG_LEVEL = "LEVEL";
+	public static final String TAG_REASON = "REASON";
+	public static final String TAG_EXPIRES = "EXPIRES";
 
 
 	private final BindingManager bindingManager = new BindingManager();
@@ -73,16 +69,13 @@ public class PrivacyPanel extends JPanel{
 
 	/**
 	 * Constructs a new RestrictionPanel.
-	 *
 	 */
 	public PrivacyPanel(final String path){
-		this.path = path;
-
-		levelCombo = new BoundComboBox<>(TAG_PRIVACY_LEVEL, new String[]{
+		levelCombo = new BoundComboBox<>(path + DOT + TAG_LEVEL, new String[]{
 			"public", "restricted", "confidential"});
-		reasonArea = new BoundTextArea(TAG_PRIVACY_REASON, 3, 25);
+		reasonArea = new BoundTextArea(path + DOT + TAG_REASON, 3, 25);
 		reasonArea.setToolTipText("e.g., 'Living individual', 'Repository license forbids redistribution'");
-		expiresField = new BoundTextField(TAG_PRIVACY_EXPIRES);
+		expiresField = new BoundTextField(path + DOT + TAG_EXPIRES);
 
 
 		initComponents();

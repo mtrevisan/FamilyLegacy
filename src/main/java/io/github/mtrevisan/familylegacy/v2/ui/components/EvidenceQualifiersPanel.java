@@ -55,9 +55,9 @@ public class EvidenceQualifiersPanel extends JPanel{
 
 	private static final String DOT = ".";
 
-	private static final String TAG_SOURCE_TYPE = "SOURCE_TYPE";
-	private static final String TAG_INFORMATION_TYPE = "INFORMATION_TYPE";
-	private static final String TAG_EVIDENCE_TYPE = "EVIDENCE_TYPE";
+	public static final String TAG_SOURCE_TYPE = "SOURCE_TYPE";
+	public static final String TAG_INFORMATION_TYPE = "INFORMATION_TYPE";
+	public static final String TAG_EVIDENCE_TYPE = "EVIDENCE_TYPE";
 
 
 	private final String path;

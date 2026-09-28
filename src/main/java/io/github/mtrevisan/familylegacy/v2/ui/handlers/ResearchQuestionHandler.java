@@ -46,6 +46,7 @@ public class ResearchQuestionHandler extends AbstractRecordTypeHandler<ResearchQ
 	public static final String TAG_QUESTION = "QUESTION";
 	public static final String TAG_TARGET = "TARGET";
 	public static final String TAG_STATUS = "STATUS";
+	// TODO
 	public static final String TAG_CONCLUSION = "CONCLUSION";
 	public static final String TAG_CONCLUSION_CONFIDENCE = "CONCLUSION_CONFIDENCE";
 	public static final String TAG_RATIONALE = "RATIONALE";

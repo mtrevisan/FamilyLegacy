@@ -80,7 +80,6 @@ import java.awt.Window;
 public class TextValueVariantStructureDialog extends BaseRecordDialog{
 
 	private static final String DOT = ".";
-
 	private static final String TAG_PHONETIC_SYSTEM = TextValueVariantHandler.TAG_PHONETIC + DOT + TextValueVariantHandler.TAG_SYSTEM;
 	private static final String TAG_PHONETIC_VALUE = TextValueVariantHandler.TAG_PHONETIC + DOT + TextValueVariantHandler.TAG_VALUE;
 	private static final String TAG_TRANSCRIPTION_SYSTEM = TextValueVariantHandler.TAG_TRANSCRIPTION + DOT + TextValueVariantHandler.TAG_SYSTEM;

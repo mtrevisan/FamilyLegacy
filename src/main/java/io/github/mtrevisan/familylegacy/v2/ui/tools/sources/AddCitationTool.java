@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.tools.sources;
 
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18n;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolOperation;
 
@@ -33,7 +34,7 @@ public final class AddCitationTool implements ToolOperation{
 
 	@Override
 	public String getName(){
-		return "Add Citation…";
+		return I18n.t("menu.source.add.citation");
 	}
 
 	@Override

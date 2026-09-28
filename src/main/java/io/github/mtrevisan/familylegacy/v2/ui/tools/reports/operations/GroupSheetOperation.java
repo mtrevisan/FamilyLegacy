@@ -1,5 +1,6 @@
 package io.github.mtrevisan.familylegacy.v2.ui.tools.reports.operations;
 
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18n;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolOperation;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.reports.ReportDialog;
@@ -10,7 +11,7 @@ public final class GroupSheetOperation implements ToolOperation{
 
 	@Override
 	public String getName(){
-		return "Group Sheet…";
+		return I18n.t("menu.reports.group.sheet");
 	}
 
 	@Override

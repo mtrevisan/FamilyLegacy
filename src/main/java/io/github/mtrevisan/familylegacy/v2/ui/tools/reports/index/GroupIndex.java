@@ -13,7 +13,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
 
-public final class GroupIndex {
+
+public final class GroupIndex{
 
 	private final Map<String, List<FLEFRecord>> groupToAttrsMap = new HashMap<>();
 	private final Map<String, List<FLEFRecord>> groupToMembersMap = new HashMap<>();
@@ -54,19 +55,19 @@ public final class GroupIndex {
 	}
 
 	public List<FLEFRecord> attributesOfGroup(final FLEFRecord group){
-		return (group != null && group.getId() != null) ? groupToAttrsMap.getOrDefault(group.getId(), Collections.emptyList()) : Collections.emptyList();
+		return (group != null && group.getId() != null)? groupToAttrsMap.getOrDefault(group.getId(), Collections.emptyList()): Collections.emptyList();
 	}
 
 	public List<FLEFRecord> membersOf(final FLEFRecord group){
-		return (group != null && group.getId() != null) ? groupToMembersMap.getOrDefault(group.getId(), Collections.emptyList()) : Collections.emptyList();
+		return (group != null && group.getId() != null)? groupToMembersMap.getOrDefault(group.getId(), Collections.emptyList()): Collections.emptyList();
 	}
 
 	public List<FLEFRecord> parentGroupsOf(final FLEFRecord group){
-		return (group != null && group.getId() != null) ? groupToParentGroupsMap.getOrDefault(group.getId(), Collections.emptyList()) : Collections.emptyList();
+		return (group != null && group.getId() != null)? groupToParentGroupsMap.getOrDefault(group.getId(), Collections.emptyList()): Collections.emptyList();
 	}
 
 	public List<FLEFRecord> childGroupsOf(final FLEFRecord group){
-		return (group != null && group.getId() != null) ? groupToChildGroupsMap.getOrDefault(group.getId(), Collections.emptyList()) : Collections.emptyList();
+		return (group != null && group.getId() != null)? groupToChildGroupsMap.getOrDefault(group.getId(), Collections.emptyList()): Collections.emptyList();
 	}
 
 }

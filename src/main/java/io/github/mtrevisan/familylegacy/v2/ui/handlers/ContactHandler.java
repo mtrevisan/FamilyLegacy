@@ -37,9 +37,15 @@ public class ContactHandler extends AbstractRecordTypeHandler<ContactStructureDi
 
 	public static final String TYPE = "CONTACT";
 
-	private static final String TAG_VALUE = "VALUE";
-	private static final String TAG_TYPE = "TYPE";
-	private static final String TAG_NAME = "NAME";
+	public static final String TAG_VALUE = "VALUE";
+	public static final String TAG_TYPE = "TYPE";
+	public static final String TAG_NAME = "NAME";
+	public static final String TAG_NOTE = "NOTE";
+	public static final String TAG_PRIVACY = "PRIVACY";
+	public static final String TAG_AUDIT = "AUDIT";
+
+	public static final String TAG_NAME_VALUE = "VALUE";
+	public static final String TAG_NAME_VARIANT = "VARIANT";
 
 
 	private static final class SingletonHelper{

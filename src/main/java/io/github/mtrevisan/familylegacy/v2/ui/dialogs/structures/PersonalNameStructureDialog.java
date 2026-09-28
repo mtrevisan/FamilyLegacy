@@ -33,6 +33,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PartHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PersonalNameHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
@@ -86,13 +87,6 @@ import java.awt.Window;
  */
 public class PersonalNameStructureDialog extends BaseRecordDialog{
 
-	private static final String TAG_TYPE = "TYPE";
-	private static final String TAG_PART = "PART";
-	private static final String TAG_LOCALE = "LOCALE";
-	private static final String TAG_SOURCE = "SOURCE";
-	private static final String TAG_NOTE = "NOTE";
-
-
 	private final JPanel propertiesPanel;
 
 	private final BoundComboBox<String> typeCombo;
@@ -116,7 +110,7 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]");
 
-		typeCombo = new BoundComboBox<>(TAG_TYPE, new String[]{
+		typeCombo = new BoundComboBox<>(IndividualHandler.TAG_PERSONAL_NAME_TYPE, new String[]{
 			StringUtils.EMPTY,
 			// marital status and origins at birth
 			"official", "religious", "birth",
@@ -130,8 +124,8 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 			"regnal", "slave_name"
 		});
 		typeCombo.setEditable(true);
-		partPanel = EntityListPanel.createForStructure(TAG_PART, this, "Parts*", model, PartHandler.class);
-		localeCombo = new BoundFilteredComboBox<>(TAG_LOCALE, LocaleHelper.getAvailableLanguageTags());
+		partPanel = EntityListPanel.createForStructure(IndividualHandler.TAG_PERSONAL_NAME_PART, this, "Parts*", model, PartHandler.class);
+		localeCombo = new BoundFilteredComboBox<>(IndividualHandler.TAG_PERSONAL_NAME_LOCALE, LocaleHelper.getAvailableLanguageTags());
 		localeCombo.setEditable(true);
 
 		culturalNormPanel = EntityListPanel.createForEntityReference(CulturalNormHandler.TYPE, parent, "Cultural Norms",
@@ -139,8 +133,8 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources with Citations")
-			.withComponent(PanelKey.NOTE, TAG_NOTE, null)
+			.withComponent(PanelKey.SOURCE, IndividualHandler.TAG_PERSONAL_NAME_SOURCE, "Sources with Citations")
+			.withComponent(PanelKey.NOTE, IndividualHandler.TAG_PERSONAL_NAME_NOTE, null)
 			.build();
 
 		components.bind(typeCombo);

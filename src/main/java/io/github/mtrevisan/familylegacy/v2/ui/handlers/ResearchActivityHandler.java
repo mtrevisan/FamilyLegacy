@@ -42,8 +42,24 @@ public class ResearchActivityHandler extends AbstractRecordTypeHandler<ResearchA
 	public static final String TYPE = "RESEARCH_ACTIVITY";
 	public static final String ID_PREFIX = "RA";
 
-	private static final String TAG_ACTION = "ACTION";
-	private static final String TAG_ACTIVITY_TYPE = "ACTIVITY_TYPE";
+	public static final String TAG_QUESTION = "QUESTION";
+	public static final String TAG_ACTIVITY_TYPE = "ACTIVITY_TYPE";
+	public static final String TAG_STATUS = "STATUS";
+	public static final String TAG_ACTION = "ACTION";
+	public static final String TAG_TARGET = "TARGET";
+	public static final String TAG_SEARCH_SCOPE = "SEARCH_SCOPE";
+	public static final String TAG_TYPE = "TYPE";
+	public static final String TAG_DETAIL = "DETAIL";
+	public static final String TAG_RESULT = "RESULT";
+	public static final String TAG_OBSERVATION = "OBSERVATION";
+	// TODO
+	public static final String TAG_CONCLUSION = "CONCLUSION";
+	public static final String TAG_CONCLUSION_CONFIDENCE = "CONCLUSION_CONFIDENCE";
+	public static final String TAG_SOURCE = "SOURCE";
+	public static final String TAG_PARENT_ACTIVITY = "PARENT_ACTIVITY";
+	public static final String TAG_TASK = "TASK";
+	public static final String TAG_PRIVACY = "PRIVACY";
+	public static final String TAG_AUDIT = "AUDIT";
 
 
 	private static final class SingletonHelper{

@@ -80,16 +80,6 @@ import java.util.function.Consumer;
  */
 public class ContextImpactRecordDialog extends BaseRecordDialog{
 
-	private static final String TAG_CONTEXT = "CONTEXT";
-	private static final String TAG_TARGET = "TARGET";
-	private static final String TAG_IMPACT_TYPE = "IMPACT_TYPE";
-	private static final String TAG_RATIONALE = "RATIONALE";
-	private static final String TAG_CONFIDENCE = "CONFIDENCE";
-	private static final String TAG_SOURCE = "SOURCE";
-	private static final String TAG_EVIDENCE = "EVIDENCE";
-	private static final String TAG_AUDIT = "AUDIT";
-
-
 	private final EntityField contextField;
 	private final EntityField targetField;
 	private final BoundComboBox<String> impactTypeCombo;
@@ -114,33 +104,33 @@ public class ContextImpactRecordDialog extends BaseRecordDialog{
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]10[]10[]10[]");
 
-		contextField = EntityField.createForRecordFromOneofReference(TAG_CONTEXT, this, model)
+		contextField = EntityField.createForRecordFromOneofReference(ContextImpactHandler.TAG_CONTEXT, this, model)
 			.withHandlerTypes(CulturalNormHandler.class, HistoricEventHandler.class);
 
-		targetField = EntityField.createForRecordFromOneofReference(TAG_TARGET, this, model)
+		targetField = EntityField.createForRecordFromOneofReference(ContextImpactHandler.TAG_TARGET, this, model)
 			.withHandlerTypes(IndividualHandler.class, GroupHandler.class, PlaceHandler.class, EventHandler.class,
 				RelationshipHandler.class, IndividualAttributeHandler.class, GroupAttributeHandler.class,
 				ConclusionHandler.class, EventParticipationHandler.class, PlaceRelationshipHandler.class,
 				IdentityHypothesisHandler.class);
 
-		impactTypeCombo = new BoundComboBox<>(TAG_IMPACT_TYPE, new String[]{
+		impactTypeCombo = new BoundComboBox<>(ContextImpactHandler.TAG_IMPACT_TYPE, new String[]{
 			StringUtils.EMPTY,
 			"explains", "influences", "constrains", "motivates", "causes"
 		});
 		impactTypeCombo.setEditable(true);
 
-		rationaleArea = new BoundTextArea(TAG_RATIONALE, 3, 30);
+		rationaleArea = new BoundTextArea(ContextImpactHandler.TAG_RATIONALE, 3, 30);
 
-		confidenceCombo = new BoundComboBox<>(TAG_CONFIDENCE, new String[]{
+		confidenceCombo = new BoundComboBox<>(ContextImpactHandler.TAG_CONFIDENCE, new String[]{
 			StringUtils.EMPTY,
 			"low", "medium", "high"
 		});
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources with Citations")
-			.withComponent(PanelKey.EVIDENCE, TAG_EVIDENCE, "Evidence")
-			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null)
+			.withComponent(PanelKey.SOURCE, ContextImpactHandler.TAG_SOURCE, "Sources with Citations")
+			.withComponent(PanelKey.EVIDENCE, ContextImpactHandler.TAG_EVIDENCE, "Evidence")
+			.withComponent(PanelKey.AUDIT, ContextImpactHandler.TAG_AUDIT, null)
 			.build();
 
 		components.bind(impactTypeCombo);

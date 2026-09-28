@@ -13,7 +13,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.function.Predicate;
 
-public final class RelationshipIndex {
+
+public final class RelationshipIndex{
 
 	private final Map<String, List<FLEFRecord>> personToRelationshipsMap = new HashMap<>();
 	private final Map<String, List<FLEFRecord>> personToGroupMembershipsMap = new HashMap<>();

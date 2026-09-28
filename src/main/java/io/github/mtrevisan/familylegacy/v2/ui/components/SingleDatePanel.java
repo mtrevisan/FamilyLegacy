@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextField;
+import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
@@ -74,23 +75,10 @@ import java.util.Map;
 public class SingleDatePanel extends JPanel{
 
 	private static final String DOT = ".";
-
-	private static final String TAG_APPROXIMATE = "APPROXIMATE";
-
-	private static final String TAG_FULL_DATE = "FULL_DATE";
-	private static final String TAG_DECADE = "DECADE";
-	private static final String TAG_CENTURY = "CENTURY";
-
-	private static final String TAG_VALUE = "VALUE";
-	private static final String TAG_START_YEAR = "START_YEAR";
-	private static final String TAG_ORDINAL = "ORDINAL";
-	private static final String TAG_PART = "PART";
-	private static final String TAG_CALENDAR = "CALENDAR";
-
-	private static final String TAG_FULL_DATE_VALUE = TAG_FULL_DATE + DOT + TAG_VALUE;
-	private static final String TAG_DECADE_START_YEAR = TAG_DECADE + DOT + TAG_START_YEAR;
-	private static final String TAG_CENTURY_ORDINAL = TAG_CENTURY + DOT + TAG_ORDINAL;
-	private static final String TAG_CENTURY_PART = TAG_CENTURY + DOT + TAG_PART;
+	private static final String TAG_FULL_DATE_VALUE = DateField.TAG_FULL_DATE + DOT + DateField.TAG_VALUE;
+	private static final String TAG_DECADE_START_YEAR = DateField.TAG_DECADE + DOT + DateField.TAG_START_YEAR;
+	private static final String TAG_CENTURY_ORDINAL = DateField.TAG_CENTURY + DOT + DateField.TAG_ORDINAL;
+	private static final String TAG_CENTURY_PART = DateField.TAG_CENTURY + DOT + DateField.TAG_PART;
 
 
 	private final BindingManager bindingManager = new BindingManager();
@@ -118,11 +106,11 @@ public class SingleDatePanel extends JPanel{
 			"first_quarter", "second_quarter", "third_quarter", "fourth_quarter",
 			"first_half", "second_half",
 			"early", "mid", "late"});
-		calendarCombo = new BoundComboBox<>(TAG_CALENDAR, new String[]{
+		calendarCombo = new BoundComboBox<>(DateField.TAG_CALENDAR, new String[]{
 			"gregorian", "julian", "islamic", "hebrew", "chinese", "indian", "buddhist", "french-republican", "coptic",
 			"soviet eternal", "ethiopian", "mayan"});
 		calendarCombo.setEditable(true);
-		approxPanel = new ApproximatePanel(TAG_APPROXIMATE, parent, model);
+		approxPanel = new ApproximatePanel(DateField.TAG_APPROXIMATE, parent, model);
 
 		fieldMap.put(DateType.FULL_DATE, fullDateValueField);
 		fieldMap.put(DateType.DECADE, decadeStartYearField);
@@ -227,8 +215,8 @@ public class SingleDatePanel extends JPanel{
 		final DateType singleDateType = DateType.fromNode(record);
 		singleDateTypeCombo.setSelectedItem(singleDateType);
 
-		approxPanel.setPath(singleDateType.getTagName() + DOT + TAG_APPROXIMATE);
-		calendarCombo.setPath(singleDateType.getTagName() + DOT + TAG_CALENDAR);
+		approxPanel.setPath(singleDateType.getTagName() + DOT + DateField.TAG_APPROXIMATE);
+		calendarCombo.setPath(singleDateType.getTagName() + DOT + DateField.TAG_CALENDAR);
 
 		approxPanel.loadFromRecord(record);
 
@@ -258,10 +246,10 @@ public class SingleDatePanel extends JPanel{
 		if(singleDateType != DateType.CENTURY)
 			centuryPartCombo.setText(StringUtils.EMPTY);
 
-		approxPanel.setPath(singleDateType.getTagName() + DOT + TAG_CALENDAR);
-		calendarCombo.setPath(singleDateType.getTagName() + DOT + TAG_CALENDAR);
+		approxPanel.setPath(singleDateType.getTagName() + DOT + DateField.TAG_CALENDAR);
+		calendarCombo.setPath(singleDateType.getTagName() + DOT + DateField.TAG_CALENDAR);
 
-		final FLEFRecord record = FLEFRecord.createChildWithTag(TAG_VALUE);
+		final FLEFRecord record = FLEFRecord.createChildWithTag(DateField.TAG_VALUE);
 
 		bindingManager.save(record);
 

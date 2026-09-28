@@ -66,14 +66,6 @@ import java.awt.Window;
  */
 public class ContactStructureDialog extends BaseRecordDialog{
 
-	private static final String TAG_VALUE = "VALUE";
-	private static final String TAG_TYPE = "TYPE";
-	private static final String TAG_NAME = "NAME";
-	private static final String TAG_NOTE = "NOTE";
-	private static final String TAG_PRIVACY = "PRIVACY";
-	private static final String TAG_AUDIT = "AUDIT";
-
-
 	private final JPanel propertiesPanel;
 
 	private final BoundTextField valueField;
@@ -96,19 +88,19 @@ public class ContactStructureDialog extends BaseRecordDialog{
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]5[]10[]10[]");
 
-		valueField = new BoundTextField(TAG_VALUE);
-		typeCombo = new BoundComboBox<>(ContactStructureDialog.TAG_TYPE, new String[]{
+		valueField = new BoundTextField(ContactHandler.TAG_VALUE);
+		typeCombo = new BoundComboBox<>(ContactHandler.TAG_TYPE, new String[]{
 			StringUtils.EMPTY,
 			"email", "phone", "mobile", "fax", "website", "blog", "social", "postal", "messaging"
 		});
-		namePanel = EntityListPanel.createForStructure(TAG_NAME, this, "Name", model,
+		namePanel = EntityListPanel.createForStructure(ContactHandler.TAG_NAME, this, "Name", model,
 			ContactNameHandler.class);
-		noteArea = new BoundTextArea(TAG_NOTE, 3, 25);
+		noteArea = new BoundTextArea(ContactHandler.TAG_NOTE, 3, 25);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null)
-			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null)
+			.withComponent(PanelKey.PRIVACY, ContactHandler.TAG_PRIVACY, null)
+			.withComponent(PanelKey.AUDIT, ContactHandler.TAG_AUDIT, null)
 			.build();
 
 		components.bind(valueField);

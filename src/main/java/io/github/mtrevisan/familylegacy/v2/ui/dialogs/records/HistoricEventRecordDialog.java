@@ -73,15 +73,6 @@ import java.io.IOException;
  */
 public class HistoricEventRecordDialog extends BaseRecordDialog{
 
-	private static final String TAG_TYPE = "TYPE";
-	private static final String TAG_TITLE = "TITLE";
-	private static final String TAG_DATE = "DATE";
-	private static final String TAG_SOURCE = "SOURCE";
-	private static final String TAG_NOTE = "NOTE";
-	private static final String TAG_EVIDENCE = "EVIDENCE";
-	private static final String TAG_AUDIT = "AUDIT";
-
-
 	private final BoundComboBox<String> typeCombo;
 	private final BoundTextField titleField;
 	private final DateField dateField;
@@ -101,15 +92,15 @@ public class HistoricEventRecordDialog extends BaseRecordDialog{
 	private HistoricEventRecordDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, HistoricEventHandler.getInstance());
 
-		typeCombo = new BoundComboBox<>(TAG_TYPE, new String[]{
+		typeCombo = new BoundComboBox<>(HistoricEventHandler.TAG_TYPE, new String[]{
 			StringUtils.EMPTY,
 			"war", "epidemic", "famine", "migration", "legal_reform", "political_change", "territorial_change",
 			"natural_disaster", "economic_crisis", "scientific_discovery", "religious_reform", "social_movement",
 			"pandemic"
 		});
 		typeCombo.setEditable(true);
-		titleField = new BoundTextField(TAG_TITLE);
-		dateField = DateField.createWithWrapperTag(TAG_DATE, this, "Date", model);
+		titleField = new BoundTextField(HistoricEventHandler.TAG_TITLE);
+		dateField = DateField.createWithWrapperTag(HistoricEventHandler.TAG_DATE, this, "Date", model);
 		placeField = EntityField.createForStructureWithReference(PlaceHandler.TYPE, this, model, PlaceCitationHandler.class);
 
 		// Build common panels using the builder
@@ -117,10 +108,10 @@ public class HistoricEventRecordDialog extends BaseRecordDialog{
 			.withComponent(PanelKey.CONTEXT_IMPACT_ON_CONTEXT, ContextImpactHandler.TYPE, "Context Impacts")
 			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, "Conclusions")
 			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, "Research Questions")
-			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources with Citations")
-			.withComponent(PanelKey.NOTE, TAG_NOTE, null)
-			.withComponent(PanelKey.EVIDENCE, TAG_EVIDENCE, "Evidence")
-			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null)
+			.withComponent(PanelKey.SOURCE, HistoricEventHandler.TAG_SOURCE, "Sources with Citations")
+			.withComponent(PanelKey.NOTE, HistoricEventHandler.TAG_NOTE, null)
+			.withComponent(PanelKey.EVIDENCE, HistoricEventHandler.TAG_EVIDENCE, "Evidence")
+			.withComponent(PanelKey.AUDIT, HistoricEventHandler.TAG_AUDIT, null)
 			.build();
 
 		components.bind(typeCombo);

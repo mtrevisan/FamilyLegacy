@@ -12,9 +12,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
 
-public final class PedigreeIndex {
 
-	public record ParentEdge(FLEFRecord parent, String relationshipType){}
+public final class PedigreeIndex{
+
+	public record ParentEdge(FLEFRecord parent, String relationshipType){
+	}
 
 	private final Map<String, List<FLEFRecord>> parentToChildrenMap = new HashMap<>();
 	private final Map<String, List<FLEFRecord>> childToParentsMap = new HashMap<>();
@@ -41,8 +43,8 @@ public final class PedigreeIndex {
 			final boolean parentRel = type.endsWith("_parent");
 
 			if(childRel || parentRel){
-				final String childId = (childRel ? subjectId : objectId);
-				final String parentId = (childRel ? objectId : subjectId);
+				final String childId = (childRel? subjectId: objectId);
+				final String parentId = (childRel? objectId: subjectId);
 
 				final FLEFRecord child = model.getRecordById(childId);
 				final FLEFRecord parent = model.getRecordById(parentId);

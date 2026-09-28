@@ -48,7 +48,7 @@ import java.util.function.Function;
  * Holds references to the underlying model, root entity, report configuration,
  * specialized indices, and internationalization label providers.
  */
-final class ReportContext {
+final class ReportContext{
 
 	private static final String TAG_PRIVACY_LEVEL = "privacy.level";
 	private static final String PRIVACY_PUBLIC = "public";
@@ -64,10 +64,22 @@ final class ReportContext {
 
 
 	/** Categorizes the type of the root FLEF record being reported. */
-	enum RootKind {
-		INDIVIDUAL, GROUP, EVENT, SOURCE, PLACE, REPOSITORY, DOCUMENT,
-		RESEARCH_QUESTION, RESEARCH_ACTIVITY, RESEARCH_TASK,
-		CONCLUSION, IDENTITY_HYPOTHESIS, CULTURAL_NORM, HISTORIC_EVENT, OTHER
+	enum RootKind{
+		INDIVIDUAL,
+		GROUP,
+		EVENT,
+		SOURCE,
+		PLACE,
+		REPOSITORY,
+		DOCUMENT,
+		RESEARCH_QUESTION,
+		RESEARCH_ACTIVITY,
+		RESEARCH_TASK,
+		CONCLUSION,
+		IDENTITY_HYPOTHESIS,
+		CULTURAL_NORM,
+		HISTORIC_EVENT,
+		OTHER
 	}
 
 
@@ -85,17 +97,6 @@ final class ReportContext {
 	private Function<String, String> contextLabelResolver;
 
 
-	private ReportContext(final FLEFModel model, final FLEFRecord root,
-		final ReportConfig config){
-		this.model = model;
-		this.root = root;
-		this.config = config;
-		this.labels = new ReportLabels(config.language());
-		this.index = RelationIndex.build(model, this::isVisible);
-		this.rootKind = detectRootKind(root);
-	}
-
-
 	/**
 	 * Factory method to construct an immutable {@link ReportContext}.
 	 *
@@ -104,33 +105,54 @@ final class ReportContext {
 	 * @param config The report configuration options.
 	 * @return A fully initialized report context.
 	 */
-	static ReportContext build(final FLEFModel model, final FLEFRecord root,
-		final ReportConfig config){
+	static ReportContext build(final FLEFModel model, final FLEFRecord root, final ReportConfig config){
 		Objects.requireNonNull(model, "model");
 		Objects.requireNonNull(root, "root");
 		Objects.requireNonNull(config, "config");
-		return new ReportContext(model, root, config);
+
+		return new ReportContext(model, root, config, null);
+	}
+
+	/**
+	 * Builds a context that reuses a pre-built {@link RelationIndex}. Use this
+	 * overload when generating reports for many persons of the same model, so
+	 * the index is built once and shared.
+	 */
+	static ReportContext build(final FLEFModel model, final FLEFRecord root, final ReportConfig config,
+			final RelationIndex sharedIndex){
+		return new ReportContext(model, root, config, sharedIndex);
+	}
+
+
+	private ReportContext(final FLEFModel model, final FLEFRecord root, final ReportConfig config,
+			final RelationIndex sharedIndex){
+		this.model = model;
+		this.root = root;
+		this.config = config;
+		this.labels = new ReportLabels(config.language());
+		this.index = (sharedIndex != null? sharedIndex: RelationIndex.build(model, this::isVisible));
+		this.rootKind = detectRootKind(root);
 	}
 
 
 	private static RootKind detectRootKind(final FLEFRecord root){
 		final String tag = (root.getTag() != null? root.getTag().toLowerCase(Locale.ROOT): StringUtils.EMPTY);
-		return switch (tag){
-			case "group"               -> RootKind.GROUP;
-			case "event"               -> RootKind.EVENT;
-			case "source"              -> RootKind.SOURCE;
-			case "place"               -> RootKind.PLACE;
-			case "repository"          -> RootKind.REPOSITORY;
-			case "document"            -> RootKind.DOCUMENT;
-			case "research_question"   -> RootKind.RESEARCH_QUESTION;
-			case "research_activity"   -> RootKind.RESEARCH_ACTIVITY;
-			case "research_task"       -> RootKind.RESEARCH_TASK;
-			case "conclusion"          -> RootKind.CONCLUSION;
+		return switch(tag){
+			case "group" -> RootKind.GROUP;
+			case "event" -> RootKind.EVENT;
+			case "source" -> RootKind.SOURCE;
+			case "place" -> RootKind.PLACE;
+			case "repository" -> RootKind.REPOSITORY;
+			case "document" -> RootKind.DOCUMENT;
+			case "research_question" -> RootKind.RESEARCH_QUESTION;
+			case "research_activity" -> RootKind.RESEARCH_ACTIVITY;
+			case "research_task" -> RootKind.RESEARCH_TASK;
+			case "conclusion" -> RootKind.CONCLUSION;
 			case "identity_hypothesis" -> RootKind.IDENTITY_HYPOTHESIS;
-			case "cultural_norm"       -> RootKind.CULTURAL_NORM;
-			case "historic_event"      -> RootKind.HISTORIC_EVENT;
-			case "individual"          -> RootKind.INDIVIDUAL;
-			default                    -> RootKind.OTHER;
+			case "cultural_norm" -> RootKind.CULTURAL_NORM;
+			case "historic_event" -> RootKind.HISTORIC_EVENT;
+			case "individual" -> RootKind.INDIVIDUAL;
+			default -> RootKind.OTHER;
 		};
 	}
 
@@ -138,28 +160,24 @@ final class ReportContext {
 		return rootKind;
 	}
 
-	boolean isIndividualRoot(){
-		return rootKind == RootKind.INDIVIDUAL;
-	}
-
 	boolean isGroupRoot(){
-		return rootKind == RootKind.GROUP;
+		return (rootKind == RootKind.GROUP);
 	}
 
 	boolean isEventRoot(){
-		return rootKind == RootKind.EVENT;
+		return (rootKind == RootKind.EVENT);
 	}
 
 	boolean isSourceRoot(){
-		return rootKind == RootKind.SOURCE;
+		return (rootKind == RootKind.SOURCE);
 	}
 
 	boolean isPlaceRoot(){
-		return rootKind == RootKind.PLACE;
+		return (rootKind == RootKind.PLACE);
 	}
 
 	boolean isRepositoryRoot(){
-		return rootKind == RootKind.REPOSITORY;
+		return (rootKind == RootKind.REPOSITORY);
 	}
 
 	boolean isDocumentRoot(){
@@ -174,11 +192,25 @@ final class ReportContext {
 		return rootKind == RootKind.CONCLUSION;
 	}
 
-	boolean isResearchActivityRoot(){ return rootKind == RootKind.RESEARCH_ACTIVITY; }
-	boolean isResearchTaskRoot(){ return rootKind == RootKind.RESEARCH_TASK; }
-	boolean isIdentityHypothesisRoot(){ return rootKind == RootKind.IDENTITY_HYPOTHESIS; }
-	boolean isCulturalNormRoot(){ return rootKind == RootKind.CULTURAL_NORM; }
-	boolean isHistoricEventRoot(){ return rootKind == RootKind.HISTORIC_EVENT; }
+	boolean isResearchActivityRoot(){
+		return rootKind == RootKind.RESEARCH_ACTIVITY;
+	}
+
+	boolean isResearchTaskRoot(){
+		return rootKind == RootKind.RESEARCH_TASK;
+	}
+
+	boolean isIdentityHypothesisRoot(){
+		return rootKind == RootKind.IDENTITY_HYPOTHESIS;
+	}
+
+	boolean isCulturalNormRoot(){
+		return rootKind == RootKind.CULTURAL_NORM;
+	}
+
+	boolean isHistoricEventRoot(){
+		return rootKind == RootKind.HISTORIC_EVENT;
+	}
 
 
 	/* ======================================================================
@@ -227,11 +259,11 @@ final class ReportContext {
 		final String expires = FLEFRecordHelper.getChildValue(rec, TAG_EXPIRES);
 		if(expires == null || expires.isBlank())
 			return false;
-		try {
+		try{
 			final LocalDate expiry = LocalDate.parse(expires.trim());
 			return !expiry.isAfter(LocalDate.now());
 		}
-		catch (final Exception ignored){
+		catch(final Exception ignored){
 			return false;
 		}
 	}
@@ -241,7 +273,7 @@ final class ReportContext {
 		if(level == null || level.isBlank())
 			return PRIVACY_PUBLIC;
 		final String norm = level.trim().toLowerCase(Locale.ROOT);
-		return switch (norm){
+		return switch(norm){
 			case PRIVACY_RESTRICTED, PRIVACY_CONFIDENTIAL -> norm;
 			default -> PRIVACY_PUBLIC;
 		};
@@ -252,7 +284,7 @@ final class ReportContext {
 	}
 
 	FLEFRecord visible(final FLEFRecord rec){
-		return (isVisible(rec) ? rec : null);
+		return (isVisible(rec)? rec: null);
 	}
 
 	List<FLEFRecord> visible(final List<FLEFRecord> recs){
@@ -286,7 +318,7 @@ final class ReportContext {
 		final Set<String> ids = new LinkedHashSet<>();
 		ids.add(root.getId());
 
-		switch (rootKind){
+		switch(rootKind){
 			case INDIVIDUAL -> computeForIndividual(ids);
 			case GROUP -> computeForGroup(ids);
 			case EVENT -> computeForEvent(ids);
@@ -427,7 +459,7 @@ final class ReportContext {
 			if(rt != null && !rt.isBlank())
 				return rt.replace('_', ' ');
 		}
-		else {
+		else{
 			final String t = FLEFRecordHelper.getChildValue(rec, TAG_TYPE);
 			if(t != null && !t.isBlank())
 				return t.replace('_', ' ');
@@ -442,8 +474,8 @@ final class ReportContext {
 
 	String displayText(final FLEFRecord rec){
 		final String tag = rec.getTag();
-		final RecordTypeHandler<?> h = (tag != null ? HandlerRegistry.getHandler(tag) : null);
-		return (h != null ? h.getDisplayText(rec, model) : rec.getId());
+		final RecordTypeHandler<?> h = (tag != null? HandlerRegistry.getHandler(tag): null);
+		return (h != null? h.getDisplayText(rec, model): rec.getId());
 	}
 
 	String sourceTitle(final String sourceId){

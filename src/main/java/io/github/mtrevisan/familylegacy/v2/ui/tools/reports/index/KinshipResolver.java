@@ -10,14 +10,20 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
+
 /**
  * Encapsulates rank, priority, parent relationship evaluation logic,
  * ancestor tree traversal, and indirect relation resolution.
  */
-public final class KinshipResolver {
+public final class KinshipResolver{
 
-	public enum IndirectKind { SPOUSE, ASSOCIATE }
-	public record IndirectRelation(FLEFRecord individual, FLEFRecord via, IndirectKind kind){}
+	public enum IndirectKind{
+		SPOUSE,
+		ASSOCIATE
+	}
+
+	public record IndirectRelation(FLEFRecord individual, FLEFRecord via, IndirectKind kind){
+	}
 
 	private final PedigreeIndex pedigreeIndex;
 	private final RelationshipIndex relationshipIndex;
@@ -53,13 +59,13 @@ public final class KinshipResolver {
 				best = candidate;
 			}
 		}
-		return (best != null ? best : fallback);
+		return (best != null? best: fallback);
 	}
 
 	public static int rankOf(final String relationshipType){
 		if(relationshipType == null)
 			return 90;
-		return switch (relationshipType.toLowerCase(Locale.ROOT)){
+		return switch(relationshipType.toLowerCase(Locale.ROOT)){
 			case "biological_child" -> 10;
 			case "adoptive_child" -> 20;
 			case "foster_child" -> 30;

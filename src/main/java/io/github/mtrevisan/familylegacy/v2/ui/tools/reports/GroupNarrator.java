@@ -125,7 +125,7 @@ final class GroupNarrator{
 			if(TYPE_RESIDENCE.equalsIgnoreCase(t)){
 				final String v = FLEFRecordHelper.getChildValue(a, TAG_VALUE);
 				final String p = FLEFRecordHelper.extractPlace(a, model);
-				final String loc = (v != null && !v.isBlank()) ? v.trim() : p;
+				final String loc = (v != null && !v.isBlank())? v.trim(): p;
 				if(loc != null && !loc.isBlank())
 					sentences.add(labels.narrative().groupNarrativeResidence(displayName, loc));
 			}

@@ -38,8 +38,6 @@ public class ConclusionTargetHandler extends AbstractRecordTypeHandler<BaseRecor
 
 	public static final String TYPE = "CONCLUSION_TARGET";
 
-	private static final String TAG_RESOLVES = "RESOLVES";
-
 
 	private static final class SingletonHelper{
 		private static final ConclusionTargetHandler INSTANCE = new ConclusionTargetHandler();
@@ -76,7 +74,7 @@ public class ConclusionTargetHandler extends AbstractRecordTypeHandler<BaseRecor
 			final String parentEntityType){
 		return model.getRecordsByType(ConclusionHandler.TYPE).stream()
 			.filter(conclusion -> {
-				final List<FLEFRecord> resolves = FLEFRecordHelper.findChildren(conclusion, TAG_RESOLVES);
+				final List<FLEFRecord> resolves = FLEFRecordHelper.findChildren(conclusion, ConclusionHandler.TAG_RESOLVES);
 				for(final FLEFRecord resolve : resolves){
 					final FLEFRecord resolveCitation = resolve.getTheOnlyChild();
 					if(resolveCitation != null && !resolveCitation.isEmpty()){

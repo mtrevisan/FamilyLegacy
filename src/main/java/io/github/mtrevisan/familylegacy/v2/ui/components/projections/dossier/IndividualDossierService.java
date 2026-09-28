@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.projections.dossier;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.components.EvidenceQualifiersPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.dossier.names.NameAnatomy;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.dossier.names.NameAnatomyService;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.dossier.names.NamePart;
@@ -83,9 +84,6 @@ public final class IndividualDossierService{
 	private static final String TAG_SOURCE = "source";
 	private static final String TAG_LOCATOR = "locator";
 	private static final String TAG_EVIDENCE = "evidence";
-	private static final String TAG_SOURCE_TYPE = "source_type";
-	private static final String TAG_INFORMATION_TYPE = "information_type";
-	private static final String TAG_EVIDENCE_TYPE = "evidence_type";
 	private static final String TAG_NAME = "name";
 	private static final String TAG_SEX = "sex";
 	private static final String TAG_STATUS = "status";
@@ -871,9 +869,9 @@ public final class IndividualDossierService{
 		if(evidence == null)
 			return StringUtils.EMPTY;
 
-		final String sourceType = FLEFRecordHelper.getChildValue(evidence, TAG_SOURCE_TYPE);
-		final String infoType = FLEFRecordHelper.getChildValue(evidence, TAG_INFORMATION_TYPE);
-		final String evidenceType = FLEFRecordHelper.getChildValue(evidence, TAG_EVIDENCE_TYPE);
+		final String sourceType = FLEFRecordHelper.getChildValue(evidence, EvidenceQualifiersPanel.TAG_SOURCE_TYPE);
+		final String infoType = FLEFRecordHelper.getChildValue(evidence, EvidenceQualifiersPanel.TAG_INFORMATION_TYPE);
+		final String evidenceType = FLEFRecordHelper.getChildValue(evidence, EvidenceQualifiersPanel.TAG_EVIDENCE_TYPE);
 
 		final StringBuilder sb = new StringBuilder();
 		if(StringUtils.isNotEmpty(sourceType))

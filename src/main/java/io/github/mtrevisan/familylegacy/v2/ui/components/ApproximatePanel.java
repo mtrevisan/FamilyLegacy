@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
@@ -60,10 +61,6 @@ import java.awt.Window;
  * </pre>
  */
 public class ApproximatePanel extends JPanel{
-
-	private static final String TAG_BASIS = "BASIS";
-	private static final String TAG_MARGIN = "MARGIN";
-
 
 	private String path;
 
@@ -130,12 +127,12 @@ public class ApproximatePanel extends JPanel{
 
 		approximateCheck.setSelected(true);
 
-		final String basis = FLEFRecordHelper.getChildValue(approxRecord, TAG_BASIS);
+		final String basis = FLEFRecordHelper.getChildValue(approxRecord, DateField.TAG_BASIS);
 		basisCombo.setSelectedItem(StringUtils.defaultString(basis));
 
 		culturalNormPanel.load(approxRecord);
 
-		String margin = FLEFRecordHelper.getChildValue(approxRecord, TAG_MARGIN);
+		String margin = FLEFRecordHelper.getChildValue(approxRecord, DateField.TAG_MARGIN);
 		marginField.setText(margin);
 
 		updateEnabled();
@@ -156,14 +153,14 @@ public class ApproximatePanel extends JPanel{
 
 		final String basis = (String)basisCombo.getSelectedItem();
 		if(StringUtils.isNotEmpty(basis))
-			FLEFRecordHelper.updateChildValue(approx, TAG_BASIS, basis);
+			FLEFRecordHelper.updateChildValue(approx, DateField.TAG_BASIS, basis);
 
 		culturalNormPanel.save(parent);
 
 		final String margin = marginField.getText()
 			.trim();
 		if(!margin.isEmpty())
-			FLEFRecordHelper.updateChildValue(approx, TAG_MARGIN, margin);
+			FLEFRecordHelper.updateChildValue(approx, DateField.TAG_MARGIN, margin);
 
 		parent.addChild(approx);
 	}

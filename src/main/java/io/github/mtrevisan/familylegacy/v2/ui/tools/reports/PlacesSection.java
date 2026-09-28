@@ -374,7 +374,7 @@ final class PlacesSection implements SectionBuilder{
 				sb.append(" — ");
 			sb.append(date);
 		}
-		return (!sb.isEmpty() ? sb.toString(): null);
+		return (!sb.isEmpty()? sb.toString(): null);
 	}
 
 

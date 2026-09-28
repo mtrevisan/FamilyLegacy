@@ -27,6 +27,8 @@ package io.github.mtrevisan.familylegacy.v2.ui.tools.research;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.components.EvidenceQualifiersPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18n;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ReportDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolOperation;
@@ -60,7 +62,7 @@ public final class EvidenceQualifiersTool implements ToolOperation{
 
 	@Override
 	public String getName(){
-		return "Evidence Qualifiers…";
+		return I18n.t("menu.research.evidence.qualifiers");
 	}
 
 	@Override
@@ -82,12 +84,9 @@ public final class EvidenceQualifiersTool implements ToolOperation{
 					continue;
 				}
 				withQualifiers ++;
-				merge(sourceTypes, ResearchHelper.firstTextValue(qualifiers,
-					ResearchHelper.TAG_SOURCE_TYPE));
-				merge(informationTypes, ResearchHelper.firstTextValue(qualifiers,
-					ResearchHelper.TAG_INFORMATION_TYPE));
-				merge(evidenceTypes, ResearchHelper.firstTextValue(qualifiers,
-					ResearchHelper.TAG_EVIDENCE_TYPE));
+				merge(sourceTypes, ResearchHelper.firstTextValue(qualifiers, EvidenceQualifiersPanel.TAG_SOURCE_TYPE));
+				merge(informationTypes, ResearchHelper.firstTextValue(qualifiers, EvidenceQualifiersPanel.TAG_INFORMATION_TYPE));
+				merge(evidenceTypes, ResearchHelper.firstTextValue(qualifiers, EvidenceQualifiersPanel.TAG_EVIDENCE_TYPE));
 			}
 		}
 

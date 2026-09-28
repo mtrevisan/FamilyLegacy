@@ -41,7 +41,14 @@ public class HistoricEventHandler extends AbstractRecordTypeHandler<HistoricEven
 	public static final String TYPE = "HISTORIC_EVENT";
 	public static final String ID_PREFIX = "HE";
 
-	private static final String TAG_TITLE = "TITLE";
+	public static final String TAG_TYPE = "TYPE";
+	public static final String TAG_TITLE = "TITLE";
+	public static final String TAG_DATE = "DATE";
+	public static final String TAG_PLACE = "PLACE";
+	public static final String TAG_NOTE = "NOTE";
+	public static final String TAG_SOURCE = "SOURCE";
+	public static final String TAG_EVIDENCE = "EVIDENCE";
+	public static final String TAG_AUDIT = "AUDIT";
 
 
 	private static final class SingletonHelper{

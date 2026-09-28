@@ -189,7 +189,7 @@ public enum PanelKey{
 	// Specialized components
 	EVIDENCE((owner, cfg, model, record) -> new EvidenceQualifiersPanel(cfg.tag(), cfg.title())),
 	PRIVACY((owner, cfg, model, record) -> new PrivacyPanel(cfg.tag())),
-	AUDIT((owner, cfg, model, record) -> new AuditPanel(owner));
+	AUDIT((owner, cfg, model, record) -> new AuditPanel(cfg.tag(), owner));
 
 
 	private final PanelFactory factory;
