@@ -40,6 +40,13 @@ import io.github.mtrevisan.familylegacy.v2.ui.tools.individuals.DeleteIndividual
 import io.github.mtrevisan.familylegacy.v2.ui.tools.individuals.IndividualToolRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.individuals.RelocateIndividualTool;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.places.PlaceToolRegistry;
+import io.github.mtrevisan.familylegacy.v2.ui.tools.reports.operations.AncestorReportOperation;
+import io.github.mtrevisan.familylegacy.v2.ui.tools.reports.operations.BibliographyOperation;
+import io.github.mtrevisan.familylegacy.v2.ui.tools.reports.operations.DescendantReportOperation;
+import io.github.mtrevisan.familylegacy.v2.ui.tools.reports.operations.GroupSheetOperation;
+import io.github.mtrevisan.familylegacy.v2.ui.tools.reports.operations.IndividualSummaryOperation;
+import io.github.mtrevisan.familylegacy.v2.ui.tools.reports.operations.RelationshipReportOperation;
+import io.github.mtrevisan.familylegacy.v2.ui.tools.reports.operations.ResearchProgressOperation;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.research.ResearchToolRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.sources.SourceToolRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.tools.ToolToolRegistry;
@@ -496,25 +503,32 @@ final class ApplicationMenuBar{
 	 *                          Tools
 	 * ====================================================================== */
 
+	/* ======================================================================
+	 *                          Reports
+	 * ====================================================================== */
+
 	private JMenu createReportsMenu(){
 		final JMenu menu = new JMenu("Reports");
+		menu.setMnemonic(KeyEvent.VK_R);
 
 		final List<ToolItemBinding> bindings = new ArrayList<>();
 
-		//TODO
-		menu.add(placeholder("Ancestor Report…", 0));
-		menu.add(placeholder("Descendant Report…", 0));
-		menu.add(placeholder("Family Group Sheet…", 0));
-		menu.add(placeholder("Individual Summary…", 0));
-		menu.add(placeholder("Relationship Report…", 0));
-		menu.add(placeholder("Bibliography…", 0));
-		menu.add(placeholder("Research Progress…", 0));
+		final List<ToolOperation> reportOperations = List.of(
+			new AncestorReportOperation(),
+			new DescendantReportOperation(),
+			new GroupSheetOperation(),
+			new IndividualSummaryOperation(),
+			new RelationshipReportOperation(),
+			new BibliographyOperation(),
+			new ResearchProgressOperation()
+		);
+
+		addToolsToMenu(menu, reportOperations, bindings);
 
 		bindDynamicEnablement(menu, bindings);
 
 		return menu;
 	}
-
 
 	/* ======================================================================
 	 *                          Tools
@@ -533,29 +547,6 @@ final class ApplicationMenuBar{
 		addToolsToMenu(menu, ToolToolRegistry.analysisTools(), bindings);
 
 		bindDynamicEnablement(menu, bindings);
-
-		//TODO
-//		final JMenu charts = new JMenu("Charts");
-//		charts.setMnemonic(KeyEvent.VK_C);
-//		charts.add(placeholder("Ancestor Chart…", 0));
-//		charts.add(placeholder("Descendant Chart…", 0));
-//		charts.add(placeholder("Hourglass Chart…", 0));
-//		charts.add(placeholder("Fan Chart…", 0));
-//		charts.add(placeholder("Bowtie Chart…", 0));
-//		charts.add(placeholder("Relationship Chart…", 0));
-//		charts.add(placeholder("Map Chart…", 0));
-//		menu.add(charts);
-//
-//		menu.add(new JSeparator());
-//		menu.add(placeholder("Statistics…", 0));
-//		menu.add(placeholder("Data Cleanup…", 0));
-//		menu.add(placeholder("Recompute Derived Data", 0));
-//		menu.add(new JSeparator());
-//		menu.add(placeholder("Backup…", 0));
-//		menu.add(placeholder("Restore from Backup…", 0));
-//		menu.add(placeholder("Compare Two Files…", 0));
-//		menu.add(new JSeparator());
-//		menu.add(placeholder("Plugins…", 0));
 
 		return menu;
 	}
@@ -744,7 +735,7 @@ final class ApplicationMenuBar{
 		}
 		catch(final IOException e){
 			JOptionPane.showMessageDialog(frame,
-				"Unable to open the URL: " + url + "\n" + e.getMessage(),
+				"Unable to open the URL: " + url + StringUtils.LF + e.getMessage(),
 				"Error", JOptionPane.ERROR_MESSAGE);
 		}
 	}

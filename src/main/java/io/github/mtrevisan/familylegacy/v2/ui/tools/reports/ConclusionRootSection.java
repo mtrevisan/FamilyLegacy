@@ -1,7 +1,32 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
 package io.github.mtrevisan.familylegacy.v2.ui.tools.reports;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,7 +69,7 @@ final class ConclusionRootSection implements SectionBuilder{
 
 		final List<ReportSection> out = new ArrayList<>();
 		out.add(new ReportSection.Heading(1, String.format(
-			ctx.labels.conclusionOf(),
+			ctx.labels.sections().conclusionOf(),
 			ReportFormatters.escape(ReportFormatters.orEmpty(
 				FLEFRecordHelper.getChildValue(ctx.root, TAG_ISSUE))))));
 
@@ -68,7 +93,7 @@ final class ConclusionRootSection implements SectionBuilder{
 		final String proof = FLEFRecordHelper.getChildValue(ctx.root, TAG_PROOF);
 		if(proof != null)
 			out.add(new ReportSection.Paragraph(
-				"**" + ctx.labels.researchProofStatus() + ":** "
+				"**" + ctx.labels.sections().researchProofStatus() + ":** "
 					+ ReportFormatters.escape(ReportFormatters.enumLabel(proof))));
 
 		final String narrative = FLEFRecordHelper.getChildValue(ctx.root, TAG_NARRATIVE);
@@ -79,19 +104,21 @@ final class ConclusionRootSection implements SectionBuilder{
 
 	private void writeResolves(final List<ReportSection> out){
 		final List<FLEFRecord> resolves = FLEFRecordHelper.findChildren(ctx.root, TAG_RESOLVES);
-		if(resolves.isEmpty()) return;
+		if(resolves.isEmpty())
+			return;
 
 		final String preferredLabel = describeOneOf(
 			FLEFRecordHelper.findChild(ctx.root, TAG_PREFERRED));
 
-		out.add(new ReportSection.Heading(2, ctx.labels.researchResolves()));
+		out.add(new ReportSection.Heading(2, ctx.labels.sections().researchResolves()));
 		final List<String> items = new ArrayList<>();
 		for(final FLEFRecord r : resolves){
 			final String label = describeOneOf(r);
-			if(label == null) continue;
+			if(label == null)
+				continue;
 			final boolean preferred = (preferredLabel != null && preferredLabel.equals(label));
 			items.add(ReportFormatters.escape(label)
-				+ (preferred? "  ← *" + ctx.labels.researchPreferred() + "*": ""));
+				+ (preferred? "  ← *" + ctx.labels.sections().researchPreferred() + "*": StringUtils.EMPTY));
 		}
 		if(!items.isEmpty())
 			out.add(new ReportSection.BulletList(items));
@@ -100,35 +127,42 @@ final class ConclusionRootSection implements SectionBuilder{
 
 	private void writeLinkedQuestions(final List<ReportSection> out){
 		final List<FLEFRecord> links = FLEFRecordHelper.findChildren(ctx.root, TAG_RESEARCH);
-		if(links.isEmpty()) return;
+		if(links.isEmpty())
+			return;
 
 		final List<String> items = new ArrayList<>();
 		for(final FLEFRecord r : links){
 			final String qid = r.getValue();
-			if(qid == null) continue;
+			if(qid == null)
+				continue;
 			final FLEFRecord q = ctx.visible(ctx.model.getRecordById(qid));
-			if(q == null) continue;
+			if(q == null)
+				continue;
 			final String title = FLEFRecordHelper.getChildValue(q, TAG_TITLE);
 			items.add(ReportFormatters.escape(
 				title != null && !title.isBlank()? title.trim(): qid));
 		}
-		if(items.isEmpty()) return;
+		if(items.isEmpty())
+			return;
 
-		out.add(new ReportSection.Heading(2, ctx.labels.researchLinkedQuestions()));
+		out.add(new ReportSection.Heading(2, ctx.labels.sections().researchLinkedQuestions()));
 		out.add(new ReportSection.BulletList(items));
 	}
 
 
 	private String describeOneOf(final FLEFRecord field){
-		if(field == null) return null;
+		if(field == null)
+			return null;
 		final FLEFRecord ref = field.getTheOnlyChild();
-		if(ref == null || TAG_VOID.equalsIgnoreCase(ref.getTag())) return null;
+		if(ref == null || TAG_VOID.equalsIgnoreCase(ref.getTag()))
+			return null;
 		final String tag = ref.getTag();
 		final String id = ref.getValue();
-		if(id == null || id.isBlank()) return null;
+		if(id == null || id.isBlank())
+			return null;
 		final FLEFRecord rec = ctx.model.getRecordById(id);
-		if(rec == null || !ctx.isVisible(rec))
-			return tag + " " + id;
+		if(!ctx.isVisible(rec))
+			return tag + StringUtils.SPACE + id;
 		return ctx.displayText(rec);
 	}
 

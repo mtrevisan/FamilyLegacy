@@ -117,7 +117,9 @@ public final class FilePropertiesDialog extends JDialog{
 	private static String buildReport(final File file, final FLEFModel model){
 		final StringBuilder sb = new StringBuilder();
 
-		sb.append("=== File Properties ===\n\n");
+		sb.append("=== File Properties ===")
+			.append('\n')
+			.append('\n');
 		appendFileInfo(sb, file);
 		appendModelInfo(sb, model);
 
@@ -125,15 +127,24 @@ public final class FilePropertiesDialog extends JDialog{
 	}
 
 	private static void appendFileInfo(final StringBuilder sb, final File file){
-		sb.append("--- File ---\n");
+		sb.append("--- File ---")
+			.append('\n');
 		if(file == null){
-			sb.append("Name:           (unsaved)\n");
-			sb.append("Location:       —\n");
-			sb.append("Size:           —\n");
-			sb.append("Last modified:  —\n");
-			sb.append("Readable:       —\n");
-			sb.append("Writable:       —\n");
-			sb.append("Encoding:       ").append(detectEncoding(null)).append('\n');
+			sb.append("Name:           (unsaved)")
+				.append('\n');
+			sb.append("Location:       —")
+				.append('\n');
+			sb.append("Size:           —")
+				.append('\n');
+			sb.append("Last modified:  —")
+				.append('\n');
+			sb.append("Readable:       —")
+				.append('\n');
+			sb.append("Writable:       —")
+				.append('\n');
+			sb.append("Encoding:       ")
+				.append(detectEncoding(null))
+				.append('\n');
 			sb.append('\n');
 
 			return;
@@ -150,16 +161,19 @@ public final class FilePropertiesDialog extends JDialog{
 	}
 
 	private static void appendModelInfo(final StringBuilder sb, final FLEFModel model){
-		sb.append("--- Model ---\n");
+		sb.append("--- Model ---")
+			.append('\n');
 		if(model == null){
-			sb.append("No model loaded.\n");
+			sb.append("No model loaded.")
+				.append('\n');
 			return;
 		}
 		try{
 			final List<FLEFRecord> all = model.getRecords();
 			sb.append("Total records:  ").append(all.size()).append('\n');
 			sb.append('\n');
-			sb.append("By tag:\n");
+			sb.append("By tag:")
+				.append('\n');
 
 			final Map<String, Long> byTag = new TreeMap<>();
 			for(final FLEFRecord r : all)

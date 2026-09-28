@@ -35,7 +35,7 @@ import java.awt.Window;
 
 
 /**
- * Handler for {@code CONTACT_NAME_STRUCTURE} entities according to FLEF 0.1.2.
+ * Handler for {@code CONTACT_NAME_STRUCTURE} entities according to FLEF 0.1.3.
  * <p>
  * This handler provides the necessary operations for managing name structures:
  * creation, editing, display name generation, and type identification.

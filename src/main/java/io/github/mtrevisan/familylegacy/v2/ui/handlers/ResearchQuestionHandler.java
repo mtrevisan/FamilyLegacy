@@ -42,8 +42,21 @@ public class ResearchQuestionHandler extends AbstractRecordTypeHandler<ResearchQ
 	public static final String TYPE = "RESEARCH_QUESTION";
 	public static final String ID_PREFIX = "RS";
 
-	private static final String TAG_QUESTION = "QUESTION";
-	private static final String TAG_STATUS = "STATUS";
+	public static final String TAG_TITLE = "TITLE";
+	public static final String TAG_QUESTION = "QUESTION";
+	public static final String TAG_TARGET = "TARGET";
+	public static final String TAG_STATUS = "STATUS";
+	public static final String TAG_CONCLUSION = "CONCLUSION";
+	public static final String TAG_CONCLUSION_CONFIDENCE = "CONCLUSION_CONFIDENCE";
+	public static final String TAG_RATIONALE = "RATIONALE";
+	public static final String TAG_CLOSED_DATE = "CLOSED_DATE";
+	public static final String TAG_PRIVACY = "PRIVACY";
+	public static final String TAG_AUDIT = "AUDIT";
+
+	public static final String ENUM_STATUS_OPEN = "open";
+	public static final String ENUM_STATUS_ON_HOLD = "on_hold";
+	public static final String ENUM_STATUS_RESOLVED = "resolved";
+	public static final String ENUM_STATUS_DISPROVEN = "disproven";
 
 
 	private static final class SingletonHelper{

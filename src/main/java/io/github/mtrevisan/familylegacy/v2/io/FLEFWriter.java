@@ -74,17 +74,11 @@ public class FLEFWriter{
 	private static class Frame{
 		final FLEFRecord record;
 		final int indentLevel;
-		final String tagOverride; // if not null, use this instead of record.getTag()
 		int childIndex;
 
 		Frame(final FLEFRecord record, final int indentLevel){
-			this(record, indentLevel, null);
-		}
-
-		Frame(final FLEFRecord record, final int indentLevel, final String tagOverride){
 			this.record = record;
 			this.indentLevel = indentLevel;
-			this.tagOverride = tagOverride;
 			this.childIndex = 0;
 		}
 	}
@@ -348,7 +342,7 @@ public class FLEFWriter{
 			final Effective effective = getEffectiveRecord(record);
 			writeRecordHeader(effective.record, writer, indentLevel, effective.path);
 			if(effective.record.hasChildren())
-				stack.push(new Frame(effective.record, indentLevel + 1, effective.path));
+				stack.push(new Frame(effective.record, indentLevel + 1));
 		}
 		else{
 			// Expanded mode: write the child as a separate block

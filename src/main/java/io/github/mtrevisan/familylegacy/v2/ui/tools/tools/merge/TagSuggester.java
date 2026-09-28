@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.tools.tools.merge;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,8 +53,8 @@ import java.util.regex.Pattern;
  * <p>
  * The class parses the grammar directly, so it does not depend on the
  * internal {@code FLEFGrammar} model classes. The grammar is loaded
- * from the classpath first ({@code /gedg/flef_0.1.2.gedg}), then from
- * the filesystem ({@code src/main/resources/gedg/flef_0.1.2.gedg}),
+ * from the classpath first ({@code /gedg/flef_0.1.3.gedg}), then from
+ * the filesystem ({@code src/main/resources/gedg/flef_0.1.3.gedg}),
  * so the class works both when run from an IDE and from a packaged
  * JAR.
  * <p>
@@ -99,8 +100,8 @@ public final class TagSuggester{
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(TagSuggester.class);
 
-	private static final String GRAMMAR_CLASSPATH = "/gedg/flef_0.1.2.gedg";
-	private static final String GRAMMAR_FILE = "src/main/resources/gedg/flef_0.1.2.gedg";
+	private static final String GRAMMAR_CLASSPATH = "/gedg/flef_0.1.3.gedg";
+	private static final String GRAMMAR_FILE = "src/main/resources/gedg/flef_0.1.3.gedg";
 
 	/**
 	 * Matches the start of a type declaration: {@code struct X {}},
@@ -126,7 +127,7 @@ public final class TagSuggester{
 	 */
 	public enum Cardinality{
 		/** No modifier: exactly one, and the value is mandatory. */
-		REQUIRED(""),
+		REQUIRED(StringUtils.EMPTY),
 		/** {@code ?}: zero or one. */
 		OPTIONAL("?"),
 		/** {@code *}: zero or more. */
@@ -577,7 +578,7 @@ public final class TagSuggester{
 
 	public Context resolveContext(final String text, final int caret){
 		if(text == null || caret < 0 || caret > text.length())
-			return new Context(null, "", "", true);
+			return new Context(null, StringUtils.EMPTY, StringUtils.EMPTY, true);
 
 		final Deque<String> tagStack = new ArrayDeque<>();
 		final StringBuilder token = new StringBuilder();
@@ -824,8 +825,9 @@ public final class TagSuggester{
 		// never match inside commented-out declarations or inside the
 		// trailing part of a field declaration.
 		final StringBuilder sb = new StringBuilder(rawContent.length());
-		for(final String raw : rawContent.split("\n", -1))
-			sb.append(stripLineComment(raw)).append('\n');
+		for(final String raw : rawContent.split(StringUtils.LF, -1))
+			sb.append(stripLineComment(raw))
+				.append('\n');
 		final String content = sb.toString();
 
 		// Pass 1: collect every declared type name. Both `struct X {`
@@ -865,7 +867,7 @@ public final class TagSuggester{
 			final int bodyEnd = findMatchingBrace(content, bodyStart);
 			if(bodyStart >= 0 && bodyEnd > bodyStart){
 				final String body = content.substring(bodyStart + 1, bodyEnd);
-				for(final String line : body.split("\n", -1)){
+				for(final String line : body.split(StringUtils.LF, -1)){
 					final Matcher om = ONEOF_MAPPING.matcher(line.trim());
 					if(om.matches())
 						recordTagToType.put(om.group(1), om.group(2));
@@ -905,7 +907,7 @@ public final class TagSuggester{
 	private List<FieldInfo> parseBody(final String body, final Set<String> knownTypes,
 		final String parentTypeName){
 		final List<FieldInfo> fields = new ArrayList<>();
-		final String[] lines = body.split("\n", -1);
+		final String[] lines = body.split(StringUtils.LF, -1);
 		int depth = 0;
 		int i = 0;
 		while(i < lines.length){
@@ -977,7 +979,7 @@ public final class TagSuggester{
 						final int close = accStr.lastIndexOf('}');
 						final String inlineBody = (open >= 0 && close > open
 							? accStr.substring(open + 1, close)
-							: "");
+							: StringUtils.EMPTY);
 
 						// Recursive parse and register.
 						types.put(syntheticName,

@@ -48,7 +48,9 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceRelationshipHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchActivityHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchTaskHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
@@ -60,7 +62,7 @@ import java.io.IOException;
 
 
 /**
- * Dialog for editing a {@code RESEARCH_QUESTION_RECORD} according to FLEF 0.1.2.
+ * Dialog for editing a {@code RESEARCH_QUESTION_RECORD} according to FLEF 0.1.3.
  * <p>
  * Structure:
  * <pre>
@@ -105,18 +107,6 @@ import java.io.IOException;
  */
 public class ResearchQuestionRecordDialog extends BaseRecordDialog{
 
-	private static final String TAG_TITLE = "TITLE";
-	private static final String TAG_QUESTION = "QUESTION";
-	private static final String TAG_TARGET = "TARGET";
-	private static final String TAG_CONCLUSION_CONFIDENCE = "CONCLUSION_CONFIDENCE";
-	private static final String TAG_RATIONALE = "RATIONALE";
-	private static final String TAG_PRIVACY = "PRIVACY";
-	private static final String TAG_AUDIT = "AUDIT";
-
-	private static final String TAG_RESEARCH_ACTIVITY = "RESEARCH_ACTIVITY";
-	private static final String TAG_RESEARCH_TASK = "RESEARCH_TASK";
-
-
 	private final JPanel propertiesPanel;
 
 	private final BoundTextField titleField;
@@ -143,9 +133,9 @@ public class ResearchQuestionRecordDialog extends BaseRecordDialog{
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]10[]10[]10[]");
 
-		titleField = new BoundTextField(TAG_TITLE);
-		questionArea = new BoundTextArea(TAG_QUESTION, 3, 30);
-		targetPanel = EntityListPanel.createForOneOfReference(TAG_TARGET, this, "Target", model)
+		titleField = new BoundTextField(ResearchQuestionHandler.TAG_TITLE);
+		questionArea = new BoundTextArea(ResearchQuestionHandler.TAG_QUESTION, 3, 30);
+		targetPanel = EntityListPanel.createForOneOfReference(ResearchQuestionHandler.TAG_TARGET, this, "Target", model)
 			.withHandlerTypes(IndividualHandler.class, GroupHandler.class, EventHandler.class,
 				EventParticipationHandler.class, RelationshipHandler.class, IndividualAttributeHandler.class,
 				GroupAttributeHandler.class, PlaceHandler.class, PlaceRelationshipHandler.class, SourceHandler.class,
@@ -154,18 +144,18 @@ public class ResearchQuestionRecordDialog extends BaseRecordDialog{
 			.withSaveAsVoid();
 		statusPanel = new ResearchQuestionStatusPanel();
 		conclusionArea = new BoundTextArea(ConclusionHandler.TYPE, 3, 30);
-		conclusionConfidenceCombo = new BoundComboBox<>(TAG_CONCLUSION_CONFIDENCE, new String[]{
+		conclusionConfidenceCombo = new BoundComboBox<>(ResearchQuestionHandler.TAG_CONCLUSION_CONFIDENCE, new String[]{
 			StringUtils.EMPTY,
 			"low", "medium", "high"});
-		rationaleArea = new BoundTextArea(TAG_RATIONALE, 3, 30);
+		rationaleArea = new BoundTextArea(ResearchQuestionHandler.TAG_RATIONALE, 3, 30);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
 			.withComponent(PanelKey.CONCLUSION_ON_RESEARCH, ConclusionHandler.TYPE, "Conclusions")
-			.withComponent(PanelKey.RESEARCH_ACTIVITY_ON_QUESTION, TAG_RESEARCH_ACTIVITY, "Research Activities")
-			.withComponent(PanelKey.RESEARCH_TASK_ON_QUESTION, TAG_RESEARCH_TASK, "Research Tasks")
-			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null)
-			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null)
+			.withComponent(PanelKey.RESEARCH_ACTIVITY_ON_QUESTION, ResearchActivityHandler.TAG_RESEARCH_ACTIVITY, "Research Activities")
+			.withComponent(PanelKey.RESEARCH_TASK_ON_QUESTION, ResearchTaskHandler.TAG_RESEARCH_TASK, "Research Tasks")
+			.withComponent(PanelKey.PRIVACY, ResearchQuestionHandler.TAG_PRIVACY, null)
+			.withComponent(PanelKey.AUDIT, ResearchQuestionHandler.TAG_AUDIT, null)
 			.build();
 
 		components.bind(titleField);

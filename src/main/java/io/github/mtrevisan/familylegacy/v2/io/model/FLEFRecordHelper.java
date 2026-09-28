@@ -145,7 +145,7 @@ public final class FLEFRecordHelper{
 	 * Finds all children with the given tag.
 	 *
 	 * @param parent	The parent record.
-	 * @param paths	The array of dot‑separated tag paths to search for (e.g. "[GROUP, ROOT.RESTRICTION[2].CODE]").
+	 * @param paths	The array of dot‑separated tag paths to search for(e.g. "[GROUP, ROOT.RESTRICTION[2].CODE]").
 	 * @return	A (unordered) list of matching child records.
 	 */
 	public static List<FLEFRecord> findChildren(final FLEFRecord parent, final String... paths){
@@ -162,7 +162,7 @@ public final class FLEFRecordHelper{
 	 * Finds all children with the given tag path, supporting multiple intermediate segments.
 	 *
 	 * @param parent The parent record.
-	 * @param path   The dot‑separated tag path to search for (e.g. "source.extract.value").
+	 * @param path   The dot‑separated tag path to search for(e.g. "source.extract.value").
 	 * @return A list of matching child records.
 	 */
 	public static List<FLEFRecord> findChildren(final FLEFRecord parent, final String path){
@@ -516,7 +516,7 @@ public final class FLEFRecordHelper{
 	 * Collects values of all children with the given tag as a comma-separated string.
 	 *
 	 * @param parent	The parent record.
-	 * @param path	The dot‑separated tag path to search for (e.g. "ROOT.RESTRICTION[2].CODE").
+	 * @param path	The dot‑separated tag path to search for(e.g. "ROOT.RESTRICTION[2].CODE").
 	 * @return	A comma-separated string of values, or empty string if none found.
 	 */
 	public static String getChildValuesAsString(final FLEFRecord parent, final String path){

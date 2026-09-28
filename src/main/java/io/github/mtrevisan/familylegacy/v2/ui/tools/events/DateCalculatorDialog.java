@@ -190,7 +190,7 @@ public final class DateCalculatorDialog extends JDialog{
 		final LocalDate birth = parseDate(ageBirthField);
 		final LocalDate reference = parseDate(ageReferenceField);
 		if(birth == null || reference == null){
-			ageResultField.setText("");
+			ageResultField.setText(StringUtils.EMPTY);
 			return;
 		}
 		if(reference.isBefore(birth)){

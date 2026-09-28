@@ -258,17 +258,20 @@ public class KinshipDialog extends JDialog{
 		if(result.isSameIndividual())
 			return sb.toString();
 		if(!result.isRelated()){
-			sb.append("No further statistics available.\n");
+			sb.append("No further statistics available.")
+				.append('\n');
 			return sb.toString();
 		}
 
 		// Chain from A to MRCA
-		sb.append("Chain from A to the most recent common ancestor:\n");
+		sb.append("Chain from A to the most recent common ancestor:")
+			.append('\n');
 		appendChain(sb, result.chainA());
 		sb.append('\n');
 
 		// Chain from B to MRCA
-		sb.append("Chain from B to the most recent common ancestor:\n");
+		sb.append("Chain from B to the most recent common ancestor:")
+			.append('\n');
 		appendChain(sb, result.chainB());
 		sb.append('\n');
 
@@ -290,18 +293,23 @@ public class KinshipDialog extends JDialog{
 		sb.append('\n');
 
 		// Statistics
-		sb.append("Statistics:\n");
+		sb.append("Statistics:")
+			.append('\n');
 		sb.append("  Total path length (A to B through the MRCA): ")
-			.append(result.totalSteps()).append(" steps\n");
+			.append(result.totalSteps())
+			.append(" steps")
+			.append('\n');
 		sb.append("  Common ancestors found: ")
-			.append(result.allCommonAncestors().size()).append('\n');
+			.append(result.allCommonAncestors().size())
+			.append('\n');
 		sb.append("  Relationship coefficient (Wright's R): ")
 			.append(String.format(Locale.ROOT, "%.5f", result.relationshipCoefficient()))
 			.append('\n');
 		sb.append('\n');
 
 		// Kinship degrees under the different systems
-		sb.append("Kinship degrees:\n");
+		sb.append("Kinship degrees:")
+			.append('\n');
 		appendCivilDegree(sb, result);
 		appendCanonicalDegree(sb, result);
 		appendGermanicKnee(sb, result);
@@ -310,14 +318,16 @@ public class KinshipDialog extends JDialog{
 		sb.append('\n');
 
 		// Marriage prohibitions
-		sb.append("Marriage prohibitions:\n");
+		sb.append("Marriage prohibitions:")
+			.append('\n');
 		appendCivilProhibition(sb, result);
 		appendCanonicalProhibition(sb, result);
 		appendChineseProhibition(sb, result);
 		sb.append('\n');
 
 		// Full list of common ancestors
-		sb.append("All common ancestors:\n");
+		sb.append("All common ancestors:")
+			.append('\n');
 		for(final KinshipResult.CommonAncestorInfo c : result.allCommonAncestors()){
 			sb.append("  - ")
 				.append(c.display())
@@ -327,7 +337,8 @@ public class KinshipDialog extends JDialog{
 				.append(c.distanceFromB())
 				.append(", contribution=")
 				.append(String.format(Locale.ROOT, "%.5f", c.contribution()))
-				.append(")\n");
+				.append(')')
+				.append('\n');
 		}
 
 		return sb.toString();

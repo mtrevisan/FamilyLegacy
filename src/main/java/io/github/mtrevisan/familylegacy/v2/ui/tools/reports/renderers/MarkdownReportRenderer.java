@@ -1,7 +1,32 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
 package io.github.mtrevisan.familylegacy.v2.ui.tools.reports.renderers;
 
 import io.github.mtrevisan.familylegacy.v2.ui.tools.reports.ReportDocument;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.reports.ReportSection;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -174,7 +199,7 @@ public final class MarkdownReportRenderer implements ReportRenderer{
 		for(final List<String> row : t.rows()){
 			w.write('|');
 			for(int i = 0; i < cols; i++){
-				final String cell = (i < row.size()? row.get(i): "");
+				final String cell = (i < row.size()? row.get(i): StringUtils.EMPTY);
 				w.write(' ');
 				w.write(escapeCell(cell));
 				w.write(" |");
@@ -191,11 +216,11 @@ public final class MarkdownReportRenderer implements ReportRenderer{
 	 */
 	private static String escapeCell(final String s){
 		if(s == null)
-			return "";
+			return StringUtils.EMPTY;
 		return linkify(s)
 			.replace("|", "\\|")
-			.replace("\r", "")
-			.replace("\n", " ");
+			.replace("\r", StringUtils.EMPTY)
+			.replace(StringUtils.LF, StringUtils.SPACE);
 	}
 
 
@@ -220,7 +245,7 @@ public final class MarkdownReportRenderer implements ReportRenderer{
 		}
 
 		w.write("![");
-		w.write(img.caption() == null? "": img.caption());
+		w.write(img.caption() == null? StringUtils.EMPTY: img.caption());
 		w.write("](");
 		w.write(href);
 		w.write(")");
@@ -257,10 +282,10 @@ public final class MarkdownReportRenderer implements ReportRenderer{
 	 * left untouched, so any legitimate {@code @} in the text is preserved.
 	 */
 	private static String linkify(final String text){
-		if(text == null || text.indexOf("@") < 0)
-			return text == null? "": text;
+		if(text == null || !text.contains("@"))
+			return text == null? StringUtils.EMPTY: text;
 		final Matcher m = INTERNAL_LINK_PATTERN.matcher(text);
-		final StringBuffer sb = new StringBuffer();
+		final StringBuilder sb = new StringBuilder();
 		while(m.find())
 			m.appendReplacement(sb, Matcher.quoteReplacement("(#" + m.group(1) + ")"));
 		m.appendTail(sb);

@@ -70,17 +70,11 @@ public final class IndividualDossierService{
 	// Record type tags, as defined by the FLEF protocol.
 	private static final String TYPE_INDIVIDUAL = "individual";
 	private static final String TYPE_GROUP = "group";
-	private static final String TYPE_EVENT_PARTICIPATION = "event_participation";
-	private static final String TYPE_INDIVIDUAL_ATTRIBUTE = "individual_attribute";
-	private static final String TYPE_RELATIONSHIP = "relationship";
-	private static final String TYPE_CONTEXT_IMPACT = "context_impact";
-	private static final String TYPE_IDENTITY_HYPOTHESIS = "identity_hypothesis";
-	private static final String TYPE_RESEARCH_QUESTION = "research_question";
-	private static final String TYPE_CONCLUSION = "conclusion";
 
 	// Child tags inside FLEF records.
 	private static final String TAG_TYPE = "type";
 	private static final String TAG_SUBJECT = "subject";
+	private static final String TAG_OBJECT = "object";
 	private static final String TAG_TARGET = "target";
 	private static final String TAG_PARTICIPANT = "participant";
 	private static final String TAG_EVENT = "event";
@@ -386,9 +380,9 @@ public final class IndividualDossierService{
 		final List<DossierEntry> entries = new ArrayList<>();
 		for(final FLEFRecord rel : model.getRecordsByType(RelationshipHandler.TYPE)){
 			final String subjectId = extractParticipantRef(rel, TAG_SUBJECT);
-			final String targetId = extractParticipantRef(rel, TAG_TARGET);
+			final String objectId = extractParticipantRef(rel, TAG_OBJECT);
 			final boolean isSubject = individualId.equals(subjectId);
-			final boolean isTarget = individualId.equals(targetId);
+			final boolean isTarget = individualId.equals(objectId);
 			if(!isSubject && !isTarget)
 				continue;
 
@@ -397,15 +391,15 @@ public final class IndividualDossierService{
 		return entries;
 	}
 
-	private DossierEntry buildRelationshipEntry(final FLEFRecord rel, final boolean isSubject){
-		final String type = FLEFRecordHelper.getChildValue(rel, TAG_TYPE);
+	private DossierEntry buildRelationshipEntry(final FLEFRecord relationship, final boolean isSubject){
+		final String type = FLEFRecordHelper.getChildValue(relationship, TAG_TYPE);
 		final String typeLabel = (StringUtils.isNotEmpty(type)
 			? type.replace('_', ' ')
 			: "Relationship");
 
 		final String otherId = (isSubject
-			? extractParticipantRef(rel, TAG_TARGET)
-			: extractParticipantRef(rel, TAG_SUBJECT));
+			? extractParticipantRef(relationship, TAG_OBJECT)
+			: extractParticipantRef(relationship, TAG_SUBJECT));
 		final String otherName = resolveParticipantName(otherId);
 
 		final String direction = (isSubject? "→ ": "← ");
@@ -413,16 +407,16 @@ public final class IndividualDossierService{
 		final String value = (otherName != null? otherName: otherId != null? otherId: "?");
 
 		final StringBuilder subtitle = new StringBuilder();
-		final String role = FLEFRecordHelper.getChildValue(rel, TAG_ROLE);
+		final String role = FLEFRecordHelper.getChildValue(relationship, TAG_ROLE);
 		if(StringUtils.isNotEmpty(role))
 			subtitle.append("role: ").append(role);
-		final String status = FLEFRecordHelper.getChildValue(rel, TAG_STATUS);
+		final String status = FLEFRecordHelper.getChildValue(relationship, TAG_STATUS);
 		if(StringUtils.isNotEmpty(status)){
 			if(!subtitle.isEmpty())
 				subtitle.append(" · ");
 			subtitle.append(status);
 		}
-		final String validity = formatting.formatValidity(rel);
+		final String validity = formatting.formatValidity(relationship);
 		if(StringUtils.isNotEmpty(validity)){
 			if(!subtitle.isEmpty())
 				subtitle.append(" · ");
@@ -430,8 +424,8 @@ public final class IndividualDossierService{
 		}
 
 		return new DossierEntry(label, value, subtitle.toString(),
-			buildEvidenceBadge(rel), rel, DossierEntry.Kind.NORMAL,
-			proofStatusFor(rel));
+			buildEvidenceBadge(relationship), relationship, DossierEntry.Kind.NORMAL,
+			proofStatusFor(relationship));
 	}
 
 
@@ -457,8 +451,8 @@ public final class IndividualDossierService{
 
 		for(final FLEFRecord rel : model.getRecordsByType(RelationshipHandler.TYPE)){
 			final String subjectId = extractParticipantRef(rel, TAG_SUBJECT);
-			final String targetId = extractParticipantRef(rel, TAG_TARGET);
-			if(individualId.equals(subjectId) || individualId.equals(targetId))
+			final String objectId = extractParticipantRef(rel, TAG_OBJECT);
+			if(individualId.equals(subjectId) || individualId.equals(objectId))
 				collectSources(rel, "Relationship", entries, seenSourceIds);
 		}
 
@@ -671,8 +665,8 @@ public final class IndividualDossierService{
 
 		for(final FLEFRecord rel : model.getRecordsByType(RelationshipHandler.TYPE)){
 			final String subjectId = extractParticipantRef(rel, TAG_SUBJECT);
-			final String targetId = extractParticipantRef(rel, TAG_TARGET);
-			if(individualId.equals(subjectId) || individualId.equals(targetId))
+			final String objectId = extractParticipantRef(rel, TAG_OBJECT);
+			if(individualId.equals(subjectId) || individualId.equals(objectId))
 				collectNotes(rel, "Relationship", entries);
 		}
 

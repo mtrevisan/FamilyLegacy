@@ -70,7 +70,7 @@ public record TemporalRow(TemporalEntityRef entity, List<TemporalTrack> tracks, 
 	 * Returns the track of the given type, or {@code null} if the row does
 	 * not declare that track.
 	 *
-	 * @param type the track type to look for (must not be {@code null})
+	 * @param type the track type to look for(must not be {@code null})
 	 * @return the matching track, or {@code null}
 	 */
 	public TemporalTrack findTrack(final TemporalTrackType type){

@@ -43,7 +43,7 @@ import java.awt.Window;
 
 
 /**
- * Dialog for editing a {@code REPOSITORY_CITATION} according to FLEF 0.1.2.
+ * Dialog for editing a {@code REPOSITORY_CITATION} according to FLEF 0.1.3.
  * <p>
  * Structure:
  * <pre>

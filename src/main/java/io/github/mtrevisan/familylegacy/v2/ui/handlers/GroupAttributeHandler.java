@@ -36,16 +36,24 @@ import java.util.List;
 
 
 /**
- * Handler for {@code GROUP_ATTRIBUTE_RECORD} entities according to FLEF 0.1.2.
+ * Handler for {@code GROUP_ATTRIBUTE_RECORD} entities according to FLEF 0.1.3.
  */
 public class GroupAttributeHandler extends AbstractRecordTypeHandler<GroupAttributeRecordDialog>{
 
 	public static final String TYPE = "GROUP_ATTRIBUTE";
 	public static final String ID_PREFIX = "GA";
 
-	private static final String TAG_TYPE = "TYPE";
-	private static final String TAG_VALUE = "VALUE";
-	private static final String TAG_GROUP = "GROUP";
+	public static final String TAG_GROUP = "GROUP";
+	public static final String TAG_TYPE = "TYPE";
+	public static final String TAG_VALUE = "VALUE";
+	public static final String TAG_VALID_FROM = "VALID_FROM";
+	public static final String TAG_VALID_TO = "VALID_TO";
+	public static final String TAG_PLACE = "PLACE";
+	public static final String TAG_SOURCE = "SOURCE";
+	public static final String TAG_NOTE = "NOTE";
+	public static final String TAG_EVIDENCE = "EVIDENCE";
+	public static final String TAG_PRIVACY = "PRIVACY";
+	public static final String TAG_AUDIT = "AUDIT";
 
 
 	private static final class SingletonHelper{

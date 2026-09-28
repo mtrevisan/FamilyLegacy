@@ -104,11 +104,11 @@ public class TreeMutator extends AbstractProjectionMutator{
 				if(!childrenId.contains(subjectId))
 					continue;
 
-				final String targetId = relationship.extractReferencedId(TAG_TARGET, IndividualHandler.TYPE);
-				if(targetId == null)
+				final String objectId = relationship.extractReferencedId(TAG_OBJECT, IndividualHandler.TYPE);
+				if(objectId == null)
 					continue;
 
-				final FLEFRecord existingParent = model.getRecordById(targetId);
+				final FLEFRecord existingParent = model.getRecordById(objectId);
 				if(existingParent == null)
 					continue;
 
@@ -187,7 +187,7 @@ public class TreeMutator extends AbstractProjectionMutator{
 			if(!individualId.equals(subjectId))
 				continue;
 
-			final String parentId = relationship.extractReferencedId(TAG_TARGET, IndividualHandler.TYPE);
+			final String parentId = relationship.extractReferencedId(TAG_OBJECT, IndividualHandler.TYPE);
 			if(parentId != null && model.hasRecord(parentId))
 				return parentId;
 		}
@@ -200,8 +200,8 @@ public class TreeMutator extends AbstractProjectionMutator{
 			if(type == null || !relationshipTypeFilter.test(type))
 				continue;
 
-			final String targetId = relationship.extractReferencedId(TAG_TARGET, IndividualHandler.TYPE);
-			if(!individualId.equals(targetId))
+			final String objectId = relationship.extractReferencedId(TAG_OBJECT, IndividualHandler.TYPE);
+			if(!individualId.equals(objectId))
 				continue;
 
 			final String childId = relationship.extractReferencedId(TAG_SUBJECT, IndividualHandler.TYPE);

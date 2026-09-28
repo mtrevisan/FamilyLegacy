@@ -48,25 +48,26 @@ public class NameParser {
 	 * @param nameNode the GEDCOM node with tag "NAME"
 	 * @return a FLEF record with tag "name", or {@code null} if no data
 	 */
-	public FLEFRecord parse(GEDCOMNode nameNode) {
-		if (nameNode == null) return null;
+	public FLEFRecord parse(GEDCOMNode nameNode){
+		if(nameNode == null)
+			return null;
 
 		FLEFRecord nameRec = FLEFRecord.createChildWithTag("name");
 
 		// 1. Process the inline value (if present) to extract given and surname
 //		String raw = nameNode.getValue();
-//		if (raw != null) {
+//		if(raw != null){
 //			parseInlineName(raw, nameRec);
 //		}
 
 		// 2. Process sub-structures for TYPE, FONE, ROMN
 		GEDCOMNode typeNode = GEDCOMHelper.findFirstChild(nameNode, "TYPE");
-		if (typeNode != null && typeNode.getValue() != null) {
+		if(typeNode != null && typeNode.getValue() != null){
 			nameRec.addChild(FLEFRecord.createChildWithTagAndValue("type", typeNode.getValue()));
 		}
 
 		// Phonetic variants (FONE) -> variant > phonetic
-		for (GEDCOMNode fone : GEDCOMHelper.findChildren(nameNode, "FONE")) {
+		for(GEDCOMNode fone : GEDCOMHelper.findChildren(nameNode, "FONE")){
 			FLEFRecord variant = FLEFRecord.createChildWithTag("variant");
 			FLEFRecord phonetic = FLEFRecord.createChildWithTag("phonetic");
 			// Get system from TYPE sub-tag
@@ -79,7 +80,7 @@ public class NameParser {
 		}
 
 		// Romanized variants (ROMN) -> variant > transcription
-		for (GEDCOMNode romn : GEDCOMHelper.findChildren(nameNode, "ROMN")) {
+		for(GEDCOMNode romn : GEDCOMHelper.findChildren(nameNode, "ROMN")){
 			FLEFRecord variant = FLEFRecord.createChildWithTag("variant");
 			FLEFRecord transcription = FLEFRecord.createChildWithTag("transcription");
 			GEDCOMNode romnType = GEDCOMHelper.findFirstChild(romn, "TYPE");
@@ -96,9 +97,9 @@ public class NameParser {
 		// They are typically used when the inline value is not sufficient.
 		// We will merge them into "part" elements.
 		boolean hasPieces = false;
-		for (String pieceTag : List.of("NPFX", "GIVN", "NICK", "SPFX", "SURN", "NSFX")) {
+		for(String pieceTag : List.of("NPFX", "GIVN", "NICK", "SPFX", "SURN", "NSFX")){
 			GEDCOMNode piece = GEDCOMHelper.findFirstChild(nameNode, pieceTag);
-			if (piece != null && piece.getValue() != null) {
+			if(piece != null && piece.getValue() != null){
 				hasPieces = true;
 				FLEFRecord part = FLEFRecord.createChildWithTag("part");
 				String type = mapPieceTag(pieceTag);
@@ -118,29 +119,29 @@ public class NameParser {
 	/**
 	 * Parses the inline name format "given /surname/" and adds "part" elements.
 	 */
-	private void parseInlineName(String raw, FLEFRecord nameRec) {
+	private void parseInlineName(String raw, FLEFRecord nameRec){
 		String given;
 		String surname = StringUtils.EMPTY;
 		int slash1 = raw.indexOf('/');
 		int slash2 = raw.indexOf('/', slash1 + 1);
-		if (slash1 >= 0 && slash2 > slash1) {
+		if(slash1 >= 0 && slash2 > slash1){
 			given = raw.substring(0, slash1).trim();
 			surname = raw.substring(slash1 + 1, slash2).trim();
 			String suffix = raw.substring(slash2 + 1).trim();
-			if (!suffix.isEmpty()) {
+			if(!suffix.isEmpty()){
 				given = given + " " + suffix; // may need to handle better
 			}
 		} else {
 			given = raw.trim();
 		}
 
-		if (!given.isEmpty()) {
+		if(!given.isEmpty()){
 			FLEFRecord part = FLEFRecord.createChildWithTag("part");
 			part.addChild(FLEFRecord.createChildWithTagAndValue("type", "given"));
 			part.addChild(FLEFRecord.createChildWithTagAndValue("value", given));
 			nameRec.addChild(part);
 		}
-		if (!surname.isEmpty()) {
+		if(!surname.isEmpty()){
 			FLEFRecord part = FLEFRecord.createChildWithTag("part");
 			part.addChild(FLEFRecord.createChildWithTagAndValue("type", "family"));
 			part.addChild(FLEFRecord.createChildWithTagAndValue("value", surname));
@@ -151,8 +152,8 @@ public class NameParser {
 	/**
 	 * Maps GEDCOM name piece tags to FLEF part types.
 	 */
-	private String mapPieceTag(String gedcomTag) {
-		return switch (gedcomTag) {
+	private String mapPieceTag(String gedcomTag){
+		return switch (gedcomTag){
 			case "NPFX" -> "prefix";
 			case "GIVN" -> "given";
 			case "NICK" -> "nickname";
@@ -166,8 +167,9 @@ public class NameParser {
 	/**
 	 * Parses a generic NameStructure (used in Source titles, etc.) – just value + locale.
 	 */
-	public FLEFRecord parseNameStructure(GEDCOMNode node) {
-		if (node == null || node.getValue() == null) return null;
+	public FLEFRecord parseNameStructure(GEDCOMNode node){
+		if(node == null || node.getValue() == null)
+			return null;
 		FLEFRecord nameRec = FLEFRecord.createChildWithTag("name");
 		FLEFRecord textRec = FLEFRecord.createChildWithTag("text"); // Actually it should be direct "value" field in NameStructure.
 		// In FLEF, NameStructure has fields: value, locale, variant*, source*, note*.

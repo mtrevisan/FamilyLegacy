@@ -30,7 +30,7 @@ import java.util.Map;
 
 
 /**
- * Mappa i tag e valori GEDCOM 5.5.1 ai valori enum di FLEF 0.1.2.
+ * Mappa i tag e valori GEDCOM 5.5.1 ai valori enum di FLEF 0.1.3.
  * Tutti i confronti sono case‑insensibili.
  */
 public final class GEDCOMMapper{

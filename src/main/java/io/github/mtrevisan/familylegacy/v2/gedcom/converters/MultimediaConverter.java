@@ -69,7 +69,8 @@ public class MultimediaConverter{
 	 * @param objNode the GEDCOM node with tag "OBJE"
 	 */
 	public void convert(GEDCOMNode objNode){
-		if(objNode == null) return;
+		if(objNode == null)
+			return;
 
 		// Extract Xref – either from getXrefId() or from the value if it's a reference
 		String objXref = objNode.getXrefId();
@@ -190,13 +191,13 @@ public class MultimediaConverter{
 		}
 
 		// ---- Sources (SOUR) ----
-		for (GEDCOMNode sourNode : GEDCOMHelper.findChildren(objNode, "SOUR")) {
+		for(GEDCOMNode sourNode : GEDCOMHelper.findChildren(objNode, "SOUR")){
 			GEDCOMHelper.attachSource(document, model,
 				sourNode, noteRawMap, objeRawMap);
 		}
 
 		// ---- Notes (GEDCOM NOTE) – inline structs ----
-		for (GEDCOMNode noteNode : GEDCOMHelper.findChildren(objNode, "NOTE")) {
+		for(GEDCOMNode noteNode : GEDCOMHelper.findChildren(objNode, "NOTE")){
 			GEDCOMHelper.attachNote(document,
 				noteNode, noteRawMap);
 		}

@@ -52,9 +52,6 @@ import java.util.function.Predicate;
  */
 public class TreeService{
 
-	private static final String TAG_SEX = "sex";
-
-
 	private final FLEFModel model;
 	private final GenealogyRepository repository;
 

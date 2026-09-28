@@ -254,7 +254,7 @@ public final class PlaceRelationshipsDialog extends JDialog{
 
 	private void openEditor(final String relationshipId){
 		final int option = JOptionPane.showConfirmDialog(this,
-			"This dialog does not edit individual relationships inline.\n"
+			"This dialog does not edit individual relationships inline." + StringUtils.LF
 				+ "Open the record editor for the selected relationship?",
 			"Edit Relationship",
 			JOptionPane.YES_NO_OPTION);

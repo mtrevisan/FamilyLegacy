@@ -122,7 +122,7 @@ public class IndividualFilterPanel extends JPanel implements RecordFilterPanel{
 
 		dateFromField.getDocument()
 			.addDocumentListener(docListener);
-		//TODO add listener on all calendars
+		// TODO add listener on all calendars
 		dateToField.getDocument()
 			.addDocumentListener(docListener);
 		locationField.getDocument()

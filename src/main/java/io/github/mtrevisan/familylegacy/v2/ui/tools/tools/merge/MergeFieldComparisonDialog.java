@@ -34,6 +34,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import net.miginfocom.swing.MigLayout;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -215,7 +216,7 @@ public final class MergeFieldComparisonDialog extends JDialog{
 
 		private static FLEFGrammar load(){
 			try{
-				final Path path = Paths.get("src/main/resources/gedg/flef_0.1.2.gedg");
+				final Path path = Paths.get("src/main/resources/gedg/flef_0.1.3.gedg");
 				return FLEFGrammarParser.parse(path);
 			}
 			catch(final Exception ex){
@@ -295,7 +296,7 @@ public final class MergeFieldComparisonDialog extends JDialog{
 
 		void clearResult(){
 			line.choice = Choice.NONE;
-			resultArea.setText("");
+			resultArea.setText(StringUtils.EMPTY);
 			refresh();
 		}
 
@@ -470,7 +471,7 @@ public final class MergeFieldComparisonDialog extends JDialog{
 			for(final JTextArea a : resultAreas){
 				final String text = a.getText();
 				sb.append(text);
-				if(!text.endsWith("\n"))
+				if(!text.endsWith(StringUtils.LF))
 					sb.append('\n');
 			}
 			return sb.toString();
@@ -483,7 +484,7 @@ public final class MergeFieldComparisonDialog extends JDialog{
 					return offset;
 				final String text = a.getText();
 				offset += text.length();
-				if(!text.endsWith("\n"))
+				if(!text.endsWith(StringUtils.LF))
 					offset ++;
 			}
 			return offset;
@@ -886,11 +887,11 @@ public final class MergeFieldComparisonDialog extends JDialog{
 			: field.tag());
 		final String syntheticId = "PARSER_TMP";
 
-		final String wrapped = "records {\n"
-			+ recordTag + " " + syntheticId + " {\n"
-			+ text + "\n"
-			+ "}\n"
-			+ "}\n";
+		final String wrapped = "records {" + StringUtils.LF
+			+ recordTag + StringUtils.SPACE + syntheticId + " {" + StringUtils.LF
+			+ text + StringUtils.LF
+			+ "}" + StringUtils.LF
+			+ "}" + StringUtils.LF;
 
 		final FLEFModel model = new FLEFParser()
 			.parse(wrapped);
@@ -965,12 +966,14 @@ public final class MergeFieldComparisonDialog extends JDialog{
 
 	private void showValidationErrors(final List<String> errors){
 		final StringBuilder message = new StringBuilder(
-			"The result field does not validate against the FLEF schema:\n\n");
+			"The result field does not validate against the FLEF schema:")
+			.append('\n')
+			.append('\n');
 		final int shown = Math.min(errors.size(), MAX_ERRORS_SHOWN);
 		for(int i = 0; i < shown; i ++)
 			message.append("  \u2022 ").append(errors.get(i)).append('\n');
 		if(errors.size() > shown)
-			message.append("  \u2026 and ").append(errors.size() - shown).append(" more\n");
+			message.append("  \u2026 and ").append(errors.size() - shown).append(" more").append('\n');
 
 		JOptionPane.showMessageDialog(this, message.toString(),
 			"Invalid result", JOptionPane.ERROR_MESSAGE);
@@ -1014,7 +1017,7 @@ public final class MergeFieldComparisonDialog extends JDialog{
 	 * ====================================================================== */
 
 	private static String textOf(final FLEFRecord record){
-		return (record != null? serialize(record): "");
+		return (record != null? serialize(record): StringUtils.EMPTY);
 	}
 
 	private static String serialize(final FLEFRecord record){
@@ -1032,10 +1035,13 @@ public final class MergeFieldComparisonDialog extends JDialog{
 		if(record.getValue() != null)
 			sb.append(' ').append(record.getValue());
 		if(record.hasChildren()){
-			sb.append(" {\n");
+			sb.append(" {")
+				.append('\n');
 			for(final FLEFRecord child : record.getChildren())
 				serializeInto(child, indent + 1, sb);
-			sb.append(prefix).append("}\n");
+			sb.append(prefix)
+				.append('}')
+				.append('\n');
 		}
 		else
 			sb.append('\n');

@@ -43,14 +43,17 @@ public final class IDGenerator{
 	 * If the ID does not match the pattern (letter + digits), it is ignored.
 	 */
 	public static void registerExistingId(String id){
-		if(id == null || id.isEmpty()) return;
+		if(id == null || id.isEmpty())
+			return;
 		// Remove '@' if present
 		String clean = id.replace("@", StringUtils.EMPTY);
 		// Extract prefix (one or more letters) and trailing digits
 		int i = 0;
 		while(i < clean.length() && Character.isLetter(clean.charAt(i)))
 			i ++;
-		if(i == 0 || i == clean.length()) return; // must have both letters and digits
+		if(i == 0 || i == clean.length())
+			// must have both letters and digits
+			return;
 		String prefix = clean.substring(0, i);
 		String numStr = clean.substring(i);
 		try{

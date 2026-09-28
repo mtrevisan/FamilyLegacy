@@ -158,12 +158,12 @@ public final class ChronomapPlaceHierarchyLayer implements ChronomapLayer{
 
 		for(final FLEFRecord rel : model.getRecordsByType(PlaceRelationshipHandler.TYPE)){
 			final String subjectId = extractPlaceRef(rel, TAG_SUBJECT);
-			final String targetId = extractPlaceRef(rel, TAG_TARGET);
-			if(subjectId == null || targetId == null)
+			final String objectId = extractPlaceRef(rel, TAG_TARGET);
+			if(subjectId == null || objectId == null)
 				continue;
 
 			final PlaceCoordinateResolver.Resolved s = resolver.resolve(subjectId);
-			final PlaceCoordinateResolver.Resolved t = resolver.resolve(targetId);
+			final PlaceCoordinateResolver.Resolved t = resolver.resolve(objectId);
 			if(s == null || t == null)
 				continue;
 

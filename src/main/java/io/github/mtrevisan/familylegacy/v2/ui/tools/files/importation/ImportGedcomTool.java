@@ -32,6 +32,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.ProgressDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolOperation;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
@@ -83,7 +84,7 @@ public final class ImportGedcomTool implements ToolOperation{
 		final File file = chooser.getSelectedFile();
 
 		final int confirm = JOptionPane.showConfirmDialog(context.owner(),
-			"Import will replace the current model with the content of:\n"
+			"Import will replace the current model with the content of:" + StringUtils.LF
 				+ file.getName() + "\n\nContinue?",
 			"Confirm Import", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
 		if(confirm != JOptionPane.YES_OPTION)
@@ -138,7 +139,7 @@ public final class ImportGedcomTool implements ToolOperation{
 				catch(final ExecutionException ex){
 					final Throwable cause = (ex.getCause() != null)? ex.getCause(): ex;
 					JOptionPane.showMessageDialog(context.owner(),
-						"The file is not a valid GEDCOM document:\n" + cause.getMessage(),
+						"The file is not a valid GEDCOM document:" + StringUtils.LF + cause.getMessage(),
 						"Import Error", JOptionPane.ERROR_MESSAGE);
 				}
 			}

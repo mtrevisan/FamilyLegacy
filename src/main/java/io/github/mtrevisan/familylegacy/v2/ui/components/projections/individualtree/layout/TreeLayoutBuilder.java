@@ -37,6 +37,8 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.projections.siblings.Si
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.siblings.SiblingsPanel;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.BorderFactory;
 import javax.swing.JPanel;
@@ -73,6 +75,9 @@ import java.util.Map;
  */
 public final class TreeLayoutBuilder{
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(TreeLayoutBuilder.class);
+
+
 	public static final int GENERATION_SEPARATOR_SIZE = 20;
 
 
@@ -107,8 +112,8 @@ public final class TreeLayoutBuilder{
 			final IndividualListener listener,
 			final EntityPopupMenuFactory<IndividualPanel, IndividualListener> popupFactory, final TreeLayout treeLayout){
 		final int maxDepth = (rootNode != null? calculateSubtreeMaxDepth(rootNode, maxAncestors): 0);
-		// Calculate total leaf units dynamically according to present ancestors
-		final int maxLeafUnits = (rootNode != null? calculateSubtreeLeafUnits(rootNode, 0, maxDepth): 1);
+		// Total leaf units for a binary pedigree tree of depth maxDepth is strictly 2^maxDepth
+		final int maxLeafUnits = (rootNode != null ? (1 << maxDepth) : 1);
 
 		final boolean isVertical = (treeLayout == TreeLayout.VERTICAL);
 		final String mainPanelConstraints = (isVertical? "ins 0": "ins 10");
@@ -137,6 +142,10 @@ public final class TreeLayoutBuilder{
 			final String cellConstraints = (isVertical
 				? "cell " + dimension + StringUtils.SPACE + (maxDepth - depth) + ",span " + span + " 1,align center"
 				: "cell " + (depth + 1) + StringUtils.SPACE + dimension + ",span 1 " + span + ",align center");
+			LOGGER.debug((node.getFather() != null? node.getFather().getIndividualId(): "null")
+				+ "+"
+				+ (node.getMother() != null? node.getMother().getIndividualId(): "null")
+				+ ": " + cellConstraints);
 
 			// Create the panel for this slot
 			final BoxPanelType boxPanelType = (depth == 0? BoxPanelType.PRIMARY: BoxPanelType.SECONDARY);
@@ -229,67 +238,6 @@ public final class TreeLayoutBuilder{
 		}
 
 		return maxDepth;
-	}
-
-	/**
-	 * Calculates the number of leaf units occupied by a subtree up to {@code maxDepth}.
-	 *
-	 * @param rootNode     the root node of the subtree
-	 * @param startDepth   the starting depth in the tree
-	 * @param maxDepth     the maximum depth to inspect
-	 * @return total leaf units count for the subtree
-	 */
-	private static int calculateSubtreeLeafUnits(final TreeNode rootNode, final int startDepth, final int maxDepth){
-		if(rootNode == null)
-			return 0;
-
-		final Deque<TreeNode> stack = new ArrayDeque<>();
-		final Map<TreeNode, Integer> leafUnitsMap = new HashMap<>();
-
-		// Helper stack to process nodes in post-order (children before parents)
-		final Deque<TreeNode> postOrderStack = new ArrayDeque<>();
-		final Map<TreeNode, Integer> depthMap = new HashMap<>();
-		stack.push(rootNode);
-		depthMap.put(rootNode, startDepth);
-		while(!stack.isEmpty()){
-			final TreeNode current = stack.pop();
-			final int currentDepth = depthMap.get(current);
-
-			postOrderStack.push(current);
-
-			if(currentDepth < maxDepth){
-				final TreeNode father = current.getFather();
-				if(father != null){
-					stack.push(father);
-					depthMap.put(father, currentDepth + 1);
-				}
-
-				final TreeNode mother = current.getMother();
-				if(mother != null){
-					stack.push(mother);
-					depthMap.put(mother, currentDepth + 1);
-				}
-			}
-		}
-
-		while(!postOrderStack.isEmpty()){
-			final TreeNode current = postOrderStack.pop();
-			final int currentDepth = depthMap.get(current);
-
-			if(currentDepth >= maxDepth){
-				leafUnitsMap.put(current, 1);
-
-				continue;
-			}
-
-			final int fatherUnits = leafUnitsMap.getOrDefault(current.getFather(), 0);
-			final int motherUnits = leafUnitsMap.getOrDefault(current.getMother(), 0);
-			final int total = fatherUnits + motherUnits;
-
-			leafUnitsMap.put(current, total == 0? 1: total);
-		}
-
-		return leafUnitsMap.getOrDefault(rootNode, 0);
 	}
 
 	/**

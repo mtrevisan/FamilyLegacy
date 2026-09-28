@@ -41,9 +41,16 @@ public class PlaceHandler extends AbstractRecordTypeHandler<PlaceRecordDialog>{
 	public static final String TYPE = "PLACE";
 	public static final String ID_PREFIX = "P";
 
-	private static final String DOT = ".";
+	public static final String TAG_NAME = "NAME";
+	public static final String TAG_TYPE = "TYPE";
+	public static final String TAG_MAP = "MAP";
+	public static final String TAG_COORDINATES = "COORDINATES";
+	public static final String TAG_SOURCE = "SOURCE";
+	public static final String TAG_EVIDENCE = "EVIDENCE";
+	public static final String TAG_PRIVACY = "PRIVACY";
+	public static final String TAG_AUDIT = "AUDIT";
 
-	private static final String TAG_NAME = "NAME";
+	private static final String DOT = ".";
 	private static final String TAG_VALUE = "VALUE";
 	private static final String TAG_NAME_VALUE = TAG_NAME + DOT + TAG_VALUE;
 

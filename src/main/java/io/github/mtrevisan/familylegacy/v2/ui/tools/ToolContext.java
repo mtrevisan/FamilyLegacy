@@ -106,7 +106,7 @@ public record ToolContext(
 	public String getClippedRecordDisplayText(){
 		final FLEFRecord record = clippedRecord();
 		if(record == null || model == null)
-			return "";
+			return StringUtils.EMPTY;
 
 		return (GroupHandler.TYPE.equalsIgnoreCase(record.getTag())
 			? GroupHandler.getInstance().getDisplayText(record, model)
@@ -173,11 +173,54 @@ public record ToolContext(
 	}
 
 	/**
+	 * Returns whether an Individual is selected or available as fallback.
+	 */
+	public boolean hasSelectedIndividual(){
+		final String id = selectedEntityId();
+		return (id != null && model.hasRecord(id) && id.startsWith(IndividualHandler.ID_PREFIX));
+	}
+
+	/**
+	 * Returns the selected Individual record, falling back to the first available Individual in the model.
+	 */
+	public FLEFRecord getSelectedIndividual(){
+		final String id = selectedEntityId();
+		return (id != null && model.hasRecord(id) && id.startsWith(IndividualHandler.ID_PREFIX)
+			? model.getRecordById(id)
+			: null);
+	}
+
+	/**
+	 * Returns whether the selected entity is a Group or if any Group exists in the model.
+	 */
+	public boolean hasSelectedFamily(){
+		final String id = selectedEntityId();
+		if(id != null && model.hasRecord(id) && id.startsWith(GroupHandler.ID_PREFIX))
+			return true;
+
+		return hasAnyGroups();
+	}
+
+	/**
 	 * Returns whether the selected entity exists in the model and is a Group.
 	 */
 	public boolean hasSelectedGroup(){
 		final String id = selectedEntityId();
 		return (id != null && model.hasRecord(id) && id.startsWith(GroupHandler.ID_PREFIX));
+	}
+
+	/**
+	 * Returns whether the current model contains sources or documents.
+	 */
+	public boolean hasSourcesOrDocuments(){
+		return (hasAnySources() || hasAnyDocuments());
+	}
+
+	/**
+	 * Returns whether the current model contains research questions or tasks.
+	 */
+	public boolean hasResearchData(){
+		return (hasAnyResearchQuestions() || hasAnyResearchTasks());
 	}
 
 	/**
@@ -189,7 +232,7 @@ public record ToolContext(
 	}
 
 	/**
-	 * Returns whether the current model contains at least one place.
+	 * Returns whether the current model contains at least `count` places.
 	 */
 	public boolean hasAtLeastPlaces(final int count){
 		return (model.getRecordsByType(PlaceHandler.TYPE)
@@ -237,7 +280,7 @@ public record ToolContext(
 	}
 
 	/**
-	 * Returns whether the current model contains at least one group.
+	 * Returns whether the current model contains at least `count` groups.
 	 */
 	public boolean hasAtLeastGroups(final int count){
 		return (model.getRecordsByType(GroupHandler.TYPE)

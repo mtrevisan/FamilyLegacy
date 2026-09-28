@@ -112,7 +112,7 @@ public class PartStructureDialog extends BaseRecordDialog{
 	@Override
 	protected JPanel createPropertiesPanel(){
 		// type
-		GUIHelper.addLabeledComponent(propertiesPanel, "Part Type*:", typeCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, "Type*:", typeCombo);
 
 		// value
 		GUIHelper.addLabeledComponent(propertiesPanel, "Value*:", valueField);

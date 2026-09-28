@@ -315,7 +315,6 @@ public class FamilyLegacyFrame extends JFrame{
 		catch(final Exception ignored){}
 
 		final String modelUri = "/tests/TGMZ.flef";
-//		final String modelUri = "/tests/out.flef";
 		final String rootIndividualId = "I1";
 
 		final String content;
@@ -334,9 +333,5 @@ public class FamilyLegacyFrame extends JFrame{
 			frame.setVisible(true);
 		});
 	}
-
-	//TODO root caliman osvaldo, box dei nonni paterni piccoli
-	//	root caliman domenico, idem nonni materni
-	//	root c, idem
 
 }

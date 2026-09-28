@@ -233,7 +233,7 @@ public final class SocialCategorySelectionDialog extends JDialog{
 	private static final class ColorSwatchIcon implements Icon{
 
 		private static final int SIZE = 12;
-		private static final int BORDER = 1;
+
 
 		private final Color fill;
 

@@ -1,3 +1,27 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
 package io.github.mtrevisan.familylegacy.v2.ui.tools.reports;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
@@ -46,10 +70,8 @@ final class SourcesSection implements SectionBuilder{
 	private static final String TAG_DESCRIPTION = "description";
 	private static final String TAG_MAPPING = "mapping";
 	private static final String TAG_DOCUMENT = "document";
-	private static final String TAG_REPOSITORY = "repository";
 
 	private static final String TYPE_REPOSITORY = "repository";
-	private static final String TYPE_DOCUMENT = "document";
 
 
 	private final ReportContext ctx;
@@ -115,15 +137,15 @@ final class SourcesSection implements SectionBuilder{
 
 	private void appendBasicInfo(final List<ReportSection> out, final FLEFRecord src){
 		final List<String> rows = new ArrayList<>();
-		ReportFormatters.appendIfPresent(rows, ctx.labels.sourceAuthor(),
+		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().sourceAuthor(),
 			FLEFRecordHelper.getChildValue(src, TAG_AUTHOR));
-		ReportFormatters.appendIfPresent(rows, ctx.labels.sourcePublisher(),
+		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().sourcePublisher(),
 			FLEFRecordHelper.getChildValue(src, TAG_PUBLISHER));
-		ReportFormatters.appendIfPresent(rows, ctx.labels.sourceDate(),
+		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().sourceDate(),
 			FLEFRecordHelper.extractDate(src));
-		ReportFormatters.appendIfPresent(rows, ctx.labels.sourcePlace(),
+		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().sourcePlace(),
 			FLEFRecordHelper.extractPlace(src, ctx.model));
-		ReportFormatters.appendIfPresent(rows, ctx.labels.sourceMediaType(),
+		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().sourceMediaType(),
 			FLEFRecordHelper.getChildValue(src, TAG_MEDIA_TYPE));
 
 		if(!rows.isEmpty())
@@ -138,7 +160,7 @@ final class SourcesSection implements SectionBuilder{
 		if(repoRefs.isEmpty())
 			return;
 
-		out.add(new ReportSection.Heading(3, ctx.labels.sourceRepository()));
+		out.add(new ReportSection.Heading(3, ctx.labels.sections().sourceRepository()));
 		for(final FLEFRecord rc : repoRefs)
 			appendRepository(out, rc);
 	}
@@ -154,7 +176,7 @@ final class SourcesSection implements SectionBuilder{
 		final String locator = FLEFRecordHelper.getChildValue(rc, TAG_LOCATOR);
 
 		final StringBuilder line = new StringBuilder("**")
-			.append(ctx.labels.sourceRepository()).append(":** ")
+			.append(ctx.labels.sections().sourceRepository()).append(":** ")
 			.append(ReportFormatters.escape(ReportFormatters.orEmpty(name)));
 		if(locator != null && !locator.isBlank())
 			line.append(" — *").append(ReportFormatters.escape(locator)).append('*');
@@ -164,20 +186,19 @@ final class SourcesSection implements SectionBuilder{
 		final String repoNote = FLEFRecordHelper.getChildValue(rc, TAG_NOTE);
 		if(repoNote != null && !repoNote.isBlank())
 			out.add(new ReportSection.Paragraph(
-				"  *" + ctx.labels.sourceRepositoryNote() + ":* "
+				"  *" + ctx.labels.sections().sourceRepositoryNote() + ":* "
 					+ ReportFormatters.escape(repoNote)));
 
 		// Repository contacts.
 		if(repo != null){
 			for(final FLEFRecord contact : ctx.visibleChildren(repo, TAG_CONTACT)){
-				final String rendered = ReportFormatters.renderContact(contact, ctx.labels);
+				final String rendered = ReportFormatters.renderContact(contact);
 				if(rendered != null)
 					out.add(new ReportSection.Paragraph("  " + rendered));
 
 				// Contact privacy, when the flag is on.
 				if(ctx.config.showPrivacyDetails())
-					for(final ReportSection s : ctx.citations().privacyInfo(contact))
-						out.add(s);
+					out.addAll(ctx.citations().privacyInfo(contact));
 			}
 		}
 
@@ -194,7 +215,7 @@ final class SourcesSection implements SectionBuilder{
 		if(docRefs.isEmpty())
 			return;
 
-		out.add(new ReportSection.Heading(3, ctx.labels.sourceDocuments()));
+		out.add(new ReportSection.Heading(3, ctx.labels.sections().sourceDocuments()));
 		for(final FLEFRecord docRef : docRefs){
 			final String label = documentSummary(docRef.getValue());
 			if(label != null)

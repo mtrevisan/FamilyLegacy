@@ -53,7 +53,7 @@ public class GenealogyRepository{
 
 	private static final String TAG_TYPE = "type";
 	private static final String TAG_SUBJECT = "subject";
-	private static final String TAG_TARGET = "target";
+	private static final String TAG_OBJECT = "object";
 	private static final String TAG_PARTICIPANT = "participant";
 	private static final String TAG_EVENT = "event";
 
@@ -114,28 +114,28 @@ public class GenealogyRepository{
 			return;
 
 		final String subjectId = relationship.extractReferencedId(TAG_SUBJECT, IndividualHandler.TYPE);
-		final String targetId = relationship.extractReferencedId(TAG_TARGET, IndividualHandler.TYPE);
-		if(subjectId == null || targetId == null)
+		final String objectId = relationship.extractReferencedId(TAG_OBJECT, IndividualHandler.TYPE);
+		if(subjectId == null || objectId == null)
 			return;
 
 		final String relationshipId = relationship.getId();
 		if(relationshipId != null){
 			individualToRelationshipIdsMap.computeIfAbsent(subjectId, k -> new ArrayList<>())
 				.add(relationshipId);
-			individualToRelationshipIdsMap.computeIfAbsent(targetId, k -> new ArrayList<>())
+			individualToRelationshipIdsMap.computeIfAbsent(objectId, k -> new ArrayList<>())
 				.add(relationshipId);
 		}
 
 		if(relationshipTypeFilter.test(type)){
 			final FLEFRecord child = model.getRecordById(subjectId);
-			final FLEFRecord parent = model.getRecordById(targetId);
+			final FLEFRecord parent = model.getRecordById(objectId);
 			if(parent != null)
 				individualToParentsMap.computeIfAbsent(subjectId, k -> new ArrayList<>())
 					.add(parent);
 			if(child != null){
-				parentToChildrenMap.computeIfAbsent(targetId, k -> new ArrayList<>())
+				parentToChildrenMap.computeIfAbsent(objectId, k -> new ArrayList<>())
 					.add(child);
-				individualsWithDescendantsSet.add(targetId);
+				individualsWithDescendantsSet.add(objectId);
 			}
 		}
 	}

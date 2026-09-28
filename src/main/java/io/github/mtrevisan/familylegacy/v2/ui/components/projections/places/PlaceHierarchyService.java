@@ -72,11 +72,6 @@ import java.util.Set;
  */
 public final class PlaceHierarchyService{
 
-	/** Tag of a {@code PlaceRecord}. */
-	private static final String TYPE_PLACE = "place";
-	/** Tag of a {@code PlaceRelationshipRecord}. */
-	private static final String TYPE_PLACE_RELATIONSHIP = "place_relationship";
-
 	private static final String TAG_SUBJECT = "subject";
 	private static final String TAG_TARGET = "target";
 	private static final String TAG_PLACE = "place";

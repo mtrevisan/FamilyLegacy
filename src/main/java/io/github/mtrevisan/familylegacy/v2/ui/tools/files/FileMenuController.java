@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.v2.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.v2.io.FLEFWriter;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.ProgressDialog;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -76,7 +77,6 @@ import java.util.function.Supplier;
 public final class FileMenuController{
 
 	private static final String FLEF_EXTENSION = "flef";
-	private static final String GEDCOM_EXTENSION = "ged";
 
 
 	private final JFrame owner;
@@ -348,7 +348,7 @@ public final class FileMenuController{
 			return true;
 
 		final int choice = JOptionPane.showOptionDialog(owner,
-			"The current document has unsaved changes.\n"
+			"The current document has unsaved changes." + StringUtils.LF
 				+ "Save before proceeding?",
 			"Unsaved Changes",
 			JOptionPane.YES_NO_CANCEL_OPTION,
@@ -368,7 +368,7 @@ public final class FileMenuController{
 
 	private void showError(final String message, final Exception ex){
 		JOptionPane.showMessageDialog(owner,
-			message + ":\n" + ex.getMessage(),
+			message + ":" + StringUtils.LF + ex.getMessage(),
 			"File Error", JOptionPane.ERROR_MESSAGE);
 	}
 

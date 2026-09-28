@@ -95,13 +95,13 @@ public class GEDCOMToFLEFConverter {
 	 * @param roots the list of top‑level GEDCOM nodes
 	 * @return a fully converted and validated FLEF model
 	 */
-	public FLEFModel convert(final List<GEDCOMNode> roots, final ProgressListener listener) {
+	public FLEFModel convert(final List<GEDCOMNode> roots, final ProgressListener listener){
 		// ---- 1. Register all existing IDs (for IDGenerator) ----
 		listener.onProgress(0, "Registering identifiers…");
 		registerIds(roots);
 
 		// collect all notes
-		for (GEDCOMNode node : roots) {
+		for(GEDCOMNode node : roots){
 			String tag = node.getTag();
 			switch(tag){
 				case "NOTE" -> noteRawMap.put(node.getXrefId(), node);
@@ -127,8 +127,8 @@ public class GEDCOMToFLEFConverter {
 		int done = 0;
 
 		// ---- 3. First pass: parse all records ----
-		for (GEDCOMNode node : roots) {
-			switch (node.getTag()) {
+		for(GEDCOMNode node : roots){
+			switch (node.getTag()){
 				case "HEAD" -> headerConverter.convert(node);
 				case "INDI" -> individualConverter.convert(node, roots);
 				case "FAM" -> familyConverter.collect(node);
@@ -238,17 +238,17 @@ public class GEDCOMToFLEFConverter {
 	 * Registers all existing IDs (from GEDCOM cross‑references) in the IDGenerator.
 	 * This ensures that newly generated IDs start after the highest existing number.
 	 */
-	private void registerIds(List<GEDCOMNode> roots) {
-		for (GEDCOMNode node : roots) {
+	private void registerIds(List<GEDCOMNode> roots){
+		for(GEDCOMNode node : roots){
 			registerIdsRecursive(node);
 		}
 	}
 
-	private void registerIdsRecursive(GEDCOMNode node) {
-		if (node.getXrefId() != null) {
+	private void registerIdsRecursive(GEDCOMNode node){
+		if(node.getXrefId() != null){
 			IDGenerator.registerExistingId(node.getXrefId());
 		}
-		for (GEDCOMNode child : node.getChildren()) {
+		for(GEDCOMNode child : node.getChildren()){
 			registerIdsRecursive(child);
 		}
 	}

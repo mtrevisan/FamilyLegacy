@@ -79,7 +79,7 @@ public final class PlaceCoordinateResolver{
 	private static final String TAG_NAME = "name";
 	private static final String TAG_VALUE = "value";
 	private static final String TAG_SUBJECT = "subject";
-	private static final String TAG_TARGET = "target";
+	private static final String TAG_OBJECT = "object";
 
 	/** Relationship types that mean "subject is part of target". */
 	private static final List<String> PART_OF_TYPES = List.of(
@@ -240,11 +240,11 @@ public final class PlaceCoordinateResolver{
 				continue;
 
 			final String childId = extractPlaceRef(rel, TAG_SUBJECT);
-			final String parentId = extractPlaceRef(rel, TAG_TARGET);
-			if(childId == null || parentId == null)
+			final String objectId = extractPlaceRef(rel, TAG_OBJECT);
+			if(childId == null || objectId == null)
 				continue;
 
-			childrenOf.computeIfAbsent(parentId, k -> new ArrayList<>()).add(childId);
+			childrenOf.computeIfAbsent(objectId, k -> new ArrayList<>()).add(childId);
 		}
 
 		// 3. BFS from located places to their descendants

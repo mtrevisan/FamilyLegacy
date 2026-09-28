@@ -343,7 +343,7 @@ public final class SimilarityMetrics{
 		return StringUtils.EMPTY;
 	}
 
-	//TODO test
+	// TODO test
 	private static String extractPlace(final FLEFRecord record){
 		final FLEFRecord place = FLEFRecordHelper.findChild(record, "place");
 		if(place != null){

@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs.help;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -119,10 +120,12 @@ public final class DiagnosticsDialog extends JDialog{
 	private static String buildReport(final FLEFModel model){
 		final StringBuilder sb = new StringBuilder();
 
-		sb.append("=== Family Legacy Diagnostics ===\n");
-		sb.append("Generated: ").append(LocalDateTime.now()
-			.format(TIMESTAMP_FORMAT)).append("\n");
-		sb.append("\n");
+		sb.append("=== Family Legacy Diagnostics ===")
+			.append('\n');
+		sb.append("Generated: ")
+			.append(LocalDateTime.now().format(TIMESTAMP_FORMAT))
+			.append(StringUtils.LF);
+		sb.append(StringUtils.LF);
 
 		appendRuntime(sb);
 		appendMemory(sb);
@@ -132,31 +135,43 @@ public final class DiagnosticsDialog extends JDialog{
 	}
 
 	private static void appendRuntime(final StringBuilder sb){
-		sb.append("--- Runtime ---\n");
+		sb.append("--- Runtime ---")
+			.append('\n');
 		sb.append("Java version:   ")
-			.append(System.getProperty("java.version")).append("\n");
+			.append(System.getProperty("java.version"))
+			.append(StringUtils.LF);
 		sb.append("Java vendor:    ")
-			.append(System.getProperty("java.vendor")).append("\n");
+			.append(System.getProperty("java.vendor"))
+			.append(StringUtils.LF);
 		sb.append("Java home:      ")
-			.append(System.getProperty("java.home")).append("\n");
+			.append(System.getProperty("java.home"))
+			.append(StringUtils.LF);
 		sb.append("VM name:        ")
-			.append(System.getProperty("java.vm.name")).append("\n");
+			.append(System.getProperty("java.vm.name"))
+			.append(StringUtils.LF);
 		sb.append("VM version:     ")
-			.append(System.getProperty("java.vm.version")).append("\n");
+			.append(System.getProperty("java.vm.version"))
+			.append(StringUtils.LF);
 		sb.append("OS name:        ")
-			.append(System.getProperty("os.name")).append("\n");
+			.append(System.getProperty("os.name"))
+			.append(StringUtils.LF);
 		sb.append("OS version:     ")
-			.append(System.getProperty("os.version")).append("\n");
+			.append(System.getProperty("os.version"))
+			.append(StringUtils.LF);
 		sb.append("OS arch:        ")
-			.append(System.getProperty("os.arch")).append("\n");
+			.append(System.getProperty("os.arch"))
+			.append(StringUtils.LF);
 		sb.append("Locale:         ")
-			.append(Locale.getDefault()).append("\n");
+			.append(Locale.getDefault())
+			.append(StringUtils.LF);
 		sb.append("File encoding:  ")
-			.append(System.getProperty("file.encoding")).append("\n");
+			.append(System.getProperty("file.encoding"))
+			.append(StringUtils.LF);
 		sb.append("Processors:     ")
 			.append(Runtime.getRuntime()
-				.availableProcessors()).append("\n");
-		sb.append("\n");
+				.availableProcessors())
+			.append(StringUtils.LF);
+		sb.append(StringUtils.LF);
 	}
 
 	private static void appendMemory(final StringBuilder sb){
@@ -166,25 +181,35 @@ public final class DiagnosticsDialog extends JDialog{
 		final long free = rt.freeMemory();
 		final long used = total - free;
 
-		sb.append("--- Memory ---\n");
-		sb.append("Heap max:       ").append(formatBytes(max)).append("\n");
-		sb.append("Heap allocated: ").append(formatBytes(total)).append("\n");
-		sb.append("Heap used:      ").append(formatBytes(used)).append("\n");
-		sb.append("Heap free:      ").append(formatBytes(free)).append("\n");
-		sb.append("\n");
+		sb.append("--- Memory ---")
+			.append('\n');
+		sb.append("Heap max:       ").append(formatBytes(max))
+			.append(StringUtils.LF);
+		sb.append("Heap allocated: ").append(formatBytes(total))
+			.append(StringUtils.LF);
+		sb.append("Heap used:      ").append(formatBytes(used))
+			.append(StringUtils.LF);
+		sb.append("Heap free:      ").append(formatBytes(free))
+			.append(StringUtils.LF);
+		sb.append(StringUtils.LF);
 	}
 
 	private static void appendModel(final StringBuilder sb, final FLEFModel model){
-		sb.append("--- Model ---\n");
+		sb.append("--- Model ---")
+			.append('\n');
 		if(model == null){
-			sb.append("No model loaded.\n");
+			sb.append("No model loaded.")
+				.append('\n');
 			return;
 		}
 		try{
 			final List<FLEFRecord> all = model.getRecords();
-			sb.append("Total records:  ").append(all.size()).append("\n");
-			sb.append("\n");
-			sb.append("By tag:\n");
+			sb.append("Total records:  ")
+				.append(all.size())
+				.append(StringUtils.LF);
+			sb.append(StringUtils.LF);
+			sb.append("By tag:")
+				.append('\n');
 
 			final Map<String, Long> byTag = all.stream()
 				.filter(r -> r.getTag() != null)
@@ -196,7 +221,8 @@ public final class DiagnosticsDialog extends JDialog{
 		}
 		catch(final RuntimeException e){
 			sb.append("Unable to compute model statistics: ")
-				.append(e.getMessage()).append("\n");
+				.append(e.getMessage())
+				.append(StringUtils.LF);
 		}
 	}
 

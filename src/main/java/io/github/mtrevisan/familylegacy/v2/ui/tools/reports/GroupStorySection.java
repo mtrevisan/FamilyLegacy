@@ -1,7 +1,32 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
 package io.github.mtrevisan.familylegacy.v2.ui.tools.reports;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import org.apache.commons.lang3.StringUtils;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -29,8 +54,6 @@ final class GroupStorySection implements SectionBuilder{
 	private static final String TAG_DESCRIPTION = "description";
 	private static final String TAG_AGENCY = "agency";
 
-	private static final String NAME_TYPE_OFFICIAL = "official";
-
 
 	private final ReportContext ctx;
 	private final Function<String, String> contextLabels;
@@ -50,7 +73,7 @@ final class GroupStorySection implements SectionBuilder{
 		final List<ReportSection> out = new ArrayList<>();
 		final String who = ReportFormatters.escape(ctx.displayText(ctx.root));
 
-		out.add(new ReportSection.Heading(1, String.format(ctx.labels.groupLifeOf(), who)));
+		out.add(new ReportSection.Heading(1, String.format(ctx.labels.narrative().groupLifeOf(), who)));
 
 		writeNarrative(out);
 		writePreferredImage(out);
@@ -90,7 +113,7 @@ final class GroupStorySection implements SectionBuilder{
 		if(uri == null)
 			return;
 		final String caption = ReportFormatters.imageCaption(
-			preferred, ctx.labels.preferredImage(), ctx.labels);
+			preferred, ctx.labels.sections().preferredImage(), ctx.labels);
 		try{
 			out.add(new ReportSection.Image(Path.of(uri), caption));
 		}
@@ -103,14 +126,14 @@ final class GroupStorySection implements SectionBuilder{
 	/* ----- Personal data --------------------------------------------------- */
 
 	private void writePersonalData(final List<ReportSection> out){
-		out.add(new ReportSection.Heading(2, ctx.labels.groupData()));
+		out.add(new ReportSection.Heading(2, ctx.labels.narrative().groupData()));
 		final List<String> rows = new ArrayList<>();
-		rows.add("**" + ctx.labels.id() + ":** "
+		rows.add("**" + ctx.labels.sections().id() + ":** "
 			+ ReportFormatters.escape(ReportFormatters.orEmpty(ctx.root.getId())));
 
 		final String type = FLEFRecordHelper.getChildValue(ctx.root, TAG_TYPE);
 		if(type != null && !type.isBlank())
-			rows.add("**" + ctx.labels.groupType() + ":** " + ReportFormatters.escape(type));
+			rows.add("**" + ctx.labels.sections().groupType() + ":** " + ReportFormatters.escape(type));
 
 		for(final FLEFRecord nameRec : FLEFRecordHelper.findChildren(ctx.root, TAG_NAME)){
 			final String nameType = FLEFRecordHelper.getChildValue(nameRec, TAG_TYPE);
@@ -118,7 +141,7 @@ final class GroupStorySection implements SectionBuilder{
 			if(value == null || value.isBlank())
 				continue;
 			final StringBuilder line = new StringBuilder();
-			line.append("**").append(ctx.labels.name());
+			line.append("**").append(ctx.labels.sections().name());
 			if(nameType != null && !nameType.isBlank())
 				line.append(" (").append(ReportFormatters.escape(nameType)).append(")");
 			line.append(":** ").append(ReportFormatters.escape(value));
@@ -135,7 +158,7 @@ final class GroupStorySection implements SectionBuilder{
 		if(memberships.isEmpty())
 			return;
 
-		out.add(new ReportSection.Heading(2, ctx.labels.groupMembers()));
+		out.add(new ReportSection.Heading(2, ctx.labels.narrative().groupMembers()));
 
 		final List<List<String>> rows = new ArrayList<>();
 		for(final FLEFRecord m : memberships){
@@ -165,8 +188,8 @@ final class GroupStorySection implements SectionBuilder{
 			return;
 
 		out.add(new ReportSection.Table(
-			List.of(ctx.labels.person(), ctx.labels.role(), ctx.labels.status(),
-				ctx.labels.from(), ctx.labels.to()),
+			List.of(ctx.labels.sections().person(), ctx.labels.sections().role(), ctx.labels.sections().status(),
+				ctx.labels.sections().from(), ctx.labels.sections().to()),
 			rows));
 
 		// Full details of each membership (notes/sources/evidence/audit).
@@ -202,7 +225,7 @@ final class GroupStorySection implements SectionBuilder{
 		if(attrs.isEmpty())
 			return;
 
-		out.add(new ReportSection.Heading(2, ctx.labels.groupAttributes()));
+		out.add(new ReportSection.Heading(2, ctx.labels.sections().groupAttributes()));
 		final List<List<String>> rows = new ArrayList<>();
 		for(final FLEFRecord a : attrs)
 			rows.add(List.of(
@@ -218,8 +241,8 @@ final class GroupStorySection implements SectionBuilder{
 					ReportFormatters.resolvePlaceName(ctx.model, a)))));
 
 		out.add(new ReportSection.Table(
-			List.of(ctx.labels.type(), ctx.labels.value(),
-				ctx.labels.from(), ctx.labels.to(), ctx.labels.place()),
+			List.of(ctx.labels.sections().type(), ctx.labels.sections().value(),
+				ctx.labels.sections().from(), ctx.labels.sections().to(), ctx.labels.sections().place()),
 			rows));
 	}
 
@@ -233,12 +256,12 @@ final class GroupStorySection implements SectionBuilder{
 			return;
 
 		if(!parents.isEmpty()){
-			out.add(new ReportSection.Heading(2, ctx.labels.groupParentGroups()));
+			out.add(new ReportSection.Heading(2, ctx.labels.sections().groupParentGroups()));
 			for(final FLEFRecord rel : parents)
 				writeGroupRelation(out, rel, false);
 		}
 		if(!children.isEmpty()){
-			out.add(new ReportSection.Heading(2, ctx.labels.groupChildGroups()));
+			out.add(new ReportSection.Heading(2, ctx.labels.sections().groupChildGroups()));
 			for(final FLEFRecord rel : children)
 				writeGroupRelation(out, rel, true);
 		}
@@ -263,9 +286,9 @@ final class GroupStorySection implements SectionBuilder{
 			rel, TAG_VALID_TO, ctx.labels, contextLabels);
 		final List<String> meta = new ArrayList<>();
 		if(from != null)
-			meta.add("**" + ctx.labels.validFrom() + ":** " + ReportFormatters.escape(from));
+			meta.add("**" + ctx.labels.sections().validFrom() + ":** " + ReportFormatters.escape(from));
 		if(to != null)
-			meta.add("**" + ctx.labels.validTo() + ":** " + ReportFormatters.escape(to));
+			meta.add("**" + ctx.labels.sections().validTo() + ":** " + ReportFormatters.escape(to));
 		if(!meta.isEmpty())
 			out.add(new ReportSection.BulletList(meta));
 
@@ -283,9 +306,9 @@ final class GroupStorySection implements SectionBuilder{
 
 	private void writeEvents(final List<ReportSection> out){
 		final List<FLEFRecord> events = ctx.index.eventsOfGroup(ctx.root);
-		out.add(new ReportSection.Heading(2, ctx.labels.groupEvents()));
+		out.add(new ReportSection.Heading(2, ctx.labels.sections().groupEvents()));
 		if(events.isEmpty()){
-			out.add(new ReportSection.Paragraph(ctx.labels.empty()));
+			out.add(new ReportSection.Paragraph(ctx.labels.sections().empty()));
 			return;
 		}
 		for(final FLEFRecord evt : events)
@@ -298,17 +321,17 @@ final class GroupStorySection implements SectionBuilder{
 		final String date = ReportFormatters.escape(ReportFormatters.orEmpty(
 			GenealogicalDateHelper.formatEventDate(evt, ctx.labels, contextLabels)));
 		out.add(new ReportSection.Heading(3,
-			(type.isEmpty()? "Event": type) + (date.isEmpty()? "": " — " + date)));
+			(type.isEmpty()? "Event": type) + (date.isEmpty()? StringUtils.EMPTY: " — " + date)));
 
 		final String place = FLEFRecordHelper.extractPlace(evt, ctx.model);
 		if(place != null)
 			out.add(new ReportSection.Paragraph(
-				"**" + ctx.labels.place() + ":** " + ReportFormatters.escape(place)));
+				"**" + ctx.labels.sections().place() + ":** " + ReportFormatters.escape(place)));
 
 		final String agency = FLEFRecordHelper.getChildValue(evt, TAG_AGENCY);
 		if(agency != null)
 			out.add(new ReportSection.Paragraph(
-				"**" + ctx.labels.agency() + ":** " + ReportFormatters.escape(agency)));
+				"**" + ctx.labels.sections().agency() + ":** " + ReportFormatters.escape(agency)));
 
 		final String descr = FLEFRecordHelper.getChildValue(evt, TAG_DESCRIPTION);
 		if(descr != null)
@@ -342,7 +365,7 @@ final class GroupStorySection implements SectionBuilder{
 		final List<String> ids = new ArrayList<>(SourceCollector.collectForGroup(ctx));
 		if(ids.isEmpty())
 			return;
-		out.add(new ReportSection.Heading(2, ctx.labels.citations()));
+		out.add(new ReportSection.Heading(2, ctx.labels.sections().citations()));
 		out.add(new ReportSection.BulletList(ids.stream()
 			.map(ctx::sourceTitle)
 			.toList()));
@@ -351,7 +374,7 @@ final class GroupStorySection implements SectionBuilder{
 	private void writeAudit(final List<ReportSection> out){
 		final List<ReportSection> audit = ctx.citations().audit(ctx.root);
 		if(!audit.isEmpty()){
-			out.add(new ReportSection.Heading(2, ctx.labels.audit()));
+			out.add(new ReportSection.Heading(2, ctx.labels.sections().audit()));
 			out.addAll(audit);
 		}
 	}

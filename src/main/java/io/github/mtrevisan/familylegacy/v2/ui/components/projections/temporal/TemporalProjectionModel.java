@@ -117,7 +117,7 @@ public record TemporalProjectionModel(
 	/**
 	 * Finds the row anchored to the given entity.
 	 *
-	 * @param entity the entity to look for (must not be {@code null})
+	 * @param entity the entity to look for(must not be {@code null})
 	 * @return the matching row, or {@code null}
 	 */
 	public TemporalRow findRow(final TemporalEntityRef entity){

@@ -33,14 +33,18 @@ import java.awt.Window;
 
 
 /**
- * Handler for {@code SOURCE_CITATION} entities according to FLEF 0.1.2.
+ * Handler for {@code SOURCE_CITATION} entities according to FLEF 0.1.3.
  */
 public class SourceCitationHandler extends AbstractRecordTypeHandler<SourceCitationDialog>{
 
 	public static final String TYPE = "SOURCE_CITATION";
 	public static final String CITED_TYPE = "SOURCE";
 
-	private static final String TAG_SOURCE = "SOURCE";
+	public static final String TAG_SOURCE = "SOURCE";
+	public static final String TAG_LOCATOR = "LOCATOR";
+	public static final String TAG_EXTRACT = "EXTRACT";
+	public static final String TAG_EVIDENCE = "EVIDENCE";
+	public static final String TAG_PRIVACY = "PRIVACY";
 
 
 	private static final class SingletonHelper{

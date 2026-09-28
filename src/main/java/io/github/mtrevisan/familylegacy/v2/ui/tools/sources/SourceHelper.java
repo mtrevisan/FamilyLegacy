@@ -49,10 +49,6 @@ import java.util.Map;
  */
 public final class SourceHelper{
 
-	public static final String TYPE_SOURCE = "source";
-	public static final String TYPE_REPOSITORY = "repository";
-	public static final String TYPE_DOCUMENT = "document";
-
 	public static final String TAG_TITLE = "title";
 	public static final String TAG_NAME = "name";
 	public static final String TAG_VALUE = "value";
@@ -64,6 +60,7 @@ public final class SourceHelper{
 	public static final String TAG_MEDIA_TYPE = "media_type";
 	public static final String TAG_REPOSITORY = "repository";
 	public static final String TAG_DOCUMENT = "document";
+	// TODO not used?
 	public static final String TAG_CUSTODIAN = "custodian";
 	public static final String TAG_PLACE = "place";
 	public static final String TAG_SOURCE = "source";

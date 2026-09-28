@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.v2.io.grammar.FLEFGrammarParser;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolOperation;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,8 +60,8 @@ public final class ValidateFileTool implements ToolOperation{
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ValidateFileTool.class);
 
-	private static final String GRAMMAR_CLASSPATH = "/gedg/flef_0.1.2.gedg";
-	private static final String GRAMMAR_FILE = "src/main/resources/gedg/flef_0.1.2.gedg";
+	private static final String GRAMMAR_CLASSPATH = "/gedg/flef_0.1.3.gedg";
+	private static final String GRAMMAR_FILE = "src/main/resources/gedg/flef_0.1.3.gedg";
 
 	private static volatile FLEFGrammar cachedGrammar;
 	private static volatile boolean grammarLoaded;
@@ -105,7 +106,7 @@ public final class ValidateFileTool implements ToolOperation{
 					final List<FLEFValidator.ValidationError> errors = get();
 					new ValidationReportDialog(context.owner(), model,
 						() -> validator.validateAllStructured(model))
-						.setVisible(true);
+							.setVisible(true);
 				}
 				catch(final InterruptedException ex){
 					Thread.currentThread().interrupt();
@@ -114,7 +115,7 @@ public final class ValidateFileTool implements ToolOperation{
 					LOGGER.error("Validation failed", ex);
 					final Throwable cause = (ex.getCause() != null? ex.getCause(): ex);
 					JOptionPane.showMessageDialog(context.owner(),
-						"Validation failed:\n" + cause.getMessage(),
+						"Validation failed:" + StringUtils.LF + cause.getMessage(),
 						"Validate File", JOptionPane.ERROR_MESSAGE);
 				}
 			}

@@ -227,7 +227,7 @@ public final class EventManagementDialog extends JDialog{
 			return;
 
 		final int confirm = JOptionPane.showConfirmDialog(this,
-			"Delete event " + eventId + "?\n"
+			"Delete event " + eventId + "?" + StringUtils.LF
 				+ "Participations referencing this event will be left dangling.",
 			"Confirm Deletion",
 			JOptionPane.YES_NO_OPTION,

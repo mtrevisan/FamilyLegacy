@@ -89,9 +89,6 @@ public final class CalendarConverterDialog extends JDialog{
 	private final JComboBox<String> targetCalendarCombo = new JComboBox<>(CALENDARS);
 	private final JTextField resultField = new JTextField(28);
 
-	/** Cached JDN of the last successfully parsed source date. */
-	private long lastJdn = Long.MIN_VALUE;
-
 
 	public CalendarConverterDialog(final ToolContext context){
 		super(context.owner(), "Calendar Converter", ModalityType.APPLICATION_MODAL);
@@ -200,10 +197,8 @@ public final class CalendarConverterDialog extends JDialog{
 		}
 		catch(final IllegalArgumentException ex){
 			resultField.setText(ex.getMessage());
-			lastJdn = Long.MIN_VALUE;
 			return;
 		}
-		lastJdn = jdn;
 
 		// Step 2: convert the JDN to the target calendar.
 		try{

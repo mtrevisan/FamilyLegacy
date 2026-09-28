@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -163,7 +164,7 @@ public final class ValidationReportDialog extends JDialog{
 		summary.setText(errors.isEmpty()
 			? "The file is valid. No errors found."
 			: errors.size() + (errors.size() == 1? " issue found": " issues found"));
-		detail.setText("");
+		detail.setText(StringUtils.EMPTY);
 		openRecord.setEnabled(false);
 	}
 
@@ -176,7 +177,7 @@ public final class ValidationReportDialog extends JDialog{
 		final int row = table.getSelectedRow();
 		final FLEFValidator.ValidationError err = tableModel.errorAt(row);
 		if(err == null){
-			detail.setText("");
+			detail.setText(StringUtils.EMPTY);
 			openRecord.setEnabled(false);
 			return;
 		}
@@ -220,7 +221,9 @@ public final class ValidationReportDialog extends JDialog{
 
 	private void copyToClipboard(){
 		final StringBuilder sb = new StringBuilder();
-		sb.append("=== Validation report ===\n\n");
+		sb.append("=== Validation report ===")
+			.append('\n')
+			.append('\n');
 		for(int i = 0; i < tableModel.getRowCount(); i ++){
 			final FLEFValidator.ValidationError e = tableModel.errorAt(i);
 			sb.append("  \u2022 ").append(e.message());

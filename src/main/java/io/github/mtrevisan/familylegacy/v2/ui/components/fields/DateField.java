@@ -37,7 +37,7 @@ import javax.swing.JTextField;
 import java.awt.Window;
 
 
-//TODO ParticipantField?
+// TODO EntityField?
 /**
  * Component for selecting and displaying dates.
  */

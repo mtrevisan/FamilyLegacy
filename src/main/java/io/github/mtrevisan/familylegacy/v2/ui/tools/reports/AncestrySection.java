@@ -8,7 +8,7 @@ import java.util.List;
 
 /**
  * Builds the paternal and maternal ancestry sections. Each is emitted only
- * when enabled and non-empty.
+ * when enabled, rendering an explicit message when empty.
  */
 final class AncestrySection implements SectionBuilder{
 
@@ -30,15 +30,16 @@ final class AncestrySection implements SectionBuilder{
 		return out;
 	}
 
-
-	private void append(final List<ReportSection> out, final String title,
-		final List<FLEFRecord> ancestors){
-		if(ancestors.isEmpty())
-			return;
+	private void append(final List<ReportSection> out, final String title, final List<FLEFRecord> ancestors){
 		out.add(new ReportSection.Heading(1, title));
-		for(final FLEFRecord a : ancestors)
+		if(ancestors.isEmpty()){
+			out.add(new ReportSection.Paragraph(ctx.labels.sections().noAncestors()));
+			return;
+		}
+		for(final FLEFRecord a : ancestors){
 			out.add(new ReportSection.Paragraph(
 				"  " + ReportFormatters.escape(ctx.displayText(a))));
+		}
 	}
 
 }

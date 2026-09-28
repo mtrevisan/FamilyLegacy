@@ -1,3 +1,27 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
 package io.github.mtrevisan.familylegacy.v2.ui.tools.reports;
 
 import net.miginfocom.swing.MigLayout;
@@ -16,19 +40,12 @@ import javax.swing.JPanel;
  * about the report in terms of intent (privacy, content, diagnostics, ...)
  * rather than by the underlying field order.</p>
  *
- * <p>{@link #toConfig()} reads the current state of the widgets and returns
+ * <p>{@link #toConfig(ReportLanguage)} reads the current state of the widgets and returns
  * a fresh immutable {@link ReportConfig}. The panel itself holds no state
  * beyond the widgets, so it can be shown, hidden or rebuilt without
  * leaking anything.</p>
  */
 public final class ReportOptionsPanel extends JPanel{
-
-	/* ======================================================================
-	 *                          Language
-	 * ====================================================================== */
-
-	private final JComboBox<ReportLanguage> language = new JComboBox<>(ReportLanguage.values());
-
 
 	/* ======================================================================
 	 *                          Privacy
@@ -113,16 +130,15 @@ public final class ReportOptionsPanel extends JPanel{
 	 *                {@code null}
 	 */
 	public ReportOptionsPanel(final ReportConfig initial){
-		super(new MigLayout("ins 12,wrap 1,fillx", "[grow,fill]", "[]8[]8[]8[]"));
+		super(new MigLayout("ins 0,wrap 1,fillx", "[grow,fill]", "[]8[]8[]8[]8[]8[]8[]"));
 
-		add(languageGroup());
-		add(privacyGroup());
-		add(narrativeGroup());
-		add(contentGroup());
-		add(groupsGroup());
-		add(diagnosticsGroup());
-		add(indexesGroup());
-		add(styleGroup());
+		add(privacyGroup(), "growx");
+		add(narrativeGroup(), "growx");
+		add(contentGroup(), "growx");
+		add(groupsGroup(), "growx");
+		add(diagnosticsGroup(), "growx");
+		add(indexesGroup(), "growx");
+		add(styleGroup(), "growx");
 
 		applyInitial(initial);
 	}
@@ -130,7 +146,6 @@ public final class ReportOptionsPanel extends JPanel{
 
 	/** Copies every field of {@code initial} into the corresponding widget. */
 	private void applyInitial(final ReportConfig initial){
-		language.setSelectedItem(initial.language());
 		privacyPolicy.setSelectedItem(initial.privacyPolicy());
 		showPrivacyDetails.setSelected(initial.showPrivacyDetails());
 		audit.setSelected(initial.audit());
@@ -176,18 +191,16 @@ public final class ReportOptionsPanel extends JPanel{
 
 	/**
 	 * Reads the current widget state and returns a fresh configuration.
-	 * Falls back to {@link ReportConfig#defaults()} language and privacy
-	 * policy when the combo boxes are somehow empty.
 	 *
+	 * @param selectedLanguage the selected language from external dialog
 	 * @return the current configuration, never {@code null}
 	 */
-	public ReportConfig toConfig(){
-		final ReportLanguage lang = (ReportLanguage)language.getSelectedItem();
+	public ReportConfig toConfig(final ReportLanguage selectedLanguage){
 		final PrivacyPolicy policy = (PrivacyPolicy)privacyPolicy.getSelectedItem();
 		final ReportConfig defaults = ReportConfig.defaults();
 
 		return new ReportConfig(
-			lang != null? lang: defaults.language(),
+			selectedLanguage != null? selectedLanguage: defaults.language(),
 			policy != null? policy: defaults.privacyPolicy(),
 			showPrivacyDetails.isSelected(),
 			audit.isSelected(),
@@ -225,18 +238,10 @@ public final class ReportOptionsPanel extends JPanel{
 	 *                          Group builders
 	 * ====================================================================== */
 
-	private JPanel languageGroup(){
-		final JPanel p = new JPanel(new MigLayout("ins 0,wrap 1,fillx", "[grow,fill]", "[]"));
-		p.setBorder(BorderFactory.createTitledBorder("Language"));
-		p.add(language);
-		return p;
-	}
-
-
 	private JPanel privacyGroup(){
-		final JPanel p = new JPanel(new MigLayout("ins 0,wrap 1,fillx", "[grow,fill]", "[]2[]2[]2[]"));
+		final JPanel p = new JPanel(new MigLayout("ins 4 8 8 8,wrap 1,fillx", "[grow,fill]", "[]2[]2[]2[]"));
 		p.setBorder(BorderFactory.createTitledBorder("Privacy"));
-		p.add(privacyPolicy);
+		p.add(privacyPolicy, "growx");
 		p.add(showPrivacyDetails);
 		p.add(audit);
 		p.add(header);
@@ -245,7 +250,7 @@ public final class ReportOptionsPanel extends JPanel{
 
 
 	private JPanel narrativeGroup(){
-		final JPanel p = new JPanel(new MigLayout("ins 0,wrap 2", "[]12[]", "[]2[]2[]"));
+		final JPanel p = new JPanel(new MigLayout("ins 4 8 8 8,wrap 2,fillx", "[grow,fill]12[grow,fill]", "[]2[]2[]"));
 		p.setBorder(BorderFactory.createTitledBorder("Narrative"));
 		p.add(introduction);
 		p.add(descendants);
@@ -258,7 +263,7 @@ public final class ReportOptionsPanel extends JPanel{
 
 
 	private JPanel contentGroup(){
-		final JPanel p = new JPanel(new MigLayout("ins 0,wrap 2", "[]12[]", "[]2[]2[]2[]"));
+		final JPanel p = new JPanel(new MigLayout("ins 4 8 8 8,wrap 2,fillx", "[grow,fill]12[grow,fill]", "[]2[]2[]2[]"));
 		p.setBorder(BorderFactory.createTitledBorder("Content sections"));
 		p.add(notes);
 		p.add(contextResearch);
@@ -273,7 +278,7 @@ public final class ReportOptionsPanel extends JPanel{
 
 
 	private JPanel groupsGroup(){
-		final JPanel p = new JPanel(new MigLayout("ins 0,wrap 1", "[]", "[]2[]2[]2[]"));
+		final JPanel p = new JPanel(new MigLayout("ins 4 8 8 8,wrap 1,fillx", "[grow,fill]", "[]2[]2[]2[]"));
 		p.setBorder(BorderFactory.createTitledBorder("Group report"));
 		p.add(groups);
 		p.add(groupMembers);
@@ -284,7 +289,7 @@ public final class ReportOptionsPanel extends JPanel{
 
 
 	private JPanel diagnosticsGroup(){
-		final JPanel p = new JPanel(new MigLayout("ins 0,wrap 1", "[]", "[]2[]2[]2[]"));
+		final JPanel p = new JPanel(new MigLayout("ins 4 8 8 8,wrap 1,fillx", "[grow,fill]", "[]2[]2[]2[]"));
 		p.setBorder(BorderFactory.createTitledBorder("Diagnostics"));
 		p.add(eventFull);
 		p.add(dateProvenance);
@@ -295,7 +300,7 @@ public final class ReportOptionsPanel extends JPanel{
 
 
 	private JPanel indexesGroup(){
-		final JPanel p = new JPanel(new MigLayout("ins 0,wrap 1", "[]", "[]2[]"));
+		final JPanel p = new JPanel(new MigLayout("ins 4 8 8 8,wrap 1,fillx", "[grow,fill]", "[]2[]"));
 		p.setBorder(BorderFactory.createTitledBorder("Indexes"));
 		p.add(idxIndividuals);
 		p.add(idxPlaces);
@@ -304,7 +309,7 @@ public final class ReportOptionsPanel extends JPanel{
 
 
 	private JPanel styleGroup(){
-		final JPanel p = new JPanel(new MigLayout("ins 0,wrap 1", "[]", "[]2[]"));
+		final JPanel p = new JPanel(new MigLayout("ins 4 8 8 8,wrap 1,fillx", "[grow,fill]", "[]2[]"));
 		p.setBorder(BorderFactory.createTitledBorder("Style"));
 		p.add(descriptions);
 		p.add(pictures);

@@ -1,7 +1,32 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
 package io.github.mtrevisan.familylegacy.v2.ui.tools.reports.renderers;
 
 import io.github.mtrevisan.familylegacy.v2.ui.tools.reports.ReportDocument;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.reports.ReportSection;
+import org.apache.commons.lang3.StringUtils;
 import org.openpdf.text.Chunk;
 import org.openpdf.text.Document;
 import org.openpdf.text.DocumentException;
@@ -108,9 +133,8 @@ public final class PdfReportRenderer implements ReportRenderer{
 
 	@Override
 	public void render(final ReportDocument doc, final Path target) throws IOException{
-		try(OutputStream os = Files.newOutputStream(target)){
-			final Document pdf = new Document(PageSize.A4, 56, 56, 64, 64);
-			try{
+		try(final OutputStream os = Files.newOutputStream(target)){
+			try(final Document pdf = new Document(PageSize.A4, 56, 56, 64, 64)){
 				final PdfWriter writer = PdfWriter.getInstance(pdf, os);
 				writer.setPageEvent(new PageDecorations(doc.title()));
 				pdf.open();
@@ -122,11 +146,8 @@ public final class PdfReportRenderer implements ReportRenderer{
 			catch(final DocumentException e){
 				throw new IOException(e);
 			}
-			finally{
-				// Close while `os` is still open: OpenPDF must flush its
-				// buffered bytes before the channel is closed by try-with-resources.
-				pdf.close();
-			}
+			// Close while `os` is still open: OpenPDF must flush its
+			// buffered bytes before the channel is closed by try-with-resources.
 		}
 	}
 
@@ -182,7 +203,7 @@ public final class PdfReportRenderer implements ReportRenderer{
 
 	private static void writeHeading(final Document pdf, final ReportSection.Heading h)
 		throws DocumentException{
-		final int level = Math.max(1, Math.min(4, h.level()));
+		final int level = Math.clamp(h.level(), 1, 4);
 		final Font font = fontForHeading(level);
 
 		final Paragraph p = new Paragraph(inline(h.text(), font));
@@ -213,7 +234,7 @@ public final class PdfReportRenderer implements ReportRenderer{
 		cell.setBorderColorBottom(RULE_COLOR);
 		cell.setMinimumHeight(0);
 		cell.setPadding(0);
-		cell.setPhrase(new Phrase(" ", BODY_FONT));
+		cell.setPhrase(new Phrase(StringUtils.SPACE, BODY_FONT));
 		rule.addCell(cell);
 
 		return rule;
@@ -251,7 +272,7 @@ public final class PdfReportRenderer implements ReportRenderer{
 
 	private static void writeParagraph(final Document pdf, final ReportSection.Paragraph p)
 		throws DocumentException{
-		if(p.text().contains("\n")){
+		if(p.text().contains(StringUtils.LF)){
 			final Paragraph para = new Paragraph(p.text(), MONO_FONT);
 			para.setLeading(MONO_FONT.getSize() * 1.15f);
 			para.setSpacingAfter(PAR_SPACE_AFTER);
@@ -318,7 +339,7 @@ public final class PdfReportRenderer implements ReportRenderer{
 			final boolean shaded = (r % 2 == 1);
 
 			for(int c = 0; c < cols; c++){
-				final String v = (c < row.size()? row.get(c): "");
+				final String v = (c < row.size()? row.get(c): StringUtils.EMPTY);
 				final PdfPCell cell = new PdfPCell(inline(v, BODY_FONT));
 				cell.setBorderColor(TABLE_BORDER);
 				cell.setBorderWidth(0.5f);
@@ -423,7 +444,7 @@ public final class PdfReportRenderer implements ReportRenderer{
 		final boolean isBold, final boolean isItalic, final boolean isCode,
 		final Font base, final Font bold, final Font italic,
 		final Font boldItalic, final Font code){
-		if(buf.length() == 0)
+		if(buf.isEmpty())
 			return;
 
 		final Font f;

@@ -1,3 +1,27 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
 package io.github.mtrevisan.familylegacy.v2.ui.tools.reports;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
@@ -48,7 +72,7 @@ final class SourceRootSection implements SectionBuilder{
 
 		final List<ReportSection> out = new ArrayList<>();
 		out.add(new ReportSection.Heading(1, String.format(
-			ctx.labels.sourceOf(),
+			ctx.labels.sections().sourceOf(),
 			ReportFormatters.escape(ctx.displayText(ctx.root)))));
 
 		writeBasicInfo(out);
@@ -68,15 +92,15 @@ final class SourceRootSection implements SectionBuilder{
 
 	private void writeBasicInfo(final List<ReportSection> out){
 		final List<String> rows = new ArrayList<>();
-		ReportFormatters.appendIfPresent(rows, ctx.labels.sourceAuthor(),
+		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().sourceAuthor(),
 			FLEFRecordHelper.getChildValue(ctx.root, TAG_AUTHOR));
-		ReportFormatters.appendIfPresent(rows, ctx.labels.sourcePublisher(),
+		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().sourcePublisher(),
 			FLEFRecordHelper.getChildValue(ctx.root, TAG_PUBLISHER));
-		ReportFormatters.appendIfPresent(rows, ctx.labels.sourceDate(),
+		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().sourceDate(),
 			FLEFRecordHelper.extractDate(ctx.root));
-		ReportFormatters.appendIfPresent(rows, ctx.labels.sourcePlace(),
+		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().sourcePlace(),
 			FLEFRecordHelper.extractPlace(ctx.root, ctx.model));
-		ReportFormatters.appendIfPresent(rows, ctx.labels.sourceMediaType(),
+		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().sourceMediaType(),
 			FLEFRecordHelper.getChildValue(ctx.root, TAG_MEDIA_TYPE));
 		if(!rows.isEmpty())
 			out.add(new ReportSection.BulletList(rows));
@@ -88,7 +112,7 @@ final class SourceRootSection implements SectionBuilder{
 		if(repos.isEmpty())
 			return;
 
-		out.add(new ReportSection.Heading(2, ctx.labels.sourceRepository()));
+		out.add(new ReportSection.Heading(2, ctx.labels.sections().sourceRepository()));
 		for(final FLEFRecord rc : repos){
 			final String rid = rc.extractReferencedId(TYPE_REPOSITORY, TYPE_REPOSITORY);
 			final FLEFRecord repo = (rid != null? ctx.visible(ctx.model.getRecordById(rid)): null);
@@ -105,7 +129,7 @@ final class SourceRootSection implements SectionBuilder{
 
 			if(repo != null){
 				for(final FLEFRecord contact : ctx.visibleChildren(repo, "contact")){
-					final String rendered = ReportFormatters.renderContact(contact, ctx.labels);
+					final String rendered = ReportFormatters.renderContact(contact);
 					if(rendered != null)
 						out.add(new ReportSection.Paragraph("  " + rendered));
 				}
@@ -119,7 +143,7 @@ final class SourceRootSection implements SectionBuilder{
 		if(docs.isEmpty())
 			return;
 
-		out.add(new ReportSection.Heading(2, ctx.labels.sourceDocuments()));
+		out.add(new ReportSection.Heading(2, ctx.labels.sections().sourceDocuments()));
 		for(final FLEFRecord docRef : docs){
 			final String docId = docRef.getValue();
 			if(docId == null)
@@ -147,7 +171,7 @@ final class SourceRootSection implements SectionBuilder{
 		if(citations.isEmpty())
 			return;
 
-		out.add(new ReportSection.Heading(2, ctx.labels.sourceCitedBy()));
+		out.add(new ReportSection.Heading(2, ctx.labels.sections().sourceCitedBy()));
 		final List<String> items = new ArrayList<>(citations.size());
 		for(final FLEFRecord c : citations){
 			final FLEFRecord owner = findOwnerOf(c);

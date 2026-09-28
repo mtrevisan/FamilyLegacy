@@ -33,7 +33,7 @@ import java.awt.Window;
 
 
 /**
- * Handler for {@code REPOSITORY_CITATION} entities according to FLEF 0.1.2.
+ * Handler for {@code REPOSITORY_CITATION} entities according to FLEF 0.1.3.
  */
 public class RepositoryCitationHandler extends AbstractRecordTypeHandler<RepositoryCitationDialog>{
 

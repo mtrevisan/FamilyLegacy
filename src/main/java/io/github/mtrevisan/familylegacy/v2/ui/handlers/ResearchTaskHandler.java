@@ -42,6 +42,25 @@ public class ResearchTaskHandler extends AbstractRecordTypeHandler<ResearchTaskR
 	public static final String TYPE = "RESEARCH_TASK";
 	public static final String ID_PREFIX = "RT";
 
+	public static final String TAG_DESCRIPTION = "DESCRIPTION";
+	public static final String TAG_QUESTION = "QUESTION";
+	public static final String TAG_CREATED_BY = "CREATED_BY";
+	public static final String TAG_STATUS = "STATUS";
+	public static final String TAG_PRIORITY = "PRIORITY";
+	public static final String TAG_DUE_DATE = "DUE_DATE";
+	public static final String TAG_OUTCOME = "OUTCOME";
+	public static final String TAG_PRIVACY = "PRIVACY";
+	public static final String TAG_AUDIT = "AUDIT";
+
+	public static final String ENUM_STATUS_OPEN = "open";
+	public static final String ENUM_STATUS_IN_PROGRESS = "in_progress";
+	public static final String ENUM_STATUS_COMPLETED = "completed";
+	public static final String ENUM_STATUS_ABANDONED = "abandoned";
+
+	public static final String ENUM_PRIORITY_LOW = "low";
+	public static final String ENUM_PRIORITY_NORMAL = "normal";
+	public static final String ENUM_PRIORITY_HIGH = "high";
+
 
 	private static final class SingletonHelper{
 		private static final ResearchTaskHandler INSTANCE = new ResearchTaskHandler();

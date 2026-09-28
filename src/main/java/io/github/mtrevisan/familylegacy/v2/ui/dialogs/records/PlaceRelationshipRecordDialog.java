@@ -48,7 +48,7 @@ import java.io.IOException;
 
 
 /**
- * Dialog for editing a {@code PLACE_RELATIONSHIP_RECORD} according to FLEF 0.1.2.
+ * Dialog for editing a {@code PLACE_RELATIONSHIP_RECORD} according to FLEF 0.1.3.
  * <p>
  * Structure:
  * <pre>
@@ -77,7 +77,7 @@ import java.io.IOException;
 public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 
 	private static final String TAG_SUBJECT = "SUBJECT";
-	private static final String TAG_TARGET = "TARGET";
+	private static final String TAG_OBJECT = "OBJECT";
 	private static final String TAG_TYPE = "TYPE";
 	private static final String TAG_VALID_FROM = "VALID_FROM";
 	private static final String TAG_VALID_TO = "VALID_TO";
@@ -90,7 +90,7 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 	private final JPanel propertiesPanel;
 
 	private final EntityField subjectField;
-	private final EntityField targetField;
+	private final EntityField objectField;
 	private final BoundComboBox<String> typeCombo;
 	private final DateField validFromField;
 	private final DateField validToField;
@@ -113,7 +113,7 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 
 		subjectField = EntityField.createForRecordFromOneofReference(TAG_SUBJECT, this, model)
 			.withHandlerTypes(PlaceHandler.class);
-		targetField = EntityField.createForRecordFromOneofReference(TAG_TARGET, this, model)
+		objectField = EntityField.createForRecordFromOneofReference(TAG_OBJECT, this, model)
 			.withHandlerTypes(PlaceHandler.class);
 		typeCombo = new BoundComboBox<>(TAG_TYPE, new String[]{
 			StringUtils.EMPTY,
@@ -147,8 +147,8 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 		// subject
 		GUIHelper.addLabeledComponent(propertiesPanel, "Subject*:", subjectField);
 
-		// target
-		GUIHelper.addLabeledComponent(propertiesPanel, "Target*:", targetField);
+		// object
+		GUIHelper.addLabeledComponent(propertiesPanel, "Object*:", objectField);
 
 		// type
 		GUIHelper.addLabeledComponent(propertiesPanel, "Part Type*:", typeCombo);
@@ -241,7 +241,7 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 
 			final boolean showAll = (parentEntity == null || parentEntity.isEmpty());
 			GUIHelper.setComponentVisible(subjectField, showAll);
-			GUIHelper.setComponentVisible(targetField, true);
+			GUIHelper.setComponentVisible(objectField, true);
 		}
 
 		return this;
@@ -251,11 +251,11 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 		super.withParentEntity(object);
 
 		if(parentEntity != null && !parentEntity.isEmpty()){
-			targetField.setEntity(FLEFRecord.createMainRecord(parentEntity.getText(), parentEntity.getPath()));
+			objectField.setEntity(FLEFRecord.createMainRecord(parentEntity.getText(), parentEntity.getPath()));
 
 			final boolean showAll = (parentEntity == null || parentEntity.isEmpty());
 			GUIHelper.setComponentVisible(subjectField, true);
-			GUIHelper.setComponentVisible(targetField, showAll);
+			GUIHelper.setComponentVisible(objectField, showAll);
 		}
 
 		return this;
@@ -265,7 +265,7 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 	@Override
 	protected void loadData(){
 		subjectField.load(record);
-		targetField.load(record);
+		objectField.load(record);
 
 		components.load(record);
 
@@ -287,10 +287,10 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 			return false;
 		}
 
-		if(!targetField.hasData()){
+		if(!objectField.hasData()){
 			GUIHelper.showValidationErrorAndFocus(this,
 				"Object is required.",
-				tabbedPane, propertiesPanel, targetField);
+				tabbedPane, propertiesPanel, objectField);
 
 			return false;
 		}
@@ -309,7 +309,7 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 	@Override
 	protected void saveData(){
 		subjectField.saveReferences(record);
-		targetField.saveReferences(record);
+		objectField.saveReferences(record);
 
 		components.save(record);
 

@@ -41,10 +41,21 @@ public class SourceHandler extends AbstractRecordTypeHandler<SourceRecordDialog>
 	public static final String TYPE = "SOURCE";
 	public static final String ID_PREFIX = "S";
 
+	public static final String TAG_TITLE = "TITLE";
+	public static final String TAG_AUTHOR = "AUTHOR";
+	public static final String TAG_PUBLISHER = "PUBLISHER";
+	public static final String TAG_DATE = "DATE";
+	public static final String TAG_PLACE = "PLACE";
+	public static final String TAG_MEDIA_TYPE = "MEDIA_TYPE";
+	public static final String TAG_REPOSITORY = "REPOSITORY";
+	public static final String TAG_DOCUMENT = "DOCUMENT";
+	public static final String TAG_NOTE = "NOTE";
+	public static final String TAG_PRIVACY = "PRIVACY";
+	public static final String TAG_AUDIT = "AUDIT";
+
 	private static final String DOT = ".";
 
-	private static final String TAG_TITLE = "TITLE";
-	private static final String TAG_TITLE_VALUE = TAG_TITLE + DOT + "VALUE";
+	private static final String TAG_TITLE_VALUE = TAG_TITLE + DOT + NameHandler.TAG_VALUE;
 
 
 	private static final class SingletonHelper{

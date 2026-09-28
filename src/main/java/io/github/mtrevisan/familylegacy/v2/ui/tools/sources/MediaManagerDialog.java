@@ -429,7 +429,7 @@ public final class MediaManagerDialog extends JDialog{
 		}
 		catch(final Exception e){
 			JOptionPane.showMessageDialog(this,
-				"Unable to open the document:\n" + e.getMessage(),
+				"Unable to open the document:" + StringUtils.LF + e.getMessage(),
 				"Media Manager", JOptionPane.ERROR_MESSAGE);
 		}
 	}

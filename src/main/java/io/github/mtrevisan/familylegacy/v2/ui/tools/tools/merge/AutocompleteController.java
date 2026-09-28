@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.v2.ui.tools.tools.merge;
 
 import io.github.mtrevisan.familylegacy.v2.ui.tools.tools.merge.TagSuggester.Suggestion;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -392,19 +393,24 @@ public final class AutocompleteController{
 		final int caretOffset;
 
 		if(s.block()){
-			final String childIndent = indent + " ".repeat(indentSize);
+			final String childIndent = indent + StringUtils.SPACE.repeat(indentSize);
 			final StringBuilder sb = new StringBuilder();
-			sb.append(s.tag()).append(" {\n");
+			sb.append(s.tag())
+				.append(" {")
+				.append('\n');
 
 			if(s.prefill() != null){
-				sb.append(childIndent).append(s.prefill()).append(" \n");
-				final int bodyStart = (s.tag() + " {\n").length();
+				sb.append(childIndent)
+					.append(s.prefill())
+					.append(' ')
+					.append('\n');
+				final int bodyStart = (s.tag() + " {" + StringUtils.LF).length();
 				caretOffset = bodyStart + childIndent.length()
 					+ s.prefill().length() + 1;
 			}
 			else{
 				sb.append(childIndent).append('\n');
-				final int bodyStart = (s.tag() + " {\n").length();
+				final int bodyStart = (s.tag() + " {" + StringUtils.LF).length();
 				caretOffset = bodyStart + childIndent.length();
 			}
 
@@ -412,7 +418,7 @@ public final class AutocompleteController{
 			insertion = sb.toString();
 		}
 		else{
-			insertion = s.tag() + " ";
+			insertion = s.tag() + StringUtils.SPACE;
 			caretOffset = insertion.length();
 		}
 
@@ -520,28 +526,28 @@ public final class AutocompleteController{
 			final boolean closeBraceAhead = (lookahead < text.length()
 				&& text.charAt(lookahead) == '}');
 
-			final String innerIndent = currentIndent + " ".repeat(indentSize);
+			final String innerIndent = currentIndent + StringUtils.SPACE.repeat(indentSize);
 
 			if(content.endsWith("{") && !closeBraceAhead){
-				final String insertion = "\n" + innerIndent + "\n" + currentIndent + "}";
+				final String insertion = StringUtils.LF + innerIndent + StringUtils.LF + currentIndent + "}";
 				area.getDocument().insertString(caret, insertion, null);
 				area.setCaretPosition(caret + 1 + innerIndent.length());
 			}
 			else if(closeBraceAhead){
 				if(lookahead > caret)
 					area.getDocument().remove(caret, lookahead - caret);
-				final String insertion = "\n" + innerIndent + "\n" + currentIndent;
+				final String insertion = StringUtils.LF + innerIndent + StringUtils.LF + currentIndent;
 				area.getDocument().insertString(caret, insertion, null);
 				area.setCaretPosition(caret + 1 + innerIndent.length());
 			}
 			else if(content.equals("}")){
 				final String outerIndent = currentIndent.substring(0,
 					Math.max(0, currentIndent.length() - indentSize));
-				area.getDocument().insertString(caret, "\n" + outerIndent, null);
+				area.getDocument().insertString(caret, StringUtils.LF + outerIndent, null);
 				area.setCaretPosition(caret + 1 + outerIndent.length());
 			}
 			else{
-				area.getDocument().insertString(caret, "\n" + currentIndent, null);
+				area.getDocument().insertString(caret, StringUtils.LF + currentIndent, null);
 				area.setCaretPosition(caret + 1 + currentIndent.length());
 			}
 		}
@@ -599,13 +605,13 @@ public final class AutocompleteController{
 		try{
 			if(selStart == selEnd || sameLine(area, selStart, selEnd)){
 				if(indent){
-					area.getDocument().insertString(selStart, " ".repeat(unit), null);
+					area.getDocument().insertString(selStart, StringUtils.SPACE.repeat(unit), null);
 					area.setCaretPosition(selStart + unit);
 				}
 				else{
 					int removed = 0;
 					while(removed < unit && selStart - removed > 0
-						&& area.getText(selStart - removed - 1, 1).equals(" "))
+						&& area.getText(selStart - removed - 1, 1).equals(StringUtils.SPACE))
 						removed ++;
 					if(removed > 0){
 						area.getDocument().remove(selStart - removed, removed);
@@ -622,14 +628,15 @@ public final class AutocompleteController{
 				: text.indexOf('\n', selEnd));
 
 			final String block = text.substring(firstLineStart, lastLineEnd);
-			final String[] lines = block.split("\n", -1);
+			final String[] lines = block.split(StringUtils.LF, -1);
 
 			final StringBuilder out = new StringBuilder();
 			for(int i = 0; i < lines.length; i ++){
 				if(i > 0)
 					out.append('\n');
 				if(indent)
-					out.append(" ".repeat(unit)).append(lines[i]);
+					out.repeat(StringUtils.SPACE, unit)
+						.append(lines[i]);
 				else{
 					int removed = 0;
 					while(removed < unit && removed < lines[i].length()

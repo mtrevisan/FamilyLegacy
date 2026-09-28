@@ -1,3 +1,27 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
 package io.github.mtrevisan.familylegacy.v2.ui.tools.reports;
 
 import io.github.mtrevisan.familylegacy.v2.io.FLEFParser;
@@ -6,9 +30,11 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.reports.renderers.MarkdownReportRenderer;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.reports.renderers.ReportRenderer;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
@@ -16,6 +42,7 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import java.awt.BorderLayout;
+import java.awt.Desktop;
 import java.awt.FlowLayout;
 import java.io.IOException;
 import java.io.InputStream;
@@ -203,14 +230,34 @@ public final class ReportGeneratorMain{
 
 			final Path dir = chooser.getSelectedFile().toPath();
 			try{
-				generateAll(model, root, options.toConfig(), dir);
-				JOptionPane.showMessageDialog(frame,
-					"Reports written to:\n" + dir.toAbsolutePath(),
-					"Done", JOptionPane.INFORMATION_MESSAGE);
+				final JComboBox<ReportLanguage> language = new JComboBox<>(ReportLanguage.values());
+				final ReportLanguage selectedLang = (ReportLanguage)language.getSelectedItem();
+				generateAll(model, root, options.toConfig(selectedLang), dir);
+
+				final Object[] dialogOptions = {"OK", "Open Directory"};
+				final int choice = JOptionPane.showOptionDialog(frame,
+					"Reports written to:" + StringUtils.LF + dir.toAbsolutePath(),
+					"Done",
+					JOptionPane.DEFAULT_OPTION,
+					JOptionPane.INFORMATION_MESSAGE,
+					null,
+					dialogOptions,
+					dialogOptions[0]);
+
+				if(choice == 1 && Desktop.isDesktopSupported()){
+					try{
+						Desktop.getDesktop().open(dir.toFile());
+					}
+					catch(final Exception ex){
+						JOptionPane.showMessageDialog(frame,
+							"Could not open directory:" + StringUtils.LF + ex.getMessage(),
+							"Error", JOptionPane.ERROR_MESSAGE);
+					}
+				}
 			}
 			catch(final IOException ex){
 				JOptionPane.showMessageDialog(frame,
-					"Error while generating the reports:\n" + ex.getMessage(),
+					"Error while generating the reports:" + StringUtils.LF + ex.getMessage(),
 					"Error", JOptionPane.ERROR_MESSAGE);
 			}
 		});
@@ -222,4 +269,5 @@ public final class ReportGeneratorMain{
 		final String id = rec.getId();
 		return (id != null? id: "<unknown>");
 	}
+
 }

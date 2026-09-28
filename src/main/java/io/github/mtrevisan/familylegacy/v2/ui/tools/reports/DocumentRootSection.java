@@ -1,3 +1,27 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
 package io.github.mtrevisan.familylegacy.v2.ui.tools.reports;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
@@ -26,8 +50,6 @@ final class DocumentRootSection implements SectionBuilder{
 	private static final String TAG_URI = "uri";
 	private static final String TAG_DESCRIPTION = "description";
 	private static final String TAG_MAPPING = "mapping";
-	private static final String TAG_NAME = "name";
-	private static final String TAG_VALUE = "value";
 	private static final String TAG_LOCATOR = "locator";
 
 
@@ -47,7 +69,7 @@ final class DocumentRootSection implements SectionBuilder{
 		final List<ReportSection> out = new ArrayList<>();
 		final String title = documentTitle(ctx.root);
 		out.add(new ReportSection.Heading(1, String.format(
-			ctx.labels.documentOf(), ReportFormatters.escape(title))));
+			ctx.labels.sections().documentOf(), ReportFormatters.escape(title))));
 
 		writePreview(out);
 		writeBasicInfo(out);
@@ -75,11 +97,11 @@ final class DocumentRootSection implements SectionBuilder{
 
 	private void writeBasicInfo(final List<ReportSection> out){
 		final List<String> rows = new ArrayList<>();
-		ReportFormatters.appendIfPresent(rows, ctx.labels.documentUri(),
+		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().documentUri(),
 			FLEFRecordHelper.getChildValue(ctx.root, TAG_URI));
-		ReportFormatters.appendIfPresent(rows, ctx.labels.documentDescription(),
+		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().documentDescription(),
 			FLEFRecordHelper.getChildValue(ctx.root, TAG_DESCRIPTION));
-		ReportFormatters.appendIfPresent(rows, ctx.labels.documentMapping(),
+		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().documentMapping(),
 			ReportFormatters.enumLabel(
 				FLEFRecordHelper.getChildValue(ctx.root, TAG_MAPPING)));
 		if(!rows.isEmpty())
@@ -92,7 +114,7 @@ final class DocumentRootSection implements SectionBuilder{
 		if(sources.isEmpty())
 			return;
 
-		out.add(new ReportSection.Heading(2, ctx.labels.documentReferencedBySources()));
+		out.add(new ReportSection.Heading(2, ctx.labels.sections().documentReferencedBySources()));
 		final List<String> items = new ArrayList<>(sources.size());
 		for(final FLEFRecord src : sources)
 			items.add(ReportFormatters.escape(ctx.sourceTitle(src.getId())));
@@ -105,7 +127,7 @@ final class DocumentRootSection implements SectionBuilder{
 		if(citations.isEmpty())
 			return;
 
-		out.add(new ReportSection.Heading(2, ctx.labels.documentReferencedByCitations()));
+		out.add(new ReportSection.Heading(2, ctx.labels.sections().documentReferencedByCitations()));
 		final List<String> items = new ArrayList<>(citations.size());
 		for(final FLEFRecord cit : citations){
 			if(!ctx.isVisible(cit))

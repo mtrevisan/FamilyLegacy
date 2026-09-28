@@ -1,3 +1,27 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
 package io.github.mtrevisan.familylegacy.v2.ui.tools.reports;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
@@ -70,25 +94,32 @@ final class GenealogicalDateHelper{
 
 	static Integer yearOrNull(final FLEFRecord event){
 		final Integer y = readFullDate(event, "date.value.point");
-		if(y != null) return y;
+		if(y != null)
+			return y;
 		final Integer d = readDecade(event, "date.value.point");
-		if(d != null) return d;
+		if(d != null)
+			return d;
 		final Integer c = readCentury(event, "date.value.point");
-		if(c != null) return c;
+		if(c != null)
+			return c;
 		for(final String base : SINGLE_DATE_BASES){
 			final Integer b = readFullDate(event, base);
-			if(b != null) return b;
+			if(b != null)
+				return b;
 			final Integer bd = readDecade(event, base);
-			if(bd != null) return bd;
+			if(bd != null)
+				return bd;
 			final Integer bc = readCentury(event, base);
-			if(bc != null) return bc;
+			if(bc != null)
+				return bc;
 		}
 		return null;
 	}
 
 	static LocalDate exactDateOrNull(final FLEFRecord event){
 		final String value = FLEFRecordHelper.getChildValue(event, PATH_FULL_DATE_VALUE);
-		if(value == null || value.isBlank()) return null;
+		if(value == null || value.isBlank())
+			return null;
 		final String calendar = FLEFRecordHelper.getChildValue(event, PATH_FULL_DATE_CAL);
 		return parseExactDate(calendar, value);
 	}
@@ -110,7 +141,8 @@ final class GenealogicalDateHelper{
 	static String formatDateStructure(final FLEFRecord rec, final String fieldTag,
 		final ReportLabels labels, final Function<String, String> normResolver){
 		final String base = baseDate(rec, fieldTag, labels);
-		if(base == null) return null;
+		if(base == null)
+			return null;
 
 		final List<String> qualifiers = new ArrayList<>();
 		final String basis = approximateBasis(rec, fieldTag, labels, normResolver);
@@ -120,7 +152,8 @@ final class GenealogicalDateHelper{
 		final String calendar = calendarName(rec, fieldTag, labels);
 		if(calendar != null) qualifiers.add(calendar);
 
-		if(qualifiers.isEmpty()) return base;
+		if(qualifiers.isEmpty())
+			return base;
 		return base + " (" + String.join(", ", qualifiers) + ")";
 	}
 
@@ -141,21 +174,26 @@ final class GenealogicalDateHelper{
 	private static String normalizedDate(final FLEFRecord rec, final String fieldTag,
 		final ReportLabels labels){
 		final String point = singleDate(rec, fieldTag + ".value.point", labels);
-		if(point != null) return point;
+		if(point != null)
+			return point;
 
 		final String notBefore = singleDate(rec, fieldTag + ".value.bounded.not_before", labels);
 		final String notAfter = singleDate(rec, fieldTag + ".value.bounded.not_after", labels);
 		if(notBefore != null && notAfter != null)
-			return String.format(labels.dateBetween(), notBefore, notAfter);
-		if(notBefore != null) return String.format(labels.dateAfter(), notBefore);
-		if(notAfter != null) return String.format(labels.dateBefore(), notAfter);
+			return String.format(labels.dates().dateBetween(), notBefore, notAfter);
+		if(notBefore != null)
+			return String.format(labels.dates().dateAfter(), notBefore);
+		if(notAfter != null)
+			return String.format(labels.dates().dateBefore(), notAfter);
 
 		final String from = singleDate(rec, fieldTag + ".value.spanning.from", labels);
 		final String to = singleDate(rec, fieldTag + ".value.spanning.to", labels);
 		if(from != null && to != null)
-			return String.format(labels.dateFromTo(), from, to);
-		if(from != null) return String.format(labels.dateFrom(), from);
-		if(to != null) return String.format(labels.dateTo(), to);
+			return String.format(labels.dates().dateFromTo(), from, to);
+		if(from != null)
+			return String.format(labels.dates().dateFrom(), from);
+		if(to != null)
+			return String.format(labels.dates().dateTo(), to);
 
 		return null;
 	}
@@ -170,16 +208,16 @@ final class GenealogicalDateHelper{
 		// decade
 		final String decade = FLEFRecordHelper.getChildValue(rec, base + ".decade.start_year");
 		if(decade != null && !decade.isBlank())
-			return String.format(labels.dateDecade(), decade.trim());
+			return String.format(labels.dates().dateDecade(), decade.trim());
 
 		// century
 		final String ordinal = FLEFRecordHelper.getChildValue(rec, base + ".century.ordinal");
 		if(ordinal != null && !ordinal.isBlank()){
 			final String part = FLEFRecordHelper.getChildValue(rec, base + ".century.part");
 			if(part != null && !part.isBlank())
-				return String.format(labels.dateCenturyWithPart(),
-					labels.centuryPart(part), ordinal.trim());
-			return String.format(labels.dateCentury(), ordinal.trim());
+				return String.format(labels.dates().dateCenturyWithPart(),
+					labels.dates().centuryPart(part), ordinal.trim());
+			return String.format(labels.dates().dateCentury(), ordinal.trim());
 		}
 		return null;
 	}
@@ -203,18 +241,18 @@ final class GenealogicalDateHelper{
 
 		final String basis = FLEFRecordHelper.getChildValue(approx, "basis");
 		if(basis == null || basis.isBlank())
-			return labels.approxBasisUnspecified();
+			return labels.dates().approxBasisUnspecified();
 
 		return switch(basis.toLowerCase(Locale.ROOT)){
-			case "stated" -> labels.approxBasisStated();
-			case "calculated" -> labels.approxBasisCalculated();
+			case "stated" -> labels.dates().approxBasisStated();
+			case "calculated" -> labels.dates().approxBasisCalculated();
 			case "conventional" -> {
 				final List<String> norms = resolveNormTitles(approx, normResolver);
 				yield (norms.isEmpty()
-					? labels.approxBasisConventional()
-					: labels.approxBasisConventionalPer(String.join(", ", norms)));
+					? labels.dates().approxBasisConventional()
+					: labels.dates().approxBasisConventionalPer(String.join(", ", norms)));
 			}
-			default -> labels.approxBasisUnspecified();
+			default -> labels.dates().approxBasisUnspecified();
 		};
 	}
 
@@ -246,7 +284,7 @@ final class GenealogicalDateHelper{
 		final String normalized = normalizeCalendar(code);
 		if("gregorian".equals(normalized))
 			return null;
-		return labels.calendarDisplay(normalized);
+		return labels.dates().calendarDisplay(normalized);
 	}
 
 
@@ -311,7 +349,8 @@ final class GenealogicalDateHelper{
 		while(i < s.length()){
 			int j = i;
 			while(j < s.length() && Character.isDigit(s.charAt(j))) j++;
-			if(j == i) break;
+			if(j == i)
+				break;
 			final int value;
 			try{
 				value = Integer.parseInt(s.substring(i, j));
@@ -319,7 +358,8 @@ final class GenealogicalDateHelper{
 			catch(final NumberFormatException ignored){
 				return null;
 			}
-			if(j >= s.length()) break;
+			if(j >= s.length())
+				break;
 			final char unit = s.charAt(j);
 			i = j + 1;
 			final String label = switch(unit){
@@ -331,8 +371,9 @@ final class GenealogicalDateHelper{
 			};
 			if(label != null) parts.add(label);
 		}
-		if(parts.isEmpty()) return null;
-		return String.format(labels.dateMargin(), String.join(", ", parts));
+		if(parts.isEmpty())
+			return null;
+		return String.format(labels.dates().dateMargin(), String.join(", ", parts));
 	}
 
 
@@ -342,14 +383,16 @@ final class GenealogicalDateHelper{
 
 	private static Integer readFullDate(final FLEFRecord event, final String base){
 		final String value = FLEFRecordHelper.getChildValue(event, base + ".full_date.value");
-		if(value == null || value.isBlank()) return null;
+		if(value == null || value.isBlank())
+			return null;
 		final String calendar = FLEFRecordHelper.getChildValue(event, base + ".full_date.calendar");
 		return parseYear(calendar, value);
 	}
 
 	private static Integer readDecade(final FLEFRecord event, final String base){
 		final String v = FLEFRecordHelper.getChildValue(event, base + ".decade.start_year");
-		if(v == null || v.isBlank()) return null;
+		if(v == null || v.isBlank())
+			return null;
 		try{
 			return Integer.parseInt(v.trim());
 		}
@@ -360,7 +403,8 @@ final class GenealogicalDateHelper{
 
 	private static Integer readCentury(final FLEFRecord event, final String base){
 		final String v = FLEFRecordHelper.getChildValue(event, base + ".century.ordinal");
-		if(v == null || v.isBlank()) return null;
+		if(v == null || v.isBlank())
+			return null;
 		try{
 			return (Integer.parseInt(v.trim()) - 1) * 100 + 50;
 		}
@@ -370,11 +414,12 @@ final class GenealogicalDateHelper{
 	}
 
 	private static Integer parseYear(final String calendarCode, final String rawDate){
-		if(rawDate == null || rawDate.isBlank()) return null;
+		if(rawDate == null || rawDate.isBlank())
+			return null;
 		try{
 			final ParsedGenealogicalDate parsed = UniversalDateConverter.parse(
 				normalizeCalendar(calendarCode), rawDate);
-			if(parsed != null && parsed.isoDate() != null)
+			if(parsed.isoDate() != null)
 				return parsed.isoDate().getYear();
 		}
 		catch(final RuntimeException ignored){
@@ -383,11 +428,11 @@ final class GenealogicalDateHelper{
 	}
 
 	private static LocalDate parseExactDate(final String calendarCode, final String rawDate){
-		if(rawDate == null || rawDate.isBlank()) return null;
+		if(rawDate == null || rawDate.isBlank())
+			return null;
 		try{
 			final ParsedGenealogicalDate parsed = UniversalDateConverter.parse(
 				normalizeCalendar(calendarCode), rawDate);
-			if(parsed == null) return null;
 			if(parsed.precision() != ParsedGenealogicalDate.DatePrecision.EXACT)
 				return null;
 			return parsed.isoDate();

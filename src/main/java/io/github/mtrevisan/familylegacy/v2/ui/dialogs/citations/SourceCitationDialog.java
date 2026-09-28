@@ -44,7 +44,7 @@ import java.awt.Window;
 
 
 /**
- * Dialog for editing a {@code SOURCE_CITATION} according to FLEF 0.1.2.
+ * Dialog for editing a {@code SOURCE_CITATION} according to FLEF 0.1.3.
  * <p>
  * Structure:
  * <pre>
@@ -80,14 +80,6 @@ import java.awt.Window;
  */
 public class SourceCitationDialog extends BaseRecordDialog{
 
-	private static final String TAG_SOURCE = "SOURCE";
-	private static final String TAG_LOCATOR = "LOCATOR";
-	private static final String TAG_EXTRACT = "EXTRACT";
-	private static final String TAG_NOTE = "NOTE";
-	private static final String TAG_EVIDENCE = "EVIDENCE";
-	private static final String TAG_PRIVACY = "PRIVACY";
-
-
 	private final JPanel propertiesPanel;
 
 	private final EntityField sourceField;
@@ -109,15 +101,14 @@ public class SourceCitationDialog extends BaseRecordDialog{
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]");
 
-		sourceField = EntityField.createForRecordFromReference(TAG_SOURCE, this, model, SourceHandler.class);
-		locatorField = new BoundTextField(TAG_LOCATOR);
-		extractPanel = new ExtractListPanel(TAG_EXTRACT, this, "Extracts", model);
+		sourceField = EntityField.createForRecordFromReference(SourceCitationHandler.TAG_SOURCE, this, model, SourceHandler.class);
+		locatorField = new BoundTextField(SourceCitationHandler.TAG_LOCATOR);
+		extractPanel = new ExtractListPanel(SourceCitationHandler.TAG_EXTRACT, this, "Extracts", model);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.NOTE, TAG_NOTE, null)
-			.withComponent(PanelKey.EVIDENCE, TAG_EVIDENCE, "Evidence")
-			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null)
+			.withComponent(PanelKey.EVIDENCE, SourceCitationHandler.TAG_EVIDENCE, "Evidence")
+			.withComponent(PanelKey.PRIVACY, SourceCitationHandler.TAG_PRIVACY, null)
 			.build();
 
 		components.bind(locatorField);
@@ -143,16 +134,6 @@ public class SourceCitationDialog extends BaseRecordDialog{
 		GUIHelper.addComponent(propertiesPanel, evidencePanel);
 
 		return propertiesPanel;
-	}
-
-	@Override
-	protected JPanel createNotesPanel(){
-		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
-
-		final JPanel notePanel = components.getPanel(PanelKey.NOTE);
-		GUIHelper.addComponent(panel, notePanel);
-
-		return panel;
 	}
 
 	@Override

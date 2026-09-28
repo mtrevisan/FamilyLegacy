@@ -49,7 +49,7 @@ public class EgoNetworkService{
 	private static final String TAG_ROLE = "role";
 	private static final String TAG_STATUS = "status";
 	private static final String TAG_SUBJECT = "subject";
-	private static final String TAG_TARGET = "target";
+	private static final String TAG_OBJECT = "object";
 	private static final String TAG_INDIVIDUAL = "individual";
 	private static final String TAG_GROUP = "group";
 
@@ -118,7 +118,7 @@ public class EgoNetworkService{
 					continue;
 
 				final String subjectId = extractParticipantId(relationship, TAG_SUBJECT);
-				final String targetId = extractParticipantId(relationship, TAG_TARGET);
+				final String targetId = extractParticipantId(relationship, TAG_OBJECT);
 				if(subjectId == null || targetId == null)
 					continue;
 
@@ -260,11 +260,11 @@ public class EgoNetworkService{
 		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
 		for(final FLEFRecord relationship : relationships){
 			final String subjectId = extractParticipantId(relationship, TAG_SUBJECT);
-			final String targetId = extractParticipantId(relationship, TAG_TARGET);
+			final String objectId = extractParticipantId(relationship, TAG_OBJECT);
 			if(subjectId != null)
 				relationshipsByEntityId.computeIfAbsent(subjectId, k -> new ArrayList<>()).add(relationship);
-			if(targetId != null)
-				relationshipsByEntityId.computeIfAbsent(targetId, k -> new ArrayList<>()).add(relationship);
+			if(objectId != null)
+				relationshipsByEntityId.computeIfAbsent(objectId, k -> new ArrayList<>()).add(relationship);
 		}
 
 		relationshipsIndexed = true;

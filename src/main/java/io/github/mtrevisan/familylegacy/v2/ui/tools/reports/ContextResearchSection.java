@@ -1,7 +1,32 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
 package io.github.mtrevisan.familylegacy.v2.ui.tools.reports;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -24,7 +49,6 @@ import java.util.Set;
 final class ContextResearchSection implements SectionBuilder{
 
 	private static final String TAG_TITLE = "title";
-	private static final String TAG_TYPE = "type";
 	private static final String TAG_QUESTION = "question";
 	private static final String TAG_STATUS = "status";
 	private static final String TAG_CONCLUSION = "conclusion";
@@ -51,14 +75,12 @@ final class ContextResearchSection implements SectionBuilder{
 	private static final String TAG_RESULT = "result";
 	private static final String TAG_OBSERVATION = "observation";
 	private static final String TAG_PARENT_ACTIVITY = "parent_activity";
-	private static final String TAG_TASK = "task";
 	private static final String TAG_DESCRIPTION = "description";
 	private static final String TAG_CREATED_BY = "created_by";
 	private static final String TAG_PRIORITY = "priority";
 	private static final String TAG_DUE_DATE = "due_date";
 	private static final String TAG_OUTCOME = "outcome";
 
-	private static final String TYPE_RESEARCH_QUESTION = "research_question";
 	private static final String TYPE_RESEARCH_ACTIVITY = "research_activity";
 	private static final String TYPE_RESEARCH_TASK = "research_task";
 	private static final String TYPE_CONCLUSION = "conclusion";
@@ -95,7 +117,8 @@ final class ContextResearchSection implements SectionBuilder{
 		final List<FLEFRecord> impacts = ctx.index.contextImpactsFor(ctx.relatedRecordIds());
 		if(impacts.isEmpty())
 			return;
-		out.add(new ReportSection.Heading(1, ctx.labels.contextSection()));
+
+		out.add(new ReportSection.Heading(1, ctx.labels.sections().contextSection()));
 		for(final FLEFRecord imp : impacts){
 			final String impactType = ReportFormatters.orEmpty(
 				FLEFRecordHelper.getChildValue(imp, TAG_IMPACT_TYPE));
@@ -105,7 +128,9 @@ final class ContextResearchSection implements SectionBuilder{
 
 			final String rationale = FLEFRecordHelper.getChildValue(imp, TAG_RATIONALE);
 			if(rationale != null)
-				out.add(new ReportSection.Paragraph(ReportFormatters.escape(rationale)));
+				out.add(new ReportSection.Paragraph(
+					"**" + ctx.labels.sections().contextRationale() + ":** "
+						+ ReportFormatters.escape(rationale)));
 
 			if(ctx.config.sources())
 				out.addAll(ctx.citations().citations(imp));
@@ -118,15 +143,15 @@ final class ContextResearchSection implements SectionBuilder{
 	private String contextLabel(final FLEFRecord contextImpact){
 		final FLEFRecord contextField = FLEFRecordHelper.findChild(contextImpact, TAG_CONTEXT);
 		if(contextField == null)
-			return "";
+			return StringUtils.EMPTY;
 		final FLEFRecord ref = contextField.getTheOnlyChild();
 		if(ref == null)
-			return "";
+			return StringUtils.EMPTY;
 		final String refId = ref.getValue();
 		if(refId == null)
-			return "";
+			return StringUtils.EMPTY;
 		final String label = ctx.resolveContextLabel(refId);
-		return (label != null? label: "");
+		return (label != null? label: StringUtils.EMPTY);
 	}
 
 
@@ -138,7 +163,7 @@ final class ContextResearchSection implements SectionBuilder{
 		final List<FLEFRecord> questions = ctx.index.researchQuestionsFor(ctx.relatedRecordIds());
 		if(questions.isEmpty())
 			return;
-		out.add(new ReportSection.Heading(1, ctx.labels.researchSection()));
+		out.add(new ReportSection.Heading(1, ctx.labels.sections().researchSection()));
 		for(final FLEFRecord q : questions)
 			appendQuestion(out, q);
 	}
@@ -150,24 +175,24 @@ final class ContextResearchSection implements SectionBuilder{
 		final String question = FLEFRecordHelper.getChildValue(q, TAG_QUESTION);
 		if(question != null)
 			out.add(new ReportSection.Paragraph(
-				"**" + ctx.labels.question() + ":** " + ReportFormatters.escape(question)));
+				"**" + ctx.labels.sections().question() + ":** " + ReportFormatters.escape(question)));
 
 		final String status = FLEFRecordHelper.getChildValue(q, TAG_STATUS);
 		if(status != null)
 			out.add(new ReportSection.Paragraph(
-				"**" + ctx.labels.status() + ":** "
+				"**" + ctx.labels.sections().status() + ":** "
 					+ ReportFormatters.escape(ReportFormatters.orEmpty(
 					ReportFormatters.enumLabel(status)))));
 
 		final String conclusion = FLEFRecordHelper.getChildValue(q, TAG_CONCLUSION);
 		if(conclusion != null)
 			out.add(new ReportSection.Paragraph(
-				"**" + ctx.labels.conclusion() + ":** " + ReportFormatters.escape(conclusion)));
+				"**" + ctx.labels.sections().conclusion() + ":** " + ReportFormatters.escape(conclusion)));
 
 		final String confidence = FLEFRecordHelper.getChildValue(q, TAG_CONCLUSION_CONFIDENCE);
 		if(confidence != null)
 			out.add(new ReportSection.Paragraph(
-				"**" + ctx.labels.researchConclusionConfidence() + ":** "
+				"**" + ctx.labels.sections().researchConclusionConfidence() + ":** "
 					+ ReportFormatters.escape(ReportFormatters.orEmpty(
 					ReportFormatters.enumLabel(confidence)))));
 
@@ -178,19 +203,19 @@ final class ContextResearchSection implements SectionBuilder{
 		final String closed = FLEFRecordHelper.getChildValue(q, TAG_CLOSED_DATE);
 		if(closed != null)
 			out.add(new ReportSection.Paragraph(
-				"**" + ctx.labels.researchClosedDate() + ":** "
+				"**" + ctx.labels.sections().researchClosedDate() + ":** "
 					+ ReportFormatters.escape(closed)));
 
 		final List<FLEFRecord> activities = activitiesForQuestion(q.getId());
 		if(!activities.isEmpty()){
-			out.add(new ReportSection.Heading(3, ctx.labels.researchActivities()));
+			out.add(new ReportSection.Heading(3, ctx.labels.sections().researchActivities()));
 			for(final FLEFRecord a : activities)
 				appendActivity(out, a, 4);
 		}
 
 		final List<FLEFRecord> tasks = tasksForQuestion(q.getId());
 		if(!tasks.isEmpty()){
-			out.add(new ReportSection.Heading(3, ctx.labels.researchTasks()));
+			out.add(new ReportSection.Heading(3, ctx.labels.sections().researchTasks()));
 			for(final FLEFRecord t : tasks)
 				appendTask(out, t, 4);
 		}
@@ -219,8 +244,7 @@ final class ContextResearchSection implements SectionBuilder{
 		return out;
 	}
 
-	private void appendActivity(final List<ReportSection> out, final FLEFRecord a,
-		final int headingLevel){
+	private void appendActivity(final List<ReportSection> out, final FLEFRecord a, final int headingLevel){
 		final String type = ReportFormatters.enumLabel(
 			FLEFRecordHelper.getChildValue(a, TAG_ACTIVITY_TYPE));
 		final String action = FLEFRecordHelper.getChildValue(a, TAG_ACTION);
@@ -228,20 +252,20 @@ final class ContextResearchSection implements SectionBuilder{
 		if(type != null)
 			heading.append(type);
 		if(action != null && !action.isBlank()){
-			if(heading.length() > 0)
+			if(!heading.isEmpty())
 				heading.append(" — ");
 			heading.append(action);
 		}
-		if(heading.length() == 0)
+		if(heading.isEmpty())
 			heading.append(ReportFormatters.orEmpty(a.getId()));
 		out.add(new ReportSection.Heading(headingLevel, ReportFormatters.escape(heading.toString())));
 
 		final List<String> meta = new ArrayList<>();
-		ReportFormatters.appendIfPresent(meta, ctx.labels.status(),
+		ReportFormatters.appendIfPresent(meta, ctx.labels.sections().status(),
 			ReportFormatters.enumLabel(FLEFRecordHelper.getChildValue(a, TAG_STATUS)));
-		ReportFormatters.appendIfPresent(meta, ctx.labels.researchResult(),
+		ReportFormatters.appendIfPresent(meta, ctx.labels.sections().researchResult(),
 			ReportFormatters.enumLabel(FLEFRecordHelper.getChildValue(a, TAG_RESULT)));
-		ReportFormatters.appendIfPresent(meta, ctx.labels.researchConclusionConfidence(),
+		ReportFormatters.appendIfPresent(meta, ctx.labels.sections().researchConclusionConfidence(),
 			ReportFormatters.enumLabel(
 				FLEFRecordHelper.getChildValue(a, TAG_CONCLUSION_CONFIDENCE)));
 		if(!meta.isEmpty())
@@ -251,7 +275,7 @@ final class ContextResearchSection implements SectionBuilder{
 		final String scopeDetail = FLEFRecordHelper.getChildValue(a, TAG_SCOPE_DETAIL);
 		if(scopeType != null || scopeDetail != null){
 			final StringBuilder sb = new StringBuilder();
-			sb.append("**").append(ctx.labels.researchSearchScope()).append(":** ");
+			sb.append("**").append(ctx.labels.sections().researchSearchScope()).append(":** ");
 			if(scopeType != null)
 				sb.append(ReportFormatters.escape(
 					ReportFormatters.orEmpty(ReportFormatters.enumLabel(scopeType))));
@@ -266,25 +290,25 @@ final class ContextResearchSection implements SectionBuilder{
 		final String targetLabel = describeOneOf(FLEFRecordHelper.findChild(a, TAG_TARGET));
 		if(targetLabel != null)
 			out.add(new ReportSection.Paragraph(
-				"**" + ctx.labels.researchTarget() + ":** "
+				"**" + ctx.labels.sections().researchTarget() + ":** "
 					+ ReportFormatters.escape(targetLabel)));
 
 		final String obs = FLEFRecordHelper.getChildValue(a, TAG_OBSERVATION);
 		if(obs != null)
 			out.add(new ReportSection.Paragraph(
-				"**" + ctx.labels.researchObservation() + ":** "
+				"**" + ctx.labels.sections().researchObservation() + ":** "
 					+ ReportFormatters.escape(obs)));
 
 		final String conclusion = FLEFRecordHelper.getChildValue(a, TAG_CONCLUSION);
 		if(conclusion != null)
 			out.add(new ReportSection.Paragraph(
-				"**" + ctx.labels.conclusion() + ":** " + ReportFormatters.escape(conclusion)));
+				"**" + ctx.labels.sections().conclusion() + ":** " + ReportFormatters.escape(conclusion)));
 
 		final String parentLabel = describeOneOf(
 			FLEFRecordHelper.findChild(a, TAG_PARENT_ACTIVITY));
 		if(parentLabel != null)
 			out.add(new ReportSection.Paragraph(
-				"**" + ctx.labels.researchParentActivity() + ":** "
+				"**" + ctx.labels.sections().researchParentActivity() + ":** "
 					+ ReportFormatters.escape(parentLabel)));
 
 		if(ctx.config.sources())
@@ -325,7 +349,7 @@ final class ContextResearchSection implements SectionBuilder{
 		if(orphans.isEmpty())
 			return;
 
-		out.add(new ReportSection.Heading(1, ctx.labels.researchTasks()));
+		out.add(new ReportSection.Heading(1, ctx.labels.sections().researchTasks()));
 		for(final FLEFRecord t : orphans)
 			appendTask(out, t, 2);
 	}
@@ -349,11 +373,11 @@ final class ContextResearchSection implements SectionBuilder{
 			ReportFormatters.orEmpty(description))));
 
 		final List<String> meta = new ArrayList<>();
-		ReportFormatters.appendIfPresent(meta, ctx.labels.status(),
+		ReportFormatters.appendIfPresent(meta, ctx.labels.sections().status(),
 			ReportFormatters.enumLabel(FLEFRecordHelper.getChildValue(t, TAG_STATUS)));
-		ReportFormatters.appendIfPresent(meta, ctx.labels.researchTaskPriority(),
+		ReportFormatters.appendIfPresent(meta, ctx.labels.sections().researchTaskPriority(),
 			ReportFormatters.enumLabel(FLEFRecordHelper.getChildValue(t, TAG_PRIORITY)));
-		ReportFormatters.appendIfPresent(meta, ctx.labels.researchTaskDueDate(),
+		ReportFormatters.appendIfPresent(meta, ctx.labels.sections().researchTaskDueDate(),
 			FLEFRecordHelper.getChildValue(t, TAG_DUE_DATE));
 		if(!meta.isEmpty())
 			out.add(new ReportSection.BulletList(meta));
@@ -361,13 +385,13 @@ final class ContextResearchSection implements SectionBuilder{
 		final String createdBy = describeOneOf(FLEFRecordHelper.findChild(t, TAG_CREATED_BY));
 		if(createdBy != null)
 			out.add(new ReportSection.Paragraph(
-				"**" + ctx.labels.researchTaskCreatedBy() + ":** "
+				"**" + ctx.labels.sections().researchTaskCreatedBy() + ":** "
 					+ ReportFormatters.escape(createdBy)));
 
 		final String outcome = FLEFRecordHelper.getChildValue(t, TAG_OUTCOME);
 		if(outcome != null)
 			out.add(new ReportSection.Paragraph(
-				"**" + ctx.labels.researchTaskOutcome() + ":** "
+				"**" + ctx.labels.sections().researchTaskOutcome() + ":** "
 					+ ReportFormatters.escape(outcome)));
 
 		out.addAll(ctx.citations().audit(t));
@@ -382,7 +406,7 @@ final class ContextResearchSection implements SectionBuilder{
 		final List<FLEFRecord> conclusions = conclusionsFor();
 		if(conclusions.isEmpty())
 			return;
-		out.add(new ReportSection.Heading(1, ctx.labels.conclusions()));
+		out.add(new ReportSection.Heading(1, ctx.labels.sections().conclusions()));
 		for(final FLEFRecord c : conclusions)
 			appendConclusion(out, c);
 	}
@@ -409,7 +433,7 @@ final class ContextResearchSection implements SectionBuilder{
 		final String proof = FLEFRecordHelper.getChildValue(c, TAG_PROOF);
 		if(proof != null)
 			out.add(new ReportSection.Paragraph(
-				"**" + ctx.labels.researchProofStatus() + ":** "
+				"**" + ctx.labels.sections().researchProofStatus() + ":** "
 					+ ReportFormatters.escape(ReportFormatters.orEmpty(
 					ReportFormatters.enumLabel(proof)))));
 
@@ -429,11 +453,11 @@ final class ContextResearchSection implements SectionBuilder{
 
 		if(!resolvedLabels.isEmpty()){
 			out.add(new ReportSection.Paragraph(
-				"**" + ctx.labels.researchResolves() + ":**"));
+				"**" + ctx.labels.sections().researchResolves() + ":**"));
 			final List<String> items = new ArrayList<>(resolvedLabels.size());
 			for(final String s : resolvedLabels){
 				final boolean preferred = (preferredLabel != null && preferredLabel.equals(s));
-				items.add(s + (preferred? "  ← *" + ctx.labels.researchPreferred() + "*": ""));
+				items.add(s + (preferred? "  ← *" + ctx.labels.sections().researchPreferred() + "*": StringUtils.EMPTY));
 			}
 			out.add(new ReportSection.BulletList(items));
 		}
@@ -454,7 +478,7 @@ final class ContextResearchSection implements SectionBuilder{
 		}
 		if(!qLabels.isEmpty()){
 			out.add(new ReportSection.Paragraph(
-				"**" + ctx.labels.researchLinkedQuestions() + ":**"));
+				"**" + ctx.labels.sections().researchLinkedQuestions() + ":**"));
 			out.add(new ReportSection.BulletList(qLabels.stream()
 				.map(ReportFormatters::escape)
 				.toList()));
@@ -476,7 +500,7 @@ final class ContextResearchSection implements SectionBuilder{
 		final List<FLEFRecord> hyps = identityHypothesesFor();
 		if(hyps.isEmpty())
 			return;
-		out.add(new ReportSection.Heading(1, ctx.labels.identityHypotheses()));
+		out.add(new ReportSection.Heading(1, ctx.labels.sections().identityHypotheses()));
 		for(final FLEFRecord h : hyps){
 			final List<String> candidates = new ArrayList<>();
 			for(final FLEFRecord cand : FLEFRecordHelper.findChildren(h, TAG_IDENTITY)){
@@ -493,13 +517,13 @@ final class ContextResearchSection implements SectionBuilder{
 				continue;
 
 			out.add(new ReportSection.Paragraph(
-				"**" + ctx.labels.identityCandidates() + ":** "
+				"**" + ctx.labels.sections().identityCandidates() + ":** "
 					+ ReportFormatters.escape(String.join(" ↔ ", candidates))));
 
 			final String comment = FLEFRecordHelper.getChildValue(h, TAG_COMMENT);
 			if(comment != null)
 				out.add(new ReportSection.Paragraph(
-					"**" + ctx.labels.identityComment() + ":** "
+					"**" + ctx.labels.sections().identityComment() + ":** "
 						+ ReportFormatters.escape(comment)));
 
 			if(ctx.config.notes())
@@ -548,8 +572,8 @@ final class ContextResearchSection implements SectionBuilder{
 			return null;
 
 		final FLEFRecord rec = ctx.model.getRecordById(id);
-		if(rec == null || !ctx.isVisible(rec))
-			return tag + " " + id;
+		if(!ctx.isVisible(rec))
+			return tag + StringUtils.SPACE + id;
 		return ctx.displayText(rec);
 	}
 

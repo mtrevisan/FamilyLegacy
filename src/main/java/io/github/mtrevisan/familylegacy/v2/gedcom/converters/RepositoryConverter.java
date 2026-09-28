@@ -74,7 +74,8 @@ public class RepositoryConverter{
 	 */
 	public void convert(GEDCOMNode repoNode){
 		String xref = repoNode.getXrefId();
-		if(xref == null) return;
+		if(xref == null)
+			return;
 
 		String cleanId = GEDCOMHelper.cleanId(xref);
 		IDGenerator.registerExistingId(cleanId);
@@ -100,7 +101,7 @@ public class RepositoryConverter{
 		GEDCOMHelper.attachAddressToContact(repository, addrNode, repoNode);
 
 		// ---- Notes (GEDCOM NOTE) – inline structs ----
-		for (GEDCOMNode noteNode : GEDCOMHelper.findChildren(repoNode, "NOTE")) {
+		for(GEDCOMNode noteNode : GEDCOMHelper.findChildren(repoNode, "NOTE")){
 			GEDCOMHelper.attachNote(repository,
 				noteNode, noteRawMap);
 		}

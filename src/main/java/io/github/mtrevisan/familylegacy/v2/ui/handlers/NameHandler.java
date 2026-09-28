@@ -35,7 +35,7 @@ import java.awt.Window;
 
 
 /**
- * Handler for {@code NAME_STRUCTURE} entities according to FLEF 0.1.2.
+ * Handler for {@code NAME_STRUCTURE} entities according to FLEF 0.1.3.
  * <p>
  * This handler provides the necessary operations for managing name structures:
  * creation, editing, display name generation, and type identification.
@@ -46,7 +46,8 @@ public class NameHandler extends AbstractRecordTypeHandler<NameStructureDialog>{
 	public static final String TYPE = "NAME_STRUCTURE";
 	public static final String CITED_TYPE = "NAME";
 
-	private static final String TAG_VALUE = "VALUE";
+	public static final String TAG_VALUE = "VALUE";
+	// TODO ???
 	private static final String TAG_TYPE = "TYPE";
 
 
@@ -86,7 +87,7 @@ public class NameHandler extends AbstractRecordTypeHandler<NameStructureDialog>{
 			return "--";
 
 		String value = FLEFRecordHelper.getChildValue(record, TAG_VALUE);
-		value = GUIHelper.limitTextLength(value.replace("\n", ", "));
+		value = GUIHelper.limitTextLength(value.replace(StringUtils.LF, ", "));
 
 		final String type = FLEFRecordHelper.getChildValue(record, TAG_TYPE);
 		if(StringUtils.isNotEmpty(type))

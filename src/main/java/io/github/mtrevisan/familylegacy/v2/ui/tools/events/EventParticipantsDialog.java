@@ -288,7 +288,7 @@ public final class EventParticipantsDialog extends JDialog{
 				case 1 -> row.participantId();
 				case 2 -> row.participantType();
 				case 3 -> row.role();
-				default -> "";
+				default -> StringUtils.EMPTY;
 			};
 		}
 	}

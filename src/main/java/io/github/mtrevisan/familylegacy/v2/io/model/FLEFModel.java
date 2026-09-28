@@ -117,6 +117,10 @@ public class FLEFModel{
 		return questionsById;
 	}
 
+	public boolean isEmpty(){
+		return records.isEmpty();
+	}
+
 	public FLEFRecord removeRecord(final String id){
 		if(id == null)
 			return null;

@@ -58,7 +58,6 @@ public final class DateNormalizer{
 	private static final String TAG_CALENDAR = "calendar";
 	private static final String TAG_START_YEAR = "start_year";
 	private static final String TAG_ORDINAL = "ordinal";
-	private static final String TAG_PART = "part";
 	private static final String TAG_NOT_BEFORE = "not_before";
 	private static final String TAG_NOT_AFTER = "not_after";
 	private static final String TAG_FROM = "from";

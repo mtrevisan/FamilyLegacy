@@ -33,11 +33,15 @@ import java.awt.Window;
 
 
 /**
- * Handler for {@code PLACE_CITATION} entities according to FLEF 0.1.2.
+ * Handler for {@code PLACE_CITATION} entities according to FLEF 0.1.3.
  */
 public class PlaceCitationHandler extends AbstractRecordTypeHandler<PlaceCitationDialog>{
 
 	public static final String TYPE = "PLACE_CITATION";
+
+	public static final String TAG_ORIGINAL_TEXT = "ORIGINAL_TEXT";
+	public static final String TAG_SOURCE = "SOURCE";
+	public static final String TAG_EVIDENCE = "EVIDENCE";
 
 
 	private static final class SingletonHelper{

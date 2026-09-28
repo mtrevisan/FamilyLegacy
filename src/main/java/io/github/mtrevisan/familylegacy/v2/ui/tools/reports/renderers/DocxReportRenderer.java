@@ -1,7 +1,33 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
 package io.github.mtrevisan.familylegacy.v2.ui.tools.reports.renderers;
 
 import io.github.mtrevisan.familylegacy.v2.ui.tools.reports.ReportDocument;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.reports.ReportSection;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.common.usermodel.PictureType;
 import org.apache.poi.util.Units;
 import org.apache.poi.xwpf.usermodel.Borders;
 import org.apache.poi.xwpf.usermodel.ParagraphAlignment;
@@ -146,7 +172,7 @@ public final class DocxReportRenderer implements ReportRenderer{
 	 * ====================================================================== */
 
 	private static void writeHeading(final XWPFDocument d, final ReportSection.Heading h){
-		final int level = Math.max(1, Math.min(4, h.level()));
+		final int level = Math.clamp(h.level(), 1, 4);
 
 		final XWPFParagraph p = d.createParagraph();
 		// Built-in styles give Word the document structure (navigation, TOC).
@@ -183,14 +209,14 @@ public final class DocxReportRenderer implements ReportRenderer{
 
 		// Descendants trees carry alignment with spaces and newlines: keep the
 		// original layout by rendering each line as a separate mono run.
-		if(p.text().contains("\n"))
+		if(p.text().contains(StringUtils.LF))
 			writeMonospaceBlock(para, p.text());
 		else
 			writeInlineMarkdown(para, p.text(), BODY_SIZE, false, false, null);
 	}
 
 	private static void writeMonospaceBlock(final XWPFParagraph p, final String text){
-		final String[] lines = text.split("\n", -1);
+		final String[] lines = text.split(StringUtils.LF, -1);
 		for(int i = 0; i < lines.length; i++){
 			final XWPFRun run = p.createRun();
 			run.setFontFamily("Consolas");
@@ -243,7 +269,7 @@ public final class DocxReportRenderer implements ReportRenderer{
 			final List<String> row = t.rows().get(r);
 			final XWPFTableRow tableRow = table.getRow(r + 1);
 			for(int c = 0; c < cols; c++){
-				final String v = (c < row.size()? row.get(c): "");
+				final String v = (c < row.size()? row.get(c): StringUtils.EMPTY);
 				final XWPFTableCell cell = tableRow.getCell(c);
 				final XWPFParagraph p = prepareCell(cell);
 				writeInlineMarkdown(p, v, BODY_SIZE, false, false, null);
@@ -304,14 +330,15 @@ public final class DocxReportRenderer implements ReportRenderer{
 		final Path file = img.file();
 		try(InputStream is = Files.newInputStream(file)){
 			final int[] size = scaledImageSize(file, IMAGE_MAX_PT, IMAGE_MAX_PT);
-			final int pictureType = pictureTypeFor(file);
+			final PictureType pictureType = pictureTypeFor(file);
 
 			final XWPFParagraph p = d.createParagraph();
 			p.setAlignment(ParagraphAlignment.CENTER);
 			p.setSpacingAfter(IMAGE_SPACING_AFTER);
 
-			p.createRun().addPicture(is, pictureType, file.getFileName().toString(),
-				(int)Units.toEMU(size[0]), (int)Units.toEMU(size[1]));
+			p.createRun()
+				.addPicture(is, pictureType, file.getFileName().toString(),
+					(int)Units.toEMU(size[0]), (int)Units.toEMU(size[1]));
 
 			if(img.caption() != null && !img.caption().isBlank()){
 				final XWPFParagraph cap = d.createParagraph();
@@ -360,15 +387,21 @@ public final class DocxReportRenderer implements ReportRenderer{
 
 
 	/** Maps a file extension to the POI picture-type constant. */
-	private static int pictureTypeFor(final Path file){
+	private static PictureType pictureTypeFor(final Path file){
 		final String name = file.getFileName().toString().toLowerCase(Locale.ROOT);
-		if(name.endsWith(".png")) return XWPFDocument.PICTURE_TYPE_PNG;
-		if(name.endsWith(".gif")) return XWPFDocument.PICTURE_TYPE_GIF;
-		if(name.endsWith(".bmp")) return XWPFDocument.PICTURE_TYPE_BMP;
-		if(name.endsWith(".tif") || name.endsWith(".tiff")) return XWPFDocument.PICTURE_TYPE_TIFF;
-		if(name.endsWith(".emf")) return XWPFDocument.PICTURE_TYPE_EMF;
-		if(name.endsWith(".wmf")) return XWPFDocument.PICTURE_TYPE_WMF;
-		return XWPFDocument.PICTURE_TYPE_JPEG;
+		if(name.endsWith(".png"))
+			return PictureType.findByOoxmlId(XWPFDocument.PICTURE_TYPE_PNG);
+		if(name.endsWith(".gif"))
+			return PictureType.findByOoxmlId(XWPFDocument.PICTURE_TYPE_GIF);
+		if(name.endsWith(".bmp"))
+			return PictureType.findByOoxmlId(XWPFDocument.PICTURE_TYPE_BMP);
+		if(name.endsWith(".tif") || name.endsWith(".tiff"))
+			return PictureType.findByOoxmlId(XWPFDocument.PICTURE_TYPE_TIFF);
+		if(name.endsWith(".emf"))
+			return PictureType.findByOoxmlId(XWPFDocument.PICTURE_TYPE_EMF);
+		if(name.endsWith(".wmf"))
+			return PictureType.findByOoxmlId(XWPFDocument.PICTURE_TYPE_WMF);
+		return PictureType.findByOoxmlId(XWPFDocument.PICTURE_TYPE_JPEG);
 	}
 
 

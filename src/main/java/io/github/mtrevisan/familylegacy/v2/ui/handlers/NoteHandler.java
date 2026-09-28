@@ -38,7 +38,14 @@ public class NoteHandler extends AbstractRecordTypeHandler<NoteStructureDialog>{
 
 	public static final String TYPE = "NOTE";
 
-	private static final String TAG_TEXT = "TEXT";
+	public static final String TAG_TITLE = "TITLE";
+	public static final String TAG_TEXT = "TEXT";
+	public static final String TAG_MIME = "MIME";
+	public static final String TAG_LOCALE = "LOCALE";
+	public static final String TAG_TRANSLATION = "TRANSLATION";
+	public static final String TAG_SOURCE = "SOURCE";
+	public static final String TAG_PRIVACY = "PRIVACY";
+	public static final String TAG_AUDIT = "AUDIT";
 
 
 	private static final class SingletonHelper{

@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.v2.io.FLEFWriter;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolOperation;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
@@ -82,7 +83,7 @@ public final class ExportFlefTool implements ToolOperation{
 		}
 		catch(final IOException ex){
 			JOptionPane.showMessageDialog(context.owner(),
-				"Unable to write the file:\n" + ex.getMessage(),
+				"Unable to write the file:" + StringUtils.LF + ex.getMessage(),
 				"Export Error", JOptionPane.ERROR_MESSAGE);
 		}
 	}

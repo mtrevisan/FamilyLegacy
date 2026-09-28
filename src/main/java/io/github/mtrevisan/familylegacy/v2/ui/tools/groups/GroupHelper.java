@@ -64,25 +64,17 @@ public final class GroupHelper{
 
 	public static final String TYPE_GROUP = "group";
 	public static final String TYPE_INDIVIDUAL = "individual";
-	public static final String TYPE_RELATIONSHIP = "relationship";
 
 	public static final String TAG_NAME = "name";
 	public static final String TAG_VALUE = "value";
 	public static final String TAG_TYPE = "type";
 	public static final String TAG_SUBJECT = "subject";
-	public static final String TAG_TARGET = "target";
+	public static final String TAG_OBJECT = "object";
 	public static final String TAG_ROLE = "role";
 	public static final String TAG_SOURCE = "source";
-	public static final String TAG_NOTE = "note";
 
 	public static final String REL_GROUP_MEMBER = "group_member";
 	public static final String REL_PART_OF = "part_of";
-
-	/** Group types declared by the protocol, in a stable order. */
-	public static final List<String> DECLARED_GROUP_TYPES = List.of(
-		"family", "household", "neighborhood", "fraternity", "club",
-		"literary_society", "association", "organization", "tribe"
-	);
 
 
 	private GroupHelper(){
@@ -155,27 +147,27 @@ public final class GroupHelper{
 		final Map<String, Set<String>> children = new LinkedHashMap<>();
 		final Map<String, Set<String>> parents = new LinkedHashMap<>();
 
-		for(final FLEFRecord rel : model.getRecordsByType(RelationshipHandler.TYPE)){
-			final String type = FLEFRecordHelper.getChildValue(rel, TAG_TYPE);
+		List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
+		for(final FLEFRecord relationship : relationships){
+			final String type = FLEFRecordHelper.getChildValue(relationship, TAG_TYPE);
 			if(type == null)
 				continue;
 			final String t = type.toLowerCase(Locale.ROOT);
 
-			final String subject = rel.extractReferencedId(TAG_SUBJECT, TYPE_INDIVIDUAL);
-			final String subjectGroup = rel.extractReferencedId(TAG_SUBJECT, TYPE_GROUP);
-			final String target = rel.extractReferencedId(TAG_TARGET, TYPE_INDIVIDUAL);
-			final String targetGroup = rel.extractReferencedId(TAG_TARGET, TYPE_GROUP);
+			final String subject = relationship.extractReferencedId(TAG_SUBJECT, TYPE_INDIVIDUAL);
+			final String subjectGroup = relationship.extractReferencedId(TAG_SUBJECT, TYPE_GROUP);
+			final String objectGroup = relationship.extractReferencedId(TAG_OBJECT, TYPE_GROUP);
 
 			if(REL_GROUP_MEMBER.equals(t)){
 				// subject = individual, target = group.
-				if(subject != null && targetGroup != null)
-					members.computeIfAbsent(targetGroup, k -> new LinkedHashSet<>()).add(subject);
+				if(subject != null && objectGroup != null)
+					members.computeIfAbsent(objectGroup, k -> new LinkedHashSet<>()).add(subject);
 			}
 			else if(REL_PART_OF.equals(t)){
 				// subject = child group, target = parent group.
-				if(subjectGroup != null && targetGroup != null){
-					children.computeIfAbsent(targetGroup, k -> new LinkedHashSet<>()).add(subjectGroup);
-					parents.computeIfAbsent(subjectGroup, k -> new LinkedHashSet<>()).add(targetGroup);
+				if(subjectGroup != null && objectGroup != null){
+					children.computeIfAbsent(objectGroup, k -> new LinkedHashSet<>()).add(subjectGroup);
+					parents.computeIfAbsent(subjectGroup, k -> new LinkedHashSet<>()).add(objectGroup);
 				}
 			}
 		}
@@ -259,13 +251,13 @@ public final class GroupHelper{
 	 * individual to the given group, with an optional role.
 	 */
 	public static FLEFRecord createMembership(final FLEFModel model, final String individualId,
-		final String groupId, final String role, final String idPrefix){
-		final FLEFRecord rel = FLEFRecord.createMainRecord(TYPE_RELATIONSHIP, idPrefix, model)
+			final String groupId, final String role, final String idPrefix){
+		final FLEFRecord rel = FLEFRecord.createMainRecord(RelationshipHandler.TYPE, idPrefix, model)
 			.addChild(FLEFRecord.createChildWithTagAndValue(TAG_TYPE, REL_GROUP_MEMBER))
 			.addChild(FLEFRecord.createChildWithTag(TAG_SUBJECT)
 				.addChild(FLEFRecord.createChildWithTagAndValue(TYPE_INDIVIDUAL, individualId))
 			)
-			.addChild(FLEFRecord.createChildWithTag(TAG_TARGET)
+			.addChild(FLEFRecord.createChildWithTag(TAG_OBJECT)
 				.addChild(FLEFRecord.createChildWithTagAndValue(TYPE_GROUP, groupId))
 			);
 		if(role != null && !role.isBlank())
@@ -284,18 +276,19 @@ public final class GroupHelper{
 	 * Returns the ids of every relationship record that makes an
 	 * individual a member of a group.
 	 */
-	public static List<String> membershipRelationshipIds(final FLEFModel model,
-		final String groupId){
+	public static List<String> membershipRelationshipIds(final FLEFModel model, final String groupId){
 		final List<String> result = new ArrayList<>();
 		if(groupId == null)
 			return result;
-		for(final FLEFRecord rel : model.getRecordsByType(RelationshipHandler.TYPE)){
-			final String type = FLEFRecordHelper.getChildValue(rel, TAG_TYPE);
-			if(type == null || !REL_GROUP_MEMBER.equalsIgnoreCase(type))
+
+		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
+		for(final FLEFRecord relationship : relationships){
+			final String type = FLEFRecordHelper.getChildValue(relationship, TAG_TYPE);
+			if(!REL_GROUP_MEMBER.equalsIgnoreCase(type))
 				continue;
-			final String target = rel.extractReferencedId(TAG_TARGET, TYPE_GROUP);
-			if(groupId.equals(target))
-				result.add(rel.getId());
+			final String object = relationship.extractReferencedId(TAG_OBJECT, TYPE_GROUP);
+			if(groupId.equals(object))
+				result.add(relationship.getId());
 		}
 		return result;
 	}
@@ -311,11 +304,11 @@ public final class GroupHelper{
 		final List<String> result = new ArrayList<>();
 		if(groupId == null)
 			return result;
-		for(final FLEFRecord rel : model.getRecordsByType(RelationshipHandler.TYPE)){
-			final String subject = rel.extractReferencedId(TAG_SUBJECT, TYPE_GROUP);
-			final String target = rel.extractReferencedId(TAG_TARGET, TYPE_GROUP);
-			if(groupId.equals(subject) || groupId.equals(target))
-				result.add(rel.getId());
+		for(final FLEFRecord relationship : model.getRecordsByType(RelationshipHandler.TYPE)){
+			final String subject = relationship.extractReferencedId(TAG_SUBJECT, TYPE_GROUP);
+			final String object = relationship.extractReferencedId(TAG_OBJECT, TYPE_GROUP);
+			if(groupId.equals(subject) || groupId.equals(object))
+				result.add(relationship.getId());
 		}
 		return result;
 	}

@@ -47,8 +47,6 @@ public class DocumentSearchStrategy implements SearchStrategy{
 	private static final String TAG_MAPPING = "mapping";
 	private static final String TAG_URI = "uri";
 
-	private static final double FUZZY_THRESHOLD = 0.05;
-
 
 	private static final DocumentHandler HANDLER = DocumentHandler.getInstance();
 

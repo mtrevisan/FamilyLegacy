@@ -30,8 +30,6 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.relationshipgraph.EgoNetworkService;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,8 +42,6 @@ import java.util.Objects;
  * tree listeners.
  */
 public class EgoNetworkMutator extends AbstractProjectionMutator{
-
-	private static final Logger LOGGER = LoggerFactory.getLogger(EgoNetworkMutator.class);
 
 	private final EgoNetworkService networkService;
 
@@ -93,9 +89,9 @@ public class EgoNetworkMutator extends AbstractProjectionMutator{
 				continue;
 
 			final String subjectId = relationship.extractReferencedId(TAG_SUBJECT, sourceTag);
-			final String relTargetId = relationship.extractReferencedId(TAG_TARGET, targetTag);
-			if((sourceId.equals(subjectId) && targetId.equals(relTargetId))
-					|| (targetId.equals(subjectId) && sourceId.equals(relTargetId)))
+			final String relationshipObjectId = relationship.extractReferencedId(TAG_OBJECT, targetTag);
+			if((sourceId.equals(subjectId) && targetId.equals(relationshipObjectId))
+					|| (targetId.equals(subjectId) && sourceId.equals(relationshipObjectId)))
 				toRemove.add(relationship.getId());
 		}
 

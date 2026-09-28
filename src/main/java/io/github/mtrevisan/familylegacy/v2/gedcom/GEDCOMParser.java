@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.v2.gedcom;
 
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 
@@ -97,7 +98,7 @@ public class GEDCOMParser{
 					if("CONC".equals(tag))
 						current += appendVal;
 					else
-						current += "\n" + appendVal;
+						current += StringUtils.LF + appendVal;
 					lastNode.setValue(current);
 				}
 				continue;
@@ -109,7 +110,7 @@ public class GEDCOMParser{
 			GEDCOMNode node = new GEDCOMNode(level, tag, value);
 			if(xref != null){
 				if(xref.startsWith("F"))
-					xref = "G" + xref.substring(1);
+					xref = GroupHandler.ID_PREFIX + xref.substring(1);
 				node.setXrefId(xref);
 			}
 

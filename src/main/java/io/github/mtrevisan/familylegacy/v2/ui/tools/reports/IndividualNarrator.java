@@ -1,39 +1,66 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
 package io.github.mtrevisan.familylegacy.v2.ui.tools.reports;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventParticipationHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.tools.reports.index.KinshipResolver;
+import io.github.mtrevisan.familylegacy.v2.ui.tools.reports.index.RelationIndex;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 
 
 /**
- * Builds a short narrative biography of an individual from the events,
- * attributes and relationships indexed by {@link RelationIndex}.
+ * Builds a rich, chronological narrative biography of an individual from events,
+ * attributes, notes, and relationships stored in the FLEF model.
  *
- * <p>Sentence order follows the individual's life:</p>
+ * <p>Sentence order follows the individual's life flow:</p>
  * <ol>
  *   <li>birth (date, place);</li>
- *   <li>physical description ({@code characteristic} attributes);</li>
- *   <li>marriages and divorces;</li>
- *   <li>children grouped by (other parent, relationship type), so biological,
- *       adoptive, foster, guarded and step children are all attributed
- *       correctly even when they belong to different unions;</li>
- *   <li>occupations;</li>
- *   <li>religion, ethnicity, citizenship (other attributes with a scalar
- *       value);</li>
- *   <li>residences and subsequent moves, ordered by start date and deduplicated
- *       by place;</li>
- *   <li>death (date, place, cause).</li>
+ *   <li>baptism / early life rites;</li>
+ *   <li>titles, noble status, and physical characteristics;</li>
+ *   <li>marriages and divorces (with status checking);</li>
+ *   <li>children grouped by co-parent and relationship type;</li>
+ *   <li>occupations, military service/rank, and education;</li>
+ *   <li>scalar attributes (religion, ethnicity, citizenship, nationality, social class, caste, literacy, language);</li>
+ *   <li>emigration / immigration events;</li>
+ *   <li>residences and moves;</li>
+ *   <li>custom life events with narrative descriptions or honors;</li>
+ *   <li>biographical notes and oral history anecdotes;</li>
+ *   <li>death, cause of death, and burial or cremation.</li>
  * </ol>
  */
-final class LifeNarrator{
+final class IndividualNarrator{
 
 	/* ======================================================================
 	 *                          Tags
@@ -45,6 +72,9 @@ final class LifeNarrator{
 	private static final String TAG_PART = "part";
 	private static final String TAG_CAUSE = "cause";
 	private static final String TAG_REASON = "reason";
+	private static final String TAG_DESCRIPTION = "description";
+	private static final String TAG_NOTE = "note";
+	private static final String TAG_TEXT = "text";
 	private static final String TAG_VALID_FROM = "valid_from";
 	private static final String TAG_VALID_TO = "valid_to";
 	private static final String TAG_STATUS = "status";
@@ -54,37 +84,62 @@ final class LifeNarrator{
 	 * ====================================================================== */
 
 	private static final String TYPE_BIRTH = "birth";
+	private static final String TYPE_BAPTISM = "baptism";
 	private static final String TYPE_DEATH = "death";
+	private static final String TYPE_BURIAL = "burial";
+	private static final String TYPE_CREMATION = "cremation";
+	private static final String TYPE_EMIGRATION = "emigration";
+	private static final String TYPE_IMMIGRATION = "immigration";
 	private static final String TYPE_DIVORCE = "divorce";
 	private static final String TYPE_DIVORCE_DECREE = "divorce_decree";
+	private static final String TYPE_DIVORCE_FILED = "divorce_filed";
+	private static final String TYPE_ANNULMENT = "annulment";
+
 	private static final String TYPE_OCCUPATION = "occupation";
 	private static final String TYPE_RESIDENCE = "residence";
 	private static final String TYPE_CHARACTERISTIC = "characteristic";
+	private static final String TYPE_TITLE = "title";
+	private static final String TYPE_MILITARY_RANK = "military_rank";
+	private static final String TYPE_EDUCATION = "education";
 	private static final String TYPE_RELIGION = "religion";
 	private static final String TYPE_ETHNICITY = "ethnicity";
 	private static final String TYPE_CITIZENSHIP = "citizenship";
 	private static final String TYPE_NATIONALITY = "nationality";
 	private static final String TYPE_SOCIAL_CLASS = "social_class";
+	private static final String TYPE_CASTE = "caste";
+	private static final String TYPE_LITERACY = "literacy";
+	private static final String TYPE_LANGUAGE = "language";
 
 	private static final String[] MARRIAGE_TYPES = {
 		"marriage", "civil_spouse", "religious_spouse",
-		"customary_spouse", "cohabiting_partner"
+		"customary_spouse", "cohabiting_partner", "engaged_partner"
 	};
 
 	private static final String[] DIVORCE_TYPES = {
-		"divorce", "divorce_decree", "annulment"
+		TYPE_DIVORCE, TYPE_DIVORCE_DECREE, TYPE_DIVORCE_FILED, TYPE_ANNULMENT
 	};
 
-	/** Attributes that are described with a "was X: Y" sentence. */
+	/** Core life cycle events skipped when processing custom described events. */
+	private static final String[] CORE_LIFE_EVENTS = {
+		TYPE_BIRTH, TYPE_BAPTISM, TYPE_DEATH, TYPE_BURIAL, TYPE_CREMATION,
+		TYPE_EMIGRATION, TYPE_IMMIGRATION
+	};
+
+	/** Scalar attributes described with a generic attribute sentence. */
 	private static final String[][] SCALAR_ATTRS = {
+		{TYPE_MILITARY_RANK, "military rank"},
+		{TYPE_EDUCATION, "education"},
 		{TYPE_RELIGION, "religion"},
 		{TYPE_ETHNICITY, "ethnicity"},
 		{TYPE_CITIZENSHIP, "citizenship"},
 		{TYPE_NATIONALITY, "nationality"},
-		{TYPE_SOCIAL_CLASS, "social class"}
+		{TYPE_SOCIAL_CLASS, "social class"},
+		{TYPE_CASTE, "caste"},
+		{TYPE_LITERACY, "literacy"},
+		{TYPE_LANGUAGE, "language"}
 	};
 
-	/** Relationship type that marks the current person as a step-parent. */
+	/** Relationship type marking the current person as a step-parent. */
 	private static final String REL_STEP_CHILD = "step_child";
 
 
@@ -93,7 +148,7 @@ final class LifeNarrator{
 	private final ReportLabels labels;
 
 
-	LifeNarrator(final FLEFModel model, final RelationIndex idx, final ReportLabels labels){
+	IndividualNarrator(final FLEFModel model, final RelationIndex idx, final ReportLabels labels){
 		this.model = Objects.requireNonNull(model);
 		this.idx = Objects.requireNonNull(idx);
 		this.labels = Objects.requireNonNull(labels);
@@ -106,21 +161,31 @@ final class LifeNarrator{
 
 	String narrate(final FLEFRecord person){
 		if(person == null)
-			return "";
+			return StringUtils.EMPTY;
 
 		final List<FLEFRecord> events = idx.eventsOf(person);
 		final List<FLEFRecord> attrs = idx.attributesOf(person);
 
 		final FLEFRecord birth = findEvent(events, TYPE_BIRTH);
+		final FLEFRecord baptism = findEvent(events, TYPE_BAPTISM);
 		final FLEFRecord death = findEvent(events, TYPE_DEATH);
+		final FLEFRecord burial = findEvent(events, TYPE_BURIAL);
+		final FLEFRecord cremation = findEvent(events, TYPE_CREMATION);
+		final FLEFRecord emigration = findEvent(events, TYPE_EMIGRATION);
+		final FLEFRecord immigration = findEvent(events, TYPE_IMMIGRATION);
+
 		final List<FLEFRecord> marriages = findEvents(events, MARRIAGE_TYPES);
 		final List<FLEFRecord> divorces = findEvents(events, DIVORCE_TYPES);
 		final List<FLEFRecord> occupations = findAttrs(attrs, TYPE_OCCUPATION);
+		final List<FLEFRecord> titles = findAttrs(attrs, TYPE_TITLE);
 		final List<FLEFRecord> residences = findAttrs(attrs, TYPE_RESIDENCE);
 		final List<FLEFRecord> characteristics = findAttrs(attrs, TYPE_CHARACTERISTIC);
 
 		final String name = displayName(person);
 		final List<String> sentences = new ArrayList<>();
+
+		// 0. Varianti del nome (Name Variants)
+		addNameVariants(sentences, person);
 
 		// 1. Birth
 		if(birth != null){
@@ -131,7 +196,19 @@ final class LifeNarrator{
 		else
 			sentences.add(labels.narrativeBirthUnknown(name));
 
-		// 2. Physical description
+		// 1b. Baptism
+		if(baptism != null){
+			final String d = orNull(FLEFRecordHelper.extractDate(baptism));
+			final String p = orNull(FLEFRecordHelper.extractPlace(baptism, model));
+			sentences.add(labels.narrativeBaptism(name, d, p));
+		}
+
+		// 2. Titles and Physical characteristics
+		for(final FLEFRecord t : titles){
+			final String v = FLEFRecordHelper.getChildValue(t, TAG_VALUE);
+			if(v != null && !v.isBlank())
+				sentences.add(labels.narrativeTitle(name, v.trim()));
+		}
 		for(final FLEFRecord c : characteristics){
 			final String v = FLEFRecordHelper.getChildValue(c, TAG_VALUE);
 			if(v != null && !v.isBlank())
@@ -145,9 +222,16 @@ final class LifeNarrator{
 			final FLEFRecord spouse = spouseFromEvent(person, m);
 			final String spouseName = (spouse != null? displayName(spouse): null);
 			sentences.add(labels.narrativeMarriage(name, spouseName, d, p));
+
+			// Check status tag on relationship or marriage record
+			final String status = FLEFRecordHelper.getChildValue(m, TAG_STATUS);
+			if("ended".equalsIgnoreCase(status) || "divorced".equalsIgnoreCase(status) || "annulled".equalsIgnoreCase(status)){
+				final String validTo = extractValidDate(m, TAG_VALID_TO);
+				sentences.add(labels.narrativeDivorce(name, spouseName, validTo));
+			}
 		}
 
-		// 3b. Divorces / annulments
+		// 3b. Divorces / annulments events
 		for(final FLEFRecord d : divorces){
 			final String dt = orNull(FLEFRecordHelper.extractDate(d));
 			final FLEFRecord spouse = spouseFromEvent(person, d);
@@ -155,7 +239,7 @@ final class LifeNarrator{
 			sentences.add(labels.narrativeDivorce(name, spouseName, dt));
 		}
 
-		// 4. Children grouped by (other parent, relationship type)
+		// 4. Children grouped by (co-parent, relationship type)
 		addChildrenSentences(sentences, person, name);
 
 		// 5. Occupations
@@ -165,7 +249,7 @@ final class LifeNarrator{
 				sentences.add(labels.narrativeOccupation(name, v.trim()));
 		}
 
-		// 6. Religion, ethnicity, citizenship, nationality, social class
+		// 6. Scalar attributes (Military, Education, Religion, Ethnicity, etc.)
 		for(final String[] pair : SCALAR_ATTRS){
 			for(final FLEFRecord a : findAttrs(attrs, pair[0])){
 				final String v = FLEFRecordHelper.getChildValue(a, TAG_VALUE);
@@ -174,10 +258,28 @@ final class LifeNarrator{
 			}
 		}
 
-		// 7. Residences and moves
+		// 7. Migration events
+		if(emigration != null){
+			final String d = orNull(FLEFRecordHelper.extractDate(emigration));
+			final String p = orNull(FLEFRecordHelper.extractPlace(emigration, model));
+			sentences.add(labels.narrativeEmigration(name, d, p));
+		}
+		if(immigration != null){
+			final String d = orNull(FLEFRecordHelper.extractDate(immigration));
+			final String p = orNull(FLEFRecordHelper.extractPlace(immigration, model));
+			sentences.add(labels.narrativeImmigration(name, d, p));
+		}
+
+		// 8. Residences and moves
 		addResidenceSentences(sentences, name, residences);
 
-		// 8. Death
+		// 9. Custom events with descriptions (awards, honors, military events, etc.)
+		addDescribedEvents(sentences, events, name);
+
+		// 10. Biographical notes / oral tradition anecdotes
+		addIndividualNotes(sentences, person);
+
+		// 11. Death, cause, burial/cremation
 		if(death != null){
 			final String d = orNull(FLEFRecordHelper.extractDate(death));
 			final String p = orNull(FLEFRecordHelper.extractPlace(death, model));
@@ -187,7 +289,83 @@ final class LifeNarrator{
 			sentences.add(labels.narrativeDeath(name, d, p, orNull(cause)));
 		}
 
-		return String.join(" ", sentences);
+		if(burial != null){
+			final String d = orNull(FLEFRecordHelper.extractDate(burial));
+			final String p = orNull(FLEFRecordHelper.extractPlace(burial, model));
+			sentences.add(labels.narrativeBurial(name, d, p));
+		}
+		else if(cremation != null){
+			final String d = orNull(FLEFRecordHelper.extractDate(cremation));
+			final String p = orNull(FLEFRecordHelper.extractPlace(cremation, model));
+			sentences.add(labels.narrativeCremation(name, d, p));
+		}
+
+		return String.join(StringUtils.SPACE, sentences);
+	}
+
+	/**
+	 * Appends sentences describing secondary/variant names for the individual.
+	 */
+	private void addNameVariants(final List<String> sentences, final FLEFRecord person){
+		for(final FLEFRecord nameRec : FLEFRecordHelper.findChildren(person, TAG_NAME)){
+			for(final FLEFRecord variant : FLEFRecordHelper.findChildren(nameRec, "variant")){
+				final String v = ReportFormatters.renderNameVariant(variant);
+				if(v != null && !v.isBlank())
+					sentences.add("*" + labels.sections().nameVariant() + ":* "
+						+ ReportFormatters.escape(v));
+			}
+		}
+	}
+
+
+	/* ======================================================================
+	 *                          Described events & Notes
+	 * ====================================================================== */
+
+	/**
+	 * Appends custom narrative events carrying human-readable descriptions
+	 * (e.g. military awards, honors, legal proceedings).
+	 */
+	private void addDescribedEvents(final List<String> sentences, final List<FLEFRecord> events, final String name){
+		for(final FLEFRecord e : events){
+			final String type = FLEFRecordHelper.getChildValue(e, TAG_TYPE);
+			if(isCoreLifeEvent(type))
+				continue;
+
+			final String desc = FLEFRecordHelper.getChildValue(e, TAG_DESCRIPTION);
+			if(desc != null && !desc.isBlank()){
+				final String d = orNull(FLEFRecordHelper.extractDate(e));
+				final String p = orNull(FLEFRecordHelper.extractPlace(e, model));
+				sentences.add(labels.narrativeAttribute(name, type != null? type.replace('_', ' '): "event", desc.trim()));
+			}
+		}
+	}
+
+	private boolean isCoreLifeEvent(final String type){
+		if(type == null)
+			return false;
+		for(final String core : CORE_LIFE_EVENTS)
+			if(core.equalsIgnoreCase(type))
+				return true;
+		for(final String m : MARRIAGE_TYPES)
+			if(m.equalsIgnoreCase(type))
+				return true;
+		for(final String div : DIVORCE_TYPES)
+			if(div.equalsIgnoreCase(type))
+				return true;
+		return false;
+	}
+
+	/**
+	 * Extracts free-text notes or anecdotes attached directly to the individual.
+	 */
+	private void addIndividualNotes(final List<String> sentences, final FLEFRecord person){
+		for(final FLEFRecord noteRec : FLEFRecordHelper.findChildren(person, TAG_NOTE)){
+			final String text = FLEFRecordHelper.getChildValue(noteRec, TAG_TEXT);
+			if(text != null && !text.isBlank()){
+				sentences.add(text.trim());
+			}
+		}
 	}
 
 
@@ -260,26 +438,13 @@ final class LifeNarrator{
 				continue;
 			if(fallback == null)
 				fallback = candidate;
-			final int rank = rankOf(edge.relationshipType());
+			final int rank = KinshipResolver.rankOf(edge.relationshipType());
 			if(rank < bestRank){
 				bestRank = rank;
 				best = candidate;
 			}
 		}
 		return (best != null? best: fallback);
-	}
-
-	private static int rankOf(final String relationshipType){
-		if(relationshipType == null)
-			return 90;
-		return switch(relationshipType.toLowerCase(Locale.ROOT)){
-			case "biological_child" -> 10;
-			case "adoptive_child" -> 20;
-			case "foster_child" -> 30;
-			case "guarded_child" -> 40;
-			case "step_child" -> 50;
-			default -> 60;
-		};
 	}
 
 
@@ -422,7 +587,7 @@ final class LifeNarrator{
 		if(eventId == null)
 			return null;
 
-		for(final FLEFRecord ep : model.getRecordsByType("event_participation")){
+		for(final FLEFRecord ep : model.getRecordsByType(EventParticipationHandler.TYPE)){
 			final String eid = FLEFRecordHelper.getChildValue(ep, "event");
 			if(!Objects.equals(eventId, eid))
 				continue;

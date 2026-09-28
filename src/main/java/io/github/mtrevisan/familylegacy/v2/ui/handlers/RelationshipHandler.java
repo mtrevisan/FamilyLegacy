@@ -40,7 +40,7 @@ public class RelationshipHandler extends AbstractRecordTypeHandler<RelationshipR
 	public static final String ID_PREFIX = "RL";
 
 	private static final String TAG_SUBJECT = "SUBJECT";
-	private static final String TAG_TARGET = "TARGET";
+	private static final String TAG_OBJECT = "OBJECT";
 	private static final String TAG_TYPE = "TYPE";
 	private static final String TAG_ROLE = "ROLE";
 
@@ -86,12 +86,12 @@ public class RelationshipHandler extends AbstractRecordTypeHandler<RelationshipR
 			subjectDisplayText = subjectHandler.getDisplayText(subject, model);
 		}
 
-		final FLEFRecord target = FLEFRecordHelper.extractRecordsFromOneOfReference(record, TAG_TARGET, model)
+		final FLEFRecord object = FLEFRecordHelper.extractRecordsFromOneOfReference(record, TAG_OBJECT, model)
 			.getFirst();
-		String targetDisplayText = "--";
-		if(target != null){
-			final RecordTypeHandler<?> objectHandler = HandlerRegistry.getHandler(target.getTag());
-			targetDisplayText = objectHandler.getDisplayText(target, model);
+		String objectDisplayText = "--";
+		if(object != null){
+			final RecordTypeHandler<?> objectHandler = HandlerRegistry.getHandler(object.getTag());
+			objectDisplayText = objectHandler.getDisplayText(object, model);
 		}
 
 		final String type = FLEFRecordHelper.getChildValue(record, TAG_TYPE);
@@ -107,7 +107,7 @@ public class RelationshipHandler extends AbstractRecordTypeHandler<RelationshipR
 				.append(" w.r.t. ");
 		else
 			sb.append(" is related to ");
-		sb.append(targetDisplayText)
+		sb.append(objectDisplayText)
 			.append(" as ")
 			.append(type)
 			.append(" [")

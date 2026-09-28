@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.v2.ui.components.searches;
 
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -50,7 +51,7 @@ public final class SearchCriteria{
 
 	public SearchCriteria(final RecordTypeHandler<?> handler, final String query, final SearchMode mode){
 		this.handler = Objects.requireNonNull(handler, "handler must not be null");
-		this.query = (query != null? query: "");
+		this.query = (query != null? query: StringUtils.EMPTY);
 		this.mode = (mode != null? mode: SearchMode.FUZZY);
 	}
 

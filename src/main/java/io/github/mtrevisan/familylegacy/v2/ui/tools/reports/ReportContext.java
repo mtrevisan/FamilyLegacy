@@ -1,3 +1,27 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
 package io.github.mtrevisan.familylegacy.v2.ui.tools.reports;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
@@ -7,6 +31,8 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualt
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.tools.reports.index.RelationIndex;
+import org.apache.commons.lang3.StringUtils;
 
 import java.time.LocalDate;
 import java.util.LinkedHashSet;
@@ -18,9 +44,11 @@ import java.util.function.Function;
 
 
 /**
- * Immutable shared state for a single report generation.
+ * Immutable shared state for a single report generation process.
+ * Holds references to the underlying model, root entity, report configuration,
+ * specialized indices, and internationalization label providers.
  */
-final class ReportContext{
+final class ReportContext {
 
 	private static final String TAG_PRIVACY_LEVEL = "privacy.level";
 	private static final String PRIVACY_PUBLIC = "public";
@@ -35,7 +63,8 @@ final class ReportContext{
 	private static final String TYPE_CULTURAL_NORM = "cultural_norm";
 
 
-	enum RootKind{
+	/** Categorizes the type of the root FLEF record being reported. */
+	enum RootKind {
 		INDIVIDUAL, GROUP, EVENT, SOURCE, PLACE, REPOSITORY, DOCUMENT,
 		RESEARCH_QUESTION, RESEARCH_ACTIVITY, RESEARCH_TASK,
 		CONCLUSION, IDENTITY_HYPOTHESIS, CULTURAL_NORM, HISTORIC_EVENT, OTHER
@@ -67,6 +96,14 @@ final class ReportContext{
 	}
 
 
+	/**
+	 * Factory method to construct an immutable {@link ReportContext}.
+	 *
+	 * @param model  The domain model containing FLEF records.
+	 * @param root   The root record to generate the report for.
+	 * @param config The report configuration options.
+	 * @return A fully initialized report context.
+	 */
 	static ReportContext build(final FLEFModel model, final FLEFRecord root,
 		final ReportConfig config){
 		Objects.requireNonNull(model, "model");
@@ -77,8 +114,8 @@ final class ReportContext{
 
 
 	private static RootKind detectRootKind(final FLEFRecord root){
-		final String tag = (root.getTag() != null? root.getTag().toLowerCase(Locale.ROOT): "");
-		return switch(tag){
+		final String tag = (root.getTag() != null? root.getTag().toLowerCase(Locale.ROOT): StringUtils.EMPTY);
+		return switch (tag){
 			case "group"               -> RootKind.GROUP;
 			case "event"               -> RootKind.EVENT;
 			case "source"              -> RootKind.SOURCE;
@@ -156,20 +193,22 @@ final class ReportContext{
 	 * <ul>
 	 *   <li>{@link PrivacyPolicy#SHOW_ALL}: every node is visible;</li>
 	 *   <li>{@link PrivacyPolicy#HIDE_CONFIDENTIAL}: {@code confidential}
-	 *       nodes are hidden, {@code restricted} and {@code public} are
-	 *       shown;</li>
+	 *       nodes are hidden, {@code restricted} and {@code public} are shown;</li>
 	 *   <li>{@link PrivacyPolicy#HIDE_RESTRICTED_AND_CONFIDENTIAL}: both
 	 *       {@code confidential} and {@code restricted} are hidden.</li>
 	 * </ul>
 	 */
 	boolean isVisible(final FLEFRecord rec){
-		if(rec == null) return false;
+		if(rec == null)
+			return false;
 
 		final PrivacyPolicy policy = config.privacyPolicy();
-		if(policy == PrivacyPolicy.SHOW_ALL) return true;
+		if(policy == PrivacyPolicy.SHOW_ALL)
+			return true;
 
 		final String level = readPrivacyLevel(rec);
-		if(PRIVACY_CONFIDENTIAL.equals(level)) return false;
+		if(PRIVACY_CONFIDENTIAL.equals(level))
+			return false;
 		if(policy == PrivacyPolicy.HIDE_RESTRICTED_AND_CONFIDENTIAL
 			&& PRIVACY_RESTRICTED.equals(level))
 			return false;
@@ -180,29 +219,29 @@ final class ReportContext{
 	}
 
 	/**
-	 * Whether the privacy restriction has expired as of {@code today}.
+	 * Whether the privacy restriction has expired as of current time.
 	 * A record with an expired restriction is treated as public even when
-	 * the policy would otherwise hide it. Used by callers that want to
-	 * surface the expiry in the report.
+	 * the policy would otherwise hide it.
 	 */
 	boolean isPrivacyExpired(final FLEFRecord rec){
 		final String expires = FLEFRecordHelper.getChildValue(rec, TAG_EXPIRES);
 		if(expires == null || expires.isBlank())
 			return false;
-		try{
+		try {
 			final LocalDate expiry = LocalDate.parse(expires.trim());
 			return !expiry.isAfter(LocalDate.now());
 		}
-		catch(final Exception ignored){
+		catch (final Exception ignored){
 			return false;
 		}
 	}
 
 	String readPrivacyLevel(final FLEFRecord rec){
 		final String level = FLEFRecordHelper.getChildValue(rec, TAG_PRIVACY_LEVEL);
-		if(level == null || level.isBlank()) return PRIVACY_PUBLIC;
+		if(level == null || level.isBlank())
+			return PRIVACY_PUBLIC;
 		final String norm = level.trim().toLowerCase(Locale.ROOT);
-		return switch(norm){
+		return switch (norm){
 			case PRIVACY_RESTRICTED, PRIVACY_CONFIDENTIAL -> norm;
 			default -> PRIVACY_PUBLIC;
 		};
@@ -213,12 +252,14 @@ final class ReportContext{
 	}
 
 	FLEFRecord visible(final FLEFRecord rec){
-		return (isVisible(rec)? rec: null);
+		return (isVisible(rec) ? rec : null);
 	}
 
 	List<FLEFRecord> visible(final List<FLEFRecord> recs){
-		if(recs == null || recs.isEmpty()) return List.of();
-		if(config.privacyPolicy() == PrivacyPolicy.SHOW_ALL) return recs;
+		if(recs == null || recs.isEmpty())
+			return List.of();
+		if(config.privacyPolicy() == PrivacyPolicy.SHOW_ALL)
+			return recs;
 		return recs.stream().filter(this::isVisible).toList();
 	}
 
@@ -245,7 +286,7 @@ final class ReportContext{
 		final Set<String> ids = new LinkedHashSet<>();
 		ids.add(root.getId());
 
-		switch(rootKind){
+		switch (rootKind){
 			case INDIVIDUAL -> computeForIndividual(ids);
 			case GROUP -> computeForGroup(ids);
 			case EVENT -> computeForEvent(ids);
@@ -308,7 +349,6 @@ final class ReportContext{
 	}
 
 	private void computeForDocument(final Set<String> ids){
-		// All citations that reference this document.
 		for(final FLEFRecord src : index.sourcesOfDocument(root))
 			ids.add(src.getId());
 		for(final FLEFRecord cit : index.citationsOfDocument(root))
@@ -373,19 +413,24 @@ final class ReportContext{
 	}
 
 	String resolveContextLabel(final String id){
-		if(id == null) return null;
+		if(id == null)
+			return null;
 		final FLEFRecord rec = model.getRecordById(id);
-		if(rec == null) return id;
+		if(rec == null)
+			return id;
 		final String title = FLEFRecordHelper.getChildValue(rec, TAG_TITLE);
-		if(title != null && !title.isBlank()) return title.trim();
+		if(title != null && !title.isBlank())
+			return title.trim();
 		final String tag = rec.getTag();
 		if(TYPE_CULTURAL_NORM.equalsIgnoreCase(tag)){
 			final String rt = FLEFRecordHelper.getChildValue(rec, TAG_RULE_TYPE);
-			if(rt != null && !rt.isBlank()) return rt.replace('_', ' ');
+			if(rt != null && !rt.isBlank())
+				return rt.replace('_', ' ');
 		}
-		else{
+		else {
 			final String t = FLEFRecordHelper.getChildValue(rec, TAG_TYPE);
-			if(t != null && !t.isBlank()) return t.replace('_', ' ');
+			if(t != null && !t.isBlank())
+				return t.replace('_', ' ');
 		}
 		return id;
 	}
@@ -397,13 +442,14 @@ final class ReportContext{
 
 	String displayText(final FLEFRecord rec){
 		final String tag = rec.getTag();
-		final RecordTypeHandler<?> h = (tag != null? HandlerRegistry.getHandler(tag): null);
-		return (h != null? h.getDisplayText(rec, model): rec.getId());
+		final RecordTypeHandler<?> h = (tag != null ? HandlerRegistry.getHandler(tag) : null);
+		return (h != null ? h.getDisplayText(rec, model) : rec.getId());
 	}
 
 	String sourceTitle(final String sourceId){
 		final FLEFRecord src = model.getRecordById(sourceId);
-		if(src == null) return sourceId;
+		if(src == null)
+			return sourceId;
 		return SourceHandler.getInstance().getDisplayText(src, model);
 	}
 

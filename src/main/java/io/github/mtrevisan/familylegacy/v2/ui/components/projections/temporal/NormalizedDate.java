@@ -51,6 +51,7 @@ public record NormalizedDate(
 
 	// Standard calendar names as defined by the FLEF protocol (CalendarType enum).
 	// Any other value is treated as a custom calendar name, as permitted by the protocol.
+	// TODO ?
 	public static final String CALENDAR_GREGORIAN = "gregorian";
 	public static final String CALENDAR_JULIAN = "julian";
 	public static final String CALENDAR_ISLAMIC = "islamic";
@@ -63,12 +64,6 @@ public record NormalizedDate(
 	public static final String CALENDAR_SOVIET_ETERNAL = "soviet_eternal";
 	public static final String CALENDAR_ETHIOPIAN = "ethiopian";
 	public static final String CALENDAR_MAYAN = "mayan";
-
-	// Approximation basis values, as defined by the FLEF protocol (Approximate.basis).
-	public static final String BASIS_STATED = "stated";
-	public static final String BASIS_CALCULATED = "calculated";
-	public static final String BASIS_CONVENTIONAL = "conventional";
-	public static final String BASIS_UNSPECIFIED = "unspecified";
 
 
 	/**

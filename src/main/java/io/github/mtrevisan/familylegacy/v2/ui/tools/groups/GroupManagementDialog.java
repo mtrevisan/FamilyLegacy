@@ -222,7 +222,7 @@ public final class GroupManagementDialog extends JDialog{
 
 		final FLEFModel model = context.model();
 		final int memberCount = GroupHelper.membershipRelationshipIds(model, groupId).size();
-		final String message = "Delete group " + groupId + "?\n"
+		final String message = "Delete group " + groupId + "?" + StringUtils.LF
 			+ "This will also delete " + memberCount + " membership relationship(s) "
 			+ "and any sub-group or parent-group link that involves this group.";
 		final int confirm = JOptionPane.showConfirmDialog(this, message,

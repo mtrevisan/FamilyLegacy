@@ -1,3 +1,27 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
 package io.github.mtrevisan.familylegacy.v2.ui.tools.reports;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
@@ -56,7 +80,7 @@ final class RepositorySection implements SectionBuilder{
 			return List.of();
 
 		final List<ReportSection> out = new ArrayList<>();
-		out.add(new ReportSection.Heading(1, ctx.labels.repositories()));
+		out.add(new ReportSection.Heading(1, ctx.labels.sections().repositories()));
 		for(final FLEFRecord repo : repos)
 			appendRepository(out, repo);
 		return out;
@@ -141,7 +165,7 @@ final class RepositorySection implements SectionBuilder{
 			if(value == null || value.isBlank())
 				continue;
 			final StringBuilder line = new StringBuilder();
-			line.append("**").append(ctx.labels.name());
+			line.append("**").append(ctx.labels.sections().name());
 			if(type != null && !type.isBlank())
 				line.append(" (").append(ReportFormatters.escape(type)).append(")");
 			line.append(":** ").append(ReportFormatters.escape(value));
@@ -162,7 +186,7 @@ final class RepositorySection implements SectionBuilder{
 		if(cust == null)
 			return;
 		out.add(new ReportSection.Paragraph(
-			"**" + ctx.labels.repositoryCustodian() + ":** "
+			"**" + ctx.labels.sections().repositoryCustodian() + ":** "
 				+ ReportFormatters.escape(ctx.displayText(cust))));
 	}
 
@@ -172,14 +196,14 @@ final class RepositorySection implements SectionBuilder{
 		if(place == null)
 			return;
 		out.add(new ReportSection.Paragraph(
-			"**" + ctx.labels.place() + ":** " + ReportFormatters.escape(place)));
+			"**" + ctx.labels.sections().place() + ":** " + ReportFormatters.escape(place)));
 	}
 
 
 	private void appendContacts(final List<ReportSection> out, final FLEFRecord repo){
 		final List<String> rows = new ArrayList<>();
 		for(final FLEFRecord contact : ctx.visibleChildren(repo, TAG_CONTACT)){
-			final String rendered = ReportFormatters.renderContact(contact, ctx.labels);
+			final String rendered = ReportFormatters.renderContact(contact);
 			if(rendered != null)
 				rows.add(rendered);
 		}

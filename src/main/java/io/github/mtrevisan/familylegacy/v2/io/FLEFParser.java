@@ -402,15 +402,15 @@ public class FLEFParser{
 	 */
 	private String normalizeTextBlock(final String raw, final int closeIndent){
 		// Step 1: Normalize line endings to LF only
-		String normalized = raw.replace("\r\n", "\n")
+		String normalized = raw.replace("\r\n", StringUtils.LF)
 			.replace('\r', '\n');
 
 		// Step 2: Remove the leading newline if present (the opening """ is usually followed by \n)
-		if(normalized.startsWith("\n"))
+		if(normalized.startsWith(StringUtils.LF))
 			normalized = normalized.substring(1);
 
 		// Step 3: Split into lines (keep trailing empty lines)
-		final String[] lines = normalized.split("\n", -1);
+		final String[] lines = normalized.split(StringUtils.LF, -1);
 
 		// Step 4: Calculate the minimum indentation among all non‑blank content lines
 		// and also consider the indentation of the closing delimiter line.
@@ -616,7 +616,7 @@ public class FLEFParser{
 			header {
 			  protocol {
 			    name Family LEgacy Format
-			    version 0.1.2
+			    version 0.1.3
 			  }
 			  source {
 			    name My Genealogy Software
@@ -675,7 +675,7 @@ Bianchi
 			}
 			""";
 
-		final Path path = Paths.get("src/main/resources/gedg/flef_0.1.2.gedg");
+		final Path path = Paths.get("src/main/resources/gedg/flef_0.1.3.gedg");
 		final FLEFGrammar grammar = FLEFGrammarParser.parse(path);
 		for(final String warning : grammar.getParseWarnings())
 			System.out.println(warning);

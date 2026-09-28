@@ -41,9 +41,17 @@ public class IndividualHandler extends AbstractRecordTypeHandler<IndividualRecor
 	public static final String TYPE = "INDIVIDUAL";
 	public static final String ID_PREFIX = "I";
 
-	private static final String TAG_NAME = "NAME";
-	private static final String TAG_PART = "PART";
-	private static final String TAG_VALUE = "VALUE";
+	public static final String TAG_NAME = "NAME";
+	public static final String TAG_SEX = "SEX";
+	public static final String TAG_SOURCE = "SOURCE";
+	public static final String TAG_NOTE = "NOTE";
+	public static final String TAG_PREFERRED_IMAGE = "PREFERRED_IMAGE";
+	public static final String TAG_PRIVACY = "PRIVACY";
+	public static final String TAG_AUDIT = "AUDIT";
+
+	public static final String ENUM_SEX_MALE = "male";
+	public static final String ENUM_SEX_FEMALE = "female";
+	public static final String ENUM_SEX_UNKNOWN = "unknown";
 
 
 	private static final class SingletonHelper{
@@ -95,7 +103,7 @@ public class IndividualHandler extends AbstractRecordTypeHandler<IndividualRecor
 	private String buildNameFromParts(final FLEFRecord nameRecord){
 		final List<String> parts = new ArrayList<>();
 		for(final FLEFRecord child : nameRecord.getChildren())
-			if(Strings.CI.equals(TAG_PART, child.getTag())){
+			if(Strings.CI.equals(PersonalNameHandler.TAG_PART, child.getTag())){
 				final String value = getTextValueFromPart(child);
 				if(StringUtils.isNotEmpty(value))
 					parts.add(value);
@@ -108,7 +116,7 @@ public class IndividualHandler extends AbstractRecordTypeHandler<IndividualRecor
 	 */
 	private String getTextValueFromPart(final FLEFRecord partRecord){
 		for(final FLEFRecord textValueChild : partRecord.getChildren())
-			if(Strings.CI.equals(TAG_VALUE, textValueChild.getTag())){
+			if(Strings.CI.equals(PartHandler.TAG_VALUE, textValueChild.getTag())){
 				final String val = textValueChild.getValue();
 				if(StringUtils.isNotEmpty(val))
 					return val.trim();

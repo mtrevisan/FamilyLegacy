@@ -47,7 +47,7 @@ public abstract class AbstractProjectionMutator implements ProjectionMutator{
 
 	protected static final String TAG_TYPE = "type";
 	protected static final String TAG_SUBJECT = "subject";
-	protected static final String TAG_TARGET = "target";
+	protected static final String TAG_OBJECT = "object";
 	protected static final String TAG_PARTICIPANT = "participant";
 	protected static final String TAG_INDIVIDUAL = "individual";
 	protected static final String TAG_GROUP = "group";
@@ -73,7 +73,7 @@ public abstract class AbstractProjectionMutator implements ProjectionMutator{
 			.addChild(FLEFRecord.createChildWithTag(TAG_SUBJECT)
 				.addChild(FLEFRecord.createChildWithTagAndValue(IndividualHandler.TYPE, subjectId))
 			)
-			.addChild(FLEFRecord.createChildWithTag(TAG_TARGET)
+			.addChild(FLEFRecord.createChildWithTag(TAG_OBJECT)
 				.addChild(FLEFRecord.createChildWithTagAndValue(IndividualHandler.TYPE, targetId))
 			)
 			.addChild(AuditBuilder.build());
@@ -143,11 +143,11 @@ public abstract class AbstractProjectionMutator implements ProjectionMutator{
 			final String groupSubjectId = relationship.extractReferencedId(TAG_SUBJECT, TAG_GROUP);
 			final String targetSubjectId = (subjectId != null ? subjectId : groupSubjectId);
 
-			final String relTargetId = relationship.extractReferencedId(TAG_TARGET, TAG_INDIVIDUAL);
-			final String groupTargetId = relationship.extractReferencedId(TAG_TARGET, TAG_GROUP);
-			final String targetTargetId = (relTargetId != null ? relTargetId : groupTargetId);
+			final String relationshipObjectId = relationship.extractReferencedId(TAG_OBJECT, TAG_INDIVIDUAL);
+			final String groupObjectId = relationship.extractReferencedId(TAG_OBJECT, TAG_GROUP);
+			final String targetObjectId = (relationshipObjectId != null ? relationshipObjectId : groupObjectId);
 
-			if(targetId.equals(targetSubjectId) || targetId.equals(targetTargetId))
+			if(targetId.equals(targetSubjectId) || targetId.equals(targetObjectId))
 				toRemove.add(relationship.getId());
 		}
 		removeRelationships(toRemove);

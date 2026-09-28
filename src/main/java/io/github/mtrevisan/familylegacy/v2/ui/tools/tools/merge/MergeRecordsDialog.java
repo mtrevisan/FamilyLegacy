@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.v2.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.EntityField;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
@@ -390,8 +391,8 @@ public final class MergeRecordsDialog extends JDialog{
 			confirmed = true;
 
 			JOptionPane.showMessageDialog(this,
-				"Merge completed.\n"
-					+ "Fields taken from source: " + result.fieldsTakenFromSource() + "\n"
+				"Merge completed." + StringUtils.LF
+					+ "Fields taken from source: " + result.fieldsTakenFromSource() + StringUtils.LF
 					+ "References re-pointed: " + result.referencesRepointed(),
 				"Merge Records", JOptionPane.INFORMATION_MESSAGE);
 
@@ -439,7 +440,7 @@ public final class MergeRecordsDialog extends JDialog{
 
 	private static final class CollisionsTableModel extends AbstractTableModel{
 
-		private static final String[] COLUMNS = {"Field", "Target", "Source", "Action", ""};
+		private static final String[] COLUMNS = {"Field", "Target", "Source", "Action", StringUtils.EMPTY};
 
 		private final List<MergeField> fields = new ArrayList<>();
 		private final List<MergeDecision> chosen = new ArrayList<>();
@@ -508,7 +509,7 @@ public final class MergeRecordsDialog extends JDialog{
 				case 1 -> summarize(field.targetInstances());
 				case 2 -> summarize(field.sourceInstances());
 				case 3 -> chosen.get(rowIndex);
-				case 4 -> "";
+				case 4 -> StringUtils.EMPTY;
 				default -> null;
 			};
 		}
@@ -560,7 +561,7 @@ public final class MergeRecordsDialog extends JDialog{
 
 		private static String serialize(final FLEFRecord record){
 			if(!record.hasChildren())
-				return record.getTag() + (record.getValue() != null? " " + record.getValue(): "");
+				return record.getTag() + (record.getValue() != null? StringUtils.SPACE + record.getValue(): StringUtils.EMPTY);
 			final StringBuilder sb = new StringBuilder();
 			sb.append(record.getTag());
 			if(record.getValue() != null)
@@ -639,7 +640,7 @@ public final class MergeRecordsDialog extends JDialog{
 			if(modelColumn == ACTION_COLUMN && value instanceof MergeDecision d)
 				setText(resolved? "\u2713 " + d.label(): d.label());
 			else if(modelColumn == RESET_COLUMN)
-				setText(resolved? "\u21BA": "");
+				setText(resolved? "\u21BA": StringUtils.EMPTY);
 
 			// Colors: selection wins over the resolved tint.
 			if(isSelected){
@@ -687,7 +688,7 @@ public final class MergeRecordsDialog extends JDialog{
 			System.out.println("--- after merge ---");
 			for(final FLEFRecord record : model.getRecords()){
 				final String id = record.getId();
-				if(id != null && (id.startsWith("I") || id.startsWith("F") || id.startsWith("G")))
+				if(id != null && (id.startsWith(IndividualHandler.ID_PREFIX) || id.startsWith("F") || id.startsWith(GroupHandler.ID_PREFIX)))
 					System.out.println("  " + id + "  " + record.getTag());
 			}
 		});

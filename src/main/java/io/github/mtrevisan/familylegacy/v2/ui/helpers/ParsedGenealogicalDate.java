@@ -44,10 +44,6 @@ public record ParsedGenealogicalDate(
 	CalendarType calendarType
 )implements Comparable<ParsedGenealogicalDate>{
 
-	/** Regular expression matching common genealogical approximation indicators. */
-	public static final String APPROXIMATION_REGEX = "(?i)\\b(circa|ca\\.?|c\\.?|abt\\.?|about|approx\\.?)\\b|[?~]";
-
-
 	@Override
 	public int compareTo(final ParsedGenealogicalDate other){
 		if(other == null)

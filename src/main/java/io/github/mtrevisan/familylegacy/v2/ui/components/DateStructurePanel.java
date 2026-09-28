@@ -47,7 +47,7 @@ import java.awt.Window;
 
 
 /**
- * Panel for editing a {@code DATE_STRUCTURE} according to FLEF 0.1.2.
+ * Panel for editing a {@code DATE_STRUCTURE} according to FLEF 0.1.3.
  * <p>
  * Structure:
  * <pre>

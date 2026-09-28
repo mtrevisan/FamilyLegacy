@@ -53,14 +53,14 @@ import java.util.List;
 
 
 /**
- * Dialog for editing a {@code RELATIONSHIP_RECORD} according to FLEF 0.1.2.
+ * Dialog for editing a {@code RELATIONSHIP_RECORD} according to FLEF 0.1.3.
  * <p>
  * Structure:
  * <pre>
  * record RelationshipRecord {
  *   id: LocalID
  *   subject: RelationshipParticipant
- *   target: RelationshipParticipant
+ *   object: RelationshipParticipant
  *   type: enum { biological_child, adoptive_child, foster_child, guarded_child, step_child, civil_spouse, religious_spouse, customary_spouse, cohabiting_partner, engaged_partner, group_member, associate, part_of }
  *   role?: Text
  *   status?: enum { active, ended, unknown }
@@ -80,9 +80,9 @@ import java.util.List;
  * </pre>
  * <p>
  * Tabs:
- * Tab 1 (Properties): subject, target, type, role, status, valid_from, valid_to, evidence
- * Tab 5 (Context): ContextImpactRecord (target[relationship] = this relationship)
- * Tab 6 (Research): ConclusionRecord (resolves = this relationship), ResearchQuestionRecord (target[relationship] = this relationship)
+ * Tab 1 (Properties): subject, object, type, role, status, valid_from, valid_to, evidence
+ * Tab 5 (Context): ContextImpactRecord (object[relationship] = this relationship)
+ * Tab 6 (Research): ConclusionRecord (resolves = this relationship), ResearchQuestionRecord (object[relationship] = this relationship)
  * Tab 7 (Sources): source
  * Tab 8 (Notes): note
  * Tab 9 (Privacy): privacy
@@ -91,7 +91,7 @@ import java.util.List;
 public class RelationshipRecordDialog extends BaseRecordDialog{
 
 	private static final String TAG_SUBJECT = "SUBJECT";
-	private static final String TAG_TARGET = "TARGET";
+	private static final String TAG_OBJECT = "OBJECT";
 	private static final String TAG_TYPE = "TYPE";
 	private static final String TAG_ROLE = "ROLE";
 	private static final String TAG_STATUS = "STATUS";
@@ -122,7 +122,7 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 
 	private final EntityField subjectField;
 	private final BoundComboBox<String> subjectTypeCombo;
-	private final EntityField targetField;
+	private final EntityField objectField;
 	private final BoundTextField subjectRoleField;
 	private final BoundComboBox<String> statusCombo;
 	private final DateField validFromField;
@@ -147,9 +147,9 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 		subjectField = EntityField.createForRecordFromOneofReference(TAG_SUBJECT, this, model)
 			.withHandlerTypes(IndividualHandler.class, GroupHandler.class);
 		subjectField.addPropertyChangeListener(EntityField.PROPERTY_ENTITY_CHANGED, e -> updateTypeCombo());
-		targetField = EntityField.createForRecordFromOneofReference(TAG_TARGET, this, model)
+		objectField = EntityField.createForRecordFromOneofReference(TAG_OBJECT, this, model)
 			.withHandlerTypes(IndividualHandler.class, GroupHandler.class);
-		targetField.addPropertyChangeListener(EntityField.PROPERTY_ENTITY_CHANGED, e -> updateTypeCombo());
+		objectField.addPropertyChangeListener(EntityField.PROPERTY_ENTITY_CHANGED, e -> updateTypeCombo());
 		subjectTypeCombo = new BoundComboBox<>(TAG_TYPE, new String[]{
 			StringUtils.EMPTY,
 			"biological_child", "adoptive_child", "foster_child", "guarded_child", "step_child",
@@ -192,13 +192,13 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 		if(subjectRecord == null)
 			return;
 
-		final FLEFRecord targetRecord = targetField.getEntity();
-		if(targetRecord == null)
+		final FLEFRecord objectRecord = objectField.getEntity();
+		if(objectRecord == null)
 			return;
 
 		final String subjectType = subjectRecord.getTag();
-		final String targetType = targetRecord.getTag();
-		final List<String> validTypes = getValidTypes(subjectType, targetType);
+		final String objectType = objectRecord.getTag();
+		final List<String> validTypes = getValidTypes(subjectType, objectType);
 		subjectTypeCombo.updateItems(validTypes);
 		subjectTypeCombo.setEnabled(!validTypes.isEmpty());
 	}
@@ -231,8 +231,8 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 		// (subject) role
 		GUIHelper.addLabeledComponent(propertiesPanel, "Subject Role:", subjectRoleField);
 
-		// target
-		GUIHelper.addLabeledComponent(propertiesPanel, "Target*:", targetField);
+		// object
+		GUIHelper.addLabeledComponent(propertiesPanel, "Object*:", objectField);
 
 		// status
 		GUIHelper.addLabeledComponent(propertiesPanel, "Status:", statusCombo);
@@ -330,7 +330,7 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 
 			final boolean showAll = (parentEntity == null || parentEntity.isEmpty());
 			GUIHelper.setComponentVisible(subjectField, showAll);
-			GUIHelper.setComponentVisible(targetField, true);
+			GUIHelper.setComponentVisible(objectField, true);
 		}
 
 		return this;
@@ -340,11 +340,11 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 		super.withParentEntity(object);
 
 		if(parentEntity != null && !parentEntity.isEmpty()){
-			targetField.setEntity(FLEFRecord.createMainRecord(parentEntity.getText(), parentEntity.getPath()));
+			objectField.setEntity(FLEFRecord.createMainRecord(parentEntity.getText(), parentEntity.getPath()));
 
 			final boolean showAll = (parentEntity == null || parentEntity.isEmpty());
 			GUIHelper.setComponentVisible(subjectField, true);
-			GUIHelper.setComponentVisible(targetField, showAll);
+			GUIHelper.setComponentVisible(objectField, showAll);
 		}
 
 		return this;
@@ -354,7 +354,7 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 	@Override
 	protected void loadData(){
 		subjectField.load(record);
-		targetField.load(record);
+		objectField.load(record);
 
 		components.load(record);
 
@@ -378,15 +378,15 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 			return false;
 		}
 
-		if(!targetField.hasData()){
+		if(!objectField.hasData()){
 			GUIHelper.showValidationErrorAndFocus(this,
 				"Object is required.",
-				tabbedPane, propertiesPanel, targetField);
+				tabbedPane, propertiesPanel, objectField);
 
 			return false;
 		}
 
-		if(subjectField.equals(targetField)){
+		if(subjectField.equals(objectField)){
 			GUIHelper.showValidationErrorAndFocus(this,
 				"Subject and Object must not be the same entity.",
 				tabbedPane, propertiesPanel, subjectField);
@@ -408,7 +408,7 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 	@Override
 	protected void saveData(){
 		subjectField.saveReferences(record);
-		targetField.saveReferences(record);
+		objectField.saveReferences(record);
 
 		components.save(record);
 

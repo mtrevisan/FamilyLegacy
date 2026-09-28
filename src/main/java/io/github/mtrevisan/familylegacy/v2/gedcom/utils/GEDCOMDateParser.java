@@ -42,10 +42,6 @@ public final class GEDCOMDateParser{
 		Pattern.CASE_INSENSITIVE
 	);
 
-	private static final Pattern RANGE_PATTERN = Pattern.compile(
-		"^(FROM\\s+(?<from>.+?))?\\s*(?:TO\\s+(?<to>.+))?$",
-		Pattern.CASE_INSENSITIVE
-	);
 
 	private GEDCOMDateParser(){
 	}

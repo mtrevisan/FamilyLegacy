@@ -92,7 +92,7 @@ public final class SocialNetworkService{
 	private static final String TAG_TYPE = "type";
 	private static final String TAG_ROLE = "role";
 	private static final String TAG_SUBJECT = "subject";
-	private static final String TAG_TARGET = "target";
+	private static final String TAG_OBJECT = "object";
 	private static final String TAG_PARTICIPANT = "participant";
 	private static final String TAG_EVENT = "event";
 	private static final String TAG_STATUS = "status";
@@ -264,8 +264,8 @@ public final class SocialNetworkService{
 
 		// 1. Relationship-based edges.
 		for(final FLEFRecord relationship : socialRelationshipsByEntityId.getOrDefault(entity.id(), List.of())){
-			final SocialEdgeRef edge = buildRelationshipEdge(relationship, entity);
-			if(edge != null && filters.accepts(edge))
+			final SocialEdgeRef edge = buildRelationshipEdge(relationship);
+			if(filters.accepts(edge))
 				result.add(edge);
 		}
 
@@ -277,13 +277,13 @@ public final class SocialNetworkService{
 		return result;
 	}
 
-	private SocialEdgeRef buildRelationshipEdge(final FLEFRecord relationship, final TemporalEntityRef perspective){
+	private SocialEdgeRef buildRelationshipEdge(final FLEFRecord relationship){
 		final String type = FLEFRecordHelper.getChildValue(relationship, TAG_TYPE);
 		if(type == null || !SOCIAL_RELATIONSHIP_TYPES.contains(type.toLowerCase()))
 			return null;
 
 		final TemporalEntityRef subject = resolveParticipant(relationship, TAG_SUBJECT);
-		final TemporalEntityRef target = resolveParticipant(relationship, TAG_TARGET);
+		final TemporalEntityRef target = resolveParticipant(relationship, TAG_OBJECT);
 		if(subject == null || target == null || subject.equals(target))
 			return null;
 
@@ -291,9 +291,6 @@ public final class SocialNetworkService{
 		final SocialRelationCategory category = classifyRelationship(type, role);
 		final SocialEdgeDirection direction = directionOf(type);
 		final TemporalSpan span = buildSpan(relationship);
-		if(span == null)
-			return null;
-
 		return new SocialEdgeRef(subject, target, type.toLowerCase(), role, category, direction, span, relationship);
 	}
 
@@ -329,8 +326,6 @@ public final class SocialNetworkService{
 			final SocialRelationCategory category = SocialRoleClassifier.classify(otherRole,
 				SocialRelationCategory.RELIGIOUS);
 			final TemporalSpan span = buildSpan(participation);
-			if(span == null)
-				continue;
 
 			final SocialEdgeRef edge = new SocialEdgeRef(
 				perspective, otherEntity,
@@ -441,12 +436,12 @@ public final class SocialNetworkService{
 				continue;
 
 			final String subjectId = extractParticipantId(relationship, TAG_SUBJECT);
-			final String targetId = extractParticipantId(relationship, TAG_TARGET);
+			final String objectId = extractParticipantId(relationship, TAG_OBJECT);
 			if(subjectId != null)
 				relationships.computeIfAbsent(subjectId, k -> new ArrayList<>())
 					.add(relationship);
-			if(targetId != null)
-				relationships.computeIfAbsent(targetId, k -> new ArrayList<>())
+			if(objectId != null)
+				relationships.computeIfAbsent(objectId, k -> new ArrayList<>())
 					.add(relationship);
 		}
 

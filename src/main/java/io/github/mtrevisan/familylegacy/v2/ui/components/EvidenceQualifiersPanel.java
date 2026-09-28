@@ -38,7 +38,7 @@ import java.awt.event.MouseEvent;
 
 
 /**
- * Reusable panel that groups all evidence qualifiers as defined in the FLEF protocol according to FLEF 0.1.2:
+ * Reusable panel that groups all evidence qualifiers as defined in the FLEF protocol according to FLEF 0.1.3:
  * source_type, information_type, and evidence_type.
  * All combos are optional (empty selection allowed).
  * <p>

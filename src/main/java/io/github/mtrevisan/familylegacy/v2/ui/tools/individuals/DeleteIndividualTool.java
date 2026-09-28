@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.help.ShortcutRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolOperation;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
@@ -67,7 +68,7 @@ public final class DeleteIndividualTool implements ToolOperation{
 		final String displayName = IndividualHelper.displayName(individual);
 
 		final int relationshipCount = relationshipIds.size();
-		final String message = "Are you sure you want to remove individual " + displayName + " [" + id + "]?\n"
+		final String message = "Are you sure you want to remove individual " + displayName + " [" + id + "]?" + StringUtils.LF
 			+ relationshipCount
 			+ (relationshipCount == 1? " relationship link will also be removed.": " relationship links will also be removed.");
 		final int confirm = JOptionPane.showConfirmDialog(

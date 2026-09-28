@@ -62,6 +62,7 @@ import java.util.Map;
  */
 public final class ResearchHelper{
 
+	// TODO not used?
 	public static final String TYPE_QUESTION = "research_question";
 	public static final String TYPE_ACTIVITY = "research_activity";
 	public static final String TYPE_TASK = "research_task";

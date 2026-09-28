@@ -64,7 +64,7 @@ import java.util.Set;
 public final class ConsistencyService{
 
 	private static final String TAG_SUBJECT = "subject";
-	private static final String TAG_TARGET = "target";
+	private static final String TAG_OBJECT = "object";
 	private static final String TYPE_BIOLOGICAL_CHILD = "biological_child";
 
 
@@ -122,9 +122,9 @@ public final class ConsistencyService{
 
 		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
 		final Map<String, List<String>> parentsOf = new HashMap<>();
-		for(final FLEFRecord rel : relationships){
-			checkSelfReference(rel, issues);
-			collectParentEdge(rel, parentsOf);
+		for(final FLEFRecord relationship : relationships){
+			checkSelfReference(relationship, issues);
+			collectParentEdge(relationship, parentsOf);
 		}
 		checkCircularParentage(parentsOf, individuals, issues);
 
@@ -143,20 +143,20 @@ public final class ConsistencyService{
 				"Individual has no name."));
 	}
 
-	private static void checkSelfReference(final FLEFRecord rel, final List<Issue> issues){
-		final String subjectId = rel.extractReferencedId(TAG_SUBJECT, IndividualHandler.TYPE);
-		final String targetId = rel.extractReferencedId(TAG_TARGET, IndividualHandler.TYPE);
-		if(subjectId != null && subjectId.equals(targetId))
-			issues.add(new Issue(Severity.ERROR, rel.getId(),
+	private static void checkSelfReference(final FLEFRecord relationship, final List<Issue> issues){
+		final String subjectId = relationship.extractReferencedId(TAG_SUBJECT, IndividualHandler.TYPE);
+		final String objectId = relationship.extractReferencedId(TAG_OBJECT, IndividualHandler.TYPE);
+		if(subjectId != null && subjectId.equals(objectId))
+			issues.add(new Issue(Severity.ERROR, relationship.getId(),
 				"Relationship points to itself (" + subjectId + ")."));
 	}
 
-	private static void collectParentEdge(final FLEFRecord rel, final Map<String, List<String>> parentsOf){
-		final String type = FLEFRecordHelper.getChildValue(rel, "type");
+	private static void collectParentEdge(final FLEFRecord relationship, final Map<String, List<String>> parentsOf){
+		final String type = FLEFRecordHelper.getChildValue(relationship, "type");
 		if(!TYPE_BIOLOGICAL_CHILD.equalsIgnoreCase(type))
 			return;
-		final String childId = rel.extractReferencedId(TAG_SUBJECT, IndividualHandler.TYPE);
-		final String parentId = rel.extractReferencedId(TAG_TARGET, IndividualHandler.TYPE);
+		final String childId = relationship.extractReferencedId(TAG_SUBJECT, IndividualHandler.TYPE);
+		final String parentId = relationship.extractReferencedId(TAG_OBJECT, IndividualHandler.TYPE);
 		if(childId != null && parentId != null)
 			parentsOf.computeIfAbsent(childId, k -> new ArrayList<>()).add(parentId);
 	}

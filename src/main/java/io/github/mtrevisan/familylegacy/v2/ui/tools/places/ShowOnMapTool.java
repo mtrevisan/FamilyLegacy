@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.searches.RecordSelectio
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolOperation;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JOptionPane;
 import java.awt.Desktop;
@@ -90,7 +91,7 @@ public final class ShowOnMapTool implements ToolOperation{
 		}
 		catch(final URISyntaxException | IOException e){
 			JOptionPane.showMessageDialog(context.owner(),
-				"Unable to open the map:\n" + e.getMessage(),
+				"Unable to open the map:" + StringUtils.LF + e.getMessage(),
 				"Show on Map", JOptionPane.ERROR_MESSAGE);
 		}
 	}

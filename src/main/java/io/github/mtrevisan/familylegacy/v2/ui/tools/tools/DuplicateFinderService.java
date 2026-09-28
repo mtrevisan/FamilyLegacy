@@ -223,13 +223,14 @@ public final class DuplicateFinderService{
 		// Index relationships once. Each relationship is stored under
 		// both endpoints, so a single pass builds every lookup we need.
 		final Map<String, List<FLEFRecord>> relationshipsByEndpoint = new HashMap<>();
-		for(final FLEFRecord rel : model.getRecordsByType(RelationshipHandler.TYPE)){
-			final String subject = rel.extractReferencedId("subject", IndividualHandler.TYPE);
-			final String target = rel.extractReferencedId("target", IndividualHandler.TYPE);
+		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
+		for(final FLEFRecord relationship : relationships){
+			final String subject = relationship.extractReferencedId("subject", IndividualHandler.TYPE);
+			final String object = relationship.extractReferencedId("object", IndividualHandler.TYPE);
 			if(subject != null)
-				relationshipsByEndpoint.computeIfAbsent(subject, k -> new ArrayList<>()).add(rel);
-			if(target != null && !target.equals(subject))
-				relationshipsByEndpoint.computeIfAbsent(target, k -> new ArrayList<>()).add(rel);
+				relationshipsByEndpoint.computeIfAbsent(subject, k -> new ArrayList<>()).add(relationship);
+			if(object != null && !object.equals(subject))
+				relationshipsByEndpoint.computeIfAbsent(object, k -> new ArrayList<>()).add(relationship);
 		}
 
 		// Index participations by participant.
@@ -265,14 +266,15 @@ public final class DuplicateFinderService{
 		// Build the parent -> children map once, to compute siblings in
 		// O(1) per individual.
 		final Map<String, Set<String>> childrenByParent = new HashMap<>();
-		for(final FLEFRecord rel : model.getRecordsByType(RelationshipHandler.TYPE)){
+		for(final FLEFRecord rel : relationships){
 			final String type = FLEFRecordHelper.getChildValue(rel, "type");
-			if(type == null || !"biological_child".equalsIgnoreCase(type))
+			if(!"biological_child".equalsIgnoreCase(type))
 				continue;
+
 			final String child = rel.extractReferencedId("subject", IndividualHandler.TYPE);
-			final String parent = rel.extractReferencedId("target", IndividualHandler.TYPE);
-			if(child != null && parent != null)
-				childrenByParent.computeIfAbsent(parent, k -> new LinkedHashSet<>()).add(child);
+			final String object = rel.extractReferencedId("object", IndividualHandler.TYPE);
+			if(child != null && object != null)
+				childrenByParent.computeIfAbsent(object, k -> new LinkedHashSet<>()).add(child);
 		}
 
 		final Map<String, Profile> profiles = new LinkedHashMap<>();

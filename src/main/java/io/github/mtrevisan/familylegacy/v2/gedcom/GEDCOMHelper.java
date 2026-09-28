@@ -224,9 +224,9 @@ public class GEDCOMHelper{
 	public static String extractId(GEDCOMNode node, String idPrefix){
 		String id;
 		String xref = node.getXrefId();
-		if (xref != null) {
+		if(xref != null){
 			String cleaned = IDNormalizer.clean(xref);
-			if (isValidIdFormat(cleaned)) {
+			if(isValidIdFormat(cleaned)){
 				id = cleaned;
 			} else {
 				id = IDGenerator.nextId(idPrefix);
@@ -255,7 +255,7 @@ public class GEDCOMHelper{
 	/**
 	 * Checks if the ID matches the FLEF format: letters followed by digits.
 	 */
-	private static boolean isValidIdFormat(String id) {
+	private static boolean isValidIdFormat(String id){
 		return id != null && id.matches("^[A-Z]+\\d+$");
 	}
 
@@ -449,12 +449,12 @@ public class GEDCOMHelper{
 //			namePhoneticVariations.addChild(variant);
 //		}
 
-		for (GEDCOMNode sourNode : findChildren(nameNode, "SOUR")) {
+		for(GEDCOMNode sourNode : findChildren(nameNode, "SOUR")){
 			attachSource(parent, model,
 				sourNode, noteRawMap, objeRawMap);
 		}
 
-		for (GEDCOMNode noteNode : findChildren(nameNode, "NOTE")) {
+		for(GEDCOMNode noteNode : findChildren(nameNode, "NOTE")){
 			attachNote(parent,
 				noteNode, noteRawMap);
 		}
@@ -563,7 +563,7 @@ public class GEDCOMHelper{
 			GEDCOMNode dataNode = findFirstChild(node, "DATA");
 			GEDCOMNode dataDateNode = findFirstChild(dataNode, "DATE");
 			String dataTextNode = extractFullText(findFirstChild(dataNode, "TEXT"));
-			for (GEDCOMNode multimediaLinkNode : findChildren(node, "OBJE")) {
+			for(GEDCOMNode multimediaLinkNode : findChildren(node, "OBJE")){
 				attachMultimediaLink(parent, model,
 					multimediaLinkNode, objeRawMap);
 			}
@@ -571,7 +571,7 @@ public class GEDCOMHelper{
 			sourValue = cleanId(sourValue);
 			FLEFRecord source = FLEFRecord.createMainRecord(sourValue, SourceHandler.TYPE);
 			attachDate(source, "date", getDateTime(dataDateNode));
-			for (GEDCOMNode noteNode : findChildren(node, "NOTE")) {
+			for(GEDCOMNode noteNode : findChildren(node, "NOTE")){
 				attachNote(source, noteNode, noteRawMap);
 			}
 			source.addChild(AuditBuilder.build(node));
@@ -593,7 +593,7 @@ public class GEDCOMHelper{
 			FLEFRecord sourceCitation = FLEFRecord.createChildWithTag("source");
 
 			String textNode = extractFullText(findFirstChild(node, "TEXT"));
-			for (GEDCOMNode multimediaLinkNode : findChildren(node, "OBJE")) {
+			for(GEDCOMNode multimediaLinkNode : findChildren(node, "OBJE")){
 				attachMultimediaLink(parent, model,
 					multimediaLinkNode, objeRawMap);
 			}
@@ -602,7 +602,7 @@ public class GEDCOMHelper{
 				.addChild(FLEFRecord.createChildWithTag("title")
 					.addChild(FLEFRecord.createChildWithTagAndValue("value", "Source for " + parent.getId()))
 				);
-			for (GEDCOMNode noteNode : findChildren(node, "NOTE")) {
+			for(GEDCOMNode noteNode : findChildren(node, "NOTE")){
 				attachNote(source, noteNode, noteRawMap);
 			}
 			source.addChild(AuditBuilder.build(node));
@@ -860,19 +860,19 @@ public class GEDCOMHelper{
 		}
 
 		// ---- Sources (SOUR) ----
-		for (GEDCOMNode sourNode : findChildren(node, "SOUR")) {
+		for(GEDCOMNode sourNode : findChildren(node, "SOUR")){
 			attachSource(record, model,
 				sourNode, noteRawMap, objeRawMap);
 		}
 
 		// ---- Notes (GEDCOM NOTE) – inline structs ----
-		for (GEDCOMNode noteNode : findChildren(node, "NOTE")) {
+		for(GEDCOMNode noteNode : findChildren(node, "NOTE")){
 			attachNote(record,
 				noteNode, noteRawMap);
 		}
 
 		// Multimedia (OBJE)
-		for (GEDCOMNode multimediaLinkNode : findChildren(node, "OBJE")) {
+		for(GEDCOMNode multimediaLinkNode : findChildren(node, "OBJE")){
 			attachMultimediaLink(record, model,
 				multimediaLinkNode, objeRawMap);
 		}
@@ -911,18 +911,18 @@ public class GEDCOMHelper{
 
 	public static void attachFamilyOfOrigin(FLEFRecord parent, FLEFModel model,
 			GEDCOMNode node, Map<String, GEDCOMNode> noteRawMap, List<GEDCOMNode> roots){
-		for (GEDCOMNode famcNode : findChildren(node, "FAMC")) {
-			if (famcNode.getValue() != null) {
+		for(GEDCOMNode famcNode : findChildren(node, "FAMC")){
+			if(famcNode.getValue() != null){
 				GEDCOMNode famcAdopNode = findFirstChild(famcNode, "ADOP");
 				String adopParent = (famcAdopNode != null ? famcAdopNode.getValue() : null);
 
 				StringBuilder sb = new StringBuilder();
 				GEDCOMNode pediNode = findFirstChild(famcNode, "PEDI");
-				if (pediNode != null && pediNode.getValue() != null) {
+				if(pediNode != null && pediNode.getValue() != null){
 					sb.append(" (Pedigree: ").append(pediNode.getValue()).append(")");
 				}
 				GEDCOMNode statNode = findFirstChild(famcNode, "STAT");
-				if (statNode != null && statNode.getValue() != null) {
+				if(statNode != null && statNode.getValue() != null){
 					sb.append(" (Status: ").append(statNode.getValue()).append(")");
 				}
 
@@ -957,21 +957,21 @@ public class GEDCOMHelper{
 		}
 	}
 
-	private static void attachRelationship(FLEFRecord parent, FLEFModel model, GEDCOMNode node, Map<String, GEDCOMNode> noteRawMap, GEDCOMNode famcNode, String targetTag, String targetXrefId, StringBuilder sb){
+	private static void attachRelationship(FLEFRecord parent, FLEFModel model, GEDCOMNode node, Map<String, GEDCOMNode> noteRawMap, GEDCOMNode famcNode, String objectTag, String objectXrefId, StringBuilder sb){
 		FLEFRecord relationship = FLEFRecord.createMainRecord(IDGenerator.nextId(RelationshipHandler.ID_PREFIX), RelationshipHandler.TYPE)
 			// subject: child
 			.addChild(FLEFRecord.createChildWithTag("subject")
 				.addChild(FLEFRecord.createChildWithTagAndValue("individual", parent.getId()))
 			)
-			// target
-			.addChild(FLEFRecord.createChildWithTag("target")
-				.addChild(FLEFRecord.createChildWithTagAndValue(targetTag, targetXrefId))
+			// object
+			.addChild(FLEFRecord.createChildWithTag("object")
+				.addChild(FLEFRecord.createChildWithTagAndValue(objectTag, objectXrefId))
 			)
 			.addChild(FLEFRecord.createChildWithTagAndValue("type", (node.getTag().equalsIgnoreCase("ADOP")? "adoptive_child": "biological_child")))
 			.addChild(AuditBuilder.build(node));
 
 		// ---- Notes (GEDCOM NOTE) – inline structs ----
-		for (GEDCOMNode noteNode : findChildren(famcNode, "NOTE")) {
+		for(GEDCOMNode noteNode : findChildren(famcNode, "NOTE")){
 			attachNote(relationship,
 				noteNode, noteRawMap);
 		}
@@ -995,22 +995,22 @@ public class GEDCOMHelper{
 
 	public static void attachSpouseToFamily(FLEFRecord parent, FLEFModel model,
 			GEDCOMNode node, Map<String, GEDCOMNode> noteRawMap){
-		for (GEDCOMNode famsNode : findChildren(node, "FAMS")) {
-			if (famsNode.getValue() != null) {
+		for(GEDCOMNode famsNode : findChildren(node, "FAMS")){
+			if(famsNode.getValue() != null){
 				FLEFRecord relationship = FLEFRecord.createMainRecord(IDGenerator.nextId(RelationshipHandler.ID_PREFIX), RelationshipHandler.TYPE)
 					// subject: child
 					.addChild(FLEFRecord.createChildWithTag("subject")
 						.addChild(FLEFRecord.createChildWithTagAndValue("individual", parent.getId()))
 					)
-					// target: group
-					.addChild(FLEFRecord.createChildWithTag("target")
+					// object: group
+					.addChild(FLEFRecord.createChildWithTag("object")
 						.addChild(FLEFRecord.createChildWithTagAndValue("group", cleanId(famsNode.getValue())))
 					)
 					.addChild(FLEFRecord.createChildWithTagAndValue("type", "civil_spouse"));
 				relationship.addChild(AuditBuilder.build(node));
 
 				// ---- Notes (GEDCOM NOTE) – inline structs ----
-				for (GEDCOMNode noteNode : findChildren(famsNode, "NOTE")) {
+				for(GEDCOMNode noteNode : findChildren(famsNode, "NOTE")){
 					attachNote(relationship,
 						noteNode, noteRawMap);
 				}
@@ -1265,34 +1265,34 @@ public class GEDCOMHelper{
 
 		// TODO
 //		// ---- FONE (phonetic variation) ----
-//		for (GEDCOMNode foneNode : findChildren(placNode, "FONE")) {
+//		for(GEDCOMNode foneNode : findChildren(placNode, "FONE")){
 //			String phonetic = extractFullText(foneNode);
-//			if (StringUtils.isNotEmpty(phonetic)) {
+//			if(StringUtils.isNotEmpty(phonetic)){
 //				// Store as a variant note
 //				String system = "IPA"; // default
 //				GEDCOMNode typeNode = findFirstChild(foneNode, "TYPE");
-//				if (typeNode != null && typeNode.getValue() != null) {
+//				if(typeNode != null && typeNode.getValue() != null){
 //					system = typeNode.getValue();
 //				}
 //				String text = "Phonetic (" + system + "): " + phonetic;
 //				FLEFRecord note = createNoteStruct(text, foneNode);
-//				if (note != null) place.addChild(note);
+//				if(note != null) place.addChild(note);
 //			}
 //		}
 
 		// TODO
 //		// ---- ROMN (romanized variation) ----
-//		for (GEDCOMNode romnNode : findChildren(placNode, "ROMN")) {
+//		for(GEDCOMNode romnNode : findChildren(placNode, "ROMN")){
 //			String romanized = extractFullText(romnNode);
-//			if (StringUtils.isNotEmpty(romanized)) {
+//			if(StringUtils.isNotEmpty(romanized)){
 //				String system = "scientific"; // default
 //				GEDCOMNode typeNode = findFirstChild(romnNode, "TYPE");
-//				if (typeNode != null && typeNode.getValue() != null) {
+//				if(typeNode != null && typeNode.getValue() != null){
 //					system = typeNode.getValue();
 //				}
 //				String text = "Romanized (" + system + "): " + romanized;
 //				FLEFRecord note = createNoteStruct(text, romnNode);
-//				if (note != null) place.addChild(note);
+//				if(note != null) place.addChild(note);
 //			}
 //		}
 
@@ -1302,7 +1302,7 @@ public class GEDCOMHelper{
 			GEDCOMNode sub = findFirstChild(addrNode, subTag);
 			if(sub != null && sub.getValue() != null){
 				if(!fullAddr.isEmpty())
-					fullAddr.append("\n");
+					fullAddr.append(StringUtils.LF);
 				fullAddr.append(sub.getValue());
 			}
 		}
@@ -1319,10 +1319,10 @@ public class GEDCOMHelper{
 
 		// ---- MAP (coordinates) ----
 		GEDCOMNode mapNode = findFirstChild(placNode, "MAP");
-		if (mapNode != null) {
+		if(mapNode != null){
 			GEDCOMNode latiNode = findFirstChild(mapNode, "LATI");
 			GEDCOMNode longNode = findFirstChild(mapNode, "LONG");
-			if (latiNode != null && longNode != null && latiNode.getValue() != null && longNode.getValue() != null) {
+			if(latiNode != null && longNode != null && latiNode.getValue() != null && longNode.getValue() != null){
 				FLEFRecord mapRecord = FLEFRecord.createChildWithTag("map")
 					.addChild(FLEFRecord.createChildWithTagAndValue("coordinates", latiNode.getValue() + " " + longNode.getValue()));
 				place.addChild(mapRecord);
@@ -1330,7 +1330,7 @@ public class GEDCOMHelper{
 		}
 
 		// ---- NOTE (notes under PLAC) ----
-		for (GEDCOMNode noteNode : findChildren(placNode, "NOTE")) {
+		for(GEDCOMNode noteNode : findChildren(placNode, "NOTE")){
 			attachNote(place,
 				noteNode, noteRawMap);
 		}
@@ -1351,7 +1351,7 @@ public class GEDCOMHelper{
 	public static void attachRestriction(FLEFRecord parent,
 			GEDCOMNode node){
 		GEDCOMNode resnNode = findFirstChild(node, "RESN");
-		if (resnNode != null && resnNode.getValue() != null) {
+		if(resnNode != null && resnNode.getValue() != null){
 			String level = GEDCOMMapper.mapPrivacyLevel(resnNode.getValue());
 			FLEFRecord privacy = FLEFRecord.createChildWithTag("privacy")
 				.addChild(FLEFRecord.createChildWithTagAndValue("level", level));
@@ -1371,7 +1371,7 @@ public class GEDCOMHelper{
 			GEDCOMNode sub = findFirstChild(addrNode, subTag);
 			if(sub != null && sub.getValue() != null){
 				if(!fullAddr.isEmpty())
-					fullAddr.append("\n");
+					fullAddr.append(StringUtils.LF);
 				fullAddr.append(sub.getValue());
 			}
 		}
@@ -1450,40 +1450,40 @@ public class GEDCOMHelper{
 	public static String createAndAddEventRecord(
 		GEDCOMNode eventNode,
 		Map<String, GEDCOMNode> noteRawMap,
-		Map<String, GEDCOMNode> objeRawMap, FLEFModel model) {
+		Map<String, GEDCOMNode> objeRawMap, FLEFModel model){
 
-		if (eventNode == null)
+		if(eventNode == null)
 			return null;
 
 		String eventFlefId = IDGenerator.nextId(EventHandler.ID_PREFIX);
 		FLEFRecord eventRecord = FLEFRecord.createMainRecord(eventFlefId, EventHandler.TYPE);
 
 		// Type
-		if (eventNode.getTag() != null) {
+		if(eventNode.getTag() != null){
 			eventRecord.addChild(FLEFRecord.createChildWithTagAndValue("type", eventNode.getTag().toLowerCase()));
 		}
 
 		// Date
 		GEDCOMNode dateNode = findFirstChild(eventNode, "DATE");
-		if (dateNode != null && dateNode.getValue() != null) {
+		if(dateNode != null && dateNode.getValue() != null){
 			attachDate(eventRecord, "date", getDateTime(dateNode));
 		}
 
 		// Place
 		GEDCOMNode placNode = findFirstChild(eventNode, "PLAC");
 		GEDCOMNode addrNode = findFirstChild(eventNode, "ADDR");
-		if (placNode != null && placNode.getValue() != null) {
+		if(placNode != null && placNode.getValue() != null){
 			attachPlaceCitation(eventRecord, model,
 				placNode, addrNode, noteRawMap);
 		}
 
 		// Inline Notes
-		for (GEDCOMNode noteNode : findChildren(eventNode, "NOTE")) {
+		for(GEDCOMNode noteNode : findChildren(eventNode, "NOTE")){
 			attachNote(eventRecord, noteNode, noteRawMap);
 		}
 
 		// Inline Sources
-		for (GEDCOMNode sourNode : findChildren(eventNode, "SOUR")) {
+		for(GEDCOMNode sourNode : findChildren(eventNode, "SOUR")){
 			attachSource(eventRecord, model, sourNode, noteRawMap, objeRawMap);
 		}
 
@@ -1504,9 +1504,9 @@ public class GEDCOMHelper{
 		String eventId,
 		String entityType,
 		String entityId,
-		String role, FLEFModel model) {
+		String role, FLEFModel model){
 
-		if (eventId == null || entityId == null) {
+		if(eventId == null || entityId == null){
 			return;
 		}
 
@@ -1521,7 +1521,7 @@ public class GEDCOMHelper{
 			.addChild(FLEFRecord.createChildWithTagAndValue(entityType, entityId));
 		participation.addChild(participant);
 
-		if (role != null) {
+		if(role != null){
 			participation.addChild(FLEFRecord.createChildWithTagAndValue("role", role));
 		}
 		participation.addChild(AuditBuilder.build());

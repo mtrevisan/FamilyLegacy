@@ -74,7 +74,7 @@ public final class IndividualData{
 	private static final String TAG_PART = "part";
 	private static final String TAG_TYPE = "type";
 	private static final String TAG_SUBJECT = "subject";
-	private static final String TAG_TARGET = "target";
+	private static final String TAG_OBJECT = "object";
 	private static final String TAG_VALUE = "value";
 	private static final String TAG_CAUSE = "cause";
 	private static final String TAG_REASON = "reason";
@@ -173,8 +173,8 @@ public final class IndividualData{
 		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
 		for(final FLEFRecord relationship : relationships){
 			final String subjectId = relationship.extractReferencedId(TAG_SUBJECT, IndividualHandler.TYPE);
-			final String targetId = relationship.extractReferencedId(TAG_TARGET, IndividualHandler.TYPE);
-			if(subjectId == null || targetId == null || !subjectId.equals(id) && !targetId.equals(id))
+			final String objectId = relationship.extractReferencedId(TAG_OBJECT, IndividualHandler.TYPE);
+			if(subjectId == null || objectId == null || !subjectId.equals(id) && !objectId.equals(id))
 				continue;
 
 			String type = FLEFRecordHelper.getChildValue(relationship, TAG_TYPE);
@@ -184,8 +184,8 @@ public final class IndividualData{
 					if(subjectId.equals(id)){
 						isBiological = true;
 
-						final FLEFRecord target = model.getRecordById(targetId);
-						final SexType targetSex = extractSex(target);
+						final FLEFRecord object = model.getRecordById(objectId);
+						final SexType targetSex = extractSex(object);
 						if(targetSex == SexType.MALE)
 							hasFather = true;
 						else if(targetSex == SexType.FEMALE)
@@ -194,11 +194,11 @@ public final class IndividualData{
 							hasParents = true;
 					}
 
-					if(targetId.equals(id))
+					if(objectId.equals(id))
 						hasChildren = true;
 				}
 				else if(subjectId.equals(id) && type.endsWith(ENUM_TYPE_ENDS_WITH_CHILD)){
-					final FLEFRecord target = model.getRecordById(targetId);
+					final FLEFRecord target = model.getRecordById(objectId);
 					final SexType targetSex = extractSex(target);
 					if(targetSex == SexType.MALE)
 						hasFather = true;

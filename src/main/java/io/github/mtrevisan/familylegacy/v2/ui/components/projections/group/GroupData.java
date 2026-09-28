@@ -67,7 +67,6 @@ public final class GroupData{
 	private static final String TAG_WIDTH = "width";
 	private static final String TAG_HEIGHT = "height";
 
-	private static final String TAG_NAME_VALUE = TAG_NAME + DOT + TAG_VALUE;
 	private static final String TAG_PREFERRED_IMAGE_URI = TAG_PREFERRED_IMAGE + DOT + TAG_URI;
 	private static final String TAG_PREFERRED_IMAGE_CROP = TAG_PREFERRED_IMAGE + DOT + TAG_CROP;
 

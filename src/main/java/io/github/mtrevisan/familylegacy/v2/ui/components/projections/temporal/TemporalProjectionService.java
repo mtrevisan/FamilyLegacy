@@ -76,11 +76,10 @@ public final class TemporalProjectionService{
 	private static final String TAG_TYPE = "type";
 	private static final String TAG_ROLE = "role";
 	private static final String TAG_SUBJECT = "subject";
-	private static final String TAG_TARGET = "target";
+	private static final String TAG_OBJECT = "object";
 	private static final String TAG_STATUS = "status";
 	private static final String TAG_VALID_FROM = "valid_from";
 	private static final String TAG_VALID_TO = "valid_to";
-	private static final String TAG_ORIGINAL = "original_text";
 
 	// Band entity tags.
 	private static final String TAG_DATE = "date";
@@ -269,20 +268,20 @@ public final class TemporalProjectionService{
 
 		for(final FLEFRecord relationship : model.getRecordsByType(RelationshipHandler.TYPE)){
 			final String subjectId = relationship.extractReferencedId(TAG_SUBJECT, IndividualHandler.TYPE);
-			final String targetId = relationship.extractReferencedId(TAG_TARGET, IndividualHandler.TYPE);
-			if(subjectId == null || targetId == null)
+			final String objectId = relationship.extractReferencedId(TAG_OBJECT, IndividualHandler.TYPE);
+			if(subjectId == null || objectId == null)
 				continue;
-			if(!includedIds.contains(subjectId) || !includedIds.contains(targetId))
+			if(!includedIds.contains(subjectId) || !includedIds.contains(objectId))
 				continue;
 
 			final FLEFRecord subject = indexLookup(recordIndex, subjectId);
-			final FLEFRecord target = indexLookup(recordIndex, targetId);
-			if(subject == null || target == null)
+			final FLEFRecord object = indexLookup(recordIndex, objectId);
+			if(subject == null || object == null)
 				continue;
 
 			final TemporalEntityRef sourceRef = toRowRef(subject, includedIds);
-			final TemporalEntityRef targetRef = toRowRef(target, includedIds);
-			if(sourceRef == null || targetRef == null)
+			final TemporalEntityRef objectRef = toRowRef(object, includedIds);
+			if(sourceRef == null || objectRef == null)
 				continue;
 
 			final TemporalSpan span = buildConnectionSpan(relationship);
@@ -291,9 +290,9 @@ public final class TemporalProjectionService{
 
 			final String relType = FLEFRecordHelper.getChildValue(relationship, TAG_TYPE);
 			final String role = FLEFRecordHelper.getChildValue(relationship, TAG_ROLE);
-			final TemporalConnectionType connectionType = TemporalConnectionType.of(sourceRef.type(), targetRef.type());
+			final TemporalConnectionType connectionType = TemporalConnectionType.of(sourceRef.type(), objectRef.type());
 
-			connections.add(new TemporalConnection(connectionType, sourceRef, targetRef, relType, span, relationship,
+			connections.add(new TemporalConnection(connectionType, sourceRef, objectRef, relType, span, relationship,
 				role));
 		}
 		return connections;
@@ -310,20 +309,20 @@ public final class TemporalProjectionService{
 
 		for(final FLEFRecord placeRel : model.getRecordsByType(PlaceRelationshipHandler.TYPE)){
 			final String subjectId = placeRel.extractReferencedId(TAG_SUBJECT, PlaceHandler.TYPE);
-			final String targetId = placeRel.extractReferencedId(TAG_TARGET, PlaceHandler.TYPE);
-			if(subjectId == null || targetId == null)
+			final String objectId = placeRel.extractReferencedId(TAG_OBJECT, PlaceHandler.TYPE);
+			if(subjectId == null || objectId == null)
 				continue;
-			if(!includedIds.contains(subjectId) || !includedIds.contains(targetId))
+			if(!includedIds.contains(subjectId) || !includedIds.contains(objectId))
 				continue;
 
 			final FLEFRecord subject = model.getRecordById(subjectId);
-			final FLEFRecord target = model.getRecordById(targetId);
-			if(subject == null || target == null)
+			final FLEFRecord object = model.getRecordById(objectId);
+			if(subject == null || object == null)
 				continue;
 
 			final TemporalEntityRef sourceRef = toRowRef(subject, includedIds);
-			final TemporalEntityRef targetRef = toRowRef(target, includedIds);
-			if(sourceRef == null || targetRef == null)
+			final TemporalEntityRef objectRef = toRowRef(object, includedIds);
+			if(sourceRef == null || objectRef == null)
 				continue;
 
 			final TemporalSpan span = buildConnectionSpan(placeRel);
@@ -336,7 +335,7 @@ public final class TemporalProjectionService{
 
 			result.add(new TemporalConnection(
 				TemporalConnectionType.PLACE_PLACE,
-				sourceRef, targetRef,
+				sourceRef, objectRef,
 				relType, span, placeRel, StringUtils.EMPTY));
 		}
 		return result;
@@ -530,15 +529,15 @@ public final class TemporalProjectionService{
 			if(band == null)
 				continue;
 
-			final FLEFRecord targetRef = FLEFRecordHelper.findChild(impact, TAG_TARGET);
-			if(targetRef == null)
+			final FLEFRecord objectRef = FLEFRecordHelper.findChild(impact, TAG_OBJECT);
+			if(objectRef == null)
 				continue;
-			final FLEFRecord targetRefChild = targetRef.getTheOnlyChild();
-			if(targetRefChild == null || targetRefChild.getValue() == null)
+			final FLEFRecord objectRefChild = objectRef.getTheOnlyChild();
+			if(objectRefChild == null || objectRefChild.getValue() == null)
 				continue;
-			final String targetId = targetRefChild.getValue();
+			final String objectId = objectRefChild.getValue();
 
-			final List<TemporalProjectionRef> resolved = refsById.get(targetId);
+			final List<TemporalProjectionRef> resolved = refsById.get(objectId);
 			if(resolved == null || resolved.isEmpty())
 				continue;
 

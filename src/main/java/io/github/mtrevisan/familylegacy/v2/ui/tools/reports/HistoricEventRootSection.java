@@ -1,3 +1,27 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
 package io.github.mtrevisan.familylegacy.v2.ui.tools.reports;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
@@ -19,7 +43,6 @@ final class HistoricEventRootSection implements SectionBuilder{
 
 	private static final String TAG_TITLE = "title";
 	private static final String TAG_TYPE = "type";
-	private static final String TAG_CONTEXT = "context";
 	private static final String TAG_IMPACT = "impact_type";
 	private static final String TAG_RATIONALE = "rationale";
 	private static final String TAG_TARGET = "target";
@@ -44,7 +67,7 @@ final class HistoricEventRootSection implements SectionBuilder{
 		final String title = ReportFormatters.orEmpty(
 			FLEFRecordHelper.getChildValue(ctx.root, TAG_TITLE));
 		out.add(new ReportSection.Heading(1, String.format(
-			ctx.labels.historicEventOf(), ReportFormatters.escape(title))));
+			ctx.labels.sections().historicEventOf(), ReportFormatters.escape(title))));
 
 		writeBasicInfo(out);
 		writeImpacts(out);
@@ -60,11 +83,11 @@ final class HistoricEventRootSection implements SectionBuilder{
 
 	private void writeBasicInfo(final List<ReportSection> out){
 		final List<String> rows = new ArrayList<>();
-		ReportFormatters.appendIfPresent(rows, ctx.labels.historicEventType(),
+		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().historicEventType(),
 			FLEFRecordHelper.getChildValue(ctx.root, TAG_TYPE));
-		ReportFormatters.appendIfPresent(rows, ctx.labels.date(),
+		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().date(),
 			GenealogicalDateHelper.formatEventDate(ctx.root, ctx.labels, contextLabels));
-		ReportFormatters.appendIfPresent(rows, ctx.labels.place(),
+		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().place(),
 			FLEFRecordHelper.extractPlace(ctx.root, ctx.model));
 		if(!rows.isEmpty())
 			out.add(new ReportSection.BulletList(rows));
@@ -73,9 +96,10 @@ final class HistoricEventRootSection implements SectionBuilder{
 
 	private void writeImpacts(final List<ReportSection> out){
 		final List<FLEFRecord> impacts = ctx.index.contextImpactsFor(ctx.relatedRecordIds());
-		if(impacts.isEmpty()) return;
+		if(impacts.isEmpty())
+			return;
 
-		out.add(new ReportSection.Heading(2, ctx.labels.historicEventImpacts()));
+		out.add(new ReportSection.Heading(2, ctx.labels.sections().historicEventImpacts()));
 		for(final FLEFRecord ci : impacts){
 			final String impactType = ReportFormatters.orEmpty(
 				FLEFRecordHelper.getChildValue(ci, TAG_IMPACT));
@@ -95,14 +119,16 @@ final class HistoricEventRootSection implements SectionBuilder{
 
 	private String extractTargetId(final FLEFRecord ci){
 		final FLEFRecord targetNode = FLEFRecordHelper.findChild(ci, TAG_TARGET);
-		if(targetNode == null) return null;
+		if(targetNode == null)
+			return null;
 		final FLEFRecord ref = targetNode.getTheOnlyChild();
 		return (ref != null? ref.getValue(): null);
 	}
 
 	private String describeTarget(final String id){
 		final FLEFRecord rec = ctx.model.getRecordById(id);
-		if(rec == null || !ctx.isVisible(rec)) return id;
+		if(!ctx.isVisible(rec))
+			return id;
 		return ctx.displayText(rec);
 	}
 

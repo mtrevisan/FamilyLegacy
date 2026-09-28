@@ -62,8 +62,8 @@ public final class Deduplicator{
 				FLEFRecord subject = FLEFRecordHelper.findChild(record, "subject");
 				String subjectId = subject.getTheOnlyChild()
 					.getValue();
-				FLEFRecord target = FLEFRecordHelper.findChild(record, "target");
-				String targetId = target.getTheOnlyChild()
+				FLEFRecord object = FLEFRecordHelper.findChild(record, "object");
+				String objectId = object.getTheOnlyChild()
 					.getValue();
 
 				List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
@@ -72,7 +72,7 @@ public final class Deduplicator{
 						continue;
 					if(!subjectId.equalsIgnoreCase(relationship.extractReferencedId("subject", IndividualHandler.TYPE)))
 						continue;
-					if(!targetId.equalsIgnoreCase(relationship.extractReferencedId("target", IndividualHandler.TYPE)))
+					if(!objectId.equalsIgnoreCase(relationship.extractReferencedId("object", IndividualHandler.TYPE)))
 						continue;
 
 					//relationship duplicate found
@@ -82,8 +82,8 @@ public final class Deduplicator{
 				StringBuilder sb = new StringBuilder();
 				sb.append("|subject:");
 				sb.append(GEDCOMHelper.computeSignature(subject));
-				sb.append("|target:");
-				sb.append(GEDCOMHelper.computeSignature(target));
+				sb.append("|object:");
+				sb.append(GEDCOMHelper.computeSignature(object));
 				String thisSignature = sb.toString();
 
 				FLEFRecord existingRecord = CANONICAL_MAP_RELATIONSHIP.get(thisSignature);

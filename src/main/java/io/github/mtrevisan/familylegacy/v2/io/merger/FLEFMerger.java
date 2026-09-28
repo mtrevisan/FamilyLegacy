@@ -90,9 +90,12 @@ public class FLEFMerger{
 	 * @return a MergeReport containing the merged model and all decisions
 	 */
 	public MergeReport merge(final FLEFModel model1, final FLEFModel model2){
-		if(model1 == null && model2 == null) return null;
-		if(model1 == null) return singleModelResult(model2);
-		if(model2 == null) return singleModelResult(model1);
+		if(model1 == null && model2 == null)
+			return null;
+		if(model1 == null)
+			return singleModelResult(model2);
+		if(model2 == null)
+			return singleModelResult(model1);
 
 		List<FLEFRecord> allRecords = new ArrayList<>();
 		allRecords.addAll(model1.getRecords());

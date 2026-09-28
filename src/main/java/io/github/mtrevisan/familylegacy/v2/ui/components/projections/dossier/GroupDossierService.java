@@ -58,15 +58,10 @@ import java.util.Set;
 public final class GroupDossierService{
 
 	private static final String TYPE_GROUP = "group";
-	private static final String TYPE_EVENT_PARTICIPATION = "event_participation";
-	private static final String TYPE_GROUP_ATTRIBUTE = "group_attribute";
-	private static final String TYPE_RELATIONSHIP = "relationship";
-	private static final String TYPE_CONTEXT_IMPACT = "context_impact";
-	private static final String TYPE_RESEARCH_QUESTION = "research_question";
-	private static final String TYPE_CONCLUSION = "conclusion";
 
 	private static final String TAG_TYPE = "type";
 	private static final String TAG_SUBJECT = "subject";
+	private static final String TAG_OBJECT = "object";
 	private static final String TAG_TARGET = "target";
 	private static final String TAG_PARTICIPANT = "participant";
 	private static final String TAG_EVENT = "event";
@@ -223,8 +218,8 @@ public final class GroupDossierService{
 				continue;
 
 			final String memberId = extractRef(rel, TAG_SUBJECT);
-			final String targetId = extractRef(rel, TAG_TARGET);
-			if(!groupId.equals(targetId) || memberId == null)
+			final String objectId = extractRef(rel, TAG_OBJECT);
+			if(!groupId.equals(objectId) || memberId == null)
 				continue;
 
 			final String name = resolveIndividualName(memberId);
@@ -266,13 +261,13 @@ public final class GroupDossierService{
 				continue;
 
 			final String subjectId = extractRef(rel, TAG_SUBJECT);
-			final String targetId = extractRef(rel, TAG_TARGET);
-			final boolean isParent = groupId.equals(targetId);
+			final String objectId = extractRef(rel, TAG_OBJECT);
+			final boolean isParent = groupId.equals(objectId);
 			final boolean isChild = groupId.equals(subjectId);
 			if(!isParent && !isChild)
 				continue;
 
-			final String otherId = (isParent? subjectId: targetId);
+			final String otherId = (isParent? subjectId: objectId);
 			final String otherName = resolveGroupNameById(otherId);
 			final String label = (isParent? "Subgroup": "Supergroup");
 			final String status = FLEFRecordHelper.getChildValue(rel, TAG_STATUS);
@@ -414,8 +409,8 @@ public final class GroupDossierService{
 
 		for(final FLEFRecord rel : model.getRecordsByType(RelationshipHandler.TYPE)){
 			final String subjectId = extractRef(rel, TAG_SUBJECT);
-			final String targetId = extractRef(rel, TAG_TARGET);
-			if(groupId.equals(subjectId) || groupId.equals(targetId))
+			final String objectId = extractRef(rel, TAG_OBJECT);
+			if(groupId.equals(subjectId) || groupId.equals(objectId))
 				collectSources(rel, "Relationship", entries, seen);
 		}
 
@@ -597,8 +592,8 @@ public final class GroupDossierService{
 
 		for(final FLEFRecord rel : model.getRecordsByType(RelationshipHandler.TYPE)){
 			final String subjectId = extractRef(rel, TAG_SUBJECT);
-			final String targetId = extractRef(rel, TAG_TARGET);
-			if(groupId.equals(subjectId) || groupId.equals(targetId))
+			final String objectId = extractRef(rel, TAG_OBJECT);
+			if(groupId.equals(subjectId) || groupId.equals(objectId))
 				collectNotes(rel, "Relationship", entries);
 		}
 

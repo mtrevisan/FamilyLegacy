@@ -54,8 +54,6 @@ import java.util.List;
 public final class TemporalAxis{
 
 	private static final int MAX_TICKS = 200;
-	private static final long JDN_YEAR_2000 = 2451545L;
-	private static final double APPROX_DAYS_PER_YEAR = 365.2425;
 	private static final String[] MONTH_NAMES = {
 		"Jan", "Feb", "Mar", "Apr", "May", "Jun",
 		"Jul", "Aug", "Sep", "Oct", "Nov", "Dec"

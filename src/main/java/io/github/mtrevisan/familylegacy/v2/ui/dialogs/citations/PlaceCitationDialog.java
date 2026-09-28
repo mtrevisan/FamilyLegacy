@@ -43,7 +43,7 @@ import java.awt.Window;
 
 
 /**
- * Dialog for editing a {@code PLACE_CITATION} according to FLEF 0.1.2.
+ * Dialog for editing a {@code PLACE_CITATION} according to FLEF 0.1.3.
  * <p>
  * Structure:
  * <pre>
@@ -60,11 +60,6 @@ import java.awt.Window;
  * Tab 7 (Sources): source
  */
 public class PlaceCitationDialog extends BaseRecordDialog{
-
-	private static final String TAG_ORIGINAL_TEXT = "ORIGINAL_TEXT";
-	private static final String TAG_SOURCE = "SOURCE";
-	private static final String TAG_EVIDENCE = "EVIDENCE";
-
 
 	private final JPanel propertiesPanel;
 
@@ -87,12 +82,12 @@ public class PlaceCitationDialog extends BaseRecordDialog{
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]");
 
 		placeField = new BoundTextField(PlaceHandler.TYPE);
-		originalTextField = new BoundTextField(TAG_ORIGINAL_TEXT);
+		originalTextField = new BoundTextField(PlaceCitationHandler.TAG_ORIGINAL_TEXT);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources with Citations")
-			.withComponent(PanelKey.EVIDENCE, TAG_EVIDENCE, "Evidence")
+			.withComponent(PanelKey.SOURCE, PlaceCitationHandler.TAG_SOURCE, "Sources with Citations")
+			.withComponent(PanelKey.EVIDENCE, PlaceCitationHandler.TAG_EVIDENCE, "Evidence")
 			.build();
 
 		components.bind(placeField);

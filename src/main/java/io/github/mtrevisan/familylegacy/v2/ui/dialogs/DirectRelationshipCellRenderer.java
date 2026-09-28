@@ -40,7 +40,7 @@ import java.awt.Component;
 public class DirectRelationshipCellRenderer extends DefaultListCellRenderer{
 
 	private static final String TAG_TYPE = "type";
-	private static final String TAG_TARGET = "target";
+	private static final String TAG_OBJECT = "object";
 	private static final String TAG_ROLE = "role";
 
 
@@ -59,12 +59,12 @@ public class DirectRelationshipCellRenderer extends DefaultListCellRenderer{
 
 		if(value instanceof FLEFRecord record){
 			final String type = FLEFRecordHelper.getChildValue(record, TAG_TYPE);
-			final FLEFRecord target = FLEFRecordHelper.extractRecordsFromOneOfReference(record, TAG_TARGET, model)
+			final FLEFRecord object = FLEFRecordHelper.extractRecordsFromOneOfReference(record, TAG_OBJECT, model)
 				.getFirst();
 			String targetDisplayText = "--";
-			if(target != null){
-				final RecordTypeHandler<?> objectHandler = HandlerRegistry.getHandler(target.getTag());
-				targetDisplayText = objectHandler.getDisplayText(target, model);
+			if(object != null){
+				final RecordTypeHandler<?> objectHandler = HandlerRegistry.getHandler(object.getTag());
+				targetDisplayText = objectHandler.getDisplayText(object, model);
 			}
 			final String role = FLEFRecordHelper.getChildValue(record, TAG_ROLE);
 

@@ -69,7 +69,7 @@ public class UnlinkRelationshipsDialog extends JDialog{
 
 	private static final String TAG_TYPE = "type";
 	private static final String TAG_SUBJECT = "subject";
-	private static final String TAG_TARGET = "target";
+	private static final String TAG_OBJECT = "object";
 
 	private static final Cursor HAND_CURSOR = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
 
@@ -205,16 +205,16 @@ public class UnlinkRelationshipsDialog extends JDialog{
 				continue;
 
 			final String subjectId = extractAnyReferencedId(relationship, TAG_SUBJECT);
-			final String targetId = extractAnyReferencedId(relationship, TAG_TARGET);
-			if(subjectId == null || targetId == null)
+			final String objectId = extractAnyReferencedId(relationship, TAG_OBJECT);
+			if(subjectId == null || objectId == null)
 				continue;
 
 			final boolean isDirect = individualId.equals(subjectId);
-			final boolean isInverse = individualId.equals(targetId);
+			final boolean isInverse = individualId.equals(objectId);
 			if(!isDirect && !isInverse)
 				continue;
 
-			final String otherId = isDirect? targetId: subjectId;
+			final String otherId = isDirect? objectId: subjectId;
 			final FLEFRecord other = model.getRecordById(otherId);
 			final String baseDescription = getDisplayText(other, otherId);
 			final String relId = relationship.getId();

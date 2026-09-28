@@ -49,15 +49,12 @@ import java.util.Map;
  */
 public final class TemporalAttributeIndex{
 
-	private static final String TYPE_INDIVIDUAL = "individual";
-	private static final String TYPE_GROUP = "group";
 	private static final String TAG_TYPE = "type";
 	private static final String TAG_VALUE = "value";
 	private static final String TAG_VALID_FROM = "valid_from";
 	private static final String TAG_VALID_TO = "valid_to";
 	private static final String TAG_SUBJECT = "subject";
 	private static final String TAG_GROUP = "group";
-	private static final String TAG_NAME = "name";
 
 
 	private final FLEFModel model;

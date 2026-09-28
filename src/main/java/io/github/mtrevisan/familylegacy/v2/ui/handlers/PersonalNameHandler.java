@@ -36,7 +36,7 @@ import java.util.List;
 
 
 /**
- * Handler for {@code PERSONAL_NAME_STRUCTURE} entities according to FLEF 0.1.2.
+ * Handler for {@code PERSONAL_NAME_STRUCTURE} entities according to FLEF 0.1.3.
  * <p>
  * This handler provides the necessary operations for managing name structures:
  * creation, editing, display name generation, and type identification.
@@ -51,9 +51,13 @@ public class PersonalNameHandler extends AbstractRecordTypeHandler<PersonalNameS
 	public static final String TYPE = "PERSONAL_NAME_STRUCTURE";
 	public static final String CITED_TYPE = "PERSONAL_NAME";
 
-	private static final String TAG_PART = "PART";
-	private static final String TAG_VALUE = "VALUE";
-	private static final String TAG_TYPE = "TYPE";
+	public static final String TAG_TYPE = "TYPE";
+	public static final String TAG_PART = "PART";
+	public static final String TAG_LOCALE = "LOCALE";
+	// TODO fix missing
+	public static final String TAG_CULTURAL_NORM = "CULTURAL_NORM";
+	public static final String TAG_SOURCE = "SOURCE";
+	public static final String TAG_NOTE = "NOTE";
 
 
 	private static final class SingletonHelper{
@@ -95,7 +99,7 @@ public class PersonalNameHandler extends AbstractRecordTypeHandler<PersonalNameS
 		final StringBuilder fullName = new StringBuilder();
 
 		for(final FLEFRecord part : parts){
-			final String val = FLEFRecordHelper.getChildValue(part, TAG_VALUE);
+			final String val = FLEFRecordHelper.getChildValue(part, PartHandler.TAG_VALUE);
 			if(StringUtils.isNotEmpty(val)){
 				if(!fullName.isEmpty())
 					fullName.append(StringUtils.SPACE);

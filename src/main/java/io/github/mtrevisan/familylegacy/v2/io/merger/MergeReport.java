@@ -38,10 +38,14 @@ import java.util.Set;
 public class MergeReport{
 
 	public enum DecisionType{
-		AUTO_MERGED,      // automatically merged into a single record
-		MANUAL_REVIEW,    // similarity is moderate; user should decide
-		REJECTED,         // similarity too low; kept separate
-		KEPT_AS_IS        // no conflict or single record
+		// automatically merged into a single record
+		AUTO_MERGED,
+		// similarity is moderate; user should decide
+		MANUAL_REVIEW,
+		// similarity too low; kept separate
+		REJECTED,
+		// no conflict or single record
+		KEPT_AS_IS
 	}
 
 

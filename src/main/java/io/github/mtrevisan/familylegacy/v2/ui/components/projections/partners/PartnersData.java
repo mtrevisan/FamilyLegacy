@@ -57,12 +57,6 @@ public final class PartnersData{
 	private static final String NO_DATA = "?";
 
 
-	//TODO extract value and connect to arrows in PartnersPanel, follow SiblingsPanel
-	/** True when the father has ancestors that exist in the model. */
-	private boolean fatherHasAncestors;
-	/** True when the mother has ancestors that exist in the model. */
-	private boolean motherHasAncestors;
-
 	private final String marriageTooltip;
 
 
@@ -158,14 +152,6 @@ public final class PartnersData{
 //		}
 	}
 
-
-	public boolean isFatherHasAncestors(){
-		return fatherHasAncestors;
-	}
-
-	public boolean isMotherHasAncestors(){
-		return motherHasAncestors;
-	}
 
 	public String getMarriageTooltip(){
 		return marriageTooltip;

@@ -65,7 +65,6 @@ public class IndividualSearchStrategy implements SearchStrategy{
 	private static final String ENUM_SEX_FEMALE = "female";
 	private static final String ENUM_SEX_UNKNOWN = "unknown";
 
-	private static final double FUZZY_THRESHOLD = 0.05;
 
 	private static final IndividualHandler HANDLER = IndividualHandler.getInstance();
 

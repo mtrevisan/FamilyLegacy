@@ -1,3 +1,27 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
 package io.github.mtrevisan.familylegacy.v2.ui.tools.reports;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
@@ -52,7 +76,7 @@ final class CulturalNormSection implements SectionBuilder{
 			return List.of();
 
 		final List<ReportSection> out = new ArrayList<>();
-		out.add(new ReportSection.Heading(1, ctx.labels.culturalNorms()));
+		out.add(new ReportSection.Heading(1, ctx.labels.sections().culturalNorms()));
 		for(final FLEFRecord norm : norms)
 			appendNorm(out, norm);
 		return out;
@@ -117,22 +141,22 @@ final class CulturalNormSection implements SectionBuilder{
 		out.add(new ReportSection.Heading(2, titleOf(norm)));
 
 		final List<String> rows = new ArrayList<>();
-		ReportFormatters.appendIfPresent(rows, ctx.labels.culturalNormRuleType(),
+		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().culturalNormRuleType(),
 			ruleTypeOf(norm));
 
 		final String from = GenealogicalDateHelper.formatDateStructure(norm, TAG_VALID_FROM, ctx.labels, contextLabels);
 		if(from != null)
-			rows.add("**" + ctx.labels.culturalNormValidFrom() + ":** "
+			rows.add("**" + ctx.labels.sections().culturalNormValidFrom() + ":** "
 				+ ReportFormatters.escape(from));
 
 		final String to = GenealogicalDateHelper.formatDateStructure(norm, TAG_VALID_TO, ctx.labels, contextLabels);
 		if(to != null)
-			rows.add("**" + ctx.labels.culturalNormValidTo() + ":** "
+			rows.add("**" + ctx.labels.sections().culturalNormValidTo() + ":** "
 				+ ReportFormatters.escape(to));
 
 		final String place = FLEFRecordHelper.extractPlace(norm, ctx.model);
 		if(place != null)
-			rows.add("**" + ctx.labels.culturalNormPlace() + ":** "
+			rows.add("**" + ctx.labels.sections().culturalNormPlace() + ":** "
 				+ ReportFormatters.escape(place));
 
 		if(!rows.isEmpty())

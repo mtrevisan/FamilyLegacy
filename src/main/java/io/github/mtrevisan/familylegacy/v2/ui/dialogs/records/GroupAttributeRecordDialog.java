@@ -39,7 +39,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.ContextImpactHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupAttributeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceCitationHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
@@ -52,7 +51,7 @@ import java.io.IOException;
 
 
 /**
- * Dialog for editing a {@code GROUP_ATTRIBUTE_RECORD} according to FLEF 0.1.2.
+ * Dialog for editing a {@code GROUP_ATTRIBUTE_RECORD} according to FLEF 0.1.3.
  * <p>
  * Structure:
  * <pre>
@@ -94,18 +93,6 @@ import java.io.IOException;
  */
 public class GroupAttributeRecordDialog extends BaseRecordDialog{
 
-	private static final String TAG_GROUP = "GROUP";
-	private static final String TAG_TYPE = "TYPE";
-	private static final String TAG_VALUE = "VALUE";
-	private static final String TAG_VALID_FROM = "VALID_FROM";
-	private static final String TAG_VALID_TO = "VALID_TO";
-	private static final String TAG_SOURCE = "SOURCE";
-	private static final String TAG_EVIDENCE = "EVIDENCE";
-	private static final String TAG_NOTE = "NOTE";
-	private static final String TAG_PRIVACY = "PRIVACY";
-	private static final String TAG_AUDIT = "AUDIT";
-
-
 	private final JPanel propertiesPanel;
 
 	private final BoundComboBox<String> typeCombo;
@@ -130,27 +117,27 @@ public class GroupAttributeRecordDialog extends BaseRecordDialog{
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]5[]10[]10[]10[]");
 
-		typeCombo = new BoundComboBox<>(TAG_TYPE, new String[]{
+		typeCombo = new BoundComboBox<>(GroupAttributeHandler.TAG_TYPE, new String[]{
 			StringUtils.EMPTY,
 			"residence", "member_count", "children_count", "social_class", "ethnicity", "religion", "language",
 			"wealth", "land_holding", "primary_income_source"
 		});
 		typeCombo.setEditable(true);
-		valueField = new BoundTextField(TAG_VALUE);
-		validFromField = DateField.createWithWrapperTag(TAG_VALID_FROM, this, "Valid From", model);
-		validToField = DateField.createWithWrapperTag(TAG_VALID_TO, this, "Valid To", model);
-		placeField = EntityField.createForStructureWithReference(PlaceHandler.TYPE, this, model, PlaceCitationHandler.class);
+		valueField = new BoundTextField(GroupAttributeHandler.TAG_VALUE);
+		validFromField = DateField.createWithWrapperTag(GroupAttributeHandler.TAG_VALID_FROM, this, "Valid From", model);
+		validToField = DateField.createWithWrapperTag(GroupAttributeHandler.TAG_VALID_TO, this, "Valid To", model);
+		placeField = EntityField.createForStructureWithReference(GroupAttributeHandler.TAG_PLACE, this, model, PlaceCitationHandler.class);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
 			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, ContextImpactHandler.TYPE, "Context Impacts")
 			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, "Conclusions")
 			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, "Research Questions")
-			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources with Citations")
-			.withComponent(PanelKey.NOTE, TAG_NOTE, null)
-			.withComponent(PanelKey.EVIDENCE, TAG_EVIDENCE, "Evidence")
-			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null)
-			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null)
+			.withComponent(PanelKey.SOURCE, GroupAttributeHandler.TAG_SOURCE, "Sources with Citations")
+			.withComponent(PanelKey.NOTE, GroupAttributeHandler.TAG_NOTE, null)
+			.withComponent(PanelKey.EVIDENCE, GroupAttributeHandler.TAG_EVIDENCE, "Evidence")
+			.withComponent(PanelKey.PRIVACY, GroupAttributeHandler.TAG_PRIVACY, null)
+			.withComponent(PanelKey.AUDIT, GroupAttributeHandler.TAG_AUDIT, null)
 			.build();
 
 		components.bind(typeCombo);
@@ -280,7 +267,7 @@ public class GroupAttributeRecordDialog extends BaseRecordDialog{
 	@Override
 	protected void loadData(){
 		// load parent group reference
-		final String groupId = FLEFRecordHelper.getChildValue(record, TAG_GROUP);
+		final String groupId = FLEFRecordHelper.getChildValue(record, GroupAttributeHandler.TAG_GROUP);
 		if(StringUtils.isNotEmpty(groupId)){
 			final FLEFRecord temporary = FLEFRecord.createMainRecord(groupId, GroupHandler.TYPE);
 			withParentEntity(temporary);
@@ -322,7 +309,7 @@ public class GroupAttributeRecordDialog extends BaseRecordDialog{
 	@Override
 	protected void saveData(){
 		record.getChildren()
-			.removeIf(child -> TAG_GROUP.equalsIgnoreCase(child.getTag()));
+			.removeIf(child -> GroupAttributeHandler.TAG_GROUP.equalsIgnoreCase(child.getTag()));
 		record.addChild(FLEFRecord.createChildWithTagAndValue(parentEntity.getPath(), parentEntity.getText()));
 
 

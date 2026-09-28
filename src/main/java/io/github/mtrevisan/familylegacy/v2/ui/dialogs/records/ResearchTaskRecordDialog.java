@@ -44,7 +44,7 @@ import java.io.IOException;
 
 
 /**
- * Dialog for editing a {@code ResearchTaskRecord} according to FLEF 0.1.2.
+ * Dialog for editing a {@code ResearchTaskRecord} according to FLEF 0.1.3.
  * <p>
  * Structure:
  * <pre>
@@ -68,17 +68,6 @@ import java.io.IOException;
  * Tab 10 (Audit): audit
  */
 public class ResearchTaskRecordDialog extends BaseRecordDialog{
-
-	private static final String TAG_DESCRIPTION = "DESCRIPTION";
-	private static final String TAG_QUESTION = "QUESTION";
-	private static final String TAG_CREATED_BY = "CREATED_BY";
-	private static final String TAG_STATUS = "STATUS";
-	private static final String TAG_PRIORITY = "PRIORITY";
-	private static final String TAG_DUE_DATE = "DUE_DATE";
-	private static final String TAG_OUTCOME = "OUTCOME";
-	private static final String TAG_PRIVACY = "PRIVACY";
-	private static final String TAG_AUDIT = "AUDIT";
-
 
 	private final JPanel propertiesPanel;
 
@@ -105,22 +94,22 @@ public class ResearchTaskRecordDialog extends BaseRecordDialog{
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]10[]10[]10[]10[]");
 
-		descriptionArea = new BoundTextArea(TAG_DESCRIPTION, 3, 30);
-		createdByField = EntityField.createForRecordFromReference(TAG_CREATED_BY, this, model,
+		descriptionArea = new BoundTextArea(ResearchTaskHandler.TAG_DESCRIPTION, 3, 30);
+		createdByField = EntityField.createForRecordFromReference(ResearchTaskHandler.TAG_CREATED_BY, this, model,
 			ResearchActivityHandler.class);
-		statusCombo = new BoundComboBox<>(TAG_STATUS, new String[]{
-			"open", "in_progress", "completed", "abandoned"});
-		priorityCombo = new BoundComboBox<>(TAG_PRIORITY, new String[]{
+		statusCombo = new BoundComboBox<>(ResearchTaskHandler.TAG_STATUS, new String[]{
+			ResearchTaskHandler.ENUM_STATUS_OPEN, ResearchTaskHandler.ENUM_STATUS_IN_PROGRESS, ResearchTaskHandler.ENUM_STATUS_COMPLETED, ResearchTaskHandler.ENUM_STATUS_ABANDONED});
+		priorityCombo = new BoundComboBox<>(ResearchTaskHandler.TAG_PRIORITY, new String[]{
 			StringUtils.EMPTY,
-			"low", "normal", "high"});
-		dueDateField = new BoundTextField(TAG_DUE_DATE);
-		outcomeArea = new BoundTextArea(TAG_OUTCOME, 3, 30);
+			ResearchTaskHandler.ENUM_PRIORITY_LOW, ResearchTaskHandler.ENUM_PRIORITY_NORMAL, ResearchTaskHandler.ENUM_PRIORITY_HIGH});
+		dueDateField = new BoundTextField(ResearchTaskHandler.TAG_DUE_DATE);
+		outcomeArea = new BoundTextArea(ResearchTaskHandler.TAG_OUTCOME, 3, 30);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.RESEARCH_QUESTION, TAG_QUESTION, "Questions")
-			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null)
-			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null)
+			.withComponent(PanelKey.RESEARCH_QUESTION, ResearchTaskHandler.TAG_QUESTION, "Questions")
+			.withComponent(PanelKey.PRIVACY, ResearchTaskHandler.TAG_PRIVACY, null)
+			.withComponent(PanelKey.AUDIT, ResearchTaskHandler.TAG_AUDIT, null)
 			.build();
 
 		components.bind(descriptionArea);

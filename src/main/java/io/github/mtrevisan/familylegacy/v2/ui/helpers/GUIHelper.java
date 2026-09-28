@@ -709,7 +709,7 @@ public final class GUIHelper{
 	}
 
 	private static void validate(FLEFModel model) throws IOException{
-		final Path path = Paths.get("src/main/resources/gedg/flef_0.1.2.gedg");
+		final Path path = Paths.get("src/main/resources/gedg/flef_0.1.3.gedg");
 		final FLEFGrammar grammar = FLEFGrammarParser.parse(path);
 		for(final String warning : grammar.getParseWarnings())
 			System.err.println(warning);

@@ -43,7 +43,7 @@ import java.awt.Window;
 
 
 /**
- * Dialog for editing a {@code TEXT_VALUE_VARIANT} according to FLEF 0.1.2.
+ * Dialog for editing a {@code TEXT_VALUE_VARIANT} according to FLEF 0.1.3.
  * <p>
  * Structure:
  * <pre>
@@ -81,16 +81,11 @@ public class TextValueVariantStructureDialog extends BaseRecordDialog{
 
 	private static final String DOT = ".";
 
-	private static final String TAG_PHONETIC = "PHONETIC";
-	private static final String TAG_TRANSCRIPTION = "TRANSCRIPTION";
-	private static final String TAG_SYSTEM = "SYSTEM";
-	private static final String TAG_TYPE = "TYPE";
-	private static final String TAG_VALUE = "VALUE";
-	private static final String TAG_PHONETIC_SYSTEM = TAG_PHONETIC + DOT + TAG_SYSTEM;
-	private static final String TAG_PHONETIC_VALUE = TAG_PHONETIC + DOT + TAG_VALUE;
-	private static final String TAG_TRANSCRIPTION_SYSTEM = TAG_TRANSCRIPTION + DOT + TAG_SYSTEM;
-	private static final String TAG_TRANSCRIPTION_TYPE = TAG_TRANSCRIPTION + DOT + TAG_TYPE;
-	private static final String TAG_TRANSCRIPTION_VALUE = TAG_TRANSCRIPTION + DOT + TAG_VALUE;
+	private static final String TAG_PHONETIC_SYSTEM = TextValueVariantHandler.TAG_PHONETIC + DOT + TextValueVariantHandler.TAG_SYSTEM;
+	private static final String TAG_PHONETIC_VALUE = TextValueVariantHandler.TAG_PHONETIC + DOT + TextValueVariantHandler.TAG_VALUE;
+	private static final String TAG_TRANSCRIPTION_SYSTEM = TextValueVariantHandler.TAG_TRANSCRIPTION + DOT + TextValueVariantHandler.TAG_SYSTEM;
+	private static final String TAG_TRANSCRIPTION_TYPE = TextValueVariantHandler.TAG_TRANSCRIPTION + DOT + TextValueVariantHandler.TAG_TYPE;
+	private static final String TAG_TRANSCRIPTION_VALUE = TextValueVariantHandler.TAG_TRANSCRIPTION + DOT + TextValueVariantHandler.TAG_VALUE;
 
 
 	private final JPanel propertiesPanel;
@@ -142,7 +137,7 @@ public class TextValueVariantStructureDialog extends BaseRecordDialog{
 			"lusitanized", "cyrillized", "arabized", "hebraized", "hellenized", "gairaigized", "modernized", "normalized"
 		});
 		typeCombo.setEditable(true);
-		valueField = new BoundTextField(TAG_VALUE);
+		valueField = new BoundTextField(TextValueVariantHandler.TAG_VALUE);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
@@ -191,8 +186,8 @@ public class TextValueVariantStructureDialog extends BaseRecordDialog{
 
 	@Override
 	protected void loadData(){
-		final FLEFRecord phonetic = record.getTheOnlyChild(TAG_PHONETIC);
-		final FLEFRecord transcription = record.getTheOnlyChild(TAG_TRANSCRIPTION);
+		final FLEFRecord phonetic = record.getTheOnlyChild(TextValueVariantHandler.TAG_PHONETIC);
+		final FLEFRecord transcription = record.getTheOnlyChild(TextValueVariantHandler.TAG_TRANSCRIPTION);
 		if(phonetic != null)
 			valueField.setPath(TAG_PHONETIC_VALUE);
 		else if(transcription != null)
@@ -254,11 +249,11 @@ public class TextValueVariantStructureDialog extends BaseRecordDialog{
 	@Override
 	public void saveData(){
 		if(phoneticRadio.isSelected()){
-			record.setTag(TAG_PHONETIC);
+			record.setTag(TextValueVariantHandler.TAG_PHONETIC);
 			valueField.setPath(TAG_PHONETIC_VALUE);
 		}
 		else if(transcriptionRadio.isSelected()){
-			record.setTag(TAG_TRANSCRIPTION);
+			record.setTag(TextValueVariantHandler.TAG_TRANSCRIPTION);
 			valueField.setPath(TAG_TRANSCRIPTION_VALUE);
 		}
 

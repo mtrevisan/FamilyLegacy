@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.RecordSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolDialogs;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.places.PlaceHelper;
@@ -175,20 +176,21 @@ public final class RemoveMemberDialog extends JDialog{
 		// Build the map id -> relationship once. This is the O(R) pass
 		// that replaces the O(R) per member.
 		final FLEFModel model = context.model();
-		for(final FLEFRecord rel : model.getRecordsByType(GroupHelper.TYPE_RELATIONSHIP)){
-			final String type = FLEFRecordHelper.getChildValue(rel, GroupHelper.TAG_TYPE);
-			if(type == null || !GroupHelper.REL_GROUP_MEMBER.equalsIgnoreCase(type))
+		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
+		for(final FLEFRecord relationship : relationships){
+			final String type = FLEFRecordHelper.getChildValue(relationship, GroupHelper.TAG_TYPE);
+			if(!GroupHelper.REL_GROUP_MEMBER.equalsIgnoreCase(type))
 				continue;
 
-			final String target = rel.extractReferencedId(GroupHelper.TAG_TARGET, GroupHelper.TYPE_GROUP);
-			if(!group.getId().equals(target))
+			final String object = relationship.extractReferencedId(GroupHelper.TAG_OBJECT, GroupHelper.TYPE_GROUP);
+			if(!group.getId().equals(object))
 				continue;
 
-			final String subject = rel.extractReferencedId(GroupHelper.TAG_SUBJECT, GroupHelper.TYPE_INDIVIDUAL);
+			final String subject = relationship.extractReferencedId(GroupHelper.TAG_SUBJECT, GroupHelper.TYPE_INDIVIDUAL);
 			if(subject == null)
 				continue;
 
-			relationshipIdByMember.putIfAbsent(subject, rel.getId());
+			relationshipIdByMember.putIfAbsent(subject, relationship.getId());
 		}
 
 		for(final Map.Entry<String, String> entry : relationshipIdByMember.entrySet()){

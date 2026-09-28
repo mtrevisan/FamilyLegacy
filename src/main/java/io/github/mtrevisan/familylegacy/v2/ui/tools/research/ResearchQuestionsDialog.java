@@ -235,7 +235,7 @@ public final class ResearchQuestionsDialog extends JDialog{
 			return;
 
 		final int confirm = JOptionPane.showConfirmDialog(this,
-			"Delete research question " + questionId + "?\n"
+			"Delete research question " + questionId + "?" + StringUtils.LF
 				+ "Activities, tasks, and conclusions that reference it will be left dangling.",
 			"Confirm Deletion",
 			JOptionPane.YES_NO_OPTION,

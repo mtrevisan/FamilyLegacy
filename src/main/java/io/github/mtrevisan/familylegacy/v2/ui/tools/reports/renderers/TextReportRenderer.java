@@ -1,7 +1,32 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
 package io.github.mtrevisan.familylegacy.v2.ui.tools.reports.renderers;
 
 import io.github.mtrevisan.familylegacy.v2.ui.tools.reports.ReportDocument;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.reports.ReportSection;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -34,26 +59,28 @@ public final class TextReportRenderer implements ReportRenderer{
 			w.newLine();
 			w.newLine();
 		}
-		else if(s instanceof ReportSection.Paragraph p){
-			w.write(stripInline(p.text()));
+		else if(s instanceof ReportSection.Paragraph(String text)){
+			w.write(stripInline(text));
 			w.newLine();
 		}
 		else if(s instanceof ReportSection.Spacer){
 			w.newLine();
 		}
-		else if(s instanceof ReportSection.BulletList b){
-			for(final String item : b.items()){
+		else if(s instanceof ReportSection.BulletList(java.util.List<String> items)){
+			for(final String item : items){
 				w.write("  - ");
 				w.write(stripInline(item));
 				w.newLine();
 			}
 		}
-		else if(s instanceof ReportSection.Table t){
-			w.write(String.join(" | ", t.headers()));
+		else if(s instanceof ReportSection.Table(
+			java.util.List<String> headers, java.util.List<java.util.List<String>> rows
+		)){
+			w.write(String.join(" | ", headers));
 			w.newLine();
 			w.write("-".repeat(60));
 			w.newLine();
-			for(final var row : t.rows()){
+			for(final var row : rows){
 				w.write(String.join(" | ", row));
 				w.newLine();
 			}
@@ -75,6 +102,8 @@ public final class TextReportRenderer implements ReportRenderer{
 
 	/** Rimuove **bold**, *italic*, `code`. */
 	static String stripInline(final String s){
-		return s.replace("**", "").replace("`", "").replaceAll("(?<!\\*)\\*(?!\\*)", "");
+		return s.replace("**", StringUtils.EMPTY)
+			.replace("`", StringUtils.EMPTY)
+			.replaceAll("(?<!\\*)\\*(?!\\*)", StringUtils.EMPTY);
 	}
 }

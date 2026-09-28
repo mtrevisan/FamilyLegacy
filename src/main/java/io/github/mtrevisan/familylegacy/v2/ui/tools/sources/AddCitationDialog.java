@@ -219,7 +219,7 @@ public final class AddCitationDialog extends JDialog{
 		if(editor == null){
 			JOptionPane.showMessageDialog(context.owner(),
 				"No editor is wired for the target record type "
-					+ targetRecord.getTag() + ".\n"
+					+ targetRecord.getTag() + "." + StringUtils.LF
 					+ "Open the record manually to add the citation.",
 				"Add Citation", JOptionPane.INFORMATION_MESSAGE);
 			return;

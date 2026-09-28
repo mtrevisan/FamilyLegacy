@@ -1,3 +1,27 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
 package io.github.mtrevisan.familylegacy.v2.ui.tools.reports;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
@@ -55,7 +79,7 @@ final class HeaderSection implements SectionBuilder{
 			return List.of();
 
 		final List<ReportSection> out = new ArrayList<>();
-		out.add(new ReportSection.Heading(1, ctx.labels.header()));
+		out.add(new ReportSection.Heading(1, ctx.labels.sections().header()));
 
 		appendProtocol(out, header);
 		appendSource(out, header);
@@ -81,8 +105,8 @@ final class HeaderSection implements SectionBuilder{
 			return;
 
 		final List<String> rows = new ArrayList<>();
-		ReportFormatters.appendIfPresent(rows, ctx.labels.headerProtocol(), name);
-		ReportFormatters.appendIfPresent(rows, ctx.labels.headerProtocolVersion(), version);
+		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().headerProtocol(), name);
+		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().headerProtocolVersion(), version);
 		if(!rows.isEmpty())
 			out.add(new ReportSection.BulletList(rows));
 	}
@@ -101,9 +125,9 @@ final class HeaderSection implements SectionBuilder{
 			return;
 
 		final List<String> rows = new ArrayList<>();
-		ReportFormatters.appendIfPresent(rows, ctx.labels.headerSource(), name);
-		ReportFormatters.appendIfPresent(rows, ctx.labels.headerSourceVersion(), version);
-		ReportFormatters.appendIfPresent(rows, ctx.labels.headerOrganization(), organization);
+		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().headerSource(), name);
+		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().headerSourceVersion(), version);
+		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().headerOrganization(), organization);
 		if(!rows.isEmpty())
 			out.add(new ReportSection.BulletList(rows));
 	}
@@ -118,8 +142,8 @@ final class HeaderSection implements SectionBuilder{
 			return;
 
 		final List<String> rows = new ArrayList<>();
-		ReportFormatters.appendIfPresent(rows, ctx.labels.headerDate(), date);
-		ReportFormatters.appendIfPresent(rows, ctx.labels.headerCopyright(), copyright);
+		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().headerDate(), date);
+		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().headerCopyright(), copyright);
 		if(!rows.isEmpty())
 			out.add(new ReportSection.BulletList(rows));
 	}
@@ -134,19 +158,19 @@ final class HeaderSection implements SectionBuilder{
 
 		final List<String> rows = new ArrayList<>();
 		for(final FLEFRecord contact : FLEFRecordHelper.findChildren(submitter, TAG_CONTACT)){
-			final String rendered = ReportFormatters.renderContact(contact, ctx.labels);
+			final String rendered = ReportFormatters.renderContact(contact);
 			if(rendered != null)
 				rows.add(rendered);
 		}
 		final String note = FLEFRecordHelper.getChildValue(submitter, TAG_NOTE);
 		if(note != null && !note.isBlank())
-			rows.add("**" + ctx.labels.headerSubmitterNote() + ":** "
+			rows.add("**" + ctx.labels.sections().headerSubmitterNote() + ":** "
 				+ ReportFormatters.escape(note));
 
 		if(rows.isEmpty())
 			return;
 
-		out.add(new ReportSection.Heading(2, ctx.labels.headerSubmitter()));
+		out.add(new ReportSection.Heading(2, ctx.labels.sections().headerSubmitter()));
 		out.add(new ReportSection.BulletList(rows));
 	}
 
@@ -158,7 +182,7 @@ final class HeaderSection implements SectionBuilder{
 		if(scope == null || scope.isBlank())
 			return;
 		out.add(new ReportSection.Paragraph(
-			"**" + ctx.labels.headerScope() + ":** " + ReportFormatters.escape(scope)));
+			"**" + ctx.labels.sections().headerScope() + ":** " + ReportFormatters.escape(scope)));
 	}
 
 }

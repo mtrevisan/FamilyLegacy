@@ -62,7 +62,7 @@ public final class IndividualHelper{
 
 	public static final String TAG_TYPE = "type";
 	public static final String TAG_SUBJECT = "subject";
-	public static final String TAG_TARGET = "target";
+	public static final String TAG_OBJECT = "object";
 	public static final String TAG_NAME = "name";
 	public static final String TAG_VALUE = "value";
 	public static final String TAG_SEX = "sex";
@@ -175,7 +175,7 @@ public final class IndividualHelper{
 			.addChild(FLEFRecord.createChildWithTag(TAG_SUBJECT)
 				.addChild(FLEFRecord.createChildWithTagAndValue(TYPE_INDIVIDUAL, subjectId))
 			)
-			.addChild(FLEFRecord.createChildWithTag(TAG_TARGET)
+			.addChild(FLEFRecord.createChildWithTag(TAG_OBJECT)
 				.addChild(FLEFRecord.createChildWithTagAndValue(TYPE_INDIVIDUAL, targetId))
 			)
 			.addChild(AuditBuilder.build());
@@ -195,8 +195,8 @@ public final class IndividualHelper{
 		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
 		for(final FLEFRecord relationship : relationships){
 			final String subject = relationship.extractReferencedId(TAG_SUBJECT, TYPE_INDIVIDUAL);
-			final String target = relationship.extractReferencedId(TAG_TARGET, TYPE_INDIVIDUAL);
-			if(individualId.equals(subject) || individualId.equals(target))
+			final String object = relationship.extractReferencedId(TAG_OBJECT, TYPE_INDIVIDUAL);
+			if(individualId.equals(subject) || individualId.equals(object))
 				result.add(relationship.getId());
 		}
 		return result;
@@ -211,13 +211,13 @@ public final class IndividualHelper{
 		final String individualId){
 		final List<String> fathers = new ArrayList<>();
 		final List<String> mothers = new ArrayList<>();
-		for(final FLEFRecord rel : model.getRecordsByType(RelationshipHandler.TYPE)){
-			final String type = FLEFRecordHelper.getChildValue(rel, TAG_TYPE);
+		for(final FLEFRecord relationship : model.getRecordsByType(RelationshipHandler.TYPE)){
+			final String type = FLEFRecordHelper.getChildValue(relationship, TAG_TYPE);
 			if(!REL_BIOLOGICAL_CHILD.equalsIgnoreCase(type))
 				continue;
 
-			final String child = rel.extractReferencedId(TAG_SUBJECT, TYPE_INDIVIDUAL);
-			final String parent = rel.extractReferencedId(TAG_TARGET, TYPE_INDIVIDUAL);
+			final String child = relationship.extractReferencedId(TAG_SUBJECT, TYPE_INDIVIDUAL);
+			final String parent = relationship.extractReferencedId(TAG_OBJECT, TYPE_INDIVIDUAL);
 			if(!individualId.equals(child) || parent == null)
 				continue;
 
@@ -311,13 +311,13 @@ public final class IndividualHelper{
 		if(individualId == null)
 			return result;
 
-		for(final FLEFRecord rel : model.getRecordsByType(RelationshipHandler.TYPE)){
-			final String type = FLEFRecordHelper.getChildValue(rel, TAG_TYPE);
+		for(final FLEFRecord relationship : model.getRecordsByType(RelationshipHandler.TYPE)){
+			final String type = FLEFRecordHelper.getChildValue(relationship, TAG_TYPE);
 			if(!isChildType(type))
 				continue;
 
-			final String child = rel.extractReferencedId(TAG_SUBJECT, TYPE_INDIVIDUAL);
-			final String parent = rel.extractReferencedId(TAG_TARGET, TYPE_INDIVIDUAL);
+			final String child = relationship.extractReferencedId(TAG_SUBJECT, TYPE_INDIVIDUAL);
+			final String parent = relationship.extractReferencedId(TAG_OBJECT, TYPE_INDIVIDUAL);
 			if(individualId.equals(child) && parent != null)
 				result.add(parent);
 		}
@@ -332,16 +332,16 @@ public final class IndividualHelper{
 		if(individualId == null)
 			return result;
 
-		for(final FLEFRecord rel : model.getRecordsByType(RelationshipHandler.TYPE)){
-			final String type = FLEFRecordHelper.getChildValue(rel, TAG_TYPE);
+		for(final FLEFRecord relationship : model.getRecordsByType(RelationshipHandler.TYPE)){
+			final String type = FLEFRecordHelper.getChildValue(relationship, TAG_TYPE);
 			if(type == null || isChildType(type) || REL_GROUP_MEMBER.equalsIgnoreCase(type))
 				continue;
 
-			final String subject = rel.extractReferencedId(TAG_SUBJECT, TYPE_INDIVIDUAL);
-			final String target = rel.extractReferencedId(TAG_TARGET, TYPE_INDIVIDUAL);
-			if(individualId.equals(subject) && target != null)
-				result.add(target);
-			else if(individualId.equals(target) && subject != null)
+			final String subject = relationship.extractReferencedId(TAG_SUBJECT, TYPE_INDIVIDUAL);
+			final String object = relationship.extractReferencedId(TAG_OBJECT, TYPE_INDIVIDUAL);
+			if(individualId.equals(subject) && object != null)
+				result.add(object);
+			else if(individualId.equals(object) && subject != null)
 				result.add(subject);
 		}
 		return result;
@@ -355,15 +355,15 @@ public final class IndividualHelper{
 		if(individualId == null)
 			return result;
 
-		for(final FLEFRecord rel : model.getRecordsByType(RelationshipHandler.TYPE)){
-			final String type = FLEFRecordHelper.getChildValue(rel, TAG_TYPE);
+		for(final FLEFRecord relationship : model.getRecordsByType(RelationshipHandler.TYPE)){
+			final String type = FLEFRecordHelper.getChildValue(relationship, TAG_TYPE);
 			if(!REL_GROUP_MEMBER.equalsIgnoreCase(type))
 				continue;
 
-			final String subject = rel.extractReferencedId(TAG_SUBJECT, TYPE_INDIVIDUAL);
-			final String targetGroup = rel.extractReferencedId(TAG_TARGET, TYPE_GROUP);
-			if(individualId.equals(subject) && targetGroup != null)
-				result.add(targetGroup);
+			final String subject = relationship.extractReferencedId(TAG_SUBJECT, TYPE_INDIVIDUAL);
+			final String objectGroup = relationship.extractReferencedId(TAG_OBJECT, TYPE_GROUP);
+			if(individualId.equals(subject) && objectGroup != null)
+				result.add(objectGroup);
 		}
 		return result;
 	}
@@ -376,13 +376,13 @@ public final class IndividualHelper{
 		if(individualId == null)
 			return result;
 
-		for(final FLEFRecord rel : model.getRecordsByType(RelationshipHandler.TYPE)){
-			final String type = FLEFRecordHelper.getChildValue(rel, TAG_TYPE);
+		for(final FLEFRecord relationship : model.getRecordsByType(RelationshipHandler.TYPE)){
+			final String type = FLEFRecordHelper.getChildValue(relationship, TAG_TYPE);
 			if(!isChildType(type))
 				continue;
 
-			final String child = rel.extractReferencedId(TAG_SUBJECT, TYPE_INDIVIDUAL);
-			final String parent = rel.extractReferencedId(TAG_TARGET, TYPE_INDIVIDUAL);
+			final String child = relationship.extractReferencedId(TAG_SUBJECT, TYPE_INDIVIDUAL);
+			final String parent = relationship.extractReferencedId(TAG_OBJECT, TYPE_INDIVIDUAL);
 			if(individualId.equals(parent) && child != null)
 				result.add(child);
 		}
@@ -411,21 +411,21 @@ public final class IndividualHelper{
 		final Set<String> parents = new LinkedHashSet<>(biologicalParentIds(model, individualId));
 		final Set<String> children = new LinkedHashSet<>();
 		final Set<String> spouses = new LinkedHashSet<>();
-		for(final FLEFRecord rel : model.getRecordsByType(RelationshipHandler.TYPE)){
-			final String type = FLEFRecordHelper.getChildValue(rel, TAG_TYPE);
+		for(final FLEFRecord relationship : model.getRecordsByType(RelationshipHandler.TYPE)){
+			final String type = FLEFRecordHelper.getChildValue(relationship, TAG_TYPE);
 			if(type == null)
 				continue;
 
-			final String subject = rel.extractReferencedId(TAG_SUBJECT, TYPE_INDIVIDUAL);
-			final String target = rel.extractReferencedId(TAG_TARGET, TYPE_INDIVIDUAL);
+			final String subject = relationship.extractReferencedId(TAG_SUBJECT, TYPE_INDIVIDUAL);
+			final String object = relationship.extractReferencedId(TAG_OBJECT, TYPE_INDIVIDUAL);
 			if(REL_BIOLOGICAL_CHILD.equalsIgnoreCase(type)){
-				if(individualId.equals(target) && subject != null)
+				if(individualId.equals(object) && subject != null)
 					children.add(subject);
 			}
 			else if(isSpouseType(type)){
-				if(individualId.equals(subject) && target != null)
-					spouses.add(target);
-				else if(individualId.equals(target) && subject != null)
+				if(individualId.equals(subject) && object != null)
+					spouses.add(object);
+				else if(individualId.equals(object) && subject != null)
 					spouses.add(subject);
 			}
 		}

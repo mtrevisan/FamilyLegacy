@@ -138,7 +138,8 @@ public class FamilyConverter{
 	 */
 	public void collect(GEDCOMNode famNode){
 		String famXref = famNode.getXrefId();
-		if(famXref == null) return;
+		if(famXref == null)
+			return;
 
 		String cleanFamId = IDNormalizer.clean(famXref);
 		IDGenerator.registerExistingId(cleanFamId);
@@ -248,7 +249,8 @@ public class FamilyConverter{
 	public void resolveLinks(){
 		for(FamilyLink link : familyLinks){
 			FLEFRecord group = familyMap.get(link.familyId);
-			if(group == null) continue;
+			if(group == null)
+				continue;
 
 			// ---- Set group name ----
 			String husbandName = getDisplayName(link.husbandId);
@@ -278,7 +280,7 @@ public class FamilyConverter{
 					.addChild(FLEFRecord.createChildWithTag("subject")
 						.addChild(FLEFRecord.createChildWithTagAndValue("individual", link.husbandId))
 					)
-					.addChild(FLEFRecord.createChildWithTag("target")
+					.addChild(FLEFRecord.createChildWithTag("object")
 						.addChild(FLEFRecord.createChildWithTagAndValue("individual", link.wifeId))
 					);
 				if(("civil".equalsIgnoreCase(marriageType) || "religious".equalsIgnoreCase(marriageType)))
@@ -365,7 +367,7 @@ public class FamilyConverter{
 				IDGenerator.nextId(RelationshipHandler.ID_PREFIX), RelationshipHandler.TYPE)
 			.addChild(FLEFRecord.createChildWithTag("subject")
 				.addChild(FLEFRecord.createChildWithTagAndValue("individual", childId)))
-			.addChild(FLEFRecord.createChildWithTag("target")
+			.addChild(FLEFRecord.createChildWithTag("object")
 				.addChild(FLEFRecord.createChildWithTagAndValue("individual", parentId)))
 			.addChild(FLEFRecord.createChildWithTagAndValue("type", "biological_child"))
 			.addChild(FLEFRecord.createChildWithTagAndValue("status", "active"))
@@ -385,7 +387,8 @@ public class FamilyConverter{
 		Map<String, GEDCOMNode> noteRawMap,
 		Map<String, GEDCOMNode> objeRawMap,
 		FLEFModel model){
-		if(eventNode == null) return null;
+		if(eventNode == null)
+			return null;
 
 		String eventFlefId = IDGenerator.nextId(EventHandler.ID_PREFIX);
 		FLEFRecord eventRecord = FLEFRecord.createMainRecord(eventFlefId, EventHandler.TYPE);
@@ -470,7 +473,8 @@ public class FamilyConverter{
 	private void createGroupAttribute(GEDCOMNode attrNode,
 		FLEFRecord group,
 		FLEFModel model){
-		if(attrNode == null) return;
+		if(attrNode == null)
+			return;
 
 		String gedcomTag = attrNode.getTag();
 		// Map to FLEF attribute type (e.g., RESI -> residence)
@@ -532,7 +536,8 @@ public class FamilyConverter{
 
 	private void processObjNodes(FamilyLink link, FLEFRecord group){
 		List<GEDCOMNode> objNodes = link.objNodes;
-		if(objNodes.isEmpty()) return;
+		if(objNodes.isEmpty())
+			return;
 
 		GEDCOMNode preferredObj = null;
 		for(GEDCOMNode obj : objNodes){
@@ -644,9 +649,11 @@ public class FamilyConverter{
 	// ------------------------------------------------------------------------
 
 	private String getDisplayName(String indiId){
-		if(indiId == null) return StringUtils.EMPTY;
+		if(indiId == null)
+			return StringUtils.EMPTY;
 		FLEFRecord indi = individualMap.get(indiId);
-		if(indi == null) return StringUtils.EMPTY;
+		if(indi == null)
+			return StringUtils.EMPTY;
 		for(FLEFRecord name : indi.getChildren()){
 			if("name".equals(name.getTag())){
 				for(FLEFRecord part : name.getChildren()){

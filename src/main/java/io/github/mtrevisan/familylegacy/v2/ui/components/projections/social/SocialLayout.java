@@ -235,7 +235,6 @@ public final class SocialLayout{
 		// Reconstruct the BFS parent of each node so that children of the
 		// same parent remain adjacent on their ring.
 		final Map<SocialNodeRef, SocialNodeRef> parent = bfsParents(graph);
-		final Map<SocialNodeRef, List<SocialNodeRef>> childrenByParent = groupByParent(parent, graph);
 
 		// Group nodes by ring.
 		final Map<Integer, List<SocialNodeRef>> ringToNodes = new LinkedHashMap<>();

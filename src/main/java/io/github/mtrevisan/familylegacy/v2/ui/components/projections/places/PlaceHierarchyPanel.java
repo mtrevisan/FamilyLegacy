@@ -206,7 +206,7 @@ public final class PlaceHierarchyPanel extends JPanel{
 		final JScrollPane treeScroll = new JScrollPane(tree);
 		treeScroll.setMinimumSize(new Dimension(TREE_MIN_WIDTH, 200));
 
-		detailsPanel = new PlaceDetailsPanel(model);
+		detailsPanel = new PlaceDetailsPanel();
 		final JScrollPane detailsScroll = new JScrollPane(detailsPanel);
 		detailsScroll.setMinimumSize(new Dimension(DETAILS_MIN_WIDTH, 200));
 		detailsScroll.setBorder(BorderFactory.createEmptyBorder());
@@ -455,11 +455,9 @@ public final class PlaceHierarchyPanel extends JPanel{
 	 */
 	private static final class PlaceDetailsPanel extends JPanel{
 
-		private final FLEFModel model;
 		private final javax.swing.JTextPane content = new javax.swing.JTextPane();
 
-		PlaceDetailsPanel(final FLEFModel model){
-			this.model = model;
+		PlaceDetailsPanel(){
 			setLayout(new BorderLayout());
 			content.setEditable(false);
 			content.setContentType("text/html");

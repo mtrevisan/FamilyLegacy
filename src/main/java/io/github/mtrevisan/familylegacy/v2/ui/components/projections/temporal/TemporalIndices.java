@@ -78,16 +78,16 @@ public final class TemporalIndices{
 
 
 	private TemporalIndices(final Map<String, List<FLEFRecord>> eventParticipationsByParticipantId,
-		final Map<String, List<FLEFRecord>> individualAttributesByOwnerId,
-		final Map<String, List<FLEFRecord>> groupAttributesByOwnerId,
-		final Map<String, List<FLEFRecord>> contextImpactsByTargetId,
-		final Map<String, List<FLEFRecord>> historicEventsByPlaceId,
-		final Map<String, List<FLEFRecord>> culturalNormsByPlaceId,
-		final List<FLEFRecord> allRelationships,
-		final List<FLEFRecord> allPlaceRelationships,
-		final List<FLEFRecord> allContextImpacts,
-		final List<FLEFRecord> allHistoricEvents,
-		final List<FLEFRecord> allCulturalNorms){
+			final Map<String, List<FLEFRecord>> individualAttributesByOwnerId,
+			final Map<String, List<FLEFRecord>> groupAttributesByOwnerId,
+			final Map<String, List<FLEFRecord>> contextImpactsByTargetId,
+			final Map<String, List<FLEFRecord>> historicEventsByPlaceId,
+			final Map<String, List<FLEFRecord>> culturalNormsByPlaceId,
+			final List<FLEFRecord> allRelationships,
+			final List<FLEFRecord> allPlaceRelationships,
+			final List<FLEFRecord> allContextImpacts,
+			final List<FLEFRecord> allHistoricEvents,
+			final List<FLEFRecord> allCulturalNorms){
 		this.eventParticipationsByParticipantId = eventParticipationsByParticipantId;
 		this.individualAttributesByOwnerId = individualAttributesByOwnerId;
 		this.groupAttributesByOwnerId = groupAttributesByOwnerId;

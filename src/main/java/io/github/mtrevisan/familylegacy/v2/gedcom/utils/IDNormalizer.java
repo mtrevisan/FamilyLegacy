@@ -40,7 +40,8 @@ public final class IDNormalizer{
 	 * Example: "@I7@" -> "I7"
 	 */
 	public static String clean(String id){
-		if(id == null) return null;
+		if(id == null)
+			return null;
 		return id.replace("@", StringUtils.EMPTY).trim();
 	}
 

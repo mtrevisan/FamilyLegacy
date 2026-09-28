@@ -38,6 +38,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NameHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceCitationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchActivityHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
@@ -49,7 +50,7 @@ import java.io.IOException;
 
 
 /**
- * Dialog for editing a {@code SOURCE_RECORD} according to FLEF 0.1.2.
+ * Dialog for editing a {@code SOURCE_RECORD} according to FLEF 0.1.3.
  * <p>
  * Structure:
  * <pre>
@@ -78,19 +79,6 @@ import java.io.IOException;
  */
 public class SourceRecordDialog extends BaseRecordDialog{
 
-	private static final String TAG_TITLE = "TITLE";
-	private static final String TAG_AUTHOR = "AUTHOR";
-	private static final String TAG_PUBLISHER = "PUBLISHER";
-	private static final String TAG_DATE = "DATE";
-	private static final String TAG_MEDIA_TYPE = "MEDIA_TYPE";
-	private static final String TAG_REPOSITORY = "REPOSITORY";
-	private static final String TAG_DOCUMENT = "DOCUMENT";
-	private static final String TAG_NOTE = "NOTE";
-	private static final String TAG_RESEARCH_ACTIVITY = "RESEARCH_ACTIVITY";
-	private static final String TAG_PRIVACY = "PRIVACY";
-	private static final String TAG_AUDIT = "AUDIT";
-
-
 	private final EntityListPanel titlePanel;
 	private final BoundTextField authorField;
 	private final BoundTextField publisherField;
@@ -111,14 +99,14 @@ public class SourceRecordDialog extends BaseRecordDialog{
 	private SourceRecordDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, SourceHandler.getInstance());
 
-		titlePanel = EntityListPanel.createForStructure(TAG_TITLE, this, "Title*", model,
+		titlePanel = EntityListPanel.createForStructure(SourceHandler.TAG_TITLE, this, "Title*", model,
 			NameHandler.class);
-		authorField = new BoundTextField(TAG_AUTHOR);
-		publisherField = new BoundTextField(TAG_PUBLISHER);
-		dateField = DateField.createWithWrapperTag(TAG_DATE, this, "Valid Date", model);
+		authorField = new BoundTextField(SourceHandler.TAG_AUTHOR);
+		publisherField = new BoundTextField(SourceHandler.TAG_PUBLISHER);
+		dateField = DateField.createWithWrapperTag(SourceHandler.TAG_DATE, this, "Valid Date", model);
 		placeField = EntityField.createForStructureWithReference(PlaceHandler.TYPE, this, model,
 			PlaceCitationHandler.class);
-		mediaTypeCombo = new BoundComboBox<>(TAG_MEDIA_TYPE, new String[]{
+		mediaTypeCombo = new BoundComboBox<>(SourceHandler.TAG_MEDIA_TYPE, new String[]{
 			StringUtils.EMPTY,
 			"audio", "book", "card", "electronic", "fiche", "film",
 			"magazine", "manuscript", "map", "newspaper", "photo",
@@ -127,14 +115,14 @@ public class SourceRecordDialog extends BaseRecordDialog{
 		mediaTypeCombo.setEditable(true);
 
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.REPOSITORY, TAG_REPOSITORY, "Repositories with Citations")
-			.withComponent(PanelKey.DOCUMENT, TAG_DOCUMENT, "Documents")
+			.withComponent(PanelKey.REPOSITORY, SourceHandler.TAG_REPOSITORY, "Repositories with Citations")
+			.withComponent(PanelKey.DOCUMENT, SourceHandler.TAG_DOCUMENT, "Documents")
 			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, "Conclusions")
 			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, "Research Questions")
-			.withComponent(PanelKey.RESEARCH_ACTIVITY_ON_SOURCE, TAG_RESEARCH_ACTIVITY, "Research Activities")
-			.withComponent(PanelKey.NOTE, TAG_NOTE, null)
-			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null)
-			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null)
+			.withComponent(PanelKey.RESEARCH_ACTIVITY_ON_SOURCE, ResearchActivityHandler.TYPE, "Research Activities")
+			.withComponent(PanelKey.NOTE, SourceHandler.TAG_NOTE, null)
+			.withComponent(PanelKey.PRIVACY, SourceHandler.TAG_PRIVACY, null)
+			.withComponent(PanelKey.AUDIT, SourceHandler.TAG_AUDIT, null)
 			.build();
 
 		components.bind(authorField);

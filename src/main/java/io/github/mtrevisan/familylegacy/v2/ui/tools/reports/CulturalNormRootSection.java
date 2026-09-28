@@ -1,7 +1,32 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
 package io.github.mtrevisan.familylegacy.v2.ui.tools.reports;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,7 +40,7 @@ import java.util.function.Function;
  * lists every name and every approximate date that invokes this norm across
  * the model, so the reader can see which genealogical assertions rely on it.
  */
-final class CulturalNormRootSection implements SectionBuilder{
+public final class CulturalNormRootSection implements SectionBuilder{
 
 	private static final String TAG_TITLE = "title";
 	private static final String TAG_RULE_TYPE = "rule_type";
@@ -44,7 +69,7 @@ final class CulturalNormRootSection implements SectionBuilder{
 		final String title = ReportFormatters.orEmpty(
 			FLEFRecordHelper.getChildValue(ctx.root, TAG_TITLE));
 		out.add(new ReportSection.Heading(1, String.format(
-			ctx.labels.culturalNormOf(), ReportFormatters.escape(title))));
+			ctx.labels.sections().culturalNormOf(), ReportFormatters.escape(title))));
 
 		writeBasicInfo(out);
 		writeInvocations(out);
@@ -60,15 +85,15 @@ final class CulturalNormRootSection implements SectionBuilder{
 
 	private void writeBasicInfo(final List<ReportSection> out){
 		final List<String> rows = new ArrayList<>();
-		ReportFormatters.appendIfPresent(rows, ctx.labels.culturalNormRuleType(),
+		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().culturalNormRuleType(),
 			FLEFRecordHelper.getChildValue(ctx.root, TAG_RULE_TYPE));
-		ReportFormatters.appendIfPresent(rows, ctx.labels.culturalNormValidFrom(),
+		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().culturalNormValidFrom(),
 			GenealogicalDateHelper.formatDateStructure(ctx.root, TAG_VALID_FROM,
 				ctx.labels, contextLabels));
-		ReportFormatters.appendIfPresent(rows, ctx.labels.culturalNormValidTo(),
+		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().culturalNormValidTo(),
 			GenealogicalDateHelper.formatDateStructure(ctx.root, TAG_VALID_TO,
 				ctx.labels, contextLabels));
-		ReportFormatters.appendIfPresent(rows, ctx.labels.culturalNormPlace(),
+		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().culturalNormPlace(),
 			FLEFRecordHelper.extractPlace(ctx.root, ctx.model));
 		if(!rows.isEmpty())
 			out.add(new ReportSection.BulletList(rows));
@@ -86,14 +111,15 @@ final class CulturalNormRootSection implements SectionBuilder{
 					items.add(label);
 			}
 		}
-		if(items.isEmpty()) return;
+		if(items.isEmpty())
+			return;
 
-		out.add(new ReportSection.Heading(2, ctx.labels.culturalNormInvocations()));
+		out.add(new ReportSection.Heading(2, ctx.labels.sections().culturalNormInvocations()));
 		out.add(new ReportSection.BulletList(items.stream()
 			.map(ReportFormatters::escape).toList()));
 	}
 
-	private static List<FLEFRecord> collectDescendantsWithTag(final FLEFRecord rec, final String tag){
+	public static List<FLEFRecord> collectDescendantsWithTag(final FLEFRecord rec, final String tag){
 		final List<FLEFRecord> out = new ArrayList<>();
 		collectDescendantsWithTag(rec, tag, out);
 		return out;
@@ -114,7 +140,7 @@ final class CulturalNormRootSection implements SectionBuilder{
 		final String type = FLEFRecordHelper.getChildValue(rec, TAG_TYPE);
 		final String id = rec.getId();
 		if(type != null)
-			return type + " " + ReportFormatters.orEmpty(id);
+			return type + StringUtils.SPACE + ReportFormatters.orEmpty(id);
 		return ReportFormatters.orEmpty(id);
 	}
 

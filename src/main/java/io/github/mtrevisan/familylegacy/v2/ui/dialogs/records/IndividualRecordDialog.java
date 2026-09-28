@@ -95,7 +95,7 @@ protected void onOk(){
 }
 */
 /**
- * Dialog for editing an {@code INDIVIDUAL_RECORD} according to FLEF 0.1.2.
+ * Dialog for editing an {@code INDIVIDUAL_RECORD} according to FLEF 0.1.3.
  * <p>
  * Structure:
  * <pre>
@@ -128,18 +128,6 @@ protected void onOk(){
  */
 public class IndividualRecordDialog extends BaseRecordDialog{
 
-	private static final String TAG_PREFERRED_IMAGE = "PREFERRED_IMAGE";
-	private static final String TAG_PERSONAL_NAME = "NAME";
-	private static final String TAG_SEX = "SEX";
-	private static final String TAG_SOURCE = "SOURCE";
-	private static final String TAG_NOTE = "NOTE";
-	private static final String TAG_PRIVACY = "PRIVACY";
-	private static final String TAG_AUDIT = "AUDIT";
-
-	private static final String ENUM_SEX_MALE = "male";
-	private static final String ENUM_SEX_FEMALE = "female";
-
-
 	private final PreferredImagePanel preferredImagePanel;
 	private final EntityListPanel personalNamePanel;
 	private final BoundComboBox<String> sexCombo;
@@ -158,11 +146,11 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 	private IndividualRecordDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, IndividualHandler.getInstance());
 
-		preferredImagePanel = new PreferredImagePanel(TAG_PREFERRED_IMAGE, this);
-		personalNamePanel = EntityListPanel.createForStructure(TAG_PERSONAL_NAME, this, "Personal Names*", model, PersonalNameHandler.class);
-		sexCombo = new BoundComboBox<>(TAG_SEX, new String[]{
+		preferredImagePanel = new PreferredImagePanel(IndividualHandler.TAG_PREFERRED_IMAGE, this);
+		personalNamePanel = EntityListPanel.createForStructure(IndividualHandler.TAG_NAME, this, "Personal Names*", model, PersonalNameHandler.class);
+		sexCombo = new BoundComboBox<>(IndividualHandler.TAG_SEX, new String[]{
 			StringUtils.EMPTY,
-			ENUM_SEX_MALE, ENUM_SEX_FEMALE, "unknown"});
+			IndividualHandler.ENUM_SEX_MALE, IndividualHandler.ENUM_SEX_FEMALE, IndividualHandler.ENUM_SEX_UNKNOWN});
 
 		components = new RecordDialogBuilder(this, model, record)
 			.withComponent(PanelKey.INDIVIDUAL_ATTRIBUTE, IndividualAttributeHandler.TYPE, "Individual Attributes")
@@ -173,10 +161,10 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, "Conclusions")
 			.withComponent(PanelKey.IDENTITY_HYPOTHESIS_ON_IDENTITY, IdentityHypothesisHandler.TYPE, "Identity Hypotheses")
 			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, "Research Questions")
-			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources with Citations")
-			.withComponent(PanelKey.NOTE, TAG_NOTE, null)
-			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null)
-			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null)
+			.withComponent(PanelKey.SOURCE, IndividualHandler.TAG_SOURCE, "Sources with Citations")
+			.withComponent(PanelKey.NOTE, IndividualHandler.TAG_NOTE, null)
+			.withComponent(PanelKey.PRIVACY, IndividualHandler.TAG_PRIVACY, null)
+			.withComponent(PanelKey.AUDIT, IndividualHandler.TAG_AUDIT, null)
 			.build();
 
 		components.bind(sexCombo);
@@ -305,7 +293,11 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 
 	public IndividualRecordDialog witSex(final SexType sex){
 		if(sex != null){
-			sexCombo.setText(sex == SexType .MALE? ENUM_SEX_MALE: ENUM_SEX_FEMALE);
+			sexCombo.setText(sex == SexType.MALE
+				? IndividualHandler.ENUM_SEX_MALE
+				: (sex == SexType.FEMALE
+					? IndividualHandler.ENUM_SEX_FEMALE
+					: IndividualHandler.ENUM_SEX_UNKNOWN));
 			sexCombo.setEnabled(false);
 		}
 

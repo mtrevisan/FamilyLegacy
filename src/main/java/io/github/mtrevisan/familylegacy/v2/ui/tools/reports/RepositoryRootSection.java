@@ -1,3 +1,27 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
 package io.github.mtrevisan.familylegacy.v2.ui.tools.reports;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
@@ -49,7 +73,7 @@ final class RepositoryRootSection implements SectionBuilder{
 
 		final List<ReportSection> out = new ArrayList<>();
 		out.add(new ReportSection.Heading(1, String.format(
-			ctx.labels.repositoryOf(),
+			ctx.labels.sections().repositoryOf(),
 			ReportFormatters.escape(primaryName(ctx.root)))));
 
 		writeBasicInfo(out);
@@ -71,7 +95,7 @@ final class RepositoryRootSection implements SectionBuilder{
 
 	private void writeBasicInfo(final List<ReportSection> out){
 		final List<String> rows = new ArrayList<>();
-		ReportFormatters.appendIfPresent(rows, ctx.labels.type(),
+		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().type(),
 			FLEFRecordHelper.getChildValue(ctx.root, TAG_TYPE));
 		if(!rows.isEmpty())
 			out.add(new ReportSection.BulletList(rows));
@@ -86,13 +110,15 @@ final class RepositoryRootSection implements SectionBuilder{
 		final FLEFRecord primary = primaryNameNode(ctx.root);
 		final List<String> rows = new ArrayList<>();
 		for(final FLEFRecord n : names){
-			if(n == primary) continue;
+			if(n == primary)
+				continue;
 			final String type = FLEFRecordHelper.getChildValue(n, TAG_TYPE);
 			final String value = FLEFRecordHelper.getChildValue(n, TAG_VALUE);
 			final String locale = FLEFRecordHelper.getChildValue(n, TAG_LOCALE);
-			if(value == null || value.isBlank()) continue;
+			if(value == null || value.isBlank())
+				continue;
 			final StringBuilder line = new StringBuilder();
-			line.append("**").append(ctx.labels.name());
+			line.append("**").append(ctx.labels.sections().name());
 			if(type != null && !type.isBlank())
 				line.append(" (").append(ReportFormatters.escape(type)).append(")");
 			line.append(":** ").append(ReportFormatters.escape(value));
@@ -113,7 +139,7 @@ final class RepositoryRootSection implements SectionBuilder{
 		if(cust == null)
 			return;
 		out.add(new ReportSection.Paragraph(
-			"**" + ctx.labels.repositoryCustodian() + ":** "
+			"**" + ctx.labels.sections().repositoryCustodian() + ":** "
 				+ ReportFormatters.escape(ctx.displayText(cust))));
 	}
 
@@ -123,14 +149,14 @@ final class RepositoryRootSection implements SectionBuilder{
 		if(place == null)
 			return;
 		out.add(new ReportSection.Paragraph(
-			"**" + ctx.labels.place() + ":** " + ReportFormatters.escape(place)));
+			"**" + ctx.labels.sections().place() + ":** " + ReportFormatters.escape(place)));
 	}
 
 
 	private void writeContacts(final List<ReportSection> out){
 		final List<String> rows = new ArrayList<>();
 		for(final FLEFRecord contact : ctx.visibleChildren(ctx.root, TAG_CONTACT)){
-			final String rendered = ReportFormatters.renderContact(contact, ctx.labels);
+			final String rendered = ReportFormatters.renderContact(contact);
 			if(rendered != null)
 				rows.add(rendered);
 		}
@@ -144,17 +170,17 @@ final class RepositoryRootSection implements SectionBuilder{
 		if(sources.isEmpty())
 			return;
 
-		out.add(new ReportSection.Heading(2, ctx.labels.repositorySources()));
+		out.add(new ReportSection.Heading(2, ctx.labels.sections().repositorySources()));
 		for(final FLEFRecord src : sources){
 			final String title = ctx.sourceTitle(src.getId());
 			out.add(new ReportSection.Heading(3, ReportFormatters.escape(title)));
 
 			final List<String> rows = new ArrayList<>();
-			ReportFormatters.appendIfPresent(rows, ctx.labels.sourceAuthor(),
+			ReportFormatters.appendIfPresent(rows, ctx.labels.sections().sourceAuthor(),
 				FLEFRecordHelper.getChildValue(src, "author"));
-			ReportFormatters.appendIfPresent(rows, ctx.labels.sourceDate(),
+			ReportFormatters.appendIfPresent(rows, ctx.labels.sections().sourceDate(),
 				FLEFRecordHelper.extractDate(src));
-			ReportFormatters.appendIfPresent(rows, ctx.labels.sourceMediaType(),
+			ReportFormatters.appendIfPresent(rows, ctx.labels.sections().sourceMediaType(),
 				FLEFRecordHelper.getChildValue(src, TAG_MEDIA_TYPE));
 
 			// Locator(s) of this source within the repository.
@@ -164,7 +190,7 @@ final class RepositoryRootSection implements SectionBuilder{
 					continue;
 				final String locator = FLEFRecordHelper.getChildValue(rc, TAG_LOCATOR);
 				if(locator != null && !locator.isBlank())
-					rows.add("**" + ctx.labels.sourceLocator() + ":** "
+					rows.add("**" + ctx.labels.sections().sourceLocator() + ":** "
 						+ ReportFormatters.escape(locator));
 			}
 
@@ -178,17 +204,20 @@ final class RepositoryRootSection implements SectionBuilder{
 
 	private static FLEFRecord primaryNameNode(final FLEFRecord repo){
 		final List<FLEFRecord> names = FLEFRecordHelper.findChildren(repo, TAG_NAME);
-		if(names.isEmpty()) return null;
+		if(names.isEmpty())
+			return null;
 		for(final FLEFRecord n : names){
 			final String type = FLEFRecordHelper.getChildValue(n, TAG_TYPE);
 			if("official".equalsIgnoreCase(type)){
 				final String v = FLEFRecordHelper.getChildValue(n, TAG_VALUE);
-				if(v != null && !v.isBlank()) return n;
+				if(v != null && !v.isBlank())
+					return n;
 			}
 		}
 		for(final FLEFRecord n : names){
 			final String v = FLEFRecordHelper.getChildValue(n, TAG_VALUE);
-			if(v != null && !v.isBlank()) return n;
+			if(v != null && !v.isBlank())
+				return n;
 		}
 		return null;
 	}
@@ -197,7 +226,8 @@ final class RepositoryRootSection implements SectionBuilder{
 		final FLEFRecord n = primaryNameNode(repo);
 		if(n != null){
 			final String v = FLEFRecordHelper.getChildValue(n, TAG_VALUE);
-			if(v != null && !v.isBlank()) return v.trim();
+			if(v != null && !v.isBlank())
+				return v.trim();
 		}
 		return ReportFormatters.orEmpty(repo.getId());
 	}

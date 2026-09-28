@@ -44,7 +44,7 @@ import java.awt.Window;
 
 
 /**
- * Dialog for editing a {@code NOTE_STRUCTURE} according to FLEF 0.1.2.
+ * Dialog for editing a {@code NOTE_STRUCTURE} according to FLEF 0.1.3.
  * <p>
  * Structure:
  * <pre>
@@ -72,16 +72,6 @@ import java.awt.Window;
  */
 public class NoteStructureDialog extends BaseRecordDialog{
 
-	private static final String TAG_TITLE = "TITLE";
-	private static final String TAG_TEXT = "TEXT";
-	private static final String TAG_MIME = "MIME";
-	private static final String TAG_LOCALE = "LOCALE";
-	private static final String TAG_TRANSLATION = "TRANSLATION";
-	private static final String TAG_SOURCE = "SOURCE";
-	private static final String TAG_PRIVACY = "PRIVACY";
-	private static final String TAG_AUDIT = "AUDIT";
-
-
 	private final JPanel propertiesPanel;
 
 	private final BoundTextField titleField;
@@ -105,21 +95,21 @@ public class NoteStructureDialog extends BaseRecordDialog{
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]5[]5[]10[]");
 
-		titleField = new BoundTextField(TAG_TITLE);
-		textArea = new BoundTextArea(TAG_TEXT, 3, 25);
+		titleField = new BoundTextField(NoteHandler.TAG_TITLE);
+		textArea = new BoundTextArea(NoteHandler.TAG_TEXT, 3, 25);
 		textArea.setToolTipText("Markdown supported. Use [text](@<XREF:ID>@) for references, [text](confidential) for confidential data.");
-		mimeCombo = new BoundComboBox<>(TAG_MIME, new String[]{
+		mimeCombo = new BoundComboBox<>(NoteHandler.TAG_MIME, new String[]{
 			StringUtils.EMPTY,
 			"text/plain", "text/html", "text/markdown"});
-		localeCombo = new BoundFilteredComboBox<>(TAG_LOCALE, LocaleHelper.getAvailableLanguageTags());
+		localeCombo = new BoundFilteredComboBox<>(NoteHandler.TAG_LOCALE, LocaleHelper.getAvailableLanguageTags());
 		localeCombo.setEditable(true);
-		translationPanel = new TranslationListPanel(TAG_TRANSLATION, this, "Translations");
+		translationPanel = new TranslationListPanel(NoteHandler.TAG_TRANSLATION, this, "Translations");
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources with Citations")
-			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null)
-			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null)
+			.withComponent(PanelKey.SOURCE, NoteHandler.TAG_SOURCE, "Sources with Citations")
+			.withComponent(PanelKey.PRIVACY, NoteHandler.TAG_PRIVACY, null)
+			.withComponent(PanelKey.AUDIT, NoteHandler.TAG_AUDIT, null)
 			.build();
 
 		components.bind(titleField);

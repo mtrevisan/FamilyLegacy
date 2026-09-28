@@ -1,8 +1,33 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
 package io.github.mtrevisan.familylegacy.v2.ui.tools.reports;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,7 +37,7 @@ import java.util.List;
  * Pure static helpers shared by section builders. No model state, no
  * dependencies on the report configuration.
  */
-final class ReportFormatters{
+public final class ReportFormatters{
 
 	private static final String TAG_PART = "part";
 	private static final String TAG_VALUE = "value";
@@ -29,17 +54,17 @@ final class ReportFormatters{
 
 	/** Null-safe identity (used before markdown escaping). */
 	static String esc(final String s){
-		return (s == null? "": s);
+		return (s == null? StringUtils.EMPTY: s);
 	}
 
 	/** Null-safe identity (used for values already markdown-safe). */
 	static String escape(final String s){
-		return (s == null? "": s);
+		return (s == null? StringUtils.EMPTY: s);
 	}
 
 	/** Null-safe identity for values that may legitimately be empty. */
 	static String orEmpty(final String s){
-		return (s == null? "": s);
+		return (s == null? StringUtils.EMPTY: s);
 	}
 
 
@@ -56,7 +81,7 @@ final class ReportFormatters{
 				continue;
 			final String v = FLEFRecordHelper.getChildValue(child, TAG_VALUE);
 			if(v != null && !v.isBlank()){
-				if(sb.length() > 0)
+				if(!sb.isEmpty())
 					sb.append(' ');
 				sb.append(v.trim());
 			}
@@ -94,17 +119,23 @@ final class ReportFormatters{
 			fieldTag + ".value.bounded.not_before.point.full_date.value");
 		final String na = FLEFRecordHelper.getChildValue(rec,
 			fieldTag + ".value.bounded.not_after.point.full_date.value");
-		if(nb != null && na != null) return "between " + nb + " and " + na;
-		if(nb != null) return "after " + nb;
-		if(na != null) return "before " + na;
+		if(nb != null && na != null)
+			return "between " + nb + " and " + na;
+		if(nb != null)
+			return "after " + nb;
+		if(na != null)
+			return "before " + na;
 
 		final String from = FLEFRecordHelper.getChildValue(rec,
 			fieldTag + ".value.spanning.from.point.full_date.value");
 		final String to = FLEFRecordHelper.getChildValue(rec,
 			fieldTag + ".value.spanning.to.point.full_date.value");
-		if(from != null && to != null) return "from " + from + " to " + to;
-		if(from != null) return "from " + from;
-		if(to != null) return "to " + to;
+		if(from != null && to != null)
+			return "from " + from + " to " + to;
+		if(from != null)
+			return "from " + from;
+		if(to != null)
+			return "to " + to;
 
 		return null;
 	}
@@ -163,7 +194,7 @@ final class ReportFormatters{
 		if("phonetic".equalsIgnoreCase(tag)){
 			final String system = FLEFRecordHelper.getChildValue(branch, "system");
 			return (system != null && !system.isBlank()
-				? "[" + system + "] ": "") + value;
+				? "[" + system + "] ": StringUtils.EMPTY) + value;
 		}
 
 		if("transcription".equalsIgnoreCase(tag)){
@@ -177,7 +208,7 @@ final class ReportFormatters{
 					tagText.append(" → ");
 				tagText.append(type);
 			}
-			return (!tagText.isEmpty()? "[" + tagText + "] ": "") + value;
+			return (!tagText.isEmpty()? "[" + tagText + "] ": StringUtils.EMPTY) + value;
 		}
 
 		return value;
@@ -192,11 +223,11 @@ final class ReportFormatters{
 		if(v != null)
 			return v;
 		final FLEFRecord only = FLEFRecordHelper.findChild(note, "text");
-		return (only != null? only.getValue(): "");
+		return (only != null? only.getValue(): StringUtils.EMPTY);
 	}
 
 	/** Extracts the referenced source ID from a {@code source} citation. */
-	static String extractSourceId(final FLEFRecord sourceChild){
+	public static String extractSourceId(final FLEFRecord sourceChild){
 		final String direct = FLEFRecordHelper.getChildValue(sourceChild, TAG_SOURCE);
 		if(direct != null)
 			return direct;
@@ -220,7 +251,7 @@ final class ReportFormatters{
 	 * name and note are omitted when absent. Returns {@code null} when the
 	 * contact has no value.</p>
 	 */
-	static String renderContact(final FLEFRecord contact, final ReportLabels labels){
+	static String renderContact(final FLEFRecord contact){
 		if(contact == null)
 			return null;
 
@@ -262,7 +293,7 @@ final class ReportFormatters{
 			final String locale = FLEFRecordHelper.getChildValue(tr, "locale");
 
 			final StringBuilder sb = new StringBuilder("*")
-				.append(labels.noteTranslation()).append('*');
+				.append(labels.sections().noteTranslation()).append('*');
 			if(locale != null && !locale.isBlank())
 				sb.append(" (").append(escape(locale)).append(')');
 			sb.append(": ").append(escape(text));
@@ -298,7 +329,7 @@ final class ReportFormatters{
 		if(x == null || y == null || w == null || h == null)
 			return base;
 
-		return base + " — " + labels.imageCroppedRegion()
+		return base + " — " + labels.sections().imageCroppedRegion()
 			+ ": " + x + "," + y + "," + w + "," + h;
 	}
 
@@ -366,10 +397,10 @@ final class ReportFormatters{
 	/** Very small HTML-to-text converter: keeps <br>/<p> as newlines. */
 	private static String stripHtml(final String html){
 		return html
-			.replaceAll("(?i)<br\\s*/?>", "\n")
-			.replaceAll("(?i)</p>", "\n\n")
-			.replaceAll("(?i)<p[^>]*>", "")
-			.replaceAll("<[^>]+>", "")
+			.replaceAll("(?i)<br\\s*/?>", StringUtils.LF)
+			.replaceAll("(?i)</p>", StringUtils.LF + StringUtils.LF)
+			.replaceAll("(?i)<p[^>]*>", StringUtils.EMPTY)
+			.replaceAll("<[^>]+>", StringUtils.EMPTY)
 			.replace("&amp;", "&")
 			.replace("&lt;", "<")
 			.replace("&gt;", ">")

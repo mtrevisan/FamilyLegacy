@@ -1,7 +1,32 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
 package io.github.mtrevisan.familylegacy.v2.ui.tools.reports.renderers;
 
 import io.github.mtrevisan.familylegacy.v2.ui.tools.reports.ReportDocument;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.reports.ReportSection;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -114,7 +139,7 @@ public final class HtmlReportRenderer implements ReportRenderer{
 
 	private static void writeHeading(final BufferedWriter w, final ReportSection.Heading h)
 		throws IOException{
-		final int level = Math.min(6, Math.max(1, h.level() + 1));
+		final int level = Math.clamp(h.level() + 1, 1, 6);
 
 		// Anchor emission: for level >= 2 headings, extract any [Xxx] record
 		// references from the heading text and emit one anchor per ID.
@@ -145,7 +170,7 @@ public final class HtmlReportRenderer implements ReportRenderer{
 		throws IOException{
 		// Descendants trees carry alignment with spaces and newlines: emit
 		// them in a preformatted block so the layout is preserved.
-		if(p.text().contains("\n")){
+		if(p.text().contains(StringUtils.LF)){
 			w.write("<pre>");
 			w.write(html(p.text()));
 			w.write("</pre>");
@@ -192,7 +217,7 @@ public final class HtmlReportRenderer implements ReportRenderer{
 		for(final var row : t.rows()){
 			w.write("<tr>");
 			for(int i = 0; i < cols; i++){
-				final String cell = (i < row.size()? row.get(i): "");
+				final String cell = (i < row.size()? row.get(i): StringUtils.EMPTY);
 				w.write("<td>");
 				w.write(inline(cell));
 				w.write("</td>");
@@ -223,7 +248,7 @@ public final class HtmlReportRenderer implements ReportRenderer{
 		w.write("<figure><img src=\"");
 		w.write(html(href));
 		w.write("\" alt=\"");
-		w.write(html(img.caption() == null? "": img.caption()));
+		w.write(html(img.caption() == null? StringUtils.EMPTY: img.caption()));
 		w.write("\" style=\"max-width:100%\">");
 		if(img.caption() != null && !img.caption().isBlank()){
 			w.write("<figcaption>");
@@ -241,7 +266,7 @@ public final class HtmlReportRenderer implements ReportRenderer{
 	/** HTML-escapes the input. */
 	private static String html(final String s){
 		if(s == null)
-			return "";
+			return StringUtils.EMPTY;
 		return s.replace("&", "&amp;")
 			.replace("<", "&lt;")
 			.replace(">", "&gt;")
@@ -266,7 +291,7 @@ public final class HtmlReportRenderer implements ReportRenderer{
 
 		// Internal links: [text](@id@) -> <a href="#id">text</a>
 		final Matcher m = INTERNAL_LINK_PATTERN.matcher(t);
-		final StringBuffer sb = new StringBuffer();
+		final StringBuilder sb = new StringBuilder();
 		while(m.find()){
 			final String text = m.group(1);
 			final String id = m.group(2);

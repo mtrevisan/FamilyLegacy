@@ -52,11 +52,12 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JPanel;
 import java.awt.Window;
+import java.io.IOException;
 import java.util.function.Consumer;
 
 
 /**
- * Dialog for editing a {@code CONTEXT_IMPACT_RECORD} according to FLEF 0.1.2.
+ * Dialog for editing a {@code CONTEXT_IMPACT_RECORD} according to FLEF 0.1.3.
  * <p>
  * Structure:
  * <pre>
@@ -82,7 +83,8 @@ public class ContextImpactRecordDialog extends BaseRecordDialog{
 	private static final String TAG_CONTEXT = "CONTEXT";
 	private static final String TAG_TARGET = "TARGET";
 	private static final String TAG_IMPACT_TYPE = "IMPACT_TYPE";
-	private static final String TAG_EXPLANATION = "EXPLANATION";
+	private static final String TAG_RATIONALE = "RATIONALE";
+	private static final String TAG_CONFIDENCE = "CONFIDENCE";
 	private static final String TAG_SOURCE = "SOURCE";
 	private static final String TAG_EVIDENCE = "EVIDENCE";
 	private static final String TAG_AUDIT = "AUDIT";
@@ -91,8 +93,8 @@ public class ContextImpactRecordDialog extends BaseRecordDialog{
 	private final EntityField contextField;
 	private final EntityField targetField;
 	private final BoundComboBox<String> impactTypeCombo;
-	private final BoundTextArea explanationArea;
-
+	private final BoundTextArea rationaleArea;
+	private final BoundComboBox<String> confidenceCombo;
 
 	private final JPanel propertiesPanel;
 
@@ -110,7 +112,7 @@ public class ContextImpactRecordDialog extends BaseRecordDialog{
 	private ContextImpactRecordDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, ContextImpactHandler.getInstance());
 
-		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]10[]10[]");
+		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]10[]10[]10[]");
 
 		contextField = EntityField.createForRecordFromOneofReference(TAG_CONTEXT, this, model)
 			.withHandlerTypes(CulturalNormHandler.class, HistoricEventHandler.class);
@@ -127,7 +129,12 @@ public class ContextImpactRecordDialog extends BaseRecordDialog{
 		});
 		impactTypeCombo.setEditable(true);
 
-		explanationArea = new BoundTextArea(TAG_EXPLANATION, 3, 30);
+		rationaleArea = new BoundTextArea(TAG_RATIONALE, 3, 30);
+
+		confidenceCombo = new BoundComboBox<>(TAG_CONFIDENCE, new String[]{
+			StringUtils.EMPTY,
+			"low", "medium", "high"
+		});
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
@@ -137,7 +144,8 @@ public class ContextImpactRecordDialog extends BaseRecordDialog{
 			.build();
 
 		components.bind(impactTypeCombo);
-		components.bind(explanationArea);
+		components.bind(rationaleArea);
+		components.bind(confidenceCombo);
 
 
 		// Set up the image carousel selection listener on the source list
@@ -159,7 +167,10 @@ public class ContextImpactRecordDialog extends BaseRecordDialog{
 		GUIHelper.addLabeledComponent(propertiesPanel, "Impact Type:", impactTypeCombo);
 
 		// explanation
-		GUIHelper.addLabeledComponent(propertiesPanel, "Explanation:", explanationArea);
+		GUIHelper.addLabeledComponent(propertiesPanel, "Explanation:", rationaleArea);
+
+		// confidence
+		GUIHelper.addLabeledComponent(propertiesPanel, "confidence:", confidenceCombo);
 
 		// evidence
 		final JPanel evidencePanel = components.getPanel(PanelKey.EVIDENCE);
@@ -243,7 +254,8 @@ public class ContextImpactRecordDialog extends BaseRecordDialog{
 		contextImpact.addChild(FLEFRecord.createChildWithTag("TARGET")
 			.addChild(FLEFRecord.createChildWithTagAndValue("INDIVIDUAL", "@I1@")));
 		contextImpact.addChild(FLEFRecord.createChildWithTagAndValue("IMPACT_TYPE", "constrains"));
-		contextImpact.addChild(FLEFRecord.createChildWithTagAndValue("SIGNIFICANCE", "Inheritance limited to eldest son"));
+		contextImpact.addChild(FLEFRecord.createChildWithTagAndValue("RATIONALE", "rationale"));
+		contextImpact.addChild(FLEFRecord.createChildWithTagAndValue("CONFIDENCE", "medium"));
 
 		final FLEFRecord source1 = FLEFRecord.createMainRecord("S1", SourceHandler.TYPE);
 		source1.addChild(FLEFRecord.createChildWithTag("TITLE")
@@ -256,6 +268,11 @@ public class ContextImpactRecordDialog extends BaseRecordDialog{
 			model.addRecord(source1);
 		};
 		GUIHelper.launch(ContextImpactRecordDialog::createEdit, modelFiller, contextImpact);
+	}
+
+
+	public static void main2(final String[] args) throws IOException{
+		GUIHelper.launch(ConclusionRecordDialog::createEdit, "/tests/test.flef", "CI1");
 	}
 
 }

@@ -51,7 +51,7 @@ import java.io.IOException;
 
 
 /**
- * Dialog for editing a {@code PLACE_RECORD} according to FLEF 0.1.2.
+ * Dialog for editing a {@code PLACE_RECORD} according to FLEF 0.1.3.
  * <p>
  * Structure:
  * <pre>
@@ -88,16 +88,8 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 
 	private static final String DOT = ".";
 
-	private static final String TAG_NAME = "NAME";
-	private static final String TAG_TYPE = "TYPE";
-	private static final String TAG_MAP = "MAP";
-	private static final String TAG_COORDINATES = "COORDINATES";
-	private static final String TAG_SOURCE = "SOURCE";
-	private static final String TAG_EVIDENCE = "EVIDENCE";
-	private static final String TAG_MAP_COORDINATES = TAG_MAP + DOT + TAG_COORDINATES;
-	private static final String TAG_MAP_EVIDENCE = TAG_MAP + DOT + TAG_EVIDENCE;
-	private static final String TAG_PRIVACY = "PRIVACY";
-	private static final String TAG_AUDIT = "AUDIT";
+	private static final String TAG_MAP_COORDINATES = PlaceHandler.TAG_MAP + DOT + PlaceHandler.TAG_COORDINATES;
+	private static final String TAG_MAP_EVIDENCE = PlaceHandler.TAG_MAP + DOT + PlaceHandler.TAG_EVIDENCE;
 
 
 	private final JPanel propertiesPanel;
@@ -122,8 +114,8 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]10[]");
 
-		namePanel = EntityListPanel.createForStructure(TAG_NAME, this, "Names*", model, NameHandler.class);
-		typeCombo = new BoundComboBox<>(TAG_TYPE, new String[]{
+		namePanel = EntityListPanel.createForStructure(PlaceHandler.TAG_NAME, this, "Names*", model, NameHandler.class);
+		typeCombo = new BoundComboBox<>(PlaceHandler.TAG_TYPE, new String[]{
 			StringUtils.EMPTY,
 			"address", "building", "street", "hamlet", "village", "town",
 			"municipality", "city", "metropolitan_area", "county", "province",
@@ -143,10 +135,10 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, "Conclusions")
 			.withComponent(PanelKey.IDENTITY_HYPOTHESIS_ON_IDENTITY, IdentityHypothesisHandler.TYPE, "Identity Hypotheses")
 			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, "Research Questions")
-			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources with Citations")
-			.withComponent(PanelKey.EVIDENCE, TAG_EVIDENCE, "Evidence")
-			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null)
-			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null)
+			.withComponent(PanelKey.SOURCE, PlaceHandler.TAG_SOURCE, "Sources with Citations")
+			.withComponent(PanelKey.EVIDENCE, PlaceHandler.TAG_EVIDENCE, "Evidence")
+			.withComponent(PanelKey.PRIVACY, PlaceHandler.TAG_PRIVACY, null)
+			.withComponent(PanelKey.AUDIT, PlaceHandler.TAG_AUDIT, null)
 			.build();
 
 		components.bind(typeCombo);

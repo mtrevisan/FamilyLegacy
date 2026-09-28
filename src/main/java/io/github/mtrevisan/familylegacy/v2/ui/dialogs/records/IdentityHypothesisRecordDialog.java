@@ -55,7 +55,7 @@ import java.util.Objects;
 
 
 /**
- * Dialog for editing an {@code IDENTITY_HYPOTHESIS_RECORD} according to FLEF 0.1.2.
+ * Dialog for editing an {@code IDENTITY_HYPOTHESIS_RECORD} according to FLEF 0.1.3.
  * <p>
  * Structure:
  * <pre>

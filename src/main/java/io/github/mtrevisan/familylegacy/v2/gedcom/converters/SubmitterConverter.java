@@ -80,7 +80,8 @@ public class SubmitterConverter{
 	 */
 	public void convert(GEDCOMNode subNode){
 		String xref = subNode.getXrefId();
-		if(xref == null) return;
+		if(xref == null)
+			return;
 
 		String cleanId = GEDCOMHelper.cleanId(xref);
 		IDGenerator.registerExistingId(cleanId);
@@ -112,7 +113,7 @@ public class SubmitterConverter{
 		GEDCOMNode langNode = GEDCOMHelper.findFirstChild(subNode, "LANG");
 		if(langNode != null && langNode.getValue() != null){
 			FLEFRecord note = structParser.createNoteStruct("Language: " + langNode.getValue(), subNode);
-			if (note != null) submitter.addChild(note);
+			if(note != null) submitter.addChild(note);
 		}
 
 		// ---- Extra fields (RFN, RIN) as inline notes ----

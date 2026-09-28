@@ -1,3 +1,27 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
 package io.github.mtrevisan.familylegacy.v2.ui.tools.reports;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
@@ -69,7 +93,7 @@ final class PlacesSection implements SectionBuilder{
 
 		final Map<String, PlaceEntry> entries = collectPlaceEntries();
 		if(entries.isEmpty()){
-			out.add(new ReportSection.Paragraph(ctx.labels.empty()));
+			out.add(new ReportSection.Paragraph(ctx.labels.sections().empty()));
 			return out;
 		}
 
@@ -139,9 +163,9 @@ final class PlacesSection implements SectionBuilder{
 
 	private void appendBasicInfo(final List<ReportSection> out, final FLEFRecord place){
 		final List<String> rows = new ArrayList<>();
-		ReportFormatters.appendIfPresent(rows, ctx.labels.placeType(),
+		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().placeType(),
 			FLEFRecordHelper.getChildValue(place, TAG_TYPE));
-		ReportFormatters.appendIfPresent(rows, ctx.labels.placeCoordinates(),
+		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().placeCoordinates(),
 			FLEFRecordHelper.getChildValue(place, TAG_MAP + "." + TAG_COORDINATES));
 		if(!rows.isEmpty())
 			out.add(new ReportSection.BulletList(rows));
@@ -165,7 +189,7 @@ final class PlacesSection implements SectionBuilder{
 
 			if(nameNode != primary){
 				final StringBuilder line = new StringBuilder();
-				line.append("**").append(ctx.labels.name());
+				line.append("**").append(ctx.labels.sections().name());
 				if(type != null && !type.isBlank())
 					line.append(" (").append(ReportFormatters.escape(type)).append(")");
 				line.append(":** ").append(ReportFormatters.escape(ReportFormatters.orEmpty(value)));
@@ -177,7 +201,7 @@ final class PlacesSection implements SectionBuilder{
 			for(final FLEFRecord variant : FLEFRecordHelper.findChildren(nameNode, TAG_VARIANT)){
 				final String v = ReportFormatters.renderNameVariant(variant);
 				if(v != null)
-					rows.add("  *" + ctx.labels.placeNameVariant() + ":* "
+					rows.add("  *" + ctx.labels.sections().placeNameVariant() + ":* "
 						+ ReportFormatters.escape(v));
 			}
 		}
@@ -194,7 +218,7 @@ final class PlacesSection implements SectionBuilder{
 		if(rels.isEmpty())
 			return;
 
-		out.add(new ReportSection.Heading(3, ctx.labels.placeJurisdictions()));
+		out.add(new ReportSection.Heading(3, ctx.labels.sections().placeJurisdictions()));
 		for(final FLEFRecord rel : rels)
 			appendJurisdiction(out, rel);
 	}
@@ -219,9 +243,9 @@ final class PlacesSection implements SectionBuilder{
 
 		final List<String> rows = new ArrayList<>();
 		if(from != null)
-			rows.add("**" + ctx.labels.validFrom() + ":** " + ReportFormatters.escape(from));
+			rows.add("**" + ctx.labels.sections().validFrom() + ":** " + ReportFormatters.escape(from));
 		if(to != null)
-			rows.add("**" + ctx.labels.validTo() + ":** " + ReportFormatters.escape(to));
+			rows.add("**" + ctx.labels.sections().validTo() + ":** " + ReportFormatters.escape(to));
 		if(!rows.isEmpty())
 			out.add(new ReportSection.BulletList(rows));
 
@@ -245,7 +269,7 @@ final class PlacesSection implements SectionBuilder{
 		if(rels.isEmpty())
 			return;
 
-		out.add(new ReportSection.Heading(3, ctx.labels.placeContainedPlaces()));
+		out.add(new ReportSection.Heading(3, ctx.labels.sections().placeContainedPlaces()));
 		for(final FLEFRecord rel : rels)
 			appendContainedPlace(out, rel);
 	}
@@ -272,9 +296,9 @@ final class PlacesSection implements SectionBuilder{
 
 		final List<String> rows = new ArrayList<>();
 		if(from != null)
-			rows.add("**" + ctx.labels.validFrom() + ":** " + ReportFormatters.escape(from));
+			rows.add("**" + ctx.labels.sections().validFrom() + ":** " + ReportFormatters.escape(from));
 		if(to != null)
-			rows.add("**" + ctx.labels.validTo() + ":** " + ReportFormatters.escape(to));
+			rows.add("**" + ctx.labels.sections().validTo() + ":** " + ReportFormatters.escape(to));
 		if(!rows.isEmpty())
 			out.add(new ReportSection.BulletList(rows));
 
@@ -299,14 +323,14 @@ final class PlacesSection implements SectionBuilder{
 			final String original = FLEFRecordHelper.getChildValue(ref.citation(), TAG_ORIGINAL);
 			if(original != null && !original.isBlank())
 				block.add(new ReportSection.Paragraph(
-					"**" + ctx.labels.placeOriginalText() + ":** "
+					"**" + ctx.labels.sections().placeOriginalText() + ":** "
 						+ ReportFormatters.escape(original.trim())));
 
 			// The citing record — event or attribute — for traceability.
 			final String ownerLabel = describeOwner(ref.owner());
 			if(ownerLabel != null)
 				block.add(new ReportSection.Paragraph(
-					"*" + ctx.labels.placeCitedBy() + ":* " + ReportFormatters.escape(ownerLabel)));
+					"*" + ctx.labels.sections().placeCitedBy() + ":* " + ReportFormatters.escape(ownerLabel)));
 
 			if(ctx.config.sources())
 				block.addAll(ctx.citations().citations(ref.citation()));
@@ -320,7 +344,7 @@ final class PlacesSection implements SectionBuilder{
 		if(blocks.isEmpty())
 			return;
 
-		out.add(new ReportSection.Heading(3, ctx.labels.placeCitations()));
+		out.add(new ReportSection.Heading(3, ctx.labels.sections().placeCitations()));
 		for(final List<ReportSection> block : blocks)
 			out.addAll(block);
 	}
@@ -346,11 +370,11 @@ final class PlacesSection implements SectionBuilder{
 		if(type != null && !type.isBlank())
 			sb.append(type);
 		if(date != null && !date.isBlank()){
-			if(sb.length() > 0)
+			if(!sb.isEmpty())
 				sb.append(" — ");
 			sb.append(date);
 		}
-		return (sb.length() > 0? sb.toString(): null);
+		return (!sb.isEmpty() ? sb.toString(): null);
 	}
 
 

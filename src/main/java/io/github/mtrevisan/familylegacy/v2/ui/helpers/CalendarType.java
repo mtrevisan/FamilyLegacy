@@ -24,9 +24,6 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.helpers;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 
 public enum CalendarType{
 	GREGORIAN("gregorian"),
@@ -41,9 +38,6 @@ public enum CalendarType{
 	SOVIET_ETERNAL("soviet_eternal"),
 	ETHIOPIAN("ethiopian"),
 	MAYAN("mayan");
-
-
-	private static final Logger LOGGER = LoggerFactory.getLogger(CalendarType.class);
 
 
 	private final String code;

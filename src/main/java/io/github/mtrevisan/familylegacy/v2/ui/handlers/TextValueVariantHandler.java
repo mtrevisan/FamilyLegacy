@@ -39,11 +39,12 @@ public class TextValueVariantHandler extends AbstractRecordTypeHandler<TextValue
 
 	public static final String TYPE = "TEXT_VALUE_VARIANT";
 
-	private static final String TAG_PHONETIC = "PHONETIC";
-	private static final String TAG_TRANSCRIPTION = "TRANSCRIPTION";
-	private static final String TAG_SYSTEM = "SYSTEM";
-	private static final String TAG_TYPE = "TYPE";
-	private static final String TAG_VALUE = "VALUE";
+	public static final String TAG_PHONETIC = "PHONETIC";
+	public static final String TAG_TRANSCRIPTION = "TRANSCRIPTION";
+
+	public static final String TAG_SYSTEM = "SYSTEM";
+	public static final String TAG_TYPE = "TYPE";
+	public static final String TAG_VALUE = "VALUE";
 
 
 	private static final class SingletonHelper{

@@ -100,12 +100,12 @@ public final class ShortcutRegistry{
 
 
 	public static ShortcutDefinition register(final String category, final String action,
-			final KeyStroke defaultStroke, final String displayKeys) {
+			final KeyStroke defaultStroke, final String displayKeys){
 		return register(category, action, defaultStroke, null, displayKeys);
 	}
 
 	public static ShortcutDefinition register(final String category, final String action,
-			final KeyStroke defaultStroke, final KeyStroke macStroke, final String displayKeys) {
+			final KeyStroke defaultStroke, final KeyStroke macStroke, final String displayKeys){
 		final ShortcutDefinition def = new ShortcutDefinition(category, action, defaultStroke, macStroke, displayKeys);
 		REGISTRY.add(def);
 		return def;

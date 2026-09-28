@@ -49,7 +49,6 @@ public class ResearchActivitySearchStrategy implements SearchStrategy{
 	private static final String TAG_RESULT = "result";
 	private static final String TAG_OBSERVATION = "observation";
 
-	private static final double FUZZY_THRESHOLD = 0.05;
 
 	private static final ResearchActivityHandler HANDLER = ResearchActivityHandler.getInstance();
 

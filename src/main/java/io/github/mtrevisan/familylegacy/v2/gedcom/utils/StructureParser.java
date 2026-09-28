@@ -267,49 +267,49 @@ public class StructureParser{
 
 //		// FORM -> note
 //		GEDCOMNode formNode = GEDCOMHelper.findFirstChild(placNode, "FORM");
-//		if (formNode != null && formNode.getValue() != null) {
+//		if(formNode != null && formNode.getValue() != null){
 //			FLEFRecord note = createNoteStruct("Hierarchy: " + formNode.getValue(), formNode);
-//			if (note != null) place.addChild(note);
+//			if(note != null) place.addChild(note);
 //		}
 
 		// ---- FONE (phonetic variation) ----
-		for (GEDCOMNode foneNode : GEDCOMHelper.findChildren(placNode, "FONE")) {
+		for(GEDCOMNode foneNode : GEDCOMHelper.findChildren(placNode, "FONE")){
 			String phonetic = GEDCOMHelper.extractFullText(foneNode);
-			if (StringUtils.isNotEmpty(phonetic)) {
+			if(StringUtils.isNotEmpty(phonetic)){
 				// Store as a variant note
 				String system = "IPA"; // default
 				GEDCOMNode typeNode = GEDCOMHelper.findFirstChild(foneNode, "TYPE");
-				if (typeNode != null && typeNode.getValue() != null) {
+				if(typeNode != null && typeNode.getValue() != null){
 					system = typeNode.getValue();
 				}
 				String text = "Phonetic (" + system + "): " + phonetic;
 				FLEFRecord note = createNoteStruct(text, foneNode);
-				if (note != null) place.addChild(note);
+				if(note != null) place.addChild(note);
 			}
 		}
 
 		// ---- ROMN (romanized variation) ----
-		for (GEDCOMNode romnNode : GEDCOMHelper.findChildren(placNode, "ROMN")) {
+		for(GEDCOMNode romnNode : GEDCOMHelper.findChildren(placNode, "ROMN")){
 			String romanized = GEDCOMHelper.extractFullText(romnNode);
-			if (StringUtils.isNotEmpty(romanized)) {
+			if(StringUtils.isNotEmpty(romanized)){
 				String system = "scientific"; // default
 				GEDCOMNode typeNode = GEDCOMHelper.findFirstChild(romnNode, "TYPE");
-				if (typeNode != null && typeNode.getValue() != null) {
+				if(typeNode != null && typeNode.getValue() != null){
 					system = typeNode.getValue();
 				}
 				String text = "Romanized (" + system + "): " + romanized;
 				FLEFRecord note = createNoteStruct(text, romnNode);
-				if (note != null) place.addChild(note);
+				if(note != null) place.addChild(note);
 			}
 		}
 
 		// ---- MAP (coordinates) ----
 		GEDCOMNode mapNode = GEDCOMHelper.findFirstChild(placNode, "MAP");
-		if (mapNode != null) {
+		if(mapNode != null){
 			GEDCOMNode latiNode = GEDCOMHelper.findFirstChild(mapNode, "LATI");
 			GEDCOMNode longNode = GEDCOMHelper.findFirstChild(mapNode, "LONG");
-			if (latiNode != null && longNode != null &&
-				latiNode.getValue() != null && longNode.getValue() != null) {
+			if(latiNode != null && longNode != null &&
+				latiNode.getValue() != null && longNode.getValue() != null){
 				FLEFRecord mapRecord = FLEFRecord.createChildWithTag("map");
 				mapRecord.addChild(FLEFRecord.createChildWithTagAndValue("coordinates",
 					latiNode.getValue() + " " + longNode.getValue()));
@@ -319,9 +319,9 @@ public class StructureParser{
 		}
 
 		// ---- NOTE (notes under PLAC) ----
-		for (GEDCOMNode noteNode : GEDCOMHelper.findChildren(placNode, "NOTE")) {
+		for(GEDCOMNode noteNode : GEDCOMHelper.findChildren(placNode, "NOTE")){
 			FLEFRecord noteStruct = parseNoteStruct(noteNode);
-			if (noteStruct != null) place.addChild(noteStruct);
+			if(noteStruct != null) place.addChild(noteStruct);
 		}
 
 		// original_text is omitted because the name itself is the same as the original
@@ -405,21 +405,21 @@ public class StructureParser{
 		}
 
 		// ---- REPO (source repository citation) ----
-		for (GEDCOMNode repoNode : GEDCOMHelper.findChildren(sourNode, "REPO")) {
-			if (repoNode.getValue() != null) {
+		for(GEDCOMNode repoNode : GEDCOMHelper.findChildren(sourNode, "REPO")){
+			if(repoNode.getValue() != null){
 				FLEFRecord repoCitation = FLEFRecord.createChildWithTag("repository");
 				FLEFRecord repoRef = FLEFRecord.createChildWithTag("repository");
 				repoRef.setValue(GEDCOMHelper.cleanId(repoNode.getValue()));
 				repoCitation.addChild(repoRef);
 				// CALN -> locator
 				GEDCOMNode calnNode = GEDCOMHelper.findFirstChild(repoNode, "CALN");
-				if (calnNode != null && calnNode.getValue() != null) {
+				if(calnNode != null && calnNode.getValue() != null){
 					repoCitation.addChild(FLEFRecord.createChildWithTagAndValue("locator", calnNode.getValue()));
 				}
 				// NOTE
-				for (GEDCOMNode noteNode : GEDCOMHelper.findChildren(repoNode, "NOTE")) {
+				for(GEDCOMNode noteNode : GEDCOMHelper.findChildren(repoNode, "NOTE")){
 					FLEFRecord noteStruct = parseNoteStruct(noteNode);
-					if (noteStruct != null) repoCitation.addChild(noteStruct);
+					if(noteStruct != null) repoCitation.addChild(noteStruct);
 				}
 				sourceCitation.addChild(repoCitation);
 			}
@@ -552,7 +552,7 @@ public class StructureParser{
 			GEDCOMNode sub = GEDCOMHelper.findFirstChild(addrNode, subTag);
 			if(sub != null && sub.getValue() != null){
 				if(!fullAddr.isEmpty()){
-					fullAddr.append("\n");
+					fullAddr.append(StringUtils.LF);
 				}
 				fullAddr.append(sub.getValue());
 			}

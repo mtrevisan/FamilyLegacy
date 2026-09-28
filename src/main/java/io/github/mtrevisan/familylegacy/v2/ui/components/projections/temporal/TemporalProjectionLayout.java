@@ -213,7 +213,7 @@ public final class TemporalProjectionLayout{
 	/**
 	 * Finds the layout of the row anchored to the given entity.
 	 *
-	 * @param entity the row entity to look for (must not be {@code null})
+	 * @param entity the row entity to look for(must not be {@code null})
 	 * @return the matching row layout, or {@code null}
 	 */
 	public RowLayout findRow(final TemporalEntityRef entity){

@@ -1,7 +1,32 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
 package io.github.mtrevisan.familylegacy.v2.ui.tools.statistics;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -59,14 +84,13 @@ public final class StatisticsDialog extends JDialog{
 	/** Column index (in view coordinates) of the numeric count in each table. */
 	private static final int COUNT_COLUMN_COMPLETENESS = 1;
 	private static final int COUNT_COLUMN_NAMES = 2;
-	private static final int COUNT_COLUMN_COVERAGE = 1;
 	private static final int COUNT_COLUMN_SOURCES = 2;
 
 
 	private final FLEFModel model;
 
 	/** Shared status label; updated by the selection listeners of the tables. */
-	private final JLabel selectionSummary = new JLabel(" ");
+	private final JLabel selectionSummary = new JLabel(StringUtils.SPACE);
 
 
 	public StatisticsDialog(final Window owner, final Statistics stats, final FLEFModel model){
@@ -81,7 +105,7 @@ public final class StatisticsDialog extends JDialog{
 
 		// Clear the summary on tab switch: a selection in a hidden tab
 		// is no longer visible, so the summary would be misleading.
-		tabs.addChangeListener(e -> selectionSummary.setText(" "));
+		tabs.addChangeListener(e -> selectionSummary.setText(StringUtils.SPACE));
 
 		final JButton close = new JButton("Close");
 		close.addActionListener(e -> dispose());
@@ -301,7 +325,7 @@ public final class StatisticsDialog extends JDialog{
 	private void updateSummary(final JTable table, final int countColumn, final long total){
 		final int[] rows = table.getSelectedRows();
 		if(rows.length == 0){
-			selectionSummary.setText(" ");
+			selectionSummary.setText(StringUtils.SPACE);
 			return;
 		}
 
@@ -340,9 +364,9 @@ public final class StatisticsDialog extends JDialog{
 		if(value instanceof Number n)
 			return n.longValue();
 		final String s = value.toString()
-			.replace(",", "")
+			.replace(",", StringUtils.EMPTY)
 			.replace('\u00A0', ' ')
-			.replace(" ", "")
+			.replace(StringUtils.SPACE, StringUtils.EMPTY)
 			.trim();
 		try{
 			return Long.parseLong(s);

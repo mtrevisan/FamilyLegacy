@@ -91,7 +91,6 @@ public class ChronomapPanel extends JPanel{
 
 
 	private final ChronomapIndex index;
-	private final PlaceCoordinateResolver placeResolver;
 
 	private final JXMapViewer mapViewer = new JXMapViewer();
 	private final ChronomapTimeline timeline = new ChronomapTimeline();
@@ -130,7 +129,6 @@ public class ChronomapPanel extends JPanel{
 		if(model == null)
 			throw new IllegalArgumentException("Model must not be null");
 
-		this.placeResolver = placeResolver;
 		this.index = index;
 		this.markerLayer = new ChronomapOverlayPainter(model, index);
 		this.trailLayer = new ChronomapTrailLayer(model, index);

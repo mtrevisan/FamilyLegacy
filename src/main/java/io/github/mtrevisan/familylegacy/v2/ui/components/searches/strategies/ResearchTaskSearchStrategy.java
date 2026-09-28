@@ -48,9 +48,9 @@ public class ResearchTaskSearchStrategy implements SearchStrategy{
 	private static final String TAG_PRIORITY = "priority";
 	private static final String TAG_OUTCOME = "outcome";
 
-	private static final double FUZZY_THRESHOLD = 0.05;
 
 	private static final ResearchTaskHandler HANDLER = ResearchTaskHandler.getInstance();
+
 
 	private String description;
 	private String status;

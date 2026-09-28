@@ -378,7 +378,7 @@ public class FLEFValidator{
 	 * ====================================================================== */
 
 	private void validateIndividualDates(final FLEFRecord individual, final String contextPath,
-		final List<String> errors){
+			final List<String> errors){
 		// Placeholder: the complex check requires traversing the model
 		// through event participations. Left empty for now.
 	}
@@ -397,7 +397,7 @@ public class FLEFValidator{
 	}
 
 	private void validateIdentityHypothesis(final FLEFRecord hypothesis, final String contextPath,
-		final FLEFModel model, final List<String> errors){
+			final FLEFModel model, final List<String> errors){
 		final List<FLEFRecord> identities = FLEFRecordHelper.findChildren(hypothesis, "IDENTITY");
 		if(identities == null || identities.size() != 2){
 			errors.add(String.format(
@@ -421,7 +421,7 @@ public class FLEFValidator{
 	}
 
 	private void validateEventParticipation(final FLEFRecord participation, final String contextPath,
-		final FLEFModel model, final List<String> errors){
+			final FLEFModel model, final List<String> errors){
 		// Additional semantic checks can be added here.
 	}
 
@@ -431,7 +431,7 @@ public class FLEFValidator{
 	 * ====================================================================== */
 
 	public static void main(final String[] args) throws Exception{
-		final Path path = Paths.get("src/main/resources/gedg/flef_0.1.2.gedg");
+		final Path path = Paths.get("src/main/resources/gedg/flef_0.1.3.gedg");
 		final FLEFGrammar grammar = FLEFGrammarParser.parse(path);
 
 		final FLEFParser parser = new FLEFParser();
@@ -439,7 +439,7 @@ public class FLEFValidator{
 			header {
 			  protocol {
 			    name Family LEgacy Format
-			    version 0.1.2
+			    version 0.1.3
 			  }
 			  source {
 			    system_id MyGenealogySoftware

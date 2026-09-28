@@ -64,8 +64,6 @@ public final class EventHelper{
 	public static final String TAG_PARTICIPANT = "participant";
 	public static final String TAG_EVENT = "event";
 	public static final String TAG_ROLE = "role";
-	public static final String TAG_SOURCE = "source";
-	public static final String TAG_NOTE = "note";
 
 
 	/**

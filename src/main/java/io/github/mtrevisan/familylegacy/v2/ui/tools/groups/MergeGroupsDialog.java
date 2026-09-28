@@ -29,8 +29,10 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.RecordSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolDialogs;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -197,7 +199,7 @@ public final class MergeGroupsDialog extends JDialog{
 		}
 
 		final String message = "Merge " + GroupHelper.displayName(source)
-			+ " into " + GroupHelper.displayName(target) + "?\n\n"
+			+ " into " + GroupHelper.displayName(target) + "?" + StringUtils.LF + StringUtils.LF
 			+ "The source group will be deleted.";
 		final int confirm = JOptionPane.showConfirmDialog(this, message,
 			"Confirm Merge", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
@@ -206,27 +208,23 @@ public final class MergeGroupsDialog extends JDialog{
 
 		// Step 1 and 2: re-point the relationships.
 		final FLEFModel model = context.model();
-		final List<FLEFRecord> relationships = model
-			.getRecordsByType(GroupHelper.TYPE_RELATIONSHIP);
-		for(final FLEFRecord rel : relationships){
-			final String type = FLEFRecordHelper.getChildValue(rel, GroupHelper.TAG_TYPE);
+		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
+		for(final FLEFRecord relationship : relationships){
+			final String type = FLEFRecordHelper.getChildValue(relationship, GroupHelper.TAG_TYPE);
 			if(type == null)
 				continue;
 			final String t = type.toLowerCase(Locale.ROOT);
 
 			if(GroupHelper.REL_GROUP_MEMBER.equals(t)){
-				final String targetGroup = rel.extractReferencedId(GroupHelper.TAG_TARGET,
-					GroupHelper.TYPE_GROUP);
-				if(source.getId().equals(targetGroup))
-					setChildValue(rel, GroupHelper.TAG_TARGET, GroupHelper.TYPE_GROUP,
-						target.getId());
+				final String objectGroup = relationship.extractReferencedId(GroupHelper.TAG_OBJECT, GroupHelper.TYPE_GROUP);
+				if(source.getId().equals(objectGroup))
+					setChildValue(relationship, GroupHelper.TAG_OBJECT, target.getId());
 			}
 			else if(GroupHelper.REL_PART_OF.equals(t)){
-				final String subjectGroup = rel.extractReferencedId(GroupHelper.TAG_SUBJECT,
+				final String subjectGroup = relationship.extractReferencedId(GroupHelper.TAG_SUBJECT,
 					GroupHelper.TYPE_GROUP);
 				if(source.getId().equals(subjectGroup))
-					setChildValue(rel, GroupHelper.TAG_SUBJECT, GroupHelper.TYPE_GROUP,
-						target.getId());
+					setChildValue(relationship, GroupHelper.TAG_SUBJECT, target.getId());
 			}
 		}
 
@@ -248,8 +246,7 @@ public final class MergeGroupsDialog extends JDialog{
 	 * nested block named after the entity type ({@code group},
 	 * {@code individual}) whose only child holds the id.
 	 */
-	private static void setChildValue(final FLEFRecord relationship,
-		final String wrapperTag, final String entityTag, final String newId){
+	private static void setChildValue(final FLEFRecord relationship, final String wrapperTag, final String newId){
 		final FLEFRecord wrapper = FLEFRecordHelper.findChild(relationship, wrapperTag);
 		if(wrapper == null)
 			return;

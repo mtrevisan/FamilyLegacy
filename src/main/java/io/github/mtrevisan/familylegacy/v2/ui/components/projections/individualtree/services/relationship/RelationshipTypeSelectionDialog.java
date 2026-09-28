@@ -149,12 +149,12 @@ public class RelationshipTypeSelectionDialog extends JDialog{
 		final JPanel tablePanel = new JPanel(new MigLayout("ins 0,fillx,gap 10 8", "[grow, fill][grow, fill]", "[]"));
 
 		// Column headers
-		final JLabel targetHeader = new JLabel("Target");
-		targetHeader.setFont(targetHeader.getFont().deriveFont(Font.BOLD));
+		final JLabel objectHeader = new JLabel("Object");
+		objectHeader.setFont(objectHeader.getFont().deriveFont(Font.BOLD));
 		final JLabel typeHeader = new JLabel("Relationship Type");
 		typeHeader.setFont(typeHeader.getFont().deriveFont(Font.BOLD));
 
-		tablePanel.add(targetHeader);
+		tablePanel.add(objectHeader);
 		tablePanel.add(typeHeader, "wrap");
 
 		for(final Item item : items){

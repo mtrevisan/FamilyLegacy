@@ -86,7 +86,7 @@ public class IndividualConverter {
 	 * @param placeCache     cache for place records
 	 */
 	public IndividualConverter(FLEFModel model, Map<String, FLEFRecord> individualMap, Map<String, GEDCOMNode> noteRawMap,
-			Map<String, GEDCOMNode> sourRawMap, Map<String, GEDCOMNode> objeRawMap, Map<String, FLEFRecord> sourceMap, Map<String, FLEFRecord> multimediaMap, PlaceCache placeCache) {
+			Map<String, GEDCOMNode> sourRawMap, Map<String, GEDCOMNode> objeRawMap, Map<String, FLEFRecord> sourceMap, Map<String, FLEFRecord> multimediaMap, PlaceCache placeCache){
 		this.model = model;
 		this.individualMap = individualMap;
 		this.noteRawMap = noteRawMap;
@@ -102,50 +102,50 @@ public class IndividualConverter {
 	 *
 	 * @param indiNode the GEDCOM node with tag "INDI"
 	 */
-	public void convert(GEDCOMNode indiNode, List<GEDCOMNode> roots) {
+	public void convert(GEDCOMNode indiNode, List<GEDCOMNode> roots){
 		String id = GEDCOMHelper.extractId(indiNode, IndividualHandler.ID_PREFIX);
 		FLEFRecord individual = FLEFRecord.createMainRecord(id, IndividualHandler.TYPE);
 		individualMap.put(id, individual);
 
 		// ---- Names ----
-		for (GEDCOMNode nameNode : GEDCOMHelper.findChildren(indiNode, "NAME")) {
+		for(GEDCOMNode nameNode : GEDCOMHelper.findChildren(indiNode, "NAME")){
 			GEDCOMHelper.attachPersonalNameStructure(individual, nameNode, model, noteRawMap, objeRawMap);
 		}
 
 		// ---- Sex ----
 		GEDCOMNode sexNode = GEDCOMHelper.findFirstChild(indiNode, "SEX");
-		if (sexNode != null && sexNode.getValue() != null) {
+		if(sexNode != null && sexNode.getValue() != null){
 			individual.addChild(FLEFRecord.createChildWithTagAndValue("sex", GEDCOMMapper.mapSex(sexNode.getValue())));
 		}
 
 		// ---- Events ----
-		for (String tag : GEDCOMMapper.EVENT_MAP.keySet()) {
-			for (GEDCOMNode evtNode : GEDCOMHelper.findChildren(indiNode, tag)) {
+		for(String tag : GEDCOMMapper.EVENT_MAP.keySet()){
+			for(GEDCOMNode evtNode : GEDCOMHelper.findChildren(indiNode, tag)){
 				GEDCOMHelper.attachIndividualEvent(individual, model, evtNode, noteRawMap, sourRawMap, objeRawMap, roots);
 			}
 		}
 
 		// ---- Attributes ----
-		for (String tag : GEDCOMMapper.ATTRIBUTE_MAP.keySet()) {
-			for (GEDCOMNode attrNode : GEDCOMHelper.findChildren(indiNode, tag)) {
+		for(String tag : GEDCOMMapper.ATTRIBUTE_MAP.keySet()){
+			for(GEDCOMNode attrNode : GEDCOMHelper.findChildren(indiNode, tag)){
 				GEDCOMHelper.attachIndividualAttribute(individual, model, attrNode, noteRawMap, sourRawMap, objeRawMap, roots);
 			}
 		}
 
 		// ---- Sources (SOUR) ----
-		for (GEDCOMNode sourNode : GEDCOMHelper.findChildren(indiNode, "SOUR")) {
+		for(GEDCOMNode sourNode : GEDCOMHelper.findChildren(indiNode, "SOUR")){
 			GEDCOMHelper.attachSource(individual, model,
 				sourNode, noteRawMap, objeRawMap);
 		}
 
 		// ---- Notes (GEDCOM NOTE) – inline structs ----
-		for (GEDCOMNode noteNode : GEDCOMHelper.findChildren(indiNode, "NOTE")) {
+		for(GEDCOMNode noteNode : GEDCOMHelper.findChildren(indiNode, "NOTE")){
 			GEDCOMHelper.attachNote(individual,
 				noteNode, noteRawMap);
 		}
 
 		// Multimedia (OBJE)
-		for (GEDCOMNode multimediaLinkNode : GEDCOMHelper.findChildren(indiNode, "OBJE")) {
+		for(GEDCOMNode multimediaLinkNode : GEDCOMHelper.findChildren(indiNode, "OBJE")){
 			GEDCOMHelper.attachMultimediaLink(individual, model,
 				multimediaLinkNode, objeRawMap);
 		}
@@ -180,29 +180,30 @@ public class IndividualConverter {
 	 * - If _PRIMARY Y, creates preferred_image on the individual.
 	 * - Otherwise, creates a SourceRecord and a SourceCitation for the individual.
 	 */
-	private void processObjNodes(GEDCOMNode indiNode, FLEFRecord indi) {
+	private void processObjNodes(GEDCOMNode indiNode, FLEFRecord indi){
 		List<GEDCOMNode> objNodes = GEDCOMHelper.findChildren(indiNode, "OBJE");
-		if (objNodes.isEmpty()) return;
+		if(objNodes.isEmpty())
+			return;
 
 		// Find the primary OBJE (with _PRIMARY Y)
 		GEDCOMNode preferredObj = null;
-		for (GEDCOMNode obj : objNodes) {
+		for(GEDCOMNode obj : objNodes){
 			GEDCOMNode primaryNode = GEDCOMHelper.findFirstChild(obj, "_PRIMARY");
-			if (primaryNode != null && "Y".equalsIgnoreCase(primaryNode.getValue())) {
+			if(primaryNode != null && "Y".equalsIgnoreCase(primaryNode.getValue())){
 				preferredObj = obj;
 				break;
 			}
 		}
 
-		for (GEDCOMNode objNode : objNodes) {
+		for(GEDCOMNode objNode : objNodes){
 			// 1. Create or retrieve DocumentRecord
 			FLEFRecord document = null;
 			String objXref = objNode.getXrefId();
-			if (objXref != null) {
+			if(objXref != null){
 				String cleanId = GEDCOMHelper.cleanId(objXref);
 				document = multimediaMap.get(cleanId);
 			}
-			if (document == null) {
+			if(document == null){
 				document = createDocumentRecord(objNode);
 
 				// check for duplicates before adding
@@ -212,17 +213,17 @@ public class IndividualConverter {
 			}
 
 			// 2. If primary: create preferred_image
-			if (objNode == preferredObj) {
+			if(objNode == preferredObj){
 				String fileUri = FLEFRecordHelper.getChildValue(document, "file");
-				if (fileUri != null && !fileUri.isEmpty()) {
+				if(fileUri != null && !fileUri.isEmpty()){
 					FLEFRecord prefImg = FLEFRecord.createChildWithTag("preferred_image");
 					prefImg.addChild(FLEFRecord.createChildWithTagAndValue("uri", fileUri));
 
 					// Crop from _CUTD
 					GEDCOMNode cutdNode = GEDCOMHelper.findFirstChild(objNode, "_CUTD");
-					if (cutdNode != null && cutdNode.getValue() != null) {
+					if(cutdNode != null && cutdNode.getValue() != null){
 						String[] parts = cutdNode.getValue().split(" ");
-						if (parts.length == 4) {
+						if(parts.length == 4){
 							try {
 								int x = Integer.parseInt(parts[0]);
 								int y = Integer.parseInt(parts[1]);
@@ -234,7 +235,7 @@ public class IndividualConverter {
 								crop.addChild(FLEFRecord.createChildWithTagAndValue("width", String.valueOf(w)));
 								crop.addChild(FLEFRecord.createChildWithTagAndValue("height", String.valueOf(h)));
 								prefImg.addChild(crop);
-							} catch (NumberFormatException ignored) {
+							} catch (NumberFormatException ignored){
 							}
 						}
 					}
@@ -263,24 +264,24 @@ public class IndividualConverter {
 	 * Creates a DocumentRecord from a GEDCOM OBJE node.
 	 * Excludes tags that are already used for specific purposes.
 	 */
-	private FLEFRecord createDocumentRecord(GEDCOMNode objNode) {
+	private FLEFRecord createDocumentRecord(GEDCOMNode objNode){
 		FLEFRecord doc = FLEFRecord.createMainRecord(IDGenerator.nextId(DocumentHandler.ID_PREFIX), DocumentHandler.TYPE);
 
 		// FILE -> file
 		GEDCOMNode fileNode = GEDCOMHelper.findFirstChild(objNode, "FILE");
-		if (fileNode != null && fileNode.getValue() != null) {
+		if(fileNode != null && fileNode.getValue() != null){
 			doc.addChild(FLEFRecord.createChildWithTagAndValue("uri", fileNode.getValue()));
 		}
 
 		// TITL -> description
 		GEDCOMNode titlNode = GEDCOMHelper.findFirstChild(objNode, "TITL");
-		if (titlNode != null && titlNode.getValue() != null) {
+		if(titlNode != null && titlNode.getValue() != null){
 			doc.addChild(FLEFRecord.createChildWithTagAndValue("description", titlNode.getValue()));
 		}
 
 		// FORM -> note (inline)
 //		GEDCOMNode formNode = GEDCOMHelper.findFirstChild(objNode, "FORM");
-//		if (formNode != null && formNode.getValue() != null) {
+//		if(formNode != null && formNode.getValue() != null){
 //			FLEFRecord note = FLEFRecord.createChildWithTag("note")
 //				.addChild(FLEFRecord.createChildWithTagAndValue("text", "Format: " + formNode.getValue()))
 //				.addChild(AuditBuilder.build(objNode));
@@ -289,9 +290,9 @@ public class IndividualConverter {
 
 //		// Exclude tags that are already used for specific purposes
 //		Set<String> excludedTags = Set.of("_PRIMARY", "_CUTD", "_PUBL", "_CUT", "_PREF", "_DATE");
-//		for (GEDCOMNode child : objNode.getChildren()) {
+//		for(GEDCOMNode child : objNode.getChildren()){
 //			String tag = child.getTag();
-//			if (tag.startsWith("_") && child.getValue() != null && !excludedTags.contains(tag)) {
+//			if(tag.startsWith("_") && child.getValue() != null && !excludedTags.contains(tag)){
 //				FLEFRecord note = FLEFRecord.createChildWithTag("note")
 //					.addChild(FLEFRecord.createChildWithTagAndValue("text", tag + ": " + child.getValue()));
 //					.addChild(AuditBuilder.build(child));
@@ -307,14 +308,14 @@ public class IndividualConverter {
 	/**
 	 * Creates a SourceRecord that references a DocumentRecord.
 	 */
-	private FLEFRecord createSourceRecordFromDocument(FLEFRecord docRecord, GEDCOMNode objNode) {
+	private FLEFRecord createSourceRecordFromDocument(FLEFRecord docRecord, GEDCOMNode objNode){
 		String id = IDGenerator.nextId(SourceHandler.ID_PREFIX);
 		FLEFRecord source = FLEFRecord.createChildWithTag("source");
 		source.setId(id);
 
 		// Title: use document description or default
 		String docDesc = FLEFRecordHelper.getChildValue(docRecord, "description");
-		if (docDesc == null || docDesc.isEmpty()) {
+		if(docDesc == null || docDesc.isEmpty()){
 			docDesc = "Image";
 		}
 		FLEFRecord titleRec = FLEFRecord.createChildWithTag("title")
@@ -327,10 +328,10 @@ public class IndividualConverter {
 
 		// Date from _DATE (if present)
 		GEDCOMNode dateNode = GEDCOMHelper.findFirstChild(objNode, "_DATE");
-		if (dateNode != null && dateNode.getValue() != null) {
+		if(dateNode != null && dateNode.getValue() != null){
 			GEDCOMNode syntheticDate = new GEDCOMNode(dateNode.getLevel(), "DATE", dateNode.getValue());
 			FLEFRecord dateStruct = structParser.parseDateStructure(syntheticDate);
-			if (dateStruct != null) source.addChild(dateStruct);
+			if(dateStruct != null) source.addChild(dateStruct);
 		}
 
 		// Audit
@@ -375,10 +376,10 @@ public class IndividualConverter {
 							.addChild(FLEFRecord.createChildWithTag("subject")
 								.addChild(FLEFRecord.createChildWithTagAndValue("individual", node.getXrefId()))
 							)
-							// target: individual/group
-							.addChild(FLEFRecord.createChildWithTag("target")
+							// object: individual/group
+							.addChild(FLEFRecord.createChildWithTag("object")
 								.addChild(FLEFRecord.createChildWithTagAndValue(
-									(GEDCOMHelper.cleanId(child.getValue()).startsWith("I")? "individual": "group"),
+									(GEDCOMHelper.cleanId(child.getValue()).startsWith(IndividualHandler.ID_PREFIX)? "individual": "group"),
 									GEDCOMHelper.cleanId(child.getValue())
 								))
 							);
@@ -395,13 +396,13 @@ public class IndividualConverter {
 						relationship.addChild(AuditBuilder.build(node));
 
 						// ---- Sources (SOUR) ----
-						for (GEDCOMNode sourNode : GEDCOMHelper.findChildren(child, "SOUR")) {
+						for(GEDCOMNode sourNode : GEDCOMHelper.findChildren(child, "SOUR")){
 							GEDCOMHelper.attachSource(relationship, model,
 								sourNode, noteRawMap, objeRawMap);
 						}
 
 						// ---- Notes (GEDCOM NOTE) – inline structs ----
-						for (GEDCOMNode noteNode : GEDCOMHelper.findChildren(child, "NOTE")) {
+						for(GEDCOMNode noteNode : GEDCOMHelper.findChildren(child, "NOTE")){
 							GEDCOMHelper.attachNote(relationship,
 								noteNode, noteRawMap);
 						}
