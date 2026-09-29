@@ -26,6 +26,9 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.searches.strategies;
 
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.RecordFilterPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchCriteria;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.BorderFactory;
@@ -45,27 +48,10 @@ import java.util.function.Consumer;
  */
 public class ResearchQuestionFilterPanel extends JPanel implements RecordFilterPanel{
 
-	static final String FILTER_KEY_TITLE = "title";
-	static final String FILTER_KEY_QUESTION = "question";
-	static final String FILTER_KEY_STATUS = "status";
-	static final String FILTER_KEY_CONFIDENCE = "confidence";
-
-
 	private final JTextField titleField = new JTextField(20);
 	private final JTextField questionField = new JTextField(20);
-	private final JComboBox<String> statusCombo = new JComboBox<>(new String[]{
-		"Any",
-		"open",
-		"on_hold",
-		"resolved",
-		"disproven"
-	});
-	private final JComboBox<String> confidenceCombo = new JComboBox<>(new String[]{
-		"Any",
-		"low",
-		"medium",
-		"high"
-	});
+	private final JComboBox<String> statusCombo = new JComboBox<>(GUIHelper.fillCombo(ResearchQuestionHandler.STATUSES, I18N.t("search.combo.any")));
+	private final JComboBox<String> confidenceCombo = new JComboBox<>(GUIHelper.fillCombo(ResearchQuestionHandler.CONFIDENCES, I18N.t("search.combo.any")));
 
 	private final Consumer<SearchCriteria> onChanged;
 
@@ -81,15 +67,15 @@ public class ResearchQuestionFilterPanel extends JPanel implements RecordFilterP
 
 	private void initComponents(){
 		setLayout(new MigLayout("wrap 2,gap 5", "[][grow,fill]", "[]"));
-		setBorder(BorderFactory.createTitledBorder("Research Question Filters"));
+		setBorder(BorderFactory.createTitledBorder(I18N.tf("dialog.search.filter.title", I18N.t("dialog.component.research.questions"))));
 
-		add(new JLabel("Title:"));
+		add(new JLabel(I18N.t("dialog.research.question.title") + ":"));
 		add(titleField, "growx");
-		add(new JLabel("Question:"));
+		add(new JLabel(I18N.t("dialog.research.question.question") + ":"));
 		add(questionField, "growx");
-		add(new JLabel("Status:"));
+		add(new JLabel(I18N.t("dialog.research.question.status") + ":"));
 		add(statusCombo, "growx");
-		add(new JLabel("Confidence:"));
+		add(new JLabel(I18N.t("dialog.research.question.confidence") + ":"));
 		add(confidenceCombo, "growx");
 	}
 
@@ -128,10 +114,10 @@ public class ResearchQuestionFilterPanel extends JPanel implements RecordFilterP
 	@Override
 	public Map<String, String> getFilters(){
 		final Map<String, String> filters = new HashMap<>();
-		filters.put(FILTER_KEY_TITLE, getTitle());
-		filters.put(FILTER_KEY_QUESTION, getQuestion());
-		filters.put(FILTER_KEY_STATUS, getStatus());
-		filters.put(FILTER_KEY_CONFIDENCE, getConfidence());
+		filters.put(ResearchQuestionHandler.TAG_TITLE, getTitle());
+		filters.put(ResearchQuestionHandler.TAG_QUESTION, getQuestion());
+		filters.put(ResearchQuestionHandler.TAG_STATUS, getStatus());
+		filters.put(ResearchQuestionHandler.TAG_CONCLUSION_CONFIDENCE, getConfidence());
 		return filters;
 	}
 

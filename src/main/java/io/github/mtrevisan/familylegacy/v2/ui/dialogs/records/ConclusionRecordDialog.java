@@ -50,6 +50,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceRelationshipHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.DefaultListCellRenderer;
@@ -117,7 +118,7 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]5[]10[]10[]10[]");
 
 		issueField = new BoundTextField(ConclusionHandler.TAG_ISSUE);
-		resolvesPanel = EntityListPanel.createForOneOfReference(ConclusionHandler.TAG_RESOLVES, this, "Resolves", model)
+		resolvesPanel = EntityListPanel.createForOneOfReference(ConclusionHandler.TAG_RESOLVES, this, I18N.t("dialog.conclusion.resolves"), model)
 			.withHandlerTypes(EventHandler.class, EventParticipationHandler.class, RelationshipHandler.class,
 				IndividualHandler.class, IndividualAttributeHandler.class, GroupHandler.class, GroupAttributeHandler.class,
 				IdentityHypothesisHandler.class, PlaceHandler.class, PlaceRelationshipHandler.class, SourceHandler.class,
@@ -140,16 +141,13 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 				return this;
 			}
 		});
-		proofStatusCombo = new BoundComboBox<>(ConclusionHandler.TAG_PROOF_STATUS, new String[]{
-			StringUtils.EMPTY,
-			"unresearched", "conflicting_evidence", "supported", "proven", "disproven"
-		});
+		proofStatusCombo = new BoundComboBox<>(ConclusionHandler.TAG_PROOF_STATUS, ConclusionHandler.PROOF_STATUSES);
 		narrativeArea = new BoundTextArea(ConclusionHandler.TAG_NARRATIVE, 5, 30);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.RESEARCH_QUESTION, ConclusionHandler.TAG_RESEARCH, "Questions")
-			.withComponent(PanelKey.SOURCE, ConclusionHandler.TAG_SOURCE, "Sources with Citations")
+			.withComponent(PanelKey.RESEARCH_QUESTION, ConclusionHandler.TAG_RESEARCH, I18N.t("dialog.component.research.questions"))
+			.withComponent(PanelKey.SOURCE, ConclusionHandler.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
 			.withComponent(PanelKey.PRIVACY, ConclusionHandler.TAG_PRIVACY, null)
 			.withComponent(PanelKey.AUDIT, ConclusionHandler.TAG_AUDIT, null)
 			.build();
@@ -169,19 +167,19 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 	@Override
 	protected JPanel createPropertiesPanel(){
 		// issue
-		GUIHelper.addLabeledComponent(propertiesPanel, "Issue*:", issueField);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.conclusion.issue") + "*:", issueField);
 
 		// proof status
-		GUIHelper.addLabeledComponent(propertiesPanel, "Proof Status*:", proofStatusCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.conclusion.proof.status") + "*:", proofStatusCombo);
 
 		// narrative
-		GUIHelper.addLabeledComponent(propertiesPanel, "Narrative:", narrativeArea);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.conclusion.narrative") + ":", narrativeArea);
 
 		// resolves
 		GUIHelper.addComponent(propertiesPanel, resolvesPanel);
 
 		// preferred
-		GUIHelper.addLabeledComponent(propertiesPanel, "Preferred:", preferredCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.conclusion.preferred") + ":", preferredCombo);
 
 		return propertiesPanel;
 	}
@@ -249,7 +247,7 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 	protected boolean validData(){
 		if(issueField.isEmpty()){
 			GUIHelper.showValidationErrorAndFocus(this,
-				"Issue is required.",
+				I18N.tf("validation.required", I18N.t("dialog.conclusion.issue")),
 				tabbedPane, propertiesPanel, issueField);
 
 			return false;
@@ -257,7 +255,7 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 
 		if(!proofStatusCombo.isValued()){
 			GUIHelper.showValidationErrorAndFocus(this,
-				"Proof status is required.",
+				I18N.tf("validation.required", I18N.t("dialog.conclusion.proof.status")),
 				tabbedPane, propertiesPanel, proofStatusCombo);
 			return false;
 		}

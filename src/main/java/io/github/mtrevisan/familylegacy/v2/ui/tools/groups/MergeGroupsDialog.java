@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.RecordSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolDialogs;
 import org.apache.commons.lang3.StringUtils;
@@ -146,7 +147,7 @@ public final class MergeGroupsDialog extends JDialog{
 		ok.addActionListener(e -> onConfirm());
 		buttons.add(ok);
 
-		final JButton cancel = new JButton("Cancel");
+		final JButton cancel = new JButton(I18N.t("button.cancel"));
 		cancel.addActionListener(e -> dispose());
 		buttons.add(cancel);
 
@@ -210,19 +211,18 @@ public final class MergeGroupsDialog extends JDialog{
 		final FLEFModel model = context.model();
 		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
 		for(final FLEFRecord relationship : relationships){
-			final String type = FLEFRecordHelper.getChildValue(relationship, GroupHelper.TAG_TYPE);
+			final String type = FLEFRecordHelper.getChildValue(relationship, RelationshipHandler.TAG_TYPE);
 			if(type == null)
 				continue;
 			final String t = type.toLowerCase(Locale.ROOT);
 
 			if(GroupHelper.REL_GROUP_MEMBER.equals(t)){
-				final String objectGroup = relationship.extractReferencedId(GroupHelper.TAG_OBJECT, GroupHelper.TYPE_GROUP);
+				final String objectGroup = relationship.extractReferencedId(RelationshipHandler.TAG_OBJECT, GroupHelper.TYPE_GROUP);
 				if(source.getId().equals(objectGroup))
 					setChildValue(relationship, GroupHelper.TAG_OBJECT, target.getId());
 			}
 			else if(GroupHelper.REL_PART_OF.equals(t)){
-				final String subjectGroup = relationship.extractReferencedId(GroupHelper.TAG_SUBJECT,
-					GroupHelper.TYPE_GROUP);
+				final String subjectGroup = relationship.extractReferencedId(RelationshipHandler.TAG_SUBJECT, GroupHelper.TYPE_GROUP);
 				if(source.getId().equals(subjectGroup))
 					setChildValue(relationship, GroupHelper.TAG_SUBJECT, target.getId());
 			}

@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.HistoricEventRecordDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Window;
@@ -50,6 +51,13 @@ public class HistoricEventHandler extends AbstractRecordTypeHandler<HistoricEven
 	public static final String TAG_EVIDENCE = "EVIDENCE";
 	public static final String TAG_AUDIT = "AUDIT";
 
+	public static final String[] TYPES = new String[]{
+		StringUtils.EMPTY,
+		"war", "epidemic", "famine", "migration", "legal_reform", "political_change", "territorial_change",
+		"natural_disaster", "economic_crisis", "scientific_discovery", "religious_reform", "social_movement",
+		"pandemic"
+	};
+
 
 	private static final class SingletonHelper{
 		private static final HistoricEventHandler INSTANCE = new HistoricEventHandler();
@@ -63,7 +71,7 @@ public class HistoricEventHandler extends AbstractRecordTypeHandler<HistoricEven
 
 	@Override
 	public String getLabel(){
-		return "Historic Event";
+		return I18N.t("confirmation.exist.record.historic.event");
 	}
 
 	@Override

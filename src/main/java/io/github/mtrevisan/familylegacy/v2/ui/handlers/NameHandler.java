@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.structures.NameStructureDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Window;
@@ -71,7 +72,7 @@ public class NameHandler extends AbstractRecordTypeHandler<NameStructureDialog>{
 
 	@Override
 	public String getLabel(){
-		return "Name Structure";
+		return I18N.t("confirmation.exist.record.name");
 	}
 
 	@Override

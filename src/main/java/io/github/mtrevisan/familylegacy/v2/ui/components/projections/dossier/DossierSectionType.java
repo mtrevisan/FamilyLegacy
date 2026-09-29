@@ -54,8 +54,8 @@ public enum DossierSectionType{
 	/** Contextual factors (historic events, cultural norms) affecting the individual. */
 	CONTEXT("Context"),
 
-	/** Identity hypotheses that include the individual as a candidate. */
-	IDENTITY_HYPOTHESES("Identity hypotheses"),
+	/** Identity hypothesis that include the individual as a candidate. */
+	IDENTITY_HYPOTHESES("Identity hypothesis"),
 
 	/** Research questions and conclusions about the individual. */
 	RESEARCH("Research"),

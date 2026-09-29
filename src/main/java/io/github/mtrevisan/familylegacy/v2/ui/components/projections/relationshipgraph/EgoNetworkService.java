@@ -111,7 +111,7 @@ public class EgoNetworkService{
 			for(int i = 0, size = rels.size(); i < size; i ++){
 				final FLEFRecord relationship = rels.get(i);
 
-				final String type = FLEFRecordHelper.getChildValue(relationship, TAG_TYPE);
+				final String type = FLEFRecordHelper.getChildValue(relationship, RelationshipHandler.TAG_TYPE);
 				final String role = FLEFRecordHelper.getChildValue(relationship, TAG_ROLE);
 				final String status = normalizeStatus(FLEFRecordHelper.getChildValue(relationship, TAG_STATUS));
 				if(type == null)

@@ -24,6 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.components.searches;
 
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
+
+
 /**
  * Admission mode for the record search.
  * <p>
@@ -34,12 +37,12 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.searches;
 public enum SearchMode{
 
 	/** Exact word match. */
-	WHOLE_WORD("Whole word"),
+	WHOLE_WORD(I18N.t("search.mode.whole.word")),
 
 	/**
 	 * Substring or near-match (substring, one edit).
 	 */
-	FUZZY("Fuzzy");
+	FUZZY(I18N.t("search.mode.fuzzy"));
 
 
 	private final String label;

@@ -27,7 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.tools.events;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18n;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolOperation;
 
@@ -37,7 +37,7 @@ public final class NewEventTool implements ToolOperation{
 
 	@Override
 	public String getName(){
-		return I18n.t("menu.event.new.event");
+		return I18N.t("menu.event.new.event");
 	}
 
 	@Override

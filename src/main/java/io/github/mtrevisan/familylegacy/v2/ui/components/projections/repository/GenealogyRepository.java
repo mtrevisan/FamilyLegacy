@@ -109,12 +109,12 @@ public class GenealogyRepository{
 	}
 
 	private void indexRelationship(final FLEFRecord relationship){
-		final String type = FLEFRecordHelper.getChildValue(relationship, TAG_TYPE);
+		final String type = FLEFRecordHelper.getChildValue(relationship, RelationshipHandler.TAG_TYPE);
 		if(type == null)
 			return;
 
-		final String subjectId = relationship.extractReferencedId(TAG_SUBJECT, IndividualHandler.TYPE);
-		final String objectId = relationship.extractReferencedId(TAG_OBJECT, IndividualHandler.TYPE);
+		final String subjectId = relationship.extractReferencedId(RelationshipHandler.TAG_SUBJECT, IndividualHandler.TYPE);
+		final String objectId = relationship.extractReferencedId(RelationshipHandler.TAG_OBJECT, IndividualHandler.TYPE);
 		if(subjectId == null || objectId == null)
 			return;
 

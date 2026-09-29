@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.IndividualRecordDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 
@@ -49,17 +50,12 @@ public class IndividualHandler extends AbstractRecordTypeHandler<IndividualRecor
 	public static final String TAG_PRIVACY = "PRIVACY";
 	public static final String TAG_AUDIT = "AUDIT";
 
-	public static final String TAG_PERSONAL_NAME_TYPE = "TYPE";
-	public static final String TAG_PERSONAL_NAME_PART = "PART";
-	public static final String TAG_PERSONAL_NAME_LOCALE = "LOCALE";
-	// TODO
-	public static final String TAG_PERSONAL_NAME_CULTURAL_NORM = "CULTURAL_NORM";
-	public static final String TAG_PERSONAL_NAME_SOURCE = "SOURCE";
-	public static final String TAG_PERSONAL_NAME_NOTE = "NOTE";
-
 	public static final String ENUM_SEX_MALE = "male";
 	public static final String ENUM_SEX_FEMALE = "female";
 	public static final String ENUM_SEX_UNKNOWN = "unknown";
+	public static final String[] SEXES = {
+		StringUtils.EMPTY,
+		ENUM_SEX_MALE, ENUM_SEX_FEMALE, ENUM_SEX_UNKNOWN};
 
 
 	private static final class SingletonHelper{
@@ -74,7 +70,7 @@ public class IndividualHandler extends AbstractRecordTypeHandler<IndividualRecor
 
 	@Override
 	public String getLabel(){
-		return "Individual";
+		return I18N.t("confirmation.exist.record.individual");
 	}
 
 	@Override

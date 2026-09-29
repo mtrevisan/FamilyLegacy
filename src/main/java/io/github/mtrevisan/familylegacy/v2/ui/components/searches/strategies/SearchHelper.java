@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.searches.strategies;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.components.SingleDatePanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchMatcher;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchMode;
@@ -46,24 +47,6 @@ import java.util.Map;
 
 public class SearchHelper{
 
-	private static final String TAG_DATE = "date";
-	private static final String TAG_NAME = "name";
-	private static final String TAG_PARTICIPANT = "participant";
-	private static final String TAG_TYPE = "type";
-
-	private static final String ENUM_TYPE_BIRTH = "birth";
-	private static final String ENUM_TYPE_DEATH = "death";
-	private static final String ENUM_PART_FIRST_QUARTER = "first_quarter";
-	private static final String ENUM_PART_SECOND_QUARTER = "second_quarter";
-	private static final String ENUM_PART_THIRD_QUARTER = "third_quarter";
-	private static final String ENUM_PART_FOURTH_QUARTER = "fourth_quarter";
-	private static final String ENUM_PART_FIRST_HALF = "first_half";
-	private static final String ENUM_PART_SECOND_HALF = "second_half";
-	private static final String ENUM_PART_EARLY = "early";
-	private static final String ENUM_PART_MID = "mid";
-	private static final String ENUM_PART_LATE = "late";
-
-
 	private SearchHelper(){}
 
 
@@ -81,7 +64,7 @@ public class SearchHelper{
 
 		final List<FLEFRecord> participations = model.getRecordsByType(EventParticipationHandler.TYPE);
 		for(final FLEFRecord participation : participations){
-			final String participantId = participation.extractReferencedId(TAG_PARTICIPANT, IndividualHandler.TYPE);
+			final String participantId = participation.extractReferencedId(EventParticipationHandler.TAG_PARTICIPANT, IndividualHandler.TYPE);
 			if(participantId == null)
 				continue;
 
@@ -93,20 +76,20 @@ public class SearchHelper{
 			if(event == null)
 				continue;
 
-			final String type = FLEFRecordHelper.getChildValue(event, TAG_TYPE);
+			final String type = FLEFRecordHelper.getChildValue(event, EventHandler.TAG_TYPE);
 			if(type == null)
 				continue;
 
-			if(ENUM_TYPE_BIRTH.equalsIgnoreCase(type) && !birthYears.containsKey(participantId)){
-				final FLEFRecord eventDateRecord = FLEFRecordHelper.findChild(event, TAG_DATE);
+			if(EventHandler.ENUM_TYPE_BIRTH.equalsIgnoreCase(type) && !birthYears.containsKey(participantId)){
+				final FLEFRecord eventDateRecord = FLEFRecordHelper.findChild(event, EventHandler.TAG_DATE);
 				if(eventDateRecord != null){
 					final Integer[] range = SearchHelper.extractYearRangeFromDateStructure(eventDateRecord);
 					if(range != null && range[0] != Integer.MIN_VALUE)
 						birthYears.put(participantId, range[0]);
 				}
 			}
-			else if(ENUM_TYPE_DEATH.equalsIgnoreCase(type) && !deathYears.containsKey(participantId)){
-				final FLEFRecord eventDateRecord = FLEFRecordHelper.findChild(event, TAG_DATE);
+			else if(EventHandler.ENUM_TYPE_DEATH.equalsIgnoreCase(type) && !deathYears.containsKey(participantId)){
+				final FLEFRecord eventDateRecord = FLEFRecordHelper.findChild(event, EventHandler.TAG_DATE);
 				if(eventDateRecord != null){
 					final Integer[] range = SearchHelper.extractYearRangeFromDateStructure(eventDateRecord);
 					if(range != null && range[1] != Integer.MAX_VALUE)
@@ -142,7 +125,7 @@ public class SearchHelper{
 		if(StringUtils.isEmpty(name))
 			return true;
 
-		final List<FLEFRecord> names = FLEFRecordHelper.findChildren(place, TAG_NAME);
+		final List<FLEFRecord> names = FLEFRecordHelper.findChildren(place, PlaceHandler.TAG_NAME);
 		boolean matched = false;
 		for(final FLEFRecord nameStruct : names){
 			final String nameValue = FLEFRecordHelper.getChildValue(nameStruct, NameHandler.TAG_VALUE);
@@ -159,7 +142,7 @@ public class SearchHelper{
 		if(StringUtils.isEmpty(date))
 			return true;
 
-		final FLEFRecord dateRecord = FLEFRecordHelper.findChild(event, TAG_DATE);
+		final FLEFRecord dateRecord = FLEFRecordHelper.findChild(event, EventHandler.TAG_DATE);
 		final Integer year = SearchHelper.extractYear(date, calendar);
 		return SearchHelper.isDateInRange(dateRecord, null, null, year, year);
 	}
@@ -304,15 +287,15 @@ public class SearchHelper{
 			return new Integer[]{startYear, endYear};
 
 		return switch(part.toLowerCase()){
-			case ENUM_PART_FIRST_QUARTER -> new Integer[]{startYear, startYear + 24};
-			case ENUM_PART_SECOND_QUARTER -> new Integer[]{startYear + 25, startYear + 49};
-			case ENUM_PART_THIRD_QUARTER -> new Integer[]{startYear + 50, startYear + 74};
-			case ENUM_PART_FOURTH_QUARTER -> new Integer[]{startYear + 75, endYear};
-			case ENUM_PART_FIRST_HALF -> new Integer[]{startYear, startYear + 49};
-			case ENUM_PART_SECOND_HALF -> new Integer[]{startYear + 50, endYear};
-			case ENUM_PART_EARLY -> new Integer[]{startYear, startYear + 32};
-			case ENUM_PART_MID -> new Integer[]{startYear + 33, startYear + 66};
-			case ENUM_PART_LATE -> new Integer[]{startYear + 67, endYear};
+			case SingleDatePanel.ENUM_PART_FIRST_QUARTER -> new Integer[]{startYear, startYear + 24};
+			case SingleDatePanel.ENUM_PART_SECOND_QUARTER -> new Integer[]{startYear + 25, startYear + 49};
+			case SingleDatePanel.ENUM_PART_THIRD_QUARTER -> new Integer[]{startYear + 50, startYear + 74};
+			case SingleDatePanel.ENUM_PART_FOURTH_QUARTER -> new Integer[]{startYear + 75, endYear};
+			case SingleDatePanel.ENUM_PART_FIRST_HALF -> new Integer[]{startYear, startYear + 49};
+			case SingleDatePanel.ENUM_PART_SECOND_HALF -> new Integer[]{startYear + 50, endYear};
+			case SingleDatePanel.ENUM_PART_EARLY -> new Integer[]{startYear, startYear + 32};
+			case SingleDatePanel.ENUM_PART_MID -> new Integer[]{startYear + 33, startYear + 66};
+			case SingleDatePanel.ENUM_PART_LATE -> new Integer[]{startYear + 67, endYear};
 			default -> new Integer[]{startYear, endYear};
 		};
 	}

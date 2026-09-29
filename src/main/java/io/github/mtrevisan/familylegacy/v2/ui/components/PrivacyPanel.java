@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextArea;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JPanel;
@@ -59,6 +60,15 @@ public class PrivacyPanel extends JPanel{
 	public static final String TAG_REASON = "REASON";
 	public static final String TAG_EXPIRES = "EXPIRES";
 
+	public static final String ENUM_PRIVACY_PUBLIC = "public";
+	public static final String ENUM_PRIVACY_RESTRICTED = "restricted";
+	public static final String ENUM_PRIVACY_CONFIDENTIAL = "confidential";
+	private static final String[] LEVELS = {
+		ENUM_PRIVACY_PUBLIC,
+		ENUM_PRIVACY_RESTRICTED,
+		ENUM_PRIVACY_CONFIDENTIAL
+	};
+
 
 	private final BindingManager bindingManager = new BindingManager();
 
@@ -71,10 +81,9 @@ public class PrivacyPanel extends JPanel{
 	 * Constructs a new RestrictionPanel.
 	 */
 	public PrivacyPanel(final String path){
-		levelCombo = new BoundComboBox<>(path + DOT + TAG_LEVEL, new String[]{
-			"public", "restricted", "confidential"});
+		levelCombo = new BoundComboBox<>(path + DOT + TAG_LEVEL, LEVELS);
 		reasonArea = new BoundTextArea(path + DOT + TAG_REASON, 3, 25);
-		reasonArea.setToolTipText("e.g., 'Living individual', 'Repository license forbids redistribution'");
+		reasonArea.setToolTipText(I18N.t("dialog.privacy.reason.tooltip"));
 		expiresField = new BoundTextField(path + DOT + TAG_EXPIRES);
 
 
@@ -92,13 +101,13 @@ public class PrivacyPanel extends JPanel{
 		setLayout(GUIHelper.createLabelFieldLayout(10, "[]10[]10[]"));
 
 		// level
-		GUIHelper.addLabeledComponent(this, "Level:", levelCombo);
+		GUIHelper.addLabeledComponent(this, I18N.t("dialog.privacy.level") + ":", levelCombo);
 
 		// reason
-		GUIHelper.addLabeledComponent(this, "Reason:", reasonArea);
+		GUIHelper.addLabeledComponent(this, I18N.t("dialog.privacy.reason") + ":", reasonArea);
 
 		// expires
-		GUIHelper.addLabeledComponent(this, "Expires:", expiresField);
+		GUIHelper.addLabeledComponent(this, I18N.t("dialog.privacy.expires") + ":", expiresField);
 	}
 
 

@@ -504,10 +504,10 @@ public class PartnersPanel extends JPanel{
 //	private boolean hasChildren(final String fatherId, final String motherId){
 //		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
 //		for(final FLEFRecord relationship : relationships){
-//			final String type = FLEFRecordHelper.getChildValue(relationship, TAG_TYPE);
+//			final String type = FLEFRecordHelper.getChildValue(relationship, RelationshipHandler.TAG_TYPE);
 //			if(type != null && relationshipTypeFilter.test(type)){
-//				final String targetId = relationship.extractReferencedId(TAG_TARGET, IndividualHandler.TYPE);
-//				if(fatherId.equals(targetId))
+//				final String objectId = relationship.extractReferencedId(RelationshipHandler.TAG_OBJECT, IndividualHandler.TYPE);
+//				if(fatherId.equals(objectId))
 //					return true;
 //			}
 //		}

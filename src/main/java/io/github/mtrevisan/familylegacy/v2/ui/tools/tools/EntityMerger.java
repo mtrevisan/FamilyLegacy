@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventParticipationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualAttributeHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.individuals.IndividualHelper;
 import org.apache.commons.lang3.StringUtils;
@@ -158,9 +159,9 @@ public final class EntityMerger{
 		int repointed = 0;
 		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
 		for(final FLEFRecord relationship : relationships){
-			final String subjectId = relationship.extractReferencedId(TAG_SUBJECT, TYPE_INDIVIDUAL);
-			final String objectIdOfRel = relationship.extractReferencedId(TAG_OBJECT, TYPE_INDIVIDUAL);
-			final String type = FLEFRecordHelper.getChildValue(relationship, TAG_TYPE);
+			final String subjectId = relationship.extractReferencedId(RelationshipHandler.TAG_SUBJECT, IndividualHandler.TYPE);
+			final String objectIdOfRel = relationship.extractReferencedId(RelationshipHandler.TAG_OBJECT, IndividualHandler.TYPE);
+			final String type = FLEFRecordHelper.getChildValue(relationship, RelationshipHandler.TAG_TYPE);
 			if(type == null)
 				continue;
 
@@ -211,9 +212,9 @@ public final class EntityMerger{
 		final Set<String> edges = new LinkedHashSet<>();
 		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
 		for(final FLEFRecord relationship : relationships){
-			final String subjectId = relationship.extractReferencedId(TAG_SUBJECT, TYPE_INDIVIDUAL);
-			final String objectId = relationship.extractReferencedId(TAG_OBJECT, TYPE_INDIVIDUAL);
-			final String type = FLEFRecordHelper.getChildValue(relationship, TAG_TYPE);
+			final String subjectId = relationship.extractReferencedId(RelationshipHandler.TAG_SUBJECT, IndividualHandler.TYPE);
+			final String objectId = relationship.extractReferencedId(RelationshipHandler.TAG_OBJECT, IndividualHandler.TYPE);
+			final String type = FLEFRecordHelper.getChildValue(relationship, RelationshipHandler.TAG_TYPE);
 			if(subjectId != null && objectId != null && type != null
 					&& !sourceId.equals(subjectId) && !sourceId.equals(objectId))
 				edges.add(edgeKey(subjectId, objectId, type));

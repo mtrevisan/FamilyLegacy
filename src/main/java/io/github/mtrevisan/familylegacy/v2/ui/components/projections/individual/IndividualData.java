@@ -170,7 +170,7 @@ public final class IndividualData{
 			if(subjectId == null || objectId == null || !subjectId.equals(id) && !objectId.equals(id))
 				continue;
 
-			String type = FLEFRecordHelper.getChildValue(relationship, TAG_TYPE);
+			String type = FLEFRecordHelper.getChildValue(relationship, RelationshipHandler.TAG_TYPE);
 			if(type != null){
 				type = type.toLowerCase(Locale.ROOT);
 				if(type.equalsIgnoreCase(ENUM_TYPE_BIOLOGICAL_CHILD)){

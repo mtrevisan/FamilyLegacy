@@ -37,6 +37,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.LocaleHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JPanel;
@@ -72,6 +73,12 @@ import java.awt.Window;
  */
 public class NoteStructureDialog extends BaseRecordDialog{
 
+	private static final String[] MIME_TYPES = {
+		StringUtils.EMPTY,
+		"text/plain", "text/html", "text/markdown"
+	};
+
+
 	private final JPanel propertiesPanel;
 
 	private final BoundTextField titleField;
@@ -97,17 +104,15 @@ public class NoteStructureDialog extends BaseRecordDialog{
 
 		titleField = new BoundTextField(NoteHandler.TAG_TITLE);
 		textArea = new BoundTextArea(NoteHandler.TAG_TEXT, 3, 25);
-		textArea.setToolTipText("Markdown supported. Use [text](@<XREF:ID>@) for references, [text](confidential) for confidential data.");
-		mimeCombo = new BoundComboBox<>(NoteHandler.TAG_MIME, new String[]{
-			StringUtils.EMPTY,
-			"text/plain", "text/html", "text/markdown"});
+		textArea.setToolTipText(I18N.t("dialog.note.text.tooltip"));
+		mimeCombo = new BoundComboBox<>(NoteHandler.TAG_MIME, MIME_TYPES);
 		localeCombo = new BoundFilteredComboBox<>(NoteHandler.TAG_LOCALE, LocaleHelper.getAvailableLanguageTags());
 		localeCombo.setEditable(true);
-		translationPanel = new TranslationListPanel(NoteHandler.TAG_TRANSLATION, this, "Translations");
+		translationPanel = new TranslationListPanel(NoteHandler.TAG_TRANSLATION, this, I18N.t("dialog.note.translations"));
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.SOURCE, NoteHandler.TAG_SOURCE, "Sources with Citations")
+			.withComponent(PanelKey.SOURCE, NoteHandler.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
 			.withComponent(PanelKey.PRIVACY, NoteHandler.TAG_PRIVACY, null)
 			.withComponent(PanelKey.AUDIT, NoteHandler.TAG_AUDIT, null)
 			.build();
@@ -128,16 +133,16 @@ public class NoteStructureDialog extends BaseRecordDialog{
 	@Override
 	protected JPanel createPropertiesPanel(){
 		// title
-		GUIHelper.addLabeledComponent(propertiesPanel, "Title:", titleField);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.note.title") + ":", titleField);
 
 		// text
-		GUIHelper.addLabeledComponent(propertiesPanel, "Text*:", textArea);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.note.text") + "*:", textArea);
 
 		// mime
-		GUIHelper.addLabeledComponent(propertiesPanel, "MIME type:", mimeCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.note.mime.type") + ":", mimeCombo);
 
 		// locale
-		GUIHelper.addLabeledComponent(propertiesPanel, "Locale:", localeCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.note.locale") + ":", localeCombo);
 
 		// translation
 		GUIHelper.addComponent(propertiesPanel, translationPanel);
@@ -185,7 +190,7 @@ public class NoteStructureDialog extends BaseRecordDialog{
 	protected boolean validData(){
 		if(textArea.isEmpty()){
 			GUIHelper.showValidationErrorAndFocus(this,
-				"Note value is required.",
+				I18N.tf("validation.required", I18N.t("dialog.note.text")),
 				tabbedPane, propertiesPanel, textArea);
 
 			return false;

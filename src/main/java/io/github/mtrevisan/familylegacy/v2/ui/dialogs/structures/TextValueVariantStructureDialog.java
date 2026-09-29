@@ -32,6 +32,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.TextValueVariantHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.ButtonGroup;
@@ -86,11 +87,33 @@ public class TextValueVariantStructureDialog extends BaseRecordDialog{
 	private static final String TAG_TRANSCRIPTION_TYPE = TextValueVariantHandler.TAG_TRANSCRIPTION + DOT + TextValueVariantHandler.TAG_TYPE;
 	private static final String TAG_TRANSCRIPTION_VALUE = TextValueVariantHandler.TAG_TRANSCRIPTION + DOT + TextValueVariantHandler.TAG_VALUE;
 
+	private static final String[] TRANSCRIPTION_SYSTEMS = {
+		StringUtils.EMPTY,
+		"rōmaji", "hepburn", "kunreishiki", "nihonshiki",
+		"pinyin", "wadegiles",
+		"bgn_pcgn",
+		"iso9",
+		"ala_lc",
+		"dmg",
+		"buckwalter",
+		"iso233",
+		"iso259",
+		"iast",
+		"iso15919", "hunterian",
+		"mccune_reischauer", "revised_korean",
+		"scientific"
+	};
+	private static final String[] TRANSCRIPTION_TYPES = {
+		StringUtils.EMPTY,
+		"romanized", "latinized", "anglicized", "francized", "germanized", "italianized", "hispanicized",
+		"lusitanized", "cyrillized", "arabized", "hebraized", "hellenized", "gairaigized", "modernized", "normalized"
+	};
+
 
 	private final JPanel propertiesPanel;
 
-	private final JRadioButton phoneticRadio = new JRadioButton("Phonetic", true);
-	private final JRadioButton transcriptionRadio = new JRadioButton("Transcription");
+	private final JRadioButton phoneticRadio = new JRadioButton(I18N.t("dialog.name.variant.phonetic"), true);
+	private final JRadioButton transcriptionRadio = new JRadioButton(I18N.t("dialog.name.variant.transcription"));
 	private final BoundTextField phoneticSystemField;
 	private final BoundComboBox<String> transcriptionSystemCombo;
 	private final BoundComboBox<String> typeCombo;
@@ -112,29 +135,10 @@ public class TextValueVariantStructureDialog extends BaseRecordDialog{
 		propertiesPanel = GUIHelper.createLabelFieldPanel(0, "[]15[]5[]5[]5[]");
 
 		phoneticSystemField = new BoundTextField(TAG_PHONETIC_SYSTEM);
-		phoneticSystemField.setToolTipText("e.g., 'ipa', 'rōmaji', 'pinyin', 'wadegiles'");
-		transcriptionSystemCombo = new BoundComboBox<>(TAG_TRANSCRIPTION_SYSTEM, new String[]{
-			StringUtils.EMPTY,
-			"rōmaji", "hepburn", "kunreishiki", "nihonshiki",
-			"pinyin", "wadegiles",
-			"bgn_pcgn",
-			"iso9",
-			"ala_lc",
-			"dmg",
-			"buckwalter",
-			"iso233",
-			"iso259",
-			"iast",
-			"iso15919", "hunterian",
-			"mccune_reischauer", "revised_korean",
-			"scientific"
-		});
+		phoneticSystemField.setToolTipText(I18N.t("dialog.name.variant.phonetic.system.tooltip"));
+		transcriptionSystemCombo = new BoundComboBox<>(TAG_TRANSCRIPTION_SYSTEM, TRANSCRIPTION_SYSTEMS);
 		transcriptionSystemCombo.setEditable(true);
-		typeCombo = new BoundComboBox<>(TAG_TRANSCRIPTION_TYPE, new String[]{
-			StringUtils.EMPTY,
-			"romanized", "latinized", "anglicized", "francized", "germanized", "italianized", "hispanicized",
-			"lusitanized", "cyrillized", "arabized", "hebraized", "hellenized", "gairaigized", "modernized", "normalized"
-		});
+		typeCombo = new BoundComboBox<>(TAG_TRANSCRIPTION_TYPE, TRANSCRIPTION_TYPES);
 		typeCombo.setEditable(true);
 		valueField = new BoundTextField(TextValueVariantHandler.TAG_VALUE);
 
@@ -162,17 +166,17 @@ public class TextValueVariantStructureDialog extends BaseRecordDialog{
 		radioPanel.add(phoneticRadio);
 		radioPanel.add(transcriptionRadio);
 
-		GUIHelper.addLabeledComponent(propertiesPanel, "Variant Kind:", radioPanel);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.name.variant.kind") + ":", radioPanel);
 
-		final JLabel phoneticsSystemLabel = new JLabel("System*:");
+		final JLabel phoneticsSystemLabel = new JLabel(I18N.t("dialog.name.variant.system") + "*:");
 		phoneticsSystemLabel.setLabelFor(phoneticSystemField);
 		propertiesPanel.add(phoneticsSystemLabel, "align label");
 		propertiesPanel.add(phoneticSystemField, "growx,wrap");
 		propertiesPanel.add(transcriptionSystemCombo, "growx,wrap");
 
-		GUIHelper.addLabeledComponent(propertiesPanel, "Type:", typeCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.name.variant.type") + ":", typeCombo);
 
-		GUIHelper.addLabeledComponent(propertiesPanel, "Value*:", valueField);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.name.variant.value") + "*:", valueField);
 
 		phoneticRadio.addActionListener(e -> updateFieldsState());
 		transcriptionRadio.addActionListener(e -> updateFieldsState());
@@ -220,7 +224,7 @@ public class TextValueVariantStructureDialog extends BaseRecordDialog{
 	protected boolean validData(){
 		if(phoneticRadio.isSelected() && phoneticSystemField.isEmpty()){
 			GUIHelper.showValidationErrorAndFocus(this,
-				"System is required.",
+				I18N.tf("validation.required", I18N.t("dialog.name.variant.system")),
 				tabbedPane, propertiesPanel, phoneticSystemField);
 
 			return false;
@@ -228,7 +232,7 @@ public class TextValueVariantStructureDialog extends BaseRecordDialog{
 
 		if(transcriptionRadio.isSelected() && !transcriptionSystemCombo.isValued()){
 			GUIHelper.showValidationErrorAndFocus(this,
-				"System is required.",
+				I18N.tf("validation.required", I18N.t("dialog.name.variant.system")),
 				tabbedPane, propertiesPanel, transcriptionSystemCombo);
 
 			return false;
@@ -236,7 +240,7 @@ public class TextValueVariantStructureDialog extends BaseRecordDialog{
 
 		if(valueField.isEmpty()){
 			GUIHelper.showValidationErrorAndFocus(this,
-				"Value is required.",
+				I18N.tf("validation.required", I18N.t("dialog.name.variant.value")),
 				tabbedPane, propertiesPanel, valueField);
 
 			return false;

@@ -26,7 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.tools.sources;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18n;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ReportDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolOperation;
@@ -59,7 +59,7 @@ public final class CitationAnalysisTool implements ToolOperation{
 
 	@Override
 	public String getName(){
-		return I18n.t("menu.source.citation.analysis");
+		return I18N.t("menu.source.citation.analysis");
 	}
 
 	@Override

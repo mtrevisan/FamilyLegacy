@@ -28,6 +28,8 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.PlaceRelationshipRecordDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
+import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Window;
 
@@ -47,6 +49,12 @@ public class PlaceRelationshipHandler extends AbstractRecordTypeHandler<PlaceRel
 	public static final String TAG_EVIDENCE = "EVIDENCE";
 	public static final String TAG_AUDIT = "AUDIT";
 
+	public static final String[] TYPES = new String[]{
+		StringUtils.EMPTY,
+		"administrative_part_of", "geographic_part_of", "ecclesiastical_part_of", "judicial_part_of",
+		"cadastral_part_of"
+	};
+
 
 	private static final class SingletonHelper{
 		private static final PlaceRelationshipHandler INSTANCE = new PlaceRelationshipHandler();
@@ -60,7 +68,7 @@ public class PlaceRelationshipHandler extends AbstractRecordTypeHandler<PlaceRel
 
 	@Override
 	public String getLabel(){
-		return "Place Relationship";
+		return I18N.t("confirmation.exist.record.place.relationship");
 	}
 
 	@Override

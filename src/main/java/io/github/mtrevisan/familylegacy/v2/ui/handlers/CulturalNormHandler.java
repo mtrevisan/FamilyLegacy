@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.CulturalNormRecordDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Window;
@@ -51,6 +52,27 @@ public class CulturalNormHandler extends AbstractRecordTypeHandler<CulturalNormR
 	public static final String TAG_EVIDENCE = "EVIDENCE";
 	public static final String TAG_AUDIT = "AUDIT";
 
+	public static final String[] RULE_TYPES = new String[]{
+		StringUtils.EMPTY,
+		// Lifecycle and age-related customs:
+		"age_of_majority", "marriage_minimum_age", "baptism_age", "confirmation_age", "military_service_age",
+		"retirement_age",
+		// Naming practices:
+		"naming_convention", "surname_transmission", "patronymic_system", "matronymic_system", "title_usage",
+		// Family and household customs:
+		"inheritance_rule", "succession_rule", "dowry_practice", "guardianship_rule", "adoption_practice",
+		// Marriage customs:
+		"marriage_practice", "marriage_prohibited_degree", "widowhood_rule",
+		// Residence and social organization:
+		"residence_pattern", "household_structure", "social_classification",
+		// Religious and ecclesiastical customs:
+		"religious_practice", "burial_practice",
+		// Legal and citizenship rules:
+		"citizenship_rule", "legitimacy_rule",
+		// Genealogical inference rules:
+		"age_difference_convention", "generational_interval"
+	};
+
 
 	private static final class SingletonHelper{
 		private static final CulturalNormHandler INSTANCE = new CulturalNormHandler();
@@ -64,7 +86,7 @@ public class CulturalNormHandler extends AbstractRecordTypeHandler<CulturalNormR
 
 	@Override
 	public String getLabel(){
-		return "Cultural Norm";
+		return I18N.t("confirmation.exist.record.cultural.norm");
 	}
 
 	@Override

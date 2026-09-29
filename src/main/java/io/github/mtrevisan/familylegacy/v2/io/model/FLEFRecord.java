@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.v2.io.model;
 
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 
@@ -191,7 +192,7 @@ public class FLEFRecord{
 		if(size > 1){
 			JOptionPane.showMessageDialog(null,
 				"Record with more than one child: " + this,
-				"Error", JOptionPane.ERROR_MESSAGE);
+				I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
 
 			return null;
 		}

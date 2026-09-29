@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.ResourceHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import io.github.mtrevisan.familylegacy.v2.ui.images.ScaledImage;
 import net.miginfocom.swing.MigLayout;
 
@@ -79,7 +80,7 @@ public class ImageCropDialog extends JDialog{
 	}
 
 	private void initComponents(final boolean viewOnly){
-		setTitle("Define crop");
+		setTitle(I18N.t("dialog.preferred.image.crop.title"));
 
 		if(viewOnly)
 			imageHolder = ScaledImage.createViewOnly();
@@ -104,7 +105,7 @@ public class ImageCropDialog extends JDialog{
 	public void loadData(final String filename, final Rectangle crop) throws IOException{
 		final File file = FileHelper.loadFile(filename);
 		if(file == null || !file.exists())
-			throw new IOException("File does not exists");
+			throw new IOException(I18N.t("dialog.preferred.image.no.file"));
 
 		loadData(file, crop);
 	}
@@ -113,8 +114,8 @@ public class ImageCropDialog extends JDialog{
 		final BufferedImage newImage = ResourceHelper.readBufferedImage(file);
 		if(newImage == null){
 			JOptionPane.showMessageDialog(getParent(),
-				"Could not load image from the current source.",
-				"Error", JOptionPane.ERROR_MESSAGE);
+				I18N.t("error.image"),
+				I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
 
 			return;
 		}

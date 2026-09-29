@@ -84,12 +84,12 @@ public class EgoNetworkMutator extends AbstractProjectionMutator{
 		for(int i = 0, size = relationships.size(); i < size; i ++){
 			final FLEFRecord relationship = relationships.get(i);
 
-			final String type = FLEFRecordHelper.getChildValue(relationship, TAG_TYPE);
+			final String type = FLEFRecordHelper.getChildValue(relationship, RelationshipHandler.TAG_TYPE);
 			if(type == null)
 				continue;
 
-			final String subjectId = relationship.extractReferencedId(TAG_SUBJECT, sourceTag);
-			final String relationshipObjectId = relationship.extractReferencedId(TAG_OBJECT, targetTag);
+			final String subjectId = relationship.extractReferencedId(RelationshipHandler.TAG_SUBJECT, sourceTag);
+			final String relationshipObjectId = relationship.extractReferencedId(RelationshipHandler.TAG_OBJECT, targetTag);
 			if((sourceId.equals(subjectId) && targetId.equals(relationshipObjectId))
 					|| (targetId.equals(subjectId) && sourceId.equals(relationshipObjectId)))
 				toRemove.add(relationship.getId());

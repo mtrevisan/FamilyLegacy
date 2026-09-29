@@ -26,6 +26,8 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.searches.strategies;
 
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.RecordFilterPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchCriteria;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.IdentityHypothesisHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.BorderFactory;
@@ -44,10 +46,6 @@ import java.util.function.Consumer;
  */
 public class IdentityHypothesisFilterPanel extends JPanel implements RecordFilterPanel{
 
-	static final String FILTER_KEY_CANDIDATE = "candidate";
-	static final String FILTER_KEY_COMMENT = "comment";
-
-
 	private final JTextField candidateField = new JTextField(20);
 	private final JTextField commentField = new JTextField(20);
 
@@ -65,11 +63,11 @@ public class IdentityHypothesisFilterPanel extends JPanel implements RecordFilte
 
 	private void initComponents(){
 		setLayout(new MigLayout("wrap 2,gap 5", "[][grow,fill]", "[]"));
-		setBorder(BorderFactory.createTitledBorder("Identity Hypothesis Filters"));
+		setBorder(BorderFactory.createTitledBorder(I18N.tf("dialog.search.filter.title", I18N.t("dialog.component.identity.hypotheses"))));
 
-		add(new JLabel("Candidate:"));
+		add(new JLabel(I18N.t("dialog.identity.hypothesis.identity") + ":"));
 		add(candidateField, "growx");
-		add(new JLabel("Comment:"));
+		add(new JLabel(I18N.t("dialog.identity.hypothesis.comment") + ":"));
 		add(commentField, "growx");
 	}
 
@@ -105,8 +103,8 @@ public class IdentityHypothesisFilterPanel extends JPanel implements RecordFilte
 	@Override
 	public Map<String, String> getFilters(){
 		final Map<String, String> filters = new HashMap<>();
-		filters.put(FILTER_KEY_CANDIDATE, getCandidate());
-		filters.put(FILTER_KEY_COMMENT, getComment());
+		filters.put(IdentityHypothesisHandler.TAG_IDENTITY, getCandidate());
+		filters.put(IdentityHypothesisHandler.TAG_COMMENT, getComment());
 		return filters;
 	}
 

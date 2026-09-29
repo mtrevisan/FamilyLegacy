@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BindingsHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -109,7 +110,7 @@ public class PreferredImagePanel extends JPanel{
 
 		imageButton.setPreferredSize(new Dimension(80, 80));
 		imageButton.setIcon(PLACEHOLDER_ICON);
-		imageButton.setToolTipText("Left-click to select an image, right-click for options");
+		imageButton.setToolTipText(I18N.t("dialog.preferred.image.image.tooltip"));
 
 		BindingsHelper.installBehavior(imageButton,
 			() -> {
@@ -119,11 +120,11 @@ public class PreferredImagePanel extends JPanel{
 			this::setNewItem, null,
 			null, null,
 			builder -> {
-				builder.item("Set…", this::setNewItem);
+				builder.item(I18N.t("popupmenu.set"), this::setNewItem);
 				builder.separator();
-				builder.selectionSensitiveItem("Edit Crop…", this::editCrop);
+				builder.selectionSensitiveItem(I18N.t("popupmenu.edit.crop"), this::editCrop);
 				builder.separator();
-				builder.selectionSensitiveItem("Remove", this::removeItem);
+				builder.selectionSensitiveItem(I18N.t("popupmenu.remove"), this::removeItem);
 			}
 		);
 
@@ -227,8 +228,8 @@ if(uri != null)
 			ioe.printStackTrace();
 
 			JOptionPane.showMessageDialog(parent,
-				"Error loading image for cropping: " + ioe.getMessage(),
-				"Error", JOptionPane.ERROR_MESSAGE);
+				I18N.tf("error.image", uri),
+				I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
 		}
 	}
 
@@ -255,8 +256,8 @@ if(uri != null)
 			ioe.printStackTrace();
 
 			JOptionPane.showMessageDialog(parent,
-				"Error loading image for cropping: " + ioe.getMessage(),
-				"Error", JOptionPane.ERROR_MESSAGE);
+				I18N.tf("error.image", uri),
+				I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
 		}
 	}
 
@@ -295,8 +296,8 @@ if(uri != null)
 	private void removeItem(){
 		if(hasImage()){
 			final int response = JOptionPane.showConfirmDialog(parent,
-				"Are you sure you want to remove the preferred image?",
-				"Confirm Removal",
+				I18N.t("confirmation.remove.image.message"),
+				I18N.t("confirmation.remove.title"),
 				JOptionPane.YES_NO_OPTION);
 			if(response == JOptionPane.YES_OPTION)
 				clearImage();
@@ -315,7 +316,7 @@ if(uri != null)
 		g2.setColor(Color.LIGHT_GRAY);
 		g2.fillRect(0, 0, 80, 80);
 		g2.setColor(Color.DARK_GRAY);
-		g2.drawString("[No img]", 10, 45);
+		g2.drawString(I18N.t("dialog.preferred.image.no.image"), 10, 45);
 		g2.dispose();
 		return new ImageIcon(img);
 	}

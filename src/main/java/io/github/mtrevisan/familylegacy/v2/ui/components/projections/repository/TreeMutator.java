@@ -96,15 +96,15 @@ public class TreeMutator extends AbstractProjectionMutator{
 			final List<FLEFRecord> toRemove = new ArrayList<>();
 			final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
 			for(final FLEFRecord relationship : relationships){
-				final String type = FLEFRecordHelper.getChildValue(relationship, TAG_TYPE);
+				final String type = FLEFRecordHelper.getChildValue(relationship, RelationshipHandler.TAG_TYPE);
 				if(!relationshipTypeFilter.test(type))
 					continue;
 
-				final String subjectId = relationship.extractReferencedId(TAG_SUBJECT, IndividualHandler.TYPE);
+				final String subjectId = relationship.extractReferencedId(RelationshipHandler.TAG_SUBJECT, IndividualHandler.TYPE);
 				if(!childrenId.contains(subjectId))
 					continue;
 
-				final String objectId = relationship.extractReferencedId(TAG_OBJECT, IndividualHandler.TYPE);
+				final String objectId = relationship.extractReferencedId(RelationshipHandler.TAG_OBJECT, IndividualHandler.TYPE);
 				if(objectId == null)
 					continue;
 
@@ -179,15 +179,15 @@ public class TreeMutator extends AbstractProjectionMutator{
 
 	private String findParent(final String individualId){
 		for(final FLEFRecord relationship : model.getRecordsByType(RelationshipHandler.TYPE)){
-			final String type = FLEFRecordHelper.getChildValue(relationship, TAG_TYPE);
+			final String type = FLEFRecordHelper.getChildValue(relationship, RelationshipHandler.TAG_TYPE);
 			if(type == null || !relationshipTypeFilter.test(type))
 				continue;
 
-			final String subjectId = relationship.extractReferencedId(TAG_SUBJECT, IndividualHandler.TYPE);
+			final String subjectId = relationship.extractReferencedId(RelationshipHandler.TAG_SUBJECT, IndividualHandler.TYPE);
 			if(!individualId.equals(subjectId))
 				continue;
 
-			final String parentId = relationship.extractReferencedId(TAG_OBJECT, IndividualHandler.TYPE);
+			final String parentId = relationship.extractReferencedId(RelationshipHandler.TAG_OBJECT, IndividualHandler.TYPE);
 			if(parentId != null && model.hasRecord(parentId))
 				return parentId;
 		}
@@ -196,15 +196,15 @@ public class TreeMutator extends AbstractProjectionMutator{
 
 	private String findChild(final String individualId){
 		for(final FLEFRecord relationship : model.getRecordsByType(RelationshipHandler.TYPE)){
-			final String type = FLEFRecordHelper.getChildValue(relationship, TAG_TYPE);
+			final String type = FLEFRecordHelper.getChildValue(relationship, RelationshipHandler.TAG_TYPE);
 			if(type == null || !relationshipTypeFilter.test(type))
 				continue;
 
-			final String objectId = relationship.extractReferencedId(TAG_OBJECT, IndividualHandler.TYPE);
+			final String objectId = relationship.extractReferencedId(RelationshipHandler.TAG_OBJECT, IndividualHandler.TYPE);
 			if(!individualId.equals(objectId))
 				continue;
 
-			final String childId = relationship.extractReferencedId(TAG_SUBJECT, IndividualHandler.TYPE);
+			final String childId = relationship.extractReferencedId(RelationshipHandler.TAG_SUBJECT, IndividualHandler.TYPE);
 			if(childId != null && model.hasRecord(childId))
 				return childId;
 		}

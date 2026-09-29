@@ -42,7 +42,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceRelationshipHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
-import org.apache.commons.lang3.StringUtils;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 
 import javax.swing.JPanel;
 import javax.swing.border.TitledBorder;
@@ -113,29 +113,23 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]10[]");
 
-		namePanel = EntityListPanel.createForStructure(PlaceHandler.TAG_NAME, this, "Names*", model, NameHandler.class);
-		typeCombo = new BoundComboBox<>(PlaceHandler.TAG_TYPE, new String[]{
-			StringUtils.EMPTY,
-			"address", "building", "street", "hamlet", "village", "town",
-			"municipality", "city", "metropolitan_area", "county", "province",
-			"department", "district", "region", "macro_region", "country",
-			"empire", "parish", "diocese", "cemetery", "archive", "unknown"
-		});
+		namePanel = EntityListPanel.createForStructure(PlaceHandler.TAG_NAME, this, I18N.t("dialog.place.names") + "*", model, NameHandler.class);
+		typeCombo = new BoundComboBox<>(PlaceHandler.TAG_TYPE, PlaceHandler.TYPES);
 		typeCombo.setEditable(true);
 		mapCoordinatesField = new BoundTextField(TAG_MAP_COORDINATES);
-		mapEvidencePanel = new EvidenceQualifiersPanel(TAG_MAP_EVIDENCE, "Map Evidence");
+		mapEvidencePanel = new EvidenceQualifiersPanel(TAG_MAP_EVIDENCE, I18N.t("dialog.place.map.evidence"));
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.PLACE_RELATIONSHIP_ON_SUBJECT, PlaceRelationshipHandler.TYPE, "Members")
-			.withComponent(PanelKey.PLACE_RELATIONSHIP_ON_TARGET, PlaceRelationshipHandler.TYPE, "Relationships")
-			.withComponent(PanelKey.EVENT_PARTICIPATION_ON_PARTICIPANT, EventParticipationHandler.TYPE, "Participations")
-			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, ContextImpactHandler.TYPE, "Context Impacts")
-			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, "Conclusions")
-			.withComponent(PanelKey.IDENTITY_HYPOTHESIS_ON_IDENTITY, IdentityHypothesisHandler.TYPE, "Identity Hypotheses")
-			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, "Research Questions")
-			.withComponent(PanelKey.SOURCE, PlaceHandler.TAG_SOURCE, "Sources with Citations")
-			.withComponent(PanelKey.EVIDENCE, PlaceHandler.TAG_EVIDENCE, "Evidence")
+			.withComponent(PanelKey.PLACE_RELATIONSHIP_ON_SUBJECT, PlaceRelationshipHandler.TYPE, I18N.t("dialog.component.place.relationships.on.subject"))
+			.withComponent(PanelKey.PLACE_RELATIONSHIP_ON_OBJECT, PlaceRelationshipHandler.TYPE, I18N.t("dialog.component.place.relationships.on.target"))
+			.withComponent(PanelKey.EVENT_PARTICIPATION_ON_PARTICIPANT, EventParticipationHandler.TYPE, I18N.t("dialog.component.event.participations"))
+			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, ContextImpactHandler.TYPE, I18N.t("dialog.component.context.impact"))
+			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, I18N.t("dialog.component.conclusions"))
+			.withComponent(PanelKey.IDENTITY_HYPOTHESIS_ON_IDENTITY, IdentityHypothesisHandler.TYPE, I18N.t("dialog.component.identity.hypotheses"))
+			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, I18N.t("dialog.component.research.questions"))
+			.withComponent(PanelKey.SOURCE, PlaceHandler.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
+			.withComponent(PanelKey.EVIDENCE, PlaceHandler.TAG_EVIDENCE, I18N.t("dialog.component.evidence"))
 			.withComponent(PanelKey.PRIVACY, PlaceHandler.TAG_PRIVACY, null)
 			.withComponent(PanelKey.AUDIT, PlaceHandler.TAG_AUDIT, null)
 			.build();
@@ -154,12 +148,12 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 		GUIHelper.addComponent(propertiesPanel, namePanel);
 
 		// type
-		GUIHelper.addLabeledComponent(propertiesPanel, "Type:", typeCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.place.type") + ":", typeCombo);
 
 		// map panel:
 		final JPanel mapPanel = GUIHelper.createLabelFieldPanel(10, "[]5[]");
-		mapPanel.setBorder(new TitledBorder("Map"));
-		GUIHelper.addLabeledComponent(mapPanel, "Coordinates:", mapCoordinatesField);
+		mapPanel.setBorder(new TitledBorder(I18N.t("dialog.place.map")));
+		GUIHelper.addLabeledComponent(mapPanel, I18N.t("dialog.place.map.coordinates") + ":", mapCoordinatesField);
 		GUIHelper.addComponent(mapPanel, mapEvidencePanel);
 		GUIHelper.addComponent(propertiesPanel, mapPanel);
 
@@ -177,7 +171,7 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 		final JPanel placeRelationshipAsSubjectPanel = components.getPanel(PanelKey.PLACE_RELATIONSHIP_ON_SUBJECT);
 		GUIHelper.addComponent(panel, placeRelationshipAsSubjectPanel);
 
-		final JPanel placeRelationshipAsObjectPanel = components.getPanel(PanelKey.PLACE_RELATIONSHIP_ON_TARGET);
+		final JPanel placeRelationshipAsObjectPanel = components.getPanel(PanelKey.PLACE_RELATIONSHIP_ON_OBJECT);
 		GUIHelper.addComponent(panel, placeRelationshipAsObjectPanel);
 
 		return panel;
@@ -263,7 +257,7 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 	protected boolean validData(){
 		if(!namePanel.hasData()){
 			GUIHelper.showValidationErrorAndFocus(this,
-				"At least one name is required.",
+				I18N.tf("validation.required", I18N.t("dialog.place.names")),
 				tabbedPane, propertiesPanel, namePanel);
 
 			return false;

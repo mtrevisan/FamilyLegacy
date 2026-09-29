@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.v2.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.v2.io.FLEFWriter;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.ProgressDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JFileChooser;
@@ -354,8 +355,8 @@ public final class FileMenuController{
 			JOptionPane.YES_NO_CANCEL_OPTION,
 			JOptionPane.WARNING_MESSAGE,
 			null,
-			new Object[]{"Save", "Discard", "Cancel"},
-			"Save");
+			new Object[]{I18N.t("button.save"), "Discard", I18N.t("button.cancel")},
+			I18N.t("button.save"));
 
 		if(choice == 2 || choice == JOptionPane.CLOSED_OPTION)
 			return false;

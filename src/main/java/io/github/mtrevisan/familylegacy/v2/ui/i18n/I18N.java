@@ -34,7 +34,7 @@ import java.util.ResourceBundle;
  * which is exactly what the application does when the user picks a new
  * language.</p>
  */
-public final class I18n{
+public final class I18N{
 
 	private static final String BUNDLE_BASE = "i18n.ui.messages";
 
@@ -43,7 +43,7 @@ public final class I18n{
 		ResourceBundle.getBundle(BUNDLE_BASE, Locale.getDefault(), new Utf8Control());
 
 
-	private I18n(){
+	private I18N(){
 	}
 
 
@@ -68,7 +68,8 @@ public final class I18n{
 
 	/** Returns the localized string for {@code key} with {@link String#format} substitution. */
 	public static String tf(final String key, final Object... args){
-		return String.format(BUNDLE.getString(key), args);
+		return new MessageFormat(BUNDLE.getString(key), Locale.getDefault())
+			.format(args);
 	}
 
 
@@ -87,12 +88,14 @@ public final class I18n{
 		final Object[] args = new Object[extra.length + 1];
 		args[0] = count;
 		System.arraycopy(extra, 0, args, 1, extra.length);
-		return new MessageFormat(pattern, Locale.getDefault()).format(args);
+		return new MessageFormat(pattern, Locale.getDefault())
+			.format(args);
 	}
 
 	/** Same as {@link #plural(String, int, Object...)} but takes an explicit pattern. */
 	public static String formatIcu(final String pattern, final Object... args){
-		return new MessageFormat(pattern, Locale.getDefault()).format(args);
+		return new MessageFormat(pattern, Locale.getDefault())
+			.format(args);
 	}
 
 

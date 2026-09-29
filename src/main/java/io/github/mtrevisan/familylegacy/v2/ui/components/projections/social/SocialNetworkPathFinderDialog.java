@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.JButton;
@@ -70,7 +71,7 @@ public final class SocialNetworkPathFinderDialog extends JDialog{
 	private final JButton fromBtn = new JButton("Pick…");
 	private final JButton toBtn = new JButton("Pick…");
 	private final JButton okBtn = new JButton("Find path");
-	private final JButton cancelBtn = new JButton("Cancel");
+	private final JButton cancelBtn = new JButton(I18N.t("button.cancel"));
 
 
 	public SocialNetworkPathFinderDialog(final Window owner, final FLEFModel model, final FLEFRecord initialFromEntity,

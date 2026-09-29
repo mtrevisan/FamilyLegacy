@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.structures.PartStructureDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 
@@ -61,7 +62,7 @@ public class PartHandler extends AbstractRecordTypeHandler<PartStructureDialog>{
 
 	@Override
 	public String getLabel(){
-		return "Part";
+		return I18N.t("confirmation.exist.record.part");
 	}
 
 	@Override

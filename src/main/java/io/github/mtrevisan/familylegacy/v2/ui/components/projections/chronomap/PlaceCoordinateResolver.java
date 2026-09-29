@@ -50,6 +50,7 @@ import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
@@ -82,9 +83,10 @@ public final class PlaceCoordinateResolver{
 	private static final String TAG_OBJECT = "object";
 
 	/** Relationship types that mean "subject is part of target". */
-	private static final List<String> PART_OF_TYPES = List.of(
-		"administrative_part_of", "geographic_part_of",
-		"ecclesiastical_part_of", "judicial_part_of", "cadastral_part_of");
+	private static final List<String> PART_OF_TYPES = new ArrayList<>(List.of(PlaceRelationshipHandler.TYPES));
+	static{
+		PART_OF_TYPES.removeIf(Objects::isNull);
+	}
 
 	/** Nominatim response: {@code [{"lat":"45.65","lon":"12.21",...}]}. */
 	private static final Pattern NOMINATIM_LATLON = Pattern.compile(

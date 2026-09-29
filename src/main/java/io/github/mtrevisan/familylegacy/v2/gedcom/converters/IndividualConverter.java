@@ -222,7 +222,7 @@ public class IndividualConverter {
 					// Crop from _CUTD
 					GEDCOMNode cutdNode = GEDCOMHelper.findFirstChild(objNode, "_CUTD");
 					if(cutdNode != null && cutdNode.getValue() != null){
-						String[] parts = cutdNode.getValue().split(" ");
+						String[] parts = StringUtils.split(cutdNode.getValue(),' ');
 						if(parts.length == 4){
 							try {
 								int x = Integer.parseInt(parts[0]);

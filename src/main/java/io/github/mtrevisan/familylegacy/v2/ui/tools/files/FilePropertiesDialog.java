@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.tools.files;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -88,7 +89,7 @@ public final class FilePropertiesDialog extends JDialog{
 				.setContents(selection, selection);
 		});
 
-		final JButton close = new JButton("Close");
+		final JButton close = new JButton(I18N.t("button.close"));
 		close.addActionListener(e -> dispose());
 
 		final JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT));

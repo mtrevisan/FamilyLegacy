@@ -267,8 +267,8 @@ public final class TemporalProjectionService{
 		final Map<String, FLEFRecord> recordIndex = new HashMap<>();
 
 		for(final FLEFRecord relationship : model.getRecordsByType(RelationshipHandler.TYPE)){
-			final String subjectId = relationship.extractReferencedId(TAG_SUBJECT, IndividualHandler.TYPE);
-			final String objectId = relationship.extractReferencedId(TAG_OBJECT, IndividualHandler.TYPE);
+			final String subjectId = relationship.extractReferencedId(RelationshipHandler.TAG_SUBJECT, IndividualHandler.TYPE);
+			final String objectId = relationship.extractReferencedId(RelationshipHandler.TAG_OBJECT, IndividualHandler.TYPE);
 			if(subjectId == null || objectId == null)
 				continue;
 			if(!includedIds.contains(subjectId) || !includedIds.contains(objectId))
@@ -288,7 +288,7 @@ public final class TemporalProjectionService{
 			if(span == null)
 				continue;
 
-			final String relType = FLEFRecordHelper.getChildValue(relationship, TAG_TYPE);
+			final String relType = FLEFRecordHelper.getChildValue(relationship, RelationshipHandler.TAG_TYPE);
 			final String role = FLEFRecordHelper.getChildValue(relationship, TAG_ROLE);
 			final TemporalConnectionType connectionType = TemporalConnectionType.of(sourceRef.type(), objectRef.type());
 

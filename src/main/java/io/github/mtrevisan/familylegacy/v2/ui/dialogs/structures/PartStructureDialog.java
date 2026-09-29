@@ -34,6 +34,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PartHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PersonalNameHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JPanel;
@@ -59,6 +60,17 @@ import java.awt.Window;
  */
 public class PartStructureDialog extends BaseRecordDialog{
 
+	private static final String[] PART_TYPES = {
+		StringUtils.EMPTY,
+		"given", "generation",
+		"patronymic", "matronymic", "kunya (كُنيَة)",
+		"family", "family_nickname", "lineage", "house", "clan", "tribal", "caste",
+		"toponymic",
+		"title", "occupational", "prefix", "suffix",
+		"nickname", "regnal", "religious", "posthumous"
+	};
+
+
 	private final JPanel propertiesPanel;
 
 	private final BoundComboBox<String> typeCombo;
@@ -80,18 +92,10 @@ public class PartStructureDialog extends BaseRecordDialog{
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(0, "[]10[]15[]");
 
-		typeCombo = new BoundComboBox<>(PersonalNameHandler.TAG_PART_TYPE, new String[]{
-			StringUtils.EMPTY,
-			"given", "generation",
-			"patronymic", "matronymic", "kunya (كُنيَة)",
-			"family", "family_nickname", "lineage", "house", "clan", "tribal", "caste",
-			"toponymic",
-			"title", "occupational", "prefix", "suffix",
-			"nickname", "regnal", "religious", "posthumous"
-		});
+		typeCombo = new BoundComboBox<>(PersonalNameHandler.TAG_PART_TYPE, PART_TYPES);
 		typeCombo.setEditable(true);
 		valueField = new BoundTextField(PersonalNameHandler.TAG_PART_VALUE);
-		variantPanel = new TextValueVariantListPanel(PersonalNameHandler.TAG_PART_VARIANT, this, "Variant", model);
+		variantPanel = new TextValueVariantListPanel(PersonalNameHandler.TAG_PART_VARIANT, this, I18N.t("dialog.name.variant"), model);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
@@ -108,10 +112,10 @@ public class PartStructureDialog extends BaseRecordDialog{
 	@Override
 	protected JPanel createPropertiesPanel(){
 		// type
-		GUIHelper.addLabeledComponent(propertiesPanel, "Type*:", typeCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.name.type") + "*:", typeCombo);
 
 		// value
-		GUIHelper.addLabeledComponent(propertiesPanel, "Value*:", valueField);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.name.value") + "*:", valueField);
 
 		// variant
 		GUIHelper.addComponent(propertiesPanel, variantPanel);
@@ -131,7 +135,7 @@ public class PartStructureDialog extends BaseRecordDialog{
 	protected boolean validData(){
 		if(valueField.isEmpty()){
 			GUIHelper.showValidationErrorAndFocus(this,
-				"Value is required.",
+				I18N.tf("validation.required", I18N.t("dialog.name.value")),
 				tabbedPane, propertiesPanel, valueField);
 
 			return false;

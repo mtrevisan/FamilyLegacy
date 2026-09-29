@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.fields.EntityField;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolDialogs;
 import net.miginfocom.swing.MigLayout;
@@ -291,7 +292,7 @@ public final class MergeRecordsDialog extends JDialog{
 		ok.addActionListener(e -> onConfirm());
 		buttons.add(ok);
 
-		final JButton cancel = new JButton("Cancel");
+		final JButton cancel = new JButton(I18N.t("button.cancel"));
 		cancel.addActionListener(e -> dispose());
 		buttons.add(cancel);
 

@@ -33,6 +33,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -786,11 +787,11 @@ public final class MergeFieldComparisonDialog extends JDialog{
 		final JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 		buttons.setBorder(BorderFactory.createEmptyBorder(4, 8, 8, 8));
 
-		final JButton ok = new JButton("OK");
+		final JButton ok = new JButton(I18N.t("button.ok"));
 		ok.addActionListener(e -> onOk());
 		buttons.add(ok);
 
-		final JButton cancel = new JButton("Cancel");
+		final JButton cancel = new JButton(I18N.t("button.cancel"));
 		cancel.addActionListener(e -> dispose());
 		buttons.add(cancel);
 

@@ -1,6 +1,6 @@
 package io.github.mtrevisan.familylegacy.v2.ui.tools.reports.operations;
 
-import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18n;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolOperation;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.reports.ReportDialog;
@@ -11,7 +11,7 @@ public final class DescendantReportOperation implements ToolOperation{
 
 	@Override
 	public String getName(){
-		return I18n.t("menu.reports.descendant.report");
+		return I18N.t("menu.reports.descendant.report");
 	}
 
 	@Override

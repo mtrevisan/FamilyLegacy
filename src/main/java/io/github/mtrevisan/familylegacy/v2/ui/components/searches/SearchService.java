@@ -198,11 +198,7 @@ public class SearchService{
 		final List<FLEFRecord> results = new ArrayList<>(scored.size());
 		for(final ScoredRecord sr : scored)
 			results.add(sr.record());
-		System.out.println("=== ordine finale ===");
-		for(final ScoredRecord sr : scored)
-			System.out.println("  " + sr.match().matchedTokens()
-				+ "  " + sr.match().score()
-				+ "  " + sr.record().getId());		return results;
+		return results;
 	}
 
 	/**

@@ -26,6 +26,9 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.searches.strategies;
 
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.RecordFilterPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchCriteria;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.DocumentHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.BorderFactory;
@@ -51,15 +54,7 @@ public class DocumentFilterPanel extends JPanel implements RecordFilterPanel{
 
 
 	private final JTextField descriptionField = new JTextField(20);
-	private final JComboBox<String> mappingCombo = new JComboBox<>(new String[]{
-		"Any",
-		"planar",
-		"spherical_equirectangular",
-		"spherical_uv",
-		"cubemap",
-		"cylindrical_equirectangular_horizontal",
-		"cylindrical_equirectangular_vertical"
-	});
+	private final JComboBox<String> mappingCombo = new JComboBox<>(GUIHelper.fillCombo(DocumentHandler.MAPPINGS, I18N.t("search.combo.any")));
 	private final JTextField uriField = new JTextField(20);
 
 	private final Consumer<SearchCriteria> onChanged;

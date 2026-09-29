@@ -591,7 +591,7 @@ public final class KinshipCalculator{
 		final Map<String, List<FLEFRecord>> index = new HashMap<>();
 		List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
 		for(final FLEFRecord relationship : relationships){
-			final String type = FLEFRecordHelper.getChildValue(relationship, TAG_TYPE);
+			final String type = FLEFRecordHelper.getChildValue(relationship, RelationshipHandler.TAG_TYPE);
 			if(type == null)
 				continue;
 

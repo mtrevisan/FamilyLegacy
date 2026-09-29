@@ -27,12 +27,15 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.searches.strategies;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchCriteria;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchMode;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchStrategy;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventParticipationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -49,22 +52,19 @@ import java.util.function.Predicate;
  */
 public class IndividualSearchStrategy implements SearchStrategy{
 
+	static final String KEY_DATE_FROM = EventHandler.TAG_DATE + "_" + DateField.TAG_FROM;
+	static final String KEY_CALENDAR_FROM = DateField.TAG_CALENDAR + "_" + DateField.TAG_FROM;
+	static final String KEY_DATE_TO = EventHandler.TAG_DATE + "_" + DateField.TAG_TO;
+	static final String KEY_CALENDAR_TO = DateField.TAG_CALENDAR + "_" + DateField.TAG_TO;
+
 	private static final String DOT = ".";
 
-	private static final String TAG_SEX = "sex";
-	private static final String TAG_TYPE = "type";
-	private static final String TAG_DATE = "date";
-	private static final String TAG_PARTICIPANT = "participant";
-	private static final String TAG_INDIVIDUAL = "individual";
-	private static final String TAG_EVENT = "event";
-	private static final String TAG_PARTICIPANT_INDIVIDUAL = TAG_PARTICIPANT + DOT + TAG_INDIVIDUAL;
+	private static final String TAG_PARTICIPANT_INDIVIDUAL = EventParticipationHandler.TAG_PARTICIPANT + DOT + IndividualHandler.TYPE;
 
-	private static final String ENUM_TYPE_BIRTH = "birth";
-	private static final String ENUM_TYPE_DEATH = "death";
-	private static final String ENUM_SEX_MALE = "male";
-	private static final String ENUM_SEX_FEMALE = "female";
-	private static final String ENUM_SEX_UNKNOWN = "unknown";
 
+	private static final String SEX_ABBREVIATION_MALE = "[" + I18N.t("dialog.individual.sex.abbreviation.male") + "]";
+	private static final String SEX_ABBREVIATION_FEMALE = "[" + I18N.t("dialog.individual.sex.abbreviation.female") + "]";
+	private static final String SEX_ABBREVIATION_UNKNOWN = "[" + I18N.t("dialog.individual.sex.abbreviation.unknown") + "]";
 
 	private static final IndividualHandler HANDLER = IndividualHandler.getInstance();
 
@@ -75,7 +75,7 @@ public class IndividualSearchStrategy implements SearchStrategy{
 	private String calendarFrom;
 	private String eventDateTo;
 	private String calendarTo;
-	private String eventLocation;
+	private String eventPlace;
 	private SearchMode mode;
 
 	private FLEFModel model;
@@ -87,13 +87,13 @@ public class IndividualSearchStrategy implements SearchStrategy{
 
 	@Override
 	public Predicate<FLEFRecord> buildPredicate(final SearchCriteria criteria, final FLEFModel model){
-		sex = criteria.getFilterFor(IndividualFilterPanel.FILTER_KEY_SEX);
-		eventType = criteria.getFilterFor(IndividualFilterPanel.FILTER_KEY_EVENT_TYPE);
-		eventDateFrom = criteria.getFilterFor(IndividualFilterPanel.FILTER_KEY_EVENT_DATE_FROM);
-		calendarFrom = criteria.getFilterFor(IndividualFilterPanel.FILTER_KEY_EVENT_CALENDAR_FROM);
-		eventDateTo = criteria.getFilterFor(IndividualFilterPanel.FILTER_KEY_EVENT_DATE_TO);
-		calendarTo = criteria.getFilterFor(IndividualFilterPanel.FILTER_KEY_EVENT_CALENDAR_TO);
-		eventLocation = criteria.getFilterFor(IndividualFilterPanel.FILTER_KEY_EVENT_LOCATION);
+		sex = criteria.getFilterFor(IndividualHandler.TAG_SEX);
+		eventType = criteria.getFilterFor(EventHandler.TAG_TYPE);
+		eventDateFrom = criteria.getFilterFor(KEY_DATE_FROM);
+		calendarFrom = criteria.getFilterFor(KEY_CALENDAR_FROM);
+		eventDateTo = criteria.getFilterFor(KEY_DATE_TO);
+		calendarTo = criteria.getFilterFor(KEY_CALENDAR_TO);
+		eventPlace = criteria.getFilterFor(EventHandler.TAG_PLACE);
 		mode = criteria.mode();
 
 		this.model = model;
@@ -101,7 +101,7 @@ public class IndividualSearchStrategy implements SearchStrategy{
 		SearchHelper.precomputeLifeBounds(birthYears, deathYears, model);
 		for(final FLEFRecord participation : model.getRecordsByType(EventParticipationHandler.TYPE)){
 			final String participantRef = FLEFRecordHelper.getChildValue(participation, TAG_PARTICIPANT_INDIVIDUAL);
-			final String eventRef = FLEFRecordHelper.getChildValue(participation, TAG_EVENT);
+			final String eventRef = FLEFRecordHelper.getChildValue(participation, EventParticipationHandler.TAG_EVENT);
 			if(participantRef != null && eventRef != null){
 				final FLEFRecord event = model.getRecordById(eventRef);
 				if(event != null)
@@ -111,12 +111,12 @@ public class IndividualSearchStrategy implements SearchStrategy{
 		}
 
 		final boolean hasEventFilters = (StringUtils.isNotEmpty(eventType) || StringUtils.isNotEmpty(eventDateFrom)
-			|| StringUtils.isNotEmpty(eventDateTo) || StringUtils.isNotEmpty(eventLocation));
+			|| StringUtils.isNotEmpty(eventDateTo) || StringUtils.isNotEmpty(eventPlace));
 
 		return individual -> {
 			if(StringUtils.isNotEmpty(sex)){
-				final String recordSex = FLEFRecordHelper.getChildValue(individual, TAG_SEX);
-				if(!ENUM_SEX_UNKNOWN.equalsIgnoreCase(recordSex) && !sex.equalsIgnoreCase(recordSex))
+				final String recordSex = FLEFRecordHelper.getChildValue(individual, IndividualHandler.TAG_SEX);
+				if(!IndividualHandler.ENUM_SEX_UNKNOWN.equalsIgnoreCase(recordSex) && !sex.equalsIgnoreCase(recordSex))
 					return false;
 			}
 
@@ -143,14 +143,14 @@ public class IndividualSearchStrategy implements SearchStrategy{
 	private boolean matchesEvent(final FLEFRecord event, final Integer birthYear, final Integer deathYear){
 		// Event type
 		if(StringUtils.isNotEmpty(eventType)){
-			final String type = FLEFRecordHelper.getChildValue(event, TAG_TYPE);
+			final String type = FLEFRecordHelper.getChildValue(event, EventHandler.TAG_TYPE);
 			if(!eventType.equalsIgnoreCase(type))
 				return false;
 		}
 
 		// Date range
 		if(StringUtils.isNotEmpty(eventDateFrom) || StringUtils.isNotEmpty(eventDateTo)){
-			final FLEFRecord eventDateRecord = FLEFRecordHelper.findChild(event, TAG_DATE);
+			final FLEFRecord eventDateRecord = FLEFRecordHelper.findChild(event, EventHandler.TAG_DATE);
 			final Integer fromYear = (StringUtils.isNotEmpty(eventDateFrom)
 				? SearchHelper.extractYear(eventDateFrom, calendarFrom)
 				: null);
@@ -161,15 +161,15 @@ public class IndividualSearchStrategy implements SearchStrategy{
 				return false;
 		}
 
-		// Location
-		if(StringUtils.isNotEmpty(eventLocation)){
+		// Place
+		if(StringUtils.isNotEmpty(eventPlace)){
 			final FLEFRecord placeCitation = FLEFRecordHelper.findChild(event, PlaceHandler.TYPE);
 			if(placeCitation != null){
 				final String placeId = placeCitation.getTheOnlyChild().getValue();
 				final FLEFRecord placeRecord = model.getRecordById(placeId);
 				final String place = PlaceHandler.getInstance()
 					.getDisplayText(placeRecord, model);
-				if(!SearchHelper.matches(place, eventLocation, mode))
+				if(!SearchHelper.matches(place, eventPlace, mode))
 					return false;
 			}
 		}
@@ -182,12 +182,12 @@ public class IndividualSearchStrategy implements SearchStrategy{
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
 		String baseDisplayText = HANDLER.getDisplayText(record, model);
 
-		final String recordSex = FLEFRecordHelper.getChildValue(record, TAG_SEX);
+		final String recordSex = FLEFRecordHelper.getChildValue(record, IndividualHandler.TAG_SEX);
 		if(StringUtils.isNotEmpty(recordSex))
 			baseDisplayText = switch(recordSex){
-				case ENUM_SEX_MALE -> "[M] " + baseDisplayText;
-				case ENUM_SEX_FEMALE -> "[F] " + baseDisplayText;
-				default -> "[U] " + baseDisplayText;
+				case IndividualHandler.ENUM_SEX_MALE -> SEX_ABBREVIATION_MALE + StringUtils.SPACE + baseDisplayText;
+				case IndividualHandler.ENUM_SEX_FEMALE -> SEX_ABBREVIATION_FEMALE + StringUtils.SPACE + baseDisplayText;
+				default -> SEX_ABBREVIATION_UNKNOWN + StringUtils.SPACE + baseDisplayText;
 			};
 
 		String birthDate = null;
@@ -197,14 +197,14 @@ public class IndividualSearchStrategy implements SearchStrategy{
 
 		final List<FLEFRecord> events = eventsByIndividual.getOrDefault(record.getId(), List.of());
 		for(final FLEFRecord event : events){
-			final String eventType = FLEFRecordHelper.getChildValue(event, TAG_TYPE);
-			if(ENUM_TYPE_BIRTH.equalsIgnoreCase(eventType)){
+			final String eventType = FLEFRecordHelper.getChildValue(event, EventHandler.TAG_TYPE);
+			if(EventHandler.ENUM_TYPE_BIRTH.equalsIgnoreCase(eventType)){
 				if(birthDate == null)
 					birthDate = FLEFRecordHelper.extractDate(event);
 				if(birthPlace == null)
 					birthPlace = FLEFRecordHelper.extractPlace(event, model);
 			}
-			else if(ENUM_TYPE_DEATH.equalsIgnoreCase(eventType)){
+			else if(EventHandler.ENUM_TYPE_DEATH.equalsIgnoreCase(eventType)){
 				if(deathDate == null)
 					deathDate = FLEFRecordHelper.extractDate(event);
 				if(deathPlace == null)

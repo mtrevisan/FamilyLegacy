@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.reports.renderers.DocxReportRenderer;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.reports.renderers.HtmlReportRenderer;
@@ -183,7 +184,7 @@ public final class ReportDialog extends JDialog{
 
 		// Bottom button panel
 		final JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT, 6, 6));
-		final JButton cancelBtn = new JButton("Cancel");
+		final JButton cancelBtn = new JButton(I18N.t("button.cancel"));
 		final JButton generateBtn = new JButton("Generate…");
 
 		cancelBtn.addActionListener(e -> dispose());
@@ -369,7 +370,7 @@ public final class ReportDialog extends JDialog{
 						JOptionPane.showMessageDialog(ReportDialog.this,
 							"Error while generating report:"
 								+ StringUtils.LF + cause.getMessage(),
-							"Error", JOptionPane.ERROR_MESSAGE);
+							I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
 					}
 				}
 
@@ -703,7 +704,7 @@ public final class ReportDialog extends JDialog{
 			catch(final Exception ex){
 				JOptionPane.showMessageDialog(this,
 					"Could not open directory:" + StringUtils.LF + ex.getMessage(),
-					"Error", JOptionPane.ERROR_MESSAGE);
+					I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
 			}
 		}
 	}

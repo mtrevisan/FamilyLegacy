@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.EventParticipationRecordDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Window;
@@ -47,6 +48,14 @@ public class EventParticipationHandler extends AbstractRecordTypeHandler<EventPa
 	public static final String TAG_PRIVACY = "PRIVACY";
 	public static final String TAG_AUDIT = "AUDIT";
 
+	public static final String[] ROLES = new String[]{
+		StringUtils.EMPTY,
+		"child", "parent", "spouse", "power_of_attorney", "prisoner", "witness",
+		"officiant", "informant", "executor", "grantor", "grantee",
+		"landlord", "tenant", "soldier", "commander", "victim", "survivor",
+		"accused", "judge"
+	};
+
 
 	private static final class SingletonHelper{
 		private static final EventParticipationHandler INSTANCE = new EventParticipationHandler();
@@ -60,7 +69,7 @@ public class EventParticipationHandler extends AbstractRecordTypeHandler<EventPa
 
 	@Override
 	public String getLabel(){
-		return "Event Participation";
+		return I18N.t("confirmation.exist.record.event.participation");
 	}
 
 	@Override

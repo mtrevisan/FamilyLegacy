@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolDialogs;
 import org.apache.commons.lang3.StringUtils;
@@ -114,11 +115,11 @@ public final class PlaceManagementDialog extends JDialog{
 		newButton.addActionListener(e -> openEditor(null));
 		toolbar.add(newButton);
 
-		final JButton editButton = new JButton("Edit…");
+		final JButton editButton = new JButton(I18N.t("button.edit"));
 		editButton.addActionListener(e -> openEditor(selectedPlaceId()));
 		toolbar.add(editButton);
 
-		final JButton deleteButton = new JButton("Delete");
+		final JButton deleteButton = new JButton(I18N.t("button.delete"));
 		deleteButton.addActionListener(e -> deleteSelected());
 		toolbar.add(deleteButton);
 
@@ -152,7 +153,7 @@ public final class PlaceManagementDialog extends JDialog{
 		final JPanel footer = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 		footer.setBorder(BorderFactory.createEmptyBorder(2, 6, 6, 6));
 		footer.add(statusLabel);
-		final JButton close = new JButton("Close");
+		final JButton close = new JButton(I18N.t("button.close"));
 		close.addActionListener(e -> dispose());
 		footer.add(close);
 		return footer;

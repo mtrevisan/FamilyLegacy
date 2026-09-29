@@ -37,6 +37,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.DocumentHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -306,7 +307,7 @@ public abstract class BaseRecordDialog extends JDialog{
 	}
 
 	private String buildTitle(final RecordTypeHandler<?> handler, final boolean isNew){
-		final String dialogType = (isNew? "New": "Edit");
+		final String dialogType = I18N.t(isNew? "dialog.title.new": "dialog.title.edit");
 		final String label = handler.getLabel();
 		final StringBuilder sb = new StringBuilder(dialogType)
 			.append(StringUtils.SPACE)
@@ -540,7 +541,7 @@ if(uri != null)
 		if(model.getRecordById(participantId) == null){
 			JOptionPane.showMessageDialog(this,
 				"Unknown " + participantLabel + " ID.",
-				"Error", JOptionPane.ERROR_MESSAGE);
+				I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
 
 			return false;
 		}

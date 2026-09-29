@@ -381,7 +381,7 @@ struct NameStructure {
     traditional,
     // language and localization variants
     translated,
-    romanized,
+    transcribed,
     // historical variants
     historic,
     former,
@@ -413,7 +413,7 @@ TextValueVariant = oneof {
     value: Text    // phonetic/phonematic component
   }
   transcription: struct {
-    system: enum {   // indicates the system used to transcribe the text to the romanized variation
+    system: enum {   // indicates the system used to transcribe the text to the transcribed variation
       rōmaji, hepburn, kunreishiki, nihonshiki,   // Japanese
       pinyin, wadegiles,                          // Chinese
       bgn_pcgn,                                   // various geographic standards

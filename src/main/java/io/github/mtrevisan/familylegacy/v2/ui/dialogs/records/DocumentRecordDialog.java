@@ -37,7 +37,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.DocumentHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
-import org.apache.commons.lang3.StringUtils;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 
 import javax.swing.JPanel;
 import java.awt.Window;
@@ -97,21 +97,18 @@ public class DocumentRecordDialog extends BaseRecordDialog{
 			this::setNewItem, null,
 			null, null,
 			builder -> {
-				builder.item("Set…", this::setNewItem);
+				builder.item(I18N.t("popupmenu.set"), this::setNewItem);
 				builder.separator();
-				builder.selectionSensitiveItem("Clear", uriField::clear);
+				builder.selectionSensitiveItem(I18N.t("popupmenu.clear"), uriField::clear);
 			});
-		mappingCombo = new BoundComboBox<>(DocumentHandler.TAG_MAPPING, new String[]{
-			StringUtils.EMPTY,
-			"planar", "spherical_equirectangular", "spherical_uv", "cubemap", "cylindrical_equirectangular_horizontal",
-			"cylindrical_equirectangular_vertical"});
+		mappingCombo = new BoundComboBox<>(DocumentHandler.TAG_MAPPING, DocumentHandler.MAPPINGS);
 		mappingCombo.setEditable(true);
 		descriptionArea = new BoundTextArea(DocumentHandler.TAG_DESCRIPTION, 3, 25);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, "Research Questions")
-			.withComponent(PanelKey.SOURCE_ON_DOCUMENT, SourceHandler.TYPE, "Sources")
+			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, I18N.t("dialog.component.research.questions"))
+			.withComponent(PanelKey.SOURCE_ON_DOCUMENT, SourceHandler.TYPE, I18N.t("dialog.component.sources"))
 			.withComponent(PanelKey.NOTE, DocumentHandler.TAG_NOTE, null)
 			.withComponent(PanelKey.PRIVACY, DocumentHandler.TAG_PRIVACY, null)
 			.withComponent(PanelKey.AUDIT, DocumentHandler.TAG_AUDIT, null)
@@ -135,13 +132,13 @@ public class DocumentRecordDialog extends BaseRecordDialog{
 	@Override
 	protected JPanel createPropertiesPanel(){
 		// file
-		GUIHelper.addLabeledComponent(propertiesPanel, "URI*:", uriField);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.document.uri") + "*:", uriField);
 
 		// mapping
-		GUIHelper.addLabeledComponent(propertiesPanel, "Mapping:", mappingCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.document.mapping") + ":", mappingCombo);
 
 		// description
-		GUIHelper.addLabeledComponent(propertiesPanel, "Description:", descriptionArea);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.document.description") + ":", descriptionArea);
 
 		return propertiesPanel;
 	}
@@ -197,7 +194,7 @@ public class DocumentRecordDialog extends BaseRecordDialog{
 	protected boolean validData(){
 		if(uriField.isEmpty()){
 			GUIHelper.showValidationErrorAndFocus(this,
-				"Document file is required.",
+				I18N.tf("validation.required", I18N.t("dialog.document.uri")),
 				tabbedPane, propertiesPanel, uriField);
 
 			return false;

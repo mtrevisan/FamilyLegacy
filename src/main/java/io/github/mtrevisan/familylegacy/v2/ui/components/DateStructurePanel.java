@@ -33,6 +33,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceCitationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.BorderFactory;
@@ -91,9 +92,9 @@ public class DateStructurePanel extends JPanel{
 		spanningDateValuePanel = new SpanningDatePanel(parent, model);
 
 		originalTextField = new BoundTextField(DateField.TAG_ORIGINAL_TEXT);
-		sourcePanel = EntityListPanel.createForCitationWrapper(TAG_SOURCE, parent, "Sources with Citations",
+		sourcePanel = EntityListPanel.createForCitationWrapper(TAG_SOURCE, parent, I18N.t("dialog.component.sources.with.citations"),
 			model, SourceCitationHandler.class);
-		qualifiers = new EvidenceQualifiersPanel(null, "Evidence");
+		qualifiers = new EvidenceQualifiersPanel(null, I18N.t("dialog.component.evidence"));
 
 
 		initComponents();
@@ -113,9 +114,9 @@ public class DateStructurePanel extends JPanel{
 		valueWrapper.setBorder(BorderFactory.createTitledBorder("Date"));
 		GUIHelper.addComponent(valueWrapper, pointDateValuePanel);
 		pointPanel.add(valueWrapper, "growx");
-		tabbedPane.addTab("Point", pointPanel);
-		tabbedPane.addTab("Bounded", boundedDateValuePanel);
-		tabbedPane.addTab("Spanning", spanningDateValuePanel);
+		tabbedPane.addTab(I18N.t("dialog.date.point"), pointPanel);
+		tabbedPane.addTab(I18N.t("dialog.date.bounded"), boundedDateValuePanel);
+		tabbedPane.addTab(I18N.t("dialog.date.spanning"), spanningDateValuePanel);
 
 		// When switching tabs, clear the other panels
 		tabbedPane.addChangeListener(e -> {
@@ -136,7 +137,7 @@ public class DateStructurePanel extends JPanel{
 		});
 		add(tabbedPane, "growx,wrap");
 
-		final JLabel originalTextLabel = new JLabel("Original Text:");
+		final JLabel originalTextLabel = new JLabel(I18N.t("dialog.date.original.text") + ":");
 		originalTextLabel.setLabelFor(originalTextField);
 		add(originalTextLabel, "align label");
 		add(originalTextField, "growx");

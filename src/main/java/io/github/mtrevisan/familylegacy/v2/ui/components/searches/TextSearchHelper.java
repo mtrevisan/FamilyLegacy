@@ -54,11 +54,6 @@ public final class TextSearchHelper{
 		String normalized = Normalizer.normalize(text, Normalizer.Form.NFD);
 		normalized = normalized.replaceAll("\\p{M}", StringUtils.EMPTY);
 
-		// Expand abbreviations
-		normalized = normalized.replaceAll("\\bSt\\b", "Street");
-		normalized = normalized.replaceAll("\\bAve\\b", "Avenue");
-		// Add more as needed.
-
 		return normalized.toLowerCase();
 	}
 

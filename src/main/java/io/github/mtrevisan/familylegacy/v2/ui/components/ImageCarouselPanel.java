@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.v2.ui.components;
 
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.ResourceHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListCellRenderer;
@@ -60,6 +61,9 @@ public class ImageCarouselPanel extends JPanel{
 	private static final int THUMBNAIL_SIZE = 80;
 	private static final int GAP = 4;
 
+	private static final String CONSTRAINT_IMAGES = "images";
+	private static final String CONSTRAINT_EMPTY = "empty";
+
 
 	private final DefaultListModel<ThumbnailInfo> model = new DefaultListModel<>();
 
@@ -69,7 +73,7 @@ public class ImageCarouselPanel extends JPanel{
 
 	public ImageCarouselPanel(){
 		setLayout(new CardLayout());
-		setBorder(BorderFactory.createTitledBorder("Images"));
+		setBorder(BorderFactory.createTitledBorder(I18N.t("dialog.document.images.carousel.title")));
 
 		// Scroll pane with the list
 		final JList<ThumbnailInfo> list = new JList<>(model);
@@ -86,13 +90,13 @@ public class ImageCarouselPanel extends JPanel{
 		scrollPane.setBorder(BorderFactory.createEmptyBorder());
 
 		// Empty state label
-		final JLabel emptyLabel = new JLabel("No images available", SwingConstants.CENTER);
+		final JLabel emptyLabel = new JLabel(I18N.t("dialog.document.images.carousel.empty"), SwingConstants.CENTER);
 		emptyLabel.setFont(emptyLabel.getFont().deriveFont(Font.ITALIC));
 		emptyLabel.setForeground(Color.GRAY);
 		emptyLabel.setPreferredSize(new Dimension(0, 80));
 
-		add(scrollPane, "images");
-		add(emptyLabel, "empty");
+		add(scrollPane, CONSTRAINT_IMAGES);
+		add(emptyLabel, CONSTRAINT_EMPTY);
 
 		// Start with empty state
 		showEmpty(true);
@@ -100,7 +104,7 @@ public class ImageCarouselPanel extends JPanel{
 
 	private void showEmpty(final boolean show){
 		final CardLayout cl = (CardLayout)getLayout();
-		cl.show(this, show? "empty": "images");
+		cl.show(this, (show? CONSTRAINT_EMPTY: CONSTRAINT_IMAGES));
 	}
 
 	/**
@@ -195,7 +199,7 @@ public class ImageCarouselPanel extends JPanel{
 		g2.fillRect(0, 0, size, size);
 		g2.setColor(Color.DARK_GRAY);
 		g2.setFont(g2.getFont().deriveFont(10.f));
-		g2.drawString("No img", 10, size / 2);
+		g2.drawString(I18N.t("dialog.preferred.image.no.image"), 10, size / 2);
 		g2.dispose();
 		return new ImageIcon(img);
 	}

@@ -631,7 +631,7 @@ public final class TagSuggester{
 			if(c == '{'){
 				final String raw = token.toString().trim();
 				if(!raw.isEmpty()){
-					final String[] segments = raw.split("\\.");
+					final String[] segments = StringUtils.split(raw, '.');
 					for(int s = segments.length - 1; s >= 0; s --){
 						final String seg = segments[s].trim();
 						if(!seg.isEmpty())

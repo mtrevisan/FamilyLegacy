@@ -24,8 +24,12 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.components.searches.strategies;
 
+import io.github.mtrevisan.familylegacy.v2.ui.components.SingleDatePanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.RecordFilterPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchCriteria;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.BorderFactory;
@@ -54,23 +58,10 @@ public class EventFilterPanel extends JPanel implements RecordFilterPanel{
 	static final String FILTER_KEY_CAUSE_REASON = "causeReason";
 
 
-	private final JComboBox<String> typeCombo = new JComboBox<>(new String[]{
-		"Any",
-		"birth", "death", "adoption", "graduation", "immigration", "naturalization", "bankruptcy",
-		"guardianship", "coroner_report", "cremation", "burial", "education", "retirement",
-		"military_induction", "military_muster_roll", "military_service", "military_award",
-		"military_release", "military_discharge", "military_resignation", "military_retirement",
-		"prison", "pardon", "jury_duty", "illness", "hospitalization", "medical_procedure", "honor",
-		"deportation", "internment", "liberation", "emancipation", "relocation", "emigration",
-		"census", "deed", "escrow", "chancery", "will", "probate",
-		"engagement", "marriage_bann", "marriage_contract", "marriage_license", "marriage_settlement",
-		"marriage", "divorce_filed", "divorce_decree", "divorce", "annulment"
-	});
+	private final JComboBox<String> typeCombo = new JComboBox<>(GUIHelper.fillCombo(EventHandler.TYPES, I18N.t("search.combo.any")));
 	private final JTextField descriptionField = new JTextField(20);
 	private final JTextField dateField = new JTextField(10);
-	private final JComboBox<String> calendarCombo = new JComboBox<>(new String[]{
-		"gregorian", "julian", "islamic", "hebrew", "chinese", "indian", "buddhist", "french-republican", "coptic",
-		"soviet eternal", "ethiopian", "mayan"});
+	private final JComboBox<String> calendarCombo = new JComboBox<>(SingleDatePanel.CALENDARS);
 	private final JTextField locationField = new JTextField(20);
 	private final JTextField agencyField = new JTextField(20);
 	private final JTextField causeReasonField = new JTextField(20);

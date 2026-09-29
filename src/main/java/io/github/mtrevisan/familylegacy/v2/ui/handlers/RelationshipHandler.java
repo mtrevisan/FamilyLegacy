@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.RelationshipRecordDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Window;
@@ -52,6 +53,33 @@ public class RelationshipHandler extends AbstractRecordTypeHandler<RelationshipR
 	public static final String TAG_PRIVACY = "PRIVACY";
 	public static final String TAG_AUDIT = "AUDIT";
 
+	public static final String[] TYPES = new String[]{
+		StringUtils.EMPTY,
+		"biological_child", "adoptive_child", "foster_child", "guarded_child", "step_child",
+		"civil_spouse", "religious_spouse", "customary_spouse", "cohabiting_partner", "engaged_partner",
+		"group_member", "associate", "part_of"
+	};
+	public static final String[] INDIVIDUAL_TO_INDIVIDUAL_CHILD_TYPES = new String[]{
+		"biological_child", "adoptive_child", "foster_child", "guarded_child", "step_child"
+	};
+	public static final String[] INDIVIDUAL_TO_INDIVIDUAL_TYPES = new String[]{
+		"biological_child", "adoptive_child", "foster_child", "guarded_child", "step_child",
+		"civil_spouse", "religious_spouse", "customary_spouse", "cohabiting_partner", "engaged_partner",
+		"associate"
+	};
+	public static final String[] INDIVIDUAL_TO_INDIVIDUAL_SOCIAL_TYPES = new String[]{
+		"civil_spouse", "religious_spouse", "customary_spouse", "cohabiting_partner", "engaged_partner", "associate"
+	};
+	public static final String[] INDIVIDUAL_TO_GROUP_TYPES = new String[]{"group_member", "associate"};
+	public static final String[] GROUP_TO_GROUP_TYPES = new String[]{"part_of", "associate"};
+	public static final String[] GROUP_TO_INDIVIDUAL_TYPES = new String[0];
+	public static final String[] EMPTY_TYPES = new String[0];
+
+	public static final String[] STATUSES = new String[]{
+		StringUtils.EMPTY,
+		"active", "ended", "unknown"
+	};
+
 
 	private static final class SingletonHelper{
 		private static final RelationshipHandler INSTANCE = new RelationshipHandler();
@@ -65,7 +93,7 @@ public class RelationshipHandler extends AbstractRecordTypeHandler<RelationshipR
 
 	@Override
 	public String getLabel(){
-		return "Relationship";
+		return I18N.t("confirmation.exist.record.relationship");
 	}
 
 	@Override

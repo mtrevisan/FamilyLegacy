@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs.help;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JButton;
@@ -66,12 +67,11 @@ import java.util.stream.Collectors;
  */
 public final class DiagnosticsDialog extends JDialog{
 
-	private static final DateTimeFormatter TIMESTAMP_FORMAT =
-		DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+	private static final DateTimeFormatter TIMESTAMP_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
 
 	private DiagnosticsDialog(final Window owner, final FLEFModel model){
-		super(owner, "Diagnostics", ModalityType.APPLICATION_MODAL);
+		super(owner, I18N.t("dialog.diagnostics.title"), ModalityType.APPLICATION_MODAL);
 
 		final String report = buildReport(model);
 
@@ -83,7 +83,7 @@ public final class DiagnosticsDialog extends JDialog{
 		final JScrollPane scroll = new JScrollPane(area);
 		scroll.setPreferredSize(new Dimension(680, 480));
 
-		final JButton copy = new JButton("Copy to Clipboard");
+		final JButton copy = new JButton(I18N.t("dialog.diagnostics.button.copy.to.clipboard"));
 		copy.addActionListener(e -> {
 			final StringSelection selection = new StringSelection(area.getText());
 			Toolkit.getDefaultToolkit()
@@ -91,7 +91,7 @@ public final class DiagnosticsDialog extends JDialog{
 				.setContents(selection, selection);
 		});
 
-		final JButton close = new JButton("Close");
+		final JButton close = new JButton(I18N.t("button.close"));
 		close.addActionListener(e -> dispose());
 
 		final JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT));

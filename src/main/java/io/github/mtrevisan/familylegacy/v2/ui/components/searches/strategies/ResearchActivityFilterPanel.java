@@ -26,6 +26,9 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.searches.strategies;
 
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.RecordFilterPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchCriteria;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchActivityHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.BorderFactory;
@@ -45,38 +48,10 @@ import java.util.function.Consumer;
  */
 public class ResearchActivityFilterPanel extends JPanel implements RecordFilterPanel{
 
-	static final String FILTER_KEY_ACTIVITY_TYPE = "activityType";
-	static final String FILTER_KEY_STATUS = "status";
-	static final String FILTER_KEY_ACTION = "action";
-	static final String FILTER_KEY_RESULT = "result";
-	static final String FILTER_KEY_OBSERVATION = "observation";
-
-
-	private final JComboBox<String> activityTypeCombo = new JComboBox<>(new String[]{
-		"Any",
-		"search",
-		"review",
-		"analysis",
-		"correspondence",
-		"interview",
-		"hypothesis"
-	});
-	private final JComboBox<String> statusCombo = new JComboBox<>(new String[]{
-		"Any",
-		"planned",
-		"in_progress",
-		"completed",
-		"abandoned"
-	});
+	private final JComboBox<String> activityTypeCombo = new JComboBox<>(GUIHelper.fillCombo(ResearchActivityHandler.TYPES, I18N.t("search.combo.any")));
+	private final JComboBox<String> statusCombo = new JComboBox<>(GUIHelper.fillCombo(ResearchActivityHandler.STATUSES, I18N.t("search.combo.any")));
 	private final JTextField actionField = new JTextField(20);
-	private final JComboBox<String> resultCombo = new JComboBox<>(new String[]{
-		"Any",
-		"positive",
-		"negative",
-		"inconclusive",
-		"conflicting",
-		"unavailable"
-	});
+	private final JComboBox<String> resultCombo = new JComboBox<>(GUIHelper.fillCombo(ResearchActivityHandler.RESULTS, I18N.t("search.combo.any")));
 	private final JTextField observationField = new JTextField(20);
 
 	private final Consumer<SearchCriteria> onChanged;
@@ -93,17 +68,17 @@ public class ResearchActivityFilterPanel extends JPanel implements RecordFilterP
 
 	private void initComponents(){
 		setLayout(new MigLayout("wrap 2,gap 5", "[][grow,fill]", "[]"));
-		setBorder(BorderFactory.createTitledBorder("Research Activity Filters"));
+		setBorder(BorderFactory.createTitledBorder(I18N.tf("dialog.search.filter.title", I18N.t("dialog.component.research.activities"))));
 
-		add(new JLabel("Type:"));
+		add(new JLabel(I18N.t("dialog.research.activity.type") + ":"));
 		add(activityTypeCombo, "growx");
-		add(new JLabel("Status:"));
+		add(new JLabel(I18N.t("dialog.research.activity.status") + ":"));
 		add(statusCombo, "growx");
-		add(new JLabel("Action:"));
+		add(new JLabel(I18N.t("dialog.research.activity.action") + ":"));
 		add(actionField, "growx");
-		add(new JLabel("Result:"));
+		add(new JLabel(I18N.t("dialog.research.activity.result") + ":"));
 		add(resultCombo, "growx");
-		add(new JLabel("Observation:"));
+		add(new JLabel(I18N.t("dialog.research.activity.observation") + ":"));
 		add(observationField, "growx");
 	}
 
@@ -143,11 +118,11 @@ public class ResearchActivityFilterPanel extends JPanel implements RecordFilterP
 	@Override
 	public Map<String, String> getFilters(){
 		final Map<String, String> filters = new HashMap<>();
-		filters.put(FILTER_KEY_ACTIVITY_TYPE, getActivityType());
-		filters.put(FILTER_KEY_STATUS, getStatus());
-		filters.put(FILTER_KEY_ACTION, getAction());
-		filters.put(FILTER_KEY_RESULT, getResult());
-		filters.put(FILTER_KEY_OBSERVATION, getObservation());
+		filters.put(ResearchActivityHandler.TAG_ACTIVITY_TYPE, getActivityType());
+		filters.put(ResearchActivityHandler.TAG_STATUS, getStatus());
+		filters.put(ResearchActivityHandler.TAG_ACTION, getAction());
+		filters.put(ResearchActivityHandler.TAG_RESULT, getResult());
+		filters.put(ResearchActivityHandler.TAG_OBSERVATION, getObservation());
 		return filters;
 	}
 

@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.ContextImpactRecordDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Window;
@@ -48,6 +49,15 @@ public class ContextImpactHandler extends AbstractRecordTypeHandler<ContextImpac
 	public static final String TAG_EVIDENCE = "EVIDENCE";
 	public static final String TAG_AUDIT = "AUDIT";
 
+	public static final String[] IMPACT_TYPES = new String[]{
+		StringUtils.EMPTY,
+		"explains", "influences", "constrains", "motivates", "causes"
+	};
+	public static final String[] CONFIDENCES = new String[]{
+		StringUtils.EMPTY,
+		"low", "medium", "high"
+	};
+
 
 	private static final class SingletonHelper{
 		private static final ContextImpactHandler INSTANCE = new ContextImpactHandler();
@@ -61,7 +71,7 @@ public class ContextImpactHandler extends AbstractRecordTypeHandler<ContextImpac
 
 	@Override
 	public String getLabel(){
-		return "Context Impact";
+		return I18N.t("confirmation.exist.record.context.impact");
 	}
 
 	@Override

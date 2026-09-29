@@ -74,7 +74,7 @@ public enum PanelKey{
 
 	// RelationshipRecord (target = this individual)
 	// RelationshipRecord (target = this group)
-	RELATIONSHIP_ON_TARGET((owner, cfg, model, record) ->
+	RELATIONSHIP_ON_OBJECT((owner, cfg, model, record) ->
 		createOneOfReferencePanel(owner, cfg, model, EntityListPanel.ActorType.OBJECT, record, RelationshipHandler.class)
 			.withCellRenderer(new InverseRelationshipCellRenderer(model))),
 
@@ -83,7 +83,7 @@ public enum PanelKey{
 		createOneOfReferencePanel(owner, cfg, model, EntityListPanel.ActorType.SUBJECT, record, PlaceRelationshipHandler.class)),
 
 	// PlaceRelationshipRecord (target = this place)
-	PLACE_RELATIONSHIP_ON_TARGET((owner, cfg, model, record) ->
+	PLACE_RELATIONSHIP_ON_OBJECT((owner, cfg, model, record) ->
 		createOneOfReferencePanel(owner, cfg, model, EntityListPanel.ActorType.OBJECT, record, PlaceRelationshipHandler.class)),
 
 	// EventParticipationRecord (participant[individual] = this individual)

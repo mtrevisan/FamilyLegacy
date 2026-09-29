@@ -38,6 +38,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.RelationshipRecord
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionTargetHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 
@@ -166,7 +167,7 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 			if(handler == null){
 				JOptionPane.showMessageDialog(this,
 					"Handler for " + handlerType + " not loaded.",
-					"Error", JOptionPane.ERROR_MESSAGE);
+					I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
 
 				return this;
 			}
@@ -232,26 +233,26 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 
 	private Consumer<MenuBuilder> createMenuItemsForDefault(){
 		return builder -> {
-			builder.item("Create New…", this::createNewItem);
+			builder.item(I18N.t("popupmenu.create.new"), this::createNewItem);
 			// Only show "Add Existing" for ENTITY_REFERENCE and ONEOF_REFERENCE (not for STRUCTURE)
 			if(type != ListType.STRUCTURE)
-				builder.item("Add Existing…", this::addItem);
+				builder.item(I18N.t("popupmenu.add.existing"), this::addItem);
 			builder.separator();
-			builder.selectionSensitiveItem("Edit…", this::editItem);
+			builder.selectionSensitiveItem(I18N.t("popupmenu.edit"), this::editItem);
 			builder.separator();
-			builder.selectionSensitiveItem("Remove", this::removeItem);
+			builder.selectionSensitiveItem(I18N.t("popupmenu.remove"), this::removeItem);
 		};
 	}
 
 	private Consumer<MenuBuilder> createMenuItemsForCitationWrapper(){
 		return builder -> {
-			builder.item("Create New…", this::createNewItem);
-			builder.item("Add Existing…", this::addItem);
+			builder.item(I18N.t("popupmenu.create.new"), this::createNewItem);
+			builder.item(I18N.t("popupmenu.add.existing"), this::addItem);
 			builder.separator();
-			builder.selectionSensitiveItem("Edit Record…", this::editTargetItem);
-			builder.selectionSensitiveItem("Edit Citation…", this::editItem);
+			builder.selectionSensitiveItem(I18N.t("popupmenu.edit.record"), this::editTargetItem);
+			builder.selectionSensitiveItem(I18N.t("popupmenu.edit.citation"), this::editItem);
 			builder.separator();
-			builder.selectionSensitiveItem("Remove", this::removeItem);
+			builder.selectionSensitiveItem(I18N.t("popupmenu.remove"), this::removeItem);
 		};
 	}
 
@@ -274,7 +275,7 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 		if(handlerTypes.isEmpty()){
 			JOptionPane.showMessageDialog(parent,
 				"No handler types available.",
-				"Error", JOptionPane.ERROR_MESSAGE);
+				I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
 
 			return null;
 		}
@@ -302,7 +303,7 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 		if(handlerTypes.isEmpty()){
 			JOptionPane.showMessageDialog(parent,
 				"No handler types available.",
-				"Error", JOptionPane.ERROR_MESSAGE);
+				I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
 
 			return null;
 		}
@@ -345,7 +346,7 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 		final List<String> typeNames = handlerTypes.stream()
 			.map(HandlerRegistry::getHandler)
 			.filter(Objects::nonNull)
-			.map(RecordTypeHandler::getLabel)
+			.map(RecordTypeHandler::getType)
 			.toList();
 		if(typeNames.isEmpty())
 			return null;
@@ -364,7 +365,7 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 		final Class<? extends RecordTypeHandler<?>> selectedHandlerClass = handlerTypes.stream()
 			.filter(cls -> {
 				final RecordTypeHandler<?> h = HandlerRegistry.getHandler(cls);
-				return (h != null && Strings.CI.equals(selectedType, h.getLabel()));
+				return (h != null && Strings.CI.equals(selectedType, h.getType()));
 			})
 			.findFirst()
 			.orElse(null);
@@ -388,7 +389,7 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 		if(targetHandler == null){
 			JOptionPane.showMessageDialog(parent,
 				"No parent handler defined for citation handler.",
-				"Error", JOptionPane.ERROR_MESSAGE);
+				I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
 
 			return null;
 		}
@@ -428,7 +429,7 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 		if(record == null){
 			JOptionPane.showMessageDialog(parent,
 				"Record not found",
-				"Error", JOptionPane.ERROR_MESSAGE);
+				I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
 
 			return null;
 		}
@@ -437,7 +438,7 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 		if(handler == null){
 			JOptionPane.showMessageDialog(parent,
 				"No handler found for type " + record.getTag(),
-				"Error", JOptionPane.ERROR_MESSAGE);
+				I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
 
 			return null;
 		}
@@ -480,7 +481,7 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 		if(targetId == null){
 			JOptionPane.showMessageDialog(parent,
 				"No target entity found in citation.",
-				"Error", JOptionPane.ERROR_MESSAGE);
+				I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
 
 			return;
 		}
@@ -489,7 +490,7 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 		if(target == null){
 			JOptionPane.showMessageDialog(parent,
 				"Target entity not found in model.",
-				"Error", JOptionPane.ERROR_MESSAGE);
+				I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
 
 			return;
 		}

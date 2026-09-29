@@ -33,7 +33,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.projections.partners.Pa
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.ProjectionMutator;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18n;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolOperation;
 
@@ -51,7 +51,7 @@ public final class AddChildTool implements ToolOperation{
 
 	@Override
 	public String getName(){
-		return I18n.t("menu.individual.add.child");
+		return I18N.t("menu.individual.add.child");
 	}
 
 	@Override
@@ -84,8 +84,8 @@ public final class AddChildTool implements ToolOperation{
 		final String childId = childRecord.getId();
 		if(childId.equals(targetId)){
 			JOptionPane.showMessageDialog(owner,
-				"The two individuals must be different.",
-				"Add Child", JOptionPane.WARNING_MESSAGE);
+				I18N.t("confirmation.add.child.message"),
+				I18N.t("confirmation.add.child.title"), JOptionPane.WARNING_MESSAGE);
 
 			return;
 		}

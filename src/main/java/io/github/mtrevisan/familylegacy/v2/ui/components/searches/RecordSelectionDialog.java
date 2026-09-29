@@ -29,10 +29,12 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BindingsHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.Debouncer;
+import io.github.mtrevisan.familylegacy.v2.ui.bindings.FilteredComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -101,7 +103,7 @@ public class RecordSelectionDialog extends JDialog{
 	private static final Logger LOGGER = LoggerFactory.getLogger(RecordSelectionDialog.class);
 
 
-	private static final String NO_MATCHING_RECORDS = "[No matching records]";
+	private static final String NO_MATCHING_RECORDS = I18N.t("search.no.matching.records");
 
 	private static final int DEBOUNCE_TIME = 400;
 
@@ -186,7 +188,7 @@ public class RecordSelectionDialog extends JDialog{
 	private RecordSelectionDialog(final Window parent, final FLEFModel model,
 			final BiConsumer<FLEFRecord, RecordTypeHandler<?>> onSelect,
 			final boolean allowCreation, final Class<? extends RecordTypeHandler<?>>... handlerTypes){
-		super(parent, "Select Record", ModalityType.APPLICATION_MODAL);
+		super(parent, I18N.t("search.title"), ModalityType.APPLICATION_MODAL);
 
 		this.model = model;
 		this.onSelect = onSelect;
@@ -262,17 +264,17 @@ public class RecordSelectionDialog extends JDialog{
 	}
 
 	private void initComponents(){
-		setLayout(new MigLayout("ins 10, fill", "[grow,fill]", "[][][grow][]"));
+		setLayout(new MigLayout("ins 10,fill", "[grow,fill]", "[][][grow][]"));
 
 		// Top Panel: Type + Text Search + Search-mode checkboxes
 		final JPanel topPanel = new JPanel(new MigLayout("wrap 2", "[][grow,fill]", "[]"));
-		topPanel.setBorder(BorderFactory.createTitledBorder("Search"));
+		topPanel.setBorder(BorderFactory.createTitledBorder(I18N.t("search.search.panel.title")));
 
 		if(typeCombo != null){
-			topPanel.add(new JLabel("Type:"));
+			topPanel.add(new JLabel(I18N.t("search.type") + ":"));
 			topPanel.add(typeCombo, "growx");
 		}
-		topPanel.add(new JLabel("Search text:"));
+		topPanel.add(new JLabel(I18N.t("search.seach.text") + ":"));
 		topPanel.add(searchField, "growx");
 
 		// Search mode checkboxes, mutually exclusive. The three boxes are
@@ -320,7 +322,7 @@ public class RecordSelectionDialog extends JDialog{
 			}
 		});
 		final JScrollPane scrollPane = GUIHelper.createScrollPane(resultList);
-		scrollPane.setBorder(BorderFactory.createTitledBorder("Results"));
+		scrollPane.setBorder(BorderFactory.createTitledBorder(I18N.t("search.results.panel.title")));
 		scrollPane.setPreferredSize(SCROLL_PANE_PREFERRED_SIZE);
 		add(scrollPane, "grow,push,wrap");
 
@@ -335,8 +337,8 @@ public class RecordSelectionDialog extends JDialog{
 		add(statusPanel, "growx,wrap");
 
 		// Action Buttons Panel
-		final JButton selectButton = new JButton("Select");
-		final JButton cancelButton = new JButton("Cancel");
+		final JButton selectButton = new JButton(I18N.t("button.select"));
+		final JButton cancelButton = new JButton(I18N.t("button.cancel"));
 
 		selectButton.addActionListener(e -> selectResult());
 		cancelButton.addActionListener(e -> dispose());
@@ -345,7 +347,7 @@ public class RecordSelectionDialog extends JDialog{
 
 		// Left column (New button if allowed, otherwise empty panel)
 		if(allowCreation){
-			final JButton createButton = new JButton("New");
+			final JButton createButton = new JButton(I18N.t("button.new"));
 			createButton.addActionListener(e -> createNewRecord());
 			bottomPanel.add(createButton, "left");
 		}
@@ -424,13 +426,13 @@ public class RecordSelectionDialog extends JDialog{
 		if(currentWorker != null && !currentWorker.isDone()){
 			currentWorker.cancel(true);
 			progressBar.setVisible(false);
-			statusLabel.setText("Search cancelled");
+			statusLabel.setText(I18N.t("search.canceled"));
 		}
 	}
 
 	private void updateWindowTitle(){
 		final RecordTypeHandler<?> desc = getSelectedHandler();
-		setTitle("Select " + (desc != null? desc.getLabel(): "Record"));
+		setTitle(I18N.tf("search.title", (desc != null), I18N.t("record.individual")));
 	}
 
 	private RecordTypeHandler<?> getSelectedHandler(){
@@ -473,7 +475,7 @@ public class RecordSelectionDialog extends JDialog{
 	}
 
 	private void scheduleSearch(){
-		searchDebouncer.call("search");
+		searchDebouncer.call(FilteredComboBox.PROPERTY_DEBOUNCER);
 	}
 
 	private void performSearch(){
@@ -494,7 +496,7 @@ public class RecordSelectionDialog extends JDialog{
 			filterPanel.getFilters()
 				.forEach(criteria::withFilter);
 
-		statusLabel.setText("Searching…");
+		statusLabel.setText(I18N.t("search.searching"));
 		progressBar.setValue(0);
 		progressBar.setVisible(true);
 		resultList.setEnabled(false);
@@ -549,7 +551,8 @@ public class RecordSelectionDialog extends JDialog{
 						updateResults(items);
 				}
 				catch(final Exception e){
-					statusLabel.setText("Error during search");
+					statusLabel.setText(I18N.t("search.failed"));
+
 					LOGGER.error("Error during search", e);
 
 					listModel.clear();
@@ -577,7 +580,7 @@ public class RecordSelectionDialog extends JDialog{
 			resultList.setEnabled(true);
 		}
 
-		statusLabel.setText("Found " + items.size() + " records");
+		statusLabel.setText(I18N.tf("search.record.found", items.size()));
 	}
 
 	private void createNewRecord(){
@@ -626,8 +629,8 @@ public class RecordSelectionDialog extends JDialog{
 		}
 		else
 			JOptionPane.showMessageDialog(this,
-				"Please select a record first.",
-				"No Selection", JOptionPane.INFORMATION_MESSAGE);
+				I18N.t("search.no.selection.message"),
+				I18N.t("search.no.selection.title"), JOptionPane.INFORMATION_MESSAGE);
 	}
 
 	public boolean isConfirmed(){

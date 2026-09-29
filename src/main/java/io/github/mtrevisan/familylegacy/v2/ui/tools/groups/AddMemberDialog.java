@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.RecordSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolDialogs;
 
@@ -147,7 +148,7 @@ public final class AddMemberDialog extends JDialog{
 		ok.addActionListener(e -> onConfirm());
 		buttons.add(ok);
 
-		final JButton cancel = new JButton("Cancel");
+		final JButton cancel = new JButton(I18N.t("button.cancel"));
 		cancel.addActionListener(e -> dispose());
 		buttons.add(cancel);
 

@@ -34,6 +34,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceCitationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JPanel;
@@ -86,8 +87,8 @@ public class PlaceCitationDialog extends BaseRecordDialog{
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.SOURCE, PlaceCitationHandler.TAG_SOURCE, "Sources with Citations")
-			.withComponent(PanelKey.EVIDENCE, PlaceCitationHandler.TAG_EVIDENCE, "Evidence")
+			.withComponent(PanelKey.SOURCE, PlaceCitationHandler.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
+			.withComponent(PanelKey.EVIDENCE, PlaceCitationHandler.TAG_EVIDENCE, I18N.t("dialog.component.evidence"))
 			.build();
 
 		components.bind(placeField);

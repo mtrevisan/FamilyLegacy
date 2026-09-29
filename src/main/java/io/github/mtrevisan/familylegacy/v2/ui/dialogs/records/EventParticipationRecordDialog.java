@@ -42,7 +42,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
-import org.apache.commons.lang3.StringUtils;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 
 import javax.swing.JPanel;
 import java.awt.Window;
@@ -112,23 +112,17 @@ public class EventParticipationRecordDialog extends BaseRecordDialog{
 		participantField = EntityField.createForRecordFromOneofReference(EventParticipationHandler.TAG_PARTICIPANT, this, model)
 			.withHandlerTypes(IndividualHandler.class, GroupHandler.class, PlaceHandler.class);
 		eventField = EntityField.createForRecordFromReference(EventParticipationHandler.TAG_EVENT, this, model, EventHandler.class);
-		roleCombo = new BoundComboBox<>(EventParticipationHandler.TAG_ROLE, new String[]{
-			StringUtils.EMPTY,
-			"child", "parent", "spouse", "power_of_attorney", "prisoner", "witness",
-			"officiant", "informant", "executor", "grantor", "grantee",
-			"landlord", "tenant", "soldier", "commander", "victim", "survivor",
-			"accused", "judge"
-		});
+		roleCombo = new BoundComboBox<>(EventParticipationHandler.TAG_ROLE, EventParticipationHandler.ROLES);
 		roleCombo.setEditable(true);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, ContextImpactHandler.TYPE, "Context Impacts")
-			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, "Conclusions")
-			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, "Research Questions")
-			.withComponent(PanelKey.SOURCE, EventParticipationHandler.TAG_SOURCE, "Sources with Citations")
+			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, ContextImpactHandler.TYPE, I18N.t("dialog.component.context.impact"))
+			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, I18N.t("dialog.component.conclusions"))
+			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, I18N.t("dialog.component.research.questions"))
+			.withComponent(PanelKey.SOURCE, EventParticipationHandler.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
 			.withComponent(PanelKey.NOTE, EventParticipationHandler.TAG_NOTE, null)
-			.withComponent(PanelKey.EVIDENCE, EventParticipationHandler.TAG_EVIDENCE, "Evidence")
+			.withComponent(PanelKey.EVIDENCE, EventParticipationHandler.TAG_EVIDENCE, I18N.t("dialog.component.evidence"))
 			.withComponent(PanelKey.PRIVACY, EventParticipationHandler.TAG_PRIVACY, null)
 			.withComponent(PanelKey.AUDIT, EventParticipationHandler.TAG_AUDIT, null)
 			.build();
@@ -146,13 +140,13 @@ public class EventParticipationRecordDialog extends BaseRecordDialog{
 	@Override
 	protected JPanel createPropertiesPanel(){
 		// participant
-		GUIHelper.addLabeledComponent(propertiesPanel, "Participant*:", participantField);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.event.participation.participant") + "*:", participantField);
 
 		// event
-		GUIHelper.addLabeledComponent(propertiesPanel, "Event*:", eventField);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.event.participation.event") + "*:", eventField);
 
 		// role
-		GUIHelper.addLabeledComponent(propertiesPanel, "Role:", roleCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.event.participation.role") + ":", roleCombo);
 
 		// evidence
 		final JPanel evidencePanel = components.getPanel(PanelKey.EVIDENCE);
@@ -265,7 +259,7 @@ public class EventParticipationRecordDialog extends BaseRecordDialog{
 	protected boolean validData(){
 		if(!participantField.hasData()){
 			GUIHelper.showValidationErrorAndFocus(this,
-				"Participant is required.",
+				I18N.tf("validation.required", I18N.t("dialog.event.participation.participant")),
 				tabbedPane, propertiesPanel, participantField);
 
 			return false;
@@ -273,7 +267,7 @@ public class EventParticipationRecordDialog extends BaseRecordDialog{
 
 		if(!eventField.hasData()){
 			GUIHelper.showValidationErrorAndFocus(this,
-				"Event is required.",
+				I18N.tf("validation.required", I18N.t("dialog.event.participation.event")),
 				tabbedPane, propertiesPanel, eventField);
 
 			return false;

@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -80,6 +81,28 @@ public class SingleDatePanel extends JPanel{
 	private static final String TAG_CENTURY_ORDINAL = DateField.TAG_CENTURY + DOT + DateField.TAG_ORDINAL;
 	private static final String TAG_CENTURY_PART = DateField.TAG_CENTURY + DOT + DateField.TAG_PART;
 
+	public static final String ENUM_PART_FIRST_QUARTER = "first_quarter";
+	public static final String ENUM_PART_SECOND_QUARTER = "second_quarter";
+	public static final String ENUM_PART_THIRD_QUARTER = "third_quarter";
+	public static final String ENUM_PART_FOURTH_QUARTER = "fourth_quarter";
+	public static final String ENUM_PART_FIRST_HALF = "first_half";
+	public static final String ENUM_PART_SECOND_HALF = "second_half";
+	public static final String ENUM_PART_EARLY = "early";
+	public static final String ENUM_PART_MID = "mid";
+	public static final String ENUM_PART_LATE = "late";
+	private static final String[] CENTURY_PARTS = {
+		StringUtils.EMPTY,
+		ENUM_PART_FIRST_QUARTER, ENUM_PART_SECOND_QUARTER, ENUM_PART_THIRD_QUARTER, ENUM_PART_FOURTH_QUARTER,
+		ENUM_PART_FIRST_HALF, ENUM_PART_SECOND_HALF,
+		ENUM_PART_EARLY, ENUM_PART_MID, ENUM_PART_LATE
+	};
+
+	private static final String ENUM_CALENDAR_GREGORIAN = "gregorian";
+	public static final String[] CALENDARS = {
+		ENUM_CALENDAR_GREGORIAN, "julian", "islamic", "hebrew", "chinese", "indian", "buddhist", "french-republican", "coptic",
+		"soviet eternal", "ethiopian", "mayan"
+	};
+
 
 	private final BindingManager bindingManager = new BindingManager();
 
@@ -101,14 +124,8 @@ public class SingleDatePanel extends JPanel{
 		fullDateValueField = new BoundTextField(TAG_FULL_DATE_VALUE);
 		decadeStartYearField = new BoundTextField(TAG_DECADE_START_YEAR);
 		centuryOrdinalField = new BoundTextField(TAG_CENTURY_ORDINAL);
-		centuryPartCombo = new BoundComboBox<>(TAG_CENTURY_PART, new String[]{
-			StringUtils.EMPTY,
-			"first_quarter", "second_quarter", "third_quarter", "fourth_quarter",
-			"first_half", "second_half",
-			"early", "mid", "late"});
-		calendarCombo = new BoundComboBox<>(DateField.TAG_CALENDAR, new String[]{
-			"gregorian", "julian", "islamic", "hebrew", "chinese", "indian", "buddhist", "french-republican", "coptic",
-			"soviet eternal", "ethiopian", "mayan"});
+		centuryPartCombo = new BoundComboBox<>(TAG_CENTURY_PART, CENTURY_PARTS);
+		calendarCombo = new BoundComboBox<>(DateField.TAG_CALENDAR, CALENDARS);
 		calendarCombo.setEditable(true);
 		approxPanel = new ApproximatePanel(DateField.TAG_APPROXIMATE, parent, model);
 
@@ -134,21 +151,21 @@ public class SingleDatePanel extends JPanel{
 
 		// date type
 		final JPanel typePanel = GUIHelper.createLabelFieldPanel(0, "[]");
-		GUIHelper.addLabeledComponent(typePanel, "Type:", singleDateTypeCombo);
+		GUIHelper.addLabeledComponent(typePanel, I18N.t("dialog.date.type") + ":", singleDateTypeCombo);
 		GUIHelper.addComponent(this, typePanel);
 
 		// card panel for FULL_DATE, DECADE, CENTURY:
 		final JPanel fullDatePanel = GUIHelper.createLabelFieldPanel(0, "[]");
-		GUIHelper.addLabeledComponent(fullDatePanel, "Full date:", fullDateValueField);
+		GUIHelper.addLabeledComponent(fullDatePanel, I18N.t("dialog.date.full.date") + ":", fullDateValueField);
 
 		final JPanel decadePanel = GUIHelper.createLabelFieldPanel(0, "[]");
-		GUIHelper.addLabeledComponent(decadePanel, "Decade:", decadeStartYearField);
-		decadeStartYearField.setToolTipText("e.g., 1490 for the 1490s");
+		GUIHelper.addLabeledComponent(decadePanel, I18N.t("dialog.date.decade") + ":", decadeStartYearField);
+		decadeStartYearField.setToolTipText(I18N.t("dialog.date.decade.tooltip"));
 
 		final JPanel centuryPanel = new JPanel(new MigLayout("ins 0,fillx,wrap 2", "[right]rel[grow,fill]"));
-		GUIHelper.addLabeledComponent(centuryPanel, "Century:", centuryOrdinalField);
-		GUIHelper.addLabeledComponent(centuryPanel, "Part:", centuryPartCombo);
-		centuryOrdinalField.setToolTipText("e.g., 15 for 15th century");
+		GUIHelper.addLabeledComponent(centuryPanel, I18N.t("dialog.date.century") + ":", centuryOrdinalField);
+		centuryOrdinalField.setToolTipText(I18N.t("dialog.date.century.tooltip"));
+		GUIHelper.addLabeledComponent(centuryPanel, I18N.t("dialog.date.part") + ":", centuryPartCombo);
 
 		cardPanel.add(fullDatePanel, DateType.FULL_DATE.name());
 		cardPanel.add(decadePanel, DateType.DECADE.name());
@@ -159,7 +176,7 @@ public class SingleDatePanel extends JPanel{
 
 		// calendar
 		final JPanel calendarPanel = GUIHelper.createLabelFieldPanel(0, "[]");
-		GUIHelper.addLabeledComponent(calendarPanel, "Calendar:", calendarCombo);
+		GUIHelper.addLabeledComponent(calendarPanel, I18N.t("dialog.date.calendar") + ":", calendarCombo);
 		GUIHelper.addComponent(this, calendarPanel);
 
 		// Approximate
@@ -263,7 +280,7 @@ public class SingleDatePanel extends JPanel{
 		fieldMap.values()
 			.forEach(field -> field.setText(StringUtils.EMPTY));
 		centuryPartCombo.setSelectedIndex(0);
-		calendarCombo.setSelectedItem("gregorian");
+		calendarCombo.setSelectedItem(ENUM_CALENDAR_GREGORIAN);
 		approxPanel.clear();
 		cardLayout.show(cardPanel, DateType.FULL_DATE.name());
 	}
@@ -282,7 +299,9 @@ public class SingleDatePanel extends JPanel{
 		if(selected != null){
 			final BoundTextField activeField = fieldMap.get(selected);
 			if(activeField != null && activeField.isEmpty()){
-				JOptionPane.showMessageDialog(this, selected.getErrorMessage(), "Validation Error", JOptionPane.ERROR_MESSAGE);
+				JOptionPane.showMessageDialog(this,
+					selected.getErrorMessage(),
+					I18N.t("validation.title"), JOptionPane.ERROR_MESSAGE);
 
 				return false;
 			}
@@ -290,7 +309,9 @@ public class SingleDatePanel extends JPanel{
 
 		final String calendar = (String)calendarCombo.getSelectedItem();
 		if(StringUtils.isEmpty(calendar)){
-			JOptionPane.showMessageDialog(this, "Calendar is required.", "Validation Error", JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(this,
+				I18N.tf("validation.required", I18N.t("dialog.date.calendar")),
+				I18N.t("validation.title"), JOptionPane.ERROR_MESSAGE);
 
 			return false;
 		}

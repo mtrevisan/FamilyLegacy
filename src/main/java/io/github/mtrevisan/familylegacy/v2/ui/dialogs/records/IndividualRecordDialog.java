@@ -42,7 +42,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.PersonalNameHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
-import org.apache.commons.lang3.StringUtils;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 
 import javax.swing.JPanel;
 import java.awt.Window;
@@ -147,21 +147,19 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 		super(parent, model, record, IndividualHandler.getInstance());
 
 		preferredImagePanel = new PreferredImagePanel(IndividualHandler.TAG_PREFERRED_IMAGE, this);
-		personalNamePanel = EntityListPanel.createForStructure(IndividualHandler.TAG_NAME, this, "Personal Names*", model, PersonalNameHandler.class);
-		sexCombo = new BoundComboBox<>(IndividualHandler.TAG_SEX, new String[]{
-			StringUtils.EMPTY,
-			IndividualHandler.ENUM_SEX_MALE, IndividualHandler.ENUM_SEX_FEMALE, IndividualHandler.ENUM_SEX_UNKNOWN});
+		personalNamePanel = EntityListPanel.createForStructure(IndividualHandler.TAG_NAME, this, I18N.t("dialog.individual.personal.name") + "*", model, PersonalNameHandler.class);
+		sexCombo = new BoundComboBox<>(IndividualHandler.TAG_SEX, IndividualHandler.SEXES);
 
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.INDIVIDUAL_ATTRIBUTE, IndividualAttributeHandler.TYPE, "Individual Attributes")
-			.withComponent(PanelKey.RELATIONSHIP_ON_SUBJECT, RelationshipHandler.TYPE, "Relationships / Group Memberships")
-			.withComponent(PanelKey.RELATIONSHIP_ON_TARGET, RelationshipHandler.TYPE, "Inverse Relationships")
-			.withComponent(PanelKey.EVENT_PARTICIPATION_ON_PARTICIPANT, EventParticipationHandler.TYPE, "Participations")
-			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, ContextImpactHandler.TYPE, "Context Impacts")
-			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, "Conclusions")
-			.withComponent(PanelKey.IDENTITY_HYPOTHESIS_ON_IDENTITY, IdentityHypothesisHandler.TYPE, "Identity Hypotheses")
-			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, "Research Questions")
-			.withComponent(PanelKey.SOURCE, IndividualHandler.TAG_SOURCE, "Sources with Citations")
+			.withComponent(PanelKey.INDIVIDUAL_ATTRIBUTE, IndividualAttributeHandler.TYPE, I18N.t("dialog.component.individual.attributes"))
+			.withComponent(PanelKey.RELATIONSHIP_ON_SUBJECT, RelationshipHandler.TYPE, I18N.t("dialog.component.relationship.on.target"))
+			.withComponent(PanelKey.RELATIONSHIP_ON_OBJECT, RelationshipHandler.TYPE, I18N.t("dialog.component.relationship.on.subject"))
+			.withComponent(PanelKey.EVENT_PARTICIPATION_ON_PARTICIPANT, EventParticipationHandler.TYPE, I18N.t("dialog.component.event.participations"))
+			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, ContextImpactHandler.TYPE, I18N.t("dialog.component.context.impact"))
+			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, I18N.t("dialog.component.conclusions"))
+			.withComponent(PanelKey.IDENTITY_HYPOTHESIS_ON_IDENTITY, IdentityHypothesisHandler.TYPE, I18N.t("dialog.component.identity.hypotheses"))
+			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, I18N.t("dialog.component.research.questions"))
+			.withComponent(PanelKey.SOURCE, IndividualHandler.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
 			.withComponent(PanelKey.NOTE, IndividualHandler.TAG_NOTE, null)
 			.withComponent(PanelKey.PRIVACY, IndividualHandler.TAG_PRIVACY, null)
 			.withComponent(PanelKey.AUDIT, IndividualHandler.TAG_AUDIT, null)
@@ -189,7 +187,7 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 
 		// sex
 		final JPanel sexPanel = GUIHelper.createLabelFieldPanel(0, "[]15[]10[]");
-		GUIHelper.addLabeledComponent(sexPanel, "Sex:", sexCombo);
+		GUIHelper.addLabeledComponent(sexPanel, I18N.t("dialog.individual.sex") + ":", sexCombo);
 		GUIHelper.addComponent(panel, sexPanel);
 
 		return panel;
@@ -214,7 +212,7 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 		GUIHelper.addComponent(panel, relationshipAsSubjectPanel);
 
 		// Relationships in which this individual is the target (biological/adopted children, dependents)
-		final JPanel relationshipAsTargetPanel = components.getPanel(PanelKey.RELATIONSHIP_ON_TARGET);
+		final JPanel relationshipAsTargetPanel = components.getPanel(PanelKey.RELATIONSHIP_ON_OBJECT);
 		GUIHelper.addComponent(panel, relationshipAsTargetPanel);
 
 		return panel;

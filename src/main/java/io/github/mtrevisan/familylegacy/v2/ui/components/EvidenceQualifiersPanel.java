@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
@@ -59,6 +60,29 @@ public class EvidenceQualifiersPanel extends JPanel{
 	public static final String TAG_INFORMATION_TYPE = "INFORMATION_TYPE";
 	public static final String TAG_EVIDENCE_TYPE = "EVIDENCE_TYPE";
 
+	public static final String SOURCE_TYPE_ORIGINAL = "original";
+	public static final String SOURCE_TYPE_DERIVED = "derived";
+	private static final String[] SOURCE_TYPES = {
+		StringUtils.EMPTY,
+		SOURCE_TYPE_ORIGINAL, SOURCE_TYPE_DERIVED
+	};
+
+	public static final String INFORMATION_TYPE_PRIMARY = "primary";
+	public static final String INFORMATION_TYPE_SECONDARY = "secondary";
+	public static final String INFORMATION_TYPE_UNDETERMINED = "undetermined";
+	private static final String[] INFORMATION_TYPES = {
+		StringUtils.EMPTY,
+		INFORMATION_TYPE_PRIMARY, INFORMATION_TYPE_SECONDARY, INFORMATION_TYPE_UNDETERMINED
+	};
+
+	public static final String EVIDENCE_TYPE_DIRECT = "direct";
+	public static final String EVIDENCE_TYPE_INDIRECT = "indirect";
+	public static final String EVIDENCE_TYPE_NEGATIVE = "negative";
+	private static final String[] EVIDENCE_TYPES = {
+		StringUtils.EMPTY,
+		EVIDENCE_TYPE_DIRECT, EVIDENCE_TYPE_INDIRECT, EVIDENCE_TYPE_NEGATIVE
+	};
+
 
 	private final String path;
 
@@ -79,25 +103,19 @@ public class EvidenceQualifiersPanel extends JPanel{
 		setLayout(GUIHelper.createLabelFieldLayout(5, "[]5[]5[]"));
 		setBorder(BorderFactory.createTitledBorder(panelTitle));
 
-		sourceTypeCombo = new JComboBox<>(new String[]{
-			StringUtils.EMPTY,
-			"original", "derived"});
-		informationTypeCombo = new JComboBox<>(new String[]{
-			StringUtils.EMPTY,
-			"primary", "secondary", "undetermined"});
-		evidenceTypeCombo = new JComboBox<>(new String[]{
-			StringUtils.EMPTY,
-			"direct", "indirect", "negative"});
+		sourceTypeCombo = new JComboBox<>(SOURCE_TYPES);
+		informationTypeCombo = new JComboBox<>(INFORMATION_TYPES);
+		evidenceTypeCombo = new JComboBox<>(EVIDENCE_TYPES);
 
 		// Tooltips
-		sourceTypeCombo.setToolTipText("Classification of the source itself: original (first-hand) or derived (secondary)");
-		informationTypeCombo.setToolTipText("Classification of the information provided by the source: primary, secondary, or undetermined");
-		evidenceTypeCombo.setToolTipText("Nature of the evidentiary contribution: direct, indirect, or negative");
+		sourceTypeCombo.setToolTipText(I18N.t("dialog.evidence.qualifiers.source.type.tooltip"));
+		informationTypeCombo.setToolTipText(I18N.t("dialog.evidence.qualifiers.information.type.tooltip"));
+		evidenceTypeCombo.setToolTipText(I18N.t("dialog.evidence.qualifiers.evidence.type.tooltip"));
 
 		// Layout: label + combo per row
-		GUIHelper.addLabeledComponent(this, "Source Type:", sourceTypeCombo);
-		GUIHelper.addLabeledComponent(this, "Info Type:", informationTypeCombo);
-		GUIHelper.addLabeledComponent(this, "Evidence Type:", evidenceTypeCombo);
+		GUIHelper.addLabeledComponent(this, I18N.t("dialog.evidence.qualifiers.source.type") + ":", sourceTypeCombo);
+		GUIHelper.addLabeledComponent(this, I18N.t("dialog.evidence.qualifiers.information.type") + ":", informationTypeCombo);
+		GUIHelper.addLabeledComponent(this, I18N.t("dialog.evidence.qualifiers.evidence.type") + ":", evidenceTypeCombo);
 
 		// Attach hover tooltip listeners
 		attachTooltipListener(sourceTypeCombo);

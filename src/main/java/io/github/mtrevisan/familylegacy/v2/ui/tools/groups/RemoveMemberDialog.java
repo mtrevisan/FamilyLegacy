@@ -29,7 +29,9 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.RecordSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolDialogs;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.places.PlaceHelper;
@@ -143,7 +145,7 @@ public final class RemoveMemberDialog extends JDialog{
 		ok.addActionListener(e -> onConfirm());
 		buttons.add(ok);
 
-		final JButton cancel = new JButton("Cancel");
+		final JButton cancel = new JButton(I18N.t("button.cancel"));
 		cancel.addActionListener(e -> dispose());
 		buttons.add(cancel);
 
@@ -178,15 +180,15 @@ public final class RemoveMemberDialog extends JDialog{
 		final FLEFModel model = context.model();
 		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
 		for(final FLEFRecord relationship : relationships){
-			final String type = FLEFRecordHelper.getChildValue(relationship, GroupHelper.TAG_TYPE);
+			final String type = FLEFRecordHelper.getChildValue(relationship, RelationshipHandler.TAG_TYPE);
 			if(!GroupHelper.REL_GROUP_MEMBER.equalsIgnoreCase(type))
 				continue;
 
-			final String object = relationship.extractReferencedId(GroupHelper.TAG_OBJECT, GroupHelper.TYPE_GROUP);
+			final String object = relationship.extractReferencedId(RelationshipHandler.TAG_OBJECT, GroupHelper.TYPE_GROUP);
 			if(!group.getId().equals(object))
 				continue;
 
-			final String subject = relationship.extractReferencedId(GroupHelper.TAG_SUBJECT, GroupHelper.TYPE_INDIVIDUAL);
+			final String subject = relationship.extractReferencedId(RelationshipHandler.TAG_SUBJECT, IndividualHandler.TYPE);
 			if(subject == null)
 				continue;
 

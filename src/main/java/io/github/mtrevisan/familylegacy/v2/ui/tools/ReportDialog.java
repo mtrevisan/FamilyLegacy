@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.tools;
 
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JButton;
@@ -79,7 +80,7 @@ public final class ReportDialog extends JDialog{
 				.setContents(selection, selection);
 		});
 
-		final JButton close = new JButton("Close");
+		final JButton close = new JButton(I18N.t("button.close"));
 		close.addActionListener(e -> dispose());
 
 		final JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT));

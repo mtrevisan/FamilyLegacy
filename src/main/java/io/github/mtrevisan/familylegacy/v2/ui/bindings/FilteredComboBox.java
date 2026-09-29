@@ -56,7 +56,7 @@ public class FilteredComboBox<E> extends JComboBox<E>{
 	/** [ms] */
 	private static final int DEBOUNCE_TIME = 400;
 
-	private static final String PROPERTY_DEBOUNCER = "search";
+	public static final String PROPERTY_DEBOUNCER = "search";
 
 
 	private record FilterItem<E>(E item, String displayLower){}

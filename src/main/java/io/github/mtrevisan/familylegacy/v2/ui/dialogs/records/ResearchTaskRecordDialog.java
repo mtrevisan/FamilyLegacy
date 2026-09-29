@@ -36,7 +36,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchActivityHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchTaskHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
-import org.apache.commons.lang3.StringUtils;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 
 import javax.swing.JPanel;
 import java.awt.Window;
@@ -97,17 +97,14 @@ public class ResearchTaskRecordDialog extends BaseRecordDialog{
 		descriptionArea = new BoundTextArea(ResearchTaskHandler.TAG_DESCRIPTION, 3, 30);
 		createdByField = EntityField.createForRecordFromReference(ResearchTaskHandler.TAG_CREATED_BY, this, model,
 			ResearchActivityHandler.class);
-		statusCombo = new BoundComboBox<>(ResearchTaskHandler.TAG_STATUS, new String[]{
-			ResearchTaskHandler.ENUM_STATUS_OPEN, ResearchTaskHandler.ENUM_STATUS_IN_PROGRESS, ResearchTaskHandler.ENUM_STATUS_COMPLETED, ResearchTaskHandler.ENUM_STATUS_ABANDONED});
-		priorityCombo = new BoundComboBox<>(ResearchTaskHandler.TAG_PRIORITY, new String[]{
-			StringUtils.EMPTY,
-			ResearchTaskHandler.ENUM_PRIORITY_LOW, ResearchTaskHandler.ENUM_PRIORITY_NORMAL, ResearchTaskHandler.ENUM_PRIORITY_HIGH});
+		statusCombo = new BoundComboBox<>(ResearchTaskHandler.TAG_STATUS, ResearchTaskHandler.STATUSES);
+		priorityCombo = new BoundComboBox<>(ResearchTaskHandler.TAG_PRIORITY, ResearchTaskHandler.PRIORITIES);
 		dueDateField = new BoundTextField(ResearchTaskHandler.TAG_DUE_DATE);
 		outcomeArea = new BoundTextArea(ResearchTaskHandler.TAG_OUTCOME, 3, 30);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.RESEARCH_QUESTION, ResearchTaskHandler.TAG_QUESTION, "Questions")
+			.withComponent(PanelKey.RESEARCH_QUESTION, ResearchTaskHandler.TAG_QUESTION, I18N.t("dialog.component.research.questions"))
 			.withComponent(PanelKey.PRIVACY, ResearchTaskHandler.TAG_PRIVACY, null)
 			.withComponent(PanelKey.AUDIT, ResearchTaskHandler.TAG_AUDIT, null)
 			.build();
@@ -126,26 +123,26 @@ public class ResearchTaskRecordDialog extends BaseRecordDialog{
 	@Override
 	protected JPanel createPropertiesPanel(){
 		// description
-		GUIHelper.addLabeledComponent(propertiesPanel, "Description*:", descriptionArea);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.research.task.description") + "*:", descriptionArea);
 
 		// question
 		final JPanel notePanel = components.getPanel(PanelKey.RESEARCH_QUESTION);
 		GUIHelper.addComponent(propertiesPanel, notePanel);
 
 		// created by
-		GUIHelper.addLabeledComponent(propertiesPanel, "Created By:", createdByField);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.research.task.created.by") + ":", createdByField);
 
 		// status
-		GUIHelper.addLabeledComponent(propertiesPanel, "Status*:", statusCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.research.task.status") + "*:", statusCombo);
 
 		// priority
-		GUIHelper.addLabeledComponent(propertiesPanel, "Priority:", priorityCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.research.task.priority") + ":", priorityCombo);
 
 		// due date
-		GUIHelper.addLabeledComponent(propertiesPanel, "Due Date:", dueDateField);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.research.task.due.date") + ":", dueDateField);
 
 		// outcome
-		GUIHelper.addLabeledComponent(propertiesPanel, "Outcome:", outcomeArea);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.research.task.outcome") + ":", outcomeArea);
 
 		return propertiesPanel;
 	}
@@ -172,7 +169,7 @@ public class ResearchTaskRecordDialog extends BaseRecordDialog{
 	protected boolean validData(){
 		if(descriptionArea.isEmpty()){
 			GUIHelper.showValidationErrorAndFocus(this,
-				"Description is required.",
+				I18N.tf("validation.required", I18N.t("dialog.research.task.description")),
 				tabbedPane, propertiesPanel, descriptionArea);
 
 			return false;
@@ -180,7 +177,7 @@ public class ResearchTaskRecordDialog extends BaseRecordDialog{
 
 		if(!statusCombo.isValued()){
 			GUIHelper.showValidationErrorAndFocus(this,
-				"Status is required.",
+				I18N.tf("validation.required", I18N.t("dialog.research.task.status")),
 				tabbedPane, propertiesPanel, statusCombo);
 
 			return false;

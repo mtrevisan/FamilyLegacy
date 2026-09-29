@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.bindings.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextArea;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.BasicNoteListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -90,7 +91,7 @@ public class AuditPanel extends JPanel{
 		creationPanel = new JPanel(new MigLayout("fillx", "[grow]"));
 
 		creationCommentArea = new BoundTextArea(path + DOT + TAG_CREATION_COMMENT, 3, 25);
-		updateListPanel = new BasicNoteListPanel(path + DOT + TAG_UPDATE, parent, "Updates", TAG_COMMENT);
+		updateListPanel = new BasicNoteListPanel(path + DOT + TAG_UPDATE, parent, I18N.t("dialog.audit.updates"), TAG_COMMENT);
 
 
 		initComponents();
@@ -103,7 +104,7 @@ public class AuditPanel extends JPanel{
 
 		setLayout(GUIHelper.createLabelFieldLayout(10, "[]15[]"));
 
-		creationPanel.setBorder(new TitledBorder("Creation Comment"));
+		creationPanel.setBorder(new TitledBorder(I18N.tf("dialog.audit.creation.comment", false, StringUtils.EMPTY)));
 		creationPanel.add(GUIHelper.createScrollPane(creationCommentArea), "growx");
 		GUIHelper.addComponent(this, creationPanel);
 
@@ -125,9 +126,7 @@ public class AuditPanel extends JPanel{
 		// creation.date
 		final FLEFRecord creation = FLEFRecordHelper.findChild(record, path + DOT + TAG_CREATION);
 		creationDate = FLEFRecordHelper.getChildValue(creation, path + DOT + TAG_DATE);
-
-		if(creationDate != null)
-			creationPanel.setBorder(new TitledBorder("Creation Comment (" + creationDate + ")"));
+		creationPanel.setBorder(new TitledBorder(I18N.tf("dialog.audit.creation.comment", (creationDate != null), creationDate)));
 
 		bindingManager.load(record);
 

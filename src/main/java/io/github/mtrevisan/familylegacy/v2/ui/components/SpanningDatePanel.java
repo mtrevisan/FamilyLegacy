@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.BorderFactory;
@@ -70,12 +71,12 @@ public class SpanningDatePanel extends JPanel{
 		setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
 
 		final JPanel fromPanel = new JPanel(new MigLayout("fillx", "[right]rel[grow]"));
-		fromPanel.setBorder(new TitledBorder("From"));
+		fromPanel.setBorder(new TitledBorder(I18N.t("dialog.date.spanning.from")));
 		fromPanel.add(this.fromPanel, "growx");
 		add(fromPanel, "growx");
 
 		final JPanel toPanel = new JPanel(new MigLayout("fillx", "[right]rel[grow]"));
-		toPanel.setBorder(new TitledBorder("To"));
+		toPanel.setBorder(new TitledBorder(I18N.t("dialog.date.spanning.to")));
 		toPanel.add(this.toPanel, "growx");
 		add(toPanel, "growx");
 	}
@@ -123,8 +124,8 @@ public class SpanningDatePanel extends JPanel{
 	public boolean validateData(){
 		if(!hasData()){
 			JOptionPane.showMessageDialog(this,
-				"At least one of From or To is required for SPANNING date.",
-				"Validation Error", JOptionPane.ERROR_MESSAGE);
+				I18N.tf("validation.at.least.one.of", I18N.t("dialog.date.spanning.from"), I18N.t("dialog.date.spanning.to")),
+				I18N.t("validation.title"), JOptionPane.ERROR_MESSAGE);
 
 			return false;
 		}

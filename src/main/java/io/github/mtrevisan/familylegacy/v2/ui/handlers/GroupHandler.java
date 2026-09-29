@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.GroupRecordDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Window;
@@ -49,6 +50,12 @@ public class GroupHandler extends AbstractRecordTypeHandler<GroupRecordDialog>{
 	private static final String DOT = ".";
 	private static final String TAG_NAME_VALUE = TAG_NAME + DOT + NameHandler.TAG_VALUE;
 
+	public static final String[] TYPES = new String[]{
+		StringUtils.EMPTY,
+		"family", "household", "neighbourhood", "fraternity", "club", "literary_society",
+		"association", "organisation", "tribe"
+	};
+
 
 	private static final class SingletonHelper{
 		private static final GroupHandler INSTANCE = new GroupHandler();
@@ -62,7 +69,7 @@ public class GroupHandler extends AbstractRecordTypeHandler<GroupRecordDialog>{
 
 	@Override
 	public String getLabel(){
-		return "Group";
+		return I18N.t("confirmation.exist.record.group");
 	}
 
 	@Override

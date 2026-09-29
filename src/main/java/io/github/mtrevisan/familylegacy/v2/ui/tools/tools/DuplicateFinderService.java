@@ -225,8 +225,8 @@ public final class DuplicateFinderService{
 		final Map<String, List<FLEFRecord>> relationshipsByEndpoint = new HashMap<>();
 		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
 		for(final FLEFRecord relationship : relationships){
-			final String subject = relationship.extractReferencedId("subject", IndividualHandler.TYPE);
-			final String object = relationship.extractReferencedId("object", IndividualHandler.TYPE);
+			final String subject = relationship.extractReferencedId(RelationshipHandler.TAG_SUBJECT, IndividualHandler.TYPE);
+			final String object = relationship.extractReferencedId(RelationshipHandler.TAG_OBJECT, IndividualHandler.TYPE);
 			if(subject != null)
 				relationshipsByEndpoint.computeIfAbsent(subject, k -> new ArrayList<>()).add(relationship);
 			if(object != null && !object.equals(subject))

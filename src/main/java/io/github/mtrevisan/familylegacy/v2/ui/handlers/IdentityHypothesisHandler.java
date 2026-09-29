@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.IdentityHypothesisRecordDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 
 import java.awt.Window;
 import java.util.List;
@@ -71,7 +72,7 @@ public class IdentityHypothesisHandler extends AbstractRecordTypeHandler<Identit
 
 	@Override
 	public String getLabel(){
-		return "Identity Hypothesis";
+		return I18N.t("confirmation.exist.record.identity.hypothesis");
 	}
 
 	@Override

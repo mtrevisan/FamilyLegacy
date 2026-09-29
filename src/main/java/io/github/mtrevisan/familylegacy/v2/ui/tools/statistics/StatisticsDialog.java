@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.tools.statistics;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
@@ -107,7 +108,7 @@ public final class StatisticsDialog extends JDialog{
 		// is no longer visible, so the summary would be misleading.
 		tabs.addChangeListener(e -> selectionSummary.setText(StringUtils.SPACE));
 
-		final JButton close = new JButton("Close");
+		final JButton close = new JButton(I18N.t("button.close"));
 		close.addActionListener(e -> dispose());
 		final JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 		buttons.add(close);

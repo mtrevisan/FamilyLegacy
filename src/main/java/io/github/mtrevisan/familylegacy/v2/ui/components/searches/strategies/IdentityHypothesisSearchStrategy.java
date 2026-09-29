@@ -46,9 +46,6 @@ import java.util.function.Predicate;
  */
 public class IdentityHypothesisSearchStrategy implements SearchStrategy{
 
-	private static final String TAG_IDENTITY = "identity";
-	private static final String TAG_COMMENT = "comment";
-
 	private static final double FUZZY_THRESHOLD = 0.05;
 
 
@@ -62,14 +59,14 @@ public class IdentityHypothesisSearchStrategy implements SearchStrategy{
 
 	@Override
 	public Predicate<FLEFRecord> buildPredicate(final SearchCriteria criteria, final FLEFModel model){
-		candidate = criteria.getFilterFor(IdentityHypothesisFilterPanel.FILTER_KEY_CANDIDATE);
-		comment = criteria.getFilterFor(IdentityHypothesisFilterPanel.FILTER_KEY_COMMENT);
+		candidate = criteria.getFilterFor(IdentityHypothesisHandler.TAG_IDENTITY);
+		comment = criteria.getFilterFor(IdentityHypothesisHandler.TAG_COMMENT);
 		mode = criteria.mode();
 
 		return hypothesis -> {
 			// Candidate filter (checks resolved display text for candidate records)
 			if(StringUtils.isNotEmpty(candidate)){
-				final List<FLEFRecord> candidates = FLEFRecordHelper.findChildren(hypothesis, TAG_IDENTITY);
+				final List<FLEFRecord> candidates = FLEFRecordHelper.findChildren(hypothesis, IdentityHypothesisHandler.TAG_IDENTITY);
 				boolean matched = false;
 				for(final FLEFRecord candidate : candidates){
 					final String targetRef = candidate.getValue();
@@ -93,7 +90,7 @@ public class IdentityHypothesisSearchStrategy implements SearchStrategy{
 
 			// Comment filter
 			if(StringUtils.isNotEmpty(comment)){
-				final String comment = FLEFRecordHelper.getChildValue(hypothesis, TAG_COMMENT);
+				final String comment = FLEFRecordHelper.getChildValue(hypothesis, IdentityHypothesisHandler.TAG_COMMENT);
 				if(!TextSearchHelper.matchesText(comment, this.comment, mode, FUZZY_THRESHOLD))
 					return false;
 			}
@@ -106,7 +103,7 @@ public class IdentityHypothesisSearchStrategy implements SearchStrategy{
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
 		final String baseDisplayText = HANDLER.getDisplayText(record, model);
 
-		final String comment = FLEFRecordHelper.getChildValue(record, TAG_COMMENT);
+		final String comment = FLEFRecordHelper.getChildValue(record, IdentityHypothesisHandler.TAG_COMMENT);
 
 		final StringJoiner details = new StringJoiner(", ", " (", ")");
 		details.setEmptyValue(StringUtils.EMPTY);

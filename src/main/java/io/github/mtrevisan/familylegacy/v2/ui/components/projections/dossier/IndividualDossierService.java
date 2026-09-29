@@ -390,7 +390,7 @@ public final class IndividualDossierService{
 	}
 
 	private DossierEntry buildRelationshipEntry(final FLEFRecord relationship, final boolean isSubject){
-		final String type = FLEFRecordHelper.getChildValue(relationship, TAG_TYPE);
+		final String type = FLEFRecordHelper.getChildValue(relationship, RelationshipHandler.TAG_TYPE);
 		final String typeLabel = (StringUtils.isNotEmpty(type)
 			? type.replace('_', ' ')
 			: "Relationship");
@@ -891,14 +891,14 @@ public final class IndividualDossierService{
 
 	private static String abbreviate(final String value){
 		return switch(value.toLowerCase(Locale.ROOT)){
-			case "original" -> "orig";
-			case "derived" -> "der";
-			case "primary" -> "prim";
-			case "secondary" -> "sec";
-			case "undetermined" -> "und";
-			case "direct" -> "dir";
-			case "indirect" -> "ind";
-			case "negative" -> "neg";
+			case EvidenceQualifiersPanel.SOURCE_TYPE_ORIGINAL -> "orig";
+			case EvidenceQualifiersPanel.SOURCE_TYPE_DERIVED -> "der";
+			case EvidenceQualifiersPanel.INFORMATION_TYPE_PRIMARY -> "prim";
+			case EvidenceQualifiersPanel.INFORMATION_TYPE_SECONDARY -> "sec";
+			case EvidenceQualifiersPanel.INFORMATION_TYPE_UNDETERMINED -> "und";
+			case EvidenceQualifiersPanel.EVIDENCE_TYPE_DIRECT -> "dir";
+			case EvidenceQualifiersPanel.EVIDENCE_TYPE_INDIRECT -> "ind";
+			case EvidenceQualifiersPanel.EVIDENCE_TYPE_NEGATIVE -> "neg";
 			default -> value;
 		};
 	}

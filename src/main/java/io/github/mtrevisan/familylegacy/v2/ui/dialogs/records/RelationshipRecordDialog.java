@@ -40,7 +40,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
-import org.apache.commons.lang3.StringUtils;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import org.apache.commons.lang3.Strings;
 
 import javax.swing.BorderFactory;
@@ -48,7 +48,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import java.awt.Window;
 import java.io.IOException;
-import java.util.Collections;
 import java.util.List;
 
 
@@ -90,20 +89,6 @@ import java.util.List;
  */
 public class RelationshipRecordDialog extends BaseRecordDialog{
 
-	private static final List<String> INDIVIDUAL_TO_INDIVIDUAL_TYPES = List.of(
-		"biological_child", "adoptive_child", "foster_child", "guarded_child", "step_child",
-		"civil_spouse", "religious_spouse", "customary_spouse", "cohabiting_partner", "engaged_partner",
-		"associate"
-	);
-	private static final List<String> INDIVIDUAL_TO_GROUP_TYPES = List.of(
-		"group_member", "associate"
-	);
-	private static final List<String> GROUP_TO_GROUP_TYPES = List.of(
-		"associate", "part_of"
-	);
-	private static final List<String> GROUP_TO_INDIVIDUAL_TYPES = Collections.emptyList();
-
-
 	private final JPanel propertiesPanel;
 
 	private final EntityField subjectField;
@@ -136,28 +121,20 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 		objectField = EntityField.createForRecordFromOneofReference(RelationshipHandler.TAG_OBJECT, this, model)
 			.withHandlerTypes(IndividualHandler.class, GroupHandler.class);
 		objectField.addPropertyChangeListener(EntityField.PROPERTY_ENTITY_CHANGED, e -> updateTypeCombo());
-		subjectTypeCombo = new BoundComboBox<>(RelationshipHandler.TAG_TYPE, new String[]{
-			StringUtils.EMPTY,
-			"biological_child", "adoptive_child", "foster_child", "guarded_child", "step_child",
-			"civil_spouse", "religious_spouse", "customary_spouse", "cohabiting_partner", "engaged_partner",
-			"group_member", "associate", "part_of"
-		});
+		subjectTypeCombo = new BoundComboBox<>(RelationshipHandler.TAG_TYPE, RelationshipHandler.TYPES);
 		subjectRoleField = new BoundTextField(RelationshipHandler.TAG_ROLE);
-		statusCombo = new BoundComboBox<>(RelationshipHandler.TAG_STATUS, new String[]{
-			StringUtils.EMPTY,
-			"active", "ended", "unknown"
-		});
-		validFromField = DateField.createWithWrapperTag(RelationshipHandler.TAG_VALID_FROM, this, "From Date", model);
-		validToField = DateField.createWithWrapperTag(RelationshipHandler.TAG_VALID_TO, this, "To Date", model);
+		statusCombo = new BoundComboBox<>(RelationshipHandler.TAG_STATUS, RelationshipHandler.STATUSES);
+		validFromField = DateField.createWithWrapperTag(RelationshipHandler.TAG_VALID_FROM, this, I18N.t("dialog.date.valid.from"), model);
+		validToField = DateField.createWithWrapperTag(RelationshipHandler.TAG_VALID_TO, this, I18N.t("dialog.date.valid.to"), model);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, ContextImpactHandler.TYPE, "Context Impacts")
-			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, "Conclusions")
-			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, "Research Questions")
-			.withComponent(PanelKey.SOURCE, RelationshipHandler.TAG_SOURCE, "Sources with Citations")
+			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, ContextImpactHandler.TYPE, I18N.t("dialog.component.context.impact"))
+			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, I18N.t("dialog.component.conclusions"))
+			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, I18N.t("dialog.component.research.questions"))
+			.withComponent(PanelKey.SOURCE, RelationshipHandler.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
 			.withComponent(PanelKey.NOTE, RelationshipHandler.TAG_NOTE, null)
-			.withComponent(PanelKey.EVIDENCE, RelationshipHandler.TAG_EVIDENCE, "Evidence")
+			.withComponent(PanelKey.EVIDENCE, RelationshipHandler.TAG_EVIDENCE, I18N.t("dialog.component.evidence"))
 			.withComponent(PanelKey.PRIVACY, RelationshipHandler.TAG_PRIVACY, null)
 			.withComponent(PanelKey.AUDIT, RelationshipHandler.TAG_AUDIT, null)
 			.build();
@@ -184,52 +161,52 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 
 		final String subjectType = subjectRecord.getTag();
 		final String objectType = objectRecord.getTag();
-		final List<String> validTypes = getValidTypes(subjectType, objectType);
-		subjectTypeCombo.updateItems(validTypes);
-		subjectTypeCombo.setEnabled(!validTypes.isEmpty());
+		final String[] validTypes = getValidTypes(subjectType, objectType);
+		subjectTypeCombo.updateItems(List.of(validTypes));
+		subjectTypeCombo.setEnabled(validTypes.length > 0);
 	}
 
-	private List<String> getValidTypes(final String subjectType, final String objectType){
+	private String[] getValidTypes(final String subjectType, final String objectType){
 		if(subjectType == null || objectType == null)
-			return Collections.emptyList();
+			return RelationshipHandler.EMPTY_TYPES;
 
 		if(Strings.CI.equals(IndividualHandler.TYPE, subjectType) && Strings.CI.equals(IndividualHandler.TYPE, objectType))
-			return INDIVIDUAL_TO_INDIVIDUAL_TYPES;
+			return RelationshipHandler.INDIVIDUAL_TO_INDIVIDUAL_TYPES;
 
 		if(Strings.CI.equals(IndividualHandler.TYPE, subjectType) && Strings.CI.equals(GroupHandler.TYPE, objectType))
-			return INDIVIDUAL_TO_GROUP_TYPES;
+			return RelationshipHandler.INDIVIDUAL_TO_GROUP_TYPES;
 
 		if(Strings.CI.equals(GroupHandler.TYPE, subjectType) && Strings.CI.equals(GroupHandler.TYPE, objectType))
-			return GROUP_TO_GROUP_TYPES;
+			return RelationshipHandler.GROUP_TO_GROUP_TYPES;
 
-		return GROUP_TO_INDIVIDUAL_TYPES;
+		return RelationshipHandler.GROUP_TO_INDIVIDUAL_TYPES;
 	}
 
 
 	@Override
 	protected JPanel createPropertiesPanel(){
 		// subject
-		GUIHelper.addLabeledComponent(propertiesPanel, "Subject*:", subjectField);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.relationship.subject") + "*:", subjectField);
 
 		// (subject) type
-		GUIHelper.addLabeledComponent(propertiesPanel, "Subject Type*:", subjectTypeCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.relationship.subject.type") + "*:", subjectTypeCombo);
 
 		// (subject) role
-		GUIHelper.addLabeledComponent(propertiesPanel, "Subject Role:", subjectRoleField);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.relationship.subject.role") + ":", subjectRoleField);
 
 		// object
-		GUIHelper.addLabeledComponent(propertiesPanel, "Object*:", objectField);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.relationship.object") + "*:", objectField);
 
 		// status
-		GUIHelper.addLabeledComponent(propertiesPanel, "Status:", statusCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.relationship.status") + ":", statusCombo);
 
 		// validity range:
 		final JPanel validityPanel = GUIHelper.createLabelFieldPanel(5, "[]5[]");
-		validityPanel.setBorder(BorderFactory.createTitledBorder("Validity Range"));
+		validityPanel.setBorder(BorderFactory.createTitledBorder(I18N.t("dialog.validity.range")));
 		// valid from
-		GUIHelper.addLabeledComponent(validityPanel, "Valid From:", validFromField);
+		GUIHelper.addLabeledComponent(validityPanel, I18N.t("dialog.valid.from") + ":", validFromField);
 		// valid to
-		GUIHelper.addLabeledComponent(validityPanel, "Valid To:", validToField);
+		GUIHelper.addLabeledComponent(validityPanel, I18N.t("dialog.valid.to") + ":", validToField);
 		GUIHelper.addComponent(propertiesPanel, validityPanel);
 
 		// evidence
@@ -302,8 +279,8 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 	@Override
 	public BaseRecordDialog withParentEntity(final FLEFRecord parent){
 		JOptionPane.showMessageDialog(this,
-			"Cannot set parent on a Relationship Record.",
-			"Error", JOptionPane.ERROR_MESSAGE);
+			I18N.tf("error.cannot.set.parent.message", RelationshipHandler.getInstance().getLabel()),
+			I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
 
 		return this;
 	}
@@ -358,7 +335,7 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 	protected boolean validData(){
 		if(!subjectField.hasData()){
 			GUIHelper.showValidationErrorAndFocus(this,
-				"Subject is required.",
+				I18N.tf("validation.required", I18N.t("dialog.relationship.subject")),
 				tabbedPane, propertiesPanel, subjectField);
 
 			return false;
@@ -366,7 +343,7 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 
 		if(!objectField.hasData()){
 			GUIHelper.showValidationErrorAndFocus(this,
-				"Object is required.",
+				I18N.tf("validation.required", I18N.t("dialog.relationship.object")),
 				tabbedPane, propertiesPanel, objectField);
 
 			return false;
@@ -374,7 +351,7 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 
 		if(subjectField.equals(objectField)){
 			GUIHelper.showValidationErrorAndFocus(this,
-				"Subject and Object must not be the same entity.",
+				I18N.tf("validation.required.not.same", I18N.t("dialog.relationship.subject"), I18N.t("dialog.relationship.object")),
 				tabbedPane, propertiesPanel, subjectField);
 
 			return false;
@@ -382,7 +359,7 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 
 		if(!subjectTypeCombo.isValued()){
 			GUIHelper.showValidationErrorAndFocus(this,
-				"Type is required.",
+				I18N.tf("validation.required", I18N.t("dialog.relationship.subject.type")),
 				tabbedPane, propertiesPanel, subjectTypeCombo);
 
 			return false;

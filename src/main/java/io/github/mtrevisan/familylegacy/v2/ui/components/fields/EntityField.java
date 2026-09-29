@@ -34,6 +34,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.searches.RecordSelectio
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 
@@ -134,22 +135,22 @@ public class EntityField extends BoundTextField{
 
 	private Consumer<MenuBuilder> createMenuItemsForDefault(){
 		return builder -> {
-			builder.item("Set…", this::addItem);
+			builder.item(I18N.t("popupmenu.set"), this::addItem);
 			builder.separator();
-			builder.selectionSensitiveItem("Edit…", this::editItem);
-			builder.selectionSensitiveItem("Clear", this::clear);
+			builder.selectionSensitiveItem(I18N.t("popupmenu.edit"), this::editItem);
+			builder.selectionSensitiveItem(I18N.t("popupmenu.clear"), this::clear);
 		};
 	}
 
 	private Consumer<MenuBuilder> createMenuItemsForCitationWrapper(){
 		return builder -> {
 			if(handlers.size() == 1)
-				builder.item("Create New…", this::createNewItem);
-			builder.item("Set…", this::addItem);
+				builder.item(I18N.t("popupmenu.create.new"), this::createNewItem);
+			builder.item(I18N.t("popupmenu.set"), this::addItem);
 			builder.separator();
-			builder.selectionSensitiveItem("Edit Record…", this::editTargetItem);
-			builder.selectionSensitiveItem("Edit Citation…", this::editItem);
-			builder.selectionSensitiveItem("Clear", this::clear);
+			builder.selectionSensitiveItem(I18N.t("popupmenu.edit.record"), this::editTargetItem);
+			builder.selectionSensitiveItem(I18N.t("popupmenu.edit.citation"), this::editItem);
+			builder.selectionSensitiveItem(I18N.t("popupmenu.clear"), this::clear);
 		};
 	}
 
@@ -190,7 +191,7 @@ public class EntityField extends BoundTextField{
 			if(handler == null){
 				JOptionPane.showMessageDialog(this,
 					"Handler for " + handlerType + " not loaded.",
-					"Error", JOptionPane.ERROR_MESSAGE);
+					I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
 
 				return this;
 			}
@@ -343,7 +344,7 @@ public class EntityField extends BoundTextField{
 		if(handlers.isEmpty()){
 			JOptionPane.showMessageDialog(this,
 				"Empty handler types.\nCannot show dialog.",
-				"Error", JOptionPane.ERROR_MESSAGE);
+				I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
 
 			return;
 		}

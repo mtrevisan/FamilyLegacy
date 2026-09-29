@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
@@ -62,12 +63,15 @@ import java.awt.Window;
  */
 public class ApproximatePanel extends JPanel{
 
+	private static final String[] BASES = {
+		StringUtils.EMPTY,
+		"stated", "calculated", "conventional", "unspecified"};
+
+
 	private String path;
 
-	private final JCheckBox approximateCheck = new JCheckBox("Approximate");
-	private final JComboBox<String> basisCombo = new JComboBox<>(new String[]{
-		StringUtils.EMPTY,
-		"stated", "calculated", "conventional", "unspecified"});
+	private final JCheckBox approximateCheck = new JCheckBox(I18N.tf("dialog.date.approximate"));
+	private final JComboBox<String> basisCombo = new JComboBox<>(BASES);
 	private final EntityListPanel culturalNormPanel;
 	private final JTextField marginField = new JTextField(null);
 
@@ -75,7 +79,7 @@ public class ApproximatePanel extends JPanel{
 	public ApproximatePanel(String path, Window parent, FLEFModel model){
 		this.path = path;
 
-		culturalNormPanel = EntityListPanel.createForEntityReference(CulturalNormHandler.TYPE, parent, "Cultural Norms",
+		culturalNormPanel = EntityListPanel.createForEntityReference(CulturalNormHandler.TYPE, parent, I18N.tf("dialog.name.cultural.norms"),
 			model, CulturalNormHandler.class);
 
 
@@ -91,7 +95,7 @@ public class ApproximatePanel extends JPanel{
 
 		// basis
 		final JPanel basisPanel = GUIHelper.createLabelFieldPanel(0, "[]");
-		GUIHelper.addLabeledComponent(basisPanel, "Basis:", basisCombo);
+		GUIHelper.addLabeledComponent(basisPanel, I18N.t("dialog.date.basis") + ":", basisCombo);
 		GUIHelper.addComponent(this, basisPanel);
 
 		// cultural norm
@@ -99,8 +103,8 @@ public class ApproximatePanel extends JPanel{
 
 		// margin
 		final JPanel marginPanel = GUIHelper.createLabelFieldPanel(0, "[]");
-		GUIHelper.addLabeledComponent(marginPanel, "Margin:", marginField);
-		marginField.setToolTipText("ISO 8601 Duration (e.g., P2Y for +/- 2 years)");
+		GUIHelper.addLabeledComponent(marginPanel, I18N.t("dialog.date.margin") + ":", marginField);
+		marginField.setToolTipText(I18N.t("dialog.date.margin.tooltip"));
 		GUIHelper.addComponent(this, marginPanel);
 
 		approximateCheck.addActionListener(e -> updateEnabled());
@@ -182,15 +186,18 @@ public class ApproximatePanel extends JPanel{
 		if(approximateCheck.isSelected()){
 			String basis = (String)basisCombo.getSelectedItem();
 			if(basis == null || basis.isEmpty()){
-				JOptionPane.showMessageDialog(this, "Basis is required when Approximate is selected.",
-					"Validation Error", JOptionPane.ERROR_MESSAGE);
+				JOptionPane.showMessageDialog(this,
+					I18N.tf("validation.required", I18N.t("dialog.date.basis")),
+					I18N.t("validation.title"), JOptionPane.ERROR_MESSAGE);
 
 				return false;
 			}
 
 			if("conventional".equals(basis) && culturalNormPanel.isEmpty()){
-				JOptionPane.showMessageDialog(this, "Cultural Norm is required when Basis is 'conventional'.",
-					"Validation Error", JOptionPane.ERROR_MESSAGE);
+				//TODO internationalize 'conventional'
+				JOptionPane.showMessageDialog(this,
+					I18N.tf("validation.required.when.is", I18N.t("dialog.name.cultural.norms"), I18N.t("dialog.date.basis"), "conventional"),
+					I18N.t("validation.title"), JOptionPane.ERROR_MESSAGE);
 
 				return false;
 			}

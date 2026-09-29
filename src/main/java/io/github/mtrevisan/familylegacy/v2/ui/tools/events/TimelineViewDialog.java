@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.RecordSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolDialogs;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.places.PlaceHelper;
@@ -122,7 +123,7 @@ public final class TimelineViewDialog extends JDialog{
 		chooseParticipant.addActionListener(e -> chooseParticipant());
 		toolbar.add(chooseParticipant);
 
-		final JButton clearParticipant = new JButton("Clear");
+		final JButton clearParticipant = new JButton(I18N.t("button.clear"));
 		clearParticipant.addActionListener(e -> {
 			participantId = null;
 			participantField.setText(StringUtils.EMPTY);
@@ -152,7 +153,7 @@ public final class TimelineViewDialog extends JDialog{
 		final JPanel footer = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 		footer.setBorder(BorderFactory.createEmptyBorder(2, 6, 6, 6));
 		footer.add(statusLabel);
-		final JButton close = new JButton("Close");
+		final JButton close = new JButton(I18N.t("button.close"));
 		close.addActionListener(e -> dispose());
 		footer.add(close);
 		return footer;

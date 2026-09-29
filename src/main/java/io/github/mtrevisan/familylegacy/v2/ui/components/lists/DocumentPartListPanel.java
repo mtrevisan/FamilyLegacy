@@ -32,6 +32,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.ImageCropDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.components.PreferredImagePanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.RecordSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.DocumentHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
@@ -77,10 +78,10 @@ public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
 			this::editCrop, null,
 			null, this::removeItem,
 			builder -> {
-				builder.item("Add Existing…", this::addItem);
+				builder.item(I18N.t("popupmenu.add.existing"), this::addItem);
 				builder.separator();
-				builder.selectionSensitiveItem("Edit Crop…", this::editCrop);
-				builder.selectionSensitiveItem("Remove", this::removeItem);
+				builder.selectionSensitiveItem(I18N.t("popupmenu.edit.crop"), this::editCrop);
+				builder.selectionSensitiveItem(I18N.t("popupmenu.remove"), this::removeItem);
 			}
 		);
 	}
@@ -134,7 +135,7 @@ if(uri != null)
 
 			JOptionPane.showMessageDialog(parent,
 				"Error loading image for cropping: " + ioe.getMessage(),
-				"Error", JOptionPane.ERROR_MESSAGE);
+				I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
 		}
 	}
 
@@ -177,7 +178,7 @@ if(uri != null)
 
 						JOptionPane.showMessageDialog(parent,
 							"Error loading image for cropping: " + ioe.getMessage(),
-							"Error", JOptionPane.ERROR_MESSAGE);
+							I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
 					}
 
 					result[0] = document;
@@ -209,8 +210,8 @@ if(uri != null)
 	@Override
 	protected FLEFRecord showEditDialog(final FLEFRecord record){
 		if(record == null){
-			JOptionPane.showMessageDialog(parent, documentHandler.getLabel() + " not found", "Error",
-				JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(parent, documentHandler.getLabel() + " not found",
+				I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
 
 			return null;
 		}

@@ -40,7 +40,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceCitationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
-import org.apache.commons.lang3.StringUtils;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 
 import javax.swing.JPanel;
 import java.awt.Window;
@@ -92,12 +92,7 @@ public class HistoricEventRecordDialog extends BaseRecordDialog{
 	private HistoricEventRecordDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, HistoricEventHandler.getInstance());
 
-		typeCombo = new BoundComboBox<>(HistoricEventHandler.TAG_TYPE, new String[]{
-			StringUtils.EMPTY,
-			"war", "epidemic", "famine", "migration", "legal_reform", "political_change", "territorial_change",
-			"natural_disaster", "economic_crisis", "scientific_discovery", "religious_reform", "social_movement",
-			"pandemic"
-		});
+		typeCombo = new BoundComboBox<>(HistoricEventHandler.TAG_TYPE, HistoricEventHandler.TYPES);
 		typeCombo.setEditable(true);
 		titleField = new BoundTextField(HistoricEventHandler.TAG_TITLE);
 		dateField = DateField.createWithWrapperTag(HistoricEventHandler.TAG_DATE, this, "Date", model);
@@ -105,12 +100,12 @@ public class HistoricEventRecordDialog extends BaseRecordDialog{
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.CONTEXT_IMPACT_ON_CONTEXT, ContextImpactHandler.TYPE, "Context Impacts")
-			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, "Conclusions")
-			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, "Research Questions")
-			.withComponent(PanelKey.SOURCE, HistoricEventHandler.TAG_SOURCE, "Sources with Citations")
+			.withComponent(PanelKey.CONTEXT_IMPACT_ON_CONTEXT, ContextImpactHandler.TYPE, I18N.t("dialog.component.context.impact"))
+			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, I18N.t("dialog.component.conclusions"))
+			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, I18N.t("dialog.component.research.questions"))
+			.withComponent(PanelKey.SOURCE, HistoricEventHandler.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
 			.withComponent(PanelKey.NOTE, HistoricEventHandler.TAG_NOTE, null)
-			.withComponent(PanelKey.EVIDENCE, HistoricEventHandler.TAG_EVIDENCE, "Evidence")
+			.withComponent(PanelKey.EVIDENCE, HistoricEventHandler.TAG_EVIDENCE, I18N.t("dialog.component.evidence"))
 			.withComponent(PanelKey.AUDIT, HistoricEventHandler.TAG_AUDIT, null)
 			.build();
 
@@ -130,16 +125,16 @@ public class HistoricEventRecordDialog extends BaseRecordDialog{
 		final JPanel propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]10[]10[]");
 
 		// type
-		GUIHelper.addLabeledComponent(propertiesPanel, "Type:", typeCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.historic.event.type") + ":", typeCombo);
 
 		// title
-		GUIHelper.addLabeledComponent(propertiesPanel, "Title:", titleField);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.historic.event.title") + ":", titleField);
 
 		// date
-		GUIHelper.addLabeledComponent(propertiesPanel, "Date:", dateField);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.historic.event.date") + ":", dateField);
 
 		// place
-		GUIHelper.addLabeledComponent(propertiesPanel, "Place:", placeField);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.place") + ":", placeField);
 
 		// evidence
 		final JPanel evidencePanel = components.getPanel(PanelKey.EVIDENCE);

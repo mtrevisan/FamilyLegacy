@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.SourceRecordDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Window;
@@ -56,6 +57,13 @@ public class SourceHandler extends AbstractRecordTypeHandler<SourceRecordDialog>
 	private static final String DOT = ".";
 	private static final String TAG_TITLE_VALUE = TAG_TITLE + DOT + NameHandler.TAG_VALUE;
 
+	public static final String[] MEDIA_TYPES = new String[]{
+		StringUtils.EMPTY,
+			"audio", "book", "card", "electronic", "fiche", "film",
+			"magazine", "manuscript", "map", "newspaper", "photo",
+			"tombstone", "video"
+	};
+
 
 	private static final class SingletonHelper{
 		private static final SourceHandler INSTANCE = new SourceHandler();
@@ -69,7 +77,7 @@ public class SourceHandler extends AbstractRecordTypeHandler<SourceRecordDialog>
 
 	@Override
 	public String getLabel(){
-		return "Source";
+		return I18N.t("confirmation.exist.record.source");
 	}
 
 	@Override

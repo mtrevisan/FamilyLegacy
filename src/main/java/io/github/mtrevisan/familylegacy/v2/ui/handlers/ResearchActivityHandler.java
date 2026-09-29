@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.ResearchActivityRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Window;
@@ -52,7 +53,6 @@ public class ResearchActivityHandler extends AbstractRecordTypeHandler<ResearchA
 	public static final String TAG_DETAIL = "DETAIL";
 	public static final String TAG_RESULT = "RESULT";
 	public static final String TAG_OBSERVATION = "OBSERVATION";
-	// TODO
 	public static final String TAG_CONCLUSION = "CONCLUSION";
 	public static final String TAG_CONCLUSION_CONFIDENCE = "CONCLUSION_CONFIDENCE";
 	public static final String TAG_SOURCE = "SOURCE";
@@ -60,6 +60,27 @@ public class ResearchActivityHandler extends AbstractRecordTypeHandler<ResearchA
 	public static final String TAG_TASK = "TASK";
 	public static final String TAG_PRIVACY = "PRIVACY";
 	public static final String TAG_AUDIT = "AUDIT";
+
+	public static final String[] TYPES = new String[]{
+		"search", "review", "analysis", "correspondence", "interview", "hypothesis"
+	};
+	public static final String[] STATUSES = new String[]{
+		"planned", "in_progress", "completed", "abandoned"
+	};
+	public static final String[] SEARCH_SCOPES = new String[]{
+		"entire_source",
+		"index_only",
+		"partial_source",
+		"selected_entries"
+	};
+	public static final String[] RESULTS = new String[]{
+		StringUtils.EMPTY,
+		"positive", "negative", "inconclusive", "conflicting", "unavailable"
+	};
+	public static final String[] CONFIDENCES = new String[]{
+		StringUtils.EMPTY,
+		"low", "medium", "high"
+	};
 
 
 	private static final class SingletonHelper{
@@ -84,7 +105,7 @@ public class ResearchActivityHandler extends AbstractRecordTypeHandler<ResearchA
 
 	@Override
 	public String getLabel(){
-		return "Research Activity";
+		return I18N.t("confirmation.exist.record.research.activity");
 	}
 
 	@Override

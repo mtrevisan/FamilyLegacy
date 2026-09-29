@@ -27,13 +27,14 @@ package io.github.mtrevisan.familylegacy.v2.ui.components;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 
 
 public enum DateType{
 
-	FULL_DATE("Full Date", DateField.TAG_FULL_DATE, "Date is required for FULL DATE type."),
-	DECADE("Decade", DateField.TAG_DECADE, "Decade is required for DECADE type."),
-	CENTURY("Century", DateField.TAG_CENTURY, "Century is required for CENTURY type.");
+	FULL_DATE("Full Date", DateField.TAG_FULL_DATE, I18N.tf("validation.required", I18N.t("dialog.date.full.date"))),
+	DECADE("Decade", DateField.TAG_DECADE, I18N.tf("validation.required", I18N.t("dialog.date.decade"))),
+	CENTURY("Century", DateField.TAG_CENTURY, I18N.tf("validation.required", I18N.t("dialog.date.century")));
 
 
 	private final String label;

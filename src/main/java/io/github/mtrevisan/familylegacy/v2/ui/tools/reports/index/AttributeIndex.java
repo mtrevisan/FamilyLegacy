@@ -4,6 +4,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualAttributeHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -27,7 +28,7 @@ public final class AttributeIndex{
 			if(!filter.test(attr))
 				continue;
 
-			final String indId = FLEFRecordHelper.getChildValue(attr, "individual");
+			final String indId = FLEFRecordHelper.getChildValue(attr, IndividualHandler.TYPE);
 			if(indId != null){
 				personToAttrsMap.computeIfAbsent(indId, k -> new ArrayList<>()).add(attr);
 			}

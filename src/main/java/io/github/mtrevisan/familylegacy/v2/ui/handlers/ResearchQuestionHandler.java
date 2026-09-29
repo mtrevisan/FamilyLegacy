@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.ResearchQuestionRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Window;
@@ -46,7 +47,6 @@ public class ResearchQuestionHandler extends AbstractRecordTypeHandler<ResearchQ
 	public static final String TAG_QUESTION = "QUESTION";
 	public static final String TAG_TARGET = "TARGET";
 	public static final String TAG_STATUS = "STATUS";
-	// TODO
 	public static final String TAG_CONCLUSION = "CONCLUSION";
 	public static final String TAG_CONCLUSION_CONFIDENCE = "CONCLUSION_CONFIDENCE";
 	public static final String TAG_RATIONALE = "RATIONALE";
@@ -58,6 +58,18 @@ public class ResearchQuestionHandler extends AbstractRecordTypeHandler<ResearchQ
 	public static final String ENUM_STATUS_ON_HOLD = "on_hold";
 	public static final String ENUM_STATUS_RESOLVED = "resolved";
 	public static final String ENUM_STATUS_DISPROVEN = "disproven";
+	public static final String[] STATUSES = new String[]{
+		StringUtils.EMPTY,
+		ENUM_STATUS_OPEN,
+		ENUM_STATUS_ON_HOLD,
+		ENUM_STATUS_RESOLVED,
+		ENUM_STATUS_DISPROVEN
+	};
+
+	public static final String[] CONFIDENCES = new String[]{
+		StringUtils.EMPTY,
+		"low", "medium", "high"
+	};
 
 
 	private static final class SingletonHelper{
@@ -72,7 +84,7 @@ public class ResearchQuestionHandler extends AbstractRecordTypeHandler<ResearchQ
 
 	@Override
 	public String getLabel(){
-		return "Research Question";
+		return I18N.t("confirmation.exist.record.research.question");
 	}
 
 	@Override

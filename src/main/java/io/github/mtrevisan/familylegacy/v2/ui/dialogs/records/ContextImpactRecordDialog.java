@@ -48,7 +48,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceRelationshipHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
-import org.apache.commons.lang3.StringUtils;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 
 import javax.swing.JPanel;
 import java.awt.Window;
@@ -113,23 +113,17 @@ public class ContextImpactRecordDialog extends BaseRecordDialog{
 				ConclusionHandler.class, EventParticipationHandler.class, PlaceRelationshipHandler.class,
 				IdentityHypothesisHandler.class);
 
-		impactTypeCombo = new BoundComboBox<>(ContextImpactHandler.TAG_IMPACT_TYPE, new String[]{
-			StringUtils.EMPTY,
-			"explains", "influences", "constrains", "motivates", "causes"
-		});
+		impactTypeCombo = new BoundComboBox<>(ContextImpactHandler.TAG_IMPACT_TYPE, ContextImpactHandler.IMPACT_TYPES);
 		impactTypeCombo.setEditable(true);
 
 		rationaleArea = new BoundTextArea(ContextImpactHandler.TAG_RATIONALE, 3, 30);
 
-		confidenceCombo = new BoundComboBox<>(ContextImpactHandler.TAG_CONFIDENCE, new String[]{
-			StringUtils.EMPTY,
-			"low", "medium", "high"
-		});
+		confidenceCombo = new BoundComboBox<>(ContextImpactHandler.TAG_CONFIDENCE, ContextImpactHandler.CONFIDENCES);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.SOURCE, ContextImpactHandler.TAG_SOURCE, "Sources with Citations")
-			.withComponent(PanelKey.EVIDENCE, ContextImpactHandler.TAG_EVIDENCE, "Evidence")
+			.withComponent(PanelKey.SOURCE, ContextImpactHandler.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
+			.withComponent(PanelKey.EVIDENCE, ContextImpactHandler.TAG_EVIDENCE, I18N.t("dialog.component.evidence"))
 			.withComponent(PanelKey.AUDIT, ContextImpactHandler.TAG_AUDIT, null)
 			.build();
 
@@ -148,19 +142,19 @@ public class ContextImpactRecordDialog extends BaseRecordDialog{
 	@Override
 	protected JPanel createPropertiesPanel(){
 		// context
-		GUIHelper.addLabeledComponent(propertiesPanel, "Context*:", contextField);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.context.impact.context") + "*:", contextField);
 
 		// target
-		GUIHelper.addLabeledComponent(propertiesPanel, "Target*:", targetField);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.context.impact.target") + "*:", targetField);
 
 		// impact type
-		GUIHelper.addLabeledComponent(propertiesPanel, "Impact Type:", impactTypeCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.context.impact.impact.type") + ":", impactTypeCombo);
 
 		// explanation
-		GUIHelper.addLabeledComponent(propertiesPanel, "Explanation:", rationaleArea);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.context.impact.explanation") + ":", rationaleArea);
 
 		// confidence
-		GUIHelper.addLabeledComponent(propertiesPanel, "confidence:", confidenceCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.context.impact.confidence") + ":", confidenceCombo);
 
 		// evidence
 		final JPanel evidencePanel = components.getPanel(PanelKey.EVIDENCE);
@@ -205,7 +199,7 @@ public class ContextImpactRecordDialog extends BaseRecordDialog{
 	protected boolean validData(){
 		if(contextField.isEmpty()){
 			GUIHelper.showValidationErrorAndFocus(this,
-				"Context is required.",
+				I18N.tf("validation.required", I18N.t("dialog.context.impact.context")),
 				tabbedPane, propertiesPanel, contextField);
 
 			return false;
@@ -213,7 +207,7 @@ public class ContextImpactRecordDialog extends BaseRecordDialog{
 
 		if(targetField.isEmpty()){
 			GUIHelper.showValidationErrorAndFocus(this,
-				"Target is required.",
+				I18N.tf("validation.required", I18N.t("dialog.context.impact.target")),
 				tabbedPane, propertiesPanel, targetField);
 
 			return false;

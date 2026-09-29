@@ -24,9 +24,13 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.components.searches.strategies;
 
+import io.github.mtrevisan.familylegacy.v2.ui.components.SingleDatePanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.RecordFilterPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchCriteria;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.HistoricEventHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.BorderFactory;
@@ -46,13 +50,7 @@ import java.util.function.Consumer;
  */
 public class HistoricEventFilterPanel extends JPanel implements RecordFilterPanel{
 
-	static final String FILTER_KEY_TYPE = "type";
-	static final String FILTER_KEY_TITLE = "title";
-	static final String FILTER_KEY_DATE = "date";
-	static final String FILTER_KEY_CALENDAR = "calendar";
-
-
-	private final JComboBox<String> typeCombo = new JComboBox<>(new String[]{
+	private final JComboBox<String> typeCombo = new JComboBox<>(new String[]
 		"Any",
 		"war",
 		"epidemic",
@@ -70,9 +68,7 @@ public class HistoricEventFilterPanel extends JPanel implements RecordFilterPane
 	});
 	private final JTextField titleField = new JTextField(20);
 	private final JTextField dateField = new JTextField(10);
-	private final JComboBox<String> calendarCombo = new JComboBox<>(new String[]{
-		"gregorian", "julian", "islamic", "hebrew", "chinese", "indian", "buddhist", "french-republican", "coptic",
-		"soviet eternal", "ethiopian", "mayan"});
+	private final JComboBox<String> calendarCombo = new JComboBox<>(SingleDatePanel.CALENDARS);
 	private final JTextField locationField = new JTextField(20);
 
 	private final Consumer<SearchCriteria> onChanged;
@@ -89,7 +85,7 @@ public class HistoricEventFilterPanel extends JPanel implements RecordFilterPane
 
 	private void initComponents(){
 		setLayout(new MigLayout("wrap 2,gap 5", "[][grow,fill]", "[]"));
-		setBorder(BorderFactory.createTitledBorder("Historic Event Filters"));
+		setBorder(BorderFactory.createTitledBorder(I18N.tf("dialog.search.filter.title", I18N.t("dialog.component.historic.events"))));
 
 		add(new JLabel("Type:"));
 		add(typeCombo, "growx");
@@ -139,10 +135,10 @@ public class HistoricEventFilterPanel extends JPanel implements RecordFilterPane
 	@Override
 	public Map<String, String> getFilters(){
 		final Map<String, String> filters = new HashMap<>();
-		filters.put(FILTER_KEY_TYPE, getType());
-		filters.put(FILTER_KEY_TITLE, getTitle());
-		filters.put(FILTER_KEY_DATE, getDate());
-		filters.put(FILTER_KEY_CALENDAR, getCalendar());
+		filters.put(HistoricEventHandler.TAG_TYPE, getType());
+		filters.put(HistoricEventHandler.TAG_TITLE, getTitle());
+		filters.put(HistoricEventHandler.TAG_DATE, getDate());
+		filters.put(DateField.TAG_CALENDAR, getCalendar());
 		filters.put(PlaceHandler.TYPE, getPlace());
 		return filters;
 	}

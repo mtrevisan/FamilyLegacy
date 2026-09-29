@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.components;
 
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JTextArea;
@@ -41,7 +42,7 @@ import java.awt.geom.Rectangle2D;
 
 public class MultiLineLabel extends JTextArea{
 
-	private static final String ELLIPSIS = "…";
+	private static final String ELLIPSIS = I18N.t("dialog.ellipsis");
 
 
 	// Maximum number of visible lines

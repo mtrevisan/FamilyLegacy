@@ -45,8 +45,6 @@ import java.util.function.Predicate;
  */
 public class RepositorySearchStrategy implements SearchStrategy{
 
-	private static final String TAG_CUSTODIAN = "custodian";
-
 	private static final double FUZZY_THRESHOLD = 0.05;
 
 
@@ -55,15 +53,15 @@ public class RepositorySearchStrategy implements SearchStrategy{
 
 	private String name;
 	private String custodian;
-	private String location;
+	private String place;
 	private SearchMode mode;
 
 
 	@Override
 	public Predicate<FLEFRecord> buildPredicate(final SearchCriteria criteria, final FLEFModel model){
-		name = criteria.getFilterFor(RepositoryFilterPanel.FILTER_KEY_NAME);
-		custodian = criteria.getFilterFor(RepositoryFilterPanel.FILTER_KEY_CUSTODIAN);
-		location = criteria.getFilterFor(RepositoryFilterPanel.FILTER_KEY_LOCATION);
+		name = criteria.getFilterFor(RepositoryHandler.TAG_NAME);
+		custodian = criteria.getFilterFor(RepositoryHandler.TAG_CUSTODIAN);
+		place = criteria.getFilterFor(RepositoryHandler.TAG_PLACE);
 		mode = criteria.mode();
 
 		return repository -> {
@@ -73,7 +71,7 @@ public class RepositorySearchStrategy implements SearchStrategy{
 
 			// Custodian filter
 			if(StringUtils.isNotEmpty(custodian)){
-				final String custodianRef = FLEFRecordHelper.getChildValue(repository, TAG_CUSTODIAN);
+				final String custodianRef = FLEFRecordHelper.getChildValue(repository, RepositoryHandler.TAG_CUSTODIAN);
 				if(custodianRef != null){
 					final FLEFRecord custodianRecord = model.getRecordById(custodianRef);
 					if(custodianRecord != null){
@@ -88,15 +86,15 @@ public class RepositorySearchStrategy implements SearchStrategy{
 					return false;
 			}
 
-			// Location filter
-			if(StringUtils.isNotEmpty(location)){
+			// Place filter
+			if(StringUtils.isNotEmpty(place)){
 				final FLEFRecord placeCitation = FLEFRecordHelper.findChild(repository, PlaceHandler.TYPE);
 				if(placeCitation != null){
 					final String placeId = placeCitation.getTheOnlyChild().getValue();
 					final FLEFRecord placeRecord = model.getRecordById(placeId);
 					final String place = PlaceHandler.getInstance()
 						.getDisplayText(placeRecord, model);
-					return SearchHelper.matches(place, location, mode);
+					return SearchHelper.matches(place, this.place, mode);
 				}
 			}
 

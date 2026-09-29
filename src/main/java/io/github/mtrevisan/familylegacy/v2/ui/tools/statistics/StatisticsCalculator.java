@@ -139,14 +139,14 @@ public final class StatisticsCalculator{
 		final Set<String> withParents = new HashSet<>();
 		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
 		for(final FLEFRecord relationship : relationships){
-			final String type = FLEFRecordHelper.getChildValue(relationship, TAG_TYPE);
+			final String type = FLEFRecordHelper.getChildValue(relationship, RelationshipHandler.TAG_TYPE);
 			if(type == null)
 				continue;
 
 			if(!type.toLowerCase(Locale.ROOT).endsWith("_child"))
 				continue;
 
-			final String subj = relationship.extractReferencedId(TAG_SUBJECT, TAG_INDIVIDUAL);
+			final String subj = relationship.extractReferencedId(RelationshipHandler.TAG_SUBJECT, IndividualHandler.TYPE);
 			if(subj != null)
 				withParents.add(subj);
 		}

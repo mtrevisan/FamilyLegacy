@@ -39,7 +39,7 @@ public final class GroupIndex{
 			if(!filter.test(relationship))
 				continue;
 
-			final String type = FLEFRecordHelper.getChildValue(relationship, "type");
+			final String type = FLEFRecordHelper.getChildValue(relationship, RelationshipHandler.TAG_TYPE);
 			final String subjectId = FLEFRecordHelper.getChildValue(relationship, "subject.individual");
 			final String objectGroup = FLEFRecordHelper.getChildValue(relationship, "object.group");
 			final String subjectGroup = FLEFRecordHelper.getChildValue(relationship, "subject.group");

@@ -38,6 +38,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceCitationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RepositoryHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 
 import javax.swing.JPanel;
 import java.awt.Window;
@@ -92,14 +93,14 @@ public class RepositoryRecordDialog extends BaseRecordDialog{
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]5[]10[]");
 
-		namePanel = EntityListPanel.createForStructure(RepositoryHandler.TAG_NAME, this, "Names*", model, NameHandler.class);
+		namePanel = EntityListPanel.createForStructure(RepositoryHandler.TAG_NAME, this, I18N.t("dialog.repository.names") + "*", model, NameHandler.class);
 		custodianField = EntityField.createForRecordFromReference(RepositoryHandler.TAG_CUSTODIAN, this, model, IndividualHandler.class);
 		placeField = EntityField.createForStructureWithReference(RepositoryHandler.TAG_PLACE, this, model, PlaceCitationHandler.class);
-		contactPanel = EntityListPanel.createForStructure(RepositoryHandler.TAG_CONTACT, this, "Contacts", model, ContactHandler.class);
+		contactPanel = EntityListPanel.createForStructure(RepositoryHandler.TAG_CONTACT, this, I18N.t("dialog.repository.contacts"), model, ContactHandler.class);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.SOURCE_ON_REPOSITORY, SourceHandler.TYPE, "Sources with Citations")
+			.withComponent(PanelKey.SOURCE_ON_REPOSITORY, SourceHandler.TYPE, I18N.t("dialog.component.sources.with.citations"))
 			.withComponent(PanelKey.NOTE, RepositoryHandler.TAG_NOTE, null)
 			.withComponent(PanelKey.PRIVACY, RepositoryHandler.TAG_PRIVACY, null)
 			.withComponent(PanelKey.AUDIT, RepositoryHandler.TAG_AUDIT, null)
@@ -116,10 +117,10 @@ public class RepositoryRecordDialog extends BaseRecordDialog{
 		GUIHelper.addComponent(propertiesPanel, namePanel);
 
 		// custodian
-		GUIHelper.addLabeledComponent(propertiesPanel, "Custodian:", custodianField);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.repository.custodian") + ":", custodianField);
 
 		// place
-		GUIHelper.addLabeledComponent(propertiesPanel, "Place:", placeField);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.place") + ":", placeField);
 
 		// contact
 		GUIHelper.addComponent(propertiesPanel, contactPanel);
@@ -172,7 +173,7 @@ public class RepositoryRecordDialog extends BaseRecordDialog{
 	protected boolean validData(){
 		if(!namePanel.hasData()){
 			GUIHelper.showValidationErrorAndFocus(this,
-				"At least one name is required.",
+				I18N.tf("validation.at.least.one", I18N.t("dialog.repository.names")),
 				tabbedPane, propertiesPanel, namePanel);
 
 			return false;

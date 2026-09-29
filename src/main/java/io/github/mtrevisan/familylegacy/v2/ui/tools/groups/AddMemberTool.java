@@ -24,7 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.tools.groups;
 
-import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18n;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolOperation;
 
@@ -34,7 +34,7 @@ public final class AddMemberTool implements ToolOperation{
 
 	@Override
 	public String getName(){
-		return I18n.t("menu.group.add.members");
+		return I18N.t("menu.group.add.members");
 	}
 
 	@Override

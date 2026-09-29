@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.DocumentRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.FileHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Window;
@@ -49,6 +50,11 @@ public class DocumentHandler extends AbstractRecordTypeHandler<DocumentRecordDia
 	public static final String TAG_PRIVACY = "PRIVACY";
 	public static final String TAG_AUDIT = "AUDIT";
 
+	public static final String[] MAPPINGS = new String[]{
+		StringUtils.EMPTY,
+		"planar", "spherical_equirectangular", "spherical_uv", "cubemap", "cylindrical_equirectangular_horizontal",
+		"cylindrical_equirectangular_vertical"};
+
 
 	private static final class SingletonHelper{
 		private static final DocumentHandler INSTANCE = new DocumentHandler();
@@ -62,7 +68,7 @@ public class DocumentHandler extends AbstractRecordTypeHandler<DocumentRecordDia
 
 	@Override
 	public String getLabel(){
-		return "Document";
+		return I18N.t("confirmation.exist.record.document");
 	}
 
 	@Override

@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.HeaderDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 
 import java.awt.Window;
 
@@ -68,7 +69,7 @@ public class HeaderHandler extends AbstractRecordTypeHandler<HeaderDialog>{
 
 	@Override
 	public String getLabel(){
-		return "Header";
+		return I18N.t("confirmation.exist.record.header");
 	}
 
 	@Override
@@ -78,7 +79,7 @@ public class HeaderHandler extends AbstractRecordTypeHandler<HeaderDialog>{
 
 	@Override
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
-		return "Header";
+		return getLabel();
 	}
 
 	@Override

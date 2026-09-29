@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.structures.NoteStructureDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Window;
@@ -65,7 +66,7 @@ public class NoteHandler extends AbstractRecordTypeHandler<NoteStructureDialog>{
 
 	@Override
 	public String getLabel(){
-		return "Note";
+		return I18N.t("confirmation.exist.record.note");
 	}
 
 	@Override

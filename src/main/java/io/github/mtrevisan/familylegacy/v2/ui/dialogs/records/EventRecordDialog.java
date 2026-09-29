@@ -43,7 +43,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceCitationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
-import org.apache.commons.lang3.StringUtils;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 
 import javax.swing.JPanel;
 import javax.swing.border.TitledBorder;
@@ -128,34 +128,24 @@ public class EventRecordDialog extends BaseRecordDialog{
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]15[]10[]15[]15[]15[]");
 
-		typeCombo = new BoundComboBox<>(EventHandler.TAG_TYPE, new String[]{
-			StringUtils.EMPTY,
-			"birth", "death", "adoption", "graduation", "immigration", "naturalization", "bankruptcy", "guardianship",
-			"coroner_report", "cremation", "burial", "education", "retirement", "military_induction",
-			"military_muster_roll", "military_service", "military_award", "military_release", "military_discharge",
-			"military_resignation", "military_retirement", "prison", "pardon", "jury_duty", "illness", "hospitalization",
-			"medical_procedure", "honor", "deportation", "internment", "liberation", "emancipation", "relocation",
-			"emigration", "census", "deed", "escrow", "chancery", "will", "probate", "engagement", "marriage_bann",
-			"marriage_contract", "marriage_license", "marriage_settlement", "marriage", "divorce_filed", "divorce_decree",
-			"divorce", "annulment"
-		});
+		typeCombo = new BoundComboBox<>(EventHandler.TAG_TYPE, EventHandler.TYPES);
 		typeCombo.setEditable(true);
 		descriptionArea = new BoundTextArea(EventHandler.TAG_DESCRIPTION, 3, 25);
-		dateField = DateField.createWithWrapperTag(EventHandler.TAG_DATE, this, "Date", model);
+		dateField = DateField.createWithWrapperTag(EventHandler.TAG_DATE, this, I18N.t("dialog.event.date"), model);
 		placeField = EntityField.createForStructureWithReference(PlaceHandler.TYPE, this, model, PlaceCitationHandler.class);
 		agencyField = new BoundTextField(EventHandler.TAG_AGENCY);
 		causeReasonField = new BoundTextField(TAG_CAUSE_REASON);
-		causeEvidencePanel = new EvidenceQualifiersPanel(TAG_CAUSE_EVIDENCE, "Cause Evidence");
+		causeEvidencePanel = new EvidenceQualifiersPanel(TAG_CAUSE_EVIDENCE, I18N.t("dialog.event.cause.evidence"));
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, ContextImpactHandler.TYPE, "Context Impacts")
-			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, "Conclusions")
-			.withComponent(PanelKey.EVENT_PARTICIPATION_ON_EVENT, EventParticipationHandler.TYPE, "Participations")
-			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, "Research Questions")
-			.withComponent(PanelKey.SOURCE, EventHandler.TAG_SOURCE, "Sources with Citations")
+			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, ContextImpactHandler.TYPE, I18N.t("dialog.component.context.impact"))
+			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, I18N.t("dialog.component.conclusions"))
+			.withComponent(PanelKey.EVENT_PARTICIPATION_ON_EVENT, EventParticipationHandler.TYPE, I18N.t("dialog.component.event.participations"))
+			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, I18N.t("dialog.component.research.questions"))
+			.withComponent(PanelKey.SOURCE, EventHandler.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
 			.withComponent(PanelKey.NOTE, EventHandler.TAG_NOTE, null)
-			.withComponent(PanelKey.EVIDENCE, EventHandler.TAG_EVIDENCE, "Evidence")
+			.withComponent(PanelKey.EVIDENCE, EventHandler.TAG_EVIDENCE, I18N.t("dialog.component.evidence"))
 			.withComponent(PanelKey.PRIVACY, EventHandler.TAG_PRIVACY, null)
 			.withComponent(PanelKey.AUDIT, EventHandler.TAG_AUDIT, null)
 			.build();
@@ -176,23 +166,23 @@ public class EventRecordDialog extends BaseRecordDialog{
 	@Override
 	protected JPanel createPropertiesPanel(){
 		// type
-		GUIHelper.addLabeledComponent(propertiesPanel, "Type*:", typeCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.event.type") + "*:", typeCombo);
 
 		// description
-		GUIHelper.addLabeledComponent(propertiesPanel, "Description*:", descriptionArea);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.event.description") + "*:", descriptionArea);
 
 		// date
-		GUIHelper.addLabeledComponent(propertiesPanel, "Date:", dateField);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.event.date") + ":", dateField);
 
 		// place
-		GUIHelper.addLabeledComponent(propertiesPanel, "Place:", placeField);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.place") + ":", placeField);
 
 		// agency
-		GUIHelper.addLabeledComponent(propertiesPanel, "Agency:", agencyField);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.event.agency") + ":", agencyField);
 
 		// cause panel:
 		final JPanel causePanel = GUIHelper.createLabelFieldPanel(5, "[]10[]");
-		causePanel.setBorder(new TitledBorder("Cause"));
+		causePanel.setBorder(new TitledBorder(I18N.t("dialog.event.cause")));
 		GUIHelper.addComponent(causePanel, causeReasonField);
 		GUIHelper.addComponent(causePanel, causeEvidencePanel);
 		GUIHelper.addComponent(propertiesPanel, causePanel);
@@ -289,7 +279,7 @@ public class EventRecordDialog extends BaseRecordDialog{
 	protected boolean validData(){
 		if(!typeCombo.isValued()){
 			GUIHelper.showValidationErrorAndFocus(this,
-				"Type is required.",
+				I18N.tf("validation.required", I18N.t("dialog.event.type")),
 				tabbedPane, propertiesPanel, typeCombo);
 
 			return false;
@@ -297,7 +287,7 @@ public class EventRecordDialog extends BaseRecordDialog{
 
 		if(descriptionArea.isEmpty()){
 			GUIHelper.showValidationErrorAndFocus(this,
-				"Description is required.",
+				I18N.tf("validation.required", I18N.t("dialog.event.description")),
 				tabbedPane, propertiesPanel, descriptionArea);
 
 			return false;

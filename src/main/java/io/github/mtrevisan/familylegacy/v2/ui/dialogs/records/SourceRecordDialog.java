@@ -42,7 +42,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchActivityHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
-import org.apache.commons.lang3.StringUtils;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 
 import javax.swing.JPanel;
 import java.awt.Window;
@@ -99,27 +99,22 @@ public class SourceRecordDialog extends BaseRecordDialog{
 	private SourceRecordDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, SourceHandler.getInstance());
 
-		titlePanel = EntityListPanel.createForStructure(SourceHandler.TAG_TITLE, this, "Title*", model,
+		titlePanel = EntityListPanel.createForStructure(SourceHandler.TAG_TITLE, this, I18N.t("dialog.source.title") + "*", model,
 			NameHandler.class);
 		authorField = new BoundTextField(SourceHandler.TAG_AUTHOR);
 		publisherField = new BoundTextField(SourceHandler.TAG_PUBLISHER);
-		dateField = DateField.createWithWrapperTag(SourceHandler.TAG_DATE, this, "Valid Date", model);
+		dateField = DateField.createWithWrapperTag(SourceHandler.TAG_DATE, this, I18N.t("dialog.source.valid.date"), model);
 		placeField = EntityField.createForStructureWithReference(PlaceHandler.TYPE, this, model,
 			PlaceCitationHandler.class);
-		mediaTypeCombo = new BoundComboBox<>(SourceHandler.TAG_MEDIA_TYPE, new String[]{
-			StringUtils.EMPTY,
-			"audio", "book", "card", "electronic", "fiche", "film",
-			"magazine", "manuscript", "map", "newspaper", "photo",
-			"tombstone", "video"
-		});
+		mediaTypeCombo = new BoundComboBox<>(SourceHandler.TAG_MEDIA_TYPE, SourceHandler.MEDIA_TYPES);
 		mediaTypeCombo.setEditable(true);
 
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.REPOSITORY, SourceHandler.TAG_REPOSITORY, "Repositories with Citations")
-			.withComponent(PanelKey.DOCUMENT, SourceHandler.TAG_DOCUMENT, "Documents")
-			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, "Conclusions")
-			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, "Research Questions")
-			.withComponent(PanelKey.RESEARCH_ACTIVITY_ON_SOURCE, ResearchActivityHandler.TYPE, "Research Activities")
+			.withComponent(PanelKey.REPOSITORY, SourceHandler.TAG_REPOSITORY, I18N.t("dialog.component.repositories.with.citations"))
+			.withComponent(PanelKey.DOCUMENT, SourceHandler.TAG_DOCUMENT, I18N.t("dialog.component.documents"))
+			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, I18N.t("dialog.component.conclusions"))
+			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, I18N.t("dialog.component.research.questions"))
+			.withComponent(PanelKey.RESEARCH_ACTIVITY_ON_SOURCE, ResearchActivityHandler.TYPE, I18N.t("dialog.component.research.activities"))
 			.withComponent(PanelKey.NOTE, SourceHandler.TAG_NOTE, null)
 			.withComponent(PanelKey.PRIVACY, SourceHandler.TAG_PRIVACY, null)
 			.withComponent(PanelKey.AUDIT, SourceHandler.TAG_AUDIT, null)
@@ -141,19 +136,19 @@ public class SourceRecordDialog extends BaseRecordDialog{
 		GUIHelper.addComponent(panel, titlePanel);
 
 		// author
-		GUIHelper.addLabeledComponent(panel, "Author:", authorField);
+		GUIHelper.addLabeledComponent(panel, I18N.t("dialog.source.author") + ":", authorField);
 
 		// publisher
-		GUIHelper.addLabeledComponent(panel, "Publisher:", publisherField);
+		GUIHelper.addLabeledComponent(panel, I18N.t("dialog.source.publisher") + ":", publisherField);
 
 		// date
-		GUIHelper.addLabeledComponent(panel, "Date:", dateField);
+		GUIHelper.addLabeledComponent(panel, I18N.t("dialog.source.date") + ":", dateField);
 
 		// place
-		GUIHelper.addLabeledComponent(panel, "Place:", placeField);
+		GUIHelper.addLabeledComponent(panel, I18N.t("dialog.place") + ":", placeField);
 
 		// media type
-		GUIHelper.addLabeledComponent(panel, "Media Type:", mediaTypeCombo);
+		GUIHelper.addLabeledComponent(panel, I18N.t("dialog.source.media.type") + ":", mediaTypeCombo);
 
 		// repository
 		final JPanel repositoryCitationPanel = components.getPanel(PanelKey.REPOSITORY);

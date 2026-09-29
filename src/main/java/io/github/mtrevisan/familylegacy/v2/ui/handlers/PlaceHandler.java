@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.PlaceRecordDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Window;
@@ -53,6 +54,13 @@ public class PlaceHandler extends AbstractRecordTypeHandler<PlaceRecordDialog>{
 	private static final String DOT = ".";
 	private static final String TAG_NAME_VALUE = TAG_NAME + DOT + NameHandler.TAG_VALUE;
 
+	public static final String[] TYPES = new String[]{
+		StringUtils.EMPTY,
+		"address", "building", "street", "hamlet", "village", "town", "municipality", "city", "metropolitan_area",
+		"county", "province", "department", "district", "region", "macro_region", "country", "empire", "parish",
+		"diocese", "cemetery", "archive", "unknown"
+	};
+
 
 	private static final class SingletonHelper{
 		private static final PlaceHandler INSTANCE = new PlaceHandler();
@@ -66,7 +74,7 @@ public class PlaceHandler extends AbstractRecordTypeHandler<PlaceRecordDialog>{
 
 	@Override
 	public String getLabel(){
-		return "Place";
+		return I18N.t("confirmation.exist.record.place");
 	}
 
 	@Override

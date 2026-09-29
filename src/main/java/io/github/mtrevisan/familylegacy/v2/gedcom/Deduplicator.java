@@ -68,11 +68,11 @@ public final class Deduplicator{
 
 				List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
 				for(final FLEFRecord relationship : relationships){
-					if(!"adoptive_child".equalsIgnoreCase(FLEFRecordHelper.getChildValue(relationship, "type")))
+					if(!"adoptive_child".equalsIgnoreCase(FLEFRecordHelper.getChildValue(relationship, RelationshipHandler.TAG_TYPE)))
 						continue;
-					if(!subjectId.equalsIgnoreCase(relationship.extractReferencedId("subject", IndividualHandler.TYPE)))
+					if(!subjectId.equalsIgnoreCase(relationship.extractReferencedId(RelationshipHandler.TAG_SUBJECT, IndividualHandler.TYPE)))
 						continue;
-					if(!objectId.equalsIgnoreCase(relationship.extractReferencedId("object", IndividualHandler.TYPE)))
+					if(!objectId.equalsIgnoreCase(relationship.extractReferencedId(RelationshipHandler.TAG_OBJECT, IndividualHandler.TYPE)))
 						continue;
 
 					//relationship duplicate found

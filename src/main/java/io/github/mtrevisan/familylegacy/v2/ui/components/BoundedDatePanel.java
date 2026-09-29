@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.BorderFactory;
@@ -70,12 +71,12 @@ public class BoundedDatePanel extends JPanel{
 		setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
 
 		final JPanel beforePanel = new JPanel(new MigLayout("fillx", "[right]rel[grow]"));
-		beforePanel.setBorder(new TitledBorder("Not Before"));
+		beforePanel.setBorder(new TitledBorder(I18N.t("dialog.date.not.before")));
 		beforePanel.add(notBeforePanel, "growx");
 		add(beforePanel, "growx");
 
 		final JPanel afterPanel = new JPanel(new MigLayout("fillx", "[right]rel[grow]"));
-		afterPanel.setBorder(new TitledBorder("Not After"));
+		afterPanel.setBorder(new TitledBorder(I18N.t("dialog.date.not.after")));
 		afterPanel.add(notAfterPanel, "growx");
 		add(afterPanel, "growx");
 	}
@@ -123,8 +124,8 @@ public class BoundedDatePanel extends JPanel{
 	public boolean validateData(){
 		if(!hasData()){
 			JOptionPane.showMessageDialog(this,
-				"At least one of Not Before or Not After is required for BOUNDED date.",
-				"Validation Error", JOptionPane.ERROR_MESSAGE);
+				I18N.tf("validation.at.least.one.of", I18N.t("dialog.date.not.before"), I18N.t("dialog.date.not.after")),
+				I18N.t("validation.title"), JOptionPane.ERROR_MESSAGE);
 
 			return false;
 		}

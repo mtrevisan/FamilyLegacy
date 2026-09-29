@@ -33,6 +33,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ContactHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ContactNameHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 
 import javax.swing.JPanel;
 import java.awt.Window;
@@ -76,7 +77,7 @@ public class ContactNameStructureDialog extends BaseRecordDialog{
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]");
 
 		valueField = new BoundTextField(ContactHandler.TAG_NAME_VALUE);
-		variantPanel = new TextValueVariantListPanel(ContactHandler.TAG_NAME_VARIANT, this, "Variant", model);
+		variantPanel = new TextValueVariantListPanel(ContactHandler.TAG_NAME_VARIANT, this, I18N.t("dialog.name.variant"), model);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
@@ -92,7 +93,7 @@ public class ContactNameStructureDialog extends BaseRecordDialog{
 	@Override
 	protected JPanel createPropertiesPanel(){
 		// value
-		GUIHelper.addLabeledComponent(propertiesPanel, "Name Value*:", valueField);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.name.name") + "*:", valueField);
 
 		// variant
 		GUIHelper.addComponent(propertiesPanel, variantPanel);
@@ -112,7 +113,7 @@ public class ContactNameStructureDialog extends BaseRecordDialog{
 	protected boolean validData(){
 		if(valueField.isEmpty()){
 			GUIHelper.showValidationErrorAndFocus(this,
-				"Name value is required.",
+				I18N.tf("validation.required", I18N.t("dialog.name.name")),
 				tabbedPane, propertiesPanel, valueField);
 
 			return false;

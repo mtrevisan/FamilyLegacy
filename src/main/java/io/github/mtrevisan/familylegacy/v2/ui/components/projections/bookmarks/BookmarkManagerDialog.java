@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.components.projections.bookmarks;
 
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.DefaultListModel;
@@ -92,8 +93,8 @@ public final class BookmarkManagerDialog extends JDialog{
 
 		final JPanel buttons = new JPanel(new MigLayout("ins 6,gapx 6", "[]8[]8[grow,fill][]8[]", "[]"));
 		final JButton rename = new JButton("Rename…");
-		final JButton delete = new JButton("Delete");
-		final JButton close = new JButton("Close");
+		final JButton delete = new JButton(I18N.t("button.delete"));
+		final JButton close = new JButton(I18N.t("button.close"));
 
 		rename.addActionListener(e -> onRename());
 		delete.addActionListener(e -> onDelete());

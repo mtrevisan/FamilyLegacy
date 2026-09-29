@@ -42,7 +42,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.NameHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
-import org.apache.commons.lang3.StringUtils;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 
 import javax.swing.JPanel;
 import java.awt.Window;
@@ -101,24 +101,20 @@ public class GroupRecordDialog extends BaseRecordDialog{
 		super(parent, model, record, GroupHandler.getInstance());
 
 		preferredImagePanel = new PreferredImagePanel(GroupHandler.TAG_PREFERRED_IMAGE, this);
-		namePanel = EntityListPanel.createForStructure(GroupHandler.TAG_NAME, this, "Names", model, NameHandler.class);
-		typeCombo = new BoundComboBox<>(GroupHandler.TAG_TYPE, new String[]{
-			StringUtils.EMPTY,
-			"family", "household", "neighbourhood", "fraternity", "club", "literary_society",
-			"association", "organisation", "tribe"
-		});
+		namePanel = EntityListPanel.createForStructure(GroupHandler.TAG_NAME, this, I18N.t("dialog.group.names"), model, NameHandler.class);
+		typeCombo = new BoundComboBox<>(GroupHandler.TAG_TYPE, GroupHandler.TYPES);
 		typeCombo.setEditable(true);
 
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.GROUP_ATTRIBUTE, GroupAttributeHandler.TYPE, "Group Attributes")
-			.withComponent(PanelKey.RELATIONSHIP_ON_TARGET, RelationshipHandler.TYPE, "Relationships / Group Memberships")
-			.withComponent(PanelKey.RELATIONSHIP_ON_SUBJECT, RelationshipHandler.TYPE, "Inverse Relationships")
-			.withComponent(PanelKey.EVENT_PARTICIPATION_ON_PARTICIPANT, EventParticipationHandler.TYPE, "Participations")
-			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, ContextImpactHandler.TYPE, "Context Impacts")
-			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, "Conclusions")
-			.withComponent(PanelKey.IDENTITY_HYPOTHESIS_ON_IDENTITY, IdentityHypothesisHandler.TYPE, "Identity Hypotheses")
-			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, "Research Questions")
-			.withComponent(PanelKey.SOURCE, GroupHandler.TAG_SOURCE, "Sources with Citations")
+			.withComponent(PanelKey.GROUP_ATTRIBUTE, GroupAttributeHandler.TYPE, I18N.t("dialog.component.group.attributes"))
+			.withComponent(PanelKey.RELATIONSHIP_ON_OBJECT, RelationshipHandler.TYPE, I18N.t("dialog.component.relationship.on.target"))
+			.withComponent(PanelKey.RELATIONSHIP_ON_SUBJECT, RelationshipHandler.TYPE, I18N.t("dialog.component.relationship.on.subject"))
+			.withComponent(PanelKey.EVENT_PARTICIPATION_ON_PARTICIPANT, EventParticipationHandler.TYPE, I18N.t("dialog.component.event.participations"))
+			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, ContextImpactHandler.TYPE, I18N.t("dialog.component.context.impact"))
+			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, I18N.t("dialog.component.conclusions"))
+			.withComponent(PanelKey.IDENTITY_HYPOTHESIS_ON_IDENTITY, IdentityHypothesisHandler.TYPE, I18N.t("dialog.component.identity.hypotheses"))
+			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, I18N.t("dialog.component.research.questions"))
+			.withComponent(PanelKey.SOURCE, GroupHandler.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
 			.withComponent(PanelKey.NOTE, GroupHandler.TAG_NOTE, null)
 			.withComponent(PanelKey.PRIVACY, GroupHandler.TAG_PRIVACY, null)
 			.withComponent(PanelKey.AUDIT, GroupHandler.TAG_AUDIT, null)
@@ -146,7 +142,7 @@ public class GroupRecordDialog extends BaseRecordDialog{
 
 		// type
 		final JPanel typePanel = GUIHelper.createLabelFieldPanel(0, "[]");
-		GUIHelper.addLabeledComponent(typePanel, "Type:", typeCombo);
+		GUIHelper.addLabeledComponent(typePanel, I18N.t("dialog.group.type") + ":", typeCombo);
 		GUIHelper.addComponent(panel, typePanel);
 
 		return panel;
@@ -169,7 +165,7 @@ public class GroupRecordDialog extends BaseRecordDialog{
 		final JPanel relationshipAsSubjectPanel = components.getPanel(PanelKey.RELATIONSHIP_ON_SUBJECT);
 		GUIHelper.addComponent(panel, relationshipAsSubjectPanel);
 
-		final JPanel relationshipAsTargetPanel = components.getPanel(PanelKey.RELATIONSHIP_ON_TARGET);
+		final JPanel relationshipAsTargetPanel = components.getPanel(PanelKey.RELATIONSHIP_ON_OBJECT);
 		GUIHelper.addComponent(panel, relationshipAsTargetPanel);
 
 		return panel;

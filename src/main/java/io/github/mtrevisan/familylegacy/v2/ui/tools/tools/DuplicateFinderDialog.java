@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.tools.tools;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.RecordDiffDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolDialogs;
 import org.apache.commons.lang3.StringUtils;
@@ -205,7 +206,7 @@ public final class DuplicateFinderDialog extends JDialog{
 
 		footer.add(statusLabel);
 
-		final JButton close = new JButton("Close");
+		final JButton close = new JButton(I18N.t("button.close"));
 		close.addActionListener(e -> dispose());
 		footer.add(close);
 

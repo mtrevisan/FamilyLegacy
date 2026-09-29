@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.tools.groups;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolDialogs;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.places.PlaceHelper;
 import org.apache.commons.lang3.StringUtils;
@@ -130,12 +131,12 @@ public final class MultiIndividualPickerDialog extends JDialog{
 
 		final JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 		buttons.setBorder(BorderFactory.createEmptyBorder(0, 6, 6, 6));
-		final JButton ok = new JButton("OK");
+		final JButton ok = new JButton(I18N.t("button.ok"));
 		ok.addActionListener(e -> {
 			accepted = true;
 			dispose();
 		});
-		final JButton cancel = new JButton("Cancel");
+		final JButton cancel = new JButton(I18N.t("button.cancel"));
 		cancel.addActionListener(e -> dispose());
 		buttons.add(ok);
 		buttons.add(cancel);

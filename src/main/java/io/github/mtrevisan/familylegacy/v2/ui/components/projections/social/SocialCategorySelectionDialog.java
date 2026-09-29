@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.components.projections.social;
 
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -175,10 +176,10 @@ public final class SocialCategorySelectionDialog extends JDialog{
 		final JButton selectNoneBtn = new JButton("None");
 		selectNoneBtn.addActionListener(e -> setAll(false));
 
-		final JButton okBtn = new JButton("OK");
+		final JButton okBtn = new JButton(I18N.t("button.ok"));
 		okBtn.addActionListener(e -> onConfirm());
 
-		final JButton cancelBtn = new JButton("Cancel");
+		final JButton cancelBtn = new JButton(I18N.t("button.cancel"));
 		cancelBtn.addActionListener(e -> onCancel());
 
 		panel.add(selectAllBtn);

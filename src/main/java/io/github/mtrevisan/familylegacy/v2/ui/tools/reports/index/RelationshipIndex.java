@@ -31,7 +31,7 @@ public final class RelationshipIndex{
 			if(!filter.test(relationship))
 				continue;
 
-			final String type = FLEFRecordHelper.getChildValue(relationship, "type");
+			final String type = FLEFRecordHelper.getChildValue(relationship, RelationshipHandler.TAG_TYPE);
 			if(type == null)
 				continue;
 			final String t = type.toLowerCase(Locale.ROOT);

@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.EntityField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.TreeService;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -83,7 +84,7 @@ public class KinshipDialog extends JDialog{
 	private final EntityField fieldB;
 
 	private final JButton swapButton = new JButton("Swap");
-	private final JButton closeButton = new JButton("Close");
+	private final JButton closeButton = new JButton(I18N.t("button.close"));
 	private final JTextArea resultArea = new JTextArea();
 
 

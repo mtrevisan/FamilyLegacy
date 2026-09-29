@@ -34,6 +34,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.projections.chronomap.C
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.chronomap.ChronomapTimeline;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.chronomap.PlaceCoordinateResolver;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -250,7 +251,7 @@ public final class AgoraPanel extends JPanel{
 
 		header.add(new JLabel("Filter:"), "right");
 		header.add(searchField, "growx");
-		final JButton clear = new JButton("Clear");
+		final JButton clear = new JButton(I18N.t("button.clear"));
 		clear.addActionListener(e -> searchField.setText(StringUtils.EMPTY));
 		header.add(clear);
 

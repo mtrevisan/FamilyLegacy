@@ -35,6 +35,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
 import org.apache.commons.lang3.ArrayUtils;
 
 import javax.swing.SwingUtilities;
@@ -53,10 +54,6 @@ import java.util.stream.Collectors;
  * for the ego network component.
  */
 public class EgoNetworkActionHandler{
-
-	private static final String[] INDIVIDUAL_TO_INDIVIDUAL_CHILD_TYPES = new String[]{
-		"biological_child", "adoptive_child", "foster_child", "guarded_child", "step_child"
-	};
 
 	private final Component parentComponent;
 	private final FLEFModel model;
@@ -205,7 +202,7 @@ public class EgoNetworkActionHandler{
 	}
 
 	private static boolean isChildType(final String type){
-		return ArrayUtils.contains(INDIVIDUAL_TO_INDIVIDUAL_CHILD_TYPES, type.toLowerCase(Locale.ROOT));
+		return ArrayUtils.contains(RelationshipHandler.INDIVIDUAL_TO_INDIVIDUAL_CHILD_TYPES, type.toLowerCase(Locale.ROOT));
 	}
 
 	private static RecordTypeHandler<?> resolveHandler(final Class<? extends RecordTypeHandler<?>> handlerClass){

@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BindingsHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.structures.DateStructureDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -115,10 +116,10 @@ public class DateField extends JPanel{
 			editAction, null,
 			null, null,
 			builder -> {
-				builder.item("Set…", newAction);
+				builder.item(I18N.t("popupmenu.set"), newAction);
 				builder.separator();
-				builder.selectionSensitiveItem("Edit…", editAction);
-				builder.selectionSensitiveItem("Clear", clearAction);
+				builder.selectionSensitiveItem(I18N.t("popupmenu.edit"), editAction);
+				builder.selectionSensitiveItem(I18N.t("popupmenu.clear"), clearAction);
 			}
 		);
 

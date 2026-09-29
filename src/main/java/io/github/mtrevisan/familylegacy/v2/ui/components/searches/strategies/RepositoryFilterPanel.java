@@ -26,6 +26,8 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.searches.strategies;
 
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.RecordFilterPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchCriteria;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.RepositoryHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.BorderFactory;
@@ -44,14 +46,9 @@ import java.util.function.Consumer;
  */
 public class RepositoryFilterPanel extends JPanel implements RecordFilterPanel{
 
-	static final String FILTER_KEY_NAME = "name";
-	static final String FILTER_KEY_CUSTODIAN = "custodian";
-	static final String FILTER_KEY_LOCATION = "location";
-
-
 	private final JTextField nameField = new JTextField(20);
 	private final JTextField custodianField = new JTextField(20);
-	private final JTextField locationField = new JTextField(20);
+	private final JTextField placeField = new JTextField(20);
 
 	private final Consumer<SearchCriteria> onChanged;
 
@@ -67,14 +64,14 @@ public class RepositoryFilterPanel extends JPanel implements RecordFilterPanel{
 
 	private void initComponents(){
 		setLayout(new MigLayout("wrap 2,gap 5", "[][grow,fill]", "[]"));
-		setBorder(BorderFactory.createTitledBorder("Repository Filters"));
+		setBorder(BorderFactory.createTitledBorder(I18N.tf("dialog.search.filter.title", I18N.t("dialog.component.repositories"))));
 
-		add(new JLabel("Name:"));
+		add(new JLabel(I18N.t("dialog.repository.names") + ":"));
 		add(nameField, "growx");
-		add(new JLabel("Custodian:"));
+		add(new JLabel(I18N.t("dialog.repository.custodian") + ":"));
 		add(custodianField, "growx");
-		add(new JLabel("Location:"));
-		add(locationField, "growx");
+		add(new JLabel(I18N.t("dialog.repository.place") + ":"));
+		add(placeField, "growx");
 	}
 
 	private void setupListeners(){
@@ -99,7 +96,7 @@ public class RepositoryFilterPanel extends JPanel implements RecordFilterPanel{
 			.addDocumentListener(docListener);
 		custodianField.getDocument()
 			.addDocumentListener(docListener);
-		locationField.getDocument()
+		placeField.getDocument()
 			.addDocumentListener(docListener);
 	}
 
@@ -111,9 +108,9 @@ public class RepositoryFilterPanel extends JPanel implements RecordFilterPanel{
 	@Override
 	public Map<String, String> getFilters(){
 		final Map<String, String> filters = new HashMap<>();
-		filters.put(FILTER_KEY_NAME, getRepositoryName());
-		filters.put(FILTER_KEY_CUSTODIAN, getCustodian());
-		filters.put(FILTER_KEY_LOCATION, getRepositoryLocation());
+		filters.put(RepositoryHandler.TAG_NAME, getRepositoryName());
+		filters.put(RepositoryHandler.TAG_CUSTODIAN, getCustodian());
+		filters.put(RepositoryHandler.TAG_PLACE, getRepositoryPlace());
 		return filters;
 	}
 
@@ -127,8 +124,8 @@ public class RepositoryFilterPanel extends JPanel implements RecordFilterPanel{
 			.trim();
 	}
 
-	public String getRepositoryLocation(){
-		return locationField.getText()
+	public String getRepositoryPlace(){
+		return placeField.getText()
 			.trim();
 	}
 

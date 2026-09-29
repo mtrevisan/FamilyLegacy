@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.tools.reports;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.components.PrivacyPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.services.kinship.KinshipCalculator;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
@@ -51,9 +52,6 @@ import java.util.function.Function;
 final class ReportContext{
 
 	private static final String TAG_PRIVACY_LEVEL = "privacy.level";
-	private static final String PRIVACY_PUBLIC = "public";
-	private static final String PRIVACY_RESTRICTED = "restricted";
-	private static final String PRIVACY_CONFIDENTIAL = "confidential";
 
 	private static final String TAG_TITLE = "title";
 	private static final String TAG_RULE_TYPE = "rule_type";
@@ -239,10 +237,9 @@ final class ReportContext{
 			return true;
 
 		final String level = readPrivacyLevel(rec);
-		if(PRIVACY_CONFIDENTIAL.equals(level))
+		if(PrivacyPanel.ENUM_PRIVACY_CONFIDENTIAL.equals(level))
 			return false;
-		if(policy == PrivacyPolicy.HIDE_RESTRICTED_AND_CONFIDENTIAL
-			&& PRIVACY_RESTRICTED.equals(level))
+		if(policy == PrivacyPolicy.HIDE_RESTRICTED_AND_CONFIDENTIAL && PrivacyPanel.ENUM_PRIVACY_RESTRICTED.equals(level))
 			return false;
 
 		// Even when the level allows display, an expired restriction means
@@ -271,16 +268,16 @@ final class ReportContext{
 	String readPrivacyLevel(final FLEFRecord rec){
 		final String level = FLEFRecordHelper.getChildValue(rec, TAG_PRIVACY_LEVEL);
 		if(level == null || level.isBlank())
-			return PRIVACY_PUBLIC;
+			return PrivacyPanel.ENUM_PRIVACY_PUBLIC;
 		final String norm = level.trim().toLowerCase(Locale.ROOT);
 		return switch(norm){
-			case PRIVACY_RESTRICTED, PRIVACY_CONFIDENTIAL -> norm;
-			default -> PRIVACY_PUBLIC;
+			case PrivacyPanel.ENUM_PRIVACY_RESTRICTED, PrivacyPanel.ENUM_PRIVACY_CONFIDENTIAL -> norm;
+			default -> PrivacyPanel.ENUM_PRIVACY_PUBLIC;
 		};
 	}
 
 	boolean hasPrivacyRestriction(final FLEFRecord rec){
-		return !PRIVACY_PUBLIC.equals(readPrivacyLevel(rec));
+		return !PrivacyPanel.ENUM_PRIVACY_PUBLIC.equals(readPrivacyLevel(rec));
 	}
 
 	FLEFRecord visible(final FLEFRecord rec){

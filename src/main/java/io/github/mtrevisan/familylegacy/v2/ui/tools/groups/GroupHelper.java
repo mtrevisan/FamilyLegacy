@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
 import org.apache.commons.lang3.StringUtils;
 
@@ -77,8 +78,7 @@ public final class GroupHelper{
 	public static final String REL_PART_OF = "part_of";
 
 
-	private GroupHelper(){
-	}
+	private GroupHelper(){}
 
 
 	public static List<FLEFRecord> listAllGroups(final FLEFModel model){
@@ -149,14 +149,14 @@ public final class GroupHelper{
 
 		List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
 		for(final FLEFRecord relationship : relationships){
-			final String type = FLEFRecordHelper.getChildValue(relationship, TAG_TYPE);
+			final String type = FLEFRecordHelper.getChildValue(relationship, RelationshipHandler.TAG_TYPE);
 			if(type == null)
 				continue;
 			final String t = type.toLowerCase(Locale.ROOT);
 
-			final String subject = relationship.extractReferencedId(TAG_SUBJECT, TYPE_INDIVIDUAL);
-			final String subjectGroup = relationship.extractReferencedId(TAG_SUBJECT, TYPE_GROUP);
-			final String objectGroup = relationship.extractReferencedId(TAG_OBJECT, TYPE_GROUP);
+			final String subject = relationship.extractReferencedId(RelationshipHandler.TAG_SUBJECT, IndividualHandler.TYPE);
+			final String subjectGroup = relationship.extractReferencedId(RelationshipHandler.TAG_SUBJECT, GroupHandler.TYPE);
+			final String objectGroup = relationship.extractReferencedId(RelationshipHandler.TAG_OBJECT, GroupHandler.TYPE);
 
 			if(REL_GROUP_MEMBER.equals(t)){
 				// subject = individual, target = group.
@@ -283,10 +283,10 @@ public final class GroupHelper{
 
 		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
 		for(final FLEFRecord relationship : relationships){
-			final String type = FLEFRecordHelper.getChildValue(relationship, TAG_TYPE);
+			final String type = FLEFRecordHelper.getChildValue(relationship, RelationshipHandler.TAG_TYPE);
 			if(!REL_GROUP_MEMBER.equalsIgnoreCase(type))
 				continue;
-			final String object = relationship.extractReferencedId(TAG_OBJECT, TYPE_GROUP);
+			final String object = relationship.extractReferencedId(RelationshipHandler.TAG_OBJECT, GroupHandler.TYPE);
 			if(groupId.equals(object))
 				result.add(relationship.getId());
 		}
@@ -305,8 +305,8 @@ public final class GroupHelper{
 		if(groupId == null)
 			return result;
 		for(final FLEFRecord relationship : model.getRecordsByType(RelationshipHandler.TYPE)){
-			final String subject = relationship.extractReferencedId(TAG_SUBJECT, TYPE_GROUP);
-			final String object = relationship.extractReferencedId(TAG_OBJECT, TYPE_GROUP);
+			final String subject = relationship.extractReferencedId(RelationshipHandler.TAG_SUBJECT, GroupHandler.TYPE);
+			final String object = relationship.extractReferencedId(RelationshipHandler.TAG_OBJECT, GroupHandler.TYPE);
 			if(groupId.equals(subject) || groupId.equals(object))
 				result.add(relationship.getId());
 		}

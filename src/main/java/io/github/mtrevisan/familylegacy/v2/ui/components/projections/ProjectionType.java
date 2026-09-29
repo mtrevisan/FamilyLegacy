@@ -25,6 +25,9 @@
 package io.github.mtrevisan.familylegacy.v2.ui.components.projections;
 
 
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
+
+
 /**
  * The three projection views hosted by the {@link ProjectionSwitcherPanel}.
  * <p>
@@ -36,13 +39,13 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.projections;
 public enum ProjectionType{
 
 	/** Ancestor tree. */
-	TREE("Tree"),
+	TREE(I18N.t("menu.view.ancestor.tree")),
 
 	/** Sugiyama pedigree graph. */
-	GRAPH("Sugiyama graph"),
+	GRAPH(I18N.t("menu.view.sugiyama.graph")),
 
 	/** Ego-centric network. */
-	EGO_NETWORK("Ego network");
+	EGO_NETWORK(I18N.t("menu.view.ego.network"));
 
 
 	private final String displayName;

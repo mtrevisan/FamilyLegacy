@@ -32,7 +32,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.EntityField;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.DocumentHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
@@ -49,7 +48,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchActivityHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
-import org.apache.commons.lang3.StringUtils;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
@@ -133,12 +132,8 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]5[]10[]");
 
 		// Initialize components
-		activityTypeCombo = new BoundComboBox<>(ResearchActivityHandler.TAG_ACTIVITY_TYPE, new String[]{
-			"search", "review", "analysis", "correspondence", "interview", "hypothesis"
-		});
-		statusCombo = new BoundComboBox<>(ResearchActivityHandler.TAG_STATUS, new String[]{
-			"planned", "in_progress", "completed", "abandoned"
-		});
+		activityTypeCombo = new BoundComboBox<>(ResearchActivityHandler.TAG_ACTIVITY_TYPE, ResearchActivityHandler.TYPES);
+		statusCombo = new BoundComboBox<>(ResearchActivityHandler.TAG_STATUS, ResearchActivityHandler.STATUSES);
 		actionArea = new BoundTextArea(ResearchActivityHandler.TAG_ACTION, 3, 30);
 
 		targetField = EntityField.createForRecordFromOneofReference(ResearchActivityHandler.TAG_TARGET, this, model)
@@ -147,32 +142,23 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 				GroupAttributeHandler.class, PlaceHandler.class, PlaceRelationshipHandler.class, SourceHandler.class,
 				DocumentHandler.class, IdentityHypothesisHandler.class, CulturalNormHandler.class, HistoricEventHandler.class)
 			.withSaveAsVoid();
-		searchScopeTypeCombo = new BoundComboBox<>(TAG_SEARCH_SCOPE_TYPE, new String[]{
-			"entire_source",
-			"index_only",
-			"partial_source",
-			"selected_entries"
-		});
+		searchScopeTypeCombo = new BoundComboBox<>(TAG_SEARCH_SCOPE_TYPE, ResearchActivityHandler.SEARCH_SCOPES);
 		searchScopeDetailArea = new BoundTextArea(TAG_SEARCH_SCOPE_DETAIL, 3, 30);
 
-		resultCombo = new BoundComboBox<>(ResearchActivityHandler.TAG_RESULT, new String[]{
-			StringUtils.EMPTY,
-			"positive", "negative", "inconclusive", "conflicting", "unavailable"
-		});
+		resultCombo = new BoundComboBox<>(ResearchActivityHandler.TAG_RESULT, ResearchActivityHandler.RESULTS);
 		observationArea = new BoundTextArea(ResearchActivityHandler.TAG_OBSERVATION, 3, 30);
-		conclusionArea = new BoundTextArea(ConclusionHandler.TYPE, 3, 30);
-		conclusionConfidenceCombo = new BoundComboBox<>(ResearchActivityHandler.TAG_CONCLUSION_CONFIDENCE, new String[]{
-			StringUtils.EMPTY,
-			"low", "medium", "high"});
+		conclusionArea = new BoundTextArea(ResearchActivityHandler.TAG_CONCLUSION, 3, 30);
+		conclusionConfidenceCombo = new BoundComboBox<>(ResearchActivityHandler.TAG_CONCLUSION_CONFIDENCE,
+			ResearchActivityHandler.CONFIDENCES);
 
 		parentActivityField = EntityField.createForRecordFromReference(ResearchActivityHandler.TAG_PARENT_ACTIVITY, this, model,
 			ResearchActivityHandler.class);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.RESEARCH_QUESTION, ResearchActivityHandler.TAG_QUESTION, "Questions")
-			.withComponent(PanelKey.TASK, ResearchActivityHandler.TAG_TASK, "Tasks")
-			.withComponent(PanelKey.SOURCE, ResearchActivityHandler.TAG_SOURCE, "Sources with Citations")
+			.withComponent(PanelKey.RESEARCH_QUESTION, ResearchActivityHandler.TAG_QUESTION, I18N.t("dialog.component.research.questions"))
+			.withComponent(PanelKey.TASK, ResearchActivityHandler.TAG_TASK, I18N.t("dialog.component.research.tasks"))
+			.withComponent(PanelKey.SOURCE, ResearchActivityHandler.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
 			.withComponent(PanelKey.PRIVACY, ResearchActivityHandler.TAG_PRIVACY, null)
 			.withComponent(PanelKey.AUDIT, ResearchActivityHandler.TAG_AUDIT, null)
 			.build();
@@ -202,13 +188,13 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 		GUIHelper.addComponent(propertiesPanel, notePanel);
 
 		// activity type
-		GUIHelper.addLabeledComponent(propertiesPanel, "Activity Type*:", activityTypeCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.research.activity.type") + "*:", activityTypeCombo);
 
 		// status
-		GUIHelper.addLabeledComponent(propertiesPanel, "Status*:", statusCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.research.activity.status") + "*:", statusCombo);
 
 		// action
-		GUIHelper.addLabeledComponent(propertiesPanel, "Action*:", actionArea);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.research.activity.action") + "*:", actionArea);
 
 		return propertiesPanel;
 	}
@@ -218,15 +204,15 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]10[]");
 
 		// target
-		GUIHelper.addLabeledComponent(panel, "Target:", targetField);
+		GUIHelper.addLabeledComponent(panel, I18N.t("dialog.research.activity.target") + ":", targetField);
 
 		// search scope:
 		final JPanel searchScopePanel = GUIHelper.createLabelFieldPanel(5, "[]10[]");
-		searchScopePanel.setBorder(BorderFactory.createTitledBorder("Search Scope"));
+		searchScopePanel.setBorder(BorderFactory.createTitledBorder(I18N.t("dialog.research.activity.search.scope")));
 		// type
-		GUIHelper.addLabeledComponent(searchScopePanel, "Type*:", searchScopeTypeCombo);
+		GUIHelper.addLabeledComponent(searchScopePanel, I18N.t("dialog.research.activity.search.scope.type") + "*:", searchScopeTypeCombo);
 		// detail
-		GUIHelper.addLabeledComponent(searchScopePanel, "Detail:", searchScopeDetailArea);
+		GUIHelper.addLabeledComponent(searchScopePanel, I18N.t("dialog.research.activity.search.scope.detail") + ":", searchScopeDetailArea);
 		GUIHelper.addComponent(panel, searchScopePanel);
 
 		return panel;
@@ -237,18 +223,18 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]");
 
 		// result
-		GUIHelper.addLabeledComponent(panel, "Result:", resultCombo);
+		GUIHelper.addLabeledComponent(panel, I18N.t("dialog.research.activity.result") + ":", resultCombo);
 
 		// observation
-		GUIHelper.addLabeledComponent(panel, "Observation:", observationArea);
+		GUIHelper.addLabeledComponent(panel, I18N.t("dialog.research.activity.observation") + ":", observationArea);
 
 		// conclusion panel:
 		final JPanel conclusionPanel = GUIHelper.createLabelFieldPanel(5, "[]10[]");
-		conclusionPanel.setBorder(BorderFactory.createTitledBorder("Conclusion"));
+		conclusionPanel.setBorder(BorderFactory.createTitledBorder(I18N.t("dialog.research.activity.conclusion")));
 		// conclusion
 		GUIHelper.addComponent(conclusionPanel, conclusionArea);
 		// confidence
-		GUIHelper.addLabeledComponent(conclusionPanel, "Confidence:", conclusionConfidenceCombo);
+		GUIHelper.addLabeledComponent(conclusionPanel, I18N.t("dialog.research.activity.confidence") + ":", conclusionConfidenceCombo);
 		GUIHelper.addComponent(panel, conclusionPanel);
 
 		return panel;
@@ -259,7 +245,7 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]10[]");
 
 		// parent
-		final JLabel parentActivityLabel = new JLabel("Parent Activity:");
+		final JLabel parentActivityLabel = new JLabel(I18N.t("dialog.research.activity.parent.activity") + ":");
 		parentActivityLabel.setLabelFor(parentActivityField);
 		panel.add(parentActivityLabel, "align label");
 		panel.add(parentActivityField, "growx,wrap");
@@ -312,7 +298,7 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 	protected boolean validData(){
 		if(!activityTypeCombo.isValued()){
 			GUIHelper.showValidationErrorAndFocus(this,
-				"Activity type is required.",
+				I18N.tf("validation.required", I18N.t("dialog.research.activity.type")),
 				tabbedPane, propertiesPanel, activityTypeCombo);
 
 			return false;
@@ -320,7 +306,7 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 
 		if(!statusCombo.isValued()){
 			GUIHelper.showValidationErrorAndFocus(this,
-				"Status is required.",
+				I18N.tf("validation.required", I18N.t("dialog.research.activity.status")),
 				tabbedPane, propertiesPanel, statusCombo);
 
 			return false;
@@ -329,7 +315,7 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 		// Action is required
 		if(actionArea.isEmpty()){
 			GUIHelper.showValidationErrorAndFocus(this,
-				"Action is required.",
+				I18N.tf("validation.required", I18N.t("dialog.research.activity.action")),
 				tabbedPane, propertiesPanel, actionArea);
 
 			return false;

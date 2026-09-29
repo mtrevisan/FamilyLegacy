@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchCriteria;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchMode;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchStrategy;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.NameHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import org.apache.commons.lang3.StringUtils;
@@ -47,12 +48,8 @@ public class SourceSearchStrategy implements SearchStrategy{
 
 	private static final String DOT = ".";
 
-	private static final String TAG_TITLE = "title";
-	private static final String TAG_VALUE = "value";
-	private static final String TAG_TITLE_VALUE = TAG_TITLE + DOT + TAG_VALUE;
-	private static final String TAG_AUTHOR = "author";
-	private static final String TAG_PUBLISHER = "publisher";
-	private static final String TAG_MEDIA_TYPE = "media_type";
+	private static final String TAG_TITLE_VALUE = SourceHandler.TAG_TITLE + DOT + NameHandler.TAG_VALUE;
+
 
 	private static final double FUZZY_THRESHOLD = 0.05;
 
@@ -70,10 +67,10 @@ public class SourceSearchStrategy implements SearchStrategy{
 
 	@Override
 	public Predicate<FLEFRecord> buildPredicate(final SearchCriteria criteria, final FLEFModel model){
-		title = criteria.getFilterFor(SourceFilterPanel.FILTER_KEY_TITLE);
-		author = criteria.getFilterFor(SourceFilterPanel.FILTER_KEY_AUTHOR);
-		publisher = criteria.getFilterFor(SourceFilterPanel.FILTER_KEY_PUBLISHER);
-		mediaType = criteria.getFilterFor(SourceFilterPanel.FILTER_KEY_MEDIA_TYPE);
+		title = criteria.getFilterFor(SourceHandler.TAG_TITLE);
+		author = criteria.getFilterFor(SourceHandler.TAG_AUTHOR);
+		publisher = criteria.getFilterFor(SourceHandler.TAG_PUBLISHER);
+		mediaType = criteria.getFilterFor(SourceHandler.TAG_MEDIA_TYPE);
 		place = criteria.getFilterFor(PlaceHandler.TYPE);
 		mode = criteria.mode();
 
@@ -95,21 +92,21 @@ public class SourceSearchStrategy implements SearchStrategy{
 
 			// Author filter
 			if(StringUtils.isNotEmpty(author)){
-				final String recordAuthor = FLEFRecordHelper.getChildValue(source, TAG_AUTHOR);
+				final String recordAuthor = FLEFRecordHelper.getChildValue(source, SourceHandler.TAG_AUTHOR);
 				if(!SearchHelper.matches(recordAuthor, author, mode))
 					return false;
 			}
 
 			// Publisher filter
 			if(StringUtils.isNotEmpty(publisher)){
-				final String recordPublisher = FLEFRecordHelper.getChildValue(source, TAG_PUBLISHER);
+				final String recordPublisher = FLEFRecordHelper.getChildValue(source, SourceHandler.TAG_PUBLISHER);
 				if(!SearchHelper.matches(recordPublisher, place, mode))
 					return false;
 			}
 
 			// Media Type filter
 			if(StringUtils.isNotEmpty(mediaType)){
-				final String recordMediaType = FLEFRecordHelper.getChildValue(source, TAG_MEDIA_TYPE);
+				final String recordMediaType = FLEFRecordHelper.getChildValue(source, SourceHandler.TAG_MEDIA_TYPE);
 				if(!mediaType.equalsIgnoreCase(recordMediaType))
 					return false;
 			}
@@ -126,8 +123,8 @@ public class SourceSearchStrategy implements SearchStrategy{
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
 		final String baseDisplayText = HANDLER.getDisplayText(record, model);
 
-		final String authorVal = FLEFRecordHelper.getChildValue(record, TAG_AUTHOR);
-		final String mediaTypeVal = FLEFRecordHelper.getChildValue(record, TAG_MEDIA_TYPE);
+		final String authorVal = FLEFRecordHelper.getChildValue(record, SourceHandler.TAG_AUTHOR);
+		final String mediaTypeVal = FLEFRecordHelper.getChildValue(record, SourceHandler.TAG_MEDIA_TYPE);
 
 		final StringJoiner details = new StringJoiner(", ", " (", ")");
 		details.setEmptyValue(StringUtils.EMPTY);

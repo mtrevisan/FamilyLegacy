@@ -32,6 +32,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchMode;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchStrategy;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.TextSearchHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.StringJoiner;
@@ -44,14 +45,11 @@ import java.util.function.Predicate;
  */
 public class ResearchQuestionSearchStrategy implements SearchStrategy{
 
-	private static final String TAG_TITLE = "title";
-	private static final String TAG_QUESTION = "question";
-	private static final String TAG_STATUS = "status";
-	private static final String TAG_CONFIDENCE = "conclusion_confidence";
-
 	private static final double FUZZY_THRESHOLD = 0.05;
 
+
 	private static final ResearchQuestionHandler HANDLER = ResearchQuestionHandler.getInstance();
+
 
 	private String title;
 	private String question;
@@ -62,37 +60,37 @@ public class ResearchQuestionSearchStrategy implements SearchStrategy{
 
 	@Override
 	public Predicate<FLEFRecord> buildPredicate(final SearchCriteria criteria, final FLEFModel model){
-		title = criteria.getFilterFor(ResearchQuestionFilterPanel.FILTER_KEY_TITLE);
-		question = criteria.getFilterFor(ResearchQuestionFilterPanel.FILTER_KEY_QUESTION);
-		status = criteria.getFilterFor(ResearchQuestionFilterPanel.FILTER_KEY_STATUS);
-		confidence = criteria.getFilterFor(ResearchQuestionFilterPanel.FILTER_KEY_CONFIDENCE);
+		title = criteria.getFilterFor(ResearchQuestionHandler.TAG_TITLE);
+		question = criteria.getFilterFor(ResearchQuestionHandler.TAG_QUESTION);
+		status = criteria.getFilterFor(ResearchQuestionHandler.TAG_STATUS);
+		confidence = criteria.getFilterFor(ResearchQuestionHandler.TAG_CONCLUSION_CONFIDENCE);
 		mode = criteria.mode();
 
 		return question -> {
 			// Title filter
 			if(StringUtils.isNotEmpty(title)){
-				final String recordTitle = FLEFRecordHelper.getChildValue(question, TAG_TITLE);
+				final String recordTitle = FLEFRecordHelper.getChildValue(question, ResearchQuestionHandler.TAG_TITLE);
 				if(!SearchHelper.matches(recordTitle, title, mode))
 					return false;
 			}
 
 			// Question text filter
 			if(StringUtils.isNotEmpty(this.question)){
-				final String questionText = FLEFRecordHelper.getChildValue(question, TAG_QUESTION);
+				final String questionText = FLEFRecordHelper.getChildValue(question, ResearchQuestionHandler.TAG_QUESTION);
 				if(!TextSearchHelper.matchesText(questionText, this.question, mode, FUZZY_THRESHOLD))
 					return false;
 			}
 
 			// Status filter
 			if(StringUtils.isNotEmpty(status)){
-				final String recordStatus = FLEFRecordHelper.getChildValue(question, TAG_STATUS);
+				final String recordStatus = FLEFRecordHelper.getChildValue(question, ResearchQuestionHandler.TAG_STATUS);
 				if(!status.equalsIgnoreCase(recordStatus))
 					return false;
 			}
 
 			// Conclusion confidence filter
 			if(StringUtils.isNotEmpty(confidence)){
-				final String recordConfidence = FLEFRecordHelper.getChildValue(question, TAG_CONFIDENCE);
+				final String recordConfidence = FLEFRecordHelper.getChildValue(question, ResearchQuestionHandler.TAG_CONCLUSION_CONFIDENCE);
 				if(!confidence.equalsIgnoreCase(recordConfidence))
 					return false;
 			}
@@ -105,16 +103,16 @@ public class ResearchQuestionSearchStrategy implements SearchStrategy{
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
 		final String baseDisplayText = HANDLER.getDisplayText(record, model);
 
-		final String status = FLEFRecordHelper.getChildValue(record, TAG_STATUS);
-		final String confidence = FLEFRecordHelper.getChildValue(record, TAG_CONFIDENCE);
+		final String status = FLEFRecordHelper.getChildValue(record, ResearchQuestionHandler.TAG_STATUS);
+		final String confidence = FLEFRecordHelper.getChildValue(record, ResearchQuestionHandler.TAG_CONCLUSION_CONFIDENCE);
 
 		final StringJoiner details = new StringJoiner(", ", " (", ")");
 		details.setEmptyValue(StringUtils.EMPTY);
 
 		if(StringUtils.isNotEmpty(status))
-			details.add("Status: " + status);
+			details.add(I18N.t("dialog.research.question.status") + ": " + status);
 		if(StringUtils.isNotEmpty(confidence))
-			details.add("Confidence: " + confidence);
+			details.add(I18N.t("dialog.research.question.confidence") + ": " + confidence);
 
 		return baseDisplayText + details;
 	}

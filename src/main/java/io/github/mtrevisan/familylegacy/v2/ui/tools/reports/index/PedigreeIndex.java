@@ -32,7 +32,7 @@ public final class PedigreeIndex{
 			if(!filter.test(relationship))
 				continue;
 
-			final String type = FLEFRecordHelper.getChildValue(relationship, "type");
+			final String type = FLEFRecordHelper.getChildValue(relationship, RelationshipHandler.TAG_TYPE);
 			final String subjectId = FLEFRecordHelper.getChildValue(relationship, "subject.individual");
 			final String objectId = FLEFRecordHelper.getChildValue(relationship, "object.individual");
 

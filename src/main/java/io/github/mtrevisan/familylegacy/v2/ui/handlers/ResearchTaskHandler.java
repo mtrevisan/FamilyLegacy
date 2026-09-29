@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.ResearchTaskRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Window;
@@ -56,10 +57,22 @@ public class ResearchTaskHandler extends AbstractRecordTypeHandler<ResearchTaskR
 	public static final String ENUM_STATUS_IN_PROGRESS = "in_progress";
 	public static final String ENUM_STATUS_COMPLETED = "completed";
 	public static final String ENUM_STATUS_ABANDONED = "abandoned";
+	public static final String[] STATUSES = {
+		ENUM_STATUS_OPEN,
+		ENUM_STATUS_IN_PROGRESS,
+		ENUM_STATUS_COMPLETED,
+		ENUM_STATUS_ABANDONED
+	};
 
 	public static final String ENUM_PRIORITY_LOW = "low";
 	public static final String ENUM_PRIORITY_NORMAL = "normal";
 	public static final String ENUM_PRIORITY_HIGH = "high";
+	public static final String[] PRIORITIES = {
+		StringUtils.EMPTY,
+		ENUM_PRIORITY_LOW,
+		ENUM_PRIORITY_NORMAL,
+		ENUM_PRIORITY_HIGH
+	};
 
 
 	private static final class SingletonHelper{
@@ -84,7 +97,7 @@ public class ResearchTaskHandler extends AbstractRecordTypeHandler<ResearchTaskR
 
 	@Override
 	public String getLabel(){
-		return "Research Task";
+		return I18N.t("confirmation.exist.record.research.task");
 	}
 
 	@Override

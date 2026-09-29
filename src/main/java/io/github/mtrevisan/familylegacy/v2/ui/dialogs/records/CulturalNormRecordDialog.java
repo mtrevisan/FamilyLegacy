@@ -41,8 +41,8 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceCitationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import net.miginfocom.swing.MigLayout;
-import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
 import javax.swing.JPanel;
@@ -115,40 +115,21 @@ public class CulturalNormRecordDialog extends BaseRecordDialog{
 		super(parent, model, record, CulturalNormHandler.getInstance());
 
 		titleField = new BoundTextField(CulturalNormHandler.TAG_TITLE);
-		ruleTypeCombo = new BoundComboBox<>(CulturalNormHandler.TAG_RULE_TYPE, new String[]{
-			StringUtils.EMPTY,
-			// Lifecycle and age-related customs:
-			"age_of_majority", "marriage_minimum_age", "baptism_age", "confirmation_age", "military_service_age",
-			"retirement_age",
-			// Naming practices:
-			"naming_convention", "surname_transmission", "patronymic_system", "matronymic_system", "title_usage",
-			// Family and household customs:
-			"inheritance_rule", "succession_rule", "dowry_practice", "guardianship_rule", "adoption_practice",
-			// Marriage customs:
-			"marriage_practice", "marriage_prohibited_degree", "widowhood_rule",
-			// Residence and social organization:
-			"residence_pattern", "household_structure", "social_classification",
-			// Religious and ecclesiastical customs:
-			"religious_practice", "burial_practice",
-			// Legal and citizenship rules:
-			"citizenship_rule", "legitimacy_rule",
-			// Genealogical inference rules:
-			"age_difference_convention", "generational_interval"
-		});
+		ruleTypeCombo = new BoundComboBox<>(CulturalNormHandler.TAG_RULE_TYPE, CulturalNormHandler.RULE_TYPES);
 		ruleTypeCombo.setEditable(true);
 		placeField = EntityField.createForStructureWithReference(PlaceHandler.TYPE, this, model, PlaceCitationHandler.class);
-		placeEvidencePanel = new EvidenceQualifiersPanel(TAG_PLACE_EVIDENCE, "Evidence");
-		validFromField = DateField.createWithWrapperTag(CulturalNormHandler.TAG_VALID_FROM, this, "From Date", model);
-		validToField = DateField.createWithWrapperTag(CulturalNormHandler.TAG_VALID_TO, this, "To Date", model);
+		placeEvidencePanel = new EvidenceQualifiersPanel(TAG_PLACE_EVIDENCE, I18N.t("dialog.component.evidence"));
+		validFromField = DateField.createWithWrapperTag(CulturalNormHandler.TAG_VALID_FROM, this, I18N.t("dialog.date.valid.from"), model);
+		validToField = DateField.createWithWrapperTag(CulturalNormHandler.TAG_VALID_TO, this, I18N.t("dialog.date.valid.to"), model);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.CONTEXT_IMPACT_ON_CONTEXT, ContextImpactHandler.TYPE, "Context Impacts")
-			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, "Conclusions")
-			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, "Research Questions")
-			.withComponent(PanelKey.SOURCE, CulturalNormHandler.TAG_SOURCE, "Sources with Citations")
+			.withComponent(PanelKey.CONTEXT_IMPACT_ON_CONTEXT, ContextImpactHandler.TYPE, I18N.t("dialog.component.context.impact"))
+			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, I18N.t("dialog.component.conclusions"))
+			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, I18N.t("dialog.component.research.questions"))
+			.withComponent(PanelKey.SOURCE, CulturalNormHandler.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
 			.withComponent(PanelKey.NOTE, CulturalNormHandler.TAG_NOTE, null)
-			.withComponent(PanelKey.EVIDENCE, CulturalNormHandler.TAG_EVIDENCE, "Evidence")
+			.withComponent(PanelKey.EVIDENCE, CulturalNormHandler.TAG_EVIDENCE, I18N.t("dialog.component.evidence"))
 			.withComponent(PanelKey.AUDIT, CulturalNormHandler.TAG_AUDIT, null)
 			.build();
 
@@ -168,26 +149,26 @@ public class CulturalNormRecordDialog extends BaseRecordDialog{
 		final JPanel propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]5[]10[]10[]10[]");
 
 		// title
-		GUIHelper.addLabeledComponent(propertiesPanel, "Title:", titleField);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.cultural.norm.title") + ":", titleField);
 
 		// rule type
-		GUIHelper.addLabeledComponent(propertiesPanel, "Rule Type:", ruleTypeCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.cultural.norm.rule.type") + ":", ruleTypeCombo);
 
 		// place panel:
 		final JPanel placePanel = new JPanel(new MigLayout("ins 10,hidemode 3,fillx,top,wrap 1",
 			"[grow,fill]", "[]10[]"));
-		placePanel.setBorder(new TitledBorder("Place with Citation"));
+		placePanel.setBorder(new TitledBorder(I18N.t("dialog.place.with.citation")));
 		placePanel.add(placeField, "growx");
 		placePanel.add(placeEvidencePanel, "growx");
 		GUIHelper.addComponent(propertiesPanel, placePanel);
 
 		// validity range:
 		final JPanel validityPanel = GUIHelper.createLabelFieldPanel(5, "[]10[]");
-		validityPanel.setBorder(BorderFactory.createTitledBorder("Validity Range"));
+		validityPanel.setBorder(BorderFactory.createTitledBorder(I18N.t("dialog.validity.range")));
 		// valid from
-		GUIHelper.addLabeledComponent(validityPanel, "Valid From:", validFromField);
+		GUIHelper.addLabeledComponent(validityPanel, I18N.t("dialog.valid.from") + ":", validFromField);
 		// valid to
-		GUIHelper.addLabeledComponent(validityPanel, "Valid To:", validToField);
+		GUIHelper.addLabeledComponent(validityPanel, I18N.t("dialog.valid.to") + ":", validToField);
 		GUIHelper.addComponent(propertiesPanel, validityPanel);
 
 		// evidence

@@ -33,6 +33,7 @@ import io.github.mtrevisan.familylegacy.v2.gedcom.utils.IDNormalizer;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.components.EvidenceQualifiersPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.DocumentHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventParticipationHandler;
@@ -642,9 +643,9 @@ public class GEDCOMHelper{
 			// 2 = Secondary evidence, data officially recorded sometime after event
 			// 3 = Direct and primary evidence used, or by dominance of the evidence
 			String informationType = switch(quayNode.getValue().trim()){
-				case "3" -> "primary";
-				case "2" -> "secondary";
-				default -> "undetermined";
+				case "3" -> EvidenceQualifiersPanel.INFORMATION_TYPE_PRIMARY;
+				case "2" -> EvidenceQualifiersPanel.INFORMATION_TYPE_SECONDARY;
+				default -> EvidenceQualifiersPanel.INFORMATION_TYPE_UNDETERMINED;
 			};
 			evidence.addChild(FLEFRecord.createChildWithTagAndValue("information_type", informationType));
 			parent.addChild(evidence);

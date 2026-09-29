@@ -62,6 +62,8 @@ final class PlaceRootSection implements SectionBuilder{
 	private static final String TAG_DESCRIPTION = "description";
 	private static final String TAG_AGENCY = "agency";
 
+	private static final String NAME_TYPE_OFFICIAL = "official";
+
 
 	private final ReportContext ctx;
 	private final Function<String, String> contextLabels;
@@ -307,7 +309,7 @@ final class PlaceRootSection implements SectionBuilder{
 			return null;
 		for(final FLEFRecord n : names){
 			final String type = FLEFRecordHelper.getChildValue(n, TAG_TYPE);
-			if("official".equalsIgnoreCase(type)){
+			if(NAME_TYPE_OFFICIAL.equalsIgnoreCase(type)){
 				final String v = FLEFRecordHelper.getChildValue(n, TAG_VALUE);
 				if(v != null && !v.isBlank())
 					return n;

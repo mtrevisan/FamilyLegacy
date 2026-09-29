@@ -26,6 +26,9 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.searches.strategies;
 
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.RecordFilterPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchCriteria;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchTaskHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.BorderFactory;
@@ -45,26 +48,9 @@ import java.util.function.Consumer;
  */
 public class ResearchTaskFilterPanel extends JPanel implements RecordFilterPanel{
 
-	static final String FILTER_KEY_DESCRIPTION = "description";
-	static final String FILTER_KEY_STATUS = "status";
-	static final String FILTER_KEY_PRIORITY = "priority";
-	static final String FILTER_KEY_OUTCOME = "outcome";
-
-
 	private final JTextField descriptionField = new JTextField(20);
-	private final JComboBox<String> statusCombo = new JComboBox<>(new String[]{
-		"Any",
-		"open",
-		"in_progress",
-		"completed",
-		"abandoned"
-	});
-	private final JComboBox<String> priorityCombo = new JComboBox<>(new String[]{
-		"Any",
-		"low",
-		"normal",
-		"high"
-	});
+	private final JComboBox<String> statusCombo = new JComboBox<>(GUIHelper.fillCombo(ResearchTaskHandler.STATUSES, I18N.t("search.combo.any")));
+	private final JComboBox<String> priorityCombo = new JComboBox<>(GUIHelper.fillCombo(ResearchTaskHandler.PRIORITIES, I18N.t("search.combo.any")));
 	private final JTextField outcomeField = new JTextField(20);
 
 	private final Consumer<SearchCriteria> onChanged;
@@ -81,15 +67,15 @@ public class ResearchTaskFilterPanel extends JPanel implements RecordFilterPanel
 
 	private void initComponents(){
 		setLayout(new MigLayout("wrap 2,gap 5", "[][grow,fill]", "[]"));
-		setBorder(BorderFactory.createTitledBorder("Research Task Filters"));
+		setBorder(BorderFactory.createTitledBorder(I18N.tf("dialog.search.filter.title", I18N.t("dialog.component.research.tasks"))));
 
-		add(new JLabel("Description:"));
+		add(new JLabel(I18N.t("dialog.research.task.description") + ":"));
 		add(descriptionField, "growx");
-		add(new JLabel("Status:"));
+		add(new JLabel(I18N.t("dialog.research.task.status") + ":"));
 		add(statusCombo, "growx");
-		add(new JLabel("Priority:"));
+		add(new JLabel(I18N.t("dialog.research.task.priority") + ":"));
 		add(priorityCombo, "growx");
-		add(new JLabel("Outcome:"));
+		add(new JLabel(I18N.t("dialog.research.task.outcome") + ":"));
 		add(outcomeField, "growx");
 	}
 
@@ -128,10 +114,10 @@ public class ResearchTaskFilterPanel extends JPanel implements RecordFilterPanel
 	@Override
 	public Map<String, String> getFilters(){
 		final Map<String, String> filters = new HashMap<>();
-		filters.put(FILTER_KEY_DESCRIPTION, getDescription());
-		filters.put(FILTER_KEY_STATUS, getStatus());
-		filters.put(FILTER_KEY_PRIORITY, getPriority());
-		filters.put(FILTER_KEY_OUTCOME, getOutcome());
+		filters.put(ResearchTaskHandler.TAG_DESCRIPTION, getDescription());
+		filters.put(ResearchTaskHandler.TAG_STATUS, getStatus());
+		filters.put(ResearchTaskHandler.TAG_PRIORITY, getPriority());
+		filters.put(ResearchTaskHandler.TAG_OUTCOME, getOutcome());
 		return filters;
 	}
 

@@ -42,6 +42,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceCitationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
@@ -110,26 +111,21 @@ public class IndividualAttributeRecordDialog extends BaseRecordDialog{
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]5[]10[]10[]10[]");
 
-		typeCombo = new BoundComboBox<>(IndividualAttributeHandler.TAG_TYPE, new String[]{
-			StringUtils.EMPTY,
-			"characteristic", "residence", "occupation", "possession", "military_rank", "caste", "social_class",
-			"ethnicity", "citizenship", "nationality", "ssn", "title", "children_count", "marriages_count",
-			"religion", "language", "literacy", "education"
-		});
+		typeCombo = new BoundComboBox<>(IndividualAttributeHandler.TAG_TYPE, IndividualAttributeHandler.TYPES);
 		typeCombo.setEditable(true);
 		valueField = new BoundTextField(IndividualAttributeHandler.TAG_VALUE);
-		validFromField = DateField.createWithWrapperTag(IndividualAttributeHandler.TAG_VALID_FROM, this, "Valid From", model);
-		validToField = DateField.createWithWrapperTag(IndividualAttributeHandler.TAG_VALID_TO, this, "Valid To", model);
+		validFromField = DateField.createWithWrapperTag(IndividualAttributeHandler.TAG_VALID_FROM, this, I18N.t("dialog.valid.from"), model);
+		validToField = DateField.createWithWrapperTag(IndividualAttributeHandler.TAG_VALID_TO, this, I18N.t("dialog.valid.to"), model);
 		placeField = EntityField.createForStructureWithReference(PlaceHandler.TYPE, this, model, PlaceCitationHandler.class);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, ContextImpactHandler.TYPE, "Context Impacts")
-			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, "Conclusions")
-			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, "Research Questions")
-			.withComponent(PanelKey.SOURCE, IndividualAttributeHandler.TAG_SOURCE, "Sources with Citations")
+			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, ContextImpactHandler.TYPE, I18N.t("dialog.component.context.impact"))
+			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, I18N.t("dialog.component.conclusions"))
+			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, I18N.t("dialog.component.research.questions"))
+			.withComponent(PanelKey.SOURCE, IndividualAttributeHandler.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
 			.withComponent(PanelKey.NOTE, IndividualAttributeHandler.TAG_NOTE, null)
-			.withComponent(PanelKey.EVIDENCE, IndividualAttributeHandler.TAG_EVIDENCE, "Evidence")
+			.withComponent(PanelKey.EVIDENCE, IndividualAttributeHandler.TAG_EVIDENCE, I18N.t("dialog.component.evidence"))
 			.withComponent(PanelKey.PRIVACY, IndividualAttributeHandler.TAG_PRIVACY, null)
 			.withComponent(PanelKey.AUDIT, IndividualAttributeHandler.TAG_AUDIT, null)
 			.build();
@@ -151,22 +147,22 @@ public class IndividualAttributeRecordDialog extends BaseRecordDialog{
 		//parentEntity
 
 		// type
-		GUIHelper.addLabeledComponent(propertiesPanel, "Type*:", typeCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.individual.attribute.type") + "*:", typeCombo);
 
 		// value
-		GUIHelper.addLabeledComponent(propertiesPanel, "Value:", valueField);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.individual.attribute.value") + ":", valueField);
 
 		// validity range:
 		final JPanel validityPanel = GUIHelper.createLabelFieldPanel(5, "[]5[]");
-		validityPanel.setBorder(BorderFactory.createTitledBorder("Validity Range"));
+		validityPanel.setBorder(BorderFactory.createTitledBorder(I18N.t("dialog.validity.range")));
 		// valid from
-		GUIHelper.addLabeledComponent(validityPanel, "Valid From:", validFromField);
+		GUIHelper.addLabeledComponent(validityPanel, I18N.t("dialog.valid.from") + ":", validFromField);
 		// valid to
-		GUIHelper.addLabeledComponent(validityPanel, "Valid To:", validToField);
+		GUIHelper.addLabeledComponent(validityPanel, I18N.t("dialog.valid.to") + ":", validToField);
 		GUIHelper.addComponent(propertiesPanel, validityPanel);
 
 		// place
-		GUIHelper.addLabeledComponent(propertiesPanel, "Place:", placeField);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.place") + ":", placeField);
 
 		// evidence
 		final JPanel evidencePanel = components.getPanel(PanelKey.EVIDENCE);
@@ -281,15 +277,15 @@ public class IndividualAttributeRecordDialog extends BaseRecordDialog{
 	protected boolean validData(){
 		if(parentEntity.isEmpty()){
 			JOptionPane.showMessageDialog(this,
-				"Parent Individual is required.",
-				"Validation Error", JOptionPane.ERROR_MESSAGE);
+				I18N.tf("validation.required", I18N.t("validation.required.parent.field")),
+				I18N.t("validation.title"), JOptionPane.ERROR_MESSAGE);
 
 			return false;
 		}
 
 		if(!typeCombo.isValued()){
 			GUIHelper.showValidationErrorAndFocus(this,
-				"Type is required.",
+				I18N.tf("validation.required", I18N.t("dialog.individual.type")),
 				tabbedPane, propertiesPanel, typeCombo);
 
 			return false;

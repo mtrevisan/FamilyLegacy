@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.IndividualAttributeRecordDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 
@@ -55,6 +56,13 @@ public class IndividualAttributeHandler extends AbstractRecordTypeHandler<Indivi
 	public static final String TAG_PRIVACY = "PRIVACY";
 	public static final String TAG_AUDIT = "AUDIT";
 
+	public static final String[] TYPES = new String[]{
+		StringUtils.EMPTY,
+		"characteristic", "residence", "occupation", "possession", "military_rank", "caste", "social_class",
+		"ethnicity", "citizenship", "nationality", "ssn", "title", "children_count", "marriages_count",
+		"religion", "language", "literacy", "education"
+	};
+
 
 	private static final class SingletonHelper{
 		private static final IndividualAttributeHandler INSTANCE = new IndividualAttributeHandler();
@@ -68,7 +76,7 @@ public class IndividualAttributeHandler extends AbstractRecordTypeHandler<Indivi
 
 	@Override
 	public String getLabel(){
-		return "Individual Attribute";
+		return I18N.t("confirmation.exist.record.individual.attribute");
 	}
 
 	@Override

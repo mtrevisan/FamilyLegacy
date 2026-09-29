@@ -1,6 +1,8 @@
 package io.github.mtrevisan.familylegacy.v2.ui.tools.reports;
 
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import net.miginfocom.swing.MigLayout;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -29,9 +31,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public final class ProgressDialog extends JDialog{
 
-	private final JLabel messageLabel = new JLabel(" ");
+	private final JLabel messageLabel = new JLabel(StringUtils.SPACE);
 	private final JProgressBar progressBar = new JProgressBar(0, 100);
-	private final JButton cancelButton = new JButton("Cancel");
+	private final JButton cancelButton = new JButton(I18N.t("button.cancel"));
 	private final AtomicBoolean cancelled = new AtomicBoolean(false);
 
 

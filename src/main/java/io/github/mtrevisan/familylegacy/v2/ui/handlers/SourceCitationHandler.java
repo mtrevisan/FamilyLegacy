@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.citations.SourceCitationDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 
 import java.awt.Window;
 
@@ -64,7 +65,7 @@ public class SourceCitationHandler extends AbstractRecordTypeHandler<SourceCitat
 
 	@Override
 	public String getLabel(){
-		return "Source Citation";
+		return I18N.t("confirmation.exist.record.source.citation");
 	}
 
 	@Override

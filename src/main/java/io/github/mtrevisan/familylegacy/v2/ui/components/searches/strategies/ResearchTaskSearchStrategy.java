@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchCriteria
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchMode;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchStrategy;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchTaskHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.StringJoiner;
@@ -42,12 +43,6 @@ import java.util.function.Predicate;
  * Supports filtering by task description, status, priority, and outcome notes.
  */
 public class ResearchTaskSearchStrategy implements SearchStrategy{
-
-	private static final String TAG_DESCRIPTION = "description";
-	private static final String TAG_STATUS = "status";
-	private static final String TAG_PRIORITY = "priority";
-	private static final String TAG_OUTCOME = "outcome";
-
 
 	private static final ResearchTaskHandler HANDLER = ResearchTaskHandler.getInstance();
 
@@ -61,37 +56,37 @@ public class ResearchTaskSearchStrategy implements SearchStrategy{
 
 	@Override
 	public Predicate<FLEFRecord> buildPredicate(final SearchCriteria criteria, final FLEFModel model){
-		description = criteria.getFilterFor(ResearchTaskFilterPanel.FILTER_KEY_DESCRIPTION);
-		status = criteria.getFilterFor(ResearchTaskFilterPanel.FILTER_KEY_STATUS);
-		priority = criteria.getFilterFor(ResearchTaskFilterPanel.FILTER_KEY_PRIORITY);
-		outcome = criteria.getFilterFor(ResearchTaskFilterPanel.FILTER_KEY_OUTCOME);
+		description = criteria.getFilterFor(ResearchTaskHandler.TAG_DESCRIPTION);
+		status = criteria.getFilterFor(ResearchTaskHandler.TAG_STATUS);
+		priority = criteria.getFilterFor(ResearchTaskHandler.TAG_PRIORITY);
+		outcome = criteria.getFilterFor(ResearchTaskHandler.TAG_OUTCOME);
 		mode = criteria.mode();
 
 		return task -> {
 			// Description filter
 			if(StringUtils.isNotEmpty(description)){
-				final String recordDescription = FLEFRecordHelper.getChildValue(task, TAG_DESCRIPTION);
+				final String recordDescription = FLEFRecordHelper.getChildValue(task, ResearchTaskHandler.TAG_DESCRIPTION);
 				if(!SearchHelper.matches(recordDescription, description, mode))
 					return false;
 			}
 
 			// Status filter
 			if(StringUtils.isNotEmpty(status)){
-				final String recordStatus = FLEFRecordHelper.getChildValue(task, TAG_STATUS);
+				final String recordStatus = FLEFRecordHelper.getChildValue(task, ResearchTaskHandler.TAG_STATUS);
 				if(!status.equalsIgnoreCase(recordStatus))
 					return false;
 			}
 
 			// Priority filter
 			if(StringUtils.isNotEmpty(priority)){
-				final String recordPriority = FLEFRecordHelper.getChildValue(task, TAG_PRIORITY);
+				final String recordPriority = FLEFRecordHelper.getChildValue(task, ResearchTaskHandler.TAG_PRIORITY);
 				if(!priority.equalsIgnoreCase(recordPriority))
 					return false;
 			}
 
 			// Outcome filter
 			if(StringUtils.isNotEmpty(outcome)){
-				final String recordOutcome = FLEFRecordHelper.getChildValue(task, TAG_OUTCOME);
+				final String recordOutcome = FLEFRecordHelper.getChildValue(task, ResearchTaskHandler.TAG_OUTCOME);
 				if(!SearchHelper.matches(recordOutcome, outcome, mode))
 					return false;
 			}
@@ -104,16 +99,16 @@ public class ResearchTaskSearchStrategy implements SearchStrategy{
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
 		final String baseDisplayText = HANDLER.getDisplayText(record, model);
 
-		final String status = FLEFRecordHelper.getChildValue(record, TAG_STATUS);
-		final String priority = FLEFRecordHelper.getChildValue(record, TAG_PRIORITY);
+		final String status = FLEFRecordHelper.getChildValue(record, ResearchTaskHandler.TAG_STATUS);
+		final String priority = FLEFRecordHelper.getChildValue(record, ResearchTaskHandler.TAG_PRIORITY);
 
 		final StringJoiner details = new StringJoiner(", ", " (", ")");
 		details.setEmptyValue(StringUtils.EMPTY);
 
 		if(StringUtils.isNotEmpty(status))
-			details.add("Status: " + status);
+			details.add(I18N.t("dialog.research.task.status") + ": " + status);
 		if(StringUtils.isNotEmpty(priority))
-			details.add("Priority: " + priority);
+			details.add(I18N.t("dialog.research.task.priority") + ": " + priority);
 
 		return baseDisplayText + details;
 	}

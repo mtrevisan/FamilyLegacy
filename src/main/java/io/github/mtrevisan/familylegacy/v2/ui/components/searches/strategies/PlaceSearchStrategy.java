@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchCriteria
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchMode;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchStrategy;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.StringJoiner;
@@ -42,8 +43,6 @@ import java.util.function.Predicate;
  * Supports filtering by place name and type.
  */
 public class PlaceSearchStrategy implements SearchStrategy{
-
-	private static final String TAG_TYPE = "type";
 
 	private static final double FUZZY_THRESHOLD = 0.05;
 
@@ -57,8 +56,8 @@ public class PlaceSearchStrategy implements SearchStrategy{
 
 	@Override
 	public Predicate<FLEFRecord> buildPredicate(final SearchCriteria criteria, final FLEFModel model){
-		name = criteria.getFilterFor(PlaceFilterPanel.FILTER_KEY_NAME);
-		type = criteria.getFilterFor(PlaceFilterPanel.FILTER_KEY_TYPE);
+		name = criteria.getFilterFor(PlaceHandler.TAG_NAME);
+		type = criteria.getFilterFor(PlaceHandler.TAG_TYPE);
 		mode = criteria.mode();
 
 		return place -> {
@@ -68,7 +67,7 @@ public class PlaceSearchStrategy implements SearchStrategy{
 
 			// Type filter
 			if(StringUtils.isNotEmpty(type)){
-				final String placeType = FLEFRecordHelper.getChildValue(place, TAG_TYPE);
+				final String placeType = FLEFRecordHelper.getChildValue(place, PlaceHandler.TAG_TYPE);
 				if(!type.equalsIgnoreCase(placeType))
 					return false;
 			}
@@ -81,13 +80,13 @@ public class PlaceSearchStrategy implements SearchStrategy{
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
 		final String baseDisplayText = HANDLER.getDisplayText(record, model);
 
-		final String type = FLEFRecordHelper.getChildValue(record, TAG_TYPE);
+		final String type = FLEFRecordHelper.getChildValue(record, PlaceHandler.TAG_TYPE);
 
 		final StringJoiner details = new StringJoiner(", ", " (", ")");
 		details.setEmptyValue(StringUtils.EMPTY);
 
 		if(StringUtils.isNotEmpty(type))
-			details.add("Type: " + type);
+			details.add(I18N.t("dialog.place.type") + ": " + type);
 
 		return baseDisplayText + details;
 	}

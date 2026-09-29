@@ -36,6 +36,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NameHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.LocaleHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JPanel;
@@ -73,6 +74,27 @@ import java.awt.Window;
  */
 public class NameStructureDialog extends BaseRecordDialog{
 
+	private static final String[] TYPES = {
+		StringUtils.EMPTY,
+		// official and legal names
+		"official", "legal",
+		// historical naming traditions
+		"colonial", "indigenous", "traditional",
+		// language and localization variants
+		"translated", "transcribed",
+		// historical variants
+		"historic", "former",
+		// common usage
+		"common", "colloquial",
+		// abbreviated forms
+		"abbreviated", "acronym",
+		// religious and ecclesiastical forms
+		"religious",
+		// administrative and archival forms
+		"administrative", "archival"
+	};
+
+
 	private final JPanel propertiesPanel;
 
 	private final BoundTextField valueField;
@@ -97,33 +119,15 @@ public class NameStructureDialog extends BaseRecordDialog{
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]15[]");
 
 		valueField = new BoundTextField(NameHandler.TAG_VALUE);
-		typeCombo = new BoundComboBox<>(NameHandler.TAG_TYPE, new String[]{
-			StringUtils.EMPTY,
-			// official and legal names
-			"official", "legal",
-			// historical naming traditions
-			"colonial", "indigenous", "traditional",
-			// language and localization variants
-			"translated", "romanized",
-			// historical variants
-			"historic", "former",
-			// common usage
-			"common", "colloquial",
-			// abbreviated forms
-			"abbreviated", "acronym",
-			// religious and ecclesiastical forms
-			"religious",
-			// administrative and archival forms
-			"administrative", "archival"
-		});
+		typeCombo = new BoundComboBox<>(NameHandler.TAG_TYPE, TYPES);
 		typeCombo.setEditable(true);
-		variantPanel = new TextValueVariantListPanel(NameHandler.TAG_VARIANT, this, "Variant", model);
+		variantPanel = new TextValueVariantListPanel(NameHandler.TAG_VARIANT, this, I18N.t("dialog.name.variant"), model);
 		localeCombo = new BoundFilteredComboBox<>(NameHandler.TAG_LOCALE, LocaleHelper.getAvailableLanguageTags());
 		localeCombo.setEditable(true);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.SOURCE, NameHandler.TAG_SOURCE, "Sources with Citations")
+			.withComponent(PanelKey.SOURCE, NameHandler.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
 			.withComponent(PanelKey.NOTE, NameHandler.TAG_NOTE, null)
 			.build();
 
@@ -142,13 +146,13 @@ public class NameStructureDialog extends BaseRecordDialog{
 	@Override
 	protected JPanel createPropertiesPanel(){
 		// value
-		GUIHelper.addLabeledComponent(propertiesPanel, "Name Value*:", valueField);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.name.name") + "*:", valueField);
 
 		// type
-		GUIHelper.addLabeledComponent(propertiesPanel, "Type*:", typeCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.name.type") + "*:", typeCombo);
 
 		// locale
-		GUIHelper.addLabeledComponent(propertiesPanel, "Locale:", localeCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.name.locale") + ":", localeCombo);
 
 		// variant
 		GUIHelper.addComponent(propertiesPanel, variantPanel);
@@ -196,7 +200,7 @@ public class NameStructureDialog extends BaseRecordDialog{
 	protected boolean validData(){
 		if(valueField.isEmpty()){
 			GUIHelper.showValidationErrorAndFocus(this,
-				"Name value is required.",
+				I18N.tf("validation.required", I18N.t("dialog.name.name")),
 				tabbedPane, propertiesPanel, valueField);
 
 			return false;

@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.GroupAttributeRecordDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 
@@ -55,6 +56,12 @@ public class GroupAttributeHandler extends AbstractRecordTypeHandler<GroupAttrib
 	public static final String TAG_PRIVACY = "PRIVACY";
 	public static final String TAG_AUDIT = "AUDIT";
 
+	public static final String[] TYPES = new String[]{
+		StringUtils.EMPTY,
+		"residence", "member_count", "children_count", "social_class", "ethnicity", "religion", "language",
+		"wealth", "land_holding", "primary_income_source"
+	};
+
 
 	private static final class SingletonHelper{
 		private static final GroupAttributeHandler INSTANCE = new GroupAttributeHandler();
@@ -68,7 +75,7 @@ public class GroupAttributeHandler extends AbstractRecordTypeHandler<GroupAttrib
 
 	@Override
 	public String getLabel(){
-		return "Group Attribute";
+		return I18N.t("confirmation.exist.record.group.attribute");
 	}
 
 	@Override

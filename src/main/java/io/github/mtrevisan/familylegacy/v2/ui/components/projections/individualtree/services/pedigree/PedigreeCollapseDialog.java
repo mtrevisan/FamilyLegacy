@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.services.pedigree;
 
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -105,7 +106,7 @@ public class PedigreeCollapseDialog extends JDialog{
 		main.add(scroll, "grow,push,wrap");
 
 		// Footer
-		final JButton closeButton = new JButton("Close");
+		final JButton closeButton = new JButton(I18N.t("button.close"));
 		closeButton.addActionListener(e -> dispose());
 
 		final JPanel footer = new JPanel(new MigLayout("ins 0", "[grow][]", "[]"));

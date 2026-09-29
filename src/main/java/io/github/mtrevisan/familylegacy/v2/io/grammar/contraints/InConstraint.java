@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.io.grammar.contraints;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -92,7 +93,7 @@ public final class InConstraint extends Constraint{
 	 */
 	private List<String> resolveContainerValues(final FLEFRecord record, final String path, final FLEFModel model){
 		final List<String> values = new ArrayList<>();
-		final String[] segments = path.split("\\.");
+		final String[] segments = StringUtils.split(path, '.');
 
 		final List<FLEFRecord> currentNodes = new ArrayList<>();
 		currentNodes.add(record);

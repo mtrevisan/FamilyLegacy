@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
@@ -86,7 +87,7 @@ public final class ValidationReportDialog extends JDialog{
 	private final JButton openRecord = new JButton("Open record");
 	private final JButton copy = new JButton("Copy all");
 	private final JButton rerun = new JButton("Re-run");
-	private final JButton close = new JButton("Close");
+	private final JButton close = new JButton(I18N.t("button.close"));
 
 
 	public ValidationReportDialog(final Window owner, final FLEFModel model,

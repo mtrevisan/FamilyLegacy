@@ -24,9 +24,13 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.components.searches.strategies;
 
+import io.github.mtrevisan.familylegacy.v2.ui.components.SingleDatePanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.RecordFilterPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchCriteria;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.BorderFactory;
@@ -55,46 +59,12 @@ public class CulturalNormFilterPanel extends JPanel implements RecordFilterPanel
 
 
 	private final JTextField titleField = new JTextField(20);
-	private final JComboBox<String> ruleTypeCombo = new JComboBox<>(new String[]{
-		"Any",
-		"age_of_majority",
-		"marriage_minimum_age",
-		"baptism_age",
-		"confirmation_age",
-		"military_service_age",
-		"retirement_age",
-		"naming_convention",
-		"surname_transmission",
-		"patronymic_system",
-		"matronymic_system",
-		"title_usage",
-		"inheritance_rule",
-		"succession_rule",
-		"dowry_practice",
-		"guardianship_rule",
-		"adoption_practice",
-		"marriage_practice",
-		"marriage_prohibited_degree",
-		"widowhood_rule",
-		"residence_pattern",
-		"household_structure",
-		"social_classification",
-		"religious_practice",
-		"burial_practice",
-		"citizenship_rule",
-		"legitimacy_rule",
-		"age_difference_convention",
-		"generational_interval"
-	});
+	private final JComboBox<String> ruleTypeCombo = new JComboBox<>(GUIHelper.fillCombo(CulturalNormHandler.RULE_TYPES, I18N.t("search.combo.any")));
 	private final JTextField locationField = new JTextField(20);
 	private final JTextField dateFromField = new JTextField(10);
-	private final JComboBox<String> calendarFromCombo = new JComboBox<>(new String[]{
-		"gregorian", "julian", "islamic", "hebrew", "chinese", "indian", "buddhist", "french-republican", "coptic",
-		"soviet eternal", "ethiopian", "mayan"});
+	private final JComboBox<String> calendarFromCombo = new JComboBox<>(SingleDatePanel.CALENDARS);
 	private final JTextField dateToField = new JTextField(10);
-	private final JComboBox<String> calendarToCombo = new JComboBox<>(new String[]{
-		"gregorian", "julian", "islamic", "hebrew", "chinese", "indian", "buddhist", "french-republican", "coptic",
-		"soviet eternal", "ethiopian", "mayan"});
+	private final JComboBox<String> calendarToCombo = new JComboBox<>(SingleDatePanel.CALENDARS);
 
 	private final Consumer<SearchCriteria> onChanged;
 

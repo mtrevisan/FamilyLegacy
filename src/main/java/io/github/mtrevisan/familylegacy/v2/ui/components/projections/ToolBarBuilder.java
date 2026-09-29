@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.v2.ui.components.projections;
 
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.help.ShortcutRegistry;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
@@ -63,7 +64,7 @@ public final class ToolBarBuilder{
 		btnJump.setToolTipText("Jump to Individual/Group (" + ShortcutRegistry.NAV_JUMP_TO_INDIVIDUAL_OR_GROUP.displayKeys() + ")");
 		btnJump.addActionListener(e -> onJump.run());
 
-		final JButton btnEdit = new JButton("Edit");
+		final JButton btnEdit = new JButton(I18N.t("button.edit"));
 		btnEdit.setToolTipText("Edit Current Selection (" + ShortcutRegistry.EDIT_SELECTION_INDIVIDUAL.displayKeys() + ")");
 		btnEdit.addActionListener(e -> onEdit.run());
 

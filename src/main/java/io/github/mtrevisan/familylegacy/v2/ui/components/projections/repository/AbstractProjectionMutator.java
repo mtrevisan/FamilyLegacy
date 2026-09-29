@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventParticipationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupAttributeHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualAttributeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
@@ -45,12 +46,9 @@ import java.util.Objects;
  */
 public abstract class AbstractProjectionMutator implements ProjectionMutator{
 
-	protected static final String TAG_TYPE = "type";
-	protected static final String TAG_SUBJECT = "subject";
-	protected static final String TAG_OBJECT = "object";
-	protected static final String TAG_PARTICIPANT = "participant";
-	protected static final String TAG_INDIVIDUAL = "individual";
-	protected static final String TAG_GROUP = "group";
+	private static final String TAG_TYPE = "type";
+	private static final String TAG_PARTICIPANT = "participant";
+
 
 	protected final FLEFModel model;
 	protected final TreeChangeListener listener;
@@ -70,10 +68,10 @@ public abstract class AbstractProjectionMutator implements ProjectionMutator{
 		final FLEFRecord relationship = FLEFRecord.createMainRecord(RelationshipHandler.TYPE,
 				RelationshipHandler.ID_PREFIX, model)
 			.addChild(FLEFRecord.createChildWithTagAndValue(TAG_TYPE, type))
-			.addChild(FLEFRecord.createChildWithTag(TAG_SUBJECT)
+			.addChild(FLEFRecord.createChildWithTag(RelationshipHandler.TAG_SUBJECT)
 				.addChild(FLEFRecord.createChildWithTagAndValue(IndividualHandler.TYPE, subjectId))
 			)
-			.addChild(FLEFRecord.createChildWithTag(TAG_OBJECT)
+			.addChild(FLEFRecord.createChildWithTag(RelationshipHandler.TAG_OBJECT)
 				.addChild(FLEFRecord.createChildWithTagAndValue(IndividualHandler.TYPE, targetId))
 			)
 			.addChild(AuditBuilder.build());
@@ -139,13 +137,13 @@ public abstract class AbstractProjectionMutator implements ProjectionMutator{
 		for(int i = 0, size = relationships.size(); i < size; i ++){
 			final FLEFRecord relationship = relationships.get(i);
 
-			final String subjectId = relationship.extractReferencedId(TAG_SUBJECT, TAG_INDIVIDUAL);
-			final String groupSubjectId = relationship.extractReferencedId(TAG_SUBJECT, TAG_GROUP);
+			final String subjectId = relationship.extractReferencedId(RelationshipHandler.TAG_SUBJECT, IndividualHandler.TYPE);
+			final String groupSubjectId = relationship.extractReferencedId(RelationshipHandler.TAG_SUBJECT, GroupHandler.TYPE);
 			final String targetSubjectId = (subjectId != null ? subjectId : groupSubjectId);
 
-			final String relationshipObjectId = relationship.extractReferencedId(TAG_OBJECT, TAG_INDIVIDUAL);
-			final String groupObjectId = relationship.extractReferencedId(TAG_OBJECT, TAG_GROUP);
-			final String targetObjectId = (relationshipObjectId != null ? relationshipObjectId : groupObjectId);
+			final String relationshipObjectId = relationship.extractReferencedId(RelationshipHandler.TAG_OBJECT, IndividualHandler.TYPE);
+			final String groupObjectId = relationship.extractReferencedId(RelationshipHandler.TAG_OBJECT, GroupHandler.TYPE);
+			final String targetObjectId = (relationshipObjectId != null? relationshipObjectId: groupObjectId);
 
 			if(targetId.equals(targetSubjectId) || targetId.equals(targetObjectId))
 				toRemove.add(relationship.getId());
@@ -182,8 +180,8 @@ public abstract class AbstractProjectionMutator implements ProjectionMutator{
 	 * whose owner references the given entity.
 	 */
 	protected void removeAttributesInvolving(final String targetId){
-		removeAttributesInvolving(targetId, IndividualAttributeHandler.TYPE, TAG_INDIVIDUAL);
-		removeAttributesInvolving(targetId, GroupAttributeHandler.TYPE, TAG_GROUP);
+		removeAttributesInvolving(targetId, IndividualAttributeHandler.TYPE, IndividualHandler.TYPE);
+		removeAttributesInvolving(targetId, GroupAttributeHandler.TYPE, GroupHandler.TYPE);
 	}
 
 	private void removeAttributesInvolving(final String targetId, final String recordType, final String ownerTag){

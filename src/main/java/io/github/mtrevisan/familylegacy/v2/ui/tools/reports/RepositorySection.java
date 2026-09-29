@@ -60,6 +60,7 @@ final class RepositorySection implements SectionBuilder{
 	private static final String TAG_CONTACT = "contact";
 
 	private static final String TYPE_REPOSITORY = "repository";
+	private static final String NAME_TYPE_OFFICIAL = "official";
 
 
 	private final ReportContext ctx;
@@ -222,7 +223,7 @@ final class RepositorySection implements SectionBuilder{
 			return null;
 		for(final FLEFRecord n : names){
 			final String type = FLEFRecordHelper.getChildValue(n, TAG_TYPE);
-			if("official".equalsIgnoreCase(type)){
+			if(NAME_TYPE_OFFICIAL.equalsIgnoreCase(type)){
 				final String v = FLEFRecordHelper.getChildValue(n, TAG_VALUE);
 				if(v != null && !v.isBlank())
 					return n;

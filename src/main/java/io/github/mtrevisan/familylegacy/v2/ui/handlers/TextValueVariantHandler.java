@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.structures.TextValueVariantStructureDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 
@@ -64,7 +65,7 @@ public class TextValueVariantHandler extends AbstractRecordTypeHandler<TextValue
 
 	@Override
 	public String getLabel(){
-		return "Text Value Variant";
+		return I18N.t("confirmation.exist.record.text.value.variant");
 	}
 
 	@Override

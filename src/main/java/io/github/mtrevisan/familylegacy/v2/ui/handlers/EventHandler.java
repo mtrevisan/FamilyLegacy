@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.EventRecordDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 
@@ -51,6 +52,20 @@ public class EventHandler extends AbstractRecordTypeHandler<EventRecordDialog>{
 	public static final String TAG_PRIVACY = "PRIVACY";
 	public static final String TAG_AUDIT = "AUDIT";
 
+	public static final String ENUM_TYPE_BIRTH = "birth";
+	public static final String ENUM_TYPE_DEATH = "death";
+	public static final String[] TYPES = new String[]{
+		StringUtils.EMPTY,
+		ENUM_TYPE_BIRTH, ENUM_TYPE_DEATH, "adoption", "graduation", "immigration", "naturalization", "bankruptcy",
+		"guardianship", "coroner_report", "cremation", "burial", "education", "retirement", "military_induction",
+		"military_muster_roll", "military_service", "military_award", "military_release", "military_discharge",
+		"military_resignation", "military_retirement", "prison", "pardon", "jury_duty", "illness", "hospitalization",
+		"medical_procedure", "honor", "deportation", "internment", "liberation", "emancipation", "relocation",
+		"emigration", "census", "deed", "escrow", "chancery", "will", "probate", "engagement", "marriage_bann",
+		"marriage_contract", "marriage_license", "marriage_settlement", "marriage", "divorce_filed", "divorce_decree",
+		"divorce", "annulment"
+	};
+
 
 	private static final class SingletonHelper{
 		private static final EventHandler INSTANCE = new EventHandler();
@@ -64,7 +79,7 @@ public class EventHandler extends AbstractRecordTypeHandler<EventRecordDialog>{
 
 	@Override
 	public String getLabel(){
-		return "Event";
+		return I18N.t("confirmation.exist.record.event");
 	}
 
 	@Override

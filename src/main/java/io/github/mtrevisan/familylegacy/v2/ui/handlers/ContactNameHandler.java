@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.structures.ContactNameStructureDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Window;
@@ -70,7 +71,7 @@ public class ContactNameHandler extends AbstractRecordTypeHandler<ContactNameStr
 
 	@Override
 	public String getLabel(){
-		return "Contact Name Structure";
+		return I18N.t("confirmation.exist.record.contact.name");
 	}
 
 	@Override

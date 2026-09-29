@@ -33,11 +33,11 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PartHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PersonalNameHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.LocaleHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JPanel;
@@ -87,6 +87,21 @@ import java.awt.Window;
  */
 public class PersonalNameStructureDialog extends BaseRecordDialog{
 
+	private static final String[] TYPES = {
+		StringUtils.EMPTY,
+		// marital status and origins at birth
+		"official", "religious", "birth",
+		// changes in marital status and family events
+		"married", "maiden", "divorce", "adoption", "fostering",
+		// legal, immigration, and naturalization changes
+		"legal", "immigrant", "adapted",
+		// informal, stage, and social names
+		"alias", "nickname", "artistic", "professional", "user",
+		// historical and dynastic contexts
+		"regnal", "slave_name"
+	};
+
+
 	private final JPanel propertiesPanel;
 
 	private final BoundComboBox<String> typeCombo;
@@ -110,31 +125,19 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]");
 
-		typeCombo = new BoundComboBox<>(IndividualHandler.TAG_PERSONAL_NAME_TYPE, new String[]{
-			StringUtils.EMPTY,
-			// marital status and origins at birth
-			"official", "religious", "birth",
-			// changes in marital status and family events
-			"married", "maiden", "divorce", "adoption", "fostering",
-			// legal, immigration, and naturalization changes
-			"legal", "immigrant", "adapted",
-			// informal, stage, and social names
-			"alias", "nickname", "artistic", "professional", "user",
-			// historical and dynastic contexts
-			"regnal", "slave_name"
-		});
+		typeCombo = new BoundComboBox<>(PersonalNameHandler.TAG_TYPE, TYPES);
 		typeCombo.setEditable(true);
-		partPanel = EntityListPanel.createForStructure(IndividualHandler.TAG_PERSONAL_NAME_PART, this, "Parts*", model, PartHandler.class);
-		localeCombo = new BoundFilteredComboBox<>(IndividualHandler.TAG_PERSONAL_NAME_LOCALE, LocaleHelper.getAvailableLanguageTags());
+		partPanel = EntityListPanel.createForStructure(PersonalNameHandler.TAG_PART, this, I18N.t("dialog.name.parts") + "*", model, PartHandler.class);
+		localeCombo = new BoundFilteredComboBox<>(PersonalNameHandler.TAG_LOCALE, LocaleHelper.getAvailableLanguageTags());
 		localeCombo.setEditable(true);
 
-		culturalNormPanel = EntityListPanel.createForEntityReference(CulturalNormHandler.TYPE, parent, "Cultural Norms",
+		culturalNormPanel = EntityListPanel.createForEntityReference(PersonalNameHandler.TAG_CULTURAL_NORM, parent, I18N.t("dialog.name.cultural.norms"),
 			model, CulturalNormHandler.class);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.SOURCE, IndividualHandler.TAG_PERSONAL_NAME_SOURCE, "Sources with Citations")
-			.withComponent(PanelKey.NOTE, IndividualHandler.TAG_PERSONAL_NAME_NOTE, null)
+			.withComponent(PanelKey.SOURCE, PersonalNameHandler.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
+			.withComponent(PanelKey.NOTE, PersonalNameHandler.TAG_NOTE, null)
 			.build();
 
 		components.bind(typeCombo);
@@ -151,13 +154,13 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 	@Override
 	protected JPanel createPropertiesPanel(){
 		// type
-		GUIHelper.addLabeledComponent(propertiesPanel, "Type:", typeCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.name.type") + ":", typeCombo);
 
 		// parts
 		GUIHelper.addComponent(propertiesPanel, partPanel);
 
 		// locale
-		GUIHelper.addLabeledComponent(propertiesPanel, "Locale:", localeCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.name.locale") + ":", localeCombo);
 
 		return propertiesPanel;
 	}
@@ -214,7 +217,7 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 	protected boolean validData(){
 		if(partPanel.isEmpty()){
 			GUIHelper.showValidationErrorAndFocus(this,
-				"At least one part is required.",
+				I18N.tf("validation.at.least.one", I18N.t("dialog.name.parts")),
 				tabbedPane, propertiesPanel, partPanel);
 
 			return false;

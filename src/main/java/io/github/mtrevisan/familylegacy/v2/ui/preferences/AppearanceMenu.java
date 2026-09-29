@@ -1,6 +1,6 @@
 package io.github.mtrevisan.familylegacy.v2.ui.preferences;
 
-import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18n;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import org.apache.commons.lang3.Strings;
 
 import javax.swing.ButtonGroup;
@@ -96,7 +96,7 @@ public final class AppearanceMenu{
 	 * @return the menu, never {@code null}
 	 */
 	public static JMenu create(final Window owner){
-		final JMenu menu = new JMenu(I18n.t("menu.appearance"));
+		final JMenu menu = new JMenu(I18N.t("menu.appearance"));
 		menu.add(createLanguageMenu(owner));
 		menu.add(createFontMenu(owner));
 		menu.add(new JSeparator());
@@ -110,7 +110,7 @@ public final class AppearanceMenu{
 	 * ====================================================================== */
 
 	private static JMenu createLanguageMenu(final Window owner){
-		final JMenu language = new JMenu(I18n.t("menu.appearance.language"));
+		final JMenu language = new JMenu(I18N.t("menu.appearance.language"));
 		final Locale current = AppearanceManager.savedLocale();
 		final ButtonGroup group = new ButtonGroup();
 
@@ -151,7 +151,7 @@ public final class AppearanceMenu{
 	 * ====================================================================== */
 
 	private static JMenu createFontMenu(final Window owner){
-		final JMenu fontMenu = new JMenu(I18n.t("menu.appearance.font"));
+		final JMenu fontMenu = new JMenu(I18N.t("menu.appearance.font"));
 		final ButtonGroup group = new ButtonGroup();
 
 		// "Default" restores the L&F font.
@@ -200,7 +200,7 @@ public final class AppearanceMenu{
 		catch(final Exception ex){
 			JOptionPane.showMessageDialog(owner,
 				"Could not open the preferences folder:\n" + ex.getMessage(),
-				"Error", JOptionPane.ERROR_MESSAGE);
+				I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
 		}
 	}
 

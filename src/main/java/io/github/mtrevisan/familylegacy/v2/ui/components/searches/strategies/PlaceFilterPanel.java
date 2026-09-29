@@ -26,6 +26,8 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.searches.strategies;
 
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.RecordFilterPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchCriteria;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.BorderFactory;
@@ -45,17 +47,8 @@ import java.util.function.Consumer;
  */
 public class PlaceFilterPanel extends JPanel implements RecordFilterPanel{
 
-	static final String FILTER_KEY_NAME = "name";
-	static final String FILTER_KEY_TYPE = "type";
-
-
 	private final JTextField nameField = new JTextField(20);
-	private final JComboBox<String> typeCombo = new JComboBox<>(new String[]{
-		"Any",
-		"address", "building", "street", "hamlet", "village", "town", "municipality", "city",
-		"metropolitan_area", "county", "province", "department", "district", "region",
-		"macro_region", "country", "empire", "parish", "diocese", "cemetery", "archive", "unknown"
-	});
+	private final JComboBox<String> typeCombo = new JComboBox<>(PlaceHandler.TYPES);
 
 	private final Consumer<SearchCriteria> onChanged;
 
@@ -71,11 +64,11 @@ public class PlaceFilterPanel extends JPanel implements RecordFilterPanel{
 
 	private void initComponents(){
 		setLayout(new MigLayout("wrap 2,gap 5", "[][grow,fill]", "[]"));
-		setBorder(BorderFactory.createTitledBorder("Place Filters"));
+		setBorder(BorderFactory.createTitledBorder(I18N.tf("dialog.search.filter.title", I18N.t("dialog.component.places"))));
 
-		add(new JLabel("Name:"));
+		add(new JLabel(I18N.t("dialog.place.names") + ":"));
 		add(nameField, "growx");
-		add(new JLabel("Type:"));
+		add(new JLabel(I18N.t("dialog.place.type") + ":"));
 		add(typeCombo, "growx");
 	}
 
@@ -111,8 +104,8 @@ public class PlaceFilterPanel extends JPanel implements RecordFilterPanel{
 	@Override
 	public Map<String, String> getFilters(){
 		final Map<String, String> filters = new HashMap<>();
-		filters.put(FILTER_KEY_NAME, getPlaceName());
-		filters.put(FILTER_KEY_TYPE, getType());
+		filters.put(PlaceHandler.TAG_NAME, getPlaceName());
+		filters.put(PlaceHandler.TAG_TYPE, getType());
 		return filters;
 	}
 

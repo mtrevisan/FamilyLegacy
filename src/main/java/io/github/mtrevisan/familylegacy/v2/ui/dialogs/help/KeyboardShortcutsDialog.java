@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.dialogs.help;
 
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
+
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
@@ -47,14 +49,18 @@ import java.util.List;
 public final class KeyboardShortcutsDialog extends JDialog{
 
 	private KeyboardShortcutsDialog(final Window owner){
-		super(owner, "Keyboard Shortcuts", ModalityType.APPLICATION_MODAL);
+		super(owner, I18N.t("dialog.keyboard.shortcuts.title"), ModalityType.APPLICATION_MODAL);
 
 		final List<ShortcutRegistry.ShortcutDefinition> shortcuts = ShortcutRegistry.getAllShortcuts().stream()
 			.sorted(Comparator.comparing(ShortcutRegistry.ShortcutDefinition::category)
 				.thenComparing(ShortcutRegistry.ShortcutDefinition::action))
 			.toList();
 
-		final String[] columns = {"Category", "Action", "Shortcut"};
+		final String[] columns = {
+			I18N.t("dialog.keyboard.shortcuts.table.category"),
+			I18N.t("dialog.keyboard.shortcuts.table.action"),
+			I18N.t("dialog.keyboard.shortcuts.table.shortcut")
+		};
 		final Object[][] rows = new Object[shortcuts.size()][];
 		for(int i = 0; i < shortcuts.size(); i ++){
 			final ShortcutRegistry.ShortcutDefinition s = shortcuts.get(i);
@@ -90,7 +96,7 @@ public final class KeyboardShortcutsDialog extends JDialog{
 		final JScrollPane scroll = new JScrollPane(table);
 		scroll.setPreferredSize(new Dimension(700, 520));
 
-		final JButton close = new JButton("Close");
+		final JButton close = new JButton(I18N.t("button.close"));
 		close.addActionListener(e -> dispose());
 
 		final JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT));

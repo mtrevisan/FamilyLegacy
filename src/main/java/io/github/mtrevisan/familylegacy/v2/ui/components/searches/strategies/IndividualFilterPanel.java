@@ -24,8 +24,13 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.components.searches.strategies;
 
+import io.github.mtrevisan.familylegacy.v2.ui.components.SingleDatePanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.RecordFilterPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchCriteria;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.BorderFactory;
@@ -45,26 +50,13 @@ import java.util.function.Consumer;
  */
 public class IndividualFilterPanel extends JPanel implements RecordFilterPanel{
 
-	static final String FILTER_KEY_SEX = "sex";
-	static final String FILTER_KEY_EVENT_TYPE = "eventType";
-	static final String FILTER_KEY_EVENT_DATE_FROM = "dateFrom";
-	static final String FILTER_KEY_EVENT_CALENDAR_FROM = "calendarFrom";
-	static final String FILTER_KEY_EVENT_DATE_TO = "dateTo";
-	static final String FILTER_KEY_EVENT_CALENDAR_TO = "calendarTo";
-	static final String FILTER_KEY_EVENT_LOCATION = "location";
-
-
-	private final JComboBox<String> sexCombo = new JComboBox<>(new String[]{"Any", "male", "female", "unknown"});
-	private final JComboBox<String> eventTypeCombo = new JComboBox<>(new String[]{"Any", "birth", "death", "marriage", "baptism", "burial", "residence"});
+	private final JComboBox<String> sexCombo = new JComboBox<>(GUIHelper.fillCombo(IndividualHandler.SEXES, I18N.t("search.combo.any")));
+	private final JComboBox<String> eventTypeCombo = new JComboBox<>(GUIHelper.fillCombo(EventHandler.TYPES, I18N.t("search.combo.any")));
 	private final JTextField dateFromField = new JTextField(10);
-	private final JComboBox<String> calendarFromCombo = new JComboBox<>(new String[]{
-		"gregorian", "julian", "islamic", "hebrew", "chinese", "indian", "buddhist", "french-republican", "coptic",
-			"soviet eternal", "ethiopian", "mayan"});
+	private final JComboBox<String> calendarFromCombo = new JComboBox<>(SingleDatePanel.CALENDARS);
 	private final JTextField dateToField = new JTextField(10);
-	private final JComboBox<String> calendarToCombo = new JComboBox<>(new String[]{
-		"gregorian", "julian", "islamic", "hebrew", "chinese", "indian", "buddhist", "french-republican", "coptic",
-		"soviet eternal", "ethiopian", "mayan"});
-	private final JTextField locationField = new JTextField(20);
+	private final JComboBox<String> calendarToCombo = new JComboBox<>(SingleDatePanel.CALENDARS);
+	private final JTextField placeField = new JTextField(20);
 
 	private final Consumer<SearchCriteria> onChanged;
 
@@ -80,22 +72,22 @@ public class IndividualFilterPanel extends JPanel implements RecordFilterPanel{
 
 	private void initComponents(){
 		setLayout(new MigLayout("wrap 2,gap 5", "[][grow,fill]", "[]"));
-		setBorder(BorderFactory.createTitledBorder("Event Filters"));
+		setBorder(BorderFactory.createTitledBorder(I18N.tf("dialog.search.filter.title", I18N.t("dialog.component.events"))));
 
-		add(new JLabel("Sex:"));
+		add(new JLabel(I18N.t("dialog.individual.sex") + ":"));
 		add(sexCombo, "growx");
-		add(new JLabel("Event type:"));
+		add(new JLabel(I18N.t("dialog.event.type.extended") + ":"));
 		add(eventTypeCombo, "growx");
-		add(new JLabel("Date from:"));
+		add(new JLabel(I18N.t("search.date.from") + ":"));
 		add(dateFromField, "growx");
-		add(new JLabel("Calendar from:"));
+		add(new JLabel(I18N.t("search.date.calendar.from") + ":"));
 		add(calendarFromCombo, "growx");
-		add(new JLabel("Date to:"));
+		add(new JLabel(I18N.t("search.date.to") + ":"));
 		add(dateToField, "growx");
-		add(new JLabel("Calendar to:"));
+		add(new JLabel(I18N.t("search.date.calendar.to") + ":"));
 		add(calendarToCombo, "growx");
-		add(new JLabel("Location:"));
-		add(locationField, "growx");
+		add(new JLabel(I18N.t("search.place") + ":"));
+		add(placeField, "growx");
 	}
 
 	private void setupListeners(){
@@ -122,10 +114,11 @@ public class IndividualFilterPanel extends JPanel implements RecordFilterPanel{
 
 		dateFromField.getDocument()
 			.addDocumentListener(docListener);
-		// TODO add listener on all calendars
+		calendarFromCombo.addActionListener(e -> fireChanged());
 		dateToField.getDocument()
 			.addDocumentListener(docListener);
-		locationField.getDocument()
+		calendarToCombo.addActionListener(e -> fireChanged());
+		placeField.getDocument()
 			.addDocumentListener(docListener);
 	}
 
@@ -139,13 +132,13 @@ public class IndividualFilterPanel extends JPanel implements RecordFilterPanel{
 	@Override
 	public Map<String, String> getFilters(){
 		final Map<String, String> filters = new HashMap<>();
-		filters.put(FILTER_KEY_SEX, getSex());
-		filters.put(FILTER_KEY_EVENT_TYPE, getEventType());
-		filters.put(FILTER_KEY_EVENT_DATE_FROM, getEventDateFrom());
-		filters.put(FILTER_KEY_EVENT_CALENDAR_FROM, getEventCalendarFrom());
-		filters.put(FILTER_KEY_EVENT_DATE_TO, getEventDateTo());
-		filters.put(FILTER_KEY_EVENT_CALENDAR_TO, getEventCalendarTo());
-		filters.put(FILTER_KEY_EVENT_LOCATION, getEventLocation());
+		filters.put(IndividualHandler.TAG_SEX, getSex());
+		filters.put(EventHandler.TAG_TYPE, getEventType());
+		filters.put(IndividualSearchStrategy.KEY_DATE_FROM, getEventDateFrom());
+		filters.put(IndividualSearchStrategy.KEY_CALENDAR_FROM, getEventCalendarFrom());
+		filters.put(IndividualSearchStrategy.KEY_DATE_TO, getEventDateTo());
+		filters.put(IndividualSearchStrategy.KEY_CALENDAR_TO, getEventCalendarTo());
+		filters.put(EventHandler.TAG_PLACE, getEventPlace());
 		return filters;
 	}
 
@@ -176,8 +169,8 @@ public class IndividualFilterPanel extends JPanel implements RecordFilterPanel{
 		return (String)calendarToCombo.getSelectedItem();
 	}
 
-	public String getEventLocation(){
-		return locationField.getText()
+	public String getEventPlace(){
+		return placeField.getText()
 			.trim();
 	}
 

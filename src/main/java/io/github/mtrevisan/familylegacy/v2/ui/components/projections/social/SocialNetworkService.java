@@ -278,7 +278,7 @@ public final class SocialNetworkService{
 	}
 
 	private SocialEdgeRef buildRelationshipEdge(final FLEFRecord relationship){
-		final String type = FLEFRecordHelper.getChildValue(relationship, TAG_TYPE);
+		final String type = FLEFRecordHelper.getChildValue(relationship, RelationshipHandler.TAG_TYPE);
 		if(type == null || !SOCIAL_RELATIONSHIP_TYPES.contains(type.toLowerCase()))
 			return null;
 
@@ -431,7 +431,7 @@ public final class SocialNetworkService{
 
 		final Map<String, List<FLEFRecord>> relationships = new HashMap<>();
 		for(final FLEFRecord relationship : model.getRecordsByType(RelationshipHandler.TYPE)){
-			final String type = FLEFRecordHelper.getChildValue(relationship, TAG_TYPE);
+			final String type = FLEFRecordHelper.getChildValue(relationship, RelationshipHandler.TAG_TYPE);
 			if(type == null || !SOCIAL_RELATIONSHIP_TYPES.contains(type.toLowerCase()))
 				continue;
 

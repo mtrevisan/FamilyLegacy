@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.structures.PersonalNameStructureDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Window;
@@ -54,7 +55,6 @@ public class PersonalNameHandler extends AbstractRecordTypeHandler<PersonalNameS
 	public static final String TAG_TYPE = "TYPE";
 	public static final String TAG_PART = "PART";
 	public static final String TAG_LOCALE = "LOCALE";
-	// TODO fix missing
 	public static final String TAG_CULTURAL_NORM = "CULTURAL_NORM";
 	public static final String TAG_SOURCE = "SOURCE";
 	public static final String TAG_NOTE = "NOTE";
@@ -81,7 +81,7 @@ public class PersonalNameHandler extends AbstractRecordTypeHandler<PersonalNameS
 
 	@Override
 	public String getLabel(){
-		return "Personal Name Structure";
+		return I18N.t("confirmation.exist.record.personal.name");
 	}
 
 	@Override

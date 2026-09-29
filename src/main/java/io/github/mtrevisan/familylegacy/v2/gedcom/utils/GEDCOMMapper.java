@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.v2.gedcom.utils;
 
+import io.github.mtrevisan.familylegacy.v2.ui.components.SingleDatePanel;
+
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -213,15 +215,15 @@ public final class GEDCOMMapper{
 		// ------------------------------
 		// Century part
 		// ------------------------------
-		CENTURY_PART_MAP.put("FIRST_QUARTER", "first_quarter");
-		CENTURY_PART_MAP.put("SECOND_QUARTER", "second_quarter");
-		CENTURY_PART_MAP.put("THIRD_QUARTER", "third_quarter");
-		CENTURY_PART_MAP.put("FOURTH_QUARTER", "fourth_quarter");
-		CENTURY_PART_MAP.put("FIRST_HALF", "first_half");
-		CENTURY_PART_MAP.put("SECOND_HALF", "second_half");
-		CENTURY_PART_MAP.put("EARLY", "early");
-		CENTURY_PART_MAP.put("MID", "mid");
-		CENTURY_PART_MAP.put("LATE", "late");
+		CENTURY_PART_MAP.put("FIRST_QUARTER", SingleDatePanel.ENUM_PART_FIRST_QUARTER);
+		CENTURY_PART_MAP.put("SECOND_QUARTER", SingleDatePanel.ENUM_PART_SECOND_QUARTER);
+		CENTURY_PART_MAP.put("THIRD_QUARTER", SingleDatePanel.ENUM_PART_THIRD_QUARTER);
+		CENTURY_PART_MAP.put("FOURTH_QUARTER", SingleDatePanel.ENUM_PART_FOURTH_QUARTER);
+		CENTURY_PART_MAP.put("FIRST_HALF", SingleDatePanel.ENUM_PART_FIRST_HALF);
+		CENTURY_PART_MAP.put("SECOND_HALF", SingleDatePanel.ENUM_PART_SECOND_HALF);
+		CENTURY_PART_MAP.put("EARLY", SingleDatePanel.ENUM_PART_EARLY);
+		CENTURY_PART_MAP.put("MID", SingleDatePanel.ENUM_PART_MID);
+		CENTURY_PART_MAP.put("LATE", SingleDatePanel.ENUM_PART_LATE);
 
 		// ------------------------------
 		// Basis for approximate dates

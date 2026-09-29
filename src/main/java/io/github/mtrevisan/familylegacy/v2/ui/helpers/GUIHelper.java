@@ -33,6 +33,7 @@ import io.github.mtrevisan.familylegacy.v2.io.grammar.FLEFGrammarValidator;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -372,7 +373,7 @@ public final class GUIHelper{
 			final JTabbedPane tabbedPane, final JPanel tabbedPanel, final JComponent component){
 		JOptionPane.showMessageDialog(parentComponent,
 			message,
-			"Validation Error", JOptionPane.ERROR_MESSAGE);
+			I18N.t("validation.title"), JOptionPane.ERROR_MESSAGE);
 
 		if(tabbedPane != null && tabbedPanel != null){
 			tabbedPane.requestFocusInWindow();
@@ -383,7 +384,7 @@ public final class GUIHelper{
 
 
 	public static JPanel createButtonPanel(final JDialog dialog, final Runnable save, final Runnable cancel){
-		return createButtonPanel(dialog, "Save", save, "Cancel", cancel);
+		return createButtonPanel(dialog, I18N.t("button.save"), save, I18N.t("button.cancel"), cancel);
 	}
 
 	public static JPanel createButtonPanel(final JDialog dialog, final String saveLabel, final Runnable save,
@@ -425,9 +426,9 @@ public final class GUIHelper{
 
 	public static JPanel createNewSelectCancelButtonPanel(final JRootPane rootPane, final Runnable createNew,
 			final Runnable select, final Runnable cancel){
-		final JButton createNewButton = new JButton("Create New…");
-		final JButton selectButton = new JButton("Select");
-		final JButton cancelButton = new JButton("Cancel");
+		final JButton createNewButton = new JButton(I18N.t("button.create.new"));
+		final JButton selectButton = new JButton(I18N.t("button.select"));
+		final JButton cancelButton = new JButton(I18N.t("button.cancel"));
 
 		final JPanel buttonPanel = new JPanel(new MigLayout("ins 0,fillx", "[left][grow,fill][right]", "[]"));
 		buttonPanel.add(createNewButton, "cell 0 0,left");
@@ -648,11 +649,19 @@ public final class GUIHelper{
 		if(selectedFile == null || !selectedFile.exists()){
 			JOptionPane.showMessageDialog(parentComponent,
 				"Selected file does not exist.",
-				"Error", JOptionPane.ERROR_MESSAGE);
+				I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
 			return null;
 		}
 
 		return selectedFile;
+	}
+
+
+	public static String[] fillCombo(final String[] base, final String addedItem){
+		final List<String> types = new ArrayList<>(List.of(base));
+		types.removeIf(StringUtils::isEmpty);
+		types.addFirst(addedItem);
+		return types.toArray(String[]::new);
 	}
 
 

@@ -29,8 +29,8 @@ import io.github.mtrevisan.familylegacy.v2.ui.bindings.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import net.miginfocom.swing.MigLayout;
-import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JPanel;
 
@@ -64,7 +64,7 @@ public class ResearchQuestionStatusPanel extends JPanel{
 //		buttonCardLayout = new CardLayout();
 //		buttonCardPanel = new JPanel(buttonCardLayout);
 
-//		final JButton closeButton = new JButton("Close");
+//		final JButton closeButton = new JButton(I18N.t("button.close"));
 //		closeButton.setToolTipText("Mark as resolved and set closed date");
 //		closeButton.addActionListener(e -> closeQuestion());
 
@@ -113,11 +113,11 @@ public class ResearchQuestionStatusPanel extends JPanel{
 
 		// Update tooltip
 		final String tooltip = switch(status){
-			case ResearchQuestionHandler.ENUM_STATUS_OPEN -> "Open";
-			case ResearchQuestionHandler.ENUM_STATUS_ON_HOLD -> "On Hold";
-			case ResearchQuestionHandler.ENUM_STATUS_RESOLVED -> "Resolved" + (!closedDate.isEmpty()? " on " + closedDate.getText(): StringUtils.EMPTY);
-			case ResearchQuestionHandler.ENUM_STATUS_DISPROVEN -> "Disproven" + (!closedDate.isEmpty()? " on " + closedDate.getText(): StringUtils.EMPTY);
-			default -> "Unknown";
+			case ResearchQuestionHandler.ENUM_STATUS_OPEN -> I18N.t("dialog.research.question.status.open");
+			case ResearchQuestionHandler.ENUM_STATUS_ON_HOLD -> I18N.t("dialog.research.question.status.on.hold");
+			case ResearchQuestionHandler.ENUM_STATUS_RESOLVED -> I18N.tf("dialog.research.question.status.resolved.on", !closedDate.isEmpty(), closedDate.getText());
+			case ResearchQuestionHandler.ENUM_STATUS_DISPROVEN -> I18N.tf("dialog.research.question.status.disproven.on", !closedDate.isEmpty(), closedDate.getText());
+			default -> I18N.t("dialog.research.question.status.unknown");
 		};
 		statusIcon.setToolTipText(tooltip);
 

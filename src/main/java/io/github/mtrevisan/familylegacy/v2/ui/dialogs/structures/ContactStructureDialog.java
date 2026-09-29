@@ -36,9 +36,12 @@ import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ContactHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ContactNameHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.swing.BorderFactory;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import java.awt.Window;
 
 
@@ -66,12 +69,19 @@ import java.awt.Window;
  */
 public class ContactStructureDialog extends BaseRecordDialog{
 
+	private static final String[] TYPES = {
+		StringUtils.EMPTY,
+		"email", "phone", "mobile", "fax", "website", "blog", "social", "postal", "messaging"
+	};
+
+
 	private final JPanel propertiesPanel;
 
 	private final BoundTextField valueField;
 	private final BoundComboBox<String> typeCombo;
 	private final EntityListPanel namePanel;
 	private final BoundTextArea noteArea;
+	private final JScrollPane noteAreaScroll;
 
 
 	public static ContactStructureDialog createNew(final Window parent, final FLEFModel model){
@@ -89,13 +99,13 @@ public class ContactStructureDialog extends BaseRecordDialog{
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]5[]10[]10[]");
 
 		valueField = new BoundTextField(ContactHandler.TAG_VALUE);
-		typeCombo = new BoundComboBox<>(ContactHandler.TAG_TYPE, new String[]{
-			StringUtils.EMPTY,
-			"email", "phone", "mobile", "fax", "website", "blog", "social", "postal", "messaging"
-		});
-		namePanel = EntityListPanel.createForStructure(ContactHandler.TAG_NAME, this, "Name", model,
+		typeCombo = new BoundComboBox<>(ContactHandler.TAG_TYPE, TYPES);
+		namePanel = EntityListPanel.createForStructure(ContactHandler.TAG_NAME, this, I18N.t("dialog.name.name"), model,
 			ContactNameHandler.class);
 		noteArea = new BoundTextArea(ContactHandler.TAG_NOTE, 3, 25);
+		noteArea.setBorder(BorderFactory.createEmptyBorder(6, 6, 6, 6));
+		noteAreaScroll = new JScrollPane(noteArea);
+		noteAreaScroll.setBorder(BorderFactory.createTitledBorder(I18N.t("dialog.name.note")));
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
@@ -115,16 +125,16 @@ public class ContactStructureDialog extends BaseRecordDialog{
 	@Override
 	protected JPanel createPropertiesPanel(){
 		// address
-		GUIHelper.addLabeledComponent(propertiesPanel, "Value*:", valueField);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.name.value") + "*:", valueField);
 
 		// type
-		GUIHelper.addLabeledComponent(propertiesPanel, "Type:", typeCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.name.type") + ":", typeCombo);
 
 		// name
 		GUIHelper.addComponent(propertiesPanel, namePanel);
 
 		// note
-		GUIHelper.addLabeledComponent(propertiesPanel, "Note", noteArea);
+		GUIHelper.addComponent(propertiesPanel, noteAreaScroll);
 
 		return propertiesPanel;
 	}
@@ -151,7 +161,7 @@ public class ContactStructureDialog extends BaseRecordDialog{
 	protected boolean validData(){
 		if(valueField.isEmpty()){
 			GUIHelper.showValidationErrorAndFocus(this,
-				"Address is required.",
+				I18N.tf("validation.required", I18N.t("dialog.name.value")),
 				tabbedPane, propertiesPanel, valueField);
 
 			return false;

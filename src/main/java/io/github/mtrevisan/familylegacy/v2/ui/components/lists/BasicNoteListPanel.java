@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BindingsHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextArea;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JDialog;
@@ -81,10 +82,10 @@ public class BasicNoteListPanel extends AbstractListPanel<FLEFRecord>{
 			this::editItem, null,
 			this::createNewItem, this::removeItem,
 			builder -> {
-				builder.item("Create New…", this::createNewItem);
+				builder.item(I18N.t("popupmenu.create.new"), this::createNewItem);
 				builder.separator();
-				builder.selectionSensitiveItem("Edit…", this::editItem);
-				builder.selectionSensitiveItem("Remove", this::removeItem);
+				builder.selectionSensitiveItem(I18N.t("popupmenu.edit"), this::editItem);
+				builder.selectionSensitiveItem(I18N.t("popupmenu.remove"), this::removeItem);
 			}
 		);
 	}

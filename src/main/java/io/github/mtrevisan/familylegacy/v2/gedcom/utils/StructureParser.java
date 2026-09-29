@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.v2.gedcom.GEDCOMHelper;
 import io.github.mtrevisan.familylegacy.v2.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.ui.components.EvidenceQualifiersPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventParticipationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
@@ -229,12 +230,10 @@ public class StructureParser{
 		}
 		int year;
 		try{
-			if(isoDate.contains("-")){
-				year = Integer.parseInt(isoDate.split("-")[0]);
-			}
-			else{
+			if(isoDate.contains("-"))
+				year = Integer.parseInt(StringUtils.split(isoDate, '-')[0]);
+			else
 				year = Integer.parseInt(isoDate);
-			}
 		}
 		catch(NumberFormatException e){
 			return "gregorian";
@@ -497,11 +496,11 @@ public class StructureParser{
 			// 2 = Secondary evidence, data officially recorded sometime after event
 			// 3 = Direct and primary evidence used, or by dominance of the evidence
 			String informationType = switch(quayNode.getValue().trim()){
-				case "3" -> "primary";
-				case "2" -> "secondary";
-				default -> "undetermined";
+				case "3" -> EvidenceQualifiersPanel.INFORMATION_TYPE_PRIMARY;
+				case "2" -> EvidenceQualifiersPanel.INFORMATION_TYPE_SECONDARY;
+				default -> EvidenceQualifiersPanel.INFORMATION_TYPE_UNDETERMINED;
 			};
-			evidence.addChild(FLEFRecord.createChildWithTagAndValue("information_type", informationType));
+			evidence.addChild(FLEFRecord.createChildWithTagAndValue(EvidenceQualifiersPanel.TAG_INFORMATION_TYPE, informationType));
 			sourceCitation.addChild(evidence);
 		}
 

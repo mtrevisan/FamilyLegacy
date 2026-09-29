@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.citations.PlaceCitationDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 
 import java.awt.Window;
 
@@ -61,7 +62,7 @@ public class PlaceCitationHandler extends AbstractRecordTypeHandler<PlaceCitatio
 
 	@Override
 	public String getLabel(){
-		return "Place Citation";
+		return I18N.t("confirmation.exist.record.place.citation");
 	}
 
 	@Override
