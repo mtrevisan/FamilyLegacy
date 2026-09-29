@@ -32,13 +32,17 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.BoxPanelType;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.PlaceholderImages;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.SexType;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.NameHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.PersonalNameHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.AsyncResourceLoader;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.ParsedGenealogicalDate;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.ResourceHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.UniversalDateConverter;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,28 +74,12 @@ public final class IndividualData{
 	private static final String DOT = ".";
 	private static final String TAG_PIPE = "|";
 
-	private static final String TAG_NAME = "name";
-	private static final String TAG_PART = "part";
-	private static final String TAG_TYPE = "type";
-	private static final String TAG_SUBJECT = "subject";
-	private static final String TAG_OBJECT = "object";
-	private static final String TAG_VALUE = "value";
-	private static final String TAG_CAUSE = "cause";
-	private static final String TAG_REASON = "reason";
-	private static final String TAG_DATE = "date";
-	private static final String TAG_DATE_VALUE_POINT_FULL_DATE = TAG_DATE + DOT + TAG_VALUE + DOT + DateField.TAG_POINT + DOT + DateField.TAG_FULL_DATE;
-	private static final String TAG_NAME_VALUE = TAG_NAME + DOT + TAG_VALUE;
+	private static final String TAG_DATE_VALUE_POINT_FULL_DATE = EventHandler.TAG_DATE + DOT + DateField.TAG_VALUE + DOT + DateField.TAG_POINT + DOT + DateField.TAG_FULL_DATE;
+	private static final String TAG_NAME_VALUE = IndividualHandler.TAG_NAME + DOT + NameHandler.TAG_VALUE;
 	private static final String TAG_PLACE_PLACE = PlaceHandler.TYPE + DOT + PlaceHandler.TYPE;
-	private static final String TAG_CAUSE_REASON = TAG_CAUSE + DOT + TAG_REASON;
+	private static final String TAG_CAUSE_REASON = EventHandler.TAG_CAUSE + DOT + EventHandler.TAG_REASON;
 	private static final String TAG_PREFERRED_IMAGE_URI = IndividualHandler.TAG_PREFERRED_IMAGE + DOT + PreferredImagePanel.TAG_URI;
 	private static final String TAG_PREFERRED_IMAGE_CROP = IndividualHandler.TAG_PREFERRED_IMAGE + DOT + PreferredImagePanel.TAG_CROP;
-
-	private static final String ENUM_TYPE_ENDS_WITH_CHILD = "_child";
-	private static final String ENUM_TYPE_ENDS_WITH_SPOUSE = "_spouse";
-	private static final String ENUM_TYPE_ENDS_WITH_PARTNER = "_partner";
-
-	private static final String EVENT_TYPE_BIRTH = "birth";
-	private static final String EVENT_TYPE_DEATH = "death";
 
 	private static final String TAG_HTML_OPEN = "<html>";
 	private static final String TAG_HTML_CLOSE = "</html>";
@@ -102,7 +90,6 @@ public final class IndividualData{
 	private static final String LESS_THAN_ABOUT = "< ~";
 	private static final String OPEN_PARENTHESIS = "(";
 	private static final String CLOSE_PARENTHESIS = ")";
-	private static final String YEARS_OLD = "y/o";
 
 	private static final Set<String> EXCLUDED_PART_TYPES = Set.of(
 		"family_nickname",
@@ -161,8 +148,8 @@ public final class IndividualData{
 		// Check for parent relationships
 		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
 		for(final FLEFRecord relationship : relationships){
-			final String subjectId = relationship.extractReferencedId(TAG_SUBJECT, IndividualHandler.TYPE);
-			final String objectId = relationship.extractReferencedId(TAG_OBJECT, IndividualHandler.TYPE);
+			final String subjectId = relationship.extractReferencedId(RelationshipHandler.TAG_SUBJECT, IndividualHandler.TYPE);
+			final String objectId = relationship.extractReferencedId(RelationshipHandler.TAG_OBJECT, IndividualHandler.TYPE);
 			if(subjectId == null || objectId == null || !subjectId.equals(id) && !objectId.equals(id))
 				continue;
 
@@ -186,7 +173,7 @@ public final class IndividualData{
 					if(objectId.equals(id))
 						hasChildren = true;
 				}
-				else if(subjectId.equals(id) && type.endsWith(ENUM_TYPE_ENDS_WITH_CHILD)){
+				else if(subjectId.equals(id) && type.endsWith(RelationshipHandler.ENUM_TYPE_ENDS_WITH_CHILD)){
 					final FLEFRecord target = model.getRecordById(objectId);
 					final SexType targetSex = extractSex(target);
 					if(targetSex == SexType.MALE)
@@ -196,7 +183,8 @@ public final class IndividualData{
 					else
 						hasParents = true;
 				}
-				else if(type.endsWith(ENUM_TYPE_ENDS_WITH_SPOUSE) || type.endsWith(ENUM_TYPE_ENDS_WITH_PARTNER))
+				else if(type.endsWith(RelationshipHandler.ENUM_TYPE_ENDS_WITH_SPOUSE)
+						|| type.endsWith(RelationshipHandler.ENUM_TYPE_ENDS_WITH_PARTNER))
 					// Partner/Spouse relationship (non-child type)
 					hasPartner = true;
 			}
@@ -208,11 +196,11 @@ public final class IndividualData{
 		// extract events
 		final List<EventInfo> events = extractEvents(individual, eventsMap, model);
 		final EventInfo birthInfo = events.stream()
-			.filter(e -> EVENT_TYPE_BIRTH.equals(e.type()) && e.date() != null)
+			.filter(e -> EventHandler.ENUM_TYPE_BIRTH.equals(e.type()) && e.date() != null)
 			.min(Comparator.comparing(e -> e.date().isoDate()))
 			.orElse(null);
 		final EventInfo deathInfo = events.stream()
-			.filter(e -> EVENT_TYPE_DEATH.equals(e.type()) && e.date() != null)
+			.filter(e -> EventHandler.ENUM_TYPE_DEATH.equals(e.type()) && e.date() != null)
 			.max(Comparator.comparing(e -> e.date().isoDate()))
 			.orElse(null);
 
@@ -239,7 +227,7 @@ public final class IndividualData{
 		sj.add(TAG_FIGURE_DASH);
 		sj.add(deathYear);
 		if(age != null)
-			sj.add(OPEN_PARENTHESIS + age + StringUtils.SPACE + YEARS_OLD + CLOSE_PARENTHESIS);
+			sj.add(OPEN_PARENTHESIS + age + StringUtils.SPACE + I18N.t("dialog.individual.years.old.abbreviation") + CLOSE_PARENTHESIS);
 
 		final StringJoiner tooltip = new StringJoiner(StringUtils.EMPTY);
 		final String birthPlace = (birthInfo != null? birthInfo.place(): null);
@@ -358,17 +346,17 @@ public final class IndividualData{
 		if(individual == null || !IndividualHandler.TYPE.equalsIgnoreCase(individual.getTag()))
 			return names;
 
-		for(final FLEFRecord nameStruct : FLEFRecordHelper.findChildren(individual, TAG_NAME)){
+		for(final FLEFRecord nameStruct : FLEFRecordHelper.findChildren(individual, IndividualHandler.TAG_NAME)){
 			final StringBuilder fullName = new StringBuilder();
 
-			for(final FLEFRecord part : FLEFRecordHelper.findChildren(nameStruct, TAG_PART)){
-				final String partType = FLEFRecordHelper.getChildValue(part, TAG_TYPE);
+			for(final FLEFRecord part : FLEFRecordHelper.findChildren(nameStruct, PersonalNameHandler.TAG_PART)){
+				final String partType = FLEFRecordHelper.getChildValue(part, PersonalNameHandler.TAG_TYPE);
 
 				// Skip parts having a type explicitly classified as acquired or contextual
 				if(partType != null && EXCLUDED_PART_TYPES.contains(partType))
 					continue;
 
-				final String value = FLEFRecordHelper.getChildValue(part, TAG_VALUE);
+				final String value = FLEFRecordHelper.getChildValue(part, NameHandler.TAG_VALUE);
 				if(value != null){
 					if(!fullName.isEmpty())
 						fullName.append(' ');
@@ -390,7 +378,7 @@ public final class IndividualData{
 	 * @return a list of events (birth and death, if found)
 	 */
 	private List<EventInfo> extractEvents(final FLEFRecord individual, final Map<String, List<FLEFRecord>> eventsMap,
-		final FLEFModel model){
+			final FLEFModel model){
 		final String individualId = individual.getId();
 		if(individualId == null)
 			return Collections.emptyList();
@@ -401,8 +389,8 @@ public final class IndividualData{
 
 		final List<EventInfo> eventInfos = new ArrayList<>();
 		for(final FLEFRecord event : events){
-			final String type = FLEFRecordHelper.getChildValue(event, TAG_TYPE);
-			if(EVENT_TYPE_BIRTH.equals(type) || EVENT_TYPE_DEATH.equals(type)){
+			final String type = FLEFRecordHelper.getChildValue(event, EventHandler.TAG_TYPE);
+			if(EventHandler.ENUM_TYPE_BIRTH.equals(type) || EventHandler.ENUM_TYPE_DEATH.equals(type)){
 				final EventInfo info = extractEventInfo(event, type, model);
 				if(info != null)
 					eventInfos.add(info);
@@ -429,7 +417,7 @@ public final class IndividualData{
 		if(fullDate == null)
 			return null;
 
-		return FLEFRecordHelper.getChildValue(fullDate, TAG_VALUE);
+		return FLEFRecordHelper.getChildValue(fullDate, DateField.TAG_VALUE);
 	}
 
 	private String extractDateCalendar(final FLEFRecord event){

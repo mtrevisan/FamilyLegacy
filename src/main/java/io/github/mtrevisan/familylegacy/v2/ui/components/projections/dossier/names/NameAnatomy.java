@@ -124,7 +124,7 @@ public record NameAnatomy(
 		if(hasParts()){
 			final StringBuilder sb = new StringBuilder();
 			for(final NamePart part : parts){
-				if(sb.length() > 0)
+				if(!sb.isEmpty())
 					sb.append(' ');
 				sb.append(part.value());
 			}

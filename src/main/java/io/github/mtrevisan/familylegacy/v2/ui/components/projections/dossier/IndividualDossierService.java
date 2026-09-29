@@ -68,10 +68,6 @@ import java.util.Set;
  */
 public final class IndividualDossierService{
 
-	// Record type tags, as defined by the FLEF protocol.
-	private static final String TYPE_INDIVIDUAL = "individual";
-	private static final String TYPE_GROUP = "group";
-
 	// Child tags inside FLEF records.
 	private static final String TAG_TYPE = "type";
 	private static final String TAG_SUBJECT = "subject";
@@ -334,10 +330,10 @@ public final class IndividualDossierService{
 
 	private List<DossierEntry> buildAttributes(final String individualId){
 		final List<DossierEntry> entries = new ArrayList<>();
-		for(final FLEFRecord attribute : model.getRecordsByType(IndividualAttributeHandler.TYPE)){
-			final String ownerId = attribute.extractReferencedId(TAG_SUBJECT, TYPE_INDIVIDUAL);
-			final String resolvedOwner = (ownerId != null? ownerId: extractRef(attribute, "individual"));
-			if(!individualId.equals(resolvedOwner))
+		final List<FLEFRecord> attributes = model.getRecordsByType(IndividualAttributeHandler.TYPE);
+		for(final FLEFRecord attribute : attributes){
+			final String ownerId = FLEFRecordHelper.getChildValue(attribute, IndividualHandler.TYPE);
+			if(!individualId.equals(ownerId))
 				continue;
 
 			entries.add(buildAttributeEntry(attribute));
@@ -434,15 +430,14 @@ public final class IndividualDossierService{
 		final List<DossierEntry> entries = new ArrayList<>();
 		final Set<String> seenSourceIds = new HashSet<>();
 
-		collectSources(individual, "Individual", entries, seenSourceIds);
+		collectSources(individual, IndividualHandler.TYPE, entries, seenSourceIds);
 
 		for(final FLEFRecord event : eventMap.getOrDefault(individualId, List.of()))
 			collectSources(event, "Event", entries, seenSourceIds);
 
 		for(final FLEFRecord attribute : model.getRecordsByType(IndividualAttributeHandler.TYPE)){
-			final String ownerId = attribute.extractReferencedId(TAG_SUBJECT, TYPE_INDIVIDUAL);
-			final String resolvedOwner = (ownerId != null? ownerId: extractRef(attribute, "individual"));
-			if(individualId.equals(resolvedOwner))
+			final String ownerId = FLEFRecordHelper.getChildValue(attribute, IndividualHandler.TYPE);
+			if(individualId.equals(ownerId))
 				collectSources(attribute, "Attribute", entries, seenSourceIds);
 		}
 
@@ -648,15 +643,14 @@ public final class IndividualDossierService{
 	private List<DossierEntry> buildNotes(final FLEFRecord individual, final String individualId){
 		final List<DossierEntry> entries = new ArrayList<>();
 
-		collectNotes(individual, "Individual", entries);
+		collectNotes(individual, IndividualHandler.TYPE, entries);
 
 		for(final FLEFRecord event : eventMap.getOrDefault(individualId, List.of()))
 			collectNotes(event, "Event", entries);
 
 		for(final FLEFRecord attribute : model.getRecordsByType(IndividualAttributeHandler.TYPE)){
-			final String ownerId = attribute.extractReferencedId(TAG_SUBJECT, TYPE_INDIVIDUAL);
-			final String resolvedOwner = (ownerId != null? ownerId: extractRef(attribute, "individual"));
-			if(individualId.equals(resolvedOwner))
+			final String ownerId = FLEFRecordHelper.getChildValue(attribute, IndividualHandler.TYPE);
+			if(individualId.equals(ownerId))
 				collectNotes(attribute, "Attribute", entries);
 		}
 
@@ -844,7 +838,7 @@ public final class IndividualDossierService{
 
 		try{
 			final String tag = record.getTag();
-			if(TYPE_GROUP.equalsIgnoreCase(tag))
+			if(GroupHandler.TYPE.equalsIgnoreCase(tag))
 				return GroupHandler.getInstance().getDisplayText(record, model);
 			return individualHandler.getDisplayText(record, model);
 		}

@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceRelationshipHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ReportDialog;
 import org.apache.commons.lang3.StringUtils;
 
@@ -234,7 +235,7 @@ public final class PlaceHierarchyPanel extends JPanel{
 	private void rebuildRelationTypeModel(){
 		// Start from the declared types, add any custom type found in the
 		// data, and prepend the "All" entry.
-		final Set<String> types = new TreeSet<>(PlaceHierarchyService.DECLARED_RELATION_TYPES);
+		final Set<String> types = new TreeSet<>(List.of(PlaceRelationshipHandler.TYPES));
 		for(final PlaceHierarchyService.PlaceRelation rel : hierarchy.relations())
 			if(rel.relationType() != null && !rel.relationType().isBlank())
 				types.add(rel.relationType());

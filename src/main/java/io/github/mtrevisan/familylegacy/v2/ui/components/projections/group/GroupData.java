@@ -29,6 +29,8 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.components.PreferredImagePanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.BoxPanelType;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.PlaceholderImages;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.NameHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.AsyncResourceLoader;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.ResourceHelper;
 import org.apache.commons.lang3.StringUtils;
@@ -56,14 +58,8 @@ public final class GroupData{
 	private static final String DOT = ".";
 	private static final String TAG_PIPE = "|";
 
-	private static final String TAG_GROUP = "group";
-	private static final String TAG_NAME = "name";
-	private static final String TAG_TYPE = "type";
-	private static final String TAG_VALUE = "value";
-	private static final String TAG_PREFERRED_IMAGE = "preferred_image";
-
-	private static final String TAG_PREFERRED_IMAGE_URI = TAG_PREFERRED_IMAGE + DOT + PreferredImagePanel.TAG_URI;
-	private static final String TAG_PREFERRED_IMAGE_CROP = TAG_PREFERRED_IMAGE + DOT + PreferredImagePanel.TAG_CROP;
+	private static final String TAG_PREFERRED_IMAGE_URI = GroupHandler.TAG_PREFERRED_IMAGE + DOT + PreferredImagePanel.TAG_URI;
+	private static final String TAG_PREFERRED_IMAGE_CROP = GroupHandler.TAG_PREFERRED_IMAGE + DOT + PreferredImagePanel.TAG_CROP;
 
 	private static final String TAG_HTML_OPEN = "<html>";
 	private static final String TAG_HTML_CLOSE = "</html>";
@@ -106,7 +102,7 @@ public final class GroupData{
 			nameTooltip = null;
 		}
 
-		final String rawType = FLEFRecordHelper.getChildValue(group, TAG_TYPE);
+		final String rawType = FLEFRecordHelper.getChildValue(group, GroupHandler.TAG_TYPE);
 		type = (rawType != null? rawType.replace('_', ' '): StringUtils.EMPTY);
 
 		extractPreferredImage(group);
@@ -151,11 +147,11 @@ public final class GroupData{
 
 	private List<String> extractGroupNames(final FLEFRecord group){
 		final List<String> names = new ArrayList<>();
-		if(group == null || !TAG_GROUP.equals(group.getTag()))
+		if(group == null || !GroupHandler.TYPE.equals(group.getTag()))
 			return names;
 
-		for(final FLEFRecord nameStruct : FLEFRecordHelper.findChildren(group, TAG_NAME)){
-			final String val = FLEFRecordHelper.getChildValue(nameStruct, TAG_VALUE);
+		for(final FLEFRecord nameStruct : FLEFRecordHelper.findChildren(group, GroupHandler.TAG_NAME)){
+			final String val = FLEFRecordHelper.getChildValue(nameStruct, NameHandler.TAG_VALUE);
 			if(StringUtils.isNotEmpty(val))
 				names.add(val.trim());
 			else if(StringUtils.isNotEmpty(nameStruct.getValue()))

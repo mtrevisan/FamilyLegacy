@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.projections.places;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NameHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceRelationshipHandler;
@@ -72,23 +73,6 @@ import java.util.Set;
  * on cycles.
  */
 public final class PlaceHierarchyService{
-
-	private static final String TAG_VALUE = "value";
-
-
-	/**
-	 * The relation types declared by the protocol. Used by the panel to
-	 * build the filter combo; custom types present in the data are added
-	 * to the list dynamically.
-	 */
-	public static final List<String> DECLARED_RELATION_TYPES = List.of(
-		"administrative_part_of",
-		"geographic_part_of",
-		"ecclesiastical_part_of",
-		"judicial_part_of",
-		"cadastral_part_of"
-	);
-
 
 	/** A minimal, immutable view of a {@code PlaceRecord}. */
 	public record PlaceReference(String id, String name, String type, String coordinates){
@@ -208,6 +192,7 @@ public final class PlaceHierarchyService{
 		final String id = record.getId();
 		if(id == null)
 			return null;
+
 		final String name = extractName(record);
 		final String type = FLEFRecordHelper.getChildValue(record, PlaceHandler.TAG_TYPE);
 		final String coordinates = extractCoordinates(record);
@@ -225,9 +210,11 @@ public final class PlaceHierarchyService{
 		for(final FLEFRecord child : place.getChildren()){
 			if(!PlaceHandler.TAG_NAME.equalsIgnoreCase(child.getTag()))
 				continue;
+
 			final String value = FLEFRecordHelper.getChildValue(child, NameHandler.TAG_VALUE);
 			if(value != null && !value.isBlank())
 				return value;
+
 			final FLEFRecord onlyChild = child.getTheOnlyChild();
 			if(onlyChild != null && onlyChild.getValue() != null && !onlyChild.getValue().isBlank())
 				return onlyChild.getValue();
@@ -243,6 +230,7 @@ public final class PlaceHierarchyService{
 		final FLEFRecord map = FLEFRecordHelper.findChild(place, PlaceHandler.TAG_MAP);
 		if(map == null)
 			return null;
+
 		return FLEFRecordHelper.getChildValue(map, PlaceHandler.TAG_COORDINATES);
 	}
 
@@ -252,6 +240,7 @@ public final class PlaceHierarchyService{
 		final String childId = record.extractReferencedId(PlaceRelationshipHandler.TAG_OBJECT, PlaceHandler.TYPE);
 		if(parentId == null || childId == null)
 			return null;
+
 		// Both endpoints must resolve to a place that exists in the model.
 		// A relation that points to a missing place is ignored: it would
 		// produce a dangling edge in the tree.
@@ -274,9 +263,11 @@ public final class PlaceHierarchyService{
 		final FLEFRecord dateStruct = FLEFRecordHelper.findChild(record, tag);
 		if(dateStruct == null)
 			return null;
-		final String value = FLEFRecordHelper.getChildValue(dateStruct, TAG_VALUE);
+
+		final String value = FLEFRecordHelper.getChildValue(dateStruct, DateField.TAG_VALUE);
 		if(value != null)
 			return value;
+
 		final FLEFRecord onlyChild = dateStruct.getTheOnlyChild();
 		return (onlyChild != null? onlyChild.getValue(): null);
 	}
@@ -295,6 +286,7 @@ public final class PlaceHierarchyService{
 			final String id = stack.pop();
 			if(!reachable.add(id))
 				continue;
+
 			for(final PlaceRelation rel : outgoing.getOrDefault(id, List.of()))
 				stack.push(rel.childId());
 		}
@@ -308,7 +300,8 @@ public final class PlaceHierarchyService{
 		final String na = (ra != null? ra.name(): a);
 		final String nb = (rb != null? rb.name(): b);
 		return String.CASE_INSENSITIVE_ORDER.compare(
-			(na != null? na: StringUtils.EMPTY), (nb != null? nb: StringUtils.EMPTY));
+			(na != null? na: StringUtils.EMPTY),
+			(nb != null? nb: StringUtils.EMPTY));
 	}
 
 }

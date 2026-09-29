@@ -58,8 +58,6 @@ import java.util.Set;
  */
 public final class GroupDossierService{
 
-	private static final String TYPE_GROUP = "group";
-
 	private static final String TAG_TYPE = "type";
 	private static final String TAG_SUBJECT = "subject";
 	private static final String TAG_OBJECT = "object";
@@ -125,7 +123,7 @@ public final class GroupDossierService{
 			return GroupDossier.empty();
 
 		final FLEFRecord group = model.getRecordById(groupId);
-		if(group == null || !TYPE_GROUP.equalsIgnoreCase(group.getTag()))
+		if(group == null || !GroupHandler.TYPE.equalsIgnoreCase(group.getTag()))
 			return GroupDossier.empty();
 
 		final String displayName = resolveGroupName(group);

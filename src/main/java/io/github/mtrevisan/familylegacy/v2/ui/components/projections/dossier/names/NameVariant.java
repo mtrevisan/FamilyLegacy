@@ -90,11 +90,11 @@ public record NameVariant(String kind, String system, String type, String value)
 		if(!system.isEmpty())
 			sb.append(system);
 		if(!type.isEmpty()){
-			if(sb.length() > 0)
+			if(!sb.isEmpty())
 				sb.append(" / ");
 			sb.append(type);
 		}
-		if(sb.length() == 0)
+		if(sb.isEmpty())
 			sb.append(kind);
 		return sb.toString();
 	}

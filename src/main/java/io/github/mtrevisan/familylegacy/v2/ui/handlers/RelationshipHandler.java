@@ -66,6 +66,9 @@ public class RelationshipHandler extends AbstractRecordTypeHandler<RelationshipR
 	public static final String ENUM_TYPE_GROUP_MEMBER = "group_member";
 	public static final String ENUM_TYPE_ASSOCIATE = "associate";
 	public static final String ENUM_TYPE_PART_OF = "part_of";
+	public static final String ENUM_TYPE_ENDS_WITH_CHILD = "_child";
+	public static final String ENUM_TYPE_ENDS_WITH_SPOUSE = "_spouse";
+	public static final String ENUM_TYPE_ENDS_WITH_PARTNER = "_partner";
 	public static final String[] TYPES = new String[]{
 		StringUtils.EMPTY,
 		ENUM_TYPE_BIOLOGICAL_CHILD, ENUM_TYPE_ADOPTIVE_CHILD, ENUM_TYPE_FOSTER_CHILD, ENUM_TYPE_GUARDED_CHILD,
