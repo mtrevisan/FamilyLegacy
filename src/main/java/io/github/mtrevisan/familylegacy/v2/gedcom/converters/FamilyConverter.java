@@ -369,7 +369,7 @@ public class FamilyConverter{
 				.addChild(FLEFRecord.createChildWithTagAndValue("individual", childId)))
 			.addChild(FLEFRecord.createChildWithTag("object")
 				.addChild(FLEFRecord.createChildWithTagAndValue("individual", parentId)))
-			.addChild(FLEFRecord.createChildWithTagAndValue("type", "biological_child"))
+			.addChild(FLEFRecord.createChildWithTagAndValue("type", RelationshipHandler.ENUM_TYPE_BIOLOGICAL_CHILD))
 			.addChild(FLEFRecord.createChildWithTagAndValue("status", "active"))
 			.addChild(FLEFRecord.createChildWithTag("audit")
 				.addChild(FLEFRecord.createChildWithTag("creation")

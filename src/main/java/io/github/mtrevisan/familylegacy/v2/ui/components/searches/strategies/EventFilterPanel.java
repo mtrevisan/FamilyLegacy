@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.v2.ui.components.searches.strategies;
 
 import io.github.mtrevisan.familylegacy.v2.ui.components.SingleDatePanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.RecordFilterPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchCriteria;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
@@ -49,20 +50,11 @@ import java.util.function.Consumer;
  */
 public class EventFilterPanel extends JPanel implements RecordFilterPanel{
 
-	static final String FILTER_KEY_EVENT_TYPE = "eventType";
-	static final String FILTER_KEY_DESCRIPTION = "description";
-	static final String FILTER_KEY_DATE = "date";
-	static final String FILTER_KEY_CALENDAR = "calendar";
-	static final String FILTER_KEY_LOCATION = "location";
-	static final String FILTER_KEY_AGENCY = "agency";
-	static final String FILTER_KEY_CAUSE_REASON = "causeReason";
-
-
 	private final JComboBox<String> typeCombo = new JComboBox<>(GUIHelper.fillCombo(EventHandler.TYPES, I18N.t("search.combo.any")));
 	private final JTextField descriptionField = new JTextField(20);
 	private final JTextField dateField = new JTextField(10);
 	private final JComboBox<String> calendarCombo = new JComboBox<>(SingleDatePanel.CALENDARS);
-	private final JTextField locationField = new JTextField(20);
+	private final JTextField placeField = new JTextField(20);
 	private final JTextField agencyField = new JTextField(20);
 	private final JTextField causeReasonField = new JTextField(20);
 
@@ -80,21 +72,21 @@ public class EventFilterPanel extends JPanel implements RecordFilterPanel{
 
 	private void initComponents(){
 		setLayout(new MigLayout("wrap 2,gap 5", "[][grow,fill]", "[]"));
-		setBorder(BorderFactory.createTitledBorder("Event Filters"));
+		setBorder(BorderFactory.createTitledBorder(I18N.tf("dialog.search.filter.title", I18N.t("dialog.component.event"))));
 
-		add(new JLabel("Type:"));
+		add(new JLabel(I18N.t("dialog.event.type") + ":"));
 		add(typeCombo, "growx");
-		add(new JLabel("Description:"));
+		add(new JLabel(I18N.t("dialog.event.description") + ":"));
 		add(descriptionField, "growx");
-		add(new JLabel("Date:"));
+		add(new JLabel(I18N.t("dialog.event.date") + ":"));
 		add(dateField, "growx");
-		add(new JLabel("Calendar:"));
+		add(new JLabel(I18N.t("dialog.date.calendar") + ":"));
 		add(calendarCombo, "growx");
-		add(new JLabel("Location:"));
-		add(locationField, "growx");
-		add(new JLabel("Agency:"));
+		add(new JLabel(I18N.t("dialog.place") + ":"));
+		add(placeField, "growx");
+		add(new JLabel(I18N.t("dialog.event.agency") + ":"));
 		add(agencyField, "growx");
-		add(new JLabel("Cause reason:"));
+		add(new JLabel(I18N.t("dialog.event.cause.reason") + ":"));
 		add(causeReasonField, "growx");
 	}
 
@@ -122,7 +114,7 @@ public class EventFilterPanel extends JPanel implements RecordFilterPanel{
 			.addDocumentListener(docListener);
 		dateField.getDocument()
 			.addDocumentListener(docListener);
-		locationField.getDocument()
+		placeField.getDocument()
 			.addDocumentListener(docListener);
 		agencyField.getDocument()
 			.addDocumentListener(docListener);
@@ -138,13 +130,13 @@ public class EventFilterPanel extends JPanel implements RecordFilterPanel{
 	@Override
 	public Map<String, String> getFilters(){
 		final Map<String, String> filters = new HashMap<>();
-		filters.put(FILTER_KEY_EVENT_TYPE, getEventType());
-		filters.put(FILTER_KEY_DESCRIPTION, getDescription());
-		filters.put(FILTER_KEY_DATE, getDate());
-		filters.put(FILTER_KEY_CALENDAR, getCalendar());
-		filters.put(FILTER_KEY_LOCATION, getPlace());
-		filters.put(FILTER_KEY_AGENCY, getAgency());
-		filters.put(FILTER_KEY_CAUSE_REASON, getCauseReason());
+		filters.put(EventHandler.TAG_TYPE, getEventType());
+		filters.put(EventHandler.TAG_DESCRIPTION, getDescription());
+		filters.put(EventHandler.TAG_DATE, getDate());
+		filters.put(DateField.TAG_CALENDAR, getCalendar());
+		filters.put(EventHandler.TAG_PLACE, getPlace());
+		filters.put(EventHandler.TAG_AGENCY, getAgency());
+		filters.put(EventHandler.TAG_REASON, getCauseReason());
 		return filters;
 	}
 
@@ -167,7 +159,7 @@ public class EventFilterPanel extends JPanel implements RecordFilterPanel{
 	}
 
 	public String getPlace(){
-		return locationField.getText()
+		return placeField.getText()
 			.trim();
 	}
 

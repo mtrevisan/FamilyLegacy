@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventParticipationHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.reports.index.KinshipResolver;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.reports.index.RelationIndex;
 import org.apache.commons.lang3.StringUtils;
@@ -420,7 +421,7 @@ final class IndividualNarrator{
 		for(final RelationIndex.ParentEdge edge : idx.parentEdgesOf(child))
 			if(edge.parent().getId().equals(parent.getId()))
 				return edge.relationshipType();
-		return "biological_child";
+		return RelationshipHandler.ENUM_TYPE_BIOLOGICAL_CHILD;
 	}
 
 	/**

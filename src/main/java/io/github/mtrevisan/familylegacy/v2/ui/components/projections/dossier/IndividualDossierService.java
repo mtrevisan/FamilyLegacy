@@ -85,7 +85,6 @@ public final class IndividualDossierService{
 	private static final String TAG_LOCATOR = "locator";
 	private static final String TAG_EVIDENCE = "evidence";
 	private static final String TAG_NAME = "name";
-	private static final String TAG_SEX = "sex";
 	private static final String TAG_STATUS = "status";
 	private static final String TAG_CONTEXT = "context";
 	private static final String TAG_IMPACT_TYPE = "impact_type";
@@ -223,7 +222,7 @@ public final class IndividualDossierService{
 		}
 
 		// Sex.
-		final String sex = FLEFRecordHelper.getChildValue(individual, TAG_SEX);
+		final String sex = FLEFRecordHelper.getChildValue(individual, IndividualHandler.TAG_SEX);
 		if(StringUtils.isNotEmpty(sex))
 			entries.add(DossierEntry.of("Sex", sex, individual));
 

@@ -120,6 +120,7 @@ public class NameStructureDialog extends BaseRecordDialog{
 
 		valueField = new BoundTextField(NameHandler.TAG_VALUE);
 		typeCombo = new BoundComboBox<>(NameHandler.TAG_TYPE, TYPES);
+		typeCombo.setI18NPrefix("enum.name.type");
 		typeCombo.setEditable(true);
 		variantPanel = new TextValueVariantListPanel(NameHandler.TAG_VARIANT, this, I18N.t("dialog.name.variant"), model);
 		localeCombo = new BoundFilteredComboBox<>(NameHandler.TAG_LOCALE, LocaleHelper.getAvailableLanguageTags());

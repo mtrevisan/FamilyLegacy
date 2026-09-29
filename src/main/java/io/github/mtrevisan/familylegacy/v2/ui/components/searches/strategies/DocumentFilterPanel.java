@@ -48,11 +48,6 @@ import java.util.function.Consumer;
  */
 public class DocumentFilterPanel extends JPanel implements RecordFilterPanel{
 
-	static final String FILTER_KEY_DESCRIPTION = "description";
-	static final String FILTER_KEY_MAPPING = "mapping";
-	static final String FILTER_KEY_URI = "uri";
-
-
 	private final JTextField descriptionField = new JTextField(20);
 	private final JComboBox<String> mappingCombo = new JComboBox<>(GUIHelper.fillCombo(DocumentHandler.MAPPINGS, I18N.t("search.combo.any")));
 	private final JTextField uriField = new JTextField(20);
@@ -71,13 +66,13 @@ public class DocumentFilterPanel extends JPanel implements RecordFilterPanel{
 
 	private void initComponents(){
 		setLayout(new MigLayout("wrap 2,gap 5", "[][grow,fill]", "[]"));
-		setBorder(BorderFactory.createTitledBorder("Document Filters"));
+		setBorder(BorderFactory.createTitledBorder(I18N.tf("dialog.search.filter.title", I18N.t("dialog.component.document"))));
 
-		add(new JLabel("Description:"));
+		add(new JLabel(I18N.t("dialog.document.description") + ":"));
 		add(descriptionField, "growx");
-		add(new JLabel("Mapping:"));
+		add(new JLabel(I18N.t("dialog.document.mapping") + ":"));
 		add(mappingCombo, "growx");
-		add(new JLabel("URI / Path:"));
+		add(new JLabel(I18N.t("dialog.document.uri") + ":"));
 		add(uriField, "growx");
 	}
 
@@ -115,9 +110,9 @@ public class DocumentFilterPanel extends JPanel implements RecordFilterPanel{
 	@Override
 	public Map<String, String> getFilters(){
 		final Map<String, String> filters = new HashMap<>();
-		filters.put(FILTER_KEY_DESCRIPTION, getDescription());
-		filters.put(FILTER_KEY_MAPPING, getMapping());
-		filters.put(FILTER_KEY_URI, getUri());
+		filters.put(DocumentHandler.TAG_DESCRIPTION, getDescription());
+		filters.put(DocumentHandler.TAG_MAPPING, getMapping());
+		filters.put(DocumentHandler.TAG_URI, getUri());
 		return filters;
 	}
 

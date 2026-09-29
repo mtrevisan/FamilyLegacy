@@ -112,6 +112,7 @@ public class IndividualAttributeRecordDialog extends BaseRecordDialog{
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]5[]10[]10[]10[]");
 
 		typeCombo = new BoundComboBox<>(IndividualAttributeHandler.TAG_TYPE, IndividualAttributeHandler.TYPES);
+		typeCombo.setI18NPrefix("enum.individual.attribute.type");
 		typeCombo.setEditable(true);
 		valueField = new BoundTextField(IndividualAttributeHandler.TAG_VALUE);
 		validFromField = DateField.createWithWrapperTag(IndividualAttributeHandler.TAG_VALID_FROM, this, I18N.t("dialog.valid.from"), model);

@@ -107,6 +107,7 @@ public class SourceRecordDialog extends BaseRecordDialog{
 		placeField = EntityField.createForStructureWithReference(PlaceHandler.TYPE, this, model,
 			PlaceCitationHandler.class);
 		mediaTypeCombo = new BoundComboBox<>(SourceHandler.TAG_MEDIA_TYPE, SourceHandler.MEDIA_TYPES);
+		mediaTypeCombo.setI18NPrefix("enum.source.media.type");
 		mediaTypeCombo.setEditable(true);
 
 		components = new RecordDialogBuilder(this, model, record)

@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.searches.RecordFilterPa
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchCriteria;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HistoricEventHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import net.miginfocom.swing.MigLayout;
 
@@ -50,22 +51,7 @@ import java.util.function.Consumer;
  */
 public class HistoricEventFilterPanel extends JPanel implements RecordFilterPanel{
 
-	private final JComboBox<String> typeCombo = new JComboBox<>(new String[]
-		"Any",
-		"war",
-		"epidemic",
-		"famine",
-		"migration",
-		"legal_reform",
-		"political_change",
-		"territorial_change",
-		"natural_disaster",
-		"economic_crisis",
-		"scientific_discovery",
-		"religious_reform",
-		"social_movement",
-		"pandemic"
-	});
+	private final JComboBox<String> typeCombo = new JComboBox<>(GUIHelper.fillCombo(HistoricEventHandler.TYPES, I18N.t("search.combo.any")));
 	private final JTextField titleField = new JTextField(20);
 	private final JTextField dateField = new JTextField(10);
 	private final JComboBox<String> calendarCombo = new JComboBox<>(SingleDatePanel.CALENDARS);
@@ -85,17 +71,17 @@ public class HistoricEventFilterPanel extends JPanel implements RecordFilterPane
 
 	private void initComponents(){
 		setLayout(new MigLayout("wrap 2,gap 5", "[][grow,fill]", "[]"));
-		setBorder(BorderFactory.createTitledBorder(I18N.tf("dialog.search.filter.title", I18N.t("dialog.component.historic.events"))));
+		setBorder(BorderFactory.createTitledBorder(I18N.tf("dialog.search.filter.title", I18N.t("dialog.component.historic.event"))));
 
-		add(new JLabel("Type:"));
+		add(new JLabel(I18N.t("dialog.historic.event.type") + ":"));
 		add(typeCombo, "growx");
-		add(new JLabel("Title:"));
+		add(new JLabel(I18N.t("dialog.historic.event.title") + ":"));
 		add(titleField, "growx");
-		add(new JLabel("Date:"));
+		add(new JLabel(I18N.t("dialog.historic.event.date") + ":"));
 		add(dateField, "growx");
-		add(new JLabel("Calendar from:"));
+		add(new JLabel(I18N.t("search.date.calendar.from") + ":"));
 		add(calendarCombo, "growx");
-		add(new JLabel("Place:"));
+		add(new JLabel(I18N.t("dialog.place") + ":"));
 		add(locationField, "growx");
 	}
 

@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.projections.places;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.NameHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceRelationshipHandler;
 import org.apache.commons.lang3.StringUtils;
@@ -72,16 +73,8 @@ import java.util.Set;
  */
 public final class PlaceHierarchyService{
 
-	private static final String TAG_SUBJECT = "subject";
-	private static final String TAG_TARGET = "target";
-	private static final String TAG_PLACE = "place";
-	private static final String TAG_NAME = "name";
 	private static final String TAG_VALUE = "value";
-	private static final String TAG_TYPE = "type";
-	private static final String TAG_MAP = "map";
-	private static final String TAG_COORDINATES = "coordinates";
-	private static final String TAG_VALID_FROM = "valid_from";
-	private static final String TAG_VALID_TO = "valid_to";
+
 
 	/**
 	 * The relation types declared by the protocol. Used by the panel to
@@ -216,7 +209,7 @@ public final class PlaceHierarchyService{
 		if(id == null)
 			return null;
 		final String name = extractName(record);
-		final String type = FLEFRecordHelper.getChildValue(record, TAG_TYPE);
+		final String type = FLEFRecordHelper.getChildValue(record, PlaceHandler.TAG_TYPE);
 		final String coordinates = extractCoordinates(record);
 		return new PlaceReference(id, name, type, coordinates);
 	}
@@ -230,9 +223,9 @@ public final class PlaceHierarchyService{
 	 */
 	private static String extractName(final FLEFRecord place){
 		for(final FLEFRecord child : place.getChildren()){
-			if(!TAG_NAME.equalsIgnoreCase(child.getTag()))
+			if(!PlaceHandler.TAG_NAME.equalsIgnoreCase(child.getTag()))
 				continue;
-			final String value = FLEFRecordHelper.getChildValue(child, TAG_VALUE);
+			final String value = FLEFRecordHelper.getChildValue(child, NameHandler.TAG_VALUE);
 			if(value != null && !value.isBlank())
 				return value;
 			final FLEFRecord onlyChild = child.getTheOnlyChild();
@@ -247,16 +240,16 @@ public final class PlaceHierarchyService{
 	 * {@code map.coordinates} structure, or {@code null} when missing.
 	 */
 	private static String extractCoordinates(final FLEFRecord place){
-		final FLEFRecord map = FLEFRecordHelper.findChild(place, TAG_MAP);
+		final FLEFRecord map = FLEFRecordHelper.findChild(place, PlaceHandler.TAG_MAP);
 		if(map == null)
 			return null;
-		return FLEFRecordHelper.getChildValue(map, TAG_COORDINATES);
+		return FLEFRecordHelper.getChildValue(map, PlaceHandler.TAG_COORDINATES);
 	}
 
 	private static PlaceRelation toPlaceRelation(final FLEFRecord record,
-		final Map<String, PlaceReference> places){
-		final String parentId = record.extractReferencedId(TAG_SUBJECT, TAG_PLACE);
-		final String childId = record.extractReferencedId(TAG_TARGET, TAG_PLACE);
+			final Map<String, PlaceReference> places){
+		final String parentId = record.extractReferencedId(PlaceRelationshipHandler.TAG_SUBJECT, PlaceHandler.TYPE);
+		final String childId = record.extractReferencedId(PlaceRelationshipHandler.TAG_OBJECT, PlaceHandler.TYPE);
 		if(parentId == null || childId == null)
 			return null;
 		// Both endpoints must resolve to a place that exists in the model.
@@ -265,9 +258,9 @@ public final class PlaceHierarchyService{
 		if(!places.containsKey(parentId) || !places.containsKey(childId))
 			return null;
 
-		final String relationType = FLEFRecordHelper.getChildValue(record, TAG_TYPE);
-		final String validFrom = extractDateValue(record, TAG_VALID_FROM);
-		final String validTo = extractDateValue(record, TAG_VALID_TO);
+		final String relationType = FLEFRecordHelper.getChildValue(record, PlaceRelationshipHandler.TAG_TYPE);
+		final String validFrom = extractDateValue(record, PlaceRelationshipHandler.TAG_VALID_FROM);
+		final String validTo = extractDateValue(record, PlaceRelationshipHandler.TAG_VALID_TO);
 		return new PlaceRelation(record.getId(), parentId, childId,
 			relationType, validFrom, validTo);
 	}

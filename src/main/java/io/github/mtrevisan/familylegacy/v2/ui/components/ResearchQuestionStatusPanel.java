@@ -55,9 +55,8 @@ public class ResearchQuestionStatusPanel extends JPanel{
 		statusIcon = new StatusIconLabel();
 
 		// Status combo
-		statusCombo = new BoundComboBox<>(ResearchQuestionHandler.TAG_STATUS, new String[]{
-			ResearchQuestionHandler.ENUM_STATUS_OPEN, ResearchQuestionHandler.ENUM_STATUS_ON_HOLD,
-			ResearchQuestionHandler.ENUM_STATUS_RESOLVED, ResearchQuestionHandler.ENUM_STATUS_DISPROVEN});
+		statusCombo = new BoundComboBox<>(ResearchQuestionHandler.TAG_STATUS, ResearchQuestionHandler.STATUSES);
+		statusCombo.setI18NPrefix("enum.research.question.status");
 		statusCombo.setSelectedItem(ResearchQuestionHandler.ENUM_STATUS_OPEN);
 
 		// Button card panel with Close and Reopen buttons (same position)

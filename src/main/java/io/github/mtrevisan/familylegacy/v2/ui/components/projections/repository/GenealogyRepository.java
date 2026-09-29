@@ -51,13 +51,6 @@ import java.util.function.Predicate;
  */
 public class GenealogyRepository{
 
-	private static final String TAG_TYPE = "type";
-	private static final String TAG_SUBJECT = "subject";
-	private static final String TAG_OBJECT = "object";
-	private static final String TAG_PARTICIPANT = "participant";
-	private static final String TAG_EVENT = "event";
-
-
 	private final FLEFModel model;
 	private final String[] relationshipAllowedTypes;
 	private final Predicate<String> relationshipTypeFilter;
@@ -141,7 +134,7 @@ public class GenealogyRepository{
 	}
 
 	private void indexEventParticipation(final FLEFRecord eventParticipation){
-		final FLEFRecord participant = FLEFRecordHelper.findChild(eventParticipation, TAG_PARTICIPANT);
+		final FLEFRecord participant = FLEFRecordHelper.findChild(eventParticipation, EventParticipationHandler.TAG_PARTICIPANT);
 		if(participant == null)
 			return;
 
@@ -153,7 +146,7 @@ public class GenealogyRepository{
 		if(individualId == null)
 			return;
 
-		final String eventId = FLEFRecordHelper.getChildValue(eventParticipation, TAG_EVENT);
+		final String eventId = FLEFRecordHelper.getChildValue(eventParticipation, EventParticipationHandler.TAG_EVENT);
 		if(eventId == null)
 			return;
 

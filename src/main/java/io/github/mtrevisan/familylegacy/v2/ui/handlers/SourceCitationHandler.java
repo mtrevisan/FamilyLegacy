@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.citations.SourceCitationDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
+import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Window;
 
@@ -46,6 +47,14 @@ public class SourceCitationHandler extends AbstractRecordTypeHandler<SourceCitat
 	public static final String TAG_EXTRACT = "EXTRACT";
 	public static final String TAG_EVIDENCE = "EVIDENCE";
 	public static final String TAG_PRIVACY = "PRIVACY";
+
+	public static final String[] TYPES = {
+		StringUtils.EMPTY,
+		"verbatim",
+		"summarized",
+		"translated",
+		"normalized"
+	};
 
 
 	private static final class SingletonHelper{

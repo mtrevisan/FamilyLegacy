@@ -114,11 +114,13 @@ public class ContextImpactRecordDialog extends BaseRecordDialog{
 				IdentityHypothesisHandler.class);
 
 		impactTypeCombo = new BoundComboBox<>(ContextImpactHandler.TAG_IMPACT_TYPE, ContextImpactHandler.IMPACT_TYPES);
+		impactTypeCombo.setI18NPrefix("enum.context.impact.type");
 		impactTypeCombo.setEditable(true);
 
 		rationaleArea = new BoundTextArea(ContextImpactHandler.TAG_RATIONALE, 3, 30);
 
 		confidenceCombo = new BoundComboBox<>(ContextImpactHandler.TAG_CONFIDENCE, ContextImpactHandler.CONFIDENCES);
+		confidenceCombo.setI18NPrefix("enum.confidence");
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)

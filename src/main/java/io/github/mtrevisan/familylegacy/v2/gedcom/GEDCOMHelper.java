@@ -968,7 +968,7 @@ public class GEDCOMHelper{
 			.addChild(FLEFRecord.createChildWithTag("object")
 				.addChild(FLEFRecord.createChildWithTagAndValue(objectTag, objectXrefId))
 			)
-			.addChild(FLEFRecord.createChildWithTagAndValue("type", (node.getTag().equalsIgnoreCase("ADOP")? "adoptive_child": "biological_child")))
+			.addChild(FLEFRecord.createChildWithTagAndValue("type", (node.getTag().equalsIgnoreCase("ADOP")? RelationshipHandler.ENUM_TYPE_ADOPTIVE_CHILD: RelationshipHandler.ENUM_TYPE_BIOLOGICAL_CHILD)))
 			.addChild(AuditBuilder.build(node));
 
 		// ---- Notes (GEDCOM NOTE) – inline structs ----

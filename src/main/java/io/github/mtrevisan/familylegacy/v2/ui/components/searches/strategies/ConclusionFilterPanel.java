@@ -26,6 +26,9 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.searches.strategies;
 
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.RecordFilterPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchCriteria;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.BorderFactory;
@@ -45,20 +48,8 @@ import java.util.function.Consumer;
  */
 public class ConclusionFilterPanel extends JPanel implements RecordFilterPanel{
 
-	static final String FILTER_KEY_ISSUE = "issue";
-	static final String FILTER_KEY_PROOF_STATUS = "proofStatus";
-	static final String FILTER_KEY_NARRATIVE = "narrative";
-	static final String FILTER_KEY_RESEARCH_QUESTION = "researchQuestion";
-
-
 	private final JTextField issueField = new JTextField(20);
-	private final JComboBox<String> proofStatusCombo = new JComboBox<>(new String[]{
-		"Any",
-		"conflicting_evidence",
-		"supported",
-		"proven",
-		"disproven"
-	});
+	private final JComboBox<String> proofStatusCombo = new JComboBox<>(GUIHelper.fillCombo(ConclusionHandler.PROOF_STATUSES, I18N.t("search.combo.any")));
 	private final JTextField narrativeField = new JTextField(20);
 	private final JTextField researchQuestionField = new JTextField(20);
 
@@ -76,15 +67,15 @@ public class ConclusionFilterPanel extends JPanel implements RecordFilterPanel{
 
 	private void initComponents(){
 		setLayout(new MigLayout("wrap 2,gap 5", "[][grow,fill]", "[]"));
-		setBorder(BorderFactory.createTitledBorder("Conclusion Filters"));
+		setBorder(BorderFactory.createTitledBorder(I18N.tf("dialog.search.filter.title", I18N.t("dialog.component.conclusion"))));
 
-		add(new JLabel("Issue:"));
+		add(new JLabel(I18N.t("dialog.conclusion.issue") + ":"));
 		add(issueField, "growx");
-		add(new JLabel("Proof status:"));
+		add(new JLabel(I18N.t("dialog.conclusion.proof.status") + ":"));
 		add(proofStatusCombo, "growx");
-		add(new JLabel("Narrative:"));
+		add(new JLabel(I18N.t("dialog.conclusion.narrative") + ":"));
 		add(narrativeField, "growx");
-		add(new JLabel("Research question:"));
+		add(new JLabel(I18N.t("dialog.conclusion.research.question") + "Research question:"));
 		add(researchQuestionField, "growx");
 	}
 
@@ -124,10 +115,10 @@ public class ConclusionFilterPanel extends JPanel implements RecordFilterPanel{
 	@Override
 	public Map<String, String> getFilters(){
 		final Map<String, String> filters = new HashMap<>();
-		filters.put(FILTER_KEY_ISSUE, getIssue());
-		filters.put(FILTER_KEY_PROOF_STATUS, getProofStatus());
-		filters.put(FILTER_KEY_NARRATIVE, getNarrative());
-		filters.put(FILTER_KEY_RESEARCH_QUESTION, getResearchQuestion());
+		filters.put(ConclusionHandler.TAG_ISSUE, getIssue());
+		filters.put(ConclusionHandler.TAG_PROOF_STATUS, getProofStatus());
+		filters.put(ConclusionHandler.TAG_NARRATIVE, getNarrative());
+		filters.put(ConclusionHandler.TAG_RESEARCH, getResearchQuestion());
 		return filters;
 	}
 

@@ -67,10 +67,6 @@ import java.util.function.Predicate;
  */
 public class UnlinkRelationshipsDialog extends JDialog{
 
-	private static final String TAG_TYPE = "type";
-	private static final String TAG_SUBJECT = "subject";
-	private static final String TAG_OBJECT = "object";
-
 	private static final Cursor HAND_CURSOR = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
 
 
@@ -204,8 +200,8 @@ public class UnlinkRelationshipsDialog extends JDialog{
 			if(type == null || !relationshipTypeFilter.test(type))
 				continue;
 
-			final String subjectId = extractAnyReferencedId(relationship, TAG_SUBJECT);
-			final String objectId = extractAnyReferencedId(relationship, TAG_OBJECT);
+			final String subjectId = extractAnyReferencedId(relationship, RelationshipHandler.TAG_SUBJECT);
+			final String objectId = extractAnyReferencedId(relationship, RelationshipHandler.TAG_OBJECT);
 			if(subjectId == null || objectId == null)
 				continue;
 

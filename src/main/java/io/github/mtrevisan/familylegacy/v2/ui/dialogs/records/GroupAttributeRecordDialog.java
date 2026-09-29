@@ -119,6 +119,7 @@ public class GroupAttributeRecordDialog extends BaseRecordDialog{
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]5[]10[]10[]10[]");
 
 		typeCombo = new BoundComboBox<>(GroupAttributeHandler.TAG_TYPE, GroupAttributeHandler.TYPES);
+		typeCombo.setI18NPrefix("enum.group.attribute.type");
 		typeCombo.setEditable(true);
 		valueField = new BoundTextField(GroupAttributeHandler.TAG_VALUE);
 		validFromField = DateField.createWithWrapperTag(GroupAttributeHandler.TAG_VALID_FROM, this, I18N.t("dialog.valid.from"), model);

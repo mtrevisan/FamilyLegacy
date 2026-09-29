@@ -101,8 +101,9 @@ public class GroupRecordDialog extends BaseRecordDialog{
 		super(parent, model, record, GroupHandler.getInstance());
 
 		preferredImagePanel = new PreferredImagePanel(GroupHandler.TAG_PREFERRED_IMAGE, this);
-		namePanel = EntityListPanel.createForStructure(GroupHandler.TAG_NAME, this, I18N.t("dialog.group.names"), model, NameHandler.class);
+		namePanel = EntityListPanel.createForStructure(GroupHandler.TAG_NAME, this, I18N.t("dialog.group.name"), model, NameHandler.class);
 		typeCombo = new BoundComboBox<>(GroupHandler.TAG_TYPE, GroupHandler.TYPES);
+		typeCombo.setI18NPrefix("enum.group.type");
 		typeCombo.setEditable(true);
 
 		components = new RecordDialogBuilder(this, model, record)

@@ -48,6 +48,9 @@ public class NoteHandler extends AbstractRecordTypeHandler<NoteStructureDialog>{
 	public static final String TAG_PRIVACY = "PRIVACY";
 	public static final String TAG_AUDIT = "AUDIT";
 
+	// basic notes
+	public static final String TAG_DATE = "DATE";
+
 
 	private static final class SingletonHelper{
 		private static final NoteHandler INSTANCE = new NoteHandler();

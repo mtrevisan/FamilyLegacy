@@ -122,8 +122,10 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 			.withHandlerTypes(IndividualHandler.class, GroupHandler.class);
 		objectField.addPropertyChangeListener(EntityField.PROPERTY_ENTITY_CHANGED, e -> updateTypeCombo());
 		subjectTypeCombo = new BoundComboBox<>(RelationshipHandler.TAG_TYPE, RelationshipHandler.TYPES);
+		subjectTypeCombo.setI18NPrefix("enum.relationship.type");
 		subjectRoleField = new BoundTextField(RelationshipHandler.TAG_ROLE);
 		statusCombo = new BoundComboBox<>(RelationshipHandler.TAG_STATUS, RelationshipHandler.STATUSES);
+		statusCombo.setI18NPrefix("enum.relationship.status");
 		validFromField = DateField.createWithWrapperTag(RelationshipHandler.TAG_VALID_FROM, this, I18N.t("dialog.date.valid.from"), model);
 		validToField = DateField.createWithWrapperTag(RelationshipHandler.TAG_VALID_TO, this, I18N.t("dialog.date.valid.to"), model);
 

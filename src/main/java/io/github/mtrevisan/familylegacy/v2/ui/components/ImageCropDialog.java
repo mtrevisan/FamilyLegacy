@@ -114,7 +114,7 @@ public class ImageCropDialog extends JDialog{
 		final BufferedImage newImage = ResourceHelper.readBufferedImage(file);
 		if(newImage == null){
 			JOptionPane.showMessageDialog(getParent(),
-				I18N.t("error.image"),
+				I18N.tf("error.image", file.getAbsolutePath()),
 				I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
 
 			return;

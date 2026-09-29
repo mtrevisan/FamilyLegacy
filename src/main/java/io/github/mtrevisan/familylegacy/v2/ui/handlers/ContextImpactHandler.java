@@ -51,11 +51,17 @@ public class ContextImpactHandler extends AbstractRecordTypeHandler<ContextImpac
 
 	public static final String[] IMPACT_TYPES = new String[]{
 		StringUtils.EMPTY,
-		"explains", "influences", "constrains", "motivates", "causes"
+		"explains",
+		"influences",
+		"constrains",
+		"motivates",
+		"causes"
 	};
 	public static final String[] CONFIDENCES = new String[]{
 		StringUtils.EMPTY,
-		"low", "medium", "high"
+		"low",
+		"medium",
+		"high"
 	};
 
 

@@ -100,6 +100,7 @@ public class ContactStructureDialog extends BaseRecordDialog{
 
 		valueField = new BoundTextField(ContactHandler.TAG_VALUE);
 		typeCombo = new BoundComboBox<>(ContactHandler.TAG_TYPE, TYPES);
+		typeCombo.setI18NPrefix("enum.contact.type");
 		namePanel = EntityListPanel.createForStructure(ContactHandler.TAG_NAME, this, I18N.t("dialog.name.name"), model,
 			ContactNameHandler.class);
 		noteArea = new BoundTextArea(ContactHandler.TAG_NOTE, 3, 25);

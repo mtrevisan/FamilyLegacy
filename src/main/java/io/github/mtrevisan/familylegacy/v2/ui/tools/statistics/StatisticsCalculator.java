@@ -65,7 +65,6 @@ public final class StatisticsCalculator{
 	}
 
 
-	private static final String TAG_SEX = "sex";
 	private static final String TAG_NAME = "name";
 	private static final String TAG_PART = "part";
 	private static final String TAG_TYPE = "type";
@@ -76,8 +75,6 @@ public final class StatisticsCalculator{
 	private static final String TAG_PARTICIPANT = "participant";
 	private static final String TAG_INDIVIDUAL = IndividualHandler.TYPE;
 
-	private static final String ENUM_SEX_MALE = "male";
-	private static final String ENUM_SEX_FEMALE = "female";
 	private static final String EVENT_BIRTH = "birth";
 	private static final String EVENT_DEATH = "death";
 
@@ -174,7 +171,7 @@ public final class StatisticsCalculator{
 				noParents.add(ind);
 			if(!hasDirectSource(ind))
 				noSource.add(ind);
-			final String sex = FLEFRecordHelper.getChildValue(ind, TAG_SEX);
+			final String sex = FLEFRecordHelper.getChildValue(ind, IndividualHandler.TAG_SEX);
 			if(sex == null || sex.isBlank())
 				noSex.add(ind);
 		}
@@ -210,11 +207,11 @@ public final class StatisticsCalculator{
 						givenCounts.merge(key, 1, Integer::sum);
 				}
 
-			final String sex = FLEFRecordHelper.getChildValue(ind, TAG_SEX);
-			if(ENUM_SEX_MALE.equalsIgnoreCase(sex))
-				male++;
-			else if(ENUM_SEX_FEMALE.equalsIgnoreCase(sex))
-				female++;
+			final String sex = FLEFRecordHelper.getChildValue(ind, IndividualHandler.TAG_SEX);
+			if(IndividualHandler.ENUM_SEX_MALE.equalsIgnoreCase(sex))
+				male ++;
+			else if(IndividualHandler.ENUM_SEX_FEMALE.equalsIgnoreCase(sex))
+				female ++;
 			else
 				unknownSex++;
 		}

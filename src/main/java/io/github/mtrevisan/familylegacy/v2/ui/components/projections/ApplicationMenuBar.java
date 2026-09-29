@@ -194,7 +194,7 @@ final class ApplicationMenuBar{
 
 		menu.add(new JSeparator());
 
-		final JMenuItem properties = new JMenuItem("File Properties…", KeyEvent.VK_R);
+		final JMenuItem properties = new JMenuItem(I18N.t("menu.file.properties"), KeyEvent.VK_R);
 		properties.addActionListener(e -> fileController.showProperties());
 		menu.add(properties);
 
@@ -226,7 +226,7 @@ final class ApplicationMenuBar{
 
 				final List<File> recent = fileController.recentFiles().list();
 				if(recent.isEmpty()){
-					final JMenuItem empty = new JMenuItem("(no recent files)");
+					final JMenuItem empty = new JMenuItem(I18N.t("menu.file.open.recent.empty"));
 					empty.setEnabled(false);
 					menu.add(empty);
 					return;
@@ -240,7 +240,7 @@ final class ApplicationMenuBar{
 				}
 
 				menu.addSeparator();
-				final JMenuItem clear = new JMenuItem("Clear list");
+				final JMenuItem clear = new JMenuItem(I18N.t("menu.file.open.recent.clear"));
 				clear.addActionListener(a -> fileController.recentFiles().clear());
 				menu.add(clear);
 			}
@@ -332,13 +332,13 @@ final class ApplicationMenuBar{
 
 		menu.add(new JSeparator());
 
-		final JCheckBoxMenuItem showToolbar = new JCheckBoxMenuItem("Show Toolbar");
+		final JCheckBoxMenuItem showToolbar = new JCheckBoxMenuItem(I18N.t("menu.view.show.toolbar"));
 		showToolbar.setMnemonic(KeyEvent.VK_T);
 		showToolbar.setSelected(frame.isToolbarVisible());
 		showToolbar.addActionListener(e -> frame.setToolbarVisible(showToolbar.isSelected()));
 		menu.add(showToolbar);
 
-		final JCheckBoxMenuItem showSidebar = new JCheckBoxMenuItem("Show Sidebar");
+		final JCheckBoxMenuItem showSidebar = new JCheckBoxMenuItem(I18N.t("menu.view.show.sidebar"));
 		showSidebar.setMnemonic(KeyEvent.VK_B);
 		showSidebar.setSelected(frame.isSidebarVisible());
 		showSidebar.addActionListener(e -> frame.setSidebarVisible(showSidebar.isSelected()));
@@ -588,12 +588,12 @@ final class ApplicationMenuBar{
 
 		menu.add(new JSeparator());
 
-		final JMenuItem clearHistory = new JMenuItem("Clear History", KeyEvent.VK_C);
+		final JMenuItem clearHistory = new JMenuItem(I18N.t("menu.navigate.clear.history"), KeyEvent.VK_C);
 		clearHistory.addActionListener(e -> {
 			frame.switcher().clearHistory();
 			JOptionPane.showMessageDialog(frame,
-				"Navigation history has been cleared.",
-				"History Cleared", JOptionPane.INFORMATION_MESSAGE);
+				I18N.t("menu.navigate.cleared.history.message"),
+				I18N.t("menu.navigate.cleared.history.title"), JOptionPane.INFORMATION_MESSAGE);
 		});
 		menu.add(clearHistory);
 
@@ -675,38 +675,38 @@ final class ApplicationMenuBar{
 		helpContents.addActionListener(e -> HelpViewerDialog.show(frame, I18N.t("menu.help.help.contents"), HelpContent.HELP_CONTENTS_HTML));
 		menu.add(helpContents);
 
-		final JMenuItem shortcuts = new JMenuItem("Keyboard Shortcuts…", KeyEvent.VK_K);
+		final JMenuItem shortcuts = new JMenuItem(I18N.t("menu.help.keyboard.shortcuts"), KeyEvent.VK_K);
 		shortcuts.addActionListener(e -> KeyboardShortcutsDialog.show(frame));
 		menu.add(shortcuts);
 
 		menu.add(new JSeparator());
 
-		final JMenuItem userGuide = new JMenuItem("User Guide…", KeyEvent.VK_G);
+		final JMenuItem userGuide = new JMenuItem(I18N.t("menu.help.user.guide"), KeyEvent.VK_G);
 		userGuide.addActionListener(e -> HelpViewerDialog.show(frame,
-			"User Guide", HelpContent.USER_GUIDE_HTML));
+			I18N.t("menu.help.user.guide.title"), HelpContent.USER_GUIDE_HTML));
 		menu.add(userGuide);
 
-		final JMenuItem onlineDocs = new JMenuItem("Online Documentation…", KeyEvent.VK_D);
+		final JMenuItem onlineDocs = new JMenuItem(I18N.t("menu.help.online.documentation"), KeyEvent.VK_D);
 		onlineDocs.addActionListener(e -> openUrl(HelpContent.DOCUMENTATION_URL));
 		menu.add(onlineDocs);
 
 		menu.add(new JSeparator());
 
-		final JMenuItem checkUpdates = new JMenuItem("Check for Updates…", KeyEvent.VK_U);
+		final JMenuItem checkUpdates = new JMenuItem(I18N.t("menu.help.chek.updates"), KeyEvent.VK_U);
 		checkUpdates.addActionListener(e -> checkForUpdates());
 		menu.add(checkUpdates);
 
-		final JMenuItem reportBug = new JMenuItem("Report a Bug…", KeyEvent.VK_B);
+		final JMenuItem reportBug = new JMenuItem(I18N.t("menu.help.bug.report"), KeyEvent.VK_B);
 		reportBug.addActionListener(e -> openUrl(HelpContent.ISSUE_TRACKER_URL));
 		menu.add(reportBug);
 
-		final JMenuItem diagnostics = new JMenuItem("Diagnostics…", KeyEvent.VK_I);
+		final JMenuItem diagnostics = new JMenuItem(I18N.t("menu.help.diagnostics"), KeyEvent.VK_I);
 		diagnostics.addActionListener(e -> DiagnosticsDialog.show(frame, frame.model()));
 		menu.add(diagnostics);
 
 		menu.add(new JSeparator());
 
-		final JMenuItem about = new JMenuItem("About Family Legacy", KeyEvent.VK_A);
+		final JMenuItem about = new JMenuItem(I18N.t("menu.help.about"), KeyEvent.VK_A);
 		about.addActionListener(e -> showAboutDialog());
 		menu.add(about);
 
@@ -733,23 +733,24 @@ final class ApplicationMenuBar{
 		}
 		catch(final URISyntaxException e){
 			JOptionPane.showMessageDialog(frame,
-				"Invalid URL: " + url,
+				I18N.tf("error.invalid.url", url),
 				I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
 		}
 		catch(final IOException e){
 			JOptionPane.showMessageDialog(frame,
-				"Unable to open the URL: " + url + StringUtils.LF + e.getMessage(),
+				I18N.tf("error.unable.to.open.url", url, e.getMessage()),
 				I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
 		}
 	}
 
 	private void showUnsupportedBrowserMessage(){
 		JOptionPane.showMessageDialog(frame,
-			"Opening web pages is not supported on this platform.",
-			"Not Supported", JOptionPane.WARNING_MESSAGE);
+			I18N.t("error.not.supported.message"),
+			I18N.t("error.not.supported.title"), JOptionPane.WARNING_MESSAGE);
 	}
 
 	private void checkForUpdates(){
+		// TODO i18n
 		final Object[] options = {"Open Releases Page", "Close"};
 		final int choice = JOptionPane.showOptionDialog(frame,
 			"<html>You are running <b>Family Legacy "
@@ -764,6 +765,7 @@ final class ApplicationMenuBar{
 	}
 
 	private void showAboutDialog(){
+		//TODO i18n
 		final String message = """
 			<html>
 			<b>Family Legacy</b><br>
@@ -834,17 +836,6 @@ final class ApplicationMenuBar{
 	}
 
 	private record ToolItemBinding(JMenuItem item, ToolOperation tool){}
-
-	/**
-	 * Creates a menu item whose action shows a "not implemented yet"
-	 * dialog. Used to expose the planned functionality without wiring it
-	 * up.
-	 */
-	private JMenuItem placeholder(final String text, final int mnemonic){
-		final JMenuItem item = new JMenuItem(text, mnemonic);
-		item.addActionListener(e -> showNotImplemented(text.replace("…", StringUtils.EMPTY).trim()));
-		return item;
-	}
 
 	/** Creates a menu item with a platform-appropriate accelerator. */
 	private JMenuItem accelerated(final String text, final int keyCode){

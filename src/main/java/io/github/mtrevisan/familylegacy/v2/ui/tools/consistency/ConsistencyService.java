@@ -63,11 +63,6 @@ import java.util.Set;
  */
 public final class ConsistencyService{
 
-	private static final String TAG_SUBJECT = "subject";
-	private static final String TAG_OBJECT = "object";
-	private static final String TYPE_BIOLOGICAL_CHILD = "biological_child";
-
-
 	/** One inconsistency detected. */
 	public record Issue(Severity severity, String recordId, String message){}
 
@@ -153,7 +148,7 @@ public final class ConsistencyService{
 
 	private static void collectParentEdge(final FLEFRecord relationship, final Map<String, List<String>> parentsOf){
 		final String type = FLEFRecordHelper.getChildValue(relationship, RelationshipHandler.TAG_TYPE);
-		if(!TYPE_BIOLOGICAL_CHILD.equalsIgnoreCase(type))
+		if(!RelationshipHandler.ENUM_TYPE_BIOLOGICAL_CHILD.equalsIgnoreCase(type))
 			return;
 		final String childId = relationship.extractReferencedId(RelationshipHandler.TAG_SUBJECT, IndividualHandler.TYPE);
 		final String parentId = relationship.extractReferencedId(RelationshipHandler.TAG_OBJECT, IndividualHandler.TYPE);

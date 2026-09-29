@@ -93,7 +93,7 @@ public class RepositoryRecordDialog extends BaseRecordDialog{
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]5[]10[]");
 
-		namePanel = EntityListPanel.createForStructure(RepositoryHandler.TAG_NAME, this, I18N.t("dialog.repository.names") + "*", model, NameHandler.class);
+		namePanel = EntityListPanel.createForStructure(RepositoryHandler.TAG_NAME, this, I18N.t("dialog.repository.name") + "*", model, NameHandler.class);
 		custodianField = EntityField.createForRecordFromReference(RepositoryHandler.TAG_CUSTODIAN, this, model, IndividualHandler.class);
 		placeField = EntityField.createForStructureWithReference(RepositoryHandler.TAG_PLACE, this, model, PlaceCitationHandler.class);
 		contactPanel = EntityListPanel.createForStructure(RepositoryHandler.TAG_CONTACT, this, I18N.t("dialog.repository.contacts"), model, ContactHandler.class);
@@ -173,7 +173,7 @@ public class RepositoryRecordDialog extends BaseRecordDialog{
 	protected boolean validData(){
 		if(!namePanel.hasData()){
 			GUIHelper.showValidationErrorAndFocus(this,
-				I18N.tf("validation.at.least.one", I18N.t("dialog.repository.names")),
+				I18N.tf("validation.at.least.one", I18N.t("dialog.repository.name")),
 				tabbedPane, propertiesPanel, namePanel);
 
 			return false;

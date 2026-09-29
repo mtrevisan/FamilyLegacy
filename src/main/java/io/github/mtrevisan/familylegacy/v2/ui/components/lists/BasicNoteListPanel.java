@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BindingsHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextArea;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
@@ -47,9 +48,6 @@ import java.util.List;
  * Panel for managing a list of a simple {@code NOTE} references according to FLEF 0.1.3.
  */
 public class BasicNoteListPanel extends AbstractListPanel<FLEFRecord>{
-
-	private static final String TAG_DATE = "DATE";
-
 
 	private final String path;
 
@@ -92,7 +90,7 @@ public class BasicNoteListPanel extends AbstractListPanel<FLEFRecord>{
 
 	@Override
 	protected String getDisplayText(final FLEFRecord record){
-		final String date = FLEFRecordHelper.getChildValue(record, TAG_DATE);
+		final String date = FLEFRecordHelper.getChildValue(record, NoteHandler.TAG_DATE);
 		final String comment = FLEFRecordHelper.getChildValue(record, recordTag);
 		return "(" + date + ") " + comment;
 	}
@@ -116,7 +114,7 @@ public class BasicNoteListPanel extends AbstractListPanel<FLEFRecord>{
 		final String note = FLEFRecordHelper.getChildValue(record, recordTag);
 
 
-		final JDialog dialog = new JDialog(parent, (record == null? "Add Note": "Edit Note"), Dialog.ModalityType.APPLICATION_MODAL);
+		final JDialog dialog = new JDialog(parent, I18N.t(record == null? "dialog.note.title.add": "dialog.note.title.edit"), Dialog.ModalityType.APPLICATION_MODAL);
 		dialog.setLayout(GUIHelper.createLabelFieldLayout(10, "[]"));
 
 		final BoundTextArea textArea = new BoundTextArea(recordTag, 10, 50);
@@ -137,7 +135,7 @@ public class BasicNoteListPanel extends AbstractListPanel<FLEFRecord>{
 				if(record == null){
 					final String creationDate = DateTimeFormatter.ISO_INSTANT.format(Instant.now().truncatedTo(ChronoUnit.SECONDS));
 					final FLEFRecord newNote = FLEFRecordHelper.getOrCreateTargetNode(FLEFRecord.createEmpty(), path)
-						.addChild(FLEFRecord.createChildWithTagAndValue(TAG_DATE, creationDate))
+						.addChild(FLEFRecord.createChildWithTagAndValue(NoteHandler.TAG_DATE, creationDate))
 						.addChild(FLEFRecord.createChildWithTagAndValue(recordTag, text));
 					result[0] = newNote;
 				}
@@ -159,7 +157,7 @@ public class BasicNoteListPanel extends AbstractListPanel<FLEFRecord>{
 	protected boolean validNoteData(final BoundTextArea textArea){
 		if(StringUtils.isEmpty(textArea.getText().trim())){
 			GUIHelper.showValidationErrorAndFocus(this,
-				"Note is required.",
+				I18N.tf("validation.required", I18N.t("dialog.name.note")),
 				null, null, textArea);
 
 			return false;

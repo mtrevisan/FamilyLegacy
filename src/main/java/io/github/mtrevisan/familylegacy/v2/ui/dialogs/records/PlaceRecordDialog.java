@@ -115,6 +115,7 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 
 		namePanel = EntityListPanel.createForStructure(PlaceHandler.TAG_NAME, this, I18N.t("dialog.place.names") + "*", model, NameHandler.class);
 		typeCombo = new BoundComboBox<>(PlaceHandler.TAG_TYPE, PlaceHandler.TYPES);
+		typeCombo.setI18NPrefix("enum.place.type");
 		typeCombo.setEditable(true);
 		mapCoordinatesField = new BoundTextField(TAG_MAP_COORDINATES);
 		mapEvidencePanel = new EvidenceQualifiersPanel(TAG_MAP_EVIDENCE, I18N.t("dialog.place.map.evidence"));

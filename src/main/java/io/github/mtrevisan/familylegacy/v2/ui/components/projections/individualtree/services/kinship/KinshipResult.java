@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.services.kinship;
 
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
@@ -103,9 +104,6 @@ record KinshipResult(
 	int canonicalDegree,
 	int chineseGeneration
 ){
-
-	private static final String ENUM_SEX_MALE = "male";
-	private static final String ENUM_SEX_FEMALE = "female";
 
 
 	/**
@@ -198,8 +196,8 @@ record KinshipResult(
 	 * apply to this pair.
 	 */
 	boolean areOppositeSex(){
-		return (ENUM_SEX_MALE.equals(sexA) && ENUM_SEX_FEMALE.equals(sexB)
-			|| ENUM_SEX_FEMALE.equals(sexA) && ENUM_SEX_MALE.equals(sexB));
+		return (IndividualHandler.ENUM_SEX_MALE.equals(sexA) && IndividualHandler.ENUM_SEX_FEMALE.equals(sexB)
+			|| IndividualHandler.ENUM_SEX_FEMALE.equals(sexA) && IndividualHandler.ENUM_SEX_MALE.equals(sexB));
 	}
 
 

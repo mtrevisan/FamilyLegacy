@@ -38,7 +38,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 
-import javax.swing.JOptionPane;
 import java.awt.Window;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -186,17 +185,6 @@ public class EntityField extends BoundTextField{
 	public final EntityField withHandlerTypes(final Class<? extends RecordTypeHandler<?>>... handlerTypes){
 		assert this.handlers.isEmpty(): "Cannot assign handler type more than one time";
 
-		for(final Class<? extends RecordTypeHandler<?>> handlerType : handlerTypes){
-			final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(handlerType);
-			if(handler == null){
-				JOptionPane.showMessageDialog(this,
-					"Handler for " + handlerType + " not loaded.",
-					I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
-
-				return this;
-			}
-		}
-
 		this.handlers = Arrays.stream(handlerTypes)
 			.map(HandlerRegistry::getHandler)
 			.toList();
@@ -341,14 +329,6 @@ public class EntityField extends BoundTextField{
 	}
 
 	private void addItem(){
-		if(handlers.isEmpty()){
-			JOptionPane.showMessageDialog(this,
-				"Empty handler types.\nCannot show dialog.",
-				I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
-
-			return;
-		}
-
 		final List<Class<? extends RecordTypeHandler<?>>> cleaned = extractParentHandlers();
 		@SuppressWarnings("unchecked")
 		final RecordSelectionDialog dialog = RecordSelectionDialog.createWithAllowRecordCreation(parent, model,

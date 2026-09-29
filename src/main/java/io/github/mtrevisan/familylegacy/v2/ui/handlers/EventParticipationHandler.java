@@ -50,9 +50,16 @@ public class EventParticipationHandler extends AbstractRecordTypeHandler<EventPa
 
 	public static final String[] ROLES = new String[]{
 		StringUtils.EMPTY,
-		"child", "parent", "spouse", "power_of_attorney", "prisoner", "witness",
-		"officiant", "informant", "executor", "grantor", "grantee",
-		"landlord", "tenant", "soldier", "commander", "victim", "survivor",
+		"child", "parent", "spouse",
+		"power_of_attorney",
+		"prisoner",
+		"witness",
+		"officiant", "informant",
+		"executor",
+		"grantor", "grantee",
+		"landlord", "tenant",
+		"soldier", "commander",
+		"victim", "survivor",
 		"accused", "judge"
 	};
 

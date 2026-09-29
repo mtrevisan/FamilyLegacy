@@ -70,8 +70,6 @@ public final class IndividualData{
 	private static final String DOT = ".";
 	private static final String TAG_PIPE = "|";
 
-	private static final String TAG_INDIVIDUAL = "individual";
-	private static final String TAG_SEX = "sex";
 	private static final String TAG_NAME = "name";
 	private static final String TAG_PART = "part";
 	private static final String TAG_TYPE = "type";
@@ -81,15 +79,13 @@ public final class IndividualData{
 	private static final String TAG_CAUSE = "cause";
 	private static final String TAG_REASON = "reason";
 	private static final String TAG_DATE = "date";
-	private static final String TAG_PREFERRED_IMAGE = "preferred_image";
 	private static final String TAG_DATE_VALUE_POINT_FULL_DATE = TAG_DATE + DOT + TAG_VALUE + DOT + DateField.TAG_POINT + DOT + DateField.TAG_FULL_DATE;
 	private static final String TAG_NAME_VALUE = TAG_NAME + DOT + TAG_VALUE;
 	private static final String TAG_PLACE_PLACE = PlaceHandler.TYPE + DOT + PlaceHandler.TYPE;
 	private static final String TAG_CAUSE_REASON = TAG_CAUSE + DOT + TAG_REASON;
-	private static final String TAG_PREFERRED_IMAGE_URI = TAG_PREFERRED_IMAGE + DOT + PreferredImagePanel.TAG_URI;
-	private static final String TAG_PREFERRED_IMAGE_CROP = TAG_PREFERRED_IMAGE + DOT + PreferredImagePanel.TAG_CROP;
+	private static final String TAG_PREFERRED_IMAGE_URI = IndividualHandler.TAG_PREFERRED_IMAGE + DOT + PreferredImagePanel.TAG_URI;
+	private static final String TAG_PREFERRED_IMAGE_CROP = IndividualHandler.TAG_PREFERRED_IMAGE + DOT + PreferredImagePanel.TAG_CROP;
 
-	private static final String ENUM_TYPE_BIOLOGICAL_CHILD = "biological_child";
 	private static final String ENUM_TYPE_ENDS_WITH_CHILD = "_child";
 	private static final String ENUM_TYPE_ENDS_WITH_SPOUSE = "_spouse";
 	private static final String ENUM_TYPE_ENDS_WITH_PARTNER = "_partner";
@@ -173,7 +169,7 @@ public final class IndividualData{
 			String type = FLEFRecordHelper.getChildValue(relationship, RelationshipHandler.TAG_TYPE);
 			if(type != null){
 				type = type.toLowerCase(Locale.ROOT);
-				if(type.equalsIgnoreCase(ENUM_TYPE_BIOLOGICAL_CHILD)){
+				if(type.equalsIgnoreCase(RelationshipHandler.ENUM_TYPE_BIOLOGICAL_CHILD)){
 					if(subjectId.equals(id)){
 						isBiological = true;
 
@@ -274,7 +270,7 @@ public final class IndividualData{
 	}
 
 	public static SexType extractSex(final FLEFRecord individual){
-		final String targetRawSex = FLEFRecordHelper.getChildValue(individual, TAG_SEX);
+		final String targetRawSex = FLEFRecordHelper.getChildValue(individual, IndividualHandler.TAG_SEX);
 		return (targetRawSex != null
 			? Enum.valueOf(SexType.class, targetRawSex.toUpperCase(Locale.ROOT))
 			: SexType.UNKNOWN);
@@ -359,7 +355,7 @@ public final class IndividualData{
 	 */
 	private List<String> extractFullNames(final FLEFRecord individual){
 		final List<String> names = new ArrayList<>();
-		if(individual == null || !TAG_INDIVIDUAL.equals(individual.getTag()))
+		if(individual == null || !IndividualHandler.TYPE.equalsIgnoreCase(individual.getTag()))
 			return names;
 
 		for(final FLEFRecord nameStruct : FLEFRecordHelper.findChildren(individual, TAG_NAME)){
@@ -486,7 +482,7 @@ if(preferredImageUri != null)
 		}
 		catch(final Exception ignored){}
 
-		final String rawSex = FLEFRecordHelper.getChildValue(record, TAG_SEX);
+		final String rawSex = FLEFRecordHelper.getChildValue(record, IndividualHandler.TAG_SEX);
 		// Set the default image immediately
 		imagePrimary = PlaceholderImages.placeholderFor(rawSex, BoxPanelType.PRIMARY);
 		imageSecondary = PlaceholderImages.placeholderFor(rawSex, BoxPanelType.SECONDARY);

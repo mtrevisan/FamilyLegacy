@@ -149,6 +149,7 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 		preferredImagePanel = new PreferredImagePanel(IndividualHandler.TAG_PREFERRED_IMAGE, this);
 		personalNamePanel = EntityListPanel.createForStructure(IndividualHandler.TAG_NAME, this, I18N.t("dialog.individual.personal.name") + "*", model, PersonalNameHandler.class);
 		sexCombo = new BoundComboBox<>(IndividualHandler.TAG_SEX, IndividualHandler.SEXES);
+		sexCombo.setI18NPrefix("enum.individual.sex");
 
 		components = new RecordDialogBuilder(this, model, record)
 			.withComponent(PanelKey.INDIVIDUAL_ATTRIBUTE, IndividualAttributeHandler.TYPE, I18N.t("dialog.component.individual.attributes"))

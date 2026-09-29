@@ -65,8 +65,8 @@ public class DirectRelationshipCellRenderer extends DefaultListCellRenderer{
 			final String role = FLEFRecordHelper.getChildValue(record, RelationshipHandler.TAG_ROLE);
 
 			final String categoryTag = switch(type){
-				case "biological_child" -> "[Biological]";
-				case "adoptive_child" -> "[Adoptive]";
+				case RelationshipHandler.ENUM_TYPE_BIOLOGICAL_CHILD -> "[Biological]";
+				case RelationshipHandler.ENUM_TYPE_ADOPTIVE_CHILD -> "[Adoptive]";
 				case "foster_child" -> "[Custody]";
 				case "guarded_child" -> "[Legal Protection]";
 				case "step_child" -> "[Step child]";

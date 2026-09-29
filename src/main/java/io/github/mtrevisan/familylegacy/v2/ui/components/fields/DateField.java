@@ -217,7 +217,7 @@ public class DateField extends JPanel{
 		if(spanning != null)
 			return getSpanningDisplayText(spanning);
 
-		return "[invalid]";
+		return null;
 	}
 
 	/**
@@ -227,7 +227,7 @@ public class DateField extends JPanel{
 	private static String getDateDisplayText(final FLEFRecord node){
 		final StringBuilder dateStr = new StringBuilder(getSingleDateDisplayText(node));
 		if(dateStr.isEmpty())
-			return "[empty]";
+			return "--";
 
 		// Check for APPROXIMATE (direct child of the node)
 		final FLEFRecord approx = FLEFRecordHelper.findChild(node, TAG_APPROXIMATE);
@@ -235,17 +235,26 @@ public class DateField extends JPanel{
 			final String basis = FLEFRecordHelper.getChildValue(approx, TAG_BASIS);
 			final String margin = FLEFRecordHelper.getChildValue(approx, TAG_MARGIN);
 			if(basis != null || margin != null){
-				dateStr.append(" (approx.");
+				dateStr.append(" (")
+					.append(I18N.t("dialog.date.description.approximate"));
 				if(basis != null)
-					dateStr.append(" basis: ")
+					dateStr.append(StringUtils.SPACE)
+						.append(I18N.t("dialog.date.description.basis"))
+						.append(':')
+						.append(StringUtils.SPACE)
 						.append(basis);
 				if(margin != null)
-					dateStr.append(" margin: ")
+					dateStr.append(StringUtils.SPACE)
+						.append(I18N.t("dialog.date.description.margin"))
+						.append(':')
+						.append(StringUtils.SPACE)
 						.append(margin);
 				dateStr.append(')');
 			}
 			else
-				dateStr.append(" (approx.)");
+				dateStr.append(" (")
+					.append(I18N.t("dialog.date.description.approximate"))
+					.append(')');
 		}
 		return dateStr.toString();
 	}
@@ -268,7 +277,8 @@ public class DateField extends JPanel{
 		if(decade != null){
 			final String startYear = FLEFRecordHelper.getChildValue(decade, TAG_START_YEAR);
 			final String calendar = FLEFRecordHelper.getChildValue(decade, TAG_CALENDAR);
-			return startYear + "s" + (calendar != null? " (" + calendar + ")": StringUtils.EMPTY);
+			return I18N.tf("dialog.date.description.decade", startYear)
+				+ (calendar != null? " (" + calendar + ")": StringUtils.EMPTY);
 		}
 
 		final FLEFRecord century = parent.getTheOnlyChild(TAG_CENTURY);
@@ -276,7 +286,7 @@ public class DateField extends JPanel{
 			final String ordinal = FLEFRecordHelper.getChildValue(century, TAG_ORDINAL);
 			final String part = FLEFRecordHelper.getChildValue(century, TAG_PART);
 			final String calendar = FLEFRecordHelper.getChildValue(century, TAG_CALENDAR);
-			String centuryStr = ordinal + "th century";
+			String centuryStr = I18N.tf("dialog.date.description.century", ordinal);
 			if(part != null)
 				centuryStr += " (" + part + ")";
 			if(calendar != null)
@@ -293,12 +303,12 @@ public class DateField extends JPanel{
 		final FLEFRecord notAfterRecord = boundedNode.getTheOnlyChild(TAG_NOT_AFTER);
 		final String notAfter = getSingleDateDisplayText(notAfterRecord);
 		if(!notBefore.isEmpty() && !notAfter.isEmpty())
-			return "between " + notBefore + " and " + notAfter;
+			return I18N.tf("dialog.date.description.between.and", notBefore, notAfter);
 		if(!notBefore.isEmpty())
-			return "after " + notBefore;
+			return I18N.tf("dialog.date.description.after", notBefore);
 		if(!notAfter.isEmpty())
-			return "before " + notAfter;
-		return "[bounded]";
+			return I18N.tf("dialog.date.description.before", notAfter);
+		return null;
 	}
 
 	private static String getSpanningDisplayText(final FLEFRecord spanningNode){
@@ -307,12 +317,12 @@ public class DateField extends JPanel{
 		final FLEFRecord toRecord = spanningNode.getTheOnlyChild(TAG_TO);
 		final String to = getSingleDateDisplayText(toRecord);
 		if(!from.isEmpty() && !to.isEmpty())
-			return "from " + from + " to " + to;
+			return I18N.tf("dialog.date.description.from.to", from, to);
 		if(!from.isEmpty())
-			return "from " + from;
+			return I18N.tf("dialog.date.description.from", from);
 		if(!to.isEmpty())
-			return "until " + to;
-		return "[spanning]";
+			return I18N.tf("dialog.date.description.until", to);
+		return null;
 	}
 
 

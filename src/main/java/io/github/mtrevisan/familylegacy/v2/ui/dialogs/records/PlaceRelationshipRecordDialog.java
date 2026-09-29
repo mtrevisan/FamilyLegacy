@@ -105,6 +105,7 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 		objectField = EntityField.createForRecordFromOneofReference(PlaceRelationshipHandler.TAG_OBJECT, this, model)
 			.withHandlerTypes(PlaceHandler.class);
 		typeCombo = new BoundComboBox<>(PlaceRelationshipHandler.TAG_TYPE, PlaceRelationshipHandler.TYPES);
+		typeCombo.setI18NPrefix("enum.place.relationship.type");
 		typeCombo.setEditable(true);
 		validFromField = DateField.createWithWrapperTag(PlaceRelationshipHandler.TAG_VALID_FROM, this, I18N.t("dialog.date.valid.from"), model);
 		validToField = DateField.createWithWrapperTag(PlaceRelationshipHandler.TAG_VALID_TO, this, I18N.t("dialog.date.valid.to"), model);

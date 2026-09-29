@@ -66,10 +66,7 @@ public final class IndividualHelper{
 	public static final String TAG_OBJECT = "object";
 	public static final String TAG_NAME = "name";
 	public static final String TAG_VALUE = "value";
-	public static final String TAG_SEX = "sex";
 
-	public static final String REL_BIOLOGICAL_CHILD = "biological_child";
-	public static final String REL_ADOPTIVE_CHILD = "adoptive_child";
 	public static final String REL_FOSTER_CHILD = "foster_child";
 	public static final String REL_GUARDED_CHILD = "guarded_child";
 	public static final String REL_STEP_CHILD = "step_child";
@@ -83,8 +80,8 @@ public final class IndividualHelper{
 	public static final String SEX_FEMALE = "female";
 
 	public static final List<String> CHILD_RELATION_TYPES = List.of(
-		REL_BIOLOGICAL_CHILD, REL_ADOPTIVE_CHILD, REL_FOSTER_CHILD,
-		REL_GUARDED_CHILD, REL_STEP_CHILD);
+		RelationshipHandler.ENUM_TYPE_BIOLOGICAL_CHILD, RelationshipHandler.ENUM_TYPE_ADOPTIVE_CHILD,
+		REL_FOSTER_CHILD, REL_GUARDED_CHILD, REL_STEP_CHILD);
 
 	public static final List<String> SPOUSE_RELATION_TYPES = List.of(
 		REL_CIVIL_SPOUSE, REL_RELIGIOUS_SPOUSE, REL_CUSTOMARY_SPOUSE,
@@ -142,7 +139,7 @@ public final class IndividualHelper{
 	}
 
 	public static String sex(final FLEFRecord individual){
-		return (individual != null? FLEFRecordHelper.getChildValue(individual, TAG_SEX): null);
+		return (individual != null? FLEFRecordHelper.getChildValue(individual, IndividualHandler.TAG_SEX): null);
 	}
 
 	public static boolean isMale(final FLEFRecord individual){
@@ -214,7 +211,7 @@ public final class IndividualHelper{
 		final List<String> mothers = new ArrayList<>();
 		for(final FLEFRecord relationship : model.getRecordsByType(RelationshipHandler.TYPE)){
 			final String type = FLEFRecordHelper.getChildValue(relationship, RelationshipHandler.TAG_TYPE);
-			if(!REL_BIOLOGICAL_CHILD.equalsIgnoreCase(type))
+			if(!RelationshipHandler.ENUM_TYPE_BIOLOGICAL_CHILD.equalsIgnoreCase(type))
 				continue;
 
 			final String child = relationship.extractReferencedId(RelationshipHandler.TAG_SUBJECT, IndividualHandler.TYPE);
@@ -419,7 +416,7 @@ public final class IndividualHelper{
 
 			final String subject = relationship.extractReferencedId(RelationshipHandler.TAG_SUBJECT, IndividualHandler.TYPE);
 			final String object = relationship.extractReferencedId(RelationshipHandler.TAG_OBJECT, IndividualHandler.TYPE);
-			if(REL_BIOLOGICAL_CHILD.equalsIgnoreCase(type)){
+			if(RelationshipHandler.ENUM_TYPE_BIOLOGICAL_CHILD.equalsIgnoreCase(type)){
 				if(individualId.equals(object) && subject != null)
 					children.add(subject);
 			}

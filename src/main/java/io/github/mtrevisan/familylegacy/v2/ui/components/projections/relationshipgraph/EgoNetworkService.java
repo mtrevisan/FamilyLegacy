@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualData;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.GenealogyRepository;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
 import org.apache.commons.lang3.StringUtils;
 
@@ -44,29 +45,6 @@ import java.util.Map;
  * from the FLEF model, covering both biological and non-biological relationships.
  */
 public class EgoNetworkService{
-
-	private static final String TAG_TYPE = "type";
-	private static final String TAG_ROLE = "role";
-	private static final String TAG_STATUS = "status";
-	private static final String TAG_SUBJECT = "subject";
-	private static final String TAG_OBJECT = "object";
-	private static final String TAG_INDIVIDUAL = "individual";
-	private static final String TAG_GROUP = "group";
-
-	private static final String ENUM_TYPE_BIOLOGICAL_CHILD = "biological_child";
-	private static final String ENUM_TYPE_ADOPTIVE_CHILD = "adoptive_child";
-	private static final String ENUM_TYPE_FOSTER_CHILD = "foster_child";
-	private static final String ENUM_TYPE_GUARDED_CHILD = "guarded_child";
-	private static final String ENUM_TYPE_STEP_CHILD = "step_child";
-	private static final String ENUM_TYPE_CIVIL_SPOUSE = "civil_spouse";
-	private static final String ENUM_TYPE_RELIGIOUS_SPOUSE = "religious_spouse";
-	private static final String ENUM_TYPE_CUSTOMARY_SPOUSE = "customary_spouse";
-	private static final String ENUM_TYPE_COHABITING_PARTNER = "cohabiting_partner";
-	private static final String ENUM_TYPE_ENGAGED_PARTNER = "engaged_partner";
-	private static final String ENUM_TYPE_GROUP_MEMBER = "group_member";
-	private static final String ENUM_TYPE_ASSOCIATE = "associate";
-	private static final String ENUM_TYPE_PART_OF = "part_of";
-
 
 	private final FLEFModel model;
 	private final GenealogyRepository repository;
@@ -112,21 +90,21 @@ public class EgoNetworkService{
 				final FLEFRecord relationship = rels.get(i);
 
 				final String type = FLEFRecordHelper.getChildValue(relationship, RelationshipHandler.TAG_TYPE);
-				final String role = FLEFRecordHelper.getChildValue(relationship, TAG_ROLE);
-				final String status = normalizeStatus(FLEFRecordHelper.getChildValue(relationship, TAG_STATUS));
+				final String role = FLEFRecordHelper.getChildValue(relationship, RelationshipHandler.TAG_ROLE);
+				final String status = normalizeStatus(FLEFRecordHelper.getChildValue(relationship, RelationshipHandler.TAG_STATUS));
 				if(type == null)
 					continue;
 
-				final String subjectId = extractParticipantId(relationship, TAG_SUBJECT);
-				final String targetId = extractParticipantId(relationship, TAG_OBJECT);
-				if(subjectId == null || targetId == null)
+				final String subjectId = extractParticipantId(relationship, RelationshipHandler.TAG_SUBJECT);
+				final String objectId = extractParticipantId(relationship, RelationshipHandler.TAG_OBJECT);
+				if(subjectId == null || objectId == null)
 					continue;
 
 				if(egoId.equals(subjectId))
-					processEgoAsSubject(egoNode, type, role, status, targetId);
+					processEgoAsSubject(egoNode, type, role, status, objectId);
 
-				if(egoId.equals(targetId))
-					processEgoAsTarget(egoNode, type, role, status, subjectId);
+				if(egoId.equals(objectId))
+					processEgoAsObject(egoNode, type, role, status, subjectId);
 			}
 		}
 
@@ -154,7 +132,7 @@ public class EgoNetworkService{
 			getOrAddRelatedIndividual(egoNode, EgoNode.RelationshipCategory.PARENT, targetRecord, type, role, status, false);
 		else if(isPartnerType(type))
 			getOrAddRelatedIndividual(egoNode, EgoNode.RelationshipCategory.PARTNER, targetRecord, type, role, status, false);
-		else if(ENUM_TYPE_GROUP_MEMBER.equals(type) || ENUM_TYPE_PART_OF.equals(type)){
+		else if(RelationshipHandler.ENUM_TYPE_GROUP_MEMBER.equals(type) || RelationshipHandler.ENUM_TYPE_PART_OF.equals(type)){
 			// group_member (Individual -> Group) and part_of (Group -> Group):
 			// Ego is the member/sub-group, the target is the enclosing group
 			if(isGroup(targetRecord))
@@ -162,7 +140,7 @@ public class EgoNetworkService{
 			else
 				getOrAddRelatedIndividual(egoNode, EgoNode.RelationshipCategory.PARENT, targetRecord, type, role, status, false);
 		}
-		else if(ENUM_TYPE_ASSOCIATE.equals(type)){
+		else if(RelationshipHandler.ENUM_TYPE_ASSOCIATE.equals(type)){
 			if(isGroup(targetRecord))
 				getOrAddRelatedGroup(egoNode, targetRecord, type, role, status, false);
 			else
@@ -170,7 +148,7 @@ public class EgoNetworkService{
 		}
 	}
 
-	private void processEgoAsTarget(final EgoNode egoNode, final String type, final String role, final String status,
+	private void processEgoAsObject(final EgoNode egoNode, final String type, final String role, final String status,
 			final String subjectId){
 		final FLEFRecord subjectRecord = model.getRecordById(subjectId);
 		if(subjectRecord == null)
@@ -180,7 +158,7 @@ public class EgoNetworkService{
 			getOrAddRelatedIndividual(egoNode, EgoNode.RelationshipCategory.CHILD, subjectRecord, type, role, status, true);
 		else if(isPartnerType(type))
 			getOrAddRelatedIndividual(egoNode, EgoNode.RelationshipCategory.PARTNER, subjectRecord, type, role, status, true);
-		else if(ENUM_TYPE_GROUP_MEMBER.equals(type) || ENUM_TYPE_PART_OF.equals(type)){
+		else if(RelationshipHandler.ENUM_TYPE_GROUP_MEMBER.equals(type) || RelationshipHandler.ENUM_TYPE_PART_OF.equals(type)){
 			// group_member (Individual -> Group) and part_of (Group -> Group):
 			// Ego is the group/super-group, the subject is the member/sub-group
 			if(isGroup(subjectRecord))
@@ -188,7 +166,7 @@ public class EgoNetworkService{
 			else
 				getOrAddRelatedIndividual(egoNode, EgoNode.RelationshipCategory.CHILD, subjectRecord, type, role, status, true);
 		}
-		else if(ENUM_TYPE_ASSOCIATE.equals(type)){
+		else if(RelationshipHandler.ENUM_TYPE_ASSOCIATE.equals(type)){
 			if(isGroup(subjectRecord))
 				getOrAddRelatedGroup(egoNode, subjectRecord, type, role, status, true);
 			else
@@ -225,26 +203,26 @@ public class EgoNetworkService{
 	}
 
 	private String extractParticipantId(final FLEFRecord relRecord, final String fieldTag){
-		String refId = relRecord.extractReferencedId(fieldTag, TAG_INDIVIDUAL);
+		String refId = relRecord.extractReferencedId(fieldTag, IndividualHandler.TYPE);
 		if(refId == null)
-			refId = relRecord.extractReferencedId(fieldTag, TAG_GROUP);
+			refId = relRecord.extractReferencedId(fieldTag, GroupHandler.TYPE);
 		return refId;
 	}
 
 	private boolean isChildType(final String type){
-		return (ENUM_TYPE_BIOLOGICAL_CHILD.equals(type)
-			|| ENUM_TYPE_ADOPTIVE_CHILD.equals(type)
-			|| ENUM_TYPE_FOSTER_CHILD.equals(type)
-			|| ENUM_TYPE_GUARDED_CHILD.equals(type)
-			|| ENUM_TYPE_STEP_CHILD.equals(type));
+		return (RelationshipHandler.ENUM_TYPE_BIOLOGICAL_CHILD.equals(type)
+			|| RelationshipHandler.ENUM_TYPE_ADOPTIVE_CHILD.equals(type)
+			|| RelationshipHandler.ENUM_TYPE_FOSTER_CHILD.equals(type)
+			|| RelationshipHandler.ENUM_TYPE_GUARDED_CHILD.equals(type)
+			|| RelationshipHandler.ENUM_TYPE_STEP_CHILD.equals(type));
 	}
 
 	private boolean isPartnerType(final String type){
-		return (ENUM_TYPE_CIVIL_SPOUSE.equals(type)
-			|| ENUM_TYPE_RELIGIOUS_SPOUSE.equals(type)
-			|| ENUM_TYPE_CUSTOMARY_SPOUSE.equals(type)
-			|| ENUM_TYPE_COHABITING_PARTNER.equals(type)
-			|| ENUM_TYPE_ENGAGED_PARTNER.equals(type));
+		return (RelationshipHandler.ENUM_TYPE_CIVIL_SPOUSE.equals(type)
+			|| RelationshipHandler.ENUM_TYPE_RELIGIOUS_SPOUSE.equals(type)
+			|| RelationshipHandler.ENUM_TYPE_CUSTOMARY_SPOUSE.equals(type)
+			|| RelationshipHandler.ENUM_TYPE_COHABITING_PARTNER.equals(type)
+			|| RelationshipHandler.ENUM_TYPE_ENGAGED_PARTNER.equals(type));
 	}
 
 	/**
@@ -259,8 +237,8 @@ public class EgoNetworkService{
 		// Index relationships by entity id.
 		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
 		for(final FLEFRecord relationship : relationships){
-			final String subjectId = extractParticipantId(relationship, TAG_SUBJECT);
-			final String objectId = extractParticipantId(relationship, TAG_OBJECT);
+			final String subjectId = extractParticipantId(relationship, RelationshipHandler.TAG_SUBJECT);
+			final String objectId = extractParticipantId(relationship, RelationshipHandler.TAG_OBJECT);
 			if(subjectId != null)
 				relationshipsByEntityId.computeIfAbsent(subjectId, k -> new ArrayList<>()).add(relationship);
 			if(objectId != null)

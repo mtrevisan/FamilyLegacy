@@ -27,11 +27,13 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.searches.strategies;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchCriteria;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchMode;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchStrategy;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.TextSearchHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.StringJoiner;
@@ -46,13 +48,7 @@ public class EventSearchStrategy implements SearchStrategy{
 
 	private static final String DOT = ".";
 
-	private static final String TAG_TYPE = "type";
-	private static final String TAG_DESCRIPTION = "description";
-	private static final String TAG_DATE = "date";
-	private static final String TAG_AGENCY = "agency";
-	private static final String TAG_CAUSE = "cause";
-	private static final String TAG_REASON = "reason";
-	private static final String TAG_CAUSE_REASON = TAG_CAUSE + DOT + TAG_REASON;
+	private static final String TAG_CAUSE_REASON = EventHandler.TAG_CAUSE + DOT + EventHandler.TAG_REASON;
 
 	private static final double FUZZY_THRESHOLD = 0.05;
 
@@ -64,7 +60,7 @@ public class EventSearchStrategy implements SearchStrategy{
 	private String description;
 	private String date;
 	private String calendar;
-	private String location;
+	private String place;
 	private String agency;
 	private String causeReason;
 	private SearchMode mode;
@@ -72,26 +68,26 @@ public class EventSearchStrategy implements SearchStrategy{
 
 	@Override
 	public Predicate<FLEFRecord> buildPredicate(final SearchCriteria criteria, final FLEFModel model){
-		eventType = criteria.getFilterFor(EventFilterPanel.FILTER_KEY_EVENT_TYPE);
-		description = criteria.getFilterFor(EventFilterPanel.FILTER_KEY_DESCRIPTION);
-		date = criteria.getFilterFor(EventFilterPanel.FILTER_KEY_DATE);
-		calendar = criteria.getFilterFor(EventFilterPanel.FILTER_KEY_CALENDAR);
-		location = criteria.getFilterFor(EventFilterPanel.FILTER_KEY_LOCATION);
-		agency = criteria.getFilterFor(EventFilterPanel.FILTER_KEY_AGENCY);
-		causeReason = criteria.getFilterFor(EventFilterPanel.FILTER_KEY_CAUSE_REASON);
+		eventType = criteria.getFilterFor(EventHandler.TAG_TYPE);
+		description = criteria.getFilterFor(EventHandler.TAG_DESCRIPTION);
+		date = criteria.getFilterFor(EventHandler.TAG_DATE);
+		calendar = criteria.getFilterFor(DateField.TAG_CALENDAR);
+		place = criteria.getFilterFor(EventHandler.TAG_PLACE);
+		agency = criteria.getFilterFor(EventHandler.TAG_AGENCY);
+		causeReason = criteria.getFilterFor(EventHandler.TAG_REASON);
 		mode = criteria.mode();
 
 		return event -> {
 			// Event Type filter
 			if(StringUtils.isNotEmpty(eventType)){
-				final String type = FLEFRecordHelper.getChildValue(event, TAG_TYPE);
+				final String type = FLEFRecordHelper.getChildValue(event, EventHandler.TAG_TYPE);
 				if(!eventType.equalsIgnoreCase(type))
 					return false;
 			}
 
 			// Description filter
 			if(StringUtils.isNotEmpty(description)){
-				final String recordDescription = FLEFRecordHelper.getChildValue(event, TAG_DESCRIPTION);
+				final String recordDescription = FLEFRecordHelper.getChildValue(event, EventHandler.TAG_DESCRIPTION);
 				if(!SearchHelper.matches(recordDescription, description, mode))
 					return false;
 			}
@@ -100,13 +96,13 @@ public class EventSearchStrategy implements SearchStrategy{
 			if(!SearchHelper.matchesDate(event, date, calendar))
 				return false;
 
-			// Location filter
-			if(!SearchHelper.matchesPlace(event, location, model, mode, FUZZY_THRESHOLD))
+			// Place filter
+			if(!SearchHelper.matchesPlace(event, place, model, mode, FUZZY_THRESHOLD))
 				return false;
 
 			// Agency filter
 			if(StringUtils.isNotEmpty(agency)){
-				final String agency = FLEFRecordHelper.getChildValue(event, TAG_AGENCY);
+				final String agency = FLEFRecordHelper.getChildValue(event, EventHandler.TAG_AGENCY);
 				if(!TextSearchHelper.matchesText(agency, this.agency, mode, FUZZY_THRESHOLD))
 					return false;
 			}
@@ -126,8 +122,8 @@ public class EventSearchStrategy implements SearchStrategy{
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
 		final String baseDisplayText = HANDLER.getDisplayText(record, model);
 
-		final String type = FLEFRecordHelper.getChildValue(record, TAG_TYPE);
-		final FLEFRecord dateRecord = FLEFRecordHelper.findChild(record, TAG_DATE);
+		final String type = FLEFRecordHelper.getChildValue(record, EventHandler.TAG_TYPE);
+		final FLEFRecord dateRecord = FLEFRecordHelper.findChild(record, EventHandler.TAG_DATE);
 		final String date = FLEFRecordHelper.extractDate(dateRecord);
 		final String place = FLEFRecordHelper.extractPlace(record, model);
 
@@ -135,7 +131,7 @@ public class EventSearchStrategy implements SearchStrategy{
 		details.setEmptyValue(StringUtils.EMPTY);
 
 		if(StringUtils.isNotEmpty(type))
-			details.add("Type: " + type);
+			details.add(I18N.t("dialog.event.type") + ": " + type);
 		if(StringUtils.isNotEmpty(date))
 			details.add(date);
 		if(StringUtils.isNotEmpty(place))

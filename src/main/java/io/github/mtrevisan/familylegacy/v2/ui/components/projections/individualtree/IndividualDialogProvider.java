@@ -47,9 +47,6 @@ import java.util.Locale;
  */
 public final class IndividualDialogProvider{
 
-	private static final String TAG_SEX = "sex";
-
-
 	private final FLEFModel model;
 
 
@@ -115,7 +112,7 @@ public final class IndividualDialogProvider{
 			(record, handler) -> result[0] = record,
 			IndividualHandler.class);
 		if(sex != null)
-			dialog.withFilter(TAG_SEX, sex.name()
+			dialog.withFilter(IndividualHandler.TAG_SEX, sex.name()
 				.toLowerCase(Locale.ROOT));
 		dialog.setVisible(true);
 

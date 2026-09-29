@@ -36,6 +36,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.projections;
  */
 final class HelpContent{
 
+	// TODO i18n
 	/** Base URL of the online documentation. */
 	static final String DOCUMENTATION_URL = "https://github.com/mtrevisan/family-legacy/wiki";
 	/** URL of the issue tracker, with a prefilled "new issue" form. */

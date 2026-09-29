@@ -133,7 +133,9 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 
 		// Initialize components
 		activityTypeCombo = new BoundComboBox<>(ResearchActivityHandler.TAG_ACTIVITY_TYPE, ResearchActivityHandler.TYPES);
+		activityTypeCombo.setI18NPrefix("enum.research.activity.type");
 		statusCombo = new BoundComboBox<>(ResearchActivityHandler.TAG_STATUS, ResearchActivityHandler.STATUSES);
+		statusCombo.setI18NPrefix("enum.research.activity.status");
 		actionArea = new BoundTextArea(ResearchActivityHandler.TAG_ACTION, 3, 30);
 
 		targetField = EntityField.createForRecordFromOneofReference(ResearchActivityHandler.TAG_TARGET, this, model)
@@ -143,13 +145,16 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 				DocumentHandler.class, IdentityHypothesisHandler.class, CulturalNormHandler.class, HistoricEventHandler.class)
 			.withSaveAsVoid();
 		searchScopeTypeCombo = new BoundComboBox<>(TAG_SEARCH_SCOPE_TYPE, ResearchActivityHandler.SEARCH_SCOPES);
+		searchScopeTypeCombo.setI18NPrefix("enum.research.activity.search.scope");
 		searchScopeDetailArea = new BoundTextArea(TAG_SEARCH_SCOPE_DETAIL, 3, 30);
 
 		resultCombo = new BoundComboBox<>(ResearchActivityHandler.TAG_RESULT, ResearchActivityHandler.RESULTS);
+		resultCombo.setI18NPrefix("enum.research.activity.result");
 		observationArea = new BoundTextArea(ResearchActivityHandler.TAG_OBSERVATION, 3, 30);
 		conclusionArea = new BoundTextArea(ResearchActivityHandler.TAG_CONCLUSION, 3, 30);
 		conclusionConfidenceCombo = new BoundComboBox<>(ResearchActivityHandler.TAG_CONCLUSION_CONFIDENCE,
 			ResearchActivityHandler.CONFIDENCES);
+		conclusionConfidenceCombo.setI18NPrefix("enum.confidence");
 
 		parentActivityField = EntityField.createForRecordFromReference(ResearchActivityHandler.TAG_PARENT_ACTIVITY, this, model,
 			ResearchActivityHandler.class);

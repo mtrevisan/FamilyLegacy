@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualData;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashSet;
@@ -97,7 +98,7 @@ public final class PartnersData{
 		marriageEvents.retainAll(motherEvents);
 		FLEFRecord marriageEvent = (!marriageEvents.isEmpty()? marriageEvents.iterator().next(): null);
 		for(final FLEFRecord fatherMarriageEvent : fatherEvents)
-			if("civil_marriage".equals(FLEFRecordHelper.getChildValue(fatherMarriageEvent, "type"))){
+			if("civil_marriage".equals(FLEFRecordHelper.getChildValue(fatherMarriageEvent, EventHandler.TAG_TYPE))){
 				marriageEvent = fatherMarriageEvent;
 
 				break;

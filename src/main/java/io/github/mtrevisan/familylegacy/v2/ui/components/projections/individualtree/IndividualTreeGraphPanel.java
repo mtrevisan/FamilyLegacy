@@ -52,6 +52,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.TreeService;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.siblings.SiblingsPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.SexType;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.ViewportPanSupport;
 
 import javax.swing.JFrame;
@@ -567,7 +568,7 @@ public class IndividualTreeGraphPanel extends JPanel implements TreeChangeListen
 		SwingUtilities.invokeLater(() -> {
 //			final LayoutEngine layoutEngine = new TreeLayoutEngine();
 			final LayoutEngine layoutEngine = new GraphLayoutEngine();
-			final String[] relationshipAllowedTypes = new String[]{"biological_child"};
+			final String[] relationshipAllowedTypes = new String[]{RelationshipHandler.ENUM_TYPE_BIOLOGICAL_CHILD};
 			final GenealogyRepository repository = new GenealogyRepository(relationshipAllowedTypes, model);
 			final IndividualTreeGraphPanel panel = new IndividualTreeGraphPanel(TreeLayout.VERTICAL,
 					layoutEngine, repository, model)

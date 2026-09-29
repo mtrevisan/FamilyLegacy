@@ -383,7 +383,8 @@ public class IndividualConverter {
 									GEDCOMHelper.cleanId(child.getValue())
 								))
 							);
-						if("biological_child".equals(relation) || "adoptive_child".equals(relation)
+						if(RelationshipHandler.ENUM_TYPE_BIOLOGICAL_CHILD.equals(relation)
+								|| RelationshipHandler.ENUM_TYPE_ADOPTIVE_CHILD.equals(relation)
 								|| "foster_child".equals(relation) || "guarded_child".equals(relation)
 								|| "step_child".equals(relation) || "civil_spouse".equals(relation)
 								|| "religious_spouse".equals(relation) || "customary_spouse".equals(relation)

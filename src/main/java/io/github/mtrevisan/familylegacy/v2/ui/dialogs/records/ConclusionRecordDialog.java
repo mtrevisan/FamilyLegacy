@@ -142,6 +142,7 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 			}
 		});
 		proofStatusCombo = new BoundComboBox<>(ConclusionHandler.TAG_PROOF_STATUS, ConclusionHandler.PROOF_STATUSES);
+		proofStatusCombo.setI18NPrefix("enum.conclusion.proof.status");
 		narrativeArea = new BoundTextArea(ConclusionHandler.TAG_NARRATIVE, 5, 30);
 
 		// Build common panels using the builder

@@ -177,10 +177,11 @@ public class RelationshipTypeSelectionDialog extends JDialog{
 
 			tablePanel.add(itemLabel, "aligny center");
 
-			final JComboBox<String> combo = new BoundComboBox<>(null, allowedTypes);
-			combo.setSelectedItem(item.defaultType);
-			comboBoxes.add(combo);
-			tablePanel.add(combo, "wrap");
+			final BoundComboBox<String> allowedTypeCombo = new BoundComboBox<>(null, allowedTypes);
+			allowedTypeCombo.setI18NPrefix("enum.relationship.type");
+			allowedTypeCombo.setSelectedItem(item.defaultType);
+			comboBoxes.add(allowedTypeCombo);
+			tablePanel.add(allowedTypeCombo, "wrap");
 		}
 
 		final JScrollPane scrollPane = new JScrollPane(tablePanel);

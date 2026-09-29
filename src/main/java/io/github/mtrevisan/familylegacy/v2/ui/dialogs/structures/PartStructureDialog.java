@@ -63,7 +63,7 @@ public class PartStructureDialog extends BaseRecordDialog{
 	private static final String[] PART_TYPES = {
 		StringUtils.EMPTY,
 		"given", "generation",
-		"patronymic", "matronymic", "kunya (كُنيَة)",
+		"patronymic", "matronymic", "kunya",
 		"family", "family_nickname", "lineage", "house", "clan", "tribal", "caste",
 		"toponymic",
 		"title", "occupational", "prefix", "suffix",
@@ -93,6 +93,7 @@ public class PartStructureDialog extends BaseRecordDialog{
 		propertiesPanel = GUIHelper.createLabelFieldPanel(0, "[]10[]15[]");
 
 		typeCombo = new BoundComboBox<>(PersonalNameHandler.TAG_PART_TYPE, PART_TYPES);
+		typeCombo.setI18NPrefix("enum.part.type");
 		typeCombo.setEditable(true);
 		valueField = new BoundTextField(PersonalNameHandler.TAG_PART_VALUE);
 		variantPanel = new TextValueVariantListPanel(PersonalNameHandler.TAG_PART_VARIANT, this, I18N.t("dialog.name.variant"), model);

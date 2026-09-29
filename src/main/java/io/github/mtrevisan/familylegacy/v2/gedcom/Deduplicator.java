@@ -58,7 +58,7 @@ public final class Deduplicator{
 	public static String getDeduplicatedRecordId(FLEFModel model, FLEFRecord record){
 		if(record.getTag().equalsIgnoreCase(RelationshipHandler.TYPE)){
 			String type = FLEFRecordHelper.getChildValue(record, "type");
-			if("biological_child".equals(type)){
+			if(RelationshipHandler.ENUM_TYPE_BIOLOGICAL_CHILD.equals(type)){
 				FLEFRecord subject = FLEFRecordHelper.findChild(record, "subject");
 				String subjectId = subject.getTheOnlyChild()
 					.getValue();
@@ -68,7 +68,7 @@ public final class Deduplicator{
 
 				List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
 				for(final FLEFRecord relationship : relationships){
-					if(!"adoptive_child".equalsIgnoreCase(FLEFRecordHelper.getChildValue(relationship, RelationshipHandler.TAG_TYPE)))
+					if(!RelationshipHandler.ENUM_TYPE_ADOPTIVE_CHILD.equalsIgnoreCase(FLEFRecordHelper.getChildValue(relationship, RelationshipHandler.TAG_TYPE)))
 						continue;
 					if(!subjectId.equalsIgnoreCase(relationship.extractReferencedId(RelationshipHandler.TAG_SUBJECT, IndividualHandler.TYPE)))
 						continue;

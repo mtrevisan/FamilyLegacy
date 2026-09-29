@@ -129,6 +129,7 @@ public class EventRecordDialog extends BaseRecordDialog{
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]15[]10[]15[]15[]15[]");
 
 		typeCombo = new BoundComboBox<>(EventHandler.TAG_TYPE, EventHandler.TYPES);
+		typeCombo.setI18NPrefix("enum.event.type");
 		typeCombo.setEditable(true);
 		descriptionArea = new BoundTextArea(EventHandler.TAG_DESCRIPTION, 3, 25);
 		dateField = DateField.createWithWrapperTag(EventHandler.TAG_DATE, this, I18N.t("dialog.event.date"), model);

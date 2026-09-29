@@ -33,6 +33,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchMode;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchStrategy;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
@@ -53,11 +54,6 @@ import java.util.function.Predicate;
  */
 public class ConclusionSearchStrategy implements SearchStrategy{
 
-	private static final String TAG_ISSUE = "issue";
-	private static final String TAG_PROOF_STATUS = "proof_status";
-	private static final String TAG_NARRATIVE = "narrative";
-	private static final String TAG_RESEARCH = "research";
-
 	private static final ConclusionHandler HANDLER = ConclusionHandler.getInstance();
 
 	private String issue;
@@ -69,30 +65,30 @@ public class ConclusionSearchStrategy implements SearchStrategy{
 
 	@Override
 	public Predicate<FLEFRecord> buildPredicate(final SearchCriteria criteria, final FLEFModel model){
-		issue = criteria.getFilterFor(ConclusionFilterPanel.FILTER_KEY_ISSUE);
-		proofStatus = criteria.getFilterFor(ConclusionFilterPanel.FILTER_KEY_PROOF_STATUS);
-		narrative = criteria.getFilterFor(ConclusionFilterPanel.FILTER_KEY_NARRATIVE);
-		researchQuestion = criteria.getFilterFor(ConclusionFilterPanel.FILTER_KEY_RESEARCH_QUESTION);
+		issue = criteria.getFilterFor(ConclusionHandler.TAG_ISSUE);
+		proofStatus = criteria.getFilterFor(ConclusionHandler.TAG_PROOF_STATUS);
+		narrative = criteria.getFilterFor(ConclusionHandler.TAG_NARRATIVE);
+		researchQuestion = criteria.getFilterFor(ConclusionHandler.TAG_RESEARCH);
 		mode = criteria.mode();
 
 		return conclusion -> {
 			// Issue filter
 			if(StringUtils.isNotEmpty(issue)){
-				final String recordIssue = FLEFRecordHelper.getChildValue(conclusion, TAG_ISSUE);
+				final String recordIssue = FLEFRecordHelper.getChildValue(conclusion, ConclusionHandler.TAG_ISSUE);
 				if(!SearchHelper.matches(recordIssue, issue, mode))
 					return false;
 			}
 
 			// Proof Status filter (exact match, no text search)
 			if(StringUtils.isNotEmpty(proofStatus)){
-				final String recordStatus = FLEFRecordHelper.getChildValue(conclusion, TAG_PROOF_STATUS);
+				final String recordStatus = FLEFRecordHelper.getChildValue(conclusion, ConclusionHandler.TAG_PROOF_STATUS);
 				if(!proofStatus.equalsIgnoreCase(recordStatus))
 					return false;
 			}
 
 			// Narrative filter
 			if(StringUtils.isNotEmpty(narrative)){
-				final String recordNarrative = FLEFRecordHelper.getChildValue(conclusion, TAG_NARRATIVE);
+				final String recordNarrative = FLEFRecordHelper.getChildValue(conclusion, ConclusionHandler.TAG_NARRATIVE);
 				if(!SearchHelper.matches(recordNarrative, narrative, mode))
 					return false;
 			}
@@ -101,7 +97,7 @@ public class ConclusionSearchStrategy implements SearchStrategy{
 			// the display text of the linked research question, not against
 			// the raw id.
 			if(StringUtils.isNotEmpty(researchQuestion)){
-				final List<FLEFRecord> researchRefs = FLEFRecordHelper.findChildren(conclusion, TAG_RESEARCH);
+				final List<FLEFRecord> researchRefs = FLEFRecordHelper.findChildren(conclusion, ConclusionHandler.TAG_RESEARCH);
 				boolean matched = false;
 				for(final FLEFRecord researchRef : researchRefs){
 					final String questionRef = researchRef.getValue();
@@ -132,16 +128,16 @@ public class ConclusionSearchStrategy implements SearchStrategy{
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
 		final String baseDisplayText = HANDLER.getDisplayText(record, model);
 
-		final String issue = FLEFRecordHelper.getChildValue(record, TAG_ISSUE);
-		final String status = FLEFRecordHelper.getChildValue(record, TAG_PROOF_STATUS);
+		final String issue = FLEFRecordHelper.getChildValue(record, ConclusionHandler.TAG_ISSUE);
+		final String status = FLEFRecordHelper.getChildValue(record, ConclusionHandler.TAG_PROOF_STATUS);
 
 		final StringJoiner details = new StringJoiner(", ", " (", ")");
 		details.setEmptyValue(StringUtils.EMPTY);
 
 		if(StringUtils.isNotEmpty(issue))
-			details.add("Issue: " + issue);
+			details.add(I18N.t("dialog.conclusion.issue") + ": " + issue);
 		if(StringUtils.isNotEmpty(status))
-			details.add("Status: " + status);
+			details.add(I18N.t("dialog.conclusion.proof.status") + ": " + status);
 
 		return baseDisplayText + details;
 	}

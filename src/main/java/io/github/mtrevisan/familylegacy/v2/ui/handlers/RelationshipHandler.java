@@ -53,27 +53,45 @@ public class RelationshipHandler extends AbstractRecordTypeHandler<RelationshipR
 	public static final String TAG_PRIVACY = "PRIVACY";
 	public static final String TAG_AUDIT = "AUDIT";
 
+	public static final String ENUM_TYPE_BIOLOGICAL_CHILD = "biological_child";
+	public static final String ENUM_TYPE_ADOPTIVE_CHILD = "adoptive_child";
+	public static final String ENUM_TYPE_FOSTER_CHILD = "foster_child";
+	public static final String ENUM_TYPE_GUARDED_CHILD = "guarded_child";
+	public static final String ENUM_TYPE_STEP_CHILD = "step_child";
+	public static final String ENUM_TYPE_CIVIL_SPOUSE = "civil_spouse";
+	public static final String ENUM_TYPE_RELIGIOUS_SPOUSE = "religious_spouse";
+	public static final String ENUM_TYPE_CUSTOMARY_SPOUSE = "customary_spouse";
+	public static final String ENUM_TYPE_COHABITING_PARTNER = "cohabiting_partner";
+	public static final String ENUM_TYPE_ENGAGED_PARTNER = "engaged_partner";
+	public static final String ENUM_TYPE_GROUP_MEMBER = "group_member";
+	public static final String ENUM_TYPE_ASSOCIATE = "associate";
+	public static final String ENUM_TYPE_PART_OF = "part_of";
 	public static final String[] TYPES = new String[]{
 		StringUtils.EMPTY,
-		"biological_child", "adoptive_child", "foster_child", "guarded_child", "step_child",
-		"civil_spouse", "religious_spouse", "customary_spouse", "cohabiting_partner", "engaged_partner",
-		"group_member", "associate", "part_of"
+		ENUM_TYPE_BIOLOGICAL_CHILD, ENUM_TYPE_ADOPTIVE_CHILD, ENUM_TYPE_FOSTER_CHILD, ENUM_TYPE_GUARDED_CHILD,
+		ENUM_TYPE_STEP_CHILD, ENUM_TYPE_CIVIL_SPOUSE, ENUM_TYPE_RELIGIOUS_SPOUSE, ENUM_TYPE_CUSTOMARY_SPOUSE,
+		ENUM_TYPE_COHABITING_PARTNER, ENUM_TYPE_ENGAGED_PARTNER, ENUM_TYPE_GROUP_MEMBER, ENUM_TYPE_ASSOCIATE,
+		ENUM_TYPE_PART_OF
 	};
 	public static final String[] INDIVIDUAL_TO_INDIVIDUAL_CHILD_TYPES = new String[]{
-		"biological_child", "adoptive_child", "foster_child", "guarded_child", "step_child"
+		ENUM_TYPE_BIOLOGICAL_CHILD, ENUM_TYPE_ADOPTIVE_CHILD, ENUM_TYPE_FOSTER_CHILD, ENUM_TYPE_GUARDED_CHILD, ENUM_TYPE_STEP_CHILD
 	};
 	public static final String[] INDIVIDUAL_TO_INDIVIDUAL_TYPES = new String[]{
-		"biological_child", "adoptive_child", "foster_child", "guarded_child", "step_child",
+		ENUM_TYPE_BIOLOGICAL_CHILD, ENUM_TYPE_ADOPTIVE_CHILD, ENUM_TYPE_FOSTER_CHILD, ENUM_TYPE_GUARDED_CHILD, ENUM_TYPE_STEP_CHILD,
 		"civil_spouse", "religious_spouse", "customary_spouse", "cohabiting_partner", "engaged_partner",
 		"associate"
 	};
 	public static final String[] INDIVIDUAL_TO_INDIVIDUAL_SOCIAL_TYPES = new String[]{
-		"civil_spouse", "religious_spouse", "customary_spouse", "cohabiting_partner", "engaged_partner", "associate"
+		"civil_spouse", "religious_spouse", "customary_spouse", "cohabiting_partner", "engaged_partner",
+		"associate"
 	};
 	public static final String[] INDIVIDUAL_TO_GROUP_TYPES = new String[]{"group_member", "associate"};
 	public static final String[] GROUP_TO_GROUP_TYPES = new String[]{"part_of", "associate"};
 	public static final String[] GROUP_TO_INDIVIDUAL_TYPES = new String[0];
 	public static final String[] EMPTY_TYPES = new String[0];
+	public static final String[] BIOLOGICAL = new String[]{ENUM_TYPE_BIOLOGICAL_CHILD};
+	public static final String[] FAMILY = new String[]{ENUM_TYPE_BIOLOGICAL_CHILD, ENUM_TYPE_ADOPTIVE_CHILD,
+		ENUM_TYPE_FOSTER_CHILD, ENUM_TYPE_GUARDED_CHILD, ENUM_TYPE_STEP_CHILD};
 
 	public static final String[] STATUSES = new String[]{
 		StringUtils.EMPTY,

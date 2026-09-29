@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.bindings;
 
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.WordUtils;
 
@@ -44,7 +45,21 @@ import java.util.Objects;
 
 public class BoundComboBox<E> extends JComboBox<E> implements PathBound{
 
+	private static final String DOT = ".";
+	private static final String NONE = "none";
+	private static final String DOT_NONE = DOT + NONE;
+
+
 	private String path;
+
+	/**
+	 * Optional prefix for the i18n keys of the combo's values. When set,
+	 * the renderer displays the localized label resolved from
+	 * {@code <prefix>.<code>} instead of the prettified code. The value
+	 * returned by {@link #getSelectedItem()} and {@link #getText()} is
+	 * always the raw code, so persistence and undo are unaffected.
+	 */
+	private String i18nPrefix;
 
 	private boolean readOnly;
 
@@ -81,6 +96,39 @@ public class BoundComboBox<E> extends JComboBox<E> implements PathBound{
 		if(!readOnly)
 			clear();
 
+		installRenderer();
+
+		initUndoListener();
+	}
+
+
+	/* ======================================================================
+	 *                          i18n
+	 * ====================================================================== */
+
+	/**
+	 * Configures the i18n prefix used by the renderer. The full key for a
+	 * value {@code code} is {@code <prefix>.<code>}; the key for the empty
+	 * value (if the combo has one) is {@code <prefix>.none}.
+	 *
+	 * <p>Passing {@code null} restores the default behaviour: the renderer
+	 * prettifies the code by replacing underscores with spaces and
+	 * capitalizing each word.</p>
+	 *
+	 * @param i18nPrefix the key prefix, e.g. {@code "enum.proof_status"};
+	 *                   may be {@code null}
+	 */
+	public void setI18NPrefix(final String i18nPrefix){
+		this.i18nPrefix = (StringUtils.isBlank(i18nPrefix)? null: i18nPrefix);
+
+		installRenderer();
+	}
+
+	/**
+	 * Installs the renderer that displays the localized label for each
+	 * value. Called on construction and whenever the i18n prefix changes.
+	 */
+	private void installRenderer(){
 		setRenderer(new DefaultListCellRenderer(){
 			@Override
 			public Component getListCellRendererComponent(final JList<?> list, final Object value, final int index,
@@ -88,14 +136,40 @@ public class BoundComboBox<E> extends JComboBox<E> implements PathBound{
 				super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
 
 				if(value instanceof String str)
-					setText(WordUtils.capitalizeFully(str.replace('_', ' ')));
+					setText(localize(str));
 				return this;
 			}
 		});
-
-		initUndoListener();
 	}
 
+	/**
+	 * Returns the label to display for the given code. When no i18n prefix
+	 * is configured, falls back to the prettified code. When a prefix is
+	 * configured but the translation is missing, the prettified code is
+	 * used instead of a raw token.
+	 */
+	private String localize(final String code){
+		if(i18nPrefix == null)
+			return prettify(code);
+
+		if(code.isEmpty())
+			return I18N.t(i18nPrefix + DOT_NONE, "\u2014");
+
+		return I18N.t(i18nPrefix + DOT + code, prettify(code));
+	}
+
+	/**
+	 * Fallback label for a code with no translation: underscores are
+	 * replaced by spaces and each word is capitalized.
+	 */
+	private static String prettify(final String code){
+		return WordUtils.capitalizeFully(code.replace('_', ' '));
+	}
+
+
+	/* ======================================================================
+	 *                          Undo
+	 * ====================================================================== */
 
 	private void initUndoListener(){
 		lastSelectedValue = getSelectedItem();
@@ -181,9 +255,11 @@ public class BoundComboBox<E> extends JComboBox<E> implements PathBound{
 
 	/**
 	 * Selects the item whose string representation equals the given text.
-	 * If no item matches and the combo is editable, sets the typed text value.
+	 * When an i18n prefix is configured, also matches the item whose
+	 * localized label equals the given text. If no item matches and the
+	 * combo is editable, sets the typed text value.
 	 *
-	 * @param value The display text to search for.
+	 * @param value The value to search for, either the raw code or the localized label.
 	 */
 	@Override
 	public void setText(final String value){
@@ -196,6 +272,7 @@ public class BoundComboBox<E> extends JComboBox<E> implements PathBound{
 			return;
 		}
 
+		// 1. Match by code (the item's toString)
 		for(int i = 0, count = getItemCount(); i < count; i ++){
 			final E item = getItemAt(i);
 			if(item != null && value.equals(item.toString())){
@@ -205,7 +282,18 @@ public class BoundComboBox<E> extends JComboBox<E> implements PathBound{
 			}
 		}
 
-		// no match: if editable, set the typed value
+		// 2. Match by localized label (only when an i18n prefix is set)
+		if(i18nPrefix != null)
+			for(int i = 0, count = getItemCount(); i < count; i ++){
+				final E item = getItemAt(i);
+				if(item instanceof String str && value.equals(localize(str))){
+					setSelectedIndex(i);
+
+					return;
+				}
+			}
+
+		// 3. No match: if editable, set the typed value
 		if(isEditable())
 			setSelectedItem(value);
 	}

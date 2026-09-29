@@ -60,13 +60,13 @@ public class PrivacyPanel extends JPanel{
 	public static final String TAG_REASON = "REASON";
 	public static final String TAG_EXPIRES = "EXPIRES";
 
-	public static final String ENUM_PRIVACY_PUBLIC = "public";
-	public static final String ENUM_PRIVACY_RESTRICTED = "restricted";
-	public static final String ENUM_PRIVACY_CONFIDENTIAL = "confidential";
+	public static final String ENUM_PRIVACY_LEVEL_PUBLIC = "public";
+	public static final String ENUM_PRIVACY_LEVEL_RESTRICTED = "restricted";
+	public static final String ENUM_PRIVACY_LEVEL_CONFIDENTIAL = "confidential";
 	private static final String[] LEVELS = {
-		ENUM_PRIVACY_PUBLIC,
-		ENUM_PRIVACY_RESTRICTED,
-		ENUM_PRIVACY_CONFIDENTIAL
+		ENUM_PRIVACY_LEVEL_PUBLIC,
+		ENUM_PRIVACY_LEVEL_RESTRICTED,
+		ENUM_PRIVACY_LEVEL_CONFIDENTIAL
 	};
 
 
@@ -82,6 +82,7 @@ public class PrivacyPanel extends JPanel{
 	 */
 	public PrivacyPanel(final String path){
 		levelCombo = new BoundComboBox<>(path + DOT + TAG_LEVEL, LEVELS);
+		levelCombo.setI18NPrefix("enum.privacy.level");
 		reasonArea = new BoundTextArea(path + DOT + TAG_REASON, 3, 25);
 		reasonArea.setToolTipText(I18N.t("dialog.privacy.reason.tooltip"));
 		expiresField = new BoundTextField(path + DOT + TAG_EXPIRES);

@@ -72,7 +72,7 @@ public class IndividualFilterPanel extends JPanel implements RecordFilterPanel{
 
 	private void initComponents(){
 		setLayout(new MigLayout("wrap 2,gap 5", "[][grow,fill]", "[]"));
-		setBorder(BorderFactory.createTitledBorder(I18N.tf("dialog.search.filter.title", I18N.t("dialog.component.events"))));
+		setBorder(BorderFactory.createTitledBorder(I18N.tf("dialog.search.filter.title", I18N.t("dialog.component.event"))));
 
 		add(new JLabel(I18N.t("dialog.individual.sex") + ":"));
 		add(sexCombo, "growx");

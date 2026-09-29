@@ -89,7 +89,7 @@ public class TextValueVariantStructureDialog extends BaseRecordDialog{
 
 	private static final String[] TRANSCRIPTION_SYSTEMS = {
 		StringUtils.EMPTY,
-		"rōmaji", "hepburn", "kunreishiki", "nihonshiki",
+		"romaji", "hepburn", "kunreishiki", "nihonshiki",
 		"pinyin", "wadegiles",
 		"bgn_pcgn",
 		"iso9",
@@ -137,8 +137,10 @@ public class TextValueVariantStructureDialog extends BaseRecordDialog{
 		phoneticSystemField = new BoundTextField(TAG_PHONETIC_SYSTEM);
 		phoneticSystemField.setToolTipText(I18N.t("dialog.name.variant.phonetic.system.tooltip"));
 		transcriptionSystemCombo = new BoundComboBox<>(TAG_TRANSCRIPTION_SYSTEM, TRANSCRIPTION_SYSTEMS);
+		transcriptionSystemCombo.setI18NPrefix("enum.text.value.variant.transcription.system");
 		transcriptionSystemCombo.setEditable(true);
 		typeCombo = new BoundComboBox<>(TAG_TRANSCRIPTION_TYPE, TRANSCRIPTION_TYPES);
+		typeCombo.setI18NPrefix("enum.text.value.variant.transcript.type");
 		typeCombo.setEditable(true);
 		valueField = new BoundTextField(TextValueVariantHandler.TAG_VALUE);
 

@@ -49,7 +49,6 @@ import java.awt.Window;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.function.Consumer;
 
 
@@ -162,17 +161,6 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 	 */
 	@SafeVarargs
 	public final EntityListPanel withHandlerTypes(final Class<? extends RecordTypeHandler<?>>... handlerTypes){
-		for(final Class<? extends RecordTypeHandler<?>> handlerType : handlerTypes){
-			final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(handlerType);
-			if(handler == null){
-				JOptionPane.showMessageDialog(this,
-					"Handler for " + handlerType + " not loaded.",
-					I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
-
-				return this;
-			}
-		}
-
 		this.handlerTypes = List.of(handlerTypes);
 
 		initComponents();
@@ -272,14 +260,6 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 
 	@Override
 	protected FLEFRecord showAddDialog(){
-		if(handlerTypes.isEmpty()){
-			JOptionPane.showMessageDialog(parent,
-				"No handler types available.",
-				I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
-
-			return null;
-		}
-
 		final List<Class<? extends RecordTypeHandler<?>>> cleaned = extractParentHandlers();
 		@SuppressWarnings("unchecked")
 		final RecordSelectionDialog dialog = RecordSelectionDialog.createWithAllowRecordCreation(parent, model,
@@ -300,14 +280,6 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 
 	@Override
 	protected FLEFRecord showCreateNewDialog(){
-		if(handlerTypes.isEmpty()){
-			JOptionPane.showMessageDialog(parent,
-				"No handler types available.",
-				I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
-
-			return null;
-		}
-
 		if(type == ListType.CITATION_WRAPPER)
 			// Create a new target entity and then a citation for it.
 			return createNewCitation();
@@ -339,61 +311,11 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 	}
 
 	/**
-	 * Shows a dialog to select a type from the available handler types and then opens the creation dialog for that type.
-	 */
-	private FLEFRecord createNewWithTypeSelection(){
-		// Build list of type names
-		final List<String> typeNames = handlerTypes.stream()
-			.map(HandlerRegistry::getHandler)
-			.filter(Objects::nonNull)
-			.map(RecordTypeHandler::getType)
-			.toList();
-		if(typeNames.isEmpty())
-			return null;
-
-		final String selectedType = (String)JOptionPane.showInputDialog(parent,
-			"Select the type of record to create:",
-			"New Record Type",
-			JOptionPane.QUESTION_MESSAGE,
-			null,
-			typeNames.toArray(),
-			typeNames.getFirst());
-		if(selectedType == null)
-			return null;
-
-		// Find the handler class for the selected type
-		final Class<? extends RecordTypeHandler<?>> selectedHandlerClass = handlerTypes.stream()
-			.filter(cls -> {
-				final RecordTypeHandler<?> h = HandlerRegistry.getHandler(cls);
-				return (h != null && Strings.CI.equals(selectedType, h.getType()));
-			})
-			.findFirst()
-			.orElse(null);
-		if(selectedHandlerClass == null)
-			return null;
-
-		final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(selectedHandlerClass);
-		final BaseRecordDialog dialog = handler.createNewDialog(parent, model);
-		getDialogSetup().accept(dialog);
-		dialog.setVisible(true);
-
-		return (dialog.isSaved()? dialog.getRecord(): null);
-	}
-
-	/**
 	 * Creates a new target entity and its citation (for CITATION_WRAPPER mode).
 	 */
 	private FLEFRecord createNewCitation(){
 		final RecordTypeHandler<?> citationHandler = HandlerRegistry.getHandler(handlerTypes.getFirst());
 		final RecordTypeHandler<?> targetHandler = citationHandler.getParentHandler();
-		if(targetHandler == null){
-			JOptionPane.showMessageDialog(parent,
-				"No parent handler defined for citation handler.",
-				I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
-
-			return null;
-		}
-
 		final BaseRecordDialog targetDialog = targetHandler.createNewDialog(parent, model);
 		getDialogSetup().accept(targetDialog);
 		targetDialog.setVisible(true);
@@ -428,21 +350,13 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 	protected FLEFRecord showEditDialog(final FLEFRecord record){
 		if(record == null){
 			JOptionPane.showMessageDialog(parent,
-				"Record not found",
+				I18N.t("error.record.not.found"),
 				I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
 
 			return null;
 		}
 
 		final RecordTypeHandler<?> handler = findHandler(record);
-		if(handler == null){
-			JOptionPane.showMessageDialog(parent,
-				"No handler found for type " + record.getTag(),
-				I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
-
-			return null;
-		}
-
 		final BaseRecordDialog dialog = handler.createEditDialog(parent, model, record);
 		getDialogSetup().accept(dialog);
 		dialog.setVisible(true);
@@ -478,23 +392,7 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 		final FLEFRecord citation = listModel.get(index);
 		final RecordTypeHandler<?> citationHandler = findHandler(citation);
 		final String targetId = FLEFRecordHelper.getChildValue(citation, citationHandler.getCitedType());
-		if(targetId == null){
-			JOptionPane.showMessageDialog(parent,
-				"No target entity found in citation.",
-				I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
-
-			return;
-		}
-
 		final FLEFRecord target = model.getRecordById(targetId);
-		if(target == null){
-			JOptionPane.showMessageDialog(parent,
-				"Target entity not found in model.",
-				I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
-
-			return;
-		}
-
 		final RecordTypeHandler<?> targetHandler = citationHandler.getParentHandler();
 		final BaseRecordDialog dialog = targetHandler.createEditDialog(parent, model, target);
 		getDialogSetup().accept(dialog);

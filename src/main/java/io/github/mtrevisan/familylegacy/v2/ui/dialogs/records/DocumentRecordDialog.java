@@ -102,6 +102,7 @@ public class DocumentRecordDialog extends BaseRecordDialog{
 				builder.selectionSensitiveItem(I18N.t("popupmenu.clear"), uriField::clear);
 			});
 		mappingCombo = new BoundComboBox<>(DocumentHandler.TAG_MAPPING, DocumentHandler.MAPPINGS);
+		mappingCombo.setI18NPrefix("enum.document.mapping");
 		mappingCombo.setEditable(true);
 		descriptionArea = new BoundTextArea(DocumentHandler.TAG_DESCRIPTION, 3, 25);
 

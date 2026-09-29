@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.projections.group.Group
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.group.GroupPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.partners.PartnersPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.partners.Side;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
 
 import javax.swing.JMenuItem;
@@ -39,12 +40,6 @@ import java.util.function.Consumer;
 
 
 public class PopupMenuHelper{
-
-	private static final String TAG_SEX = "sex";
-
-	private static final String ENUM_SEX_MALE = "male";
-	private static final String ENUM_SEX_FEMALE = "female";
-
 
 	private PopupMenuHelper(){}
 
@@ -75,11 +70,13 @@ public class PopupMenuHelper{
 			if(clipped == null)
 				return false;
 
-			final String clippedSex = FLEFRecordHelper.getChildValue(clipped, TAG_SEX);
+			final String clippedSex = FLEFRecordHelper.getChildValue(clipped, IndividualHandler.TAG_SEX);
 			final String otherSex = otherData.getSex()
 				.name()
 				.toLowerCase();
-			final String requiredSex = (otherSex.equals(ENUM_SEX_MALE)? ENUM_SEX_FEMALE: ENUM_SEX_MALE);
+			final String requiredSex = (otherSex.equals(IndividualHandler.ENUM_SEX_MALE)
+				? IndividualHandler.ENUM_SEX_FEMALE
+				: IndividualHandler.ENUM_SEX_MALE);
 			return requiredSex.equals(clippedSex);
 		}
 		return false;

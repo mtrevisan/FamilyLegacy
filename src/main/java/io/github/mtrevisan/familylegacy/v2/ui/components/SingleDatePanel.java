@@ -99,8 +99,8 @@ public class SingleDatePanel extends JPanel{
 
 	private static final String ENUM_CALENDAR_GREGORIAN = "gregorian";
 	public static final String[] CALENDARS = {
-		ENUM_CALENDAR_GREGORIAN, "julian", "islamic", "hebrew", "chinese", "indian", "buddhist", "french-republican", "coptic",
-		"soviet eternal", "ethiopian", "mayan"
+		ENUM_CALENDAR_GREGORIAN, "julian", "islamic", "hebrew", "chinese", "indian", "buddhist", "french_republican",
+		"coptic", "soviet_eternal", "ethiopian", "mayan"
 	};
 
 
@@ -125,7 +125,9 @@ public class SingleDatePanel extends JPanel{
 		decadeStartYearField = new BoundTextField(TAG_DECADE_START_YEAR);
 		centuryOrdinalField = new BoundTextField(TAG_CENTURY_ORDINAL);
 		centuryPartCombo = new BoundComboBox<>(TAG_CENTURY_PART, CENTURY_PARTS);
+		centuryPartCombo.setI18NPrefix("enum.date.century.part");
 		calendarCombo = new BoundComboBox<>(DateField.TAG_CALENDAR, CALENDARS);
+		calendarCombo.setI18NPrefix("enum.date.calendar");
 		calendarCombo.setEditable(true);
 		approxPanel = new ApproximatePanel(DateField.TAG_APPROXIMATE, parent, model);
 

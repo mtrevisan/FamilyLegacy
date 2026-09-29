@@ -75,7 +75,7 @@ public class NoteStructureDialog extends BaseRecordDialog{
 
 	private static final String[] MIME_TYPES = {
 		StringUtils.EMPTY,
-		"text/plain", "text/html", "text/markdown"
+		"text_plain", "text_html", "text_markdown"
 	};
 
 
@@ -106,6 +106,7 @@ public class NoteStructureDialog extends BaseRecordDialog{
 		textArea = new BoundTextArea(NoteHandler.TAG_TEXT, 3, 25);
 		textArea.setToolTipText(I18N.t("dialog.note.text.tooltip"));
 		mimeCombo = new BoundComboBox<>(NoteHandler.TAG_MIME, MIME_TYPES);
+		mimeCombo.setI18NPrefix("enum.note.mime.type");
 		localeCombo = new BoundFilteredComboBox<>(NoteHandler.TAG_LOCALE, LocaleHelper.getAvailableLanguageTags());
 		localeCombo.setEditable(true);
 		translationPanel = new TranslationListPanel(NoteHandler.TAG_TRANSLATION, this, I18N.t("dialog.note.translations"));

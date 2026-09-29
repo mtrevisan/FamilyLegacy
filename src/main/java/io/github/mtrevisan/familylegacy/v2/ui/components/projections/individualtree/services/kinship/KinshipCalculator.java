@@ -80,15 +80,6 @@ import java.util.Set;
  */
 public final class KinshipCalculator{
 
-	private static final String TAG_SEX = "sex";
-	private static final String TAG_TYPE = "type";
-
-	private static final String ENUM_SEX_MALE = "male";
-
-	private static final String TAG_SUBJECT = "subject";
-	private static final String TAG_OBJECT = "object";
-
-
 	/**
 	 * Supplies the parents of a given individual by its ID.
 	 *
@@ -482,39 +473,39 @@ public final class KinshipCalculator{
 
 
 	private static String ancestorTerm(final int distance, final String sex){
-		final String base = (ENUM_SEX_MALE.equals(sex)? "father": "mother");
+		final String base = (IndividualHandler.ENUM_SEX_MALE.equals(sex)? "father": "mother");
 		if(distance == 1)
 			return base;
 		if(distance == 2)
-			return (ENUM_SEX_MALE.equals(sex)? "grandfather": "grandmother");
+			return (IndividualHandler.ENUM_SEX_MALE.equals(sex)? "grandfather": "grandmother");
 
 		final String prefix = (distance == 3? "great-grand": (distance - 2) + "x great-grand");
 		return prefix + base;
 	}
 
 	private static String descendantTerm(final int distance, final String sex){
-		final String base = (ENUM_SEX_MALE.equals(sex)? "son": "daughter");
+		final String base = (IndividualHandler.ENUM_SEX_MALE.equals(sex)? "son": "daughter");
 		if(distance == 1)
 			return base;
 		if(distance == 2)
-			return (ENUM_SEX_MALE.equals(sex)? "grandson": "granddaughter");
+			return (IndividualHandler.ENUM_SEX_MALE.equals(sex)? "grandson": "granddaughter");
 
 		final String prefix = (distance == 3? "great-grand": (distance - 2) + "x great-grand");
 		return prefix + base;
 	}
 
 	private static String uncleTerm(final String sex, final boolean grand){
-		final String base = (ENUM_SEX_MALE.equals(sex)? "uncle": "aunt");
+		final String base = (IndividualHandler.ENUM_SEX_MALE.equals(sex)? "uncle": "aunt");
 		return (grand? "grand-" + base: base);
 	}
 
 	private static String nephewTerm(final String sex){
-		return (ENUM_SEX_MALE.equals(sex)? "nephew": "niece");
+		return (IndividualHandler.ENUM_SEX_MALE.equals(sex)? "nephew": "niece");
 	}
 
 	private static String siblingTerm(final String sexA, final String sexB){
-		final boolean maleA = ENUM_SEX_MALE.equals(sexA);
-		final boolean maleB = ENUM_SEX_MALE.equals(sexB);
+		final boolean maleA = IndividualHandler.ENUM_SEX_MALE.equals(sexA);
+		final boolean maleB = IndividualHandler.ENUM_SEX_MALE.equals(sexB);
 		if(maleA && maleB)
 			return "brothers";
 		if(!maleA && !maleB)
@@ -523,7 +514,7 @@ public final class KinshipCalculator{
 	}
 
 	private static String siblingSingularTerm(final String sex){
-		return (ENUM_SEX_MALE.equals(sex)? "brother": "sister");
+		return (IndividualHandler.ENUM_SEX_MALE.equals(sex)? "brother": "sister");
 	}
 
 	private static String cousinTerm(final int degree, final int removed){
@@ -573,7 +564,7 @@ public final class KinshipCalculator{
 		if(record == null)
 			return StringUtils.EMPTY;
 
-		final String raw = FLEFRecordHelper.getChildValue(record, TAG_SEX);
+		final String raw = FLEFRecordHelper.getChildValue(record, IndividualHandler.TAG_SEX);
 		return (raw != null? raw.trim()
 			.toLowerCase(Locale.ROOT): StringUtils.EMPTY);
 	}
@@ -596,8 +587,8 @@ public final class KinshipCalculator{
 				continue;
 
 			final String t = type.toLowerCase(Locale.ROOT);
-			final String subject = relationship.extractReferencedId(TAG_SUBJECT, IndividualHandler.TYPE);
-			final String object = relationship.extractReferencedId(TAG_OBJECT, IndividualHandler.TYPE);
+			final String subject = relationship.extractReferencedId(RelationshipHandler.TAG_SUBJECT, IndividualHandler.TYPE);
+			final String object = relationship.extractReferencedId(RelationshipHandler.TAG_OBJECT, IndividualHandler.TYPE);
 			if(subject == null || object == null)
 				continue;
 

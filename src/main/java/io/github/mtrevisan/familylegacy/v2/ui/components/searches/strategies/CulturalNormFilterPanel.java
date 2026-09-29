@@ -46,21 +46,13 @@ import java.util.function.Consumer;
 
 
 /**
- * Filter panel for CulturalNorm records: title, rule type, location, and validity date range.
+ * Filter panel for CulturalNorm records: title, rule type, place, and validity date range.
  */
 public class CulturalNormFilterPanel extends JPanel implements RecordFilterPanel{
 
-	static final String FILTER_KEY_TITLE = "title";
-	static final String FILTER_KEY_RULE_TYPE = "ruleType";
-	static final String FILTER_KEY_VALID_FROM = "validFrom";
-	static final String FILTER_KEY_CALENDAR_FROM = "calendarFrom";
-	static final String FILTER_KEY_VALID_TO = "validTo";
-	static final String FILTER_KEY_CALENDAR_TO = "calendarTo";
-
-
 	private final JTextField titleField = new JTextField(20);
 	private final JComboBox<String> ruleTypeCombo = new JComboBox<>(GUIHelper.fillCombo(CulturalNormHandler.RULE_TYPES, I18N.t("search.combo.any")));
-	private final JTextField locationField = new JTextField(20);
+	private final JTextField placeField = new JTextField(20);
 	private final JTextField dateFromField = new JTextField(10);
 	private final JComboBox<String> calendarFromCombo = new JComboBox<>(SingleDatePanel.CALENDARS);
 	private final JTextField dateToField = new JTextField(10);
@@ -80,21 +72,21 @@ public class CulturalNormFilterPanel extends JPanel implements RecordFilterPanel
 
 	private void initComponents(){
 		setLayout(new MigLayout("wrap 2,gap 5", "[][grow,fill]", "[]"));
-		setBorder(BorderFactory.createTitledBorder("Cultural Norm Filters"));
+		setBorder(BorderFactory.createTitledBorder(I18N.tf("dialog.search.filter.title", I18N.t("dialog.component.cultural.norm"))));
 
-		add(new JLabel("Title:"));
+		add(new JLabel(I18N.t("dialog.cultural.norm.title") + ":"));
 		add(titleField, "growx");
-		add(new JLabel("Rule type:"));
+		add(new JLabel(I18N.t("dialog.cultural.norm.rule.type") + ":"));
 		add(ruleTypeCombo, "growx");
-		add(new JLabel("Location:"));
-		add(locationField, "growx");
-		add(new JLabel("Valid from:"));
+		add(new JLabel(I18N.t("dialog.place") + ":"));
+		add(placeField, "growx");
+		add(new JLabel(I18N.t("search.date.from") + ":"));
 		add(dateFromField, "growx");
-		add(new JLabel("Calendar from:"));
+		add(new JLabel(I18N.t("search.date.calendar.from") + ":"));
 		add(calendarFromCombo, "growx");
-		add(new JLabel("Valid to:"));
+		add(new JLabel(I18N.t("search.date.to") + ":"));
 		add(dateToField, "growx");
-		add(new JLabel("Calendar to:"));
+		add(new JLabel(I18N.t("search.date.calendar.to") + ":"));
 		add(calendarToCombo, "growx");
 	}
 
@@ -120,7 +112,7 @@ public class CulturalNormFilterPanel extends JPanel implements RecordFilterPanel
 
 		titleField.getDocument()
 			.addDocumentListener(docListener);
-		locationField.getDocument()
+		placeField.getDocument()
 			.addDocumentListener(docListener);
 		dateFromField.getDocument()
 			.addDocumentListener(docListener);
@@ -136,13 +128,13 @@ public class CulturalNormFilterPanel extends JPanel implements RecordFilterPanel
 	@Override
 	public Map<String, String> getFilters(){
 		final Map<String, String> filters = new HashMap<>();
-		filters.put(FILTER_KEY_TITLE, getTitle());
-		filters.put(FILTER_KEY_RULE_TYPE, getRuleType());
+		filters.put(CulturalNormHandler.TAG_TITLE, getTitle());
+		filters.put(CulturalNormHandler.TAG_RULE_TYPE, getRuleType());
 		filters.put(PlaceHandler.TYPE, getPlace());
-		filters.put(FILTER_KEY_VALID_FROM, getValidFrom());
-		filters.put(FILTER_KEY_CALENDAR_FROM, getCalendarFrom());
-		filters.put(FILTER_KEY_VALID_TO, getValidTo());
-		filters.put(FILTER_KEY_CALENDAR_TO, getCalendarTo());
+		filters.put(CulturalNormHandler.TAG_VALID_FROM, getValidFrom());
+		filters.put(CulturalNormSearchStrategy.KEY_CALENDAR_FROM, getCalendarFrom());
+		filters.put(CulturalNormHandler.TAG_VALID_TO, getValidTo());
+		filters.put(CulturalNormSearchStrategy.KEY_CALENDAR_TO, getCalendarTo());
 		return filters;
 	}
 
@@ -156,7 +148,7 @@ public class CulturalNormFilterPanel extends JPanel implements RecordFilterPanel
 	}
 
 	public String getPlace(){
-		return locationField.getText()
+		return placeField.getText()
 			.trim();
 	}
 

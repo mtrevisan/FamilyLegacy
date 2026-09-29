@@ -35,6 +35,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.projections.relationshi
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.GenealogyRepository;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.ProjectionMutator;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.help.ShortcutRegistry;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
 
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
@@ -89,12 +90,6 @@ public final class ProjectionSwitcherPanel extends JPanel{
 
 	/** Default generation depth used when loading the tree or the graph. */
 	private static final int DEFAULT_MAX_ANCESTORS = 2;
-
-	private static final String ENUM_TYPE_BIOLOGICAL_CHILD = "biological_child";
-	private static final String ENUM_TYPE_ADOPTIVE_CHILD = "adoptive_child";
-	private static final String ENUM_TYPE_STEP_CHILD = "step_child";
-	private static final String ENUM_TYPE_FOSTER_CHILD = "foster_child";
-	private static final String ENUM_TYPE_GUARDED_CHILD = "guarded_child";
 
 	/** Background color of the container. Matches the Sugiyama canvas. */
 	private static final Color BACKGROUND = new Color(250, 249, 245);
@@ -158,11 +153,8 @@ public final class ProjectionSwitcherPanel extends JPanel{
 
 	public static String[] computeAllowedRelationshipTypes(final TreeType treeType){
 		return switch(treeType){
-			case BIOLOGICAL -> new String[]{ENUM_TYPE_BIOLOGICAL_CHILD};
-			case FAMILY -> new String[]{
-				ENUM_TYPE_BIOLOGICAL_CHILD, ENUM_TYPE_ADOPTIVE_CHILD,
-				ENUM_TYPE_FOSTER_CHILD, ENUM_TYPE_GUARDED_CHILD,
-				ENUM_TYPE_STEP_CHILD};
+			case BIOLOGICAL -> RelationshipHandler.BIOLOGICAL;
+			case FAMILY -> RelationshipHandler.FAMILY;
 		};
 	}
 

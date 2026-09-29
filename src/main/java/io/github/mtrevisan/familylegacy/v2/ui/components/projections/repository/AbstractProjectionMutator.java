@@ -46,10 +46,6 @@ import java.util.Objects;
  */
 public abstract class AbstractProjectionMutator implements ProjectionMutator{
 
-	private static final String TAG_TYPE = "type";
-	private static final String TAG_PARTICIPANT = "participant";
-
-
 	protected final FLEFModel model;
 	protected final TreeChangeListener listener;
 
@@ -67,7 +63,7 @@ public abstract class AbstractProjectionMutator implements ProjectionMutator{
 
 		final FLEFRecord relationship = FLEFRecord.createMainRecord(RelationshipHandler.TYPE,
 				RelationshipHandler.ID_PREFIX, model)
-			.addChild(FLEFRecord.createChildWithTagAndValue(TAG_TYPE, type))
+			.addChild(FLEFRecord.createChildWithTagAndValue(RelationshipHandler.TAG_TYPE, type))
 			.addChild(FLEFRecord.createChildWithTag(RelationshipHandler.TAG_SUBJECT)
 				.addChild(FLEFRecord.createChildWithTagAndValue(IndividualHandler.TYPE, subjectId))
 			)
@@ -160,7 +156,7 @@ public abstract class AbstractProjectionMutator implements ProjectionMutator{
 		for(int i = 0, size = participations.size(); i < size; i ++){
 			final FLEFRecord participation = participations.get(i);
 
-			final FLEFRecord participantField = FLEFRecordHelper.findChild(participation, TAG_PARTICIPANT);
+			final FLEFRecord participantField = FLEFRecordHelper.findChild(participation, EventParticipationHandler.TAG_PARTICIPANT);
 			if(participantField == null)
 				continue;
 

@@ -116,6 +116,7 @@ public class CulturalNormRecordDialog extends BaseRecordDialog{
 
 		titleField = new BoundTextField(CulturalNormHandler.TAG_TITLE);
 		ruleTypeCombo = new BoundComboBox<>(CulturalNormHandler.TAG_RULE_TYPE, CulturalNormHandler.RULE_TYPES);
+		ruleTypeCombo.setI18NPrefix("enum.cultural.norm.rule.type");
 		ruleTypeCombo.setEditable(true);
 		placeField = EntityField.createForStructureWithReference(PlaceHandler.TYPE, this, model, PlaceCitationHandler.class);
 		placeEvidencePanel = new EvidenceQualifiersPanel(TAG_PLACE_EVIDENCE, I18N.t("dialog.component.evidence"));

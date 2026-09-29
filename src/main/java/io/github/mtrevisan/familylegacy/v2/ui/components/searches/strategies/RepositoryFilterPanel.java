@@ -64,9 +64,9 @@ public class RepositoryFilterPanel extends JPanel implements RecordFilterPanel{
 
 	private void initComponents(){
 		setLayout(new MigLayout("wrap 2,gap 5", "[][grow,fill]", "[]"));
-		setBorder(BorderFactory.createTitledBorder(I18N.tf("dialog.search.filter.title", I18N.t("dialog.component.repositories"))));
+		setBorder(BorderFactory.createTitledBorder(I18N.tf("dialog.search.filter.title", I18N.t("dialog.component.repository"))));
 
-		add(new JLabel(I18N.t("dialog.repository.names") + ":"));
+		add(new JLabel(I18N.t("dialog.repository.name") + ":"));
 		add(nameField, "growx");
 		add(new JLabel(I18N.t("dialog.repository.custodian") + ":"));
 		add(custodianField, "growx");

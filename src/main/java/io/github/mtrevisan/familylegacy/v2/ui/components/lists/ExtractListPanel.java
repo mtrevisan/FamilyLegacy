@@ -31,6 +31,8 @@ import io.github.mtrevisan.familylegacy.v2.ui.bindings.BindingsHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundFilteredComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextArea;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceCitationHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.LocaleHelper;
@@ -50,8 +52,7 @@ import java.util.List;
  */
 public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
 
-	private static final String TAG_DOCUMENT = "DOCUMENT";
-	private static final String TAG_DOCUMENT_PART = "DOCUMENT_PART";
+	static final String TAG_DOCUMENT_PART = "DOCUMENT_PART";
 	private static final String TAG_DESCRIPTION = "DESCRIPTION";
 	private static final String TAG_FILE = "FILE";
 	private static final String TAG_TEXT = "TEXT";
@@ -109,7 +110,7 @@ public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
 				.findFirst()
 				.orElse(null);
 			if(documentPart != null){
-				final FLEFRecord documentCitation = FLEFRecordHelper.findChild(documentPart, TAG_DOCUMENT);
+				final FLEFRecord documentCitation = FLEFRecordHelper.findChild(documentPart, SourceHandler.TAG_DOCUMENT);
 				final String documentId = (documentCitation != null? documentCitation.getValue(): null);
 				final FLEFRecord document = model.getRecordById(documentId);
 				if(document != null){
@@ -165,10 +166,10 @@ public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
 	 * @return the created/updated extract record, or {@code null} if canceled
 	 */
 	private FLEFRecord showExtractDialog(final FLEFRecord record){
-		final DocumentPartListPanel documentPartPanel = new DocumentPartListPanel(TAG_DOCUMENT_PART, parent, "Document Parts", model);
+		final DocumentPartListPanel documentPartPanel = new DocumentPartListPanel(TAG_DOCUMENT_PART, parent, I18N.t("dialog.extract.document.parts.title"), model);
 		final BoundTextArea textArea = new BoundTextArea(TAG_TEXT, 3, 25);
-		final BoundComboBox<String> typeCombo = new BoundComboBox<>(TAG_TYPE, new String[]{
-			"verbatim", "summarized", "translated", "normalized"});
+		final BoundComboBox<String> typeCombo = new BoundComboBox<>(TAG_TYPE, GUIHelper.fillCombo(SourceCitationHandler.TYPES, I18N.t("search.combo.any")));
+		typeCombo.setI18NPrefix("enum.extract.type");
 		final BoundFilteredComboBox<String> localeCombo = new BoundFilteredComboBox<>(TAG_LOCALE, LocaleHelper.getAvailableLanguageTags());
 		localeCombo.setEditable(true);
 		final BasicNoteListPanel basicNote = new BasicNoteListPanel(TAG_NOTE, parent, "Notes", TAG_NOTE);
@@ -177,7 +178,7 @@ public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
 		loadExtractData(record, documentPartPanel, textArea, typeCombo, localeCombo, basicNote);
 
 
-		final JDialog dialog = new JDialog(parent, record == null? "Add Extract": "Edit Extract", Dialog.ModalityType.APPLICATION_MODAL);
+		final JDialog dialog = new JDialog(parent, I18N.t(record == null? "dialog.extract.title.add": "dialog.extract.title.edit"), Dialog.ModalityType.APPLICATION_MODAL);
 		initExtractComponents(dialog, documentPartPanel, textArea, typeCombo, localeCombo, basicNote);
 
 		final FLEFRecord[] result = {record};
@@ -224,11 +225,11 @@ public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
 
 		GUIHelper.addComponent(dialog, documentPartPanel);
 
-		GUIHelper.addLabeledComponent(dialog, "Text*:", textArea);
+		GUIHelper.addLabeledComponent(dialog, I18N.t("dialog.extract.text") + "*:", textArea);
 
-		GUIHelper.addLabeledComponent(dialog, "Type*:", typeCombo);
+		GUIHelper.addLabeledComponent(dialog, I18N.t("dialog.extract.type") + "*:", typeCombo);
 
-		GUIHelper.addLabeledComponent(dialog, "Locale:", localeCombo);
+		GUIHelper.addLabeledComponent(dialog, I18N.t("dialog.extract.locale") + ":", localeCombo);
 
 		GUIHelper.addComponent(dialog, basicNote);
 	}
@@ -262,7 +263,7 @@ public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
 			final BoundTextArea textArea){
 		if(documentPartPanel.isEmpty() && textArea.isEmpty()){
 			GUIHelper.showValidationErrorAndFocus(dialog,
-				"Extract document parts or value cannot be both empty.",
+				I18N.tf("validation.at.least.one.of", I18N.t("dialog.extract.document.part"), I18N.t("dialog.extract.text")),
 				null, null, documentPartPanel);
 
 			return false;

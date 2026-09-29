@@ -98,7 +98,9 @@ public class ResearchTaskRecordDialog extends BaseRecordDialog{
 		createdByField = EntityField.createForRecordFromReference(ResearchTaskHandler.TAG_CREATED_BY, this, model,
 			ResearchActivityHandler.class);
 		statusCombo = new BoundComboBox<>(ResearchTaskHandler.TAG_STATUS, ResearchTaskHandler.STATUSES);
+		statusCombo.setI18NPrefix("enum.research.task.status");
 		priorityCombo = new BoundComboBox<>(ResearchTaskHandler.TAG_PRIORITY, ResearchTaskHandler.PRIORITIES);
+		priorityCombo.setI18NPrefix("enum.research.task.priority");
 		dueDateField = new BoundTextField(ResearchTaskHandler.TAG_DUE_DATE);
 		outcomeArea = new BoundTextArea(ResearchTaskHandler.TAG_OUTCOME, 3, 30);
 

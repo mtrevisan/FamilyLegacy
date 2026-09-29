@@ -32,6 +32,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.ImageCropDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.components.PreferredImagePanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.RecordSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.DocumentHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 
 import javax.swing.JDialog;
@@ -46,10 +47,6 @@ import java.util.List;
  * Panel for managing document parts with image cropping functionality.
  */
 public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
-
-	private static final String TAG_DOCUMENT = "DOCUMENT";
-	private static final String TAG_DOCUMENT_PART = "DOCUMENT_PART";
-
 
 	private final String path;
 
@@ -115,7 +112,7 @@ public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
 				imageCropRect = new Rectangle(cropX, cropY, cropWidth, cropHeight);
 		}
 		catch(final NumberFormatException ignored){}
-		final String documentId = FLEFRecordHelper.findChild(documentPart, TAG_DOCUMENT)
+		final String documentId = FLEFRecordHelper.findChild(documentPart, SourceHandler.TAG_DOCUMENT)
 			.getValue();
 		final FLEFRecord document = model.getRecordById(documentId);
 		String uri = FLEFRecordHelper.getChildValue(document, DocumentHandler.TAG_URI);
@@ -134,7 +131,7 @@ if(uri != null)
 			ioe.printStackTrace();
 
 			JOptionPane.showMessageDialog(parent,
-				"Error loading image for cropping: " + ioe.getMessage(),
+				I18N.tf("error.image", uri),
 				I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
 		}
 	}
@@ -144,7 +141,7 @@ if(uri != null)
 		if(documentPart != null){
 			FLEFRecord doc = documentPart;
 			if(documentPart.getId() == null){
-				final String documentId = FLEFRecordHelper.getChildValue(documentPart, TAG_DOCUMENT);
+				final String documentId = FLEFRecordHelper.getChildValue(documentPart, SourceHandler.TAG_DOCUMENT);
 				doc = model.getRecordById(documentId);
 			}
 			return documentHandler.getDisplayText(doc, model);
@@ -177,7 +174,7 @@ if(uri != null)
 						ioe.printStackTrace();
 
 						JOptionPane.showMessageDialog(parent,
-							"Error loading image for cropping: " + ioe.getMessage(),
+							I18N.tf("error.image", uri),
 							I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
 					}
 
@@ -210,7 +207,8 @@ if(uri != null)
 	@Override
 	protected FLEFRecord showEditDialog(final FLEFRecord record){
 		if(record == null){
-			JOptionPane.showMessageDialog(parent, documentHandler.getLabel() + " not found",
+			JOptionPane.showMessageDialog(parent,
+				I18N.t("error.record.not.found"),
 				I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
 
 			return null;
@@ -249,8 +247,8 @@ if(uri != null)
 	 */
 	public void saveReferences(final FLEFRecord record){
 		for(final FLEFRecord documentPart : getItems()){
-			final FLEFRecord part = FLEFRecord.createChildWithTag(TAG_DOCUMENT_PART);
-			part.addChild(FLEFRecord.createChildWithTagAndValue(TAG_DOCUMENT, documentPart.getId()));
+			final FLEFRecord part = FLEFRecord.createChildWithTag(ExtractListPanel.TAG_DOCUMENT_PART);
+			part.addChild(FLEFRecord.createChildWithTagAndValue(SourceHandler.TAG_DOCUMENT, documentPart.getId()));
 			final FLEFRecord crop = FLEFRecordHelper.findChild(documentPart, PreferredImagePanel.TAG_CROP);
 			part.addChild(crop);
 			record.addChild(part);

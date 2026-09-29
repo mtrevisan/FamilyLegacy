@@ -34,6 +34,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventParticipationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.NameHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import org.apache.commons.lang3.StringUtils;
 
@@ -60,14 +61,6 @@ import java.util.Map;
  * model again.
  */
 public final class EventIndex{
-
-	private static final String TAG_TYPE = "type";
-	private static final String TAG_DATE = "date";
-	private static final String TAG_PARTICIPANT = "participant";
-	private static final String TAG_EVENT = "event";
-	private static final String TAG_NAME = "name";
-	private static final String TAG_VALUE = "value";
-
 
 	/** A participant of an event, resolved to a display name. */
 	public record Participant(String id, String name, boolean isIndividual){}
@@ -109,7 +102,7 @@ public final class EventIndex{
 		// Collect participations grouped by event.
 		final Map<String, List<FLEFRecord>> participationsByEvent = new LinkedHashMap<>();
 		for(final FLEFRecord p : model.getRecordsByType(EventParticipationHandler.TYPE)){
-			final String eventId = FLEFRecordHelper.getChildValue(p, TAG_EVENT);
+			final String eventId = FLEFRecordHelper.getChildValue(p, EventHandler.TYPE);
 			if(eventId == null)
 				continue;
 
@@ -124,11 +117,11 @@ public final class EventIndex{
 			if(id == null)
 				continue;
 
-			final String type = FLEFRecordHelper.getChildValue(event, TAG_TYPE);
+			final String type = FLEFRecordHelper.getChildValue(event, EventHandler.TAG_TYPE);
 			final String description = FLEFRecordHelper.getChildValue(event, "description");
 
 			// Date.
-			final FLEFRecord dateStructure = FLEFRecordHelper.findChild(event, TAG_DATE);
+			final FLEFRecord dateStructure = FLEFRecordHelper.findChild(event, EventHandler.TAG_DATE);
 			final TemporalSpan span = normalizer.normalize(dateStructure);
 			final NormalizedDate date = (span != null? span.start(): null);
 
@@ -219,7 +212,7 @@ public final class EventIndex{
 	 * ====================================================================== */
 
 	private static Participant resolveParticipant(final FLEFModel model, final FLEFRecord participation){
-		final FLEFRecord field = FLEFRecordHelper.findChild(participation, TAG_PARTICIPANT);
+		final FLEFRecord field = FLEFRecordHelper.findChild(participation, EventParticipationHandler.TAG_PARTICIPANT);
 		if(field == null)
 			return null;
 		final FLEFRecord ref = field.getTheOnlyChild();
@@ -243,9 +236,9 @@ public final class EventIndex{
 		final FLEFRecord place = model.getRecordById(placeId);
 		if(place == null)
 			return placeId;
-		final FLEFRecord name = FLEFRecordHelper.findChild(place, TAG_NAME);
+		final FLEFRecord name = FLEFRecordHelper.findChild(place, PlaceHandler.TAG_NAME);
 		if(name != null){
-			final String v = FLEFRecordHelper.getChildValue(name, TAG_VALUE);
+			final String v = FLEFRecordHelper.getChildValue(name, NameHandler.TAG_VALUE);
 			if(v != null && !v.isBlank())
 				return v;
 		}

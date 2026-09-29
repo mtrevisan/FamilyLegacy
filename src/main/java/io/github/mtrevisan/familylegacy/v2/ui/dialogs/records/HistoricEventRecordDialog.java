@@ -93,6 +93,7 @@ public class HistoricEventRecordDialog extends BaseRecordDialog{
 		super(parent, model, record, HistoricEventHandler.getInstance());
 
 		typeCombo = new BoundComboBox<>(HistoricEventHandler.TAG_TYPE, HistoricEventHandler.TYPES);
+		typeCombo.setI18NPrefix("enum.historic.event.type");
 		typeCombo.setEditable(true);
 		titleField = new BoundTextField(HistoricEventHandler.TAG_TITLE);
 		dateField = DateField.createWithWrapperTag(HistoricEventHandler.TAG_DATE, this, "Date", model);

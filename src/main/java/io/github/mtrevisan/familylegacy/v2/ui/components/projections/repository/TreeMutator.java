@@ -46,9 +46,6 @@ import java.util.function.Predicate;
  */
 public class TreeMutator extends AbstractProjectionMutator{
 
-	private static final String TAG_SEX = "sex";
-
-
 	private final Predicate<String> relationshipTypeFilter;
 	private final TreeService treeService;
 
@@ -91,7 +88,7 @@ public class TreeMutator extends AbstractProjectionMutator{
 		if(relationshipTypes == null || relationshipTypes.size() != childrenId.size())
 			throw new IllegalArgumentException("relationshipTypes must match childrenId size");
 
-		final String parentSex = FLEFRecordHelper.getChildValue(newParent, TAG_SEX);
+		final String parentSex = FLEFRecordHelper.getChildValue(newParent, IndividualHandler.TAG_SEX);
 		if(parentSex != null){
 			final List<FLEFRecord> toRemove = new ArrayList<>();
 			final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
@@ -112,7 +109,7 @@ public class TreeMutator extends AbstractProjectionMutator{
 				if(existingParent == null)
 					continue;
 
-				final String existingParentSex = FLEFRecordHelper.getChildValue(existingParent, TAG_SEX);
+				final String existingParentSex = FLEFRecordHelper.getChildValue(existingParent, IndividualHandler.TAG_SEX);
 				if(parentSex.equals(existingParentSex))
 					toRemove.add(relationship);
 			}

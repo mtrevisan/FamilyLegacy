@@ -39,7 +39,7 @@ import java.util.function.Consumer;
  */
 public final class ToolBarBuilder{
 
-	private final JToolBar toolBar = new JToolBar("Main Toolbar");
+	private final JToolBar toolBar = new JToolBar(I18N.t("toolbar.title"));
 	private JToggleButton btnTreeLayout;
 	private JToggleButton btnGraphLayout;
 	private JToggleButton btnEgoLayout;
@@ -53,19 +53,19 @@ public final class ToolBarBuilder{
 
 		// Navigation
 		final JButton btnBack = new JButton("◄");
-		btnBack.setToolTipText("Navigate Back (" + ShortcutRegistry.NAV_BACK.displayKeys() + ")");
+		btnBack.setToolTipText(I18N.t("toolbar.navigate.back") + " (" + ShortcutRegistry.NAV_BACK.displayKeys() + ")");
 		btnBack.addActionListener(e -> onBack.run());
 
 		final JButton btnForward = new JButton("►");
-		btnForward.setToolTipText("Navigate Forward (" + ShortcutRegistry.NAV_FORWARD.displayKeys() + ")");
+		btnForward.setToolTipText(I18N.t("toolbar.navigate.forward") + " (" + ShortcutRegistry.NAV_FORWARD.displayKeys() + ")");
 		btnForward.addActionListener(e -> onForward.run());
 
 		final JButton btnJump = new JButton("Jump To…");
-		btnJump.setToolTipText("Jump to Individual/Group (" + ShortcutRegistry.NAV_JUMP_TO_INDIVIDUAL_OR_GROUP.displayKeys() + ")");
+		btnJump.setToolTipText(I18N.t("toolbar.jump.to") + " (" + ShortcutRegistry.NAV_JUMP_TO_INDIVIDUAL_OR_GROUP.displayKeys() + ")");
 		btnJump.addActionListener(e -> onJump.run());
 
 		final JButton btnEdit = new JButton(I18N.t("button.edit"));
-		btnEdit.setToolTipText("Edit Current Selection (" + ShortcutRegistry.EDIT_SELECTION_INDIVIDUAL.displayKeys() + ")");
+		btnEdit.setToolTipText(I18N.t("toolbar.edit.selection") + " (" + ShortcutRegistry.EDIT_SELECTION_INDIVIDUAL.displayKeys() + ")");
 		btnEdit.addActionListener(e -> onEdit.run());
 
 		toolBar.add(btnBack);
@@ -75,17 +75,17 @@ public final class ToolBarBuilder{
 		toolBar.addSeparator();
 
 		// Projections
-		btnTreeLayout = new JToggleButton("Tree");
-		btnTreeLayout.setToolTipText("Ancestor Tree (" + ShortcutRegistry.VIEW_ANCESTOR_TREE.displayKeys() + ")");
+		btnTreeLayout = new JToggleButton(I18N.t("toolbar.projection.tree.layout"));
+		btnTreeLayout.setToolTipText(I18N.t("toolbar.projection.tree.layout.tooltip") + " (" + ShortcutRegistry.VIEW_ANCESTOR_TREE.displayKeys() + ")");
 		btnTreeLayout.setSelected(true);
 		btnTreeLayout.addActionListener(e -> onProjectionSelect.accept(ProjectionType.TREE));
 
-		btnGraphLayout = new JToggleButton("Sugiyama");
-		btnGraphLayout.setToolTipText("Sugiyama Pedigree Graph (" + ShortcutRegistry.VIEW_SUGIYAMA_GRAPH.displayKeys() + ")");
+		btnGraphLayout = new JToggleButton(I18N.t("toolbar.projection.sugiyama.graph"));
+		btnGraphLayout.setToolTipText(I18N.t("toolbar.projection.sugiyama.graph.tooltip") + " (" + ShortcutRegistry.VIEW_SUGIYAMA_GRAPH.displayKeys() + ")");
 		btnGraphLayout.addActionListener(e -> onProjectionSelect.accept(ProjectionType.GRAPH));
 
-		btnEgoLayout = new JToggleButton("Ego Net");
-		btnEgoLayout.setToolTipText("Ego Network (" + ShortcutRegistry.VIEW_EGO_NETWORK.displayKeys() + ")");
+		btnEgoLayout = new JToggleButton(I18N.t("toolbar.projection.ego.network"));
+		btnEgoLayout.setToolTipText(I18N.t("toolbar.projection.ego.network.tooltip") + " (" + ShortcutRegistry.VIEW_EGO_NETWORK.displayKeys() + ")");
 		btnEgoLayout.addActionListener(e -> onProjectionSelect.accept(ProjectionType.EGO_NETWORK));
 
 		final ButtonGroup projectionGroup = new ButtonGroup();
@@ -99,8 +99,8 @@ public final class ToolBarBuilder{
 		toolBar.addSeparator();
 
 		// Sidebar Toggle
-		btnToggleSidebar = new JToggleButton("Sidebar", initialSidebarVisible);
-		btnToggleSidebar.setToolTipText("Toggle Dossier Sidebar Panel");
+		btnToggleSidebar = new JToggleButton(I18N.t("toolbar.sidebar"), initialSidebarVisible);
+		btnToggleSidebar.setToolTipText(I18N.t("toolbar.sidebar.tooltip"));
 		btnToggleSidebar.addActionListener(e -> onSidebarToggle.accept(btnToggleSidebar.isSelected()));
 
 		toolBar.add(btnToggleSidebar);

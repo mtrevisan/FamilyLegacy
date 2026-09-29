@@ -126,6 +126,7 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]");
 
 		typeCombo = new BoundComboBox<>(PersonalNameHandler.TAG_TYPE, TYPES);
+		typeCombo.setI18NPrefix("enum.personal.name.type");
 		typeCombo.setEditable(true);
 		partPanel = EntityListPanel.createForStructure(PersonalNameHandler.TAG_PART, this, I18N.t("dialog.name.parts") + "*", model, PartHandler.class);
 		localeCombo = new BoundFilteredComboBox<>(PersonalNameHandler.TAG_LOCALE, LocaleHelper.getAvailableLanguageTags());

@@ -113,6 +113,7 @@ public class EventParticipationRecordDialog extends BaseRecordDialog{
 			.withHandlerTypes(IndividualHandler.class, GroupHandler.class, PlaceHandler.class);
 		eventField = EntityField.createForRecordFromReference(EventParticipationHandler.TAG_EVENT, this, model, EventHandler.class);
 		roleCombo = new BoundComboBox<>(EventParticipationHandler.TAG_ROLE, EventParticipationHandler.ROLES);
+		roleCombo.setI18NPrefix("enum.event.participation.role");
 		roleCombo.setEditable(true);
 
 		// Build common panels using the builder

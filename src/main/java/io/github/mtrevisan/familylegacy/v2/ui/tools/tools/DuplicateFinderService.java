@@ -268,7 +268,7 @@ public final class DuplicateFinderService{
 		final Map<String, Set<String>> childrenByParent = new HashMap<>();
 		for(final FLEFRecord rel : relationships){
 			final String type = FLEFRecordHelper.getChildValue(rel, "type");
-			if(!"biological_child".equalsIgnoreCase(type))
+			if(!RelationshipHandler.ENUM_TYPE_BIOLOGICAL_CHILD.equalsIgnoreCase(type))
 				continue;
 
 			final String child = rel.extractReferencedId("subject", IndividualHandler.TYPE);
@@ -314,7 +314,7 @@ public final class DuplicateFinderService{
 			if(subject == null || target == null)
 				continue;
 
-			if("biological_child".equalsIgnoreCase(type)){
+			if(RelationshipHandler.ENUM_TYPE_BIOLOGICAL_CHILD.equalsIgnoreCase(type)){
 				if(id.equals(subject))
 					parents.add(target);
 				else if(id.equals(target))

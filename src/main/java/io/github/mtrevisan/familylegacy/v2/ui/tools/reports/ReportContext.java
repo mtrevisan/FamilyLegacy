@@ -237,9 +237,9 @@ final class ReportContext{
 			return true;
 
 		final String level = readPrivacyLevel(rec);
-		if(PrivacyPanel.ENUM_PRIVACY_CONFIDENTIAL.equals(level))
+		if(PrivacyPanel.ENUM_PRIVACY_LEVEL_CONFIDENTIAL.equals(level))
 			return false;
-		if(policy == PrivacyPolicy.HIDE_RESTRICTED_AND_CONFIDENTIAL && PrivacyPanel.ENUM_PRIVACY_RESTRICTED.equals(level))
+		if(policy == PrivacyPolicy.HIDE_RESTRICTED_AND_CONFIDENTIAL && PrivacyPanel.ENUM_PRIVACY_LEVEL_RESTRICTED.equals(level))
 			return false;
 
 		// Even when the level allows display, an expired restriction means
@@ -268,16 +268,16 @@ final class ReportContext{
 	String readPrivacyLevel(final FLEFRecord rec){
 		final String level = FLEFRecordHelper.getChildValue(rec, TAG_PRIVACY_LEVEL);
 		if(level == null || level.isBlank())
-			return PrivacyPanel.ENUM_PRIVACY_PUBLIC;
+			return PrivacyPanel.ENUM_PRIVACY_LEVEL_PUBLIC;
 		final String norm = level.trim().toLowerCase(Locale.ROOT);
 		return switch(norm){
-			case PrivacyPanel.ENUM_PRIVACY_RESTRICTED, PrivacyPanel.ENUM_PRIVACY_CONFIDENTIAL -> norm;
-			default -> PrivacyPanel.ENUM_PRIVACY_PUBLIC;
+			case PrivacyPanel.ENUM_PRIVACY_LEVEL_RESTRICTED, PrivacyPanel.ENUM_PRIVACY_LEVEL_CONFIDENTIAL -> norm;
+			default -> PrivacyPanel.ENUM_PRIVACY_LEVEL_PUBLIC;
 		};
 	}
 
 	boolean hasPrivacyRestriction(final FLEFRecord rec){
-		return !PrivacyPanel.ENUM_PRIVACY_PUBLIC.equals(readPrivacyLevel(rec));
+		return !PrivacyPanel.ENUM_PRIVACY_LEVEL_PUBLIC.equals(readPrivacyLevel(rec));
 	}
 
 	FLEFRecord visible(final FLEFRecord rec){
