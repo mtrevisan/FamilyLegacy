@@ -25,8 +25,8 @@
 package io.github.mtrevisan.familylegacy.v2.ui.components.projections.social;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.date.TemporalSpan;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.temporal.TemporalEntityRef;
-import io.github.mtrevisan.familylegacy.v2.ui.components.projections.temporal.TemporalSpan;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Objects;

@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual
 import io.github.mtrevisan.familylegacy.v2.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.SexType;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.JumpToIndividualDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.ProjectionType;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.SpatialNavigation;
@@ -51,7 +52,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.TreeNode;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.TreeService;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.siblings.SiblingsPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.SexType;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.ViewportPanSupport;
 

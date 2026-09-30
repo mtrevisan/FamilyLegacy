@@ -52,7 +52,6 @@ public class HistoricEventHandler extends AbstractRecordTypeHandler<HistoricEven
 	public static final String TAG_AUDIT = "AUDIT";
 
 	public static final String[] TYPES = new String[]{
-		StringUtils.EMPTY,
 		"war", "epidemic", "famine", "migration", "legal_reform", "political_change", "territorial_change",
 		"natural_disaster", "economic_crisis", "scientific_discovery", "religious_reform", "social_movement",
 		"pandemic"

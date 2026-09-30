@@ -74,11 +74,9 @@ public class ResearchActivityHandler extends AbstractRecordTypeHandler<ResearchA
 		"selected_entries"
 	};
 	public static final String[] RESULTS = new String[]{
-		StringUtils.EMPTY,
 		"positive", "negative", "inconclusive", "conflicting", "unavailable"
 	};
 	public static final String[] CONFIDENCES = new String[]{
-		StringUtils.EMPTY,
 		"low", "medium", "high"
 	};
 

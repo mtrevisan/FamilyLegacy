@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.SexType;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.TreeOperation;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualData;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualListener;
@@ -38,7 +39,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.TreeMutator;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.TreeNode;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.TreeService;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.SexType;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.RelationClipboard;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContexts;

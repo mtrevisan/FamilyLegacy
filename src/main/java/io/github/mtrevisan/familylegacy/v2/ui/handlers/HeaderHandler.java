@@ -34,22 +34,32 @@ import java.awt.Window;
 
 /**
  * Handler for HEADER records.
+ * <p>
+ * Structure:
+ * <pre>
+ * struct Header {
+ *   protocol: struct {
+ *     name: Text        // the name of the protocol
+ *     version: SemVer   // the version of the protocol. It is defined and changed by the creators of the product.
+ *   }
+ *   source?: struct {
+ *     name?: Text        // the human-readable name of the software product that produced this file
+ *     version?: SemVer   // the version of the software product. It is defined and changed by the creators of the product.
+ *     organization?: Text   // the name of the organization or person that produced or commissioned the product
+ *   }
+ *   date: Date         // the date this source was created
+ *   copyright?: Text   // a copyright statement needed to protect the copyrights of the submitter of this file
+ *   submitter?: struct {
+ *     contact*: ContactStructure   // contact information for the submitter (phone, email, web, etc.)
+ *     note?: Text                  // any notes related to the submitter
+ *   }
+ *   scope?: Text       // a brief description of the file's genealogical scope (e.g., "Ancestors of John Doe")
+ * }
+ * </pre>
  */
 public class HeaderHandler extends AbstractRecordTypeHandler<HeaderDialog>{
 
 	public static final String TYPE = "HEADER";
-
-	public static final String TAG_PROTOCOL = "PROTOCOL";
-	public static final String TAG_NAME = "NAME";
-	public static final String TAG_VERSION = "VERSION";
-	public static final String TAG_SOURCE = "SOURCE";
-	public static final String TAG_ORGANIZATION = "ORGANIZATION";
-	public static final String TAG_DATE = "DATE";
-	public static final String TAG_COPYRIGHT = "COPYRIGHT";
-	public static final String TAG_SUBMITTER = "SUBMITTER";
-	public static final String TAG_CONTACT = "CONTACT";
-	public static final String TAG_NOTE = "NOTE";
-	public static final String TAG_SCOPE = "SCOPE";
 
 
 	private static final class SingletonHelper{

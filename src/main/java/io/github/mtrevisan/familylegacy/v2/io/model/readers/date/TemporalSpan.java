@@ -22,7 +22,8 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.v2.ui.components.projections.temporal;
+package io.github.mtrevisan.familylegacy.v2.io.model.readers.date;
+
 
 /**
  * The extension of time occupied by a single assertion in the General
@@ -114,8 +115,7 @@ public record TemporalSpan(TemporalSpanKind kind, NormalizedDate start, Normaliz
 	 * @param status    the relationship status
 	 * @return a bounded span
 	 */
-	public static TemporalSpan bounded(final NormalizedDate notBefore, final NormalizedDate notAfter,
-		final String status){
+	public static TemporalSpan bounded(final NormalizedDate notBefore, final NormalizedDate notAfter, final String status){
 		return new TemporalSpan(TemporalSpanKind.BOUNDED, notBefore, notAfter, status);
 	}
 
@@ -213,6 +213,18 @@ public record TemporalSpan(TemporalSpanKind kind, NormalizedDate start, Normaliz
 		return (!isPoint() && end == null);
 	}
 
+	public NormalizedDate representativeDate(){
+		if(isPoint() || isOpenEnded())
+			return start;
+
+		if(isOpenStarted())
+			return end;
+
+		long mid = (start.jdn() + end.jdn()) / 2;
+
+		return NormalizedDate.exact(mid, DatePrecision.YEAR);
+	}
+
 	/**
 	 * Returns the effective end of this span. For a point span, the effective
 	 * end is the start; for interval spans it is the {@code end} field, which
@@ -284,7 +296,8 @@ public record TemporalSpan(TemporalSpanKind kind, NormalizedDate start, Normaliz
 	@Override
 	public String toString(){
 		if(isPoint())
-			return "POINT [" + status + "]: " + start;
+			return TemporalSpanKind.POINT + " [" + status + "]: " + start;
+
 		return kind + " [" + status + "]: " + (start != null? start: "(open)")
 			+ " .. " + (end != null? end: "(open)");
 	}

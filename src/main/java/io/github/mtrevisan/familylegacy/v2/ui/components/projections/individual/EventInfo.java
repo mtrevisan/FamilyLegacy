@@ -24,7 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual;
 
-import io.github.mtrevisan.familylegacy.v2.ui.helpers.ParsedGenealogicalDate;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.date.NormalizedDate;
 
 
 /**
@@ -32,9 +32,10 @@ import io.github.mtrevisan.familylegacy.v2.ui.helpers.ParsedGenealogicalDate;
  *
  * @param type        `birth` or `death`
  * @param rawDate     original date string (for display)
- * @param approximate whether the date is approximate
+ * @param date        pretty print date string (for display)
+ * @param year        pretty print year string (for display)
+ * @param representativeDate parsed representative date
  * @param place       place name or original_text
  * @param deathCause  cause of death
  */
-public record EventInfo(String type, String rawDate, ParsedGenealogicalDate date, boolean approximate, String place,
-	String deathCause){}
+public record EventInfo(String type, String rawDate, String date, String year, NormalizedDate representativeDate, String place, String deathCause){}

@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.io.merger;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import org.apache.commons.lang3.Strings;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -74,9 +75,9 @@ public class FLEFRecordFlattener{
 	private static void extractIndividual(final FLEFRecord record, final Map<String, String> fields){
 		// Extract name parts
 		for(final FLEFRecord child : record.getChildren()){
-			if("name".equalsIgnoreCase(child.getTag())){
+			if(Strings.CI.equals("name", child.getTag())){
 				for(final FLEFRecord part : child.getChildren()){
-					if("part".equalsIgnoreCase(part.getTag())){
+					if(Strings.CI.equals("part", part.getTag())){
 						final String type = FLEFRecordHelper.getChildValue(part, "type");
 						final String value = FLEFRecordHelper.getChildValue(part, "value");
 						if(type != null && value != null)

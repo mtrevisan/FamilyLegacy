@@ -103,7 +103,7 @@ public record ReportConfig(
 			true,   // media
 			false,  // evidence
 			false,  // contextAndResearch
-			false,  // culturalNorms
+			false,  // culturalNormIds
 			true,   // groups
 			true,   // groupMembers
 			true,   // groupSubgroups

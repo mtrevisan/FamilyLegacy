@@ -50,7 +50,6 @@ public class ContextImpactHandler extends AbstractRecordTypeHandler<ContextImpac
 	public static final String TAG_AUDIT = "AUDIT";
 
 	public static final String[] IMPACT_TYPES = new String[]{
-		StringUtils.EMPTY,
 		"explains",
 		"influences",
 		"constrains",
@@ -58,10 +57,7 @@ public class ContextImpactHandler extends AbstractRecordTypeHandler<ContextImpac
 		"causes"
 	};
 	public static final String[] CONFIDENCES = new String[]{
-		StringUtils.EMPTY,
-		"low",
-		"medium",
-		"high"
+		"low", "medium", "high"
 	};
 
 

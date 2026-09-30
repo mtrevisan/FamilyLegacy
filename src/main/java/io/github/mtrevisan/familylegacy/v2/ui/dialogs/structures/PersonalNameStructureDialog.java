@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs.structures;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.names.Name;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundFilteredComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
@@ -65,7 +66,7 @@ import java.awt.Window;
  *   source*: SourceCitation
  *   note*: Xref&lt;NoteRecord&gt;
  * }
- * struct PartStructure {
+ * struct NamePartStructure {
  *   type: enum {
  *     given, generation,
  *     patronymic, matronymic, kunya (كُنيَة),
@@ -86,21 +87,6 @@ import java.awt.Window;
  * Tab 8 (Notes): note
  */
 public class PersonalNameStructureDialog extends BaseRecordDialog{
-
-	private static final String[] TYPES = {
-		StringUtils.EMPTY,
-		// marital status and origins at birth
-		"official", "religious", "birth",
-		// changes in marital status and family events
-		"married", "maiden", "divorce", "adoption", "fostering",
-		// legal, immigration, and naturalization changes
-		"legal", "immigrant", "adapted",
-		// informal, stage, and social names
-		"alias", "nickname", "artistic", "professional", "user",
-		// historical and dynastic contexts
-		"regnal", "slave_name"
-	};
-
 
 	private final JPanel propertiesPanel;
 
@@ -125,7 +111,7 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]");
 
-		typeCombo = new BoundComboBox<>(PersonalNameHandler.TAG_TYPE, TYPES);
+		typeCombo = new BoundComboBox<>(PersonalNameHandler.TAG_TYPE, GUIHelper.fillCombo(Name.PERSONAL_TYPES, null));
 		typeCombo.setI18NPrefix("enum.personal.name.type");
 		typeCombo.setEditable(true);
 		partPanel = EntityListPanel.createForStructure(PersonalNameHandler.TAG_PART, this, I18N.t("dialog.name.parts") + "*", model, PartHandler.class);

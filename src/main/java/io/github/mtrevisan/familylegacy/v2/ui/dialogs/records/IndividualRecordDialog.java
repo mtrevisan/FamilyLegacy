@@ -26,6 +26,8 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs.records;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.SexType;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
 import io.github.mtrevisan.familylegacy.v2.ui.components.PreferredImagePanel;
@@ -43,6 +45,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JPanel;
 import java.awt.Window;
@@ -146,9 +149,9 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 	private IndividualRecordDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, IndividualHandler.getInstance());
 
-		preferredImagePanel = new PreferredImagePanel(IndividualHandler.TAG_PREFERRED_IMAGE, this);
-		personalNamePanel = EntityListPanel.createForStructure(IndividualHandler.TAG_NAME, this, I18N.t("dialog.individual.personal.name") + "*", model, PersonalNameHandler.class);
-		sexCombo = new BoundComboBox<>(IndividualHandler.TAG_SEX, IndividualHandler.SEXES);
+		preferredImagePanel = new PreferredImagePanel(IndividualReader.TAG_PREFERRED_IMAGE, this);
+		personalNamePanel = EntityListPanel.createForStructure(IndividualReader.TAG_NAME, this, I18N.t("dialog.individual.personal.name") + "*", model, PersonalNameHandler.class);
+		sexCombo = new BoundComboBox<>(IndividualReader.TAG_SEX, GUIHelper.fillCombo(IndividualReader.SEXES, null));
 		sexCombo.setI18NPrefix("enum.individual.sex");
 
 		components = new RecordDialogBuilder(this, model, record)
@@ -160,10 +163,10 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, I18N.t("dialog.component.conclusions"))
 			.withComponent(PanelKey.IDENTITY_HYPOTHESIS_ON_IDENTITY, IdentityHypothesisHandler.TYPE, I18N.t("dialog.component.identity.hypotheses"))
 			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, I18N.t("dialog.component.research.questions"))
-			.withComponent(PanelKey.SOURCE, IndividualHandler.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
-			.withComponent(PanelKey.NOTE, IndividualHandler.TAG_NOTE, null)
-			.withComponent(PanelKey.PRIVACY, IndividualHandler.TAG_PRIVACY, null)
-			.withComponent(PanelKey.AUDIT, IndividualHandler.TAG_AUDIT, null)
+			.withComponent(PanelKey.SOURCE, IndividualReader.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
+			.withComponent(PanelKey.NOTE, IndividualReader.TAG_NOTE, null)
+			.withComponent(PanelKey.PRIVACY, IndividualReader.TAG_PRIVACY, null)
+			.withComponent(PanelKey.AUDIT, IndividualReader.TAG_AUDIT, null)
 			.build();
 
 		components.bind(sexCombo);
@@ -292,11 +295,7 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 
 	public IndividualRecordDialog witSex(final SexType sex){
 		if(sex != null){
-			sexCombo.setText(sex == SexType.MALE
-				? IndividualHandler.ENUM_SEX_MALE
-				: (sex == SexType.FEMALE
-					? IndividualHandler.ENUM_SEX_FEMALE
-					: IndividualHandler.ENUM_SEX_UNKNOWN));
+			sexCombo.setText(sex.getRawSex());
 			sexCombo.setEnabled(false);
 		}
 

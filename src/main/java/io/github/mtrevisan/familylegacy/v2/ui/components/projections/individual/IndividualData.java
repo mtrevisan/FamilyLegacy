@@ -27,21 +27,23 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.components.PreferredImagePanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.DateReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.EventReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.SexType;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.date.CalendarConverter;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.date.DateService;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.date.NormalizedDate;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.date.TemporalSpan;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.names.Name;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.names.NameAnatomyService;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.BoxPanelType;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.PlaceholderImages;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.SexType;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.NameHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.PersonalNameHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.AsyncResourceLoader;
-import io.github.mtrevisan.familylegacy.v2.ui.helpers.ParsedGenealogicalDate;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.ResourceHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.helpers.UniversalDateConverter;
 import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -49,6 +51,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.swing.ImageIcon;
 import java.awt.Rectangle;
+import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -56,7 +59,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 import java.util.StringJoiner;
 import java.util.function.BiConsumer;
 
@@ -74,12 +76,7 @@ public final class IndividualData{
 	private static final String DOT = ".";
 	private static final String TAG_PIPE = "|";
 
-	private static final String TAG_DATE_VALUE_POINT_FULL_DATE = EventHandler.TAG_DATE + DOT + DateField.TAG_VALUE + DOT + DateField.TAG_POINT + DOT + DateField.TAG_FULL_DATE;
-	private static final String TAG_NAME_VALUE = IndividualHandler.TAG_NAME + DOT + NameHandler.TAG_VALUE;
-	private static final String TAG_PLACE_PLACE = PlaceHandler.TYPE + DOT + PlaceHandler.TYPE;
-	private static final String TAG_CAUSE_REASON = EventHandler.TAG_CAUSE + DOT + EventHandler.TAG_REASON;
-	private static final String TAG_PREFERRED_IMAGE_URI = IndividualHandler.TAG_PREFERRED_IMAGE + DOT + PreferredImagePanel.TAG_URI;
-	private static final String TAG_PREFERRED_IMAGE_CROP = IndividualHandler.TAG_PREFERRED_IMAGE + DOT + PreferredImagePanel.TAG_CROP;
+	private static final String TAG_PLACE_PLACE = FLEFRecordHelper.composePath(PlaceHandler.TYPE, PlaceHandler.TYPE);
 
 	private static final String TAG_HTML_OPEN = "<html>";
 	private static final String TAG_HTML_CLOSE = "</html>";
@@ -90,12 +87,6 @@ public final class IndividualData{
 	private static final String LESS_THAN_ABOUT = "< ~";
 	private static final String OPEN_PARENTHESIS = "(";
 	private static final String CLOSE_PARENTHESIS = ")";
-
-	private static final Set<String> EXCLUDED_PART_TYPES = Set.of(
-		"family_nickname",
-		"title", "occupational", "prefix", "suffix",
-		"nickname", "regnal", "religious", "posthumous"
-	);
 
 	private static final String NO_DATA = "?";
 
@@ -135,9 +126,9 @@ public final class IndividualData{
 		this.individual = individual;
 		id = individual.getId();
 
-		sex = extractSex(individual);
+		sex = IndividualReader.extractSex(individual);
 
-		final List<String> names = extractFullNames(individual);
+		final List<String> names = IndividualReader.extractFullNames(individual);
 		if(!names.isEmpty()){
 			nameText = names.getFirst();
 			nameTooltip = TAG_HTML_OPEN + "[" + id + "]" + TAG_BR + StringUtils.join(names, TAG_BR) + TAG_HTML_CLOSE;
@@ -161,10 +152,10 @@ public final class IndividualData{
 						isBiological = true;
 
 						final FLEFRecord object = model.getRecordById(objectId);
-						final SexType targetSex = extractSex(object);
-						if(targetSex == SexType.MALE)
+						final String targetSex = IndividualReader.extractRawSex(object);
+						if(IndividualReader.isSexMale(targetSex))
 							hasFather = true;
-						else if(targetSex == SexType.FEMALE)
+						else if(IndividualReader.isSexFemale(targetSex))
 							hasMother = true;
 						else
 							hasParents = true;
@@ -175,7 +166,7 @@ public final class IndividualData{
 				}
 				else if(subjectId.equals(id) && type.endsWith(RelationshipHandler.ENUM_TYPE_ENDS_WITH_CHILD)){
 					final FLEFRecord target = model.getRecordById(objectId);
-					final SexType targetSex = extractSex(target);
+					final SexType targetSex = IndividualReader.extractSex(target);
 					if(targetSex == SexType.MALE)
 						hasFather = true;
 					else if(targetSex == SexType.FEMALE)
@@ -196,36 +187,42 @@ public final class IndividualData{
 		// extract events
 		final List<EventInfo> events = extractEvents(individual, eventsMap, model);
 		final EventInfo birthInfo = events.stream()
-			.filter(e -> EventHandler.ENUM_TYPE_BIRTH.equals(e.type()) && e.date() != null)
-			.min(Comparator.comparing(e -> e.date().isoDate()))
+			.filter(e -> EventReader.isTypeBirth(e.type()) && e.representativeDate() != null)
+			.min(Comparator.comparing(e -> e.representativeDate().jdn()))
 			.orElse(null);
 		final EventInfo deathInfo = events.stream()
-			.filter(e -> EventHandler.ENUM_TYPE_DEATH.equals(e.type()) && e.date() != null)
-			.max(Comparator.comparing(e -> e.date().isoDate()))
+			.filter(e -> EventReader.isTypeDeath(e.type()) && e.representativeDate() != null)
+			.max(Comparator.comparing(e -> e.representativeDate().jdn()))
 			.orElse(null);
 
 		// ---- Birth/Death summary ----
-		final String birthYear = (birthInfo != null && birthInfo.date() != null
-			? String.valueOf(birthInfo.date().isoDate().getYear())
-			: NO_DATA);
-		final String deathYear = (deathInfo != null && deathInfo.date() != null
-			? String.valueOf(deathInfo.date().isoDate().getYear())
-			: NO_DATA);
+		final NormalizedDate normalizedBirthDate = (birthInfo != null && birthInfo.date() != null
+			? birthInfo.representativeDate()
+			: null);
+		final NormalizedDate normalizedDeathDate = (deathInfo != null && deathInfo.date() != null
+			? deathInfo.representativeDate()
+			: null);
+		final LocalDate birthDate = (normalizedBirthDate != null
+			? CalendarConverter.jdnToGregorian(normalizedBirthDate.jdn())
+			: null);
+		final LocalDate deathDate = (normalizedDeathDate != null
+			? CalendarConverter.jdnToGregorian(normalizedDeathDate.jdn())
+			: null);
 		String age = null;
-		if(birthInfo != null && deathInfo != null && birthInfo.date() != null && deathInfo.date() != null){
-			final long years = ChronoUnit.YEARS.between(birthInfo.date().isoDate(), deathInfo.date().isoDate());
+		if(birthDate != null && deathDate != null){
+			final long years = ChronoUnit.YEARS.between(birthDate, deathDate);
 			String prefix = StringUtils.EMPTY;
-			if(birthInfo.approximate() || deathInfo.approximate())
+			if(normalizedBirthDate.approximate() || normalizedDeathDate.approximate())
 				prefix = CIRCA_SYMBOL;
-			if(birthInfo.approximate() && birthInfo.date().isoDate().isBefore(deathInfo.date().isoDate()))
+			if(normalizedBirthDate.approximate() && birthDate.isBefore(deathDate))
 				prefix = LESS_THAN_ABOUT;
 			age = prefix + years;
 		}
 
 		final StringJoiner sj = new StringJoiner(StringUtils.SPACE);
-		sj.add(birthYear);
+		sj.add(birthInfo != null? birthInfo.year(): NO_DATA);
 		sj.add(TAG_FIGURE_DASH);
-		sj.add(deathYear);
+		sj.add(deathInfo != null? deathInfo.year(): NO_DATA);
 		if(age != null)
 			sj.add(OPEN_PARENTHESIS + age + StringUtils.SPACE + I18N.t("dialog.individual.years.old.abbreviation") + CLOSE_PARENTHESIS);
 
@@ -255,13 +252,6 @@ public final class IndividualData{
 		infoTooltip = tooltip.toString();
 
 		extractPreferredImage(individual);
-	}
-
-	public static SexType extractSex(final FLEFRecord individual){
-		final String targetRawSex = FLEFRecordHelper.getChildValue(individual, IndividualHandler.TAG_SEX);
-		return (targetRawSex != null
-			? Enum.valueOf(SexType.class, targetRawSex.toUpperCase(Locale.ROOT))
-			: SexType.UNKNOWN);
 	}
 
 
@@ -335,43 +325,6 @@ public final class IndividualData{
 
 
 	/**
-	 * Extracts full names from an IndividualRecord, excluding additional,
-	 * assumed, or non-birth name parts (e.g. nicknames, titles, regnal names).
-	 *
-	 * @param individual the IndividualRecord (tag must be "individual")
-	 * @return a list of full name strings with excluded parts omitted
-	 */
-	private List<String> extractFullNames(final FLEFRecord individual){
-		final List<String> names = new ArrayList<>();
-		if(individual == null || !IndividualHandler.TYPE.equalsIgnoreCase(individual.getTag()))
-			return names;
-
-		for(final FLEFRecord nameStruct : FLEFRecordHelper.findChildren(individual, IndividualHandler.TAG_NAME)){
-			final StringBuilder fullName = new StringBuilder();
-
-			for(final FLEFRecord part : FLEFRecordHelper.findChildren(nameStruct, PersonalNameHandler.TAG_PART)){
-				final String partType = FLEFRecordHelper.getChildValue(part, PersonalNameHandler.TAG_TYPE);
-
-				// Skip parts having a type explicitly classified as acquired or contextual
-				if(partType != null && EXCLUDED_PART_TYPES.contains(partType))
-					continue;
-
-				final String value = FLEFRecordHelper.getChildValue(part, NameHandler.TAG_VALUE);
-				if(value != null){
-					if(!fullName.isEmpty())
-						fullName.append(' ');
-					fullName.append(value);
-				}
-			}
-
-			if(!fullName.isEmpty())
-				names.add(fullName.toString());
-		}
-		return names;
-	}
-
-
-	/**
 	 * Extracts birth and death events for a given individual.
 	 *
 	 * @param individual the IndividualRecord
@@ -389,43 +342,26 @@ public final class IndividualData{
 
 		final List<EventInfo> eventInfos = new ArrayList<>();
 		for(final FLEFRecord event : events){
-			final String type = FLEFRecordHelper.getChildValue(event, EventHandler.TAG_TYPE);
-			if(EventHandler.ENUM_TYPE_BIRTH.equals(type) || EventHandler.ENUM_TYPE_DEATH.equals(type)){
+			final String type = EventReader.extractType(event);
+			if(EventReader.isTypeBirth(type) || EventReader.isTypeDeath(type)){
 				final EventInfo info = extractEventInfo(event, type, model);
-				if(info != null)
-					eventInfos.add(info);
+				eventInfos.add(info);
 			}
 		}
 		return eventInfos;
 	}
 
 	private EventInfo extractEventInfo(final FLEFRecord event, final String type, final FLEFModel model){
-		final String date = extractFullDate(event);
-		if(date == null)
-			return null;
-
-		final String calendar = extractDateCalendar(event);
-		final ParsedGenealogicalDate parsedDate = UniversalDateConverter.parse(calendar, date);
-		final boolean approximate = parsedDate.approximate();
+		final FLEFRecord dateRecord = FLEFRecordHelper.findChild(event, EventReader.TAG_DATE);
+		final String dateOriginalText = DateReader.extractOriginalText(dateRecord);
+		final String date = DateReader.extractPrettyPrintDate(dateRecord);
+		final FLEFRecord valueRecord = FLEFRecordHelper.findChild(dateRecord, DateReader.TAG_VALUE);
+		final String year = DateService.getYearDisplayText(valueRecord);
+		final TemporalSpan temporalSpan = DateReader.extractTemporalSpan(dateRecord);
+		final NormalizedDate representativeDate = (temporalSpan != null? temporalSpan.representativeDate(): null);
 		final String place = extractPlace(event, model);
-		final String deathCause = FLEFRecordHelper.getChildValue(event, TAG_CAUSE_REASON);
-		return new EventInfo(type, date, parsedDate, approximate, place, deathCause);
-	}
-
-	private String extractFullDate(final FLEFRecord event){
-		final FLEFRecord fullDate = FLEFRecordHelper.findChild(event, TAG_DATE_VALUE_POINT_FULL_DATE);
-		if(fullDate == null)
-			return null;
-
-		return FLEFRecordHelper.getChildValue(fullDate, DateField.TAG_VALUE);
-	}
-
-	private String extractDateCalendar(final FLEFRecord event){
-		final FLEFRecord fullDate = FLEFRecordHelper.findChild(event, TAG_DATE_VALUE_POINT_FULL_DATE);
-		if(fullDate == null)
-			return null;
-
-		return FLEFRecordHelper.getChildValue(fullDate, DateField.TAG_CALENDAR);
+		final String cause = (EventReader.isTypeDeath(type)? EventReader.extractCauseReason(event): null);
+		return new EventInfo(type, dateOriginalText, date, year, representativeDate, place, cause);
 	}
 
 	public static String extractPlace(final FLEFRecord event, final FLEFModel model){
@@ -435,11 +371,10 @@ public final class IndividualData{
 
 		// Try to get the place record via xref
 		final FLEFRecord place = model.getRecordById(placeId);
+
 		// get first name value
-		for(final FLEFRecord name : FLEFRecordHelper.findChildren(place, TAG_NAME_VALUE))
-			if(name != null)
-				return name.getValue();
-		return null;
+		final List<Name> names = NameAnatomyService.extractForGeneric(place);
+		return (!names.isEmpty()? names.getFirst().value(): null);
 	}
 
 
@@ -454,23 +389,13 @@ public final class IndividualData{
 			return;
 		}
 
-		preferredImageUri = FLEFRecordHelper.getChildValue(record, TAG_PREFERRED_IMAGE_URI);
+		preferredImageUri = IndividualReader.extractPreferredImageUri(record);
 // TODO to be removed
 if(preferredImageUri != null)
 	preferredImageUri = "C:\\mauro\\heritage\\My Genealogy Projects\\Trevisan (Dorato)-Gallinaro-Masutti (Manfrin)-Zaros (Basso)" + preferredImageUri;
-		preferredImageCropRect = null;
-		try{
-			final FLEFRecord crop = FLEFRecordHelper.findChild(record, TAG_PREFERRED_IMAGE_CROP);
-			final int cropX = Integer.parseInt(FLEFRecordHelper.getChildValue(crop, PreferredImagePanel.TAG_X));
-			final int cropY = Integer.parseInt(FLEFRecordHelper.getChildValue(crop, PreferredImagePanel.TAG_Y));
-			final int cropWidth = Integer.parseInt(FLEFRecordHelper.getChildValue(crop, PreferredImagePanel.TAG_WIDTH));
-			final int cropHeight = Integer.parseInt(FLEFRecordHelper.getChildValue(crop, PreferredImagePanel.TAG_HEIGHT));
-			if(cropX >= 0 && cropY >= 0 && cropWidth >= 0 && cropHeight >= 0)
-				preferredImageCropRect = new Rectangle(cropX, cropY, cropWidth, cropHeight);
-		}
-		catch(final Exception ignored){}
+		preferredImageCropRect = IndividualReader.extractPreferredImageCrop(record);
 
-		final String rawSex = FLEFRecordHelper.getChildValue(record, IndividualHandler.TAG_SEX);
+		final String rawSex = IndividualReader.extractRawSex(record);
 		// Set the default image immediately
 		imagePrimary = PlaceholderImages.placeholderFor(rawSex, BoxPanelType.PRIMARY);
 		imageSecondary = PlaceholderImages.placeholderFor(rawSex, BoxPanelType.SECONDARY);

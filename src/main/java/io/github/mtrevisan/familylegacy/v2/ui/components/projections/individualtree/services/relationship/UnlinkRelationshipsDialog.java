@@ -251,9 +251,11 @@ public class UnlinkRelationshipsDialog extends JDialog{
 			return fallbackId;
 
 		if(GroupHandler.TYPE.equalsIgnoreCase(record.getTag()))
-			return GroupHandler.getInstance().getDisplayText(record, model);
+			return GroupHandler.getInstance()
+				.getDisplayText(record, model);
 
-		return IndividualHandler.getInstance().getDisplayText(record, model);
+		return IndividualHandler.getInstance()
+			.getDisplayText(record, model);
 	}
 
 	private JPanel createGroupPanel(final String title, final List<RelationshipInfo> infos){

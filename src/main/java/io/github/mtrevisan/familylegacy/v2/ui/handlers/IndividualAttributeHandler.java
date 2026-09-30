@@ -57,7 +57,6 @@ public class IndividualAttributeHandler extends AbstractRecordTypeHandler<Indivi
 	public static final String TAG_AUDIT = "AUDIT";
 
 	public static final String[] TYPES = new String[]{
-		StringUtils.EMPTY,
 		"characteristic", "residence", "occupation", "possession", "military_rank", "caste", "social_class",
 		"ethnicity", "citizenship", "nationality", "ssn", "title", "children_count", "marriages_count",
 		"religion", "language", "literacy", "education"

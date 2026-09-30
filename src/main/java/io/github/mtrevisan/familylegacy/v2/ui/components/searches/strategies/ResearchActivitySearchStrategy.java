@@ -33,6 +33,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchStrategy
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchActivityHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 
 import java.util.StringJoiner;
 import java.util.function.Predicate;
@@ -67,14 +68,14 @@ public class ResearchActivitySearchStrategy implements SearchStrategy{
 			// Activity Type filter
 			if(StringUtils.isNotEmpty(activityType)){
 				final String recordType = FLEFRecordHelper.getChildValue(activity, ResearchActivityHandler.TAG_ACTIVITY_TYPE);
-				if(!activityType.equalsIgnoreCase(recordType))
+				if(!Strings.CI.equals(activityType, recordType))
 					return false;
 			}
 
 			// Status filter
 			if(StringUtils.isNotEmpty(status)){
 				final String recordStatus = FLEFRecordHelper.getChildValue(activity, ResearchActivityHandler.TAG_STATUS);
-				if(!status.equalsIgnoreCase(recordStatus))
+				if(!Strings.CI.equals(status, recordStatus))
 					return false;
 			}
 

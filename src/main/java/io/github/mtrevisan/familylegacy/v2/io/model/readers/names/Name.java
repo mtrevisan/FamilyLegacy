@@ -22,7 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.v2.ui.components.projections.dossier.names;
+package io.github.mtrevisan.familylegacy.v2.io.model.readers.names;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import org.apache.commons.lang3.StringUtils;
@@ -50,20 +50,63 @@ import java.util.List;
  *                      generic names
  * @param variants      variants attached to the whole name (generic names
  *                      only; personal names carry variants on their parts)
- * @param culturalNorms references to cultural norms governing the name
+ * @param culturalNormIds references to cultural norms governing the name
  * @param sourceRecord  the backing FLEF record, used for editing
  */
-public record NameAnatomy(
+public record Name(
 	String type,
+	List<NamePart> parts,
 	String locale,
 	String value,
-	List<NamePart> parts,
-	List<NameVariant> variants,
-	List<String> culturalNorms,
+	List<TextValueVariant> variants,
+	List<String> culturalNormIds,
+	List<FLEFRecord> sources,
+	List<FLEFRecord> notes,
 	FLEFRecord sourceRecord
 ){
 
-	public NameAnatomy{
+	static final String TAG_TYPE = "type";
+	static final String TAG_VALUE = "value";
+	static final String TAG_PART = "part";
+	static final String TAG_LOCALE = "locale";
+	static final String TAG_CULTURAL_NORM = "cultural_norm";
+	static final String TAG_SOURCE = "source";
+	static final String TAG_NOTE = "note";
+
+	public static final String[] PERSONAL_TYPES = {
+		// marital status and origins at birth
+		"official", "religious", "birth",
+		// changes in marital status and family events
+		"married", "maiden", "divorce", "adoption", "fostering",
+		// legal, immigration, and naturalization changes
+		"legal", "immigrant", "adapted",
+		// informal, stage, and social names
+		"alias", "nickname", "artistic", "professional", "user",
+		// historical and dynastic contexts
+		"regnal", "slave_name"
+	};
+
+	public static final String[] TYPES = {
+		// official and legal names
+		"official", "legal",
+		// historical naming traditions
+		"colonial", "indigenous", "traditional",
+		// language and localization variants
+		"translated", "transcribed",
+		// historical variants
+		"historic", "former",
+		// common usage
+		"common", "colloquial",
+		// abbreviated forms
+		"abbreviated", "acronym",
+		// religious and ecclesiastical forms
+		"religious",
+		// administrative and archival forms
+		"administrative", "archival"
+	};
+
+
+	public Name{
 		if(type == null)
 			type = StringUtils.EMPTY;
 		if(locale == null)
@@ -72,7 +115,7 @@ public record NameAnatomy(
 			value = StringUtils.EMPTY;
 		parts = (parts != null? List.copyOf(parts): List.of());
 		variants = (variants != null? List.copyOf(variants): List.of());
-		culturalNorms = (culturalNorms != null? List.copyOf(culturalNorms): List.of());
+		culturalNormIds = (culturalNormIds != null? List.copyOf(culturalNormIds): List.of());
 	}
 
 
@@ -100,7 +143,7 @@ public record NameAnatomy(
 	 * @return {@code true} if the cultural norms list is not empty
 	 */
 	public boolean hasCulturalNorms(){
-		return !culturalNorms.isEmpty();
+		return !culturalNormIds.isEmpty();
 	}
 
 	/**

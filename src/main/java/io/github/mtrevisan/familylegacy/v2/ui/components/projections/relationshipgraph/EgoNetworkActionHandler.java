@@ -119,7 +119,7 @@ public class EgoNetworkActionHandler{
 		if(isChildType(type))
 			return new String[]{otherId, egoId};
 
-		if("group_member".equals(type)){
+		if(RelationshipHandler.ENUM_TYPE_GROUP_MEMBER.equals(type)){
 			return (egoIsGroup
 				? new String[]{otherId, egoId}
 				: new String[]{egoId, otherId});

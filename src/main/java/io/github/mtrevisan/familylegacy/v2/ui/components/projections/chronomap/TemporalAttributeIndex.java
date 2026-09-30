@@ -27,8 +27,8 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.projections.chronomap;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.components.projections.temporal.DateNormalizer;
-import io.github.mtrevisan.familylegacy.v2.ui.components.projections.temporal.TemporalSpan;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.date.DateNormalizer;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.date.TemporalSpan;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupAttributeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualAttributeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
@@ -58,7 +58,6 @@ public final class TemporalAttributeIndex{
 
 
 	private final FLEFModel model;
-	private final DateNormalizer dateNormalizer = new DateNormalizer();
 	private final Map<String, List<AttributeDatum>> attributesByOwner = new HashMap<>();
 	private final PlaceCoordinateResolver placeResolver;
 
@@ -147,7 +146,7 @@ public final class TemporalAttributeIndex{
 		if(dateStruct == null)
 			return null;
 
-		final TemporalSpan span = dateNormalizer.normalize(dateStruct);
+		final TemporalSpan span = DateNormalizer.normalize(dateStruct);
 		if(span == null || span.start() == null)
 			return null;
 

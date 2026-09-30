@@ -22,7 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.v2.ui.helpers;
+package io.github.mtrevisan.familylegacy.v2.io.model.readers.date;
 
 import com.ibm.icu.util.Calendar;
 import com.ibm.icu.util.ChineseCalendar;
@@ -50,7 +50,6 @@ import java.time.format.DateTimeFormatterBuilder;
 import java.time.temporal.ChronoField;
 import java.time.temporal.TemporalAccessor;
 import java.util.Locale;
-import java.util.Objects;
 
 
 /**
@@ -64,32 +63,32 @@ public final class UniversalDateConverter{
 	};
 
 
-	private record PatternMatch(DateTimeFormatter formatter, ParsedGenealogicalDate.DatePrecision precision, boolean hasDay,
+	private record PatternMatch(DateTimeFormatter formatter, GenealogicalDate.DatePrecision precision, boolean hasDay,
 		boolean hasMonth, boolean hasYear){}
 
 
 	private static final PatternMatch[] PATTERNS = new PatternMatch[]{
-		createPattern("d MMMM uuuu", ParsedGenealogicalDate.DatePrecision.EXACT, true, true, true),
-		createPattern("d MMM uuuu", ParsedGenealogicalDate.DatePrecision.EXACT, true, true, true),
-		createPattern("d M uuuu", ParsedGenealogicalDate.DatePrecision.EXACT, true, true, true),
-		createPattern("MMMM uuuu", ParsedGenealogicalDate.DatePrecision.YEAR_MONTH, false, true, true),
-		createPattern("MMM uuuu", ParsedGenealogicalDate.DatePrecision.YEAR_MONTH, false, true, true),
-		createPattern("M uuuu", ParsedGenealogicalDate.DatePrecision.YEAR_MONTH, false, true, true),
-		createPattern("uuuu", ParsedGenealogicalDate.DatePrecision.YEAR_ONLY, false, false, true),
-		createPattern("d MMMM uuu", ParsedGenealogicalDate.DatePrecision.EXACT, true, true, true),
-		createPattern("d MMM uuu", ParsedGenealogicalDate.DatePrecision.EXACT, true, true, true),
-		createPattern("d M uuu", ParsedGenealogicalDate.DatePrecision.EXACT, true, true, true),
-		createPattern("MMMM uuu", ParsedGenealogicalDate.DatePrecision.YEAR_MONTH, false, true, true),
-		createPattern("MMM uuu", ParsedGenealogicalDate.DatePrecision.YEAR_MONTH, false, true, true),
-		createPattern("M uuu", ParsedGenealogicalDate.DatePrecision.YEAR_MONTH, false, true, true),
-		createPattern("uuu", ParsedGenealogicalDate.DatePrecision.YEAR_ONLY, false, false, true),
-		createPattern("d MMMM", ParsedGenealogicalDate.DatePrecision.MONTH_DAY, true, true, false),
-		createPattern("d MMM", ParsedGenealogicalDate.DatePrecision.MONTH_DAY, true, true, false),
-		createPattern("d M", ParsedGenealogicalDate.DatePrecision.MONTH_DAY, true, true, false)
+		createPattern("d MMMM uuuu", GenealogicalDate.DatePrecision.EXACT, true, true, true),
+		createPattern("d MMM uuuu", GenealogicalDate.DatePrecision.EXACT, true, true, true),
+		createPattern("d M uuuu", GenealogicalDate.DatePrecision.EXACT, true, true, true),
+		createPattern("MMMM uuuu", GenealogicalDate.DatePrecision.YEAR_MONTH, false, true, true),
+		createPattern("MMM uuuu", GenealogicalDate.DatePrecision.YEAR_MONTH, false, true, true),
+		createPattern("M uuuu", GenealogicalDate.DatePrecision.YEAR_MONTH, false, true, true),
+		createPattern("uuuu", GenealogicalDate.DatePrecision.YEAR_ONLY, false, false, true),
+		createPattern("d MMMM uuu", GenealogicalDate.DatePrecision.EXACT, true, true, true),
+		createPattern("d MMM uuu", GenealogicalDate.DatePrecision.EXACT, true, true, true),
+		createPattern("d M uuu", GenealogicalDate.DatePrecision.EXACT, true, true, true),
+		createPattern("MMMM uuu", GenealogicalDate.DatePrecision.YEAR_MONTH, false, true, true),
+		createPattern("MMM uuu", GenealogicalDate.DatePrecision.YEAR_MONTH, false, true, true),
+		createPattern("M uuu", GenealogicalDate.DatePrecision.YEAR_MONTH, false, true, true),
+		createPattern("uuu", GenealogicalDate.DatePrecision.YEAR_ONLY, false, false, true),
+		createPattern("d MMMM", GenealogicalDate.DatePrecision.MONTH_DAY, true, true, false),
+		createPattern("d MMM", GenealogicalDate.DatePrecision.MONTH_DAY, true, true, false),
+		createPattern("d M", GenealogicalDate.DatePrecision.MONTH_DAY, true, true, false)
 	};
 
 	private static PatternMatch createPattern(final String pattern,
-			final ParsedGenealogicalDate.DatePrecision precision, final boolean hasDay, final boolean hasMonth,
+			final GenealogicalDate.DatePrecision precision, final boolean hasDay, final boolean hasMonth,
 			final boolean hasYear){
 		final DateTimeFormatter dtf = new DateTimeFormatterBuilder()
 			.parseCaseInsensitive()
@@ -101,36 +100,33 @@ public final class UniversalDateConverter{
 		return new PatternMatch(dtf, precision, hasDay, hasMonth, hasYear);
 	}
 
-	public static ParsedGenealogicalDate parse(final String calendarCode, final String rawDate){
-		final CalendarType type = CalendarType.fromCode(calendarCode);
-
-		String workingDate = Objects.requireNonNull(rawDate, "rawDate cannot be null")
-			.trim();
-		if(workingDate.isEmpty())
+	public static GenealogicalDate parse(final String calendarCode, String rawDate){
+		if(rawDate == null || rawDate.isEmpty())
 			throw new IllegalArgumentException("Date string is required");
 
 		// Strip embedded calendar escape tags (e.g. @#DGREGORIAN@)
-		if(workingDate.startsWith("@#") && workingDate.contains("@")){
-			workingDate = StringUtils.substringAfter(workingDate, "@")
+		if(rawDate.startsWith("@#") && rawDate.contains("@")){
+			rawDate = StringUtils.substringAfter(rawDate, "@")
 				.trim();
-			if(workingDate.startsWith("#"))
-				workingDate = StringUtils.substringAfter(workingDate, "@")
+			if(rawDate.startsWith("#"))
+				rawDate = StringUtils.substringAfter(rawDate, "@")
 					.trim();
 		}
 
 		boolean isApproximate = false;
 		for(final String prefix : GEDCOM_PREFIXES)
-			if(Strings.CI.startsWith(workingDate, prefix)){
+			if(Strings.CI.startsWith(rawDate, prefix)){
 				isApproximate = true;
-				workingDate = StringUtils.stripStart(workingDate.substring(prefix.length()), null);
+				rawDate = StringUtils.stripStart(rawDate.substring(prefix.length()), null);
 
 				break;
 			}
 
 		// Replace standard GEDCOM / date delimiters ('/', '.', '-') with spaces
-		workingDate = StringUtils.replaceChars(workingDate, "/.-", "   ");
-		final String cleanedDate = StringUtils.normalizeSpace(workingDate);
+		rawDate = StringUtils.replaceChars(rawDate, "/.-", "   ");
+		final String cleanedDate = StringUtils.normalizeSpace(rawDate);
 		final ParsePosition pos = new ParsePosition(0);
+		final CalendarType type = CalendarType.fromCode(calendarCode);
 		for(final PatternMatch pm : PATTERNS){
 			try{
 				pos.setIndex(0);
@@ -158,7 +154,7 @@ public final class UniversalDateConverter{
 					case MAYAN -> parseMayanLongCount(cleanedDate);
 				};
 
-				return new ParsedGenealogicalDate(resultIso, pm.precision(), isApproximate, rawDate, type);
+				return new GenealogicalDate(resultIso, pm.precision(), isApproximate, rawDate, type);
 			}
 			catch(final Exception ignored){}
 		}

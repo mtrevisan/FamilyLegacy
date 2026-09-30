@@ -36,6 +36,7 @@ import io.github.mtrevisan.familylegacy.v2.io.grammar.typedefinitions.ScalarType
 import io.github.mtrevisan.familylegacy.v2.io.grammar.typedefinitions.StructType;
 import io.github.mtrevisan.familylegacy.v2.io.grammar.typedefinitions.TypeDefinition;
 import io.github.mtrevisan.familylegacy.v2.io.grammar.typedefinitions.UnionType;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -53,9 +54,6 @@ import java.util.Set;
  * pipeline: {@link FLEFGrammarParser} never fails on a semantically invalid but syntactically correct grammar.
  */
 public final class FLEFGrammarValidator{
-
-	private static final String DOT = ".";
-
 
 	public record ValidationResult(List<String> errors, List<String> warnings){
 		public boolean isValid(){
@@ -144,7 +142,7 @@ public final class FLEFGrammarValidator{
 		for(final FieldDefinition field : struct.getFields()){
 			if(!fieldNames.add(field.name()))
 				errors.add(context + ": duplicate field '" + field.name() + "'");
-			validateTypeUsage(field.type(), context + DOT + field.name());
+			validateTypeUsage(field.type(), FLEFRecordHelper.composePath(context, field.name()));
 		}
 
 		for(final Constraint constraint : struct.getConstraints())
@@ -173,7 +171,7 @@ public final class FLEFGrammarValidator{
 		if(union.getChoices().isEmpty())
 			warnings.add(context + ": oneof has no choices");
 		for(final Map.Entry<String, TypeDefinition> choice : union.getChoices().entrySet())
-			validateTypeUsage(choice.getValue(), context + DOT + choice.getKey());
+			validateTypeUsage(choice.getValue(), FLEFRecordHelper.composePath(context, choice.getKey()));
 	}
 
 	private void validateEnum(final EnumType enumType, final String context){

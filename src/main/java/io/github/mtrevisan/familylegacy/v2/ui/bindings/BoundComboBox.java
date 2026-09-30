@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.bindings;
 
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.WordUtils;
@@ -45,9 +46,9 @@ import java.util.Objects;
 
 public class BoundComboBox<E> extends JComboBox<E> implements PathBound{
 
-	private static final String DOT = ".";
 	private static final String NONE = "none";
-	private static final String DOT_NONE = DOT + NONE;
+
+	private static final String NON_BREAKING_SPACE = "\u00A0";
 
 
 	private String path;
@@ -102,10 +103,6 @@ public class BoundComboBox<E> extends JComboBox<E> implements PathBound{
 	}
 
 
-	/* ======================================================================
-	 *                          i18n
-	 * ====================================================================== */
-
 	/**
 	 * Configures the i18n prefix used by the renderer. The full key for a
 	 * value {@code code} is {@code <prefix>.<code>}; the key for the empty
@@ -133,13 +130,20 @@ public class BoundComboBox<E> extends JComboBox<E> implements PathBound{
 			@Override
 			public Component getListCellRendererComponent(final JList<?> list, final Object value, final int index,
 					final boolean isSelected, final boolean cellHasFocus){
-				super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+				final Object displayValue = manageEmptyValue(value);
+				super.getListCellRendererComponent(list, displayValue, index, isSelected, cellHasFocus);
 
 				if(value instanceof String str)
 					setText(localize(str));
 				return this;
 			}
 		});
+	}
+
+	private static Object manageEmptyValue(final Object value){
+		return (value == null || (value instanceof String str && str.trim().isEmpty())
+			? NON_BREAKING_SPACE
+			: value);
 	}
 
 	/**
@@ -153,9 +157,9 @@ public class BoundComboBox<E> extends JComboBox<E> implements PathBound{
 			return prettify(code);
 
 		if(code.isEmpty())
-			return I18N.t(i18nPrefix + DOT_NONE, "\u2014");
+			return I18N.t(FLEFRecordHelper.composePath(i18nPrefix, NONE), "\u2014");
 
-		return I18N.t(i18nPrefix + DOT + code, prettify(code));
+		return I18N.t(FLEFRecordHelper.composePath(i18nPrefix, code), prettify(code));
 	}
 
 	/**

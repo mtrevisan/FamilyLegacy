@@ -130,7 +130,7 @@ struct PersonalNameStructure {
     regnal, slave_name
     // https://github.com/FamilySearch/gedcomx/blob/master/specifications/name-part-qualifiers-specification.md
   } | Text
-  part+: PartStructure   // The order of PART elements is significant and reflects the culturally appropriate representation of the full name (e.g., 'given' then 'family' for Western names, 'family' then 'given' for East Asian names). No semantic ordering is implied by the individual part types. Consumers must preserve the original order.
+  part+: NamePartStructure   // The order of PART elements is significant and reflects the culturally appropriate representation of the full name (e.g., 'given' then 'family' for Western names, 'family' then 'given' for East Asian names). No semantic ordering is implied by the individual part types. Consumers must preserve the original order.
   locale?: LocaleCode | Text
   cultural_norm*: Xref<CulturalNormRecord>   // Unlike ContextImpactRecord, CULTURAL_NORM here describes the naming system that governs the structure of the name itself.
   source*: SourceCitation
@@ -138,7 +138,7 @@ struct PersonalNameStructure {
 }
 
 // embedded
-struct PartStructure {
+struct NamePartStructure {
   type: enum {
     // personal and birth names
     given, generation,
@@ -373,33 +373,26 @@ record GroupAttributeRecord {
 struct NameStructure {
   type?: enum {
     // official and legal names
-    official,
-    legal,
+    official, legal,
     // historical naming traditions
-    colonial,
-    indigenous,
-    traditional,
+    colonial, indigenous, traditional,
     // language and localization variants
-    translated,
-    transcribed,
+    translated, transcribed,
     // historical variants
-    historic,
-    former,
+    historic, former,
     // common usage
-    common,
-    colloquial,
+    common, colloquial,
     // abbreviated forms
-    abbreviated,
-    acronym,
+    abbreviated, acronym,
     // religious and ecclesiastical forms
     religious,
     // administrative and archival forms
-    administrative,
-    archival
+    administrative, archival
   } | Text
   value: Text                   // the primary textual value
   locale?: LocaleCode | Text
   variant*: TextValueVariant    // alternative phonetic, transliterated, or transcribed representations
+  cultural_norm*: Xref<CulturalNormRecord>   // Unlike ContextImpactRecord, CULTURAL_NORM here describes the naming system that governs the structure of the name itself.
   source*: SourceCitation
   note*: NoteStructure
 }
@@ -927,7 +920,7 @@ SingleDate = oneof {
 
 // embedded
 enum CalendarType {
-  gregorian, julian, islamic, hebrew, chinese, indian, buddhist, french_republican, coptic, soviet_eternal, ethiopian, mayan
+  gregorian, julian, reformed_julian, islamic, hebrew, chinese, indian, buddhist, french_republican, coptic, soviet_eternal, ethiopian, mayan, persian, parsi, byzantine, egyptian, seleucid, armenian, rumi
 }
 
 // embedded

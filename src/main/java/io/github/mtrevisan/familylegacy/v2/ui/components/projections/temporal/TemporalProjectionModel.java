@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.components.projections.temporal;
 
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.date.NormalizedDate;
+
 import java.util.List;
 
 

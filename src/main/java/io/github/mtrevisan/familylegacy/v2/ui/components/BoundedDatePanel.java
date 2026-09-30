@@ -27,7 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.DateReader;
 import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import net.miginfocom.swing.MigLayout;
 
@@ -87,11 +87,11 @@ public class BoundedDatePanel extends JPanel{
 		if(record == null || record.isEmpty())
 			return;
 
-		final FLEFRecord notBefore = FLEFRecordHelper.findChild(record, DateField.TAG_NOT_BEFORE);
+		final FLEFRecord notBefore = FLEFRecordHelper.findChild(record, DateReader.TAG_NOT_BEFORE);
 		if(notBefore != null)
 			notBeforePanel.load(notBefore);
 
-		final FLEFRecord notAfter = FLEFRecordHelper.findChild(record, DateField.TAG_NOT_AFTER);
+		final FLEFRecord notAfter = FLEFRecordHelper.findChild(record, DateReader.TAG_NOT_AFTER);
 		if(notAfter != null)
 			notAfterPanel.load(notAfter);
 	}
@@ -101,15 +101,15 @@ public class BoundedDatePanel extends JPanel{
 
 		if(notBeforePanel.hasData()){
 			final FLEFRecord notBefore = notBeforePanel.save();
-			record.addChildWithTag(DateField.TAG_NOT_BEFORE, notBefore);
+			record.addChildWithTag(DateReader.TAG_NOT_BEFORE, notBefore);
 		}
 
 		if(notAfterPanel.hasData()){
 			final FLEFRecord notAfter = notAfterPanel.save();
-			record.addChildWithTag(DateField.TAG_NOT_AFTER, notAfter);
+			record.addChildWithTag(DateReader.TAG_NOT_AFTER, notAfter);
 		}
 
-		return (record.hasData()? record.setTag(DateField.TAG_BOUNDED): FLEFRecord.createEmpty());
+		return (record.hasData()? record.setTag(DateReader.TAG_BOUNDED): FLEFRecord.createEmpty());
 	}
 
 	public void clear(){

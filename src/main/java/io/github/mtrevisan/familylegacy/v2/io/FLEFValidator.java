@@ -66,7 +66,6 @@ import java.util.function.Consumer;
  */
 public class FLEFValidator{
 
-	private static final String DOT = ".";
 	private static final String FIELD_HEADER = "header";
 
 
@@ -316,7 +315,7 @@ public class FLEFValidator{
 			final List<FLEFRecord> children = record.getChildren();
 			for(int i = children.size() - 1; i >= 0; i--){
 				final FLEFRecord child = children.get(i);
-				final String childPath = path + DOT + child.getTag();
+				final String childPath = FLEFRecordHelper.composePath(path, child.getTag());
 				stack.push(new RecordContext(child, childPath));
 			}
 		}
@@ -354,7 +353,7 @@ public class FLEFValidator{
 			final List<FLEFRecord> children = record.getChildren();
 			for(int i = children.size() - 1; i >= 0; i--){
 				final FLEFRecord child = children.get(i);
-				final String childPath = path + DOT + child.getTag();
+				final String childPath = FLEFRecordHelper.composePath(path, child.getTag());
 				stack.push(new TraversalNode(child, childPath));
 			}
 		}

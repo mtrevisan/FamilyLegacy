@@ -25,12 +25,9 @@
 package io.github.mtrevisan.familylegacy.v2.ui.components.projections.group;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.components.PreferredImagePanel;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.GroupReader;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.BoxPanelType;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.PlaceholderImages;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.NameHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.AsyncResourceLoader;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.ResourceHelper;
 import org.apache.commons.lang3.StringUtils;
@@ -39,7 +36,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.swing.ImageIcon;
 import java.awt.Rectangle;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
 
@@ -57,9 +53,6 @@ public final class GroupData{
 
 	private static final String DOT = ".";
 	private static final String TAG_PIPE = "|";
-
-	private static final String TAG_PREFERRED_IMAGE_URI = GroupHandler.TAG_PREFERRED_IMAGE + DOT + PreferredImagePanel.TAG_URI;
-	private static final String TAG_PREFERRED_IMAGE_CROP = GroupHandler.TAG_PREFERRED_IMAGE + DOT + PreferredImagePanel.TAG_CROP;
 
 	private static final String TAG_HTML_OPEN = "<html>";
 	private static final String TAG_HTML_CLOSE = "</html>";
@@ -92,7 +85,7 @@ public final class GroupData{
 		this.group = group;
 		id = group.getId();
 
-		final List<String> names = extractGroupNames(group);
+		final List<String> names = GroupReader.extractFullNames(group);
 		if(!names.isEmpty()){
 			nameText = names.getFirst();
 			nameTooltip = TAG_HTML_OPEN + StringUtils.join(names, TAG_BR) + TAG_HTML_CLOSE;
@@ -102,7 +95,7 @@ public final class GroupData{
 			nameTooltip = null;
 		}
 
-		final String rawType = FLEFRecordHelper.getChildValue(group, GroupHandler.TAG_TYPE);
+		final String rawType = GroupReader.extractType(group);
 		type = (rawType != null? rawType.replace('_', ' '): StringUtils.EMPTY);
 
 		extractPreferredImage(group);
@@ -145,21 +138,6 @@ public final class GroupData{
 		return (id == null);
 	}
 
-	private List<String> extractGroupNames(final FLEFRecord group){
-		final List<String> names = new ArrayList<>();
-		if(group == null || !GroupHandler.TYPE.equals(group.getTag()))
-			return names;
-
-		for(final FLEFRecord nameStruct : FLEFRecordHelper.findChildren(group, GroupHandler.TAG_NAME)){
-			final String val = FLEFRecordHelper.getChildValue(nameStruct, NameHandler.TAG_VALUE);
-			if(StringUtils.isNotEmpty(val))
-				names.add(val.trim());
-			else if(StringUtils.isNotEmpty(nameStruct.getValue()))
-				names.add(nameStruct.getValue().trim());
-		}
-		return names;
-	}
-
 
 	private void extractPreferredImage(final FLEFRecord record){
 		if(record == null){
@@ -172,21 +150,11 @@ public final class GroupData{
 			return;
 		}
 
-		preferredImageUri = FLEFRecordHelper.getChildValue(record, TAG_PREFERRED_IMAGE_URI);
+		preferredImageUri = GroupReader.extractPreferredImageUri(record);
 // TODO to be removed
 if(preferredImageUri != null)
 	preferredImageUri = "C:\\mauro\\heritage\\My Genealogy Projects\\Trevisan (Dorato)-Gallinaro-Masutti (Manfrin)-Zaros (Basso)" + preferredImageUri;
-		preferredImageCropRect = null;
-		try{
-			final FLEFRecord crop = FLEFRecordHelper.findChild(record, TAG_PREFERRED_IMAGE_CROP);
-			final int cropX = Integer.parseInt(FLEFRecordHelper.getChildValue(crop, PreferredImagePanel.TAG_X));
-			final int cropY = Integer.parseInt(FLEFRecordHelper.getChildValue(crop, PreferredImagePanel.TAG_Y));
-			final int cropWidth = Integer.parseInt(FLEFRecordHelper.getChildValue(crop, PreferredImagePanel.TAG_WIDTH));
-			final int cropHeight = Integer.parseInt(FLEFRecordHelper.getChildValue(crop, PreferredImagePanel.TAG_HEIGHT));
-			if(cropX >= 0 && cropY >= 0 && cropWidth >= 0 && cropHeight >= 0)
-				preferredImageCropRect = new Rectangle(cropX, cropY, cropWidth, cropHeight);
-		}
-		catch(final Exception ignored){}
+		preferredImageCropRect = GroupReader.extractPreferredImageCrop(record);
 
 		// Set the default image immediately
 		imagePrimary = PlaceholderImages.placeholder(BoxPanelType.PRIMARY);

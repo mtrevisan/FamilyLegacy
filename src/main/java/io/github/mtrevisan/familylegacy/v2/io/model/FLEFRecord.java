@@ -203,20 +203,42 @@ public class FLEFRecord{
 	/**
 	 * Helper function to extract a referenced ID from a structure's xref tag.
 	 *
-	 * @param fieldTag the tag to search for
+	 * @param tag the tag to search for
 	 * @param referencedType expected record type
 	 * @return referenced ID or {@code null}
 	 */
-	public String extractReferencedId(final String fieldTag, final String referencedType){
-		final FLEFRecord field = FLEFRecordHelper.findChild(this, fieldTag);
-		if(field == null)
+	public String extractReferencedId(final String tag, final String referencedType){
+		final FLEFRecord referenceParent = FLEFRecordHelper.findChild(this, tag);
+		if(referenceParent == null)
 			return null;
 
-		final FLEFRecord ref = field.getTheOnlyChild();
-		if(ref == null || !referencedType.equalsIgnoreCase(ref.getTag()))
+		final FLEFRecord ref = referenceParent.getTheOnlyChild();
+		if(ref == null || !Strings.CI.equals(ref.getTag(), referencedType))
 			return null;
 
 		return ref.getValue();
+	}
+
+	/**
+	 * Extracts a list of referenced ids from the given {@code tag}
+	 * children of a record. Each child may wrap its reference one level
+	 * deep.
+	 *
+	 * @param tag the tag to search for
+	 * @return the list of referenced IDs or {@code null}
+	 */
+	public List<String> extractReferenceIds(final String tag){
+		final List<String> result = new ArrayList<>();
+		final List<FLEFRecord> referenceParents = FLEFRecordHelper.findChildren(this, tag);
+		for(final FLEFRecord referenceParent : referenceParents){
+			final FLEFRecord reference = referenceParent.getTheOnlyChild();
+			final String id = (reference != null && reference.getValue() != null
+				? reference.getValue()
+				: referenceParent.getValue());
+			if(id != null)
+				result.add(id);
+		}
+		return result;
 	}
 
 	public long countChildrenWithTag(final String tag){

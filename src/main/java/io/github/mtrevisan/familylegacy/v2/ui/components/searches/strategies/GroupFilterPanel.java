@@ -24,9 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.components.searches.strategies;
 
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.GroupReader;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.RecordFilterPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchCriteria;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import net.miginfocom.swing.MigLayout;
@@ -49,7 +49,7 @@ import java.util.function.Consumer;
 public class GroupFilterPanel extends JPanel implements RecordFilterPanel{
 
 	private final JTextField nameField = new JTextField(20);
-	private final JComboBox<String> typeCombo = new JComboBox<>(GUIHelper.fillCombo(GroupHandler.TYPES, I18N.t("search.combo.any")));
+	private final JComboBox<String> typeCombo = new JComboBox<>(GUIHelper.fillCombo(GroupReader.TYPES, I18N.t("search.combo.any")));
 
 	private final Consumer<SearchCriteria> onChanged;
 
@@ -105,8 +105,8 @@ public class GroupFilterPanel extends JPanel implements RecordFilterPanel{
 	@Override
 	public Map<String, String> getFilters(){
 		final Map<String, String> filters = new HashMap<>();
-		filters.put(GroupHandler.TAG_NAME, getGroupName());
-		filters.put(GroupHandler.TAG_TYPE, getType());
+		filters.put(GroupReader.TAG_NAME, getGroupName());
+		filters.put(GroupReader.TAG_TYPE, getType());
 		return filters;
 	}
 

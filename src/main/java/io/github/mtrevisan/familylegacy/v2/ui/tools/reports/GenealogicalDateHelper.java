@@ -26,8 +26,8 @@ package io.github.mtrevisan.familylegacy.v2.ui.tools.reports;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.helpers.ParsedGenealogicalDate;
-import io.github.mtrevisan.familylegacy.v2.ui.helpers.UniversalDateConverter;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.date.GenealogicalDate;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.date.UniversalDateConverter;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -417,7 +417,7 @@ final class GenealogicalDateHelper{
 		if(rawDate == null || rawDate.isBlank())
 			return null;
 		try{
-			final ParsedGenealogicalDate parsed = UniversalDateConverter.parse(
+			final GenealogicalDate parsed = UniversalDateConverter.parse(
 				normalizeCalendar(calendarCode), rawDate);
 			if(parsed.isoDate() != null)
 				return parsed.isoDate().getYear();
@@ -431,9 +431,9 @@ final class GenealogicalDateHelper{
 		if(rawDate == null || rawDate.isBlank())
 			return null;
 		try{
-			final ParsedGenealogicalDate parsed = UniversalDateConverter.parse(
+			final GenealogicalDate parsed = UniversalDateConverter.parse(
 				normalizeCalendar(calendarCode), rawDate);
-			if(parsed.precision() != ParsedGenealogicalDate.DatePrecision.EXACT)
+			if(parsed.precision() != GenealogicalDate.DatePrecision.EXACT)
 				return null;
 			return parsed.isoDate();
 		}

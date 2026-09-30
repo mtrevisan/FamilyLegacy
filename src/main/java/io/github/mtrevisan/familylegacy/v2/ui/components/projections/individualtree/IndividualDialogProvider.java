@@ -26,11 +26,13 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.SexType;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.RecordSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.IndividualRecordDialog;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.SexType;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 
 import java.awt.Window;
 import java.util.Locale;
@@ -112,8 +114,7 @@ public final class IndividualDialogProvider{
 			(record, handler) -> result[0] = record,
 			IndividualHandler.class);
 		if(sex != null)
-			dialog.withFilter(IndividualHandler.TAG_SEX, sex.name()
-				.toLowerCase(Locale.ROOT));
+			dialog.withFilter(IndividualReader.TAG_SEX, I18N.t("enum.individual.sex." + sex.name().toLowerCase(Locale.ROOT)));
 		dialog.setVisible(true);
 
 		return result[0];

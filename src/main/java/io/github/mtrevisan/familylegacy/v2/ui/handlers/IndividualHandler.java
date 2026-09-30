@@ -26,7 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.IndividualRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
@@ -41,21 +41,6 @@ public class IndividualHandler extends AbstractRecordTypeHandler<IndividualRecor
 
 	public static final String TYPE = "INDIVIDUAL";
 	public static final String ID_PREFIX = "I";
-
-	public static final String TAG_NAME = "NAME";
-	public static final String TAG_SEX = "SEX";
-	public static final String TAG_SOURCE = "SOURCE";
-	public static final String TAG_NOTE = "NOTE";
-	public static final String TAG_PREFERRED_IMAGE = "PREFERRED_IMAGE";
-	public static final String TAG_PRIVACY = "PRIVACY";
-	public static final String TAG_AUDIT = "AUDIT";
-
-	public static final String ENUM_SEX_MALE = "male";
-	public static final String ENUM_SEX_FEMALE = "female";
-	public static final String ENUM_SEX_UNKNOWN = "unknown";
-	public static final String[] SEXES = {
-		StringUtils.EMPTY,
-		ENUM_SEX_MALE, ENUM_SEX_FEMALE, ENUM_SEX_UNKNOWN};
 
 
 	private static final class SingletonHelper{
@@ -89,16 +74,19 @@ public class IndividualHandler extends AbstractRecordTypeHandler<IndividualRecor
 			return "--";
 
 		// Locate the first populated NAME structure
-		String formattedName = null;
-		final List<FLEFRecord> children = FLEFRecordHelper.findChildren(record, TAG_NAME);
-		for(final FLEFRecord child : children){
-				formattedName = buildNameFromParts(child);
-				if(StringUtils.isNotEmpty(formattedName))
-					break;
-			}
+		final List<String> names = IndividualReader.extractFullNames(record);
+		final String name = (!names.isEmpty()? names.getFirst(): null);
 
 		final String id = record.getId();
-		return (StringUtils.isNotEmpty(formattedName)? formattedName: "--") + " [" + id + "]";
+		final StringBuilder sb = new StringBuilder();
+		if(StringUtils.isNotEmpty(name))
+			sb.append(name);
+		if(!sb.isEmpty())
+			sb.append(' ');
+		sb.append('[')
+			.append(id)
+			.append(']');
+		return sb.toString();
 	}
 
 	/**

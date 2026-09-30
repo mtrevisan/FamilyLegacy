@@ -27,7 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.searches.strategies;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.DateReader;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchCriteria;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchMode;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchStrategy;
@@ -46,8 +46,8 @@ import java.util.function.Predicate;
  */
 public class CulturalNormSearchStrategy implements SearchStrategy{
 
-	static final String KEY_CALENDAR_FROM = DateField.TAG_CALENDAR + "_" + DateField.TAG_FROM;
-	static final String KEY_CALENDAR_TO = DateField.TAG_CALENDAR + "_" + DateField.TAG_TO;
+	static final String KEY_CALENDAR_FROM = DateReader.TAG_CALENDAR + "_" + DateReader.TAG_FROM;
+	static final String KEY_CALENDAR_TO = DateReader.TAG_CALENDAR + "_" + DateReader.TAG_TO;
 
 
 	private static final double FUZZY_THRESHOLD = 0.05;

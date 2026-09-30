@@ -25,6 +25,9 @@
 package io.github.mtrevisan.familylegacy.v2.ui.components.projections.temporal;
 
 
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.date.DatePrecision;
+
+
 /**
  * Zoom level of the temporal axis in the General Temporal Projection.
  * <p>

@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs.records;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.EvidenceQualifiersPanel;
@@ -86,9 +87,8 @@ import java.io.IOException;
  */
 public class PlaceRecordDialog extends BaseRecordDialog{
 
-	private static final String DOT = ".";
-	private static final String TAG_MAP_COORDINATES = PlaceHandler.TAG_MAP + DOT + PlaceHandler.TAG_COORDINATES;
-	private static final String TAG_MAP_EVIDENCE = PlaceHandler.TAG_MAP + DOT + PlaceHandler.TAG_EVIDENCE;
+	private static final String TAG_MAP_COORDINATES = FLEFRecordHelper.composePath(PlaceHandler.TAG_MAP, PlaceHandler.TAG_COORDINATES);
+	private static final String TAG_MAP_EVIDENCE = FLEFRecordHelper.composePath(PlaceHandler.TAG_MAP, PlaceHandler.TAG_EVIDENCE);
 
 
 	private final JPanel propertiesPanel;

@@ -24,6 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.components.projections.temporal;
 
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.date.CalendarConverter;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.date.NormalizedDate;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.date.TemporalSpan;
 import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Rectangle;

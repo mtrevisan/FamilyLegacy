@@ -24,6 +24,10 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.components.projections.temporal;
 
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.date.DatePrecision;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.date.TemporalSpan;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.date.TemporalSpanKind;
+
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.GradientPaint;

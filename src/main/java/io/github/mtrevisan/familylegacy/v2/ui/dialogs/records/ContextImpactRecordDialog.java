@@ -49,6 +49,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JPanel;
 import java.awt.Window;
@@ -113,13 +114,13 @@ public class ContextImpactRecordDialog extends BaseRecordDialog{
 				ConclusionHandler.class, EventParticipationHandler.class, PlaceRelationshipHandler.class,
 				IdentityHypothesisHandler.class);
 
-		impactTypeCombo = new BoundComboBox<>(ContextImpactHandler.TAG_IMPACT_TYPE, ContextImpactHandler.IMPACT_TYPES);
+		impactTypeCombo = new BoundComboBox<>(ContextImpactHandler.TAG_IMPACT_TYPE, GUIHelper.fillCombo(ContextImpactHandler.IMPACT_TYPES, null));
 		impactTypeCombo.setI18NPrefix("enum.context.impact.type");
 		impactTypeCombo.setEditable(true);
 
 		rationaleArea = new BoundTextArea(ContextImpactHandler.TAG_RATIONALE, 3, 30);
 
-		confidenceCombo = new BoundComboBox<>(ContextImpactHandler.TAG_CONFIDENCE, ContextImpactHandler.CONFIDENCES);
+		confidenceCombo = new BoundComboBox<>(ContextImpactHandler.TAG_CONFIDENCE, GUIHelper.fillCombo(ContextImpactHandler.CONFIDENCES, null));
 		confidenceCombo.setI18NPrefix("enum.confidence");
 
 		// Build common panels using the builder

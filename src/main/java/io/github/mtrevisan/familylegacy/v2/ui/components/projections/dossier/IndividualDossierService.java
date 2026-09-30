@@ -27,10 +27,11 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.projections.dossier;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.names.Name;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.names.NameAnatomyService;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.names.NamePart;
 import io.github.mtrevisan.familylegacy.v2.ui.components.EvidenceQualifiersPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.projections.dossier.names.NameAnatomy;
-import io.github.mtrevisan.familylegacy.v2.ui.components.projections.dossier.names.NameAnatomyService;
-import io.github.mtrevisan.familylegacy.v2.ui.components.projections.dossier.names.NamePart;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualData;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ContextImpactHandler;
@@ -106,7 +107,6 @@ public final class IndividualDossierService{
 	private final IndividualHandler individualHandler;
 	private final Map<String, List<FLEFRecord>> eventMap;
 
-	private final NameAnatomyService nameAnatomyService;
 	private final DossierFormatting formatting;
 
 	/** Reverse index: assertion record id -> proof status. */
@@ -120,7 +120,6 @@ public final class IndividualDossierService{
 		this.individualHandler = IndividualHandler.getInstance();
 		this.eventMap = buildEventMap();
 
-		this.nameAnatomyService = new NameAnatomyService(model);
 		this.formatting = new DossierFormatting(model);
 		this.conclusionIndex = buildConclusionIndex();
 	}
@@ -176,12 +175,8 @@ public final class IndividualDossierService{
 		// Names: use the NameAnatomyService so the parsing logic is shared
 		// with NameAnatomyPanel. Each name produces a header row and one
 		// row per part.
-		final String individualId = individual.getId();
-		final List<NameAnatomy> names = (individualId != null
-			? nameAnatomyService.extractForIndividual(individualId)
-			: List.of());
-
-		for(final NameAnatomy name : names){
+		final List<Name> names = NameAnatomyService.extractForIndividual(individual);
+		for(final Name name : names){
 			entries.add(DossierEntry.nameHeader(name.displayType(), individual));
 
 			if(name.hasParts()){
@@ -218,7 +213,7 @@ public final class IndividualDossierService{
 		}
 
 		// Sex.
-		final String sex = FLEFRecordHelper.getChildValue(individual, IndividualHandler.TAG_SEX);
+		final String sex = IndividualReader.extractRawSex(individual);
 		if(StringUtils.isNotEmpty(sex))
 			entries.add(DossierEntry.of("Sex", sex, individual));
 
@@ -839,7 +834,8 @@ public final class IndividualDossierService{
 		try{
 			final String tag = record.getTag();
 			if(GroupHandler.TYPE.equalsIgnoreCase(tag))
-				return GroupHandler.getInstance().getDisplayText(record, model);
+				return GroupHandler.getInstance()
+					.getDisplayText(record, model);
 			return individualHandler.getDisplayText(record, model);
 		}
 		catch(final RuntimeException ignored){

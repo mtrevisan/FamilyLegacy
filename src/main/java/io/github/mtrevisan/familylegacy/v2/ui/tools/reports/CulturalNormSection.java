@@ -43,7 +43,7 @@ import java.util.function.Function;
  * {@code cultural_norm} records with their title, rule type, validity window,
  * place, notes and citations.</p>
  *
- * <p>The section is emitted only when {@code config.culturalNorms()} is
+ * <p>The section is emitted only when {@code config.culturalNormIds()} is
  * enabled and at least one norm is reachable.</p>
  */
 final class CulturalNormSection implements SectionBuilder{

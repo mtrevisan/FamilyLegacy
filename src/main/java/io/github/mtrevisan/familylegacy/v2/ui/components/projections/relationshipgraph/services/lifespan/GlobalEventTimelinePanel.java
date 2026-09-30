@@ -27,8 +27,8 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.projections.relationsh
 import io.github.mtrevisan.familylegacy.v2.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.date.NormalizedDate;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.services.lifespan.EventIndex;
-import io.github.mtrevisan.familylegacy.v2.ui.components.projections.temporal.NormalizedDate;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.temporal.TemporalAxis;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;

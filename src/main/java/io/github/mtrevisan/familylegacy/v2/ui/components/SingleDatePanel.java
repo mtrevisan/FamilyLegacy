@@ -26,10 +26,11 @@ package io.github.mtrevisan.familylegacy.v2.ui.components;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.DateReader;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextField;
-import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import net.miginfocom.swing.MigLayout;
@@ -75,35 +76,6 @@ import java.util.Map;
  */
 public class SingleDatePanel extends JPanel{
 
-	private static final String DOT = ".";
-	private static final String TAG_FULL_DATE_VALUE = DateField.TAG_FULL_DATE + DOT + DateField.TAG_VALUE;
-	private static final String TAG_DECADE_START_YEAR = DateField.TAG_DECADE + DOT + DateField.TAG_START_YEAR;
-	private static final String TAG_CENTURY_ORDINAL = DateField.TAG_CENTURY + DOT + DateField.TAG_ORDINAL;
-	private static final String TAG_CENTURY_PART = DateField.TAG_CENTURY + DOT + DateField.TAG_PART;
-
-	public static final String ENUM_PART_FIRST_QUARTER = "first_quarter";
-	public static final String ENUM_PART_SECOND_QUARTER = "second_quarter";
-	public static final String ENUM_PART_THIRD_QUARTER = "third_quarter";
-	public static final String ENUM_PART_FOURTH_QUARTER = "fourth_quarter";
-	public static final String ENUM_PART_FIRST_HALF = "first_half";
-	public static final String ENUM_PART_SECOND_HALF = "second_half";
-	public static final String ENUM_PART_EARLY = "early";
-	public static final String ENUM_PART_MID = "mid";
-	public static final String ENUM_PART_LATE = "late";
-	private static final String[] CENTURY_PARTS = {
-		StringUtils.EMPTY,
-		ENUM_PART_FIRST_QUARTER, ENUM_PART_SECOND_QUARTER, ENUM_PART_THIRD_QUARTER, ENUM_PART_FOURTH_QUARTER,
-		ENUM_PART_FIRST_HALF, ENUM_PART_SECOND_HALF,
-		ENUM_PART_EARLY, ENUM_PART_MID, ENUM_PART_LATE
-	};
-
-	private static final String ENUM_CALENDAR_GREGORIAN = "gregorian";
-	public static final String[] CALENDARS = {
-		ENUM_CALENDAR_GREGORIAN, "julian", "islamic", "hebrew", "chinese", "indian", "buddhist", "french_republican",
-		"coptic", "soviet_eternal", "ethiopian", "mayan"
-	};
-
-
 	private final BindingManager bindingManager = new BindingManager();
 
 	private final JComboBox<DateType> singleDateTypeCombo = new JComboBox<>(DateType.values());
@@ -121,15 +93,15 @@ public class SingleDatePanel extends JPanel{
 
 
 	public SingleDatePanel(final Window parent, final FLEFModel model){
-		fullDateValueField = new BoundTextField(TAG_FULL_DATE_VALUE);
-		decadeStartYearField = new BoundTextField(TAG_DECADE_START_YEAR);
-		centuryOrdinalField = new BoundTextField(TAG_CENTURY_ORDINAL);
-		centuryPartCombo = new BoundComboBox<>(TAG_CENTURY_PART, CENTURY_PARTS);
+		fullDateValueField = new BoundTextField(DateReader.TAG_FULL_DATE_VALUE);
+		decadeStartYearField = new BoundTextField(DateReader.TAG_DECADE_START_YEAR);
+		centuryOrdinalField = new BoundTextField(DateReader.TAG_CENTURY_ORDINAL);
+		centuryPartCombo = new BoundComboBox<>(DateReader.TAG_CENTURY_PART, GUIHelper.fillCombo(DateReader.CENTURY_PARTS, null));
 		centuryPartCombo.setI18NPrefix("enum.date.century.part");
-		calendarCombo = new BoundComboBox<>(DateField.TAG_CALENDAR, CALENDARS);
+		calendarCombo = new BoundComboBox<>(DateReader.TAG_CALENDAR, DateReader.CALENDARS);
 		calendarCombo.setI18NPrefix("enum.date.calendar");
 		calendarCombo.setEditable(true);
-		approxPanel = new ApproximatePanel(DateField.TAG_APPROXIMATE, parent, model);
+		approxPanel = new ApproximatePanel(DateReader.TAG_APPROXIMATE, parent, model);
 
 		fieldMap.put(DateType.FULL_DATE, fullDateValueField);
 		fieldMap.put(DateType.DECADE, decadeStartYearField);
@@ -234,8 +206,8 @@ public class SingleDatePanel extends JPanel{
 		final DateType singleDateType = DateType.fromNode(record);
 		singleDateTypeCombo.setSelectedItem(singleDateType);
 
-		approxPanel.setPath(singleDateType.getTagName() + DOT + DateField.TAG_APPROXIMATE);
-		calendarCombo.setPath(singleDateType.getTagName() + DOT + DateField.TAG_CALENDAR);
+		approxPanel.setPath(FLEFRecordHelper.composePath(singleDateType.getTagName(), DateReader.TAG_APPROXIMATE));
+		calendarCombo.setPath(FLEFRecordHelper.composePath(singleDateType.getTagName(), DateReader.TAG_CALENDAR));
 
 		approxPanel.loadFromRecord(record);
 
@@ -265,10 +237,10 @@ public class SingleDatePanel extends JPanel{
 		if(singleDateType != DateType.CENTURY)
 			centuryPartCombo.setText(StringUtils.EMPTY);
 
-		approxPanel.setPath(singleDateType.getTagName() + DOT + DateField.TAG_CALENDAR);
-		calendarCombo.setPath(singleDateType.getTagName() + DOT + DateField.TAG_CALENDAR);
+		approxPanel.setPath(FLEFRecordHelper.composePath(singleDateType.getTagName(), DateReader.TAG_CALENDAR));
+		calendarCombo.setPath(FLEFRecordHelper.composePath(singleDateType.getTagName(), DateReader.TAG_CALENDAR));
 
-		final FLEFRecord record = FLEFRecord.createChildWithTag(DateField.TAG_VALUE);
+		final FLEFRecord record = FLEFRecord.createChildWithTag(DateReader.TAG_VALUE);
 
 		bindingManager.save(record);
 
@@ -282,7 +254,7 @@ public class SingleDatePanel extends JPanel{
 		fieldMap.values()
 			.forEach(field -> field.setText(StringUtils.EMPTY));
 		centuryPartCombo.setSelectedIndex(0);
-		calendarCombo.setSelectedItem(ENUM_CALENDAR_GREGORIAN);
+		calendarCombo.setSelectedItem(DateReader.ENUM_CALENDAR_GREGORIAN);
 		approxPanel.clear();
 		cardLayout.show(cardPanel, DateType.FULL_DATE.name());
 	}

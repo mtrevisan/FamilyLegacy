@@ -59,7 +59,6 @@ public class ResearchQuestionHandler extends AbstractRecordTypeHandler<ResearchQ
 	public static final String ENUM_STATUS_RESOLVED = "resolved";
 	public static final String ENUM_STATUS_DISPROVEN = "disproven";
 	public static final String[] STATUSES = new String[]{
-		StringUtils.EMPTY,
 		ENUM_STATUS_OPEN,
 		ENUM_STATUS_ON_HOLD,
 		ENUM_STATUS_RESOLVED,
@@ -67,7 +66,6 @@ public class ResearchQuestionHandler extends AbstractRecordTypeHandler<ResearchQ
 	};
 
 	public static final String[] CONFIDENCES = new String[]{
-		StringUtils.EMPTY,
 		"low", "medium", "high"
 	};
 

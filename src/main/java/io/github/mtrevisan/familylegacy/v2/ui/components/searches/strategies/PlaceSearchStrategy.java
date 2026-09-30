@@ -33,6 +33,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchStrategy
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 
 import java.util.StringJoiner;
 import java.util.function.Predicate;
@@ -68,7 +69,7 @@ public class PlaceSearchStrategy implements SearchStrategy{
 			// Type filter
 			if(StringUtils.isNotEmpty(type)){
 				final String placeType = FLEFRecordHelper.getChildValue(place, PlaceHandler.TAG_TYPE);
-				if(!type.equalsIgnoreCase(placeType))
+				if(!Strings.CI.equals(type, placeType))
 					return false;
 			}
 

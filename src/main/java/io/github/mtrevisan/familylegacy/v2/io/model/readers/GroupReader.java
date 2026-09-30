@@ -1,0 +1,103 @@
+package io.github.mtrevisan.familylegacy.v2.io.model.readers;
+
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.names.Name;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.names.NameAnatomyService;
+import io.github.mtrevisan.familylegacy.v2.ui.components.PreferredImagePanel;
+import org.apache.commons.lang3.StringUtils;
+
+import java.awt.Rectangle;
+import java.util.List;
+
+
+/**
+ * Handler for GROUP records.
+ * <p>
+ * Structure:
+ * <pre>
+ * // A group of genealogical entities. A group can be a family, a household, a neighborhood, a club, a research group, etc. Membership in a GROUP is
+ * // determined exclusively through RELATIONSHIP_RECORD objects whose OBJECT references the GROUP record and whose TYPE identifies a group membership
+ * // relationship (e.g., 'group_member'). GROUP_RECORD does not directly contain a member list. This design ensures that membership is treated as a
+ * // relationship with its own properties (dates, evidence, conclusions).
+ * record GroupRecord {
+ *   name*: NameStructure   // names associated with the group. Different names may represent historical, official, customary, translated, abbreviated, or otherwise variant forms used at different times or in different contexts.
+ *   type?: enum {
+ *     family, household, neighborhood, fraternity, club, literary_society, association, organization, tribe
+ *   } | Text
+ *   source*: SourceCitation
+ *   note*: NoteStructure
+ *   preferred_image?: struct {
+ *     uri: Uri          // Resource URI pointing to a preferred image of this individual. FIXME? document: Xref<DocumentRecord>
+ *     crop?: CropRect   // specifies the portion of the image that should be displayed as the preferred representation
+ *   }
+ *   privacy?: PrivacyStructure
+ *   audit: AuditStructure
+ * }
+ * </pre>
+ */
+public final class GroupReader{
+
+	public static final String TAG_NAME = "name";
+	public static final String TAG_TYPE = "type";
+	public static final String TAG_SOURCE = "source";
+	public static final String TAG_NOTE = "note";
+	public static final String TAG_PREFERRED_IMAGE = "preferred_image";
+	private static final String TAG_PREFERRED_IMAGE_URI = FLEFRecordHelper.composePath(TAG_PREFERRED_IMAGE, "uri");
+	private static final String TAG_PREFERRED_IMAGE_CROP = FLEFRecordHelper.composePath(TAG_PREFERRED_IMAGE, "crop");
+	public static final String TAG_PRIVACY = "privacy";
+	public static final String TAG_AUDIT = "audit";
+
+	public static final String[] TYPES = new String[]{
+		"family", "household", "neighbourhood", "fraternity", "club", "literary_society",
+		"association", "organisation", "tribe"
+	};
+
+
+	private GroupReader(){}
+
+
+	public static String extractType(final FLEFRecord record){
+		return FLEFRecordHelper.getChildValue(record, TAG_TYPE);
+	}
+
+
+	public static String extractPreferredImageUri(final FLEFRecord record){
+		return FLEFRecordHelper.getChildValue(record, TAG_PREFERRED_IMAGE_URI);
+	}
+
+	public static Rectangle extractPreferredImageCrop(final FLEFRecord record){
+		final FLEFRecord crop = FLEFRecordHelper.findChild(record, TAG_PREFERRED_IMAGE_CROP);
+		if(crop != null){
+			final String x = FLEFRecordHelper.getChildValue(crop, PreferredImagePanel.TAG_X);
+			final String y = FLEFRecordHelper.getChildValue(crop, PreferredImagePanel.TAG_Y);
+			final String width = FLEFRecordHelper.getChildValue(crop, PreferredImagePanel.TAG_WIDTH);
+			final String height = FLEFRecordHelper.getChildValue(crop, PreferredImagePanel.TAG_HEIGHT);
+			if(x != null && y != null && width != null && height != null){
+				final int cropX = Integer.parseInt(x);
+				final int cropY = Integer.parseInt(y);
+				final int cropWidth = Integer.parseInt(width);
+				final int cropHeight = Integer.parseInt(height);
+				if(cropX >= 0 && cropY >= 0 && cropWidth >= 0 && cropHeight >= 0)
+					return new Rectangle(cropX, cropY, cropWidth, cropHeight);
+			}
+		}
+		return new Rectangle();
+	}
+
+
+	/**
+	 * Extracts full names from an GroupRecord.
+	 *
+	 * @param group the GroupRecord
+	 * @return a list of full name strings with excluded parts omitted
+	 */
+	public static List<String> extractFullNames(final FLEFRecord group){
+		final List<Name> names = NameAnatomyService.extractForGeneric(group);
+		return names.stream()
+			.map(Name::value)
+			.filter(StringUtils::isNotEmpty)
+			.toList();
+	}
+
+}

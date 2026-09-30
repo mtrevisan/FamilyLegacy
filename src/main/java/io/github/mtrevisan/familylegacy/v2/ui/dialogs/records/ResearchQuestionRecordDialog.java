@@ -144,7 +144,7 @@ public class ResearchQuestionRecordDialog extends BaseRecordDialog{
 			.withSaveAsVoid();
 		statusPanel = new ResearchQuestionStatusPanel();
 		conclusionArea = new BoundTextArea(ResearchQuestionHandler.TAG_CONCLUSION, 3, 30);
-		conclusionConfidenceCombo = new BoundComboBox<>(ResearchQuestionHandler.TAG_CONCLUSION_CONFIDENCE, ResearchQuestionHandler.CONFIDENCES);
+		conclusionConfidenceCombo = new BoundComboBox<>(ResearchQuestionHandler.TAG_CONCLUSION_CONFIDENCE, GUIHelper.fillCombo(ResearchQuestionHandler.CONFIDENCES, null));
 		conclusionConfidenceCombo.setI18NPrefix("enum.confidence");
 		rationaleArea = new BoundTextArea(ResearchQuestionHandler.TAG_RATIONALE, 3, 30);
 

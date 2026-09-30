@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.v2.io.grammar.FLEFGrammar;
 import io.github.mtrevisan.familylegacy.v2.io.grammar.contraints.Constraint;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 
@@ -38,9 +39,6 @@ import java.util.List;
  * A group of fields (and optional constraints), either named ({@code struct Name { ... }}) or inline.
  */
 public class StructType extends TypeDefinition{
-
-	private static final String DOT = ".";
-
 
 	private final List<FieldDefinition> fields;
 	private final List<Constraint> constraints;
@@ -75,7 +73,7 @@ public class StructType extends TypeDefinition{
 		// Check all fields defined for this structure
 		for(final FieldDefinition fieldDef : fields){
 			final String fieldName = fieldDef.name();
-			final String currentPath = (contextPath.isEmpty()? fieldName: contextPath + DOT + fieldName);
+			final String currentPath = (contextPath.isEmpty()? fieldName: FLEFRecordHelper.composePath(contextPath, fieldName));
 
 			// Extract all child AST records matching the current field definition name
 			final List<FLEFRecord> children = record.getChildren().stream()

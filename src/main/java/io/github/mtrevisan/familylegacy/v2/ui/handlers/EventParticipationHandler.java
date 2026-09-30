@@ -49,7 +49,6 @@ public class EventParticipationHandler extends AbstractRecordTypeHandler<EventPa
 	public static final String TAG_AUDIT = "AUDIT";
 
 	public static final String[] ROLES = new String[]{
-		StringUtils.EMPTY,
 		"child", "parent", "spouse",
 		"power_of_attorney",
 		"prisoner",

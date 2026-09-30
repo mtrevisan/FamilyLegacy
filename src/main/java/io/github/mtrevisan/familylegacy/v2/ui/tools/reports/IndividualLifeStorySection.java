@@ -26,7 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.tools.reports;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.reports.index.EventIndex;
 import org.apache.commons.lang3.StringUtils;
 
@@ -141,7 +141,7 @@ final class IndividualLifeStorySection implements SectionBuilder{
 		personal.add("**" + ctx.labels.sections().id() + ":** "
 			+ ReportFormatters.escape(ReportFormatters.orEmpty(ctx.root.getId())));
 		personal.add("**" + ctx.labels.sections().sex() + ":** " + ReportFormatters.escape(
-			Optional.ofNullable(FLEFRecordHelper.getChildValue(ctx.root, IndividualHandler.TAG_SEX))
+			Optional.ofNullable(IndividualReader.extractRawSex(ctx.root))
 				.orElse(ctx.labels.sections().sexUnknown())));
 
 		for(final FLEFRecord nameRec : FLEFRecordHelper.findChildren(ctx.root, TAG_NAME)){

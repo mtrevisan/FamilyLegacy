@@ -26,15 +26,15 @@ package io.github.mtrevisan.familylegacy.v2.ui.components;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.DateReader;
 import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 
 
 public enum DateType{
 
-	FULL_DATE("Full Date", DateField.TAG_FULL_DATE, I18N.tf("validation.required", I18N.t("dialog.date.full.date"))),
-	DECADE("Decade", DateField.TAG_DECADE, I18N.tf("validation.required", I18N.t("dialog.date.decade"))),
-	CENTURY("Century", DateField.TAG_CENTURY, I18N.tf("validation.required", I18N.t("dialog.date.century")));
+	FULL_DATE("dialog.date.full.date", DateReader.TAG_FULL_DATE),
+	DECADE("dialog.date.decade", DateReader.TAG_DECADE),
+	CENTURY("dialog.date.century", DateReader.TAG_CENTURY);
 
 
 	private final String label;
@@ -42,10 +42,10 @@ public enum DateType{
 	private final String errorMessage;
 
 
-	DateType(final String label, final String tagName, final String errorMessage){
-		this.label = label;
+	DateType(final String label, final String tagName){
+		this.label = I18N.t(label);
 		this.tagName = tagName;
-		this.errorMessage = errorMessage;
+		this.errorMessage = I18N.tf("validation.required", this.label);
 	}
 
 

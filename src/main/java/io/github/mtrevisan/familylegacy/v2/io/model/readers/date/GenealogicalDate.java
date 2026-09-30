@@ -22,11 +22,47 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.v2.ui.dialogs.records;
+package io.github.mtrevisan.familylegacy.v2.io.model.readers.date;
+
+import java.time.LocalDate;
 
 
-public enum SexType{
-	MALE,
-	FEMALE,
-	UNKNOWN;
+/**
+ * Represents a parsed genealogical date with precision and approximation metadata.
+ *
+ * @param isoDate      the normalized ISO date
+ * @param precision    the temporal precision (e.g., EXACT, YEAR_ONLY)
+ * @param approximate  whether the date is marked as approximate/uncertain
+ * @param rawInput     the original raw string input
+ * @param calendarType the calendar system used
+ */
+public record GenealogicalDate(
+	LocalDate isoDate,
+	DatePrecision precision,
+	boolean approximate,
+	String rawInput,
+	CalendarType calendarType
+)implements Comparable<GenealogicalDate>{
+
+	@Override
+	public int compareTo(final GenealogicalDate other){
+		if(other == null)
+			return 1;
+		if(isoDate == null && other.isoDate == null)
+			return 0;
+		if(isoDate == null)
+			return -1;
+		if(other.isoDate == null)
+			return 1;
+		return isoDate.compareTo(other.isoDate);
+	}
+
+
+	public enum DatePrecision{
+		EXACT,
+		YEAR_MONTH,
+		MONTH_DAY,
+		YEAR_ONLY
+	}
+
 }

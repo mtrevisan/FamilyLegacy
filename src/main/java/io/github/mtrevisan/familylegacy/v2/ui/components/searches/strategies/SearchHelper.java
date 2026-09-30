@@ -27,8 +27,12 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.searches.strategies;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.components.SingleDatePanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.DateReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.EventReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.date.GenealogicalDate;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.date.NormalizedDate;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.date.TemporalSpan;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.date.UniversalDateConverter;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchMatcher;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchMode;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.TextSearchHelper;
@@ -37,8 +41,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventParticipationHandler
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NameHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.helpers.ParsedGenealogicalDate;
-import io.github.mtrevisan.familylegacy.v2.ui.helpers.UniversalDateConverter;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
@@ -76,22 +78,22 @@ public class SearchHelper{
 			if(event == null)
 				continue;
 
-			final String type = FLEFRecordHelper.getChildValue(event, EventHandler.TAG_TYPE);
+			final String type = EventReader.extractType(event);
 			if(type == null)
 				continue;
 
-			if(EventHandler.ENUM_TYPE_BIRTH.equalsIgnoreCase(type) && !birthYears.containsKey(participantId)){
-				final FLEFRecord eventDateRecord = FLEFRecordHelper.findChild(event, EventHandler.TAG_DATE);
-				if(eventDateRecord != null){
-					final Integer[] range = SearchHelper.extractYearRangeFromDateStructure(eventDateRecord);
+			if(EventReader.isTypeBirth(type) && !birthYears.containsKey(participantId)){
+				final FLEFRecord dateRecord = EventReader.extractDate(event);
+				if(dateRecord != null){
+					final Integer[] range = SearchHelper.extractYearRangeFromDateStructure(dateRecord);
 					if(range != null && range[0] != Integer.MIN_VALUE)
 						birthYears.put(participantId, range[0]);
 				}
 			}
-			else if(EventHandler.ENUM_TYPE_DEATH.equalsIgnoreCase(type) && !deathYears.containsKey(participantId)){
-				final FLEFRecord eventDateRecord = FLEFRecordHelper.findChild(event, EventHandler.TAG_DATE);
-				if(eventDateRecord != null){
-					final Integer[] range = SearchHelper.extractYearRangeFromDateStructure(eventDateRecord);
+			else if(EventReader.isTypeDeath(type) && !deathYears.containsKey(participantId)){
+				final FLEFRecord dateRecord = EventReader.extractDate(event);
+				if(dateRecord != null){
+					final Integer[] range = SearchHelper.extractYearRangeFromDateStructure(dateRecord);
 					if(range != null && range[1] != Integer.MAX_VALUE)
 						deathYears.put(participantId, range[1]);
 				}
@@ -142,8 +144,17 @@ public class SearchHelper{
 		if(StringUtils.isEmpty(date))
 			return true;
 
-		final FLEFRecord dateRecord = FLEFRecordHelper.findChild(event, EventHandler.TAG_DATE);
 		final Integer year = SearchHelper.extractYear(date, calendar);
+		final FLEFRecord dateRecord = EventReader.extractDate(event);
+		final TemporalSpan temporalSpan = DateReader.extractTemporalSpan(dateRecord);
+		final NormalizedDate start = (temporalSpan != null? temporalSpan.start(): null);
+		if(start != null)
+			return (year != null && year >= start.jdn());
+
+		final NormalizedDate end = (temporalSpan != null? temporalSpan.end(): null);
+		if(end != null)
+			return (year != null && year <= end.jdn());
+
 		return SearchHelper.isDateInRange(dateRecord, null, null, year, year);
 	}
 
@@ -198,27 +209,27 @@ public class SearchHelper{
 	 * Returns null if no valid year boundary could be determined.
 	 */
 	static Integer[] extractYearRangeFromDateStructure(final FLEFRecord dateRecord){
-		final FLEFRecord valueRecord = FLEFRecordHelper.findChild(dateRecord, DateField.TAG_VALUE);
+		final FLEFRecord valueRecord = FLEFRecordHelper.findChild(dateRecord, DateReader.TAG_VALUE);
 		final FLEFRecord target = (valueRecord != null? valueRecord: dateRecord);
 
 		// 1. SingleDate point
-		final FLEFRecord pointRecord = FLEFRecordHelper.findChild(target, DateField.TAG_POINT);
+		final FLEFRecord pointRecord = FLEFRecordHelper.findChild(target, DateReader.TAG_POINT);
 		if(pointRecord != null)
 			return extractYearRangeFromSingleDate(pointRecord);
 
 		// 2. BoundedDate (not_before / not_after)
-		final FLEFRecord boundedRecord = FLEFRecordHelper.findChild(target, DateField.TAG_BOUNDED);
+		final FLEFRecord boundedRecord = FLEFRecordHelper.findChild(target, DateReader.TAG_BOUNDED);
 		if(boundedRecord != null){
-			final FLEFRecord notBefore = FLEFRecordHelper.findChild(boundedRecord, DateField.TAG_NOT_BEFORE);
-			final FLEFRecord notAfter = FLEFRecordHelper.findChild(boundedRecord, DateField.TAG_NOT_AFTER);
+			final FLEFRecord notBefore = FLEFRecordHelper.findChild(boundedRecord, DateReader.TAG_NOT_BEFORE);
+			final FLEFRecord notAfter = FLEFRecordHelper.findChild(boundedRecord, DateReader.TAG_NOT_AFTER);
 			return extractYearRangeFromBoundPair(notBefore, notAfter);
 		}
 
 		// 3. SpanningDate (from / to)
-		final FLEFRecord spanningRecord = FLEFRecordHelper.findChild(target, DateField.TAG_SPANNING);
+		final FLEFRecord spanningRecord = FLEFRecordHelper.findChild(target, DateReader.TAG_SPANNING);
 		if(spanningRecord != null){
-			final FLEFRecord fromRecord = FLEFRecordHelper.findChild(spanningRecord, DateField.TAG_FROM);
-			final FLEFRecord toRecord = FLEFRecordHelper.findChild(spanningRecord, DateField.TAG_TO);
+			final FLEFRecord fromRecord = FLEFRecordHelper.findChild(spanningRecord, DateReader.TAG_FROM);
+			final FLEFRecord toRecord = FLEFRecordHelper.findChild(spanningRecord, DateReader.TAG_TO);
 			return extractYearRangeFromBoundPair(fromRecord, toRecord);
 		}
 
@@ -244,18 +255,18 @@ public class SearchHelper{
 			return null;
 
 		// Variant A: full_date
-		final FLEFRecord fullDateRecord = FLEFRecordHelper.findChild(singleDateRecord, DateField.TAG_FULL_DATE);
+		final FLEFRecord fullDateRecord = FLEFRecordHelper.findChild(singleDateRecord, DateReader.TAG_FULL_DATE);
 		if(fullDateRecord != null){
-			final String date = FLEFRecordHelper.getChildValue(fullDateRecord, DateField.TAG_VALUE);
-			final String calendar = FLEFRecordHelper.getChildValue(fullDateRecord, DateField.TAG_CALENDAR);
+			final String date = FLEFRecordHelper.getChildValue(fullDateRecord, DateReader.TAG_VALUE);
+			final String calendar = FLEFRecordHelper.getChildValue(fullDateRecord, DateReader.TAG_CALENDAR);
 			final Integer year = extractYear(date, calendar);
 			return (year != null? new Integer[]{year, year}: null);
 		}
 
 		// Variant B: decade
-		final FLEFRecord decadeRecord = FLEFRecordHelper.findChild(singleDateRecord, DateField.TAG_DECADE);
+		final FLEFRecord decadeRecord = FLEFRecordHelper.findChild(singleDateRecord, DateReader.TAG_DECADE);
 		if(decadeRecord != null){
-			final String startYearStr = FLEFRecordHelper.getChildValue(decadeRecord, DateField.TAG_START_YEAR);
+			final String startYearStr = FLEFRecordHelper.getChildValue(decadeRecord, DateReader.TAG_START_YEAR);
 			if(StringUtils.isNumeric(startYearStr)){
 				final int startYear = Integer.parseInt(startYearStr);
 				return new Integer[]{startYear, startYear + 9};
@@ -263,14 +274,14 @@ public class SearchHelper{
 		}
 
 		// Variant C: century
-		final FLEFRecord centuryRecord = FLEFRecordHelper.findChild(singleDateRecord, DateField.TAG_CENTURY);
+		final FLEFRecord centuryRecord = FLEFRecordHelper.findChild(singleDateRecord, DateReader.TAG_CENTURY);
 		if(centuryRecord != null){
-			final String ordinalStr = FLEFRecordHelper.getChildValue(centuryRecord, DateField.TAG_ORDINAL);
+			final String ordinalStr = FLEFRecordHelper.getChildValue(centuryRecord, DateReader.TAG_ORDINAL);
 			if(StringUtils.isNumeric(ordinalStr)){
 				final int ordinal = Integer.parseInt(ordinalStr);
 				final int startYear = (ordinal - 1) * 100 + 1;
 				final int endYear = ordinal * 100;
-				final String part = FLEFRecordHelper.getChildValue(centuryRecord, DateField.TAG_PART);
+				final String part = FLEFRecordHelper.getChildValue(centuryRecord, DateReader.TAG_PART);
 
 				return calculateCenturyPartRange(startYear, endYear, part);
 			}
@@ -287,15 +298,15 @@ public class SearchHelper{
 			return new Integer[]{startYear, endYear};
 
 		return switch(part.toLowerCase()){
-			case SingleDatePanel.ENUM_PART_FIRST_QUARTER -> new Integer[]{startYear, startYear + 24};
-			case SingleDatePanel.ENUM_PART_SECOND_QUARTER -> new Integer[]{startYear + 25, startYear + 49};
-			case SingleDatePanel.ENUM_PART_THIRD_QUARTER -> new Integer[]{startYear + 50, startYear + 74};
-			case SingleDatePanel.ENUM_PART_FOURTH_QUARTER -> new Integer[]{startYear + 75, endYear};
-			case SingleDatePanel.ENUM_PART_FIRST_HALF -> new Integer[]{startYear, startYear + 49};
-			case SingleDatePanel.ENUM_PART_SECOND_HALF -> new Integer[]{startYear + 50, endYear};
-			case SingleDatePanel.ENUM_PART_EARLY -> new Integer[]{startYear, startYear + 32};
-			case SingleDatePanel.ENUM_PART_MID -> new Integer[]{startYear + 33, startYear + 66};
-			case SingleDatePanel.ENUM_PART_LATE -> new Integer[]{startYear + 67, endYear};
+			case DateReader.ENUM_PART_FIRST_QUARTER -> new Integer[]{startYear, startYear + 24};
+			case DateReader.ENUM_PART_SECOND_QUARTER -> new Integer[]{startYear + 25, startYear + 49};
+			case DateReader.ENUM_PART_THIRD_QUARTER -> new Integer[]{startYear + 50, startYear + 74};
+			case DateReader.ENUM_PART_FOURTH_QUARTER -> new Integer[]{startYear + 75, endYear};
+			case DateReader.ENUM_PART_FIRST_HALF -> new Integer[]{startYear, startYear + 49};
+			case DateReader.ENUM_PART_SECOND_HALF -> new Integer[]{startYear + 50, endYear};
+			case DateReader.ENUM_PART_EARLY -> new Integer[]{startYear, startYear + 32};
+			case DateReader.ENUM_PART_MID -> new Integer[]{startYear + 33, startYear + 66};
+			case DateReader.ENUM_PART_LATE -> new Integer[]{startYear + 67, endYear};
 			default -> new Integer[]{startYear, endYear};
 		};
 	}
@@ -304,7 +315,7 @@ public class SearchHelper{
 		if(StringUtils.isEmpty(dateStr))
 			return null;
 
-		final ParsedGenealogicalDate parsedDate = UniversalDateConverter.parse(calendarStr, dateStr);
+		final GenealogicalDate parsedDate = UniversalDateConverter.parse(calendarStr, dateStr);
 		return (parsedDate.isoDate() != null? parsedDate.isoDate().getYear(): null);
 	}
 

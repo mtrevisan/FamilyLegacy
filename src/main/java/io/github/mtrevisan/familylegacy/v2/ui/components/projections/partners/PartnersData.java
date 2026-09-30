@@ -26,29 +26,21 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.projections.partners;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
-import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualData;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
-import org.apache.commons.lang3.StringUtils;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.EventReader;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.StringJoiner;
 import java.util.stream.Collectors;
 
 
 /**
  * Extracts display information for a biological parents group (family) from a FLEFModel.
  */
+@Deprecated
 public final class PartnersData{
 
-	private static final String DOT = ".";
-
-	private static final String TAG_DATE = "date";
 	private static final String TAG_VALUE = "value";
-	private static final String TAG_DATE_VALUE_POINT_FULL_DATE = TAG_DATE + DOT + TAG_VALUE + DOT + DateField.TAG_POINT + DOT + DateField.TAG_FULL_DATE;
 
 	private static final String TAG_HTML_OPEN = "<html>";
 	private static final String TAG_HTML_CLOSE = "</html>";
@@ -57,7 +49,7 @@ public final class PartnersData{
 	private static final String NO_DATA = "?";
 
 
-	private final String marriageTooltip;
+	private String marriageTooltip;
 
 
 	public static PartnersData create(
@@ -98,31 +90,31 @@ public final class PartnersData{
 		marriageEvents.retainAll(motherEvents);
 		FLEFRecord marriageEvent = (!marriageEvents.isEmpty()? marriageEvents.iterator().next(): null);
 		for(final FLEFRecord fatherMarriageEvent : fatherEvents)
-			if("civil_marriage".equals(FLEFRecordHelper.getChildValue(fatherMarriageEvent, EventHandler.TAG_TYPE))){
+			if("civil_marriage".equals(EventReader.extractType(fatherMarriageEvent))){
 				marriageEvent = fatherMarriageEvent;
 
 				break;
 			}
 
 		// Extract marriage date and place from marriageEventRecord
-		if(marriageEvent != null){
-			final String dateStr = extractFullDate(marriageEvent);
-			final String place = IndividualData.extractPlace(marriageEvent, model);
-
-			final StringJoiner toolTipSJ = new StringJoiner(StringUtils.EMPTY);
-			if(place != null){
-				toolTipSJ.add(TAG_HTML_OPEN);
-				toolTipSJ.add(dateStr != null? dateStr: NO_DATA);
-				toolTipSJ.add(TAG_BR);
-				toolTipSJ.add(place);
-				toolTipSJ.add(TAG_HTML_CLOSE);
-			}
-			else
-				toolTipSJ.add(dateStr != null? dateStr: NO_DATA);
-			marriageTooltip = toolTipSJ.toString();
-		}
-		else
-			marriageTooltip = NO_DATA;
+//		if(marriageEvent != null){
+//			final String dateStr = extractFullDate(marriageEvent);
+//			final String place = IndividualData.extractPlace(marriageEvent, model);
+//
+//			final StringJoiner toolTipSJ = new StringJoiner(StringUtils.EMPTY);
+//			if(place != null){
+//				toolTipSJ.add(TAG_HTML_OPEN);
+//				toolTipSJ.add(dateStr != null? dateStr: NO_DATA);
+//				toolTipSJ.add(TAG_BR);
+//				toolTipSJ.add(place);
+//				toolTipSJ.add(TAG_HTML_CLOSE);
+//			}
+//			else
+//				toolTipSJ.add(dateStr != null? dateStr: NO_DATA);
+//			marriageTooltip = toolTipSJ.toString();
+//		}
+//		else
+//			marriageTooltip = NO_DATA;
 
 
 //		final List<FLEFRecord> eventParticipations = model.getRecordsByType(EventParticipationHandler.TYPE);
@@ -155,15 +147,6 @@ public final class PartnersData{
 
 	public String getMarriageTooltip(){
 		return marriageTooltip;
-	}
-
-
-	private String extractFullDate(final FLEFRecord event){
-		final FLEFRecord fullDate = FLEFRecordHelper.findChild(event, TAG_DATE_VALUE_POINT_FULL_DATE);
-		if(fullDate == null)
-			return null;
-
-		return FLEFRecordHelper.getChildValue(fullDate, TAG_VALUE);
 	}
 
 }

@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.AuditReader;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextArea;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.BasicNoteListPanel;
@@ -61,15 +62,6 @@ import java.time.temporal.ChronoUnit;
  */
 public class AuditPanel extends JPanel{
 
-	private static final String TAG_CREATION = "CREATION";
-	private static final String TAG_COMMENT = "COMMENT";
-	private static final String TAG_UPDATE = "UPDATE";
-	private static final String TAG_DATE = "DATE";
-
-	private static final String DOT = ".";
-	private static final String TAG_CREATION_COMMENT = TAG_CREATION + DOT + TAG_COMMENT;
-
-
 	private final String path;
 
 	private final BindingManager bindingManager = new BindingManager();
@@ -90,8 +82,8 @@ public class AuditPanel extends JPanel{
 
 		creationPanel = new JPanel(new MigLayout("fillx", "[grow]"));
 
-		creationCommentArea = new BoundTextArea(path + DOT + TAG_CREATION_COMMENT, 3, 25);
-		updateListPanel = new BasicNoteListPanel(path + DOT + TAG_UPDATE, parent, I18N.t("dialog.audit.updates"), TAG_COMMENT);
+		creationCommentArea = new BoundTextArea(FLEFRecordHelper.composePath(path, AuditReader.TAG_CREATION_COMMENT), 3, 25);
+		updateListPanel = new BasicNoteListPanel(FLEFRecordHelper.composePath(path, AuditReader.TAG_UPDATE), parent, I18N.t("dialog.audit.updates"), AuditReader.TAG_COMMENT);
 
 
 		initComponents();
@@ -124,8 +116,8 @@ public class AuditPanel extends JPanel{
 			return;
 
 		// creation.date
-		final FLEFRecord creation = FLEFRecordHelper.findChild(record, path + DOT + TAG_CREATION);
-		creationDate = FLEFRecordHelper.getChildValue(creation, path + DOT + TAG_DATE);
+		final FLEFRecord creation = FLEFRecordHelper.findChild(record, FLEFRecordHelper.composePath(path, AuditReader.TAG_CREATION));
+		creationDate = FLEFRecordHelper.getChildValue(creation, FLEFRecordHelper.composePath(path, AuditReader.TAG_DATE));
 		creationPanel.setBorder(new TitledBorder(I18N.tf("dialog.audit.creation.comment", (creationDate != null), creationDate)));
 
 		bindingManager.load(record);
@@ -140,10 +132,9 @@ public class AuditPanel extends JPanel{
 	 */
 	public void save(final FLEFRecord record){
 		// creation.date
-		final FLEFRecord creation = FLEFRecordHelper.getOrCreateTargetNode(record, path + DOT + TAG_CREATION);
 		if(StringUtils.isEmpty(creationDate))
 			creationDate = DateTimeFormatter.ISO_INSTANT.format(Instant.now().truncatedTo(ChronoUnit.SECONDS));
-		FLEFRecordHelper.addChildValue(creation, path + DOT + TAG_DATE, creationDate);
+		FLEFRecordHelper.addChildValue(record, FLEFRecordHelper.composePath(path, AuditReader.TAG_CREATION_DATE), creationDate);
 
 		bindingManager.save(record);
 

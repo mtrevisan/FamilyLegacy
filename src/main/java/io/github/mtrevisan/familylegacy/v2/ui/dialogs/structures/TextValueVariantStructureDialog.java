@@ -26,6 +26,8 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs.structures;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.names.TextValueVariant;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
@@ -33,7 +35,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.TextValueVariantHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
-import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.ButtonGroup;
 import javax.swing.JLabel;
@@ -80,34 +81,11 @@ import java.awt.Window;
  */
 public class TextValueVariantStructureDialog extends BaseRecordDialog{
 
-	private static final String DOT = ".";
-	private static final String TAG_PHONETIC_SYSTEM = TextValueVariantHandler.TAG_PHONETIC + DOT + TextValueVariantHandler.TAG_SYSTEM;
-	private static final String TAG_PHONETIC_VALUE = TextValueVariantHandler.TAG_PHONETIC + DOT + TextValueVariantHandler.TAG_VALUE;
-	private static final String TAG_TRANSCRIPTION_SYSTEM = TextValueVariantHandler.TAG_TRANSCRIPTION + DOT + TextValueVariantHandler.TAG_SYSTEM;
-	private static final String TAG_TRANSCRIPTION_TYPE = TextValueVariantHandler.TAG_TRANSCRIPTION + DOT + TextValueVariantHandler.TAG_TYPE;
-	private static final String TAG_TRANSCRIPTION_VALUE = TextValueVariantHandler.TAG_TRANSCRIPTION + DOT + TextValueVariantHandler.TAG_VALUE;
-
-	private static final String[] TRANSCRIPTION_SYSTEMS = {
-		StringUtils.EMPTY,
-		"romaji", "hepburn", "kunreishiki", "nihonshiki",
-		"pinyin", "wadegiles",
-		"bgn_pcgn",
-		"iso9",
-		"ala_lc",
-		"dmg",
-		"buckwalter",
-		"iso233",
-		"iso259",
-		"iast",
-		"iso15919", "hunterian",
-		"mccune_reischauer", "revised_korean",
-		"scientific"
-	};
-	private static final String[] TRANSCRIPTION_TYPES = {
-		StringUtils.EMPTY,
-		"romanized", "latinized", "anglicized", "francized", "germanized", "italianized", "hispanicized",
-		"lusitanized", "cyrillized", "arabized", "hebraized", "hellenized", "gairaigized", "modernized", "normalized"
-	};
+	private static final String TAG_PHONETIC_SYSTEM = FLEFRecordHelper.composePath(TextValueVariantHandler.TAG_PHONETIC, TextValueVariantHandler.TAG_SYSTEM);
+	private static final String TAG_PHONETIC_VALUE = FLEFRecordHelper.composePath(TextValueVariantHandler.TAG_PHONETIC, TextValueVariantHandler.TAG_VALUE);
+	private static final String TAG_TRANSCRIPTION_SYSTEM = FLEFRecordHelper.composePath(TextValueVariantHandler.TAG_TRANSCRIPTION, TextValueVariantHandler.TAG_SYSTEM);
+	private static final String TAG_TRANSCRIPTION_TYPE = FLEFRecordHelper.composePath(TextValueVariantHandler.TAG_TRANSCRIPTION, TextValueVariantHandler.TAG_TYPE);
+	private static final String TAG_TRANSCRIPTION_VALUE = FLEFRecordHelper.composePath(TextValueVariantHandler.TAG_TRANSCRIPTION, TextValueVariantHandler.TAG_VALUE);
 
 
 	private final JPanel propertiesPanel;
@@ -136,10 +114,10 @@ public class TextValueVariantStructureDialog extends BaseRecordDialog{
 
 		phoneticSystemField = new BoundTextField(TAG_PHONETIC_SYSTEM);
 		phoneticSystemField.setToolTipText(I18N.t("dialog.name.variant.phonetic.system.tooltip"));
-		transcriptionSystemCombo = new BoundComboBox<>(TAG_TRANSCRIPTION_SYSTEM, TRANSCRIPTION_SYSTEMS);
+		transcriptionSystemCombo = new BoundComboBox<>(TAG_TRANSCRIPTION_SYSTEM, GUIHelper.fillCombo(TextValueVariant.TRANSCRIPTION_SYSTEMS, null));
 		transcriptionSystemCombo.setI18NPrefix("enum.text.value.variant.transcription.system");
 		transcriptionSystemCombo.setEditable(true);
-		typeCombo = new BoundComboBox<>(TAG_TRANSCRIPTION_TYPE, TRANSCRIPTION_TYPES);
+		typeCombo = new BoundComboBox<>(TAG_TRANSCRIPTION_TYPE, GUIHelper.fillCombo(TextValueVariant.TRANSCRIPTION_TYPES, null));
 		typeCombo.setI18NPrefix("enum.text.value.variant.transcript.type");
 		typeCombo.setEditable(true);
 		valueField = new BoundTextField(TextValueVariantHandler.TAG_VALUE);

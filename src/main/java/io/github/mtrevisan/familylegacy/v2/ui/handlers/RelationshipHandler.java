@@ -70,7 +70,6 @@ public class RelationshipHandler extends AbstractRecordTypeHandler<RelationshipR
 	public static final String ENUM_TYPE_ENDS_WITH_SPOUSE = "_spouse";
 	public static final String ENUM_TYPE_ENDS_WITH_PARTNER = "_partner";
 	public static final String[] TYPES = new String[]{
-		StringUtils.EMPTY,
 		ENUM_TYPE_BIOLOGICAL_CHILD, ENUM_TYPE_ADOPTIVE_CHILD, ENUM_TYPE_FOSTER_CHILD, ENUM_TYPE_GUARDED_CHILD,
 		ENUM_TYPE_STEP_CHILD, ENUM_TYPE_CIVIL_SPOUSE, ENUM_TYPE_RELIGIOUS_SPOUSE, ENUM_TYPE_CUSTOMARY_SPOUSE,
 		ENUM_TYPE_COHABITING_PARTNER, ENUM_TYPE_ENGAGED_PARTNER, ENUM_TYPE_GROUP_MEMBER, ENUM_TYPE_ASSOCIATE,
@@ -97,7 +96,6 @@ public class RelationshipHandler extends AbstractRecordTypeHandler<RelationshipR
 		ENUM_TYPE_FOSTER_CHILD, ENUM_TYPE_GUARDED_CHILD, ENUM_TYPE_STEP_CHILD};
 
 	public static final String[] STATUSES = new String[]{
-		StringUtils.EMPTY,
 		"active", "ended", "unknown"
 	};
 

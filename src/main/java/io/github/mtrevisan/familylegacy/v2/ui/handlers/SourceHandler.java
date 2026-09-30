@@ -54,14 +54,12 @@ public class SourceHandler extends AbstractRecordTypeHandler<SourceRecordDialog>
 	public static final String TAG_PRIVACY = "PRIVACY";
 	public static final String TAG_AUDIT = "AUDIT";
 
-	private static final String DOT = ".";
-	private static final String TAG_TITLE_VALUE = TAG_TITLE + DOT + NameHandler.TAG_VALUE;
+	private static final String TAG_TITLE_VALUE = FLEFRecordHelper.composePath(TAG_TITLE, NameHandler.TAG_VALUE);
 
 	public static final String[] MEDIA_TYPES = new String[]{
-		StringUtils.EMPTY,
-			"audio", "book", "card", "electronic", "fiche", "film",
-			"magazine", "manuscript", "map", "newspaper", "photo",
-			"tombstone", "video"
+		"audio", "book", "card", "electronic", "fiche", "film",
+		"magazine", "manuscript", "map", "newspaper", "photo",
+		"tombstone", "video"
 	};
 
 

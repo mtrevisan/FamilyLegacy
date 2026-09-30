@@ -24,7 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.v2.io.model;
 
-import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.DateReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceCitationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import org.apache.commons.lang3.StringUtils;
@@ -56,21 +57,18 @@ public final class FLEFRecordHelper{
 
 	private static final String TAG_DATE = "date";
 	private static final String TAG_NAME = "name";
-	private static final String TAG_CENTURY_APPROXIMATE_BASIS = DateField.TAG_CENTURY + DOT + DateField.TAG_APPROXIMATE + DOT + DateField.TAG_BASIS;
-	private static final String TAG_DECADE_APPROXIMATE_BASIS = DateField.TAG_DECADE + DOT + DateField.TAG_APPROXIMATE + DOT + DateField.TAG_BASIS;
-	private static final String TAG_FULL_DATE_APPROXIMATE_BASIS = DateField.TAG_FULL_DATE + DOT + DateField.TAG_APPROXIMATE + DOT + DateField.TAG_BASIS;
-	private static final String TAG_PLACE_PLACE = PlaceHandler.TYPE + DOT + PlaceHandler.TYPE;
-	private static final String TAG_DATE_VALUE_BOUNDED_NOT_BEFORE = TAG_DATE + DOT + DateField.TAG_VALUE + DOT + DateField.TAG_BOUNDED + DOT + DateField.TAG_NOT_BEFORE;
-	private static final String TAG_DATE_VALUE_BOUNDED_NOT_AFTER = TAG_DATE + DOT + DateField.TAG_VALUE + DOT + DateField.TAG_BOUNDED + DOT + DateField.TAG_NOT_AFTER;
-	private static final String TAG_DATE_VALUE_SPANNING_FROM = TAG_DATE + DOT + DateField.TAG_VALUE + DOT + DateField.TAG_SPANNING + DOT + DateField.TAG_FROM;
-	private static final String TAG_DATE_VALUE_SPANNING_TO = TAG_DATE + DOT + DateField.TAG_VALUE + DOT + DateField.TAG_SPANNING + DOT + DateField.TAG_TO;
-	private static final String TAG_FULL_DATE_VALUE = DateField.TAG_FULL_DATE + DOT + DateField.TAG_VALUE;
-	private static final String TAG_DECADE_START_YEAR = DateField.TAG_DECADE + DOT + DateField.TAG_START_YEAR;
-	private static final String TAG_CENTURY_ORDINAL = DateField.TAG_CENTURY + DOT + DateField.TAG_ORDINAL;
-	private static final String TAG_NAME0_VALUE = TAG_NAME + "[0]" + DOT + DateField.TAG_VALUE;
-	private static final String TAG_CENTURY_PART = DateField.TAG_CENTURY + DOT + DateField.TAG_PART;
-	private static final String TAG_PLACE_ORIGINAL_TEXT = PlaceHandler.TYPE + DOT + PlaceCitationHandler.TAG_ORIGINAL_TEXT;
-	private static final String TAG_DATE_ORIGINAL_TEXT = TAG_DATE + DOT + DateField.TAG_ORIGINAL_TEXT;
+	private static final String TAG_CENTURY_APPROXIMATE_BASIS = FLEFRecordHelper.composePath(DateReader.TAG_CENTURY, DateReader.TAG_APPROXIMATE, DateReader.TAG_BASIS);
+	private static final String TAG_DECADE_APPROXIMATE_BASIS = FLEFRecordHelper.composePath(DateReader.TAG_DECADE, DateReader.TAG_APPROXIMATE, DateReader.TAG_BASIS);
+	private static final String TAG_FULL_DATE_APPROXIMATE_BASIS = FLEFRecordHelper.composePath(DateReader.TAG_FULL_DATE, DateReader.TAG_APPROXIMATE, DateReader.TAG_BASIS);
+	private static final String TAG_PLACE_PLACE = FLEFRecordHelper.composePath(PlaceHandler.TYPE, PlaceHandler.TYPE);
+	private static final String TAG_DATE_VALUE_BOUNDED_NOT_BEFORE = FLEFRecordHelper.composePath(TAG_DATE, DateReader.TAG_VALUE, DateReader.TAG_BOUNDED, DateReader.TAG_NOT_BEFORE);
+	private static final String TAG_DATE_VALUE_BOUNDED_NOT_AFTER = FLEFRecordHelper.composePath(TAG_DATE, DateReader.TAG_VALUE, DateReader.TAG_BOUNDED, DateReader.TAG_NOT_AFTER);
+	private static final String TAG_DATE_VALUE_SPANNING_FROM = FLEFRecordHelper.composePath(TAG_DATE, DateReader.TAG_VALUE, DateReader.TAG_SPANNING, DateReader.TAG_FROM);
+	private static final String TAG_DATE_VALUE_SPANNING_TO = FLEFRecordHelper.composePath(TAG_DATE, DateReader.TAG_VALUE, DateReader.TAG_SPANNING, DateReader.TAG_TO);
+	private static final String TAG_FULL_DATE_VALUE = FLEFRecordHelper.composePath(DateReader.TAG_FULL_DATE, DateReader.TAG_VALUE);
+	private static final String TAG_NAME0_VALUE = FLEFRecordHelper.composePath(TAG_NAME + "[0]", DateReader.TAG_VALUE);
+	private static final String TAG_PLACE_ORIGINAL_TEXT = FLEFRecordHelper.composePath(PlaceHandler.TYPE, PlaceCitationHandler.TAG_ORIGINAL_TEXT);
+	private static final String TAG_DATE_ORIGINAL_TEXT = FLEFRecordHelper.composePath(TAG_DATE, DateReader.TAG_ORIGINAL_TEXT);
 
 
 	private record Segment(String tag, int index){
@@ -98,6 +96,11 @@ public final class FLEFRecordHelper{
 
 
 	private FLEFRecordHelper(){}
+
+
+	public static String composePath(final String... segment){
+		return String.join(DOT, segment);
+	}
 
 
 	/**
@@ -337,7 +340,7 @@ public final class FLEFRecordHelper{
 			return originalText;
 
 		// Point Date
-		final String point = formatSingleDate(event, TAG_DATE + DOT + DateField.TAG_VALUE + DOT + DateField.TAG_POINT);
+		final String point = formatSingleDate(event, FLEFRecordHelper.composePath(EventReader.TAG_DATE, DateReader.TAG_VALUE, DateReader.TAG_POINT));
 		if(point != null)
 			return point;
 
@@ -368,19 +371,19 @@ public final class FLEFRecordHelper{
 		String dateStr = null;
 
 		// full_date
-		final String fullDate = FLEFRecordHelper.getChildValue(record, basePath + DOT + TAG_FULL_DATE_VALUE);
+		final String fullDate = FLEFRecordHelper.getChildValue(record, FLEFRecordHelper.composePath(basePath, TAG_FULL_DATE_VALUE));
 		if(fullDate != null && !fullDate.isBlank())
 			dateStr = fullDate;
 		else{
 			// decade
-			final String decade = FLEFRecordHelper.getChildValue(record, basePath + DOT + TAG_DECADE_START_YEAR);
+			final String decade = FLEFRecordHelper.getChildValue(record, FLEFRecordHelper.composePath(basePath, DateReader.TAG_START_YEAR));
 			if(decade != null && !decade.isBlank())
 				dateStr = decade + "s";
 			else{
 				// century
-				final String centuryOrdinal = FLEFRecordHelper.getChildValue(record, basePath + DOT + TAG_CENTURY_ORDINAL);
+				final String centuryOrdinal = FLEFRecordHelper.getChildValue(record, FLEFRecordHelper.composePath(basePath, DateReader.TAG_ORDINAL));
 				if(centuryOrdinal != null && !centuryOrdinal.isBlank()){
-					final String part = FLEFRecordHelper.getChildValue(record, basePath + DOT + TAG_CENTURY_PART);
+					final String part = FLEFRecordHelper.getChildValue(record, FLEFRecordHelper.composePath(basePath, DateReader.TAG_PART));
 					dateStr = (part != null? part.replace('_', ' ')
 						+ StringUtils.SPACE: StringUtils.EMPTY) + centuryOrdinal + "th century";
 				}
@@ -391,9 +394,9 @@ public final class FLEFRecordHelper{
 			return null;
 
 		// Check for approximate qualifier
-		final String approxBasis = FLEFRecordHelper.getChildValue(record, basePath + DOT + TAG_FULL_DATE_APPROXIMATE_BASIS);
-		final String decadeApprox = FLEFRecordHelper.getChildValue(record, basePath + DOT + TAG_DECADE_APPROXIMATE_BASIS);
-		final String centuryApprox = FLEFRecordHelper.getChildValue(record, basePath + DOT + TAG_CENTURY_APPROXIMATE_BASIS);
+		final String approxBasis = FLEFRecordHelper.getChildValue(record, FLEFRecordHelper.composePath(basePath, TAG_FULL_DATE_APPROXIMATE_BASIS));
+		final String decadeApprox = FLEFRecordHelper.getChildValue(record, FLEFRecordHelper.composePath(basePath, TAG_DECADE_APPROXIMATE_BASIS));
+		final String centuryApprox = FLEFRecordHelper.getChildValue(record, FLEFRecordHelper.composePath(basePath, TAG_CENTURY_APPROXIMATE_BASIS));
 
 		if(approxBasis != null || decadeApprox != null || centuryApprox != null)
 			dateStr = "abt. " + dateStr;

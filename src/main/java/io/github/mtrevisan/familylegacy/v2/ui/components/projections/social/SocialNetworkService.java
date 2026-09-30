@@ -27,10 +27,10 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.projections.social;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.components.projections.temporal.DateNormalizer;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.date.DateNormalizer;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.date.TemporalSpan;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.temporal.TemporalEntityRef;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.temporal.TemporalEntityType;
-import io.github.mtrevisan.familylegacy.v2.ui.components.projections.temporal.TemporalSpan;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventParticipationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
@@ -125,7 +125,6 @@ public final class SocialNetworkService{
 
 
 	private final FLEFModel model;
-	private final DateNormalizer normalizer;
 
 	private Map<String, List<FLEFRecord>> socialRelationshipsByEntityId;
 	private Map<String, List<FLEFRecord>> eventParticipationsByEntityId;
@@ -135,7 +134,6 @@ public final class SocialNetworkService{
 
 	public SocialNetworkService(final FLEFModel model){
 		this.model = model;
-		this.normalizer = new DateNormalizer();
 	}
 
 
@@ -376,7 +374,7 @@ public final class SocialNetworkService{
 		final FLEFRecord from = FLEFRecordHelper.findChild(relationship, TAG_VALID_FROM);
 		final FLEFRecord to = FLEFRecordHelper.findChild(relationship, TAG_VALID_TO);
 		final String status = normalizeStatus(FLEFRecordHelper.getChildValue(relationship, TAG_STATUS));
-		final TemporalSpan span = normalizer.combineBounds(from, to, status);
+		final TemporalSpan span = DateNormalizer.combineBounds(from, to, status);
 		if(span != null)
 			return span;
 

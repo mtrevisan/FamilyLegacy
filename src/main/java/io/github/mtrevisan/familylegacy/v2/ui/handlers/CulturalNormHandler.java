@@ -53,7 +53,6 @@ public class CulturalNormHandler extends AbstractRecordTypeHandler<CulturalNormR
 	public static final String TAG_AUDIT = "AUDIT";
 
 	public static final String[] RULE_TYPES = new String[]{
-		StringUtils.EMPTY,
 		// Lifecycle and age-related customs:
 		"age_of_majority", "marriage_minimum_age", "baptism_age", "confirmation_age", "military_service_age",
 		"retirement_age",

@@ -25,9 +25,10 @@
 package io.github.mtrevisan.familylegacy.v2.ui.components;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.PrivacyReader;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundComboBox;
-import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextArea;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
@@ -54,26 +55,10 @@ import javax.swing.JPanel;
  */
 public class PrivacyPanel extends JPanel{
 
-	private static final String DOT = ".";
-
-	public static final String TAG_LEVEL = "LEVEL";
-	public static final String TAG_REASON = "REASON";
-	public static final String TAG_EXPIRES = "EXPIRES";
-
-	public static final String ENUM_PRIVACY_LEVEL_PUBLIC = "public";
-	public static final String ENUM_PRIVACY_LEVEL_RESTRICTED = "restricted";
-	public static final String ENUM_PRIVACY_LEVEL_CONFIDENTIAL = "confidential";
-	private static final String[] LEVELS = {
-		ENUM_PRIVACY_LEVEL_PUBLIC,
-		ENUM_PRIVACY_LEVEL_RESTRICTED,
-		ENUM_PRIVACY_LEVEL_CONFIDENTIAL
-	};
-
-
 	private final BindingManager bindingManager = new BindingManager();
 
 	private final BoundComboBox<String> levelCombo;
-	private final BoundTextArea reasonArea;
+	private final BoundComboBox<String> reasonCombo;
 	private final BoundTextField expiresField;
 
 
@@ -81,11 +66,11 @@ public class PrivacyPanel extends JPanel{
 	 * Constructs a new RestrictionPanel.
 	 */
 	public PrivacyPanel(final String path){
-		levelCombo = new BoundComboBox<>(path + DOT + TAG_LEVEL, LEVELS);
+		levelCombo = new BoundComboBox<>(FLEFRecordHelper.composePath(path, PrivacyReader.TAG_LEVEL), PrivacyReader.LEVELS);
 		levelCombo.setI18NPrefix("enum.privacy.level");
-		reasonArea = new BoundTextArea(path + DOT + TAG_REASON, 3, 25);
-		reasonArea.setToolTipText(I18N.t("dialog.privacy.reason.tooltip"));
-		expiresField = new BoundTextField(path + DOT + TAG_EXPIRES);
+		reasonCombo = new BoundComboBox<>(FLEFRecordHelper.composePath(path, PrivacyReader.TAG_REASON), GUIHelper.fillCombo(PrivacyReader.REASONS, null));
+		reasonCombo.setEditable(true);
+		expiresField = new BoundTextField(FLEFRecordHelper.composePath(path, PrivacyReader.TAG_EXPIRES));
 
 
 		initComponents();
@@ -94,7 +79,7 @@ public class PrivacyPanel extends JPanel{
 
 	private void initComponents(){
 		bindingManager.bind(levelCombo);
-		bindingManager.bind(reasonArea);
+		bindingManager.bind(reasonCombo);
 		bindingManager.bind(expiresField);
 
 
@@ -105,7 +90,7 @@ public class PrivacyPanel extends JPanel{
 		GUIHelper.addLabeledComponent(this, I18N.t("dialog.privacy.level") + ":", levelCombo);
 
 		// reason
-		GUIHelper.addLabeledComponent(this, I18N.t("dialog.privacy.reason") + ":", reasonArea);
+		GUIHelper.addLabeledComponent(this, I18N.t("dialog.privacy.reason") + ":", reasonCombo);
 
 		// expires
 		GUIHelper.addLabeledComponent(this, I18N.t("dialog.privacy.expires") + ":", expiresField);
@@ -161,7 +146,7 @@ public class PrivacyPanel extends JPanel{
 	 */
 	public void clear(){
 		levelCombo.setSelectedIndex(0);
-		reasonArea.setText(StringUtils.EMPTY);
+		reasonCombo.setSelectedIndex(0);
 		expiresField.setText(StringUtils.EMPTY);
 	}
 

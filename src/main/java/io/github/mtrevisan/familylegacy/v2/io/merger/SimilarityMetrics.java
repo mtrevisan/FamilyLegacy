@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.io.merger;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -334,10 +335,10 @@ public final class SimilarityMetrics{
 		for(final FLEFRecord name : record.getChildren())
 			if("name".equalsIgnoreCase(name.getTag()))
 				for(FLEFRecord part : name.getChildren())
-					if("part".equalsIgnoreCase(part.getTag())){
+					if(Strings.CI.equals("part", part.getTag())){
 						final String type = FLEFRecordHelper.getChildValue(part, "type");
 						final String value = FLEFRecordHelper.getChildValue(part, "value");
-						if(partType.equalsIgnoreCase(type) && value != null)
+						if(Strings.CI.equals(partType, type) && value != null)
 							return value;
 					}
 		return StringUtils.EMPTY;

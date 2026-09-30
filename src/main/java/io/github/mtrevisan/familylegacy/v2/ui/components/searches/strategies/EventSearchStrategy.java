@@ -27,7 +27,8 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.searches.strategies;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.DateReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchCriteria;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchMode;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchStrategy;
@@ -45,10 +46,6 @@ import java.util.function.Predicate;
  * Supports filtering by event type, description, date, location, agency, and cause reason.
  */
 public class EventSearchStrategy implements SearchStrategy{
-
-	private static final String DOT = ".";
-
-	private static final String TAG_CAUSE_REASON = EventHandler.TAG_CAUSE + DOT + EventHandler.TAG_REASON;
 
 	private static final double FUZZY_THRESHOLD = 0.05;
 
@@ -68,26 +65,26 @@ public class EventSearchStrategy implements SearchStrategy{
 
 	@Override
 	public Predicate<FLEFRecord> buildPredicate(final SearchCriteria criteria, final FLEFModel model){
-		eventType = criteria.getFilterFor(EventHandler.TAG_TYPE);
-		description = criteria.getFilterFor(EventHandler.TAG_DESCRIPTION);
-		date = criteria.getFilterFor(EventHandler.TAG_DATE);
-		calendar = criteria.getFilterFor(DateField.TAG_CALENDAR);
-		place = criteria.getFilterFor(EventHandler.TAG_PLACE);
-		agency = criteria.getFilterFor(EventHandler.TAG_AGENCY);
-		causeReason = criteria.getFilterFor(EventHandler.TAG_REASON);
+		eventType = criteria.getFilterFor(EventReader.TAG_TYPE);
+		description = criteria.getFilterFor(EventReader.TAG_DESCRIPTION);
+		date = criteria.getFilterFor(EventReader.TAG_DATE);
+		calendar = criteria.getFilterFor(DateReader.TAG_CALENDAR);
+		place = criteria.getFilterFor(EventReader.TAG_PLACE);
+		agency = criteria.getFilterFor(EventReader.TAG_AGENCY);
+		causeReason = criteria.getFilterFor(EventReader.TAG_CAUSE_REASON);
 		mode = criteria.mode();
 
 		return event -> {
 			// Event Type filter
 			if(StringUtils.isNotEmpty(eventType)){
-				final String type = FLEFRecordHelper.getChildValue(event, EventHandler.TAG_TYPE);
+				final String type = EventReader.extractType(event);
 				if(!eventType.equalsIgnoreCase(type))
 					return false;
 			}
 
 			// Description filter
 			if(StringUtils.isNotEmpty(description)){
-				final String recordDescription = FLEFRecordHelper.getChildValue(event, EventHandler.TAG_DESCRIPTION);
+				final String recordDescription = FLEFRecordHelper.getChildValue(event, EventReader.TAG_DESCRIPTION);
 				if(!SearchHelper.matches(recordDescription, description, mode))
 					return false;
 			}
@@ -102,14 +99,14 @@ public class EventSearchStrategy implements SearchStrategy{
 
 			// Agency filter
 			if(StringUtils.isNotEmpty(agency)){
-				final String agency = FLEFRecordHelper.getChildValue(event, EventHandler.TAG_AGENCY);
+				final String agency = FLEFRecordHelper.getChildValue(event, EventReader.TAG_AGENCY);
 				if(!TextSearchHelper.matchesText(agency, this.agency, mode, FUZZY_THRESHOLD))
 					return false;
 			}
 
 			// Cause Reason filter
 			if(StringUtils.isNotEmpty(causeReason)){
-				final String reason = FLEFRecordHelper.getChildValue(event, TAG_CAUSE_REASON);
+				final String reason = FLEFRecordHelper.getChildValue(event, EventReader.TAG_CAUSE_REASON);
 				if(!TextSearchHelper.matchesText(reason, causeReason, mode, FUZZY_THRESHOLD))
 					return false;
 			}
@@ -122,8 +119,8 @@ public class EventSearchStrategy implements SearchStrategy{
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
 		final String baseDisplayText = HANDLER.getDisplayText(record, model);
 
-		final String type = FLEFRecordHelper.getChildValue(record, EventHandler.TAG_TYPE);
-		final FLEFRecord dateRecord = FLEFRecordHelper.findChild(record, EventHandler.TAG_DATE);
+		final String type = EventReader.extractType(record);
+		final FLEFRecord dateRecord = EventReader.extractDate(record);
 		final String date = FLEFRecordHelper.extractDate(dateRecord);
 		final String place = FLEFRecordHelper.extractPlace(record, model);
 

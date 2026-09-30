@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.v2.gedcom.utils.AuditBuilder;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventParticipationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
@@ -75,9 +76,6 @@ public final class IndividualHelper{
 	public static final String REL_CUSTOMARY_SPOUSE = "customary_spouse";
 	public static final String REL_COHABITING = "cohabiting_partner";
 	public static final String REL_ENGAGED = "engaged_partner";
-
-	public static final String SEX_MALE = "male";
-	public static final String SEX_FEMALE = "female";
 
 	public static final List<String> CHILD_RELATION_TYPES = List.of(
 		RelationshipHandler.ENUM_TYPE_BIOLOGICAL_CHILD, RelationshipHandler.ENUM_TYPE_ADOPTIVE_CHILD,
@@ -136,18 +134,6 @@ public final class IndividualHelper{
 				return direct;
 		}
 		return (individual.getId() != null? individual.getId(): StringUtils.EMPTY);
-	}
-
-	public static String sex(final FLEFRecord individual){
-		return (individual != null? FLEFRecordHelper.getChildValue(individual, IndividualHandler.TAG_SEX): null);
-	}
-
-	public static boolean isMale(final FLEFRecord individual){
-		return SEX_MALE.equalsIgnoreCase(sex(individual));
-	}
-
-	public static boolean isFemale(final FLEFRecord individual){
-		return SEX_FEMALE.equalsIgnoreCase(sex(individual));
 	}
 
 
@@ -220,9 +206,10 @@ public final class IndividualHelper{
 				continue;
 
 			final FLEFRecord parentRecord = model.getRecordById(parent);
-			if(isMale(parentRecord))
+			final String rawSex = IndividualReader.extractRawSex(parentRecord);
+			if(IndividualReader.isSexMale(rawSex))
 				fathers.add(parent);
-			else if(isFemale(parentRecord))
+			else if(IndividualReader.isSexFemale(rawSex))
 				mothers.add(parent);
 			else
 				fathers.add(parent);
@@ -231,22 +218,6 @@ public final class IndividualHelper{
 		result.addAll(fathers);
 		result.addAll(mothers);
 		return result;
-	}
-
-	/**
-	 * Returns whether the given individual already has a parent of the
-	 * same sex as {@code parentSex}, so that the caller can decide
-	 * whether to replace an existing parent instead of adding a second
-	 * one.
-	 */
-	public static boolean hasParentOfSex(final FLEFModel model, final String childId,
-		final String parentSex){
-		for(final String parentId : biologicalParentIds(model, childId)){
-			final FLEFRecord parent = model.getRecordById(parentId);
-			if(parentSex.equalsIgnoreCase(sex(parent)))
-				return true;
-		}
-		return false;
 	}
 
 	/**
@@ -297,7 +268,6 @@ public final class IndividualHelper{
 	}
 
 
-	public static final String TYPE_GROUP = "group";
 	public static final String REL_GROUP_MEMBER = "group_member";
 
 
@@ -444,8 +414,9 @@ public final class IndividualHelper{
 				eventCount ++;
 		}
 
-		return new MergePreview(individualId, displayName(individual), sex(individual),
-			parents.size(), children.size(), spouses.size(), eventCount);
+		final String rawSex = IndividualReader.extractRawSex(individual);
+		return new MergePreview(individualId, displayName(individual), rawSex, parents.size(), children.size(),
+			spouses.size(), eventCount);
 	}
 
 	public static boolean isSpouseType(final String type){

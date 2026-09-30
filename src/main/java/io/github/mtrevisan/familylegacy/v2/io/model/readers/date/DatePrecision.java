@@ -22,7 +22,8 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.v2.ui.components.projections.temporal;
+package io.github.mtrevisan.familylegacy.v2.io.model.readers.date;
+
 
 /**
  * Granularity of a normalized date used by the General Temporal Projection.

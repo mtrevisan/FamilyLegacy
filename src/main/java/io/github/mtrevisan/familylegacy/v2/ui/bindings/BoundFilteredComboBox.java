@@ -47,8 +47,6 @@ public class BoundFilteredComboBox<E> extends FilteredComboBox<E> implements Pat
 		this.path = path;
 
 		this.readOnly = false;
-
-		clear();
 	}
 
 	public BoundFilteredComboBox(final String path, final List<E> items){
@@ -57,8 +55,6 @@ public class BoundFilteredComboBox<E> extends FilteredComboBox<E> implements Pat
 		this.path = path;
 
 		this.readOnly = false;
-
-		clear();
 	}
 
 	public BoundFilteredComboBox(final String path, final List<E> items, final E readOnlyItem){

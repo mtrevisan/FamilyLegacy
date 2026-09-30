@@ -50,7 +50,6 @@ public class PlaceRelationshipHandler extends AbstractRecordTypeHandler<PlaceRel
 	public static final String TAG_AUDIT = "AUDIT";
 
 	public static final String[] TYPES = new String[]{
-		StringUtils.EMPTY,
 		"administrative_part_of", "geographic_part_of", "ecclesiastical_part_of", "judicial_part_of",
 		"cadastral_part_of"
 	};

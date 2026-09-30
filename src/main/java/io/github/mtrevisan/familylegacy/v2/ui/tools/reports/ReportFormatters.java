@@ -90,57 +90,6 @@ public final class ReportFormatters{
 	}
 
 
-	/* ----- Dates ----------------------------------------------------------- */
-
-	/**
-	 * Renders a {@code DateStructure} stored under the given field of
-	 * {@code rec}, trying every common shape in order:
-	 * {@code original_text}, {@code point.full_date}, {@code point.decade},
-	 * {@code point.century}, {@code bounded}, {@code spanning}.
-	 */
-	static String dateDisplay(final FLEFRecord rec, final String fieldTag){
-		String v = FLEFRecordHelper.getChildValue(rec, fieldTag + ".original_text");
-		if(v != null && !v.isBlank())
-			return v.trim();
-
-		v = FLEFRecordHelper.getChildValue(rec, fieldTag + ".value.point.full_date.value");
-		if(v != null && !v.isBlank())
-			return v.trim();
-
-		v = FLEFRecordHelper.getChildValue(rec, fieldTag + ".value.point.decade.start_year");
-		if(v != null && !v.isBlank())
-			return v + "s";
-
-		v = FLEFRecordHelper.getChildValue(rec, fieldTag + ".value.point.century.ordinal");
-		if(v != null && !v.isBlank())
-			return v + "th century";
-
-		final String nb = FLEFRecordHelper.getChildValue(rec,
-			fieldTag + ".value.bounded.not_before.point.full_date.value");
-		final String na = FLEFRecordHelper.getChildValue(rec,
-			fieldTag + ".value.bounded.not_after.point.full_date.value");
-		if(nb != null && na != null)
-			return "between " + nb + " and " + na;
-		if(nb != null)
-			return "after " + nb;
-		if(na != null)
-			return "before " + na;
-
-		final String from = FLEFRecordHelper.getChildValue(rec,
-			fieldTag + ".value.spanning.from.point.full_date.value");
-		final String to = FLEFRecordHelper.getChildValue(rec,
-			fieldTag + ".value.spanning.to.point.full_date.value");
-		if(from != null && to != null)
-			return "from " + from + " to " + to;
-		if(from != null)
-			return "from " + from;
-		if(to != null)
-			return "to " + to;
-
-		return null;
-	}
-
-
 	/* ----- Places ---------------------------------------------------------- */
 
 	/** Returns the display name of a {@code place} record, or null. */

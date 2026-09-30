@@ -22,46 +22,24 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.v2.ui.helpers;
+package io.github.mtrevisan.familylegacy.v2.io.model.readers;
 
 
-public enum CalendarType{
-	GREGORIAN("gregorian"),
-	JULIAN("julian"),
-	ISLAMIC("islamic"),
-	HEBREW("hebrew"),
-	CHINESE("chinese"),
-	INDIAN("indian"),
-	BUDDHIST("buddhist"),
-	FRENCH_REPUBLICAN("french_republican"),
-	COPTIC("coptic"),
-	SOVIET_ETERNAL("soviet_eternal"),
-	ETHIOPIAN("ethiopian"),
-	MAYAN("mayan");
+public enum SexType{
+	MALE(IndividualReader.ENUM_SEX_MALE),
+	FEMALE(IndividualReader.ENUM_SEX_FEMALE),
+	UNKNOWN(IndividualReader.ENUM_SEX_UNKNOWN);
 
 
-	private final String code;
+	private final String rawSex;
 
-
-	CalendarType(final String code){
-		this.code = code;
+	SexType(final String rawSex){
+		this.rawSex = rawSex;
 	}
 
 
-	public String getCode(){
-		return code;
-	}
-
-	public static CalendarType fromCode(final String code){
-		for(final CalendarType type : values())
-			if(type.code.equalsIgnoreCase(code))
-				return type;
-
-//		throw new IllegalArgumentException("Unsupported calendar: " + code);
-//
-//		LOGGER.warn("Unsupported calendar: {}, default to 'gregorian'", code);
-
-		return GREGORIAN;
+	public String getRawSex(){
+		return rawSex;
 	}
 
 }

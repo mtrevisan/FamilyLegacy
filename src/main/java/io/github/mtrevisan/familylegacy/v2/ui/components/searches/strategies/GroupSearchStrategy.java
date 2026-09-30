@@ -26,7 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.searches.strategies;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.GroupReader;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchCriteria;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchMode;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchStrategy;
@@ -57,8 +57,8 @@ public class GroupSearchStrategy implements SearchStrategy{
 
 	@Override
 	public Predicate<FLEFRecord> buildPredicate(final SearchCriteria criteria, final FLEFModel model){
-		name = criteria.getFilterFor(GroupHandler.TAG_NAME);
-		type = criteria.getFilterFor(GroupHandler.TAG_TYPE);
+		name = criteria.getFilterFor(GroupReader.TAG_NAME);
+		type = criteria.getFilterFor(GroupReader.TAG_TYPE);
 		mode = criteria.mode();
 
 		return group -> {
@@ -68,7 +68,7 @@ public class GroupSearchStrategy implements SearchStrategy{
 
 			// Type filter
 			if(StringUtils.isNotEmpty(type)){
-				final String groupType = FLEFRecordHelper.getChildValue(group, GroupHandler.TAG_TYPE);
+				final String groupType = GroupReader.extractType(group);
 				if(!type.equalsIgnoreCase(groupType))
 					return false;
 			}
@@ -81,7 +81,7 @@ public class GroupSearchStrategy implements SearchStrategy{
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
 		final String baseDisplayText = HANDLER.getDisplayText(record, model);
 
-		final String type = FLEFRecordHelper.getChildValue(record, GroupHandler.TAG_TYPE);
+		final String type = GroupReader.extractType(record);
 
 		final StringJoiner details = new StringJoiner(", ", " (", ")");
 		details.setEmptyValue(StringUtils.EMPTY);

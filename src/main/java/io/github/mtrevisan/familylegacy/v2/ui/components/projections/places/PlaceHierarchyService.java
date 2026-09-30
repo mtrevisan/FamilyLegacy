@@ -27,7 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.projections.places;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.DateReader;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NameHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceRelationshipHandler;
@@ -264,7 +264,7 @@ public final class PlaceHierarchyService{
 		if(dateStruct == null)
 			return null;
 
-		final String value = FLEFRecordHelper.getChildValue(dateStruct, DateField.TAG_VALUE);
+		final String value = FLEFRecordHelper.getChildValue(dateStruct, DateReader.TAG_VALUE);
 		if(value != null)
 			return value;
 

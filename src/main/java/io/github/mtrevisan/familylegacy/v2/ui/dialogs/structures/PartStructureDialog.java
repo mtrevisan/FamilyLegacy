@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs.structures;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.names.NamePart;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
@@ -60,17 +61,6 @@ import java.awt.Window;
  */
 public class PartStructureDialog extends BaseRecordDialog{
 
-	private static final String[] PART_TYPES = {
-		StringUtils.EMPTY,
-		"given", "generation",
-		"patronymic", "matronymic", "kunya",
-		"family", "family_nickname", "lineage", "house", "clan", "tribal", "caste",
-		"toponymic",
-		"title", "occupational", "prefix", "suffix",
-		"nickname", "regnal", "religious", "posthumous"
-	};
-
-
 	private final JPanel propertiesPanel;
 
 	private final BoundComboBox<String> typeCombo;
@@ -92,7 +82,7 @@ public class PartStructureDialog extends BaseRecordDialog{
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(0, "[]10[]15[]");
 
-		typeCombo = new BoundComboBox<>(PersonalNameHandler.TAG_PART_TYPE, PART_TYPES);
+		typeCombo = new BoundComboBox<>(PersonalNameHandler.TAG_PART_TYPE, GUIHelper.fillCombo(NamePart.TYPES, null));
 		typeCombo.setI18NPrefix("enum.part.type");
 		typeCombo.setEditable(true);
 		valueField = new BoundTextField(PersonalNameHandler.TAG_PART_VALUE);

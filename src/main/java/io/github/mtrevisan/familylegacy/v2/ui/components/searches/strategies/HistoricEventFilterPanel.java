@@ -24,8 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.components.searches.strategies;
 
-import io.github.mtrevisan.familylegacy.v2.ui.components.SingleDatePanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.DateReader;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.RecordFilterPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchCriteria;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HistoricEventHandler;
@@ -54,7 +53,7 @@ public class HistoricEventFilterPanel extends JPanel implements RecordFilterPane
 	private final JComboBox<String> typeCombo = new JComboBox<>(GUIHelper.fillCombo(HistoricEventHandler.TYPES, I18N.t("search.combo.any")));
 	private final JTextField titleField = new JTextField(20);
 	private final JTextField dateField = new JTextField(10);
-	private final JComboBox<String> calendarCombo = new JComboBox<>(SingleDatePanel.CALENDARS);
+	private final JComboBox<String> calendarCombo = new JComboBox<>(DateReader.CALENDARS);
 	private final JTextField locationField = new JTextField(20);
 
 	private final Consumer<SearchCriteria> onChanged;
@@ -124,7 +123,7 @@ public class HistoricEventFilterPanel extends JPanel implements RecordFilterPane
 		filters.put(HistoricEventHandler.TAG_TYPE, getType());
 		filters.put(HistoricEventHandler.TAG_TITLE, getTitle());
 		filters.put(HistoricEventHandler.TAG_DATE, getDate());
-		filters.put(DateField.TAG_CALENDAR, getCalendar());
+		filters.put(DateReader.TAG_CALENDAR, getCalendar());
 		filters.put(PlaceHandler.TYPE, getPlace());
 		return filters;
 	}

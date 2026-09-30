@@ -35,6 +35,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 
 import java.util.List;
 import java.util.StringJoiner;
@@ -82,7 +83,7 @@ public class ConclusionSearchStrategy implements SearchStrategy{
 			// Proof Status filter (exact match, no text search)
 			if(StringUtils.isNotEmpty(proofStatus)){
 				final String recordStatus = FLEFRecordHelper.getChildValue(conclusion, ConclusionHandler.TAG_PROOF_STATUS);
-				if(!proofStatus.equalsIgnoreCase(recordStatus))
+				if(!Strings.CI.equals(proofStatus, recordStatus))
 					return false;
 			}
 

@@ -46,9 +46,7 @@ import java.util.function.Predicate;
  */
 public class SourceSearchStrategy implements SearchStrategy{
 
-	private static final String DOT = ".";
-
-	private static final String TAG_TITLE_VALUE = SourceHandler.TAG_TITLE + DOT + NameHandler.TAG_VALUE;
+	private static final String TAG_TITLE_VALUE = FLEFRecordHelper.composePath(SourceHandler.TAG_TITLE, NameHandler.TAG_VALUE);
 
 
 	private static final double FUZZY_THRESHOLD = 0.05;

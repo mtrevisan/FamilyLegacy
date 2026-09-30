@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 import io.github.mtrevisan.familylegacy.v2.ProjectInfo;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.HeaderReader;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextArea;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
@@ -34,6 +35,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ContactHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HeaderHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
@@ -75,16 +77,6 @@ import java.time.ZoneOffset;
  */
 public class HeaderDialog extends BaseRecordDialog{
 
-	private static final String DOT = ".";
-
-	private static final String TAG_PROTOCOL_NAME = HeaderHandler.TAG_PROTOCOL + DOT + HeaderHandler.TAG_NAME;
-	private static final String TAG_PROTOCOL_VERSION = HeaderHandler.TAG_PROTOCOL + DOT + HeaderHandler.TAG_VERSION;
-	private static final String TAG_SOURCE_NAME = HeaderHandler.TAG_SOURCE + DOT + HeaderHandler.TAG_NAME;
-	private static final String TAG_SOURCE_VERSION = HeaderHandler.TAG_SOURCE + DOT + HeaderHandler.TAG_VERSION;
-	private static final String TAG_SOURCE_ORGANIZATION = HeaderHandler.TAG_SOURCE + DOT + HeaderHandler.TAG_ORGANIZATION;
-	private static final String TAG_SUBMITTER_CONTACT = HeaderHandler.TAG_SUBMITTER + DOT + HeaderHandler.TAG_CONTACT;
-	private static final String TAG_SUBMITTER_NOTE = HeaderHandler.TAG_SUBMITTER + DOT + HeaderHandler.TAG_NOTE;
-
 	private static final String PROTOCOL_NAME = "Family LEgacy Format";
 	private static final String PROTOCOL_VERSION = "0.1.3";
 	private static final String SOURCE_ORGANIZATION = "Mauro Trevisan";
@@ -112,17 +104,17 @@ public class HeaderDialog extends BaseRecordDialog{
 		final String sourceName = ProjectInfo.getAppName();
 		final String sourceVersion = ProjectInfo.getAppVersion();
 
-		protocolNameField = new BoundTextField(TAG_PROTOCOL_NAME, PROTOCOL_NAME);
-		protocolVersionField = new BoundTextField(TAG_PROTOCOL_VERSION, PROTOCOL_VERSION);
-		sourceNameField = new BoundTextField(TAG_SOURCE_NAME, sourceName);
-		sourceVersionField = new BoundTextField(TAG_SOURCE_VERSION, sourceVersion);
-		sourceOrganizationField = new BoundTextField(TAG_SOURCE_ORGANIZATION, SOURCE_ORGANIZATION);
-		dateField = new BoundTextField(HeaderHandler.TAG_DATE);
+		protocolNameField = new BoundTextField(HeaderReader.TAG_PROTOCOL_NAME, PROTOCOL_NAME);
+		protocolVersionField = new BoundTextField(HeaderReader.TAG_PROTOCOL_VERSION, PROTOCOL_VERSION);
+		sourceNameField = new BoundTextField(HeaderReader.TAG_SOURCE_NAME, sourceName);
+		sourceVersionField = new BoundTextField(HeaderReader.TAG_SOURCE_VERSION, sourceVersion);
+		sourceOrganizationField = new BoundTextField(HeaderReader.TAG_SOURCE_ORGANIZATION, SOURCE_ORGANIZATION);
+		dateField = new BoundTextField(HeaderReader.TAG_DATE);
 		dateField.setEnabled(false);
-		copyrightArea = new BoundTextArea(HeaderHandler.TAG_COPYRIGHT, 3, 25);
-		submitterContactListPanel = EntityListPanel.createForStructure(TAG_SUBMITTER_CONTACT, this, "Contacts", model, ContactHandler.class);
-		submitterNoteArea = new BoundTextArea(TAG_SUBMITTER_NOTE, 3, 25);
-		scopeArea = new BoundTextArea(HeaderHandler.TAG_SCOPE, 3, 25);
+		copyrightArea = new BoundTextArea(HeaderReader.TAG_COPYRIGHT, 3, 25);
+		submitterContactListPanel = EntityListPanel.createForStructure(HeaderReader.TAG_SUBMITTER_CONTACT, this, "Contacts", model, ContactHandler.class);
+		submitterNoteArea = new BoundTextArea(HeaderReader.TAG_SUBMITTER_NOTE, 3, 25);
+		scopeArea = new BoundTextArea(HeaderReader.TAG_SCOPE, 3, 25);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
@@ -164,13 +156,13 @@ public class HeaderDialog extends BaseRecordDialog{
 		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]");
 
 		// date
-		GUIHelper.addLabeledComponent(panel, "Date:", dateField);
+		GUIHelper.addLabeledComponent(panel, I18N.t("dialog.header.date") + ":", dateField);
 
 		// copyright
-		GUIHelper.addLabeledComponent(panel, "Copyright:", copyrightArea);
+		GUIHelper.addLabeledComponent(panel, I18N.t("dialog.header.copyright") + ":", copyrightArea);
 
 		// scope
-		GUIHelper.addLabeledComponent(panel, "Scope:", scopeArea);
+		GUIHelper.addLabeledComponent(panel, I18N.t("dialog.header.scope") + ":", scopeArea);
 
 		return panel;
 	}
@@ -182,7 +174,7 @@ public class HeaderDialog extends BaseRecordDialog{
 		GUIHelper.addComponent(panel, submitterContactListPanel);
 
 		// note
-		GUIHelper.addLabeledComponent(panel, "Note:", submitterNoteArea);
+		GUIHelper.addLabeledComponent(panel, I18N.t("dialog.header.note") + ":", submitterNoteArea);
 
 		return panel;
 	}

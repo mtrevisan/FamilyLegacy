@@ -27,7 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.DateReader;
 import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import net.miginfocom.swing.MigLayout;
 
@@ -87,11 +87,11 @@ public class SpanningDatePanel extends JPanel{
 		if(record == null || record.isEmpty())
 			return;
 
-		final FLEFRecord from = FLEFRecordHelper.findChild(record, DateField.TAG_FROM);
+		final FLEFRecord from = FLEFRecordHelper.findChild(record, DateReader.TAG_FROM);
 		if(from != null)
 			fromPanel.load(from);
 
-		final FLEFRecord to = FLEFRecordHelper.findChild(record, DateField.TAG_TO);
+		final FLEFRecord to = FLEFRecordHelper.findChild(record, DateReader.TAG_TO);
 		if(to != null)
 			toPanel.load(to);
 	}
@@ -101,15 +101,15 @@ public class SpanningDatePanel extends JPanel{
 
 		if(fromPanel.hasData()){
 			final FLEFRecord from = fromPanel.save();
-			record.addChildWithTag(DateField.TAG_FROM, from);
+			record.addChildWithTag(DateReader.TAG_FROM, from);
 		}
 
 		if(toPanel.hasData()){
 			final FLEFRecord to = toPanel.save();
-			record.addChildWithTag(DateField.TAG_TO, to);
+			record.addChildWithTag(DateReader.TAG_TO, to);
 		}
 
-		return (record.hasData()? record.setTag(DateField.TAG_SPANNING): FLEFRecord.createEmpty());
+		return (record.hasData()? record.setTag(DateReader.TAG_SPANNING): FLEFRecord.createEmpty());
 	}
 
 	public void clear(){

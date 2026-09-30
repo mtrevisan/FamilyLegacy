@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.tools.statistics;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventParticipationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
@@ -171,7 +172,7 @@ public final class StatisticsCalculator{
 				noParents.add(ind);
 			if(!hasDirectSource(ind))
 				noSource.add(ind);
-			final String sex = FLEFRecordHelper.getChildValue(ind, IndividualHandler.TAG_SEX);
+			final String sex = IndividualReader.extractRawSex(ind);
 			if(sex == null || sex.isBlank())
 				noSex.add(ind);
 		}
@@ -207,10 +208,10 @@ public final class StatisticsCalculator{
 						givenCounts.merge(key, 1, Integer::sum);
 				}
 
-			final String sex = FLEFRecordHelper.getChildValue(ind, IndividualHandler.TAG_SEX);
-			if(IndividualHandler.ENUM_SEX_MALE.equalsIgnoreCase(sex))
+			final String sex = IndividualReader.extractRawSex(ind);
+			if(IndividualReader.isSexMale(sex))
 				male ++;
-			else if(IndividualHandler.ENUM_SEX_FEMALE.equalsIgnoreCase(sex))
+			else if(IndividualReader.isSexFemale(sex))
 				female ++;
 			else
 				unknownSex++;

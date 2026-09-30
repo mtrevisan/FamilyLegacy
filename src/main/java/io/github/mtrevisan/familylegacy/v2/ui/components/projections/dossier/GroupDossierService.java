@@ -27,9 +27,9 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.projections.dossier;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.names.Name;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.names.NameAnatomyService;
 import io.github.mtrevisan.familylegacy.v2.ui.components.EvidenceQualifiersPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.projections.dossier.names.NameAnatomy;
-import io.github.mtrevisan.familylegacy.v2.ui.components.projections.dossier.names.NameAnatomyService;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ContextImpactHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventParticipationHandler;
@@ -93,7 +93,6 @@ public final class GroupDossierService{
 	private final FLEFModel model;
 	private final GroupHandler groupHandler;
 	private final IndividualHandler individualHandler;
-	private final NameAnatomyService nameAnatomyService;
 	private final DossierFormatting formatting;
 
 	private final Map<String, ProofStatus> conclusionIndex;
@@ -105,7 +104,6 @@ public final class GroupDossierService{
 		this.model = model;
 		this.groupHandler = GroupHandler.getInstance();
 		this.individualHandler = IndividualHandler.getInstance();
-		this.nameAnatomyService = new NameAnatomyService(model);
 		this.formatting = new DossierFormatting(model);
 		this.conclusionIndex = buildConclusionIndex();
 	}
@@ -154,12 +152,9 @@ public final class GroupDossierService{
 		// Names, using NameAnatomyService for consistency with the individual
 		// dossier. Group names are generic (no parts), so each name produces
 		// a header row plus a value row.
-		final String groupId = group.getId();
-		final List<NameAnatomy> names = (groupId != null
-			? nameAnatomyService.extractForGroup(groupId)
-			: List.of());
+		final List<Name> names = NameAnatomyService.extractForGeneric(group);
 
-		for(final NameAnatomy name : names){
+		for(final Name name : names){
 			entries.add(DossierEntry.nameHeader(name.displayType(), group));
 			if(StringUtils.isNotEmpty(name.value()))
 				entries.add(DossierEntry.namePart("value", name.value(), group));

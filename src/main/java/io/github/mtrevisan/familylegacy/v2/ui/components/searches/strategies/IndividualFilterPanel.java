@@ -24,11 +24,11 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.components.searches.strategies;
 
-import io.github.mtrevisan.familylegacy.v2.ui.components.SingleDatePanel;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.DateReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.EventReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.RecordFilterPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchCriteria;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import net.miginfocom.swing.MigLayout;
@@ -50,12 +50,12 @@ import java.util.function.Consumer;
  */
 public class IndividualFilterPanel extends JPanel implements RecordFilterPanel{
 
-	private final JComboBox<String> sexCombo = new JComboBox<>(GUIHelper.fillCombo(IndividualHandler.SEXES, I18N.t("search.combo.any")));
-	private final JComboBox<String> eventTypeCombo = new JComboBox<>(GUIHelper.fillCombo(EventHandler.TYPES, I18N.t("search.combo.any")));
+	private final JComboBox<String> sexCombo = new JComboBox<>(GUIHelper.fillCombo(IndividualReader.SEXES, I18N.t("search.combo.any")));
+	private final JComboBox<String> eventTypeCombo = new JComboBox<>(GUIHelper.fillCombo(EventReader.TYPES, I18N.t("search.combo.any")));
 	private final JTextField dateFromField = new JTextField(10);
-	private final JComboBox<String> calendarFromCombo = new JComboBox<>(SingleDatePanel.CALENDARS);
+	private final JComboBox<String> calendarFromCombo = new JComboBox<>(DateReader.CALENDARS);
 	private final JTextField dateToField = new JTextField(10);
-	private final JComboBox<String> calendarToCombo = new JComboBox<>(SingleDatePanel.CALENDARS);
+	private final JComboBox<String> calendarToCombo = new JComboBox<>(DateReader.CALENDARS);
 	private final JTextField placeField = new JTextField(20);
 
 	private final Consumer<SearchCriteria> onChanged;
@@ -132,13 +132,13 @@ public class IndividualFilterPanel extends JPanel implements RecordFilterPanel{
 	@Override
 	public Map<String, String> getFilters(){
 		final Map<String, String> filters = new HashMap<>();
-		filters.put(IndividualHandler.TAG_SEX, getSex());
-		filters.put(EventHandler.TAG_TYPE, getEventType());
+		filters.put(IndividualReader.TAG_SEX, getSex());
+		filters.put(EventReader.TAG_TYPE, getEventType());
 		filters.put(IndividualSearchStrategy.KEY_DATE_FROM, getEventDateFrom());
 		filters.put(IndividualSearchStrategy.KEY_CALENDAR_FROM, getEventCalendarFrom());
 		filters.put(IndividualSearchStrategy.KEY_DATE_TO, getEventDateTo());
 		filters.put(IndividualSearchStrategy.KEY_CALENDAR_TO, getEventCalendarTo());
-		filters.put(EventHandler.TAG_PLACE, getEventPlace());
+		filters.put(EventReader.TAG_PLACE, getEventPlace());
 		return filters;
 	}
 

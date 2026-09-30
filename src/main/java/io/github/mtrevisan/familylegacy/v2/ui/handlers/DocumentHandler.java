@@ -51,7 +51,6 @@ public class DocumentHandler extends AbstractRecordTypeHandler<DocumentRecordDia
 	public static final String TAG_AUDIT = "AUDIT";
 
 	public static final String[] MAPPINGS = new String[]{
-		StringUtils.EMPTY,
 		"planar", "spherical_equirectangular", "spherical_uv", "cubemap", "cylindrical_equirectangular_horizontal",
 		"cylindrical_equirectangular_vertical"};
 

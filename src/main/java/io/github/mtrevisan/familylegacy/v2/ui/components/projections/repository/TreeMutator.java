@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualData;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.siblings.SiblingsData;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
@@ -88,7 +89,7 @@ public class TreeMutator extends AbstractProjectionMutator{
 		if(relationshipTypes == null || relationshipTypes.size() != childrenId.size())
 			throw new IllegalArgumentException("relationshipTypes must match childrenId size");
 
-		final String parentSex = FLEFRecordHelper.getChildValue(newParent, IndividualHandler.TAG_SEX);
+		final String parentSex = IndividualReader.extractRawSex(newParent);
 		if(parentSex != null){
 			final List<FLEFRecord> toRemove = new ArrayList<>();
 			final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
@@ -109,7 +110,7 @@ public class TreeMutator extends AbstractProjectionMutator{
 				if(existingParent == null)
 					continue;
 
-				final String existingParentSex = FLEFRecordHelper.getChildValue(existingParent, IndividualHandler.TAG_SEX);
+				final String existingParentSex = IndividualReader.extractRawSex(existingParent);
 				if(parentSex.equals(existingParentSex))
 					toRemove.add(relationship);
 			}

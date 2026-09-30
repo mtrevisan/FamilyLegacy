@@ -54,8 +54,6 @@ import java.awt.event.MouseEvent;
  */
 public class EvidenceQualifiersPanel extends JPanel{
 
-	private static final String DOT = ".";
-
 	public static final String TAG_SOURCE_TYPE = "SOURCE_TYPE";
 	public static final String TAG_INFORMATION_TYPE = "INFORMATION_TYPE";
 	public static final String TAG_EVIDENCE_TYPE = "EVIDENCE_TYPE";
@@ -98,7 +96,7 @@ public class EvidenceQualifiersPanel extends JPanel{
 	 * @param panelTitle	the title to display in the TitledBorder
 	 */
 	public EvidenceQualifiersPanel(final String path, final String panelTitle){
-		this.path = (StringUtils.isNotEmpty(path)? path + DOT: StringUtils.EMPTY);
+		this.path = (StringUtils.isNotEmpty(path)? path: StringUtils.EMPTY);
 
 		setLayout(GUIHelper.createLabelFieldLayout(5, "[]5[]5[]"));
 		setBorder(BorderFactory.createTitledBorder(panelTitle));
@@ -146,13 +144,13 @@ public class EvidenceQualifiersPanel extends JPanel{
 		if(record == null || record.isEmpty())
 			return;
 
-		String value = FLEFRecordHelper.getChildValue(record, path + TAG_SOURCE_TYPE);
+		String value = FLEFRecordHelper.getChildValue(record, FLEFRecordHelper.composePath(path, TAG_SOURCE_TYPE));
 		sourceTypeCombo.setSelectedItem(StringUtils.defaultString(value));
 
-		value = FLEFRecordHelper.getChildValue(record, path + TAG_INFORMATION_TYPE);
+		value = FLEFRecordHelper.getChildValue(record, FLEFRecordHelper.composePath(path, TAG_INFORMATION_TYPE));
 		informationTypeCombo.setSelectedItem(StringUtils.defaultString(value));
 
-		value = FLEFRecordHelper.getChildValue(record, path + TAG_EVIDENCE_TYPE);
+		value = FLEFRecordHelper.getChildValue(record, FLEFRecordHelper.composePath(path, TAG_EVIDENCE_TYPE));
 		evidenceTypeCombo.setSelectedItem(StringUtils.defaultString(value));
 	}
 
@@ -162,9 +160,9 @@ public class EvidenceQualifiersPanel extends JPanel{
 	 * @param record	the record to save into
 	 */
 	public void save(final FLEFRecord record){
-		FLEFRecordHelper.updateChildValue(record, path + TAG_SOURCE_TYPE, getSourceType());
-		FLEFRecordHelper.updateChildValue(record, path + TAG_INFORMATION_TYPE, getInformationType());
-		FLEFRecordHelper.updateChildValue(record, path + TAG_EVIDENCE_TYPE, getEvidenceType());
+		FLEFRecordHelper.updateChildValue(record, FLEFRecordHelper.composePath(path, TAG_SOURCE_TYPE), getSourceType());
+		FLEFRecordHelper.updateChildValue(record, FLEFRecordHelper.composePath(path, TAG_INFORMATION_TYPE), getInformationType());
+		FLEFRecordHelper.updateChildValue(record, FLEFRecordHelper.composePath(path, TAG_EVIDENCE_TYPE), getEvidenceType());
 	}
 
 	public String getSourceType(){

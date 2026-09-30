@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs.structures;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.names.Name;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundFilteredComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextField;
@@ -74,27 +75,6 @@ import java.awt.Window;
  */
 public class NameStructureDialog extends BaseRecordDialog{
 
-	private static final String[] TYPES = {
-		StringUtils.EMPTY,
-		// official and legal names
-		"official", "legal",
-		// historical naming traditions
-		"colonial", "indigenous", "traditional",
-		// language and localization variants
-		"translated", "transcribed",
-		// historical variants
-		"historic", "former",
-		// common usage
-		"common", "colloquial",
-		// abbreviated forms
-		"abbreviated", "acronym",
-		// religious and ecclesiastical forms
-		"religious",
-		// administrative and archival forms
-		"administrative", "archival"
-	};
-
-
 	private final JPanel propertiesPanel;
 
 	private final BoundTextField valueField;
@@ -119,7 +99,7 @@ public class NameStructureDialog extends BaseRecordDialog{
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]15[]");
 
 		valueField = new BoundTextField(NameHandler.TAG_VALUE);
-		typeCombo = new BoundComboBox<>(NameHandler.TAG_TYPE, TYPES);
+		typeCombo = new BoundComboBox<>(NameHandler.TAG_TYPE, GUIHelper.fillCombo(Name.TYPES, null));
 		typeCombo.setI18NPrefix("enum.name.type");
 		typeCombo.setEditable(true);
 		variantPanel = new TextValueVariantListPanel(NameHandler.TAG_VARIANT, this, I18N.t("dialog.name.variant"), model);

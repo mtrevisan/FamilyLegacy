@@ -22,7 +22,11 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.v2.ui.components.projections.temporal;
+package io.github.mtrevisan.familylegacy.v2.io.model.readers.date;
+
+
+import org.apache.commons.lang3.Strings;
+
 
 /**
  * A single normalized point in time used by the General Temporal Projection.
@@ -48,23 +52,6 @@ public record NormalizedDate(
 	String approximateMargin,
 	String originalText
 ) implements Comparable<NormalizedDate>{
-
-	// Standard calendar names as defined by the FLEF protocol (CalendarType enum).
-	// Any other value is treated as a custom calendar name, as permitted by the protocol.
-	// TODO ?
-	public static final String CALENDAR_GREGORIAN = "gregorian";
-	public static final String CALENDAR_JULIAN = "julian";
-	public static final String CALENDAR_ISLAMIC = "islamic";
-	public static final String CALENDAR_HEBREW = "hebrew";
-	public static final String CALENDAR_CHINESE = "chinese";
-	public static final String CALENDAR_INDIAN = "indian";
-	public static final String CALENDAR_BUDDHIST = "buddhist";
-	public static final String CALENDAR_FRENCH_REPUBLICAN = "french_republican";
-	public static final String CALENDAR_COPTIC = "coptic";
-	public static final String CALENDAR_SOVIET_ETERNAL = "soviet_eternal";
-	public static final String CALENDAR_ETHIOPIAN = "ethiopian";
-	public static final String CALENDAR_MAYAN = "mayan";
-
 
 	/**
 	 * Compact constructor with validation.
@@ -101,7 +88,7 @@ public record NormalizedDate(
 	 * @return a normalized date
 	 */
 	public static NormalizedDate exact(final long jdn, final DatePrecision precision){
-		return exact(jdn, precision, CALENDAR_GREGORIAN);
+		return exact(jdn, precision, CalendarType.GREGORIAN.getCode());
 	}
 
 	/**
@@ -114,7 +101,8 @@ public record NormalizedDate(
 	 * @return a normalized date
 	 */
 	public static NormalizedDate exact(final long jdn, final DatePrecision precision, final String calendar){
-		return new NormalizedDate(jdn, precision, calendar, false, null, null, null);
+		return new NormalizedDate(jdn, precision, calendar, false, null, null,
+			null);
 	}
 
 	/**
@@ -129,7 +117,7 @@ public record NormalizedDate(
 	 * @return an approximate normalized date
 	 */
 	public static NormalizedDate approximated(final long jdn, final DatePrecision precision, final String calendar,
-		final String basis, final String margin){
+			final String basis, final String margin){
 		return new NormalizedDate(jdn, precision, calendar, true, basis, margin, null);
 	}
 
@@ -149,10 +137,10 @@ public record NormalizedDate(
 	/**
 	 * Returns whether this date belongs to the Gregorian calendar.
 	 *
-	 * @return {@code true} if the calendar is {@link #CALENDAR_GREGORIAN}
+	 * @return {@code true} if the calendar is {@link CalendarType}
 	 */
 	public boolean isGregorian(){
-		return CALENDAR_GREGORIAN.equals(calendar);
+		return Strings.CI.equals(calendar, CalendarType.GREGORIAN.getCode());
 	}
 
 	/**
@@ -174,11 +162,11 @@ public record NormalizedDate(
 	 */
 	public long precisionSpanInDays(){
 		return switch(precision){
-			case DAY -> 1L;
-			case MONTH -> 31L;
-			case YEAR -> 366L;
-			case DECADE -> 3653L;
-			case CENTURY -> 36525L;
+			case DAY -> 1l;
+			case MONTH -> 31l;
+			case YEAR -> 366l;
+			case DECADE -> 3653l;
+			case CENTURY -> 36525l;
 		};
 	}
 

@@ -57,7 +57,6 @@ public class GroupAttributeHandler extends AbstractRecordTypeHandler<GroupAttrib
 	public static final String TAG_AUDIT = "AUDIT";
 
 	public static final String[] TYPES = new String[]{
-		StringUtils.EMPTY,
 		"residence", "member_count", "children_count", "social_class", "ethnicity", "religion", "language",
 		"wealth", "land_holding", "primary_income_source"
 	};

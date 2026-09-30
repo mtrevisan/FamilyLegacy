@@ -27,7 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.searches.strategies;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.DateReader;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchCriteria;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchMode;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchStrategy;
@@ -35,6 +35,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.HistoricEventHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 
 import java.util.StringJoiner;
 import java.util.function.Predicate;
@@ -64,7 +65,7 @@ public class HistoricEventSearchStrategy implements SearchStrategy{
 		type = criteria.getFilterFor(HistoricEventHandler.TAG_TYPE);
 		title = criteria.getFilterFor(HistoricEventHandler.TAG_TITLE);
 		date = criteria.getFilterFor(HistoricEventHandler.TAG_DATE);
-		calendar = criteria.getFilterFor(DateField.TAG_CALENDAR);
+		calendar = criteria.getFilterFor(DateReader.TAG_CALENDAR);
 		place = criteria.getFilterFor(PlaceHandler.TYPE);
 		mode = criteria.mode();
 
@@ -72,7 +73,7 @@ public class HistoricEventSearchStrategy implements SearchStrategy{
 			// Type filter
 			if(StringUtils.isNotEmpty(type)){
 				final String recordType = FLEFRecordHelper.getChildValue(historicEvent, HistoricEventHandler.TAG_TYPE);
-				if(!type.equalsIgnoreCase(recordType))
+				if(!Strings.CI.equals(type, recordType))
 					return false;
 			}
 

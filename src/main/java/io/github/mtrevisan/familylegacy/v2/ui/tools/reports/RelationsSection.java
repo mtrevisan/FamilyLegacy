@@ -26,7 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.tools.reports;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.reports.index.KinshipResolver;
 import org.apache.commons.lang3.StringUtils;
 
@@ -93,7 +93,7 @@ final class RelationsSection implements SectionBuilder{
 			counter + ". " + ReportFormatters.escape(ctx.displayText(ind)) + suffix));
 
 		final List<String> meta = new ArrayList<>();
-		final String sex = Optional.ofNullable(FLEFRecordHelper.getChildValue(ind, IndividualHandler.TAG_SEX))
+		final String sex = Optional.ofNullable(IndividualReader.extractRawSex(ind))
 			.orElse(ctx.labels.sections().sexUnknown());
 		meta.add("**" + ctx.labels.sections().sex() + ":** " + ReportFormatters.escape(sex));
 

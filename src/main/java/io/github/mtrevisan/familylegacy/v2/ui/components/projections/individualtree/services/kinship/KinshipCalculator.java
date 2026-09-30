@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.TreeService;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
@@ -473,48 +474,46 @@ public final class KinshipCalculator{
 
 
 	private static String ancestorTerm(final int distance, final String sex){
-		final String base = (IndividualHandler.ENUM_SEX_MALE.equals(sex)? "father": "mother");
+		final String base = (IndividualReader.isSexMale(sex)? "father": (IndividualReader.isSexFemale(sex)? "mother": "unknown"));
 		if(distance == 1)
 			return base;
 		if(distance == 2)
-			return (IndividualHandler.ENUM_SEX_MALE.equals(sex)? "grandfather": "grandmother");
+			return (IndividualReader.isSexMale(sex)? "grandfather": (IndividualReader.isSexFemale(sex)? "grandmother": "unknown"));
 
 		final String prefix = (distance == 3? "great-grand": (distance - 2) + "x great-grand");
 		return prefix + base;
 	}
 
 	private static String descendantTerm(final int distance, final String sex){
-		final String base = (IndividualHandler.ENUM_SEX_MALE.equals(sex)? "son": "daughter");
+		final String base = (IndividualReader.isSexMale(sex)? "son": (IndividualReader.isSexFemale(sex)? "daughter": "unknown"));
 		if(distance == 1)
 			return base;
 		if(distance == 2)
-			return (IndividualHandler.ENUM_SEX_MALE.equals(sex)? "grandson": "granddaughter");
+			return (IndividualReader.isSexMale(sex)? "grandson": (IndividualReader.isSexFemale(sex)? "granddaughter": "unknown"));
 
 		final String prefix = (distance == 3? "great-grand": (distance - 2) + "x great-grand");
 		return prefix + base;
 	}
 
 	private static String uncleTerm(final String sex, final boolean grand){
-		final String base = (IndividualHandler.ENUM_SEX_MALE.equals(sex)? "uncle": "aunt");
+		final String base = (IndividualReader.isSexMale(sex)? "uncle": (IndividualReader.isSexFemale(sex)? "aunt": "unknown"));
 		return (grand? "grand-" + base: base);
 	}
 
 	private static String nephewTerm(final String sex){
-		return (IndividualHandler.ENUM_SEX_MALE.equals(sex)? "nephew": "niece");
+		return (IndividualReader.isSexMale(sex)? "nephew": (IndividualReader.isSexFemale(sex)? "niece": "unknown"));
 	}
 
 	private static String siblingTerm(final String sexA, final String sexB){
-		final boolean maleA = IndividualHandler.ENUM_SEX_MALE.equals(sexA);
-		final boolean maleB = IndividualHandler.ENUM_SEX_MALE.equals(sexB);
-		if(maleA && maleB)
+		if(IndividualReader.isSexMale(sexA) && IndividualReader.isSexMale(sexB))
 			return "brothers";
-		if(!maleA && !maleB)
+		if(IndividualReader.isSexFemale(sexA) && IndividualReader.isSexFemale(sexB))
 			return "sisters";
 		return "siblings";
 	}
 
 	private static String siblingSingularTerm(final String sex){
-		return (IndividualHandler.ENUM_SEX_MALE.equals(sex)? "brother": "sister");
+		return (IndividualReader.isSexMale(sex)? "brother": (IndividualReader.isSexFemale(sex)? "sister": "unknown"));
 	}
 
 	private static String cousinTerm(final int degree, final int removed){
@@ -564,9 +563,8 @@ public final class KinshipCalculator{
 		if(record == null)
 			return StringUtils.EMPTY;
 
-		final String raw = FLEFRecordHelper.getChildValue(record, IndividualHandler.TAG_SEX);
-		return (raw != null? raw.trim()
-			.toLowerCase(Locale.ROOT): StringUtils.EMPTY);
+		final String raw = IndividualReader.extractRawSex(record);
+		return (raw != null? raw: StringUtils.EMPTY);
 	}
 
 

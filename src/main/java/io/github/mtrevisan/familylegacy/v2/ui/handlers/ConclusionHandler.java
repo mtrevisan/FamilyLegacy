@@ -52,7 +52,6 @@ public class ConclusionHandler extends AbstractRecordTypeHandler<ConclusionRecor
 	public static final String TAG_AUDIT = "AUDIT";
 
 	public static final String[] PROOF_STATUSES = new String[]{
-		StringUtils.EMPTY,
 		"unresearched",
 		"conflicting_evidence",
 		"supported",

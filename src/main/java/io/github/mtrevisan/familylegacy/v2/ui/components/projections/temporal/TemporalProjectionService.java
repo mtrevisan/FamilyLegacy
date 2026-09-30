@@ -27,6 +27,8 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.projections.temporal;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.date.DateNormalizer;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.date.TemporalSpan;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ContextImpactHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
@@ -92,7 +94,6 @@ public final class TemporalProjectionService{
 
 
 	private final FLEFModel model;
-	private final DateNormalizer normalizer;
 
 	private TemporalIndices indices;
 	private TemporalExtractor extractor;
@@ -101,7 +102,6 @@ public final class TemporalProjectionService{
 
 	public TemporalProjectionService(final FLEFModel model){
 		this.model = model;
-		this.normalizer = new DateNormalizer();
 	}
 
 
@@ -120,7 +120,7 @@ public final class TemporalProjectionService{
 
 		// Build the indices exactly once per projection build.
 		indices = TemporalIndices.build(model);
-		extractor = new TemporalExtractor(model, normalizer, indices);
+		extractor = new TemporalExtractor(model, indices);
 
 		final List<TemporalRow> rows = buildRows(effective);
 		final Set<String> includedIds = collectIds(rows);
@@ -379,7 +379,7 @@ public final class TemporalProjectionService{
 
 		final String status = normalizeStatus(FLEFRecordHelper.getChildValue(relationship, TAG_STATUS));
 
-		return normalizer.combineBounds(from, to, status);
+		return DateNormalizer.combineBounds(from, to, status);
 	}
 
 	private static String normalizeStatus(final String raw){
@@ -416,7 +416,7 @@ public final class TemporalProjectionService{
 				(title != null? title: type != null? type: id));
 
 			final FLEFRecord date = FLEFRecordHelper.findChild(record, TAG_DATE);
-			final TemporalSpan span = normalizer.normalize(date);
+			final TemporalSpan span = DateNormalizer.normalize(date);
 			if(span == null)
 				continue;
 
@@ -440,7 +440,7 @@ public final class TemporalProjectionService{
 
 			final FLEFRecord from = FLEFRecordHelper.findChild(record, TAG_VALID_FROM);
 			final FLEFRecord to = FLEFRecordHelper.findChild(record, TAG_VALID_TO);
-			final TemporalSpan span = normalizer.combineBounds(from, to);
+			final TemporalSpan span = DateNormalizer.combineBounds(from, to);
 			if(span == null)
 				continue;
 

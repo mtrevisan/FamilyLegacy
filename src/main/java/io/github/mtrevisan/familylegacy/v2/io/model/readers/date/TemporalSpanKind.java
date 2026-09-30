@@ -22,47 +22,46 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.v2.ui.helpers;
-
-import java.time.LocalDate;
+package io.github.mtrevisan.familylegacy.v2.io.model.readers.date;
 
 
 /**
- * Represents a parsed genealogical date with precision and approximation metadata.
- *
- * @param isoDate      the normalized ISO date
- * @param precision    the temporal precision (e.g., EXACT, YEAR_ONLY)
- * @param approximate  whether the date is marked as approximate/uncertain
- * @param rawInput     the original raw string input
- * @param calendarType the calendar system used
+ * Mirrors the three alternatives of the FLEF {@code DateValue} union
+ * ({@code point}, {@code bounded}, {@code spanning}) and drives the visual
+ * encoding of a temporal span.
  */
-public record ParsedGenealogicalDate(
-	LocalDate isoDate,
-	DatePrecision precision,
-	boolean approximate,
-	String rawInput,
-	CalendarType calendarType
-)implements Comparable<ParsedGenealogicalDate>{
+public enum TemporalSpanKind{
 
-	@Override
-	public int compareTo(final ParsedGenealogicalDate other){
-		if(other == null)
-			return 1;
-		if(this.isoDate == null && other.isoDate == null)
-			return 0;
-		if(this.isoDate == null)
-			return -1;
-		if(other.isoDate == null)
-			return 1;
-		return this.isoDate.compareTo(other.isoDate);
-	}
+	/**
+	 * A single point in time. Rendered as a filled marker. Reduced‑precision
+	 * forms (decade, century) are still {@code POINT} but are rendered as
+	 * a shaded bar rather than as a pinpoint.
+	 */
+	POINT,
+
+	/**
+	 * The exact date is unknown but is known to fall within an interval.
+	 * The interval expresses <i>uncertainty</i>, not duration. Rendered as
+	 * a bar with faded extremities.
+	 */
+	BOUNDED,
+
+	/**
+	 * The fact itself extends across an interval. The interval expresses
+	 * the <i>actual duration</i> of the event, status, relationship or
+	 * condition. Rendered as a bar with sharp extremities.
+	 */
+	SPANNING;
 
 
-	public enum DatePrecision{
-		EXACT,
-		YEAR_MONTH,
-		MONTH_DAY,
-		YEAR_ONLY
+	/**
+	 * Returns whether this kind represents a duration rather than a point.
+	 *
+	 * @return {@code true} for {@link #BOUNDED} and {@link #SPANNING};
+	 * {@code false} for {@link #POINT}
+	 */
+	public boolean isInterval(){
+		return (this != POINT);
 	}
 
 }

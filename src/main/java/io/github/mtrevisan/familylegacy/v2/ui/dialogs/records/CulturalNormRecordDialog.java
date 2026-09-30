@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs.records;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.EvidenceQualifiersPanel;
@@ -89,8 +90,7 @@ import java.io.IOException;
  */
 public class CulturalNormRecordDialog extends BaseRecordDialog{
 
-	private static final String DOT = ".";
-	private static final String TAG_PLACE_EVIDENCE = CulturalNormHandler.TAG_PLACE + DOT + CulturalNormHandler.TAG_EVIDENCE;
+	private static final String TAG_PLACE_EVIDENCE = FLEFRecordHelper.composePath(CulturalNormHandler.TAG_PLACE, CulturalNormHandler.TAG_EVIDENCE);
 
 
 	private final BoundTextField titleField;

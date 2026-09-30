@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.SexType;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.BoxPanelType;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.EntityPopupMenuFactory;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualData;
@@ -35,7 +36,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualt
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.layout.TreeLayout;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.TreeNode;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.siblings.SiblingsPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.SexType;
 
 import javax.swing.BorderFactory;
 import javax.swing.JPanel;

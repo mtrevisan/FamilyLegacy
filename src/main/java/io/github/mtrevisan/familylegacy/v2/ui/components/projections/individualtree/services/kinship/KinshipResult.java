@@ -24,7 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.services.kinship;
 
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.IndividualReader;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
@@ -196,8 +196,7 @@ record KinshipResult(
 	 * apply to this pair.
 	 */
 	boolean areOppositeSex(){
-		return (IndividualHandler.ENUM_SEX_MALE.equals(sexA) && IndividualHandler.ENUM_SEX_FEMALE.equals(sexB)
-			|| IndividualHandler.ENUM_SEX_FEMALE.equals(sexA) && IndividualHandler.ENUM_SEX_MALE.equals(sexB));
+		return IndividualReader.areOppositeSex(sexA, sexB);
 	}
 
 
@@ -265,7 +264,7 @@ record KinshipResult(
 	 * dispensation is mandatory; beyond it, no dispensation is required.
 	 */
 	boolean requiresCanonicalDispensation(){
-		return (areOppositeSex() && isCanonicallyRelevant());
+		return (IndividualReader.areOppositeSex(sexA, sexB) && isCanonicallyRelevant());
 	}
 
 	/**

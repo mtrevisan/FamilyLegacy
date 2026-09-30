@@ -27,9 +27,10 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.components.projections.temporal.DateNormalizer;
-import io.github.mtrevisan.familylegacy.v2.ui.components.projections.temporal.NormalizedDate;
-import io.github.mtrevisan.familylegacy.v2.ui.components.projections.temporal.TemporalSpan;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.DateReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.EventReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.date.NormalizedDate;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.date.TemporalSpan;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventParticipationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
@@ -97,8 +98,6 @@ public final class EventIndex{
 
 
 	public static EventIndex build(final FLEFModel model){
-		final DateNormalizer normalizer = new DateNormalizer();
-
 		// Collect participations grouped by event.
 		final Map<String, List<FLEFRecord>> participationsByEvent = new LinkedHashMap<>();
 		for(final FLEFRecord p : model.getRecordsByType(EventParticipationHandler.TYPE)){
@@ -117,12 +116,11 @@ public final class EventIndex{
 			if(id == null)
 				continue;
 
-			final String type = FLEFRecordHelper.getChildValue(event, EventHandler.TAG_TYPE);
+			final String type = EventReader.extractType(event);
 			final String description = FLEFRecordHelper.getChildValue(event, "description");
 
 			// Date.
-			final FLEFRecord dateStructure = FLEFRecordHelper.findChild(event, EventHandler.TAG_DATE);
-			final TemporalSpan span = normalizer.normalize(dateStructure);
+			final TemporalSpan span = DateReader.extractTemporalSpan(event);
 			final NormalizedDate date = (span != null? span.start(): null);
 
 			// Place.
@@ -145,7 +143,7 @@ public final class EventIndex{
 					participants.add(participant);
 			}
 
-			final EventDatum datum = new EventDatum(id, type != null? type: "unknown",
+			final EventDatum datum = new EventDatum(id, (type != null? type: "unknown"),
 				description != null? description: StringUtils.EMPTY, date, placeId, placeName, participants);
 			events.add(datum);
 			byId.put(id, datum);

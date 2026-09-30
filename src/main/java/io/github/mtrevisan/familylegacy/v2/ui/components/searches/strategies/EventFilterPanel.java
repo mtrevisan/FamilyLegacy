@@ -24,11 +24,10 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.components.searches.strategies;
 
-import io.github.mtrevisan.familylegacy.v2.ui.components.SingleDatePanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.DateReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.RecordFilterPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchCriteria;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import net.miginfocom.swing.MigLayout;
@@ -50,10 +49,10 @@ import java.util.function.Consumer;
  */
 public class EventFilterPanel extends JPanel implements RecordFilterPanel{
 
-	private final JComboBox<String> typeCombo = new JComboBox<>(GUIHelper.fillCombo(EventHandler.TYPES, I18N.t("search.combo.any")));
+	private final JComboBox<String> typeCombo = new JComboBox<>(GUIHelper.fillCombo(EventReader.TYPES, I18N.t("search.combo.any")));
 	private final JTextField descriptionField = new JTextField(20);
 	private final JTextField dateField = new JTextField(10);
-	private final JComboBox<String> calendarCombo = new JComboBox<>(SingleDatePanel.CALENDARS);
+	private final JComboBox<String> calendarCombo = new JComboBox<>(DateReader.CALENDARS);
 	private final JTextField placeField = new JTextField(20);
 	private final JTextField agencyField = new JTextField(20);
 	private final JTextField causeReasonField = new JTextField(20);
@@ -130,13 +129,13 @@ public class EventFilterPanel extends JPanel implements RecordFilterPanel{
 	@Override
 	public Map<String, String> getFilters(){
 		final Map<String, String> filters = new HashMap<>();
-		filters.put(EventHandler.TAG_TYPE, getEventType());
-		filters.put(EventHandler.TAG_DESCRIPTION, getDescription());
-		filters.put(EventHandler.TAG_DATE, getDate());
-		filters.put(DateField.TAG_CALENDAR, getCalendar());
-		filters.put(EventHandler.TAG_PLACE, getPlace());
-		filters.put(EventHandler.TAG_AGENCY, getAgency());
-		filters.put(EventHandler.TAG_REASON, getCauseReason());
+		filters.put(EventReader.TAG_TYPE, getEventType());
+		filters.put(EventReader.TAG_DESCRIPTION, getDescription());
+		filters.put(EventReader.TAG_DATE, getDate());
+		filters.put(DateReader.TAG_CALENDAR, getCalendar());
+		filters.put(EventReader.TAG_PLACE, getPlace());
+		filters.put(EventReader.TAG_AGENCY, getAgency());
+		filters.put(EventReader.TAG_CAUSE_REASON, getCauseReason());
 		return filters;
 	}
 

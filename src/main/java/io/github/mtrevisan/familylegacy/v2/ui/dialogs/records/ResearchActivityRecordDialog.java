@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs.records;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextArea;
 import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
@@ -96,9 +97,8 @@ import java.io.IOException;
  */
 public class ResearchActivityRecordDialog extends BaseRecordDialog{
 
-	private static final String DOT = ".";
-	private static final String TAG_SEARCH_SCOPE_TYPE = ResearchActivityHandler.TAG_SEARCH_SCOPE + DOT + ResearchActivityHandler.TAG_TYPE;
-	private static final String TAG_SEARCH_SCOPE_DETAIL = ResearchActivityHandler.TAG_SEARCH_SCOPE + DOT + ResearchActivityHandler.TAG_DETAIL;
+	private static final String TAG_SEARCH_SCOPE_TYPE = FLEFRecordHelper.composePath(ResearchActivityHandler.TAG_SEARCH_SCOPE, ResearchActivityHandler.TAG_TYPE);
+	private static final String TAG_SEARCH_SCOPE_DETAIL = FLEFRecordHelper.composePath(ResearchActivityHandler.TAG_SEARCH_SCOPE, ResearchActivityHandler.TAG_DETAIL);
 
 
 	private final JPanel propertiesPanel;
@@ -152,8 +152,7 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 		resultCombo.setI18NPrefix("enum.research.activity.result");
 		observationArea = new BoundTextArea(ResearchActivityHandler.TAG_OBSERVATION, 3, 30);
 		conclusionArea = new BoundTextArea(ResearchActivityHandler.TAG_CONCLUSION, 3, 30);
-		conclusionConfidenceCombo = new BoundComboBox<>(ResearchActivityHandler.TAG_CONCLUSION_CONFIDENCE,
-			ResearchActivityHandler.CONFIDENCES);
+		conclusionConfidenceCombo = new BoundComboBox<>(ResearchActivityHandler.TAG_CONCLUSION_CONFIDENCE, GUIHelper.fillCombo(ResearchActivityHandler.CONFIDENCES, null));
 		conclusionConfidenceCombo.setI18NPrefix("enum.confidence");
 
 		parentActivityField = EntityField.createForRecordFromReference(ResearchActivityHandler.TAG_PARENT_ACTIVITY, this, model,

@@ -24,7 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.v2.gedcom.utils;
 
-import io.github.mtrevisan.familylegacy.v2.ui.components.SingleDatePanel;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.DateReader;
 
 import java.util.HashMap;
 import java.util.Locale;
@@ -201,6 +201,7 @@ public final class GEDCOMMapper{
 		// ------------------------------
 		CALENDAR_MAP.put("GREGORIAN", "gregorian");
 		CALENDAR_MAP.put("JULIAN", "julian");
+		CALENDAR_MAP.put("REFORMED_JULIAN", "reformed_julian");
 		CALENDAR_MAP.put("ISLAMIC", "islamic");
 		CALENDAR_MAP.put("HEBREW", "hebrew");
 		CALENDAR_MAP.put("CHINESE", "chinese");
@@ -215,15 +216,15 @@ public final class GEDCOMMapper{
 		// ------------------------------
 		// Century part
 		// ------------------------------
-		CENTURY_PART_MAP.put("FIRST_QUARTER", SingleDatePanel.ENUM_PART_FIRST_QUARTER);
-		CENTURY_PART_MAP.put("SECOND_QUARTER", SingleDatePanel.ENUM_PART_SECOND_QUARTER);
-		CENTURY_PART_MAP.put("THIRD_QUARTER", SingleDatePanel.ENUM_PART_THIRD_QUARTER);
-		CENTURY_PART_MAP.put("FOURTH_QUARTER", SingleDatePanel.ENUM_PART_FOURTH_QUARTER);
-		CENTURY_PART_MAP.put("FIRST_HALF", SingleDatePanel.ENUM_PART_FIRST_HALF);
-		CENTURY_PART_MAP.put("SECOND_HALF", SingleDatePanel.ENUM_PART_SECOND_HALF);
-		CENTURY_PART_MAP.put("EARLY", SingleDatePanel.ENUM_PART_EARLY);
-		CENTURY_PART_MAP.put("MID", SingleDatePanel.ENUM_PART_MID);
-		CENTURY_PART_MAP.put("LATE", SingleDatePanel.ENUM_PART_LATE);
+		CENTURY_PART_MAP.put("FIRST_QUARTER", DateReader.ENUM_PART_FIRST_QUARTER);
+		CENTURY_PART_MAP.put("SECOND_QUARTER", DateReader.ENUM_PART_SECOND_QUARTER);
+		CENTURY_PART_MAP.put("THIRD_QUARTER", DateReader.ENUM_PART_THIRD_QUARTER);
+		CENTURY_PART_MAP.put("FOURTH_QUARTER", DateReader.ENUM_PART_FOURTH_QUARTER);
+		CENTURY_PART_MAP.put("FIRST_HALF", DateReader.ENUM_PART_FIRST_HALF);
+		CENTURY_PART_MAP.put("SECOND_HALF", DateReader.ENUM_PART_SECOND_HALF);
+		CENTURY_PART_MAP.put("EARLY", DateReader.ENUM_PART_EARLY);
+		CENTURY_PART_MAP.put("MID", DateReader.ENUM_PART_MID);
+		CENTURY_PART_MAP.put("LATE", DateReader.ENUM_PART_LATE);
 
 		// ------------------------------
 		// Basis for approximate dates

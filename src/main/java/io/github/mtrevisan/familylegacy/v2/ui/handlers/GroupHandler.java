@@ -26,35 +26,19 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.GroupReader;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.GroupRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Window;
+import java.util.List;
 
 
 public class GroupHandler extends AbstractRecordTypeHandler<GroupRecordDialog>{
 
 	public static final String TYPE = "GROUP";
 	public static final String ID_PREFIX = "G";
-
-	public static final String TAG_NAME = "NAME";
-	public static final String TAG_TYPE = "TYPE";
-	public static final String TAG_SOURCE = "SOURCE";
-	public static final String TAG_NOTE = "NOTE";
-	public static final String TAG_PREFERRED_IMAGE = "PREFERRED_IMAGE";
-	public static final String TAG_PRIVACY = "PRIVACY";
-	public static final String TAG_AUDIT = "AUDIT";
-
-	private static final String DOT = ".";
-	private static final String TAG_NAME_VALUE = TAG_NAME + DOT + NameHandler.TAG_VALUE;
-
-	public static final String[] TYPES = new String[]{
-		StringUtils.EMPTY,
-		"family", "household", "neighbourhood", "fraternity", "club", "literary_society",
-		"association", "organisation", "tribe"
-	};
 
 
 	private static final class SingletonHelper{
@@ -88,9 +72,10 @@ public class GroupHandler extends AbstractRecordTypeHandler<GroupRecordDialog>{
 			return "--";
 
 		// Locate the first populated NAME structure
-		final String name = FLEFRecordHelper.getChildValue(record, TAG_NAME_VALUE);
+		final List<String> names = GroupReader.extractFullNames(record);
+		final String name = (!names.isEmpty()? names.getFirst(): null);
 
-		final String type = FLEFRecordHelper.getChildValue(record, TAG_TYPE);
+		final String type = GroupReader.extractType(record);
 
 		final String id = record.getId();
 		final StringBuilder sb = new StringBuilder();
@@ -108,7 +93,6 @@ public class GroupHandler extends AbstractRecordTypeHandler<GroupRecordDialog>{
 		sb.append('[')
 			.append(id)
 			.append(']');
-
 		return sb.toString();
 	}
 

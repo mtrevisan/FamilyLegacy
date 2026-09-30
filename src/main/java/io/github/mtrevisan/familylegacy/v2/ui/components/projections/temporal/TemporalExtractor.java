@@ -27,6 +27,8 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.projections.temporal;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.date.DateNormalizer;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.date.TemporalSpan;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HistoricEventHandler;
@@ -82,14 +84,11 @@ public final class TemporalExtractor{
 
 
 	private final FLEFModel model;
-	private final DateNormalizer normalizer;
 	private final TemporalIndices indices;
 
 
-	public TemporalExtractor(final FLEFModel model, final DateNormalizer normalizer,
-		final TemporalIndices indices){
+	public TemporalExtractor(final FLEFModel model, final TemporalIndices indices){
 		this.model = model;
-		this.normalizer = normalizer;
 		this.indices = indices;
 	}
 
@@ -136,7 +135,7 @@ public final class TemporalExtractor{
 				continue;
 
 			final FLEFRecord dateStructure = FLEFRecordHelper.findChild(event, TAG_DATE);
-			final TemporalSpan span = normalizer.normalize(dateStructure);
+			final TemporalSpan span = DateNormalizer.normalize(dateStructure);
 			if(span == null)
 				continue;
 
@@ -219,7 +218,7 @@ public final class TemporalExtractor{
 	private TemporalEntry buildAttributeEntry(final FLEFRecord attribute){
 		final FLEFRecord from = FLEFRecordHelper.findChild(attribute, TAG_VALID_FROM);
 		final FLEFRecord to = FLEFRecordHelper.findChild(attribute, TAG_VALID_TO);
-		final TemporalSpan span = normalizer.combineBounds(from, to);
+		final TemporalSpan span = DateNormalizer.combineBounds(from, to);
 		if(span == null)
 			return null;
 
@@ -231,7 +230,7 @@ public final class TemporalExtractor{
 	}
 
 	private TemporalSpan buildAttributeSpan(final FLEFRecord from, final FLEFRecord to){
-		return normalizer.combineBounds(from, to);
+		return DateNormalizer.combineBounds(from, to);
 	}
 
 
@@ -291,7 +290,7 @@ public final class TemporalExtractor{
 	private void collectHistoricEventPlaceEntries(final TemporalEntityRef entity, final List<TemporalEntry> output){
 		for(final FLEFRecord record : indices.historicEventsFor(entity.id())){
 			final FLEFRecord date = FLEFRecordHelper.findChild(record, TAG_DATE);
-			final TemporalSpan span = normalizer.normalize(date);
+			final TemporalSpan span = DateNormalizer.normalize(date);
 			if(span == null)
 				continue;
 
@@ -306,7 +305,7 @@ public final class TemporalExtractor{
 		for(final FLEFRecord record : indices.culturalNormsFor(entity.id())){
 			final FLEFRecord from = FLEFRecordHelper.findChild(record, TAG_VALID_FROM);
 			final FLEFRecord to = FLEFRecordHelper.findChild(record, TAG_VALID_TO);
-			final TemporalSpan span = normalizer.combineBounds(from, to);
+			final TemporalSpan span = DateNormalizer.combineBounds(from, to);
 			if(span == null)
 				continue;
 
@@ -343,7 +342,7 @@ public final class TemporalExtractor{
 		return switch(context.getTag()){
 			case HistoricEventHandler.TYPE -> {
 				final FLEFRecord date = FLEFRecordHelper.findChild(context, TAG_DATE);
-				yield normalizer.normalize(date);
+				yield DateNormalizer.normalize(date);
 			}
 			case CulturalNormHandler.TYPE -> {
 				final FLEFRecord from = FLEFRecordHelper.findChild(context, TAG_VALID_FROM);

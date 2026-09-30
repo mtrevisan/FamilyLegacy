@@ -24,7 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.components.projections;
 
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.SexType;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.SexType;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.ResourceHelper;
 
 import javax.swing.ImageIcon;

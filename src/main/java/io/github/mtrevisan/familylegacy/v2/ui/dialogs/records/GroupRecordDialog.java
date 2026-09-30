@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs.records;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.GroupReader;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
 import io.github.mtrevisan.familylegacy.v2.ui.components.PreferredImagePanel;
@@ -43,6 +44,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JPanel;
 import java.awt.Window;
@@ -100,9 +102,9 @@ public class GroupRecordDialog extends BaseRecordDialog{
 	private GroupRecordDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, GroupHandler.getInstance());
 
-		preferredImagePanel = new PreferredImagePanel(GroupHandler.TAG_PREFERRED_IMAGE, this);
-		namePanel = EntityListPanel.createForStructure(GroupHandler.TAG_NAME, this, I18N.t("dialog.group.name"), model, NameHandler.class);
-		typeCombo = new BoundComboBox<>(GroupHandler.TAG_TYPE, GroupHandler.TYPES);
+		preferredImagePanel = new PreferredImagePanel(GroupReader.TAG_PREFERRED_IMAGE, this);
+		namePanel = EntityListPanel.createForStructure(GroupReader.TAG_NAME, this, I18N.t("dialog.group.name"), model, NameHandler.class);
+		typeCombo = new BoundComboBox<>(GroupReader.TAG_TYPE, GUIHelper.fillCombo(GroupReader.TYPES, null));
 		typeCombo.setI18NPrefix("enum.group.type");
 		typeCombo.setEditable(true);
 
@@ -115,10 +117,10 @@ public class GroupRecordDialog extends BaseRecordDialog{
 			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, I18N.t("dialog.component.conclusions"))
 			.withComponent(PanelKey.IDENTITY_HYPOTHESIS_ON_IDENTITY, IdentityHypothesisHandler.TYPE, I18N.t("dialog.component.identity.hypotheses"))
 			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, I18N.t("dialog.component.research.questions"))
-			.withComponent(PanelKey.SOURCE, GroupHandler.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
-			.withComponent(PanelKey.NOTE, GroupHandler.TAG_NOTE, null)
-			.withComponent(PanelKey.PRIVACY, GroupHandler.TAG_PRIVACY, null)
-			.withComponent(PanelKey.AUDIT, GroupHandler.TAG_AUDIT, null)
+			.withComponent(PanelKey.SOURCE, GroupReader.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
+			.withComponent(PanelKey.NOTE, GroupReader.TAG_NOTE, null)
+			.withComponent(PanelKey.PRIVACY, GroupReader.TAG_PRIVACY, null)
+			.withComponent(PanelKey.AUDIT, GroupReader.TAG_AUDIT, null)
 			.build();
 
 		components.bind(typeCombo);

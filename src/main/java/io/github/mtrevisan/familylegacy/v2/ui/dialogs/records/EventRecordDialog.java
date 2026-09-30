@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs.records;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextArea;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextField;
@@ -97,12 +98,6 @@ import java.io.IOException;
  */
 public class EventRecordDialog extends BaseRecordDialog{
 
-	private static final String DOT = ".";
-	private static final String TAG_CAUSE_REASON = EventHandler.TAG_CAUSE + DOT + EventHandler.TAG_REASON;
-	private static final String TAG_CAUSE_EVIDENCE = EventHandler.TAG_CAUSE + DOT + EventHandler.TAG_EVIDENCE;
-
-
-
 	private final JPanel propertiesPanel;
 
 	private final BoundComboBox<String> typeCombo;
@@ -128,15 +123,15 @@ public class EventRecordDialog extends BaseRecordDialog{
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]15[]10[]15[]15[]15[]");
 
-		typeCombo = new BoundComboBox<>(EventHandler.TAG_TYPE, EventHandler.TYPES);
+		typeCombo = new BoundComboBox<>(EventReader.TAG_TYPE, GUIHelper.fillCombo(EventReader.TYPES, I18N.t("search.combo.any")));
 		typeCombo.setI18NPrefix("enum.event.type");
 		typeCombo.setEditable(true);
-		descriptionArea = new BoundTextArea(EventHandler.TAG_DESCRIPTION, 3, 25);
-		dateField = DateField.createWithWrapperTag(EventHandler.TAG_DATE, this, I18N.t("dialog.event.date"), model);
+		descriptionArea = new BoundTextArea(EventReader.TAG_DESCRIPTION, 3, 25);
+		dateField = DateField.createWithWrapperTag(EventReader.TAG_DATE, this, I18N.t("dialog.event.date"), model);
 		placeField = EntityField.createForStructureWithReference(PlaceHandler.TYPE, this, model, PlaceCitationHandler.class);
-		agencyField = new BoundTextField(EventHandler.TAG_AGENCY);
-		causeReasonField = new BoundTextField(TAG_CAUSE_REASON);
-		causeEvidencePanel = new EvidenceQualifiersPanel(TAG_CAUSE_EVIDENCE, I18N.t("dialog.event.cause.evidence"));
+		agencyField = new BoundTextField(EventReader.TAG_AGENCY);
+		causeReasonField = new BoundTextField(EventReader.TAG_CAUSE_REASON);
+		causeEvidencePanel = new EvidenceQualifiersPanel(EventReader.TAG_CAUSE_EVIDENCE, I18N.t("dialog.event.cause.evidence"));
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
@@ -144,11 +139,11 @@ public class EventRecordDialog extends BaseRecordDialog{
 			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, I18N.t("dialog.component.conclusions"))
 			.withComponent(PanelKey.EVENT_PARTICIPATION_ON_EVENT, EventParticipationHandler.TYPE, I18N.t("dialog.component.event.participations"))
 			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, I18N.t("dialog.component.research.questions"))
-			.withComponent(PanelKey.SOURCE, EventHandler.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
-			.withComponent(PanelKey.NOTE, EventHandler.TAG_NOTE, null)
-			.withComponent(PanelKey.EVIDENCE, EventHandler.TAG_EVIDENCE, I18N.t("dialog.component.evidence"))
-			.withComponent(PanelKey.PRIVACY, EventHandler.TAG_PRIVACY, null)
-			.withComponent(PanelKey.AUDIT, EventHandler.TAG_AUDIT, null)
+			.withComponent(PanelKey.SOURCE, EventReader.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
+			.withComponent(PanelKey.NOTE, EventReader.TAG_NOTE, null)
+			.withComponent(PanelKey.EVIDENCE, EventReader.TAG_EVIDENCE, I18N.t("dialog.component.evidence"))
+			.withComponent(PanelKey.PRIVACY, EventReader.TAG_PRIVACY, null)
+			.withComponent(PanelKey.AUDIT, EventReader.TAG_AUDIT, null)
 			.build();
 
 		components.bind(typeCombo);

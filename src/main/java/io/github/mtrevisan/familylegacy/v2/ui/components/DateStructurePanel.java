@@ -27,9 +27,9 @@ package io.github.mtrevisan.familylegacy.v2.ui.components;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.DateReader;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextField;
-import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceCitationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
@@ -91,7 +91,7 @@ public class DateStructurePanel extends JPanel{
 		boundedDateValuePanel = new BoundedDatePanel(parent, model);
 		spanningDateValuePanel = new SpanningDatePanel(parent, model);
 
-		originalTextField = new BoundTextField(DateField.TAG_ORIGINAL_TEXT);
+		originalTextField = new BoundTextField(DateReader.TAG_ORIGINAL_TEXT);
 		sourcePanel = EntityListPanel.createForCitationWrapper(TAG_SOURCE, parent, I18N.t("dialog.component.sources.with.citations"),
 			model, SourceCitationHandler.class);
 		qualifiers = new EvidenceQualifiersPanel(null, I18N.t("dialog.component.evidence"));
@@ -162,23 +162,23 @@ public class DateStructurePanel extends JPanel{
 			return;
 
 		// Load the date value: POINT, BOUNDED, or SPANNING
-		final FLEFRecord value = FLEFRecordHelper.extractStructures(record, DateField.TAG_VALUE)
+		final FLEFRecord value = FLEFRecordHelper.extractStructures(record, DateReader.TAG_VALUE)
 			.getFirst();
-		final FLEFRecord point = FLEFRecordHelper.findChild(value, DateField.TAG_POINT);
+		final FLEFRecord point = FLEFRecordHelper.findChild(value, DateReader.TAG_POINT);
 		if(point != null){
 			tabbedPane.setSelectedIndex(0);
 
 			pointDateValuePanel.load(point);
 		}
 		else{
-			final FLEFRecord bounded = FLEFRecordHelper.findChild(value, DateField.TAG_BOUNDED);
+			final FLEFRecord bounded = FLEFRecordHelper.findChild(value, DateReader.TAG_BOUNDED);
 			if(bounded != null){
 				tabbedPane.setSelectedIndex(1);
 
 				boundedDateValuePanel.load(bounded);
 			}
 			else{
-				final FLEFRecord spanning = FLEFRecordHelper.findChild(value, DateField.TAG_SPANNING);
+				final FLEFRecord spanning = FLEFRecordHelper.findChild(value, DateReader.TAG_SPANNING);
 				if(spanning != null){
 					tabbedPane.setSelectedIndex(2);
 

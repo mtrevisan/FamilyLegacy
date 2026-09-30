@@ -27,9 +27,9 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.projections.dossier;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.components.projections.temporal.DateNormalizer;
-import io.github.mtrevisan.familylegacy.v2.ui.components.projections.temporal.NormalizedDate;
-import io.github.mtrevisan.familylegacy.v2.ui.components.projections.temporal.TemporalSpan;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.date.DateNormalizer;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.date.NormalizedDate;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.date.TemporalSpan;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import org.apache.commons.lang3.StringUtils;
 
@@ -54,7 +54,6 @@ final class DossierFormatting{
 
 
 	private final FLEFModel model;
-	private final DateNormalizer dateNormalizer = new DateNormalizer();
 
 
 	DossierFormatting(final FLEFModel model){
@@ -75,7 +74,7 @@ final class DossierFormatting{
 		if(dateStruct == null)
 			return StringUtils.EMPTY;
 
-		final TemporalSpan span = dateNormalizer.normalize(dateStruct);
+		final TemporalSpan span = DateNormalizer.normalize(dateStruct);
 		if(span == null || span.start() == null)
 			return StringUtils.EMPTY;
 

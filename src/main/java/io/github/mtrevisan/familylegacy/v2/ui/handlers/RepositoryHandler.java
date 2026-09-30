@@ -50,9 +50,7 @@ public class RepositoryHandler extends AbstractRecordTypeHandler<RepositoryRecor
 	public static final String TAG_PRIVACY = "PRIVACY";
 	public static final String TAG_AUDIT = "AUDIT";
 
-	private static final String DOT = ".";
-
-	private static final String TAG_NAME_VALUE = TAG_NAME + DOT + NameHandler.TAG_VALUE;
+	private static final String TAG_NAME_VALUE = FLEFRecordHelper.composePath(TAG_NAME, NameHandler.TAG_VALUE);
 
 
 	private static final class SingletonHelper{

@@ -26,10 +26,12 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.DateReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.EventRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.Strings;
 
 import java.awt.Window;
 
@@ -38,33 +40,6 @@ public class EventHandler extends AbstractRecordTypeHandler<EventRecordDialog>{
 
 	public static final String TYPE = "EVENT";
 	public static final String ID_PREFIX = "E";
-
-	public static final String TAG_TYPE = "TYPE";
-	public static final String TAG_DESCRIPTION = "DESCRIPTION";
-	public static final String TAG_DATE = "DATE";
-	public static final String TAG_PLACE = "PLACE";
-	public static final String TAG_AGENCY = "AGENCY";
-	public static final String TAG_CAUSE = "CAUSE";
-	public static final String TAG_REASON = "REASON";
-	public static final String TAG_SOURCE = "SOURCE";
-	public static final String TAG_NOTE = "NOTE";
-	public static final String TAG_EVIDENCE = "EVIDENCE";
-	public static final String TAG_PRIVACY = "PRIVACY";
-	public static final String TAG_AUDIT = "AUDIT";
-
-	public static final String ENUM_TYPE_BIRTH = "birth";
-	public static final String ENUM_TYPE_DEATH = "death";
-	public static final String[] TYPES = new String[]{
-		StringUtils.EMPTY,
-		ENUM_TYPE_BIRTH, ENUM_TYPE_DEATH, "adoption", "graduation", "immigration", "naturalization", "bankruptcy",
-		"guardianship", "coroner_report", "cremation", "burial", "education", "retirement", "military_induction",
-		"military_muster_roll", "military_service", "military_award", "military_release", "military_discharge",
-		"military_resignation", "military_retirement", "prison", "pardon", "jury_duty", "illness", "hospitalization",
-		"medical_procedure", "honor", "deportation", "internment", "liberation", "emancipation", "relocation",
-		"emigration", "census", "deed", "escrow", "chancery", "will", "probate", "engagement", "marriage_bann",
-		"marriage_contract", "marriage_license", "marriage_settlement", "marriage", "divorce_filed", "divorce_decree",
-		"divorce", "annulment"
-	};
 
 
 	private static final class SingletonHelper{
@@ -94,17 +69,18 @@ public class EventHandler extends AbstractRecordTypeHandler<EventRecordDialog>{
 
 	@Override
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
-		String type = getChildValue(record, "TYPE");
-		String date = getChildValue(record, "DATE");
-		String id = record.getId();
-		StringBuilder sb = new StringBuilder();
+		final String type = EventReader.extractType(record);
+		final FLEFRecord date = FLEFRecordHelper.findChild(record, EventReader.TAG_DATE);
+		final String rawDate = DateReader.extractPrettyPrintDate(date);
+		final String id = record.getId();
+		final StringBuilder sb = new StringBuilder();
 		if(type != null)
 			sb.append(type);
-		if(date != null){
+		if(rawDate != null){
 			if(!sb.isEmpty())
 				sb.append(StringUtils.SPACE);
 			sb.append('(')
-				.append(date)
+				.append(rawDate)
 				.append(')');
 		}
 		if(sb.isEmpty())
@@ -113,13 +89,6 @@ public class EventHandler extends AbstractRecordTypeHandler<EventRecordDialog>{
 			.append(id)
 			.append(']');
 		return sb.toString();
-	}
-
-	private String getChildValue(FLEFRecord parent, String tag){
-		for(FLEFRecord child : parent.getChildren())
-			if(Strings.CI.equals(tag, child.getTag()))
-				return child.getValue();
-		return null;
 	}
 
 	@Override

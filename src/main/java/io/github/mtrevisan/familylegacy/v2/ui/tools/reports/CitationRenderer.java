@@ -26,8 +26,8 @@ package io.github.mtrevisan.familylegacy.v2.ui.tools.reports;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.PrivacyReader;
 import io.github.mtrevisan.familylegacy.v2.ui.components.EvidenceQualifiersPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.PrivacyPanel;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -324,11 +324,11 @@ final class CitationRenderer{
 
 		final List<String> rows = new ArrayList<>();
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().privacyLevel(),
-			FLEFRecordHelper.getChildValue(privacy, PrivacyPanel.TAG_LEVEL));
+			PrivacyReader.extractLevel(privacy));
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().privacyReason(),
-			FLEFRecordHelper.getChildValue(privacy, PrivacyPanel.TAG_REASON));
+			PrivacyReader.extractReason(privacy));
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().privacyExpires(),
-			FLEFRecordHelper.getChildValue(privacy, PrivacyPanel.TAG_EXPIRES));
+			PrivacyReader.extractExpires(privacy));
 		if(rows.isEmpty())
 			return List.of();
 

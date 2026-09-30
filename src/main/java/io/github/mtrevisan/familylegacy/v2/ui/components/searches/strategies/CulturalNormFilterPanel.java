@@ -24,7 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.components.searches.strategies;
 
-import io.github.mtrevisan.familylegacy.v2.ui.components.SingleDatePanel;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.DateReader;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.RecordFilterPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchCriteria;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
@@ -54,9 +54,9 @@ public class CulturalNormFilterPanel extends JPanel implements RecordFilterPanel
 	private final JComboBox<String> ruleTypeCombo = new JComboBox<>(GUIHelper.fillCombo(CulturalNormHandler.RULE_TYPES, I18N.t("search.combo.any")));
 	private final JTextField placeField = new JTextField(20);
 	private final JTextField dateFromField = new JTextField(10);
-	private final JComboBox<String> calendarFromCombo = new JComboBox<>(SingleDatePanel.CALENDARS);
+	private final JComboBox<String> calendarFromCombo = new JComboBox<>(DateReader.CALENDARS);
 	private final JTextField dateToField = new JTextField(10);
-	private final JComboBox<String> calendarToCombo = new JComboBox<>(SingleDatePanel.CALENDARS);
+	private final JComboBox<String> calendarToCombo = new JComboBox<>(DateReader.CALENDARS);
 
 	private final Consumer<SearchCriteria> onChanged;
 

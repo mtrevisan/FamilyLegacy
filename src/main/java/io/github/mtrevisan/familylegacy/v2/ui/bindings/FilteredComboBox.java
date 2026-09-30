@@ -27,14 +27,17 @@ package io.github.mtrevisan.familylegacy.v2.ui.bindings;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.DefaultListCellRenderer;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
+import javax.swing.JList;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.WindowConstants;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.JTextComponent;
+import java.awt.Component;
 import java.awt.FlowLayout;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
@@ -57,6 +60,8 @@ public class FilteredComboBox<E> extends JComboBox<E>{
 	private static final int DEBOUNCE_TIME = 400;
 
 	public static final String PROPERTY_DEBOUNCER = "search";
+
+	private static final String NON_BREAKING_SPACE = "\u00A0";
 
 
 	private record FilterItem<E>(E item, String displayLower){}
@@ -81,10 +86,29 @@ public class FilteredComboBox<E> extends JComboBox<E>{
 		setModel(this.model);
 		setEditable(true);
 
+		installRenderer();
+
 		setupEditorListener();
 
 		if(items != null)
 			setItems(items);
+	}
+
+	private void installRenderer(){
+		setRenderer(new DefaultListCellRenderer(){
+			@Override
+			public Component getListCellRendererComponent(final JList<?> list, final Object value, final int index,
+				final boolean isSelected, final boolean cellHasFocus){
+				final Object displayValue = manageEmptyValue(value);
+				return super.getListCellRendererComponent(list, displayValue, index, isSelected, cellHasFocus);
+			}
+		});
+	}
+
+	private static Object manageEmptyValue(final Object value){
+		return (value == null || (value instanceof String str && str.trim().isEmpty())
+			? NON_BREAKING_SPACE
+			: value);
 	}
 
 
@@ -145,6 +169,10 @@ public class FilteredComboBox<E> extends JComboBox<E>{
 
 	private void onTextChanged(){
 		if(isFiltering)
+			return;
+
+		final Object selected = getSelectedItem();
+		if(selected != null && getText().equals(selected.toString()))
 			return;
 
 		SwingUtilities.invokeLater(() -> refilter(getText()));
