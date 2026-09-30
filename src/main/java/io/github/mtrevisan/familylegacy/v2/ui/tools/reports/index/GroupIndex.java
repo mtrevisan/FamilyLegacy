@@ -25,12 +25,13 @@ public final class GroupIndex{
 		if(model == null)
 			return;
 
-		for(final FLEFRecord attr : model.getRecordsByType(GroupAttributeHandler.TYPE)){
-			if(!filter.test(attr))
+		final List<FLEFRecord> groupAttributes = model.getRecordsByType(GroupAttributeHandler.TYPE);
+		for(final FLEFRecord groupAttribute : groupAttributes){
+			if(!filter.test(groupAttribute))
 				continue;
-			final String groupId = FLEFRecordHelper.getChildValue(attr, "group");
+			final String groupId = FLEFRecordHelper.getChildValue(groupAttribute, "group");
 			if(groupId != null){
-				groupToAttrsMap.computeIfAbsent(groupId, k -> new ArrayList<>()).add(attr);
+				groupToAttrsMap.computeIfAbsent(groupId, k -> new ArrayList<>()).add(groupAttribute);
 			}
 		}
 

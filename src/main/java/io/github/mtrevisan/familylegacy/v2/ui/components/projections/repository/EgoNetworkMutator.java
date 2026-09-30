@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.relationshipgraph.EgoNetworkService;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
 import org.apache.commons.lang3.StringUtils;
@@ -84,12 +85,12 @@ public class EgoNetworkMutator extends AbstractProjectionMutator{
 		for(int i = 0, size = relationships.size(); i < size; i ++){
 			final FLEFRecord relationship = relationships.get(i);
 
-			final String type = FLEFRecordHelper.getChildValue(relationship, RelationshipHandler.TAG_TYPE);
+			final String type = RelationshipReader.extractType(relationship);
 			if(type == null)
 				continue;
 
-			final String subjectId = relationship.extractReferencedId(RelationshipHandler.TAG_SUBJECT, sourceTag);
-			final String relationshipObjectId = relationship.extractReferencedId(RelationshipHandler.TAG_OBJECT, targetTag);
+			final String subjectId = relationship.extractReferencedId(RelationshipReader.TAG_SUBJECT, sourceTag);
+			final String relationshipObjectId = relationship.extractReferencedId(RelationshipReader.TAG_OBJECT, targetTag);
 			if((sourceId.equals(subjectId) && targetId.equals(relationshipObjectId))
 					|| (targetId.equals(subjectId) && sourceId.equals(relationshipObjectId)))
 				toRemove.add(relationship.getId());

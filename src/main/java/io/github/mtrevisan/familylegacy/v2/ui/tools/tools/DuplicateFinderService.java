@@ -235,7 +235,8 @@ public final class DuplicateFinderService{
 
 		// Index participations by participant.
 		final Map<String, List<FLEFRecord>> participationsByIndividual = new HashMap<>();
-		for(final FLEFRecord participation : model.getRecordsByType(EventParticipationHandler.TYPE)){
+		final List<FLEFRecord> participations = model.getRecordsByType(EventParticipationHandler.TYPE);
+		for(final FLEFRecord participation : participations){
 			final FLEFRecord participantBlock = FLEFRecordHelper.findChild(participation, "participant");
 			if(participantBlock == null)
 				continue;
@@ -250,16 +251,18 @@ public final class DuplicateFinderService{
 
 		// Index attributes by individual.
 		final Map<String, List<FLEFRecord>> attributesByIndividual = new HashMap<>();
-		for(final FLEFRecord attr : model.getRecordsByType(IndividualAttributeHandler.TYPE)){
-			final String id = FLEFRecordHelper.getChildValue(attr, IndividualHandler.TYPE);
+		final List<FLEFRecord> attributes = model.getRecordsByType(IndividualAttributeHandler.TYPE);
+		for(final FLEFRecord attribute : attributes){
+			final String id = FLEFRecordHelper.getChildValue(attribute, IndividualHandler.TYPE);
 			if(id != null)
-				attributesByIndividual.computeIfAbsent(id, k -> new ArrayList<>()).add(attr);
+				attributesByIndividual.computeIfAbsent(id, k -> new ArrayList<>()).add(attribute);
 		}
 
 		// Index events by id, so date extraction does not scan the whole
 		// event list per participation.
 		final Map<String, FLEFRecord> eventsById = new LinkedHashMap<>();
-		for(final FLEFRecord event : model.getRecordsByType(EventHandler.TYPE))
+		final List<FLEFRecord> events = model.getRecordsByType(EventHandler.TYPE);
+		for(final FLEFRecord event : events)
 			if(event.getId() != null)
 				eventsById.put(event.getId(), event);
 
@@ -597,9 +600,10 @@ public final class DuplicateFinderService{
 	 */
 	private static Set<String> existingHypothesisPairs(final FLEFModel model){
 		final Set<String> pairs = new HashSet<>();
-		for(final FLEFRecord h : model.getRecordsByType(IdentityHypothesisHandler.TYPE)){
+		final List<FLEFRecord> identityHypotheses = model.getRecordsByType(IdentityHypothesisHandler.TYPE);
+		for(final FLEFRecord identityHypothesis : identityHypotheses){
 			final List<String> candidates = new ArrayList<>();
-			for(final FLEFRecord child : h.getChildren()){
+			for(final FLEFRecord child : identityHypothesis.getChildren()){
 				if(!"identity".equalsIgnoreCase(child.getTag()))
 					continue;
 				final FLEFRecord oneof = child.getTheOnlyChild();

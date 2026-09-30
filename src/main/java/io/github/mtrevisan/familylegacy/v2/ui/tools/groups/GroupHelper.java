@@ -299,12 +299,13 @@ public final class GroupHelper{
 	 * before deleting a group, to clean up the relationships that would
 	 * otherwise dangle.
 	 */
-	public static List<String> allRelationshipIdsForGroup(final FLEFModel model,
-		final String groupId){
+	public static List<String> allRelationshipIdsForGroup(final FLEFModel model, final String groupId){
 		final List<String> result = new ArrayList<>();
 		if(groupId == null)
 			return result;
-		for(final FLEFRecord relationship : model.getRecordsByType(RelationshipHandler.TYPE)){
+
+		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
+		for(final FLEFRecord relationship : relationships){
 			final String subject = relationship.extractReferencedId(RelationshipHandler.TAG_SUBJECT, GroupHandler.TYPE);
 			final String object = relationship.extractReferencedId(RelationshipHandler.TAG_OBJECT, GroupHandler.TYPE);
 			if(groupId.equals(subject) || groupId.equals(object))

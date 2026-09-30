@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.IndividualAttributeReader;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.IndividualAttributeRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
@@ -43,24 +44,6 @@ public class IndividualAttributeHandler extends AbstractRecordTypeHandler<Indivi
 
 	public static final String TYPE = "INDIVIDUAL_ATTRIBUTE";
 	public static final String ID_PREFIX = "IA";
-
-	public static final String TAG_INDIVIDUAL = "INDIVIDUAL";
-	public static final String TAG_TYPE = "TYPE";
-	public static final String TAG_VALUE = "VALUE";
-	public static final String TAG_VALID_FROM = "VALID_FROM";
-	public static final String TAG_VALID_TO = "VALID_TO";
-	public static final String TAG_PLACE = "PLACE";
-	public static final String TAG_SOURCE = "SOURCE";
-	public static final String TAG_NOTE = "NOTE";
-	public static final String TAG_EVIDENCE = "EVIDENCE";
-	public static final String TAG_PRIVACY = "PRIVACY";
-	public static final String TAG_AUDIT = "AUDIT";
-
-	public static final String[] TYPES = new String[]{
-		"characteristic", "residence", "occupation", "possession", "military_rank", "caste", "social_class",
-		"ethnicity", "citizenship", "nationality", "ssn", "title", "children_count", "marriages_count",
-		"religion", "language", "literacy", "education"
-	};
 
 
 	private static final class SingletonHelper{
@@ -93,7 +76,7 @@ public class IndividualAttributeHandler extends AbstractRecordTypeHandler<Indivi
 			final String parentEntityType){
 		return model.getRecordsByType(TYPE).stream()
 			.filter(attribute -> {
-				final List<FLEFRecord> individuals = FLEFRecordHelper.findChildren(attribute, TAG_INDIVIDUAL);
+				final List<FLEFRecord> individuals = FLEFRecordHelper.findChildren(attribute, IndividualAttributeReader.TAG_INDIVIDUAL);
 				for(final FLEFRecord individual : individuals){
 					final String resolveTag = individual.getTag();
 					final String resolveXRef = individual.getValue();
@@ -112,8 +95,8 @@ public class IndividualAttributeHandler extends AbstractRecordTypeHandler<Indivi
 		if(record == null)
 			return "--";
 
-		final String type = FLEFRecordHelper.getChildValue(record, TAG_TYPE);
-		final String value = FLEFRecordHelper.getChildValue(record, TAG_VALUE);
+		final String type = FLEFRecordHelper.getChildValue(record, IndividualAttributeReader.TAG_TYPE);
+		final String value = FLEFRecordHelper.getChildValue(record, IndividualAttributeReader.TAG_VALUE);
 		final StringBuilder sb = new StringBuilder();
 		if(type != null)
 			sb.append('[')

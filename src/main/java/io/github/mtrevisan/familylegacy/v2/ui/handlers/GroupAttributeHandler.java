@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.GroupAttributeReader;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.GroupAttributeRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
@@ -43,23 +44,6 @@ public class GroupAttributeHandler extends AbstractRecordTypeHandler<GroupAttrib
 
 	public static final String TYPE = "GROUP_ATTRIBUTE";
 	public static final String ID_PREFIX = "GA";
-
-	public static final String TAG_GROUP = "GROUP";
-	public static final String TAG_TYPE = "TYPE";
-	public static final String TAG_VALUE = "VALUE";
-	public static final String TAG_VALID_FROM = "VALID_FROM";
-	public static final String TAG_VALID_TO = "VALID_TO";
-	public static final String TAG_PLACE = "PLACE";
-	public static final String TAG_SOURCE = "SOURCE";
-	public static final String TAG_NOTE = "NOTE";
-	public static final String TAG_EVIDENCE = "EVIDENCE";
-	public static final String TAG_PRIVACY = "PRIVACY";
-	public static final String TAG_AUDIT = "AUDIT";
-
-	public static final String[] TYPES = new String[]{
-		"residence", "member_count", "children_count", "social_class", "ethnicity", "religion", "language",
-		"wealth", "land_holding", "primary_income_source"
-	};
 
 
 	private static final class SingletonHelper{
@@ -92,7 +76,7 @@ public class GroupAttributeHandler extends AbstractRecordTypeHandler<GroupAttrib
 			final String parentEntityType){
 		return model.getRecordsByType(TYPE).stream()
 			.filter(attribute -> {
-				final List<FLEFRecord> groups = FLEFRecordHelper.findChildren(attribute, TAG_GROUP);
+				final List<FLEFRecord> groups = FLEFRecordHelper.findChildren(attribute, GroupAttributeReader.TAG_GROUP);
 				for(final FLEFRecord group : groups){
 					final String resolveTag = group.getTag();
 					final String resolveXRef = group.getValue();
@@ -111,8 +95,8 @@ public class GroupAttributeHandler extends AbstractRecordTypeHandler<GroupAttrib
 		if(record == null)
 			return "--";
 
-		final String type = FLEFRecordHelper.getChildValue(record, TAG_TYPE);
-		final String value = FLEFRecordHelper.getChildValue(record, TAG_VALUE);
+		final String type = FLEFRecordHelper.getChildValue(record, GroupAttributeReader.TAG_TYPE);
+		final String value = FLEFRecordHelper.getChildValue(record, GroupAttributeReader.TAG_VALUE);
 		final StringBuilder sb = new StringBuilder();
 		if(StringUtils.isNotEmpty(type))
 			sb.append('(')

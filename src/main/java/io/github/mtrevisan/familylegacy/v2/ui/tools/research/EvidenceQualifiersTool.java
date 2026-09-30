@@ -34,6 +34,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolOperation;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -76,7 +77,8 @@ public final class EvidenceQualifiersTool implements ToolOperation{
 		int withoutQualifiers = 0;
 
 		for(final String type : SCANNED_TYPES){
-			for(final FLEFRecord record : model.getRecordsByType(type)){
+			final List<FLEFRecord> records = model.getRecordsByType(type);
+			for(final FLEFRecord record : records){
 				final FLEFRecord qualifiers = FLEFRecordHelper.findChild(record,
 					ResearchHelper.TAG_EVIDENCE);
 				if(qualifiers == null){

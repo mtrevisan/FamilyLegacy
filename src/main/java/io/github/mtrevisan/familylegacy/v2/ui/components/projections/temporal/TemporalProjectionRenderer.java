@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.projections.temporal;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
+import java.util.List;
 
 
 /**
@@ -127,7 +128,8 @@ public final class TemporalProjectionRenderer{
 
 
 	private static TemporalRow findRow(final TemporalProjectionModel model, final TemporalEntityRef entity){
-		for(final TemporalRow row : model.rows())
+		final List<TemporalRow> rows = model.rows();
+		for(final TemporalRow row : rows)
 			if(row.entity().equals(entity))
 				return row;
 		return null;

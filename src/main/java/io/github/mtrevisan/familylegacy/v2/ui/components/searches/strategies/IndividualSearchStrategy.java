@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.io.model.readers.DateReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.EventParticipationReader;
 import io.github.mtrevisan.familylegacy.v2.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.v2.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchCriteria;
@@ -59,7 +60,7 @@ public class IndividualSearchStrategy implements SearchStrategy{
 	static final String KEY_DATE_TO = EventReader.TAG_DATE + "_" + DateReader.TAG_TO;
 	static final String KEY_CALENDAR_TO = DateReader.TAG_CALENDAR + "_" + DateReader.TAG_TO;
 
-	private static final String TAG_PARTICIPANT_INDIVIDUAL = FLEFRecordHelper.composePath(EventParticipationHandler.TAG_PARTICIPANT, IndividualHandler.TYPE);
+	private static final String TAG_PARTICIPANT_INDIVIDUAL = FLEFRecordHelper.composePath(EventParticipationReader.TAG_PARTICIPANT, IndividualHandler.TYPE);
 
 
 	private static final String SEX_ABBREVIATION_MALE = "[" + I18N.t("dialog.individual.sex.abbreviation.male") + "]";
@@ -99,9 +100,10 @@ public class IndividualSearchStrategy implements SearchStrategy{
 		this.model = model;
 
 		SearchHelper.precomputeLifeBounds(birthYears, deathYears, model);
-		for(final FLEFRecord participation : model.getRecordsByType(EventParticipationHandler.TYPE)){
+		final List<FLEFRecord> participations = model.getRecordsByType(EventParticipationHandler.TYPE);
+		for(final FLEFRecord participation : participations){
 			final String participantRef = FLEFRecordHelper.getChildValue(participation, TAG_PARTICIPANT_INDIVIDUAL);
-			final String eventRef = FLEFRecordHelper.getChildValue(participation, EventParticipationHandler.TAG_EVENT);
+			final String eventRef = FLEFRecordHelper.getChildValue(participation, EventParticipationReader.TAG_EVENT);
 			if(participantRef != null && eventRef != null){
 				final FLEFRecord event = model.getRecordById(eventRef);
 				if(event != null)

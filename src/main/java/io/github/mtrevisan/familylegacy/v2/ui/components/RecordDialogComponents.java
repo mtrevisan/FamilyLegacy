@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.EventParticipationReader;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.PathBound;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityListPanel;
@@ -108,8 +109,8 @@ public final class RecordDialogComponents{
 		loadReferenceIfPresent(PanelKey.PLACE_RELATIONSHIP_ON_SUBJECT, elp -> elp.loadReferenceWithType(record.getId(), PlaceRelationshipHandler.TAG_SUBJECT));
 		loadReferenceIfPresent(PanelKey.PLACE_RELATIONSHIP_ON_OBJECT, elp -> elp.loadReferenceWithType(record.getId(), PlaceRelationshipHandler.TAG_OBJECT));
 
-		loadReferenceIfPresent(PanelKey.EVENT_PARTICIPATION_ON_PARTICIPANT, elp -> elp.loadReferenceWithType(record.getId(), EventParticipationHandler.TAG_PARTICIPANT));
-		loadReferenceIfPresent(PanelKey.EVENT_PARTICIPATION_ON_EVENT, elp -> elp.withParentEntity(record).loadCitationsWithType(record.getId(), EventParticipationHandler.TAG_EVENT));
+		loadReferenceIfPresent(PanelKey.EVENT_PARTICIPATION_ON_PARTICIPANT, elp -> elp.loadReferenceWithType(record.getId(), EventParticipationReader.TAG_PARTICIPANT));
+		loadReferenceIfPresent(PanelKey.EVENT_PARTICIPATION_ON_EVENT, elp -> elp.withParentEntity(record).loadCitationsWithType(record.getId(), EventParticipationReader.TAG_EVENT));
 
 		loadReferenceIfPresent(PanelKey.CONTEXT_IMPACT_ON_TARGET, elp -> elp.loadReferenceWithType(record.getId(), ContextImpactHandler.TAG_TARGET));
 		loadReferenceIfPresent(PanelKey.CONTEXT_IMPACT_ON_CONTEXT, elp -> elp.loadReferenceWithType(record.getId(), ContextImpactHandler.TAG_CONTEXT));

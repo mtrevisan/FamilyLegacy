@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs.records;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.EventParticipationReader;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
@@ -109,10 +110,10 @@ public class EventParticipationRecordDialog extends BaseRecordDialog{
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]5[]");
 
-		participantField = EntityField.createForRecordFromOneofReference(EventParticipationHandler.TAG_PARTICIPANT, this, model)
+		participantField = EntityField.createForRecordFromOneofReference(EventParticipationReader.TAG_PARTICIPANT, this, model)
 			.withHandlerTypes(IndividualHandler.class, GroupHandler.class, PlaceHandler.class);
-		eventField = EntityField.createForRecordFromReference(EventParticipationHandler.TAG_EVENT, this, model, EventHandler.class);
-		roleCombo = new BoundComboBox<>(EventParticipationHandler.TAG_ROLE, EventParticipationHandler.ROLES);
+		eventField = EntityField.createForRecordFromReference(EventParticipationReader.TAG_EVENT, this, model, EventHandler.class);
+		roleCombo = new BoundComboBox<>(EventParticipationReader.TAG_ROLE, GUIHelper.fillCombo(EventParticipationReader.ROLES, null));
 		roleCombo.setI18NPrefix("enum.event.participation.role");
 		roleCombo.setEditable(true);
 
@@ -121,11 +122,11 @@ public class EventParticipationRecordDialog extends BaseRecordDialog{
 			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, ContextImpactHandler.TYPE, I18N.t("dialog.component.context.impact"))
 			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, I18N.t("dialog.component.conclusions"))
 			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, I18N.t("dialog.component.research.questions"))
-			.withComponent(PanelKey.SOURCE, EventParticipationHandler.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
-			.withComponent(PanelKey.NOTE, EventParticipationHandler.TAG_NOTE, null)
-			.withComponent(PanelKey.EVIDENCE, EventParticipationHandler.TAG_EVIDENCE, I18N.t("dialog.component.evidence"))
-			.withComponent(PanelKey.PRIVACY, EventParticipationHandler.TAG_PRIVACY, null)
-			.withComponent(PanelKey.AUDIT, EventParticipationHandler.TAG_AUDIT, null)
+			.withComponent(PanelKey.SOURCE, EventParticipationReader.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
+			.withComponent(PanelKey.NOTE, EventParticipationReader.TAG_NOTE, null)
+			.withComponent(PanelKey.EVIDENCE, EventParticipationReader.TAG_EVIDENCE, I18N.t("dialog.component.evidence"))
+			.withComponent(PanelKey.PRIVACY, EventParticipationReader.TAG_PRIVACY, null)
+			.withComponent(PanelKey.AUDIT, EventParticipationReader.TAG_AUDIT, null)
 			.build();
 
 		components.bind(roleCombo);

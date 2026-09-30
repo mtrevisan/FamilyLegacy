@@ -38,7 +38,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.NameHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.LocaleHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
-import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JPanel;
 import java.awt.Window;

@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs.records;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.GroupAttributeReader;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
@@ -118,24 +119,24 @@ public class GroupAttributeRecordDialog extends BaseRecordDialog{
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]5[]10[]10[]10[]");
 
-		typeCombo = new BoundComboBox<>(GroupAttributeHandler.TAG_TYPE, GroupAttributeHandler.TYPES);
+		typeCombo = new BoundComboBox<>(GroupAttributeReader.TAG_TYPE, GUIHelper.fillCombo(GroupAttributeReader.TYPES, null));
 		typeCombo.setI18NPrefix("enum.group.attribute.type");
 		typeCombo.setEditable(true);
-		valueField = new BoundTextField(GroupAttributeHandler.TAG_VALUE);
-		validFromField = DateField.createWithWrapperTag(GroupAttributeHandler.TAG_VALID_FROM, this, I18N.t("dialog.valid.from"), model);
-		validToField = DateField.createWithWrapperTag(GroupAttributeHandler.TAG_VALID_TO, this, I18N.t("dialog.valid.to"), model);
-		placeField = EntityField.createForStructureWithReference(GroupAttributeHandler.TAG_PLACE, this, model, PlaceCitationHandler.class);
+		valueField = new BoundTextField(GroupAttributeReader.TAG_VALUE);
+		validFromField = DateField.createWithWrapperTag(GroupAttributeReader.TAG_VALID_FROM, this, I18N.t("dialog.valid.from"), model);
+		validToField = DateField.createWithWrapperTag(GroupAttributeReader.TAG_VALID_TO, this, I18N.t("dialog.valid.to"), model);
+		placeField = EntityField.createForStructureWithReference(GroupAttributeReader.TAG_PLACE, this, model, PlaceCitationHandler.class);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
 			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, ContextImpactHandler.TYPE, I18N.t("dialog.component.context.impact"))
 			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, I18N.t("dialog.component.conclusions"))
 			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, I18N.t("dialog.component.research.questions"))
-			.withComponent(PanelKey.SOURCE, GroupAttributeHandler.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
-			.withComponent(PanelKey.NOTE, GroupAttributeHandler.TAG_NOTE, null)
-			.withComponent(PanelKey.EVIDENCE, GroupAttributeHandler.TAG_EVIDENCE, I18N.t("dialog.component.evidence"))
-			.withComponent(PanelKey.PRIVACY, GroupAttributeHandler.TAG_PRIVACY, null)
-			.withComponent(PanelKey.AUDIT, GroupAttributeHandler.TAG_AUDIT, null)
+			.withComponent(PanelKey.SOURCE, GroupAttributeReader.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
+			.withComponent(PanelKey.NOTE, GroupAttributeReader.TAG_NOTE, null)
+			.withComponent(PanelKey.EVIDENCE, GroupAttributeReader.TAG_EVIDENCE, I18N.t("dialog.component.evidence"))
+			.withComponent(PanelKey.PRIVACY, GroupAttributeReader.TAG_PRIVACY, null)
+			.withComponent(PanelKey.AUDIT, GroupAttributeReader.TAG_AUDIT, null)
 			.build();
 
 		components.bind(typeCombo);
@@ -265,7 +266,7 @@ public class GroupAttributeRecordDialog extends BaseRecordDialog{
 	@Override
 	protected void loadData(){
 		// load parent group reference
-		final String groupId = FLEFRecordHelper.getChildValue(record, GroupAttributeHandler.TAG_GROUP);
+		final String groupId = FLEFRecordHelper.getChildValue(record, GroupAttributeReader.TAG_GROUP);
 		if(StringUtils.isNotEmpty(groupId)){
 			final FLEFRecord temporary = FLEFRecord.createMainRecord(groupId, GroupHandler.TYPE);
 			withParentEntity(temporary);
@@ -307,7 +308,7 @@ public class GroupAttributeRecordDialog extends BaseRecordDialog{
 	@Override
 	protected void saveData(){
 		record.getChildren()
-			.removeIf(child -> GroupAttributeHandler.TAG_GROUP.equalsIgnoreCase(child.getTag()));
+			.removeIf(child -> GroupAttributeReader.TAG_GROUP.equalsIgnoreCase(child.getTag()));
 		record.addChild(FLEFRecord.createChildWithTagAndValue(parentEntity.getPath(), parentEntity.getText()));
 
 

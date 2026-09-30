@@ -156,9 +156,10 @@ public final class ChronomapPlaceHierarchyLayer implements ChronomapLayer{
 		if(resolver == null)
 			return result;
 
-		for(final FLEFRecord rel : model.getRecordsByType(PlaceRelationshipHandler.TYPE)){
-			final String subjectId = extractPlaceRef(rel, TAG_SUBJECT);
-			final String objectId = extractPlaceRef(rel, TAG_TARGET);
+		final List<FLEFRecord> placeRelationships = model.getRecordsByType(PlaceRelationshipHandler.TYPE);
+		for(final FLEFRecord placeRelationship : placeRelationships){
+			final String subjectId = extractPlaceRef(placeRelationship, TAG_SUBJECT);
+			final String objectId = extractPlaceRef(placeRelationship, TAG_TARGET);
 			if(subjectId == null || objectId == null)
 				continue;
 
@@ -173,7 +174,7 @@ public final class ChronomapPlaceHierarchyLayer implements ChronomapLayer{
 				&& s.coordinate().longitude() == t.coordinate().longitude())
 				continue;
 
-			final String type = FLEFRecordHelper.getChildValue(rel, TAG_TYPE);
+			final String type = FLEFRecordHelper.getChildValue(placeRelationship, TAG_TYPE);
 			result.add(new Edge(s.coordinate(), t.coordinate(), (type != null? type: StringUtils.EMPTY)));
 		}
 		return result;

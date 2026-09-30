@@ -687,7 +687,8 @@ public final class MergeRecordsDialog extends JDialog{
 			// Print the model state once the dialog is closed, so a test run
 			// can verify what the merge actually changed.
 			System.out.println("--- after merge ---");
-			for(final FLEFRecord record : model.getRecords()){
+			final List<FLEFRecord> records = model.getRecords();
+			for(final FLEFRecord record : records){
 				final String id = record.getId();
 				if(id != null && (id.startsWith(IndividualHandler.ID_PREFIX) || id.startsWith("F") || id.startsWith(GroupHandler.ID_PREFIX)))
 					System.out.println("  " + id + "  " + record.getTag());

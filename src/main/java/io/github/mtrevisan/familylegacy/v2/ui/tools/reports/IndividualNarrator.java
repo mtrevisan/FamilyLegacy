@@ -588,12 +588,13 @@ final class IndividualNarrator{
 		if(eventId == null)
 			return null;
 
-		for(final FLEFRecord ep : model.getRecordsByType(EventParticipationHandler.TYPE)){
-			final String eid = FLEFRecordHelper.getChildValue(ep, "event");
+		final List<FLEFRecord> eventParticipations = model.getRecordsByType(EventParticipationHandler.TYPE);
+		for(final FLEFRecord eventParticipation : eventParticipations){
+			final String eid = FLEFRecordHelper.getChildValue(eventParticipation, "event");
 			if(!Objects.equals(eventId, eid))
 				continue;
 
-			final FLEFRecord pf = FLEFRecordHelper.findChild(ep, "participant");
+			final FLEFRecord pf = FLEFRecordHelper.findChild(eventParticipation, "participant");
 			if(pf == null)
 				continue;
 

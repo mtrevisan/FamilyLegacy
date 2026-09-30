@@ -161,8 +161,9 @@ public class FLEFValidator{
 		// produced while validating that record and its descendants.
 		if(fileDef.recordsField() != null){
 			final TypeDefinition recordsType = grammar.getType(fileDef.recordsField().type().getName());
-			if(recordsType != null)
-				for(final FLEFRecord record : model.getRecords()){
+			if(recordsType != null){
+				final List<FLEFRecord> records = model.getRecords();
+				for(final FLEFRecord record : records){
 					final String contextPath = "records." + record.getTag();
 					final String recordId = record.getId();
 
@@ -174,6 +175,7 @@ public class FLEFValidator{
 						record, model, grammar, em)))
 						errors.add(new ValidationError(msg, recordId));
 				}
+			}
 		}
 
 		return errors;
@@ -206,7 +208,8 @@ public class FLEFValidator{
 	public List<ValidationError> validateBusinessRulesStructured(final FLEFModel model){
 		final List<ValidationError> errors = new ArrayList<>();
 
-		for(final FLEFRecord record : model.getRecords()){
+		final List<FLEFRecord> records = model.getRecords();
+		for(final FLEFRecord record : records){
 			final String tag = record.getTag();
 			final String contextPath = "records." + tag;
 			final String recordId = record.getId();

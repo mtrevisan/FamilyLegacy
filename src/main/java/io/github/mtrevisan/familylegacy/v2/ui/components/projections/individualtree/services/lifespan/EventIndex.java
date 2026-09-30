@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.io.model.readers.DateReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.EventParticipationReader;
 import io.github.mtrevisan.familylegacy.v2.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.v2.io.model.readers.date.NormalizedDate;
 import io.github.mtrevisan.familylegacy.v2.io.model.readers.date.TemporalSpan;
@@ -100,18 +101,20 @@ public final class EventIndex{
 	public static EventIndex build(final FLEFModel model){
 		// Collect participations grouped by event.
 		final Map<String, List<FLEFRecord>> participationsByEvent = new LinkedHashMap<>();
-		for(final FLEFRecord p : model.getRecordsByType(EventParticipationHandler.TYPE)){
-			final String eventId = FLEFRecordHelper.getChildValue(p, EventHandler.TYPE);
+		final List<FLEFRecord> eventParticipations = model.getRecordsByType(EventParticipationHandler.TYPE);
+		for(final FLEFRecord eventParticipation : eventParticipations){
+			final String eventId = FLEFRecordHelper.getChildValue(eventParticipation, EventHandler.TYPE);
 			if(eventId == null)
 				continue;
 
-			participationsByEvent.computeIfAbsent(eventId, k -> new ArrayList<>()).add(p);
+			participationsByEvent.computeIfAbsent(eventId, k -> new ArrayList<>()).add(eventParticipation);
 		}
 
 		// Build the event datum for each event.
 		final List<EventDatum> events = new ArrayList<>();
 		final Map<String, EventDatum> byId = new HashMap<>();
-		for(final FLEFRecord event : model.getRecordsByType(EventHandler.TYPE)){
+		final List<FLEFRecord> eventRecords = model.getRecordsByType(EventHandler.TYPE);
+		for(final FLEFRecord event : eventRecords){
 			final String id = event.getId();
 			if(id == null)
 				continue;
@@ -210,9 +213,10 @@ public final class EventIndex{
 	 * ====================================================================== */
 
 	private static Participant resolveParticipant(final FLEFModel model, final FLEFRecord participation){
-		final FLEFRecord field = FLEFRecordHelper.findChild(participation, EventParticipationHandler.TAG_PARTICIPANT);
+		final FLEFRecord field = FLEFRecordHelper.findChild(participation, EventParticipationReader.TAG_PARTICIPANT);
 		if(field == null)
 			return null;
+
 		final FLEFRecord ref = field.getTheOnlyChild();
 		if(ref == null || ref.getValue() == null)
 			return null;

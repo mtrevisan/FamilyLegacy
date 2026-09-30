@@ -81,7 +81,8 @@ public final class CitationAnalysisTool implements ToolOperation{
 		final Map<String, Integer> uncited = new TreeMap<>();
 		for(final String type : ASSERTION_TYPES){
 			int count = 0;
-			for(final FLEFRecord record : model.getRecordsByType(type))
+			final List<FLEFRecord> records = model.getRecordsByType(type);
+			for(final FLEFRecord record : records)
 				if(!hasCitation(record))
 					count ++;
 			if(count > 0)

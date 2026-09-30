@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.EventParticipationReader;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.EventParticipationRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
@@ -38,29 +39,6 @@ public class EventParticipationHandler extends AbstractRecordTypeHandler<EventPa
 
 	public static final String TYPE = "EVENT_PARTICIPATION";
 	public static final String ID_PREFIX = "EP";
-
-	public static final String TAG_PARTICIPANT = "PARTICIPANT";
-	public static final String TAG_EVENT = "EVENT";
-	public static final String TAG_ROLE = "ROLE";
-	public static final String TAG_SOURCE = "SOURCE";
-	public static final String TAG_NOTE = "NOTE";
-	public static final String TAG_EVIDENCE = "EVIDENCE";
-	public static final String TAG_PRIVACY = "PRIVACY";
-	public static final String TAG_AUDIT = "AUDIT";
-
-	public static final String[] ROLES = new String[]{
-		"child", "parent", "spouse",
-		"power_of_attorney",
-		"prisoner",
-		"witness",
-		"officiant", "informant",
-		"executor",
-		"grantor", "grantee",
-		"landlord", "tenant",
-		"soldier", "commander",
-		"victim", "survivor",
-		"accused", "judge"
-	};
 
 
 	private static final class SingletonHelper{
@@ -96,7 +74,7 @@ public class EventParticipationHandler extends AbstractRecordTypeHandler<EventPa
 		final StringBuilder sb = new StringBuilder();
 
 		String participantText = null;
-		final FLEFRecord participant = FLEFRecordHelper.extractRecordsFromOneOfReference(record, TAG_PARTICIPANT, model)
+		final FLEFRecord participant = FLEFRecordHelper.extractRecordsFromOneOfReference(record, EventParticipationReader.TAG_PARTICIPANT, model)
 			.getFirst();
 		if(participant != null){
 			final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(participant.getTag());
@@ -105,13 +83,13 @@ public class EventParticipationHandler extends AbstractRecordTypeHandler<EventPa
 		}
 		sb.append(StringUtils.isNotEmpty(participantText)? participantText: "Unknown Participant");
 
-		final String role = FLEFRecordHelper.getChildValue(record, TAG_ROLE);
+		final String role = FLEFRecordHelper.getChildValue(record, EventParticipationReader.TAG_ROLE);
 		if(StringUtils.isNotEmpty(role))
 			sb.append(" (as ")
 				.append(role)
 				.append(')');
 
-		final String eventRef = FLEFRecordHelper.getChildValue(record, TAG_EVENT);
+		final String eventRef = FLEFRecordHelper.getChildValue(record, EventParticipationReader.TAG_EVENT);
 		if(StringUtils.isNotEmpty(eventRef)){
 			final FLEFRecord eventRecord = model.getRecordById(eventRef);
 			if(eventRecord != null)

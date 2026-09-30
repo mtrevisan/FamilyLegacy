@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.projections.relationsh
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualData;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.GenealogyRepository;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
@@ -89,14 +90,14 @@ public class EgoNetworkService{
 			for(int i = 0, size = rels.size(); i < size; i ++){
 				final FLEFRecord relationship = rels.get(i);
 
-				final String type = FLEFRecordHelper.getChildValue(relationship, RelationshipHandler.TAG_TYPE);
-				final String role = FLEFRecordHelper.getChildValue(relationship, RelationshipHandler.TAG_ROLE);
-				final String status = normalizeStatus(FLEFRecordHelper.getChildValue(relationship, RelationshipHandler.TAG_STATUS));
+				final String type = RelationshipReader.extractType(relationship);
+				final String role = FLEFRecordHelper.getChildValue(relationship, RelationshipReader.TAG_ROLE);
+				final String status = normalizeStatus(FLEFRecordHelper.getChildValue(relationship, RelationshipReader.TAG_STATUS));
 				if(type == null)
 					continue;
 
-				final String subjectId = extractParticipantId(relationship, RelationshipHandler.TAG_SUBJECT);
-				final String objectId = extractParticipantId(relationship, RelationshipHandler.TAG_OBJECT);
+				final String subjectId = extractParticipantId(relationship, RelationshipReader.TAG_SUBJECT);
+				final String objectId = extractParticipantId(relationship, RelationshipReader.TAG_OBJECT);
 				if(subjectId == null || objectId == null)
 					continue;
 
@@ -128,11 +129,11 @@ public class EgoNetworkService{
 		if(targetRecord == null)
 			return;
 
-		if(isChildType(type))
+		if(RelationshipReader.isTypeChild(type))
 			getOrAddRelatedIndividual(egoNode, EgoNode.RelationshipCategory.PARENT, targetRecord, type, role, status, false);
-		else if(isPartnerType(type))
+		else if(RelationshipReader.isTypePartner(type))
 			getOrAddRelatedIndividual(egoNode, EgoNode.RelationshipCategory.PARTNER, targetRecord, type, role, status, false);
-		else if(RelationshipHandler.ENUM_TYPE_GROUP_MEMBER.equals(type) || RelationshipHandler.ENUM_TYPE_PART_OF.equals(type)){
+		else if(RelationshipReader.isTypeGroupMember(type) || RelationshipReader.isTypePartOf(type)){
 			// group_member (Individual -> Group) and part_of (Group -> Group):
 			// Ego is the member/sub-group, the target is the enclosing group
 			if(isGroup(targetRecord))
@@ -140,7 +141,7 @@ public class EgoNetworkService{
 			else
 				getOrAddRelatedIndividual(egoNode, EgoNode.RelationshipCategory.PARENT, targetRecord, type, role, status, false);
 		}
-		else if(RelationshipHandler.ENUM_TYPE_ASSOCIATE.equals(type)){
+		else if(RelationshipReader.isTypeAssociate(type)){
 			if(isGroup(targetRecord))
 				getOrAddRelatedGroup(egoNode, targetRecord, type, role, status, false);
 			else
@@ -154,11 +155,11 @@ public class EgoNetworkService{
 		if(subjectRecord == null)
 			return;
 
-		if(isChildType(type))
+		if(RelationshipReader.isTypeChild(type))
 			getOrAddRelatedIndividual(egoNode, EgoNode.RelationshipCategory.CHILD, subjectRecord, type, role, status, true);
-		else if(isPartnerType(type))
+		else if(RelationshipReader.isTypePartner(type))
 			getOrAddRelatedIndividual(egoNode, EgoNode.RelationshipCategory.PARTNER, subjectRecord, type, role, status, true);
-		else if(RelationshipHandler.ENUM_TYPE_GROUP_MEMBER.equals(type) || RelationshipHandler.ENUM_TYPE_PART_OF.equals(type)){
+		else if(RelationshipReader.isTypeGroupMember(type) || RelationshipReader.isTypePartOf(type)){
 			// group_member (Individual -> Group) and part_of (Group -> Group):
 			// Ego is the group/super-group, the subject is the member/sub-group
 			if(isGroup(subjectRecord))
@@ -166,7 +167,7 @@ public class EgoNetworkService{
 			else
 				getOrAddRelatedIndividual(egoNode, EgoNode.RelationshipCategory.CHILD, subjectRecord, type, role, status, true);
 		}
-		else if(RelationshipHandler.ENUM_TYPE_ASSOCIATE.equals(type)){
+		else if(RelationshipReader.isTypeAssociate(type)){
 			if(isGroup(subjectRecord))
 				getOrAddRelatedGroup(egoNode, subjectRecord, type, role, status, true);
 			else
@@ -209,22 +210,6 @@ public class EgoNetworkService{
 		return refId;
 	}
 
-	private boolean isChildType(final String type){
-		return (RelationshipHandler.ENUM_TYPE_BIOLOGICAL_CHILD.equals(type)
-			|| RelationshipHandler.ENUM_TYPE_ADOPTIVE_CHILD.equals(type)
-			|| RelationshipHandler.ENUM_TYPE_FOSTER_CHILD.equals(type)
-			|| RelationshipHandler.ENUM_TYPE_GUARDED_CHILD.equals(type)
-			|| RelationshipHandler.ENUM_TYPE_STEP_CHILD.equals(type));
-	}
-
-	private boolean isPartnerType(final String type){
-		return (RelationshipHandler.ENUM_TYPE_CIVIL_SPOUSE.equals(type)
-			|| RelationshipHandler.ENUM_TYPE_RELIGIOUS_SPOUSE.equals(type)
-			|| RelationshipHandler.ENUM_TYPE_CUSTOMARY_SPOUSE.equals(type)
-			|| RelationshipHandler.ENUM_TYPE_COHABITING_PARTNER.equals(type)
-			|| RelationshipHandler.ENUM_TYPE_ENGAGED_PARTNER.equals(type));
-	}
-
 	/**
 	 * Builds the reverse indices used by {@link #buildEgoNetwork(String)}.
 	 * The method is idempotent and is invoked lazily the first time the
@@ -237,8 +222,8 @@ public class EgoNetworkService{
 		// Index relationships by entity id.
 		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
 		for(final FLEFRecord relationship : relationships){
-			final String subjectId = extractParticipantId(relationship, RelationshipHandler.TAG_SUBJECT);
-			final String objectId = extractParticipantId(relationship, RelationshipHandler.TAG_OBJECT);
+			final String subjectId = extractParticipantId(relationship, RelationshipReader.TAG_SUBJECT);
+			final String objectId = extractParticipantId(relationship, RelationshipReader.TAG_OBJECT);
 			if(subjectId != null)
 				relationshipsByEntityId.computeIfAbsent(subjectId, k -> new ArrayList<>()).add(relationship);
 			if(objectId != null)

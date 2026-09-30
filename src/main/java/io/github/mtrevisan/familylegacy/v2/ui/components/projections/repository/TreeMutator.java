@@ -176,7 +176,8 @@ public class TreeMutator extends AbstractProjectionMutator{
 	}
 
 	private String findParent(final String individualId){
-		for(final FLEFRecord relationship : model.getRecordsByType(RelationshipHandler.TYPE)){
+		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
+		for(final FLEFRecord relationship : relationships){
 			final String type = FLEFRecordHelper.getChildValue(relationship, RelationshipHandler.TAG_TYPE);
 			if(type == null || !relationshipTypeFilter.test(type))
 				continue;
@@ -193,7 +194,8 @@ public class TreeMutator extends AbstractProjectionMutator{
 	}
 
 	private String findChild(final String individualId){
-		for(final FLEFRecord relationship : model.getRecordsByType(RelationshipHandler.TYPE)){
+		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
+		for(final FLEFRecord relationship : relationships){
 			final String type = FLEFRecordHelper.getChildValue(relationship, RelationshipHandler.TAG_TYPE);
 			if(type == null || !relationshipTypeFilter.test(type))
 				continue;

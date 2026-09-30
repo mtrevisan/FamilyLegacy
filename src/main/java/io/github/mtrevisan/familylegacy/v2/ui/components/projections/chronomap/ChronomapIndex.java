@@ -140,7 +140,8 @@ public final class ChronomapIndex{
 		long min = Long.MAX_VALUE;
 		long max = Long.MIN_VALUE;
 
-		for(final FLEFRecord record : model.getRecords()){
+		final List<FLEFRecord> records = model.getRecords();
+		for(final FLEFRecord record : records){
 			for(final String tag : DATE_TAGS){
 				final FLEFRecord dateStruct = FLEFRecordHelper.findChild(record, tag);
 				if(dateStruct == null)
@@ -174,12 +175,13 @@ public final class ChronomapIndex{
 		final Map<String, List<GeoAnchor>> result = new HashMap<>();
 
 		// 1. Events: zero-duration anchors.
-		for(final FLEFRecord participation : model.getRecordsByType(EventParticipationHandler.TYPE)){
-			final String ownerId = extractParticipantId(participation);
+		final List<FLEFRecord> eventParticipations = model.getRecordsByType(EventParticipationHandler.TYPE);
+		for(final FLEFRecord eventParticipation : eventParticipations){
+			final String ownerId = extractParticipantId(eventParticipation);
 			if(ownerId == null)
 				continue;
 
-			final String eventId = FLEFRecordHelper.getChildValue(participation, TAG_EVENT);
+			final String eventId = FLEFRecordHelper.getChildValue(eventParticipation, TAG_EVENT);
 			if(eventId == null)
 				continue;
 
@@ -214,9 +216,10 @@ public final class ChronomapIndex{
 		return result;
 	}
 
-	private void addAttributeAnchors(final Map<String, List<GeoAnchor>> result,
-		final String recordType, final String ownerTag){
-		for(final FLEFRecord attribute : model.getRecordsByType(recordType)){
+	private void addAttributeAnchors(final Map<String, List<GeoAnchor>> result, final String recordType,
+			final String ownerTag){
+		final List<FLEFRecord> attributes = model.getRecordsByType(recordType);
+		for(final FLEFRecord attribute : attributes){
 			final String ownerId = extractOwner(attribute, ownerTag);
 			if(ownerId == null)
 				continue;

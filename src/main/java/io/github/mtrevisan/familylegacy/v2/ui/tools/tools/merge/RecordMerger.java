@@ -283,7 +283,8 @@ public final class RecordMerger{
 				skipIds.add(r.getId());
 
 		int count = 0;
-		for(final FLEFRecord record : model.getRecords()){
+		final List<FLEFRecord> records = model.getRecords();
+		for(final FLEFRecord record : records){
 			if(skipIds.contains(record.getId()))
 				continue;
 

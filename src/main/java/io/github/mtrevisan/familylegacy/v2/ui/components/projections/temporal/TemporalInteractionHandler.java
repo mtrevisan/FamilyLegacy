@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.readers.date.TemporalSpan;
 import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Rectangle;
+import java.util.List;
 import java.util.Map;
 
 
@@ -64,13 +65,14 @@ public final class TemporalInteractionHandler{
 	 * @return the hit element, or {@code null}
 	 */
 	public static TemporalProjectionRef hitTest(final int x, final int y,
-		final TemporalProjectionModel model, final TemporalProjectionLayout layout,
-		final TemporalAxis axis, final Rectangle contentBounds){
+			final TemporalProjectionModel model, final TemporalProjectionLayout layout,
+			final TemporalAxis axis, final Rectangle contentBounds){
 		if(model == null || layout == null || axis == null || contentBounds == null)
 			return null;
 
 		// 1. Entries (top layer for clicking purposes)
-		for(final TemporalRow row : model.rows()){
+		final List<TemporalRow> rows = model.rows();
+		for(final TemporalRow row : rows){
 			final TemporalProjectionLayout.RowLayout rowLayout = layout.findRow(row.entity());
 			if(rowLayout == null)
 				continue;
@@ -91,7 +93,8 @@ public final class TemporalInteractionHandler{
 		}
 
 		// 2. Connections
-		for(final TemporalConnection connection : model.connections()){
+		final List<TemporalConnection> connections = model.connections();
+		for(final TemporalConnection connection : connections){
 			if(hitConnection(x, y, connection, layout, axis, contentBounds))
 				return new TemporalProjectionRef.ConnectionRef(connection);
 		}

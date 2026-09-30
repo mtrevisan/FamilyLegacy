@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.tools.groups;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolDialogs;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.places.PlaceHelper;
@@ -88,7 +89,8 @@ public final class MultiIndividualPickerDialog extends JDialog{
 
 		// Build the full list once. Each entry carries the id and the
 		// display name, resolved from the individual record.
-		for(final FLEFRecord individual : model.getRecordsByType(GroupHelper.TYPE_INDIVIDUAL)){
+		final List<FLEFRecord> individuals = model.getRecordsByType(IndividualHandler.TYPE);
+		for(final FLEFRecord individual : individuals){
 			final String id = individual.getId();
 			if(id == null)
 				continue;

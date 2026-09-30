@@ -99,10 +99,10 @@ public final class TemporalProjectionLayout{
 			return;
 		}
 
-		final List<RowLayout> computedRows = new ArrayList<>(model.rows()
-			.size());
+		final List<TemporalRow> rows = model.rows();
+		final List<RowLayout> computedRows = new ArrayList<>(rows.size());
 		int y = 0;
-		for(final TemporalRow row : model.rows()){
+		for(final TemporalRow row : rows){
 			final RowLayout rowLayout = computeRow(row, y);
 			computedRows.add(rowLayout);
 			y += rowLayout.height() + ROW_GAP;
@@ -111,7 +111,7 @@ public final class TemporalProjectionLayout{
 		if(!computedRows.isEmpty())
 			y -= ROW_GAP;
 
-		rows = computedRows;
+		this.rows = computedRows;
 		totalHeight = Math.max(0, y);
 	}
 

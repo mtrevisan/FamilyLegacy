@@ -133,16 +133,18 @@ public final class PlaceHierarchyService{
 	public static Hierarchy load(final FLEFModel model){
 		// --- 1. Index every place ---
 		final Map<String, PlaceReference> places = new LinkedHashMap<>();
-		for(final FLEFRecord record : model.getRecordsByType(PlaceHandler.TYPE)){
-			final PlaceReference ref = toPlaceReference(record);
+		final List<FLEFRecord> placeRecords = model.getRecordsByType(PlaceHandler.TYPE);
+		for(final FLEFRecord place : placeRecords){
+			final PlaceReference ref = toPlaceReference(place);
 			if(ref != null)
 				places.put(ref.id(), ref);
 		}
 
 		// --- 2. Index every relation that resolves to two known places ---
 		final List<PlaceRelation> relations = new ArrayList<>();
-		for(final FLEFRecord record : model.getRecordsByType(PlaceRelationshipHandler.TYPE)){
-			final PlaceRelation rel = toPlaceRelation(record, places);
+		final List<FLEFRecord> placeRelationshipRecords = model.getRecordsByType(PlaceRelationshipHandler.TYPE);
+		for(final FLEFRecord placeRelationship : placeRelationshipRecords){
+			final PlaceRelation rel = toPlaceRelation(placeRelationship, places);
 			if(rel != null)
 				relations.add(rel);
 		}

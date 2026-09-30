@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.io.model.readers.DateReader;
 import io.github.mtrevisan.familylegacy.v2.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.v2.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.v2.io.model.readers.SexType;
 import io.github.mtrevisan.familylegacy.v2.io.model.readers.date.CalendarConverter;
 import io.github.mtrevisan.familylegacy.v2.io.model.readers.date.DateService;
@@ -139,15 +140,15 @@ public final class IndividualData{
 		// Check for parent relationships
 		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
 		for(final FLEFRecord relationship : relationships){
-			final String subjectId = relationship.extractReferencedId(RelationshipHandler.TAG_SUBJECT, IndividualHandler.TYPE);
-			final String objectId = relationship.extractReferencedId(RelationshipHandler.TAG_OBJECT, IndividualHandler.TYPE);
+			final String subjectId = relationship.extractReferencedId(RelationshipReader.TAG_SUBJECT, IndividualHandler.TYPE);
+			final String objectId = relationship.extractReferencedId(RelationshipReader.TAG_OBJECT, IndividualHandler.TYPE);
 			if(subjectId == null || objectId == null || !subjectId.equals(id) && !objectId.equals(id))
 				continue;
 
-			String type = FLEFRecordHelper.getChildValue(relationship, RelationshipHandler.TAG_TYPE);
+			String type = RelationshipReader.extractType(relationship);
 			if(type != null){
 				type = type.toLowerCase(Locale.ROOT);
-				if(type.equalsIgnoreCase(RelationshipHandler.ENUM_TYPE_BIOLOGICAL_CHILD)){
+				if(RelationshipReader.isTypeBiologicalChild(type)){
 					if(subjectId.equals(id)){
 						isBiological = true;
 
@@ -164,7 +165,7 @@ public final class IndividualData{
 					if(objectId.equals(id))
 						hasChildren = true;
 				}
-				else if(subjectId.equals(id) && type.endsWith(RelationshipHandler.ENUM_TYPE_ENDS_WITH_CHILD)){
+				else if(subjectId.equals(id) && RelationshipReader.isTypeChild(type)){
 					final FLEFRecord target = model.getRecordById(objectId);
 					final SexType targetSex = IndividualReader.extractSex(target);
 					if(targetSex == SexType.MALE)
@@ -174,8 +175,7 @@ public final class IndividualData{
 					else
 						hasParents = true;
 				}
-				else if(type.endsWith(RelationshipHandler.ENUM_TYPE_ENDS_WITH_SPOUSE)
-						|| type.endsWith(RelationshipHandler.ENUM_TYPE_ENDS_WITH_PARTNER))
+				else if(RelationshipReader.isTypePartner(type))
 					// Partner/Spouse relationship (non-child type)
 					hasPartner = true;
 			}

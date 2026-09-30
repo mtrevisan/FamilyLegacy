@@ -184,9 +184,11 @@ public final class SourceHelper{
 	 */
 	public static Map<String, Integer> countCitationsPerSource(final FLEFModel model){
 		final Map<String, Integer> counts = new LinkedHashMap<>();
-		for(final String type : allSourceCitingTypes())
-			for(final FLEFRecord record : model.getRecordsByType(type))
+		for(final String type : allSourceCitingTypes()){
+			final List<FLEFRecord> records = model.getRecordsByType(type);
+			for(final FLEFRecord record : records)
 				incrementCitations(record, counts);
+		}
 		return counts;
 	}
 
@@ -208,9 +210,11 @@ public final class SourceHelper{
 				}
 
 		// Documents referenced by an extract inside a citation.
-		for(final String type : allSourceCitingTypes())
-			for(final FLEFRecord record : model.getRecordsByType(type))
+		for(final String type : allSourceCitingTypes()){
+			final List<FLEFRecord> records = model.getRecordsByType(type);
+			for(final FLEFRecord record : records)
 				countDocumentsInCitations(record, counts);
+		}
 
 		return counts;
 	}

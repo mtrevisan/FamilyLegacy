@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.tools.tools;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventParticipationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualAttributeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
@@ -159,9 +160,9 @@ public final class EntityMerger{
 		int repointed = 0;
 		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
 		for(final FLEFRecord relationship : relationships){
-			final String subjectId = relationship.extractReferencedId(RelationshipHandler.TAG_SUBJECT, IndividualHandler.TYPE);
-			final String objectIdOfRel = relationship.extractReferencedId(RelationshipHandler.TAG_OBJECT, IndividualHandler.TYPE);
-			final String type = FLEFRecordHelper.getChildValue(relationship, RelationshipHandler.TAG_TYPE);
+			final String subjectId = relationship.extractReferencedId(RelationshipReader.TAG_SUBJECT, IndividualHandler.TYPE);
+			final String objectIdOfRel = relationship.extractReferencedId(RelationshipReader.TAG_OBJECT, IndividualHandler.TYPE);
+			final String type = RelationshipReader.extractType(relationship);
 			if(type == null)
 				continue;
 
@@ -212,9 +213,9 @@ public final class EntityMerger{
 		final Set<String> edges = new LinkedHashSet<>();
 		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
 		for(final FLEFRecord relationship : relationships){
-			final String subjectId = relationship.extractReferencedId(RelationshipHandler.TAG_SUBJECT, IndividualHandler.TYPE);
-			final String objectId = relationship.extractReferencedId(RelationshipHandler.TAG_OBJECT, IndividualHandler.TYPE);
-			final String type = FLEFRecordHelper.getChildValue(relationship, RelationshipHandler.TAG_TYPE);
+			final String subjectId = relationship.extractReferencedId(RelationshipReader.TAG_SUBJECT, IndividualHandler.TYPE);
+			final String objectId = relationship.extractReferencedId(RelationshipReader.TAG_OBJECT, IndividualHandler.TYPE);
+			final String type = RelationshipReader.extractType(relationship);
 			if(subjectId != null && objectId != null && type != null
 					&& !sourceId.equals(subjectId) && !sourceId.equals(objectId))
 				edges.add(edgeKey(subjectId, objectId, type));
@@ -253,7 +254,8 @@ public final class EntityMerger{
 
 		final List<String> toRemove = new ArrayList<>();
 		int repointed = 0;
-		for(final FLEFRecord participation : model.getRecordsByType(EventParticipationHandler.TYPE)){
+		final List<FLEFRecord> participations = model.getRecordsByType(EventParticipationHandler.TYPE);
+		for(final FLEFRecord participation : participations){
 			final String participantId = participantId(participation);
 			if(!sourceId.equals(participantId))
 				continue;
@@ -286,7 +288,8 @@ public final class EntityMerger{
 
 	private Set<String> collectExistingParticipations(final String sourceId){
 		final Set<String> keys = new LinkedHashSet<>();
-		for(final FLEFRecord participation : model.getRecordsByType(EventParticipationHandler.TYPE)){
+		final List<FLEFRecord> participations = model.getRecordsByType(EventParticipationHandler.TYPE);
+		for(final FLEFRecord participation : participations){
 			final String participantId = participantId(participation);
 			final String eventId = FLEFRecordHelper.getChildValue(participation, TAG_EVENT);
 			if(participantId != null && eventId != null && !sourceId.equals(participantId)){
@@ -356,7 +359,8 @@ public final class EntityMerger{
 
 		final List<String> toRemove = new ArrayList<>();
 		int repointed = 0;
-		for(final FLEFRecord attribute : model.getRecordsByType(IndividualAttributeHandler.TYPE)){
+		final List<FLEFRecord> attributes = model.getRecordsByType(IndividualAttributeHandler.TYPE);
+		for(final FLEFRecord attribute : attributes){
 			final String individualId = FLEFRecordHelper.getChildValue(attribute, TAG_INDIVIDUAL);
 			if(!sourceId.equals(individualId))
 				continue;
@@ -383,7 +387,8 @@ public final class EntityMerger{
 
 	private Set<String> collectExistingAttributes(final String sourceId){
 		final Set<String> keys = new LinkedHashSet<>();
-		for(final FLEFRecord attribute : model.getRecordsByType(IndividualAttributeHandler.TYPE)){
+		final List<FLEFRecord> attributes = model.getRecordsByType(IndividualAttributeHandler.TYPE);
+		for(final FLEFRecord attribute : attributes){
 			final String individualId = FLEFRecordHelper.getChildValue(attribute, TAG_INDIVIDUAL);
 			if(individualId == null || sourceId.equals(individualId))
 				continue;

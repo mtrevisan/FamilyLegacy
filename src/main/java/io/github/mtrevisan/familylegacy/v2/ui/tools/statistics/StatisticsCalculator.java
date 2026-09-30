@@ -118,11 +118,12 @@ public final class StatisticsCalculator{
 		p.update(5, "Indexing participations…");
 		final Set<String> hasBirth = new HashSet<>();
 		final Set<String> hasDeath = new HashSet<>();
-		for(final FLEFRecord part : model.getRecordsByType(EventParticipationHandler.TYPE)){
-			final String indId = extractParticipantId(part);
+		final List<FLEFRecord> eventParticipations = model.getRecordsByType(EventParticipationHandler.TYPE);
+		for(final FLEFRecord eventParticipation : eventParticipations){
+			final String indId = extractParticipantId(eventParticipation);
 			if(indId == null)
 				continue;
-			final String eventId = FLEFRecordHelper.getChildValue(part, TAG_EVENT);
+			final String eventId = FLEFRecordHelper.getChildValue(eventParticipation, TAG_EVENT);
 			if(eventId == null)
 				continue;
 			final String type = eventTypeById.get(eventId);
@@ -240,7 +241,8 @@ public final class StatisticsCalculator{
 		final Map<String, int[]> byTag = new LinkedHashMap<>();
 		final Map<String, Integer> sourceUseCount = new HashMap<>();
 
-		for(final FLEFRecord record : model.getRecords()){
+		final List<FLEFRecord> records = model.getRecords();
+		for(final FLEFRecord record : records){
 			final String tag = record.getTag();
 			if(tag == null)
 				continue;

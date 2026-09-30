@@ -28,6 +28,8 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 
+import java.util.List;
+
 
 public final class ModelUtils{
 
@@ -36,7 +38,8 @@ public final class ModelUtils{
 	public static String findLowestIndividualId(final FLEFModel model){
 		String bestId = null;
 		long bestNumber = Long.MAX_VALUE;
-		for(final FLEFRecord record : model.getRecords()){
+		final List<FLEFRecord> records = model.getRecords();
+		for(final FLEFRecord record : records){
 			if(!IndividualHandler.TYPE.equalsIgnoreCase(record.getTag()))
 				continue;
 

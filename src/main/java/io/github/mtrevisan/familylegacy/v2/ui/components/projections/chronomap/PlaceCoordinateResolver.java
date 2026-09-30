@@ -155,7 +155,8 @@ public final class PlaceCoordinateResolver{
 		int resolved = 0;
 		long lastRequestMs = 0l;
 
-		for(final FLEFRecord place : model.getRecordsByType(PlaceHandler.TYPE)){
+		final List<FLEFRecord> places = model.getRecordsByType(PlaceHandler.TYPE);
+		for(final FLEFRecord place : places){
 			final String placeId = place.getId();
 			if(placeId == null || cache.containsKey(placeId))
 				continue;
@@ -221,7 +222,8 @@ public final class PlaceCoordinateResolver{
 	private void buildHierarchyCache(){
 		// 1. Direct coordinates
 		final Deque<String> queue = new ArrayDeque<>();
-		for(final FLEFRecord place : model.getRecordsByType(PlaceHandler.TYPE)){
+		final List<FLEFRecord> places = model.getRecordsByType(PlaceHandler.TYPE);
+		for(final FLEFRecord place : places){
 			final String placeId = place.getId();
 			if(placeId == null)
 				continue;
@@ -236,13 +238,14 @@ public final class PlaceCoordinateResolver{
 
 		// 2. Build the child adjacency: parentId -> [childId, ...]
 		final Map<String, List<String>> childrenOf = new HashMap<>();
-		for(final FLEFRecord rel : model.getRecordsByType(PlaceRelationshipHandler.TYPE)){
-			final String type = FLEFRecordHelper.getChildValue(rel, TAG_TYPE);
+		final List<FLEFRecord> placeRelationships = model.getRecordsByType(PlaceRelationshipHandler.TYPE);
+		for(final FLEFRecord placeRelationship : placeRelationships){
+			final String type = FLEFRecordHelper.getChildValue(placeRelationship, TAG_TYPE);
 			if(type == null || !PART_OF_TYPES.contains(type))
 				continue;
 
-			final String childId = extractPlaceRef(rel, TAG_SUBJECT);
-			final String objectId = extractPlaceRef(rel, TAG_OBJECT);
+			final String childId = extractPlaceRef(placeRelationship, TAG_SUBJECT);
+			final String objectId = extractPlaceRef(placeRelationship, TAG_OBJECT);
 			if(childId == null || objectId == null)
 				continue;
 

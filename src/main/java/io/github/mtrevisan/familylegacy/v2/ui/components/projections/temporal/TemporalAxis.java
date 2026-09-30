@@ -24,7 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.components.projections.temporal;
 
-import io.github.mtrevisan.familylegacy.v2.io.model.readers.date.CalendarConverter;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.date.CalendarType;
 import io.github.mtrevisan.familylegacy.v2.io.model.readers.date.NormalizedDate;
 import io.github.mtrevisan.familylegacy.v2.io.model.readers.date.TemporalSpan;
 import org.apache.commons.lang3.StringUtils;
@@ -372,7 +372,7 @@ public final class TemporalAxis{
 
 		int count = 0;
 		for(int year = alignedStart; year <= endYear + intervalYears && count < MAX_TICKS; year += intervalYears){
-			final long tickJdn = CalendarConverter.gregorianToJdn(year, 1, 1);
+			final long tickJdn = CalendarType.GREGORIAN.toJdn(year, 1, 1);
 			if(tickJdn < visibleStartJdn)
 				continue;
 			if(tickJdn > visibleEndJdn)
@@ -402,7 +402,7 @@ public final class TemporalAxis{
 			if(month < 1 || month > 12)
 				break;
 
-			final long tickJdn = CalendarConverter.gregorianToJdn(year, month, 1);
+			final long tickJdn = CalendarType.GREGORIAN.toJdn(year, month, 1);
 			if(tickJdn > visibleEndJdn)
 				break;
 			if(tickJdn >= visibleStartJdn){

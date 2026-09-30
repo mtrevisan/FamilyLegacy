@@ -27,6 +27,8 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.EventParticipationReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualData;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventParticipationHandler;
@@ -102,12 +104,12 @@ public class GenealogyRepository{
 	}
 
 	private void indexRelationship(final FLEFRecord relationship){
-		final String type = FLEFRecordHelper.getChildValue(relationship, RelationshipHandler.TAG_TYPE);
+		final String type = RelationshipReader.extractType(relationship);
 		if(type == null)
 			return;
 
-		final String subjectId = relationship.extractReferencedId(RelationshipHandler.TAG_SUBJECT, IndividualHandler.TYPE);
-		final String objectId = relationship.extractReferencedId(RelationshipHandler.TAG_OBJECT, IndividualHandler.TYPE);
+		final String subjectId = relationship.extractReferencedId(RelationshipReader.TAG_SUBJECT, IndividualHandler.TYPE);
+		final String objectId = relationship.extractReferencedId(RelationshipReader.TAG_OBJECT, IndividualHandler.TYPE);
 		if(subjectId == null || objectId == null)
 			return;
 
@@ -134,7 +136,7 @@ public class GenealogyRepository{
 	}
 
 	private void indexEventParticipation(final FLEFRecord eventParticipation){
-		final FLEFRecord participant = FLEFRecordHelper.findChild(eventParticipation, EventParticipationHandler.TAG_PARTICIPANT);
+		final FLEFRecord participant = FLEFRecordHelper.findChild(eventParticipation, EventParticipationReader.TAG_PARTICIPANT);
 		if(participant == null)
 			return;
 
@@ -146,7 +148,7 @@ public class GenealogyRepository{
 		if(individualId == null)
 			return;
 
-		final String eventId = FLEFRecordHelper.getChildValue(eventParticipation, EventParticipationHandler.TAG_EVENT);
+		final String eventId = FLEFRecordHelper.getChildValue(eventParticipation, EventParticipationReader.TAG_EVENT);
 		if(eventId == null)
 			return;
 

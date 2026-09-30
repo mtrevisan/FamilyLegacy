@@ -926,7 +926,8 @@ public final class MergeFieldComparisonDialog extends JDialog{
 
 		if(model != null){
 			final String targetId = (targetRecord != null? targetRecord.getId(): null);
-			for(final FLEFRecord record : model.getRecords()){
+			final List<FLEFRecord> records = model.getRecords();
+			for(final FLEFRecord record : records){
 				if(targetId != null && Objects.equals(record.getId(), targetId))
 					copy.addRecord(buildModifiedTarget(record, instances));
 				else

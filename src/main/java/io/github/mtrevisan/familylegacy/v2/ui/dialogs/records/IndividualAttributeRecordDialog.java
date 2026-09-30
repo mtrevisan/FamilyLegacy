@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs.records;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.IndividualAttributeReader;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
@@ -39,7 +40,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.ContextImpactHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualAttributeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceCitationHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
@@ -111,24 +111,24 @@ public class IndividualAttributeRecordDialog extends BaseRecordDialog{
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]5[]10[]10[]10[]");
 
-		typeCombo = new BoundComboBox<>(IndividualAttributeHandler.TAG_TYPE, IndividualAttributeHandler.TYPES);
+		typeCombo = new BoundComboBox<>(IndividualAttributeReader.TAG_TYPE, GUIHelper.fillCombo(IndividualAttributeReader.TYPES, null));
 		typeCombo.setI18NPrefix("enum.individual.attribute.type");
 		typeCombo.setEditable(true);
-		valueField = new BoundTextField(IndividualAttributeHandler.TAG_VALUE);
-		validFromField = DateField.createWithWrapperTag(IndividualAttributeHandler.TAG_VALID_FROM, this, I18N.t("dialog.valid.from"), model);
-		validToField = DateField.createWithWrapperTag(IndividualAttributeHandler.TAG_VALID_TO, this, I18N.t("dialog.valid.to"), model);
-		placeField = EntityField.createForStructureWithReference(PlaceHandler.TYPE, this, model, PlaceCitationHandler.class);
+		valueField = new BoundTextField(IndividualAttributeReader.TAG_VALUE);
+		validFromField = DateField.createWithWrapperTag(IndividualAttributeReader.TAG_VALID_FROM, this, I18N.t("dialog.valid.from"), model);
+		validToField = DateField.createWithWrapperTag(IndividualAttributeReader.TAG_VALID_TO, this, I18N.t("dialog.valid.to"), model);
+		placeField = EntityField.createForStructureWithReference(IndividualAttributeReader.TAG_PLACE, this, model, PlaceCitationHandler.class);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
 			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, ContextImpactHandler.TYPE, I18N.t("dialog.component.context.impact"))
 			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, I18N.t("dialog.component.conclusions"))
 			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, I18N.t("dialog.component.research.questions"))
-			.withComponent(PanelKey.SOURCE, IndividualAttributeHandler.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
-			.withComponent(PanelKey.NOTE, IndividualAttributeHandler.TAG_NOTE, null)
-			.withComponent(PanelKey.EVIDENCE, IndividualAttributeHandler.TAG_EVIDENCE, I18N.t("dialog.component.evidence"))
-			.withComponent(PanelKey.PRIVACY, IndividualAttributeHandler.TAG_PRIVACY, null)
-			.withComponent(PanelKey.AUDIT, IndividualAttributeHandler.TAG_AUDIT, null)
+			.withComponent(PanelKey.SOURCE, IndividualAttributeReader.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
+			.withComponent(PanelKey.NOTE, IndividualAttributeReader.TAG_NOTE, null)
+			.withComponent(PanelKey.EVIDENCE, IndividualAttributeReader.TAG_EVIDENCE, I18N.t("dialog.component.evidence"))
+			.withComponent(PanelKey.PRIVACY, IndividualAttributeReader.TAG_PRIVACY, null)
+			.withComponent(PanelKey.AUDIT, IndividualAttributeReader.TAG_AUDIT, null)
 			.build();
 
 		components.bind(typeCombo);
@@ -256,7 +256,7 @@ public class IndividualAttributeRecordDialog extends BaseRecordDialog{
 	@Override
 	protected void loadData(){
 		// load parent individual reference
-		final String individualId = FLEFRecordHelper.getChildValue(record, IndividualAttributeHandler.TAG_INDIVIDUAL);
+		final String individualId = FLEFRecordHelper.getChildValue(record, IndividualAttributeReader.TAG_INDIVIDUAL);
 		if(StringUtils.isNotEmpty(individualId)){
 			final FLEFRecord temporary = FLEFRecord.createMainRecord(individualId, IndividualHandler.TYPE);
 			withParentEntity(temporary);
@@ -298,7 +298,7 @@ public class IndividualAttributeRecordDialog extends BaseRecordDialog{
 	@Override
 	protected void saveData(){
 		record.getChildren()
-			.removeIf(child -> IndividualAttributeHandler.TAG_INDIVIDUAL.equalsIgnoreCase(child.getTag()));
+			.removeIf(child -> IndividualAttributeReader.TAG_INDIVIDUAL.equalsIgnoreCase(child.getTag()));
 		record.addChild(FLEFRecord.createChildWithTagAndValue(parentEntity.getPath(), parentEntity.getText()));
 
 

@@ -28,6 +28,8 @@ import io.github.mtrevisan.familylegacy.v2.gedcom.utils.AuditBuilder;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.EventParticipationReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventParticipationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupAttributeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
@@ -63,11 +65,11 @@ public abstract class AbstractProjectionMutator implements ProjectionMutator{
 
 		final FLEFRecord relationship = FLEFRecord.createMainRecord(RelationshipHandler.TYPE,
 				RelationshipHandler.ID_PREFIX, model)
-			.addChild(FLEFRecord.createChildWithTagAndValue(RelationshipHandler.TAG_TYPE, type))
-			.addChild(FLEFRecord.createChildWithTag(RelationshipHandler.TAG_SUBJECT)
+			.addChild(FLEFRecord.createChildWithTagAndValue(RelationshipReader.TAG_TYPE, type))
+			.addChild(FLEFRecord.createChildWithTag(RelationshipReader.TAG_SUBJECT)
 				.addChild(FLEFRecord.createChildWithTagAndValue(IndividualHandler.TYPE, subjectId))
 			)
-			.addChild(FLEFRecord.createChildWithTag(RelationshipHandler.TAG_OBJECT)
+			.addChild(FLEFRecord.createChildWithTag(RelationshipReader.TAG_OBJECT)
 				.addChild(FLEFRecord.createChildWithTagAndValue(IndividualHandler.TYPE, targetId))
 			)
 			.addChild(AuditBuilder.build());
@@ -133,12 +135,12 @@ public abstract class AbstractProjectionMutator implements ProjectionMutator{
 		for(int i = 0, size = relationships.size(); i < size; i ++){
 			final FLEFRecord relationship = relationships.get(i);
 
-			final String subjectId = relationship.extractReferencedId(RelationshipHandler.TAG_SUBJECT, IndividualHandler.TYPE);
-			final String groupSubjectId = relationship.extractReferencedId(RelationshipHandler.TAG_SUBJECT, GroupHandler.TYPE);
+			final String subjectId = relationship.extractReferencedId(RelationshipReader.TAG_SUBJECT, IndividualHandler.TYPE);
+			final String groupSubjectId = relationship.extractReferencedId(RelationshipReader.TAG_SUBJECT, GroupHandler.TYPE);
 			final String targetSubjectId = (subjectId != null ? subjectId : groupSubjectId);
 
-			final String relationshipObjectId = relationship.extractReferencedId(RelationshipHandler.TAG_OBJECT, IndividualHandler.TYPE);
-			final String groupObjectId = relationship.extractReferencedId(RelationshipHandler.TAG_OBJECT, GroupHandler.TYPE);
+			final String relationshipObjectId = relationship.extractReferencedId(RelationshipReader.TAG_OBJECT, IndividualHandler.TYPE);
+			final String groupObjectId = relationship.extractReferencedId(RelationshipReader.TAG_OBJECT, GroupHandler.TYPE);
 			final String targetObjectId = (relationshipObjectId != null? relationshipObjectId: groupObjectId);
 
 			if(targetId.equals(targetSubjectId) || targetId.equals(targetObjectId))
@@ -156,7 +158,7 @@ public abstract class AbstractProjectionMutator implements ProjectionMutator{
 		for(int i = 0, size = participations.size(); i < size; i ++){
 			final FLEFRecord participation = participations.get(i);
 
-			final FLEFRecord participantField = FLEFRecordHelper.findChild(participation, EventParticipationHandler.TAG_PARTICIPANT);
+			final FLEFRecord participantField = FLEFRecordHelper.findChild(participation, EventParticipationReader.TAG_PARTICIPANT);
 			if(participantField == null)
 				continue;
 

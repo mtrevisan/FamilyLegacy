@@ -55,12 +55,38 @@ import java.util.Locale;
 /**
  * Generic service to parse partial or full date strings into GenealogicalDate objects.
  * Supports standard date pattern formats as well as GEDCOM-style date strings.
+ *
+ * <p>Every calendar declared in {@link CalendarType} is converted to a
+ * proleptic Gregorian date. Three conversion strategies are used, chosen
+ * per calendar:</p>
+ *
+ * <ol>
+ *   <li><b>JSR-310 chronology</b> — for calendars with a built-in
+ *       {@link Chronology} implementation (Gregorian, Julian, Islamic,
+ *       Buddhist, Coptic, Ethiopic). The chronology handles leap-year
+ *       rules natively.</li>
+ *   <li><b>ICU4J calendar</b> — for calendars whose leap rules are not
+ *       purely arithmetic (Hebrew, Chinese, Indian National). ICU4J ships
+ *       the full tables and the astronomical computation.</li>
+ *   <li><b>Arithmetic JDN</b> — for the remaining calendars, whose only
+ *       conversion rule is the one declared in
+ *       {@link CalendarType#toJdn(int, int, int)}. The enum produces a
+ *       Julian Day Number and this class converts it back to a
+ *       proleptic Gregorian date.</li>
+ * </ol>
  */
 public final class UniversalDateConverter{
 
 	private static final String[] GEDCOM_PREFIXES = {
 		"ABT", "CAL", "EST", "BEFORE", "BEF", "AFTER", "AFT", "FROM", "TO", "BET", "AND", "INT"
 	};
+
+	/**
+	 * Julian Day Number of 1970-01-01 in the proleptic Gregorian calendar,
+	 * i.e. the JDN that corresponds to {@link LocalDate#ofEpochDay(long)}
+	 * day {@code 0}. Used to convert a JDN into a {@link LocalDate}.
+	 */
+	private static final long UNIX_EPOCH_JDN = 2440588L;
 
 
 	private record PatternMatch(DateTimeFormatter formatter, GenealogicalDate.DatePrecision precision, boolean hasDay,
@@ -100,6 +126,11 @@ public final class UniversalDateConverter{
 		return new PatternMatch(dtf, precision, hasDay, hasMonth, hasYear);
 	}
 
+
+	/* ======================================================================
+	 *                          Entry point
+	 * ====================================================================== */
+
 	public static GenealogicalDate parse(final String calendarCode, String rawDate){
 		if(rawDate == null || rawDate.isEmpty())
 			throw new IllegalArgumentException("Date string is required");
@@ -138,6 +169,7 @@ public final class UniversalDateConverter{
 					continue;
 
 				final LocalDate resultIso = switch(type){
+					/* ----- JSR-310 chronologies (arithmetic leap rules) ----- */
 					case GREGORIAN -> parseJsr310(IsoChronology.INSTANCE, accessor, pm);
 					case JULIAN -> parseJsr310(JulianChronology.INSTANCE, accessor, pm);
 					case ISLAMIC -> parseJsr310(HijrahChronology.INSTANCE, accessor, pm);
@@ -145,13 +177,26 @@ public final class UniversalDateConverter{
 					case COPTIC -> parseJsr310(CopticChronology.INSTANCE, accessor, pm);
 					case ETHIOPIAN -> parseJsr310(EthiopicChronology.INSTANCE, accessor, pm);
 
+					/* ----- ICU4J calendars (non-arithmetic rules) ----------- */
 					case HEBREW -> parseIcu4j(new HebrewCalendar(), accessor, pm);
 					case CHINESE -> parseIcu4j(new ChineseCalendar(), accessor, pm);
 					case INDIAN -> parseIcu4j(new IndianCalendar(), accessor, pm);
 
+					/* ----- Calendars with a bespoke conversion --------------- */
 					case FRENCH_REPUBLICAN -> parseFrenchRepublican(accessor, pm);
 					case SOVIET_ETERNAL -> parseSovietEternal(accessor, pm);
 					case MAYAN -> parseMayanLongCount(cleanedDate);
+
+					/* ----- Calendars defined only by an arithmetic JDN ------
+					 * These calendars have no JSR-310 or ICU4J analogue, so
+					 * the conversion is delegated to
+					 * {@link CalendarType#toJdn(int, int, int)} and the
+					 * resulting JDN is turned into a proleptic Gregorian
+					 * date. This covers the calendars that previously
+					 * returned {@code null} from the switch. */
+					case REFORMED_JULIAN, PERSIAN, PARSI, BYZANTINE,
+						  EGYPTIAN, SELEUCID, ARMENIAN, RUMI
+						-> parseViaJdn(type, accessor, pm);
 				};
 
 				return new GenealogicalDate(resultIso, pm.precision(), isApproximate, rawDate, type);
@@ -163,6 +208,15 @@ public final class UniversalDateConverter{
 	}
 
 
+	/* ======================================================================
+	 *                          JSR-310 chronologies
+	 * ====================================================================== */
+
+	/**
+	 * Converts a date expressed in a JSR-310 chronology into a proleptic
+	 * Gregorian {@link LocalDate}. The chronology handles the leap-year
+	 * rules.
+	 */
 	private static LocalDate parseJsr310(final Chronology chrono, final TemporalAccessor accessor,
 			final PatternMatch pm){
 		final int year = (pm.hasYear()? accessor.get(ChronoField.YEAR): Year.now().getValue());
@@ -173,6 +227,16 @@ public final class UniversalDateConverter{
 		return LocalDate.from(cld);
 	}
 
+
+	/* ======================================================================
+	 *                          ICU4J calendars
+	 * ====================================================================== */
+
+	/**
+	 * Converts a date expressed in an ICU4J calendar into a proleptic
+	 * Gregorian {@link LocalDate}. ICU4J uses months 0-11 internally, so
+	 * the parsed 1-based month is decremented before use.
+	 */
 	private static LocalDate parseIcu4j(final Calendar cal, final TemporalAccessor accessor, final PatternMatch pm){
 		final int day = (pm.hasDay()? accessor.get(ChronoField.DAY_OF_MONTH): 1);
 		final int month = (pm.hasMonth()? accessor.get(ChronoField.MONTH_OF_YEAR) - 1: 0);
@@ -189,24 +253,72 @@ public final class UniversalDateConverter{
 			.toLocalDate();
 	}
 
+
+	/* ======================================================================
+	 *                          Arithmetic JDN calendars
+	 * ====================================================================== */
+
+	/**
+	 * Converts a date expressed in any calendar whose conversion rule is
+	 * declared arithmetically in {@link CalendarType#toJdn(int, int, int)}.
+	 *
+	 * <p>The year, month and day are extracted from the accessor and passed
+	 * to the enum, which returns a Julian Day Number. The JDN is then
+	 * converted to a proleptic Gregorian date by subtracting the JDN of the
+	 * Unix epoch (1970-01-01) and using the result as the epoch day count of
+	 * {@link LocalDate#ofEpochDay(long)}.</p>
+	 *
+	 * <p>Calendars handled here: Revised Julian, Persian (Solar Hijri),
+	 * Parsi (Zoroastrian), Byzantine, Egyptian, Seleucid, Armenian and
+	 * Rumi. The first three have their own leap-year cycles; the last five
+	 * are anchored to the Julian calendar but with a different epoch or
+	 * year-counting rule.</p>
+	 */
+	private static LocalDate parseViaJdn(final CalendarType type, final TemporalAccessor accessor,
+			final PatternMatch pm){
+		final int year = (pm.hasYear()? accessor.get(ChronoField.YEAR): Year.now().getValue());
+		final int month = (pm.hasMonth()? accessor.get(ChronoField.MONTH_OF_YEAR): 1);
+		final int day = (pm.hasDay()? accessor.get(ChronoField.DAY_OF_MONTH): 1);
+
+		final long jdn = type.toJdn(year, month, day);
+		return LocalDate.ofEpochDay(jdn - UNIX_EPOCH_JDN);
+	}
+
+
+	/* ======================================================================
+	 *                          Bespoke conversions
+	 * ====================================================================== */
+
+	/**
+	 * French Republican calendar, arithmetic Romme variant: 12 months of
+	 * 30 days + 5 or 6 complementary days, with leap years every 4 years
+	 * starting from year 3. The epoch is 22 September 1792 (JDN 2375839).
+	 */
 	private static LocalDate parseFrenchRepublican(final TemporalAccessor accessor, final PatternMatch pm){
 		final int day = (pm.hasDay()? accessor.get(ChronoField.DAY_OF_MONTH): 1);
 		final int month = (pm.hasMonth()? accessor.get(ChronoField.MONTH_OF_YEAR): 1);
 		final int year = (pm.hasYear()? accessor.get(ChronoField.YEAR): 1);
 
 		final LocalDate epoch = LocalDate.of(1792, 9, 22);
-		final long daysToAdd = (year - 1) * 365l + (year / 4) + (month - 1) * 30l + (day - 1);
+		final long daysToAdd = (year - 1) * 365L + (year / 4) + (month - 1) * 30L + (day - 1);
 		return epoch.plusDays(daysToAdd);
 	}
 
+	/**
+	 * Soviet Revolutionary Calendar (1929-1940): 12 months of 30 days each
+	 * plus 5 or 6 holiday days without a month. The solar dates follow the
+	 * Gregorian calendar, so the conversion is a pass-through.
+	 */
 	private static LocalDate parseSovietEternal(final TemporalAccessor accessor, final PatternMatch pm){
-		// Soviet Revolutionary Calendar (1929-1940): 12 months of 30 days each + 5/6 holidays without a month.
-		// The months are numbered according to the Julian/Gregorian calendar.
 		return parseJsr310(IsoChronology.INSTANCE, accessor, pm);
 	}
 
+	/**
+	 * Mayan Long Count: Baktun.Katun.Tun.Uinal.Kin (e.g. 13.0.0.0.0).
+	 * Uses the standard GMT correlation (JDN 584283 for the epoch
+	 * 11 August 3114 BC proleptic Gregorian).
+	 */
 	private static LocalDate parseMayanLongCount(final String input){
-		// Mayan format: Baktun.Katun.Tun.Uinal.Kin (e.g. 13.0.0.0.0)
 		final String[] parts = StringUtils.split(input, ' ');
 		if(parts.length < 5)
 			throw new IllegalArgumentException("Invalid Mayan date. Requested format: 'Baktun Katun Tun Uinal Kin'");

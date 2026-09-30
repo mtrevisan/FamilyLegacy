@@ -28,7 +28,7 @@ import java.util.List;
  *   source*: SourceCitation
  *   note*: NoteStructure
  *   preferred_image?: struct {
- *     uri: Uri          // Resource URI pointing to a preferred image of this individual. FIXME? document: Xref<DocumentRecord>
+ *     uri: Uri          // Resource URI pointing to a preferred image of this individual. FIXME? document: Xref&lt;DocumentRecord&gt;
  *     crop?: CropRect   // specifies the portion of the image that should be displayed as the preferred representation
  *   }
  *   privacy?: PrivacyStructure

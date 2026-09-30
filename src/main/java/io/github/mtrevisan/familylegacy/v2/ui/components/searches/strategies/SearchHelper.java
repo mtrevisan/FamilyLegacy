@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.io.model.readers.DateReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.EventParticipationReader;
 import io.github.mtrevisan.familylegacy.v2.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.v2.io.model.readers.date.GenealogicalDate;
 import io.github.mtrevisan.familylegacy.v2.io.model.readers.date.NormalizedDate;
@@ -66,7 +67,7 @@ public class SearchHelper{
 
 		final List<FLEFRecord> participations = model.getRecordsByType(EventParticipationHandler.TYPE);
 		for(final FLEFRecord participation : participations){
-			final String participantId = participation.extractReferencedId(EventParticipationHandler.TAG_PARTICIPANT, IndividualHandler.TYPE);
+			final String participantId = participation.extractReferencedId(EventParticipationReader.TAG_PARTICIPANT, IndividualHandler.TYPE);
 			if(participantId == null)
 				continue;
 

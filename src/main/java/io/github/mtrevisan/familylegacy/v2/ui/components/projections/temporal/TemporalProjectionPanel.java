@@ -56,6 +56,7 @@ import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 
 /*
@@ -546,7 +547,8 @@ public final class TemporalProjectionPanel extends JPanel implements TreeChangeL
 	 * ====================================================================== */
 
 	private TemporalRow findRow(final TemporalEntityRef entity){
-		for(final TemporalRow row : model.rows())
+		final List<TemporalRow> rows = model.rows();
+		for(final TemporalRow row : rows)
 			if(row.entity().equals(entity))
 				return row;
 		return null;

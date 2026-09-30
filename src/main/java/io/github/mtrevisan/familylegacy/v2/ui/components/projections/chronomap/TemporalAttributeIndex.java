@@ -92,22 +92,24 @@ public final class TemporalAttributeIndex{
 	 * ====================================================================== */
 
 	private void build(){
-		for(final FLEFRecord attribute : model.getRecordsByType(IndividualAttributeHandler.TYPE)){
-			final String ownerId = extractIndividualOwner(attribute);
+		final List<FLEFRecord> individualAttributes = model.getRecordsByType(IndividualAttributeHandler.TYPE);
+		for(final FLEFRecord individualAttribute : individualAttributes){
+			final String ownerId = extractIndividualOwner(individualAttribute);
 			if(ownerId == null)
 				continue;
 
-			final AttributeDatum datum = parse(attribute, ownerId);
+			final AttributeDatum datum = parse(individualAttribute, ownerId);
 			if(datum != null)
 				attributesByOwner.computeIfAbsent(ownerId, k -> new ArrayList<>()).add(datum);
 		}
 
-		for(final FLEFRecord attribute : model.getRecordsByType(GroupAttributeHandler.TYPE)){
-			final String ownerId = extractGroupOwner(attribute);
+		final List<FLEFRecord> groupAttributes = model.getRecordsByType(GroupAttributeHandler.TYPE);
+		for(final FLEFRecord groupAttribute : groupAttributes){
+			final String ownerId = extractGroupOwner(groupAttribute);
 			if(ownerId == null)
 				continue;
 
-			final AttributeDatum datum = parse(attribute, ownerId);
+			final AttributeDatum datum = parse(groupAttribute, ownerId);
 			if(datum != null)
 				attributesByOwner.computeIfAbsent(ownerId, k -> new ArrayList<>()).add(datum);
 		}

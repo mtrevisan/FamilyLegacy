@@ -191,7 +191,8 @@ public class GEDCOMToFLEFConverter {
 	 * @param noteMap Map of note IDs to note records.
 	 */
 	public static void inlineNotes(final FLEFModel model, final Map<String, FLEFRecord> noteMap){
-		for(final FLEFRecord record : model.getRecords())
+		final List<FLEFRecord> records = model.getRecords();
+		for(final FLEFRecord record : records)
 			inlineNotes(record, noteMap);
 	}
 

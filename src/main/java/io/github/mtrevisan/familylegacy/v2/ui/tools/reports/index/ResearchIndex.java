@@ -32,63 +32,68 @@ public final class ResearchIndex{
 		if(model == null)
 			return;
 
-		for(final FLEFRecord act : model.getRecordsByType(ResearchActivityHandler.TYPE)){
-			if(!filter.test(act))
+		final List<FLEFRecord> researchActivities = model.getRecordsByType(ResearchActivityHandler.TYPE);
+		for(final FLEFRecord researchActivity : researchActivities){
+			if(!filter.test(researchActivity))
 				continue;
-			for(final FLEFRecord qRef : FLEFRecordHelper.findChildren(act, "question")){
+			for(final FLEFRecord qRef : FLEFRecordHelper.findChildren(researchActivity, "question")){
 				if(qRef.getValue() != null){
-					questionToActivitiesMap.computeIfAbsent(qRef.getValue(), k -> new ArrayList<>()).add(act);
+					questionToActivitiesMap.computeIfAbsent(qRef.getValue(), k -> new ArrayList<>()).add(researchActivity);
 				}
 			}
 		}
 
-		for(final FLEFRecord task : model.getRecordsByType(ResearchTaskHandler.TYPE)){
-			if(!filter.test(task))
+		final List<FLEFRecord> researchTasks = model.getRecordsByType(ResearchTaskHandler.TYPE);
+		for(final FLEFRecord researchTask : researchTasks){
+			if(!filter.test(researchTask))
 				continue;
-			for(final FLEFRecord qRef : FLEFRecordHelper.findChildren(task, "question")){
+			for(final FLEFRecord qRef : FLEFRecordHelper.findChildren(researchTask, "question")){
 				if(qRef.getValue() != null){
-					questionToTasksMap.computeIfAbsent(qRef.getValue(), k -> new ArrayList<>()).add(task);
+					questionToTasksMap.computeIfAbsent(qRef.getValue(), k -> new ArrayList<>()).add(researchTask);
 				}
 			}
-			final String createdBy = FLEFRecordHelper.getChildValue(task, "created_by");
+			final String createdBy = FLEFRecordHelper.getChildValue(researchTask, "created_by");
 			if(createdBy != null){
-				activityToTasksMap.computeIfAbsent(createdBy, k -> new ArrayList<>()).add(task);
+				activityToTasksMap.computeIfAbsent(createdBy, k -> new ArrayList<>()).add(researchTask);
 			}
 		}
 
-		for(final FLEFRecord conc : model.getRecordsByType(ConclusionHandler.TYPE)){
-			if(!filter.test(conc))
+		final List<FLEFRecord> conclusions = model.getRecordsByType(ConclusionHandler.TYPE);
+		for(final FLEFRecord conclusion : conclusions){
+			if(!filter.test(conclusion))
 				continue;
-			for(final FLEFRecord qRef : FLEFRecordHelper.findChildren(conc, "research")){
+			for(final FLEFRecord qRef : FLEFRecordHelper.findChildren(conclusion, "research")){
 				if(qRef.getValue() != null){
-					questionToConclusionsMap.computeIfAbsent(qRef.getValue(), k -> new ArrayList<>()).add(conc);
+					questionToConclusionsMap.computeIfAbsent(qRef.getValue(), k -> new ArrayList<>()).add(conclusion);
 				}
 			}
 		}
 
-		for(final FLEFRecord ci : model.getRecordsByType(ContextImpactHandler.TYPE)){
-			if(!filter.test(ci))
+		final List<FLEFRecord> contextImpacts = model.getRecordsByType(ContextImpactHandler.TYPE);
+		for(final FLEFRecord contextImpact : contextImpacts){
+			if(!filter.test(contextImpact))
 				continue;
-			for(final FLEFRecord t : FLEFRecordHelper.findChildren(ci, "target")){
+			for(final FLEFRecord t : FLEFRecordHelper.findChildren(contextImpact, "target")){
 				final FLEFRecord ref = t.getTheOnlyChild();
 				if(ref == null || "void".equalsIgnoreCase(ref.getTag()))
 					continue;
 				final String id = ref.getValue();
 				if(id != null && !id.isBlank())
-					contextImpactsByTarget.computeIfAbsent(id, k -> new ArrayList<>()).add(ci);
+					contextImpactsByTarget.computeIfAbsent(id, k -> new ArrayList<>()).add(contextImpact);
 			}
 		}
 
-		for(final FLEFRecord q : model.getRecordsByType(ResearchQuestionHandler.TYPE)){
-			if(!filter.test(q))
+		final List<FLEFRecord> researchQuestions = model.getRecordsByType(ResearchQuestionHandler.TYPE);
+		for(final FLEFRecord researchQuestion : researchQuestions){
+			if(!filter.test(researchQuestion))
 				continue;
-			for(final FLEFRecord t : FLEFRecordHelper.findChildren(q, "target")){
+			for(final FLEFRecord t : FLEFRecordHelper.findChildren(researchQuestion, "target")){
 				final FLEFRecord ref = t.getTheOnlyChild();
 				if(ref == null || "void".equalsIgnoreCase(ref.getTag()))
 					continue;
 				final String id = ref.getValue();
 				if(id != null && !id.isBlank())
-					researchQuestionsByTarget.computeIfAbsent(id, k -> new ArrayList<>()).add(q);
+					researchQuestionsByTarget.computeIfAbsent(id, k -> new ArrayList<>()).add(researchQuestion);
 			}
 		}
 	}

@@ -28,29 +28,31 @@ public final class SourceAndDocumentIndex{
 		if(model == null)
 			return;
 
-		for(final FLEFRecord src : model.getRecordsByType(SourceHandler.TYPE)){
-			if(!filter.test(src))
+		final List<FLEFRecord> sources = model.getRecordsByType(SourceHandler.TYPE);
+		for(final FLEFRecord source : sources){
+			if(!filter.test(source))
 				continue;
-			final String srcId = src.getId();
+			final String srcId = source.getId();
 
-			for(final FLEFRecord docRef : FLEFRecordHelper.findChildren(src, "document")){
+			for(final FLEFRecord docRef : FLEFRecordHelper.findChildren(source, "document")){
 				if(docRef.getValue() != null){
 					sourceToDocumentsMap.computeIfAbsent(srcId, k -> new ArrayList<>()).add(docRef);
-					docToSourcesMap.computeIfAbsent(docRef.getValue(), k -> new ArrayList<>()).add(src);
+					docToSourcesMap.computeIfAbsent(docRef.getValue(), k -> new ArrayList<>()).add(source);
 				}
 			}
 
-			for(final FLEFRecord repoRef : FLEFRecordHelper.findChildren(src, "repository")){
+			for(final FLEFRecord repoRef : FLEFRecordHelper.findChildren(source, "repository")){
 				final String repoId = FLEFRecordHelper.getChildValue(repoRef, "repository");
 				if(repoId != null){
 					sourceToRepositoriesMap.computeIfAbsent(srcId, k -> new ArrayList<>()).add(repoRef);
-					repoToSourcesMap.computeIfAbsent(repoId, k -> new ArrayList<>()).add(src);
+					repoToSourcesMap.computeIfAbsent(repoId, k -> new ArrayList<>()).add(source);
 				}
 			}
 		}
 
-		for(final FLEFRecord rec : model.getRecords()){
-			for(final FLEFRecord cit : CulturalNormRootSection.collectDescendantsWithTag(rec, "source")){
+		final List<FLEFRecord> records = model.getRecords();
+		for(final FLEFRecord record : records){
+			for(final FLEFRecord cit : CulturalNormRootSection.collectDescendantsWithTag(record, "source")){
 				final String sid = ReportFormatters.extractSourceId(cit);
 				if(sid != null && filter.test(model.getRecordById(sid))){
 					sourceToCitationsMap.computeIfAbsent(sid, k -> new ArrayList<>()).add(cit);

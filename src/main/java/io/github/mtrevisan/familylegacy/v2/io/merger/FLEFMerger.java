@@ -392,11 +392,12 @@ public class FLEFMerger{
 
 	private MergeReport singleModelResult(final FLEFModel model){
 		final List<MergeReport.Decision> decisions = new ArrayList<>();
-		for(final FLEFRecord rec : model.getRecords()){
+		final List<FLEFRecord> records = model.getRecords();
+		for(final FLEFRecord record : records){
 			decisions.add(new MergeReport.Decision(
 				MergeReport.DecisionType.KEPT_AS_IS,
-				rec.getId() != null? Set.of(rec.getId()): Set.of(),
-				rec.getId(),
+				record.getId() != null? Set.of(record.getId()): Set.of(),
+				record.getId(),
 				1.0,
 				Collections.emptyList(),
 				"Single model, kept as is"));
@@ -440,8 +441,9 @@ public class FLEFMerger{
 		final Deque<FLEFRecord> stack = new ArrayDeque<>();
 		if(model.getHeader() != null)
 			stack.push(model.getHeader());
-		for(final FLEFRecord rec : model.getRecords())
-			stack.push(rec);
+		final List<FLEFRecord> records = model.getRecords();
+		for(final FLEFRecord record : records)
+			stack.push(record);
 		while(!stack.isEmpty()){
 			final FLEFRecord rec = stack.pop();
 			final String id = rec.getValue();

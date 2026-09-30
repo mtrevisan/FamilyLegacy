@@ -62,7 +62,8 @@ public final class PlaceIndex{
 			return;
 
 		// ----- Events that happened at a place -------------------------
-		for(final FLEFRecord event : model.getRecordsByType(EventHandler.TYPE)){
+		final List<FLEFRecord> events = model.getRecordsByType(EventHandler.TYPE);
+		for(final FLEFRecord event : events){
 			if(!filter.test(event))
 				continue;
 			final String placeId = FLEFRecordHelper.getChildValue(event, "place.place");
@@ -72,15 +73,16 @@ public final class PlaceIndex{
 
 		// ----- Events in which a place participates ---------------------
 		// event_participation { participant { place P1 }; event E1; role ... }
-		for(final FLEFRecord ep : model.getRecordsByType(EventParticipationHandler.TYPE)){
-			if(!filter.test(ep))
+		final List<FLEFRecord> eventParticipations = model.getRecordsByType(EventParticipationHandler.TYPE);
+		for(final FLEFRecord eventParticipation : eventParticipations){
+			if(!filter.test(eventParticipation))
 				continue;
 
-			final String placeId = extractPlaceParticipantId(ep);
+			final String placeId = extractPlaceParticipantId(eventParticipation);
 			if(placeId == null)
 				continue;
 
-			final String eventId = FLEFRecordHelper.getChildValue(ep, TAG_EVENT);
+			final String eventId = FLEFRecordHelper.getChildValue(eventParticipation, TAG_EVENT);
 			if(eventId == null)
 				continue;
 
@@ -94,29 +96,31 @@ public final class PlaceIndex{
 		}
 
 		// ----- Attributes recorded at a place --------------------------
-		for(final FLEFRecord attr : model.getRecordsByType(IndividualAttributeHandler.TYPE)){
-			if(!filter.test(attr))
+		final List<FLEFRecord> individualAttributes = model.getRecordsByType(IndividualAttributeHandler.TYPE);
+		for(final FLEFRecord individualAttribute : individualAttributes){
+			if(!filter.test(individualAttribute))
 				continue;
-			final String placeId = FLEFRecordHelper.getChildValue(attr, "place.place");
+			final String placeId = FLEFRecordHelper.getChildValue(individualAttribute, "place.place");
 			if(placeId != null)
-				placeToAttributesMap.computeIfAbsent(placeId, k -> new ArrayList<>()).add(attr);
+				placeToAttributesMap.computeIfAbsent(placeId, k -> new ArrayList<>()).add(individualAttribute);
 		}
 
 		// ----- Place relationships (both directions) -------------------
-		for(final FLEFRecord pr : model.getRecordsByType(PlaceRelationshipHandler.TYPE)){
-			if(!filter.test(pr))
+		final List<FLEFRecord> placeRelationships = model.getRecordsByType(PlaceRelationshipHandler.TYPE);
+		for(final FLEFRecord placeRelationship : placeRelationships){
+			if(!filter.test(placeRelationship))
 				continue;
-			final String subjectPlace = FLEFRecordHelper.getChildValue(pr, "subject.place");
-			final String targetPlace = FLEFRecordHelper.getChildValue(pr, "target.place");
+			final String subjectPlace = FLEFRecordHelper.getChildValue(placeRelationship, "subject.place");
+			final String targetPlace = FLEFRecordHelper.getChildValue(placeRelationship, "target.place");
 
 			if(subjectPlace != null)
 				placeToSubjectRelationshipsMap
 					.computeIfAbsent(subjectPlace, k -> new ArrayList<>())
-					.add(pr);
+					.add(placeRelationship);
 			if(targetPlace != null)
 				placeToTargetRelationshipsMap
 					.computeIfAbsent(targetPlace, k -> new ArrayList<>())
-					.add(pr);
+					.add(placeRelationship);
 		}
 	}
 
