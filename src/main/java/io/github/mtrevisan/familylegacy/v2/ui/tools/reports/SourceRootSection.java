@@ -26,6 +26,8 @@ package io.github.mtrevisan.familylegacy.v2.ui.tools.reports;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.RepositoryReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.date.DateService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -97,7 +99,7 @@ final class SourceRootSection implements SectionBuilder{
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().sourcePublisher(),
 			FLEFRecordHelper.getChildValue(ctx.root, TAG_PUBLISHER));
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().sourceDate(),
-			FLEFRecordHelper.extractDate(ctx.root));
+			DateService.getDateDisplayText(ctx.root));
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().sourcePlace(),
 			FLEFRecordHelper.extractPlace(ctx.root, ctx.model));
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().sourceMediaType(),
@@ -117,7 +119,7 @@ final class SourceRootSection implements SectionBuilder{
 			final String rid = rc.extractReferencedId(TYPE_REPOSITORY, TYPE_REPOSITORY);
 			final FLEFRecord repo = (rid != null? ctx.visible(ctx.model.getRecordById(rid)): null);
 			final String name = (repo != null
-				? FLEFRecordHelper.getChildValue(repo, TAG_NAME + "." + TAG_VALUE)
+				? RepositoryReader.extractPrimaryName(repo)
 				: rid);
 			final String locator = FLEFRecordHelper.getChildValue(rc, TAG_LOCATOR);
 

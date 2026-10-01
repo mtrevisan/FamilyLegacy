@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.tools.reports;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.reports.index.EventIndex;
 import org.apache.commons.lang3.StringUtils;
 
@@ -68,7 +69,6 @@ final class IndividualLifeStorySection implements SectionBuilder{
 
 	private static final String TYPE_EVENT_PARTICIPATION = "event_participation";
 	private static final String TYPE_RELATIONSHIP = "relationship";
-	private static final String TYPE_INDIVIDUAL = "individual";
 
 
 	private final ReportContext ctx;
@@ -330,7 +330,7 @@ final class IndividualLifeStorySection implements SectionBuilder{
 			if(pf == null)
 				continue;
 			final FLEFRecord ref = pf.getTheOnlyChild();
-			if(ref == null || !TYPE_INDIVIDUAL.equalsIgnoreCase(ref.getTag()))
+			if(ref == null || !IndividualHandler.TYPE.equalsIgnoreCase(ref.getTag()))
 				continue;
 			if(!Objects.equals(individual.getId(), ref.getValue()))
 				continue;
@@ -437,7 +437,7 @@ final class IndividualLifeStorySection implements SectionBuilder{
 
 		final List<FLEFRecord> declared = new ArrayList<>();
 		for(final FLEFRecord rel : ctx.visibleRecordsByType(TYPE_RELATIONSHIP)){
-			final String subj = rel.extractReferencedId(TAG_SUBJECT, TYPE_INDIVIDUAL);
+			final String subj = rel.extractReferencedId(TAG_SUBJECT, IndividualHandler.TYPE);
 			if(Objects.equals(ctx.root.getId(), subj))
 				declared.add(rel);
 		}
@@ -492,7 +492,7 @@ final class IndividualLifeStorySection implements SectionBuilder{
 			rel, TAG_VALID_FROM, ctx.labels, contextLabels);
 		final String to = GenealogicalDateHelper.formatDateStructure(
 			rel, TAG_VALID_TO, ctx.labels, contextLabels);
-		final String targId = rel.extractReferencedId(TAG_TARGET, TYPE_INDIVIDUAL);
+		final String targId = rel.extractReferencedId(TAG_TARGET, IndividualHandler.TYPE);
 		final FLEFRecord target = (targId != null? ctx.model.getRecordById(targId): null);
 		final String targetLabel = (target != null? ctx.displayText(target)
 			: ReportFormatters.orEmpty(targId));

@@ -26,7 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.CulturalNormReader;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.CulturalNormRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
@@ -41,36 +41,6 @@ public class CulturalNormHandler extends AbstractRecordTypeHandler<CulturalNormR
 
 	public static final String TYPE = "CULTURAL_NORM";
 	public static final String ID_PREFIX = "CN";
-
-	public static final String TAG_TITLE = "TITLE";
-	public static final String TAG_RULE_TYPE = "RULE_TYPE";
-	public static final String TAG_PLACE = "PLACE";
-	public static final String TAG_VALID_FROM = "VALID_FROM";
-	public static final String TAG_VALID_TO = "VALID_TO";
-	public static final String TAG_NOTE = "NOTE";
-	public static final String TAG_SOURCE = "SOURCE";
-	public static final String TAG_EVIDENCE = "EVIDENCE";
-	public static final String TAG_AUDIT = "AUDIT";
-
-	public static final String[] RULE_TYPES = new String[]{
-		// Lifecycle and age-related customs:
-		"age_of_majority", "marriage_minimum_age", "baptism_age", "confirmation_age", "military_service_age",
-		"retirement_age",
-		// Naming practices:
-		"naming_convention", "surname_transmission", "patronymic_system", "matronymic_system", "title_usage",
-		// Family and household customs:
-		"inheritance_rule", "succession_rule", "dowry_practice", "guardianship_rule", "adoption_practice",
-		// Marriage customs:
-		"marriage_practice", "marriage_prohibited_degree", "widowhood_rule",
-		// Residence and social organization:
-		"residence_pattern", "household_structure", "social_classification",
-		// Religious and ecclesiastical customs:
-		"religious_practice", "burial_practice",
-		// Legal and citizenship rules:
-		"citizenship_rule", "legitimacy_rule",
-		// Genealogical inference rules:
-		"age_difference_convention", "generational_interval"
-	};
 
 
 	private static final class SingletonHelper{
@@ -100,7 +70,7 @@ public class CulturalNormHandler extends AbstractRecordTypeHandler<CulturalNormR
 
 	@Override
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
-		final String title = FLEFRecordHelper.getChildValue(record, TAG_TITLE);
+		final String title = CulturalNormReader.extractTitle(record);
 		final String id = record.getId();
 		return (StringUtils.isNotEmpty(title)? title: "--") + " [" + id + "]";
 	}

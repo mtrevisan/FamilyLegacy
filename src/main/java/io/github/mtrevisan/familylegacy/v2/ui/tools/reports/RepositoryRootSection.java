@@ -26,6 +26,13 @@ package io.github.mtrevisan.familylegacy.v2.ui.tools.reports;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.NameReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.RepositoryCitationReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.RepositoryReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.SourceReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.date.DateService;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.RepositoryHandler;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,16 +53,8 @@ import java.util.List;
  */
 final class RepositoryRootSection implements SectionBuilder{
 
-	private static final String TAG_NAME = "name";
-	private static final String TAG_VALUE = "value";
 	private static final String TAG_TYPE = "type";
-	private static final String TAG_LOCALE = "locale";
-	private static final String TAG_CUSTODIAN = "custodian";
-	private static final String TAG_CONTACT = "contact";
-	private static final String TAG_LOCATOR = "locator";
-	private static final String TAG_MEDIA_TYPE = "media_type";
 
-	private static final String TYPE_REPOSITORY = "repository";
 	private static final String NAME_TYPE_OFFICIAL = "official";
 
 
@@ -104,7 +103,7 @@ final class RepositoryRootSection implements SectionBuilder{
 
 
 	private void writeNames(final List<ReportSection> out){
-		final List<FLEFRecord> names = FLEFRecordHelper.findChildren(ctx.root, TAG_NAME);
+		final List<FLEFRecord> names = FLEFRecordHelper.findChildren(ctx.root, RepositoryReader.TAG_NAME);
 		if(names.size() <= 1)
 			return;
 
@@ -113,11 +112,13 @@ final class RepositoryRootSection implements SectionBuilder{
 		for(final FLEFRecord n : names){
 			if(n == primary)
 				continue;
-			final String type = FLEFRecordHelper.getChildValue(n, TAG_TYPE);
-			final String value = FLEFRecordHelper.getChildValue(n, TAG_VALUE);
-			final String locale = FLEFRecordHelper.getChildValue(n, TAG_LOCALE);
+
+			final String type = FLEFRecordHelper.getChildValue(n, NameReader.TAG_TYPE);
+			final String value = FLEFRecordHelper.getChildValue(n, NameReader.TAG_VALUE);
+			final String locale = FLEFRecordHelper.getChildValue(n, NameReader.TAG_LOCALE);
 			if(value == null || value.isBlank())
 				continue;
+
 			final StringBuilder line = new StringBuilder();
 			line.append("**").append(ctx.labels.sections().name());
 			if(type != null && !type.isBlank())
@@ -133,7 +134,7 @@ final class RepositoryRootSection implements SectionBuilder{
 
 
 	private void writeCustodian(final List<ReportSection> out){
-		final String custId = ctx.root.extractReferencedId(TAG_CUSTODIAN, "individual");
+		final String custId = ctx.root.extractReferencedId(RepositoryReader.TAG_CUSTODIAN, IndividualHandler.TYPE);
 		if(custId == null)
 			return;
 		final FLEFRecord cust = ctx.visible(ctx.model.getRecordById(custId));
@@ -156,7 +157,7 @@ final class RepositoryRootSection implements SectionBuilder{
 
 	private void writeContacts(final List<ReportSection> out){
 		final List<String> rows = new ArrayList<>();
-		for(final FLEFRecord contact : ctx.visibleChildren(ctx.root, TAG_CONTACT)){
+		for(final FLEFRecord contact : ctx.visibleChildren(ctx.root, RepositoryReader.TAG_CONTACT)){
 			final String rendered = ReportFormatters.renderContact(contact);
 			if(rendered != null)
 				rows.add(rendered);
@@ -180,16 +181,16 @@ final class RepositoryRootSection implements SectionBuilder{
 			ReportFormatters.appendIfPresent(rows, ctx.labels.sections().sourceAuthor(),
 				FLEFRecordHelper.getChildValue(src, "author"));
 			ReportFormatters.appendIfPresent(rows, ctx.labels.sections().sourceDate(),
-				FLEFRecordHelper.extractDate(src));
+				DateService.getDateDisplayText(src));
 			ReportFormatters.appendIfPresent(rows, ctx.labels.sections().sourceMediaType(),
-				FLEFRecordHelper.getChildValue(src, TAG_MEDIA_TYPE));
+				FLEFRecordHelper.getChildValue(src, SourceReader.TAG_MEDIA_TYPE));
 
 			// Locator(s) of this source within the repository.
 			for(final FLEFRecord rc : ctx.index.repositoriesOfSource(src)){
-				final String rid = rc.extractReferencedId(TYPE_REPOSITORY, TYPE_REPOSITORY);
+				final String rid = rc.extractReferencedId(RepositoryHandler.TYPE, RepositoryCitationReader.TAG_REPOSITORY);
 				if(!ctx.root.getId().equals(rid))
 					continue;
-				final String locator = FLEFRecordHelper.getChildValue(rc, TAG_LOCATOR);
+				final String locator = FLEFRecordHelper.getChildValue(rc, RepositoryCitationReader.TAG_LOCATOR);
 				if(locator != null && !locator.isBlank())
 					rows.add("**" + ctx.labels.sections().sourceLocator() + ":** "
 						+ ReportFormatters.escape(locator));
@@ -204,19 +205,19 @@ final class RepositoryRootSection implements SectionBuilder{
 	/* ----- Name helpers ---------------------------------------------------- */
 
 	private static FLEFRecord primaryNameNode(final FLEFRecord repo){
-		final List<FLEFRecord> names = FLEFRecordHelper.findChildren(repo, TAG_NAME);
+		final List<FLEFRecord> names = FLEFRecordHelper.findChildren(repo, RepositoryReader.TAG_NAME);
 		if(names.isEmpty())
 			return null;
 		for(final FLEFRecord n : names){
-			final String type = FLEFRecordHelper.getChildValue(n, TAG_TYPE);
+			final String type = FLEFRecordHelper.getChildValue(n, NameReader.TAG_TYPE);
 			if(NAME_TYPE_OFFICIAL.equalsIgnoreCase(type)){
-				final String v = FLEFRecordHelper.getChildValue(n, TAG_VALUE);
+				final String v = FLEFRecordHelper.getChildValue(n, NameReader.TAG_VALUE);
 				if(v != null && !v.isBlank())
 					return n;
 			}
 		}
 		for(final FLEFRecord n : names){
-			final String v = FLEFRecordHelper.getChildValue(n, TAG_VALUE);
+			final String v = FLEFRecordHelper.getChildValue(n, NameReader.TAG_VALUE);
 			if(v != null && !v.isBlank())
 				return n;
 		}
@@ -226,7 +227,7 @@ final class RepositoryRootSection implements SectionBuilder{
 	private static String primaryName(final FLEFRecord repo){
 		final FLEFRecord n = primaryNameNode(repo);
 		if(n != null){
-			final String v = FLEFRecordHelper.getChildValue(n, TAG_VALUE);
+			final String v = FLEFRecordHelper.getChildValue(n, NameReader.TAG_VALUE);
 			if(v != null && !v.isBlank())
 				return v.trim();
 		}

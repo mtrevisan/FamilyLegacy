@@ -65,47 +65,6 @@ public record Name(
 	FLEFRecord sourceRecord
 ){
 
-	static final String TAG_TYPE = "type";
-	static final String TAG_VALUE = "value";
-	static final String TAG_PART = "part";
-	static final String TAG_LOCALE = "locale";
-	static final String TAG_CULTURAL_NORM = "cultural_norm";
-	static final String TAG_SOURCE = "source";
-	static final String TAG_NOTE = "note";
-
-	public static final String[] PERSONAL_TYPES = {
-		// marital status and origins at birth
-		"official", "religious", "birth",
-		// changes in marital status and family events
-		"married", "maiden", "divorce", "adoption", "fostering",
-		// legal, immigration, and naturalization changes
-		"legal", "immigrant", "adapted",
-		// informal, stage, and social names
-		"alias", "nickname", "artistic", "professional", "user",
-		// historical and dynastic contexts
-		"regnal", "slave_name"
-	};
-
-	public static final String[] TYPES = {
-		// official and legal names
-		"official", "legal",
-		// historical naming traditions
-		"colonial", "indigenous", "traditional",
-		// language and localization variants
-		"translated", "transcribed",
-		// historical variants
-		"historic", "former",
-		// common usage
-		"common", "colloquial",
-		// abbreviated forms
-		"abbreviated", "acronym",
-		// religious and ecclesiastical forms
-		"religious",
-		// administrative and archival forms
-		"administrative", "archival"
-	};
-
-
 	public Name{
 		if(type == null)
 			type = StringUtils.EMPTY;

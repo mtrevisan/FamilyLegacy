@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.tools.events;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ReportDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
@@ -55,6 +56,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 
 /**
@@ -67,6 +69,9 @@ import java.util.Map;
  * and it lets the user see every event of a given type in one click.
  */
 public final class EventTypesDialog extends JDialog{
+
+	private final static Set<String> EVENT_TYPES = Set.of(EventReader.TYPES);
+
 
 	private final ToolContext context;
 	private final TypeTableModel tableModel = new TypeTableModel();
@@ -144,7 +149,7 @@ public final class EventTypesDialog extends JDialog{
 
 		// Pre-populate with the declared types so the user sees them even
 		// when unused.
-		for(final String declared : EventHelper.DECLARED_EVENT_TYPES)
+		for(final String declared : EventReader.TYPES)
 			counts.put(declared, 0);
 
 		// Count the events by type. Custom types appear here for the
@@ -159,8 +164,7 @@ public final class EventTypesDialog extends JDialog{
 
 		final List<TypeRow> rows = new ArrayList<>();
 		for(final Map.Entry<String, Integer> entry : counts.entrySet())
-			rows.add(new TypeRow(entry.getKey(), entry.getValue(),
-				EventHelper.DECLARED_EVENT_TYPES.contains(entry.getKey())));
+			rows.add(new TypeRow(entry.getKey(), entry.getValue(), EVENT_TYPES.contains(entry.getKey())));
 		tableModel.setRows(rows);
 		updateStatus(rows.size());
 	}

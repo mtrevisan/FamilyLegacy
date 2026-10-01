@@ -26,8 +26,8 @@ package io.github.mtrevisan.familylegacy.v2.ui.tools.reports;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.EvidenceQualifiersReader;
 import io.github.mtrevisan.familylegacy.v2.io.model.readers.PrivacyReader;
-import io.github.mtrevisan.familylegacy.v2.ui.components.EvidenceQualifiersPanel;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -224,11 +224,11 @@ final class CitationRenderer{
 
 		final List<String> rows = new ArrayList<>();
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().evidenceSourceType(),
-			FLEFRecordHelper.getChildValue(ev, EvidenceQualifiersPanel.TAG_SOURCE_TYPE));
+			FLEFRecordHelper.getChildValue(ev, EvidenceQualifiersReader.TAG_SOURCE_TYPE));
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().evidenceInformationType(),
-			FLEFRecordHelper.getChildValue(ev, EvidenceQualifiersPanel.TAG_INFORMATION_TYPE));
+			FLEFRecordHelper.getChildValue(ev, EvidenceQualifiersReader.TAG_INFORMATION_TYPE));
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().evidenceType(),
-			FLEFRecordHelper.getChildValue(ev, EvidenceQualifiersPanel.TAG_EVIDENCE_TYPE));
+			FLEFRecordHelper.getChildValue(ev, EvidenceQualifiersReader.TAG_EVIDENCE_TYPE));
 
 		if(!rows.isEmpty())
 			out.add(new ReportSection.Paragraph(

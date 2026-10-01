@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.projections.relationsh
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualListener;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.services.relationship.RelationshipTypeSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.services.relationship.UnlinkRelationshipsDialog;
@@ -35,14 +36,11 @@ import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
-import org.apache.commons.lang3.ArrayUtils;
 
 import javax.swing.SwingUtilities;
 import java.awt.Component;
 import java.awt.Window;
 import java.util.List;
-import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -116,10 +114,10 @@ public class EgoNetworkActionHandler{
 		final String otherId = otherRecord.getId();
 		final boolean egoIsGroup = GroupHandler.TYPE.equalsIgnoreCase(egoRecord.getTag());
 
-		if(isChildType(type))
+		if(RelationshipReader.isTypeChild(type))
 			return new String[]{otherId, egoId};
 
-		if(RelationshipHandler.ENUM_TYPE_GROUP_MEMBER.equals(type)){
+		if(RelationshipReader.isTypeGroupMember(type)){
 			return (egoIsGroup
 				? new String[]{otherId, egoId}
 				: new String[]{egoId, otherId});
@@ -199,10 +197,6 @@ public class EgoNetworkActionHandler{
 
 	private static Set<String> extractRecordIds(final Set<FLEFRecord> records){
 		return records.stream().map(FLEFRecord::getId).filter(Objects::nonNull).collect(Collectors.toSet());
-	}
-
-	private static boolean isChildType(final String type){
-		return ArrayUtils.contains(RelationshipHandler.INDIVIDUAL_TO_INDIVIDUAL_CHILD_TYPES, type.toLowerCase(Locale.ROOT));
 	}
 
 	private static RecordTypeHandler<?> resolveHandler(final Class<? extends RecordTypeHandler<?>> handlerClass){

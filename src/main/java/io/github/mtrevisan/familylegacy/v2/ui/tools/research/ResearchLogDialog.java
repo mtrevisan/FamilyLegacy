@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.tools.research;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.ResearchActivityReader;
 import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolDialogs;
@@ -142,8 +143,7 @@ public final class ResearchLogDialog extends JDialog{
 
 		final List<LogRow> rows = new ArrayList<>();
 		for(final FLEFRecord activity : ResearchHelper.listActivities(model)){
-			final String questionId = ResearchHelper.firstTextValue(activity,
-				ResearchHelper.TAG_QUESTION);
+			final String questionId = ResearchHelper.firstTextValue(activity, ResearchActivityReader.TAG_QUESTION);
 			final FLEFRecord q = (questionId != null? questionsById.get(questionId): null);
 			rows.add(new LogRow(
 				q != null? ResearchHelper.questionTitle(q): questionId,

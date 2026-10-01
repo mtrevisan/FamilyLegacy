@@ -5,7 +5,6 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.io.model.readers.names.Name;
 import io.github.mtrevisan.familylegacy.v2.io.model.readers.names.NameAnatomyService;
 import io.github.mtrevisan.familylegacy.v2.io.model.readers.names.NamePart;
-import io.github.mtrevisan.familylegacy.v2.ui.components.PreferredImagePanel;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 
@@ -110,21 +109,7 @@ public final class IndividualReader{
 
 	public static Rectangle extractPreferredImageCrop(final FLEFRecord record){
 		final FLEFRecord crop = FLEFRecordHelper.findChild(record, TAG_PREFERRED_IMAGE_CROP);
-		if(crop != null){
-			final String x = FLEFRecordHelper.getChildValue(crop, PreferredImagePanel.TAG_X);
-			final String y = FLEFRecordHelper.getChildValue(crop, PreferredImagePanel.TAG_Y);
-			final String width = FLEFRecordHelper.getChildValue(crop, PreferredImagePanel.TAG_WIDTH);
-			final String height = FLEFRecordHelper.getChildValue(crop, PreferredImagePanel.TAG_HEIGHT);
-			if(x != null && y != null && width != null && height != null){
-				final int cropX = Integer.parseInt(x);
-				final int cropY = Integer.parseInt(y);
-				final int cropWidth = Integer.parseInt(width);
-				final int cropHeight = Integer.parseInt(height);
-				if(cropX >= 0 && cropY >= 0 && cropWidth >= 0 && cropHeight >= 0)
-					return new Rectangle(cropX, cropY, cropWidth, cropHeight);
-			}
-		}
-		return new Rectangle();
+		return CropReader.extractPreferredImageCrop(crop);
 	}
 
 
@@ -140,10 +125,15 @@ public final class IndividualReader{
 		return names.stream()
 			// Skip parts having a type explicitly classified as acquired or contextual
 			.filter(name -> name.parts().stream()
-				.noneMatch(part -> NamePart.EXCLUDED_PART_TYPES.contains(part.type())))
+				.noneMatch(part -> NameReader.isPartTypeExcludedFromPersonalName(part.type())))
 			.map(IndividualReader::parsePersonalName)
 			.filter(StringUtils::isNotEmpty)
 			.toList();
+	}
+
+	public static String extractPrimaryFullname(final FLEFRecord individual){
+		final List<String> fullnames = extractFullNames(individual);
+		return (!fullnames.isEmpty()? fullnames.getFirst(): null);
 	}
 
 	private static String parsePersonalName(final Name name){

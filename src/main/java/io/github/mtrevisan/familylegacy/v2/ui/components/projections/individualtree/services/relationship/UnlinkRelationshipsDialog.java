@@ -26,7 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
@@ -196,12 +196,12 @@ public class UnlinkRelationshipsDialog extends JDialog{
 		final Map<String, RelationshipInfo> childMap = new HashMap<>();
 		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
 		for(final FLEFRecord relationship : relationships){
-			final String type = FLEFRecordHelper.getChildValue(relationship, RelationshipHandler.TAG_TYPE);
+			final String type = RelationshipReader.extractType(relationship);
 			if(type == null || !relationshipTypeFilter.test(type))
 				continue;
 
-			final String subjectId = extractAnyReferencedId(relationship, RelationshipHandler.TAG_SUBJECT);
-			final String objectId = extractAnyReferencedId(relationship, RelationshipHandler.TAG_OBJECT);
+			final String subjectId = extractAnyReferencedId(relationship, RelationshipReader.TAG_SUBJECT);
+			final String objectId = extractAnyReferencedId(relationship, RelationshipReader.TAG_OBJECT);
 			if(subjectId == null || objectId == null)
 				continue;
 

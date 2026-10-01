@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.io.model.readers.DateReader;
 import io.github.mtrevisan.familylegacy.v2.io.model.readers.EventParticipationReader;
 import io.github.mtrevisan.familylegacy.v2.io.model.readers.EventReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.PlaceReader;
 import io.github.mtrevisan.familylegacy.v2.io.model.readers.date.GenealogicalDate;
 import io.github.mtrevisan.familylegacy.v2.io.model.readers.date.NormalizedDate;
 import io.github.mtrevisan.familylegacy.v2.io.model.readers.date.TemporalSpan;
@@ -40,7 +41,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.searches.TextSearchHelp
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventParticipationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.NameHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import org.apache.commons.lang3.StringUtils;
 
@@ -84,7 +84,7 @@ public class SearchHelper{
 				continue;
 
 			if(EventReader.isTypeBirth(type) && !birthYears.containsKey(participantId)){
-				final FLEFRecord dateRecord = EventReader.extractDate(event);
+				final FLEFRecord dateRecord = FLEFRecordHelper.findChild(event, EventReader.TAG_DATE);
 				if(dateRecord != null){
 					final Integer[] range = SearchHelper.extractYearRangeFromDateStructure(dateRecord);
 					if(range != null && range[0] != Integer.MIN_VALUE)
@@ -92,7 +92,7 @@ public class SearchHelper{
 				}
 			}
 			else if(EventReader.isTypeDeath(type) && !deathYears.containsKey(participantId)){
-				final FLEFRecord dateRecord = EventReader.extractDate(event);
+				final FLEFRecord dateRecord = FLEFRecordHelper.findChild(event, EventReader.TAG_DATE);
 				if(dateRecord != null){
 					final Integer[] range = SearchHelper.extractYearRangeFromDateStructure(dateRecord);
 					if(range != null && range[1] != Integer.MAX_VALUE)
@@ -128,16 +128,14 @@ public class SearchHelper{
 		if(StringUtils.isEmpty(name))
 			return true;
 
-		final List<FLEFRecord> names = FLEFRecordHelper.findChildren(place, PlaceHandler.TAG_NAME);
+		final List<String> names = PlaceReader.extractNames(place);
 		boolean matched = false;
-		for(final FLEFRecord nameStruct : names){
-			final String nameValue = FLEFRecordHelper.getChildValue(nameStruct, NameHandler.TAG_VALUE);
+		for(final String nameValue : names)
 			if(TextSearchHelper.matchesText(nameValue, name, mode, fuzzyThreshold)){
 				matched = true;
 
 				break;
 			}
-		}
 		return matched;
 	}
 
@@ -146,7 +144,7 @@ public class SearchHelper{
 			return true;
 
 		final Integer year = SearchHelper.extractYear(date, calendar);
-		final FLEFRecord dateRecord = EventReader.extractDate(event);
+		final FLEFRecord dateRecord = FLEFRecordHelper.findChild(event, EventReader.TAG_DATE);
 		final TemporalSpan temporalSpan = DateReader.extractTemporalSpan(dateRecord);
 		final NormalizedDate start = (temporalSpan != null? temporalSpan.start(): null);
 		if(start != null)

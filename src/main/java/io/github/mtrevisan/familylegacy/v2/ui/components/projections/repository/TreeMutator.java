@@ -26,8 +26,8 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualData;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.siblings.SiblingsData;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
@@ -94,15 +94,15 @@ public class TreeMutator extends AbstractProjectionMutator{
 			final List<FLEFRecord> toRemove = new ArrayList<>();
 			final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
 			for(final FLEFRecord relationship : relationships){
-				final String type = FLEFRecordHelper.getChildValue(relationship, RelationshipHandler.TAG_TYPE);
+				final String type = RelationshipReader.extractType(relationship);
 				if(!relationshipTypeFilter.test(type))
 					continue;
 
-				final String subjectId = relationship.extractReferencedId(RelationshipHandler.TAG_SUBJECT, IndividualHandler.TYPE);
+				final String subjectId = relationship.extractReferencedId(RelationshipReader.TAG_SUBJECT, IndividualHandler.TYPE);
 				if(!childrenId.contains(subjectId))
 					continue;
 
-				final String objectId = relationship.extractReferencedId(RelationshipHandler.TAG_OBJECT, IndividualHandler.TYPE);
+				final String objectId = relationship.extractReferencedId(RelationshipReader.TAG_OBJECT, IndividualHandler.TYPE);
 				if(objectId == null)
 					continue;
 
@@ -178,15 +178,15 @@ public class TreeMutator extends AbstractProjectionMutator{
 	private String findParent(final String individualId){
 		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
 		for(final FLEFRecord relationship : relationships){
-			final String type = FLEFRecordHelper.getChildValue(relationship, RelationshipHandler.TAG_TYPE);
+			final String type = RelationshipReader.extractType(relationship);
 			if(type == null || !relationshipTypeFilter.test(type))
 				continue;
 
-			final String subjectId = relationship.extractReferencedId(RelationshipHandler.TAG_SUBJECT, IndividualHandler.TYPE);
+			final String subjectId = relationship.extractReferencedId(RelationshipReader.TAG_SUBJECT, IndividualHandler.TYPE);
 			if(!individualId.equals(subjectId))
 				continue;
 
-			final String parentId = relationship.extractReferencedId(RelationshipHandler.TAG_OBJECT, IndividualHandler.TYPE);
+			final String parentId = relationship.extractReferencedId(RelationshipReader.TAG_OBJECT, IndividualHandler.TYPE);
 			if(parentId != null && model.hasRecord(parentId))
 				return parentId;
 		}
@@ -196,15 +196,15 @@ public class TreeMutator extends AbstractProjectionMutator{
 	private String findChild(final String individualId){
 		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
 		for(final FLEFRecord relationship : relationships){
-			final String type = FLEFRecordHelper.getChildValue(relationship, RelationshipHandler.TAG_TYPE);
+			final String type = RelationshipReader.extractType(relationship);
 			if(type == null || !relationshipTypeFilter.test(type))
 				continue;
 
-			final String objectId = relationship.extractReferencedId(RelationshipHandler.TAG_OBJECT, IndividualHandler.TYPE);
+			final String objectId = relationship.extractReferencedId(RelationshipReader.TAG_OBJECT, IndividualHandler.TYPE);
 			if(!individualId.equals(objectId))
 				continue;
 
-			final String childId = relationship.extractReferencedId(RelationshipHandler.TAG_SUBJECT, IndividualHandler.TYPE);
+			final String childId = relationship.extractReferencedId(RelationshipReader.TAG_SUBJECT, IndividualHandler.TYPE);
 			if(childId != null && model.hasRecord(childId))
 				return childId;
 		}

@@ -26,7 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.NameReader;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.structures.NameStructureDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
@@ -46,13 +46,6 @@ public class NameHandler extends AbstractRecordTypeHandler<NameStructureDialog>{
 
 	public static final String TYPE = "NAME_STRUCTURE";
 	public static final String CITED_TYPE = "NAME";
-
-	public static final String TAG_TYPE = "TYPE";
-	public static final String TAG_VALUE = "VALUE";
-	public static final String TAG_LOCALE = "LOCALE";
-	public static final String TAG_VARIANT = "VARIANT";
-	public static final String TAG_SOURCE = "SOURCE";
-	public static final String TAG_NOTE = "NOTE";
 
 
 	private static final class SingletonHelper{
@@ -90,10 +83,10 @@ public class NameHandler extends AbstractRecordTypeHandler<NameStructureDialog>{
 		if(record == null)
 			return "--";
 
-		String value = FLEFRecordHelper.getChildValue(record, TAG_VALUE);
+		String value = NameReader.extractValue(record);
 		value = GUIHelper.limitTextLength(value.replace(StringUtils.LF, ", "));
 
-		final String type = FLEFRecordHelper.getChildValue(record, TAG_TYPE);
+		final String type = NameReader.extractType(record);
 		if(StringUtils.isNotEmpty(type))
 			value += " (" + type + ")";
 

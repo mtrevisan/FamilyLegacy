@@ -26,7 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.ResearchTaskReader;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.ResearchTaskRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
@@ -42,37 +42,6 @@ public class ResearchTaskHandler extends AbstractRecordTypeHandler<ResearchTaskR
 
 	public static final String TYPE = "RESEARCH_TASK";
 	public static final String ID_PREFIX = "RT";
-
-	public static final String TAG_DESCRIPTION = "DESCRIPTION";
-	public static final String TAG_QUESTION = "QUESTION";
-	public static final String TAG_CREATED_BY = "CREATED_BY";
-	public static final String TAG_STATUS = "STATUS";
-	public static final String TAG_PRIORITY = "PRIORITY";
-	public static final String TAG_DUE_DATE = "DUE_DATE";
-	public static final String TAG_OUTCOME = "OUTCOME";
-	public static final String TAG_PRIVACY = "PRIVACY";
-	public static final String TAG_AUDIT = "AUDIT";
-
-	public static final String ENUM_STATUS_OPEN = "open";
-	public static final String ENUM_STATUS_IN_PROGRESS = "in_progress";
-	public static final String ENUM_STATUS_COMPLETED = "completed";
-	public static final String ENUM_STATUS_ABANDONED = "abandoned";
-	public static final String[] STATUSES = {
-		ENUM_STATUS_OPEN,
-		ENUM_STATUS_IN_PROGRESS,
-		ENUM_STATUS_COMPLETED,
-		ENUM_STATUS_ABANDONED
-	};
-
-	public static final String ENUM_PRIORITY_LOW = "low";
-	public static final String ENUM_PRIORITY_NORMAL = "normal";
-	public static final String ENUM_PRIORITY_HIGH = "high";
-	public static final String[] PRIORITIES = {
-		StringUtils.EMPTY,
-		ENUM_PRIORITY_LOW,
-		ENUM_PRIORITY_NORMAL,
-		ENUM_PRIORITY_HIGH
-	};
 
 
 	private static final class SingletonHelper{
@@ -105,15 +74,15 @@ public class ResearchTaskHandler extends AbstractRecordTypeHandler<ResearchTaskR
 		if(record == null)
 			return "--";
 
-		String description = FLEFRecordHelper.getChildValue(record, "DESCRIPTION");
-		String status = FLEFRecordHelper.getChildValue(record, "STATUS");
+		String description = ResearchTaskReader.extractDescription(record);
+		String status = ResearchTaskReader.extractStatus(record);
 		if(StringUtils.isNotEmpty(description)){
 			String display = GUIHelper.limitTextLength(StringUtils.replaceChars(description, '\n', '|'));
 			if(StringUtils.isNotEmpty(status))
 				display += " [" + status + "]";
 			return display;
 		}
-		return record.getId() != null? record.getId(): "(unnamed)";
+		return "[" + record.getId() + "]";
 	}
 
 	@Override

@@ -39,12 +39,11 @@ public final class I18N{
 	private static final String BUNDLE_BASE = "i18n.ui.messages";
 
 	/** The bundle, resolved once against the current default locale. */
-	private static final ResourceBundle BUNDLE =
-		ResourceBundle.getBundle(BUNDLE_BASE, Locale.getDefault(), new Utf8Control());
+	private static final ResourceBundle BUNDLE = ResourceBundle.getBundle(BUNDLE_BASE, Locale.getDefault(),
+		new Utf8Control());
 
 
-	private I18N(){
-	}
+	private I18N(){}
 
 
 	/* ======================================================================
@@ -110,7 +109,6 @@ public final class I18N{
 	 * {@code \\uXXXX}.
 	 */
 	private static final class Utf8Control extends ResourceBundle.Control{
-
 		@Override
 		public ResourceBundle newBundle(final String baseName, final Locale locale, final String format,
 				final ClassLoader loader, final boolean reload) throws IOException, IllegalAccessException,

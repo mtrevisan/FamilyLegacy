@@ -24,9 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.components.searches.strategies;
 
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.RepositoryReader;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.RecordFilterPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchCriteria;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.RepositoryHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import net.miginfocom.swing.MigLayout;
 
@@ -108,9 +108,9 @@ public class RepositoryFilterPanel extends JPanel implements RecordFilterPanel{
 	@Override
 	public Map<String, String> getFilters(){
 		final Map<String, String> filters = new HashMap<>();
-		filters.put(RepositoryHandler.TAG_NAME, getRepositoryName());
-		filters.put(RepositoryHandler.TAG_CUSTODIAN, getCustodian());
-		filters.put(RepositoryHandler.TAG_PLACE, getRepositoryPlace());
+		filters.put(RepositoryReader.TAG_NAME, getRepositoryName());
+		filters.put(RepositoryReader.TAG_CUSTODIAN, getCustodian());
+		filters.put(RepositoryReader.TAG_PLACE, getRepositoryPlace());
 		return filters;
 	}
 

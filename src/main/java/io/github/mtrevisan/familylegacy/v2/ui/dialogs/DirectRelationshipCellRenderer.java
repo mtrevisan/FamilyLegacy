@@ -27,9 +27,9 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.DefaultListCellRenderer;
@@ -54,19 +54,19 @@ public class DirectRelationshipCellRenderer extends DefaultListCellRenderer{
 		final JLabel label = (JLabel)super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
 
 		if(value instanceof FLEFRecord record){
-			final String type = FLEFRecordHelper.getChildValue(record, RelationshipHandler.TAG_TYPE);
-			final FLEFRecord object = FLEFRecordHelper.extractRecordsFromOneOfReference(record, RelationshipHandler.TAG_OBJECT, model)
+			final String type = RelationshipReader.extractType(record);
+			final FLEFRecord object = FLEFRecordHelper.extractRecordsFromOneOfReference(record, RelationshipReader.TAG_OBJECT, model)
 				.getFirst();
 			String targetDisplayText = "--";
 			if(object != null){
 				final RecordTypeHandler<?> objectHandler = HandlerRegistry.getHandler(object.getTag());
 				targetDisplayText = objectHandler.getDisplayText(object, model);
 			}
-			final String role = FLEFRecordHelper.getChildValue(record, RelationshipHandler.TAG_ROLE);
+			final String role = RelationshipReader.extractRole(record);
 
 			final String categoryTag = switch(type){
-				case RelationshipHandler.ENUM_TYPE_BIOLOGICAL_CHILD -> "[Biological]";
-				case RelationshipHandler.ENUM_TYPE_ADOPTIVE_CHILD -> "[Adoptive]";
+				case RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD -> "[Biological]";
+				case RelationshipReader.ENUM_TYPE_ADOPTIVE_CHILD -> "[Adoptive]";
 				case "foster_child" -> "[Custody]";
 				case "guarded_child" -> "[Legal Protection]";
 				case "step_child" -> "[Step child]";

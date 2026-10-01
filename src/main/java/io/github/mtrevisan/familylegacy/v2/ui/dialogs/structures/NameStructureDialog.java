@@ -26,7 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs.structures;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.io.model.readers.names.Name;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.NameReader;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundFilteredComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextField;
@@ -97,18 +97,18 @@ public class NameStructureDialog extends BaseRecordDialog{
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]15[]");
 
-		valueField = new BoundTextField(NameHandler.TAG_VALUE);
-		typeCombo = new BoundComboBox<>(NameHandler.TAG_TYPE, GUIHelper.fillCombo(Name.TYPES, null));
+		valueField = new BoundTextField(NameReader.TAG_VALUE);
+		typeCombo = new BoundComboBox<>(NameReader.TAG_TYPE, GUIHelper.fillCombo(NameReader.TYPES, null));
 		typeCombo.setI18NPrefix("enum.name.type");
 		typeCombo.setEditable(true);
-		variantPanel = new TextValueVariantListPanel(NameHandler.TAG_VARIANT, this, I18N.t("dialog.name.variant"), model);
-		localeCombo = new BoundFilteredComboBox<>(NameHandler.TAG_LOCALE, LocaleHelper.getAvailableLanguageTags());
+		variantPanel = new TextValueVariantListPanel(NameReader.TAG_PART_VARIANT, this, I18N.t("dialog.name.variant"), model);
+		localeCombo = new BoundFilteredComboBox<>(NameReader.TAG_LOCALE, LocaleHelper.getAvailableLanguageTags());
 		localeCombo.setEditable(true);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.SOURCE, NameHandler.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
-			.withComponent(PanelKey.NOTE, NameHandler.TAG_NOTE, null)
+			.withComponent(PanelKey.SOURCE, NameReader.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
+			.withComponent(PanelKey.NOTE, NameReader.TAG_NOTE, null)
 			.build();
 
 		components.bind(valueField);

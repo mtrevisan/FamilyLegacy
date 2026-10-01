@@ -57,7 +57,7 @@ public class DateService{
 			final String margin = FLEFRecordHelper.getChildValue(approx, DateReader.TAG_MARGIN);
 			if(basis != null || margin != null){
 				dateStr.append(" (")
-					.append(I18N.t("dialog.date.description.approximate"));
+					.append(I18N.t("dialog.date.description.approximate.abbreviation"));
 				if(basis != null)
 					dateStr.append(StringUtils.SPACE)
 						.append(I18N.t("dialog.date.description.basis"))
@@ -74,7 +74,7 @@ public class DateService{
 			}
 			else
 				dateStr.append(" (")
-					.append(I18N.t("dialog.date.description.approximate"))
+					.append(I18N.t("dialog.date.description.approximate.abbreviation"))
 					.append(')');
 		}
 		return dateStr.toString();

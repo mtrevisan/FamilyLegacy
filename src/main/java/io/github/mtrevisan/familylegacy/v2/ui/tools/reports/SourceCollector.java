@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.v2.ui.tools.reports;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -50,7 +51,6 @@ final class SourceCollector{
 	private static final String TYPE_SOURCE = "source";
 	private static final String TYPE_RELATIONSHIP = "relationship";
 	private static final String TAG_SUBJECT = "subject";
-	private static final String TYPE_INDIVIDUAL = "individual";
 
 
 	private SourceCollector(){
@@ -68,7 +68,7 @@ final class SourceCollector{
 			collectFrom(ctx, a, ids);
 
 		for(final FLEFRecord r : ctx.visibleRecordsByType(TYPE_RELATIONSHIP)){
-			final String subj = r.extractReferencedId(TAG_SUBJECT, TYPE_INDIVIDUAL);
+			final String subj = r.extractReferencedId(TAG_SUBJECT, IndividualHandler.TYPE);
 			if(Objects.equals(ctx.root.getId(), subj))
 				collectFrom(ctx, r, ids);
 		}

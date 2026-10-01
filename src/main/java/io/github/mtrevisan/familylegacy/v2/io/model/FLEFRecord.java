@@ -46,7 +46,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class FLEFRecord{
 
-	private static final String TAG_VOID = "VOID";
+	public static final String TAG_VOID = "void";
 
 
 	private static final Map<String, Integer> RESERVED_IDS = new ConcurrentHashMap<>();

@@ -51,7 +51,6 @@ final class ConclusionRootSection implements SectionBuilder{
 	private static final String TAG_PREFERRED = "preferred";
 	private static final String TAG_RESEARCH = "research";
 	private static final String TAG_TITLE = "title";
-	private static final String TAG_VOID = "void";
 
 
 	private final ReportContext ctx;
@@ -154,7 +153,7 @@ final class ConclusionRootSection implements SectionBuilder{
 		if(field == null)
 			return null;
 		final FLEFRecord ref = field.getTheOnlyChild();
-		if(ref == null || TAG_VOID.equalsIgnoreCase(ref.getTag()))
+		if(ref == null || FLEFRecord.TAG_VOID.equalsIgnoreCase(ref.getTag()))
 			return null;
 		final String tag = ref.getTag();
 		final String id = ref.getValue();

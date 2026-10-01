@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.searches.strategies;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.ConclusionReader;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchCriteria;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchMatcher;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchMode;
@@ -66,30 +67,30 @@ public class ConclusionSearchStrategy implements SearchStrategy{
 
 	@Override
 	public Predicate<FLEFRecord> buildPredicate(final SearchCriteria criteria, final FLEFModel model){
-		issue = criteria.getFilterFor(ConclusionHandler.TAG_ISSUE);
-		proofStatus = criteria.getFilterFor(ConclusionHandler.TAG_PROOF_STATUS);
-		narrative = criteria.getFilterFor(ConclusionHandler.TAG_NARRATIVE);
-		researchQuestion = criteria.getFilterFor(ConclusionHandler.TAG_RESEARCH);
+		issue = criteria.getFilterFor(ConclusionReader.TAG_ISSUE);
+		proofStatus = criteria.getFilterFor(ConclusionReader.TAG_PROOF_STATUS);
+		narrative = criteria.getFilterFor(ConclusionReader.TAG_NARRATIVE);
+		researchQuestion = criteria.getFilterFor(ConclusionReader.TAG_RESEARCH);
 		mode = criteria.mode();
 
 		return conclusion -> {
 			// Issue filter
 			if(StringUtils.isNotEmpty(issue)){
-				final String recordIssue = FLEFRecordHelper.getChildValue(conclusion, ConclusionHandler.TAG_ISSUE);
+				final String recordIssue = ConclusionReader.extractIssues(conclusion);
 				if(!SearchHelper.matches(recordIssue, issue, mode))
 					return false;
 			}
 
 			// Proof Status filter (exact match, no text search)
 			if(StringUtils.isNotEmpty(proofStatus)){
-				final String recordStatus = FLEFRecordHelper.getChildValue(conclusion, ConclusionHandler.TAG_PROOF_STATUS);
+				final String recordStatus = ConclusionReader.extractProofStatus(conclusion);
 				if(!Strings.CI.equals(proofStatus, recordStatus))
 					return false;
 			}
 
 			// Narrative filter
 			if(StringUtils.isNotEmpty(narrative)){
-				final String recordNarrative = FLEFRecordHelper.getChildValue(conclusion, ConclusionHandler.TAG_NARRATIVE);
+				final String recordNarrative = ConclusionReader.extractNarrative(conclusion);
 				if(!SearchHelper.matches(recordNarrative, narrative, mode))
 					return false;
 			}
@@ -98,7 +99,7 @@ public class ConclusionSearchStrategy implements SearchStrategy{
 			// the display text of the linked research question, not against
 			// the raw id.
 			if(StringUtils.isNotEmpty(researchQuestion)){
-				final List<FLEFRecord> researchRefs = FLEFRecordHelper.findChildren(conclusion, ConclusionHandler.TAG_RESEARCH);
+				final List<FLEFRecord> researchRefs = FLEFRecordHelper.findChildren(conclusion, ConclusionReader.TAG_RESEARCH);
 				boolean matched = false;
 				for(final FLEFRecord researchRef : researchRefs){
 					final String questionRef = researchRef.getValue();
@@ -129,8 +130,8 @@ public class ConclusionSearchStrategy implements SearchStrategy{
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
 		final String baseDisplayText = HANDLER.getDisplayText(record, model);
 
-		final String issue = FLEFRecordHelper.getChildValue(record, ConclusionHandler.TAG_ISSUE);
-		final String status = FLEFRecordHelper.getChildValue(record, ConclusionHandler.TAG_PROOF_STATUS);
+		final String issue = ConclusionReader.extractIssues(record);
+		final String status = ConclusionReader.extractProofStatus(record);
 
 		final StringJoiner details = new StringJoiner(", ", " (", ")");
 		details.setEmptyValue(StringUtils.EMPTY);

@@ -33,7 +33,8 @@ import io.github.mtrevisan.familylegacy.v2.gedcom.utils.IDNormalizer;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.components.EvidenceQualifiersPanel;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.EvidenceQualifiersReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.DocumentHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventParticipationHandler;
@@ -643,9 +644,9 @@ public class GEDCOMHelper{
 			// 2 = Secondary evidence, data officially recorded sometime after event
 			// 3 = Direct and primary evidence used, or by dominance of the evidence
 			String informationType = switch(quayNode.getValue().trim()){
-				case "3" -> EvidenceQualifiersPanel.INFORMATION_TYPE_PRIMARY;
-				case "2" -> EvidenceQualifiersPanel.INFORMATION_TYPE_SECONDARY;
-				default -> EvidenceQualifiersPanel.INFORMATION_TYPE_UNDETERMINED;
+				case "3" -> EvidenceQualifiersReader.INFORMATION_TYPE_PRIMARY;
+				case "2" -> EvidenceQualifiersReader.INFORMATION_TYPE_SECONDARY;
+				default -> EvidenceQualifiersReader.INFORMATION_TYPE_UNDETERMINED;
 			};
 			evidence.addChild(FLEFRecord.createChildWithTagAndValue("information_type", informationType));
 			parent.addChild(evidence);
@@ -968,7 +969,7 @@ public class GEDCOMHelper{
 			.addChild(FLEFRecord.createChildWithTag("object")
 				.addChild(FLEFRecord.createChildWithTagAndValue(objectTag, objectXrefId))
 			)
-			.addChild(FLEFRecord.createChildWithTagAndValue("type", (node.getTag().equalsIgnoreCase("ADOP")? RelationshipHandler.ENUM_TYPE_ADOPTIVE_CHILD: RelationshipHandler.ENUM_TYPE_BIOLOGICAL_CHILD)))
+			.addChild(FLEFRecord.createChildWithTagAndValue("type", (node.getTag().equalsIgnoreCase("ADOP")? RelationshipReader.ENUM_TYPE_ADOPTIVE_CHILD: RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD)))
 			.addChild(AuditBuilder.build(node));
 
 		// ---- Notes (GEDCOM NOTE) – inline structs ----

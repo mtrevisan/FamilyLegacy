@@ -26,6 +26,8 @@ package io.github.mtrevisan.familylegacy.v2.ui.tools.reports;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.NameReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.date.DateService;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -361,7 +363,7 @@ final class PlacesSection implements SectionBuilder{
 		final String type = FLEFRecordHelper.getChildValue(owner, TAG_TYPE);
 
 		// Events carry "date"; attributes carry "valid_from".
-		String date = FLEFRecordHelper.extractDate(owner);
+		String date = DateService.getDateDisplayText(owner);
 		if(date == null)
 			date = GenealogicalDateHelper.formatDateStructure(
 				owner, TAG_VALID_FROM, ctx.labels, contextLabels);
@@ -393,15 +395,15 @@ final class PlacesSection implements SectionBuilder{
 			return null;
 
 		for(final FLEFRecord n : names){
-			final String type = FLEFRecordHelper.getChildValue(n, TAG_TYPE);
+			final String type = FLEFRecordHelper.getChildValue(n, NameReader.TAG_TYPE);
 			if(NAME_TYPE_OFFICIAL.equalsIgnoreCase(type)){
-				final String v = FLEFRecordHelper.getChildValue(n, TAG_VALUE);
+				final String v = FLEFRecordHelper.getChildValue(n, NameReader.TAG_VALUE);
 				if(v != null && !v.isBlank())
 					return n;
 			}
 		}
 		for(final FLEFRecord n : names){
-			final String v = FLEFRecordHelper.getChildValue(n, TAG_VALUE);
+			final String v = FLEFRecordHelper.getChildValue(n, NameReader.TAG_VALUE);
 			if(v != null && !v.isBlank())
 				return n;
 		}

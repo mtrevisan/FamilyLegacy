@@ -26,7 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.searches.strategies;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.DocumentReader;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchCriteria;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchMode;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchStrategy;
@@ -54,29 +54,29 @@ public class DocumentSearchStrategy implements SearchStrategy{
 
 	@Override
 	public Predicate<FLEFRecord> buildPredicate(final SearchCriteria criteria, final FLEFModel model){
-		description = criteria.getFilterFor(DocumentHandler.TAG_DESCRIPTION);
-		mapping = criteria.getFilterFor(DocumentHandler.TAG_MAPPING);
-		uri = criteria.getFilterFor(DocumentHandler.TAG_URI);
+		description = criteria.getFilterFor(DocumentReader.TAG_DESCRIPTION);
+		mapping = criteria.getFilterFor(DocumentReader.TAG_MAPPING);
+		uri = criteria.getFilterFor(DocumentReader.TAG_URI);
 		mode = criteria.mode();
 
 		return document -> {
 			// Description filter
 			if(StringUtils.isNotEmpty(description)){
-				final String recordDescription = FLEFRecordHelper.getChildValue(document, DocumentHandler.TAG_DESCRIPTION);
+				final String recordDescription = DocumentReader.extractDescription(document);
 				if(!SearchHelper.matches(recordDescription, description, mode))
 					return false;
 			}
 
 			// Mapping filter
 			if(StringUtils.isNotEmpty(mapping)){
-				final String recordMapping = FLEFRecordHelper.getChildValue(document, DocumentHandler.TAG_MAPPING);
+				final String recordMapping = DocumentReader.extractMapping(document);
 				if(!mapping.equalsIgnoreCase(recordMapping))
 					return false;
 			}
 
 			// URI filter
 			if(StringUtils.isNotEmpty(uri)){
-				final String recordUri = FLEFRecordHelper.getChildValue(document, DocumentHandler.TAG_URI);
+				final String recordUri = DocumentReader.extractUri(document);
 				if(!SearchHelper.matches(recordUri, uri, mode))
 					return false;
 			}
@@ -89,8 +89,8 @@ public class DocumentSearchStrategy implements SearchStrategy{
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
 		final String baseDisplayText = HANDLER.getDisplayText(record, model);
 
-		final String description = FLEFRecordHelper.getChildValue(record, DocumentHandler.TAG_DESCRIPTION);
-		final String mapping = FLEFRecordHelper.getChildValue(record, DocumentHandler.TAG_MAPPING);
+		final String mapping = DocumentReader.extractMapping(record);
+		final String description = DocumentReader.extractDescription(record);
 
 		final StringJoiner details = new StringJoiner(", ", " (", ")");
 		details.setEmptyValue(StringUtils.EMPTY);

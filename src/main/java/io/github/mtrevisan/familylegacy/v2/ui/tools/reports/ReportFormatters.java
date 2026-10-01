@@ -27,6 +27,8 @@ package io.github.mtrevisan.familylegacy.v2.ui.tools.reports;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.NameReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.PlaceReader;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -94,8 +96,8 @@ public final class ReportFormatters{
 
 	/** Returns the display name of a {@code place} record, or null. */
 	static String placeName(final FLEFRecord place){
-		for(final FLEFRecord n : FLEFRecordHelper.findChildren(place, TAG_NAME)){
-			final String v = FLEFRecordHelper.getChildValue(n, TAG_VALUE);
+		for(final FLEFRecord n : FLEFRecordHelper.findChildren(place, PlaceReader.TAG_NAME)){
+			final String v = FLEFRecordHelper.getChildValue(n, NameReader.TAG_VALUE);
 			if(v != null && !v.isBlank())
 				return v;
 		}

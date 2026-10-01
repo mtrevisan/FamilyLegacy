@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.readers.DateReader;
 import io.github.mtrevisan.familylegacy.v2.io.model.readers.EventParticipationReader;
 import io.github.mtrevisan.familylegacy.v2.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.v2.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.date.DateService;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchCriteria;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchMode;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchStrategy;
@@ -59,9 +60,6 @@ public class IndividualSearchStrategy implements SearchStrategy{
 	static final String KEY_CALENDAR_FROM = DateReader.TAG_CALENDAR + "_" + DateReader.TAG_FROM;
 	static final String KEY_DATE_TO = EventReader.TAG_DATE + "_" + DateReader.TAG_TO;
 	static final String KEY_CALENDAR_TO = DateReader.TAG_CALENDAR + "_" + DateReader.TAG_TO;
-
-	private static final String TAG_PARTICIPANT_INDIVIDUAL = FLEFRecordHelper.composePath(EventParticipationReader.TAG_PARTICIPANT, IndividualHandler.TYPE);
-
 
 	private static final String SEX_ABBREVIATION_MALE = "[" + I18N.t("dialog.individual.sex.abbreviation.male") + "]";
 	private static final String SEX_ABBREVIATION_FEMALE = "[" + I18N.t("dialog.individual.sex.abbreviation.female") + "]";
@@ -102,7 +100,7 @@ public class IndividualSearchStrategy implements SearchStrategy{
 		SearchHelper.precomputeLifeBounds(birthYears, deathYears, model);
 		final List<FLEFRecord> participations = model.getRecordsByType(EventParticipationHandler.TYPE);
 		for(final FLEFRecord participation : participations){
-			final String participantRef = FLEFRecordHelper.getChildValue(participation, TAG_PARTICIPANT_INDIVIDUAL);
+			final String participantRef = participation.extractReferencedId(EventParticipationReader.TAG_PARTICIPANT, IndividualHandler.TYPE);
 			final String eventRef = FLEFRecordHelper.getChildValue(participation, EventParticipationReader.TAG_EVENT);
 			if(participantRef != null && eventRef != null){
 				final FLEFRecord event = model.getRecordById(eventRef);
@@ -152,14 +150,15 @@ public class IndividualSearchStrategy implements SearchStrategy{
 
 		// Date range
 		if(StringUtils.isNotEmpty(eventDateFrom) || StringUtils.isNotEmpty(eventDateTo)){
-			final FLEFRecord dateRecord = EventReader.extractDate(event);
+			final FLEFRecord dateRecord = FLEFRecordHelper.findChild(event, EventReader.TAG_DATE);
 			final Integer fromYear = (StringUtils.isNotEmpty(eventDateFrom)
 				? SearchHelper.extractYear(eventDateFrom, calendarFrom)
 				: null);
 			final Integer toYear = (StringUtils.isNotEmpty(eventDateTo)
 				? SearchHelper.extractYear(eventDateTo, calendarTo)
 				: null);
-			if(!SearchHelper.isDateInRange(dateRecord, birthYear, deathYear, fromYear, toYear))
+			if((fromYear != null || toYear != null)
+					&& !SearchHelper.isDateInRange(dateRecord, birthYear, deathYear, fromYear, toYear))
 				return false;
 		}
 
@@ -203,13 +202,13 @@ public class IndividualSearchStrategy implements SearchStrategy{
 			final String eventType = EventReader.extractType(event);
 			if(EventReader.isTypeBirth(eventType)){
 				if(birthDate == null)
-					birthDate = FLEFRecordHelper.extractDate(event);
+					birthDate = DateService.getDateDisplayText(event);
 				if(birthPlace == null)
 					birthPlace = FLEFRecordHelper.extractPlace(event, model);
 			}
 			else if(EventReader.isTypeDeath(eventType)){
 				if(deathDate == null)
-					deathDate = FLEFRecordHelper.extractDate(event);
+					deathDate = DateService.getDateDisplayText(event);
 				if(deathPlace == null)
 					deathPlace = FLEFRecordHelper.extractPlace(event, model);
 			}

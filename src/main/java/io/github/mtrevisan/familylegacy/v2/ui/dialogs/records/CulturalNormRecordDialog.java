@@ -26,7 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs.records;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.CulturalNormReader;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.EvidenceQualifiersPanel;
@@ -90,11 +90,8 @@ import java.io.IOException;
  */
 public class CulturalNormRecordDialog extends BaseRecordDialog{
 
-	private static final String TAG_PLACE_EVIDENCE = FLEFRecordHelper.composePath(CulturalNormHandler.TAG_PLACE, CulturalNormHandler.TAG_EVIDENCE);
-
-
 	private final BoundTextField titleField;
-	private final BoundComboBox<String> ruleTypeCombo;
+	private final BoundComboBox<String> typeCombo;
 	private final EntityField placeField;
 	private final EvidenceQualifiersPanel placeEvidencePanel;
 	private final DateField validFromField;
@@ -114,28 +111,28 @@ public class CulturalNormRecordDialog extends BaseRecordDialog{
 	private CulturalNormRecordDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, CulturalNormHandler.getInstance());
 
-		titleField = new BoundTextField(CulturalNormHandler.TAG_TITLE);
-		ruleTypeCombo = new BoundComboBox<>(CulturalNormHandler.TAG_RULE_TYPE, CulturalNormHandler.RULE_TYPES);
-		ruleTypeCombo.setI18NPrefix("enum.cultural.norm.rule.type");
-		ruleTypeCombo.setEditable(true);
+		titleField = new BoundTextField(CulturalNormReader.TAG_TITLE);
+		typeCombo = new BoundComboBox<>(CulturalNormReader.TAG_TYPE, GUIHelper.fillCombo(CulturalNormReader.TYPES, null));
+		typeCombo.setI18NPrefix("enum.cultural.norm.rule.type");
+		typeCombo.setEditable(true);
 		placeField = EntityField.createForStructureWithReference(PlaceHandler.TYPE, this, model, PlaceCitationHandler.class);
-		placeEvidencePanel = new EvidenceQualifiersPanel(TAG_PLACE_EVIDENCE, I18N.t("dialog.component.evidence"));
-		validFromField = DateField.createWithWrapperTag(CulturalNormHandler.TAG_VALID_FROM, this, I18N.t("dialog.date.valid.from"), model);
-		validToField = DateField.createWithWrapperTag(CulturalNormHandler.TAG_VALID_TO, this, I18N.t("dialog.date.valid.to"), model);
+		placeEvidencePanel = new EvidenceQualifiersPanel(CulturalNormReader.TAG_PLACE_EVIDENCE, I18N.t("dialog.component.evidence"));
+		validFromField = DateField.createWithWrapperTag(CulturalNormReader.TAG_VALID_FROM, this, I18N.t("dialog.date.valid.from"), model);
+		validToField = DateField.createWithWrapperTag(CulturalNormReader.TAG_VALID_TO, this, I18N.t("dialog.date.valid.to"), model);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
 			.withComponent(PanelKey.CONTEXT_IMPACT_ON_CONTEXT, ContextImpactHandler.TYPE, I18N.t("dialog.component.context.impact"))
 			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, I18N.t("dialog.component.conclusions"))
 			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, I18N.t("dialog.component.research.questions"))
-			.withComponent(PanelKey.SOURCE, CulturalNormHandler.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
-			.withComponent(PanelKey.NOTE, CulturalNormHandler.TAG_NOTE, null)
-			.withComponent(PanelKey.EVIDENCE, CulturalNormHandler.TAG_EVIDENCE, I18N.t("dialog.component.evidence"))
-			.withComponent(PanelKey.AUDIT, CulturalNormHandler.TAG_AUDIT, null)
+			.withComponent(PanelKey.SOURCE, CulturalNormReader.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
+			.withComponent(PanelKey.NOTE, CulturalNormReader.TAG_NOTE, null)
+			.withComponent(PanelKey.EVIDENCE, CulturalNormReader.TAG_EVIDENCE, I18N.t("dialog.component.evidence"))
+			.withComponent(PanelKey.AUDIT, CulturalNormReader.TAG_AUDIT, null)
 			.build();
 
 		components.bind(titleField);
-		components.bind(ruleTypeCombo);
+		components.bind(typeCombo);
 
 
 		// Set up the image carousel selection listener on the source list
@@ -153,7 +150,7 @@ public class CulturalNormRecordDialog extends BaseRecordDialog{
 		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.cultural.norm.title") + ":", titleField);
 
 		// rule type
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.cultural.norm.rule.type") + ":", ruleTypeCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.cultural.norm.rule.type") + ":", typeCombo);
 
 		// place panel:
 		final JPanel placePanel = new JPanel(new MigLayout("ins 10,hidemode 3,fillx,top,wrap 1",

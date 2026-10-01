@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.projections;
 
 import io.github.mtrevisan.familylegacy.v2.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.IndividualTreeGraphPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.TreeType;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.layout.GraphLayoutEngine;
@@ -35,7 +36,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.projections.relationshi
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.GenealogyRepository;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.ProjectionMutator;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.help.ShortcutRegistry;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
 
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
@@ -153,8 +153,8 @@ public final class ProjectionSwitcherPanel extends JPanel{
 
 	public static String[] computeAllowedRelationshipTypes(final TreeType treeType){
 		return switch(treeType){
-			case BIOLOGICAL -> RelationshipHandler.BIOLOGICAL;
-			case FAMILY -> RelationshipHandler.FAMILY;
+			case BIOLOGICAL -> RelationshipReader.BIOLOGICAL;
+			case FAMILY -> RelationshipReader.FAMILY;
 		};
 	}
 

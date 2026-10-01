@@ -45,7 +45,6 @@ final class IdentityHypothesisRootSection implements SectionBuilder{
 	private static final String TAG_ISSUE = "issue";
 	private static final String TAG_PROOF = "proof_status";
 	private static final String TAG_NARRATIVE = "narrative";
-	private static final String TAG_VOID = "void";
 
 	private static final String TYPE_CONCLUSION = "conclusion";
 
@@ -84,7 +83,7 @@ final class IdentityHypothesisRootSection implements SectionBuilder{
 		final List<String> items = new ArrayList<>();
 		for(final FLEFRecord cand : FLEFRecordHelper.findChildren(ctx.root, TAG_IDENTITY)){
 			final FLEFRecord ref = cand.getTheOnlyChild();
-			if(ref == null || TAG_VOID.equalsIgnoreCase(ref.getTag()))
+			if(ref == null || FLEFRecord.TAG_VOID.equalsIgnoreCase(ref.getTag()))
 				continue;
 			final String id = ref.getValue();
 			if(id == null)

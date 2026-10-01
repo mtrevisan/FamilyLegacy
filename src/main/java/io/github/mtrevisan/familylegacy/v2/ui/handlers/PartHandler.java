@@ -27,22 +27,20 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.NameReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.TextValueVariantReader;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.structures.PartStructureDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.Strings;
 
 import java.awt.Window;
+import java.util.List;
 
 
 public class PartHandler extends AbstractRecordTypeHandler<PartStructureDialog>{
 
 	public static final String TYPE = "PART";
-
-	public static final String TAG_TYPE = "TYPE";
-	public static final String TAG_VALUE = "VALUE";
-	public static final String TAG_VARIANT = "VARIANT";
 
 
 	private static final class SingletonHelper{
@@ -75,8 +73,8 @@ public class PartHandler extends AbstractRecordTypeHandler<PartStructureDialog>{
 		if(record == null)
 			return "--";
 
-		final String type = FLEFRecordHelper.getChildValue(record, TAG_TYPE);
-		final String value = FLEFRecordHelper.getChildValue(record, TAG_VALUE);
+		final String type = NameReader.extractPartType(record);
+		final String value = NameReader.extractPartValue(record);
 
 		final StringBuilder sb = new StringBuilder();
 		if(StringUtils.isNotEmpty(type))
@@ -90,10 +88,12 @@ public class PartHandler extends AbstractRecordTypeHandler<PartStructureDialog>{
 
 		// If it is a low-level element with no meaningful ID, the variant count is shown
 		int variantCount = 0;
-		for(final FLEFRecord child : FLEFRecordHelper.findChildren(record, TAG_VARIANT))
-			if(Strings.CI.equals(TextValueVariantHandler.TAG_PHONETIC, child.getTag())
-					|| Strings.CI.equals(TextValueVariantHandler.TAG_TRANSCRIPTION, child.getTag()))
+		final List<FLEFRecord> partVariants = FLEFRecordHelper.findChildren(record, NameReader.TAG_PART_VARIANT);
+		for(final FLEFRecord partVariant : partVariants){
+			final String kind = partVariant.getTag();
+			if(TextValueVariantReader.isPhonetic(kind) || TextValueVariantReader.isTranscription(kind))
 				variantCount ++;
+		}
 
 		if(variantCount > 0)
 			sb.append(" (")

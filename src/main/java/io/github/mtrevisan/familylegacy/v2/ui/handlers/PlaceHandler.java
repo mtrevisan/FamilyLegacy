@@ -26,12 +26,12 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.PlaceReader;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.PlaceRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
-import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Window;
+import java.util.List;
 
 
 /**
@@ -41,23 +41,6 @@ public class PlaceHandler extends AbstractRecordTypeHandler<PlaceRecordDialog>{
 
 	public static final String TYPE = "PLACE";
 	public static final String ID_PREFIX = "P";
-
-	public static final String TAG_NAME = "NAME";
-	public static final String TAG_TYPE = "TYPE";
-	public static final String TAG_MAP = "MAP";
-	public static final String TAG_COORDINATES = "COORDINATES";
-	public static final String TAG_SOURCE = "SOURCE";
-	public static final String TAG_EVIDENCE = "EVIDENCE";
-	public static final String TAG_PRIVACY = "PRIVACY";
-	public static final String TAG_AUDIT = "AUDIT";
-
-	private static final String TAG_NAME_VALUE = FLEFRecordHelper.composePath(TAG_NAME, NameHandler.TAG_VALUE);
-
-	public static final String[] TYPES = new String[]{
-		"address", "building", "street", "hamlet", "village", "town", "municipality", "city", "metropolitan_area",
-		"county", "province", "department", "district", "region", "macro_region", "country", "empire", "parish",
-		"diocese", "cemetery", "archive", "unknown"
-	};
 
 
 	private static final class SingletonHelper{
@@ -92,8 +75,8 @@ public class PlaceHandler extends AbstractRecordTypeHandler<PlaceRecordDialog>{
 			return PlaceCitationHandler.getInstance()
 				.getDisplayText(record, model);
 
-		final String value = FLEFRecordHelper.getChildValue(record, TAG_NAME_VALUE);
-		return (StringUtils.isNotEmpty(value)? value.replace(StringUtils.LF, ", "): "--") + " [" + id + "]";
+		final List<String> names = PlaceReader.extractNames(record);
+		return (!names.isEmpty()? names.getFirst() + " [" + id + "]": "[" + id + "]");
 	}
 
 	@Override

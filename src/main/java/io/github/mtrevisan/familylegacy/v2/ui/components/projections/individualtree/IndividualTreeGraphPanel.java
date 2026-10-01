@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual
 import io.github.mtrevisan.familylegacy.v2.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.v2.io.model.readers.SexType;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.JumpToIndividualDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.ProjectionType;
@@ -52,7 +53,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.TreeNode;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.TreeService;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.siblings.SiblingsPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.ViewportPanSupport;
 
 import javax.swing.JFrame;
@@ -568,7 +568,7 @@ public class IndividualTreeGraphPanel extends JPanel implements TreeChangeListen
 		SwingUtilities.invokeLater(() -> {
 //			final LayoutEngine layoutEngine = new TreeLayoutEngine();
 			final LayoutEngine layoutEngine = new GraphLayoutEngine();
-			final String[] relationshipAllowedTypes = new String[]{RelationshipHandler.ENUM_TYPE_BIOLOGICAL_CHILD};
+			final String[] relationshipAllowedTypes = RelationshipReader.BIOLOGICAL;
 			final GenealogyRepository repository = new GenealogyRepository(relationshipAllowedTypes, model);
 			final IndividualTreeGraphPanel panel = new IndividualTreeGraphPanel(TreeLayout.VERTICAL,
 					layoutEngine, repository, model)

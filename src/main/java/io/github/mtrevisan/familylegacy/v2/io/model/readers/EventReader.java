@@ -13,15 +13,16 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
  * // happened. Persistent associations resulting from an event SHOULD be represented separately using RELATIONSHIP records.
  * record EventRecord {
  *   type: enum {                    // The type of event. Custom types are permitted.
- *     birth, death, adoption, graduation, immigration, naturalization, bankruptcy,
- *     guardianship, coroner_report, cremation, burial, education, retirement,
- *     military_induction, military_muster_roll, military_service, military_award,
- *     military_release, military_discharge, military_resignation, military_retirement,
- *     prison, pardon, jury_duty, illness, hospitalization, medical_procedure, honor,
- *     deportation, internment, liberation, emancipation, relocation, emigration,
- *     census, deed, escrow, chancery, will, probate,
- *     engagement, marriage_bann, marriage_contract, marriage_license, marriage_settlement,
- *     marriage, divorce_filed, divorce_decree, divorce, annulment
+ *     // life
+ *     birth, adoption, death, cremation, burial, coroner_report, illness, hospitalization, medical_procedure,
+ *     // family
+ *     engagement, marriage_bann, marriage_contract, marriage_license, marriage_settlement, marriage, divorce_filed, divorce_decree, divorce, annulment,
+ *     // achievements
+ *     education, graduation, retirement, military_induction, military_muster_roll, military_service, military_award, military_release, military_discharge, military_resignation, military_retirement, prison, pardon, jury_duty, honor, bankruptcy,
+ *     // national / government
+ *     immigration, naturalization, emigration, deportation, internment, liberation, emancipation, relocation, census,
+ *     // possessions and titles
+ *     deed, escrow, chancery, will, probate, guardianship
  *   } | Text
  *   description?: Text              // Human-readable description of the event when a structured representation is insufficient.
  *   date?: DateStructure            // the date of the event
@@ -57,15 +58,32 @@ public final class EventReader{
 
 	private static final String ENUM_TYPE_BIRTH = "birth";
 	private static final String ENUM_TYPE_DEATH = "death";
+	/**
+	 * Event types declared by the protocol, in a stable order.
+	 * <p>
+	 * Grouped by theme to help the UI present them in a readable way:
+	 * life events, family events, achievements, national and government
+	 * events, possessions and titles, religious and social events.
+	 */
 	public static final String[] TYPES = new String[]{
-		ENUM_TYPE_BIRTH, ENUM_TYPE_DEATH, "adoption", "graduation", "immigration", "naturalization", "bankruptcy",
-		"guardianship", "coroner_report", "cremation", "burial", "education", "retirement", "military_induction",
-		"military_muster_roll", "military_service", "military_award", "military_release", "military_discharge",
-		"military_resignation", "military_retirement", "prison", "pardon", "jury_duty", "illness", "hospitalization",
-		"medical_procedure", "honor", "deportation", "internment", "liberation", "emancipation", "relocation",
-		"emigration", "census", "deed", "escrow", "chancery", "will", "probate", "engagement", "marriage_bann",
-		"marriage_contract", "marriage_license", "marriage_settlement", "marriage", "divorce_filed", "divorce_decree",
-		"divorce", "annulment"
+		// Life
+		ENUM_TYPE_BIRTH, "adoption", ENUM_TYPE_DEATH, "cremation", "burial",
+		"coroner_report", "illness", "hospitalization", "medical_procedure",
+		// Family
+		"engagement", "marriage_bann", "marriage_contract", "marriage_license",
+		"marriage_settlement", "marriage", "divorce_filed", "divorce_decree",
+		"divorce", "annulment",
+		// Achievements
+		"education", "graduation", "retirement",
+		"military_induction", "military_muster_roll", "military_service",
+		"military_award", "military_release", "military_discharge",
+		"military_resignation", "military_retirement",
+		"prison", "pardon", "jury_duty", "honor", "bankruptcy",
+		// National / government
+		"immigration", "naturalization", "emigration", "deportation",
+		"internment", "liberation", "emancipation", "relocation", "census",
+		// Possessions and titles
+		"deed", "escrow", "chancery", "will", "probate", "guardianship"
 	};
 
 
@@ -76,16 +94,16 @@ public final class EventReader{
 		return FLEFRecordHelper.getChildValue(record, TAG_TYPE);
 	}
 
+	public static String extractDescription(final FLEFRecord record){
+		return FLEFRecordHelper.getChildValue(record, TAG_DESCRIPTION);
+	}
+
 	public static boolean isTypeBirth(final String type){
 		return ENUM_TYPE_BIRTH.equals(type);
 	}
 
 	public static boolean isTypeDeath(final String type){
 		return ENUM_TYPE_DEATH.equals(type);
-	}
-
-	public static FLEFRecord extractDate(final FLEFRecord record){
-		return FLEFRecordHelper.findChild(record, TAG_DATE);
 	}
 
 

@@ -24,11 +24,10 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.components.searches.strategies;
 
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.CulturalNormReader;
 import io.github.mtrevisan.familylegacy.v2.io.model.readers.DateReader;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.RecordFilterPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchCriteria;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import net.miginfocom.swing.MigLayout;
@@ -51,7 +50,7 @@ import java.util.function.Consumer;
 public class CulturalNormFilterPanel extends JPanel implements RecordFilterPanel{
 
 	private final JTextField titleField = new JTextField(20);
-	private final JComboBox<String> ruleTypeCombo = new JComboBox<>(GUIHelper.fillCombo(CulturalNormHandler.RULE_TYPES, I18N.t("search.combo.any")));
+	private final JComboBox<String> ruleTypeCombo = new JComboBox<>(GUIHelper.fillCombo(CulturalNormReader.TYPES, I18N.t("search.combo.any")));
 	private final JTextField placeField = new JTextField(20);
 	private final JTextField dateFromField = new JTextField(10);
 	private final JComboBox<String> calendarFromCombo = new JComboBox<>(DateReader.CALENDARS);
@@ -128,12 +127,12 @@ public class CulturalNormFilterPanel extends JPanel implements RecordFilterPanel
 	@Override
 	public Map<String, String> getFilters(){
 		final Map<String, String> filters = new HashMap<>();
-		filters.put(CulturalNormHandler.TAG_TITLE, getTitle());
-		filters.put(CulturalNormHandler.TAG_RULE_TYPE, getRuleType());
-		filters.put(PlaceHandler.TYPE, getPlace());
-		filters.put(CulturalNormHandler.TAG_VALID_FROM, getValidFrom());
+		filters.put(CulturalNormReader.TAG_TITLE, getTitle());
+		filters.put(CulturalNormReader.TAG_TYPE, getRuleType());
+		filters.put(CulturalNormReader.TAG_PLACE, getPlace());
+		filters.put(CulturalNormReader.TAG_VALID_FROM, getValidFrom());
 		filters.put(CulturalNormSearchStrategy.KEY_CALENDAR_FROM, getCalendarFrom());
-		filters.put(CulturalNormHandler.TAG_VALID_TO, getValidTo());
+		filters.put(CulturalNormReader.TAG_VALID_TO, getValidTo());
 		filters.put(CulturalNormSearchStrategy.KEY_CALENDAR_TO, getCalendarTo());
 		return filters;
 	}

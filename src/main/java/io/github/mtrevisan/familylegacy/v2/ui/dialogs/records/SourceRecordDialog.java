@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs.records;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
@@ -99,26 +100,26 @@ public class SourceRecordDialog extends BaseRecordDialog{
 	private SourceRecordDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, SourceHandler.getInstance());
 
-		titlePanel = EntityListPanel.createForStructure(SourceHandler.TAG_TITLE, this, I18N.t("dialog.source.title") + "*", model,
+		titlePanel = EntityListPanel.createForStructure(SourceReader.TAG_TITLE, this, I18N.t("dialog.source.title") + "*", model,
 			NameHandler.class);
-		authorField = new BoundTextField(SourceHandler.TAG_AUTHOR);
-		publisherField = new BoundTextField(SourceHandler.TAG_PUBLISHER);
-		dateField = DateField.createWithWrapperTag(SourceHandler.TAG_DATE, this, I18N.t("dialog.source.valid.date"), model);
+		authorField = new BoundTextField(SourceReader.TAG_AUTHOR);
+		publisherField = new BoundTextField(SourceReader.TAG_PUBLISHER);
+		dateField = DateField.createWithWrapperTag(SourceReader.TAG_DATE, this, I18N.t("dialog.source.valid.date"), model);
 		placeField = EntityField.createForStructureWithReference(PlaceHandler.TYPE, this, model,
 			PlaceCitationHandler.class);
-		mediaTypeCombo = new BoundComboBox<>(SourceHandler.TAG_MEDIA_TYPE, SourceHandler.MEDIA_TYPES);
+		mediaTypeCombo = new BoundComboBox<>(SourceReader.TAG_MEDIA_TYPE, GUIHelper.fillCombo(SourceReader.MEDIA_TYPES, null));
 		mediaTypeCombo.setI18NPrefix("enum.source.media.type");
 		mediaTypeCombo.setEditable(true);
 
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.REPOSITORY, SourceHandler.TAG_REPOSITORY, I18N.t("dialog.component.repositories.with.citations"))
-			.withComponent(PanelKey.DOCUMENT, SourceHandler.TAG_DOCUMENT, I18N.t("dialog.component.documents"))
+			.withComponent(PanelKey.REPOSITORY, SourceReader.TAG_REPOSITORY, I18N.t("dialog.component.repositories.with.citations"))
+			.withComponent(PanelKey.DOCUMENT, SourceReader.TAG_DOCUMENT, I18N.t("dialog.component.documents"))
 			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, I18N.t("dialog.component.conclusions"))
 			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, I18N.t("dialog.component.research.questions"))
 			.withComponent(PanelKey.RESEARCH_ACTIVITY_ON_SOURCE, ResearchActivityHandler.TYPE, I18N.t("dialog.component.research.activities"))
-			.withComponent(PanelKey.NOTE, SourceHandler.TAG_NOTE, null)
-			.withComponent(PanelKey.PRIVACY, SourceHandler.TAG_PRIVACY, null)
-			.withComponent(PanelKey.AUDIT, SourceHandler.TAG_AUDIT, null)
+			.withComponent(PanelKey.NOTE, SourceReader.TAG_NOTE, null)
+			.withComponent(PanelKey.PRIVACY, SourceReader.TAG_PRIVACY, null)
+			.withComponent(PanelKey.AUDIT, SourceReader.TAG_AUDIT, null)
 			.build();
 
 		components.bind(authorField);

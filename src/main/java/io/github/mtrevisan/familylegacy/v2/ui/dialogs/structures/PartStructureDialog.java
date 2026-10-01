@@ -26,14 +26,13 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs.structures;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.io.model.readers.names.NamePart;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.NameReader;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.TextValueVariantListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PartHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.PersonalNameHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 
@@ -81,11 +80,11 @@ public class PartStructureDialog extends BaseRecordDialog{
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(0, "[]10[]15[]");
 
-		typeCombo = new BoundComboBox<>(PersonalNameHandler.TAG_PART_TYPE, GUIHelper.fillCombo(NamePart.TYPES, null));
+		typeCombo = new BoundComboBox<>(NameReader.TAG_PART_TYPE, GUIHelper.fillCombo(NameReader.PART_TYPES, null));
 		typeCombo.setI18NPrefix("enum.part.type");
 		typeCombo.setEditable(true);
-		valueField = new BoundTextField(PersonalNameHandler.TAG_PART_VALUE);
-		variantPanel = new TextValueVariantListPanel(PersonalNameHandler.TAG_PART_VARIANT, this, I18N.t("dialog.name.variant"), model);
+		valueField = new BoundTextField(NameReader.TAG_PART_VALUE);
+		variantPanel = new TextValueVariantListPanel(NameReader.TAG_PART_VARIANT, this, I18N.t("dialog.name.variant"), model);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)

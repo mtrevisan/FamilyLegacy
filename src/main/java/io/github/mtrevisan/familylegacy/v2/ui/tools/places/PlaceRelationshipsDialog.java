@@ -296,8 +296,8 @@ public final class PlaceRelationshipsDialog extends JDialog{
 	 *                          Row and model
 	 * ====================================================================== */
 
-	private record RelationshipRow(String id, String parentName, String childName,
-											 String relationType, String validFrom, String validTo){}
+	private record RelationshipRow(String id, String parentName, String childName, String relationType, String validFrom,
+		String validTo){}
 
 
 	private static final class RelationshipsTableModel extends AbstractTableModel{

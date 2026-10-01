@@ -26,10 +26,10 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.lists;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.NoteReader;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BindingsHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundFilteredComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextArea;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.LocaleHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
@@ -80,8 +80,8 @@ public class TranslationListPanel extends AbstractListPanel<FLEFRecord>{
 
 	@Override
 	protected String getDisplayText(final FLEFRecord record){
-		final String text = FLEFRecordHelper.getChildValue(record, NoteHandler.TAG_TEXT);
-		final String locale = FLEFRecordHelper.getChildValue(record, NoteHandler.TAG_LOCALE);
+		final String text = NoteReader.extractText(record);
+		final String locale = NoteReader.extractLocale(record);
 
 		final StringBuilder sb = new StringBuilder();
 		if(StringUtils.isNotEmpty(locale))
@@ -109,19 +109,19 @@ public class TranslationListPanel extends AbstractListPanel<FLEFRecord>{
 	}
 
 	private FLEFRecord showTranslationDialog(final FLEFRecord record){
-		final String text = FLEFRecordHelper.getChildValue(record, NoteHandler.TAG_TEXT);
-		final String locale = FLEFRecordHelper.getChildValue(record, NoteHandler.TAG_LOCALE);
+		final String text = NoteReader.extractText(record);
+		final String locale = NoteReader.extractLocale(record);
 
 
 		final JDialog dialog = new JDialog(parent, I18N.t(record == null? "dialog.note.translation.add": "dialog.note.translation.edit"), Dialog.ModalityType.APPLICATION_MODAL);
 		dialog.setLayout(GUIHelper.createLabelFieldLayout(10, "[]10[]"));
 
-		final BoundTextArea textArea = new BoundTextArea(NoteHandler.TAG_TEXT, 3, 25);
+		final BoundTextArea textArea = new BoundTextArea(NoteReader.TAG_TEXT, 3, 25);
 		if(record != null)
 			textArea.setText(text);
 		GUIHelper.addLabeledComponent(dialog, I18N.t("dialog.note.text") + "*:", textArea);
 
-		final BoundFilteredComboBox<String> localeCombo = new BoundFilteredComboBox<>(NoteHandler.TAG_LOCALE, LocaleHelper.getAvailableLanguageTags());
+		final BoundFilteredComboBox<String> localeCombo = new BoundFilteredComboBox<>(NoteReader.TAG_LOCALE, LocaleHelper.getAvailableLanguageTags());
 		localeCombo.setEditable(true);
 		if(record != null && StringUtils.isNotEmpty(locale))
 			localeCombo.setSelectedItem(locale);
@@ -137,12 +137,12 @@ public class TranslationListPanel extends AbstractListPanel<FLEFRecord>{
 				final String txt = textArea.getText();
 				if(record == null){
 					final FLEFRecord res = FLEFRecord.createEmpty();
-					res.addChild(FLEFRecord.createChildWithTagAndValue(NoteHandler.TAG_TEXT, txt));
-					res.addChild(FLEFRecord.createChildWithTagAndValue(NoteHandler.TAG_LOCALE, (String)localeCombo.getSelectedItem()));
+					res.addChild(FLEFRecord.createChildWithTagAndValue(NoteReader.TAG_TEXT, txt));
+					res.addChild(FLEFRecord.createChildWithTagAndValue(NoteReader.TAG_LOCALE, (String)localeCombo.getSelectedItem()));
 					result[0] = res;
 				}
 				else
-					FLEFRecordHelper.updateChildValue(record, NoteHandler.TAG_TEXT, txt);
+					FLEFRecordHelper.updateChildValue(record, NoteReader.TAG_TEXT, txt);
 
 				dialog.dispose();
 			},
@@ -176,12 +176,12 @@ public class TranslationListPanel extends AbstractListPanel<FLEFRecord>{
 
 		final List<FLEFRecord> translations = new ArrayList<>();
 		for(final FLEFRecord child : FLEFRecordHelper.findChildren(record, path)){
-			final String translationText = FLEFRecordHelper.getChildValue(child, NoteHandler.TAG_TEXT);
-			final String translationLocale = FLEFRecordHelper.getChildValue(child, NoteHandler.TAG_LOCALE);
+			final String translationText = NoteReader.extractText(child);
+			final String translationLocale = NoteReader.extractLocale(child);
 			if(StringUtils.isNotEmpty(translationText)){
 				final FLEFRecord res = FLEFRecord.createEmpty();
-				res.addChild(FLEFRecord.createChildWithTagAndValue(NoteHandler.TAG_TEXT, translationText));
-				res.addChild(FLEFRecord.createChildWithTagAndValue(NoteHandler.TAG_LOCALE, translationLocale));
+				res.addChild(FLEFRecord.createChildWithTagAndValue(NoteReader.TAG_TEXT, translationText));
+				res.addChild(FLEFRecord.createChildWithTagAndValue(NoteReader.TAG_LOCALE, translationLocale));
 				translations.add(res);
 			}
 		}

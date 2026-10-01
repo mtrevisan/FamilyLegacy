@@ -26,6 +26,9 @@ package io.github.mtrevisan.familylegacy.v2.ui.tools.reports;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.NameReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.RepositoryReader;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -52,12 +55,12 @@ import java.util.Set;
  */
 final class RepositorySection implements SectionBuilder{
 
-	private static final String TAG_NAME = "name";
-	private static final String TAG_VALUE = "value";
-	private static final String TAG_TYPE = "type";
-	private static final String TAG_LOCALE = "locale";
-	private static final String TAG_CUSTODIAN = "custodian";
-	private static final String TAG_CONTACT = "contact";
+//	private static final String TAG_NAME = "name";
+//	private static final String TAG_VALUE = "value";
+//	private static final String TAG_TYPE = "type";
+//	private static final String TAG_LOCALE = "locale";
+//	private static final String TAG_CUSTODIAN = "custodian";
+//	private static final String TAG_CONTACT = "contact";
 
 	private static final String TYPE_REPOSITORY = "repository";
 	private static final String NAME_TYPE_OFFICIAL = "official";
@@ -151,7 +154,7 @@ final class RepositorySection implements SectionBuilder{
 
 
 	private void appendNames(final List<ReportSection> out, final FLEFRecord repo){
-		final List<FLEFRecord> names = FLEFRecordHelper.findChildren(repo, TAG_NAME);
+		final List<FLEFRecord> names = FLEFRecordHelper.findChildren(repo, RepositoryReader.TAG_NAME);
 		if(names.size() <= 1)
 			return;
 
@@ -160,9 +163,9 @@ final class RepositorySection implements SectionBuilder{
 		for(final FLEFRecord n : names){
 			if(n == primary)
 				continue;
-			final String type = FLEFRecordHelper.getChildValue(n, TAG_TYPE);
-			final String value = FLEFRecordHelper.getChildValue(n, TAG_VALUE);
-			final String locale = FLEFRecordHelper.getChildValue(n, TAG_LOCALE);
+			final String type = FLEFRecordHelper.getChildValue(n, NameReader.TAG_TYPE);
+			final String value = FLEFRecordHelper.getChildValue(n, NameReader.TAG_VALUE);
+			final String locale = FLEFRecordHelper.getChildValue(n, NameReader.TAG_LOCALE);
 			if(value == null || value.isBlank())
 				continue;
 			final StringBuilder line = new StringBuilder();
@@ -180,7 +183,7 @@ final class RepositorySection implements SectionBuilder{
 
 
 	private void appendCustodian(final List<ReportSection> out, final FLEFRecord repo){
-		final String custId = repo.extractReferencedId(TAG_CUSTODIAN, "individual");
+		final String custId = repo.extractReferencedId(RepositoryReader.TAG_CUSTODIAN, IndividualHandler.TYPE);
 		if(custId == null)
 			return;
 		final FLEFRecord cust = ctx.visible(ctx.model.getRecordById(custId));
@@ -203,7 +206,7 @@ final class RepositorySection implements SectionBuilder{
 
 	private void appendContacts(final List<ReportSection> out, final FLEFRecord repo){
 		final List<String> rows = new ArrayList<>();
-		for(final FLEFRecord contact : ctx.visibleChildren(repo, TAG_CONTACT)){
+		for(final FLEFRecord contact : ctx.visibleChildren(repo, RepositoryReader.TAG_CONTACT)){
 			final String rendered = ReportFormatters.renderContact(contact);
 			if(rendered != null)
 				rows.add(rendered);
@@ -218,19 +221,19 @@ final class RepositorySection implements SectionBuilder{
 	 * ====================================================================== */
 
 	private static FLEFRecord primaryNameNode(final FLEFRecord repo){
-		final List<FLEFRecord> names = FLEFRecordHelper.findChildren(repo, TAG_NAME);
+		final List<FLEFRecord> names = FLEFRecordHelper.findChildren(repo, RepositoryReader.TAG_NAME);
 		if(names.isEmpty())
 			return null;
 		for(final FLEFRecord n : names){
-			final String type = FLEFRecordHelper.getChildValue(n, TAG_TYPE);
+			final String type = FLEFRecordHelper.getChildValue(n, NameReader.TAG_TYPE);
 			if(NAME_TYPE_OFFICIAL.equalsIgnoreCase(type)){
-				final String v = FLEFRecordHelper.getChildValue(n, TAG_VALUE);
+				final String v = FLEFRecordHelper.getChildValue(n, NameReader.TAG_VALUE);
 				if(v != null && !v.isBlank())
 					return n;
 			}
 		}
 		for(final FLEFRecord n : names){
-			final String v = FLEFRecordHelper.getChildValue(n, TAG_VALUE);
+			final String v = FLEFRecordHelper.getChildValue(n, NameReader.TAG_VALUE);
 			if(v != null && !v.isBlank())
 				return n;
 		}
@@ -240,7 +243,7 @@ final class RepositorySection implements SectionBuilder{
 	private static String primaryName(final FLEFRecord repo){
 		final FLEFRecord n = primaryNameNode(repo);
 		if(n != null){
-			final String v = FLEFRecordHelper.getChildValue(n, TAG_VALUE);
+			final String v = FLEFRecordHelper.getChildValue(n, NameReader.TAG_VALUE);
 			if(v != null && !v.isBlank())
 				return v.trim();
 		}

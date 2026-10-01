@@ -1,8 +1,5 @@
 package io.github.mtrevisan.familylegacy.v2.io.model.readers;
 
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-
 
 /**
  * Handler for EVENT PARTICIPATION records.

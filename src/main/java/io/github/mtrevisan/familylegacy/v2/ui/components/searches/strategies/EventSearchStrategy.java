@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.io.model.readers.DateReader;
 import io.github.mtrevisan.familylegacy.v2.io.model.readers.EventReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.date.DateService;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchCriteria;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchMode;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchStrategy;
@@ -120,8 +121,8 @@ public class EventSearchStrategy implements SearchStrategy{
 		final String baseDisplayText = HANDLER.getDisplayText(record, model);
 
 		final String type = EventReader.extractType(record);
-		final FLEFRecord dateRecord = EventReader.extractDate(record);
-		final String date = FLEFRecordHelper.extractDate(dateRecord);
+		final FLEFRecord dateRecord = FLEFRecordHelper.findChild(record, EventReader.TAG_DATE);
+		final String date = DateService.getDateDisplayText(dateRecord);
 		final String place = FLEFRecordHelper.extractPlace(record, model);
 
 		final StringJoiner details = new StringJoiner(", ", " (", ")");

@@ -56,6 +56,7 @@ public final class ReportLabels{
 	private final NarrativeFormatter narrativeFormatter;
 	private final DateLabelProvider dateLabels;
 
+
 	public ReportLabels(final ReportLanguage language){
 		this.language = Objects.requireNonNull(language, "language");
 		this.bundle = ResourceBundle.getBundle(BUNDLE_BASE, language.locale(), new Utf8Control());
@@ -64,6 +65,7 @@ public final class ReportLabels{
 		this.narrativeFormatter = new NarrativeFormatter(this);
 		this.dateLabels = new DateLabelProvider(this);
 	}
+
 
 	public ReportLanguage language(){
 		return language;
@@ -309,8 +311,9 @@ public final class ReportLabels{
 	 */
 	private static final class Utf8Control extends ResourceBundle.Control{
 		@Override
-		public ResourceBundle newBundle(final String baseName, final Locale locale,
-			final String format, final ClassLoader loader, final boolean reload) throws IOException, IllegalAccessException, InstantiationException{
+		public ResourceBundle newBundle(final String baseName, final Locale locale, final String format,
+				final ClassLoader loader, final boolean reload) throws IOException, IllegalAccessException,
+				InstantiationException{
 			if(!"java.properties".equals(format))
 				return super.newBundle(baseName, locale, format, loader, reload);
 

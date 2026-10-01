@@ -26,12 +26,12 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.SourceRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
-import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Window;
+import java.util.List;
 
 
 /**
@@ -41,26 +41,6 @@ public class SourceHandler extends AbstractRecordTypeHandler<SourceRecordDialog>
 
 	public static final String TYPE = "SOURCE";
 	public static final String ID_PREFIX = "S";
-
-	public static final String TAG_TITLE = "TITLE";
-	public static final String TAG_AUTHOR = "AUTHOR";
-	public static final String TAG_PUBLISHER = "PUBLISHER";
-	public static final String TAG_DATE = "DATE";
-	public static final String TAG_PLACE = "PLACE";
-	public static final String TAG_MEDIA_TYPE = "MEDIA_TYPE";
-	public static final String TAG_REPOSITORY = "REPOSITORY";
-	public static final String TAG_DOCUMENT = "DOCUMENT";
-	public static final String TAG_NOTE = "NOTE";
-	public static final String TAG_PRIVACY = "PRIVACY";
-	public static final String TAG_AUDIT = "AUDIT";
-
-	private static final String TAG_TITLE_VALUE = FLEFRecordHelper.composePath(TAG_TITLE, NameHandler.TAG_VALUE);
-
-	public static final String[] MEDIA_TYPES = new String[]{
-		"audio", "book", "card", "electronic", "fiche", "film",
-		"magazine", "manuscript", "map", "newspaper", "photo",
-		"tombstone", "video"
-	};
 
 
 	private static final class SingletonHelper{
@@ -95,8 +75,8 @@ public class SourceHandler extends AbstractRecordTypeHandler<SourceRecordDialog>
 			return SourceCitationHandler.getInstance()
 				.getDisplayText(record, model);
 
-		final String title = FLEFRecordHelper.getChildValue(record, TAG_TITLE_VALUE);
-		return (StringUtils.isNotEmpty(title)? title: "--") + " [" + id + "]";
+		final List<String> titles = SourceReader.extractTitles(record);
+		return (!titles.isEmpty()? titles.getFirst() + " [" + id + "]": "[" + id + "]");
 	}
 
 	@Override

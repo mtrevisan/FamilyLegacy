@@ -26,7 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.tools.consistency;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ReportDialog;
@@ -139,19 +139,19 @@ public final class ConsistencyService{
 	}
 
 	private static void checkSelfReference(final FLEFRecord relationship, final List<Issue> issues){
-		final String subjectId = relationship.extractReferencedId(RelationshipHandler.TAG_SUBJECT, IndividualHandler.TYPE);
-		final String objectId = relationship.extractReferencedId(RelationshipHandler.TAG_OBJECT, IndividualHandler.TYPE);
+		final String subjectId = relationship.extractReferencedId(RelationshipReader.TAG_SUBJECT, IndividualHandler.TYPE);
+		final String objectId = relationship.extractReferencedId(RelationshipReader.TAG_OBJECT, IndividualHandler.TYPE);
 		if(subjectId != null && subjectId.equals(objectId))
 			issues.add(new Issue(Severity.ERROR, relationship.getId(),
 				"Relationship points to itself (" + subjectId + ")."));
 	}
 
 	private static void collectParentEdge(final FLEFRecord relationship, final Map<String, List<String>> parentsOf){
-		final String type = FLEFRecordHelper.getChildValue(relationship, RelationshipHandler.TAG_TYPE);
-		if(!RelationshipHandler.ENUM_TYPE_BIOLOGICAL_CHILD.equalsIgnoreCase(type))
+		final String type = RelationshipReader.extractType(relationship);
+		if(!RelationshipReader.isTypeBiologicalChild(type))
 			return;
-		final String childId = relationship.extractReferencedId(RelationshipHandler.TAG_SUBJECT, IndividualHandler.TYPE);
-		final String parentId = relationship.extractReferencedId(RelationshipHandler.TAG_OBJECT, IndividualHandler.TYPE);
+		final String childId = relationship.extractReferencedId(RelationshipReader.TAG_SUBJECT, IndividualHandler.TYPE);
+		final String parentId = relationship.extractReferencedId(RelationshipReader.TAG_OBJECT, IndividualHandler.TYPE);
 		if(childId != null && parentId != null)
 			parentsOf.computeIfAbsent(childId, k -> new ArrayList<>()).add(parentId);
 	}

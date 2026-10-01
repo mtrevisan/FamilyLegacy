@@ -26,7 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.ContactReader;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.structures.ContactNameStructureDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
@@ -49,9 +49,6 @@ import java.awt.Window;
 public class ContactNameHandler extends AbstractRecordTypeHandler<ContactNameStructureDialog>{
 
 	public static final String TYPE = "CONTACT_NAME_STRUCTURE";
-
-
-	private static final String TAG_TEXT = "TEXT";
 
 
 	private static final class SingletonHelper{
@@ -86,7 +83,7 @@ public class ContactNameHandler extends AbstractRecordTypeHandler<ContactNameStr
 
 		final StringBuilder fullName = new StringBuilder();
 
-		final String text = FLEFRecordHelper.getChildValue(record, TAG_TEXT);
+		final String text = ContactReader.extractValue(record);
 		if(StringUtils.isNotEmpty(text)){
 			if(!fullName.isEmpty())
 				fullName.append(StringUtils.SPACE);

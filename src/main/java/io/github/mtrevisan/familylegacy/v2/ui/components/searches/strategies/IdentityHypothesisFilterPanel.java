@@ -24,9 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.components.searches.strategies;
 
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.IdentityHypothesisReader;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.RecordFilterPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchCriteria;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.IdentityHypothesisHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import net.miginfocom.swing.MigLayout;
 
@@ -103,8 +103,8 @@ public class IdentityHypothesisFilterPanel extends JPanel implements RecordFilte
 	@Override
 	public Map<String, String> getFilters(){
 		final Map<String, String> filters = new HashMap<>();
-		filters.put(IdentityHypothesisHandler.TAG_IDENTITY, getCandidate());
-		filters.put(IdentityHypothesisHandler.TAG_COMMENT, getComment());
+		filters.put(IdentityHypothesisReader.TAG_IDENTITY, getCandidate());
+		filters.put(IdentityHypothesisReader.TAG_COMMENT, getComment());
 		return filters;
 	}
 

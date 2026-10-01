@@ -25,10 +25,9 @@
 package io.github.mtrevisan.familylegacy.v2.ui.components.searches.strategies;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.readers.DateReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.HistoricEventReader;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.RecordFilterPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchCriteria;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.HistoricEventHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import net.miginfocom.swing.MigLayout;
@@ -50,7 +49,7 @@ import java.util.function.Consumer;
  */
 public class HistoricEventFilterPanel extends JPanel implements RecordFilterPanel{
 
-	private final JComboBox<String> typeCombo = new JComboBox<>(GUIHelper.fillCombo(HistoricEventHandler.TYPES, I18N.t("search.combo.any")));
+	private final JComboBox<String> typeCombo = new JComboBox<>(GUIHelper.fillCombo(HistoricEventReader.TYPES, I18N.t("search.combo.any")));
 	private final JTextField titleField = new JTextField(20);
 	private final JTextField dateField = new JTextField(10);
 	private final JComboBox<String> calendarCombo = new JComboBox<>(DateReader.CALENDARS);
@@ -120,11 +119,11 @@ public class HistoricEventFilterPanel extends JPanel implements RecordFilterPane
 	@Override
 	public Map<String, String> getFilters(){
 		final Map<String, String> filters = new HashMap<>();
-		filters.put(HistoricEventHandler.TAG_TYPE, getType());
-		filters.put(HistoricEventHandler.TAG_TITLE, getTitle());
-		filters.put(HistoricEventHandler.TAG_DATE, getDate());
+		filters.put(HistoricEventReader.TAG_TYPE, getType());
+		filters.put(HistoricEventReader.TAG_TITLE, getTitle());
+		filters.put(HistoricEventReader.TAG_DATE, getDate());
 		filters.put(DateReader.TAG_CALENDAR, getCalendar());
-		filters.put(PlaceHandler.TYPE, getPlace());
+		filters.put(HistoricEventReader.TAG_PLACE, getPlace());
 		return filters;
 	}
 

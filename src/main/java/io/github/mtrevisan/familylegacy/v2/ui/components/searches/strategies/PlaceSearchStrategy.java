@@ -26,7 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.searches.strategies;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.PlaceReader;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchCriteria;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchMode;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchStrategy;
@@ -57,8 +57,8 @@ public class PlaceSearchStrategy implements SearchStrategy{
 
 	@Override
 	public Predicate<FLEFRecord> buildPredicate(final SearchCriteria criteria, final FLEFModel model){
-		name = criteria.getFilterFor(PlaceHandler.TAG_NAME);
-		type = criteria.getFilterFor(PlaceHandler.TAG_TYPE);
+		name = criteria.getFilterFor(PlaceReader.TAG_NAME);
+		type = criteria.getFilterFor(PlaceReader.TAG_TYPE);
 		mode = criteria.mode();
 
 		return place -> {
@@ -68,7 +68,7 @@ public class PlaceSearchStrategy implements SearchStrategy{
 
 			// Type filter
 			if(StringUtils.isNotEmpty(type)){
-				final String placeType = FLEFRecordHelper.getChildValue(place, PlaceHandler.TAG_TYPE);
+				final String placeType = PlaceReader.extractType(place);
 				if(!Strings.CI.equals(type, placeType))
 					return false;
 			}
@@ -81,7 +81,7 @@ public class PlaceSearchStrategy implements SearchStrategy{
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
 		final String baseDisplayText = HANDLER.getDisplayText(record, model);
 
-		final String type = FLEFRecordHelper.getChildValue(record, PlaceHandler.TAG_TYPE);
+		final String type = PlaceReader.extractType(record);
 
 		final StringJoiner details = new StringJoiner(", ", " (", ")");
 		details.setEmptyValue(StringUtils.EMPTY);

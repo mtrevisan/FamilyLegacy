@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.projections.relationsh
 import io.github.mtrevisan.familylegacy.v2.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.SpatialNavigation;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.layout.TreeLayout;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.services.CollapsibleBar;
@@ -35,7 +36,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.projections.relationshi
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.EgoNetworkMutator;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.GenealogyRepository;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.TreeChangeListener;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.ViewportPanSupport;
 
 import javax.swing.JFrame;
@@ -519,7 +519,7 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener{
 		final FLEFModel model = parser.parse(content);
 
 		SwingUtilities.invokeLater(() -> {
-			final String[] relationshipAllowedTypes = new String[]{RelationshipHandler.ENUM_TYPE_BIOLOGICAL_CHILD};
+			final String[] relationshipAllowedTypes = RelationshipReader.BIOLOGICAL;
 			final GenealogyRepository repository = new GenealogyRepository(relationshipAllowedTypes, model);
 			final EgoNetworkPanel panel = new EgoNetworkPanel(TreeLayout.VERTICAL, repository, model);
 			panel.load(individualId);

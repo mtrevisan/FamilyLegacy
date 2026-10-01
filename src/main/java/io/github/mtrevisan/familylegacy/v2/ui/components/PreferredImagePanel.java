@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.CropReader;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BindingsHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
@@ -64,10 +65,6 @@ public class PreferredImagePanel extends JPanel{
 
 	public static final String TAG_URI = "URI";
 	public static final String TAG_CROP = "CROP";
-	public static final String TAG_X = "X";
-	public static final String TAG_Y = "Y";
-	public static final String TAG_WIDTH = "WIDTH";
-	public static final String TAG_HEIGHT = "HEIGHT";
 
 	public static final Icon PLACEHOLDER_ICON = createPlaceholderIcon();
 
@@ -160,19 +157,9 @@ if(uri != null)
 		updatePreferredImage();
 	}
 
-	@SuppressWarnings("DataFlowIssue")
 	private void loadCropRectangle(final FLEFRecord preferredImage){
-		cropRect = null;
-		try{
-			final FLEFRecord crop = FLEFRecordHelper.findChild(preferredImage, TAG_CROP);
-			final int cropX = Integer.parseInt(FLEFRecordHelper.getChildValue(crop, TAG_X));
-			final int cropY = Integer.parseInt(FLEFRecordHelper.getChildValue(crop, TAG_Y));
-			final int cropWidth = Integer.parseInt(FLEFRecordHelper.getChildValue(crop, TAG_WIDTH));
-			final int cropHeight = Integer.parseInt(FLEFRecordHelper.getChildValue(crop, TAG_HEIGHT));
-			if(cropX >= 0 && cropY >= 0 && cropWidth >= 0 && cropHeight >= 0)
-				cropRect = new Rectangle(cropX, cropY, cropWidth, cropHeight);
-		}
-		catch(final Exception ignored){}
+		final FLEFRecord crop = FLEFRecordHelper.findChild(preferredImage, TAG_CROP);
+		cropRect = CropReader.extractPreferredImageCrop(crop);
 	}
 
 	/**
@@ -187,10 +174,10 @@ if(uri != null)
 			FLEFRecordHelper.updateChildValue(preferredImage, TAG_URI, uri);
 			if(cropRect != null && !cropRect.isEmpty()){
 				final FLEFRecord crop = FLEFRecordHelper.getOrCreateTargetNode(preferredImage, TAG_CROP);
-				FLEFRecordHelper.updateChildValue(crop, TAG_X, String.valueOf(cropRect.x));
-				FLEFRecordHelper.updateChildValue(crop, TAG_Y, String.valueOf(cropRect.y));
-				FLEFRecordHelper.updateChildValue(crop, TAG_WIDTH, String.valueOf(cropRect.width));
-				FLEFRecordHelper.updateChildValue(crop, TAG_HEIGHT, String.valueOf(cropRect.height));
+				FLEFRecordHelper.updateChildValue(crop, CropReader.TAG_X, String.valueOf(cropRect.x));
+				FLEFRecordHelper.updateChildValue(crop, CropReader.TAG_Y, String.valueOf(cropRect.y));
+				FLEFRecordHelper.updateChildValue(crop, CropReader.TAG_WIDTH, String.valueOf(cropRect.width));
+				FLEFRecordHelper.updateChildValue(crop, CropReader.TAG_HEIGHT, String.valueOf(cropRect.height));
 			}
 		}
 	}

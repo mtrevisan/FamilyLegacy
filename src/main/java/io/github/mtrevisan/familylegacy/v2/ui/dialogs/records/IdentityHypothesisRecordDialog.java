@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs.records;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.IdentityHypothesisReader;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextArea;
 import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
@@ -112,21 +113,21 @@ public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]");
 
-		identity1Field = EntityField.createForRecordFromOneofReference(IdentityHypothesisHandler.TAG_IDENTITY, this, model)
+		identity1Field = EntityField.createForRecordFromOneofReference(IdentityHypothesisReader.TAG_IDENTITY, this, model)
 			.withHandlerTypes(IndividualHandler.class, GroupHandler.class, PlaceHandler.class);
-		identity2Field = EntityField.createForRecordFromOneofReference(IdentityHypothesisHandler.TAG_IDENTITY, this, model)
+		identity2Field = EntityField.createForRecordFromOneofReference(IdentityHypothesisReader.TAG_IDENTITY, this, model)
 			.withHandlerTypes(IndividualHandler.class, GroupHandler.class, PlaceHandler.class);
-		commentArea = new BoundTextArea(IdentityHypothesisHandler.TAG_COMMENT, 3, 30);
+		commentArea = new BoundTextArea(IdentityHypothesisReader.TAG_COMMENT, 3, 30);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
 			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, ContextImpactHandler.TYPE, I18N.t("dialog.component.context.impact"))
 			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, I18N.t("dialog.component.conclusions"))
 			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, I18N.t("dialog.component.research.questions"))
-			.withComponent(PanelKey.SOURCE, IdentityHypothesisHandler.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
-			.withComponent(PanelKey.NOTE, IdentityHypothesisHandler.TAG_NOTE, null)
-			.withComponent(PanelKey.EVIDENCE, IdentityHypothesisHandler.TAG_EVIDENCE, I18N.t("dialog.component.evidence"))
-			.withComponent(PanelKey.AUDIT, IdentityHypothesisHandler.TAG_AUDIT, null)
+			.withComponent(PanelKey.SOURCE, IdentityHypothesisReader.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
+			.withComponent(PanelKey.NOTE, IdentityHypothesisReader.TAG_NOTE, null)
+			.withComponent(PanelKey.EVIDENCE, IdentityHypothesisReader.TAG_EVIDENCE, I18N.t("dialog.component.evidence"))
+			.withComponent(PanelKey.AUDIT, IdentityHypothesisReader.TAG_AUDIT, null)
 			.build();
 
 		components.bind(commentArea);

@@ -1,7 +1,7 @@
 package io.github.mtrevisan.familylegacy.v2.ui.tools.reports.index;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.RelationshipReader;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -40,7 +40,7 @@ public final class KinshipResolver{
 				return edge.relationshipType();
 			}
 		}
-		return RelationshipHandler.ENUM_TYPE_BIOLOGICAL_CHILD;
+		return RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD;
 	}
 
 	public FLEFRecord otherParentOf(final FLEFRecord child, final FLEFRecord person){
@@ -67,8 +67,8 @@ public final class KinshipResolver{
 		if(relationshipType == null)
 			return 90;
 		return switch(relationshipType.toLowerCase(Locale.ROOT)){
-			case RelationshipHandler.ENUM_TYPE_BIOLOGICAL_CHILD -> 10;
-			case RelationshipHandler.ENUM_TYPE_ADOPTIVE_CHILD -> 20;
+			case RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD -> 10;
+			case RelationshipReader.ENUM_TYPE_ADOPTIVE_CHILD -> 20;
 			case "foster_child" -> 30;
 			case "guarded_child" -> 40;
 			case "step_child" -> 50;

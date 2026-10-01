@@ -167,15 +167,16 @@ struct NamePartStructure {
 // happened. Persistent associations resulting from an event SHOULD be represented separately using RELATIONSHIP records.
 record EventRecord {
   type: enum {                    // The type of event. Custom types are permitted.
-    birth, death, adoption, graduation, immigration, naturalization, bankruptcy,
-    guardianship, coroner_report, cremation, burial, education, retirement,
-    military_induction, military_muster_roll, military_service, military_award,
-    military_release, military_discharge, military_resignation, military_retirement,
-    prison, pardon, jury_duty, illness, hospitalization, medical_procedure, honor,
-    deportation, internment, liberation, emancipation, relocation, emigration,
-    census, deed, escrow, chancery, will, probate,
-    engagement, marriage_bann, marriage_contract, marriage_license, marriage_settlement,
-    marriage, divorce_filed, divorce_decree, divorce, annulment
+    // life
+    birth, adoption, death, cremation, burial, coroner_report, illness, hospitalization, medical_procedure,
+    // family
+    engagement, marriage_bann, marriage_contract, marriage_license, marriage_settlement, marriage, divorce_filed, divorce_decree, divorce, annulment,
+    // achievements
+    education, graduation, retirement, military_induction, military_muster_roll, military_service, military_award, military_release, military_discharge, military_resignation, military_retirement, prison, pardon, jury_duty, honor, bankruptcy,
+    // national / government
+    immigration, naturalization, emigration, deportation, internment, liberation, emancipation, relocation, census,
+    // possessions and titles
+    deed, escrow, chancery, will, probate, guardianship
   } | Text
   description?: Text              // Human-readable description of the event when a structured representation is insufficient.
   date?: DateStructure            // the date of the event
@@ -641,43 +642,23 @@ struct ContactStructure {
 // of 12 years old.
 record CulturalNormRecord {
   title?: Text                 // the title of the rule
-  rule_type?: enum {           // Broad category of cultural rule. Detailed interpretation and parameters are expressed through notes, citations, and external documentation.
+  type?: enum {           // Broad category of cultural rule. Detailed interpretation and parameters are expressed through notes, citations, and external documentation.
     // lifecycle and age-related customs
-    age_of_majority,
-    marriage_minimum_age,
-    baptism_age,
-    confirmation_age,
-    military_service_age,
-    retirement_age,
+    age_of_majority, marriage_minimum_age, baptism_age, confirmation_age, military_service_age, retirement_age,
     // naming practices
-    naming_convention,
-    surname_transmission,
-    patronymic_system,
-    matronymic_system,
-    title_usage,
+    naming_convention, surname_transmission, patronymic_system, matronymic_system, title_usage,
     // family and household customs
-    inheritance_rule,
-    succession_rule,
-    dowry_practice,
-    guardianship_rule,
-    adoption_practice,
+    inheritance_rule, succession_rule, dowry_practice, guardianship_rule, adoption_practice,
     // marriage customs
-    marriage_practice,
-    marriage_prohibited_degree,
-    widowhood_rule,
+    marriage_practice, marriage_prohibited_degree, widowhood_rule,
     // residence and social organization
-    residence_pattern,
-    household_structure,
-    social_classification,
+    residence_pattern, household_structure, social_classification,
     // religious and ecclesiastical customs
-    religious_practice,
-    burial_practice,
+    religious_practice, burial_practice,
     // legal and citizenship rules
-    citizenship_rule,
-    legitimacy_rule,
+    citizenship_rule, legitimacy_rule,
     // genealogical inference rules
-    age_difference_convention,
-    generational_interval
+    age_difference_convention, generational_interval
   } | Text
   place?: PlaceCitation        // the location in which this cultural norm was in effect
   valid_from?: DateStructure   // the date from which this cultural norm was in effect

@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs.records;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.ConclusionReader;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextArea;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextField;
@@ -117,15 +118,15 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]5[]10[]10[]10[]");
 
-		issueField = new BoundTextField(ConclusionHandler.TAG_ISSUE);
-		resolvesPanel = EntityListPanel.createForOneOfReference(ConclusionHandler.TAG_RESOLVES, this, I18N.t("dialog.conclusion.resolves"), model)
+		issueField = new BoundTextField(ConclusionReader.TAG_ISSUE);
+		resolvesPanel = EntityListPanel.createForOneOfReference(ConclusionReader.TAG_RESOLVES, this, I18N.t("dialog.conclusion.resolves"), model)
 			.withHandlerTypes(EventHandler.class, EventParticipationHandler.class, RelationshipHandler.class,
 				IndividualHandler.class, IndividualAttributeHandler.class, GroupHandler.class, GroupAttributeHandler.class,
 				IdentityHypothesisHandler.class, PlaceHandler.class, PlaceRelationshipHandler.class, SourceHandler.class,
 				CulturalNormHandler.class, HistoricEventHandler.class)
 			.withSaveAsVoid();
 		resolvesPanel.addPropertyChangeListener(PROPERTY_CONCLUSION, evt -> updatePreferredCombo());
-		preferredCombo = new BoundComboBox<>(ConclusionHandler.TAG_PREFERRED);
+		preferredCombo = new BoundComboBox<>(ConclusionReader.TAG_PREFERRED);
 		preferredCombo.setRenderer(new DefaultListCellRenderer(){
 			@Override
 			public Component getListCellRendererComponent(final JList<?> list, final Object value, final int index,
@@ -141,16 +142,16 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 				return this;
 			}
 		});
-		proofStatusCombo = new BoundComboBox<>(ConclusionHandler.TAG_PROOF_STATUS, ConclusionHandler.PROOF_STATUSES);
+		proofStatusCombo = new BoundComboBox<>(ConclusionReader.TAG_PROOF_STATUS, ConclusionReader.PROOF_STATUSES);
 		proofStatusCombo.setI18NPrefix("enum.conclusion.proof.status");
-		narrativeArea = new BoundTextArea(ConclusionHandler.TAG_NARRATIVE, 5, 30);
+		narrativeArea = new BoundTextArea(ConclusionReader.TAG_NARRATIVE, 5, 30);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.RESEARCH_QUESTION, ConclusionHandler.TAG_RESEARCH, I18N.t("dialog.component.research.questions"))
-			.withComponent(PanelKey.SOURCE, ConclusionHandler.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
-			.withComponent(PanelKey.PRIVACY, ConclusionHandler.TAG_PRIVACY, null)
-			.withComponent(PanelKey.AUDIT, ConclusionHandler.TAG_AUDIT, null)
+			.withComponent(PanelKey.RESEARCH_QUESTION, ConclusionReader.TAG_RESEARCH, I18N.t("dialog.component.research.questions"))
+			.withComponent(PanelKey.SOURCE, ConclusionReader.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
+			.withComponent(PanelKey.PRIVACY, ConclusionReader.TAG_PRIVACY, null)
+			.withComponent(PanelKey.AUDIT, ConclusionReader.TAG_AUDIT, null)
 			.build();
 
 		components.bind(issueField);
@@ -229,7 +230,7 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 
 		if(record.hasChildren()){
 			// preferred
-			final FLEFRecord preferred = FLEFRecordHelper.extractRecordFromOneOfReference(record, ConclusionHandler.TAG_PREFERRED, model);
+			final FLEFRecord preferred = FLEFRecordHelper.extractRecordFromOneOfReference(record, ConclusionReader.TAG_PREFERRED, model);
 			if(preferred != null && !preferred.isEmpty())
 				// Find and select in combo
 				preferredCombo.setSelectedItem(preferred);
@@ -273,7 +274,7 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 		// preferred
 		final FLEFRecord selectedPreferred = (FLEFRecord)preferredCombo.getSelectedItem();
 		if(selectedPreferred != null){
-			final FLEFRecord preferred = FLEFRecordHelper.getOrCreateTargetNode(record, ConclusionHandler.TAG_PREFERRED);
+			final FLEFRecord preferred = FLEFRecordHelper.getOrCreateTargetNode(record, ConclusionReader.TAG_PREFERRED);
 			FLEFRecordHelper.updateChildValue(preferred, selectedPreferred.getTag(), selectedPreferred.getId());
 		}
 	}

@@ -26,7 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs.structures;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.io.model.readers.names.Name;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.NameReader;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundFilteredComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
@@ -110,20 +110,20 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]");
 
-		typeCombo = new BoundComboBox<>(PersonalNameHandler.TAG_TYPE, GUIHelper.fillCombo(Name.PERSONAL_TYPES, null));
+		typeCombo = new BoundComboBox<>(NameReader.TAG_TYPE, GUIHelper.fillCombo(NameReader.PERSONAL_TYPES, null));
 		typeCombo.setI18NPrefix("enum.personal.name.type");
 		typeCombo.setEditable(true);
-		partPanel = EntityListPanel.createForStructure(PersonalNameHandler.TAG_PART, this, I18N.t("dialog.name.parts") + "*", model, PartHandler.class);
-		localeCombo = new BoundFilteredComboBox<>(PersonalNameHandler.TAG_LOCALE, LocaleHelper.getAvailableLanguageTags());
+		partPanel = EntityListPanel.createForStructure(NameReader.TAG_PART, this, I18N.t("dialog.name.parts") + "*", model, PartHandler.class);
+		localeCombo = new BoundFilteredComboBox<>(NameReader.TAG_LOCALE, LocaleHelper.getAvailableLanguageTags());
 		localeCombo.setEditable(true);
 
-		culturalNormPanel = EntityListPanel.createForEntityReference(PersonalNameHandler.TAG_CULTURAL_NORM, parent, I18N.t("dialog.name.cultural.norms"),
+		culturalNormPanel = EntityListPanel.createForEntityReference(NameReader.TAG_CULTURAL_NORM, parent, I18N.t("dialog.name.cultural.norms"),
 			model, CulturalNormHandler.class);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.SOURCE, PersonalNameHandler.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
-			.withComponent(PanelKey.NOTE, PersonalNameHandler.TAG_NOTE, null)
+			.withComponent(PanelKey.SOURCE, NameReader.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
+			.withComponent(PanelKey.NOTE, NameReader.TAG_NOTE, null)
 			.build();
 
 		components.bind(typeCombo);

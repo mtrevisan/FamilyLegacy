@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.NameReader;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.structures.PersonalNameStructureDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
@@ -51,17 +52,6 @@ public class PersonalNameHandler extends AbstractRecordTypeHandler<PersonalNameS
 
 	public static final String TYPE = "PERSONAL_NAME_STRUCTURE";
 	public static final String CITED_TYPE = "PERSONAL_NAME";
-
-	public static final String TAG_TYPE = "TYPE";
-	public static final String TAG_PART = "PART";
-	public static final String TAG_LOCALE = "LOCALE";
-	public static final String TAG_CULTURAL_NORM = "CULTURAL_NORM";
-	public static final String TAG_SOURCE = "SOURCE";
-	public static final String TAG_NOTE = "NOTE";
-
-	public static final String TAG_PART_TYPE = "TYPE";
-	public static final String TAG_PART_VALUE = "VALUE";
-	public static final String TAG_PART_VARIANT = "VARIANT";
 
 
 	private static final class SingletonHelper{
@@ -99,11 +89,11 @@ public class PersonalNameHandler extends AbstractRecordTypeHandler<PersonalNameS
 		if(record == null)
 			return "--";
 
-		final List<FLEFRecord> parts = FLEFRecordHelper.findChildren(record, TAG_PART);
+		final List<FLEFRecord> parts = FLEFRecordHelper.findChildren(record, NameReader.TAG_PART);
 		final StringBuilder fullName = new StringBuilder();
 
 		for(final FLEFRecord part : parts){
-			final String val = FLEFRecordHelper.getChildValue(part, PartHandler.TAG_VALUE);
+			final String val = NameReader.extractPartValue(part);
 			if(StringUtils.isNotEmpty(val)){
 				if(!fullName.isEmpty())
 					fullName.append(StringUtils.SPACE);
@@ -116,7 +106,7 @@ public class PersonalNameHandler extends AbstractRecordTypeHandler<PersonalNameS
 			return "-- [" + record.getId() + "]";
 
 		result = GUIHelper.limitTextLength(result);
-		final String type = FLEFRecordHelper.getChildValue(record, TAG_TYPE);
+		final String type = NameReader.extractType(record);
 		if(StringUtils.isNotEmpty(type))
 			result += " (" + type + ")";
 

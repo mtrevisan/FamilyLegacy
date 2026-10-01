@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs.records;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.HistoricEventReader;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
@@ -37,7 +38,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ContextImpactHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HistoricEventHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceCitationHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
@@ -92,22 +92,22 @@ public class HistoricEventRecordDialog extends BaseRecordDialog{
 	private HistoricEventRecordDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, HistoricEventHandler.getInstance());
 
-		typeCombo = new BoundComboBox<>(HistoricEventHandler.TAG_TYPE, HistoricEventHandler.TYPES);
+		typeCombo = new BoundComboBox<>(HistoricEventReader.TAG_TYPE, GUIHelper.fillCombo(HistoricEventReader.TYPES, null));
 		typeCombo.setI18NPrefix("enum.historic.event.type");
 		typeCombo.setEditable(true);
-		titleField = new BoundTextField(HistoricEventHandler.TAG_TITLE);
-		dateField = DateField.createWithWrapperTag(HistoricEventHandler.TAG_DATE, this, "Date", model);
-		placeField = EntityField.createForStructureWithReference(PlaceHandler.TYPE, this, model, PlaceCitationHandler.class);
+		titleField = new BoundTextField(HistoricEventReader.TAG_TITLE);
+		dateField = DateField.createWithWrapperTag(HistoricEventReader.TAG_DATE, this, "Date", model);
+		placeField = EntityField.createForStructureWithReference(HistoricEventReader.TAG_PLACE, this, model, PlaceCitationHandler.class);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
 			.withComponent(PanelKey.CONTEXT_IMPACT_ON_CONTEXT, ContextImpactHandler.TYPE, I18N.t("dialog.component.context.impact"))
 			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, I18N.t("dialog.component.conclusions"))
 			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, I18N.t("dialog.component.research.questions"))
-			.withComponent(PanelKey.SOURCE, HistoricEventHandler.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
-			.withComponent(PanelKey.NOTE, HistoricEventHandler.TAG_NOTE, null)
-			.withComponent(PanelKey.EVIDENCE, HistoricEventHandler.TAG_EVIDENCE, I18N.t("dialog.component.evidence"))
-			.withComponent(PanelKey.AUDIT, HistoricEventHandler.TAG_AUDIT, null)
+			.withComponent(PanelKey.SOURCE, HistoricEventReader.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
+			.withComponent(PanelKey.NOTE, HistoricEventReader.TAG_NOTE, null)
+			.withComponent(PanelKey.EVIDENCE, HistoricEventReader.TAG_EVIDENCE, I18N.t("dialog.component.evidence"))
+			.withComponent(PanelKey.AUDIT, HistoricEventReader.TAG_AUDIT, null)
 			.build();
 
 		components.bind(typeCombo);

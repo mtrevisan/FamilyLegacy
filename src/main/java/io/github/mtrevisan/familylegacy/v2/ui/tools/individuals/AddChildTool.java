@@ -26,6 +26,8 @@ package io.github.mtrevisan.familylegacy.v2.ui.tools.individuals;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualData;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.services.relationship.RelationshipTypeSelectionDialog;
@@ -93,23 +95,25 @@ public final class AddChildTool implements ToolOperation{
 		final List<RelationshipTypeSelectionDialog.Item> items = new ArrayList<>();
 		final FLEFRecord targetRecord = model.getRecordById(targetId);
 		final String targetLabel = (targetRecord != null
-			? IndividualHelper.displayName(targetRecord) + " [" + targetId + "]"
+			? IndividualReader.extractPrimaryFullname(targetRecord) + " [" + targetId + "]"
 			: targetId);
+		// TODO biological?
 		items.add(new RelationshipTypeSelectionDialog.Item(targetId, targetLabel,
-			IndividualHelper.CHILD_RELATION_TYPES.getFirst()));
+			RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD));
 
 		final String partnerId = findShownPartner(sourcePanel, targetId);
 		if(partnerId != null){
 			final FLEFRecord partnerRecord = model.getRecordById(partnerId);
 			final String partnerLabel = (partnerRecord != null
-				? IndividualHelper.displayName(partnerRecord) + " [" + partnerId + "]"
+				? IndividualReader.extractPrimaryFullname(partnerRecord) + " [" + partnerId + "]"
 				: partnerId);
+			// TODO biological?
 			items.add(new RelationshipTypeSelectionDialog.Item(partnerId, partnerLabel,
-				IndividualHelper.CHILD_RELATION_TYPES.getFirst()));
+				RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD));
 		}
 
 		final List<String> selectedTypes = RelationshipTypeSelectionDialog.selectRelationshipType(
-			owner, items, IndividualHelper.CHILD_RELATION_TYPES.toArray(String[]::new), null, model);
+			owner, items, RelationshipReader.CHILD_TYPES.toArray(String[]::new), null, model);
 		if(selectedTypes == null || selectedTypes.isEmpty())
 			return;
 

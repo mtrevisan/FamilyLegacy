@@ -27,12 +27,12 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.searches.strategies;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.CulturalNormReader;
 import io.github.mtrevisan.familylegacy.v2.io.model.readers.DateReader;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchCriteria;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchMode;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchStrategy;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 
@@ -56,7 +56,7 @@ public class CulturalNormSearchStrategy implements SearchStrategy{
 	private static final CulturalNormHandler HANDLER = CulturalNormHandler.getInstance();
 
 	private String title;
-	private String ruleType;
+	private String type;
 	private String place;
 	private String validFrom;
 	private String calendarFrom;
@@ -67,27 +67,27 @@ public class CulturalNormSearchStrategy implements SearchStrategy{
 
 	@Override
 	public Predicate<FLEFRecord> buildPredicate(final SearchCriteria criteria, final FLEFModel model){
-		title = criteria.getFilterFor(CulturalNormHandler.TAG_TITLE);
-		ruleType = criteria.getFilterFor(CulturalNormHandler.TAG_RULE_TYPE);
-		place = criteria.getFilterFor(PlaceHandler.TYPE);
-		validFrom = criteria.getFilterFor(CulturalNormHandler.TAG_VALID_FROM);
+		title = criteria.getFilterFor(CulturalNormReader.TAG_TITLE);
+		type = criteria.getFilterFor(CulturalNormReader.TAG_TYPE);
+		place = criteria.getFilterFor(CulturalNormReader.TAG_PLACE);
+		validFrom = criteria.getFilterFor(CulturalNormReader.TAG_VALID_FROM);
 		calendarFrom = criteria.getFilterFor(KEY_CALENDAR_FROM);
-		validTo = criteria.getFilterFor(CulturalNormHandler.TAG_VALID_TO);
+		validTo = criteria.getFilterFor(CulturalNormReader.TAG_VALID_TO);
 		calendarTo = criteria.getFilterFor(KEY_CALENDAR_TO);
 		mode = criteria.mode();
 
 		return culturalNorm -> {
 			// Title filter
 			if(StringUtils.isNotEmpty(title)){
-				final String recordTitle = FLEFRecordHelper.getChildValue(culturalNorm, CulturalNormHandler.TAG_TITLE);
+				final String recordTitle = CulturalNormReader.extractTitle(culturalNorm);
 				if(!SearchHelper.matches(recordTitle, title, mode))
 					return false;
 			}
 
 			// Rule Type filter
-			if(StringUtils.isNotEmpty(ruleType)){
-				final String recordRuleType = FLEFRecordHelper.getChildValue(culturalNorm, CulturalNormHandler.TAG_RULE_TYPE);
-				if(!ruleType.equalsIgnoreCase(recordRuleType))
+			if(StringUtils.isNotEmpty(type)){
+				final String typeRecord = CulturalNormReader.extractType(culturalNorm);
+				if(!type.equalsIgnoreCase(typeRecord))
 					return false;
 			}
 
@@ -97,8 +97,8 @@ public class CulturalNormSearchStrategy implements SearchStrategy{
 
 			// Date range
 			if(StringUtils.isNotEmpty(validFrom) || StringUtils.isNotEmpty(validTo)){
-				final FLEFRecord validFromRecord = FLEFRecordHelper.findChild(culturalNorm, CulturalNormHandler.TAG_VALID_FROM);
-				final FLEFRecord validToRecord = FLEFRecordHelper.findChild(culturalNorm, CulturalNormHandler.TAG_VALID_TO);
+				final FLEFRecord validFromRecord = FLEFRecordHelper.findChild(culturalNorm, CulturalNormReader.TAG_VALID_FROM);
+				final FLEFRecord validToRecord = FLEFRecordHelper.findChild(culturalNorm, CulturalNormReader.TAG_VALID_TO);
 				final Integer fromYear = (StringUtils.isNotEmpty(validFrom)
 					? SearchHelper.extractYear(validFrom, calendarFrom)
 					: null);
@@ -122,16 +122,16 @@ public class CulturalNormSearchStrategy implements SearchStrategy{
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
 		final String baseDisplayText = HANDLER.getDisplayText(record, model);
 
-		final String title = FLEFRecordHelper.getChildValue(record, CulturalNormHandler.TAG_TITLE);
-		final String ruleType = FLEFRecordHelper.getChildValue(record, CulturalNormHandler.TAG_RULE_TYPE);
+		final String title = CulturalNormReader.extractTitle(record);
+		final String type = CulturalNormReader.extractType(record);
 
 		final StringJoiner details = new StringJoiner(", ", " (", ")");
 		details.setEmptyValue(StringUtils.EMPTY);
 
 		if(StringUtils.isNotEmpty(title))
 			details.add(title);
-		if(StringUtils.isNotEmpty(ruleType))
-			details.add(I18N.t("dialog.cultural.norm.rule.type") + ": " + ruleType);
+		if(StringUtils.isNotEmpty(type))
+			details.add(I18N.t("dialog.cultural.norm.rule.type") + ": " + type);
 
 		return baseDisplayText + details;
 	}

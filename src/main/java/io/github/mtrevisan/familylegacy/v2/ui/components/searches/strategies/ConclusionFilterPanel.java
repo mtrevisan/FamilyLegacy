@@ -24,9 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.components.searches.strategies;
 
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.ConclusionReader;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.RecordFilterPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchCriteria;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import net.miginfocom.swing.MigLayout;
@@ -49,7 +49,7 @@ import java.util.function.Consumer;
 public class ConclusionFilterPanel extends JPanel implements RecordFilterPanel{
 
 	private final JTextField issueField = new JTextField(20);
-	private final JComboBox<String> proofStatusCombo = new JComboBox<>(GUIHelper.fillCombo(ConclusionHandler.PROOF_STATUSES, I18N.t("search.combo.any")));
+	private final JComboBox<String> proofStatusCombo = new JComboBox<>(GUIHelper.fillCombo(ConclusionReader.PROOF_STATUSES, I18N.t("search.combo.any")));
 	private final JTextField narrativeField = new JTextField(20);
 	private final JTextField researchQuestionField = new JTextField(20);
 
@@ -115,10 +115,10 @@ public class ConclusionFilterPanel extends JPanel implements RecordFilterPanel{
 	@Override
 	public Map<String, String> getFilters(){
 		final Map<String, String> filters = new HashMap<>();
-		filters.put(ConclusionHandler.TAG_ISSUE, getIssue());
-		filters.put(ConclusionHandler.TAG_PROOF_STATUS, getProofStatus());
-		filters.put(ConclusionHandler.TAG_NARRATIVE, getNarrative());
-		filters.put(ConclusionHandler.TAG_RESEARCH, getResearchQuestion());
+		filters.put(ConclusionReader.TAG_ISSUE, getIssue());
+		filters.put(ConclusionReader.TAG_PROOF_STATUS, getProofStatus());
+		filters.put(ConclusionReader.TAG_NARRATIVE, getNarrative());
+		filters.put(ConclusionReader.TAG_RESEARCH, getResearchQuestion());
 		return filters;
 	}
 

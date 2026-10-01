@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.v2.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.readers.date.CalendarConverter;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.date.CalendarType;
 import io.github.mtrevisan.familylegacy.v2.io.model.readers.date.DatePrecision;
 import io.github.mtrevisan.familylegacy.v2.io.model.readers.date.NormalizedDate;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.TreeChangeListener;
@@ -500,7 +501,7 @@ public final class SocialNetworkPanel extends JPanel implements TreeChangeListen
 		final int year = c.get(Calendar.YEAR);
 		final int month = c.get(Calendar.MONTH) + 1;
 		final int day = c.get(Calendar.DAY_OF_MONTH);
-		final long jdn = CalendarConverter.gregorianToJdn(year, month, day);
+		final long jdn = CalendarType.GREGORIAN.toJdn(year, month, day);
 		return NormalizedDate.exact(jdn, DatePrecision.DAY);
 	}
 

@@ -27,6 +27,10 @@ package io.github.mtrevisan.familylegacy.v2.ui.tools.events;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.DateReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.EventParticipationReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.EventReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.PlaceCitationReader;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventParticipationHandler;
 
@@ -48,55 +52,14 @@ import java.util.Map;
  * <p>
  * <b>Event type vocabulary.</b> The protocol declares a list of event
  * types (birth, death, marriage, divorce, …) but allows custom types.
- * {@link #DECLARED_EVENT_TYPES} lists the declared ones, in the order
+ * {@link EventReader#TYPES} lists the declared ones, in the order
  * the protocol presents them, so that the tools can offer a stable
  * grouping. Custom types found in the data are always included when
  * enumerating the types actually in use.
  */
 public final class EventHelper{
 
-	public static final String TAG_TYPE = "type";
-	public static final String TAG_DATE = "date";
-	public static final String TAG_VALUE = "value";
-	public static final String TAG_PLACE = "place";
-	public static final String TAG_DESCRIPTION = "description";
-	public static final String TAG_AGENCY = "agency";
-	public static final String TAG_PARTICIPANT = "participant";
-	public static final String TAG_EVENT = "event";
-	public static final String TAG_ROLE = "role";
-
-
-	/**
-	 * Event types declared by the protocol, in a stable order.
-	 * <p>
-	 * Grouped by theme to help the UI present them in a readable way:
-	 * life events, family events, achievements, national and government
-	 * events, possessions and titles, religious and social events.
-	 */
-	public static final List<String> DECLARED_EVENT_TYPES = List.of(
-		// Life
-		"birth", "adoption", "death", "cremation", "burial",
-		"coroner_report", "illness", "hospitalization", "medical_procedure",
-		// Family
-		"engagement", "marriage_bann", "marriage_contract", "marriage_license",
-		"marriage_settlement", "marriage", "divorce_filed", "divorce_decree",
-		"divorce", "annulment",
-		// Achievements
-		"education", "graduation", "retirement",
-		"military_induction", "military_muster_roll", "military_service",
-		"military_award", "military_release", "military_discharge",
-		"military_resignation", "military_retirement",
-		"prison", "pardon", "jury_duty", "honor", "bankruptcy",
-		// National / government
-		"immigration", "naturalization", "emigration", "deportation",
-		"internment", "liberation", "emancipation", "relocation", "census",
-		// Possessions and titles
-		"deed", "escrow", "chancery", "will", "probate", "guardianship"
-	);
-
-
-	private EventHelper(){
-	}
+	private EventHelper(){}
 
 
 	public static List<FLEFRecord> listAllEvents(final FLEFModel model){
@@ -109,17 +72,12 @@ public final class EventHelper{
 
 	/** Returns the type of the event, or {@code null} when missing. */
 	public static String eventType(final FLEFRecord event){
-		return (event != null? FLEFRecordHelper.getChildValue(event, TAG_TYPE): null);
+		return (event != null? EventReader.extractType(event): null);
 	}
 
 	/** Returns the description of the event, or {@code null} when missing. */
 	public static String eventDescription(final FLEFRecord event){
-		return (event != null? FLEFRecordHelper.getChildValue(event, TAG_DESCRIPTION): null);
-	}
-
-	/** Returns the agency of the event, or {@code null} when missing. */
-	public static String eventAgency(final FLEFRecord event){
-		return (event != null? FLEFRecordHelper.getChildValue(event, TAG_AGENCY): null);
+		return (event != null? EventReader.extractDescription(event): null);
 	}
 
 	/**
@@ -133,10 +91,12 @@ public final class EventHelper{
 	public static String eventDateRaw(final FLEFRecord event){
 		if(event == null)
 			return null;
-		final FLEFRecord dateStruct = FLEFRecordHelper.findChild(event, TAG_DATE);
+
+		final FLEFRecord dateStruct = FLEFRecordHelper.findChild(event, EventReader.TAG_DATE);
 		if(dateStruct == null)
 			return null;
-		final String value = FLEFRecordHelper.getChildValue(dateStruct, TAG_VALUE);
+
+		final String value = FLEFRecordHelper.getChildValue(dateStruct, DateReader.TAG_VALUE);
 		if(value != null)
 			return value;
 		final FLEFRecord onlyChild = dateStruct.getTheOnlyChild();
@@ -173,10 +133,12 @@ public final class EventHelper{
 	public static String eventPlaceId(final FLEFRecord event){
 		if(event == null)
 			return null;
-		final FLEFRecord placeCitation = FLEFRecordHelper.findChild(event, TAG_PLACE);
+
+		final FLEFRecord placeCitation = FLEFRecordHelper.findChild(event, EventReader.TAG_PLACE);
 		if(placeCitation == null)
 			return null;
-		return FLEFRecordHelper.getChildValue(placeCitation, TAG_PLACE);
+
+		return FLEFRecordHelper.getChildValue(placeCitation, PlaceCitationReader.TAG_PLACE);
 	}
 
 
@@ -198,12 +160,12 @@ public final class EventHelper{
 	 * {@code oneof} block ({@code individual}, {@code group}, or
 	 * {@code place}) whose only child holds the id.
 	 */
-	public static Participation toParticipation(final FLEFRecord participation){
-		final String participationId = participation.getId();
-		final String eventId = FLEFRecordHelper.getChildValue(participation, TAG_EVENT);
-		final String role = FLEFRecordHelper.getChildValue(participation, TAG_ROLE);
+	public static Participation toParticipation(final FLEFRecord eventParticipation){
+		final String participationId = eventParticipation.getId();
+		final String eventId = FLEFRecordHelper.getChildValue(eventParticipation, EventParticipationReader.TAG_EVENT);
+		final String role = FLEFRecordHelper.getChildValue(eventParticipation, EventParticipationReader.TAG_ROLE);
 
-		final FLEFRecord participantBlock = FLEFRecordHelper.findChild(participation, TAG_PARTICIPANT);
+		final FLEFRecord participantBlock = FLEFRecordHelper.findChild(eventParticipation, EventParticipationReader.TAG_PARTICIPANT);
 		if(participantBlock == null)
 			return new Participation(participationId, eventId, null, null, role);
 
@@ -226,8 +188,9 @@ public final class EventHelper{
 		final List<Participation> result = new ArrayList<>();
 		if(event == null || event.getId() == null)
 			return result;
-		for(final FLEFRecord participation : listAllParticipations(model)){
-			final Participation p = toParticipation(participation);
+		final List<FLEFRecord> eventParticipations = listAllParticipations(model);
+		for(final FLEFRecord eventParticipation : eventParticipations){
+			final Participation p = toParticipation(eventParticipation);
 			if(event.getId().equals(p.eventId()))
 				result.add(p);
 		}
@@ -239,8 +202,9 @@ public final class EventHelper{
 	 */
 	public static Map<String, Integer> countParticipantsPerEvent(final FLEFModel model){
 		final Map<String, Integer> counts = new LinkedHashMap<>();
-		for(final FLEFRecord participation : listAllParticipations(model)){
-			final Participation p = toParticipation(participation);
+		final List<FLEFRecord> eventParticipations = listAllParticipations(model);
+		for(final FLEFRecord eventParticipation : eventParticipations){
+			final Participation p = toParticipation(eventParticipation);
 			if(p.eventId() != null)
 				counts.merge(p.eventId(), 1, Integer::sum);
 		}
@@ -252,8 +216,9 @@ public final class EventHelper{
 	 */
 	public static Map<String, Integer> countEventsPerParticipant(final FLEFModel model){
 		final Map<String, Integer> counts = new LinkedHashMap<>();
-		for(final FLEFRecord participation : listAllParticipations(model)){
-			final Participation p = toParticipation(participation);
+		final List<FLEFRecord> eventParticipations = listAllParticipations(model);
+		for(final FLEFRecord eventParticipation : eventParticipations){
+			final Participation p = toParticipation(eventParticipation);
 			if(p.participantId() != null)
 				counts.merge(p.participantId(), 1, Integer::sum);
 		}
@@ -283,8 +248,9 @@ public final class EventHelper{
 	 */
 	public static Map<String, List<Participation>> participationsByEvent(final FLEFModel model){
 		final Map<String, List<Participation>> result = new LinkedHashMap<>();
-		for(final FLEFRecord participation : listAllParticipations(model)){
-			final Participation p = toParticipation(participation);
+		final List<FLEFRecord> eventParticipations = listAllParticipations(model);
+		for(final FLEFRecord eventParticipation : eventParticipations){
+			final Participation p = toParticipation(eventParticipation);
 			if(p.eventId() != null)
 				result.computeIfAbsent(p.eventId(), k -> new ArrayList<>()).add(p);
 		}

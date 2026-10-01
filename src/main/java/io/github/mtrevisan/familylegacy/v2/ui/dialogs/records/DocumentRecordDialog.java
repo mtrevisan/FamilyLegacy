@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs.records;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.DocumentReader;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BindingsHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextArea;
@@ -92,7 +93,7 @@ public class DocumentRecordDialog extends BaseRecordDialog{
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]5[]10[]");
 
-		uriField = new BoundTextField(DocumentHandler.TAG_URI);
+		uriField = new BoundTextField(DocumentReader.TAG_URI);
 		BindingsHelper.installBehavior(uriField,
 			this::setNewItem, null,
 			null, null,
@@ -101,18 +102,18 @@ public class DocumentRecordDialog extends BaseRecordDialog{
 				builder.separator();
 				builder.selectionSensitiveItem(I18N.t("popupmenu.clear"), uriField::clear);
 			});
-		mappingCombo = new BoundComboBox<>(DocumentHandler.TAG_MAPPING, DocumentHandler.MAPPINGS);
+		mappingCombo = new BoundComboBox<>(DocumentReader.TAG_MAPPING, GUIHelper.fillCombo(DocumentReader.MAPPINGS, null));
 		mappingCombo.setI18NPrefix("enum.document.mapping");
 		mappingCombo.setEditable(true);
-		descriptionArea = new BoundTextArea(DocumentHandler.TAG_DESCRIPTION, 3, 25);
+		descriptionArea = new BoundTextArea(DocumentReader.TAG_DESCRIPTION, 3, 25);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
 			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, I18N.t("dialog.component.research.questions"))
 			.withComponent(PanelKey.SOURCE_ON_DOCUMENT, SourceHandler.TYPE, I18N.t("dialog.component.sources"))
-			.withComponent(PanelKey.NOTE, DocumentHandler.TAG_NOTE, null)
-			.withComponent(PanelKey.PRIVACY, DocumentHandler.TAG_PRIVACY, null)
-			.withComponent(PanelKey.AUDIT, DocumentHandler.TAG_AUDIT, null)
+			.withComponent(PanelKey.NOTE, DocumentReader.TAG_NOTE, null)
+			.withComponent(PanelKey.PRIVACY, DocumentReader.TAG_PRIVACY, null)
+			.withComponent(PanelKey.AUDIT, DocumentReader.TAG_AUDIT, null)
 			.build();
 
 		components.bind(uriField);

@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.searches.strategies;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.IdentityHypothesisReader;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchCriteria;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchMode;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchStrategy;
@@ -59,14 +60,14 @@ public class IdentityHypothesisSearchStrategy implements SearchStrategy{
 
 	@Override
 	public Predicate<FLEFRecord> buildPredicate(final SearchCriteria criteria, final FLEFModel model){
-		candidate = criteria.getFilterFor(IdentityHypothesisHandler.TAG_IDENTITY);
-		comment = criteria.getFilterFor(IdentityHypothesisHandler.TAG_COMMENT);
+		candidate = criteria.getFilterFor(IdentityHypothesisReader.TAG_IDENTITY);
+		comment = criteria.getFilterFor(IdentityHypothesisReader.TAG_COMMENT);
 		mode = criteria.mode();
 
 		return hypothesis -> {
 			// Candidate filter (checks resolved display text for candidate records)
 			if(StringUtils.isNotEmpty(candidate)){
-				final List<FLEFRecord> candidates = FLEFRecordHelper.findChildren(hypothesis, IdentityHypothesisHandler.TAG_IDENTITY);
+				final List<FLEFRecord> candidates = FLEFRecordHelper.findChildren(hypothesis, IdentityHypothesisReader.TAG_IDENTITY);
 				boolean matched = false;
 				for(final FLEFRecord candidate : candidates){
 					final String targetRef = candidate.getValue();
@@ -90,7 +91,7 @@ public class IdentityHypothesisSearchStrategy implements SearchStrategy{
 
 			// Comment filter
 			if(StringUtils.isNotEmpty(comment)){
-				final String comment = FLEFRecordHelper.getChildValue(hypothesis, IdentityHypothesisHandler.TAG_COMMENT);
+				final String comment = IdentityHypothesisReader.extractComment(hypothesis);
 				if(!TextSearchHelper.matchesText(comment, this.comment, mode, FUZZY_THRESHOLD))
 					return false;
 			}
@@ -103,7 +104,7 @@ public class IdentityHypothesisSearchStrategy implements SearchStrategy{
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
 		final String baseDisplayText = HANDLER.getDisplayText(record, model);
 
-		final String comment = FLEFRecordHelper.getChildValue(record, IdentityHypothesisHandler.TAG_COMMENT);
+		final String comment = IdentityHypothesisReader.extractComment(record);
 
 		final StringJoiner details = new StringJoiner(", ", " (", ")");
 		details.setEmptyValue(StringUtils.EMPTY);

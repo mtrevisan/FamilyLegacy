@@ -48,7 +48,6 @@ final class ResearchQuestionRootSection implements SectionBuilder{
 	private static final String TAG_CONCLUSION_CONFIDENCE = "conclusion_confidence";
 	private static final String TAG_CLOSED_DATE = "closed_date";
 	private static final String TAG_TARGET = "target";
-	private static final String TAG_VOID = "void";
 
 
 	private final ReportContext ctx;
@@ -117,7 +116,7 @@ final class ResearchQuestionRootSection implements SectionBuilder{
 		final List<String> items = new ArrayList<>();
 		for(final FLEFRecord t : FLEFRecordHelper.findChildren(ctx.root, TAG_TARGET)){
 			final FLEFRecord ref = t.getTheOnlyChild();
-			if(ref == null || TAG_VOID.equalsIgnoreCase(ref.getTag()))
+			if(ref == null || FLEFRecord.TAG_VOID.equalsIgnoreCase(ref.getTag()))
 				continue;
 
 			final String id = ref.getValue();

@@ -26,7 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.ResearchQuestionReader;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.ResearchQuestionRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
@@ -42,32 +42,6 @@ public class ResearchQuestionHandler extends AbstractRecordTypeHandler<ResearchQ
 
 	public static final String TYPE = "RESEARCH_QUESTION";
 	public static final String ID_PREFIX = "RS";
-
-	public static final String TAG_TITLE = "TITLE";
-	public static final String TAG_QUESTION = "QUESTION";
-	public static final String TAG_TARGET = "TARGET";
-	public static final String TAG_STATUS = "STATUS";
-	public static final String TAG_CONCLUSION = "CONCLUSION";
-	public static final String TAG_CONCLUSION_CONFIDENCE = "CONCLUSION_CONFIDENCE";
-	public static final String TAG_RATIONALE = "RATIONALE";
-	public static final String TAG_CLOSED_DATE = "CLOSED_DATE";
-	public static final String TAG_PRIVACY = "PRIVACY";
-	public static final String TAG_AUDIT = "AUDIT";
-
-	public static final String ENUM_STATUS_OPEN = "open";
-	public static final String ENUM_STATUS_ON_HOLD = "on_hold";
-	public static final String ENUM_STATUS_RESOLVED = "resolved";
-	public static final String ENUM_STATUS_DISPROVEN = "disproven";
-	public static final String[] STATUSES = new String[]{
-		ENUM_STATUS_OPEN,
-		ENUM_STATUS_ON_HOLD,
-		ENUM_STATUS_RESOLVED,
-		ENUM_STATUS_DISPROVEN
-	};
-
-	public static final String[] CONFIDENCES = new String[]{
-		"low", "medium", "high"
-	};
 
 
 	private static final class SingletonHelper{
@@ -100,8 +74,8 @@ public class ResearchQuestionHandler extends AbstractRecordTypeHandler<ResearchQ
 		if(record == null)
 			return "--";
 
-		String question = FLEFRecordHelper.getChildValue(record, TAG_QUESTION);
-		String status = FLEFRecordHelper.getChildValue(record, TAG_STATUS);
+		String question = ResearchQuestionReader.extractQuestion(record);
+		String status = ResearchQuestionReader.extractStatus(record);
 		if(StringUtils.isNotEmpty(question)){
 			String display = GUIHelper.limitTextLength(StringUtils.replaceChars(question, '\n', '|'));
 			if(StringUtils.isNotEmpty(status))

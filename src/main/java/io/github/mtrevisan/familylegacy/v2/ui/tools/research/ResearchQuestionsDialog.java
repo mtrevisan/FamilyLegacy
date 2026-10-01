@@ -26,6 +26,10 @@ package io.github.mtrevisan.familylegacy.v2.ui.tools.research;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.ConclusionReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.ResearchActivityReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.ResearchTaskReader;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
@@ -55,6 +59,7 @@ import java.awt.FlowLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -175,11 +180,17 @@ public final class ResearchQuestionsDialog extends JDialog{
 		final FLEFModel model = context.model();
 
 		final Map<String, Integer> activityCounts =
-			ResearchHelper.countReferences(ResearchHelper.listActivities(model), ResearchHelper.TAG_QUESTION);
+			ResearchHelper.countReferences(ResearchHelper.listActivities(model), ResearchActivityReader.TAG_QUESTION);
 		final Map<String, Integer> taskCounts =
-			ResearchHelper.countReferences(ResearchHelper.listTasks(model), ResearchHelper.TAG_QUESTION);
-		final Map<String, Integer> conclusionCounts =
-			ResearchHelper.countReferences(ResearchHelper.listConclusions(model), ResearchHelper.TAG_QUESTION);
+			ResearchHelper.countReferences(ResearchHelper.listTasks(model), ResearchTaskReader.TAG_QUESTION);
+		final Map<String, Integer> conclusionCounts = new HashMap<>();
+		for(final FLEFRecord conclusion : ResearchHelper.listConclusions(model)){
+			final List<FLEFRecord> questions = FLEFRecordHelper.findChildren(conclusion, ConclusionReader.TAG_RESEARCH);
+			for(final FLEFRecord question : questions){
+				final String questionId = question.getId();
+				conclusionCounts.merge(questionId, 1, Integer::sum);
+			}
+		}
 
 		final List<ResearchHelper.QuestionRow> rows = new ArrayList<>();
 		for(final FLEFRecord q : ResearchHelper.listQuestions(model))

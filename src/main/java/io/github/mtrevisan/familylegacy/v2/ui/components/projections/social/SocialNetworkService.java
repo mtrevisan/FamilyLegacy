@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.projections.social;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.v2.io.model.readers.date.DateNormalizer;
 import io.github.mtrevisan.familylegacy.v2.io.model.readers.date.TemporalSpan;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.temporal.TemporalEntityRef;
@@ -276,7 +277,7 @@ public final class SocialNetworkService{
 	}
 
 	private SocialEdgeRef buildRelationshipEdge(final FLEFRecord relationship){
-		final String type = FLEFRecordHelper.getChildValue(relationship, RelationshipHandler.TAG_TYPE);
+		final String type = RelationshipReader.extractType(relationship);
 		if(type == null || !SOCIAL_RELATIONSHIP_TYPES.contains(type.toLowerCase()))
 			return null;
 
@@ -429,7 +430,7 @@ public final class SocialNetworkService{
 
 		final Map<String, List<FLEFRecord>> relationships = new HashMap<>();
 		for(final FLEFRecord relationship : model.getRecordsByType(RelationshipHandler.TYPE)){
-			final String type = FLEFRecordHelper.getChildValue(relationship, RelationshipHandler.TAG_TYPE);
+			final String type = RelationshipReader.extractType(relationship);
 			if(type == null || !SOCIAL_RELATIONSHIP_TYPES.contains(type.toLowerCase()))
 				continue;
 

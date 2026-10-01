@@ -24,9 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.components.searches.strategies;
 
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.DocumentReader;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.RecordFilterPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchCriteria;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.DocumentHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import net.miginfocom.swing.MigLayout;
@@ -49,7 +49,7 @@ import java.util.function.Consumer;
 public class DocumentFilterPanel extends JPanel implements RecordFilterPanel{
 
 	private final JTextField descriptionField = new JTextField(20);
-	private final JComboBox<String> mappingCombo = new JComboBox<>(GUIHelper.fillCombo(DocumentHandler.MAPPINGS, I18N.t("search.combo.any")));
+	private final JComboBox<String> mappingCombo = new JComboBox<>(GUIHelper.fillCombo(DocumentReader.MAPPINGS, I18N.t("search.combo.any")));
 	private final JTextField uriField = new JTextField(20);
 
 	private final Consumer<SearchCriteria> onChanged;
@@ -110,9 +110,9 @@ public class DocumentFilterPanel extends JPanel implements RecordFilterPanel{
 	@Override
 	public Map<String, String> getFilters(){
 		final Map<String, String> filters = new HashMap<>();
-		filters.put(DocumentHandler.TAG_DESCRIPTION, getDescription());
-		filters.put(DocumentHandler.TAG_MAPPING, getMapping());
-		filters.put(DocumentHandler.TAG_URI, getUri());
+		filters.put(DocumentReader.TAG_DESCRIPTION, getDescription());
+		filters.put(DocumentReader.TAG_MAPPING, getMapping());
+		filters.put(DocumentReader.TAG_URI, getUri());
 		return filters;
 	}
 

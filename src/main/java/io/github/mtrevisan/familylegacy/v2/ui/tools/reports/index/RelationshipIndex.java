@@ -3,6 +3,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.tools.reports.index;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
 
 import java.util.ArrayList;
@@ -31,7 +32,7 @@ public final class RelationshipIndex{
 			if(!filter.test(relationship))
 				continue;
 
-			final String type = FLEFRecordHelper.getChildValue(relationship, RelationshipHandler.TAG_TYPE);
+			final String type = RelationshipReader.extractType(relationship);
 			if(type == null)
 				continue;
 			final String t = type.toLowerCase(Locale.ROOT);

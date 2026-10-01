@@ -26,7 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.ResearchActivityReader;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.ResearchActivityRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
@@ -42,43 +42,6 @@ public class ResearchActivityHandler extends AbstractRecordTypeHandler<ResearchA
 
 	public static final String TYPE = "RESEARCH_ACTIVITY";
 	public static final String ID_PREFIX = "RA";
-
-	public static final String TAG_QUESTION = "QUESTION";
-	public static final String TAG_ACTIVITY_TYPE = "ACTIVITY_TYPE";
-	public static final String TAG_STATUS = "STATUS";
-	public static final String TAG_ACTION = "ACTION";
-	public static final String TAG_TARGET = "TARGET";
-	public static final String TAG_SEARCH_SCOPE = "SEARCH_SCOPE";
-	public static final String TAG_TYPE = "TYPE";
-	public static final String TAG_DETAIL = "DETAIL";
-	public static final String TAG_RESULT = "RESULT";
-	public static final String TAG_OBSERVATION = "OBSERVATION";
-	public static final String TAG_CONCLUSION = "CONCLUSION";
-	public static final String TAG_CONCLUSION_CONFIDENCE = "CONCLUSION_CONFIDENCE";
-	public static final String TAG_SOURCE = "SOURCE";
-	public static final String TAG_PARENT_ACTIVITY = "PARENT_ACTIVITY";
-	public static final String TAG_TASK = "TASK";
-	public static final String TAG_PRIVACY = "PRIVACY";
-	public static final String TAG_AUDIT = "AUDIT";
-
-	public static final String[] TYPES = new String[]{
-		"search", "review", "analysis", "correspondence", "interview", "hypothesis"
-	};
-	public static final String[] STATUSES = new String[]{
-		"planned", "in_progress", "completed", "abandoned"
-	};
-	public static final String[] SEARCH_SCOPES = new String[]{
-		"entire_source",
-		"index_only",
-		"partial_source",
-		"selected_entries"
-	};
-	public static final String[] RESULTS = new String[]{
-		"positive", "negative", "inconclusive", "conflicting", "unavailable"
-	};
-	public static final String[] CONFIDENCES = new String[]{
-		"low", "medium", "high"
-	};
 
 
 	private static final class SingletonHelper{
@@ -111,15 +74,15 @@ public class ResearchActivityHandler extends AbstractRecordTypeHandler<ResearchA
 		if(record == null)
 			return "--";
 
-		final String action = FLEFRecordHelper.getChildValue(record, TAG_ACTION);
-		final String type = FLEFRecordHelper.getChildValue(record, TAG_ACTIVITY_TYPE);
+		final String action = ResearchActivityReader.extractAction(record);
+		final String type = ResearchActivityReader.extractActivityType(record);
 		if(StringUtils.isNotEmpty(action)){
 			String display = GUIHelper.limitTextLength(StringUtils.replaceChars(action, '\n', '|'));
 			if(StringUtils.isNotEmpty(type))
 				display += " [" + type + "]";
 			return display;
 		}
-		return record.getId() != null? record.getId(): "(unnamed)";
+		return "[" + record.getId() + "]";
 	}
 
 	@Override

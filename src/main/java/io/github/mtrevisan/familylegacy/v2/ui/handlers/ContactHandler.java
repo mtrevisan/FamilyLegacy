@@ -26,7 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.ContactReader;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.structures.ContactStructureDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
@@ -37,16 +37,6 @@ import java.awt.Window;
 public class ContactHandler extends AbstractRecordTypeHandler<ContactStructureDialog>{
 
 	public static final String TYPE = "CONTACT";
-
-	public static final String TAG_VALUE = "VALUE";
-	public static final String TAG_TYPE = "TYPE";
-	public static final String TAG_NAME = "NAME";
-	public static final String TAG_NOTE = "NOTE";
-	public static final String TAG_PRIVACY = "PRIVACY";
-	public static final String TAG_AUDIT = "AUDIT";
-
-	public static final String TAG_NAME_VALUE = "VALUE";
-	public static final String TAG_NAME_VARIANT = "VARIANT";
 
 
 	private static final class SingletonHelper{
@@ -76,9 +66,9 @@ public class ContactHandler extends AbstractRecordTypeHandler<ContactStructureDi
 
 	@Override
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
-		final String value = FLEFRecordHelper.getChildValue(record, TAG_VALUE);
-		final String type = FLEFRecordHelper.getChildValue(record, TAG_TYPE);
-		final String name = FLEFRecordHelper.getChildValue(record, TAG_NAME);
+		final String value = ContactReader.extractValue(record);
+		final String type = ContactReader.extractType(record);
+		final String name = ContactReader.extractName(record);
 		final StringBuilder sb = new StringBuilder();
 		if(StringUtils.isNotEmpty(name))
 			sb.append(name)

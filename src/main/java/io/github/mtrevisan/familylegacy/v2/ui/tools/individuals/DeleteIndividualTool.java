@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.tools.individuals;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.help.ShortcutRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolOperation;
@@ -65,7 +66,7 @@ public final class DeleteIndividualTool implements ToolOperation{
 			return;
 
 		final List<String> relationshipIds = IndividualHelper.relationshipIdsForIndividual(id, model);
-		final String displayName = IndividualHelper.displayName(individual);
+		final String displayName = IndividualReader.extractPrimaryFullname(individual);
 
 		final int relationshipCount = relationshipIds.size();
 		final String message = "Are you sure you want to remove individual " + displayName + " [" + id + "]?" + StringUtils.LF

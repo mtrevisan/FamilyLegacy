@@ -36,12 +36,9 @@ import io.github.mtrevisan.familylegacy.v2.io.model.readers.date.CalendarConvert
 import io.github.mtrevisan.familylegacy.v2.io.model.readers.date.DateService;
 import io.github.mtrevisan.familylegacy.v2.io.model.readers.date.NormalizedDate;
 import io.github.mtrevisan.familylegacy.v2.io.model.readers.date.TemporalSpan;
-import io.github.mtrevisan.familylegacy.v2.io.model.readers.names.Name;
-import io.github.mtrevisan.familylegacy.v2.io.model.readers.names.NameAnatomyService;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.BoxPanelType;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.PlaceholderImages;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.AsyncResourceLoader;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.ResourceHelper;
@@ -76,8 +73,6 @@ public final class IndividualData{
 
 	private static final String DOT = ".";
 	private static final String TAG_PIPE = "|";
-
-	private static final String TAG_PLACE_PLACE = FLEFRecordHelper.composePath(PlaceHandler.TYPE, PlaceHandler.TYPE);
 
 	private static final String TAG_HTML_OPEN = "<html>";
 	private static final String TAG_HTML_CLOSE = "</html>";
@@ -131,7 +126,7 @@ public final class IndividualData{
 
 		final List<String> names = IndividualReader.extractFullNames(individual);
 		if(!names.isEmpty()){
-			nameText = names.getFirst();
+			nameText = IndividualReader.extractPrimaryFullname(individual);
 			nameTooltip = TAG_HTML_OPEN + "[" + id + "]" + TAG_BR + StringUtils.join(names, TAG_BR) + TAG_HTML_CLOSE;
 		}
 		else
@@ -359,22 +354,9 @@ public final class IndividualData{
 		final String year = DateService.getYearDisplayText(valueRecord);
 		final TemporalSpan temporalSpan = DateReader.extractTemporalSpan(dateRecord);
 		final NormalizedDate representativeDate = (temporalSpan != null? temporalSpan.representativeDate(): null);
-		final String place = extractPlace(event, model);
+		final String place = FLEFRecordHelper.extractPlace(event, model);
 		final String cause = (EventReader.isTypeDeath(type)? EventReader.extractCauseReason(event): null);
 		return new EventInfo(type, dateOriginalText, date, year, representativeDate, place, cause);
-	}
-
-	public static String extractPlace(final FLEFRecord event, final FLEFModel model){
-		final String placeId = FLEFRecordHelper.getChildValue(event, TAG_PLACE_PLACE);
-		if(placeId == null)
-			return null;
-
-		// Try to get the place record via xref
-		final FLEFRecord place = model.getRecordById(placeId);
-
-		// get first name value
-		final List<Name> names = NameAnatomyService.extractForGeneric(place);
-		return (!names.isEmpty()? names.getFirst().value(): null);
 	}
 
 

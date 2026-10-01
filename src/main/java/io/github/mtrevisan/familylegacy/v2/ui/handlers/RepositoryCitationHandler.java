@@ -26,7 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.RepositoryCitationReader;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.citations.RepositoryCitationDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 
@@ -40,10 +40,6 @@ public class RepositoryCitationHandler extends AbstractRecordTypeHandler<Reposit
 
 	public static final String TYPE = "REPOSITORY_CITATION";
 	public static final String CITED_TYPE = "REPOSITORY";
-
-	public static final String TAG_REPOSITORY = "REPOSITORY";
-	public static final String TAG_LOCATOR = "LOCATOR";
-	public static final String TAG_NOTE = "NOTE";
 
 
 	private static final class SingletonHelper{
@@ -86,8 +82,8 @@ public class RepositoryCitationHandler extends AbstractRecordTypeHandler<Reposit
 		if(record == null)
 			return "--";
 
-		final String xref = FLEFRecordHelper.getChildValue(record, TAG_REPOSITORY);
-		final FLEFRecord repository = model.getRecordById(xref);
+		final String repositoryId = RepositoryCitationReader.extractRepository(record);
+		final FLEFRecord repository = model.getRecordById(repositoryId);
 		return "❝ " + RepositoryHandler.getInstance().getDisplayText(repository, model);
 	}
 

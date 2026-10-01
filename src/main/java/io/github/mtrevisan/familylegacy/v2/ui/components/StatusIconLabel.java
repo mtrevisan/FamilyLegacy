@@ -24,7 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.components;
 
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.ResearchQuestionReader;
 
 import javax.swing.JLabel;
 import java.awt.BasicStroke;
@@ -40,11 +40,11 @@ import java.awt.RenderingHints;
  */
 class StatusIconLabel extends JLabel{
 
-	private String status = ResearchQuestionHandler.ENUM_STATUS_OPEN;
+	private String status = ResearchQuestionReader.ENUM_STATUS_OPEN;
 
 
 	public void setStatus(final String status){
-		this.status = (status != null? status: ResearchQuestionHandler.ENUM_STATUS_OPEN);
+		this.status = (status != null? status: ResearchQuestionReader.ENUM_STATUS_OPEN);
 	}
 
 
@@ -80,14 +80,14 @@ class StatusIconLabel extends JLabel{
 		final int drawY = y + margin;
 
 		switch(status){
-			case ResearchQuestionHandler.ENUM_STATUS_OPEN -> {
+			case ResearchQuestionReader.ENUM_STATUS_OPEN -> {
 				// Red circle
 				g2.setColor(Color.RED);
 				g2.fillOval(drawX, drawY, drawSize, drawSize);
 				g2.setColor(Color.BLACK);
 				g2.drawOval(drawX, drawY, drawSize, drawSize);
 			}
-			case ResearchQuestionHandler.ENUM_STATUS_ON_HOLD -> {
+			case ResearchQuestionReader.ENUM_STATUS_ON_HOLD -> {
 				// Orange/yellow circle
 				g2.setColor(new Color(255, 165, 0)); // Orange
 				g2.fillOval(drawX, drawY, drawSize, drawSize);
@@ -101,7 +101,7 @@ class StatusIconLabel extends JLabel{
 				final int lineY = drawY + drawSize >> 1 - lineHeight >> 1;
 				g2.fillRect(lineX, lineY, lineWidth, lineHeight);
 			}
-			case ResearchQuestionHandler.ENUM_STATUS_RESOLVED -> {
+			case ResearchQuestionReader.ENUM_STATUS_RESOLVED -> {
 				// Green square
 				g2.setColor(new Color(0, 180, 0));
 				g2.fillRect(drawX, drawY, drawSize, drawSize);
@@ -117,7 +117,7 @@ class StatusIconLabel extends JLabel{
 				g2.drawLine(cx - drawSize >> 3, cy + drawSize >> 2,
 					cx + drawSize / 3, cy - drawSize >> 2);
 			}
-			case ResearchQuestionHandler.ENUM_STATUS_DISPROVEN -> {
+			case ResearchQuestionReader.ENUM_STATUS_DISPROVEN -> {
 				// White square with red X
 				g2.setColor(Color.WHITE);
 				g2.fillRect(drawX, drawY, drawSize, drawSize);

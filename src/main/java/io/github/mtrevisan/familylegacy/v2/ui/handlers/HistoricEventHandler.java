@@ -26,7 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.HistoricEventReader;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.HistoricEventRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
@@ -41,21 +41,6 @@ public class HistoricEventHandler extends AbstractRecordTypeHandler<HistoricEven
 
 	public static final String TYPE = "HISTORIC_EVENT";
 	public static final String ID_PREFIX = "HE";
-
-	public static final String TAG_TYPE = "TYPE";
-	public static final String TAG_TITLE = "TITLE";
-	public static final String TAG_DATE = "DATE";
-	public static final String TAG_PLACE = "PLACE";
-	public static final String TAG_NOTE = "NOTE";
-	public static final String TAG_SOURCE = "SOURCE";
-	public static final String TAG_EVIDENCE = "EVIDENCE";
-	public static final String TAG_AUDIT = "AUDIT";
-
-	public static final String[] TYPES = new String[]{
-		"war", "epidemic", "famine", "migration", "legal_reform", "political_change", "territorial_change",
-		"natural_disaster", "economic_crisis", "scientific_discovery", "religious_reform", "social_movement",
-		"pandemic"
-	};
 
 
 	private static final class SingletonHelper{
@@ -85,9 +70,9 @@ public class HistoricEventHandler extends AbstractRecordTypeHandler<HistoricEven
 
 	@Override
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
-		final String title = FLEFRecordHelper.getChildValue(record, TAG_TITLE);
+		final String title = HistoricEventReader.extractTitle(record);
 		final String id = record.getId();
-		return (StringUtils.isNotEmpty(title)? title: "--") + " [" + id + "]";
+		return (StringUtils.isNotEmpty(title)? title + " [" + id + "]": "[" + id + "]");
 	}
 
 	@Override

@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.PlaceRelationshipReader;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.PlaceRelationshipRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 
@@ -37,21 +38,6 @@ public class PlaceRelationshipHandler extends AbstractRecordTypeHandler<PlaceRel
 
 	public static final String TYPE = "PLACE_RELATIONSHIP";
 	public static final String ID_PREFIX = "PR";
-
-	public static final String TAG_SUBJECT = "SUBJECT";
-	public static final String TAG_OBJECT = "OBJECT";
-	public static final String TAG_TYPE = "TYPE";
-	public static final String TAG_VALID_FROM = "VALID_FROM";
-	public static final String TAG_VALID_TO = "VALID_TO";
-	public static final String TAG_SOURCE = "SOURCE";
-	public static final String TAG_NOTE = "NOTE";
-	public static final String TAG_EVIDENCE = "EVIDENCE";
-	public static final String TAG_AUDIT = "AUDIT";
-
-	public static final String[] TYPES = new String[]{
-		"administrative_part_of", "geographic_part_of", "ecclesiastical_part_of", "judicial_part_of",
-		"cadastral_part_of"
-	};
 
 
 	private static final class SingletonHelper{
@@ -81,7 +67,7 @@ public class PlaceRelationshipHandler extends AbstractRecordTypeHandler<PlaceRel
 
 	@Override
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
-		final FLEFRecord subject = FLEFRecordHelper.extractRecordsFromOneOfReference(record, TAG_SUBJECT, model)
+		final FLEFRecord subject = FLEFRecordHelper.extractRecordsFromOneOfReference(record, PlaceRelationshipReader.TAG_SUBJECT, model)
 			.getFirst();
 		String subjectDisplayText = "--";
 		if(subject != null){
@@ -89,7 +75,7 @@ public class PlaceRelationshipHandler extends AbstractRecordTypeHandler<PlaceRel
 			subjectDisplayText = subjectHandler.getDisplayText(subject, model);
 		}
 
-		final FLEFRecord object = FLEFRecordHelper.extractRecordsFromOneOfReference(record, TAG_OBJECT, model)
+		final FLEFRecord object = FLEFRecordHelper.extractRecordsFromOneOfReference(record, PlaceRelationshipReader.TAG_OBJECT, model)
 			.getFirst();
 		String objectDisplayText = "--";
 		if(object != null){
@@ -97,7 +83,7 @@ public class PlaceRelationshipHandler extends AbstractRecordTypeHandler<PlaceRel
 			objectDisplayText = objectHandler.getDisplayText(object, model);
 		}
 
-		final String type = FLEFRecordHelper.getChildValue(record, TAG_TYPE);
+		final String type = PlaceRelationshipReader.extractType(record);
 
 		final String id = record.getId();
 

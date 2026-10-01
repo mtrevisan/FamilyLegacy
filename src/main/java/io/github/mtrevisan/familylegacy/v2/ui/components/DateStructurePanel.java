@@ -69,10 +69,6 @@ import java.awt.Window;
  */
 public class DateStructurePanel extends JPanel{
 
-	private static final String TAG_SOURCE = "SOURCE";
-	private static final String TAG_EVIDENCE = "EVIDENCE";
-
-
 	private final JTabbedPane tabbedPane = new JTabbedPane();
 
 	private final BindingManager bindingManager = new BindingManager();
@@ -92,7 +88,7 @@ public class DateStructurePanel extends JPanel{
 		spanningDateValuePanel = new SpanningDatePanel(parent, model);
 
 		originalTextField = new BoundTextField(DateReader.TAG_ORIGINAL_TEXT);
-		sourcePanel = EntityListPanel.createForCitationWrapper(TAG_SOURCE, parent, I18N.t("dialog.component.sources.with.citations"),
+		sourcePanel = EntityListPanel.createForCitationWrapper(DateReader.TAG_SOURCE, parent, I18N.t("dialog.component.sources.with.citations"),
 			model, SourceCitationHandler.class);
 		qualifiers = new EvidenceQualifiersPanel(null, I18N.t("dialog.component.evidence"));
 
@@ -193,7 +189,7 @@ public class DateStructurePanel extends JPanel{
 		sourcePanel.load(record);
 
 		// evidence
-		qualifiers.load(record.getTheOnlyChild(TAG_EVIDENCE));
+		qualifiers.load(record.getTheOnlyChild(DateReader.TAG_EVIDENCE));
 	}
 
 	/**

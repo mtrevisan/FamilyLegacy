@@ -26,7 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.ConclusionReader;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.ConclusionRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
@@ -39,25 +39,6 @@ public class ConclusionHandler extends AbstractRecordTypeHandler<ConclusionRecor
 
 	public static final String TYPE = "CONCLUSION";
 	public static final String ID_PREFIX = "CC";
-
-
-	public static final String TAG_ISSUE = "ISSUE";
-	public static final String TAG_PROOF_STATUS = "PROOF_STATUS";
-	public static final String TAG_NARRATIVE = "NARRATIVE";
-	public static final String TAG_RESOLVES = "RESOLVES";
-	public static final String TAG_PREFERRED = "PREFERRED";
-	public static final String TAG_RESEARCH = "RESEARCH";
-	public static final String TAG_SOURCE = "SOURCE";
-	public static final String TAG_PRIVACY = "PRIVACY";
-	public static final String TAG_AUDIT = "AUDIT";
-
-	public static final String[] PROOF_STATUSES = new String[]{
-		"unresearched",
-		"conflicting_evidence",
-		"supported",
-		"proven",
-		"disproven"
-	};
 
 
 	private static final class SingletonHelper{
@@ -90,8 +71,8 @@ public class ConclusionHandler extends AbstractRecordTypeHandler<ConclusionRecor
 		if(record == null)
 			return "--";
 
-		String issue = FLEFRecordHelper.getChildValue(record, TAG_ISSUE);
-		String proofStatus = FLEFRecordHelper.getChildValue(record, TAG_PROOF_STATUS);
+		String issue = ConclusionReader.extractIssues(record);
+		String proofStatus = ConclusionReader.extractProofStatus(record);
 		if(StringUtils.isNotEmpty(issue)){
 			String display = GUIHelper.limitTextLength(StringUtils.replaceChars(issue, '\n', '|'));
 			if(StringUtils.isNotEmpty(proofStatus))

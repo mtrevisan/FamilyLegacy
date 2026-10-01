@@ -26,10 +26,9 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.SourceCitationReader;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.citations.SourceCitationDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
-import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Window;
 
@@ -41,20 +40,6 @@ public class SourceCitationHandler extends AbstractRecordTypeHandler<SourceCitat
 
 	public static final String TYPE = "SOURCE_CITATION";
 	public static final String CITED_TYPE = "SOURCE";
-
-	public static final String TAG_SOURCE = "SOURCE";
-	public static final String TAG_LOCATOR = "LOCATOR";
-	public static final String TAG_EXTRACT = "EXTRACT";
-	public static final String TAG_EVIDENCE = "EVIDENCE";
-	public static final String TAG_PRIVACY = "PRIVACY";
-
-	public static final String[] TYPES = {
-		StringUtils.EMPTY,
-		"verbatim",
-		"summarized",
-		"translated",
-		"normalized"
-	};
 
 
 	private static final class SingletonHelper{
@@ -97,8 +82,8 @@ public class SourceCitationHandler extends AbstractRecordTypeHandler<SourceCitat
 		if(record == null)
 			return "--";
 
-		final String xref = FLEFRecordHelper.getChildValue(record, TAG_SOURCE);
-		final FLEFRecord source = model.getRecordById(xref);
+		final String sourceId = SourceCitationReader.extractSource(record);
+		final FLEFRecord source = model.getRecordById(sourceId);
 		return "❝ " + SourceHandler.getInstance().getDisplayText(source, model);
 	}
 

@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.tools.sources;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.SourceCitationReader;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.DocumentHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RepositoryHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
@@ -60,8 +61,6 @@ public final class SourceHelper{
 	public static final String TAG_MEDIA_TYPE = "media_type";
 	public static final String TAG_REPOSITORY = "repository";
 	public static final String TAG_DOCUMENT = "document";
-	// TODO not used?
-	public static final String TAG_CUSTODIAN = "custodian";
 	public static final String TAG_PLACE = "place";
 	public static final String TAG_SOURCE = "source";
 	public static final String TAG_LOCATOR = "locator";
@@ -239,7 +238,7 @@ public final class SourceHelper{
 				if(!TAG_EXTRACT.equalsIgnoreCase(extract.getTag()))
 					continue;
 				for(final FLEFRecord part : extract.getChildren()){
-					if(!"document_part".equalsIgnoreCase(part.getTag()))
+					if(!SourceCitationReader.TAG_DOCUMENT_PART.equalsIgnoreCase(part.getTag()))
 						continue;
 					final String docId = FLEFRecordHelper.getChildValue(part, TAG_DOCUMENT);
 					if(docId != null)

@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.IdentityHypothesisReader;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.IdentityHypothesisRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 
@@ -41,13 +42,6 @@ public class IdentityHypothesisHandler extends AbstractRecordTypeHandler<Identit
 
 	public static final String TYPE = "IDENTITY_HYPOTHESIS";
 	public static final String ID_PREFIX = "IH";
-
-	public static final String TAG_IDENTITY = "IDENTITY";
-	public static final String TAG_COMMENT = "COMMENT";
-	public static final String TAG_SOURCE = "SOURCE";
-	public static final String TAG_NOTE = "NOTE";
-	public static final String TAG_EVIDENCE = "EVIDENCE";
-	public static final String TAG_AUDIT = "AUDIT";
 
 
 	private static final class SingletonHelper{
@@ -83,7 +77,7 @@ public class IdentityHypothesisHandler extends AbstractRecordTypeHandler<Identit
 		String identity1Text = null;
 		String identity2Text = null;
 
-		final List<FLEFRecord> identities = FLEFRecordHelper.extractRecordsFromOneOfReference(record, TAG_IDENTITY, model);
+		final List<FLEFRecord> identities = FLEFRecordHelper.extractRecordsFromOneOfReference(record, IdentityHypothesisReader.TAG_IDENTITY, model);
 		final FLEFRecord identity1 = identities.get(0);
 		if(identity1 != null)
 			identity1Text = HandlerRegistry.getHandler(identity1.getTag())

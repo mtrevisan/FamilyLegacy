@@ -26,7 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.NoteReader;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.structures.NoteStructureDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
@@ -38,18 +38,6 @@ import java.awt.Window;
 public class NoteHandler extends AbstractRecordTypeHandler<NoteStructureDialog>{
 
 	public static final String TYPE = "NOTE";
-
-	public static final String TAG_TITLE = "TITLE";
-	public static final String TAG_TEXT = "TEXT";
-	public static final String TAG_MIME = "MIME";
-	public static final String TAG_LOCALE = "LOCALE";
-	public static final String TAG_TRANSLATION = "TRANSLATION";
-	public static final String TAG_SOURCE = "SOURCE";
-	public static final String TAG_PRIVACY = "PRIVACY";
-	public static final String TAG_AUDIT = "AUDIT";
-
-	// basic notes
-	public static final String TAG_DATE = "DATE";
 
 
 	private static final class SingletonHelper{
@@ -79,7 +67,7 @@ public class NoteHandler extends AbstractRecordTypeHandler<NoteStructureDialog>{
 
 	@Override
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
-		final String value = FLEFRecordHelper.getChildValue(record, TAG_TEXT);
+		final String value = NoteReader.extractText(record);
 		if(StringUtils.isNotEmpty(value))
 			return GUIHelper.limitTextLength(StringUtils.replaceChars(value, '\n', '|'));
 		return "…";

@@ -27,6 +27,8 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.projections.chronomap;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.PlaceReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.PlaceRelationshipReader;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceRelationshipHandler;
 import org.slf4j.Logger;
@@ -50,7 +52,6 @@ import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Properties;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
@@ -74,19 +75,8 @@ public final class PlaceCoordinateResolver{
 	private static final Logger LOGGER = LoggerFactory.getLogger(PlaceCoordinateResolver.class);
 
 
-	private static final String TAG_TYPE = "type";
-	private static final String TAG_MAP = "map";
-	private static final String TAG_COORDINATES = "coordinates";
-	private static final String TAG_NAME = "name";
-	private static final String TAG_VALUE = "value";
-	private static final String TAG_SUBJECT = "subject";
-	private static final String TAG_OBJECT = "object";
-
 	/** Relationship types that mean "subject is part of target". */
-	private static final List<String> PART_OF_TYPES = new ArrayList<>(List.of(PlaceRelationshipHandler.TYPES));
-	static{
-		PART_OF_TYPES.removeIf(Objects::isNull);
-	}
+	private static final List<String> PART_OF_TYPES = new ArrayList<>(List.of(PlaceRelationshipReader.TYPES));
 
 	/** Nominatim response: {@code [{"lat":"45.65","lon":"12.21",...}]}. */
 	private static final Pattern NOMINATIM_LATLON = Pattern.compile(
@@ -161,8 +151,8 @@ public final class PlaceCoordinateResolver{
 			if(placeId == null || cache.containsKey(placeId))
 				continue;
 
-			final String name = primaryName(place);
-			if(name == null || name.isBlank())
+			final String name = PlaceReader.extractPrimaryName(place);
+			if(name == null)
 				continue;
 
 			// Disk cache hit: no network, no rate limit
@@ -240,12 +230,12 @@ public final class PlaceCoordinateResolver{
 		final Map<String, List<String>> childrenOf = new HashMap<>();
 		final List<FLEFRecord> placeRelationships = model.getRecordsByType(PlaceRelationshipHandler.TYPE);
 		for(final FLEFRecord placeRelationship : placeRelationships){
-			final String type = FLEFRecordHelper.getChildValue(placeRelationship, TAG_TYPE);
+			final String type = PlaceRelationshipReader.extractType(placeRelationship);
 			if(type == null || !PART_OF_TYPES.contains(type))
 				continue;
 
-			final String childId = extractPlaceRef(placeRelationship, TAG_SUBJECT);
-			final String objectId = extractPlaceRef(placeRelationship, TAG_OBJECT);
+			final String childId = extractPlaceRef(placeRelationship, PlaceRelationshipReader.TAG_SUBJECT);
+			final String objectId = extractPlaceRef(placeRelationship, PlaceRelationshipReader.TAG_OBJECT);
 			if(childId == null || objectId == null)
 				continue;
 
@@ -275,11 +265,11 @@ public final class PlaceCoordinateResolver{
 	}
 
 	private static ChronomapIndex.GeoCoordinate directCoordinates(final FLEFRecord place){
-		final FLEFRecord mapStruct = FLEFRecordHelper.findChild(place, TAG_MAP);
+		final FLEFRecord mapStruct = FLEFRecordHelper.findChild(place, PlaceReader.TAG_MAP);
 		if(mapStruct == null)
 			return null;
 
-		final String coords = FLEFRecordHelper.getChildValue(mapStruct, TAG_COORDINATES);
+		final String coords = PlaceReader.extractCoordinates(mapStruct);
 		return ChronomapIndex.GeoCoordinate.parse(coords);
 	}
 
@@ -306,15 +296,6 @@ public final class PlaceCoordinateResolver{
 	/* ======================================================================
 	 *                          Geocoding
 	 * ====================================================================== */
-
-	private static String primaryName(final FLEFRecord place){
-		for(final FLEFRecord nameStruct : FLEFRecordHelper.findChildren(place, TAG_NAME)){
-			final String v = FLEFRecordHelper.getChildValue(nameStruct, TAG_VALUE);
-			if(v != null && !v.isBlank())
-				return v;
-		}
-		return null;
-	}
 
 	private ChronomapIndex.GeoCoordinate lookupDiskCache(final String name){
 		final String s = diskCache.getProperty(name);

@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.tools.reports;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.NameReader;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.reports.index.EventIndex;
 import org.apache.commons.lang3.StringUtils;
 
@@ -127,9 +128,9 @@ final class PlaceRootSection implements SectionBuilder{
 		final FLEFRecord primary = primaryNameNode(ctx.root);
 		final List<String> rows = new ArrayList<>();
 		for(final FLEFRecord n : names){
-			final String type = FLEFRecordHelper.getChildValue(n, TAG_TYPE);
-			final String value = FLEFRecordHelper.getChildValue(n, TAG_VALUE);
-			final String locale = FLEFRecordHelper.getChildValue(n, TAG_LOCALE);
+			final String type = FLEFRecordHelper.getChildValue(n, NameReader.TAG_TYPE);
+			final String value = FLEFRecordHelper.getChildValue(n, NameReader.TAG_VALUE);
+			final String locale = FLEFRecordHelper.getChildValue(n, NameReader.TAG_LOCALE);
 			if(value == null || value.isBlank())
 				continue;
 			if(n == primary && type == null && locale == null)
@@ -308,15 +309,15 @@ final class PlaceRootSection implements SectionBuilder{
 		if(names.isEmpty())
 			return null;
 		for(final FLEFRecord n : names){
-			final String type = FLEFRecordHelper.getChildValue(n, TAG_TYPE);
+			final String type = FLEFRecordHelper.getChildValue(n, NameReader.TAG_TYPE);
 			if(NAME_TYPE_OFFICIAL.equalsIgnoreCase(type)){
-				final String v = FLEFRecordHelper.getChildValue(n, TAG_VALUE);
+				final String v = FLEFRecordHelper.getChildValue(n, NameReader.TAG_VALUE);
 				if(v != null && !v.isBlank())
 					return n;
 			}
 		}
 		for(final FLEFRecord n : names){
-			final String v = FLEFRecordHelper.getChildValue(n, TAG_VALUE);
+			final String v = FLEFRecordHelper.getChildValue(n, NameReader.TAG_VALUE);
 			if(v != null && !v.isBlank())
 				return n;
 		}
@@ -326,7 +327,7 @@ final class PlaceRootSection implements SectionBuilder{
 	private static String primaryName(final FLEFRecord place){
 		final FLEFRecord n = primaryNameNode(place);
 		if(n != null){
-			final String v = FLEFRecordHelper.getChildValue(n, TAG_VALUE);
+			final String v = FLEFRecordHelper.getChildValue(n, NameReader.TAG_VALUE);
 			if(v != null && !v.isBlank())
 				return v.trim();
 		}

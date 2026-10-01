@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs.structures;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.ContactReader;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextArea;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextField;
@@ -37,7 +38,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.ContactHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ContactNameHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
-import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
 import javax.swing.JPanel;
@@ -69,12 +69,6 @@ import java.awt.Window;
  */
 public class ContactStructureDialog extends BaseRecordDialog{
 
-	private static final String[] TYPES = {
-		StringUtils.EMPTY,
-		"email", "phone", "mobile", "fax", "website", "blog", "social", "postal", "messaging"
-	};
-
-
 	private final JPanel propertiesPanel;
 
 	private final BoundTextField valueField;
@@ -98,20 +92,20 @@ public class ContactStructureDialog extends BaseRecordDialog{
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]5[]10[]10[]");
 
-		valueField = new BoundTextField(ContactHandler.TAG_VALUE);
-		typeCombo = new BoundComboBox<>(ContactHandler.TAG_TYPE, TYPES);
+		valueField = new BoundTextField(ContactReader.TAG_VALUE);
+		typeCombo = new BoundComboBox<>(ContactReader.TAG_TYPE, GUIHelper.fillCombo(ContactReader.TYPES, null));
 		typeCombo.setI18NPrefix("enum.contact.type");
-		namePanel = EntityListPanel.createForStructure(ContactHandler.TAG_NAME, this, I18N.t("dialog.name.name"), model,
+		namePanel = EntityListPanel.createForStructure(ContactReader.TAG_NAME, this, I18N.t("dialog.name.name"), model,
 			ContactNameHandler.class);
-		noteArea = new BoundTextArea(ContactHandler.TAG_NOTE, 3, 25);
+		noteArea = new BoundTextArea(ContactReader.TAG_NOTE, 3, 25);
 		noteArea.setBorder(BorderFactory.createEmptyBorder(6, 6, 6, 6));
 		noteAreaScroll = new JScrollPane(noteArea);
 		noteAreaScroll.setBorder(BorderFactory.createTitledBorder(I18N.t("dialog.name.note")));
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.PRIVACY, ContactHandler.TAG_PRIVACY, null)
-			.withComponent(PanelKey.AUDIT, ContactHandler.TAG_AUDIT, null)
+			.withComponent(PanelKey.PRIVACY, ContactReader.TAG_PRIVACY, null)
+			.withComponent(PanelKey.AUDIT, ContactReader.TAG_AUDIT, null)
 			.build();
 
 		components.bind(valueField);

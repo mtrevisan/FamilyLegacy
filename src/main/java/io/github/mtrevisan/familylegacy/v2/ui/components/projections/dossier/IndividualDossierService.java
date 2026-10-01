@@ -27,21 +27,38 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.projections.dossier;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.ConclusionReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.ContextImpactReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.CulturalNormReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.EventParticipationReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.EventReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.EvidenceQualifiersReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.HistoricEventReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.IdentityHypothesisReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.IndividualAttributeReader;
 import io.github.mtrevisan.familylegacy.v2.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.NameReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.NoteReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.PrivacyReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.RelationshipReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.ResearchQuestionReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.v2.io.model.readers.names.Name;
 import io.github.mtrevisan.familylegacy.v2.io.model.readers.names.NameAnatomyService;
 import io.github.mtrevisan.familylegacy.v2.io.model.readers.names.NamePart;
-import io.github.mtrevisan.familylegacy.v2.ui.components.EvidenceQualifiersPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.IndividualData;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ContextImpactHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventParticipationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.HistoricEventHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IdentityHypothesisHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualAttributeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -52,6 +69,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+
+import static io.github.mtrevisan.familylegacy.v2.ui.tools.sources.SourceHelper.TAG_DESCRIPTION;
 
 
 /**
@@ -69,38 +88,10 @@ import java.util.Set;
  */
 public final class IndividualDossierService{
 
-	// Child tags inside FLEF records.
-	private static final String TAG_TYPE = "type";
-	private static final String TAG_SUBJECT = "subject";
-	private static final String TAG_OBJECT = "object";
-	private static final String TAG_TARGET = "target";
-	private static final String TAG_PARTICIPANT = "participant";
-	private static final String TAG_EVENT = "event";
-	private static final String TAG_ROLE = "role";
-	private static final String TAG_VALUE = "value";
-	private static final String TAG_SOURCE = "source";
+	private static final String TAG_SOURCE = "SOURCE";
 	private static final String TAG_LOCATOR = "locator";
-	private static final String TAG_EVIDENCE = "evidence";
-	private static final String TAG_NAME = "name";
-	private static final String TAG_STATUS = "status";
-	private static final String TAG_CONTEXT = "context";
-	private static final String TAG_IMPACT_TYPE = "impact_type";
-	private static final String TAG_RATIONALE = "rationale";
-	private static final String TAG_IDENTITY = "identity";
-	private static final String TAG_COMMENT = "comment";
-	private static final String TAG_TITLE = "title";
-	private static final String TAG_QUESTION = "question";
-	private static final String TAG_DESCRIPTION = "description";
-	private static final String TAG_AGENCY = "agency";
-	private static final String TAG_PREFERRED = "preferred";
-	private static final String TAG_RESOLVES = "resolves";
-	private static final String TAG_PROOF_STATUS = "proof_status";
 	private static final String TAG_NOTE = "note";
-	private static final String TAG_TEXT = "text";
-	private static final String TAG_PREFERRED_IMAGE = "preferred_image";
-	private static final String TAG_URI = "uri";
-	private static final String TAG_PRIVACY = "privacy";
-	private static final String TAG_LEVEL = "level";
+	private static final String TAG_EVIDENCE = "evidence";
 
 
 	private final FLEFModel model;
@@ -192,10 +183,10 @@ public final class IndividualDossierService{
 		// Fallback: keep the old joined-string behavior if the anatomy
 		// service returned nothing (e.g. malformed record).
 		if(names.isEmpty()){
-			for(final FLEFRecord nameStruct : FLEFRecordHelper.findChildren(individual, TAG_NAME)){
+			for(final FLEFRecord nameStruct : FLEFRecordHelper.findChildren(individual, IndividualReader.TAG_NAME)){
 				final String value = extractNameValue(nameStruct);
 				if(StringUtils.isNotEmpty(value)){
-					final String type = FLEFRecordHelper.getChildValue(nameStruct, TAG_TYPE);
+					final String type = FLEFRecordHelper.getChildValue(nameStruct, NameReader.TAG_TYPE);
 					final String label = (StringUtils.isNotEmpty(type)
 						? type.replace('_', ' ')
 						: "Name");
@@ -205,12 +196,9 @@ public final class IndividualDossierService{
 		}
 
 		// Preferred image.
-		final FLEFRecord imageStruct = FLEFRecordHelper.findChild(individual, TAG_PREFERRED_IMAGE);
-		if(imageStruct != null){
-			final String uri = FLEFRecordHelper.getChildValue(imageStruct, TAG_URI);
-			if(StringUtils.isNotEmpty(uri))
-				entries.add(DossierEntry.of("Photo", uri, individual));
-		}
+		final String uri = IndividualReader.extractPreferredImageUri(individual);
+		if(StringUtils.isNotEmpty(uri))
+			entries.add(DossierEntry.of("Photo", uri, individual));
 
 		// Sex.
 		final String sex = IndividualReader.extractRawSex(individual);
@@ -225,9 +213,9 @@ public final class IndividualDossierService{
 		}
 
 		// Privacy.
-		final FLEFRecord privacy = FLEFRecordHelper.findChild(individual, TAG_PRIVACY);
+		final FLEFRecord privacy = FLEFRecordHelper.findChild(individual, IndividualReader.TAG_PRIVACY);
 		if(privacy != null){
-			final String level = FLEFRecordHelper.getChildValue(privacy, TAG_LEVEL);
+			final String level = FLEFRecordHelper.getChildValue(privacy, PrivacyReader.TAG_LEVEL);
 			if(StringUtils.isNotEmpty(level))
 				entries.add(DossierEntry.of("Privacy", level, individual));
 		}
@@ -236,13 +224,13 @@ public final class IndividualDossierService{
 	}
 
 	private static String extractNameValue(final FLEFRecord nameStruct){
-		final String direct = FLEFRecordHelper.getChildValue(nameStruct, TAG_VALUE);
+		final String direct = FLEFRecordHelper.getChildValue(nameStruct, NameReader.TAG_VALUE);
 		if(StringUtils.isNotEmpty(direct))
 			return direct;
 
 		final StringBuilder sb = new StringBuilder();
 		for(final FLEFRecord part : FLEFRecordHelper.findChildren(nameStruct, "part")){
-			final String v = FLEFRecordHelper.getChildValue(part, TAG_VALUE);
+			final String v = FLEFRecordHelper.getChildValue(part, NameReader.TAG_PART_VALUE);
 			if(StringUtils.isNotEmpty(v)){
 				if(!sb.isEmpty())
 					sb.append(' ');
@@ -259,21 +247,21 @@ public final class IndividualDossierService{
 
 	private List<DossierEntry> buildEvents(final String individualId){
 		final List<DossierEntry> entries = new ArrayList<>();
-		final List<FLEFRecord> participations = model.getRecordsByType(EventParticipationHandler.TYPE);
-		for(final FLEFRecord participation : participations){
-			final String participantId = extractParticipantId(participation);
+		final List<FLEFRecord> eventParticipations = model.getRecordsByType(EventParticipationHandler.TYPE);
+		for(final FLEFRecord eventParticipation : eventParticipations){
+			final String participantId = extractParticipantId(eventParticipation);
 			if(!individualId.equals(participantId))
 				continue;
 
-			final DossierEntry entry = buildEventEntry(participation);
+			final DossierEntry entry = buildEventEntry(eventParticipation);
 			if(entry != null)
 				entries.add(entry);
 		}
 		return entries;
 	}
 
-	private DossierEntry buildEventEntry(final FLEFRecord participation){
-		final String eventId = FLEFRecordHelper.getChildValue(participation, TAG_EVENT);
+	private DossierEntry buildEventEntry(final FLEFRecord eventParticipation){
+		final String eventId = FLEFRecordHelper.getChildValue(eventParticipation, EventParticipationReader.TAG_EVENT);
 		if(eventId == null)
 			return null;
 
@@ -281,7 +269,7 @@ public final class IndividualDossierService{
 		if(event == null)
 			return null;
 
-		final String eventType = FLEFRecordHelper.getChildValue(event, TAG_TYPE);
+		final String eventType = FLEFRecordHelper.getChildValue(event, EventReader.TAG_TYPE);
 		final String label = (StringUtils.isNotEmpty(eventType)
 			? eventType.replace('_', ' ')
 			: "Event");
@@ -298,10 +286,10 @@ public final class IndividualDossierService{
 		}
 
 		final StringBuilder subtitle = new StringBuilder();
-		final String role = FLEFRecordHelper.getChildValue(participation, TAG_ROLE);
+		final String role = FLEFRecordHelper.getChildValue(eventParticipation, EventParticipationReader.TAG_ROLE);
 		if(StringUtils.isNotEmpty(role))
 			subtitle.append("role: ").append(role);
-		final String agency = FLEFRecordHelper.getChildValue(event, TAG_AGENCY);
+		final String agency = FLEFRecordHelper.getChildValue(event, EventReader.TAG_AGENCY);
 		if(StringUtils.isNotEmpty(agency)){
 			if(!subtitle.isEmpty())
 				subtitle.append(" · ");
@@ -326,26 +314,26 @@ public final class IndividualDossierService{
 
 	private List<DossierEntry> buildAttributes(final String individualId){
 		final List<DossierEntry> entries = new ArrayList<>();
-		final List<FLEFRecord> attributes = model.getRecordsByType(IndividualAttributeHandler.TYPE);
-		for(final FLEFRecord attribute : attributes){
-			final String ownerId = FLEFRecordHelper.getChildValue(attribute, IndividualHandler.TYPE);
+		final List<FLEFRecord> individualAttributes = model.getRecordsByType(IndividualAttributeHandler.TYPE);
+		for(final FLEFRecord individualAttribute : individualAttributes){
+			final String ownerId = FLEFRecordHelper.getChildValue(individualAttribute, IndividualHandler.TYPE);
 			if(!individualId.equals(ownerId))
 				continue;
 
-			entries.add(buildAttributeEntry(attribute));
+			entries.add(buildAttributeEntry(individualAttribute));
 		}
 		return entries;
 	}
 
-	private DossierEntry buildAttributeEntry(final FLEFRecord attribute){
-		final String type = FLEFRecordHelper.getChildValue(attribute, TAG_TYPE);
+	private DossierEntry buildAttributeEntry(final FLEFRecord individualAttribute){
+		final String type = FLEFRecordHelper.getChildValue(individualAttribute, IndividualAttributeReader.TAG_TYPE);
 		final String label = (StringUtils.isNotEmpty(type)
 			? type.replace('_', ' ')
 			: "Attribute");
-		final String value = FLEFRecordHelper.getChildValue(attribute, TAG_VALUE);
+		final String value = FLEFRecordHelper.getChildValue(individualAttribute, IndividualAttributeReader.TAG_VALUE);
 
-		final String validity = formatting.formatValidity(attribute);
-		final String place = formatting.resolvePlaceName(attribute);
+		final String validity = formatting.formatValidity(individualAttribute);
+		final String place = formatting.resolvePlaceName(individualAttribute);
 		final StringBuilder subtitle = new StringBuilder();
 		if(StringUtils.isNotEmpty(validity))
 			subtitle.append(validity);
@@ -356,8 +344,8 @@ public final class IndividualDossierService{
 		}
 
 		return new DossierEntry(label, (value != null? value: StringUtils.EMPTY), subtitle.toString(),
-			buildEvidenceBadge(attribute), attribute, DossierEntry.Kind.NORMAL,
-			proofStatusFor(attribute));
+			buildEvidenceBadge(individualAttribute), individualAttribute, DossierEntry.Kind.NORMAL,
+			proofStatusFor(individualAttribute));
 	}
 
 
@@ -369,8 +357,8 @@ public final class IndividualDossierService{
 		final List<DossierEntry> entries = new ArrayList<>();
 		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
 		for(final FLEFRecord relationship : relationships){
-			final String subjectId = extractParticipantRef(relationship, TAG_SUBJECT);
-			final String objectId = extractParticipantRef(relationship, TAG_OBJECT);
+			final String subjectId = extractParticipantRef(relationship, RelationshipReader.TAG_SUBJECT);
+			final String objectId = extractParticipantRef(relationship, RelationshipReader.TAG_OBJECT);
 			final boolean isSubject = individualId.equals(subjectId);
 			final boolean isTarget = individualId.equals(objectId);
 			if(!isSubject && !isTarget)
@@ -382,14 +370,14 @@ public final class IndividualDossierService{
 	}
 
 	private DossierEntry buildRelationshipEntry(final FLEFRecord relationship, final boolean isSubject){
-		final String type = FLEFRecordHelper.getChildValue(relationship, RelationshipHandler.TAG_TYPE);
+		final String type = RelationshipReader.extractType(relationship);
 		final String typeLabel = (StringUtils.isNotEmpty(type)
 			? type.replace('_', ' ')
 			: "Relationship");
 
 		final String otherId = (isSubject
-			? extractParticipantRef(relationship, TAG_OBJECT)
-			: extractParticipantRef(relationship, TAG_SUBJECT));
+			? extractParticipantRef(relationship, RelationshipReader.TAG_OBJECT)
+			: extractParticipantRef(relationship, RelationshipReader.TAG_SUBJECT));
 		final String otherName = resolveParticipantName(otherId);
 
 		final String direction = (isSubject? "→ ": "← ");
@@ -397,10 +385,10 @@ public final class IndividualDossierService{
 		final String value = (otherName != null? otherName: otherId != null? otherId: "?");
 
 		final StringBuilder subtitle = new StringBuilder();
-		final String role = FLEFRecordHelper.getChildValue(relationship, TAG_ROLE);
+		final String role = FLEFRecordHelper.getChildValue(relationship, RelationshipReader.TAG_ROLE);
 		if(StringUtils.isNotEmpty(role))
 			subtitle.append("role: ").append(role);
-		final String status = FLEFRecordHelper.getChildValue(relationship, TAG_STATUS);
+		final String status = FLEFRecordHelper.getChildValue(relationship, RelationshipReader.TAG_STATUS);
 		if(StringUtils.isNotEmpty(status)){
 			if(!subtitle.isEmpty())
 				subtitle.append(" · ");
@@ -441,15 +429,15 @@ public final class IndividualDossierService{
 
 		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
 		for(final FLEFRecord relationship : relationships){
-			final String subjectId = extractParticipantRef(relationship, TAG_SUBJECT);
-			final String objectId = extractParticipantRef(relationship, TAG_OBJECT);
+			final String subjectId = extractParticipantRef(relationship, RelationshipReader.TAG_SUBJECT);
+			final String objectId = extractParticipantRef(relationship, RelationshipReader.TAG_OBJECT);
 			if(individualId.equals(subjectId) || individualId.equals(objectId))
 				collectSources(relationship, "Relationship", entries, seenSourceIds);
 		}
 
 		final List<FLEFRecord> impacts = model.getRecordsByType(ContextImpactHandler.TYPE);
 		for(final FLEFRecord impact : impacts){
-			final String targetId = extractRef(impact, TAG_TARGET);
+			final String targetId = extractRef(impact, ContextImpactReader.TAG_TARGET);
 			if(individualId.equals(targetId))
 				collectSources(impact, "Context", entries, seenSourceIds);
 		}
@@ -459,7 +447,8 @@ public final class IndividualDossierService{
 
 	private void collectSources(final FLEFRecord parent, final String origin,
 		final List<DossierEntry> entries, final Set<String> seenSourceIds){
-		for(final FLEFRecord citation : FLEFRecordHelper.findChildren(parent, TAG_SOURCE)){
+		final List<FLEFRecord> citations = FLEFRecordHelper.findChildren(parent, TAG_SOURCE);
+		for(final FLEFRecord citation : citations){
 			final String sourceId = extractRef(citation, TAG_SOURCE);
 			if(sourceId == null || !seenSourceIds.add(sourceId))
 				continue;
@@ -482,9 +471,9 @@ public final class IndividualDossierService{
 	}
 
 	private static String resolveSourceTitle(final FLEFRecord source){
-		final FLEFRecord titleStruct = FLEFRecordHelper.findChild(source, TAG_TITLE);
+		final FLEFRecord titleStruct = FLEFRecordHelper.findChild(source, SourceReader.TAG_TITLE);
 		if(titleStruct != null){
-			final String value = FLEFRecordHelper.getChildValue(titleStruct, TAG_VALUE);
+			final String value = FLEFRecordHelper.getChildValue(titleStruct, NameReader.TAG_VALUE);
 			if(StringUtils.isNotEmpty(value))
 				return value;
 			final String direct = titleStruct.getValue();
@@ -504,11 +493,11 @@ public final class IndividualDossierService{
 		final List<DossierEntry> entries = new ArrayList<>();
 		final List<FLEFRecord> impacts = model.getRecordsByType(ContextImpactHandler.TYPE);
 		for(final FLEFRecord impact : impacts){
-			final String targetId = extractRef(impact, TAG_TARGET);
+			final String targetId = extractRef(impact, ContextImpactReader.TAG_TARGET);
 			if(!individualId.equals(targetId))
 				continue;
 
-			final String contextId = extractRef(impact, TAG_CONTEXT);
+			final String contextId = extractRef(impact, ContextImpactReader.TAG_CONTEXT);
 			if(contextId == null)
 				continue;
 
@@ -516,10 +505,10 @@ public final class IndividualDossierService{
 			if(context == null)
 				continue;
 
-			final String impactType = FLEFRecordHelper.getChildValue(impact, TAG_IMPACT_TYPE);
+			final String impactType = FLEFRecordHelper.getChildValue(impact, ContextImpactReader.TAG_IMPACT_TYPE);
 			final String label = (StringUtils.isNotEmpty(impactType)? impactType: "context");
 			final String contextTitle = resolveContextTitle(context);
-			final String rationale = FLEFRecordHelper.getChildValue(impact, TAG_RATIONALE);
+			final String rationale = FLEFRecordHelper.getChildValue(impact, ContextImpactReader.TAG_RATIONALE);
 			final String subtitle = (StringUtils.isNotEmpty(rationale)
 				? rationale
 				: context.getTag() != null? context.getTag().replace('_', ' '): StringUtils.EMPTY);
@@ -532,7 +521,12 @@ public final class IndividualDossierService{
 	}
 
 	private static String resolveContextTitle(final FLEFRecord context){
-		final String title = FLEFRecordHelper.getChildValue(context, TAG_TITLE);
+		String title = null;
+		final String tag = context.getTag();
+		if(CulturalNormHandler.TYPE.equals(tag.toLowerCase(Locale.ROOT)))
+			title = CulturalNormReader.extractTitle(context);
+		else if(HistoricEventHandler.TYPE.equals(tag.toLowerCase(Locale.ROOT)))
+			title = HistoricEventReader.extractTitle(context);
 		if(StringUtils.isNotEmpty(title))
 			return title;
 
@@ -550,7 +544,7 @@ public final class IndividualDossierService{
 		final List<FLEFRecord> hypotheses = model.getRecordsByType(IdentityHypothesisHandler.TYPE);
 		for(final FLEFRecord hypothesis : hypotheses){
 			final List<String> candidateIds = new ArrayList<>();
-			for(final FLEFRecord candidate : FLEFRecordHelper.findChildren(hypothesis, TAG_IDENTITY)){
+			for(final FLEFRecord candidate : FLEFRecordHelper.findChildren(hypothesis, IdentityHypothesisReader.TAG_IDENTITY)){
 				final String id = extractRef(candidate, null);
 				if(id != null)
 					candidateIds.add(id);
@@ -566,7 +560,7 @@ public final class IndividualDossierService{
 				}
 
 			final String otherName = (otherId != null? resolveParticipantName(otherId): "?");
-			final String comment = FLEFRecordHelper.getChildValue(hypothesis, TAG_COMMENT);
+			final String comment = FLEFRecordHelper.getChildValue(hypothesis, IdentityHypothesisReader.TAG_COMMENT);
 
 			entries.add(new DossierEntry("Possible duplicate",
 				(otherName != null? otherName: otherId),
@@ -588,7 +582,7 @@ public final class IndividualDossierService{
 		final List<FLEFRecord> questions = model.getRecordsByType(ResearchQuestionHandler.TYPE);
 		for(final FLEFRecord question : questions){
 			boolean targets = false;
-			for(final FLEFRecord target : FLEFRecordHelper.findChildren(question, TAG_TARGET))
+			for(final FLEFRecord target : FLEFRecordHelper.findChildren(question, ResearchQuestionReader.TAG_TARGET))
 				if(individualId.equals(extractRef(target, null))){
 					targets = true;
 					break;
@@ -596,9 +590,9 @@ public final class IndividualDossierService{
 			if(!targets)
 				continue;
 
-			final String title = FLEFRecordHelper.getChildValue(question, TAG_TITLE);
-			final String questionText = FLEFRecordHelper.getChildValue(question, TAG_QUESTION);
-			final String status = FLEFRecordHelper.getChildValue(question, TAG_STATUS);
+			final String title = FLEFRecordHelper.getChildValue(question, ResearchQuestionReader.TAG_TITLE);
+			final String questionText = FLEFRecordHelper.getChildValue(question, ResearchQuestionReader.TAG_QUESTION);
+			final String status = FLEFRecordHelper.getChildValue(question, ResearchQuestionReader.TAG_STATUS);
 
 			final StringBuilder subtitle = new StringBuilder();
 			if(StringUtils.isNotEmpty(status))
@@ -618,18 +612,18 @@ public final class IndividualDossierService{
 		final List<FLEFRecord> conclusions = model.getRecordsByType(ConclusionHandler.TYPE);
 		for(final FLEFRecord conclusion : conclusions){
 			boolean targets = false;
-			for(final FLEFRecord target : FLEFRecordHelper.findChildren(conclusion, TAG_RESOLVES))
+			for(final FLEFRecord target : FLEFRecordHelper.findChildren(conclusion, ConclusionReader.TAG_RESOLVES))
 				if(individualId.equals(extractRef(target, null))){
 					targets = true;
 					break;
 				}
-			if(!targets && individualId.equals(extractRef(conclusion, TAG_PREFERRED)))
+			if(!targets && individualId.equals(extractRef(conclusion, ConclusionReader.TAG_PREFERRED)))
 				targets = true;
 			if(!targets)
 				continue;
 
 			final String issue = FLEFRecordHelper.getChildValue(conclusion, "issue");
-			final String proof = FLEFRecordHelper.getChildValue(conclusion, TAG_PROOF_STATUS);
+			final String proof = FLEFRecordHelper.getChildValue(conclusion, ConclusionReader.TAG_PROOF_STATUS);
 			entries.add(new DossierEntry("Conclusion",
 				(StringUtils.isNotEmpty(issue)? issue: "?"),
 				(proof != null? proof: StringUtils.EMPTY), StringUtils.EMPTY, conclusion, DossierEntry.Kind.NORMAL,
@@ -661,15 +655,15 @@ public final class IndividualDossierService{
 
 		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
 		for(final FLEFRecord relationship : relationships){
-			final String subjectId = extractParticipantRef(relationship, TAG_SUBJECT);
-			final String objectId = extractParticipantRef(relationship, TAG_OBJECT);
+			final String subjectId = extractParticipantRef(relationship, RelationshipReader.TAG_SUBJECT);
+			final String objectId = extractParticipantRef(relationship, RelationshipReader.TAG_OBJECT);
 			if(individualId.equals(subjectId) || individualId.equals(objectId))
 				collectNotes(relationship, "Relationship", entries);
 		}
 
 		final List<FLEFRecord> impacts = model.getRecordsByType(ContextImpactHandler.TYPE);
 		for(final FLEFRecord impact : impacts){
-			final String targetId = extractRef(impact, TAG_TARGET);
+			final String targetId = extractRef(impact, ContextImpactReader.TAG_TARGET);
 			if(individualId.equals(targetId))
 				collectNotes(impact, "Context", entries);
 		}
@@ -677,7 +671,7 @@ public final class IndividualDossierService{
 		final List<FLEFRecord> hypotheses = model.getRecordsByType(IdentityHypothesisHandler.TYPE);
 		for(final FLEFRecord hypothesis : hypotheses){
 			boolean targets = false;
-			for(final FLEFRecord candidate : FLEFRecordHelper.findChildren(hypothesis, TAG_IDENTITY))
+			for(final FLEFRecord candidate : FLEFRecordHelper.findChildren(hypothesis, IdentityHypothesisReader.TAG_IDENTITY))
 				if(individualId.equals(extractRef(candidate, null))){
 					targets = true;
 					break;
@@ -689,7 +683,7 @@ public final class IndividualDossierService{
 		final List<FLEFRecord> questions = model.getRecordsByType(ResearchQuestionHandler.TYPE);
 		for(final FLEFRecord question : questions){
 			boolean targets = false;
-			for(final FLEFRecord target : FLEFRecordHelper.findChildren(question, TAG_TARGET))
+			for(final FLEFRecord target : FLEFRecordHelper.findChildren(question, ResearchQuestionReader.TAG_TARGET))
 				if(individualId.equals(extractRef(target, null))){
 					targets = true;
 					break;
@@ -701,12 +695,12 @@ public final class IndividualDossierService{
 		final List<FLEFRecord> conclusions = model.getRecordsByType(ConclusionHandler.TYPE);
 		for(final FLEFRecord conclusion : conclusions){
 			boolean targets = false;
-			for(final FLEFRecord target : FLEFRecordHelper.findChildren(conclusion, TAG_RESOLVES))
+			for(final FLEFRecord target : FLEFRecordHelper.findChildren(conclusion, ConclusionReader.TAG_RESOLVES))
 				if(individualId.equals(extractRef(target, null))){
 					targets = true;
 					break;
 				}
-			if(!targets && individualId.equals(extractRef(conclusion, TAG_PREFERRED)))
+			if(!targets && individualId.equals(extractRef(conclusion, ConclusionReader.TAG_PREFERRED)))
 				targets = true;
 			if(targets)
 				collectNotes(conclusion, "Conclusion", entries);
@@ -715,11 +709,10 @@ public final class IndividualDossierService{
 		return entries;
 	}
 
-	private void collectNotes(final FLEFRecord parent, final String origin,
-		final List<DossierEntry> entries){
+	private void collectNotes(final FLEFRecord parent, final String origin, final List<DossierEntry> entries){
 		for(final FLEFRecord note : FLEFRecordHelper.findChildren(parent, TAG_NOTE)){
-			final String title = FLEFRecordHelper.getChildValue(note, TAG_TITLE);
-			final String text = FLEFRecordHelper.getChildValue(note, TAG_TEXT);
+			final String title = FLEFRecordHelper.getChildValue(note, NoteReader.TAG_TITLE);
+			final String text = NoteReader.extractText(note);
 			final String label = origin + " note";
 			final String value = (StringUtils.isNotEmpty(title)? title: text);
 			final String subtitle = (StringUtils.isNotEmpty(title) && StringUtils.isNotEmpty(text)
@@ -749,17 +742,17 @@ public final class IndividualDossierService{
 		final List<FLEFRecord> conclusions = model.getRecordsByType(ConclusionHandler.TYPE);
 		for(final FLEFRecord conclusion : conclusions){
 			final ProofStatus status = ProofStatus.fromString(
-				FLEFRecordHelper.getChildValue(conclusion, TAG_PROOF_STATUS));
+				FLEFRecordHelper.getChildValue(conclusion, ConclusionReader.TAG_PROOF_STATUS));
 			if(status == null)
 				continue;
 
-			for(final FLEFRecord target : FLEFRecordHelper.findChildren(conclusion, TAG_RESOLVES)){
+			for(final FLEFRecord target : FLEFRecordHelper.findChildren(conclusion, ConclusionReader.TAG_RESOLVES)){
 				final String targetId = extractRef(target, null);
 				if(targetId != null)
 					index.put(targetId, status);
 			}
 
-			final String preferredId = extractRef(conclusion, TAG_PREFERRED);
+			final String preferredId = extractRef(conclusion, ConclusionReader.TAG_PREFERRED);
 			if(preferredId != null)
 				index.put(preferredId, status);
 		}
@@ -781,29 +774,29 @@ public final class IndividualDossierService{
 
 	private Map<String, List<FLEFRecord>> buildEventMap(){
 		final Map<String, List<FLEFRecord>> result = new HashMap<>();
-		final List<FLEFRecord> participations = model.getRecordsByType(EventParticipationHandler.TYPE);
-		for(final FLEFRecord participation : participations){
-			final String participantId = extractParticipantId(participation);
-			if(participantId == null)
+		final List<FLEFRecord> eventParticipations = model.getRecordsByType(EventParticipationHandler.TYPE);
+		for(final FLEFRecord eventParticipation : eventParticipations){
+			final String eventParticipantId = extractParticipantId(eventParticipation);
+			if(eventParticipantId == null)
 				continue;
 
-			final String eventId = FLEFRecordHelper.getChildValue(participation, TAG_EVENT);
+			final String eventId = FLEFRecordHelper.getChildValue(eventParticipation, EventParticipationReader.TAG_EVENT);
 			if(eventId == null)
 				continue;
 
 			final FLEFRecord event = model.getRecordById(eventId);
 			if(event != null)
-				result.computeIfAbsent(participantId, k -> new ArrayList<>()).add(event);
+				result.computeIfAbsent(eventParticipantId, k -> new ArrayList<>()).add(event);
 		}
 		return result;
 	}
 
-	private static String extractParticipantId(final FLEFRecord participation){
-		final FLEFRecord participantField = FLEFRecordHelper.findChild(participation, TAG_PARTICIPANT);
-		if(participantField == null)
+	private static String extractParticipantId(final FLEFRecord eventParticipation){
+		final FLEFRecord eventParticipantField = FLEFRecordHelper.findChild(eventParticipation, EventParticipationReader.TAG_PARTICIPANT);
+		if(eventParticipantField == null)
 			return null;
 
-		final FLEFRecord ref = participantField.getTheOnlyChild();
+		final FLEFRecord ref = eventParticipantField.getTheOnlyChild();
 		return (ref != null? ref.getValue(): null);
 	}
 
@@ -875,38 +868,24 @@ public final class IndividualDossierService{
 		if(evidence == null)
 			return StringUtils.EMPTY;
 
-		final String sourceType = FLEFRecordHelper.getChildValue(evidence, EvidenceQualifiersPanel.TAG_SOURCE_TYPE);
-		final String infoType = FLEFRecordHelper.getChildValue(evidence, EvidenceQualifiersPanel.TAG_INFORMATION_TYPE);
-		final String evidenceType = FLEFRecordHelper.getChildValue(evidence, EvidenceQualifiersPanel.TAG_EVIDENCE_TYPE);
+		final String sourceType = EvidenceQualifiersReader.extractSourceType(evidence);
+		final String infoType = EvidenceQualifiersReader.extractInformationType(evidence);
+		final String evidenceType = EvidenceQualifiersReader.extractEvidenceType(evidence);
 
 		final StringBuilder sb = new StringBuilder();
 		if(StringUtils.isNotEmpty(sourceType))
-			sb.append(abbreviate(sourceType));
+			sb.append(I18N.t("enum.evidence.source.type.abbreviation." + sourceType));
 		if(StringUtils.isNotEmpty(infoType)){
 			if(!sb.isEmpty())
 				sb.append('/');
-			sb.append(abbreviate(infoType));
+			sb.append(I18N.t("enum.evidence.information.type.abbreviation." + infoType));
 		}
 		if(StringUtils.isNotEmpty(evidenceType)){
 			if(!sb.isEmpty())
 				sb.append('/');
-			sb.append(abbreviate(evidenceType));
+			sb.append(I18N.t("enum.evidence.evidence.type.abbreviation." + evidenceType));
 		}
 		return sb.toString();
-	}
-
-	private static String abbreviate(final String value){
-		return switch(value.toLowerCase(Locale.ROOT)){
-			case EvidenceQualifiersPanel.SOURCE_TYPE_ORIGINAL -> "orig";
-			case EvidenceQualifiersPanel.SOURCE_TYPE_DERIVED -> "der";
-			case EvidenceQualifiersPanel.INFORMATION_TYPE_PRIMARY -> "prim";
-			case EvidenceQualifiersPanel.INFORMATION_TYPE_SECONDARY -> "sec";
-			case EvidenceQualifiersPanel.INFORMATION_TYPE_UNDETERMINED -> "und";
-			case EvidenceQualifiersPanel.EVIDENCE_TYPE_DIRECT -> "dir";
-			case EvidenceQualifiersPanel.EVIDENCE_TYPE_INDIRECT -> "ind";
-			case EvidenceQualifiersPanel.EVIDENCE_TYPE_NEGATIVE -> "neg";
-			default -> value;
-		};
 	}
 
 }

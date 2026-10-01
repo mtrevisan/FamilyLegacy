@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.gedcom;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
 
@@ -58,7 +59,7 @@ public final class Deduplicator{
 	public static String getDeduplicatedRecordId(FLEFModel model, FLEFRecord record){
 		if(record.getTag().equalsIgnoreCase(RelationshipHandler.TYPE)){
 			String type = FLEFRecordHelper.getChildValue(record, "type");
-			if(RelationshipHandler.ENUM_TYPE_BIOLOGICAL_CHILD.equals(type)){
+			if(RelationshipReader.isTypeBiologicalChild(type)){
 				FLEFRecord subject = FLEFRecordHelper.findChild(record, "subject");
 				String subjectId = subject.getTheOnlyChild()
 					.getValue();
@@ -68,11 +69,12 @@ public final class Deduplicator{
 
 				List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
 				for(final FLEFRecord relationship : relationships){
-					if(!RelationshipHandler.ENUM_TYPE_ADOPTIVE_CHILD.equalsIgnoreCase(FLEFRecordHelper.getChildValue(relationship, RelationshipHandler.TAG_TYPE)))
+					final String relationshipType = RelationshipReader.extractType(relationship);
+					if(!RelationshipReader.isTypeAdoptiveChild(relationshipType))
 						continue;
-					if(!subjectId.equalsIgnoreCase(relationship.extractReferencedId(RelationshipHandler.TAG_SUBJECT, IndividualHandler.TYPE)))
+					if(!subjectId.equalsIgnoreCase(relationship.extractReferencedId(RelationshipReader.TAG_SUBJECT, IndividualHandler.TYPE)))
 						continue;
-					if(!objectId.equalsIgnoreCase(relationship.extractReferencedId(RelationshipHandler.TAG_OBJECT, IndividualHandler.TYPE)))
+					if(!objectId.equalsIgnoreCase(relationship.extractReferencedId(RelationshipReader.TAG_OBJECT, IndividualHandler.TYPE)))
 						continue;
 
 					//relationship duplicate found

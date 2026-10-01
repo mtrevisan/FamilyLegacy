@@ -34,13 +34,11 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventParticipationHandler
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -60,33 +58,6 @@ import java.util.Set;
  */
 public final class IndividualHelper{
 
-	public static final String TYPE_INDIVIDUAL = "individual";
-	public static final String TYPE_RELATIONSHIP = "relationship";
-
-	public static final String TAG_TYPE = "type";
-	public static final String TAG_SUBJECT = "subject";
-	public static final String TAG_OBJECT = "object";
-	public static final String TAG_NAME = "name";
-	public static final String TAG_VALUE = "value";
-
-	public static final String REL_FOSTER_CHILD = "foster_child";
-	public static final String REL_GUARDED_CHILD = "guarded_child";
-	public static final String REL_STEP_CHILD = "step_child";
-	public static final String REL_CIVIL_SPOUSE = "civil_spouse";
-	public static final String REL_RELIGIOUS_SPOUSE = "religious_spouse";
-	public static final String REL_CUSTOMARY_SPOUSE = "customary_spouse";
-	public static final String REL_COHABITING = "cohabiting_partner";
-	public static final String REL_ENGAGED = "engaged_partner";
-
-	public static final List<String> CHILD_RELATION_TYPES = List.of(
-		RelationshipHandler.ENUM_TYPE_BIOLOGICAL_CHILD, RelationshipHandler.ENUM_TYPE_ADOPTIVE_CHILD,
-		REL_FOSTER_CHILD, REL_GUARDED_CHILD, REL_STEP_CHILD);
-
-	public static final List<String> SPOUSE_RELATION_TYPES = List.of(
-		REL_CIVIL_SPOUSE, REL_RELIGIOUS_SPOUSE, REL_CUSTOMARY_SPOUSE,
-		REL_COHABITING, REL_ENGAGED);
-
-
 	private IndividualHelper(){}
 
 
@@ -100,41 +71,6 @@ public final class IndividualHelper{
 			if(individual.getId() != null)
 				result.put(individual.getId(), individual);
 		return result;
-	}
-
-	/**
-	 * Returns the primary display name of an individual, or the id when
-	 * no name is available.
-	 */
-	public static String displayName(final FLEFRecord individual){
-		if(individual == null)
-			return StringUtils.EMPTY;
-
-		for(final FLEFRecord nameBlock : individual.getChildren()){
-			if(!TAG_NAME.equalsIgnoreCase(nameBlock.getTag()))
-				continue;
-
-			final StringBuilder fullName = new StringBuilder();
-			for(final FLEFRecord part : nameBlock.getChildren()){
-				if(!"part".equalsIgnoreCase(part.getTag()))
-					continue;
-
-				final String value = FLEFRecordHelper.getChildValue(part, TAG_VALUE);
-				if(value != null && !value.isBlank()){
-					if(!fullName.isEmpty())
-						fullName.append(' ');
-					fullName.append(value);
-				}
-			}
-			if(!fullName.isEmpty())
-				return fullName.toString();
-
-			// Fallback: the name block might carry a direct value.
-			final String direct = FLEFRecordHelper.getChildValue(nameBlock, TAG_VALUE);
-			if(direct != null && !direct.isBlank())
-				return direct;
-		}
-		return (individual.getId() != null? individual.getId(): StringUtils.EMPTY);
 	}
 
 
@@ -155,13 +91,13 @@ public final class IndividualHelper{
 	public static FLEFRecord createRelationship(final FLEFModel model,
 			final String subjectId, final String targetId, final String type,
 			final String idPrefix){
-		final FLEFRecord relationship = FLEFRecord.createMainRecord(TYPE_RELATIONSHIP, idPrefix, model)
-			.addChild(FLEFRecord.createChildWithTagAndValue(TAG_TYPE, type))
-			.addChild(FLEFRecord.createChildWithTag(TAG_SUBJECT)
-				.addChild(FLEFRecord.createChildWithTagAndValue(TYPE_INDIVIDUAL, subjectId))
+		final FLEFRecord relationship = FLEFRecord.createMainRecord(RelationshipHandler.TYPE, idPrefix, model)
+			.addChild(FLEFRecord.createChildWithTagAndValue(RelationshipReader.TAG_TYPE, type))
+			.addChild(FLEFRecord.createChildWithTag(RelationshipReader.TAG_SUBJECT)
+				.addChild(FLEFRecord.createChildWithTagAndValue(IndividualHandler.TYPE, subjectId))
 			)
-			.addChild(FLEFRecord.createChildWithTag(TAG_OBJECT)
-				.addChild(FLEFRecord.createChildWithTagAndValue(TYPE_INDIVIDUAL, targetId))
+			.addChild(FLEFRecord.createChildWithTag(RelationshipReader.TAG_OBJECT)
+				.addChild(FLEFRecord.createChildWithTagAndValue(IndividualHandler.TYPE, targetId))
 			)
 			.addChild(AuditBuilder.build());
 		model.addRecord(relationship);
@@ -284,7 +220,7 @@ public final class IndividualHelper{
 		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
 		for(final FLEFRecord relationship : relationships){
 			final String type = RelationshipReader.extractType(relationship);
-			if(!isChildType(type))
+			if(!RelationshipReader.isTypeChild(type))
 				continue;
 
 			final String child = relationship.extractReferencedId(RelationshipReader.TAG_SUBJECT, IndividualHandler.TYPE);
@@ -306,7 +242,7 @@ public final class IndividualHelper{
 		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
 		for(final FLEFRecord relationship : relationships){
 			final String type = RelationshipReader.extractType(relationship);
-			if(type == null || isChildType(type) || REL_GROUP_MEMBER.equalsIgnoreCase(type))
+			if(type == null || RelationshipReader.isTypeChild(type) || REL_GROUP_MEMBER.equalsIgnoreCase(type))
 				continue;
 
 			final String subject = relationship.extractReferencedId(RelationshipReader.TAG_SUBJECT, IndividualHandler.TYPE);
@@ -352,7 +288,7 @@ public final class IndividualHelper{
 		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
 		for(final FLEFRecord relationship : relationships){
 			final String type = RelationshipReader.extractType(relationship);
-			if(!isChildType(type))
+			if(!RelationshipReader.isTypeChild(type))
 				continue;
 
 			final String child = relationship.extractReferencedId(RelationshipReader.TAG_SUBJECT, IndividualHandler.TYPE);
@@ -397,7 +333,7 @@ public final class IndividualHelper{
 				if(individualId.equals(object) && subject != null)
 					children.add(subject);
 			}
-			else if(isSpouseType(type)){
+			else if(RelationshipReader.isTypePartner(type)){
 				if(individualId.equals(subject) && object != null)
 					spouses.add(object);
 				else if(individualId.equals(object) && subject != null)
@@ -413,7 +349,7 @@ public final class IndividualHelper{
 				continue;
 
 			final FLEFRecord oneof = participantBlock.getTheOnlyChild();
-			if(oneof == null || !TYPE_INDIVIDUAL.equalsIgnoreCase(oneof.getTag()))
+			if(oneof == null || !IndividualHandler.TYPE.equalsIgnoreCase(oneof.getTag()))
 				continue;
 
 			final FLEFRecord ref = oneof.getTheOnlyChild();
@@ -423,28 +359,9 @@ public final class IndividualHelper{
 		}
 
 		final String rawSex = IndividualReader.extractRawSex(individual);
-		return new MergePreview(individualId, displayName(individual), rawSex, parents.size(), children.size(),
+		final String displayName = IndividualReader.extractPrimaryFullname(individual);
+		return new MergePreview(individualId, displayName, rawSex, parents.size(), children.size(),
 			spouses.size(), eventCount);
-	}
-
-	public static boolean isSpouseType(final String type){
-		if(type == null)
-			return false;
-		final String t = type.toLowerCase(Locale.ROOT);
-		for(final String s : SPOUSE_RELATION_TYPES)
-			if(s.equals(t))
-				return true;
-		return false;
-	}
-
-	public static boolean isChildType(final String type){
-		if(type == null)
-			return false;
-		final String t = type.toLowerCase(Locale.ROOT);
-		for(final String s : CHILD_RELATION_TYPES)
-			if(s.equals(t))
-				return true;
-		return false;
 	}
 
 }

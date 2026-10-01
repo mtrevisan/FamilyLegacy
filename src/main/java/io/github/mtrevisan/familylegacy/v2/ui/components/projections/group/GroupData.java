@@ -85,9 +85,9 @@ public final class GroupData{
 		this.group = group;
 		id = group.getId();
 
-		final List<String> names = GroupReader.extractFullNames(group);
+		final List<String> names = GroupReader.extractNames(group);
 		if(!names.isEmpty()){
-			nameText = names.getFirst();
+			nameText = GroupReader.extractPrimaryName(group);
 			nameTooltip = TAG_HTML_OPEN + StringUtils.join(names, TAG_BR) + TAG_HTML_CLOSE;
 		}
 		else{

@@ -26,7 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.searches.strategies;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.ResearchActivityReader;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchCriteria;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchMode;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchStrategy;
@@ -57,45 +57,45 @@ public class ResearchActivitySearchStrategy implements SearchStrategy{
 
 	@Override
 	public Predicate<FLEFRecord> buildPredicate(final SearchCriteria criteria, final FLEFModel model){
-		activityType = criteria.getFilterFor(ResearchActivityHandler.TAG_ACTIVITY_TYPE);
-		status = criteria.getFilterFor(ResearchActivityHandler.TAG_STATUS);
-		action = criteria.getFilterFor(ResearchActivityHandler.TAG_ACTION);
-		result = criteria.getFilterFor(ResearchActivityHandler.TAG_RESULT);
-		observation = criteria.getFilterFor(ResearchActivityHandler.TAG_OBSERVATION);
+		activityType = criteria.getFilterFor(ResearchActivityReader.TAG_ACTIVITY_TYPE);
+		status = criteria.getFilterFor(ResearchActivityReader.TAG_STATUS);
+		action = criteria.getFilterFor(ResearchActivityReader.TAG_ACTION);
+		result = criteria.getFilterFor(ResearchActivityReader.TAG_RESULT);
+		observation = criteria.getFilterFor(ResearchActivityReader.TAG_OBSERVATION);
 		mode = criteria.mode();
 
 		return activity -> {
 			// Activity Type filter
 			if(StringUtils.isNotEmpty(activityType)){
-				final String recordType = FLEFRecordHelper.getChildValue(activity, ResearchActivityHandler.TAG_ACTIVITY_TYPE);
+				final String recordType = ResearchActivityReader.extractActivityType(activity);
 				if(!Strings.CI.equals(activityType, recordType))
 					return false;
 			}
 
 			// Status filter
 			if(StringUtils.isNotEmpty(status)){
-				final String recordStatus = FLEFRecordHelper.getChildValue(activity, ResearchActivityHandler.TAG_STATUS);
+				final String recordStatus = ResearchActivityReader.extractStatus(activity);
 				if(!Strings.CI.equals(status, recordStatus))
 					return false;
 			}
 
 			// Action filter
 			if(StringUtils.isNotEmpty(action)){
-				final String recordAction = FLEFRecordHelper.getChildValue(activity, ResearchActivityHandler.TAG_ACTION);
+				final String recordAction = ResearchActivityReader.extractAction(activity);
 				if(!SearchHelper.matches(recordAction, action, mode))
 					return false;
 			}
 
 			// Result filter
 			if(StringUtils.isNotEmpty(result)){
-				final String recordResult = FLEFRecordHelper.getChildValue(activity, ResearchActivityHandler.TAG_RESULT);
+				final String recordResult = ResearchActivityReader.extractResult(activity);
 				if(!result.equalsIgnoreCase(recordResult))
 					return false;
 			}
 
 			// Observation filter
 			if(StringUtils.isNotEmpty(observation)){
-				final String recordObservation = FLEFRecordHelper.getChildValue(activity, ResearchActivityHandler.TAG_OBSERVATION);
+				final String recordObservation = ResearchActivityReader.extractObservation(activity);
 				if(!SearchHelper.matches(recordObservation, observation, mode))
 					return false;
 			}
@@ -108,9 +108,9 @@ public class ResearchActivitySearchStrategy implements SearchStrategy{
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
 		final String baseDisplayText = HANDLER.getDisplayText(record, model);
 
-		final String type = FLEFRecordHelper.getChildValue(record, ResearchActivityHandler.TAG_ACTIVITY_TYPE);
-		final String status = FLEFRecordHelper.getChildValue(record, ResearchActivityHandler.TAG_STATUS);
-		final String result = FLEFRecordHelper.getChildValue(record, ResearchActivityHandler.TAG_RESULT);
+		final String type = ResearchActivityReader.extractActivityType(record);
+		final String status = ResearchActivityReader.extractStatus(record);
+		final String result = ResearchActivityReader.extractResult(record);
 
 		final StringJoiner details = new StringJoiner(", ", " (", ")");
 		details.setEmptyValue(StringUtils.EMPTY);

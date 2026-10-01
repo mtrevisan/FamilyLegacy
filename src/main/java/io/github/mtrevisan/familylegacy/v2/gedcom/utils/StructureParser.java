@@ -28,7 +28,7 @@ import io.github.mtrevisan.familylegacy.v2.gedcom.GEDCOMHelper;
 import io.github.mtrevisan.familylegacy.v2.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.ui.components.EvidenceQualifiersPanel;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.EvidenceQualifiersReader;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventParticipationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
@@ -496,11 +496,11 @@ public class StructureParser{
 			// 2 = Secondary evidence, data officially recorded sometime after event
 			// 3 = Direct and primary evidence used, or by dominance of the evidence
 			String informationType = switch(quayNode.getValue().trim()){
-				case "3" -> EvidenceQualifiersPanel.INFORMATION_TYPE_PRIMARY;
-				case "2" -> EvidenceQualifiersPanel.INFORMATION_TYPE_SECONDARY;
-				default -> EvidenceQualifiersPanel.INFORMATION_TYPE_UNDETERMINED;
+				case "3" -> EvidenceQualifiersReader.INFORMATION_TYPE_PRIMARY;
+				case "2" -> EvidenceQualifiersReader.INFORMATION_TYPE_SECONDARY;
+				default -> EvidenceQualifiersReader.INFORMATION_TYPE_UNDETERMINED;
 			};
-			evidence.addChild(FLEFRecord.createChildWithTagAndValue(EvidenceQualifiersPanel.TAG_INFORMATION_TYPE, informationType));
+			evidence.addChild(FLEFRecord.createChildWithTagAndValue(EvidenceQualifiersReader.TAG_INFORMATION_TYPE, informationType));
 			sourceCitation.addChild(evidence);
 		}
 

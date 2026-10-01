@@ -27,6 +27,8 @@ package io.github.mtrevisan.familylegacy.v2.ui.tools.reports;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.NameReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.date.DateService;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.reports.index.RelationIndex;
 import org.apache.commons.lang3.StringUtils;
 
@@ -91,14 +93,14 @@ final class GroupNarrator{
 		final List<FLEFRecord> unions = findEvents(events, UNION_TYPES);
 
 		if(founding != null){
-			final String d = FLEFRecordHelper.extractDate(founding);
+			final String d = DateService.getDateDisplayText(founding);
 			final String p = FLEFRecordHelper.extractPlace(founding, model);
 			sentences.add(labels.narrative().groupNarrativeFounding(displayName, d, p));
 		}
 		else if(!unions.isEmpty()){
 			for(final FLEFRecord unionEvt : unions){
 				final String type = FLEFRecordHelper.getChildValue(unionEvt, TAG_TYPE);
-				final String d = FLEFRecordHelper.extractDate(unionEvt);
+				final String d = DateService.getDateDisplayText(unionEvt);
 				final String p = FLEFRecordHelper.extractPlace(unionEvt, model);
 
 				final String typeLabel = (type != null? type.replace('_', ' '): "union");
@@ -145,7 +147,7 @@ final class GroupNarrator{
 		// 4. Dissolution
 		final FLEFRecord dissolution = findEvent(events, TYPE_DISSOLVED);
 		if(dissolution != null){
-			final String d = FLEFRecordHelper.extractDate(dissolution);
+			final String d = DateService.getDateDisplayText(dissolution);
 			final String p = FLEFRecordHelper.extractPlace(dissolution, model);
 			sentences.add(labels.narrative().groupNarrativeDissolution(displayName, d, p));
 		}
@@ -155,7 +157,7 @@ final class GroupNarrator{
 
 	private String extractGroupName(final FLEFRecord group){
 		for(final FLEFRecord n : FLEFRecordHelper.findChildren(group, TAG_NAME)){
-			final String val = FLEFRecordHelper.getChildValue(n, TAG_VALUE);
+			final String val = FLEFRecordHelper.getChildValue(n, NameReader.TAG_VALUE);
 			if(val != null && !val.isBlank())
 				return val.trim();
 		}

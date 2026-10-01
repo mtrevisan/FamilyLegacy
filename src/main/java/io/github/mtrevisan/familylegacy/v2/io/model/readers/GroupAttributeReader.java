@@ -38,17 +38,17 @@ package io.github.mtrevisan.familylegacy.v2.io.model.readers;
  */
 public final class GroupAttributeReader{
 
-	public static final String TAG_GROUP = "GROUP";
-	public static final String TAG_TYPE = "TYPE";
-	public static final String TAG_VALUE = "VALUE";
-	public static final String TAG_VALID_FROM = "VALID_FROM";
-	public static final String TAG_VALID_TO = "VALID_TO";
-	public static final String TAG_PLACE = "PLACE";
-	public static final String TAG_SOURCE = "SOURCE";
-	public static final String TAG_NOTE = "NOTE";
-	public static final String TAG_EVIDENCE = "EVIDENCE";
-	public static final String TAG_PRIVACY = "PRIVACY";
-	public static final String TAG_AUDIT = "AUDIT";
+	public static final String TAG_GROUP = "group";
+	public static final String TAG_TYPE = "type";
+	public static final String TAG_VALUE = "value";
+	public static final String TAG_VALID_FROM = "valid_from";
+	public static final String TAG_VALID_TO = "valid_to";
+	public static final String TAG_PLACE = "place";
+	public static final String TAG_SOURCE = "source";
+	public static final String TAG_NOTE = "note";
+	public static final String TAG_EVIDENCE = "evidence";
+	public static final String TAG_PRIVACY = "privacy";
+	public static final String TAG_AUDIT = "audit";
 
 	public static final String[] TYPES = new String[]{
 		"residence", "member_count", "children_count", "social_class", "ethnicity", "religion", "language",

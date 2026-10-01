@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs.citations;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.SourceCitationReader;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
@@ -102,14 +103,14 @@ public class SourceCitationDialog extends BaseRecordDialog{
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]");
 
-		sourceField = EntityField.createForRecordFromReference(SourceCitationHandler.TAG_SOURCE, this, model, SourceHandler.class);
-		locatorField = new BoundTextField(SourceCitationHandler.TAG_LOCATOR);
-		extractPanel = new ExtractListPanel(SourceCitationHandler.TAG_EXTRACT, this, "Extracts", model);
+		sourceField = EntityField.createForRecordFromReference(SourceCitationReader.TAG_SOURCE, this, model, SourceHandler.class);
+		locatorField = new BoundTextField(SourceCitationReader.TAG_LOCATOR);
+		extractPanel = new ExtractListPanel(SourceCitationReader.TAG_EXTRACT, this, I18N.t("dialog.source.citation.extract.title"), model);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.EVIDENCE, SourceCitationHandler.TAG_EVIDENCE, I18N.t("dialog.component.evidence"))
-			.withComponent(PanelKey.PRIVACY, SourceCitationHandler.TAG_PRIVACY, null)
+			.withComponent(PanelKey.EVIDENCE, SourceCitationReader.TAG_EVIDENCE, I18N.t("dialog.component.evidence"))
+			.withComponent(PanelKey.PRIVACY, SourceCitationReader.TAG_PRIVACY, null)
 			.build();
 
 		components.bind(locatorField);

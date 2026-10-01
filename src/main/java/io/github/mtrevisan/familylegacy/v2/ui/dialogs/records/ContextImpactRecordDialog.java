@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs.records;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.ContextImpactReader;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextArea;
 import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
@@ -104,29 +105,29 @@ public class ContextImpactRecordDialog extends BaseRecordDialog{
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]10[]10[]10[]");
 
-		contextField = EntityField.createForRecordFromOneofReference(ContextImpactHandler.TAG_CONTEXT, this, model)
+		contextField = EntityField.createForRecordFromOneofReference(ContextImpactReader.TAG_CONTEXT, this, model)
 			.withHandlerTypes(CulturalNormHandler.class, HistoricEventHandler.class);
 
-		targetField = EntityField.createForRecordFromOneofReference(ContextImpactHandler.TAG_TARGET, this, model)
+		targetField = EntityField.createForRecordFromOneofReference(ContextImpactReader.TAG_TARGET, this, model)
 			.withHandlerTypes(IndividualHandler.class, GroupHandler.class, PlaceHandler.class, EventHandler.class,
 				RelationshipHandler.class, IndividualAttributeHandler.class, GroupAttributeHandler.class,
 				ConclusionHandler.class, EventParticipationHandler.class, PlaceRelationshipHandler.class,
 				IdentityHypothesisHandler.class);
 
-		impactTypeCombo = new BoundComboBox<>(ContextImpactHandler.TAG_IMPACT_TYPE, GUIHelper.fillCombo(ContextImpactHandler.IMPACT_TYPES, null));
+		impactTypeCombo = new BoundComboBox<>(ContextImpactReader.TAG_IMPACT_TYPE, GUIHelper.fillCombo(ContextImpactReader.IMPACT_TYPES, null));
 		impactTypeCombo.setI18NPrefix("enum.context.impact.type");
 		impactTypeCombo.setEditable(true);
 
-		rationaleArea = new BoundTextArea(ContextImpactHandler.TAG_RATIONALE, 3, 30);
+		rationaleArea = new BoundTextArea(ContextImpactReader.TAG_RATIONALE, 3, 30);
 
-		confidenceCombo = new BoundComboBox<>(ContextImpactHandler.TAG_CONFIDENCE, GUIHelper.fillCombo(ContextImpactHandler.CONFIDENCES, null));
+		confidenceCombo = new BoundComboBox<>(ContextImpactReader.TAG_CONFIDENCE, GUIHelper.fillCombo(ContextImpactReader.CONFIDENCES, null));
 		confidenceCombo.setI18NPrefix("enum.confidence");
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.SOURCE, ContextImpactHandler.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
-			.withComponent(PanelKey.EVIDENCE, ContextImpactHandler.TAG_EVIDENCE, I18N.t("dialog.component.evidence"))
-			.withComponent(PanelKey.AUDIT, ContextImpactHandler.TAG_AUDIT, null)
+			.withComponent(PanelKey.SOURCE, ContextImpactReader.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
+			.withComponent(PanelKey.EVIDENCE, ContextImpactReader.TAG_EVIDENCE, I18N.t("dialog.component.evidence"))
+			.withComponent(PanelKey.AUDIT, ContextImpactReader.TAG_AUDIT, null)
 			.build();
 
 		components.bind(impactTypeCombo);

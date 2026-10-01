@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.io.model.readers.PrivacyReader;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individualtree.services.kinship.KinshipCalculator;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.reports.index.RelationIndex;
@@ -149,7 +150,7 @@ final class ReportContext{
 			case "identity_hypothesis" -> RootKind.IDENTITY_HYPOTHESIS;
 			case "cultural_norm" -> RootKind.CULTURAL_NORM;
 			case "historic_event" -> RootKind.HISTORIC_EVENT;
-			case "individual" -> RootKind.INDIVIDUAL;
+			case IndividualHandler.TYPE -> RootKind.INDIVIDUAL;
 			default -> RootKind.OTHER;
 		};
 	}

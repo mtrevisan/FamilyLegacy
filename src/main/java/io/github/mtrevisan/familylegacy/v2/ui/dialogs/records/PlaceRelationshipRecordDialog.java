@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs.records;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.PlaceRelationshipReader;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
@@ -100,25 +101,25 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]5[]10[]10[]10[]");
 
-		subjectField = EntityField.createForRecordFromOneofReference(PlaceRelationshipHandler.TAG_SUBJECT, this, model)
+		subjectField = EntityField.createForRecordFromOneofReference(PlaceRelationshipReader.TAG_SUBJECT, this, model)
 			.withHandlerTypes(PlaceHandler.class);
-		objectField = EntityField.createForRecordFromOneofReference(PlaceRelationshipHandler.TAG_OBJECT, this, model)
+		objectField = EntityField.createForRecordFromOneofReference(PlaceRelationshipReader.TAG_OBJECT, this, model)
 			.withHandlerTypes(PlaceHandler.class);
-		typeCombo = new BoundComboBox<>(PlaceRelationshipHandler.TAG_TYPE, PlaceRelationshipHandler.TYPES);
+		typeCombo = new BoundComboBox<>(PlaceRelationshipReader.TAG_TYPE, GUIHelper.fillCombo(PlaceRelationshipReader.TYPES, null));
 		typeCombo.setI18NPrefix("enum.place.relationship.type");
 		typeCombo.setEditable(true);
-		validFromField = DateField.createWithWrapperTag(PlaceRelationshipHandler.TAG_VALID_FROM, this, I18N.t("dialog.date.valid.from"), model);
-		validToField = DateField.createWithWrapperTag(PlaceRelationshipHandler.TAG_VALID_TO, this, I18N.t("dialog.date.valid.to"), model);
+		validFromField = DateField.createWithWrapperTag(PlaceRelationshipReader.TAG_VALID_FROM, this, I18N.t("dialog.date.valid.from"), model);
+		validToField = DateField.createWithWrapperTag(PlaceRelationshipReader.TAG_VALID_TO, this, I18N.t("dialog.date.valid.to"), model);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
 			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, ContextImpactHandler.TYPE, I18N.t("dialog.component.context.impact"))
 			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, I18N.t("dialog.component.conclusions"))
 			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, I18N.t("dialog.component.research.questions"))
-			.withComponent(PanelKey.SOURCE, PlaceRelationshipHandler.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
-			.withComponent(PanelKey.NOTE, PlaceRelationshipHandler.TAG_NOTE, null)
-			.withComponent(PanelKey.EVIDENCE, PlaceRelationshipHandler.TAG_EVIDENCE, I18N.t("dialog.component.evidence"))
-			.withComponent(PanelKey.AUDIT, PlaceRelationshipHandler.TAG_AUDIT, null)
+			.withComponent(PanelKey.SOURCE, PlaceRelationshipReader.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
+			.withComponent(PanelKey.NOTE, PlaceRelationshipReader.TAG_NOTE, null)
+			.withComponent(PanelKey.EVIDENCE, PlaceRelationshipReader.TAG_EVIDENCE, I18N.t("dialog.component.evidence"))
+			.withComponent(PanelKey.AUDIT, PlaceRelationshipReader.TAG_AUDIT, null)
 			.build();
 
 		components.bind(typeCombo);

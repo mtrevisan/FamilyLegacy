@@ -27,6 +27,8 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.projections.chronomap;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.NameReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.PlaceReader;
 import io.github.mtrevisan.familylegacy.v2.io.model.readers.date.DateNormalizer;
 import io.github.mtrevisan.familylegacy.v2.io.model.readers.date.NormalizedDate;
 import io.github.mtrevisan.familylegacy.v2.io.model.readers.date.TemporalSpan;
@@ -281,11 +283,11 @@ public final class ChronomapIndex{
 		if(place == null)
 			return null;
 
-		final FLEFRecord nameStruct = FLEFRecordHelper.findChild(place, "name");
+		final FLEFRecord nameStruct = FLEFRecordHelper.findChild(place, PlaceReader.TAG_NAME);
 		if(nameStruct == null)
 			return null;
 
-		return FLEFRecordHelper.getChildValue(nameStruct, "value");
+		return FLEFRecordHelper.getChildValue(nameStruct, NameReader.TAG_VALUE);
 	}
 
 	private static String extractPlaceId(final FLEFRecord record){

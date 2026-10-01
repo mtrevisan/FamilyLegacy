@@ -26,7 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs.records;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.PlaceReader;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.EvidenceQualifiersPanel;
@@ -87,10 +87,6 @@ import java.io.IOException;
  */
 public class PlaceRecordDialog extends BaseRecordDialog{
 
-	private static final String TAG_MAP_COORDINATES = FLEFRecordHelper.composePath(PlaceHandler.TAG_MAP, PlaceHandler.TAG_COORDINATES);
-	private static final String TAG_MAP_EVIDENCE = FLEFRecordHelper.composePath(PlaceHandler.TAG_MAP, PlaceHandler.TAG_EVIDENCE);
-
-
 	private final JPanel propertiesPanel;
 
 	private final EntityListPanel namePanel;
@@ -113,12 +109,12 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]10[]");
 
-		namePanel = EntityListPanel.createForStructure(PlaceHandler.TAG_NAME, this, I18N.t("dialog.place.names") + "*", model, NameHandler.class);
-		typeCombo = new BoundComboBox<>(PlaceHandler.TAG_TYPE, PlaceHandler.TYPES);
+		namePanel = EntityListPanel.createForStructure(PlaceReader.TAG_NAME, this, I18N.t("dialog.place.names") + "*", model, NameHandler.class);
+		typeCombo = new BoundComboBox<>(PlaceReader.TAG_TYPE, GUIHelper.fillCombo(PlaceReader.TYPES, null));
 		typeCombo.setI18NPrefix("enum.place.type");
 		typeCombo.setEditable(true);
-		mapCoordinatesField = new BoundTextField(TAG_MAP_COORDINATES);
-		mapEvidencePanel = new EvidenceQualifiersPanel(TAG_MAP_EVIDENCE, I18N.t("dialog.place.map.evidence"));
+		mapCoordinatesField = new BoundTextField(PlaceReader.TAG_MAP_COORDINATES);
+		mapEvidencePanel = new EvidenceQualifiersPanel(PlaceReader.TAG_MAP_EVIDENCE, I18N.t("dialog.place.map.evidence"));
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
@@ -129,10 +125,10 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, I18N.t("dialog.component.conclusions"))
 			.withComponent(PanelKey.IDENTITY_HYPOTHESIS_ON_IDENTITY, IdentityHypothesisHandler.TYPE, I18N.t("dialog.component.identity.hypotheses"))
 			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, I18N.t("dialog.component.research.questions"))
-			.withComponent(PanelKey.SOURCE, PlaceHandler.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
-			.withComponent(PanelKey.EVIDENCE, PlaceHandler.TAG_EVIDENCE, I18N.t("dialog.component.evidence"))
-			.withComponent(PanelKey.PRIVACY, PlaceHandler.TAG_PRIVACY, null)
-			.withComponent(PanelKey.AUDIT, PlaceHandler.TAG_AUDIT, null)
+			.withComponent(PanelKey.SOURCE, PlaceReader.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
+			.withComponent(PanelKey.EVIDENCE, PlaceReader.TAG_EVIDENCE, I18N.t("dialog.component.evidence"))
+			.withComponent(PanelKey.PRIVACY, PlaceReader.TAG_PRIVACY, null)
+			.withComponent(PanelKey.AUDIT, PlaceReader.TAG_AUDIT, null)
 			.build();
 
 		components.bind(typeCombo);

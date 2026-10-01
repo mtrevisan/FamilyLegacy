@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs.records;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.ResearchQuestionReader;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextArea;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextField;
@@ -133,9 +134,9 @@ public class ResearchQuestionRecordDialog extends BaseRecordDialog{
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]10[]10[]10[]");
 
-		titleField = new BoundTextField(ResearchQuestionHandler.TAG_TITLE);
-		questionArea = new BoundTextArea(ResearchQuestionHandler.TAG_QUESTION, 3, 30);
-		targetPanel = EntityListPanel.createForOneOfReference(ResearchQuestionHandler.TAG_TARGET, this, I18N.t("dialog.research.question.target"), model)
+		titleField = new BoundTextField(ResearchQuestionReader.TAG_TITLE);
+		questionArea = new BoundTextArea(ResearchQuestionReader.TAG_QUESTION, 3, 30);
+		targetPanel = EntityListPanel.createForOneOfReference(ResearchQuestionReader.TAG_TARGET, this, I18N.t("dialog.research.question.target"), model)
 			.withHandlerTypes(IndividualHandler.class, GroupHandler.class, EventHandler.class,
 				EventParticipationHandler.class, RelationshipHandler.class, IndividualAttributeHandler.class,
 				GroupAttributeHandler.class, PlaceHandler.class, PlaceRelationshipHandler.class, SourceHandler.class,
@@ -143,18 +144,18 @@ public class ResearchQuestionRecordDialog extends BaseRecordDialog{
 				HistoricEventHandler.class)
 			.withSaveAsVoid();
 		statusPanel = new ResearchQuestionStatusPanel();
-		conclusionArea = new BoundTextArea(ResearchQuestionHandler.TAG_CONCLUSION, 3, 30);
-		conclusionConfidenceCombo = new BoundComboBox<>(ResearchQuestionHandler.TAG_CONCLUSION_CONFIDENCE, GUIHelper.fillCombo(ResearchQuestionHandler.CONFIDENCES, null));
+		conclusionArea = new BoundTextArea(ResearchQuestionReader.TAG_CONCLUSION, 3, 30);
+		conclusionConfidenceCombo = new BoundComboBox<>(ResearchQuestionReader.TAG_CONCLUSION_CONFIDENCE, GUIHelper.fillCombo(ResearchQuestionReader.CONFIDENCES, null));
 		conclusionConfidenceCombo.setI18NPrefix("enum.confidence");
-		rationaleArea = new BoundTextArea(ResearchQuestionHandler.TAG_RATIONALE, 3, 30);
+		rationaleArea = new BoundTextArea(ResearchQuestionReader.TAG_RATIONALE, 3, 30);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
 			.withComponent(PanelKey.CONCLUSION_ON_RESEARCH, ConclusionHandler.TYPE, I18N.t("dialog.component.conclusions"))
 			.withComponent(PanelKey.RESEARCH_ACTIVITY_ON_QUESTION, ResearchActivityHandler.TYPE, I18N.t("dialog.component.research.activities"))
 			.withComponent(PanelKey.RESEARCH_TASK_ON_QUESTION, ResearchTaskHandler.TYPE, I18N.t("dialog.component.research.tasks"))
-			.withComponent(PanelKey.PRIVACY, ResearchQuestionHandler.TAG_PRIVACY, null)
-			.withComponent(PanelKey.AUDIT, ResearchQuestionHandler.TAG_AUDIT, null)
+			.withComponent(PanelKey.PRIVACY, ResearchQuestionReader.TAG_PRIVACY, null)
+			.withComponent(PanelKey.AUDIT, ResearchQuestionReader.TAG_AUDIT, null)
 			.build();
 
 		components.bind(titleField);

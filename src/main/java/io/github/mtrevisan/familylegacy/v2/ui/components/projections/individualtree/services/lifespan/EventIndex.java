@@ -30,13 +30,13 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.io.model.readers.DateReader;
 import io.github.mtrevisan.familylegacy.v2.io.model.readers.EventParticipationReader;
 import io.github.mtrevisan.familylegacy.v2.io.model.readers.EventReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.PlaceReader;
 import io.github.mtrevisan.familylegacy.v2.io.model.readers.date.NormalizedDate;
 import io.github.mtrevisan.familylegacy.v2.io.model.readers.date.TemporalSpan;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventParticipationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.NameHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import org.apache.commons.lang3.StringUtils;
 
@@ -238,13 +238,9 @@ public final class EventIndex{
 		final FLEFRecord place = model.getRecordById(placeId);
 		if(place == null)
 			return placeId;
-		final FLEFRecord name = FLEFRecordHelper.findChild(place, PlaceHandler.TAG_NAME);
-		if(name != null){
-			final String v = FLEFRecordHelper.getChildValue(name, NameHandler.TAG_VALUE);
-			if(v != null && !v.isBlank())
-				return v;
-		}
-		return (place.getId() != null? place.getId(): placeId);
+
+		final String name = PlaceReader.extractPrimaryName(place);
+		return (name != null? name: placeId);
 	}
 
 	// Reserved for future expansions.

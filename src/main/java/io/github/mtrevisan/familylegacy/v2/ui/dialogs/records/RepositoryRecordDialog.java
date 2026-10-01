@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs.records;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.RepositoryReader;
 import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.EntityField;
@@ -93,17 +94,17 @@ public class RepositoryRecordDialog extends BaseRecordDialog{
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]5[]10[]");
 
-		namePanel = EntityListPanel.createForStructure(RepositoryHandler.TAG_NAME, this, I18N.t("dialog.repository.name") + "*", model, NameHandler.class);
-		custodianField = EntityField.createForRecordFromReference(RepositoryHandler.TAG_CUSTODIAN, this, model, IndividualHandler.class);
-		placeField = EntityField.createForStructureWithReference(RepositoryHandler.TAG_PLACE, this, model, PlaceCitationHandler.class);
-		contactPanel = EntityListPanel.createForStructure(RepositoryHandler.TAG_CONTACT, this, I18N.t("dialog.repository.contacts"), model, ContactHandler.class);
+		namePanel = EntityListPanel.createForStructure(RepositoryReader.TAG_NAME, this, I18N.t("dialog.repository.name") + "*", model, NameHandler.class);
+		custodianField = EntityField.createForRecordFromReference(RepositoryReader.TAG_CUSTODIAN, this, model, IndividualHandler.class);
+		placeField = EntityField.createForStructureWithReference(RepositoryReader.TAG_PLACE, this, model, PlaceCitationHandler.class);
+		contactPanel = EntityListPanel.createForStructure(RepositoryReader.TAG_CONTACT, this, I18N.t("dialog.repository.contacts"), model, ContactHandler.class);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
 			.withComponent(PanelKey.SOURCE_ON_REPOSITORY, SourceHandler.TYPE, I18N.t("dialog.component.sources.with.citations"))
-			.withComponent(PanelKey.NOTE, RepositoryHandler.TAG_NOTE, null)
-			.withComponent(PanelKey.PRIVACY, RepositoryHandler.TAG_PRIVACY, null)
-			.withComponent(PanelKey.AUDIT, RepositoryHandler.TAG_AUDIT, null)
+			.withComponent(PanelKey.NOTE, RepositoryReader.TAG_NOTE, null)
+			.withComponent(PanelKey.PRIVACY, RepositoryReader.TAG_PRIVACY, null)
+			.withComponent(PanelKey.AUDIT, RepositoryReader.TAG_AUDIT, null)
 			.build();
 
 

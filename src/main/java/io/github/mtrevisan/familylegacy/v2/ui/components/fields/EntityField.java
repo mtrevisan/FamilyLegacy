@@ -57,9 +57,6 @@ public class EntityField extends BoundTextField{
 	public static final String PROPERTY_ENTITY_CHANGED = "entity-changed";
 
 
-	private static final String TAG_VOID = "VOID";
-
-
 	public enum EntityType{
 		// record from reference
 		ENTITY_REFERENCE,
@@ -321,7 +318,7 @@ public class EntityField extends BoundTextField{
 			}
 		}
 		else if(saveAsVoid){
-			final FLEFRecord child = FLEFRecord.createChildWithTag(TAG_VOID);
+			final FLEFRecord child = FLEFRecord.createChildWithTag(FLEFRecord.TAG_VOID);
 			final FLEFRecord itemRecord = FLEFRecord.createChildWithTag(path)
 				.addChild(child);
 			targetRecord.addChild(itemRecord);

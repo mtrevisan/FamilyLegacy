@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.projections.relationsh
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.TreeOperation;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.group.GroupListener;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.group.GroupPanel;
@@ -36,7 +37,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.ProjectionMutator;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContexts;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolDispatcher;
@@ -172,7 +172,7 @@ public final class EgoNetworkListener implements IndividualListener, GroupListen
 			(operation == TreeOperation.ADD
 				? () -> actionHandler.showCreateRecordDialog(IndividualHandler.class)
 				: () -> actionHandler.showSearchRecordDialog(IndividualHandler.class)),
-			false, RelationshipHandler.INDIVIDUAL_TO_INDIVIDUAL_SOCIAL_TYPES, contextProvider.getCurrentEgoId(),
+			false, RelationshipReader.INDIVIDUAL_TO_INDIVIDUAL_SOCIAL_TYPES, contextProvider.getCurrentEgoId(),
 			contextProvider.getRootEgoNode(), this);
 	}
 
@@ -182,7 +182,7 @@ public final class EgoNetworkListener implements IndividualListener, GroupListen
 			(operation == TreeOperation.ADD
 				? () -> actionHandler.showCreateRecordDialog(IndividualHandler.class)
 				: () -> actionHandler.showSearchRecordDialog(IndividualHandler.class)),
-			false, RelationshipHandler.INDIVIDUAL_TO_INDIVIDUAL_CHILD_TYPES, contextProvider.getCurrentEgoId(),
+			false, RelationshipReader.INDIVIDUAL_TO_INDIVIDUAL_CHILD_TYPES, contextProvider.getCurrentEgoId(),
 			contextProvider.getRootEgoNode(), this);
 	}
 
@@ -191,8 +191,8 @@ public final class EgoNetworkListener implements IndividualListener, GroupListen
 		final EgoNode rootEgoNode = contextProvider.getRootEgoNode();
 		final FLEFRecord egoRecord = (rootEgoNode != null ? rootEgoNode.getEgoRecord() : null);
 		final String[] allowedTypes = (egoRecord != null && GroupHandler.TYPE.equalsIgnoreCase(egoRecord.getTag())
-			? RelationshipHandler.GROUP_TO_GROUP_TYPES
-			: RelationshipHandler.INDIVIDUAL_TO_GROUP_TYPES);
+			? RelationshipReader.GROUP_TO_GROUP_TYPES
+			: RelationshipReader.INDIVIDUAL_TO_GROUP_TYPES);
 
 		actionHandler.performRelationOperation(
 			(operation == TreeOperation.ADD
@@ -286,11 +286,11 @@ public final class EgoNetworkListener implements IndividualListener, GroupListen
 
 		final String[] allowedTypes;
 		if(egoIsGroup && sourceIsGroup)
-			allowedTypes = RelationshipHandler.GROUP_TO_GROUP_TYPES;
+			allowedTypes = RelationshipReader.GROUP_TO_GROUP_TYPES;
 		else if(!egoIsGroup && !sourceIsGroup)
-			allowedTypes = RelationshipHandler.INDIVIDUAL_TO_INDIVIDUAL_SOCIAL_TYPES;
+			allowedTypes = RelationshipReader.INDIVIDUAL_TO_INDIVIDUAL_SOCIAL_TYPES;
 		else
-			allowedTypes = RelationshipHandler.INDIVIDUAL_TO_GROUP_TYPES;
+			allowedTypes = RelationshipReader.INDIVIDUAL_TO_GROUP_TYPES;
 
 		actionHandler.performRelationOperationOnRecord(source, true, allowedTypes,
 			contextProvider.getCurrentEgoId(), rootEgoNode, this);

@@ -4,7 +4,6 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.io.model.readers.names.Name;
 import io.github.mtrevisan.familylegacy.v2.io.model.readers.names.NameAnatomyService;
-import io.github.mtrevisan.familylegacy.v2.ui.components.PreferredImagePanel;
 import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Rectangle;
@@ -68,36 +67,31 @@ public final class GroupReader{
 
 	public static Rectangle extractPreferredImageCrop(final FLEFRecord record){
 		final FLEFRecord crop = FLEFRecordHelper.findChild(record, TAG_PREFERRED_IMAGE_CROP);
-		if(crop != null){
-			final String x = FLEFRecordHelper.getChildValue(crop, PreferredImagePanel.TAG_X);
-			final String y = FLEFRecordHelper.getChildValue(crop, PreferredImagePanel.TAG_Y);
-			final String width = FLEFRecordHelper.getChildValue(crop, PreferredImagePanel.TAG_WIDTH);
-			final String height = FLEFRecordHelper.getChildValue(crop, PreferredImagePanel.TAG_HEIGHT);
-			if(x != null && y != null && width != null && height != null){
-				final int cropX = Integer.parseInt(x);
-				final int cropY = Integer.parseInt(y);
-				final int cropWidth = Integer.parseInt(width);
-				final int cropHeight = Integer.parseInt(height);
-				if(cropX >= 0 && cropY >= 0 && cropWidth >= 0 && cropHeight >= 0)
-					return new Rectangle(cropX, cropY, cropWidth, cropHeight);
-			}
-		}
-		return new Rectangle();
+		return CropReader.extractPreferredImageCrop(crop);
 	}
 
 
 	/**
-	 * Extracts full names from an GroupRecord.
+	 * Extracts names from an GroupRecord.
 	 *
 	 * @param group the GroupRecord
-	 * @return a list of full name strings with excluded parts omitted
+	 * @return a list of name strings with excluded parts omitted
 	 */
-	public static List<String> extractFullNames(final FLEFRecord group){
+	public static List<String> extractNames(final FLEFRecord group){
 		final List<Name> names = NameAnatomyService.extractForGeneric(group);
 		return names.stream()
 			.map(Name::value)
 			.filter(StringUtils::isNotEmpty)
 			.toList();
+	}
+
+	public static String extractPrimaryName(final FLEFRecord group){
+		final List<String> names = extractNames(group);
+		return (!names.isEmpty()? names.getFirst(): null);
+	}
+
+	public static String extractSource(final FLEFRecord group){
+		return FLEFRecordHelper.getChildValue(group, TAG_SOURCE);
 	}
 
 }

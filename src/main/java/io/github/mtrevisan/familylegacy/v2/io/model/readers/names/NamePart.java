@@ -26,11 +26,12 @@ package io.github.mtrevisan.familylegacy.v2.io.model.readers.names;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.NameReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.TextValueVariantReader;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 
 /**
@@ -44,50 +45,8 @@ import java.util.Set;
  * significant and is preserved by the enclosing {@code NameAnatomy}.
  * <p>
  * The record is immutable.
- * <p>
- * Structure:
- * <pre>
- * struct NamePartStructure {
- *   type: enum {
- *     // personal and birth names
- *     given, generation,
- *     // direct family relationships (descent)
- *     patronymic, matronymic, kunya (كُنيَة),
- *     // extended family and social belonging
- *     family, family_nickname, lineage, house, clan, tribal, caste,
- *     // geographical and territorial origin
- *     toponymic,
- *     // titles, roles and professions
- *     title, occupational, prefix, suffix,
- *     // assumed names, nicknames and contextual
- *     nickname, regnal, religious, posthumous
- *   } | Text
- *   value: Text                  // the textual value of this individual name component
- *   variant*: TextValueVariant   // alternative phonetic, transliterated, or transcribed representations of this name component
- * }
- * </pre>
  */
 public record NamePart(String type, String value, List<TextValueVariant> variants){
-
-	public static final String TAG_TYPE = "type";
-	public static final String TAG_VALUE = "value";
-	public static final String TAG_VARIANT = "variant";
-
-	public static final String[] TYPES = {
-		"given", "generation",
-		"patronymic", "matronymic", "kunya",
-		"family", "family_nickname", "lineage", "house", "clan", "tribal", "caste",
-		"toponymic",
-		"title", "occupational", "prefix", "suffix",
-		"nickname", "regnal", "religious", "posthumous"
-	};
-
-	public static final Set<String> EXCLUDED_PART_TYPES = Set.of(
-		"family_nickname",
-		"title", "occupational", "prefix", "suffix",
-		"nickname", "regnal", "religious", "posthumous"
-	);
-
 
 	public NamePart{
 		if(type == null)
@@ -99,9 +58,9 @@ public record NamePart(String type, String value, List<TextValueVariant> variant
 
 
 	static NamePart parsePart(final FLEFRecord partRecord){
-		final String type = FLEFRecordHelper.getChildValue(partRecord, NamePart.TAG_TYPE);
+		final String type = NameReader.extractPartType(partRecord);
 
-		final String value = FLEFRecordHelper.getChildValue(partRecord, NamePart.TAG_VALUE);
+		final String value = NameReader.extractPartValue(partRecord);
 
 		final List<TextValueVariant> variants = extractVariants(partRecord);
 
@@ -116,11 +75,13 @@ public record NamePart(String type, String value, List<TextValueVariant> variant
 	 * fields. This method flattens that structure into a single list of
 	 * {@link TextValueVariant} records.
 	 */
-	static List<TextValueVariant> extractVariants(final FLEFRecord parent){
+	static List<TextValueVariant> extractVariants(final FLEFRecord partRecord){
 		final List<TextValueVariant> variants = new ArrayList<>();
-		for(final FLEFRecord variantWrapper : FLEFRecordHelper.findChildren(parent, TAG_VARIANT)){
+		final List<FLEFRecord> variantWrappers = FLEFRecordHelper.findChildren(partRecord, NameReader.TAG_PART_VARIANT);
+		for(final FLEFRecord variantWrapper : variantWrappers){
 			for(final FLEFRecord kindChild : variantWrapper.getChildren()){
-				if(!TextValueVariant.isPhonetic(kindChild) && !TextValueVariant.isTranscription(kindChild))
+				final String kind = kindChild.getTag();
+				if(!TextValueVariantReader.isPhonetic(kind) && !TextValueVariantReader.isTranscription(kind))
 					continue;
 
 				variants.add(TextValueVariant.create(kindChild));

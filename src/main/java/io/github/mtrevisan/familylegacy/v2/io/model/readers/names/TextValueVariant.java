@@ -26,7 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.io.model.readers.names;
 
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.TextValueVariantReader;
 import org.apache.commons.lang3.StringUtils;
 
 
@@ -44,86 +44,8 @@ import org.apache.commons.lang3.StringUtils;
  *       (e.g. {@code romanized}, {@code anglicized}, {@code hellenized}).</li>
  * </ul>
  * The record is immutable. Empty fields are normalized to empty strings.
- * <p>
- * Structure:
- * <pre>
- * // Alternative written, phonetic, transliterated, or transcribed representations of the same textual value. These representations do not constitute separate
- * // names; they are alternate renderings of the same name.
- * TextValueVariant = oneof {
- *   phonetic: struct {
- *     system: Text   // usually IPA, but other systems can be used (e.g., canIPA)
- *     value: Text    // phonetic/phonematic component
- *   }
- *   transcription: struct {
- *     system: enum {   // indicates the system used to transcribe the text to the transcribed variation
- *       rōmaji, hepburn, kunreishiki, nihonshiki,   // Japanese
- *       pinyin, wadegiles,                          // Chinese
- *       bgn_pcgn,                                   // various geographic standards
- *       iso9,                                       // Cyrillic -> Latin
- *       ala_lc,                                     // Library of Congress
- *       dmg,                                        // Arabic/Persian scholarly
- *       buckwalter,                                 // Arabic
- *       iso233,                                     // Arabic
- *       iso259,                                     // Hebrew
- *       iast,                                       // Sanskrit
- *       iso15919, hunterian,                        // Indic scripts
- *       mccune_reischauer, revised_korean,          // Korean
- *       scientific                                  // generic scholarly transliteration
- *     } | Text
- *     type?: enum {
- *       romanized,      // converted to Latin script
- *       latinized,      // converted to Latinized scholarly form
- *       anglicized,     // adapted to English
- *       francized,      // adapted to French
- *       germanized,     // adapted to German
- *       italianized,    // adapted to Italian
- *       hispanicized,   // adapted to Spanish
- *       lusitanized,    // adapted to Portuguese
- *       cyrillized,     // converted to Cyrillic
- *       arabized,       // converted to Arabic script
- *       hebraized,      // converted to Hebrew script
- *       hellenized,     // converted to Greek script
- *       gairaigized,    // adapted to Japanese loanword form
- *       modernized,     // historic spelling modernized
- *       normalized      // orthography normalized
- *     } | Text
- *     value: Text      // transcribed component
- *   }
- * }
- * </pre>
  */
 public record TextValueVariant(String kind, String system, String type, String value){
-
-	private static final String TAG_PHONETIC = "phonetic";
-	private static final String TAG_PHONETIC_SYSTEM = "system";
-	private static final String TAG_PHONETIC_VALUE = "value";
-	private static final String TAG_TRANSCRIPTION = "transcription";
-	private static final String TAG_TRANSCRIPTION_SYSTEM = "system";
-	private static final String TAG_TRANSCRIPTION_TYPE = "type";
-	private static final String TAG_TRANSCRIPTION_VALUE = "value";
-
-	public static final String[] TRANSCRIPTION_SYSTEMS = {
-		StringUtils.EMPTY,
-		"romaji", "hepburn", "kunreishiki", "nihonshiki",
-		"pinyin", "wadegiles",
-		"bgn_pcgn",
-		"iso9",
-		"ala_lc",
-		"dmg",
-		"buckwalter",
-		"iso233",
-		"iso259",
-		"iast",
-		"iso15919", "hunterian",
-		"mccune_reischauer", "revised_korean",
-		"scientific"
-	};
-	public static final String[] TRANSCRIPTION_TYPES = {
-		StringUtils.EMPTY,
-		"romanized", "latinized", "anglicized", "francized", "germanized", "italianized", "hispanicized",
-		"lusitanized", "cyrillized", "arabized", "hebraized", "hellenized", "gairaigized", "modernized", "normalized"
-	};
-
 
 	public TextValueVariant{
 		if(kind == null)
@@ -139,15 +61,15 @@ public record TextValueVariant(String kind, String system, String type, String v
 
 	public static TextValueVariant create(final FLEFRecord kindChild){
 		final String kind = kindChild.getTag();
-		if(isPhonetic(kindChild)){
-			final String system = FLEFRecordHelper.getChildValue(kindChild, TAG_PHONETIC_SYSTEM);
-			final String value = FLEFRecordHelper.getChildValue(kindChild, TAG_PHONETIC_VALUE);
+		if(TextValueVariantReader.isPhonetic(kindChild.getTag())){
+			final String system = TextValueVariantReader.extractPhoneticSystem(kindChild);
+			final String value = TextValueVariantReader.extractPhoneticValue(kindChild);
 			return new TextValueVariant(kind, system, null, value);
 		}
-		else if(isTranscription(kindChild)){
-			final String system = FLEFRecordHelper.getChildValue(kindChild, TAG_TRANSCRIPTION_SYSTEM);
-			final String type = FLEFRecordHelper.getChildValue(kindChild, TAG_TRANSCRIPTION_TYPE);
-			final String value = FLEFRecordHelper.getChildValue(kindChild, TAG_TRANSCRIPTION_VALUE);
+		else if(TextValueVariantReader.isTranscription(kindChild.getTag())){
+			final String system = TextValueVariantReader.extractTranscriptionSystem(kindChild);
+			final String type = TextValueVariantReader.extractTranscriptionType(kindChild);
+			final String value = TextValueVariantReader.extractTranscriptionValue(kindChild);
 			return new TextValueVariant(kind, system, type, value);
 		}
 		return null;
@@ -157,27 +79,19 @@ public record TextValueVariant(String kind, String system, String type, String v
 	/**
 	 * Returns whether this variant is a phonetic representation.
 	 *
-	 * @return {@code true} if the kind is {@link #TAG_PHONETIC}
+	 * @return {@code true} if the kind is {@code PHONETIC}
 	 */
 	public boolean isPhonetic(){
-		return TAG_PHONETIC.equals(kind);
-	}
-
-	public static boolean isPhonetic(final FLEFRecord record){
-		return TAG_PHONETIC.equals(record.getTag());
+		return TextValueVariantReader.isPhonetic(kind);
 	}
 
 	/**
 	 * Returns whether this variant is a transcription or transliteration.
 	 *
-	 * @return {@code true} if the kind is {@link #TAG_TRANSCRIPTION}
+	 * @return {@code true} if the kind is {@code TRANSCRIPTION}
 	 */
 	public boolean isTranscription(){
-		return TAG_TRANSCRIPTION.equals(kind);
-	}
-
-	public static boolean isTranscription(final FLEFRecord record){
-		return TAG_TRANSCRIPTION.equals(record.getTag());
+		return TextValueVariantReader.isTranscription(kind);
 	}
 
 	/**

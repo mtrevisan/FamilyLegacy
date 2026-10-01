@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs.citations;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.PlaceCitationReader;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
@@ -83,12 +84,12 @@ public class PlaceCitationDialog extends BaseRecordDialog{
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]");
 
 		placeField = new BoundTextField(PlaceHandler.TYPE);
-		originalTextField = new BoundTextField(PlaceCitationHandler.TAG_ORIGINAL_TEXT);
+		originalTextField = new BoundTextField(PlaceCitationReader.TAG_ORIGINAL_TEXT);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.SOURCE, PlaceCitationHandler.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
-			.withComponent(PanelKey.EVIDENCE, PlaceCitationHandler.TAG_EVIDENCE, I18N.t("dialog.component.evidence"))
+			.withComponent(PanelKey.SOURCE, PlaceCitationReader.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
+			.withComponent(PanelKey.EVIDENCE, PlaceCitationReader.TAG_EVIDENCE, I18N.t("dialog.component.evidence"))
 			.build();
 
 		components.bind(placeField);

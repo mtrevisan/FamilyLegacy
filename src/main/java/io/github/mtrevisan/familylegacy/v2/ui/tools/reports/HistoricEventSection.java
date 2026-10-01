@@ -51,7 +51,6 @@ final class HistoricEventSection implements SectionBuilder{
 	private static final String TAG_HISTORIC = "historic_event";
 	private static final String TAG_TITLE = "title";
 	private static final String TAG_TYPE = "type";
-	private static final String TAG_VOID = "void";
 
 
 	private final ReportContext ctx;
@@ -92,7 +91,7 @@ final class HistoricEventSection implements SectionBuilder{
 			if(contextNode == null)
 				continue;
 			final FLEFRecord ref = contextNode.getTheOnlyChild();
-			if(ref == null || TAG_VOID.equalsIgnoreCase(ref.getTag()))
+			if(ref == null || FLEFRecord.TAG_VOID.equalsIgnoreCase(ref.getTag()))
 				continue;
 			if(!TAG_HISTORIC.equalsIgnoreCase(ref.getTag()))
 				continue;

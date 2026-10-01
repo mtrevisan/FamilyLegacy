@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.tools.research;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.ConclusionReader;
 import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ReportDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
@@ -142,8 +143,7 @@ public final class ProofSummaryTool implements ToolOperation{
 			body.append("<td>").append(ReportDialog.escape(c.getId())).append("</td>");
 			final String issue = ResearchHelper.conclusionIssue(c);
 			body.append("<td>").append(ReportDialog.escape(issue != null? issue: StringUtils.EMPTY)).append("</td>");
-			final String narrative = ResearchHelper.firstTextValue(c,
-				ResearchHelper.TAG_NARRATIVE);
+			final String narrative = ResearchHelper.firstTextValue(c, ConclusionReader.TAG_NARRATIVE);
 			body.append("<td>").append(ReportDialog.escape(narrative != null? narrative: StringUtils.EMPTY)).append("</td>");
 			body.append("</tr>");
 		}

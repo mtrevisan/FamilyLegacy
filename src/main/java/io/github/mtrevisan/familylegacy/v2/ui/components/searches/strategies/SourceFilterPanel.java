@@ -24,10 +24,10 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.components.searches.strategies;
 
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.RecordFilterPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchCriteria;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import net.miginfocom.swing.MigLayout;
 
@@ -51,7 +51,7 @@ public class SourceFilterPanel extends JPanel implements RecordFilterPanel{
 	private final JTextField titleField = new JTextField(20);
 	private final JTextField authorField = new JTextField(20);
 	private final JTextField publisherField = new JTextField(20);
-	private final JComboBox<String> mediaTypeCombo = new JComboBox<>(SourceHandler.MEDIA_TYPES);
+	private final JComboBox<String> mediaTypeCombo = new JComboBox<>(GUIHelper.fillCombo(SourceReader.MEDIA_TYPES, I18N.t("search.combo.any")));
 	private final JTextField placeField = new JTextField(20);
 
 	private final Consumer<SearchCriteria> onChanged;
@@ -120,11 +120,11 @@ public class SourceFilterPanel extends JPanel implements RecordFilterPanel{
 	@Override
 	public Map<String, String> getFilters(){
 		final Map<String, String> filters = new HashMap<>();
-		filters.put(SourceHandler.TAG_TITLE, getTitle());
-		filters.put(SourceHandler.TAG_AUTHOR, getAuthor());
-		filters.put(SourceHandler.TAG_PUBLISHER, getPublisher());
-		filters.put(SourceHandler.TAG_MEDIA_TYPE, getMediaType());
-		filters.put(PlaceHandler.TYPE, getPlace());
+		filters.put(SourceReader.TAG_TITLE, getTitle());
+		filters.put(SourceReader.TAG_AUTHOR, getAuthor());
+		filters.put(SourceReader.TAG_PUBLISHER, getPublisher());
+		filters.put(SourceReader.TAG_MEDIA_TYPE, getMediaType());
+		filters.put(SourceReader.TAG_PLACE, getPlace());
 		return filters;
 	}
 

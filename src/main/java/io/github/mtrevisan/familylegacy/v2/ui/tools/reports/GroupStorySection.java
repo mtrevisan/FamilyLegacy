@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.tools.reports;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import org.apache.commons.lang3.StringUtils;
 
 import java.nio.file.Path;
@@ -392,7 +393,7 @@ final class GroupStorySection implements SectionBuilder{
 		final FLEFRecord ref = subjNode.getTheOnlyChild();
 		if(ref == null)
 			return null;
-		return ("individual".equalsIgnoreCase(ref.getTag())? ref.getValue(): null);
+		return (IndividualHandler.TYPE.equalsIgnoreCase(ref.getTag())? ref.getValue(): null);
 	}
 
 }

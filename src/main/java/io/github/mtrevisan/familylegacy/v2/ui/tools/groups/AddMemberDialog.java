@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.tools.groups;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.GroupReader;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.RecordSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
@@ -167,7 +168,7 @@ public final class AddMemberDialog extends JDialog{
 
 		if(chosen[0] != null){
 			group = chosen[0];
-			groupField.setText(GroupHelper.displayName(group) + "  [" + group.getId() + "]");
+			groupField.setText(GroupReader.extractPrimaryName(group) + "  [" + group.getId() + "]");
 		}
 	}
 

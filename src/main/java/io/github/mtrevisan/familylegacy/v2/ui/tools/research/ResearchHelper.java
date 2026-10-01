@@ -27,6 +27,11 @@ package io.github.mtrevisan.familylegacy.v2.ui.tools.research;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.ConclusionReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.IdentityHypothesisReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.ResearchActivityReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.ResearchQuestionReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.ResearchTaskReader;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IdentityHypothesisHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
@@ -62,48 +67,7 @@ import java.util.Map;
  */
 public final class ResearchHelper{
 
-	// TODO not used?
-	public static final String TYPE_QUESTION = "research_question";
-	public static final String TYPE_ACTIVITY = "research_activity";
-	public static final String TYPE_TASK = "research_task";
-	public static final String TYPE_CONCLUSION = "conclusion";
-	public static final String TYPE_IDENTITY = "identity_hypothesis";
-
-	public static final String TAG_TITLE = "title";
-	public static final String TAG_QUESTION = "question";
-	public static final String TAG_STATUS = "status";
-	public static final String TAG_RATIONALE = "rationale";
-	public static final String TAG_CONCLUSION = "conclusion";
-	public static final String TAG_CONFIDENCE = "conclusion_confidence";
-	public static final String TAG_CLOSED_DATE = "closed_date";
-
-	public static final String TAG_ACTIVITY_TYPE = "activity_type";
-	public static final String TAG_ACTION = "action";
-	public static final String TAG_TARGET = "target";
-	public static final String TAG_RESULT = "result";
-	public static final String TAG_OBSERVATION = "observation";
-	public static final String TAG_PARENT_ACTIVITY = "parent_activity";
-
-	public static final String TAG_DESCRIPTION = "description";
-	public static final String TAG_CREATED_BY = "created_by";
-	public static final String TAG_PRIORITY = "priority";
-	public static final String TAG_DUE_DATE = "due_date";
-	public static final String TAG_OUTCOME = "outcome";
-
-	public static final String TAG_ISSUE = "issue";
-	public static final String TAG_PROOF_STATUS = "proof_status";
-	public static final String TAG_NARRATIVE = "narrative";
-	public static final String TAG_RESOLVES = "resolves";
-	public static final String TAG_PREFERRED = "preferred";
-	public static final String TAG_RESEARCH = "research";
-
-	public static final String TAG_IDENTITY = "identity";
-	public static final String TAG_COMMENT = "comment";
-	public static final String TAG_EVIDENCE = "evidence";
-
-
-	private ResearchHelper(){
-	}
+	private ResearchHelper(){}
 
 
 	/* ======================================================================
@@ -151,58 +115,65 @@ public final class ResearchHelper{
 
 	/** Title of a research question, or the id when missing. */
 	public static String questionTitle(final FLEFRecord question){
-		final String title = firstTextValue(question, TAG_TITLE);
+		final String title = firstTextValue(question, ResearchQuestionReader.TAG_TITLE);
 		return (title != null && !title.isBlank()? title: question.getId());
 	}
 
 	/** Question text, or {@code null}. */
 	public static String questionText(final FLEFRecord question){
-		return firstTextValue(question, TAG_QUESTION);
+		return firstTextValue(question, ResearchQuestionReader.TAG_QUESTION);
 	}
 
 	/** Status of a research question, task, or activity. */
 	public static String status(final FLEFRecord record){
-		return firstTextValue(record, TAG_STATUS);
+		final String recordTag = record.getTag();
+		if(ResearchQuestionHandler.TYPE.equalsIgnoreCase(recordTag))
+			return firstTextValue(record, ResearchQuestionReader.TAG_STATUS);
+		if(ResearchTaskHandler.TYPE.equalsIgnoreCase(recordTag))
+			return firstTextValue(record, ResearchTaskReader.TAG_STATUS);
+		if(ResearchActivityHandler.TYPE.equalsIgnoreCase(recordTag))
+			return firstTextValue(record, ResearchActivityReader.TAG_STATUS);
+		return null;
 	}
 
 	/** Type of a research activity. */
 	public static String activityType(final FLEFRecord activity){
-		return firstTextValue(activity, TAG_ACTIVITY_TYPE);
+		return firstTextValue(activity, ResearchActivityReader.TAG_ACTIVITY_TYPE);
 	}
 
 	/** Action text of an activity. */
 	public static String action(final FLEFRecord activity){
-		return firstTextValue(activity, TAG_ACTION);
+		return firstTextValue(activity, ResearchActivityReader.TAG_ACTION);
 	}
 
 	/** Result of an activity, or {@code null}. */
 	public static String activityResult(final FLEFRecord activity){
-		return firstTextValue(activity, TAG_RESULT);
+		return firstTextValue(activity, ResearchActivityReader.TAG_RESULT);
 	}
 
 	/** Description of a task. */
 	public static String taskDescription(final FLEFRecord task){
-		return firstTextValue(task, TAG_DESCRIPTION);
+		return firstTextValue(task, ResearchTaskReader.TAG_DESCRIPTION);
 	}
 
 	/** Priority of a task. */
 	public static String taskPriority(final FLEFRecord task){
-		return firstTextValue(task, TAG_PRIORITY);
+		return firstTextValue(task, ResearchTaskReader.TAG_PRIORITY);
 	}
 
 	/** Issue resolved by a conclusion. */
 	public static String conclusionIssue(final FLEFRecord conclusion){
-		return firstTextValue(conclusion, TAG_ISSUE);
+		return firstTextValue(conclusion, ConclusionReader.TAG_ISSUE);
 	}
 
 	/** Proof status of a conclusion. */
 	public static String proofStatus(final FLEFRecord conclusion){
-		return firstTextValue(conclusion, TAG_PROOF_STATUS);
+		return firstTextValue(conclusion, ConclusionReader.TAG_PROOF_STATUS);
 	}
 
 	/** Comment of an identity hypothesis. */
 	public static String identityComment(final FLEFRecord hypothesis){
-		return firstTextValue(hypothesis, TAG_COMMENT);
+		return firstTextValue(hypothesis, IdentityHypothesisReader.TAG_COMMENT);
 	}
 
 
@@ -246,13 +217,7 @@ public final class ResearchHelper{
 	 */
 	public static Map<String, Integer> countReferences(
 		final List<FLEFRecord> records, final String tag){
-		final Map<String, Integer> result = new LinkedHashMap<>();
-		for(final FLEFRecord r : records){
-			final String ref = firstTextValue(r, tag);
-			if(ref != null && !ref.isBlank())
-				result.merge(ref, 1, Integer::sum);
-		}
-		return result;
+		return countByTag(records, tag);
 	}
 
 
@@ -294,9 +259,8 @@ public final class ResearchHelper{
 		);
 	}
 
-	public static ActivityRow toActivityRow(final FLEFRecord activity,
-		final Map<String, FLEFRecord> questionsById){
-		final String questionId = firstTextValue(activity, TAG_QUESTION);
+	public static ActivityRow toActivityRow(final FLEFRecord activity, final Map<String, FLEFRecord> questionsById){
+		final String questionId = firstTextValue(activity, ResearchActivityReader.TAG_QUESTION);
 		final FLEFRecord q = (questionId != null? questionsById.get(questionId): null);
 		return new ActivityRow(
 			activity.getId(),
@@ -309,22 +273,21 @@ public final class ResearchHelper{
 		);
 	}
 
-	public static TaskRow toTaskRow(final FLEFRecord task,
-		final Map<String, FLEFRecord> questionsById){
-		final String questionId = firstTextValue(task, TAG_QUESTION);
+	public static TaskRow toTaskRow(final FLEFRecord task, final Map<String, FLEFRecord> questionsById){
+		final String questionId = firstTextValue(task, ResearchTaskReader.TAG_QUESTION);
 		return new TaskRow(
 			task.getId(),
 			questionId,
 			taskDescription(task),
 			status(task),
 			taskPriority(task),
-			firstTextValue(task, TAG_DUE_DATE)
+			firstTextValue(task, ResearchTaskReader.TAG_DUE_DATE)
 		);
 	}
 
 	public static ConclusionRow toConclusionRow(final FLEFRecord conclusion){
 		final int resolvesCount = conclusion.getChildren().stream()
-			.filter(c -> TAG_RESOLVES.equalsIgnoreCase(c.getTag()))
+			.filter(c -> ConclusionReader.TAG_RESOLVES.equalsIgnoreCase(c.getTag()))
 			.mapToInt(c -> 1)
 			.sum();
 		return new ConclusionRow(
@@ -332,7 +295,7 @@ public final class ResearchHelper{
 			conclusionIssue(conclusion),
 			proofStatus(conclusion),
 			resolvesCount,
-			firstTextValue(conclusion, TAG_NARRATIVE)
+			firstTextValue(conclusion, ConclusionReader.TAG_NARRATIVE)
 		);
 	}
 
@@ -344,8 +307,9 @@ public final class ResearchHelper{
 	public static IdentityRow toIdentityRow(final FLEFRecord hypothesis, final FLEFModel model){
 		final List<String> candidates = new ArrayList<>();
 		for(final FLEFRecord child : hypothesis.getChildren()){
-			if(!TAG_IDENTITY.equalsIgnoreCase(child.getTag()))
+			if(!IdentityHypothesisReader.TAG_IDENTITY.equalsIgnoreCase(child.getTag()))
 				continue;
+
 			final FLEFRecord oneof = child.getTheOnlyChild();
 			if(oneof == null)
 				continue;
@@ -354,7 +318,7 @@ public final class ResearchHelper{
 			if(id != null)
 				candidates.add(id);
 		}
-		final String first = (candidates.size() > 0? candidates.get(0): StringUtils.EMPTY);
+		final String first = (!candidates.isEmpty()? candidates.get(0): StringUtils.EMPTY);
 		final String second = (candidates.size() > 1? candidates.get(1): StringUtils.EMPTY);
 		final String firstLabel = (StringUtils.isNotEmpty(first)? IndividualHandler.getInstance().getDisplayText(model.getRecordById(first), model): first);
 		final String secondLabel = (StringUtils.isNotEmpty(second)? IndividualHandler.getInstance().getDisplayText(model.getRecordById(second), model): first);

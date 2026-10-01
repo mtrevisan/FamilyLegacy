@@ -3,6 +3,8 @@ package io.github.mtrevisan.familylegacy.v2.ui.tools.reports.index;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.RelationshipReader;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
 
 import java.util.ArrayList;
@@ -15,8 +17,10 @@ import java.util.function.Predicate;
 
 public final class PedigreeIndex{
 
-	public record ParentEdge(FLEFRecord parent, String relationshipType){
-	}
+	private static final String DOT = ".";
+
+
+	public record ParentEdge(FLEFRecord parent, String relationshipType){}
 
 	private final Map<String, List<FLEFRecord>> parentToChildrenMap = new HashMap<>();
 	private final Map<String, List<FLEFRecord>> childToParentsMap = new HashMap<>();
@@ -32,9 +36,9 @@ public final class PedigreeIndex{
 			if(!filter.test(relationship))
 				continue;
 
-			final String type = FLEFRecordHelper.getChildValue(relationship, RelationshipHandler.TAG_TYPE);
-			final String subjectId = FLEFRecordHelper.getChildValue(relationship, "subject.individual");
-			final String objectId = FLEFRecordHelper.getChildValue(relationship, "object.individual");
+			final String type = RelationshipReader.extractType(relationship);
+			final String subjectId = FLEFRecordHelper.getChildValue(relationship, RelationshipReader.TAG_SUBJECT + DOT + IndividualHandler.TYPE);
+			final String objectId = FLEFRecordHelper.getChildValue(relationship, RelationshipReader.TAG_OBJECT + DOT + IndividualHandler.TYPE);
 
 			if(subjectId == null || objectId == null || type == null)
 				continue;

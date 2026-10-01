@@ -30,10 +30,8 @@ import io.github.mtrevisan.familylegacy.v2.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.IndividualRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.Strings;
 
 import java.awt.Window;
-import java.util.ArrayList;
 import java.util.List;
 
 
@@ -87,33 +85,6 @@ public class IndividualHandler extends AbstractRecordTypeHandler<IndividualRecor
 			.append(id)
 			.append(']');
 		return sb.toString();
-	}
-
-	/**
-	 * Builds the display name preserving the sequential order of PART nodes as defined in the record.
-	 */
-	private String buildNameFromParts(final FLEFRecord nameRecord){
-		final List<String> parts = new ArrayList<>();
-		for(final FLEFRecord child : nameRecord.getChildren())
-			if(Strings.CI.equals(PersonalNameHandler.TAG_PART, child.getTag())){
-				final String value = getTextValueFromPart(child);
-				if(StringUtils.isNotEmpty(value))
-					parts.add(value);
-			}
-		return String.join(StringUtils.SPACE, parts);
-	}
-
-	/**
-	 * Extracts the primary text value from a TEXT_VALUE structure inside a PART node.
-	 */
-	private String getTextValueFromPart(final FLEFRecord partRecord){
-		for(final FLEFRecord textValueChild : partRecord.getChildren())
-			if(Strings.CI.equals(PartHandler.TAG_VALUE, textValueChild.getTag())){
-				final String val = textValueChild.getValue();
-				if(StringUtils.isNotEmpty(val))
-					return val.trim();
-			}
-		return null;
 	}
 
 	@Override

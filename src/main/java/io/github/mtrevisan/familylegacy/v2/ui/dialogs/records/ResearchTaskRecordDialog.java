@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs.records;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.ResearchTaskReader;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextArea;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextField;
@@ -94,21 +95,21 @@ public class ResearchTaskRecordDialog extends BaseRecordDialog{
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]10[]10[]10[]10[]");
 
-		descriptionArea = new BoundTextArea(ResearchTaskHandler.TAG_DESCRIPTION, 3, 30);
-		createdByField = EntityField.createForRecordFromReference(ResearchTaskHandler.TAG_CREATED_BY, this, model,
+		descriptionArea = new BoundTextArea(ResearchTaskReader.TAG_DESCRIPTION, 3, 30);
+		createdByField = EntityField.createForRecordFromReference(ResearchTaskReader.TAG_CREATED_BY, this, model,
 			ResearchActivityHandler.class);
-		statusCombo = new BoundComboBox<>(ResearchTaskHandler.TAG_STATUS, ResearchTaskHandler.STATUSES);
+		statusCombo = new BoundComboBox<>(ResearchTaskReader.TAG_STATUS, ResearchTaskReader.STATUSES);
 		statusCombo.setI18NPrefix("enum.research.task.status");
-		priorityCombo = new BoundComboBox<>(ResearchTaskHandler.TAG_PRIORITY, ResearchTaskHandler.PRIORITIES);
+		priorityCombo = new BoundComboBox<>(ResearchTaskReader.TAG_PRIORITY, GUIHelper.fillCombo(ResearchTaskReader.PRIORITIES, null));
 		priorityCombo.setI18NPrefix("enum.research.task.priority");
-		dueDateField = new BoundTextField(ResearchTaskHandler.TAG_DUE_DATE);
-		outcomeArea = new BoundTextArea(ResearchTaskHandler.TAG_OUTCOME, 3, 30);
+		dueDateField = new BoundTextField(ResearchTaskReader.TAG_DUE_DATE);
+		outcomeArea = new BoundTextArea(ResearchTaskReader.TAG_OUTCOME, 3, 30);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.RESEARCH_QUESTION, ResearchTaskHandler.TAG_QUESTION, I18N.t("dialog.component.research.questions"))
-			.withComponent(PanelKey.PRIVACY, ResearchTaskHandler.TAG_PRIVACY, null)
-			.withComponent(PanelKey.AUDIT, ResearchTaskHandler.TAG_AUDIT, null)
+			.withComponent(PanelKey.RESEARCH_QUESTION, ResearchTaskReader.TAG_QUESTION, I18N.t("dialog.component.research.questions"))
+			.withComponent(PanelKey.PRIVACY, ResearchTaskReader.TAG_PRIVACY, null)
+			.withComponent(PanelKey.AUDIT, ResearchTaskReader.TAG_AUDIT, null)
 			.build();
 
 		components.bind(descriptionArea);

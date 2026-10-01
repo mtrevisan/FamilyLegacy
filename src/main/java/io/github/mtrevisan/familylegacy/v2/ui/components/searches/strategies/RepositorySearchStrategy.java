@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.searches.strategies;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.RepositoryReader;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchCriteria;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchMode;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchStrategy;
@@ -59,9 +60,9 @@ public class RepositorySearchStrategy implements SearchStrategy{
 
 	@Override
 	public Predicate<FLEFRecord> buildPredicate(final SearchCriteria criteria, final FLEFModel model){
-		name = criteria.getFilterFor(RepositoryHandler.TAG_NAME);
-		custodian = criteria.getFilterFor(RepositoryHandler.TAG_CUSTODIAN);
-		place = criteria.getFilterFor(RepositoryHandler.TAG_PLACE);
+		name = criteria.getFilterFor(RepositoryReader.TAG_NAME);
+		custodian = criteria.getFilterFor(RepositoryReader.TAG_CUSTODIAN);
+		place = criteria.getFilterFor(RepositoryReader.TAG_PLACE);
 		mode = criteria.mode();
 
 		return repository -> {
@@ -71,7 +72,7 @@ public class RepositorySearchStrategy implements SearchStrategy{
 
 			// Custodian filter
 			if(StringUtils.isNotEmpty(custodian)){
-				final String custodianRef = FLEFRecordHelper.getChildValue(repository, RepositoryHandler.TAG_CUSTODIAN);
+				final String custodianRef = RepositoryReader.extractCustodian(repository);
 				if(custodianRef != null){
 					final FLEFRecord custodianRecord = model.getRecordById(custodianRef);
 					if(custodianRecord != null){

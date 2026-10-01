@@ -24,9 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.components.searches.strategies;
 
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.ResearchTaskReader;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.RecordFilterPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchCriteria;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchTaskHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import net.miginfocom.swing.MigLayout;
@@ -49,8 +49,8 @@ import java.util.function.Consumer;
 public class ResearchTaskFilterPanel extends JPanel implements RecordFilterPanel{
 
 	private final JTextField descriptionField = new JTextField(20);
-	private final JComboBox<String> statusCombo = new JComboBox<>(GUIHelper.fillCombo(ResearchTaskHandler.STATUSES, I18N.t("search.combo.any")));
-	private final JComboBox<String> priorityCombo = new JComboBox<>(GUIHelper.fillCombo(ResearchTaskHandler.PRIORITIES, I18N.t("search.combo.any")));
+	private final JComboBox<String> statusCombo = new JComboBox<>(GUIHelper.fillCombo(ResearchTaskReader.STATUSES, I18N.t("search.combo.any")));
+	private final JComboBox<String> priorityCombo = new JComboBox<>(GUIHelper.fillCombo(ResearchTaskReader.PRIORITIES, I18N.t("search.combo.any")));
 	private final JTextField outcomeField = new JTextField(20);
 
 	private final Consumer<SearchCriteria> onChanged;
@@ -114,10 +114,10 @@ public class ResearchTaskFilterPanel extends JPanel implements RecordFilterPanel
 	@Override
 	public Map<String, String> getFilters(){
 		final Map<String, String> filters = new HashMap<>();
-		filters.put(ResearchTaskHandler.TAG_DESCRIPTION, getDescription());
-		filters.put(ResearchTaskHandler.TAG_STATUS, getStatus());
-		filters.put(ResearchTaskHandler.TAG_PRIORITY, getPriority());
-		filters.put(ResearchTaskHandler.TAG_OUTCOME, getOutcome());
+		filters.put(ResearchTaskReader.TAG_DESCRIPTION, getDescription());
+		filters.put(ResearchTaskReader.TAG_STATUS, getStatus());
+		filters.put(ResearchTaskReader.TAG_PRIORITY, getPriority());
+		filters.put(ResearchTaskReader.TAG_OUTCOME, getOutcome());
 		return filters;
 	}
 

@@ -28,6 +28,8 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.io.model.readers.GroupReader;
 import io.github.mtrevisan.familylegacy.v2.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.NameReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.SourceReader;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -50,63 +52,6 @@ import java.util.List;
  * <p>
  * The service is stateless and not thread-safe; use it from the Swing
  * Event Dispatch Thread.
- * <p>
- * Structure:
- * <pre>
- * // A structured personal name composed of one or more name parts. This structure is intended to support naming systems from all cultures, including given
- * // names, family names, patronymics, matronymics, clan names, lineage names, titles, and other naming components. The order of PART elements is
- * // significant and should reflect the historical or culturally appropriate representation of the name.
- * struct PersonalNameStructure {
- *   type?: enum {
- *     // marital status and origins at birth
- *     official, religious, birth,
- *     // changes in marital status and family events
- *     married, maiden, divorce, adoption, fostering,
- *     // legal, immigration, and naturalization changes
- *     legal, immigrant, adapted,
- *     // informal, stage, and social names
- *     alias, nickname, artistic, professional, user,
- *     // historical and dynastic contexts
- *     regnal, slave_name
- *   } | Text
- *   part+: PartStructure   // The order of PART elements is significant and reflects the culturally appropriate representation of the full name (e.g., 'given' then 'family' for Western names, 'family' then 'given' for East Asian names). No semantic ordering is implied by the individual part types. Consumers must preserve the original order.
- *   locale?: LocaleCode | Text
- *   cultural_norm*: Xref&lt;CulturalNormRecord&gt;   // Unlike ContextImpactRecord, CULTURAL_NORM here describes the naming system that governs the structure of the name itself.
- *   source*: SourceCitation
- *   note*: NoteStructure
- * }
- *
- * // A textual designation associated with an entity, source, place, organization, repository, group, or other object.
- * // This structure represents a complete textual expression and may be used for names, titles, labels, or similar identifying text.
- * // Unlike PersonalNameStructure, this structure does not decompose the text into culturally-specific components such as given names, family names,
- * // patronymics, titles, or lineage elements.
- * struct NameStructure {
- *   type?: enum {
- *     // official and legal names
- *     official, legal,
- *     // historical naming traditions
- *     colonial, indigenous, traditional,
- *     // language and localization variants
- *     translated, transcribed,
- *     // historical variants
- *     historic, former,
- *     // common usage
- *     common, colloquial,
- *     // abbreviated forms
- *     abbreviated, acronym,
- *     // religious and ecclesiastical forms
- *     religious,
- *     // administrative and archival forms
- *     administrative, archival
- *   } | Text
- *   value: Text                   // the primary textual value
- *   locale?: LocaleCode | Text
- *   variant*: TextValueVariant    // alternative phonetic, transliterated, or transcribed representations
- *   cultural_norm*: Xref&lt;CulturalNormRecord&gt;   // Unlike ContextImpactRecord, CULTURAL_NORM here describes the naming system that governs the structure of the name itself.
- *   source*: SourceCitation
- *   note*: NoteStructure
- * }
- * </pre>
  */
 public final class NameAnatomyService{
 
@@ -141,26 +86,40 @@ public final class NameAnatomyService{
 		return result;
 	}
 
+	/**
+	 * Extracts the anatomy of every name of the given source.
+	 *
+	 * @param source the source
+	 * @return the ordered list of names, never {@code null}
+	 */
+	public static List<Name> extractForSource(final FLEFRecord source){
+		final List<Name> result = new ArrayList<>();
+		final List<FLEFRecord> names = FLEFRecordHelper.findChildren(source, SourceReader.TAG_TITLE);
+		for(final FLEFRecord name : names)
+			result.add(parseGenericName(name));
+		return result;
+	}
+
 
 	/* ======================================================================
 	 *                          Personal name
 	 * ====================================================================== */
 
 	private static Name parsePersonalName(final FLEFRecord nameRecord){
-		final String type = FLEFRecordHelper.getChildValue(nameRecord, Name.TAG_TYPE);
+		final String type = NameReader.extractType(nameRecord);
 
-		final List<FLEFRecord> partStructs = FLEFRecordHelper.findChildren(nameRecord, Name.TAG_PART);
+		final List<FLEFRecord> partStructs = FLEFRecordHelper.findChildren(nameRecord, NameReader.TAG_PART);
 		final List<NamePart> parts = new ArrayList<>();
 		for(final FLEFRecord partRecord : partStructs)
 			parts.add(NamePart.parsePart(partRecord));
 
-		final String locale = FLEFRecordHelper.getChildValue(nameRecord, Name.TAG_LOCALE);
+		final String locale = NameReader.extractLocale(nameRecord);
 
-		final List<String> culturalNormIds = nameRecord.extractReferenceIds(Name.TAG_CULTURAL_NORM);
+		final List<String> culturalNormIds = nameRecord.extractReferenceIds(NameReader.TAG_CULTURAL_NORM);
 
-		final List<FLEFRecord> sources = FLEFRecordHelper.findChildren(nameRecord, Name.TAG_SOURCE);
+		final List<FLEFRecord> sources = FLEFRecordHelper.findChildren(nameRecord, NameReader.TAG_SOURCE);
 
-		final List<FLEFRecord> notes = FLEFRecordHelper.findChildren(nameRecord, Name.TAG_NOTE);
+		final List<FLEFRecord> notes = FLEFRecordHelper.findChildren(nameRecord, NameReader.TAG_NOTE);
 
 		return new Name(type, parts, locale, StringUtils.EMPTY, List.of(), culturalNormIds, sources, notes, nameRecord);
 	}
@@ -170,19 +129,19 @@ public final class NameAnatomyService{
 	 * ====================================================================== */
 
 	private static Name parseGenericName(final FLEFRecord nameRecord){
-		final String type = FLEFRecordHelper.getChildValue(nameRecord, Name.TAG_TYPE);
+		final String type = NameReader.extractType(nameRecord);
 
-		final String value = FLEFRecordHelper.getChildValue(nameRecord, Name.TAG_VALUE);
+		final String value = NameReader.extractValue(nameRecord);
 
-		final String locale = FLEFRecordHelper.getChildValue(nameRecord, Name.TAG_LOCALE);
+		final String locale = NameReader.extractLocale(nameRecord);
 
 		final List<TextValueVariant> variants = NamePart.extractVariants(nameRecord);
 
-		final List<String> culturalNormIds = nameRecord.extractReferenceIds(Name.TAG_CULTURAL_NORM);
+		final List<String> culturalNormIds = nameRecord.extractReferenceIds(NameReader.TAG_CULTURAL_NORM);
 
-		final List<FLEFRecord> sources = FLEFRecordHelper.findChildren(nameRecord, Name.TAG_SOURCE);
+		final List<FLEFRecord> sources = FLEFRecordHelper.findChildren(nameRecord, NameReader.TAG_SOURCE);
 
-		final List<FLEFRecord> notes = FLEFRecordHelper.findChildren(nameRecord, Name.TAG_NOTE);
+		final List<FLEFRecord> notes = FLEFRecordHelper.findChildren(nameRecord, NameReader.TAG_NOTE);
 
 		return new Name(type, List.of(), locale, value, variants, culturalNormIds, sources, notes, nameRecord);
 	}

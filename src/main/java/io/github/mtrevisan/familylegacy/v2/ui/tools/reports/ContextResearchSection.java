@@ -66,7 +66,6 @@ final class ContextResearchSection implements SectionBuilder{
 	private static final String TAG_PREFERRED = "preferred";
 	private static final String TAG_RESEARCH = "research";
 	private static final String TAG_IDENTITY = "identity";
-	private static final String TAG_VOID = "void";
 
 	private static final String TAG_ACTIVITY_TYPE = "activity_type";
 	private static final String TAG_ACTION = "action";
@@ -505,7 +504,7 @@ final class ContextResearchSection implements SectionBuilder{
 			final List<String> candidates = new ArrayList<>();
 			for(final FLEFRecord cand : FLEFRecordHelper.findChildren(h, TAG_IDENTITY)){
 				final FLEFRecord ref = cand.getTheOnlyChild();
-				if(ref == null || TAG_VOID.equalsIgnoreCase(ref.getTag()))
+				if(ref == null || FLEFRecord.TAG_VOID.equalsIgnoreCase(ref.getTag()))
 					continue;
 				final String id = ref.getValue();
 				final FLEFRecord rec = (id != null? ctx.model.getRecordById(id): null);
@@ -564,7 +563,7 @@ final class ContextResearchSection implements SectionBuilder{
 		if(field == null)
 			return null;
 		final FLEFRecord ref = field.getTheOnlyChild();
-		if(ref == null || TAG_VOID.equalsIgnoreCase(ref.getTag()))
+		if(ref == null || FLEFRecord.TAG_VOID.equalsIgnoreCase(ref.getTag()))
 			return null;
 		final String tag = ref.getTag();
 		final String id = ref.getValue();

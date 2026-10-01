@@ -3,7 +3,10 @@ package io.github.mtrevisan.familylegacy.v2.ui.tools.reports.index;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupAttributeHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
 
 import java.util.ArrayList;
@@ -15,6 +18,9 @@ import java.util.function.Predicate;
 
 
 public final class GroupIndex{
+
+	private static final String DOT = ".";
+
 
 	private final Map<String, List<FLEFRecord>> groupToAttrsMap = new HashMap<>();
 	private final Map<String, List<FLEFRecord>> groupToMembersMap = new HashMap<>();
@@ -40,10 +46,10 @@ public final class GroupIndex{
 			if(!filter.test(relationship))
 				continue;
 
-			final String type = FLEFRecordHelper.getChildValue(relationship, RelationshipHandler.TAG_TYPE);
-			final String subjectId = FLEFRecordHelper.getChildValue(relationship, "subject.individual");
-			final String objectGroup = FLEFRecordHelper.getChildValue(relationship, "object.group");
-			final String subjectGroup = FLEFRecordHelper.getChildValue(relationship, "subject.group");
+			final String type = RelationshipReader.extractType(relationship);
+			final String subjectId = FLEFRecordHelper.getChildValue(relationship, RelationshipReader.TAG_SUBJECT + DOT + IndividualHandler.TYPE);
+			final String objectGroup = FLEFRecordHelper.getChildValue(relationship, RelationshipReader.TAG_OBJECT + DOT + GroupHandler.TYPE);
+			final String subjectGroup = FLEFRecordHelper.getChildValue(relationship, RelationshipReader.TAG_SUBJECT + DOT + GroupHandler.TYPE);
 
 			if("group_member".equalsIgnoreCase(type) && objectGroup != null){
 				groupToMembersMap.computeIfAbsent(objectGroup, k -> new ArrayList<>()).add(relationship);

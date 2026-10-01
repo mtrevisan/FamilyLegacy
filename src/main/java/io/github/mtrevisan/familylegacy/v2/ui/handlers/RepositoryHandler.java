@@ -26,12 +26,12 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.RepositoryReader;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.RepositoryRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
-import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Window;
+import java.util.List;
 
 
 /**
@@ -41,16 +41,6 @@ public class RepositoryHandler extends AbstractRecordTypeHandler<RepositoryRecor
 
 	public static final String TYPE = "REPOSITORY";
 	public static final String ID_PREFIX = "R";
-
-	public static final String TAG_NAME = "NAME";
-	public static final String TAG_CUSTODIAN = "CUSTODIAN";
-	public static final String TAG_PLACE = "PLACE";
-	public static final String TAG_CONTACT = "CONTACT";
-	public static final String TAG_NOTE = "NOTE";
-	public static final String TAG_PRIVACY = "PRIVACY";
-	public static final String TAG_AUDIT = "AUDIT";
-
-	private static final String TAG_NAME_VALUE = FLEFRecordHelper.composePath(TAG_NAME, NameHandler.TAG_VALUE);
 
 
 	private static final class SingletonHelper{
@@ -86,10 +76,8 @@ public class RepositoryHandler extends AbstractRecordTypeHandler<RepositoryRecor
 			return RepositoryCitationHandler.getInstance()
 				.getDisplayText(record, model);
 
-		// Locate the first populated NAME structure
-		final String name = FLEFRecordHelper.getChildValue(record, TAG_NAME_VALUE);
-
-		return (StringUtils.isNotEmpty(name)? name: "--") + " [" + id + "]";
+		final List<String> names = RepositoryReader.extractNames(record);
+		return (!names.isEmpty()? names.getFirst() + " [" + id + "]": "[" + id + "]");
 	}
 
 	@Override

@@ -26,7 +26,8 @@ package io.github.mtrevisan.familylegacy.v2.ui.tools.groups;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.GroupReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.RecordSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
@@ -164,7 +165,7 @@ public final class RemoveMemberDialog extends JDialog{
 
 		if(chosen[0] != null){
 			group = chosen[0];
-			groupField.setText(GroupHelper.displayName(group) + "  [" + group.getId() + "]");
+			groupField.setText(GroupReader.extractPrimaryName(group) + "  [" + group.getId() + "]");
 			loadMembers();
 		}
 	}
@@ -180,15 +181,15 @@ public final class RemoveMemberDialog extends JDialog{
 		final FLEFModel model = context.model();
 		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
 		for(final FLEFRecord relationship : relationships){
-			final String type = FLEFRecordHelper.getChildValue(relationship, RelationshipHandler.TAG_TYPE);
-			if(!GroupHelper.REL_GROUP_MEMBER.equalsIgnoreCase(type))
+			final String type = RelationshipReader.extractType(relationship);
+			if(!RelationshipReader.isTypeGroupMember(type))
 				continue;
 
-			final String object = relationship.extractReferencedId(RelationshipHandler.TAG_OBJECT, GroupHelper.TYPE_GROUP);
+			final String object = relationship.extractReferencedId(RelationshipReader.TAG_OBJECT, GroupHandler.TYPE);
 			if(!group.getId().equals(object))
 				continue;
 
-			final String subject = relationship.extractReferencedId(RelationshipHandler.TAG_SUBJECT, IndividualHandler.TYPE);
+			final String subject = relationship.extractReferencedId(RelationshipReader.TAG_SUBJECT, IndividualHandler.TYPE);
 			if(subject == null)
 				continue;
 
@@ -236,7 +237,7 @@ public final class RemoveMemberDialog extends JDialog{
 			return;
 
 		final int confirm = JOptionPane.showConfirmDialog(this,
-			"Remove " + toRemove.size() + " member(s) from " + GroupHelper.displayName(group) + "?",
+			"Remove " + toRemove.size() + " member(s) from " + GroupReader.extractPrimaryName(group) + "?",
 			"Confirm Removal", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
 		if(confirm != JOptionPane.YES_OPTION)
 			return;

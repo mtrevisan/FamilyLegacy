@@ -24,9 +24,10 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.components.searches.strategies;
 
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.PlaceReader;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.RecordFilterPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchCriteria;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import net.miginfocom.swing.MigLayout;
 
@@ -48,7 +49,7 @@ import java.util.function.Consumer;
 public class PlaceFilterPanel extends JPanel implements RecordFilterPanel{
 
 	private final JTextField nameField = new JTextField(20);
-	private final JComboBox<String> typeCombo = new JComboBox<>(PlaceHandler.TYPES);
+	private final JComboBox<String> typeCombo = new JComboBox<>(GUIHelper.fillCombo(PlaceReader.TYPES, I18N.t("search.combo.any")));
 
 	private final Consumer<SearchCriteria> onChanged;
 
@@ -104,8 +105,8 @@ public class PlaceFilterPanel extends JPanel implements RecordFilterPanel{
 	@Override
 	public Map<String, String> getFilters(){
 		final Map<String, String> filters = new HashMap<>();
-		filters.put(PlaceHandler.TAG_NAME, getPlaceName());
-		filters.put(PlaceHandler.TAG_TYPE, getType());
+		filters.put(PlaceReader.TAG_NAME, getPlaceName());
+		filters.put(PlaceReader.TAG_TYPE, getType());
 		return filters;
 	}
 

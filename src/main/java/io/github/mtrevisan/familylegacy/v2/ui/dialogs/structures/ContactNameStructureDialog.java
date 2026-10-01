@@ -26,11 +26,11 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs.structures;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.ContactReader;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.TextValueVariantListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.ContactHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ContactNameHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
@@ -76,8 +76,8 @@ public class ContactNameStructureDialog extends BaseRecordDialog{
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]");
 
-		valueField = new BoundTextField(ContactHandler.TAG_NAME_VALUE);
-		variantPanel = new TextValueVariantListPanel(ContactHandler.TAG_NAME_VARIANT, this, I18N.t("dialog.name.variant"), model);
+		valueField = new BoundTextField(ContactReader.TAG_NAME_VALUE);
+		variantPanel = new TextValueVariantListPanel(ContactReader.TAG_NAME_VARIANT, this, I18N.t("dialog.name.variant"), model);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)

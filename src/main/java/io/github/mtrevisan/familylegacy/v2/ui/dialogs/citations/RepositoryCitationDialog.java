@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs.citations;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.RepositoryCitationReader;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
@@ -81,12 +82,12 @@ public class RepositoryCitationDialog extends BaseRecordDialog{
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]");
 
-		repositoryField = new BoundTextField(RepositoryCitationHandler.TAG_REPOSITORY);
-		locatorField = new BoundTextField(RepositoryCitationHandler.TAG_LOCATOR);
+		repositoryField = new BoundTextField(RepositoryCitationReader.TAG_REPOSITORY);
+		locatorField = new BoundTextField(RepositoryCitationReader.TAG_LOCATOR);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.NOTE, RepositoryCitationHandler.TAG_NOTE, null)
+			.withComponent(PanelKey.NOTE, RepositoryCitationReader.TAG_NOTE, null)
 			.build();
 
 		components.bind(repositoryField);
@@ -155,7 +156,7 @@ public class RepositoryCitationDialog extends BaseRecordDialog{
 
 	@Override
 	protected void saveData(){
-		FLEFRecordHelper.updateChildValue(record, RepositoryCitationHandler.TAG_REPOSITORY, repositoryField.getText());
+		FLEFRecordHelper.updateChildValue(record, RepositoryCitationReader.TAG_REPOSITORY, repositoryField.getText());
 
 		components.save(record);
 	}

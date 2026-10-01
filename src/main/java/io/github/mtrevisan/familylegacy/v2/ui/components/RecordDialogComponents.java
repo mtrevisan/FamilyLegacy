@@ -26,21 +26,20 @@ package io.github.mtrevisan.familylegacy.v2.ui.components;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.ConclusionReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.ContextImpactReader;
 import io.github.mtrevisan.familylegacy.v2.io.model.readers.EventParticipationReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.IdentityHypothesisReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.PlaceRelationshipReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.RelationshipReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.ResearchActivityReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.ResearchQuestionReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.ResearchTaskReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.PathBound;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.ContextImpactHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventParticipationHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.IdentityHypothesisHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceRelationshipHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchActivityHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchTaskHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 
 import javax.swing.JPanel;
 import java.util.EnumMap;
@@ -56,11 +55,10 @@ public final class RecordDialogComponents{
 
 	private final BindingManager bindingManager = new BindingManager();
 	private final Map<PanelKey, JPanel> panels = new EnumMap<>(PanelKey.class);
-	private final BaseRecordDialog owner;
+
 
 	RecordDialogComponents(final RecordDialogBuilder builder){
-		this.owner = builder.owner;
-
+		final BaseRecordDialog owner = builder.owner;
 		final FLEFModel model = builder.model;
 		final FLEFRecord record = builder.record;
 
@@ -103,34 +101,34 @@ public final class RecordDialogComponents{
 		loadReferenceIfPresent(PanelKey.INDIVIDUAL_ATTRIBUTE, elp -> elp.loadReference(record.getId()));
 		loadReferenceIfPresent(PanelKey.GROUP_ATTRIBUTE, elp -> elp.loadReference(record.getId()));
 
-		loadReferenceIfPresent(PanelKey.RELATIONSHIP_ON_SUBJECT, elp -> elp.loadReferenceWithType(record.getId(), RelationshipHandler.TAG_SUBJECT));
-		loadReferenceIfPresent(PanelKey.RELATIONSHIP_ON_OBJECT, elp -> elp.loadReferenceWithType(record.getId(), RelationshipHandler.TAG_OBJECT));
+		loadReferenceIfPresent(PanelKey.RELATIONSHIP_ON_SUBJECT, elp -> elp.loadReferenceWithType(record.getId(), RelationshipReader.TAG_SUBJECT));
+		loadReferenceIfPresent(PanelKey.RELATIONSHIP_ON_OBJECT, elp -> elp.loadReferenceWithType(record.getId(), RelationshipReader.TAG_OBJECT));
 
-		loadReferenceIfPresent(PanelKey.PLACE_RELATIONSHIP_ON_SUBJECT, elp -> elp.loadReferenceWithType(record.getId(), PlaceRelationshipHandler.TAG_SUBJECT));
-		loadReferenceIfPresent(PanelKey.PLACE_RELATIONSHIP_ON_OBJECT, elp -> elp.loadReferenceWithType(record.getId(), PlaceRelationshipHandler.TAG_OBJECT));
+		loadReferenceIfPresent(PanelKey.PLACE_RELATIONSHIP_ON_SUBJECT, elp -> elp.loadReferenceWithType(record.getId(), PlaceRelationshipReader.TAG_SUBJECT));
+		loadReferenceIfPresent(PanelKey.PLACE_RELATIONSHIP_ON_OBJECT, elp -> elp.loadReferenceWithType(record.getId(), PlaceRelationshipReader.TAG_OBJECT));
 
 		loadReferenceIfPresent(PanelKey.EVENT_PARTICIPATION_ON_PARTICIPANT, elp -> elp.loadReferenceWithType(record.getId(), EventParticipationReader.TAG_PARTICIPANT));
 		loadReferenceIfPresent(PanelKey.EVENT_PARTICIPATION_ON_EVENT, elp -> elp.withParentEntity(record).loadCitationsWithType(record.getId(), EventParticipationReader.TAG_EVENT));
 
-		loadReferenceIfPresent(PanelKey.CONTEXT_IMPACT_ON_TARGET, elp -> elp.loadReferenceWithType(record.getId(), ContextImpactHandler.TAG_TARGET));
-		loadReferenceIfPresent(PanelKey.CONTEXT_IMPACT_ON_CONTEXT, elp -> elp.loadReferenceWithType(record.getId(), ContextImpactHandler.TAG_CONTEXT));
+		loadReferenceIfPresent(PanelKey.CONTEXT_IMPACT_ON_TARGET, elp -> elp.loadReferenceWithType(record.getId(), ContextImpactReader.TAG_TARGET));
+		loadReferenceIfPresent(PanelKey.CONTEXT_IMPACT_ON_CONTEXT, elp -> elp.loadReferenceWithType(record.getId(), ContextImpactReader.TAG_CONTEXT));
 
-		loadReferenceIfPresent(PanelKey.CONCLUSION_ON_RESOLVES, elp -> elp.loadReferenceWithType(record.getId(), ConclusionHandler.TAG_RESOLVES));
-		loadReferenceIfPresent(PanelKey.CONCLUSION_ON_RESEARCH, elp -> elp.withParentEntity(record).loadCitationsWithType(record.getId(), ConclusionHandler.TAG_RESEARCH));
-		loadReferenceIfPresent(PanelKey.IDENTITY_HYPOTHESIS_ON_IDENTITY, elp -> elp.loadReferenceWithType(record.getId(), IdentityHypothesisHandler.TAG_IDENTITY));
-		loadReferenceIfPresent(PanelKey.RESEARCH_QUESTION_ON_TARGET, elp -> elp.loadReferenceWithType(record.getId(), ResearchQuestionHandler.TAG_TARGET));
-		loadReferenceIfPresent(PanelKey.RESEARCH_ACTIVITY_ON_QUESTION, elp -> elp.withParentEntity(record).loadCitationsWithType3(record.getId(), ResearchActivityHandler.TAG_QUESTION));
-		loadReferenceIfPresent(PanelKey.RESEARCH_ACTIVITY_ON_SOURCE, elp -> elp.withParentEntity(record).loadCitationsWithType2(record.getId(), ResearchActivityHandler.TAG_SOURCE));
+		loadReferenceIfPresent(PanelKey.CONCLUSION_ON_RESOLVES, elp -> elp.loadReferenceWithType(record.getId(), ConclusionReader.TAG_RESOLVES));
+		loadReferenceIfPresent(PanelKey.CONCLUSION_ON_RESEARCH, elp -> elp.withParentEntity(record).loadCitationsWithType(record.getId(), ConclusionReader.TAG_RESEARCH));
+		loadReferenceIfPresent(PanelKey.IDENTITY_HYPOTHESIS_ON_IDENTITY, elp -> elp.loadReferenceWithType(record.getId(), IdentityHypothesisReader.TAG_IDENTITY));
+		loadReferenceIfPresent(PanelKey.RESEARCH_QUESTION_ON_TARGET, elp -> elp.loadReferenceWithType(record.getId(), ResearchQuestionReader.TAG_TARGET));
+		loadReferenceIfPresent(PanelKey.RESEARCH_ACTIVITY_ON_QUESTION, elp -> elp.withParentEntity(record).loadCitationsWithType3(record.getId(), ResearchActivityReader.TAG_QUESTION));
+		loadReferenceIfPresent(PanelKey.RESEARCH_ACTIVITY_ON_SOURCE, elp -> elp.withParentEntity(record).loadCitationsWithType2(record.getId(), ResearchActivityReader.TAG_SOURCE));
 
 		loadReferenceIfPresent(PanelKey.PLACE, elp -> elp.load(record));
 		loadReferenceIfPresent(PanelKey.REPOSITORY, elp -> elp.load(record));
 		loadReferenceIfPresent(PanelKey.SOURCE, elp -> elp.load(record));
-		loadReferenceIfPresent(PanelKey.SOURCE_ON_REPOSITORY, elp -> elp.withParentEntity(record).loadCitationsWithType2(record.getId(), SourceHandler.TAG_REPOSITORY));
-		loadReferenceIfPresent(PanelKey.SOURCE_ON_DOCUMENT, elp -> elp.withParentEntity(record).loadCitationsWithType3(record.getId(), SourceHandler.TAG_DOCUMENT));
+		loadReferenceIfPresent(PanelKey.SOURCE_ON_REPOSITORY, elp -> elp.withParentEntity(record).loadCitationsWithType2(record.getId(), SourceReader.TAG_REPOSITORY));
+		loadReferenceIfPresent(PanelKey.SOURCE_ON_DOCUMENT, elp -> elp.withParentEntity(record).loadCitationsWithType3(record.getId(), SourceReader.TAG_DOCUMENT));
 
 		loadReferenceIfPresent(PanelKey.DOCUMENT, elp -> elp.load(record));
 		loadReferenceIfPresent(PanelKey.RESEARCH_QUESTION, elp -> elp.load(record));
-		loadReferenceIfPresent(PanelKey.RESEARCH_TASK_ON_QUESTION, elp -> elp.withParentEntity(record).loadCitationsWithType(record.getId(), ResearchTaskHandler.TAG_QUESTION));
+		loadReferenceIfPresent(PanelKey.RESEARCH_TASK_ON_QUESTION, elp -> elp.withParentEntity(record).loadCitationsWithType(record.getId(), ResearchTaskReader.TAG_QUESTION));
 		loadReferenceIfPresent(PanelKey.NOTE, elp -> elp.load(record));
 		loadReferenceIfPresent(PanelKey.TASK, elp -> elp.load(record));
 

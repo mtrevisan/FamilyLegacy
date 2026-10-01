@@ -27,6 +27,8 @@ package io.github.mtrevisan.familylegacy.v2.ui.tools.groups;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.GroupReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.RecordSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
@@ -166,7 +168,7 @@ public final class MergeGroupsDialog extends JDialog{
 
 		if(chosen[0] != null){
 			source = chosen[0];
-			sourceField.setText(GroupHelper.displayName(source) + "  [" + source.getId() + "]");
+			sourceField.setText(GroupReader.extractPrimaryName(source) + "  [" + source.getId() + "]");
 		}
 	}
 
@@ -181,7 +183,7 @@ public final class MergeGroupsDialog extends JDialog{
 
 		if(chosen[0] != null){
 			target = chosen[0];
-			targetField.setText(GroupHelper.displayName(target) + "  [" + target.getId() + "]");
+			targetField.setText(GroupReader.extractPrimaryName(target) + "  [" + target.getId() + "]");
 		}
 	}
 
@@ -199,8 +201,8 @@ public final class MergeGroupsDialog extends JDialog{
 			return;
 		}
 
-		final String message = "Merge " + GroupHelper.displayName(source)
-			+ " into " + GroupHelper.displayName(target) + "?" + StringUtils.LF + StringUtils.LF
+		final String message = "Merge " + GroupReader.extractPrimaryName(source)
+			+ " into " + GroupReader.extractPrimaryName(target) + "?" + StringUtils.LF + StringUtils.LF
 			+ "The source group will be deleted.";
 		final int confirm = JOptionPane.showConfirmDialog(this, message,
 			"Confirm Merge", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
@@ -211,20 +213,20 @@ public final class MergeGroupsDialog extends JDialog{
 		final FLEFModel model = context.model();
 		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
 		for(final FLEFRecord relationship : relationships){
-			final String type = FLEFRecordHelper.getChildValue(relationship, RelationshipHandler.TAG_TYPE);
+			final String type = RelationshipReader.extractType(relationship);
 			if(type == null)
 				continue;
 			final String t = type.toLowerCase(Locale.ROOT);
 
-			if(GroupHelper.REL_GROUP_MEMBER.equals(t)){
-				final String objectGroup = relationship.extractReferencedId(RelationshipHandler.TAG_OBJECT, GroupHelper.TYPE_GROUP);
+			if(RelationshipReader.isTypeGroupMember(t)){
+				final String objectGroup = relationship.extractReferencedId(RelationshipReader.TAG_OBJECT, GroupHandler.TYPE);
 				if(source.getId().equals(objectGroup))
-					setChildValue(relationship, GroupHelper.TAG_OBJECT, target.getId());
+					setChildValue(relationship, RelationshipReader.TAG_OBJECT, target.getId());
 			}
-			else if(GroupHelper.REL_PART_OF.equals(t)){
-				final String subjectGroup = relationship.extractReferencedId(RelationshipHandler.TAG_SUBJECT, GroupHelper.TYPE_GROUP);
+			else if(RelationshipReader.isTypePartOf(t)){
+				final String subjectGroup = relationship.extractReferencedId(RelationshipReader.TAG_SUBJECT, GroupHandler.TYPE);
 				if(source.getId().equals(subjectGroup))
-					setChildValue(relationship, GroupHelper.TAG_SUBJECT, target.getId());
+					setChildValue(relationship, RelationshipReader.TAG_SUBJECT, target.getId());
 			}
 		}
 

@@ -26,9 +26,9 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.lists;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.NoteReader;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BindingsHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextArea;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
@@ -90,7 +90,7 @@ public class BasicNoteListPanel extends AbstractListPanel<FLEFRecord>{
 
 	@Override
 	protected String getDisplayText(final FLEFRecord record){
-		final String date = FLEFRecordHelper.getChildValue(record, NoteHandler.TAG_DATE);
+		final String date = NoteReader.extractDate(record);
 		final String comment = FLEFRecordHelper.getChildValue(record, recordTag);
 		return "(" + date + ") " + comment;
 	}
@@ -135,7 +135,7 @@ public class BasicNoteListPanel extends AbstractListPanel<FLEFRecord>{
 				if(record == null){
 					final String creationDate = DateTimeFormatter.ISO_INSTANT.format(Instant.now().truncatedTo(ChronoUnit.SECONDS));
 					final FLEFRecord newNote = FLEFRecordHelper.getOrCreateTargetNode(FLEFRecord.createEmpty(), path)
-						.addChild(FLEFRecord.createChildWithTagAndValue(NoteHandler.TAG_DATE, creationDate))
+						.addChild(FLEFRecord.createChildWithTagAndValue(NoteReader.TAG_DATE, creationDate))
 						.addChild(FLEFRecord.createChildWithTagAndValue(recordTag, text));
 					result[0] = newNote;
 				}

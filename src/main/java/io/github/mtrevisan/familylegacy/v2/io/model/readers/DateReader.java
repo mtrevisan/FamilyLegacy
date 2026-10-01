@@ -92,8 +92,8 @@ public final class DateReader{
 
 	public static final String TAG_VALUE = "value";
 	public static final String TAG_ORIGINAL_TEXT = "original_text";
-	private static final String TAG_SOURCE = "source";
-	private static final String TAG_EVIDENCE = "evidence";
+	public static final String TAG_SOURCE = "source";
+	public static final String TAG_EVIDENCE = "evidence";
 
 	public static final String TAG_POINT = "point";
 	public static final String TAG_BOUNDED = "bounded";
@@ -106,7 +106,7 @@ public final class DateReader{
 	public static final String TAG_TO = "to";
 
 	public static final String TAG_BASIS = "basis";
-	private static final String TAG_CULTURAL_NORM = "cultural_norm";
+	public static final String TAG_CULTURAL_NORM = "cultural_norm";
 	public static final String TAG_MARGIN = "margin";
 
 	public static final String TAG_APPROXIMATE = "approximate";

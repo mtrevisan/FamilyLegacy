@@ -24,7 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.tools.reports.i18n;
 
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.reports.ReportLabels;
 import org.apache.commons.lang3.StringUtils;
 
@@ -203,8 +203,8 @@ public final class NarrativeFormatter{
 		if(type == null)
 			return "REL_CHILD";
 		return switch(type.toLowerCase(Locale.ROOT)){
-			case RelationshipHandler.ENUM_TYPE_BIOLOGICAL_CHILD -> "REL_BIOLOGICAL_CHILD";
-			case RelationshipHandler.ENUM_TYPE_ADOPTIVE_CHILD -> "REL_ADOPTIVE_CHILD";
+			case RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD -> "REL_BIOLOGICAL_CHILD";
+			case RelationshipReader.ENUM_TYPE_ADOPTIVE_CHILD -> "REL_ADOPTIVE_CHILD";
 			case "foster_child" -> "REL_FOSTER_CHILD";
 			case "guarded_child" -> "REL_GUARDED_CHILD";
 			case "step_child" -> "REL_STEP_CHILD";

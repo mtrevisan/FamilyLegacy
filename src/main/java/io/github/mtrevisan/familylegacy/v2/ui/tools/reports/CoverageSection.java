@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.tools.reports;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -96,8 +97,7 @@ final class CoverageSection implements SectionBuilder{
 
 		switch(ctx.rootKind()){
 			case INDIVIDUAL -> {
-				out.add(coverageOf(ctx.root, "individual",
-					"name", "sex"));
+				out.add(coverageOf(ctx.root, IndividualHandler.TYPE, "name", "sex"));
 				for(final FLEFRecord e : ctx.index.eventsOf(ctx.root))
 					out.add(coverageOf(e, "event", "type", "date", "place"));
 				for(final FLEFRecord a : ctx.index.attributesOf(ctx.root))

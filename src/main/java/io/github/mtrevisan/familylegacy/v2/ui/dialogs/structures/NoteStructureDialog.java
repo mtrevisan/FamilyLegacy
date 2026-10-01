@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs.structures;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.NoteReader;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundFilteredComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextArea;
@@ -102,20 +103,20 @@ public class NoteStructureDialog extends BaseRecordDialog{
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]5[]5[]10[]");
 
-		titleField = new BoundTextField(NoteHandler.TAG_TITLE);
-		textArea = new BoundTextArea(NoteHandler.TAG_TEXT, 3, 25);
+		titleField = new BoundTextField(NoteReader.TAG_TITLE);
+		textArea = new BoundTextArea(NoteReader.TAG_TEXT, 3, 25);
 		textArea.setToolTipText(I18N.t("dialog.note.text.tooltip"));
-		mimeCombo = new BoundComboBox<>(NoteHandler.TAG_MIME, MIME_TYPES);
+		mimeCombo = new BoundComboBox<>(NoteReader.TAG_MIME, MIME_TYPES);
 		mimeCombo.setI18NPrefix("enum.note.mime.type");
-		localeCombo = new BoundFilteredComboBox<>(NoteHandler.TAG_LOCALE, LocaleHelper.getAvailableLanguageTags());
+		localeCombo = new BoundFilteredComboBox<>(NoteReader.TAG_LOCALE, LocaleHelper.getAvailableLanguageTags());
 		localeCombo.setEditable(true);
-		translationPanel = new TranslationListPanel(NoteHandler.TAG_TRANSLATION, this, I18N.t("dialog.note.translations"));
+		translationPanel = new TranslationListPanel(NoteReader.TAG_TRANSLATION, this, I18N.t("dialog.note.translations"));
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.SOURCE, NoteHandler.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
-			.withComponent(PanelKey.PRIVACY, NoteHandler.TAG_PRIVACY, null)
-			.withComponent(PanelKey.AUDIT, NoteHandler.TAG_AUDIT, null)
+			.withComponent(PanelKey.SOURCE, NoteReader.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
+			.withComponent(PanelKey.PRIVACY, NoteReader.TAG_PRIVACY, null)
+			.withComponent(PanelKey.AUDIT, NoteReader.TAG_AUDIT, null)
 			.build();
 
 		components.bind(titleField);

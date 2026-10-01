@@ -73,9 +73,7 @@ import java.util.function.Consumer;
  */
 public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 
-	private static final String TAG_RESOLVES = "RESOLVES";
-
-	private static final String TAG_VOID = "VOID";
+	private static final String TAG_RESOLVES = "resolves";
 
 
 	public enum ListType{
@@ -650,7 +648,7 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 			else if(saveAsVoid)
 				// Save a VOID marker if the list is empty and saveAsVoid is enabled
 				record.addChild(FLEFRecord.createChildWithTag(path)
-					.addChild(FLEFRecord.createChildWithTag(TAG_VOID))
+					.addChild(FLEFRecord.createChildWithTag(FLEFRecord.TAG_VOID))
 				);
 		}
 		else if(type == ListType.CITATION_WRAPPER)

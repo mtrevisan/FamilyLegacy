@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.ContextImpactReader;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.ContextImpactRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
@@ -39,26 +40,6 @@ public class ContextImpactHandler extends AbstractRecordTypeHandler<ContextImpac
 
 	public static final String TYPE = "CONTEXT_IMPACT";
 	public static final String ID_PREFIX = "CI";
-
-	public static final String TAG_CONTEXT = "CONTEXT";
-	public static final String TAG_TARGET = "TARGET";
-	public static final String TAG_IMPACT_TYPE = "IMPACT_TYPE";
-	public static final String TAG_RATIONALE = "RATIONALE";
-	public static final String TAG_CONFIDENCE = "CONFIDENCE";
-	public static final String TAG_SOURCE = "SOURCE";
-	public static final String TAG_EVIDENCE = "EVIDENCE";
-	public static final String TAG_AUDIT = "AUDIT";
-
-	public static final String[] IMPACT_TYPES = new String[]{
-		"explains",
-		"influences",
-		"constrains",
-		"motivates",
-		"causes"
-	};
-	public static final String[] CONFIDENCES = new String[]{
-		"low", "medium", "high"
-	};
 
 
 	private static final class SingletonHelper{
@@ -94,20 +75,22 @@ public class ContextImpactHandler extends AbstractRecordTypeHandler<ContextImpac
 		final StringBuilder sb = new StringBuilder();
 
 		// Extract the context reference (oneof: CulturalNorm or HistoricEvent)
-		String contextDisplay = extractReferenceDisplay(record, model, TAG_CONTEXT);
+		final FLEFRecord context = FLEFRecordHelper.findChild(record, ContextImpactReader.TAG_CONTEXT);
+		String contextDisplay = extractReferenceDisplay(record, model, context);
 		if(StringUtils.isEmpty(contextDisplay))
 			contextDisplay = "Unknown Context";
 		sb.append(contextDisplay);
 
 		// Extract the target reference (oneof: many possible types)
-		String targetDisplay = extractReferenceDisplay(record, model, TAG_TARGET);
+		final FLEFRecord target = FLEFRecordHelper.findChild(record, ContextImpactReader.TAG_TARGET);
+		String targetDisplay = extractReferenceDisplay(record, model, target);
 		if(StringUtils.isEmpty(targetDisplay))
 			targetDisplay = "Unknown Target";
 		sb.append(" → ")
 			.append(targetDisplay);
 
 		// Add an impact type if present
-		final String impactType = FLEFRecordHelper.getChildValue(record, TAG_IMPACT_TYPE);
+		final String impactType = ContextImpactReader.extractImpactType(record);
 		if(StringUtils.isNotEmpty(impactType))
 			sb.append(" (")
 				.append(impactType)
@@ -135,15 +118,14 @@ public class ContextImpactHandler extends AbstractRecordTypeHandler<ContextImpac
 	 *
 	 * @param record the parent record
 	 * @param model  the model to resolve references
-	 * @param tag    the tag of the child that contains the reference (e.g., "CONTEXT", "TARGET")
+	 * @param reference the child that contains the reference (e.g., "CONTEXT", "TARGET")
 	 * @return the display text of the referenced record, or {@code null} if not found
 	 */
-	private String extractReferenceDisplay(final FLEFRecord record, final FLEFModel model, final String tag){
-		final FLEFRecord refContainer = FLEFRecordHelper.findChild(record, tag);
-		if(refContainer == null || refContainer.isEmpty())
+	private String extractReferenceDisplay(final FLEFRecord record, final FLEFModel model, final FLEFRecord reference){
+		if(reference == null || reference.isEmpty())
 			return null;
 
-		final List<FLEFRecord> children = refContainer.getChildren();
+		final List<FLEFRecord> children = reference.getChildren();
 		if(children.isEmpty())
 			return null;
 

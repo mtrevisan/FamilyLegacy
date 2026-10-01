@@ -37,9 +37,6 @@ import java.util.List;
  */
 public final class ReferenceType extends TypeDefinition{
 
-	private static final String TAG_VOID = "VOID";
-
-
 	private final String targetTypeName;
 	private final boolean voidable;
 
@@ -73,7 +70,7 @@ public final class ReferenceType extends TypeDefinition{
 
 		// Syntactic validation: Check voidability
 		// A valid VOID reference has no target ID to resolve
-		if(Strings.CI.equals(TAG_VOID, record.getTag()) && !voidable)
+		if(Strings.CI.equals(FLEFRecord.TAG_VOID, record.getTag()) && !voidable)
 			errors.add(String.format("Void reference not allowed at '%s', record %s", contextPath, record));
 	}
 

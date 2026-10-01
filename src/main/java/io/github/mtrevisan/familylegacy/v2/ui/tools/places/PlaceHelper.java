@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.tools.places;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.PlaceReader;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceRelationshipHandler;
 import org.apache.commons.lang3.StringUtils;
@@ -104,7 +105,7 @@ public final class PlaceHelper{
 	public static String coordinates(final FLEFRecord place){
 		if(place == null)
 			return null;
-		final FLEFRecord map = FLEFRecordHelper.findChild(place, TAG_MAP);
+		final FLEFRecord map = FLEFRecordHelper.findChild(place, PlaceReader.TAG_MAP);
 		if(map == null)
 			return null;
 		return FLEFRecordHelper.getChildValue(map, TAG_COORDINATES);

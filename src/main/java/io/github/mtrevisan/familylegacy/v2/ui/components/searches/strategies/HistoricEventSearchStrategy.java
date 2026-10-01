@@ -28,11 +28,12 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.io.model.readers.DateReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.HistoricEventReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.date.DateService;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchCriteria;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchMode;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchStrategy;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HistoricEventHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
@@ -62,24 +63,24 @@ public class HistoricEventSearchStrategy implements SearchStrategy{
 
 	@Override
 	public Predicate<FLEFRecord> buildPredicate(final SearchCriteria criteria, final FLEFModel model){
-		type = criteria.getFilterFor(HistoricEventHandler.TAG_TYPE);
-		title = criteria.getFilterFor(HistoricEventHandler.TAG_TITLE);
-		date = criteria.getFilterFor(HistoricEventHandler.TAG_DATE);
+		type = criteria.getFilterFor(HistoricEventReader.TAG_TYPE);
+		title = criteria.getFilterFor(HistoricEventReader.TAG_TITLE);
+		date = criteria.getFilterFor(HistoricEventReader.TAG_DATE);
 		calendar = criteria.getFilterFor(DateReader.TAG_CALENDAR);
-		place = criteria.getFilterFor(PlaceHandler.TYPE);
+		place = criteria.getFilterFor(HistoricEventReader.TAG_PLACE);
 		mode = criteria.mode();
 
 		return historicEvent -> {
 			// Type filter
 			if(StringUtils.isNotEmpty(type)){
-				final String recordType = FLEFRecordHelper.getChildValue(historicEvent, HistoricEventHandler.TAG_TYPE);
+				final String recordType = HistoricEventReader.extractType(historicEvent);
 				if(!Strings.CI.equals(type, recordType))
 					return false;
 			}
 
 			// Title filter
 			if(StringUtils.isNotEmpty(title)){
-				final String recordTitle = FLEFRecordHelper.getChildValue(historicEvent, HistoricEventHandler.TAG_TITLE);
+				final String recordTitle = HistoricEventReader.extractTitle(historicEvent);
 				if(!SearchHelper.matches(recordTitle, title, mode))
 					return false;
 			}
@@ -100,10 +101,10 @@ public class HistoricEventSearchStrategy implements SearchStrategy{
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
 		final String baseDisplayText = HANDLER.getDisplayText(record, model);
 
-		final String title = FLEFRecordHelper.getChildValue(record, HistoricEventHandler.TAG_TITLE);
-		final String type = FLEFRecordHelper.getChildValue(record, HistoricEventHandler.TAG_TYPE);
-		final FLEFRecord dateRecord = FLEFRecordHelper.findChild(record, HistoricEventHandler.TAG_DATE);
-		final String date = FLEFRecordHelper.extractDate(dateRecord);
+		final String title = HistoricEventReader.extractTitle(record);
+		final String type = HistoricEventReader.extractType(record);
+		final FLEFRecord dateRecord = FLEFRecordHelper.findChild(record, HistoricEventReader.TAG_DATE);
+		final String date = DateService.getDateDisplayText(dateRecord);
 		final String place = FLEFRecordHelper.extractPlace(record, model);
 
 		final StringJoiner details = new StringJoiner(", ", " (", ")");

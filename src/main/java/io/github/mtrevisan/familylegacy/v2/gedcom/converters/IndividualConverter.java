@@ -35,6 +35,7 @@ import io.github.mtrevisan.familylegacy.v2.gedcom.utils.StructureParser;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.DocumentHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IdentityHypothesisHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
@@ -383,8 +384,8 @@ public class IndividualConverter {
 									GEDCOMHelper.cleanId(child.getValue())
 								))
 							);
-						if(RelationshipHandler.ENUM_TYPE_BIOLOGICAL_CHILD.equals(relation)
-								|| RelationshipHandler.ENUM_TYPE_ADOPTIVE_CHILD.equals(relation)
+						if(RelationshipReader.isTypeBiologicalChild(relation)
+								|| RelationshipReader.isTypeAdoptiveChild(relation)
 								|| "foster_child".equals(relation) || "guarded_child".equals(relation)
 								|| "step_child".equals(relation) || "civil_spouse".equals(relation)
 								|| "religious_spouse".equals(relation) || "customary_spouse".equals(relation)

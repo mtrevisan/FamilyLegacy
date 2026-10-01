@@ -26,26 +26,17 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.TextValueVariantReader;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.structures.TextValueVariantStructureDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.Strings;
 
 import java.awt.Window;
-import java.util.Locale;
 
 
 public class TextValueVariantHandler extends AbstractRecordTypeHandler<TextValueVariantStructureDialog>{
 
 	public static final String TYPE = "TEXT_VALUE_VARIANT";
-
-	public static final String TAG_PHONETIC = "PHONETIC";
-	public static final String TAG_TRANSCRIPTION = "TRANSCRIPTION";
-
-	public static final String TAG_SYSTEM = "SYSTEM";
-	public static final String TAG_TYPE = "TYPE";
-	public static final String TAG_VALUE = "VALUE";
 
 
 	private static final class SingletonHelper{
@@ -80,21 +71,21 @@ public class TextValueVariantHandler extends AbstractRecordTypeHandler<TextValue
 
 		final FLEFRecord variant = record.getTheOnlyChild();
 		String tag = variant.getTag();
-		if(Strings.CI.equals(TAG_PHONETIC, tag)){
-			final String system = FLEFRecordHelper.getChildValue(variant, TAG_SYSTEM);
-			final String value = FLEFRecordHelper.getChildValue(variant, TAG_VALUE);
+		if(TextValueVariantReader.isPhonetic(tag)){
+			final String system = TextValueVariantReader.extractPhoneticSystem(variant);
+			final String value = TextValueVariantReader.extractPhoneticValue(variant);
 
 			final StringBuilder details = new StringBuilder();
 			if(StringUtils.isNotEmpty(system))
 				details.append(system);
 			if(!details.isEmpty())
-				return String.format("%s [%s: %s]", value, TAG_PHONETIC.toLowerCase(Locale.ROOT), details);
-			return String.format("%s [%s]", value, TAG_PHONETIC.toLowerCase(Locale.ROOT));
+				return String.format("%s [%s: %s]", value, I18N.t("text.value.variant.phonetic"), details);
+			return String.format("%s [%s]", value, I18N.t("text.value.variant.phonetic"));
 		}
-		else if(Strings.CI.equals(TAG_TRANSCRIPTION, tag)){
-			final String system = FLEFRecordHelper.getChildValue(variant, TAG_SYSTEM);
-			final String type = FLEFRecordHelper.getChildValue(variant, TAG_TYPE);
-			final String value = FLEFRecordHelper.getChildValue(variant, TAG_VALUE);
+		else if(TextValueVariantReader.isTranscription(tag)){
+			final String system = TextValueVariantReader.extractTranscriptionSystem(variant);
+			final String type = TextValueVariantReader.extractTranscriptionType(variant);
+			final String value = TextValueVariantReader.extractTranscriptionValue(variant);
 
 			final StringBuilder details = new StringBuilder();
 			if(StringUtils.isNotEmpty(system))
@@ -105,8 +96,8 @@ public class TextValueVariantHandler extends AbstractRecordTypeHandler<TextValue
 				details.append(type);
 			}
 			if(!details.isEmpty())
-				return String.format("%s [%s: %s]", value, TAG_TRANSCRIPTION.toLowerCase(Locale.ROOT), details);
-			return String.format("%s [%s]", value, TAG_TRANSCRIPTION.toLowerCase(Locale.ROOT));
+				return String.format("%s [%s: %s]", value, I18N.t("text.value.variant.transcription"), details);
+			return String.format("%s [%s]", value, I18N.t("text.value.variant.transcription"));
 		}
 
 		return "[--]";

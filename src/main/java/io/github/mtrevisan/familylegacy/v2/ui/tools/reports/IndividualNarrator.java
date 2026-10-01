@@ -27,8 +27,11 @@ package io.github.mtrevisan.familylegacy.v2.ui.tools.reports;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.NameReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.PlaceReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.RelationshipReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.date.DateService;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventParticipationHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.reports.index.KinshipResolver;
 import io.github.mtrevisan.familylegacy.v2.ui.tools.reports.index.RelationIndex;
 import org.apache.commons.lang3.StringUtils;
@@ -190,7 +193,7 @@ final class IndividualNarrator{
 
 		// 1. Birth
 		if(birth != null){
-			final String d = orNull(FLEFRecordHelper.extractDate(birth));
+			final String d = orNull(DateService.getDateDisplayText(birth));
 			final String p = orNull(FLEFRecordHelper.extractPlace(birth, model));
 			sentences.add(labels.narrativeBirth(name, d, p));
 		}
@@ -199,7 +202,7 @@ final class IndividualNarrator{
 
 		// 1b. Baptism
 		if(baptism != null){
-			final String d = orNull(FLEFRecordHelper.extractDate(baptism));
+			final String d = orNull(DateService.getDateDisplayText(baptism));
 			final String p = orNull(FLEFRecordHelper.extractPlace(baptism, model));
 			sentences.add(labels.narrativeBaptism(name, d, p));
 		}
@@ -218,7 +221,7 @@ final class IndividualNarrator{
 
 		// 3. Marriages
 		for(final FLEFRecord m : marriages){
-			final String d = orNull(FLEFRecordHelper.extractDate(m));
+			final String d = orNull(DateService.getDateDisplayText(m));
 			final String p = orNull(FLEFRecordHelper.extractPlace(m, model));
 			final FLEFRecord spouse = spouseFromEvent(person, m);
 			final String spouseName = (spouse != null? displayName(spouse): null);
@@ -234,7 +237,7 @@ final class IndividualNarrator{
 
 		// 3b. Divorces / annulments events
 		for(final FLEFRecord d : divorces){
-			final String dt = orNull(FLEFRecordHelper.extractDate(d));
+			final String dt = orNull(DateService.getDateDisplayText(d));
 			final FLEFRecord spouse = spouseFromEvent(person, d);
 			final String spouseName = (spouse != null? displayName(spouse): "?");
 			sentences.add(labels.narrativeDivorce(name, spouseName, dt));
@@ -261,12 +264,12 @@ final class IndividualNarrator{
 
 		// 7. Migration events
 		if(emigration != null){
-			final String d = orNull(FLEFRecordHelper.extractDate(emigration));
+			final String d = orNull(DateService.getDateDisplayText(emigration));
 			final String p = orNull(FLEFRecordHelper.extractPlace(emigration, model));
 			sentences.add(labels.narrativeEmigration(name, d, p));
 		}
 		if(immigration != null){
-			final String d = orNull(FLEFRecordHelper.extractDate(immigration));
+			final String d = orNull(DateService.getDateDisplayText(immigration));
 			final String p = orNull(FLEFRecordHelper.extractPlace(immigration, model));
 			sentences.add(labels.narrativeImmigration(name, d, p));
 		}
@@ -282,7 +285,7 @@ final class IndividualNarrator{
 
 		// 11. Death, cause, burial/cremation
 		if(death != null){
-			final String d = orNull(FLEFRecordHelper.extractDate(death));
+			final String d = orNull(DateService.getDateDisplayText(death));
 			final String p = orNull(FLEFRecordHelper.extractPlace(death, model));
 			String cause = FLEFRecordHelper.getChildValue(death, TAG_CAUSE + "." + TAG_REASON);
 			if(cause == null)
@@ -291,12 +294,12 @@ final class IndividualNarrator{
 		}
 
 		if(burial != null){
-			final String d = orNull(FLEFRecordHelper.extractDate(burial));
+			final String d = orNull(DateService.getDateDisplayText(burial));
 			final String p = orNull(FLEFRecordHelper.extractPlace(burial, model));
 			sentences.add(labels.narrativeBurial(name, d, p));
 		}
 		else if(cremation != null){
-			final String d = orNull(FLEFRecordHelper.extractDate(cremation));
+			final String d = orNull(DateService.getDateDisplayText(cremation));
 			final String p = orNull(FLEFRecordHelper.extractPlace(cremation, model));
 			sentences.add(labels.narrativeCremation(name, d, p));
 		}
@@ -335,9 +338,24 @@ final class IndividualNarrator{
 
 			final String desc = FLEFRecordHelper.getChildValue(e, TAG_DESCRIPTION);
 			if(desc != null && !desc.isBlank()){
-				final String d = orNull(FLEFRecordHelper.extractDate(e));
+				final String d = orNull(DateService.getDateDisplayText(e));
 				final String p = orNull(FLEFRecordHelper.extractPlace(e, model));
-				sentences.add(labels.narrativeAttribute(name, type != null? type.replace('_', ' '): "event", desc.trim()));
+
+				final StringBuilder valueBuilder = new StringBuilder(desc.trim());
+				if(d != null || p != null){
+					valueBuilder.append(" (");
+					if(d != null)
+						valueBuilder.append(d);
+					if(p != null){
+						if(d != null)
+							valueBuilder.append(", ");
+						valueBuilder.append(p);
+					}
+					valueBuilder.append(')');
+				}
+
+				final String eventLabel = (type != null? type.replace('_', ' '): "event");
+				sentences.add(labels.narrativeAttribute(name, eventLabel, valueBuilder.toString()));
 			}
 		}
 	}
@@ -421,7 +439,7 @@ final class IndividualNarrator{
 		for(final RelationIndex.ParentEdge edge : idx.parentEdgesOf(child))
 			if(edge.parent().getId().equals(parent.getId()))
 				return edge.relationshipType();
-		return RelationshipHandler.ENUM_TYPE_BIOLOGICAL_CHILD;
+		return RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD;
 	}
 
 	/**
@@ -531,8 +549,8 @@ final class IndividualNarrator{
 		if(place == null)
 			return null;
 
-		for(final FLEFRecord n : FLEFRecordHelper.findChildren(place, TAG_NAME)){
-			final String v = FLEFRecordHelper.getChildValue(n, TAG_VALUE);
+		for(final FLEFRecord n : FLEFRecordHelper.findChildren(place, PlaceReader.TAG_NAME)){
+			final String v = FLEFRecordHelper.getChildValue(n, NameReader.TAG_VALUE);
 			if(v != null && !v.isBlank())
 				return v.trim();
 		}

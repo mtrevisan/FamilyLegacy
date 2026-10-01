@@ -36,6 +36,7 @@ import io.github.mtrevisan.familylegacy.v2.gedcom.utils.StructureParser;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.DocumentHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupAttributeHandler;
@@ -369,7 +370,7 @@ public class FamilyConverter{
 				.addChild(FLEFRecord.createChildWithTagAndValue("individual", childId)))
 			.addChild(FLEFRecord.createChildWithTag("object")
 				.addChild(FLEFRecord.createChildWithTagAndValue("individual", parentId)))
-			.addChild(FLEFRecord.createChildWithTagAndValue("type", RelationshipHandler.ENUM_TYPE_BIOLOGICAL_CHILD))
+			.addChild(FLEFRecord.createChildWithTagAndValue("type", RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD))
 			.addChild(FLEFRecord.createChildWithTagAndValue("status", "active"))
 			.addChild(FLEFRecord.createChildWithTag("audit")
 				.addChild(FLEFRecord.createChildWithTag("creation")

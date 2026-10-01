@@ -24,9 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.components.searches.strategies;
 
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.ResearchActivityReader;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.RecordFilterPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchCriteria;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchActivityHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import net.miginfocom.swing.MigLayout;
@@ -48,10 +48,10 @@ import java.util.function.Consumer;
  */
 public class ResearchActivityFilterPanel extends JPanel implements RecordFilterPanel{
 
-	private final JComboBox<String> activityTypeCombo = new JComboBox<>(GUIHelper.fillCombo(ResearchActivityHandler.TYPES, I18N.t("search.combo.any")));
-	private final JComboBox<String> statusCombo = new JComboBox<>(GUIHelper.fillCombo(ResearchActivityHandler.STATUSES, I18N.t("search.combo.any")));
+	private final JComboBox<String> activityTypeCombo = new JComboBox<>(GUIHelper.fillCombo(ResearchActivityReader.TYPES, I18N.t("search.combo.any")));
+	private final JComboBox<String> statusCombo = new JComboBox<>(GUIHelper.fillCombo(ResearchActivityReader.STATUSES, I18N.t("search.combo.any")));
 	private final JTextField actionField = new JTextField(20);
-	private final JComboBox<String> resultCombo = new JComboBox<>(GUIHelper.fillCombo(ResearchActivityHandler.RESULTS, I18N.t("search.combo.any")));
+	private final JComboBox<String> resultCombo = new JComboBox<>(GUIHelper.fillCombo(ResearchActivityReader.RESULTS, I18N.t("search.combo.any")));
 	private final JTextField observationField = new JTextField(20);
 
 	private final Consumer<SearchCriteria> onChanged;
@@ -118,11 +118,11 @@ public class ResearchActivityFilterPanel extends JPanel implements RecordFilterP
 	@Override
 	public Map<String, String> getFilters(){
 		final Map<String, String> filters = new HashMap<>();
-		filters.put(ResearchActivityHandler.TAG_ACTIVITY_TYPE, getActivityType());
-		filters.put(ResearchActivityHandler.TAG_STATUS, getStatus());
-		filters.put(ResearchActivityHandler.TAG_ACTION, getAction());
-		filters.put(ResearchActivityHandler.TAG_RESULT, getResult());
-		filters.put(ResearchActivityHandler.TAG_OBSERVATION, getObservation());
+		filters.put(ResearchActivityReader.TAG_ACTIVITY_TYPE, getActivityType());
+		filters.put(ResearchActivityReader.TAG_STATUS, getStatus());
+		filters.put(ResearchActivityReader.TAG_ACTION, getAction());
+		filters.put(ResearchActivityReader.TAG_RESULT, getResult());
+		filters.put(ResearchActivityReader.TAG_OBSERVATION, getObservation());
 		return filters;
 	}
 

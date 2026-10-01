@@ -72,7 +72,7 @@ public class GroupHandler extends AbstractRecordTypeHandler<GroupRecordDialog>{
 			return "--";
 
 		// Locate the first populated NAME structure
-		final List<String> names = GroupReader.extractFullNames(record);
+		final List<String> names = GroupReader.extractNames(record);
 		final String name = (!names.isEmpty()? names.getFirst(): null);
 
 		final String type = GroupReader.extractType(record);

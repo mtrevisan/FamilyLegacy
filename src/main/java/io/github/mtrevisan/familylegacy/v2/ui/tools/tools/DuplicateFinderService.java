@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.tools.tools;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventParticipationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IdentityHypothesisHandler;
@@ -225,8 +226,8 @@ public final class DuplicateFinderService{
 		final Map<String, List<FLEFRecord>> relationshipsByEndpoint = new HashMap<>();
 		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
 		for(final FLEFRecord relationship : relationships){
-			final String subject = relationship.extractReferencedId(RelationshipHandler.TAG_SUBJECT, IndividualHandler.TYPE);
-			final String object = relationship.extractReferencedId(RelationshipHandler.TAG_OBJECT, IndividualHandler.TYPE);
+			final String subject = relationship.extractReferencedId(RelationshipReader.TAG_SUBJECT, IndividualHandler.TYPE);
+			final String object = relationship.extractReferencedId(RelationshipReader.TAG_OBJECT, IndividualHandler.TYPE);
 			if(subject != null)
 				relationshipsByEndpoint.computeIfAbsent(subject, k -> new ArrayList<>()).add(relationship);
 			if(object != null && !object.equals(subject))
@@ -271,7 +272,7 @@ public final class DuplicateFinderService{
 		final Map<String, Set<String>> childrenByParent = new HashMap<>();
 		for(final FLEFRecord rel : relationships){
 			final String type = FLEFRecordHelper.getChildValue(rel, "type");
-			if(!RelationshipHandler.ENUM_TYPE_BIOLOGICAL_CHILD.equalsIgnoreCase(type))
+			if(!RelationshipReader.isTypeBiologicalChild(type))
 				continue;
 
 			final String child = rel.extractReferencedId("subject", IndividualHandler.TYPE);
@@ -317,7 +318,7 @@ public final class DuplicateFinderService{
 			if(subject == null || target == null)
 				continue;
 
-			if(RelationshipHandler.ENUM_TYPE_BIOLOGICAL_CHILD.equalsIgnoreCase(type)){
+			if(RelationshipReader.isTypeBiologicalChild(type)){
 				if(id.equals(subject))
 					parents.add(target);
 				else if(id.equals(target))

@@ -26,7 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs.records;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.ResearchActivityReader;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextArea;
 import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
@@ -97,10 +97,6 @@ import java.io.IOException;
  */
 public class ResearchActivityRecordDialog extends BaseRecordDialog{
 
-	private static final String TAG_SEARCH_SCOPE_TYPE = FLEFRecordHelper.composePath(ResearchActivityHandler.TAG_SEARCH_SCOPE, ResearchActivityHandler.TAG_TYPE);
-	private static final String TAG_SEARCH_SCOPE_DETAIL = FLEFRecordHelper.composePath(ResearchActivityHandler.TAG_SEARCH_SCOPE, ResearchActivityHandler.TAG_DETAIL);
-
-
 	private final JPanel propertiesPanel;
 
 	private final BoundComboBox<String> activityTypeCombo;
@@ -132,39 +128,39 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]5[]10[]");
 
 		// Initialize components
-		activityTypeCombo = new BoundComboBox<>(ResearchActivityHandler.TAG_ACTIVITY_TYPE, ResearchActivityHandler.TYPES);
+		activityTypeCombo = new BoundComboBox<>(ResearchActivityReader.TAG_ACTIVITY_TYPE, ResearchActivityReader.TYPES);
 		activityTypeCombo.setI18NPrefix("enum.research.activity.type");
-		statusCombo = new BoundComboBox<>(ResearchActivityHandler.TAG_STATUS, ResearchActivityHandler.STATUSES);
+		statusCombo = new BoundComboBox<>(ResearchActivityReader.TAG_STATUS, ResearchActivityReader.STATUSES);
 		statusCombo.setI18NPrefix("enum.research.activity.status");
-		actionArea = new BoundTextArea(ResearchActivityHandler.TAG_ACTION, 3, 30);
+		actionArea = new BoundTextArea(ResearchActivityReader.TAG_ACTION, 3, 30);
 
-		targetField = EntityField.createForRecordFromOneofReference(ResearchActivityHandler.TAG_TARGET, this, model)
+		targetField = EntityField.createForRecordFromOneofReference(ResearchActivityReader.TAG_TARGET, this, model)
 			.withHandlerTypes(IndividualHandler.class, GroupHandler.class, EventHandler.class,
 				EventParticipationHandler.class, RelationshipHandler.class, IndividualAttributeHandler.class,
 				GroupAttributeHandler.class, PlaceHandler.class, PlaceRelationshipHandler.class, SourceHandler.class,
 				DocumentHandler.class, IdentityHypothesisHandler.class, CulturalNormHandler.class, HistoricEventHandler.class)
 			.withSaveAsVoid();
-		searchScopeTypeCombo = new BoundComboBox<>(TAG_SEARCH_SCOPE_TYPE, ResearchActivityHandler.SEARCH_SCOPES);
+		searchScopeTypeCombo = new BoundComboBox<>(ResearchActivityReader.TAG_SEARCH_SCOPE_TYPE, GUIHelper.fillCombo(ResearchActivityReader.SEARCH_SCOPES, null));
 		searchScopeTypeCombo.setI18NPrefix("enum.research.activity.search.scope");
-		searchScopeDetailArea = new BoundTextArea(TAG_SEARCH_SCOPE_DETAIL, 3, 30);
+		searchScopeDetailArea = new BoundTextArea(ResearchActivityReader.TAG_SEARCH_SCOPE_DETAIL, 3, 30);
 
-		resultCombo = new BoundComboBox<>(ResearchActivityHandler.TAG_RESULT, ResearchActivityHandler.RESULTS);
+		resultCombo = new BoundComboBox<>(ResearchActivityReader.TAG_RESULT, GUIHelper.fillCombo(ResearchActivityReader.RESULTS, null));
 		resultCombo.setI18NPrefix("enum.research.activity.result");
-		observationArea = new BoundTextArea(ResearchActivityHandler.TAG_OBSERVATION, 3, 30);
-		conclusionArea = new BoundTextArea(ResearchActivityHandler.TAG_CONCLUSION, 3, 30);
-		conclusionConfidenceCombo = new BoundComboBox<>(ResearchActivityHandler.TAG_CONCLUSION_CONFIDENCE, GUIHelper.fillCombo(ResearchActivityHandler.CONFIDENCES, null));
+		observationArea = new BoundTextArea(ResearchActivityReader.TAG_OBSERVATION, 3, 30);
+		conclusionArea = new BoundTextArea(ResearchActivityReader.TAG_CONCLUSION, 3, 30);
+		conclusionConfidenceCombo = new BoundComboBox<>(ResearchActivityReader.TAG_CONCLUSION_CONFIDENCE, GUIHelper.fillCombo(ResearchActivityReader.CONFIDENCES, null));
 		conclusionConfidenceCombo.setI18NPrefix("enum.confidence");
 
-		parentActivityField = EntityField.createForRecordFromReference(ResearchActivityHandler.TAG_PARENT_ACTIVITY, this, model,
+		parentActivityField = EntityField.createForRecordFromReference(ResearchActivityReader.TAG_PARENT_ACTIVITY, this, model,
 			ResearchActivityHandler.class);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.RESEARCH_QUESTION, ResearchActivityHandler.TAG_QUESTION, I18N.t("dialog.component.research.questions"))
-			.withComponent(PanelKey.TASK, ResearchActivityHandler.TAG_TASK, I18N.t("dialog.component.research.tasks"))
-			.withComponent(PanelKey.SOURCE, ResearchActivityHandler.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
-			.withComponent(PanelKey.PRIVACY, ResearchActivityHandler.TAG_PRIVACY, null)
-			.withComponent(PanelKey.AUDIT, ResearchActivityHandler.TAG_AUDIT, null)
+			.withComponent(PanelKey.RESEARCH_QUESTION, ResearchActivityReader.TAG_QUESTION, I18N.t("dialog.component.research.questions"))
+			.withComponent(PanelKey.TASK, ResearchActivityReader.TAG_TASK, I18N.t("dialog.component.research.tasks"))
+			.withComponent(PanelKey.SOURCE, ResearchActivityReader.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
+			.withComponent(PanelKey.PRIVACY, ResearchActivityReader.TAG_PRIVACY, null)
+			.withComponent(PanelKey.AUDIT, ResearchActivityReader.TAG_AUDIT, null)
 			.build();
 
 		components.bind(activityTypeCombo);

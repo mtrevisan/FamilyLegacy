@@ -26,7 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.searches.strategies;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.ResearchTaskReader;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchCriteria;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchMode;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchStrategy;
@@ -56,37 +56,37 @@ public class ResearchTaskSearchStrategy implements SearchStrategy{
 
 	@Override
 	public Predicate<FLEFRecord> buildPredicate(final SearchCriteria criteria, final FLEFModel model){
-		description = criteria.getFilterFor(ResearchTaskHandler.TAG_DESCRIPTION);
-		status = criteria.getFilterFor(ResearchTaskHandler.TAG_STATUS);
-		priority = criteria.getFilterFor(ResearchTaskHandler.TAG_PRIORITY);
-		outcome = criteria.getFilterFor(ResearchTaskHandler.TAG_OUTCOME);
+		description = criteria.getFilterFor(ResearchTaskReader.TAG_DESCRIPTION);
+		status = criteria.getFilterFor(ResearchTaskReader.TAG_STATUS);
+		priority = criteria.getFilterFor(ResearchTaskReader.TAG_PRIORITY);
+		outcome = criteria.getFilterFor(ResearchTaskReader.TAG_OUTCOME);
 		mode = criteria.mode();
 
 		return task -> {
 			// Description filter
 			if(StringUtils.isNotEmpty(description)){
-				final String recordDescription = FLEFRecordHelper.getChildValue(task, ResearchTaskHandler.TAG_DESCRIPTION);
+				final String recordDescription = ResearchTaskReader.extractDescription(task);
 				if(!SearchHelper.matches(recordDescription, description, mode))
 					return false;
 			}
 
 			// Status filter
 			if(StringUtils.isNotEmpty(status)){
-				final String recordStatus = FLEFRecordHelper.getChildValue(task, ResearchTaskHandler.TAG_STATUS);
+				final String recordStatus = ResearchTaskReader.extractStatus(task);
 				if(!status.equalsIgnoreCase(recordStatus))
 					return false;
 			}
 
 			// Priority filter
 			if(StringUtils.isNotEmpty(priority)){
-				final String recordPriority = FLEFRecordHelper.getChildValue(task, ResearchTaskHandler.TAG_PRIORITY);
+				final String recordPriority = ResearchTaskReader.extractPriority(task);
 				if(!priority.equalsIgnoreCase(recordPriority))
 					return false;
 			}
 
 			// Outcome filter
 			if(StringUtils.isNotEmpty(outcome)){
-				final String recordOutcome = FLEFRecordHelper.getChildValue(task, ResearchTaskHandler.TAG_OUTCOME);
+				final String recordOutcome = ResearchTaskReader.extractOutcome(task);
 				if(!SearchHelper.matches(recordOutcome, outcome, mode))
 					return false;
 			}
@@ -99,8 +99,8 @@ public class ResearchTaskSearchStrategy implements SearchStrategy{
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
 		final String baseDisplayText = HANDLER.getDisplayText(record, model);
 
-		final String status = FLEFRecordHelper.getChildValue(record, ResearchTaskHandler.TAG_STATUS);
-		final String priority = FLEFRecordHelper.getChildValue(record, ResearchTaskHandler.TAG_PRIORITY);
+		final String status = ResearchTaskReader.extractStatus(record);
+		final String priority = ResearchTaskReader.extractPriority(record);
 
 		final StringJoiner details = new StringJoiner(", ", " (", ")");
 		details.setEmptyValue(StringUtils.EMPTY);

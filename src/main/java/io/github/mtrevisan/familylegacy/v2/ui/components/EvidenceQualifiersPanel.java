@@ -26,6 +26,8 @@ package io.github.mtrevisan.familylegacy.v2.ui.components;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.EvidenceQualifiersReader;
+import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
@@ -54,39 +56,11 @@ import java.awt.event.MouseEvent;
  */
 public class EvidenceQualifiersPanel extends JPanel{
 
-	public static final String TAG_SOURCE_TYPE = "SOURCE_TYPE";
-	public static final String TAG_INFORMATION_TYPE = "INFORMATION_TYPE";
-	public static final String TAG_EVIDENCE_TYPE = "EVIDENCE_TYPE";
-
-	public static final String SOURCE_TYPE_ORIGINAL = "original";
-	public static final String SOURCE_TYPE_DERIVED = "derived";
-	private static final String[] SOURCE_TYPES = {
-		StringUtils.EMPTY,
-		SOURCE_TYPE_ORIGINAL, SOURCE_TYPE_DERIVED
-	};
-
-	public static final String INFORMATION_TYPE_PRIMARY = "primary";
-	public static final String INFORMATION_TYPE_SECONDARY = "secondary";
-	public static final String INFORMATION_TYPE_UNDETERMINED = "undetermined";
-	private static final String[] INFORMATION_TYPES = {
-		StringUtils.EMPTY,
-		INFORMATION_TYPE_PRIMARY, INFORMATION_TYPE_SECONDARY, INFORMATION_TYPE_UNDETERMINED
-	};
-
-	public static final String EVIDENCE_TYPE_DIRECT = "direct";
-	public static final String EVIDENCE_TYPE_INDIRECT = "indirect";
-	public static final String EVIDENCE_TYPE_NEGATIVE = "negative";
-	private static final String[] EVIDENCE_TYPES = {
-		StringUtils.EMPTY,
-		EVIDENCE_TYPE_DIRECT, EVIDENCE_TYPE_INDIRECT, EVIDENCE_TYPE_NEGATIVE
-	};
-
-
 	private final String path;
 
-	private final JComboBox<String> sourceTypeCombo;
-	private final JComboBox<String> informationTypeCombo;
-	private final JComboBox<String> evidenceTypeCombo;
+	private final BoundComboBox<String> sourceTypeCombo;
+	private final BoundComboBox<String> informationTypeCombo;
+	private final BoundComboBox<String> evidenceTypeCombo;
 
 
 	/**
@@ -101,13 +75,14 @@ public class EvidenceQualifiersPanel extends JPanel{
 		setLayout(GUIHelper.createLabelFieldLayout(5, "[]5[]5[]"));
 		setBorder(BorderFactory.createTitledBorder(panelTitle));
 
-		sourceTypeCombo = new JComboBox<>(SOURCE_TYPES);
-		informationTypeCombo = new JComboBox<>(INFORMATION_TYPES);
-		evidenceTypeCombo = new JComboBox<>(EVIDENCE_TYPES);
-
-		// Tooltips
+		sourceTypeCombo = new BoundComboBox<>(EvidenceQualifiersReader.TAG_SOURCE_TYPE, GUIHelper.fillCombo(EvidenceQualifiersReader.SOURCE_TYPES, null));
+		sourceTypeCombo.setI18NPrefix("enum.evidence.source.type");
 		sourceTypeCombo.setToolTipText(I18N.t("dialog.evidence.qualifiers.source.type.tooltip"));
+		informationTypeCombo = new BoundComboBox<>(EvidenceQualifiersReader.TAG_INFORMATION_TYPE, GUIHelper.fillCombo(EvidenceQualifiersReader.INFORMATION_TYPES, null));
+		informationTypeCombo.setI18NPrefix("enum.evidence.information.type");
 		informationTypeCombo.setToolTipText(I18N.t("dialog.evidence.qualifiers.information.type.tooltip"));
+		evidenceTypeCombo = new BoundComboBox<>(EvidenceQualifiersReader.TAG_EVIDENCE_TYPE, GUIHelper.fillCombo(EvidenceQualifiersReader.EVIDENCE_TYPES, null));
+		evidenceTypeCombo.setI18NPrefix("enum.evidence.evidence.type");
 		evidenceTypeCombo.setToolTipText(I18N.t("dialog.evidence.qualifiers.evidence.type.tooltip"));
 
 		// Layout: label + combo per row
@@ -144,13 +119,13 @@ public class EvidenceQualifiersPanel extends JPanel{
 		if(record == null || record.isEmpty())
 			return;
 
-		String value = FLEFRecordHelper.getChildValue(record, FLEFRecordHelper.composePath(path, TAG_SOURCE_TYPE));
+		String value = FLEFRecordHelper.getChildValue(record, FLEFRecordHelper.composePath(path, EvidenceQualifiersReader.TAG_SOURCE_TYPE));
 		sourceTypeCombo.setSelectedItem(StringUtils.defaultString(value));
 
-		value = FLEFRecordHelper.getChildValue(record, FLEFRecordHelper.composePath(path, TAG_INFORMATION_TYPE));
+		value = FLEFRecordHelper.getChildValue(record, FLEFRecordHelper.composePath(path, EvidenceQualifiersReader.TAG_INFORMATION_TYPE));
 		informationTypeCombo.setSelectedItem(StringUtils.defaultString(value));
 
-		value = FLEFRecordHelper.getChildValue(record, FLEFRecordHelper.composePath(path, TAG_EVIDENCE_TYPE));
+		value = FLEFRecordHelper.getChildValue(record, FLEFRecordHelper.composePath(path, EvidenceQualifiersReader.TAG_EVIDENCE_TYPE));
 		evidenceTypeCombo.setSelectedItem(StringUtils.defaultString(value));
 	}
 
@@ -160,9 +135,9 @@ public class EvidenceQualifiersPanel extends JPanel{
 	 * @param record	the record to save into
 	 */
 	public void save(final FLEFRecord record){
-		FLEFRecordHelper.updateChildValue(record, FLEFRecordHelper.composePath(path, TAG_SOURCE_TYPE), getSourceType());
-		FLEFRecordHelper.updateChildValue(record, FLEFRecordHelper.composePath(path, TAG_INFORMATION_TYPE), getInformationType());
-		FLEFRecordHelper.updateChildValue(record, FLEFRecordHelper.composePath(path, TAG_EVIDENCE_TYPE), getEvidenceType());
+		FLEFRecordHelper.updateChildValue(record, FLEFRecordHelper.composePath(path, EvidenceQualifiersReader.TAG_SOURCE_TYPE), getSourceType());
+		FLEFRecordHelper.updateChildValue(record, FLEFRecordHelper.composePath(path, EvidenceQualifiersReader.TAG_INFORMATION_TYPE), getInformationType());
+		FLEFRecordHelper.updateChildValue(record, FLEFRecordHelper.composePath(path, EvidenceQualifiersReader.TAG_EVIDENCE_TYPE), getEvidenceType());
 	}
 
 	public String getSourceType(){

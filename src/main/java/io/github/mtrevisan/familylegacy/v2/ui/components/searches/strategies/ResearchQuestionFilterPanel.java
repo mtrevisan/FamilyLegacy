@@ -24,9 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.components.searches.strategies;
 
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.ResearchQuestionReader;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.RecordFilterPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchCriteria;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 import net.miginfocom.swing.MigLayout;
@@ -50,8 +50,8 @@ public class ResearchQuestionFilterPanel extends JPanel implements RecordFilterP
 
 	private final JTextField titleField = new JTextField(20);
 	private final JTextField questionField = new JTextField(20);
-	private final JComboBox<String> statusCombo = new JComboBox<>(GUIHelper.fillCombo(ResearchQuestionHandler.STATUSES, I18N.t("search.combo.any")));
-	private final JComboBox<String> confidenceCombo = new JComboBox<>(GUIHelper.fillCombo(ResearchQuestionHandler.CONFIDENCES, I18N.t("search.combo.any")));
+	private final JComboBox<String> statusCombo = new JComboBox<>(GUIHelper.fillCombo(ResearchQuestionReader.STATUSES, I18N.t("search.combo.any")));
+	private final JComboBox<String> confidenceCombo = new JComboBox<>(GUIHelper.fillCombo(ResearchQuestionReader.CONFIDENCES, I18N.t("search.combo.any")));
 
 	private final Consumer<SearchCriteria> onChanged;
 
@@ -114,10 +114,10 @@ public class ResearchQuestionFilterPanel extends JPanel implements RecordFilterP
 	@Override
 	public Map<String, String> getFilters(){
 		final Map<String, String> filters = new HashMap<>();
-		filters.put(ResearchQuestionHandler.TAG_TITLE, getTitle());
-		filters.put(ResearchQuestionHandler.TAG_QUESTION, getQuestion());
-		filters.put(ResearchQuestionHandler.TAG_STATUS, getStatus());
-		filters.put(ResearchQuestionHandler.TAG_CONCLUSION_CONFIDENCE, getConfidence());
+		filters.put(ResearchQuestionReader.TAG_TITLE, getTitle());
+		filters.put(ResearchQuestionReader.TAG_QUESTION, getQuestion());
+		filters.put(ResearchQuestionReader.TAG_STATUS, getStatus());
+		filters.put(ResearchQuestionReader.TAG_CONCLUSION_CONFIDENCE, getConfidence());
 		return filters;
 	}
 

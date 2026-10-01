@@ -91,8 +91,8 @@ public class RelationshipHandler extends AbstractRecordTypeHandler<RelationshipR
 			objectDisplayText = objectHandler.getDisplayText(object, model);
 		}
 
-		final String type = FLEFRecordHelper.getChildValue(record, RelationshipReader.TAG_TYPE);
-		final String role = FLEFRecordHelper.getChildValue(record, RelationshipReader.TAG_ROLE);
+		final String type = RelationshipReader.extractType(record);
+		final String role = RelationshipReader.extractRole(record);
 		final String id = record.getId();
 
 		String display;

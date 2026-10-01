@@ -27,12 +27,15 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.lists;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.CropReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.DocumentReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.SourceCitationReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BindingsHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ImageCropDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.components.PreferredImagePanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.RecordSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.DocumentHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
 
 import javax.swing.JDialog;
@@ -101,21 +104,12 @@ public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
 
 
 		final FLEFRecord documentPart = listModel.get(itemIndex);
-		Rectangle imageCropRect = null;
-		try{
 		final FLEFRecord crop = FLEFRecordHelper.findChild(documentPart, PreferredImagePanel.TAG_CROP);
-			final int cropX = Integer.parseInt(FLEFRecordHelper.getChildValue(crop, PreferredImagePanel.TAG_X));
-			final int cropY = Integer.parseInt(FLEFRecordHelper.getChildValue(crop, PreferredImagePanel.TAG_Y));
-			final int cropWidth = Integer.parseInt(FLEFRecordHelper.getChildValue(crop, PreferredImagePanel.TAG_WIDTH));
-			final int cropHeight = Integer.parseInt(FLEFRecordHelper.getChildValue(crop, PreferredImagePanel.TAG_HEIGHT));
-			if(cropX >= 0 && cropY >= 0 && cropWidth >= 0 && cropHeight >= 0)
-				imageCropRect = new Rectangle(cropX, cropY, cropWidth, cropHeight);
-		}
-		catch(final NumberFormatException ignored){}
-		final String documentId = FLEFRecordHelper.findChild(documentPart, SourceHandler.TAG_DOCUMENT)
+		Rectangle imageCropRect = CropReader.extractPreferredImageCrop(crop);
+		final String documentId = FLEFRecordHelper.findChild(documentPart, SourceReader.TAG_DOCUMENT)
 			.getValue();
 		final FLEFRecord document = model.getRecordById(documentId);
-		String uri = FLEFRecordHelper.getChildValue(document, DocumentHandler.TAG_URI);
+		String uri = FLEFRecordHelper.getChildValue(document, DocumentReader.TAG_URI);
 // TODO to be removed
 if(uri != null)
 	uri = "C:\\mauro\\heritage\\My Genealogy Projects\\Trevisan (Dorato)-Gallinaro-Masutti (Manfrin)-Zaros (Basso)" + uri;
@@ -141,7 +135,7 @@ if(uri != null)
 		if(documentPart != null){
 			FLEFRecord doc = documentPart;
 			if(documentPart.getId() == null){
-				final String documentId = FLEFRecordHelper.getChildValue(documentPart, SourceHandler.TAG_DOCUMENT);
+				final String documentId = SourceReader.extractDocument(documentPart);
 				doc = model.getRecordById(documentId);
 			}
 			return documentHandler.getDisplayText(doc, model);
@@ -158,7 +152,7 @@ if(uri != null)
 			(record, handler) -> {
 				final FLEFRecord document = model.getRecordById(record.getId());
 				if(document != null && !listModel.contains(document)){
-					String uri = FLEFRecordHelper.getChildValue(document, DocumentHandler.TAG_URI);
+					String uri = FLEFRecordHelper.getChildValue(document, DocumentReader.TAG_URI);
 // TODO to be removed
 if(uri != null)
 	uri = "C:\\mauro\\heritage\\My Genealogy Projects\\Trevisan (Dorato)-Gallinaro-Masutti (Manfrin)-Zaros (Basso)" + uri;
@@ -190,12 +184,12 @@ if(uri != null)
 	private void extractCrop(final FLEFRecord documentPart){
 		final Rectangle documentCropRect = cropDialog.getCrop();
 		if(documentCropRect != null && !documentCropRect.isEmpty()){
-			// temporarily save under DOCUMENT
+			// FIXME temporarily save under DOCUMENT
 			final FLEFRecord crop = FLEFRecordHelper.getOrCreateTargetNode(documentPart, PreferredImagePanel.TAG_CROP);
-			FLEFRecordHelper.updateChildValue(crop, PreferredImagePanel.TAG_X, String.valueOf(documentCropRect.x));
-			FLEFRecordHelper.updateChildValue(crop, PreferredImagePanel.TAG_Y, String.valueOf(documentCropRect.y));
-			FLEFRecordHelper.updateChildValue(crop, PreferredImagePanel.TAG_WIDTH, String.valueOf(documentCropRect.width));
-			FLEFRecordHelper.updateChildValue(crop, PreferredImagePanel.TAG_HEIGHT, String.valueOf(documentCropRect.height));
+			FLEFRecordHelper.updateChildValue(crop, CropReader.TAG_X, String.valueOf(documentCropRect.x));
+			FLEFRecordHelper.updateChildValue(crop, CropReader.TAG_Y, String.valueOf(documentCropRect.y));
+			FLEFRecordHelper.updateChildValue(crop, CropReader.TAG_WIDTH, String.valueOf(documentCropRect.width));
+			FLEFRecordHelper.updateChildValue(crop, CropReader.TAG_HEIGHT, String.valueOf(documentCropRect.height));
 		}
 	}
 
@@ -247,8 +241,8 @@ if(uri != null)
 	 */
 	public void saveReferences(final FLEFRecord record){
 		for(final FLEFRecord documentPart : getItems()){
-			final FLEFRecord part = FLEFRecord.createChildWithTag(ExtractListPanel.TAG_DOCUMENT_PART);
-			part.addChild(FLEFRecord.createChildWithTagAndValue(SourceHandler.TAG_DOCUMENT, documentPart.getId()));
+			final FLEFRecord part = FLEFRecord.createChildWithTag(SourceCitationReader.TAG_DOCUMENT_PART);
+			part.addChild(FLEFRecord.createChildWithTagAndValue(SourceReader.TAG_DOCUMENT, documentPart.getId()));
 			final FLEFRecord crop = FLEFRecordHelper.findChild(documentPart, PreferredImagePanel.TAG_CROP);
 			part.addChild(crop);
 			record.addChild(part);
