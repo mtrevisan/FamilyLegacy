@@ -1,0 +1,147 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+package io.github.mtrevisan.familylegacy.v2.ui.components.searches.strategies;
+
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.ConclusionReader;
+import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchCriteria;
+import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchMatcher;
+import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchMode;
+import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchStrategy;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
+
+import java.util.List;
+import java.util.StringJoiner;
+import java.util.function.Predicate;
+
+
+/**
+ * Search strategy for Conclusion records.
+ * Supports filtering by issue, proof status, narrative text, and linked research questions.
+ * <p>
+ * The text filters (issue, narrative, and the linked research question's
+ * display text) use the same admission mode as the main query, exposed by
+ * {@link SearchCriteria#mode()}: {@link SearchMode#WHOLE_WORD},
+ * or {@link SearchMode#FUZZY}. The scoring
+ * is delegated to {@link SearchMatcher}, so the behaviour is consistent
+ * with the main search field of the dialog.
+ */
+public class ConclusionSearchStrategy implements SearchStrategy{
+
+	private static final ConclusionHandler HANDLER = ConclusionHandler.getInstance();
+
+	private String issue;
+	private String proofStatus;
+	private String narrative;
+	private String researchQuestion;
+	private SearchMode mode;
+
+
+	@Override
+	public Predicate<FLEFRecord> buildPredicate(final SearchCriteria criteria, final FLEFModel model){
+		issue = criteria.getFilterFor(ConclusionReader.TAG_ISSUE);
+		proofStatus = criteria.getFilterFor(ConclusionReader.TAG_PROOF_STATUS);
+		narrative = criteria.getFilterFor(ConclusionReader.TAG_NARRATIVE);
+		researchQuestion = criteria.getFilterFor(ConclusionReader.TAG_RESEARCH);
+		mode = criteria.mode();
+
+		return conclusion -> {
+			// Issue filter
+			if(StringUtils.isNotEmpty(issue)){
+				final String recordIssue = ConclusionReader.extractIssues(conclusion);
+				if(!SearchHelper.matches(recordIssue, issue, mode))
+					return false;
+			}
+
+			// Proof Status filter (exact match, no text search)
+			if(StringUtils.isNotEmpty(proofStatus)){
+				final String recordStatus = ConclusionReader.extractProofStatus(conclusion);
+				if(!Strings.CI.equals(proofStatus, recordStatus))
+					return false;
+			}
+
+			// Narrative filter
+			if(StringUtils.isNotEmpty(narrative)){
+				final String recordNarrative = ConclusionReader.extractNarrative(conclusion);
+				if(!SearchHelper.matches(recordNarrative, narrative, mode))
+					return false;
+			}
+
+			// Linked Research Questions filter: the query is matched against
+			// the display text of the linked research question, not against
+			// the raw id.
+			if(StringUtils.isNotEmpty(researchQuestion)){
+				final List<FLEFRecord> researchRefs = FLEFRecordHelper.findChildren(conclusion, ConclusionReader.TAG_RESEARCH);
+				boolean matched = false;
+				for(final FLEFRecord researchRef : researchRefs){
+					final String questionRef = researchRef.getValue();
+					if(questionRef == null)
+						continue;
+
+					final FLEFRecord questionRecord = model.getRecordById(questionRef);
+					if(questionRecord == null)
+						continue;
+
+					final String questionDisplayText = ResearchQuestionHandler.getInstance()
+						.getDisplayText(questionRecord, model);
+					if(SearchHelper.matches(questionDisplayText, researchQuestion, mode)){
+						matched = true;
+
+						break;
+					}
+				}
+				if(!matched)
+					return false;
+			}
+
+			return true;
+		};
+	}
+
+	@Override
+	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
+		final String baseDisplayText = HANDLER.getDisplayText(record, model);
+
+		final String issue = ConclusionReader.extractIssues(record);
+		final String status = ConclusionReader.extractProofStatus(record);
+
+		final StringJoiner details = new StringJoiner(", ", " (", ")");
+		details.setEmptyValue(StringUtils.EMPTY);
+
+		if(StringUtils.isNotEmpty(issue))
+			details.add(I18N.t("dialog.conclusion.issue") + ": " + issue);
+		if(StringUtils.isNotEmpty(status))
+			details.add(I18N.t("dialog.conclusion.proof.status") + ": " + status);
+
+		return baseDisplayText + details;
+	}
+
+}

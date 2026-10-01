@@ -1,0 +1,100 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+package io.github.mtrevisan.familylegacy.v2.ui.handlers;
+
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.SourceCitationReader;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.citations.SourceCitationDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
+
+import java.awt.Window;
+
+
+/**
+ * Handler for {@code SOURCE_CITATION} entities according to FLEF 0.1.3.
+ */
+public class SourceCitationHandler extends AbstractRecordTypeHandler<SourceCitationDialog>{
+
+	public static final String TYPE = "SOURCE_CITATION";
+	public static final String CITED_TYPE = "SOURCE";
+
+
+	private static final class SingletonHelper{
+		private static final SourceCitationHandler INSTANCE = new SourceCitationHandler();
+	}
+
+
+	public static SourceCitationHandler getInstance(){
+		return SingletonHelper.INSTANCE;
+	}
+
+
+	@Override
+	public boolean isTopLevelEntity(){
+		return false;
+	}
+
+	@Override
+	public String getLabel(){
+		return I18N.t("confirmation.exist.record.source.citation");
+	}
+
+	@Override
+	public String getType(){
+		return TYPE;
+	}
+
+	@Override
+	public String getCitedType(){
+		return (!isTopLevelEntity()? CITED_TYPE: null);
+	}
+
+	@Override
+	public RecordTypeHandler<?> getParentHandler(){
+		return SourceHandler.getInstance();
+	}
+
+	@Override
+	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
+		if(record == null)
+			return "--";
+
+		final String sourceId = SourceCitationReader.extractSource(record);
+		final FLEFRecord source = model.getRecordById(sourceId);
+		return "❝ " + SourceHandler.getInstance().getDisplayText(source, model);
+	}
+
+	@Override
+	public SourceCitationDialog createNewDialog(final Window parent, final FLEFModel model){
+		return SourceCitationDialog.createNew(parent, model);
+	}
+
+	@Override
+	public SourceCitationDialog createEditDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
+		return SourceCitationDialog.createEdit(parent, model, record);
+	}
+
+}

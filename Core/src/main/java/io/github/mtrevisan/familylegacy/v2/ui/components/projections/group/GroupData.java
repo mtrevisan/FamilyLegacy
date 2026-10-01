@@ -1,0 +1,208 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+package io.github.mtrevisan.familylegacy.v2.ui.components.projections.group;
+
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.GroupReader;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.BoxPanelType;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.PlaceholderImages;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.AsyncResourceLoader;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.ResourceHelper;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.swing.ImageIcon;
+import java.awt.Rectangle;
+import java.util.List;
+import java.util.function.BiConsumer;
+
+
+/**
+ * Extracts display information for a group from a FLEFModel.
+ */
+public final class GroupData{
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(GroupData.class);
+
+
+	private static final AsyncResourceLoader<ImageIcon> IMAGE_LOADER = new AsyncResourceLoader<>();
+
+
+	private static final String DOT = ".";
+	private static final String TAG_PIPE = "|";
+
+	private static final String TAG_HTML_OPEN = "<html>";
+	private static final String TAG_HTML_CLOSE = "</html>";
+	private static final String TAG_BR = "<br>";
+
+	private static final String NO_DATA = "?";
+
+
+	private final FLEFRecord group;
+	private final String id;
+	private final String nameText;
+	private String nameTooltip;
+	private final String type;
+
+	private String preferredImageKey;
+	private String preferredImageUri;
+	private Rectangle preferredImageCropRect;
+	private ImageIcon imagePrimary;
+	private ImageIcon imageSecondary;
+
+
+	public static GroupData create(final FLEFRecord group){
+		return (group != null
+			? new GroupData(group)
+			: null);
+	}
+
+
+	private GroupData(final FLEFRecord group){
+		this.group = group;
+		id = group.getId();
+
+		final List<String> names = GroupReader.extractNames(group);
+		if(!names.isEmpty()){
+			nameText = GroupReader.extractPrimaryName(group);
+			nameTooltip = TAG_HTML_OPEN + StringUtils.join(names, TAG_BR) + TAG_HTML_CLOSE;
+		}
+		else{
+			nameText = NO_DATA;
+			nameTooltip = null;
+		}
+
+		final String rawType = GroupReader.extractType(group);
+		type = (rawType != null? rawType.replace('_', ' '): StringUtils.EMPTY);
+
+		extractPreferredImage(group);
+	}
+
+
+	public FLEFRecord getGroup(){
+		return group;
+	}
+
+	public String getId(){
+		return id;
+	}
+
+	public String getNameText(){
+		return nameText;
+	}
+
+	public String getNameTooltip(){
+		return nameTooltip;
+	}
+
+	public String getType(){
+		return type;
+	}
+
+	public String getPreferredImageKey(){
+		return preferredImageKey;
+	}
+
+	public ImageIcon getImagePrimary(){
+		return imagePrimary;
+	}
+
+	public ImageIcon getImageSecondary(){
+		return imageSecondary;
+	}
+
+	public boolean isEmpty(){
+		return (id == null);
+	}
+
+
+	private void extractPreferredImage(final FLEFRecord record){
+		if(record == null){
+			preferredImageUri = null;
+			preferredImageCropRect = null;
+			imagePrimary = PlaceholderImages.placeholder(BoxPanelType.PRIMARY);
+			imageSecondary = PlaceholderImages.placeholder(BoxPanelType.SECONDARY);
+			preferredImageKey = StringUtils.EMPTY;
+
+			return;
+		}
+
+		preferredImageUri = GroupReader.extractPreferredImageUri(record);
+// TODO to be removed
+if(preferredImageUri != null)
+	preferredImageUri = "C:\\mauro\\heritage\\My Genealogy Projects\\Trevisan (Dorato)-Gallinaro-Masutti (Manfrin)-Zaros (Basso)" + preferredImageUri;
+		preferredImageCropRect = GroupReader.extractPreferredImageCrop(record);
+
+		// Set the default image immediately
+		imagePrimary = PlaceholderImages.placeholder(BoxPanelType.PRIMARY);
+		imageSecondary = PlaceholderImages.placeholder(BoxPanelType.SECONDARY);
+		preferredImageKey = composePreferredImageKey(preferredImageUri, preferredImageCropRect);
+	}
+
+	public void loadPreferredImageAsync(final BiConsumer<String, ImageIcon[]> imageConsumer){
+		if(StringUtils.isEmpty(preferredImageUri))
+			return;
+
+		IMAGE_LOADER.load(
+			preferredImageKey,
+			() -> {
+				final ImageIcon croppedImage = ResourceHelper.getCroppedImage(preferredImageUri, preferredImageCropRect);
+				if(croppedImage != null){
+					final ImageIcon imagePrimary = PlaceholderImages.resize(croppedImage, BoxPanelType.PRIMARY);
+					final ImageIcon imageSecondary = PlaceholderImages.resize(croppedImage, BoxPanelType.SECONDARY);
+					return new ImageIcon[]{imagePrimary, imageSecondary};
+				}
+				else{
+					LOGGER.error("Non-existent image for {}", preferredImageUri);
+
+					return null;
+				}
+			},
+			images -> {
+				if(images != null){
+					imagePrimary = images[0];
+					imageSecondary = images[1];
+				}
+
+				imageConsumer.accept(preferredImageKey, images);
+			}
+		);
+	}
+
+	private static String composePreferredImageKey(final String preferredImage, final Rectangle preferredImageCropRect){
+		return (StringUtils.isNotEmpty(preferredImage)? preferredImage: StringUtils.EMPTY)
+			+ (preferredImageCropRect != null? TAG_PIPE + (int)preferredImageCropRect.getX() + DOT
+			+ (int)preferredImageCropRect.getY() + DOT + (int)preferredImageCropRect.getWidth() + DOT
+			+ (int)preferredImageCropRect.getHeight(): StringUtils.EMPTY);
+	}
+
+
+	@Override
+	public String toString(){
+		return nameText + " [" + id + "]";
+	}
+
+}

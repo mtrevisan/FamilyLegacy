@@ -1,0 +1,139 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+package io.github.mtrevisan.familylegacy.v2.ui.components;
+
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.DateReader;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
+import net.miginfocom.swing.MigLayout;
+
+import javax.swing.BorderFactory;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.border.TitledBorder;
+import java.awt.Window;
+
+
+/**
+ * Panel for {@code SPANNING} date (duration) according to FLEF 0.1.3.
+ * <p>
+ * Structure:
+ * <pre>
+ * struct SpanningDate {
+ *   from?: SingleDate
+ *   to?: SingleDate
+ *
+ *   require one_of(from, to)
+ * }
+ * </pre>
+ */
+public class SpanningDatePanel extends JPanel{
+
+	private final SingleDatePanel fromPanel;
+	private final SingleDatePanel toPanel;
+
+
+	public SpanningDatePanel(final Window parent, final FLEFModel model){
+		this.fromPanel = new SingleDatePanel(parent, model);
+		this.toPanel = new SingleDatePanel(parent, model);
+
+
+		initComponents();
+	}
+
+
+	private void initComponents(){
+		setLayout(new MigLayout("ins 0,fillx,top", "[grow,fill][grow,fill]"));
+		setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
+
+		final JPanel fromPanel = new JPanel(new MigLayout("fillx", "[right]rel[grow]"));
+		fromPanel.setBorder(new TitledBorder(I18N.t("dialog.date.spanning.from")));
+		fromPanel.add(this.fromPanel, "growx");
+		add(fromPanel, "growx");
+
+		final JPanel toPanel = new JPanel(new MigLayout("fillx", "[right]rel[grow]"));
+		toPanel.setBorder(new TitledBorder(I18N.t("dialog.date.spanning.to")));
+		toPanel.add(this.toPanel, "growx");
+		add(toPanel, "growx");
+	}
+
+	public void load(final FLEFRecord record){
+		clear();
+
+		if(record == null || record.isEmpty())
+			return;
+
+		final FLEFRecord from = FLEFRecordHelper.findChild(record, DateReader.TAG_FROM);
+		if(from != null)
+			fromPanel.load(from);
+
+		final FLEFRecord to = FLEFRecordHelper.findChild(record, DateReader.TAG_TO);
+		if(to != null)
+			toPanel.load(to);
+	}
+
+	public FLEFRecord saveToRecord(){
+		final FLEFRecord record = FLEFRecord.createEmpty();
+
+		if(fromPanel.hasData()){
+			final FLEFRecord from = fromPanel.save();
+			record.addChildWithTag(DateReader.TAG_FROM, from);
+		}
+
+		if(toPanel.hasData()){
+			final FLEFRecord to = toPanel.save();
+			record.addChildWithTag(DateReader.TAG_TO, to);
+		}
+
+		return (record.hasData()? record.setTag(DateReader.TAG_SPANNING): FLEFRecord.createEmpty());
+	}
+
+	public void clear(){
+		fromPanel.clear();
+		toPanel.clear();
+	}
+
+	public boolean hasData(){
+		return (fromPanel.hasData() || toPanel.hasData());
+	}
+
+	public boolean validateData(){
+		if(!hasData()){
+			JOptionPane.showMessageDialog(this,
+				I18N.tf("validation.at.least.one.of", I18N.t("dialog.date.spanning.from"), I18N.t("dialog.date.spanning.to")),
+				I18N.t("validation.title"), JOptionPane.ERROR_MESSAGE);
+
+			return false;
+		}
+
+		if(fromPanel.hasData() && !fromPanel.validateData())
+			return false;
+
+		return (!toPanel.hasData() || toPanel.validateData());
+	}
+
+}

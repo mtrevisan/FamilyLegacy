@@ -1,0 +1,294 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+package io.github.mtrevisan.familylegacy.v2.ui.dialogs.records;
+
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.EventParticipationReader;
+import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundComboBox;
+import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
+import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
+import io.github.mtrevisan.familylegacy.v2.ui.components.fields.EntityField;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ContextImpactHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventParticipationHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
+
+import javax.swing.JPanel;
+import java.awt.Window;
+import java.io.IOException;
+
+
+/**
+ * Dialog for editing an {@code EVENT_PARTICIPATION_RECORD} according to FLEF 0.1.3.
+ * <p>
+ * Structure:
+ * <pre>
+ * record EventParticipationRecord {
+ *   id: LocalID
+ *   participant: EventParticipant
+ *   event: Xref&lt;EventRecord&gt;
+ *   role?: enum {
+ *     child, parent, spouse, power_of_attorney, prisoner, witness, officiant, informant, executor, grantor, grantee,
+ *     landlord, tenant, soldier, commander, victim, survivor, accused, judge
+ *   } | Text
+ *   source*: SourceCitation
+ *   note*: Xref&lt;NoteRecord&gt;
+ *   evidence?: EvidenceQualifiers
+ *   privacy?: PrivacyStructure
+ *   audit: AuditStructure
+ * }
+ *
+ * EventParticipant = oneof {
+ *   individual: Xref&lt;IndividualRecord&gt;
+ *   group: Xref&lt;GroupRecord&gt;
+ *   place: Xref&lt;PlaceRecord&gt;
+ * }
+ * </pre>
+ * <p>
+ * Tabs:
+ * Tab 1 (Properties): event, participant, role, evidence
+ * Tab 5 (Context): ContextImpactRecord (target[event_participation] = this participation)
+ * Tab 6 (Research): ConclusionRecord (resolves = this participation), ResearchQuestionRecord (target[event_participation] = this participation)
+ * Tab 7 (Sources): source
+ * Tab 8 (Notes): note
+ * Tab 9 (Privacy): privacy
+ * Tab 10 (Audit): audit
+ */
+public class EventParticipationRecordDialog extends BaseRecordDialog{
+
+	private final JPanel propertiesPanel;
+
+	private final EntityField participantField;
+	private final EntityField eventField;
+	private final BoundComboBox<String> roleCombo;
+
+
+	public static EventParticipationRecordDialog createNew(final Window parent, final FLEFModel model){
+		return createNew(parent, model, EventParticipationRecordDialog::new);
+	}
+
+	public static EventParticipationRecordDialog createEdit(final Window parent, final FLEFModel model,
+			final FLEFRecord record){
+		return createEdit(parent, model, record, EventParticipationRecordDialog::new);
+	}
+
+
+	private EventParticipationRecordDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
+		super(parent, model, record, EventParticipationHandler.getInstance());
+
+		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]5[]");
+
+		participantField = EntityField.createForRecordFromOneofReference(EventParticipationReader.TAG_PARTICIPANT, this, model)
+			.withHandlerTypes(IndividualHandler.class, GroupHandler.class, PlaceHandler.class);
+		eventField = EntityField.createForRecordFromReference(EventParticipationReader.TAG_EVENT, this, model, EventHandler.class);
+		roleCombo = new BoundComboBox<>(EventParticipationReader.TAG_ROLE, GUIHelper.fillCombo(EventParticipationReader.ROLES, null));
+		roleCombo.setI18NPrefix("enum.event.participation.role");
+		roleCombo.setEditable(true);
+
+		// Build common panels using the builder
+		components = new RecordDialogBuilder(this, model, record)
+			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, ContextImpactHandler.TYPE, I18N.t("dialog.component.context.impact"))
+			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, I18N.t("dialog.component.conclusions"))
+			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, I18N.t("dialog.component.research.questions"))
+			.withComponent(PanelKey.SOURCE, EventParticipationReader.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
+			.withComponent(PanelKey.NOTE, EventParticipationReader.TAG_NOTE, null)
+			.withComponent(PanelKey.EVIDENCE, EventParticipationReader.TAG_EVIDENCE, I18N.t("dialog.component.evidence"))
+			.withComponent(PanelKey.PRIVACY, EventParticipationReader.TAG_PRIVACY, null)
+			.withComponent(PanelKey.AUDIT, EventParticipationReader.TAG_AUDIT, null)
+			.build();
+
+		components.bind(roleCombo);
+
+
+		// Set up the image carousel selection listener on the source list
+		setupSourceListSelection();
+
+		finalizeDialog(parent);
+	}
+
+
+	@Override
+	protected JPanel createPropertiesPanel(){
+		// participant
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.event.participation.participant") + "*:", participantField);
+
+		// event
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.event.participation.event") + "*:", eventField);
+
+		// role
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.event.participation.role") + ":", roleCombo);
+
+		// evidence
+		final JPanel evidencePanel = components.getPanel(PanelKey.EVIDENCE);
+		GUIHelper.addComponent(propertiesPanel, evidencePanel);
+
+		return propertiesPanel;
+	}
+
+	@Override
+	protected JPanel createContextPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
+
+		final JPanel contextPanel = components.getPanel(PanelKey.CONTEXT_IMPACT_ON_TARGET);
+		GUIHelper.addComponent(panel, contextPanel);
+
+		return panel;
+	}
+
+	@Override
+	protected JPanel createResearchPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]10[]");
+
+		// conclusion
+		final JPanel conclusionPanel = components.getPanel(PanelKey.CONCLUSION_ON_RESOLVES);
+		GUIHelper.addComponent(panel, conclusionPanel);
+
+		// research question
+		final JPanel researchQuestionPanel = components.getPanel(PanelKey.RESEARCH_QUESTION_ON_TARGET);
+		GUIHelper.addComponent(panel, researchQuestionPanel);
+
+		return panel;
+	}
+
+	@Override
+	protected JPanel createSourcesPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
+
+		final JPanel sourcePanel = components.getPanel(PanelKey.SOURCE);
+		GUIHelper.addComponent(panel, sourcePanel);
+
+		// Image carousel below the source list
+		// It will be hidden if no images are found
+		GUIHelper.addComponent(panel, imageCarouselPanel);
+
+		return panel;
+	}
+
+	@Override
+	protected JPanel createNotesPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
+
+		final JPanel notePanel = components.getPanel(PanelKey.NOTE);
+		GUIHelper.addComponent(panel, notePanel);
+
+		return panel;
+	}
+
+	@Override
+	protected JPanel createPrivacyPanel(){
+		return components.getPanel(PanelKey.PRIVACY);
+	}
+
+	@Override
+	protected JPanel createAuditPanel(){
+		return components.getPanel(PanelKey.AUDIT);
+	}
+
+
+	public EventParticipationRecordDialog withEvent(final FLEFRecord event){
+		final String eventId = event.getId();
+		if(!confirmRecordExistsForType(eventId, EventHandler.getInstance().getLabel()))
+			return this;
+
+		GUIHelper.setComponentVisible(participantField, true);
+
+		eventField.setEntity(FLEFRecord.createMainRecord(eventId, HandlerRegistry.getHandlerType(EventHandler.class)));
+		GUIHelper.setComponentVisible(eventField, false);
+
+		return this;
+	}
+
+	public EventParticipationRecordDialog withParticipant(final FLEFRecord participant){
+		final String participantId = participant.getId();
+		final RecordTypeHandler<?> participantHandler = HandlerRegistry.getHandler(participant.getTag());
+		if(!confirmRecordExistsForType(participantId, participantHandler.getLabel()))
+			return this;
+
+		GUIHelper.setComponentVisible(eventField, true);
+
+		participantField.setEntity(FLEFRecord.createMainRecord(participantId, participantHandler.getType()));
+		GUIHelper.setComponentVisible(participantField, false);
+
+		return this;
+	}
+
+
+	@Override
+	protected void loadData(){
+		participantField.load(record);
+		eventField.load(record);
+
+		components.load(record);
+
+
+		// Initially, update carousel based on the first selected source (if any)
+		updateCarouselFromSelectedSource();
+	}
+
+	@Override
+	protected boolean validData(){
+		if(!participantField.hasData()){
+			GUIHelper.showValidationErrorAndFocus(this,
+				I18N.tf("validation.required", I18N.t("dialog.event.participation.participant")),
+				tabbedPane, propertiesPanel, participantField);
+
+			return false;
+		}
+
+		if(!eventField.hasData()){
+			GUIHelper.showValidationErrorAndFocus(this,
+				I18N.tf("validation.required", I18N.t("dialog.event.participation.event")),
+				tabbedPane, propertiesPanel, eventField);
+
+			return false;
+		}
+
+		return true;
+	}
+
+	@Override
+	protected void saveData(){
+		participantField.saveReferences(record);
+		eventField.saveReferences(record);
+
+		components.save(record);
+	}
+
+
+	public static void main(final String[] args) throws IOException{
+		GUIHelper.launch(EventParticipationRecordDialog::createEdit, "/tests/test.flef", "EP1");
+	}
+
+}
