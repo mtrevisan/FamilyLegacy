@@ -1,0 +1,216 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+package io.github.mtrevisan.familylegacy.v2.ui.dialogs.structures;
+
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.NoteReader;
+import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundComboBox;
+import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundFilteredComboBox;
+import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextArea;
+import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextField;
+import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
+import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
+import io.github.mtrevisan.familylegacy.v2.ui.components.lists.TranslationListPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.LocaleHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
+import org.apache.commons.lang3.StringUtils;
+
+import javax.swing.JPanel;
+import java.awt.Window;
+
+
+/**
+ * Dialog for editing a {@code NOTE_STRUCTURE} according to FLEF 0.1.3.
+ * <p>
+ * Structure:
+ * <pre>
+ * struct NoteStructure {
+ *   id: LocalID
+ *   title?: Text
+ *   text: Text
+ *   mime?: Text
+ *   locale?: LocaleCode | Text
+ *   translation*: struct {
+ *     text: Text
+ *     locale?: LocaleCode | Text
+ *   }
+ *   source*: SourceCitation
+ *   privacy?: PrivacyStructure
+ *   audit: AuditStructure
+ * }
+ * </pre>
+ * <p>
+ * Tabs:
+ * Tab 1 (Properties): title, value, mime, locale, translation
+ * Tab 7 (Sources): source
+ * Tab 9 (Privacy): privacy
+ * Tab 10 (Audit): audit
+ */
+public class NoteStructureDialog extends BaseRecordDialog{
+
+	private static final String[] MIME_TYPES = {
+		StringUtils.EMPTY,
+		"text_plain", "text_html", "text_markdown"
+	};
+
+
+	private final JPanel propertiesPanel;
+
+	private final BoundTextField titleField;
+	private final BoundTextArea textArea;
+	private final BoundComboBox<String> mimeCombo;
+	private final BoundFilteredComboBox<String> localeCombo;
+	private final TranslationListPanel translationPanel;
+
+
+	public static NoteStructureDialog createNew(final Window parent, final FLEFModel model){
+		return createNew(parent, model, NoteStructureDialog::new);
+	}
+
+	public static NoteStructureDialog createEdit(final Window parent, final FLEFModel model, final FLEFRecord record){
+		return createEdit(parent, model, record, NoteStructureDialog::new);
+	}
+
+
+	private NoteStructureDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
+		super(parent, model, record, NoteHandler.getInstance());
+
+		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]5[]5[]10[]");
+
+		titleField = new BoundTextField(NoteReader.TAG_TITLE);
+		textArea = new BoundTextArea(NoteReader.TAG_TEXT, 3, 25);
+		textArea.setToolTipText(I18N.t("dialog.note.text.tooltip"));
+		mimeCombo = new BoundComboBox<>(NoteReader.TAG_MIME, MIME_TYPES);
+		mimeCombo.setI18NPrefix("enum.note.mime.type");
+		localeCombo = new BoundFilteredComboBox<>(NoteReader.TAG_LOCALE, LocaleHelper.getAvailableLanguageTags());
+		localeCombo.setEditable(true);
+		translationPanel = new TranslationListPanel(NoteReader.TAG_TRANSLATION, this, I18N.t("dialog.note.translations"));
+
+		// Build common panels using the builder
+		components = new RecordDialogBuilder(this, model, record)
+			.withComponent(PanelKey.SOURCE, NoteReader.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
+			.withComponent(PanelKey.PRIVACY, NoteReader.TAG_PRIVACY, null)
+			.withComponent(PanelKey.AUDIT, NoteReader.TAG_AUDIT, null)
+			.build();
+
+		components.bind(titleField);
+		components.bind(textArea);
+		components.bind(mimeCombo);
+		components.bind(localeCombo);
+
+
+		// Set up the image carousel selection listener on the source list
+		setupSourceListSelection();
+
+		finalizeDialog(parent);
+	}
+
+
+	@Override
+	protected JPanel createPropertiesPanel(){
+		// title
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.note.title") + ":", titleField);
+
+		// text
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.note.text") + "*:", textArea);
+
+		// mime
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.note.mime.type") + ":", mimeCombo);
+
+		// locale
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.note.locale") + ":", localeCombo);
+
+		// translation
+		GUIHelper.addComponent(propertiesPanel, translationPanel);
+
+		return propertiesPanel;
+	}
+
+	@Override
+	protected JPanel createSourcesPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
+
+		final JPanel sourcePanel = components.getPanel(PanelKey.SOURCE);
+		GUIHelper.addComponent(panel, sourcePanel);
+
+		// Image carousel below the source list
+		// It will be hidden if no images are found
+		GUIHelper.addComponent(panel, imageCarouselPanel);
+
+		return panel;
+	}
+
+	@Override
+	protected JPanel createPrivacyPanel(){
+		return components.getPanel(PanelKey.PRIVACY);
+	}
+
+	@Override
+	protected JPanel createAuditPanel(){
+		return components.getPanel(PanelKey.AUDIT);
+	}
+
+
+	@Override
+	protected void loadData(){
+		components.load(record);
+
+		translationPanel.load(record);
+
+
+		// Initially, update carousel based on the first selected source (if any)
+		updateCarouselFromSelectedSource();
+	}
+
+	@Override
+	protected boolean validData(){
+		if(textArea.isEmpty()){
+			GUIHelper.showValidationErrorAndFocus(this,
+				I18N.tf("validation.required", I18N.t("dialog.note.text")),
+				tabbedPane, propertiesPanel, textArea);
+
+			return false;
+		}
+
+		return true;
+	}
+
+	@Override
+	protected void saveData(){
+		components.save(record);
+
+		translationPanel.save(record);
+	}
+
+
+	public static void main(final String[] args){
+		GUIHelper.launch(NoteStructureDialog::createNew);
+	}
+
+}

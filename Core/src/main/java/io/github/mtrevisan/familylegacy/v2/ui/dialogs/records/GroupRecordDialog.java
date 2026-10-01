@@ -1,0 +1,272 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+package io.github.mtrevisan.familylegacy.v2.ui.dialogs.records;
+
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.GroupReader;
+import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundComboBox;
+import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
+import io.github.mtrevisan.familylegacy.v2.ui.components.PreferredImagePanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
+import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityListPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ContextImpactHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventParticipationHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupAttributeHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.IdentityHypothesisHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.NameHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.i18n.I18N;
+
+import javax.swing.JPanel;
+import java.awt.Window;
+import java.io.IOException;
+
+
+/**
+ * Dialog for editing a {@code GROUP_RECORD} according to FLEF 0.1.3.
+ * <p>
+ * Structure:
+ * <pre>
+ * record GroupRecord {
+ *   id: LocalID
+ *   name*: NameStructure
+ *   type?: enum { family, household, neighborhood, fraternity, club, literary_society, association, organization, tribe } | Text
+ *   source*: SourceCitation
+ *   note*: Xref&lt;NoteRecord&gt;
+ *   preferred_image?: struct {
+ *     uri: Uri
+ *     crop?: CropRect
+ *   }
+ *   privacy?: PrivacyStructure
+ *   audit: AuditStructure
+ * }
+ * </pre>
+ * <p>
+ * Tabs:
+ * Tab 1 (Properties): name, type, preferred_image
+ * Tab 2 (Attributes): GroupAttributeRecord (group = this group)
+ * Tab 3 (Relationships): RelationshipRecord (subject = this group), RelationshipRecord (target = this group)
+ * Tab 4 (Participations): EventParticipationRecord (participant[group] = this group)
+ * Tab 5 (Context): ContextImpactRecord (target[group] = this group)
+ * Tab 6 (Research): ConclusionRecord (resolves = this group), IdentityHypothesisRecord (identity = this group), ResearchQuestionRecord (target[group] = this group)
+ * Tab 7 (Sources): source
+ * Tab 8 (Notes): note
+ * Tab 9 (Privacy): privacy
+ * Tab 10 (Audit): audit
+ */
+public class GroupRecordDialog extends BaseRecordDialog{
+
+	private final PreferredImagePanel preferredImagePanel;
+	private final EntityListPanel namePanel;
+	private final BoundComboBox<String> typeCombo;
+
+
+	public static GroupRecordDialog createNew(final Window parent, final FLEFModel model){
+		return createNew(parent, model, GroupRecordDialog::new);
+	}
+
+	public static GroupRecordDialog createEdit(final Window parent, final FLEFModel model, final FLEFRecord record){
+		return createEdit(parent, model, record, GroupRecordDialog::new);
+	}
+
+
+	private GroupRecordDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
+		super(parent, model, record, GroupHandler.getInstance());
+
+		preferredImagePanel = new PreferredImagePanel(GroupReader.TAG_PREFERRED_IMAGE, this);
+		namePanel = EntityListPanel.createForStructure(GroupReader.TAG_NAME, this, I18N.t("dialog.group.name"), model, NameHandler.class);
+		typeCombo = new BoundComboBox<>(GroupReader.TAG_TYPE, GUIHelper.fillCombo(GroupReader.TYPES, null));
+		typeCombo.setI18NPrefix("enum.group.type");
+		typeCombo.setEditable(true);
+
+		components = new RecordDialogBuilder(this, model, record)
+			.withComponent(PanelKey.GROUP_ATTRIBUTE, GroupAttributeHandler.TYPE, I18N.t("dialog.component.group.attributes"))
+			.withComponent(PanelKey.RELATIONSHIP_ON_OBJECT, RelationshipHandler.TYPE, I18N.t("dialog.component.relationship.on.target"))
+			.withComponent(PanelKey.RELATIONSHIP_ON_SUBJECT, RelationshipHandler.TYPE, I18N.t("dialog.component.relationship.on.subject"))
+			.withComponent(PanelKey.EVENT_PARTICIPATION_ON_PARTICIPANT, EventParticipationHandler.TYPE, I18N.t("dialog.component.event.participations"))
+			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, ContextImpactHandler.TYPE, I18N.t("dialog.component.context.impact"))
+			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, I18N.t("dialog.component.conclusions"))
+			.withComponent(PanelKey.IDENTITY_HYPOTHESIS_ON_IDENTITY, IdentityHypothesisHandler.TYPE, I18N.t("dialog.component.identity.hypotheses"))
+			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, I18N.t("dialog.component.research.questions"))
+			.withComponent(PanelKey.SOURCE, GroupReader.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
+			.withComponent(PanelKey.NOTE, GroupReader.TAG_NOTE, null)
+			.withComponent(PanelKey.PRIVACY, GroupReader.TAG_PRIVACY, null)
+			.withComponent(PanelKey.AUDIT, GroupReader.TAG_AUDIT, null)
+			.build();
+
+		components.bind(typeCombo);
+
+
+		// Set up the image carousel selection listener on the source list
+		setupSourceListSelection();
+
+		finalizeDialog(parent);
+	}
+
+
+	@Override
+	protected JPanel createPropertiesPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]20[]10[]");
+
+		// preferred image
+		panel.add(preferredImagePanel, "span 2,growx,align center");
+
+		// names
+		GUIHelper.addComponent(panel, namePanel);
+
+		// type
+		final JPanel typePanel = GUIHelper.createLabelFieldPanel(0, "[]");
+		GUIHelper.addLabeledComponent(typePanel, I18N.t("dialog.group.type") + ":", typeCombo);
+		GUIHelper.addComponent(panel, typePanel);
+
+		return panel;
+	}
+
+	@Override
+	protected JPanel createAttributesPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
+
+		final JPanel groupAttributePanel = components.getPanel(PanelKey.GROUP_ATTRIBUTE);
+		GUIHelper.addComponent(panel, groupAttributePanel);
+
+		return panel;
+	}
+
+	@Override
+	protected JPanel createRelationshipsPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]15[]");
+
+		final JPanel relationshipAsSubjectPanel = components.getPanel(PanelKey.RELATIONSHIP_ON_SUBJECT);
+		GUIHelper.addComponent(panel, relationshipAsSubjectPanel);
+
+		final JPanel relationshipAsTargetPanel = components.getPanel(PanelKey.RELATIONSHIP_ON_OBJECT);
+		GUIHelper.addComponent(panel, relationshipAsTargetPanel);
+
+		return panel;
+	}
+
+	@Override
+	protected JPanel createParticipationsPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
+
+		final JPanel eventParticipationPanel = components.getPanel(PanelKey.EVENT_PARTICIPATION_ON_PARTICIPANT);
+		GUIHelper.addComponent(panel, eventParticipationPanel);
+
+		return panel;
+	}
+
+	@Override
+	protected JPanel createContextPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
+
+		final JPanel contextPanel = components.getPanel(PanelKey.CONTEXT_IMPACT_ON_TARGET);
+		GUIHelper.addComponent(panel, contextPanel);
+
+		return panel;
+	}
+
+	@Override
+	protected JPanel createResearchPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]15[]15[]");
+
+		final JPanel conclusionPanel = components.getPanel(PanelKey.CONCLUSION_ON_RESOLVES);
+		GUIHelper.addComponent(panel, conclusionPanel);
+
+		final JPanel identityHypothesisPanel = components.getPanel(PanelKey.IDENTITY_HYPOTHESIS_ON_IDENTITY);
+		GUIHelper.addComponent(panel, identityHypothesisPanel);
+
+		final JPanel researchQuestionPanel = components.getPanel(PanelKey.RESEARCH_QUESTION_ON_TARGET);
+		GUIHelper.addComponent(panel, researchQuestionPanel);
+
+		return panel;
+	}
+
+	@Override
+	protected JPanel createSourcesPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
+
+		final JPanel sourcePanel = components.getPanel(PanelKey.SOURCE);
+		GUIHelper.addComponent(panel, sourcePanel);
+
+		// Image carousel below the source list
+		// It will be hidden if no images are found
+		GUIHelper.addComponent(panel, imageCarouselPanel);
+
+		return panel;
+	}
+
+	@Override
+	protected JPanel createNotesPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
+
+		final JPanel notePanel = components.getPanel(PanelKey.NOTE);
+		GUIHelper.addComponent(panel, notePanel);
+
+		return panel;
+	}
+
+	@Override
+	protected JPanel createPrivacyPanel(){
+		return components.getPanel(PanelKey.PRIVACY);
+	}
+
+	@Override
+	protected JPanel createAuditPanel(){
+		return components.getPanel(PanelKey.AUDIT);
+	}
+
+
+	@Override
+	protected void loadData(){
+		preferredImagePanel.load(record);
+		namePanel.load(record);
+
+		components.load(record);
+
+
+		// Initially, update carousel based on the first selected source (if any)
+		updateCarouselFromSelectedSource();
+	}
+
+	@Override
+	protected void saveData(){
+		preferredImagePanel.save(record);
+		namePanel.save(record);
+
+		components.save(record);
+	}
+
+
+	public static void main(final String[] args) throws IOException{
+		GUIHelper.launch(GroupRecordDialog::createEdit, "/tests/test.flef", "G1");
+	}
+
+}

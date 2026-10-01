@@ -1,0 +1,802 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+package io.github.mtrevisan.familylegacy.v2.io.grammar;
+
+import io.github.mtrevisan.familylegacy.v2.io.grammar.contraints.AtLeastOneConstraint;
+import io.github.mtrevisan.familylegacy.v2.io.grammar.contraints.ComparisonConstraint;
+import io.github.mtrevisan.familylegacy.v2.io.grammar.contraints.ConditionalRequireConstraint;
+import io.github.mtrevisan.familylegacy.v2.io.grammar.contraints.Constraint;
+import io.github.mtrevisan.familylegacy.v2.io.grammar.contraints.CountConstraint;
+import io.github.mtrevisan.familylegacy.v2.io.grammar.contraints.EqualTypeConstraint;
+import io.github.mtrevisan.familylegacy.v2.io.grammar.contraints.InConstraint;
+import io.github.mtrevisan.familylegacy.v2.io.grammar.contraints.MemberOfConstraint;
+import io.github.mtrevisan.familylegacy.v2.io.grammar.contraints.OneOfConstraint;
+import io.github.mtrevisan.familylegacy.v2.io.grammar.typedefinitions.AlternationType;
+import io.github.mtrevisan.familylegacy.v2.io.grammar.typedefinitions.Cardinality;
+import io.github.mtrevisan.familylegacy.v2.io.grammar.typedefinitions.EnumType;
+import io.github.mtrevisan.familylegacy.v2.io.grammar.typedefinitions.FieldDefinition;
+import io.github.mtrevisan.familylegacy.v2.io.grammar.typedefinitions.ReferenceType;
+import io.github.mtrevisan.familylegacy.v2.io.grammar.typedefinitions.ScalarType;
+import io.github.mtrevisan.familylegacy.v2.io.grammar.typedefinitions.StructType;
+import io.github.mtrevisan.familylegacy.v2.io.grammar.typedefinitions.TypeDefinition;
+import io.github.mtrevisan.familylegacy.v2.io.grammar.typedefinitions.UnionType;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
+import org.apache.commons.lang3.math.NumberUtils;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
+
+/**
+ * Recursive-descent parser for the FLEF grammar language (.gedg files).
+ * <p>
+ * Grammar (informal):
+ * <pre>
+ * grammar      := (fileDef | aliasDef | enumDef | structDef | recordDef | oneofAliasDef)*
+ * fileDef      := 'file' IDENT structBody
+ * aliasDef     := 'alias' IDENT '=' type
+ * enumDef      := 'enum' IDENT '{' identList '}' ('|' IDENT)?
+ * structDef    := 'struct' IDENT structBody
+ * recordDef    := 'record' IDENT structBody
+ * oneofAliasDef:= IDENT '=' 'oneof' '{' (IDENT ':' type)* '}'
+ * structBody   := '{' (require | field)* '}'
+ * field        := IDENT ('?' | '*' | '+')? ':' type
+ * require      := 'require' 'one_of' '(' fieldRefList ')'
+ *               | 'require' 'at_least_one' '(' fieldRefList ')'
+ *               | 'require' 'count' '(' fieldRef ')' '==' INTEGER
+ *               | 'require' 'type' '(' fieldRef ')' '==' 'type' '(' fieldRef ')'
+ *               | 'require' 'if' IDENT '==' IDENT ':' fieldRefList
+ *               | 'require' fieldRef 'in' IDENT
+ *               | 'require' fieldRef 'member_of' fieldRef
+ *               | 'require' fieldRef ('!=' | '==' | '>' | '>=' | '<' | '<=') fieldRef
+ * type         := atomicType ('|' atomicType)*
+ * atomicType   := ('Xref' | 'XrefOrVoid') '&lt;' IDENT '&gt;'
+ *               | 'struct' structBody
+ *               | 'enum' '{' identList '}' ('|' IDENT)?
+ *               | IDENT
+ * fieldRef     := IDENT ('[' INTEGER ']')?
+ * </pre>
+ * A {@code fieldRef} identifies a single field, or one element of a repeated field
+ * (cardinality {@code *} or {@code +}) via a zero-based index, e.g. {@code identity[0]}.
+ */
+public final class FLEFGrammarParser{
+
+	private static final String TAG_COMMENT = "//";
+	private static final String TAG_OPEN_PARENTHESIS = "(";
+	private static final String TAG_CLOSE_PARENTHESIS = ")";
+	private static final String TAG_OPEN_CURLY_BRACE = "{";
+	private static final String TAG_CLOSE_CURLY_BRACE = "}";
+	private static final String TAG_OPEN_ANGLE_BRACKET = "<";
+	private static final String TAG_CLOSE_ANGLE_BRACKET = ">";
+	private static final String TAG_OPEN_SQUARE_BRACKET = "[";
+	private static final String TAG_CLOSE_SQUARE_BRACKET = "]";
+	private static final String TAG_COMMA = ",";
+	private static final String TAG_COLON = ":";
+	private static final String TAG_EQUALS = "=";
+	private static final String TAG_PIPE = "|";
+	private static final String TAG_CARDINALITY_ZERO_OR_ONE = "?";
+	private static final String TAG_CARDINALITY_ZERO_OR_MORE = "*";
+	private static final String TAG_CARDINALITY_ONE_OR_MORE = "+";
+	private static final String NOT_EQUALS = "!=";
+	private static final String EQUALS = "==";
+	private static final String GREATER_THAN = ">";
+	private static final String LESS_THAN = "<";
+	private static final String GREATER_THAN_OR_EQUALS = ">=";
+	private static final String LESS_THAN_OR_EQUALS = "<=";
+
+	private static final String TAG_FILE = "file";
+	private static final String TAG_ALIAS = "alias";
+	private static final String TAG_ENUM = "enum";
+	private static final String TAG_STRUCT = "struct";
+	private static final String TAG_RECORD = "record";
+	private static final String TAG_ONEOF = "oneof";
+	private static final String TAG_REQUIRE = "require";
+	private static final String TAG_ONE_OF_FN = "one_of";
+	private static final String TAG_AT_LEAST_ONE_FN = "at_least_one";
+	private static final String TAG_COUNT = "count";
+	private static final String TAG_TYPE_FN = "type";
+	private static final String TAG_IF = "if";
+	private static final String TAG_IN = "in";
+	private static final String TAG_MEMBER_OF = "member_of";
+	private static final String TAG_XREF = "Xref";
+	private static final String TAG_XREF_OR_VOID = TAG_XREF + "OrVoid";
+
+	private static final String FIELD_HEADER = "header";
+	private static final String FIELD_RECORDS = "records";
+
+
+	/**
+	 * A tiny holder for a struct/record body: its fields plus any {@code require} constraints.
+	 */
+	private record StructBody(List<FieldDefinition> fields, List<Constraint> constraints){}
+
+	private record Token(String text, int line){}
+
+
+	private final List<Token> tokens;
+	private final List<String> warnings = new ArrayList<>();
+	private int position;
+
+
+	private FLEFGrammarParser(final List<Token> tokens){
+		this.tokens = tokens;
+		this.position = 0;
+	}
+
+
+	public static FLEFGrammar parse(final Path grammarPath) throws IOException{
+		final String content = Files.readString(grammarPath);
+		return parse(content);
+	}
+
+	public static FLEFGrammar parse(final String content){
+		final List<Token> tokens = tokenize(content);
+		final FLEFGrammarParser parser = new FLEFGrammarParser(tokens);
+		return parser.parseGrammar();
+	}
+
+	/**
+	 * Parses a FLEF grammar from an input stream, reading it in UTF-8.
+	 * <p>
+	 * The stream is read fully and passed to {@link #parse(String)}; the
+	 * caller is responsible for closing it, typically with a
+	 * try-with-resources block.
+	 *
+	 * @param grammarStream the stream containing the grammar; must not be
+	 *                      {@code null}
+	 * @return the parsed grammar
+	 * @throws IOException if reading fails
+	 */
+	public static FLEFGrammar parse(final InputStream grammarStream) throws IOException{
+		final String content = new String(grammarStream.readAllBytes(), StandardCharsets.UTF_8);
+		return parse(content);
+	}
+
+
+	// ------------------------------------------------------------------
+	// Lexer
+	// ------------------------------------------------------------------
+
+	private static final String SINGLE_CHAR_TOKENS = "{}[]:,=<>()?*+|!";
+
+
+	private static List<Token> tokenize(final String content){
+		final String normalized = content.replace("\r\n", StringUtils.LF)
+			.replace('\r', '\n');
+		final String[] lines = StringUtils.split(normalized, '\n');
+
+
+		final List<Token> result = new ArrayList<>();
+		for(int lineIdx = 0, linesCount = lines.length; lineIdx < linesCount; lineIdx ++){
+			String line = lines[lineIdx];
+			final int commentIdx = line.indexOf(TAG_COMMENT);
+			if(commentIdx != -1)
+				line = line.substring(0, commentIdx);
+
+			final int lineNumber = lineIdx + 1;
+			final int length = line.length();
+			int i = 0;
+			while(i < length){
+				final char c = line.charAt(i);
+				if(Character.isWhitespace(c)){
+					i ++;
+				}
+				else if(isIdentifierChar(c)){
+					final int start = i;
+					while(i < length && isIdentifierChar(line.charAt(i)))
+						i ++;
+					result.add(new Token(line.substring(start, i), lineNumber));
+				}
+				else if(SINGLE_CHAR_TOKENS.indexOf(c) != -1){
+					final String twoChars = line.substring(i, Math.min(i + 2, length));
+					if(twoChars.equals(NOT_EQUALS) || twoChars.equals(GREATER_THAN_OR_EQUALS)
+							|| twoChars.equals(LESS_THAN_OR_EQUALS) || twoChars.equals(EQUALS)){
+						result.add(new Token(twoChars, lineNumber));
+
+						i += 2;
+					}
+					else{
+						result.add(new Token(String.valueOf(c), lineNumber));
+
+						i ++;
+					}
+				}
+				else
+					throw new FLEFGrammarParseException("Unexpected character '" + c + "'", lineNumber);
+			}
+		}
+		return result;
+	}
+
+	/**
+	 * Returns whether the given character can appear inside an identifier.
+	 * <p>
+	 * Accepts Unicode letters and digits, ASCII underscore and dot, and
+	 * Unicode combining marks. Combining marks are needed for scripts
+	 * such as Arabic, Hebrew, and Devanagari, where a base letter carries
+	 * one or more diacritics that are encoded as separate code points
+	 * (e.g. {@code كُنيَة}, where {@code ُ} and {@code َ} are combining
+	 * marks on top of the letters {@code ك} and {@code ن}).
+	 */
+	private static boolean isIdentifierChar(final char c){
+		if(Character.isLetterOrDigit(c) || c == '_' || c == '.')
+			return true;
+
+		final int type = Character.getType(c);
+		return type == Character.NON_SPACING_MARK
+			|| type == Character.COMBINING_SPACING_MARK
+			|| type == Character.ENCLOSING_MARK;
+	}
+
+
+	// ------------------------------------------------------------------
+	// Token stream helpers
+	// ------------------------------------------------------------------
+
+	private Token peekToken(){
+		return (position < tokens.size()? tokens.get(position): null);
+	}
+
+	private String peek(){
+		final Token t = peekToken();
+		return (t != null? t.text(): null);
+	}
+
+	private boolean peekIs(final String expected){
+		return expected.equals(peek());
+	}
+
+	private Token nextToken(){
+		if(position >= tokens.size())
+			throw new FLEFGrammarParseException("Unexpected end of input", (tokens.isEmpty()? 0: tokens.getLast().line()));
+
+		return tokens.get(position ++);
+	}
+
+	private String next(){
+		return nextToken().text();
+	}
+
+	private void expect(final String expected){
+		final Token t = (position < tokens.size()? tokens.get(position): null);
+		if(t == null || !expected.equals(t.text()))
+			throw new FLEFGrammarParseException(
+				"Expected '" + expected + "' but found " + (t == null? "end of input": "'" + t.text() + "'"),
+				(t != null? t.line(): (tokens.isEmpty()? 0: tokens.getLast().line())));
+
+		position ++;
+	}
+
+	private void putType(final Map<String, TypeDefinition> types, final String name,
+		final TypeDefinition definition, final int line){
+		if(types.containsKey(name))
+			warnings.add("Line " + line + ": duplicate definition of type '" + name + "' (previous definition is overwritten)");
+		types.put(name, definition);
+	}
+
+
+	// ------------------------------------------------------------------
+	// Top-level grammar
+	// ------------------------------------------------------------------
+
+	private FLEFGrammar parseGrammar(){
+		final Map<String, TypeDefinition> types = new LinkedHashMap<>();
+		FileDefinition fileDef = null;
+
+		while(peek() != null){
+			final String token = peek();
+			switch(token){
+				case TAG_FILE -> {
+					if(fileDef != null)
+						warnings.add("Line " + peekToken().line() + ": multiple 'file' definitions found, keeping the last one");
+					fileDef = parseFileDefinition();
+				}
+				case TAG_ALIAS -> parseAlias(types);
+				case TAG_ENUM -> parseTopLevelEnum(types);
+				case TAG_STRUCT -> parseTopLevelStruct(types);
+				case TAG_RECORD -> parseTopLevelRecord(types);
+				default -> parseIdentifierLedStatement(types);
+			}
+		}
+
+		if(fileDef == null)
+			warnings.add("No 'file' definition found in the grammar");
+
+		return new FLEFGrammar(fileDef, types, warnings);
+	}
+
+	/**
+	 * Handles top-level statements starting with a bare identifier: {@code Name = oneof { ... }}.
+	 */
+	private void parseIdentifierLedStatement(final Map<String, TypeDefinition> types){
+		final Token nameTok = nextToken();
+		expect(TAG_EQUALS);
+		if(peekIs(TAG_ONEOF))
+			parseOneofAlias(types, nameTok.text(), nameTok.line());
+		else
+			// Be lenient: treat `Name = <type>` as an alias even without the `alias` keyword.
+			putType(types, nameTok.text(), parseType(), nameTok.line());
+	}
+
+	// `file FileName { header: Header, records*: Record }`
+	private FileDefinition parseFileDefinition(){
+		expect(TAG_FILE);
+		final String name = next();
+		final StructBody body = parseStructBody();
+
+		FieldDefinition header = null;
+		FieldDefinition records = null;
+		for(final FieldDefinition fd : body.fields()){
+			if(Strings.CI.equals(FIELD_HEADER, fd.name()))
+				header = fd;
+			else if(Strings.CI.equals(FIELD_RECORDS, fd.name()))
+				records = fd;
+		}
+		if(header == null || records == null)
+			throw new FLEFGrammarParseException(
+				"'file " + name + "' must declare both a '" + FIELD_HEADER + "' and a '" + FIELD_RECORDS + "' field",
+				0);
+
+		return new FileDefinition(name, header, records);
+	}
+
+	// `alias AliasName = Type`
+	private void parseAlias(final Map<String, TypeDefinition> types){
+		expect(TAG_ALIAS);
+		final Token nameTok = nextToken();
+		expect(TAG_EQUALS);
+		final TypeDefinition type = parseType();
+		putType(types, nameTok.text(), type, nameTok.line());
+	}
+
+	// `enum EnumName { VALUE1, VALUE2, ... } [| Text]`
+	private void parseTopLevelEnum(final Map<String, TypeDefinition> types){
+		expect(TAG_ENUM);
+		final Token nameTok = nextToken();
+		final List<String> values = parseEnumValues();
+		final boolean allowCustom = parseOptionalCustomTextMarker();
+		putType(types, nameTok.text(), new EnumType(nameTok.text(), values, allowCustom), nameTok.line());
+	}
+
+	// `struct StructName { ... }`
+	private void parseTopLevelStruct(final Map<String, TypeDefinition> types){
+		expect(TAG_STRUCT);
+		final Token nameTok = nextToken();
+		final StructBody body = parseStructBody();
+		putType(types, nameTok.text(), new StructType(nameTok.text(), body.fields(), body.constraints()), nameTok.line());
+	}
+
+	// `record RecordName { ... }`
+	private void parseTopLevelRecord(final Map<String, TypeDefinition> types){
+		expect(TAG_RECORD);
+		final Token nameTok = nextToken();
+		final StructBody body = parseStructBody();
+		putType(types, nameTok.text(), new RecordType(nameTok.text(), body.fields(), body.constraints()), nameTok.line());
+	}
+
+	// `Name = oneof { choice: Type, ... }`
+	private void parseOneofAlias(final Map<String, TypeDefinition> types, final String name,
+		final int nameLine){
+		expect(TAG_ONEOF);
+		expect(TAG_OPEN_CURLY_BRACE);
+		final Map<String, TypeDefinition> choices = new LinkedHashMap<>();
+		while(!peekIs(TAG_CLOSE_CURLY_BRACE)){
+			final String choiceName = next();
+			expect(TAG_COLON);
+			final TypeDefinition choiceType = parseType();
+			choices.put(choiceName, choiceType);
+			if(peekIs(TAG_COMMA))
+				next();
+		}
+		expect(TAG_CLOSE_CURLY_BRACE);
+		putType(types, name, new UnionType(name, choices), nameLine);
+	}
+
+
+	// ------------------------------------------------------------------
+	// Struct bodies, fields, and `require` constraints
+	// ------------------------------------------------------------------
+
+	private StructBody parseStructBody(){
+		expect(TAG_OPEN_CURLY_BRACE);
+		final List<FieldDefinition> fields = new ArrayList<>();
+		final List<Constraint> constraints = new ArrayList<>();
+		while(!peekIs(TAG_CLOSE_CURLY_BRACE)){
+			if(peekIs(TAG_REQUIRE))
+				constraints.add(parseConstraint());
+			else
+				fields.add(parseFieldDefinition());
+
+			if(peekIs(TAG_COMMA))
+				next();
+		}
+		expect(TAG_CLOSE_CURLY_BRACE);
+		return new StructBody(fields, constraints);
+	}
+
+	private FieldDefinition parseFieldDefinition(){
+		final String fieldName = next();
+
+		Cardinality cardinality = Cardinality.REQUIRED;
+		if(peekIs(TAG_CARDINALITY_ZERO_OR_ONE)){
+			next();
+
+			cardinality = Cardinality.OPTIONAL;
+		}
+		else if(peekIs(TAG_CARDINALITY_ZERO_OR_MORE)){
+			next();
+
+			cardinality = Cardinality.ZERO_OR_MORE;
+		}
+		else if(peekIs(TAG_CARDINALITY_ONE_OR_MORE)){
+			next();
+
+			cardinality = Cardinality.ONE_OR_MORE;
+		}
+
+		expect(TAG_COLON);
+		final TypeDefinition type = parseType();
+		return new FieldDefinition(fieldName, type, cardinality);
+	}
+
+	private Constraint parseConstraint(){
+		expect(TAG_REQUIRE);
+
+		// require one_of(fieldA, fieldB, ...)
+		if(peekIs(TAG_ONE_OF_FN)){
+			next();
+
+			expect(TAG_OPEN_PARENTHESIS);
+			final List<String> fields = parseFieldRefListUntil(TAG_CLOSE_PARENTHESIS);
+			expect(TAG_CLOSE_PARENTHESIS);
+			return new OneOfConstraint(fields);
+		}
+
+		// require at_least_one(fieldA, fieldB, ...)
+		if(peekIs(TAG_AT_LEAST_ONE_FN)){
+			next();
+
+			expect(TAG_OPEN_PARENTHESIS);
+			final List<String> fields = parseFieldRefListUntil(TAG_CLOSE_PARENTHESIS);
+			expect(TAG_CLOSE_PARENTHESIS);
+			return new AtLeastOneConstraint(fields);
+		}
+
+		// require count(field) == value
+		if(peekIs(TAG_COUNT)){
+			next();
+
+			expect(TAG_OPEN_PARENTHESIS);
+			final List<String> firstFields = parseFieldRefListUntil(TAG_CLOSE_PARENTHESIS);
+			if(firstFields.size() != 1){
+				final Token t = (position < tokens.size()? tokens.get(position): null);
+				throw new FLEFGrammarParseException(
+					"Expected one field in count(...), found [" + StringUtils.join(firstFields, ", ") + "]",
+					(t != null? t.line(): (tokens.isEmpty()? 0: tokens.getLast().line())));
+			}
+			expect(TAG_CLOSE_PARENTHESIS);
+			expect(EQUALS);
+			final String value = next();
+			if(!NumberUtils.isParsable(value)){
+				final Token t = (position < tokens.size()? tokens.get(position): null);
+				throw new FLEFGrammarParseException(
+					"Expected an integer field, found [" + value + "]",
+					(t != null? t.line(): (tokens.isEmpty()? 0: tokens.getLast().line())));
+			}
+
+			return new CountConstraint(firstFields.getFirst(), NumberUtils.createInteger(value));
+		}
+
+		// require type(fieldA) == type(fieldB)
+		if(peekIs(TAG_TYPE_FN)){
+			next();
+
+			expect(TAG_OPEN_PARENTHESIS);
+			final List<String> firstFields = parseFieldRefListUntil(TAG_CLOSE_PARENTHESIS);
+			if(firstFields.size() != 1){
+				final Token t = (position < tokens.size()? tokens.get(position): null);
+				throw new FLEFGrammarParseException(
+					"Expected one field in type(…), found [" + StringUtils.join(firstFields, ", ") + "]",
+					(t != null? t.line(): (tokens.isEmpty()? 0: tokens.getLast().line())));
+			}
+			expect(TAG_CLOSE_PARENTHESIS);
+			expect(EQUALS);
+			expect(TAG_TYPE_FN);
+			expect(TAG_OPEN_PARENTHESIS);
+			final List<String> secondFields = parseFieldRefListUntil(TAG_CLOSE_PARENTHESIS);
+			if(secondFields.size() != 1){
+				final Token t = (position < tokens.size()? tokens.get(position): null);
+				throw new FLEFGrammarParseException(
+					"Expected one field in second type(…), found [" + StringUtils.join(secondFields, ", ") + "]",
+					(t != null? t.line(): (tokens.isEmpty()? 0: tokens.getLast().line())));
+			}
+			expect(TAG_CLOSE_PARENTHESIS);
+
+			firstFields.addAll(secondFields);
+			return new EqualTypeConstraint(firstFields);
+		}
+
+		// require if conditionField == conditionValue : requiredField, ...
+		if(peekIs(TAG_IF)){
+			next();
+
+			final String conditionField = next();
+			if(!peekIs(EQUALS))
+				throw new FLEFGrammarParseException("Expected '==' after field in 'require if'", peekToken().line());
+
+			next();
+
+			final String conditionValue = next();
+			expect(TAG_COLON);
+			final List<String> requiredFields = parseCommaSeparatedFieldRefs();
+			return new ConditionalRequireConstraint(conditionField, conditionValue, requiredFields);
+		}
+
+		// require field in container
+		final String firstToken = parseFieldReference();
+		if(peekIs(TAG_IN)){
+			next();
+			final String container = next();
+			return new InConstraint(firstToken, container);
+		}
+
+		// require field in container OR require field member_of container
+		if(peekIs(TAG_MEMBER_OF)){
+			next();
+			final String container = next();
+			return new MemberOfConstraint(firstToken, container);
+		}
+
+		// require left operator right (operators: !=, ==, >, >=, <, <=)
+		final String left = firstToken;
+		final String op = peek();
+		if(NOT_EQUALS.equals(op) || EQUALS.equals(op) || GREATER_THAN.equals(op) || GREATER_THAN_OR_EQUALS.equals(op)
+				|| LESS_THAN.equals(op) || LESS_THAN_OR_EQUALS.equals(op)){
+			next();
+			final String right = parseFieldReference();
+			return new ComparisonConstraint(left, op, right);
+		}
+
+		throw new FLEFGrammarParseException("Expected 'one_of', 'at_least_one', 'count', 'if', 'in', 'member_of', or comparison after 'require', found '" + peek() + "'",
+			(peekToken() != null? peekToken().line(): 0));
+	}
+
+	/**
+	 * Reads a single field reference: a plain field name, or an indexed reference into a
+	 * repeated field, e.g. {@code identity} or {@code identity[0]}. This is the single point
+	 * where the optional {@code [index]} suffix is recognized; every constraint clause that
+	 * consumes a field name goes through this method instead of reading it directly.
+	 */
+	private String parseFieldReference(){
+		final String name = next();
+		if(peekIs(TAG_OPEN_SQUARE_BRACKET)){
+			next();
+
+			final String index = next();
+			if(!NumberUtils.isParsable(index)){
+				final Token t = (position < tokens.size()? tokens.get(position): null);
+				throw new FLEFGrammarParseException(
+					"Expected an integer index in '" + name + "[…]', found [" + index + "]",
+					(t != null? t.line(): (tokens.isEmpty()? 0: tokens.getLast().line())));
+			}
+			expect(TAG_CLOSE_SQUARE_BRACKET);
+
+			return name + TAG_OPEN_SQUARE_BRACKET + index + TAG_CLOSE_SQUARE_BRACKET;
+		}
+		return name;
+	}
+
+	/**
+	 * Reads comma-separated field references until (but not consuming) the given closing token.
+	 */
+	private List<String> parseFieldRefListUntil(final String closing){
+		final List<String> list = new ArrayList<>();
+		while(!peekIs(closing)){
+			list.add(parseFieldReference());
+
+			if(peekIs(TAG_COMMA))
+				next();
+		}
+		return list;
+	}
+
+	/**
+	 * Reads a comma-separated field reference list with no explicit closing token: stops as soon
+	 * as no comma follows.
+	 */
+	private List<String> parseCommaSeparatedFieldRefs(){
+		final List<String> list = new ArrayList<>();
+		list.add(parseFieldReference());
+		while(peekIs(TAG_COMMA)){
+			next();
+
+			list.add(parseFieldReference());
+		}
+		return list;
+	}
+
+	private List<String> parseEnumValues(){
+		expect(TAG_OPEN_CURLY_BRACE);
+		final List<String> values = new ArrayList<>();
+		while(!peekIs(TAG_CLOSE_CURLY_BRACE)){
+			// Skip any parenthesized display hint that may precede the value.
+			skipParenthesizedHint();
+
+			if(peekIs(TAG_CLOSE_CURLY_BRACE))
+				break;
+
+			values.add(next().toLowerCase(Locale.ROOT));
+
+			// Skip an optional parenthesized display hint following the
+			// value, e.g. "kunya (كُنيَة)". Hints are not part of the
+			// value itself: they only carry a rendering suggestion for
+			// scripts whose glyphs must be shown next to the ASCII name.
+			skipParenthesizedHint();
+
+			if(peekIs(TAG_COMMA))
+				next();
+		}
+		expect(TAG_CLOSE_CURLY_BRACE);
+		return values;
+	}
+
+	/**
+	 * Consumes a balanced {@code (...)} group, if present. Used to skip
+	 * display hints that may follow an enum value. Nesting is tracked in
+	 * case the hint itself contains parentheses.
+	 */
+	private void skipParenthesizedHint(){
+		if(!peekIs(TAG_OPEN_PARENTHESIS))
+			return;
+
+		next();
+		int depth = 1;
+		while(depth > 0){
+			final Token t = peekToken();
+			if(t == null)
+				throw new FLEFGrammarParseException("Unterminated parenthesized hint",
+					(tokens.isEmpty()? 0: tokens.getLast().line()));
+			if(TAG_OPEN_PARENTHESIS.equals(t.text()))
+				depth ++;
+			else if(TAG_CLOSE_PARENTHESIS.equals(t.text()))
+				depth --;
+			next();
+		}
+	}
+
+	/**
+	 * Consumes an optional trailing {@code | Text} marker (used after both top-level and inline enums).
+	 */
+	private boolean parseOptionalCustomTextMarker(){
+		if(peekIs(TAG_PIPE)){
+			next();
+			next();
+			return true;
+		}
+		return false;
+	}
+
+
+	// ------------------------------------------------------------------
+	// Types
+	// ------------------------------------------------------------------
+
+	private TypeDefinition parseType(){
+		final TypeDefinition base = parseAtomicType();
+		if(peekIs(TAG_PIPE)){
+			final List<TypeDefinition> alternatives = new ArrayList<>();
+			alternatives.add(base);
+			while(peekIs(TAG_PIPE)){
+				next();
+
+				alternatives.add(parseAtomicType());
+			}
+			return new AlternationType(alternatives);
+		}
+		return base;
+	}
+
+	private TypeDefinition parseAtomicType(){
+		final String token = peek();
+		if(token == null)
+			throw new FLEFGrammarParseException("Unexpected end of input, expected a type",
+				(tokens.isEmpty()? 0: tokens.getLast().line()));
+
+		switch(token){
+			case TAG_XREF, TAG_XREF_OR_VOID -> {
+				return parseReferenceType();
+			}
+			case TAG_STRUCT -> {
+				next();
+
+				final StructBody body = parseStructBody();
+				return new StructType(null, body.fields(), body.constraints());
+			}
+			case TAG_ENUM -> {
+				next();
+
+				final List<String> values = parseEnumValues();
+				final boolean allowCustom = parseOptionalCustomTextMarker();
+				return new EnumType(null, values, allowCustom);
+			}
+		}
+
+		// A plain named-type reference (built-in scalar, alias, struct, record, enum, or union name).
+		final String typeName = next();
+		return new ScalarType(typeName);
+	}
+
+	private TypeDefinition parseReferenceType(){
+		final String keyword = next();
+		final boolean voidable = TAG_XREF_OR_VOID.equals(keyword);
+		expect(TAG_OPEN_ANGLE_BRACKET);
+		final String targetTypeName = next();
+		expect(TAG_CLOSE_ANGLE_BRACKET);
+		return new ReferenceType(keyword + TAG_OPEN_ANGLE_BRACKET + targetTypeName + TAG_CLOSE_ANGLE_BRACKET, targetTypeName, voidable);
+	}
+
+
+	public static void main(final String[] args) throws Exception{
+		final Path path = Paths.get("src/main/resources/gedg/flef_0.1.3.gedg");
+		final FLEFGrammar grammar = FLEFGrammarParser.parse(path);
+
+		System.out.println("File definition: " + (grammar.getFileDefinition() != null
+			? grammar.getFileDefinition()
+			.name()
+			: "<none>"));
+		System.out.println("Total top-level types: " + grammar.getTypeNames().size());
+
+		final Map<String, Integer> counts = new LinkedHashMap<>();
+		for(final TypeDefinition t : grammar.getTypes().values()){
+			final String kind = t.getClass().getSimpleName();
+			counts.merge(kind, 1, Integer::sum);
+		}
+		counts.forEach((k, v) -> System.out.println("  " + k + ": " + v));
+
+		final FLEFGrammarValidator.ValidationResult result = FLEFGrammarValidator.validate(grammar);
+
+		System.out.println("Warnings (" + result.warnings().size() + "):");
+		result.warnings().forEach(w -> System.out.println("  - " + w));
+
+		System.out.println("Errors (" + result.errors().size() + "):");
+		result.errors().forEach(e -> System.out.println("  - " + e));
+
+		System.out.println(result.isValid()? "VALID grammar.": "INVALID grammar.");
+
+		if(!result.isValid())
+			System.exit(1);
+	}
+
+}

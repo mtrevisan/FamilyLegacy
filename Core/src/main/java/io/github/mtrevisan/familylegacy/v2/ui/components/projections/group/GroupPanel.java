@@ -1,0 +1,428 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+package io.github.mtrevisan.familylegacy.v2.ui.components.projections.group;
+
+import io.github.mtrevisan.familylegacy.v2.io.FLEFParser;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.ui.components.MultiLineLabel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.BoxPanelType;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.EntityMouseListeners;
+import io.github.mtrevisan.familylegacy.v2.ui.components.projections.individual.EntityPopupMenuFactory;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.PopupMouseAdapter;
+import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContext;
+import io.github.mtrevisan.familylegacy.v2.ui.tools.ToolContexts;
+import io.github.mtrevisan.familylegacy.v2.ui.tools.groups.EditGroupTool;
+import net.miginfocom.swing.MigLayout;
+
+import javax.swing.BorderFactory;
+import javax.swing.JComponent;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+import java.awt.BasicStroke;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.GradientPaint;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Paint;
+import java.awt.Point;
+import java.awt.RenderingHints;
+import java.awt.Stroke;
+import java.awt.font.TextAttribute;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.Map;
+import java.util.Objects;
+
+
+/**
+ * A panel that displays a group's information (name, type, photo) in a
+ * genealogical box.
+ * <p>
+ * Interaction:
+ * <ul>
+ *   <li><b>single click on the name label</b> navigates (re-roots the view
+ *       on the group);</li>
+ *   <li><b>single click anywhere else</b> selects the group: the panel is
+ *       highlighted with a thicker border, and any detail panel observing
+ *       the selection is populated, without re-rooting the view;</li>
+ *   <li><b>double click</b> opens the edit dialog for the group record;</li>
+ *   <li><b>right click</b> opens the popup menu.</li>
+ * </ul>
+ */
+public class GroupPanel extends JPanel{
+
+	// Colors
+	private static final Color BACKGROUND_COLOR_NO_ENTITY = Color.WHITE;
+	private static final Color BACKGROUND_COLOR_FADE_TO = Color.WHITE;
+	private static final Color BACKGROUND_COLOR = new Color(225, 230, 240);
+	private static final Color BORDER_COLOR = new Color(150, 160, 180);
+	private static final Color BORDER_COLOR_SELECTED = new Color(220, 100, 60);
+	private static final Color TYPE_COLOR = new Color(100, 100, 110);
+	private static final Color IMAGE_LABEL_BORDER_COLOR = Color.WHITE;
+
+	private static final float BORDER_THICKNESS_NORMAL = 1.f;
+	private static final float BORDER_THICKNESS_HOVERED = 1.8f;
+	private static final float BORDER_THICKNESS_SELECTED = 2.5f;
+
+	// Dimensions
+	private static final Dimension ARCS = new Dimension(10, 10);
+	private static final int PREFERRED_IMAGE_WIDTH = 48;
+	private static final double IMAGE_ASPECT_RATIO = 4. / 3.;
+
+	private static final Dimension BOX_DIMENSION_PRIMARY = new Dimension(260, 210);
+	private static final Dimension BOX_DIMENSION_SECONDARY = new Dimension(130, 100);
+
+	private static final int NAME_IMAGE_GAP = 5;
+
+	// Fonts
+	private static final Font FONT_PRIMARY = new Font("Tahoma", Font.BOLD, 15);
+	private static final Font FONT_SECONDARY = new Font("Tahoma", Font.PLAIN, 12);
+	private static final float INFO_FONT_SIZE_FACTOR = 0.8f;
+
+	// UI components
+	private final MultiLineLabel nameLabel = new MultiLineLabel(3);
+	private final JLabel typeLabel = new JLabel();
+	private final JLabel imageLabel = new JLabel();
+
+
+	// State
+	private final BoxPanelType boxType;
+
+	private final FLEFModel model;
+
+	private GroupData data;
+
+	private String preferredImageKey;
+
+	/** {@code true} while the mouse is over this panel or one of its children. */
+	private boolean hovered;
+	/** {@code true} when this panel is the current selection in its view. */
+	private boolean selected;
+
+	// Strategy pattern for popup menu generation
+	private EntityPopupMenuFactory<GroupPanel, GroupListener> popupMenuFactory;
+
+	// Listener
+	private GroupListener listener;
+
+
+	public static GroupPanel create(final BoxPanelType boxType, final FLEFModel model){
+		return new GroupPanel(boxType, model);
+	}
+
+
+	private GroupPanel(final BoxPanelType boxType, final FLEFModel model){
+		this.boxType = boxType;
+
+		this.model = model;
+
+		initComponents();
+
+		installMouseListeners();
+	}
+
+
+	private void initComponents(){
+		typeLabel.setForeground(TYPE_COLOR);
+
+		imageLabel.setBorder(BorderFactory.createLineBorder(IMAGE_LABEL_BORDER_COLOR));
+		final double shrinkFactor = (isPrimaryBox()? 1.: 2.);
+		setPreferredSize(imageLabel, PREFERRED_IMAGE_WIDTH, IMAGE_ASPECT_RATIO, shrinkFactor);
+
+		setBoxPreferredSize();
+
+		setLayout(new MigLayout("ins 7,gapx 5,aligny center", "[grow,fill][grow 0,shrink 0]", "[]0[]10[]"));
+
+		final int imageWidth = (int)(PREFERRED_IMAGE_WIDTH / shrinkFactor);
+		add(nameLabel, "cell 0 0,aligny center,growx,width ::100%-" + imageWidth + ",hidemode 3");
+		add(imageLabel, (isPrimaryBox()? "cell 1 0 1 3,aligny center": "cell 1 0,aligny center"));
+		add(typeLabel, (isPrimaryBox()? "cell 0 2,aligny center,growx": "cell 0 2 2 1,aligny center,growx"));
+
+		setOpaque(false);
+	}
+
+	@Override
+	protected final void paintComponent(final Graphics g){
+		if(g instanceof Graphics2D){
+			final Graphics2D g2 = (Graphics2D)g.create();
+			g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+			g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+			g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+
+			final int panelHeight = getHeight();
+			final int panelWidth = getWidth();
+
+			final Color startColor = getBackgroundColor();
+			if(data != null){
+				final Paint gradientPaint = new GradientPaint(0, 0, startColor, 0, panelHeight, BACKGROUND_COLOR_FADE_TO);
+				g2.setPaint(gradientPaint);
+			}
+			else
+				g2.setColor(startColor);
+			g2.fillRoundRect(1, 1,
+				panelWidth - 2, panelHeight - 2,
+				ARCS.width, ARCS.height);
+
+			// Border: dashed when empty, selected-red when selected,
+			// normal otherwise.
+			final Color borderColor;
+			final Stroke borderStroke;
+			if(data == null){
+				borderColor = BORDER_COLOR;
+				borderStroke = new BasicStroke(1.f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND,
+					10.f, new float[]{5.f}, 0.f);
+			}
+			else if(selected){
+				borderColor = BORDER_COLOR_SELECTED;
+				borderStroke = new BasicStroke(BORDER_THICKNESS_SELECTED);
+			}
+			else if(hovered){
+				borderColor = BORDER_COLOR;
+				borderStroke = new BasicStroke(BORDER_THICKNESS_HOVERED);
+			}
+			else{
+				borderColor = BORDER_COLOR;
+				borderStroke = new BasicStroke(BORDER_THICKNESS_NORMAL);
+			}
+			g2.setColor(borderColor);
+			g2.setStroke(borderStroke);
+			g2.drawRoundRect(1, 1,
+				panelWidth - 2, panelHeight - 2,
+				ARCS.width, ARCS.height);
+
+			g2.dispose();
+		}
+	}
+
+	private Color getBackgroundColor(){
+		return (data == null? BACKGROUND_COLOR_NO_ENTITY: BACKGROUND_COLOR);
+	}
+
+	private static void setPreferredSize(final JComponent component, final double baseWidth, final double aspectRatio,
+		final double shrinkFactor){
+		final int width = (int)Math.ceil(baseWidth / shrinkFactor);
+		final int height = (int)Math.ceil(baseWidth * aspectRatio / shrinkFactor);
+		component.setPreferredSize(new Dimension(width, height));
+	}
+
+	private boolean isPrimaryBox(){
+		return (boxType == BoxPanelType.PRIMARY);
+	}
+
+	public final Point getPaintingVerticalEnterPoint(){
+		return new Point((getWidth() - 1) / 2, 0);
+	}
+
+	public final Point getPaintingHorizontalEnterPoint(){
+		return new Point(0, (getHeight() - 1) / 2);
+	}
+
+
+	public GroupPanel withListener(final GroupListener listener,
+			final EntityPopupMenuFactory<GroupPanel, GroupListener> factory){
+		this.listener = listener;
+		popupMenuFactory = factory;
+
+		attachPopupMenu();
+
+		return this;
+	}
+
+	public GroupPanel withGroupData(final GroupData data){
+		this.data = data;
+
+		setBoxPreferredSize();
+
+		updateData();
+
+		return this;
+	}
+
+	/**
+	 * Marks this panel as selected or not. A selected panel is drawn with
+	 * a thicker, reddish border, so that the current focus is visible at a
+	 * glance. The selection state is independent from the view root: a
+	 * selected group keeps its red border even when the cursor is
+	 * elsewhere.
+	 *
+	 * @param selected the new selection state
+	 * @return this panel, for chaining
+	 */
+	public GroupPanel withSelected(final boolean selected){
+		if(this.selected != selected){
+			this.selected = selected;
+			repaint();
+		}
+
+		return this;
+	}
+
+	private void setBoxPreferredSize(){
+		final Dimension size = (isPrimaryBox()? BOX_DIMENSION_PRIMARY: BOX_DIMENSION_SECONDARY);
+		setPreferredSize(size);
+		setMaximumSize(size);
+	}
+
+	private void updateData(){
+		Font font = (isPrimaryBox()? FONT_PRIMARY: FONT_SECONDARY);
+		final Font infoFont = deriveInfoFont(font);
+		if(!isPrimaryBox()){
+			@SuppressWarnings("unchecked")
+			final Map<TextAttribute, Object> attributes = (Map<TextAttribute, Object>)font.getAttributes();
+			attributes.put(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_LOW_ONE_PIXEL);
+			font = font.deriveFont(attributes);
+		}
+		nameLabel.setFont(font);
+		typeLabel.setFont(infoFont);
+
+		final boolean hasData = (data != null && !data.isEmpty());
+		if(hasData){
+			nameLabel.setFormattedText(data.getNameText());
+			nameLabel.setToolTipText(data.getNameTooltip());
+
+			typeLabel.setText(data.getType());
+
+			// Set the default image/placeholder
+			imageLabel.setIcon(boxType == BoxPanelType.PRIMARY
+				? data.getImagePrimary()
+				: data.getImageSecondary());
+
+			// Calculate the maximum width for the text panel
+			final int boxWidth = (isPrimaryBox()? BOX_DIMENSION_PRIMARY.width: BOX_DIMENSION_SECONDARY.width);
+			// gap + insets
+			final int maxTextWidth = Math.max(10, boxWidth - imageLabel.getIcon().getIconWidth() - NAME_IMAGE_GAP - 14);
+
+			// Set the maximum width on the TwoLineLabel
+			nameLabel.setMaxWidth(maxTextWidth);
+
+			// Register the current key on the panel and start asynchronous image loading
+			preferredImageKey = data.getPreferredImageKey();
+			data.loadPreferredImageAsync((key, images) -> {
+				if(images != null && Objects.equals(preferredImageKey, key))
+					imageLabel.setIcon(boxType == BoxPanelType.PRIMARY? images[0]: images[1]);
+			});
+		}
+		else{
+			preferredImageKey = null;
+
+			nameLabel.setMaxWidth(-1);
+		}
+
+		nameLabel.setVisible(hasData);
+		typeLabel.setVisible(hasData);
+		imageLabel.setVisible(hasData);
+	}
+
+	private static Font deriveInfoFont(final Font baseFont){
+		return baseFont.deriveFont(Font.PLAIN, baseFont.getSize() * INFO_FONT_SIZE_FACTOR);
+	}
+
+	private void installMouseListeners(){
+		EntityMouseListeners.builder(this)
+			.nameLabel(boxType == BoxPanelType.SECONDARY? nameLabel: null)
+			.recordSupplier(() -> (data != null? data.getGroup(): null))
+			.onRootSelected(id -> {
+				if(listener != null)
+					listener.onRootEntitySelected(id);
+			})
+			.onSelected(record -> {
+				if(listener != null)
+					listener.onGroupSelected(this, record);
+			})
+			.onEdit(record -> {
+				final ToolContext context = ToolContexts.withMutatorAndEdit(model, listener, this,
+					record.getId(), id -> listener.onEntityEdit(record));
+				new EditGroupTool()
+					.run(context);
+			})
+			.onHoverChanged(h -> {
+				if(hovered != h){
+					hovered = h;
+					repaint();
+				}
+			})
+			.build()
+			.install();
+	}
+
+	private void attachPopupMenu(){
+		if(popupMenuFactory == null)
+			return;
+
+		final JPopupMenu popup = popupMenuFactory.createPopupMenu(this, listener, model);
+
+		EntityMouseListeners.attachRecursive(this, new PopupMouseAdapter(popup, this));
+	}
+
+	public GroupData getData(){
+		return data;
+	}
+
+
+	public static void main(String[] args) throws IOException{
+		try{
+			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+		}
+		catch(final Exception ignored){
+		}
+
+		String modelUri = "/tests/TGMZ.flef";
+		String recordId = "G1";
+
+		final String content;
+		try(final InputStream is = GroupPanel.class.getResourceAsStream(modelUri)){
+			content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+		}
+
+		final FLEFParser parser = new FLEFParser();
+		final FLEFModel model = parser.parse(content);
+
+
+		SwingUtilities.invokeLater(() -> {
+			final FLEFRecord groupRecord = model.getRecordById(recordId);
+			final GroupData data = GroupData.create(groupRecord);
+			final GroupPanel panel = GroupPanel.create(BoxPanelType.PRIMARY, model)
+				.withGroupData(data);
+
+			final JFrame frame = new JFrame();
+			frame.setLayout(new BorderLayout());
+			frame.add(panel, BorderLayout.NORTH);
+			frame.pack();
+			frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+			frame.setLocationRelativeTo(null);
+			frame.setVisible(true);
+		});
+	}
+
+}

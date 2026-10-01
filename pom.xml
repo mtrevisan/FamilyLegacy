@@ -7,7 +7,7 @@
 	<artifactId>FamilyLegacy</artifactId>
 	<version>0.0.0-SNAPSHOT</version>
 
-	<packaging>jar</packaging>
+	<packaging>pom</packaging>
 
 	<name>FamilyLegacy</name>
 	<description>Library for parsing of GEDCOM format</description>
@@ -23,6 +23,11 @@
 			</roles>
 		</developer>
 	</developers>
+
+	<modules>
+		<module>Core</module>
+		<module>Ephemeris</module>
+	</modules>
 
 	<scm>
 		<connection>scm:git:git@github.com:mtrevisan/FamilyLegacy.git</connection>
@@ -85,7 +90,7 @@
 		<!-- https://mvnrepository.com/artifact/jakarta.transaction/jakarta.transaction-api -->
 		<jakarta.transaction.version>2.0.1</jakarta.transaction.version>
 
-		<!-- Time4J -->
+		<!-- Time4J / Dates -->
 		<!-- https://mvnrepository.com/artifact/org.threeten/threeten-extra -->
 		<threeten.extra.version>1.10.0</threeten.extra.version>
 		<!-- https://mvnrepository.com/artifact/com.ibm.icu/icu4j -->
@@ -103,7 +108,7 @@
 		<!-- https://mvnrepository.com/artifact/com.h2database/h2 -->
 		<h2.version>2.5.250</h2.version>
 
-		<!-- Topological sorting -->
+		<!-- Graphs -->
 		<!-- https://mvnrepository.com/artifact/org.jgrapht/jgrapht-core -->
 		<org.jgrapht.version>1.5.3</org.jgrapht.version>
 
@@ -115,14 +120,14 @@
 		<!-- https://mvnrepository.com/artifact/org.jxmapviewer/jxmapviewer2 -->
 		<org.jxmapviewer.version>2.8.1</org.jxmapviewer.version>
 
-		<!-- MigLayout -->
+		<!-- UI / Layout -->
 		<!-- https://mvnrepository.com/artifact/com.miglayout/miglayout-swing -->
 		<miglayout-swing.version>11.4.3</miglayout-swing.version>
 		<!-- SwingX -->
 		<!-- https://mvnrepository.com/artifact/org.swinglabs.swingx/swingx-core -->
 		<swinglabs.swingx.version>1.6.5-1</swinglabs.swingx.version>
 
-		<!-- Markdown viewer -->
+		<!-- Markdown -->
 		<!-- https://mvnrepository.com/artifact/com.vladsch.flexmark/flexmark-all -->
 		<vladsch.flexmark.version>0.64.8</vladsch.flexmark.version>
 
@@ -136,7 +141,7 @@
 		<!-- https://mvnrepository.com/artifact/com.googlecode.json-simple/json-simple -->
 		<googlecode.json-simple.version>1.1.1</googlecode.json-simple.version>
 
-		<!-- TwelveMonkeys ImageIO -->
+		<!-- TwelveMonkeys -->
 		<!-- https://mvnrepository.com/artifact/com.twelvemonkeys.imageio/imageio-core -->
 		<!-- https://mvnrepository.com/artifact/com.twelvemonkeys.imageio/imageio-batik -->
 		<!-- https://mvnrepository.com/artifact/com.twelvemonkeys.imageio/imageio-bmp -->
@@ -167,7 +172,7 @@
 		<!-- https://mvnrepository.com/artifact/ch.qos.logback/logback-classic -->
 		<logback.logback-classic.version>1.6.3</logback.logback-classic.version>
 
-		<!-- JUnit -->
+		<!-- Testing -->
 		<!-- https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-engine -->
 		<junit.junit-jupiter-engine.version>6.1.3</junit.junit-jupiter-engine.version>
 	</properties>
@@ -394,193 +399,194 @@
 		</plugins>
 	</build>
 
-	<dependencies>
-		<!-- Apache -->
-		<dependency>
-			<groupId>org.apache.commons</groupId>
-			<artifactId>commons-lang3</artifactId>
-			<version>${apache.commons-lang3.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>commons-validator</groupId>
-			<artifactId>commons-validator</artifactId>
-			<version>${apache.commons-validator.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.tika</groupId>
-			<artifactId>tika-core</artifactId>
-			<version>${apache.tika-core.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.commons</groupId>
-			<artifactId>commons-text</artifactId>
-			<version>${apache.commons-text.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>commons-io</groupId>
-			<artifactId>commons-io</artifactId>
-			<version>${apache.commons-io.version}</version>
-		</dependency>
+	<dependencyManagement>
+		<dependencies>
+			<!-- Apache -->
+			<dependency>
+				<groupId>org.apache.commons</groupId>
+				<artifactId>commons-lang3</artifactId>
+				<version>${apache.commons-lang3.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>commons-validator</groupId>
+				<artifactId>commons-validator</artifactId>
+				<version>${apache.commons-validator.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.tika</groupId>
+				<artifactId>tika-core</artifactId>
+				<version>${apache.tika-core.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.commons</groupId>
+				<artifactId>commons-text</artifactId>
+				<version>${apache.commons-text.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>commons-io</groupId>
+				<artifactId>commons-io</artifactId>
+				<version>${apache.commons-io.version}</version>
+			</dependency>
 
-		<!-- ImgScalr -->
-		<dependency>
-			<groupId>net.coobird</groupId>
-			<artifactId>thumbnailator</artifactId>
-			<version>${coobird.thumbnailator.version}</version>
-		</dependency>
+			<!-- Thumbnailator -->
+			<dependency>
+				<groupId>net.coobird</groupId>
+				<artifactId>thumbnailator</artifactId>
+				<version>${coobird.thumbnailator.version}</version>
+			</dependency>
 
-		<!-- Jakarta -->
-		<dependency>
-			<groupId>jakarta.persistence</groupId>
-			<artifactId>jakarta.persistence-api</artifactId>
-			<version>${jakarta.persistence.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>jakarta.transaction</groupId>
-			<artifactId>jakarta.transaction-api</artifactId>
-			<version>${jakarta.transaction.version}</version>
-		</dependency>
+			<!-- Jakarta -->
+			<dependency>
+				<groupId>jakarta.persistence</groupId>
+				<artifactId>jakarta.persistence-api</artifactId>
+				<version>${jakarta.persistence.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>jakarta.transaction</groupId>
+				<artifactId>jakarta.transaction-api</artifactId>
+				<version>${jakarta.transaction.version}</version>
+			</dependency>
 
-		<!-- Date -->
-		<dependency>
-			<groupId>org.threeten</groupId>
-			<artifactId>threeten-extra</artifactId>
-			<version>${threeten.extra.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.ibm.icu</groupId>
-			<artifactId>icu4j</artifactId>
-			<version>${ibm.icu.version}</version>
-		</dependency>
+			<!-- Date -->
+			<dependency>
+				<groupId>org.threeten</groupId>
+				<artifactId>threeten-extra</artifactId>
+				<version>${threeten.extra.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.ibm.icu</groupId>
+				<artifactId>icu4j</artifactId>
+				<version>${ibm.icu.version}</version>
+			</dependency>
 
-		<!-- Hibernate -->
-		<dependency>
-			<groupId>org.hibernate.orm</groupId>
-			<artifactId>hibernate-core</artifactId>
-			<version>${hibernate.hibernate-core.version}</version>
-		</dependency>
+			<!-- Hibernate -->
+			<dependency>
+				<groupId>org.hibernate.orm</groupId>
+				<artifactId>hibernate-core</artifactId>
+				<version>${hibernate.hibernate-core.version}</version>
+			</dependency>
 
-		<!-- Database -->
-		<dependency>
-			<groupId>com.h2database</groupId>
-			<artifactId>h2</artifactId>
-			<version>${h2.version}</version>
-		</dependency>
+			<!-- Database -->
+			<dependency>
+				<groupId>com.h2database</groupId>
+				<artifactId>h2</artifactId>
+				<version>${h2.version}</version>
+			</dependency>
 
-		<dependency>
-			<groupId>org.jgrapht</groupId>
-			<artifactId>jgrapht-core</artifactId>
-			<version>${org.jgrapht.version}</version>
-		</dependency>
+			<dependency>
+				<groupId>org.jgrapht</groupId>
+				<artifactId>jgrapht-core</artifactId>
+				<version>${org.jgrapht.version}</version>
+			</dependency>
 
-		<!-- Layout -->
-		<dependency>
-			<groupId>com.miglayout</groupId>
-			<artifactId>miglayout-swing</artifactId>
-			<version>${miglayout-swing.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.swinglabs.swingx</groupId>
-			<artifactId>swingx-core</artifactId>
-			<version>${swinglabs.swingx.version}</version>
-		</dependency>
+			<!-- Layout -->
+			<dependency>
+				<groupId>com.miglayout</groupId>
+				<artifactId>miglayout-swing</artifactId>
+				<version>${miglayout-swing.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.swinglabs.swingx</groupId>
+				<artifactId>swingx-core</artifactId>
+				<version>${swinglabs.swingx.version}</version>
+			</dependency>
 
-		<dependency>
-			<groupId>com.vladsch.flexmark</groupId>
-			<artifactId>flexmark-all</artifactId>
-			<version>${vladsch.flexmark.version}</version>
-		</dependency>
+			<dependency>
+				<groupId>com.vladsch.flexmark</groupId>
+				<artifactId>flexmark-all</artifactId>
+				<version>${vladsch.flexmark.version}</version>
+			</dependency>
 
-		<!-- Image processing -->
-		<dependency>
-			<groupId>com.twelvemonkeys.imageio</groupId>
-			<artifactId>imageio-core</artifactId>
-			<version>${twelvemonkeys.imageio-core.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.twelvemonkeys.imageio</groupId>
-			<artifactId>imageio-batik</artifactId>
-			<version>${twelvemonkeys.imageio-core.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.xmlgraphics</groupId>
-			<artifactId>batik-transcoder</artifactId>
-			<version>${apache.xmlgraphics.batik.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.xmlgraphics</groupId>
-			<artifactId>batik-svggen</artifactId>
-			<version>${apache.xmlgraphics.batik.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.xmlgraphics</groupId>
-			<artifactId>batik-codec</artifactId>
-			<version>${apache.xmlgraphics.batik.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.twelvemonkeys.imageio</groupId>
-			<artifactId>imageio-bmp</artifactId>
-			<version>${twelvemonkeys.imageio-core.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.twelvemonkeys.imageio</groupId>
-			<artifactId>imageio-icns</artifactId>
-			<version>${twelvemonkeys.imageio-core.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.twelvemonkeys.imageio</groupId>
-			<artifactId>imageio-jpeg</artifactId>
-			<version>${twelvemonkeys.imageio-core.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.twelvemonkeys.imageio</groupId>
-			<artifactId>imageio-pict</artifactId>
-			<version>${twelvemonkeys.imageio-core.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.twelvemonkeys.imageio</groupId>
-			<artifactId>imageio-pnm</artifactId>
-			<version>${twelvemonkeys.imageio-core.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.twelvemonkeys.imageio</groupId>
-			<artifactId>imageio-psd</artifactId>
-			<version>${twelvemonkeys.imageio-core.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.twelvemonkeys.imageio</groupId>
-			<artifactId>imageio-webp</artifactId>
-			<version>${twelvemonkeys.imageio-core.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.twelvemonkeys.imageio</groupId>
-			<artifactId>imageio-tiff</artifactId>
-			<version>${twelvemonkeys.imageio-core.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.bytedeco</groupId>
-			<artifactId>opencv</artifactId>
-			<version>${bytedeco.opencv.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.graphstream</groupId>
-			<artifactId>gs-core</artifactId>
-			<version>${org.graphstream-core.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.graphstream</groupId>
-			<artifactId>gs-ui-swing</artifactId>
-			<version>${org.graphstream-core.version}</version>
-		</dependency>
+			<!-- Image processing -->
+			<dependency>
+				<groupId>com.twelvemonkeys.imageio</groupId>
+				<artifactId>imageio-core</artifactId>
+				<version>${twelvemonkeys.imageio-core.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.twelvemonkeys.imageio</groupId>
+				<artifactId>imageio-batik</artifactId>
+				<version>${twelvemonkeys.imageio-core.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.xmlgraphics</groupId>
+				<artifactId>batik-transcoder</artifactId>
+				<version>${apache.xmlgraphics.batik.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.xmlgraphics</groupId>
+				<artifactId>batik-svggen</artifactId>
+				<version>${apache.xmlgraphics.batik.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.xmlgraphics</groupId>
+				<artifactId>batik-codec</artifactId>
+				<version>${apache.xmlgraphics.batik.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.twelvemonkeys.imageio</groupId>
+				<artifactId>imageio-bmp</artifactId>
+				<version>${twelvemonkeys.imageio-core.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.twelvemonkeys.imageio</groupId>
+				<artifactId>imageio-icns</artifactId>
+				<version>${twelvemonkeys.imageio-core.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.twelvemonkeys.imageio</groupId>
+				<artifactId>imageio-jpeg</artifactId>
+				<version>${twelvemonkeys.imageio-core.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.twelvemonkeys.imageio</groupId>
+				<artifactId>imageio-pict</artifactId>
+				<version>${twelvemonkeys.imageio-core.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.twelvemonkeys.imageio</groupId>
+				<artifactId>imageio-pnm</artifactId>
+				<version>${twelvemonkeys.imageio-core.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.twelvemonkeys.imageio</groupId>
+				<artifactId>imageio-psd</artifactId>
+				<version>${twelvemonkeys.imageio-core.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.twelvemonkeys.imageio</groupId>
+				<artifactId>imageio-webp</artifactId>
+				<version>${twelvemonkeys.imageio-core.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.twelvemonkeys.imageio</groupId>
+				<artifactId>imageio-tiff</artifactId>
+				<version>${twelvemonkeys.imageio-core.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.bytedeco</groupId>
+				<artifactId>opencv</artifactId>
+				<version>${bytedeco.opencv.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.graphstream</groupId>
+				<artifactId>gs-core</artifactId>
+				<version>${org.graphstream-core.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.graphstream</groupId>
+				<artifactId>gs-ui-swing</artifactId>
+				<version>${org.graphstream-core.version}</version>
+			</dependency>
 
-		<!-- Map -->
-		<dependency>
-			<groupId>org.jxmapviewer</groupId>
-			<artifactId>jxmapviewer2</artifactId>
-			<version>${org.jxmapviewer.version}</version>
-		</dependency>
+			<!-- Map -->
+			<dependency>
+				<groupId>org.jxmapviewer</groupId>
+				<artifactId>jxmapviewer2</artifactId>
+				<version>${org.jxmapviewer.version}</version>
+			</dependency>
 
-		<!-- JSON -->
+			<!-- JSON -->
 <!--		<dependency>-->
 <!--			<groupId>com.fasterxml.jackson.core</groupId>-->
 <!--			<artifactId>jackson-databind</artifactId>-->
@@ -623,42 +629,43 @@
 <!--			</exclusions>-->
 <!--		</dependency>-->
 
-		<!-- Reports -->
-		<!-- PDF support -->
-		<dependency>
-			<groupId>com.github.librepdf</groupId>
-			<artifactId>openpdf</artifactId>
-			<version>${librepdf.openpdf.version}</version>
-		</dependency>
-		<!-- DOCX support -->
-		<dependency>
-			<groupId>org.apache.poi</groupId>
-			<artifactId>poi-ooxml</artifactId>
-			<version>${apache.poi-ooxml.version}</version>
-		</dependency>
+			<!-- Reports -->
+			<!-- PDF support -->
+			<dependency>
+				<groupId>com.github.librepdf</groupId>
+				<artifactId>openpdf</artifactId>
+				<version>${librepdf.openpdf.version}</version>
+			</dependency>
+			<!-- DOCX support -->
+			<dependency>
+				<groupId>org.apache.poi</groupId>
+				<artifactId>poi-ooxml</artifactId>
+				<version>${apache.poi-ooxml.version}</version>
+			</dependency>
 
-		<!-- Logger -->
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-api</artifactId>
-			<version>${slf4j.slf4j-api.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>ch.qos.logback</groupId>
-			<artifactId>logback-classic</artifactId>
-			<version>${logback.logback-classic.version}</version>
-<!--			<scope>test</scope>-->
-<!--			<optional>true</optional>-->
-		</dependency>
+			<!-- Logger -->
+			<dependency>
+				<groupId>org.slf4j</groupId>
+				<artifactId>slf4j-api</artifactId>
+				<version>${slf4j.slf4j-api.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>ch.qos.logback</groupId>
+				<artifactId>logback-classic</artifactId>
+				<version>${logback.logback-classic.version}</version>
+				<!--				<scope>test</scope>-->
+				<!--				<optional>true</optional>-->
+			</dependency>
 
-		<!-- JUnit -->
-		<dependency>
-			<groupId>org.junit.jupiter</groupId>
-			<artifactId>junit-jupiter-engine</artifactId>
-			<version>${junit.junit-jupiter-engine.version}</version>
-			<scope>test</scope>
-		</dependency>
-	</dependencies>
+			<!-- JUnit -->
+			<dependency>
+				<groupId>org.junit.jupiter</groupId>
+				<artifactId>junit-jupiter-engine</artifactId>
+				<version>${junit.junit-jupiter-engine.version}</version>
+				<scope>test</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 
 	<licenses>
 		<license>

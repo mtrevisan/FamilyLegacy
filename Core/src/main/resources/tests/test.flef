@@ -1,0 +1,2769 @@
+header {
+	PROTOCOL {
+		NAME Family LEgacy Format
+		VERSION 0.1.3
+	}
+	SOURCE {
+		NAME FamilyLegacy
+		VERSION 0.1
+		ORGANIZATION Mauro Trevisan
+	}
+	DATE 2026-07-31
+	COPYRIGHT © 2026 Mauro Trevisan
+	SUBMITTER {
+		NOTE submitter note
+		CONTACT {
+			VALUE my phone number
+			TYPE phone
+			NAME {
+				VALUE Mario Rossi
+				VARIANT.TRANSCRIPTION {
+					SYSTEM rōmaji
+					TYPE romanized
+					VALUE nòme
+				}
+			}
+			NOTE phone note
+			PRIVACY {
+				LEVEL restricted
+				REASON because
+				EXPIRES 2010-01-01
+			}
+			AUDIT {
+				CREATION {
+					DATE 1990-02-02
+					COMMENT creation comment
+				}
+				UPDATE {
+					DATE 1995-03-03
+					COMMENT first update
+				}
+				UPDATE {
+					DATE 2000-04-04
+					COMMENT second update
+				}
+			}
+		}
+		CONTACT {
+			VALUE my email number
+			TYPE email
+			NAME.VALUE email
+			NOTE email note
+			PRIVACY {
+				LEVEL restricted
+				REASON because
+				EXPIRES 2010-01-01
+			}
+			AUDIT {
+				CREATION {
+					DATE 1990-02-02
+					COMMENT creation comment
+				}
+				UPDATE {
+					DATE 1995-03-03
+					COMMENT first update
+				}
+				UPDATE {
+					DATE 2000-04-04
+					COMMENT second update
+				}
+			}
+		}
+	}
+	SCOPE history of my family
+}
+
+records {
+	INDIVIDUAL I1 {
+		PREFERRED_IMAGE {
+			URI C:\Users\mauro\OneDrive\Documents\engineer-a-thousand-millions_eaqq.1920.gif
+			CROP {
+				X 178
+				Y 0
+				WIDTH 123
+				HEIGHT 130
+			}
+		}
+		NAME {
+			TYPE legal
+			LOCALE de
+			PART {
+				TYPE given
+				VALUE first name
+				VARIANT.PHONETIC {
+					SYSTEM ipa
+					VALUE genki
+				}
+				VARIANT.TRANSCRIPTION {
+					SYSTEM rōmaji
+					TYPE romanized
+					VALUE nòme
+				}
+			}
+			CULTURAL_NORM CN1
+		}
+		NAME {
+			TYPE maiden
+			CULTURAL_NORM CN1
+			SOURCE {
+				SOURCE S1
+				LOCATOR there
+				EXTRACT {
+					TEXT ext
+					TYPE summarized
+					LOCALE en-US
+				}
+			}
+			NOTE {
+				TITLE note 1 title
+				TEXT note 1
+				MIME text/plain
+				LOCALE it-IT
+				SOURCE.SOURCE S1
+				PRIVACY {
+					LEVEL restricted
+					REASON because
+					EXPIRES 2010-01-01
+				}
+				AUDIT {
+					CREATION {
+						DATE 1990-02-02
+						COMMENT creation comment
+					}
+					UPDATE {
+						DATE 1995-03-03
+						COMMENT first update
+					}
+					UPDATE {
+						DATE 2000-04-04
+						COMMENT second update
+					}
+				}
+				TRANSLATION {
+					TEXT nòda
+					LOCALE vec-IT
+				}
+			}
+			PART {
+				TYPE given
+				VALUE nòme
+				VARIANT.TRANSCRIPTION {
+					SYSTEM rōmaji
+					TYPE latinized
+					VALUE trans
+				}
+			}
+		}
+		SEX female
+		SOURCE {
+			SOURCE S1
+			LOCATOR there
+			EXTRACT {
+				TEXT ext
+				TYPE summarized
+				LOCALE en-US
+			}
+		}
+		NOTE {
+			TITLE note 1 title
+			TEXT note 1
+			MIME text/plain
+			LOCALE it-IT
+			SOURCE.SOURCE S1
+			PRIVACY {
+				LEVEL restricted
+				REASON because
+				EXPIRES 2010-01-01
+			}
+			AUDIT {
+				CREATION {
+					DATE 1990-02-02
+					COMMENT creation comment
+				}
+				UPDATE {
+					DATE 1995-03-03
+					COMMENT first update
+				}
+				UPDATE {
+					DATE 2000-04-04
+					COMMENT second update
+				}
+			}
+			TRANSLATION {
+				TEXT nòda
+				LOCALE vec-IT
+			}
+		}
+		PRIVACY {
+			LEVEL restricted
+			REASON because
+			EXPIRES 2010-01-01
+		}
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
+	}
+
+	INDIVIDUAL I2 {
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
+	}
+
+	INDIVIDUAL I3 {
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
+	}
+
+	INDIVIDUAL_ATTRIBUTE IA1 {
+		INDIVIDUAL I1
+		VALID_FROM {
+			VALUE.POINT.FULL_DATE {
+				VALUE 2001-02-03
+				CALENDAR gregorian
+			}
+			ORIGINAL_TEXT original text
+			SOURCE {
+				SOURCE S1
+				LOCATOR src loc
+			}
+			EVIDENCE {
+				SOURCE_TYPE derived
+				INFORMATION_TYPE secondary
+				EVIDENCE_TYPE indirect
+			}
+		}
+		VALID_TO.VALUE.POINT.DECADE {
+			START_YEAR 1940
+			CALENDAR julian
+			APPROXIMATE {
+				BASIS calculated
+				CULTURAL_NORM CN1
+				MARGIN P2Y
+			}
+		}
+		PLACE {
+			PLACE P1
+			ORIGINAL_TEXT kel pòsto là via, de la nòrma
+			EVIDENCE {
+				SOURCE_TYPE derived
+				INFORMATION_TYPE secondary
+				EVIDENCE_TYPE indirect
+			}
+		}
+		TYPE residence
+		VALUE attr
+		SOURCE {
+			SOURCE S1
+			LOCATOR there for activity
+			EXTRACT {
+				TEXT ext2
+				TYPE summarized
+				LOCALE en-US
+			}
+		}
+		NOTE {
+			TITLE note 1 title
+			TEXT note 1
+			MIME text/plain
+			LOCALE it-IT
+			SOURCE.SOURCE S1
+			PRIVACY {
+				LEVEL restricted
+				REASON because
+				EXPIRES 2010-01-01
+			}
+			AUDIT {
+				CREATION {
+					DATE 1990-02-02
+					COMMENT creation comment
+				}
+				UPDATE {
+					DATE 1995-03-03
+					COMMENT first update
+				}
+				UPDATE {
+					DATE 2000-04-04
+					COMMENT second update
+				}
+			}
+			TRANSLATION {
+				TEXT nòda
+				LOCALE vec-IT
+			}
+		}
+		EVIDENCE {
+			SOURCE_TYPE original
+			INFORMATION_TYPE primary
+			EVIDENCE_TYPE indirect
+		}
+		PRIVACY {
+			LEVEL restricted
+			REASON because
+			EXPIRES 2010-01-01
+		}
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
+	}
+
+	RELATIONSHIP RL1 {
+		SUBJECT.INDIVIDUAL I1
+		OBJECT.GROUP G1
+		TYPE group_member
+		ROLE president
+		STATUS ended
+		SOURCE {
+			SOURCE S1
+			LOCATOR there for activity
+			EXTRACT {
+				TEXT ext2
+				TYPE summarized
+				LOCALE en-US
+			}
+		}
+		NOTE {
+			TITLE note 1 title
+			TEXT note 1
+			MIME text/plain
+			LOCALE it-IT
+			SOURCE.SOURCE S1
+			PRIVACY {
+				LEVEL restricted
+				REASON because
+				EXPIRES 2010-01-01
+			}
+			AUDIT {
+				CREATION {
+					DATE 1990-02-02
+					COMMENT creation comment
+				}
+				UPDATE {
+					DATE 1995-03-03
+					COMMENT first update
+				}
+				UPDATE {
+					DATE 2000-04-04
+					COMMENT second update
+				}
+			}
+			TRANSLATION {
+				TEXT nòda
+				LOCALE vec-IT
+			}
+		}
+		EVIDENCE {
+			SOURCE_TYPE original
+			INFORMATION_TYPE primary
+			EVIDENCE_TYPE indirect
+		}
+		PRIVACY {
+			LEVEL restricted
+			REASON because
+			EXPIRES 2010-01-01
+		}
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
+		VALID_FROM {
+			VALUE.BOUNDED {
+				NOT_BEFORE.FULL_DATE {
+					VALUE 2001-01-01
+					CALENDAR gregorian
+				}
+				NOT_AFTER.FULL_DATE {
+					VALUE 2001-02-02
+					CALENDAR gregorian
+				}
+			}
+			ORIGINAL_TEXT original text
+			SOURCE {
+				SOURCE S1
+				LOCATOR src loc
+			}
+			EVIDENCE {
+				SOURCE_TYPE derived
+				INFORMATION_TYPE secondary
+				EVIDENCE_TYPE indirect
+			}
+		}
+		VALID_TO {
+			VALUE.SPANNING {
+				FROM.FULL_DATE {
+					VALUE 2001-01-01
+					CALENDAR gregorian
+				}
+				TO.FULL_DATE {
+					VALUE 2001-02-02
+					CALENDAR gregorian
+				}
+			}
+			ORIGINAL_TEXT original text
+			SOURCE {
+				SOURCE S1
+				LOCATOR src loc
+			}
+			EVIDENCE {
+				SOURCE_TYPE derived
+				INFORMATION_TYPE secondary
+				EVIDENCE_TYPE indirect
+			}
+		}
+	}
+
+	RELATIONSHIP RL2 {
+		TYPE associate
+		ROLE president
+		SUBJECT.GROUP G1
+		OBJECT.INDIVIDUAL I1
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
+	}
+
+	EVENT_PARTICIPATION EP1 {
+		PARTICIPANT.INDIVIDUAL I1
+		EVENT E1
+		ROLE spouse
+		SOURCE {
+			SOURCE S1
+			LOCATOR there for activity
+			EXTRACT {
+				TEXT ext2
+				TYPE summarized
+				LOCALE en-US
+			}
+		}
+		NOTE {
+			TITLE note 1 title
+			TEXT note 1
+			MIME text/plain
+			LOCALE it-IT
+			SOURCE.SOURCE S1
+			PRIVACY {
+				LEVEL restricted
+				REASON because
+				EXPIRES 2010-01-01
+			}
+			AUDIT {
+				CREATION {
+					DATE 1990-02-02
+					COMMENT creation comment
+				}
+				UPDATE {
+					DATE 1995-03-03
+					COMMENT first update
+				}
+				UPDATE {
+					DATE 2000-04-04
+					COMMENT second update
+				}
+			}
+			TRANSLATION {
+				TEXT nòda
+				LOCALE vec-IT
+			}
+		}
+		EVIDENCE {
+			SOURCE_TYPE original
+			INFORMATION_TYPE primary
+			EVIDENCE_TYPE indirect
+		}
+		PRIVACY {
+			LEVEL restricted
+			REASON because
+			EXPIRES 2010-01-01
+		}
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
+	}
+
+	EVENT_PARTICIPATION EP2 {
+		PARTICIPANT.GROUP G1
+		EVENT E2
+		ROLE whatever
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
+	}
+
+	EVENT_PARTICIPATION EP3 {
+		PARTICIPANT.PLACE P1
+		EVENT E2
+		ROLE whatever event
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
+	}
+
+	CONTEXT_IMPACT CI1 {
+		CONTEXT.CULTURAL_NORM CN1
+		TARGET.INDIVIDUAL I1
+		IMPACT_TYPE causes
+		EXPLANATION high significance
+		SOURCE {
+			SOURCE S1
+			LOCATOR there for activity
+			EXTRACT {
+				TEXT ext2
+				TYPE summarized
+				LOCALE en-US
+			}
+		}
+		EVIDENCE {
+			SOURCE_TYPE derived
+			INFORMATION_TYPE secondary
+			EVIDENCE_TYPE negative
+		}
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
+	}
+
+	CONTEXT_IMPACT CI2 {
+		CONTEXT.CULTURAL_NORM CN1
+		TARGET.GROUP G1
+		IMPACT_TYPE causes
+		EXPLANATION high significance
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
+	}
+
+	CONTEXT_IMPACT CI3 {
+		CONTEXT.CULTURAL_NORM CN1
+		TARGET.EVENT E1
+		IMPACT_TYPE causes
+		EXPLANATION low significance
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
+	}
+
+	CONTEXT_IMPACT CI4 {
+		CONTEXT.CULTURAL_NORM CN1
+		TARGET.PLACE P1
+		IMPACT_TYPE motivates
+		EXPLANATION low significance
+		EVIDENCE {
+			SOURCE_TYPE derived
+			INFORMATION_TYPE secondary
+			EVIDENCE_TYPE negative
+		}
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
+	}
+
+	CONTEXT_IMPACT CI5 {
+		CONTEXT.HISTORIC_EVENT HE1
+		TARGET.PLACE P1
+		IMPACT_TYPE causes
+		EXPLANATION low significance
+		EVIDENCE {
+			SOURCE_TYPE derived
+			INFORMATION_TYPE secondary
+			EVIDENCE_TYPE negative
+		}
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
+	}
+
+	CONTEXT_IMPACT CI6 {
+		CONTEXT.HISTORIC_EVENT HE1
+		TARGET.RELATIONSHIP RL1
+		IMPACT_TYPE causes
+		EXPLANATION low significance
+		EVIDENCE {
+			SOURCE_TYPE derived
+			INFORMATION_TYPE secondary
+			EVIDENCE_TYPE negative
+		}
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
+	}
+
+	CONTEXT_IMPACT CI7 {
+		CONTEXT.HISTORIC_EVENT HE1
+		TARGET.EVENT_PARTICIPATION EP1
+		IMPACT_TYPE causes
+		EXPLANATION low significance
+		EVIDENCE {
+			SOURCE_TYPE derived
+			INFORMATION_TYPE secondary
+			EVIDENCE_TYPE negative
+		}
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
+	}
+
+	CONTEXT_IMPACT CI8 {
+		CONTEXT.HISTORIC_EVENT HE1
+		TARGET.GROUP_ATTRIBUTE GA1
+		IMPACT_TYPE causes
+		EXPLANATION low significance
+		EVIDENCE {
+			SOURCE_TYPE derived
+			INFORMATION_TYPE secondary
+			EVIDENCE_TYPE negative
+		}
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
+	}
+
+	CONTEXT_IMPACT CI9 {
+		CONTEXT.HISTORIC_EVENT HE1
+		TARGET.INDIVIDUAL_ATTRIBUTE IA1
+		IMPACT_TYPE causes
+		EXPLANATION low significance
+		EVIDENCE {
+			SOURCE_TYPE derived
+			INFORMATION_TYPE secondary
+			EVIDENCE_TYPE negative
+		}
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
+	}
+
+	CONTEXT_IMPACT CI10 {
+		CONTEXT.HISTORIC_EVENT HE1
+		TARGET.IDENTITY_HYPOTHESIS IH1
+		IMPACT_TYPE causes
+		EXPLANATION low significance
+		EVIDENCE {
+			SOURCE_TYPE derived
+			INFORMATION_TYPE secondary
+			EVIDENCE_TYPE negative
+		}
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
+	}
+
+	CONTEXT_IMPACT CI11 {
+		CONTEXT.HISTORIC_EVENT HE1
+		TARGET.PLACE_RELATIONSHIP PR1
+		IMPACT_TYPE causes
+		EXPLANATION low significance
+		EVIDENCE {
+			SOURCE_TYPE derived
+			INFORMATION_TYPE secondary
+			EVIDENCE_TYPE negative
+		}
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
+	}
+
+	CONCLUSION CC1 {
+		ISSUE death cause
+		PROOF_STATUS proven
+		NARRATIVE narr
+		RESOLVES.INDIVIDUAL I1
+		PREFERRED.INDIVIDUAL I1
+		RESEARCH RQ1
+		SOURCE {
+			SOURCE S1
+			LOCATOR there for activity
+			EXTRACT {
+				TEXT ext2
+				TYPE summarized
+				LOCALE en-US
+			}
+		}
+		PRIVACY {
+			LEVEL restricted
+			REASON because
+			EXPIRES 2010-01-01
+		}
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
+	}
+
+	CONCLUSION CC2 {
+		ISSUE death cause
+		PROOF_STATUS proven
+		NARRATIVE narr for group
+		RESOLVES.GROUP G1
+		PREFERRED.GROUP G1
+		RESEARCH RQ1
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
+	}
+
+	CONCLUSION CC3 {
+		ISSUE death cause
+		PROOF_STATUS proven
+		NARRATIVE narr for event
+		RESOLVES.EVENT E1
+		PREFERRED.EVENT E1
+		RESEARCH RQ1
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
+	}
+
+	CONCLUSION CC4 {
+		ISSUE place cause
+		PROOF_STATUS proven
+		NARRATIVE narr for place
+		RESOLVES.PLACE P1
+		RESOLVES.PLACE P2
+		PREFERRED.PLACE P1
+		RESEARCH RQ1
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
+	}
+
+	CONCLUSION CC5 {
+		ISSUE cn cause
+		PROOF_STATUS proven
+		NARRATIVE narr for cn
+		RESOLVES.CULTURAL_NORM CN1
+		PREFERRED.CULTURAL_NORM CN1
+		RESEARCH RQ1
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
+	}
+
+	CONCLUSION CC6 {
+		ISSUE src cause
+		PROOF_STATUS proven
+		NARRATIVE narr for src
+		RESOLVES.SOURCE S1
+		PREFERRED.SOURCE S1
+		RESEARCH RQ1
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
+	}
+
+	CONCLUSION CC7 {
+		ISSUE src hist evt
+		PROOF_STATUS proven
+		NARRATIVE narr for he
+		RESOLVES.HISTORIC_EVENT HE1
+		PREFERRED.HISTORIC_EVENT HE1
+		RESEARCH RQ1
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
+	}
+
+	CONCLUSION CC8 {
+		ISSUE src hist rl
+		PROOF_STATUS proven
+		NARRATIVE narr for rl
+		RESOLVES.RELATIONSHIP RL1
+		PREFERRED.RELATIONSHIP RL1
+		RESEARCH RQ1
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
+	}
+
+	CONCLUSION CC9 {
+		ISSUE src hist ep
+		PROOF_STATUS proven
+		NARRATIVE narr for ep
+		RESOLVES.EVENT_PARTICIPATION EP1
+		PREFERRED.EVENT_PARTICIPATION EP1
+		RESEARCH RQ1
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
+	}
+
+	CONCLUSION CC10 {
+		ISSUE src hist ga
+		PROOF_STATUS proven
+		NARRATIVE narr for ga
+		RESOLVES.GROUP_ATTRIBUTE GA1
+		PREFERRED.GROUP_ATTRIBUTE GA1
+		RESEARCH RQ1
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
+	}
+
+	CONCLUSION CC11 {
+		ISSUE src hist ia
+		PROOF_STATUS proven
+		NARRATIVE narr for ia
+		RESOLVES.INDIVIDUAL_ATTRIBUTE IA1
+		PREFERRED.INDIVIDUAL_ATTRIBUTE IA1
+		RESEARCH RQ1
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
+	}
+
+	CONCLUSION CC12 {
+		ISSUE src hist ih
+		PROOF_STATUS proven
+		NARRATIVE narr for ih
+		RESOLVES.IDENTITY_HYPOTHESIS IH1
+		PREFERRED.IDENTITY_HYPOTHESIS IH1
+		RESEARCH RQ1
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
+	}
+
+	CONCLUSION CC13 {
+		ISSUE src hist pr
+		PROOF_STATUS proven
+		NARRATIVE narr for pr
+		RESOLVES.PLACE_RELATIONSHIP PR1
+		PREFERRED.PLACE_RELATIONSHIP PR1
+		RESEARCH RQ1
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
+	}
+
+	IDENTITY_HYPOTHESIS IH1 {
+		IDENTITY.INDIVIDUAL I1
+		IDENTITY.INDIVIDUAL I2
+		COMMENT """
+maybe the same
+person"""
+		SOURCE {
+			SOURCE S1
+			LOCATOR there for activity
+			EXTRACT {
+				TEXT ext2
+				TYPE summarized
+				LOCALE en-US
+			}
+		}
+		NOTE {
+			TITLE note 1 title
+			TEXT note 1
+			MIME text/plain
+			LOCALE it-IT
+			SOURCE.SOURCE S1
+			PRIVACY {
+				LEVEL restricted
+				REASON because
+				EXPIRES 2010-01-01
+			}
+			AUDIT {
+				CREATION {
+					DATE 1990-02-02
+					COMMENT creation comment
+				}
+				UPDATE {
+					DATE 1995-03-03
+					COMMENT first update
+				}
+				UPDATE {
+					DATE 2000-04-04
+					COMMENT second update
+				}
+			}
+			TRANSLATION {
+				TEXT nòda
+				LOCALE vec-IT
+			}
+		}
+		EVIDENCE {
+			SOURCE_TYPE derived
+			INFORMATION_TYPE secondary
+			EVIDENCE_TYPE negative
+		}
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
+	}
+
+	IDENTITY_HYPOTHESIS IH2 {
+		IDENTITY.INDIVIDUAL I3
+		IDENTITY.INDIVIDUAL I1
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
+	}
+
+	IDENTITY_HYPOTHESIS IH3 {
+		IDENTITY.GROUP G1
+		IDENTITY.GROUP G2
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
+	}
+
+	IDENTITY_HYPOTHESIS IH4 {
+		IDENTITY.PLACE P1
+		IDENTITY.PLACE P2
+		COMMENT same place?
+		EVIDENCE {
+			SOURCE_TYPE derived
+			INFORMATION_TYPE secondary
+			EVIDENCE_TYPE negative
+		}
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
+	}
+
+	RESEARCH_QUESTION RQ1 {
+		TITLE rq title
+		QUESTION is?
+		CONCLUSION it must be true
+		CONCLUSION_CONFIDENCE medium
+		RATIONALE explanation of question
+		PRIVACY {
+			LEVEL restricted
+			REASON because
+			EXPIRES 2010-01-01
+		}
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
+		TARGET.INDIVIDUAL I1
+		STATUS open
+		CLOSED_DATE 2010-10-10
+	}
+
+	RESEARCH_QUESTION RQ2 {
+		TITLE void rq title
+		QUESTION is void?
+		TARGET.VOID
+		STATUS resolved
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
+	}
+
+	RESEARCH_QUESTION RQ3 {
+		TITLE void rq title group
+		QUESTION is group?
+		TARGET.GROUP G1
+		STATUS resolved
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
+	}
+
+	RESEARCH_QUESTION RQ4 {
+		TITLE void rq title event
+		QUESTION is event?
+		TARGET.EVENT E1
+		STATUS resolved
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
+	}
+
+	RESEARCH_QUESTION RQ5 {
+		TITLE void rq title place
+		QUESTION is place?
+		TARGET.PLACE P1
+		STATUS resolved
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
+	}
+
+	RESEARCH_QUESTION RQ6 {
+		TITLE cn rq title place
+		QUESTION is place?
+		TARGET.CULTURAL_NORM CN1
+		STATUS resolved
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
+	}
+
+	RESEARCH_QUESTION RQ7 {
+		TITLE cn rq title source
+		QUESTION is src?
+		TARGET.SOURCE S1
+		STATUS resolved
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
+	}
+
+	RESEARCH_QUESTION RQ8 {
+		TITLE cn rq title doc
+		QUESTION is doc?
+		TARGET.DOCUMENT D1
+		STATUS resolved
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
+	}
+
+	RESEARCH_QUESTION RQ9 {
+		TITLE cn rq title he
+		QUESTION is he?
+		TARGET.HISTORIC_EVENT HE1
+		STATUS resolved
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
+	}
+
+	RESEARCH_QUESTION RQ10 {
+		TITLE cn rq title rl
+		QUESTION is rl?
+		TARGET.RELATIONSHIP RL1
+		STATUS resolved
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
+	}
+
+	RESEARCH_QUESTION RQ11 {
+		TITLE cn rq title ep
+		QUESTION is ep?
+		TARGET.EVENT_PARTICIPATION EP1
+		STATUS resolved
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
+	}
+
+	RESEARCH_QUESTION RQ12 {
+		TITLE cn rq title ga
+		QUESTION is ga?
+		TARGET.GROUP_ATTRIBUTE GA1
+		STATUS resolved
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
+	}
+
+	RESEARCH_QUESTION RQ13 {
+		TITLE cn rq title ia
+		QUESTION is ia?
+		TARGET.INDIVIDUAL_ATTRIBUTE IA1
+		STATUS resolved
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
+	}
+
+	RESEARCH_QUESTION RQ14 {
+		TITLE cn rq title ih
+		QUESTION is ih?
+		TARGET.IDENTITY_HYPOTHESIS IH1
+		STATUS resolved
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
+	}
+
+	RESEARCH_QUESTION RQ15 {
+		TITLE cn rq title pr
+		QUESTION is pr?
+		TARGET.PLACE_RELATIONSHIP PR1
+		STATUS resolved
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
+	}
+
+	RESEARCH_ACTIVITY RA1 {
+		ACTIVITY_TYPE review
+		STATUS in_progress
+		ACTION do things
+		SEARCH_SCOPE {
+			TYPE index_only
+			DETAIL page 25
+		}
+		RESULT positive
+		OBSERVATION observed something
+		CONCLUSION concluded something else
+		CONCLUSION_CONFIDENCE high
+		SOURCE {
+			SOURCE S1
+			LOCATOR there for activity
+			EXTRACT {
+				TEXT ext2
+				TYPE summarized
+				LOCALE en-US
+			}
+		}
+		QUESTION RQ1
+		QUESTION RQ2
+		TASK RT1
+		PRIVACY {
+			LEVEL restricted
+			REASON because
+			EXPIRES 2010-01-01
+		}
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
+		TARGET.INDIVIDUAL I1
+		PARENT_ACTIVITY RA2
+	}
+
+	RESEARCH_ACTIVITY RA2 {
+		ACTIVITY_TYPE review
+		STATUS in_progress
+		ACTION do something in order to proceed
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
+	}
+
+	RESEARCH_TASK RT1 {
+		DESCRIPTION correct individual 1
+		STATUS in_progress
+		PRIORITY low
+		DUE_DATE 2020-05-05
+		OUTCOME expected outcome
+		QUESTION RQ1
+		QUESTION RQ2
+		PRIVACY {
+			LEVEL restricted
+			REASON because
+			EXPIRES 2010-01-01
+		}
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
+		CREATED_BY RA1
+	}
+
+	SOURCE S1 {
+		TITLE {
+			VALUE src title
+			LOCALE it-IT
+			VARIANT.PHONETIC {
+				SYSTEM canIPA
+				VALUE kaxa
+			}
+		}
+		AUTHOR author
+		PUBLISHER pub
+		DATE.VALUE.POINT.FULL_DATE {
+			VALUE 2001-01-01
+			CALENDAR gregorian
+		}
+		PLACE {
+			PLACE P1
+			ORIGINAL_TEXT kel pòsto là via, de la nòrma
+			EVIDENCE {
+				SOURCE_TYPE derived
+				INFORMATION_TYPE secondary
+				EVIDENCE_TYPE indirect
+			}
+		}
+		MEDIA_TYPE book
+		REPOSITORY {
+			REPOSITORY R1
+			LOCATOR shelf 1
+			NOTE repo note
+		}
+		DOCUMENT D1
+		NOTE {
+			TITLE note 1 title
+			TEXT note 1
+			MIME text/plain
+			LOCALE it-IT
+			SOURCE.SOURCE S1
+			PRIVACY {
+				LEVEL restricted
+				REASON because
+				EXPIRES 2010-01-01
+			}
+			AUDIT {
+				CREATION {
+					DATE 1990-02-02
+					COMMENT creation comment
+				}
+				UPDATE {
+					DATE 1995-03-03
+					COMMENT first update
+				}
+				UPDATE {
+					DATE 2000-04-04
+					COMMENT second update
+				}
+			}
+			TRANSLATION {
+				TEXT nòda
+				LOCALE vec-IT
+			}
+		}
+		PRIVACY {
+			LEVEL restricted
+			REASON because
+			EXPIRES 2010-01-01
+		}
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
+	}
+
+	SOURCE S2 {
+		TITLE.VALUE src title for group
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
+	}
+
+	GROUP G1 {
+		PREFERRED_IMAGE {
+			URI C:\Users\mauro\OneDrive\Documents\engineer-a-thousand-millions_eaqq.1920.gif
+			CROP {
+				X 380
+				Y 22
+				WIDTH 64
+				HEIGHT 81
+			}
+		}
+		NAME {
+			TYPE legal
+			VALUE household group
+			LOCALE it-IT
+			VARIANT.PHONETIC {
+				SYSTEM canIPA
+				VALUE kaxa
+			}
+			SOURCE.SOURCE S1
+			NOTE {
+				TITLE note 1 title
+				TEXT note 1
+				MIME text/plain
+				LOCALE it-IT
+				SOURCE.SOURCE S1
+				PRIVACY {
+					LEVEL restricted
+					REASON because
+					EXPIRES 2010-01-01
+				}
+				AUDIT {
+					CREATION {
+						DATE 1990-02-02
+						COMMENT creation comment
+					}
+					UPDATE {
+						DATE 1995-03-03
+						COMMENT first update
+					}
+					UPDATE {
+						DATE 2000-04-04
+						COMMENT second update
+					}
+				}
+				TRANSLATION {
+					TEXT nòda
+					LOCALE vec-IT
+				}
+			}
+		}
+		TYPE household
+		SOURCE.SOURCE S2
+		NOTE {
+			TITLE note 1 title
+			TEXT note 1
+			MIME text/plain
+			LOCALE it-IT
+			SOURCE.SOURCE S1
+			PRIVACY {
+				LEVEL restricted
+				REASON because
+				EXPIRES 2010-01-01
+			}
+			AUDIT {
+				CREATION {
+					DATE 1990-02-02
+					COMMENT creation comment
+				}
+				UPDATE {
+					DATE 1995-03-03
+					COMMENT first update
+				}
+				UPDATE {
+					DATE 2000-04-04
+					COMMENT second update
+				}
+			}
+			TRANSLATION {
+				TEXT nòda
+				LOCALE vec-IT
+			}
+		}
+		PRIVACY {
+			LEVEL restricted
+			REASON because
+			EXPIRES 2010-01-01
+		}
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
+	}
+
+	GROUP G2 {
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
+	}
+
+	GROUP_ATTRIBUTE GA1 {
+		GROUP G1
+		VALID_FROM {
+			VALUE.BOUNDED {
+				NOT_BEFORE.FULL_DATE {
+					VALUE 2001-01-01
+					CALENDAR gregorian
+				}
+				NOT_AFTER.FULL_DATE {
+					VALUE 2001-02-02
+					CALENDAR gregorian
+				}
+			}
+			ORIGINAL_TEXT original text
+			SOURCE {
+				SOURCE S1
+				LOCATOR src loc
+			}
+			EVIDENCE {
+				SOURCE_TYPE derived
+				INFORMATION_TYPE secondary
+				EVIDENCE_TYPE indirect
+			}
+		}
+		VALID_TO {
+			VALUE.SPANNING {
+				FROM.FULL_DATE {
+					VALUE 2001-01-01
+					CALENDAR gregorian
+				}
+				TO.FULL_DATE {
+					VALUE 2001-02-02
+					CALENDAR gregorian
+				}
+			}
+			ORIGINAL_TEXT original text
+			SOURCE {
+				SOURCE S1
+				LOCATOR src loc
+			}
+			EVIDENCE {
+				SOURCE_TYPE derived
+				INFORMATION_TYPE secondary
+				EVIDENCE_TYPE indirect
+			}
+		}
+		PLACE {
+			PLACE P1
+			ORIGINAL_TEXT kel pòsto là via, de la nòrma
+			EVIDENCE {
+				SOURCE_TYPE derived
+				INFORMATION_TYPE secondary
+				EVIDENCE_TYPE indirect
+			}
+		}
+		TYPE residence
+		VALUE group attr value
+		SOURCE {
+			SOURCE S1
+			LOCATOR src loc
+		}
+		NOTE {
+			TITLE note 1 title
+			TEXT note 1
+			MIME text/plain
+			LOCALE it-IT
+			SOURCE.SOURCE S1
+			PRIVACY {
+				LEVEL restricted
+				REASON because
+				EXPIRES 2010-01-01
+			}
+			AUDIT {
+				CREATION {
+					DATE 1990-02-02
+					COMMENT creation comment
+				}
+				UPDATE {
+					DATE 1995-03-03
+					COMMENT first update
+				}
+				UPDATE {
+					DATE 2000-04-04
+					COMMENT second update
+				}
+			}
+			TRANSLATION {
+				TEXT nòda
+				LOCALE vec-IT
+			}
+		}
+		EVIDENCE {
+			SOURCE_TYPE derived
+			INFORMATION_TYPE secondary
+			EVIDENCE_TYPE indirect
+		}
+		PRIVACY {
+			LEVEL restricted
+			REASON because
+			EXPIRES 2010-01-01
+		}
+		AUDIT.CREATION.DATE 2026-08-22T15:53:49Z
+	}
+
+	CULTURAL_NORM CN1 {
+		TITLE cult norm title
+		RULE_TYPE marriage_practice
+		SOURCE {
+			SOURCE S1
+			LOCATOR src loc
+		}
+		NOTE {
+			TITLE note 1 title
+			TEXT note 1
+			MIME text/plain
+			LOCALE it-IT
+			SOURCE.SOURCE S1
+			PRIVACY {
+				LEVEL restricted
+				REASON because
+				EXPIRES 2010-01-01
+			}
+			AUDIT {
+				CREATION {
+					DATE 1990-02-02
+					COMMENT creation comment
+				}
+				UPDATE {
+					DATE 1995-03-03
+					COMMENT first update
+				}
+				UPDATE {
+					DATE 2000-04-04
+					COMMENT second update
+				}
+			}
+			TRANSLATION {
+				TEXT nòda
+				LOCALE vec-IT
+			}
+		}
+		EVIDENCE {
+			SOURCE_TYPE derived
+			INFORMATION_TYPE secondary
+			EVIDENCE_TYPE indirect
+		}
+		AUDIT.CREATION.DATE 2026-08-22T15:53:49Z
+		PLACE {
+			PLACE P1
+			ORIGINAL_TEXT kel pòsto là via, de la nòrma
+			EVIDENCE {
+				SOURCE_TYPE derived
+				INFORMATION_TYPE secondary
+				EVIDENCE_TYPE indirect
+			}
+		}
+		VALID_FROM {
+			VALUE.BOUNDED {
+				NOT_BEFORE.FULL_DATE {
+					VALUE 2001-01-01
+					CALENDAR gregorian
+				}
+				NOT_AFTER.FULL_DATE {
+					VALUE 2001-02-02
+					CALENDAR gregorian
+				}
+			}
+			ORIGINAL_TEXT original text
+			SOURCE {
+				SOURCE S1
+				LOCATOR src loc
+			}
+			EVIDENCE {
+				SOURCE_TYPE derived
+				INFORMATION_TYPE secondary
+				EVIDENCE_TYPE indirect
+			}
+		}
+		VALID_TO {
+			VALUE.SPANNING {
+				FROM.FULL_DATE {
+					VALUE 2001-01-01
+					CALENDAR gregorian
+				}
+				TO.FULL_DATE {
+					VALUE 2001-02-02
+					CALENDAR gregorian
+				}
+			}
+			ORIGINAL_TEXT original text
+			SOURCE {
+				SOURCE S1
+				LOCATOR src loc
+			}
+			EVIDENCE {
+				SOURCE_TYPE derived
+				INFORMATION_TYPE secondary
+				EVIDENCE_TYPE indirect
+			}
+		}
+	}
+
+	EVENT E1 {
+		TYPE epidemic
+		DESCRIPTION cholera
+		AGENCY the morgue
+		CAUSE {
+			REASON brain tumor
+			EVIDENCE {
+				SOURCE_TYPE derived
+				INFORMATION_TYPE secondary
+				EVIDENCE_TYPE negative
+			}
+		}
+		SOURCE {
+			SOURCE S1
+			LOCATOR over there
+			EXTRACT {
+				TEXT ext event
+				TYPE summarized
+				LOCALE en-US
+			}
+		}
+		NOTE {
+			TITLE note 1 title
+			TEXT note 1
+			MIME text/plain
+			LOCALE it-IT
+			SOURCE.SOURCE S1
+			PRIVACY {
+				LEVEL restricted
+				REASON because
+				EXPIRES 2010-01-01
+			}
+			AUDIT {
+				CREATION {
+					DATE 1990-02-02
+					COMMENT creation comment
+				}
+				UPDATE {
+					DATE 1995-03-03
+					COMMENT first update
+				}
+				UPDATE {
+					DATE 2000-04-04
+					COMMENT second update
+				}
+			}
+			TRANSLATION {
+				TEXT nòda
+				LOCALE vec-IT
+			}
+		}
+		EVIDENCE {
+			SOURCE_TYPE original
+			INFORMATION_TYPE primary
+			EVIDENCE_TYPE indirect
+		}
+		PRIVACY {
+			LEVEL restricted
+			REASON because
+			EXPIRES 2010-01-01
+		}
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
+		DATE.VALUE.POINT.CENTURY {
+			ORDINAL 19
+			PART late
+			CALENDAR gregorian
+		}
+		PLACE {
+			PLACE P1
+			ORIGINAL_TEXT kel pòsto là via
+		}
+	}
+
+	EVENT E2 {
+		TYPE deed
+		DESCRIPTION something groupy
+		AGENCY government
+		CAUSE.REASON cause value
+		SOURCE.SOURCE S1
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
+	}
+
+	PLACE P1 {
+		NAME {
+			VALUE a certain place
+			LOCALE en-UK
+			TYPE official
+			VARIANT.PHONETIC {
+				SYSTEM place var sys
+				VALUE place var val
+			}
+		}
+		TYPE building
+		MAP {
+			COORDINATES 45.65 12.19
+			EVIDENCE {
+				SOURCE_TYPE derived
+				INFORMATION_TYPE secondary
+				EVIDENCE_TYPE indirect
+			}
+		}
+		SOURCE {
+			SOURCE S1
+			LOCATOR src place loc
+		}
+		EVIDENCE {
+			SOURCE_TYPE derived
+			INFORMATION_TYPE secondary
+			EVIDENCE_TYPE indirect
+		}
+		PRIVACY {
+			LEVEL restricted
+			REASON because
+			EXPIRES 2010-01-01
+		}
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
+	}
+
+	PLACE P2 {
+		NAME {
+			VALUE a parent place
+			TYPE official
+		}
+		TYPE cadastral_part_of
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
+	}
+
+	PLACE_RELATIONSHIP PR1 {
+		SUBJECT.PLACE P1
+		OBJECT.PLACE P2
+		TYPE group_member place
+		SOURCE {
+			SOURCE S1
+			LOCATOR src loc place rel
+		}
+		NOTE {
+			TITLE note 1 title
+			TEXT note 1
+			MIME text/plain
+			LOCALE it-IT
+			SOURCE.SOURCE S1
+			PRIVACY {
+				LEVEL restricted
+				REASON because
+				EXPIRES 2010-01-01
+			}
+			AUDIT {
+				CREATION {
+					DATE 1990-02-02
+					COMMENT creation comment
+				}
+				UPDATE {
+					DATE 1995-03-03
+					COMMENT first update
+				}
+				UPDATE {
+					DATE 2000-04-04
+					COMMENT second update
+				}
+			}
+			TRANSLATION {
+				TEXT nòda
+				LOCALE vec-IT
+			}
+		}
+		EVIDENCE {
+			SOURCE_TYPE derived
+			INFORMATION_TYPE secondary
+			EVIDENCE_TYPE indirect
+		}
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
+		VALID_FROM {
+			VALUE.BOUNDED {
+				NOT_BEFORE.FULL_DATE {
+					VALUE 2001-01-01
+					CALENDAR gregorian
+				}
+				NOT_AFTER.FULL_DATE {
+					VALUE 2001-02-02
+					CALENDAR gregorian
+				}
+			}
+			ORIGINAL_TEXT original text
+			SOURCE {
+				SOURCE S1
+				LOCATOR src loc
+			}
+			EVIDENCE {
+				SOURCE_TYPE derived
+				INFORMATION_TYPE secondary
+				EVIDENCE_TYPE indirect
+			}
+		}
+		VALID_TO {
+			VALUE.SPANNING {
+				FROM.FULL_DATE {
+					VALUE 2001-01-01
+					CALENDAR gregorian
+				}
+				TO.FULL_DATE {
+					VALUE 2001-02-02
+					CALENDAR gregorian
+				}
+			}
+			ORIGINAL_TEXT original text
+			SOURCE {
+				SOURCE S1
+				LOCATOR src loc
+			}
+			EVIDENCE {
+				SOURCE_TYPE derived
+				INFORMATION_TYPE secondary
+				EVIDENCE_TYPE indirect
+			}
+		}
+	}
+
+	PLACE_RELATIONSHIP PR2 {
+		TYPE group_member inverse place
+		SUBJECT.PLACE P2
+		OBJECT.PLACE P1
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
+	}
+
+	REPOSITORY R1 {
+		NOTE {
+			TITLE note 1 title
+			TEXT note 1
+			MIME text/plain
+			LOCALE it-IT
+			SOURCE.SOURCE S1
+			PRIVACY {
+				LEVEL restricted
+				REASON because
+				EXPIRES 2010-01-01
+			}
+			AUDIT {
+				CREATION {
+					DATE 1990-02-02
+					COMMENT creation comment
+				}
+				UPDATE {
+					DATE 1995-03-03
+					COMMENT first update
+				}
+				UPDATE {
+					DATE 2000-04-04
+					COMMENT second update
+				}
+			}
+			TRANSLATION {
+				TEXT nòda
+				LOCALE vec-IT
+			}
+		}
+		PRIVACY {
+			LEVEL restricted
+			REASON because
+			EXPIRES 2010-01-01
+		}
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
+		NAME {
+			TYPE colonial
+			VALUE name
+			LOCALE de
+			VARIANT.PHONETIC {
+				SYSTEM canIPA
+				VALUE kaxa
+			}
+			SOURCE {
+				SOURCE S1
+				LOCATOR there
+				EXTRACT {
+					TEXT ext
+					TYPE summarized
+					LOCALE en-US
+				}
+			}
+			NOTE {
+				TITLE note 1 title
+				TEXT note 1
+				MIME text/plain
+				LOCALE it-IT
+				SOURCE.SOURCE S1
+				PRIVACY {
+					LEVEL restricted
+					REASON because
+					EXPIRES 2010-01-01
+				}
+				AUDIT {
+					CREATION {
+						DATE 1990-02-02
+						COMMENT creation comment
+					}
+					UPDATE {
+						DATE 1995-03-03
+						COMMENT first update
+					}
+					UPDATE {
+						DATE 2000-04-04
+						COMMENT second update
+					}
+				}
+				TRANSLATION {
+					TEXT nòda
+					LOCALE vec-IT
+				}
+			}
+		}
+		CUSTODIAN I1
+		PLACE {
+			PLACE P1
+			ORIGINAL_TEXT sto pòsto kuà
+		}
+		CONTACT {
+			VALUE addr
+			TYPE email
+			NOTE contact note
+			PRIVACY {
+				LEVEL restricted
+				REASON because
+				EXPIRES 2010-01-01
+			}
+			AUDIT {
+				CREATION {
+					DATE 1990-02-02
+					COMMENT creation comment
+				}
+				UPDATE {
+					DATE 1995-03-03
+					COMMENT first update
+				}
+				UPDATE {
+					DATE 2000-04-04
+					COMMENT second update
+				}
+			}
+			NAME {
+				VALUE contact name
+				VARIANT.PHONETIC {
+					SYSTEM ipa
+					VALUE contact name genki
+				}
+				VARIANT.TRANSCRIPTION {
+					SYSTEM rōmaji
+					TYPE romanized
+					VALUE contact name nòme
+				}
+			}
+		}
+	}
+
+	DOCUMENT D1 {
+		URI C:\Users\mauro\OneDrive\Documents\engineer-a-thousand-millions_eaqq.1920.gif
+		MAPPING planar
+		DESCRIPTION doc desc
+		NOTE {
+			TITLE note 1 title
+			TEXT note 1
+			MIME text/plain
+			LOCALE it-IT
+			SOURCE.SOURCE S1
+			PRIVACY {
+				LEVEL restricted
+				REASON because
+				EXPIRES 2010-01-01
+			}
+			AUDIT {
+				CREATION {
+					DATE 1990-02-02
+					COMMENT creation comment
+				}
+				UPDATE {
+					DATE 1995-03-03
+					COMMENT first update
+				}
+				UPDATE {
+					DATE 2000-04-04
+					COMMENT second update
+				}
+			}
+			TRANSLATION {
+				TEXT nòda
+				LOCALE vec-IT
+			}
+		}
+		PRIVACY {
+			LEVEL restricted
+			REASON because
+			EXPIRES 2010-01-01
+		}
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
+	}
+
+	HISTORIC_EVENT HE1 {
+		TYPE famine
+		TITLE black plague
+		SOURCE {
+			SOURCE S1
+			LOCATOR src he
+		}
+		NOTE {
+			TITLE note 1 title
+			TEXT note 1
+			MIME text/plain
+			LOCALE it-IT
+			SOURCE.SOURCE S1
+			PRIVACY {
+				LEVEL restricted
+				REASON because
+				EXPIRES 2010-01-01
+			}
+			AUDIT {
+				CREATION {
+					DATE 1990-02-02
+					COMMENT creation comment
+				}
+				UPDATE {
+					DATE 1995-03-03
+					COMMENT first update
+				}
+				UPDATE {
+					DATE 2000-04-04
+					COMMENT second update
+				}
+			}
+			TRANSLATION {
+				TEXT nòda
+				LOCALE vec-IT
+			}
+		}
+		NOTE {
+			TITLE note 1 title
+			TEXT note 1
+			AUDIT {
+				CREATION {
+					DATE 1990-02-02
+					COMMENT creation comment
+				}
+				UPDATE {
+					DATE 1995-03-03
+					COMMENT first update
+				}
+				UPDATE {
+					DATE 2000-04-04
+					COMMENT second update
+				}
+			}
+		}
+		EVIDENCE {
+			SOURCE_TYPE derived
+			INFORMATION_TYPE secondary
+			EVIDENCE_TYPE indirect
+		}
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
+		DATE {
+			VALUE.POINT.FULL_DATE {
+				VALUE 2001-02-03
+				CALENDAR gregorian
+			}
+			ORIGINAL_TEXT original text
+			SOURCE {
+				SOURCE S1
+				LOCATOR src loc
+			}
+			EVIDENCE {
+				SOURCE_TYPE derived
+				INFORMATION_TYPE secondary
+				EVIDENCE_TYPE indirect
+			}
+		}
+		PLACE {
+			PLACE P1
+			ORIGINAL_TEXT kel pòsto là via, de la nòrma
+			EVIDENCE {
+				SOURCE_TYPE derived
+				INFORMATION_TYPE secondary
+				EVIDENCE_TYPE indirect
+			}
+		}
+	}
+}
