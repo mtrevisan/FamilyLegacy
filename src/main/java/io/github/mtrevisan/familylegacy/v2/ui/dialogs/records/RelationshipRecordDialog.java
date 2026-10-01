@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs.records;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
@@ -115,30 +116,30 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]5[]10[]5[]10[]10[]10[]");
 
-		subjectField = EntityField.createForRecordFromOneofReference(RelationshipHandler.TAG_SUBJECT, this, model)
+		subjectField = EntityField.createForRecordFromOneofReference(RelationshipReader.TAG_SUBJECT, this, model)
 			.withHandlerTypes(IndividualHandler.class, GroupHandler.class);
 		subjectField.addPropertyChangeListener(EntityField.PROPERTY_ENTITY_CHANGED, e -> updateTypeCombo());
-		objectField = EntityField.createForRecordFromOneofReference(RelationshipHandler.TAG_OBJECT, this, model)
+		objectField = EntityField.createForRecordFromOneofReference(RelationshipReader.TAG_OBJECT, this, model)
 			.withHandlerTypes(IndividualHandler.class, GroupHandler.class);
 		objectField.addPropertyChangeListener(EntityField.PROPERTY_ENTITY_CHANGED, e -> updateTypeCombo());
-		subjectTypeCombo = new BoundComboBox<>(RelationshipHandler.TAG_TYPE, RelationshipHandler.TYPES);
+		subjectTypeCombo = new BoundComboBox<>(RelationshipReader.TAG_TYPE, RelationshipHandler.TYPES);
 		subjectTypeCombo.setI18NPrefix("enum.relationship.type");
-		subjectRoleField = new BoundTextField(RelationshipHandler.TAG_ROLE);
-		statusCombo = new BoundComboBox<>(RelationshipHandler.TAG_STATUS, RelationshipHandler.STATUSES);
+		subjectRoleField = new BoundTextField(RelationshipReader.TAG_ROLE);
+		statusCombo = new BoundComboBox<>(RelationshipReader.TAG_STATUS, RelationshipHandler.STATUSES);
 		statusCombo.setI18NPrefix("enum.relationship.status");
-		validFromField = DateField.createWithWrapperTag(RelationshipHandler.TAG_VALID_FROM, this, I18N.t("dialog.date.valid.from"), model);
-		validToField = DateField.createWithWrapperTag(RelationshipHandler.TAG_VALID_TO, this, I18N.t("dialog.date.valid.to"), model);
+		validFromField = DateField.createWithWrapperTag(RelationshipReader.TAG_VALID_FROM, this, I18N.t("dialog.date.valid.from"), model);
+		validToField = DateField.createWithWrapperTag(RelationshipReader.TAG_VALID_TO, this, I18N.t("dialog.date.valid.to"), model);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
 			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, ContextImpactHandler.TYPE, I18N.t("dialog.component.context.impact"))
 			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, I18N.t("dialog.component.conclusions"))
 			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, I18N.t("dialog.component.research.questions"))
-			.withComponent(PanelKey.SOURCE, RelationshipHandler.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
-			.withComponent(PanelKey.NOTE, RelationshipHandler.TAG_NOTE, null)
-			.withComponent(PanelKey.EVIDENCE, RelationshipHandler.TAG_EVIDENCE, I18N.t("dialog.component.evidence"))
-			.withComponent(PanelKey.PRIVACY, RelationshipHandler.TAG_PRIVACY, null)
-			.withComponent(PanelKey.AUDIT, RelationshipHandler.TAG_AUDIT, null)
+			.withComponent(PanelKey.SOURCE, RelationshipReader.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
+			.withComponent(PanelKey.NOTE, RelationshipReader.TAG_NOTE, null)
+			.withComponent(PanelKey.EVIDENCE, RelationshipReader.TAG_EVIDENCE, I18N.t("dialog.component.evidence"))
+			.withComponent(PanelKey.PRIVACY, RelationshipReader.TAG_PRIVACY, null)
+			.withComponent(PanelKey.AUDIT, RelationshipReader.TAG_AUDIT, null)
 			.build();
 
 		components.bind(subjectTypeCombo);

@@ -78,10 +78,6 @@ public final class IndividualHelper{
 	public static final String REL_COHABITING = "cohabiting_partner";
 	public static final String REL_ENGAGED = "engaged_partner";
 
-	public static final List<String> CHILD_RELATION_TYPES = List.of(
-		RelationshipHandler.ENUM_TYPE_BIOLOGICAL_CHILD, RelationshipHandler.ENUM_TYPE_ADOPTIVE_CHILD,
-		REL_FOSTER_CHILD, REL_GUARDED_CHILD, REL_STEP_CHILD);
-
 	public static final List<String> SPOUSE_RELATION_TYPES = List.of(
 		REL_CIVIL_SPOUSE, REL_RELIGIOUS_SPOUSE, REL_CUSTOMARY_SPOUSE,
 		REL_COHABITING, REL_ENGAGED);
@@ -284,7 +280,7 @@ public final class IndividualHelper{
 		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
 		for(final FLEFRecord relationship : relationships){
 			final String type = RelationshipReader.extractType(relationship);
-			if(!isChildType(type))
+			if(!RelationshipReader.isTypeChild(type))
 				continue;
 
 			final String child = relationship.extractReferencedId(RelationshipReader.TAG_SUBJECT, IndividualHandler.TYPE);
@@ -306,7 +302,7 @@ public final class IndividualHelper{
 		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
 		for(final FLEFRecord relationship : relationships){
 			final String type = RelationshipReader.extractType(relationship);
-			if(type == null || isChildType(type) || REL_GROUP_MEMBER.equalsIgnoreCase(type))
+			if(type == null || RelationshipReader.isTypeChild(type) || REL_GROUP_MEMBER.equalsIgnoreCase(type))
 				continue;
 
 			final String subject = relationship.extractReferencedId(RelationshipReader.TAG_SUBJECT, IndividualHandler.TYPE);
@@ -352,7 +348,7 @@ public final class IndividualHelper{
 		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
 		for(final FLEFRecord relationship : relationships){
 			final String type = RelationshipReader.extractType(relationship);
-			if(!isChildType(type))
+			if(!RelationshipReader.isTypeChild(type))
 				continue;
 
 			final String child = relationship.extractReferencedId(RelationshipReader.TAG_SUBJECT, IndividualHandler.TYPE);
@@ -432,16 +428,6 @@ public final class IndividualHelper{
 			return false;
 		final String t = type.toLowerCase(Locale.ROOT);
 		for(final String s : SPOUSE_RELATION_TYPES)
-			if(s.equals(t))
-				return true;
-		return false;
-	}
-
-	public static boolean isChildType(final String type){
-		if(type == null)
-			return false;
-		final String t = type.toLowerCase(Locale.ROOT);
-		for(final String s : CHILD_RELATION_TYPES)
 			if(s.equals(t))
 				return true;
 		return false;

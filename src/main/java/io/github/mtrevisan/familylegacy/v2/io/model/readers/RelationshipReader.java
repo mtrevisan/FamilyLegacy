@@ -74,13 +74,13 @@ public final class RelationshipReader{
 	private static final String TAG_TYPE = "TYPE";
 	public static final String TAG_ROLE = "ROLE";
 	public static final String TAG_STATUS = "STATUS";
-	private static final String TAG_VALID_FROM = "VALID_FROM";
-	private static final String TAG_VALID_TO = "VALID_TO";
-	private static final String TAG_SOURCE = "SOURCE";
-	private static final String TAG_NOTE = "NOTE";
-	private static final String TAG_EVIDENCE = "EVIDENCE";
-	private static final String TAG_PRIVACY = "PRIVACY";
-	private static final String TAG_AUDIT = "AUDIT";
+	public static final String TAG_VALID_FROM = "VALID_FROM";
+	public static final String TAG_VALID_TO = "VALID_TO";
+	public static final String TAG_SOURCE = "SOURCE";
+	public static final String TAG_NOTE = "NOTE";
+	public static final String TAG_EVIDENCE = "EVIDENCE";
+	public static final String TAG_PRIVACY = "PRIVACY";
+	public static final String TAG_AUDIT = "AUDIT";
 
 	private static final String ENUM_TYPE_BIOLOGICAL_CHILD = "biological_child";
 	private static final String ENUM_TYPE_ADOPTIVE_CHILD = "adoptive_child";
@@ -105,7 +105,8 @@ public final class RelationshipReader{
 		ENUM_TYPE_PART_OF
 	};
 	private static final String[] INDIVIDUAL_TO_INDIVIDUAL_CHILD_TYPES = new String[]{
-		ENUM_TYPE_BIOLOGICAL_CHILD, ENUM_TYPE_ADOPTIVE_CHILD, ENUM_TYPE_FOSTER_CHILD, ENUM_TYPE_GUARDED_CHILD, ENUM_TYPE_STEP_CHILD
+		ENUM_TYPE_BIOLOGICAL_CHILD, ENUM_TYPE_ADOPTIVE_CHILD, ENUM_TYPE_FOSTER_CHILD, ENUM_TYPE_GUARDED_CHILD,
+		ENUM_TYPE_STEP_CHILD
 	};
 	private static final String[] INDIVIDUAL_TO_INDIVIDUAL_TYPES = new String[]{
 		ENUM_TYPE_BIOLOGICAL_CHILD, ENUM_TYPE_ADOPTIVE_CHILD, ENUM_TYPE_FOSTER_CHILD, ENUM_TYPE_GUARDED_CHILD, ENUM_TYPE_STEP_CHILD,

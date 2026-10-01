@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.v2.ui.components.projections.repository.TreeService;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
@@ -580,13 +581,13 @@ public final class KinshipCalculator{
 		final Map<String, List<FLEFRecord>> index = new HashMap<>();
 		List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
 		for(final FLEFRecord relationship : relationships){
-			final String type = FLEFRecordHelper.getChildValue(relationship, RelationshipHandler.TAG_TYPE);
+			final String type = RelationshipReader.extractType(relationship);
 			if(type == null)
 				continue;
 
 			final String t = type.toLowerCase(Locale.ROOT);
-			final String subject = relationship.extractReferencedId(RelationshipHandler.TAG_SUBJECT, IndividualHandler.TYPE);
-			final String object = relationship.extractReferencedId(RelationshipHandler.TAG_OBJECT, IndividualHandler.TYPE);
+			final String subject = relationship.extractReferencedId(RelationshipReader.TAG_SUBJECT, IndividualHandler.TYPE);
+			final String object = relationship.extractReferencedId(RelationshipReader.TAG_OBJECT, IndividualHandler.TYPE);
 			if(subject == null || object == null)
 				continue;
 

@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.readers.EventParticipationReader;
+import io.github.mtrevisan.familylegacy.v2.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.PathBound;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityListPanel;
@@ -103,8 +104,8 @@ public final class RecordDialogComponents{
 		loadReferenceIfPresent(PanelKey.INDIVIDUAL_ATTRIBUTE, elp -> elp.loadReference(record.getId()));
 		loadReferenceIfPresent(PanelKey.GROUP_ATTRIBUTE, elp -> elp.loadReference(record.getId()));
 
-		loadReferenceIfPresent(PanelKey.RELATIONSHIP_ON_SUBJECT, elp -> elp.loadReferenceWithType(record.getId(), RelationshipHandler.TAG_SUBJECT));
-		loadReferenceIfPresent(PanelKey.RELATIONSHIP_ON_OBJECT, elp -> elp.loadReferenceWithType(record.getId(), RelationshipHandler.TAG_OBJECT));
+		loadReferenceIfPresent(PanelKey.RELATIONSHIP_ON_SUBJECT, elp -> elp.loadReferenceWithType(record.getId(), RelationshipReader.TAG_SUBJECT));
+		loadReferenceIfPresent(PanelKey.RELATIONSHIP_ON_OBJECT, elp -> elp.loadReferenceWithType(record.getId(), RelationshipReader.TAG_OBJECT));
 
 		loadReferenceIfPresent(PanelKey.PLACE_RELATIONSHIP_ON_SUBJECT, elp -> elp.loadReferenceWithType(record.getId(), PlaceRelationshipHandler.TAG_SUBJECT));
 		loadReferenceIfPresent(PanelKey.PLACE_RELATIONSHIP_ON_OBJECT, elp -> elp.loadReferenceWithType(record.getId(), PlaceRelationshipHandler.TAG_OBJECT));
