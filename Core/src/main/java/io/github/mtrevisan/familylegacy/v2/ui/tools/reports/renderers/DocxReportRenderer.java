@@ -328,7 +328,7 @@ public final class DocxReportRenderer implements ReportRenderer{
 
 	private static void writeImage(final XWPFDocument d, final ReportSection.Image img){
 		final Path file = img.file();
-		try(InputStream is = Files.newInputStream(file)){
+		try(final InputStream is = Files.newInputStream(file)){
 			final int[] size = scaledImageSize(file, IMAGE_MAX_PT, IMAGE_MAX_PT);
 			final PictureType pictureType = pictureTypeFor(file);
 
@@ -368,7 +368,7 @@ public final class DocxReportRenderer implements ReportRenderer{
 	 * the box size when the image cannot be decoded.
 	 */
 	private static int[] scaledImageSize(final Path file, final int maxW, final int maxH){
-		try(InputStream is = Files.newInputStream(file)){
+		try(final InputStream is = Files.newInputStream(file)){
 			final BufferedImage img = ImageIO.read(is);
 			if(img == null)
 				return new int[]{maxW, maxH};

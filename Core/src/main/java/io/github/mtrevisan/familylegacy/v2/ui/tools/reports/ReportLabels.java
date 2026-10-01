@@ -319,10 +319,11 @@ public final class ReportLabels{
 
 			final String bundleName = toBundleName(baseName, locale);
 			final String resourceName = toResourceName(bundleName, "properties");
-			try(InputStream is = loader.getResourceAsStream(resourceName)){
+			try(final InputStream is = loader.getResourceAsStream(resourceName)){
 				if(is == null)
 					return null;
-				try(Reader reader = new InputStreamReader(is, StandardCharsets.UTF_8)){
+
+				try(final Reader reader = new InputStreamReader(is, StandardCharsets.UTF_8)){
 					return new PropertyResourceBundle(reader);
 				}
 			}

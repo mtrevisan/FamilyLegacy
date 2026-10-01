@@ -142,7 +142,8 @@ public final class AppPreferences{
 	private void load(){
 		if(!Files.exists(CONFIG_FILE))
 			return;
-		try(InputStream in = Files.newInputStream(CONFIG_FILE)){
+
+		try(final InputStream in = Files.newInputStream(CONFIG_FILE)){
 			properties.load(in);
 		}
 		catch(final IOException ignored){

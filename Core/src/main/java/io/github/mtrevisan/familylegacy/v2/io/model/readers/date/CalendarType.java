@@ -25,10 +25,6 @@
 package io.github.mtrevisan.familylegacy.v2.io.model.readers.date;
 
 
-import io.github.mtrevisan.familylegacy.v2.services.AstronomicalEngine;
-import io.github.mtrevisan.familylegacy.v2.services.AstronomicalEngineFactory;
-
-
 /**
  * Supported calendar systems and their conversion algorithms to Julian Day Number (JDN).
  */
@@ -159,43 +155,17 @@ public enum CalendarType{
 		}
 	},
 	CHINESE("chinese"){
+		/**
+		 * Chinese Lunisolar Calendar.
+		 * Uses Sunset astronomical engine for precise solar longitude (Zhongqi)
+		 * and lunar conjunctions at Beijing mean time (UTC+8).
+		 */
 		@Override
 		public long toJdn(final int year, final int month, final int day){
-			throw new UnsupportedOperationException("Chinese calendar requires astronomical calculation of lunar new moons and solar terms.");
+			final double jdB = ChineseCalendarConverter.toJdn(year, month, day);
+			return Math.round(jdB);
 		}
 	},
-//	CHINESE2("chinese"){
-//		/**
-//		 * Chinese Lunisolar Calendar.
-//		 * Uses Sunset astronomical engine for precise solar longitude (Zhongqi)
-//		 * and lunar conjunctions at Beijing mean time (UTC+8).
-//		 */
-//		@Override
-//		public long toJdn(final int year, final int month, final int day){
-//			final AstronomicalEngine engine = AstronomicalEngineFactory.getEngine();
-//			if(!engine.isAvailable())
-//				throw new UnsupportedOperationException("Chinese calendar requires the optional Sunset astronomical plugin JAR in classpath.");
-//
-//			// 1. Estimate Gregorian reference year corresponding to the Chinese year
-//			final int approxGregorianYear = year;
-//
-//			// 2. Find Winter Solstice of previous Gregorian year using Sunset astronomical engine
-//			final double winterSolsticeJdn = engine.getSolarLongitudeJdn(approxGregorianYear - 1, 270., 8.);
-//
-//			// 3. Find the New Moon following the Winter Solstice (1st month / Chinese New Year sequence)
-//			final double newYearNewMoonJdn = engine.getNextNewMoonJdn(winterSolsticeJdn, 8.);
-//
-//			// 4. Advance through lunar months to locate target month and check for leap month inserts
-//			long currentMonthStartJdn = Math.round(newYearNewMoonJdn);
-//			for(int m = 1; m < month; m++){
-//				final double nextNewMoon = engine.getNextNewMoonJdn(currentMonthStartJdn + 1., 8.);
-//				currentMonthStartJdn = Math.round(nextNewMoon);
-//			}
-//
-//			// Add day offset
-//			return currentMonthStartJdn + (day - 1);
-//		}
-//	},
 	INDIAN("indian"){
 		/**
 		 * Indian National Calendar (Saka).
@@ -215,9 +185,12 @@ public enum CalendarType{
 			int elapsedDays = 0;
 			for(int m = 1; m < month; m ++)
 				elapsedDays += switch(m){
-					case 1 -> (isLeap ? 31 : 30); // Chaitra
-					case 2, 3, 4, 5, 6 -> 31;     // Vaishakha to Bhadra
-					case 7, 8, 9, 10, 11, 12 -> 30; // Ashvina to Phalguna
+					// Chaitra
+					case 1 -> (isLeap ? 31 : 30);
+					// Vaishakha to Bhadra
+					case 2, 3, 4, 5, 6 -> 31;
+					// Ashvina to Phalguna
+					case 7, 8, 9, 10, 11, 12 -> 30;
 					default -> 30;
 				};
 

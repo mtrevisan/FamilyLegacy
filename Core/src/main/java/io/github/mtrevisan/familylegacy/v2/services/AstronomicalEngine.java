@@ -34,11 +34,21 @@ public interface AstronomicalEngine{
 
 	/**
 	 * Computes the JDN of the next new moon after a reference JDN.
+	 *
+	 * @param approxJdn approximate JDN (UT) from which the search starts
+	 * @param utcOffset the UTC offset in hours at the target location
+	 * @return JDN of the next new moon, rounded to the local day
 	 */
 	long getNextNewMoonJdn(final double approxJdn, final double utcOffset);
 
 	/**
-	 * Computes the JDN of a target solar longitude.
+	 * Computes the JDN at which the Sun's apparent longitude reaches a
+	 * target value within the given year.
+	 *
+	 * @param year          Gregorian year
+	 * @param targetLongitude target apparent solar longitude [deg]
+	 * @param utcOffset     UTC offset in hours at the target location
+	 * @return JDN of the solar term, in the local timezone
 	 */
 	double getSolarLongitudeJdn(final int year, final double targetLongitude, final double utcOffset);
 
