@@ -24,6 +24,8 @@
 
 		<!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-shade-plugin -->
 		<maven-shade-plugin.version>3.6.2</maven-shade-plugin.version>
+		<!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-antrun-plugin -->
+		<maven-antrun-plugin.version>3.2.0</maven-antrun-plugin.version>
 	</properties>
 
 	<build>
@@ -39,26 +41,127 @@
 							<goal>shade</goal>
 						</goals>
 						<configuration>
-							<outputFile>${project.parent.basedir}/plugins/ephemeris-plugin.jar</outputFile>
+							<outputFile>${project.build.directory}/ephemeris-shaded.jar</outputFile>
+							<minimizeJar>true</minimizeJar>
+							<shadedArtifactAttached>true</shadedArtifactAttached>
+							<shadedClassifierName>shaded</shadedClassifierName>
+							<createDependencyReducedPom>false</createDependencyReducedPom>
+
+							<!-- Exclude Core artifact from the shaded plugin JAR -->
+							<artifactSet>
+								<excludes>
+									<exclude>io.github.mtrevisan:Core</exclude>
+								</excludes>
+							</artifactSet>
+
+							<!-- Relocate Apache Commons package to avoid JPMS split package conflicts -->
+							<relocations>
+								<relocation>
+									<pattern>org.apache.commons.lang3</pattern>
+									<shadedPattern>io.github.mtrevisan.ephemeris.internal.lang3</shadedPattern>
+								</relocation>
+							</relocations>
+
+							<!-- Force overriding parent transformers configuration -->
+							<transformers combine.self="override">
+								<transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+								<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+									<manifestEntries>
+										<X-Compile-Source-JDK>${maven.compiler.source}</X-Compile-Source-JDK>
+										<X-Compile-Target-JDK>${maven.compiler.target}</X-Compile-Target-JDK>
+										<Built-By>Mauro Trevisan</Built-By>
+										<Build-Jdk>${java.version} (${java.vendor} ${java.vm.version})</Build-Jdk>
+										<Build-OS>${os.name} ${os.arch} ${os.version}</Build-OS>
+									</manifestEntries>
+								</transformer>
+							</transformers>
+
+							<filters>
+								<filter>
+									<artifact>org.apache.commons:commons-lang3</artifact>
+									<includes>
+										<include>org/apache/commons/lang3/StringUtils*.class</include>
+										<include>org/apache/commons/lang3/ArrayUtils*.class</include>
+										<include>org/apache/commons/lang3/CharUtils*.class</include>
+									</includes>
+								</filter>
+								<filter>
+									<artifact>*:*</artifact>
+									<excludes>
+										<exclude>META-INF/*.SF</exclude>
+										<exclude>META-INF/*.DSA</exclude>
+										<exclude>META-INF/*.RSA</exclude>
+									</excludes>
+								</filter>
+							</filters>
 						</configuration>
 					</execution>
 				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<version>${maven-antrun-plugin.version}</version>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>run</goal>
+						</goals>
+						<configuration>
+							<target>
+								<mkdir dir="${project.basedir}/../Core/plugins"/>
+
+								<!-- Inject module-info.class into shaded JAR -->
+								<jar destfile="${project.build.directory}/ephemeris-shaded.jar" update="true">
+									<fileset dir="${project.build.directory}/classes" includes="module-info.class"/>
+								</jar>
+
+								<!-- Copy updated JAR to target plugins directory -->
+								<copy file="${project.build.directory}/ephemeris-shaded.jar"
+										tofile="${project.basedir}/../Core/plugins/ephemeris.jar"
+										overwrite="true"/>
+							</target>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>3.6.0</version>
+				<configuration>
+					<argLine>
+						--add-reads io.github.mtrevisan.ephemeris=org.junit.jupiter.api
+						--add-opens io.github.mtrevisan.ephemeris/io.github.mtrevisan.ephemeris.engine=org.junit.platform.commons
+						--add-opens io.github.mtrevisan.ephemeris/io.github.mtrevisan.ephemeris.helpers=org.junit.platform.commons
+					</argLine>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>
 
 	<dependencies>
-		<!-- Depend on Core module to access AstronomicalEngine interface -->
+		<!-- Depend on Core module only at compile-time (provided by Host application) -->
 		<dependency>
 			<groupId>io.github.mtrevisan</groupId>
 			<artifactId>Core</artifactId>
 			<version>${project.version}</version>
+			<scope>provided</scope>
 		</dependency>
 
 		<!-- Apache -->
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-lang3</artifactId>
+		</dependency>
+
+		<!-- JUnit -->
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter</artifactId>
+			<scope>test</scope>
 		</dependency>
 	</dependencies>
 </project>

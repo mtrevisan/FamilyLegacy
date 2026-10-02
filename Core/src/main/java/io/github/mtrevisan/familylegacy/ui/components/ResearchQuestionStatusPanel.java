@@ -1,0 +1,161 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+package io.github.mtrevisan.familylegacy.ui.components;
+
+import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.readers.ResearchQuestionReader;
+import io.github.mtrevisan.familylegacy.ui.bindings.BindingManager;
+import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
+import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextField;
+import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
+import net.miginfocom.swing.MigLayout;
+
+import javax.swing.JPanel;
+
+
+/**
+ * Panel that manages the status and closure of a ResearchQuestionRecord.
+ * Provides visual indicators, status combo, and close/reopen buttons (mutually exclusive).
+ */
+public class ResearchQuestionStatusPanel extends JPanel{
+
+	private final BindingManager bindingManager = new BindingManager();
+
+	private final BoundComboBox<String> statusCombo;
+	private final StatusIconLabel statusIcon;
+//	private final CardLayout buttonCardLayout;
+//	private final JPanel buttonCardPanel;
+	private final BoundTextField closedDate;
+
+
+	public ResearchQuestionStatusPanel(){
+		// Status icon
+		statusIcon = new StatusIconLabel();
+
+		// Status combo
+		statusCombo = new BoundComboBox<>(ResearchQuestionReader.TAG_STATUS, ResearchQuestionReader.STATUSES);
+		statusCombo.setI18NPrefix("enum.research.question.status");
+		statusCombo.setSelectedItem(ResearchQuestionReader.ENUM_STATUS_OPEN);
+
+		// Button card panel with Close and Reopen buttons (same position)
+//		buttonCardLayout = new CardLayout();
+//		buttonCardPanel = new JPanel(buttonCardLayout);
+
+//		final JButton closeButton = new JButton(I18N.t("button.close"));
+//		closeButton.setToolTipText("Mark as resolved and set closed date");
+//		closeButton.addActionListener(e -> closeQuestion());
+
+//		final JButton reopenButton = new JButton("Reopen");
+//		reopenButton.setToolTipText("Reopen the question and clear closed date");
+//		reopenButton.addActionListener(e -> reopenQuestion());
+
+//		buttonCardPanel.add(closeButton, "close");
+//		buttonCardPanel.add(reopenButton, "reopen");
+
+		closedDate = new BoundTextField(ResearchQuestionReader.TAG_CLOSED_DATE);
+		closedDate.setEnabled(false);
+
+
+		initComponents();
+
+		updateUIState();
+	}
+
+
+	private void initComponents(){
+		bindingManager.bind(statusCombo);
+		bindingManager.bind(closedDate);
+
+
+		setLayout(new MigLayout("ins 0,fillx", "[shrink 0][grow][shrink 0]", "[]"));
+
+		add(statusIcon, "width 16!,height 16!,gapx 5");
+		add(statusCombo, "growx,width 120!");
+//		add(buttonCardPanel, "gapx 5");
+
+
+		statusCombo.addActionListener(e -> updateUIState());
+	}
+
+	private void updateUIState(){
+		String status = (String)statusCombo.getSelectedItem();
+		if(status == null){
+			status = ResearchQuestionReader.ENUM_STATUS_OPEN;
+			statusCombo.setSelectedItem(status);
+		}
+
+		// Update icon
+		statusIcon.setStatus(status);
+		statusIcon.repaint();
+
+		// Update tooltip
+		final String tooltip = switch(status){
+			case ResearchQuestionReader.ENUM_STATUS_OPEN -> I18N.t("dialog.research.question.status.open");
+			case ResearchQuestionReader.ENUM_STATUS_ON_HOLD -> I18N.t("dialog.research.question.status.on.hold");
+			case ResearchQuestionReader.ENUM_STATUS_RESOLVED -> I18N.tf("dialog.research.question.status.resolved.on", !closedDate.isEmpty(), closedDate.getText());
+			case ResearchQuestionReader.ENUM_STATUS_DISPROVEN -> I18N.tf("dialog.research.question.status.disproven.on", !closedDate.isEmpty(), closedDate.getText());
+			default -> I18N.t("dialog.research.question.status.unknown");
+		};
+		statusIcon.setToolTipText(tooltip);
+
+		// Show the appropriate button (Close or Reopen)
+//		buttonCardLayout.show(buttonCardPanel, (isClosed? "reopen": "close"));
+	}
+
+//	private void closeQuestion(){
+//		final String status = (String)statusCombo.getSelectedItem();
+//		if(STATUS_OPEN.equals(status) || STATUS_ON_HOLD.equals(status)){
+//			statusCombo.setSelectedItem(STATUS_RESOLVED);
+//			closedDate.setText(DateTimeFormatter.ISO_INSTANT.format(Instant.now()));
+//
+//			updateUIState();
+//		}
+//	}
+
+//	private void reopenQuestion(){
+//		final String status = (String)statusCombo.getSelectedItem();
+//		if(STATUS_RESOLVED.equals(status) || STATUS_DISPROVEN.equals(status)){
+//			statusCombo.setSelectedItem(STATUS_OPEN);
+//			closedDate.setText(null);
+//
+//			updateUIState();
+//		}
+//	}
+
+	public void load(final FLEFRecord record){
+		bindingManager.load(record);
+
+		if(record == null || record.isEmpty())
+			return;
+
+		if(!statusCombo.isEnabled())
+			statusCombo.setSelectedItem(ResearchQuestionReader.ENUM_STATUS_OPEN);
+	}
+
+	public void save(final FLEFRecord record){
+		bindingManager.save(record);
+	}
+
+}

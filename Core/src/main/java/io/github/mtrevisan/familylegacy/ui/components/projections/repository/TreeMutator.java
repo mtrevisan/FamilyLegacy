@@ -1,0 +1,229 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+package io.github.mtrevisan.familylegacy.ui.components.projections.repository;
+
+import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
+import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualData;
+import io.github.mtrevisan.familylegacy.ui.components.projections.siblings.SiblingsData;
+import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.RelationshipHandler;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.function.Predicate;
+
+
+/**
+ * Handles structural modifications to the biological tree with targeted delta updates
+ * on the shared GenealogyRepository.
+ */
+public class TreeMutator extends AbstractProjectionMutator{
+
+	private final Predicate<String> relationshipTypeFilter;
+	private final TreeService treeService;
+
+
+	public TreeMutator(final TreeService treeService, final TreeChangeListener listener, final FLEFModel model){
+		super(model, listener);
+
+		this.treeService = Objects.requireNonNull(treeService, "Tree service cannot be null");
+		this.relationshipTypeFilter = treeService.getRelationshipTypeFilter();
+	}
+
+
+	public void navigateToRoot(final String newRootIndividualId){
+		if(StringUtils.isEmpty(newRootIndividualId))
+			return;
+
+		if(!model.hasRecord(newRootIndividualId))
+			return;
+
+		notifyTreeChanged(newRootIndividualId);
+	}
+
+	public void addChildToParents(final String fatherId, final String motherId, final FLEFRecord newChild,
+			final String fatherRelationshipType, final String motherRelationshipType){
+		if(newChild == null)
+			return;
+
+		if(fatherId != null && fatherRelationshipType != null)
+			createRelationship(newChild.getId(), fatherId, fatherRelationshipType);
+
+		if(motherId != null && motherRelationshipType != null)
+			createRelationship(newChild.getId(), motherId, motherRelationshipType);
+	}
+
+	public void addParentToChild(final List<String> childrenId, final FLEFRecord newParent,
+			final List<String> relationshipTypes){
+		if(newParent == null || childrenId == null || childrenId.isEmpty())
+			return;
+
+		if(relationshipTypes == null || relationshipTypes.size() != childrenId.size())
+			throw new IllegalArgumentException("relationshipTypes must match childrenId size");
+
+		final String parentSex = IndividualReader.extractRawSex(newParent);
+		if(parentSex != null){
+			final List<FLEFRecord> toRemove = new ArrayList<>();
+			final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
+			for(final FLEFRecord relationship : relationships){
+				final String type = RelationshipReader.extractType(relationship);
+				if(!relationshipTypeFilter.test(type))
+					continue;
+
+				final String subjectId = relationship.extractReferencedId(RelationshipReader.TAG_SUBJECT, IndividualHandler.TYPE);
+				if(!childrenId.contains(subjectId))
+					continue;
+
+				final String objectId = relationship.extractReferencedId(RelationshipReader.TAG_OBJECT, IndividualHandler.TYPE);
+				if(objectId == null)
+					continue;
+
+				final FLEFRecord existingParent = model.getRecordById(objectId);
+				if(existingParent == null)
+					continue;
+
+				final String existingParentSex = IndividualReader.extractRawSex(existingParent);
+				if(parentSex.equals(existingParentSex))
+					toRemove.add(relationship);
+			}
+
+			for(final FLEFRecord relationship : toRemove){
+				model.removeRecord(relationship.getId());
+				treeService.getRepository().notifyRelationshipRemoved(relationship.getId());
+			}
+		}
+
+		for(int i = 0, size = childrenId.size(); i < size; i ++){
+			final String childId = childrenId.get(i);
+			final String relationshipType = relationshipTypes.get(i);
+			createRelationship(childId, newParent.getId(), relationshipType);
+		}
+	}
+
+	public String removeIndividual(final FLEFRecord individual, final String currentRootId){
+		final String targetId = (individual != null? individual.getId(): null);
+		final String newRootId = (targetId != null? getFallbackFocusId(targetId, currentRootId): currentRootId);
+
+		removeEntity(individual, currentRootId);
+
+		return newRootId;
+	}
+
+	@Override
+	protected void onRelationshipAdded(final String subjectId, final String targetId, final String relationshipId){
+		// Targeted Delta-Update in Repository
+		treeService.getRepository().notifyRelationshipAdded(subjectId, targetId, relationshipId);
+	}
+
+	@Override
+	protected void onRelationshipRemoved(final String relationshipId){
+		treeService.getRepository().notifyRelationshipRemoved(relationshipId);
+	}
+
+	@Override
+	protected void onEntityRemoved(final String entityId){
+		treeService.getRepository().invalidateIndividual(entityId);
+	}
+
+	@Override
+	protected String getFallbackFocusId(final String targetId, final String currentRootId){
+		String newRootId = currentRootId;
+		if(targetId.equals(currentRootId)){
+			newRootId = findFallbackRoot(targetId);
+			if(newRootId == null){
+				final Map<IndividualData, SiblingsData> childrenData = treeService.buildChildrenData(targetId);
+				if(!childrenData.isEmpty()){
+					final SiblingsData siblings = childrenData.values().iterator().next();
+					if(!siblings.getSiblings().isEmpty())
+						newRootId = siblings.getSiblings().getFirst().getId();
+				}
+			}
+		}
+		return newRootId;
+	}
+
+	private String findFallbackRoot(final String individualId){
+		final String parent = findParent(individualId);
+		return (parent != null? parent: findChild(individualId));
+	}
+
+	private String findParent(final String individualId){
+		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
+		for(final FLEFRecord relationship : relationships){
+			final String type = RelationshipReader.extractType(relationship);
+			if(type == null || !relationshipTypeFilter.test(type))
+				continue;
+
+			final String subjectId = relationship.extractReferencedId(RelationshipReader.TAG_SUBJECT, IndividualHandler.TYPE);
+			if(!individualId.equals(subjectId))
+				continue;
+
+			final String parentId = relationship.extractReferencedId(RelationshipReader.TAG_OBJECT, IndividualHandler.TYPE);
+			if(parentId != null && model.hasRecord(parentId))
+				return parentId;
+		}
+		return null;
+	}
+
+	private String findChild(final String individualId){
+		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
+		for(final FLEFRecord relationship : relationships){
+			final String type = RelationshipReader.extractType(relationship);
+			if(type == null || !relationshipTypeFilter.test(type))
+				continue;
+
+			final String objectId = relationship.extractReferencedId(RelationshipReader.TAG_OBJECT, IndividualHandler.TYPE);
+			if(!individualId.equals(objectId))
+				continue;
+
+			final String childId = relationship.extractReferencedId(RelationshipReader.TAG_SUBJECT, IndividualHandler.TYPE);
+			if(childId != null && model.hasRecord(childId))
+				return childId;
+		}
+		return null;
+	}
+
+	@Override
+	protected void invalidateCaches(){
+		treeService.getRepository()
+			.invalidateIndices();
+		treeService.invalidateIndices();
+	}
+
+	@Override
+	public void invalidateAndNotifyTreeChanged(final String rootIndividualId){
+		invalidateCaches();
+
+		if(listener != null)
+			listener.onTreeStructureChanged(rootIndividualId);
+	}
+
+}

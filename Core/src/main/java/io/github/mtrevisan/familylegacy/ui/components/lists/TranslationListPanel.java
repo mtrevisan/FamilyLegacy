@@ -1,0 +1,195 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+package io.github.mtrevisan.familylegacy.ui.components.lists;
+
+import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.readers.NoteReader;
+import io.github.mtrevisan.familylegacy.ui.bindings.BindingsHelper;
+import io.github.mtrevisan.familylegacy.ui.bindings.BoundFilteredComboBox;
+import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextArea;
+import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.ui.helpers.LocaleHelper;
+import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
+import org.apache.commons.lang3.StringUtils;
+
+import javax.swing.JDialog;
+import javax.swing.JPanel;
+import java.awt.BorderLayout;
+import java.awt.Dialog;
+import java.awt.Window;
+import java.util.ArrayList;
+import java.util.List;
+
+
+/**
+ * Panel for managing a list of translations with value and locale.
+ */
+public class TranslationListPanel extends AbstractListPanel<FLEFRecord>{
+
+	private final String path;
+
+
+	public TranslationListPanel(final String path, final Window parent, final String panelTitle){
+		super(parent, panelTitle, null);
+
+		this.path = path;
+
+
+		initComponents();
+	}
+
+
+	@Override
+	protected void initComponents(){
+		super.initComponents();
+
+		BindingsHelper.installBehavior(list,
+			this::editItem, null,
+			this::createNewItem, this::removeItem,
+			builder -> {
+				builder.item(I18N.t("popupmenu.create.new"), this::createNewItem);
+				builder.separator();
+				builder.selectionSensitiveItem(I18N.t("popupmenu.edit"), this::editItem);
+				builder.selectionSensitiveItem(I18N.t("popupmenu.remove"), this::removeItem);
+			}
+		);
+	}
+
+	@Override
+	protected String getDisplayText(final FLEFRecord record){
+		final String text = NoteReader.extractText(record);
+		final String locale = NoteReader.extractLocale(record);
+
+		final StringBuilder sb = new StringBuilder();
+		if(StringUtils.isNotEmpty(locale))
+			sb.append('[')
+				.append(locale)
+				.append("] ");
+		if(StringUtils.isNotEmpty(text))
+			sb.append(GUIHelper.limitTextLength(StringUtils.replaceChars(text, '\n', '|')));
+		return sb.toString();
+	}
+
+	@Override
+	protected FLEFRecord showAddDialog(){
+		throw new UnsupportedOperationException("Not supported.");
+	}
+
+	@Override
+	protected FLEFRecord showCreateNewDialog(){
+		return showTranslationDialog(null);
+	}
+
+	@Override
+	protected FLEFRecord showEditDialog(final FLEFRecord record){
+		return showTranslationDialog(record);
+	}
+
+	private FLEFRecord showTranslationDialog(final FLEFRecord record){
+		final String text = NoteReader.extractText(record);
+		final String locale = NoteReader.extractLocale(record);
+
+
+		final JDialog dialog = new JDialog(parent, I18N.t(record == null? "dialog.note.translation.add": "dialog.note.translation.edit"), Dialog.ModalityType.APPLICATION_MODAL);
+		dialog.setLayout(GUIHelper.createLabelFieldLayout(10, "[]10[]"));
+
+		final BoundTextArea textArea = new BoundTextArea(NoteReader.TAG_TEXT, 3, 25);
+		if(record != null)
+			textArea.setText(text);
+		GUIHelper.addLabeledComponent(dialog, I18N.t("dialog.note.text") + "*:", textArea);
+
+		final BoundFilteredComboBox<String> localeCombo = new BoundFilteredComboBox<>(NoteReader.TAG_LOCALE, LocaleHelper.getAvailableLanguageTags());
+		localeCombo.setEditable(true);
+		if(record != null && StringUtils.isNotEmpty(locale))
+			localeCombo.setSelectedItem(locale);
+		GUIHelper.addLabeledComponent(dialog, I18N.t("dialog.note.locale") + ":", localeCombo);
+
+
+		final FLEFRecord[] result = {record};
+		final JPanel buttonPanel = GUIHelper.createButtonPanel(dialog,
+			() -> {
+				if(!validTranslationData(textArea))
+					return;
+
+				final String txt = textArea.getText();
+				if(record == null){
+					final FLEFRecord res = FLEFRecord.createEmpty();
+					res.addChild(FLEFRecord.createChildWithTagAndValue(NoteReader.TAG_TEXT, txt));
+					res.addChild(FLEFRecord.createChildWithTagAndValue(NoteReader.TAG_LOCALE, (String)localeCombo.getSelectedItem()));
+					result[0] = res;
+				}
+				else
+					FLEFRecordHelper.updateChildValue(record, NoteReader.TAG_TEXT, txt);
+
+				dialog.dispose();
+			},
+			dialog::dispose);
+		dialog.add(buttonPanel, BorderLayout.SOUTH);
+
+		dialog.pack();
+		dialog.setLocationRelativeTo(parent);
+		dialog.setVisible(true);
+
+		return result[0];
+	}
+
+	private boolean validTranslationData(final BoundTextArea valueArea){
+		if(StringUtils.isEmpty(valueArea.getText().trim())){
+			GUIHelper.showValidationErrorAndFocus(this,
+				I18N.tf("validation.required", I18N.t("dialog.note.translations")),
+				null, null, valueArea);
+
+			return false;
+		}
+
+		return true;
+	}
+
+	public void load(final FLEFRecord record){
+		clear();
+
+		if(record == null || record.isEmpty())
+			return;
+
+		final List<FLEFRecord> translations = new ArrayList<>();
+		for(final FLEFRecord child : FLEFRecordHelper.findChildren(record, path)){
+			final String translationText = NoteReader.extractText(child);
+			final String translationLocale = NoteReader.extractLocale(child);
+			if(StringUtils.isNotEmpty(translationText)){
+				final FLEFRecord res = FLEFRecord.createEmpty();
+				res.addChild(FLEFRecord.createChildWithTagAndValue(NoteReader.TAG_TEXT, translationText));
+				res.addChild(FLEFRecord.createChildWithTagAndValue(NoteReader.TAG_LOCALE, translationLocale));
+				translations.add(res);
+			}
+		}
+		setItems(translations);
+	}
+
+	public void save(final FLEFRecord record){
+		super.save(record, path);
+	}
+
+}

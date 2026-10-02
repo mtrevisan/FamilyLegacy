@@ -1,0 +1,649 @@
+/**
+ * Copyright (c) 2020-2022 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+package io.github.mtrevisan.familylegacy.ui.components.projections.individual;
+
+import io.github.mtrevisan.familylegacy.io.FLEFParser;
+import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.ui.components.MultiLineLabel;
+import io.github.mtrevisan.familylegacy.ui.components.projections.BoxPanelType;
+import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.ui.helpers.PopupMouseAdapter;
+import io.github.mtrevisan.familylegacy.ui.tools.ToolContext;
+import io.github.mtrevisan.familylegacy.ui.tools.ToolContexts;
+import io.github.mtrevisan.familylegacy.ui.tools.individuals.EditIndividualTool;
+import net.miginfocom.swing.MigLayout;
+
+import javax.swing.BorderFactory;
+import javax.swing.JComponent;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+import java.awt.BasicStroke;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.GradientPaint;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Paint;
+import java.awt.Point;
+import java.awt.RenderingHints;
+import java.awt.Stroke;
+import java.awt.event.MouseEvent;
+import java.awt.font.TextAttribute;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.Map;
+import java.util.Objects;
+
+
+/**
+ * A panel that displays an individual's information (name, birth/death, photo) in a genealogical box.
+ */
+public class IndividualPanel extends JPanel{
+
+	// Colors
+	private static final Color BACKGROUND_COLOR_NO_ENTITY = Color.WHITE;
+	private static final Color BACKGROUND_COLOR_FADE_TO = Color.WHITE;
+	private static final Color BACKGROUND_COLOR = new Color(221, 221, 221);
+	private static final Color BORDER_COLOR = new Color(165, 165, 165);
+	private static final Color BORDER_COLOR_SELECTED = new Color(220, 100, 60);
+	private static final Color BORDER_COLOR_SHADOW = new Color(131, 131, 131, 130);
+	private static final Color BORDER_COLOR_SHADOW_SELECTED = Color.BLACK;
+	private static final Color BIRTH_DEATH_AGE_COLOR = new Color(110, 110, 110);
+	private static final Color IMAGE_LABEL_BORDER_COLOR = Color.WHITE;
+	private static final Color PEDIGREE_CIRCLE_INNER_COLOR = new Color(200, 55, 55, 240);
+	private static final Color PEDIGREE_CIRCLE_OUTER_COLOR = Color.WHITE;
+
+	private static final float BORDER_THICKNESS_NORMAL = 1f;
+	private static final float BORDER_THICKNESS_HOVERED = 1.8f;
+	private static final float BORDER_THICKNESS_SELECTED = 2.5f;
+
+	// Dimensions
+	private static final Dimension ARCS = new Dimension(10, 10);
+	private static final int PREFERRED_IMAGE_WIDTH = 48;
+	private static final double IMAGE_ASPECT_RATIO = 4. / 3.;
+
+	public static final Dimension BOX_DIMENSION_PRIMARY = new Dimension(270, 90);
+	public static final Dimension BOX_DIMENSION_SECONDARY = new Dimension(130, 66);
+
+	/** Diameter of the collapse badge, in pixels. */
+	private static final int BADGE_DIAMETER_PRIMARY = 20;
+	private static final int BADGE_DIAMETER_SECONDARY = 16;
+
+	private static final int NAME_IMAGE_GAP = 5;
+
+	// Fonts
+	private static final Font FONT_PRIMARY = new Font("Tahoma", Font.BOLD, 15);
+	private static final Font FONT_SECONDARY = new Font("Tahoma", Font.PLAIN, 12);
+	private static final float INFO_FONT_SIZE_FACTOR = 0.8f;
+
+
+	// UI components
+	private final MultiLineLabel nameLabel = new MultiLineLabel(2);
+	private final JLabel infoLabel = new JLabel();
+	private final JLabel imageLabel = new JLabel();
+
+
+	// State
+	private FLEFRecord father;
+	private FLEFRecord mother;
+	private boolean enableAddChildMenu;
+	private final BoxPanelType boxType;
+
+	private final FLEFModel model;
+
+	private IndividualData data;
+
+	private String preferredImageKey;
+
+	/** {@code true} while the mouse is over this panel or one of its children. */
+	private boolean hovered;
+	/** {@code true} when this panel is the current selection in its view. */
+	private boolean selected;
+
+	/** {@code true} when the collapse badge should be hidden regardless of count (e.g., in Sugiyama layout). */
+	private boolean suppressCollapseBadge;
+	/** Red badge displayed on panels whose individual appears multiple times. */
+	private final CollapseBadge collapseBadge = new CollapseBadge();
+
+	// Strategy pattern for popup menu generation
+	private EntityPopupMenuFactory<IndividualPanel, IndividualListener> popupMenuFactory;
+
+	private IndividualListener listener;
+
+
+	public static IndividualPanel create(final BoxPanelType boxType, final FLEFModel model){
+		return new IndividualPanel(boxType, model);
+	}
+
+	public static IndividualPanel createEmpty(final BoxPanelType boxType){
+		return new IndividualPanel(boxType, null);
+	}
+
+
+	private IndividualPanel(final BoxPanelType boxType, final FLEFModel model){
+		enableAddChildMenu = true;
+		this.boxType = boxType;
+
+		this.model = model;
+
+		if(model != null){
+			initComponents();
+
+			installMouseListeners();
+		}
+		else
+			setBoxPreferredSize();
+	}
+
+
+	private void initComponents(){
+		infoLabel.setForeground(BIRTH_DEATH_AGE_COLOR);
+
+		imageLabel.setBorder(BorderFactory.createLineBorder(IMAGE_LABEL_BORDER_COLOR));
+		final double shrinkFactor = (isPrimaryBox()? 1.: 2.);
+		setPreferredSize(imageLabel, PREFERRED_IMAGE_WIDTH, IMAGE_ASPECT_RATIO, shrinkFactor);
+
+		setBoxPreferredSize();
+
+		final int badgeWidth = (isPrimaryBox()? BADGE_DIAMETER_PRIMARY: BADGE_DIAMETER_SECONDARY);
+		setLayout(new MigLayout("ins 7,gapx 5",
+			"[grow,fill][grow 0,shrink 0]",
+			"[]0[]10[]"));
+
+		final int imageWidth = (int)(PREFERRED_IMAGE_WIDTH / shrinkFactor);
+		final int reservedRight = imageWidth + badgeWidth + 5;
+		add(nameLabel, "cell 0 0,top,growx,width ::100%-" + reservedRight + ",hidemode 3");
+		add(imageLabel, (isPrimaryBox()? "cell 1 0 1 3,top": "cell 1 0,top"));
+		add(infoLabel, (isPrimaryBox()? "cell 0 2,growx": "cell 0 2 2 1,growx"));
+		add(collapseBadge, "pos 0 0 0 0");
+
+		// Force the badge to the top of the Z-order, so that it receives
+		// mouse events even when its bounds overlap the info label. MigLayout
+		// can reorder children during layout, so the Z-order is reasserted
+		// here after every add.
+		setComponentZOrder(collapseBadge, 0);
+
+		setOpaque(false);
+	}
+
+	/**
+	 * Places the collapse badge at the bottom-right corner of the panel.
+	 * <p>
+	 * The badge is not managed by MigLayout: its bounds are assigned here,
+	 * after the rest of the layout has run. This keeps the badge entirely
+	 * independent from the grid, so toggling its visibility or changing its
+	 * preferred size never affects the surrounding layout.
+	 */
+	@Override
+	public void doLayout(){
+		super.doLayout();
+
+		if(!suppressCollapseBadge && collapseBadge.isVisible()){
+			final int d = collapseBadge.getPreferredSize()
+				.width;
+			final int margin = 3;
+			collapseBadge.setBounds(
+				getWidth() - d - margin,
+				getHeight() - d - margin,
+				d, d);
+
+			// Reassert the Z-order after every layout pass, because the
+			// MigLayout manager can move children around. Position 0 is the
+			// top of the stacking order.
+			if(getComponentZOrder(collapseBadge) != 0)
+				setComponentZOrder(collapseBadge, 0);
+		}
+	}
+
+	@Override
+	protected final void paintComponent(final Graphics g){
+		if(model == null)
+			return;
+
+
+		if(g instanceof Graphics2D){
+			final Graphics2D g2 = (Graphics2D)g.create();
+			g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+			g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+			g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+
+			final int panelHeight = getHeight();
+			final int panelWidth = getWidth();
+
+			final Color startColor = getBackgroundColor();
+			if(data != null){
+				final Paint gradientPaint = new GradientPaint(0, 0, startColor, 0, panelHeight, BACKGROUND_COLOR_FADE_TO);
+				g2.setPaint(gradientPaint);
+			}
+			else
+				g2.setColor(startColor);
+			g2.fillRoundRect(1, 1,
+				panelWidth - 2, panelHeight - 2,
+				ARCS.width, ARCS.height);
+
+			// Border: dashed when empty, otherwise normal/hovered.
+			final Color borderColor;
+			final Stroke borderStroke;
+			if(data == null){
+				borderColor = BORDER_COLOR;
+				borderStroke = new BasicStroke(1.f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND,
+					10.f, new float[]{5.f}, 0.f);
+			}
+			else if(selected){
+				borderColor = BORDER_COLOR_SELECTED;
+				borderStroke = new BasicStroke(BORDER_THICKNESS_SELECTED);
+			}
+			else if(hovered){
+				borderColor = BORDER_COLOR;
+				borderStroke = new BasicStroke(BORDER_THICKNESS_HOVERED);
+			}
+			else{
+				borderColor = BORDER_COLOR;
+				borderStroke = new BasicStroke(BORDER_THICKNESS_NORMAL);
+			}
+			g2.setColor(borderColor);
+			g2.setStroke(borderStroke);
+			g2.drawRoundRect(1, 1,
+				panelWidth - 2, panelHeight - 2,
+				ARCS.width, ARCS.height);
+
+			//for test purposes
+//			pointTest(g2);
+
+			g2.dispose();
+		}
+	}
+
+	private void pointTest(final Graphics2D g2){
+		final Point enterPoint = getPaintingVerticalEnterPoint();
+		GUIHelper.drawX(g2, enterPoint);
+	}
+
+	private Color getBackgroundColor(){
+		return (data == null? BACKGROUND_COLOR_NO_ENTITY: BACKGROUND_COLOR);
+	}
+
+	private static void setPreferredSize(final JComponent component, final double baseWidth, final double aspectRatio,
+			final double shrinkFactor){
+		final int width = (int)Math.ceil(baseWidth / shrinkFactor);
+		final int height = (int)Math.ceil(baseWidth * aspectRatio / shrinkFactor);
+		component.setPreferredSize(new Dimension(width, height));
+	}
+
+	private boolean isPrimaryBox(){
+		return (boxType == BoxPanelType.PRIMARY);
+	}
+
+	public final Point getPaintingVerticalEnterPoint(){
+		return new Point(getWidth() / 2, 0);
+	}
+
+	public final Point getPaintingHorizontalEnterPoint(){
+		return new Point(0, getHeight() / 2);
+	}
+
+
+	public IndividualPanel withListener(final IndividualListener listener,
+			final EntityPopupMenuFactory<IndividualPanel, IndividualListener> factory){
+		this.listener = listener;
+		popupMenuFactory = factory;
+
+		attachPopupMenu();
+
+		return this;
+	}
+
+	public IndividualPanel withParent(final FLEFRecord father, final FLEFRecord mother){
+		this.father = father;
+		this.mother = mother;
+
+		return this;
+	}
+
+	public IndividualPanel withDisableAddChild(){
+		enableAddChildMenu = false;
+
+		return this;
+	}
+
+	public IndividualPanel withIndividualData(final IndividualData data){
+		this.data = data;
+
+		setBoxPreferredSize();
+
+		updateData();
+
+		return this;
+	}
+
+	/**
+	 * Configures whether the collapse badge should be suppressed and never displayed.
+	 *
+	 * @param suppress {@code true} to hide the badge regardless of occurrence count
+	 * @return this panel, for chaining
+	 */
+	public IndividualPanel withSuppressCollapseBadge(final boolean suppress){
+		this.suppressCollapseBadge = suppress;
+
+		if(suppress)
+			collapseBadge.setVisible(false);
+
+		revalidate();
+		repaint();
+
+		return this;
+	}
+
+	/**
+	 * Attaches the pedigree-collapse information to this panel.
+	 */
+	public IndividualPanel withCollapseInfo(final int count, final String tooltip){
+		if(suppressCollapseBadge)
+			collapseBadge.setVisible(false);
+		else
+			collapseBadge.update(count, tooltip);
+
+		revalidate();
+		repaint();
+
+		return this;
+	}
+
+	/**
+	 * Marks this panel as selected or not. A selected panel is drawn with a
+	 * thicker, reddish border, so that the user can identify the current
+	 * focus at a glance. The selection state is independent from the hover
+	 * state: a selected panel keeps its red border even when the cursor is
+	 * elsewhere.
+	 *
+	 * @param selected the new selection state
+	 * @return this panel, for chaining
+	 */
+	public IndividualPanel withSelected(final boolean selected){
+		if(this.selected != selected){
+			this.selected = selected;
+
+			repaint();
+		}
+
+		return this;
+	}
+
+	private void setBoxPreferredSize(){
+		final Dimension size = getDimension(boxType);
+		setPreferredSize(size);
+		setMaximumSize(size);
+	}
+
+	public static Dimension getDimension(final BoxPanelType boxType){
+		return (boxType == BoxPanelType.PRIMARY? BOX_DIMENSION_PRIMARY: BOX_DIMENSION_SECONDARY);
+	}
+
+	private void updateData(){
+		Font font = (isPrimaryBox()? FONT_PRIMARY: FONT_SECONDARY);
+		final Font infoFont = deriveInfoFont(font);
+		if(!isPrimaryBox()){
+			@SuppressWarnings("unchecked")
+			final Map<TextAttribute, Object> attributes = (Map<TextAttribute, Object>)font.getAttributes();
+			attributes.put(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_LOW_ONE_PIXEL);
+			font = font.deriveFont(attributes);
+		}
+		nameLabel.setFont(font);
+		infoLabel.setFont(infoFont);
+
+		final boolean hasData = (data != null && !data.isEmpty());
+		if(hasData){
+			nameLabel.setFormattedText(data.getNameText());
+			nameLabel.setToolTipText(data.getNameTooltip());
+
+			infoLabel.setText(data.getInfoText());
+			infoLabel.setToolTipText(data.getInfoTooltip());
+
+			// Set the default image/placeholder
+			imageLabel.setIcon(boxType == BoxPanelType.PRIMARY
+				? data.getImagePrimary()
+				: data.getImageSecondary());
+
+			// Calculate the maximum width for the text panel
+			final int boxWidth = (isPrimaryBox()? BOX_DIMENSION_PRIMARY.width: BOX_DIMENSION_SECONDARY.width);
+			// gap + insets
+			final int maxTextWidth = Math.max(10, boxWidth - imageLabel.getIcon().getIconWidth() - NAME_IMAGE_GAP - 14);
+
+			// Set the maximum width on the TwoLineLabel
+			nameLabel.setMaxWidth(maxTextWidth);
+
+			// Register the current key on the panel and start asynchronous image loading
+			preferredImageKey = data.getPreferredImageKey();
+			data.loadPreferredImageAsync((key, images) -> {
+				if(images != null && Objects.equals(preferredImageKey, key))
+					imageLabel.setIcon(boxType == BoxPanelType.PRIMARY? images[0]: images[1]);
+			});
+		}
+		else{
+			preferredImageKey = null;
+
+			nameLabel.setMaxWidth(-1);
+		}
+
+		nameLabel.setVisible(hasData);
+		infoLabel.setVisible(hasData);
+		imageLabel.setVisible(hasData);
+	}
+
+	private static Font deriveInfoFont(final Font baseFont){
+		return baseFont.deriveFont(Font.PLAIN, baseFont.getSize() * INFO_FONT_SIZE_FACTOR);
+	}
+
+	private void installMouseListeners(){
+		EntityMouseListeners.builder(this)
+			.nameLabel(boxType == BoxPanelType.SECONDARY? nameLabel: null)
+			.recordSupplier(() -> (data != null? data.getIndividual(): null))
+			.onRootSelected(id -> {
+				if(listener != null)
+					listener.onRootEntitySelected(id);
+			})
+			.onSelected(record -> {
+				if(listener != null)
+					listener.onIndividualSelected(this, record);
+			})
+			.onEdit(record -> {
+				final ToolContext context = ToolContexts.withMutatorAndEdit(model, listener, this,
+					record.getId(), id -> listener.onEntityEdit(record));
+				new EditIndividualTool()
+					.run(context);
+			})
+			.onHoverChanged(h -> {
+				if(hovered != h){
+					hovered = h;
+					repaint();
+				}
+			})
+			.build()
+			.install();
+	}
+
+	private void attachPopupMenu(){
+		if(popupMenuFactory == null)
+			return;
+
+		final JPopupMenu popup = popupMenuFactory.createPopupMenu(this, listener, model);
+
+		// Register the popup listener recursively on this panel and all
+		// child components, using the shared helper so the two classes
+		// (IndividualPanel and GroupPanel) install the recursion the same way.
+		EntityMouseListeners.attachRecursive(this, new PopupMouseAdapter(popup, this));
+	}
+
+	public IndividualData getData(){
+		return data;
+	}
+
+	public FLEFRecord getFather(){
+		return father;
+	}
+
+	public FLEFRecord getMother(){
+		return mother;
+	}
+
+	public boolean isEnableAddChildMenu(){
+		return enableAddChildMenu;
+	}
+
+
+	/**
+	 * Small round badge showing the number of times an individual appears in
+	 * the tree.
+	 * <p>
+	 * The badge is a real component, so it participates in the layout (it
+	 * occupies its own cell) and has its own tooltip. When the count is at
+	 * most 1, the badge is made invisible and its cell collapses thanks to
+	 * {@code hidemode 3}, leaving the space to the name and info labels.
+	 */
+	private final class CollapseBadge extends JComponent{
+
+		private int count;
+		private String tooltip;
+
+
+		CollapseBadge(){
+			setOpaque(false);
+
+			final int d = (isPrimaryBox()? BADGE_DIAMETER_PRIMARY: BADGE_DIAMETER_SECONDARY);
+			setPreferredSize(new Dimension(d, d));
+
+			setVisible(false);
+		}
+
+		/**
+		 * Updates the badge with the given count and tooltip.
+		 *
+		 * @param count   the occurrence count; values below 2 hide the badge
+		 * @param tooltip the tooltip in HTML; may be {@code null}
+		 */
+		void update(final int count, final String tooltip){
+			this.count = Math.max(0, count);
+			this.tooltip = tooltip;
+
+			// Set the tooltip eagerly, so that it is available as soon as the
+			// badge becomes visible. The default ToolTipManager implementation
+			// asks the component for its tooltip through getToolTipText, which
+			// reads the value set here.
+			setToolTipText(this.tooltip);
+			setVisible(this.count > 1);
+		}
+
+		/**
+		 * Returns the collapse tooltip only when the point is actually inside
+		 * the badge bounds. This prevents the tooltip from appearing when the
+		 * mouse is just outside the circular painted area but still within the
+		 * enclosing rectangular bounds.
+		 */
+		@Override
+		public String getToolTipText(final MouseEvent event){
+			if(count <= 1 || tooltip == null)
+				return null;
+
+			final Point p = event.getPoint();
+			if(p.x < 0 || p.y < 0 || p.x >= getWidth() || p.y >= getHeight())
+				return null;
+
+			return tooltip;
+		}
+
+		@Override
+		protected void paintComponent(final Graphics g){
+			if(count <= 1 || !(g instanceof Graphics2D g2))
+				return;
+
+			final int d = Math.min(getWidth(), getHeight());
+			if(d <= 2)
+				return;
+
+			g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+			g2.setColor(PEDIGREE_CIRCLE_INNER_COLOR);
+			g2.fillOval(0, 0, d, d);
+			g2.setColor(PEDIGREE_CIRCLE_OUTER_COLOR);
+			g2.setStroke(new BasicStroke(1f));
+			g2.drawOval(0, 0, d - 1, d - 1);
+
+			final String text = count + "×";
+			g2.setFont(new Font("Tahoma", Font.BOLD, (isPrimaryBox()? 10: 9)));
+			g2.setColor(Color.WHITE);
+			final FontMetrics fm = g2.getFontMetrics();
+			final int textWidth = fm.stringWidth(text);
+			final int textX = (d - textWidth) / 2;
+			final int textY = (d + fm.getAscent() - 1) / 2;
+			g2.drawString(text, textX, textY);
+		}
+
+	}
+
+
+	public static void main(String[] args) throws IOException{
+		try{
+			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+		}
+		catch(final Exception ignored){}
+
+		String modelUri = "/tests/TGMZ.flef";
+		String recordId = "I1";
+
+		final String content;
+		try(final InputStream is = IndividualPanel.class.getResourceAsStream(modelUri)){
+			content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+		}
+
+		final FLEFParser parser = new FLEFParser();
+		final FLEFModel model = parser.parse(content);
+
+
+		SwingUtilities.invokeLater(() -> {
+			final FLEFRecord individualRecord = model.getRecordById(recordId);
+			final IndividualData data = IndividualData.create(individualRecord, null, model);
+			final IndividualPanel panel = IndividualPanel.create(BoxPanelType.PRIMARY, model)
+				.withIndividualData(data);
+
+			final JFrame frame = new JFrame();
+			frame.setLayout(new BorderLayout());
+			frame.add(panel, BorderLayout.NORTH);
+			frame.pack();
+			frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+			frame.setLocationRelativeTo(null);
+			frame.setVisible(true);
+		});
+	}
+
+}

@@ -25,7 +25,8 @@
 
 
 module io.github.mtrevisan.familylegacy.core {
-	requires java.base; requires org.apache.commons.lang3;
+	requires java.base;
+	requires org.apache.commons.lang3;
 	requires java.desktop;
 	requires com.miglayout.swing;
 	requires org.slf4j;
@@ -44,8 +45,8 @@ module io.github.mtrevisan.familylegacy.core {
 	requires org.apache.poi.ooxml;
 
 	// Export packages needed by external modules/plugins
-	exports io.github.mtrevisan.familylegacy.v2.services;
+	exports io.github.mtrevisan.familylegacy.services;
 
 	// Declare SPI consumption
-	uses io.github.mtrevisan.familylegacy.v2.services.AstronomicalEngine;
+	uses io.github.mtrevisan.familylegacy.services.AstronomicalEngine;
 }

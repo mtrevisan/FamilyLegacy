@@ -1,0 +1,106 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+package io.github.mtrevisan.familylegacy.ui.components.searches.strategies;
+
+import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.readers.DocumentReader;
+import io.github.mtrevisan.familylegacy.ui.components.searches.SearchCriteria;
+import io.github.mtrevisan.familylegacy.ui.components.searches.SearchMode;
+import io.github.mtrevisan.familylegacy.ui.components.searches.SearchStrategy;
+import io.github.mtrevisan.familylegacy.ui.handlers.DocumentHandler;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.StringJoiner;
+import java.util.function.Predicate;
+
+
+/**
+ * Search strategy for Document records.
+ * Supports filtering by description, mapping projection, and URI path.
+ */
+public class DocumentSearchStrategy implements SearchStrategy{
+
+	private static final DocumentHandler HANDLER = DocumentHandler.getInstance();
+
+
+	private String description;
+	private String mapping;
+	private String uri;
+	private SearchMode mode;
+
+
+	@Override
+	public Predicate<FLEFRecord> buildPredicate(final SearchCriteria criteria, final FLEFModel model){
+		description = criteria.getFilterFor(DocumentReader.TAG_DESCRIPTION);
+		mapping = criteria.getFilterFor(DocumentReader.TAG_MAPPING);
+		uri = criteria.getFilterFor(DocumentReader.TAG_URI);
+		mode = criteria.mode();
+
+		return document -> {
+			// Description filter
+			if(StringUtils.isNotEmpty(description)){
+				final String recordDescription = DocumentReader.extractDescription(document);
+				if(!SearchHelper.matches(recordDescription, description, mode))
+					return false;
+			}
+
+			// Mapping filter
+			if(StringUtils.isNotEmpty(mapping)){
+				final String recordMapping = DocumentReader.extractMapping(document);
+				if(!mapping.equalsIgnoreCase(recordMapping))
+					return false;
+			}
+
+			// URI filter
+			if(StringUtils.isNotEmpty(uri)){
+				final String recordUri = DocumentReader.extractUri(document);
+				if(!SearchHelper.matches(recordUri, uri, mode))
+					return false;
+			}
+
+			return true;
+		};
+	}
+
+	@Override
+	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
+		final String baseDisplayText = HANDLER.getDisplayText(record, model);
+
+		final String mapping = DocumentReader.extractMapping(record);
+		final String description = DocumentReader.extractDescription(record);
+
+		final StringJoiner details = new StringJoiner(", ", " (", ")");
+		details.setEmptyValue(StringUtils.EMPTY);
+
+		if(StringUtils.isNotEmpty(mapping))
+			details.add("(" + mapping + ")");
+		if(StringUtils.isNotEmpty(description) && !baseDisplayText.contains(description))
+			details.add(description);
+
+		return baseDisplayText + details;
+	}
+
+}

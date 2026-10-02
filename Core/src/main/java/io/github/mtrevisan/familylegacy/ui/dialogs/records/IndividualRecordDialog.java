@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2020-2022 Mauro Trevisan
+ * Copyright (c) 2026 Mauro Trevisan
  * <p>
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -24,274 +24,315 @@
  */
 package io.github.mtrevisan.familylegacy.ui.dialogs.records;
 
-import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
-import io.github.mtrevisan.familylegacy.v2.ui.helpers.ResourceHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.images.ScaledImage;
-import io.github.mtrevisan.familylegacy.gedcom.Flef;
-import io.github.mtrevisan.familylegacy.gedcom.Gedcom;
-import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
-import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
-import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
-import io.github.mtrevisan.familylegacy.gedcom.Store;
-import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
-import io.github.mtrevisan.familylegacy.ui.dialogs.NoteDialog;
-import io.github.mtrevisan.familylegacy.ui.panels.IndividualPanel;
-import net.miginfocom.swing.MigLayout;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.SexType;
+import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
+import io.github.mtrevisan.familylegacy.ui.components.PanelKey;
+import io.github.mtrevisan.familylegacy.ui.components.PreferredImagePanel;
+import io.github.mtrevisan.familylegacy.ui.components.RecordDialogBuilder;
+import io.github.mtrevisan.familylegacy.ui.components.lists.EntityListPanel;
+import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.ui.handlers.ConclusionHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.ContextImpactHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.EventParticipationHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.IdentityHypothesisHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.IndividualAttributeHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.PersonalNameHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.RelationshipHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.ResearchQuestionHandler;
+import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JDialog;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JTabbedPane;
-import javax.swing.UIManager;
-import java.awt.Dimension;
-import java.awt.EventQueue;
-import java.awt.Font;
-import java.awt.Frame;
-import java.io.File;
+import java.awt.Window;
 import java.io.IOException;
-import java.io.Serial;
-import java.util.StringJoiner;
 
 
-//TODO
-public class IndividualRecordDialog extends JDialog{
+/*
+TODO undo/redo a livello di record dopo che si è fatto salva di una dialog (chiedere, quindi ripristinare il record precedente)
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(IndividualRecordDialog.class);
+public class RecordUpdateCommand extends AbstractUndoableEdit{
+	private final FLEFModel model;
+	private final FLEFRecord originalState = FLEFRecord.createEmpty();
+	private final FLEFRecord newState = FLEFRecord.createEmpty();
 
-	@Serial
-	private static final long serialVersionUID = 2075397360104239479L;
+	public RecordUpdateCommand(FLEFModel model, FLEFRecord originalState, FLEFRecord newState){
+		this.model = model;
 
-	private static final String NAMES_SEPARATOR = ", ";
-	private static final String NO_DATA = "?";
+		originalState.deepCopyTo(this.originalState);
+		newState.deepCopyTo(this.newState);
+	}
 
-	private static final int PARTNER_IMAGE_MINIMUM_WIDTH = 30;
-	private static final int PARTNER_IMAGE_MINIMUM_HEIGHT = 38;
+	@Override
+	public void undo() throws CannotUndoException{
+		super.undo();
 
-	private static final Font FONT_PRIMARY = new Font("Tahoma", Font.BOLD, 11);
+		model.addRecord(originalState);
+	}
 
-	private static final DefaultComboBoxModel<String> TYPE_MODEL = new DefaultComboBoxModel<>(new String[]{StringUtils.EMPTY, "unknown", "marriage", "not married", "civil marriage", "religious marriage", "common law marriage", "partnership", "registered partnership", "living together", "living apart together"});
-	private static final DefaultComboBoxModel<String> RESTRICTION_MODEL = new DefaultComboBoxModel<>(new String[]{StringUtils.EMPTY, "confidential", "locked", "private"});
+	@Override
+	public void redo() throws CannotRedoException{
+		super.redo();
 
-	private static final ImageIcon ICON_NOTE = ResourceHelper.getImage("/images/note.png", 20, 20);
+		model.addRecord(newState);
+	}
 
-	private final JLabel individualLabel = new JLabel("Indivisdual:");
-	private final ScaledImage individualImage = ScaledImage.create();
-	private final JLabel individualName = new JLabel(StringUtils.EMPTY);
-	private final JButton individualNoteButton = new JButton(StringUtils.EMPTY);
-	private final JButton eventButton = new JButton("Events");
-	private final JButton groupButton = new JButton("Groups");
-	private final JButton culturalNormButton = new JButton("Cultural norms");
-	private final JButton noteButton = new JButton("Notes");
-	private final JButton sourceButton = new JButton("Sources");
-	private final JLabel restrictionLabel = new JLabel("Restriction:");
-	private final JComboBox<String> restrictionComboBox = new JComboBox<>(RESTRICTION_MODEL);
+}
 
-	private GedcomNode individual;
-	private final Flef store;
+protected void onOk(){
+  FLEFRecord copyBefore = record.clone();
+  saveData(); // Salva i dati dal dialog al record corrente
+
+  // Registra il comando nell'UndoManager globale
+  UndoManager globalUndoManager = model.getUndoManager();
+  globalUndoManager.addEdit(new RecordUpdateCommand(model, copyBefore, record));
+
+  // Notifica il ridisegno globale dell'albero (Direct Pull)
+  model.notifyDataChanged();
+
+  dispose();
+}
+*/
+/**
+ * Dialog for editing an {@code INDIVIDUAL_RECORD} according to FLEF 0.1.3.
+ * <p>
+ * Structure:
+ * <pre>
+ * record IndividualRecord {
+ *   id: LocalID
+ *   name*: PersonalNameStructure
+ *   sex?: enum { male, female, unknown }
+ *   source*: SourceCitation
+ *   note*: Xref&lt;NoteRecord&gt;
+ *   preferred_image?: struct {
+ *     uri: Uri
+ *     crop?: CropRect
+ *   }
+ *   privacy?: PrivacyStructure
+ *   audit: AuditStructure
+ * }
+ * </pre>
+ * <p>
+ * Tabs:
+ * Tab 1 (Properties): name, sex, preferred_image
+ * Tab 2 (Attributes): IndividualAttributeRecord (individual = this individual)
+ * Tab 3 (Relationships): RelationshipRecord (subject = this individual), RelationshipRecord (target = this individual)
+ * Tab 4 (Participations): EventParticipationRecord (participant[individual] = this individual)
+ * Tab 5 (Context): ContextImpactRecord (target[individual] = this individual)
+ * Tab 6 (Research): ConclusionRecord (resolves = this individual), IdentityHypothesisRecord (identity = this individual), ResearchQuestionRecord (target[individual] = this individual)
+ * Tab 7 (Sources): source
+ * Tab 8 (Notes): note
+ * Tab 9 (Privacy): privacy
+ * Tab 10 (Audit): audit
+ */
+public class IndividualRecordDialog extends BaseRecordDialog{
+
+	private final PreferredImagePanel preferredImagePanel;
+	private final EntityListPanel personalNamePanel;
+	private final BoundComboBox<String> sexCombo;
 
 
-	public IndividualRecordDialog(final GedcomNode individual, final Flef store, final Frame parent){
-		super(parent, true);
+	public static IndividualRecordDialog createNew(final Window parent, final FLEFModel model){
+		return createNew(parent, model, IndividualRecordDialog::new);
+	}
 
-		this.individual = individual;
-		this.store = store;
-
-		initComponents();
-
-		loadData();
+	public static IndividualRecordDialog createEdit(final Window parent, final FLEFModel model,
+			final FLEFRecord record){
+		return createEdit(parent, model, record, IndividualRecordDialog::new);
 	}
 
 
-	void initComponents(){
-		individualLabel.setFont(FONT_PRIMARY);
-		individualLabel.setLabelFor(individualName);
-		individualNoteButton.setIcon(ICON_NOTE);
-		individualNoteButton.setToolTipText("Add note to parent 1");
-		individualNoteButton.addActionListener(evt -> {
-			final Frame parent = (Frame)getParent();
-			final NoteDialog noteCitationDialog = NoteDialog.createNote(store, parent);
-			//TODO onCloseGracefully
-			if(!noteCitationDialog.loadData(individual, null))
-				noteCitationDialog.showNewRecord();
+	private IndividualRecordDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
+		super(parent, model, record, IndividualHandler.getInstance());
 
-			noteCitationDialog.setSize(450, 260);
-			noteCitationDialog.setLocationRelativeTo(parent);
-			noteCitationDialog.setVisible(true);
-		});
+		preferredImagePanel = new PreferredImagePanel(IndividualReader.TAG_PREFERRED_IMAGE, this);
+		personalNamePanel = EntityListPanel.createForStructure(IndividualReader.TAG_NAME, this, I18N.t("dialog.individual.personal.name") + "*", model, PersonalNameHandler.class);
+		sexCombo = new BoundComboBox<>(IndividualReader.TAG_SEX, GUIHelper.fillCombo(IndividualReader.SEXES, null));
+		sexCombo.setI18NPrefix("enum.individual.sex");
 
-		eventButton.addActionListener(e -> {
-			//TODO
-		});
+		components = new RecordDialogBuilder(this, model, record)
+			.withComponent(PanelKey.INDIVIDUAL_ATTRIBUTE, IndividualAttributeHandler.TYPE, I18N.t("dialog.component.individual.attributes"))
+			.withComponent(PanelKey.RELATIONSHIP_ON_SUBJECT, RelationshipHandler.TYPE, I18N.t("dialog.component.relationship.on.target"))
+			.withComponent(PanelKey.RELATIONSHIP_ON_OBJECT, RelationshipHandler.TYPE, I18N.t("dialog.component.relationship.on.subject"))
+			.withComponent(PanelKey.EVENT_PARTICIPATION_ON_PARTICIPANT, EventParticipationHandler.TYPE, I18N.t("dialog.component.event.participations"))
+			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, ContextImpactHandler.TYPE, I18N.t("dialog.component.context.impact"))
+			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, I18N.t("dialog.component.conclusions"))
+			.withComponent(PanelKey.IDENTITY_HYPOTHESIS_ON_IDENTITY, IdentityHypothesisHandler.TYPE, I18N.t("dialog.component.identity.hypotheses"))
+			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, I18N.t("dialog.component.research.questions"))
+			.withComponent(PanelKey.SOURCE, IndividualReader.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
+			.withComponent(PanelKey.NOTE, IndividualReader.TAG_NOTE, null)
+			.withComponent(PanelKey.PRIVACY, IndividualReader.TAG_PRIVACY, null)
+			.withComponent(PanelKey.AUDIT, IndividualReader.TAG_AUDIT, null)
+			.build();
 
-		groupButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.GROUP_CITATION, individual)));
-
-		culturalNormButton.addActionListener(e -> {
-			//TODO
-		});
-
-		noteButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE, individual)));
-
-		sourceButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.SOURCE_CITATION, individual)));
-
-		restrictionLabel.setLabelFor(restrictionComboBox);
-		restrictionComboBox.setEditable(true);
-		restrictionComboBox.addActionListener(e -> {
-			if("comboBoxEdited".equals(e.getActionCommand())){
-				final String newValue = (String)RESTRICTION_MODEL.getSelectedItem();
-				RESTRICTION_MODEL.addElement(newValue);
-
-				restrictionComboBox.setSelectedItem(newValue);
-			}
-		});
-		restrictionComboBox.setSelectedIndex(0);
+		components.bind(sexCombo);
 
 
-		final JTabbedPane tabbedPane = new JTabbedPane();
+		// Set up the image carousel selection listener on the source list
+		setupSourceListSelection();
 
-		final JPanel panelMembers = new JPanel(new MigLayout("debug", "[fill][][]"));
-		panelMembers.add(individualLabel, "span 3,wrap");
-		panelMembers.add(individualImage);
-		panelMembers.add(individualName, "grow");
-		panelMembers.add(individualNoteButton, "top");
-
-		final JPanel panelEvents = new JPanel(new MigLayout());
-		panelEvents.add(eventButton, "sizegroup button,grow,wrap");
-
-		final JPanel panelGroups = new JPanel(new MigLayout());
-		panelGroups.add(groupButton, "sizegroup button,grow,wrap");
-
-		final JPanel panelCulturalNorms = new JPanel(new MigLayout());
-		panelCulturalNorms.add(culturalNormButton, "sizegroup button,grow,wrap");
-
-		final JPanel panelNotes = new JPanel(new MigLayout());
-		panelNotes.add(noteButton, "sizegroup button,grow,wrap");
-
-		final JPanel panelSources = new JPanel(new MigLayout());
-		panelSources.add(sourceButton, "sizegroup button,grow,wrap");
-
-		final JPanel panelGeneral = new JPanel(new MigLayout());
-		panelGeneral.add(restrictionLabel, "align label,split 2");
-		panelGeneral.add(restrictionComboBox, "grow");
-
-		tabbedPane.add("Members", panelMembers);
-		tabbedPane.add("Events", panelEvents);
-		tabbedPane.add("Groups", panelGroups);
-		tabbedPane.add("Cultural rules", panelCulturalNorms);
-		tabbedPane.add("Notes", panelNotes);
-		tabbedPane.add("Sources", panelSources);
-		tabbedPane.add("General", panelGeneral);
-
-		setLayout(new MigLayout());
-		add(tabbedPane, "grow,wrap");
+		finalizeDialog(parent);
 	}
 
-	public final void loadData(final GedcomNode individual){
-		this.individual = individual;
 
-		loadData();
+	@Override
+	protected JPanel createPropertiesPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]20[]10[]");
 
-		repaint();
+		// preferred image
+		panel.add(preferredImagePanel, "span 2,growx,align center");
+
+		// names
+		GUIHelper.addComponent(panel, personalNamePanel);
+
+		// sex
+		final JPanel sexPanel = GUIHelper.createLabelFieldPanel(0, "[]15[]10[]");
+		GUIHelper.addLabeledComponent(sexPanel, I18N.t("dialog.individual.sex") + ":", sexCombo);
+		GUIHelper.addComponent(panel, sexPanel);
+
+		return panel;
 	}
 
-	private void loadData(){
-		individualNoteButton.setEnabled(!individual.isEmpty());
-		loadPartnerData(individual, individualImage, individualName, individualNoteButton);
+	@Override
+	protected JPanel createAttributesPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
 
-		//TODO
+		final JPanel attributePanel = components.getPanel(PanelKey.INDIVIDUAL_ATTRIBUTE);
+		GUIHelper.addComponent(panel, attributePanel);
 
-		restrictionComboBox.setSelectedItem(store.traverse(individual, "RESTRICTION").getValue());
+		return panel;
 	}
 
-	private void loadPartnerData(final GedcomNode partner, final ScaledImage partnerImage, final JLabel partnerName, final JButton partnerNotes){
-		if(!partner.isEmpty()){
-			GedcomNode preferredImage = store.traverse(partner, "PREFERRED_IMAGE");
-			final String partnerPreferredImageXRef = preferredImage.getValue();
-			//top-left and bottom-right
-			final String partnerPreferredImageCropCoordinates = store.traverse(preferredImage, "CROP")
-				.getValue();
-			try{
-				preferredImage = store.getSource(partnerPreferredImageXRef);
-				final String partnerPreferredImagePath = store.traverse(preferredImage, "FILE")
-					.getValue();
-				partnerImage.setRectangularImage(ResourceHelper.readImage(new File(store.getBasePath(), partnerPreferredImagePath)));
-				partnerImage.setMinimumSize(new Dimension(PARTNER_IMAGE_MINIMUM_WIDTH, PARTNER_IMAGE_MINIMUM_HEIGHT));
-				partnerImage.setEnabled(true);
+	@Override
+	protected JPanel createRelationshipsPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]15[]");
 
-				if(StringUtils.isNotBlank(partnerPreferredImageCropCoordinates)){
-					final String[] coords = StringUtils.split(partnerPreferredImageCropCoordinates, ' ');
-					final int startX = Integer.parseInt(coords[0]);
-					final int startY = Integer.parseInt(coords[1]);
-					final int endX = Integer.parseInt(coords[2]);
-					final int endY = Integer.parseInt(coords[3]);
-//					partnerImage.setWindow(startX, startY, endX, endY);
-					partnerImage.setWindow(190, 120, 500, 500);
-				}
-			}
-			catch(final IOException e){
-				LOGGER.error("Cannot load preferred image of individual {}", partner.getID(), e);
+		// Relationships in which this individual is the subject (Parents, Guardians, Groups)
+		final JPanel relationshipAsSubjectPanel = components.getPanel(PanelKey.RELATIONSHIP_ON_SUBJECT);
+		GUIHelper.addComponent(panel, relationshipAsSubjectPanel);
 
-				partnerImage.setEnabled(false);
-			}
-			partnerName.setEnabled(true);
-			partnerName.setText(getIndividualText(partner));
-			partnerNotes.setEnabled(true);
+		// Relationships in which this individual is the target (biological/adopted children, dependents)
+		final JPanel relationshipAsTargetPanel = components.getPanel(PanelKey.RELATIONSHIP_ON_OBJECT);
+		GUIHelper.addComponent(panel, relationshipAsTargetPanel);
+
+		return panel;
+	}
+
+	@Override
+	protected JPanel createParticipationsPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
+
+		final JPanel eventParticipationPanel = components.getPanel(PanelKey.EVENT_PARTICIPATION_ON_PARTICIPANT);
+		GUIHelper.addComponent(panel, eventParticipationPanel);
+
+		return panel;
+	}
+
+	@Override
+	protected JPanel createContextPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
+
+		final JPanel contextPanel = components.getPanel(PanelKey.CONTEXT_IMPACT_ON_TARGET);
+		GUIHelper.addComponent(panel, contextPanel);
+
+		return panel;
+	}
+
+	@Override
+	protected JPanel createResearchPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]15[]15[]");
+
+		final JPanel conclusionPanel = components.getPanel(PanelKey.CONCLUSION_ON_RESOLVES);
+		GUIHelper.addComponent(panel, conclusionPanel);
+
+		final JPanel identityHypothesisPanel = components.getPanel(PanelKey.IDENTITY_HYPOTHESIS_ON_IDENTITY);
+		GUIHelper.addComponent(panel, identityHypothesisPanel);
+
+		final JPanel researchQuestionPanel = components.getPanel(PanelKey.RESEARCH_QUESTION_ON_TARGET);
+		GUIHelper.addComponent(panel, researchQuestionPanel);
+
+		return panel;
+	}
+
+	@Override
+	protected JPanel createSourcesPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]15[]");
+
+		final JPanel sourcePanel = components.getPanel(PanelKey.SOURCE);
+		GUIHelper.addComponent(panel, sourcePanel);
+
+		// Image carousel below the source list
+		// It will be hidden if no images are found
+		GUIHelper.addComponent(panel, imageCarouselPanel);
+
+		return panel;
+	}
+
+	@Override
+	protected JPanel createNotesPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
+
+		final JPanel notePanel = components.getPanel(PanelKey.NOTE);
+		GUIHelper.addComponent(panel, notePanel);
+
+		return panel;
+	}
+
+	@Override
+	protected JPanel createPrivacyPanel(){
+		return components.getPanel(PanelKey.PRIVACY);
+	}
+
+	@Override
+	protected JPanel createAuditPanel(){
+		return components.getPanel(PanelKey.AUDIT);
+	}
+
+
+	public IndividualRecordDialog witSex(final SexType sex){
+		if(sex != null){
+			sexCombo.setText(sex.getRawSex());
+			sexCombo.setEnabled(false);
 		}
-		else{
-			partnerImage.setEnabled(false);
-			partnerImage.setRectangularImage(null);
-			partnerName.setText(null);
-			partnerName.setEnabled(false);
-			partnerNotes.setEnabled(false);
-		}
-	}
 
-	private String getIndividualText(final GedcomNode partner){
-		final StringJoiner text = new StringJoiner(StringUtils.SPACE);
-		text.add(partner.getID() + ":");
-		text.add(IndividualPanel.extractFirstCompleteName(partner, NAMES_SEPARATOR, store));
-		final String birthYear = IndividualPanel.extractBirthYear(partner, store);
-		final String deathYear = IndividualPanel.extractDeathYear(partner, store);
-		text.add("(" + (StringUtils.isNotBlank(birthYear)? birthYear: NO_DATA) + "–"
-			+ (StringUtils.isNotBlank(deathYear)? deathYear: NO_DATA) + ")");
-		return text.toString();
+		return this;
 	}
 
 
-	public static void main(final String[] args) throws GedcomParseException, GedcomGrammarParseException{
-		try{
-			final String lookAndFeelName = UIManager.getSystemLookAndFeelClassName();
-			UIManager.setLookAndFeel(lookAndFeelName);
-		}
-		catch(final Exception ignored){}
+	@Override
+	protected void loadData(){
+		preferredImagePanel.load(record);
+		personalNamePanel.load(record);
 
-		final Store storeGedcom = new Gedcom();
-		final Flef storeFlef = (Flef)storeGedcom.load("/gedg/gedcom_5.5.1.tcgb.gedg", "src/main/resources/ged/large.ged")
-			.transform();
-//		final GedcomNode individual = storeFlef.getIndividuals().get(0);
-		final GedcomNode individual = storeFlef.getIndividual("I1");
+		components.load(record);
 
-		EventQueue.invokeLater(() -> {
-			final IndividualRecordDialog dialog = new IndividualRecordDialog(individual, storeFlef, new JFrame());
-			dialog.setTitle("Individual record");
 
-			dialog.addWindowListener(new java.awt.event.WindowAdapter(){
-				@Override
-				public void windowClosing(final java.awt.event.WindowEvent e){
-					System.exit(0);
-				}
-			});
-			dialog.setSize(400, 500);
-			dialog.setLocationRelativeTo(null);
-			dialog.setVisible(true);
-		});
+		// Initially, update carousel based on the first selected source (if any)
+		updateCarouselFromSelectedSource();
+	}
+
+	@Override
+	protected void saveData(){
+		preferredImagePanel.save(record);
+		personalNamePanel.save(record);
+
+		components.save(record);
+//		try{
+//			FLEFWriter.createCompact().write(model,
+//				new File("C://Users/mauro/IdeaProjects/FamilyLegacy/src/main/resources/tests/out.flef").toPath(),
+//				false);
+//		}
+//		catch(IOException e){
+//			throw new RuntimeException(e);
+//		}
+	}
+
+
+	public static void main(final String[] args) throws IOException{
+		GUIHelper.launch(IndividualRecordDialog::createEdit, "/tests/test.flef", "I1");
 	}
 
 }

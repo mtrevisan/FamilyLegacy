@@ -6,7 +6,7 @@ import io.github.mtrevisan.ephemeris.engine.SunPosition;
 import io.github.mtrevisan.ephemeris.helpers.DeltaT;
 import io.github.mtrevisan.ephemeris.helpers.JulianDate;
 import io.github.mtrevisan.ephemeris.helpers.MathHelper;
-import io.github.mtrevisan.familylegacy.v2.services.AstronomicalEngine;
+import io.github.mtrevisan.familylegacy.services.AstronomicalEngine;
 
 
 /**
@@ -17,6 +17,7 @@ public final class AstronomicalEngineAdapter implements AstronomicalEngine{
 
 	// Precision target for root-finding (~0.08 seconds of day)
 	private static final double TIME_PRECISION = 1.e-6;
+	private static final int MAX_ITERATIONS = 20;
 
 	// Mean synodic month derived from IAU 2010 mean elongation motion
 	private static final double MEAN_SYNODIC_MONTH = (360. * JulianDate.CIVIL_SAECULUM)
@@ -28,16 +29,28 @@ public final class AstronomicalEngineAdapter implements AstronomicalEngine{
 	private static final double MEAN_SOLAR_SPEED = 0.01720279;
 
 
+	public static void main(String[] args){
+		int year = 1980;
+		int month = 1;
+		boolean isLeap = false;
+		int day = 1;
+
+		double resultJdUT = ChineseCalendarAstronomicalEngine.chineseDateToJulianDateUT(year, month, isLeap, day);
+
+		System.out.println("Julian Date UT: " + resultJdUT);
+		System.out.println("Julian Date UT: 2444285.16666");
+	}
+
 	@Override
 	public boolean isAvailable(){
 		return true;
 	}
 
 	@Override
-	public long getNextNewMoonJdn(final double approxJdn, final double utcOffset){
+	public double getNextNewMoonJdn(final double approxJdn, final double utcOffset){
 		// Convergence loop using Brent's / Newton's method for Moon-Sun elongation = 0
 		double tJdn = approxJdn;
-		for(int i = 0; i < 10; i ++){
+		for(int i = 0; i < MAX_ITERATIONS; i ++){
 			final double dt = DeltaT.deltaTSecondsFromJd(tJdn);
 			final double dtDays = DeltaT.deltaTDays(dt);
 			final double tdbJc = JulianDate.centuryJ2000Of(tJdn + dtDays);
@@ -58,18 +71,19 @@ public final class AstronomicalEngineAdapter implements AstronomicalEngine{
 				break;
 		}
 
-		// Convert UT JDN to local time and return the local day integer JDN
-		return (long)Math.floor(tJdn + 0.5 + utcOffset / JulianDate.HOURS_PER_DAY);
+		// Return astronomical UT JDN plus timezone offset in days
+		return tJdn + utcOffset / JulianDate.HOURS_PER_DAY;
 	}
 
 	@Override
 	public double getSolarLongitudeJdn(final int year, final double targetLongitude, final double utcOffset){
 		final double targetRad = Math.toRadians(targetLongitude);
-		// Estimate initial JDN from Gregorian year
-		double tJdn = JulianDate.of(year, 1, 1)
-			+ (targetLongitude / 360.) * JulianDate.MEAN_TROPICAL_YEAR_LENGTH;
 
-		for(int i = 0; i < 10; i ++){
+		// Accurate initial estimate based on astronomical longitude offset from Vernal Equinox (~March 20)
+		// Longitude 0° is ~March 20 (Day 79), 90° is ~June 21, 180° is ~Sept 23, 270° is ~Dec 21
+		final double dayOfYearEstimate = 79.25 + (targetLongitude / 360.) * JulianDate.MEAN_TROPICAL_YEAR_LENGTH;
+		double tJdn = JulianDate.of(year, 1, 1) + (dayOfYearEstimate % JulianDate.MEAN_TROPICAL_YEAR_LENGTH);
+		for(int i = 0; i < MAX_ITERATIONS; i ++){
 			final double dtDays = DeltaT.deltaTDays(DeltaT.deltaTSecondsFromJd(tJdn));
 			final double tdbJc = JulianDate.centuryJ2000Of(tJdn + dtDays);
 			final double tdbJme = tdbJc / 10.;
@@ -84,10 +98,9 @@ public final class AstronomicalEngineAdapter implements AstronomicalEngine{
 			final double deltaDays = diff / MEAN_SOLAR_SPEED;
 			tJdn -= deltaDays;
 			if(Math.abs(deltaDays) < TIME_PRECISION)
-				break;
+				return tJdn + utcOffset / JulianDate.HOURS_PER_DAY;
 		}
-
-		return tJdn + utcOffset / JulianDate.HOURS_PER_DAY;
+		return -1.;
 	}
 
 }

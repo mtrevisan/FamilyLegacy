@@ -1,0 +1,150 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+package io.github.mtrevisan.familylegacy.ui.components;
+
+import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.readers.AuditReader;
+import io.github.mtrevisan.familylegacy.ui.bindings.BindingManager;
+import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextArea;
+import io.github.mtrevisan.familylegacy.ui.components.lists.BasicNoteListPanel;
+import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
+import net.miginfocom.swing.MigLayout;
+import org.apache.commons.lang3.StringUtils;
+
+import javax.swing.JPanel;
+import javax.swing.border.TitledBorder;
+import java.awt.Window;
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
+
+
+/**
+ * Panel for editing a {@code MODIFICATION_STRUCTURE} according to FLEF 0.1.3.
+ * <p>
+ * Structure:
+ * <pre>
+ * struct ModificationStructure {
+ *   creation: struct {
+ *     date: Date
+ *     comment?: Text
+ *   }
+ *   update*: struct {
+ *     date: Date
+ *     comment?: Text
+ *   }
+ * }
+ * </pre>
+ */
+public class AuditPanel extends JPanel{
+
+	private final String path;
+
+	private final BindingManager bindingManager = new BindingManager();
+
+	private final JPanel creationPanel;
+	private String creationDate;
+	private final BoundTextArea creationCommentArea;
+	private final BasicNoteListPanel updateListPanel;
+
+
+	/**
+	 * Constructs a new ModificationPanel.
+	 *
+	 * @param parent	the parent dialog (used for showing message dialogs)
+	 */
+	public AuditPanel(final String path, final Window parent){
+		this.path = path;
+
+		creationPanel = new JPanel(new MigLayout("fillx", "[grow]"));
+
+		creationCommentArea = new BoundTextArea(FLEFRecordHelper.composePath(path, AuditReader.TAG_CREATION_COMMENT), 3, 25);
+		updateListPanel = new BasicNoteListPanel(FLEFRecordHelper.composePath(path, AuditReader.TAG_UPDATE), parent, I18N.t("dialog.audit.updates"), AuditReader.TAG_COMMENT);
+
+
+		initComponents();
+	}
+
+
+	private void initComponents(){
+		bindingManager.bind(creationCommentArea);
+
+
+		setLayout(GUIHelper.createLabelFieldLayout(10, "[]15[]"));
+
+		creationPanel.setBorder(new TitledBorder(I18N.tf("dialog.audit.creation.comment", false, StringUtils.EMPTY)));
+		creationPanel.add(GUIHelper.createScrollPane(creationCommentArea), "growx");
+		GUIHelper.addComponent(this, creationPanel);
+
+		GUIHelper.addComponent(this, updateListPanel);
+	}
+
+
+	/**
+	 * Loads data from a record's MODIFICATION_STRUCTURE into the panel.
+	 *
+	 * @param record	the record containing the MODIFICATION_STRUCTURE
+	 */
+	public void load(final FLEFRecord record){
+		clear();
+
+		if(record == null || record.isEmpty())
+			return;
+
+		// creation.date
+		final FLEFRecord creation = FLEFRecordHelper.findChild(record, FLEFRecordHelper.composePath(path, AuditReader.TAG_CREATION));
+		creationDate = FLEFRecordHelper.getChildValue(creation, FLEFRecordHelper.composePath(path, AuditReader.TAG_DATE));
+		creationPanel.setBorder(new TitledBorder(I18N.tf("dialog.audit.creation.comment", (creationDate != null), creationDate)));
+
+		bindingManager.load(record);
+
+		updateListPanel.load(record);
+	}
+
+	/**
+	 * Saves the panel data into the parent's record.
+	 *
+	 * @param record	the record to save into
+	 */
+	public void save(final FLEFRecord record){
+		// creation.date
+		if(StringUtils.isEmpty(creationDate))
+			creationDate = DateTimeFormatter.ISO_INSTANT.format(Instant.now().truncatedTo(ChronoUnit.SECONDS));
+		FLEFRecordHelper.addChildValue(record, FLEFRecordHelper.composePath(path, AuditReader.TAG_CREATION_DATE), creationDate);
+
+		bindingManager.save(record);
+
+		// update
+		updateListPanel.save(record);
+	}
+
+	public void clear(){
+		creationCommentArea.setText(StringUtils.EMPTY);
+		updateListPanel.clear();
+	}
+
+}

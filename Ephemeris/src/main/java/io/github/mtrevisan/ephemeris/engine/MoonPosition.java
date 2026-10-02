@@ -24,7 +24,7 @@
  */
 package io.github.mtrevisan.ephemeris.engine;
 
-import io.github.mtrevisan.ephemeris.engine.coordinates.EclipticCoordinate;
+import io.github.mtrevisan.ephemeris.engine.coordinates.EclipticCoordinates;
 import io.github.mtrevisan.ephemeris.helpers.JulianDate;
 import io.github.mtrevisan.ephemeris.helpers.MathHelper;
 import io.github.mtrevisan.ephemeris.readers.ElpCoefficients;
@@ -36,6 +36,7 @@ import java.io.InputStream;
 import java.util.List;
 
 
+// FIXME
 /**
  * Geocentric lunar position computed from the ELP/MPP02 truncated series.
  *
@@ -72,7 +73,7 @@ public final class MoonPosition{
 	 * ====================================================================== */
 
 	/** Arcsecond-to-radian conversion factor. */
-	private static final double SEC = StrictMath.PI / 648000.;
+	private static final double SEC = StrictMath.PI / 648_000.;
 
 	/** Two times π, cached for angle reduction. */
 	private static final double TWO_PI = 2. * StrictMath.PI;
@@ -216,8 +217,6 @@ public final class MoonPosition{
 			loadFromClasspath(ElpParameters.DE405));
 	}
 
-	/** The chosen parameter set. */
-	private final ElpParameters params;
 	/** The loaded coefficients. */
 	private final ElpCoefficients coefs;
 
@@ -249,8 +248,8 @@ public final class MoonPosition{
 		return SingletonHelperDE405.INSTANCE;
 	}
 
+
 	private MoonPosition(final ElpParameters params, final ElpCoefficients coefs){
-		this.params = params;
 		this.coefs = coefs;
 
 		// One-time construction of the corrected coefficient arrays. The
@@ -320,18 +319,32 @@ public final class MoonPosition{
 	 * ====================================================================== */
 
 	/**
-	 * Geocentric ecliptic position referred to the <em>mean ecliptic of
-	 * date</em>. This is the natural output of the theory.
+	 * Computes the apparent ecliptic longitude of the Moon.
 	 *
-	 * @param t Julian centuries of TDB from J2000:
-	 *          {@code (JD_TDB − 2451545.) / 36525}
-	 * @return the position, never {@code null}
+	 * @param jce      Julian Ephemeris Century of TDB from J2000.0
+	 * @param deltaPsi nutation in longitude [rad]
+	 * @return apparent moon longitude [rad]
 	 */
-	public EclipticCoordinate eclipticOfDate(final double t){
+	public static double computeApparentMoonLongitude(final double jce, final double deltaPsi) {
+		// The class native method returns the longitude on the mean ecliptic of date
+		final double lambdaMean = getInstanceLLR()
+			.longitudeOfDate(jce);
+
+		// Apply nutation (aberration is negligible for the Moon)
+		return MathHelper.mod2pi(lambdaMean + deltaPsi);
+	}
+
+	/**
+	 * Geocentric ecliptic coordinates of the Moon referred to the inertial mean ecliptic and dynamical equinox J2000.0.
+	 *
+	 * @param t Julian centuries of TDB from J2000: {@code (JD_TDB − 2451545.) / 36525}
+	 * @return the position
+	 */
+	public EclipticCoordinates eclipticOfDate(final double t){
 		// One argument array is built and shared by the three coordinate
 		// computations. This is the only allocation in the hot path.
 		final double[] args = arguments(t);
-		return new EclipticCoordinate(
+		return new EclipticCoordinates(
 			latitudeOfDate(t, args),
 			longitudeOfDate(t, args),
 			distance(t, args));
@@ -341,15 +354,15 @@ public final class MoonPosition{
 	 * Geocentric rectangular coordinates referred to the <em>mean ecliptic
 	 * and equinox of J2000.0</em>. This is the frame used by VSOP2013.
 	 *
-	 * @param t Julian centuries of TDB from J2000
+	 * @param jce Julian Ephemeris Century of Barycentric Dynamical Time from J2000.0.
 	 * @return a three-element array {@code [X, Y, Z]}, in kilometres
 	 */
-	public double[] rectangular(final double t){
-		final EclipticCoordinate sph = eclipticOfDate(t);
+	public double[] rectangular(final double jce){
+		final EclipticCoordinates sph = eclipticOfDate(jce);
 
 		// Precession angles from the ecliptic of date to J2000
-		final double p = MathHelper.polynomial(t, P_COEFFS);
-		final double q = MathHelper.polynomial(t, Q_COEFFS);
+		final double p = MathHelper.polynomial(jce, P_COEFFS);
+		final double q = MathHelper.polynomial(jce, Q_COEFFS);
 
 		final double rCosVcosU = sph.getDistance() * StrictMath.cos(sph.getLongitude())
 			* StrictMath.cos(sph.getLatitude());
@@ -373,8 +386,7 @@ public final class MoonPosition{
 	}
 
 	/**
-	 * Geocentric ecliptic longitude of the Moon referred to the mean
-	 * ecliptic of date.
+	 * Geocentric ecliptic longitude of the Moon referred to the mean ecliptic of date.
 	 *
 	 * @param t Julian centuries of TDB from J2000
 	 * @return longitude [rad], in the interval [0, 2π)
@@ -384,8 +396,7 @@ public final class MoonPosition{
 	}
 
 	/**
-	 * Geocentric ecliptic latitude of the Moon referred to the mean
-	 * ecliptic of date.
+	 * Geocentric ecliptic latitude of the Moon referred to the mean ecliptic of date.
 	 *
 	 * @param t Julian centuries of TDB from J2000
 	 * @return latitude [rad]
@@ -556,15 +567,6 @@ public final class MoonPosition{
 			sum += term.amplitude() * StrictMath.sin(arg);
 		}
 		return sum;
-	}
-
-
-	public static void main(final String[] args){
-		final double t = JulianDate.centuryJ2000Of(2444269.5);
-		final double[] xyz = MoonPosition.getInstanceDE405()
-			.rectangular(t);
-		System.out.println("x: " + xyz[0] + " y: " + xyz[1] + " z: " + xyz[2]);
-		System.out.println("x: -186813.08162 y: 349310.09818 z: -19003.33833");
 	}
 
 }
