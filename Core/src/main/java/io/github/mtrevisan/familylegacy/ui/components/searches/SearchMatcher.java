@@ -153,10 +153,10 @@ public final class SearchMatcher{
 	 * normalised by the longer of the two. Always the same formula,
 	 * independent of the mode.
 	 * <ul>
-	 *   <li>exact match → 1.0;</li>
+	 *   <li>exact match → 1;</li>
 	 *   <li>one-character difference on a seven-character word → 0.86;</li>
 	 *   <li>prefix "bor" on "bortolo" → 0.57;</li>
-	 *   <li>completely different tokens → 0.0.</li>
+	 *   <li>completely different tokens → 0.</li>
 	 * </ul>
 	 */
 	private static double similarity(final String queryToken, final String targetToken){

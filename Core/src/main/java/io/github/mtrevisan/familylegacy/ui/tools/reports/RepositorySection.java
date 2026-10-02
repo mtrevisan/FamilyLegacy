@@ -27,8 +27,10 @@ package io.github.mtrevisan.familylegacy.ui.tools.reports;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryReader;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.RepositoryHandler;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -54,17 +56,6 @@ import java.util.Set;
  * enabled and at least one repository is reachable.</p>
  */
 final class RepositorySection implements SectionBuilder{
-
-//	private static final String TAG_NAME = "name";
-//	private static final String TAG_VALUE = "value";
-//	private static final String TAG_TYPE = "type";
-//	private static final String TAG_LOCALE = "locale";
-//	private static final String TAG_CUSTODIAN = "custodian";
-//	private static final String TAG_CONTACT = "contact";
-
-	private static final String TYPE_REPOSITORY = "repository";
-	private static final String NAME_TYPE_OFFICIAL = "official";
-
 
 	private final ReportContext ctx;
 
@@ -124,8 +115,8 @@ final class RepositorySection implements SectionBuilder{
 		final FLEFRecord src = ctx.model.getRecordById(sourceId);
 		if(src == null)
 			return;
-		for(final FLEFRecord rc : FLEFRecordHelper.findChildren(src, TYPE_REPOSITORY)){
-			final String rid = rc.extractReferencedId(TYPE_REPOSITORY, TYPE_REPOSITORY);
+		for(final FLEFRecord rc : FLEFRecordHelper.findChildren(src, RepositoryHandler.TYPE)){
+			final String rid = rc.extractReferencedId(RepositoryCitationReader.TAG_REPOSITORY, RepositoryHandler.TYPE);
 			if(rid != null)
 				out.add(rid);
 		}
@@ -226,7 +217,7 @@ final class RepositorySection implements SectionBuilder{
 			return null;
 		for(final FLEFRecord n : names){
 			final String type = FLEFRecordHelper.getChildValue(n, NameReader.TAG_TYPE);
-			if(NAME_TYPE_OFFICIAL.equalsIgnoreCase(type)){
+			if(NameReader.ENUM_TYPE_OFFICIAL.equalsIgnoreCase(type)){
 				final String v = FLEFRecordHelper.getChildValue(n, NameReader.TAG_VALUE);
 				if(v != null && !v.isBlank())
 					return n;

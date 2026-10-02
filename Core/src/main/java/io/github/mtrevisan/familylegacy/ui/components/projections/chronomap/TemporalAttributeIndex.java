@@ -27,6 +27,8 @@ package io.github.mtrevisan.familylegacy.ui.components.projections.chronomap;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.readers.GroupAttributeReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualAttributeReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateNormalizer;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.TemporalSpan;
 import io.github.mtrevisan.familylegacy.ui.handlers.GroupAttributeHandler;
@@ -48,14 +50,6 @@ import java.util.Map;
  * as time-bounded bands or as temporal anchors.
  */
 public final class TemporalAttributeIndex{
-
-	private static final String TAG_TYPE = "type";
-	private static final String TAG_VALUE = "value";
-	private static final String TAG_VALID_FROM = "valid_from";
-	private static final String TAG_VALID_TO = "valid_to";
-	private static final String TAG_SUBJECT = "subject";
-	private static final String TAG_GROUP = "group";
-
 
 	private final FLEFModel model;
 	private final Map<String, List<AttributeDatum>> attributesByOwner = new HashMap<>();
@@ -119,11 +113,12 @@ public final class TemporalAttributeIndex{
 	}
 
 	private AttributeDatum parse(final FLEFRecord attribute, final String ownerId){
-		final String type = FLEFRecordHelper.getChildValue(attribute, TAG_TYPE);
-		final String value = FLEFRecordHelper.getChildValue(attribute, TAG_VALUE);
+		final boolean isIndividual = (FLEFRecordHelper.getChildValue(attribute, IndividualAttributeReader.TAG_INDIVIDUAL) != null);
+		final String type = FLEFRecordHelper.getChildValue(attribute, (isIndividual? IndividualAttributeReader.TAG_TYPE: GroupAttributeReader.TAG_TYPE));
+		final String value = FLEFRecordHelper.getChildValue(attribute, (isIndividual? IndividualAttributeReader.TAG_VALUE: GroupAttributeReader.TAG_VALUE));
 
-		final Long from = extractDate(attribute, TAG_VALID_FROM);
-		final Long to = extractDate(attribute, TAG_VALID_TO);
+		final Long from = extractDate(attribute, (isIndividual? IndividualAttributeReader.TAG_VALID_FROM: GroupAttributeReader.TAG_VALID_FROM));
+		final Long to = extractDate(attribute, (isIndividual? IndividualAttributeReader.TAG_VALID_TO: GroupAttributeReader.TAG_VALID_TO));
 		if(from == null && to == null)
 			return null;
 
@@ -171,8 +166,8 @@ public final class TemporalAttributeIndex{
 		return (r != null? r.coordinate(): null);
 	}
 
-	private static String extractIndividualOwner(final FLEFRecord attribute){
-		final FLEFRecord field = FLEFRecordHelper.findChild(attribute, TAG_SUBJECT);
+	private static String extractIndividualOwner(final FLEFRecord individualAttribute){
+		final FLEFRecord field = FLEFRecordHelper.findChild(individualAttribute, IndividualAttributeReader.TAG_INDIVIDUAL);
 		if(field == null)
 			return null;
 
@@ -183,8 +178,8 @@ public final class TemporalAttributeIndex{
 		return null;
 	}
 
-	private static String extractGroupOwner(final FLEFRecord attribute){
-		final FLEFRecord field = FLEFRecordHelper.findChild(attribute, TAG_GROUP);
+	private static String extractGroupOwner(final FLEFRecord groupAttribute){
+		final FLEFRecord field = FLEFRecordHelper.findChild(groupAttribute, GroupAttributeReader.TAG_GROUP);
 		if(field == null)
 			return null;
 

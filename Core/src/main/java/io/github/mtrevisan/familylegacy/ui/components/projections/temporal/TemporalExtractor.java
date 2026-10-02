@@ -27,11 +27,19 @@ package io.github.mtrevisan.familylegacy.ui.components.projections.temporal;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.readers.ContextImpactReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.CulturalNormReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.GroupAttributeReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.HistoricEventReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualAttributeReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateNormalizer;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.TemporalSpan;
 import io.github.mtrevisan.familylegacy.ui.handlers.CulturalNormHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.HistoricEventHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.IndividualAttributeHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.PlaceHandler;
 import org.apache.commons.lang3.StringUtils;
 
@@ -61,27 +69,6 @@ import java.util.List;
  * temporal view and ignores undated assertions.
  */
 public final class TemporalExtractor{
-
-	// Event-related tags.
-	private static final String TAG_TYPE = "type";
-	private static final String TAG_ROLE = "role";
-	private static final String TAG_PARTICIPANT = "participant";
-	private static final String TAG_EVENT = "event";
-	private static final String TAG_DATE = "date";
-
-	// Attribute-related tags.
-	private static final String TAG_VALID_FROM = "valid_from";
-	private static final String TAG_VALID_TO = "valid_to";
-	private static final String TAG_VALUE = "value";
-
-	// Context-related tags.
-	private static final String TAG_CONTEXT = "context";
-	private static final String TAG_TARGET = "target";
-	private static final String TAG_IMPACT_TYPE = "impact_type";
-
-	private static final String TAG_RULE_TYPE = "rule_type";
-	private static final String TAG_TITLE = "title";
-
 
 	private final FLEFModel model;
 	private final TemporalIndices indices;
@@ -122,11 +109,11 @@ public final class TemporalExtractor{
 		final List<TemporalEntry> result = new ArrayList<>();
 
 		// Only iterate over the participations that actually reference this entity.
-		for(final FLEFRecord participation : indices.eventParticipationsFor(entity.id())){
-			if(!isParticipant(participation, entity))
+		for(final FLEFRecord eventParticipation : indices.eventParticipationsFor(entity.id())){
+			if(!isParticipant(eventParticipation, entity))
 				continue;
 
-			final String eventId = FLEFRecordHelper.getChildValue(participation, TAG_EVENT);
+			final String eventId = FLEFRecordHelper.getChildValue(eventParticipation, EventParticipationReader.TAG_EVENT);
 			if(eventId == null)
 				continue;
 
@@ -134,13 +121,13 @@ public final class TemporalExtractor{
 			if(event == null || !EventHandler.TYPE.equalsIgnoreCase(event.getTag()))
 				continue;
 
-			final FLEFRecord dateStructure = FLEFRecordHelper.findChild(event, TAG_DATE);
+			final FLEFRecord dateStructure = FLEFRecordHelper.findChild(event, EventReader.TAG_DATE);
 			final TemporalSpan span = DateNormalizer.normalize(dateStructure);
 			if(span == null)
 				continue;
 
-			final String type = FLEFRecordHelper.getChildValue(event, TAG_TYPE);
-			final String role = FLEFRecordHelper.getChildValue(participation, TAG_ROLE);
+			final String type = FLEFRecordHelper.getChildValue(event, EventReader.TAG_TYPE);
+			final String role = FLEFRecordHelper.getChildValue(eventParticipation, EventParticipationReader.TAG_ROLE);
 			final String label = (type != null? type.replace('_', ' '): "event");
 
 			result.add(new TemporalEntry(span, label, type, role, event, null));
@@ -154,8 +141,8 @@ public final class TemporalExtractor{
 	 * a place and an individual that happen to share the same LocalID cannot
 	 * cross-match.
 	 */
-	private static boolean isParticipant(final FLEFRecord participation, final TemporalEntityRef entity){
-		final FLEFRecord participantRecord = FLEFRecordHelper.findChild(participation, TAG_PARTICIPANT);
+	private static boolean isParticipant(final FLEFRecord eventParticipation, final TemporalEntityRef entity){
+		final FLEFRecord participantRecord = FLEFRecordHelper.findChild(eventParticipation, EventParticipationReader.TAG_PARTICIPANT);
 		if(participantRecord == null)
 			return false;
 		final FLEFRecord ref = participantRecord.getTheOnlyChild();
@@ -216,14 +203,15 @@ public final class TemporalExtractor{
 	}
 
 	private TemporalEntry buildAttributeEntry(final FLEFRecord attribute){
-		final FLEFRecord from = FLEFRecordHelper.findChild(attribute, TAG_VALID_FROM);
-		final FLEFRecord to = FLEFRecordHelper.findChild(attribute, TAG_VALID_TO);
+		final boolean isIndividual = IndividualAttributeHandler.TYPE.equals(attribute.getTag());
+		final FLEFRecord from = FLEFRecordHelper.findChild(attribute, (isIndividual? IndividualAttributeReader.TAG_VALID_FROM: GroupAttributeReader.TAG_VALID_FROM));
+		final FLEFRecord to = FLEFRecordHelper.findChild(attribute, (isIndividual? IndividualAttributeReader.TAG_VALID_TO: GroupAttributeReader.TAG_VALID_TO));
 		final TemporalSpan span = DateNormalizer.combineBounds(from, to);
 		if(span == null)
 			return null;
 
-		final String type = FLEFRecordHelper.getChildValue(attribute, TAG_TYPE);
-		final String value = FLEFRecordHelper.getChildValue(attribute, TAG_VALUE);
+		final String type = FLEFRecordHelper.getChildValue(attribute, (isIndividual? IndividualAttributeReader.TAG_TYPE: GroupAttributeReader.TAG_TYPE));
+		final String value = FLEFRecordHelper.getChildValue(attribute, (isIndividual? IndividualAttributeReader.TAG_VALUE: GroupAttributeReader.TAG_VALUE));
 		final String label = (type != null? type.replace('_', ' '): "attribute");
 
 		return new TemporalEntry(span, label, type, value, attribute, null);
@@ -265,7 +253,7 @@ public final class TemporalExtractor{
 	 */
 	private void collectContextImpactEntries(final TemporalEntityRef entity, final List<TemporalEntry> output){
 		for(final FLEFRecord impact : indices.contextImpactsFor(entity.id())){
-			final FLEFRecord contextRef = FLEFRecordHelper.findChild(impact, TAG_CONTEXT);
+			final FLEFRecord contextRef = FLEFRecordHelper.findChild(impact, ContextImpactReader.TAG_CONTEXT);
 			if(contextRef == null)
 				continue;
 			final FLEFRecord contextRecord = contextRef.getTheOnlyChild();
@@ -280,7 +268,7 @@ public final class TemporalExtractor{
 			if(span == null)
 				continue;
 
-			final String impactType = FLEFRecordHelper.getChildValue(impact, TAG_IMPACT_TYPE);
+			final String impactType = FLEFRecordHelper.getChildValue(impact, ContextImpactReader.TAG_IMPACT_TYPE);
 			final String label = context.getTag()
 				.replace('_', ' ');
 			output.add(new TemporalEntry(span, label, context.getTag(), impactType, context, null));
@@ -289,13 +277,13 @@ public final class TemporalExtractor{
 
 	private void collectHistoricEventPlaceEntries(final TemporalEntityRef entity, final List<TemporalEntry> output){
 		for(final FLEFRecord record : indices.historicEventsFor(entity.id())){
-			final FLEFRecord date = FLEFRecordHelper.findChild(record, TAG_DATE);
+			final FLEFRecord date = FLEFRecordHelper.findChild(record, HistoricEventReader.TAG_DATE);
 			final TemporalSpan span = DateNormalizer.normalize(date);
 			if(span == null)
 				continue;
 
-			final String type = FLEFRecordHelper.getChildValue(record, TAG_TYPE);
-			final String title = FLEFRecordHelper.getChildValue(record, TAG_TITLE);
+			final String type = FLEFRecordHelper.getChildValue(record, HistoricEventReader.TAG_TYPE);
+			final String title = FLEFRecordHelper.getChildValue(record, HistoricEventReader.TAG_TITLE);
 			final String label = (title != null? title: type != null? type: "historic event");
 			output.add(new TemporalEntry(span, label, type, StringUtils.EMPTY, record, null));
 		}
@@ -303,14 +291,14 @@ public final class TemporalExtractor{
 
 	private void collectCulturalNormPlaceEntries(final TemporalEntityRef entity, final List<TemporalEntry> output){
 		for(final FLEFRecord record : indices.culturalNormsFor(entity.id())){
-			final FLEFRecord from = FLEFRecordHelper.findChild(record, TAG_VALID_FROM);
-			final FLEFRecord to = FLEFRecordHelper.findChild(record, TAG_VALID_TO);
+			final FLEFRecord from = FLEFRecordHelper.findChild(record, CulturalNormReader.TAG_VALID_FROM);
+			final FLEFRecord to = FLEFRecordHelper.findChild(record, CulturalNormReader.TAG_VALID_TO);
 			final TemporalSpan span = DateNormalizer.combineBounds(from, to);
 			if(span == null)
 				continue;
 
-			final String ruleType = FLEFRecordHelper.getChildValue(record, TAG_RULE_TYPE);
-			final String title = FLEFRecordHelper.getChildValue(record, TAG_TITLE);
+			final String ruleType = FLEFRecordHelper.getChildValue(record, CulturalNormReader.TAG_TYPE);
+			final String title = FLEFRecordHelper.getChildValue(record, CulturalNormReader.TAG_TITLE);
 			final String label = (title != null? title: ruleType != null? ruleType: "cultural norm");
 			output.add(new TemporalEntry(span, label, ruleType, StringUtils.EMPTY, record, null));
 		}
@@ -329,7 +317,7 @@ public final class TemporalExtractor{
 	}
 
 	private static boolean isImpactTarget(final FLEFRecord impact, final TemporalEntityRef entity){
-		final FLEFRecord targetRef = FLEFRecordHelper.findChild(impact, TAG_TARGET);
+		final FLEFRecord targetRef = FLEFRecordHelper.findChild(impact, ContextImpactReader.TAG_TARGET);
 		if(targetRef == null)
 			return false;
 		final FLEFRecord ref = targetRef.getTheOnlyChild();
@@ -341,12 +329,12 @@ public final class TemporalExtractor{
 	private TemporalSpan contextSpan(final FLEFRecord context){
 		return switch(context.getTag()){
 			case HistoricEventHandler.TYPE -> {
-				final FLEFRecord date = FLEFRecordHelper.findChild(context, TAG_DATE);
+				final FLEFRecord date = FLEFRecordHelper.findChild(context, HistoricEventReader.TAG_DATE);
 				yield DateNormalizer.normalize(date);
 			}
 			case CulturalNormHandler.TYPE -> {
-				final FLEFRecord from = FLEFRecordHelper.findChild(context, TAG_VALID_FROM);
-				final FLEFRecord to = FLEFRecordHelper.findChild(context, TAG_VALID_TO);
+				final FLEFRecord from = FLEFRecordHelper.findChild(context, CulturalNormReader.TAG_VALID_FROM);
+				final FLEFRecord to = FLEFRecordHelper.findChild(context, CulturalNormReader.TAG_VALID_TO);
 				yield buildAttributeSpan(from, to);
 			}
 			default -> null;

@@ -26,8 +26,14 @@ package io.github.mtrevisan.familylegacy.ui.tools.reports;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualAttributeReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceCitationReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceRelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateService;
+import io.github.mtrevisan.familylegacy.ui.handlers.EventHandler;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -59,19 +65,8 @@ import java.util.function.Function;
  */
 final class PlacesSection implements SectionBuilder{
 
-	private static final String TAG_NAME = "name";
-	private static final String TAG_VALUE = "value";
 	private static final String TAG_TYPE = "type";
-	private static final String TAG_LOCALE = "locale";
-	private static final String TAG_VARIANT = "variant";
-	private static final String TAG_PLACE = "place";
-	private static final String TAG_MAP = "map";
-	private static final String TAG_COORDINATES = "coordinates";
 	private static final String TAG_VALID_FROM = "valid_from";
-	private static final String TAG_VALID_TO = "valid_to";
-	private static final String TAG_ORIGINAL = "original_text";
-
-	private static final String NAME_TYPE_OFFICIAL = "official";
 
 
 	private final ReportContext ctx;
@@ -119,11 +114,12 @@ final class PlacesSection implements SectionBuilder{
 	}
 
 	private void collectPlace(final FLEFRecord rec, final Map<String, PlaceEntry> out){
-		final FLEFRecord citation = FLEFRecordHelper.findChild(rec, TAG_PLACE);
+		final boolean isEvent = EventHandler.TYPE.equals(rec.getTag());
+		final FLEFRecord citation = FLEFRecordHelper.findChild(rec, (isEvent? EventReader.TAG_PLACE: IndividualAttributeReader.TAG_PLACE));
 		if(citation == null)
 			return;
 
-		final String pid = FLEFRecordHelper.getChildValue(citation, TAG_PLACE);
+		final String pid = FLEFRecordHelper.getChildValue(citation, (isEvent? EventReader.TAG_PLACE: IndividualAttributeReader.TAG_PLACE));
 		if(pid == null)
 			return;
 
@@ -166,9 +162,9 @@ final class PlacesSection implements SectionBuilder{
 	private void appendBasicInfo(final List<ReportSection> out, final FLEFRecord place){
 		final List<String> rows = new ArrayList<>();
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().placeType(),
-			FLEFRecordHelper.getChildValue(place, TAG_TYPE));
+			FLEFRecordHelper.getChildValue(place, PlaceReader.TAG_TYPE));
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().placeCoordinates(),
-			FLEFRecordHelper.getChildValue(place, TAG_MAP + "." + TAG_COORDINATES));
+			FLEFRecordHelper.getChildValue(place, PlaceReader.TAG_MAP + "." + PlaceReader.TAG_COORDINATES));
 		if(!rows.isEmpty())
 			out.add(new ReportSection.BulletList(rows));
 	}
@@ -181,13 +177,13 @@ final class PlacesSection implements SectionBuilder{
 	 */
 	private void appendNames(final List<ReportSection> out, final FLEFRecord place,
 		final FLEFRecord primary){
-		final List<FLEFRecord> names = FLEFRecordHelper.findChildren(place, TAG_NAME);
+		final List<FLEFRecord> names = FLEFRecordHelper.findChildren(place, PlaceReader.TAG_NAME);
 		final List<String> rows = new ArrayList<>();
 
 		for(final FLEFRecord nameNode : names){
-			final String type = FLEFRecordHelper.getChildValue(nameNode, TAG_TYPE);
-			final String value = FLEFRecordHelper.getChildValue(nameNode, TAG_VALUE);
-			final String locale = FLEFRecordHelper.getChildValue(nameNode, TAG_LOCALE);
+			final String type = FLEFRecordHelper.getChildValue(nameNode, NameReader.TAG_TYPE);
+			final String value = FLEFRecordHelper.getChildValue(nameNode, NameReader.TAG_VALUE);
+			final String locale = FLEFRecordHelper.getChildValue(nameNode, NameReader.TAG_LOCALE);
 
 			if(nameNode != primary){
 				final StringBuilder line = new StringBuilder();
@@ -200,7 +196,7 @@ final class PlacesSection implements SectionBuilder{
 				rows.add(line.toString());
 			}
 
-			for(final FLEFRecord variant : FLEFRecordHelper.findChildren(nameNode, TAG_VARIANT)){
+			for(final FLEFRecord variant : FLEFRecordHelper.findChildren(nameNode, NameReader.TAG_PART_VARIANT)){
 				final String v = ReportFormatters.renderNameVariant(variant);
 				if(v != null)
 					rows.add("  *" + ctx.labels.sections().placeNameVariant() + ":* "
@@ -226,7 +222,7 @@ final class PlacesSection implements SectionBuilder{
 	}
 
 	private void appendJurisdiction(final List<ReportSection> out, final FLEFRecord rel){
-		final String type = FLEFRecordHelper.getChildValue(rel, TAG_TYPE);
+		final String type = FLEFRecordHelper.getChildValue(rel, PlaceRelationshipReader.TAG_TYPE);
 		final String targetId = FLEFRecordHelper.getChildValue(rel, "target.place");
 		final FLEFRecord target = (targetId != null? ctx.visible(ctx.model.getRecordById(targetId)): null);
 		final String targetName = (target != null? nameValue(primaryNameNode(target), target): targetId);
@@ -239,9 +235,9 @@ final class PlacesSection implements SectionBuilder{
 		out.add(new ReportSection.Heading(4, ReportFormatters.escape(heading.toString())));
 
 		final String from = GenealogicalDateHelper.formatDateStructure(
-			rel, TAG_VALID_FROM, ctx.labels, contextLabels);
+			rel, PlaceRelationshipReader.TAG_VALID_FROM, ctx.labels, contextLabels);
 		final String to = GenealogicalDateHelper.formatDateStructure(
-			rel, TAG_VALID_TO, ctx.labels, contextLabels);
+			rel, PlaceRelationshipReader.TAG_VALID_TO, ctx.labels, contextLabels);
 
 		final List<String> rows = new ArrayList<>();
 		if(from != null)
@@ -277,7 +273,7 @@ final class PlacesSection implements SectionBuilder{
 	}
 
 	private void appendContainedPlace(final List<ReportSection> out, final FLEFRecord rel){
-		final String type = FLEFRecordHelper.getChildValue(rel, TAG_TYPE);
+		final String type = FLEFRecordHelper.getChildValue(rel, PlaceRelationshipReader.TAG_TYPE);
 		final String subjectId = FLEFRecordHelper.getChildValue(rel, "subject.place");
 		final FLEFRecord subject = (subjectId != null
 			? ctx.visible(ctx.model.getRecordById(subjectId)): null);
@@ -292,9 +288,9 @@ final class PlacesSection implements SectionBuilder{
 		out.add(new ReportSection.Heading(4, ReportFormatters.escape(heading.toString())));
 
 		final String from = GenealogicalDateHelper.formatDateStructure(
-			rel, TAG_VALID_FROM, ctx.labels, contextLabels);
+			rel, PlaceRelationshipReader.TAG_VALID_FROM, ctx.labels, contextLabels);
 		final String to = GenealogicalDateHelper.formatDateStructure(
-			rel, TAG_VALID_TO, ctx.labels, contextLabels);
+			rel, PlaceRelationshipReader.TAG_VALID_TO, ctx.labels, contextLabels);
 
 		final List<String> rows = new ArrayList<>();
 		if(from != null)
@@ -322,7 +318,7 @@ final class PlacesSection implements SectionBuilder{
 		for(final CitationRef ref : entry.citations()){
 			final List<ReportSection> block = new ArrayList<>();
 
-			final String original = FLEFRecordHelper.getChildValue(ref.citation(), TAG_ORIGINAL);
+			final String original = FLEFRecordHelper.getChildValue(ref.citation(), PlaceCitationReader.TAG_ORIGINAL_TEXT);
 			if(original != null && !original.isBlank())
 				block.add(new ReportSection.Paragraph(
 					"**" + ctx.labels.sections().placeOriginalText() + ":** "
@@ -390,13 +386,13 @@ final class PlacesSection implements SectionBuilder{
 	 * non-blank name, otherwise {@code null}.
 	 */
 	private static FLEFRecord primaryNameNode(final FLEFRecord place){
-		final List<FLEFRecord> names = FLEFRecordHelper.findChildren(place, TAG_NAME);
+		final List<FLEFRecord> names = FLEFRecordHelper.findChildren(place, PlaceReader.TAG_NAME);
 		if(names.isEmpty())
 			return null;
 
 		for(final FLEFRecord n : names){
 			final String type = FLEFRecordHelper.getChildValue(n, NameReader.TAG_TYPE);
-			if(NAME_TYPE_OFFICIAL.equalsIgnoreCase(type)){
+			if(NameReader.ENUM_TYPE_OFFICIAL.equalsIgnoreCase(type)){
 				final String v = FLEFRecordHelper.getChildValue(n, NameReader.TAG_VALUE);
 				if(v != null && !v.isBlank())
 					return n;
@@ -413,7 +409,7 @@ final class PlacesSection implements SectionBuilder{
 	/** Returns the trimmed display value of a name node, or the place ID as fallback. */
 	private static String nameValue(final FLEFRecord nameNode, final FLEFRecord place){
 		if(nameNode != null){
-			final String v = FLEFRecordHelper.getChildValue(nameNode, TAG_VALUE);
+			final String v = FLEFRecordHelper.getChildValue(nameNode, NameReader.TAG_VALUE);
 			if(v != null && !v.isBlank())
 				return v.trim();
 		}

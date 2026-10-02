@@ -34,6 +34,7 @@ import io.github.mtrevisan.familylegacy.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
+import io.github.mtrevisan.familylegacy.ui.tools.events.CalendarConverterDialog;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JPanel;
@@ -253,7 +254,7 @@ public final class MultiLifespanStripPanel extends JPanel{
 	 *            the strip is emptied)
 	 */
 	public void setIndividuals(final Collection<String> ids){
-		this.currentIds = (ids != null? List.copyOf(new LinkedHashSet<>(ids)): List.of());
+		currentIds = (ids != null? List.copyOf(new LinkedHashSet<>(ids)): List.of());
 
 		final List<Row> newRows = new ArrayList<>(currentIds.size());
 		NormalizedDate min = null;
@@ -799,8 +800,8 @@ public final class MultiLifespanStripPanel extends JPanel{
 
 			final long startJdn = axis.visibleStartJdn();
 			final long endJdn = axis.visibleEndJdn();
-			final int startYear = jdnToGregorian(startJdn)[0];
-			final int endYear = jdnToGregorian(endJdn)[0];
+			final int startYear = CalendarConverterDialog.jdnToGregorian(startJdn)[0];
+			final int endYear = CalendarConverterDialog.jdnToGregorian(endJdn)[0];
 
 			final int firstCentury = Math.floorDiv(startYear, 100) * 100;
 			final int lastCentury = Math.floorDiv(endYear, 100) * 100;
@@ -1010,7 +1011,7 @@ public final class MultiLifespanStripPanel extends JPanel{
 		if(date == null)
 			return "?";
 
-		final int[] ymd = jdnToGregorian(date.jdn());
+		final int[] ymd = CalendarConverterDialog.jdnToGregorian(date.jdn());
 		return switch(date.precision()){
 			case DAY -> ymd[2] + StringUtils.SPACE + MONTH_NAMES[ymd[1] - 1] + StringUtils.SPACE + ymd[0];
 			case MONTH -> MONTH_NAMES[ymd[1] - 1] + StringUtils.SPACE + ymd[0];
@@ -1021,7 +1022,7 @@ public final class MultiLifespanStripPanel extends JPanel{
 	}
 
 	private static String formatDate(final long jdn){
-		final int[] ymd = jdnToGregorian(jdn);
+		final int[] ymd = CalendarConverterDialog.jdnToGregorian(jdn);
 		return ymd[2] + StringUtils.SPACE + MONTH_NAMES[ymd[1] - 1] + StringUtils.SPACE + ymd[0];
 	}
 
@@ -1045,22 +1046,6 @@ public final class MultiLifespanStripPanel extends JPanel{
 		return s.replace("&", "&amp;")
 			.replace("<", "&lt;")
 			.replace(">", "&gt;");
-	}
-
-	/**
-	 * Converts a JDN to a Gregorian [year, month, day] triple.
-	 */
-	private static int[] jdnToGregorian(final long jdn){
-		final long a = jdn + 32044L;
-		final long b = (4L * a + 3L) / 146097L;
-		final long c = a - (146097L * b) / 4L;
-		final long d = (4L * c + 3L) / 1461L;
-		final long e = c - (1461L * d) / 4L;
-		final long m = (5L * e + 2L) / 153L;
-		final int day = (int)(e - (153L * m + 2L) / 5L + 1L);
-		final int month = (int)(m + 3L - 12L * (m / 10L));
-		final int year = (int)(100L * b + d - 4800L + m / 10L);
-		return new int[]{year, month, day};
 	}
 
 	/**

@@ -163,13 +163,9 @@ public final class AddChildTool implements ToolOperation{
 		if(partnersPanel == null)
 			return null;
 
-		final IndividualPanel otherPanel = (partnersPanel.getFatherPanel() == targetPanel
-			? partnersPanel.getMotherPanel()
-			: partnersPanel.getFatherPanel());
-		if(otherPanel == null)
-			return null;
-
-		final IndividualData otherData = otherPanel.getData();
+		final IndividualData otherData = (partnersPanel.getFatherPanel() == targetPanel
+			? partnersPanel.getMotherData()
+			: partnersPanel.getFatherData());
 		if(otherData == null || otherData.isEmpty())
 			return null;
 

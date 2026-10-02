@@ -65,7 +65,8 @@ public record PedigreeCollapse(
 		if(occurrenceCount < 2)
 			throw new IllegalArgumentException("Occurrence count must be at least 2 for a collapse");
 
-		paths = (paths != null? List.copyOf(paths): List.of());
+		if(paths == null)
+			paths = List.of();
 		if(paths.size() != occurrenceCount)
 			throw new IllegalArgumentException("Path count must match occurrence count");
 	}

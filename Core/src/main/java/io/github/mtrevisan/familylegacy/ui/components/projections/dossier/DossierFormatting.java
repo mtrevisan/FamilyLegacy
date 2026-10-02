@@ -33,6 +33,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.date.DateNormalizer;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.NormalizedDate;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.TemporalSpan;
 import io.github.mtrevisan.familylegacy.ui.handlers.PlaceHandler;
+import io.github.mtrevisan.familylegacy.ui.tools.events.CalendarConverterDialog;
 import org.apache.commons.lang3.StringUtils;
 
 
@@ -44,11 +45,8 @@ import org.apache.commons.lang3.StringUtils;
 final class DossierFormatting{
 
 	private static final String TAG_DATE = "date";
-	private static final String TAG_VALID_FROM = "valid_from";
-	private static final String TAG_VALID_TO = "valid_to";
-	private static final String TAG_NAME = "name";
-	private static final String TAG_VALUE = "value";
 
+	// FIXME
 	private static final String[] MONTH_NAMES = {
 		"Jan", "Feb", "Mar", "Apr", "May", "Jun",
 		"Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
@@ -83,9 +81,9 @@ final class DossierFormatting{
 		return formatNormalizedDate(span.start());
 	}
 
-	String formatValidity(final FLEFRecord parent){
-		final String from = formatDate(parent, TAG_VALID_FROM);
-		final String to = formatDate(parent, TAG_VALID_TO);
+	String formatValidity(final FLEFRecord parent, final String tagValidFrom, final String tagValidTo){
+		final String from = formatDate(parent, tagValidFrom);
+		final String to = formatDate(parent, tagValidTo);
 		if(from.isEmpty() && to.isEmpty())
 			return StringUtils.EMPTY;
 
@@ -135,7 +133,7 @@ final class DossierFormatting{
 		if(date == null)
 			return StringUtils.EMPTY;
 
-		final int[] ymd = jdnToGregorian(date.jdn());
+		final int[] ymd = CalendarConverterDialog.jdnToGregorian(date.jdn());
 		return switch(date.precision()){
 			case DAY -> ymd[2] + StringUtils.SPACE + MONTH_NAMES[ymd[1] - 1] + StringUtils.SPACE + ymd[0];
 			case MONTH -> MONTH_NAMES[ymd[1] - 1] + StringUtils.SPACE + ymd[0];
@@ -143,19 +141,6 @@ final class DossierFormatting{
 			case DECADE -> (ymd[0] / 10 * 10) + "s";
 			case CENTURY -> (ymd[0] / 100 + 1) + "th c.";
 		};
-	}
-
-	private static int[] jdnToGregorian(final long jdn){
-		final long a = jdn + 32044L;
-		final long b = (4L * a + 3L) / 146097L;
-		final long c = a - (146097L * b) / 4L;
-		final long d = (4L * c + 3L) / 1461L;
-		final long e = c - (1461L * d) / 4L;
-		final long m = (5L * e + 2L) / 153L;
-		final int day = (int)(e - (153L * m + 2L) / 5L + 1L);
-		final int month = (int)(m + 3L - 12L * (m / 10L));
-		final int year = (int)(100L * b + d - 4800L + m / 10L);
-		return new int[]{year, month, day};
 	}
 
 }

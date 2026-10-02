@@ -58,10 +58,9 @@ public class PopupMenuHelper{
 			if(side == null)
 				return true;
 
-			final IndividualPanel otherPanel = (side == Side.LEFT
-				? partnersPanel.getMotherPanel()
-				: partnersPanel.getFatherPanel());
-			final IndividualData otherData = otherPanel.getData();
+			final IndividualData otherData = (side == Side.LEFT
+				? partnersPanel.getMotherData()
+				: partnersPanel.getFatherData());
 			if(otherData == null || otherData.isEmpty())
 				return true;
 

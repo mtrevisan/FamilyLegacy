@@ -339,7 +339,7 @@ public final class StatisticsDialog extends JDialog{
 		}
 
 		if(total > 0){
-			final double percent = 100.0 * sum / total;
+			final double percent = 100. * sum / total;
 			selectionSummary.setText(GUIHelper.format(
 				"%d selected — %,d total occurrences (%.1f%% of %,d)",
 				rows.length, sum, percent, total));

@@ -76,7 +76,7 @@ public final class TreeContextHelper{
 			this.individual = individual;
 			this.partnerPanel = partnerPanel;
 			this.side = side;
-			this.childrenId = (childrenId != null? List.copyOf(childrenId): List.of());
+			this.childrenId = (childrenId != null? childrenId: List.of());
 			this.targetId = targetId;
 		}
 
@@ -142,12 +142,10 @@ public final class TreeContextHelper{
 
 		final List<String> childrenId = collectChildrenIds(partnerPanel, nodeToPanelMap);
 
-		final IndividualPanel oppositePanel = (side == Side.LEFT
-			? partnerPanel.getMotherPanel()
-			: partnerPanel.getFatherPanel());
-		final String targetId = (oppositePanel != null && oppositePanel.getData() != null
-			? oppositePanel.getData().getId()
-			: null);
+		final IndividualData oppositeData = (side == Side.LEFT
+			? partnerPanel.getMotherData()
+			: partnerPanel.getFatherData());
+		final String targetId = (oppositeData != null? oppositeData.getId(): null);
 
 		return Context.forPartner(currentRecord, partnerPanel, side, childrenId, targetId);
 	}

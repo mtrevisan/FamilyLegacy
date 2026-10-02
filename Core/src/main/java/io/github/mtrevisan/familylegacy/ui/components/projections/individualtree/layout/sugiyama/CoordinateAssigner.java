@@ -29,9 +29,11 @@ import io.github.mtrevisan.familylegacy.ui.components.projections.individual.Ent
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualListener;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualPanel;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.IndividualTreeGraphListener;
+import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.layout.PartnerCycleHandler;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.layout.TreeLayout;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.layout.TreeLayoutBuilder;
 import io.github.mtrevisan.familylegacy.ui.components.projections.partners.PartnersPanel;
+import io.github.mtrevisan.familylegacy.ui.components.projections.repository.GenealogyRepository;
 import io.github.mtrevisan.familylegacy.ui.components.projections.repository.TreeNode;
 import io.github.mtrevisan.familylegacy.ui.components.projections.siblings.SiblingsPanel;
 import net.miginfocom.swing.MigLayout;
@@ -75,10 +77,10 @@ public class CoordinateAssigner{
 
 
 	public static SiblingsPanel populateCanvas(final JPanel canvas, final TreeNode rootNode,
-			final List<List<Graph.Node>> layers, final FLEFModel model, final Map<TreeNode, PartnersPanel> nodeToPanelMap,
-			final IndividualTreeGraphListener treeListener,
+			final List<List<Graph.Node>> layers, final FLEFModel model, final GenealogyRepository genealogyRepository,
+			final Map<TreeNode, PartnersPanel> nodeToPanelMap, final IndividualTreeGraphListener treeListener,
 			final EntityPopupMenuFactory<IndividualPanel, IndividualListener> popupFactory, final TreeLayout treeLayout,
-			final boolean showPartner){
+			final boolean showPartner, final PartnerCycleHandler partnerCycleHandler){
 		final Map<TreeNode, PartnersPanel> existingPanels = new HashMap<>(nodeToPanelMap);
 		canvas.removeAll();
 
@@ -89,7 +91,7 @@ public class CoordinateAssigner{
 		canvas.setLayout(new MigLayout(layoutConstraints, StringUtils.EMPTY, StringUtils.EMPTY));
 
 		final Map<String, TreeNode> treeNodeById = buildTreeNodeIndex(layers);
-		final List<List<TreeNode[]>> couplesPerLayer = CoupleGrouper.groupAll(layers, treeNodeById);
+		final List<List<TreeNode[]>> couplesPerLayer = CoupleGrouper.groupAll(layers, treeNodeById, genealogyRepository);
 		// Vertical layout: oldest ancestors on top, root generation at the
 		// bottom. Horizontal layout: children of the root couple on the left,
 		// oldest ancestors on the right. The layer order is reversed for the
@@ -114,7 +116,7 @@ public class CoordinateAssigner{
 		}
 
 		gridRow = buildLayerPanels(canvas, couplesInCanvasOrder, panelFactory, parentIndex, isVertical, gridRow,
-			existingPanels, treeLayout);
+			existingPanels, treeLayout, genealogyRepository, partnerCycleHandler);
 
 		if(isVertical && hasChildren)
 			addChildrenStrip(canvas, siblingsPanel, gridRow, isVertical, treeLayout);
@@ -160,7 +162,8 @@ public class CoordinateAssigner{
 	 */
 	private static int buildLayerPanels(final JPanel canvas, final List<List<TreeNode[]>> couplesPerLayer,
 			final PartnersPanelFactory panelFactory, final ParentPanelIndex parentIndex, final boolean isVertical,
-			final int startGridRow, final Map<TreeNode, PartnersPanel> existingPanels, final TreeLayout treeLayout){
+			final int startGridRow, final Map<TreeNode, PartnersPanel> existingPanels, final TreeLayout treeLayout,
+			final GenealogyRepository genealogyRepository, final PartnerCycleHandler partnerCycleHandler){
 		final String layerLayout = (isVertical? "ins 0,gapx 40,flowx": "ins 0,gapy 40,flowy");
 		final Map<String, PartnersPanel> byCoupleKey = new HashMap<>();
 
@@ -190,7 +193,10 @@ public class CoordinateAssigner{
 						panel = existingPanels.get(matchNode).withTreeLayout(treeLayout);
 					else{
 						final int trueLayerIndex = (isVertical? layerIndex: layerCouples - layerIndex - 1);
-						panel = panelFactory.create(couple[0], couple[1], trueLayerIndex);
+						final boolean isRootCouple = ((couple[0] != null && couple[0].getGeneration() == 0)
+							|| (couple[1] != null && couple[1].getGeneration() == 0));
+						panel = panelFactory.create(couple[0], couple[1], trueLayerIndex, genealogyRepository,
+							partnerCycleHandler, isRootCouple);
 					}
 					byCoupleKey.put(key, panel);
 					parentIndex.index(panel);

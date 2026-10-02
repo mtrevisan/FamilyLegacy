@@ -60,7 +60,7 @@ class EgoNetworkLayoutBuilder{
 
 		final JPanel centerGrid = new JPanel(new MigLayout("ins 10",
 			"[grow 100,sg col,fill][center][grow 100,sg col,fill]",
-			"[grow 100,sg row,fill][center][grow 100,sg row,fill]"));
+			"[bottom][center][top]"));
 		centerGrid.setOpaque(false);
 
 		// Center

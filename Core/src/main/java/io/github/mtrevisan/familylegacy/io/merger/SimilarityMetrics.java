@@ -54,7 +54,7 @@ public final class SimilarityMetrics{
 	 *
 	 * @param s1 first string (it may be {@code null})
 	 * @param s2 second string (it may be {@code null})
-	 * @return similarity in [0,1], or 1.0 if both are {@code null} or empty
+	 * @return similarity in [0,1], or 1 if both are {@code null} or empty
 	 */
 	public static double jaroWinkler(String s1, String s2){
 		if(s1 == null && s2 == null)
@@ -173,7 +173,7 @@ public final class SimilarityMetrics{
 	/**
 	 * Computes similarity between two ISO date strings (YYYY-MM-DD or YYYY).
 	 * The similarity is based on the absolute difference in days, mapped to [0,1] with a
-	 * decaying function: exact or 1 day apart → 1.0, >10 years → 0.0.
+	 * decaying function: exact or 1 day apart → 1, >10 years → 0.
 	 */
 	public static double dateSimilarity(final String date1, final String date2){
 		final LocalDate d1 = parseDate(date1);

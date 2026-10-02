@@ -316,7 +316,7 @@ public class FLEFValidator{
 					constraint.validate(path, record, model, errors);
 
 			final List<FLEFRecord> children = record.getChildren();
-			for(int i = children.size() - 1; i >= 0; i--){
+			for(int i = children.size() - 1; i >= 0; i --){
 				final FLEFRecord child = children.get(i);
 				final String childPath = FLEFRecordHelper.composePath(path, child.getTag());
 				stack.push(new RecordContext(child, childPath));
@@ -337,7 +337,7 @@ public class FLEFValidator{
 		final Deque<TraversalNode> stack = new ArrayDeque<>();
 
 		final List<FLEFRecord> topLevelRecords = model.getRecords();
-		for(int i = topLevelRecords.size() - 1; i >= 0; i--){
+		for(int i = topLevelRecords.size() - 1; i >= 0; i --){
 			final FLEFRecord topRecord = topLevelRecords.get(i);
 			stack.push(new TraversalNode(topRecord, topRecord.getTag()));
 		}
@@ -354,7 +354,7 @@ public class FLEFValidator{
 					id));
 
 			final List<FLEFRecord> children = record.getChildren();
-			for(int i = children.size() - 1; i >= 0; i--){
+			for(int i = children.size() - 1; i >= 0; i --){
 				final FLEFRecord child = children.get(i);
 				final String childPath = FLEFRecordHelper.composePath(path, child.getTag());
 				stack.push(new TraversalNode(child, childPath));

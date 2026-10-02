@@ -156,7 +156,7 @@ final class NameClusterer{
 	private static Set<String> trigrams(final String name){
 		final String padded = "  " + name + "  ";
 		final Set<String> out = new HashSet<>(padded.length());
-		for(int i = 0; i <= padded.length() - 3; i++)
+		for(int i = 0; i <= padded.length() - 3; i ++)
 			out.add(padded.substring(i, i + 3));
 		return out;
 	}
@@ -178,9 +178,9 @@ final class NameClusterer{
 		int common = 0;
 		for(final String t : smaller)
 			if(larger.contains(t))
-				common++;
+				common ++;
 
-		return 2.0 * common / (ta.size() + tb.size());
+		return 2. * common / (ta.size() + tb.size());
 	}
 
 
@@ -193,11 +193,11 @@ final class NameClusterer{
 		final int m = b.length();
 		final int[] prev = new int[m + 1];
 		final int[] curr = new int[m + 1];
-		for(int j = 0; j <= m; j++)
+		for(int j = 0; j <= m; j ++)
 			prev[j] = j;
-		for(int i = 1; i <= n; i++){
+		for(int i = 1; i <= n; i ++){
 			curr[0] = i;
-			for(int j = 1; j <= m; j++){
+			for(int j = 1; j <= m; j ++){
 				final int cost = (a.charAt(i - 1) == b.charAt(j - 1)? 0: 1);
 				curr[j] = Math.min(
 					Math.min(curr[j - 1] + 1, prev[j] + 1),

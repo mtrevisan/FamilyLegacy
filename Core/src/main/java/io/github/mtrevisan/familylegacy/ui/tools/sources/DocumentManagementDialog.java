@@ -289,7 +289,7 @@ public final class DocumentManagementDialog extends JDialog{
 		if(w <= 0 || h <= 0)
 			return icon;
 		final double scale = Math.min(maxW / (double)w, maxH / (double)h);
-		if(scale >= 1.0)
+		if(scale >= 1.)
 			return icon;
 		final int nw = (int)Math.round(w * scale);
 		final int nh = (int)Math.round(h * scale);

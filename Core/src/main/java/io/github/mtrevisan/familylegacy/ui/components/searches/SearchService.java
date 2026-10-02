@@ -166,7 +166,7 @@ public class SearchService{
 		final SearchMode mode = criteria.mode();
 		final List<ScoredRecord> scored = new ArrayList<>();
 		final int totalRecords = records.size();
-		for(int i = 0; i < totalRecords; i++){
+		for(int i = 0; i < totalRecords; i ++){
 			if(Thread.currentThread().isInterrupted())
 				break;
 

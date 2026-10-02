@@ -151,9 +151,6 @@ public final class GroupData{
 		}
 
 		preferredImageUri = GroupReader.extractPreferredImageUri(record);
-// TODO to be removed
-if(preferredImageUri != null)
-	preferredImageUri = "C:\\mauro\\heritage\\My Genealogy Projects\\Trevisan (Dorato)-Gallinaro-Masutti (Manfrin)-Zaros (Basso)" + preferredImageUri;
 		preferredImageCropRect = GroupReader.extractPreferredImageCrop(record);
 
 		// Set the default image immediately
@@ -176,7 +173,7 @@ if(preferredImageUri != null)
 					return new ImageIcon[]{imagePrimary, imageSecondary};
 				}
 				else{
-					LOGGER.error("Non-existent image for {}", preferredImageUri);
+					LOGGER.error("Non-existent group image for {}", preferredImageUri);
 
 					return null;
 				}

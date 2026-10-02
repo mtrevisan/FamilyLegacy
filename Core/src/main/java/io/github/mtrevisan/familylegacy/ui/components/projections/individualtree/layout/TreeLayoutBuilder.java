@@ -32,6 +32,8 @@ import io.github.mtrevisan.familylegacy.ui.components.projections.individual.Ind
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualListener;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualPanel;
 import io.github.mtrevisan.familylegacy.ui.components.projections.partners.PartnersPanel;
+import io.github.mtrevisan.familylegacy.ui.components.projections.partners.Side;
+import io.github.mtrevisan.familylegacy.ui.components.projections.repository.GenealogyRepository;
 import io.github.mtrevisan.familylegacy.ui.components.projections.repository.TreeNode;
 import io.github.mtrevisan.familylegacy.ui.components.projections.siblings.SiblingsData;
 import io.github.mtrevisan.familylegacy.ui.components.projections.siblings.SiblingsPanel;
@@ -108,9 +110,10 @@ public final class TreeLayoutBuilder{
 	 * @return a LayoutResult containing the children panel
 	 */
 	static SiblingsPanel buildLayout(final JPanel mainPanel, final TreeNode rootNode, final boolean showPartner,
-			final int maxAncestors, final FLEFModel model, final Map<TreeNode, PartnersPanel> nodeToPanelMap,
-			final IndividualListener listener,
-			final EntityPopupMenuFactory<IndividualPanel, IndividualListener> popupFactory, final TreeLayout treeLayout){
+			final int maxAncestors, final FLEFModel model, final GenealogyRepository genealogyRepository,
+			final Map<TreeNode, PartnersPanel> nodeToPanelMap, final IndividualListener listener,
+			final EntityPopupMenuFactory<IndividualPanel, IndividualListener> popupFactory, final TreeLayout treeLayout,
+			final PartnerCycleHandler partnerCycleHandler){
 		final int maxDepth = (rootNode != null? calculateSubtreeMaxDepth(rootNode, maxAncestors): 0);
 		// Total leaf units for a binary pedigree tree of depth maxDepth is strictly 2^maxDepth
 		final int maxLeafUnits = (rootNode != null? (1 << maxDepth): 1);
@@ -150,8 +153,10 @@ public final class TreeLayoutBuilder{
 			// Create the panel for this slot
 			final BoxPanelType boxPanelType = (depth == 0? BoxPanelType.PRIMARY: BoxPanelType.SECONDARY);
 			final boolean isTopLayer = (depth == maxDepth);
-			final PartnersPanel partnerPanel = createPanelForNode(node, boxPanelType, treeLayout, model, listener,
-				popupFactory, isTopLayer, false);
+			final boolean isRootCouple = (depth == 0);
+			final PartnersPanel partnerPanel = createPanelForNode(node, boxPanelType, treeLayout, model,
+				genealogyRepository, listener, popupFactory, isTopLayer, false, partnerCycleHandler,
+				isRootCouple);
 
 			nodeToPanelMap.put(node, partnerPanel);
 
@@ -291,13 +296,22 @@ public final class TreeLayoutBuilder{
 	}
 
 	public static PartnersPanel createPanelForNode(final TreeNode node, final BoxPanelType type,
-			final TreeLayout treeLayout, final FLEFModel model, final IndividualListener listener,
+			final TreeLayout treeLayout, final FLEFModel model, final GenealogyRepository genealogyRepository,
+			final IndividualListener listener,
 			final EntityPopupMenuFactory<IndividualPanel, IndividualListener> popupFactory,
-			final boolean isTopLayer, final boolean suppressCollapseBadge){
-		final PartnersPanel panel = PartnersPanel.create(type, treeLayout, model)
+			final boolean isTopLayer, final boolean suppressCollapseBadge,
+			final PartnerCycleHandler partnerCycleHandler, final boolean isRootCouple){
+		final PartnersPanel panel = PartnersPanel.create(type, treeLayout, model, genealogyRepository)
 			.withListener(listener, popupFactory)
 			.withShowAncestors(isTopLayer)
-			.withSuppressCollapseBadge(suppressCollapseBadge);
+			.withSuppressCollapseBadge(suppressCollapseBadge)
+			.withPartnerCycleEnabled(isRootCouple);
+		if(partnerCycleHandler != null && isRootCouple && node != null)
+			panel.withPartnerCycleListener((side, newPartner) -> {
+				final TreeNode anchorNode = (side == Side.LEFT? node.getFather(): node.getMother());
+				if(anchorNode != null)
+					partnerCycleHandler.onPartnerCycled(anchorNode, side, newPartner);
+			});
 
 		if(node != null){
 			final TreeNode father = node.getFather();

@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.ui.components.projections.individual.Ind
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualPanel;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.IndividualTreeGraphListener;
 import io.github.mtrevisan.familylegacy.ui.components.projections.partners.PartnersPanel;
+import io.github.mtrevisan.familylegacy.ui.components.projections.repository.GenealogyRepository;
 import io.github.mtrevisan.familylegacy.ui.components.projections.repository.TreeNode;
 import io.github.mtrevisan.familylegacy.ui.components.projections.siblings.SiblingsPanel;
 
@@ -49,10 +50,12 @@ public interface LayoutEngine{
 		boolean showPartner,
 		int maxAncestors,
 		FLEFModel model,
+		GenealogyRepository genealogyRepository,
 		Map<TreeNode, PartnersPanel> nodeToPanelMap,
 		IndividualTreeGraphListener treeListener,
 		EntityPopupMenuFactory<IndividualPanel, IndividualListener> popupFactory,
-		TreeLayout treeLayout
+		TreeLayout treeLayout,
+		PartnerCycleHandler partnerCycleHandler
 	);
 
 	/**

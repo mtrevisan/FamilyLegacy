@@ -70,8 +70,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-import static io.github.mtrevisan.familylegacy.ui.tools.sources.SourceHelper.TAG_DESCRIPTION;
-
 
 /**
  * Builds an {@link IndividualDossier} from a FLEF model.
@@ -95,6 +93,7 @@ public final class IndividualDossierService{
 
 
 	private final FLEFModel model;
+
 	private final IndividualHandler individualHandler;
 	private final Map<String, List<FLEFRecord>> eventMap;
 
@@ -295,7 +294,7 @@ public final class IndividualDossierService{
 				subtitle.append(" · ");
 			subtitle.append(agency);
 		}
-		final String description = FLEFRecordHelper.getChildValue(event, TAG_DESCRIPTION);
+		final String description = FLEFRecordHelper.getChildValue(event, EventReader.TAG_DESCRIPTION);
 		if(StringUtils.isNotEmpty(description)){
 			if(!subtitle.isEmpty())
 				subtitle.append(" · ");
@@ -332,7 +331,8 @@ public final class IndividualDossierService{
 			: "Attribute");
 		final String value = FLEFRecordHelper.getChildValue(individualAttribute, IndividualAttributeReader.TAG_VALUE);
 
-		final String validity = formatting.formatValidity(individualAttribute);
+		final String validity = formatting.formatValidity(individualAttribute, IndividualAttributeReader.TAG_VALID_FROM,
+			IndividualAttributeReader.TAG_VALID_TO);
 		final String place = formatting.resolvePlaceName(individualAttribute);
 		final StringBuilder subtitle = new StringBuilder();
 		if(StringUtils.isNotEmpty(validity))
@@ -394,7 +394,8 @@ public final class IndividualDossierService{
 				subtitle.append(" · ");
 			subtitle.append(status);
 		}
-		final String validity = formatting.formatValidity(relationship);
+		final String validity = formatting.formatValidity(relationship, RelationshipReader.TAG_VALID_FROM,
+			RelationshipReader.TAG_VALID_TO);
 		if(StringUtils.isNotEmpty(validity)){
 			if(!subtitle.isEmpty())
 				subtitle.append(" · ");

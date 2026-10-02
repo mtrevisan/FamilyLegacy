@@ -26,6 +26,11 @@ package io.github.mtrevisan.familylegacy.ui.tools.reports;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.GroupAttributeReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.GroupReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import org.apache.commons.lang3.StringUtils;
 
@@ -43,18 +48,6 @@ import java.util.function.Function;
  * <p>This section is emitted only for group roots.</p>
  */
 final class GroupStorySection implements SectionBuilder{
-
-	private static final String TAG_NAME = "name";
-	private static final String TAG_VALUE = "value";
-	private static final String TAG_TYPE = "type";
-	private static final String TAG_URI = "uri";
-	private static final String TAG_ROLE = "role";
-	private static final String TAG_STATUS = "status";
-	private static final String TAG_VALID_FROM = "valid_from";
-	private static final String TAG_VALID_TO = "valid_to";
-	private static final String TAG_DESCRIPTION = "description";
-	private static final String TAG_AGENCY = "agency";
-
 
 	private final ReportContext ctx;
 	private final Function<String, String> contextLabels;
@@ -107,10 +100,10 @@ final class GroupStorySection implements SectionBuilder{
 	/* ----- Preferred image ------------------------------------------------- */
 
 	private void writePreferredImage(final List<ReportSection> out){
-		final FLEFRecord preferred = FLEFRecordHelper.findChild(ctx.root, "preferred_image");
+		final FLEFRecord preferred = FLEFRecordHelper.findChild(ctx.root, GroupReader.TAG_PREFERRED_IMAGE);
 		if(preferred == null)
 			return;
-		final String uri = FLEFRecordHelper.getChildValue(preferred, TAG_URI);
+		final String uri = GroupReader.extractPreferredImageUri(preferred);
 		if(uri == null)
 			return;
 		final String caption = ReportFormatters.imageCaption(
@@ -132,13 +125,13 @@ final class GroupStorySection implements SectionBuilder{
 		rows.add("**" + ctx.labels.sections().id() + ":** "
 			+ ReportFormatters.escape(ReportFormatters.orEmpty(ctx.root.getId())));
 
-		final String type = FLEFRecordHelper.getChildValue(ctx.root, TAG_TYPE);
+		final String type = FLEFRecordHelper.getChildValue(ctx.root, GroupReader.TAG_TYPE);
 		if(type != null && !type.isBlank())
 			rows.add("**" + ctx.labels.sections().groupType() + ":** " + ReportFormatters.escape(type));
 
-		for(final FLEFRecord nameRec : FLEFRecordHelper.findChildren(ctx.root, TAG_NAME)){
-			final String nameType = FLEFRecordHelper.getChildValue(nameRec, TAG_TYPE);
-			final String value = FLEFRecordHelper.getChildValue(nameRec, TAG_VALUE);
+		for(final FLEFRecord nameRec : FLEFRecordHelper.findChildren(ctx.root, GroupReader.TAG_NAME)){
+			final String nameType = FLEFRecordHelper.getChildValue(nameRec, NameReader.TAG_TYPE);
+			final String value = FLEFRecordHelper.getChildValue(nameRec, NameReader.TAG_VALUE);
 			if(value == null || value.isBlank())
 				continue;
 			final StringBuilder line = new StringBuilder();
@@ -172,16 +165,16 @@ final class GroupStorySection implements SectionBuilder{
 			rows.add(List.of(
 				ReportFormatters.escape(ctx.displayText(member)),
 				ReportFormatters.escape(ReportFormatters.orEmpty(
-					FLEFRecordHelper.getChildValue(m, TAG_ROLE))),
+					FLEFRecordHelper.getChildValue(m, RelationshipReader.TAG_ROLE))),
 				ReportFormatters.escape(ReportFormatters.orEmpty(
 					ReportFormatters.enumLabel(
-						FLEFRecordHelper.getChildValue(m, TAG_STATUS)))),
+						FLEFRecordHelper.getChildValue(m, RelationshipReader.TAG_STATUS)))),
 				ReportFormatters.escape(ReportFormatters.orEmpty(
 					GenealogicalDateHelper.formatDateStructure(
-						m, TAG_VALID_FROM, ctx.labels, contextLabels))),
+						m, RelationshipReader.TAG_VALID_FROM, ctx.labels, contextLabels))),
 				ReportFormatters.escape(ReportFormatters.orEmpty(
 					GenealogicalDateHelper.formatDateStructure(
-						m, TAG_VALID_TO, ctx.labels, contextLabels)))
+						m, RelationshipReader.TAG_VALID_TO, ctx.labels, contextLabels)))
 			));
 		}
 
@@ -230,14 +223,14 @@ final class GroupStorySection implements SectionBuilder{
 		final List<List<String>> rows = new ArrayList<>();
 		for(final FLEFRecord a : attrs)
 			rows.add(List.of(
-				ReportFormatters.esc(FLEFRecordHelper.getChildValue(a, TAG_TYPE)),
-				ReportFormatters.esc(FLEFRecordHelper.getChildValue(a, TAG_VALUE)),
+				ReportFormatters.esc(FLEFRecordHelper.getChildValue(a, GroupAttributeReader.TAG_TYPE)),
+				ReportFormatters.esc(FLEFRecordHelper.getChildValue(a, GroupAttributeReader.TAG_VALUE)),
 				ReportFormatters.esc(ReportFormatters.orEmpty(
 					GenealogicalDateHelper.formatDateStructure(
-						a, TAG_VALID_FROM, ctx.labels, contextLabels))),
+						a, GroupAttributeReader.TAG_VALID_FROM, ctx.labels, contextLabels))),
 				ReportFormatters.esc(ReportFormatters.orEmpty(
 					GenealogicalDateHelper.formatDateStructure(
-						a, TAG_VALID_TO, ctx.labels, contextLabels))),
+						a, GroupAttributeReader.TAG_VALID_TO, ctx.labels, contextLabels))),
 				ReportFormatters.esc(ReportFormatters.orEmpty(
 					ReportFormatters.resolvePlaceName(ctx.model, a)))));
 
@@ -282,9 +275,9 @@ final class GroupStorySection implements SectionBuilder{
 		out.add(new ReportSection.Heading(3, ReportFormatters.escape(label)));
 
 		final String from = GenealogicalDateHelper.formatDateStructure(
-			rel, TAG_VALID_FROM, ctx.labels, contextLabels);
+			rel, RelationshipReader.TAG_VALID_FROM, ctx.labels, contextLabels);
 		final String to = GenealogicalDateHelper.formatDateStructure(
-			rel, TAG_VALID_TO, ctx.labels, contextLabels);
+			rel, RelationshipReader.TAG_VALID_TO, ctx.labels, contextLabels);
 		final List<String> meta = new ArrayList<>();
 		if(from != null)
 			meta.add("**" + ctx.labels.sections().validFrom() + ":** " + ReportFormatters.escape(from));
@@ -318,7 +311,7 @@ final class GroupStorySection implements SectionBuilder{
 
 	private void writeEvent(final List<ReportSection> out, final FLEFRecord evt){
 		final String type = ReportFormatters.escape(ReportFormatters.orEmpty(
-			FLEFRecordHelper.getChildValue(evt, TAG_TYPE)));
+			FLEFRecordHelper.getChildValue(evt, EventReader.TAG_TYPE)));
 		final String date = ReportFormatters.escape(ReportFormatters.orEmpty(
 			GenealogicalDateHelper.formatEventDate(evt, ctx.labels, contextLabels)));
 		out.add(new ReportSection.Heading(3,
@@ -329,12 +322,12 @@ final class GroupStorySection implements SectionBuilder{
 			out.add(new ReportSection.Paragraph(
 				"**" + ctx.labels.sections().place() + ":** " + ReportFormatters.escape(place)));
 
-		final String agency = FLEFRecordHelper.getChildValue(evt, TAG_AGENCY);
+		final String agency = FLEFRecordHelper.getChildValue(evt, EventReader.TAG_AGENCY);
 		if(agency != null)
 			out.add(new ReportSection.Paragraph(
 				"**" + ctx.labels.sections().agency() + ":** " + ReportFormatters.escape(agency)));
 
-		final String descr = FLEFRecordHelper.getChildValue(evt, TAG_DESCRIPTION);
+		final String descr = FLEFRecordHelper.getChildValue(evt, EventReader.TAG_DESCRIPTION);
 		if(descr != null)
 			out.add(new ReportSection.Paragraph(ReportFormatters.escape(descr)));
 

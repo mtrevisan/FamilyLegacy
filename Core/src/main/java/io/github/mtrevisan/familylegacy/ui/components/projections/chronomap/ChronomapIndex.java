@@ -27,6 +27,11 @@ package io.github.mtrevisan.familylegacy.ui.components.projections.chronomap;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.readers.DateReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.GroupAttributeReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualAttributeReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateNormalizer;
@@ -61,21 +66,6 @@ import java.util.regex.Pattern;
  * time.
  */
 public final class ChronomapIndex{
-
-	private static final String TAG_PARTICIPANT = "participant";
-	private static final String TAG_EVENT = "event";
-	private static final String TAG_DATE = "date";
-	private static final String TAG_VALID_FROM = "valid_from";
-	private static final String TAG_VALID_TO = "valid_to";
-	private static final String TAG_TYPE = "type";
-	private static final String TAG_VALUE = "value";
-	private static final String TAG_SUBJECT = "subject";
-	private static final String TAG_GROUP = "group";
-
-	/** Tags that may carry a DateStructure anywhere in a record. */
-	private static final String[] DATE_TAGS = {
-		"date", "valid_from", "valid_to", "closed_date", "due_date"
-	};
 
 
 	private final FLEFModel model;
@@ -144,7 +134,7 @@ public final class ChronomapIndex{
 
 		final List<FLEFRecord> records = model.getRecords();
 		for(final FLEFRecord record : records){
-			for(final String tag : DATE_TAGS){
+			for(final String tag : DateReader.DATE_TAGS){
 				final FLEFRecord dateStruct = FLEFRecordHelper.findChild(record, tag);
 				if(dateStruct == null)
 					continue;
@@ -183,7 +173,7 @@ public final class ChronomapIndex{
 			if(ownerId == null)
 				continue;
 
-			final String eventId = FLEFRecordHelper.getChildValue(eventParticipation, TAG_EVENT);
+			final String eventId = FLEFRecordHelper.getChildValue(eventParticipation, EventParticipationReader.TAG_EVENT);
 			if(eventId == null)
 				continue;
 
@@ -191,7 +181,7 @@ public final class ChronomapIndex{
 			if(event == null)
 				continue;
 
-			final NormalizedDate date = extractDate(event, TAG_DATE);
+			final NormalizedDate date = extractDate(event, EventReader.TAG_DATE);
 			if(date == null)
 				continue;
 
@@ -200,7 +190,7 @@ public final class ChronomapIndex{
 				continue;
 
 			final String placeName = extractPlaceName(event);
-			final String type = FLEFRecordHelper.getChildValue(event, TAG_TYPE);
+			final String type = FLEFRecordHelper.getChildValue(event, EventReader.TAG_TYPE);
 			final String kind = "event:" + (type != null? type: "event");
 
 			result.computeIfAbsent(ownerId, k -> new ArrayList<>())
@@ -210,24 +200,25 @@ public final class ChronomapIndex{
 		}
 
 		// 2. Attributes: anchors with a real duration.
-		addAttributeAnchors(result, IndividualAttributeHandler.TYPE, TAG_SUBJECT);
-		addAttributeAnchors(result, GroupAttributeHandler.TYPE, TAG_GROUP);
+		addAttributeAnchors(result, IndividualAttributeHandler.TYPE);
+		addAttributeAnchors(result, GroupAttributeHandler.TYPE);
 
 		for(final List<GeoAnchor> list : result.values())
 			list.sort(Comparator.comparingLong(GeoAnchor::startJdn));
 		return result;
 	}
 
-	private void addAttributeAnchors(final Map<String, List<GeoAnchor>> result, final String recordType,
-			final String ownerTag){
+	private void addAttributeAnchors(final Map<String, List<GeoAnchor>> result, final String recordType){
+		final boolean isIndividual = IndividualAttributeHandler.TYPE.equals(recordType);
+		final String ownerTag = (isIndividual? IndividualAttributeReader.TAG_INDIVIDUAL: GroupAttributeReader.TAG_GROUP);
 		final List<FLEFRecord> attributes = model.getRecordsByType(recordType);
 		for(final FLEFRecord attribute : attributes){
 			final String ownerId = extractOwner(attribute, ownerTag);
 			if(ownerId == null)
 				continue;
 
-			final NormalizedDate from = extractDate(attribute, TAG_VALID_FROM);
-			final NormalizedDate to = extractDate(attribute, TAG_VALID_TO);
+			final NormalizedDate from = extractDate(attribute, (isIndividual? IndividualAttributeReader.TAG_VALID_FROM: GroupAttributeReader.TAG_VALID_FROM));
+			final NormalizedDate to = extractDate(attribute, (isIndividual? IndividualAttributeReader.TAG_VALID_TO: GroupAttributeReader.TAG_VALID_TO));
 			if(from == null && to == null)
 				continue;
 
@@ -237,8 +228,8 @@ public final class ChronomapIndex{
 
 			final long startJdn = (from != null? from.jdn(): Long.MIN_VALUE);
 			final long endJdn = (to != null? to.jdn(): Long.MAX_VALUE);
-			final String type = FLEFRecordHelper.getChildValue(attribute, TAG_TYPE);
-			final String value = FLEFRecordHelper.getChildValue(attribute, TAG_VALUE);
+			final String type = FLEFRecordHelper.getChildValue(attribute, (isIndividual? IndividualAttributeReader.TAG_TYPE: GroupAttributeReader.TAG_TYPE));
+			final String value = FLEFRecordHelper.getChildValue(attribute, (isIndividual? IndividualAttributeReader.TAG_VALUE: GroupAttributeReader.TAG_VALUE));
 			final String placeName = extractPlaceName(attribute);
 			final String kind = "attribute:" + (type != null? type: "attribute");
 
@@ -299,8 +290,8 @@ public final class ChronomapIndex{
 		return (placeRef != null? placeRef.getValue(): null);
 	}
 
-	private static String extractParticipantId(final FLEFRecord participation){
-		final FLEFRecord field = FLEFRecordHelper.findChild(participation, TAG_PARTICIPANT);
+	private static String extractParticipantId(final FLEFRecord eventParticipation){
+		final FLEFRecord field = FLEFRecordHelper.findChild(eventParticipation, EventParticipationReader.TAG_PARTICIPANT);
 		if(field == null)
 			return null;
 

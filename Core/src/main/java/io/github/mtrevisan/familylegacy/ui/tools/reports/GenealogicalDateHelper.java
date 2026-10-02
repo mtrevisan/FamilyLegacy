@@ -348,9 +348,11 @@ final class GenealogicalDateHelper{
 		int i = 1;
 		while(i < s.length()){
 			int j = i;
-			while(j < s.length() && Character.isDigit(s.charAt(j))) j++;
+			while(j < s.length() && Character.isDigit(s.charAt(j)))
+				j ++;
 			if(j == i)
 				break;
+
 			final int value;
 			try{
 				value = Integer.parseInt(s.substring(i, j));

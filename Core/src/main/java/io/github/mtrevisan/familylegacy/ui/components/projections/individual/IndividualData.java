@@ -92,7 +92,6 @@ public final class IndividualData{
 	private final SexType sex;
 	private final String nameText;
 	private String nameTooltip;
-	private boolean isBiological;
 	private boolean hasParents;
 	private boolean hasFather;
 	private boolean hasMother;
@@ -145,8 +144,6 @@ public final class IndividualData{
 				type = type.toLowerCase(Locale.ROOT);
 				if(RelationshipReader.isTypeBiologicalChild(type)){
 					if(subjectId.equals(id)){
-						isBiological = true;
-
 						final FLEFRecord object = model.getRecordById(objectId);
 						final String targetSex = IndividualReader.extractRawSex(object);
 						if(IndividualReader.isSexMale(targetSex))
@@ -175,7 +172,7 @@ public final class IndividualData{
 					hasPartner = true;
 			}
 
-			if(isBiological && hasPartner && hasChildren)
+			if(hasPartner && hasChildren)
 				break;
 		}
 
@@ -268,10 +265,6 @@ public final class IndividualData{
 
 	public String getNameTooltip(){
 		return nameTooltip;
-	}
-
-	public boolean isBiological(){
-		return isBiological;
 	}
 
 	public boolean hasFather(){
@@ -372,9 +365,6 @@ public final class IndividualData{
 		}
 
 		preferredImageUri = IndividualReader.extractPreferredImageUri(record);
-// TODO to be removed
-if(preferredImageUri != null)
-	preferredImageUri = "C:\\mauro\\heritage\\My Genealogy Projects\\Trevisan (Dorato)-Gallinaro-Masutti (Manfrin)-Zaros (Basso)" + preferredImageUri;
 		preferredImageCropRect = IndividualReader.extractPreferredImageCrop(record);
 
 		final String rawSex = IndividualReader.extractRawSex(record);
@@ -398,7 +388,7 @@ if(preferredImageUri != null)
 					return new ImageIcon[]{imagePrimary, imageSecondary};
 				}
 				else{
-					LOGGER.error("Non-existent image for {}", preferredImageUri);
+					LOGGER.error("Non-existent individual image for {}", preferredImageUri);
 
 					return null;
 				}

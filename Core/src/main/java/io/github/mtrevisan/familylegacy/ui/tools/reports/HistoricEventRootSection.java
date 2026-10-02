@@ -26,6 +26,8 @@ package io.github.mtrevisan.familylegacy.ui.tools.reports;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.readers.ContextImpactReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.HistoricEventReader;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,13 +42,6 @@ import java.util.function.Function;
  * explained, influenced, constrained or caused by this historic event.
  */
 final class HistoricEventRootSection implements SectionBuilder{
-
-	private static final String TAG_TITLE = "title";
-	private static final String TAG_TYPE = "type";
-	private static final String TAG_IMPACT = "impact_type";
-	private static final String TAG_RATIONALE = "rationale";
-	private static final String TAG_TARGET = "target";
-
 
 	private final ReportContext ctx;
 	private final Function<String, String> contextLabels;
@@ -65,7 +60,7 @@ final class HistoricEventRootSection implements SectionBuilder{
 
 		final List<ReportSection> out = new ArrayList<>();
 		final String title = ReportFormatters.orEmpty(
-			FLEFRecordHelper.getChildValue(ctx.root, TAG_TITLE));
+			FLEFRecordHelper.getChildValue(ctx.root, HistoricEventReader.TAG_TITLE));
 		out.add(new ReportSection.Heading(1, String.format(
 			ctx.labels.sections().historicEventOf(), ReportFormatters.escape(title))));
 
@@ -84,7 +79,7 @@ final class HistoricEventRootSection implements SectionBuilder{
 	private void writeBasicInfo(final List<ReportSection> out){
 		final List<String> rows = new ArrayList<>();
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().historicEventType(),
-			FLEFRecordHelper.getChildValue(ctx.root, TAG_TYPE));
+			FLEFRecordHelper.getChildValue(ctx.root, HistoricEventReader.TAG_TYPE));
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().date(),
 			GenealogicalDateHelper.formatEventDate(ctx.root, ctx.labels, contextLabels));
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().place(),
@@ -102,7 +97,7 @@ final class HistoricEventRootSection implements SectionBuilder{
 		out.add(new ReportSection.Heading(2, ctx.labels.sections().historicEventImpacts()));
 		for(final FLEFRecord ci : impacts){
 			final String impactType = ReportFormatters.orEmpty(
-				FLEFRecordHelper.getChildValue(ci, TAG_IMPACT));
+				FLEFRecordHelper.getChildValue(ci, ContextImpactReader.TAG_IMPACT_TYPE));
 			final String targetId = extractTargetId(ci);
 			final String targetLabel = (targetId != null
 				? describeTarget(targetId): "?");
@@ -110,7 +105,7 @@ final class HistoricEventRootSection implements SectionBuilder{
 				"**" + ReportFormatters.escape(impactType) + ":** "
 					+ ReportFormatters.escape(targetLabel)));
 
-			final String rationale = FLEFRecordHelper.getChildValue(ci, TAG_RATIONALE);
+			final String rationale = FLEFRecordHelper.getChildValue(ci, ContextImpactReader.TAG_RATIONALE);
 			if(rationale != null)
 				out.add(new ReportSection.Paragraph(
 					"  " + ReportFormatters.escape(rationale)));
@@ -118,7 +113,7 @@ final class HistoricEventRootSection implements SectionBuilder{
 	}
 
 	private String extractTargetId(final FLEFRecord ci){
-		final FLEFRecord targetNode = FLEFRecordHelper.findChild(ci, TAG_TARGET);
+		final FLEFRecord targetNode = FLEFRecordHelper.findChild(ci, ContextImpactReader.TAG_TARGET);
 		if(targetNode == null)
 			return null;
 		final FLEFRecord ref = targetNode.getTheOnlyChild();

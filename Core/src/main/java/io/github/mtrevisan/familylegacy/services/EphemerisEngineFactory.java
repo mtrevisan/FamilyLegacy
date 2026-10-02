@@ -1,3 +1,27 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
 package io.github.mtrevisan.familylegacy.services;
 
 import java.lang.module.Configuration;
@@ -13,24 +37,24 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 
-public final class AstronomicalEngineFactory{
+public final class EphemerisEngineFactory{
 
 	private static final String PLUGINS_DIR = "plugins";
 
-	private static final AstronomicalEngine ENGINE;
+	private static final EphemerisEngine ENGINE;
 	static{
 		ENGINE = loadEngine();
 	}
 
-	private AstronomicalEngineFactory(){}
+	private EphemerisEngineFactory(){}
 
 
-	public static AstronomicalEngine getEngine(){
+	public static EphemerisEngine getEngine(){
 		return ENGINE;
 	}
 
 
-	private static AstronomicalEngine loadEngine(){
+	private static EphemerisEngine loadEngine(){
 		final Path pluginsPath = resolvePluginsDirectory();
 		if(pluginsPath == null)
 			return loadFromClasspath();
@@ -54,8 +78,8 @@ public final class AstronomicalEngineFactory{
 				return loadFromClasspath();
 
 			// Retrieve host module layer
-			final ModuleLayer parentLayer = AstronomicalEngineFactory.class.getModule().getLayer() != null
-				? AstronomicalEngineFactory.class.getModule().getLayer()
+			final ModuleLayer parentLayer = EphemerisEngineFactory.class.getModule().getLayer() != null
+				? EphemerisEngineFactory.class.getModule().getLayer()
 				: ModuleLayer.boot();
 
 			// Resolve child module configuration
@@ -63,13 +87,13 @@ public final class AstronomicalEngineFactory{
 				.resolve(finder, ModuleFinder.of(), pluginModules);
 
 			// Define child layer using Core class loader context
-			final ClassLoader coreClassLoader = AstronomicalEngineFactory.class.getClassLoader();
+			final ClassLoader coreClassLoader = EphemerisEngineFactory.class.getClassLoader();
 			final ModuleLayer pluginLayer = parentLayer.defineModulesWithOneLoader(configuration, coreClassLoader);
 
 			// Discover SPI provider implementations inside the dynamic layer
-			final ServiceLoader<AstronomicalEngine> loader = ServiceLoader.load(pluginLayer, AstronomicalEngine.class);
-			for(final ServiceLoader.Provider<AstronomicalEngine> provider : loader.stream().toList()){
-				final AstronomicalEngine engine = provider.get();
+			final ServiceLoader<EphemerisEngine> loader = ServiceLoader.load(pluginLayer, EphemerisEngine.class);
+			for(final ServiceLoader.Provider<EphemerisEngine> provider : loader.stream().toList()){
+				final EphemerisEngine engine = provider.get();
 				if(engine.isAvailable()){
 					return engine;
 				}
@@ -88,7 +112,7 @@ public final class AstronomicalEngineFactory{
 	private static Path resolvePluginsDirectory(){
 		// 1. Try resolving relative to application installation location at runtime
 		try{
-			final Path jarLocation = Paths.get(AstronomicalEngineFactory.class.getProtectionDomain()
+			final Path jarLocation = Paths.get(EphemerisEngineFactory.class.getProtectionDomain()
 				.getCodeSource().getLocation().toURI()).getParent();
 			if(jarLocation != null){
 				final Path appPlugins = jarLocation.resolve(PLUGINS_DIR);
@@ -112,14 +136,14 @@ public final class AstronomicalEngineFactory{
 			.orElse(null);
 	}
 
-	private static AstronomicalEngine loadFromClasspath(){
-		final ServiceLoader<AstronomicalEngine> loader = ServiceLoader.load(AstronomicalEngine.class,
-			AstronomicalEngineFactory.class.getClassLoader());
-		for(final AstronomicalEngine engine : loader)
+	private static EphemerisEngine loadFromClasspath(){
+		final ServiceLoader<EphemerisEngine> loader = ServiceLoader.load(EphemerisEngine.class,
+			EphemerisEngineFactory.class.getClassLoader());
+		for(final EphemerisEngine engine : loader)
 			if(engine.isAvailable())
 				return engine;
 
-		return new FallbackAstronomicalEngine();
+		return new FallbackEphemerisEngine();
 	}
 
 }

@@ -55,8 +55,6 @@ final class RepositoryRootSection implements SectionBuilder{
 
 	private static final String TAG_TYPE = "type";
 
-	private static final String NAME_TYPE_OFFICIAL = "official";
-
 
 	private final ReportContext ctx;
 
@@ -210,7 +208,7 @@ final class RepositoryRootSection implements SectionBuilder{
 			return null;
 		for(final FLEFRecord n : names){
 			final String type = FLEFRecordHelper.getChildValue(n, NameReader.TAG_TYPE);
-			if(NAME_TYPE_OFFICIAL.equalsIgnoreCase(type)){
+			if(NameReader.ENUM_TYPE_OFFICIAL.equalsIgnoreCase(type)){
 				final String v = FLEFRecordHelper.getChildValue(n, NameReader.TAG_VALUE);
 				if(v != null && !v.isBlank())
 					return n;

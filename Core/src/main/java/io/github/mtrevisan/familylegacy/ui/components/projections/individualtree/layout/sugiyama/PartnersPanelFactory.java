@@ -32,8 +32,11 @@ import io.github.mtrevisan.familylegacy.ui.components.projections.individual.Ind
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualListener;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualPanel;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.IndividualTreeGraphListener;
+import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.layout.PartnerCycleHandler;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.layout.TreeLayout;
 import io.github.mtrevisan.familylegacy.ui.components.projections.partners.PartnersPanel;
+import io.github.mtrevisan.familylegacy.ui.components.projections.partners.Side;
+import io.github.mtrevisan.familylegacy.ui.components.projections.repository.GenealogyRepository;
 import io.github.mtrevisan.familylegacy.ui.components.projections.repository.TreeNode;
 
 
@@ -63,21 +66,31 @@ final class PartnersPanelFactory{
 	}
 
 
-	PartnersPanel create(final TreeNode fatherTn, final TreeNode motherTn, final int layerIndex){
-		final BoxPanelType boxType = (isRootGeneration(fatherTn) || isRootGeneration(motherTn)
+	PartnersPanel create(final TreeNode fatherNode, final TreeNode motherNode, final int layerIndex,
+			final GenealogyRepository genealogyRepository, final PartnerCycleHandler partnerCycleHandler,
+			final boolean isRootCouple){
+		final BoxPanelType boxType = (isRootGeneration(fatherNode) || isRootGeneration(motherNode)
 			? BoxPanelType.PRIMARY
 			: BoxPanelType.SECONDARY);
 
 		final boolean isTopLayer = (layerIndex == 0);
-		final IndividualData fatherData = (fatherTn != null? fatherTn.getIndividualData(): null);
-		final IndividualData motherData = (motherTn != null? motherTn.getIndividualData(): null);
-		final PartnersPanel panel = PartnersPanel.create(boxType, treeLayout, model)
+		final IndividualData fatherData = (fatherNode != null? fatherNode.getIndividualData(): null);
+		final IndividualData motherData = (motherNode != null? motherNode.getIndividualData(): null);
+
+		final PartnersPanel panel = PartnersPanel.create(boxType, treeLayout, model, genealogyRepository)
 			.withShowAncestors(isTopLayer)
 			.withBiologicalParents(fatherData, motherData)
 			.withListener(treeListener, popupFactory)
-			.withSuppressCollapseBadge(true);
+			.withSuppressCollapseBadge(true)
+			.withPartnerCycleEnabled(isRootCouple);
+		if(partnerCycleHandler != null)
+			panel.withPartnerCycleListener((side, newPartner) -> {
+				final TreeNode anchorNode = (side == Side.LEFT? fatherNode: motherNode);
+				if(anchorNode != null)
+					partnerCycleHandler.onPartnerCycled(anchorNode, side, newPartner);
+			});
 
-		wireGrandparents(panel, fatherTn, motherTn);
+		wireGrandparents(panel, fatherNode, motherNode);
 
 		return panel;
 	}
@@ -88,12 +101,14 @@ final class PartnersPanelFactory{
 	 * ====================================================================== */
 
 	private static void wireGrandparents(final PartnersPanel panel, final TreeNode fatherTn, final TreeNode motherTn){
-		panel.getFatherPanel().withParent(
-			individual(fatherTn != null? fatherTn.getFather(): null),
-			individual(fatherTn != null? fatherTn.getMother(): null));
-		panel.getMotherPanel().withParent(
-			individual(motherTn != null? motherTn.getFather(): null),
-			individual(motherTn != null? motherTn.getMother(): null));
+		panel.getFatherPanel()
+			.withParent(
+				individual(fatherTn != null? fatherTn.getFather(): null),
+				individual(fatherTn != null? fatherTn.getMother(): null));
+		panel.getMotherPanel()
+			.withParent(
+				individual(motherTn != null? motherTn.getFather(): null),
+				individual(motherTn != null? motherTn.getMother(): null));
 	}
 
 	private static boolean isRootGeneration(final TreeNode tn){

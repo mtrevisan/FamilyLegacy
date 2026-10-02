@@ -26,6 +26,9 @@ package io.github.mtrevisan.familylegacy.ui.tools.reports;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.readers.ContextImpactReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.HistoricEventReader;
+import io.github.mtrevisan.familylegacy.ui.handlers.HistoricEventHandler;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -46,12 +49,6 @@ import java.util.function.Function;
  * enabled and at least one historic event is reachable.</p>
  */
 final class HistoricEventSection implements SectionBuilder{
-
-	private static final String TAG_CONTEXT = "context";
-	private static final String TAG_HISTORIC = "historic_event";
-	private static final String TAG_TITLE = "title";
-	private static final String TAG_TYPE = "type";
-
 
 	private final ReportContext ctx;
 	private final Function<String, String> contextLabels;
@@ -87,14 +84,15 @@ final class HistoricEventSection implements SectionBuilder{
 	private List<FLEFRecord> collectHistoricEvents(){
 		final Set<String> ids = new LinkedHashSet<>();
 		for(final FLEFRecord ci : ctx.index.contextImpactsFor(ctx.relatedRecordIds())){
-			final FLEFRecord contextNode = FLEFRecordHelper.findChild(ci, TAG_CONTEXT);
+			final FLEFRecord contextNode = FLEFRecordHelper.findChild(ci, ContextImpactReader.TAG_CONTEXT);
 			if(contextNode == null)
 				continue;
 			final FLEFRecord ref = contextNode.getTheOnlyChild();
 			if(ref == null || FLEFRecord.TAG_VOID.equalsIgnoreCase(ref.getTag()))
 				continue;
-			if(!TAG_HISTORIC.equalsIgnoreCase(ref.getTag()))
+			if(!HistoricEventHandler.TYPE.equalsIgnoreCase(ref.getTag()))
 				continue;
+
 			final String id = ref.getValue();
 			if(id == null || id.isBlank())
 				continue;
@@ -116,7 +114,7 @@ final class HistoricEventSection implements SectionBuilder{
 	 * ====================================================================== */
 
 	private void appendHistoricEvent(final List<ReportSection> out, final FLEFRecord evt){
-		final String title = FLEFRecordHelper.getChildValue(evt, TAG_TITLE);
+		final String title = FLEFRecordHelper.getChildValue(evt, HistoricEventReader.TAG_TITLE);
 		final String heading = (title != null && !title.isBlank()
 			? title.trim()
 			: ReportFormatters.orEmpty(evt.getId()));
@@ -124,7 +122,7 @@ final class HistoricEventSection implements SectionBuilder{
 
 		final List<String> rows = new ArrayList<>();
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().historicEventType(),
-			FLEFRecordHelper.getChildValue(evt, TAG_TYPE));
+			FLEFRecordHelper.getChildValue(evt, HistoricEventReader.TAG_TYPE));
 
 		final String date = GenealogicalDateHelper.formatEventDate(
 			evt, ctx.labels, contextLabels);

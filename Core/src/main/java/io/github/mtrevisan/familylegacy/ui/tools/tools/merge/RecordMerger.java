@@ -139,7 +139,7 @@ public final class RecordMerger{
 		if(a.size() != b.size())
 			return false;
 
-		for(int i = 0; i < a.size(); i++)
+		for(int i = 0; i < a.size(); i ++)
 			if(!a.get(i).equals(b.get(i)))
 				return false;
 		return true;

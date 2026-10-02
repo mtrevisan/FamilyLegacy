@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.ui.tools.places;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceRelationshipReader;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolDialogs;
@@ -74,6 +75,7 @@ import java.util.TreeSet;
 public final class PlaceRelationshipsDialog extends JDialog{
 
 	private static final String FILTER_ALL = "All";
+
 
 	private final ToolContext context;
 	private final RelationshipsTableModel tableModel = new RelationshipsTableModel();
@@ -180,11 +182,11 @@ public final class PlaceRelationshipsDialog extends JDialog{
 		final Set<String> types = new TreeSet<>();
 
 		for(final FLEFRecord rel : PlaceHelper.listAllRelationships(model)){
-			final String parentId = PlaceHelper.endpointPlaceId(rel, PlaceHelper.TAG_SUBJECT);
-			final String childId = PlaceHelper.endpointPlaceId(rel, PlaceHelper.TAG_TARGET);
-			final String type = FLEFRecordHelper.getChildValue(rel, PlaceHelper.TAG_TYPE);
-			final String from = PlaceHelper.dateValue(rel, PlaceHelper.TAG_VALID_FROM);
-			final String to = PlaceHelper.dateValue(rel, PlaceHelper.TAG_VALID_TO);
+			final String parentId = PlaceHelper.endpointPlaceId(rel, PlaceRelationshipReader.TAG_SUBJECT);
+			final String childId = PlaceHelper.endpointPlaceId(rel, PlaceRelationshipReader.TAG_OBJECT);
+			final String type = FLEFRecordHelper.getChildValue(rel, PlaceRelationshipReader.TAG_TYPE);
+			final String from = PlaceHelper.dateValue(rel, PlaceRelationshipReader.TAG_VALID_FROM);
+			final String to = PlaceHelper.dateValue(rel, PlaceRelationshipReader.TAG_VALID_TO);
 
 			final String parentName = parentId != null && placesById.containsKey(parentId)
 				? PlaceHelper.displayName(placesById.get(parentId)): parentId;

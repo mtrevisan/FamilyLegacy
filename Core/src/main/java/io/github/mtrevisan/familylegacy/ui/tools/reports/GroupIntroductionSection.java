@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.ui.tools.reports;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.readers.GroupReader;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,7 +42,6 @@ import java.util.Locale;
  */
 final class GroupIntroductionSection implements SectionBuilder{
 
-	private static final String TAG_TYPE = "type";
 	private static final String TYPE_FOUNDING = "founding";
 	private static final String TYPE_DISSOLVED = "dissolved";
 
@@ -86,7 +86,7 @@ final class GroupIntroductionSection implements SectionBuilder{
 		Integer toYear = null;
 
 		for(final FLEFRecord evt : events){
-			final String t = FLEFRecordHelper.getChildValue(evt, TAG_TYPE);
+			final String t = FLEFRecordHelper.getChildValue(evt, GroupReader.TAG_TYPE);
 			if(t == null)
 				continue;
 			final Integer y = GenealogicalDateHelper.yearOrNull(evt);

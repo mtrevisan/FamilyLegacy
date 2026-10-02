@@ -27,7 +27,10 @@ package io.github.mtrevisan.familylegacy.ui.tools.sources;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.readers.DocumentReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.ui.handlers.DocumentHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RepositoryHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.SourceHandler;
@@ -50,26 +53,7 @@ import java.util.Map;
  */
 public final class SourceHelper{
 
-	public static final String TAG_TITLE = "title";
-	public static final String TAG_NAME = "name";
-	public static final String TAG_VALUE = "value";
-	public static final String TAG_AUTHOR = "author";
-	public static final String TAG_PUBLISHER = "publisher";
-	public static final String TAG_URI = "uri";
-	public static final String TAG_DESCRIPTION = "description";
-	public static final String TAG_MAPPING = "mapping";
-	public static final String TAG_MEDIA_TYPE = "media_type";
-	public static final String TAG_REPOSITORY = "repository";
-	public static final String TAG_DOCUMENT = "document";
-	public static final String TAG_PLACE = "place";
-	public static final String TAG_SOURCE = "source";
-	public static final String TAG_LOCATOR = "locator";
-	public static final String TAG_NOTE = "note";
-	public static final String TAG_EXTRACT = "extract";
-
-
-	private SourceHelper(){
-	}
+	private SourceHelper(){}
 
 
 	public static List<FLEFRecord> listAllSources(final FLEFModel model){
@@ -120,11 +104,13 @@ public final class SourceHelper{
 			return StringUtils.EMPTY;
 
 		for(final FLEFRecord child : source.getChildren()){
-			if(!TAG_TITLE.equalsIgnoreCase(child.getTag()))
+			if(!SourceReader.TAG_TITLE.equalsIgnoreCase(child.getTag()))
 				continue;
-			final String value = FLEFRecordHelper.getChildValue(child, TAG_VALUE);
-			if(value != null && !value.isBlank())
-				return value;
+
+			final String title = SourceReader.extractPrimaryTitle(child);
+			if(StringUtils.isNotEmpty(title))
+				return title;
+
 			final FLEFRecord onlyChild = child.getTheOnlyChild();
 			if(onlyChild != null && onlyChild.getValue() != null && !onlyChild.getValue().isBlank())
 				return onlyChild.getValue();
@@ -142,33 +128,34 @@ public final class SourceHelper{
 			return StringUtils.EMPTY;
 
 		for(final FLEFRecord child : repository.getChildren()){
-			if(!TAG_NAME.equalsIgnoreCase(child.getTag()))
+			if(!RepositoryReader.TAG_NAME.equalsIgnoreCase(child.getTag()))
 				continue;
-			final String value = FLEFRecordHelper.getChildValue(child, TAG_VALUE);
-			if(value != null && !value.isBlank())
-				return value;
+
+			final String name = RepositoryReader.extractPrimaryName(child);
+			if(StringUtils.isNotEmpty(name))
+				return name;
 		}
 		return (repository.getId() != null? repository.getId(): StringUtils.EMPTY);
 	}
 
 	public static String documentUri(final FLEFRecord document){
-		return firstTextValue(document, TAG_URI);
+		return firstTextValue(document, DocumentReader.TAG_URI);
 	}
 
 	public static String documentDescription(final FLEFRecord document){
-		return firstTextValue(document, TAG_DESCRIPTION);
+		return firstTextValue(document, DocumentReader.TAG_DESCRIPTION);
 	}
 
 	public static String sourceAuthor(final FLEFRecord source){
-		return firstTextValue(source, TAG_AUTHOR);
+		return firstTextValue(source, SourceReader.TAG_AUTHOR);
 	}
 
 	public static String sourcePublisher(final FLEFRecord source){
-		return firstTextValue(source, TAG_PUBLISHER);
+		return firstTextValue(source, SourceReader.TAG_PUBLISHER);
 	}
 
 	public static String sourceMediaType(final FLEFRecord source){
-		return firstTextValue(source, TAG_MEDIA_TYPE);
+		return firstTextValue(source, SourceReader.TAG_MEDIA_TYPE);
 	}
 
 
@@ -201,7 +188,7 @@ public final class SourceHelper{
 		// Documents referenced directly by a source.
 		for(final FLEFRecord source : listAllSources(model))
 			for(final FLEFRecord child : source.getChildren())
-				if(TAG_DOCUMENT.equalsIgnoreCase(child.getTag())){
+				if(DocumentHandler.TYPE.equalsIgnoreCase(child.getTag())){
 					final String docId = child.getTheOnlyChild() != null
 						? child.getTheOnlyChild().getValue(): null;
 					if(docId != null)
@@ -221,8 +208,9 @@ public final class SourceHelper{
 	private static void incrementCitations(final FLEFRecord record,
 		final Map<String, Integer> counts){
 		for(final FLEFRecord source : record.getChildren()){
-			if(!TAG_SOURCE.equalsIgnoreCase(source.getTag()))
+			if(!SourceHandler.TYPE.equalsIgnoreCase(source.getTag()))
 				continue;
+
 			final String sourceId = extractReferencedId(source);
 			if(sourceId != null)
 				counts.merge(sourceId, 1, Integer::sum);
@@ -232,15 +220,18 @@ public final class SourceHelper{
 	private static void countDocumentsInCitations(final FLEFRecord record,
 		final Map<String, Integer> counts){
 		for(final FLEFRecord source : record.getChildren()){
-			if(!TAG_SOURCE.equalsIgnoreCase(source.getTag()))
+			if(!SourceHandler.TYPE.equalsIgnoreCase(source.getTag()))
 				continue;
+
 			for(final FLEFRecord extract : source.getChildren()){
-				if(!TAG_EXTRACT.equalsIgnoreCase(extract.getTag()))
+				if(!SourceCitationReader.TAG_EXTRACT.equalsIgnoreCase(extract.getTag()))
 					continue;
+
 				for(final FLEFRecord part : extract.getChildren()){
 					if(!SourceCitationReader.TAG_DOCUMENT_PART.equalsIgnoreCase(part.getTag()))
 						continue;
-					final String docId = FLEFRecordHelper.getChildValue(part, TAG_DOCUMENT);
+
+					final String docId = FLEFRecordHelper.getChildValue(part, SourceCitationReader.TAG_DOCUMENT);
 					if(docId != null)
 						counts.merge(docId, 1, Integer::sum);
 				}
@@ -249,10 +240,11 @@ public final class SourceHelper{
 	}
 
 	private static String extractReferencedId(final FLEFRecord sourceBlock){
-		final String direct = FLEFRecordHelper.getChildValue(sourceBlock, TAG_SOURCE);
+		final String direct = FLEFRecordHelper.getChildValue(sourceBlock, SourceHandler.TYPE);
 		if(direct != null)
 			return direct;
-		final FLEFRecord inner = FLEFRecordHelper.findChild(sourceBlock, TAG_SOURCE);
+
+		final FLEFRecord inner = FLEFRecordHelper.findChild(sourceBlock, SourceHandler.TYPE);
 		if(inner != null){
 			final FLEFRecord only = inner.getTheOnlyChild();
 			if(only != null)
@@ -313,8 +305,8 @@ public final class SourceHelper{
 		int sourceCount = 0;
 		for(final FLEFRecord source : listAllSources(model))
 			for(final FLEFRecord child : source.getChildren())
-				if(TAG_REPOSITORY.equalsIgnoreCase(child.getTag())){
-					final String repoId = FLEFRecordHelper.getChildValue(child, TAG_REPOSITORY);
+				if(RepositoryHandler.TYPE.equalsIgnoreCase(child.getTag())){
+					final String repoId = FLEFRecordHelper.getChildValue(child, RepositoryHandler.TYPE);
 					if(id != null && id.equals(repoId)){
 						sourceCount ++;
 						break;
@@ -323,7 +315,7 @@ public final class SourceHelper{
 		return new RepositoryRow(
 			id,
 			repositoryName(repository),
-			firstTextValue(repository, TAG_PLACE),
+			firstTextValue(repository, RepositoryReader.TAG_PLACE),
 			sourceCount
 		);
 	}
@@ -336,7 +328,7 @@ public final class SourceHelper{
 			id,
 			documentUri(document),
 			documentDescription(document),
-			firstTextValue(document, TAG_MAPPING),
+			firstTextValue(document, DocumentReader.TAG_MAPPING),
 			referenceCounts.getOrDefault(id, 0)
 		);
 	}

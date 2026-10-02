@@ -101,7 +101,7 @@ public record Statistics(
 	 */
 	public record TypeCoverage(String tag, int total, int cited){
 		public double percentage(){
-			return (total > 0? 100.0 * cited / total: 0.0);
+			return (total > 0? 100. * cited / total: 0.);
 		}
 	}
 

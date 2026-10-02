@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.ui.components.projections.individual.Ind
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualPanel;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.IndividualTreeGraphListener;
 import io.github.mtrevisan.familylegacy.ui.components.projections.partners.PartnersPanel;
+import io.github.mtrevisan.familylegacy.ui.components.projections.repository.GenealogyRepository;
 import io.github.mtrevisan.familylegacy.ui.components.projections.repository.TreeNode;
 import io.github.mtrevisan.familylegacy.ui.components.projections.siblings.SiblingsPanel;
 
@@ -42,11 +43,13 @@ public class TreeLayoutEngine implements LayoutEngine{
 
 	@Override
 	public SiblingsPanel buildLayout(final JPanel canvas, final TreeNode rootNode, final boolean showPartner,
-			final int maxAncestors, final FLEFModel model, final Map<TreeNode, PartnersPanel> nodeToPanelMap,
-			final IndividualTreeGraphListener treeListener,
-			final EntityPopupMenuFactory<IndividualPanel, IndividualListener> popupFactory, final TreeLayout treeLayout){
+			final int maxAncestors, final FLEFModel model, final GenealogyRepository genealogyRepository,
+			final Map<TreeNode, PartnersPanel> nodeToPanelMap, final IndividualTreeGraphListener treeListener,
+			final EntityPopupMenuFactory<IndividualPanel, IndividualListener> popupFactory, final TreeLayout treeLayout,
+			final PartnerCycleHandler partnerCycleHandler){
 		return TreeLayoutBuilder.buildLayout(canvas, rootNode, showPartner,
-			maxAncestors, model, nodeToPanelMap, treeListener, popupFactory, treeLayout);
+			maxAncestors, model, genealogyRepository, nodeToPanelMap, treeListener, popupFactory, treeLayout,
+			partnerCycleHandler);
 	}
 
 

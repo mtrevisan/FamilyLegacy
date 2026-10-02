@@ -26,8 +26,13 @@ package io.github.mtrevisan.familylegacy.ui.tools.reports;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.readers.DocumentReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateService;
+import io.github.mtrevisan.familylegacy.ui.handlers.RepositoryHandler;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,18 +51,6 @@ import java.util.List;
  * </ul>
  */
 final class SourceRootSection implements SectionBuilder{
-
-	private static final String TAG_AUTHOR = "author";
-	private static final String TAG_PUBLISHER = "publisher";
-	private static final String TAG_MEDIA_TYPE = "media_type";
-	private static final String TAG_NAME = "name";
-	private static final String TAG_VALUE = "value";
-	private static final String TAG_LOCATOR = "locator";
-	private static final String TAG_URI = "uri";
-	private static final String TAG_DESCRIPTION = "description";
-
-	private static final String TYPE_REPOSITORY = "repository";
-
 
 	private final ReportContext ctx;
 
@@ -95,15 +88,15 @@ final class SourceRootSection implements SectionBuilder{
 	private void writeBasicInfo(final List<ReportSection> out){
 		final List<String> rows = new ArrayList<>();
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().sourceAuthor(),
-			FLEFRecordHelper.getChildValue(ctx.root, TAG_AUTHOR));
+			FLEFRecordHelper.getChildValue(ctx.root, SourceReader.TAG_AUTHOR));
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().sourcePublisher(),
-			FLEFRecordHelper.getChildValue(ctx.root, TAG_PUBLISHER));
+			FLEFRecordHelper.getChildValue(ctx.root, SourceReader.TAG_PUBLISHER));
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().sourceDate(),
 			DateService.getDateDisplayText(ctx.root));
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().sourcePlace(),
 			FLEFRecordHelper.extractPlace(ctx.root, ctx.model));
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().sourceMediaType(),
-			FLEFRecordHelper.getChildValue(ctx.root, TAG_MEDIA_TYPE));
+			FLEFRecordHelper.getChildValue(ctx.root, SourceReader.TAG_MEDIA_TYPE));
 		if(!rows.isEmpty())
 			out.add(new ReportSection.BulletList(rows));
 	}
@@ -116,12 +109,12 @@ final class SourceRootSection implements SectionBuilder{
 
 		out.add(new ReportSection.Heading(2, ctx.labels.sections().sourceRepository()));
 		for(final FLEFRecord rc : repos){
-			final String rid = rc.extractReferencedId(TYPE_REPOSITORY, TYPE_REPOSITORY);
+			final String rid = rc.extractReferencedId(RepositoryCitationReader.TAG_REPOSITORY, RepositoryHandler.TYPE);
 			final FLEFRecord repo = (rid != null? ctx.visible(ctx.model.getRecordById(rid)): null);
 			final String name = (repo != null
 				? RepositoryReader.extractPrimaryName(repo)
 				: rid);
-			final String locator = FLEFRecordHelper.getChildValue(rc, TAG_LOCATOR);
+			final String locator = FLEFRecordHelper.getChildValue(rc, RepositoryCitationReader.TAG_LOCATOR);
 
 			final StringBuilder line = new StringBuilder("- ")
 				.append(ReportFormatters.escape(ReportFormatters.orEmpty(name)));
@@ -153,8 +146,8 @@ final class SourceRootSection implements SectionBuilder{
 			final FLEFRecord doc = ctx.visible(ctx.model.getRecordById(docId));
 			if(doc == null)
 				continue;
-			final String uri = FLEFRecordHelper.getChildValue(doc, TAG_URI);
-			final String descr = FLEFRecordHelper.getChildValue(doc, TAG_DESCRIPTION);
+			final String uri = FLEFRecordHelper.getChildValue(doc, DocumentReader.TAG_URI);
+			final String descr = FLEFRecordHelper.getChildValue(doc, DocumentReader.TAG_DESCRIPTION);
 			final StringBuilder sb = new StringBuilder("- ");
 			if(descr != null && !descr.isBlank())
 				sb.append(ReportFormatters.escape(descr));
@@ -178,7 +171,7 @@ final class SourceRootSection implements SectionBuilder{
 		for(final FLEFRecord c : citations){
 			final FLEFRecord owner = findOwnerOf(c);
 			final String ownerLabel = (owner != null? ctx.displayText(owner): "?");
-			final String locator = FLEFRecordHelper.getChildValue(c, TAG_LOCATOR);
+			final String locator = FLEFRecordHelper.getChildValue(c, SourceCitationReader.TAG_LOCATOR);
 			final StringBuilder sb = new StringBuilder(ReportFormatters.escape(ownerLabel));
 			if(locator != null)
 				sb.append(" — *").append(ReportFormatters.escape(locator)).append('*');

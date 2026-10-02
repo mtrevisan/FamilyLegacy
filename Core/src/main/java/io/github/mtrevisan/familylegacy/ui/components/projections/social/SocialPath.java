@@ -59,7 +59,7 @@ public record SocialPath(List<SocialEdgeRef> edges){
 			throw new IllegalArgumentException("Path must contain at least one edge");
 		edges = List.copyOf(edges);
 
-		for(int i = 1; i < edges.size(); i++){
+		for(int i = 1; i < edges.size(); i ++){
 			final SocialEdgeRef previous = edges.get(i - 1);
 			final SocialEdgeRef current = edges.get(i);
 			final boolean connected = (previous.involves(current.source())
@@ -194,7 +194,7 @@ public record SocialPath(List<SocialEdgeRef> edges){
 	public String toString(){
 		final List<TemporalEntityRef> nodes = nodes();
 		final StringBuilder sb = new StringBuilder();
-		for(int i = 0; i < nodes.size(); i++){
+		for(int i = 0; i < nodes.size(); i ++){
 			if(i > 0)
 				sb.append(" -> ");
 			sb.append(nodes.get(i)

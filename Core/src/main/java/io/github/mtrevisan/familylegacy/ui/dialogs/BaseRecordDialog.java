@@ -445,10 +445,7 @@ public abstract class BaseRecordDialog extends JDialog{
 			final String documentId = documentRef.getValue();
 
 			final FLEFRecord doc = model.getRecordById(documentId);
-			String uri = FLEFRecordHelper.getChildValue(doc, DocumentReader.TAG_URI);
-// TODO to be removed
-if(uri != null)
-	uri = "C:\\mauro\\heritage\\My Genealogy Projects\\Trevisan (Dorato)-Gallinaro-Masutti (Manfrin)-Zaros (Basso)" + uri;
+			final String uri = FLEFRecordHelper.getChildValue(doc, DocumentReader.TAG_URI);
 			if(StringUtils.isNotEmpty(uri))
 				uris.add(uri);
 		}

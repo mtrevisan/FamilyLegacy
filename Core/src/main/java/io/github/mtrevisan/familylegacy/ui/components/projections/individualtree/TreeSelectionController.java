@@ -101,18 +101,14 @@ public final class TreeSelectionController{
 				continue;
 
 			final IndividualPanel father = partners.getFatherPanel();
-			if(father != null){
-				final IndividualData fatherData = father.getData();
-				if(fatherData != null && selectedId.equals(fatherData.getId()))
-					return father;
-			}
+			final IndividualData fatherData = father.getData();
+			if(fatherData != null && selectedId.equals(fatherData.getId()))
+				return father;
 
 			final IndividualPanel mother = partners.getMotherPanel();
-			if(mother != null){
-				final IndividualData motherData = mother.getData();
-				if(motherData != null && selectedId.equals(motherData.getId()))
-					return mother;
-			}
+			final IndividualData motherData = mother.getData();
+			if(motherData != null && selectedId.equals(motherData.getId()))
+				return mother;
 		}
 
 		if(childrenPanel != null){

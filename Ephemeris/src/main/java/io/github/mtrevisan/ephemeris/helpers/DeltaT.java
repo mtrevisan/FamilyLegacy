@@ -171,7 +171,7 @@ public final class DeltaT{
 		// IERS table
 		List<IersSample> iers;
 		try(final InputStream in = DeltaT.class.getResourceAsStream(IERS_RESOURCE)){
-			iers = (in != null? parseIersFile(in): List.of());
+			iers = (in != null? parseIERSFile(in): List.of());
 		}
 		catch(final IOException e){
 			iers = List.of();
@@ -284,7 +284,7 @@ public final class DeltaT{
 	/**
 	 * Returns {@code true} when the IERS table covers the given instant.
 	 */
-	public static boolean hasIersCoverage(final double decimalYear){
+	public static boolean hasIERSCoverage(final double decimalYear){
 		return (!IERS_SAMPLES.isEmpty()
 			&& decimalYear >= IERS_START
 			&& decimalYear <= IERS_END);
@@ -317,7 +317,7 @@ public final class DeltaT{
 	private static double blend(final double y, final double yB,
 		final DoubleUnaryOperator left, final DoubleUnaryOperator right){
 		final double t = (y - (yB - TAPER_YEARS)) / (2. * TAPER_YEARS);
-		final double tc = (t < 0.? 0.: (t > 1.? 1.: t));
+		final double tc = (t < 0.? 0.: Math.min(t, 1.));
 		final double w = tc * tc * (3. - 2. * tc);
 		return (1. - w) * left.applyAsDouble(y) + w * right.applyAsDouble(y);
 	}
@@ -337,7 +337,7 @@ public final class DeltaT{
 		if(IERS_SAMPLES.isEmpty())
 			return 0.;
 
-		final double yc = Math.max(IERS_START, Math.min(IERS_END, y));
+		final double yc = Math.clamp(y, IERS_START, IERS_END);
 
 		int lo = 0;
 		int hi = IERS_SAMPLES.size() - 1;
@@ -363,11 +363,6 @@ public final class DeltaT{
 	/**
 	 * Parses the IERS monthly file. Each data line holds the year, month,
 	 * day and ΔT in seconds, separated by whitespace. Lines starting with
-	 * {@code #} or {@code %} are ignored.
-	 */
-	/**
-	 * Parses the IERS monthly file. Each data line holds the year, month,
-	 * day and ΔT in seconds, separated by whitespace. Lines starting with
 	 * {@code #} or {@code %} are ignored, as are blank lines.
 	 *
 	 * <p>The parser strips an optional UTF-8 byte-order mark (U+FEFF) that
@@ -381,7 +376,7 @@ public final class DeltaT{
 	 * tokens are ignored, so the parser is forward-compatible with future
 	 * revisions of the file that add extra columns.</p>
 	 */
-	private static List<IersSample> parseIersFile(final InputStream in) throws IOException{
+	private static List<IersSample> parseIERSFile(final InputStream in) throws IOException{
 		final List<IersSample> out = new ArrayList<>();
 		try(final BufferedReader reader = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8))){
 			String line;
@@ -450,7 +445,7 @@ public final class DeltaT{
 		if(SPLINE_ROWS.isEmpty())
 			return 0.;
 
-		final double yc = Math.max(SPLINE_START, Math.min(SPLINE_END - 1e-9, y));
+		final double yc = Math.clamp(y, SPLINE_START, SPLINE_END - 1e-9);
 
 		int lo = 0;
 		int hi = SPLINE_ROWS.size() - 1;
@@ -662,7 +657,7 @@ public final class DeltaT{
 		for(final double y : testYears){
 			final double dt = deltaTSeconds(y);
 			final String source;
-			if(hasIersCoverage(y))
+			if(hasIERSCoverage(y))
 				source = "IERS (observed)";
 			else if(hasSplineCoverage(y))
 				source = "S/M/H spline";

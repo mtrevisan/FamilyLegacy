@@ -71,12 +71,9 @@ final class TimelineSection implements SectionBuilder{
 			final String date = ReportFormatters.orEmpty(
 				GenealogicalDateHelper.formatEventDate(e, ctx.labels,
 					ctx.contextLabelResolver()));
-			final String type = ReportFormatters.orEmpty(
-				FLEFRecordHelper.getChildValue(e, TAG_TYPE));
-			final String title = ReportFormatters.orEmpty(
-				FLEFRecordHelper.getChildValue(e, TAG_TITLE));
-			final String place = ReportFormatters.orEmpty(
-				FLEFRecordHelper.extractPlace(e, ctx.model));
+			final String type = ReportFormatters.orEmpty(FLEFRecordHelper.getChildValue(e, TAG_TYPE));
+			final String title = ReportFormatters.orEmpty(FLEFRecordHelper.getChildValue(e, TAG_TITLE));
+			final String place = ReportFormatters.orEmpty(FLEFRecordHelper.extractPlace(e, ctx.model));
 			rows.add(List.of(
 				String.valueOf(year != null? year: StringUtils.EMPTY),
 				ReportFormatters.escape(date),

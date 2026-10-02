@@ -26,6 +26,8 @@ package io.github.mtrevisan.familylegacy.ui.tools.reports;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.readers.DocumentReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -46,12 +48,6 @@ import java.util.List;
  * </ul>
  */
 final class DocumentRootSection implements SectionBuilder{
-
-	private static final String TAG_URI = "uri";
-	private static final String TAG_DESCRIPTION = "description";
-	private static final String TAG_MAPPING = "mapping";
-	private static final String TAG_LOCATOR = "locator";
-
 
 	private final ReportContext ctx;
 
@@ -85,7 +81,7 @@ final class DocumentRootSection implements SectionBuilder{
 
 
 	private void writePreview(final List<ReportSection> out){
-		final String uri = FLEFRecordHelper.getChildValue(ctx.root, TAG_URI);
+		final String uri = FLEFRecordHelper.getChildValue(ctx.root, DocumentReader.TAG_URI);
 		if(uri == null || uri.isBlank())
 			return;
 		try{
@@ -98,12 +94,12 @@ final class DocumentRootSection implements SectionBuilder{
 	private void writeBasicInfo(final List<ReportSection> out){
 		final List<String> rows = new ArrayList<>();
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().documentUri(),
-			FLEFRecordHelper.getChildValue(ctx.root, TAG_URI));
+			FLEFRecordHelper.getChildValue(ctx.root, DocumentReader.TAG_URI));
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().documentDescription(),
-			FLEFRecordHelper.getChildValue(ctx.root, TAG_DESCRIPTION));
+			FLEFRecordHelper.getChildValue(ctx.root, DocumentReader.TAG_DESCRIPTION));
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().documentMapping(),
 			ReportFormatters.enumLabel(
-				FLEFRecordHelper.getChildValue(ctx.root, TAG_MAPPING)));
+				FLEFRecordHelper.getChildValue(ctx.root, DocumentReader.TAG_MAPPING)));
 		if(!rows.isEmpty())
 			out.add(new ReportSection.BulletList(rows));
 	}
@@ -132,7 +128,7 @@ final class DocumentRootSection implements SectionBuilder{
 		for(final FLEFRecord cit : citations){
 			if(!ctx.isVisible(cit))
 				continue;
-			final String locator = FLEFRecordHelper.getChildValue(cit, TAG_LOCATOR);
+			final String locator = FLEFRecordHelper.getChildValue(cit, SourceCitationReader.TAG_LOCATOR);
 			final StringBuilder sb = new StringBuilder();
 			sb.append(ReportFormatters.escape(ReportFormatters.orEmpty(cit.getId())));
 			if(locator != null)
@@ -145,10 +141,10 @@ final class DocumentRootSection implements SectionBuilder{
 
 
 	private static String documentTitle(final FLEFRecord doc){
-		final String desc = FLEFRecordHelper.getChildValue(doc, TAG_DESCRIPTION);
+		final String desc = FLEFRecordHelper.getChildValue(doc, DocumentReader.TAG_DESCRIPTION);
 		if(desc != null && !desc.isBlank())
 			return desc.trim();
-		final String uri = FLEFRecordHelper.getChildValue(doc, TAG_URI);
+		final String uri = FLEFRecordHelper.getChildValue(doc, DocumentReader.TAG_URI);
 		if(uri != null && !uri.isBlank()){
 			final int slash = uri.lastIndexOf('/');
 			return (slash >= 0? uri.substring(slash + 1): uri);

@@ -48285,7 +48285,6 @@ passenger ID: 37821"""
 		type adoptive_child
 		audit.creation.date 2026-09-28T00:00:00Z
 		note {
-			text TO BE REVISED: the relationship should be with a biological father and a biological mother instead?
 			audit.creation.date 2026-09-28T00:00:00Z
 		}
 	}
@@ -48293,10 +48292,9 @@ passenger ID: 37821"""
 	relationship RL124 {
 		subject.individual I436
 		object.individual I1430
-		type adoptive_child
+		type biological_child
 		audit.creation.date 2026-09-28T00:00:00Z
 		note {
-			text TO BE REVISED: the relationship should be with a biological father and a biological mother instead?
 			audit.creation.date 2026-09-28T00:00:00Z
 		}
 	}

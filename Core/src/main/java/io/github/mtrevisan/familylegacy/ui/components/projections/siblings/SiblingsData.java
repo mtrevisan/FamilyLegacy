@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.ui.components.projections.individual.Ind
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 
@@ -37,15 +38,30 @@ import java.util.Set;
 public final class SiblingsData{
 
 	private final List<IndividualData> siblings;
+	private final Map<String, String> relationshipTypes;
 	private final Set<String> siblingIdsWithDescendants;
 
 
-	public static SiblingsData create(final List<IndividualData> siblings, final Set<String> siblingIdsWithDescendants){
-		return new SiblingsData(siblings, siblingIdsWithDescendants);
+	public static SiblingsData create(final List<IndividualData> siblings, final Map<String, String> relationshipTypes,
+			final Set<String> siblingIdsWithDescendants){
+		return new SiblingsData(siblings, relationshipTypes, siblingIdsWithDescendants);
 	}
 
+	/**
+	 * A single child shown without a known couple: the relationship type
+	 * is not known and will not be displayed.
+	 */
 	public static SiblingsData createSingleChild(final IndividualData siblings){
-		return new SiblingsData(Collections.singletonList(siblings), null);
+		return new SiblingsData(Collections.singletonList(siblings), Collections.emptyMap(), null);
+	}
+
+	/**
+	 * Convenience factory when only the sibling list is known: no
+	 * relationship type will be attached to any child.
+	 */
+	public static SiblingsData create(final List<IndividualData> siblings,
+			final Set<String> siblingIdsWithDescendants){
+		return new SiblingsData(siblings, Collections.emptyMap(), siblingIdsWithDescendants);
 	}
 
 
@@ -55,10 +71,10 @@ public final class SiblingsData{
 	 * @param siblings           list of sibling IndividualData objects
 	 * @param siblingIdsWithDescendants     set of individual IDs that have descendants
 	 */
-	private SiblingsData(final List<IndividualData> siblings, final Set<String> siblingIdsWithDescendants){
-		this.siblings = (siblings != null
-			? siblings
-			: Collections.emptyList());
+	private SiblingsData(final List<IndividualData> siblings, final Map<String, String> relationshipTypes,
+			final Set<String> siblingIdsWithDescendants){
+		this.siblings = (siblings != null? siblings: Collections.emptyList());
+		this.relationshipTypes = (relationshipTypes != null? relationshipTypes: Collections.emptyMap());
 		this.siblingIdsWithDescendants = (siblingIdsWithDescendants != null
 			? siblingIdsWithDescendants
 			: Collections.emptySet());
@@ -67,6 +83,18 @@ public final class SiblingsData{
 
 	public List<IndividualData> getSiblings(){
 		return siblings;
+	}
+
+	/**
+	 * Returns the relationship type through which the given child is
+	 * linked to the couple that owns this SiblingsData, or {@code null}
+	 * when it is not known.
+	 *
+	 * @param childId the child id
+	 * @return the relationship type, or {@code null}
+	 */
+	public String getRelationshipType(final String childId){
+		return (childId != null? relationshipTypes.get(childId): null);
 	}
 
 	public boolean hasDescendants(final String individualId){

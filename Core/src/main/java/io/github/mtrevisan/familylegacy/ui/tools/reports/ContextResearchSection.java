@@ -26,6 +26,16 @@ package io.github.mtrevisan.familylegacy.ui.tools.reports;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.readers.ConclusionReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.ContextImpactReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IdentityHypothesisReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.ResearchActivityReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.ResearchQuestionReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.ResearchTaskReader;
+import io.github.mtrevisan.familylegacy.ui.handlers.ConclusionHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.IdentityHypothesisHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.ResearchActivityHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.ResearchTaskHandler;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -47,44 +57,6 @@ import java.util.Set;
  * identity_hypothesis, cultural_norm, historic_event, source, document.</p>
  */
 final class ContextResearchSection implements SectionBuilder{
-
-	private static final String TAG_TITLE = "title";
-	private static final String TAG_QUESTION = "question";
-	private static final String TAG_STATUS = "status";
-	private static final String TAG_CONCLUSION = "conclusion";
-	private static final String TAG_CONCLUSION_CONFIDENCE = "conclusion_confidence";
-	private static final String TAG_ISSUE = "issue";
-	private static final String TAG_PROOF = "proof_status";
-	private static final String TAG_NARRATIVE = "narrative";
-	private static final String TAG_RATIONALE = "rationale";
-	private static final String TAG_COMMENT = "comment";
-	private static final String TAG_CLOSED_DATE = "closed_date";
-	private static final String TAG_IMPACT_TYPE = "impact_type";
-	private static final String TAG_TARGET = "target";
-	private static final String TAG_CONTEXT = "context";
-	private static final String TAG_RESOLVES = "resolves";
-	private static final String TAG_PREFERRED = "preferred";
-	private static final String TAG_RESEARCH = "research";
-	private static final String TAG_IDENTITY = "identity";
-
-	private static final String TAG_ACTIVITY_TYPE = "activity_type";
-	private static final String TAG_ACTION = "action";
-	private static final String TAG_SCOPE_TYPE = "search_scope.type";
-	private static final String TAG_SCOPE_DETAIL = "search_scope.detail";
-	private static final String TAG_RESULT = "result";
-	private static final String TAG_OBSERVATION = "observation";
-	private static final String TAG_PARENT_ACTIVITY = "parent_activity";
-	private static final String TAG_DESCRIPTION = "description";
-	private static final String TAG_CREATED_BY = "created_by";
-	private static final String TAG_PRIORITY = "priority";
-	private static final String TAG_DUE_DATE = "due_date";
-	private static final String TAG_OUTCOME = "outcome";
-
-	private static final String TYPE_RESEARCH_ACTIVITY = "research_activity";
-	private static final String TYPE_RESEARCH_TASK = "research_task";
-	private static final String TYPE_CONCLUSION = "conclusion";
-	private static final String TYPE_IDENTITY_HYPOTHESIS = "identity_hypothesis";
-
 
 	private final ReportContext ctx;
 
@@ -120,12 +92,12 @@ final class ContextResearchSection implements SectionBuilder{
 		out.add(new ReportSection.Heading(1, ctx.labels.sections().contextSection()));
 		for(final FLEFRecord imp : impacts){
 			final String impactType = ReportFormatters.orEmpty(
-				FLEFRecordHelper.getChildValue(imp, TAG_IMPACT_TYPE));
+				FLEFRecordHelper.getChildValue(imp, ContextImpactReader.TAG_IMPACT_TYPE));
 			out.add(new ReportSection.Heading(2,
 				ReportFormatters.escape(impactType) + ": "
 					+ ReportFormatters.escape(contextLabel(imp))));
 
-			final String rationale = FLEFRecordHelper.getChildValue(imp, TAG_RATIONALE);
+			final String rationale = FLEFRecordHelper.getChildValue(imp, ContextImpactReader.TAG_RATIONALE);
 			if(rationale != null)
 				out.add(new ReportSection.Paragraph(
 					"**" + ctx.labels.sections().contextRationale() + ":** "
@@ -140,7 +112,7 @@ final class ContextResearchSection implements SectionBuilder{
 	}
 
 	private String contextLabel(final FLEFRecord contextImpact){
-		final FLEFRecord contextField = FLEFRecordHelper.findChild(contextImpact, TAG_CONTEXT);
+		final FLEFRecord contextField = FLEFRecordHelper.findChild(contextImpact, ContextImpactReader.TAG_CONTEXT);
 		if(contextField == null)
 			return StringUtils.EMPTY;
 		final FLEFRecord ref = contextField.getTheOnlyChild();
@@ -169,37 +141,37 @@ final class ContextResearchSection implements SectionBuilder{
 
 	private void appendQuestion(final List<ReportSection> out, final FLEFRecord q){
 		out.add(new ReportSection.Heading(2, ReportFormatters.escape(
-			ReportFormatters.orEmpty(FLEFRecordHelper.getChildValue(q, TAG_TITLE)))));
+			ReportFormatters.orEmpty(FLEFRecordHelper.getChildValue(q, ResearchQuestionReader.TAG_TITLE)))));
 
-		final String question = FLEFRecordHelper.getChildValue(q, TAG_QUESTION);
+		final String question = FLEFRecordHelper.getChildValue(q, ResearchQuestionReader.TAG_QUESTION);
 		if(question != null)
 			out.add(new ReportSection.Paragraph(
 				"**" + ctx.labels.sections().question() + ":** " + ReportFormatters.escape(question)));
 
-		final String status = FLEFRecordHelper.getChildValue(q, TAG_STATUS);
+		final String status = FLEFRecordHelper.getChildValue(q, ResearchQuestionReader.TAG_STATUS);
 		if(status != null)
 			out.add(new ReportSection.Paragraph(
 				"**" + ctx.labels.sections().status() + ":** "
 					+ ReportFormatters.escape(ReportFormatters.orEmpty(
 					ReportFormatters.enumLabel(status)))));
 
-		final String conclusion = FLEFRecordHelper.getChildValue(q, TAG_CONCLUSION);
+		final String conclusion = FLEFRecordHelper.getChildValue(q, ResearchQuestionReader.TAG_CONCLUSION);
 		if(conclusion != null)
 			out.add(new ReportSection.Paragraph(
 				"**" + ctx.labels.sections().conclusion() + ":** " + ReportFormatters.escape(conclusion)));
 
-		final String confidence = FLEFRecordHelper.getChildValue(q, TAG_CONCLUSION_CONFIDENCE);
+		final String confidence = FLEFRecordHelper.getChildValue(q, ResearchQuestionReader.TAG_CONCLUSION_CONFIDENCE);
 		if(confidence != null)
 			out.add(new ReportSection.Paragraph(
 				"**" + ctx.labels.sections().researchConclusionConfidence() + ":** "
 					+ ReportFormatters.escape(ReportFormatters.orEmpty(
 					ReportFormatters.enumLabel(confidence)))));
 
-		final String rationale = FLEFRecordHelper.getChildValue(q, TAG_RATIONALE);
+		final String rationale = FLEFRecordHelper.getChildValue(q, ResearchQuestionReader.TAG_RATIONALE);
 		if(rationale != null)
 			out.add(new ReportSection.Paragraph(ReportFormatters.escape(rationale)));
 
-		final String closed = FLEFRecordHelper.getChildValue(q, TAG_CLOSED_DATE);
+		final String closed = FLEFRecordHelper.getChildValue(q, ResearchQuestionReader.TAG_CLOSED_DATE);
 		if(closed != null)
 			out.add(new ReportSection.Paragraph(
 				"**" + ctx.labels.sections().researchClosedDate() + ":** "
@@ -233,8 +205,8 @@ final class ContextResearchSection implements SectionBuilder{
 
 	private List<FLEFRecord> activitiesForQuestion(final String questionId){
 		final List<FLEFRecord> out = new ArrayList<>();
-		for(final FLEFRecord a : ctx.visibleRecordsByType(TYPE_RESEARCH_ACTIVITY)){
-			for(final FLEFRecord q : FLEFRecordHelper.findChildren(a, TAG_QUESTION))
+		for(final FLEFRecord a : ctx.visibleRecordsByType(ResearchActivityHandler.TYPE)){
+			for(final FLEFRecord q : FLEFRecordHelper.findChildren(a, ResearchActivityReader.TAG_QUESTION))
 				if(Objects.equals(questionId, q.getValue())){
 					out.add(a);
 					break;
@@ -245,8 +217,8 @@ final class ContextResearchSection implements SectionBuilder{
 
 	private void appendActivity(final List<ReportSection> out, final FLEFRecord a, final int headingLevel){
 		final String type = ReportFormatters.enumLabel(
-			FLEFRecordHelper.getChildValue(a, TAG_ACTIVITY_TYPE));
-		final String action = FLEFRecordHelper.getChildValue(a, TAG_ACTION);
+			FLEFRecordHelper.getChildValue(a, ResearchActivityReader.TAG_ACTIVITY_TYPE));
+		final String action = FLEFRecordHelper.getChildValue(a, ResearchActivityReader.TAG_ACTION);
 		final StringBuilder heading = new StringBuilder();
 		if(type != null)
 			heading.append(type);
@@ -261,17 +233,17 @@ final class ContextResearchSection implements SectionBuilder{
 
 		final List<String> meta = new ArrayList<>();
 		ReportFormatters.appendIfPresent(meta, ctx.labels.sections().status(),
-			ReportFormatters.enumLabel(FLEFRecordHelper.getChildValue(a, TAG_STATUS)));
+			ReportFormatters.enumLabel(FLEFRecordHelper.getChildValue(a, ResearchActivityReader.TAG_STATUS)));
 		ReportFormatters.appendIfPresent(meta, ctx.labels.sections().researchResult(),
-			ReportFormatters.enumLabel(FLEFRecordHelper.getChildValue(a, TAG_RESULT)));
+			ReportFormatters.enumLabel(FLEFRecordHelper.getChildValue(a, ResearchActivityReader.TAG_RESULT)));
 		ReportFormatters.appendIfPresent(meta, ctx.labels.sections().researchConclusionConfidence(),
 			ReportFormatters.enumLabel(
-				FLEFRecordHelper.getChildValue(a, TAG_CONCLUSION_CONFIDENCE)));
+				FLEFRecordHelper.getChildValue(a, ResearchActivityReader.TAG_CONCLUSION_CONFIDENCE)));
 		if(!meta.isEmpty())
 			out.add(new ReportSection.BulletList(meta));
 
-		final String scopeType = FLEFRecordHelper.getChildValue(a, TAG_SCOPE_TYPE);
-		final String scopeDetail = FLEFRecordHelper.getChildValue(a, TAG_SCOPE_DETAIL);
+		final String scopeType = FLEFRecordHelper.getChildValue(a, ResearchActivityReader.TAG_SEARCH_SCOPE_TYPE);
+		final String scopeDetail = FLEFRecordHelper.getChildValue(a, ResearchActivityReader.TAG_SEARCH_SCOPE_DETAIL);
 		if(scopeType != null || scopeDetail != null){
 			final StringBuilder sb = new StringBuilder();
 			sb.append("**").append(ctx.labels.sections().researchSearchScope()).append(":** ");
@@ -286,25 +258,25 @@ final class ContextResearchSection implements SectionBuilder{
 			out.add(new ReportSection.Paragraph(sb.toString()));
 		}
 
-		final String targetLabel = describeOneOf(FLEFRecordHelper.findChild(a, TAG_TARGET));
+		final String targetLabel = describeOneOf(FLEFRecordHelper.findChild(a, ResearchActivityReader.TAG_TARGET));
 		if(targetLabel != null)
 			out.add(new ReportSection.Paragraph(
 				"**" + ctx.labels.sections().researchTarget() + ":** "
 					+ ReportFormatters.escape(targetLabel)));
 
-		final String obs = FLEFRecordHelper.getChildValue(a, TAG_OBSERVATION);
+		final String obs = FLEFRecordHelper.getChildValue(a, ResearchActivityReader.TAG_OBSERVATION);
 		if(obs != null)
 			out.add(new ReportSection.Paragraph(
 				"**" + ctx.labels.sections().researchObservation() + ":** "
 					+ ReportFormatters.escape(obs)));
 
-		final String conclusion = FLEFRecordHelper.getChildValue(a, TAG_CONCLUSION);
+		final String conclusion = FLEFRecordHelper.getChildValue(a, ResearchActivityReader.TAG_CONCLUSION);
 		if(conclusion != null)
 			out.add(new ReportSection.Paragraph(
 				"**" + ctx.labels.sections().conclusion() + ":** " + ReportFormatters.escape(conclusion)));
 
 		final String parentLabel = describeOneOf(
-			FLEFRecordHelper.findChild(a, TAG_PARENT_ACTIVITY));
+			FLEFRecordHelper.findChild(a, ResearchActivityReader.TAG_PARENT_ACTIVITY));
 		if(parentLabel != null)
 			out.add(new ReportSection.Paragraph(
 				"**" + ctx.labels.sections().researchParentActivity() + ":** "
@@ -324,8 +296,8 @@ final class ContextResearchSection implements SectionBuilder{
 
 	private List<FLEFRecord> tasksForQuestion(final String questionId){
 		final List<FLEFRecord> out = new ArrayList<>();
-		for(final FLEFRecord t : ctx.visibleRecordsByType(TYPE_RESEARCH_TASK)){
-			for(final FLEFRecord q : FLEFRecordHelper.findChildren(t, TAG_QUESTION))
+		for(final FLEFRecord t : ctx.visibleRecordsByType(ResearchTaskHandler.TYPE)){
+			for(final FLEFRecord q : FLEFRecordHelper.findChildren(t, ResearchTaskReader.TAG_QUESTION))
 				if(Objects.equals(questionId, q.getValue())){
 					out.add(t);
 					break;
@@ -341,7 +313,7 @@ final class ContextResearchSection implements SectionBuilder{
 				shown.add(t.getId());
 
 		final List<FLEFRecord> orphans = new ArrayList<>();
-		for(final FLEFRecord t : ctx.visibleRecordsByType(TYPE_RESEARCH_TASK))
+		for(final FLEFRecord t : ctx.visibleRecordsByType(ResearchTaskHandler.TYPE))
 			if(!shown.contains(t.getId()) && relatesToRoot(t))
 				orphans.add(t);
 
@@ -354,7 +326,7 @@ final class ContextResearchSection implements SectionBuilder{
 	}
 
 	private boolean relatesToRoot(final FLEFRecord task){
-		for(final FLEFRecord q : FLEFRecordHelper.findChildren(task, TAG_QUESTION)){
+		for(final FLEFRecord q : FLEFRecordHelper.findChildren(task, ResearchTaskReader.TAG_QUESTION)){
 			final FLEFRecord qRec = ctx.model.getRecordById(q.getValue());
 			if(qRec == null)
 				continue;
@@ -367,27 +339,27 @@ final class ContextResearchSection implements SectionBuilder{
 
 	private void appendTask(final List<ReportSection> out, final FLEFRecord t,
 		final int headingLevel){
-		final String description = FLEFRecordHelper.getChildValue(t, TAG_DESCRIPTION);
+		final String description = FLEFRecordHelper.getChildValue(t, ResearchTaskReader.TAG_DESCRIPTION);
 		out.add(new ReportSection.Heading(headingLevel, ReportFormatters.escape(
 			ReportFormatters.orEmpty(description))));
 
 		final List<String> meta = new ArrayList<>();
 		ReportFormatters.appendIfPresent(meta, ctx.labels.sections().status(),
-			ReportFormatters.enumLabel(FLEFRecordHelper.getChildValue(t, TAG_STATUS)));
+			ReportFormatters.enumLabel(FLEFRecordHelper.getChildValue(t, ResearchTaskReader.TAG_STATUS)));
 		ReportFormatters.appendIfPresent(meta, ctx.labels.sections().researchTaskPriority(),
-			ReportFormatters.enumLabel(FLEFRecordHelper.getChildValue(t, TAG_PRIORITY)));
+			ReportFormatters.enumLabel(FLEFRecordHelper.getChildValue(t, ResearchTaskReader.TAG_PRIORITY)));
 		ReportFormatters.appendIfPresent(meta, ctx.labels.sections().researchTaskDueDate(),
-			FLEFRecordHelper.getChildValue(t, TAG_DUE_DATE));
+			FLEFRecordHelper.getChildValue(t, ResearchTaskReader.TAG_DUE_DATE));
 		if(!meta.isEmpty())
 			out.add(new ReportSection.BulletList(meta));
 
-		final String createdBy = describeOneOf(FLEFRecordHelper.findChild(t, TAG_CREATED_BY));
+		final String createdBy = describeOneOf(FLEFRecordHelper.findChild(t, ResearchTaskReader.TAG_CREATED_BY));
 		if(createdBy != null)
 			out.add(new ReportSection.Paragraph(
 				"**" + ctx.labels.sections().researchTaskCreatedBy() + ":** "
 					+ ReportFormatters.escape(createdBy)));
 
-		final String outcome = FLEFRecordHelper.getChildValue(t, TAG_OUTCOME);
+		final String outcome = FLEFRecordHelper.getChildValue(t, ResearchTaskReader.TAG_OUTCOME);
 		if(outcome != null)
 			out.add(new ReportSection.Paragraph(
 				"**" + ctx.labels.sections().researchTaskOutcome() + ":** "
@@ -413,8 +385,8 @@ final class ContextResearchSection implements SectionBuilder{
 	private List<FLEFRecord> conclusionsFor(){
 		final Set<String> related = ctx.relatedRecordIds();
 		final List<FLEFRecord> out = new ArrayList<>();
-		for(final FLEFRecord c : ctx.visibleRecordsByType(TYPE_CONCLUSION)){
-			for(final FLEFRecord t : FLEFRecordHelper.findChildren(c, TAG_RESOLVES)){
+		for(final FLEFRecord c : ctx.visibleRecordsByType(ConclusionHandler.TYPE)){
+			for(final FLEFRecord t : FLEFRecordHelper.findChildren(c, ConclusionReader.TAG_RESOLVES)){
 				final FLEFRecord ref = t.getTheOnlyChild();
 				if(ref != null && related.contains(ref.getValue())){
 					out.add(c);
@@ -427,22 +399,22 @@ final class ContextResearchSection implements SectionBuilder{
 
 	private void appendConclusion(final List<ReportSection> out, final FLEFRecord c){
 		out.add(new ReportSection.Heading(2, ReportFormatters.escape(
-			ReportFormatters.orEmpty(FLEFRecordHelper.getChildValue(c, TAG_ISSUE)))));
+			ReportFormatters.orEmpty(FLEFRecordHelper.getChildValue(c, ConclusionReader.TAG_ISSUE)))));
 
-		final String proof = FLEFRecordHelper.getChildValue(c, TAG_PROOF);
+		final String proof = FLEFRecordHelper.getChildValue(c, ConclusionReader.TAG_PROOF_STATUS);
 		if(proof != null)
 			out.add(new ReportSection.Paragraph(
 				"**" + ctx.labels.sections().researchProofStatus() + ":** "
 					+ ReportFormatters.escape(ReportFormatters.orEmpty(
 					ReportFormatters.enumLabel(proof)))));
 
-		final String narrative = FLEFRecordHelper.getChildValue(c, TAG_NARRATIVE);
+		final String narrative = FLEFRecordHelper.getChildValue(c, ConclusionReader.TAG_NARRATIVE);
 		if(narrative != null)
 			out.add(new ReportSection.Paragraph(ReportFormatters.escape(narrative)));
 
-		final List<FLEFRecord> resolves = FLEFRecordHelper.findChildren(c, TAG_RESOLVES);
+		final List<FLEFRecord> resolves = FLEFRecordHelper.findChildren(c, ConclusionReader.TAG_RESOLVES);
 		final List<String> resolvedLabels = new ArrayList<>();
-		String preferredLabel = describeOneOf(FLEFRecordHelper.findChild(c, TAG_PREFERRED));
+		String preferredLabel = describeOneOf(FLEFRecordHelper.findChild(c, ConclusionReader.TAG_PREFERRED));
 
 		for(final FLEFRecord r : resolves){
 			final String label = describeOneOf(r);
@@ -461,7 +433,7 @@ final class ContextResearchSection implements SectionBuilder{
 			out.add(new ReportSection.BulletList(items));
 		}
 
-		final List<FLEFRecord> links = FLEFRecordHelper.findChildren(c, TAG_RESEARCH);
+		final List<FLEFRecord> links = FLEFRecordHelper.findChildren(c, ConclusionReader.TAG_RESEARCH);
 		final List<String> qLabels = new ArrayList<>();
 		for(final FLEFRecord r : links){
 			final String qid = r.getValue();
@@ -470,7 +442,7 @@ final class ContextResearchSection implements SectionBuilder{
 			final FLEFRecord q = ctx.visible(ctx.model.getRecordById(qid));
 			if(q == null)
 				continue;
-			final String title = FLEFRecordHelper.getChildValue(q, TAG_TITLE);
+			final String title = FLEFRecordHelper.getChildValue(q, ResearchQuestionReader.TAG_TITLE);
 			qLabels.add(title != null && !title.isBlank()
 				? title.trim()
 				: ReportFormatters.orEmpty(qid));
@@ -502,7 +474,7 @@ final class ContextResearchSection implements SectionBuilder{
 		out.add(new ReportSection.Heading(1, ctx.labels.sections().identityHypotheses()));
 		for(final FLEFRecord h : hyps){
 			final List<String> candidates = new ArrayList<>();
-			for(final FLEFRecord cand : FLEFRecordHelper.findChildren(h, TAG_IDENTITY)){
+			for(final FLEFRecord cand : FLEFRecordHelper.findChildren(h, IdentityHypothesisReader.TAG_IDENTITY)){
 				final FLEFRecord ref = cand.getTheOnlyChild();
 				if(ref == null || FLEFRecord.TAG_VOID.equalsIgnoreCase(ref.getTag()))
 					continue;
@@ -519,7 +491,7 @@ final class ContextResearchSection implements SectionBuilder{
 				"**" + ctx.labels.sections().identityCandidates() + ":** "
 					+ ReportFormatters.escape(String.join(" ↔ ", candidates))));
 
-			final String comment = FLEFRecordHelper.getChildValue(h, TAG_COMMENT);
+			final String comment = FLEFRecordHelper.getChildValue(h, IdentityHypothesisReader.TAG_COMMENT);
 			if(comment != null)
 				out.add(new ReportSection.Paragraph(
 					"**" + ctx.labels.sections().identityComment() + ":** "
@@ -538,12 +510,12 @@ final class ContextResearchSection implements SectionBuilder{
 	private List<FLEFRecord> identityHypothesesFor(){
 		final Set<String> related = ctx.relatedRecordIds();
 		final List<FLEFRecord> out = new ArrayList<>();
-		for(final FLEFRecord h : ctx.visibleRecordsByType(TYPE_IDENTITY_HYPOTHESIS)){
+		for(final FLEFRecord h : ctx.visibleRecordsByType(IdentityHypothesisHandler.TYPE)){
 			if(related.contains(h.getId())){
 				out.add(h);
 				continue;
 			}
-			for(final FLEFRecord cand : FLEFRecordHelper.findChildren(h, TAG_IDENTITY)){
+			for(final FLEFRecord cand : FLEFRecordHelper.findChildren(h, IdentityHypothesisReader.TAG_IDENTITY)){
 				final FLEFRecord ref = cand.getTheOnlyChild();
 				if(ref != null && related.contains(ref.getValue())){
 					out.add(h);

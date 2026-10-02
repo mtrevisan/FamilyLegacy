@@ -53,16 +53,25 @@ import java.util.function.Predicate;
  */
 public class GenealogyRepository{
 
+	/**
+	 * A parent relationship of a child. The type is the relationship type
+	 * (e.g. biological_child, adoptive_child, ...), which is what allows
+	 * pairing parents that belong to the same couple.
+	 */
+	public record ParentLink(FLEFRecord parent, String relationshipType){}
+
 	private final FLEFModel model;
 	private final String[] relationshipAllowedTypes;
 	private final Predicate<String> relationshipTypeFilter;
 
 	// Global inverted indices
 	private final Map<String, List<FLEFRecord>> individualToParentsMap = new HashMap<>();
+	private final Map<String, List<ParentLink>> individualToParentLinksMap = new HashMap<>();
 	private final Map<String, List<FLEFRecord>> parentToChildrenMap = new HashMap<>();
 	private final Map<String, List<FLEFRecord>> individualToEventMap = new HashMap<>();
 	private final Set<String> individualsWithDescendantsSet = new HashSet<>();
 	private final Map<String, List<String>> individualToRelationshipIdsMap = new HashMap<>();
+	private final Map<String, List<String>> individualToPartnerIdsMap = new HashMap<>();
 
 	// Flyweight caches
 	private final Map<String, IndividualData> individualDataCache = new HashMap<>();
@@ -124,15 +133,44 @@ public class GenealogyRepository{
 		if(relationshipTypeFilter.test(type)){
 			final FLEFRecord child = model.getRecordById(subjectId);
 			final FLEFRecord parent = model.getRecordById(objectId);
-			if(parent != null)
+			if(parent != null){
 				individualToParentsMap.computeIfAbsent(subjectId, k -> new ArrayList<>())
 					.add(parent);
+				individualToParentLinksMap.computeIfAbsent(subjectId, k -> new ArrayList<>())
+					.add(new ParentLink(parent, type));
+			}
 			if(child != null){
 				parentToChildrenMap.computeIfAbsent(objectId, k -> new ArrayList<>())
 					.add(child);
 				individualsWithDescendantsSet.add(objectId);
 			}
 		}
+
+		// partner index (union types are not part of the biological filter) ---
+		if(RelationshipReader.isTypePartner(type)){
+			addPartnerId(subjectId, objectId);
+			addPartnerId(objectId, subjectId);
+		}
+	}
+
+	private void addPartnerId(final String individualId, final String partnerId){
+		if(individualId.equals(partnerId))
+			return;
+
+		final List<String> partners = individualToPartnerIdsMap
+			.computeIfAbsent(individualId, k -> new ArrayList<>());
+		if(!partners.contains(partnerId))
+			partners.add(partnerId);
+	}
+
+	public List<String> getPartnerIds(final String individualId){
+		if(individualId == null)
+			return Collections.emptyList();
+
+		ensureIndices();
+
+		final List<String> ids = individualToPartnerIdsMap.get(individualId);
+		return (ids != null? List.copyOf(ids): Collections.emptyList());
 	}
 
 	private void indexEventParticipation(final FLEFRecord eventParticipation){
@@ -188,6 +226,54 @@ public class GenealogyRepository{
 
 		final List<FLEFRecord> parents = individualToParentsMap.get(individualId);
 		return (parents != null && !parents.isEmpty()? new ArrayList<>(parents): Collections.emptyList());
+	}
+
+	/**
+	 * Returns the typed parent links of the given child: for each parent,
+	 * both the {@link FLEFRecord} and the relationship type through which
+	 * that parent is linked to the child.
+	 *
+	 * @param childId the child id
+	 * @return the typed parent links; empty list if none or if the id is null
+	 */
+	public List<ParentLink> getParentLinks(final String childId){
+		if(childId == null)
+			return Collections.emptyList();
+
+		ensureIndices();
+
+		final List<ParentLink> links = individualToParentLinksMap.get(childId);
+		return (links != null? List.copyOf(links): Collections.emptyList());
+	}
+
+	/**
+	 * Returns the relationship type through which {@code parentId} is a
+	 * parent of {@code childId}, or {@code null} if no such link exists.
+	 * <p>
+	 * Example: for a child X that is a biological child of A and an adopted
+	 * child of B, this method returns {@code "biological_child"} when called
+	 * with {@code (X, A)} and {@code "adoptive_child"} when called with
+	 * {@code (X, B)}.
+	 *
+	 * @param childId  the child id
+	 * @param parentId the parent id
+	 * @return the relationship type, or {@code null}
+	 */
+	public String getParentLinkType(final String childId, final String parentId){
+		if(childId == null || parentId == null)
+			return null;
+
+		ensureIndices();
+
+		final List<ParentLink> links = individualToParentLinksMap.get(childId);
+		if(links == null)
+			return null;
+
+		for(final ParentLink link : links)
+			if(parentId.equals(link.parent().getId()))
+				return link.relationshipType();
+
+		return null;
 	}
 
 	public List<FLEFRecord> getChildren(final String parentId){
@@ -279,6 +365,7 @@ public class GenealogyRepository{
 		individualToEventMap.clear();
 		individualsWithDescendantsSet.clear();
 		individualToRelationshipIdsMap.clear();
+		individualToParentLinksMap.clear();
 
 		// Clear the flyweight cache so IndividualData instances are recreated without deleted relations
 		individualDataCache.clear();

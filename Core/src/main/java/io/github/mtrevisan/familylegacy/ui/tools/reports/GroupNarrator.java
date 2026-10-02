@@ -27,7 +27,9 @@ package io.github.mtrevisan.familylegacy.ui.tools.reports;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.GroupAttributeReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.GroupReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateService;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.index.RelationIndex;
 import org.apache.commons.lang3.StringUtils;
@@ -50,11 +52,6 @@ import java.util.Objects;
  * </ol>
  */
 final class GroupNarrator{
-
-	private static final String TAG_TYPE = "type";
-	private static final String TAG_VALUE = "value";
-	private static final String TAG_NAME = "name";
-	private static final String TAG_DESCRIPTION = "description";
 
 	private static final String TYPE_FOUNDING = "founding";
 	private static final String TYPE_DISSOLVED = "dissolved";
@@ -85,7 +82,7 @@ final class GroupNarrator{
 		final List<FLEFRecord> events = idx.eventsOfGroup(group);
 		final List<FLEFRecord> attrs = idx.attributesOfGroup(group);
 
-		final String displayName = extractGroupName(group);
+		final String displayName = GroupReader.extractPrimaryName(group);
 		final List<String> sentences = new ArrayList<>();
 
 		// 1. Check explicit founding or union events (marriages/civil rites)
@@ -99,7 +96,7 @@ final class GroupNarrator{
 		}
 		else if(!unions.isEmpty()){
 			for(final FLEFRecord unionEvt : unions){
-				final String type = FLEFRecordHelper.getChildValue(unionEvt, TAG_TYPE);
+				final String type = FLEFRecordHelper.getChildValue(unionEvt, EventReader.TAG_TYPE);
 				final String d = DateService.getDateDisplayText(unionEvt);
 				final String p = FLEFRecordHelper.extractPlace(unionEvt, model);
 
@@ -123,9 +120,9 @@ final class GroupNarrator{
 
 		// 2. Residences and location attributes
 		for(final FLEFRecord a : attrs){
-			final String t = FLEFRecordHelper.getChildValue(a, TAG_TYPE);
+			final String t = FLEFRecordHelper.getChildValue(a, GroupAttributeReader.TAG_TYPE);
 			if(TYPE_RESIDENCE.equalsIgnoreCase(t)){
-				final String v = FLEFRecordHelper.getChildValue(a, TAG_VALUE);
+				final String v = FLEFRecordHelper.getChildValue(a, GroupAttributeReader.TAG_VALUE);
 				final String p = FLEFRecordHelper.extractPlace(a, model);
 				final String loc = (v != null && !v.isBlank())? v.trim(): p;
 				if(loc != null && !loc.isBlank())
@@ -135,11 +132,11 @@ final class GroupNarrator{
 
 		// 3. Descriptive events/notes attached to group
 		for(final FLEFRecord e : events){
-			final String type = FLEFRecordHelper.getChildValue(e, TAG_TYPE);
+			final String type = FLEFRecordHelper.getChildValue(e, EventReader.TAG_TYPE);
 			if(TYPE_FOUNDING.equalsIgnoreCase(type) || isUnionType(type))
 				continue;
 
-			final String desc = FLEFRecordHelper.getChildValue(e, TAG_DESCRIPTION);
+			final String desc = FLEFRecordHelper.getChildValue(e, EventReader.TAG_DESCRIPTION);
 			if(desc != null && !desc.isBlank())
 				sentences.add(desc.trim());
 		}
@@ -155,18 +152,9 @@ final class GroupNarrator{
 		return String.join(StringUtils.SPACE, sentences);
 	}
 
-	private String extractGroupName(final FLEFRecord group){
-		for(final FLEFRecord n : FLEFRecordHelper.findChildren(group, TAG_NAME)){
-			final String val = FLEFRecordHelper.getChildValue(n, NameReader.TAG_VALUE);
-			if(val != null && !val.isBlank())
-				return val.trim();
-		}
-		return ReportFormatters.orEmpty(group.getId());
-	}
-
 	private static FLEFRecord findEvent(final List<FLEFRecord> events, final String type){
 		for(final FLEFRecord e : events){
-			final String t = FLEFRecordHelper.getChildValue(e, TAG_TYPE);
+			final String t = FLEFRecordHelper.getChildValue(e, EventReader.TAG_TYPE);
 			if(type.equalsIgnoreCase(t))
 				return e;
 		}
@@ -176,7 +164,7 @@ final class GroupNarrator{
 	private static List<FLEFRecord> findEvents(final List<FLEFRecord> events, final String... types){
 		final List<FLEFRecord> out = new ArrayList<>();
 		for(final FLEFRecord e : events){
-			final String t = FLEFRecordHelper.getChildValue(e, TAG_TYPE);
+			final String t = FLEFRecordHelper.getChildValue(e, EventReader.TAG_TYPE);
 			if(t == null)
 				continue;
 

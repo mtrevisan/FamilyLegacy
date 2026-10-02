@@ -216,7 +216,7 @@ public final class HtmlReportRenderer implements ReportRenderer{
 
 		for(final var row : t.rows()){
 			w.write("<tr>");
-			for(int i = 0; i < cols; i++){
+			for(int i = 0; i < cols; i ++){
 				final String cell = (i < row.size()? row.get(i): StringUtils.EMPTY);
 				w.write("<td>");
 				w.write(inline(cell));

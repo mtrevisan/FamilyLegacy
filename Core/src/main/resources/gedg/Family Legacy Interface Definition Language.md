@@ -14,7 +14,6 @@ A little pattern language.
 - `require if field == value: other_field` — conditional requirement.
 - `enum { A, B, C, ... }` — the trailing ellipsis marks that custom values ​​are permitted (equivalent to your `<CUSTOM_TYPE>` alongside a closed list).
 - `Xref<Type>` — reference to a record of that type. `Xref<Id>` — polymorphic reference (INDIVIDUAL, GROUP, or any other supported record type).
-- `XrefOrVoid<Type>` — as above, but also allows the "unidentified entity" marker (equivalent to your `@<XREF:ID>@|@VOID@`).
 
 **Cardinality as field name suffix** (replaces `{n:m}`):
 

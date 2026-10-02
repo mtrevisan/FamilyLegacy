@@ -92,7 +92,7 @@ public class FamilyLegacyFrame extends JFrame{
 		fileController = new FileMenuController(this, this::model, this::replaceModel, () -> {});
 
 		split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, switcher, null);
-		split.setResizeWeight(1.0);
+		split.setResizeWeight(1.);
 		split.setDividerLocation(SWITCHER_WIDTH);
 		split.setContinuousLayout(true);
 
@@ -311,7 +311,8 @@ public class FamilyLegacyFrame extends JFrame{
 
 	public static void main(final String[] args) throws IOException{
 		final String modelUri = "/tests/TGMZ.flef";
-		final String rootIndividualId = "I1";
+//		final String rootIndividualId = "I1";
+		final String rootIndividualId = "I1430";
 
 		final String content;
 		try(final InputStream is = FamilyLegacyFrame.class.getResourceAsStream(modelUri)){

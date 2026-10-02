@@ -332,7 +332,7 @@ public final class ReportDialog extends JDialog{
 							.render(doc, targetFile);
 						generatedFiles.add(targetFile);
 
-						i++;
+						i ++;
 						listener.onProgress(50 + (i * 50) / n,
 							"Writing " + entry.getKey());
 					}

@@ -82,6 +82,7 @@ public final class GroupDossierService{
 
 
 	private final FLEFModel model;
+
 	private final GroupHandler groupHandler;
 	private final IndividualHandler individualHandler;
 	private final DossierFormatting formatting;
@@ -205,7 +206,8 @@ public final class GroupDossierService{
 			final String name = resolveIndividualName(memberId);
 			final String role = FLEFRecordHelper.getChildValue(relationship, RelationshipReader.TAG_ROLE);
 			final String status = FLEFRecordHelper.getChildValue(relationship, RelationshipReader.TAG_STATUS);
-			final String validity = formatting.formatValidity(relationship);
+			final String validity = formatting.formatValidity(relationship, GroupAttributeReader.TAG_VALID_FROM,
+				GroupAttributeReader.TAG_VALID_TO);
 
 			final StringBuilder subtitle = new StringBuilder();
 			if(StringUtils.isNotEmpty(role))
@@ -252,7 +254,8 @@ public final class GroupDossierService{
 			final String otherName = resolveGroupNameById(otherId);
 			final String label = (isParent? "Subgroup": "Supergroup");
 			final String status = FLEFRecordHelper.getChildValue(relationship, RelationshipReader.TAG_STATUS);
-			final String validity = formatting.formatValidity(relationship);
+			final String validity = formatting.formatValidity(relationship, RelationshipReader.TAG_VALID_FROM,
+				RelationshipReader.TAG_VALID_TO);
 
 			final StringBuilder subtitle = new StringBuilder();
 			if(StringUtils.isNotEmpty(status))
@@ -288,7 +291,8 @@ public final class GroupDossierService{
 				? type.replace('_', ' '): "Attribute");
 			final String value = FLEFRecordHelper.getChildValue(attribute, GroupAttributeReader.TAG_VALUE);
 
-			final String validity = formatting.formatValidity(attribute);
+			final String validity = formatting.formatValidity(attribute, GroupAttributeReader.TAG_VALID_FROM,
+				GroupAttributeReader.TAG_VALID_TO);
 			final String place = formatting.resolvePlaceName(attribute);
 
 			final StringBuilder subtitle = new StringBuilder();

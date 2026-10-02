@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.ui.tools.sources;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import io.github.mtrevisan.familylegacy.ui.tools.ReportDialog;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolContext;
@@ -108,7 +109,7 @@ public final class CitationAnalysisTool implements ToolOperation{
 
 	private static boolean hasCitation(final FLEFRecord record){
 		for(final FLEFRecord child : record.getChildren())
-			if(SourceHelper.TAG_SOURCE.equalsIgnoreCase(child.getTag()))
+			if(SourceHandler.TYPE.equalsIgnoreCase(child.getTag()))
 				return true;
 		return false;
 	}

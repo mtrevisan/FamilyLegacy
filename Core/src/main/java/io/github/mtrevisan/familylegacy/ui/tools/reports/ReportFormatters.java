@@ -29,6 +29,8 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
+import io.github.mtrevisan.familylegacy.ui.handlers.PlaceHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.SourceHandler;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -41,9 +43,6 @@ import java.util.List;
  */
 public final class ReportFormatters{
 
-	private static final String TAG_PART = "part";
-	private static final String TAG_VALUE = "value";
-	private static final String TAG_NAME = "name";
 	private static final String TAG_PLACE = "place";
 	private static final String TAG_SOURCE = "source";
 
@@ -79,9 +78,9 @@ public final class ReportFormatters{
 	static String buildName(final FLEFRecord nameRec){
 		final StringBuilder sb = new StringBuilder();
 		for(final FLEFRecord child : nameRec.getChildren()){
-			if(!TAG_PART.equalsIgnoreCase(child.getTag()))
+			if(!NameReader.TAG_PART.equalsIgnoreCase(child.getTag()))
 				continue;
-			final String v = FLEFRecordHelper.getChildValue(child, TAG_VALUE);
+			final String v = FLEFRecordHelper.getChildValue(child, NameReader.TAG_VALUE);
 			if(v != null && !v.isBlank()){
 				if(!sb.isEmpty())
 					sb.append(' ');
@@ -106,7 +105,7 @@ public final class ReportFormatters{
 
 	/** Resolves the display name of a {@code place.place} reference, or null. */
 	static String resolvePlaceName(final FLEFModel model, final FLEFRecord rec){
-		final String ref = FLEFRecordHelper.getChildValue(rec, TAG_PLACE + "." + TAG_PLACE);
+		final String ref = FLEFRecordHelper.getChildValue(rec, TAG_PLACE + "." + PlaceHandler.TYPE);
 		if(ref == null)
 			return null;
 		final FLEFRecord place = model.getRecordById(ref);
@@ -182,7 +181,7 @@ public final class ReportFormatters{
 		final String direct = FLEFRecordHelper.getChildValue(sourceChild, TAG_SOURCE);
 		if(direct != null)
 			return direct;
-		final FLEFRecord inner = FLEFRecordHelper.findChild(sourceChild, TAG_SOURCE);
+		final FLEFRecord inner = FLEFRecordHelper.findChild(sourceChild, SourceHandler.TYPE);
 		if(inner != null)
 			return (inner.getTheOnlyChild() != null
 				? inner.getTheOnlyChild().getValue()

@@ -26,6 +26,8 @@ package io.github.mtrevisan.familylegacy.ui.tools.reports;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.readers.ResearchActivityReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.ResearchQuestionReader;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -40,15 +42,6 @@ import java.util.List;
  * used by {@link ContextResearchSection}.</p>
  */
 final class ResearchQuestionRootSection implements SectionBuilder{
-
-	private static final String TAG_TITLE = "title";
-	private static final String TAG_QUESTION = "question";
-	private static final String TAG_STATUS = "status";
-	private static final String TAG_CONCLUSION = "conclusion";
-	private static final String TAG_CONCLUSION_CONFIDENCE = "conclusion_confidence";
-	private static final String TAG_CLOSED_DATE = "closed_date";
-	private static final String TAG_TARGET = "target";
-
 
 	private final ReportContext ctx;
 
@@ -66,7 +59,7 @@ final class ResearchQuestionRootSection implements SectionBuilder{
 		final List<ReportSection> out = new ArrayList<>();
 
 		final String title = ReportFormatters.orEmpty(
-			FLEFRecordHelper.getChildValue(ctx.root, TAG_TITLE));
+			FLEFRecordHelper.getChildValue(ctx.root, ResearchQuestionReader.TAG_TITLE));
 		out.add(new ReportSection.Heading(1, String.format(
 			ctx.labels.sections().researchQuestionOf(),
 			ReportFormatters.escape(title))));
@@ -92,16 +85,16 @@ final class ResearchQuestionRootSection implements SectionBuilder{
 	private void writeQuestion(final List<ReportSection> out){
 		final List<String> rows = new ArrayList<>();
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().question(),
-			FLEFRecordHelper.getChildValue(ctx.root, TAG_QUESTION));
+			FLEFRecordHelper.getChildValue(ctx.root, ResearchQuestionReader.TAG_QUESTION));
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().status(),
-			ReportFormatters.enumLabel(FLEFRecordHelper.getChildValue(ctx.root, TAG_STATUS)));
+			ReportFormatters.enumLabel(FLEFRecordHelper.getChildValue(ctx.root, ResearchQuestionReader.TAG_STATUS)));
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().conclusion(),
-			FLEFRecordHelper.getChildValue(ctx.root, TAG_CONCLUSION));
+			FLEFRecordHelper.getChildValue(ctx.root, ResearchQuestionReader.TAG_CONCLUSION));
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().researchConclusionConfidence(),
 			ReportFormatters.enumLabel(
-				FLEFRecordHelper.getChildValue(ctx.root, TAG_CONCLUSION_CONFIDENCE)));
+				FLEFRecordHelper.getChildValue(ctx.root, ResearchQuestionReader.TAG_CONCLUSION_CONFIDENCE)));
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().researchClosedDate(),
-			FLEFRecordHelper.getChildValue(ctx.root, TAG_CLOSED_DATE));
+			FLEFRecordHelper.getChildValue(ctx.root, ResearchQuestionReader.TAG_CLOSED_DATE));
 
 		if(!rows.isEmpty())
 			out.add(new ReportSection.BulletList(rows));
@@ -114,7 +107,7 @@ final class ResearchQuestionRootSection implements SectionBuilder{
 
 	private void writeTargets(final List<ReportSection> out){
 		final List<String> items = new ArrayList<>();
-		for(final FLEFRecord t : FLEFRecordHelper.findChildren(ctx.root, TAG_TARGET)){
+		for(final FLEFRecord t : FLEFRecordHelper.findChildren(ctx.root, ResearchQuestionReader.TAG_TARGET)){
 			final FLEFRecord ref = t.getTheOnlyChild();
 			if(ref == null || FLEFRecord.TAG_VOID.equalsIgnoreCase(ref.getTag()))
 				continue;
@@ -167,7 +160,7 @@ final class ResearchQuestionRootSection implements SectionBuilder{
 				"**" + ctx.labels.sections().researchObservation() + ":** "
 					+ ReportFormatters.escape(obs)));
 
-		final String concl = FLEFRecordHelper.getChildValue(a, TAG_CONCLUSION);
+		final String concl = FLEFRecordHelper.getChildValue(a, ResearchActivityReader.TAG_CONCLUSION);
 		if(concl != null)
 			out.add(new ReportSection.Paragraph(
 				"**" + ctx.labels.sections().conclusion() + ":** " + ReportFormatters.escape(concl)));

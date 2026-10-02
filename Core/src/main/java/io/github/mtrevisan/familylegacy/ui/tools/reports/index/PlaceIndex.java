@@ -1,11 +1,37 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
 package io.github.mtrevisan.familylegacy.ui.tools.reports.index;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventParticipationHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualAttributeHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.PlaceRelationshipHandler;
 
 import java.util.ArrayList;
@@ -35,11 +61,6 @@ import java.util.function.Predicate;
  * subject (the place's jurisdiction) and as target (the contained places).</p>
  */
 public final class PlaceIndex{
-
-	private static final String TAG_PARTICIPANT = "participant";
-	private static final String TAG_EVENT = "event";
-	private static final String TAG_PLACE = "place";
-
 
 	/** Events that happened at the place (via {@code event.place.place}). */
 	private final Map<String, List<FLEFRecord>> placeToEventsMap = new HashMap<>();
@@ -82,7 +103,7 @@ public final class PlaceIndex{
 			if(placeId == null)
 				continue;
 
-			final String eventId = FLEFRecordHelper.getChildValue(eventParticipation, TAG_EVENT);
+			final String eventId = FLEFRecordHelper.getChildValue(eventParticipation, EventParticipationReader.TAG_EVENT);
 			if(eventId == null)
 				continue;
 
@@ -182,7 +203,7 @@ public final class PlaceIndex{
 	 * (e.g. a new branch) do not accidentally match.</p>
 	 */
 	private static String extractPlaceParticipantId(final FLEFRecord ep){
-		final FLEFRecord participantField = FLEFRecordHelper.findChild(ep, TAG_PARTICIPANT);
+		final FLEFRecord participantField = FLEFRecordHelper.findChild(ep, EventParticipationReader.TAG_PARTICIPANT);
 		if(participantField == null)
 			return null;
 
@@ -191,7 +212,7 @@ public final class PlaceIndex{
 			return null;
 
 		final String tag = ref.getTag();
-		if(tag == null || !TAG_PLACE.equals(tag.toLowerCase(Locale.ROOT)))
+		if(tag == null || !PlaceHandler.TYPE.equals(tag.toLowerCase(Locale.ROOT)))
 			return null;
 
 		return ref.getValue();

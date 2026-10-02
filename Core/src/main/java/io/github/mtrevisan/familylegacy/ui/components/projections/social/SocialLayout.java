@@ -252,7 +252,7 @@ public final class SocialLayout{
 		int ringIndex = 0;
 		for(final Map.Entry<Integer, List<SocialNodeRef>> entry : ringToNodes.entrySet()){
 			final List<SocialNodeRef> ringNodes = entry.getValue();
-			ringIndex++;
+			ringIndex ++;
 
 			// Sort children so that those with the same parent stay together.
 			ringNodes.sort(Comparator
@@ -277,7 +277,7 @@ public final class SocialLayout{
 			final double angleStep = TWO_PI / ringNodes.size();
 			// Start from the top (12 o'clock) and go clockwise.
 			final double startAngle = -Math.PI / 2.;
-			for(int i = 0; i < ringNodes.size(); i++){
+			for(int i = 0; i < ringNodes.size(); i ++){
 				final SocialNodeRef node = ringNodes.get(i);
 				final double angle = startAngle + i * angleStep;
 				final double x = radius * Math.cos(angle);

@@ -173,7 +173,7 @@ public final class GUIHelper{
 
 			int explicitIndex = -1;
 			int j = i;
-			while(j < format.length() && Character.isDigit(format.charAt(j))) j++;
+			while(j < format.length() && Character.isDigit(format.charAt(j))) j ++;
 			if(j > i && j < format.length() && format.charAt(j) == '$'){
 				explicitIndex = Integer.parseInt(format.substring(i, j)) - 1;
 				i = j + 1;
@@ -192,7 +192,7 @@ public final class GUIHelper{
 			if(i < format.length() && format.charAt(i) == '.'){
 				i ++;
 				final int pStart = i;
-				while(i < format.length() && Character.isDigit(format.charAt(i))) i++;
+				while(i < format.length() && Character.isDigit(format.charAt(i))) i ++;
 				precision = Integer.parseInt(format.substring(pStart, i));
 			}
 

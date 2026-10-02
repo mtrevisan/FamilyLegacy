@@ -26,6 +26,9 @@ package io.github.mtrevisan.familylegacy.ui.tools.reports;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.readers.ResearchActivityReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.ResearchQuestionReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.ResearchTaskReader;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -40,20 +43,6 @@ import java.util.List;
  * the task it generated and the parent activity it follows.
  */
 final class ResearchActivityRootSection implements SectionBuilder{
-
-	private static final String TAG_ACTIVITY_TYPE = "activity_type";
-	private static final String TAG_ACTION = "action";
-	private static final String TAG_STATUS = "status";
-	private static final String TAG_RESULT = "result";
-	private static final String TAG_SCOPE_TYPE = "search_scope.type";
-	private static final String TAG_SCOPE_DETAIL = "search_scope.detail";
-	private static final String TAG_OBSERVATION = "observation";
-	private static final String TAG_CONCLUSION = "conclusion";
-	private static final String TAG_QUESTION = "question";
-	private static final String TAG_PARENT = "parent_activity";
-	private static final String TAG_TITLE = "title";
-	private static final String TAG_DESCRIPTION = "description";
-
 
 	private final ReportContext ctx;
 
@@ -70,9 +59,9 @@ final class ResearchActivityRootSection implements SectionBuilder{
 
 		final List<ReportSection> out = new ArrayList<>();
 		final String type = ReportFormatters.enumLabel(
-			FLEFRecordHelper.getChildValue(ctx.root, TAG_ACTIVITY_TYPE));
+			FLEFRecordHelper.getChildValue(ctx.root, ResearchActivityReader.TAG_ACTIVITY_TYPE));
 		final String action = ReportFormatters.orEmpty(
-			FLEFRecordHelper.getChildValue(ctx.root, TAG_ACTION));
+			FLEFRecordHelper.getChildValue(ctx.root, ResearchActivityReader.TAG_ACTION));
 		out.add(new ReportSection.Heading(1, String.format(
 			ctx.labels.sections().researchActivityOf(),
 			(type != null? type + " — ": StringUtils.EMPTY) + action)));
@@ -89,23 +78,23 @@ final class ResearchActivityRootSection implements SectionBuilder{
 	private void writeBasicInfo(final List<ReportSection> out){
 		final List<String> rows = new ArrayList<>();
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().status(),
-			ReportFormatters.enumLabel(FLEFRecordHelper.getChildValue(ctx.root, TAG_STATUS)));
+			ReportFormatters.enumLabel(FLEFRecordHelper.getChildValue(ctx.root, ResearchActivityReader.TAG_STATUS)));
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().researchResult(),
-			ReportFormatters.enumLabel(FLEFRecordHelper.getChildValue(ctx.root, TAG_RESULT)));
+			ReportFormatters.enumLabel(FLEFRecordHelper.getChildValue(ctx.root, ResearchActivityReader.TAG_RESULT)));
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().researchSearchScope(),
 			describeScope());
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().researchObservation(),
-			FLEFRecordHelper.getChildValue(ctx.root, TAG_OBSERVATION));
+			FLEFRecordHelper.getChildValue(ctx.root, ResearchActivityReader.TAG_OBSERVATION));
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().conclusion(),
-			FLEFRecordHelper.getChildValue(ctx.root, TAG_CONCLUSION));
+			FLEFRecordHelper.getChildValue(ctx.root, ResearchActivityReader.TAG_CONCLUSION));
 		if(!rows.isEmpty())
 			out.add(new ReportSection.BulletList(rows));
 	}
 
 
 	private String describeScope(){
-		final String type = FLEFRecordHelper.getChildValue(ctx.root, TAG_SCOPE_TYPE);
-		final String detail = FLEFRecordHelper.getChildValue(ctx.root, TAG_SCOPE_DETAIL);
+		final String type = FLEFRecordHelper.getChildValue(ctx.root, ResearchActivityReader.TAG_SEARCH_SCOPE_TYPE);
+		final String detail = FLEFRecordHelper.getChildValue(ctx.root, ResearchActivityReader.TAG_SEARCH_SCOPE_DETAIL);
 		if(type == null && detail == null)
 			return null;
 		final StringBuilder sb = new StringBuilder();
@@ -120,14 +109,14 @@ final class ResearchActivityRootSection implements SectionBuilder{
 
 	private void writeQuestions(final List<ReportSection> out){
 		final List<String> items = new ArrayList<>();
-		for(final FLEFRecord qRef : FLEFRecordHelper.findChildren(ctx.root, TAG_QUESTION)){
+		for(final FLEFRecord qRef : FLEFRecordHelper.findChildren(ctx.root, ResearchActivityReader.TAG_QUESTION)){
 			final String id = qRef.getValue();
 			if(id == null)
 				continue;
 			final FLEFRecord q = ctx.visible(ctx.model.getRecordById(id));
 			if(q == null)
 				continue;
-			final String title = FLEFRecordHelper.getChildValue(q, TAG_TITLE);
+			final String title = FLEFRecordHelper.getChildValue(q, ResearchQuestionReader.TAG_TITLE);
 			items.add(title != null && !title.isBlank()? title: id);
 		}
 		if(items.isEmpty())
@@ -139,7 +128,7 @@ final class ResearchActivityRootSection implements SectionBuilder{
 
 
 	private void writeParent(final List<ReportSection> out){
-		final FLEFRecord parentNode = FLEFRecordHelper.findChild(ctx.root, TAG_PARENT);
+		final FLEFRecord parentNode = FLEFRecordHelper.findChild(ctx.root, ResearchActivityReader.TAG_PARENT_ACTIVITY);
 		if(parentNode == null)
 			return;
 		final FLEFRecord ref = parentNode.getTheOnlyChild();
@@ -149,8 +138,8 @@ final class ResearchActivityRootSection implements SectionBuilder{
 		if(parent == null)
 			return;
 		final String type = ReportFormatters.enumLabel(
-			FLEFRecordHelper.getChildValue(parent, TAG_ACTIVITY_TYPE));
-		final String action = FLEFRecordHelper.getChildValue(parent, TAG_ACTION);
+			FLEFRecordHelper.getChildValue(parent, ResearchActivityReader.TAG_ACTIVITY_TYPE));
+		final String action = FLEFRecordHelper.getChildValue(parent, ResearchActivityReader.TAG_ACTION);
 		out.add(new ReportSection.Paragraph(
 			"**" + ctx.labels.sections().researchParentActivity() + ":** "
 				+ (type != null? type + " — ": StringUtils.EMPTY) + action));
@@ -164,7 +153,7 @@ final class ResearchActivityRootSection implements SectionBuilder{
 		out.add(new ReportSection.Heading(2, ctx.labels.sections().researchTasks()));
 		for(final FLEFRecord t : tasks)
 			out.add(new ReportSection.Paragraph("• " + ReportFormatters.escape(
-				ReportFormatters.orEmpty(FLEFRecordHelper.getChildValue(t, TAG_DESCRIPTION)))));
+				ReportFormatters.orEmpty(FLEFRecordHelper.getChildValue(t, ResearchTaskReader.TAG_DESCRIPTION)))));
 	}
 
 

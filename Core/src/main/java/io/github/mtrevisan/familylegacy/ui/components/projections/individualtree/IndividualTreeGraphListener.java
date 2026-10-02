@@ -206,10 +206,8 @@ public final class IndividualTreeGraphListener implements IndividualListener{
 		if(child == null)
 			return;
 
-		final IndividualPanel fatherPanel = ctx.partnerPanel.getFatherPanel();
-		final IndividualPanel motherPanel = ctx.partnerPanel.getMotherPanel();
-		final IndividualData fatherData = (fatherPanel != null? fatherPanel.getData(): null);
-		final IndividualData motherData = (motherPanel != null? motherPanel.getData(): null);
+		final IndividualData fatherData = ctx.partnerPanel.getFatherData();
+		final IndividualData motherData = ctx.partnerPanel.getMotherData();
 		final FLEFRecord targetFather = (fatherData != null? fatherData.getIndividual(): null);
 		final FLEFRecord targetMother = (motherData != null? motherData.getIndividual(): null);
 		if(targetFather == null && targetMother == null)

@@ -171,7 +171,7 @@ public final class JulianDate{
 		b += 1524;
 		//year in a calendar whose years start on March 1
 		int year = (int)StrictMath.floor((b - 122.1) / 365.25);
-		b -=StrictMath.floor(365.25 * year);
+		b -= (long)StrictMath.floor(365.25 * year);
 		int month = (int)StrictMath.floor(b / 30.6) - 1;
 		final int day = (int)(b - StrictMath.floor(30.6 * (month + 1)));
 		month = ((month - 1) % 12) + 1;
@@ -194,7 +194,7 @@ public final class JulianDate{
 		b += 1524;
 		//year in a calendar whose years start on March 1
 		int year = (int)StrictMath.floor((b - 122.1) / 365.25);
-		b -= StrictMath.floor(365.25 * year);
+		b -= (long)StrictMath.floor(365.25 * year);
 		final int month = (int)StrictMath.floor(b / 30.6) - 1;
 		if((month - 1) % 12 > 1)
 			year --;

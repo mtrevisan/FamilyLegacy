@@ -48,12 +48,16 @@ public record GenealogicalDate(
 	public int compareTo(final GenealogicalDate other){
 		if(other == null)
 			return 1;
+
 		if(isoDate == null && other.isoDate == null)
 			return 0;
+
 		if(isoDate == null)
 			return -1;
+
 		if(other.isoDate == null)
 			return 1;
+
 		return isoDate.compareTo(other.isoDate);
 	}
 

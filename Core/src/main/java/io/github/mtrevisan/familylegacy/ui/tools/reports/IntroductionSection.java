@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.ui.tools.reports;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 
 import java.time.LocalDate;
 import java.time.Period;
@@ -48,11 +49,6 @@ import java.util.List;
  * form for the target language.</p>
  */
 final class IntroductionSection implements SectionBuilder{
-
-	private static final String TAG_TYPE = "type";
-	private static final String TYPE_BIRTH = "birth";
-	private static final String TYPE_DEATH = "death";
-
 
 	private final ReportContext ctx;
 
@@ -97,8 +93,8 @@ final class IntroductionSection implements SectionBuilder{
 	 * difference can be off by one because month and day are missing.</p>
 	 */
 	private String lifespanOf(final List<FLEFRecord> events){
-		final FLEFRecord birthEvent = findEvent(events, TYPE_BIRTH);
-		final FLEFRecord deathEvent = findEvent(events, TYPE_DEATH);
+		final FLEFRecord birthEvent = findEvent(events, EventReader.ENUM_TYPE_BIRTH);
+		final FLEFRecord deathEvent = findEvent(events, EventReader.ENUM_TYPE_DEATH);
 
 		final Integer birthYear = (birthEvent != null? GenealogicalDateHelper.yearOrNull(birthEvent): null);
 		final Integer deathYear = (deathEvent != null? GenealogicalDateHelper.yearOrNull(deathEvent): null);
@@ -132,7 +128,7 @@ final class IntroductionSection implements SectionBuilder{
 
 	private static FLEFRecord findEvent(final List<FLEFRecord> events, final String type){
 		for(final FLEFRecord e : events){
-			final String t = FLEFRecordHelper.getChildValue(e, TAG_TYPE);
+			final String t = FLEFRecordHelper.getChildValue(e, EventReader.TAG_TYPE);
 			if(type.equalsIgnoreCase(t))
 				return e;
 		}

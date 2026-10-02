@@ -33,7 +33,9 @@ import io.github.mtrevisan.familylegacy.ui.components.projections.individual.Ind
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualListener;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualPanel;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.layout.TreeLayout;
+import io.github.mtrevisan.familylegacy.ui.components.projections.repository.GenealogyRepository;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -41,22 +43,29 @@ import javax.swing.BorderFactory;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.EventQueue;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.RenderingHints;
 import java.awt.Stroke;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.Objects;
 
 
 /**
@@ -78,6 +87,8 @@ import java.nio.charset.StandardCharsets;
  * ancestors are actually present in the data.
  */
 public class PartnersPanel extends JPanel{
+
+	private static final String PROPERTY_PARTNERS_CYCLE_ENABLED = "enabled";
 
 	// Colors
 	private static final Color GROUP_BACKGROUND = Color.WHITE;
@@ -107,36 +118,29 @@ public class PartnersPanel extends JPanel{
 	public static final Stroke CONNECTION_STROKE_ADOPTED = new BasicStroke(1.f, BasicStroke.CAP_BUTT,
 		BasicStroke.JOIN_BEVEL, 0.f, new float[]{2.f}, 0.f);
 
-	// Icons
-	//https://thenounproject.com/search/?q=cut&i=3132059
-	//https://snappygoat.com/free-public-domain-images-app_application_arrow_back_0/
-//	private static final ImageIcon ICON_PARENTS_PREVIOUS_ENABLED = ResourceHelper.getResizedImageFromResource("/images/parents_previous.png", ASCENDANTS_SIZE);
-//	private static final ImageIcon ICON_PARENTS_PREVIOUS_DISABLED = new ImageIcon(GrayFilter.createDisabledImage(ICON_PARENTS_PREVIOUS_ENABLED.getImage()));
-//	private static final ImageIcon ICON_PARENTS_NEXT_ENABLED = ResourceHelper.getResizedImageFromResource("/images/parents_next.png", ASCENDANTS_SIZE);
-//	private static final ImageIcon ICON_PARENTS_NEXT_DISABLED = new ImageIcon(GrayFilter.createDisabledImage(ICON_PARENTS_NEXT_ENABLED.getImage()));
-//	private static final ImageIcon ICON_CHILDREN_ENABLED = ResourceHelper.getResizedImageFromResource("/images/union_previous.png", ASCENDANTS_SIZE);
-//	private static final ImageIcon ICON_UNION_PREVIOUS_DISABLED = new ImageIcon(GrayFilter.createDisabledImage(ICON_CHILDREN_ENABLED.getImage()));
-//	private static final ImageIcon ICON_ANCESTOR_ENABLED = ResourceHelper.getResizedImageFromResource("/images/union_up.png", ASCENDANTS_SIZE);
-//	private static final ImageIcon ICON_UNION_NEXT_DISABLED = new ImageIcon(GrayFilter.createDisabledImage(ICON_ANCESTOR_ENABLED.getImage()));
-//	private static final Dimension NEXT_PREVIOUS_GROUP_PREFERRED_SIZE = new Dimension(ICON_CHILDREN_ENABLED.getIconWidth(), ICON_CHILDREN_ENABLED.getIconHeight());
-
 
 	// State
 	private JPanel groupPanel;
 	private IndividualPanel fatherPanel;
 	private IndividualPanel motherPanel;
-//	private JLabel fatherPreviousParentsLabel;
-//	private JLabel fatherNextParentsLabel;
-//	private JLabel fatherPreviousGroupLabel;
-//	private JLabel fatherNextGroupLabel;
 	private JLabel fatherAncestorsLabel;
 	private JPanel arrowFatherPanel;
-//	private JLabel motherPreviousParentsLabel;
-//	private JLabel motherNextParentsLabel;
-//	private JLabel motherPreviousGroupLabel;
-//	private JLabel motherNextGroupLabel;
 	private JLabel motherAncestorsLabel;
 	private JPanel arrowMotherPanel;
+
+	private final GenealogyRepository genealogyRepository;
+
+	private PartnerCycleListener partnerCycleListener;
+
+	// State (partner cycling)
+	/** {@code true} when the partner label can be clicked to cycle. */
+	private boolean partnerCycleEnabled;
+	private JLabel fatherPartnersLabel;
+	private JLabel motherPartnersLabel;
+	private List<String> fatherPartnerIds = List.of();
+	private List<String> motherPartnerIds = List.of();
+	private int fatherPartnerIndex = -1;
+	private int motherPartnerIndex = -1;
 
 	private final BoxPanelType boxType;
 	private TreeLayout treeLayout;
@@ -148,8 +152,9 @@ public class PartnersPanel extends JPanel{
 	private final FLEFModel model;
 
 
-	public static PartnersPanel create(final BoxPanelType boxType, final TreeLayout treeLayout, final FLEFModel model){
-		return new PartnersPanel(boxType, treeLayout, model);
+	public static PartnersPanel create(final BoxPanelType boxType, final TreeLayout treeLayout, final FLEFModel model,
+			final GenealogyRepository genealogyRepository){
+		return new PartnersPanel(boxType, treeLayout, model, genealogyRepository);
 	}
 
 	/**
@@ -162,15 +167,17 @@ public class PartnersPanel extends JPanel{
 	 * @return a placeholder panel
 	 */
 	public static PartnersPanel createEmpty(final BoxPanelType boxType, final TreeLayout treeLayout){
-		return new PartnersPanel(boxType, treeLayout, null);
+		return new PartnersPanel(boxType, treeLayout, null, null);
 	}
 
 
-	private PartnersPanel(final BoxPanelType boxType, final TreeLayout treeLayout, final FLEFModel model){
+	private PartnersPanel(final BoxPanelType boxType, final TreeLayout treeLayout, final FLEFModel model,
+			final GenealogyRepository genealogyRepository){
 		this.boxType = boxType;
 		this.treeLayout = treeLayout;
 
 		this.model = model;
+		this.genealogyRepository = genealogyRepository;
 
 		initComponents();
 
@@ -216,25 +223,20 @@ public class PartnersPanel extends JPanel{
 		groupPanel.setBackground(GROUP_BACKGROUND);
 		groupPanel.setBorder(BorderFactory.createDashedBorder(BORDER_COLOR));
 
-//		fatherPreviousParentsLabel = new JLabel();
-//		fatherNextParentsLabel = new JLabel();
-//		fatherPreviousGroupLabel = new JLabel();
-//		fatherNextGroupLabel = new JLabel();
+		fatherPartnersLabel = new JLabel();
+		fatherPartnersLabel.setPreferredSize(TreeIcons.ARROW_SIZE);
+		fatherPartnersLabel.setHorizontalAlignment(SwingConstants.CENTER);
+		fatherPartnersLabel.setFont(fatherPartnersLabel.getFont().deriveFont(Font.PLAIN, 9f));
+		fatherPartnersLabel.setVisible(false);
 		fatherAncestorsLabel = new JLabel();
 		fatherAncestorsLabel.setPreferredSize(TreeIcons.ARROW_SIZE);
-		final JPanel arrow1Panel = new JPanel(new MigLayout("flowy,ins 0",
-			"[grow,right]", "[]" + NAVIGATION_ARROW_SEPARATION + "[]"));
-		arrow1Panel.add(fatherAncestorsLabel);
-
-//		final JPanel arrow1Panel = new JPanel(new MigLayout("ins 0,hidemode 2",
-//			"[]0[grow]" + NAVIGATION_ASCENDANTS_ARROW_SEPARATION + "[grow]0[]0[]" + NAVIGATION_DESCENDANTS_ARROW_SEPARATION + "[]"));
-//		arrow1Panel.add(fatherArrowsSpacer, StringUtils.EMPTY);
-//		arrow1Panel.add(fatherPreviousParentsLabel, "right");
-//		arrow1Panel.add(fatherNextParentsLabel, "left");
-//		arrow1Panel.add(fatherPreviousGroupLabel, "right");
-//		arrow1Panel.add(fatherNextGroupLabel, "right");
-//		arrow1Panel.add(fatherAncestorsLabel, "right");
+		final JPanel arrow1Panel = new JPanel(new MigLayout("ins 0,hidemode 3",
+			"[]" + NAVIGATION_ARROW_SEPARATION + "[right,grow]", "[]"));
+		arrow1Panel.add(fatherPartnersLabel, "left");
+		arrow1Panel.add(fatherAncestorsLabel, "right");
 		arrow1Panel.setOpaque(false);
+
+		attachCycleHandler(fatherPartnersLabel, Side.LEFT);
 
 		arrowFatherPanel = new JPanel(new MigLayout("ins 0",
 			"[grow,fill]",
@@ -243,25 +245,20 @@ public class PartnersPanel extends JPanel{
 		arrowFatherPanel.add(fatherPanel, "right");
 		arrowFatherPanel.setOpaque(false);
 
-//		motherPreviousGroupLabel = new JLabel();
-//		motherNextGroupLabel = new JLabel();
-//		motherPreviousParentsLabel = new JLabel();
-//		motherNextParentsLabel = new JLabel();
+		motherPartnersLabel = new JLabel();
+		motherPartnersLabel.setPreferredSize(TreeIcons.ARROW_SIZE);
+		motherPartnersLabel.setHorizontalAlignment(SwingConstants.CENTER);
+		motherPartnersLabel.setFont(motherPartnersLabel.getFont().deriveFont(Font.PLAIN, 9f));
+		motherPartnersLabel.setVisible(false);
 		motherAncestorsLabel = new JLabel();
 		motherAncestorsLabel.setPreferredSize(TreeIcons.ARROW_SIZE);
-		final JPanel arrow2Panel = new JPanel(new MigLayout("flowy,ins 0",
-			"[grow,right]", "[]" + NAVIGATION_ARROW_SEPARATION + "[]"));
+		final JPanel arrow2Panel = new JPanel(new MigLayout("ins 0,hidemode 3",
+			"[]" + NAVIGATION_ARROW_SEPARATION + "[right,grow]", "[]"));
 		arrow2Panel.add(motherAncestorsLabel);
-
-//		final JPanel arrow2Panel = new JPanel(new MigLayout("ins 0,hidemode 2",
-//			"[]" + NAVIGATION_DESCENDANTS_ARROW_SEPARATION + "[]0[grow]0[]" + NAVIGATION_ASCENDANTS_ARROW_SEPARATION + "[grow]0[]"));
-//		arrow2Panel.add(motherArrowsSpacer, StringUtils.EMPTY);
-//		arrow2Panel.add(motherPreviousGroupLabel, "left");
-//		arrow2Panel.add(motherNextGroupLabel, "left");
-//		arrow2Panel.add(motherPreviousParentsLabel, "right");
-//		arrow2Panel.add(motherNextParentsLabel, "left");
-//		arrow2Panel.add(motherAncestorsLabel, "right");
+		arrow2Panel.add(motherPartnersLabel, "right");
 		arrow2Panel.setOpaque(false);
+
+		attachCycleHandler(motherPartnersLabel, Side.RIGHT);
 
 		arrowMotherPanel = new JPanel(new MigLayout("ins 0",
 			"[grow,fill]",
@@ -273,6 +270,90 @@ public class PartnersPanel extends JPanel{
 		setOpaque(false);
 
 		applyLayoutConstraints();
+	}
+
+	private void attachCycleHandler(final JLabel label, final Side side){
+		label.addMouseListener(new MouseAdapter(){
+			@Override
+			public void mouseClicked(final MouseEvent e){
+				if(SwingUtilities.isLeftMouseButton(e)
+						&& label.getClientProperty(PROPERTY_PARTNERS_CYCLE_ENABLED) == Boolean.TRUE)
+					cyclePartner(side);
+			}
+		});
+	}
+
+	/**
+	 * Returns the IDs of every partner of {@code person}, across all spouse /
+	 * union relationship types. Handles both subject and object directions
+	 * and de-duplicates the result, since the same couple may appear with
+	 * several relationship types (e.g. civil_spouse + religious_spouse).
+	 */
+	private List<String> findPartnerIds(final IndividualData person){
+		if(person == null || person.isEmpty() || genealogyRepository == null)
+			return List.of();
+
+		return genealogyRepository.getPartnerIds(person.getId());
+	}
+
+	private void updatePartnerLists(){
+		if(model == null || fatherPartnersLabel == null)
+			return;
+
+		fatherPartnerIds = findPartnerIds(father);
+		motherPartnerIds = findPartnerIds(mother);
+
+		fatherPartnerIndex = indexOf(fatherPartnerIds, mother);
+		motherPartnerIndex = indexOf(motherPartnerIds, father);
+
+		updatePartnerLabel(fatherPartnersLabel, fatherPartnerIds, fatherPartnerIndex);
+		updatePartnerLabel(motherPartnersLabel, motherPartnerIds, motherPartnerIndex);
+	}
+
+	private static int indexOf(final List<String> ids, final IndividualData target){
+		if(target == null)
+			return -1;
+
+		final String targetId = target.getId();
+		for(int i = 0, size = ids.size(); i < size; i ++)
+			if(Objects.equals(targetId, ids.get(i)))
+				return i;
+		return -1;
+	}
+
+	private void updatePartnerLabel(final JLabel label, final List<String> ids, final int index){
+		final boolean canCycle = (index >= 0 && ids.size() > 1);
+		label.putClientProperty(PROPERTY_PARTNERS_CYCLE_ENABLED, canCycle);
+		label.setCursor(Cursor.getPredefinedCursor(partnerCycleEnabled && canCycle? Cursor.HAND_CURSOR: Cursor.DEFAULT_CURSOR));
+
+		if(canCycle){
+			label.setText((index + 1) + "/" + ids.size());
+			label.setToolTipText(I18N.tf((partnerCycleEnabled? "panel.partners.cycle.click.tooltip": "panel.partners.cycle.tooltip"), ids.size()));
+			label.setVisible(true);
+		}
+		else{
+			label.setText(StringUtils.EMPTY);
+			label.setToolTipText(null);
+			label.setVisible(false);
+		}
+	}
+
+	private void cyclePartner(final Side anchorSide){
+		if(!partnerCycleEnabled)
+			return;
+
+		final List<String> ids = (anchorSide == Side.LEFT? fatherPartnerIds: motherPartnerIds);
+		final int currentIndex = (anchorSide == Side.LEFT? fatherPartnerIndex: motherPartnerIndex);
+		if(ids.size() <= 1 || currentIndex < 0)
+			return;
+
+		final int nextIndex = (currentIndex + 1) % ids.size();
+		final IndividualData newPartner = genealogyRepository.getIndividualData(ids.get(nextIndex));
+		if(newPartner == null)
+			return;
+
+		if(partnerCycleListener != null)
+			partnerCycleListener.onPartnerCycled(anchorSide, newPartner);
 	}
 
 	private void applyLayoutConstraints(){
@@ -367,8 +448,16 @@ public class PartnersPanel extends JPanel{
 		return fatherPanel;
 	}
 
+	public IndividualData getFatherData(){
+		return fatherPanel.getData();
+	}
+
 	public final IndividualPanel getMotherPanel(){
 		return motherPanel;
+	}
+
+	public IndividualData getMotherData(){
+		return motherPanel.getData();
 	}
 
 
@@ -385,6 +474,30 @@ public class PartnersPanel extends JPanel{
 
 		fatherPanel.withListener(listener, factory);
 		motherPanel.withListener(listener, factory);
+
+		return this;
+	}
+
+	public PartnersPanel withPartnerCycleListener(final PartnerCycleListener listener){
+		this.partnerCycleListener = listener;
+
+		return this;
+	}
+
+	/**
+	 * Enables or disables the partner-cycle interaction. When disabled, the
+	 * partner label is hidden, no hand cursor is set, and a click on it does
+	 * nothing. Typically {@code true} only on the root couple of the tree.
+	 *
+	 * @param enabled the desired state
+	 * @return this panel, for chaining
+	 */
+	public PartnersPanel withPartnerCycleEnabled(final boolean enabled){
+		if(partnerCycleEnabled != enabled){
+			partnerCycleEnabled = enabled;
+
+			updatePartnerLists();
+		}
 
 		return this;
 	}
@@ -449,6 +562,10 @@ public class PartnersPanel extends JPanel{
 		fatherPanel.withIndividualData(father);
 		motherPanel.withIndividualData(mother);
 
+
+		updatePartnerLists();
+
+
 //		final String marriageTooltip = data.getMarriageTooltip();
 //		groupPanel.setToolTipText(marriageTooltip);
 
@@ -456,15 +573,6 @@ public class PartnersPanel extends JPanel{
 //			BorderFactory.createDashedBorder(BORDER_COLOR));
 		groupPanel.setBorder(BorderFactory.createLineBorder(BORDER_COLOR));
 
-
-//		if(boxType == BoxPanelType.PRIMARY){
-//			final Integer groupId = extractRecordID(group);
-//			updatePreviousNextGroupIcons(groupId, mother, fatherPreviousGroupLabel, fatherNextGroupLabel);
-//			updatePreviousNextGroupIcons(groupId, father, motherPreviousGroupLabel, motherNextGroupLabel);
-//
-//			updatePreviousNextParentsIcons(father, fatherPreviousParentsLabel, fatherNextParentsLabel);
-//			updatePreviousNextParentsIcons(mother, motherPreviousParentsLabel, motherNextParentsLabel);
-//		}
 
 		final boolean fatherHasAncestors = (showAncestors && father != null && father.hasParents());
 		final boolean motherHasAncestors = (showAncestors && mother != null && mother.hasParents());
@@ -501,19 +609,6 @@ public class PartnersPanel extends JPanel{
 		}
 	}
 
-//	private boolean hasChildren(final String fatherId, final String motherId){
-//		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
-//		for(final FLEFRecord relationship : relationships){
-//			final String type = FLEFRecordHelper.getChildValue(relationship, RelationshipHandler.TAG_TYPE);
-//			if(type != null && relationshipTypeFilter.test(type)){
-//				final String objectId = relationship.extractReferencedId(RelationshipHandler.TAG_OBJECT, IndividualHandler.TYPE);
-//				if(fatherId.equals(objectId))
-//					return true;
-//			}
-//		}
-//		return false;
-//	}
-
 
 	/**
 	 * Finds the nearest PartnersPanel ancestor, if any.
@@ -526,84 +621,6 @@ public class PartnersPanel extends JPanel{
 			parent = parent.getParent();
 		return (PartnersPanel)parent;
 	}
-
-
-/*	private void updatePreviousNextGroupIcons(final Integer groupID, final Map<String, Object> otherPartner,
-			final JLabel previousLabel, final JLabel nextLabel){
-		//list the `groupID`s for the groups of the `other partner`
-		final Integer otherPartnerID = extractRecordID(otherPartner);
-		final List<Integer> otherPartnerGroupIDs = getGroupIDs(otherPartnerID);
-
-		//find current group in list
-		int currentGroupIndex = -1;
-		final int otherPartnerGroupsCount = otherPartnerGroupIDs.size();
-		for(int i = 0; i < otherPartnerGroupsCount; i ++){
-			final Integer otherGroupID = otherPartnerGroupIDs.get(i);
-
-			if(Objects.equals(groupID, otherGroupID)){
-				currentGroupIndex = i;
-
-				break;
-			}
-		}
-
-		final boolean hasMoreGroups = (otherPartnerGroupsCount > 1);
-
-		final boolean partnerPreviousEnabled = (currentGroupIndex > 0);
-		previousLabel.putClientProperty(KEY_ENABLED, partnerPreviousEnabled);
-		previousLabel.setCursor(Cursor.getPredefinedCursor(partnerPreviousEnabled? Cursor.HAND_CURSOR: Cursor.DEFAULT_CURSOR));
-		ImageIcon icon = null;
-		if(hasMoreGroups)
-			icon = (partnerPreviousEnabled? ICON_GROUP_PREVIOUS_ENABLED: ICON_GROUP_PREVIOUS_DISABLED);
-		previousLabel.setIcon(icon);
-
-		final boolean partnerNextEnabled = (currentGroupIndex < otherPartnerGroupsCount - 1);
-		nextLabel.putClientProperty(KEY_ENABLED, partnerNextEnabled);
-		nextLabel.setCursor(Cursor.getPredefinedCursor(partnerNextEnabled? Cursor.HAND_CURSOR: Cursor.DEFAULT_CURSOR));
-		if(hasMoreGroups)
-			icon = (partnerNextEnabled? ICON_GROUP_NEXT_ENABLED: ICON_GROUP_NEXT_DISABLED);
-		nextLabel.setIcon(icon);
-	}
-
-	private void updatePreviousNextParentsIcons(final Map<String, Object> partner, final JLabel previousLabel, final JLabel nextLabel){
-		//list the `groupID`s for the biological group and adopting groups of the `partner`
-		final Integer adopteeID = extractRecordID(partner);
-		final List<Integer> groupsIDs = getBiologicalAndAdoptingParentsIDs(adopteeID);
-
-		//find current parents in list
-		final Integer partnerParentsID = TreePanel.extractParentsGroupID(motherPanel.getIndividual(), store);
-		int currentGroupIndex = -1;
-		final int parentsCount = groupsIDs.size();
-		for(int i = 0; i < parentsCount; i ++)
-			if(Objects.equals(partnerParentsID, groupsIDs.get(i))){
-				currentGroupIndex = i;
-
-				break;
-			}
-
-		final boolean hasMoreParents = (parentsCount > 1);
-
-		final boolean parentsPreviousEnabled = (currentGroupIndex > 0);
-		previousLabel.putClientProperty(KEY_ENABLED, parentsPreviousEnabled);
-		previousLabel.setCursor(Cursor.getPredefinedCursor(parentsPreviousEnabled? Cursor.HAND_CURSOR: Cursor.DEFAULT_CURSOR));
-		ImageIcon icon = null;
-		if(hasMoreParents)
-			icon = (parentsPreviousEnabled? ICON_PARENTS_PREVIOUS_ENABLED: ICON_PARENTS_PREVIOUS_DISABLED);
-		previousLabel.setIcon(icon);
-
-		final boolean parentsNextEnabled = (currentGroupIndex < parentsCount - 1);
-		nextLabel.putClientProperty(KEY_ENABLED, parentsNextEnabled);
-		nextLabel.setCursor(Cursor.getPredefinedCursor(parentsNextEnabled? Cursor.HAND_CURSOR: Cursor.DEFAULT_CURSOR));
-		if(hasMoreParents)
-			icon = (parentsNextEnabled? ICON_PARENTS_NEXT_ENABLED: ICON_PARENTS_NEXT_DISABLED);
-		nextLabel.setIcon(icon);
-
-
-		final boolean isFather = Objects.equals(extractRecordID(partner), extractRecordID(fatherPanel.getIndividual()));
-		final List<Integer> otherPartnerGroupIDs = getGroupIDs(extractRecordID(isFather? mother: father));
-		final boolean hasMoreGroups = (otherPartnerGroupIDs.size() > 1);
-		(isFather? fatherArrowsSpacer: motherArrowsSpacer).setVisible(hasMoreParents && hasMoreGroups);
-	}*/
 
 
 	private boolean isPrimaryBox(){
@@ -684,7 +701,8 @@ public class PartnersPanel extends JPanel{
 
 
 		EventQueue.invokeLater(() -> {
-			final PartnersPanel panel = PartnersPanel.create(BoxPanelType.PRIMARY, TreeLayout.VERTICAL, model);
+			final PartnersPanel panel = PartnersPanel.create(BoxPanelType.PRIMARY, TreeLayout.VERTICAL, model,
+				null);
 //			panel.withBiologicalParents(recordId);
 //			panel.setGroupListener(groupListener);
 //			panel.setPersonListener(personListener);

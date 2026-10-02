@@ -75,7 +75,7 @@ public class PedigreeCollapseDialog extends JDialog{
 		if(collapses == null)
 			throw new IllegalArgumentException("Collapses must not be null");
 
-		this.collapses = List.copyOf(collapses);
+		this.collapses = collapses;
 
 		initComponents();
 

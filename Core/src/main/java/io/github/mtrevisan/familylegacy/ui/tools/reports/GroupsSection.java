@@ -26,7 +26,12 @@ package io.github.mtrevisan.familylegacy.ui.tools.reports;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.GroupAttributeReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.GroupReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
+import io.github.mtrevisan.familylegacy.ui.handlers.GroupHandler;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -58,24 +63,6 @@ import java.util.function.Function;
  * at least one membership is reachable.</p>
  */
 final class GroupsSection implements SectionBuilder{
-
-	/* ======================================================================
-	 *                          Tags
-	 * ====================================================================== */
-
-	private static final String TAG_NAME = "name";
-	private static final String TAG_VALUE = "value";
-	private static final String TAG_TYPE = "type";
-	private static final String TAG_ROLE = "role";
-	private static final String TAG_STATUS = "status";
-	private static final String TAG_VALID_FROM = "valid_from";
-	private static final String TAG_VALID_TO = "valid_to";
-	private static final String TAG_TARGET = "target";
-	private static final String TAG_DESCRIPTION = "description";
-	private static final String TAG_AGENCY = "agency";
-
-	private static final String NAME_TYPE_OFFICIAL = "official";
-
 
 	private final ReportContext ctx;
 	private final Function<String, String> contextLabels;
@@ -133,13 +120,13 @@ final class GroupsSection implements SectionBuilder{
 		final String direct = FLEFRecordHelper.getChildValue(rel, "target.group");
 		if(direct != null)
 			return direct;
-		final FLEFRecord targetNode = FLEFRecordHelper.findChild(rel, TAG_TARGET);
-		if(targetNode == null)
+		final FLEFRecord objectNode = FLEFRecordHelper.findChild(rel, RelationshipReader.TAG_OBJECT);
+		if(objectNode == null)
 			return null;
-		final FLEFRecord ref = targetNode.getTheOnlyChild();
+		final FLEFRecord ref = objectNode.getTheOnlyChild();
 		if(ref == null)
 			return null;
-		return ("group".equalsIgnoreCase(ref.getTag())? ref.getValue(): null);
+		return (GroupHandler.TYPE.equalsIgnoreCase(ref.getTag())? ref.getValue(): null);
 	}
 
 
@@ -150,7 +137,7 @@ final class GroupsSection implements SectionBuilder{
 	private void appendGroup(final List<ReportSection> out, final MembershipEntry entry){
 		final FLEFRecord group = entry.group();
 
-		out.add(new ReportSection.Heading(2, nameOf(group)));
+		out.add(new ReportSection.Heading(2, GroupReader.extractPrimaryName(group)));
 
 		appendBasicInfo(out, group);
 		appendMemberships(out, entry);
@@ -172,17 +159,19 @@ final class GroupsSection implements SectionBuilder{
 	private void appendBasicInfo(final List<ReportSection> out, final FLEFRecord group){
 		final List<String> rows = new ArrayList<>();
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().groupType(),
-			FLEFRecordHelper.getChildValue(group, TAG_TYPE));
+			FLEFRecordHelper.getChildValue(group, GroupReader.TAG_TYPE));
 
 		// Additional names (all but the primary heading).
-		final FLEFRecord primary = primaryNameNode(group);
-		for(final FLEFRecord n : FLEFRecordHelper.findChildren(group, TAG_NAME)){
-			if(n == primary)
-				continue;
-			final String type = FLEFRecordHelper.getChildValue(n, NameReader.TAG_TYPE);
+		final String primaryName = GroupReader.extractPrimaryName(group);
+		for(final FLEFRecord n : FLEFRecordHelper.findChildren(group, GroupReader.TAG_NAME)){
 			final String value = FLEFRecordHelper.getChildValue(n, NameReader.TAG_VALUE);
+			if(primaryName != null && primaryName.equals(value))
+				continue;
+
+			final String type = FLEFRecordHelper.getChildValue(n, NameReader.TAG_TYPE);
 			if(value == null || value.isBlank())
 				continue;
+
 			final StringBuilder line = new StringBuilder();
 			line.append("**").append(ctx.labels.sections().name());
 			if(type != null && !type.isBlank())
@@ -204,17 +193,17 @@ final class GroupsSection implements SectionBuilder{
 		for(final FLEFRecord membership : entry.memberships()){
 			final List<String> meta = new ArrayList<>();
 			ReportFormatters.appendIfPresent(meta, ctx.labels.sections().role(),
-				FLEFRecordHelper.getChildValue(membership, TAG_ROLE));
+				FLEFRecordHelper.getChildValue(membership, RelationshipReader.TAG_ROLE));
 			ReportFormatters.appendIfPresent(meta, ctx.labels.sections().status(),
 				ReportFormatters.enumLabel(
-					FLEFRecordHelper.getChildValue(membership, TAG_STATUS)));
+					FLEFRecordHelper.getChildValue(membership, RelationshipReader.TAG_STATUS)));
 
 			final String from = GenealogicalDateHelper.formatDateStructure(
-				membership, TAG_VALID_FROM, ctx.labels, contextLabels);
+				membership, RelationshipReader.TAG_VALID_FROM, ctx.labels, contextLabels);
 			if(from != null)
 				meta.add("**" + ctx.labels.sections().validFrom() + ":** " + ReportFormatters.escape(from));
 			final String to = GenealogicalDateHelper.formatDateStructure(
-				membership, TAG_VALID_TO, ctx.labels, contextLabels);
+				membership, RelationshipReader.TAG_VALID_TO, ctx.labels, contextLabels);
 			if(to != null)
 				meta.add("**" + ctx.labels.sections().validTo() + ":** " + ReportFormatters.escape(to));
 
@@ -243,12 +232,12 @@ final class GroupsSection implements SectionBuilder{
 		final List<List<String>> rows = new ArrayList<>();
 		for(final FLEFRecord a : attrs){
 			rows.add(List.of(
-				ReportFormatters.esc(FLEFRecordHelper.getChildValue(a, TAG_TYPE)),
-				ReportFormatters.esc(FLEFRecordHelper.getChildValue(a, TAG_VALUE)),
+				ReportFormatters.esc(FLEFRecordHelper.getChildValue(a, GroupAttributeReader.TAG_TYPE)),
+				ReportFormatters.esc(FLEFRecordHelper.getChildValue(a, GroupAttributeReader.TAG_VALUE)),
 				ReportFormatters.esc(GenealogicalDateHelper.formatDateStructure(
-					a, TAG_VALID_FROM, ctx.labels, contextLabels)),
+					a, GroupAttributeReader.TAG_VALID_FROM, ctx.labels, contextLabels)),
 				ReportFormatters.esc(GenealogicalDateHelper.formatDateStructure(
-					a, TAG_VALID_TO, ctx.labels, contextLabels)),
+					a, GroupAttributeReader.TAG_VALID_TO, ctx.labels, contextLabels)),
 				ReportFormatters.esc(ReportFormatters.resolvePlaceName(ctx.model, a))));
 		}
 		out.add(new ReportSection.Table(
@@ -269,7 +258,7 @@ final class GroupsSection implements SectionBuilder{
 				if(!extras.isEmpty()){
 					out.add(new ReportSection.Heading(4, ctx.labels.sections().type() + ": "
 						+ ReportFormatters.escape(ReportFormatters.orEmpty(
-						FLEFRecordHelper.getChildValue(a, TAG_TYPE)))));
+						FLEFRecordHelper.getChildValue(a, GroupAttributeReader.TAG_TYPE)))));
 					out.addAll(extras);
 				}
 			}
@@ -312,16 +301,16 @@ final class GroupsSection implements SectionBuilder{
 			: FLEFRecordHelper.getChildValue(rel, "target.group"));
 		final FLEFRecord counterpart = (counterpartId != null
 			? ctx.visible(ctx.model.getRecordById(counterpartId)): null);
-		final String label = (counterpart != null? nameOf(counterpart): counterpartId);
+		final String label = (counterpart != null? GroupReader.extractPrimaryName(counterpart): counterpartId);
 		if(label == null || label.isBlank())
 			return;
 
 		out.add(new ReportSection.Heading(4, ReportFormatters.escape(label)));
 
 		final String from = GenealogicalDateHelper.formatDateStructure(
-			rel, TAG_VALID_FROM, ctx.labels, contextLabels);
+			rel, RelationshipReader.TAG_VALID_FROM, ctx.labels, contextLabels);
 		final String to = GenealogicalDateHelper.formatDateStructure(
-			rel, TAG_VALID_TO, ctx.labels, contextLabels);
+			rel, RelationshipReader.TAG_VALID_TO, ctx.labels, contextLabels);
 		final List<String> meta = new ArrayList<>();
 		if(from != null)
 			meta.add("**" + ctx.labels.sections().validFrom() + ":** " + ReportFormatters.escape(from));
@@ -350,7 +339,7 @@ final class GroupsSection implements SectionBuilder{
 		out.add(new ReportSection.Heading(3, ctx.labels.sections().groupEvents()));
 		for(final FLEFRecord evt : events){
 			final String type = ReportFormatters.orEmpty(
-				FLEFRecordHelper.getChildValue(evt, TAG_TYPE));
+				FLEFRecordHelper.getChildValue(evt, EventReader.TAG_TYPE));
 			final String date = ReportFormatters.orEmpty(
 				GenealogicalDateHelper.formatEventDate(evt, ctx.labels, contextLabels));
 			final String heading = (type.isEmpty()? "Event": type)
@@ -362,50 +351,15 @@ final class GroupsSection implements SectionBuilder{
 				out.add(new ReportSection.Paragraph(
 					"**" + ctx.labels.sections().place() + ":** " + ReportFormatters.escape(place)));
 
-			final String agency = FLEFRecordHelper.getChildValue(evt, TAG_AGENCY);
+			final String agency = FLEFRecordHelper.getChildValue(evt, EventReader.TAG_AGENCY);
 			if(agency != null)
 				out.add(new ReportSection.Paragraph(
 					"**" + ctx.labels.sections().agency() + ":** " + ReportFormatters.escape(agency)));
 
-			final String descr = FLEFRecordHelper.getChildValue(evt, TAG_DESCRIPTION);
+			final String descr = FLEFRecordHelper.getChildValue(evt, EventReader.TAG_DESCRIPTION);
 			if(descr != null)
 				out.add(new ReportSection.Paragraph(ReportFormatters.escape(descr)));
 		}
-	}
-
-
-	/* ======================================================================
-	 *                          Name helpers
-	 * ====================================================================== */
-
-	private FLEFRecord primaryNameNode(final FLEFRecord group){
-		final List<FLEFRecord> names = FLEFRecordHelper.findChildren(group, TAG_NAME);
-		if(names.isEmpty())
-			return null;
-		for(final FLEFRecord n : names){
-			final String type = FLEFRecordHelper.getChildValue(n, NameReader.TAG_TYPE);
-			if(NAME_TYPE_OFFICIAL.equalsIgnoreCase(type)){
-				final String v = FLEFRecordHelper.getChildValue(n, NameReader.TAG_VALUE);
-				if(v != null && !v.isBlank())
-					return n;
-			}
-		}
-		for(final FLEFRecord n : names){
-			final String v = FLEFRecordHelper.getChildValue(n, NameReader.TAG_VALUE);
-			if(v != null && !v.isBlank())
-				return n;
-		}
-		return null;
-	}
-
-	private String nameOf(final FLEFRecord group){
-		final FLEFRecord primary = primaryNameNode(group);
-		if(primary != null){
-			final String v = FLEFRecordHelper.getChildValue(primary, TAG_VALUE);
-			if(v != null && !v.isBlank())
-				return ReportFormatters.escape(v.trim());
-		}
-		return ReportFormatters.escape(ReportFormatters.orEmpty(group.getId()));
 	}
 
 

@@ -334,11 +334,11 @@ public final class PdfReportRenderer implements ReportRenderer{
 		}
 
 		// Body rows — rows shorter than the header are padded with empty cells.
-		for(int r = 0; r < t.rows().size(); r++){
+		for(int r = 0; r < t.rows().size(); r ++){
 			final java.util.List<String> row = t.rows().get(r);
 			final boolean shaded = (r % 2 == 1);
 
-			for(int c = 0; c < cols; c++){
+			for(int c = 0; c < cols; c ++){
 				final String v = (c < row.size()? row.get(c): StringUtils.EMPTY);
 				final PdfPCell cell = new PdfPCell(inline(v, BODY_FONT));
 				cell.setBorderColor(TABLE_BORDER);
@@ -415,13 +415,13 @@ public final class PdfReportRenderer implements ReportRenderer{
 		final StringBuilder buf = new StringBuilder();
 		boolean isBold = false, isItalic = false, isCode = false;
 
-		for(int i = 0; i < text.length(); i++){
+		for(int i = 0; i < text.length(); i ++){
 			final char c = text.charAt(i);
 
 			if(c == '*' && i + 1 < text.length() && text.charAt(i + 1) == '*' && !isCode){
 				flush(phrase, buf, isBold, isItalic, isCode, base, bold, italic, boldItalic, code);
 				isBold = !isBold;
-				i++;
+				i ++;
 			}
 			else if(c == '*' && !isCode){
 				flush(phrase, buf, isBold, isItalic, isCode, base, bold, italic, boldItalic, code);

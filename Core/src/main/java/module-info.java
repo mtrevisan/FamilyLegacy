@@ -1,3 +1,6 @@
+import io.github.mtrevisan.familylegacy.services.EphemerisEngine;
+
+
 /**
  * Copyright (c) 2026 Mauro Trevisan
  *
@@ -48,5 +51,5 @@ module io.github.mtrevisan.familylegacy.core {
 	exports io.github.mtrevisan.familylegacy.services;
 
 	// Declare SPI consumption
-	uses io.github.mtrevisan.familylegacy.services.AstronomicalEngine;
+	uses EphemerisEngine;
 }

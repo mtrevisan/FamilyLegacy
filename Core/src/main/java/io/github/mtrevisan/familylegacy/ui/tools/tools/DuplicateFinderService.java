@@ -102,10 +102,6 @@ public final class DuplicateFinderService{
 	private static final int W_SOURCE_OVERLAP = 5;
 	private static final int W_PLACE_OVERLAP = 5;
 
-	private static final List<String> SPOUSE_TYPES = List.of(
-		"civil_spouse", "religious_spouse", "customary_spouse",
-		"cohabiting_partner", "engaged_partner");
-
 
 	/** Tunable parameters of the search. */
 	public static final class Options{
@@ -324,7 +320,7 @@ public final class DuplicateFinderService{
 				else if(id.equals(target))
 					children.add(subject);
 			}
-			else if(SPOUSE_TYPES.contains(type.toLowerCase(Locale.ROOT))){
+			else if(RelationshipReader.isTypePartner(type)){
 				if(id.equals(subject))
 					spouses.add(target);
 				else if(id.equals(target))

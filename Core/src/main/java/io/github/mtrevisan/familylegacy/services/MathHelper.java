@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2026 Mauro Trevisan
+ * Copyright (c) 2023 Mauro Trevisan
  * <p>
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,31 +25,19 @@
 package io.github.mtrevisan.familylegacy.services;
 
 
-public interface AstronomicalEngine{
+public final class MathHelper{
+
+	public static final double TWO_PI = StrictMath.PI * 2.;
+
+
+	private MathHelper(){}
+
 
 	/**
-	 * Returns whether the astronomical calculation provider is fully functional.
+	 * Reduce an angle in radians to the range {@code 0} to {@code 2π}.
 	 */
-	boolean isAvailable();
-
-	/**
-	 * Computes the JDN of the next new moon after a reference JDN.
-	 *
-	 * @param approxJdn approximate JDN (UT) from which the search starts
-	 * @param utcOffset the UTC offset in hours at the target location
-	 * @return JDN of the next new moon
-	 */
-	double getNextNewMoonJdn(final double approxJdn, final double utcOffset);
-
-	/**
-	 * Computes the JDN at which the Sun's apparent longitude reaches a
-	 * target value within the given year.
-	 *
-	 * @param year          Gregorian year
-	 * @param targetLongitude target apparent solar longitude [deg]
-	 * @param utcOffset     UTC offset in hours at the target location
-	 * @return JDN of the solar term, in the local timezone
-	 */
-	double getSolarLongitudeJdn(final int year, final double targetLongitude, final double utcOffset);
+	public static double mod2pi(final double angle){
+		return (angle % TWO_PI + TWO_PI) % TWO_PI;
+	}
 
 }

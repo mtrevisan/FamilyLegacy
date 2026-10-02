@@ -229,7 +229,7 @@ public final class DiagnosticsDialog extends JDialog{
 	private static String formatBytes(final long bytes){
 		final long mb = bytes / (1024L * 1024L);
 		if(mb >= 1024L)
-			return String.format("%.2f GB", mb / 1024.0);
+			return String.format("%.2f GB", mb / 1024.);
 		return mb + " MB";
 	}
 

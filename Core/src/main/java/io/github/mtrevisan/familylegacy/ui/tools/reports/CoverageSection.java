@@ -127,7 +127,7 @@ final class CoverageSection implements SectionBuilder{
 		int present = 0;
 		for(final String field : expectedFields)
 			if(isPopulated(rec, field))
-				present++;
+				present ++;
 		final boolean hasSource = FLEFRecordHelper.findChild(rec, TAG_SOURCE) != null;
 		final boolean hasEvidence = FLEFRecordHelper.findChild(rec, TAG_EVIDENCE) != null;
 		return new CoverageEntry(rec, kind, present, expectedFields.length, hasSource, hasEvidence);

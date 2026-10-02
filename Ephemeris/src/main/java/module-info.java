@@ -1,3 +1,6 @@
+import io.github.mtrevisan.familylegacy.services.EphemerisEngine;
+
+
 /**
  * Copyright (c) 2026 Mauro Trevisan
  * <p>
@@ -32,6 +35,6 @@ module io.github.mtrevisan.ephemeris {
 	opens io.github.mtrevisan.ephemeris to io.github.mtrevisan.familylegacy.core;
 
 	// Register SPI implementation
-	provides io.github.mtrevisan.familylegacy.services.AstronomicalEngine
+	provides EphemerisEngine
 		with io.github.mtrevisan.ephemeris.AstronomicalEngineAdapter;
 }

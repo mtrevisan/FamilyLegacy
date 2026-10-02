@@ -35,6 +35,7 @@ import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree
 import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.layout.sugiyama.Graph;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.layout.sugiyama.Layerer;
 import io.github.mtrevisan.familylegacy.ui.components.projections.partners.PartnersPanel;
+import io.github.mtrevisan.familylegacy.ui.components.projections.repository.GenealogyRepository;
 import io.github.mtrevisan.familylegacy.ui.components.projections.repository.TreeNode;
 import io.github.mtrevisan.familylegacy.ui.components.projections.siblings.SiblingsPanel;
 
@@ -52,8 +53,10 @@ public final class GraphLayoutBuilder{
 
 	public static SiblingsPanel buildLayout(final JPanel canvas, final TreeNode rootNode,
 			final Set<TreeNode> allTreeNodes, final boolean showPartner, final FLEFModel model,
-			final Map<TreeNode, PartnersPanel> nodeToPanelMap, final IndividualTreeGraphListener treeListener,
-			final EntityPopupMenuFactory<IndividualPanel, IndividualListener> popupFactory, final TreeLayout treeLayout){
+			final GenealogyRepository genealogyRepository, final Map<TreeNode, PartnersPanel> nodeToPanelMap,
+			final IndividualTreeGraphListener treeListener,
+			final EntityPopupMenuFactory<IndividualPanel, IndividualListener> popupFactory, final TreeLayout treeLayout,
+			final PartnerCycleHandler partnerCycleHandler){
 		if(allTreeNodes == null || allTreeNodes.isEmpty())
 			return null;
 
@@ -93,7 +96,7 @@ public final class GraphLayoutBuilder{
 
 		// Step 4: Populate Swing Canvas
 		final SiblingsPanel siblingsPanel = CoordinateAssigner.populateCanvas(canvas, rootNode, layers, model,
-			nodeToPanelMap, treeListener, popupFactory, treeLayout, showPartner);
+			genealogyRepository, nodeToPanelMap, treeListener, popupFactory, treeLayout, showPartner, partnerCycleHandler);
 
 		return siblingsPanel;
 	}

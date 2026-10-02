@@ -27,8 +27,10 @@ package io.github.mtrevisan.familylegacy.ui.tools.reports;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.readers.CulturalNormReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PrivacyReader;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.services.kinship.KinshipCalculator;
+import io.github.mtrevisan.familylegacy.ui.handlers.CulturalNormHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
@@ -52,14 +54,9 @@ import java.util.function.Function;
  */
 final class ReportContext{
 
-	private static final String TAG_PRIVACY_LEVEL = "privacy.level";
-
 	private static final String TAG_TITLE = "title";
-	private static final String TAG_RULE_TYPE = "rule_type";
 	private static final String TAG_TYPE = "type";
-	private static final String TAG_EXPIRES = "privacy.expires";
-
-	private static final String TYPE_CULTURAL_NORM = "cultural_norm";
+	private static final String TAG_PRIVACY = "privacy";
 
 
 	/** Categorizes the type of the root FLEF record being reported. */
@@ -254,7 +251,7 @@ final class ReportContext{
 	 * the policy would otherwise hide it.
 	 */
 	boolean isPrivacyExpired(final FLEFRecord rec){
-		final String expires = FLEFRecordHelper.getChildValue(rec, TAG_EXPIRES);
+		final String expires = FLEFRecordHelper.getChildValue(rec, TAG_PRIVACY + "." + PrivacyReader.TAG_EXPIRES);
 		if(expires == null || expires.isBlank())
 			return false;
 		try{
@@ -441,8 +438,8 @@ final class ReportContext{
 		if(title != null && !title.isBlank())
 			return title.trim();
 		final String tag = rec.getTag();
-		if(TYPE_CULTURAL_NORM.equalsIgnoreCase(tag)){
-			final String rt = FLEFRecordHelper.getChildValue(rec, TAG_RULE_TYPE);
+		if(CulturalNormHandler.TYPE.equalsIgnoreCase(tag)){
+			final String rt = FLEFRecordHelper.getChildValue(rec, CulturalNormReader.TAG_TYPE);
 			if(rt != null && !rt.isBlank())
 				return rt.replace('_', ' ');
 		}

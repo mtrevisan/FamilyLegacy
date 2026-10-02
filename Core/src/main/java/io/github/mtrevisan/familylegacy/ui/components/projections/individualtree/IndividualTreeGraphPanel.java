@@ -46,6 +46,7 @@ import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree
 import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.services.lifespan.MultiLifespanStripPanel;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.services.relationship.RelationshipOperationCoordinator;
 import io.github.mtrevisan.familylegacy.ui.components.projections.partners.PartnersPanel;
+import io.github.mtrevisan.familylegacy.ui.components.projections.partners.Side;
 import io.github.mtrevisan.familylegacy.ui.components.projections.repository.GenealogyRepository;
 import io.github.mtrevisan.familylegacy.ui.components.projections.repository.ProjectionMutator;
 import io.github.mtrevisan.familylegacy.ui.components.projections.repository.TreeChangeListener;
@@ -74,8 +75,11 @@ import java.awt.geom.Path2D;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Consumer;
 
 
@@ -107,9 +111,13 @@ public class IndividualTreeGraphPanel extends JPanel implements TreeChangeListen
 
 
 	private final FLEFModel model;
+	private final GenealogyRepository genealogyRepository;
+
 	private final TreeService treeService;
 	/** Mutator exposed to the tools through the ToolContext. */
 	private final TreeMutator treeMutator;
+	/** Per-root partner selection: rootIndividualId → chosen partnerId. */
+	private final Map<String, String> partnerSelectionMap = new HashMap<>();
 
 	/** Interaction listener installed on every created panel. */
 	private final IndividualTreeGraphListener treeListener;
@@ -132,6 +140,11 @@ public class IndividualTreeGraphPanel extends JPanel implements TreeChangeListen
 	private SiblingsPanel childrenPanel;
 
 	private Path2D cachedTreePath;
+	/** Per-individual preferred parents, recorded when the user navigates
+	 *  from a couple view to one of its children. */
+	private final Map<String, ParentCouple> preferredParentsMap = new HashMap<>();
+
+	private record ParentCouple(String fatherId, String motherId){}
 
 	private final JPanel treeCanvas = new TreeCanvas();
 	private final JPanel centeringWrapper = new JPanel(new GridBagLayout());
@@ -143,16 +156,18 @@ public class IndividualTreeGraphPanel extends JPanel implements TreeChangeListen
 
 
 	public IndividualTreeGraphPanel(final TreeLayout treeLayout, final LayoutEngine layoutEngine,
-			final GenealogyRepository sharedRepository, final FLEFModel model){
+			final GenealogyRepository genealogyRepository, final FLEFModel model){
 		this.treeLayout = treeLayout;
 		this.layoutEngine = layoutEngine;
-		this.model = model;
 
-		treeService = new TreeService(sharedRepository, model);
+		this.model = model;
+		this.genealogyRepository = genealogyRepository;
+
+		treeService = new TreeService(genealogyRepository, model);
 		treeMutator = new TreeMutator(treeService, this, model);
 		final IndividualDialogProvider dialogProvider = new IndividualDialogProvider(model);
 		final RelationshipOperationCoordinator operationCoordinator = new RelationshipOperationCoordinator(model,
-			treeMutator, sharedRepository.getRelationshipAllowedTypes());
+			treeMutator, genealogyRepository.getRelationshipAllowedTypes());
 
 		selectionController = new TreeSelectionController(
 			this::notifySelection,
@@ -246,9 +261,25 @@ public class IndividualTreeGraphPanel extends JPanel implements TreeChangeListen
 	}
 
 	public void load(final String rootIndividualId, final int maxAncestors){
-		// NOTE: this should be commented, otherwise paste of individual does not trigger a reload
-//		if(Objects.equals(currentRootIndividualId, rootIndividualId))
+		if(!Objects.equals(currentRootIndividualId, rootIndividualId)){
+			// NOTE: clear the current couple when multiple
+//			partnerSelectionMap.remove(rootIndividualId);
+
+			// NOTE: this should be commented, otherwise paste of individual does not trigger a reload
 //			return;
+		}
+
+		// Capture the currently displayed couple BEFORE the rebuild. At this
+		// point rootNode still refers to the old tree, so if the new root is
+		// one of its children we can remember the couple the user was looking
+		// at and restore it above the new root.
+		if(rootIndividualId != null && !Objects.equals(currentRootIndividualId, rootIndividualId)
+				&& rootNode != null && rootNode.getFather() != null && rootNode.getMother() != null){
+			final String fatherId = rootNode.getFather().getIndividualId();
+			final String motherId = rootNode.getMother().getIndividualId();
+			if(fatherId != null && motherId != null && isChildOf(rootIndividualId, fatherId, motherId))
+				preferredParentsMap.put(rootIndividualId, new ParentCouple(fatherId, motherId));
+		}
 
 		currentRootIndividualId = rootIndividualId;
 		currentMaxAncestors = maxAncestors;
@@ -298,7 +329,31 @@ public class IndividualTreeGraphPanel extends JPanel implements TreeChangeListen
 		if(selectedId == null)
 			return;
 
+		// If the new root is a child of the currently displayed couple, carry
+		// that couple over, so the ancestors above the new root match what the
+		// user was just looking at.
+		if(rootNode != null && rootNode.getFather() != null && rootNode.getMother() != null){
+			final String fatherId = rootNode.getFather().getIndividualId();
+			final String motherId = rootNode.getMother().getIndividualId();
+			if(fatherId != null && motherId != null && isChildOf(selectedId, fatherId, motherId))
+				preferredParentsMap.put(selectedId, new ParentCouple(fatherId, motherId));
+		}
+
 		onTreeStructureChanged(selectedId);
+	}
+
+	private boolean isChildOf(final String childId, final String fatherId, final String motherId){
+		final List<FLEFRecord> parents = genealogyRepository.getParents(childId);
+		boolean hasFather = false;
+		boolean hasMother = false;
+		for(final FLEFRecord parent : parents){
+			final String id = parent.getId();
+			if(fatherId.equals(id))
+				hasFather = true;
+			else if(motherId.equals(id))
+				hasMother = true;
+		}
+		return hasFather && hasMother;
 	}
 
 	@Override
@@ -356,8 +411,14 @@ public class IndividualTreeGraphPanel extends JPanel implements TreeChangeListen
 			return;
 		}
 
-		final TreeNode rootIndividualNode = treeService.buildTree(currentRootIndividualId, showPartner,
-			currentMaxAncestors);
+		final String preferredPartnerId = partnerSelectionMap.get(currentRootIndividualId);
+		final ParentCouple preferredParents = preferredParentsMap.get(currentRootIndividualId);
+		final TreeNode rootIndividualNode = treeService.buildTree(
+			currentRootIndividualId,
+			preferredPartnerId,
+			(preferredParents != null? preferredParents.fatherId(): null),
+			(preferredParents != null? preferredParents.motherId(): null),
+			showPartner, currentMaxAncestors);
 
 		centeringWrapper.setVisible(false);
 
@@ -370,7 +431,9 @@ public class IndividualTreeGraphPanel extends JPanel implements TreeChangeListen
 			if(rootIndividualNode != null && showPartner){
 				final IndividualData partnerData = rootIndividualNode.getPartnerData();
 				final String partnerId = (partnerData != null? partnerData.getId(): null);
-				final TreeNode partnerNode = treeService.buildTree(partnerId, showPartner, currentMaxAncestors);
+				final TreeNode partnerNode = (partnerId != null
+					? treeService.buildTree(partnerId, null, false, currentMaxAncestors)
+					: null);
 				final SexType sex = rootIndividualNode.getIndividualData().getSex();
 
 				rootNode = new TreeNode(rootIndividualNode.getBiologicalChildrenData());
@@ -424,7 +487,7 @@ public class IndividualTreeGraphPanel extends JPanel implements TreeChangeListen
 	private void buildLayout(){
 		final EntityPopupMenuFactory<IndividualPanel, IndividualListener> popupFactory = new EntityTreePopupMenuFactory();
 		childrenPanel = layoutEngine.buildLayout(treeCanvas, rootNode, showPartner, currentMaxAncestors, model,
-			nodeToPanelMap, treeListener, popupFactory, treeLayout);
+			genealogyRepository, nodeToPanelMap, treeListener, popupFactory, treeLayout, this::handlePartnerCycle);
 	}
 
 	private void notifySelection(final String id){
@@ -491,6 +554,33 @@ public class IndividualTreeGraphPanel extends JPanel implements TreeChangeListen
 			cachedTreePath = layoutEngine.buildTreePath(treeLayout, rootNode, nodeToPanelMap, childrenPanel, treeCanvas);
 			treeCanvas.repaint();
 		});
+	}
+
+	/**
+	 * Invoked when the user cycles a partner in one of the panels. Only the
+	 * root individual's partner cycles the whole tree: ancestors keep their
+	 * biological pairing, so changing their partner would have no structural
+	 * meaning.
+	 */
+	private void handlePartnerCycle(final TreeNode anchorNode, final Side side, final IndividualData newPartner){
+		if(anchorNode == null || newPartner == null)
+			return;
+
+		final String anchorId = anchorNode.getIndividualId();
+		if(anchorId == null)
+			return;
+
+		partnerSelectionMap.put(anchorId, newPartner.getId());
+
+		if(layoutEngine instanceof GraphLayoutEngine)
+//			refreshLayoutOnly();
+			refreshTree();
+		else if(currentRootIndividualId != null && currentRootIndividualId.equals(anchorId))
+			// Tree: only the root couple is cyclable (the factory enables the
+			// listener only at depth 0). Changing partner rebuilds the subtree.
+			refreshTree();
+		// Tree + non-root anchor: the listener is never attached, so this
+		// branch is unreachable; left empty on purpose.
 	}
 
 	private void openKinshipDialog(){

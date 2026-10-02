@@ -27,7 +27,10 @@ package io.github.mtrevisan.familylegacy.ui.components;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.io.model.readers.CropReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.GroupReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.ui.bindings.BindingsHelper;
+import io.github.mtrevisan.familylegacy.ui.handlers.IndividualAttributeHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import net.miginfocom.swing.MigLayout;
@@ -143,11 +146,9 @@ public class PreferredImagePanel extends JPanel{
 		if(preferredImage == null)
 			return;
 
-		uri = FLEFRecordHelper.getChildValue(preferredImage, TAG_URI);
-// TODO to be removed
-if(uri != null)
-	uri = "C:\\mauro\\heritage\\My Genealogy Projects\\Trevisan (Dorato)-Gallinaro-Masutti (Manfrin)-Zaros (Basso)" + uri;
-		loadCropRectangle(preferredImage);
+		final boolean isIndividual = IndividualAttributeHandler.TYPE.equals(record.getTag());
+		uri = (isIndividual? IndividualReader.extractPreferredImageUri(record): GroupReader.extractPreferredImageUri(record));
+		cropRect = (isIndividual? IndividualReader.extractPreferredImageCrop(record): GroupReader.extractPreferredImageCrop(record));
 
 		try{
 			cropDialog.loadData(uri, cropRect);
@@ -155,11 +156,6 @@ if(uri != null)
 		catch(final IOException ignored){}
 
 		updatePreferredImage();
-	}
-
-	private void loadCropRectangle(final FLEFRecord preferredImage){
-		final FLEFRecord crop = FLEFRecordHelper.findChild(preferredImage, TAG_CROP);
-		cropRect = CropReader.extractPreferredImageCrop(crop);
 	}
 
 	/**

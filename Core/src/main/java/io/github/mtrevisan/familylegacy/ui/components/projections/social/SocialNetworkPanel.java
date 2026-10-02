@@ -38,6 +38,7 @@ import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
@@ -501,7 +502,7 @@ public final class SocialNetworkPanel extends JPanel implements TreeChangeListen
 		final int year = c.get(Calendar.YEAR);
 		final int month = c.get(Calendar.MONTH) + 1;
 		final int day = c.get(Calendar.DAY_OF_MONTH);
-		final long jdn = CalendarType.GREGORIAN.toJdn(year, month, day);
+		final long jdn = CalendarType.GREGORIAN.parseToJdn(day + StringUtils.SPACE + month + StringUtils.SPACE + year, 0);
 		return NormalizedDate.exact(jdn, DatePrecision.DAY);
 	}
 

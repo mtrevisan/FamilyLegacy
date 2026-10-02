@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.ui.components.projections.temporal;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.CalendarType;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.NormalizedDate;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.TemporalSpan;
+import io.github.mtrevisan.familylegacy.ui.tools.events.CalendarConverterDialog;
 import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Rectangle;
@@ -372,7 +373,7 @@ public final class TemporalAxis{
 
 		int count = 0;
 		for(int year = alignedStart; year <= endYear + intervalYears && count < MAX_TICKS; year += intervalYears){
-			final long tickJdn = CalendarType.GREGORIAN.toJdn(year, 1, 1);
+			final long tickJdn = CalendarType.GREGORIAN.parseToJdn(1 + StringUtils.SPACE + 1 + StringUtils.SPACE + year, 0);
 			if(tickJdn < visibleStartJdn)
 				continue;
 			if(tickJdn > visibleEndJdn)
@@ -390,7 +391,7 @@ public final class TemporalAxis{
 		while(intervalMonths < 1_000_000 && spanDays / 30 / intervalMonths > MAX_TICKS)
 			intervalMonths *= 2;
 
-		final int[] gregorian = jdnToGregorian(visibleStartJdn);
+		final int[] gregorian = CalendarConverterDialog.jdnToGregorian(visibleStartJdn);
 		int year = gregorian[0];
 		int month = gregorian[1];
 		// Defensive: never start from an out-of-range month.
@@ -399,10 +400,10 @@ public final class TemporalAxis{
 
 		int count = 0;
 		while(count < MAX_TICKS){
-			if(month < 1 || month > 12)
+			if(month < 1)
 				break;
 
-			final long tickJdn = CalendarType.GREGORIAN.toJdn(year, month, 1);
+			final long tickJdn = CalendarType.GREGORIAN.parseToJdn(1 + StringUtils.SPACE + month + StringUtils.SPACE + year, 0);
 			if(tickJdn > visibleEndJdn)
 				break;
 			if(tickJdn >= visibleStartJdn){
@@ -438,7 +439,7 @@ public final class TemporalAxis{
 			if(j < visibleStartJdn)
 				continue;
 
-			final int[] gregorian = jdnToGregorian(j);
+			final int[] gregorian = CalendarConverterDialog.jdnToGregorian(j);
 			// Defensive: skip ticks whose reverse Gregorian conversion falls
 			// outside the valid month range.
 			if(gregorian[1] < 1 || gregorian[1] > 12)
@@ -507,24 +508,7 @@ public final class TemporalAxis{
 	 * proleptic Gregorian year of the given Julian Day Number.
 	 */
 	private static int jdnToGregorianYear(final long jdn){
-		return jdnToGregorian(jdn)[0];
-	}
-
-	/**
-	 * Reverse Gregorian conversion (Fliegel–Van Flandern), returning
-	 * {@code [year, month, day]}.
-	 */
-	private static int[] jdnToGregorian(final long jdn){
-		final long a = jdn + 32044L;
-		final long b = (4L * a + 3L) / 146097L;
-		final long c = a - (146097L * b) / 4L;
-		final long d = (4L * c + 3L) / 1461L;
-		final long e = c - (1461L * d) / 4L;
-		final long m = (5L * e + 2L) / 153L;
-		final int day = (int)(e - (153L * m + 2L) / 5L + 1L);
-		final int month = (int)(m + 3L - 12L * (m / 10L));
-		final int year = (int)(100L * b + d - 4800L + m / 10L);
-		return new int[]{year, month, day};
+		return CalendarConverterDialog.jdnToGregorian(jdn)[0];
 	}
 
 }

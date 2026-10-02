@@ -26,8 +26,16 @@ package io.github.mtrevisan.familylegacy.ui.tools.reports;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualAttributeReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
+import io.github.mtrevisan.familylegacy.ui.handlers.EventParticipationHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.RelationshipHandler;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.index.EventIndex;
 import org.apache.commons.lang3.StringUtils;
 
@@ -48,28 +56,6 @@ import java.util.function.Function;
  * places, agencies, date ranges, causes, statuses, and linked citations.</p>
  */
 final class IndividualLifeStorySection implements SectionBuilder{
-
-	private static final String TAG_TYPE = "type";
-	private static final String TAG_NAME = "name";
-	private static final String TAG_CULTURAL_NORM = "cultural_norm";
-	private static final String TAG_DESCRIPTION = "description";
-	private static final String TAG_CAUSE = "cause";
-	private static final String TAG_REASON = "reason";
-	private static final String TAG_AGENCY = "agency";
-	private static final String TAG_VALUE = "value";
-	private static final String TAG_VALID_FROM = "valid_from";
-	private static final String TAG_VALID_TO = "valid_to";
-	private static final String TAG_STATUS = "status";
-	private static final String TAG_ROLE = "role";
-	private static final String TAG_SUBJECT = "subject";
-	private static final String TAG_TARGET = "target";
-	private static final String TAG_PARTICIPANT = "participant";
-	private static final String TAG_EVENT = "event";
-	private static final String TAG_URI = "uri";
-
-	private static final String TYPE_EVENT_PARTICIPATION = "event_participation";
-	private static final String TYPE_RELATIONSHIP = "relationship";
-
 
 	private final ReportContext ctx;
 	private final Function<String, String> contextLabels;
@@ -115,10 +101,10 @@ final class IndividualLifeStorySection implements SectionBuilder{
 	/* ----- Preferred image ------------------------------------------------- */
 
 	private void writePreferredImage(final List<ReportSection> out){
-		final FLEFRecord preferred = FLEFRecordHelper.findChild(ctx.root, "preferred_image");
+		final FLEFRecord preferred = FLEFRecordHelper.findChild(ctx.root, IndividualReader.TAG_PREFERRED_IMAGE);
 		if(preferred == null)
 			return;
-		final String uri = FLEFRecordHelper.getChildValue(preferred, TAG_URI);
+		final String uri = IndividualReader.extractPreferredImageUri(ctx.root);
 		if(uri == null)
 			return;
 		final String caption = ReportFormatters.imageCaption(
@@ -144,8 +130,8 @@ final class IndividualLifeStorySection implements SectionBuilder{
 			Optional.ofNullable(IndividualReader.extractRawSex(ctx.root))
 				.orElse(ctx.labels.sections().sexUnknown())));
 
-		for(final FLEFRecord nameRec : FLEFRecordHelper.findChildren(ctx.root, TAG_NAME)){
-			final String nameType = FLEFRecordHelper.getChildValue(nameRec, TAG_TYPE);
+		for(final FLEFRecord nameRec : FLEFRecordHelper.findChildren(ctx.root, IndividualReader.TAG_NAME)){
+			final String nameType = FLEFRecordHelper.getChildValue(nameRec, NameReader.TAG_TYPE);
 			final String n = ReportFormatters.buildName(nameRec);
 			if(n.isBlank())
 				continue;
@@ -172,7 +158,7 @@ final class IndividualLifeStorySection implements SectionBuilder{
 		out.add(new ReportSection.BulletList(personal));
 
 		if(ctx.config.notes() || ctx.config.sources()){
-			for(final FLEFRecord nameRec : FLEFRecordHelper.findChildren(ctx.root, TAG_NAME)){
+			for(final FLEFRecord nameRec : FLEFRecordHelper.findChildren(ctx.root, IndividualReader.TAG_NAME)){
 				final List<ReportSection> provenance = new ArrayList<>();
 				if(ctx.config.notes())
 					provenance.addAll(ctx.citations().notes(nameRec));
@@ -180,7 +166,7 @@ final class IndividualLifeStorySection implements SectionBuilder{
 					provenance.addAll(ctx.citations().citations(nameRec));
 				if(provenance.isEmpty())
 					continue;
-				final String nameType = FLEFRecordHelper.getChildValue(nameRec, TAG_TYPE);
+				final String nameType = FLEFRecordHelper.getChildValue(nameRec, NameReader.TAG_TYPE);
 				out.add(new ReportSection.Heading(3,
 					ctx.labels.sections().name() + (nameType != null? " (" + nameType + ")": StringUtils.EMPTY)));
 				out.addAll(provenance);
@@ -211,7 +197,7 @@ final class IndividualLifeStorySection implements SectionBuilder{
 
 	private List<String> nameNormTitles(final FLEFRecord nameRec){
 		final List<String> out = new ArrayList<>();
-		for(final FLEFRecord cn : FLEFRecordHelper.findChildren(nameRec, TAG_CULTURAL_NORM)){
+		for(final FLEFRecord cn : FLEFRecordHelper.findChildren(nameRec, NameReader.TAG_CULTURAL_NORM)){
 			final String id = cn.getValue();
 			if(id == null || id.isBlank())
 				continue;
@@ -238,7 +224,7 @@ final class IndividualLifeStorySection implements SectionBuilder{
 
 	private void writeEvent(final List<ReportSection> out, final FLEFRecord evt){
 		final String type = ReportFormatters.escape(ReportFormatters.orEmpty(
-			FLEFRecordHelper.getChildValue(evt, TAG_TYPE)));
+			FLEFRecordHelper.getChildValue(evt, EventReader.TAG_TYPE)));
 		final String date = ReportFormatters.escape(ReportFormatters.orEmpty(
 			GenealogicalDateHelper.formatEventDate(evt, ctx.labels, contextLabels)));
 		out.add(new ReportSection.Heading(3,
@@ -250,27 +236,21 @@ final class IndividualLifeStorySection implements SectionBuilder{
 		if(place != null && !place.isBlank())
 			details.add("**" + ctx.labels.sections().place() + ":** " + ReportFormatters.escape(place));
 
-		final String agency = FLEFRecordHelper.getChildValue(evt, TAG_AGENCY);
+		final String agency = FLEFRecordHelper.getChildValue(evt, EventReader.TAG_AGENCY);
 		if(agency != null && !agency.isBlank())
 			details.add("**" + ctx.labels.sections().agency() + ":** " + ReportFormatters.escape(agency));
 
-		final String descr = FLEFRecordHelper.getChildValue(evt, TAG_DESCRIPTION);
+		final String descr = FLEFRecordHelper.getChildValue(evt, EventReader.TAG_DESCRIPTION);
 		if(descr != null && !descr.isBlank())
 			details.add("**" + ctx.labels.sections().description() + ":** " + ReportFormatters.escape(descr));
 
-		String cause = FLEFRecordHelper.getChildValue(evt, TAG_CAUSE + "." + TAG_REASON);
-		if(cause == null)
-			cause = FLEFRecordHelper.getChildValue(evt, TAG_CAUSE);
+		String cause = FLEFRecordHelper.getChildValue(evt, EventReader.TAG_CAUSE_REASON);
 		if(cause != null && !cause.isBlank())
 			details.add("**" + ctx.labels.sections().cause() + ":** " + ReportFormatters.escape(cause));
 
 		final String role = roleOfInEvent(ctx.root, evt);
 		if(role != null && !role.isBlank())
 			details.add("**" + ctx.labels.sections().role() + ":** " + ReportFormatters.escape(role));
-
-		final String status = FLEFRecordHelper.getChildValue(evt, TAG_STATUS);
-		if(status != null && !status.isBlank())
-			details.add("**" + ctx.labels.sections().status() + ":** " + ReportFormatters.escape(ReportFormatters.enumLabel(status)));
 
 		if(!details.isEmpty())
 			out.add(new ReportSection.BulletList(details));
@@ -322,11 +302,11 @@ final class IndividualLifeStorySection implements SectionBuilder{
 		final String evtId = event.getId();
 		if(evtId == null)
 			return null;
-		for(final FLEFRecord ep : ctx.visibleRecordsByType(TYPE_EVENT_PARTICIPATION)){
-			final String eid = FLEFRecordHelper.getChildValue(ep, TAG_EVENT);
+		for(final FLEFRecord ep : ctx.visibleRecordsByType(EventParticipationHandler.TYPE)){
+			final String eid = FLEFRecordHelper.getChildValue(ep, EventParticipationReader.TAG_EVENT);
 			if(!Objects.equals(evtId, eid))
 				continue;
-			final FLEFRecord pf = FLEFRecordHelper.findChild(ep, TAG_PARTICIPANT);
+			final FLEFRecord pf = FLEFRecordHelper.findChild(ep, EventParticipationReader.TAG_PARTICIPANT);
 			if(pf == null)
 				continue;
 			final FLEFRecord ref = pf.getTheOnlyChild();
@@ -334,7 +314,7 @@ final class IndividualLifeStorySection implements SectionBuilder{
 				continue;
 			if(!Objects.equals(individual.getId(), ref.getValue()))
 				continue;
-			return FLEFRecordHelper.getChildValue(ep, TAG_ROLE);
+			return FLEFRecordHelper.getChildValue(ep, EventParticipationReader.TAG_ROLE);
 		}
 		return null;
 	}
@@ -354,9 +334,8 @@ final class IndividualLifeStorySection implements SectionBuilder{
 	}
 
 	private void writeAttributeDetails(final List<ReportSection> out, final FLEFRecord attr){
-		final String type = FLEFRecordHelper.getChildValue(attr, TAG_TYPE);
-		final String value = FLEFRecordHelper.getChildValue(attr, TAG_VALUE);
-		final String description = FLEFRecordHelper.getChildValue(attr, TAG_DESCRIPTION);
+		final String type = FLEFRecordHelper.getChildValue(attr, IndividualAttributeReader.TAG_TYPE);
+		final String value = FLEFRecordHelper.getChildValue(attr, IndividualAttributeReader.TAG_VALUE);
 
 		final StringBuilder header = new StringBuilder();
 		if(type != null && !type.isBlank()){
@@ -365,10 +344,6 @@ final class IndividualLifeStorySection implements SectionBuilder{
 		if(value != null && !value.isBlank()){
 			if(!header.isEmpty()) header.append(": ");
 			header.append(ReportFormatters.escape(value));
-		}
-		else if(description != null && !description.isBlank()){
-			if(!header.isEmpty()) header.append(" — ");
-			header.append(ReportFormatters.escape(description));
 		}
 
 		out.add(new ReportSection.Heading(3, header.isEmpty()? "Attribute": header.toString()));
@@ -382,34 +357,19 @@ final class IndividualLifeStorySection implements SectionBuilder{
 		}
 
 		// 2. Agency / Employer / Institution
-		final String agency = FLEFRecordHelper.getChildValue(attr, TAG_AGENCY);
+		final String agency = FLEFRecordHelper.getChildValue(attr, EventReader.TAG_AGENCY);
 		if(agency != null && !agency.isBlank()){
 			details.add("**" + ctx.labels.sections().agency() + ":** " + ReportFormatters.escape(agency));
 		}
 
 		// 3. Time Span (valid_from - valid_to)
-		final String from = GenealogicalDateHelper.formatDateStructure(attr, TAG_VALID_FROM, ctx.labels, contextLabels);
-		final String to = GenealogicalDateHelper.formatDateStructure(attr, TAG_VALID_TO, ctx.labels, contextLabels);
+		final String from = GenealogicalDateHelper.formatDateStructure(attr, IndividualAttributeReader.TAG_VALID_FROM, ctx.labels, contextLabels);
+		final String to = GenealogicalDateHelper.formatDateStructure(attr, IndividualAttributeReader.TAG_VALID_TO, ctx.labels, contextLabels);
 		if(from != null && !from.isBlank()){
 			details.add("**" + ctx.labels.sections().validFrom() + ":** " + ReportFormatters.escape(from));
 		}
 		if(to != null && !to.isBlank()){
 			details.add("**" + ctx.labels.sections().validTo() + ":** " + ReportFormatters.escape(to));
-		}
-
-		// 4. Cause / Reason
-		String cause = FLEFRecordHelper.getChildValue(attr, TAG_CAUSE + "." + TAG_REASON);
-		if(cause == null){
-			cause = FLEFRecordHelper.getChildValue(attr, TAG_CAUSE);
-		}
-		if(cause != null && !cause.isBlank()){
-			details.add("**" + ctx.labels.sections().cause() + ":** " + ReportFormatters.escape(cause));
-		}
-
-		// 5. Status
-		final String status = FLEFRecordHelper.getChildValue(attr, TAG_STATUS);
-		if(status != null && !status.isBlank()){
-			details.add("**" + ctx.labels.sections().status() + ":** " + ReportFormatters.escape(ReportFormatters.enumLabel(status)));
 		}
 
 		if(!details.isEmpty()){
@@ -436,8 +396,8 @@ final class IndividualLifeStorySection implements SectionBuilder{
 		out.add(new ReportSection.Heading(2, ctx.labels.relationships()));
 
 		final List<FLEFRecord> declared = new ArrayList<>();
-		for(final FLEFRecord rel : ctx.visibleRecordsByType(TYPE_RELATIONSHIP)){
-			final String subj = rel.extractReferencedId(TAG_SUBJECT, IndividualHandler.TYPE);
+		for(final FLEFRecord rel : ctx.visibleRecordsByType(RelationshipHandler.TYPE)){
+			final String subj = rel.extractReferencedId(RelationshipReader.TAG_SUBJECT, IndividualHandler.TYPE);
 			if(Objects.equals(ctx.root.getId(), subj))
 				declared.add(rel);
 		}
@@ -460,7 +420,7 @@ final class IndividualLifeStorySection implements SectionBuilder{
 				if(group == null)
 					continue;
 				final String name = ctx.displayText(group);
-				final String role = FLEFRecordHelper.getChildValue(m, TAG_ROLE);
+				final String role = FLEFRecordHelper.getChildValue(m, RelationshipReader.TAG_ROLE);
 				items.add(ReportFormatters.escape(name)
 					+ (role != null && !role.isBlank()
 					? " — *" + ReportFormatters.escape(role) + "*": StringUtils.EMPTY));
@@ -480,27 +440,27 @@ final class IndividualLifeStorySection implements SectionBuilder{
 		final FLEFRecord ref = targetNode.getTheOnlyChild();
 		if(ref == null)
 			return null;
-		return ("group".equalsIgnoreCase(ref.getTag())? ref.getValue(): null);
+		return (GroupHandler.TYPE.equalsIgnoreCase(ref.getTag())? ref.getValue(): null);
 	}
 
 	private void writeRelationship(final List<ReportSection> out, final FLEFRecord rel){
 		final String relType = ReportFormatters.orEmpty(
-			FLEFRecordHelper.getChildValue(rel, TAG_TYPE));
-		final String role = FLEFRecordHelper.getChildValue(rel, TAG_ROLE);
-		final String status = FLEFRecordHelper.getChildValue(rel, TAG_STATUS);
+			FLEFRecordHelper.getChildValue(rel, RelationshipReader.TAG_TYPE));
+		final String role = FLEFRecordHelper.getChildValue(rel, RelationshipReader.TAG_ROLE);
+		final String status = FLEFRecordHelper.getChildValue(rel, RelationshipReader.TAG_STATUS);
 		final String from = GenealogicalDateHelper.formatDateStructure(
-			rel, TAG_VALID_FROM, ctx.labels, contextLabels);
+			rel, IndividualAttributeReader.TAG_VALID_FROM, ctx.labels, contextLabels);
 		final String to = GenealogicalDateHelper.formatDateStructure(
-			rel, TAG_VALID_TO, ctx.labels, contextLabels);
-		final String targId = rel.extractReferencedId(TAG_TARGET, IndividualHandler.TYPE);
-		final FLEFRecord target = (targId != null? ctx.model.getRecordById(targId): null);
-		final String targetLabel = (target != null? ctx.displayText(target)
-			: ReportFormatters.orEmpty(targId));
+			rel, IndividualAttributeReader.TAG_VALID_TO, ctx.labels, contextLabels);
+		final String objectId = rel.extractReferencedId(RelationshipReader.TAG_OBJECT, IndividualHandler.TYPE);
+		final FLEFRecord object = (objectId != null? ctx.model.getRecordById(objectId): null);
+		final String objectLabel = (object != null? ctx.displayText(object)
+			: ReportFormatters.orEmpty(objectId));
 
 		out.add(new ReportSection.Heading(3,
 			ReportFormatters.escape(relType)
 				+ (role != null? " / " + ReportFormatters.escape(role): StringUtils.EMPTY)
-				+ ": " + ReportFormatters.escape(targetLabel)));
+				+ ": " + ReportFormatters.escape(objectLabel)));
 
 		final List<String> meta = new ArrayList<>();
 		if(status != null)
@@ -510,8 +470,8 @@ final class IndividualLifeStorySection implements SectionBuilder{
 			meta.add("**" + ctx.labels.sections().validFrom() + ":** " + ReportFormatters.escape(from));
 		if(to != null)
 			meta.add("**" + ctx.labels.sections().validTo() + ":** " + ReportFormatters.escape(to));
-		if(ctx.isVisible(target)){
-			final String kinTerm = ctx.kinship().shortTerm(target.getId(), ctx.root.getId());
+		if(ctx.isVisible(object)){
+			final String kinTerm = ctx.kinship().shortTerm(object.getId(), ctx.root.getId());
 			if(ReportFormatters.isUsefulKinshipTerm(kinTerm))
 				meta.add("*" + ReportFormatters.escape(kinTerm) + "*");
 		}

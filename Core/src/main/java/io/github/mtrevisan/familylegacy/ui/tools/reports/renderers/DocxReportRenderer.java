@@ -217,7 +217,7 @@ public final class DocxReportRenderer implements ReportRenderer{
 
 	private static void writeMonospaceBlock(final XWPFParagraph p, final String text){
 		final String[] lines = text.split(StringUtils.LF, -1);
-		for(int i = 0; i < lines.length; i++){
+		for(int i = 0; i < lines.length; i ++){
 			final XWPFRun run = p.createRun();
 			run.setFontFamily("Consolas");
 			run.setFontSize(BODY_SIZE - 1);
@@ -257,7 +257,7 @@ public final class DocxReportRenderer implements ReportRenderer{
 
 		// Header row: bold text on a light shaded background.
 		final XWPFTableRow headerRow = table.getRow(0);
-		for(int c = 0; c < cols; c++){
+		for(int c = 0; c < cols; c ++){
 			final XWPFTableCell cell = headerRow.getCell(c);
 			cell.setColor(HEADER_BG);
 			final XWPFParagraph p = prepareCell(cell);
@@ -265,10 +265,10 @@ public final class DocxReportRenderer implements ReportRenderer{
 		}
 
 		// Body rows: rows shorter than the header are padded with empty cells.
-		for(int r = 0; r < t.rows().size(); r++){
+		for(int r = 0; r < t.rows().size(); r ++){
 			final List<String> row = t.rows().get(r);
 			final XWPFTableRow tableRow = table.getRow(r + 1);
-			for(int c = 0; c < cols; c++){
+			for(int c = 0; c < cols; c ++){
 				final String v = (c < row.size()? row.get(c): StringUtils.EMPTY);
 				final XWPFTableCell cell = tableRow.getCell(c);
 				final XWPFParagraph p = prepareCell(cell);
@@ -446,14 +446,14 @@ public final class DocxReportRenderer implements ReportRenderer{
 		boolean extraItalic = false;
 		boolean isCode = false;
 
-		for(int i = 0; i < text.length(); i++){
+		for(int i = 0; i < text.length(); i ++){
 			final char c = text.charAt(i);
 
 			if(c == '*' && i + 1 < text.length() && text.charAt(i + 1) == '*' && !isCode){
 				flushRun(p, buf, baseBold || extraBold, baseItalic || extraItalic,
 					isCode, baseSize, baseColor);
 				extraBold = !extraBold;
-				i++;
+				i ++;
 			}
 			else if(c == '*' && !isCode){
 				flushRun(p, buf, baseBold || extraBold, baseItalic || extraItalic,

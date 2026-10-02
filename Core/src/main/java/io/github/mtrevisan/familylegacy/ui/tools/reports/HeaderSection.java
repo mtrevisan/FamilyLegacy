@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.ui.tools.reports;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.readers.HeaderReader;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,19 +49,6 @@ import java.util.List;
  * record contains at least one displayable field.</p>
  */
 final class HeaderSection implements SectionBuilder{
-
-	private static final String TAG_PROTOCOL = "protocol";
-	private static final String TAG_NAME = "name";
-	private static final String TAG_VERSION = "version";
-	private static final String TAG_ORGANIZATION = "organization";
-	private static final String TAG_SOURCE = "source";
-	private static final String TAG_DATE = "date";
-	private static final String TAG_COPYRIGHT = "copyright";
-	private static final String TAG_SUBMITTER = "submitter";
-	private static final String TAG_CONTACT = "contact";
-	private static final String TAG_NOTE = "note";
-	private static final String TAG_SCOPE = "scope";
-
 
 	private final ReportContext ctx;
 
@@ -97,10 +85,8 @@ final class HeaderSection implements SectionBuilder{
 	/* ----- Protocol -------------------------------------------------------- */
 
 	private void appendProtocol(final List<ReportSection> out, final FLEFRecord header){
-		final String name = FLEFRecordHelper.getChildValue(header,
-			TAG_PROTOCOL + "." + TAG_NAME);
-		final String version = FLEFRecordHelper.getChildValue(header,
-			TAG_PROTOCOL + "." + TAG_VERSION);
+		final String name = FLEFRecordHelper.getChildValue(header, HeaderReader.TAG_PROTOCOL_NAME);
+		final String version = FLEFRecordHelper.getChildValue(header, HeaderReader.TAG_PROTOCOL_VERSION);
 		if(name == null && version == null)
 			return;
 
@@ -115,12 +101,9 @@ final class HeaderSection implements SectionBuilder{
 	/* ----- Source ---------------------------------------------------------- */
 
 	private void appendSource(final List<ReportSection> out, final FLEFRecord header){
-		final String name = FLEFRecordHelper.getChildValue(header,
-			TAG_SOURCE + "." + TAG_NAME);
-		final String version = FLEFRecordHelper.getChildValue(header,
-			TAG_SOURCE + "." + TAG_VERSION);
-		final String organization = FLEFRecordHelper.getChildValue(header,
-			TAG_SOURCE + "." + TAG_ORGANIZATION);
+		final String name = FLEFRecordHelper.getChildValue(header, HeaderReader.TAG_SOURCE_NAME);
+		final String version = FLEFRecordHelper.getChildValue(header, HeaderReader.TAG_SOURCE_VERSION);
+		final String organization = FLEFRecordHelper.getChildValue(header, HeaderReader.TAG_SOURCE_ORGANIZATION);
 		if(name == null && version == null && organization == null)
 			return;
 
@@ -136,8 +119,8 @@ final class HeaderSection implements SectionBuilder{
 	/* ----- Date / copyright ------------------------------------------------ */
 
 	private void appendAdministrative(final List<ReportSection> out, final FLEFRecord header){
-		final String date = FLEFRecordHelper.getChildValue(header, TAG_DATE);
-		final String copyright = FLEFRecordHelper.getChildValue(header, TAG_COPYRIGHT);
+		final String date = FLEFRecordHelper.getChildValue(header, HeaderReader.TAG_DATE);
+		final String copyright = FLEFRecordHelper.getChildValue(header, HeaderReader.TAG_COPYRIGHT);
 		if(date == null && copyright == null)
 			return;
 
@@ -152,17 +135,13 @@ final class HeaderSection implements SectionBuilder{
 	/* ----- Submitter ------------------------------------------------------- */
 
 	private void appendSubmitter(final List<ReportSection> out, final FLEFRecord header){
-		final FLEFRecord submitter = FLEFRecordHelper.findChild(header, TAG_SUBMITTER);
-		if(submitter == null)
-			return;
-
 		final List<String> rows = new ArrayList<>();
-		for(final FLEFRecord contact : FLEFRecordHelper.findChildren(submitter, TAG_CONTACT)){
+		for(final FLEFRecord contact : FLEFRecordHelper.findChildren(header, HeaderReader.TAG_SUBMITTER_CONTACT)){
 			final String rendered = ReportFormatters.renderContact(contact);
 			if(rendered != null)
 				rows.add(rendered);
 		}
-		final String note = FLEFRecordHelper.getChildValue(submitter, TAG_NOTE);
+		final String note = FLEFRecordHelper.getChildValue(header, HeaderReader.TAG_SUBMITTER_NOTE);
 		if(note != null && !note.isBlank())
 			rows.add("**" + ctx.labels.sections().headerSubmitterNote() + ":** "
 				+ ReportFormatters.escape(note));
@@ -178,7 +157,7 @@ final class HeaderSection implements SectionBuilder{
 	/* ----- Scope ----------------------------------------------------------- */
 
 	private void appendScope(final List<ReportSection> out, final FLEFRecord header){
-		final String scope = FLEFRecordHelper.getChildValue(header, TAG_SCOPE);
+		final String scope = FLEFRecordHelper.getChildValue(header, HeaderReader.TAG_SCOPE);
 		if(scope == null || scope.isBlank())
 			return;
 		out.add(new ReportSection.Paragraph(

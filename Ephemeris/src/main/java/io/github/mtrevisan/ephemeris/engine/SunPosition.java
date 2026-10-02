@@ -26,7 +26,6 @@ package io.github.mtrevisan.ephemeris.engine;
 
 import io.github.mtrevisan.ephemeris.engine.coordinates.Converter;
 import io.github.mtrevisan.ephemeris.engine.coordinates.EclipticCoordinates;
-import io.github.mtrevisan.ephemeris.engine.coordinates.EquatorialCoordinates;
 import io.github.mtrevisan.ephemeris.helpers.JulianDate;
 import io.github.mtrevisan.ephemeris.helpers.MathHelper;
 import io.github.mtrevisan.ephemeris.readers.ResourceReader;
@@ -49,10 +48,10 @@ public final class SunPosition{
 
 	// Standard Moon-Earth mass ratio factor
 	private static final double MU = 0.0123000383;
-	public static final double MU_FACTOR = MU / (1 + MU);
+	private static final double MU_FACTOR = MU / (1 + MU);
 
 	// [km]
-	public static final double ASTRONOMICAL_UNIT = 149_597_870.691;
+	private static final double ASTRONOMICAL_UNIT = 149_597_870.691;
 
 	private static final int ARGUMENTS = 17;
 	//ll(i) = phase + rate * T [rad], T = TDB Julian millennia from J2000.0 (VSOP2013 README)
@@ -68,38 +67,11 @@ public final class SunPosition{
 		84334.6615717837, 83286.9142477147
 	};
 
-	private static final double[] OBLIQUITY_COEFFS = {
-		84381.448, -4680.93, -1.55, 1999.25, -51.38, -249.67, -39.05, 7.12, 27.87, 5.79, 2.45
-	};
-
 	private static final double ABERRATION_CONSTANT = 20.495_51;
 
 
 	private SunPosition(){}
 
-
-	// FIXME
-	/**
-	 * Calculate the Sun equatorial position.
-	 *
-	 * @param jme Julian Ephemeris Millennium of Terrestrial Time from J2000.0.
-	 * @param deltaPsi Nutation in longitude [rad].
-	 * @param trueEclipticObliquity Obliquity of the ecliptic, corrected for nutation [rad].
-	 * @return The equatorial position of the Sun with respect to Earth.
-	 */
-	public static EquatorialCoordinates sunEquatorialPosition(final double jme, final double deltaPsi,
-			final double trueEclipticObliquity){
-		final EclipticCoordinates sunGeocentricPosition = sunGeocentricPosition(jme);
-		final double aberrationCorrection = aberrationCorrection(sunGeocentricPosition.getDistance());
-		final double apparentSunLongitude = sunGeocentricPosition.getLongitude() + deltaPsi + aberrationCorrection;
-
-		final double rightAscension = geocentricSunRightAscension(sunGeocentricPosition.getLatitude(),
-			trueEclipticObliquity, apparentSunLongitude);
-		final double declination = geocentricSunDeclination(sunGeocentricPosition.getLatitude(), trueEclipticObliquity,
-			apparentSunLongitude);
-
-		return EquatorialCoordinates.create(rightAscension, declination);
-	}
 
 	/**
 	 * Calculate the Earth heliocentric position.
@@ -109,23 +81,6 @@ public final class SunPosition{
 	 */
 	public static EclipticCoordinates embTrueHeliocentricPosition(final double jme){
 		return earthMoonBarycenterHeliocentricPosition(jme);
-	}
-
-	// FIXME
-	/**
-	 * Calculate the Sun geocentric position.
-	 *
-	 * @param jme Julian Ephemeris Millennium of Terrestrial Time from J2000.0.
-	 * @return The Sun geocentric position.
-	 */
-	public static EclipticCoordinates sunGeocentricPosition(final double jme){
-		final EclipticCoordinates earthHeliocentricPosition = embTrueHeliocentricPosition(jme);
-		final double sunGeocentricLatitude = -earthHeliocentricPosition.getLatitude();
-		final double sunGeocentricLongitude = MathHelper.mod2pi(earthHeliocentricPosition.getLongitude()
-			+ StrictMath.PI);
-
-		return EclipticCoordinates.create(sunGeocentricLatitude, sunGeocentricLongitude,
-			earthHeliocentricPosition.getDistance());
 	}
 
 	/**
@@ -203,20 +158,6 @@ public final class SunPosition{
 		return StrictMath.toRadians(-ABERRATION_CONSTANT / (JulianDate.SECONDS_PER_HOUR * earthRadiusVector));
 	}
 
-	// FIXME
-	private static double geocentricSunRightAscension(final double beta, final double epsilon, final double lambda){
-		return MathHelper.mod2pi(
-			StrictMath.atan2(StrictMath.sin(lambda) * StrictMath.cos(epsilon)
-				- StrictMath.tan(beta) * StrictMath.sin(epsilon), StrictMath.cos(lambda))
-		);
-	}
-
-	// FIXME
-	private static double geocentricSunDeclination(final double beta, final double epsilon, final double lambda){
-		return StrictMath.asin(StrictMath.sin(beta) * StrictMath.cos(epsilon)
-			+ StrictMath.cos(beta) * StrictMath.sin(epsilon) * StrictMath.sin(lambda));
-	}
-
 	/**
 	 * Heliocentric ecliptic coordinates of the Earth-Moon barycenter referred to the inertial mean ecliptic and dynamical equinox J2000.0.
 	 *
@@ -284,31 +225,6 @@ public final class SunPosition{
 			total += sum * StrictMath.pow(jme, series.timePower);
 		}
 		return total;
-	}
-
-	// FIXME
-	/**
-	 * Calculate the mean obliquity of the ecliptic, ε0.
-	 *
-	 * @param jce Julian Century of Terrestrial Time from J2000.0.
-	 * @return Mean obliquity of the ecliptic [rad].
-	 */
-	public static double meanEclipticObliquity(final double jce){
-		return StrictMath.toRadians(
-			MathHelper.polynomial(jce / 100., OBLIQUITY_COEFFS) / JulianDate.SECONDS_PER_HOUR
-		);
-	}
-
-	// FIXME
-	/**
-	 * Calculate the true obliquity of the ecliptic corrected for nutation, ε.
-	 *
-	 * @param meanEclipticObliquity Mean obliquity of the ecliptic [rad].
-	 * @param obliquityNutation Corrections of nutation in obliquity (∆ε) [rad].
-	 * @return True obliquity of the ecliptic [rad].
-	 */
-	public static double trueEclipticObliquity(final double meanEclipticObliquity, final double obliquityNutation){
-		return meanEclipticObliquity + obliquityNutation;
 	}
 
 }

@@ -27,8 +27,12 @@ package io.github.mtrevisan.familylegacy.ui.tools.statistics;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventParticipationHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
@@ -67,19 +71,6 @@ public final class StatisticsCalculator{
 	}
 
 
-	private static final String TAG_NAME = "name";
-	private static final String TAG_PART = "part";
-	private static final String TAG_TYPE = "type";
-	private static final String TAG_VALUE = "value";
-	private static final String TAG_SOURCE = "source";
-	private static final String TAG_SUBJECT = "subject";
-	private static final String TAG_EVENT = "event";
-	private static final String TAG_PARTICIPANT = "participant";
-	private static final String TAG_INDIVIDUAL = IndividualHandler.TYPE;
-
-	private static final String EVENT_BIRTH = "birth";
-	private static final String EVENT_DEATH = "death";
-
 	private static final int TOP_SURNAMES = 20;
 	private static final int TOP_GIVEN_NAMES = 20;
 	private static final int TOP_SOURCES = 10;
@@ -110,7 +101,7 @@ public final class StatisticsCalculator{
 		final List<FLEFRecord> events = model.getRecordsByType(EventHandler.TYPE);
 		for(final FLEFRecord e : events){
 			final String id = e.getId();
-			final String t = FLEFRecordHelper.getChildValue(e, TAG_TYPE);
+			final String t = FLEFRecordHelper.getChildValue(e, EventReader.TAG_TYPE);
 			if(id != null && t != null)
 				eventTypeById.put(id, t.toLowerCase(Locale.ROOT));
 		}
@@ -124,13 +115,13 @@ public final class StatisticsCalculator{
 			final String indId = extractParticipantId(eventParticipation);
 			if(indId == null)
 				continue;
-			final String eventId = FLEFRecordHelper.getChildValue(eventParticipation, TAG_EVENT);
+			final String eventId = FLEFRecordHelper.getChildValue(eventParticipation, EventParticipationReader.TAG_EVENT);
 			if(eventId == null)
 				continue;
 			final String type = eventTypeById.get(eventId);
-			if(EVENT_BIRTH.equals(type))
+			if(EventReader.ENUM_TYPE_BIRTH.equals(type))
 				hasBirth.add(indId);
-			else if(EVENT_DEATH.equals(type))
+			else if(EventReader.ENUM_TYPE_DEATH.equals(type))
 				hasDeath.add(indId);
 		}
 
@@ -196,10 +187,10 @@ public final class StatisticsCalculator{
 		int male = 0, female = 0, unknownSex = 0;
 
 		for(final FLEFRecord ind : individuals){
-			for(final FLEFRecord nameBlock : FLEFRecordHelper.findChildren(ind, TAG_NAME))
-				for(final FLEFRecord part : FLEFRecordHelper.findChildren(nameBlock, TAG_PART)){
-					final String type = FLEFRecordHelper.getChildValue(part, TAG_TYPE);
-					final String value = FLEFRecordHelper.getChildValue(part, TAG_VALUE);
+			for(final FLEFRecord nameBlock : FLEFRecordHelper.findChildren(ind, IndividualReader.TAG_NAME))
+				for(final FLEFRecord part : FLEFRecordHelper.findChildren(nameBlock, NameReader.TAG_PART)){
+					final String type = FLEFRecordHelper.getChildValue(part, NameReader.TAG_PART_TYPE);
+					final String value = FLEFRecordHelper.getChildValue(part, NameReader.TAG_PART_VALUE);
 					if(value == null || value.isBlank())
 						continue;
 					final String key = value.toLowerCase(Locale.ROOT)
@@ -216,7 +207,7 @@ public final class StatisticsCalculator{
 			else if(IndividualReader.isSexFemale(sex))
 				female ++;
 			else
-				unknownSex++;
+				unknownSex ++;
 		}
 
 		final List<Statistics.NameGroup> allSurnames = NameClusterer.cluster(surnameCounts);
@@ -248,17 +239,17 @@ public final class StatisticsCalculator{
 			if(tag == null)
 				continue;
 			final int[] counts = byTag.computeIfAbsent(tag, k -> new int[2]);
-			counts[0]++;
+			counts[0] ++;
 			boolean cited = false;
 			for(final FLEFRecord child : record.getChildren())
-				if(TAG_SOURCE.equalsIgnoreCase(child.getTag())){
+				if(SourceHandler.TYPE.equalsIgnoreCase(child.getTag())){
 					cited = true;
 					final String sid = extractSourceId(child);
 					if(sid != null)
 						sourceUseCount.merge(sid, 1, Integer::sum);
 				}
 			if(cited)
-				counts[1]++;
+				counts[1] ++;
 		}
 
 		final List<Statistics.TypeCoverage> coverageByType = new ArrayList<>(byTag.size());
@@ -269,7 +260,7 @@ public final class StatisticsCalculator{
 		final List<Map.Entry<String, Integer>> sortedSources = new ArrayList<>(sourceUseCount.entrySet());
 		sortedSources.sort((a, b) -> Integer.compare(b.getValue(), a.getValue()));
 		final List<Statistics.SourceUse> topSources = new ArrayList<>();
-		for(int i = 0; i < Math.min(TOP_SOURCES, sortedSources.size()); i++){
+		for(int i = 0; i < Math.min(TOP_SOURCES, sortedSources.size()); i ++){
 			final Map.Entry<String, Integer> e = sortedSources.get(i);
 			final FLEFRecord source = model.getRecordById(e.getKey());
 			final String displayName = (source != null
@@ -305,27 +296,27 @@ public final class StatisticsCalculator{
 
 	private static boolean hasDirectSource(final FLEFRecord record){
 		for(final FLEFRecord child : record.getChildren())
-			if(TAG_SOURCE.equalsIgnoreCase(child.getTag()))
+			if(SourceHandler.TYPE.equalsIgnoreCase(child.getTag()))
 				return true;
 		return false;
 	}
 
 	private static String extractParticipantId(final FLEFRecord participation){
-		final FLEFRecord block = FLEFRecordHelper.findChild(participation, TAG_PARTICIPANT);
+		final FLEFRecord block = FLEFRecordHelper.findChild(participation, EventParticipationReader.TAG_PARTICIPANT);
 		if(block == null)
 			return null;
 		final FLEFRecord oneof = block.getTheOnlyChild();
-		if(oneof == null || !TAG_INDIVIDUAL.equalsIgnoreCase(oneof.getTag()))
+		if(oneof == null || !IndividualHandler.TYPE.equalsIgnoreCase(oneof.getTag()))
 			return null;
 		final FLEFRecord ref = oneof.getTheOnlyChild();
 		return (ref != null? ref.getValue(): oneof.getValue());
 	}
 
 	private static String extractSourceId(final FLEFRecord sourceChild){
-		final String direct = FLEFRecordHelper.getChildValue(sourceChild, TAG_SOURCE);
+		final String direct = FLEFRecordHelper.getChildValue(sourceChild, SourceCitationReader.TAG_SOURCE);
 		if(direct != null)
 			return direct;
-		final FLEFRecord inner = FLEFRecordHelper.findChild(sourceChild, TAG_SOURCE);
+		final FLEFRecord inner = FLEFRecordHelper.findChild(sourceChild, SourceCitationReader.TAG_SOURCE);
 		if(inner != null)
 			return (inner.getTheOnlyChild() != null
 				? inner.getTheOnlyChild()

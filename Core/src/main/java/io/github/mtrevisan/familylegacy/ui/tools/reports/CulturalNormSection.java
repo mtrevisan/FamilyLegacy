@@ -26,6 +26,8 @@ package io.github.mtrevisan.familylegacy.ui.tools.reports;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.readers.CulturalNormReader;
+import io.github.mtrevisan.familylegacy.ui.handlers.CulturalNormHandler;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -47,14 +49,6 @@ import java.util.function.Function;
  * enabled and at least one norm is reachable.</p>
  */
 final class CulturalNormSection implements SectionBuilder{
-
-	private static final String TAG_CULTURAL_NORM = "cultural_norm";
-	private static final String TAG_TITLE = "title";
-	private static final String TAG_RULE_TYPE = "rule_type";
-	private static final String TAG_TYPE = "type";
-	private static final String TAG_VALID_FROM = "valid_from";
-	private static final String TAG_VALID_TO = "valid_to";
-
 
 	private final ReportContext ctx;
 	private final Function<String, String> contextLabels;
@@ -123,7 +117,7 @@ final class CulturalNormSection implements SectionBuilder{
 	 */
 	private static void collectIdsFrom(final FLEFRecord rec, final Set<String> out){
 		for(final FLEFRecord child : rec.getChildren()){
-			if(TAG_CULTURAL_NORM.equalsIgnoreCase(child.getTag())){
+			if(CulturalNormHandler.TYPE.equalsIgnoreCase(child.getTag())){
 				final String id = child.getValue();
 				if(id != null && !id.isBlank())
 					out.add(id);
@@ -144,12 +138,12 @@ final class CulturalNormSection implements SectionBuilder{
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().culturalNormRuleType(),
 			ruleTypeOf(norm));
 
-		final String from = GenealogicalDateHelper.formatDateStructure(norm, TAG_VALID_FROM, ctx.labels, contextLabels);
+		final String from = GenealogicalDateHelper.formatDateStructure(norm, CulturalNormReader.TAG_VALID_FROM, ctx.labels, contextLabels);
 		if(from != null)
 			rows.add("**" + ctx.labels.sections().culturalNormValidFrom() + ":** "
 				+ ReportFormatters.escape(from));
 
-		final String to = GenealogicalDateHelper.formatDateStructure(norm, TAG_VALID_TO, ctx.labels, contextLabels);
+		final String to = GenealogicalDateHelper.formatDateStructure(norm, CulturalNormReader.TAG_VALID_TO, ctx.labels, contextLabels);
 		if(to != null)
 			rows.add("**" + ctx.labels.sections().culturalNormValidTo() + ":** "
 				+ ReportFormatters.escape(to));
@@ -173,7 +167,7 @@ final class CulturalNormSection implements SectionBuilder{
 
 
 	private String titleOf(final FLEFRecord norm){
-		final String title = FLEFRecordHelper.getChildValue(norm, TAG_TITLE);
+		final String title = FLEFRecordHelper.getChildValue(norm, CulturalNormReader.TAG_TITLE);
 		if(title != null && !title.isBlank())
 			return ReportFormatters.escape(title.trim());
 
@@ -186,9 +180,7 @@ final class CulturalNormSection implements SectionBuilder{
 	}
 
 	private String ruleTypeOf(final FLEFRecord norm){
-		String v = FLEFRecordHelper.getChildValue(norm, TAG_RULE_TYPE);
-		if(v == null || v.isBlank())
-			v = FLEFRecordHelper.getChildValue(norm, TAG_TYPE);
+		String v = FLEFRecordHelper.getChildValue(norm, CulturalNormReader.TAG_TYPE);
 		if(v == null || v.isBlank())
 			return null;
 		return v.replace('_', ' ');

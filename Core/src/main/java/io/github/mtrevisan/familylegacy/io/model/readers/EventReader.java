@@ -1,3 +1,27 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
 package io.github.mtrevisan.familylegacy.io.model.readers;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
@@ -56,8 +80,16 @@ public final class EventReader{
 	public static final String TAG_PRIVACY = "privacy";
 	public static final String TAG_AUDIT = "audit";
 
-	private static final String ENUM_TYPE_BIRTH = "birth";
-	private static final String ENUM_TYPE_DEATH = "death";
+	public static final String ENUM_TYPE_BIRTH = "birth";
+	public static final String ENUM_TYPE_DEATH = "death";
+	public static final String ENUM_TYPE_CREMATION = "cremation";
+	public static final String ENUM_TYPE_BURIAL = "burial";
+	public static final String ENUM_TYPE_DIVORCE_FILED = "divorce_filed";
+	public static final String ENUM_TYPE_DIVORCE_DECREE = "divorce_decree";
+	public static final String ENUM_TYPE_DIVORCE = "divorce";
+	public static final String ENUM_TYPE_ANNULMENT = "annulment";
+	public static final String ENUM_TYPE_EMIGRATION = "emigration";
+	public static final String ENUM_TYPE_IMMIGRATION = "immigration";
 	/**
 	 * Event types declared by the protocol, in a stable order.
 	 * <p>
@@ -67,12 +99,12 @@ public final class EventReader{
 	 */
 	public static final String[] TYPES = new String[]{
 		// Life
-		ENUM_TYPE_BIRTH, "adoption", ENUM_TYPE_DEATH, "cremation", "burial",
+		ENUM_TYPE_BIRTH, "adoption", ENUM_TYPE_DEATH, ENUM_TYPE_CREMATION, ENUM_TYPE_BURIAL,
 		"coroner_report", "illness", "hospitalization", "medical_procedure",
 		// Family
 		"engagement", "marriage_bann", "marriage_contract", "marriage_license",
-		"marriage_settlement", "marriage", "divorce_filed", "divorce_decree",
-		"divorce", "annulment",
+		"marriage_settlement", "marriage", ENUM_TYPE_DIVORCE_FILED, ENUM_TYPE_DIVORCE_DECREE,
+		ENUM_TYPE_DIVORCE, ENUM_TYPE_ANNULMENT,
 		// Achievements
 		"education", "graduation", "retirement",
 		"military_induction", "military_muster_roll", "military_service",
@@ -80,10 +112,20 @@ public final class EventReader{
 		"military_resignation", "military_retirement",
 		"prison", "pardon", "jury_duty", "honor", "bankruptcy",
 		// National / government
-		"immigration", "naturalization", "emigration", "deportation",
+		ENUM_TYPE_EMIGRATION, ENUM_TYPE_IMMIGRATION, "naturalization", "deportation",
 		"internment", "liberation", "emancipation", "relocation", "census",
 		// Possessions and titles
 		"deed", "escrow", "chancery", "will", "probate", "guardianship"
+	};
+
+	public static final String[] DIVORCE_TYPES = {
+		ENUM_TYPE_DIVORCE_FILED, ENUM_TYPE_DIVORCE_DECREE, ENUM_TYPE_DIVORCE, ENUM_TYPE_ANNULMENT
+	};
+
+	/** Core life cycle events. */
+	public static final String[] CORE_LIFE_EVENTS = {
+		ENUM_TYPE_BIRTH, ENUM_TYPE_DEATH, ENUM_TYPE_CREMATION, ENUM_TYPE_BURIAL,
+		ENUM_TYPE_EMIGRATION, ENUM_TYPE_IMMIGRATION
 	};
 
 

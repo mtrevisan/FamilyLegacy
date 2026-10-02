@@ -26,8 +26,12 @@ package io.github.mtrevisan.familylegacy.ui.tools.reports;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.readers.AuditReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.DateReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EvidenceQualifiersReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.NoteReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PrivacyReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -50,20 +54,10 @@ final class CitationRenderer{
 	 * ====================================================================== */
 
 	private static final String TAG_SOURCE = "source";
-	private static final String TAG_EXTRACT = "extract";
-	private static final String TAG_TEXT = "text";
-	private static final String TAG_TYPE = "type";
-	private static final String TAG_LOCALE = "locale";
-	private static final String TAG_MIME = "mime";
-	private static final String TAG_LOCATOR = "locator";
 	private static final String TAG_NOTE = "note";
 	private static final String TAG_EVIDENCE = "evidence";
 
 	private static final String TAG_AUDIT = "audit";
-	private static final String TAG_CREATION = "creation";
-	private static final String TAG_UPDATE = "update";
-	private static final String TAG_DATE = "date";
-	private static final String TAG_COMMENT = "comment";
 
 	private static final String TAG_PRIVACY = "privacy";
 
@@ -126,8 +120,8 @@ final class CitationRenderer{
 	 * string when neither field is present.
 	 */
 	private String noteMetadataSuffix(final FLEFRecord note){
-		final String mime = FLEFRecordHelper.getChildValue(note, TAG_MIME);
-		final String locale = FLEFRecordHelper.getChildValue(note, TAG_LOCALE);
+		final String mime = FLEFRecordHelper.getChildValue(note, NoteReader.TAG_MIME);
+		final String locale = FLEFRecordHelper.getChildValue(note, NoteReader.TAG_LOCALE);
 		final List<String> tags = new ArrayList<>(2);
 		if(mime != null && !mime.isBlank()) tags.add(mime.trim());
 		if(locale != null && !locale.isBlank()) tags.add(locale.trim());
@@ -167,20 +161,20 @@ final class CitationRenderer{
 			final StringBuilder sb = new StringBuilder("• ")
 				.append(ReportFormatters.escape(ctx.sourceTitle(sid)));
 
-			final String locator = FLEFRecordHelper.getChildValue(c, TAG_LOCATOR);
+			final String locator = FLEFRecordHelper.getChildValue(c, SourceCitationReader.TAG_LOCATOR);
 			if(locator != null)
 				sb.append(" — *").append(ReportFormatters.escape(locator)).append('*');
 
 			final String extractText = FLEFRecordHelper.getChildValue(c,
-				TAG_EXTRACT + "." + TAG_TEXT);
+				SourceCitationReader.TAG_EXTRACT + "." + SourceCitationReader.TAG_TEXT);
 			if(extractText != null){
 				sb.append(" — *").append(ctx.labels.sections().extractText()).append(":* \"")
 					.append(ReportFormatters.escape(extractText)).append('"');
 
 				final String extractType = FLEFRecordHelper.getChildValue(c,
-					TAG_EXTRACT + "." + TAG_TYPE);
+					SourceCitationReader.TAG_EXTRACT + "." + SourceCitationReader.TAG_TYPE);
 				final String extractLocale = FLEFRecordHelper.getChildValue(c,
-					TAG_EXTRACT + "." + TAG_LOCALE);
+					SourceCitationReader.TAG_EXTRACT + "." + SourceCitationReader.TAG_LOCALE);
 				final List<String> quals = new ArrayList<>();
 				if(extractType != null && !extractType.isBlank())
 					quals.add(ReportFormatters.orEmpty(
@@ -249,8 +243,8 @@ final class CitationRenderer{
 		if(dateField == null)
 			return;
 
-		final List<FLEFRecord> cites = ctx.visibleChildren(dateField, TAG_SOURCE);
-		final boolean hasEvidence = FLEFRecordHelper.findChild(dateField, TAG_EVIDENCE) != null;
+		final List<FLEFRecord> cites = ctx.visibleChildren(dateField, DateReader.TAG_SOURCE);
+		final boolean hasEvidence = FLEFRecordHelper.findChild(dateField, DateReader.TAG_EVIDENCE) != null;
 		if(cites.isEmpty() && !hasEvidence)
 			return;
 
@@ -263,7 +257,7 @@ final class CitationRenderer{
 				continue;
 			if(!ctx.isVisible(ctx.model.getRecordById(sid)))
 				continue;
-			final String locator = FLEFRecordHelper.getChildValue(c, TAG_LOCATOR);
+			final String locator = FLEFRecordHelper.getChildValue(c, SourceCitationReader.TAG_LOCATOR);
 			final StringBuilder sb = new StringBuilder(ctx.sourceTitle(sid));
 			if(locator != null)
 				sb.append(" — *").append(ReportFormatters.escape(locator)).append('*');
@@ -351,11 +345,11 @@ final class CitationRenderer{
 
 		final List<String> rows = new ArrayList<>();
 
-		final FLEFRecord creation = FLEFRecordHelper.findChild(auditNode, TAG_CREATION);
+		final FLEFRecord creation = FLEFRecordHelper.findChild(auditNode, AuditReader.TAG_CREATION);
 		if(creation != null)
 			appendAuditRow(rows, ctx.labels.sections().auditCreated(), creation);
 
-		for(final FLEFRecord update : FLEFRecordHelper.findChildren(auditNode, TAG_UPDATE))
+		for(final FLEFRecord update : FLEFRecordHelper.findChildren(auditNode, AuditReader.TAG_UPDATE))
 			appendAuditRow(rows, ctx.labels.sections().auditUpdated(), update);
 
 		if(rows.isEmpty())
@@ -365,13 +359,13 @@ final class CitationRenderer{
 
 	private void appendAuditRow(final List<String> rows, final String label,
 		final FLEFRecord entry){
-		final String date = FLEFRecordHelper.getChildValue(entry, TAG_DATE);
+		final String date = FLEFRecordHelper.getChildValue(entry, AuditReader.TAG_DATE);
 		if(date == null || date.isBlank())
 			return;
 
 		final StringBuilder sb = new StringBuilder("**").append(label).append(":** ")
 			.append(ReportFormatters.escape(date.trim()));
-		final String comment = FLEFRecordHelper.getChildValue(entry, TAG_COMMENT);
+		final String comment = FLEFRecordHelper.getChildValue(entry, AuditReader.TAG_COMMENT);
 		if(comment != null && !comment.isBlank())
 			sb.append(" — ").append(ReportFormatters.escape(comment.trim()));
 		rows.add(sb.toString());

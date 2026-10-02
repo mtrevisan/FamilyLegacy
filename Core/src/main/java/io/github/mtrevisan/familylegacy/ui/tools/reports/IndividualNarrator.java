@@ -27,11 +27,16 @@ package io.github.mtrevisan.familylegacy.ui.tools.reports;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualAttributeReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.NoteReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateService;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventParticipationHandler;
+import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.index.KinshipResolver;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.index.RelationIndex;
 import org.apache.commons.lang3.StringUtils;
@@ -66,87 +71,6 @@ import java.util.Objects;
  */
 final class IndividualNarrator{
 
-	/* ======================================================================
-	 *                          Tags
-	 * ====================================================================== */
-
-	private static final String TAG_TYPE = "type";
-	private static final String TAG_VALUE = "value";
-	private static final String TAG_NAME = "name";
-	private static final String TAG_PART = "part";
-	private static final String TAG_CAUSE = "cause";
-	private static final String TAG_REASON = "reason";
-	private static final String TAG_DESCRIPTION = "description";
-	private static final String TAG_NOTE = "note";
-	private static final String TAG_TEXT = "text";
-	private static final String TAG_VALID_FROM = "valid_from";
-	private static final String TAG_VALID_TO = "valid_to";
-	private static final String TAG_STATUS = "status";
-
-	/* ======================================================================
-	 *                          Attribute / event type names
-	 * ====================================================================== */
-
-	private static final String TYPE_BIRTH = "birth";
-	private static final String TYPE_BAPTISM = "baptism";
-	private static final String TYPE_DEATH = "death";
-	private static final String TYPE_BURIAL = "burial";
-	private static final String TYPE_CREMATION = "cremation";
-	private static final String TYPE_EMIGRATION = "emigration";
-	private static final String TYPE_IMMIGRATION = "immigration";
-	private static final String TYPE_DIVORCE = "divorce";
-	private static final String TYPE_DIVORCE_DECREE = "divorce_decree";
-	private static final String TYPE_DIVORCE_FILED = "divorce_filed";
-	private static final String TYPE_ANNULMENT = "annulment";
-
-	private static final String TYPE_OCCUPATION = "occupation";
-	private static final String TYPE_RESIDENCE = "residence";
-	private static final String TYPE_CHARACTERISTIC = "characteristic";
-	private static final String TYPE_TITLE = "title";
-	private static final String TYPE_MILITARY_RANK = "military_rank";
-	private static final String TYPE_EDUCATION = "education";
-	private static final String TYPE_RELIGION = "religion";
-	private static final String TYPE_ETHNICITY = "ethnicity";
-	private static final String TYPE_CITIZENSHIP = "citizenship";
-	private static final String TYPE_NATIONALITY = "nationality";
-	private static final String TYPE_SOCIAL_CLASS = "social_class";
-	private static final String TYPE_CASTE = "caste";
-	private static final String TYPE_LITERACY = "literacy";
-	private static final String TYPE_LANGUAGE = "language";
-
-	private static final String[] MARRIAGE_TYPES = {
-		"marriage", "civil_spouse", "religious_spouse",
-		"customary_spouse", "cohabiting_partner", "engaged_partner"
-	};
-
-	private static final String[] DIVORCE_TYPES = {
-		TYPE_DIVORCE, TYPE_DIVORCE_DECREE, TYPE_DIVORCE_FILED, TYPE_ANNULMENT
-	};
-
-	/** Core life cycle events skipped when processing custom described events. */
-	private static final String[] CORE_LIFE_EVENTS = {
-		TYPE_BIRTH, TYPE_BAPTISM, TYPE_DEATH, TYPE_BURIAL, TYPE_CREMATION,
-		TYPE_EMIGRATION, TYPE_IMMIGRATION
-	};
-
-	/** Scalar attributes described with a generic attribute sentence. */
-	private static final String[][] SCALAR_ATTRS = {
-		{TYPE_MILITARY_RANK, "military rank"},
-		{TYPE_EDUCATION, "education"},
-		{TYPE_RELIGION, "religion"},
-		{TYPE_ETHNICITY, "ethnicity"},
-		{TYPE_CITIZENSHIP, "citizenship"},
-		{TYPE_NATIONALITY, "nationality"},
-		{TYPE_SOCIAL_CLASS, "social class"},
-		{TYPE_CASTE, "caste"},
-		{TYPE_LITERACY, "literacy"},
-		{TYPE_LANGUAGE, "language"}
-	};
-
-	/** Relationship type marking the current person as a step-parent. */
-	private static final String REL_STEP_CHILD = "step_child";
-
-
 	private final FLEFModel model;
 	private final RelationIndex idx;
 	private final ReportLabels labels;
@@ -170,20 +94,19 @@ final class IndividualNarrator{
 		final List<FLEFRecord> events = idx.eventsOf(person);
 		final List<FLEFRecord> attrs = idx.attributesOf(person);
 
-		final FLEFRecord birth = findEvent(events, TYPE_BIRTH);
-		final FLEFRecord baptism = findEvent(events, TYPE_BAPTISM);
-		final FLEFRecord death = findEvent(events, TYPE_DEATH);
-		final FLEFRecord burial = findEvent(events, TYPE_BURIAL);
-		final FLEFRecord cremation = findEvent(events, TYPE_CREMATION);
-		final FLEFRecord emigration = findEvent(events, TYPE_EMIGRATION);
-		final FLEFRecord immigration = findEvent(events, TYPE_IMMIGRATION);
+		final FLEFRecord birth = findEvent(events, EventReader.ENUM_TYPE_BIRTH);
+		final FLEFRecord death = findEvent(events, EventReader.ENUM_TYPE_DEATH);
+		final FLEFRecord burial = findEvent(events, EventReader.ENUM_TYPE_BURIAL);
+		final FLEFRecord cremation = findEvent(events, EventReader.ENUM_TYPE_CREMATION);
+		final FLEFRecord emigration = findEvent(events, EventReader.ENUM_TYPE_EMIGRATION);
+		final FLEFRecord immigration = findEvent(events, EventReader.ENUM_TYPE_IMMIGRATION);
 
-		final List<FLEFRecord> marriages = findEvents(events, MARRIAGE_TYPES);
-		final List<FLEFRecord> divorces = findEvents(events, DIVORCE_TYPES);
-		final List<FLEFRecord> occupations = findAttrs(attrs, TYPE_OCCUPATION);
-		final List<FLEFRecord> titles = findAttrs(attrs, TYPE_TITLE);
-		final List<FLEFRecord> residences = findAttrs(attrs, TYPE_RESIDENCE);
-		final List<FLEFRecord> characteristics = findAttrs(attrs, TYPE_CHARACTERISTIC);
+		final List<FLEFRecord> marriages = findEvents(events, RelationshipReader.PARTNER_TYPES.toArray(String[]::new));
+		final List<FLEFRecord> divorces = findEvents(events, EventReader.DIVORCE_TYPES);
+		final List<FLEFRecord> characteristics = findAttrs(attrs, IndividualAttributeReader.ENUM_TYPE_CHARACTERISTIC);
+		final List<FLEFRecord> residences = findAttrs(attrs, IndividualAttributeReader.ENUM_TYPE_RESIDENCE);
+		final List<FLEFRecord> occupations = findAttrs(attrs, IndividualAttributeReader.ENUM_TYPE_OCCUPATION);
+		final List<FLEFRecord> titles = findAttrs(attrs, IndividualAttributeReader.ENUM_TYPE_TITLE);
 
 		final String name = displayName(person);
 		final List<String> sentences = new ArrayList<>();
@@ -200,21 +123,14 @@ final class IndividualNarrator{
 		else
 			sentences.add(labels.narrativeBirthUnknown(name));
 
-		// 1b. Baptism
-		if(baptism != null){
-			final String d = orNull(DateService.getDateDisplayText(baptism));
-			final String p = orNull(FLEFRecordHelper.extractPlace(baptism, model));
-			sentences.add(labels.narrativeBaptism(name, d, p));
-		}
-
 		// 2. Titles and Physical characteristics
 		for(final FLEFRecord t : titles){
-			final String v = FLEFRecordHelper.getChildValue(t, TAG_VALUE);
+			final String v = FLEFRecordHelper.getChildValue(t, IndividualAttributeReader.TAG_VALUE);
 			if(v != null && !v.isBlank())
 				sentences.add(labels.narrativeTitle(name, v.trim()));
 		}
 		for(final FLEFRecord c : characteristics){
-			final String v = FLEFRecordHelper.getChildValue(c, TAG_VALUE);
+			final String v = FLEFRecordHelper.getChildValue(c, IndividualAttributeReader.TAG_VALUE);
 			if(v != null && !v.isBlank())
 				sentences.add(labels.narrativeCharacteristic(name, v.trim()));
 		}
@@ -228,9 +144,9 @@ final class IndividualNarrator{
 			sentences.add(labels.narrativeMarriage(name, spouseName, d, p));
 
 			// Check status tag on relationship or marriage record
-			final String status = FLEFRecordHelper.getChildValue(m, TAG_STATUS);
+			final String status = FLEFRecordHelper.getChildValue(m, RelationshipReader.TAG_STATUS);
 			if("ended".equalsIgnoreCase(status) || "divorced".equalsIgnoreCase(status) || "annulled".equalsIgnoreCase(status)){
-				final String validTo = extractValidDate(m, TAG_VALID_TO);
+				final String validTo = extractValidDate(m, RelationshipReader.TAG_VALID_TO);
 				sentences.add(labels.narrativeDivorce(name, spouseName, validTo));
 			}
 		}
@@ -248,17 +164,17 @@ final class IndividualNarrator{
 
 		// 5. Occupations
 		for(final FLEFRecord occ : occupations){
-			final String v = FLEFRecordHelper.getChildValue(occ, TAG_VALUE);
+			final String v = FLEFRecordHelper.getChildValue(occ, IndividualAttributeReader.TAG_VALUE);
 			if(v != null && !v.isBlank())
 				sentences.add(labels.narrativeOccupation(name, v.trim()));
 		}
 
 		// 6. Scalar attributes (Military, Education, Religion, Ethnicity, etc.)
-		for(final String[] pair : SCALAR_ATTRS){
-			for(final FLEFRecord a : findAttrs(attrs, pair[0])){
-				final String v = FLEFRecordHelper.getChildValue(a, TAG_VALUE);
+		for(final String type : IndividualAttributeReader.TYPES){
+			for(final FLEFRecord a : findAttrs(attrs, type)){
+				final String v = FLEFRecordHelper.getChildValue(a, IndividualAttributeReader.TAG_VALUE);
 				if(v != null && !v.isBlank())
-					sentences.add(labels.narrativeAttribute(name, pair[1], v.trim()));
+				sentences.add(labels.narrativeAttribute(name, I18N.t("enum.individual.attribute.type." + (StringUtils.isNotEmpty(type)? type: "none")), v.trim()));
 			}
 		}
 
@@ -287,9 +203,7 @@ final class IndividualNarrator{
 		if(death != null){
 			final String d = orNull(DateService.getDateDisplayText(death));
 			final String p = orNull(FLEFRecordHelper.extractPlace(death, model));
-			String cause = FLEFRecordHelper.getChildValue(death, TAG_CAUSE + "." + TAG_REASON);
-			if(cause == null)
-				cause = FLEFRecordHelper.getChildValue(death, TAG_CAUSE);
+			String cause = FLEFRecordHelper.getChildValue(death, EventReader.TAG_CAUSE_REASON);
 			sentences.add(labels.narrativeDeath(name, d, p, orNull(cause)));
 		}
 
@@ -311,7 +225,7 @@ final class IndividualNarrator{
 	 * Appends sentences describing secondary/variant names for the individual.
 	 */
 	private void addNameVariants(final List<String> sentences, final FLEFRecord person){
-		for(final FLEFRecord nameRec : FLEFRecordHelper.findChildren(person, TAG_NAME)){
+		for(final FLEFRecord nameRec : FLEFRecordHelper.findChildren(person, IndividualReader.TAG_NAME)){
 			for(final FLEFRecord variant : FLEFRecordHelper.findChildren(nameRec, "variant")){
 				final String v = ReportFormatters.renderNameVariant(variant);
 				if(v != null && !v.isBlank())
@@ -332,11 +246,11 @@ final class IndividualNarrator{
 	 */
 	private void addDescribedEvents(final List<String> sentences, final List<FLEFRecord> events, final String name){
 		for(final FLEFRecord e : events){
-			final String type = FLEFRecordHelper.getChildValue(e, TAG_TYPE);
+			final String type = FLEFRecordHelper.getChildValue(e, EventReader.TAG_TYPE);
 			if(isCoreLifeEvent(type))
 				continue;
 
-			final String desc = FLEFRecordHelper.getChildValue(e, TAG_DESCRIPTION);
+			final String desc = FLEFRecordHelper.getChildValue(e, EventReader.TAG_DESCRIPTION);
 			if(desc != null && !desc.isBlank()){
 				final String d = orNull(DateService.getDateDisplayText(e));
 				final String p = orNull(FLEFRecordHelper.extractPlace(e, model));
@@ -363,13 +277,13 @@ final class IndividualNarrator{
 	private boolean isCoreLifeEvent(final String type){
 		if(type == null)
 			return false;
-		for(final String core : CORE_LIFE_EVENTS)
+		for(final String core : EventReader.CORE_LIFE_EVENTS)
 			if(core.equalsIgnoreCase(type))
 				return true;
-		for(final String m : MARRIAGE_TYPES)
+		for(final String m : RelationshipReader.PARTNER_TYPES)
 			if(m.equalsIgnoreCase(type))
 				return true;
-		for(final String div : DIVORCE_TYPES)
+		for(final String div : EventReader.DIVORCE_TYPES)
 			if(div.equalsIgnoreCase(type))
 				return true;
 		return false;
@@ -379,8 +293,8 @@ final class IndividualNarrator{
 	 * Extracts free-text notes or anecdotes attached directly to the individual.
 	 */
 	private void addIndividualNotes(final List<String> sentences, final FLEFRecord person){
-		for(final FLEFRecord noteRec : FLEFRecordHelper.findChildren(person, TAG_NOTE)){
-			final String text = FLEFRecordHelper.getChildValue(noteRec, TAG_TEXT);
+		for(final FLEFRecord noteRec : FLEFRecordHelper.findChildren(person, IndividualReader.TAG_NOTE)){
+			final String text = FLEFRecordHelper.getChildValue(noteRec, NoteReader.TAG_TEXT);
 			if(text != null && !text.isBlank()){
 				sentences.add(text.trim());
 			}
@@ -409,7 +323,7 @@ final class IndividualNarrator{
 		final Map<ChildGroupKey, List<FLEFRecord>> groups = new LinkedHashMap<>();
 		for(final FLEFRecord child : children){
 			final String relType = relationshipTypeFrom(person, child);
-			final boolean isStep = REL_STEP_CHILD.equalsIgnoreCase(relType);
+			final boolean isStep = RelationshipReader.isTypeStepChild(relType);
 			final FLEFRecord otherParent = (isStep? null: otherParentOf(child, person));
 			final ChildGroupKey key = new ChildGroupKey(
 				(otherParent != null? otherParent.getId(): null), relType);
@@ -490,8 +404,8 @@ final class IndividualNarrator{
 		boolean first = true;
 		for(final FLEFRecord r : byPlace.values()){
 			final String place = resolvePlace(r);
-			final String from = extractValidDate(r, TAG_VALID_FROM);
-			final String to = extractValidDate(r, TAG_VALID_TO);
+			final String from = extractValidDate(r, IndividualAttributeReader.TAG_VALID_FROM);
+			final String to = extractValidDate(r, IndividualAttributeReader.TAG_VALID_TO);
 			if(first){
 				sentences.add(labels.narrativeResidence(name, place, from, to));
 				first = false;
@@ -502,7 +416,7 @@ final class IndividualNarrator{
 	}
 
 	private int residenceStartYear(final FLEFRecord attr){
-		final String from = extractValidDate(attr, TAG_VALID_FROM);
+		final String from = extractValidDate(attr, IndividualAttributeReader.TAG_VALID_FROM);
 		if(from == null)
 			return Integer.MAX_VALUE;
 		try{
@@ -564,7 +478,7 @@ final class IndividualNarrator{
 
 	private FLEFRecord findEvent(final List<FLEFRecord> events, final String type){
 		for(final FLEFRecord e : events){
-			final String t = FLEFRecordHelper.getChildValue(e, TAG_TYPE);
+			final String t = FLEFRecordHelper.getChildValue(e, EventReader.TAG_TYPE);
 			if(type.equalsIgnoreCase(t))
 				return e;
 		}
@@ -574,7 +488,7 @@ final class IndividualNarrator{
 	private List<FLEFRecord> findEvents(final List<FLEFRecord> events, final String... types){
 		final List<FLEFRecord> out = new ArrayList<>();
 		for(final FLEFRecord e : events){
-			final String t = FLEFRecordHelper.getChildValue(e, TAG_TYPE);
+			final String t = FLEFRecordHelper.getChildValue(e, EventReader.TAG_TYPE);
 			if(t == null)
 				continue;
 			for(final String type : types)
@@ -589,7 +503,7 @@ final class IndividualNarrator{
 	private List<FLEFRecord> findAttrs(final List<FLEFRecord> attrs, final String type){
 		final List<FLEFRecord> out = new ArrayList<>();
 		for(final FLEFRecord a : attrs){
-			final String t = FLEFRecordHelper.getChildValue(a, TAG_TYPE);
+			final String t = FLEFRecordHelper.getChildValue(a, IndividualAttributeReader.TAG_TYPE);
 			if(type.equalsIgnoreCase(t))
 				out.add(a);
 		}
@@ -642,13 +556,13 @@ final class IndividualNarrator{
 	}
 
 	private String displayName(final FLEFRecord rec){
-		for(final FLEFRecord nameRec : FLEFRecordHelper.findChildren(rec, TAG_NAME)){
+		for(final FLEFRecord nameRec : FLEFRecordHelper.findChildren(rec, IndividualReader.TAG_NAME)){
 			final StringBuilder sb = new StringBuilder();
 			for(final FLEFRecord child : nameRec.getChildren()){
-				if(!TAG_PART.equalsIgnoreCase(child.getTag()))
+				if(!NameReader.TAG_PART.equalsIgnoreCase(child.getTag()))
 					continue;
 
-				final String v = FLEFRecordHelper.getChildValue(child, TAG_VALUE);
+				final String v = FLEFRecordHelper.getChildValue(child, NameReader.TAG_VALUE);
 				if(v != null && !v.isBlank()){
 					if(!sb.isEmpty())
 						sb.append(' ');

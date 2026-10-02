@@ -82,7 +82,7 @@ import java.util.Map;
  *               | 'require' fieldRef 'member_of' fieldRef
  *               | 'require' fieldRef ('!=' | '==' | '>' | '>=' | '<' | '<=') fieldRef
  * type         := atomicType ('|' atomicType)*
- * atomicType   := ('Xref' | 'XrefOrVoid') '&lt;' IDENT '&gt;'
+ * atomicType   := 'Xref' '&lt;' IDENT '&gt;'
  *               | 'struct' structBody
  *               | 'enum' '{' identList '}' ('|' IDENT)?
  *               | IDENT
@@ -131,7 +131,6 @@ public final class FLEFGrammarParser{
 	private static final String TAG_IN = "in";
 	private static final String TAG_MEMBER_OF = "member_of";
 	private static final String TAG_XREF = "Xref";
-	private static final String TAG_XREF_OR_VOID = TAG_XREF + "OrVoid";
 
 	private static final String FIELD_HEADER = "header";
 	private static final String FIELD_RECORDS = "records";
@@ -735,7 +734,7 @@ public final class FLEFGrammarParser{
 				(tokens.isEmpty()? 0: tokens.getLast().line()));
 
 		switch(token){
-			case TAG_XREF, TAG_XREF_OR_VOID -> {
+			case TAG_XREF -> {
 				return parseReferenceType();
 			}
 			case TAG_STRUCT -> {
@@ -760,7 +759,7 @@ public final class FLEFGrammarParser{
 
 	private TypeDefinition parseReferenceType(){
 		final String keyword = next();
-		final boolean voidable = TAG_XREF_OR_VOID.equals(keyword);
+		final boolean voidable = false;
 		expect(TAG_OPEN_ANGLE_BRACKET);
 		final String targetTypeName = next();
 		expect(TAG_CLOSE_ANGLE_BRACKET);

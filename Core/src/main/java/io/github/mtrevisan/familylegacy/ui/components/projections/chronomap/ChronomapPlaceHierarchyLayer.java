@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.ui.components.projections.chronomap;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceRelationshipReader;
 import io.github.mtrevisan.familylegacy.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.PlaceRelationshipHandler;
 import org.apache.commons.lang3.StringUtils;
@@ -65,10 +66,6 @@ public final class ChronomapPlaceHierarchyLayer implements ChronomapLayer{
 	private static final Color NODE_BORDER = new Color(60, 40, 20, 220);
 	private static final float[] DASH = {6f, 4f};
 	private static final int NODE_RADIUS = 3;
-
-	private static final String TAG_TYPE = "type";
-	private static final String TAG_SUBJECT = "subject";
-	private static final String TAG_TARGET = "target";
 
 
 	private final FLEFModel model;
@@ -158,8 +155,8 @@ public final class ChronomapPlaceHierarchyLayer implements ChronomapLayer{
 
 		final List<FLEFRecord> placeRelationships = model.getRecordsByType(PlaceRelationshipHandler.TYPE);
 		for(final FLEFRecord placeRelationship : placeRelationships){
-			final String subjectId = extractPlaceRef(placeRelationship, TAG_SUBJECT);
-			final String objectId = extractPlaceRef(placeRelationship, TAG_TARGET);
+			final String subjectId = extractPlaceRef(placeRelationship, PlaceRelationshipReader.TAG_SUBJECT);
+			final String objectId = extractPlaceRef(placeRelationship, PlaceRelationshipReader.TAG_OBJECT);
 			if(subjectId == null || objectId == null)
 				continue;
 
@@ -171,10 +168,10 @@ public final class ChronomapPlaceHierarchyLayer implements ChronomapLayer{
 			// Skip degenerate edges: same coordinates, likely the result
 			// of an inherited parent position.
 			if(s.coordinate().latitude() == t.coordinate().latitude()
-				&& s.coordinate().longitude() == t.coordinate().longitude())
+					&& s.coordinate().longitude() == t.coordinate().longitude())
 				continue;
 
-			final String type = FLEFRecordHelper.getChildValue(placeRelationship, TAG_TYPE);
+			final String type = FLEFRecordHelper.getChildValue(placeRelationship, PlaceRelationshipReader.TAG_TYPE);
 			result.add(new Edge(s.coordinate(), t.coordinate(), (type != null? type: StringUtils.EMPTY)));
 		}
 		return result;

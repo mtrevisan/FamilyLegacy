@@ -156,7 +156,7 @@ public class BoundComboBox<E> extends JComboBox<E> implements PathBound{
 		if(i18nPrefix == null)
 			return prettify(code);
 
-		if(code.isEmpty())
+		if(StringUtils.isEmpty(code))
 			return I18N.t(FLEFRecordHelper.composePath(i18nPrefix, NONE), "\u2014");
 
 		return I18N.t(FLEFRecordHelper.composePath(i18nPrefix, code), prettify(code));

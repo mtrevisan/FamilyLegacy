@@ -74,7 +74,7 @@ public final class ReportGenerator{
 		final int total = builders.size();
 		final List<ReportSection> out = new ArrayList<>();
 
-		for(int i = 0; i < total; i++){
+		for(int i = 0; i < total; i ++){
 			if(Thread.currentThread().isInterrupted())
 				throw new RuntimeException("Report generation cancelled");
 

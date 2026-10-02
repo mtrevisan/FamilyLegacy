@@ -74,7 +74,7 @@ final class RelationsSection implements SectionBuilder{
 
 		int counter = 0;
 		for(final FLEFRecord ind : ctx.index.reachable(ctx.root)){
-			counter++;
+			counter ++;
 			out.addAll(directEntry(counter, ind));
 		}
 		return out;

@@ -33,7 +33,7 @@ import java.util.List;
 
 
 /**
- * {@code Xref&lt;Target&gt;} or {@code XrefOrVoid&lt;Target&gt;}.
+ * {@code Xref&lt;Target&gt;}.
  */
 public final class ReferenceType extends TypeDefinition{
 
@@ -76,7 +76,7 @@ public final class ReferenceType extends TypeDefinition{
 
 	@Override
 	public String toString(){
-		return (voidable? "XrefOrVoid<": "Xref<") + targetTypeName + ">";
+		return "Xref<" + targetTypeName + ">";
 	}
 
 }

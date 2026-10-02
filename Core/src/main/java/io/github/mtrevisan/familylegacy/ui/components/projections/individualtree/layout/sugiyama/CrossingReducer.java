@@ -38,7 +38,7 @@ public class CrossingReducer{
 
 	private static final int ITERATIONS = 8;
 
-	// Alpha parameter controls order preservation weight (0.0 = pure barycenter, ~0.2-0.3 = strong order preservation)
+	// Alpha parameter controls order preservation weight (0 = pure barycenter, ~0.2-0.3 = strong order preservation)
 	private static final double ORDER_PRESERVATION_ALPHA = 0.25;
 
 

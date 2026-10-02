@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.ui.components.projections.siblings;
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.ui.components.projections.BoxPanelType;
 import io.github.mtrevisan.familylegacy.ui.components.projections.TreeIcons;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.EntityPopupMenuFactory;
@@ -189,16 +190,26 @@ public class SiblingsPanel extends JPanel{
 		}
 	}
 
+	/**
+	 * Returns whether the child at position {@code idx} is a biological
+	 * child of the couple that owns this panel.
+	 * <p>
+	 * The relationship type is read from {@link SiblingsData} (per-couple),
+	 * not from {@link IndividualData} (per-individual flyweight), because the
+	 * same individual can be a biological child in one couple and an adopted
+	 * child in another.
+	 */
 	private boolean isBiologicalChild(final int idx){
 		if(data == null)
 			return true;
 
 		final List<IndividualData> siblings = data.getSiblings();
-		if(idx < siblings.size()){
-			final IndividualData child = siblings.get(idx);
-			return child.isBiological();
-		}
-		return false;
+		if(idx >= siblings.size())
+			return false;
+
+		final IndividualData child = siblings.get(idx);
+		final String relType = data.getRelationshipType(child.getId());
+		return RelationshipReader.isTypeBiologicalChild(relType);
 	}
 
 	private void pointTest(final Graphics2D g2){

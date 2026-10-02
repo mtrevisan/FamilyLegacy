@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections.chronomap;
 
+import io.github.mtrevisan.familylegacy.ui.tools.events.CalendarConverterDialog;
+
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import java.awt.BasicStroke;
@@ -337,19 +339,7 @@ public final class ChronomapTimeline extends JPanel{
 	}
 
 	private static String formatYear(final long jdn){
-		return Integer.toString(jdnToGregorian(jdn)[0]);
+		return Integer.toString(CalendarConverterDialog.jdnToGregorian(jdn)[0]);
 	}
 
-	private static int[] jdnToGregorian(final long jdn){
-		final long a = jdn + 32044L;
-		final long b = (4L * a + 3L) / 146097L;
-		final long c = a - (146097L * b) / 4L;
-		final long d = (4L * c + 3L) / 1461L;
-		final long e = c - (1461L * d) / 4L;
-		final long m = (5L * e + 2L) / 153L;
-		final int day = (int)(e - (153L * m + 2L) / 5L + 1L);
-		final int month = (int)(m + 3L - 12L * (m / 10L));
-		final int year = (int)(100L * b + d - 4800L + m / 10L);
-		return new int[]{year, month, day};
-	}
 }

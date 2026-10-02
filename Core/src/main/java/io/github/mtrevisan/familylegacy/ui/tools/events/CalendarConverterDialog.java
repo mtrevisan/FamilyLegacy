@@ -282,7 +282,7 @@ public final class CalendarConverterDialog extends JDialog{
 	}
 
 	private static String fromJdnIso(final long jdn){
-		final int[] ymd = jdnToGregorian(jdn);
+		final int[] ymd = CalendarConverterDialog.jdnToGregorian(jdn);
 		try{
 			return LocalDate.of(ymd[0], ymd[1], ymd[2]).format(ISO);
 		}
@@ -341,7 +341,7 @@ public final class CalendarConverterDialog extends JDialog{
 	}
 
 	private static String fromJdnToChrono(final long jdn, final String calendar){
-		final int[] ymd = jdnToGregorian(jdn);
+		final int[] ymd = CalendarConverterDialog.jdnToGregorian(jdn);
 		final LocalDate iso;
 		try{
 			iso = LocalDate.of(ymd[0], ymd[1], ymd[2]);
@@ -384,7 +384,11 @@ public final class CalendarConverterDialog extends JDialog{
 		return day + (153L * m + 2) / 5 + 365L * y + y / 4 - y / 100 + y / 400 - 32045L;
 	}
 
-	private static int[] jdnToGregorian(final long jdn){
+	/**
+	 * Reverse Gregorian conversion (Fliegel–Van Flandern), returning
+	 * {@code [year, month, day]}.
+	 */
+	public static int[] jdnToGregorian(final long jdn){
 		final long a = jdn + 32044;
 		final long b = (4 * a + 3) / 146097;
 		final long c = a - (146097 * b) / 4;

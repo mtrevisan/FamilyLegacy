@@ -26,6 +26,9 @@ package io.github.mtrevisan.familylegacy.ui.tools.reports;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.readers.ConclusionReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IdentityHypothesisReader;
+import io.github.mtrevisan.familylegacy.ui.handlers.ConclusionHandler;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,16 +41,6 @@ import java.util.List;
  * evaluates the hypothesis.
  */
 final class IdentityHypothesisRootSection implements SectionBuilder{
-
-	private static final String TAG_IDENTITY = "identity";
-	private static final String TAG_COMMENT = "comment";
-	private static final String TAG_RESOLVES = "resolves";
-	private static final String TAG_ISSUE = "issue";
-	private static final String TAG_PROOF = "proof_status";
-	private static final String TAG_NARRATIVE = "narrative";
-
-	private static final String TYPE_CONCLUSION = "conclusion";
-
 
 	private final ReportContext ctx;
 
@@ -81,7 +74,7 @@ final class IdentityHypothesisRootSection implements SectionBuilder{
 
 	private void writeCandidates(final List<ReportSection> out){
 		final List<String> items = new ArrayList<>();
-		for(final FLEFRecord cand : FLEFRecordHelper.findChildren(ctx.root, TAG_IDENTITY)){
+		for(final FLEFRecord cand : FLEFRecordHelper.findChildren(ctx.root, IdentityHypothesisReader.TAG_IDENTITY)){
 			final FLEFRecord ref = cand.getTheOnlyChild();
 			if(ref == null || FLEFRecord.TAG_VOID.equalsIgnoreCase(ref.getTag()))
 				continue;
@@ -97,7 +90,7 @@ final class IdentityHypothesisRootSection implements SectionBuilder{
 			"**" + ctx.labels.sections().identityCandidates() + ":** "
 				+ ReportFormatters.escape(String.join(" ↔ ", items))));
 
-		final String comment = FLEFRecordHelper.getChildValue(ctx.root, TAG_COMMENT);
+		final String comment = FLEFRecordHelper.getChildValue(ctx.root, IdentityHypothesisReader.TAG_COMMENT);
 		if(comment != null)
 			out.add(new ReportSection.Paragraph(
 				"**" + ctx.labels.sections().identityComment() + ":** "
@@ -107,8 +100,8 @@ final class IdentityHypothesisRootSection implements SectionBuilder{
 
 	private void writeConclusions(final List<ReportSection> out){
 		final List<FLEFRecord> conclusions = new ArrayList<>();
-		for(final FLEFRecord c : ctx.visibleRecordsByType(TYPE_CONCLUSION)){
-			for(final FLEFRecord t : FLEFRecordHelper.findChildren(c, TAG_RESOLVES)){
+		for(final FLEFRecord c : ctx.visibleRecordsByType(ConclusionHandler.TYPE)){
+			for(final FLEFRecord t : FLEFRecordHelper.findChildren(c, ConclusionReader.TAG_RESOLVES)){
 				final FLEFRecord ref = t.getTheOnlyChild();
 				if(ref != null && ctx.root.getId().equals(ref.getValue())){
 					conclusions.add(c);
@@ -122,13 +115,13 @@ final class IdentityHypothesisRootSection implements SectionBuilder{
 		out.add(new ReportSection.Heading(2, ctx.labels.sections().conclusions()));
 		for(final FLEFRecord c : conclusions){
 			out.add(new ReportSection.Heading(3, ReportFormatters.escape(
-				ReportFormatters.orEmpty(FLEFRecordHelper.getChildValue(c, TAG_ISSUE)))));
-			final String proof = FLEFRecordHelper.getChildValue(c, TAG_PROOF);
+				ReportFormatters.orEmpty(FLEFRecordHelper.getChildValue(c, ConclusionReader.TAG_ISSUE)))));
+			final String proof = FLEFRecordHelper.getChildValue(c, ConclusionReader.TAG_PROOF_STATUS);
 			if(proof != null)
 				out.add(new ReportSection.Paragraph(
 					"**" + ctx.labels.sections().researchProofStatus() + ":** "
 						+ ReportFormatters.escape(ReportFormatters.enumLabel(proof))));
-			final String narrative = FLEFRecordHelper.getChildValue(c, TAG_NARRATIVE);
+			final String narrative = FLEFRecordHelper.getChildValue(c, ConclusionReader.TAG_NARRATIVE);
 			if(narrative != null)
 				out.add(new ReportSection.Paragraph(ReportFormatters.escape(narrative)));
 		}

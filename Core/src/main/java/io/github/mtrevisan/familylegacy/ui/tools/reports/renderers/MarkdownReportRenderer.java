@@ -191,14 +191,14 @@ public final class MarkdownReportRenderer implements ReportRenderer{
 
 		// Separator row
 		w.write('|');
-		for(int i = 0; i < cols; i++)
+		for(int i = 0; i < cols; i ++)
 			w.write(" --- |");
 		w.newLine();
 
 		// Body rows
 		for(final List<String> row : t.rows()){
 			w.write('|');
-			for(int i = 0; i < cols; i++){
+			for(int i = 0; i < cols; i ++){
 				final String cell = (i < row.size()? row.get(i): StringUtils.EMPTY);
 				w.write(' ');
 				w.write(escapeCell(cell));

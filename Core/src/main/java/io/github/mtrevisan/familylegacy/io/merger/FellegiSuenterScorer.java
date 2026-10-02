@@ -44,7 +44,7 @@ public class FellegiSuenterScorer{
 	/**
 	 * Constructs a scorer with given field weights and a threshold.
 	 *
-	 * @param weights   field name -> weight (sum should be 1.0)
+	 * @param weights   field name -> weight (sum should be 1)
 	 * @param threshold minimum score to consider a match (0..1)
 	 */
 	public FellegiSuenterScorer(final Map<String, Double> weights, final double threshold){

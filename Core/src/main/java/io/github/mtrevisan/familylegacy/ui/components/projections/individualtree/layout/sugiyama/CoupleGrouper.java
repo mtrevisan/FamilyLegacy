@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.ui.components.projections.individualtre
 
 import io.github.mtrevisan.familylegacy.io.model.readers.SexType;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualData;
+import io.github.mtrevisan.familylegacy.ui.components.projections.repository.GenealogyRepository;
 import io.github.mtrevisan.familylegacy.ui.components.projections.repository.TreeNode;
 import org.apache.commons.lang3.StringUtils;
 
@@ -48,10 +49,10 @@ final class CoupleGrouper{
 
 	/** Groups every layer in one call. */
 	static List<List<TreeNode[]>> groupAll(final List<List<Graph.Node>> layers,
-			final Map<String, TreeNode> treeNodeById){
+			final Map<String, TreeNode> treeNodeById, final GenealogyRepository genealogyRepository){
 		final List<List<TreeNode[]>> result = new ArrayList<>(layers.size());
 		for(final List<Graph.Node> layer : layers)
-			result.add(groupLayer(layer, treeNodeById));
+			result.add(groupLayer(layer, treeNodeById, genealogyRepository));
 		return result;
 	}
 
@@ -66,7 +67,8 @@ final class CoupleGrouper{
 	 * The returned arrays are {@code {fatherTn, motherTn}}, with either
 	 * slot possibly {@code null}.
 	 */
-	static List<TreeNode[]> groupLayer(final List<Graph.Node> layerNodes, final Map<String, TreeNode> treeNodeById){
+	static List<TreeNode[]> groupLayer(final List<Graph.Node> layerNodes, final Map<String, TreeNode> treeNodeById,
+			final GenealogyRepository genealogyRepository){
 		final List<TreeNode[]> couples = new ArrayList<>();
 		if(layerNodes == null || layerNodes.isEmpty())
 			return couples;
@@ -85,7 +87,7 @@ final class CoupleGrouper{
 
 			paired.add(tn);
 
-			final TreeNode partner = findPartner(tn, treeNodesInLayer, treeNodeById, paired);
+			final TreeNode partner = findPartner(tn, treeNodesInLayer, treeNodeById, paired, genealogyRepository);
 			if(partner != null){
 				paired.add(partner);
 				couples.add(orderCouple(tn, partner));
@@ -115,16 +117,35 @@ final class CoupleGrouper{
 	 * ====================================================================== */
 
 	private static TreeNode findPartner(final TreeNode tn, final List<TreeNode> treeNodesInLayer,
-			final Map<String, TreeNode> treeNodeById, final Set<TreeNode> paired){
+			final Map<String, TreeNode> treeNodeById, final Set<TreeNode> paired,
+			final GenealogyRepository genealogyRepository){
+		// 1) Preferred: the partner data already computed by TreeService
+		//    (set only when the couple shares biological children).
 		final IndividualData partnerData = tn.getPartnerData();
-		if(partnerData == null || partnerData.getId() == null)
+		if(partnerData != null && partnerData.getId() != null){
+			final TreeNode candidate = treeNodeById.get(partnerData.getId());
+			if(candidate != null && !paired.contains(candidate) && treeNodesInLayer.contains(candidate))
+				return candidate;
+		}
+
+		// 2) Fallback: any partner relationship recorded in the model.
+		//    Covers spouses without shared biological children (step-parents,
+		//    adoptive parents, couples with no children).
+		final String tnId = tn.getIndividualId();
+		if(tnId == null || genealogyRepository == null)
 			return null;
 
-		final TreeNode candidate = treeNodeById.get(partnerData.getId());
-		if(candidate == null || paired.contains(candidate) || !treeNodesInLayer.contains(candidate))
-			return null;
+		final List<String> partnerIds = genealogyRepository.getPartnerIds(tnId);
+		for(final String partnerId : partnerIds){
+			if(partnerId == null || partnerId.equals(tnId))
+				continue;
 
-		return candidate;
+			final TreeNode candidate = treeNodeById.get(partnerId);
+			if(candidate != null && !paired.contains(candidate) && treeNodesInLayer.contains(candidate))
+				return candidate;
+		}
+
+		return null;
 	}
 
 	/**

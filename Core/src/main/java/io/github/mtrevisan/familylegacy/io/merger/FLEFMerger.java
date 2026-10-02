@@ -398,7 +398,7 @@ public class FLEFMerger{
 				MergeReport.DecisionType.KEPT_AS_IS,
 				record.getId() != null? Set.of(record.getId()): Set.of(),
 				record.getId(),
-				1.0,
+				1.,
 				Collections.emptyList(),
 				"Single model, kept as is"));
 		}

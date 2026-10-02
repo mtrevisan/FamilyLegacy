@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.ui.tools.sources;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.readers.DocumentReader;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import io.github.mtrevisan.familylegacy.ui.tools.ReportDialog;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolContext;
@@ -384,7 +385,7 @@ public final class MediaManagerDialog extends JDialog{
 			.append("</b><br><br>");
 		final String uri = SourceHelper.documentUri(selectedDocument);
 		final String desc = SourceHelper.documentDescription(selectedDocument);
-		final String mapping = SourceHelper.firstTextValue(selectedDocument, SourceHelper.TAG_MAPPING);
+		final String mapping = SourceHelper.firstTextValue(selectedDocument, DocumentReader.TAG_MAPPING);
 		if(desc != null)
 			sb.append("<b>Description:</b> ")
 				.append(escape(desc))

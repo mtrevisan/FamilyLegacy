@@ -1,4 +1,28 @@
-package io.github.mtrevisan.ephemeris;
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+package io.github.mtrevisan.familylegacy.io.model.readers.date;
 
 
 import java.util.Objects;
@@ -8,15 +32,15 @@ import java.util.Objects;
  * A utility class to parse traditional Chinese calendar date strings into pure integer representations.
  * Handles the Sexagenary Cycle (Ganzhi) years, intercalary month flags (Run), and decade day prefixes.
  */
-public final class ChineseCalendarStringParser{
+public final class ChineseCalendarParser{
 
 	// 10 Celestial Stems (Tiangan)
 	private static final String STEMS = "甲乙丙丁戊己庚辛壬癸";
 	// 12 Terrestrial Branches (Dizhi)
 	private static final String BRANCHES = "子丑寅卯辰巳午未申酉戌亥";
 
-	private ChineseCalendarStringParser(){
-	}
+
+	private ChineseCalendarParser(){}
 
 	/**
 	 * Parses a string in the format "庚申年 正月 初一" or "庚申年 闰四月 廿二" into a discrete data record.
@@ -156,12 +180,12 @@ public final class ChineseCalendarStringParser{
 		String textInput = "庚申年 正月 初一";
 
 		// 1. Pass text and set the search perspective to the 1980 macro-era
-		ChineseDateInput decodedInput = ChineseCalendarStringParser.parse(textInput, 1980);
+		ChineseDateInput decodedInput = ChineseCalendarParser.parse(textInput, 1980);
 		System.out.println(decodedInput);
 		// Console prints: Year: 1980, Month: 1 (Leap: false), Day: 1
 
 		// 2. Feed directly into your astronomical calculations
-		double exactJdUT = ChineseCalendarAstronomicalEngine.chineseDateToJulianDateUT(
+		double exactJdUT = ChineseCalendarAstronomicalEngine.toJulianDateUT(
 			decodedInput.getYear(),
 			decodedInput.getMonth(),
 			decodedInput.isLeapMonth(),

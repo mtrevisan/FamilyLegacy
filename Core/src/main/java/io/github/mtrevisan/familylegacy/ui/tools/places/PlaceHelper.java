@@ -27,7 +27,9 @@ package io.github.mtrevisan.familylegacy.ui.tools.places;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.readers.DateReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceRelationshipReader;
 import io.github.mtrevisan.familylegacy.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.PlaceRelationshipHandler;
 import org.apache.commons.lang3.StringUtils;
@@ -48,20 +50,7 @@ import java.util.Map;
  */
 public final class PlaceHelper{
 
-	public static final String TAG_TYPE = "type";
-	public static final String TAG_NAME = "name";
-	public static final String TAG_VALUE = "value";
-	public static final String TAG_SUBJECT = "subject";
-	public static final String TAG_TARGET = "target";
-	public static final String TAG_PLACE = "place";
-	public static final String TAG_MAP = "map";
-	public static final String TAG_COORDINATES = "coordinates";
-	public static final String TAG_VALID_FROM = "valid_from";
-	public static final String TAG_VALID_TO = "valid_to";
-
-
-	private PlaceHelper(){
-	}
+	private PlaceHelper(){}
 
 
 	/** Returns every {@code PlaceRecord} in the model, in insertion order. */
@@ -84,11 +73,13 @@ public final class PlaceHelper{
 		if(place == null)
 			return StringUtils.EMPTY;
 		for(final FLEFRecord child : place.getChildren()){
-			if(!TAG_NAME.equalsIgnoreCase(child.getTag()))
+			if(!PlaceReader.TAG_NAME.equalsIgnoreCase(child.getTag()))
 				continue;
-			final String value = FLEFRecordHelper.getChildValue(child, TAG_VALUE);
+
+			final String value = PlaceReader.extractPrimaryName(child);
 			if(value != null && !value.isBlank())
 				return value;
+
 			final FLEFRecord onlyChild = child.getTheOnlyChild();
 			if(onlyChild != null && onlyChild.getValue() != null && !onlyChild.getValue().isBlank())
 				return onlyChild.getValue();
@@ -98,7 +89,7 @@ public final class PlaceHelper{
 
 	/** Returns the type of a place, or {@code null} when missing. */
 	public static String placeType(final FLEFRecord place){
-		return (place != null? FLEFRecordHelper.getChildValue(place, TAG_TYPE): null);
+		return (place != null? FLEFRecordHelper.getChildValue(place, PlaceReader.TAG_TYPE): null);
 	}
 
 	/** Returns the coordinates of a place, or {@code null} when missing. */
@@ -108,7 +99,7 @@ public final class PlaceHelper{
 		final FLEFRecord map = FLEFRecordHelper.findChild(place, PlaceReader.TAG_MAP);
 		if(map == null)
 			return null;
-		return FLEFRecordHelper.getChildValue(map, TAG_COORDINATES);
+		return FLEFRecordHelper.getChildValue(map, PlaceReader.TAG_COORDINATES);
 	}
 
 	/**
@@ -122,7 +113,7 @@ public final class PlaceHelper{
 		final FLEFRecord dateStruct = FLEFRecordHelper.findChild(record, tag);
 		if(dateStruct == null)
 			return null;
-		final String value = FLEFRecordHelper.getChildValue(dateStruct, TAG_VALUE);
+		final String value = FLEFRecordHelper.getChildValue(dateStruct, DateReader.TAG_VALUE);
 		if(value != null)
 			return value;
 		final FLEFRecord onlyChild = dateStruct.getTheOnlyChild();
@@ -133,7 +124,7 @@ public final class PlaceHelper{
 	public static String endpointPlaceId(final FLEFRecord relationship, final String tag){
 		if(relationship == null)
 			return null;
-		return relationship.extractReferencedId(tag, TAG_PLACE);
+		return relationship.extractReferencedId(tag, PlaceHandler.TYPE);
 	}
 
 
@@ -155,14 +146,14 @@ public final class PlaceHelper{
 		final List<String> parentNames = new ArrayList<>();
 		final List<String> childNames = new ArrayList<>();
 		for(final FLEFRecord rel : listAllRelationships(model)){
-			final String subjectId = endpointPlaceId(rel, TAG_SUBJECT);
-			final String targetId = endpointPlaceId(rel, TAG_TARGET);
-			if(id.equals(subjectId) && targetId != null){
-				final FLEFRecord child = placesById.get(targetId);
+			final String subjectId = endpointPlaceId(rel, PlaceRelationshipReader.TAG_SUBJECT);
+			final String objectId = endpointPlaceId(rel, PlaceRelationshipReader.TAG_OBJECT);
+			if(id.equals(subjectId) && objectId != null){
+				final FLEFRecord child = placesById.get(objectId);
 				if(child != null)
 					childNames.add(displayName(child));
 			}
-			if(id.equals(targetId) && subjectId != null){
+			if(id.equals(objectId) && subjectId != null){
 				final FLEFRecord parent = placesById.get(subjectId);
 				if(parent != null)
 					parentNames.add(displayName(parent));

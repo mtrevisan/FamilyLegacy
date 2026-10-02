@@ -109,10 +109,7 @@ public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
 		final String documentId = FLEFRecordHelper.findChild(documentPart, SourceReader.TAG_DOCUMENT)
 			.getValue();
 		final FLEFRecord document = model.getRecordById(documentId);
-		String uri = FLEFRecordHelper.getChildValue(document, DocumentReader.TAG_URI);
-// TODO to be removed
-if(uri != null)
-	uri = "C:\\mauro\\heritage\\My Genealogy Projects\\Trevisan (Dorato)-Gallinaro-Masutti (Manfrin)-Zaros (Basso)" + uri;
+		final String uri = FLEFRecordHelper.getChildValue(document, DocumentReader.TAG_URI);
 
 		try{
 			cropDialog.loadData(uri, imageCropRect);
@@ -152,10 +149,7 @@ if(uri != null)
 			(record, handler) -> {
 				final FLEFRecord document = model.getRecordById(record.getId());
 				if(document != null && !listModel.contains(document)){
-					String uri = FLEFRecordHelper.getChildValue(document, DocumentReader.TAG_URI);
-// TODO to be removed
-if(uri != null)
-	uri = "C:\\mauro\\heritage\\My Genealogy Projects\\Trevisan (Dorato)-Gallinaro-Masutti (Manfrin)-Zaros (Basso)" + uri;
+					final String uri = FLEFRecordHelper.getChildValue(document, DocumentReader.TAG_URI);
 
 					try{
 						cropDialog.loadData(uri, null);

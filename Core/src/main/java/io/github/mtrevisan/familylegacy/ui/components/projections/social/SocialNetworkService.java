@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.ui.components.projections.social;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateNormalizer;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.TemporalSpan;
@@ -46,6 +47,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -88,42 +90,6 @@ import java.util.Set;
  * Event Dispatch Thread like the rest of the projection layer.
  */
 public final class SocialNetworkService{
-
-	// Tags used inside FLEF records.
-	private static final String TAG_TYPE = "type";
-	private static final String TAG_ROLE = "role";
-	private static final String TAG_SUBJECT = "subject";
-	private static final String TAG_OBJECT = "object";
-	private static final String TAG_PARTICIPANT = "participant";
-	private static final String TAG_EVENT = "event";
-	private static final String TAG_STATUS = "status";
-	private static final String TAG_VALID_FROM = "valid_from";
-	private static final String TAG_VALID_TO = "valid_to";
-	private static final String TAG_INDIVIDUAL = "individual";
-	private static final String TAG_GROUP = "group";
-
-	// Relationship types considered social.
-	private static final Set<String> SOCIAL_RELATIONSHIP_TYPES = Set.of(
-		"associate",
-		"group_member",
-		"part_of"
-	);
-
-	// Roles carried by EventParticipationRecord that express a social link.
-	private static final Set<String> RELATIONAL_EVENT_ROLES = Set.of(
-		"witness",
-		"officiant",
-		"executor",
-		"grantor",
-		"grantee",
-		"landlord",
-		"tenant",
-		"informant",
-		"power_of_attorney",
-		"accused",
-		"judge"
-	);
-
 
 	private final FLEFModel model;
 
@@ -278,15 +244,15 @@ public final class SocialNetworkService{
 
 	private SocialEdgeRef buildRelationshipEdge(final FLEFRecord relationship){
 		final String type = RelationshipReader.extractType(relationship);
-		if(type == null || !SOCIAL_RELATIONSHIP_TYPES.contains(type.toLowerCase()))
+		if(type == null || !RelationshipReader.SOCIAL_RELATIONSHIP_TYPES.contains(type.toLowerCase()))
 			return null;
 
-		final TemporalEntityRef subject = resolveParticipant(relationship, TAG_SUBJECT);
-		final TemporalEntityRef target = resolveParticipant(relationship, TAG_OBJECT);
+		final TemporalEntityRef subject = resolveParticipant(relationship, RelationshipReader.TAG_SUBJECT);
+		final TemporalEntityRef target = resolveParticipant(relationship, RelationshipReader.TAG_OBJECT);
 		if(subject == null || target == null || subject.equals(target))
 			return null;
 
-		final String role = FLEFRecordHelper.getChildValue(relationship, TAG_ROLE);
+		final String role = FLEFRecordHelper.getChildValue(relationship, RelationshipReader.TAG_ROLE);
 		final SocialRelationCategory category = classifyRelationship(type, role);
 		final SocialEdgeDirection direction = directionOf(type);
 		final TemporalSpan span = buildSpan(relationship);
@@ -295,7 +261,7 @@ public final class SocialNetworkService{
 
 	private void collectParticipationEdges(final FLEFRecord participation, final TemporalEntityRef perspective,
 		final SocialFilters filters, final List<SocialEdgeRef> output){
-		final String eventId = FLEFRecordHelper.getChildValue(participation, TAG_EVENT);
+		final String eventId = FLEFRecordHelper.getChildValue(participation, EventParticipationReader.TAG_EVENT);
 		if(eventId == null)
 			return;
 
@@ -303,7 +269,7 @@ public final class SocialNetworkService{
 		if(participants.size() < 2)
 			return;
 
-		final String currentRole = FLEFRecordHelper.getChildValue(participation, TAG_ROLE);
+		final String currentRole = FLEFRecordHelper.getChildValue(participation, EventParticipationReader.TAG_ROLE);
 		if(!isRelationalRole(currentRole))
 			return;
 
@@ -321,7 +287,7 @@ public final class SocialNetworkService{
 			if(otherEntity == null)
 				continue;
 
-			final String otherRole = FLEFRecordHelper.getChildValue(otherParticipation, TAG_ROLE);
+			final String otherRole = FLEFRecordHelper.getChildValue(otherParticipation, EventParticipationReader.TAG_ROLE);
 			final SocialRelationCategory category = SocialRoleClassifier.classify(otherRole,
 				SocialRelationCategory.RELIGIOUS);
 			final TemporalSpan span = buildSpan(participation);
@@ -362,7 +328,8 @@ public final class SocialNetworkService{
 	private static boolean isRelationalRole(final String role){
 		if(role == null || role.isBlank())
 			return false;
-		return RELATIONAL_EVENT_ROLES.contains(role.trim()
+
+		return EventParticipationReader.RELATIONAL_EVENT_ROLES.contains(role.trim()
 			.toLowerCase());
 	}
 
@@ -372,9 +339,9 @@ public final class SocialNetworkService{
 	 * ====================================================================== */
 
 	private TemporalSpan buildSpan(final FLEFRecord relationship){
-		final FLEFRecord from = FLEFRecordHelper.findChild(relationship, TAG_VALID_FROM);
-		final FLEFRecord to = FLEFRecordHelper.findChild(relationship, TAG_VALID_TO);
-		final String status = normalizeStatus(FLEFRecordHelper.getChildValue(relationship, TAG_STATUS));
+		final FLEFRecord from = FLEFRecordHelper.findChild(relationship, RelationshipReader.TAG_VALID_FROM);
+		final FLEFRecord to = FLEFRecordHelper.findChild(relationship, RelationshipReader.TAG_VALID_TO);
+		final String status = normalizeStatus(FLEFRecordHelper.getChildValue(relationship, RelationshipReader.TAG_STATUS));
 		final TemporalSpan span = DateNormalizer.combineBounds(from, to, status);
 		if(span != null)
 			return span;
@@ -431,11 +398,11 @@ public final class SocialNetworkService{
 		final Map<String, List<FLEFRecord>> relationships = new HashMap<>();
 		for(final FLEFRecord relationship : model.getRecordsByType(RelationshipHandler.TYPE)){
 			final String type = RelationshipReader.extractType(relationship);
-			if(type == null || !SOCIAL_RELATIONSHIP_TYPES.contains(type.toLowerCase()))
+			if(type == null || !RelationshipReader.SOCIAL_RELATIONSHIP_TYPES.contains(type.toLowerCase()))
 				continue;
 
-			final String subjectId = extractParticipantId(relationship, TAG_SUBJECT);
-			final String objectId = extractParticipantId(relationship, TAG_OBJECT);
+			final String subjectId = extractParticipantId(relationship, RelationshipReader.TAG_SUBJECT);
+			final String objectId = extractParticipantId(relationship, RelationshipReader.TAG_OBJECT);
 			if(subjectId != null)
 				relationships.computeIfAbsent(subjectId, k -> new ArrayList<>())
 					.add(relationship);
@@ -452,10 +419,10 @@ public final class SocialNetworkService{
 				participationsByEntity.computeIfAbsent(participantId, k -> new ArrayList<>())
 					.add(participation);
 
-			final String role = FLEFRecordHelper.getChildValue(participation, TAG_ROLE);
+			final String role = FLEFRecordHelper.getChildValue(participation, EventParticipationReader.TAG_ROLE);
 			if(!isRelationalRole(role))
 				continue;
-			final String eventId = FLEFRecordHelper.getChildValue(participation, TAG_EVENT);
+			final String eventId = FLEFRecordHelper.getChildValue(participation, EventParticipationReader.TAG_EVENT);
 			if(eventId != null)
 				participationsByEvent.computeIfAbsent(eventId, k -> new ArrayList<>())
 					.add(participation);
@@ -478,9 +445,9 @@ public final class SocialNetworkService{
 		final String tag = record.getTag();
 		if(tag == null)
 			return null;
-		final TemporalEntityType type = switch(tag.toLowerCase()){
-			case TAG_INDIVIDUAL -> TemporalEntityType.INDIVIDUAL;
-			case TAG_GROUP -> TemporalEntityType.GROUP;
+		final TemporalEntityType type = switch(record.getTag().toUpperCase(Locale.ROOT)){
+			case IndividualHandler.TYPE -> TemporalEntityType.INDIVIDUAL;
+			case GroupHandler.TYPE -> TemporalEntityType.GROUP;
 			default -> null;
 		};
 		if(type == null)
@@ -519,7 +486,7 @@ public final class SocialNetworkService{
 	}
 
 	private static String extractParticipantId(final FLEFRecord participation){
-		final FLEFRecord participant = FLEFRecordHelper.findChild(participation, TAG_PARTICIPANT);
+		final FLEFRecord participant = FLEFRecordHelper.findChild(participation, EventParticipationReader.TAG_PARTICIPANT);
 		if(participant == null)
 			return null;
 		final FLEFRecord ref = participant.getTheOnlyChild();
@@ -527,7 +494,7 @@ public final class SocialNetworkService{
 	}
 
 	private static String eventTagOf(final FLEFRecord participation){
-		final FLEFRecord eventRef = FLEFRecordHelper.findChild(participation, TAG_EVENT);
+		final FLEFRecord eventRef = FLEFRecordHelper.findChild(participation, EventParticipationReader.TAG_EVENT);
 		if(eventRef == null)
 			return StringUtils.EMPTY;
 		final FLEFRecord ref = eventRef.getTheOnlyChild();

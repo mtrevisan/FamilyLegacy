@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.ui.tools.reports;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.index.EventIndex;
 
 import java.util.ArrayList;
@@ -41,13 +42,6 @@ import java.util.function.Function;
  * event record are appended at the bottom.</p>
  */
 final class EventRootSection implements SectionBuilder{
-
-	private static final String TAG_TYPE = "type";
-	private static final String TAG_DESCRIPTION = "description";
-	private static final String TAG_AGENCY = "agency";
-	private static final String TAG_CAUSE = "cause";
-	private static final String TAG_REASON = "reason";
-
 
 	private final ReportContext ctx;
 	private final Function<String, String> contextLabels;
@@ -67,7 +61,7 @@ final class EventRootSection implements SectionBuilder{
 		final List<ReportSection> out = new ArrayList<>();
 
 		final String type = ReportFormatters.orEmpty(
-			FLEFRecordHelper.getChildValue(ctx.root, TAG_TYPE));
+			FLEFRecordHelper.getChildValue(ctx.root, EventReader.TAG_TYPE));
 		out.add(new ReportSection.Heading(1, String.format(
 			ctx.labels.sections().eventOf(),
 			ReportFormatters.escape(type))));
@@ -112,20 +106,18 @@ final class EventRootSection implements SectionBuilder{
 		if(place != null)
 			rows.add("**" + ctx.labels.sections().place() + ":** " + ReportFormatters.escape(place));
 
-		final String agency = FLEFRecordHelper.getChildValue(ctx.root, TAG_AGENCY);
+		final String agency = FLEFRecordHelper.getChildValue(ctx.root, EventReader.TAG_AGENCY);
 		if(agency != null)
 			rows.add("**" + ctx.labels.sections().agency() + ":** " + ReportFormatters.escape(agency));
 
-		String cause = FLEFRecordHelper.getChildValue(ctx.root, TAG_CAUSE + "." + TAG_REASON);
-		if(cause == null)
-			cause = FLEFRecordHelper.getChildValue(ctx.root, TAG_CAUSE);
+		String cause = FLEFRecordHelper.getChildValue(ctx.root, EventReader.TAG_CAUSE_REASON);
 		if(cause != null)
 			rows.add("**" + ctx.labels.sections().cause() + ":** " + ReportFormatters.escape(cause));
 
 		if(!rows.isEmpty())
 			out.add(new ReportSection.BulletList(rows));
 
-		final String descr = FLEFRecordHelper.getChildValue(ctx.root, TAG_DESCRIPTION);
+		final String descr = FLEFRecordHelper.getChildValue(ctx.root, EventReader.TAG_DESCRIPTION);
 		if(descr != null && !descr.isBlank())
 			out.add(new ReportSection.Paragraph(ReportFormatters.escape(descr)));
 	}

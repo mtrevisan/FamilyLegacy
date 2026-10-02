@@ -40,8 +40,6 @@ import java.util.stream.Collectors;
 @Deprecated
 public final class PartnersData{
 
-	private static final String TAG_VALUE = "value";
-
 	private static final String TAG_HTML_OPEN = "<html>";
 	private static final String TAG_HTML_CLOSE = "</html>";
 	private static final String TAG_BR = "<br>";

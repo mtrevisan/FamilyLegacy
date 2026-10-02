@@ -27,6 +27,10 @@ package io.github.mtrevisan.familylegacy.ui.components.projections.temporal;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.readers.ContextImpactReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.CulturalNormReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.HistoricEventReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceRelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateNormalizer;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.TemporalSpan;
@@ -74,25 +78,6 @@ import java.util.function.Predicate;
  * cache when the underlying model changes.
  */
 public final class TemporalProjectionService{
-
-	// Relationship participant tags.
-	private static final String TAG_TYPE = "type";
-	private static final String TAG_ROLE = "role";
-	private static final String TAG_SUBJECT = "subject";
-	private static final String TAG_OBJECT = "object";
-	private static final String TAG_STATUS = "status";
-	private static final String TAG_VALID_FROM = "valid_from";
-	private static final String TAG_VALID_TO = "valid_to";
-
-	// Band entity tags.
-	private static final String TAG_DATE = "date";
-	private static final String TAG_TITLE = "title";
-
-	// Context impact tags.
-	private static final String TAG_CONTEXT = "context";
-	private static final String TAG_IMPACT_TYPE = "impact_type";
-	private static final String TAG_RATIONALE = "rationale";
-
 
 	private final FLEFModel model;
 
@@ -292,7 +277,7 @@ public final class TemporalProjectionService{
 				continue;
 
 			final String relType = RelationshipReader.extractType(relationship);
-			final String role = FLEFRecordHelper.getChildValue(relationship, TAG_ROLE);
+			final String role = FLEFRecordHelper.getChildValue(relationship, RelationshipReader.TAG_ROLE);
 			final TemporalConnectionType connectionType = TemporalConnectionType.of(sourceRef.type(), objectRef.type());
 
 			connections.add(new TemporalConnection(connectionType, sourceRef, objectRef, relType, span, relationship,
@@ -312,8 +297,8 @@ public final class TemporalProjectionService{
 
 		final List<FLEFRecord> placeRelationships = model.getRecordsByType(PlaceRelationshipHandler.TYPE);
 		for(final FLEFRecord placeRelationship : placeRelationships){
-			final String subjectId = placeRelationship.extractReferencedId(TAG_SUBJECT, PlaceHandler.TYPE);
-			final String objectId = placeRelationship.extractReferencedId(TAG_OBJECT, PlaceHandler.TYPE);
+			final String subjectId = placeRelationship.extractReferencedId(PlaceRelationshipReader.TAG_SUBJECT, PlaceHandler.TYPE);
+			final String objectId = placeRelationship.extractReferencedId(PlaceRelationshipReader.TAG_OBJECT, PlaceHandler.TYPE);
 			if(subjectId == null || objectId == null)
 				continue;
 			if(!includedIds.contains(subjectId) || !includedIds.contains(objectId))
@@ -333,7 +318,7 @@ public final class TemporalProjectionService{
 			if(span == null)
 				continue;
 
-			final String relType = FLEFRecordHelper.getChildValue(placeRelationship, TAG_TYPE);
+			final String relType = FLEFRecordHelper.getChildValue(placeRelationship, PlaceRelationshipReader.TAG_TYPE);
 			if(relType == null)
 				continue;
 
@@ -378,10 +363,13 @@ public final class TemporalProjectionService{
 	}
 
 	private TemporalSpan buildConnectionSpan(final FLEFRecord relationship){
-		final FLEFRecord from = FLEFRecordHelper.findChild(relationship, TAG_VALID_FROM);
-		final FLEFRecord to = FLEFRecordHelper.findChild(relationship, TAG_VALID_TO);
+		final boolean isRelationship = RelationshipHandler.TYPE.equals(relationship.getTag());
+		final FLEFRecord from = FLEFRecordHelper.findChild(relationship, (isRelationship? RelationshipReader.TAG_VALID_FROM: PlaceRelationshipReader.TAG_VALID_FROM));
+		final FLEFRecord to = FLEFRecordHelper.findChild(relationship, (isRelationship? RelationshipReader.TAG_VALID_TO: PlaceRelationshipReader.TAG_VALID_TO));
 
-		final String status = normalizeStatus(FLEFRecordHelper.getChildValue(relationship, TAG_STATUS));
+		final String status = (isRelationship
+			? normalizeStatus(FLEFRecordHelper.getChildValue(relationship, RelationshipReader.TAG_STATUS))
+			: null);
 
 		return DateNormalizer.combineBounds(from, to, status);
 	}
@@ -414,18 +402,18 @@ public final class TemporalProjectionService{
 			final String id = historicEvent.getId();
 			if(id == null)
 				continue;
-			final String title = FLEFRecordHelper.getChildValue(historicEvent, TAG_TITLE);
-			final String type = FLEFRecordHelper.getChildValue(historicEvent, TAG_TYPE);
+			final String title = FLEFRecordHelper.getChildValue(historicEvent, HistoricEventReader.TAG_TITLE);
+			final String type = FLEFRecordHelper.getChildValue(historicEvent, HistoricEventReader.TAG_TYPE);
 			final TemporalEntityRef ref = new TemporalEntityRef(
 				TemporalEntityType.HISTORIC_EVENT, id, historicEvent,
 				(title != null? title: type != null? type: id));
 
-			final FLEFRecord date = FLEFRecordHelper.findChild(historicEvent, TAG_DATE);
+			final FLEFRecord date = FLEFRecordHelper.findChild(historicEvent, HistoricEventReader.TAG_DATE);
 			final TemporalSpan span = DateNormalizer.normalize(date);
 			if(span == null)
 				continue;
 
-			final FLEFRecord placeRef = FLEFRecordHelper.findChild(historicEvent, PlaceHandler.TYPE);
+			final FLEFRecord placeRef = FLEFRecordHelper.findChild(historicEvent, HistoricEventReader.TAG_PLACE);
 			final FLEFRecord place = resolvePlace(placeRef);
 
 			output.add(new TemporalContextBand(ref, span, title != null? title: type, type, place));
@@ -439,19 +427,19 @@ public final class TemporalProjectionService{
 			if(id == null)
 				continue;
 
-			final String title = FLEFRecordHelper.getChildValue(culturalNorm, TAG_TITLE);
-			final String ruleType = FLEFRecordHelper.getChildValue(culturalNorm, "rule_type");
+			final String title = FLEFRecordHelper.getChildValue(culturalNorm, CulturalNormReader.TAG_TITLE);
+			final String ruleType = FLEFRecordHelper.getChildValue(culturalNorm, CulturalNormReader.TAG_TYPE);
 			final TemporalEntityRef ref = new TemporalEntityRef(
 				TemporalEntityType.CULTURAL_NORM, id, culturalNorm,
 				(title != null? title: ruleType != null? ruleType: id));
 
-			final FLEFRecord from = FLEFRecordHelper.findChild(culturalNorm, TAG_VALID_FROM);
-			final FLEFRecord to = FLEFRecordHelper.findChild(culturalNorm, TAG_VALID_TO);
+			final FLEFRecord from = FLEFRecordHelper.findChild(culturalNorm, CulturalNormReader.TAG_VALID_FROM);
+			final FLEFRecord to = FLEFRecordHelper.findChild(culturalNorm, CulturalNormReader.TAG_VALID_TO);
 			final TemporalSpan span = DateNormalizer.combineBounds(from, to);
 			if(span == null)
 				continue;
 
-			final FLEFRecord placeRef = FLEFRecordHelper.findChild(culturalNorm, PlaceHandler.TYPE);
+			final FLEFRecord placeRef = FLEFRecordHelper.findChild(culturalNorm, CulturalNormReader.TAG_PLACE);
 			final FLEFRecord place = resolvePlace(placeRef);
 
 			output.add(new TemporalContextBand(ref, span, title != null? title: ruleType, ruleType, place));
@@ -527,7 +515,7 @@ public final class TemporalProjectionService{
 		final List<ContextImpactLink> links = new ArrayList<>();
 		final List<FLEFRecord> contextImpacts = model.getRecordsByType(ContextImpactHandler.TYPE);
 		for(final FLEFRecord contextImpact : contextImpacts){
-			final FLEFRecord contextRef = FLEFRecordHelper.findChild(contextImpact, TAG_CONTEXT);
+			final FLEFRecord contextRef = FLEFRecordHelper.findChild(contextImpact, ContextImpactReader.TAG_CONTEXT);
 			if(contextRef == null)
 				continue;
 			final FLEFRecord contextRefChild = contextRef.getTheOnlyChild();
@@ -537,20 +525,20 @@ public final class TemporalProjectionService{
 			if(band == null)
 				continue;
 
-			final FLEFRecord objectRef = FLEFRecordHelper.findChild(contextImpact, TAG_OBJECT);
-			if(objectRef == null)
+			final FLEFRecord targetRef = FLEFRecordHelper.findChild(contextImpact, ContextImpactReader.TAG_TARGET);
+			if(targetRef == null)
 				continue;
-			final FLEFRecord objectRefChild = objectRef.getTheOnlyChild();
-			if(objectRefChild == null || objectRefChild.getValue() == null)
+			final FLEFRecord targetRefChild = targetRef.getTheOnlyChild();
+			if(targetRefChild == null || targetRefChild.getValue() == null)
 				continue;
-			final String objectId = objectRefChild.getValue();
+			final String targetId = targetRefChild.getValue();
 
-			final List<TemporalProjectionRef> resolved = refsById.get(objectId);
+			final List<TemporalProjectionRef> resolved = refsById.get(targetId);
 			if(resolved == null || resolved.isEmpty())
 				continue;
 
-			final String impactType = FLEFRecordHelper.getChildValue(contextImpact, TAG_IMPACT_TYPE);
-			final String rationale = FLEFRecordHelper.getChildValue(contextImpact, TAG_RATIONALE);
+			final String impactType = FLEFRecordHelper.getChildValue(contextImpact, ContextImpactReader.TAG_IMPACT_TYPE);
+			final String rationale = FLEFRecordHelper.getChildValue(contextImpact, ContextImpactReader.TAG_RATIONALE);
 			for(final TemporalProjectionRef ref : resolved)
 				links.add(new ContextImpactLink(band, ref, impactType, rationale));
 		}

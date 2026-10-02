@@ -25,14 +25,25 @@
 package io.github.mtrevisan.familylegacy.io.model.readers.date;
 
 
+import org.apache.commons.lang3.StringUtils;
+
+import java.time.LocalDate;
+
+
 /**
  * Supported calendar systems and their conversion algorithms to Julian Day Number (JDN).
  */
-public enum CalendarType{
+public enum CalendarType implements CalendarConverterPlugin{
 
 	GREGORIAN("gregorian"){
 		@Override
-		public long toJdn(final int year, final int month, final int day){
+		public long parseToJdn(final String dateExpression, final int baseContextAnchor){
+			final GenealogicalDate date = UniversalDateConverter.parse(getCode(), dateExpression);
+			final LocalDate localDate = date.isoDate();
+			final int year = localDate.getYear();
+			final int month = localDate.getMonthValue();
+			final int day = localDate.getDayOfMonth();
+
 			final long a = (14 - month) / 12;
 			final long y = year + 4800L - a;
 			final long m = month + 12L * a - 3;
@@ -41,7 +52,13 @@ public enum CalendarType{
 	},
 	JULIAN("julian"){
 		@Override
-		public long toJdn(final int year, final int month, final int day){
+		public long parseToJdn(final String dateExpression, final int baseContextAnchor){
+			final GenealogicalDate date = UniversalDateConverter.parse(getCode(), dateExpression);
+			final LocalDate localDate = date.isoDate();
+			final int year = localDate.getYear();
+			final int month = localDate.getMonthValue();
+			final int day = localDate.getDayOfMonth();
+
 			final long a = (14 - month) / 12;
 			final long y = year + 4800L - a;
 			final long m = month + 12L * a - 3;
@@ -50,7 +67,13 @@ public enum CalendarType{
 	},
 	REFORMED_JULIAN("reformed_julian"){
 		@Override
-		public long toJdn(final int year, final int month, final int day){
+		public long parseToJdn(final String dateExpression, final int baseContextAnchor){
+			final GenealogicalDate date = UniversalDateConverter.parse(getCode(), dateExpression);
+			final LocalDate localDate = date.isoDate();
+			final int year = localDate.getYear();
+			final int month = localDate.getMonthValue();
+			final int day = localDate.getDayOfMonth();
+
 			final long a = (14 - month) / 12;
 			final long y = year + 4800L - a;
 			final long m = month + 12L * a - 3;
@@ -61,7 +84,14 @@ public enum CalendarType{
 	},
 	ISLAMIC("islamic"){
 		@Override
-		public long toJdn(final int year, final int month, final int day){
+		public long parseToJdn(final String dateExpression, final int baseContextAnchor){
+			// FIXME Using astronomical calculations for the position of the sun and moon, the moon's illumination, and other factors, it is possible to determine the start of a lunar month with a fairly high degree of certainty
+			final GenealogicalDate date = UniversalDateConverter.parse(getCode(), dateExpression);
+			final LocalDate localDate = date.isoDate();
+			final int year = localDate.getYear();
+			final int month = localDate.getMonthValue();
+			final int day = localDate.getDayOfMonth();
+
 			return day
 				+ (long)Math.ceil(29.5 * (month - 1))
 				+ (year - 1L) * 354L
@@ -69,9 +99,62 @@ public enum CalendarType{
 				+ 1948440L - 1L;
 		}
 	},
+	BUDDHIST("buddhist"){
+		@Override
+		public long parseToJdn(final String dateExpression, final int baseContextAnchor){
+			final GenealogicalDate date = UniversalDateConverter.parse(getCode(), dateExpression);
+			final LocalDate localDate = date.isoDate();
+			final int year = localDate.getYear();
+			final int month = localDate.getMonthValue();
+			final int day = localDate.getDayOfMonth();
+
+			// Solar Buddhist calendar uses Gregorian arithmetic with a +543 year offset (BE = CE + 543)
+			return GREGORIAN.parseToJdn(day + StringUtils.SPACE + month + StringUtils.SPACE + (year - 543), baseContextAnchor);
+		}
+	},
+	COPTIC("coptic"){
+		@Override
+		public long parseToJdn(final String dateExpression, final int baseContextAnchor){
+			final GenealogicalDate date = UniversalDateConverter.parse(getCode(), dateExpression);
+			final LocalDate localDate = date.isoDate();
+			final int year = localDate.getYear();
+			final int month = localDate.getMonthValue();
+			final int day = localDate.getDayOfMonth();
+
+			return 1825030L
+				+ 365L * (year - 1L)
+				+ (year / 4L)
+				+ 30L * (month - 1L)
+				+ (day - 1L);
+		}
+	},
+	ETHIOPIAN("ethiopian"){
+		@Override
+		public long parseToJdn(final String dateExpression, final int baseContextAnchor){
+			final GenealogicalDate date = UniversalDateConverter.parse(getCode(), dateExpression);
+			final LocalDate localDate = date.isoDate();
+			final int year = localDate.getYear();
+			final int month = localDate.getMonthValue();
+			final int day = localDate.getDayOfMonth();
+
+			return 1724221L
+				+ 365L * (year - 1L)
+				+ (year / 4L)
+				+ 30L * (month - 1L)
+				+ (day - 1L);
+		}
+	},
+
 	HEBREW("hebrew"){
 		@Override
-		public long toJdn(final int year, final int month, final int day){
+		public long parseToJdn(final String dateExpression, final int baseContextAnchor){
+			// FIXME In the traditional Hebrew calendar, days start at sunset
+			final GenealogicalDate date = UniversalDateConverter.parse(getCode(), dateExpression);
+			final LocalDate localDate = date.isoDate();
+			final int year = localDate.getYear();
+			final int month = localDate.getMonthValue();
+			final int day = localDate.getDayOfMonth();
+
 			final long roshHaShanah = hebrewNewYear(year);
 			return roshHaShanah + daysBeforeMonth(year, month) + (day - 1);
 		}
@@ -161,9 +244,18 @@ public enum CalendarType{
 		 * and lunar conjunctions at Beijing mean time (UTC+8).
 		 */
 		@Override
-		public long toJdn(final int year, final int month, final int day){
-			final double jdB = ChineseCalendarConverter.toJdn(year, month, day);
-			return Math.round(jdB);
+		public long parseToJdn(final String dateExpression, final int baseContextAnchor){
+			// Expected native format: "庚申年 正月 初一" or "庚申年 闰四月 廿二"
+			// 1. Leverage your string parser to break down the native text
+			final ChineseDateInput date = ChineseCalendarParser.parse(dateExpression, baseContextAnchor);
+			final int year = date.getYear();
+			final int month = date.getMonth();
+			final boolean leapMonth = date.isLeapMonth();
+			final int day = date.getDay();
+
+			final double jdB = ChineseCalendarAstronomicalEngine.toJulianDateUT(year, month, leapMonth, day);
+
+			return (long)Math.floor(jdB + 0.5);
 		}
 	},
 	INDIAN("indian"){
@@ -173,13 +265,20 @@ public enum CalendarType{
 		 * Year starts on 1 Chaitra (March 21 in leap years, March 22 in common years).
 		 */
 		@Override
-		public long toJdn(final int year, final int month, final int day){
+		public long parseToJdn(final String dateExpression, final int baseContextAnchor){
+			final GenealogicalDate date = UniversalDateConverter.parse(getCode(), dateExpression);
+			final LocalDate localDate = date.isoDate();
+			final int year = localDate.getYear();
+			final int month = localDate.getMonthValue();
+			final int day = localDate.getDayOfMonth();
+
 			final int gregorianYear = year + 78;
 			final boolean isLeap = isGregorianLeapYear(gregorianYear);
 
 			// Compute JDN of 1 Chaitra (start of the Saka year)
 			final int chaitraDay = (isLeap? 21: 22);
-			final long startOfYearJdn = GREGORIAN.toJdn(gregorianYear, 3, chaitraDay);
+			final long startOfYearJdn = GREGORIAN.parseToJdn(
+				chaitraDay + StringUtils.SPACE + 3 + StringUtils.SPACE + gregorianYear, baseContextAnchor);
 
 			// Days elapsed in preceding months
 			int elapsedDays = 0;
@@ -201,31 +300,22 @@ public enum CalendarType{
 			return (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0);
 		}
 	},
-	BUDDHIST("buddhist"){
-		@Override
-		public long toJdn(final int year, final int month, final int day){
-			// Solar Buddhist calendar uses Gregorian arithmetic with a +543 year offset (BE = CE + 543)
-			return GREGORIAN.toJdn(year - 543, month, day);
-		}
-	},
+
 	FRENCH_REPUBLICAN("french_republican"){
 		@Override
-		public long toJdn(final int year, final int month, final int day){
+		public long parseToJdn(final String dateExpression, final int baseContextAnchor){
+			// FIXME to test
+			final GenealogicalDate date = UniversalDateConverter.parse(getCode(), dateExpression);
+			final LocalDate localDate = date.isoDate();
+			final int year = localDate.getYear();
+			final int month = localDate.getMonthValue();
+			final int day = localDate.getDayOfMonth();
+
 			// Arithmetic French Republican calendar (Romme method: leap years every 4 years starting Year 3)
 			// Epoch: 22 September 1792 Gregorian (JDN 2375839)
 			final long yearOffset = year - 1L;
 			final long leapYears = (yearOffset + 1L) / 4L;
 			return 2375839L + 365L * yearOffset + leapYears + 30L * (month - 1L) + (day - 1L);
-		}
-	},
-	COPTIC("coptic"){
-		@Override
-		public long toJdn(final int year, final int month, final int day){
-			return 1825030L
-				+ 365L * (year - 1L)
-				+ (year / 4L)
-				+ 30L * (month - 1L)
-				+ (day - 1L);
 		}
 	},
 	SOVIET_ETERNAL("soviet_eternal"){
@@ -237,21 +327,19 @@ public enum CalendarType{
 		 * map directly onto the corresponding solar days of the Gregorian system.
 		 */
 		@Override
-		public long toJdn(final int year, final int month, final int day){
+		public long parseToJdn(final String dateExpression, final int baseContextAnchor){
+			// FIXME to test
+			final GenealogicalDate date = UniversalDateConverter.parse(getCode(), dateExpression);
+			final LocalDate localDate = date.isoDate();
+			final int year = localDate.getYear();
+			final int month = localDate.getMonthValue();
+			final int day = localDate.getDayOfMonth();
+
 			if(year < 1929 || year > 1940)
 				throw new IllegalArgumentException("Soviet revolutionary calendar was only active between 1929 and 1940.");
 
-			return GREGORIAN.toJdn(year, month, day);
-		}
-	},
-	ETHIOPIAN("ethiopian"){
-		@Override
-		public long toJdn(final int year, final int month, final int day){
-			return 1724221L
-				+ 365L * (year - 1L)
-				+ (year / 4L)
-				+ 30L * (month - 1L)
-				+ (day - 1L);
+			return GREGORIAN.parseToJdn(day + StringUtils.SPACE + month + StringUtils.SPACE + year,
+				baseContextAnchor);
 		}
 	},
 	MAYAN("mayan"){
@@ -267,68 +355,95 @@ public enum CalendarType{
 		 * </ul>
 		 */
 		@Override
-		public long toJdn(final int baktun, final int katun, final int tun){
+		public long parseToJdn(final String dateExpression, final int baseContextAnchor){
+			// Expected format: "13.0.13.17.13" (Baktun.Katun.Tun.Uinal.Kin)
+			final String[] tokens = StringUtils.split(dateExpression.replaceAll("\\s+.*", StringUtils.EMPTY),
+				'.');
+			if(tokens.length < 5)
+				throw new IllegalArgumentException("Invalid Mayan Long Count layout structure.");
+
+			final long baktun = Long.parseLong(tokens[0]);
+			final long katun = Long.parseLong(tokens[1]);
+			final long tun = Long.parseLong(tokens[2]);
+			final long uinal = Long.parseLong(tokens[3]);
+			final long kin = Long.parseLong(tokens[4]);
+
 			// Standard GMT correlation constant
 			final long gmtCorrelation = 584283L;
 
 			// Long Count calculation in days (Kin): 1 Baktun = 144,000 days, 1 Katun = 7,200 days, 1 Tun = 360 days
-			final long days = baktun * 144000L + katun * 7200L + tun * 360L;
+			final long totalKin = baktun * 144000L + katun * 7200L + tun * 360L + uinal * 20L + kin;
 
-			return gmtCorrelation + days;
+			return gmtCorrelation + totalKin;
 		}
 	},
+
 	PERSIAN("persian"){
 		@Override
-		public long toJdn(final int year, final int month, final int day){
-			final long epYear = year - (year >= 0? 474: 473);
-			final long cycle = epYear / 2820;
-			final long cYear = epYear % 2820;
-			final long aux = (cYear < 1029? cYear: cYear - 2820);
-			final long yCycle = (aux >= 0? aux: aux + 2820);
-			final long yIndex = yCycle + 474;
-
-			final long daysInMonths = (month <= 7? (month - 1) * 31L: (month - 1) * 30L + 6);
-			return day + daysInMonths + (yIndex * 682 - 110) / 2816 + (yIndex - 1) * 365 + cycle * 1029983 + 1948320;
+		public long parseToJdn(final String dateExpression, final int baseContextAnchor){
+			// TODO
+//			final long epYear = year - (year >= 0? 474: 473);
+//			final long cycle = epYear / 2820;
+//			final long cYear = epYear % 2820;
+//			final long aux = (cYear < 1029? cYear: cYear - 2820);
+//			final long yCycle = (aux >= 0? aux: aux + 2820);
+//			final long yIndex = yCycle + 474;
+//
+//			final long daysInMonths = (month <= 7? (month - 1) * 31L: (month - 1) * 30L + 6);
+//			return day + daysInMonths + (yIndex * 682 - 110) / 2816 + (yIndex - 1) * 365 + cycle * 1029983 + 1948320;
+			return -1l;
 		}
 	},
 	PARSI("parsi"){
 		@Override
-		public long toJdn(final int year, final int month, final int day){
-			return 1952063L + 365L * (year - 1L) + 30L * (month - 1L) + (day - 1L);
+		public long parseToJdn(final String dateExpression, final int baseContextAnchor){
+			// TODO
+//			return 1952063L + 365L * (year - 1L) + 30L * (month - 1L) + (day - 1L);
+			return -1l;
 		}
 	},
 	BYZANTINE("byzantine"){
 		@Override
-		public long toJdn(final int year, final int month, final int day){
+		public long parseToJdn(final String dateExpression, final int baseContextAnchor){
+			// TODO
 			// Adjust year: Byzantine year starts Sep 1; years before Sep belong to (year - 5509), Sep onwards to (year - 5508)
-			final int julianYear = (month >= 9? year - 5508: year - 5509);
-			return JULIAN.toJdn(julianYear, month, day);
+//			final int julianYear = (month >= 9? year - 5508: year - 5509);
+//			return JULIAN.toJdn(julianYear, month, day);
+			return -1l;
 		}
 	},
 	EGYPTIAN("egyptian"){
 		@Override
-		public long toJdn(final int year, final int month, final int day){
-			return 1448638L + 365L * (year - 1L) + 30L * (month - 1L) + (day - 1L);
+		public long parseToJdn(final String dateExpression, final int baseContextAnchor){
+			// TODO
+//			return 1448638L + 365L * (year - 1L) + 30L * (month - 1L) + (day - 1L);
+			return -1l;
 		}
 	},
 	SELEUCID("seleucid"){
 		@Override
-		public long toJdn(final int year, final int month, final int day){
-			final int julianYear = year - 311;
-			return JULIAN.toJdn(julianYear, month, day);
+		public long parseToJdn(final String dateExpression, final int baseContextAnchor){
+			// TODO
+//			final int julianYear = year - 311;
+//			return JULIAN.toJdn(julianYear, month, day);
+			return -1l;
 		}
 	},
 	ARMENIAN("armenian"){
 		@Override
-		public long toJdn(final int year, final int month, final int day){
-			return 1922868L + 365L * (year - 1L) + 30L * (month - 1L) + (day - 1L);
+		public long parseToJdn(final String dateExpression, final int baseContextAnchor){
+			// TODO
+//			return 1922868L + 365L * (year - 1L) + 30L * (month - 1L) + (day - 1L);
+			return -1l;
 		}
 	},
 	RUMI("rumi"){
 		@Override
-		public long toJdn(final int year, final int month, final int day){
-			final int julianYear = year + 584;
-			return JULIAN.toJdn(julianYear, month, day);
+		public long parseToJdn(final String dateExpression, final int baseContextAnchor){
+			// TODO
+//			final int julianYear = year + 584;
+//			return JULIAN.toJdn(julianYear, month, day);
+			return -1l;
 		}
 	};
 
@@ -360,13 +475,11 @@ public enum CalendarType{
 	/**
 	 * Converts a calendar-specific date to its Julian Day Number.
 	 *
-	 * @param year  the year in the given calendar
-	 * @param month the month (1-based)
-	 * @param day   the day of month (1-based)
+	 * @param dateExpression  the date in the given calendar
 	 * @return the Julian Day Number
 	 * @throws UnsupportedOperationException if the calendar is not arithmetic
 	 */
-	public long toJdn(final int year, final int month, final int day){
+	public long parseToJdn(final String dateExpression, final int baseContextAnchor){
 		throw new UnsupportedOperationException("Calendar not supported by the arithmetic converter: " + code
 			+ ". Extend CalendarType to add it.");
 	}

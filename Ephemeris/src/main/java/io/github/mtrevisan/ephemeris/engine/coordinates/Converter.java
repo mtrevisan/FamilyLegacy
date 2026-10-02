@@ -1,3 +1,27 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
 package io.github.mtrevisan.ephemeris.engine.coordinates;
 
 import io.github.mtrevisan.ephemeris.helpers.MathHelper;
@@ -36,47 +60,6 @@ public class Converter{
 		-0.320334e-14
 	};
 
-
-	/**
-	 * Converts geocentric spherical ecliptic coordinates from a specific epoch
-	 * into rectangular J2000.0 coordinates.
-	 * <p>
-	 * This method performs the backward transformation, rotating vectors from the
-	 * <b>mean ecliptic and equinox of date</b> back to the <b>inertial mean ecliptic
-	 * and dynamical equinox J2000.0</b> using Chapront & Francou's (2003) optimized
-	 * rotation parameters (p, q).
-	 * </p>
-	 *
-	 * @param jce    Julian Ephemeris Century of Barycentric Dynamical Time (TDB) from J2000.0
-	 * @param coords the spherical ecliptic coordinates (longitude, latitude, distance) of date
-	 * @return a double array containing the rectangular J2000.0 coordinates [x, y, z]
-	 */
-	public static double[] toRectangularFromDateToJ2000(final double jce, final EclipticCoordinates coords){
-		// Precession angles from the ecliptic of date to J2000
-		final double p = MathHelper.polynomial(jce, P_COEFFS);
-		final double q = MathHelper.polynomial(jce, Q_COEFFS);
-
-		final double rCosVcosU = coords.getDistance() * StrictMath.cos(coords.getLongitude())
-			* StrictMath.cos(coords.getLatitude());
-		final double rSinVcosU = coords.getDistance() * StrictMath.sin(coords.getLongitude())
-			* StrictMath.cos(coords.getLatitude());
-		final double rSinU = coords.getDistance() * StrictMath.sin(coords.getLatitude());
-
-		// Rotation matrix from Chapront & Francou (2003), eq. 26.
-		final double oneMinus2P2 = 1. - 2. * p * p;
-		final double oneMinus2Q2 = 1. - 2. * q * q;
-		final double twoPQ = 2. * p * q;
-		final double sqrt = StrictMath.sqrt(1. - p * p - q * q);
-		final double twoPSqrt = 2. * p * sqrt;
-		final double twoQSqrt = 2. * q * sqrt;
-
-		// Original matrix layout
-		final double x = oneMinus2P2 * rCosVcosU + twoPQ * rSinVcosU + twoPSqrt * rSinU;
-		final double y = twoPQ * rCosVcosU + oneMinus2Q2 * rSinVcosU - twoQSqrt * rSinU;
-		final double z = -twoPSqrt * rCosVcosU + twoQSqrt * rSinVcosU + (oneMinus2P2 - 2. * q * q) * rSinU;
-
-		return new double[]{x, y, z};
-	}
 
 	/**
 	 * Converts geocentric rectangular J2000.0 coordinates into rectangular

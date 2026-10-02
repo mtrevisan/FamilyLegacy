@@ -274,7 +274,7 @@ public class RecordSelectionDialog extends JDialog{
 			topPanel.add(new JLabel(I18N.t("search.type") + ":"));
 			topPanel.add(typeCombo, "growx");
 		}
-		topPanel.add(new JLabel(I18N.t("search.seach.text") + ":"));
+		topPanel.add(new JLabel(I18N.t("search.search.text") + ":"));
 		topPanel.add(searchField, "growx");
 
 		// Search mode checkboxes, mutually exclusive. The three boxes are
@@ -432,7 +432,7 @@ public class RecordSelectionDialog extends JDialog{
 
 	private void updateWindowTitle(){
 		final RecordTypeHandler<?> desc = getSelectedHandler();
-		setTitle(I18N.tf("search.title", (desc != null), I18N.t("record.individual")));
+		setTitle(I18N.tf("search.title", (desc != null), I18N.t("confirmation.exist.record.individual")));
 	}
 
 	private RecordTypeHandler<?> getSelectedHandler(){

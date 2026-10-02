@@ -27,12 +27,15 @@ package io.github.mtrevisan.familylegacy.ui.components.projections.temporal;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.readers.ContextImpactReader;
 import io.github.mtrevisan.familylegacy.ui.handlers.ContextImpactHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.CulturalNormHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventParticipationHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.GroupAttributeHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.HistoricEventHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualAttributeHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.PlaceRelationshipHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RelationshipHandler;
@@ -55,13 +58,6 @@ import java.util.Map;
  * All map values are immutable lists. The class is immutable and thread-safe.
  */
 public final class TemporalIndices{
-
-	// Participant / target tag names inside the FLEF structures.
-	private static final String TAG_PARTICIPANT = "participant";
-	private static final String TAG_TARGET = "target";
-	private static final String TAG_INDIVIDUAL = "individual";
-	private static final String TAG_GROUP = "group";
-
 
 	private final Map<String, List<FLEFRecord>> eventParticipationsByParticipantId;
 	private final Map<String, List<FLEFRecord>> individualAttributesByOwnerId;
@@ -123,16 +119,16 @@ public final class TemporalIndices{
 
 		// 2. Build per-id maps.
 		final Map<String, List<FLEFRecord>> participationsByParticipantId =
-			indexByReference(eventParticipations, TAG_PARTICIPANT);
+			indexByReference(eventParticipations, EventParticipationHandler.TYPE);
 
 		final Map<String, List<FLEFRecord>> individualAttributesByOwnerId =
-			indexByReference(individualAttributes, TAG_INDIVIDUAL);
+			indexByReference(individualAttributes, IndividualHandler.TYPE);
 
 		final Map<String, List<FLEFRecord>> groupAttributesByOwnerId =
-			indexByReference(groupAttributes, TAG_GROUP);
+			indexByReference(groupAttributes, GroupHandler.TYPE);
 
 		final Map<String, List<FLEFRecord>> contextImpactsByTargetId =
-			indexByReference(contextImpacts, TAG_TARGET);
+			indexByReference(contextImpacts, ContextImpactReader.TAG_TARGET);
 
 		final Map<String, List<FLEFRecord>> historicEventsByPlaceId =
 			indexByPlaceCitation(historicEvents);
@@ -165,7 +161,7 @@ public final class TemporalIndices{
 	 * referenced id is null or missing is skipped.
 	 */
 	private static Map<String, List<FLEFRecord>> indexByReference(final List<FLEFRecord> records,
-		final String referenceTag){
+			final String referenceTag){
 		final Map<String, List<FLEFRecord>> result = new HashMap<>();
 		for(final FLEFRecord record : records){
 			final FLEFRecord ref = FLEFRecordHelper.findChild(record, referenceTag);

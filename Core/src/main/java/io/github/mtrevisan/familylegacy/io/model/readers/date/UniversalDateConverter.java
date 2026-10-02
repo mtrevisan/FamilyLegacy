@@ -25,7 +25,6 @@
 package io.github.mtrevisan.familylegacy.io.model.readers.date;
 
 import com.ibm.icu.util.Calendar;
-import com.ibm.icu.util.ChineseCalendar;
 import com.ibm.icu.util.HebrewCalendar;
 import com.ibm.icu.util.IndianCalendar;
 import com.ibm.icu.util.TimeZone;
@@ -70,7 +69,7 @@ import java.util.Locale;
  *       the full tables and the astronomical computation.</li>
  *   <li><b>Arithmetic JDN</b> — for the remaining calendars, whose only
  *       conversion rule is the one declared in
- *       {@link CalendarType#toJdn(int, int, int)}. The enum produces a
+ *       {@link CalendarType#parseToJdn(String, int)}. The enum produces a
  *       Julian Day Number and this class converts it back to a
  *       proleptic Gregorian date.</li>
  * </ol>
@@ -171,7 +170,7 @@ public final class UniversalDateConverter{
 				final LocalDate resultIso = switch(type){
 					/* ----- JSR-310 chronologies (arithmetic leap rules) ----- */
 					case GREGORIAN -> parseJsr310(IsoChronology.INSTANCE, accessor, pm);
-					case JULIAN -> parseJsr310(JulianChronology.INSTANCE, accessor, pm);
+					case JULIAN, REFORMED_JULIAN -> parseJsr310(JulianChronology.INSTANCE, accessor, pm);
 					case ISLAMIC -> parseJsr310(HijrahChronology.INSTANCE, accessor, pm);
 					case BUDDHIST -> parseJsr310(ThaiBuddhistChronology.INSTANCE, accessor, pm);
 					case COPTIC -> parseJsr310(CopticChronology.INSTANCE, accessor, pm);
@@ -179,7 +178,8 @@ public final class UniversalDateConverter{
 
 					/* ----- ICU4J calendars (non-arithmetic rules) ----------- */
 					case HEBREW -> parseIcu4j(new HebrewCalendar(), accessor, pm);
-					case CHINESE -> parseIcu4j(new ChineseCalendar(), accessor, pm);
+					case CHINESE ->
+						throw new IllegalArgumentException("Unable to parse date '" + rawDate + "' for calendar " + calendarCode);
 					case INDIAN -> parseIcu4j(new IndianCalendar(), accessor, pm);
 
 					/* ----- Calendars with a bespoke conversion --------------- */
@@ -194,7 +194,7 @@ public final class UniversalDateConverter{
 					 * resulting JDN is turned into a proleptic Gregorian
 					 * date. This covers the calendars that previously
 					 * returned {@code null} from the switch. */
-					case REFORMED_JULIAN, PERSIAN, PARSI, BYZANTINE,
+					case PERSIAN, PARSI, BYZANTINE,
 						  EGYPTIAN, SELEUCID, ARMENIAN, RUMI
 						-> parseViaJdn(type, accessor, pm);
 				};
@@ -260,7 +260,7 @@ public final class UniversalDateConverter{
 
 	/**
 	 * Converts a date expressed in any calendar whose conversion rule is
-	 * declared arithmetically in {@link CalendarType#toJdn(int, int, int)}.
+	 * declared arithmetically in {@link CalendarType#parseToJdn(String, int)}.
 	 *
 	 * <p>The year, month and day are extracted from the accessor and passed
 	 * to the enum, which returns a Julian Day Number. The JDN is then
@@ -280,7 +280,7 @@ public final class UniversalDateConverter{
 		final int month = (pm.hasMonth()? accessor.get(ChronoField.MONTH_OF_YEAR): 1);
 		final int day = (pm.hasDay()? accessor.get(ChronoField.DAY_OF_MONTH): 1);
 
-		final long jdn = type.toJdn(year, month, day);
+		final long jdn = type.parseToJdn(day + StringUtils.SPACE + month + StringUtils.SPACE + year, 0);
 		return LocalDate.ofEpochDay(jdn - UNIX_EPOCH_JDN);
 	}
 

@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.io.model.readers.date;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.time.LocalDate;
 
 
@@ -92,7 +94,7 @@ public final class CalendarConverter{
 	 */
 	public static long toJdn(final String calendar, final int year, final int month, final int day){
 		return CalendarType.fromCode(calendar)
-			.toJdn(year, month, day);
+			.parseToJdn(day + StringUtils.SPACE + month + StringUtils.SPACE + year, 0);
 	}
 
 	/**

@@ -1,3 +1,27 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
 package io.github.mtrevisan.familylegacy.io.model.readers;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
@@ -9,6 +33,7 @@ import org.apache.commons.lang3.Strings;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.TreeSet;
 
 
 /**
@@ -106,6 +131,10 @@ public final class RelationshipReader{
 		"civil_spouse", "religious_spouse", "customary_spouse", "cohabiting_partner", "engaged_partner",
 		"associate"
 	};
+	// Relationship types considered social
+	public static final Set<String> SOCIAL_RELATIONSHIP_TYPES = Set.of(
+		"associate", "group_member", "part_of"
+	);
 	public static final String[] INDIVIDUAL_TO_GROUP_TYPES = new String[]{"group_member", "associate"};
 	public static final String[] GROUP_TO_GROUP_TYPES = new String[]{"part_of", "associate"};
 	private static final String[] GROUP_TO_INDIVIDUAL_TYPES = new String[0];
@@ -114,8 +143,9 @@ public final class RelationshipReader{
 		ENUM_TYPE_ADOPTIVE_CHILD, ENUM_TYPE_FOSTER_CHILD, ENUM_TYPE_GUARDED_CHILD, ENUM_TYPE_STEP_CHILD));
 	public static final String[] BIOLOGICAL = new String[]{ENUM_TYPE_BIOLOGICAL_CHILD};
 	public static final String[] FAMILY = CHILD_TYPES.toArray(String[]::new);
-	private static final Set<String> PARTNER_TYPES = new HashSet<>(List.of(ENUM_TYPE_CIVIL_SPOUSE,
-		ENUM_TYPE_RELIGIOUS_SPOUSE, ENUM_TYPE_CUSTOMARY_SPOUSE, ENUM_TYPE_COHABITING_PARTNER, ENUM_TYPE_ENGAGED_PARTNER));
+	public static final Set<String> PARTNER_TYPES = new TreeSet<>(List.of(
+		ENUM_TYPE_CIVIL_SPOUSE, ENUM_TYPE_RELIGIOUS_SPOUSE, ENUM_TYPE_CUSTOMARY_SPOUSE, ENUM_TYPE_COHABITING_PARTNER,
+		ENUM_TYPE_ENGAGED_PARTNER));
 
 	public static final String[] STATUSES = new String[]{
 		"active", "ended", "unknown"
@@ -131,6 +161,10 @@ public final class RelationshipReader{
 
 	public static boolean isTypeAdoptiveChild(final String type){
 		return ENUM_TYPE_ADOPTIVE_CHILD.equals(type);
+	}
+
+	public static boolean isTypeStepChild(final String type){
+		return ENUM_TYPE_STEP_CHILD.equals(type);
 	}
 
 	public static boolean isTypeGroupMember(final String type){

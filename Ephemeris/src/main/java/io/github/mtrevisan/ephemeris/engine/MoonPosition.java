@@ -36,7 +36,6 @@ import java.io.InputStream;
 import java.util.List;
 
 
-// FIXME
 /**
  * Geocentric lunar position computed from the ELP/MPP02 truncated series.
  *
@@ -74,9 +73,6 @@ public final class MoonPosition{
 
 	/** Arcsecond-to-radian conversion factor. */
 	private static final double SEC = StrictMath.PI / 648_000.;
-
-	/** Two times π, cached for angle reduction. */
-	private static final double TWO_PI = 2. * StrictMath.PI;
 
 	/**
 	 * Ratio of the ELP semi-major axis to the DE405 semi-major axis,
@@ -391,28 +387,8 @@ public final class MoonPosition{
 	 * @param t Julian centuries of TDB from J2000
 	 * @return longitude [rad], in the interval [0, 2π)
 	 */
-	public double longitudeOfDate(final double t){
+	private double longitudeOfDate(final double t){
 		return longitudeOfDate(t, arguments(t));
-	}
-
-	/**
-	 * Geocentric ecliptic latitude of the Moon referred to the mean ecliptic of date.
-	 *
-	 * @param t Julian centuries of TDB from J2000
-	 * @return latitude [rad]
-	 */
-	public double latitudeOfDate(final double t){
-		return latitudeOfDate(t, arguments(t));
-	}
-
-	/**
-	 * Geocentric distance of the Moon.
-	 *
-	 * @param t Julian centuries of TDB from J2000
-	 * @return distance [km]
-	 */
-	public double distance(final double t){
-		return distance(t, arguments(t));
 	}
 
 
