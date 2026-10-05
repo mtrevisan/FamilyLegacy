@@ -211,9 +211,6 @@ public final class MultiLifespanStripPanel extends JPanel{
 	 * @param model the FLEF model (must not be {@code null})
 	 */
 	public MultiLifespanStripPanel(final FLEFModel model){
-		if(model == null)
-			throw new IllegalArgumentException("Model must not be null");
-
 		this.model = model;
 		this.eventIndex = EventIndex.build(model);
 		this.attributeIndex = new TemporalAttributeIndex(model, null);

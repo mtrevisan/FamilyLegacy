@@ -146,7 +146,7 @@ public class PreferredImagePanel extends JPanel{
 		if(preferredImage == null)
 			return;
 
-		final boolean isIndividual = IndividualAttributeHandler.TYPE.equals(record.getTag());
+		final boolean isIndividual = IndividualAttributeHandler.TYPE.equalsIgnoreCase(record.getTag());
 		uri = (isIndividual? IndividualReader.extractPreferredImageUri(record): GroupReader.extractPreferredImageUri(record));
 		cropRect = (isIndividual? IndividualReader.extractPreferredImageCrop(record): GroupReader.extractPreferredImageCrop(record));
 

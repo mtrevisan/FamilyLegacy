@@ -151,9 +151,7 @@ public class GEDCOMToFLEFConverter {
 		// ---- 4. Second pass: resolve family links ----
 		familyConverter.resolveLinks();
 
-		listener.onProgress(85, "Building model…");
-
-		// ---- 6. Add all records to the model ----
+		// ---- 5. Add all records to the model ----
 		individualMap.values().forEach(model::addRecord);
 		familyMap.values().forEach(model::addRecord);
 		sourceMap.values().forEach(model::addRecord);
@@ -161,9 +159,11 @@ public class GEDCOMToFLEFConverter {
 		multimediaMap.values().forEach(model::addRecord);
 		// Submitters are not added as top‑level records; they are included in the header.
 
-		listener.onProgress(95, "Inlining notes…");
+		listener.onProgress(85, "Inlining notes…");
 
 		inlineNotes(model, noteMap);
+
+		listener.onProgress(95, "Building model…");
 
 		listener.onProgress(100, "Done");
 

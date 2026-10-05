@@ -111,8 +111,6 @@ public class GroupDossierPanel extends JPanel{
 
 
 	public GroupDossierPanel(final FLEFModel model){
-		if(model == null)
-			throw new IllegalArgumentException("Model must not be null");
 		this.model = model;
 		this.service = new GroupDossierService(model);
 

@@ -1,38 +1,20 @@
-/**
- * Copyright (c) 2026 Mauro Trevisan
- * <p>
- * Permission is hereby granted, free of charge, to any person
- * obtaining a copy of this software and associated documentation
- * files (the "Software"), to deal in the Software without
- * restriction, including without limitation the rights to use,
- * copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following
- * conditions:
- * <p>
- * The above copyright notice and this permission notice shall be
- * included in all copies or substantial portions of the Software.
- * <p>
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
- * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
- * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
- * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- * OTHER DEALINGS IN THE SOFTWARE.
- */
 package io.github.mtrevisan.familylegacy.ui.components.projections.agora;
 
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.DateNormalizer;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.TemporalSpan;
 import io.github.mtrevisan.familylegacy.ui.components.projections.chronomap.ChronomapIndex;
 import io.github.mtrevisan.familylegacy.ui.components.projections.chronomap.ChronomapIndex.GeoAnchor;
 import io.github.mtrevisan.familylegacy.ui.components.projections.chronomap.ChronomapIndex.GeoCoordinate;
 import io.github.mtrevisan.familylegacy.ui.components.projections.chronomap.ChronomapOverlayPainter;
 import io.github.mtrevisan.familylegacy.ui.components.projections.chronomap.ChronomapTimeline;
 import io.github.mtrevisan.familylegacy.ui.components.projections.chronomap.PlaceCoordinateResolver;
+import io.github.mtrevisan.familylegacy.ui.handlers.EventParticipationHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import io.github.mtrevisan.familylegacy.ui.tools.events.CalendarConverterDialog;
@@ -75,34 +57,15 @@ import java.util.regex.Pattern;
 /**
  * "Agorà" view.
  * <p>
- * Shows who was alive on a specific date and where they were, using the
- * same anchor model as the chronomap: events are zero-duration anchors,
- * attributes with {@code valid_from} / {@code valid_to} are anchors with
- * a real duration. The location of each person is the interpolated
- * position between the anchors around the chosen date.
- * <p>
- * A person is considered alive when:
- * <ul>
- *   <li>their earliest anchor (or their birth, when present) is not
- *       after the chosen date;</li>
- *   <li>no death anchor is on or before the chosen date;</li>
- *   <li>the chosen date is not more than 110 years after their birth
- *       (or after their first anchor, when no birth is recorded).</li>
- * </ul>
- * The 110-year cap is a genealogical heuristic: without a death record,
- * we assume the person is no longer alive once they would be older than
- * a plausible human lifespan.
- * <p>
- * The panel does not touch the model. It reuses the {@link ChronomapIndex}
- * shared by the chronomap and its {@link PlaceCoordinateResolver}.
+ * Displays a population census of all individuals alive on a specific date.
+ * If spatial coordinates are available via {@link ChronomapIndex}, the table
+ * shows the interpolated location and reason; otherwise, the person is still
+ * listed with their known state or as unlocated.
  */
 public final class AgoraPanel extends JPanel{
 
-	/** Hard cap on human lifespan, used when no death record exists. */
 	private static final int MAX_PLAUSIBLE_AGE_YEARS = 110;
-	/** Days per Gregorian year, used for the age computation. */
 	private static final double DAYS_PER_YEAR = 365.2425;
-	/** Debounce for the table rebuild, in milliseconds. */
 	private static final int REFRESH_DEBOUNCE_MS = 80;
 
 	private static final Color HEADER_BACKGROUND = new Color(240, 236, 228);
@@ -115,25 +78,9 @@ public final class AgoraPanel extends JPanel{
 		"Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
 	};
 
-
-	/**
-	 * A single row of the Agora table: one individual alive at the
-	 * chosen date, with the interpolated location and the reason that
-	 * justifies that location.
-	 *
-	 * @param id        the individual id
-	 * @param name      the display name
-	 * @param place     the place name, or a movement description
-	 * @param latitude  the interpolated latitude
-	 * @param longitude the interpolated longitude
-	 * @param reason    a short description of the anchor that drives the
-	 *                  location (e.g. {@code "residence"}, {@code "birth"},
-	 *                  {@code "in transit"})
-	 * @param age       the age in years at the chosen date, or {@code null}
-	 */
 	public record AgoraRow(String id, String name, String place, double latitude, double longitude,
-		String reason, Integer age){}
-
+								  String reason, Integer age){
+	}
 
 	private final FLEFModel model;
 	private final ChronomapIndex index;
@@ -153,16 +100,7 @@ public final class AgoraPanel extends JPanel{
 
 	private Consumer<String> selectionCallback;
 
-
-	/**
-	 * Constructor.
-	 *
-	 * @param model the FLEF model
-	 * @param index the shared chronomap index, built on the same model
-	 */
 	public AgoraPanel(final FLEFModel model, final ChronomapIndex index){
-		if(model == null)
-			throw new IllegalArgumentException("Model must not be null");
 		if(index == null)
 			throw new IllegalArgumentException("ChronomapIndex must not be null");
 
@@ -178,8 +116,6 @@ public final class AgoraPanel extends JPanel{
 		final long[] range = index.computeGlobalDateRange();
 		if(range != null && range[0] < range[1]){
 			timeline.setDomain(range[0], range[1]);
-			// Default position: the midpoint of the range, which is more
-			// likely to show a populated Agora than either extreme.
 			final long mid = range[0] + (range[1] - range[0]) / 2;
 			timeline.setCurrentTime(mid);
 			currentTime = mid;
@@ -191,27 +127,11 @@ public final class AgoraPanel extends JPanel{
 		}
 	}
 
-
-	/* ======================================================================
-	 *                          Public API
-	 * ====================================================================== */
-
-	/**
-	 * Sets the population to consider. Only these ids are scanned when
-	 * the date changes; the rest of the model is ignored.
-	 *
-	 * @param ids the individual ids; may be {@code null}
-	 */
 	public void setIndividuals(final Collection<String> ids){
-		this.currentIds = (ids != null? List.copyOf(ids): List.of());
+		this.currentIds = (ids != null ? List.copyOf(ids) : List.of());
 		refresh();
 	}
 
-	/**
-	 * Moves the Agora to the given date.
-	 *
-	 * @param jdn the date, as a Julian Day Number
-	 */
 	public void setDate(final double jdn){
 		timeline.setCurrentTime(jdn);
 		currentTime = timeline.getCurrentTime();
@@ -219,21 +139,9 @@ public final class AgoraPanel extends JPanel{
 		refreshTimer.restart();
 	}
 
-	/**
-	 * Registers a callback invoked when the user double-clicks a row.
-	 * The callback receives the individual id, so the enclosing frame
-	 * can open the dossier or re-root a projection.
-	 *
-	 * @param callback the callback; may be {@code null}
-	 */
 	public void withSelectionCallback(final Consumer<String> callback){
 		this.selectionCallback = callback;
 	}
-
-
-	/* ======================================================================
-	 *                          UI
-	 * ====================================================================== */
 
 	private void buildUI(){
 		setLayout(new BorderLayout());
@@ -273,12 +181,14 @@ public final class AgoraPanel extends JPanel{
 			public void mouseClicked(final MouseEvent e){
 				if(e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e)){
 					final int viewRow = table.getSelectedRow();
-					if(viewRow < 0)
+					if(viewRow < 0){
 						return;
+					}
 					final int modelRow = table.convertRowIndexToModel(viewRow);
 					final AgoraRow row = tableModel.getRow(modelRow);
-					if(row != null && selectionCallback != null)
+					if(row != null && selectionCallback != null){
 						selectionCallback.accept(row.id());
+					}
 				}
 			}
 		});
@@ -316,16 +226,13 @@ public final class AgoraPanel extends JPanel{
 
 	private void applyFilter(){
 		final String text = searchField.getText();
-		if(text == null || text.isBlank())
+		if(text == null || text.isBlank()){
 			sorter.setRowFilter(null);
-		else
+		}
+		else{
 			sorter.setRowFilter(RowFilter.regexFilter("(?i)" + Pattern.quote(text.trim())));
+		}
 	}
-
-
-	/* ======================================================================
-	 *                          Data
-	 * ====================================================================== */
 
 	private void refresh(){
 		final List<AgoraRow> rows = new ArrayList<>();
@@ -333,141 +240,176 @@ public final class AgoraPanel extends JPanel{
 
 		for(final String id : currentIds){
 			final List<GeoAnchor> anchors = index.anchorsOf(id);
-			if(anchors.isEmpty())
-				continue;
-
 			final AgoraRow row = evaluate(id, anchors, t);
-			if(row != null)
+			if(row != null){
 				rows.add(row);
+			}
 		}
 
 		rows.sort(Comparator.comparing(AgoraRow::name, String.CASE_INSENSITIVE_ORDER));
 		tableModel.setRows(rows);
-		countLabel.setText(rows.size() + (rows.size() == 1? " person alive": " people alive"));
+		countLabel.setText(rows.size() + (rows.size() == 1 ? " person alive" : " people alive"));
 	}
 
-	/**
-	 * Decides whether the given individual was alive at time {@code t}
-	 * and, if so, builds the corresponding row. Returns {@code null}
-	 * when the person should not appear in the Agora.
-	 */
 	private AgoraRow evaluate(final String id, final List<GeoAnchor> anchors, final long t){
-		GeoAnchor birth = null;
-		GeoAnchor death = null;
-		long firstAnchorJdn = Long.MAX_VALUE;
-		for(final GeoAnchor a : anchors){
-			if(a.startJdn() != Long.MIN_VALUE && a.startJdn() < firstAnchorJdn)
-				firstAnchorJdn = a.startJdn();
-			if("event:birth".equals(a.kind()) && (birth == null || a.startJdn() < birth.startJdn()))
-				birth = a;
-			if("event:death".equals(a.kind()) && (death == null || a.startJdn() < death.startJdn()))
-				death = a;
+		Long bornJdn = getBirthJdn(id, anchors);
+		Long deathJdn = getDeathJdn(id, anchors);
+
+		if(bornJdn == null && !anchors.isEmpty()){
+			long firstAnchor = Long.MAX_VALUE;
+			for(final GeoAnchor a : anchors)
+				if(a.startJdn() != Long.MIN_VALUE && a.startJdn() < firstAnchor)
+					firstAnchor = a.startJdn();
+			if(firstAnchor != Long.MAX_VALUE)
+				bornJdn = firstAnchor;
 		}
 
-		// Lower bound: the person must be born (or have an anchor) on or
-		// before the chosen date.
-		final long bornJdn = (birth != null? birth.startJdn(): firstAnchorJdn);
-		if(bornJdn == Long.MAX_VALUE || bornJdn > t)
+		if(bornJdn == null || bornJdn > t)
 			return null;
 
-		// Upper bound: a recorded death ends the interval.
-		if(death != null && death.startJdn() <= t)
+		if(deathJdn != null && deathJdn <= t)
 			return null;
 
-		// Plausibility cap: without a death record, stop once the person
-		// would be older than a plausible human lifespan.
 		final long maxAgeJdn = bornJdn + (long)(MAX_PLAUSIBLE_AGE_YEARS * DAYS_PER_YEAR);
-		if(t > maxAgeJdn)
+		if(t > maxAgeJdn){
 			return null;
+		}
 
-		// Position: interpolated between the anchors around t.
-		final GeoCoordinate pos = ChronomapOverlayPainter.interpolate(anchors, t);
-		if(pos == null)
-			return null;
+		// Retrieve interpolated position state and extract coordinate
+		final ChronomapOverlayPainter.InterpolatedPosition state = ChronomapOverlayPainter.interpolatePosition(null, anchors, t);
+		final GeoCoordinate pos = (state != null ? state.coordinate() : null);
+		final double lat = (pos != null ? pos.latitude() : Double.NaN);
+		final double lon = (pos != null ? pos.longitude() : Double.NaN);
 
-		// Reason and place:
-		//   1. if t falls exactly on an event, that event is the reason;
-		//   2. otherwise, if t is inside an attribute interval, the attribute
-		//      is the reason;
-		//   3. otherwise, the most recent anchor before t is the reason,
-		//      prefixed by its distance ("since 1832", "last: birth 1800").
 		String reason = StringUtils.EMPTY;
 		String place = StringUtils.EMPTY;
 
-		// 1. Exact event match.
-		for(final GeoAnchor a : anchors)
-			if(a.startJdn() == a.endJdn() && a.startJdn() == t){
-				reason = describeKind(a.kind());
-				place = (a.placeName() != null? a.placeName(): StringUtils.EMPTY);
-				break;
-			}
-
-// 2. Inside an attribute interval.
-		if(reason.isEmpty())
-			for(final GeoAnchor a : anchors)
-				if(a.startJdn() < a.endJdn() && t >= a.startJdn() && t <= a.endJdn()){
+		if(!anchors.isEmpty()){
+			for(final GeoAnchor a : anchors){
+				if(a.startJdn() == a.endJdn() && a.startJdn() == t){
 					reason = describeKind(a.kind());
-					place = (a.placeName() != null? a.placeName(): StringUtils.EMPTY);
+					place = (a.placeName() != null ? a.placeName() : StringUtils.EMPTY);
+
 					break;
 				}
-
-// 3. Last anchor before t: the "last known state" of the person.
-		if(reason.isEmpty()){
-			GeoAnchor last = null;
-			for(final GeoAnchor a : anchors)
-				if(a.startJdn() <= t && (last == null || a.startJdn() > last.startJdn()))
-					last = a;
-
-			if(last != null){
-				final String kind = describeKind(last.kind());
-				reason = "last: " + kind;
-				place = (last.placeName() != null? last.placeName(): StringUtils.EMPTY);
 			}
-			else{
-				reason = "in transit";
-				place = "between " + describeGap(anchors, t);
+
+			if(reason.isEmpty())
+				for(final GeoAnchor a : anchors)
+					if(a.startJdn() < a.endJdn() && t >= a.startJdn() && t <= a.endJdn()){
+						reason = describeKind(a.kind());
+						place = (a.placeName() != null ? a.placeName() : StringUtils.EMPTY);
+
+						break;
+					}
+
+			if(reason.isEmpty()){
+				GeoAnchor last = null;
+				for(final GeoAnchor a : anchors)
+					if(a.startJdn() <= t && (last == null || a.startJdn() > last.startJdn()))
+						last = a;
+
+				if(last != null){
+					reason = "last: " + describeKind(last.kind());
+					place = (last.placeName() != null ? last.placeName() : StringUtils.EMPTY);
+				}
+				else{
+					reason = "in transit";
+					place = "between " + describeGap(anchors, t);
+				}
 			}
 		}
+		else{
+			reason = "alive";
+			place = "unknown";
+		}
 
-		final Integer age = (birth != null
-			? (int)Math.floor((t - birth.startJdn()) / DAYS_PER_YEAR)
-			: null);
-		if(age != null && age < 0)
+		final Integer age = (int)Math.floor((t - bornJdn) / DAYS_PER_YEAR);
+		if(age < 0)
 			return null;
 
-		return new AgoraRow(id, resolveName(id), place, pos.latitude(), pos.longitude(), reason, age);
+		return new AgoraRow(id, resolveName(id), place, lat, lon, reason, age);
+	}
+
+	private Long getBirthJdn(final String id, final List<GeoAnchor> anchors){
+		for(final GeoAnchor a : anchors)
+			if("event:birth".equals(a.kind()))
+				return a.startJdn();
+		return extractEventJdn(id, "birth");
+	}
+
+	private Long getDeathJdn(final String id, final List<GeoAnchor> anchors){
+		for(final GeoAnchor a : anchors){
+			if("event:death".equals(a.kind())){
+				return a.startJdn();
+			}
+		}
+		return extractEventJdn(id, "death");
+	}
+
+	private Long extractEventJdn(final String individualId, final String targetEventType){
+		final List<FLEFRecord> eventParticipations = model.getRecordsByType(EventParticipationHandler.TYPE);
+		for(final FLEFRecord ep : eventParticipations){
+			final FLEFRecord participantRef = FLEFRecordHelper.findChild(ep, EventParticipationReader.TAG_PARTICIPANT);
+			if(participantRef != null && participantRef.getTheOnlyChild() != null){
+				if(individualId.equals(participantRef.getTheOnlyChild().getValue())){
+					final String eventId = FLEFRecordHelper.getChildValue(ep, EventParticipationReader.TAG_EVENT);
+					if(eventId != null){
+						final FLEFRecord event = model.getRecordById(eventId);
+						if(event != null){
+							final String type = FLEFRecordHelper.getChildValue(event, EventReader.TAG_TYPE);
+							if(targetEventType.equalsIgnoreCase(type)){
+								final FLEFRecord dateStruct = FLEFRecordHelper.findChild(event, EventReader.TAG_DATE);
+								if(dateStruct != null){
+									final TemporalSpan span = DateNormalizer.normalize(dateStruct);
+									if(span != null && span.start() != null){
+										return span.start().jdn();
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		return null;
 	}
 
 	private static String describeGap(final List<GeoAnchor> anchors, final long t){
 		GeoAnchor before = null;
 		GeoAnchor after = null;
 		for(final GeoAnchor a : anchors){
-			if(a.endJdn() < t && (before == null || a.endJdn() > before.endJdn()))
+			if(a.endJdn() < t && (before == null || a.endJdn() > before.endJdn())){
 				before = a;
-			if(a.startJdn() > t && (after == null || a.startJdn() < after.startJdn()))
+			}
+			if(a.startJdn() > t && (after == null || a.startJdn() < after.startJdn())){
 				after = a;
+			}
 		}
-		final String b = (before != null && before.placeName() != null? before.placeName(): "?");
-		final String a = (after != null && after.placeName() != null? after.placeName(): "?");
+		final String b = (before != null && before.placeName() != null ? before.placeName() : "?");
+		final String a = (after != null && after.placeName() != null ? after.placeName() : "?");
 		return b + " and " + a;
 	}
 
 	private static String describeKind(final String kind){
-		if(kind.startsWith("event:"))
+		if(kind.startsWith("event:")){
 			return kind.substring("event:".length());
-		if(kind.startsWith("attribute:"))
+		}
+		if(kind.startsWith("attribute:")){
 			return kind.substring("attribute:".length());
+		}
 		return kind;
 	}
 
 	private String resolveName(final String id){
 		final FLEFRecord record = model.getRecordById(id);
-		if(record == null)
+		if(record == null){
 			return id;
+		}
 
 		try{
 			final String text = IndividualHandler.getInstance().getDisplayText(record, model);
-			return (text != null && !text.isBlank()? text: id);
+			return (text != null && !text.isBlank() ? text : id);
 		}
 		catch(final RuntimeException ignored){
 			return id;
@@ -479,17 +421,11 @@ public final class AgoraPanel extends JPanel{
 		return ymd[2] + StringUtils.SPACE + MONTH_NAMES[ymd[1] - 1] + StringUtils.SPACE + ymd[0];
 	}
 
-
-	/* ======================================================================
-	 *                          Table model
-	 * ====================================================================== */
-
 	private static final class AgoraTableModel extends AbstractTableModel{
 
 		private static final String[] COLUMNS = {"Name", "Place", "Reason", "Age"};
 
 		private List<AgoraRow> rows = List.of();
-
 
 		void setRows(final List<AgoraRow> rows){
 			this.rows = List.copyOf(rows);
@@ -497,7 +433,7 @@ public final class AgoraPanel extends JPanel{
 		}
 
 		AgoraRow getRow(final int index){
-			return (index >= 0 && index < rows.size()? rows.get(index): null);
+			return (index >= 0 && index < rows.size() ? rows.get(index) : null);
 		}
 
 		@Override
@@ -517,7 +453,7 @@ public final class AgoraPanel extends JPanel{
 
 		@Override
 		public Class<?> getColumnClass(final int columnIndex){
-			return (columnIndex == 3? Integer.class: String.class);
+			return (columnIndex == 3 ? Integer.class : String.class);
 		}
 
 		@Override
@@ -531,12 +467,9 @@ public final class AgoraPanel extends JPanel{
 				default -> null;
 			};
 		}
+
 	}
 
-
-	/* ======================================================================
-	 *                          Bootstrap
-	 * ====================================================================== */
 
 	public static void main(final String[] args) throws IOException{
 		try{
@@ -549,10 +482,10 @@ public final class AgoraPanel extends JPanel{
 		try(final InputStream is = AgoraPanel.class.getResourceAsStream("/tests/TGMZ.flef")){
 			content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
 		}
-		final FLEFModel model = new FLEFParser().parse(content);
+		final FLEFModel model = new FLEFParser()
+			.parse(content);
 
-		final Path cacheFile = Path.of(System.getProperty("user.home"),
-			".familylegacy", "geocoding.properties");
+		final Path cacheFile = Path.of(System.getProperty("user.home"), ".familylegacy", "geocoding.properties");
 		final PlaceCoordinateResolver resolver = new PlaceCoordinateResolver(model, cacheFile);
 		final ChronomapIndex index = new ChronomapIndex(model, resolver);
 

@@ -132,7 +132,7 @@ public final class PartnersData{
 //			if(eventId == null)
 //				continue;
 //			final FLEFRecord event = model.getRecordById(eventId);
-//			if(event != null && EventHandler.TYPE.equals(event.getTag())){
+//			if(event != null && EventHandler.TYPE.equalsIgnoreCase(event.getTag())){
 //				final String type = FLEFRecordHelper.getChildValue(event, TAG_TYPE);
 //				if(EVENT_TYPE_MARRIAGE.equals(type))
 //					childToMarriageEventMap.put(childId, event);

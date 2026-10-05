@@ -1,27 +1,3 @@
-/**
- * Copyright (c) 2026 Mauro Trevisan
- * <p>
- * Permission is hereby granted, free of charge, to any person
- * obtaining a copy of this software and associated documentation
- * files (the "Software"), to deal in the Software without
- * restriction, including without limitation the rights to use,
- * copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following
- * conditions:
- * <p>
- * The above copyright notice and this permission notice shall be
- * included in all copies or substantial portions of the Software.
- * <p>
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
- * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
- * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
- * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- * OTHER DEALINGS IN THE SOFTWARE.
- */
 package io.github.mtrevisan.familylegacy.ui.components.projections.chronomap;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
@@ -31,9 +7,12 @@ import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import org.jxmapviewer.JXMapViewer;
 import org.jxmapviewer.viewer.GeoPosition;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.FontMetrics;
+import java.awt.GradientPaint;
 import java.awt.Graphics2D;
+import java.awt.Polygon;
 import java.awt.RenderingHints;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Point2D;
@@ -43,19 +22,7 @@ import java.util.Set;
 
 
 /**
- * Marker layer.
- * <p>
- * For every visible owner, the painter interpolates the position between
- * the anchors around the current time. An anchor is a position valid
- * over an interval: an event is an anchor of zero duration, an attribute
- * with {@code valid_from} / {@code valid_to} is an anchor with a real
- * duration. While the current time is inside an attribute, the marker
- * stays still at that position; between two anchors, the marker moves
- * along a great-circle arc.
- * <p>
- * Events can be filtered by type: when a filter is set, only the event
- * anchors whose type is in the filter contribute to the interpolation
- * and are drawn. Attributes are never filtered.
+ * Marker layer with uncertainty circles and dynamic directional indicators during transit.
  */
 public final class ChronomapOverlayPainter implements ChronomapLayer{
 
@@ -71,7 +38,16 @@ public final class ChronomapOverlayPainter implements ChronomapLayer{
 	private double currentTime;
 	private Set<String> enabledEventTypes;
 	private boolean visible = true;
+	private boolean showUncertainty = true;
 
+	public record InterpolatedPosition(
+		GeoCoordinate coordinate,
+		GeoCoordinate fromCoordinate,
+		GeoCoordinate toCoordinate,
+		Double screenHeading,
+		boolean isMoving
+	){
+	}
 
 	public ChronomapOverlayPainter(final FLEFModel model, final ChronomapIndex index){
 		this.model = model;
@@ -80,17 +56,21 @@ public final class ChronomapOverlayPainter implements ChronomapLayer{
 
 	public void setVisibleIndividuals(final List<String> ids){
 		visibleIds.clear();
-		if(ids != null)
+		if(ids != null){
 			visibleIds.addAll(ids);
+		}
 	}
 
 	public void setCurrentTime(final double jdn){
 		this.currentTime = jdn;
 	}
 
-	/** {@code null} means "all event types enabled". */
 	public void setEnabledEventTypes(final Set<String> types){
-		this.enabledEventTypes = (types != null? Set.copyOf(types): null);
+		this.enabledEventTypes = (types != null ? Set.copyOf(types) : null);
+	}
+
+	public void setShowUncertainty(final boolean showUncertainty){
+		this.showUncertainty = showUncertainty;
 	}
 
 	public List<String> getVisibleIndividuals(){
@@ -112,7 +92,6 @@ public final class ChronomapOverlayPainter implements ChronomapLayer{
 		this.visible = visible;
 	}
 
-
 	@Override
 	public void paint(final Graphics2D g, final JXMapViewer map, final int w, final int h){
 		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -122,38 +101,197 @@ public final class ChronomapOverlayPainter implements ChronomapLayer{
 			if(anchors.isEmpty())
 				continue;
 
-			final GeoCoordinate pos = interpolate(anchors, currentTime);
-			if(pos == null)
+			final InterpolatedPosition state = interpolatePosition(map, anchors, currentTime);
+			if(state == null)
 				continue;
 
-			final Point2D p = map.convertGeoPositionToPoint(
-				new GeoPosition(pos.latitude(), pos.longitude()));
-			drawMarker(g, (int)p.getX(), (int)p.getY(), colorFor(id), labelFor(id));
+			final GeoCoordinate pos = state.coordinate();
+			final Point2D p = map.convertGeoPositionToPoint(new GeoPosition(pos.latitude(), pos.longitude()));
+
+			if(showUncertainty && pos.uncertainty() > 0.0)
+				drawUncertaintyCircle(g, map, pos, p);
+
+			if(state.isMoving()){
+				// 1. Draw opacified orthodromic route from origin to destination
+				drawGreatCircleRoute(g, map, state.fromCoordinate(), state.toCoordinate(), colorFor(id));
+
+				// 2. Draw elongated ellipse marker rotated along 2D screen direction
+				drawMovingMarker(g, (int)p.getX(), (int)p.getY(), state.screenHeading(), colorFor(id), labelFor(id));
+			}
+			else
+				drawMarker(g, (int)p.getX(), (int)p.getY(), colorFor(id), labelFor(id));
 		}
 	}
 
-	private List<GeoAnchor> filter(final List<GeoAnchor> anchors){
-		if(enabledEventTypes == null)
-			return anchors;
+	public static InterpolatedPosition interpolatePosition(final JXMapViewer map, final List<GeoAnchor> anchors, final double time){
+		if(anchors.isEmpty())
+			return null;
 
-		final List<GeoAnchor> result = new ArrayList<>(anchors.size());
+		// 1. Exact event match
 		for(final GeoAnchor a : anchors)
-			if(isEventEnabled(a))
-				result.add(a);
-		return result;
+			if(a.startJdn() == a.endJdn() && a.startJdn() == time)
+				return new InterpolatedPosition(a.position(), null, null, null, false);
+
+		// 2. Inside an attribute interval
+		for(final GeoAnchor a : anchors)
+			if(time >= a.startJdn() && time <= a.endJdn())
+				return new InterpolatedPosition(a.position(), null, null, null, false);
+
+		// 3. Transit between anchors
+		GeoAnchor before = null;
+		GeoAnchor after = null;
+		for(final GeoAnchor a : anchors){
+			if(a.endJdn() < time && (before == null || a.endJdn() > before.endJdn())){
+				before = a;
+			}
+			if(a.startJdn() > time && (after == null || a.startJdn() < after.startJdn())){
+				after = a;
+			}
+		}
+
+		if(before == null || after == null){
+			return null;
+		}
+
+		final long gapStart = before.endJdn();
+		final long gapEnd = after.startJdn();
+		if(gapEnd <= gapStart){
+			return new InterpolatedPosition(before.position(), null, null, null, false);
+		}
+
+		double t = (time - gapStart) / (double)(gapEnd - gapStart);
+		t = Math.clamp(t, 0., 1.);
+
+		final GeoCoordinate p1 = before.position();
+		final GeoCoordinate p2 = after.position();
+		if(p1.latitude() == p2.latitude() && p1.longitude() == p2.longitude()){
+			return new InterpolatedPosition(p1, null, null, null, false);
+		}
+
+		final double[] latLon = slerp(p1.latitude(), p1.longitude(), p2.latitude(), p2.longitude(), t);
+		final int uncert = (int)Math.ceil(interpolate(p1.uncertainty(), p2.uncertainty(), t));
+		final GeoCoordinate currentCoord = new GeoCoordinate(latLon[0], latLon[1], uncert);
+
+		// Calculate 2D screen space heading angle
+		Double screenHeading = null;
+		if(map != null){
+			final double deltaT = 0.005;
+			final double tNext = Math.min(1.0, t + deltaT);
+			final double[] latLonNext = slerp(p1.latitude(), p1.longitude(), p2.latitude(), p2.longitude(), tNext);
+
+			final Point2D pCurrentScreen = map.convertGeoPositionToPoint(new GeoPosition(latLon[0], latLon[1]));
+			final Point2D pNextScreen = map.convertGeoPositionToPoint(new GeoPosition(latLonNext[0], latLonNext[1]));
+
+			final double dx = pNextScreen.getX() - pCurrentScreen.getX();
+			final double dy = pNextScreen.getY() - pCurrentScreen.getY();
+			screenHeading = Math.toDegrees(Math.atan2(dy, dx));
+		}
+
+		return new InterpolatedPosition(currentCoord, p1, p2, screenHeading, true);
 	}
 
-	private boolean isEventEnabled(final GeoAnchor a){
-		if(enabledEventTypes == null)
-			return true;
+	private static void drawUncertaintyCircle(final Graphics2D g, final JXMapViewer map,
+			final GeoCoordinate pos, final Point2D center){
+		final double metersPerPixel = getMetersPerPixel(pos.latitude(), map.getZoom());
+		final int pixelRadius = (int)Math.round(pos.uncertainty() / metersPerPixel);
 
-		final String kind = a.kind();
-		if(!kind.startsWith("event:"))
-			return true;
+		if(pixelRadius < 1){
+			return;
+		}
 
-		return enabledEventTypes.contains(kind.substring("event:".length()));
+		final int x = (int)center.getX() - pixelRadius;
+		final int y = (int)center.getY() - pixelRadius;
+		final int diameter = pixelRadius * 2;
+
+		g.setColor(new Color(255, 165, 0, 35));
+		g.fillOval(x, y, diameter, diameter);
+
+		g.setColor(new Color(230, 120, 0, 160));
+		g.setStroke(new BasicStroke(1.2f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND, 10.0f, new float[]{4.0f, 4.0f}, 0.0f));
+		g.drawOval(x, y, diameter, diameter);
+		g.setStroke(new BasicStroke(1.0f));
 	}
 
+	private static double getMetersPerPixel(final double latitude, final int zoomLevel){
+		final double earthCircumferenceMeters = 40_075_016.686;
+		return (earthCircumferenceMeters * Math.cos(Math.toRadians(latitude))) / (256.0 * Math.pow(2, zoomLevel));
+	}
+
+	private void drawGreatCircleRoute(final Graphics2D g, final JXMapViewer map,
+			final GeoCoordinate p1, final GeoCoordinate p2, final Color color){
+		final Graphics2D g2 = (Graphics2D)g.create();
+		g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+		g2.setColor(new Color(color.getRed(), color.getGreen(), color.getBlue(), 90));
+		g2.setStroke(new BasicStroke(1.5f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND, 10.0f, new float[]{5.0f, 5.0f}, 0.0f));
+
+		final int steps = 30;
+		Point2D prevPoint = null;
+		for(int i = 0; i <= steps; i++){
+			final double t = i / (double)steps;
+			final double[] latLon = slerp(p1.latitude(), p1.longitude(), p2.latitude(), p2.longitude(), t);
+			final Point2D currentPoint = map.convertGeoPositionToPoint(new GeoPosition(latLon[0], latLon[1]));
+
+			if(prevPoint != null){
+				g2.drawLine((int)prevPoint.getX(), (int)prevPoint.getY(), (int)currentPoint.getX(), (int)currentPoint.getY());
+			}
+			prevPoint = currentPoint;
+		}
+
+		g2.dispose();
+	}
+
+	private void drawMovingMarker(final Graphics2D g, final int x, final int y,
+		final Double screenHeading, final Color color, final String label){
+		final Graphics2D g2 = (Graphics2D)g.create();
+		g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+		g2.translate(x, y);
+		if(screenHeading != null){
+			// Align coordinate frame: +X points in direction of motion
+			g2.rotate(Math.toRadians(screenHeading));
+		}
+
+		// 1. Motion trail behind marker (-X axis)
+		final int trailLength = MARKER_RADIUS * 4;
+		final GradientPaint trailGradient = new GradientPaint(
+			0, 0, new Color(color.getRed(), color.getGreen(), color.getBlue(), 140),
+			-trailLength, 0, new Color(color.getRed(), color.getGreen(), color.getBlue(), 0)
+		);
+		g2.setPaint(trailGradient);
+		final Polygon trail = new Polygon();
+		trail.addPoint(0, -MARKER_RADIUS + 2);
+		trail.addPoint(0, MARKER_RADIUS - 2);
+		trail.addPoint(-trailLength, 0);
+		g2.fill(trail);
+
+		// 2. Elongated ellipse: major diameter along trajectory (X axis)
+		final int height = MARKER_RADIUS * 2 - 2;  // Transverse diameter (Y axis)
+		final int width = MARKER_RADIUS * 3 + 2;   // Trajectory diameter (X axis)
+		final Ellipse2D.Double ellipse = new Ellipse2D.Double(-width / 2.0, -height / 2.0, width, height);
+
+		g2.setColor(color);
+		g2.fill(ellipse);
+
+		// 3. Dashed border
+		g2.setColor(MARKER_BORDER);
+		g2.setStroke(new BasicStroke(1.2f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10.0f, new float[]{3.0f, 3.0f}, 0.0f));
+		g2.draw(ellipse);
+
+		g2.dispose();
+
+		// 4. Unrotated label text
+		if(label != null && !label.isEmpty()){
+			g.setFont(g.getFont().deriveFont(11f));
+			final FontMetrics fm = g.getFontMetrics();
+			final int tx = x + MARKER_RADIUS + 4;
+			final int ty = y + fm.getAscent() / 2 - 1;
+			g.setColor(LABEL_SHADOW);
+			g.drawString(label, tx + 1, ty + 1);
+			g.setColor(LABEL_COLOR);
+			g.drawString(label, tx, ty);
+		}
+	}
 
 	private void drawMarker(final Graphics2D g, final int x, final int y, final Color color, final String label){
 		g.setColor(new Color(color.getRed(), color.getGreen(), color.getBlue(), 70));
@@ -179,67 +317,31 @@ public final class ChronomapOverlayPainter implements ChronomapLayer{
 		}
 	}
 
-
-	/* ======================================================================
-	 *                          Interpolation
-	 * ====================================================================== */
-
-	/**
-	 * Resolves the position of the marker at the given time.
-	 * <p>
-	 * Resolution order:
-	 * <ol>
-	 *   <li>an event happening exactly at {@code time};</li>
-	 *   <li>an attribute whose validity interval contains {@code time};</li>
-	 *   <li>interpolation along a great-circle arc between the previous
-	 *       and the next anchor;</li>
-	 *   <li>{@code null} when the time is outside the documented range.</li>
-	 * </ol>
-	 * Events take priority over attributes at the same instant.
-	 */
-	public static GeoCoordinate interpolate(final List<GeoAnchor> anchors, final double time){
-		if(anchors.isEmpty())
-			return null;
-
-		// 1. Exact event match.
-		for(final GeoAnchor a : anchors)
-			if(a.startJdn() == a.endJdn() && a.startJdn() == time)
-				return a.position();
-
-		// 2. Inside an attribute interval.
-		for(final GeoAnchor a : anchors)
-			if(time >= a.startJdn() && time <= a.endJdn())
-				return a.position();
-
-		// 3. Closest anchors around the current time.
-		GeoAnchor before = null;
-		GeoAnchor after = null;
-		for(final GeoAnchor a : anchors){
-			if(a.endJdn() < time && (before == null || a.endJdn() > before.endJdn()))
-				before = a;
-			if(a.startJdn() > time && (after == null || a.startJdn() < after.startJdn()))
-				after = a;
+	private List<GeoAnchor> filter(final List<GeoAnchor> anchors){
+		if(enabledEventTypes == null){
+			return anchors;
 		}
 
-		if(before == null || after == null)
-			return null;
+		final List<GeoAnchor> result = new ArrayList<>(anchors.size());
+		for(final GeoAnchor a : anchors){
+			if(isEventEnabled(a)){
+				result.add(a);
+			}
+		}
+		return result;
+	}
 
-		final long gapStart = before.endJdn();
-		final long gapEnd = after.startJdn();
-		if(gapEnd <= gapStart)
-			return before.position();
+	private boolean isEventEnabled(final GeoAnchor a){
+		if(enabledEventTypes == null){
+			return true;
+		}
 
-		double t = (time - gapStart) / (double)(gapEnd - gapStart);
-		t = Math.clamp(t, 0., 1.);
+		final String kind = a.kind();
+		if(!kind.startsWith("event:")){
+			return true;
+		}
 
-		final GeoCoordinate p1 = before.position();
-		final GeoCoordinate p2 = after.position();
-		if(p1.latitude() == p2.latitude() && p1.longitude() == p2.longitude())
-			return p1;
-
-		final double[] latLon = slerp(p1.latitude(), p1.longitude(),
-			p2.latitude(), p2.longitude(), t);
-		return new GeoCoordinate(latLon[0], latLon[1]);
+		return enabledEventTypes.contains(kind.substring("event:".length()));
 	}
 
 	private static double[] slerp(final double lat1, final double lon1,
@@ -257,8 +359,9 @@ public final class ChronomapOverlayPainter implements ChronomapLayer{
 		double dot = x1 * x2 + y1 * y2 + z1 * z2;
 		dot = Math.clamp(dot, -1., 1.);
 		final double omega = Math.acos(dot);
-		if(omega < 1e-9)
+		if(omega < 1e-9){
 			return new double[]{lat1, lon1};
+		}
 
 		final double sinOmega = Math.sin(omega);
 		final double a = Math.sin((1. - t) * omega) / sinOmega;
@@ -272,6 +375,9 @@ public final class ChronomapOverlayPainter implements ChronomapLayer{
 		return new double[]{lat, lon};
 	}
 
+	private static double interpolate(final double x1, final double x2, final double t){
+		return x1 + (x2 - x1) * t;
+	}
 
 	private Color colorFor(final String id){
 		final int h = Math.abs(id.hashCode());

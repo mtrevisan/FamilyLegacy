@@ -35,6 +35,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.Writer;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -46,11 +47,11 @@ import java.util.stream.Collectors;
 public class GEDCOMConverterMain{
 
 	// Usage: java GEDCOMConverterMain <input.ged> <output.flef>
-	public static void main(String[] args) throws IOException{
+	public static void main(String[] args) throws IOException, URISyntaxException{
 		String inputResource = "/tests/TGMZ.ged";
-		String outputPath = "src/main/resources/tests/TGMZ.flef";
+		String outputPath = "Core/src/main/resources/tests/TGMZ.flef";
 //		String inputResource = "/tests/TGC55C.ged";
-//		String outputPath = "src/main/resources/tests/TGC55C.flef";
+//		String outputPath = "Core/src/main/resources/tests/TGC55C.flef";
 
 		String gedcomContent;
 		try(BufferedReader br = GEDCOMHelper.getBufferedReader(GEDCOMConverterMain.class.getResourceAsStream(inputResource))){
@@ -85,8 +86,13 @@ public class GEDCOMConverterMain{
 		System.out.println("Conversion completed. Output written to " + outputFile);
 	}
 
-	private static void validate(FLEFModel model) throws IOException{
-		final Path path = Paths.get("src/main/resources/gedg/flef_0.1.3.gedg");
+	private static void validate(FLEFModel model) throws IOException, URISyntaxException{
+		final Path root = Paths.get(GEDCOMConverterMain.class
+			.getProtectionDomain()
+			.getCodeSource()
+			.getLocation()
+			.toURI());
+		final Path path = root.resolve("gedg/flef_0.1.3.gedg");
 		final FLEFGrammar grammar = FLEFGrammarParser.parse(path);
 		for(final String warning : grammar.getParseWarnings())
 			System.err.println(warning);

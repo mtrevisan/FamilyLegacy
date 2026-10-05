@@ -131,9 +131,6 @@ public class IndividualDossierPanel extends JPanel{
 
 
 	public IndividualDossierPanel(final FLEFModel model){
-		if(model == null)
-			throw new IllegalArgumentException("Model must not be null");
-
 		this.model = model;
 		this.service = new IndividualDossierService(model);
 

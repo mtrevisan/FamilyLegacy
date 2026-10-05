@@ -72,8 +72,6 @@ public final class RelationshipOperationCoordinator{
 	 */
 	public RelationshipOperationCoordinator(final FLEFModel model, final TreeMutator mutator,
 			final String[] allowedTypes){
-		if(model == null)
-			throw new IllegalArgumentException("Model must not be null");
 		if(mutator == null)
 			throw new IllegalArgumentException("Mutator must not be null");
 		if(allowedTypes == null || allowedTypes.length == 0)

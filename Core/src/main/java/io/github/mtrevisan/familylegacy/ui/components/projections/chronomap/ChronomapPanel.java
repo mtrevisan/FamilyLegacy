@@ -1,33 +1,11 @@
-/**
- * Copyright (c) 2026 Mauro Trevisan
- * <p>
- * Permission is hereby granted, free of charge, to any person
- * obtaining a copy of this software and associated documentation
- * files (the "Software"), to deal in the Software without
- * restriction, including without limitation the rights to use,
- * copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following
- * conditions:
- * <p>
- * The above copyright notice and this permission notice shall be
- * included in all copies or substantial portions of the Software.
- * <p>
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
- * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
- * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
- * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- * OTHER DEALINGS IN THE SOFTWARE.
- */
 package io.github.mtrevisan.familylegacy.ui.components.projections.chronomap;
 
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.ui.dialogs.GeocodingProgressDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
+import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import org.jxmapviewer.JXMapViewer;
 import org.jxmapviewer.OSMTileFactoryInfo;
 import org.jxmapviewer.cache.FileBasedLocalCache;
@@ -35,12 +13,15 @@ import org.jxmapviewer.input.PanMouseInputListener;
 import org.jxmapviewer.input.ZoomMouseWheelListenerCursor;
 import org.jxmapviewer.viewer.DefaultTileFactory;
 import org.jxmapviewer.viewer.GeoPosition;
+import org.jxmapviewer.viewer.TileFactoryInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFrame;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.SwingUtilities;
@@ -49,6 +30,7 @@ import javax.swing.UIManager;
 import javax.swing.event.MouseInputListener;
 import java.awt.BorderLayout;
 import java.awt.Image;
+import java.awt.Window;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -65,54 +47,54 @@ import java.util.Set;
 /**
  * Panel that shows a map of the places where the events of the visible
  * individuals happened, filtered by a zoomable timeline.
- * <p>
- * The temporal domain spans the whole FLEF file, from the earliest to the
- * latest recorded date. There is no playback: the user scrubs the
- * timeline manually, and the markers interpolate their position between
- * consecutive events.
- * <p>
- * <b>Layers.</b> The overlay is composed of independent layers, each
- * one toggleable from the "Layers" menu: markers, trails, place
- * hierarchy, image overlays. The manager paints them back-to-front.
- * <p>
- * <b>Event filter.</b> The "Events" menu lists the distinct event types
- * in the model. Disabling a type hides both its marker and its
- * contribution to the trails.
  */
 public class ChronomapPanel extends JPanel{
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ChronomapPanel.class);
 
-
-	/** Initial map center (Italy). */
-	private static final GeoPosition INITIAL_CENTER = new GeoPosition(42.5, 12.5);
-	/** Initial zoom level. */
-	private static final int INITIAL_ZOOM = 4;
-
+	// Global view constants
+	private static final GeoPosition WORLD_CENTER = new GeoPosition(0., 0.);
+	private static final int WORLD_ZOOM = 18;
 
 	private final ChronomapIndex index;
 
 	private final JXMapViewer mapViewer = new JXMapViewer();
 	private final ChronomapTimeline timeline = new ChronomapTimeline();
 
+	private DefaultTileFactory osmTileFactory;
+	private boolean autoSelectMapEnabled = true;
+	private HistoricalMapMetaData activeHistoricalMap = null;
+	/**
+	 * Automatically selects the best matching historical map based on current timeline position and map viewport center.
+	 * Reverts to modern OpenStreetMap if no historical map matches.
+	 */
+	private MapWarperTileOverlayPainter historicalMapOverlay;
+	private final Map<Integer, DefaultTileFactory> mapWarperCache = new LinkedHashMap<>();
+	//https://mapwarper.net/maps/98752
+	private final List<HistoricalMapMetaData> availableHistoricalMaps = List.of(
+		new HistoricalMapMetaData(98752, "Italy 1499", 2268561L, 2268922L,
+			new GeoPosition(47.0925, 6.6261), new GeoPosition(35.49, 18.5194)),
+		new HistoricalMapMetaData(70055, "Italy 1790", 2375208L, 2374845L,
+			new GeoPosition(47.0925, 6.6261), new GeoPosition(35.49, 18.5194)),
+		new HistoricalMapMetaData(50110, "Italy 1811", 2382514L, 2382878L,
+			new GeoPosition(47.0925, 6.6261), new GeoPosition(35.49, 18.5194)),
+		new HistoricalMapMetaData(109358, "Italy 1815", 2383977L, 2384339L,
+			new GeoPosition(47.0925, 6.6261), new GeoPosition(35.49, 18.5194))
+	);
+
 	private final ChronomapLayerManager layerManager = new ChronomapLayerManager();
 	private final ChronomapOverlayPainter markerLayer;
-	private final ChronomapTrailLayer trailLayer;
-	private final ChronomapPlaceHierarchyLayer hierarchyLayer;
 	private final ChronomapImageOverlayLayer imageLayer;
 
-	/** Checkboxes of the "Events" menu, keyed by event type. */
+	private final JCheckBox showUncertaintyCheckBox = new JCheckBox("Show uncertainty", true);
+
 	private final Map<String, JCheckBoxMenuItem> eventTypeItems = new LinkedHashMap<>();
+
+	private record ProgressData(int current, int total, String placeName){}
 
 
 	public static ChronomapPanel create(final FLEFModel model){
-		if(model == null)
-			throw new IllegalArgumentException("Model must not be null");
-
-		// Disk cache for geocoded coordinates, so Nominatim is not queried
-		// again on subsequent runs.
-		final Path cacheFile = Path.of(System.getProperty("user.home"),
-			".familylegacy", "geocoding.properties");
+		final Path cacheFile = Path.of(System.getProperty("user.home"), ".familylegacy", "geocoding.properties");
 		final PlaceCoordinateResolver placeResolver = new PlaceCoordinateResolver(model, cacheFile);
 		final ChronomapIndex index = new ChronomapIndex(model, placeResolver);
 		return create(model, index, placeResolver);
@@ -123,22 +105,12 @@ public class ChronomapPanel extends JPanel{
 		return new ChronomapPanel(model, index, placeResolver);
 	}
 
-
 	private ChronomapPanel(final FLEFModel model, final ChronomapIndex index,
 			final PlaceCoordinateResolver placeResolver){
-		if(model == null)
-			throw new IllegalArgumentException("Model must not be null");
-
 		this.index = index;
 		this.markerLayer = new ChronomapOverlayPainter(model, index);
-		this.trailLayer = new ChronomapTrailLayer(model, index);
-		this.hierarchyLayer = new ChronomapPlaceHierarchyLayer(model, placeResolver);
 		this.imageLayer = new ChronomapImageOverlayLayer();
 
-		// Insertion order determines painting order: hierarchy first
-		// (background), trails next, markers on top, image overlays last.
-		layerManager.addLayer(hierarchyLayer);
-		layerManager.addLayer(trailLayer);
 		layerManager.addLayer(markerLayer);
 		layerManager.addLayer(imageLayer);
 
@@ -146,51 +118,85 @@ public class ChronomapPanel extends JPanel{
 		configureTileFactory();
 		configureInteraction();
 
-		final long[] range = index.computeGlobalDateRange();
-		if(range != null && range[0] < range[1]){
-			timeline.setDomain(range[0], range[1]);
-			timeline.setCurrentTime(range[0]);
-			markerLayer.setCurrentTime(range[0]);
-			trailLayer.setCurrentTime(range[0]);
-		}
-
 		timeline.withTimeListener(jdn -> {
 			markerLayer.setCurrentTime(jdn);
-			trailLayer.setCurrentTime(jdn);
+			// Automatically switch tile factory on time change
+			autoSelectBaseMap();
 			mapViewer.repaint();
 		});
 
-		// Background geocoding: resolves the places that the hierarchy walk
-		// could not locate. Runs off the EDT; the index is rebuilt when done.
-		new SwingWorker<Integer, String>(){
+		final long[] range = index.computeGlobalDateRange();
+		if(range != null && range[0] < range[1])
+			// setDomain automatically defaults to range[1] (most recent date)
+			// and notifies timeListener to sync markerLayer and trailLayer.
+			timeline.setDomain(range[0], range[1]);
+
+		showUncertaintyCheckBox.addActionListener(e -> {
+			markerLayer.setShowUncertainty(showUncertaintyCheckBox.isSelected());
+			mapViewer.repaint();
+		});
+
+		startGeocodingWorker(placeResolver);
+	}
+
+	private void startGeocodingWorker(final PlaceCoordinateResolver placeResolver){
+		final SwingWorker<Integer, ProgressData> worker = new SwingWorker<>(){
+			private GeocodingProgressDialog dialog;
+
 			@Override
 			protected Integer doInBackground(){
-				return placeResolver.geocodeMissingPlaces(this::publish);
+//				final List<FLEFRecord> places = placeResolver.extractMissingPlaces();
+				final List<FLEFRecord> places = placeResolver.extractAllPlaces();
+				return placeResolver.geocodePlaces(
+					places,
+					(current, total, placeName) -> publish(new ProgressData(current, total, placeName)),
+					this::isCancelled
+				);
+			}
+
+			@Override
+			protected void process(final List<ProgressData> chunks){
+				if(isCancelled())
+					return;
+
+				final ProgressData latest = chunks.getLast();
+				if(dialog == null){
+					final Window windowOwner = SwingUtilities.getWindowAncestor(ChronomapPanel.this);
+					dialog = new GeocodingProgressDialog(
+						windowOwner,
+						I18N.t("dialog.geocoding.title"),
+						() -> cancel(true)
+					);
+					dialog.setVisible(true);
+				}
+				dialog.updateProgress(latest.current(), latest.total(), latest.placeName());
 			}
 
 			@Override
 			protected void done(){
+				if(dialog != null)
+					dialog.dispose();
+
 				try{
 					final int resolved = get();
 					if(resolved > 0){
 						index.rebuild();
-						hierarchyLayer.rebuild();
 						mapViewer.repaint();
 					}
 				}
-				catch(final Exception e){
-					LOGGER.debug("Geocoding worker failed", e);
+				catch(final Exception ignored){
+					LOGGER.debug("Geocoding worker cancelled or interrupted");
 				}
 			}
-		}.execute();
-	}
+		};
 
+		worker.execute();
+	}
 
 	/* ======================================================================
 	 *                          Public API
 	 * ====================================================================== */
 
-	/** Sets the individuals whose markers are drawn on the map. */
 	public void setIndividuals(final Collection<String> ids){
 		final List<String> visible = (ids != null? List.copyOf(ids): List.of());
 		markerLayer.setVisibleIndividuals(visible);
@@ -199,47 +205,27 @@ public class ChronomapPanel extends JPanel{
 		resetView();
 	}
 
-	/**
-	 * Sets the individuals whose trails are drawn on the map. Usually a
-	 * single individual, but multiple trails are supported and each is
-	 * drawn in its own color.
-	 */
-	public void setTrailIndividuals(final Collection<String> ids){
-		final List<String> trail = (ids != null? List.copyOf(ids): List.of());
-		trailLayer.setTrailIndividuals(trail);
-		mapViewer.repaint();
-	}
-
-	/**
-	 * Enables only the given event types. A {@code null} or empty set
-	 * means "all event types enabled".
-	 */
 	public void setEnabledEventTypes(final Set<String> types){
 		final Set<String> enabled = (types == null || types.isEmpty()? null: Set.copyOf(types));
 		markerLayer.setEnabledEventTypes(enabled);
-		trailLayer.setEnabledEventTypes(enabled);
 		mapViewer.repaint();
 	}
 
-	/** Adds a georeferenced raster overlay (old map, scanned register). */
-	public void addImageOverlay(final Image image, final GeoPosition northWest,
-		final GeoPosition southEast, final float alpha){
+	public void addImageOverlay(final Image image, final GeoPosition northWest, final GeoPosition southEast,
+			final float alpha){
 		imageLayer.addOverlay(image, northWest, southEast, alpha);
 		mapViewer.repaint();
 	}
 
-	/** Removes all raster overlays. */
 	public void clearImageOverlays(){
 		imageLayer.clearOverlays();
 		mapViewer.repaint();
 	}
 
-	/** Returns the layers, in painting order, for external toggling. */
 	public List<ChronomapLayer> layers(){
 		return layerManager.layers();
 	}
 
-	/** Enables or disables a layer without going through the UI. */
 	public void setLayerVisible(final ChronomapLayer layer, final boolean visible){
 		layerManager.setVisible(layer, visible);
 		mapViewer.repaint();
@@ -248,33 +234,38 @@ public class ChronomapPanel extends JPanel{
 	public void resetView(){
 		final double now = timeline.getCurrentTime();
 		final Set<GeoPosition> points = new LinkedHashSet<>();
+
+		// Collect current position at 'now' for all visible individuals
 		for(final String id : markerLayer.getVisibleIndividuals()){
 			final List<ChronomapIndex.GeoAnchor> anchors = index.anchorsOf(id);
 			if(anchors.isEmpty())
 				continue;
-			final ChronomapIndex.GeoCoordinate pos =
-				ChronomapOverlayPainter.interpolate(anchors, now);
-			if(pos == null)
+
+			final ChronomapOverlayPainter.InterpolatedPosition state =
+				ChronomapOverlayPainter.interpolatePosition(null, anchors, now);
+			if(state == null)
 				continue;
+
+			final ChronomapIndex.GeoCoordinate pos = state.coordinate();
 			points.add(new GeoPosition(pos.latitude(), pos.longitude()));
 		}
 
 		SwingUtilities.invokeLater(() -> {
 			if(points.isEmpty()){
-				mapViewer.setAddressLocation(INITIAL_CENTER);
-				mapViewer.setZoom(INITIAL_ZOOM);
+				mapViewer.setAddressLocation(WORLD_CENTER);
+				mapViewer.setZoom(WORLD_ZOOM);
 			}
 			else if(points.size() == 1){
 				mapViewer.setAddressLocation(points.iterator().next());
 				mapViewer.setZoom(8);
 			}
 			else
-				mapViewer.zoomToBestFit(points, 0.7);
+				// Zoom to best fit to encompass all current markers at instant 'now'
+				mapViewer.zoomToBestFit(points, 0.85);
 
 			timeline.resetZoom();
 		});
 	}
-
 
 	/* ======================================================================
 	 *                          UI
@@ -291,18 +282,129 @@ public class ChronomapPanel extends JPanel{
 		resetButton.addActionListener(e -> resetView());
 		toolbar.add(resetButton);
 
+		toolbar.add(createBaseMapButton());
 		toolbar.add(createLayersButton());
 		toolbar.add(createEventsButton());
+		toolbar.add(showUncertaintyCheckBox);
 
 		add(mapViewer, BorderLayout.CENTER);
 		add(south, BorderLayout.SOUTH);
 		add(toolbar, BorderLayout.NORTH);
 	}
 
-	/**
-	 * Builds the "Layers" menu button. Each layer is a checkbox that
-	 * toggles its visibility on the map.
-	 */
+	private void autoSelectBaseMap(){
+		if(!autoSelectMapEnabled)
+			return;
+
+		final double currentJdn = timeline.getCurrentTime();
+		final GeoPosition currentCenter = mapViewer.getCenterPosition();
+
+		final HistoricalMapMetaData matchingMap = availableHistoricalMaps.stream()
+			.filter(map -> map.isMatching(currentJdn, currentCenter))
+			.findFirst()
+			.orElse(null);
+
+		if(matchingMap != null){
+			if(activeHistoricalMap != matchingMap){
+				activeHistoricalMap = matchingMap;
+				final DefaultTileFactory factory = getOrCreateMapWarperFactory(matchingMap.mapId());
+
+				if(historicalMapOverlay == null){
+					historicalMapOverlay = new MapWarperTileOverlayPainter(matchingMap, factory);
+					layerManager.addLayer(historicalMapOverlay);
+				}
+				else{
+					historicalMapOverlay.setMetaData(matchingMap);
+					historicalMapOverlay.setVisible(true);
+				}
+			}
+		}
+		else if(activeHistoricalMap != null){
+			activeHistoricalMap = null;
+			if(historicalMapOverlay != null)
+				historicalMapOverlay.setVisible(false);
+		}
+		mapViewer.repaint();
+	}
+
+	private void updateBaseMapForTime(final double currentJdn){
+		// Revert to modern OpenStreetMap if the active historical map is no longer valid for the selected date
+		if(activeHistoricalMap != null && !activeHistoricalMap.isAvailableAt(currentJdn)){
+			switchTileFactory(osmTileFactory);
+			activeHistoricalMap = null;
+		}
+	}
+
+	private void switchTileFactory(final DefaultTileFactory newFactory){
+		if(mapViewer.getTileFactory() == newFactory)
+			return;
+
+		// Preserve current viewport position and zoom level during factory switch
+		final GeoPosition currentCenter = mapViewer.getCenterPosition();
+		final int currentZoom = mapViewer.getZoom();
+
+		mapViewer.setTileFactory(newFactory);
+
+		if(currentCenter != null){
+			mapViewer.setAddressLocation(currentCenter);
+			mapViewer.setZoom(currentZoom);
+		}
+		mapViewer.repaint();
+	}
+
+	private JButton createBaseMapButton(){
+		final JButton button = new JButton("Base Map");
+		final JPopupMenu menu = new JPopupMenu();
+
+		button.addActionListener(e -> {
+			menu.removeAll();
+
+			// Auto-selection option
+			final JCheckBoxMenuItem autoItem = new JCheckBoxMenuItem("Auto Select Historical Map", autoSelectMapEnabled);
+			autoItem.addActionListener(ev -> {
+				autoSelectMapEnabled = autoItem.isSelected();
+				if(autoSelectMapEnabled)
+					autoSelectBaseMap();
+			});
+			menu.add(autoItem);
+			menu.addSeparator();
+
+			// Manual overrides
+			final JMenuItem osmItem = new JMenuItem("OpenStreetMap (Modern)");
+			osmItem.addActionListener(ev -> {
+				autoSelectMapEnabled = false;
+				activeHistoricalMap = null;
+				switchTileFactory(osmTileFactory);
+			});
+			menu.add(osmItem);
+
+			final double currentJdn = timeline.getCurrentTime();
+			final GeoPosition center = mapViewer.getCenterPosition();
+
+			for(final HistoricalMapMetaData map : availableHistoricalMaps){
+				if(map.isMatching(currentJdn, center)){
+					final JMenuItem mapItem = new JMenuItem(map.name());
+					mapItem.addActionListener(ev -> {
+						autoSelectMapEnabled = false;
+						activeHistoricalMap = map;
+						switchTileFactory(getOrCreateMapWarperFactory(map.mapId()));
+					});
+					menu.add(mapItem);
+				}
+			}
+
+			menu.show(button, 0, button.getHeight());
+		});
+
+		return button;
+	}
+
+	private DefaultTileFactory getOrCreateMapWarperFactory(final int mapId) {
+		return mapWarperCache.computeIfAbsent(mapId, id ->
+			createTileFactory(new MapWarperTileFactoryInfo(id))
+		);
+	}
+
 	private JButton createLayersButton(){
 		final JButton button = new JButton("Layers");
 		final JPopupMenu menu = new JPopupMenu();
@@ -320,11 +422,6 @@ public class ChronomapPanel extends JPanel{
 		return button;
 	}
 
-	/**
-	 * Builds the "Events" menu button. Each distinct event type in the
-	 * model is a checkbox; all are enabled by default. Toggling one
-	 * updates the marker and trail filters.
-	 */
 	private JButton createEventsButton(){
 		final JButton button = new JButton("Events");
 		final JPopupMenu menu = new JPopupMenu();
@@ -353,26 +450,29 @@ public class ChronomapPanel extends JPanel{
 			if(e.getValue().isSelected())
 				enabled.add(e.getKey());
 
-		// All selected => no filter. This avoids filtering out the
-		// attributes on a full selection.
-		setEnabledEventTypes(enabled.size() == eventTypeItems.size()? null: enabled);
+		setEnabledEventTypes(enabled.size() == eventTypeItems.size() ? null : enabled);
 	}
 
 	private void configureTileFactory(){
-		final OSMTileFactoryInfo info = new OSMTileFactoryInfo(
-			"OpenStreetMap", "https://tile.openstreetmap.org");
-		final DefaultTileFactory tileFactory = new DefaultTileFactory(info);
-		tileFactory.setThreadPoolSize(8);
-		tileFactory.setUserAgent("FamilyLegacy/1.0 (genealogy research)");
+		// 1. OpenStreetMap Tile Factory (Modern)
+		final OSMTileFactoryInfo osmInfo = new OSMTileFactoryInfo("OpenStreetMap", "https://tile.openstreetmap.org");
+		osmTileFactory = createTileFactory(osmInfo);
+
+		mapViewer.setTileFactory(osmTileFactory);
+		mapViewer.setAddressLocation(WORLD_CENTER);
+		mapViewer.setZoom(WORLD_ZOOM);
+		mapViewer.setOverlayPainter(layerManager);
+	}
+
+	private static DefaultTileFactory createTileFactory(final TileFactoryInfo info){
+		final DefaultTileFactory factory = new DefaultTileFactory(info);
+		factory.setThreadPoolSize(8);
+		factory.setUserAgent("FamilyLegacy/1.0 (genealogy research)");
 
 		final File cacheDir = new File(System.getProperty("user.home")
-			+ File.separator + ".familylegacy" + File.separator + "tiles");
-		tileFactory.setLocalCache(new FileBasedLocalCache(cacheDir, false));
-
-		mapViewer.setTileFactory(tileFactory);
-		mapViewer.setAddressLocation(INITIAL_CENTER);
-		mapViewer.setZoom(INITIAL_ZOOM);
-		mapViewer.setOverlayPainter(layerManager);
+			+ File.separator + ".familylegacy" + File.separator + "tiles" + File.separator + info.getName().toLowerCase());
+		factory.setLocalCache(new FileBasedLocalCache(cacheDir, false));
+		return factory;
 	}
 
 	private void configureInteraction(){
@@ -380,12 +480,11 @@ public class ChronomapPanel extends JPanel{
 		mapViewer.addMouseListener(pan);
 		mapViewer.addMouseMotionListener(pan);
 		mapViewer.addMouseWheelListener(new ZoomMouseWheelListenerCursor(mapViewer));
+
+		// Trigger auto map selection when panning or zooming stops/changes
+		mapViewer.addPropertyChangeListener("center", evt -> autoSelectBaseMap());
 	}
 
-
-	/* ======================================================================
-	 *                          Bootstrap
-	 * ====================================================================== */
 
 	public static void main(final String[] args) throws IOException{
 		try{
@@ -406,7 +505,7 @@ public class ChronomapPanel extends JPanel{
 				.stream()
 				.map(FLEFRecord::getId)
 				.toList());
-			panel.setTrailIndividuals(List.of("I1"));
+//			panel.setTrailIndividuals(List.of("I1"));
 
 			final JFrame frame = new JFrame("Chronomap");
 			frame.add(panel, BorderLayout.CENTER);

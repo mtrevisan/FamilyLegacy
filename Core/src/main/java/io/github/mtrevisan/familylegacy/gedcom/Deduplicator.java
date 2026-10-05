@@ -28,11 +28,9 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
-import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RelationshipHandler;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 
@@ -61,25 +59,7 @@ public final class Deduplicator{
 			String type = FLEFRecordHelper.getChildValue(record, "type");
 			if(RelationshipReader.isTypeBiologicalChild(type)){
 				FLEFRecord subject = FLEFRecordHelper.findChild(record, "subject");
-				String subjectId = subject.getTheOnlyChild()
-					.getValue();
 				FLEFRecord object = FLEFRecordHelper.findChild(record, "object");
-				String objectId = object.getTheOnlyChild()
-					.getValue();
-
-				List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
-				for(final FLEFRecord relationship : relationships){
-					final String relationshipType = RelationshipReader.extractType(relationship);
-					if(!RelationshipReader.isTypeAdoptiveChild(relationshipType))
-						continue;
-					if(!subjectId.equalsIgnoreCase(relationship.extractReferencedId(RelationshipReader.TAG_SUBJECT, IndividualHandler.TYPE)))
-						continue;
-					if(!objectId.equalsIgnoreCase(relationship.extractReferencedId(RelationshipReader.TAG_OBJECT, IndividualHandler.TYPE)))
-						continue;
-
-					//relationship duplicate found
-					return relationship.getId();
-				}
 
 				StringBuilder sb = new StringBuilder();
 				sb.append("|subject:");

@@ -230,7 +230,7 @@ public final class PlaceRelationshipsDialog extends JDialog{
 				@Override
 				public boolean include(final Entry<? extends RelationshipsTableModel, ? extends Integer> entry){
 					final RelationshipRow row = tableModel.getRow(entry.getIdentifier());
-					if(hasTypeFilter && !type.equals(row.relationType()))
+					if(hasTypeFilter && !type.equalsIgnoreCase(row.relationType()))
 						return false;
 					if(needle.isEmpty())
 						return true;

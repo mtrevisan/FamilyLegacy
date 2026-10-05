@@ -363,7 +363,7 @@ public final class TemporalProjectionService{
 	}
 
 	private TemporalSpan buildConnectionSpan(final FLEFRecord relationship){
-		final boolean isRelationship = RelationshipHandler.TYPE.equals(relationship.getTag());
+		final boolean isRelationship = RelationshipHandler.TYPE.equalsIgnoreCase(relationship.getTag());
 		final FLEFRecord from = FLEFRecordHelper.findChild(relationship, (isRelationship? RelationshipReader.TAG_VALID_FROM: PlaceRelationshipReader.TAG_VALID_FROM));
 		final FLEFRecord to = FLEFRecordHelper.findChild(relationship, (isRelationship? RelationshipReader.TAG_VALID_TO: PlaceRelationshipReader.TAG_VALID_TO));
 

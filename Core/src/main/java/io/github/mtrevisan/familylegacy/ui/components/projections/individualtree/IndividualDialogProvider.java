@@ -58,9 +58,6 @@ public final class IndividualDialogProvider{
 	 * @param model the FLEF model (must not be {@code null})
 	 */
 	IndividualDialogProvider(final FLEFModel model){
-		if(model == null)
-			throw new IllegalArgumentException("Model must not be null");
-
 		this.model = model;
 	}
 

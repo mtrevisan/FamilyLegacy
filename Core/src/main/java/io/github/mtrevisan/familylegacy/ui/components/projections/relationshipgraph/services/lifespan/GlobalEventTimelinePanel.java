@@ -191,8 +191,6 @@ public class GlobalEventTimelinePanel extends JPanel{
 	 * @param model the FLEF model (must not be {@code null})
 	 */
 	public GlobalEventTimelinePanel(final FLEFModel model){
-		if(model == null)
-			throw new IllegalArgumentException("Model must not be null");
 		this.model = model;
 		this.index = EventIndex.build(model);
 
@@ -495,7 +493,7 @@ public class GlobalEventTimelinePanel extends JPanel{
 		EventIndex.EventDatum nearest = null;
 		int nearestDist = MARKER_RADIUS + 4;
 		for(final EventIndex.EventDatum e : visibleEvents){
-			if(!e.hasDate() || !type.equals(e.type()))
+			if(!e.hasDate() || !type.equalsIgnoreCase(e.type()))
 				continue;
 
 			final int ex = contentBounds.x + axis.jdnToX(e.date().jdn());

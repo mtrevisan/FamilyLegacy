@@ -1,27 +1,3 @@
-/**
- * Copyright (c) 2026 Mauro Trevisan
- * <p>
- * Permission is hereby granted, free of charge, to any person
- * obtaining a copy of this software and associated documentation
- * files (the "Software"), to deal in the Software without
- * restriction, including without limitation the rights to use,
- * copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following
- * conditions:
- * <p>
- * The above copyright notice and this permission notice shall be
- * included in all copies or substantial portions of the Software.
- * <p>
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
- * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
- * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
- * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- * OTHER DEALINGS IN THE SOFTWARE.
- */
 package io.github.mtrevisan.familylegacy.ui.components.projections.chronomap;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
@@ -50,46 +26,49 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.function.Consumer;
+import java.util.Set;
+import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 
 /**
- * Resolves the coordinates of a place, in this order:
- * <ol>
- *   <li>direct {@code place.map.coordinates};</li>
- *   <li>inherited from a parent place via a {@code place_relationship}
- *       of type {@code administrative_part_of} (or any of the other
- *       part-of types), walking up the hierarchy;</li>
- *   <li>geocoded via Nominatim, with a local disk cache.</li>
- * </ol>
- * The first two steps are offline and run at construction time. The
- * third step is opt-in and runs in the background.
+ * Resolves spatial coordinates for place records via background Nominatim geocoding
+ * with progressive left-truncation and disk cache mapping optimization.
  */
 public final class PlaceCoordinateResolver{
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(PlaceCoordinateResolver.class);
 
 
-	/** Relationship types that mean "subject is part of target". */
+	private static final String NOT_FOUND = "NOT_FOUND";
 	private static final List<String> PART_OF_TYPES = new ArrayList<>(List.of(PlaceRelationshipReader.TYPES));
 
-	/** Nominatim response: {@code [{"lat":"45.65","lon":"12.21",...}]}. */
+	// Estimated uncertainty radii in meters
+	static final int UNCERTAINTY_DIRECT = 10;
+	private static final int UNCERTAINTY_GEOCODED_FULL = 1_000;
+	private static final int UNCERTAINTY_HIERARCHY = 15_000;
+
+	private static final Pattern NOMINATIM_BOUNDINGBOX = Pattern.compile(
+		"\"boundingbox\"\\s*:\\s*\\[\\s*\"([^\"]+)\"\\s*,\\s*\"([^\"]+)\"\\s*,\\s*\"([^\"]+)\"\\s*,\\s*\"([^\"]+)\"\\s*\\]", Pattern.DOTALL);
+
+	private static final double EARTH_RADIUS_METERS = 6371000.0;
+
 	private static final Pattern NOMINATIM_LATLON = Pattern.compile(
 		"\"lat\"\\s*:\\s*\"([^\"]+)\".*?\"lon\"\\s*:\\s*\"([^\"]+)\"", Pattern.DOTALL);
 
-	private static final String NOMINATIM_URL =
-		"https://nominatim.openstreetmap.org/search?format=json&limit=1&q=";
-	private static final String USER_AGENT =
-		"FamilyLegacy/1.0 (genealogy research)";
-
-	/** Nominatim usage policy: max 1 request per second. */
+	private static final String NOMINATIM_URL = "https://nominatim.openstreetmap.org/search?format=json&limit=1&q=";
+	private static final String USER_AGENT = "FamilyLegacy/1.0 (genealogy research)";
 	private static final long MIN_REQUEST_INTERVAL_MS = 1100;
 
+	@FunctionalInterface
+	public interface GeocodingProgressListener{
+		void onProgress(int current, int total, String placeName);
+	}
 
 	public enum Source{
 		DIRECT,
@@ -105,11 +84,10 @@ public final class PlaceCoordinateResolver{
 	private final Properties diskCache = new Properties();
 	private final Path diskCacheFile;
 
+	private long lastRequestMs = 0L;
+
 
 	public PlaceCoordinateResolver(final FLEFModel model, final Path diskCacheFile){
-		if(model == null)
-			throw new IllegalArgumentException("Model must not be null");
-
 		this.model = model;
 		this.diskCacheFile = diskCacheFile;
 
@@ -117,10 +95,6 @@ public final class PlaceCoordinateResolver{
 		buildHierarchyCache();
 	}
 
-
-	/* ======================================================================
-	 *                          Public API
-	 * ====================================================================== */
 
 	public Resolved resolve(final String placeId){
 		return (placeId != null? cache.get(placeId): null);
@@ -131,86 +105,210 @@ public final class PlaceCoordinateResolver{
 	}
 
 	/**
-	 * Geocodes every place that still has no coordinates. Blocking: the
-	 * caller is responsible for running it on a background thread.
-	 * <p>
-	 * Results are cached on disk, so subsequent runs do not hit the
-	 * network for places that have already been resolved.
-	 *
-	 * @param progress callback invoked with the place id for each new
-	 *                 resolution; may be {@code null}
-	 * @return the number of newly resolved places
+	 * Geocodes places using progressive left-truncation. In-memory session cache stores
+	 * individual query outcomes (including NOT_FOUND), whereas persistent disk storage maps
+	 * all original place names to the final resolved coordinates with minimal uncertainty.
 	 */
-	public int geocodeMissingPlaces(final Consumer<String> progress){
-		int resolved = 0;
-		long lastRequestMs = 0l;
+	public int geocodePlaces(final List<FLEFRecord> places, final GeocodingProgressListener progress,
+			final Supplier<Boolean> isCancelled){
+		int resolvedCount = 0;
+		final int total = places.size();
 
-		final List<FLEFRecord> places = model.getRecordsByType(PlaceHandler.TYPE);
-		for(final FLEFRecord place : places){
+		// Runtime cache for individual query attempts during the current session
+		final Map<String, ChronomapIndex.GeoCoordinate> runtimeQueryCache = new HashMap<>();
+
+		for(int i = 0; i < total; i ++){
+			if(isCancelled != null && Boolean.TRUE.equals(isCancelled.get()))
+				break;
+
+			final FLEFRecord place = places.get(i);
 			final String placeId = place.getId();
-			if(placeId == null || cache.containsKey(placeId))
-				continue;
+			final List<String> rawNames = PlaceReader.extractNames(place);
+			final String primaryName = (!rawNames.isEmpty() ? rawNames.getFirst() : placeId);
 
-			final String name = PlaceReader.extractPrimaryName(place);
-			if(name == null)
-				continue;
-
-			// Disk cache hit: no network, no rate limit
-			final ChronomapIndex.GeoCoordinate fromDisk = lookupDiskCache(name);
-			if(fromDisk != null){
-				cache.put(placeId, new Resolved(fromDisk, Source.GEOCODED, name));
-				resolved ++;
-				if(progress != null)
-					progress.accept(placeId);
-
-				continue;
-			}
-
-			// Rate limit Nominatim.
-			final long now = System.currentTimeMillis();
-			final long wait = MIN_REQUEST_INTERVAL_MS - (now - lastRequestMs);
-			if(wait > 0){
-				try{
-					Thread.sleep(wait);
-				}
-				catch(final InterruptedException ie){
-					Thread.currentThread().interrupt();
-					return resolved;
-				}
-			}
-			lastRequestMs = System.currentTimeMillis();
-
-			final ChronomapIndex.GeoCoordinate c = geocode(name);
-			if(c == null)
-				continue;
-
-			diskCache.setProperty(name, c.latitude() + "," + c.longitude());
-			cache.put(placeId, new Resolved(c, Source.GEOCODED, name));
-			resolved ++;
 			if(progress != null)
-				progress.accept(placeId);
+				progress.onProgress(i + 1, total, primaryName);
+
+			ChronomapIndex.GeoCoordinate bestCoord = null;
+			String bestMatchedQuery = null;
+
+			// Generate progressive left-truncated variants for each name
+			final List<String> queryCandidates = generateProgressiveCandidates(rawNames);
+
+			for(final String query : queryCandidates){
+				if(isCancelled != null && Boolean.TRUE.equals(isCancelled.get())){
+					saveDiskCache();
+
+					return resolvedCount;
+				}
+
+				ChronomapIndex.GeoCoordinate candidateCoord = null;
+
+				// 1. Check persistent disk cache first
+				final String cachedProp = diskCache.getProperty(query);
+				if(cachedProp != null)
+					candidateCoord = parseCoordinateString(cachedProp);
+				else if(runtimeQueryCache.containsKey(query))
+					// 2. Check in-memory runtime session cache
+					candidateCoord = runtimeQueryCache.get(query);
+				else{
+					// 3. Query Nominatim API for new unvisited search string
+					candidateCoord = geocodeNominatimSingle(query, UNCERTAINTY_GEOCODED_FULL);
+					runtimeQueryCache.put(query, candidateCoord);
+				}
+
+				// Keep candidate if it yields a smaller uncertainty radius
+				if(candidateCoord != null)
+					if(bestCoord == null || candidateCoord.uncertainty() < bestCoord.uncertainty()){
+						bestCoord = candidateCoord;
+						bestMatchedQuery = query;
+					}
+			}
+
+			// Store best resolved coordinate and map all original place names to disk cache
+			if(bestCoord != null){
+				cache.put(placeId, new Resolved(bestCoord, Source.GEOCODED, bestMatchedQuery));
+				resolvedCount ++;
+
+				final String coordValue = bestCoord.latitude() + "," + bestCoord.longitude() + "," + bestCoord.uncertainty();
+				for(final String rawName : rawNames)
+					diskCache.setProperty(rawName, coordValue);
+				saveDiskCache();
+			}
+			else if(!cache.containsKey(placeId)){
+				// Fallback: Direct FLEF coordinates
+				final ChronomapIndex.GeoCoordinate directCoord = directCoordinates(place);
+				if(directCoord != null){
+					cache.put(placeId, new Resolved(directCoord, Source.DIRECT, null));
+
+					resolvedCount ++;
+				}
+			}
 		}
-		saveDiskCache();
-		return resolved;
+
+		return resolvedCount;
 	}
 
-
-	/* ======================================================================
-	 *                          Hierarchy
-	 * ====================================================================== */
-
 	/**
-	 * Builds the coordinate cache by walking the place hierarchy:
-	 * <ol>
-	 *   <li>every place with direct coordinates is cached as {@link Source#DIRECT};</li>
-	 *   <li>BFS over the {@code part_of} graph, so every descendant of a
-	 *       located place inherits its coordinates as {@link Source#HIERARCHY}.</li>
-	 * </ol>
-	 * The BFS uses a visited set, so malformed cycles in the place graph
-	 * do not cause infinite loops.
+	 * Generates a list of query variants by stripping leading comma-separated blocks.
+	 * E.g., ["via Pasubio, Treviso, Italia"] -> ["via Pasubio, Treviso, Italia", "Treviso, Italia", "Italia"]
 	 */
+	private static List<String> generateProgressiveCandidates(final List<String> rawNames){
+		final List<String> candidates = new ArrayList<>();
+		final Set<String> seen = new HashSet<>();
+		for(final String name : rawNames){
+			String current = (name != null? name.trim(): "");
+			while(!current.isEmpty()){
+				if(seen.add(current))
+					candidates.add(current);
+				final int commaIdx = current.indexOf(',');
+				if(commaIdx >= 0)
+					current = current.substring(commaIdx + 1).trim();
+				else
+					break;
+			}
+		}
+		return candidates;
+	}
+
+	List<FLEFRecord> extractMissingPlaces(){
+		final List<FLEFRecord> places = model.getRecordsByType(PlaceHandler.TYPE);
+		final List<FLEFRecord> unlocatedPlaces = new ArrayList<>();
+		for(final FLEFRecord place : places){
+			final String placeId = place.getId();
+			if(placeId != null && !cache.containsKey(placeId)){
+				final List<String> names = PlaceReader.extractNames(place);
+				if(!names.isEmpty())
+					unlocatedPlaces.add(place);
+			}
+		}
+		return unlocatedPlaces;
+	}
+
+	List<FLEFRecord> extractAllPlaces(){
+		return model.getRecordsByType(PlaceHandler.TYPE);
+	}
+
+	private ChronomapIndex.GeoCoordinate geocodeNominatimSingle(final String queryText, final int defaultUncertainty){
+		enforceRateLimit();
+
+		try(final HttpClient client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build()){
+			final String url = NOMINATIM_URL + URLEncoder.encode(queryText, StandardCharsets.UTF_8);
+			final HttpRequest request = HttpRequest.newBuilder()
+				.uri(URI.create(url))
+				.header("User-Agent", USER_AGENT)
+				.timeout(Duration.ofSeconds(10))
+				.GET()
+				.build();
+
+			final HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+			if(response.statusCode() != 200){
+				LOGGER.warn("Nominatim returned HTTP {} for query '{}'", response.statusCode(), queryText);
+
+				return null;
+			}
+
+			final String body = response.body();
+			final Matcher mLatLon = NOMINATIM_LATLON.matcher(body);
+			if(!mLatLon.find())
+				return null;
+
+			final double lat = Double.parseDouble(mLatLon.group(1));
+			final double lon = Double.parseDouble(mLatLon.group(2));
+
+			// Extract boundingbox and calculate uncertainty radius
+			int uncertainty = defaultUncertainty;
+			final Matcher mBbox = NOMINATIM_BOUNDINGBOX.matcher(body);
+			if(mBbox.find()){
+				try{
+					final double minLat = Double.parseDouble(mBbox.group(1));
+					final double maxLat = Double.parseDouble(mBbox.group(2));
+					final double minLon = Double.parseDouble(mBbox.group(3));
+					final double maxLon = Double.parseDouble(mBbox.group(4));
+
+					// Calculate distance from center to bounding box corner (approximate radius)
+					uncertainty = (int)Math.ceil(calculateHaversineDistance(lat, lon, maxLat, maxLon));
+				}
+				catch(final NumberFormatException ignored){}
+			}
+
+			return new ChronomapIndex.GeoCoordinate(lat, lon, uncertainty);
+		}
+		catch(final IOException | InterruptedException | NumberFormatException e){
+			if(e instanceof InterruptedException)
+				Thread.currentThread().interrupt();
+
+			LOGGER.debug("Geocoding failed for query '{}': {}", queryText, e.getMessage());
+			return null;
+		}
+	}
+
+	private static double calculateHaversineDistance(final double lat1, final double lon1, final double lat2,
+			final double lon2){
+		final double dLat = Math.toRadians(lat2 - lat1);
+		final double dLon = Math.toRadians(lon2 - lon1);
+		final double a = Math.sin(dLat / 2) * Math.sin(dLat / 2)
+			+ Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
+			* Math.sin(dLon / 2) * Math.sin(dLon / 2);
+		final double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+		return EARTH_RADIUS_METERS * c;
+	}
+
+	private void enforceRateLimit(){
+		final long now = System.currentTimeMillis();
+		final long wait = MIN_REQUEST_INTERVAL_MS - (now - lastRequestMs);
+		if(wait > 0){
+			try{
+				Thread.sleep(wait);
+			}
+			catch(final InterruptedException ie){
+				Thread.currentThread().interrupt();
+			}
+		}
+		lastRequestMs = System.currentTimeMillis();
+	}
+
 	private void buildHierarchyCache(){
-		// 1. Direct coordinates
 		final Deque<String> queue = new ArrayDeque<>();
 		final List<FLEFRecord> places = model.getRecordsByType(PlaceHandler.TYPE);
 		for(final FLEFRecord place : places){
@@ -226,7 +324,6 @@ public final class PlaceCoordinateResolver{
 			queue.add(placeId);
 		}
 
-		// 2. Build the child adjacency: parentId -> [childId, ...]
 		final Map<String, List<String>> childrenOf = new HashMap<>();
 		final List<FLEFRecord> placeRelationships = model.getRecordsByType(PlaceRelationshipHandler.TYPE);
 		for(final FLEFRecord placeRelationship : placeRelationships){
@@ -242,7 +339,6 @@ public final class PlaceCoordinateResolver{
 			childrenOf.computeIfAbsent(objectId, k -> new ArrayList<>()).add(childId);
 		}
 
-		// 3. BFS from located places to their descendants
 		while(!queue.isEmpty()){
 			final String parentId = queue.poll();
 			final Resolved parent = cache.get(parentId);
@@ -253,24 +349,28 @@ public final class PlaceCoordinateResolver{
 				if(cache.containsKey(childId))
 					continue;
 
-				cache.put(childId, new Resolved(parent.coordinate(), Source.HIERARCHY, parent.matchedName()));
+				// Assign inherited coordinate with hierarchy uncertainty radius
+				final ChronomapIndex.GeoCoordinate inheritedCoord = new ChronomapIndex.GeoCoordinate(
+					parent.coordinate().latitude(),
+					parent.coordinate().longitude(),
+					UNCERTAINTY_HIERARCHY
+				);
+
+				cache.put(childId, new Resolved(inheritedCoord, Source.HIERARCHY, parent.matchedName()));
 				queue.add(childId);
 			}
 		}
-
-		LOGGER.debug("Place coordinate cache: {} entries ({} direct, {} inherited)",
-			cache.size(),
-			cache.values().stream().filter(r -> r.source() == Source.DIRECT).count(),
-			cache.values().stream().filter(r -> r.source() == Source.HIERARCHY).count());
 	}
 
 	private static ChronomapIndex.GeoCoordinate directCoordinates(final FLEFRecord place){
-		final FLEFRecord mapStruct = FLEFRecordHelper.findChild(place, PlaceReader.TAG_MAP);
-		if(mapStruct == null)
+		final String coords = PlaceReader.extractCoordinates(place);
+		if(coords == null)
 			return null;
 
-		final String coords = PlaceReader.extractCoordinates(mapStruct);
-		return ChronomapIndex.GeoCoordinate.parse(coords);
+		final ChronomapIndex.GeoCoordinate parsed = ChronomapIndex.GeoCoordinate.parse(coords);
+		return (parsed != null
+			? new ChronomapIndex.GeoCoordinate(parsed.latitude(), parsed.longitude(), UNCERTAINTY_DIRECT)
+			: null);
 	}
 
 	private static String extractPlaceRef(final FLEFRecord rel, final String fieldTag){
@@ -282,7 +382,6 @@ public final class PlaceCoordinateResolver{
 		if(placeRef != null && placeRef.getValue() != null)
 			return placeRef.getValue();
 
-		// Try one level deeper.
 		final FLEFRecord inner = field.getTheOnlyChild();
 		if(inner != null){
 			final FLEFRecord placeInner = FLEFRecordHelper.findChild(inner, PlaceHandler.TYPE);
@@ -292,73 +391,26 @@ public final class PlaceCoordinateResolver{
 		return null;
 	}
 
-
-	/* ======================================================================
-	 *                          Geocoding
-	 * ====================================================================== */
-
-	private ChronomapIndex.GeoCoordinate lookupDiskCache(final String name){
-		final String s = diskCache.getProperty(name);
-		if(s == null)
+	private static ChronomapIndex.GeoCoordinate parseCoordinateString(final String val){
+		if(val == null || val.isEmpty() || NOT_FOUND.equals(val))
 			return null;
 
-		final int comma = s.indexOf(',');
-		if(comma < 0)
+		final String[] parts = val.split(",");
+		if(parts.length < 2)
 			return null;
 
 		try{
-			return new ChronomapIndex.GeoCoordinate(
-				Double.parseDouble(s.substring(0, comma)),
-				Double.parseDouble(s.substring(comma + 1)));
+			final double lat = Double.parseDouble(parts[0]);
+			final double lon = Double.parseDouble(parts[1]);
+			final int uncertainty = (parts.length >= 3
+				? (int)Math.ceil(Double.parseDouble(parts[2]))
+				: UNCERTAINTY_GEOCODED_FULL);
+			return new ChronomapIndex.GeoCoordinate(lat, lon, uncertainty);
 		}
 		catch(final NumberFormatException ignored){
 			return null;
 		}
 	}
-
-	private static ChronomapIndex.GeoCoordinate geocode(final String placeName){
-		try{
-			final String url = NOMINATIM_URL + URLEncoder.encode(placeName, StandardCharsets.UTF_8);
-			final HttpClient client = HttpClient.newBuilder()
-				.connectTimeout(Duration.ofSeconds(5))
-				.build();
-			final HttpRequest request = HttpRequest.newBuilder()
-				.uri(URI.create(url))
-				.header("User-Agent", USER_AGENT)
-				.timeout(Duration.ofSeconds(10))
-				.GET()
-				.build();
-
-			final HttpResponse<String> response = client.send(request,
-				HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
-			if(response.statusCode() != 200){
-				LOGGER.warn("Nominatim returned {} for '{}'", response.statusCode(), placeName);
-
-				return null;
-			}
-
-			final Matcher m = NOMINATIM_LATLON.matcher(response.body());
-			if(!m.find())
-				return null;
-
-			final double lat = Double.parseDouble(m.group(1));
-			final double lon = Double.parseDouble(m.group(2));
-			return new ChronomapIndex.GeoCoordinate(lat, lon);
-		}
-		catch(final IOException | InterruptedException | NumberFormatException e){
-			if(e instanceof InterruptedException)
-				Thread.currentThread().interrupt();
-
-			LOGGER.debug("Geocoding failed for '{}': {}", placeName, e.getMessage());
-
-			return null;
-		}
-	}
-
-
-	/* ======================================================================
-	 *                          Disk cache
-	 * ====================================================================== */
 
 	private void loadDiskCache(){
 		if(diskCacheFile == null || !Files.exists(diskCacheFile))
@@ -372,7 +424,7 @@ public final class PlaceCoordinateResolver{
 		}
 	}
 
-	private void saveDiskCache(){
+	private synchronized void saveDiskCache(){
 		if(diskCacheFile == null)
 			return;
 

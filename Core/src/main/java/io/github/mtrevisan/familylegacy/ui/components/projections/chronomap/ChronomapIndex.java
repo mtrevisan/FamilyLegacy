@@ -76,9 +76,6 @@ public final class ChronomapIndex{
 
 
 	public ChronomapIndex(final FLEFModel model, final PlaceCoordinateResolver placeResolver){
-		if(model == null)
-			throw new IllegalArgumentException("Model must not be null");
-
 		this.model = model;
 		this.placeResolver = Objects.requireNonNull(placeResolver, "PlaceCoordinateResolver must not be null");
 		this.anchorsByOwner = build();
@@ -209,7 +206,7 @@ public final class ChronomapIndex{
 	}
 
 	private void addAttributeAnchors(final Map<String, List<GeoAnchor>> result, final String recordType){
-		final boolean isIndividual = IndividualAttributeHandler.TYPE.equals(recordType);
+		final boolean isIndividual = IndividualAttributeHandler.TYPE.equalsIgnoreCase(recordType);
 		final String ownerTag = (isIndividual? IndividualAttributeReader.TAG_INDIVIDUAL: GroupAttributeReader.TAG_GROUP);
 		final List<FLEFRecord> attributes = model.getRecordsByType(recordType);
 		for(final FLEFRecord attribute : attributes){
@@ -324,12 +321,11 @@ public final class ChronomapIndex{
 	 * @param kind      {@code "event:birth"}, {@code "attribute:residence"}, …
 	 * @param value     the attribute value, or empty for events
 	 */
-	public record GeoAnchor(String ownerId, long startJdn, long endJdn,
-									GeoCoordinate position, String placeName, String kind, String value){
-	}
+	public record GeoAnchor(String ownerId, long startJdn, long endJdn, GeoCoordinate position, String placeName,
+		String kind, String value){}
 
 
-	public record GeoCoordinate(double latitude, double longitude){
+	public record GeoCoordinate(double latitude, double longitude, int uncertainty){
 
 		/**
 		 * Matches a coordinate pair in any of these forms:
@@ -393,7 +389,7 @@ public final class ChronomapIndex{
 
 				if(lat < -90. || lat > 90. || lon < -180. || lon > 180.)
 					return null;
-				return new GeoCoordinate(lat, lon);
+				return new GeoCoordinate(lat, lon, PlaceCoordinateResolver.UNCERTAINTY_DIRECT);
 			}
 			catch(final NumberFormatException ignored){
 				return null;
@@ -404,5 +400,13 @@ public final class ChronomapIndex{
 			return (a != null && !a.isEmpty()? a: b);
 		}
 	}
+
+	public record InterpolatedPosition(
+		GeoCoordinate coordinate,
+		GeoCoordinate fromCoordinate,
+		GeoCoordinate toCoordinate,
+		Double heading,
+		boolean isMoving
+	){}
 
 }

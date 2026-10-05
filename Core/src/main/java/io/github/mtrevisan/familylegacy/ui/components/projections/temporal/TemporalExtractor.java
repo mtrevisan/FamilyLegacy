@@ -203,7 +203,7 @@ public final class TemporalExtractor{
 	}
 
 	private TemporalEntry buildAttributeEntry(final FLEFRecord attribute){
-		final boolean isIndividual = IndividualAttributeHandler.TYPE.equals(attribute.getTag());
+		final boolean isIndividual = IndividualAttributeHandler.TYPE.equalsIgnoreCase(attribute.getTag());
 		final FLEFRecord from = FLEFRecordHelper.findChild(attribute, (isIndividual? IndividualAttributeReader.TAG_VALID_FROM: GroupAttributeReader.TAG_VALID_FROM));
 		final FLEFRecord to = FLEFRecordHelper.findChild(attribute, (isIndividual? IndividualAttributeReader.TAG_VALID_TO: GroupAttributeReader.TAG_VALID_TO));
 		final TemporalSpan span = DateNormalizer.combineBounds(from, to);

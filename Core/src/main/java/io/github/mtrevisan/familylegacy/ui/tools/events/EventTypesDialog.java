@@ -205,7 +205,7 @@ public final class EventTypesDialog extends JDialog{
 		body.append("<tr><th>Event</th><th>Date</th><th>Place</th><th>Description</th></tr>");
 		final FLEFModel model = context.model();
 		for(final FLEFRecord event : EventHelper.listAllEvents(model)){
-			if(!type.equals(EventHelper.eventType(event)))
+			if(!type.equalsIgnoreCase(EventHelper.eventType(event)))
 				continue;
 			count ++;
 			body.append("<tr>");

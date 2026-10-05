@@ -131,8 +131,6 @@ public final class KinshipCalculator{
 	 * @param parents the parent provider (must not be {@code null})
 	 */
 	public KinshipCalculator(final FLEFModel model, final ParentProvider parents){
-		if(model == null)
-			throw new IllegalArgumentException("Model must not be null");
 		if(parents == null)
 			throw new IllegalArgumentException("Parent provider must not be null");
 

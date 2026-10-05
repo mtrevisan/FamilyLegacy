@@ -860,7 +860,7 @@ www.contarina.it"""
 	}
 
 	place P12 {
-		name.value via Pasubio 39, Treviso, Treviso, Italy, Sant'Angelo sul Sile, Treviso, Italy
+		name.value via Pasubio 39, Sant'Angelo sul Sile, Treviso, Italy
 		audit.creation.date 2026-09-28T00:00:00Z
 		map.coordinates N45.65056 E12.21333
 	}
@@ -7935,7 +7935,7 @@ Trieste (1939-1943)."""
 	}
 
 	place P119 {
-		name.value Dosson di Casier, Treviso, 31030, Italy, Dosson di Casier, Treviso, Italy
+		name.value Dosson di Casier, Treviso, Italy
 		audit.creation.date 2026-09-28T00:00:00Z
 	}
 
@@ -10016,7 +10016,7 @@ A volte entravano nei recinti dei porcellini e li buttavano oltre lo steccato, p
 	}
 
 	place P174 {
-		name.value via Pasubio 39, Sant'Angelo sul Sile, Treviso, 31100, Italy, Sant'Angelo sul Sile, Treviso, Italy
+		name.value via Pasubio 39, Sant'Angelo sul Sile, Treviso, Italy
 		audit.creation.date 2026-09-28T00:00:00Z
 		map.coordinates N45.65056 E12.21333
 	}
@@ -10038,7 +10038,7 @@ A volte entravano nei recinti dei porcellini e li buttavano oltre lo steccato, p
 	}
 
 	place P175 {
-		name.value vicolo Fossaggera 12, Santa Bona, Treviso, Italy, Santa Bona di Treviso, Italy
+		name.value vicolo Fossaggera 12, Santa Bona, Treviso, Italy
 		audit.creation.date 2026-09-28T00:00:00Z
 	}
 
@@ -10474,7 +10474,7 @@ https://www.codifa.it/farmaci/g/gadovist-soluzione-uso-interno--gadobutrolo-mezz
 	}
 
 	place P179 {
-		name.value Treviso, Italy, Treviso, Treviso, Italy
+		name.value Treviso, Treviso, Italy
 		audit.creation.date 2026-09-28T00:00:00Z
 		map.coordinates N45.650556 E12.213333
 	}
@@ -11333,7 +11333,7 @@ https://www.codifa.it/farmaci/g/gadovist-soluzione-uso-interno--gadobutrolo-mezz
 	}
 
 	place P196 {
-		name.value vicolo G. Pesce 5, Santa Cristina di Quinto di Treviso, Treviso, 31055, Italy, Santa Cristina di Quinto, Treviso, Italy
+		name.value vicolo G. Pesce 5, Santa Cristina di Quinto di Treviso, Treviso, Italy
 		audit.creation.date 2026-09-28T00:00:00Z
 	}
 
@@ -18744,7 +18744,7 @@ Unità archivistica: 3"""
 	}
 
 	place P348 {
-		name.value Preganziol 72, Preganziol, Treviso, Italy, Preganziol, Treviso, Treviso, Italy
+		name.value Preganziol 72, Preganziol, Treviso, Italy
 		audit.creation.date 2026-09-28T00:00:00Z
 		map.coordinates N45.60139 E12.23722
 	}
@@ -77708,7 +77708,7 @@ Tomba: 205"""
 	}
 
 	place P1759 {
-		name.value via Bacchina 15, Preganziol, Treviso, 31022, Italy, Preganziol, Treviso, Italy
+		name.value via Bacchina 15, Preganziol, Treviso, Italy
 		audit.creation.date 2026-09-28T00:00:00Z
 		map.coordinates N45.60139 E12.23722
 	}
@@ -81679,7 +81679,7 @@ Tomba: 205"""
 	}
 
 	place P1834 {
-		name.value via Mario Visentin 14, Preganziol, Treviso, 31022, Italy, Preganziol, Treviso, Italy
+		name.value via Mario Visentin 14, Preganziol, Treviso, Italy
 		audit.creation.date 2026-09-28T00:00:00Z
 		map.coordinates N45.60139 E12.23722
 	}
@@ -82684,7 +82684,7 @@ line number: 11"""
 	}
 
 	place P1864 {
-		name.value via Capitello 7, Preganziol, Treviso, 31022, Italy, Preganziol, Treviso, Italy
+		name.value via Capitello 7, Preganziol, Treviso, Italy
 		audit.creation.date 2026-09-28T00:00:00Z
 		map.coordinates N45.60139 E12.23722
 	}
@@ -105229,7 +105229,8 @@ La conferma è venuta da un primo esame del paziente effettuato dal personale me
 	}
 
 	place P2431 {
-		name.value case Boschi, Castino, Cuneo, Italy, Borgomale, Cuneo, Italy
+		name.value case Boschi, Castino, Cuneo, Italy
+		name.value Borgomale, Cuneo, Italy
 		audit.creation.date 2026-09-28T00:00:00Z
 	}
 
@@ -105889,7 +105890,7 @@ La conferma è venuta da un primo esame del paziente effettuato dal personale me
 	}
 
 	place P2438 {
-		name.value Treviso, Italy, Ponte di Piave, Treviso, Italy
+		name.value Ponte di Piave, Treviso, Italy
 		audit.creation.date 2026-09-28T00:00:00Z
 	}
 
@@ -117190,7 +117191,7 @@ La pareja fue vista en el CCD La Cacha por María Silvia Bucci, Raul Elizalde y 
 	}
 
 	place P2638 {
-		name.value regie carceri in Castello, Oderzo 1, Oderzo, Conegliano, Italy, Oderzo, Oderzo, Conegliano, Italy
+		name.value regie carceri in Castello, Oderzo 1, Oderzo, Conegliano, Italy
 		audit.creation.date 2026-09-28T00:00:00Z
 	}
 
@@ -144561,7 +144562,7 @@ ship: Europa"""
 	}
 
 	place P3277 {
-		name.value via Antonio Tolomeo Trivulzio 15, Pio Albergo Trivulzio, via Antonio Tolomeo Trivulzio 15, Milan, Italy, Italy, Milan, Italy
+		name.value via Antonio Tolomeo Trivulzio 15, Pio Albergo Trivulzio, Milan, Italy
 		audit.creation.date 2026-09-28T00:00:00Z
 	}
 
@@ -147018,7 +147019,7 @@ ship: Europa"""
 	}
 
 	place P3327 {
-		name.value Stevenà 238, Stevenà di Caneva, Pordenone, Italy, Stevenà, Caneva, Italy
+		name.value Stevenà 238, Stevenà di Caneva, Pordenone, Italy
 		audit.creation.date 2026-09-28T00:00:00Z
 		map.coordinates N45.96634 E12.43697
 	}
@@ -147429,7 +147430,7 @@ ship: Europa"""
 	}
 
 	place P3336 {
-		name.value Varnier, Fregona, Treviso, Italy, Fregona, Serravalle, Ceneda, Italy
+		name.value Varnier, Fregona, Serravalle, Ceneda, Italy
 		audit.creation.date 2026-09-28T00:00:00Z
 	}
 
@@ -156593,7 +156594,7 @@ baggage: 8852077: 5 suitcases, 3 cases, 1 handbag"""
 	}
 
 	place P3517 {
-		name.value San Lazzaro 43, San Lazzaro, Treviso, Italy, San Lazzaro di Treviso, Treviso, Treviso, Italy
+		name.value San Lazzaro 43, San Lazzaro, Treviso, Italy
 		audit.creation.date 2026-09-28T00:00:00Z
 		map.coordinates N45.65111 E12.24222
 	}
@@ -172275,7 +172276,7 @@ N: Andrea Trivisano"""
 	}
 
 	place P3903 {
-		name.value casa di Trivisan Andrea, Scandolara, Treviso, Italy, Scandolaria, Treviso, Italy
+		name.value casa di Trivisan Andrea, Scandolara, Treviso, Italy
 		audit.creation.date 2026-09-28T00:00:00Z
 	}
 
@@ -176153,7 +176154,8 @@ confina a monte con Peliza Mihael
 	}
 
 	place P4017 {
-		name.value in casa di Antonio Trombetta, Levada di Piombino Dese, Padova, Italy, Levada di Silvelle, Padova, Italy
+		name.value in casa di Antonio Trombetta, Levada di Piombino Dese, Padova, Italy
+		name.value Levada di Silvelle, Padova, Italy
 		audit.creation.date 2026-09-28T00:00:00Z
 	}
 
@@ -181114,7 +181116,8 @@ confina a monte con terra lavorata da Trivisanus Bernardus
 	}
 
 	place P4155 {
-		name.value sotto il portico della casa di Menego e Trevisano, Scandolara, Treviso, Italy, Scandolaria, Treviso, Italy
+		name.value sotto il portico della casa di Menego e Trevisano, Scandolara, Treviso, Italy
+		name.value Scandolaria, Treviso, Italy
 		audit.creation.date 2026-09-28T00:00:00Z
 	}
 
@@ -203061,7 +203064,7 @@ confina a monte con terra lavorata da Trivisanus Bernardus
 	event E7614 {
 		type other
 		date.value.point.full_date {
-			value 18 AUG 835
+			value 18 AUG 1835
 			calendar gregorian
 		}
 		description Sandrin /saŋ.ˈdriŋ/
@@ -204799,7 +204802,7 @@ confina a monte con terra lavorata da Trivisanus Bernardus
 	}
 
 	place P4653 {
-		name.value monumento della scuola del santissimo rosario, contrada San Nicolò, Treviso, Treviso, Italy, monumento della scuola del santissimo rosario, contrada San Nicolò, Treviso, Treviso, Italy
+		name.value monumento della scuola del santissimo rosario, contrada San Nicolò, Treviso, Treviso, Italy
 		audit.creation.date 2026-09-28T00:00:00Z
 		map.coordinates N45.650556 E12.213333
 	}
@@ -315809,7 +315812,7 @@ solteiro rezidente no Pau Gigante"""
 	}
 
 	place P5690 {
-		name.value Treviso, Italy, Preganziol, Treviso, Italy
+		name.value Preganziol, Treviso, Italy
 		audit.creation.date 2026-09-28T00:00:00Z
 		map.coordinates N45.60139 E12.23722
 	}
@@ -333116,7 +333119,7 @@ femmine assenti: 1"""
 	}
 
 	place P5891 {
-		name.value Sant'Elena 120, Sant'Elena di Salzano, Venezia, Italy, Sant'Elena di Robegano, Salzano, Venezia, Italy
+		name.value Sant'Elena 120, Sant'Elena di Salzano, Venezia, Italy
 		audit.creation.date 2026-09-28T00:00:00Z
 	}
 
@@ -333411,7 +333414,7 @@ femmine assenti: 1"""
 	}
 
 	place P5896 {
-		name.value Treviso, Italy, Santa Maria del Rovere, Treviso, Italy
+		name.value Santa Maria del Rovere, Treviso, Italy
 		audit.creation.date 2026-09-28T00:00:00Z
 	}
 
@@ -361761,7 +361764,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	place P6219 {
-		name.value Treviso, Italy, Sant'Angelo sul Sile, Treviso, Italy
+		name.value Sant'Angelo sul Sile, Treviso, Italy
 		audit.creation.date 2026-09-28T00:00:00Z
 		map.coordinates N45.65056 E12.21333
 	}
@@ -364486,7 +364489,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	place P6258 {
-		name.value Fontane 61, Villorba, Treviso, Italy, Fontane di Villorba, Treviso, Italy
+		name.value Fontane 61, Villorba, Treviso, Italy
 		audit.creation.date 2026-09-28T00:00:00Z
 	}
 
@@ -396838,7 +396841,8 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	place P6577 {
-		name.value Anzano di Cappella Maggiore, Treviso, Italy, Capella di Anzano, Seravalle, Ceneda, Italy
+		name.value Anzano di Cappella Maggiore, Treviso, Italy
+		name.value Capella di Anzano, Seravalle, Ceneda, Italy
 		audit.creation.date 2026-09-28T00:00:00Z
 	}
 

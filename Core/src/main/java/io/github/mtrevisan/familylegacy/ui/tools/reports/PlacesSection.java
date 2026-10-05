@@ -114,7 +114,7 @@ final class PlacesSection implements SectionBuilder{
 	}
 
 	private void collectPlace(final FLEFRecord rec, final Map<String, PlaceEntry> out){
-		final boolean isEvent = EventHandler.TYPE.equals(rec.getTag());
+		final boolean isEvent = EventHandler.TYPE.equalsIgnoreCase(rec.getTag());
 		final FLEFRecord citation = FLEFRecordHelper.findChild(rec, (isEvent? EventReader.TAG_PLACE: IndividualAttributeReader.TAG_PLACE));
 		if(citation == null)
 			return;

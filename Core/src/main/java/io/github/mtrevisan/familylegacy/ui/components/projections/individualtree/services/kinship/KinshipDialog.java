@@ -101,8 +101,6 @@ public class KinshipDialog extends JDialog{
 			final FLEFRecord initialA, final FLEFRecord initialB){
 		super(owner, "Kinship between two individuals", ModalityType.APPLICATION_MODAL);
 
-		if(model == null)
-			throw new IllegalArgumentException("Model must not be null");
 		if(service == null)
 			throw new IllegalArgumentException("Tree service must not be null");
 

@@ -128,9 +128,6 @@ public final class ProjectionSwitcherPanel extends JPanel{
 
 
 	public ProjectionSwitcherPanel(final TreeType treeType, final FLEFModel model){
-		if(model == null)
-			throw new IllegalArgumentException("Model must not be null");
-
 		final String[] allowedTypes = computeAllowedRelationshipTypes(treeType);
 		repository = new GenealogyRepository(allowedTypes, model);
 		this.treeGraphPanel = new IndividualTreeGraphPanel(TreeLayout.VERTICAL, TREE_LAYOUT_ENGINE, repository,

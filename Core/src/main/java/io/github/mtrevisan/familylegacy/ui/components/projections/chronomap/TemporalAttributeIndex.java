@@ -57,9 +57,6 @@ public final class TemporalAttributeIndex{
 
 
 	public TemporalAttributeIndex(final FLEFModel model, final PlaceCoordinateResolver placeResolver){
-		if(model == null)
-			throw new IllegalArgumentException("Model must not be null");
-
 		this.model = model;
 		this.placeResolver = placeResolver;
 

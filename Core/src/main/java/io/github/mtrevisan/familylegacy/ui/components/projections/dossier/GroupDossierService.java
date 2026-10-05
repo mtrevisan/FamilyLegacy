@@ -61,7 +61,6 @@ import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -91,8 +90,6 @@ public final class GroupDossierService{
 
 
 	public GroupDossierService(final FLEFModel model){
-		if(model == null)
-			throw new IllegalArgumentException("Model must not be null");
 		this.model = model;
 		this.groupHandler = GroupHandler.getInstance();
 		this.individualHandler = IndividualHandler.getInstance();
@@ -489,9 +486,9 @@ public final class GroupDossierService{
 	private static String resolveContextTitle(final FLEFRecord context){
 		String title = null;
 		final String tag = context.getTag();
-		if(CulturalNormHandler.TYPE.equals(tag.toLowerCase(Locale.ROOT)))
+		if(CulturalNormHandler.TYPE.equalsIgnoreCase(tag))
 			title = CulturalNormReader.extractTitle(context);
-		else if(HistoricEventHandler.TYPE.equals(tag.toLowerCase(Locale.ROOT)))
+		else if(HistoricEventHandler.TYPE.equalsIgnoreCase(tag))
 			title = HistoricEventReader.extractTitle(context);
 		if(StringUtils.isNotEmpty(title))
 			return title;
