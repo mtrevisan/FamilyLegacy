@@ -39,6 +39,11 @@ import java.util.List;
  * disabled layer is skipped. The manager itself is a
  * {@link Painter} so it can be installed directly on the
  * {@link JXMapViewer} as the overlay painter.
+ * <p>
+ * The modern base map is <em>not</em> a layer: it is the map viewer's
+ * own {@code TileFactory} and is always drawn before the overlay
+ * painter is invoked. Only historical overlays, images and markers
+ * should be registered here.
  */
 public final class ChronomapLayerManager implements Painter<JXMapViewer>{
 
@@ -49,6 +54,15 @@ public final class ChronomapLayerManager implements Painter<JXMapViewer>{
 	public void addLayer(final ChronomapLayer layer){
 		if(layer != null)
 			layers.add(layer);
+	}
+
+	/**
+	 * Inserts a layer at the given index (0 = bottom of the stack,
+	 * painted first). Out-of-range indices are clamped.
+	 */
+	public void addLayer(final int index, final ChronomapLayer layer){
+		if(layer != null)
+			layers.add(Math.clamp(index, 0, layers.size()), layer);
 	}
 
 	/** Removes a layer from the stack. */

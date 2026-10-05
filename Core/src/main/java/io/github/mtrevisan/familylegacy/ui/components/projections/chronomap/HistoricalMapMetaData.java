@@ -25,17 +25,18 @@ public record HistoricalMapMetaData(
 	 * Checks whether a geographical position falls within the bounding box of this map.
 	 */
 	public boolean contains(final GeoPosition position){
-		if(position == null || northWest == null || southEast == null){
-			return true; // No spatial constraints defined, valid everywhere
-		}
+		if(position == null || northWest == null || southEast == null)
+			return true;
 
 		final double lat = position.getLatitude();
 		final double lon = position.getLongitude();
 
-		final boolean latMatches = lat <= northWest.getLatitude() && lat >= southEast.getLatitude();
-		final boolean lonMatches = lon >= northWest.getLongitude() && lon <= southEast.getLongitude();
+		final double minLat = Math.min(northWest.getLatitude(), southEast.getLatitude());
+		final double maxLat = Math.max(northWest.getLatitude(), southEast.getLatitude());
+		final double minLon = Math.min(northWest.getLongitude(), southEast.getLongitude());
+		final double maxLon = Math.max(northWest.getLongitude(), southEast.getLongitude());
 
-		return latMatches && lonMatches;
+		return lat >= minLat && lat <= maxLat && lon >= minLon && lon <= maxLon;
 	}
 
 	/**

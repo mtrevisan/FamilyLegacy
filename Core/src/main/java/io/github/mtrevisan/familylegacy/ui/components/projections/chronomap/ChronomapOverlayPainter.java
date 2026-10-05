@@ -9,6 +9,7 @@ import org.jxmapviewer.viewer.GeoPosition;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.GradientPaint;
 import java.awt.Graphics2D;
@@ -23,13 +24,20 @@ import java.util.Set;
 
 /**
  * Marker layer with uncertainty circles and dynamic directional indicators during transit.
+ * <p>
+ * The layer supports a "selected" state driven by a shared
+ * {@link WorkspaceSelection}: the marker whose owner identifier matches
+ * the current selection is drawn with a thicker, brighter border so that
+ * the user can spot it at a glance.
  */
 public final class ChronomapOverlayPainter implements ChronomapLayer{
 
 	private static final Color MARKER_BORDER = new Color(20, 20, 20);
+	private static final Color SELECTED_BORDER = new Color(255, 140, 0);
 	private static final Color LABEL_COLOR = new Color(30, 30, 30);
 	private static final Color LABEL_SHADOW = new Color(255, 255, 255, 210);
 	private static final int MARKER_RADIUS = 6;
+	private static final float SELECTED_BORDER_WIDTH = 2.5f;
 
 	private final FLEFModel model;
 	private final ChronomapIndex index;
@@ -39,6 +47,13 @@ public final class ChronomapOverlayPainter implements ChronomapLayer{
 	private Set<String> enabledEventTypes;
 	private boolean visible = true;
 	private boolean showUncertainty = true;
+
+	/**
+	 * Identifier of the currently selected individual, or {@code null}
+	 * when nothing is selected. Set through
+	 * {@link #setSelectedId(String)} by the enclosing workspace.
+	 */
+	private String selectedId;
 
 	public record InterpolatedPosition(
 		GeoCoordinate coordinate,
@@ -71,6 +86,19 @@ public final class ChronomapOverlayPainter implements ChronomapLayer{
 
 	public void setShowUncertainty(final boolean showUncertainty){
 		this.showUncertainty = showUncertainty;
+	}
+
+	/**
+	 * Sets the identifier of the selected individual. Passing
+	 * {@code null} clears the selection. The change takes effect at the
+	 * next repaint.
+	 */
+	public void setSelectedId(final String id){
+		this.selectedId = id;
+	}
+
+	public String getSelectedId(){
+		return selectedId;
 	}
 
 	public List<String> getVisibleIndividuals(){
@@ -107,6 +135,7 @@ public final class ChronomapOverlayPainter implements ChronomapLayer{
 
 			final GeoCoordinate pos = state.coordinate();
 			final Point2D p = map.convertGeoPositionToPoint(new GeoPosition(pos.latitude(), pos.longitude()));
+			final boolean selected = (selectedId != null && selectedId.equals(id));
 
 			if(showUncertainty && pos.uncertainty() > 0.0)
 				drawUncertaintyCircle(g, map, pos, p);
@@ -116,10 +145,10 @@ public final class ChronomapOverlayPainter implements ChronomapLayer{
 				drawGreatCircleRoute(g, map, state.fromCoordinate(), state.toCoordinate(), colorFor(id));
 
 				// 2. Draw elongated ellipse marker rotated along 2D screen direction
-				drawMovingMarker(g, (int)p.getX(), (int)p.getY(), state.screenHeading(), colorFor(id), labelFor(id));
+				drawMovingMarker(g, (int)p.getX(), (int)p.getY(), state.screenHeading(), colorFor(id), labelFor(id), selected);
 			}
 			else
-				drawMarker(g, (int)p.getX(), (int)p.getY(), colorFor(id), labelFor(id));
+				drawMarker(g, (int)p.getX(), (int)p.getY(), colorFor(id), labelFor(id), selected);
 		}
 	}
 
@@ -191,7 +220,7 @@ public final class ChronomapOverlayPainter implements ChronomapLayer{
 	}
 
 	private static void drawUncertaintyCircle(final Graphics2D g, final JXMapViewer map,
-			final GeoCoordinate pos, final Point2D center){
+		final GeoCoordinate pos, final Point2D center){
 		final double metersPerPixel = getMetersPerPixel(pos.latitude(), map.getZoom());
 		final int pixelRadius = (int)Math.round(pos.uncertainty() / metersPerPixel);
 
@@ -218,7 +247,7 @@ public final class ChronomapOverlayPainter implements ChronomapLayer{
 	}
 
 	private void drawGreatCircleRoute(final Graphics2D g, final JXMapViewer map,
-			final GeoCoordinate p1, final GeoCoordinate p2, final Color color){
+		final GeoCoordinate p1, final GeoCoordinate p2, final Color color){
 		final Graphics2D g2 = (Graphics2D)g.create();
 		g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
@@ -242,7 +271,7 @@ public final class ChronomapOverlayPainter implements ChronomapLayer{
 	}
 
 	private void drawMovingMarker(final Graphics2D g, final int x, final int y,
-		final Double screenHeading, final Color color, final String label){
+		final Double screenHeading, final Color color, final String label, final boolean selected){
 		final Graphics2D g2 = (Graphics2D)g.create();
 		g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
@@ -273,16 +302,18 @@ public final class ChronomapOverlayPainter implements ChronomapLayer{
 		g2.setColor(color);
 		g2.fill(ellipse);
 
-		// 3. Dashed border
-		g2.setColor(MARKER_BORDER);
-		g2.setStroke(new BasicStroke(1.2f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10.0f, new float[]{3.0f, 3.0f}, 0.0f));
+		// 3. Border: thicker and orange when selected.
+		g2.setColor(selected? SELECTED_BORDER: MARKER_BORDER);
+		g2.setStroke(selected
+			? new BasicStroke(SELECTED_BORDER_WIDTH)
+			: new BasicStroke(1.2f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10.0f, new float[]{3.0f, 3.0f}, 0.0f));
 		g2.draw(ellipse);
 
 		g2.dispose();
 
 		// 4. Unrotated label text
 		if(label != null && !label.isEmpty()){
-			g.setFont(g.getFont().deriveFont(11f));
+			g.setFont(g.getFont().deriveFont(selected? Font.BOLD: Font.PLAIN, 11f));
 			final FontMetrics fm = g.getFontMetrics();
 			final int tx = x + MARKER_RADIUS + 4;
 			final int ty = y + fm.getAscent() / 2 - 1;
@@ -293,7 +324,8 @@ public final class ChronomapOverlayPainter implements ChronomapLayer{
 		}
 	}
 
-	private void drawMarker(final Graphics2D g, final int x, final int y, final Color color, final String label){
+	private void drawMarker(final Graphics2D g, final int x, final int y, final Color color,
+		final String label, final boolean selected){
 		g.setColor(new Color(color.getRed(), color.getGreen(), color.getBlue(), 70));
 		g.fill(new Ellipse2D.Double(x - MARKER_RADIUS * 3, y - MARKER_RADIUS * 3,
 			MARKER_RADIUS * 6, MARKER_RADIUS * 6));
@@ -301,12 +333,17 @@ public final class ChronomapOverlayPainter implements ChronomapLayer{
 		g.setColor(color);
 		g.fill(new Ellipse2D.Double(x - MARKER_RADIUS, y - MARKER_RADIUS,
 			MARKER_RADIUS * 2, MARKER_RADIUS * 2));
-		g.setColor(MARKER_BORDER);
+
+		// Selection ring: thicker and orange, otherwise the default thin
+		// dark border.
+		g.setColor(selected? SELECTED_BORDER: MARKER_BORDER);
+		g.setStroke(new BasicStroke(selected? SELECTED_BORDER_WIDTH: 1f));
 		g.draw(new Ellipse2D.Double(x - MARKER_RADIUS, y - MARKER_RADIUS,
 			MARKER_RADIUS * 2, MARKER_RADIUS * 2));
+		g.setStroke(new BasicStroke(1f));
 
 		if(label != null && !label.isEmpty()){
-			g.setFont(g.getFont().deriveFont(11f));
+			g.setFont(g.getFont().deriveFont(selected? Font.BOLD: Font.PLAIN, 11f));
 			final FontMetrics fm = g.getFontMetrics();
 			final int tx = x + MARKER_RADIUS + 3;
 			final int ty = y + fm.getAscent() / 2 - 1;

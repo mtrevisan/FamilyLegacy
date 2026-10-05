@@ -34,6 +34,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.GroupAttributeReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualAttributeReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateNormalizer;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.NormalizedDate;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.TemporalSpan;
@@ -74,11 +75,18 @@ public final class ChronomapIndex{
 	/** Not final: rebuilt after a background geocoding pass. */
 	private Map<String, List<GeoAnchor>> anchorsByOwner;
 
+	/** Earliest birth event per owner, or absent. Populated at build time. */
+	private final Map<String, Long> birthJdnByOwner = new HashMap<>();
+	/** Earliest death event per owner, or absent. Populated at build time. */
+	private final Map<String, Long> deathJdnByOwner = new HashMap<>();
+
 
 	public ChronomapIndex(final FLEFModel model, final PlaceCoordinateResolver placeResolver){
 		this.model = model;
 		this.placeResolver = Objects.requireNonNull(placeResolver, "PlaceCoordinateResolver must not be null");
 		this.anchorsByOwner = build();
+
+		buildLifeEventIndex();
 	}
 
 
@@ -116,6 +124,8 @@ public final class ChronomapIndex{
 	 */
 	public void rebuild(){
 		anchorsByOwner = build();
+
+		buildLifeEventIndex();
 	}
 
 	/**
@@ -153,6 +163,16 @@ public final class ChronomapIndex{
 			}
 		}
 		return (min == Long.MAX_VALUE? null: new long[]{min, max});
+	}
+
+	/** Julian Day Number of the earliest recorded birth, or {@code null}. */
+	public Long birthJdnOf(final String ownerId){
+		return (ownerId != null? birthJdnByOwner.get(ownerId): null);
+	}
+
+	/** Julian Day Number of the earliest recorded death, or {@code null}. */
+	public Long deathJdnOf(final String ownerId){
+		return (ownerId != null? deathJdnByOwner.get(ownerId): null);
 	}
 
 
@@ -203,6 +223,61 @@ public final class ChronomapIndex{
 		for(final List<GeoAnchor> list : result.values())
 			list.sort(Comparator.comparingLong(GeoAnchor::startJdn));
 		return result;
+	}
+
+	/**
+	 * Scans every event participation once and records, per individual, the
+	 * Julian Day Number of the earliest birth and death events. The values
+	 * are cached so that consumers (agora, lifespan strip) can query them in
+	 * O(1) without rescanning the whole model for every individual and every
+	 * timeline tick.
+	 *
+	 * <p>The scan is performed once at construction time and re-executed on
+	 * {@link #rebuild()}, so it is safe to call after the geocoding pass
+	 * changes the set of visible anchors.</p>
+	 */
+	private void buildLifeEventIndex(){
+		birthJdnByOwner.clear();
+		deathJdnByOwner.clear();
+
+		final List<FLEFRecord> eventParticipations =
+			model.getRecordsByType(EventParticipationHandler.TYPE);
+
+		for(final FLEFRecord ep : eventParticipations){
+			final String ownerId = extractParticipantId(ep);
+			if(ownerId == null)
+				continue;
+
+			final String eventId = FLEFRecordHelper.getChildValue(ep,
+				EventParticipationReader.TAG_EVENT);
+			if(eventId == null)
+				continue;
+
+			final FLEFRecord event = model.getRecordById(eventId);
+			if(event == null)
+				continue;
+
+			final String type = FLEFRecordHelper.getChildValue(event, EventReader.TAG_TYPE);
+			if(type == null)
+				continue;
+
+			final boolean isBirth = EventReader.isTypeBirth(type);
+			final boolean isDeath = EventReader.isTypeDeath(type);
+			if(!isBirth && !isDeath)
+				continue;
+
+			final NormalizedDate date = extractDate(event, EventReader.TAG_DATE);
+			if(date == null)
+				continue;
+
+			final long jdn = date.jdn();
+			if(isBirth)
+				// Keep the earliest birth if multiple records exist.
+				birthJdnByOwner.merge(ownerId, jdn, Math::min);
+			else
+				// Keep the earliest death if multiple records exist.
+				deathJdnByOwner.merge(ownerId, jdn, Math::min);
+		}
 	}
 
 	private void addAttributeAnchors(final Map<String, List<GeoAnchor>> result, final String recordType){

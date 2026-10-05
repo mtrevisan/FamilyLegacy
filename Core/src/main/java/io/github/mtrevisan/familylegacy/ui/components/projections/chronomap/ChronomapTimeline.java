@@ -1,27 +1,3 @@
-/**
- * Copyright (c) 2026 Mauro Trevisan
- * <p>
- * Permission is hereby granted, free of charge, to any person
- * obtaining a copy of this software and associated documentation
- * files (the "Software"), to deal in the Software without
- * restriction, including without limitation the rights to use,
- * copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following
- * conditions:
- * <p>
- * The above copyright notice and this permission notice shall be
- * included in all copies or substantial portions of the Software.
- * <p>
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
- * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
- * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
- * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- * OTHER DEALINGS IN THE SOFTWARE.
- */
 package io.github.mtrevisan.familylegacy.ui.components.projections.chronomap;
 
 import io.github.mtrevisan.familylegacy.ui.tools.events.CalendarConverterDialog;
@@ -39,6 +15,7 @@ import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.KeyboardFocusManager;
 import java.awt.Point;
 import java.awt.RenderingHints;
 import java.awt.event.ActionEvent;
@@ -46,23 +23,12 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Consumer;
 import java.util.function.DoubleConsumer;
 
 
-/**
- * Horizontal, zoomable timeline, without playback.
- * <p>
- * The domain is the global temporal range of the FLEF file, provided by
- * the enclosing panel. The visible window starts as the whole domain and
- * can be zoomed and panned by the user.
- * <ul>
- *   <li>Ctrl + wheel: zoom, anchored at the cursor;</li>
- *   <li>drag: pan the visible window;</li>
- *   <li>click on the axis: jump the playhead;</li>
- *   <li>double-click on the playhead: reset the zoom.</li>
- *   <li>arrow keys: step playhead by day/year.</li>
- * </ul>
- */
 public final class ChronomapTimeline extends JPanel{
 
 	private static final Color BACKGROUND = new Color(240, 236, 228);
@@ -75,7 +41,7 @@ public final class ChronomapTimeline extends JPanel{
 	private static final int PADDING = 12;
 	private static final int DRAG_DEAD_ZONE_PX = 3;
 	private static final double ZOOM_STEP = 1.3;
-	private static final double PLAYHEAD_HIT_PX = 6.;
+	private static final double PLAYHEAD_HIT_PX = 8.;
 	private static final double DAYS_PER_YEAR = 365.2425;
 	private static final double DAYS_PER_MONTH = DAYS_PER_YEAR / 12.;
 
@@ -87,8 +53,9 @@ public final class ChronomapTimeline extends JPanel{
 
 	private Point dragAnchor;
 	private boolean draggingPlayhead;
+	private boolean wasDragged;
 
-	private DoubleConsumer timeListener;
+	private final List<Consumer<Double>> timeListeners = new ArrayList<>();
 
 
 	public ChronomapTimeline(){
@@ -99,12 +66,8 @@ public final class ChronomapTimeline extends JPanel{
 
 		installListeners();
 		configureKeyBindings();
+		configureGlobalKeyDispatcher();
 	}
-
-
-	/* ======================================================================
-	 *                          Public API
-	 * ====================================================================== */
 
 	public void setDomain(final long minJdn, final long maxJdn){
 		if(minJdn >= maxJdn)
@@ -114,25 +77,23 @@ public final class ChronomapTimeline extends JPanel{
 		this.domainMax = maxJdn;
 		this.visibleStart = minJdn;
 		this.visibleEnd = maxJdn;
-		// Default playhead position to the most recent date (maximum JDN)
 		this.currentTime = maxJdn;
 
 		repaint();
 
-		// Notify listener so map and layers instantly sync to the max JDN on load
-		if(timeListener != null)
-			timeListener.accept(currentTime);
+		for(final Consumer<Double> listener : timeListeners)
+			listener.accept(currentTime);
 	}
 
-	public void setCurrentTime(final double jdn) {
+	public void setCurrentTime(final double jdn){
 		final double newTime = Math.clamp(jdn, domainMin, domainMax);
 		if(Double.compare(newTime, currentTime) != 0){
 			this.currentTime = newTime;
 
 			repaint();
 
-			if(timeListener != null)
-				timeListener.accept(currentTime);
+			for(final Consumer<Double> listener : timeListeners)
+				listener.accept(currentTime);
 		}
 	}
 
@@ -140,21 +101,18 @@ public final class ChronomapTimeline extends JPanel{
 		return currentTime;
 	}
 
-	public void withTimeListener(final DoubleConsumer listener){
-		this.timeListener = listener;
+	public ChronomapTimeline withTimeListener(final Consumer<Double> listener){
+		if(listener != null)
+			this.timeListeners.add(listener);
+
+		return this;
 	}
 
 	public void resetZoom(){
 		visibleStart = domainMin;
 		visibleEnd = domainMax;
-
 		repaint();
 	}
-
-
-	/* ======================================================================
-	 *                          Painting
-	 * ====================================================================== */
 
 	@Override
 	protected void paintComponent(final Graphics g){
@@ -171,28 +129,27 @@ public final class ChronomapTimeline extends JPanel{
 		g2.setColor(BACKGROUND);
 		g2.fillRect(0, 0, w, h);
 
-		// Active temporal domain range
 		g2.setColor(RANGE_FILL);
 		g2.fillRect(PADDING, h / 2 - 6, w - 2 * PADDING, 12);
 
 		final int axisY = h / 2;
 		g2.setColor(AXIS_LINE);
 		g2.setStroke(new BasicStroke(1f));
-		g2.drawLine(PADDING, axisY,
-			w - PADDING, axisY);
+		g2.drawLine(PADDING, axisY, w - PADDING, axisY);
 
 		final long span = Math.max(1, visibleEnd - visibleStart);
 		final long step = chooseStep(span, w);
 		g2.setFont(getFont().deriveFont(10f));
 		final FontMetrics fm = g2.getFontMetrics();
-		for(long jdn = ((visibleStart / step) * step); jdn <= visibleEnd; jdn += step){
+
+		final long startTick = (visibleStart / step) * step;
+		for(long jdn = startTick; jdn <= visibleEnd; jdn += step){
 			final int x = jdnToX(jdn, w);
 			if(x < PADDING || x > w - PADDING)
 				continue;
 
 			g2.setColor(AXIS_LINE);
-			g2.drawLine(x, axisY - 4,
-				x, axisY + 4);
+			g2.drawLine(x, axisY - 4, x, axisY + 4);
 			final String label = formatYear(jdn);
 			final int tw = fm.stringWidth(label);
 			g2.setColor(AXIS_LABEL);
@@ -202,8 +159,7 @@ public final class ChronomapTimeline extends JPanel{
 		final int phX = jdnToX((long)currentTime, w);
 		g2.setColor(PLAYHEAD);
 		g2.setStroke(new BasicStroke(2f));
-		g2.drawLine(phX, 4,
-			phX, h - 4);
+		g2.drawLine(phX, 4, phX, h - 4);
 
 		g2.setFont(getFont().deriveFont(10f).deriveFont(Font.BOLD));
 		final String timeLabel = formatYear((long)currentTime);
@@ -212,12 +168,7 @@ public final class ChronomapTimeline extends JPanel{
 		g2.drawString(timeLabel, Math.max(PADDING, phX - tw / 2), 12);
 	}
 
-	/* ======================================================================
-	 *                          Interaction & KeyBindings
-	 * ====================================================================== */
-
 	private void configureKeyBindings(){
-		// Single day steps (Left / Right)
 		getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0), "stepLeft");
 		getActionMap().put("stepLeft", new AbstractAction(){
 			@Override
@@ -234,7 +185,6 @@ public final class ChronomapTimeline extends JPanel{
 			}
 		});
 
-		// Single year steps (Shift + Left / Shift + Right)
 		getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, KeyEvent.SHIFT_DOWN_MASK), "stepLeftYear");
 		getActionMap().put("stepLeftYear", new AbstractAction(){
 			@Override
@@ -252,14 +202,35 @@ public final class ChronomapTimeline extends JPanel{
 		});
 	}
 
+	private void configureGlobalKeyDispatcher(){
+		KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(e -> {
+			if(e.getID() != KeyEvent.KEY_PRESSED || !isShowing())
+				return false;
+
+			final int keyCode = e.getKeyCode();
+			final boolean isShift = e.isShiftDown();
+
+			if(keyCode == KeyEvent.VK_LEFT){
+				stepTime(isShift? -DAYS_PER_YEAR: -DAYS_PER_MONTH);
+				return true;
+			}
+			else if(keyCode == KeyEvent.VK_RIGHT){
+				stepTime(isShift? DAYS_PER_YEAR: DAYS_PER_MONTH);
+				return true;
+			}
+			return false;
+		});
+	}
+
 	private void stepTime(final double deltaJdn){
 		final double newTime = Math.clamp(currentTime + deltaJdn, domainMin, domainMax);
 		if(Double.compare(newTime, currentTime) != 0){
 			currentTime = newTime;
+
 			repaint();
 
-			if(timeListener != null)
-				timeListener.accept(currentTime);
+			for(final Consumer<Double> listener : timeListeners)
+				listener.accept(currentTime);
 		}
 	}
 
@@ -272,13 +243,16 @@ public final class ChronomapTimeline extends JPanel{
 
 				requestFocusInWindow();
 
-				draggingPlayhead = (Math.abs(e.getX() - jdnToX((long)currentTime, getWidth())) <= PLAYHEAD_HIT_PX);
+				final int currentX = jdnToX((long)currentTime, getWidth());
+				draggingPlayhead = (Math.abs(e.getX() - currentX) <= PLAYHEAD_HIT_PX);
+				wasDragged = false;
+				dragAnchor = e.getPoint();
+
+				// Direct click on track immediately jumps playhead to cursor position
 				if(!draggingPlayhead){
 					movePlayhead(e.getX());
-
 					draggingPlayhead = true;
 				}
-				dragAnchor = e.getPoint();
 			}
 
 			@Override
@@ -290,10 +264,14 @@ public final class ChronomapTimeline extends JPanel{
 				if(Math.abs(dx) < DRAG_DEAD_ZONE_PX)
 					return;
 
-				if(draggingPlayhead)
+				wasDragged = true;
+
+				if(draggingPlayhead){
 					movePlayhead(e.getX());
-				else
+				}
+				else{
 					pan(dx);
+				}
 				dragAnchor = e.getPoint();
 			}
 
@@ -308,8 +286,12 @@ public final class ChronomapTimeline extends JPanel{
 				if(!SwingUtilities.isLeftMouseButton(e))
 					return;
 
-				if(e.getClickCount() == 2 && Math.abs(e.getX() - jdnToX((long)currentTime, getWidth())) <= PLAYHEAD_HIT_PX)
+				if(!wasDragged && e.getClickCount() == 1){
+					movePlayhead(e.getX());
+				}
+				else if(e.getClickCount() == 2 && Math.abs(e.getX() - jdnToX((long)currentTime, getWidth())) <= PLAYHEAD_HIT_PX){
 					resetZoom();
+				}
 			}
 		};
 		addMouseListener(adapter);
@@ -322,7 +304,6 @@ public final class ChronomapTimeline extends JPanel{
 	private void onMouseWheel(final MouseWheelEvent e){
 		if(e.isControlDown() || e.isMetaDown()){
 			e.consume();
-
 			final int rot = e.getWheelRotation();
 			if(rot != 0)
 				zoomAtCursor(rot < 0, e.getX());
@@ -359,9 +340,20 @@ public final class ChronomapTimeline extends JPanel{
 		if(delta == 0)
 			return;
 
-		visibleStart = Math.max(domainMin, visibleStart + delta);
-		visibleEnd = Math.min(domainMax, visibleStart + span);
-		visibleStart = Math.max(domainMin, visibleEnd - span);
+		long newStart = visibleStart + delta;
+		long newEnd = visibleEnd + delta;
+
+		if(newStart < domainMin){
+			newStart = domainMin;
+			newEnd = Math.min(domainMax, newStart + span);
+		}
+		else if(newEnd > domainMax){
+			newEnd = domainMax;
+			newStart = Math.max(domainMin, newEnd - span);
+		}
+
+		visibleStart = newStart;
+		visibleEnd = newEnd;
 
 		repaint();
 	}
@@ -376,14 +368,9 @@ public final class ChronomapTimeline extends JPanel{
 
 		repaint();
 
-		if(timeListener != null)
-			timeListener.accept(currentTime);
+		for(final Consumer<Double> listener : timeListeners)
+			listener.accept(currentTime);
 	}
-
-
-	/* ======================================================================
-	 *                          Helpers
-	 * ====================================================================== */
 
 	private int jdnToX(final long jdn, final int width){
 		final long span = Math.max(1, visibleEnd - visibleStart);
@@ -397,17 +384,16 @@ public final class ChronomapTimeline extends JPanel{
 		return visibleStart + (long)(f * span);
 	}
 
-	private static long chooseStep(final long span, final int width){
-		final int approxTicks = Math.max(2, width / 90);
-		final long step = Math.max(1, span / approxTicks);
-		long base = 1;
-		while(base * 10 <= step)
-			base *= 10;
-		final long[] nice = {1, 2, 5, 10};
-		for(final long n : nice)
-			if(base * n >= step)
-				return base * n;
-		return base * 10;
+	private static long chooseStep(final long spanDays, final int widthPixels){
+		final double spanYears = spanDays / DAYS_PER_YEAR;
+		final double pxPerYear = widthPixels / Math.max(1e-3, spanYears);
+
+		if(pxPerYear > 200) return (long)Math.max(1, Math.round(DAYS_PER_MONTH));
+		if(pxPerYear > 50) return (long)Math.round(DAYS_PER_YEAR);
+		if(pxPerYear > 10) return (long)Math.round(5 * DAYS_PER_YEAR);
+		if(pxPerYear > 2) return (long)Math.round(10 * DAYS_PER_YEAR);
+		if(pxPerYear > 0.5) return (long)Math.round(50 * DAYS_PER_YEAR);
+		return (long)Math.round(100 * DAYS_PER_YEAR);
 	}
 
 	private static String formatYear(final long jdn){

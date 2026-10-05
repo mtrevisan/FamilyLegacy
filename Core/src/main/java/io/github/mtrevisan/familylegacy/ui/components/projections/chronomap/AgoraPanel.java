@@ -1,4 +1,4 @@
-package io.github.mtrevisan.familylegacy.ui.components.projections.agora;
+package io.github.mtrevisan.familylegacy.ui.components.projections.chronomap;
 
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
@@ -8,12 +8,8 @@ import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReade
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateNormalizer;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.TemporalSpan;
-import io.github.mtrevisan.familylegacy.ui.components.projections.chronomap.ChronomapIndex;
 import io.github.mtrevisan.familylegacy.ui.components.projections.chronomap.ChronomapIndex.GeoAnchor;
 import io.github.mtrevisan.familylegacy.ui.components.projections.chronomap.ChronomapIndex.GeoCoordinate;
-import io.github.mtrevisan.familylegacy.ui.components.projections.chronomap.ChronomapOverlayPainter;
-import io.github.mtrevisan.familylegacy.ui.components.projections.chronomap.ChronomapTimeline;
-import io.github.mtrevisan.familylegacy.ui.components.projections.chronomap.PlaceCoordinateResolver;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventParticipationHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
@@ -61,12 +57,18 @@ import java.util.regex.Pattern;
  * If spatial coordinates are available via {@link ChronomapIndex}, the table
  * shows the interpolated location and reason; otherwise, the person is still
  * listed with their known state or as unlocated.
+ *
+ * <p>The panel can be used standalone (it owns its own timeline) or as part
+ * of a {@link io.github.mtrevisan.familylegacy.ui.components.projections.chronomap.ChronomapWorkspace}
+ * (it receives a shared timeline and a shared {@link WorkspaceSelection}).
+ * In the workspace the two views stay in sync: moving the timeline updates
+ * both, and selecting a row highlights the marker on the map.</p>
  */
 public final class AgoraPanel extends JPanel{
 
 	private static final int MAX_PLAUSIBLE_AGE_YEARS = 110;
 	private static final double DAYS_PER_YEAR = 365.2425;
-	private static final int REFRESH_DEBOUNCE_MS = 80;
+	private static final int REFRESH_DEBOUNCE_MS = 150;
 
 	private static final Color HEADER_BACKGROUND = new Color(240, 236, 228);
 	private static final Color SUBTITLE_COLOR = new Color(120, 115, 100);
@@ -84,8 +86,10 @@ public final class AgoraPanel extends JPanel{
 
 	private final FLEFModel model;
 	private final ChronomapIndex index;
+	private final ChronomapTimeline timeline;
+	private final WorkspaceSelection selection;
+	private final boolean ownsTimeline;
 
-	private final ChronomapTimeline timeline = new ChronomapTimeline();
 	private final JLabel dateLabel = new JLabel();
 	private final JLabel countLabel = new JLabel();
 	private final JTextField searchField = new JTextField(20);
@@ -99,25 +103,55 @@ public final class AgoraPanel extends JPanel{
 	private double currentTime;
 
 	private Consumer<String> selectionCallback;
+	/** Suppresses the listener feedback loop when the table selection is
+	 *  being updated programmatically from the shared selection. */
+	private boolean updatingSelection;
 
-	public AgoraPanel(final FLEFModel model, final ChronomapIndex index){
+
+	/* ======================================================================
+	 *                          Factories
+	 * ====================================================================== */
+
+	/**
+	 * Creates a standalone panel with its own timeline and no shared
+	 * selection. The timeline is embedded at the bottom of the panel.
+	 */
+	public static AgoraPanel create(final FLEFModel model){
+		final Path cacheFile = Path.of(System.getProperty("user.home"), ".familylegacy", "geocoding.properties");
+		final PlaceCoordinateResolver resolver = new PlaceCoordinateResolver(model, cacheFile);
+		final ChronomapIndex index = new ChronomapIndex(model, resolver);
+		return new AgoraPanel(model, index, null, null);
+	}
+
+
+	/**
+	 * Creates a panel that shares the given timeline and selection with
+	 * other views. The timeline is not embedded, because the enclosing
+	 * workspace installs it below the split pane.
+	 */
+	public AgoraPanel(final FLEFModel model, final ChronomapIndex index,
+		final ChronomapTimeline timeline, final WorkspaceSelection selection){
 		if(index == null)
 			throw new IllegalArgumentException("ChronomapIndex must not be null");
 
 		this.model = model;
 		this.index = index;
+		this.ownsTimeline = (timeline == null);
+		this.timeline = (timeline != null? timeline: new ChronomapTimeline());
+		this.selection = selection;
 
 		this.refreshTimer = new Timer(REFRESH_DEBOUNCE_MS, e -> refresh());
 		this.refreshTimer.setRepeats(false);
 
 		buildUI();
 		configureTimeline();
+		wireSelection();
 
 		final long[] range = index.computeGlobalDateRange();
 		if(range != null && range[0] < range[1]){
-			timeline.setDomain(range[0], range[1]);
+			this.timeline.setDomain(range[0], range[1]);
 			final long mid = range[0] + (range[1] - range[0]) / 2;
-			timeline.setCurrentTime(mid);
+			this.timeline.setCurrentTime(mid);
 			currentTime = mid;
 			dateLabel.setText(formatDate(mid));
 		}
@@ -126,6 +160,11 @@ public final class AgoraPanel extends JPanel{
 			dateLabel.setText("—");
 		}
 	}
+
+
+	/* ======================================================================
+	 *                          Public API
+	 * ====================================================================== */
 
 	public void setIndividuals(final Collection<String> ids){
 		this.currentIds = (ids != null ? List.copyOf(ids) : List.of());
@@ -142,6 +181,77 @@ public final class AgoraPanel extends JPanel{
 	public void withSelectionCallback(final Consumer<String> callback){
 		this.selectionCallback = callback;
 	}
+
+
+	/* ======================================================================
+	 *                          Selection wiring
+	 * ====================================================================== */
+
+	/**
+	 * Wires the shared selection so that:
+	 * <ul>
+	 *   <li>a selection made elsewhere (e.g. on the map) selects the
+	 *       corresponding row in the table;</li>
+	 *   <li>a row selection in the table updates the shared selection.</li>
+	 * </ul>
+	 * Does nothing when no shared selection has been provided.
+	 */
+	private void wireSelection(){
+		if(selection == null)
+			return;
+
+		selection.addListener(id -> {
+			updatingSelection = true;
+			try{
+				if(id == null)
+					table.clearSelection();
+				else
+					selectRowById(id);
+			}
+			finally{
+				updatingSelection = false;
+			}
+		});
+
+		table.getSelectionModel().addListSelectionListener(e -> {
+			if(e.getValueIsAdjusting() || updatingSelection || selection == null)
+				return;
+
+			final int viewRow = table.getSelectedRow();
+			if(viewRow < 0)
+				return;
+
+			final int modelRow = table.convertRowIndexToModel(viewRow);
+			final AgoraRow row = tableModel.getRow(modelRow);
+			if(row != null)
+				selection.select(row.id());
+		});
+	}
+
+
+	/**
+	 * Selects the table row whose underlying identifier matches the
+	 * given id. Uses {@link JTable#convertRowIndexToView(int)} so that
+	 * the selection is applied to the correct visual row even when the
+	 * sorter has reordered the table.
+	 */
+	private void selectRowById(final String id){
+		for(int modelRow = 0; modelRow < tableModel.getRowCount(); modelRow ++){
+			final AgoraRow row = tableModel.getRow(modelRow);
+			if(row != null && id.equals(row.id())){
+				final int viewRow = table.convertRowIndexToView(modelRow);
+				table.setRowSelectionInterval(viewRow, viewRow);
+				table.scrollRectToVisible(table.getCellRect(viewRow, 0, true));
+
+				return;
+			}
+		}
+	}
+
+
+	/* ======================================================================
+	 *                          UI
+	 * ====================================================================== */
 
 	private void buildUI(){
 		setLayout(new BorderLayout());
@@ -196,7 +306,10 @@ public final class AgoraPanel extends JPanel{
 		final JScrollPane scroll = new JScrollPane(table);
 		add(scroll, BorderLayout.CENTER);
 
-		add(timeline, BorderLayout.SOUTH);
+		// Embed the timeline only when this panel owns it. In the
+		// workspace the timeline is installed by the workspace.
+		if(ownsTimeline)
+			add(timeline, BorderLayout.SOUTH);
 
 		searchField.getDocument().addDocumentListener(new DocumentListener(){
 			@Override
@@ -219,7 +332,7 @@ public final class AgoraPanel extends JPanel{
 	private void configureTimeline(){
 		timeline.withTimeListener(jdn -> {
 			currentTime = jdn;
-			dateLabel.setText(formatDate((long)jdn));
+			dateLabel.setText(formatDate(jdn.longValue()));
 			refreshTimer.restart();
 		});
 	}
@@ -321,7 +434,7 @@ public final class AgoraPanel extends JPanel{
 		}
 		else{
 			reason = "alive";
-			place = "unknown";
+			place = "--";
 		}
 
 		final Integer age = (int)Math.floor((t - bornJdn) / DAYS_PER_YEAR);
@@ -332,47 +445,23 @@ public final class AgoraPanel extends JPanel{
 	}
 
 	private Long getBirthJdn(final String id, final List<GeoAnchor> anchors){
+		// Fast path: the anchor list may already carry a birth event with a
+		// geographic position, in which case no further lookup is needed.
 		for(final GeoAnchor a : anchors)
 			if("event:birth".equals(a.kind()))
 				return a.startJdn();
-		return extractEventJdn(id, "birth");
+
+		// Otherwise consult the pre-computed life-event index, which is built
+		// once per rebuild and answers in O(1).
+		return index.birthJdnOf(id);
 	}
 
 	private Long getDeathJdn(final String id, final List<GeoAnchor> anchors){
-		for(final GeoAnchor a : anchors){
-			if("event:death".equals(a.kind())){
+		for(final GeoAnchor a : anchors)
+			if("event:death".equals(a.kind()))
 				return a.startJdn();
-			}
-		}
-		return extractEventJdn(id, "death");
-	}
 
-	private Long extractEventJdn(final String individualId, final String targetEventType){
-		final List<FLEFRecord> eventParticipations = model.getRecordsByType(EventParticipationHandler.TYPE);
-		for(final FLEFRecord ep : eventParticipations){
-			final FLEFRecord participantRef = FLEFRecordHelper.findChild(ep, EventParticipationReader.TAG_PARTICIPANT);
-			if(participantRef != null && participantRef.getTheOnlyChild() != null){
-				if(individualId.equals(participantRef.getTheOnlyChild().getValue())){
-					final String eventId = FLEFRecordHelper.getChildValue(ep, EventParticipationReader.TAG_EVENT);
-					if(eventId != null){
-						final FLEFRecord event = model.getRecordById(eventId);
-						if(event != null){
-							final String type = FLEFRecordHelper.getChildValue(event, EventReader.TAG_TYPE);
-							if(targetEventType.equalsIgnoreCase(type)){
-								final FLEFRecord dateStruct = FLEFRecordHelper.findChild(event, EventReader.TAG_DATE);
-								if(dateStruct != null){
-									final TemporalSpan span = DateNormalizer.normalize(dateStruct);
-									if(span != null && span.start() != null){
-										return span.start().jdn();
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-		return null;
+		return index.deathJdnOf(id);
 	}
 
 	private static String describeGap(final List<GeoAnchor> anchors, final long t){
@@ -471,6 +560,10 @@ public final class AgoraPanel extends JPanel{
 	}
 
 
+	/* ======================================================================
+	 *                          Standalone demo
+	 * ====================================================================== */
+
 	public static void main(final String[] args) throws IOException{
 		try{
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
@@ -482,15 +575,14 @@ public final class AgoraPanel extends JPanel{
 		try(final InputStream is = AgoraPanel.class.getResourceAsStream("/tests/TGMZ.flef")){
 			content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
 		}
-		final FLEFModel model = new FLEFParser()
-			.parse(content);
+		final FLEFModel model = new FLEFParser().parse(content);
 
 		final Path cacheFile = Path.of(System.getProperty("user.home"), ".familylegacy", "geocoding.properties");
 		final PlaceCoordinateResolver resolver = new PlaceCoordinateResolver(model, cacheFile);
 		final ChronomapIndex index = new ChronomapIndex(model, resolver);
 
 		SwingUtilities.invokeLater(() -> {
-			final AgoraPanel panel = new AgoraPanel(model, index);
+			final AgoraPanel panel = new AgoraPanel(model, index, null, null);
 			panel.setIndividuals(model.getRecordsByType(IndividualHandler.TYPE)
 				.stream()
 				.map(FLEFRecord::getId)
