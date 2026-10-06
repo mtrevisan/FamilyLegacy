@@ -45,7 +45,6 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFrame;
-import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JRadioButtonMenuItem;
@@ -64,7 +63,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -72,39 +74,16 @@ import java.util.Map;
 import java.util.Set;
 
 
-/**
- * Panel that shows a map of the places where the events of the visible
- * individuals happened, filtered by a zoomable timeline.
- *
- * <p>The panel can be used standalone (it owns its own timeline, which is
- * embedded in the bottom of the panel) or as part of a
- * {@link ChronomapWorkspace} (it receives a shared timeline and a shared
- * {@link WorkspaceSelection} from outside). In the latter case the
- * timeline is not embedded, because the workspace installs it below
- * both the map and the list.</p>
- *
- * <p><b>Historical maps and base map.</b> The modern OpenStreetMap layer
- * is the <em>base map</em> of the {@link JXMapViewer}: it is always
- * enabled and is not exposed as a layer. Historical maps are rendered as
- * semi-transparent overlays on top of the base map, via a
- * {@link MapWarperTileOverlayPainter} inserted at the bottom of the layer
- * stack (below images and markers). The overlay's
- * {@link MapWarperTileFactoryInfo} is built with the <em>same</em>
- * {@code totalMapZoom} as the OSM factory, so that world-pixel
- * coordinates coincide and the overlay lines up with the base map.</p>
- */
 public class ChronomapPanel extends JPanel{
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ChronomapPanel.class);
 
-	// Global view constants
+
 	private static final GeoPosition WORLD_CENTER = new GeoPosition(0., 0.);
 	private static final int WORLD_ZOOM = 18;
 
-	/** Radius in pixels within which a click is considered a marker hit. */
 	private static final int MARKER_HIT_RADIUS_PX = 10;
 
-	/** Opacity of the historical map overlay on top of the modern base map. */
 	private static final float HISTORICAL_OVERLAY_ALPHA = 0.85f;
 
 
@@ -117,27 +96,62 @@ public class ChronomapPanel extends JPanel{
 
 	private DefaultTileFactory osmTileFactory;
 	private boolean autoSelectMapEnabled = true;
-	private HistoricalMapMetaData activeHistoricalMap;
+
 	/**
-	 * Overlay currently displayed on top of the OSM base map. There is at
-	 * most one active historical overlay at a time; switching to a
-	 * different map replaces it entirely, because the tile factory (and
-	 * therefore the MapWarper URL) is bound to the map identifier and
-	 * cannot be reused across maps.
+	 * Overlays currently displayed, ordered from the largest to the
+	 * smallest. The first element is painted first (bottom of the stack),
+	 * the last element is painted last (top of the stack). This ordering
+	 * makes the smaller, more detailed maps cover the larger, coarser
+	 * ones in their overlap region.
 	 */
-	private MapWarperTileOverlayPainter historicalMapOverlay;
+	private final List<MapWarperTileOverlayPainter> historicalMapOverlays = new ArrayList<>();
+	/** Metadata of the maps currently shown, parallel to {@link #historicalMapOverlays}. */
+	private final List<HistoricalMapMetaData> activeHistoricalMaps = new ArrayList<>();
 	private final Map<Integer, DefaultTileFactory> mapWarperCache = new LinkedHashMap<>();
 
-	//https://mapwarper.net/maps/98752
+	// https://mapwarper.net/maps/98752
+	// TODO see MapWarperMetadataProbe
 	private final List<HistoricalMapMetaData> availableHistoricalMaps = List.of(
-		new HistoricalMapMetaData(98752, "Italy 1499", 2268561L, 2268922L,
-			new GeoPosition(47.0925, 6.6261), new GeoPosition(35.49, 18.5194)),
-		new HistoricalMapMetaData(70055, "Italy 1790", 2374845L, 2375208L,
-			new GeoPosition(47.0925, 6.6261), new GeoPosition(35.49, 18.5194)),
-		new HistoricalMapMetaData(50110, "Italy 1811", 2382514L, 2382878L,
-			new GeoPosition(47.0925, 6.6261), new GeoPosition(35.49, 18.5194)),
-		new HistoricalMapMetaData(109358, "Italy 1815", 2383977L, 2384339L,
-			new GeoPosition(47.0925, 6.6261), new GeoPosition(35.49, 18.5194))
+		new HistoricalMapMetaData(98752, "Italy [1499]", 2268559L, 2268923L,
+			new GeoPosition(47.8777742, 4.2787858), new GeoPosition(34.7527998, 19.1181981)),
+		new HistoricalMapMetaData(40917, "East Europe [1570]", firstDayOfYear(1570), lastDayOfYear(1570),
+			new GeoPosition(57.4950594973751, 8.055127588116198), new GeoPosition(33.46653425876917, 35.841168995341484)),
+		new HistoricalMapMetaData(40364, "Europe, the peace of Westphalia [1648]", firstDayOfYear(1648), lastDayOfYear(1648),
+			new GeoPosition(62.93794, -22.0289902), new GeoPosition(30.1449439, 54.4634365)),
+		new HistoricalMapMetaData(86282, "Europe [1696]", firstDayOfYear(1696), lastDayOfYear(1696),
+			new GeoPosition(76.2465603, -37.1024572), new GeoPosition(27.7860639, 91.9596861)),
+		new HistoricalMapMetaData(70055, "Italy [1790]", 2374845L, 2375209L,
+			new GeoPosition(49.2560582, 4.77068), new GeoPosition(32.2506154, 19.9735354)),
+		new HistoricalMapMetaData(101098, "Europe [1810]", firstDayOfYear(1810), lastDayOfYear(1810),
+			new GeoPosition(74.336858, -34.6566512), new GeoPosition(24.3812222, 87.5786717)),
+		new HistoricalMapMetaData(50110, "Italy [1811]", 2382514L, 2382878L,
+			new GeoPosition(48.6998699, 3.8993105), new GeoPosition(33.2088633, 23.9187322)),
+		new HistoricalMapMetaData(46121, "Europe map [1815]", firstDayOfYear(1815), lastDayOfYear(1815),
+			new GeoPosition(60.4193475, -13.6826846), new GeoPosition(32.8045958, 39.8144521)),
+		new HistoricalMapMetaData(109358, "Italy [1815]", 2383975L, 2384339L,
+			new GeoPosition(47.2788843, 3.7518328), new GeoPosition(34.9267374, 19.0513314)),
+		new HistoricalMapMetaData(46122, "Europe [1854]", firstDayOfYear(1854), lastDayOfYear(1854),
+			new GeoPosition(73.1984149, -50.6104437), new GeoPosition(21.9213243, 78.0662862)),
+		new HistoricalMapMetaData(694, "Central Europe [1875]", firstDayOfYear(1875), lastDayOfYear(1875),
+			new GeoPosition(58.82915948331553, -12.87125040612257), new GeoPosition(31.472393302609195, 42.76694731645283)),
+		new HistoricalMapMetaData(98610, "Europe Train Map [1889]", firstDayOfYear(1889), lastDayOfYear(1889),
+			new GeoPosition(67.1616677, -30.5444337), new GeoPosition(22.6591603, 67.9727088)),
+		new HistoricalMapMetaData(54313, "Europe [1895]", firstDayOfYear(1895), lastDayOfYear(1895),
+			new GeoPosition(75.4558424, -36.6280992), new GeoPosition(25.6867332, 85.789368)),
+		new HistoricalMapMetaData(13354, "Europe [1910]", firstDayOfYear(1910), lastDayOfYear(1910),
+			new GeoPosition(76.117162, -50.0199415), new GeoPosition(18.4774785, 87.5562268)),
+		new HistoricalMapMetaData(52583, "East Central Europe [1910]", firstDayOfYear(1910), lastDayOfYear(1910),
+			new GeoPosition(58.2223856, 9.2425931), new GeoPosition(33.2128363, 33.0980444)),
+		new HistoricalMapMetaData(23789, "Europe [1914]", firstDayOfYear(1914), lastDayOfYear(1914),
+			new GeoPosition(57.4161474, -8.5438205), new GeoPosition(39.0943806, 34.872125)),
+		new HistoricalMapMetaData(91403, "Map of Europe sep [193807]", firstDayOfYear(1938) + 181, firstDayOfYear(1938) + 211,
+			new GeoPosition(76.3769155, -20.9594392), new GeoPosition(31.9105175, 53.3787187)),
+		new HistoricalMapMetaData(65941, "Europe [1939]", firstDayOfYear(1939), lastDayOfYear(1939),
+			new GeoPosition(58.8626453, -20.9326147), new GeoPosition(25.7711045, 50.9206112)),
+		new HistoricalMapMetaData(103854, "Europe [1955]", firstDayOfYear(1955), lastDayOfYear(1955),
+			new GeoPosition(84.0118525, -79.7691404), new GeoPosition(9.8722811, 121.202397)),
+		new HistoricalMapMetaData(39802, "Europe [1955]", firstDayOfYear(1955), lastDayOfYear(1955),
+			new GeoPosition(83.3444685, -91.3676302), new GeoPosition(8.4669641, 112.0641015))
 	);
 
 	private final ChronomapLayerManager layerManager = new ChronomapLayerManager();
@@ -149,6 +163,34 @@ public class ChronomapPanel extends JPanel{
 	private final Map<String, JCheckBoxMenuItem> eventTypeItems = new LinkedHashMap<>();
 
 	private record ProgressData(int current, int total, String placeName){}
+
+
+	/* ======================================================================
+	 *                          JDN helpers
+	 * ====================================================================== */
+
+	/**
+	 * Julian Day Number of January 1 of the given Gregorian year.
+	 * Gregorian proleptic calendar; all divisions are integer divisions.
+	 */
+	static long firstDayOfYear(final int year){
+		return gregorianToJdn(year, 1, 1);
+	}
+
+	/**
+	 * Julian Day Number of December 31 of the given Gregorian year.
+	 * Gregorian proleptic calendar; all divisions are integer divisions.
+	 */
+	static long lastDayOfYear(final int year){
+		return gregorianToJdn(year, 12, 31);
+	}
+
+	private static long gregorianToJdn(final int year, final int month, final int day){
+		final int a = (14 - month) / 12;
+		final int y = year + 4800 - a;
+		final int m = month + 12 * a - 3;
+		return day + (153L * m + 2) / 5 + 365L * y + y / 4 - y / 100 + y / 400 - 32045L;
+	}
 
 
 	/* ======================================================================
@@ -171,7 +213,7 @@ public class ChronomapPanel extends JPanel{
 	 * resolver. The timeline is created internally.
 	 */
 	public static ChronomapPanel create(final FLEFModel model, final ChronomapIndex index,
-		final PlaceCoordinateResolver placeResolver){
+			final PlaceCoordinateResolver placeResolver){
 		return new ChronomapPanel(model, index, placeResolver, null, null);
 	}
 
@@ -181,15 +223,15 @@ public class ChronomapPanel extends JPanel{
 	 * workspace installs it below the split pane.
 	 */
 	public static ChronomapPanel create(final FLEFModel model, final ChronomapIndex index,
-		final PlaceCoordinateResolver placeResolver, final ChronomapTimeline timeline,
-		final WorkspaceSelection selection){
+			final PlaceCoordinateResolver placeResolver, final ChronomapTimeline timeline,
+			final WorkspaceSelection selection){
 		return new ChronomapPanel(model, index, placeResolver, timeline, selection);
 	}
 
 
 	private ChronomapPanel(final FLEFModel model, final ChronomapIndex index,
-		final PlaceCoordinateResolver placeResolver, final ChronomapTimeline timeline,
-		final WorkspaceSelection selection){
+			final PlaceCoordinateResolver placeResolver, final ChronomapTimeline timeline,
+			final WorkspaceSelection selection){
 		this.index = index;
 		this.markerLayer = new ChronomapOverlayPainter(model, index);
 		this.imageLayer = new ChronomapImageOverlayLayer();
@@ -217,11 +259,8 @@ public class ChronomapPanel extends JPanel{
 
 		this.timeline.withTimeListener(jdn -> {
 			markerLayer.setCurrentTime(jdn);
-
-			if(historicalMapOverlay != null)
-				historicalMapOverlay.setCurrentTime(jdn);
-
-			// Automatically switch historical overlay on time change
+			for(final MapWarperTileOverlayPainter overlay : historicalMapOverlays)
+				overlay.setCurrentTime(jdn);
 			autoSelectBaseMap(jdn);
 
 			mapViewer.repaint();
@@ -319,15 +358,34 @@ public class ChronomapPanel extends JPanel{
 	 *                          Geocoding worker
 	 * ====================================================================== */
 
+	/**
+	 * Starts the background geocoding worker.
+	 * <p>
+	 * The worker is started only when there is actual network work to do.
+	 * The list of places to geocode is computed by
+	 * {@link PlaceCoordinateResolver#extractMissingPlaces()}, which
+	 * checks both the in-memory cache and the on-disk cache. When every
+	 * place is already resolved (a typical second run on the same file),
+	 * the method returns without showing the progress dialog or
+	 * scheduling any background task.
+	 */
 	private void startGeocodingWorker(final PlaceCoordinateResolver placeResolver){
+		final List<FLEFRecord> placesToGeocode = placeResolver.extractMissingPlaces();
+		if(placesToGeocode.isEmpty()){
+			LOGGER.debug("Geocoding skipped: all places are already cached");
+
+			return;
+		}
+
+		LOGGER.debug("Geocoding {} places not present in the cache", placesToGeocode.size());
+
 		final SwingWorker<Integer, ProgressData> worker = new SwingWorker<>(){
 			private GeocodingProgressDialog dialog;
 
 			@Override
 			protected Integer doInBackground(){
-				final List<FLEFRecord> places = placeResolver.extractAllPlaces();
 				return placeResolver.geocodePlaces(
-					places,
+					placesToGeocode,
 					(current, total, placeName) -> publish(new ProgressData(current, total, placeName)),
 					this::isCancelled
 				);
@@ -480,72 +538,105 @@ public class ChronomapPanel extends JPanel{
 
 
 	/**
-	 * Chooses the historical map overlay to display based on the current
+	 * Chooses the historical map overlays to display based on the current
 	 * timeline position and map viewport center. When
 	 * {@link #autoSelectMapEnabled} is on, this is called automatically on
-	 * time changes and viewport panning. Manual selection from the
-	 * toolbar menu temporarily disables auto-selection.
+	 * time changes and viewport panning.
 	 * <p>
-	 * The base map is never switched: the historical map is always shown
-	 * as an overlay on top of the modern OpenStreetMap base.
+	 * All matching maps are shown simultaneously as a mosaic. They are
+	 * sorted by area descending, so the smaller, more detailed maps are
+	 * painted on top of the larger, coarser ones.
 	 */
 	private void autoSelectBaseMap(final double currentJdn){
 		if(!autoSelectMapEnabled){
-			if(activeHistoricalMap != null && !activeHistoricalMap.isAvailableAt(currentJdn))
-				hideHistoricalOverlay();
+			// Manual mode: keep only the maps that are still valid at the
+			// current time. Nothing else changes.
+			final List<HistoricalMapMetaData> stillValid = activeHistoricalMaps.stream()
+				.filter(map -> map.isAvailableAt(currentJdn))
+				.toList();
+			if(stillValid.size() != activeHistoricalMaps.size())
+				setHistoricalOverlays(stillValid);
 
 			return;
 		}
 
 		final GeoPosition currentCenter = mapViewer.getCenterPosition();
 
-		final HistoricalMapMetaData matchingMap = availableHistoricalMaps.stream()
+		final List<HistoricalMapMetaData> matching = availableHistoricalMaps.stream()
 			.filter(map -> map.isMatching(currentJdn, currentCenter))
-			.findFirst()
-			.orElse(null);
+			.sorted(Comparator.comparingDouble(ChronomapPanel::areaOf).reversed())
+			.toList();
 
-		if(matchingMap != null)
-			showHistoricalOverlay(matchingMap);
-		else
-			hideHistoricalOverlay();
+		setHistoricalOverlays(matching);
 	}
 
 	/**
-	 * Ensures the given historical map is shown as an overlay on top of
-	 * the modern base map. A different tile factory is created for each
-	 * map identifier and reused across invocations, because
-	 * {@link MapWarperTileFactoryInfo} is bound to a single map id.
+	 * Computes the area of the bounding box of the given historical map,
+	 * expressed in square degrees. Only used to compare maps against each
+	 * other, so absolute units are irrelevant.
 	 */
-	private void showHistoricalOverlay(final HistoricalMapMetaData map){
-		if(activeHistoricalMap != null && activeHistoricalMap.mapId() == map.mapId() && historicalMapOverlay != null){
-			historicalMapOverlay.setCurrentTime(timeline.getCurrentTime());
-
-			return;
-		}
-
-		// Remove any previously installed overlay: it belongs to a
-		// different MapWarper map and cannot be reused.
-		if(historicalMapOverlay != null){
-			layerManager.removeLayer(historicalMapOverlay);
-			historicalMapOverlay = null;
-		}
-
-		final DefaultTileFactory factory = getOrCreateMapWarperFactory(map.mapId());
-		historicalMapOverlay = new MapWarperTileOverlayPainter(map, factory);
-		historicalMapOverlay.setAlpha(HISTORICAL_OVERLAY_ALPHA);
-		historicalMapOverlay.setCurrentTime(timeline.getCurrentTime());
-		layerManager.addLayer(0, historicalMapOverlay);
-
-		activeHistoricalMap = map;
-		mapViewer.repaint();
+	private static double areaOf(final HistoricalMapMetaData map){
+		final GeoPosition nw = map.northWest();
+		final GeoPosition se = map.southEast();
+		final double latSpan = Math.abs(nw.getLatitude() - se.getLatitude());
+		final double lonSpan = Math.abs(nw.getLongitude() - se.getLongitude());
+		return latSpan * lonSpan;
 	}
 
-	private void hideHistoricalOverlay(){
-		if(historicalMapOverlay != null){
-			layerManager.removeLayer(historicalMapOverlay);
-			historicalMapOverlay = null;
+	/**
+	 * Replaces the current set of historical overlays with the given list.
+	 * The list must already be sorted by area descending. Maps already
+	 * active are kept as-is, maps no longer active are removed, and new
+	 * maps are created and inserted at the bottom of the layer stack.
+	 * <p>
+	 * The method is a no-op when the new set is identical to the current
+	 * one, so that panning does not cause flicker.
+	 */
+	private void setHistoricalOverlays(final List<HistoricalMapMetaData> maps){
+		// Fast path: same set, same order.
+		if(activeHistoricalMaps.equals(maps))
+			return;
+
+		// 1. Remove overlays that are no longer needed.
+		final Iterator<MapWarperTileOverlayPainter> it = historicalMapOverlays.iterator();
+		while(it.hasNext()){
+			final MapWarperTileOverlayPainter overlay = it.next();
+			final boolean stillNeeded = maps.stream()
+				.anyMatch(m -> m.mapId() == overlay.mapId());
+			if(!stillNeeded){
+				layerManager.removeLayer(overlay);
+				it.remove();
+			}
 		}
-		activeHistoricalMap = null;
+
+		// 2. Insert the new maps at the bottom of the stack, largest first.
+		// addLayer(0, ...) pushes everything else up, so iterating the list
+		// in reverse order leaves the smallest map on top of the stack and
+		// the largest just above the base map.
+		for(int i = maps.size() - 1; i >= 0; i --){
+			final HistoricalMapMetaData map = maps.get(i);
+			final boolean alreadyActive = historicalMapOverlays.stream()
+				.anyMatch(o -> o.mapId() == map.mapId());
+			if(alreadyActive)
+				continue;
+
+			final DefaultTileFactory factory = getOrCreateMapWarperFactory(map.mapId());
+			final MapWarperTileOverlayPainter overlay = new MapWarperTileOverlayPainter(map, factory);
+			overlay.setAlpha(HISTORICAL_OVERLAY_ALPHA);
+			overlay.setCurrentTime(timeline.getCurrentTime());
+			layerManager.addLayer(0, overlay);
+
+			historicalMapOverlays.add(overlay);
+		}
+
+		// 3. Rebuild the metadata list from the overlay order so the two
+		// stay in sync. The overlay list is ordered bottom-to-top, i.e.
+		// largest to smallest, which matches the sort applied by
+		// autoSelectBaseMap.
+		activeHistoricalMaps.clear();
+		for(final MapWarperTileOverlayPainter overlay : historicalMapOverlays)
+			activeHistoricalMaps.add(overlay.metadata());
+
 		mapViewer.repaint();
 	}
 
@@ -557,32 +648,36 @@ public class ChronomapPanel extends JPanel{
 		button.addActionListener(e -> {
 			menu.removeAll();
 
-			// Option 1: Auto-selection toggle
+			// Option 1: auto-selection toggle.
 			final JCheckBoxMenuItem autoItem = new JCheckBoxMenuItem("Auto Select Historical Map", autoSelectMapEnabled);
 			autoItem.addActionListener(ev -> {
 				autoSelectMapEnabled = autoItem.isSelected();
-				if(autoSelectMapEnabled){
+				if(autoSelectMapEnabled)
 					autoSelectBaseMap(timeline.getCurrentTime());
-				}
 			});
 			menu.add(autoItem);
 			menu.addSeparator();
 
-			// Option 2: Manual "None" (modern map only)
-			final JRadioButtonMenuItem noneItem = new JRadioButtonMenuItem("None (modern map only)", !autoSelectMapEnabled && activeHistoricalMap == null);
+			// Option 2: manual "None" (modern map only).
+			final boolean noneActive = (!autoSelectMapEnabled && activeHistoricalMaps.isEmpty());
+			final JRadioButtonMenuItem noneItem = new JRadioButtonMenuItem("None (modern map only)", noneActive);
 			noneItem.addActionListener(ev -> {
 				autoSelectMapEnabled = false;
-				hideHistoricalOverlay();
+				setHistoricalOverlays(List.of());
 			});
 			menu.add(noneItem);
 
-			// Option 3: Manual override for available historical maps
+			// Option 3: manual override for available historical maps.
+			// Selecting one disables auto-selection and replaces the whole
+			// overlay set with just that map.
 			for(final HistoricalMapMetaData map : availableHistoricalMaps){
-				final boolean isCurrent = !autoSelectMapEnabled && activeHistoricalMap != null && activeHistoricalMap.mapId() == map.mapId();
+				final boolean isCurrent = !autoSelectMapEnabled
+					&& activeHistoricalMaps.size() == 1
+					&& activeHistoricalMaps.getFirst().mapId() == map.mapId();
 				final JRadioButtonMenuItem mapItem = new JRadioButtonMenuItem(map.name(), isCurrent);
 				mapItem.addActionListener(ev -> {
 					autoSelectMapEnabled = false;
-					showHistoricalOverlay(map);
+					setHistoricalOverlays(List.of(map));
 				});
 				menu.add(mapItem);
 			}
@@ -602,7 +697,8 @@ public class ChronomapPanel extends JPanel{
 	 */
 	private DefaultTileFactory getOrCreateMapWarperFactory(final int mapId){
 		return mapWarperCache.computeIfAbsent(mapId, id -> {
-			final int totalMapZoom = osmTileFactory.getInfo().getTotalMapZoom();
+			final int totalMapZoom = osmTileFactory.getInfo()
+				.getTotalMapZoom();
 			final MapWarperTileFactoryInfo info = new MapWarperTileFactoryInfo(id, totalMapZoom);
 			return createTileFactory(info);
 		});
@@ -664,6 +760,10 @@ public class ChronomapPanel extends JPanel{
 		// a historical map, which is instead drawn as an overlay on top.
 		final OSMTileFactoryInfo osmInfo = new OSMTileFactoryInfo("OpenStreetMap", "https://tile.openstreetmap.org");
 		osmTileFactory = createTileFactory(osmInfo);
+		final int totalMapZoom = osmTileFactory.getInfo()
+			.getTotalMapZoom();
+		markerLayer.setTotalMapZoom(totalMapZoom);
+
 
 		mapViewer.setTileFactory(osmTileFactory);
 		mapViewer.setAddressLocation(WORLD_CENTER);

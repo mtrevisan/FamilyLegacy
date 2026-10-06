@@ -90,7 +90,7 @@ public class PlaceCache{
 					longNode != null && longNode.getValue() != null){
 					FLEFRecord map = FLEFRecord.createChildWithTag("map");
 					// Coordinates string: "lat long" (ISO 6709 format)
-					String coords = latiNode.getValue().trim() + " " + longNode.getValue().trim();
+					String coords = latiNode.getValue().trim() + StringUtils.SPACE + longNode.getValue().trim();
 					map.addChild(FLEFRecord.createChildWithTagAndValue("coordinates", coords));
 					place.addChild(map);
 				}

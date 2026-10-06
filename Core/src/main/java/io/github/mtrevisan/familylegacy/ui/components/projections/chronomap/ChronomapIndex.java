@@ -34,7 +34,6 @@ import io.github.mtrevisan.familylegacy.io.model.readers.GroupAttributeReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualAttributeReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateNormalizer;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.NormalizedDate;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.TemporalSpan;
@@ -113,7 +112,8 @@ public final class ChronomapIndex{
 		for(final List<GeoAnchor> list : anchorsByOwner.values())
 			for(final GeoAnchor a : list)
 				if(a.kind().startsWith("event:"))
-					types.add(a.kind().substring("event:".length()));
+					types.add(a.kind()
+						.substring("event:".length()));
 		return types;
 	}
 
@@ -150,13 +150,15 @@ public final class ChronomapIndex{
 				if(span == null || span.start() == null)
 					continue;
 
-				final long jdn = span.start().jdn();
+				final long jdn = span.start()
+					.jdn();
 				if(jdn < min)
 					min = jdn;
 				if(jdn > max)
 					max = jdn;
 				if(span.end() != null){
-					final long endJdn = span.end().jdn();
+					final long endJdn = span.end()
+						.jdn();
 					if(endJdn > max)
 						max = endJdn;
 				}
@@ -475,13 +477,5 @@ public final class ChronomapIndex{
 			return (a != null && !a.isEmpty()? a: b);
 		}
 	}
-
-	public record InterpolatedPosition(
-		GeoCoordinate coordinate,
-		GeoCoordinate fromCoordinate,
-		GeoCoordinate toCoordinate,
-		Double heading,
-		boolean isMoving
-	){}
 
 }

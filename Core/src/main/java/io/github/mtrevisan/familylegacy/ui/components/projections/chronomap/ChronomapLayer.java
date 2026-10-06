@@ -46,4 +46,6 @@ public interface ChronomapLayer extends Painter<JXMapViewer>{
 	/** Enables or disables the layer. */
 	void setVisible(boolean visible);
 
+	void setTotalMapZoom(int totalMapZoom);
+
 }

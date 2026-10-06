@@ -560,6 +560,7 @@ public final class MergeFieldComparisonDialog extends JDialog{
 
 		final BaseRecordDialog dialog = handler.createEditDialog(this, model, record);
 		dialog.setVisible(true);
+
 		if(dialog.isSaved()){
 			// The record changed: the display of the reference might not
 			// change (we show the id, not the display text), but the

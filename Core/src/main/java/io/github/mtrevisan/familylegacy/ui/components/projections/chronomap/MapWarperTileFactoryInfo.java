@@ -59,10 +59,10 @@ public final class MapWarperTileFactoryInfo extends TileFactoryInfo{
 	/**
 	 * Creates a factory aligned with the given {@code totalMapZoom}.
 	 *
-	 * @param mapId         the numeric MapWarper map identifier
-	 * @param totalMapZoom  the total zoom levels, matching the base map
-	 *                      factory (query it via
-	 *                      {@code map.getTileFactory().getInfo().getTotalMapZoom()})
+	 * @param mapId        the numeric MapWarper map identifier
+	 * @param totalMapZoom the total zoom levels, matching the base map
+	 *                     factory (query it via
+	 *                     {@code map.getTileFactory().getInfo().getTotalMapZoom()})
 	 */
 	public MapWarperTileFactoryInfo(final int mapId, final int totalMapZoom){
 		super(
@@ -90,7 +90,7 @@ public final class MapWarperTileFactoryInfo extends TileFactoryInfo{
 	 * place.
 	 */
 	@Override
-	public String getTileUrl(final int x, final int y, final int zoom) {
+	public String getTileUrl(final int x, final int y, final int zoom){
 		final int z = getTotalMapZoom() - zoom;
 		return baseURL + "/" + z + "/" + x + "/" + y + ".png";
 	}

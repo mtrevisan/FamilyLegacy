@@ -57,6 +57,7 @@ import java.awt.Window;
 import java.awt.event.AdjustmentListener;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -364,7 +365,7 @@ public class RecordDiffDialog extends JDialog{
 	private static String[] splitLines(final String text){
 		final String[] raw = StringUtils.split(text, StringUtils.LF, -1);
 		if(raw.length > 0 && raw[raw.length - 1].isEmpty())
-			return java.util.Arrays.copyOf(raw, raw.length - 1);
+			return Arrays.copyOf(raw, raw.length - 1);
 		return raw;
 	}
 

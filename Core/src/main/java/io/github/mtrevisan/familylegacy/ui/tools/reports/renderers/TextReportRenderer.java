@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 
 
 public final class TextReportRenderer implements ReportRenderer{
@@ -73,9 +74,7 @@ public final class TextReportRenderer implements ReportRenderer{
 				w.newLine();
 			}
 		}
-		else if(s instanceof ReportSection.Table(
-			java.util.List<String> headers, java.util.List<java.util.List<String>> rows
-		)){
+		else if(s instanceof ReportSection.Table(List<String> headers, List<List<String>> rows)){
 			w.write(String.join(" | ", headers));
 			w.newLine();
 			w.write("-".repeat(60));

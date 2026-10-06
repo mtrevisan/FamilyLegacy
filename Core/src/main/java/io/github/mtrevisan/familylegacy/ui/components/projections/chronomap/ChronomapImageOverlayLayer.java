@@ -101,6 +101,9 @@ public final class ChronomapImageOverlayLayer implements ChronomapLayer{
 		this.visible = visible;
 	}
 
+	@Override
+	public void setTotalMapZoom(final int totalMapZoom){}
+
 
 	/* ======================================================================
 	 *                          Painting

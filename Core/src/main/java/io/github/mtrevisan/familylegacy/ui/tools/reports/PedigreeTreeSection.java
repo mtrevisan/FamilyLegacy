@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.ui.tools.reports;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -119,7 +120,7 @@ final class PedigreeTreeSection implements SectionBuilder{
 		final FLEFRecord root = directLine.getFirst();
 		sb.append(ReportFormatters.escape(ctx.displayText(root)))
 			.append('\n');
-		renderChildren(sb, root, "");
+		renderChildren(sb, root, StringUtils.EMPTY);
 		return sb.toString();
 	}
 

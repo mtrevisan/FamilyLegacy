@@ -311,7 +311,7 @@ public class StructureParser{
 				latiNode.getValue() != null && longNode.getValue() != null){
 				FLEFRecord mapRecord = FLEFRecord.createChildWithTag("map");
 				mapRecord.addChild(FLEFRecord.createChildWithTagAndValue("coordinates",
-					latiNode.getValue() + " " + longNode.getValue()));
+					latiNode.getValue() + StringUtils.SPACE + longNode.getValue()));
 				// Evidence can be added if present (optional)
 				place.addChild(mapRecord);
 			}

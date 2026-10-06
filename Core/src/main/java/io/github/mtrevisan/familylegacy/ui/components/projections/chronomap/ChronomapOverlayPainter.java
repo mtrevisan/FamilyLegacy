@@ -1,3 +1,27 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
 package io.github.mtrevisan.familylegacy.ui.components.projections.chronomap;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
@@ -39,8 +63,12 @@ public final class ChronomapOverlayPainter implements ChronomapLayer{
 	private static final int MARKER_RADIUS = 6;
 	private static final float SELECTED_BORDER_WIDTH = 2.5f;
 
+	private static final double EARTH_CIRCUMFERENCE = 40_075_016.686;
+
+
 	private final FLEFModel model;
 	private final ChronomapIndex index;
+	private int totalMapZoom;
 
 	private final List<String> visibleIds = new ArrayList<>();
 	private double currentTime;
@@ -61,19 +89,19 @@ public final class ChronomapOverlayPainter implements ChronomapLayer{
 		GeoCoordinate toCoordinate,
 		Double screenHeading,
 		boolean isMoving
-	){
-	}
+	){}
+
 
 	public ChronomapOverlayPainter(final FLEFModel model, final ChronomapIndex index){
 		this.model = model;
 		this.index = index;
 	}
 
+
 	public void setVisibleIndividuals(final List<String> ids){
 		visibleIds.clear();
-		if(ids != null){
+		if(ids != null)
 			visibleIds.addAll(ids);
-		}
 	}
 
 	public void setCurrentTime(final double jdn){
@@ -81,7 +109,7 @@ public final class ChronomapOverlayPainter implements ChronomapLayer{
 	}
 
 	public void setEnabledEventTypes(final Set<String> types){
-		this.enabledEventTypes = (types != null ? Set.copyOf(types) : null);
+		this.enabledEventTypes = (types != null? Set.copyOf(types): null);
 	}
 
 	public void setShowUncertainty(final boolean showUncertainty){
@@ -121,6 +149,11 @@ public final class ChronomapOverlayPainter implements ChronomapLayer{
 	}
 
 	@Override
+	public void setTotalMapZoom(final int totalMapZoom){
+		this.totalMapZoom = totalMapZoom;
+	}
+
+	@Override
 	public void paint(final Graphics2D g, final JXMapViewer map, final int w, final int h){
 		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
@@ -137,8 +170,8 @@ public final class ChronomapOverlayPainter implements ChronomapLayer{
 			final Point2D p = map.convertGeoPositionToPoint(new GeoPosition(pos.latitude(), pos.longitude()));
 			final boolean selected = (selectedId != null && selectedId.equals(id));
 
-			if(showUncertainty && pos.uncertainty() > 0.0)
-				drawUncertaintyCircle(g, map, pos, p);
+			if(showUncertainty && pos.uncertainty() > 0.)
+				drawUncertaintyCircle(g, map, pos, p, totalMapZoom);
 
 			if(state.isMoving()){
 				// 1. Draw opacified orthodromic route from origin to destination
@@ -170,32 +203,27 @@ public final class ChronomapOverlayPainter implements ChronomapLayer{
 		GeoAnchor before = null;
 		GeoAnchor after = null;
 		for(final GeoAnchor a : anchors){
-			if(a.endJdn() < time && (before == null || a.endJdn() > before.endJdn())){
+			if(a.endJdn() < time && (before == null || a.endJdn() > before.endJdn()))
 				before = a;
-			}
-			if(a.startJdn() > time && (after == null || a.startJdn() < after.startJdn())){
+			if(a.startJdn() > time && (after == null || a.startJdn() < after.startJdn()))
 				after = a;
-			}
 		}
 
-		if(before == null || after == null){
+		if(before == null || after == null)
 			return null;
-		}
 
 		final long gapStart = before.endJdn();
 		final long gapEnd = after.startJdn();
-		if(gapEnd <= gapStart){
+		if(gapEnd <= gapStart)
 			return new InterpolatedPosition(before.position(), null, null, null, false);
-		}
 
 		double t = (time - gapStart) / (double)(gapEnd - gapStart);
 		t = Math.clamp(t, 0., 1.);
 
 		final GeoCoordinate p1 = before.position();
 		final GeoCoordinate p2 = after.position();
-		if(p1.latitude() == p2.latitude() && p1.longitude() == p2.longitude()){
+		if(p1.latitude() == p2.latitude() && p1.longitude() == p2.longitude())
 			return new InterpolatedPosition(p1, null, null, null, false);
-		}
 
 		final double[] latLon = slerp(p1.latitude(), p1.longitude(), p2.latitude(), p2.longitude(), t);
 		final int uncert = (int)Math.ceil(interpolate(p1.uncertainty(), p2.uncertainty(), t));
@@ -205,7 +233,7 @@ public final class ChronomapOverlayPainter implements ChronomapLayer{
 		Double screenHeading = null;
 		if(map != null){
 			final double deltaT = 0.005;
-			final double tNext = Math.min(1.0, t + deltaT);
+			final double tNext = Math.min(1., t + deltaT);
 			final double[] latLonNext = slerp(p1.latitude(), p1.longitude(), p2.latitude(), p2.longitude(), tNext);
 
 			final Point2D pCurrentScreen = map.convertGeoPositionToPoint(new GeoPosition(latLon[0], latLon[1]));
@@ -220,13 +248,12 @@ public final class ChronomapOverlayPainter implements ChronomapLayer{
 	}
 
 	private static void drawUncertaintyCircle(final Graphics2D g, final JXMapViewer map,
-		final GeoCoordinate pos, final Point2D center){
-		final double metersPerPixel = getMetersPerPixel(pos.latitude(), map.getZoom());
+			final GeoCoordinate pos, final Point2D center, final int totalMapZoom){
+		final double metersPerPixel = getMetersPerPixel(pos.latitude(), totalMapZoom - map.getZoom());
 		final int pixelRadius = (int)Math.round(pos.uncertainty() / metersPerPixel);
 
-		if(pixelRadius < 1){
+		if(pixelRadius < 1)
 			return;
-		}
 
 		final int x = (int)center.getX() - pixelRadius;
 		final int y = (int)center.getY() - pixelRadius;
@@ -236,14 +263,13 @@ public final class ChronomapOverlayPainter implements ChronomapLayer{
 		g.fillOval(x, y, diameter, diameter);
 
 		g.setColor(new Color(230, 120, 0, 160));
-		g.setStroke(new BasicStroke(1.2f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND, 10.0f, new float[]{4.0f, 4.0f}, 0.0f));
+		g.setStroke(new BasicStroke(1.2f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND, 10.f, new float[]{4.f, 4.f}, 0.f));
 		g.drawOval(x, y, diameter, diameter);
-		g.setStroke(new BasicStroke(1.0f));
+		g.setStroke(new BasicStroke(1.f));
 	}
 
 	private static double getMetersPerPixel(final double latitude, final int zoomLevel){
-		final double earthCircumferenceMeters = 40_075_016.686;
-		return (earthCircumferenceMeters * Math.cos(Math.toRadians(latitude))) / (256.0 * Math.pow(2, zoomLevel));
+		return (EARTH_CIRCUMFERENCE * Math.cos(Math.toRadians(latitude))) / (256. * Math.pow(2, zoomLevel));
 	}
 
 	private void drawGreatCircleRoute(final Graphics2D g, final JXMapViewer map,
@@ -252,7 +278,7 @@ public final class ChronomapOverlayPainter implements ChronomapLayer{
 		g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
 		g2.setColor(new Color(color.getRed(), color.getGreen(), color.getBlue(), 90));
-		g2.setStroke(new BasicStroke(1.5f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND, 10.0f, new float[]{5.0f, 5.0f}, 0.0f));
+		g2.setStroke(new BasicStroke(1.5f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND, 10.f, new float[]{5.f, 5.f}, 0.f));
 
 		final int steps = 30;
 		Point2D prevPoint = null;
@@ -261,9 +287,8 @@ public final class ChronomapOverlayPainter implements ChronomapLayer{
 			final double[] latLon = slerp(p1.latitude(), p1.longitude(), p2.latitude(), p2.longitude(), t);
 			final Point2D currentPoint = map.convertGeoPositionToPoint(new GeoPosition(latLon[0], latLon[1]));
 
-			if(prevPoint != null){
+			if(prevPoint != null)
 				g2.drawLine((int)prevPoint.getX(), (int)prevPoint.getY(), (int)currentPoint.getX(), (int)currentPoint.getY());
-			}
 			prevPoint = currentPoint;
 		}
 
@@ -276,10 +301,9 @@ public final class ChronomapOverlayPainter implements ChronomapLayer{
 		g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
 		g2.translate(x, y);
-		if(screenHeading != null){
+		if(screenHeading != null)
 			// Align coordinate frame: +X points in direction of motion
 			g2.rotate(Math.toRadians(screenHeading));
-		}
 
 		// 1. Motion trail behind marker (-X axis)
 		final int trailLength = MARKER_RADIUS * 4;
@@ -297,7 +321,7 @@ public final class ChronomapOverlayPainter implements ChronomapLayer{
 		// 2. Elongated ellipse: major diameter along trajectory (X axis)
 		final int height = MARKER_RADIUS * 2 - 2;  // Transverse diameter (Y axis)
 		final int width = MARKER_RADIUS * 3 + 2;   // Trajectory diameter (X axis)
-		final Ellipse2D.Double ellipse = new Ellipse2D.Double(-width / 2.0, -height / 2.0, width, height);
+		final Ellipse2D.Double ellipse = new Ellipse2D.Double(-width / 2., -height / 2., width, height);
 
 		g2.setColor(color);
 		g2.fill(ellipse);
@@ -306,7 +330,7 @@ public final class ChronomapOverlayPainter implements ChronomapLayer{
 		g2.setColor(selected? SELECTED_BORDER: MARKER_BORDER);
 		g2.setStroke(selected
 			? new BasicStroke(SELECTED_BORDER_WIDTH)
-			: new BasicStroke(1.2f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10.0f, new float[]{3.0f, 3.0f}, 0.0f));
+			: new BasicStroke(1.2f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10.f, new float[]{3.f, 3.f}, 0.f));
 		g2.draw(ellipse);
 
 		g2.dispose();
@@ -324,12 +348,8 @@ public final class ChronomapOverlayPainter implements ChronomapLayer{
 		}
 	}
 
-	private void drawMarker(final Graphics2D g, final int x, final int y, final Color color,
-		final String label, final boolean selected){
-		g.setColor(new Color(color.getRed(), color.getGreen(), color.getBlue(), 70));
-		g.fill(new Ellipse2D.Double(x - MARKER_RADIUS * 3, y - MARKER_RADIUS * 3,
-			MARKER_RADIUS * 6, MARKER_RADIUS * 6));
-
+	private void drawMarker(final Graphics2D g, final int x, final int y, final Color color, final String label,
+			final boolean selected){
 		g.setColor(color);
 		g.fill(new Ellipse2D.Double(x - MARKER_RADIUS, y - MARKER_RADIUS,
 			MARKER_RADIUS * 2, MARKER_RADIUS * 2));
@@ -355,28 +375,23 @@ public final class ChronomapOverlayPainter implements ChronomapLayer{
 	}
 
 	private List<GeoAnchor> filter(final List<GeoAnchor> anchors){
-		if(enabledEventTypes == null){
+		if(enabledEventTypes == null)
 			return anchors;
-		}
 
 		final List<GeoAnchor> result = new ArrayList<>(anchors.size());
-		for(final GeoAnchor a : anchors){
-			if(isEventEnabled(a)){
+		for(final GeoAnchor a : anchors)
+			if(isEventEnabled(a))
 				result.add(a);
-			}
-		}
 		return result;
 	}
 
 	private boolean isEventEnabled(final GeoAnchor a){
-		if(enabledEventTypes == null){
+		if(enabledEventTypes == null)
 			return true;
-		}
 
 		final String kind = a.kind();
-		if(!kind.startsWith("event:")){
+		if(!kind.startsWith("event:"))
 			return true;
-		}
 
 		return enabledEventTypes.contains(kind.substring("event:".length()));
 	}
@@ -396,9 +411,8 @@ public final class ChronomapOverlayPainter implements ChronomapLayer{
 		double dot = x1 * x2 + y1 * y2 + z1 * z2;
 		dot = Math.clamp(dot, -1., 1.);
 		final double omega = Math.acos(dot);
-		if(omega < 1e-9){
+		if(omega < 1.e-9)
 			return new double[]{lat1, lon1};
-		}
 
 		final double sinOmega = Math.sin(omega);
 		final double a = Math.sin((1. - t) * omega) / sinOmega;

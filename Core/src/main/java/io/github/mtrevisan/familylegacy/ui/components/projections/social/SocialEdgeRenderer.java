@@ -33,6 +33,7 @@ import java.awt.Rectangle;
 import java.awt.Stroke;
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
+import java.util.Map;
 import java.util.Set;
 
 
@@ -90,8 +91,7 @@ public final class SocialEdgeRenderer{
 	 *                    drawn at full opacity
 	 */
 	public static void drawEdges(final Graphics2D g, final SocialGraph graph,
-		final java.util.Map<SocialNodeRef, Rectangle> nodeBounds,
-		final Set<SocialEdgeRef> highlighted){
+			final Map<SocialNodeRef, Rectangle> nodeBounds, final Set<SocialEdgeRef> highlighted){
 		if(g == null || graph == null || nodeBounds == null || graph.isEmpty())
 			return;
 
@@ -120,7 +120,7 @@ public final class SocialEdgeRenderer{
 	 * @param nodeBounds the map of node bounds
 	 */
 	public static void drawPathHighlight(final Graphics2D g, final SocialPath path,
-		final java.util.Map<SocialNodeRef, Rectangle> nodeBounds){
+			final Map<SocialNodeRef, Rectangle> nodeBounds){
 		if(g == null || path == null || nodeBounds == null)
 			return;
 
@@ -225,8 +225,8 @@ public final class SocialEdgeRenderer{
 		final double halfWidth = bounds.width / 2.;
 		final double halfHeight = bounds.height / 2.;
 
-		final double tx = (Math.abs(ux) > 1e-9? halfWidth / Math.abs(ux): Double.POSITIVE_INFINITY);
-		final double ty = (Math.abs(uy) > 1e-9? halfHeight / Math.abs(uy): Double.POSITIVE_INFINITY);
+		final double tx = (Math.abs(ux) > 1.e-9? halfWidth / Math.abs(ux): Double.POSITIVE_INFINITY);
+		final double ty = (Math.abs(uy) > 1.e-9? halfHeight / Math.abs(uy): Double.POSITIVE_INFINITY);
 		final double t = Math.min(tx, ty);
 
 		return new Point2D.Double(
@@ -259,8 +259,8 @@ public final class SocialEdgeRenderer{
 		return new Color(color.getRed(), color.getGreen(), color.getBlue(), alpha);
 	}
 
-	private static Rectangle findBounds(final java.util.Map<SocialNodeRef, Rectangle> nodeBounds, final String id){
-		for(final java.util.Map.Entry<SocialNodeRef, Rectangle> entry : nodeBounds.entrySet())
+	private static Rectangle findBounds(final Map<SocialNodeRef, Rectangle> nodeBounds, final String id){
+		for(final Map.Entry<SocialNodeRef, Rectangle> entry : nodeBounds.entrySet())
 			if(entry.getKey()
 				.id()
 				.equals(id))

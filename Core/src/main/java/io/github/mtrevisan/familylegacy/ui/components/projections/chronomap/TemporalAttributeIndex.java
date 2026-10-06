@@ -74,6 +74,7 @@ public final class TemporalAttributeIndex{
 
 	public void rebuild(){
 		attributesByOwner.clear();
+
 		build();
 	}
 
@@ -150,6 +151,7 @@ public final class TemporalAttributeIndex{
 	private ChronomapIndex.GeoCoordinate resolvePlace(final FLEFRecord attribute){
 		if(placeResolver == null)
 			return null;
+
 		final FLEFRecord placeCitation = FLEFRecordHelper.findChild(attribute, PlaceHandler.TYPE);
 		if(placeCitation == null)
 			return null;

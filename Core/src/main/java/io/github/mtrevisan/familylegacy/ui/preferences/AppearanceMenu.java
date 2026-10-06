@@ -34,8 +34,10 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JSeparator;
+import java.awt.Desktop;
 import java.awt.Font;
 import java.awt.Window;
+import java.nio.file.Path;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -217,9 +219,9 @@ public final class AppearanceMenu{
 
 	private static void onOpenPreferences(final Window owner){
 		try{
-			final java.nio.file.Path path = AppPreferences.filePath();
-			if(java.awt.Desktop.isDesktopSupported())
-				java.awt.Desktop.getDesktop().open(path.getParent().toFile());
+			final Path path = AppPreferences.filePath();
+			if(Desktop.isDesktopSupported())
+				Desktop.getDesktop().open(path.getParent().toFile());
 		}
 		catch(final Exception ex){
 			JOptionPane.showMessageDialog(owner,

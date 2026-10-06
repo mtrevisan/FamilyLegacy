@@ -58,6 +58,8 @@ import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -389,9 +391,9 @@ public final class ReportDialog extends JDialog{
 			};
 
 		// If the user cancels, propagate the cancellation to the worker.
-		progressDialog.addWindowListener(new java.awt.event.WindowAdapter(){
+		progressDialog.addWindowListener(new WindowAdapter(){
 			@Override
-			public void windowClosed(final java.awt.event.WindowEvent e){
+			public void windowClosed(final WindowEvent e){
 				if(progressDialog.isCancelled())
 					worker.cancel(true);
 			}

@@ -129,7 +129,7 @@ public class NameParser {
 			surname = raw.substring(slash1 + 1, slash2).trim();
 			String suffix = raw.substring(slash2 + 1).trim();
 			if(!suffix.isEmpty()){
-				given = given + " " + suffix; // may need to handle better
+				given = given + StringUtils.SPACE + suffix; // may need to handle better
 			}
 		} else {
 			given = raw.trim();

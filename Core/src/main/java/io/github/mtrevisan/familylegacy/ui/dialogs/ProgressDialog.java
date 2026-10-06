@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.ui.dialogs;
 
+import org.apache.commons.lang3.StringUtils;
+
 import javax.swing.BorderFactory;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
@@ -41,7 +43,7 @@ import java.awt.Window;
 public final class ProgressDialog extends JDialog{
 
 	private final JProgressBar bar = new JProgressBar(0, 100);
-	private final JLabel message = new JLabel(" ");
+	private final JLabel message = new JLabel(StringUtils.SPACE);
 
 
 	public ProgressDialog(final Window owner, final String title, final String initialMessage){

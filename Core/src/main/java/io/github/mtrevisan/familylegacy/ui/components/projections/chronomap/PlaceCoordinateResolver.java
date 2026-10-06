@@ -1,3 +1,27 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
 package io.github.mtrevisan.familylegacy.ui.components.projections.chronomap;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
@@ -7,6 +31,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceRelationshipReader;
 import io.github.mtrevisan.familylegacy.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.PlaceRelationshipHandler;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,6 +90,31 @@ public final class PlaceCoordinateResolver{
 	private static final String USER_AGENT = "FamilyLegacy/1.0 (genealogy research)";
 	private static final long MIN_REQUEST_INTERVAL_MS = 1100;
 
+	/**
+	 * Outcome of a single Nominatim query.
+	 * <p>
+	 * Three states are possible:
+	 * <ul>
+	 *   <li>a coordinate: the query was answered and a place was found;</li>
+	 *   <li>{@link #NOT_FOUND}: the query was answered, but Nominatim has
+	 *       no matching place. This outcome is persisted to the disk cache,
+	 *       so the same query is not re-issued on subsequent runs;</li>
+	 *   <li>{@link #ERROR}: the query could not be answered (network
+	 *       error, timeout, HTTP error). This outcome is <em>not</em>
+	 *       persisted, because it is transient: the query is retried on
+	 *       the next run.</li>
+	 * </ul>
+	 */
+	private record NominatimOutcome(ChronomapIndex.GeoCoordinate coordinate, boolean responded){
+
+		static final NominatimOutcome ERROR = new NominatimOutcome(null, false);
+		static final NominatimOutcome NOT_FOUND = new NominatimOutcome(null, true);
+
+		static NominatimOutcome found(final ChronomapIndex.GeoCoordinate c){
+			return new NominatimOutcome(c, true);
+		}
+	}
+
 	@FunctionalInterface
 	public interface GeocodingProgressListener{
 		void onProgress(int current, int total, String placeName);
@@ -108,6 +158,10 @@ public final class PlaceCoordinateResolver{
 	 * Geocodes places using progressive left-truncation. In-memory session cache stores
 	 * individual query outcomes (including NOT_FOUND), whereas persistent disk storage maps
 	 * all original place names to the final resolved coordinates with minimal uncertainty.
+	 * <p>
+	 * The caller is expected to pass only the places returned by
+	 * {@link #extractMissingPlaces()}, so that the progress bar reflects
+	 * actual network work rather than a pass over already-cached data.
 	 */
 	public int geocodePlaces(final List<FLEFRecord> places, final GeocodingProgressListener progress,
 			final Supplier<Boolean> isCancelled){
@@ -115,7 +169,7 @@ public final class PlaceCoordinateResolver{
 		final int total = places.size();
 
 		// Runtime cache for individual query attempts during the current session
-		final Map<String, ChronomapIndex.GeoCoordinate> runtimeQueryCache = new HashMap<>();
+		final Map<String, NominatimOutcome> runtimeQueryCache = new HashMap<>();
 
 		for(int i = 0; i < total; i ++){
 			if(isCancelled != null && Boolean.TRUE.equals(isCancelled.get()))
@@ -124,7 +178,7 @@ public final class PlaceCoordinateResolver{
 			final FLEFRecord place = places.get(i);
 			final String placeId = place.getId();
 			final List<String> rawNames = PlaceReader.extractNames(place);
-			final String primaryName = (!rawNames.isEmpty() ? rawNames.getFirst() : placeId);
+			final String primaryName = (!rawNames.isEmpty()? rawNames.getFirst(): placeId);
 
 			if(progress != null)
 				progress.onProgress(i + 1, total, primaryName);
@@ -142,25 +196,37 @@ public final class PlaceCoordinateResolver{
 					return resolvedCount;
 				}
 
-				ChronomapIndex.GeoCoordinate candidateCoord = null;
+				NominatimOutcome outcome;
 
 				// 1. Check persistent disk cache first
 				final String cachedProp = diskCache.getProperty(query);
 				if(cachedProp != null)
-					candidateCoord = parseCoordinateString(cachedProp);
+					// Persisted outcome: either a coordinate or NOT_FOUND.
+					outcome = (NOT_FOUND.equals(cachedProp)
+						? NominatimOutcome.NOT_FOUND
+						: NominatimOutcome.found(parseCoordinateString(cachedProp)));
 				else if(runtimeQueryCache.containsKey(query))
 					// 2. Check in-memory runtime session cache
-					candidateCoord = runtimeQueryCache.get(query);
+					outcome = runtimeQueryCache.get(query);
 				else{
 					// 3. Query Nominatim API for new unvisited search string
-					candidateCoord = geocodeNominatimSingle(query, UNCERTAINTY_GEOCODED_FULL);
-					runtimeQueryCache.put(query, candidateCoord);
+					outcome = geocodeNominatimSingle(query, UNCERTAINTY_GEOCODED_FULL);
+					runtimeQueryCache.put(query, outcome);
+
+					// Persist the definitive "no result" outcome immediately,
+					// so the next run will skip this query instead of
+					// re-issuing the same request.
+					if(outcome == NominatimOutcome.NOT_FOUND){
+						diskCache.setProperty(query, NOT_FOUND);
+
+						saveDiskCache();
+					}
 				}
 
 				// Keep candidate if it yields a smaller uncertainty radius
-				if(candidateCoord != null)
-					if(bestCoord == null || candidateCoord.uncertainty() < bestCoord.uncertainty()){
-						bestCoord = candidateCoord;
+				if(outcome.coordinate() != null)
+					if(bestCoord == null || outcome.coordinate().uncertainty() < bestCoord.uncertainty()){
+						bestCoord = outcome.coordinate();
 						bestMatchedQuery = query;
 					}
 			}
@@ -173,6 +239,7 @@ public final class PlaceCoordinateResolver{
 				final String coordValue = bestCoord.latitude() + "," + bestCoord.longitude() + "," + bestCoord.uncertainty();
 				for(final String rawName : rawNames)
 					diskCache.setProperty(rawName, coordValue);
+
 				saveDiskCache();
 			}
 			else if(!cache.containsKey(placeId)){
@@ -197,7 +264,7 @@ public final class PlaceCoordinateResolver{
 		final List<String> candidates = new ArrayList<>();
 		final Set<String> seen = new HashSet<>();
 		for(final String name : rawNames){
-			String current = (name != null? name.trim(): "");
+			String current = (name != null? name.trim(): StringUtils.EMPTY);
 			while(!current.isEmpty()){
 				if(seen.add(current))
 					candidates.add(current);
@@ -211,25 +278,104 @@ public final class PlaceCoordinateResolver{
 		return candidates;
 	}
 
+	/**
+	 * Returns only the places that still require a network geocoding call.
+	 * <p>
+	 * A place is considered "missing" when:
+	 * <ul>
+	 *   <li>its id is not in the in-memory cache (direct coordinates,
+	 *       hierarchy inheritance, or a geocoding result already
+	 *       warmed in this session);</li>
+	 *   <li>none of its progressive name candidates is present in the
+	 *       on-disk geocoding cache.</li>
+	 * </ul>
+	 * When a place's name is found in the disk cache, the in-memory cache
+	 * is warmed immediately as a side effect, so the rest of the
+	 * application (index, markers) sees the resolved coordinate without
+	 * waiting for the worker. Places warmed this way are not returned.
+	 * <p>
+	 * This is the method that should be passed to
+	 * {@link #geocodePlaces(List, GeocodingProgressListener, Supplier)}:
+	 * when it returns an empty list, the caller can skip the worker (and
+	 * its progress dialog) entirely.
+	 *
+	 * @return the places that need a real Nominatim lookup; never {@code null}
+	 */
 	List<FLEFRecord> extractMissingPlaces(){
 		final List<FLEFRecord> places = model.getRecordsByType(PlaceHandler.TYPE);
 		final List<FLEFRecord> unlocatedPlaces = new ArrayList<>();
+		int warmed = 0;
+		int skippedAsNotFound = 0;
+
 		for(final FLEFRecord place : places){
 			final String placeId = place.getId();
-			if(placeId != null && !cache.containsKey(placeId)){
-				final List<String> names = PlaceReader.extractNames(place);
-				if(!names.isEmpty())
-					unlocatedPlaces.add(place);
+			if(placeId == null || cache.containsKey(placeId))
+				continue;
+
+			final List<String> names = PlaceReader.extractNames(place);
+			if(names.isEmpty())
+				continue;
+
+			final List<String> candidates = generateProgressiveCandidates(names);
+
+			ChronomapIndex.GeoCoordinate bestCoord = null;
+			String bestName = null;
+			int unknownCandidates = 0;
+			int notFoundCandidates = 0;
+			for(final String candidate : candidates){
+				final String cachedProp = diskCache.getProperty(candidate);
+				if(cachedProp == null){
+					unknownCandidates ++;
+
+					continue;
+				}
+				if(NOT_FOUND.equals(cachedProp)){
+					notFoundCandidates ++;
+
+					continue;
+				}
+				final ChronomapIndex.GeoCoordinate coord = parseCoordinateString(cachedProp);
+				if(coord != null)
+					if(bestCoord == null || coord.uncertainty() < bestCoord.uncertainty()){
+						bestCoord = coord;
+						bestName = candidate;
+					}
 			}
+
+			if(bestCoord != null){
+				// Warm the in-memory cache so the index sees the place
+				// immediately, without waiting for the worker. This does
+				// not require any network call.
+				cache.put(placeId, new Resolved(bestCoord, Source.GEOCODED, bestName));
+				warmed ++;
+
+				continue;
+			}
+
+			// No coordinate in the disk cache.
+			// If every candidate is marked NOT_FOUND, the place has been
+			// resolved before and Nominatim had nothing for it: skip it so
+			// the worker is not scheduled on every panel creation.
+			if(unknownCandidates == 0 && notFoundCandidates > 0){
+				skippedAsNotFound ++;
+
+				continue;
+			}
+
+			// Some candidates are still unknown: a real lookup is needed.
+			unlocatedPlaces.add(place);
 		}
+
+		if(warmed > 0)
+			LOGGER.debug("Warmed {} places from the on-disk geocoding cache", warmed);
+		if(skippedAsNotFound > 0)
+			LOGGER.debug("Skipped {} places marked as NOT_FOUND in the on-disk cache", skippedAsNotFound);
+		LOGGER.debug("Places needing network geocoding: {}", unlocatedPlaces.size());
+
 		return unlocatedPlaces;
 	}
 
-	List<FLEFRecord> extractAllPlaces(){
-		return model.getRecordsByType(PlaceHandler.TYPE);
-	}
-
-	private ChronomapIndex.GeoCoordinate geocodeNominatimSingle(final String queryText, final int defaultUncertainty){
+	private NominatimOutcome geocodeNominatimSingle(final String queryText, final int defaultUncertainty){
 		enforceRateLimit();
 
 		try(final HttpClient client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build()){
@@ -245,13 +391,17 @@ public final class PlaceCoordinateResolver{
 			if(response.statusCode() != 200){
 				LOGGER.warn("Nominatim returned HTTP {} for query '{}'", response.statusCode(), queryText);
 
-				return null;
+				// HTTP-level failure: treat as transient, do not persist.
+				return NominatimOutcome.ERROR;
 			}
 
 			final String body = response.body();
 			final Matcher mLatLon = NOMINATIM_LATLON.matcher(body);
-			if(!mLatLon.find())
-				return null;
+			if(!mLatLon.find()){
+				// The query was answered, but Nominatim has no matching place.
+				// This is a definitive outcome and can be cached.
+				return NominatimOutcome.NOT_FOUND;
+			}
 
 			final double lat = Double.parseDouble(mLatLon.group(1));
 			final double lon = Double.parseDouble(mLatLon.group(2));
@@ -272,14 +422,16 @@ public final class PlaceCoordinateResolver{
 				catch(final NumberFormatException ignored){}
 			}
 
-			return new ChronomapIndex.GeoCoordinate(lat, lon, uncertainty);
+			return NominatimOutcome.found(new ChronomapIndex.GeoCoordinate(lat, lon, uncertainty));
 		}
 		catch(final IOException | InterruptedException | NumberFormatException e){
 			if(e instanceof InterruptedException)
 				Thread.currentThread().interrupt();
 
 			LOGGER.debug("Geocoding failed for query '{}': {}", queryText, e.getMessage());
-			return null;
+
+			// Network-level failure: transient, do not persist.
+			return NominatimOutcome.ERROR;
 		}
 	}
 

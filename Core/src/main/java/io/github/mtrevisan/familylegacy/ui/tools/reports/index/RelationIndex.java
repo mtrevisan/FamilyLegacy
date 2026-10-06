@@ -310,7 +310,7 @@ public final class RelationIndex{
 		if(list.isEmpty())
 			return List.of();
 
-		final List<EventIndex.Participant> out = new java.util.ArrayList<>(list.size());
+		final List<EventIndex.Participant> out = new ArrayList<>(list.size());
 		for(int i = 0, size = list.size(); i < size; i ++){
 			final EventIndex.Participant p = list.get(i);
 			out.add(new EventIndex.Participant(p.record(), p.kind(), p.role(), p.participation()));

@@ -316,12 +316,10 @@ public class GEDCOMHelper{
 			String datePart = dateNode.getValue()
 				.trim();
 			GEDCOMNode timeNode = findFirstChild(dateNode, "TIME");
-			if(timeNode != null && timeNode.getValue() != null){
-				dateTime = datePart + (isIsoDate(datePart)? "T": " ") + timeNode.getValue().trim();
-			}
-			else{
+			if(timeNode != null && timeNode.getValue() != null)
+				dateTime = datePart + (isIsoDate(datePart)? "T": StringUtils.SPACE) + timeNode.getValue().trim();
+			else
 				dateTime = datePart;
-			}
 		}
 		return dateTime;
 	}
@@ -399,23 +397,21 @@ public class GEDCOMHelper{
 		// Parse inline value (e.g., "Joseph Tag /Torture/") into full text
 		String given = StringUtils.EMPTY;
 		String family = StringUtils.EMPTY;
-		String raw = extractFullText(nameNode);
+		final String raw = extractFullText(nameNode);
 		if(StringUtils.isNotEmpty(raw)){
-			int slash1 = raw.indexOf('/');
-			int slash2 = raw.indexOf('/', slash1 + 1);
+			final int slash1 = raw.indexOf('/');
+			final int slash2 = raw.indexOf('/', slash1 + 1);
 			if(slash1 >= 0 && slash2 > slash1){
 				given = raw.substring(0, slash1).trim();
 				family = raw.substring(slash1 + 1, slash2)
 					.trim();
-				String suffix = raw.substring(slash2 + 1)
+				final String suffix = raw.substring(slash2 + 1)
 					.trim();
-				if(!suffix.isEmpty()){
-					given = (given + " " + suffix).trim();
-				}
+				if(!suffix.isEmpty())
+					given = (given + StringUtils.SPACE + suffix).trim();
 			}
-			else{
+			else
 				given = raw.trim();
-			}
 		}
 
 		// Explicit parts mapping: priority to sub-tags, fallback to inline parsing
@@ -718,7 +714,7 @@ public class GEDCOMHelper{
 				FLEFRecord crop = null;
 				GEDCOMNode cutdNode = GEDCOMHelper.findFirstChild(node, "_CUTD");
 				if(cutdNode != null && cutdNode.getValue() != null){
-					String[] parts = cutdNode.getValue().split(" ");
+					String[] parts = cutdNode.getValue().split(StringUtils.SPACE);
 					if(parts.length == 4){
 						try{
 							int x = Integer.parseInt(parts[0]);
@@ -1326,7 +1322,7 @@ public class GEDCOMHelper{
 			GEDCOMNode longNode = findFirstChild(mapNode, "LONG");
 			if(latiNode != null && longNode != null && latiNode.getValue() != null && longNode.getValue() != null){
 				FLEFRecord mapRecord = FLEFRecord.createChildWithTag("map")
-					.addChild(FLEFRecord.createChildWithTagAndValue("coordinates", latiNode.getValue() + " " + longNode.getValue()));
+					.addChild(FLEFRecord.createChildWithTagAndValue("coordinates", latiNode.getValue() + StringUtils.SPACE + longNode.getValue()));
 				place.addChild(mapRecord);
 			}
 		}

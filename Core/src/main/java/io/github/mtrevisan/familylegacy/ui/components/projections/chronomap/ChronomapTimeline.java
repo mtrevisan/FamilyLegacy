@@ -1,3 +1,27 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
 package io.github.mtrevisan.familylegacy.ui.components.projections.chronomap;
 
 import io.github.mtrevisan.familylegacy.ui.tools.events.CalendarConverterDialog;
@@ -26,7 +50,6 @@ import java.awt.event.MouseWheelEvent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
-import java.util.function.DoubleConsumer;
 
 
 public final class ChronomapTimeline extends JPanel{
@@ -386,7 +409,7 @@ public final class ChronomapTimeline extends JPanel{
 
 	private static long chooseStep(final long spanDays, final int widthPixels){
 		final double spanYears = spanDays / DAYS_PER_YEAR;
-		final double pxPerYear = widthPixels / Math.max(1e-3, spanYears);
+		final double pxPerYear = widthPixels / Math.max(1.e-3, spanYears);
 
 		if(pxPerYear > 200) return (long)Math.max(1, Math.round(DAYS_PER_MONTH));
 		if(pxPerYear > 50) return (long)Math.round(DAYS_PER_YEAR);

@@ -445,7 +445,7 @@ public final class DeltaT{
 		if(SPLINE_ROWS.isEmpty())
 			return 0.;
 
-		final double yc = Math.clamp(y, SPLINE_START, SPLINE_END - 1e-9);
+		final double yc = Math.clamp(y, SPLINE_START, SPLINE_END - 1-e-9);
 
 		int lo = 0;
 		int hi = SPLINE_ROWS.size() - 1;
@@ -676,8 +676,8 @@ public final class DeltaT{
 	}
 
 	private static void checkContinuity(final String label, final double yB){
-		final double before = deltaTSeconds(yB - 1e-6);
-		final double after = deltaTSeconds(yB + 1e-6);
+		final double before = deltaTSeconds(yB - 1-e-6);
+		final double after = deltaTSeconds(yB + 1-e-6);
 		System.out.printf("%-14s at %.4f: before=%.6f s, after=%.6f s, jump=%.2e s%n",
 			label, yB, before, after, Math.abs(after - before));
 	}

@@ -52,6 +52,7 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.Window;
@@ -127,7 +128,7 @@ public final class SocialNetworkPanel extends JPanel implements TreeChangeListen
 	private double offsetY = 0.;
 
 	// Drag state.
-	private java.awt.Point dragAnchor;
+	private Point dragAnchor;
 
 
 	public SocialNetworkPanel(final FLEFModel model){
@@ -404,6 +405,7 @@ public final class SocialNetworkPanel extends JPanel implements TreeChangeListen
 		final Window parent = SwingUtilities.getWindowAncestor(this);
 		final BaseRecordDialog dialog = handler.createEditDialog(parent, model, record);
 		dialog.setVisible(true);
+
 		if(dialog.isSaved())
 			refreshNetwork();
 	}
@@ -518,6 +520,7 @@ public final class SocialNetworkPanel extends JPanel implements TreeChangeListen
 			(record, handler) -> result[0] = record,
 			IndividualHandler.class);
 		dialog.setVisible(true);
+
 		if(result[0] != null)
 			setFocus(result[0].getId());
 	}

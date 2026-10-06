@@ -102,7 +102,7 @@ final class RelationsSection implements SectionBuilder{
 			final List<String> p = new ArrayList<>(parents.size());
 			for(final FLEFRecord parent : parents)
 				p.add(ReportFormatters.escape(ctx.displayText(parent)));
-			meta.add("**" + ctx.labels.sections().roleChild() + " " + ctx.labels.sections().of() + ":** " + String.join(", ", p));
+			meta.add("**" + ctx.labels.sections().roleChild() + StringUtils.SPACE + ctx.labels.sections().of() + ":** " + String.join(", ", p));
 		}
 		out.add(new ReportSection.BulletList(meta));
 

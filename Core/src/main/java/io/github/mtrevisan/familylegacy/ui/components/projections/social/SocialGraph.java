@@ -29,7 +29,9 @@ import io.github.mtrevisan.familylegacy.ui.components.projections.temporal.Tempo
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -339,7 +341,7 @@ public final class SocialGraph{
 		if(incident.isEmpty())
 			return Set.of();
 
-		final Set<SocialRelationCategory> result = java.util.EnumSet.noneOf(SocialRelationCategory.class);
+		final Set<SocialRelationCategory> result = EnumSet.noneOf(SocialRelationCategory.class);
 		for(final SocialEdgeRef edge : incident)
 			result.add(edge.category());
 		return Collections.unmodifiableSet(result);
@@ -449,7 +451,7 @@ public final class SocialGraph{
 		if(!center.isCenter())
 			throw new IllegalArgumentException("Center node must have degree zero, got: " + center.degree());
 
-		final Set<String> nodeIds = new java.util.HashSet<>(nodes.size());
+		final Set<String> nodeIds = new HashSet<>(nodes.size());
 		for(final SocialNodeRef node : nodes){
 			nodeIds.add(node.id());
 			if(node.degree() > maxDegree)
