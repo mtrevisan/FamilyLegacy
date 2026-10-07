@@ -82,21 +82,20 @@ import java.util.regex.Pattern;
 /**
  * "Agorà" view.
  * <p>
- * Displays a population census of all individuals alive on a specific date.
- * If spatial coordinates are available via {@link ChronomapIndex}, the table
- * shows the interpolated location and reason; otherwise, the person is still
- * listed with their known state or as unlocated.
- *
- * <p>The panel can be used standalone (it owns its own timeline) or as part
- * of a {@link io.github.mtrevisan.familylegacy.ui.components.projections.chronomap.ChronomapWorkspace}
- * (it receives a shared timeline and a shared {@link WorkspaceSelection}).
- * In the workspace the two views stay in sync: moving the timeline updates
- * both, and selecting a row highlights the marker on the map.</p>
+ * Displays a population census of all individuals alive on a specific
+ * date. The life test is delegated to
+ * {@link ChronomapIndex#isAliveAt(List, double)}, the same method used
+ * by the chronomap marker layer: the set of people listed here and the
+ * set of people drawn on the map therefore always coincide.
+ * <p>
+ * The panel can be used standalone (it owns its own timeline) or as
+ * part of a {@link ChronomapWorkspace} (it receives a shared timeline
+ * and a shared {@link WorkspaceSelection}). In the workspace the two
+ * views stay in sync: moving the timeline updates both, and selecting
+ * a row highlights the marker on the map.
  */
 public final class AgoraPanel extends JPanel{
 
-	private static final int MAX_PLAUSIBLE_AGE_YEARS = 110;
-	private static final double DAYS_PER_YEAR = 365.2425;
 	private static final int REFRESH_DEBOUNCE_MS = 150;
 
 	private static final Color HEADER_BACKGROUND = new Color(240, 236, 228);
@@ -149,10 +148,11 @@ public final class AgoraPanel extends JPanel{
 	private double currentTime;
 
 	private Consumer<String> selectionCallback;
-	/** Suppresses the listener feedback loop when the table selection is
-	 *  being updated programmatically from the shared selection. */
+	/**
+	 * Suppresses the listener feedback loop when the table selection is
+	 * being updated programmatically from the shared selection.
+	 */
 	private boolean updatingSelection;
-
 
 
 	/* ======================================================================
@@ -481,102 +481,98 @@ public final class AgoraPanel extends JPanel{
 		countLabel.setText(rows.size() + (rows.size() == 1? " person alive": " people alive"));
 	}
 
+	/**
+	 * Builds the table row for one individual, or returns {@code null}
+	 * when the individual should not appear.
+	 * <p>
+	 * The life test is delegated to
+	 * {@link ChronomapIndex#isAliveAt(List, double)}, the same method
+	 * used by the chronomap marker layer. This guarantees that the set
+	 * of people shown on the map and the set of people listed here
+	 * always coincide: a person who is alive for the map is alive for
+	 * the list, and vice versa.
+	 * <p>
+	 * People with no anchors at all are excluded, because they cannot
+	 * be placed on the map. This is a deliberate consequence of the
+	 * shared test: the Agora is a spatial census, not a general list
+	 * of the living.
+	 */
 	private AgoraRow evaluate(final String id, final List<GeoAnchor> anchors, final long t){
-		Long bornJdn = getBirthJdn(id, anchors);
-		Long deathJdn = getDeathJdn(id, anchors);
-
-		if(bornJdn == null && !anchors.isEmpty()){
-			long firstAnchor = Long.MAX_VALUE;
-			for(final GeoAnchor a : anchors)
-				if(a.startJdn() != Long.MIN_VALUE && a.startJdn() < firstAnchor)
-					firstAnchor = a.startJdn();
-			if(firstAnchor != Long.MAX_VALUE)
-				bornJdn = firstAnchor;
-		}
-
-		if(bornJdn == null || bornJdn > t)
+		if(!ChronomapIndex.isAliveAt(anchors, t))
 			return null;
 
-		if(deathJdn != null && deathJdn <= t)
-			return null;
+		// Age: computed from the birth event, or from the earliest
+		// anchor when no birth is recorded. This mirrors the same
+		// fallback used by ChronomapIndex.isAliveAt, so the two values
+		// are consistent.
+		final Long bornJdn = earliestBirthJdn(anchors);
+		final Integer age = (bornJdn != null
+			? (int)Math.floor((t - bornJdn) / ChronomapIndex.DAYS_PER_YEAR)
+			: null);
 
-		final long maxAgeJdn = bornJdn + (long)(MAX_PLAUSIBLE_AGE_YEARS * DAYS_PER_YEAR);
-		if(t > maxAgeJdn)
-			return null;
-
-		// Retrieve interpolated position state and extract coordinate
-		final ChronomapOverlayPainter.InterpolatedPosition state = ChronomapOverlayPainter.interpolatePosition(null, anchors, t);
+		// Position: interpolated between the anchors around t.
+		final ChronomapOverlayPainter.InterpolatedPosition state =
+			ChronomapOverlayPainter.interpolatePosition(null, anchors, t);
 		final GeoCoordinate pos = (state != null? state.coordinate(): null);
 		final double lat = (pos != null? pos.latitude(): Double.NaN);
 		final double lon = (pos != null? pos.longitude(): Double.NaN);
 
+		// Reason and place.
 		String reason = StringUtils.EMPTY;
 		String place = StringUtils.EMPTY;
 
-		if(!anchors.isEmpty()){
+		for(final GeoAnchor a : anchors)
+			if(a.startJdn() == a.endJdn() && a.startJdn() == t){
+				reason = describeKind(a.kind());
+				place = (a.placeName() != null? a.placeName(): StringUtils.EMPTY);
+
+				break;
+			}
+
+		if(reason.isEmpty())
 			for(final GeoAnchor a : anchors)
-				if(a.startJdn() == a.endJdn() && a.startJdn() == t){
+				if(a.startJdn() < a.endJdn() && t >= a.startJdn() && t <= a.endJdn()){
 					reason = describeKind(a.kind());
 					place = (a.placeName() != null? a.placeName(): StringUtils.EMPTY);
 
 					break;
 				}
 
-			if(reason.isEmpty())
-				for(final GeoAnchor a : anchors)
-					if(a.startJdn() < a.endJdn() && t >= a.startJdn() && t <= a.endJdn()){
-						reason = describeKind(a.kind());
-						place = (a.placeName() != null? a.placeName(): StringUtils.EMPTY);
+		if(reason.isEmpty()){
+			GeoAnchor last = null;
+			for(final GeoAnchor a : anchors)
+				if(a.startJdn() <= t && (last == null || a.startJdn() > last.startJdn()))
+					last = a;
 
-						break;
-					}
-
-			if(reason.isEmpty()){
-				GeoAnchor last = null;
-				for(final GeoAnchor a : anchors)
-					if(a.startJdn() <= t && (last == null || a.startJdn() > last.startJdn()))
-						last = a;
-
-				if(last != null){
-					reason = "last: " + describeKind(last.kind());
-					place = (last.placeName() != null? last.placeName(): StringUtils.EMPTY);
-				}
-				else{
-					reason = "in transit";
-					place = "between " + describeGap(anchors, t);
-				}
+			if(last != null){
+				reason = "last: " + describeKind(last.kind());
+				place = (last.placeName() != null? last.placeName(): StringUtils.EMPTY);
+			}
+			else{
+				reason = "in transit";
+				place = "between " + describeGap(anchors, t);
 			}
 		}
-		else{
-			reason = "alive";
-			place = "--";
-		}
-
-		final int age = (int)Math.floor((t - bornJdn) / DAYS_PER_YEAR);
-		if(age < 0)
-			return null;
 
 		return new AgoraRow(id, resolveName(id), place, lat, lon, reason, age);
 	}
 
-	private Long getBirthJdn(final String id, final List<GeoAnchor> anchors){
-		// Fast path: the anchor list may already carry a birth event with a
-		// geographic position, in which case no further lookup is needed.
-		for(final GeoAnchor a : anchors)
+	/**
+	 * Returns the JDN of the birth event, or, when no birth event is
+	 * recorded, the JDN of the earliest anchor. Returns {@code null}
+	 * when the anchor list is empty or contains only anchors with an
+	 * open start date ({@link Long#MIN_VALUE}).
+	 */
+	private static Long earliestBirthJdn(final List<GeoAnchor> anchors){
+		Long earliest = null;
+		for(final GeoAnchor a : anchors){
 			if("event:birth".equals(a.kind()))
 				return a.startJdn();
 
-		// Otherwise consult the pre-computed life-event index, which is built
-		// once per rebuild and answers in O(1).
-		return index.birthJdnOf(id);
-	}
-
-	private Long getDeathJdn(final String id, final List<GeoAnchor> anchors){
-		for(final GeoAnchor a : anchors)
-			if("event:death".equals(a.kind()))
-				return a.startJdn();
-
-		return index.deathJdnOf(id);
+			if(a.startJdn() != Long.MIN_VALUE && (earliest == null || a.startJdn() < earliest))
+				earliest = a.startJdn();
+		}
+		return earliest;
 	}
 
 	private static String describeGap(final List<GeoAnchor> anchors, final long t){

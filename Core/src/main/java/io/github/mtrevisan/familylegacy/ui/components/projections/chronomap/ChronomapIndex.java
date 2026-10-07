@@ -67,6 +67,19 @@ import java.util.regex.Pattern;
  */
 public final class ChronomapIndex{
 
+	/**
+	 * Maximum plausible human lifespan, used when no death record exists.
+	 * Once a person would be older than this, the person is considered no
+	 * longer alive.
+	 */
+	private static final int MAX_PLAUSIBLE_AGE_YEARS = 120;
+
+	/** Same cap, expressed as a JDN offset from the birth date. */
+	private static final long MAX_PLAUSIBLE_AGE_JDN = (long)(MAX_PLAUSIBLE_AGE_YEARS * 365.2425);
+
+	/** Average length of a Gregorian year, in days. */
+	static final double DAYS_PER_YEAR = 365.2425;
+
 
 	private final FLEFModel model;
 	private final PlaceCoordinateResolver placeResolver;
@@ -380,6 +393,59 @@ public final class ChronomapIndex{
 
 		final FLEFRecord inner = field.getTheOnlyChild();
 		return (inner != null? inner.getValue(): null);
+	}
+
+	/**
+	 * Returns whether the given owner is considered alive at the given
+	 * time, using a single heuristic shared by all the temporal views.
+	 * <p>
+	 * A person is alive when all of the following hold:
+	 * <ul>
+	 *   <li>the birth event (or, when no birth is recorded, the earliest
+	 *       anchor) is not after the given time;</li>
+	 *   <li>no death event is on or before the given time;</li>
+	 *   <li>when no death is recorded, the time does not exceed the birth
+	 *       date by more than {@link #MAX_PLAUSIBLE_AGE_JDN}.</li>
+	 * </ul>
+	 * The same method is used by the chronomap marker layer and by the
+	 * Agora panel, so that the set of people shown on the map and the set
+	 * of people listed by the Agora always coincide.
+	 *
+	 * @param anchors the anchors of the owner; must not be {@code null}
+	 * @param time    the time, as a Julian Day Number
+	 * @return {@code true} when the owner is alive at the given time
+	 */
+	public static boolean isAliveAt(final List<GeoAnchor> anchors, final double time){
+		if(anchors.isEmpty())
+			return false;
+
+		// Find birth, death, and the earliest anchor in a single pass.
+		GeoAnchor birth = null;
+		GeoAnchor death = null;
+		long firstJdn = Long.MAX_VALUE;
+		for(final GeoAnchor anchor : anchors){
+			if(anchor.startJdn() != Long.MIN_VALUE && anchor.startJdn() < firstJdn)
+				firstJdn = anchor.startJdn();
+			if("event:birth".equals(anchor.kind()) && (birth == null || anchor.startJdn() < birth.startJdn()))
+				birth = anchor;
+			if("event:death".equals(anchor.kind()) && (death == null || anchor.startJdn() < death.startJdn()))
+				death = anchor;
+		}
+
+		final long bornJdn = (birth != null? birth.startJdn(): firstJdn);
+		if(bornJdn == Long.MAX_VALUE)
+			return false;
+
+		// Not yet born.
+		if(time < bornJdn)
+			return false;
+
+		// Dead: a recorded death closes the interval.
+		if(death != null)
+			return time <= death.startJdn();
+
+		// No death recorded: cap at the maximum plausible age.
+		return time <= bornJdn + MAX_PLAUSIBLE_AGE_JDN;
 	}
 
 

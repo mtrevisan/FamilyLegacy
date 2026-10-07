@@ -52,6 +52,23 @@ import java.util.List;
 import java.util.function.Consumer;
 
 
+/**
+ * Horizontal, zoomable timeline.
+ * <p>
+ * The domain is the global temporal range of the FLEF file, provided by
+ * the enclosing panel. The visible window starts as the whole domain and
+ * can be zoomed and panned by the user.
+ * <ul>
+ *   <li>Ctrl + wheel: zoom, anchored at the cursor;</li>
+ *   <li>drag: pan the visible window;</li>
+ *   <li>click on the axis: jump the playhead;</li>
+ *   <li>double-click on the playhead: reset the zoom.</li>
+ * </ul>
+ * <p>
+ * While the mouse hovers over the timeline, a vertical guide line with
+ * the corresponding year is drawn at the cursor position, so the user can
+ * see where a click would land before committing to it.
+ */
 public final class ChronomapTimeline extends JPanel{
 
 	private static final Color BACKGROUND = new Color(240, 236, 228);
@@ -59,6 +76,9 @@ public final class ChronomapTimeline extends JPanel{
 	private static final Color AXIS_LABEL = new Color(60, 55, 45);
 	private static final Color PLAYHEAD = new Color(200, 60, 60);
 	private static final Color RANGE_FILL = new Color(210, 200, 180);
+	private static final Color HOVER_LINE = new Color(110, 100, 85, 170);
+	private static final Color HOVER_LABEL = new Color(50, 45, 35);
+	private static final Color HOVER_LABEL_HALO = new Color(255, 255, 255, 230);
 
 	private static final int AXIS_HEIGHT = 44;
 	private static final int PADDING = 12;
@@ -67,6 +87,9 @@ public final class ChronomapTimeline extends JPanel{
 	private static final double PLAYHEAD_HIT_PX = 8.;
 	private static final double DAYS_PER_YEAR = 365.2425;
 	private static final double DAYS_PER_MONTH = DAYS_PER_YEAR / 12.;
+
+	/** Dash pattern of the hover guide line. */
+	private static final float[] HOVER_DASH = {4.f, 4.f};
 
 	private long domainMin = 0;
 	private long domainMax = 1;
@@ -77,6 +100,13 @@ public final class ChronomapTimeline extends JPanel{
 	private Point dragAnchor;
 	private boolean draggingPlayhead;
 	private boolean wasDragged;
+
+	/**
+	 * X coordinate of the mouse within the component, or {@code -1} when
+	 * the cursor is outside. Used to draw the hover guide line and the
+	 * associated year label.
+	 */
+	private int hoveredX = -1;
 
 	private final List<Consumer<Double>> timeListeners = new ArrayList<>();
 
@@ -91,6 +121,7 @@ public final class ChronomapTimeline extends JPanel{
 		configureKeyBindings();
 		configureGlobalKeyDispatcher();
 	}
+
 
 	public void setDomain(final long minJdn, final long maxJdn){
 		if(minJdn >= maxJdn)
@@ -134,8 +165,10 @@ public final class ChronomapTimeline extends JPanel{
 	public void resetZoom(){
 		visibleStart = domainMin;
 		visibleEnd = domainMax;
+
 		repaint();
 	}
+
 
 	@Override
 	protected void paintComponent(final Graphics g){
@@ -179,16 +212,69 @@ public final class ChronomapTimeline extends JPanel{
 			g2.drawString(label, x - tw / 2, axisY + 16);
 		}
 
+		// Hover guide: drawn below the playhead so that if the user hovers
+		// near the playhead, the playhead remains visible on top.
+		paintHoverGuide(g2, w, h, axisY);
+
 		final int phX = jdnToX((long)currentTime, w);
 		g2.setColor(PLAYHEAD);
 		g2.setStroke(new BasicStroke(2f));
 		g2.drawLine(phX, 4, phX, h - 4);
 
-		g2.setFont(getFont().deriveFont(10f).deriveFont(Font.BOLD));
+		g2.setFont(getFont().deriveFont(Font.BOLD, 10f));
 		final String timeLabel = formatYear((long)currentTime);
 		final int tw = g2.getFontMetrics().stringWidth(timeLabel);
 		g2.setColor(PLAYHEAD);
 		g2.drawString(timeLabel, Math.max(PADDING, phX - tw / 2), 12);
+	}
+
+	/**
+	 * Draws the hover guide: a vertical dashed line at the cursor
+	 * position, with the corresponding year labelled just above the axis.
+	 * <p>
+	 * The label is centred on the guide line and clamped to the component
+	 * edges, so it is never cut off when the cursor approaches the left or
+	 * right end of the timeline. A thin white halo makes it readable
+	 * against the range fill and the axis.
+	 * <p>
+	 * The guide is skipped when the cursor is on the playhead itself,
+	 * because the playhead already shows the same year in red at the top
+	 * and drawing both would be redundant.
+	 */
+	private void paintHoverGuide(final Graphics2D g2, final int w, final int h, final int axisY){
+		if(hoveredX < 0 || hoveredX < PADDING || hoveredX > w - PADDING)
+			return;
+
+		final int phX = jdnToX((long)currentTime, w);
+		if(Math.abs(hoveredX - phX) <= PLAYHEAD_HIT_PX)
+			return;
+
+		g2.setColor(HOVER_LINE);
+		g2.setStroke(new BasicStroke(1f, BasicStroke.CAP_BUTT,
+			BasicStroke.JOIN_MITER, 10f, HOVER_DASH, 0f));
+		g2.drawLine(hoveredX, 4, hoveredX, h - 4);
+		g2.setStroke(new BasicStroke(1f));
+
+		final String year = formatYear(xToJdn(hoveredX, w));
+		g2.setFont(getFont().deriveFont(10f));
+		final FontMetrics fm = g2.getFontMetrics();
+		final int tw = fm.stringWidth(year);
+
+		// Centre on the guide, clamp to the component edges.
+		int tx = hoveredX - tw / 2;
+		tx = Math.clamp(tx, PADDING, w - PADDING - tw);
+		final int ty = axisY - 6;
+
+		// Halo: four offset copies in white, so the text remains legible
+		// on the range fill and on the grid lines.
+		g2.setColor(HOVER_LABEL_HALO);
+		g2.drawString(year, tx + 1, ty);
+		g2.drawString(year, tx - 1, ty);
+		g2.drawString(year, tx, ty + 1);
+		g2.drawString(year, tx, ty - 1);
+
+		g2.setColor(HOVER_LABEL);
+		g2.drawString(year, tx, ty);
 	}
 
 	private void configureKeyBindings(){
@@ -289,13 +375,19 @@ public final class ChronomapTimeline extends JPanel{
 
 				wasDragged = true;
 
-				if(draggingPlayhead){
+				if(draggingPlayhead)
 					movePlayhead(e.getX());
-				}
-				else{
+				else
 					pan(dx);
-				}
 				dragAnchor = e.getPoint();
+
+				// Follow the cursor with the hover guide while dragging, so
+				// the user always sees the year under the pointer.
+				if(hoveredX != e.getX()){
+					hoveredX = e.getX();
+
+					repaint();
+				}
 			}
 
 			@Override
@@ -314,6 +406,31 @@ public final class ChronomapTimeline extends JPanel{
 				}
 				else if(e.getClickCount() == 2 && Math.abs(e.getX() - jdnToX((long)currentTime, getWidth())) <= PLAYHEAD_HIT_PX){
 					resetZoom();
+				}
+			}
+
+			@Override
+			public void mouseMoved(final MouseEvent e){
+				if(hoveredX != e.getX()){
+					hoveredX = e.getX();
+
+					repaint();
+				}
+			}
+
+			@Override
+			public void mouseEntered(final MouseEvent e){
+				hoveredX = e.getX();
+
+				repaint();
+			}
+
+			@Override
+			public void mouseExited(final MouseEvent e){
+				if(hoveredX != -1){
+					hoveredX = -1;
+
+					repaint();
 				}
 			}
 		};
@@ -407,16 +524,17 @@ public final class ChronomapTimeline extends JPanel{
 		return visibleStart + (long)(f * span);
 	}
 
-	private static long chooseStep(final long spanDays, final int widthPixels){
-		final double spanYears = spanDays / DAYS_PER_YEAR;
-		final double pxPerYear = widthPixels / Math.max(1.e-3, spanYears);
-
-		if(pxPerYear > 200) return (long)Math.max(1, Math.round(DAYS_PER_MONTH));
-		if(pxPerYear > 50) return (long)Math.round(DAYS_PER_YEAR);
-		if(pxPerYear > 10) return (long)Math.round(5 * DAYS_PER_YEAR);
-		if(pxPerYear > 2) return (long)Math.round(10 * DAYS_PER_YEAR);
-		if(pxPerYear > 0.5) return (long)Math.round(50 * DAYS_PER_YEAR);
-		return (long)Math.round(100 * DAYS_PER_YEAR);
+	private static long chooseStep(final long span, final int width){
+		final int approxTicks = Math.max(2, width / 90);
+		final long step = Math.max(1, span / approxTicks);
+		long base = 1;
+		while(base * 10 <= step)
+			base *= 10;
+		final long[] nice = {1, 2, 5, 10};
+		for(final long n : nice)
+			if(base * n >= step)
+				return base * n;
+		return base * 10;
 	}
 
 	private static String formatYear(final long jdn){

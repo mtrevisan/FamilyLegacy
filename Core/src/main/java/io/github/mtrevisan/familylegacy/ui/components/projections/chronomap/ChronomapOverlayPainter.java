@@ -185,21 +185,29 @@ public final class ChronomapOverlayPainter implements ChronomapLayer{
 		}
 	}
 
-	public static InterpolatedPosition interpolatePosition(final JXMapViewer map, final List<GeoAnchor> anchors, final double time){
+	public static InterpolatedPosition interpolatePosition(final JXMapViewer map,
+		final List<GeoAnchor> anchors, final double time){
 		if(anchors.isEmpty())
 			return null;
 
-		// 1. Exact event match
+		// Life range: the person is only on the map between birth and
+		// death, using the same heuristic as the Agora panel. Without this
+		// check, anyone with at least one anchor would appear on the map
+		// at any time, regardless of whether they were alive.
+		if(!ChronomapIndex.isAliveAt(anchors, time))
+			return null;
+
+		// 1. Exact event match.
 		for(final GeoAnchor a : anchors)
 			if(a.startJdn() == a.endJdn() && a.startJdn() == time)
 				return new InterpolatedPosition(a.position(), null, null, null, false);
 
-		// 2. Inside an attribute interval
+		// 2. Inside an attribute interval.
 		for(final GeoAnchor a : anchors)
 			if(time >= a.startJdn() && time <= a.endJdn())
 				return new InterpolatedPosition(a.position(), null, null, null, false);
 
-		// 3. Transit between anchors
+		// 3. Find the closest anchors around the current time.
 		GeoAnchor before = null;
 		GeoAnchor after = null;
 		for(final GeoAnchor a : anchors){
@@ -209,9 +217,18 @@ public final class ChronomapOverlayPainter implements ChronomapLayer{
 				after = a;
 		}
 
-		if(before == null || after == null)
+		// 4. Past the last anchor: stay at the last known position. This
+		//    is only reached when the person is still alive (checked above),
+		//    so it represents someone whose last documented event is in the
+		//    past but who is still considered alive.
+		if(before == null && after == null)
 			return null;
+		if(before == null)
+			return new InterpolatedPosition(after.position(), null, null, null, false);
+		if(after == null)
+			return new InterpolatedPosition(before.position(), null, null, null, false);
 
+		// 5. Interpolate between the two surrounding anchors.
 		final long gapStart = before.endJdn();
 		final long gapEnd = after.startJdn();
 		if(gapEnd <= gapStart)
@@ -229,15 +246,17 @@ public final class ChronomapOverlayPainter implements ChronomapLayer{
 		final int uncert = (int)Math.ceil(interpolate(p1.uncertainty(), p2.uncertainty(), t));
 		final GeoCoordinate currentCoord = new GeoCoordinate(latLon[0], latLon[1], uncert);
 
-		// Calculate 2D screen space heading angle
+		// 6. Screen-space heading for the moving marker, when a map is given.
 		Double screenHeading = null;
 		if(map != null){
 			final double deltaT = 0.005;
 			final double tNext = Math.min(1., t + deltaT);
 			final double[] latLonNext = slerp(p1.latitude(), p1.longitude(), p2.latitude(), p2.longitude(), tNext);
 
-			final Point2D pCurrentScreen = map.convertGeoPositionToPoint(new GeoPosition(latLon[0], latLon[1]));
-			final Point2D pNextScreen = map.convertGeoPositionToPoint(new GeoPosition(latLonNext[0], latLonNext[1]));
+			final Point2D pCurrentScreen = map.convertGeoPositionToPoint(
+				new GeoPosition(latLon[0], latLon[1]));
+			final Point2D pNextScreen = map.convertGeoPositionToPoint(
+				new GeoPosition(latLonNext[0], latLonNext[1]));
 
 			final double dx = pNextScreen.getX() - pCurrentScreen.getX();
 			final double dy = pNextScreen.getY() - pCurrentScreen.getY();
