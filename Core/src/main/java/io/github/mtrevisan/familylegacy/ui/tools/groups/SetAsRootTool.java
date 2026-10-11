@@ -28,8 +28,6 @@ import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolOperation;
 
-import javax.swing.JOptionPane;
-
 
 /** Sets the currently selected group as the root of the active projection. */
 public final class SetAsRootTool implements ToolOperation{
@@ -42,12 +40,6 @@ public final class SetAsRootTool implements ToolOperation{
 	@Override
 	public void run(final ToolContext context){
 		final String id = context.selectedEntityId();
-		if(id == null){
-			JOptionPane.showMessageDialog(context.owner(),
-				"No group is selected.",
-				"Set as Root", JOptionPane.WARNING_MESSAGE);
-			return;
-		}
 		context.loadRoot(id);
 	}
 

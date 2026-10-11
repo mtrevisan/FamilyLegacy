@@ -46,6 +46,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.StringJoiner;
 import java.util.function.Predicate;
 
@@ -75,7 +76,7 @@ public class IndividualSearchStrategy implements SearchStrategy{
 	private String eventDateTo;
 	private String calendarTo;
 	private String eventPlace;
-	private SearchMode mode;
+	private Set<SearchMode> modes;
 
 	private FLEFModel model;
 
@@ -93,7 +94,7 @@ public class IndividualSearchStrategy implements SearchStrategy{
 		eventDateTo = criteria.getFilterFor(KEY_DATE_TO);
 		calendarTo = criteria.getFilterFor(KEY_CALENDAR_TO);
 		eventPlace = criteria.getFilterFor(EventReader.TAG_PLACE);
-		mode = criteria.mode();
+		modes = criteria.modes();
 
 		this.model = model;
 
@@ -170,7 +171,7 @@ public class IndividualSearchStrategy implements SearchStrategy{
 				final FLEFRecord placeRecord = model.getRecordById(placeId);
 				final String place = PlaceHandler.getInstance()
 					.getDisplayText(placeRecord, model);
-				if(!SearchHelper.matches(place, eventPlace, mode))
+				if(!SearchHelper.matches(place, eventPlace, modes))
 					return false;
 			}
 		}

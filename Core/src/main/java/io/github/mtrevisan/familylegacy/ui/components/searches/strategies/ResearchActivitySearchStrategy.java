@@ -35,6 +35,7 @@ import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 
+import java.util.Set;
 import java.util.StringJoiner;
 import java.util.function.Predicate;
 
@@ -52,7 +53,7 @@ public class ResearchActivitySearchStrategy implements SearchStrategy{
 	private String action;
 	private String result;
 	private String observation;
-	private SearchMode mode;
+	private Set<SearchMode> modes;
 
 
 	@Override
@@ -62,7 +63,7 @@ public class ResearchActivitySearchStrategy implements SearchStrategy{
 		action = criteria.getFilterFor(ResearchActivityReader.TAG_ACTION);
 		result = criteria.getFilterFor(ResearchActivityReader.TAG_RESULT);
 		observation = criteria.getFilterFor(ResearchActivityReader.TAG_OBSERVATION);
-		mode = criteria.mode();
+		modes = criteria.modes();
 
 		return activity -> {
 			// Activity Type filter
@@ -82,7 +83,7 @@ public class ResearchActivitySearchStrategy implements SearchStrategy{
 			// Action filter
 			if(StringUtils.isNotEmpty(action)){
 				final String recordAction = ResearchActivityReader.extractAction(activity);
-				if(!SearchHelper.matches(recordAction, action, mode))
+				if(!SearchHelper.matches(recordAction, action, modes))
 					return false;
 			}
 
@@ -96,7 +97,7 @@ public class ResearchActivitySearchStrategy implements SearchStrategy{
 			// Observation filter
 			if(StringUtils.isNotEmpty(observation)){
 				final String recordObservation = ResearchActivityReader.extractObservation(activity);
-				if(!SearchHelper.matches(recordObservation, observation, mode))
+				if(!SearchHelper.matches(recordObservation, observation, modes))
 					return false;
 			}
 

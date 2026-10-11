@@ -33,16 +33,36 @@ import java.util.regex.Pattern;
 
 
 /**
- * Utility methods for text‑based search (fuzzy, whole‑word, diacritics‑insensitive).
+ * Utility methods for text-based search (fuzzy, whole-word,
+ * diacritics-insensitive).
  */
 public final class TextSearchHelper{
+
+	/**
+	 * Pre-compiled separator for display-text tokens, used by the
+	 * whole-word branch of {@link #matchesText(String, String, Set, double)}.
+	 * The pattern splits on any run of characters that are not Unicode
+	 * letters or digits, matching the tokenization used by
+	 * {@link SearchMatcher}. Compiling once at class load avoids the cost
+	 * of recompiling the regex on every call.
+	 */
+	private static final Pattern DISPLAY_TOKEN_SEPARATOR = Pattern.compile("[^\\p{L}\\p{N}]+");
+
+	/**
+	 * Pre-compiled pattern for combining diacritical marks, used by
+	 * {@link #normalize(String)}. Pre-compiling avoids the cost of
+	 * recompiling the regex on every call to {@code normalize}, which is
+	 * invoked at least twice per record during a search.
+	 */
+	private static final Pattern DIACRITICS = Pattern.compile("\\p{M}");
+
 
 	private TextSearchHelper(){}
 
 
 	/**
-	 * Normalizes text by removing diacritics, expanding common abbreviations,
-	 * and converting to lower case.
+	 * Normalizes text by removing diacritics, expanding common
+	 * abbreviations, and converting to lower case.
 	 *
 	 * @param text the input text
 	 * @return the normalized text
@@ -51,10 +71,10 @@ public final class TextSearchHelper{
 		if(StringUtils.isEmpty(text))
 			return text;
 
-		String normalized = Normalizer.normalize(text, Normalizer.Form.NFD);
-		normalized = normalized.replaceAll("\\p{M}", StringUtils.EMPTY);
-
-		return normalized.toLowerCase();
+		final String decomposed = Normalizer.normalize(text, Normalizer.Form.NFD);
+		final String withoutMarks = DIACRITICS.matcher(decomposed)
+			.replaceAll(StringUtils.EMPTY);
+		return withoutMarks.toLowerCase();
 	}
 
 	/**
@@ -84,33 +104,74 @@ public final class TextSearchHelper{
 	}
 
 	/**
-	 * Checks whether the display text matches the search text according to the given mode.
+	 * Checks whether the display text matches the search text according
+	 * to the given modes.
+	 * <p>
+	 * The two flags are independent, so the four combinations are
+	 * resolved in a cascade:
+	 * <ul>
+	 *   <li>whole-word only: the search text must equal one complete
+	 *       token of the display text, case- and diacritics-insensitive;</li>
+	 *   <li>whole-word + fuzzy: any token pair must have a trigram
+	 *       similarity of at least {@code threshold};</li>
+	 *   <li>fuzzy only: the whole normalized strings must have a trigram
+	 *       similarity of at least {@code threshold};</li>
+	 *   <li>neither: plain substring match on the normalized strings.</li>
+	 * </ul>
 	 *
 	 * @param displayText the text to search in (e.g., record display text)
 	 * @param searchText  the search query
-	 * @param threshold   the similarity threshold for fuzzy matching (ignored if fuzzy is false)
-	 * @return true if the text matches
+	 * @param modes       the admission modes; may be {@code null} or empty
+	 * @param threshold   the similarity threshold for fuzzy matching;
+	 *                    ignored when the fuzzy flag is not set
+	 * @return {@code true} when the display text matches the search text
 	 */
-	public static boolean matchesText(final String displayText, final String searchText, final SearchMode mode,
-			final double threshold){
+	public static boolean matchesText(final String displayText, final String searchText,
+		final Set<SearchMode> modes, final double threshold){
 		if(StringUtils.isEmpty(searchText))
 			return true;
+
+		final boolean fuzzy = (modes != null && modes.contains(SearchMode.FUZZY));
+		final boolean wholeWord = (modes != null && modes.contains(SearchMode.WHOLE_WORD));
 
 		final String normalizedSearch = normalize(searchText);
 		final String normalizedDisplay = normalize(displayText);
 
-		if(mode == SearchMode.WHOLE_WORD){
-			final Pattern pattern = Pattern.compile("\\b" + Pattern.quote(normalizedSearch) + "\\b");
-			return pattern.matcher(normalizedDisplay).find();
+		if(wholeWord){
+			// Token-level comparison: the search text is split into words,
+			// the display text is split into words, and the match succeeds
+			// when any pair of tokens is equal (exact) or sufficiently
+			// similar (fuzzy).
+			//
+			// Using explicit token comparison instead of a
+			// Pattern.compile("\\b" + quote + "\\b") avoids recompiling
+			// the regex on every call, and avoids the trap of Java's
+			// \b not being Unicode-aware by default.
+			final String[] searchTokens = StringUtils.split(normalizedSearch);
+			final String[] displayTokens = DISPLAY_TOKEN_SEPARATOR.split(normalizedDisplay);
+
+			for(final String searchToken : searchTokens)
+				for(final String displayToken : displayTokens){
+					if(fuzzy){
+						final double sim = jaccardSimilarity(
+							getTrigrams(searchToken), getTrigrams(displayToken));
+						if(sim >= threshold)
+							return true;
+					}
+					else if(searchToken.equals(displayToken))
+						return true;
+				}
+			return false;
 		}
-		else if(mode == SearchMode.FUZZY){
-			final Set<String> searchTrigrams = getTrigrams(normalizedSearch);
-			final Set<String> displayTrigrams = getTrigrams(normalizedDisplay);
-			final double similarity = jaccardSimilarity(searchTrigrams, displayTrigrams);
-			return similarity >= threshold;
+
+		// Non-whole-word: the search text may appear anywhere in the
+		// display text.
+		if(fuzzy){
+			final double sim = jaccardSimilarity(
+				getTrigrams(normalizedSearch), getTrigrams(normalizedDisplay));
+			return sim >= threshold;
 		}
-		else
-			return normalizedDisplay.contains(normalizedSearch);
+		return normalizedDisplay.contains(normalizedSearch);
 	}
 
 }

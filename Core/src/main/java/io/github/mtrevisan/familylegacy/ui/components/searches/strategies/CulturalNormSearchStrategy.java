@@ -36,6 +36,7 @@ import io.github.mtrevisan.familylegacy.ui.handlers.CulturalNormHandler;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.Set;
 import java.util.StringJoiner;
 import java.util.function.Predicate;
 
@@ -62,7 +63,7 @@ public class CulturalNormSearchStrategy implements SearchStrategy{
 	private String calendarFrom;
 	private String validTo;
 	private String calendarTo;
-	private SearchMode mode;
+	private Set<SearchMode> modes;
 
 
 	@Override
@@ -74,13 +75,13 @@ public class CulturalNormSearchStrategy implements SearchStrategy{
 		calendarFrom = criteria.getFilterFor(KEY_CALENDAR_FROM);
 		validTo = criteria.getFilterFor(CulturalNormReader.TAG_VALID_TO);
 		calendarTo = criteria.getFilterFor(KEY_CALENDAR_TO);
-		mode = criteria.mode();
+		modes = criteria.modes();
 
 		return culturalNorm -> {
 			// Title filter
 			if(StringUtils.isNotEmpty(title)){
 				final String recordTitle = CulturalNormReader.extractTitle(culturalNorm);
-				if(!SearchHelper.matches(recordTitle, title, mode))
+				if(!SearchHelper.matches(recordTitle, title, modes))
 					return false;
 			}
 
@@ -92,7 +93,7 @@ public class CulturalNormSearchStrategy implements SearchStrategy{
 			}
 
 			// Place filter
-			if(!SearchHelper.matchesPlace(culturalNorm, place, model, mode, FUZZY_THRESHOLD))
+			if(!SearchHelper.matchesPlace(culturalNorm, place, model, modes, FUZZY_THRESHOLD))
 				return false;
 
 			// Date range

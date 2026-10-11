@@ -162,6 +162,14 @@ public final class ChronomapOverlayPainter implements ChronomapLayer{
 			if(anchors.isEmpty())
 				continue;
 
+			// Liveness is checked here, not inside interpolatePosition,
+			// because interpolatePosition is a pure geometric function and
+			// must not depend on the index. The shared test uses the
+			// life-event index, so a birth event without coordinates still
+			// counts.
+			if(!index.isAliveAt(id, currentTime))
+				continue;
+
 			final InterpolatedPosition state = interpolatePosition(map, anchors, currentTime);
 			if(state == null)
 				continue;
@@ -174,10 +182,8 @@ public final class ChronomapOverlayPainter implements ChronomapLayer{
 				drawUncertaintyCircle(g, map, pos, p, totalMapZoom);
 
 			if(state.isMoving()){
-				// 1. Draw opacified orthodromic route from origin to destination
 				drawGreatCircleRoute(g, map, state.fromCoordinate(), state.toCoordinate(), colorFor(id));
 
-				// 2. Draw elongated ellipse marker rotated along 2D screen direction
 				drawMovingMarker(g, (int)p.getX(), (int)p.getY(), state.screenHeading(), colorFor(id), labelFor(id), selected);
 			}
 			else
@@ -185,16 +191,30 @@ public final class ChronomapOverlayPainter implements ChronomapLayer{
 		}
 	}
 
+	/**
+	 * Resolves the geometric position of a marker at the given time, from
+	 * the anchors alone.
+	 * <p>
+	 * The method is a pure function of the anchors and the time: it does
+	 * not know whether the owner is alive. Liveness is decided by the
+	 * caller through {@link ChronomapIndex#isAliveAt(String, double)},
+	 * which uses the life-event index and is therefore more accurate than
+	 * anything derivable from the anchors alone.
+	 * <p>
+	 * Resolution order:
+	 * <ol>
+	 *   <li>an event happening exactly at {@code time};</li>
+	 *   <li>an attribute whose validity interval contains {@code time};</li>
+	 *   <li>the last anchor before {@code time}, when the time is past it;</li>
+	 *   <li>the first anchor after {@code time}, when the time is before it;</li>
+	 *   <li>interpolation along a great-circle arc between the two
+	 *       surrounding anchors;</li>
+	 *   <li>{@code null} when the anchor list is empty.</li>
+	 * </ol>
+	 */
 	public static InterpolatedPosition interpolatePosition(final JXMapViewer map,
 		final List<GeoAnchor> anchors, final double time){
 		if(anchors.isEmpty())
-			return null;
-
-		// Life range: the person is only on the map between birth and
-		// death, using the same heuristic as the Agora panel. Without this
-		// check, anyone with at least one anchor would appear on the map
-		// at any time, regardless of whether they were alive.
-		if(!ChronomapIndex.isAliveAt(anchors, time))
 			return null;
 
 		// 1. Exact event match.
@@ -217,10 +237,7 @@ public final class ChronomapOverlayPainter implements ChronomapLayer{
 				after = a;
 		}
 
-		// 4. Past the last anchor: stay at the last known position. This
-		//    is only reached when the person is still alive (checked above),
-		//    so it represents someone whose last documented event is in the
-		//    past but who is still considered alive.
+		// 4. Past the last anchor: stay at the last known position.
 		if(before == null && after == null)
 			return null;
 		if(before == null)
@@ -449,12 +466,23 @@ public final class ChronomapOverlayPainter implements ChronomapLayer{
 		return x1 + (x2 - x1) * t;
 	}
 
-	private Color colorFor(final String id){
+	/**
+	 * Returns the stable color assigned to the given owner. The color is
+	 * derived from a hash of the id, so it is the same across sessions and
+	 * across views: a marker that appears on the 2D map and on the 3D globe
+	 * for the same person has the same color in both.
+	 */
+	public Color colorFor(final String id){
 		final int h = Math.abs(id.hashCode());
 		return Color.getHSBColor((h % 360) / 360f, 0.70f, 0.75f);
 	}
 
-	private String labelFor(final String id){
+	/**
+	 * Returns the display label for the given owner: the individual's
+	 * display name when it can be resolved, the raw id otherwise. Used by
+	 * both the 2D marker layer and the 3D globe panel.
+	 */
+	public String labelFor(final String id){
 		try{
 			return IndividualHandler.getInstance()
 				.getDisplayText(model.getRecordById(id), model);

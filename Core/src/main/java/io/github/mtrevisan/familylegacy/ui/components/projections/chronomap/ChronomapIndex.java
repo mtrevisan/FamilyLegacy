@@ -87,8 +87,15 @@ public final class ChronomapIndex{
 	/** Not final: rebuilt after a background geocoding pass. */
 	private Map<String, List<GeoAnchor>> anchorsByOwner;
 
-	/** Earliest birth event per owner, or absent. Populated at build time. */
+	/**
+	 * Earliest birth event per owner, or absent. Populated at build time
+	 * from every event participation, regardless of whether the event
+	 * carries coordinates. This is what makes the liveness test accurate:
+	 * the anchor list only contains events with a geographic position, so
+	 * a birth without coordinates would be invisible to it.
+	 */
 	private final Map<String, Long> birthJdnByOwner = new HashMap<>();
+
 	/** Earliest death event per owner, or absent. Populated at build time. */
 	private final Map<String, Long> deathJdnByOwner = new HashMap<>();
 
@@ -190,6 +197,84 @@ public final class ChronomapIndex{
 		return (ownerId != null? deathJdnByOwner.get(ownerId): null);
 	}
 
+	/**
+	 * Returns the Julian Day Number to use as "birth" for the liveness
+	 * test: the earliest recorded birth event when present, otherwise
+	 * the earliest anchor with a defined start date.
+	 * <p>
+	 * The distinction matters because a birth event without a
+	 * geographic position is not an anchor, and would therefore be
+	 * invisible to the anchor list alone. Using the life-event index
+	 * first guarantees that a person whose birth is recorded but not
+	 * geocoded is still treated as alive from the correct date.
+	 *
+	 * @param ownerId the individual or group id; may be {@code null}
+	 * @return the JDN of the effective birth, or {@code null} when
+	 *         neither a birth event nor a usable anchor exists
+	 */
+	public Long effectiveBirthJdn(final String ownerId){
+		if(ownerId == null)
+			return null;
+
+		final Long fromIndex = birthJdnByOwner.get(ownerId);
+		if(fromIndex != null)
+			return fromIndex;
+
+		// Fall back to the earliest anchor with a defined start.
+		long firstJdn = Long.MAX_VALUE;
+		for(final GeoAnchor a : anchorsOf(ownerId))
+			if(a.startJdn() != Long.MIN_VALUE && a.startJdn() < firstJdn)
+				firstJdn = a.startJdn();
+		return (firstJdn == Long.MAX_VALUE? null: firstJdn);
+	}
+
+	/**
+	 * Returns whether the given owner is considered alive at the given
+	 * time, using a single heuristic shared by all the temporal views.
+	 * <p>
+	 * A person is alive when all of the following hold:
+	 * <ul>
+	 *   <li>the effective birth (see {@link #effectiveBirthJdn(String)})
+	 *       is not after the given time;</li>
+	 *   <li>no death event is on or before the given time;</li>
+	 *   <li>when no death is recorded, the time does not exceed the
+	 *       birth date by more than {@link #MAX_PLAUSIBLE_AGE_JDN}.</li>
+	 * </ul>
+	 * Unlike a purely anchor-based test, this method uses the life-event
+	 * index for birth and death dates, so events without geographic
+	 * coordinates are taken into account. The position of the marker (if
+	 * any) is still derived from the anchors by the caller; this method
+	 * only answers the liveness question.
+	 * <p>
+	 * The same method is used by the chronomap marker layer and by the
+	 * Agora panel, so that the set of people shown on the map and the
+	 * set of people listed by the Agora always coincide.
+	 *
+	 * @param ownerId the individual or group id; may be {@code null}
+	 * @param time    the time, as a Julian Day Number
+	 * @return {@code true} when the owner is alive at the given time
+	 */
+	public boolean isAliveAt(final String ownerId, final double time){
+		if(ownerId == null)
+			return false;
+
+		final Long bornJdn = effectiveBirthJdn(ownerId);
+		if(bornJdn == null)
+			return false;
+
+		// Not yet born.
+		if(time < bornJdn)
+			return false;
+
+		// Dead: a recorded death closes the interval.
+		final Long deathJdn = deathJdnByOwner.get(ownerId);
+		if(deathJdn != null)
+			return time <= deathJdn;
+
+		// No death recorded: cap at the maximum plausible age.
+		return time <= bornJdn + MAX_PLAUSIBLE_AGE_JDN;
+	}
+
 
 	/* ======================================================================
 	 *                          Build
@@ -241,15 +326,17 @@ public final class ChronomapIndex{
 	}
 
 	/**
-	 * Scans every event participation once and records, per individual, the
-	 * Julian Day Number of the earliest birth and death events. The values
-	 * are cached so that consumers (agora, lifespan strip) can query them in
-	 * O(1) without rescanning the whole model for every individual and every
-	 * timeline tick.
-	 *
-	 * <p>The scan is performed once at construction time and re-executed on
+	 * Scans every event participation once and records, per individual,
+	 * the Julian Day Number of the earliest birth and death events. The
+	 * values are cached so that consumers (agora, lifespan strip) can
+	 * query them in O(1) without rescanning the whole model for every
+	 * individual and every timeline tick.
+	 * <p>
+	 * The scan is performed once at construction time and re-executed on
 	 * {@link #rebuild()}, so it is safe to call after the geocoding pass
-	 * changes the set of visible anchors.</p>
+	 * changes the set of visible anchors. Unlike the anchor list, this
+	 * index is built from every event participation, whether or not the
+	 * event carries a geographic position.
 	 */
 	private void buildLifeEventIndex(){
 		birthJdnByOwner.clear();
@@ -393,59 +480,6 @@ public final class ChronomapIndex{
 
 		final FLEFRecord inner = field.getTheOnlyChild();
 		return (inner != null? inner.getValue(): null);
-	}
-
-	/**
-	 * Returns whether the given owner is considered alive at the given
-	 * time, using a single heuristic shared by all the temporal views.
-	 * <p>
-	 * A person is alive when all of the following hold:
-	 * <ul>
-	 *   <li>the birth event (or, when no birth is recorded, the earliest
-	 *       anchor) is not after the given time;</li>
-	 *   <li>no death event is on or before the given time;</li>
-	 *   <li>when no death is recorded, the time does not exceed the birth
-	 *       date by more than {@link #MAX_PLAUSIBLE_AGE_JDN}.</li>
-	 * </ul>
-	 * The same method is used by the chronomap marker layer and by the
-	 * Agora panel, so that the set of people shown on the map and the set
-	 * of people listed by the Agora always coincide.
-	 *
-	 * @param anchors the anchors of the owner; must not be {@code null}
-	 * @param time    the time, as a Julian Day Number
-	 * @return {@code true} when the owner is alive at the given time
-	 */
-	public static boolean isAliveAt(final List<GeoAnchor> anchors, final double time){
-		if(anchors.isEmpty())
-			return false;
-
-		// Find birth, death, and the earliest anchor in a single pass.
-		GeoAnchor birth = null;
-		GeoAnchor death = null;
-		long firstJdn = Long.MAX_VALUE;
-		for(final GeoAnchor anchor : anchors){
-			if(anchor.startJdn() != Long.MIN_VALUE && anchor.startJdn() < firstJdn)
-				firstJdn = anchor.startJdn();
-			if("event:birth".equals(anchor.kind()) && (birth == null || anchor.startJdn() < birth.startJdn()))
-				birth = anchor;
-			if("event:death".equals(anchor.kind()) && (death == null || anchor.startJdn() < death.startJdn()))
-				death = anchor;
-		}
-
-		final long bornJdn = (birth != null? birth.startJdn(): firstJdn);
-		if(bornJdn == Long.MAX_VALUE)
-			return false;
-
-		// Not yet born.
-		if(time < bornJdn)
-			return false;
-
-		// Dead: a recorded death closes the interval.
-		if(death != null)
-			return time <= death.startJdn();
-
-		// No death recorded: cap at the maximum plausible age.
-		return time <= bornJdn + MAX_PLAUSIBLE_AGE_JDN;
 	}
 
 

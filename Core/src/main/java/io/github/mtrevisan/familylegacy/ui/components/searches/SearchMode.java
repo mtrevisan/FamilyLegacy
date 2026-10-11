@@ -24,37 +24,36 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.searches;
 
-import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
-
 
 /**
- * Admission mode for the record search.
+ * Search modifiers.
  * <p>
- * The mode decides <b>who is a candidate</b>; the score is always the
- * same fuzzy formula, so the ranking is independent of the mode and only
- * the set of candidates changes.
+ * The modifiers are orthogonal: a query can be fuzzy, whole-word, both,
+ * or neither. Enumerating every combination would require 2ⁿ constants
+ * and would not scale when a new modifier is added, so the combinations
+ * are represented as a bitmask packed into a single {@code int}: each
+ * enum constant carries its own bit, and the caller combines them with
+ * the bitwise OR.
+ * <p>
+ * Usage:
+ * <pre>
+ *   int mode = SearchMode.FUZZY.bit() | SearchMode.WHOLE_WORD.bit();
+ *   if(SearchMode.isSet(mode, SearchMode.FUZZY)){ ... }
+ * </pre>
  */
 public enum SearchMode{
 
-	/** Exact word match. */
-	WHOLE_WORD(I18N.t("search.mode.whole.word")),
+	/**
+	 * Whole-word matching: a query token matches only when it equals a
+	 * complete target token, not when it appears inside one.
+	 */
+	WHOLE_WORD,
 
 	/**
-	 * Substring or near-match (substring, one edit).
+	 * Typo-tolerant matching: a query token matches a target token when
+	 * they are within a small edit distance, in addition to the exact
+	 * and substring cases.
 	 */
-	FUZZY(I18N.t("search.mode.fuzzy"));
-
-
-	private final String label;
-
-
-	SearchMode(final String label){
-		this.label = label;
-	}
-
-
-	public String label(){
-		return label;
-	}
+	FUZZY
 
 }

@@ -35,6 +35,7 @@ import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 
+import java.util.Set;
 import java.util.StringJoiner;
 import java.util.function.Predicate;
 
@@ -52,18 +53,18 @@ public class PlaceSearchStrategy implements SearchStrategy{
 
 	private String name;
 	private String type;
-	private SearchMode mode;
+	private Set<SearchMode> modes;
 
 
 	@Override
 	public Predicate<FLEFRecord> buildPredicate(final SearchCriteria criteria, final FLEFModel model){
 		name = criteria.getFilterFor(PlaceReader.TAG_NAME);
 		type = criteria.getFilterFor(PlaceReader.TAG_TYPE);
-		mode = criteria.mode();
+		modes = criteria.modes();
 
 		return place -> {
 			// Name filter
-			if(!SearchHelper.matchesName(place, name, mode, FUZZY_THRESHOLD))
+			if(!SearchHelper.matchesName(place, name, modes, FUZZY_THRESHOLD))
 				return false;
 
 			// Type filter

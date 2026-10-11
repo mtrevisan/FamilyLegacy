@@ -34,6 +34,7 @@ import io.github.mtrevisan.familylegacy.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.Set;
 import java.util.StringJoiner;
 import java.util.function.Predicate;
 
@@ -52,18 +53,18 @@ public class GroupSearchStrategy implements SearchStrategy{
 
 	private String name;
 	private String type;
-	private SearchMode mode;
+	private Set<SearchMode> modes;
 
 
 	@Override
 	public Predicate<FLEFRecord> buildPredicate(final SearchCriteria criteria, final FLEFModel model){
 		name = criteria.getFilterFor(GroupReader.TAG_NAME);
 		type = criteria.getFilterFor(GroupReader.TAG_TYPE);
-		mode = criteria.mode();
+		modes = criteria.modes();
 
 		return group -> {
 			// Name filter
-			if(!SearchHelper.matchesName(group, name, mode, FUZZY_THRESHOLD))
+			if(!SearchHelper.matchesName(group, name, modes, FUZZY_THRESHOLD))
 				return false;
 
 			// Type filter

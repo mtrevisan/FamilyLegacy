@@ -61,6 +61,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -163,7 +164,9 @@ public class SearchService{
 		// the strategy (with the "[M] " prefix and the birth/death
 		// details) is only used for the final rendering, not for the
 		// text match, so that the behaviour of the search is unchanged.
-		final SearchMode mode = criteria.mode();
+		final Set<SearchMode> modes = criteria.modes();
+		final boolean fuzzy = modes.contains(SearchMode.FUZZY);
+		final boolean wholeWord = modes.contains(SearchMode.WHOLE_WORD);
 		final List<ScoredRecord> scored = new ArrayList<>();
 		final int totalRecords = records.size();
 		for(int i = 0; i < totalRecords; i ++){
@@ -173,7 +176,7 @@ public class SearchService{
 			final FLEFRecord record = records.get(i);
 			if(structuralFilter.test(record)){
 				final String displayText = handler.getDisplayText(record, model);
-				final SearchMatcher.MatchScore match = SearchMatcher.score(query, displayText, mode);
+				final SearchMatcher.MatchScore match = SearchMatcher.score(query, displayText, modes);
 				if(match.passes())
 					scored.add(new ScoredRecord(record, displayText, match));
 			}

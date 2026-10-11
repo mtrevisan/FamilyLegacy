@@ -33,6 +33,7 @@ import io.github.mtrevisan.familylegacy.ui.components.searches.SearchStrategy;
 import io.github.mtrevisan.familylegacy.ui.handlers.DocumentHandler;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.Set;
 import java.util.StringJoiner;
 import java.util.function.Predicate;
 
@@ -49,7 +50,7 @@ public class DocumentSearchStrategy implements SearchStrategy{
 	private String description;
 	private String mapping;
 	private String uri;
-	private SearchMode mode;
+	private Set<SearchMode> modes;
 
 
 	@Override
@@ -57,13 +58,13 @@ public class DocumentSearchStrategy implements SearchStrategy{
 		description = criteria.getFilterFor(DocumentReader.TAG_DESCRIPTION);
 		mapping = criteria.getFilterFor(DocumentReader.TAG_MAPPING);
 		uri = criteria.getFilterFor(DocumentReader.TAG_URI);
-		mode = criteria.mode();
+		modes = criteria.modes();
 
 		return document -> {
 			// Description filter
 			if(StringUtils.isNotEmpty(description)){
 				final String recordDescription = DocumentReader.extractDescription(document);
-				if(!SearchHelper.matches(recordDescription, description, mode))
+				if(!SearchHelper.matches(recordDescription, description, modes))
 					return false;
 			}
 
@@ -77,7 +78,7 @@ public class DocumentSearchStrategy implements SearchStrategy{
 			// URI filter
 			if(StringUtils.isNotEmpty(uri)){
 				final String recordUri = DocumentReader.extractUri(document);
-				if(!SearchHelper.matches(recordUri, uri, mode))
+				if(!SearchHelper.matches(recordUri, uri, modes))
 					return false;
 			}
 

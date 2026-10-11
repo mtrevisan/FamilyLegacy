@@ -35,6 +35,7 @@ import io.github.mtrevisan.familylegacy.ui.handlers.ResearchQuestionHandler;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.Set;
 import java.util.StringJoiner;
 import java.util.function.Predicate;
 
@@ -55,7 +56,7 @@ public class ResearchQuestionSearchStrategy implements SearchStrategy{
 	private String question;
 	private String status;
 	private String confidence;
-	private SearchMode mode;
+	private Set<SearchMode> modes;
 
 
 	@Override
@@ -64,20 +65,20 @@ public class ResearchQuestionSearchStrategy implements SearchStrategy{
 		question = criteria.getFilterFor(ResearchQuestionReader.TAG_QUESTION);
 		status = criteria.getFilterFor(ResearchQuestionReader.TAG_STATUS);
 		confidence = criteria.getFilterFor(ResearchQuestionReader.TAG_CONCLUSION_CONFIDENCE);
-		mode = criteria.mode();
+		modes = criteria.modes();
 
 		return question -> {
 			// Title filter
 			if(StringUtils.isNotEmpty(title)){
 				final String recordTitle = ResearchQuestionReader.extractTitle(question);
-				if(!SearchHelper.matches(recordTitle, title, mode))
+				if(!SearchHelper.matches(recordTitle, title, modes))
 					return false;
 			}
 
 			// Question text filter
 			if(StringUtils.isNotEmpty(this.question)){
 				final String questionText = ResearchQuestionReader.extractQuestion(question);
-				if(!TextSearchHelper.matchesText(questionText, this.question, mode, FUZZY_THRESHOLD))
+				if(!TextSearchHelper.matchesText(questionText, this.question, modes, FUZZY_THRESHOLD))
 					return false;
 			}
 

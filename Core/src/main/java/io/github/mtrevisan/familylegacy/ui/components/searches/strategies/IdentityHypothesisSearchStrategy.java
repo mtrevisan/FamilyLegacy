@@ -37,6 +37,7 @@ import io.github.mtrevisan.familylegacy.ui.handlers.IdentityHypothesisHandler;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
+import java.util.Set;
 import java.util.StringJoiner;
 import java.util.function.Predicate;
 
@@ -55,14 +56,14 @@ public class IdentityHypothesisSearchStrategy implements SearchStrategy{
 
 	private String candidate;
 	private String comment;
-	private SearchMode mode;
+	private Set<SearchMode> modes;
 
 
 	@Override
 	public Predicate<FLEFRecord> buildPredicate(final SearchCriteria criteria, final FLEFModel model){
 		candidate = criteria.getFilterFor(IdentityHypothesisReader.TAG_IDENTITY);
 		comment = criteria.getFilterFor(IdentityHypothesisReader.TAG_COMMENT);
-		mode = criteria.mode();
+		modes = criteria.modes();
 
 		return hypothesis -> {
 			// Candidate filter (checks resolved display text for candidate records)
@@ -78,7 +79,7 @@ public class IdentityHypothesisSearchStrategy implements SearchStrategy{
 					if(targetRecord != null){
 						final String candidateDisplayText = HandlerRegistry.getHandler(targetRecord.getTag())
 							.getDisplayText(targetRecord, model);
-						if(TextSearchHelper.matchesText(candidateDisplayText, this.candidate, mode, FUZZY_THRESHOLD)){
+						if(TextSearchHelper.matchesText(candidateDisplayText, this.candidate, modes, FUZZY_THRESHOLD)){
 							matched = true;
 
 							break;
@@ -92,7 +93,7 @@ public class IdentityHypothesisSearchStrategy implements SearchStrategy{
 			// Comment filter
 			if(StringUtils.isNotEmpty(comment)){
 				final String comment = IdentityHypothesisReader.extractComment(hypothesis);
-				if(!TextSearchHelper.matchesText(comment, this.comment, mode, FUZZY_THRESHOLD))
+				if(!TextSearchHelper.matchesText(comment, this.comment, modes, FUZZY_THRESHOLD))
 					return false;
 			}
 

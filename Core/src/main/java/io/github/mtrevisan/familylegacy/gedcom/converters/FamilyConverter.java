@@ -58,14 +58,30 @@ import java.util.Set;
 
 /**
  * Converts GEDCOM FAM (family) records into FLEF GroupRecord,
- * RelationshipRecord (spouse and parent-child), EventRecord, EventParticipationRecord,
- * and GroupAttributeRecord (for RESI, NCHI, etc.).
+ * RelationshipRecord (spouse, parent-child, and group membership),
+ * EventRecord, EventParticipationRecord, and GroupAttributeRecord (for
+ * RESI, NCHI, etc.).
+ * <p>
+ * A family is modelled in FLEF as a {@link GroupHandler#TYPE} record
+ * whose members are linked through {@code group_member} relationships.
+ * That is why the converter emits three families of relationships for
+ * every family:
+ * <ul>
+ *   <li>{@code group_member} — links each spouse and each child to the
+ *       family group. This is what makes the family a group rather than
+ *       a pure set of pairwise links;</li>
+ *   <li>{@code civil_spouse} (or {@code religious_spouse}, depending on
+ *       the MARR.TYPE) — links the two spouses to each other;</li>
+ *   <li>{@code biological_child} — links each child to each known
+ *       parent.</li>
+ * </ul>
  * <p>
  * Handles:
  * <ul>
  *   <li>Group name → name</li>
  *   <li>Spouse relationship → RelationshipRecord</li>
  *   <li>Parent-child relationships → RelationshipRecord</li>
+ *   <li>Group memberships → RelationshipRecord (group_member)</li>
  *   <li>Family events (MARR, DIV, ENGA, CENS, etc.) → EventRecord + EventParticipationRecord</li>
  *   <li>Family attributes (RESI) → GroupAttributeRecord</li>
  *   <li>OBJE → DocumentRecord + preferred_image (if _PRIMARY Y) or SourceRecord (otherwise)</li>
@@ -73,15 +89,6 @@ import java.util.Set;
  *   <li>Extra fields (NCHI, RESN, etc.) → inline note structs or privacy</li>
  *   <li>Sources → SourceCitation</li>
  *   <li>Audit → AuditStructure</li>
- * </ul>
- *
- * <p><b>Improvements over previous version:</b>
- * <ul>
- *   <li>Separate actual events (MARR, DIV, etc.) from attributes (RESI) – RESI now becomes GroupAttributeRecord.</li>
- *   <li>Use GEDCOMMapper to map GEDCOM event/attribute tags to FLEF standard types.</li>
- *   <li>Always attach the family Group as a participant for all events (role "family") to ensure context.</li>
- *   <li>Handle EVEN with TYPE sub-tag for custom event classification.</li>
- *   <li>Correctly set event type using mapped values.</li>
  * </ul>
  */
 public class FamilyConverter{
@@ -245,7 +252,18 @@ public class FamilyConverter{
 	}
 
 	/**
-	 * Second pass: resolve all links, create relationships, events, attributes, and OBJE handling.
+	 * Second pass: resolve all links, create relationships, events,
+	 * attributes, and OBJE handling.
+	 * <p>
+	 * Emits three families of relationships for every family:
+	 * <ul>
+	 *   <li>{@code group_member} — one per spouse and one per child,
+	 *       linking the individual to the family group;</li>
+	 *   <li>{@code civil_spouse} or {@code religious_spouse} — between
+	 *       the two spouses, when both are known;</li>
+	 *   <li>{@code biological_child} — between each child and each
+	 *       known parent.</li>
+	 * </ul>
 	 */
 	public void resolveLinks(){
 		for(FamilyLink link : familyLinks){
@@ -260,6 +278,20 @@ public class FamilyConverter{
 			FLEFRecord nameRec = FLEFRecord.createChildWithTag("name")
 				.addChild(FLEFRecord.createChildWithTagAndValue("value", groupName + " family"));
 			group.addChild(nameRec);
+
+			// ---- Group memberships: every family member belongs to the family group ----
+			// A family is a group in the FLEF model, and the group only
+			// has members through explicit group_member relationships.
+			// Without these, the group exists but has an empty member
+			// list, and any view that iterates group_member to build the
+			// member list would show nothing.
+			if(link.husbandId != null)
+				createGroupMembership(link.husbandId, group.getId(), "husband", link.famNode);
+			if(link.wifeId != null)
+				createGroupMembership(link.wifeId, group.getId(), "wife", link.famNode);
+			for(String childId : link.childrenIds)
+				if(individualMap.containsKey(childId))
+					createGroupMembership(childId, group.getId(), "child", link.famNode);
 
 			// ---- Spouse relationship (Inter-individual) ----
 			if(link.husbandId != null && link.wifeId != null){
@@ -291,9 +323,9 @@ public class FamilyConverter{
 						.addChild(FLEFRecord.createChildWithTag("note")
 							.addChild(FLEFRecord.createChildWithTagAndValue("text",
 								(StringUtils.isNotEmpty(marriageType)? marriageType + " -- ": StringUtils.EMPTY)
-								+ "TO BE REVISED: is it civil or religious or else?"))
+									+ "TO BE REVISED: is it civil or religious or else?"))
 							.addChild(AuditBuilder.build(null))
-					);
+						);
 				relationship.addChild(FLEFRecord.createChildWithTagAndValue("status", (hasDivorce? "ended": "active")));
 
 				// Add date from MARR event (valid_from)
@@ -362,6 +394,49 @@ public class FamilyConverter{
 	// ------------------------------------------------------------------------
 	// Helper methods for creating records
 	// ------------------------------------------------------------------------
+
+	/**
+	 * Creates a {@code group_member} relationship linking an individual
+	 * to a family group.
+	 * <p>
+	 * A family is a group in the FLEF model, and every person that
+	 * belongs to it (spouses and children) is a member of that group.
+	 * The {@code group_member} relationship is what makes the family a
+	 * group rather than a pure set of pairwise links: without it, the
+	 * group exists but has no members, and any view that iterates
+	 * {@code group_member} to populate the member list would show
+	 * nothing.
+	 * <p>
+	 * The {@code role} is informational and helps the UI show
+	 * "husband", "wife", "child" in the member list, instead of a
+	 * generic "member".
+	 *
+	 * @param individualId the individual who belongs to the group
+	 * @param groupId      the family group
+	 * @param role         the function of the individual in the family;
+	 *                     may be {@code null} or empty
+	 * @param famNode      the GEDCOM family node, used as the audit
+	 *                     source
+	 */
+	private void createGroupMembership(final String individualId, final String groupId,
+		final String role, final GEDCOMNode famNode){
+		if(individualId == null || groupId == null)
+			return;
+
+		final FLEFRecord relationship = FLEFRecord.createMainRecord(
+				IDGenerator.nextId(RelationshipHandler.ID_PREFIX), RelationshipHandler.TYPE)
+			.addChild(FLEFRecord.createChildWithTag("subject")
+				.addChild(FLEFRecord.createChildWithTagAndValue("individual", individualId)))
+			.addChild(FLEFRecord.createChildWithTag("object")
+				.addChild(FLEFRecord.createChildWithTagAndValue("group", groupId)))
+			.addChild(FLEFRecord.createChildWithTagAndValue("type",
+				RelationshipReader.ENUM_TYPE_GROUP_MEMBER));
+		if(StringUtils.isNotEmpty(role))
+			relationship.addChild(FLEFRecord.createChildWithTagAndValue("role", role));
+		relationship.addChild(AuditBuilder.build(famNode));
+
+		Deduplicator.getDeduplicatedRecordId(model, relationship);
+	}
 
 	private void createParentChild(String childId, String parentId){
 		FLEFRecord relationship = FLEFRecord.createMainRecord(

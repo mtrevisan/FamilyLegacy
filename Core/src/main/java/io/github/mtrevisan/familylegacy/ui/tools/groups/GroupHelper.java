@@ -99,6 +99,7 @@ public final class GroupHelper{
 		Set<String> childGroupIds,
 		Set<String> sourceIds){}
 
+
 	/**
 	 * Builds the profile of every group in a single pass over the
 	 * relationship list. The result is keyed by group id.
@@ -125,13 +126,16 @@ public final class GroupHelper{
 			if(RelationshipReader.isTypeGroupMember(t)){
 				// subject = individual, target = group.
 				if(subject != null && objectGroup != null)
-					members.computeIfAbsent(objectGroup, k -> new LinkedHashSet<>()).add(subject);
+					members.computeIfAbsent(objectGroup, k -> new LinkedHashSet<>())
+						.add(subject);
 			}
 			else if(RelationshipReader.isTypePartOf(t)){
 				// subject = child group, target = parent group.
 				if(subjectGroup != null && objectGroup != null){
-					children.computeIfAbsent(objectGroup, k -> new LinkedHashSet<>()).add(subjectGroup);
-					parents.computeIfAbsent(subjectGroup, k -> new LinkedHashSet<>()).add(objectGroup);
+					children.computeIfAbsent(objectGroup, k -> new LinkedHashSet<>())
+						.add(subjectGroup);
+					parents.computeIfAbsent(subjectGroup, k -> new LinkedHashSet<>())
+						.add(objectGroup);
 				}
 			}
 		}
@@ -174,7 +178,7 @@ public final class GroupHelper{
 	 * ====================================================================== */
 
 	/** Row for the group management table. */
-	public record GroupRow(String id, String name, String type, int memberCount, int childCount, int parentCount,
+	public record GroupRow(String id, String name, String type, int memberCount, int parentCount, int childCount,
 		int sourceCount){}
 
 
@@ -184,8 +188,8 @@ public final class GroupHelper{
 			profile.name(),
 			profile.type(),
 			profile.memberIds().size(),
-			profile.childGroupIds().size(),
 			profile.parentGroupIds().size(),
+			profile.childGroupIds().size(),
 			profile.sourceIds().size()
 		);
 	}

@@ -33,6 +33,7 @@ import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
+import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import io.github.mtrevisan.familylegacy.ui.tools.events.CalendarConverterDialog;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
@@ -325,7 +326,7 @@ public final class AgoraPanel extends JPanel{
 
 		header.add(new JLabel("Filter:"), "right");
 		header.add(searchField, "growx");
-		final JButton clear = new JButton("Clear");
+		final JButton clear = new JButton(I18N.t("button.clear"));
 		clear.addActionListener(e -> searchField.setText(""));
 		header.add(clear);
 
@@ -486,11 +487,10 @@ public final class AgoraPanel extends JPanel{
 	 * when the individual should not appear.
 	 * <p>
 	 * The life test is delegated to
-	 * {@link ChronomapIndex#isAliveAt(List, double)}, the same method
+	 * {@link ChronomapIndex#isAliveAt(String, double)}, the same method
 	 * used by the chronomap marker layer. This guarantees that the set
 	 * of people shown on the map and the set of people listed here
-	 * always coincide: a person who is alive for the map is alive for
-	 * the list, and vice versa.
+	 * always coincide.
 	 * <p>
 	 * People with no anchors at all are excluded, because they cannot
 	 * be placed on the map. This is a deliberate consequence of the
@@ -498,19 +498,20 @@ public final class AgoraPanel extends JPanel{
 	 * of the living.
 	 */
 	private AgoraRow evaluate(final String id, final List<GeoAnchor> anchors, final long t){
-		if(!ChronomapIndex.isAliveAt(anchors, t))
+		if(!index.isAliveAt(id, t))
 			return null;
 
-		// Age: computed from the birth event, or from the earliest
-		// anchor when no birth is recorded. This mirrors the same
-		// fallback used by ChronomapIndex.isAliveAt, so the two values
-		// are consistent.
-		final Long bornJdn = earliestBirthJdn(anchors);
+		// Age: computed from the effective birth, the same value used by
+		// the liveness test. It is the earliest recorded birth event, or
+		// the earliest anchor when no birth is recorded.
+		final Long bornJdn = index.effectiveBirthJdn(id);
 		final Integer age = (bornJdn != null
 			? (int)Math.floor((t - bornJdn) / ChronomapIndex.DAYS_PER_YEAR)
 			: null);
 
-		// Position: interpolated between the anchors around t.
+		// Position: interpolated between the anchors around t. The liveness
+		// check has already been done above, so interpolatePosition here is
+		// purely geometric.
 		final ChronomapOverlayPainter.InterpolatedPosition state =
 			ChronomapOverlayPainter.interpolatePosition(null, anchors, t);
 		final GeoCoordinate pos = (state != null? state.coordinate(): null);

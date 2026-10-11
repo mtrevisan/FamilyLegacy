@@ -123,7 +123,7 @@ public final class ResearchQuestionsDialog extends JDialog{
 			}
 		});
 
-		final JButton newButton = new JButton("New…");
+		final JButton newButton = new JButton(I18N.t("button.new"));
 		newButton.addActionListener(e -> openEditor(null));
 		toolbar.add(newButton);
 

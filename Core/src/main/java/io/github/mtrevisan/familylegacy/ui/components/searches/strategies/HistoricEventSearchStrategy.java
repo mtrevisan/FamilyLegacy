@@ -38,6 +38,7 @@ import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 
+import java.util.Set;
 import java.util.StringJoiner;
 import java.util.function.Predicate;
 
@@ -58,7 +59,7 @@ public class HistoricEventSearchStrategy implements SearchStrategy{
 	private String date;
 	private String calendar;
 	private String place;
-	private SearchMode mode;
+	private Set<SearchMode> modes;
 
 
 	@Override
@@ -68,7 +69,7 @@ public class HistoricEventSearchStrategy implements SearchStrategy{
 		date = criteria.getFilterFor(HistoricEventReader.TAG_DATE);
 		calendar = criteria.getFilterFor(DateReader.TAG_CALENDAR);
 		place = criteria.getFilterFor(HistoricEventReader.TAG_PLACE);
-		mode = criteria.mode();
+		modes = criteria.modes();
 
 		return historicEvent -> {
 			// Type filter
@@ -81,7 +82,7 @@ public class HistoricEventSearchStrategy implements SearchStrategy{
 			// Title filter
 			if(StringUtils.isNotEmpty(title)){
 				final String recordTitle = HistoricEventReader.extractTitle(historicEvent);
-				if(!SearchHelper.matches(recordTitle, title, mode))
+				if(!SearchHelper.matches(recordTitle, title, modes))
 					return false;
 			}
 
@@ -90,7 +91,7 @@ public class HistoricEventSearchStrategy implements SearchStrategy{
 				return false;
 
 			// Place filter
-			if(!SearchHelper.matchesPlace(historicEvent, place, model, mode, FUZZY_THRESHOLD))
+			if(!SearchHelper.matchesPlace(historicEvent, place, model, modes, FUZZY_THRESHOLD))
 				return false;
 
 			return true;

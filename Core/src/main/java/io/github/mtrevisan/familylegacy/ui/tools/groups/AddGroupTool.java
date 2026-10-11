@@ -24,28 +24,35 @@
  */
 package io.github.mtrevisan.familylegacy.ui.tools.groups;
 
+import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolOperation;
 
 
-/** Opens the group management dialog. */
-public final class ManageGroupsTool implements ToolOperation{
+/** Opens the "new group" dialog. */
+public final class AddGroupTool implements ToolOperation{
 
 	@Override
 	public String getName(){
-		return I18N.t("menu.group.manage.groups");
+		return I18N.t("menu.group.add.group");
 	}
 
 	@Override
 	public void run(final ToolContext context){
-		final GroupManagementDialog dialog = new GroupManagementDialog(context);
+		final FLEFModel model = context.model();
+		final BaseRecordDialog dialog = GroupHandler.getInstance()
+			.createNewDialog(context.owner(), model);
 		dialog.setVisible(true);
-	}
 
-	@Override
-	public boolean isEnabled(final ToolContext context){
-		return (context != null && context.hasAnyGroups());
+		if(dialog.isSaved()){
+			final FLEFRecord createdRecord = dialog.getRecord();
+			if(createdRecord != null)
+				context.loadRoot(createdRecord.getId());
+		}
 	}
 
 }

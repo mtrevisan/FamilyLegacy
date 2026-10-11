@@ -34,6 +34,7 @@ import io.github.mtrevisan.familylegacy.ui.handlers.ResearchTaskHandler;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.Set;
 import java.util.StringJoiner;
 import java.util.function.Predicate;
 
@@ -51,7 +52,7 @@ public class ResearchTaskSearchStrategy implements SearchStrategy{
 	private String status;
 	private String priority;
 	private String outcome;
-	private SearchMode mode;
+	private Set<SearchMode> modes;
 
 
 	@Override
@@ -60,13 +61,13 @@ public class ResearchTaskSearchStrategy implements SearchStrategy{
 		status = criteria.getFilterFor(ResearchTaskReader.TAG_STATUS);
 		priority = criteria.getFilterFor(ResearchTaskReader.TAG_PRIORITY);
 		outcome = criteria.getFilterFor(ResearchTaskReader.TAG_OUTCOME);
-		mode = criteria.mode();
+		modes = criteria.modes();
 
 		return task -> {
 			// Description filter
 			if(StringUtils.isNotEmpty(description)){
 				final String recordDescription = ResearchTaskReader.extractDescription(task);
-				if(!SearchHelper.matches(recordDescription, description, mode))
+				if(!SearchHelper.matches(recordDescription, description, modes))
 					return false;
 			}
 
@@ -87,7 +88,7 @@ public class ResearchTaskSearchStrategy implements SearchStrategy{
 			// Outcome filter
 			if(StringUtils.isNotEmpty(outcome)){
 				final String recordOutcome = ResearchTaskReader.extractOutcome(task);
-				if(!SearchHelper.matches(recordOutcome, outcome, mode))
+				if(!SearchHelper.matches(recordOutcome, outcome, modes))
 					return false;
 			}
 

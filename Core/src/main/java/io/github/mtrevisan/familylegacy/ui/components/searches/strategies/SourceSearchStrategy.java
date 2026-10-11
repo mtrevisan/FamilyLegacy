@@ -34,6 +34,7 @@ import io.github.mtrevisan.familylegacy.ui.handlers.SourceHandler;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
+import java.util.Set;
 import java.util.StringJoiner;
 import java.util.function.Predicate;
 
@@ -55,7 +56,7 @@ public class SourceSearchStrategy implements SearchStrategy{
 	private String publisher;
 	private String mediaType;
 	private String place;
-	private SearchMode mode;
+	private Set<SearchMode> modes;
 
 
 	@Override
@@ -65,7 +66,7 @@ public class SourceSearchStrategy implements SearchStrategy{
 		publisher = criteria.getFilterFor(SourceReader.TAG_PUBLISHER);
 		mediaType = criteria.getFilterFor(SourceReader.TAG_MEDIA_TYPE);
 		place = criteria.getFilterFor(SourceReader.TAG_PLACE);
-		mode = criteria.mode();
+		modes = criteria.modes();
 
 		return source -> {
 			// Title filter
@@ -73,7 +74,7 @@ public class SourceSearchStrategy implements SearchStrategy{
 				final List<String> titles = SourceReader.extractTitles(source);
 				boolean matched = false;
 				for(final String recordTitle : titles){
-					if(SearchHelper.matches(recordTitle, title, mode)){
+					if(SearchHelper.matches(recordTitle, title, modes)){
 						matched = true;
 
 						break;
@@ -86,14 +87,14 @@ public class SourceSearchStrategy implements SearchStrategy{
 			// Author filter
 			if(StringUtils.isNotEmpty(author)){
 				final String recordAuthor = SourceReader.extractAuthor(source);
-				if(!SearchHelper.matches(recordAuthor, author, mode))
+				if(!SearchHelper.matches(recordAuthor, author, modes))
 					return false;
 			}
 
 			// Publisher filter
 			if(StringUtils.isNotEmpty(publisher)){
 				final String recordPublisher = SourceReader.extractPublisher(source);
-				if(!SearchHelper.matches(recordPublisher, place, mode))
+				if(!SearchHelper.matches(recordPublisher, place, modes))
 					return false;
 			}
 
@@ -105,7 +106,7 @@ public class SourceSearchStrategy implements SearchStrategy{
 			}
 
 			// Place filter
-			if(!SearchHelper.matchesPlace(source, place, model, mode, FUZZY_THRESHOLD))
+			if(!SearchHelper.matchesPlace(source, place, model, modes, FUZZY_THRESHOLD))
 				return false;
 
 			return true;

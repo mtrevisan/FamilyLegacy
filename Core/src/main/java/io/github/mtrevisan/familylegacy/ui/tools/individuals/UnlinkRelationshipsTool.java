@@ -48,6 +48,8 @@ public final class UnlinkRelationshipsTool implements ToolOperation{
 		return I18N.t("menu.individual.unlink.relationships");
 	}
 
+	// TODO must works also for groups?
+	// EgoNetworkActionHandler.showUnlinkRelationshipsDialog
 	@Override
 	public void run(final ToolContext context){
 		if(context == null)

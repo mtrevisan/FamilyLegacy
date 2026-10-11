@@ -72,7 +72,7 @@ public final class ReportDialog extends JDialog{
 		final JScrollPane scroll = new JScrollPane(editor);
 		scroll.setPreferredSize(new Dimension(760, 560));
 
-		final JButton copy = new JButton("Copy to Clipboard");
+		final JButton copy = new JButton(I18N.t("button.copy.to.clipboard"));
 		copy.addActionListener(e -> {
 			final StringSelection selection = new StringSelection(editor.getText());
 			Toolkit.getDefaultToolkit()

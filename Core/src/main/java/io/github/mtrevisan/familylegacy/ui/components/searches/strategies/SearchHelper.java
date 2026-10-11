@@ -46,6 +46,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 
 public class SearchHelper{
@@ -115,15 +116,15 @@ public class SearchHelper{
 	 * @param query  the query typed in the filter field; may be {@code null} or blank
 	 * @return {@code true} when the target admits the query
 	 */
-	public static boolean matches(final String target, final String query, final SearchMode mode){
+	public static boolean matches(final String target, final String query, final Set<SearchMode> modes){
 		if(StringUtils.isBlank(query))
 			return true;
 
-		return SearchMatcher.score(query, target, mode)
+		return SearchMatcher.score(query, target, modes)
 			.passes();
 	}
 
-	public static boolean matchesName(final FLEFRecord place, final String name, final SearchMode mode,
+	public static boolean matchesName(final FLEFRecord place, final String name, final Set<SearchMode> modes,
 			final double fuzzyThreshold){
 		if(StringUtils.isEmpty(name))
 			return true;
@@ -131,7 +132,7 @@ public class SearchHelper{
 		final List<String> names = PlaceReader.extractNames(place);
 		boolean matched = false;
 		for(final String nameValue : names)
-			if(TextSearchHelper.matchesText(nameValue, name, mode, fuzzyThreshold)){
+			if(TextSearchHelper.matchesText(nameValue, name, modes, fuzzyThreshold)){
 				matched = true;
 
 				break;
@@ -158,7 +159,7 @@ public class SearchHelper{
 	}
 
 	public static boolean matchesPlace(final FLEFRecord event, final String targetPlace, final FLEFModel model,
-			final SearchMode mode, final double fuzzyThreshold){
+			final Set<SearchMode> modes, final double fuzzyThreshold){
 		if(StringUtils.isEmpty(targetPlace))
 			return true;
 
@@ -170,7 +171,7 @@ public class SearchHelper{
 		final FLEFRecord placeRecord = model.getRecordById(placeId);
 		final String place = PlaceHandler.getInstance()
 			.getDisplayText(placeRecord, model);
-		return TextSearchHelper.matchesText(place, targetPlace, mode, fuzzyThreshold);
+		return TextSearchHelper.matchesText(place, targetPlace, modes, fuzzyThreshold);
 	}
 
 	static boolean isDateInRange(final FLEFRecord dateRecord, final Integer birthYear, final Integer deathYear,

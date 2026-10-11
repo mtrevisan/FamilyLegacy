@@ -24,7 +24,11 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.searches;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.Locale;
+import java.util.Set;
+import java.util.regex.Pattern;
 
 
 /**
@@ -44,6 +48,17 @@ import java.util.Locale;
  * "bortolo".
  */
 public final class SearchMatcher{
+
+	/**
+	 * Pre-compiled separator for target tokens. The pattern splits on any
+	 * run of characters that are not Unicode letters or digits, so
+	 * "Rossi-Bianchi" becomes two tokens and "de' Medici" keeps "de" and
+	 * "medici" separate. Compiling once at class load avoids the cost of
+	 * recompiling the regex on every call, which is what
+	 * {@link String#split(String)} does internally.
+	 */
+	private static final Pattern TARGET_TOKEN_SEPARATOR = Pattern.compile("[^\\p{L}\\p{N}]+");
+
 
 	private SearchMatcher(){}
 
@@ -77,40 +92,47 @@ public final class SearchMatcher{
 	/**
 	 * Scores the match between the query and the target.
 	 * <p>
-	 * The mode decides <b>admission</b>: whether a pair of tokens is a
-	 * candidate at all. The <b>score</b> is always the same fuzzy
-	 * formula, so the ranking is independent of the mode and only the
-	 * set of candidates changes.
+	 * The {@code modes} set decides <b>admission</b>: whether a pair of
+	 * tokens is a candidate at all. The <b>score</b> is always the same
+	 * fuzzy formula, so the ranking is independent of the modes and only
+	 * the set of candidates changes.
+	 * <p>
+	 * The admission rules are:
+	 * <ul>
+	 *   <li>empty set → plain substring match;</li>
+	 *   <li>only {@link SearchMode#WHOLE_WORD} → exact token match;</li>
+	 *   <li>only {@link SearchMode#FUZZY} → typo-tolerant substring
+	 *       match;</li>
+	 *   <li>both → typo-tolerant match restricted to whole tokens.</li>
+	 * </ul>
 	 *
 	 * @param query  the user input; blank admits everything
 	 * @param target the display text of the record; {@code null} never matches
-	 * @param mode   the admission mode; {@code null} defaults to {@link SearchMode#FUZZY}
+	 * @param modes  the admission modes; may be {@code null} or empty
 	 * @return the score, never {@code null}
 	 */
-	public static MatchScore score(final String query, final String target, final SearchMode mode){
+	public static MatchScore score(final String query, final String target, final Set<SearchMode> modes){
 		if(query == null || query.isBlank())
 			return MatchScore.ANY;
 		if(target == null)
 			return MatchScore.NONE;
 
-		final SearchMode effectiveMode = (mode != null? mode: SearchMode.FUZZY);
+		// Query tokens: whitespace-separated. StringUtils.split uses
+		// Character.isWhitespace internally, so it is Unicode-aware and does
+		// not touch the regex engine at all.
+		final String[] queryTokens = StringUtils.split(query.toLowerCase(Locale.ROOT).trim());
 
-		final String[] queryTokens = query.toLowerCase(Locale.ROOT)
-			.trim()
-			.split("\\s+");
-		final String[] targetTokens = target.toLowerCase(Locale.ROOT)
-			// Split on anything that is not a letter or a digit, so
-			// "Rossi-Bianchi" becomes two tokens and "de' Medici" keeps
-			// "de" and "medici" separate. \\p{L} and \\p{N} are
-			// Unicode-aware, so accented letters are preserved.
-			.split("[^\\p{L}\\p{N}]+");
+		// Target tokens: split on non-letter/non-digit runs. A pre-compiled
+		// Pattern avoids recompiling the regex on every call; String.split
+		// would compile it each time.
+		final String[] targetTokens = TARGET_TOKEN_SEPARATOR.split(target.toLowerCase(Locale.ROOT));
 
 		int matchedTokens = 0;
 		double totalScore = 0.;
 		for(final String queryToken : queryTokens){
 			double best = 0.;
 			for(final String targetToken : targetTokens){
-				if(!admits(queryToken, targetToken, effectiveMode))
+				if(!admits(queryToken, targetToken, modes))
 					continue;
 
 				final double s = similarity(queryToken, targetToken);
@@ -134,13 +156,45 @@ public final class SearchMatcher{
 	 * ====================================================================== */
 
 	/**
-	 * Admission: the mode decides whether the pair is a candidate at all.
+	 * Admission: the modes decide whether the pair is a candidate at all.
+	 * <p>
+	 * The two flags are independent, so the four combinations are resolved
+	 * in a cascade:
+	 * <ul>
+	 *   <li>whole-word only: exact token match, case-insensitive (both
+	 *       inputs are already lower-cased by the caller);</li>
+	 *   <li>whole-word + fuzzy: token match within the edit-distance
+	 *       budget;</li>
+	 *   <li>fuzzy only: substring match, or substring within the
+	 *       edit-distance budget;</li>
+	 *   <li>neither: plain substring match.</li>
+	 * </ul>
+	 * The result of this method is only <b>admission</b>: whether the pair
+	 * is a candidate. The numeric score is computed separately by
+	 * {@link #similarity(String, String)} and is independent of the modes,
+	 * so the ranking stays consistent when the user toggles the flags.
+	 *
+	 * @param queryToken  the lower-cased query token
+	 * @param targetToken the lower-cased target token
+	 * @param modes       the admission modes; may be {@code null} or empty
+	 * @return {@code true} when the target token is admitted for the query
+	 *         token
 	 */
-	private static boolean admits(final String queryToken, final String targetToken, final SearchMode mode){
-		return switch(mode){
-			case WHOLE_WORD -> targetToken.equals(queryToken);
-			case FUZZY -> (targetToken.contains(queryToken) || isWithinBudget(queryToken, targetToken));
-		};
+	private static boolean admits(final String queryToken, final String targetToken,
+		final Set<SearchMode> modes){
+		final boolean fuzzy = (modes != null && modes.contains(SearchMode.FUZZY));
+		final boolean wholeWord = (modes != null && modes.contains(SearchMode.WHOLE_WORD));
+
+		if(wholeWord){
+			if(fuzzy)
+				return isWithinBudget(queryToken, targetToken);
+			return targetToken.equals(queryToken);
+		}
+
+		if(fuzzy)
+			return targetToken.contains(queryToken) || isWithinBudget(queryToken, targetToken);
+
+		return targetToken.contains(queryToken);
 	}
 
 

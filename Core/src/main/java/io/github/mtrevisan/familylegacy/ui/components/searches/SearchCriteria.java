@@ -30,6 +30,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 
 /**
@@ -45,14 +46,14 @@ public final class SearchCriteria{
 
 	private final RecordTypeHandler<?> handler;
 	private final String query;
-	private final SearchMode mode;
+	private final Set<SearchMode> modes;
 	private final Map<String, String> filters = new LinkedHashMap<>();
 
 
-	public SearchCriteria(final RecordTypeHandler<?> handler, final String query, final SearchMode mode){
+	public SearchCriteria(final RecordTypeHandler<?> handler, final String query, final Set<SearchMode> modes){
 		this.handler = Objects.requireNonNull(handler, "handler must not be null");
 		this.query = (query != null? query: StringUtils.EMPTY);
-		this.mode = (mode != null? mode: SearchMode.FUZZY);
+		this.modes = modes;
 	}
 
 
@@ -64,8 +65,8 @@ public final class SearchCriteria{
 		return query;
 	}
 
-	public SearchMode mode(){
-		return mode;
+	public Set<SearchMode> modes(){
+		return modes;
 	}
 
 	/**
@@ -111,7 +112,7 @@ public final class SearchCriteria{
 		return "SearchCriteria["
 			+ "handler=" + handler.getType()
 			+ ", query='" + query + '\''
-			+ ", mode=" + mode
+			+ ", mode=" + modes
 			+ ", filters=" + filters
 			+ ']';
 	}

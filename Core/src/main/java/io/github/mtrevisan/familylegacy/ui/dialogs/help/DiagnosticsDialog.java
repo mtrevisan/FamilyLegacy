@@ -83,7 +83,7 @@ public final class DiagnosticsDialog extends JDialog{
 		final JScrollPane scroll = new JScrollPane(area);
 		scroll.setPreferredSize(new Dimension(680, 480));
 
-		final JButton copy = new JButton(I18N.t("dialog.diagnostics.button.copy.to.clipboard"));
+		final JButton copy = new JButton(I18N.t("button.copy.to.clipboard"));
 		copy.addActionListener(e -> {
 			final StringSelection selection = new StringSelection(area.getText());
 			Toolkit.getDefaultToolkit()

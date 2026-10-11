@@ -36,6 +36,7 @@ import io.github.mtrevisan.familylegacy.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RepositoryHandler;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.Set;
 import java.util.StringJoiner;
 import java.util.function.Predicate;
 
@@ -55,7 +56,7 @@ public class RepositorySearchStrategy implements SearchStrategy{
 	private String name;
 	private String custodian;
 	private String place;
-	private SearchMode mode;
+	private Set<SearchMode> modes;
 
 
 	@Override
@@ -63,11 +64,11 @@ public class RepositorySearchStrategy implements SearchStrategy{
 		name = criteria.getFilterFor(RepositoryReader.TAG_NAME);
 		custodian = criteria.getFilterFor(RepositoryReader.TAG_CUSTODIAN);
 		place = criteria.getFilterFor(RepositoryReader.TAG_PLACE);
-		mode = criteria.mode();
+		modes = criteria.modes();
 
 		return repository -> {
 			// Name filter
-			if(!SearchHelper.matchesName(repository, name, mode, FUZZY_THRESHOLD))
+			if(!SearchHelper.matchesName(repository, name, modes, FUZZY_THRESHOLD))
 				return false;
 
 			// Custodian filter
@@ -77,7 +78,7 @@ public class RepositorySearchStrategy implements SearchStrategy{
 					final FLEFRecord custodianRecord = model.getRecordById(custodianRef);
 					if(custodianRecord != null){
 						final String custodianDisplayText = IndividualHandler.getInstance().getDisplayText(custodianRecord, model);
-						if(!SearchHelper.matches(custodianDisplayText, custodian, mode))
+						if(!SearchHelper.matches(custodianDisplayText, custodian, modes))
 							return false;
 					}
 					else
@@ -95,7 +96,7 @@ public class RepositorySearchStrategy implements SearchStrategy{
 					final FLEFRecord placeRecord = model.getRecordById(placeId);
 					final String place = PlaceHandler.getInstance()
 						.getDisplayText(placeRecord, model);
-					return SearchHelper.matches(place, this.place, mode);
+					return SearchHelper.matches(place, this.place, modes);
 				}
 			}
 

@@ -402,7 +402,9 @@ final class ApplicationMenuBar{
 
 		addToolsToMenu(menu, GroupToolRegistry.primaryTools(), bindings);
 		menu.add(new JSeparator());
-		addToolsToMenu(menu, GroupToolRegistry.membershipTools(), bindings);
+		addToolsToMenu(menu, GroupToolRegistry.relationshipTools(), bindings);
+		menu.add(new JSeparator());
+		addToolsToMenu(menu, GroupToolRegistry.secondaryTools(), bindings);
 		menu.add(new JSeparator());
 		addToolsToMenu(menu, GroupToolRegistry.advancedTools(), bindings);
 		menu.add(new JSeparator());

@@ -39,6 +39,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 
 import java.util.List;
+import java.util.Set;
 import java.util.StringJoiner;
 import java.util.function.Predicate;
 
@@ -49,7 +50,7 @@ import java.util.function.Predicate;
  * <p>
  * The text filters (issue, narrative, and the linked research question's
  * display text) use the same admission mode as the main query, exposed by
- * {@link SearchCriteria#mode()}: {@link SearchMode#WHOLE_WORD},
+ * {@link SearchCriteria#modes()}: {@link SearchMode#WHOLE_WORD},
  * or {@link SearchMode#FUZZY}. The scoring
  * is delegated to {@link SearchMatcher}, so the behaviour is consistent
  * with the main search field of the dialog.
@@ -62,7 +63,7 @@ public class ConclusionSearchStrategy implements SearchStrategy{
 	private String proofStatus;
 	private String narrative;
 	private String researchQuestion;
-	private SearchMode mode;
+	private Set<SearchMode> modes;
 
 
 	@Override
@@ -71,13 +72,13 @@ public class ConclusionSearchStrategy implements SearchStrategy{
 		proofStatus = criteria.getFilterFor(ConclusionReader.TAG_PROOF_STATUS);
 		narrative = criteria.getFilterFor(ConclusionReader.TAG_NARRATIVE);
 		researchQuestion = criteria.getFilterFor(ConclusionReader.TAG_RESEARCH);
-		mode = criteria.mode();
+		modes = criteria.modes();
 
 		return conclusion -> {
 			// Issue filter
 			if(StringUtils.isNotEmpty(issue)){
 				final String recordIssue = ConclusionReader.extractIssues(conclusion);
-				if(!SearchHelper.matches(recordIssue, issue, mode))
+				if(!SearchHelper.matches(recordIssue, issue, modes))
 					return false;
 			}
 
@@ -91,7 +92,7 @@ public class ConclusionSearchStrategy implements SearchStrategy{
 			// Narrative filter
 			if(StringUtils.isNotEmpty(narrative)){
 				final String recordNarrative = ConclusionReader.extractNarrative(conclusion);
-				if(!SearchHelper.matches(recordNarrative, narrative, mode))
+				if(!SearchHelper.matches(recordNarrative, narrative, modes))
 					return false;
 			}
 
@@ -112,7 +113,7 @@ public class ConclusionSearchStrategy implements SearchStrategy{
 
 					final String questionDisplayText = ResearchQuestionHandler.getInstance()
 						.getDisplayText(questionRecord, model);
-					if(SearchHelper.matches(questionDisplayText, researchQuestion, mode)){
+					if(SearchHelper.matches(questionDisplayText, researchQuestion, modes)){
 						matched = true;
 
 						break;

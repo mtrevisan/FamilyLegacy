@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.ui.components.projections.group.GroupLis
 import io.github.mtrevisan.familylegacy.ui.components.projections.group.GroupPanel;
 import io.github.mtrevisan.familylegacy.ui.dialogs.help.ShortcutRegistry;
 import io.github.mtrevisan.familylegacy.ui.helpers.PopupMenuAdapter;
+import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolContext;
 
 import javax.swing.JMenuItem;
@@ -44,7 +45,7 @@ public class EgoNetworkGroupPopupMenuFactory implements EntityPopupMenuFactory<G
 
 	@Override
 	public JPopupMenu createPopupMenu(final GroupPanel panel, final GroupListener listener, final FLEFModel model){
-		final JMenuItem editItem = new JMenuItem("Edit Group…", 'E');
+		final JMenuItem editItem = new JMenuItem(I18N.t("menu.group.edit.group"), 'E');
 		editItem.setAccelerator(ShortcutRegistry.EDIT_SELECTION_GROUP.keyStroke());
 		final JMenuItem deleteItem = new JMenuItem("Delete Group", 'D');
 		final JMenuItem pasteItem = new JMenuItem("Paste", 'P');

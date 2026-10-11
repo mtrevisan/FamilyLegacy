@@ -38,6 +38,7 @@ import io.github.mtrevisan.familylegacy.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.Set;
 import java.util.StringJoiner;
 import java.util.function.Predicate;
 
@@ -61,7 +62,7 @@ public class EventSearchStrategy implements SearchStrategy{
 	private String place;
 	private String agency;
 	private String causeReason;
-	private SearchMode mode;
+	private Set<SearchMode> modes;
 
 
 	@Override
@@ -73,7 +74,7 @@ public class EventSearchStrategy implements SearchStrategy{
 		place = criteria.getFilterFor(EventReader.TAG_PLACE);
 		agency = criteria.getFilterFor(EventReader.TAG_AGENCY);
 		causeReason = criteria.getFilterFor(EventReader.TAG_CAUSE_REASON);
-		mode = criteria.mode();
+		modes = criteria.modes();
 
 		return event -> {
 			// Event Type filter
@@ -86,7 +87,7 @@ public class EventSearchStrategy implements SearchStrategy{
 			// Description filter
 			if(StringUtils.isNotEmpty(description)){
 				final String recordDescription = FLEFRecordHelper.getChildValue(event, EventReader.TAG_DESCRIPTION);
-				if(!SearchHelper.matches(recordDescription, description, mode))
+				if(!SearchHelper.matches(recordDescription, description, modes))
 					return false;
 			}
 
@@ -95,20 +96,20 @@ public class EventSearchStrategy implements SearchStrategy{
 				return false;
 
 			// Place filter
-			if(!SearchHelper.matchesPlace(event, place, model, mode, FUZZY_THRESHOLD))
+			if(!SearchHelper.matchesPlace(event, place, model, modes, FUZZY_THRESHOLD))
 				return false;
 
 			// Agency filter
 			if(StringUtils.isNotEmpty(agency)){
 				final String agency = FLEFRecordHelper.getChildValue(event, EventReader.TAG_AGENCY);
-				if(!TextSearchHelper.matchesText(agency, this.agency, mode, FUZZY_THRESHOLD))
+				if(!TextSearchHelper.matchesText(agency, this.agency, modes, FUZZY_THRESHOLD))
 					return false;
 			}
 
 			// Cause Reason filter
 			if(StringUtils.isNotEmpty(causeReason)){
 				final String reason = FLEFRecordHelper.getChildValue(event, EventReader.TAG_CAUSE_REASON);
-				if(!TextSearchHelper.matchesText(reason, causeReason, mode, FUZZY_THRESHOLD))
+				if(!TextSearchHelper.matchesText(reason, causeReason, modes, FUZZY_THRESHOLD))
 					return false;
 			}
 

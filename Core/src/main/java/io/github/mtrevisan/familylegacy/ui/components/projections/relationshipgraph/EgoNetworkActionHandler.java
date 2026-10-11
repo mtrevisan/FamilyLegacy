@@ -36,6 +36,9 @@ import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
+import io.github.mtrevisan.familylegacy.ui.tools.ToolContext;
+import io.github.mtrevisan.familylegacy.ui.tools.ToolContexts;
+import io.github.mtrevisan.familylegacy.ui.tools.individuals.UnlinkRelationshipsTool;
 
 import javax.swing.SwingUtilities;
 import java.awt.Component;
@@ -168,7 +171,6 @@ public class EgoNetworkActionHandler{
 		final Set<EgoNode> relAssociates;
 		final Set<FLEFRecord> relGroups;
 		final Set<EgoNode> relChildren;
-
 		if(Objects.equals(record.getId(), currentEgoId)){
 			relParents = parents;
 			relAssociates = associates;
@@ -188,15 +190,26 @@ public class EgoNetworkActionHandler{
 			extractNodeIds(relChildren));
 		dialog.setVisible(true);
 
+		// TODO
+//		final ToolContext context = ToolContexts.withMutator(model, listener, panel, record.getId());
+//		new UnlinkRelationshipsTool()
+//			.run(context);
+
 		return dialog;
 	}
 
 	private static Set<String> extractNodeIds(final Set<EgoNode> nodes){
-		return nodes.stream().map(EgoNode::getEgoId).filter(Objects::nonNull).collect(Collectors.toSet());
+		return nodes.stream()
+			.map(EgoNode::getEgoId)
+			.filter(Objects::nonNull)
+			.collect(Collectors.toSet());
 	}
 
 	private static Set<String> extractRecordIds(final Set<FLEFRecord> records){
-		return records.stream().map(FLEFRecord::getId).filter(Objects::nonNull).collect(Collectors.toSet());
+		return records.stream()
+			.map(FLEFRecord::getId)
+			.filter(Objects::nonNull)
+			.collect(Collectors.toSet());
 	}
 
 	private static RecordTypeHandler<?> resolveHandler(final Class<? extends RecordTypeHandler<?>> handlerClass){
