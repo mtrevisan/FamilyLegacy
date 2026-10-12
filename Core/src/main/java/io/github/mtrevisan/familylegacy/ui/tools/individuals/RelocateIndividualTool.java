@@ -40,12 +40,12 @@ public final class RelocateIndividualTool implements ToolOperation{
 
 	@Override
 	public String getName(){
-		return ShortcutRegistry.EDIT_RELOCATE.action();
+		return ShortcutRegistry.EDIT_RELOCATE_INDIVIDUAL.action();
 	}
 
 	@Override
 	public KeyStroke getAccelerator(){
-		return ShortcutRegistry.EDIT_RELOCATE.keyStroke();
+		return ShortcutRegistry.EDIT_RELOCATE_INDIVIDUAL.keyStroke();
 	}
 
 	@Override

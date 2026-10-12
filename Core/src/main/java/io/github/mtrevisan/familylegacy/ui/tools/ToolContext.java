@@ -184,11 +184,9 @@ public record ToolContext(
 	/**
 	 * Returns the selected Individual record, falling back to the first available Individual in the model.
 	 */
-	public FLEFRecord getSelectedIndividual(){
+	public FLEFRecord getSelectedEntity(){
 		final String id = selectedEntityId();
-		return (id != null && model.hasRecord(id) && id.startsWith(IndividualHandler.ID_PREFIX)
-			? model.getRecordById(id)
-			: null);
+		return (id != null && model.hasRecord(id)? model.getRecordById(id): null);
 	}
 
 	/**

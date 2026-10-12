@@ -24,28 +24,47 @@
  */
 package io.github.mtrevisan.familylegacy.ui.tools.groups;
 
+import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.ui.components.projections.group.GroupData;
+import io.github.mtrevisan.familylegacy.ui.components.projections.group.GroupPanel;
+import io.github.mtrevisan.familylegacy.ui.components.projections.individual.PopupMenuHelper;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolOperation;
 
+import java.awt.Component;
 
-/** Opens the "remove member" dialog. */
-public final class RemoveMemberTool implements ToolOperation{
+
+/**
+ * Pastes the entity stored in the clipboard context onto the target context.
+ */
+public final class PasteGroupTool implements ToolOperation{
 
 	@Override
 	public String getName(){
-		return I18N.t("menu.group.remove.members");
+		return I18N.t("menu.group.paste");
 	}
 
 	@Override
 	public void run(final ToolContext context){
-		final RemoveMemberDialog dialog = new RemoveMemberDialog(context);
-		dialog.setVisible(true);
+		if(isEnabled(context))
+			context.performPaste();
 	}
 
 	@Override
 	public boolean isEnabled(final ToolContext context){
-		return (context != null && context.hasSelectedGroup());
+		if(context == null || !context.canPaste())
+			return false;
+
+		final Component view = context.selectedComponent();
+		final FLEFModel model = context.model();
+		if(view instanceof final GroupPanel panel){
+			final GroupData data = panel.getData();
+			final boolean hasData = (data != null && !data.isEmpty());
+			return (!hasData && PopupMenuHelper.isPasteAllowed(model, panel));
+		}
+
+		return true;
 	}
 
 }

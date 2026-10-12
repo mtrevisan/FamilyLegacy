@@ -228,8 +228,10 @@ public class IndividualDossierPanel extends JPanel{
 		empty.setFont(EMPTY_FONT);
 		empty.setForeground(EMPTY_COLOR);
 		contentPanel.add(empty, "gapleft 12,gaptop 12");
+
 		contentPanel.revalidate();
 		contentPanel.repaint();
+
 		putClientProperty(PROPERTY_DOSSIER, IndividualDossier.empty());
 	}
 
@@ -354,6 +356,7 @@ public class IndividualDossierPanel extends JPanel{
 		private void setExpanded(final boolean expanded){
 			contentArea.setVisible(expanded);
 			arrowIndicator.setExpanded(expanded);
+
 			revalidate();
 			repaint();
 		}
@@ -389,6 +392,7 @@ public class IndividualDossierPanel extends JPanel{
 		void setExpanded(final boolean expanded){
 			if(this.expanded != expanded){
 				this.expanded = expanded;
+
 				repaint();
 			}
 		}
@@ -636,8 +640,7 @@ public class IndividualDossierPanel extends JPanel{
 		try{
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		}
-		catch(final Exception ignored){
-		}
+		catch(final Exception ignored){}
 
 		final String modelUri = "/tests/TGMZ.flef";
 		final String individualId = "I1";

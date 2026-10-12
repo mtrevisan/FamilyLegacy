@@ -39,6 +39,7 @@ import net.miginfocom.swing.MigLayout;
 import javax.swing.BorderFactory;
 import javax.swing.JCheckBox;
 import javax.swing.JDialog;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
@@ -54,16 +55,33 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.Predicate;
 
 
 /**
- * Dialog that displays all relationships of an ego entity, grouped by categories
- * (Parents, Partners, Associates, Groups, Children), with checkboxes to select which ones to remove.
+ * Dialog that displays all relationships of a focus entity, grouped by
+ * categories, with checkboxes to select which ones to remove.
+ * <p>
+ * The dialog is <b>self-contained</b>: it takes only the model and the
+ * id of the focus entity, and derives every category directly from the
+ * relationship records. The categorization depends on:
+ * <ul>
+ *   <li>the type of the focus entity — individual or group;</li>
+ *   <li>the relationship type — {@code child}-type, {@code partner}-type,
+ *       {@code group_member}, {@code part_of}, or generic
+ *       {@code associate};</li>
+ *   <li>the direction — whether the focus is the subject or the object
+ *       of the relationship;</li>
+ *   <li>the type of the other entity — individual or group.</li>
+ * </ul>
+ * Because the categories are computed here, the dialog works identically
+ * for individuals and for groups, and callers do not need to pre-compute
+ * parent / child / associate / group id sets.
  */
 public class UnlinkRelationshipsDialog extends JDialog{
 
@@ -71,8 +89,9 @@ public class UnlinkRelationshipsDialog extends JDialog{
 
 
 	/**
-	 * Represents an aggregated relationship entry toward a specific target entity.
-	 * Holds multiple relationship IDs (e.g. direct and inverse) to delete both at once.
+	 * Represents an aggregated relationship entry toward a specific
+	 * target entity. Holds multiple relationship IDs (e.g. direct and
+	 * inverse) to delete both at once.
 	 */
 	private static class RelationshipInfo{
 		final String entityId;
@@ -108,38 +127,60 @@ public class UnlinkRelationshipsDialog extends JDialog{
 	private record RelationshipCheckbox(JCheckBox checkbox, List<String> relationshipIds, String entityId){}
 
 
-	private final FLEFModel model;
-	private final Predicate<String> relationshipTypeFilter;
-	private final String individualId;
+	/**
+	 * Categories of relationships. The active set depends on the type of
+	 * the focus entity:
+	 * <ul>
+	 *   <li>an <b>individual</b> shows parents, partners, associates,
+	 *       groups, and children;</li>
+	 *   <li>a <b>group</b> shows members, subgroups, supergroups, and
+	 *       associates.</li>
+	 * </ul>
+	 * The order of the constants is the order in which the categories
+	 * are rendered, and it is chosen so that the most relevant group
+	 * appears first for each focus type.
+	 */
+	private enum Category{
+		// Individual focus
+		PARENT("Parents"),
+		PARTNER("Partners"),
+		GROUP("Groups"),
+		ASSOCIATE("Associates"),
+		CHILD("Children"),
+		// Group focus
+		MEMBER("Members"),
+		SUBGROUP("Subgroups"),
+		SUPERGROUP("Supergroups");
 
-	private final Set<String> parentIds;
-	private final Set<String> associateIds;
-	private final Set<String> groupIds;
-	private final Set<String> childIds;
+
+		private final String label;
+
+
+		Category(final String label){
+			this.label = label;
+		}
+	}
+
+
+	private final FLEFModel model;
+	private final String entityId;
+	private final Predicate<String> relationshipTypeFilter;
 
 	private final List<RelationshipCheckbox> checkboxes = new ArrayList<>();
 	private boolean confirmed;
 
 
-	public UnlinkRelationshipsDialog(final Window parent, final FLEFModel model, final String individualId,
-			final Set<String> parentsIds, final Set<String> associatesIds, final Set<String> groupsIds,
-			final Set<String> childrenIds){
-		this(parent, model, type -> true, individualId, parentsIds, associatesIds, groupsIds, childrenIds);
+	public UnlinkRelationshipsDialog(final Window parent, final FLEFModel model, final String entityId){
+		this(parent, model, type -> true, entityId);
 	}
 
 	public UnlinkRelationshipsDialog(final Window parent, final FLEFModel model,
-			final Predicate<String> relationshipTypeFilter, final String individualId, final Set<String> parentsIds,
-			final Set<String> associatesIds, final Set<String> groupsIds, final Set<String> childrenIds){
+			final Predicate<String> relationshipTypeFilter, final String entityId){
 		super(parent, "Unlink Relationships", ModalityType.APPLICATION_MODAL);
 
 		this.model = model;
+		this.entityId = entityId;
 		this.relationshipTypeFilter = relationshipTypeFilter;
-		this.individualId = individualId;
-
-		this.parentIds = parentsIds;
-		this.associateIds = associatesIds;
-		this.groupIds = groupsIds;
-		this.childIds = childrenIds;
 
 		initComponents();
 
@@ -158,20 +199,27 @@ public class UnlinkRelationshipsDialog extends JDialog{
 
 		final JPanel contentPanel = new JPanel(new MigLayout("ins 5,gapy 5,fill", "[grow,fill]", "[]"));
 
-		final List<RelationshipInfo> parentList = new ArrayList<>();
-		final List<RelationshipInfo> associateList = new ArrayList<>();
-		final List<RelationshipInfo> groupList = new ArrayList<>();
-		final List<RelationshipInfo> childList = new ArrayList<>();
-		extractRelationships(parentList, associateList, groupList, childList);
+		final Map<Category, List<RelationshipInfo>> categorized = categorizeRelationships();
 
-		if(!parentList.isEmpty())
-			contentPanel.add(createGroupPanel("Parents", parentList), "wrap");
-		if(!groupList.isEmpty())
-			contentPanel.add(createGroupPanel("Groups", groupList), "wrap");
-		if(!associateList.isEmpty())
-			contentPanel.add(createGroupPanel("Associates", associateList), "wrap");
-		if(!childList.isEmpty())
-			contentPanel.add(createScrollableGroupPanel("Children", childList), "grow,push");
+		// Render categories in the order declared by the enum. Empty
+		// ones are skipped. The CHILD and MEMBER categories can grow
+		// arbitrarily long, so they are made scrollable.
+		boolean anyRendered = false;
+		for(final Category cat : Category.values()){
+			final List<RelationshipInfo> infos = categorized.get(cat);
+			if(infos == null || infos.isEmpty())
+				continue;
+
+			anyRendered = true;
+			final boolean scrollable = (cat == Category.CHILD || cat == Category.MEMBER);
+			final JPanel panel = (scrollable
+				? createScrollableGroupPanel(cat.label, infos)
+				: createGroupPanel(cat.label, infos));
+			contentPanel.add(panel, (scrollable? "grow,push,wrap": "wrap"));
+		}
+
+		if(!anyRendered)
+			contentPanel.add(new JLabel("No relationships to unlink."), "grow,push");
 
 		final JScrollPane mainScroll = new JScrollPane(contentPanel);
 		mainScroll.setBorder(BorderFactory.createEmptyBorder());
@@ -187,13 +235,30 @@ public class UnlinkRelationshipsDialog extends JDialog{
 		add(buttonPanel, BorderLayout.SOUTH);
 	}
 
-	private void extractRelationships(final List<RelationshipInfo> parentList,
-			final List<RelationshipInfo> associateList, final List<RelationshipInfo> groupList,
-			final List<RelationshipInfo> childList){
-		final Map<String, RelationshipInfo> parentMap = new HashMap<>();
-		final Map<String, RelationshipInfo> associateMap = new HashMap<>();
-		final Map<String, RelationshipInfo> groupMap = new HashMap<>();
-		final Map<String, RelationshipInfo> childMap = new HashMap<>();
+	/**
+	 * Iterates every relationship involving the focus entity and assigns
+	 * it to a category based on the focus entity type, the relationship
+	 * type, the direction, and the type of the other entity.
+	 * <p>
+	 * The method is self-contained: it does not require pre-computed
+	 * sets of parent, child, associate, or group ids, so it works
+	 * identically for individual and group focus.
+	 *
+	 * @return a map from category to the list of aggregated
+	 *         relationships for that category; every category is
+	 *         present, possibly with an empty list
+	 */
+	private Map<Category, List<RelationshipInfo>> categorizeRelationships(){
+		final Map<Category, Map<String, RelationshipInfo>> byCategory = new EnumMap<>(Category.class);
+		for(final Category cat : Category.values())
+			byCategory.put(cat, new HashMap<>());
+
+		final FLEFRecord focus = model.getRecordById(entityId);
+		if(focus == null)
+			return flatten(byCategory);
+
+		final boolean focusIsGroup = GroupHandler.TYPE.equalsIgnoreCase(focus.getTag());
+
 		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
 		for(final FLEFRecord relationship : relationships){
 			final String type = RelationshipReader.extractType(relationship);
@@ -205,38 +270,101 @@ public class UnlinkRelationshipsDialog extends JDialog{
 			if(subjectId == null || objectId == null)
 				continue;
 
-			final boolean isDirect = individualId.equals(subjectId);
-			final boolean isInverse = individualId.equals(objectId);
+			final boolean isDirect = entityId.equals(subjectId);
+			final boolean isInverse = entityId.equals(objectId);
 			if(!isDirect && !isInverse)
 				continue;
 
-			final String otherId = isDirect? objectId: subjectId;
+			final String otherId = (isDirect? objectId: subjectId);
 			final FLEFRecord other = model.getRecordById(otherId);
+
+			final Category category = classify(type, focusIsGroup, isDirect);
+			if(category == null)
+				continue;
+
 			final String baseDescription = getDisplayText(other, otherId);
-			final String relId = relationship.getId();
-
-			Map<String, RelationshipInfo> targetCategoryMap = null;
-			if(parentIds.contains(otherId))
-				targetCategoryMap = parentMap;
-			else if(groupIds.contains(otherId))
-				targetCategoryMap = groupMap;
-			else if(associateIds.contains(otherId))
-				targetCategoryMap = associateMap;
-			else if(childIds.contains(otherId))
-				targetCategoryMap = childMap;
-
-			if(targetCategoryMap != null){
-				final RelationshipInfo info = targetCategoryMap.computeIfAbsent(
-					otherId, id -> new RelationshipInfo(id, baseDescription)
-				);
-				info.addRelationship(relId, isDirect);
-			}
+			final RelationshipInfo info = byCategory.get(category)
+				.computeIfAbsent(otherId, id -> new RelationshipInfo(id, baseDescription));
+			info.addRelationship(relationship.getId(), isDirect);
 		}
 
-		parentList.addAll(parentMap.values());
-		associateList.addAll(associateMap.values());
-		groupList.addAll(groupMap.values());
-		childList.addAll(childMap.values());
+		return flatten(byCategory);
+	}
+
+	/**
+	 * Decides the category of a relationship.
+	 * <p>
+	 * The rules encode the semantics of the relationship types:
+	 * <ul>
+	 *   <li>{@code group_member(I -> G)}: for an individual focus, the
+	 *       other entity is a group the individual belongs to; for a
+	 *       group focus, the other entity is a member of the group.</li>
+	 *   <li>{@code part_of(A -> B)}: {@code A} is a subgroup of
+	 *       {@code B}. For a group focus, the other entity is a
+	 *       subgroup when the focus is the parent, a supergroup when
+	 *       the focus is the child.</li>
+	 *   <li>{@code child-type(C -> P)}: for an individual focus, the
+	 *       other entity is a parent when the focus is the child, a
+	 *       child when the focus is the parent.</li>
+	 *   <li>{@code partner-type}: symmetric, always a partner.</li>
+	 *   <li>{@code associate}: symmetric, always an associate.</li>
+	 * </ul>
+	 *
+	 * @param type          the relationship type, not lowercased
+	 * @param focusIsGroup  {@code true} when the focus entity is a group
+	 * @param focusIsSubject {@code true} when the focus is the subject
+	 *                      of the relationship
+	 * @return the category, or {@code null} when the relationship should
+	 *         be ignored
+	 */
+	private static Category classify(final String type, final boolean focusIsGroup, final boolean focusIsSubject){
+		final String t = type.toLowerCase(Locale.ROOT);
+
+		if(RelationshipReader.isTypeGroupMember(t)){
+			// group_member: subject = individual, object = group.
+			if(focusIsGroup)
+				// Focus is the group; the other is an individual member.
+				return (focusIsSubject? null: Category.MEMBER);
+
+			// Focus is the individual; the other is a group.
+			return (focusIsSubject? Category.GROUP: null);
+		}
+
+		if(RelationshipReader.isTypePartOf(t)){
+			// part_of: subject = child group, object = parent group.
+			if(!focusIsGroup)
+				return null;
+
+			return (focusIsSubject? Category.SUPERGROUP: Category.SUBGROUP);
+		}
+
+		if(RelationshipReader.isTypeChild(t)){
+			// child-type: subject = child, object = parent.
+			if(focusIsGroup)
+				return null;
+
+			return (focusIsSubject? Category.PARENT: Category.CHILD);
+		}
+
+		if(RelationshipReader.isTypePartner(t)){
+			if(focusIsGroup)
+				return null;
+
+			return Category.PARTNER;
+		}
+
+		if("associate".equals(t))
+			return Category.ASSOCIATE;
+
+		return null;
+	}
+
+	private static Map<Category, List<RelationshipInfo>> flatten(
+		final Map<Category, Map<String, RelationshipInfo>> byCategory){
+		final Map<Category, List<RelationshipInfo>> result = new EnumMap<>(Category.class);
+		for(final Map.Entry<Category, Map<String, RelationshipInfo>> e : byCategory.entrySet())
+			result.put(e.getKey(), new ArrayList<>(e.getValue().values()));
+		return result;
 	}
 
 	private String extractAnyReferencedId(final FLEFRecord relationship, final String tag){
@@ -286,9 +414,11 @@ public class UnlinkRelationshipsDialog extends JDialog{
 
 		final Font font = UIManager.getFont("CheckBox.font");
 		final int unitIncrement = (font != null? outer.getFontMetrics(font).getHeight(): 16);
-		scrollPane.getVerticalScrollBar().setUnitIncrement(unitIncrement);
+		scrollPane.getVerticalScrollBar()
+			.setUnitIncrement(unitIncrement);
 
-		SwingUtilities.invokeLater(() -> scrollPane.getVerticalScrollBar().setValue(0));
+		SwingUtilities.invokeLater(() -> scrollPane.getVerticalScrollBar()
+			.setValue(0));
 
 		outer.add(scrollPane, BorderLayout.CENTER);
 		return outer;
@@ -361,7 +491,8 @@ public class UnlinkRelationshipsDialog extends JDialog{
 	}
 
 	/**
-	 * Returns the list of relationship IDs that the user selected, or an empty list if cancelled.
+	 * Returns the list of relationship IDs that the user selected, or an
+	 * empty list if canceled.
 	 */
 	public List<String> getSelectedRelationshipIds(){
 		if(!confirmed)

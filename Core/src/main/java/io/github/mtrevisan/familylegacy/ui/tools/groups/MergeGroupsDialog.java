@@ -232,7 +232,7 @@ public final class MergeGroupsDialog extends JDialog{
 
 		// Step 3: delete any remaining relationship that involves the
 		// source group, then delete the source group itself.
-		final List<String> leftovers = GroupHelper.allRelationshipIdsForGroup(model, source.getId());
+		final List<String> leftovers = GroupHelper.relationshipIdsForGroup(source.getId(), model);
 		for(final String relId : leftovers)
 			model.removeRecord(relId);
 		model.removeRecord(source.getId());

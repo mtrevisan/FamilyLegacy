@@ -185,7 +185,8 @@ public class GroupPanel extends JPanel{
 
 			final Color startColor = getBackgroundColor();
 			if(data != null){
-				final Paint gradientPaint = new GradientPaint(0, 0, startColor, 0, panelHeight, BACKGROUND_COLOR_FADE_TO);
+				final Paint gradientPaint = new GradientPaint(0, 0, startColor, 0, panelHeight,
+					BACKGROUND_COLOR_FADE_TO);
 				g2.setPaint(gradientPaint);
 			}
 			else
@@ -230,7 +231,7 @@ public class GroupPanel extends JPanel{
 	}
 
 	private static void setPreferredSize(final JComponent component, final double baseWidth, final double aspectRatio,
-		final double shrinkFactor){
+			final double shrinkFactor){
 		final int width = (int)Math.ceil(baseWidth / shrinkFactor);
 		final int height = (int)Math.ceil(baseWidth * aspectRatio / shrinkFactor);
 		component.setPreferredSize(new Dimension(width, height));
@@ -282,6 +283,7 @@ public class GroupPanel extends JPanel{
 	public GroupPanel withSelected(final boolean selected){
 		if(this.selected != selected){
 			this.selected = selected;
+
 			repaint();
 		}
 
@@ -369,6 +371,7 @@ public class GroupPanel extends JPanel{
 			.onHoverChanged(h -> {
 				if(hovered != h){
 					hovered = h;
+
 					repaint();
 				}
 			})
@@ -394,8 +397,7 @@ public class GroupPanel extends JPanel{
 		try{
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		}
-		catch(final Exception ignored){
-		}
+		catch(final Exception ignored){}
 
 		String modelUri = "/tests/TGMZ.flef";
 		String recordId = "G1";

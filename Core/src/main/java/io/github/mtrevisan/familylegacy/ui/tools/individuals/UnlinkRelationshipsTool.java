@@ -34,7 +34,6 @@ import io.github.mtrevisan.familylegacy.ui.tools.ToolOperation;
 
 import javax.swing.JOptionPane;
 import java.util.List;
-import java.util.Set;
 
 
 /**
@@ -48,8 +47,6 @@ public final class UnlinkRelationshipsTool implements ToolOperation{
 		return I18N.t("menu.individual.unlink.relationships");
 	}
 
-	// TODO must works also for groups?
-	// EgoNetworkActionHandler.showUnlinkRelationshipsDialog
 	@Override
 	public void run(final ToolContext context){
 		if(context == null)
@@ -68,17 +65,11 @@ public final class UnlinkRelationshipsTool implements ToolOperation{
 		if(record == null)
 			return;
 
-		final Set<String> parentIds = IndividualHelper.parentIds(id, model);
-		final Set<String> associateIds = IndividualHelper.associateIds(id, model);
-		final Set<String> groupIds = IndividualHelper.groupIds(id, model);
-		final Set<String> childIds = IndividualHelper.childIds(id, model);
-
-		final UnlinkRelationshipsDialog dialog = new UnlinkRelationshipsDialog(
-			context.owner(), model, id, parentIds, associateIds, groupIds, childIds);
+		final UnlinkRelationshipsDialog dialog = new UnlinkRelationshipsDialog(context.owner(), model, id);
 		dialog.setVisible(true);
 
 		final List<String> relationshipIdsToRemove = dialog.getSelectedRelationshipIds();
-		if(relationshipIdsToRemove == null || relationshipIdsToRemove.isEmpty())
+		if(relationshipIdsToRemove.isEmpty())
 			return;
 
 		final ProjectionMutator mutator = context.mutator();

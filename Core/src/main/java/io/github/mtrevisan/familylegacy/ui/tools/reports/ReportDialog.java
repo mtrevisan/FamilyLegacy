@@ -148,7 +148,7 @@ public final class ReportDialog extends JDialog{
 			case BIBLIOGRAPHY, RESEARCH_PROGRESS -> {
 				// Global reports: fallback to active individual or first
 				// record in the model.
-				selectedEntity = context.getSelectedIndividual();
+				selectedEntity = context.getSelectedEntity();
 			}
 		}
 	}

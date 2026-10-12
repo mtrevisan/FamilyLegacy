@@ -480,6 +480,7 @@ public class IndividualTreeGraphPanel extends JPanel implements TreeChangeListen
 
 		SwingUtilities.invokeLater(() -> {
 			cachedTreePath = layoutEngine.buildTreePath(treeLayout, rootNode, nodeToPanelMap, childrenPanel, treeCanvas);
+
 			treeCanvas.repaint();
 		});
 	}
@@ -552,6 +553,7 @@ public class IndividualTreeGraphPanel extends JPanel implements TreeChangeListen
 
 		SwingUtilities.invokeLater(() -> {
 			cachedTreePath = layoutEngine.buildTreePath(treeLayout, rootNode, nodeToPanelMap, childrenPanel, treeCanvas);
+
 			treeCanvas.repaint();
 		});
 	}

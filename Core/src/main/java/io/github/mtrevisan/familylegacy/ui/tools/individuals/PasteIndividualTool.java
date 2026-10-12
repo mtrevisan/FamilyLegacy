@@ -25,8 +25,6 @@
 package io.github.mtrevisan.familylegacy.ui.tools.individuals;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.ui.components.projections.group.GroupData;
-import io.github.mtrevisan.familylegacy.ui.components.projections.group.GroupPanel;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualData;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualPanel;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.PopupMenuHelper;
@@ -62,11 +60,6 @@ public final class PasteIndividualTool implements ToolOperation{
 		final FLEFModel model = context.model();
 		if(view instanceof final IndividualPanel panel){
 			final IndividualData data = panel.getData();
-			final boolean hasData = (data != null && !data.isEmpty());
-			return (!hasData && PopupMenuHelper.isPasteAllowed(model, panel));
-		}
-		if(view instanceof final GroupPanel panel){
-			final GroupData data = panel.getData();
 			final boolean hasData = (data != null && !data.isEmpty());
 			return (!hasData && PopupMenuHelper.isPasteAllowed(model, panel));
 		}

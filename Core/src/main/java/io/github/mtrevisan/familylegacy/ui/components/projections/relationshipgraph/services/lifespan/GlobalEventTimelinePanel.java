@@ -327,6 +327,7 @@ public class GlobalEventTimelinePanel extends JPanel{
 					canvas.setCursor(hit != null
 						? Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
 						: Cursor.getDefaultCursor());
+
 					canvas.repaint();
 				}
 			}
@@ -336,6 +337,7 @@ public class GlobalEventTimelinePanel extends JPanel{
 				hoveredEvent = null;
 
 				canvas.setCursor(Cursor.getDefaultCursor());
+
 				canvas.repaint();
 			}
 
@@ -373,6 +375,7 @@ public class GlobalEventTimelinePanel extends JPanel{
 				if(hit == null){
 					if(selectedEvent != null){
 						selectedEvent = null;
+
 						canvas.repaint();
 					}
 
@@ -382,6 +385,7 @@ public class GlobalEventTimelinePanel extends JPanel{
 					openEditDialog(hit);
 				else{
 					selectedEvent = (selectedEvent != null && selectedEvent.id().equals(hit.id())? null: hit);
+
 					canvas.repaint();
 				}
 			}
@@ -448,6 +452,7 @@ public class GlobalEventTimelinePanel extends JPanel{
 		final long newSpan = Math.max(2l, (long)(span * (zoomIn? 1. / ZOOM_STEP: ZOOM_STEP)));
 		final long newStart = anchorJdn - (long)(newSpan * ratio);
 		axis.setVisibleRange(newStart, newStart + newSpan);
+
 		canvas.repaint();
 	}
 
@@ -470,6 +475,7 @@ public class GlobalEventTimelinePanel extends JPanel{
 			return;
 
 		axis.pan(deltaJdn);
+
 		canvas.repaint();
 	}
 

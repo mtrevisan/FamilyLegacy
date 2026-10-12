@@ -174,8 +174,7 @@ public final class ChronomapWorkspace extends JPanel{
 		try{
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		}
-		catch(final Exception ignored){
-		}
+		catch(final Exception ignored){}
 
 		final String content;
 		try(final InputStream is = ChronomapWorkspace.class.getResourceAsStream("/tests/TGMZ.flef")){

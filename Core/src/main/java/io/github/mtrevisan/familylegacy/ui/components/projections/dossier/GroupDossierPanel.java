@@ -193,8 +193,10 @@ public class GroupDossierPanel extends JPanel{
 		empty.setFont(EMPTY_FONT);
 		empty.setForeground(EMPTY_COLOR);
 		contentPanel.add(empty, "gapleft 12,gaptop 12");
+
 		contentPanel.revalidate();
 		contentPanel.repaint();
+
 		putClientProperty(PROPERTY_DOSSIER, GroupDossier.empty());
 	}
 
@@ -217,6 +219,7 @@ public class GroupDossierPanel extends JPanel{
 			empty.setForeground(EMPTY_COLOR);
 			contentPanel.add(empty, "gapleft 12,gaptop 12");
 		}
+
 		contentPanel.revalidate();
 		contentPanel.repaint();
 	}
@@ -295,6 +298,7 @@ public class GroupDossierPanel extends JPanel{
 		private void setExpanded(final boolean expanded){
 			contentArea.setVisible(expanded);
 			arrowIndicator.setExpanded(expanded);
+
 			revalidate();
 			repaint();
 		}
@@ -411,6 +415,7 @@ public class GroupDossierPanel extends JPanel{
 		void setExpanded(final boolean expanded){
 			if(this.expanded != expanded){
 				this.expanded = expanded;
+
 				repaint();
 			}
 		}
@@ -451,8 +456,7 @@ public class GroupDossierPanel extends JPanel{
 		try{
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		}
-		catch(final Exception ignored){
-		}
+		catch(final Exception ignored){}
 
 		final String content;
 		try(final InputStream is = GroupDossierPanel.class.getResourceAsStream("/tests/TGMZ.flef")){

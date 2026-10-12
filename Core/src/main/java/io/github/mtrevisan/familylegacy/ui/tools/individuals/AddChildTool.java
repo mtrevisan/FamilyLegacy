@@ -126,8 +126,8 @@ public final class AddChildTool implements ToolOperation{
 		if(mutator != null)
 			mutator.createRelationship(childId, targetId, firstType);
 		else
-			IndividualHelper.createRelationship(model, childId, targetId, firstType,
-				RelationshipHandler.ID_PREFIX);
+			IndividualHelper.createRelationship(childId, targetId, firstType, RelationshipHandler.ID_PREFIX, model
+			);
 
 		if(partnerId != null && selectedTypes.size() > 1){
 			final String secondType = selectedTypes.get(1);

@@ -47,9 +47,9 @@ public class EgoNetworkGroupPopupMenuFactory implements EntityPopupMenuFactory<G
 	public JPopupMenu createPopupMenu(final GroupPanel panel, final GroupListener listener, final FLEFModel model){
 		final JMenuItem editItem = new JMenuItem(I18N.t("menu.group.edit.group"), 'E');
 		editItem.setAccelerator(ShortcutRegistry.EDIT_SELECTION_GROUP.keyStroke());
-		final JMenuItem deleteItem = new JMenuItem("Delete Group", 'D');
-		final JMenuItem pasteItem = new JMenuItem("Paste", 'P');
-		final JMenuItem unlinkItem = new JMenuItem("Unlink Relationship", 'U');
+		final JMenuItem deleteItem = new JMenuItem(I18N.t("menu.group.delete"), 'D');
+		final JMenuItem pasteItem = new JMenuItem(I18N.t("menu.group.paste"), 'P');
+		final JMenuItem unlinkItem = new JMenuItem(I18N.t("menu.group.unlink.relationships"), 'U');
 
 		final JPopupMenu popup = new JPopupMenu();
 		popup.addPopupMenuListener(new PopupMenuAdapter(){
@@ -64,10 +64,10 @@ public class EgoNetworkGroupPopupMenuFactory implements EntityPopupMenuFactory<G
 				pasteItem.setEnabled(canPaste);
 				if(canPaste){
 					final String clippedName = context.getClippedRecordDisplayText();
-					pasteItem.setText("Paste " + clippedName);
+					pasteItem.setText(I18N.tf("menu.group.paste.here", clippedName));
 				}
 				else
-					pasteItem.setText("Paste");
+					pasteItem.setText(I18N.tf("menu.group.paste"));
 
 				editItem.setEnabled(hasData);
 				deleteItem.setEnabled(hasData);

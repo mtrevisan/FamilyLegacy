@@ -108,6 +108,7 @@ public class ResearchQuestionStatusPanel extends JPanel{
 
 		// Update icon
 		statusIcon.setStatus(status);
+
 		statusIcon.repaint();
 
 		// Update tooltip

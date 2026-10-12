@@ -28,9 +28,9 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.ui.dialogs.help.ShortcutRegistry;
+import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolOperation;
-import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
@@ -46,12 +46,12 @@ public final class DeleteIndividualTool implements ToolOperation{
 
 	@Override
 	public String getName(){
-		return ShortcutRegistry.EDIT_DELETE.action();
+		return ShortcutRegistry.EDIT_DELETE_INDIVIDUAL.action();
 	}
 
 	@Override
 	public KeyStroke getAccelerator(){
-		return ShortcutRegistry.EDIT_DELETE.keyStroke();
+		return ShortcutRegistry.EDIT_DELETE_INDIVIDUAL.keyStroke();
 	}
 
 	@Override
@@ -69,13 +69,9 @@ public final class DeleteIndividualTool implements ToolOperation{
 		final String displayName = IndividualReader.extractPrimaryFullname(individual);
 
 		final int relationshipCount = relationshipIds.size();
-		final String message = "Are you sure you want to remove individual " + displayName + " [" + id + "]?" + StringUtils.LF
-			+ relationshipCount
-			+ (relationshipCount == 1? " relationship link will also be removed.": " relationship links will also be removed.");
-		final int confirm = JOptionPane.showConfirmDialog(
-			context.owner(),
-			message,
-			"Confirm Removal",
+		final int confirm = JOptionPane.showConfirmDialog(context.owner(),
+			I18N.tf("dialog.individual.remove.message", displayName, id, (relationshipCount == 1), relationshipCount),
+			I18N.t("dialog.individual.remove.title"),
 			JOptionPane.YES_NO_OPTION,
 			JOptionPane.WARNING_MESSAGE
 		);

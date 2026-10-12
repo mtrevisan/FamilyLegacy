@@ -25,8 +25,6 @@
 package io.github.mtrevisan.familylegacy.ui.tools.groups;
 
 import io.github.mtrevisan.familylegacy.ui.tools.ToolOperation;
-import io.github.mtrevisan.familylegacy.ui.tools.individuals.AddChildTool;
-import io.github.mtrevisan.familylegacy.ui.tools.individuals.EditIndividualTool;
 import io.github.mtrevisan.familylegacy.ui.tools.individuals.UnlinkRelationshipsTool;
 
 import java.util.List;
@@ -49,8 +47,7 @@ public final class GroupToolRegistry{
 	/** Relationship tools. */
 	public static List<ToolOperation> relationshipTools(){
 		return List.of(
-			new AddMemberTool(),
-			new RemoveMemberTool()
+			new AddMemberTool()
 		);
 	}
 
@@ -64,7 +61,7 @@ public final class GroupToolRegistry{
 	/** Advanced tools. */
 	public static List<ToolOperation> advancedTools(){
 		return List.of(
-			new MergeGroupsTool()
+			new DeleteGroupTool()
 		);
 	}
 

@@ -29,8 +29,8 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualListener;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.services.relationship.RelationshipTypeSelectionDialog;
-import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.services.relationship.UnlinkRelationshipsDialog;
 import io.github.mtrevisan.familylegacy.ui.components.projections.repository.EgoNetworkMutator;
+import io.github.mtrevisan.familylegacy.ui.components.projections.repository.ProjectionMutator;
 import io.github.mtrevisan.familylegacy.ui.components.searches.RecordSelectionDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.GroupHandler;
@@ -38,21 +38,29 @@ import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolContexts;
+import io.github.mtrevisan.familylegacy.ui.tools.ToolDispatcher;
 import io.github.mtrevisan.familylegacy.ui.tools.individuals.UnlinkRelationshipsTool;
 
 import javax.swing.SwingUtilities;
 import java.awt.Component;
 import java.awt.Window;
 import java.util.List;
-import java.util.Objects;
-import java.util.Set;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 
 /**
- * Encapsulates record dialog invocations and relationship creation workflows
- * for the ego network component.
+ * Encapsulates record dialog invocations and relationship creation
+ * workflows for the ego network component.
+ * <p>
+ * <b>Unlink.</b> The unlink workflow is delegated to
+ * {@link UnlinkRelationshipsTool}, the same tool used by the popup menu
+ * and by the individual tree. The tool builds the full relationship set
+ * from the model (parents, associates, groups, children), opens the
+ * dialog, and applies the removal through the mutator wired in the
+ * {@link ToolContext}. The handler only has to provide a
+ * {@link ToolContext} with the ego network's
+ * {@link EgoNetworkMutator}, so cache invalidation goes through the same
+ * path as every other projection.
  */
 public class EgoNetworkActionHandler{
 
@@ -164,52 +172,46 @@ public class EgoNetworkActionHandler{
 		return result[0];
 	}
 
-	public UnlinkRelationshipsDialog showUnlinkRelationshipsDialog(final FLEFRecord record, final String currentEgoId,
-			final EgoNetworkService networkService, final Set<EgoNode> parents, final Set<EgoNode> associates,
-			final Set<FLEFRecord> groups, final Set<EgoNode> children){
-		final Set<EgoNode> relParents;
-		final Set<EgoNode> relAssociates;
-		final Set<FLEFRecord> relGroups;
-		final Set<EgoNode> relChildren;
-		if(Objects.equals(record.getId(), currentEgoId)){
-			relParents = parents;
-			relAssociates = associates;
-			relGroups = groups;
-			relChildren = children;
-		}
-		else{
-			final EgoNode node = networkService.buildEgoNetwork(record.getId());
-			relParents = node.getRelatedNodes(EgoNode.RelationshipCategory.PARENT);
-			relAssociates = node.getRelatedNodes(EgoNode.RelationshipCategory.ASSOCIATE);
-			relGroups = node.getGroupRecords();
-			relChildren = node.getRelatedNodes(EgoNode.RelationshipCategory.CHILD);
-		}
-		final Window parent = SwingUtilities.getWindowAncestor(parentComponent);
-		final UnlinkRelationshipsDialog dialog = new UnlinkRelationshipsDialog(parent, model, record.getId(),
-			extractNodeIds(relParents), extractNodeIds(relAssociates), extractRecordIds(relGroups),
-			extractNodeIds(relChildren));
-		dialog.setVisible(true);
+	/**
+	 * Opens the "Unlink Relationships" dialog for the given entity and,
+	 * on confirmation, removes the selected relationships from the model.
+	 * <p>
+	 * The whole workflow is delegated to
+	 * {@link UnlinkRelationshipsTool}, the same tool invoked by the
+	 * popup menu and by the individual tree. The tool computes the full
+	 * relationship set from the model via {@code IndividualHelper}, so
+	 * the caller does not need to pre-compute parents, associates,
+	 * groups, or children, and it does not need to know whether the
+	 * entity is the current ego or a peripheral node. After the
+	 * removal the tool invalidates the network through the mutator
+	 * wired in the {@link ToolContext}.
+	 *
+	 * @param record the entity whose relationships should be unlinked;
+	 *               must not be {@code null}
+	 */
+	public void performUnlinkRelationships(final FLEFRecord record){
+		if(record == null)
+			return;
 
-		// TODO
-//		final ToolContext context = ToolContexts.withMutator(model, listener, panel, record.getId());
-//		new UnlinkRelationshipsTool()
-//			.run(context);
+		final ToolContext context = ToolContexts.custom(model, record.getId(), parentComponent,
+			new ToolDispatcher(){
+				@Override
+				public void removeEntity(final String id){
+					// Not used by UnlinkRelationshipsTool.
+				}
 
-		return dialog;
-	}
+				@Override
+				public void loadRoot(final String id){
+					// Not used by UnlinkRelationshipsTool.
+				}
 
-	private static Set<String> extractNodeIds(final Set<EgoNode> nodes){
-		return nodes.stream()
-			.map(EgoNode::getEgoId)
-			.filter(Objects::nonNull)
-			.collect(Collectors.toSet());
-	}
-
-	private static Set<String> extractRecordIds(final Set<FLEFRecord> records){
-		return records.stream()
-			.map(FLEFRecord::getId)
-			.filter(Objects::nonNull)
-			.collect(Collectors.toSet());
+				@Override
+				public ProjectionMutator getMutator(){
+					return networkMutator;
+				}
+			});
+		new UnlinkRelationshipsTool()
+			.run(context);
 	}
 
 	private static RecordTypeHandler<?> resolveHandler(final Class<? extends RecordTypeHandler<?>> handlerClass){

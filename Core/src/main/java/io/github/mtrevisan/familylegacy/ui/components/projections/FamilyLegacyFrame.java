@@ -222,6 +222,7 @@ public class FamilyLegacyFrame extends JFrame{
 
 			split.setLeftComponent(switcher);
 			split.setDividerLocation(SWITCHER_WIDTH);
+
 			split.revalidate();
 			split.repaint();
 

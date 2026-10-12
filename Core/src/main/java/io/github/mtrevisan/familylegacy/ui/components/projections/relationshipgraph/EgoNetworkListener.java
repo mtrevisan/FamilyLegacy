@@ -32,7 +32,6 @@ import io.github.mtrevisan.familylegacy.ui.components.projections.group.GroupLis
 import io.github.mtrevisan.familylegacy.ui.components.projections.group.GroupPanel;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualListener;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualPanel;
-import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.services.relationship.UnlinkRelationshipsDialog;
 import io.github.mtrevisan.familylegacy.ui.components.projections.repository.EgoNetworkMutator;
 import io.github.mtrevisan.familylegacy.ui.components.projections.repository.ProjectionMutator;
 import io.github.mtrevisan.familylegacy.ui.handlers.GroupHandler;
@@ -40,6 +39,10 @@ import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolContexts;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolDispatcher;
+import io.github.mtrevisan.familylegacy.ui.tools.ToolOperation;
+import io.github.mtrevisan.familylegacy.ui.tools.groups.DeleteGroupTool;
+import io.github.mtrevisan.familylegacy.ui.tools.groups.PasteGroupTool;
+import io.github.mtrevisan.familylegacy.ui.tools.groups.RelocateGroupTool;
 import io.github.mtrevisan.familylegacy.ui.tools.individuals.DeleteIndividualTool;
 import io.github.mtrevisan.familylegacy.ui.tools.individuals.PasteIndividualTool;
 import io.github.mtrevisan.familylegacy.ui.tools.individuals.RelocateIndividualTool;
@@ -48,7 +51,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.swing.JPanel;
 import java.awt.Component;
-import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 
@@ -162,8 +164,10 @@ public final class EgoNetworkListener implements IndividualListener, GroupListen
 					return networkMutator;
 				}
 			});
-		new DeleteIndividualTool()
-			.run(context);
+		final ToolOperation tool = (IndividualHandler.TYPE.equalsIgnoreCase(record.getTag())
+			? new DeleteIndividualTool()
+			: new DeleteGroupTool());
+		tool.run(context);
 	}
 
 	@Override
@@ -203,26 +207,18 @@ public final class EgoNetworkListener implements IndividualListener, GroupListen
 
 	@Override
 	public void onIndividualUnlink(final IndividualPanel selectedPanel, final FLEFRecord record){
-		handleUnlink(record);
+		if(record == null || selectedPanel == null)
+			return;
+
+		actionHandler.performUnlinkRelationships(record);
 	}
 
 	@Override
 	public void onGroupUnlink(final GroupPanel selectedPanel, final FLEFRecord record){
-		handleUnlink(record);
-	}
-
-	private void handleUnlink(final FLEFRecord record){
-		if(record == null)
+		if(record == null || selectedPanel == null)
 			return;
 
-		final UnlinkRelationshipsDialog dialog = actionHandler.showUnlinkRelationshipsDialog(record,
-			contextProvider.getCurrentEgoId(), networkService, contextProvider.getParents(),
-			contextProvider.getAssociates(), contextProvider.getGroups(), contextProvider.getChildren());
-		final List<String> toRemove = dialog.getSelectedRelationshipIds();
-		if(!toRemove.isEmpty()){
-			networkMutator.removeRelationships(toRemove);
-			networkMutator.invalidateAndNotifyTreeChanged(contextProvider.getCurrentEgoId());
-		}
+		actionHandler.performUnlinkRelationships(record);
 	}
 
 	@Override
@@ -230,8 +226,10 @@ public final class EgoNetworkListener implements IndividualListener, GroupListen
 		if(record == null)
 			return;
 
-		new RelocateIndividualTool()
-			.run(ToolContexts.withMutator(model, this, component, record.getId()));
+		final ToolOperation tool = (IndividualHandler.TYPE.equalsIgnoreCase(record.getTag())
+			? new RelocateIndividualTool()
+			: new RelocateGroupTool());
+		tool.run(ToolContexts.withMutator(model, this, component, record.getId()));
 	}
 
 	@Override
@@ -260,6 +258,11 @@ public final class EgoNetworkListener implements IndividualListener, GroupListen
 					return networkMutator;
 				}
 			});
+		final ToolOperation tool = (IndividualHandler.TYPE.equalsIgnoreCase(context.getSelectedEntity().getTag())
+			? new PasteIndividualTool()
+			: new PasteGroupTool());
+		tool.run(context);
+
 		new PasteIndividualTool()
 			.run(context);
 	}

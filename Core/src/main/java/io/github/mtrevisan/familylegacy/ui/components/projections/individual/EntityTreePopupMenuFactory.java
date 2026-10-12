@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.ui.components.projections.repository.Pro
 import io.github.mtrevisan.familylegacy.ui.dialogs.help.ShortcutRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.PopupMenuAdapter;
+import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolContexts;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolDispatcher;
@@ -55,18 +56,18 @@ public class EntityTreePopupMenuFactory implements EntityPopupMenuFactory<Indivi
 	@Override
 	public JPopupMenu createPopupMenu(final IndividualPanel panel, final IndividualListener listener,
 			final FLEFModel model){
-		final JMenuItem editItem = new JMenuItem("Edit Individual…", 'E');
+		final JMenuItem editItem = new JMenuItem(I18N.t("menu.individual.edit.individual"), 'E');
 		editItem.setAccelerator(ShortcutRegistry.EDIT_SELECTION_INDIVIDUAL.keyStroke());
-		final JMenuItem addItem = new JMenuItem("Add Individual…", 'A');
-		final JMenuItem connectItem = new JMenuItem("Connect Individual…");
-		final JMenuItem addChildItem = new JMenuItem("Add Child…", 'C');
-		final JMenuItem connectChildItem = new JMenuItem("Connect Child…");
-		final JMenuItem relocateItem = new JMenuItem("Relocate Individual", 'R');
-		relocateItem.setAccelerator(ShortcutRegistry.EDIT_RELOCATE.keyStroke());
-		final JMenuItem pasteItem = new JMenuItem("Paste Individual", 'P');
-		final JMenuItem deleteItem = new JMenuItem("Delete Individual", 'D');
-		deleteItem.setAccelerator(ShortcutRegistry.EDIT_DELETE.keyStroke());
-		final JMenuItem unlinkItem = new JMenuItem("Unlink Relationships…", 'U');
+		final JMenuItem addItem = new JMenuItem(I18N.t("menu.individual.add.individual"), 'A');
+		final JMenuItem connectItem = new JMenuItem(I18N.t("menu.individual.connect.individual"));
+		final JMenuItem addChildItem = new JMenuItem(I18N.t("menu.individual.add.child"), 'C');
+		final JMenuItem connectChildItem = new JMenuItem(I18N.t("menu.individual.connect.child"));
+		final JMenuItem relocateItem = new JMenuItem(I18N.t("menu.individual.relocate"), 'R');
+		relocateItem.setAccelerator(ShortcutRegistry.EDIT_RELOCATE_INDIVIDUAL.keyStroke());
+		final JMenuItem pasteItem = new JMenuItem(I18N.t("menu.individual.paste"), 'P');
+		final JMenuItem deleteItem = new JMenuItem(I18N.t("menu.individual.delete"), 'D');
+		deleteItem.setAccelerator(ShortcutRegistry.EDIT_DELETE_INDIVIDUAL.keyStroke());
+		final JMenuItem unlinkItem = new JMenuItem(I18N.t("menu.individual.unlink.relationships"), 'U');
 
 		final JPopupMenu popup = new JPopupMenu();
 		popup.addPopupMenuListener(new PopupMenuAdapter(){
@@ -82,16 +83,14 @@ public class EntityTreePopupMenuFactory implements EntityPopupMenuFactory<Indivi
 
 				final ToolContext context = ToolContexts.withMutator(model, listener, panel, null);
 
-				final boolean canPaste = (!hasData && new PasteIndividualTool().isEnabled(context));
+				final boolean canPaste = (!hasData && PopupMenuHelper.isPasteAllowed(model, panel) && context.canPaste());
+				pasteItem.setEnabled(canPaste);
 				if(canPaste){
 					final String clippedName = context.getClippedRecordDisplayText();
-					pasteItem.setText("Paste " + clippedName + " Here");
-					pasteItem.setEnabled(true);
+					pasteItem.setText(I18N.tf("menu.individual.paste.here", clippedName));
 				}
-				else{
-					pasteItem.setText("Paste Individual");
-					pasteItem.setEnabled(false);
-				}
+				else
+					pasteItem.setText(I18N.tf("menu.individual.paste"));
 
 				editItem.setEnabled(hasData);
 				addItem.setEnabled(!hasData);

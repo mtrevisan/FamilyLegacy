@@ -88,9 +88,8 @@ public final class IndividualHelper{
 	 * For a parent-child relationship, the subject is the child and the
 	 * target is the parent.
 	 */
-	public static FLEFRecord createRelationship(final FLEFModel model,
-			final String subjectId, final String targetId, final String type,
-			final String idPrefix){
+	public static FLEFRecord createRelationship(final String subjectId, final String targetId, final String type,
+			final String idPrefix, final FLEFModel model){
 		final FLEFRecord relationship = FLEFRecord.createMainRecord(RelationshipHandler.TYPE, idPrefix, model)
 			.addChild(FLEFRecord.createChildWithTagAndValue(RelationshipReader.TAG_TYPE, type))
 			.addChild(FLEFRecord.createChildWithTag(RelationshipReader.TAG_SUBJECT)
@@ -128,8 +127,7 @@ public final class IndividualHelper{
 	 * biological-child relationship only. The result is ordered: father
 	 * first when present, then mother.
 	 */
-	public static List<String> biologicalParentIds(final FLEFModel model,
-		final String individualId){
+	public static List<String> biologicalParentIds(final String individualId, final FLEFModel model){
 		final List<String> fathers = new ArrayList<>();
 		final List<String> mothers = new ArrayList<>();
 		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
@@ -166,8 +164,7 @@ public final class IndividualHelper{
 	 * @param wrapperTag {@code subject} or {@code target}
 	 * @param newId      the new individual id
 	 */
-	public static void setRelationshipEndpoint(final FLEFRecord rel,
-		final String wrapperTag, final String newId){
+	public static void setRelationshipEndpoint(final FLEFRecord rel, final String wrapperTag, final String newId){
 		final FLEFRecord wrapper = FLEFRecordHelper.findChild(rel, wrapperTag);
 		if(wrapper == null)
 			return;
@@ -206,9 +203,6 @@ public final class IndividualHelper{
 	}
 
 
-	public static final String REL_GROUP_MEMBER = "group_member";
-
-
 	/**
 	 * Returns the set of IDs of all parents of the given individual (across all child relationship types).
 	 */
@@ -242,7 +236,8 @@ public final class IndividualHelper{
 		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
 		for(final FLEFRecord relationship : relationships){
 			final String type = RelationshipReader.extractType(relationship);
-			if(type == null || RelationshipReader.isTypeChild(type) || REL_GROUP_MEMBER.equalsIgnoreCase(type))
+			if(type == null || RelationshipReader.isTypeChild(type)
+					|| RelationshipReader.ENUM_TYPE_GROUP_MEMBER.equalsIgnoreCase(type))
 				continue;
 
 			final String subject = relationship.extractReferencedId(RelationshipReader.TAG_SUBJECT, IndividualHandler.TYPE);
@@ -266,7 +261,7 @@ public final class IndividualHelper{
 		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
 		for(final FLEFRecord relationship : relationships){
 			final String type = RelationshipReader.extractType(relationship);
-			if(!REL_GROUP_MEMBER.equalsIgnoreCase(type))
+			if(!RelationshipReader.isTypeGroupMember(type))
 				continue;
 
 			final String subject = relationship.extractReferencedId(RelationshipReader.TAG_SUBJECT, IndividualHandler.TYPE);
@@ -312,13 +307,13 @@ public final class IndividualHelper{
 	 * Builds a compact preview of an individual, used by the merge
 	 * dialog to show what is about to be merged.
 	 */
-	public static MergePreview buildMergePreview(final FLEFModel model,
-		final String individualId){
+	public static MergePreview buildMergePreview(final String individualId, final FLEFModel model){
 		final FLEFRecord individual = model.getRecordById(individualId);
 		if(individual == null)
-			return new MergePreview(individualId, individualId, null, 0, 0, 0, 0);
+			return new MergePreview(individualId, individualId, null, 0, 0, 0,
+				0);
 
-		final Set<String> parents = new LinkedHashSet<>(biologicalParentIds(model, individualId));
+		final Set<String> parents = new LinkedHashSet<>(biologicalParentIds(individualId, model));
 		final Set<String> children = new LinkedHashSet<>();
 		final Set<String> spouses = new LinkedHashSet<>();
 		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);

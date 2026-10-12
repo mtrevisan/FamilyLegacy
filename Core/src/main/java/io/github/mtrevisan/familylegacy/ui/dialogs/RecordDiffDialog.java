@@ -457,6 +457,7 @@ public class RecordDiffDialog extends JDialog{
 			this.placeholderLines.clear();
 			if(lines != null)
 				this.placeholderLines.addAll(lines);
+
 			repaint();
 		}
 
@@ -608,8 +609,7 @@ public class RecordDiffDialog extends JDialog{
 		try{
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		}
-		catch(final Exception ignored){
-		}
+		catch(final Exception ignored){}
 
 		SwingUtilities.invokeLater(() -> {
 			final JFrame frame = new JFrame("Test Record Diff");

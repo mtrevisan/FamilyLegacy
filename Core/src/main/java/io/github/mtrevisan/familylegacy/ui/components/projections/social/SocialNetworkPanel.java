@@ -214,6 +214,7 @@ public final class SocialNetworkPanel extends JPanel implements TreeChangeListen
 				offsetX += dx;
 				offsetY += dy;
 				dragAnchor = e.getPoint();
+
 				canvas.repaint();
 			}
 
@@ -229,11 +230,15 @@ public final class SocialNetworkPanel extends JPanel implements TreeChangeListen
 				final SocialNodeRef node = hitTest(e);
 				if(node == null){
 					selectedEntity = null;
+
 					canvas.repaint();
+
 					return;
 				}
 				selectedEntity = node.entity();
+
 				canvas.repaint();
+
 				if(e.getClickCount() == 2)
 					openEditDialog(node);
 			}
@@ -286,6 +291,7 @@ public final class SocialNetworkPanel extends JPanel implements TreeChangeListen
 		scale = newScale;
 		offsetX = cx - layoutX * scale;
 		offsetY = cy - layoutY * scale;
+
 		canvas.repaint();
 	}
 
@@ -330,6 +336,7 @@ public final class SocialNetworkPanel extends JPanel implements TreeChangeListen
 
 		updateCanvasSize();
 		updateFocusLabel();
+
 		canvas.repaint();
 	}
 
@@ -383,6 +390,7 @@ public final class SocialNetworkPanel extends JPanel implements TreeChangeListen
 		offsetX = 0.;
 		offsetY = 0.;
 		updateCanvasSize();
+
 		canvas.repaint();
 	}
 
@@ -444,6 +452,7 @@ public final class SocialNetworkPanel extends JPanel implements TreeChangeListen
 			layoutMode = mode;
 			layout = SocialLayout.compute(graph, layoutMode);
 			updateCanvasSize();
+
 			canvas.repaint();
 		}
 
@@ -562,6 +571,7 @@ public final class SocialNetworkPanel extends JPanel implements TreeChangeListen
 			highlightedPath = path;
 			highlightedEdges = new HashSet<>(path.edges());
 		}
+
 		canvas.repaint();
 	}
 
@@ -614,8 +624,7 @@ public final class SocialNetworkPanel extends JPanel implements TreeChangeListen
 		try{
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		}
-		catch(final Exception ignored){
-		}
+		catch(final Exception ignored){}
 
 		final String modelUri = "/tests/TGMZ.flef";
 		final String content;

@@ -486,6 +486,7 @@ public class IndividualPanel extends JPanel{
 			.onHoverChanged(h -> {
 				if(hovered != h){
 					hovered = h;
+
 					repaint();
 				}
 			})

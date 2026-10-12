@@ -88,12 +88,10 @@ public final class GroupData{
 		final List<String> names = GroupReader.extractNames(group);
 		if(!names.isEmpty()){
 			nameText = GroupReader.extractPrimaryName(group);
-			nameTooltip = TAG_HTML_OPEN + StringUtils.join(names, TAG_BR) + TAG_HTML_CLOSE;
+			nameTooltip = TAG_HTML_OPEN + "[" + id + "]" + TAG_BR + StringUtils.join(names, TAG_BR) + TAG_HTML_CLOSE;
 		}
-		else{
+		else
 			nameText = NO_DATA;
-			nameTooltip = null;
-		}
 
 		final String rawType = GroupReader.extractType(group);
 		type = (rawType != null? rawType.replace('_', ' '): StringUtils.EMPTY);

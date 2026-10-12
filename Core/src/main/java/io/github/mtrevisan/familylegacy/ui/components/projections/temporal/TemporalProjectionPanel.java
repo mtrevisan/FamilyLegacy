@@ -169,6 +169,7 @@ public final class TemporalProjectionPanel extends JPanel implements TreeChangeL
 			axis = new TemporalAxis(null, null);
 
 		updatePreferredSizes();
+
 		revalidate();
 		repaint();
 	}
@@ -230,6 +231,7 @@ public final class TemporalProjectionPanel extends JPanel implements TreeChangeL
 				if(ref == null){
 					if(selectedEntity != null){
 						selectedEntity = null;
+
 						repaint();
 					}
 					return;
@@ -238,10 +240,12 @@ public final class TemporalProjectionPanel extends JPanel implements TreeChangeL
 				// Update selection based on the hit element.
 				if(ref instanceof TemporalProjectionRef.EntryRef entryRef){
 					selectedEntity = entryRef.rowEntity();
+
 					repaint();
 				}
 				else if(ref instanceof TemporalProjectionRef.RowRef rowRef){
 					selectedEntity = rowRef.entity();
+
 					repaint();
 				}
 
@@ -257,6 +261,7 @@ public final class TemporalProjectionPanel extends JPanel implements TreeChangeL
 			@Override
 			public void componentResized(final ComponentEvent e){
 				axis.setViewportWidth(contentCanvas.getWidth());
+
 				repaint();
 			}
 		});
@@ -274,6 +279,7 @@ public final class TemporalProjectionPanel extends JPanel implements TreeChangeL
 					openEditDialogFor(new TemporalProjectionRef.RowRef(entity));
 				else{
 					selectedEntity = entity;
+
 					repaint();
 				}
 			}

@@ -32,7 +32,6 @@ import io.github.mtrevisan.familylegacy.ui.components.projections.individual.Ind
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualListener;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualPanel;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.services.relationship.RelationshipOperationCoordinator;
-import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.services.relationship.UnlinkRelationshipsDialog;
 import io.github.mtrevisan.familylegacy.ui.components.projections.partners.PartnersPanel;
 import io.github.mtrevisan.familylegacy.ui.components.projections.partners.Side;
 import io.github.mtrevisan.familylegacy.ui.components.projections.repository.ProjectionMutator;
@@ -44,18 +43,15 @@ import io.github.mtrevisan.familylegacy.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolContexts;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolDispatcher;
 import io.github.mtrevisan.familylegacy.ui.tools.individuals.DeleteIndividualTool;
+import io.github.mtrevisan.familylegacy.ui.tools.individuals.UnlinkRelationshipsTool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import java.awt.Component;
 import java.awt.Window;
-import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -77,6 +73,14 @@ import java.util.function.Supplier;
  * call: it does not access the panel's internal state. Everything else
  * is provided through suppliers and consumers, so the listener stays
  * testable and the panel stays focused on composition.
+ * <p>
+ * <b>Unlink.</b> The unlink workflow is delegated to
+ * {@link UnlinkRelationshipsTool}, the same tool used by the popup menu.
+ * The tool builds the full relationship set from the model (parents,
+ * associates, groups, children), opens the dialog, and applies the
+ * removal through the mutator. The listener only has to provide a
+ * {@link ToolContext} wired to the tree's {@link TreeMutator}, so the
+ * cache invalidation goes through the same path as the popup menu.
  */
 public final class IndividualTreeGraphListener implements IndividualListener{
 
@@ -222,48 +226,43 @@ public final class IndividualTreeGraphListener implements IndividualListener{
 	 *                          Unlink, relocate, paste
 	 * ====================================================================== */
 
+	/**
+	 * Opens the "Unlink Relationships" dialog and removes the selected
+	 * relationships from the model.
+	 * <p>
+	 * The whole workflow is delegated to
+	 * {@link UnlinkRelationshipsTool}, the same tool invoked by the
+	 * popup menu. The tool computes the full relationship set from the
+	 * model — parents, associates, groups, and children — opens the
+	 * dialog, and applies the removal through the mutator wired in the
+	 * {@link ToolContext}. Using the tool guarantees that the tree, the
+	 * popup menu, and every other projection share the same behavior:
+	 * same dialog, same relationship set, same cache invalidation.
+	 */
 	@Override
 	public void onIndividualUnlink(final IndividualPanel selectedPanel, final FLEFRecord individual){
 		if(individual == null || selectedPanel == null)
 			return;
 
-		final TreeContextHelper.Context ctx = TreeContextHelper.determineContext(selectedPanel,
-			nodeToPanelMapSupplier.get());
-		if(ctx == null || !ctx.hasPartnerPanel())
-			return;
+		final ToolContext context = ToolContexts.custom(model, individual.getId(), component,
+			new ToolDispatcher(){
+				@Override
+				public void removeEntity(final String id){
+					// Not used by UnlinkRelationshipsTool.
+				}
 
-		final IndividualPanel parentPanel = (ctx.side == Side.LEFT
-			? ctx.partnerPanel.getFatherPanel(): ctx.partnerPanel.getMotherPanel());
-		if(parentPanel == null)
-			return;
+				@Override
+				public void loadRoot(final String id){
+					// Not used by UnlinkRelationshipsTool.
+				}
 
-		final FLEFRecord fatherRecord = parentPanel.getFather();
-		final FLEFRecord motherRecord = parentPanel.getMother();
-		final String targetFatherId = (fatherRecord != null? fatherRecord.getId(): null);
-		final String targetMotherId = (motherRecord != null? motherRecord.getId(): null);
-
-		final Window parent = SwingUtilities.getWindowAncestor(component);
-		final Set<String> parentsIds = new LinkedHashSet<>();
-		if(targetFatherId != null)
-			parentsIds.add(targetFatherId);
-		if(targetMotherId != null)
-			parentsIds.add(targetMotherId);
-		final Set<String> childrenIds = new LinkedHashSet<>(ctx.childrenId);
-		final UnlinkRelationshipsDialog dialog = new UnlinkRelationshipsDialog(parent, model,
-			individual.getId(), parentsIds, Collections.emptySet(), Collections.emptySet(), childrenIds);
-		dialog.setVisible(true);
-
-		final List<String> selectedIds = dialog.getSelectedRelationshipIds();
-		if(selectedIds.isEmpty())
-			return;
-
-		final int confirm = JOptionPane.showConfirmDialog(component,
-			"Are you sure you want to remove the selected relationships?",
-			"Confirm Unlink", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
-		if(confirm == JOptionPane.YES_OPTION){
-			treeMutator.removeRelationships(selectedIds);
-			treeMutator.invalidateAndNotifyTreeChanged(currentRootId.get());
-		}
+				@Override
+				public ProjectionMutator getMutator(){
+					return treeMutator;
+				}
+			});
+		new UnlinkRelationshipsTool()
+			.run(context);
 	}
 
 	@Override

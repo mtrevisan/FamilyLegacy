@@ -504,8 +504,7 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener{
 		try{
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		}
-		catch(final Exception ignored){
-		}
+		catch(final Exception ignored){}
 
 		final String modelUri = "/tests/TGMZ.flef";
 		final String individualId = "I1";

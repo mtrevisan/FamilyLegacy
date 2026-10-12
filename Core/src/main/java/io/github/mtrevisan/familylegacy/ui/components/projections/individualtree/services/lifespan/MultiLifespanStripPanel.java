@@ -543,6 +543,7 @@ public final class MultiLifespanStripPanel extends JPanel{
 			return;
 
 		axis.pan(deltaJdn);
+
 		canvas.repaint();
 	}
 
@@ -555,6 +556,7 @@ public final class MultiLifespanStripPanel extends JPanel{
 			return;
 
 		axis.fitToDomain();
+
 		canvas.repaint();
 	}
 

@@ -361,6 +361,7 @@ public class ChronomapPanel extends JPanel{
 
 		showUncertaintyCheckBox.addActionListener(e -> {
 			markerLayer.setShowUncertainty(showUncertaintyCheckBox.isSelected());
+
 			mapViewer.repaint();
 		});
 
@@ -388,6 +389,7 @@ public class ChronomapPanel extends JPanel{
 		// Selection made outside: highlight the marker.
 		selection.addListener(id -> {
 			markerLayer.setSelectedId(id);
+
 			mapViewer.repaint();
 		});
 
@@ -511,6 +513,7 @@ public class ChronomapPanel extends JPanel{
 					final int resolved = get();
 					if(resolved > 0){
 						index.rebuild();
+
 						mapViewer.repaint();
 
 						if(globeModeActive)
@@ -546,17 +549,20 @@ public class ChronomapPanel extends JPanel{
 	public void setEnabledEventTypes(final Set<String> types){
 		final Set<String> enabled = (types == null || types.isEmpty()? null: Set.copyOf(types));
 		markerLayer.setEnabledEventTypes(enabled);
+
 		mapViewer.repaint();
 	}
 
 	public void addImageOverlay(final Image image, final GeoPosition northWest, final GeoPosition southEast,
-		final float alpha){
+			final float alpha){
 		imageLayer.addOverlay(image, northWest, southEast, alpha);
+
 		mapViewer.repaint();
 	}
 
 	public void clearImageOverlays(){
 		imageLayer.clearOverlays();
+
 		mapViewer.repaint();
 	}
 
@@ -566,6 +572,7 @@ public class ChronomapPanel extends JPanel{
 
 	public void setLayerVisible(final ChronomapLayer layer, final boolean visible){
 		layerManager.setVisible(layer, visible);
+
 		mapViewer.repaint();
 	}
 
@@ -1000,6 +1007,7 @@ public class ChronomapPanel extends JPanel{
 				final JCheckBoxMenuItem item = new JCheckBoxMenuItem(layer.getName(), layer.isVisible());
 				item.addActionListener(ev -> {
 					layer.setVisible(item.isSelected());
+
 					mapViewer.repaint();
 				});
 				menu.add(item);
@@ -1087,8 +1095,7 @@ public class ChronomapPanel extends JPanel{
 		try{
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		}
-		catch(final Exception ignored){
-		}
+		catch(final Exception ignored){}
 
 		final String content;
 		try(final InputStream is = ChronomapPanel.class.getResourceAsStream("/tests/TGMZ.flef")){

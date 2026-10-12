@@ -238,7 +238,8 @@ public final class RemoveMemberDialog extends JDialog{
 
 		final int confirm = JOptionPane.showConfirmDialog(this,
 			"Remove " + toRemove.size() + " member(s) from " + GroupReader.extractPrimaryName(group) + "?",
-			"Confirm Removal", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+			"Confirm Removal",
+			JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
 		if(confirm != JOptionPane.YES_OPTION)
 			return;
 

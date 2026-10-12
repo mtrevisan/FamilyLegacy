@@ -243,10 +243,29 @@ public final class GroupHelper{
 	 * ====================================================================== */
 
 	/**
+	 * Deletes the given group and all the relationships that
+	 * involve it, in a single operation. The relationships are removed
+	 * first, so the model is never left with a dangling reference.
+	 *
+	 * @param groupId the group to delete
+	 * @param model        the model
+	 */
+	public static void deleteGroup(final String groupId, final FLEFModel model){
+		if(groupId == null)
+			return;
+
+		final List<String> relationshipIds = relationshipIdsForGroup(groupId, model);
+		for(final String relationshipId : relationshipIds)
+			model.removeRecord(relationshipId);
+
+		model.removeRecord(groupId);
+	}
+
+	/**
 	 * Returns the ids of every relationship record that makes an
 	 * individual a member of a group.
 	 */
-	public static List<String> membershipRelationshipIds(final FLEFModel model, final String groupId){
+	public static List<String> membershipRelationshipIds(final String groupId, final FLEFModel model){
 		final List<String> result = new ArrayList<>();
 		if(groupId == null)
 			return result;
@@ -270,7 +289,7 @@ public final class GroupHelper{
 	 * before deleting a group, to clean up the relationships that would
 	 * otherwise dangle.
 	 */
-	public static List<String> allRelationshipIdsForGroup(final FLEFModel model, final String groupId){
+	public static List<String> relationshipIdsForGroup(final String groupId, final FLEFModel model){
 		final List<String> result = new ArrayList<>();
 		if(groupId == null)
 			return result;

@@ -24,28 +24,48 @@
  */
 package io.github.mtrevisan.familylegacy.ui.tools.groups;
 
-import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
+import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.ui.dialogs.help.ShortcutRegistry;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolOperation;
 
+import javax.swing.KeyStroke;
 
-/** Opens the "merge groups" dialog. */
-public final class MergeGroupsTool implements ToolOperation{
+
+/**
+ * Relocates the currently selected group to the clipboard context.
+ */
+public final class RelocateGroupTool implements ToolOperation{
 
 	@Override
 	public String getName(){
-		return I18N.t("menu.group.merge.groups");
+		return ShortcutRegistry.EDIT_RELOCATE_GROUP.action();
+	}
+
+	@Override
+	public KeyStroke getAccelerator(){
+		return ShortcutRegistry.EDIT_RELOCATE_GROUP.keyStroke();
 	}
 
 	@Override
 	public void run(final ToolContext context){
-		final MergeGroupsDialog dialog = new MergeGroupsDialog(context);
-		dialog.setVisible(true);
+		if(context == null)
+			return;
+
+		final String id = context.selectedEntityId();
+		if(id == null)
+			return;
+
+		final FLEFModel model = context.model();
+		final FLEFRecord record = model.getRecordById(id);
+		if(record != null)
+			context.setClippedRecord(record);
 	}
 
 	@Override
 	public boolean isEnabled(final ToolContext context){
-		return (context != null && context.hasAtLeastGroups(2));
+		return (context != null && context.hasSelectedEntity());
 	}
 
 }
