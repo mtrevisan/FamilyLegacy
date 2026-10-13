@@ -344,7 +344,7 @@ public final class IndividualHelper{
 				continue;
 
 			final FLEFRecord oneof = participantBlock.getTheOnlyChild();
-			if(oneof == null || !IndividualHandler.TYPE.equalsIgnoreCase(oneof.getTag()))
+			if(!IndividualHandler.isOfType(oneof))
 				continue;
 
 			final FLEFRecord ref = oneof.getTheOnlyChild();

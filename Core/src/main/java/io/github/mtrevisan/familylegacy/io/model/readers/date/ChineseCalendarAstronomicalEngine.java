@@ -28,8 +28,6 @@ import io.github.mtrevisan.familylegacy.services.EphemerisEngine;
 import io.github.mtrevisan.familylegacy.services.EphemerisEngineFactory;
 import io.github.mtrevisan.familylegacy.services.MathHelper;
 
-import java.util.Arrays;
-
 
 /**
  * Converter between the Chinese lunisolar calendar and the Gregorian

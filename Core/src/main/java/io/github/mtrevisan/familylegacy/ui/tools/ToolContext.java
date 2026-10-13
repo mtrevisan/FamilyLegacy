@@ -178,7 +178,7 @@ public record ToolContext(
 	 */
 	public boolean hasSelectedIndividual(){
 		final FLEFRecord selectedEntity = getSelectedEntity();
-		return (selectedEntity != null && IndividualHandler.TYPE.equalsIgnoreCase(selectedEntity.getTag()));
+		return IndividualHandler.isOfType(selectedEntity);
 	}
 
 	/**
@@ -186,7 +186,7 @@ public record ToolContext(
 	 */
 	public boolean hasSelectedGroup(){
 		final FLEFRecord selectedEntity = getSelectedEntity();
-		return (selectedEntity != null && GroupHandler.TYPE.equalsIgnoreCase(selectedEntity.getTag()));
+		return GroupHandler.isOfType(selectedEntity);
 	}
 
 	/**

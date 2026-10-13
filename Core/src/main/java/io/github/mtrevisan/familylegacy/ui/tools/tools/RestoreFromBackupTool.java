@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.ui.tools.tools;
 
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolOperation;
 import org.apache.commons.lang3.StringUtils;
@@ -74,9 +75,10 @@ public final class RestoreFromBackupTool implements ToolOperation{
 			return;
 
 		final int choice = JOptionPane.showConfirmDialog(context.owner(),
-			"Restore will replace the current model with the content of:" + StringUtils.LF
-				+ file.getName() + "\n\nContinue?",
-			"Restore from Backup", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+			I18N.tf("confirmation.restore.from.backup.message", file.getName()),
+			I18N.t("confirmation.restore.from.backup.title"),
+			JOptionPane.YES_NO_OPTION,
+			JOptionPane.WARNING_MESSAGE);
 		if(choice != JOptionPane.YES_OPTION)
 			return;
 

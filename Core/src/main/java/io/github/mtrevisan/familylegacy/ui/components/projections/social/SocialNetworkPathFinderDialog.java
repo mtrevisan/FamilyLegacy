@@ -197,8 +197,7 @@ public final class SocialNetworkPathFinderDialog extends JDialog{
 	}
 
 	private String extractLabel(final FLEFRecord record){
-		final String tag = record.getTag();
-		final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(GroupHandler.TYPE.equalsIgnoreCase(tag)
+		final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(GroupHandler.isOfType(record)
 			? GroupHandler.TYPE
 			: IndividualHandler.TYPE);
 		return (record.getId() != null? handler.getDisplayText(record, model): "?");

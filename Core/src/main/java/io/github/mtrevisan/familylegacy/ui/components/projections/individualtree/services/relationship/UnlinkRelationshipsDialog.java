@@ -259,7 +259,7 @@ public class UnlinkRelationshipsDialog extends JDialog{
 		if(focus == null)
 			return flatten(byCategory);
 
-		final boolean focusIsGroup = GroupHandler.TYPE.equalsIgnoreCase(focus.getTag());
+		final boolean focusIsGroup = GroupHandler.isOfType(focus);
 
 		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
 		for(final FLEFRecord relationship : relationships){
@@ -380,7 +380,7 @@ public class UnlinkRelationshipsDialog extends JDialog{
 		if(record == null)
 			return fallbackId;
 
-		if(GroupHandler.TYPE.equalsIgnoreCase(record.getTag()))
+		if(GroupHandler.isOfType(record))
 			return GroupHandler.getInstance()
 				.getDisplayText(record, model);
 

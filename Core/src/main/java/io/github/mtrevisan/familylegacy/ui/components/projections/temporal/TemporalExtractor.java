@@ -38,8 +38,10 @@ import io.github.mtrevisan.familylegacy.io.model.readers.date.DateNormalizer;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.TemporalSpan;
 import io.github.mtrevisan.familylegacy.ui.handlers.CulturalNormHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.HistoricEventHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualAttributeHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.PlaceHandler;
 import org.apache.commons.lang3.StringUtils;
 
@@ -118,7 +120,7 @@ public final class TemporalExtractor{
 				continue;
 
 			final FLEFRecord event = model.getRecordById(eventId);
-			if(event == null || !EventHandler.TYPE.equalsIgnoreCase(event.getTag()))
+			if(!EventHandler.isOfType(event))
 				continue;
 
 			final FLEFRecord dateStructure = FLEFRecordHelper.findChild(event, EventReader.TAG_DATE);
@@ -159,10 +161,11 @@ public final class TemporalExtractor{
 	private static boolean matchesRefTag(final TemporalEntityType type, final String refTag){
 		if(refTag == null)
 			return false;
+
 		return switch(type){
-			case INDIVIDUAL -> "individual".equalsIgnoreCase(refTag);
-			case GROUP -> "group".equalsIgnoreCase(refTag);
-			case PLACE -> "place".equalsIgnoreCase(refTag);
+			case INDIVIDUAL -> IndividualHandler.TYPE.equalsIgnoreCase(refTag);
+			case GROUP -> GroupHandler.TYPE.equalsIgnoreCase(refTag);
+			case PLACE -> PlaceHandler.TYPE.equalsIgnoreCase(refTag);
 			case HISTORIC_EVENT -> HistoricEventHandler.TYPE.equalsIgnoreCase(refTag);
 			case CULTURAL_NORM -> CulturalNormHandler.TYPE.equalsIgnoreCase(refTag);
 		};
@@ -203,7 +206,7 @@ public final class TemporalExtractor{
 	}
 
 	private TemporalEntry buildAttributeEntry(final FLEFRecord attribute){
-		final boolean isIndividual = IndividualAttributeHandler.TYPE.equalsIgnoreCase(attribute.getTag());
+		final boolean isIndividual = IndividualAttributeHandler.isOfType(attribute);
 		final FLEFRecord from = FLEFRecordHelper.findChild(attribute, (isIndividual? IndividualAttributeReader.TAG_VALID_FROM: GroupAttributeReader.TAG_VALID_FROM));
 		final FLEFRecord to = FLEFRecordHelper.findChild(attribute, (isIndividual? IndividualAttributeReader.TAG_VALID_TO: GroupAttributeReader.TAG_VALID_TO));
 		final TemporalSpan span = DateNormalizer.combineBounds(from, to);

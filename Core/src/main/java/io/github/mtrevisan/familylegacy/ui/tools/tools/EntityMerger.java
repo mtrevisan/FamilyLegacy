@@ -304,7 +304,7 @@ public final class EntityMerger{
 			return null;
 
 		final FLEFRecord oneOf = participantBlock.getTheOnlyChild();
-		if(oneOf == null || !IndividualHandler.TYPE.equalsIgnoreCase(oneOf.getTag()))
+		if(!IndividualHandler.isOfType(oneOf))
 			return null;
 
 		final FLEFRecord reference = oneOf.getTheOnlyChild();

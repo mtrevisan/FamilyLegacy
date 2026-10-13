@@ -40,7 +40,7 @@ public final class ModelUtils{
 		long bestNumber = Long.MAX_VALUE;
 		final List<FLEFRecord> records = model.getRecords();
 		for(final FLEFRecord record : records){
-			if(!IndividualHandler.TYPE.equalsIgnoreCase(record.getTag()))
+			if(!IndividualHandler.isOfType(record))
 				continue;
 
 			final String id = record.getId();

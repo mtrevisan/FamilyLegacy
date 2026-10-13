@@ -197,7 +197,8 @@ public final class EventTypesDialog extends JDialog{
 				"Manage Event Types", JOptionPane.WARNING_MESSAGE);
 			return;
 		}
-		final String type = tableModel.getRow(table.convertRowIndexToModel(viewRow)).type();
+		final String type = tableModel.getRow(table.convertRowIndexToModel(viewRow))
+			.type();
 		final StringBuilder body = new StringBuilder();
 		body.append("<h1>Events of type <code>").append(ReportDialog.escape(type)).append("</code></h1>");
 		int count = 0;

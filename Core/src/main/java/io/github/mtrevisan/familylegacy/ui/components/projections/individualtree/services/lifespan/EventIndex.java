@@ -222,12 +222,11 @@ public final class EventIndex{
 			return null;
 
 		final String id = ref.getValue();
-		final String tag = ref.getTag();
 		final FLEFRecord record = model.getRecordById(id);
 		if(record == null)
 			return null;
 
-		final boolean isIndividual = IndividualHandler.TYPE.equalsIgnoreCase(tag);
+		final boolean isIndividual = IndividualHandler.isOfType(ref);
 		final String name = (isIndividual
 			? IndividualHandler.getInstance().getDisplayText(record, model)
 			: GroupHandler.getInstance().getDisplayText(record, model));

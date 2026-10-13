@@ -26,8 +26,6 @@ package io.github.mtrevisan.familylegacy.ui.tools.groups;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.readers.GroupReader;
-import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.services.relationship.RelationshipTypeSelectionDialog;
 import io.github.mtrevisan.familylegacy.ui.components.projections.repository.ProjectionMutator;
 import io.github.mtrevisan.familylegacy.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
@@ -37,8 +35,6 @@ import io.github.mtrevisan.familylegacy.ui.tools.ToolOperation;
 import javax.swing.JOptionPane;
 import java.awt.Component;
 import java.awt.Window;
-import java.util.ArrayList;
-import java.util.List;
 
 
 /**

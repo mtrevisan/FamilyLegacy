@@ -71,7 +71,7 @@ public final class DossierManager{
 			return;
 
 		final FLEFRecord record = model.getRecordById(rootId);
-		if(record != null && GroupHandler.TYPE.equalsIgnoreCase(record.getTag()))
+		if(GroupHandler.isOfType(record))
 			showGroupDossier(rootId);
 		else
 			showIndividualDossier(rootId);

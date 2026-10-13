@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.ui.tools.places;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
 import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
@@ -116,7 +117,7 @@ public final class PlaceManagementDialog extends JDialog{
 		toolbar.add(newButton);
 
 		final JButton editButton = new JButton(I18N.t("button.edit"));
-		editButton.addActionListener(e -> openEditor(selectedPlaceId()));
+		editButton.addActionListener(e -> openEditor(selectedPlace()));
 		toolbar.add(editButton);
 
 		final JButton deleteButton = new JButton(I18N.t("button.delete"));
@@ -140,7 +141,7 @@ public final class PlaceManagementDialog extends JDialog{
 			@Override
 			public void mouseClicked(final MouseEvent e){
 				if(e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e))
-					openEditor(selectedPlaceId());
+					openEditor(selectedPlace());
 			}
 		});
 
@@ -203,27 +204,27 @@ public final class PlaceManagementDialog extends JDialog{
 		return haystack != null && haystack.toLowerCase(Locale.ROOT).contains(needle);
 	}
 
-	private String selectedPlaceId(){
+	private FLEFRecord selectedPlace(){
 		final int viewRow = table.getSelectedRow();
 		if(viewRow < 0)
 			return null;
+
 		final int modelRow = table.convertRowIndexToModel(viewRow);
-		return tableModel.getRow(modelRow).id();
+		final String rowId = tableModel.getRow(modelRow)
+			.id();
+		final FLEFModel model = context.model();
+		return model.getRecordById(rowId);
 	}
 
-	private void openEditor(final String placeId){
+	private void openEditor(final FLEFRecord place){
 		final Window owner = this;
 		final PlaceHandler handler = PlaceHandler.getInstance();
 		final BaseRecordDialog dialog;
 		final FLEFModel model = context.model();
-		if(placeId == null)
+		if(place == null)
 			dialog = handler.createNewDialog(owner, model);
-		else{
-			final FLEFRecord record = model.getRecordById(placeId);
-			if(record == null)
-				return;
-			dialog = handler.createEditDialog(owner, model, record);
-		}
+		else
+			dialog = handler.createEditDialog(owner, model, place);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved())
@@ -231,20 +232,20 @@ public final class PlaceManagementDialog extends JDialog{
 	}
 
 	private void deleteSelected(){
-		final String placeId = selectedPlaceId();
-		if(placeId == null)
+		final FLEFRecord place = selectedPlace();
+		if(place == null)
 			return;
 
 		final int confirm = JOptionPane.showConfirmDialog(this,
-			"Delete place " + placeId + "?",
-			"Confirm Deletion",
+			I18N.tf("confirmation.delete.place.message", PlaceReader.extractPrimaryName(place)),
+			I18N.t("confirmation.delete.place.title"),
 			JOptionPane.YES_NO_OPTION,
 			JOptionPane.WARNING_MESSAGE);
 		if(confirm != JOptionPane.YES_OPTION)
 			return;
 
 		final FLEFModel model = context.model();
-		model.removeRecord(placeId);
+		model.removeRecord(place.getId());
 
 		reload();
 	}

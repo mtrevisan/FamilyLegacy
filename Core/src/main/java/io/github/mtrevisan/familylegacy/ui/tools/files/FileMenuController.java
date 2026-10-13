@@ -242,8 +242,10 @@ public final class FileMenuController{
 
 		if(target.exists()){
 			final int confirm = JOptionPane.showConfirmDialog(owner,
-				"The file already exists. Overwrite it?",
-				"Confirm Overwrite", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+				I18N.t("confirmation.overwrite.save.as.message"),
+				I18N.t("confirmation.overwrite.save.as.title"),
+				JOptionPane.YES_NO_OPTION,
+				JOptionPane.WARNING_MESSAGE);
 			if(confirm != JOptionPane.YES_OPTION)
 				return false;
 		}

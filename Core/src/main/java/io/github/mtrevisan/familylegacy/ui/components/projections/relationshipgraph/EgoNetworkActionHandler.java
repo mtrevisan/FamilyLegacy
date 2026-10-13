@@ -100,7 +100,7 @@ public class EgoNetworkActionHandler{
 			networkMutator.unlinkRelationship(egoRecord, targetRecord, currentEgoId);
 
 		final Window parent = SwingUtilities.getWindowAncestor(parentComponent);
-		final String label = (GroupHandler.TYPE.equalsIgnoreCase(targetRecord.getTag())
+		final String label = (GroupHandler.isOfType(targetRecord)
 			? GroupHandler.getInstance().getDisplayText(targetRecord, model)
 			: IndividualHandler.getInstance().getDisplayText(targetRecord, model));
 
@@ -123,7 +123,7 @@ public class EgoNetworkActionHandler{
 	private String[] resolveSubjectTarget(final String type, final FLEFRecord egoRecord, final FLEFRecord otherRecord){
 		final String egoId = egoRecord.getId();
 		final String otherId = otherRecord.getId();
-		final boolean egoIsGroup = GroupHandler.TYPE.equalsIgnoreCase(egoRecord.getTag());
+		final boolean egoIsGroup = GroupHandler.isOfType(egoRecord);
 
 		if(RelationshipReader.isTypeChild(type))
 			return new String[]{otherId, egoId};
@@ -139,7 +139,7 @@ public class EgoNetworkActionHandler{
 
 	public FLEFRecord showEditRecordDialog(final FLEFRecord record){
 		final Window parent = SwingUtilities.getWindowAncestor(parentComponent);
-		final RecordTypeHandler<?> handler = (IndividualHandler.TYPE.equalsIgnoreCase(record.getTag())
+		final RecordTypeHandler<?> handler = (IndividualHandler.isOfType(record)
 			? IndividualHandler.getInstance()
 			: GroupHandler.getInstance());
 		final BaseRecordDialog dialog = handler.createEditDialog(parent, model, record);

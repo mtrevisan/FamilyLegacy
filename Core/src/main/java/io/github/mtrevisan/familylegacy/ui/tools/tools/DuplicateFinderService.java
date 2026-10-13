@@ -238,7 +238,7 @@ public final class DuplicateFinderService{
 			if(participantBlock == null)
 				continue;
 			final FLEFRecord oneof = participantBlock.getTheOnlyChild();
-			if(oneof == null || !IndividualHandler.TYPE.equalsIgnoreCase(oneof.getTag()))
+			if(!IndividualHandler.isOfType(oneof))
 				continue;
 			final FLEFRecord ref = oneof.getTheOnlyChild();
 			final String id = (ref != null? ref.getValue(): oneof.getValue());

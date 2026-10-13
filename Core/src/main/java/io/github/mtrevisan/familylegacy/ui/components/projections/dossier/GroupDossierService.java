@@ -110,7 +110,7 @@ public final class GroupDossierService{
 			return GroupDossier.empty();
 
 		final FLEFRecord group = model.getRecordById(groupId);
-		if(group == null || !GroupHandler.TYPE.equalsIgnoreCase(group.getTag()))
+		if(!GroupHandler.isOfType(group))
 			return GroupDossier.empty();
 
 		final String displayName = resolveGroupName(group);
@@ -485,10 +485,9 @@ public final class GroupDossierService{
 
 	private static String resolveContextTitle(final FLEFRecord context){
 		String title = null;
-		final String tag = context.getTag();
-		if(CulturalNormHandler.TYPE.equalsIgnoreCase(tag))
+		if(CulturalNormHandler.isOfType(context))
 			title = CulturalNormReader.extractTitle(context);
-		else if(HistoricEventHandler.TYPE.equalsIgnoreCase(tag))
+		else if(HistoricEventHandler.isOfType(context))
 			title = HistoricEventReader.extractTitle(context);
 		if(StringUtils.isNotEmpty(title))
 			return title;

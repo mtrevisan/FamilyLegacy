@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.ui.tools.sources;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.readers.DocumentReader;
 import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.DocumentHandler;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
@@ -129,7 +130,7 @@ public final class DocumentManagementDialog extends JDialog{
 		toolbar.add(newButton);
 
 		final JButton editButton = new JButton(I18N.t("button.edit"));
-		editButton.addActionListener(e -> openEditor(selectedDocumentId()));
+		editButton.addActionListener(e -> openEditor(selectedDocument()));
 		toolbar.add(editButton);
 
 		final JButton deleteButton = new JButton(I18N.t("button.delete"));
@@ -156,7 +157,7 @@ public final class DocumentManagementDialog extends JDialog{
 			@Override
 			public void mouseClicked(final MouseEvent e){
 				if(e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e))
-					openEditor(selectedDocumentId());
+					openEditor(selectedDocument());
 			}
 		});
 
@@ -223,28 +224,27 @@ public final class DocumentManagementDialog extends JDialog{
 		return haystack != null && haystack.toLowerCase(Locale.ROOT).contains(needle);
 	}
 
-	private String selectedDocumentId(){
+	private FLEFRecord selectedDocument(){
 		final int viewRow = table.getSelectedRow();
 		if(viewRow < 0)
 			return null;
-		return tableModel.getRow(table.convertRowIndexToModel(viewRow)).id();
+
+		final String rowId = tableModel.getRow(table.convertRowIndexToModel(viewRow))
+			.id();
+		final FLEFModel model = context.model();
+		return model.getRecordById(rowId);
 	}
 
 	private void updatePreview(){
-		final String docId = selectedDocumentId();
-		if(docId == null){
+		final FLEFRecord document = selectedDocument();
+		if(document == null){
 			previewLabel.setIcon(null);
 			previewLabel.setText("Select a document to preview");
+
 			return;
 		}
-		final FLEFModel model = context.model();
-		final FLEFRecord doc = model.getRecordById(docId);
-		if(doc == null){
-			previewLabel.setIcon(null);
-			previewLabel.setText("Document not found");
-			return;
-		}
-		final String uri = SourceHelper.documentUri(doc);
+
+		final String uri = SourceHelper.documentUri(document);
 		final ImageIcon icon = tryLoadImage(uri);
 		if(icon != null){
 			previewLabel.setText(StringUtils.EMPTY);
@@ -297,19 +297,14 @@ public final class DocumentManagementDialog extends JDialog{
 		return new ImageIcon(scaled);
 	}
 
-	private void openEditor(final String documentId){
+	private void openEditor(final FLEFRecord document){
 		final DocumentHandler handler = DocumentHandler.getInstance();
 		final BaseRecordDialog dialog;
 		final FLEFModel model = context.model();
-		if(documentId == null)
+		if(document == null)
 			dialog = handler.createNewDialog(this, model);
-		else{
-			final FLEFRecord record = model.getRecordById(documentId);
-			if(record == null)
-				return;
-
-			dialog = handler.createEditDialog(this, model, record);
-		}
+		else
+			dialog = handler.createEditDialog(this, model, document);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved())
@@ -317,20 +312,20 @@ public final class DocumentManagementDialog extends JDialog{
 	}
 
 	private void deleteSelected(){
-		final String documentId = selectedDocumentId();
-		if(documentId == null)
+		final FLEFRecord document = selectedDocument();
+		if(document == null)
 			return;
 
 		final int confirm = JOptionPane.showConfirmDialog(this,
-			"Delete document " + documentId + "?",
-			"Confirm Deletion",
+			I18N.tf("confirmation.delete.document.message", DocumentReader.extractDescription(document)),
+			I18N.t("confirmation.delete.document.title"),
 			JOptionPane.YES_NO_OPTION,
 			JOptionPane.WARNING_MESSAGE);
 		if(confirm != JOptionPane.YES_OPTION)
 			return;
 
 		final FLEFModel model = context.model();
-		model.removeRecord(documentId);
+		model.removeRecord(document.getId());
 
 		reload();
 	}

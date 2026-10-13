@@ -109,15 +109,15 @@ public final class CitationAnalysisTool implements ToolOperation{
 
 	private static boolean hasCitation(final FLEFRecord record){
 		for(final FLEFRecord child : record.getChildren())
-			if(SourceHandler.TYPE.equalsIgnoreCase(child.getTag()))
+			if(SourceHandler.isOfType(child))
 				return true;
 		return false;
 	}
 
 	private static String buildReport(final List<FLEFRecord> unusedSources,
-		final List<FLEFRecord> unusedDocuments,
-		final Map<String, Integer> uncited,
-		final int citedSourceCount, final int referencedDocumentCount){
+			final List<FLEFRecord> unusedDocuments,
+			final Map<String, Integer> uncited,
+			final int citedSourceCount, final int referencedDocumentCount){
 		final StringBuilder body = new StringBuilder();
 		body.append("<h1>Citation Analysis</h1>");
 

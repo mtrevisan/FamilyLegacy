@@ -62,6 +62,10 @@ public class EventHandler extends AbstractRecordTypeHandler<EventRecordDialog>{
 		return TYPE;
 	}
 
+	public static boolean isOfType(final FLEFRecord record){
+		return (record != null && TYPE.equalsIgnoreCase(record.getTag()));
+	}
+
 	@Override
 	public String getIdPrefix(){
 		return ID_PREFIX;

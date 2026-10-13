@@ -204,8 +204,11 @@ public final class MergeGroupsDialog extends JDialog{
 		final String message = "Merge " + GroupReader.extractPrimaryName(source)
 			+ " into " + GroupReader.extractPrimaryName(target) + "?" + StringUtils.LF + StringUtils.LF
 			+ "The source group will be deleted.";
-		final int confirm = JOptionPane.showConfirmDialog(this, message,
-			"Confirm Merge", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+		final int confirm = JOptionPane.showConfirmDialog(this,
+			message,
+			"Confirm Merge",
+			JOptionPane.YES_NO_OPTION,
+			JOptionPane.WARNING_MESSAGE);
 		if(confirm != JOptionPane.YES_OPTION)
 			return;
 

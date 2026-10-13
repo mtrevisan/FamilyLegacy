@@ -210,8 +210,7 @@ public final class PlaceIndex{
 		if(ref == null)
 			return null;
 
-		final String tag = ref.getTag();
-		if(!PlaceHandler.TYPE.equalsIgnoreCase(tag))
+		if(!PlaceHandler.isOfType(ref))
 			return null;
 
 		return ref.getValue();

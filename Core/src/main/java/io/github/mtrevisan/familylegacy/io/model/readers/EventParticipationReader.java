@@ -25,6 +25,9 @@
 package io.github.mtrevisan.familylegacy.io.model.readers;
 
 
+import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+
 import java.util.Set;
 
 
@@ -96,5 +99,25 @@ public final class EventParticipationReader{
 
 
 	private EventParticipationReader(){}
+
+	public static String extractParticipantRef(final FLEFRecord eventParticipation){
+		final FLEFRecord participant = FLEFRecordHelper.findChild(eventParticipation,
+			EventParticipationReader.TAG_PARTICIPANT);
+		if(participant == null)
+			return null;
+
+		final FLEFRecord ref = participant.getTheOnlyChild();
+		return (ref != null? ref.getValue(): null);
+	}
+
+	public static String extractParticipantRef(final FLEFRecord eventParticipation, final String participantTag){
+		final FLEFRecord participant = FLEFRecordHelper.findChild(eventParticipation,
+			EventParticipationReader.TAG_PARTICIPANT);
+		if(participant == null)
+			return null;
+
+		final FLEFRecord ref = participant.getTheOnlyChild();
+		return (ref != null && participantTag.equalsIgnoreCase(ref.getTag())? ref.getValue(): null);
+	}
 
 }

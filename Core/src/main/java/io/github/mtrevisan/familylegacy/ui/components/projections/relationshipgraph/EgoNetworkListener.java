@@ -164,7 +164,7 @@ public final class EgoNetworkListener implements IndividualListener, GroupListen
 					return networkMutator;
 				}
 			});
-		final ToolOperation tool = (IndividualHandler.TYPE.equalsIgnoreCase(record.getTag())
+		final ToolOperation tool = (IndividualHandler.isOfType(record)
 			? new DeleteIndividualTool()
 			: new DeleteGroupTool());
 		tool.run(context);
@@ -194,7 +194,7 @@ public final class EgoNetworkListener implements IndividualListener, GroupListen
 	public void onGroupAddOrConnect(final TreeOperation operation){
 		final EgoNode rootEgoNode = contextProvider.getRootEgoNode();
 		final FLEFRecord egoRecord = (rootEgoNode != null? rootEgoNode.getEgoRecord(): null);
-		final String[] allowedTypes = (egoRecord != null && GroupHandler.TYPE.equalsIgnoreCase(egoRecord.getTag())
+		final String[] allowedTypes = (GroupHandler.isOfType(egoRecord)
 			? RelationshipReader.GROUP_TO_GROUP_TYPES
 			: RelationshipReader.INDIVIDUAL_TO_GROUP_TYPES);
 
@@ -226,7 +226,7 @@ public final class EgoNetworkListener implements IndividualListener, GroupListen
 		if(record == null)
 			return;
 
-		final ToolOperation tool = (IndividualHandler.TYPE.equalsIgnoreCase(record.getTag())
+		final ToolOperation tool = (IndividualHandler.isOfType(record)
 			? new RelocateIndividualTool()
 			: new RelocateGroupTool());
 		tool.run(ToolContexts.withMutator(model, this, component, record.getId()));
@@ -258,7 +258,7 @@ public final class EgoNetworkListener implements IndividualListener, GroupListen
 					return networkMutator;
 				}
 			});
-		final ToolOperation tool = (IndividualHandler.TYPE.equalsIgnoreCase(context.getSelectedEntity().getTag())
+		final ToolOperation tool = (IndividualHandler.isOfType(context.getSelectedEntity())
 			? new PasteIndividualTool()
 			: new PasteGroupTool());
 		tool.run(context);
@@ -284,8 +284,8 @@ public final class EgoNetworkListener implements IndividualListener, GroupListen
 		if(source == null)
 			return;
 
-		final boolean egoIsGroup = GroupHandler.TYPE.equalsIgnoreCase(egoRecord.getTag());
-		final boolean sourceIsGroup = GroupHandler.TYPE.equalsIgnoreCase(source.getTag());
+		final boolean egoIsGroup = GroupHandler.isOfType(egoRecord);
+		final boolean sourceIsGroup = GroupHandler.isOfType(source);
 
 		final String[] allowedTypes;
 		if(egoIsGroup && sourceIsGroup)

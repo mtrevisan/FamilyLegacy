@@ -191,7 +191,7 @@ public class GenealogyRepository{
 			return;
 
 		final FLEFRecord event = model.getRecordById(eventId);
-		if(event != null && EventHandler.TYPE.equalsIgnoreCase(event.getTag()))
+		if(EventHandler.isOfType(event))
 			individualToEventMap.computeIfAbsent(individualId, k -> new ArrayList<>())
 				.add(event);
 	}

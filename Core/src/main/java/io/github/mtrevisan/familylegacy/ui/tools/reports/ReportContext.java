@@ -431,14 +431,16 @@ final class ReportContext{
 	String resolveContextLabel(final String id){
 		if(id == null)
 			return null;
+
 		final FLEFRecord rec = model.getRecordById(id);
 		if(rec == null)
 			return id;
+
 		final String title = FLEFRecordHelper.getChildValue(rec, TAG_TITLE);
 		if(title != null && !title.isBlank())
 			return title.trim();
-		final String tag = rec.getTag();
-		if(CulturalNormHandler.TYPE.equalsIgnoreCase(tag)){
+
+		if(CulturalNormHandler.isOfType(rec)){
 			final String rt = FLEFRecordHelper.getChildValue(rec, CulturalNormReader.TAG_TYPE);
 			if(rt != null && !rt.isBlank())
 				return rt.replace('_', ' ');

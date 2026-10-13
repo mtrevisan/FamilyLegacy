@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.ui.tools.research;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.readers.IdentityHypothesisReader;
 import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.IdentityHypothesisHandler;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
@@ -110,7 +111,7 @@ public final class IdentityHypothesesDialog extends JDialog{
 		toolbar.add(newButton);
 
 		final JButton editButton = new JButton(I18N.t("button.edit"));
-		editButton.addActionListener(e -> openEditor(selectedId()));
+		editButton.addActionListener(e -> openEditor(selected()));
 		toolbar.add(editButton);
 
 		final JButton deleteButton = new JButton(I18N.t("button.delete"));
@@ -132,7 +133,7 @@ public final class IdentityHypothesesDialog extends JDialog{
 			@Override
 			public void mouseClicked(final MouseEvent e){
 				if(e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e))
-					openEditor(selectedId());
+					openEditor(selected());
 			}
 		});
 
@@ -187,26 +188,25 @@ public final class IdentityHypothesesDialog extends JDialog{
 		return haystack != null && haystack.toLowerCase(Locale.ROOT).contains(needle);
 	}
 
-	private String selectedId(){
+	private FLEFRecord selected(){
 		final int viewRow = table.getSelectedRow();
 		if(viewRow < 0)
 			return null;
-		return tableModel.getRow(table.convertRowIndexToModel(viewRow)).id();
+
+		final String rowId = tableModel.getRow(table.convertRowIndexToModel(viewRow))
+			.id();
+		final FLEFModel model = context.model();
+		return model.getRecordById(rowId);
 	}
 
-	private void openEditor(final String hypothesisId){
+	private void openEditor(final FLEFRecord identityHypothesis){
 		final IdentityHypothesisHandler handler = IdentityHypothesisHandler.getInstance();
 		final BaseRecordDialog dialog;
 		final FLEFModel model = context.model();
-		if(hypothesisId == null)
+		if(identityHypothesis == null)
 			dialog = handler.createNewDialog(this, model);
-		else{
-			final FLEFRecord record = model
-				.getRecordById(hypothesisId);
-			if(record == null)
-				return;
-			dialog = handler.createEditDialog(this, model, record);
-		}
+		else
+			dialog = handler.createEditDialog(this, model, identityHypothesis);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved())
@@ -214,20 +214,20 @@ public final class IdentityHypothesesDialog extends JDialog{
 	}
 
 	private void deleteSelected(){
-		final String hypothesisId = selectedId();
-		if(hypothesisId == null)
+		final FLEFRecord identityHypothesis = selected();
+		if(identityHypothesis == null)
 			return;
 
 		final int confirm = JOptionPane.showConfirmDialog(this,
-			"Delete identity hypothesis " + hypothesisId + "?",
-			"Confirm Deletion",
+			I18N.tf("confirmation.delete.identity.hypothesis.message", IdentityHypothesisReader.extractComment(identityHypothesis)),
+			I18N.t("confirmation.delete.identity.hypothesis.title"),
 			JOptionPane.YES_NO_OPTION,
 			JOptionPane.WARNING_MESSAGE);
 		if(confirm != JOptionPane.YES_OPTION)
 			return;
 
 		final FLEFModel model = context.model();
-		model.removeRecord(hypothesisId);
+		model.removeRecord(identityHypothesis.getId());
 		reload();
 	}
 

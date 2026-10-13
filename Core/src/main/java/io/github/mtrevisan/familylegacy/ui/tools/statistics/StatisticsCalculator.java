@@ -242,7 +242,7 @@ public final class StatisticsCalculator{
 			counts[0] ++;
 			boolean cited = false;
 			for(final FLEFRecord child : record.getChildren())
-				if(SourceHandler.TYPE.equalsIgnoreCase(child.getTag())){
+				if(SourceHandler.isOfType(child)){
 					cited = true;
 					final String sid = extractSourceId(child);
 					if(sid != null)
@@ -296,7 +296,7 @@ public final class StatisticsCalculator{
 
 	private static boolean hasDirectSource(final FLEFRecord record){
 		for(final FLEFRecord child : record.getChildren())
-			if(SourceHandler.TYPE.equalsIgnoreCase(child.getTag()))
+			if(SourceHandler.isOfType(child))
 				return true;
 		return false;
 	}
@@ -306,7 +306,7 @@ public final class StatisticsCalculator{
 		if(block == null)
 			return null;
 		final FLEFRecord oneof = block.getTheOnlyChild();
-		if(oneof == null || !IndividualHandler.TYPE.equalsIgnoreCase(oneof.getTag()))
+		if(!IndividualHandler.isOfType(oneof))
 			return null;
 		final FLEFRecord ref = oneof.getTheOnlyChild();
 		return (ref != null? ref.getValue(): oneof.getValue());

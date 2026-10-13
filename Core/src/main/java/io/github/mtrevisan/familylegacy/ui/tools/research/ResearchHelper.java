@@ -126,12 +126,11 @@ public final class ResearchHelper{
 
 	/** Status of a research question, task, or activity. */
 	public static String status(final FLEFRecord record){
-		final String recordTag = record.getTag();
-		if(ResearchQuestionHandler.TYPE.equalsIgnoreCase(recordTag))
+		if(ResearchQuestionHandler.isOfType(record))
 			return firstTextValue(record, ResearchQuestionReader.TAG_STATUS);
-		if(ResearchTaskHandler.TYPE.equalsIgnoreCase(recordTag))
+		if(ResearchTaskHandler.isOfType(record))
 			return firstTextValue(record, ResearchTaskReader.TAG_STATUS);
-		if(ResearchActivityHandler.TYPE.equalsIgnoreCase(recordTag))
+		if(ResearchActivityHandler.isOfType(record))
 			return firstTextValue(record, ResearchActivityReader.TAG_STATUS);
 		return null;
 	}

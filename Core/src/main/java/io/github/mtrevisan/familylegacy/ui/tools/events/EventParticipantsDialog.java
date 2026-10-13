@@ -26,8 +26,15 @@ package io.github.mtrevisan.familylegacy.ui.tools.events;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.GroupReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
 import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventParticipationHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.GroupHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolDialogs;
@@ -116,7 +123,7 @@ public final class EventParticipantsDialog extends JDialog{
 		toolbar.add(newButton);
 
 		final JButton editButton = new JButton(I18N.t("button.edit"));
-		editButton.addActionListener(e -> openEditor(selectedParticipationId()));
+		editButton.addActionListener(e -> openEditor(selectedEventParticipation()));
 		toolbar.add(editButton);
 
 		final JButton deleteButton = new JButton(I18N.t("button.delete"));
@@ -139,7 +146,7 @@ public final class EventParticipantsDialog extends JDialog{
 			@Override
 			public void mouseClicked(final MouseEvent e){
 				if(e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e))
-					openEditor(selectedParticipationId());
+					openEditor(selectedEventParticipation());
 			}
 		});
 
@@ -208,26 +215,25 @@ public final class EventParticipantsDialog extends JDialog{
 		return haystack != null && haystack.toLowerCase(Locale.ROOT).contains(needle);
 	}
 
-	private String selectedParticipationId(){
+	private FLEFRecord selectedEventParticipation(){
 		final int viewRow = table.getSelectedRow();
 		if(viewRow < 0)
 			return null;
-		return tableModel.getRow(table.convertRowIndexToModel(viewRow)).id();
+
+		final String rowId = tableModel.getRow(table.convertRowIndexToModel(viewRow))
+			.id();
+		final FLEFModel model = context.model();
+		return model.getRecordById(rowId);
 	}
 
-	private void openEditor(final String participationId){
+	private void openEditor(final FLEFRecord eventParticipation){
 		final EventParticipationHandler handler = EventParticipationHandler.getInstance();
 		final BaseRecordDialog dialog;
 		final FLEFModel model = context.model();
-		if(participationId == null)
+		if(eventParticipation == null)
 			dialog = handler.createNewDialog(this, model);
-		else{
-			final FLEFRecord record = model.getRecordById(participationId);
-			if(record == null)
-				return;
-
-			dialog = handler.createEditDialog(this, model, record);
-		}
+		else
+			dialog = handler.createEditDialog(this, model, eventParticipation);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved())
@@ -235,20 +241,30 @@ public final class EventParticipantsDialog extends JDialog{
 	}
 
 	private void deleteSelected(){
-		final String participationId = selectedParticipationId();
-		if(participationId == null)
+		final FLEFRecord eventParticipation = selectedEventParticipation();
+		if(eventParticipation == null)
 			return;
 
+
+		final String participantId = EventParticipationReader.extractParticipantRef(eventParticipation);
+		final FLEFModel model = context.model();
+		final FLEFRecord participant = model.getRecordById(participantId);
+		String name = null;
+		if(IndividualHandler.isOfType(participant))
+			name = IndividualReader.extractPrimaryFullname(eventParticipation);
+		else if(GroupHandler.isOfType(participant))
+			name = GroupReader.extractPrimaryName(eventParticipation);
+		else if(PlaceHandler.isOfType(participant))
+			name = PlaceReader.extractPrimaryName(eventParticipation);
 		final int confirm = JOptionPane.showConfirmDialog(this,
-			"Delete participation " + participationId + "?",
-			"Confirm Deletion",
+			I18N.tf("confirmation.delete.event.participation.message", name),
+			I18N.t("confirmation.delete.event.participation.title"),
 			JOptionPane.YES_NO_OPTION,
 			JOptionPane.WARNING_MESSAGE);
 		if(confirm != JOptionPane.YES_OPTION)
 			return;
 
-		final FLEFModel model = context.model();
-		model.removeRecord(participationId);
+		model.removeRecord(eventParticipation.getId());
 		reload();
 	}
 

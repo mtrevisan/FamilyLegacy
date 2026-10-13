@@ -25,7 +25,6 @@
 package io.github.mtrevisan.familylegacy.ui.tools.groups;
 
 import io.github.mtrevisan.familylegacy.ui.tools.ToolOperation;
-import io.github.mtrevisan.familylegacy.ui.tools.groups.UnlinkGroupRelationshipsTool;
 
 import java.util.List;
 

@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.ui.tools.events;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
@@ -112,7 +113,7 @@ public final class EventManagementDialog extends JDialog{
 		toolbar.add(newButton);
 
 		final JButton editButton = new JButton(I18N.t("button.edit"));
-		editButton.addActionListener(e -> openEditor(selectedEventId()));
+		editButton.addActionListener(e -> openEditor(selectedEvent()));
 		toolbar.add(editButton);
 
 		final JButton deleteButton = new JButton(I18N.t("button.delete"));
@@ -136,7 +137,7 @@ public final class EventManagementDialog extends JDialog{
 			@Override
 			public void mouseClicked(final MouseEvent e){
 				if(e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e))
-					openEditor(selectedEventId());
+					openEditor(selectedEvent());
 			}
 		});
 
@@ -197,25 +198,25 @@ public final class EventManagementDialog extends JDialog{
 		return haystack != null && haystack.toLowerCase(Locale.ROOT).contains(needle);
 	}
 
-	private String selectedEventId(){
+	private FLEFRecord selectedEvent(){
 		final int viewRow = table.getSelectedRow();
 		if(viewRow < 0)
 			return null;
-		return tableModel.getRow(table.convertRowIndexToModel(viewRow)).id();
+
+		final String rowId = tableModel.getRow(table.convertRowIndexToModel(viewRow))
+			.id();
+		final FLEFModel model = context.model();
+		return model.getRecordById(rowId);
 	}
 
-	private void openEditor(final String eventId){
+	private void openEditor(final FLEFRecord event){
 		final EventHandler handler = EventHandler.getInstance();
 		final BaseRecordDialog dialog;
 		final FLEFModel model = context.model();
-		if(eventId == null)
+		if(event == null)
 			dialog = handler.createNewDialog(this, model);
-		else{
-			final FLEFRecord record = model.getRecordById(eventId);
-			if(record == null)
-				return;
-			dialog = handler.createEditDialog(this, model, record);
-		}
+		else
+			dialog = handler.createEditDialog(this, model, event);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved())
@@ -223,21 +224,20 @@ public final class EventManagementDialog extends JDialog{
 	}
 
 	private void deleteSelected(){
-		final String eventId = selectedEventId();
-		if(eventId == null)
+		final FLEFRecord event = selectedEvent();
+		if(event == null)
 			return;
 
 		final int confirm = JOptionPane.showConfirmDialog(this,
-			"Delete event " + eventId + "?" + StringUtils.LF
-				+ "Participations referencing this event will be left dangling.",
-			"Confirm Deletion",
+			I18N.tf("confirmation.delete.event.message", EventReader.extractDescription(event)),
+			I18N.t("confirmation.delete.event.title"),
 			JOptionPane.YES_NO_OPTION,
 			JOptionPane.WARNING_MESSAGE);
 		if(confirm != JOptionPane.YES_OPTION)
 			return;
 
 		final FLEFModel model = context.model();
-		model.removeRecord(eventId);
+		model.removeRecord(event.getId());
 
 		reload();
 	}

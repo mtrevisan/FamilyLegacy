@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.ui.tools.tools;
 
 import io.github.mtrevisan.familylegacy.io.FLEFWriter;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolOperation;
 import org.apache.commons.lang3.StringUtils;
@@ -88,8 +89,8 @@ public final class BackupTool implements ToolOperation{
 
 		if(target.exists()){
 			final int choice = JOptionPane.showConfirmDialog(context.owner(),
-				"The file already exists. Overwrite it?",
-				"Backup", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+				I18N.t("confirmation.overwrite.backup.message"),
+				I18N.t("confirmation.overwrite.backup.title"), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
 			if(choice != JOptionPane.YES_OPTION)
 				return;
 		}

@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.ui.tools.research;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.readers.ResearchActivityReader;
 import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.ResearchActivityHandler;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
@@ -115,7 +116,7 @@ public final class ResearchActivitiesDialog extends JDialog{
 		toolbar.add(newButton);
 
 		final JButton editButton = new JButton(I18N.t("button.edit"));
-		editButton.addActionListener(e -> openEditor(selectedId()));
+		editButton.addActionListener(e -> openEditor(selected()));
 		toolbar.add(editButton);
 
 		final JButton deleteButton = new JButton(I18N.t("button.delete"));
@@ -139,7 +140,7 @@ public final class ResearchActivitiesDialog extends JDialog{
 			@Override
 			public void mouseClicked(final MouseEvent e){
 				if(e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e))
-					openEditor(selectedId());
+					openEditor(selected());
 			}
 		});
 
@@ -198,26 +199,25 @@ public final class ResearchActivitiesDialog extends JDialog{
 		return haystack != null && haystack.toLowerCase(Locale.ROOT).contains(needle);
 	}
 
-	private String selectedId(){
+	private FLEFRecord selected(){
 		final int viewRow = table.getSelectedRow();
 		if(viewRow < 0)
 			return null;
-		return tableModel.getRow(table.convertRowIndexToModel(viewRow)).id();
+
+		final String rowId = tableModel.getRow(table.convertRowIndexToModel(viewRow))
+			.id();
+		final FLEFModel model = context.model();
+		return model.getRecordById(rowId);
 	}
 
-	private void openEditor(final String activityId){
+	private void openEditor(final FLEFRecord researchActivity){
 		final ResearchActivityHandler handler = ResearchActivityHandler.getInstance();
 		final BaseRecordDialog dialog;
 		final FLEFModel model = context.model();
-		if(activityId == null)
+		if(researchActivity == null)
 			dialog = handler.createNewDialog(this, model);
-		else{
-			final FLEFRecord record = model.getRecordById(activityId);
-			if(record == null)
-				return;
-
-			dialog = handler.createEditDialog(this, model, record);
-		}
+		else
+			dialog = handler.createEditDialog(this, model, researchActivity);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved())
@@ -225,20 +225,20 @@ public final class ResearchActivitiesDialog extends JDialog{
 	}
 
 	private void deleteSelected(){
-		final String activityId = selectedId();
-		if(activityId == null)
+		final FLEFRecord researchActivity = selected();
+		if(researchActivity == null)
 			return;
 
 		final int confirm = JOptionPane.showConfirmDialog(this,
-			"Delete research activity " + activityId + "?",
-			"Confirm Deletion",
+			I18N.tf("confirmation.delete.research.activity.message", ResearchActivityReader.extractActivityType(researchActivity)),
+			I18N.t("confirmation.delete.research.activity.title"),
 			JOptionPane.YES_NO_OPTION,
 			JOptionPane.WARNING_MESSAGE);
 		if(confirm != JOptionPane.YES_OPTION)
 			return;
 
 		final FLEFModel model = context.model();
-		model.removeRecord(activityId);
+		model.removeRecord(researchActivity.getId());
 
 		reload();
 	}

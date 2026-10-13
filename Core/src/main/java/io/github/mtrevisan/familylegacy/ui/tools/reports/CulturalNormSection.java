@@ -117,7 +117,7 @@ final class CulturalNormSection implements SectionBuilder{
 	 */
 	private static void collectIdsFrom(final FLEFRecord rec, final Set<String> out){
 		for(final FLEFRecord child : rec.getChildren()){
-			if(CulturalNormHandler.TYPE.equalsIgnoreCase(child.getTag())){
+			if(CulturalNormHandler.isOfType(child)){
 				final String id = child.getValue();
 				if(id != null && !id.isBlank())
 					out.add(id);

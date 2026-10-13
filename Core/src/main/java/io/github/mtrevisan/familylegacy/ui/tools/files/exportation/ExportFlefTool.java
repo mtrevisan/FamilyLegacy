@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.ui.tools.files.exportation;
 
 import io.github.mtrevisan.familylegacy.io.FLEFWriter;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolOperation;
 import org.apache.commons.lang3.StringUtils;
@@ -69,8 +70,10 @@ public final class ExportFlefTool implements ToolOperation{
 
 		if(target.exists()){
 			final int confirm = JOptionPane.showConfirmDialog(context.owner(),
-				"The file already exists. Overwrite it?",
-				"Confirm Overwrite", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+				I18N.t("confirmation.overwrite.export.message"),
+				I18N.t("confirmation.overwrite.export.title"),
+				JOptionPane.YES_NO_OPTION,
+				JOptionPane.WARNING_MESSAGE);
 			if(confirm != JOptionPane.YES_OPTION)
 				return;
 		}

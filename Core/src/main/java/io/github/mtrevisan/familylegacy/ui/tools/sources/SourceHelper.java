@@ -188,7 +188,7 @@ public final class SourceHelper{
 		// Documents referenced directly by a source.
 		for(final FLEFRecord source : listAllSources(model))
 			for(final FLEFRecord child : source.getChildren())
-				if(DocumentHandler.TYPE.equalsIgnoreCase(child.getTag())){
+				if(DocumentHandler.isOfType(child)){
 					final String docId = child.getTheOnlyChild() != null
 						? child.getTheOnlyChild().getValue(): null;
 					if(docId != null)
@@ -208,7 +208,7 @@ public final class SourceHelper{
 	private static void incrementCitations(final FLEFRecord record,
 		final Map<String, Integer> counts){
 		for(final FLEFRecord source : record.getChildren()){
-			if(!SourceHandler.TYPE.equalsIgnoreCase(source.getTag()))
+			if(!SourceHandler.isOfType(source))
 				continue;
 
 			final String sourceId = extractReferencedId(source);
@@ -220,7 +220,7 @@ public final class SourceHelper{
 	private static void countDocumentsInCitations(final FLEFRecord record,
 		final Map<String, Integer> counts){
 		for(final FLEFRecord source : record.getChildren()){
-			if(!SourceHandler.TYPE.equalsIgnoreCase(source.getTag()))
+			if(!SourceHandler.isOfType(source))
 				continue;
 
 			for(final FLEFRecord extract : source.getChildren()){
@@ -305,7 +305,7 @@ public final class SourceHelper{
 		int sourceCount = 0;
 		for(final FLEFRecord source : listAllSources(model))
 			for(final FLEFRecord child : source.getChildren())
-				if(RepositoryHandler.TYPE.equalsIgnoreCase(child.getTag())){
+				if(RepositoryHandler.isOfType(child)){
 					final String repoId = FLEFRecordHelper.getChildValue(child, RepositoryHandler.TYPE);
 					if(id != null && id.equals(repoId)){
 						sourceCount ++;

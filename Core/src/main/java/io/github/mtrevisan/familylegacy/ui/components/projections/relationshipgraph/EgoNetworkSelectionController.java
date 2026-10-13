@@ -142,7 +142,7 @@ class EgoNetworkSelectionController{
 			return;
 
 		final FLEFRecord record = model.getRecordById(next);
-		if(record != null && GroupHandler.TYPE.equalsIgnoreCase(record.getTag())){
+		if(GroupHandler.isOfType(record)){
 			if(next.equals(selectedGroupId))
 				return;
 

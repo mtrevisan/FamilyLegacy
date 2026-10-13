@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.gedcom.GEDCOMParser;
 import io.github.mtrevisan.familylegacy.gedcom.GEDCOMToFLEFConverter;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.ui.dialogs.ProgressDialog;
+import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolOperation;
 import org.apache.commons.lang3.StringUtils;
@@ -84,9 +85,10 @@ public final class ImportGedcomTool implements ToolOperation{
 		final File file = chooser.getSelectedFile();
 
 		final int confirm = JOptionPane.showConfirmDialog(context.owner(),
-			"Import will replace the current model with the content of:" + StringUtils.LF
-				+ file.getName() + "\n\nContinue?",
-			"Confirm Import", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+			I18N.tf("confirmation.overwrite.import.message", file.getName()),
+			I18N.t("confirmation.overwrite.import.title"),
+			JOptionPane.YES_NO_OPTION,
+			JOptionPane.WARNING_MESSAGE);
 		if(confirm != JOptionPane.YES_OPTION)
 			return;
 

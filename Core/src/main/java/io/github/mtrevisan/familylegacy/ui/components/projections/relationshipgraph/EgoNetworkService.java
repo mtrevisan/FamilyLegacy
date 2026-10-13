@@ -176,7 +176,7 @@ public class EgoNetworkService{
 	}
 
 	private static boolean isGroup(final FLEFRecord record){
-		return (GroupHandler.TYPE.equalsIgnoreCase(record.getTag()));
+		return GroupHandler.isOfType(record);
 	}
 
 	private static void getOrAddRelatedGroup(final EgoNode egoNode, final FLEFRecord record, final String type,

@@ -245,7 +245,7 @@ public final class IndividualDossierService{
 		final List<DossierEntry> entries = new ArrayList<>();
 		final List<FLEFRecord> eventParticipations = model.getRecordsByType(EventParticipationHandler.TYPE);
 		for(final FLEFRecord eventParticipation : eventParticipations){
-			final String participantId = extractParticipantId(eventParticipation);
+			final String participantId = EventParticipationReader.extractParticipantRef(eventParticipation);
 			if(!individualId.equals(participantId))
 				continue;
 
@@ -354,8 +354,8 @@ public final class IndividualDossierService{
 		final List<DossierEntry> entries = new ArrayList<>();
 		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
 		for(final FLEFRecord relationship : relationships){
-			final String subjectId = extractParticipantRef(relationship, RelationshipReader.TAG_SUBJECT);
-			final String objectId = extractParticipantRef(relationship, RelationshipReader.TAG_OBJECT);
+			final String subjectId = EventParticipationReader.extractParticipantRef(relationship, RelationshipReader.TAG_SUBJECT);
+			final String objectId = EventParticipationReader.extractParticipantRef(relationship, RelationshipReader.TAG_OBJECT);
 			final boolean isSubject = individualId.equals(subjectId);
 			final boolean isTarget = individualId.equals(objectId);
 			if(!isSubject && !isTarget)
@@ -373,8 +373,8 @@ public final class IndividualDossierService{
 			: "Relationship");
 
 		final String otherId = (isSubject
-			? extractParticipantRef(relationship, RelationshipReader.TAG_OBJECT)
-			: extractParticipantRef(relationship, RelationshipReader.TAG_SUBJECT));
+			? EventParticipationReader.extractParticipantRef(relationship, RelationshipReader.TAG_OBJECT)
+			: EventParticipationReader.extractParticipantRef(relationship, RelationshipReader.TAG_SUBJECT));
 		final String otherName = resolveParticipantName(otherId);
 
 		final String direction = (isSubject? "→ ": "← ");
@@ -427,8 +427,8 @@ public final class IndividualDossierService{
 
 		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
 		for(final FLEFRecord relationship : relationships){
-			final String subjectId = extractParticipantRef(relationship, RelationshipReader.TAG_SUBJECT);
-			final String objectId = extractParticipantRef(relationship, RelationshipReader.TAG_OBJECT);
+			final String subjectId = EventParticipationReader.extractParticipantRef(relationship, RelationshipReader.TAG_SUBJECT);
+			final String objectId = EventParticipationReader.extractParticipantRef(relationship, RelationshipReader.TAG_OBJECT);
 			if(individualId.equals(subjectId) || individualId.equals(objectId))
 				collectSources(relationship, "Relationship", entries, seenSourceIds);
 		}
@@ -520,10 +520,9 @@ public final class IndividualDossierService{
 
 	private static String resolveContextTitle(final FLEFRecord context){
 		String title = null;
-		final String tag = context.getTag();
-		if(CulturalNormHandler.TYPE.equalsIgnoreCase(tag))
+		if(CulturalNormHandler.isOfType(context))
 			title = CulturalNormReader.extractTitle(context);
-		else if(HistoricEventHandler.TYPE.equalsIgnoreCase(tag))
+		else if(HistoricEventHandler.isOfType(context))
 			title = HistoricEventReader.extractTitle(context);
 		if(StringUtils.isNotEmpty(title))
 			return title;
@@ -653,8 +652,8 @@ public final class IndividualDossierService{
 
 		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
 		for(final FLEFRecord relationship : relationships){
-			final String subjectId = extractParticipantRef(relationship, RelationshipReader.TAG_SUBJECT);
-			final String objectId = extractParticipantRef(relationship, RelationshipReader.TAG_OBJECT);
+			final String subjectId = EventParticipationReader.extractParticipantRef(relationship, RelationshipReader.TAG_SUBJECT);
+			final String objectId = EventParticipationReader.extractParticipantRef(relationship, RelationshipReader.TAG_OBJECT);
 			if(individualId.equals(subjectId) || individualId.equals(objectId))
 				collectNotes(relationship, "Relationship", entries);
 		}
@@ -774,7 +773,7 @@ public final class IndividualDossierService{
 		final Map<String, List<FLEFRecord>> result = new HashMap<>();
 		final List<FLEFRecord> eventParticipations = model.getRecordsByType(EventParticipationHandler.TYPE);
 		for(final FLEFRecord eventParticipation : eventParticipations){
-			final String eventParticipantId = extractParticipantId(eventParticipation);
+			final String eventParticipantId = EventParticipationReader.extractParticipantRef(eventParticipation);
 			if(eventParticipantId == null)
 				continue;
 
@@ -787,24 +786,6 @@ public final class IndividualDossierService{
 				result.computeIfAbsent(eventParticipantId, k -> new ArrayList<>()).add(event);
 		}
 		return result;
-	}
-
-	private static String extractParticipantId(final FLEFRecord eventParticipation){
-		final FLEFRecord eventParticipantField = FLEFRecordHelper.findChild(eventParticipation, EventParticipationReader.TAG_PARTICIPANT);
-		if(eventParticipantField == null)
-			return null;
-
-		final FLEFRecord ref = eventParticipantField.getTheOnlyChild();
-		return (ref != null? ref.getValue(): null);
-	}
-
-	private static String extractParticipantRef(final FLEFRecord rel, final String fieldTag){
-		final FLEFRecord field = FLEFRecordHelper.findChild(rel, fieldTag);
-		if(field == null)
-			return null;
-
-		final FLEFRecord child = field.getTheOnlyChild();
-		return (child != null? child.getValue(): null);
 	}
 
 	private static String extractRef(final FLEFRecord parent, final String tag){
@@ -840,10 +821,10 @@ public final class IndividualDossierService{
 			return id;
 
 		try{
-			final String tag = record.getTag();
-			if(GroupHandler.TYPE.equalsIgnoreCase(tag))
+			if(GroupHandler.isOfType(record))
 				return GroupHandler.getInstance()
 					.getDisplayText(record, model);
+
 			return individualHandler.getDisplayText(record, model);
 		}
 		catch(final RuntimeException ignored){

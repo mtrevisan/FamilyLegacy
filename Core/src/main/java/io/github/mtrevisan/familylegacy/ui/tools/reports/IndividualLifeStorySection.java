@@ -314,7 +314,7 @@ final class IndividualLifeStorySection implements SectionBuilder{
 			if(pf == null)
 				continue;
 			final FLEFRecord ref = pf.getTheOnlyChild();
-			if(ref == null || !IndividualHandler.TYPE.equalsIgnoreCase(ref.getTag()))
+			if(!IndividualHandler.isOfType(ref))
 				continue;
 			if(!Objects.equals(individual.getId(), ref.getValue()))
 				continue;
@@ -444,7 +444,7 @@ final class IndividualLifeStorySection implements SectionBuilder{
 		final FLEFRecord ref = targetNode.getTheOnlyChild();
 		if(ref == null)
 			return null;
-		return (GroupHandler.TYPE.equalsIgnoreCase(ref.getTag())? ref.getValue(): null);
+		return (GroupHandler.isOfType(ref)? ref.getValue(): null);
 	}
 
 	private void writeRelationship(final List<ReportSection> out, final FLEFRecord rel){

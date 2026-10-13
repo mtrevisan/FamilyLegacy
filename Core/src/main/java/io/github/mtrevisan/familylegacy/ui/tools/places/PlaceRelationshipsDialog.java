@@ -128,7 +128,7 @@ public final class PlaceRelationshipsDialog extends JDialog{
 		toolbar.add(newButton);
 
 		final JButton editButton = new JButton(I18N.t("button.edit"));
-		editButton.addActionListener(e -> openEditor(selectedRelationshipId()));
+		editButton.addActionListener(e -> openEditor(selectedPlaceRelationship()));
 		toolbar.add(editButton);
 
 		final JButton deleteButton = new JButton(I18N.t("button.delete"));
@@ -151,7 +151,7 @@ public final class PlaceRelationshipsDialog extends JDialog{
 			@Override
 			public void mouseClicked(final MouseEvent e){
 				if(e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e))
-					openEditor(selectedRelationshipId());
+					openEditor(selectedPlaceRelationship());
 			}
 		});
 
@@ -247,15 +247,19 @@ public final class PlaceRelationshipsDialog extends JDialog{
 		return haystack != null && haystack.toLowerCase(Locale.ROOT).contains(needle);
 	}
 
-	private String selectedRelationshipId(){
+	private FLEFRecord selectedPlaceRelationship(){
 		final int viewRow = table.getSelectedRow();
 		if(viewRow < 0)
 			return null;
+
 		final int modelRow = table.convertRowIndexToModel(viewRow);
-		return tableModel.getRow(modelRow).id();
+		final String rowId = tableModel.getRow(modelRow)
+			.id();
+		final FLEFModel model = context.model();
+		return model.getRecordById(rowId);
 	}
 
-	private void openEditor(final String relationshipId){
+	private void openEditor(final FLEFRecord placeRelationship){
 		final int option = JOptionPane.showConfirmDialog(this,
 			"This dialog does not edit individual relationships inline." + StringUtils.LF
 				+ "Open the record editor for the selected relationship?",
@@ -264,7 +268,8 @@ public final class PlaceRelationshipsDialog extends JDialog{
 		if(option != JOptionPane.YES_OPTION)
 			return;
 
-		final String id = (relationshipId != null? relationshipId: "<new>");
+		// TODO
+		final String id = (placeRelationship != null? placeRelationship.getId(): "<new>");
 		JOptionPane.showMessageDialog(this,
 			"Record editor for relationship " + id + " is not wired yet.",
 			"Not Implemented",
@@ -272,20 +277,20 @@ public final class PlaceRelationshipsDialog extends JDialog{
 	}
 
 	private void deleteSelected(){
-		final String relationshipId = selectedRelationshipId();
-		if(relationshipId == null)
+		final FLEFRecord placeRelationship = selectedPlaceRelationship();
+		if(placeRelationship == null)
 			return;
 
 		final int confirm = JOptionPane.showConfirmDialog(this,
-			"Delete place relationship " + relationshipId + "?",
-			"Confirm Deletion",
+			I18N.tf("confirmation.delete.place.relationship.message", PlaceRelationshipReader.extractType(placeRelationship)),
+			I18N.t("confirmation.delete.place.relationship.title"),
 			JOptionPane.YES_NO_OPTION,
 			JOptionPane.WARNING_MESSAGE);
 		if(confirm != JOptionPane.YES_OPTION)
 			return;
 
 		final FLEFModel model = context.model();
-		model.removeRecord(relationshipId);
+		model.removeRecord(placeRelationship.getId());
 		reload();
 	}
 

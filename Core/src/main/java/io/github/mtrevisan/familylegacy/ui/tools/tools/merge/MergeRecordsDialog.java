@@ -412,7 +412,9 @@ public final class MergeRecordsDialog extends JDialog{
 			+ "The source record will be deleted. All references to it "
 			+ "will be re-pointed to the target.";
 		final int choice = JOptionPane.showConfirmDialog(this, message,
-			"Confirm Merge", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+			"Confirm Merge",
+			JOptionPane.YES_NO_OPTION,
+			JOptionPane.WARNING_MESSAGE);
 		return (choice == JOptionPane.YES_OPTION);
 	}
 

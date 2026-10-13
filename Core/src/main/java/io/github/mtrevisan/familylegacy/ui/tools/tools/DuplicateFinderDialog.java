@@ -348,6 +348,7 @@ public final class DuplicateFinderDialog extends JDialog{
 		final int viewRow = table.getSelectedRow();
 		if(viewRow < 0)
 			return null;
+
 		return tableModel.getRow(table.convertRowIndexToModel(viewRow));
 	}
 

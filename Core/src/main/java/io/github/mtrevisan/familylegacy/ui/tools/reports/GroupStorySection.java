@@ -390,7 +390,7 @@ final class GroupStorySection implements SectionBuilder{
 		final FLEFRecord ref = subjNode.getTheOnlyChild();
 		if(ref == null)
 			return null;
-		return (IndividualHandler.TYPE.equalsIgnoreCase(ref.getTag())? ref.getValue(): null);
+		return (IndividualHandler.isOfType(ref)? ref.getValue(): null);
 	}
 
 }

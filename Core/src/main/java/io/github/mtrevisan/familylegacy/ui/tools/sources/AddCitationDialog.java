@@ -238,7 +238,7 @@ public final class AddCitationDialog extends JDialog{
 		final Window owner = context.owner();
 		final FLEFModel model = context.model();
 		final String tag = record.getTag();
-		if(IndividualHandler.TYPE.equalsIgnoreCase(tag))
+		if(IndividualHandler.isOfType(record))
 			return io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler.getInstance()
 				.createEditDialog(owner, model, record);
 		if("source".equalsIgnoreCase(tag))

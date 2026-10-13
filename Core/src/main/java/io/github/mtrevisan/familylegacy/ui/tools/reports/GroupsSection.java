@@ -126,7 +126,7 @@ final class GroupsSection implements SectionBuilder{
 		final FLEFRecord ref = objectNode.getTheOnlyChild();
 		if(ref == null)
 			return null;
-		return (GroupHandler.TYPE.equalsIgnoreCase(ref.getTag())? ref.getValue(): null);
+		return (GroupHandler.isOfType(ref)? ref.getValue(): null);
 	}
 
 

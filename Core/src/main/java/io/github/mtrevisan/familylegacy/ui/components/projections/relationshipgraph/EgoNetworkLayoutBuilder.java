@@ -147,7 +147,7 @@ class EgoNetworkLayoutBuilder{
 	private static JPanel createCardPanel(final EgoNode node, final BoxPanelType boxType, final FLEFModel model,
 			final IndividualListener individualListener, final GroupListener groupListener){
 		final FLEFRecord record = node.getEgoRecord();
-		if(record != null && GroupHandler.TYPE.equalsIgnoreCase(record.getTag())){
+		if(GroupHandler.isOfType(record)){
 			final GroupPanel groupPanel = GroupPanel.create(boxType, model)
 				.withGroupData(GroupData.create(record))
 				.withListener(groupListener, new EgoNetworkGroupPopupMenuFactory());

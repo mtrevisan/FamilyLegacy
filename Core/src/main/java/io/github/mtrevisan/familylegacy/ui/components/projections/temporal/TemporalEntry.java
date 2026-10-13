@@ -82,7 +82,7 @@ public record TemporalEntry(
 	 * @return {@code true} if the entry's type matches
 	 */
 	public boolean hasType(final String candidate){
-		return (candidate != null && type.equalsIgnoreCase(candidate));
+		return type.equalsIgnoreCase(candidate);
 	}
 
 	/**
