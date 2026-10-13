@@ -260,7 +260,7 @@ public final class UniversalDateConverter{
 
 	/**
 	 * Converts a date expressed in any calendar whose conversion rule is
-	 * declared arithmetically in {@link CalendarType#parseToJdn(String, int)}.
+	 * declared arithmetically in {@link CalendarType#parseToJdn(String)}.
 	 *
 	 * <p>The year, month and day are extracted from the accessor and passed
 	 * to the enum, which returns a Julian Day Number. The JDN is then
@@ -280,7 +280,7 @@ public final class UniversalDateConverter{
 		final int month = (pm.hasMonth()? accessor.get(ChronoField.MONTH_OF_YEAR): 1);
 		final int day = (pm.hasDay()? accessor.get(ChronoField.DAY_OF_MONTH): 1);
 
-		final long jdn = type.parseToJdn(day + StringUtils.SPACE + month + StringUtils.SPACE + year, 0);
+		final long jdn = type.parseToJdn(day + StringUtils.SPACE + month + StringUtils.SPACE + year);
 		return LocalDate.ofEpochDay(jdn - UNIX_EPOCH_JDN);
 	}
 

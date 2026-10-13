@@ -246,87 +246,95 @@ public class KinshipDialog extends JDialog{
 		final StringBuilder sb = new StringBuilder();
 
 		// Header
-		sb.append("Individual A: ").append(result.displayA()).append('\n');
-		sb.append("Individual B: ").append(result.displayB()).append('\n');
-		sb.append('\n');
+		sb.append("Individual A: ")
+			.append(result.displayA())
+			.append(StringUtils.LF);
+		sb.append("Individual B: ")
+			.append(result.displayB())
+			.append(StringUtils.LF);
+		sb.append(StringUtils.LF);
 
 		// Relationship description
-		sb.append("Relationship:\n  ").append(result.relationshipDescription()).append('\n');
-		sb.append('\n');
+		sb.append("Relationship:\n  ")
+			.append(result.relationshipDescription())
+			.append(StringUtils.LF);
+		sb.append(StringUtils.LF);
 
 		if(result.isSameIndividual())
 			return sb.toString();
 		if(!result.isRelated()){
 			sb.append("No further statistics available.")
-				.append('\n');
+				.append(StringUtils.LF);
 			return sb.toString();
 		}
 
 		// Chain from A to MRCA
 		sb.append("Chain from A to the most recent common ancestor:")
-			.append('\n');
+			.append(StringUtils.LF);
 		appendChain(sb, result.chainA());
-		sb.append('\n');
+		sb.append(StringUtils.LF);
 
 		// Chain from B to MRCA
 		sb.append("Chain from B to the most recent common ancestor:")
-			.append('\n');
+			.append(StringUtils.LF);
 		appendChain(sb, result.chainB());
-		sb.append('\n');
+		sb.append(StringUtils.LF);
 
 		// MRCA and furthest common ancestor
 		final KinshipResult.CommonAncestorInfo mrca = result.mrca();
 		final KinshipResult.CommonAncestorInfo furthest = result.furthestCommonAncestor();
 		sb.append("Most recent common ancestor: ")
 			.append(mrca.display())
-			.append(" (")
+			.append(StringUtils.SPACE)
+			.append('(')
 			.append(mrca.distanceFromA()).append(" steps from A, ")
 			.append(mrca.distanceFromB()).append(" steps from B)")
-			.append('\n');
+			.append(StringUtils.LF);
 		sb.append("Furthest common ancestor: ")
 			.append(furthest.display())
-			.append(" (")
+			.append(StringUtils.SPACE)
+			.append('(')
 			.append(furthest.distanceFromA()).append(" steps from A, ")
 			.append(furthest.distanceFromB()).append(" steps from B)")
-			.append('\n');
-		sb.append('\n');
+			.append(StringUtils.LF);
+		sb.append(StringUtils.LF);
 
 		// Statistics
 		sb.append("Statistics:")
-			.append('\n');
+			.append(StringUtils.LF);
 		sb.append("  Total path length (A to B through the MRCA): ")
 			.append(result.totalSteps())
 			.append(" steps")
-			.append('\n');
+			.append(StringUtils.LF);
 		sb.append("  Common ancestors found: ")
 			.append(result.allCommonAncestors().size())
-			.append('\n');
+			.append(StringUtils.LF);
 		sb.append("  Relationship coefficient (Wright's R): ")
 			.append(String.format(Locale.ROOT, "%.5f", result.relationshipCoefficient()))
-			.append('\n');
-		sb.append('\n');
+			.append(StringUtils.LF);
+		sb.append(StringUtils.LF);
 
 		// Kinship degrees under the different systems
 		sb.append("Kinship degrees:")
-			.append('\n');
+			.append(StringUtils.LF);
 		appendCivilDegree(sb, result);
 		appendCanonicalDegree(sb, result);
 		appendGermanicKnee(sb, result);
 		appendKoreanChon(sb, result);
 		appendChineseGeneration(sb, result);
-		sb.append('\n');
+		sb.append(StringUtils.LF);
 
 		// Marriage prohibitions
 		sb.append("Marriage prohibitions:")
-			.append('\n');
+			.append(StringUtils.LF);
 		appendCivilProhibition(sb, result);
 		appendCanonicalProhibition(sb, result);
 		appendChineseProhibition(sb, result);
-		sb.append('\n');
+		sb.append(StringUtils.LF);
 
 		// Full list of common ancestors
 		sb.append("All common ancestors:")
-			.append('\n');
+			.append(StringUtils.LF);
 		for(final KinshipResult.CommonAncestorInfo c : result.allCommonAncestors()){
 			sb.append("  - ")
 				.append(c.display())
@@ -337,7 +345,7 @@ public class KinshipDialog extends JDialog{
 				.append(", contribution=")
 				.append(String.format(Locale.ROOT, "%.5f", c.contribution()))
 				.append(')')
-				.append('\n');
+				.append(StringUtils.LF);
 		}
 
 		return sb.toString();
@@ -349,7 +357,7 @@ public class KinshipDialog extends JDialog{
 				sb.append(" -> ");
 			sb.append(chain.get(i).display());
 		}
-		sb.append('\n');
+		sb.append(StringUtils.LF);
 	}
 
 	private static void appendCivilDegree(final StringBuilder sb, final KinshipResult result){
@@ -360,18 +368,18 @@ public class KinshipDialog extends JDialog{
 			sb.append(" [within the 6th-degree limit]");
 		else if(result.civilDegree() > 6)
 			sb.append(" [beyond the 6th-degree limit]");
-		sb.append('\n');
+		sb.append(StringUtils.LF);
 	}
 
 	private static void appendCanonicalDegree(final StringBuilder sb, final KinshipResult result){
 		sb.append("  Canonical degree (Catholic Church): ")
 			.append(result.canonicalDegree())
-			.append("°");
+			.append('°');
 		if(result.isCanonicallyRelevant())
 			sb.append(" [within the 4th-degree limit]");
 		else if(result.canonicalDegree() > 4)
 			sb.append(" [beyond the 4th-degree limit]");
-		sb.append('\n');
+		sb.append(StringUtils.LF);
 	}
 
 	private static void appendGermanicKnee(final StringBuilder sb, final KinshipResult result){
@@ -379,7 +387,7 @@ public class KinshipDialog extends JDialog{
 			.append(result.germanicKnee())
 			.append(result.germanicKnee() == 1? " knee": " knees")
 			.append(" [same numerical value as the canonical degree]")
-			.append('\n');
+			.append(StringUtils.LF);
 	}
 
 	private static void appendKoreanChon(final StringBuilder sb, final KinshipResult result){
@@ -387,7 +395,7 @@ public class KinshipDialog extends JDialog{
 			.append(result.koreanChon())
 			.append(" chon")
 			.append(" [same numerical value as the civil degree]")
-			.append('\n');
+			.append(StringUtils.LF);
 	}
 
 	private static void appendChineseGeneration(final StringBuilder sb, final KinshipResult result){
@@ -398,7 +406,7 @@ public class KinshipDialog extends JDialog{
 			sb.append(" [within the 3rd-generation limit for collateral relatives]");
 		else if(!result.directLine() && result.chineseGeneration() > 3)
 			sb.append(" [beyond the 3rd-generation limit]");
-		sb.append('\n');
+		sb.append(StringUtils.LF);
 	}
 
 	private static void appendCivilProhibition(final StringBuilder sb, final KinshipResult result){
@@ -411,7 +419,7 @@ public class KinshipDialog extends JDialog{
 		}
 		else
 			sb.append("allowed");
-		sb.append('\n');
+		sb.append(StringUtils.LF);
 	}
 
 	private static void appendCanonicalProhibition(final StringBuilder sb, final KinshipResult result){
@@ -428,7 +436,7 @@ public class KinshipDialog extends JDialog{
 		}
 		else
 			sb.append("allowed");
-		sb.append('\n');
+		sb.append(StringUtils.LF);
 	}
 
 	private static void appendChineseProhibition(final StringBuilder sb, final KinshipResult result){
@@ -441,7 +449,7 @@ public class KinshipDialog extends JDialog{
 		}
 		else
 			sb.append("allowed");
-		sb.append('\n');
+		sb.append(StringUtils.LF);
 	}
 
 }

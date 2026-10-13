@@ -33,6 +33,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateService;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RepositoryHandler;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -120,10 +121,16 @@ final class RepositoryRootSection implements SectionBuilder{
 			final StringBuilder line = new StringBuilder();
 			line.append("**").append(ctx.labels.sections().name());
 			if(type != null && !type.isBlank())
-				line.append(" (").append(ReportFormatters.escape(type)).append(")");
-			line.append(":** ").append(ReportFormatters.escape(value));
+				line.append(StringUtils.SPACE)
+					.append('(')
+					.append(ReportFormatters.escape(type))
+					.append(')');
+			line.append(":** ")
+				.append(ReportFormatters.escape(value));
 			if(locale != null && !locale.isBlank())
-				line.append(" — *").append(ReportFormatters.escape(locale)).append('*');
+				line.append(" — *")
+					.append(ReportFormatters.escape(locale))
+					.append('*');
 			rows.add(line.toString());
 		}
 		if(!rows.isEmpty())

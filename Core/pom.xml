@@ -32,6 +32,9 @@
 				<configuration>
 					<argLine>
 						--add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.io.model.readers.date=ALL-UNNAMED
+						--add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.io.model.readers.date=org.junit.platform.commons
+						--add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.io.model.readers.date=org.junit.jupiter.api
+						--add-reads io.github.mtrevisan.familylegacy.core=org.junit.jupiter.api
 					</argLine>
 				</configuration>
 			</plugin>

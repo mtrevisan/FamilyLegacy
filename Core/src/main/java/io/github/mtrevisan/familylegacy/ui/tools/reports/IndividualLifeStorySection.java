@@ -139,8 +139,12 @@ final class IndividualLifeStorySection implements SectionBuilder{
 			final StringBuilder line = new StringBuilder();
 			line.append("**").append(ctx.labels.sections().name());
 			if(nameType != null)
-				line.append(" (").append(ReportFormatters.escape(nameType)).append(")");
-			line.append(":** ").append(ReportFormatters.escape(n));
+				line.append(StringUtils.SPACE)
+					.append('(')
+					.append(ReportFormatters.escape(nameType))
+					.append(')');
+			line.append(":** ")
+				.append(ReportFormatters.escape(n));
 
 			// Cultural norms attached to the name.
 			final List<String> norms = nameNormTitles(nameRec);

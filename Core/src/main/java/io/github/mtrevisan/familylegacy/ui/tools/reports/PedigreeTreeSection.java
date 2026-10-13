@@ -119,7 +119,7 @@ final class PedigreeTreeSection implements SectionBuilder{
 		final StringBuilder sb = new StringBuilder();
 		final FLEFRecord root = directLine.getFirst();
 		sb.append(ReportFormatters.escape(ctx.displayText(root)))
-			.append('\n');
+			.append(StringUtils.LF);
 		renderChildren(sb, root, StringUtils.EMPTY);
 		return sb.toString();
 	}
@@ -140,7 +140,7 @@ final class PedigreeTreeSection implements SectionBuilder{
 			sb.append(prefix)
 				.append(last? LAST_BRANCH: BRANCH)
 				.append(ReportFormatters.escape(ctx.displayText(inLine.get(i))))
-				.append('\n');
+				.append(StringUtils.LF);
 			renderChildren(sb, inLine.get(i), prefix + (last? SPACE: VERTICAL));
 		}
 	}

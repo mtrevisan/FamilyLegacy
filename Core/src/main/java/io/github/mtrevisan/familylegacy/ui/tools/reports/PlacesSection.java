@@ -34,6 +34,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceRelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateService;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventHandler;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -189,10 +190,15 @@ final class PlacesSection implements SectionBuilder{
 				final StringBuilder line = new StringBuilder();
 				line.append("**").append(ctx.labels.sections().name());
 				if(type != null && !type.isBlank())
-					line.append(" (").append(ReportFormatters.escape(type)).append(")");
+					line.append(StringUtils.SPACE)
+						.append('(')
+						.append(ReportFormatters.escape(type))
+						.append(')');
 				line.append(":** ").append(ReportFormatters.escape(ReportFormatters.orEmpty(value)));
 				if(locale != null && !locale.isBlank())
-					line.append(" — *").append(ReportFormatters.escape(locale)).append('*');
+					line.append(" — *")
+						.append(ReportFormatters.escape(locale))
+						.append('*');
 				rows.add(line.toString());
 			}
 

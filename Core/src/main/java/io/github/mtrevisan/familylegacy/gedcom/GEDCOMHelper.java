@@ -300,9 +300,8 @@ public class GEDCOMHelper{
 			String tag = child.getTag();
 			if("CONC".equals(tag) || "CONT".equals(tag)){
 				if(child.getValue() != null){
-					if("CONT".equals(tag) && !sb.isEmpty()){
-						sb.append('\n');
-					}
+					if("CONT".equals(tag) && !sb.isEmpty())
+						sb.append(StringUtils.LF);
 					sb.append(child.getValue());
 				}
 			}
@@ -917,11 +916,15 @@ public class GEDCOMHelper{
 				StringBuilder sb = new StringBuilder();
 				GEDCOMNode pediNode = findFirstChild(famcNode, "PEDI");
 				if(pediNode != null && pediNode.getValue() != null){
-					sb.append(" (Pedigree: ").append(pediNode.getValue()).append(")");
+					sb.append(" (Pedigree: ")
+						.append(pediNode.getValue())
+						.append(')');
 				}
 				GEDCOMNode statNode = findFirstChild(famcNode, "STAT");
 				if(statNode != null && statNode.getValue() != null){
-					sb.append(" (Status: ").append(statNode.getValue()).append(")");
+					sb.append(" (Status: ")
+						.append(statNode.getValue())
+						.append(')');
 				}
 
 				String groupId = cleanId(famcNode.getValue());

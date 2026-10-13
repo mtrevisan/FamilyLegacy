@@ -397,19 +397,20 @@ public final class AutocompleteController{
 			final StringBuilder sb = new StringBuilder();
 			sb.append(s.tag())
 				.append(" {")
-				.append('\n');
+				.append(StringUtils.LF);
 
 			if(s.prefill() != null){
 				sb.append(childIndent)
 					.append(s.prefill())
 					.append(' ')
-					.append('\n');
+					.append(StringUtils.LF);
 				final int bodyStart = (s.tag() + " {" + StringUtils.LF).length();
 				caretOffset = bodyStart + childIndent.length()
 					+ s.prefill().length() + 1;
 			}
 			else{
-				sb.append(childIndent).append('\n');
+				sb.append(childIndent)
+					.append(StringUtils.LF);
 				final int bodyStart = (s.tag() + " {" + StringUtils.LF).length();
 				caretOffset = bodyStart + childIndent.length();
 			}
@@ -633,7 +634,7 @@ public final class AutocompleteController{
 			final StringBuilder out = new StringBuilder();
 			for(int i = 0; i < lines.length; i ++){
 				if(i > 0)
-					out.append('\n');
+					out.append(StringUtils.LF);
 				if(indent)
 					out.repeat(StringUtils.SPACE, unit)
 						.append(lines[i]);
@@ -657,8 +658,9 @@ public final class AutocompleteController{
 	}
 
 	private static boolean sameLine(final JTextArea area, final int a, final int b){
-		final int newlineAfterA = area.getText().indexOf('\n', a);
-		return newlineAfterA < 0 || newlineAfterA >= b;
+		final int newlineAfterA = area.getText()
+			.indexOf('\n', a);
+		return (newlineAfterA < 0 || newlineAfterA >= b);
 	}
 
 

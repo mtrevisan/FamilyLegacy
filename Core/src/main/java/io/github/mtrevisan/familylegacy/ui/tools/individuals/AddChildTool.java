@@ -97,7 +97,6 @@ public final class AddChildTool implements ToolOperation{
 		final String targetLabel = (targetRecord != null
 			? IndividualReader.extractPrimaryFullname(targetRecord) + " [" + targetId + "]"
 			: targetId);
-		// TODO biological?
 		items.add(new RelationshipTypeSelectionDialog.Item(targetId, targetLabel,
 			RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD));
 
@@ -107,13 +106,12 @@ public final class AddChildTool implements ToolOperation{
 			final String partnerLabel = (partnerRecord != null
 				? IndividualReader.extractPrimaryFullname(partnerRecord) + " [" + partnerId + "]"
 				: partnerId);
-			// TODO biological?
 			items.add(new RelationshipTypeSelectionDialog.Item(partnerId, partnerLabel,
 				RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD));
 		}
 
 		final List<String> selectedTypes = RelationshipTypeSelectionDialog.selectRelationshipType(
-			owner, items, RelationshipReader.CHILD_TYPES.toArray(String[]::new), null, model);
+			owner, items, RelationshipReader.FAMILY, null, model);
 		if(selectedTypes == null || selectedTypes.isEmpty())
 			return;
 
@@ -126,8 +124,7 @@ public final class AddChildTool implements ToolOperation{
 		if(mutator != null)
 			mutator.createRelationship(childId, targetId, firstType);
 		else
-			IndividualHelper.createRelationship(childId, targetId, firstType, RelationshipHandler.ID_PREFIX, model
-			);
+			IndividualHelper.createRelationship(childId, targetId, firstType, RelationshipHandler.ID_PREFIX, model);
 
 		if(partnerId != null && selectedTypes.size() > 1){
 			final String secondType = selectedTypes.get(1);
@@ -175,7 +172,7 @@ public final class AddChildTool implements ToolOperation{
 
 	@Override
 	public boolean isEnabled(final ToolContext context){
-		return (context != null && context.hasSelectedEntity());
+		return (context != null && context.hasSelectedIndividual());
 	}
 
 }

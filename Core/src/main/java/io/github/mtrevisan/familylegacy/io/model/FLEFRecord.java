@@ -436,7 +436,10 @@ public class FLEFRecord{
 		if(value != null)
 			sb.append(" = ").append(value);
 		if(hasChildren())
-			sb.append(" (").append(children.size()).append(" children)");
+			sb.append(StringUtils.SPACE)
+				.append('(')
+				.append(children.size())
+				.append(" children)");
 		return sb.toString();
 	}
 

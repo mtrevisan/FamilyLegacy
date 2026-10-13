@@ -379,10 +379,10 @@ public class RecordDiffDialog extends JDialog{
 		final StringBuilder sb = new StringBuilder();
 		for(int i = 0; i < lines.size(); i ++){
 			if(i > 0)
-				sb.append('\n');
+				sb.append(StringUtils.LF);
 			sb.append(lines.get(i).text());
 		}
-		sb.append('\n');
+		sb.append(StringUtils.LF);
 		return sb.toString();
 	}
 

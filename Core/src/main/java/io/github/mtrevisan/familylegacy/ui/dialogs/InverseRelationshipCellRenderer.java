@@ -75,10 +75,16 @@ public class InverseRelationshipCellRenderer extends DefaultListCellRenderer{
 			};
 
 			final StringBuilder sb = new StringBuilder();
-			sb.append("<html><b>").append(categoryTag).append("</b> ");
-			sb.append(type).append(" &larr; ").append(subjectDisplayText);
+			sb.append("<html><b>")
+				.append(categoryTag)
+				.append("</b> ");
+			sb.append(type)
+				.append(" &larr; ")
+				.append(subjectDisplayText);
 			if(StringUtils.isNotEmpty(role))
-				sb.append(" <i>(").append(role).append(")</i>");
+				sb.append(" <i>(")
+					.append(role)
+					.append(")</i>");
 			sb.append("</html>");
 
 			label.setText(sb.toString());

@@ -142,12 +142,12 @@ public class PedigreeCollapseDialog extends JDialog{
 		for(int i = 0; i < collapses.size(); i ++){
 			final PedigreeCollapse collapse = collapses.get(i);
 			if(i > 0)
-				sb.append('\n');
+				sb.append(StringUtils.LF);
 			sb.append(String.format(Locale.ROOT, "[%d] %s%n", i + 1, collapse.displayName()));
 			sb.append(String.format(Locale.ROOT, "    Occurrences: %d%n", collapse.occurrenceCount()));
 			sb.append(String.format(Locale.ROOT, "    Deepest generation reached: %d%n", collapse.maxGeneration()));
 			sb.append("    Paths from the root:")
-				.append('\n');
+				.append(StringUtils.LF);
 			for(final PedigreePath path : collapse.paths())
 				sb.append(String.format(Locale.ROOT, "      %-10s  %s%n",
 					path.code(), path.describe()));

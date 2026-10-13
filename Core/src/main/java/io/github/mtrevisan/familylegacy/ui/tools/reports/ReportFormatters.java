@@ -243,10 +243,15 @@ public final class ReportFormatters{
 			final String locale = FLEFRecordHelper.getChildValue(tr, "locale");
 
 			final StringBuilder sb = new StringBuilder("*")
-				.append(labels.sections().noteTranslation()).append('*');
+				.append(labels.sections().noteTranslation())
+				.append('*');
 			if(locale != null && !locale.isBlank())
-				sb.append(" (").append(escape(locale)).append(')');
-			sb.append(": ").append(escape(text));
+				sb.append(StringUtils.SPACE)
+					.append('(')
+					.append(escape(locale))
+					.append(')');
+			sb.append(": ")
+				.append(escape(text));
 			out.add(sb.toString());
 		}
 		return out;

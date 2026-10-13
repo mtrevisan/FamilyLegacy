@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.ui.tools.reports;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 
@@ -57,7 +58,7 @@ final class DescendantsSection implements SectionBuilder{
 	private void write(final StringBuilder sb, final FLEFRecord parent, final int depth){
 		sb.repeat("  ", depth)
 			.append(ReportFormatters.escape(ctx.displayText(parent)))
-			.append('\n');
+			.append(StringUtils.LF);
 		for(final FLEFRecord child : ctx.index.childrenOf(parent))
 			write(sb, child, depth + 1);
 	}

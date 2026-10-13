@@ -373,7 +373,7 @@ public final class TemporalAxis{
 
 		int count = 0;
 		for(int year = alignedStart; year <= endYear + intervalYears && count < MAX_TICKS; year += intervalYears){
-			final long tickJdn = CalendarType.GREGORIAN.parseToJdn(1 + StringUtils.SPACE + 1 + StringUtils.SPACE + year, 0);
+			final long tickJdn = CalendarType.GREGORIAN.parseToJdn(1 + StringUtils.SPACE + 1 + StringUtils.SPACE + year);
 			if(tickJdn < visibleStartJdn)
 				continue;
 			if(tickJdn > visibleEndJdn)
@@ -403,7 +403,7 @@ public final class TemporalAxis{
 			if(month < 1)
 				break;
 
-			final long tickJdn = CalendarType.GREGORIAN.parseToJdn(1 + StringUtils.SPACE + month + StringUtils.SPACE + year, 0);
+			final long tickJdn = CalendarType.GREGORIAN.parseToJdn(1 + StringUtils.SPACE + month + StringUtils.SPACE + year);
 			if(tickJdn > visibleEndJdn)
 				break;
 			if(tickJdn >= visibleStartJdn){

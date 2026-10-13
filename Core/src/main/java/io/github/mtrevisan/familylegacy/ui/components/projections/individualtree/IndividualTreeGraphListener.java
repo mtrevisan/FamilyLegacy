@@ -43,7 +43,7 @@ import io.github.mtrevisan.familylegacy.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolContexts;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolDispatcher;
 import io.github.mtrevisan.familylegacy.ui.tools.individuals.DeleteIndividualTool;
-import io.github.mtrevisan.familylegacy.ui.tools.individuals.UnlinkRelationshipsTool;
+import io.github.mtrevisan.familylegacy.ui.tools.individuals.UnlinkIndividualRelationshipsTool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -75,7 +75,7 @@ import java.util.function.Supplier;
  * testable and the panel stays focused on composition.
  * <p>
  * <b>Unlink.</b> The unlink workflow is delegated to
- * {@link UnlinkRelationshipsTool}, the same tool used by the popup menu.
+ * {@link UnlinkIndividualRelationshipsTool}, the same tool used by the popup menu.
  * The tool builds the full relationship set from the model (parents,
  * associates, groups, children), opens the dialog, and applies the
  * removal through the mutator. The listener only has to provide a
@@ -231,7 +231,7 @@ public final class IndividualTreeGraphListener implements IndividualListener{
 	 * relationships from the model.
 	 * <p>
 	 * The whole workflow is delegated to
-	 * {@link UnlinkRelationshipsTool}, the same tool invoked by the
+	 * {@link UnlinkIndividualRelationshipsTool}, the same tool invoked by the
 	 * popup menu. The tool computes the full relationship set from the
 	 * model — parents, associates, groups, and children — opens the
 	 * dialog, and applies the removal through the mutator wired in the
@@ -261,7 +261,7 @@ public final class IndividualTreeGraphListener implements IndividualListener{
 					return treeMutator;
 				}
 			});
-		new UnlinkRelationshipsTool()
+		new UnlinkIndividualRelationshipsTool()
 			.run(context);
 	}
 

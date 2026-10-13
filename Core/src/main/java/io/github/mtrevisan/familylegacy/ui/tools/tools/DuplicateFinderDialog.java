@@ -304,34 +304,41 @@ public final class DuplicateFinderDialog extends JDialog{
 		final StringBuilder sb = new StringBuilder();
 		sb.append("Score: ")
 			.append(c.score())
-			.append('\n')
-			.append('\n');
+			.append(StringUtils.LF)
+			.append(StringUtils.LF);
 		sb.append("Left:  ")
 			.append(c.left().displayName())
-			.append(" [")
+			.append(StringUtils.SPACE)
+			.append('[')
 			.append(c.left().id())
 			.append(']')
-			.append('\n');
+			.append(StringUtils.LF);
 		sb.append("Right: ")
 			.append(c.right().displayName())
-			.append(" [")
+			.append(StringUtils.SPACE)
+			.append('[')
 			.append(c.right().id())
 			.append(']')
-			.append('\n')
-			.append('\n');
+			.append(StringUtils.LF)
+			.append(StringUtils.LF);
 
 		sb.append("Matched features:")
-			.append('\n');
+			.append(StringUtils.LF);
 		for(final DuplicateFinderService.FeatureMatch m : c.matches())
 			sb.append("  +").append(m.score()).append("  ")
-				.append(m.feature()).append(" — ").append(m.detail()).append('\n');
+				.append(m.feature())
+				.append(" — ")
+				.append(m.detail())
+				.append(StringUtils.LF);
 
 		if(!c.differences().isEmpty()){
-			sb.append('\n')
+			sb.append(StringUtils.LF)
 				.append("Differences:")
-				.append('\n');
+				.append(StringUtils.LF);
 			for(final String d : c.differences())
-				sb.append("  - ").append(d).append('\n');
+				sb.append("  - ")
+					.append(d)
+					.append(StringUtils.LF);
 		}
 		detailsArea.setText(sb.toString());
 		detailsArea.setCaretPosition(0);

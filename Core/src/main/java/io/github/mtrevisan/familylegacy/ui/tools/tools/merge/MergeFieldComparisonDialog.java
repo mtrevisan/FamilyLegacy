@@ -473,7 +473,7 @@ public final class MergeFieldComparisonDialog extends JDialog{
 				final String text = a.getText();
 				sb.append(text);
 				if(!text.endsWith(StringUtils.LF))
-					sb.append('\n');
+					sb.append(StringUtils.LF);
 			}
 			return sb.toString();
 		};
@@ -849,7 +849,8 @@ public final class MergeFieldComparisonDialog extends JDialog{
 		for(final RowWidgets rw : rows){
 			final String text = rw.resultArea().getText();
 			if(text != null && !text.isBlank())
-				sb.append(text).append('\n');
+				sb.append(text)
+					.append(StringUtils.LF);
 		}
 		return sb.toString();
 	}
@@ -970,13 +971,18 @@ public final class MergeFieldComparisonDialog extends JDialog{
 	private void showValidationErrors(final List<String> errors){
 		final StringBuilder message = new StringBuilder(
 			"The result field does not validate against the FLEF schema:")
-			.append('\n')
-			.append('\n');
+			.append(StringUtils.LF)
+			.append(StringUtils.LF);
 		final int shown = Math.min(errors.size(), MAX_ERRORS_SHOWN);
 		for(int i = 0; i < shown; i ++)
-			message.append("  \u2022 ").append(errors.get(i)).append('\n');
+			message.append("  \u2022 ")
+				.append(errors.get(i))
+				.append(StringUtils.LF);
 		if(errors.size() > shown)
-			message.append("  \u2026 and ").append(errors.size() - shown).append(" more").append('\n');
+			message.append("  \u2026 and ")
+				.append(errors.size() - shown)
+				.append(" more")
+				.append(StringUtils.LF);
 
 		JOptionPane.showMessageDialog(this, message.toString(),
 			"Invalid result", JOptionPane.ERROR_MESSAGE);
@@ -1039,15 +1045,15 @@ public final class MergeFieldComparisonDialog extends JDialog{
 			sb.append(' ').append(record.getValue());
 		if(record.hasChildren()){
 			sb.append(" {")
-				.append('\n');
+				.append(StringUtils.LF);
 			for(final FLEFRecord child : record.getChildren())
 				serializeInto(child, indent + 1, sb);
 			sb.append(prefix)
 				.append('}')
-				.append('\n');
+				.append(StringUtils.LF);
 		}
 		else
-			sb.append('\n');
+			sb.append(StringUtils.LF);
 	}
 
 }

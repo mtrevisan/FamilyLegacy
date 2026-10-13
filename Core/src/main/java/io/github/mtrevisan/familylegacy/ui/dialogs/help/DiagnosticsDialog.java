@@ -121,7 +121,7 @@ public final class DiagnosticsDialog extends JDialog{
 		final StringBuilder sb = new StringBuilder();
 
 		sb.append("=== Family Legacy Diagnostics ===")
-			.append('\n');
+			.append(StringUtils.LF);
 		sb.append("Generated: ")
 			.append(LocalDateTime.now().format(TIMESTAMP_FORMAT))
 			.append(StringUtils.LF);
@@ -136,7 +136,7 @@ public final class DiagnosticsDialog extends JDialog{
 
 	private static void appendRuntime(final StringBuilder sb){
 		sb.append("--- Runtime ---")
-			.append('\n');
+			.append(StringUtils.LF);
 		sb.append("Java version:   ")
 			.append(System.getProperty("java.version"))
 			.append(StringUtils.LF);
@@ -182,7 +182,7 @@ public final class DiagnosticsDialog extends JDialog{
 		final long used = total - free;
 
 		sb.append("--- Memory ---")
-			.append('\n');
+			.append(StringUtils.LF);
 		sb.append("Heap max:       ").append(formatBytes(max))
 			.append(StringUtils.LF);
 		sb.append("Heap allocated: ").append(formatBytes(total))
@@ -196,10 +196,10 @@ public final class DiagnosticsDialog extends JDialog{
 
 	private static void appendModel(final StringBuilder sb, final FLEFModel model){
 		sb.append("--- Model ---")
-			.append('\n');
+			.append(StringUtils.LF);
 		if(model == null){
 			sb.append("No model loaded.")
-				.append('\n');
+				.append(StringUtils.LF);
 			return;
 		}
 		try{
@@ -209,7 +209,7 @@ public final class DiagnosticsDialog extends JDialog{
 				.append(StringUtils.LF);
 			sb.append(StringUtils.LF);
 			sb.append("By tag:")
-				.append('\n');
+				.append(StringUtils.LF);
 
 			final Map<String, Long> byTag = all.stream()
 				.filter(r -> r.getTag() != null)

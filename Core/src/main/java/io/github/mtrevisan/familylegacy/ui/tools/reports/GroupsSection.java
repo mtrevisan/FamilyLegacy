@@ -175,8 +175,12 @@ final class GroupsSection implements SectionBuilder{
 			final StringBuilder line = new StringBuilder();
 			line.append("**").append(ctx.labels.sections().name());
 			if(type != null && !type.isBlank())
-				line.append(" (").append(ReportFormatters.escape(type)).append(")");
-			line.append(":** ").append(ReportFormatters.escape(value));
+				line.append(StringUtils.SPACE)
+					.append('(')
+					.append(ReportFormatters.escape(type))
+					.append(')');
+			line.append(":** ")
+				.append(ReportFormatters.escape(value));
 			rows.add(line.toString());
 		}
 

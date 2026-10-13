@@ -76,7 +76,7 @@ public class EventHandler extends AbstractRecordTypeHandler<EventRecordDialog>{
 		final StringBuilder sb = new StringBuilder();
 		if(type != null)
 			sb.append(type);
-		if(rawDate != null){
+		if(StringUtils.isNotEmpty(rawDate)){
 			if(!sb.isEmpty())
 				sb.append(StringUtils.SPACE);
 			sb.append('(')
@@ -85,7 +85,8 @@ public class EventHandler extends AbstractRecordTypeHandler<EventRecordDialog>{
 		}
 		if(sb.isEmpty())
 			sb.append("Event");
-		sb.append(" [")
+		sb.append(StringUtils.SPACE)
+			.append('[')
 			.append(id)
 			.append(']');
 		return sb.toString();

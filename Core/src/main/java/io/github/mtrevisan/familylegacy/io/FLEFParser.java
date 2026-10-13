@@ -433,7 +433,7 @@ public class FLEFParser{
 		for(int i = 0, length = lines.length; i < length; i ++){
 			final String line = lines[i];
 			if(i > 0)
-				result.append('\n');
+				result.append(StringUtils.LF);
 			// Remove the minIndent only if the line is long enough
 			if(!line.isEmpty() && line.length() >= minIndent)
 				// Ensure we don't remove partial whitespace; strip exactly minIndent characters
@@ -482,7 +482,7 @@ public class FLEFParser{
 				char next = input.charAt(i + 1);
 				switch(next){
 					case 'n' -> {
-						sb.append('\n');
+						sb.append(StringUtils.LF);
 						i ++;
 					}
 					case 'r' -> {

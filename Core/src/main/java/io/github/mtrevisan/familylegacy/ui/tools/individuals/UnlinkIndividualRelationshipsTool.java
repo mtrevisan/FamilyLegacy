@@ -40,7 +40,7 @@ import java.util.List;
  * Opens the "Unlink Relationships" dialog for the currently selected entity
  * and removes the selected relationship records from the model.
  */
-public final class UnlinkRelationshipsTool implements ToolOperation{
+public final class UnlinkIndividualRelationshipsTool implements ToolOperation{
 
 	@Override
 	public String getName(){
@@ -83,7 +83,7 @@ public final class UnlinkRelationshipsTool implements ToolOperation{
 
 	@Override
 	public boolean isEnabled(final ToolContext context){
-		return (context != null && context.hasSelectedEntity());
+		return (context != null && context.hasSelectedIndividual());
 	}
 
 }

@@ -513,7 +513,7 @@ public final class SocialNetworkPanel extends JPanel implements TreeChangeListen
 		final int year = c.get(Calendar.YEAR);
 		final int month = c.get(Calendar.MONTH) + 1;
 		final int day = c.get(Calendar.DAY_OF_MONTH);
-		final long jdn = CalendarType.GREGORIAN.parseToJdn(day + StringUtils.SPACE + month + StringUtils.SPACE + year, 0);
+		final long jdn = CalendarType.GREGORIAN.parseToJdn(day + StringUtils.SPACE + month + StringUtils.SPACE + year);
 		return NormalizedDate.exact(jdn, DatePrecision.DAY);
 	}
 

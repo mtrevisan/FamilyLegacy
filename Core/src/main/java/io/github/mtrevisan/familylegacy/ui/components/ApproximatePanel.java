@@ -194,7 +194,7 @@ public class ApproximatePanel extends JPanel{
 			}
 
 			if("conventional".equals(basis) && culturalNormPanel.isEmpty()){
-				//TODO internationalize 'conventional'
+				// TODO internationalize 'conventional'
 				JOptionPane.showMessageDialog(this,
 					I18N.tf("validation.required.when.is", I18N.t("dialog.name.cultural.norms"), I18N.t("dialog.date.basis"), "conventional"),
 					I18N.t("validation.title"), JOptionPane.ERROR_MESSAGE);

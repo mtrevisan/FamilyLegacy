@@ -59,11 +59,10 @@ public class AuditBuilder{
 //			chanNoteText = "From GEDCOM conversion";
 //		}
 
-		FLEFRecord creation = FLEFRecord.createChildWithTag("creation");
+		final FLEFRecord creation = FLEFRecord.createChildWithTag("creation");
 		creation.addChild(FLEFRecord.createChildWithTagAndValue("date", isoDateTime));
-		if(StringUtils.isNotEmpty(chanNoteText)){
+		if(StringUtils.isNotEmpty(chanNoteText))
 			creation.addChild(FLEFRecord.createChildWithTagAndValue("comment", chanNoteText));
-		}
 
 		audit.addChild(creation);
 

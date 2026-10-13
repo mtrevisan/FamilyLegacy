@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryCitationReade
 import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryReader;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RepositoryHandler;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -162,10 +163,16 @@ final class RepositorySection implements SectionBuilder{
 			final StringBuilder line = new StringBuilder();
 			line.append("**").append(ctx.labels.sections().name());
 			if(type != null && !type.isBlank())
-				line.append(" (").append(ReportFormatters.escape(type)).append(")");
-			line.append(":** ").append(ReportFormatters.escape(value));
+				line.append(StringUtils.SPACE)
+					.append('(')
+					.append(ReportFormatters.escape(type))
+					.append(')');
+			line.append(":** ")
+				.append(ReportFormatters.escape(value));
 			if(locale != null && !locale.isBlank())
-				line.append(" — *").append(ReportFormatters.escape(locale)).append('*');
+				line.append(" — *")
+					.append(ReportFormatters.escape(locale))
+					.append('*');
 			rows.add(line.toString());
 		}
 		if(!rows.isEmpty())

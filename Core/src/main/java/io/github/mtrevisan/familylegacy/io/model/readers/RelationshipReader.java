@@ -141,8 +141,10 @@ public final class RelationshipReader{
 	private static final String[] EMPTY_TYPES = new String[0];
 	public static final Set<String> CHILD_TYPES = new HashSet<>(List.of(ENUM_TYPE_BIOLOGICAL_CHILD,
 		ENUM_TYPE_ADOPTIVE_CHILD, ENUM_TYPE_FOSTER_CHILD, ENUM_TYPE_GUARDED_CHILD, ENUM_TYPE_STEP_CHILD));
+
 	public static final String[] BIOLOGICAL = new String[]{ENUM_TYPE_BIOLOGICAL_CHILD};
 	public static final String[] FAMILY = CHILD_TYPES.toArray(String[]::new);
+
 	public static final Set<String> PARTNER_TYPES = new TreeSet<>(List.of(
 		ENUM_TYPE_CIVIL_SPOUSE, ENUM_TYPE_RELIGIOUS_SPOUSE, ENUM_TYPE_CUSTOMARY_SPOUSE, ENUM_TYPE_COHABITING_PARTNER,
 		ENUM_TYPE_ENGAGED_PARTNER));

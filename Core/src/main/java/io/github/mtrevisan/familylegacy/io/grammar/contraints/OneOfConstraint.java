@@ -57,10 +57,7 @@ public final class OneOfConstraint extends Constraint{
 				count ++;
 
 		if(count == 0)
-			errors.add(String.format(
-				"Constraint violation at '%s': expected at least one of %s",
-				contextPath, fields
-			));
+			errors.add(String.format("Constraint violation at '%s': expected at least one of %s", contextPath, fields));
 	}
 
 	@Override

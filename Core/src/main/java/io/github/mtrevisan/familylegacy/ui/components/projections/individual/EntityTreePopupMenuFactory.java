@@ -40,7 +40,7 @@ import io.github.mtrevisan.familylegacy.ui.tools.individuals.DeleteIndividualToo
 import io.github.mtrevisan.familylegacy.ui.tools.individuals.EditIndividualTool;
 import io.github.mtrevisan.familylegacy.ui.tools.individuals.PasteIndividualTool;
 import io.github.mtrevisan.familylegacy.ui.tools.individuals.RelocateIndividualTool;
-import io.github.mtrevisan.familylegacy.ui.tools.individuals.UnlinkRelationshipsTool;
+import io.github.mtrevisan.familylegacy.ui.tools.individuals.UnlinkIndividualRelationshipsTool;
 
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
@@ -143,7 +143,7 @@ public class EntityTreePopupMenuFactory implements EntityPopupMenuFactory<Indivi
 		popup.addSeparator();
 		PopupMenuHelper.addMenuItem(popup, unlinkItem, panel, record -> {
 			final ToolContext context = ToolContexts.withMutator(model, listener, panel, record.getId());
-			new UnlinkRelationshipsTool()
+			new UnlinkIndividualRelationshipsTool()
 				.run(context);
 		});
 

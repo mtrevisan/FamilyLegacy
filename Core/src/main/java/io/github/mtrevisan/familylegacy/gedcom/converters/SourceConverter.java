@@ -127,11 +127,11 @@ public class SourceConverter {
 //				}
 //				GEDCOMNode evenDate = GEDCOMHelper.findFirstChild(evenNode, "DATE");
 //				if(evenDate != null && evenDate.getValue() != null){
-//					sb.append(" (Date: ").append(evenDate.getValue()).append(")");
+//					sb.append(" (Date: ").append(evenDate.getValue()).append(')');
 //				}
 //				GEDCOMNode evenPlac = GEDCOMHelper.findFirstChild(evenNode, "PLAC");
 //				if(evenPlac != null && evenPlac.getValue() != null){
-//					sb.append(" (Place: ").append(evenPlac.getValue()).append(")");
+//					sb.append(" (Place: ").append(evenPlac.getValue()).append(')');
 //				}
 //				FLEFRecord note = structParser.createNoteStruct(sb.toString(), evenNode);
 //				if(note != null) source.addChild(note);

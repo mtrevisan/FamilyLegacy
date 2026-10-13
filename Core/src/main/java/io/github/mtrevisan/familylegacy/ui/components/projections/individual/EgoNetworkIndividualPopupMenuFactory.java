@@ -36,7 +36,7 @@ import io.github.mtrevisan.familylegacy.ui.tools.ToolContexts;
 import io.github.mtrevisan.familylegacy.ui.tools.individuals.AddChildTool;
 import io.github.mtrevisan.familylegacy.ui.tools.individuals.DeleteIndividualTool;
 import io.github.mtrevisan.familylegacy.ui.tools.individuals.EditIndividualTool;
-import io.github.mtrevisan.familylegacy.ui.tools.individuals.UnlinkRelationshipsTool;
+import io.github.mtrevisan.familylegacy.ui.tools.individuals.UnlinkIndividualRelationshipsTool;
 
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
@@ -133,7 +133,7 @@ public class EgoNetworkIndividualPopupMenuFactory implements EntityPopupMenuFact
 		});
 		PopupMenuHelper.addMenuItem(popup, unlinkItem, panel, record -> {
 			final ToolContext context = ToolContexts.withMutator(model, listener, panel, record.getId());
-			new UnlinkRelationshipsTool()
+			new UnlinkIndividualRelationshipsTool()
 				.run(context);
 		});
 

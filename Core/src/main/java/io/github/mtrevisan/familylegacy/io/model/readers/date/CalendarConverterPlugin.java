@@ -35,11 +35,9 @@ public interface CalendarConverterPlugin{
 	 * Parses a calendar-specific date string and converts it to a standard JDN.
 	 *
 	 * @param dateExpression    the raw calendar string (e.g., "庚申年 正月 初一" or "13.0.13.17.13 6 B'en 6 Yax")
-	 * @param baseContextAnchor an optional reference tracking year or epoch block used by the parser to break cyclical
-	 * 	loops
 	 * @return the absolute Julian Day Number (JDN)
 	 * @throws IllegalArgumentException if the text layout or internal constraints fail validation
 	 */
-	long parseToJdn(String dateExpression, int baseContextAnchor);
+	long parseToJdn(String dateExpression);
 
 }

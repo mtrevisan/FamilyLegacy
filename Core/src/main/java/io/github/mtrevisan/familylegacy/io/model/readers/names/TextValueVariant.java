@@ -106,7 +106,9 @@ public record TextValueVariant(String kind, String system, String type, String v
 			sb.append(system);
 		if(!type.isEmpty()){
 			if(!sb.isEmpty())
-				sb.append(" / ");
+				sb.append(StringUtils.SPACE)
+					.append('/')
+					.append(" / ");
 			sb.append(type);
 		}
 		if(sb.isEmpty())

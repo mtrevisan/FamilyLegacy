@@ -327,7 +327,7 @@ public final class AgoraPanel extends JPanel{
 		header.add(new JLabel("Filter:"), "right");
 		header.add(searchField, "growx");
 		final JButton clear = new JButton(I18N.t("button.clear"));
-		clear.addActionListener(e -> searchField.setText(""));
+		clear.addActionListener(e -> searchField.setText(StringUtils.EMPTY));
 		header.add(clear);
 
 		add(header, BorderLayout.NORTH);

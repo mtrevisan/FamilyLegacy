@@ -257,7 +257,8 @@ final class IndividualNarrator{
 
 				final StringBuilder valueBuilder = new StringBuilder(desc.trim());
 				if(d != null || p != null){
-					valueBuilder.append(" (");
+					valueBuilder.append(StringUtils.SPACE)
+						.append('(');
 					if(d != null)
 						valueBuilder.append(d);
 					if(p != null){

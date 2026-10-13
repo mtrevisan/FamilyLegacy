@@ -94,7 +94,7 @@ public final class CalendarConverter{
 	 */
 	public static long toJdn(final String calendar, final int year, final int month, final int day){
 		return CalendarType.fromCode(calendar)
-			.parseToJdn(day + StringUtils.SPACE + month + StringUtils.SPACE + year, 0);
+			.parseToJdn(day + StringUtils.SPACE + month + StringUtils.SPACE + year);
 	}
 
 	/**

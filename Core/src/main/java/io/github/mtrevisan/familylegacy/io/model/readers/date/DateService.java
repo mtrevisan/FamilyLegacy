@@ -80,7 +80,8 @@ public class DateService{
 			final String basis = FLEFRecordHelper.getChildValue(approx, DateReader.TAG_BASIS);
 			final String margin = FLEFRecordHelper.getChildValue(approx, DateReader.TAG_MARGIN);
 			if(basis != null || margin != null){
-				dateStr.append(" (")
+				dateStr.append(StringUtils.SPACE)
+					.append('(')
 					.append(I18N.t("dialog.date.description.approximate.abbreviation"));
 				if(basis != null)
 					dateStr.append(StringUtils.SPACE)
@@ -97,7 +98,8 @@ public class DateService{
 				dateStr.append(')');
 			}
 			else
-				dateStr.append(" (")
+				dateStr.append(StringUtils.SPACE)
+					.append('(')
 					.append(I18N.t("dialog.date.description.approximate.abbreviation"))
 					.append(')');
 		}
@@ -115,7 +117,7 @@ public class DateService{
 		if(fullDate != null){
 			final String value = FLEFRecordHelper.getChildValue(fullDate, DateReader.TAG_VALUE);
 			final String calendar = FLEFRecordHelper.getChildValue(fullDate, DateReader.TAG_CALENDAR);
-			return value + (calendar != null? " (" + calendar + ")": StringUtils.EMPTY);
+			return value + (calendar != null? StringUtils.SPACE + calendar: StringUtils.EMPTY);
 		}
 
 		final FLEFRecord decade = singleDateRecord.getTheOnlyChild(DateReader.TAG_DECADE);
@@ -123,7 +125,7 @@ public class DateService{
 			final String startYear = FLEFRecordHelper.getChildValue(decade, DateReader.TAG_START_YEAR);
 			final String calendar = FLEFRecordHelper.getChildValue(decade, DateReader.TAG_CALENDAR);
 			return I18N.tf("dialog.date.description.decade", startYear)
-				+ (calendar != null? " (" + calendar + ")": StringUtils.EMPTY);
+				+ (calendar != null? StringUtils.SPACE + calendar: StringUtils.EMPTY);
 		}
 
 		final FLEFRecord century = singleDateRecord.getTheOnlyChild(DateReader.TAG_CENTURY);
@@ -135,7 +137,7 @@ public class DateService{
 			if(part != null)
 				centuryStr += " (" + part + ")";
 			if(calendar != null)
-				centuryStr += " (" + calendar + ")";
+				centuryStr += StringUtils.SPACE + calendar;
 			return centuryStr;
 		}
 

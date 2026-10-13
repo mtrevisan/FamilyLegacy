@@ -57,29 +57,20 @@ public final class ComparisonConstraint extends Constraint{
 
 		// If one of the two is a required field and is missing, error
 		if(isField(left) && leftValue == null){
-			errors.add(String.format(
-				"Constraint violation at '%s': field '%s' not found",
-				contextPath, left
-			));
+			errors.add(String.format("Constraint violation at '%s': field '%s' not found", contextPath, left));
 
 			return;
 		}
 		if(isField(right) && rightValue == null){
-			errors.add(String.format(
-				"Constraint violation at '%s': field '%s' not found",
-				contextPath, right
-			));
+			errors.add(String.format("Constraint violation at '%s': field '%s' not found", contextPath, right));
 
 			return;
 		}
 
 		final boolean valid = compare(leftValue, rightValue, operator);
-		if(!valid){
-			errors.add(String.format(
-				"Constraint violation at '%s': '%s %s %s' failed (values: %s, %s)",
-				contextPath, left, operator, right, leftValue, rightValue
-			));
-		}
+		if(!valid)
+			errors.add(String.format("Constraint violation at '%s': '%s %s %s' failed (values: %s, %s)",
+				contextPath, left, operator, right, leftValue, rightValue));
 	}
 
 	private boolean isField(final String token){

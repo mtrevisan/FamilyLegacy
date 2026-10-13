@@ -39,7 +39,7 @@ import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolContexts;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolDispatcher;
-import io.github.mtrevisan.familylegacy.ui.tools.individuals.UnlinkRelationshipsTool;
+import io.github.mtrevisan.familylegacy.ui.tools.individuals.UnlinkIndividualRelationshipsTool;
 
 import javax.swing.SwingUtilities;
 import java.awt.Component;
@@ -53,7 +53,7 @@ import java.util.function.Supplier;
  * workflows for the ego network component.
  * <p>
  * <b>Unlink.</b> The unlink workflow is delegated to
- * {@link UnlinkRelationshipsTool}, the same tool used by the popup menu
+ * {@link UnlinkIndividualRelationshipsTool}, the same tool used by the popup menu
  * and by the individual tree. The tool builds the full relationship set
  * from the model (parents, associates, groups, children), opens the
  * dialog, and applies the removal through the mutator wired in the
@@ -177,7 +177,7 @@ public class EgoNetworkActionHandler{
 	 * on confirmation, removes the selected relationships from the model.
 	 * <p>
 	 * The whole workflow is delegated to
-	 * {@link UnlinkRelationshipsTool}, the same tool invoked by the
+	 * {@link UnlinkIndividualRelationshipsTool}, the same tool invoked by the
 	 * popup menu and by the individual tree. The tool computes the full
 	 * relationship set from the model via {@code IndividualHelper}, so
 	 * the caller does not need to pre-compute parents, associates,
@@ -210,7 +210,7 @@ public class EgoNetworkActionHandler{
 					return networkMutator;
 				}
 			});
-		new UnlinkRelationshipsTool()
+		new UnlinkIndividualRelationshipsTool()
 			.run(context);
 	}
 

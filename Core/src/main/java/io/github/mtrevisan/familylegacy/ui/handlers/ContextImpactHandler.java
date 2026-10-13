@@ -92,7 +92,8 @@ public class ContextImpactHandler extends AbstractRecordTypeHandler<ContextImpac
 		// Add an impact type if present
 		final String impactType = ContextImpactReader.extractImpactType(record);
 		if(StringUtils.isNotEmpty(impactType))
-			sb.append(" (")
+			sb.append(StringUtils.SPACE)
+				.append('(')
 				.append(impactType)
 				.append(')');
 
@@ -104,7 +105,8 @@ public class ContextImpactHandler extends AbstractRecordTypeHandler<ContextImpac
 		// Append the record ID if present
 		final String id = record.getId();
 		if(StringUtils.isNotEmpty(id))
-			sb.append(" [")
+			sb.append(StringUtils.SPACE)
+				.append('[')
 				.append(id)
 				.append(']');
 

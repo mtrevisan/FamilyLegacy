@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.io.model.readers.date;
 
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 
 
@@ -188,16 +189,21 @@ public record NormalizedDate(
 	public String toString(){
 		final StringBuilder sb = new StringBuilder();
 		sb.append("JDN ").append(jdn)
-			.append(" (").append(precision);
+			.append(StringUtils.SPACE).append('(').append(precision);
 		if(!isGregorian())
-			sb.append(", ").append(calendar);
-		sb.append(")");
+			sb.append(',').append(StringUtils.SPACE).append(calendar);
+		sb.append(')');
 		if(approximate){
 			sb.append(" approx");
 			if(approximateBasis != null)
-				sb.append(" [").append(approximateBasis).append("]");
+				sb.append(StringUtils.SPACE)
+					.append('[')
+					.append(approximateBasis)
+					.append(']');
 			if(approximateMargin != null)
-				sb.append(" +/-").append(approximateMargin);
+				sb.append(StringUtils.SPACE)
+					.append('±')
+					.append(approximateMargin);
 		}
 		return sb.toString();
 	}

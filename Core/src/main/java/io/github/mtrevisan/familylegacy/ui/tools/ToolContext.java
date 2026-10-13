@@ -177,35 +177,24 @@ public record ToolContext(
 	 * Returns whether an Individual is selected or available as fallback.
 	 */
 	public boolean hasSelectedIndividual(){
-		final String id = selectedEntityId();
-		return (id != null && model.hasRecord(id) && id.startsWith(IndividualHandler.ID_PREFIX));
-	}
-
-	/**
-	 * Returns the selected Individual record, falling back to the first available Individual in the model.
-	 */
-	public FLEFRecord getSelectedEntity(){
-		final String id = selectedEntityId();
-		return (id != null && model.hasRecord(id)? model.getRecordById(id): null);
-	}
-
-	/**
-	 * Returns whether the selected entity is a Group or if any Group exists in the model.
-	 */
-	public boolean hasSelectedFamily(){
-		final String id = selectedEntityId();
-		if(id != null && model.hasRecord(id) && id.startsWith(GroupHandler.ID_PREFIX))
-			return true;
-
-		return hasAnyGroups();
+		final FLEFRecord selectedEntity = getSelectedEntity();
+		return (selectedEntity != null && IndividualHandler.TYPE.equalsIgnoreCase(selectedEntity.getTag()));
 	}
 
 	/**
 	 * Returns whether the selected entity exists in the model and is a Group.
 	 */
 	public boolean hasSelectedGroup(){
-		final String id = selectedEntityId();
-		return (id != null && model.hasRecord(id) && id.startsWith(GroupHandler.ID_PREFIX));
+		final FLEFRecord selectedEntity = getSelectedEntity();
+		return (selectedEntity != null && GroupHandler.TYPE.equalsIgnoreCase(selectedEntity.getTag()));
+	}
+
+	/**
+	 * Returns the selected Individual record, falling back to the first available Individual in the model.
+	 */
+	public FLEFRecord getSelectedEntity(){
+		final String selectedEntityId = selectedEntityId();
+		return model.getRecordById(selectedEntityId);
 	}
 
 	/**

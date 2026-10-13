@@ -87,7 +87,7 @@ public final class DeleteIndividualTool implements ToolOperation{
 
 	@Override
 	public boolean isEnabled(final ToolContext context){
-		return (context != null && context.hasSelectedEntity());
+		return (context != null && context.hasSelectedIndividual());
 	}
 
 }

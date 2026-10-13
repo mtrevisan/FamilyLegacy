@@ -223,14 +223,14 @@ public final class ValidationReportDialog extends JDialog{
 	private void copyToClipboard(){
 		final StringBuilder sb = new StringBuilder();
 		sb.append("=== Validation report ===")
-			.append('\n')
-			.append('\n');
+			.append(StringUtils.LF)
+			.append(StringUtils.LF);
 		for(int i = 0; i < tableModel.getRowCount(); i ++){
 			final FLEFValidator.ValidationError e = tableModel.errorAt(i);
 			sb.append("  \u2022 ").append(e.message());
 			if(e.hasRecord())
 				sb.append("   [").append(e.recordId()).append(']');
-			sb.append('\n');
+			sb.append(StringUtils.LF);
 		}
 		final StringSelection sel = new StringSelection(sb.toString());
 		Toolkit.getDefaultToolkit()

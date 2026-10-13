@@ -120,7 +120,7 @@ public class FLEFRecordFlattener{
 			if("description".equalsIgnoreCase(child.getTag()))
 				fields.put("description", child.getValue());
 			if("date".equalsIgnoreCase(child.getTag())){
-				//FIXME
+				// FIXME
 				final String dateVal = FLEFRecordHelper.getChildValue(child, "value.point.full_date.value");
 				if(dateVal != null)
 					fields.put("date", dateVal);
@@ -170,7 +170,7 @@ public class FLEFRecordFlattener{
 			if("publisher".equalsIgnoreCase(child.getTag()))
 				fields.put("publisher", child.getValue());
 			if("date".equalsIgnoreCase(child.getTag())){
-				//FIXME
+				// FIXME
 				final String dateVal = FLEFRecordHelper.getChildValue(child, "value.point.full_date.value");
 				if(dateVal != null)
 					fields.put("date", dateVal);
@@ -204,7 +204,7 @@ public class FLEFRecordFlattener{
 				if(eventType.equalsIgnoreCase(type)){
 					final FLEFRecord date = FLEFRecordHelper.findChild(child, "date");
 					if(date != null)
-						//FIXME
+						// FIXME
 						return FLEFRecordHelper.getChildValue(date, "value.point.full_date.value");
 				}
 			}

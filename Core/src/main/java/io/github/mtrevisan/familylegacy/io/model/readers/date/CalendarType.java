@@ -37,7 +37,7 @@ public enum CalendarType implements CalendarConverterPlugin{
 
 	GREGORIAN("gregorian"){
 		@Override
-		public long parseToJdn(final String dateExpression, final int baseContextAnchor){
+		public long parseToJdn(final String dateExpression){
 			final GenealogicalDate date = UniversalDateConverter.parse(getCode(), dateExpression);
 			final LocalDate localDate = date.isoDate();
 			final int year = localDate.getYear();
@@ -52,7 +52,7 @@ public enum CalendarType implements CalendarConverterPlugin{
 	},
 	JULIAN("julian"){
 		@Override
-		public long parseToJdn(final String dateExpression, final int baseContextAnchor){
+		public long parseToJdn(final String dateExpression){
 			final GenealogicalDate date = UniversalDateConverter.parse(getCode(), dateExpression);
 			final LocalDate localDate = date.isoDate();
 			final int year = localDate.getYear();
@@ -67,7 +67,7 @@ public enum CalendarType implements CalendarConverterPlugin{
 	},
 	REFORMED_JULIAN("reformed_julian"){
 		@Override
-		public long parseToJdn(final String dateExpression, final int baseContextAnchor){
+		public long parseToJdn(final String dateExpression){
 			final GenealogicalDate date = UniversalDateConverter.parse(getCode(), dateExpression);
 			final LocalDate localDate = date.isoDate();
 			final int year = localDate.getYear();
@@ -84,7 +84,7 @@ public enum CalendarType implements CalendarConverterPlugin{
 	},
 	ISLAMIC("islamic"){
 		@Override
-		public long parseToJdn(final String dateExpression, final int baseContextAnchor){
+		public long parseToJdn(final String dateExpression){
 			// FIXME Using astronomical calculations for the position of the sun and moon, the moon's illumination, and other factors, it is possible to determine the start of a lunar month with a fairly high degree of certainty
 			final GenealogicalDate date = UniversalDateConverter.parse(getCode(), dateExpression);
 			final LocalDate localDate = date.isoDate();
@@ -101,7 +101,7 @@ public enum CalendarType implements CalendarConverterPlugin{
 	},
 	BUDDHIST("buddhist"){
 		@Override
-		public long parseToJdn(final String dateExpression, final int baseContextAnchor){
+		public long parseToJdn(final String dateExpression){
 			final GenealogicalDate date = UniversalDateConverter.parse(getCode(), dateExpression);
 			final LocalDate localDate = date.isoDate();
 			final int year = localDate.getYear();
@@ -109,12 +109,12 @@ public enum CalendarType implements CalendarConverterPlugin{
 			final int day = localDate.getDayOfMonth();
 
 			// Solar Buddhist calendar uses Gregorian arithmetic with a +543 year offset (BE = CE + 543)
-			return GREGORIAN.parseToJdn(day + StringUtils.SPACE + month + StringUtils.SPACE + (year - 543), baseContextAnchor);
+			return GREGORIAN.parseToJdn(day + StringUtils.SPACE + month + StringUtils.SPACE + (year - 543));
 		}
 	},
 	COPTIC("coptic"){
 		@Override
-		public long parseToJdn(final String dateExpression, final int baseContextAnchor){
+		public long parseToJdn(final String dateExpression){
 			final GenealogicalDate date = UniversalDateConverter.parse(getCode(), dateExpression);
 			final LocalDate localDate = date.isoDate();
 			final int year = localDate.getYear();
@@ -130,7 +130,7 @@ public enum CalendarType implements CalendarConverterPlugin{
 	},
 	ETHIOPIAN("ethiopian"){
 		@Override
-		public long parseToJdn(final String dateExpression, final int baseContextAnchor){
+		public long parseToJdn(final String dateExpression){
 			final GenealogicalDate date = UniversalDateConverter.parse(getCode(), dateExpression);
 			final LocalDate localDate = date.isoDate();
 			final int year = localDate.getYear();
@@ -147,7 +147,7 @@ public enum CalendarType implements CalendarConverterPlugin{
 
 	HEBREW("hebrew"){
 		@Override
-		public long parseToJdn(final String dateExpression, final int baseContextAnchor){
+		public long parseToJdn(final String dateExpression){
 			// FIXME In the traditional Hebrew calendar, days start at sunset
 			final GenealogicalDate date = UniversalDateConverter.parse(getCode(), dateExpression);
 			final LocalDate localDate = date.isoDate();
@@ -244,18 +244,16 @@ public enum CalendarType implements CalendarConverterPlugin{
 		 * and lunar conjunctions at Beijing mean time (UTC+8).
 		 */
 		@Override
-		public long parseToJdn(final String dateExpression, final int baseContextAnchor){
-			// Expected native format: "庚申年 正月 初一" or "庚申年 闰四月 廿二"
+		public long parseToJdn(final String dateExpression){
+			// Expected native format: "光绪二十五年 庚子年 正月 初一" or "2020年 庚子年 正月 初一"
 			// 1. Leverage your string parser to break down the native text
-			final ChineseDateInput date = ChineseCalendarParser.parse(dateExpression, baseContextAnchor);
+			final ChineseDateInput date = ChineseCalendarParser.parse(dateExpression);
 			final int year = date.getYear();
 			final int month = date.getMonth();
 			final boolean leapMonth = date.isLeapMonth();
 			final int day = date.getDay();
 
-			final double jdB = ChineseCalendarAstronomicalEngine.toJulianDateUT(year, month, leapMonth, day);
-
-			return (long)Math.floor(jdB + 0.5);
+			return ChineseCalendarAstronomicalEngine.toJdn(year, month, leapMonth, day);
 		}
 	},
 	INDIAN("indian"){
@@ -265,7 +263,7 @@ public enum CalendarType implements CalendarConverterPlugin{
 		 * Year starts on 1 Chaitra (March 21 in leap years, March 22 in common years).
 		 */
 		@Override
-		public long parseToJdn(final String dateExpression, final int baseContextAnchor){
+		public long parseToJdn(final String dateExpression){
 			final GenealogicalDate date = UniversalDateConverter.parse(getCode(), dateExpression);
 			final LocalDate localDate = date.isoDate();
 			final int year = localDate.getYear();
@@ -278,7 +276,7 @@ public enum CalendarType implements CalendarConverterPlugin{
 			// Compute JDN of 1 Chaitra (start of the Saka year)
 			final int chaitraDay = (isLeap? 21: 22);
 			final long startOfYearJdn = GREGORIAN.parseToJdn(
-				chaitraDay + StringUtils.SPACE + 3 + StringUtils.SPACE + gregorianYear, baseContextAnchor);
+				chaitraDay + StringUtils.SPACE + 3 + StringUtils.SPACE + gregorianYear);
 
 			// Days elapsed in preceding months
 			int elapsedDays = 0;
@@ -303,7 +301,7 @@ public enum CalendarType implements CalendarConverterPlugin{
 
 	FRENCH_REPUBLICAN("french_republican"){
 		@Override
-		public long parseToJdn(final String dateExpression, final int baseContextAnchor){
+		public long parseToJdn(final String dateExpression){
 			// FIXME to test
 			final GenealogicalDate date = UniversalDateConverter.parse(getCode(), dateExpression);
 			final LocalDate localDate = date.isoDate();
@@ -327,7 +325,7 @@ public enum CalendarType implements CalendarConverterPlugin{
 		 * map directly onto the corresponding solar days of the Gregorian system.
 		 */
 		@Override
-		public long parseToJdn(final String dateExpression, final int baseContextAnchor){
+		public long parseToJdn(final String dateExpression){
 			// FIXME to test
 			final GenealogicalDate date = UniversalDateConverter.parse(getCode(), dateExpression);
 			final LocalDate localDate = date.isoDate();
@@ -338,8 +336,7 @@ public enum CalendarType implements CalendarConverterPlugin{
 			if(year < 1929 || year > 1940)
 				throw new IllegalArgumentException("Soviet revolutionary calendar was only active between 1929 and 1940.");
 
-			return GREGORIAN.parseToJdn(day + StringUtils.SPACE + month + StringUtils.SPACE + year,
-				baseContextAnchor);
+			return GREGORIAN.parseToJdn(day + StringUtils.SPACE + month + StringUtils.SPACE + year);
 		}
 	},
 	MAYAN("mayan"){
@@ -355,7 +352,7 @@ public enum CalendarType implements CalendarConverterPlugin{
 		 * </ul>
 		 */
 		@Override
-		public long parseToJdn(final String dateExpression, final int baseContextAnchor){
+		public long parseToJdn(final String dateExpression){
 			// Expected format: "13.0.13.17.13" (Baktun.Katun.Tun.Uinal.Kin)
 			final String[] tokens = StringUtils.split(dateExpression.replaceAll("\\s+.*", StringUtils.EMPTY),
 				'.');
@@ -380,7 +377,7 @@ public enum CalendarType implements CalendarConverterPlugin{
 
 	PERSIAN("persian"){
 		@Override
-		public long parseToJdn(final String dateExpression, final int baseContextAnchor){
+		public long parseToJdn(final String dateExpression){
 			// TODO
 //			final long epYear = year - (year >= 0? 474: 473);
 //			final long cycle = epYear / 2820;
@@ -396,7 +393,7 @@ public enum CalendarType implements CalendarConverterPlugin{
 	},
 	PARSI("parsi"){
 		@Override
-		public long parseToJdn(final String dateExpression, final int baseContextAnchor){
+		public long parseToJdn(final String dateExpression){
 			// TODO
 //			return 1952063L + 365L * (year - 1L) + 30L * (month - 1L) + (day - 1L);
 			return -1l;
@@ -404,7 +401,7 @@ public enum CalendarType implements CalendarConverterPlugin{
 	},
 	BYZANTINE("byzantine"){
 		@Override
-		public long parseToJdn(final String dateExpression, final int baseContextAnchor){
+		public long parseToJdn(final String dateExpression){
 			// TODO
 			// Adjust year: Byzantine year starts Sep 1; years before Sep belong to (year - 5509), Sep onwards to (year - 5508)
 //			final int julianYear = (month >= 9? year - 5508: year - 5509);
@@ -414,7 +411,7 @@ public enum CalendarType implements CalendarConverterPlugin{
 	},
 	EGYPTIAN("egyptian"){
 		@Override
-		public long parseToJdn(final String dateExpression, final int baseContextAnchor){
+		public long parseToJdn(final String dateExpression){
 			// TODO
 //			return 1448638L + 365L * (year - 1L) + 30L * (month - 1L) + (day - 1L);
 			return -1l;
@@ -422,7 +419,7 @@ public enum CalendarType implements CalendarConverterPlugin{
 	},
 	SELEUCID("seleucid"){
 		@Override
-		public long parseToJdn(final String dateExpression, final int baseContextAnchor){
+		public long parseToJdn(final String dateExpression){
 			// TODO
 //			final int julianYear = year - 311;
 //			return JULIAN.toJdn(julianYear, month, day);
@@ -431,7 +428,7 @@ public enum CalendarType implements CalendarConverterPlugin{
 	},
 	ARMENIAN("armenian"){
 		@Override
-		public long parseToJdn(final String dateExpression, final int baseContextAnchor){
+		public long parseToJdn(final String dateExpression){
 			// TODO
 //			return 1922868L + 365L * (year - 1L) + 30L * (month - 1L) + (day - 1L);
 			return -1l;
@@ -439,7 +436,7 @@ public enum CalendarType implements CalendarConverterPlugin{
 	},
 	RUMI("rumi"){
 		@Override
-		public long parseToJdn(final String dateExpression, final int baseContextAnchor){
+		public long parseToJdn(final String dateExpression){
 			// TODO
 //			final int julianYear = year + 584;
 //			return JULIAN.toJdn(julianYear, month, day);
@@ -479,7 +476,7 @@ public enum CalendarType implements CalendarConverterPlugin{
 	 * @return the Julian Day Number
 	 * @throws UnsupportedOperationException if the calendar is not arithmetic
 	 */
-	public long parseToJdn(final String dateExpression, final int baseContextAnchor){
+	public long parseToJdn(final String dateExpression){
 		throw new UnsupportedOperationException("Calendar not supported by the arithmetic converter: " + code
 			+ ". Extend CalendarType to add it.");
 	}

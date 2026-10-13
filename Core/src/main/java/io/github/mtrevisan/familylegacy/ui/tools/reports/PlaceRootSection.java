@@ -133,10 +133,16 @@ final class PlaceRootSection implements SectionBuilder{
 			final StringBuilder line = new StringBuilder();
 			line.append("**").append(ctx.labels.sections().name());
 			if(type != null && !type.isBlank())
-				line.append(" (").append(ReportFormatters.escape(type)).append(")");
-			line.append(":** ").append(ReportFormatters.escape(value));
+				line.append(StringUtils.SPACE)
+					.append('(')
+					.append(ReportFormatters.escape(type))
+					.append(')');
+			line.append(":** ")
+				.append(ReportFormatters.escape(value));
 			if(locale != null && !locale.isBlank())
-				line.append(" — *").append(ReportFormatters.escape(locale)).append('*');
+				line.append(" — *")
+					.append(ReportFormatters.escape(locale))
+					.append('*');
 			rows.add(line.toString());
 
 			for(final FLEFRecord variant : FLEFRecordHelper.findChildren(n, NameReader.TAG_PART_VARIANT)){

@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -119,8 +120,8 @@ public final class FilePropertiesDialog extends JDialog{
 		final StringBuilder sb = new StringBuilder();
 
 		sb.append("=== File Properties ===")
-			.append('\n')
-			.append('\n');
+			.append(StringUtils.LF)
+			.append(StringUtils.LF);
 		appendFileInfo(sb, file);
 		appendModelInfo(sb, model);
 
@@ -129,52 +130,52 @@ public final class FilePropertiesDialog extends JDialog{
 
 	private static void appendFileInfo(final StringBuilder sb, final File file){
 		sb.append("--- File ---")
-			.append('\n');
+			.append(StringUtils.LF);
 		if(file == null){
 			sb.append("Name:           (unsaved)")
-				.append('\n');
+				.append(StringUtils.LF);
 			sb.append("Location:       —")
-				.append('\n');
+				.append(StringUtils.LF);
 			sb.append("Size:           —")
-				.append('\n');
+				.append(StringUtils.LF);
 			sb.append("Last modified:  —")
-				.append('\n');
+				.append(StringUtils.LF);
 			sb.append("Readable:       —")
-				.append('\n');
+				.append(StringUtils.LF);
 			sb.append("Writable:       —")
-				.append('\n');
+				.append(StringUtils.LF);
 			sb.append("Encoding:       ")
 				.append(detectEncoding(null))
-				.append('\n');
-			sb.append('\n');
+				.append(StringUtils.LF);
+			sb.append(StringUtils.LF);
 
 			return;
 		}
-		sb.append("Name:           ").append(file.getName()).append('\n');
-		sb.append("Location:       ").append(file.getAbsolutePath()).append('\n');
-		sb.append("Size:           ").append(formatBytes(file.length())).append('\n');
+		sb.append("Name:           ").append(file.getName()).append(StringUtils.LF);
+		sb.append("Location:       ").append(file.getAbsolutePath()).append(StringUtils.LF);
+		sb.append("Size:           ").append(formatBytes(file.length())).append(StringUtils.LF);
 		sb.append("Last modified:  ").append(TIMESTAMP_FORMAT.format(
-			Instant.ofEpochMilli(file.lastModified()))).append('\n');
-		sb.append("Readable:       ").append(file.canRead()? "yes": "no").append('\n');
-		sb.append("Writable:       ").append(file.canWrite()? "yes": "no").append('\n');
-		sb.append("Encoding:       ").append(detectEncoding(file)).append('\n');
-		sb.append('\n');
+			Instant.ofEpochMilli(file.lastModified()))).append(StringUtils.LF);
+		sb.append("Readable:       ").append(file.canRead()? "yes": "no").append(StringUtils.LF);
+		sb.append("Writable:       ").append(file.canWrite()? "yes": "no").append(StringUtils.LF);
+		sb.append("Encoding:       ").append(detectEncoding(file)).append(StringUtils.LF);
+		sb.append(StringUtils.LF);
 	}
 
 	private static void appendModelInfo(final StringBuilder sb, final FLEFModel model){
 		sb.append("--- Model ---")
-			.append('\n');
+			.append(StringUtils.LF);
 		if(model == null){
 			sb.append("No model loaded.")
-				.append('\n');
+				.append(StringUtils.LF);
 			return;
 		}
 		try{
 			final List<FLEFRecord> all = model.getRecords();
-			sb.append("Total records:  ").append(all.size()).append('\n');
-			sb.append('\n');
+			sb.append("Total records:  ").append(all.size()).append(StringUtils.LF);
+			sb.append(StringUtils.LF);
 			sb.append("By tag:")
-				.append('\n');
+				.append(StringUtils.LF);
 
 			final Map<String, Long> byTag = new TreeMap<>();
 			for(final FLEFRecord r : all)
@@ -186,7 +187,8 @@ public final class FilePropertiesDialog extends JDialog{
 		}
 		catch(final RuntimeException ex){
 			sb.append("Unable to compute model statistics: ")
-				.append(ex.getMessage()).append('\n');
+				.append(ex.getMessage())
+				.append(StringUtils.LF);
 		}
 	}
 

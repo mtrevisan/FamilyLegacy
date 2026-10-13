@@ -827,7 +827,7 @@ public final class TagSuggester{
 		final StringBuilder sb = new StringBuilder(rawContent.length());
 		for(final String raw : rawContent.split(StringUtils.LF, -1))
 			sb.append(stripLineComment(raw))
-				.append('\n');
+				.append(StringUtils.LF);
 		final String content = sb.toString();
 
 		// Pass 1: collect every declared type name. Both `struct X {`
@@ -927,7 +927,8 @@ public final class TagSuggester{
 						int enumDepth = countChar(line, '{') - countChar(line, '}');
 						int j = i + 1;
 						while(enumDepth > 0 && j < lines.length){
-							acc.append('\n').append(lines[j]);
+							acc.append(StringUtils.LF)
+								.append(lines[j]);
 							enumDepth += countChar(lines[j], '{') - countChar(lines[j], '}');
 							j ++;
 						}
@@ -967,7 +968,8 @@ public final class TagSuggester{
 						int structDepth = countChar(line, '{') - countChar(line, '}');
 						int j = i + 1;
 						while(structDepth > 0 && j < lines.length){
-							acc.append('\n').append(lines[j]);
+							acc.append(StringUtils.LF)
+								.append(lines[j]);
 							structDepth += countChar(lines[j], '{') - countChar(lines[j], '}');
 							j ++;
 						}

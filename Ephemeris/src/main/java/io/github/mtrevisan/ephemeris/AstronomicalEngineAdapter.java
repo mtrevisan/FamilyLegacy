@@ -53,24 +53,41 @@ public final class AstronomicalEngineAdapter implements EphemerisEngine{
 	/**
 	 * Computes the exact Julian Date (Universal Time) of the New Moon closest to a target date.
 	 *
-	 * @param approximateJdUT the starting guess in Julian Date UT (e.g., mid-month)
+	 * @param fromJd the starting guess in Julian Date UT (e.g., mid-month)
 	 * @return the exact Julian Date UT of the conjunction
 	 */
 	@Override
-	public double findNextNewMoon(final double approximateJdUT){
-		return IllinoisSolver.solve(approximateJdUT - 3., approximateJdUT + 3., ACCURACY_THRESHOLD,
-				MAX_ITERATIONS, jdUT -> {
-			final double ttJc = getTerrestrialCenturies(jdUT);
+	public double findNextNewMoon(final double fromJd){
+		double x1 = fromJd;
+		double f1 = evaluateNewMoonFunction(x1);
 
-			final NutationCorrections nutation = NutationCorrections.calculate(ttJc);
-			final double deltaPsi = nutation.getDeltaPsi();
+		final double step = 1.;
+		for(int i = 0; i < 40; i ++){
+			final double x2 = x1 + step;
+			final double f2 = evaluateNewMoonFunction(x2);
 
-			final double sunLng = SunPosition.apparentSunLongitude(ttJc, deltaPsi);
-			final double moonLng = MoonPosition.computeApparentMoonLongitude(ttJc, deltaPsi);
+			//the function crosses zero upward (negative -> non-negative) at conjunction,
+			//while the opposite jump (+π -> -π) is the discontinuity at full moon
+			if(f1 < 0. && f2 >= 0.)
+				return IllinoisSolver.solve(x1, x2, ACCURACY_THRESHOLD, MAX_ITERATIONS,
+					AstronomicalEngineAdapter::evaluateNewMoonFunction);
 
-			// Angular delta normalized to the range (-π, π] to avoid discontinuity slips
-			return MathHelper.mod2pi(moonLng - sunLng + StrictMath.PI) - StrictMath.PI;
-		});
+			x1 = x2;
+			f1 = f2;
+		}
+
+		throw new IllegalArgumentException("Unable to find the next new moon starting from JD: " + fromJd);
+	}
+
+	private static double evaluateNewMoonFunction(final double jdUT){
+		final double ttJc = getTerrestrialCenturies(jdUT);
+		final NutationCorrections nutation = NutationCorrections.calculate(ttJc);
+		final double deltaPsi = nutation.getDeltaPsi();
+
+		final double sunLng = SunPosition.apparentSunLongitude(ttJc, deltaPsi);
+		final double moonLng = MoonPosition.computeApparentMoonLongitude(ttJc, deltaPsi);
+
+		return MathHelper.mod2pi(moonLng - sunLng + StrictMath.PI) - StrictMath.PI;
 	}
 
 	/**
@@ -82,17 +99,34 @@ public final class AstronomicalEngineAdapter implements EphemerisEngine{
 	 */
 	@Override
 	public double findSolarLongitudeEvent(final double approximateJdUT, final double targetLongitude){
-		return IllinoisSolver.solve(approximateJdUT - 5., approximateJdUT + 5., ACCURACY_THRESHOLD,
-				MAX_ITERATIONS, jdUT -> {
-			final double ttJc = getTerrestrialCenturies(jdUT);
+		double x1 = approximateJdUT;
+		double f1 = evaluateSolarLongitudeFunction(x1, targetLongitude);
 
-			final NutationCorrections nutation = NutationCorrections.calculate(ttJc);
-			final double deltaPsi = nutation.getDeltaPsi();
+		// Scan forward in steps to locate an interval with a sign change
+		final double step = 5.;
+		for(int i = 0; i < 80; i ++){
+			final double x2 = x1 + step;
+			final double f2 = evaluateSolarLongitudeFunction(x2, targetLongitude);
 
-			final double sunLng = SunPosition.apparentSunLongitude(ttJc, deltaPsi);
+			if(f1 < 0. && f2 >= 0.)
+				return IllinoisSolver.solve(x1, x2, ACCURACY_THRESHOLD, MAX_ITERATIONS,
+					jdUT -> evaluateSolarLongitudeFunction(jdUT, targetLongitude));
 
-			return MathHelper.mod2pi(sunLng - targetLongitude + StrictMath.PI) - StrictMath.PI;
-		});
+			x1 = x2;
+			f1 = f2;
+		}
+
+		throw new IllegalArgumentException("Unable to find the solar longitude event for approximate JD UT "
+			+ approximateJdUT + " and target angle: " + targetLongitude);
+	}
+
+	private static double evaluateSolarLongitudeFunction(final double jdUT, final double targetLongitude){
+		final double ttJc = getTerrestrialCenturies(jdUT);
+		final NutationCorrections nutation = NutationCorrections.calculate(ttJc);
+		final double deltaPsi = nutation.getDeltaPsi();
+		final double sunLng = SunPosition.apparentSunLongitude(ttJc, deltaPsi);
+
+		return MathHelper.mod2pi(sunLng - targetLongitude + StrictMath.PI) - StrictMath.PI;
 	}
 
 	private static double getTerrestrialCenturies(final double jdUT){

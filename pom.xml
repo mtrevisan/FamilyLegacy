@@ -98,7 +98,7 @@
 
 		<!-- Hibernate -->
 		<!-- https://mvnrepository.com/artifact/org.hibernate.orm/hibernate-core -->
-		<hibernate.hibernate-core.version>7.4.11.Final</hibernate.hibernate-core.version>
+		<hibernate.hibernate-core.version>7.4.13.Final</hibernate.hibernate-core.version>
 
 		<!-- Image processing -->
 		<!-- https://mvnrepository.com/artifact/org.bytedeco/opencv -->
@@ -122,7 +122,7 @@
 
 		<!-- UI / Layout -->
 		<!-- https://mvnrepository.com/artifact/com.miglayout/miglayout-swing -->
-		<miglayout-swing.version>11.5.0</miglayout-swing.version>
+		<miglayout-swing.version>11.5.1</miglayout-swing.version>
 		<!-- SwingX -->
 		<!-- https://mvnrepository.com/artifact/org.swinglabs.swingx/swingx-core -->
 		<swinglabs.swingx.version>1.6.5-1</swinglabs.swingx.version>
@@ -152,7 +152,7 @@
 		<!-- https://mvnrepository.com/artifact/com.twelvemonkeys.imageio/imageio-psd -->
 		<!-- https://mvnrepository.com/artifact/com.twelvemonkeys.imageio/imageio-tiff -->
 		<!-- https://mvnrepository.com/artifact/com.twelvemonkeys.imageio/imageio-webp -->
-		<twelvemonkeys.imageio-core.version>3.15.2</twelvemonkeys.imageio-core.version>
+		<twelvemonkeys.imageio-core.version>3.15.3</twelvemonkeys.imageio-core.version>
 		<!-- https://mvnrepository.com/artifact/org.apache.xmlgraphics/batik-transcoder -->
 		<!-- https://mvnrepository.com/artifact/org.apache.xmlgraphics/batik-svggen -->
 		<!-- https://mvnrepository.com/artifact/org.apache.xmlgraphics/batik-codec -->

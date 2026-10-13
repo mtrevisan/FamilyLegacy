@@ -96,13 +96,15 @@ public class PartHandler extends AbstractRecordTypeHandler<PartStructureDialog>{
 		}
 
 		if(variantCount > 0)
-			sb.append(" (")
+			sb.append(StringUtils.SPACE)
+				.append('(')
 				.append(variantCount)
 				.append(" variant")
 				.append(variantCount > 1? "s": StringUtils.EMPTY)
 				.append(')');
 		else if(StringUtils.isNotEmpty(record.getId())){
-			sb.append(" (")
+			sb.append(StringUtils.SPACE)
+				.append('(')
 				.append(record.getId())
 				.append(')');
 		}

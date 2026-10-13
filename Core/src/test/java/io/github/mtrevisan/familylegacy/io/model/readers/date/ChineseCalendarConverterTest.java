@@ -28,64 +28,79 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 
-// VM options: --add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.io.model.readers.date=org.junit.platform.commons
 class ChineseCalendarConverterTest{
 
-//	@Test
+	@Test
+	void newYear1964(){
+		// Chinese New Year 1964 (13 Feb 1964 Gregorian)
+		final long jdn = CalendarType.CHINESE.parseToJdn("1964年 农历甲辰年正月初一");
+
+		System.out.println(jdn);
+		Assertions.assertEquals(2438439L, jdn);
+	}
+
+	@Test
 	void newYear2024(){
-		// Chinese New Year 2024 (Year of the Dragon: Feb 10, 2024 Gregorian -> JDN 2460351)
-		final double actualJdn = ChineseCalendarConverter.toJdn(2024, 1, 1);
+		// Chinese New Year 2024 (10 Feb 2024 Gregorian)
+		final long jdn = CalendarType.CHINESE.parseToJdn("2024年 甲辰年 正月 初一");
 
-		Assertions.assertEquals(2460351L, Math.round(actualJdn));
+		System.out.println(jdn);
+		Assertions.assertEquals(2460351L, jdn);
 	}
 
-//	@Test
+	@Test
 	void midAutumnFestival2024(){
-		// Mid-Autumn Festival 2024 (15th Day of 8th Month: Sep 17, 2024 Gregorian -> JDN 2460571)
-		final double actualJdn = ChineseCalendarConverter.toJdn(2024, 8, 15);
+		// Mid-Autumn Festival 2024 (15th Day of 8th Month: 17 Sep 2024 Gregorian)
+		final long jdn = CalendarType.CHINESE.parseToJdn("2024年 甲辰年 八月 十五");
 
-		Assertions.assertEquals(2460571L, Math.round(actualJdn));
+		System.out.println(jdn);
+		Assertions.assertEquals(2460571L, jdn);
 	}
 
-//	@Test
+	@Test
 	void dragonBoatFestival2023(){
-		// Dragon Boat Festival 2023 (5th Day of 5th Month: Jun 22, 2023 Gregorian -> JDN 2460118)
-		final double actualJdn = ChineseCalendarConverter.toJdn(2023, 5, 5);
+		// Dragon Boat Festival 2023 (5th Day of 5th Month: 22 Jun 2023 Gregorian)
+		final long jdn = CalendarType.CHINESE.parseToJdn("2023年 癸卯年 五月 初五");
 
-		Assertions.assertEquals(2460118L, Math.round(actualJdn));
+		System.out.println(jdn);
+		Assertions.assertEquals(2460118L, jdn);
 	}
 
 	@Test
 	void prcProclamation(){
-		// Proclamation of the PRC (Oct 1, 1949 Gregorian -> 10th Day of 8th Month -> JDN 2433191)
-		final double actualJdn = ChineseCalendarConverter.toJdn(1949, 8, 10);
+		// Proclamation of the PRC (2 Oct 1949 Gregorian -> 11th Day of 8th Month)
+		final long jdn = CalendarType.CHINESE.parseToJdn("民国38年 八月 十一");
 
-		Assertions.assertEquals(2433191L, Math.round(actualJdn));
+		System.out.println(jdn);
+		Assertions.assertEquals(2433192L, jdn);
 	}
 
-//	@Test
+	@Test
 	void newYear1900(){
-		// Chinese New Year 1900 (Feb 31 / Jan 31, 1900 Gregorian -> JDN 2415051)
+		// Chinese New Year 1900 (31 Jan 1900 Gregorian)
 		// Tests pre-1928 Beijing Local Mean Time offset (+7:45:40)
-		final double actualJdn = ChineseCalendarConverter.toJdn(1900, 1, 1);
+		final long jdn = CalendarType.CHINESE.parseToJdn("光绪二十六年 庚子年 正月 初一");
 
-		Assertions.assertEquals(2415051L, Math.round(actualJdn));
+		System.out.println(jdn);
+		Assertions.assertEquals(2415051L, jdn);
 	}
 
-//	@Test
+	@Test
 	void leapMonthYear(){
-		// Leap Month Year Test: 2020 Chinese New Year (Jan 25, 2020 Gregorian -> JDN 2458874)
-		final double actualJdn = ChineseCalendarConverter.toJdn(2020, 1, 1);
+		// Leap Month Year Test: Chinese New Year 2020 (25 Jan 2020 Gregorian)
+		final long jdn = CalendarType.CHINESE.parseToJdn("2020年 庚子年 正月 初一");
 
-		Assertions.assertEquals(2458874L, Math.round(actualJdn));
+		System.out.println(jdn);
+		Assertions.assertEquals(2458874L, jdn);
 	}
 
-//	@Test
+	@Test
 	void lastDayOf12MonthBeforeNewYear2025(){
-		// Last Day of 12th Month before Chinese New Year 2025 (Jan 28, 2025 Gregorian -> JDN 2460704)
-		final double actualJdn = ChineseCalendarConverter.toJdn(2024, 12, 29);
+		// Last Day of 12th Month before Chinese New Year 2025 (29 Jan 2025 Gregorian)
+		final long jdn = CalendarType.CHINESE.parseToJdn("2024年 甲辰年 腊月 三十");
 
-		Assertions.assertEquals(2460704L, Math.round(actualJdn));
+		System.out.println(jdn);
+		Assertions.assertEquals(2460705L, jdn);
 	}
 
 }

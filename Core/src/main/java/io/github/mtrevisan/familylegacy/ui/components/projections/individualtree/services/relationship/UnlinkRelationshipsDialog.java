@@ -100,10 +100,12 @@ public class UnlinkRelationshipsDialog extends JDialog{
 		boolean isDirect;
 		boolean isInverse;
 
+
 		RelationshipInfo(final String entityId, final String baseDescription){
 			this.entityId = entityId;
 			this.baseDescription = baseDescription;
 		}
+
 
 		void addRelationship(final String relId, final boolean direct){
 			relationshipIds.add(relId);

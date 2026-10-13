@@ -406,7 +406,7 @@ final class ApplicationMenuBar{
 		menu.add(new JSeparator());
 		addToolsToMenu(menu, GroupToolRegistry.secondaryTools(), bindings);
 		menu.add(new JSeparator());
-		addToolsToMenu(menu, GroupToolRegistry.advancedTools(), bindings);
+		addToolsToMenu(menu, GroupToolRegistry.tertiaryTools(), bindings);
 		menu.add(new JSeparator());
 		addToolsToMenu(menu, GroupToolRegistry.navigationTools(), bindings);
 
@@ -767,7 +767,7 @@ final class ApplicationMenuBar{
 	}
 
 	private void showAboutDialog(){
-		//TODO i18n
+		// TODO i18n
 		final String message = """
 			<html>
 			<b>Family Legacy</b><br>

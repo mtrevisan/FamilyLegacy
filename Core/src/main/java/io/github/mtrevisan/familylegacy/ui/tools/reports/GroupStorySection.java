@@ -137,8 +137,12 @@ final class GroupStorySection implements SectionBuilder{
 			final StringBuilder line = new StringBuilder();
 			line.append("**").append(ctx.labels.sections().name());
 			if(nameType != null && !nameType.isBlank())
-				line.append(" (").append(ReportFormatters.escape(nameType)).append(")");
-			line.append(":** ").append(ReportFormatters.escape(value));
+				line.append(StringUtils.SPACE)
+					.append('(')
+					.append(ReportFormatters.escape(nameType))
+					.append(')');
+			line.append(":** ")
+				.append(ReportFormatters.escape(value));
 			rows.add(line.toString());
 		}
 		out.add(new ReportSection.BulletList(rows));

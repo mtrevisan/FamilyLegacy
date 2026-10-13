@@ -319,7 +319,7 @@ public abstract class BaseRecordDialog extends JDialog{
 			// in case of a citation
 			id = FLEFRecordHelper.getChildValue(record, handler.getCitedType());
 
-		if(id != null)
+		if(StringUtils.isNotEmpty(id))
 			sb.append(StringUtils.SPACE)
 				.append('[')
 				.append(id)

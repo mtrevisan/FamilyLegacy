@@ -220,8 +220,8 @@ final class MapWarperMetadataProbe{
 		if(ma.find()){
 			// Normalise "[a, b, c, d]" to "a,b,c,d".
 			return ma.group(1)
-				.replaceAll("\\s+", "")
-				.replace("\"", "");
+				.replaceAll("\\s+", StringUtils.EMPTY)
+				.replace("\"", StringUtils.EMPTY);
 		}
 		return null;
 	}
@@ -345,8 +345,8 @@ final class MapWarperMetadataProbe{
 		// Strip leading and trailing punctuation, including spaces and
 		// dashes. This handles titles like "(1790) Italy" → "Italy" and
 		// "Italy, 1790," → "Italy".
-		cleaned = cleaned.replaceAll("^[\\p{Punct}\\s]+", "");
-		cleaned = cleaned.replaceAll("[\\p{Punct}\\s]+$", "");
+		cleaned = cleaned.replaceAll("^[\\p{Punct}\\s]+", StringUtils.EMPTY);
+		cleaned = cleaned.replaceAll("[\\p{Punct}\\s]+$", StringUtils.EMPTY);
 
 		return (cleaned.isEmpty()? null: cleaned);
 	}

@@ -62,7 +62,7 @@ public final class IndividualToolRegistry{
 	/** CRUD tools. */
 	public static List<ToolOperation> tertiaryTools(){
 		return List.of(
-			new UnlinkRelationshipsTool()
+			new UnlinkIndividualRelationshipsTool()
 		);
 	}
 

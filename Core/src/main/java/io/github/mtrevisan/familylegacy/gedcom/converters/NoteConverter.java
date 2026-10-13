@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.gedcom.utils.IDGenerator;
 import io.github.mtrevisan.familylegacy.gedcom.utils.StructureParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Map;
 
@@ -134,9 +135,8 @@ public class NoteConverter{
 			String tag = child.getTag();
 			if("CONC".equals(tag) || "CONT".equals(tag)){
 				if(child.getValue() != null){
-					if("CONT".equals(tag) && !sb.isEmpty()){
-						sb.append('\n');
-					}
+					if("CONT".equals(tag) && !sb.isEmpty())
+						sb.append(StringUtils.LF);
 					sb.append(child.getValue());
 				}
 			}
