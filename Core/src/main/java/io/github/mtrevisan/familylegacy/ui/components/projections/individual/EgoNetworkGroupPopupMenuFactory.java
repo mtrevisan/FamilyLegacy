@@ -32,6 +32,8 @@ import io.github.mtrevisan.familylegacy.ui.dialogs.help.ShortcutRegistry;
 import io.github.mtrevisan.familylegacy.ui.helpers.PopupMenuAdapter;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolContext;
+import io.github.mtrevisan.familylegacy.ui.tools.ToolContexts;
+import io.github.mtrevisan.familylegacy.ui.tools.groups.AddMemberTool;
 
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
@@ -47,6 +49,7 @@ public class EgoNetworkGroupPopupMenuFactory implements EntityPopupMenuFactory<G
 	public JPopupMenu createPopupMenu(final GroupPanel panel, final GroupListener listener, final FLEFModel model){
 		final JMenuItem editItem = new JMenuItem(I18N.t("menu.group.edit.group"), 'E');
 		editItem.setAccelerator(ShortcutRegistry.EDIT_SELECTION_GROUP.keyStroke());
+		final JMenuItem addMemberItem = new JMenuItem(I18N.t("menu.group.add.members"), 'A');
 		final JMenuItem deleteItem = new JMenuItem(I18N.t("menu.group.delete"), 'D');
 		final JMenuItem pasteItem = new JMenuItem(I18N.t("menu.group.paste"), 'P');
 		final JMenuItem unlinkItem = new JMenuItem(I18N.t("menu.group.unlink.relationships"), 'U');
@@ -70,12 +73,19 @@ public class EgoNetworkGroupPopupMenuFactory implements EntityPopupMenuFactory<G
 					pasteItem.setText(I18N.tf("menu.group.paste"));
 
 				editItem.setEnabled(hasData);
+				addMemberItem.setEnabled(hasData);
 				deleteItem.setEnabled(hasData);
 				unlinkItem.setEnabled(hasData);
 			}
 		});
 
 		PopupMenuHelper.addMenuItem(popup, editItem, panel, listener::onEntityEdit);
+		popup.addSeparator();
+		PopupMenuHelper.addMenuItem(popup, addMemberItem, panel, record -> {
+			final ToolContext context = ToolContexts.withMutator(model, listener, panel, record.getId());
+			new AddMemberTool()
+				.run(context);
+		});
 		popup.addSeparator();
 		PopupMenuHelper.addMenuItem(popup, deleteItem, panel, listener::onEntityRemove);
 		popup.addSeparator();

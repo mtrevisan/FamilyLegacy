@@ -183,6 +183,13 @@ public final class ProjectionSwitcherPanel extends JPanel{
 		notifyNavigation(individualId);
 	}
 
+	public String[] getRootIds(){
+		if(currentPanel == treeGraphPanel)
+			return treeGraphPanel.getRootIds();
+		else
+			return new String[]{egoPanel.getCurrentEgoId(), null};
+	}
+
 	/**
 	 * Returns the type of the currently visible projection.
 	 *

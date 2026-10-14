@@ -28,7 +28,7 @@ package io.github.mtrevisan.familylegacy.io.model.readers.date;
 /**
  * A lightweight data record holding raw integers parsed from traditional Chinese calendar strings.
  */
-public final class ChineseDateInput{
+final class ChineseDateInput{
 
 	private final int year;
 	private final int month;

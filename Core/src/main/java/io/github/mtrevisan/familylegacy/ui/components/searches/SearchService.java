@@ -35,6 +35,7 @@ import io.github.mtrevisan.familylegacy.ui.components.searches.strategies.Histor
 import io.github.mtrevisan.familylegacy.ui.components.searches.strategies.IdentityHypothesisSearchStrategy;
 import io.github.mtrevisan.familylegacy.ui.components.searches.strategies.IndividualSearchStrategy;
 import io.github.mtrevisan.familylegacy.ui.components.searches.strategies.PlaceSearchStrategy;
+import io.github.mtrevisan.familylegacy.ui.components.searches.strategies.RelationshipSearchStrategy;
 import io.github.mtrevisan.familylegacy.ui.components.searches.strategies.RepositorySearchStrategy;
 import io.github.mtrevisan.familylegacy.ui.components.searches.strategies.ResearchActivitySearchStrategy;
 import io.github.mtrevisan.familylegacy.ui.components.searches.strategies.ResearchQuestionSearchStrategy;
@@ -50,6 +51,7 @@ import io.github.mtrevisan.familylegacy.ui.handlers.IdentityHypothesisHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.RelationshipHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RepositoryHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.ResearchActivityHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.ResearchQuestionHandler;
@@ -99,6 +101,7 @@ public class SearchService{
 		REGISTRY.put(IdentityHypothesisHandler.class, new IdentityHypothesisSearchStrategy());
 		REGISTRY.put(IndividualHandler.class, new IndividualSearchStrategy());
 		REGISTRY.put(PlaceHandler.class, new PlaceSearchStrategy());
+		REGISTRY.put(RelationshipHandler.class, new RelationshipSearchStrategy());
 		REGISTRY.put(RepositoryHandler.class, new RepositorySearchStrategy());
 		REGISTRY.put(ResearchActivityHandler.class, new ResearchActivitySearchStrategy());
 		REGISTRY.put(ResearchQuestionHandler.class, new ResearchQuestionSearchStrategy());

@@ -32,8 +32,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 
@@ -57,7 +56,8 @@ public final class ResourceReader{
 		//sin(i/2) * sin(W), where i is the inclination, and W is the longitude of the ascending node
 		P(6);
 
-		private int index;
+		private final int index;
+
 		VariableIndex(final int index){
 			this.index = index;
 		}
@@ -88,7 +88,7 @@ public final class ResourceReader{
 		if(is == null)
 			throw new IllegalArgumentException("file not found! " + filename);
 
-		final Map<VariableIndex, List<VSOP2013Data>> datas = new HashMap<>();
+		final Map<VariableIndex, List<VSOP2013Data>> datas = new EnumMap<>(VariableIndex.class);
 		try(
 			final InputStreamReader sr = new InputStreamReader(is, StandardCharsets.UTF_8);
 			final BufferedReader reader = new BufferedReader(sr)){
@@ -146,67 +146,6 @@ public final class ResourceReader{
 			}
 
 			return datas;
-		}
-	}
-
-	public static Map<String, List<double[]>> read(final String filename) throws IOException{
-		final ClassLoader classLoader = ResourceReader.class.getClassLoader();
-		final InputStream is = classLoader.getResourceAsStream(filename);
-		if(is == null)
-			throw new IllegalArgumentException("file not found! " + filename);
-
-		try(
-			final InputStreamReader sr = new InputStreamReader(is, StandardCharsets.UTF_8);
-			final BufferedReader reader = new BufferedReader(sr)){
-			final Map<String, List<double[]>> result = new HashMap<>(0);
-			String key = null;
-			String line;
-			List<double[]> values = new LinkedList<>();
-			while((line = reader.readLine()) != null){
-				if(line.isEmpty()){
-					result.put(key, values);
-					key = null;
-
-					continue;
-				}
-				if(key == null){
-					key = line;
-					values = new LinkedList<>();
-
-					continue;
-				}
-
-				final String[] parameters = StringUtils.split(line, ' ');
-				final double[] array = new double[parameters.length];
-				for(int i = 0; i < parameters.length; i ++)
-					array[i] = Double.parseDouble(parameters[i]);
-				values.add(array);
-			}
-			if(key != null)
-				result.put(key, values);
-			return result;
-		}
-	}
-
-	public static List<double[]> readPlain(final String filename) throws IOException{
-		final ClassLoader classLoader = ResourceReader.class.getClassLoader();
-		final InputStream is = classLoader.getResourceAsStream(filename);
-		if(is == null)
-			throw new IllegalArgumentException("file not found! " + filename);
-
-		try(
-			final InputStreamReader sr = new InputStreamReader(is, StandardCharsets.UTF_8);
-			final BufferedReader reader = new BufferedReader(sr)){
-			String line;
-			List<double[]> values = new LinkedList<>();
-			while((line = reader.readLine()) != null){
-				final String[] parameters = StringUtils.split(line, ' ');
-				final double[] array = new double[parameters.length];
-				for(int i = 0; i < parameters.length; i ++)
-					array[i] = Double.parseDouble(parameters[i]);
-				values.add(array);
-			}
-			return values;
 		}
 	}
 

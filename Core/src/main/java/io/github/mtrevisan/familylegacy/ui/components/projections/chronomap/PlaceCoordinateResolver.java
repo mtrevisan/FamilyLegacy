@@ -547,7 +547,7 @@ public final class PlaceCoordinateResolver{
 		if(val == null || val.isEmpty() || NOT_FOUND.equals(val))
 			return null;
 
-		final String[] parts = val.split(",");
+		final String[] parts = StringUtils.split(val, ',');
 		if(parts.length < 2)
 			return null;
 

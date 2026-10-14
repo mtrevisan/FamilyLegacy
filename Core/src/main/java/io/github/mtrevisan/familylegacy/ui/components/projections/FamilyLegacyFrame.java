@@ -283,6 +283,11 @@ public class FamilyLegacyFrame extends JFrame{
 		return ToolContexts.custom(model, currentSelectionId(), switcher.getSelectedPanel(),
 			new ToolDispatcher(){
 				@Override
+				public String[] getRootIds(){
+					return switcher.getRootIds();
+				}
+
+				@Override
 				public void editEntity(final String id){
 					switcher.editEntity(id);
 				}

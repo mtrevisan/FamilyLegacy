@@ -26,7 +26,10 @@ package io.github.mtrevisan.familylegacy.ui.tools.groups;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.ui.components.PanelKey;
 import io.github.mtrevisan.familylegacy.ui.components.projections.repository.ProjectionMutator;
+import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.records.GroupRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolContext;
@@ -51,8 +54,10 @@ public final class AddMemberTool implements ToolOperation{
 	public void run(final ToolContext context){
 		final Window owner = context.owner();
 		final FLEFModel model = context.model();
-		final var dialog = GroupHandler.getInstance()
-			.createNewDialog(owner, model);
+		final FLEFRecord record = context.getSelectedEntity();
+		final GroupRecordDialog dialog = GroupHandler.getInstance()
+			.createEditDialog(owner, model, record);
+		dialog.showSelectedTabAndComponent(BaseRecordDialog.TAB_NAME_RELATIONSHIPS, PanelKey.RELATIONSHIP_ON_OBJECT);
 		dialog.setVisible(true);
 
 		if(!dialog.isSaved())

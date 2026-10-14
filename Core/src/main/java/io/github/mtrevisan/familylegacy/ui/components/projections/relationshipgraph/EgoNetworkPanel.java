@@ -73,6 +73,8 @@ import java.util.function.Consumer;
  * Extracted delegation logic to {@link EgoNetworkSelectionController}, {@link EgoNetworkLayoutBuilder},
  * {@link EgoNetworkActionHandler}, and {@link EgoNetworkListener}.
  */
+// FIXME add a member to a group should show RelationshipRecordDialog
+// FIXME also on GroupRecordDialog and IndividualRecordDialog, tab Relationships | Add Existing
 public class EgoNetworkPanel extends JPanel implements TreeChangeListener{
 
 	private static final Color BACKGROUND_COLOR = new Color(242, 238, 228);

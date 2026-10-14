@@ -104,6 +104,7 @@ public final class ReportDialog extends JDialog{
 
 
 	private ReportDialog(final ToolContext context, final ReportType reportType){
+		// TODO i18n
 		super(context.owner(), reportType.getTitle(), ModalityType.APPLICATION_MODAL);
 
 		this.context = Objects.requireNonNull(context);

@@ -49,6 +49,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.table.AbstractTableModel;
+import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableRowSorter;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -125,9 +126,10 @@ public final class IdentityHypothesesDialog extends JDialog{
 		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		table.setRowHeight(22);
 		table.setAutoCreateRowSorter(true);
-		table.getColumnModel().getColumn(0).setPreferredWidth(160);
-		table.getColumnModel().getColumn(1).setPreferredWidth(160);
-		table.getColumnModel().getColumn(2).setPreferredWidth(440);
+		final TableColumnModel columnModel = table.getColumnModel();
+		columnModel.getColumn(0).setPreferredWidth(160);
+		columnModel.getColumn(1).setPreferredWidth(160);
+		columnModel.getColumn(2).setPreferredWidth(440);
 
 		table.addMouseListener(new MouseAdapter(){
 			@Override

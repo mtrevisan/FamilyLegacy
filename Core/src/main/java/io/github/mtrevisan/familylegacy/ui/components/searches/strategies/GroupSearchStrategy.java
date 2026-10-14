@@ -64,7 +64,7 @@ public class GroupSearchStrategy implements SearchStrategy{
 
 		return group -> {
 			// Name filter
-			if(!SearchHelper.matchesName(group, name, modes, FUZZY_THRESHOLD))
+			if(!SearchHelper.matchesPlaceName(group, name, modes, FUZZY_THRESHOLD))
 				return false;
 
 			// Type filter

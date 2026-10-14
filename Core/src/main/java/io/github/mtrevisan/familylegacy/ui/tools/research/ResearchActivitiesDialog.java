@@ -49,6 +49,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.table.AbstractTableModel;
+import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableRowSorter;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -130,11 +131,12 @@ public final class ResearchActivitiesDialog extends JDialog{
 		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		table.setRowHeight(22);
 		table.setAutoCreateRowSorter(true);
-		table.getColumnModel().getColumn(0).setPreferredWidth(240);
-		table.getColumnModel().getColumn(1).setPreferredWidth(120);
-		table.getColumnModel().getColumn(2).setPreferredWidth(110);
-		table.getColumnModel().getColumn(3).setPreferredWidth(280);
-		table.getColumnModel().getColumn(4).setPreferredWidth(120);
+		final TableColumnModel columnModel = table.getColumnModel();
+		columnModel.getColumn(0).setPreferredWidth(240);
+		columnModel.getColumn(1).setPreferredWidth(120);
+		columnModel.getColumn(2).setPreferredWidth(110);
+		columnModel.getColumn(3).setPreferredWidth(280);
+		columnModel.getColumn(4).setPreferredWidth(120);
 
 		table.addMouseListener(new MouseAdapter(){
 			@Override

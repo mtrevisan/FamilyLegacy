@@ -66,8 +66,6 @@ import java.util.List;
  */
 public final class ElpSeriesReader{
 
-	/** Number of Delaunay multipliers in a main-problem term. */
-	static final int MAIN_ARG_COUNT = 4;
 	/** Number of fundamental-argument multipliers in a perturbation term. */
 	static final int PERT_ARG_COUNT = 13;
 

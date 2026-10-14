@@ -166,30 +166,30 @@ public class RecordSelectionDialog extends JDialog{
 
 	@SuppressWarnings("unchecked")
 	public static RecordSelectionDialog create(final Window parent, final FLEFModel model,
-		final BiConsumer<FLEFRecord, RecordTypeHandler<?>> onSelect,
-		final Class<? extends RecordTypeHandler<?>>... handlerTypes){
+			final BiConsumer<FLEFRecord, RecordTypeHandler<?>> onSelect,
+			final Class<? extends RecordTypeHandler<?>>... handlerTypes){
 		return new RecordSelectionDialog(parent, model, onSelect, handlerTypes);
 	}
 
 	@SuppressWarnings("unchecked")
 	public static RecordSelectionDialog createWithAllowRecordCreation(final Window parent, final FLEFModel model,
-		final BiConsumer<FLEFRecord, RecordTypeHandler<?>> onSelect,
-		final Class<? extends RecordTypeHandler<?>>... handlerTypes){
+			final BiConsumer<FLEFRecord, RecordTypeHandler<?>> onSelect,
+			final Class<? extends RecordTypeHandler<?>>... handlerTypes){
 		return new RecordSelectionDialog(parent, model, onSelect, true, handlerTypes);
 	}
 
 
 	@SafeVarargs
 	private RecordSelectionDialog(final Window parent, final FLEFModel model,
-		final BiConsumer<FLEFRecord, RecordTypeHandler<?>> onSelect,
-		final Class<? extends RecordTypeHandler<?>>... handlerTypes){
+			final BiConsumer<FLEFRecord, RecordTypeHandler<?>> onSelect,
+			final Class<? extends RecordTypeHandler<?>>... handlerTypes){
 		this(parent, model, onSelect, false, handlerTypes);
 	}
 
 	@SafeVarargs
 	private RecordSelectionDialog(final Window parent, final FLEFModel model,
-		final BiConsumer<FLEFRecord, RecordTypeHandler<?>> onSelect,
-		final boolean allowCreation, final Class<? extends RecordTypeHandler<?>>... handlerTypes){
+			final BiConsumer<FLEFRecord, RecordTypeHandler<?>> onSelect,
+			final boolean allowCreation, final Class<? extends RecordTypeHandler<?>>... handlerTypes){
 		super(parent, I18N.t("search.title"), ModalityType.APPLICATION_MODAL);
 
 		this.model = model;
@@ -403,7 +403,7 @@ public class RecordSelectionDialog extends JDialog{
 
 	private void updateWindowTitle(){
 		final RecordTypeHandler<?> desc = getSelectedHandler();
-		setTitle(I18N.tf("search.title", (desc != null), I18N.t("confirmation.exist.record.individual")));
+		setTitle(I18N.tf("search.title.with.record", (desc != null), I18N.t("confirmation.exist.record.individual")));
 	}
 
 	private RecordTypeHandler<?> getSelectedHandler(){
@@ -464,7 +464,7 @@ public class RecordSelectionDialog extends JDialog{
 		initialFilters.forEach(criteria::withFilter);
 
 		if(filterPanelHolder.getComponentCount() > 0
-			&& filterPanelHolder.getComponent(0) instanceof RecordFilterPanel filterPanel)
+				&& filterPanelHolder.getComponent(0) instanceof RecordFilterPanel filterPanel)
 			filterPanel.getFilters()
 				.forEach(criteria::withFilter);
 
@@ -646,8 +646,9 @@ public class RecordSelectionDialog extends JDialog{
 //				io.github.mtrevisan.familylegacy.ui.handlers.GroupHandler.class);
 //				io.github.mtrevisan.familylegacy.ui.handlers.HistoricEventHandler.class);
 //				io.github.mtrevisan.familylegacy.ui.handlers.IdentityHypothesisHandler.class);
-				io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler.class);
+//				io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler.class);
 //				io.github.mtrevisan.familylegacy.ui.handlers.PlaceHandler.class);
+				io.github.mtrevisan.familylegacy.ui.handlers.RelationshipHandler.class);
 //				io.github.mtrevisan.familylegacy.ui.handlers.RepositoryHandler.class);
 //				io.github.mtrevisan.familylegacy.ui.handlers.ResearchActivityHandler.class);
 //				io.github.mtrevisan.familylegacy.ui.handlers.ResearchQuestionHandler.class);

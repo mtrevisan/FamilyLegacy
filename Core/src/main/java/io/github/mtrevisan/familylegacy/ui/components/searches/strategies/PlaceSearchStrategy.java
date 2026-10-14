@@ -64,7 +64,7 @@ public class PlaceSearchStrategy implements SearchStrategy{
 
 		return place -> {
 			// Name filter
-			if(!SearchHelper.matchesName(place, name, modes, FUZZY_THRESHOLD))
+			if(!SearchHelper.matchesPlaceName(place, name, modes, FUZZY_THRESHOLD))
 				return false;
 
 			// Type filter

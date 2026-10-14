@@ -140,8 +140,8 @@ public class HeaderDialog extends BaseRecordDialog{
 		setLayout(GUIHelper.createLabelFieldLayout(10, "[grow]"));
 
 		final JTabbedPane tabbedPane = new JTabbedPane();
-		tabbedPane.addTab("Properties", createPropertiesPanel());
-		tabbedPane.addTab("Submitter", createSubmitterPanel());
+		addTabIfNotNull(tabbedPane, TAB_NAME_PROPERTIES, createPropertiesPanel());
+		addTabIfNotNull(tabbedPane, TAB_NAME_SUBMITTER, createSubmitterPanel());
 		GUIHelper.addComponent(this, tabbedPane);
 
 		final JPanel buttonPanel = GUIHelper.createButtonPanel(this,

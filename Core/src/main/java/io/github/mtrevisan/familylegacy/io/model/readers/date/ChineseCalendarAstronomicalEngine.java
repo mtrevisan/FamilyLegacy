@@ -66,7 +66,7 @@ import io.github.mtrevisan.familylegacy.services.MathHelper;
  * Chinese Calendar</i>, and the Chinese Academy of Sciences' Purple
  * Mountain Observatory publications on the Shixian calendar.</p>
  */
-public final class ChineseCalendarAstronomicalEngine{
+final class ChineseCalendarAstronomicalEngine{
 
 	// JD for January 29, 1645 (Astronomical Shixian Calendar Reform boundary)
 	private static final double JD1645_SHIXIAN = 2321912.;

@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.ephemeris.helpers;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -396,7 +398,7 @@ public final class DeltaT{
 						|| trimmed.startsWith("!"))
 					continue;
 
-				final String[] tokens = trimmed.split("\\s+");
+				final String[] tokens = StringUtils.split(trimmed);
 				if(tokens.length < 4)
 					continue;
 
@@ -481,7 +483,7 @@ public final class DeltaT{
 					|| trimmed.startsWith("#") || trimmed.startsWith("%"))
 					continue;
 
-				final String[] tokens = trimmed.split("\\s+");
+				final String[] tokens = StringUtils.split(trimmed);
 				if(tokens.length < 7)
 					continue;
 

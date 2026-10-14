@@ -101,9 +101,8 @@ public final class NutationCorrections{
 		{0., 5029.0966}
 	};
 
-
-	private final double deltaPsi;
-	private final double deltaEpsilon;
+	private final double jc;
+	private final double[] lunisolarFundamentalArgs;
 
 
 	public static NutationCorrections calculate(final double jc){
@@ -121,33 +120,31 @@ public final class NutationCorrections{
 		final double arcsecToRad = StrictMath.PI / (180. * JulianDate.SECONDS_PER_HOUR);
 
 		// 1. Calculate Lunisolar fundamental arguments [rad]
-		final double[] fundArgs = new double[14];
+		lunisolarFundamentalArgs = new double[14];
 		// L
-		fundArgs[0] = MathHelper.polynomial(jc, MOON_MEAN_ANOMALY) * arcsecToRad;
+		lunisolarFundamentalArgs[0] = MathHelper.polynomial(jc, MOON_MEAN_ANOMALY) * arcsecToRad;
 		// L'
-		fundArgs[1] = MathHelper.polynomial(jc, SUN_MEAN_ANOMALY) * arcsecToRad;
+		lunisolarFundamentalArgs[1] = MathHelper.polynomial(jc, SUN_MEAN_ANOMALY) * arcsecToRad;
 		// F
-		fundArgs[2] = MathHelper.polynomial(jc, MOON_ARGUMENT_LATITUDE) * arcsecToRad;
+		lunisolarFundamentalArgs[2] = MathHelper.polynomial(jc, MOON_ARGUMENT_LATITUDE) * arcsecToRad;
 		// D
-		fundArgs[3] = MathHelper.polynomial(jc, MOON_ELONGATION_SUN) * arcsecToRad;
+		lunisolarFundamentalArgs[3] = MathHelper.polynomial(jc, MOON_ELONGATION_SUN) * arcsecToRad;
 		// Ω
-		fundArgs[4] = MathHelper.polynomial(jc, MOON_LONGITUDE_NODE) * arcsecToRad;
+		lunisolarFundamentalArgs[4] = MathHelper.polynomial(jc, MOON_LONGITUDE_NODE) * arcsecToRad;
 
 		// 2. Calculate Planetary and Precession arguments (indices 5 to 16) [rad]
-		for(int i = 0; i < PLANETARY_ARGUMENTS.length; i ++){
+		this.jc = jc;
+		for(int i = 0, size = PLANETARY_ARGUMENTS.length; i < size; i ++){
 			final double val = PLANETARY_ARGUMENTS[i][0] + PLANETARY_ARGUMENTS[i][1] * jc;
-			fundArgs[5 + i] = StrictMath.toRadians(val / JulianDate.SECONDS_PER_HOUR);
+			lunisolarFundamentalArgs[5 + i] = StrictMath.toRadians(val / JulianDate.SECONDS_PER_HOUR);
 		}
-
-		this.deltaPsi = evaluateSeries(NUTATION_PSI_TERMS, fundArgs, jc);
-		this.deltaEpsilon = evaluateSeries(NUTATION_EPS_TERMS, fundArgs, jc);
 	}
 
 	private static double evaluateSeries(final List<NutationTerm> terms, final double[] fundArgs, final double jc){
 		double sum = 0.;
 
 		// 3. Evaluate IAU 2000A series terms
-		for(int i = 0; i < terms.size(); i ++){
+		for(int i = 0, size = terms.size(); i < size; i ++){
 			final NutationTerm term = terms.get(i);
 
 			// Argument = i1 × L + i2 × L' + i3 × F + i4 × D + i5 × Ω
@@ -178,14 +175,14 @@ public final class NutationCorrections{
 		return MathHelper.mod2pi(MathHelper.polynomial(jc, MOON_LONGITUDE_NODE) * arcsecToRad);
 	}
 
-	/** @return Nutation in longitude (Delta psi) [rad]. */
+	/** @return Nutation in longitude (Δψ) [rad]. */
 	public double getDeltaPsi(){
-		return deltaPsi;
+		return evaluateSeries(NUTATION_PSI_TERMS, lunisolarFundamentalArgs, jc);
 	}
 
-	/** @return Nutation in obliquity (Delta epsilon) [rad]. */
+	/** @return Nutation in obliquity (Δε) [rad]. */
 	public double getDeltaEpsilon(){
-		return deltaEpsilon;
+		return evaluateSeries(NUTATION_EPS_TERMS, lunisolarFundamentalArgs, jc);
 	}
 
 
@@ -207,7 +204,9 @@ public final class NutationCorrections{
 //			Δψ: 15.17124377504393"
 //			Δε: -5.330057528055957"
 
-		for(final double jd : testJDs){
+		for(int i = 0, size = testJDs.length; i < size; i ++){
+			final double jd = testJDs[i];
+
 			final double jc = JulianDate.centuryJ2000Of(jd);
 			final NutationCorrections corrections = NutationCorrections.calculate(jc);
 //			System.out.println("JD: " + jd + "\n"

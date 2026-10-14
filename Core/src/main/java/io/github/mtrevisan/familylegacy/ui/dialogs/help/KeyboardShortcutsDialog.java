@@ -34,6 +34,7 @@ import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableColumnModel;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -78,9 +79,10 @@ public final class KeyboardShortcutsDialog extends JDialog{
 		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		table.setRowHeight(22);
 		table.setAutoCreateRowSorter(true);
-		table.getColumnModel().getColumn(0).setPreferredWidth(140);
-		table.getColumnModel().getColumn(1).setPreferredWidth(320);
-		table.getColumnModel().getColumn(2).setPreferredWidth(180);
+		final TableColumnModel columnModel = table.getColumnModel();
+		columnModel.getColumn(0).setPreferredWidth(140);
+		columnModel.getColumn(1).setPreferredWidth(320);
+		columnModel.getColumn(2).setPreferredWidth(180);
 
 		final DefaultTableCellRenderer leftAligned = new DefaultTableCellRenderer(){
 			@Override
@@ -91,7 +93,7 @@ public final class KeyboardShortcutsDialog extends JDialog{
 				return this;
 			}
 		};
-		table.getColumnModel().getColumn(2).setCellRenderer(leftAligned);
+		columnModel.getColumn(2).setCellRenderer(leftAligned);
 
 		final JScrollPane scroll = new JScrollPane(table);
 		scroll.setPreferredSize(new Dimension(700, 520));

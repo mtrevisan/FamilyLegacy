@@ -27,6 +27,8 @@ package io.github.mtrevisan.familylegacy.ui.tools.places;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
+import io.github.mtrevisan.familylegacy.ui.bindings.Debouncer;
+import io.github.mtrevisan.familylegacy.ui.bindings.FilteredComboBox;
 import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
@@ -45,10 +47,13 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.RowFilter;
+import javax.swing.RowSorter;
+import javax.swing.SortOrder;
 import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.table.AbstractTableModel;
+import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableRowSorter;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -72,15 +77,23 @@ import java.util.Map;
  */
 public final class PlaceManagementDialog extends JDialog{
 
+	/** [ms] */
+	private static final int DEBOUNCE_TIME = 400;
+
+
 	private final ToolContext context;
 	private final PlaceTableModel tableModel = new PlaceTableModel();
+	private final TableRowSorter<PlaceTableModel> tableSorter = new TableRowSorter<>(tableModel);
 	private final JTable table = new JTable(tableModel);
 	private final JTextField searchField = new JTextField(24);
 	private final JLabel statusLabel = new JLabel(StringUtils.SPACE);
 
+	// Debouncer to delay filtering execution while typing in the search field
+	private final Debouncer<String> searchDebouncer = new Debouncer<>(key -> applyFilter(), DEBOUNCE_TIME);
+
 
 	public PlaceManagementDialog(final ToolContext context){
-		super(context.owner(), "Manage Places", ModalityType.APPLICATION_MODAL);
+		super(context.owner(), I18N.t("dialog.place.management.title"), ModalityType.APPLICATION_MODAL);
 
 		this.context = context;
 
@@ -104,12 +117,23 @@ public final class PlaceManagementDialog extends JDialog{
 		final JPanel toolbar = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 6));
 		toolbar.setBorder(BorderFactory.createEmptyBorder(2, 4, 2, 4));
 
-		toolbar.add(new JLabel("Search:"));
+		toolbar.add(new JLabel(I18N.t("dialog.place.management.search.field.label") + ":"));
 		toolbar.add(searchField);
 		searchField.getDocument().addDocumentListener(new DocumentListener(){
-			@Override public void insertUpdate(final DocumentEvent e){ applyFilter(); }
-			@Override public void removeUpdate(final DocumentEvent e){ applyFilter(); }
-			@Override public void changedUpdate(final DocumentEvent e){ applyFilter(); }
+			@Override
+			public void insertUpdate(final DocumentEvent e){
+				scheduleSearch();
+			}
+
+			@Override
+			public void removeUpdate(final DocumentEvent e){
+				scheduleSearch();
+			}
+
+			@Override
+			public void changedUpdate(final DocumentEvent e){
+				scheduleSearch();
+			}
 		});
 
 		final JButton newButton = new JButton(I18N.t("button.new"));
@@ -127,15 +151,23 @@ public final class PlaceManagementDialog extends JDialog{
 		return toolbar;
 	}
 
+	private void scheduleSearch(){
+		searchDebouncer.call(FilteredComboBox.PROPERTY_DEBOUNCER);
+	}
+
 	private JScrollPane createTable(){
 		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		table.setRowHeight(22);
-		table.setAutoCreateRowSorter(true);
-		table.getColumnModel().getColumn(0).setPreferredWidth(220);
-		table.getColumnModel().getColumn(1).setPreferredWidth(120);
-		table.getColumnModel().getColumn(2).setPreferredWidth(180);
-		table.getColumnModel().getColumn(3).setPreferredWidth(180);
-		table.getColumnModel().getColumn(4).setPreferredWidth(150);
+		table.setRowSorter(tableSorter);
+		tableSorter.setComparator(0, String.CASE_INSENSITIVE_ORDER);
+		tableSorter.setComparator(1, String.CASE_INSENSITIVE_ORDER);
+		tableSorter.setSortKeys(List.of(new RowSorter.SortKey(0, SortOrder.ASCENDING)));
+		final TableColumnModel columnModel = table.getColumnModel();
+		columnModel.getColumn(0).setPreferredWidth(220);
+		columnModel.getColumn(1).setPreferredWidth(120);
+		columnModel.getColumn(2).setPreferredWidth(180);
+		columnModel.getColumn(3).setPreferredWidth(180);
+		columnModel.getColumn(4).setPreferredWidth(150);
 
 		table.addMouseListener(new MouseAdapter(){
 			@Override
@@ -146,7 +178,7 @@ public final class PlaceManagementDialog extends JDialog{
 		});
 
 		final JScrollPane scroll = new JScrollPane(table);
-		scroll.setBorder(BorderFactory.createTitledBorder("Places"));
+		scroll.setBorder(BorderFactory.createTitledBorder(I18N.t("dialog.place.management.search.result.label")));
 		return scroll;
 	}
 
@@ -178,14 +210,11 @@ public final class PlaceManagementDialog extends JDialog{
 
 	private void applyFilter(){
 		final String text = searchField.getText();
-		@SuppressWarnings("unchecked")
-		final TableRowSorter<PlaceTableModel> sorter =
-			(TableRowSorter<PlaceTableModel>)table.getRowSorter();
 		if(text == null || text.isBlank())
-			sorter.setRowFilter(null);
+			tableSorter.setRowFilter(null);
 		else{
 			final String needle = text.trim().toLowerCase(Locale.ROOT);
-			sorter.setRowFilter(new RowFilter<>(){
+			tableSorter.setRowFilter(new RowFilter<>(){
 				@Override
 				public boolean include(final Entry<? extends PlaceTableModel, ? extends Integer> entry){
 					final PlaceHelper.PlaceRow row = tableModel.getRow(entry.getIdentifier());
@@ -251,7 +280,7 @@ public final class PlaceManagementDialog extends JDialog{
 	}
 
 	private void updateStatus(final int count){
-		statusLabel.setText(count + (count == 1? " place": " places"));
+		statusLabel.setText(I18N.tf("search.record.found", count));
 	}
 
 
@@ -261,7 +290,13 @@ public final class PlaceManagementDialog extends JDialog{
 
 	private static final class PlaceTableModel extends AbstractTableModel{
 
-		private static final String[] COLUMNS = {"Name", "Type", "Parents", "Children", "Coordinates"};
+		private static final String[] COLUMNS = {
+			I18N.t("dialog.place.management.column.name"),
+			I18N.t("dialog.place.management.column.type"),
+			I18N.t("dialog.place.management.column.parents"),
+			I18N.t("dialog.place.management.column.children"),
+			I18N.t("dialog.place.management.column.coordinates")
+		};
 
 		private final List<PlaceHelper.PlaceRow> rows = new ArrayList<>();
 

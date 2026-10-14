@@ -340,10 +340,10 @@ public final class MoonPosition{
 		// One argument array is built and shared by the three coordinate
 		// computations. This is the only allocation in the hot path.
 		final double[] args = arguments(t);
-		return new EclipticCoordinates(
-			latitudeOfDate(t, args),
-			longitudeOfDate(t, args),
-			distance(t, args));
+		final double latitude = latitudeOfDate(t, args);
+		final double longitude = longitudeOfDate(t, args);
+		final double distance = distance(t, args);
+		return new EclipticCoordinates(latitude, longitude, distance);
 	}
 
 	/**
@@ -470,10 +470,10 @@ public final class MoonPosition{
 	 * are held in local variables.</p>
 	 */
 	private double longitudeOfDate(final double t, final double[] args){
-		final double p0 = pertSum(coefs.pertLongT0, args);
-		final double p1 = pertSum(coefs.pertLongT1, args);
-		final double p2 = pertSum(coefs.pertLongT2, args);
-		final double p3 = pertSum(coefs.pertLongT3, args);
+		final double p0 = perturbationSum(coefs.perturbationLongitudeT0, args);
+		final double p1 = perturbationSum(coefs.perturbationLongitudeT1, args);
+		final double p2 = perturbationSum(coefs.perturbationLongitudeT2, args);
+		final double p3 = perturbationSum(coefs.perturbationLongitudeT3, args);
 		final double pert = p0 + t * (p1 + t * (p2 + t * p3));
 
 		return MathHelper.mod2pi(args[ARG_W1]
@@ -482,19 +482,19 @@ public final class MoonPosition{
 	}
 
 	private double latitudeOfDate(final double t, final double[] args){
-		final double p0 = pertSum(coefs.pertLatT0, args);
-		final double p1 = pertSum(coefs.pertLatT1, args);
-		final double p2 = pertSum(coefs.pertLatT2, args);
+		final double p0 = perturbationSum(coefs.perturbationLatitudeT0, args);
+		final double p1 = perturbationSum(coefs.perturbationLatitudeT1, args);
+		final double p2 = perturbationSum(coefs.perturbationLatitudeT2, args);
 		final double pert = p0 + t * (p1 + t * p2);
 
 		return mainSum(coefs.mainLatitude, args, true) + pert;
 	}
 
 	private double distance(final double t, final double[] args){
-		final double p0 = pertSum(coefs.pertDistT0, args);
-		final double p1 = pertSum(coefs.pertDistT1, args);
-		final double p2 = pertSum(coefs.pertDistT2, args);
-		final double p3 = pertSum(coefs.pertDistT3, args);
+		final double p0 = perturbationSum(coefs.perturbationDistanceT0, args);
+		final double p1 = perturbationSum(coefs.perturbationDistanceT1, args);
+		final double p2 = perturbationSum(coefs.perturbationDistanceT2, args);
+		final double p3 = perturbationSum(coefs.perturbationDistanceT3, args);
 		final double pert = p0 + t * (p1 + t * (p2 + t * p3));
 
 		return RA0 * (mainSum(coefs.mainDistance, args, false) + pert);
@@ -528,18 +528,19 @@ public final class MoonPosition{
 	}
 
 	/**
-	 * Sums a perturbation series. The argument of each term is
-	 * {@code Σ iⱼ·argⱼ + φ₀}; the amplitude is multiplied by
+	 * Sums a perturbation series. The argument of each term is {@code Σ iⱼ·argⱼ + φ₀}; the amplitude is multiplied by
 	 * {@code sin(argument)}.
 	 */
-	private static double pertSum(final List<ElpCoefficients.PertTerm> terms, final double[] args){
+	private static double perturbationSum(final List<ElpCoefficients.PertTerm> terms, final double[] args){
 		double sum = 0.;
 		for(int k = 0, n = terms.size(); k < n; k ++){
 			final ElpCoefficients.PertTerm term = terms.get(k);
+
 			final int[] m = term.multipliers();
 			double arg = term.phase();
-			for(int j = 0; j < 13; j ++)
-				arg += m[j] * args[j];
+			for(int j = 0; j < ARG_COUNT - 1; j ++)
+				if(m[j] != 0)
+					arg += m[j] * args[j];
 			sum += term.amplitude() * StrictMath.sin(arg);
 		}
 		return sum;

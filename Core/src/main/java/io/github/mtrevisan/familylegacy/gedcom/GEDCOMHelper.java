@@ -1236,7 +1236,7 @@ public class GEDCOMHelper{
 		int year;
 		try{
 			if(isoDate.contains("-")){
-				year = Integer.parseInt(isoDate.split("-")[0]);
+				year = Integer.parseInt(StringUtils.split(isoDate, '-')[0]);
 			}
 			else{
 				year = Integer.parseInt(isoDate);

@@ -62,45 +62,45 @@ public final class ElpCoefficients{
 	public final List<MainTerm> mainDistance;
 
 	/* ----- Perturbations, longitude ----- */
-	public final List<PertTerm> pertLongT0;
-	public final List<PertTerm> pertLongT1;
-	public final List<PertTerm> pertLongT2;
-	public final List<PertTerm> pertLongT3;
+	public final List<PertTerm> perturbationLongitudeT0;
+	public final List<PertTerm> perturbationLongitudeT1;
+	public final List<PertTerm> perturbationLongitudeT2;
+	public final List<PertTerm> perturbationLongitudeT3;
 
 	/* ----- Perturbations, latitude ----- */
-	public final List<PertTerm> pertLatT0;
-	public final List<PertTerm> pertLatT1;
-	public final List<PertTerm> pertLatT2;
+	public final List<PertTerm> perturbationLatitudeT0;
+	public final List<PertTerm> perturbationLatitudeT1;
+	public final List<PertTerm> perturbationLatitudeT2;
 
 	/* ----- Perturbations, distance ----- */
-	public final List<PertTerm> pertDistT0;
-	public final List<PertTerm> pertDistT1;
-	public final List<PertTerm> pertDistT2;
-	public final List<PertTerm> pertDistT3;
+	public final List<PertTerm> perturbationDistanceT0;
+	public final List<PertTerm> perturbationDistanceT1;
+	public final List<PertTerm> perturbationDistanceT2;
+	public final List<PertTerm> perturbationDistanceT3;
 
 
 	public ElpCoefficients(final List<MainTerm> mainLongitude, final List<MainTerm> mainLatitude,
-		final List<MainTerm> mainDistance,
-		final List<PertTerm> pertLongT0, final List<PertTerm> pertLongT1,
-		final List<PertTerm> pertLongT2, final List<PertTerm> pertLongT3,
-		final List<PertTerm> pertLatT0, final List<PertTerm> pertLatT1,
-		final List<PertTerm> pertLatT2,
-		final List<PertTerm> pertDistT0, final List<PertTerm> pertDistT1,
-		final List<PertTerm> pertDistT2, final List<PertTerm> pertDistT3){
+			final List<MainTerm> mainDistance,
+			final List<PertTerm> perturbationLongitudeT0, final List<PertTerm> perturbationLongitudeT1,
+			final List<PertTerm> perturbationLongitudeT2, final List<PertTerm> perturbationLongitudeT3,
+			final List<PertTerm> perturbationLatitudeT0, final List<PertTerm> perturbationLatitudeT1,
+			final List<PertTerm> perturbationLatitudeT2,
+			final List<PertTerm> perturbationDistanceT0, final List<PertTerm> perturbationDistanceT1,
+			final List<PertTerm> perturbationDistanceT2, final List<PertTerm> perturbationDistanceT3){
 		this.mainLongitude = mainLongitude;
 		this.mainLatitude = mainLatitude;
 		this.mainDistance = mainDistance;
-		this.pertLongT0 = pertLongT0;
-		this.pertLongT1 = pertLongT1;
-		this.pertLongT2 = pertLongT2;
-		this.pertLongT3 = pertLongT3;
-		this.pertLatT0 = pertLatT0;
-		this.pertLatT1 = pertLatT1;
-		this.pertLatT2 = pertLatT2;
-		this.pertDistT0 = pertDistT0;
-		this.pertDistT1 = pertDistT1;
-		this.pertDistT2 = pertDistT2;
-		this.pertDistT3 = pertDistT3;
+		this.perturbationLongitudeT0 = perturbationLongitudeT0;
+		this.perturbationLongitudeT1 = perturbationLongitudeT1;
+		this.perturbationLongitudeT2 = perturbationLongitudeT2;
+		this.perturbationLongitudeT3 = perturbationLongitudeT3;
+		this.perturbationLatitudeT0 = perturbationLatitudeT0;
+		this.perturbationLatitudeT1 = perturbationLatitudeT1;
+		this.perturbationLatitudeT2 = perturbationLatitudeT2;
+		this.perturbationDistanceT0 = perturbationDistanceT0;
+		this.perturbationDistanceT1 = perturbationDistanceT1;
+		this.perturbationDistanceT2 = perturbationDistanceT2;
+		this.perturbationDistanceT3 = perturbationDistanceT3;
 	}
 
 }

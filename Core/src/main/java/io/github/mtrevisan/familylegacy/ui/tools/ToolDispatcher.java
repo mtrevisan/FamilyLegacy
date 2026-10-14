@@ -33,6 +33,10 @@ import io.github.mtrevisan.familylegacy.ui.components.projections.repository.Pro
  */
 public interface ToolDispatcher{
 
+	default String[] getRootIds(){
+		return new String[2];
+	}
+
 	default void editEntity(final String id){}
 
 	default void paste(){}

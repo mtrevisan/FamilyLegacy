@@ -718,8 +718,12 @@ public final class GUIHelper{
 	}
 
 	private static void validate(FLEFModel model) throws IOException{
-		final Path path = Paths.get("src/main/resources/gedg/flef_0.1.3.gedg");
-		final FLEFGrammar grammar = FLEFGrammarParser.parse(path);
+		final String grammarContent;
+		try(final InputStream is = GUIHelper.class.getResourceAsStream("/gedg/flef_0.1.3.gedg")){
+			grammarContent = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+		}
+
+		final FLEFGrammar grammar = FLEFGrammarParser.parse(grammarContent);
 		for(final String warning : grammar.getParseWarnings())
 			System.err.println(warning);
 

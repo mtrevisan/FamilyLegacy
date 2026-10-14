@@ -128,6 +128,8 @@ protected void onOk(){
  * Tab 9 (Privacy): privacy
  * Tab 10 (Audit): audit
  */
+// FIXME add a member to a group should show RelationshipRecordDialog
+// FIXME also on GroupRecordDialog and IndividualRecordDialog, tab Relationships | Add Existing
 public class IndividualRecordDialog extends BaseRecordDialog{
 
 	private final PreferredImagePanel preferredImagePanel;

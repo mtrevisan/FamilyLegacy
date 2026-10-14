@@ -68,7 +68,7 @@ public class RepositorySearchStrategy implements SearchStrategy{
 
 		return repository -> {
 			// Name filter
-			if(!SearchHelper.matchesName(repository, name, modes, FUZZY_THRESHOLD))
+			if(!SearchHelper.matchesPlaceName(repository, name, modes, FUZZY_THRESHOLD))
 				return false;
 
 			// Custodian filter

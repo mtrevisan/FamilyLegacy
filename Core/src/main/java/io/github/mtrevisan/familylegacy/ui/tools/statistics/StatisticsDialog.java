@@ -42,6 +42,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.TableColumnModel;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -135,8 +136,9 @@ public final class StatisticsDialog extends JDialog{
 		final CompletenessTableModel model = new CompletenessTableModel(stats.completeness());
 		final JTable table = new JTable(model);
 		table.setRowHeight(24);
-		table.getColumnModel().getColumn(0).setPreferredWidth(400);
-		table.getColumnModel().getColumn(1).setPreferredWidth(80);
+		final TableColumnModel columnModel = table.getColumnModel();
+		columnModel.getColumn(0).setPreferredWidth(400);
+		columnModel.getColumn(1).setPreferredWidth(80);
 		table.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
 		table.addMouseListener(new MouseAdapter(){
 			@Override
@@ -183,18 +185,20 @@ public final class StatisticsDialog extends JDialog{
 
 		final JTable surnameTable = new JTable(surnames);
 		surnameTable.setRowHeight(22);
-		surnameTable.getColumnModel().getColumn(0).setPreferredWidth(120);
-		surnameTable.getColumnModel().getColumn(1).setPreferredWidth(360);
-		surnameTable.getColumnModel().getColumn(2).setPreferredWidth(80);
+		final TableColumnModel surnameColumnModel = surnameTable.getColumnModel();
+		surnameColumnModel.getColumn(0).setPreferredWidth(120);
+		surnameColumnModel.getColumn(1).setPreferredWidth(360);
+		surnameColumnModel.getColumn(2).setPreferredWidth(80);
 		surnameTable.setDefaultRenderer(Object.class, new LinkCellRenderer(false));
 		surnameTable.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
 		attachSelectionSummary(surnameTable, COUNT_COLUMN_NAMES, stats.distribution().totalSurnames());
 
 		final JTable givenTable = new JTable(given);
 		givenTable.setRowHeight(22);
-		givenTable.getColumnModel().getColumn(0).setPreferredWidth(120);
-		givenTable.getColumnModel().getColumn(1).setPreferredWidth(360);
-		givenTable.getColumnModel().getColumn(2).setPreferredWidth(80);
+		final TableColumnModel givenColumnModel = givenTable.getColumnModel();
+		givenColumnModel.getColumn(0).setPreferredWidth(120);
+		givenColumnModel.getColumn(1).setPreferredWidth(360);
+		givenColumnModel.getColumn(2).setPreferredWidth(80);
 		givenTable.setDefaultRenderer(Object.class, new LinkCellRenderer(false));
 		givenTable.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
 		attachSelectionSummary(givenTable, COUNT_COLUMN_NAMES, stats.distribution().totalGivenNames());
@@ -234,17 +238,19 @@ public final class StatisticsDialog extends JDialog{
 
 		final JTable coverageTable = new JTable(coverageModel);
 		coverageTable.setRowHeight(22);
-		coverageTable.getColumnModel().getColumn(0).setPreferredWidth(200);
-		coverageTable.getColumnModel().getColumn(1).setPreferredWidth(80);
-		coverageTable.getColumnModel().getColumn(2).setPreferredWidth(80);
-		coverageTable.getColumnModel().getColumn(3).setPreferredWidth(100);
+		final TableColumnModel coverageColumnModel = coverageTable.getColumnModel();
+		coverageColumnModel.getColumn(0).setPreferredWidth(200);
+		coverageColumnModel.getColumn(1).setPreferredWidth(80);
+		coverageColumnModel.getColumn(2).setPreferredWidth(80);
+		coverageColumnModel.getColumn(3).setPreferredWidth(100);
 		coverageTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
 		final JTable sourcesTable = new JTable(sourcesModel);
 		sourcesTable.setRowHeight(22);
-		sourcesTable.getColumnModel().getColumn(0).setPreferredWidth(80);
-		sourcesTable.getColumnModel().getColumn(1).setPreferredWidth(560);
-		sourcesTable.getColumnModel().getColumn(2).setPreferredWidth(80);
+		final TableColumnModel sourcesColumnModel = sourcesTable.getColumnModel();
+		sourcesColumnModel.getColumn(0).setPreferredWidth(80);
+		sourcesColumnModel.getColumn(1).setPreferredWidth(560);
+		sourcesColumnModel.getColumn(2).setPreferredWidth(80);
 		sourcesTable.setDefaultRenderer(Object.class, new LinkCellRenderer(true));
 		sourcesTable.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
 		attachSelectionSummary(sourcesTable, COUNT_COLUMN_SOURCES, stats.coverage().totalCitations());

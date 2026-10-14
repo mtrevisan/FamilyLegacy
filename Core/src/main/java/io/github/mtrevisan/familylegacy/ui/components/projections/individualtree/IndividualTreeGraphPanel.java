@@ -275,8 +275,10 @@ public class IndividualTreeGraphPanel extends JPanel implements TreeChangeListen
 		// at and restore it above the new root.
 		if(rootIndividualId != null && !Objects.equals(currentRootIndividualId, rootIndividualId)
 				&& rootNode != null && rootNode.getFather() != null && rootNode.getMother() != null){
-			final String fatherId = rootNode.getFather().getIndividualId();
-			final String motherId = rootNode.getMother().getIndividualId();
+			final String fatherId = rootNode.getFather()
+				.getIndividualId();
+			final String motherId = rootNode.getMother()
+				.getIndividualId();
 			if(fatherId != null && motherId != null && isChildOf(rootIndividualId, fatherId, motherId))
 				preferredParentsMap.put(rootIndividualId, new ParentCouple(fatherId, motherId));
 		}
@@ -291,18 +293,19 @@ public class IndividualTreeGraphPanel extends JPanel implements TreeChangeListen
 	}
 
 	public String getRootIndividualId(){
-		if(currentRootIndividualId != null)
-			return currentRootIndividualId;
+		return currentRootIndividualId;
+	}
 
+	public String[] getRootIds(){
 		if(rootNode == null)
-			return null;
+			return new String[2];
 
-		final String ownId = rootNode.getIndividualId();
-		if(ownId != null)
-			return ownId;
-
-		final TreeNode father = rootNode.getFather();
-		return (father != null && father.getIndividual() != null? father.getIndividual().getId(): null);
+		final TreeNode fatherNode = rootNode.getFather();
+		final TreeNode motherNode = rootNode.getMother();
+		return new String[]{
+			(fatherNode != null? fatherNode.getIndividualId(): null),
+			(motherNode != null? motherNode.getIndividualId(): null)
+		};
 	}
 
 	public String getSelectedIndividualId(){

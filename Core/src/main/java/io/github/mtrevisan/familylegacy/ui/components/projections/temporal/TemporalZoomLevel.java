@@ -24,7 +24,6 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections.temporal;
 
-
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DatePrecision;
 
 

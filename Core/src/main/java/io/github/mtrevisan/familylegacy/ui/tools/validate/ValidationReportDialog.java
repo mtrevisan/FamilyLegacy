@@ -45,6 +45,7 @@ import javax.swing.JTextArea;
 import javax.swing.ListSelectionModel;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.TableColumnModel;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -98,8 +99,9 @@ public final class ValidationReportDialog extends JDialog{
 
 		table.setRowHeight(22);
 		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		table.getColumnModel().getColumn(0).setPreferredWidth(640);
-		table.getColumnModel().getColumn(1).setPreferredWidth(90);
+		final TableColumnModel columnModel = table.getColumnModel();
+		columnModel.getColumn(0).setPreferredWidth(640);
+		columnModel.getColumn(1).setPreferredWidth(90);
 		table.setDefaultRenderer(Object.class, new ErrorRenderer());
 		table.getSelectionModel()
 			.addListSelectionListener(e -> onSelectionChanged());

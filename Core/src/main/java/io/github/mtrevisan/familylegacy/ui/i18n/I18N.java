@@ -26,14 +26,8 @@ package io.github.mtrevisan.familylegacy.ui.i18n;
 
 import com.ibm.icu.text.MessageFormat;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.nio.charset.StandardCharsets;
 import java.util.Locale;
 import java.util.MissingResourceException;
-import java.util.PropertyResourceBundle;
 import java.util.ResourceBundle;
 
 
@@ -118,38 +112,6 @@ public final class I18N{
 	public static String formatIcu(final String pattern, final Object... args){
 		return new MessageFormat(pattern, Locale.getDefault())
 			.format(args);
-	}
-
-
-	/* ======================================================================
-	 *                          UTF-8 loader
-	 * ====================================================================== */
-
-	/**
-	 * {@link ResourceBundle.Control} that loads {@code .properties} files
-	 * as UTF-8 instead of ISO-8859-1. Needed because the standard loader
-	 * mangles every non-ASCII character unless it is escaped as
-	 * {@code \\uXXXX}.
-	 */
-	private static final class Utf8Control extends ResourceBundle.Control{
-		@Override
-		public ResourceBundle newBundle(final String baseName, final Locale locale, final String format,
-				final ClassLoader loader, final boolean reload) throws IOException, IllegalAccessException,
-				InstantiationException{
-			if(!"java.properties".equals(format))
-				return super.newBundle(baseName, locale, format, loader, reload);
-
-			final String bundleName = toBundleName(baseName, locale);
-			final String resourceName = toResourceName(bundleName, "properties");
-			try(final InputStream is = loader.getResourceAsStream(resourceName)){
-				if(is == null)
-					return null;
-
-				try(final Reader reader = new InputStreamReader(is, StandardCharsets.UTF_8)){
-					return new PropertyResourceBundle(reader);
-				}
-			}
-		}
 	}
 
 }

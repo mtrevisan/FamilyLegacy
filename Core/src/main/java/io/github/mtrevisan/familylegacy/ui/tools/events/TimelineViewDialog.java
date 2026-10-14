@@ -46,6 +46,7 @@ import javax.swing.ListSelectionModel;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.table.AbstractTableModel;
+import javax.swing.table.TableColumnModel;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
@@ -138,11 +139,12 @@ public final class TimelineViewDialog extends JDialog{
 		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		table.setRowHeight(22);
 		table.setAutoCreateRowSorter(true);
-		table.getColumnModel().getColumn(0).setPreferredWidth(120);
-		table.getColumnModel().getColumn(1).setPreferredWidth(140);
-		table.getColumnModel().getColumn(2).setPreferredWidth(260);
-		table.getColumnModel().getColumn(3).setPreferredWidth(220);
-		table.getColumnModel().getColumn(4).setPreferredWidth(320);
+		final TableColumnModel columnModel = table.getColumnModel();
+		columnModel.getColumn(0).setPreferredWidth(120);
+		columnModel.getColumn(1).setPreferredWidth(140);
+		columnModel.getColumn(2).setPreferredWidth(260);
+		columnModel.getColumn(3).setPreferredWidth(220);
+		columnModel.getColumn(4).setPreferredWidth(320);
 
 		final JScrollPane scroll = new JScrollPane(table);
 		scroll.setBorder(BorderFactory.createTitledBorder("Timeline"));

@@ -48,7 +48,11 @@ package io.github.mtrevisan.familylegacy.io.model.readers.date;
  * {@link #STATUS_UNKNOWN}. It is meaningful for relationships and is
  * normally {@link #STATUS_UNKNOWN} for events and attributes.
  */
-public record TemporalSpan(TemporalSpanKind kind, NormalizedDate start, NormalizedDate end, String status){
+public record TemporalSpan(
+	TemporalSpanKind kind,
+	NormalizedDate start,
+	NormalizedDate end,
+	String status){
 
 	public static final String STATUS_ACTIVE = "active";
 	public static final String STATUS_ENDED = "ended";

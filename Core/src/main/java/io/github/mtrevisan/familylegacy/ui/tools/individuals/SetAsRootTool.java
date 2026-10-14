@@ -45,7 +45,7 @@ public final class SetAsRootTool implements ToolOperation{
 
 	@Override
 	public boolean isEnabled(final ToolContext context){
-		return (context != null && context.hasSelectedIndividual());
+		return (context != null && context.hasSelectedIndividual() && !context.isSelectedEntityARoot());
 	}
 
 }

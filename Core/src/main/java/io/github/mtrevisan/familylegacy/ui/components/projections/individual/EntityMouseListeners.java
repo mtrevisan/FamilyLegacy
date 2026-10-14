@@ -218,7 +218,7 @@ public final class EntityMouseListeners{
 		private Consumer<Boolean> onHoverChanged;
 
 		private Builder(final JComponent root){
-			this.root = Objects.requireNonNull(root, "Root component must not be null");
+			this.root = root;
 		}
 
 		/**

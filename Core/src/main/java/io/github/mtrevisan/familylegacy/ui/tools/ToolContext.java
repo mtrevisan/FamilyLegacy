@@ -174,7 +174,7 @@ public record ToolContext(
 	}
 
 	/**
-	 * Returns whether an Individual is selected or available as fallback.
+	 * Returns whether the selected entity exists in the model and is an Individual.
 	 */
 	public boolean hasSelectedIndividual(){
 		final FLEFRecord selectedEntity = getSelectedEntity();
@@ -187,6 +187,16 @@ public record ToolContext(
 	public boolean hasSelectedGroup(){
 		final FLEFRecord selectedEntity = getSelectedEntity();
 		return GroupHandler.isOfType(selectedEntity);
+	}
+
+	public boolean isSelectedEntityARoot(){
+		final FLEFRecord selectedEntity = getSelectedEntity();
+		if(selectedEntity == null || dispatcher == null)
+			return false;
+
+		final String selectedEntityId = selectedEntityId();
+		final String[] rootIds = dispatcher.getRootIds();
+		return (selectedEntityId.equalsIgnoreCase(rootIds[0]) || selectedEntityId.equalsIgnoreCase(rootIds[1]));
 	}
 
 	/**
@@ -225,22 +235,6 @@ public record ToolContext(
 	public boolean hasAtLeastPlaces(final int count){
 		return (model.getRecordsByType(PlaceHandler.TYPE)
 			.size() >= count);
-	}
-
-	/**
-	 * Returns whether the selected entity exists in the model and is a Source.
-	 */
-	public boolean hasSelectedSource(){
-		final String id = selectedEntityId();
-		return (id != null && model.hasRecord(id) && id.startsWith(SourceHandler.ID_PREFIX));
-	}
-
-	/**
-	 * Returns whether the selected entity exists in the model and is an Event.
-	 */
-	public boolean hasSelectedEvent(){
-		final String id = selectedEntityId();
-		return (id != null && model.hasRecord(id) && id.startsWith(EventHandler.ID_PREFIX));
 	}
 
 	/**

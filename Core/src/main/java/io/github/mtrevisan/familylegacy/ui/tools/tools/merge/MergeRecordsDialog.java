@@ -53,6 +53,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.TableColumnModel;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -221,14 +222,15 @@ public final class MergeRecordsDialog extends JDialog{
 
 		// Collisions table.
 		collisionsTable.setRowHeight(24);
-		collisionsTable.getColumnModel().getColumn(0).setPreferredWidth(120);
-		collisionsTable.getColumnModel().getColumn(1).setPreferredWidth(260);
-		collisionsTable.getColumnModel().getColumn(2).setPreferredWidth(260);
-		collisionsTable.getColumnModel().getColumn(3).setPreferredWidth(140);
-		collisionsTable.getColumnModel().getColumn(4).setPreferredWidth(28);
-		collisionsTable.getColumnModel().getColumn(4).setMaxWidth(40);
+		final TableColumnModel columnModel = collisionsTable.getColumnModel();
+		columnModel.getColumn(0).setPreferredWidth(120);
+		columnModel.getColumn(1).setPreferredWidth(260);
+		columnModel.getColumn(2).setPreferredWidth(260);
+		columnModel.getColumn(3).setPreferredWidth(140);
+		columnModel.getColumn(4).setPreferredWidth(28);
+		columnModel.getColumn(4).setMaxWidth(40);
 
-		collisionsTable.getColumnModel().getColumn(ACTION_COLUMN).setCellEditor(
+		columnModel.getColumn(ACTION_COLUMN).setCellEditor(
 			new DefaultCellEditor(new JComboBox<>(MergeDecision.values())));
 		collisionsTable.setDefaultRenderer(Object.class, new ResolvedAwareRenderer(tableModel));
 

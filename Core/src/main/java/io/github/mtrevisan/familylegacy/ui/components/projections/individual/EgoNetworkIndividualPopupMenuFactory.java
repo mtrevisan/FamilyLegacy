@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.ui.dialogs.help.ShortcutRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.PopupMenuAdapter;
 import io.github.mtrevisan.familylegacy.ui.helpers.RelationClipboard;
+import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolContexts;
 import io.github.mtrevisan.familylegacy.ui.tools.individuals.AddChildTool;
@@ -68,12 +69,13 @@ public class EgoNetworkIndividualPopupMenuFactory implements EntityPopupMenuFact
 	@Override
 	public JPopupMenu createPopupMenu(final IndividualPanel panel, final IndividualListener listener,
 			final FLEFModel model){
-		final JMenuItem editItem = new JMenuItem(ShortcutRegistry.EDIT_SELECTION_INDIVIDUAL.action(), 'E');
-		final JMenuItem addChildItem = (isEgo? new JMenuItem("Add Child…", 'A'): null);
-		final JMenuItem connectChildItem = (isEgo? new JMenuItem("Connect Child…", 'C'): null);
-		final JMenuItem deleteItem = new JMenuItem("Delete Individual", 'D');
-		final JMenuItem pasteItem = new JMenuItem("Paste", 'P');
-		final JMenuItem unlinkItem = new JMenuItem("Unlink Relationship", 'U');
+		final JMenuItem editItem = new JMenuItem(I18N.t("menu.individual.edit.individual"), 'E');
+		editItem.setAccelerator(ShortcutRegistry.EDIT_SELECTION_INDIVIDUAL.keyStroke());
+		final JMenuItem addChildItem = (isEgo? new JMenuItem(I18N.t("menu.individual.add.child"), 'A'): null);
+		final JMenuItem connectChildItem = (isEgo? new JMenuItem(I18N.t("menu.individual.connect.child"), 'C'): null);
+		final JMenuItem deleteItem = new JMenuItem(I18N.t("menu.individual.delete"), 'D');
+		final JMenuItem pasteItem = new JMenuItem(I18N.t("menu.individual.paste"), 'P');
+		final JMenuItem unlinkItem = new JMenuItem(I18N.t("menu.individual.unlink.relationships"), 'U');
 
 		// Evaluate item states right before display
 		final JPopupMenu popup = new JPopupMenu();
@@ -91,10 +93,10 @@ public class EgoNetworkIndividualPopupMenuFactory implements EntityPopupMenuFact
 				pasteItem.setEnabled(canPaste);
 				if(canPaste){
 					final String clippedName = context.getClippedRecordDisplayText();
-					pasteItem.setText("Paste " + clippedName);
+					pasteItem.setText(I18N.tf("menu.individual.paste.here", clippedName));
 				}
 				else
-					pasteItem.setText("Paste");
+					pasteItem.setText(I18N.t("menu.individual.paste"));
 				if(canPaste){
 					final FLEFRecord clippedRecord = RelationClipboard.getInstance().getRecord();
 					final String clippedName = IndividualHandler.getInstance().getDisplayText(clippedRecord, model);

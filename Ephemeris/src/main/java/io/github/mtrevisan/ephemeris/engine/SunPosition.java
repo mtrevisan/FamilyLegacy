@@ -195,10 +195,9 @@ public final class SunPosition{
 		final double z = 2. * StrictMath.sqrt(1. - p * p - q * q) * (yp * q - xp * p);
 
 		final double distance = StrictMath.sqrt(x * x + y * y + z * z);
-		return EclipticCoordinates.create(
-			StrictMath.asin(z / distance),
-			MathHelper.mod2pi(StrictMath.atan2(y, x)),
-			distance);
+		final double latitude = StrictMath.asin(z / distance);
+		final double longitude = MathHelper.mod2pi(StrictMath.atan2(y, x));
+		return EclipticCoordinates.create(latitude, longitude, distance);
 	}
 
 	private static double[] arguments(final double t){
@@ -212,14 +211,21 @@ public final class SunPosition{
 	 * Evaluate VSOP2013 variable terms by summing up coefficients across time powers.
 	 */
 	private static double evaluateVariable(final ResourceReader.VariableIndex variable, final double jme,
-		final double[] ll){
+			final double[] ll){
 		double total = 0.;
-		for(final ResourceReader.VSOP2013Data series : EMB_DATA.get(variable)){
+		final List<ResourceReader.VSOP2013Data> seriesList = EMB_DATA.get(variable);
+		for(int k = 0, size = seriesList.size(); k < size; k ++){
+			final ResourceReader.VSOP2013Data series = seriesList.get(k);
+
 			double sum = 0.;
-			for(final ResourceReader.VSOP2013Coeffs coeff : series.coeffs){
+			final ResourceReader.VSOP2013Coeffs[] coeffs = series.coeffs;
+			for(int j = 0, coeffsLength = coeffs.length; j < coeffsLength; j ++){
+				final ResourceReader.VSOP2013Coeffs coeff = coeffs[j];
+
 				double phase = 0.;
-				for(int i = 0; i < ARGUMENTS; i ++)
-					phase += coeff.iphi[i] * ll[i];
+				for(int i = 0; i < ARGUMENTS; i++)
+					if(coeff.iphi[i] != 0)
+						phase += coeff.iphi[i] * ll[i];
 				sum += coeff.sine * StrictMath.sin(phase) + coeff.cosine * StrictMath.cos(phase);
 			}
 			total += sum * StrictMath.pow(jme, series.timePower);

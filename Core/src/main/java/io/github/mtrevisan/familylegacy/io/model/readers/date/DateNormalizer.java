@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.io.model.readers.date;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.io.model.readers.DateReader;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Locale;
 
@@ -239,7 +240,7 @@ public final class DateNormalizer{
 	 * carry a year.
 	 */
 	private static int[] parseIso8601(final String raw){
-		final String[] parts = raw.split("-", 4);
+		final String[] parts = StringUtils.split(raw, "-", 4);
 		if(parts.length == 0 || parts.length > 3)
 			return null;
 		try{
@@ -268,9 +269,7 @@ public final class DateNormalizer{
 	 * month (e.g. {@code "19 AUG"}) is rejected.
 	 */
 	private static int[] parseLegacyDate(final String raw){
-		final String[] tokens = raw.toUpperCase(Locale.ROOT)
-			.trim()
-			.split("\\s+");
+		final String[] tokens = StringUtils.split(raw.toUpperCase(Locale.ROOT).trim());
 		if(tokens.length == 0)
 			return null;
 

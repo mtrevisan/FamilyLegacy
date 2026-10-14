@@ -124,7 +124,15 @@ public class SearchHelper{
 			.passes();
 	}
 
-	public static boolean matchesName(final FLEFRecord place, final String name, final Set<SearchMode> modes,
+	public static boolean matches(final String target, final String query, final Set<SearchMode> modes,
+			final double fuzzyThreshold){
+		if(StringUtils.isEmpty(target) || StringUtils.isEmpty(query))
+			return true;
+
+		return TextSearchHelper.matchesText(target, query, modes, fuzzyThreshold);
+	}
+
+	public static boolean matchesPlaceName(final FLEFRecord place, final String name, final Set<SearchMode> modes,
 			final double fuzzyThreshold){
 		if(StringUtils.isEmpty(name))
 			return true;

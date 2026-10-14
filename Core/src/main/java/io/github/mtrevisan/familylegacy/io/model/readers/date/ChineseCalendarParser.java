@@ -34,10 +34,10 @@ import java.util.regex.Pattern;
 
 /**
  * A utility class to parse traditional Chinese calendar date strings into pure integer representations.
- * Handles historical Era names (Nianhao) with reign years, Sexagenary Cycle (Ganzhi) years,
- * intercalary month flags (Run), and decade day prefixes.
+ * Handles historical Era names (niánhào) with reign years, Sexagenary Cycle (gānzhī) years,
+ * intercalary month flags (rùn), and decade day prefixes.
  */
-public final class ChineseCalendarParser{
+final class ChineseCalendarParser{
 
 	// 10 Celestial Stems (Tiangan)
 	private static final String STEMS = "甲乙丙丁戊己庚辛壬癸";

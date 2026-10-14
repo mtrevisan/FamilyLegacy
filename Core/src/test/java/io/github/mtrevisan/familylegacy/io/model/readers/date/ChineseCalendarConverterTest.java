@@ -35,7 +35,6 @@ class ChineseCalendarConverterTest{
 		// Chinese New Year 1964 (13 Feb 1964 Gregorian)
 		final long jdn = CalendarType.CHINESE.parseToJdn("1964年 农历甲辰年正月初一");
 
-		System.out.println(jdn);
 		Assertions.assertEquals(2438439L, jdn);
 	}
 
@@ -44,7 +43,6 @@ class ChineseCalendarConverterTest{
 		// Chinese New Year 2024 (10 Feb 2024 Gregorian)
 		final long jdn = CalendarType.CHINESE.parseToJdn("2024年 甲辰年 正月 初一");
 
-		System.out.println(jdn);
 		Assertions.assertEquals(2460351L, jdn);
 	}
 
@@ -53,7 +51,6 @@ class ChineseCalendarConverterTest{
 		// Mid-Autumn Festival 2024 (15th Day of 8th Month: 17 Sep 2024 Gregorian)
 		final long jdn = CalendarType.CHINESE.parseToJdn("2024年 甲辰年 八月 十五");
 
-		System.out.println(jdn);
 		Assertions.assertEquals(2460571L, jdn);
 	}
 
@@ -62,16 +59,18 @@ class ChineseCalendarConverterTest{
 		// Dragon Boat Festival 2023 (5th Day of 5th Month: 22 Jun 2023 Gregorian)
 		final long jdn = CalendarType.CHINESE.parseToJdn("2023年 癸卯年 五月 初五");
 
-		System.out.println(jdn);
 		Assertions.assertEquals(2460118L, jdn);
 	}
 
 	@Test
 	void prcProclamation(){
+final long start = System.currentTimeMillis();
 		// Proclamation of the PRC (2 Oct 1949 Gregorian -> 11th Day of 8th Month)
 		final long jdn = CalendarType.CHINESE.parseToJdn("民国38年 八月 十一");
+// 50121 ms
+// 47971 ms if!=0
+System.out.println("PRC proclamation: " + (System.currentTimeMillis() - start) + " ms");
 
-		System.out.println(jdn);
 		Assertions.assertEquals(2433192L, jdn);
 	}
 
@@ -81,7 +80,6 @@ class ChineseCalendarConverterTest{
 		// Tests pre-1928 Beijing Local Mean Time offset (+7:45:40)
 		final long jdn = CalendarType.CHINESE.parseToJdn("光绪二十六年 庚子年 正月 初一");
 
-		System.out.println(jdn);
 		Assertions.assertEquals(2415051L, jdn);
 	}
 
@@ -90,7 +88,6 @@ class ChineseCalendarConverterTest{
 		// Leap Month Year Test: Chinese New Year 2020 (25 Jan 2020 Gregorian)
 		final long jdn = CalendarType.CHINESE.parseToJdn("2020年 庚子年 正月 初一");
 
-		System.out.println(jdn);
 		Assertions.assertEquals(2458874L, jdn);
 	}
 
@@ -99,7 +96,6 @@ class ChineseCalendarConverterTest{
 		// Last Day of 12th Month before Chinese New Year 2025 (29 Jan 2025 Gregorian)
 		final long jdn = CalendarType.CHINESE.parseToJdn("2024年 甲辰年 腊月 三十");
 
-		System.out.println(jdn);
 		Assertions.assertEquals(2460705L, jdn);
 	}
 

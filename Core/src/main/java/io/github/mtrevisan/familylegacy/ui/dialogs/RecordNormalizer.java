@@ -62,8 +62,7 @@ public final class RecordNormalizer{
 	private static final String ORDER_SIGNIFICANT_TAG = "name";
 
 
-	private RecordNormalizer(){
-	}
+	private RecordNormalizer(){}
 
 
 	/**
@@ -117,12 +116,12 @@ public final class RecordNormalizer{
 	 */
 	private static String canonicalKey(final FLEFRecord record){
 		final StringBuilder sb = new StringBuilder();
-		sb.append(record.getTag() != null? record.getTag(): StringUtils.EMPTY);
-		sb.append('=');
-		sb.append(record.getValue() != null? record.getValue(): StringUtils.EMPTY);
-		sb.append('#');
-		sb.append(record.getId() != null? record.getId(): StringUtils.EMPTY);
-		sb.append('[');
+		sb.append(record.getTag() != null? record.getTag(): StringUtils.EMPTY)
+			.append('=')
+			.append(record.getValue() != null? record.getValue(): StringUtils.EMPTY)
+			.append('#')
+			.append(record.getId() != null? record.getId(): StringUtils.EMPTY)
+			.append('[');
 
 		final List<FLEFRecord> children = new ArrayList<>(record.getChildren());
 		if(!ORDER_SIGNIFICANT_TAG.equals(record.getTag()))
@@ -130,11 +129,10 @@ public final class RecordNormalizer{
 				.comparing((FLEFRecord r) -> r.getTag() != null? r.getTag(): StringUtils.EMPTY)
 				.thenComparing(RecordNormalizer::canonicalKey));
 
-		for(final FLEFRecord child : children){
-			sb.append('{');
-			sb.append(canonicalKey(child));
-			sb.append('}');
-		}
+		for(final FLEFRecord child : children)
+			sb.append('{')
+				.append(canonicalKey(child))
+				.append('}');
 		sb.append(']');
 		return sb.toString();
 	}

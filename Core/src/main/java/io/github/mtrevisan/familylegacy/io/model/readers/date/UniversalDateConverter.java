@@ -69,7 +69,7 @@ import java.util.Locale;
  *       the full tables and the astronomical computation.</li>
  *   <li><b>Arithmetic JDN</b> — for the remaining calendars, whose only
  *       conversion rule is the one declared in
- *       {@link CalendarType#parseToJdn(String, int)}. The enum produces a
+ *       {@link CalendarType#parseToJdn(String)}. The enum produces a
  *       Julian Day Number and this class converts it back to a
  *       proleptic Gregorian date.</li>
  * </ol>

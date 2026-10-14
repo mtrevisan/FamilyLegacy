@@ -28,11 +28,14 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
+import io.github.mtrevisan.familylegacy.ui.components.PanelKey;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualData;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualPanel;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.services.relationship.RelationshipTypeSelectionDialog;
 import io.github.mtrevisan.familylegacy.ui.components.projections.partners.PartnersPanel;
 import io.github.mtrevisan.familylegacy.ui.components.projections.repository.ProjectionMutator;
+import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.records.IndividualRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RelationshipHandler;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
@@ -60,8 +63,10 @@ public final class AddChildTool implements ToolOperation{
 	public void run(final ToolContext context){
 		final Window owner = context.owner();
 		final FLEFModel model = context.model();
-		final var dialog = IndividualHandler.getInstance()
-			.createNewDialog(owner, model);
+		final FLEFRecord record = context.getSelectedEntity();
+		final IndividualRecordDialog dialog = IndividualHandler.getInstance()
+			.createEditDialog(owner, model, record);
+		dialog.showSelectedTabAndComponent(BaseRecordDialog.TAB_NAME_RELATIONSHIPS, PanelKey.RELATIONSHIP_ON_OBJECT);
 		dialog.setVisible(true);
 
 		if(!dialog.isSaved())

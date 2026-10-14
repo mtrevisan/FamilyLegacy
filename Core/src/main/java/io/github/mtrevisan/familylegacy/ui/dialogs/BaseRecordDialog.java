@@ -71,6 +71,21 @@ import java.util.Objects;
  */
 public abstract class BaseRecordDialog extends JDialog{
 
+	static final String PANEL_PROPERTY_NAME = "name";
+	public static final String TAB_NAME_PROPERTIES = "properties";
+	public static final String TAB_NAME_ATTRIBUTES = "attributes";
+	public static final String TAB_NAME_RELATIONSHIPS = "relationships";
+	public static final String TAB_NAME_PARTICIPATIONS = "participations";
+	public static final String TAB_NAME_CONTEXT = "context";
+	public static final String TAB_NAME_RESEARCH = "research";
+	public static final String TAB_NAME_FINDINGS = "findings";
+	public static final String TAB_NAME_REFERENCES = "references";
+	public static final String TAB_NAME_SOURCES = "sources";
+	public static final String TAB_NAME_NOTES = "notes";
+	public static final String TAB_NAME_PRIVACY = "privacy";
+	public static final String TAB_NAME_AUDIT = "audit";
+	public static final String TAB_NAME_SUBMITTER = "submitter";
+
 	private static final String ACTION_GLOBAL_UNDO = "globalUndo";
 	private static final String ACTION_GLOBAL_REDO = "globalRedo";
 
@@ -147,18 +162,18 @@ public abstract class BaseRecordDialog extends JDialog{
 			GUIHelper.addComponent(this, propertiesPanel);
 		}
 		else{
-			addTabIfNotNull(tabbedPane, "Properties", propertiesPanel);
-			addTabIfNotNull(tabbedPane, "Attributes", attributesPanel);
-			addTabIfNotNull(tabbedPane, "Relationships", relationshipsPanel);
-			addTabIfNotNull(tabbedPane, "Participations", participationsPanel);
-			addTabIfNotNull(tabbedPane, "Context", contextPanel);
-			addTabIfNotNull(tabbedPane, "Research", researchPanel);
-			addTabIfNotNull(tabbedPane, "Findings", findingsPanel);
-			addTabIfNotNull(tabbedPane, "References", referencesPanel);
-			addTabIfNotNull(tabbedPane, "Sources", sourcesPanel);
-			addTabIfNotNull(tabbedPane, "Notes", notesPanel);
-			addTabIfNotNull(tabbedPane, "Privacy", privacyPanel);
-			addTabIfNotNull(tabbedPane, "Audit", auditPanel);
+			addTabIfNotNull(tabbedPane, TAB_NAME_PROPERTIES, propertiesPanel);
+			addTabIfNotNull(tabbedPane, TAB_NAME_ATTRIBUTES, attributesPanel);
+			addTabIfNotNull(tabbedPane, TAB_NAME_RELATIONSHIPS, relationshipsPanel);
+			addTabIfNotNull(tabbedPane, TAB_NAME_PARTICIPATIONS, participationsPanel);
+			addTabIfNotNull(tabbedPane, TAB_NAME_CONTEXT, contextPanel);
+			addTabIfNotNull(tabbedPane, TAB_NAME_RESEARCH, researchPanel);
+			addTabIfNotNull(tabbedPane, TAB_NAME_FINDINGS, findingsPanel);
+			addTabIfNotNull(tabbedPane, TAB_NAME_REFERENCES, referencesPanel);
+			addTabIfNotNull(tabbedPane, TAB_NAME_SOURCES, sourcesPanel);
+			addTabIfNotNull(tabbedPane, TAB_NAME_NOTES, notesPanel);
+			addTabIfNotNull(tabbedPane, TAB_NAME_PRIVACY, privacyPanel);
+			addTabIfNotNull(tabbedPane, TAB_NAME_AUDIT, auditPanel);
 		}
 
 		finalizeLayout(tabbedPane);
@@ -251,12 +266,45 @@ public abstract class BaseRecordDialog extends JDialog{
 	 * Adds a tab to the tabbed pane only if the panel is not {@code null}.
 	 *
 	 * @param tabbedPane the tabbed pane
-	 * @param title      the tab title
+	 * @param tabName    the tab name
 	 * @param panel      the panel to add (maybe {@code null})
 	 */
-	private void addTabIfNotNull(final JTabbedPane tabbedPane, final String title, final JPanel panel){
-		if(panel != null)
-			tabbedPane.addTab(title, panel);
+	void addTabIfNotNull(final JTabbedPane tabbedPane, final String tabName, final JPanel panel){
+		if(panel != null){
+			panel.putClientProperty(PANEL_PROPERTY_NAME, tabName);
+
+			tabbedPane.addTab(I18N.t("tab.title." + tabName), panel);
+		}
+	}
+
+	public boolean showSelectedTab(final String tabName){
+		if(tabName != null && tabbedPane != null)
+			for(int i = 0, count = tabbedPane.getTabCount(); i < count; i ++)
+				if(tabbedPane.getComponentAt(i) instanceof JPanel panel
+						&& tabName.equals(panel.getClientProperty(PANEL_PROPERTY_NAME))){
+					tabbedPane.setSelectedIndex(i);
+
+					return true;
+				}
+		return false;
+	}
+
+	public boolean showSelectedTabAndComponent(final String tabName, final PanelKey componentKey){
+		if(tabName != null && tabbedPane != null)
+			for(int i = 0, count = tabbedPane.getTabCount(); i < count; i ++)
+				if(tabbedPane.getComponentAt(i) instanceof JPanel panel
+						&& tabName.equals(panel.getClientProperty(PANEL_PROPERTY_NAME))){
+					tabbedPane.setSelectedIndex(i);
+
+					if(componentKey != null && panel.getComponentCount() > 0){
+						final JPanel jpanel = components.getPanel(componentKey);
+						if(jpanel != null)
+							jpanel.requestFocusInWindow();
+					}
+
+					return true;
+				}
+		return false;
 	}
 
 	protected JPanel createPropertiesPanel(){
