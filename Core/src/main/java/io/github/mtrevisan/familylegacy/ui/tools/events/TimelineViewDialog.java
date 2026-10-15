@@ -272,6 +272,7 @@ public final class TimelineViewDialog extends JDialog{
 	private void chooseParticipant(){
 		final FLEFRecord[] chosen = new FLEFRecord[1];
 		final FLEFModel model = context.model();
+		@SuppressWarnings("unchecked")
 		final RecordSelectionDialog dialog = RecordSelectionDialog.create(
 			this, model,
 			(record, handler) -> chosen[0] = record,

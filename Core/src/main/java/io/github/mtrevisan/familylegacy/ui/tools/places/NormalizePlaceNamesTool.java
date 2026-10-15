@@ -69,6 +69,7 @@ public final class NormalizePlaceNamesTool implements ToolOperation{
 			final String name = PlaceHelper.displayName(place);
 			if(name == null || name.isBlank())
 				continue;
+
 			final String key = normalize(name);
 			groups.computeIfAbsent(key, k -> new ArrayList<>()).add(place);
 		}
@@ -78,6 +79,7 @@ public final class NormalizePlaceNamesTool implements ToolOperation{
 		for(final Map.Entry<String, List<FLEFRecord>> entry : groups.entrySet()){
 			if(entry.getValue().size() < 2)
 				continue;
+
 			final long distinctSpellings = entry.getValue().stream()
 				.map(PlaceHelper::displayName)
 				.distinct()

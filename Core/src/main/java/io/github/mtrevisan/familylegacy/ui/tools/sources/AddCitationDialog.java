@@ -167,6 +167,7 @@ public final class AddCitationDialog extends JDialog{
 	private void chooseTarget(){
 		final FLEFRecord[] chosen = new FLEFRecord[1];
 		final FLEFModel model = context.model();
+		@SuppressWarnings("unchecked")
 		final RecordSelectionDialog dialog = RecordSelectionDialog.create(
 			this, model,
 			(record, handler) -> chosen[0] = record,
@@ -186,6 +187,7 @@ public final class AddCitationDialog extends JDialog{
 	private void chooseSource(){
 		final FLEFRecord[] chosen = new FLEFRecord[1];
 		final FLEFModel model = context.model();
+		@SuppressWarnings("unchecked")
 		final RecordSelectionDialog dialog = RecordSelectionDialog.create(
 			this, model,
 			(record, handler) -> chosen[0] = record,

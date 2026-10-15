@@ -27,7 +27,6 @@ package io.github.mtrevisan.familylegacy.ui.components.projections.places;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.io.model.readers.DateReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceRelationshipReader;
 import io.github.mtrevisan.familylegacy.ui.handlers.PlaceHandler;
@@ -36,6 +35,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Deque;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -56,11 +56,20 @@ import java.util.Set;
  * presenting it as a tree, by duplicating a place under each of its
  * parents.
  * <p>
+ * <b>Direction.</b> The FLEF protocol defines
+ * {@code place_relationship} as "subject is part of object". For
+ * example, {@code administrative_part_of(Treviso -> Veneto)} means that
+ * Treviso is administratively part of Veneto. In tree terms, the
+ * {@code subject} is the <b>child</b> (the smaller entity) and the
+ * {@code object} is the <b>parent</b> (the containing entity). The
+ * service exposes the graph with the parent/child naming, so the panel
+ * does not have to remember the inversion.
+ * <p>
  * <b>Orphan places.</b> Not every place has a declared hierarchy: some
  * places are recorded with no {@code place_relationship} at all, and
  * some are recorded only as subjects of a relationship whose target is
  * missing from the model. Both cases are handled by treating a place as
- * a <b>root</b> whenever it never appears as a subject of a valid
+ * a <b>root</b> whenever it never appears as a child of a valid
  * relationship. This is a deliberate choice: an orphan place is still a
  * place, not an error, and it belongs at the top level of the
  * presentation, next to the places that are genuinely at the top of a
@@ -76,7 +85,11 @@ import java.util.Set;
 public final class PlaceHierarchyService{
 
 	/** A minimal, immutable view of a {@code PlaceRecord}. */
-	public record PlaceReference(String id, String name, String type, String coordinates){
+	public record PlaceReference(String id, String name, String type, String coordinates, List<String> notes){
+
+		public PlaceReference{
+			notes = (notes != null? List.copyOf(notes): List.of());
+		}
 
 		/** Returns {@code true} when the place has a usable display name. */
 		public boolean hasName(){
@@ -84,7 +97,16 @@ public final class PlaceHierarchyService{
 		}
 	}
 
-	/** A relation between two places, as declared by a {@code PlaceRelationshipRecord}. */
+	/**
+	 * A relation between two places, as declared by a
+	 * {@code PlaceRelationshipRecord}.
+	 * <p>
+	 * The naming follows the tree semantics: {@code parentId} is the
+	 * containing place (the FLEF {@code object}), {@code childId} is the
+	 * contained place (the FLEF {@code subject}). The protocol defines
+	 * the relationship as "subject is part of object", so this mapping
+	 * is not intuitive from the field names alone.
+	 */
 	public record PlaceRelation(
 		String relationshipId,
 		String parentId,
@@ -121,8 +143,7 @@ public final class PlaceHierarchyService{
 	}
 
 
-	private PlaceHierarchyService(){
-	}
+	private PlaceHierarchyService(){}
 
 
 	/**
@@ -150,35 +171,44 @@ public final class PlaceHierarchyService{
 				relations.add(rel);
 		}
 
-		// --- 3. Group relations by parent and by child ---
+		// --- 3. Group relations by parent and by child, sorting each
+		//         group by name for a stable, readable order ---
 		final Map<String, List<PlaceRelation>> outgoing = new LinkedHashMap<>();
 		final Map<String, List<PlaceRelation>> incoming = new LinkedHashMap<>();
 		for(final PlaceRelation rel : relations){
 			outgoing.computeIfAbsent(rel.parentId(), k -> new ArrayList<>()).add(rel);
 			incoming.computeIfAbsent(rel.childId(), k -> new ArrayList<>()).add(rel);
 		}
+		for(final List<PlaceRelation> list : outgoing.values())
+			sortRelationsByName(list, places, PlaceRelation::childId);
+		for(final List<PlaceRelation> list : incoming.values())
+			sortRelationsByName(list, places, PlaceRelation::parentId);
 
 		// --- 4. Compute the roots ---
-		// A place is a root when it never appears as a subject of a valid
+		// A place is a root when it never appears as a child of a valid
 		// relation. This includes:
 		//   - places that are at the top of a hierarchy;
 		//   - places with no relations at all (orphans);
-		//   - places that are only children of a relation whose parent
-		//     is missing from the model.
-		final Set<String> subjects = new LinkedHashSet<>(incoming.keySet());
+		//   - places that are only subjects of a relationship whose
+		//     object is missing from the model.
+		final Set<String> children = new LinkedHashSet<>(incoming.keySet());
 		final List<String> roots = new ArrayList<>();
 		for(final String id : places.keySet())
-			if(!subjects.contains(id))
+			if(!children.contains(id))
 				roots.add(id);
 
 		// --- 5. Handle cycles and unreachable places ---
 		// A place that only appears inside a cycle would never be reached
 		// from a root. We compute the set of reachable places and promote
 		// the unreachable ones to roots, so nothing is silently dropped.
+		// The promoted set is computed first, then appended, to avoid
+		// mutating `roots` while it is being iterated.
 		final Set<String> reachable = computeReachable(roots, outgoing);
+		final List<String> promoted = new ArrayList<>();
 		for(final String id : places.keySet())
 			if(!reachable.contains(id) && !roots.contains(id))
-				roots.add(id);
+				promoted.add(id);
+		roots.addAll(promoted);
 
 		// --- 6. Sort the roots by name for a stable, readable order ---
 		roots.sort((a, b) -> compareByName(places, a, b));
@@ -199,13 +229,34 @@ public final class PlaceHierarchyService{
 		final String name = PlaceReader.extractPrimaryName(record);
 		final String type = PlaceReader.extractType(record);
 		final String coordinates = PlaceReader.extractCoordinates(record);
-		return new PlaceReference(id, (name != null? name: record.getId()), type, coordinates);
+		final List<String> notes = extractNotes(record);
+		return new PlaceReference(id, (name != null? name: record.getId()), type, coordinates, notes);
+	}
+
+	/**
+	 * Extracts the text of every {@code note} child of the place. The
+	 * text is taken from the {@code text} child of the note structure,
+	 * which is the mandatory field of {@code NoteStructure} in the FLEF
+	 * protocol. Blank notes are skipped.
+	 */
+	private static List<String> extractNotes(final FLEFRecord record){
+		final List<String> notes = new ArrayList<>();
+		for(final FLEFRecord note : FLEFRecordHelper.findChildren(record, "note")){
+			final String text = FLEFRecordHelper.getChildValue(note, "text");
+			if(text != null && !text.isBlank())
+				notes.add(text.trim());
+		}
+		return notes;
 	}
 
 	private static PlaceRelation toPlaceRelation(final FLEFRecord record,
 			final Map<String, PlaceReference> places){
-		final String parentId = record.extractReferencedId(PlaceRelationshipReader.TAG_SUBJECT, PlaceHandler.TYPE);
-		final String childId = record.extractReferencedId(PlaceRelationshipReader.TAG_OBJECT, PlaceHandler.TYPE);
+		// FLEF: place_relationship is "subject is part of object". The
+		// subject is the contained place (the child in tree terms), the
+		// object is the containing place (the parent). The naming in the
+		// returned record follows the tree semantics, not the field names.
+		final String childId = record.extractReferencedId(PlaceRelationshipReader.TAG_SUBJECT, PlaceHandler.TYPE);
+		final String parentId = record.extractReferencedId(PlaceRelationshipReader.TAG_OBJECT, PlaceHandler.TYPE);
 		if(parentId == null || childId == null)
 			return null;
 
@@ -215,28 +266,44 @@ public final class PlaceHierarchyService{
 		if(!places.containsKey(parentId) || !places.containsKey(childId))
 			return null;
 
-		final String placeRelationType = PlaceRelationshipReader.extractType(record);
+		final String relationType = PlaceRelationshipReader.extractType(record);
 		final String validFrom = extractDateValue(record, PlaceRelationshipReader.TAG_VALID_FROM);
 		final String validTo = extractDateValue(record, PlaceRelationshipReader.TAG_VALID_TO);
-		return new PlaceRelation(record.getId(), parentId, childId, placeRelationType, validFrom, validTo);
+		return new PlaceRelation(record.getId(), parentId, childId, relationType, validFrom, validTo);
 	}
 
 	/**
-	 * Extracts the {@code value} of a nested {@code DateStructure}, or
-	 * {@code null} when the field is absent. The value is used as-is:
-	 * the panel shows it as a plain string, without parsing.
+	 * Extracts the value of a nested {@code DateStructure}, or
+	 * {@code null} when the field is absent or empty.
+	 * <p>
+	 * In FLEF 0.1.3, {@code DateStructure.value} is a {@code DateValue}
+	 * oneof: {@code point.full_date.value},
+	 * {@code bounded.not_before.full_date.value},
+	 * {@code bounded.not_after.full_date.value},
+	 * {@code spanning.from.full_date.value},
+	 * {@code spanning.to.full_date.value}. The first non-empty leaf
+	 * value found by a depth-first walk is returned. The tree is small,
+	 * so the walk is negligible.
 	 */
 	private static String extractDateValue(final FLEFRecord record, final String tag){
 		final FLEFRecord dateStruct = FLEFRecordHelper.findChild(record, tag);
 		if(dateStruct == null)
 			return null;
 
-		final String value = FLEFRecordHelper.getChildValue(dateStruct, DateReader.TAG_VALUE);
-		if(value != null)
-			return value;
+		return findFirstNonBlankValue(dateStruct);
+	}
 
-		final FLEFRecord onlyChild = dateStruct.getTheOnlyChild();
-		return (onlyChild != null? onlyChild.getValue(): null);
+	private static String findFirstNonBlankValue(final FLEFRecord record){
+		for(final FLEFRecord child : record.getChildren()){
+			final String direct = child.getValue();
+			if(direct != null && !direct.isBlank())
+				return direct;
+
+			final String nested = findFirstNonBlankValue(child);
+			if(nested != null)
+				return nested;
+		}
+		return null;
 	}
 
 	/**
@@ -246,7 +313,7 @@ public final class PlaceHierarchyService{
 	 * call stack.
 	 */
 	private static Set<String> computeReachable(final List<String> roots,
-		final Map<String, List<PlaceRelation>> outgoing){
+			final Map<String, List<PlaceRelation>> outgoing){
 		final Set<String> reachable = new HashSet<>();
 		final Deque<String> stack = new ArrayDeque<>(roots);
 		while(!stack.isEmpty()){
@@ -260,8 +327,13 @@ public final class PlaceHierarchyService{
 		return reachable;
 	}
 
-	private static int compareByName(final Map<String, PlaceReference> places,
-		final String a, final String b){
+	private static void sortRelationsByName(final List<PlaceRelation> list,
+			final Map<String, PlaceReference> places,
+			final java.util.function.Function<PlaceRelation, String> idExtractor){
+		list.sort((a, b) -> compareByName(places, idExtractor.apply(a), idExtractor.apply(b)));
+	}
+
+	private static int compareByName(final Map<String, PlaceReference> places, final String a, final String b){
 		final PlaceReference ra = places.get(a);
 		final PlaceReference rb = places.get(b);
 		final String na = (ra != null? ra.name(): a);
@@ -269,6 +341,14 @@ public final class PlaceHierarchyService{
 		return String.CASE_INSENSITIVE_ORDER.compare(
 			(na != null? na: StringUtils.EMPTY),
 			(nb != null? nb: StringUtils.EMPTY));
+	}
+
+	/**
+	 * Returns the declared relationship types as a list. Kept here so
+	 * the panel does not need to know the reader's array shape.
+	 */
+	public static List<String> declaredRelationTypes(){
+		return Arrays.stream(PlaceRelationshipReader.TYPES).toList();
 	}
 
 }

@@ -27,9 +27,9 @@ package io.github.mtrevisan.familylegacy.ui.components.projections.places;
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.readers.PlaceRelationshipReader;
 import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
-import io.github.mtrevisan.familylegacy.ui.handlers.PlaceHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
+import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.ui.tools.ReportDialog;
 import org.apache.commons.lang3.StringUtils;
 
@@ -44,12 +44,14 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextField;
+import javax.swing.JTextPane;
 import javax.swing.JTree;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
@@ -90,21 +92,21 @@ import java.util.TreeSet;
  * orphan place is a legitimate top-level entry, not an error state.
  * <p>
  * <b>Filtering.</b> The toolbar offers a search field (case-insensitive
- * substring on the place name) and a combo box to restrict the tree to a
- * single relation type (administrative, ecclesiastical, judicial,
- * cadastral, geographic). When the combo is set to "All", every relation
- * is shown.
+ * substring on the place name and type) and a combo box to restrict the
+ * tree to a single relation type (administrative, ecclesiastical,
+ * judicial, cadastral, geographic). When the combo is set to the "All"
+ * entry, every relation is shown.
  * <p>
  * <b>Details.</b> A side panel shows the full information of the
- * selected place: type, coordinates, incoming relations (parents), and
- * outgoing relations (children), each with its type and validity dates.
- * A double-click opens the record editor through
- * {@link PlaceHandler#createEditDialog(Window, FLEFModel, FLEFRecord)}.
+ * selected place: type, coordinates, notes, incoming relations
+ * (parents), and outgoing relations (children), each with its type and
+ * validity dates. A double-click opens the record editor through the
+ * registered {@link RecordTypeHandler}.
  */
 public final class PlaceHierarchyPanel extends JPanel{
 
-	/** Label used in the relation-type combo to mean "no filter". */
-	private static final String FILTER_ALL = "All";
+	/** Sentinel for the "no filter" entry of the relation type combo. */
+	private static final String FILTER_ALL_KEY = "places.filter.all";
 
 	private static final int TREE_MIN_WIDTH = 360;
 	private static final int DETAILS_MIN_WIDTH = 300;
@@ -175,7 +177,8 @@ public final class PlaceHierarchyPanel extends JPanel{
 		});
 
 		toolbar.add(new JLabel("Relation:"));
-		relationTypeFilter.setPreferredSize(new Dimension(180, relationTypeFilter.getPreferredSize().height));
+		relationTypeFilter.setPreferredSize(new Dimension(180,
+			relationTypeFilter.getPreferredSize().height));
 		relationTypeFilter.addActionListener(e -> rebuildTree());
 		toolbar.add(relationTypeFilter);
 
@@ -186,6 +189,10 @@ public final class PlaceHierarchyPanel extends JPanel{
 		final JButton collapseAll = new JButton("Collapse all");
 		collapseAll.addActionListener(e -> collapseAll());
 		toolbar.add(collapseAll);
+
+		final JButton reloadButton = new JButton("Reload");
+		reloadButton.addActionListener(e -> reload());
+		toolbar.add(reloadButton);
 
 		return toolbar;
 	}
@@ -234,21 +241,23 @@ public final class PlaceHierarchyPanel extends JPanel{
 
 	private void rebuildRelationTypeModel(){
 		// Start from the declared types, add any custom type found in the
-		// data, and prepend the "All" entry.
-		final Set<String> types = new TreeSet<>(List.of(PlaceRelationshipReader.TYPES));
+		// data, and prepend the "All" entry. The sentinel is a display
+		// label, not a protocol type, so it is compared by identity in
+		// the filter logic below.
+		final Set<String> types = new TreeSet<>(PlaceHierarchyService.declaredRelationTypes());
 		for(final PlaceHierarchyService.PlaceRelation rel : hierarchy.relations())
 			if(rel.relationType() != null && !rel.relationType().isBlank())
 				types.add(rel.relationType());
 
 		final String previous = (String)relationTypeFilter.getSelectedItem();
 		final List<String> items = new ArrayList<>();
-		items.add(FILTER_ALL);
+		items.add(FILTER_ALL_KEY);
 		items.addAll(types);
 		relationTypeFilter.setModel(new DefaultComboBoxModel<>(items.toArray(new String[0])));
 		if(previous != null && items.contains(previous))
 			relationTypeFilter.setSelectedItem(previous);
 		else
-			relationTypeFilter.setSelectedItem(FILTER_ALL);
+			relationTypeFilter.setSelectedItem(FILTER_ALL_KEY);
 	}
 
 	private void rebuildTree(){
@@ -256,7 +265,7 @@ public final class PlaceHierarchyPanel extends JPanel{
 
 		final String filter = (String)relationTypeFilter.getSelectedItem();
 		final String search = searchField.getText();
-		final boolean hasFilter = (filter != null && !FILTER_ALL.equals(filter));
+		final boolean hasFilter = (filter != null && !FILTER_ALL_KEY.equals(filter));
 
 		for(final String rootId : hierarchy.rootIds()){
 			final DefaultMutableTreeNode node = buildNode(rootId, null,
@@ -278,12 +287,8 @@ public final class PlaceHierarchyPanel extends JPanel{
 	 * cycle is broken at the first repeated node and the node is marked
 	 * as a cycle for the renderer.
 	 */
-	private DefaultMutableTreeNode buildNode(final String placeId,
-		final PlaceHierarchyService.PlaceRelation incoming,
-		final Set<String> path,
-		final boolean hasFilter,
-		final String filter,
-		final String search){
+	private DefaultMutableTreeNode buildNode(final String placeId, final PlaceHierarchyService.PlaceRelation incoming,
+			final Set<String> path, final boolean hasFilter, final String filter, final String search){
 		final PlaceHierarchyService.PlaceReference place = hierarchy.places().get(placeId);
 		if(place == null)
 			return null;
@@ -368,12 +373,17 @@ public final class PlaceHierarchyPanel extends JPanel{
 		final PlaceTreePayload payload = selectedPayload();
 		if(payload == null)
 			return;
+
 		final FLEFRecord record = model.getRecordById(payload.place().id());
 		if(record == null)
 			return;
+
+		final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(record.getTag());
+		if(handler == null)
+			return;
+
 		final Window owner = SwingUtilities.getWindowAncestor(this);
-		final BaseRecordDialog dialog = PlaceHandler.getInstance()
-			.createEditDialog(owner, model, record);
+		final BaseRecordDialog dialog = handler.createEditDialog(owner, model, record);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved())
@@ -397,34 +407,44 @@ public final class PlaceHierarchyPanel extends JPanel{
 		return (payload != null? payload.place().id(): null);
 	}
 
+	/**
+	 * Selects the first node in the model that carries the given place
+	 * id. The walk is performed on the model, not on the visible rows,
+	 * so a place that is inside a collapsed branch is still found and
+	 * the tree is expanded to reveal it.
+	 */
 	private void restoreSelection(final String placeId){
 		if(placeId == null)
 			return;
-		// Walk the tree and select the first node that carries the given
-		// place id. The tree may contain the same place under several
-		// parents; the first match is enough for the user's purpose.
-		for(int row = 0; row < tree.getRowCount(); row ++){
-			final TreePath path = tree.getPathForRow(row);
-			if(path == null)
-				continue;
-			final Object last = path.getLastPathComponent();
-			if(!(last instanceof DefaultMutableTreeNode node))
-				continue;
-			if(node.getUserObject() instanceof PlaceTreePayload payload
-				&& payload.place().id().equals(placeId)){
-				tree.setSelectionPath(path);
-				tree.scrollPathToVisible(path);
-				return;
-			}
+
+		final DefaultMutableTreeNode found = findNodeById(treeRoot, placeId);
+		if(found == null)
+			return;
+
+		final TreePath path = new TreePath(found.getPath());
+		tree.setSelectionPath(path);
+		tree.scrollPathToVisible(path);
+	}
+
+	private static DefaultMutableTreeNode findNodeById(final DefaultMutableTreeNode root, final String placeId){
+		for(int i = 0; i < root.getChildCount(); i ++){
+			final DefaultMutableTreeNode child = (DefaultMutableTreeNode)root.getChildAt(i);
+			if(child.getUserObject() instanceof PlaceTreePayload payload
+					&& payload.place().id().equals(placeId))
+				return child;
+
+			final DefaultMutableTreeNode nested = findNodeById(child, placeId);
+			if(nested != null)
+				return nested;
 		}
+		return null;
 	}
 
 	private void updateStatus(){
 		final int placeCount = hierarchy.places().size();
 		final int relationCount = hierarchy.relations().size();
 		final int rootCount = hierarchy.rootIds().size();
-		statusLabel.setText(placeCount + " places, " + relationCount
-			+ " relations, " + rootCount + " roots");
+		statusLabel.setText(placeCount + " places, " + relationCount + " relations, " + rootCount + " roots");
 	}
 
 
@@ -450,13 +470,13 @@ public final class PlaceHierarchyPanel extends JPanel{
 
 	/**
 	 * Small panel that shows the details of the currently selected place:
-	 * name, type, coordinates, and the list of incoming and outgoing
-	 * relations with their type and validity. The panel is read-only; to
-	 * edit a place, the user double-clicks it in the tree.
+	 * name, type, coordinates, notes, and the list of incoming and
+	 * outgoing relations with their type and validity. The panel is
+	 * read-only; to edit a place, the user double-clicks it in the tree.
 	 */
 	private static final class PlaceDetailsPanel extends JPanel{
 
-		private final javax.swing.JTextPane content = new javax.swing.JTextPane();
+		private final JTextPane content = new JTextPane();
 
 		PlaceDetailsPanel(){
 			setLayout(new BorderLayout());
@@ -469,6 +489,7 @@ public final class PlaceHierarchyPanel extends JPanel{
 			final PlaceHierarchyService.Hierarchy hierarchy){
 			if(place == null){
 				content.setText(StringUtils.EMPTY);
+
 				return;
 			}
 
@@ -508,15 +529,20 @@ public final class PlaceHierarchyPanel extends JPanel{
 			else
 				sb.append("<p><i>No child declared.</i></p>");
 
+			if(!place.notes().isEmpty()){
+				sb.append("<h3 style='margin:12px 0 4px 0'>Notes</h3>");
+				for(final String note : place.notes())
+					sb.append("<p style='margin:2px 0'>").append(escape(note)).append("</p>");
+			}
+
 			sb.append("</body></html>");
 			content.setText(sb.toString());
 			content.setCaretPosition(0);
 		}
 
-		private static void appendRelationInfo(final StringBuilder sb,
-			final PlaceHierarchyService.PlaceRelation rel){
+		private static void appendRelationInfo(final StringBuilder sb, final PlaceHierarchyService.PlaceRelation rel){
 			if(rel.relationType() != null && !rel.relationType().isBlank())
-				sb.append(" <i>— ").append(escape(rel.relationType())).append("</i>");
+				sb.append(" <i>— ").append(escape(formatRelationType(rel.relationType()))).append("</i>");
 			final String from = rel.validFrom();
 			final String to = rel.validTo();
 			if(from != null || to != null){
@@ -545,21 +571,20 @@ public final class PlaceHierarchyPanel extends JPanel{
 	 * </pre>
 	 * The relation type and the validity dates come from the incoming
 	 * edge, so a root node has neither. A node that closes a cycle is
-	 * marked with a trailing "(cycle)".
+	 * marked with a trailing {@code (cycle)}.
+	 * <p>
+	 * The default leaf and folder icons are kept, so the tree reads like
+	 * any other Swing tree in the application.
 	 */
-	private static final class PlaceTreeCellRenderer extends javax.swing.tree.DefaultTreeCellRenderer{
+	private static final class PlaceTreeCellRenderer extends DefaultTreeCellRenderer{
 
 		@Override
-		public Component getTreeCellRendererComponent(final JTree tree,
-				final Object value, final boolean selected, final boolean expanded,
-				final boolean leaf, final int row, final boolean hasFocus){
+		public Component getTreeCellRendererComponent(final JTree tree, final Object value, final boolean selected,
+				final boolean expanded, final boolean leaf, final int row, final boolean hasFocus){
 			super.getTreeCellRendererComponent(tree, value, selected, expanded, leaf, row, hasFocus);
 
-			if(value instanceof DefaultMutableTreeNode node
-				&& node.getUserObject() instanceof PlaceTreePayload payload){
+			if(value instanceof DefaultMutableTreeNode node && node.getUserObject() instanceof PlaceTreePayload payload)
 				setText(buildLabel(payload));
-				setIcon(null);
-			}
 			else
 				setText(value != null? value.toString(): StringUtils.EMPTY);
 			return this;
@@ -575,7 +600,9 @@ public final class PlaceHierarchyPanel extends JPanel{
 			if(payload.incoming() != null){
 				final PlaceHierarchyService.PlaceRelation rel = payload.incoming();
 				if(rel.relationType() != null && !rel.relationType().isBlank())
-					sb.append(" <i><font color='#666'>— ").append(escape(rel.relationType())).append("</font></i>");
+					sb.append(" <i><font color='#666'>— ")
+						.append(escape(formatRelationType(rel.relationType())))
+						.append("</font></i>");
 				final String from = rel.validFrom();
 				final String to = rel.validTo();
 				if(from != null || to != null)
@@ -597,31 +624,47 @@ public final class PlaceHierarchyPanel extends JPanel{
 	}
 
 
-	public static void main(String[] args) throws IOException{
+	/* ======================================================================
+	 *                          Shared helpers
+	 * ====================================================================== */
+
+	/**
+	 * Formats a protocol relation type for display: underscores become
+	 * spaces. The raw protocol value is preserved in the model and in
+	 * the relation record; only the label shown to the user is
+	 * prettified.
+	 */
+	private static String formatRelationType(final String type){
+		return (type != null? type.replace('_', ' '): StringUtils.EMPTY);
+	}
+
+
+	/* ======================================================================
+	 *                          Bootstrap
+	 * ====================================================================== */
+
+	public static void main(final String[] args) throws IOException{
 		try{
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		}
 		catch(final Exception ignored){}
 
-		String modelUri = "/tests/TGMZ.flef";
-		String recordId = "P1";
+		final String modelUri = "/tests/TGMZ.flef";
 
 		final String content;
 		try(final InputStream is = PlaceHierarchyPanel.class.getResourceAsStream(modelUri)){
-			content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+			content = new String(Objects.requireNonNull(is).readAllBytes(), StandardCharsets.UTF_8);
 		}
 
-		final FLEFParser parser = new FLEFParser();
-		final FLEFModel model = parser.parse(content);
-
+		final FLEFModel model = new FLEFParser().parse(content);
 
 		EventQueue.invokeLater(() -> {
 			final PlaceHierarchyPanel panel = new PlaceHierarchyPanel(model);
 
 			final JFrame frame = new JFrame();
 			frame.setLayout(new BorderLayout());
-			frame.add(panel, BorderLayout.NORTH);
-			frame.pack();
+			frame.add(panel, BorderLayout.CENTER);
+			frame.setSize(1000, 640);
 			frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 			frame.setLocationRelativeTo(null);
 			frame.setVisible(true);

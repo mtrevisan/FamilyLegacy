@@ -10,8 +10,8 @@
 3 COPR
 1 SUBN @TCGB_SUBN@
 1 DEST GEDCOM551
-1 DATE 20 SEP 2026
-2 TIME 20:06:11
+1 DATE 14 OCT 2026
+2 TIME 20:51:22
 1 FILE Trevisan (Dorato)-Gallinaro-Masutti (Manfrin)-Zaros (Basso).ged
 1 COPR Mauro Trevisan
 1 GEDC
@@ -39047,6 +39047,13 @@
 4 ROLE spouse
 3 DATA
 4 DATE 14 DEC 1910
+2 SOUR @S2846@
+3 PAGE pag 27, #40
+3 QUAY 3
+3 EVEN BIRTH
+4 ROLE spouse
+3 DATA
+4 DATE 4 JUN 1884
 1 SEX F
 1 FAMS @F138@
 1 FAMC @F136@
@@ -39093,13 +39100,19 @@
 4 DATE 14 DEC 1910
 1 DEAT Y
 1 CHAN
-2 DATE 30 MAY 2021
-3 TIME 22:49:38
+2 DATE 14 OCT 2026
+3 TIME 20:46:29
 1 RIN TCGB_I348
 0 @I349@ INDI
 1 NAME Augusto Giacomo /Foradori/
 2 GIVN Augusto Giacomo
 2 SURN Foradori
+2 SOUR @S2846@
+3 PAGE pag 27, #40
+3 QUAY 3
+3 EVEN BIRTH
+3 DATA
+4 DATE 4 JUN 1884
 1 NAME Augusto /Foradori/
 2 GIVN Augusto
 2 SURN Foradori
@@ -39123,7 +39136,30 @@
 2 PEDI birth
 1 BIRT Y
 2 DATE 30 MAY 1884
-2 PLAC Zellarino di Mestre, Venezia, Italy
+2 ADDR Trivignano 45
+2 PLAC Trivignano, Zelarino di Mestre, Venezia, Italy
+2 SOUR @S2846@
+3 PAGE pag 27, #40
+3 QUAY 3
+3 EVEN BIRTH
+3 DATA
+4 DATE 4 JUN 1884
+2 NOTE ore 05:30
+3 SOUR @S2846@
+4 PAGE pag 27, #40
+4 QUAY 3
+4 EVEN BIRTH
+4 DATA
+5 DATE 4 JUN 1884
+2 NOTE Il dichiarante è stato da me dispensato dal presentarmi il suddetto bambino perché troppo distante d
+3 CONC all'abitazione all'Ufficio di Stato Civile, dopo di essermi altrimenti accertato della verità del
+3 CONC la nascita stessa.
+3 SOUR @S2846@
+4 PAGE pag 27, #40
+4 QUAY 3
+4 EVEN BIRTH
+4 DATA
+5 DATE 4 JUN 1884
 1 OCCU contadino
 2 DATE 14 DEC 1910
 2 SOUR @S1472@
@@ -39143,9 +39179,20 @@
 3 DATA
 4 DATE 14 DEC 1910
 1 DEAT Y
+2 DATE 21 JUL 1971
+2 PLAC Mestre, Venezia, Italy
+3 MAP
+4 LATI N45.49167
+4 LONG E12.24538
+2 SOUR @S2846@
+3 PAGE pag 27, #40
+3 QUAY 3
+3 EVEN DEATH
+3 DATA
+4 DATE 23 OCT 1971
 1 CHAN
-2 DATE 30 MAY 2021
-3 TIME 16:18:27
+2 DATE 14 OCT 2026
+3 TIME 20:47:19
 1 RIN TCGB_I349
 0 @I350@ INDI
 1 NAME Giuseppe Antonio /Trevisan/
@@ -40250,6 +40297,13 @@
 1 NAME Giuseppe /Foradori/
 2 GIVN Giuseppe
 2 SURN Foradori
+2 SOUR @S2846@
+3 PAGE pag 27, #40
+3 QUAY 3
+3 EVEN BIRTH
+4 ROLE father
+3 DATA
+4 DATE 4 JUN 1884
 2 SOUR @S1472@
 3 PAGE pag 259, #257
 3 QUAY 3
@@ -40259,7 +40313,34 @@
 1 SEX M
 1 FAMS @F143@
 1 BIRT Y
+2 DATE CAL 1836
+2 SOUR @S2846@
+3 PAGE pag 27, #40
+3 QUAY 3
+3 EVEN BIRTH
+4 ROLE father
+3 DATA
+4 DATE 4 JUN 1884
+1 BIRT Y
 2 DATE CAL 1854
+1 EDUC cannot write
+2 DATE 4 JUN 1884
+2 SOUR @S2846@
+3 PAGE pag 27, #40
+3 QUAY 3
+3 EVEN BIRTH
+4 ROLE father
+3 DATA
+4 DATE 4 JUN 1884
+1 OCCU villico
+2 DATE 4 JUN 1884
+2 SOUR @S2846@
+3 PAGE pag 27, #40
+3 QUAY 3
+3 EVEN BIRTH
+4 ROLE father
+3 DATA
+4 DATE 4 JUN 1884
 1 DEAT Y
 2 DATE BEF 14 DEC 1910
 2 SOUR @S1472@
@@ -40269,13 +40350,20 @@
 3 DATA
 4 DATE 14 DEC 1910
 1 CHAN
-2 DATE 28 MAR 2021
-3 TIME 10:59:02
+2 DATE 14 OCT 2026
+3 TIME 20:45:44
 1 RIN TCGB_I360
 0 @I361@ INDI
 1 NAME Maria /Bulegato/
 2 GIVN Maria
 2 SURN Bulegato
+2 SOUR @S2846@
+3 PAGE pag 27, #40
+3 QUAY 3
+3 EVEN BIRTH
+4 ROLE mother
+3 DATA
+4 DATE 4 JUN 1884
 2 SOUR @S1472@
 3 PAGE pag 259, #257
 3 QUAY 3
@@ -40285,11 +40373,20 @@
 1 SEX F
 1 FAMS @F143@
 1 BIRT Y
+2 DATE CAL 1854
+2 SOUR @S2846@
+3 PAGE pag 27, #40
+3 QUAY 3
+3 EVEN BIRTH
+4 ROLE mother
+3 DATA
+4 DATE 4 JUN 1884
+1 BIRT Y
 2 DATE CAL 1857
 1 DEAT Y
 1 CHAN
-2 DATE 28 MAR 2021
-3 TIME 10:59:26
+2 DATE 14 OCT 2026
+3 TIME 20:42:09
 1 RIN TCGB_I361
 0 @I362@ INDI
 1 NAME Maria Anna /Michieletto/
@@ -55651,10 +55748,13 @@
 3 DATA
 4 DATE 20 AUG 1871
 1 DEAT Y
+2 DATE 3 DEC 1910
+2 PLAC Bocaina, São Paulo, Brazil
+1 DEAT Y
 2 DATE BEF 7 OCT 1933
 1 CHAN
-2 DATE 6 DEC 2025
-3 TIME 14:04:16
+2 DATE 14 OCT 2026
+3 TIME 20:26:33
 1 RIN TCGB_I553
 0 @I554@ INDI
 1 NAME Antonio Santo Vittorio /Trevisan/
@@ -169057,7 +169157,6 @@
 1 EVEN
 2 TYPE Deed
 2 DATE 10 MAR 1505
-2 PLAC
 2 SOUR @S2830@
 3 QUAY 3
 3 EVEN DEED
@@ -179598,13 +179697,13 @@
 3 QUAY 3
 3 EVEN BIRTH
 3 DATA
-4 DATE 2 OCT 1915
+4 DATE 2 OCT 1913
 1 SEX F
 1 FAMS @F1314@
 1 FAMC @F1802@
 2 PEDI birth
 1 BIRT Y
-2 DATE 3 AUG 1915
+2 DATE 3 AUG 1913
 2 PLAC Guaporé, Rio Grande do Sul, Brazil
 3 MAP
 4 LATI S28.84583
@@ -179614,7 +179713,7 @@
 3 QUAY 3
 3 EVEN BIRTH
 3 DATA
-4 DATE 2 OCT 1915
+4 DATE 2 OCT 1913
 1 DEAT Y
 1 CHAN
 2 DATE 27 NOV 2025
@@ -186367,8 +186466,8 @@
 3 DATA
 4 DATE 21 MAY 1847
 1 CHAN
-2 DATE 22 MAR 2023
-3 TIME 22:39:46
+2 DATE 5 OCT 2026
+3 TIME 18:51:47
 1 RIN TCGB_I3133
 0 @I3277@ INDI
 1 NAME Giuseppe /Zandonà/
@@ -231829,7 +231928,7 @@
 3 EVEN BIRTH
 4 ROLE father
 3 DATA
-4 DATE 2 OCT 1915
+4 DATE 2 OCT 1913
 1 SEX M
 1 FAMS @F1802@
 1 BIRT Y
@@ -232951,7 +233050,7 @@
 3 EVEN BIRTH
 4 ROLE mother
 3 DATA
-4 DATE 2 OCT 1915
+4 DATE 2 OCT 1913
 1 SEX F
 1 FAMS @F1802@
 1 BIRT Y
@@ -234299,6 +234398,250 @@
 2 DATE 10 SEP 2026
 3 TIME 22:53:28
 1 RIN TCGB_I4116
+0 @I4326@ INDI
+1 NAME Delfina /Mazuti/
+2 GIVN Delfina
+2 SURN Mazuti
+1 NAME Delfina /Mazuti Ruschel/
+2 GIVN Delfina
+2 SURN Mazuti Ruschel
+1 SEX F
+1 FAMS @F1852@
+1 FAMC @F1314@
+2 PEDI birth
+1 BIRT Y
+2 DATE 8 MAY 1931
+1 DEAT Y
+2 DATE SEP 2025
+2 PLAC Cascavel, Paraná, Brazil
+1 OBJE
+2 TITL Mazuti Ruschel Delfina
+2 FORM jpg
+2 FILE C:\mauro\heritage\My Genealogy Projects\Trevisan (Dorato)-Gallinaro-Masutti (Manfrin)-Zaros (Basso)\Photos\Mazuti Ruschel Delfina.jpg
+2 _PREF Y
+2 _PUBL Y
+2 _CUT Y
+2 _CUTD 105 126 592 728
+1 CHAN
+2 DATE 14 OCT 2026
+3 TIME 19:30:48
+1 RIN TCGB_I4111
+0 @I4327@ INDI
+1 NAME Nicolau Ricardo /Ruschel/
+2 GIVN Nicolau Ricardo
+2 SURN Ruschel
+1 SEX M
+1 FAMS @F1852@
+1 BIRT Y
+2 DATE 5 MAY 1926
+2 PLAC Carazinho, Rio Grande do Sul, Brazil
+1 DEAT Y
+2 DATE 9 SEP 2022
+1 BURI Y
+2 DATE 10 SEP 2022
+2 ADDR
+3 ADR1 Cemitério Cristo Redentor
+3 ADR2 Rua do Trevo 1
+3 CITY Cascavel
+3 STAE Paraná
+3 CTRY Brazil
+2 PLAC Cascavel, Paraná, Brazil
+2 NOTE ore 09:00
+1 CHAN
+2 DATE 14 OCT 2026
+3 TIME 19:47:51
+1 RIN TCGB_I4112
+0 @I4328@ INDI
+1 NAME Devaldino /Mazzutti/
+2 GIVN Devaldino
+2 SURN Mazzutti
+2 SOUR @S2845@
+3 PAGE pag. 102
+3 QUAY 3
+3 EVEN DEATH
+4 ROLE father
+3 DATA
+4 DATE 19 FEB 1969
+1 SEX M
+1 FAMS @F1853@
+1 FAMC @F1314@
+2 PEDI birth
+1 BIRT Y
+2 DATE 9 MAR 1934
+2 PLAC Espumoso, Soledade, Rio Grande do Sul, Brazil
+1 OCCU wheat grower
+2 DATE 19 FEB 1969
+2 PLAC Paraná
+2 SOUR @S2845@
+3 PAGE pag. 102
+3 QUAY 3
+3 EVEN DEATH
+4 ROLE father
+3 DATA
+4 DATE 19 FEB 1969
+2 NOTE farmed approximately 200 hectares dedicated to soybean cultivation. After the area was flooded d
+3 CONC ue to the construction of the Itaipu Hydroelectric Power Plant, the family received compensation f
+3 CONC or the land and had to start over.
+3 CONT
+3 CONT https://www.empresaemcrise.com/post/canarana-mt-produtor-rural-rog%C3%A9rio-mazzutti-entra-em-recupera%C3%A7%C3%A3o-judicial
+1 EVEN
+2 TYPE Move
+2 DATE 1981
+2 PLAC Santa Juliana, Minas Gerais, Brazil
+2 NOTE he acquired a 500-hectare rural property in partnership with family members. Starting in 1984, Rogér
+3 CONC io began working directly in agricultural operations in Minas Gerais, eventually managing around 8
+3 CONC 00 hectares. Between 1990 and 1991, the family expanded its operations by converting 1,200 hectar
+3 CONC es into soybean fields; however, a soybean cyst nematode infestation starting in 1994 compromised pr
+3 CONC oduction, leading to the complete disposal of these areas in 2000.
+3 CONT
+3 CONT https://www.empresaemcrise.com/post/canarana-mt-produtor-rural-rog%C3%A9rio-mazzutti-entra-em-recupera%C3%A7%C3%A3o-judicial
+1 DEAT Y
+2 DATE 28 MAY 2023
+2 PLAC Santa Juliana, Minas Gerais, Brazil
+1 CHAN
+2 DATE 14 OCT 2026
+3 TIME 20:03:36
+1 RIN TCGB_I4113
+0 @I4329@ INDI
+1 NAME Ivoni /Beati Mazzutti/
+2 GIVN Ivoni
+2 SURN Beati Mazzutti
+2 SOUR @S2845@
+3 PAGE pag. 102
+3 QUAY 3
+3 EVEN DEATH
+4 ROLE mother
+3 DATA
+4 DATE 19 FEB 1969
+1 SEX F
+1 FAMS @F1853@
+1 BIRT Y
+1 DEAT Y
+1 CHAN
+2 DATE 14 OCT 2026
+3 TIME 19:40:17
+1 RIN TCGB_I4114
+0 @I4330@ INDI
+1 NAME Roselaine /Mazzutti/
+2 GIVN Roselaine
+2 SURN Mazzutti
+2 SOUR @S2845@
+3 PAGE pag. 102
+3 QUAY 3
+3 EVEN DEATH
+3 DATA
+4 DATE 19 FEB 1969
+1 SEX F
+1 FAMC @F1853@
+2 PEDI birth
+1 BIRT Y
+2 DATE CAL 1963
+2 PLAC Espumoso, Soledade, Rio Grande do Sul, Brazil
+2 SOUR @S2845@
+3 PAGE pag. 102
+3 QUAY 3
+3 EVEN DEATH
+3 DATA
+4 DATE 19 FEB 1969
+1 DEAT Y
+2 DATE 17 FEB 1969
+2 PLAC Espumoso, Soledade, Rio Grande do Sul, Brazil
+2 CAUS skull fracture due to car accident
+2 SOUR @S2845@
+3 PAGE pag. 102
+3 QUAY 3
+3 EVEN DEATH
+3 DATA
+4 DATE 19 FEB 1969
+2 NOTE ore 11:30
+3 SOUR @S2845@
+4 PAGE pag. 102
+4 QUAY 3
+4 EVEN DEATH
+4 DATA
+5 DATE 19 FEB 1969
+1 CHAN
+2 DATE 14 OCT 2026
+3 TIME 19:41:47
+1 RIN TCGB_I4115
+0 @I4331@ INDI
+1 NAME P /Mazutti/
+2 GIVN P
+2 SURN Mazutti
+1 SEX M
+1 FAMS @F1854@
+1 FAMC @F1314@
+2 PEDI birth
+1 BIRT Y
+1 DEAT Y
+1 CHAN
+2 DATE 14 OCT 2026
+3 TIME 19:43:05
+1 RIN TCGB_I4116
+0 @I4332@ INDI
+1 NAME M //
+2 GIVN M
+1 SEX F
+1 FAMS @F1854@
+1 BIRT Y
+1 DEAT Y
+1 CHAN
+2 DATE 14 OCT 2026
+3 TIME 19:43:15
+1 RIN TCGB_I4117
+0 @I4333@ INDI
+1 NAME C R /Mazutti/
+2 GIVN C R
+2 SURN Mazutti
+1 SEX F
+1 FAMC @F1854@
+2 PEDI birth
+1 BIRT Y
+1 DEAT Y
+1 CHAN
+2 DATE 14 OCT 2026
+3 TIME 19:43:29
+1 RIN TCGB_I4118
+0 @I4334@ INDI
+1 NAME Rogério /Mazzutti/
+2 GIVN Rogério
+2 SURN Mazzutti
+1 SEX M
+1 FAMC @F1853@
+2 PEDI birth
+1 BIRT Y
+2 PLAC Ibirubá, Rio Grande do Sul, Brazil
+1 OCCU soybean farmer
+2 DATE SEP 2000
+2 PLAC Paraná, Mato Groso, Brazil
+2 NOTE In September 2000, Rogério began a new phase of production in Mato Grosso, identifying Fazenda Paraí
+3 CONC so, located in the municipality of Canarana, MT. In 2003, he also acquired Fazenda Vitória. A partne
+3 CONC rship dissolution took place in 2013, and since then, Fazenda Paraíso has been under the sole manage
+3 CONC ment of Rogério Mazzutti.
+3 CONT
+3 CONT https://www.empresaemcrise.com/post/canarana-mt-produtor-rural-rog%C3%A9rio-mazzutti-entra-em-recupera%C3%A7%C3%A3o-judicial
+1 CHAN
+2 DATE 14 OCT 2026
+3 TIME 20:04:37
+1 RIN TCGB_I4119
+0 @I4335@ INDI
+1 NAME Virginia /Trevisan Nagliatti/
+2 GIVN Virginia
+2 SURN Trevisan Nagliatti
+1 SEX M
+1 FAMC @F1836@
+2 PEDI birth
+1 BIRT Y
+2 DATE 1902
+1 DEAT Y
+2 DATE 1924
+1 BURI Y
+2 DATE 27 JUN 1978
+2 PLAC Pires, Congonhas, Minas Gerais, Brazil
+1 CHAN
+2 DATE 14 OCT 2026
+3 TIME 20:20:08
+1 RIN TCGB_I4120
 0 @F1@ FAM
 1 HUSB @I1@
 1 WIFE @I2@
@@ -262115,6 +262458,10 @@
 0 @F1314@ FAM
 1 HUSB @I2108@
 1 WIFE @I3073@
+1 NCHI 3
+1 CHIL @I4326@
+1 CHIL @I4328@
+1 CHIL @I4331@
 1 MARR Y
 2 SOUR @S1715@
 3 PAGE pag 128, #555
@@ -262123,8 +262470,8 @@
 3 DATA
 4 DATE 14 JAN 1939
 1 CHAN
-2 DATE 9 MAY 2021
-3 TIME 15:38:58
+2 DATE 14 OCT 2026
+3 TIME 19:42:54
 1 RIN TCGB_F1277
 0 @F1315@ FAM
 1 HUSB @I3076@
@@ -269449,12 +269796,13 @@
 0 @F1836@ FAM
 1 HUSB @I554@
 1 WIFE @I4299@
-1 NCHI 1
+1 NCHI 2
 1 CHIL @I4300@
+1 CHIL @I4335@
 1 MARR Y
 1 CHAN
-2 DATE 6 DEC 2025
-3 TIME 13:48:39
+2 DATE 14 OCT 2026
+3 TIME 20:19:21
 1 RIN TCGB_F1756
 0 @F1837@ FAM
 1 HUSB @I250@
@@ -269667,6 +270015,35 @@
 2 DATE 10 SEP 2026
 3 TIME 22:53:19
 1 RIN TCGB_F1771
+0 @F1852@ FAM
+1 HUSB @I4327@
+1 WIFE @I4326@
+1 MARR Y
+1 CHAN
+2 DATE 14 OCT 2026
+3 TIME 19:30:50
+1 RIN TCGB_F1771
+0 @F1853@ FAM
+1 HUSB @I4328@
+1 WIFE @I4329@
+1 NCHI 2
+1 CHIL @I4330@
+1 CHIL @I4334@
+1 MARR Y
+1 CHAN
+2 DATE 14 OCT 2026
+3 TIME 19:56:56
+1 RIN TCGB_F1772
+0 @F1854@ FAM
+1 HUSB @I4331@
+1 WIFE @I4332@
+1 NCHI 1
+1 CHIL @I4333@
+1 MARR Y
+1 CHAN
+2 DATE 14 OCT 2026
+3 TIME 19:43:21
+1 RIN TCGB_F1773
 0 @S15@ SOUR
 1 TITL Sant'Angelo sul Sile e Santa Maria del Sile nei 1200 anni di storia
 1 AUTH Mons. Sartoretto, Antonio; Cav. uff. Sottana, Ottorino
@@ -307135,7 +307512,7 @@
 2 CONT Raccomando l'anima mia all'Altissimo Iddio, alla Gloriosa sempre Vergene
 2 CONT Maria d[e]l Santiss[im]o Rosario mia Avvocata, à S[anto] Nicola da Tolleatino, et à tutti
 2 CONT li Santi del Paradiso, quali genuflesso, che cioe vedino appresso
-2 CONT S[ine].D[olo].M[ano].? il perdono de miei peccati,
+2 CONT S[ua].D[ivina].M[aestà]. il perdono de miei peccati,
 2 CONT Interrogato se vuol lasciar alcuna cosa à Luoghi Pij, facendone de molti mentione,
 2 CONT et per vicario de poveri Schiavi, che sono nelle mani de Barbari, rispose
 2 CONT non lascio cosa alcuna,
@@ -307149,12 +307526,12 @@
 2 CONT à sua libera disposiz[ion]e,
 2 CONT Rilascio alla med[esim]a S[igno]ra mia Consorte Campo uno, e mezo posto in villa di Pederobba,
 2 CONT del quel ricavo d'affitto annuo formento stara quatro, un Capretto, un paro
-2 CONT de pollastri, e mezo staro di nose, al pa[r]te? tenuto ad affitto da Giustina
+2 CONT de pollastri, e mezo staro di nose, al p[resen]te tenuto ad affitto da Giustina
 2 CONT Righessa; Quel campo uno, e mezo mi è pervenuto per un Credito, che
-2 CONT teneva il q[uondam] S[igno]ra mio padre verso il S[igno]r Bernardo Betetti per la sum[m]a de
+2 CONT teneva il q[uondam] S[igno]r mio padre verso il S[igno]r Bernardo Betetti per la sum[m]a de
 2 CONT Ducati dusento, come appar confesso di proprio suo pugno, poscia fú assegnato
 2 CONT alla q[uondam] S[igno]ra mia Madre nel suo pagamento di docte, et poi dalla med[esim]a à me donato,
-2 CONT Perimente lascio alla sopradetta S[igno]ra mia Consorte Campo uno di terra in Villa
+2 CONT Parimente lascio alla sopradetta S[igno]ra mia Consorte Campo uno di terra in Villa
 2 CONT di Paderno, tenuta ad affitto da Andrea Pacagnan, d[e]l qual ricavo quarte tre
 2 CONT formento, et un paro de Capponi, qual mi è pervenuto in virtú della
 2 CONT dona[tion]e fattami dalla d[et]ta q[uondam] S[igno]ra mia Madre, essendo stato un fondo dotale,
@@ -307175,7 +307552,7 @@
 2 CONT Et perche mi ritrovo haver sopra il Loco di Quinto un litiggio, et in caso, che Iddio
 2 CONT permettesse, che non lo perdissi, voglio, et lascio alla d[et]ta S[igno]ra Contessa Andriana
 2 CONT mia Consorte sua vita durante il godimento d[e]lli beni posti in Quinto, et anco
-2 CONT di quelle de Boiago, et doppo la di lei morte instituisco, et lascio miei Com?ij
+2 CONT di quelle de Boiago, et doppo la di lei morte instituisco, et lascio miei Com[missar]ij
 2 CONT d[e]l d[ett]o loco di Quinto, et di Boiago l'Ill[ustrissi]mi S[igno]ri Priori d[e]l Collegio Ill[ust
 2 CONC rissi]mo de Nobili
 2 CONT di questa città, acciò che con l'entrade di d[et]ti beni d[e]l p[ri]mo anno facino fabricar
@@ -307194,14 +307571,14 @@
 2 CONT o' valer non potesse, voglia per Codicillo, per donaz[ion]e in caso di morte, per l'
 2 CONT amor d'Iddio, et in quella forma, e maniera, che valer, o' tener potesse.
 2 CONT Fú ordinato il d[et]to testamento dal d[et]to Ill[ustrissi]mo S[igno]r Co[nte] Giacomo Singliti
-2 CONC co di Rocas Te?atore,
+2 CONC co di Rocas Testatore,
 2 CONT et da me Steffano Alberti di V?. A.? Nodaro pub[lic]o di Treviso q[uondam] S[igno]r Alberto parim[en
 2 CONC ti]
 2 CONT Nodaro, cosi pregato, servito, lecto, et publicato in d[et]to loco, correndo l'anno
 2 CONT della sua santiss[im]a Nat[ivi]tà - 1718 - Ind[izion]e XIa, giorno di Giovedi 27 d[e]l mese d'Ottob
 2 CONC re --
 2 CONT
-2 CONT P[rese]nti Il[ustrissim]o? Baldissera Batignon? q[uondam] Franc[esc]o Callegher,
+2 CONT P[rese]nti Il[ustrissim]o Baldissera Batignon? q[uondam] Franc[esc]o Callegher,
 2 CONT Antonio Danieli q[uondam] Anzolo Zoccoler,
 2 CONT Vicenzo Spada q[uondam] Zuanne Zoccoler,
 2 CONT Anzolo Calderiola q[uondam] Giacomo Callegher
@@ -307237,8 +307614,8 @@
 2 _PUBL Y
 1 REPO @R2@
 1 CHAN
-2 DATE 6 JAN 2023
-3 TIME 16:20:19
+2 DATE 20 SEP 2026
+3 TIME 23:19:34
 1 RIN TCGB_S1958
 0 @S2037@ SOUR
 1 TITL map Preganziol di Sopra 19 + 49 [1713]
@@ -319508,12 +319885,12 @@
 3 TIME 22:40:04
 1 RIN TCGB_S2735
 0 @S2814@ SOUR
-1 TITL birth Signor Brigida Amalia 19150803
+1 TITL birth Signor Brigida Amalia 19130803
 1 OBJE
-2 TITL birth Signor Brigida Amalia 19150803
-2 _DATE 2 OCT 1915
+2 TITL birth Signor Brigida Amalia 19130803
+2 _DATE 2 OCT 1913
 2 FORM jpg
-2 FILE C:\mauro\heritage\My Genealogy Projects\Trevisan (Dorato)-Gallinaro-Masutti (Manfrin)-Zaros (Basso)\Photos\births\birth Signor Brigida Amalia 19150803.jpg
+2 FILE C:\mauro\heritage\My Genealogy Projects\Trevisan (Dorato)-Gallinaro-Masutti (Manfrin)-Zaros (Basso)\Photos\births\birth Signor Brigida Amalia 19130803.jpg
 2 _PUBL Y
 1 REPO @R37@
 1 CHAN
@@ -320874,26 +321251,26 @@
 1 TEXT Conditio[n] d[e] Trivisan q[uondam] Bart[olome]o d[e] Scandolera
 2 CONT
 2 CONT propio
-2 CONT Et p[rim]o una peza d[e] tera d[e] campi V over ?cha aradora pianta e vidig[ata] cu[m] sedime su? cu
-2 CONC [m]
-2 CONT 1 casa d[e] paya e teza en? ?a?j d[e] bestie cu[m] piant[ata] IIIJ trabone? erie?
+2 CONT Et p[rim]o una peza d[e] tera d[e] campi V over cercha aradora pianta e vidig[ata] cu[m] sedime s
+2 CONC u? cu[m]
+2 CONT 1 casa d[e] paya e teza et casonj d[e] bestie cu[m] piant[ata] IIIJ tra bone e rie?
 2 CONT c[o]h[e]r[et] da sera conve[n]to d[e] S[ancta] m[ar]garita da l alt[r]a ?o filipi[n] scort? in trevi
 2 CONC so
 2 CONT It[em] una peza d[e] tera buschiva e pradiva, in lo comu[n] d[e] morga[n] d[e]
-2 CONT campi IIIJ over? cercha bonj c? cha? d[e] una part[e] el comu[n] p[re]d[i]c[t]o
+2 CONT campi IIIJ over cercha bonj e cativj d[e] una part[e] el comu[n] p[re]d[i]c[t]o
 2 CONT da l altra ser andrea? over franc[isc]o c[on]p?io[mn]i?
 2 CONT It[em] le qual peze d[e] t[er]ra pagerave d[e] fito st[ara] VIIJ d[e] for[men]to
 2 CONT
 2 CONT It[em] tien a livelo dal vescoa d[e] treviso 1 peza d[e] t[er]ra pradiva in la villa d[e] scandolera
 2 CONT d[e] campi VIJ over cercha ? d[e] una part[e] tera del vescoa da l alt[r]a m[agistr]o
-2 CONT filipin part[e] E si? pag[erave] d[e] fito st[ara] 1 d[e] sorgo e charj IJ d[e] legne, tasitanue? l[
-2 CONC ibras] 16
+2 CONT filipin part[e] E si pag[erave] d[e] fito st[ara] 1 d[e] sorgo e charj IJ d[e] legne, tasitanue? l[i
+2 CONC bras] 16
 2 CONT
 2 CONT ---
 2 CONT
 2 CONT Item tien a fito da m[agistr]o filipum scat[er]? in treviso tre? parte d[e] un maso p[er] indiviso c
 2 CONC u[m] d[ome]nego
-2 CONT Jopato d[e] scandolera arada pianta vidiga e pradivo d[e] campi XX in? tato?
+2 CONT Jopato d[e] scandolera arada pianta vidiga e pradivo d[e] campi XX in tuto
 2 CONT cu[m] piantade VIIJ Et si pago d[e] fito st[ara] XXIJ d[e] for[men]to st[ara] mezo d[e] legne
 2 CONT de honoranze d[e] mazo
 2 CONT
@@ -320916,7 +321293,7 @@
 2 CONT
 2 CONT ---
 2 CONT
-2 CONT It[em] sono in fameya boche vij za?
+2 CONT It[em] sono in fameya boche viij za?
 2 CONT Trivisan d[e] annj ... 45
 2 CONT Catarina so moier ... 45
 2 CONT Toni so fiol ... 8
@@ -320934,8 +321311,8 @@
 2 _PUBL Y
 1 REPO @R2@
 1 CHAN
-2 DATE 8 JUL 2026
-3 TIME 11:02:41
+2 DATE 20 SEP 2026
+3 TIME 23:12:06
 1 RIN TCGB_S2760
 0 @S2839@ SOUR
 1 TITL appraisal 14620904 Trivisani
@@ -321463,6 +321840,32 @@
 2 DATE 9 JUL 2026
 3 TIME 18:50:14
 1 RIN TCGB_S2766
+0 @S2845@ SOUR
+1 TITL death Mazzutti Roselaine 19690217
+1 OBJE
+2 TITL death Mazzutti Roselaine 19690217
+2 _DATE 19 FEB 1969
+2 FORM jpg
+2 FILE C:\mauro\heritage\My Genealogy Projects\Trevisan (Dorato)-Gallinaro-Masutti (Manfrin)-Zaros (Basso)\Photos\deaths\death Mazzutti Roselaine 19690217.jpg
+2 _PUBL Y
+1 REPO @R102@
+1 CHAN
+2 DATE 14 OCT 2026
+3 TIME 19:36:25
+1 RIN TCGB_S2767
+0 @S2846@ SOUR
+1 TITL birth Foradori Augusto Giacomo 18840530
+1 OBJE
+2 TITL birth Foradori Augusto Giacomo 18840530
+2 _DATE 4 JUN 1884
+2 FORM jpg
+2 FILE C:\mauro\heritage\My Genealogy Projects\Trevisan (Dorato)-Gallinaro-Masutti (Manfrin)-Zaros (Basso)\Photos\births\birth Foradori Augusto Giacomo 18840530.jpg
+2 _PUBL Y
+1 REPO @R116@
+1 CHAN
+2 DATE 14 OCT 2026
+3 TIME 20:36:33
+1 RIN TCGB_S2768
 0 @R8@ REPO
 1 NAME parrocchia di Sant'Angelo sul Sile, Treviso, Italy
 1 ADDR
@@ -322309,6 +322712,12 @@
 2 DATE 2 JUN 2026
 3 TIME 21:52:33
 1 RIN TCGB_R113
+0 @R116@ REPO
+1 NAME Archivio di Stato di Zelarino di Mestre, Venezia, Italy
+1 CHAN
+2 DATE 14 OCT 2026
+3 TIME 20:36:06
+1 RIN TCGB_R114
 0 @N10@ NOTE The name has indigenous origin, from an extinct native language called "Tupi"
 1 CHAN
 2 DATE 29 MAY 2021
