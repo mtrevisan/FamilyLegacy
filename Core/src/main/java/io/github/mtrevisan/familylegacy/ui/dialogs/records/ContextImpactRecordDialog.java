@@ -115,7 +115,7 @@ public class ContextImpactRecordDialog extends BaseRecordDialog{
 				IdentityHypothesisHandler.class);
 
 		impactTypeCombo = new BoundComboBox<>(ContextImpactReader.TAG_IMPACT_TYPE, GUIHelper.fillCombo(ContextImpactReader.IMPACT_TYPES, null));
-		impactTypeCombo.setI18NPrefix("enum.context.impact.type");
+		impactTypeCombo.setI18NPrefix("enum.context.impact_type");
 		impactTypeCombo.setEditable(true);
 
 		rationaleArea = new BoundTextArea(ContextImpactReader.TAG_RATIONALE, 3, 30);
@@ -151,7 +151,7 @@ public class ContextImpactRecordDialog extends BaseRecordDialog{
 		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.context.impact.target") + "*:", targetField);
 
 		// impact type
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.context.impact.impact.type") + ":", impactTypeCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.context.impact.impact_type") + ":", impactTypeCombo);
 
 		// explanation
 		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.context.impact.explanation") + ":", rationaleArea);

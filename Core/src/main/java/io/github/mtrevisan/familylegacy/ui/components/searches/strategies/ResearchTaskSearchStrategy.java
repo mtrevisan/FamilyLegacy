@@ -107,9 +107,9 @@ public class ResearchTaskSearchStrategy implements SearchStrategy{
 		details.setEmptyValue(StringUtils.EMPTY);
 
 		if(StringUtils.isNotEmpty(status))
-			details.add(I18N.t("dialog.research.task.status") + ": " + status);
+			details.add(I18N.t("dialog.research_task.status") + ": " + status);
 		if(StringUtils.isNotEmpty(priority))
-			details.add(I18N.t("dialog.research.task.priority") + ": " + priority);
+			details.add(I18N.t("dialog.research_task.priority") + ": " + priority);
 
 		return baseDisplayText + details;
 	}

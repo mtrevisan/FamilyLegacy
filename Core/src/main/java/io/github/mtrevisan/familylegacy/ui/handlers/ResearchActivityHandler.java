@@ -70,7 +70,7 @@ public class ResearchActivityHandler extends AbstractRecordTypeHandler<ResearchA
 
 	@Override
 	public String getLabel(){
-		return I18N.t("confirmation.exist.record.research.activity");
+		return I18N.t("confirmation.exist_record.research_activity");
 	}
 
 	@Override

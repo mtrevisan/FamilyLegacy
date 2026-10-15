@@ -135,7 +135,7 @@ public class EventRecordDialog extends BaseRecordDialog{
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, ContextImpactHandler.TYPE, I18N.t("dialog.component.context.impact"))
+			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, ContextImpactHandler.TYPE, I18N.t("dialog.component.context.impacts"))
 			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, I18N.t("dialog.component.conclusions"))
 			.withComponent(PanelKey.EVENT_PARTICIPATION_ON_EVENT, EventParticipationHandler.TYPE, I18N.t("dialog.component.event.participations"))
 			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, I18N.t("dialog.component.research.questions"))

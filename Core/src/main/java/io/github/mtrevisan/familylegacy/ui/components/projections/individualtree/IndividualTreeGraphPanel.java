@@ -54,6 +54,7 @@ import io.github.mtrevisan.familylegacy.ui.components.projections.repository.Tre
 import io.github.mtrevisan.familylegacy.ui.components.projections.repository.TreeNode;
 import io.github.mtrevisan.familylegacy.ui.components.projections.repository.TreeService;
 import io.github.mtrevisan.familylegacy.ui.components.projections.siblings.SiblingsPanel;
+import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.helpers.ViewportPanSupport;
 
 import javax.swing.JFrame;
@@ -201,9 +202,9 @@ public class IndividualTreeGraphPanel extends JPanel implements TreeChangeListen
 		viewport.setScrollMode(JViewport.SIMPLE_SCROLL_MODE);
 		viewport.setBackground(BACKGROUND_COLOR);
 		treeScroll.getVerticalScrollBar()
-			.setUnitIncrement(16);
+			.setUnitIncrement(GUIHelper.SCROLLBAR_UNIT_INCREMENT);
 		treeScroll.getHorizontalScrollBar()
-			.setUnitIncrement(16);
+			.setUnitIncrement(GUIHelper.SCROLLBAR_UNIT_INCREMENT);
 		add(treeScroll, BorderLayout.CENTER);
 
 		final JPanel bottom = new JPanel(new BorderLayout());
@@ -383,7 +384,7 @@ public class IndividualTreeGraphPanel extends JPanel implements TreeChangeListen
 		final Window owner = SwingUtilities.getWindowAncestor(this);
 		// Here the panel is either the tree or the Sugiyama graph; both
 		// offer only individuals, so ProjectionType.TREE is fine.
-		final String chosen = JumpToIndividualDialog.showAndGet(owner, model, ProjectionType.TREE);
+		final String chosen = JumpToIndividualDialog.showAndGet(owner, model, ProjectionType.BIOLOGICAL_TREE);
 		if(chosen != null)
 			load(chosen, currentMaxAncestors);
 	}

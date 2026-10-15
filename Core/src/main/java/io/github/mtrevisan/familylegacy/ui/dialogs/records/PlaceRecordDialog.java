@@ -121,7 +121,7 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 			.withComponent(PanelKey.PLACE_RELATIONSHIP_ON_SUBJECT, PlaceRelationshipHandler.TYPE, I18N.t("dialog.component.place.relationships.on.subject"))
 			.withComponent(PanelKey.PLACE_RELATIONSHIP_ON_OBJECT, PlaceRelationshipHandler.TYPE, I18N.t("dialog.component.place.relationships.on.target"))
 			.withComponent(PanelKey.EVENT_PARTICIPATION_ON_PARTICIPANT, EventParticipationHandler.TYPE, I18N.t("dialog.component.event.participations"))
-			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, ContextImpactHandler.TYPE, I18N.t("dialog.component.context.impact"))
+			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, ContextImpactHandler.TYPE, I18N.t("dialog.component.context.impacts"))
 			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, I18N.t("dialog.component.conclusions"))
 			.withComponent(PanelKey.IDENTITY_HYPOTHESIS_ON_IDENTITY, IdentityHypothesisHandler.TYPE, I18N.t("dialog.component.identity.hypotheses"))
 			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, I18N.t("dialog.component.research.questions"))

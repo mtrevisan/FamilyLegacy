@@ -105,7 +105,7 @@ public class SourceCitationDialog extends BaseRecordDialog{
 
 		sourceField = EntityField.createForRecordFromReference(SourceCitationReader.TAG_SOURCE, this, model, SourceHandler.class);
 		locatorField = new BoundTextField(SourceCitationReader.TAG_LOCATOR);
-		extractPanel = new ExtractListPanel(SourceCitationReader.TAG_EXTRACT, this, I18N.t("dialog.source.citation.extract.title"), model);
+		extractPanel = new ExtractListPanel(SourceCitationReader.TAG_EXTRACT, this, I18N.t("dialog.source_citation.extract.title"), model);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)

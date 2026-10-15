@@ -143,7 +143,7 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 			}
 		});
 		proofStatusCombo = new BoundComboBox<>(ConclusionReader.TAG_PROOF_STATUS, ConclusionReader.PROOF_STATUSES);
-		proofStatusCombo.setI18NPrefix("enum.conclusion.proof.status");
+		proofStatusCombo.setI18NPrefix("enum.conclusion.proof_status");
 		narrativeArea = new BoundTextArea(ConclusionReader.TAG_NARRATIVE, 5, 30);
 
 		// Build common panels using the builder
@@ -172,7 +172,7 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.conclusion.issue") + "*:", issueField);
 
 		// proof status
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.conclusion.proof.status") + "*:", proofStatusCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.conclusion.proof_status") + "*:", proofStatusCombo);
 
 		// narrative
 		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.conclusion.narrative") + ":", narrativeArea);
@@ -257,7 +257,7 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 
 		if(!proofStatusCombo.isValued()){
 			GUIHelper.showValidationErrorAndFocus(this,
-				I18N.tf("validation.required", I18N.t("dialog.conclusion.proof.status")),
+				I18N.tf("validation.required", I18N.t("dialog.conclusion.proof_status")),
 				tabbedPane, propertiesPanel, proofStatusCombo);
 			return false;
 		}

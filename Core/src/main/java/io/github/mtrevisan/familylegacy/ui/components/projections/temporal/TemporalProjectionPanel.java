@@ -34,6 +34,7 @@ import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
+import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -202,7 +203,7 @@ public final class TemporalProjectionPanel extends JPanel implements TreeChangeL
 		pane.setColumnHeaderView(axisStripCanvas);
 		pane.setCorner(ScrollPaneConstants.UPPER_LEFT_CORNER, new JPanel());
 		pane.getVerticalScrollBar()
-			.setUnitIncrement(16);
+			.setUnitIncrement(GUIHelper.SCROLLBAR_UNIT_INCREMENT);
 		pane.getViewport()
 			.setScrollMode(JViewport.SIMPLE_SCROLL_MODE);
 		return pane;
@@ -315,9 +316,6 @@ public final class TemporalProjectionPanel extends JPanel implements TreeChangeL
 			return;
 
 		final RecordTypeHandler<?> handler = handlerForTag(record.getTag());
-		if(handler == null)
-			return;
-
 		final Window parent = SwingUtilities.getWindowAncestor(this);
 		final BaseRecordDialog dialog = handler.createEditDialog(parent, flefModel, record);
 		dialog.setVisible(true);

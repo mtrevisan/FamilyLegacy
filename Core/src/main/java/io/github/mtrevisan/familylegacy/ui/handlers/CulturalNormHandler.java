@@ -55,7 +55,7 @@ public class CulturalNormHandler extends AbstractRecordTypeHandler<CulturalNormR
 
 	@Override
 	public String getLabel(){
-		return I18N.t("confirmation.exist.record.cultural.norm");
+		return I18N.t("confirmation.exist_record.cultural_norm");
 	}
 
 	@Override

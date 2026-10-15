@@ -70,7 +70,7 @@ public class TranslationListPanel extends AbstractListPanel<FLEFRecord>{
 			this::editItem, null,
 			this::createNewItem, this::removeItem,
 			builder -> {
-				builder.item(I18N.t("popupmenu.create.new"), this::createNewItem);
+				builder.item(I18N.t("popupmenu.create_new"), this::createNewItem);
 				builder.separator();
 				builder.selectionSensitiveItem(I18N.t("popupmenu.edit"), this::editItem);
 				builder.selectionSensitiveItem(I18N.t("popupmenu.remove"), this::removeItem);

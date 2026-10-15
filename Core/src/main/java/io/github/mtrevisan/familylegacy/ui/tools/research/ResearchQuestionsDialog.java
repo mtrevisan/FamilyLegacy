@@ -257,8 +257,8 @@ public final class ResearchQuestionsDialog extends JDialog{
 			return;
 
 		final int confirm = JOptionPane.showConfirmDialog(this,
-			I18N.tf("confirmation.delete.research.question.message", ResearchQuestionReader.extractTitle(researchQuestion)),
-			I18N.t("confirmation.delete.research.question.title"),
+			I18N.tf("confirmation.delete.research_question.message", ResearchQuestionReader.extractTitle(researchQuestion)),
+			I18N.t("confirmation.delete.research_question.title"),
 			JOptionPane.YES_NO_OPTION,
 			JOptionPane.WARNING_MESSAGE);
 		if(confirm != JOptionPane.YES_OPTION)

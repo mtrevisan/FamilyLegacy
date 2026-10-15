@@ -53,16 +53,6 @@ import java.util.Objects;
  */
 final class GroupNarrator{
 
-	private static final String TYPE_FOUNDING = "founding";
-	private static final String TYPE_DISSOLVED = "dissolved";
-	private static final String TYPE_RESIDENCE = "residence";
-
-	private static final String[] UNION_TYPES = {
-		"marriage", "religious_marriage", "civil_marriage", "customary_marriage",
-		"cohabitation", "annulment", "divorce"
-	};
-
-
 	private final FLEFModel model;
 	private final RelationIndex idx;
 	private final ReportLabels labels;
@@ -86,8 +76,10 @@ final class GroupNarrator{
 		final List<String> sentences = new ArrayList<>();
 
 		// 1. Check explicit founding or union events (marriages/civil rites)
-		final FLEFRecord founding = findEvent(events, TYPE_FOUNDING);
-		final List<FLEFRecord> unions = findEvents(events, UNION_TYPES);
+		final FLEFRecord founding = findEvent(events, EventReader.ENUM_TYPE_MARRIAGE_BANN,
+			EventReader.ENUM_TYPE_MARRIAGE_CONTRACT, EventReader.ENUM_TYPE_MARRIAGE_LICENSE,
+			EventReader.ENUM_TYPE_MARRIAGE_SETTLEMENT);
+		final List<FLEFRecord> unions = findEvents(events, EventReader.ENUM_TYPE_MARRIAGE);
 
 		if(founding != null){
 			final String d = DateService.getDateDisplayText(founding);
@@ -121,7 +113,7 @@ final class GroupNarrator{
 		// 2. Residences and location attributes
 		for(final FLEFRecord a : attrs){
 			final String t = FLEFRecordHelper.getChildValue(a, GroupAttributeReader.TAG_TYPE);
-			if(TYPE_RESIDENCE.equalsIgnoreCase(t)){
+			if(GroupAttributeReader.ENUM_TYPE_RESIDENCE.equalsIgnoreCase(t)){
 				final String v = FLEFRecordHelper.getChildValue(a, GroupAttributeReader.TAG_VALUE);
 				final String p = FLEFRecordHelper.extractPlace(a, model);
 				final String loc = (v != null && !v.isBlank())? v.trim(): p;
@@ -133,7 +125,11 @@ final class GroupNarrator{
 		// 3. Descriptive events/notes attached to group
 		for(final FLEFRecord e : events){
 			final String type = FLEFRecordHelper.getChildValue(e, EventReader.TAG_TYPE);
-			if(TYPE_FOUNDING.equalsIgnoreCase(type) || isUnionType(type))
+			if(EventReader.ENUM_TYPE_MARRIAGE_BANN.equalsIgnoreCase(type)
+					|| EventReader.ENUM_TYPE_MARRIAGE_CONTRACT.equalsIgnoreCase(type)
+					|| EventReader.ENUM_TYPE_MARRIAGE_LICENSE.equalsIgnoreCase(type)
+					|| EventReader.ENUM_TYPE_MARRIAGE_SETTLEMENT.equalsIgnoreCase(type)
+					|| isUnionType(type))
 				continue;
 
 			final String desc = FLEFRecordHelper.getChildValue(e, EventReader.TAG_DESCRIPTION);
@@ -142,7 +138,7 @@ final class GroupNarrator{
 		}
 
 		// 4. Dissolution
-		final FLEFRecord dissolution = findEvent(events, TYPE_DISSOLVED);
+		final FLEFRecord dissolution = findEvent(events, EventReader.ENUM_TYPE_DIVORCE);
 		if(dissolution != null){
 			final String d = DateService.getDateDisplayText(dissolution);
 			final String p = FLEFRecordHelper.extractPlace(dissolution, model);
@@ -152,11 +148,15 @@ final class GroupNarrator{
 		return String.join(StringUtils.SPACE, sentences);
 	}
 
-	private static FLEFRecord findEvent(final List<FLEFRecord> events, final String type){
+	private static FLEFRecord findEvent(final List<FLEFRecord> events, final String... types){
 		for(final FLEFRecord e : events){
 			final String t = FLEFRecordHelper.getChildValue(e, EventReader.TAG_TYPE);
-			if(type.equalsIgnoreCase(t))
-				return e;
+			if(t == null)
+				continue;
+
+			for(final String type : types)
+				if(type.equalsIgnoreCase(t))
+					return e;
 		}
 		return null;
 	}
@@ -179,13 +179,7 @@ final class GroupNarrator{
 	}
 
 	private static boolean isUnionType(final String type){
-		if(type == null)
-			return false;
-
-		for(final String u : UNION_TYPES)
-			if(u.equalsIgnoreCase(type))
-				return true;
-		return false;
+		return EventReader.ENUM_TYPE_MARRIAGE.equalsIgnoreCase(type);
 	}
 
 }

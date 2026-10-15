@@ -88,7 +88,7 @@ public final class PartnersData{
 		marriageEvents.retainAll(motherEvents);
 		FLEFRecord marriageEvent = (!marriageEvents.isEmpty()? marriageEvents.iterator().next(): null);
 		for(final FLEFRecord fatherMarriageEvent : fatherEvents)
-			if("civil_marriage".equals(EventReader.extractType(fatherMarriageEvent))){
+			if(EventReader.ENUM_TYPE_MARRIAGE.equalsIgnoreCase(EventReader.extractType(fatherMarriageEvent))){
 				marriageEvent = fatherMarriageEvent;
 
 				break;

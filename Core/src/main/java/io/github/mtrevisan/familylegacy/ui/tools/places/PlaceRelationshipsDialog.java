@@ -284,8 +284,8 @@ public final class PlaceRelationshipsDialog extends JDialog{
 			return;
 
 		final int confirm = JOptionPane.showConfirmDialog(this,
-			I18N.tf("confirmation.delete.place.relationship.message", PlaceRelationshipReader.extractType(placeRelationship)),
-			I18N.t("confirmation.delete.place.relationship.title"),
+			I18N.tf("confirmation.delete.place_relationship.message", PlaceRelationshipReader.extractType(placeRelationship)),
+			I18N.t("confirmation.delete.place_relationship.title"),
 			JOptionPane.YES_NO_OPTION,
 			JOptionPane.WARNING_MESSAGE);
 		if(confirm != JOptionPane.YES_OPTION)
@@ -344,6 +344,7 @@ public final class PlaceRelationshipsDialog extends JDialog{
 		private static String formatValidity(final String from, final String to){
 			if(from == null && to == null)
 				return StringUtils.EMPTY;
+
 			return (from != null? from: "?") + " – " + (to != null? to: "?");
 		}
 	}

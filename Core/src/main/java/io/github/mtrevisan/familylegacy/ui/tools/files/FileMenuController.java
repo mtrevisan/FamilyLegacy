@@ -242,8 +242,8 @@ public final class FileMenuController{
 
 		if(target.exists()){
 			final int confirm = JOptionPane.showConfirmDialog(owner,
-				I18N.t("confirmation.overwrite.save.as.message"),
-				I18N.t("confirmation.overwrite.save.as.title"),
+				I18N.t("confirmation.overwrite.save_as.message"),
+				I18N.t("confirmation.overwrite.save_as.title"),
 				JOptionPane.YES_NO_OPTION,
 				JOptionPane.WARNING_MESSAGE);
 			if(confirm != JOptionPane.YES_OPTION)

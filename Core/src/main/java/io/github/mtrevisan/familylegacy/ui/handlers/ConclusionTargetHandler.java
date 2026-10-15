@@ -58,7 +58,7 @@ public class ConclusionTargetHandler extends AbstractRecordTypeHandler<BaseRecor
 
 	@Override
 	public String getLabel(){
-		return I18N.t("confirmation.exist.record.conclusion.target");
+		return I18N.t("confirmation.exist_record.conclusion.target");
 	}
 
 	@Override

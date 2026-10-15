@@ -174,7 +174,7 @@ final class IndividualNarrator{
 			for(final FLEFRecord a : findAttrs(attrs, type)){
 				final String v = FLEFRecordHelper.getChildValue(a, IndividualAttributeReader.TAG_VALUE);
 				if(v != null && !v.isBlank())
-				sentences.add(labels.narrativeAttribute(name, I18N.t("enum.individual.attribute.type." + (StringUtils.isNotEmpty(type)? type: "none")), v.trim()));
+				sentences.add(labels.narrativeAttribute(name, I18N.t("enum.individual_attribute.type." + (StringUtils.isNotEmpty(type)? type: "none")), v.trim()));
 			}
 		}
 

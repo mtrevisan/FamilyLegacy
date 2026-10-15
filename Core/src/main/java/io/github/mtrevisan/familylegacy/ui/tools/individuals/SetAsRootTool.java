@@ -34,7 +34,7 @@ public final class SetAsRootTool implements ToolOperation{
 
 	@Override
 	public String getName(){
-		return I18N.t("menu.individual.set.as.root");
+		return I18N.t("menu.individual.set_as_root");
 	}
 
 	@Override

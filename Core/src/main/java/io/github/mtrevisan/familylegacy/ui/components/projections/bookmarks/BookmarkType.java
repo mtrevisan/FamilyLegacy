@@ -38,14 +38,14 @@ import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
  */
 public enum BookmarkType{
 
-	/** Ancestor tree loaded on a root individual. */
-	TREE(I18N.t("bookmark.ancestor.tree")),
+	/** Biologiacl tree loaded on a root individual. */
+	BIOLOGICAL_TREE(I18N.t("bookmark.biological_tree")),
 
 	/** Sugiyama pedigree graph loaded on a root individual. */
-	GRAPH(I18N.t("bookmark.sugiyama.graph")),
+	SUGIYAMA_GRAPH(I18N.t("bookmark.sugiyama_graph")),
 
 	/** Ego network loaded on a root individual or group. */
-	EGO_NETWORK(I18N.t("bookmark.ego.network"));
+	EGO_NETWORK(I18N.t("bookmark.ego_network"));
 
 
 	private final String displayName;

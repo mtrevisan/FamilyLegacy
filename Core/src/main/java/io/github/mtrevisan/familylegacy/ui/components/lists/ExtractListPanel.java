@@ -74,7 +74,7 @@ public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
 			this::editItem, null,
 			this::createNewItem, this::removeItem,
 			builder -> {
-				builder.item(I18N.t("popupmenu.create.new"), this::createNewItem);
+				builder.item(I18N.t("popupmenu.create_new"), this::createNewItem);
 				builder.separator();
 				builder.selectionSensitiveItem(I18N.t("popupmenu.edit"), this::editItem);
 				builder.selectionSensitiveItem(I18N.t("popupmenu.remove"), this::removeItem);
@@ -160,7 +160,7 @@ public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
 		final DocumentPartListPanel documentPartPanel = new DocumentPartListPanel(SourceCitationReader.TAG_DOCUMENT_PART, parent, I18N.t("dialog.extract.document.parts.title"), model);
 		final BoundTextArea textArea = new BoundTextArea(SourceCitationReader.TAG_TEXT, 3, 25);
 		final BoundComboBox<String> typeCombo = new BoundComboBox<>(SourceCitationReader.TAG_TYPE, GUIHelper.fillCombo(SourceCitationReader.EXTRACT_TYPES, I18N.t("search.combo.any")));
-		typeCombo.setI18NPrefix("enum.extract.type");
+		typeCombo.setI18NPrefix("enum.extract_type");
 		final BoundFilteredComboBox<String> localeCombo = new BoundFilteredComboBox<>(SourceCitationReader.TAG_LOCALE, LocaleHelper.getAvailableLanguageTags());
 		localeCombo.setEditable(true);
 		final BasicNoteListPanel basicNote = new BasicNoteListPanel(SourceCitationReader.TAG_NOTE, parent, "Notes", SourceCitationReader.TAG_NOTE);
@@ -254,7 +254,7 @@ public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
 			final BoundTextArea textArea){
 		if(documentPartPanel.isEmpty() && textArea.isEmpty()){
 			GUIHelper.showValidationErrorAndFocus(dialog,
-				I18N.tf("validation.at.least.one.of", I18N.t("dialog.extract.document.part"), I18N.t("dialog.extract.text")),
+				I18N.tf("validation.at_least_one_of", I18N.t("dialog.extract.document_part"), I18N.t("dialog.extract.text")),
 				null, null, documentPartPanel);
 
 			return false;

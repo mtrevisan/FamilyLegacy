@@ -56,7 +56,7 @@ public class TextValueVariantHandler extends AbstractRecordTypeHandler<TextValue
 
 	@Override
 	public String getLabel(){
-		return I18N.t("confirmation.exist.record.text.value.variant");
+		return I18N.t("confirmation.exist_record.text_value_variant");
 	}
 
 	@Override
@@ -79,8 +79,8 @@ public class TextValueVariantHandler extends AbstractRecordTypeHandler<TextValue
 			if(StringUtils.isNotEmpty(system))
 				details.append(system);
 			if(!details.isEmpty())
-				return String.format("%s [%s: %s]", value, I18N.t("text.value.variant.phonetic"), details);
-			return String.format("%s [%s]", value, I18N.t("text.value.variant.phonetic"));
+				return String.format("%s [%s: %s]", value, I18N.t("text_value_variant.phonetic"), details);
+			return String.format("%s [%s]", value, I18N.t("text_value_variant.phonetic"));
 		}
 		else if(TextValueVariantReader.isTranscription(tag)){
 			final String system = TextValueVariantReader.extractTranscriptionSystem(variant);
@@ -96,8 +96,8 @@ public class TextValueVariantHandler extends AbstractRecordTypeHandler<TextValue
 				details.append(type);
 			}
 			if(!details.isEmpty())
-				return String.format("%s [%s: %s]", value, I18N.t("text.value.variant.transcription"), details);
-			return String.format("%s [%s]", value, I18N.t("text.value.variant.transcription"));
+				return String.format("%s [%s: %s]", value, I18N.t("text_value_variant.transcription"), details);
+			return String.format("%s [%s]", value, I18N.t("text_value_variant.transcription"));
 		}
 
 		return "[--]";

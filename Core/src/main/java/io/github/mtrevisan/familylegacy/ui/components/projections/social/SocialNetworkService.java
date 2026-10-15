@@ -497,6 +497,7 @@ public final class SocialNetworkService{
 		final FLEFRecord eventRef = FLEFRecordHelper.findChild(participation, EventParticipationReader.TAG_EVENT);
 		if(eventRef == null)
 			return StringUtils.EMPTY;
+
 		final FLEFRecord ref = eventRef.getTheOnlyChild();
 		return (ref != null && ref.getTag() != null? ref.getTag(): StringUtils.EMPTY);
 	}

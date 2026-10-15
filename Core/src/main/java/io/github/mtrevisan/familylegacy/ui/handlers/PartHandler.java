@@ -60,7 +60,7 @@ public class PartHandler extends AbstractRecordTypeHandler<PartStructureDialog>{
 
 	@Override
 	public String getLabel(){
-		return I18N.t("confirmation.exist.record.part");
+		return I18N.t("confirmation.exist_record.part");
 	}
 
 	@Override

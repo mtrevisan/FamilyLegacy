@@ -67,15 +67,15 @@ public class ConclusionFilterPanel extends JPanel implements RecordFilterPanel{
 
 	private void initComponents(){
 		setLayout(new MigLayout("wrap 2,gap 5", "[][grow,fill]", "[]"));
-		setBorder(BorderFactory.createTitledBorder(I18N.tf("dialog.search.filter.title", I18N.t("dialog.component.conclusion"))));
+		setBorder(BorderFactory.createTitledBorder(I18N.tf("dialog.search_filter.title", I18N.t("dialog.component.conclusions"))));
 
 		add(new JLabel(I18N.t("dialog.conclusion.issue") + ":"));
 		add(issueField, "growx");
-		add(new JLabel(I18N.t("dialog.conclusion.proof.status") + ":"));
+		add(new JLabel(I18N.t("dialog.conclusion.proof_status") + ":"));
 		add(proofStatusCombo, "growx");
 		add(new JLabel(I18N.t("dialog.conclusion.narrative") + ":"));
 		add(narrativeField, "growx");
-		add(new JLabel(I18N.t("dialog.conclusion.research.question") + "Research question:"));
+		add(new JLabel(I18N.t("dialog.conclusion.research_question") + "Research question:"));
 		add(researchQuestionField, "growx");
 	}
 

@@ -84,8 +84,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
@@ -139,6 +137,8 @@ public final class GUIHelper{
 
 	private static final String ACTION_MOVE_UP = "moveUp";
 	private static final String ACTION_MOVE_DOWN = "moveDown";
+
+	public static final int SCROLLBAR_UNIT_INCREMENT = 20;
 
 
 	private GUIHelper(){}
@@ -426,7 +426,7 @@ public final class GUIHelper{
 
 	public static JPanel createNewSelectCancelButtonPanel(final JRootPane rootPane, final Runnable createNew,
 			final Runnable select, final Runnable cancel){
-		final JButton createNewButton = new JButton(I18N.t("button.create.new"));
+		final JButton createNewButton = new JButton(I18N.t("button.create_new"));
 		final JButton selectButton = new JButton(I18N.t("button.select"));
 		final JButton cancelButton = new JButton(I18N.t("button.cancel"));
 

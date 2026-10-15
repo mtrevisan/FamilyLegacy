@@ -259,8 +259,8 @@ public final class EventParticipantsDialog extends JDialog{
 		else if(PlaceHandler.isOfType(participant))
 			name = PlaceReader.extractPrimaryName(eventParticipation);
 		final int confirm = JOptionPane.showConfirmDialog(this,
-			I18N.tf("confirmation.delete.event.participation.message", name),
-			I18N.t("confirmation.delete.event.participation.title"),
+			I18N.tf("confirmation.delete.event_participation.message", name),
+			I18N.t("confirmation.delete.event_participation.title"),
 			JOptionPane.YES_NO_OPTION,
 			JOptionPane.WARNING_MESSAGE);
 		if(confirm != JOptionPane.YES_OPTION)

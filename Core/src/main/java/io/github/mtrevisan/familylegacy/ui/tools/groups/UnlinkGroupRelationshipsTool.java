@@ -25,14 +25,12 @@
 package io.github.mtrevisan.familylegacy.ui.tools.groups;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.services.relationship.UnlinkRelationshipsDialog;
+import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.services.relationship.UnlinkDialog;
 import io.github.mtrevisan.familylegacy.ui.components.projections.repository.ProjectionMutator;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolOperation;
 
-import javax.swing.JOptionPane;
 import java.util.List;
 
 
@@ -49,26 +47,13 @@ public final class UnlinkGroupRelationshipsTool implements ToolOperation{
 
 	@Override
 	public void run(final ToolContext context){
-		if(context == null)
-			return;
-
-		final String id = context.selectedEntityId();
-		if(id == null){
-			JOptionPane.showMessageDialog(context.owner(),
-				"No entity is selected.", "Unlink Relationships", JOptionPane.WARNING_MESSAGE);
-
-			return;
-		}
+		final String recordId = context.selectedEntityId();
 
 		final FLEFModel model = context.model();
-		final FLEFRecord record = model.getRecordById(id);
-		if(record == null)
-			return;
-
-		final UnlinkRelationshipsDialog dialog = new UnlinkRelationshipsDialog(context.owner(), model, id);
+		final UnlinkDialog dialog = new UnlinkDialog(context.owner(), model, recordId);
 		dialog.setVisible(true);
 
-		final List<String> relationshipIdsToRemove = dialog.getSelectedRelationshipIds();
+		final List<String> relationshipIdsToRemove = dialog.getSelectedLinkIds();
 		if(relationshipIdsToRemove.isEmpty())
 			return;
 
@@ -77,7 +62,7 @@ public final class UnlinkGroupRelationshipsTool implements ToolOperation{
 			mutator.removeRelationships(relationshipIdsToRemove);
 
 			// Force a complete structural cache wipe and tree reload
-			mutator.invalidateAndNotifyTreeChanged(id);
+			mutator.invalidateAndNotifyTreeChanged(recordId);
 		}
 	}
 

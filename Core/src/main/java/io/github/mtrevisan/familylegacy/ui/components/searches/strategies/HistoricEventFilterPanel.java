@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.ui.components.searches.strategies;
 
 import io.github.mtrevisan.familylegacy.io.model.readers.DateReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.HistoricEventReader;
+import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.ui.components.searches.RecordFilterPanel;
 import io.github.mtrevisan.familylegacy.ui.components.searches.SearchCriteria;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
@@ -52,7 +53,7 @@ public class HistoricEventFilterPanel extends JPanel implements RecordFilterPane
 	private final JComboBox<String> typeCombo = new JComboBox<>(GUIHelper.fillCombo(HistoricEventReader.TYPES, I18N.t("search.combo.any")));
 	private final JTextField titleField = new JTextField(20);
 	private final JTextField dateField = new JTextField(10);
-	private final JComboBox<String> calendarCombo = new JComboBox<>(DateReader.CALENDARS);
+	private final BoundComboBox<String> calendarCombo = new BoundComboBox<>(DateReader.TAG_CALENDAR, DateReader.CALENDARS);
 	private final JTextField locationField = new JTextField(20);
 
 	private final Consumer<SearchCriteria> onChanged;
@@ -69,13 +70,15 @@ public class HistoricEventFilterPanel extends JPanel implements RecordFilterPane
 
 	private void initComponents(){
 		setLayout(new MigLayout("wrap 2,gap 5", "[][grow,fill]", "[]"));
-		setBorder(BorderFactory.createTitledBorder(I18N.tf("dialog.search.filter.title", I18N.t("dialog.component.historic.event"))));
+		setBorder(BorderFactory.createTitledBorder(I18N.tf("dialog.search_filter.title", I18N.t("dialog.component.historic.events"))));
 
-		add(new JLabel(I18N.t("dialog.historic.event.type") + ":"));
+		calendarCombo.setI18NPrefix("enum.date.calendar");
+
+		add(new JLabel(I18N.t("dialog.historic_event.type") + ":"));
 		add(typeCombo, "growx");
-		add(new JLabel(I18N.t("dialog.historic.event.title") + ":"));
+		add(new JLabel(I18N.t("dialog.historic_event.title") + ":"));
 		add(titleField, "growx");
-		add(new JLabel(I18N.t("dialog.historic.event.date") + ":"));
+		add(new JLabel(I18N.t("dialog.historic_event.date") + ":"));
 		add(dateField, "growx");
 		add(new JLabel(I18N.t("search.date.calendar.from") + ":"));
 		add(calendarCombo, "growx");

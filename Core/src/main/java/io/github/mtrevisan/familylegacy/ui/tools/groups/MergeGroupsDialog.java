@@ -233,11 +233,12 @@ public final class MergeGroupsDialog extends JDialog{
 			}
 		}
 
+		// FIXME rivedere perché i link devono essere aggiornati, non rimossi, e poi dipende dal record di cui ho fatto il merge
 		// Step 3: delete any remaining relationship that involves the
 		// source group, then delete the source group itself.
-		final List<String> leftovers = GroupHelper.relationshipIdsForGroup(source.getId(), model);
-		for(final String relId : leftovers)
-			model.removeRecord(relId);
+//		final List<String> leftovers = GroupHelper.relationshipIds(source.getId(), model);
+//		for(final String relId : leftovers)
+//			model.removeRecord(relId);
 		model.removeRecord(source.getId());
 
 		dispose();

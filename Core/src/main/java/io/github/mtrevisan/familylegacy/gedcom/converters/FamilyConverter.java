@@ -480,9 +480,11 @@ public class FamilyConverter{
 			}
 		}
 		String flefType = GEDCOMMapper.mapEvent(gedcomTag, (customType != null? customType: gedcomTag));
-		eventRecord.addChild(FLEFRecord.createChildWithTagAndValue("type",
-			("civil".equals(customType) || "religious".equals(customType)? customType + "_": StringUtils.EMPTY)
-				+ flefType));
+//		// FIXME civil_marriage/religious_marriage does not exist, exist civil_spouse/religious_spouse in Relationship
+//		eventRecord.addChild(FLEFRecord.createChildWithTagAndValue("type",
+//			("civil".equals(customType) || "religious".equals(customType)? customType + "_": StringUtils.EMPTY)
+//				+ flefType));
+		eventRecord.addChild(FLEFRecord.createChildWithTagAndValue("type", flefType));
 
 		// Date
 		GEDCOMNode dateNode = GEDCOMHelper.findFirstChild(eventNode, "DATE");
@@ -727,9 +729,11 @@ public class FamilyConverter{
 	private String getDisplayName(String indiId){
 		if(indiId == null)
 			return StringUtils.EMPTY;
+
 		FLEFRecord indi = individualMap.get(indiId);
 		if(indi == null)
 			return StringUtils.EMPTY;
+
 		for(FLEFRecord name : indi.getChildren()){
 			if("name".equals(name.getTag())){
 				for(FLEFRecord part : name.getChildren()){

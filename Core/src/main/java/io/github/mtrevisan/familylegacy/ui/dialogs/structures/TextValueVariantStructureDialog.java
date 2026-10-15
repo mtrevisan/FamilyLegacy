@@ -108,10 +108,10 @@ public class TextValueVariantStructureDialog extends BaseRecordDialog{
 		phoneticSystemField = new BoundTextField(TextValueVariantReader.TAG_PHONETIC_SYSTEM);
 		phoneticSystemField.setToolTipText(I18N.t("dialog.name.variant.phonetic.system.tooltip"));
 		transcriptionSystemCombo = new BoundComboBox<>(TextValueVariantReader.TAG_TRANSCRIPTION_SYSTEM, GUIHelper.fillCombo(TextValueVariantReader.TRANSCRIPTION_SYSTEMS, null));
-		transcriptionSystemCombo.setI18NPrefix("enum.text.value.variant.transcription.system");
+		transcriptionSystemCombo.setI18NPrefix("enum.text_value_variant.transcription.system");
 		transcriptionSystemCombo.setEditable(true);
 		typeCombo = new BoundComboBox<>(TextValueVariantReader.TAG_TRANSCRIPTION_TYPE, GUIHelper.fillCombo(TextValueVariantReader.TRANSCRIPTION_TYPES, null));
-		typeCombo.setI18NPrefix("enum.text.value.variant.transcript.type");
+		typeCombo.setI18NPrefix("enum.text_value_variant.transcript.type");
 		typeCombo.setEditable(true);
 		phoneticValueField = new BoundTextField(TextValueVariantReader.TAG_PHONETIC_VALUE);
 		transcriptionValueField = new BoundTextField(TextValueVariantReader.TAG_TRANSCRIPTION_VALUE);

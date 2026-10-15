@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.bindings.BindingsHelper;
 import io.github.mtrevisan.familylegacy.ui.bindings.Debouncer;
 import io.github.mtrevisan.familylegacy.ui.bindings.FilteredComboBox;
+import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.services.relationship.UnlinkDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
@@ -108,7 +109,7 @@ public class RecordSelectionDialog extends JDialog{
 	private static final Logger LOGGER = LoggerFactory.getLogger(RecordSelectionDialog.class);
 
 
-	private static final String NO_MATCHING_RECORDS = I18N.t("search.no.matching.records");
+	private static final String NO_MATCHING_RECORDS = I18N.t("search.no_matching_records");
 
 	private static final int DEBOUNCE_TIME = 400;
 
@@ -141,7 +142,7 @@ public class RecordSelectionDialog extends JDialog{
 	// neither can be selected. The combination determines the effective
 	// search mode, computed by currentMode().
 	private final JCheckBox fuzzyCheckBox = new JCheckBox(I18N.t("search.mode.fuzzy"), false);
-	private final JCheckBox wholeWordCheckBox = new JCheckBox(I18N.t("search.mode.whole.word"), false);
+	private final JCheckBox wholeWordCheckBox = new JCheckBox(I18N.t("search.mode.whole_word"), false);
 
 	private final JPanel filterPanelHolder = new JPanel(new BorderLayout());
 
@@ -270,13 +271,13 @@ public class RecordSelectionDialog extends JDialog{
 
 		// Top Panel: Type + Text Search + Search-mode checkboxes
 		final JPanel topPanel = new JPanel(new MigLayout("wrap 2", "[][grow,fill]", "[]"));
-		topPanel.setBorder(BorderFactory.createTitledBorder(I18N.t("search.search.panel.title")));
+		topPanel.setBorder(BorderFactory.createTitledBorder(I18N.t("search.search_panel.title")));
 
 		if(typeCombo != null){
 			topPanel.add(new JLabel(I18N.t("search.type") + ":"));
 			topPanel.add(typeCombo, "growx");
 		}
-		topPanel.add(new JLabel(I18N.t("search.search.text") + ":"));
+		topPanel.add(new JLabel(I18N.t("search.search_text") + ":"));
 		topPanel.add(searchField, "growx");
 
 		// Search modifiers: two independent checkboxes. Both start
@@ -309,7 +310,7 @@ public class RecordSelectionDialog extends JDialog{
 			}
 		});
 		final JScrollPane scrollPane = GUIHelper.createScrollPane(resultList);
-		scrollPane.setBorder(BorderFactory.createTitledBorder(I18N.t("search.results.panel.title")));
+		scrollPane.setBorder(BorderFactory.createTitledBorder(I18N.t("search.results_panel.title")));
 		scrollPane.setPreferredSize(SCROLL_PANE_PREFERRED_SIZE);
 		add(scrollPane, "grow,push,wrap");
 
@@ -325,21 +326,30 @@ public class RecordSelectionDialog extends JDialog{
 
 		// Action Buttons Panel
 		final JButton selectButton = new JButton(I18N.t("button.select"));
+		final JButton editButton = new JButton(I18N.t("button.edit"));
+		final JButton unlinkButton = new JButton(I18N.t("button.unlink"));
+		final JButton deleteButton = new JButton(I18N.t("button.delete"));
 		final JButton cancelButton = new JButton(I18N.t("button.cancel"));
 
 		selectButton.addActionListener(e -> selectResult());
+		editButton.addActionListener(e -> editRecord());
+		unlinkButton.addActionListener(e -> unlinkRecord());
+		deleteButton.addActionListener(e -> deleteRecord());
 		cancelButton.addActionListener(e -> dispose());
 
 		final JPanel bottomPanel = new JPanel(new MigLayout("ins 0,fillx", "[grow 1,sg 1][grow 1,sg 1]", "[]"));
 
 		// Left column (New button if allowed, otherwise empty panel)
+		final JPanel leftPanel = new JPanel(new MigLayout("ins 0", "[]10[]"));
 		if(allowCreation){
 			final JButton createButton = new JButton(I18N.t("button.new"));
 			createButton.addActionListener(e -> createNewRecord());
-			bottomPanel.add(createButton, "left");
+			leftPanel.add(createButton);
 		}
-		else
-			bottomPanel.add(new JPanel(), "left");
+		leftPanel.add(editButton);
+		leftPanel.add(unlinkButton);
+		leftPanel.add(deleteButton);
+		bottomPanel.add(leftPanel, "left");
 
 		// Right column (Select and Cancel buttons pushed to the right edge)
 		final JPanel rightPanel = new JPanel(new MigLayout("ins 0", "[]10[]"));
@@ -403,7 +413,8 @@ public class RecordSelectionDialog extends JDialog{
 
 	private void updateWindowTitle(){
 		final RecordTypeHandler<?> desc = getSelectedHandler();
-		setTitle(I18N.tf("search.title.with.record", (desc != null), I18N.t("confirmation.exist.record.individual")));
+		setTitle(I18N.tf("search.title_with_record", (desc != null), I18N.t("confirmation.exist_record."
+			+ (desc != null? desc.getType().replace('_', '.').toLowerCase(): StringUtils.EMPTY))));
 	}
 
 	private RecordTypeHandler<?> getSelectedHandler(){
@@ -452,13 +463,10 @@ public class RecordSelectionDialog extends JDialog{
 	}
 
 	private void performSearch(){
-		final RecordTypeHandler<?> handler = getSelectedHandler();
-		if(handler == null)
-			return;
-
 		if(currentWorker != null && !currentWorker.isDone())
 			currentWorker.cancel(true);
 
+		final RecordTypeHandler<?> handler = getSelectedHandler();
 		criteria = new SearchCriteria(handler, searchField.getText().trim(), currentMode());
 
 		initialFilters.forEach(criteria::withFilter);
@@ -552,14 +560,11 @@ public class RecordSelectionDialog extends JDialog{
 			resultList.setEnabled(true);
 		}
 
-		statusLabel.setText(I18N.tf("search.record.found", items.size()));
+		statusLabel.setText(I18N.tf("search.record_found", items.size()));
 	}
 
 	private void createNewRecord(){
 		final RecordTypeHandler<?> handler = getSelectedHandler();
-		if(handler == null)
-			return;
-
 		final BaseRecordDialog dialog = handler.createNewDialog(this, model);
 		if(setupDialog != null)
 			setupDialog.accept(dialog);
@@ -601,8 +606,90 @@ public class RecordSelectionDialog extends JDialog{
 		}
 		else
 			JOptionPane.showMessageDialog(this,
-				I18N.t("search.no.selection.message"),
-				I18N.t("search.no.selection.title"), JOptionPane.INFORMATION_MESSAGE);
+				I18N.t("search.no_selection.message"),
+				I18N.t("search.no_selection.title"), JOptionPane.INFORMATION_MESSAGE);
+	}
+
+	private void editRecord(){
+		final RecordTypeHandler<?> handler = getSelectedHandler();
+		if(handler != null){
+			final DisplayItem selectedItem = resultList.getSelectedValue();
+			final FLEFRecord record = selectedItem.record();
+
+			final BaseRecordDialog dialog = handler.createEditDialog(this, model, record);
+			dialog.setVisible(true);
+
+			if(dialog.isSaved()){
+				// Invalidate cache for this record and refresh results
+				displayTextCache.remove(record);
+
+				performSearch();
+			}
+		}
+	}
+
+	private void deleteRecord(){
+		// TODO show delete dialog (see DeleteIndividualTool)
+	}
+
+	private void unlinkRecord(){
+		final DisplayItem selectedItem = resultList.getSelectedValue();
+		final FLEFRecord record = selectedItem.record();
+		final String recordId = record.getId();
+
+		// Check if the record has active relationships using UnlinkRelationshipsDialog
+		final UnlinkDialog dialog = new UnlinkDialog(this, model, recordId);
+		dialog.setVisible(true);
+
+		final List<String> linkIdsToRemove = dialog.getSelectedLinkIds();
+		if(linkIdsToRemove.isEmpty())
+			return;
+
+		// Prompt confirmation before deleting the record itself
+		final int confirm = JOptionPane.showConfirmDialog(this,
+			I18N.tf("confirmation.delete.record.message", dialog.removeParentRecord(), I18N.t("confirmation.exist_record." + record.getTag()), selectedItem.displayText()),
+			I18N.t("confirmation.delete.record.title"),
+			JOptionPane.YES_NO_OPTION,
+			JOptionPane.WARNING_MESSAGE);
+		if(confirm != JOptionPane.YES_OPTION)
+			return;
+
+		// First, remove any selected relationship records to maintain referential integrity
+		for(final String linkId : linkIdsToRemove)
+			model.removeRecord(linkId);
+
+		// Then, remove the target record itself from the model
+		if(dialog.removeParentRecord())
+			model.removeRecord(recordId);
+
+		// Clean cache and refresh the search results list
+		displayTextCache.remove(record);
+		performSearch();
+	}
+
+	private void deleteRecord2(){
+		final DisplayItem selectedItem = resultList.getSelectedValue();
+		final FLEFRecord record = selectedItem.record();
+
+		// Optional: prompt a confirmation dialog showing the display text
+		final int confirm = JOptionPane.showConfirmDialog(this,
+			I18N.tf("confirmation.delete.record.message", selectedItem.displayText()),
+			I18N.t("confirmation.delete.record.title"),
+			JOptionPane.YES_NO_OPTION,
+			JOptionPane.WARNING_MESSAGE);
+
+		if(confirm != JOptionPane.YES_OPTION)
+			return;
+
+		// Remove record from model.
+		// Note: Ensure model.removeRecord(id) handles or safely drops references,
+		// or check if additional cascade cleanup is required by your FLEFModel implementation.
+		model.removeRecord(record.getId());
+
+		// Refresh the list and clear cache
+		displayTextCache.remove(record);
+
+		performSearch();
 	}
 
 	public boolean isConfirmed(){

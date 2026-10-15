@@ -33,6 +33,7 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
+import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
@@ -555,6 +556,7 @@ public final class MergeFieldComparisonDialog extends JDialog{
 		if(handler == null){
 			LOGGER.debug("No handler registered for record tag '{}'",
 				hit.recordTag());
+
 			return;
 		}
 
@@ -653,9 +655,9 @@ public final class MergeFieldComparisonDialog extends JDialog{
 			ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		scroll.setBorder(BorderFactory.createTitledBorder(title));
 		scroll.getVerticalScrollBar()
-			.setUnitIncrement(16);
+			.setUnitIncrement(GUIHelper.SCROLLBAR_UNIT_INCREMENT);
 		scroll.getHorizontalScrollBar()
-			.setUnitIncrement(16);
+			.setUnitIncrement(GUIHelper.SCROLLBAR_UNIT_INCREMENT);
 		return scroll;
 	}
 

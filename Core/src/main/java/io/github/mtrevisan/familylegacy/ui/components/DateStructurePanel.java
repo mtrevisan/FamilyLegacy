@@ -133,7 +133,7 @@ public class DateStructurePanel extends JPanel{
 		});
 		add(tabbedPane, "growx,wrap");
 
-		final JLabel originalTextLabel = new JLabel(I18N.t("dialog.date.original.text") + ":");
+		final JLabel originalTextLabel = new JLabel(I18N.t("dialog.date.original_text") + ":");
 		originalTextLabel.setLabelFor(originalTextField);
 		add(originalTextLabel, "align label");
 		add(originalTextField, "growx");

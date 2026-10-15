@@ -71,12 +71,12 @@ public class SpanningDatePanel extends JPanel{
 		setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
 
 		final JPanel fromPanel = new JPanel(new MigLayout("fillx", "[right]rel[grow]"));
-		fromPanel.setBorder(new TitledBorder(I18N.t("dialog.date.spanning.from")));
+		fromPanel.setBorder(new TitledBorder(I18N.t("dialog.date.spanning_from")));
 		fromPanel.add(this.fromPanel, "growx");
 		add(fromPanel, "growx");
 
 		final JPanel toPanel = new JPanel(new MigLayout("fillx", "[right]rel[grow]"));
-		toPanel.setBorder(new TitledBorder(I18N.t("dialog.date.spanning.to")));
+		toPanel.setBorder(new TitledBorder(I18N.t("dialog.date.spanning_to")));
 		toPanel.add(this.toPanel, "growx");
 		add(toPanel, "growx");
 	}
@@ -124,7 +124,7 @@ public class SpanningDatePanel extends JPanel{
 	public boolean validateData(){
 		if(!hasData()){
 			JOptionPane.showMessageDialog(this,
-				I18N.tf("validation.at.least.one.of", I18N.t("dialog.date.spanning.from"), I18N.t("dialog.date.spanning.to")),
+				I18N.tf("validation.at_least_one_of", I18N.t("dialog.date.spanning_from"), I18N.t("dialog.date.spanning_to")),
 				I18N.t("validation.title"), JOptionPane.ERROR_MESSAGE);
 
 			return false;

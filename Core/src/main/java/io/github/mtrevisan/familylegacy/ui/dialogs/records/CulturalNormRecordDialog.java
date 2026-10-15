@@ -113,16 +113,16 @@ public class CulturalNormRecordDialog extends BaseRecordDialog{
 
 		titleField = new BoundTextField(CulturalNormReader.TAG_TITLE);
 		typeCombo = new BoundComboBox<>(CulturalNormReader.TAG_TYPE, GUIHelper.fillCombo(CulturalNormReader.TYPES, null));
-		typeCombo.setI18NPrefix("enum.cultural.norm.rule.type");
+		typeCombo.setI18NPrefix("enum.cultural_norm.rule_type");
 		typeCombo.setEditable(true);
 		placeField = EntityField.createForStructureWithReference(PlaceHandler.TYPE, this, model, PlaceCitationHandler.class);
 		placeEvidencePanel = new EvidenceQualifiersPanel(CulturalNormReader.TAG_PLACE_EVIDENCE, I18N.t("dialog.component.evidence"));
-		validFromField = DateField.createWithWrapperTag(CulturalNormReader.TAG_VALID_FROM, this, I18N.t("dialog.date.valid.from"), model);
-		validToField = DateField.createWithWrapperTag(CulturalNormReader.TAG_VALID_TO, this, I18N.t("dialog.date.valid.to"), model);
+		validFromField = DateField.createWithWrapperTag(CulturalNormReader.TAG_VALID_FROM, this, I18N.t("dialog.date.valid_from"), model);
+		validToField = DateField.createWithWrapperTag(CulturalNormReader.TAG_VALID_TO, this, I18N.t("dialog.date.valid_to"), model);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.CONTEXT_IMPACT_ON_CONTEXT, ContextImpactHandler.TYPE, I18N.t("dialog.component.context.impact"))
+			.withComponent(PanelKey.CONTEXT_IMPACT_ON_CONTEXT, ContextImpactHandler.TYPE, I18N.t("dialog.component.context.impacts"))
 			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, I18N.t("dialog.component.conclusions"))
 			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, I18N.t("dialog.component.research.questions"))
 			.withComponent(PanelKey.SOURCE, CulturalNormReader.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
@@ -147,10 +147,10 @@ public class CulturalNormRecordDialog extends BaseRecordDialog{
 		final JPanel propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]5[]10[]10[]10[]");
 
 		// title
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.cultural.norm.title") + ":", titleField);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.cultural_norm.title") + ":", titleField);
 
 		// rule type
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.cultural.norm.rule.type") + ":", typeCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.cultural_norm.rule_type") + ":", typeCombo);
 
 		// place panel:
 		final JPanel placePanel = new JPanel(new MigLayout("ins 10,hidemode 3,fillx,top,wrap 1",
@@ -164,9 +164,9 @@ public class CulturalNormRecordDialog extends BaseRecordDialog{
 		final JPanel validityPanel = GUIHelper.createLabelFieldPanel(5, "[]10[]");
 		validityPanel.setBorder(BorderFactory.createTitledBorder(I18N.t("dialog.validity.range")));
 		// valid from
-		GUIHelper.addLabeledComponent(validityPanel, I18N.t("dialog.valid.from") + ":", validFromField);
+		GUIHelper.addLabeledComponent(validityPanel, I18N.t("dialog.valid_from") + ":", validFromField);
 		// valid to
-		GUIHelper.addLabeledComponent(validityPanel, I18N.t("dialog.valid.to") + ":", validToField);
+		GUIHelper.addLabeledComponent(validityPanel, I18N.t("dialog.valid_to") + ":", validToField);
 		GUIHelper.addComponent(propertiesPanel, validityPanel);
 
 		// evidence

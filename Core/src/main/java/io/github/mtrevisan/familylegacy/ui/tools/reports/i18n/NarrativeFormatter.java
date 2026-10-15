@@ -231,6 +231,7 @@ public final class NarrativeFormatter{
 			return String.format(labels.getString("PERIOD_FROM_FRAGMENT"), from);
 		if(to != null)
 			return String.format(labels.getString("PERIOD_TO_FRAGMENT"), to);
+
 		return StringUtils.EMPTY;
 	}
 

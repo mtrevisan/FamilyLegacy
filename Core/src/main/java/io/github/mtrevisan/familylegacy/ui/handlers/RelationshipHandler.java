@@ -54,7 +54,7 @@ public class RelationshipHandler extends AbstractRecordTypeHandler<RelationshipR
 
 	@Override
 	public String getLabel(){
-		return I18N.t("confirmation.exist.record.relationship");
+		return I18N.t("confirmation.exist_record.relationship");
 	}
 
 	@Override

@@ -114,7 +114,7 @@ public class HistoricEventSearchStrategy implements SearchStrategy{
 		if(StringUtils.isNotEmpty(title))
 			details.add(title);
 		if(StringUtils.isNotEmpty(type))
-			details.add(I18N.t("dialog.historic.event.type") + ": " + type);
+			details.add(I18N.t("dialog.historic_event.type") + ": " + type);
 		if(StringUtils.isNotEmpty(date))
 			details.add(date);
 		if(StringUtils.isNotEmpty(place))

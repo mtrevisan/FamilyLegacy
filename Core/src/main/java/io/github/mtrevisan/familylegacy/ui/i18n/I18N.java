@@ -84,8 +84,13 @@ public final class I18N{
 
 	/** Returns the localized string for {@code key} with {@link String#format} substitution. */
 	public static String tf(final String key, final Object... args){
-		return new MessageFormat(BUNDLE.getString(key), Locale.getDefault())
-			.format(args);
+		try{
+			return new MessageFormat(BUNDLE.getString(key), Locale.getDefault())
+				.format(args);
+		}
+		catch(final MissingResourceException ignored){
+			return key;
+		}
 	}
 
 

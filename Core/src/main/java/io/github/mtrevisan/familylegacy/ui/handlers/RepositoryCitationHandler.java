@@ -59,7 +59,7 @@ public class RepositoryCitationHandler extends AbstractRecordTypeHandler<Reposit
 
 	@Override
 	public String getLabel(){
-		return I18N.t("confirmation.exist.record.repository.citation");
+		return I18N.t("confirmation.exist_record.repository_citation");
 	}
 
 	@Override

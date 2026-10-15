@@ -104,11 +104,11 @@ public class SourceRecordDialog extends BaseRecordDialog{
 			NameHandler.class);
 		authorField = new BoundTextField(SourceReader.TAG_AUTHOR);
 		publisherField = new BoundTextField(SourceReader.TAG_PUBLISHER);
-		dateField = DateField.createWithWrapperTag(SourceReader.TAG_DATE, this, I18N.t("dialog.source.valid.date"), model);
+		dateField = DateField.createWithWrapperTag(SourceReader.TAG_DATE, this, I18N.t("dialog.source.valid_date"), model);
 		placeField = EntityField.createForStructureWithReference(PlaceHandler.TYPE, this, model,
 			PlaceCitationHandler.class);
 		mediaTypeCombo = new BoundComboBox<>(SourceReader.TAG_MEDIA_TYPE, GUIHelper.fillCombo(SourceReader.MEDIA_TYPES, null));
-		mediaTypeCombo.setI18NPrefix("enum.source.media.type");
+		mediaTypeCombo.setI18NPrefix("enum.source.media_type");
 		mediaTypeCombo.setEditable(true);
 
 		components = new RecordDialogBuilder(this, model, record)
@@ -150,7 +150,7 @@ public class SourceRecordDialog extends BaseRecordDialog{
 		GUIHelper.addLabeledComponent(panel, I18N.t("dialog.place") + ":", placeField);
 
 		// media type
-		GUIHelper.addLabeledComponent(panel, I18N.t("dialog.source.media.type") + ":", mediaTypeCombo);
+		GUIHelper.addLabeledComponent(panel, I18N.t("dialog.source.media_type") + ":", mediaTypeCombo);
 
 		// repository
 		final JPanel repositoryCitationPanel = components.getPanel(PanelKey.REPOSITORY);

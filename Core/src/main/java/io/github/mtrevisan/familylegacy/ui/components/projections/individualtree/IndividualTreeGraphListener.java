@@ -42,7 +42,6 @@ import io.github.mtrevisan.familylegacy.ui.helpers.RelationClipboard;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolContexts;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolDispatcher;
-import io.github.mtrevisan.familylegacy.ui.tools.individuals.DeleteIndividualTool;
 import io.github.mtrevisan.familylegacy.ui.tools.individuals.UnlinkIndividualRelationshipsTool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -153,25 +152,7 @@ public final class IndividualTreeGraphListener implements IndividualListener{
 		if(individual == null)
 			return;
 
-		final ToolContext context = ToolContexts.custom(model, individual.getId(), component,
-			new ToolDispatcher(){
-				@Override
-				public void removeEntity(final String id){
-					treeMutator.removeIndividual(individual, id);
-				}
-
-				@Override
-				public void loadRoot(final String id){
-					onRootEntitySelected(id);
-				}
-
-				@Override
-				public ProjectionMutator getMutator(){
-					return treeMutator;
-				}
-			});
-		new DeleteIndividualTool()
-			.run(context);
+		treeMutator.removeIndividual(individual, individual.getId());
 	}
 
 

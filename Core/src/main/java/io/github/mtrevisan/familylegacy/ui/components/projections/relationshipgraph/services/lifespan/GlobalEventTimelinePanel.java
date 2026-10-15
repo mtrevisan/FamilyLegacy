@@ -32,6 +32,7 @@ import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree
 import io.github.mtrevisan.familylegacy.ui.components.projections.temporal.TemporalAxis;
 import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventHandler;
+import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.tools.events.CalendarConverterDialog;
 import org.apache.commons.lang3.StringUtils;
 
@@ -201,7 +202,7 @@ public class GlobalEventTimelinePanel extends JPanel{
 			ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 		this.scrollPane.setBorder(null);
 		this.scrollPane.getVerticalScrollBar()
-			.setUnitIncrement(16);
+			.setUnitIncrement(GUIHelper.SCROLLBAR_UNIT_INCREMENT);
 
 		setLayout(new BorderLayout());
 		add(scrollPane, BorderLayout.CENTER);

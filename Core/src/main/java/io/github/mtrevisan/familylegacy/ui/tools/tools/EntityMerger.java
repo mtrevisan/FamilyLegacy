@@ -218,11 +218,12 @@ public final class EntityMerger{
 			+ "|" + type;
 	}
 
+	// FIXME rivedere perché i link devono essere aggiornati, non rimossi, e poi dipende dal record di cui ho fatto il merge
 	/** Removes every remaining relationship that refers to the source. */
 	private void removeRemainingRelationships(final String sourceId){
-		final List<String> remaining = IndividualHelper.relationshipIdsForIndividual(sourceId, model);
-		for(final String id : remaining)
-			model.removeRecord(id);
+//		final List<String> remaining = IndividualHelper.relationshipIds(sourceId, model);
+//		for(final String id : remaining)
+//			model.removeRecord(id);
 	}
 
 

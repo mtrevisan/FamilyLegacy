@@ -38,14 +38,14 @@ import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
  */
 public enum ProjectionType{
 
-	/** Ancestor tree. */
-	TREE(I18N.t("menu.view.ancestor.tree")),
+	/** Biological tree. */
+	BIOLOGICAL_TREE(I18N.t("menu.view.biological_tree")),
 
 	/** Sugiyama pedigree graph. */
-	GRAPH(I18N.t("menu.view.sugiyama.graph")),
+	SUGIYAMA_GRAPH(I18N.t("menu.view.sugiyama_graph")),
 
 	/** Ego-centric network. */
-	EGO_NETWORK(I18N.t("menu.view.ego.network"));
+	EGO_NETWORK(I18N.t("menu.view.ego_network"));
 
 
 	private final String displayName;

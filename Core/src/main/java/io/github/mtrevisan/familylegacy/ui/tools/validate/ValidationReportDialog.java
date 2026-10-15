@@ -207,6 +207,7 @@ public final class ValidationReportDialog extends JDialog{
 			JOptionPane.showMessageDialog(this,
 				"No editor registered for record type '" + record.getTag() + "'.",
 				"Validate File", JOptionPane.WARNING_MESSAGE);
+
 			return;
 		}
 

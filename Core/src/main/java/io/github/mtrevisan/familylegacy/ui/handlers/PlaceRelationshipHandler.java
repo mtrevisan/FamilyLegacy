@@ -52,7 +52,7 @@ public class PlaceRelationshipHandler extends AbstractRecordTypeHandler<PlaceRel
 
 	@Override
 	public String getLabel(){
-		return I18N.t("confirmation.exist.record.place.relationship");
+		return I18N.t("confirmation.exist_record.place_relationship");
 	}
 
 	@Override

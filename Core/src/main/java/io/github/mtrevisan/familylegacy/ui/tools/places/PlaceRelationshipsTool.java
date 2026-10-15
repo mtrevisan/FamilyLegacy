@@ -34,7 +34,7 @@ public final class PlaceRelationshipsTool implements ToolOperation{
 
 	@Override
 	public String getName(){
-		return I18N.t("menu.place.place.relationships");
+		return I18N.t("menu.place.place_relationships");
 	}
 
 	@Override

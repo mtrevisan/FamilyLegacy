@@ -99,9 +99,9 @@ public class ResearchTaskRecordDialog extends BaseRecordDialog{
 		createdByField = EntityField.createForRecordFromReference(ResearchTaskReader.TAG_CREATED_BY, this, model,
 			ResearchActivityHandler.class);
 		statusCombo = new BoundComboBox<>(ResearchTaskReader.TAG_STATUS, ResearchTaskReader.STATUSES);
-		statusCombo.setI18NPrefix("enum.research.task.status");
+		statusCombo.setI18NPrefix("enum.research_task.status");
 		priorityCombo = new BoundComboBox<>(ResearchTaskReader.TAG_PRIORITY, GUIHelper.fillCombo(ResearchTaskReader.PRIORITIES, null));
-		priorityCombo.setI18NPrefix("enum.research.task.priority");
+		priorityCombo.setI18NPrefix("enum.research_task.priority");
 		dueDateField = new BoundTextField(ResearchTaskReader.TAG_DUE_DATE);
 		outcomeArea = new BoundTextArea(ResearchTaskReader.TAG_OUTCOME, 3, 30);
 
@@ -126,26 +126,26 @@ public class ResearchTaskRecordDialog extends BaseRecordDialog{
 	@Override
 	protected JPanel createPropertiesPanel(){
 		// description
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.research.task.description") + "*:", descriptionArea);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.research_task.description") + "*:", descriptionArea);
 
 		// question
 		final JPanel notePanel = components.getPanel(PanelKey.RESEARCH_QUESTION);
 		GUIHelper.addComponent(propertiesPanel, notePanel);
 
 		// created by
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.research.task.created.by") + ":", createdByField);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.research_task.created.by") + ":", createdByField);
 
 		// status
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.research.task.status") + "*:", statusCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.research_task.status") + "*:", statusCombo);
 
 		// priority
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.research.task.priority") + ":", priorityCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.research_task.priority") + ":", priorityCombo);
 
 		// due date
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.research.task.due.date") + ":", dueDateField);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.research_task.due_date") + ":", dueDateField);
 
 		// outcome
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.research.task.outcome") + ":", outcomeArea);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.research_task.outcome") + ":", outcomeArea);
 
 		return propertiesPanel;
 	}
@@ -172,7 +172,7 @@ public class ResearchTaskRecordDialog extends BaseRecordDialog{
 	protected boolean validData(){
 		if(descriptionArea.isEmpty()){
 			GUIHelper.showValidationErrorAndFocus(this,
-				I18N.tf("validation.required", I18N.t("dialog.research.task.description")),
+				I18N.tf("validation.required", I18N.t("dialog.research_task.description")),
 				tabbedPane, propertiesPanel, descriptionArea);
 
 			return false;
@@ -180,7 +180,7 @@ public class ResearchTaskRecordDialog extends BaseRecordDialog{
 
 		if(!statusCombo.isValued()){
 			GUIHelper.showValidationErrorAndFocus(this,
-				I18N.tf("validation.required", I18N.t("dialog.research.task.status")),
+				I18N.tf("validation.required", I18N.t("dialog.research_task.status")),
 				tabbedPane, propertiesPanel, statusCombo);
 
 			return false;

@@ -71,12 +71,12 @@ public class BoundedDatePanel extends JPanel{
 		setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
 
 		final JPanel beforePanel = new JPanel(new MigLayout("fillx", "[right]rel[grow]"));
-		beforePanel.setBorder(new TitledBorder(I18N.t("dialog.date.not.before")));
+		beforePanel.setBorder(new TitledBorder(I18N.t("dialog.date.not_before")));
 		beforePanel.add(notBeforePanel, "growx");
 		add(beforePanel, "growx");
 
 		final JPanel afterPanel = new JPanel(new MigLayout("fillx", "[right]rel[grow]"));
-		afterPanel.setBorder(new TitledBorder(I18N.t("dialog.date.not.after")));
+		afterPanel.setBorder(new TitledBorder(I18N.t("dialog.date.not_after")));
 		afterPanel.add(notAfterPanel, "growx");
 		add(afterPanel, "growx");
 	}
@@ -124,7 +124,7 @@ public class BoundedDatePanel extends JPanel{
 	public boolean validateData(){
 		if(!hasData()){
 			JOptionPane.showMessageDialog(this,
-				I18N.tf("validation.at.least.one.of", I18N.t("dialog.date.not.before"), I18N.t("dialog.date.not.after")),
+				I18N.tf("validation.at_least_one_of", I18N.t("dialog.date.not_before"), I18N.t("dialog.date.not_after")),
 				I18N.t("validation.title"), JOptionPane.ERROR_MESSAGE);
 
 			return false;

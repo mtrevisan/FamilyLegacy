@@ -38,6 +38,7 @@ import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
+import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JFrame;
@@ -188,9 +189,9 @@ public final class SocialNetworkPanel extends JPanel implements TreeChangeListen
 		pane.getViewport()
 			.setScrollMode(JViewport.SIMPLE_SCROLL_MODE);
 		pane.getVerticalScrollBar()
-			.setUnitIncrement(16);
+			.setUnitIncrement(GUIHelper.SCROLLBAR_UNIT_INCREMENT);
 		pane.getHorizontalScrollBar()
-			.setUnitIncrement(16);
+			.setUnitIncrement(GUIHelper.SCROLLBAR_UNIT_INCREMENT);
 		return pane;
 	}
 
@@ -406,10 +407,8 @@ public final class SocialNetworkPanel extends JPanel implements TreeChangeListen
 			.record();
 		if(record == null)
 			return;
-		final RecordTypeHandler<?> handler = handlerForTag(record.getTag());
-		if(handler == null)
-			return;
 
+		final RecordTypeHandler<?> handler = handlerForTag(record.getTag());
 		final Window parent = SwingUtilities.getWindowAncestor(this);
 		final BaseRecordDialog dialog = handler.createEditDialog(parent, model, record);
 		dialog.setVisible(true);
@@ -524,8 +523,8 @@ public final class SocialNetworkPanel extends JPanel implements TreeChangeListen
 	private void pickFocus(){
 		final FLEFRecord[] result = {null};
 		final Window parent = SwingUtilities.getWindowAncestor(this);
-		@SuppressWarnings("unchecked") final RecordSelectionDialog dialog = RecordSelectionDialog.createWithAllowRecordCreation(
-			parent, model,
+		@SuppressWarnings("unchecked")
+		final RecordSelectionDialog dialog = RecordSelectionDialog.createWithAllowRecordCreation(parent, model,
 			(record, handler) -> result[0] = record,
 			IndividualHandler.class);
 		dialog.setVisible(true);

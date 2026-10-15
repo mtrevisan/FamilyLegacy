@@ -114,12 +114,12 @@ public class EventParticipationRecordDialog extends BaseRecordDialog{
 			.withHandlerTypes(IndividualHandler.class, GroupHandler.class, PlaceHandler.class);
 		eventField = EntityField.createForRecordFromReference(EventParticipationReader.TAG_EVENT, this, model, EventHandler.class);
 		roleCombo = new BoundComboBox<>(EventParticipationReader.TAG_ROLE, GUIHelper.fillCombo(EventParticipationReader.ROLES, null));
-		roleCombo.setI18NPrefix("enum.event.participation.role");
+		roleCombo.setI18NPrefix("enum.event_participation.role");
 		roleCombo.setEditable(true);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, ContextImpactHandler.TYPE, I18N.t("dialog.component.context.impact"))
+			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, ContextImpactHandler.TYPE, I18N.t("dialog.component.context.impacts"))
 			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, I18N.t("dialog.component.conclusions"))
 			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, I18N.t("dialog.component.research.questions"))
 			.withComponent(PanelKey.SOURCE, EventParticipationReader.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
@@ -142,13 +142,13 @@ public class EventParticipationRecordDialog extends BaseRecordDialog{
 	@Override
 	protected JPanel createPropertiesPanel(){
 		// participant
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.event.participation.participant") + "*:", participantField);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.event_participation.participant") + "*:", participantField);
 
 		// event
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.event.participation.event") + "*:", eventField);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.event_participation.event") + "*:", eventField);
 
 		// role
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.event.participation.role") + ":", roleCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.event_participation.role") + ":", roleCombo);
 
 		// evidence
 		final JPanel evidencePanel = components.getPanel(PanelKey.EVIDENCE);
@@ -261,7 +261,7 @@ public class EventParticipationRecordDialog extends BaseRecordDialog{
 	protected boolean validData(){
 		if(!participantField.hasData()){
 			GUIHelper.showValidationErrorAndFocus(this,
-				I18N.tf("validation.required", I18N.t("dialog.event.participation.participant")),
+				I18N.tf("validation.required", I18N.t("dialog.event_participation.participant")),
 				tabbedPane, propertiesPanel, participantField);
 
 			return false;
@@ -269,7 +269,7 @@ public class EventParticipationRecordDialog extends BaseRecordDialog{
 
 		if(!eventField.hasData()){
 			GUIHelper.showValidationErrorAndFocus(this,
-				I18N.tf("validation.required", I18N.t("dialog.event.participation.event")),
+				I18N.tf("validation.required", I18N.t("dialog.event_participation.event")),
 				tabbedPane, propertiesPanel, eventField);
 
 			return false;

@@ -78,7 +78,7 @@ public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
 			this::editCrop, null,
 			null, this::removeItem,
 			builder -> {
-				builder.item(I18N.t("popupmenu.add.existing"), this::addItem);
+				builder.item(I18N.t("popupmenu.add_existing"), this::addItem);
 				builder.separator();
 				builder.selectionSensitiveItem(I18N.t("popupmenu.edit.crop"), this::editCrop);
 				builder.selectionSensitiveItem(I18N.t("popupmenu.remove"), this::removeItem);
@@ -196,7 +196,7 @@ public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
 	protected FLEFRecord showEditDialog(final FLEFRecord record){
 		if(record == null){
 			JOptionPane.showMessageDialog(parent,
-				I18N.t("error.record.not.found"),
+				I18N.t("error.record_not_found"),
 				I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
 
 			return null;

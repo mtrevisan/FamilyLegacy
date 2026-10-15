@@ -56,7 +56,7 @@ public class ResearchQuestionHandler extends AbstractRecordTypeHandler<ResearchQ
 
 	@Override
 	public String getLabel(){
-		return I18N.t("confirmation.exist.record.research.question");
+		return I18N.t("confirmation.exist_record.research_question");
 	}
 
 	@Override

@@ -56,7 +56,7 @@ public class DocumentHandler extends AbstractRecordTypeHandler<DocumentRecordDia
 
 	@Override
 	public String getLabel(){
-		return I18N.t("confirmation.exist.record.document");
+		return I18N.t("confirmation.exist_record.document");
 	}
 
 	@Override

@@ -41,7 +41,6 @@ import io.github.mtrevisan.familylegacy.ui.handlers.ResearchTaskHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.RelationClipboard;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.Strings;
 
 import javax.swing.SwingUtilities;
 import java.awt.Component;
@@ -109,7 +108,7 @@ public record ToolContext(
 		if(record == null || model == null)
 			return StringUtils.EMPTY;
 
-		return (Strings.CI.equals(GroupHandler.TYPE, record.getTag())
+		return (GroupHandler.isOfType(record)
 			? GroupHandler.getInstance().getDisplayText(record, model)
 			: IndividualHandler.getInstance().getDisplayText(record, model));
 	}

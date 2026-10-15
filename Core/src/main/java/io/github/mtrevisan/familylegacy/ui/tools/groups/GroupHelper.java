@@ -27,14 +27,29 @@ package io.github.mtrevisan.familylegacy.ui.tools.groups;
 import io.github.mtrevisan.familylegacy.gedcom.utils.AuditBuilder;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.readers.ConclusionReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.ContextImpactReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.GroupAttributeReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.GroupReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IdentityHypothesisReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.ResearchQuestionReader;
+import io.github.mtrevisan.familylegacy.ui.handlers.ConclusionHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.ContextImpactHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.EventParticipationHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.GroupAttributeHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.GroupHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.IdentityHypothesisHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RelationshipHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.ResearchQuestionHandler;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -243,25 +258,6 @@ public final class GroupHelper{
 	 * ====================================================================== */
 
 	/**
-	 * Deletes the given group and all the relationships that
-	 * involve it, in a single operation. The relationships are removed
-	 * first, so the model is never left with a dangling reference.
-	 *
-	 * @param groupId the group to delete
-	 * @param model        the model
-	 */
-	public static void deleteGroup(final String groupId, final FLEFModel model){
-		if(groupId == null)
-			return;
-
-		final List<String> relationshipIds = relationshipIdsForGroup(groupId, model);
-		for(final String relationshipId : relationshipIds)
-			model.removeRecord(relationshipId);
-
-		model.removeRecord(groupId);
-	}
-
-	/**
 	 * Returns the ids of every relationship record that makes an
 	 * individual a member of a group.
 	 */
@@ -289,19 +285,102 @@ public final class GroupHelper{
 	 * before deleting a group, to clean up the relationships that would
 	 * otherwise dangle.
 	 */
-	public static List<String> relationshipIdsForGroup(final String groupId, final FLEFModel model){
-		final List<String> result = new ArrayList<>();
+	public static Map<Class<? extends RecordTypeHandler<?>>, List<FLEFRecord>> relationshipIds(final String groupId,
+			final FLEFModel model){
+		final Map<Class<? extends RecordTypeHandler<?>>, List<FLEFRecord>> result = new HashMap<>();
 		if(groupId == null)
 			return result;
 
+		final List<FLEFRecord> groupAttributes = model.getRecordsByType(GroupAttributeHandler.TYPE);
+		for(final FLEFRecord groupAttribute : groupAttributes){
+			final String groupRecordId = groupAttribute.extractReferencedId(GroupAttributeReader.TAG_GROUP, GroupHandler.TYPE);
+			if(groupId.equals(groupRecordId))
+				result.computeIfAbsent(GroupAttributeHandler.class, k -> new ArrayList<>())
+					.add(groupAttribute);
+		}
+
+		final List<FLEFRecord> eventParticipations = model.getRecordsByType(EventParticipationHandler.TYPE);
+		for(final FLEFRecord eventParticipation : eventParticipations){
+			final String participant = eventParticipation.extractReferencedId(EventParticipationReader.TAG_PARTICIPANT, GroupHandler.TYPE);
+			if(groupId.equals(participant))
+				result.computeIfAbsent(EventParticipationHandler.class, k -> new ArrayList<>())
+					.add(eventParticipation);
+		}
+
 		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
 		for(final FLEFRecord relationship : relationships){
-			final String subject = relationship.extractReferencedId(RelationshipReader.TAG_SUBJECT, GroupHandler.TYPE);
-			final String object = relationship.extractReferencedId(RelationshipReader.TAG_OBJECT, GroupHandler.TYPE);
-			if(groupId.equals(subject) || groupId.equals(object))
-				result.add(relationship.getId());
+			final String subjectId = relationship.extractReferencedId(RelationshipReader.TAG_SUBJECT, GroupHandler.TYPE);
+			final String objectId = relationship.extractReferencedId(RelationshipReader.TAG_OBJECT, GroupHandler.TYPE);
+			if(groupId.equals(subjectId) || groupId.equals(objectId))
+				result.computeIfAbsent(RelationshipHandler.class, k -> new ArrayList<>())
+					.add(relationship);
 		}
+
+		final List<FLEFRecord> contextImpacts = model.getRecordsByType(ContextImpactHandler.TYPE);
+		for(final FLEFRecord contextImpact : contextImpacts){
+			final String target = contextImpact.extractReferencedId(ContextImpactReader.TAG_TARGET, GroupHandler.TYPE);
+			if(groupId.equals(target))
+				result.computeIfAbsent(ContextImpactHandler.class, k -> new ArrayList<>())
+					.add(contextImpact);
+		}
+
+		final List<FLEFRecord> researchQuestions = model.getRecordsByType(ResearchQuestionHandler.TYPE);
+		for(final FLEFRecord researchQuestion : researchQuestions){
+			final List<FLEFRecord> targets = FLEFRecordHelper.findChildren(researchQuestion, ResearchQuestionReader.TAG_TARGET, GroupHandler.TYPE);
+			for(final FLEFRecord target : targets)
+				if(groupId.equals(target.getId())){
+					result.computeIfAbsent(ResearchQuestionHandler.class, k -> new ArrayList<>())
+						.add(researchQuestion);
+
+					break;
+				}
+		}
+
+		final List<FLEFRecord> conclusions = model.getRecordsByType(ConclusionHandler.TYPE);
+		for(final FLEFRecord conclusion : conclusions){
+			final List<FLEFRecord> resolves = FLEFRecordHelper.findChildren(conclusion, ConclusionReader.TAG_RESOLVES, GroupHandler.TYPE);
+			for(final FLEFRecord resolve : resolves)
+				if(groupId.equals(resolve.getId())){
+					result.computeIfAbsent(ConclusionHandler.class, k -> new ArrayList<>())
+						.add(conclusion);
+
+					break;
+				}
+		}
+
+		final List<FLEFRecord> identityHypotheses = model.getRecordsByType(IdentityHypothesisHandler.TYPE);
+		for(final FLEFRecord identityHypothesis : identityHypotheses){
+			final List<FLEFRecord> identities = FLEFRecordHelper.findChildren(identityHypothesis, IdentityHypothesisReader.TAG_IDENTITY, GroupHandler.TYPE);
+			for(final FLEFRecord identity : identities)
+				if(groupId.equals(identity.getId())){
+					result.computeIfAbsent(IdentityHypothesisHandler.class, k -> new ArrayList<>())
+						.add(identityHypothesis);
+
+					break;
+				}
+		}
+
 		return result;
+	}
+
+	/**
+	 * Deletes the given group and all the relationships that
+	 * involve it, in a single operation. The relationships are removed
+	 * first, so the model is never left with a dangling reference.
+	 *
+	 * @param groupId the group to delete
+	 * @param model        the model
+	 */
+	public static void deleteGroup(final String groupId, final FLEFModel model){
+		if(groupId == null)
+			return;
+
+		final Map<Class<? extends RecordTypeHandler<?>>, List<FLEFRecord>> relationshipIds = relationshipIds(groupId, model);
+		for(final Map.Entry<Class<? extends RecordTypeHandler<?>>, List<FLEFRecord>> entry : relationshipIds.entrySet())
+			for(final FLEFRecord record : entry.getValue())
+				model.removeRecord(record.getId());
+
+		model.removeRecord(groupId);
 	}
 
 }

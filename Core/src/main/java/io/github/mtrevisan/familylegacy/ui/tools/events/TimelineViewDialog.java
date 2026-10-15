@@ -236,6 +236,7 @@ public final class TimelineViewDialog extends JDialog{
 	private static String describeParticipants(final List<EventHelper.Participation> participants){
 		if(participants.isEmpty())
 			return StringUtils.EMPTY;
+
 		final StringBuilder sb = new StringBuilder();
 		for(int i = 0; i < participants.size(); i ++){
 			if(i > 0)

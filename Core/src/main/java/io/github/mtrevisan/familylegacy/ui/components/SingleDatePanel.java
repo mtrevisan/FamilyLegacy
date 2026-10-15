@@ -97,7 +97,7 @@ public class SingleDatePanel extends JPanel{
 		decadeStartYearField = new BoundTextField(DateReader.TAG_DECADE_START_YEAR);
 		centuryOrdinalField = new BoundTextField(DateReader.TAG_CENTURY_ORDINAL);
 		centuryPartCombo = new BoundComboBox<>(DateReader.TAG_CENTURY_PART, GUIHelper.fillCombo(DateReader.CENTURY_PARTS, null));
-		centuryPartCombo.setI18NPrefix("enum.date.century.part");
+		centuryPartCombo.setI18NPrefix("enum.date.century_part");
 		calendarCombo = new BoundComboBox<>(DateReader.TAG_CALENDAR, DateReader.CALENDARS);
 		calendarCombo.setI18NPrefix("enum.date.calendar");
 		calendarCombo.setEditable(true);
@@ -130,7 +130,7 @@ public class SingleDatePanel extends JPanel{
 
 		// card panel for FULL_DATE, DECADE, CENTURY:
 		final JPanel fullDatePanel = GUIHelper.createLabelFieldPanel(0, "[]");
-		GUIHelper.addLabeledComponent(fullDatePanel, I18N.t("dialog.date.full.date") + ":", fullDateValueField);
+		GUIHelper.addLabeledComponent(fullDatePanel, I18N.t("dialog.date.full_date") + ":", fullDateValueField);
 
 		final JPanel decadePanel = GUIHelper.createLabelFieldPanel(0, "[]");
 		GUIHelper.addLabeledComponent(decadePanel, I18N.t("dialog.date.decade") + ":", decadeStartYearField);

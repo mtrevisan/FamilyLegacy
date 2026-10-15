@@ -65,7 +65,7 @@ public class NameHandler extends AbstractRecordTypeHandler<NameStructureDialog>{
 
 	@Override
 	public String getLabel(){
-		return I18N.t("confirmation.exist.record.name");
+		return I18N.t("confirmation.exist_record.name");
 	}
 
 	@Override

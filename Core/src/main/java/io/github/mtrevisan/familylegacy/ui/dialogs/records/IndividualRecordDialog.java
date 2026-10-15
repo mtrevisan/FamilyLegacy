@@ -128,8 +128,6 @@ protected void onOk(){
  * Tab 9 (Privacy): privacy
  * Tab 10 (Audit): audit
  */
-// FIXME add a member to a group should show RelationshipRecordDialog
-// FIXME also on GroupRecordDialog and IndividualRecordDialog, tab Relationships | Add Existing
 public class IndividualRecordDialog extends BaseRecordDialog{
 
 	private final PreferredImagePanel preferredImagePanel;
@@ -151,16 +149,16 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 		super(parent, model, record, IndividualHandler.getInstance());
 
 		preferredImagePanel = new PreferredImagePanel(IndividualReader.TAG_PREFERRED_IMAGE, this);
-		personalNamePanel = EntityListPanel.createForStructure(IndividualReader.TAG_NAME, this, I18N.t("dialog.individual.personal.name") + "*", model, PersonalNameHandler.class);
+		personalNamePanel = EntityListPanel.createForStructure(IndividualReader.TAG_NAME, this, I18N.t("dialog.individual.personal_name") + "*", model, PersonalNameHandler.class);
 		sexCombo = new BoundComboBox<>(IndividualReader.TAG_SEX, GUIHelper.fillCombo(IndividualReader.SEXES, null));
 		sexCombo.setI18NPrefix("enum.individual.sex");
 
 		components = new RecordDialogBuilder(this, model, record)
 			.withComponent(PanelKey.INDIVIDUAL_ATTRIBUTE, IndividualAttributeHandler.TYPE, I18N.t("dialog.component.individual.attributes"))
-			.withComponent(PanelKey.RELATIONSHIP_ON_SUBJECT, RelationshipHandler.TYPE, I18N.t("dialog.component.individual.relationship.on.target"))
-			.withComponent(PanelKey.RELATIONSHIP_ON_OBJECT, RelationshipHandler.TYPE, I18N.t("dialog.component.relationship.on.subject"))
+			.withComponent(PanelKey.RELATIONSHIP_ON_SUBJECT, RelationshipHandler.TYPE, I18N.t("dialog.component.individual.relationships.on.target"))
+			.withComponent(PanelKey.RELATIONSHIP_ON_OBJECT, RelationshipHandler.TYPE, I18N.t("dialog.component.relationships.on.subject"))
 			.withComponent(PanelKey.EVENT_PARTICIPATION_ON_PARTICIPANT, EventParticipationHandler.TYPE, I18N.t("dialog.component.event.participations"))
-			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, ContextImpactHandler.TYPE, I18N.t("dialog.component.context.impact"))
+			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, ContextImpactHandler.TYPE, I18N.t("dialog.component.context.impacts"))
 			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, I18N.t("dialog.component.conclusions"))
 			.withComponent(PanelKey.IDENTITY_HYPOTHESIS_ON_IDENTITY, IdentityHypothesisHandler.TYPE, I18N.t("dialog.component.identity.hypotheses"))
 			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, I18N.t("dialog.component.research.questions"))

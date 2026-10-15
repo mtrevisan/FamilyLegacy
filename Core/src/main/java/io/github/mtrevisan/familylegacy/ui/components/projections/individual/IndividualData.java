@@ -216,7 +216,7 @@ public final class IndividualData{
 		sj.add(TAG_FIGURE_DASH);
 		sj.add(deathInfo != null? deathInfo.year(): NO_DATA);
 		if(age != null)
-			sj.add(OPEN_PARENTHESIS + age + StringUtils.SPACE + I18N.t("dialog.individual.years.old.abbreviation") + CLOSE_PARENTHESIS);
+			sj.add(OPEN_PARENTHESIS + age + StringUtils.SPACE + I18N.t("dialog.individual.years_old.abbreviation") + CLOSE_PARENTHESIS);
 
 		final StringJoiner tooltip = new StringJoiner(StringUtils.EMPTY);
 		final String birthPlace = (birthInfo != null? birthInfo.place(): null);

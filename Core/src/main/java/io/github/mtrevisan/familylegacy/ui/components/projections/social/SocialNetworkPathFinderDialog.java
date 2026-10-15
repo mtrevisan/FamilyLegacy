@@ -178,8 +178,8 @@ public final class SocialNetworkPathFinderDialog extends JDialog{
 	private FLEFRecord pickEntity(){
 		final FLEFRecord[] result = {null};
 		final Window owner = (getOwner() instanceof Window w? w: null);
-		@SuppressWarnings("unchecked") final RecordSelectionDialog dialog = RecordSelectionDialog.createWithAllowRecordCreation(
-			owner, model,
+		@SuppressWarnings("unchecked")
+		final RecordSelectionDialog dialog = RecordSelectionDialog.createWithAllowRecordCreation(owner, model,
 			(record, handler) -> result[0] = record,
 			IndividualHandler.class);
 		dialog.setVisible(true);

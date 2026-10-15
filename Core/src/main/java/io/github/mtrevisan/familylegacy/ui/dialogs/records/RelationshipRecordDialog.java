@@ -117,21 +117,32 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 
 		subjectField = EntityField.createForRecordFromOneofReference(RelationshipReader.TAG_SUBJECT, this, model)
 			.withHandlerTypes(IndividualHandler.class, GroupHandler.class);
-		subjectField.addPropertyChangeListener(EntityField.PROPERTY_ENTITY_CHANGED, e -> updateTypeCombo());
+		subjectField.addPropertyChangeListener(EntityField.PROPERTY_ENTITY_CHANGED, e -> updateSubjectTypeCombo());
 		objectField = EntityField.createForRecordFromOneofReference(RelationshipReader.TAG_OBJECT, this, model)
 			.withHandlerTypes(IndividualHandler.class, GroupHandler.class);
-		objectField.addPropertyChangeListener(EntityField.PROPERTY_ENTITY_CHANGED, e -> updateTypeCombo());
+		objectField.addPropertyChangeListener(EntityField.PROPERTY_ENTITY_CHANGED, e -> updateSubjectTypeCombo());
+		subjectField.addPropertyChangeListener(EntityField.PROPERTY_ENTITY_CHANGED, e -> {
+			final FLEFRecord subject = subjectField.getEntity();
+			if(subject != null && !subject.isEmpty()){
+				if(GroupHandler.isOfType(subject))
+					objectField.withHandlerTypes(GroupHandler.class);
+				else if(IndividualHandler.isOfType(subject))
+					objectField.withHandlerTypes(IndividualHandler.class, GroupHandler.class);
+			}
+
+			updateSubjectTypeCombo();
+		});
 		subjectTypeCombo = new BoundComboBox<>(RelationshipReader.TAG_TYPE, RelationshipReader.TYPES);
 		subjectTypeCombo.setI18NPrefix("enum.relationship.type");
 		subjectRoleField = new BoundTextField(RelationshipReader.TAG_ROLE);
 		statusCombo = new BoundComboBox<>(RelationshipReader.TAG_STATUS, GUIHelper.fillCombo(RelationshipReader.STATUSES, null));
 		statusCombo.setI18NPrefix("enum.relationship.status");
-		validFromField = DateField.createWithWrapperTag(RelationshipReader.TAG_VALID_FROM, this, I18N.t("dialog.date.valid.from"), model);
-		validToField = DateField.createWithWrapperTag(RelationshipReader.TAG_VALID_TO, this, I18N.t("dialog.date.valid.to"), model);
+		validFromField = DateField.createWithWrapperTag(RelationshipReader.TAG_VALID_FROM, this, I18N.t("dialog.date.valid_from"), model);
+		validToField = DateField.createWithWrapperTag(RelationshipReader.TAG_VALID_TO, this, I18N.t("dialog.date.valid_to"), model);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, ContextImpactHandler.TYPE, I18N.t("dialog.component.context.impact"))
+			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, ContextImpactHandler.TYPE, I18N.t("dialog.component.context.impacts"))
 			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, I18N.t("dialog.component.conclusions"))
 			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, I18N.t("dialog.component.research.questions"))
 			.withComponent(PanelKey.SOURCE, RelationshipReader.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
@@ -152,18 +163,10 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 		finalizeDialog(parent);
 	}
 
-	private void updateTypeCombo(){
-		final FLEFRecord subjectRecord = subjectField.getEntity();
-		if(subjectRecord == null)
-			return;
-
-		final FLEFRecord objectRecord = objectField.getEntity();
-		if(objectRecord == null)
-			return;
-
-		final String subjectType = subjectRecord.getTag();
-		final String objectType = objectRecord.getTag();
-		final String[] validTypes = RelationshipReader.getValidTypes(subjectType, objectType);
+	private void updateSubjectTypeCombo(){
+		final FLEFRecord subject = subjectField.getEntity();
+		final FLEFRecord object = objectField.getEntity();
+		final String[] validTypes = RelationshipReader.getValidTypes(subject, object);
 		subjectTypeCombo.updateItems(List.of(validTypes));
 		subjectTypeCombo.setEnabled(validTypes.length > 0);
 	}
@@ -190,9 +193,9 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 		final JPanel validityPanel = GUIHelper.createLabelFieldPanel(5, "[]5[]");
 		validityPanel.setBorder(BorderFactory.createTitledBorder(I18N.t("dialog.validity.range")));
 		// valid from
-		GUIHelper.addLabeledComponent(validityPanel, I18N.t("dialog.valid.from") + ":", validFromField);
+		GUIHelper.addLabeledComponent(validityPanel, I18N.t("dialog.valid_from") + ":", validFromField);
 		// valid to
-		GUIHelper.addLabeledComponent(validityPanel, I18N.t("dialog.valid.to") + ":", validToField);
+		GUIHelper.addLabeledComponent(validityPanel, I18N.t("dialog.valid_to") + ":", validToField);
 		GUIHelper.addComponent(propertiesPanel, validityPanel);
 
 		// evidence
@@ -265,7 +268,7 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 	@Override
 	public BaseRecordDialog withParentEntity(final FLEFRecord parent){
 		JOptionPane.showMessageDialog(this,
-			I18N.tf("error.cannot.set.parent.message", RelationshipHandler.getInstance().getLabel()),
+			I18N.tf("error.cannot_set_parent.message", RelationshipHandler.getInstance().getLabel()),
 			I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
 
 		return this;
@@ -310,7 +313,7 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 		validFromField.load(record);
 		validToField.load(record);
 
-		updateTypeCombo();
+		updateSubjectTypeCombo();
 
 
 		// Initially, update carousel based on the first selected source (if any)
@@ -337,13 +340,13 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 
 		if(subjectField.equals(objectField)){
 			GUIHelper.showValidationErrorAndFocus(this,
-				I18N.tf("validation.required.not.same", I18N.t("dialog.relationship.subject"), I18N.t("dialog.relationship.object")),
+				I18N.tf("validation.required_not_same", I18N.t("dialog.relationship.subject"), I18N.t("dialog.relationship.object")),
 				tabbedPane, propertiesPanel, subjectField);
 
 			return false;
 		}
 
-		if(!subjectTypeCombo.isValued()){
+		if(subjectTypeCombo.isEnabled() && !subjectTypeCombo.isValued()){
 			GUIHelper.showValidationErrorAndFocus(this,
 				I18N.tf("validation.required", I18N.t("dialog.relationship.subject.type")),
 				tabbedPane, propertiesPanel, subjectTypeCombo);

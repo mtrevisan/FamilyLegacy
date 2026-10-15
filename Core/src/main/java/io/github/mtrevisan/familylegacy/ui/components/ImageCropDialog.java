@@ -105,7 +105,7 @@ public class ImageCropDialog extends JDialog{
 	public void loadData(final String filename, final Rectangle crop) throws IOException{
 		final File file = FileHelper.loadFile(filename);
 		if(file == null || !file.exists())
-			throw new IOException(I18N.t("dialog.preferred.image.no.file"));
+			throw new IOException(I18N.t("dialog.preferred.image.no_file"));
 
 		loadData(file, crop);
 	}

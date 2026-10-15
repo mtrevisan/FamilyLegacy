@@ -106,14 +106,14 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 		objectField = EntityField.createForRecordFromOneofReference(PlaceRelationshipReader.TAG_OBJECT, this, model)
 			.withHandlerTypes(PlaceHandler.class);
 		typeCombo = new BoundComboBox<>(PlaceRelationshipReader.TAG_TYPE, GUIHelper.fillCombo(PlaceRelationshipReader.TYPES, null));
-		typeCombo.setI18NPrefix("enum.place.relationship.type");
+		typeCombo.setI18NPrefix("enum.place_relationship.type");
 		typeCombo.setEditable(true);
-		validFromField = DateField.createWithWrapperTag(PlaceRelationshipReader.TAG_VALID_FROM, this, I18N.t("dialog.date.valid.from"), model);
-		validToField = DateField.createWithWrapperTag(PlaceRelationshipReader.TAG_VALID_TO, this, I18N.t("dialog.date.valid.to"), model);
+		validFromField = DateField.createWithWrapperTag(PlaceRelationshipReader.TAG_VALID_FROM, this, I18N.t("dialog.date.valid_from"), model);
+		validToField = DateField.createWithWrapperTag(PlaceRelationshipReader.TAG_VALID_TO, this, I18N.t("dialog.date.valid_to"), model);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, ContextImpactHandler.TYPE, I18N.t("dialog.component.context.impact"))
+			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, ContextImpactHandler.TYPE, I18N.t("dialog.component.context.impacts"))
 			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, I18N.t("dialog.component.conclusions"))
 			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, I18N.t("dialog.component.research.questions"))
 			.withComponent(PanelKey.SOURCE, PlaceRelationshipReader.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
@@ -132,21 +132,21 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 	@Override
 	protected JPanel createPropertiesPanel(){
 		// subject
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.place.relationship.subject") + "*:", subjectField);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.place_relationship.subject") + "*:", subjectField);
 
 		// object
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.place.relationship.object") + "*:", objectField);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.place_relationship.object") + "*:", objectField);
 
 		// type
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.place.relationship.part.type") + "*:", typeCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.place_relationship.part.type") + "*:", typeCombo);
 
 		// validity range:
 		final JPanel validityPanel = GUIHelper.createLabelFieldPanel(5, "[]5[]");
 		validityPanel.setBorder(BorderFactory.createTitledBorder(I18N.t("dialog.validity.range")));
 		// valid from
-		GUIHelper.addLabeledComponent(validityPanel, I18N.t("dialog.valid.from") + ":", validFromField);
+		GUIHelper.addLabeledComponent(validityPanel, I18N.t("dialog.valid_from") + ":", validFromField);
 		// valid to
-		GUIHelper.addLabeledComponent(validityPanel, I18N.t("dialog.valid.to") + ":", validToField);
+		GUIHelper.addLabeledComponent(validityPanel, I18N.t("dialog.valid_to") + ":", validToField);
 		GUIHelper.addComponent(propertiesPanel, validityPanel);
 
 		// evidence
@@ -214,7 +214,7 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 	@Override
 	public BaseRecordDialog withParentEntity(final FLEFRecord parent){
 		JOptionPane.showMessageDialog(this,
-			I18N.tf("error.cannot.set.parent.message", PlaceRelationshipHandler.getInstance().getLabel()),
+			I18N.tf("error.cannot_set_parent.message", PlaceRelationshipHandler.getInstance().getLabel()),
 			I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
 
 		return this;
@@ -268,7 +268,7 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 	protected boolean validData(){
 		if(!subjectField.hasData()){
 			GUIHelper.showValidationErrorAndFocus(this,
-				I18N.tf("validation.required", I18N.t("dialog.place.relationship.subject")),
+				I18N.tf("validation.required", I18N.t("dialog.place_relationship.subject")),
 				tabbedPane, propertiesPanel, subjectField);
 
 			return false;
@@ -276,7 +276,7 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 
 		if(!objectField.hasData()){
 			GUIHelper.showValidationErrorAndFocus(this,
-				I18N.tf("validation.required", I18N.t("dialog.place.relationship.object")),
+				I18N.tf("validation.required", I18N.t("dialog.place_relationship.object")),
 				tabbedPane, propertiesPanel, objectField);
 
 			return false;
@@ -284,7 +284,7 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 
 		if(!typeCombo.isValued()){
 			GUIHelper.showValidationErrorAndFocus(this,
-				I18N.tf("validation.required", I18N.t("dialog.place.relationship.part.type")),
+				I18N.tf("validation.required", I18N.t("dialog.place_relationship.part.type")),
 				tabbedPane, propertiesPanel, typeCombo);
 
 			return false;

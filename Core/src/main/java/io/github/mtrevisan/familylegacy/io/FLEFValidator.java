@@ -35,8 +35,8 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventParticipationHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IdentityHypothesisHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RelationshipHandler;
-import org.apache.commons.lang3.Strings;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -214,19 +214,19 @@ public class FLEFValidator{
 			final String contextPath = "records." + tag;
 			final String recordId = record.getId();
 
-			if(Strings.CI.equals("individual", tag))
+			if(IndividualHandler.isOfType(record))
 				for(final String msg : collect(em -> validateIndividualDates(record, contextPath, em)))
 					errors.add(new ValidationError(msg, recordId));
 
-			if(Strings.CI.equals(RelationshipHandler.TYPE, tag))
+			if(RelationshipHandler.isOfType(record))
 				for(final String msg : collect(em -> validateRelationshipDates(record, contextPath, em)))
 					errors.add(new ValidationError(msg, recordId));
 
-			if(Strings.CI.equals(IdentityHypothesisHandler.TYPE, tag))
+			if(IdentityHypothesisHandler.isOfType(record))
 				for(final String msg : collect(em -> validateIdentityHypothesis(record, contextPath, model, em)))
 					errors.add(new ValidationError(msg, recordId));
 
-			if(Strings.CI.equals(EventParticipationHandler.TYPE, tag))
+			if(EventParticipationHandler.isOfType(record))
 				for(final String msg : collect(em -> validateEventParticipation(record, contextPath, model, em)))
 					errors.add(new ValidationError(msg, recordId));
 		}

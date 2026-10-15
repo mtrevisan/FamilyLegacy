@@ -310643,7 +310643,7 @@ atto n° 99, pag. 114"""
 	}
 
 	event E10040 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 14 FEB 1953
 			calendar gregorian
@@ -311159,7 +311159,7 @@ atto n° 99, pag. 114"""
 	}
 
 	event E10043 {
-		type civil_marriage
+		type marriage
 		date.value.point.full_date {
 			value 10 JAN 1930
 			calendar gregorian
@@ -311198,7 +311198,7 @@ atto n° 99, pag. 114"""
 	}
 
 	event E10044 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 8 JAN 1930
 			calendar gregorian
@@ -311811,7 +311811,7 @@ Di solito mangiavano polenta e formaggio."""
 	}
 
 	event E10047 {
-		type civil_marriage
+		type marriage
 		date.value.point.full_date {
 			value 24 JUL 1904
 			calendar gregorian
@@ -311863,7 +311863,7 @@ solteiro rezidente no Pau Gigante"""
 	}
 
 	event E10048 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 24 JUN 1900
 			calendar gregorian
@@ -312303,7 +312303,7 @@ solteiro rezidente no Pau Gigante"""
 	}
 
 	event E10052 {
-		type civil_marriage
+		type marriage
 		date.value.point.full_date {
 			value 14 FEB 1906
 			calendar gregorian
@@ -312350,7 +312350,7 @@ solteiro rezidente no Pau Gigante"""
 	}
 
 	event E10053 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 1 MAY 1905
 			calendar gregorian
@@ -312920,7 +312920,7 @@ solteiro rezidente no Pau Gigante"""
 	}
 
 	event E10057 {
-		type civil_marriage
+		type marriage
 		date.value.point.full_date {
 			value 15 JAN 1879
 			calendar gregorian
@@ -313289,7 +313289,7 @@ solteiro rezidente no Pau Gigante"""
 	}
 
 	event E10060 {
-		type civil_marriage
+		type marriage
 		date.value.point.full_date {
 			value 19 SEP 1914
 			calendar gregorian
@@ -313703,7 +313703,7 @@ solteiro rezidente no Pau Gigante"""
 	}
 
 	event E10062 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 23 NOV 1916
 			calendar gregorian
@@ -314148,7 +314148,7 @@ solteiro rezidente no Pau Gigante"""
 	}
 
 	event E10066 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 21 NOV 1892
 			calendar gregorian
@@ -315276,7 +315276,7 @@ solteiro rezidente no Pau Gigante"""
 	}
 
 	event E10082 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 25 NOV 1863
 			calendar gregorian
@@ -315900,7 +315900,7 @@ solteiro rezidente no Pau Gigante"""
 	}
 
 	event E10090 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 10 FEB 1892
 			calendar gregorian
@@ -315935,7 +315935,7 @@ solteiro rezidente no Pau Gigante"""
 	}
 
 	event E10091 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 10 FEB 1891
 			calendar gregorian
@@ -316410,7 +316410,7 @@ solteiro rezidente no Pau Gigante"""
 	}
 
 	event E10094 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 19 NOV 1888
 			calendar gregorian
@@ -317090,7 +317090,7 @@ solteiro rezidente no Pau Gigante"""
 	}
 
 	event E10098 {
-		type civil_marriage
+		type marriage
 		date.value.point.full_date {
 			value 24 JAN 1901
 			calendar gregorian
@@ -317389,7 +317389,7 @@ solteiro rezidente no Pau Gigante"""
 	}
 
 	event E10101 {
-		type civil_marriage
+		type marriage
 		date.value.point.full_date {
 			value 12 APR 1923
 			calendar gregorian
@@ -317700,7 +317700,7 @@ solteiro rezidente no Pau Gigante"""
 	}
 
 	event E10102 {
-		type civil_marriage
+		type marriage
 		date.value.point.full_date {
 			value 11 OCT 1927
 			calendar gregorian
@@ -317947,7 +317947,7 @@ solteiro rezidente no Pau Gigante"""
 	}
 
 	event E10103 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 6 FEB 1926
 			calendar gregorian
@@ -318318,7 +318318,7 @@ solteiro rezidente no Pau Gigante"""
 	}
 
 	event E10104 {
-		type civil_marriage
+		type marriage
 		date.value.point.full_date {
 			value 3 OCT 1931
 			calendar gregorian
@@ -318488,7 +318488,7 @@ solteiro rezidente no Pau Gigante"""
 	}
 
 	event E10106 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 16 NOV 1940
 			calendar gregorian
@@ -318675,7 +318675,7 @@ solteiro rezidente no Pau Gigante"""
 	}
 
 	event E10107 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 10 FEB 1934
 			calendar gregorian
@@ -318856,7 +318856,7 @@ solteiro rezidente no Pau Gigante"""
 	}
 
 	event E10109 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 10 AUG 1947
 			calendar gregorian
@@ -319203,7 +319203,7 @@ solteiro rezidente no Pau Gigante"""
 	}
 
 	event E10111 {
-		type civil_marriage
+		type marriage
 		date.value.point.full_date {
 			value 13 MAY 1936
 			calendar gregorian
@@ -319364,7 +319364,7 @@ solteiro rezidente no Pau Gigante"""
 	}
 
 	event E10112 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 25 NOV 1950
 			calendar gregorian
@@ -319508,7 +319508,7 @@ solteiro rezidente no Pau Gigante"""
 	}
 
 	event E10114 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 28 OCT 1939
 			calendar gregorian
@@ -319700,7 +319700,7 @@ solteiro rezidente no Pau Gigante"""
 	}
 
 	event E10116 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 28 DEC 1940
 			calendar gregorian
@@ -320368,7 +320368,7 @@ solteiro rezidente no Pau Gigante"""
 	}
 
 	event E10120 {
-		type civil_marriage
+		type marriage
 		date.value.point.full_date {
 			value 30 DEC 1912
 			calendar gregorian
@@ -321030,7 +321030,7 @@ solteiro rezidente no Pau Gigante"""
 	}
 
 	event E10128 {
-		type civil_marriage
+		type marriage
 		date.value.point.full_date {
 			value 13 MAR 1920
 			calendar gregorian
@@ -321621,7 +321621,7 @@ solteiro rezidente no Pau Gigante"""
 	}
 
 	event E10133 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 24 NOV 1830
 			calendar gregorian
@@ -322922,7 +322922,7 @@ solteiro rezidente no Pau Gigante"""
 	}
 
 	event E10152 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 28 FEB 1876
 			calendar gregorian
@@ -323125,7 +323125,7 @@ solteiro rezidente no Pau Gigante"""
 	}
 
 	event E10154 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 24 FEB 1892
 			calendar gregorian
@@ -324039,7 +324039,7 @@ marriage place: unsure"""
 	}
 
 	event E10164 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 16 FEB 1829
 			calendar gregorian
@@ -324390,7 +324390,7 @@ marriage place: unsure"""
 	}
 
 	event E10170 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 4 JUN 1983
 			calendar gregorian
@@ -324485,7 +324485,7 @@ marriage place: unsure"""
 	}
 
 	event E10172 {
-		type civil_marriage
+		type marriage
 		date.value.point.full_date {
 			value 23 FEB 1876
 			calendar gregorian
@@ -324883,7 +324883,7 @@ marriage place: unsure"""
 	}
 
 	event E10174 {
-		type civil_marriage
+		type marriage
 		date.value.point.full_date {
 			value 23 NOV 1810
 			calendar gregorian
@@ -325414,7 +325414,7 @@ marriage place: unsure"""
 	}
 
 	event E10178 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 10 JAN 1775
 			calendar gregorian
@@ -325714,7 +325714,7 @@ marriage place: unsure"""
 	}
 
 	event E10179 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 29 JUN 1741
 			calendar gregorian
@@ -325897,7 +325897,7 @@ marriage place: unsure"""
 	}
 
 	event E10181 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 7 NOV 1763
 			calendar gregorian
@@ -325961,7 +325961,7 @@ marriage place: unsure"""
 	}
 
 	event E10182 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 9 FEB 1767
 			calendar gregorian
@@ -326291,7 +326291,7 @@ marriage place: unsure"""
 	}
 
 	event E10183 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 26 FEB 1772
 			calendar gregorian
@@ -326625,7 +326625,7 @@ marriage place: unsure"""
 	}
 
 	event E10184 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 9 FEB 1797
 			calendar gregorian
@@ -326779,7 +326779,7 @@ marriage place: unsure"""
 	}
 
 	event E10187 {
-		type civil_marriage
+		type marriage
 		date.value.point.full_date {
 			value 6 SEP 1916
 			calendar gregorian
@@ -326882,7 +326882,7 @@ marriage place: unsure"""
 	}
 
 	event E10189 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 14 FEB 1820
 			calendar gregorian
@@ -327002,7 +327002,7 @@ marriage place: unsure"""
 	}
 
 	event E10190 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 8 FEB 1747
 			calendar gregorian
@@ -327302,7 +327302,7 @@ marriage place: unsure"""
 	}
 
 	event E10191 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 25 NOV 1801
 			calendar gregorian
@@ -327631,7 +327631,7 @@ femmine presenti: 10"""
 	}
 
 	event E10196 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 3 MAR 1791
 			calendar gregorian
@@ -328021,7 +328021,7 @@ femmine presenti: 10"""
 	}
 
 	event E10197 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 16 JUN 1863
 			calendar gregorian
@@ -328292,7 +328292,7 @@ femmine presenti: 10"""
 	}
 
 	event E10202 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 27 NOV 1851
 			calendar gregorian
@@ -328479,7 +328479,7 @@ femmine presenti: 10"""
 	}
 
 	event E10205 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 27 JUL 1867
 			calendar gregorian
@@ -328738,7 +328738,7 @@ femmine presenti: 10"""
 	}
 
 	event E10208 {
-		type civil_marriage
+		type marriage
 		date.value.point.full_date {
 			value 21 OCT 1812
 			calendar gregorian
@@ -328891,7 +328891,7 @@ femmine presenti: 10"""
 	}
 
 	event E10209 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 11 FEB 1839
 			calendar gregorian
@@ -328986,7 +328986,7 @@ femmine presenti: 10"""
 	}
 
 	event E10210 {
-		type civil_marriage
+		type marriage
 		date.value.point.full_date {
 			value 13 MAY 1809
 			calendar gregorian
@@ -329878,7 +329878,7 @@ femmine presenti: 10"""
 	}
 
 	event E10221 {
-		type civil_marriage
+		type marriage
 		date.value.point.full_date {
 			value 12 NOV 1872
 			calendar gregorian
@@ -330219,7 +330219,7 @@ femmine presenti: 10"""
 	}
 
 	event E10223 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 5 FEB 1730
 			calendar gregorian
@@ -330807,7 +330807,7 @@ femmine presenti: 10"""
 	}
 
 	event E10229 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 9 MAY 1825
 			calendar gregorian
@@ -330987,7 +330987,7 @@ femmine presenti: 10"""
 	}
 
 	event E10232 {
-		type civil_marriage
+		type marriage
 		date.value.point.full_date {
 			value 24 FEB 1887
 			calendar gregorian
@@ -331111,7 +331111,7 @@ femmine presenti: 10"""
 	}
 
 	event E10234 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 26 AUG 1967
 			calendar gregorian
@@ -331273,7 +331273,7 @@ femmine presenti: 10"""
 	}
 
 	event E10237 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 25 APR 1965
 			calendar gregorian
@@ -331401,7 +331401,7 @@ femmine presenti: 10"""
 	}
 
 	event E10239 {
-		type civil_marriage
+		type marriage
 		date.value.point.full_date {
 			value 25 NOV 1873
 			calendar gregorian
@@ -331774,7 +331774,7 @@ femmine presenti: 10"""
 	}
 
 	event E10241 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 16 FEB 1863
 			calendar gregorian
@@ -332337,7 +332337,7 @@ femmine presenti: 10"""
 	}
 
 	event E10248 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 3 FEB 1869
 			calendar gregorian
@@ -332520,7 +332520,7 @@ femmine presenti: 10"""
 	}
 
 	event E10249 {
-		type civil_marriage
+		type marriage
 		date.value.point.full_date {
 			value 17 APR 1876
 			calendar gregorian
@@ -332893,7 +332893,7 @@ femmine presenti: 10"""
 	}
 
 	event E10252 {
-		type civil_marriage
+		type marriage
 		date.value.point.full_date {
 			value 5 APR 1876
 			calendar gregorian
@@ -333239,7 +333239,7 @@ femmine presenti: 10"""
 	}
 
 	event E10254 {
-		type civil_marriage
+		type marriage
 		date.value.point.full_date {
 			value 14 FEB 1900
 			calendar gregorian
@@ -333427,7 +333427,7 @@ femmine presenti: 10"""
 	}
 
 	event E10258 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 24 NOV 1892
 			calendar gregorian
@@ -333491,7 +333491,7 @@ femmine presenti: 10"""
 	}
 
 	event E10259 {
-		type civil_marriage
+		type marriage
 		date.value.point.full_date {
 			value 3 AUG 1898
 			calendar gregorian
@@ -333562,7 +333562,7 @@ femmine presenti: 10"""
 	}
 
 	event E10260 {
-		type civil_marriage
+		type marriage
 		date.value.point.full_date {
 			value 23 JAN 1901
 			calendar gregorian
@@ -333669,7 +333669,7 @@ femmine presenti: 10"""
 	}
 
 	event E10262 {
-		type civil_marriage
+		type marriage
 		date.value.point.full_date {
 			value 25 APR 1903
 			calendar gregorian
@@ -333925,7 +333925,7 @@ femmine presenti: 10"""
 	}
 
 	event E10265 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 28 FEB 1753
 			calendar gregorian
@@ -335569,7 +335569,7 @@ femmine presenti: 10"""
 	}
 
 	event E10288 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 24 NOV 1831
 			calendar gregorian
@@ -335659,7 +335659,7 @@ femmine presenti: 10"""
 	}
 
 	event E10289 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 23 JUN 1785
 			calendar gregorian
@@ -335726,7 +335726,7 @@ femmine presenti: 10"""
 	}
 
 	event E10290 {
-		type civil_marriage
+		type marriage
 		date.value.point.full_date {
 			value 10 MAR 1903
 			calendar gregorian
@@ -335977,7 +335977,7 @@ femmine presenti: 10"""
 	}
 
 	event E10293 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 28 FEB 1870
 			calendar gregorian
@@ -336044,7 +336044,7 @@ femmine presenti: 10"""
 	}
 
 	event E10294 {
-		type civil_marriage
+		type marriage
 		date.value.point.full_date {
 			value 8 JAN 1889
 			calendar gregorian
@@ -336331,7 +336331,7 @@ femmine presenti: 10"""
 	}
 
 	event E10298 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 16 JUN 1832
 			calendar gregorian
@@ -336391,7 +336391,7 @@ femmine presenti: 10"""
 	}
 
 	event E10299 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 31 MAY 1847
 			calendar gregorian
@@ -336454,7 +336454,7 @@ femmine presenti: 10"""
 	}
 
 	event E10300 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 15 FEB 1836
 			calendar gregorian
@@ -336634,7 +336634,7 @@ femmine presenti: 10"""
 	}
 
 	event E10301 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 2 MAR 1835
 			calendar gregorian
@@ -337000,7 +337000,7 @@ femmine assenti: 1"""
 	}
 
 	event E10305 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 18 FEB 1784
 			calendar gregorian
@@ -337330,7 +337330,7 @@ femmine assenti: 1"""
 	}
 
 	event E10306 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 22 JAN 1755
 			calendar gregorian
@@ -337570,7 +337570,7 @@ femmine assenti: 1"""
 	}
 
 	event E10307 {
-		type civil_marriage
+		type marriage
 		date.value.point.full_date {
 			value 12 DEC 1876
 			calendar gregorian
@@ -337803,7 +337803,7 @@ femmine assenti: 1"""
 	}
 
 	event E10311 {
-		type civil_marriage
+		type marriage
 		date.value.point.full_date {
 			value 14 DEC 1910
 			calendar gregorian
@@ -337930,7 +337930,7 @@ femmine assenti: 1"""
 	}
 
 	event E10312 {
-		type civil_marriage
+		type marriage
 		date.value.point.full_date {
 			value 4 DEC 1883
 			calendar gregorian
@@ -338822,7 +338822,7 @@ femmine assenti: 1"""
 	}
 
 	event E10322 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 10 APR 1908
 			calendar gregorian
@@ -339237,7 +339237,7 @@ femmine assenti: 1"""
 	}
 
 	event E10329 {
-		type civil_marriage
+		type marriage
 		date.value.point.full_date {
 			value 17 FEB 1930
 			calendar gregorian
@@ -339588,7 +339588,7 @@ femmine assenti: 1"""
 	}
 
 	event E10333 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 27 JAN 1862
 			calendar gregorian
@@ -339679,7 +339679,7 @@ femmine assenti: 1"""
 	}
 
 	event E10335 {
-		type civil_marriage
+		type marriage
 		date.value.point.full_date {
 			value 7 FEB 1932
 			calendar gregorian
@@ -340315,7 +340315,7 @@ femmine assenti: 1"""
 	}
 
 	event E10342 {
-		type civil_marriage
+		type marriage
 		date.value.point.full_date {
 			value 24 JUL 1904
 			calendar gregorian
@@ -340529,7 +340529,7 @@ Giovan Fassina de 27 annos de idade solteiro lavorador residente no Rio Treviso"
 	}
 
 	event E10347 {
-		type civil_marriage
+		type marriage
 		date.value.point.full_date {
 			value 20 FEB 1933
 			calendar gregorian
@@ -340693,7 +340693,7 @@ Giovan Fassina de 27 annos de idade solteiro lavorador residente no Rio Treviso"
 	}
 
 	event E10349 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value NOV 1890
 			calendar gregorian
@@ -340793,7 +340793,7 @@ Giovan Fassina de 27 annos de idade solteiro lavorador residente no Rio Treviso"
 	}
 
 	event E10351 {
-		type civil_marriage
+		type marriage
 		date.value.point.full_date {
 			value 30 NOV 1937
 			calendar gregorian
@@ -340989,7 +340989,7 @@ Giovan Fassina de 27 annos de idade solteiro lavorador residente no Rio Treviso"
 	}
 
 	event E10354 {
-		type civil_marriage
+		type marriage
 		date.value.point.full_date {
 			value 7 APR 1937
 			calendar gregorian
@@ -341911,7 +341911,7 @@ Giovan Fassina de 27 annos de idade solteiro lavorador residente no Rio Treviso"
 	}
 
 	event E10367 {
-		type civil_marriage
+		type marriage
 		date.value.point.full_date {
 			value 4 DEC 1881
 			calendar gregorian
@@ -342196,7 +342196,7 @@ Giovan Fassina de 27 annos de idade solteiro lavorador residente no Rio Treviso"
 	}
 
 	event E10371 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 30 APR 1927
 			calendar gregorian
@@ -342765,7 +342765,7 @@ Giovan Fassina de 27 annos de idade solteiro lavorador residente no Rio Treviso"
 	}
 
 	event E10378 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 20 MAY 1833
 			calendar gregorian
@@ -343040,7 +343040,7 @@ Giovan Fassina de 27 annos de idade solteiro lavorador residente no Rio Treviso"
 	}
 
 	event E10380 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 11 FEB 1771
 			calendar gregorian
@@ -343252,7 +343252,7 @@ Giovan Fassina de 27 annos de idade solteiro lavorador residente no Rio Treviso"
 	}
 
 	event E10383 {
-		type civil_marriage
+		type marriage
 		date.value.point.full_date {
 			value 1 MAY 1809
 			calendar gregorian
@@ -343292,7 +343292,7 @@ Giovan Fassina de 27 annos de idade solteiro lavorador residente no Rio Treviso"
 	}
 
 	event E10384 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 3 MAY 1809
 			calendar gregorian
@@ -343869,7 +343869,7 @@ Giovan Fassina de 27 annos de idade solteiro lavorador residente no Rio Treviso"
 	}
 
 	event E10389 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 4 FEB 1739
 			calendar gregorian
@@ -344169,7 +344169,7 @@ Giovan Fassina de 27 annos de idade solteiro lavorador residente no Rio Treviso"
 	}
 
 	event E10390 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 24 FEB 1791
 			calendar gregorian
@@ -344301,7 +344301,7 @@ Giovan Fassina de 27 annos de idade solteiro lavorador residente no Rio Treviso"
 	}
 
 	event E10393 {
-		type civil_marriage
+		type marriage
 		date.value.point.full_date {
 			value 1 JUN 1811
 			calendar gregorian
@@ -345122,7 +345122,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10402 {
-		type civil_marriage
+		type marriage
 		date.value.point.full_date {
 			value 16 MAR 1912
 			calendar gregorian
@@ -345728,7 +345728,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10408 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 4 JUN 1703
 			calendar gregorian
@@ -345882,7 +345882,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10410 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 30 APR 1709
 			calendar gregorian
@@ -346276,7 +346276,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10412 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 30 JAN 1657
 			calendar gregorian
@@ -346427,7 +346427,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10414 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 25 AUG 1749
 			calendar gregorian
@@ -347050,7 +347050,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10422 {
-		type civil_marriage
+		type marriage
 		date.value.point.full_date {
 			value 26 NOV 1925
 			calendar gregorian
@@ -347184,7 +347184,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10424 {
-		type civil_marriage
+		type marriage
 		date.value.point.full_date {
 			value 4 APR 1901
 			calendar gregorian
@@ -347290,7 +347290,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10426 {
-		type civil_marriage
+		type marriage
 		date.value.point.full_date {
 			value 19 NOV 1938
 			calendar gregorian
@@ -347754,7 +347754,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10428 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 28 NOV 1869
 			calendar gregorian
@@ -348174,7 +348174,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10432 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 13 FEB 1871
 			calendar gregorian
@@ -348591,7 +348591,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10438 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 6 FEB 1867
 			calendar gregorian
@@ -349063,7 +349063,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10445 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 19 NOV 1927
 			calendar gregorian
@@ -349450,7 +349450,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10449 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 11 JUN 1770
 			calendar gregorian
@@ -349697,7 +349697,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10452 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 2 JUL 1715
 			calendar gregorian
@@ -350196,7 +350196,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10456 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 24 JAN 1862
 			calendar gregorian
@@ -350357,7 +350357,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10459 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 5 FEB 1834
 			calendar gregorian
@@ -350447,7 +350447,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10460 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 5 JAN 1786
 			calendar gregorian
@@ -351021,7 +351021,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10462 {
-		type civil_marriage
+		type marriage
 		date.value.point.full_date {
 			value 13 Oct 1903
 			calendar gregorian
@@ -351271,7 +351271,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10466 {
-		type civil_marriage
+		type marriage
 		date.value.point.full_date {
 			value 2 APR 1881
 			calendar gregorian
@@ -351338,7 +351338,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10467 {
-		type civil_marriage
+		type marriage
 		date.value.point.full_date {
 			value 14 JUL 1900
 			calendar gregorian
@@ -351381,7 +351381,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10468 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 12 FEB 1900
 			calendar gregorian
@@ -351571,7 +351571,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10471 {
-		type civil_marriage
+		type marriage
 		date.value.point.full_date {
 			value 15 JUN 1896
 			calendar gregorian
@@ -351961,7 +351961,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10476 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 10 OCT 1787
 			calendar gregorian
@@ -352145,7 +352145,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10478 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 27 NOV 1817
 			calendar gregorian
@@ -352242,7 +352242,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10479 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 12 FEB 1795
 			calendar gregorian
@@ -352516,7 +352516,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10483 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 20 FEB 1860
 			calendar gregorian
@@ -352805,7 +352805,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10487 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 8 FEB 1819
 			calendar gregorian
@@ -352959,7 +352959,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10489 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 14 FEB 1781
 			calendar gregorian
@@ -353143,7 +353143,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10491 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 2 SEP 1788
 			calendar gregorian
@@ -353270,7 +353270,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10493 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 2 MAY 1759
 			calendar gregorian
@@ -353860,7 +353860,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10499 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 14 NOV 1946
 			calendar gregorian
@@ -354079,7 +354079,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10503 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 26 FEB 1949
 			calendar gregorian
@@ -354273,7 +354273,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10506 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 10 APR 1948
 			calendar gregorian
@@ -354616,7 +354616,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10512 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 8 OCT 1961
 			calendar gregorian
@@ -356233,7 +356233,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10528 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 3 FEB 1717
 			calendar gregorian
@@ -356462,7 +356462,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10531 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 8 MAY 1954
 			calendar gregorian
@@ -356685,7 +356685,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10534 {
-		type civil_marriage
+		type marriage
 		date.value.point.full_date {
 			value 31 JAN 1807
 			calendar gregorian
@@ -356940,7 +356940,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10537 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 20 FEB 1786
 			calendar gregorian
@@ -357419,7 +357419,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10542 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 28 SEP 1985
 			calendar gregorian
@@ -358739,7 +358739,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10561 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 28 APR 1962
 			calendar gregorian
@@ -359037,7 +359037,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10565 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 3 SEP 1955
 			calendar gregorian
@@ -359224,7 +359224,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10566 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 20 NOV 1954
 			calendar gregorian
@@ -360283,7 +360283,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10579 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 29 DEC 1951
 			calendar gregorian
@@ -360415,7 +360415,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10581 {
-		type civil_marriage
+		type marriage
 		date.value.point.full_date {
 			value 20 JAN 1926
 			calendar gregorian
@@ -360691,7 +360691,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10586 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 6 SEP 1969
 			calendar gregorian
@@ -360839,7 +360839,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10588 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 10 MAY 1969
 			calendar gregorian
@@ -361317,7 +361317,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10594 {
-		type civil_marriage
+		type marriage
 		date.value.point.full_date {
 			value 13 MAR 1912
 			calendar gregorian
@@ -361540,7 +361540,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10598 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 12 APR 1947
 			calendar gregorian
@@ -361603,7 +361603,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10599 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 26 SEP 1931
 			calendar gregorian
@@ -361784,7 +361784,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10601 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 9 SEP 1950
 			calendar gregorian
@@ -362006,7 +362006,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10604 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 22 AUG 1942
 			calendar gregorian
@@ -362225,7 +362225,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10608 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 16 OCT 1948
 			calendar gregorian
@@ -362356,7 +362356,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10609 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 13 APR 1929
 			calendar gregorian
@@ -362393,7 +362393,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10610 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 17 MAR 1929
 			calendar gregorian
@@ -362584,7 +362584,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10613 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 3 SEP 2016
 			calendar gregorian
@@ -364676,7 +364676,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10641 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 1 MAR 1947
 			calendar gregorian
@@ -364769,7 +364769,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10642 {
-		type civil_marriage
+		type marriage
 		date.value.point.full_date {
 			value 27 FEB 1892
 			calendar gregorian
@@ -365617,7 +365617,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10652 {
-		type civil_marriage
+		type marriage
 		date.value.point.full_date {
 			value 4 MAR 1923
 			calendar gregorian
@@ -365680,7 +365680,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10653 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 3 APR 1948
 			calendar gregorian
@@ -366035,7 +366035,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10659 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 28 JAN 1956
 			calendar gregorian
@@ -366221,7 +366221,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10661 {
-		type civil_marriage
+		type marriage
 		date.value.point.full_date {
 			value 12 JAN 1811
 			calendar gregorian
@@ -366468,7 +366468,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10664 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 24 NOV 1830
 			calendar gregorian
@@ -367599,7 +367599,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10676 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 13 JAN 1923
 			calendar gregorian
@@ -367634,7 +367634,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10677 {
-		type civil_marriage
+		type marriage
 		date.value.point.full_date {
 			value 1 APR 1939
 			calendar gregorian
@@ -368725,7 +368725,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10691 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 18 SEP 1948
 			calendar gregorian
@@ -368952,7 +368952,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10696 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 6 OCT 1996
 			calendar gregorian
@@ -369372,7 +369372,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10702 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 21 AUG 1971
 			calendar gregorian
@@ -369826,7 +369826,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10708 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 10 FEB 1934
 			calendar gregorian
@@ -369928,7 +369928,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10710 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 29 NOV 1941
 			calendar gregorian
@@ -371341,7 +371341,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10728 {
-		type civil_marriage
+		type marriage
 		date.value.point.full_date {
 			value 21 NOV 1933
 			calendar gregorian
@@ -371412,7 +371412,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10729 {
-		type civil_marriage
+		type marriage
 		date.value.point.full_date {
 			value 26 SEP 1936
 			calendar gregorian
@@ -371633,7 +371633,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10732 {
-		type civil_marriage
+		type marriage
 		date.value.point.full_date {
 			value 3 APR 1899
 			calendar gregorian
@@ -372090,7 +372090,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10737 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 30 JAN 1856
 			calendar gregorian
@@ -372700,7 +372700,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10741 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 8 NOV 1815
 			calendar gregorian
@@ -373105,7 +373105,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10746 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 24 OCT 1923
 			calendar gregorian
@@ -373508,7 +373508,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10754 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 24 NOV 1819
 			calendar gregorian
@@ -373633,7 +373633,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10756 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 17 FEB 1817
 			calendar gregorian
@@ -373939,7 +373939,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10760 {
-		type civil_marriage
+		type marriage
 		date.value.point.full_date {
 			value 19 FEB 1811
 			calendar gregorian
@@ -373982,7 +373982,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10761 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 20 FEB 1811
 			calendar gregorian
@@ -374267,7 +374267,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10765 {
-		type civil_marriage
+		type marriage
 		date.value.point.full_date {
 			value 9 JAN 1812
 			calendar gregorian
@@ -375186,7 +375186,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10779 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 12 SEP 1954
 			calendar gregorian
@@ -375304,7 +375304,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10781 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 25 SEP 1976
 			calendar gregorian
@@ -375405,7 +375405,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10782 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 14 SEP 1985
 			calendar gregorian
@@ -375540,7 +375540,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10784 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 21 AUG 1954
 			calendar gregorian
@@ -375672,7 +375672,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10785 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 21 AUG 1954
 			calendar gregorian
@@ -375707,7 +375707,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10786 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 24 AUG 1954
 			calendar gregorian
@@ -378812,7 +378812,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10831 {
-		type civil_marriage
+		type marriage
 		date.value.point.full_date {
 			value 1 MAR 1908
 			calendar gregorian
@@ -379105,7 +379105,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10834 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 24 SEP 1950
 			calendar gregorian
@@ -379272,7 +379272,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10836 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 5 JUL 1980
 			calendar gregorian
@@ -379717,7 +379717,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10844 {
-		type civil_marriage
+		type marriage
 		date.value.point.full_date {
 			value 13 MAR 1912
 			calendar gregorian
@@ -380372,7 +380372,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10854 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 18 AUG 1975
 			calendar gregorian
@@ -380553,7 +380553,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10856 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 25 NOV 1863
 			calendar gregorian
@@ -381209,7 +381209,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10865 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 26 NOV 1884
 			calendar gregorian
@@ -381467,7 +381467,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10867 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 25 FEB 1922
 			calendar gregorian
@@ -381599,7 +381599,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10869 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 9 FEB 1929
 			calendar gregorian
@@ -381722,7 +381722,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10870 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 3 JAN 1951
 			calendar gregorian
@@ -382151,7 +382151,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10876 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 18 FEB 1824
 			calendar gregorian
@@ -382403,7 +382403,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10879 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 26 JAN 1758
 			calendar gregorian
@@ -382497,7 +382497,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10880 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 4 NOV 1771
 			calendar gregorian
@@ -382684,7 +382684,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10882 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 10 JUN 1737
 			calendar gregorian
@@ -383054,7 +383054,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10886 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 11 FEB 1765
 			calendar gregorian
@@ -383271,7 +383271,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10888 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 30 APR 1795
 			calendar gregorian
@@ -383361,7 +383361,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10889 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 10 FEB 1766
 			calendar gregorian
@@ -383699,7 +383699,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10892 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 2 FEB 1957
 			calendar gregorian
@@ -383857,7 +383857,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10893 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 22 APR 1961
 			calendar gregorian
@@ -384319,7 +384319,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10900 {
-		type civil_marriage
+		type marriage
 		date.value.point.full_date {
 			value 30 NOV 1932
 			calendar gregorian
@@ -385216,7 +385216,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10912 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 27 NOV 1954
 			calendar gregorian
@@ -385321,7 +385321,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10913 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 14 FEB 1920
 			calendar gregorian
@@ -385495,7 +385495,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10915 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 30 APR 1955
 			calendar gregorian
@@ -385955,7 +385955,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10923 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 14 DEC 1946
 			calendar gregorian
@@ -386487,7 +386487,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10930 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 31 MAR 1913
 			calendar gregorian
@@ -386689,7 +386689,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10933 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 26 OCT 1974
 			calendar gregorian
@@ -386945,7 +386945,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10937 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 23 APR 1973
 			calendar gregorian
@@ -387147,7 +387147,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10940 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 5 MAY 1986
 			calendar gregorian
@@ -387218,7 +387218,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10941 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 9 OCT 1983
 			calendar gregorian
@@ -387281,7 +387281,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10942 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 27 JUL 1990
 			calendar gregorian
@@ -387434,7 +387434,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10943 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 8 APR 1972
 			calendar gregorian
@@ -387595,7 +387595,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10945 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 28 AUG 1954
 			calendar gregorian
@@ -388355,7 +388355,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10956 {
-		type civil_marriage
+		type marriage
 		date.value.point.full_date {
 			value 3 APR 1893
 			calendar gregorian
@@ -388730,7 +388730,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10961 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 25 FEB 1743
 			calendar gregorian
@@ -389408,7 +389408,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10968 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 26 NOV 1862
 			calendar gregorian
@@ -390128,7 +390128,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10976 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 13 OCT 1940
 			calendar gregorian
@@ -391325,7 +391325,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10991 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 26 JAN 1651
 			calendar gregorian
@@ -391385,7 +391385,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10992 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 25 NOV 1658
 			calendar gregorian
@@ -391475,7 +391475,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10993 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 13 FEB 1736
 			calendar gregorian
@@ -391581,7 +391581,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10995 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 21 DEC 1736
 			calendar gregorian
@@ -391687,7 +391687,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E10997 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 30 APR 1741
 			calendar gregorian
@@ -392127,7 +392127,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11002 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 14 FEB 1821
 			calendar gregorian
@@ -392457,7 +392457,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11006 {
-		type civil_marriage
+		type marriage
 		date.value.point.full_date {
 			value 15 FEB 1872
 			calendar gregorian
@@ -392496,7 +392496,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11007 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 7 FEB 1872
 			calendar gregorian
@@ -392975,7 +392975,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11009 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 25 NOV 1833
 			calendar gregorian
@@ -393380,7 +393380,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11013 {
-		type civil_marriage
+		type marriage
 		date.value.point.full_date {
 			value 4 FEB 1872
 			calendar gregorian
@@ -393424,7 +393424,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11014 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 7 FEB 1872
 			calendar gregorian
@@ -393853,7 +393853,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11018 {
-		type civil_marriage
+		type marriage
 		date.value.point.full_date {
 			value 24 NOV 1875
 			calendar gregorian
@@ -394132,7 +394132,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11022 {
-		type civil_marriage
+		type marriage
 		date.value.point.full_date {
 			value 1 MAR 1885
 			calendar gregorian
@@ -394266,7 +394266,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11024 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 7 FEB 1853
 			calendar gregorian
@@ -394396,7 +394396,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11026 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 12 OCT 1898
 			calendar gregorian
@@ -394435,7 +394435,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11027 {
-		type civil_marriage
+		type marriage
 		date.value.point.full_date {
 			value 13 OCT 1898
 			calendar gregorian
@@ -394502,7 +394502,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11028 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 9 JAN 1899
 			calendar gregorian
@@ -394541,7 +394541,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11029 {
-		type civil_marriage
+		type marriage
 		date.value.point.full_date {
 			value 16 JAN 1899
 			calendar gregorian
@@ -394700,7 +394700,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11031 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 13 FEB 1899
 			calendar gregorian
@@ -394739,7 +394739,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11032 {
-		type civil_marriage
+		type marriage
 		date.value.point.full_date {
 			value 19 FEB 1899
 			calendar gregorian
@@ -394988,7 +394988,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11034 {
-		type civil_marriage
+		type marriage
 		date.value.point.full_date {
 			value 26 NOV 1904
 			calendar gregorian
@@ -395423,7 +395423,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11038 {
-		type civil_marriage
+		type marriage
 		date.value.point.full_date {
 			value 20 DEC 1908
 			calendar gregorian
@@ -396232,7 +396232,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11043 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 25 NOV 1868
 			calendar gregorian
@@ -396940,7 +396940,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11053 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 23 JUL 1940
 			calendar gregorian
@@ -399366,7 +399366,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11079 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 2 OCT 1920
 			calendar gregorian
@@ -403873,7 +403873,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11126 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 10 AUG 1912
 			calendar gregorian
@@ -404200,7 +404200,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11129 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 26 FEB 1908
 			calendar gregorian
@@ -406151,7 +406151,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11151 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 23 MAR 1887
 			calendar gregorian
@@ -407048,7 +407048,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11163 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 26 FEB 1908
 			calendar gregorian
@@ -408254,7 +408254,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11182 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 29 APR 1728
 			calendar gregorian
@@ -408344,7 +408344,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11183 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 15 JUN 1703
 			calendar gregorian
@@ -410319,7 +410319,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11204 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 2 SEP 1897
 			calendar gregorian
@@ -420256,7 +420256,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11323 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 12 NOV 1872
 			calendar gregorian
@@ -420473,7 +420473,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11326 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 12 JAN 1757
 			calendar gregorian
@@ -420992,7 +420992,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11331 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 3 FEB 1796
 			calendar gregorian
@@ -421243,7 +421243,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11335 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 5 FEB 1812
 			calendar gregorian
@@ -421698,7 +421698,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11343 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 3 FEB 1812
 			calendar gregorian
@@ -424357,7 +424357,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11384 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 27 NOV 1937
 			calendar gregorian
@@ -424516,7 +424516,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11386 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 19 NOV 1938
 			calendar gregorian
@@ -425018,7 +425018,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11394 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 12 FEB 1947
 			calendar gregorian
@@ -425292,7 +425292,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11398 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 26 SEP 1953
 			calendar gregorian
@@ -425739,7 +425739,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11405 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 30 APR 1955
 			calendar gregorian
@@ -426003,7 +426003,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11410 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 9 FEB 1959
 			calendar gregorian
@@ -426209,7 +426209,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11413 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 4 JUN 1960
 			calendar gregorian
@@ -426475,7 +426475,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11416 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 23 SEP 1961
 			calendar gregorian
@@ -427057,7 +427057,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11424 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 15 SEP 1965
 			calendar gregorian
@@ -427419,7 +427419,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11430 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 14 JUN 1980
 			calendar gregorian
@@ -427613,7 +427613,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11433 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 18 APR 1982
 			calendar gregorian
@@ -427714,7 +427714,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11434 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 24 JUN 1952
 			calendar gregorian
@@ -427859,7 +427859,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11437 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 16 OCT 1982
 			calendar gregorian
@@ -427991,7 +427991,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11439 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 26 OCT 1957
 			calendar gregorian
@@ -428054,7 +428054,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11440 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 16 SEP 1989
 			calendar gregorian
@@ -428322,7 +428322,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11445 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 7 MAY 1994
 			calendar gregorian
@@ -431699,7 +431699,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11494 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 4 APR 1987
 			calendar gregorian
@@ -433991,7 +433991,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11526 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 14 NOV 1919
 			calendar gregorian
@@ -435831,7 +435831,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11555 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 4 APR 1839
 			calendar gregorian
@@ -435982,7 +435982,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11557 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 10 FEB 1847
 			calendar gregorian
@@ -436221,7 +436221,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11560 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 24 NOV 1852
 			calendar gregorian
@@ -436460,7 +436460,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11563 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 24 NOV 1852
 			calendar gregorian
@@ -437568,7 +437568,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11574 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 25 NOV 1767
 			calendar gregorian
@@ -437658,7 +437658,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11575 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 20 NOV 1800
 			calendar gregorian
@@ -438879,7 +438879,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11592 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 12 OCT 1996
 			calendar gregorian
@@ -440624,7 +440624,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11609 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 13 SEP 1762
 			calendar gregorian
@@ -441470,7 +441470,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11617 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 9 JAN 1943
 			calendar gregorian
@@ -442655,7 +442655,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11632 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 5 MAY 1956
 			calendar gregorian
@@ -442769,7 +442769,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11634 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 6 APR 1974
 			calendar gregorian
@@ -442882,7 +442882,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11636 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 19 FEB 1944
 			calendar gregorian
@@ -442945,7 +442945,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11637 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 1 AUG 1929
 			calendar gregorian
@@ -443012,7 +443012,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11638 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 18 NOV 1939
 			calendar gregorian
@@ -444250,7 +444250,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11654 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 26 JUN 1976
 			calendar gregorian
@@ -444567,7 +444567,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11659 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 27 MAY 1985
 			calendar gregorian
@@ -444958,7 +444958,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11665 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 1 SEP 2019
 			calendar gregorian
@@ -445811,7 +445811,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11678 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 4 FEB 1786
 			calendar gregorian
@@ -445961,7 +445961,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11679 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 26 APR 1792
 			calendar gregorian
@@ -446025,7 +446025,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11680 {
-		type religious_marriage
+		type marriage
 		date.value.bounded.not_after.full_date {
 			value 2 FEB 1821
 			calendar gregorian
@@ -449780,7 +449780,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11721 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 19 JUN 1672
 			calendar gregorian
@@ -449843,7 +449843,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11722 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 29 DEC 1659
 			calendar gregorian
@@ -450012,7 +450012,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11724 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 24 JUL 1663
 			calendar gregorian
@@ -450179,7 +450179,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11727 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 30 APR 1681
 			calendar gregorian
@@ -450736,7 +450736,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11730 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 29 JAN 1705
 			calendar gregorian
@@ -450864,7 +450864,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11732 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 21 FEB 1691
 			calendar gregorian
@@ -450973,7 +450973,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11734 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 2 NOV 1695
 			calendar gregorian
@@ -451036,7 +451036,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11735 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 19 APR 1687
 			calendar gregorian
@@ -451099,7 +451099,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11736 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 1 JUN 1702
 			calendar gregorian
@@ -451344,7 +451344,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11739 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 10 NOV 1704
 			calendar gregorian
@@ -451529,7 +451529,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11742 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 12 FEB 1733
 			calendar gregorian
@@ -451652,7 +451652,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11743 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 5 FEB 1725
 			calendar gregorian
@@ -452099,7 +452099,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11747 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 30 APR 1744
 			calendar gregorian
@@ -452162,7 +452162,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11748 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 10 NOV 1763
 			calendar gregorian
@@ -452271,7 +452271,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11750 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 23 MAY 1764
 			calendar gregorian
@@ -452426,7 +452426,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11753 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 30 APR 1738
 			calendar gregorian
@@ -452535,7 +452535,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11755 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 21 NOV 1742
 			calendar gregorian
@@ -452690,7 +452690,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11758 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 28 OCT 1751
 			calendar gregorian
@@ -452913,7 +452913,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11762 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 29 DEC 1789
 			calendar gregorian
@@ -453193,7 +453193,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11767 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 31 JUL 1802
 			calendar gregorian
@@ -458571,7 +458571,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11819 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 10 OCT 1594
 			calendar gregorian
@@ -458631,7 +458631,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11820 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 2 NOV 1656
 			calendar gregorian
@@ -458770,7 +458770,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11823 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 15 JUN 1666
 			calendar gregorian
@@ -459044,7 +459044,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11825 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 10 JUN 1670
 			calendar gregorian
@@ -459150,7 +459150,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11827 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 15 JUN 1670
 			calendar gregorian
@@ -459453,7 +459453,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11832 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 6 JUN 1743
 			calendar gregorian
@@ -460391,7 +460391,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11844 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 21 NOV 1719
 			calendar gregorian
@@ -461755,7 +461755,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E11863 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 16 MAY 1931
 			calendar gregorian
@@ -472689,7 +472689,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12018 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 28 JAN 1818
 			calendar gregorian
@@ -473022,7 +473022,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12019 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 6 FEB 1839
 			calendar gregorian
@@ -473178,7 +473178,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12021 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 15 FEB 1800
 			calendar gregorian
@@ -473213,7 +473213,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12022 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 30 NOV 1816
 			calendar gregorian
@@ -473574,7 +473574,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12024 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 11 FEB 1782
 			calendar gregorian
@@ -473814,7 +473814,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12028 {
-		type religious_marriage
+		type marriage
 		place.place P2034
 		source {
 			source S2074
@@ -473980,7 +473980,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12031 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 13 NOV 1805
 			calendar gregorian
@@ -474480,7 +474480,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12036 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 27 OCT 1770
 			calendar gregorian
@@ -474702,7 +474702,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12040 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 12 AUG 1781
 			calendar gregorian
@@ -474928,7 +474928,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12042 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 28 APR 1802
 			calendar gregorian
@@ -475122,7 +475122,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12045 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 19 FEB 1827
 			calendar gregorian
@@ -475952,7 +475952,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12056 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 14 NOV 1825
 			calendar gregorian
@@ -476105,7 +476105,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12057 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 25 FEB 1835
 			calendar gregorian
@@ -476408,7 +476408,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12061 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 3 JUL 1809
 			calendar gregorian
@@ -476471,7 +476471,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12062 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 5 MAR 1832
 			calendar gregorian
@@ -476630,7 +476630,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12064 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 22 FEB 1781
 			calendar gregorian
@@ -476736,7 +476736,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12066 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 14 JAN 1776
 			calendar gregorian
@@ -476842,7 +476842,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12068 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 27 FEB 1786
 			calendar gregorian
@@ -477008,7 +477008,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12070 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 23 NOV 1757
 			calendar gregorian
@@ -478129,7 +478129,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12087 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 25 NOV 1752
 			calendar gregorian
@@ -478397,7 +478397,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12089 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 18 FEB 1784
 			calendar gregorian
@@ -479002,7 +479002,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12093 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 4 MAR 1726
 			calendar gregorian
@@ -479780,7 +479780,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12101 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 29 NOV 1754
 			calendar gregorian
@@ -480470,7 +480470,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12111 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 19 FEB 1821
 			calendar gregorian
@@ -481085,7 +481085,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12115 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 18 JUN 1873
 			calendar gregorian
@@ -481855,7 +481855,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12122 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 26 FEB 1840
 			calendar gregorian
@@ -482114,7 +482114,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12124 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 28 NOV 1903
 			calendar gregorian
@@ -482265,7 +482265,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12126 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 28 OCT 1939
 			calendar gregorian
@@ -482694,7 +482694,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12132 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 13 FEB 1915
 			calendar gregorian
@@ -483375,7 +483375,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12138 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 13 FEB 1871
 			calendar gregorian
@@ -485391,7 +485391,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12163 {
-		type religious_marriage
+		type marriage
 		place.place P2637
 		source {
 			source S2309
@@ -485688,7 +485688,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12165 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 19 NOV 1927
 			calendar gregorian
@@ -486062,7 +486062,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12168 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 28 NOV 1894
 			calendar gregorian
@@ -486408,7 +486408,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12171 {
-		type civil_marriage
+		type marriage
 		date.value.point.full_date {
 			value 30 JAN 1927
 			calendar gregorian
@@ -486443,7 +486443,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12172 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 29 JAN 1927
 			calendar gregorian
@@ -486594,7 +486594,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12174 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 31 JAN 1914
 			calendar gregorian
@@ -487073,7 +487073,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12178 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 26 NOV 1873
 			calendar gregorian
@@ -487800,7 +487800,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12188 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 16 JAN 1713
 			calendar gregorian
@@ -487906,7 +487906,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12190 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 21 FEB 1724
 			calendar gregorian
@@ -488012,7 +488012,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12192 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 20 FEB 1743
 			calendar gregorian
@@ -488337,7 +488337,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12194 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 25 NOV 1665
 			calendar gregorian
@@ -489256,7 +489256,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12198 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 6 FEB 1690
 			calendar gregorian
@@ -489365,7 +489365,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12200 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 26 JUN 1668
 			calendar gregorian
@@ -489516,7 +489516,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12203 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 16 JUL 1698
 			calendar gregorian
@@ -489742,7 +489742,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12205 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 4 FEB 1694
 			calendar gregorian
@@ -490227,7 +490227,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12210 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 11 FEB 1747
 			calendar gregorian
@@ -490426,7 +490426,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12212 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 20 FEB 1775
 			calendar gregorian
@@ -490562,7 +490562,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12214 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 20 FEB 1669
 			calendar gregorian
@@ -490702,7 +490702,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12216 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 1 FEB 1693
 			calendar gregorian
@@ -490808,7 +490808,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12218 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 19 FEB 1721
 			calendar gregorian
@@ -490914,7 +490914,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12220 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 28 APR 1704
 			calendar gregorian
@@ -491403,7 +491403,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12225 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 14 JAN 1686
 			calendar gregorian
@@ -491602,7 +491602,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12227 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 30 APR 1725
 			calendar gregorian
@@ -491708,7 +491708,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12229 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 22 NOV 1751
 			calendar gregorian
@@ -491817,7 +491817,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12231 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 26 FEB 1724
 			calendar gregorian
@@ -491923,7 +491923,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12233 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 28 JAN 1723
 			calendar gregorian
@@ -492089,7 +492089,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12235 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 27 NOV 1765
 			calendar gregorian
@@ -492195,7 +492195,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12237 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 26 NOV 1788
 			calendar gregorian
@@ -492568,7 +492568,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12242 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 28 FEB 1791
 			calendar gregorian
@@ -492674,7 +492674,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12244 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 29 NOV 1817
 			calendar gregorian
@@ -493316,7 +493316,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12252 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 6 JUL 1836
 			calendar gregorian
@@ -493376,7 +493376,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12253 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 18 OCT 1865
 			calendar gregorian
@@ -493439,7 +493439,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12254 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 29 APR 1872
 			calendar gregorian
@@ -493502,7 +493502,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12255 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 11 FEB 1850
 			calendar gregorian
@@ -493653,7 +493653,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12257 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 31 JAN 1853
 			calendar gregorian
@@ -493834,7 +493834,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12259 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 26 FEB 1851
 			calendar gregorian
@@ -494015,7 +494015,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12261 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 25 NOV 1857
 			calendar gregorian
@@ -494640,7 +494640,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12266 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 24 NOV 1869
 			calendar gregorian
@@ -494853,7 +494853,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12269 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 23 NOV 1870
 			calendar gregorian
@@ -495274,7 +495274,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12271 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 23 NOV 1870
 			calendar gregorian
@@ -495655,7 +495655,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12276 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 11 FEB 1874
 			calendar gregorian
@@ -495841,7 +495841,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12279 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 24 NOV 1875
 			calendar gregorian
@@ -495992,7 +495992,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12281 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 23 NOV 1892
 			calendar gregorian
@@ -496369,7 +496369,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12286 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 28 NOV 1900
 			calendar gregorian
@@ -496464,7 +496464,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12288 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 26 NOV 1902
 			calendar gregorian
@@ -496651,7 +496651,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12291 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 26 NOV 1903
 			calendar gregorian
@@ -496866,7 +496866,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12293 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 27 NOV 1889
 			calendar gregorian
@@ -497197,7 +497197,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12298 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 21 MAR 1927
 			calendar gregorian
@@ -497295,7 +497295,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12300 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 2 DEC 1922
 			calendar gregorian
@@ -497809,7 +497809,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12307 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 20 FEB 1811
 			calendar gregorian
@@ -498172,7 +498172,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12308 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 30 APR 1862
 			calendar gregorian
@@ -498425,7 +498425,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12310 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 14 FEB 1820
 			calendar gregorian
@@ -498666,7 +498666,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12312 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 14 FEB 1770
 			calendar gregorian
@@ -499172,7 +499172,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12315 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 5 FEB 1781
 			calendar gregorian
@@ -499313,7 +499313,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12318 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 2 MAY 1792
 			calendar gregorian
@@ -499373,7 +499373,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12319 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 7 NOV 1810
 			calendar gregorian
@@ -499893,7 +499893,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12326 {
-		type civil_marriage
+		type marriage
 		date.value.point.full_date {
 			value 19 JAN 1918
 			calendar gregorian
@@ -502586,7 +502586,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12352 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 1 MAR 1848
 			calendar gregorian
@@ -502657,7 +502657,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12353 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 11 FEB 1874
 			calendar gregorian
@@ -502984,7 +502984,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12357 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 2 FEB 1769
 			calendar gregorian
@@ -503709,7 +503709,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12363 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 3 FEB 1742
 			calendar gregorian
@@ -503818,7 +503818,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12365 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 11 FEB 1741
 			calendar gregorian
@@ -503924,7 +503924,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12367 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 19 FEB 1746
 			calendar gregorian
@@ -504033,7 +504033,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12369 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 18 FEB 1730
 			calendar gregorian
@@ -504290,7 +504290,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12372 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 9 NOV 1697
 			calendar gregorian
@@ -504458,7 +504458,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12375 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 3 FEB 1725
 			calendar gregorian
@@ -504564,7 +504564,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12377 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 27 NOV 1688
 			calendar gregorian
@@ -504670,7 +504670,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12379 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 20 NOV 1680
 			calendar gregorian
@@ -505209,7 +505209,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12385 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 15 FEB 1721
 			calendar gregorian
@@ -505315,7 +505315,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12387 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 18 FEB 1730
 			calendar gregorian
@@ -505424,7 +505424,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12389 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 11 FEB 1736
 			calendar gregorian
@@ -506136,7 +506136,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12400 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 5 FEB 1882
 			calendar gregorian
@@ -506621,7 +506621,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12407 {
-		type religious_marriage
+		type marriage
 		date.value.bounded.not_after.full_date {
 			value 4 FEB 1920
 			calendar gregorian
@@ -506768,7 +506768,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12409 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 23 NOV 1864
 			calendar gregorian
@@ -506944,7 +506944,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12412 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 11 JAN 1947
 			calendar gregorian
@@ -507432,7 +507432,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12417 {
-		type civil_marriage
+		type marriage
 		date.value.point.full_date {
 			value 6 APR 1939
 			calendar gregorian
@@ -507472,7 +507472,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12418 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 1 APR 1936
 			calendar gregorian
@@ -512374,7 +512374,7 @@ Considerando che il matrimonio progettato dal minore Giacomo Boa del fu Giovanni
 	}
 
 	event E12480 {
-		type religious_marriage
+		type marriage
 		date.value.point.full_date {
 			value 20 NOV 1907
 			calendar gregorian

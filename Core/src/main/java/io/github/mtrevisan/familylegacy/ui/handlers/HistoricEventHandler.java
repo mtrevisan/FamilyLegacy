@@ -55,7 +55,7 @@ public class HistoricEventHandler extends AbstractRecordTypeHandler<HistoricEven
 
 	@Override
 	public String getLabel(){
-		return I18N.t("confirmation.exist.record.historic.event");
+		return I18N.t("confirmation.exist_record.historic_event");
 	}
 
 	@Override

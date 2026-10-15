@@ -299,7 +299,7 @@ public class PreferredImagePanel extends JPanel{
 		g2.setColor(Color.LIGHT_GRAY);
 		g2.fillRect(0, 0, 80, 80);
 		g2.setColor(Color.DARK_GRAY);
-		g2.drawString(I18N.t("dialog.preferred.image.no.image"), 10, 45);
+		g2.drawString(I18N.t("dialog.preferred.image.no_image"), 10, 45);
 		g2.dispose();
 		return new ImageIcon(img);
 	}

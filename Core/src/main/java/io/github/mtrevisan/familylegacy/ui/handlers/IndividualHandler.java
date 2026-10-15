@@ -53,7 +53,7 @@ public class IndividualHandler extends AbstractRecordTypeHandler<IndividualRecor
 
 	@Override
 	public String getLabel(){
-		return I18N.t("confirmation.exist.record.individual");
+		return I18N.t("confirmation.exist_record.individual");
 	}
 
 	@Override

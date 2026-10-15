@@ -84,6 +84,11 @@ public final class EventReader{
 	public static final String ENUM_TYPE_DEATH = "death";
 	public static final String ENUM_TYPE_CREMATION = "cremation";
 	public static final String ENUM_TYPE_BURIAL = "burial";
+	public static final String ENUM_TYPE_MARRIAGE_BANN = "marriage_bann";
+	public static final String ENUM_TYPE_MARRIAGE_CONTRACT = "marriage_contract";
+	public static final String ENUM_TYPE_MARRIAGE_LICENSE = "marriage_license";
+	public static final String ENUM_TYPE_MARRIAGE_SETTLEMENT = "marriage_settlement";
+	public static final String ENUM_TYPE_MARRIAGE = "marriage";
 	public static final String ENUM_TYPE_DIVORCE_FILED = "divorce_filed";
 	public static final String ENUM_TYPE_DIVORCE_DECREE = "divorce_decree";
 	public static final String ENUM_TYPE_DIVORCE = "divorce";
@@ -102,8 +107,9 @@ public final class EventReader{
 		ENUM_TYPE_BIRTH, "adoption", ENUM_TYPE_DEATH, ENUM_TYPE_CREMATION, ENUM_TYPE_BURIAL,
 		"coroner_report", "illness", "hospitalization", "medical_procedure",
 		// Family
-		"engagement", "marriage_bann", "marriage_contract", "marriage_license",
-		"marriage_settlement", "marriage", ENUM_TYPE_DIVORCE_FILED, ENUM_TYPE_DIVORCE_DECREE,
+		"engagement",
+		ENUM_TYPE_MARRIAGE_BANN, ENUM_TYPE_MARRIAGE_CONTRACT, ENUM_TYPE_MARRIAGE_LICENSE, ENUM_TYPE_MARRIAGE_SETTLEMENT,
+		ENUM_TYPE_MARRIAGE, ENUM_TYPE_DIVORCE_FILED, ENUM_TYPE_DIVORCE_DECREE,
 		ENUM_TYPE_DIVORCE, ENUM_TYPE_ANNULMENT,
 		// Achievements
 		"education", "graduation", "retirement",

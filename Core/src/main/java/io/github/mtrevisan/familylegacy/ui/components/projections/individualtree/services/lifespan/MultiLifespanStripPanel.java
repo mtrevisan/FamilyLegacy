@@ -34,6 +34,7 @@ import io.github.mtrevisan.familylegacy.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
+import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.tools.events.CalendarConverterDialog;
 import org.apache.commons.lang3.StringUtils;
 
@@ -222,7 +223,7 @@ public final class MultiLifespanStripPanel extends JPanel{
 			ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 		this.scrollPane.setBorder(null);
 		this.scrollPane.getVerticalScrollBar()
-			.setUnitIncrement(ROW_HEIGHT);
+			.setUnitIncrement(GUIHelper.SCROLLBAR_UNIT_INCREMENT);
 
 		setLayout(new BorderLayout());
 		add(scrollPane, BorderLayout.CENTER);
@@ -662,9 +663,6 @@ public final class MultiLifespanStripPanel extends JPanel{
 			return;
 
 		final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(record.getTag());
-		if(handler == null)
-			return;
-
 		final Window owner = SwingUtilities.getWindowAncestor(this);
 		final BaseRecordDialog dialog = handler.createEditDialog(owner, model, record);
 		dialog.setVisible(true);

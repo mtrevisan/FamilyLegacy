@@ -72,30 +72,34 @@ public final class ShortcutRegistry{
 	public static final ShortcutDefinition FILE_NEW = register(I18N.t("menu.file"), I18N.t("menu.file.new.file"), KeyStroke.getKeyStroke(KeyEvent.VK_N, MENU_MASK), "Ctrl+N");
 	public static final ShortcutDefinition FILE_OPEN = register(I18N.t("menu.file"), I18N.t("menu.file.open.file"), KeyStroke.getKeyStroke(KeyEvent.VK_O, MENU_MASK), "Ctrl+O");
 	public static final ShortcutDefinition FILE_SAVE = register(I18N.t("menu.file"), I18N.t("menu.file.save"), KeyStroke.getKeyStroke(KeyEvent.VK_S, MENU_MASK), "Ctrl+S");
-	public static final ShortcutDefinition FILE_SAVE_AS = register(I18N.t("menu.file"), I18N.t("menu.file.save.as"), KeyStroke.getKeyStroke(KeyEvent.VK_S, MENU_MASK | InputEvent.SHIFT_DOWN_MASK), "Ctrl+Shift+S");
+	public static final ShortcutDefinition FILE_SAVE_AS = register(I18N.t("menu.file"), I18N.t("menu.file.save_as"), KeyStroke.getKeyStroke(KeyEvent.VK_S, MENU_MASK | InputEvent.SHIFT_DOWN_MASK), "Ctrl+Shift+S");
 	public static final ShortcutDefinition FILE_EXIT = register(I18N.t("menu.file"), I18N.t("menu.file.exit"), KeyStroke.getKeyStroke(KeyEvent.VK_Q, MENU_MASK), "Ctrl+Q");
 
 	public static final ShortcutDefinition EDIT_UNDO = register(I18N.t("menu.edit"), I18N.t("menu.edit.undo"), KeyStroke.getKeyStroke(KeyEvent.VK_Z, MENU_MASK), (IS_MAC? "⌘Z": "Ctrl+Z"));
 	public static final ShortcutDefinition EDIT_REDO = register(I18N.t("menu.edit"), I18N.t("menu.edit.redo"), KeyStroke.getKeyStroke(KeyEvent.VK_Y, MENU_MASK), KeyStroke.getKeyStroke(KeyEvent.VK_Z, MENU_MASK | InputEvent.SHIFT_DOWN_MASK), (IS_MAC? "⌘⇧Z": "Ctrl+Y"));
+
 	public static final ShortcutDefinition EDIT_RELOCATE_INDIVIDUAL = register(I18N.t("menu.edit"), I18N.t("menu.individual.relocate"), KeyStroke.getKeyStroke(KeyEvent.VK_X, MENU_MASK), "Ctrl+X");
 	public static final ShortcutDefinition EDIT_DELETE_INDIVIDUAL = register(I18N.t("menu.edit"), I18N.t("menu.individual.delete"), KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "Del");
+	public static final ShortcutDefinition EDIT_SELECTION_INDIVIDUAL = register(I18N.t("menu.edit"), I18N.t("menu.individual.edit.individual"), KeyStroke.getKeyStroke(KeyEvent.VK_F2, 0), "F2");
+
 	public static final ShortcutDefinition EDIT_RELOCATE_GROUP = register(I18N.t("menu.edit"), I18N.t("menu.group.relocate"), KeyStroke.getKeyStroke(KeyEvent.VK_X, MENU_MASK), "Ctrl+X");
 	public static final ShortcutDefinition EDIT_DELETE_GROUP = register(I18N.t("menu.edit"), I18N.t("menu.group.delete"), KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "Del");
-	public static final ShortcutDefinition EDIT_SELECTION_INDIVIDUAL = register(I18N.t("menu.edit"), I18N.t("menu.individual.edit.individual"), KeyStroke.getKeyStroke(KeyEvent.VK_F2, 0), "F2");
 	public static final ShortcutDefinition EDIT_SELECTION_GROUP = register(I18N.t("menu.edit"), I18N.t("menu.group.edit.group"), KeyStroke.getKeyStroke(KeyEvent.VK_F2, 0), "F2");
 
-	public static final ShortcutDefinition VIEW_ANCESTOR_TREE = register(I18N.t("menu.view"), I18N.t("menu.view.ancestor.tree"), KeyStroke.getKeyStroke(KeyEvent.VK_1, MENU_MASK), "Ctrl+1");
-	public static final ShortcutDefinition VIEW_SUGIYAMA_GRAPH = register(I18N.t("menu.view"), I18N.t("menu.view.sugiyama.graph"), KeyStroke.getKeyStroke(KeyEvent.VK_2, MENU_MASK), "Ctrl+2");
-	public static final ShortcutDefinition VIEW_EGO_NETWORK = register(I18N.t("menu.view"), I18N.t("menu.view.ego.network"), KeyStroke.getKeyStroke(KeyEvent.VK_3, MENU_MASK), "Ctrl+3");
-	public static final ShortcutDefinition VIEW_FULLSCREEN = register(I18N.t("menu.view"), I18N.t("menu.view.full.screen"), KeyStroke.getKeyStroke(KeyEvent.VK_F11, 0), "F11");
+	public static final ShortcutDefinition EDIT_DELETE_PLACE = register(I18N.t("menu.edit"), I18N.t("menu.place.delete"), KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "Del");
+
+	public static final ShortcutDefinition VIEW_BIOLOGICAL_TREE = register(I18N.t("menu.view"), I18N.t("menu.view.biological_tree"), KeyStroke.getKeyStroke(KeyEvent.VK_1, MENU_MASK), "Ctrl+1");
+	public static final ShortcutDefinition VIEW_SUGIYAMA_GRAPH = register(I18N.t("menu.view"), I18N.t("menu.view.sugiyama_graph"), KeyStroke.getKeyStroke(KeyEvent.VK_2, MENU_MASK), "Ctrl+2");
+	public static final ShortcutDefinition VIEW_EGO_NETWORK = register(I18N.t("menu.view"), I18N.t("menu.view.ego_network"), KeyStroke.getKeyStroke(KeyEvent.VK_3, MENU_MASK), "Ctrl+3");
+	public static final ShortcutDefinition VIEW_FULLSCREEN = register(I18N.t("menu.view"), I18N.t("menu.view.full_screen"), KeyStroke.getKeyStroke(KeyEvent.VK_F11, 0), "F11");
 
 	public static final ShortcutDefinition NAV_BACK = register(I18N.t("menu.navigate"), I18N.t("menu.navigate.back"), KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, MENU_MASK), "Ctrl+Left");
 	public static final ShortcutDefinition NAV_FORWARD = register(I18N.t("menu.navigate"), I18N.t("menu.navigate.forward"), KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, MENU_MASK), "Ctrl+Right");
 	public static final ShortcutDefinition NAV_JUMP_TO_INDIVIDUAL = register(I18N.t("menu.navigate"), I18N.t("menu.navigate.jump.to.individual"), KeyStroke.getKeyStroke(KeyEvent.VK_J, MENU_MASK), "Ctrl+J");
 	public static final ShortcutDefinition NAV_JUMP_TO_INDIVIDUAL_OR_GROUP = register(I18N.t("menu.navigate"), I18N.t("menu.navigate.jump.to.individual.or.group"), KeyStroke.getKeyStroke(KeyEvent.VK_J, MENU_MASK), "Ctrl+J");
 
-	public static final ShortcutDefinition TREE_TOGGLE_LAYOUT = register(I18N.t("menu.view.ancestor.tree"), I18N.t("menu.view.ancestor.tree.toggle.layout"), KeyStroke.getKeyStroke(KeyEvent.VK_L, MENU_MASK), "Ctrl+L");
-	public static final ShortcutDefinition TREE_TOGGLE_LIFESPAN_EVENTS_STRIP = register(I18N.t("menu.view.ancestor.tree"), I18N.t("menu.view.ancestor.tree.toggle.lifespan.strip"), KeyStroke.getKeyStroke(KeyEvent.VK_T, MENU_MASK), "Ctrl+T");
+	public static final ShortcutDefinition TREE_TOGGLE_LAYOUT = register(I18N.t("menu.view.biological_tree"), I18N.t("menu.view.biological_tree.toggle.layout"), KeyStroke.getKeyStroke(KeyEvent.VK_L, MENU_MASK), "Ctrl+L");
+	public static final ShortcutDefinition TREE_TOGGLE_LIFESPAN_EVENTS_STRIP = register(I18N.t("menu.view.biological_tree"), I18N.t("menu.view.biological_tree.toggle.lifespan.strip"), KeyStroke.getKeyStroke(KeyEvent.VK_T, MENU_MASK), "Ctrl+T");
 
 	public static final ShortcutDefinition HELP_CONTENTS = register(I18N.t("menu.help"), I18N.t("menu.help.help.contents"), KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0), "F1");
 

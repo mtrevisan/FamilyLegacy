@@ -53,12 +53,16 @@ public class EventParticipationHandler extends AbstractRecordTypeHandler<EventPa
 
 	@Override
 	public String getLabel(){
-		return I18N.t("confirmation.exist.record.event.participation");
+		return I18N.t("confirmation.exist_record.event_participation");
 	}
 
 	@Override
 	public String getType(){
 		return TYPE;
+	}
+
+	public static boolean isOfType(final FLEFRecord record){
+		return (record != null && TYPE.equalsIgnoreCase(record.getTag()));
 	}
 
 	@Override
@@ -78,8 +82,7 @@ public class EventParticipationHandler extends AbstractRecordTypeHandler<EventPa
 			.getFirst();
 		if(participant != null){
 			final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(participant.getTag());
-			if(handler != null)
-				participantText = handler.getDisplayText(participant, model);
+			participantText = handler.getDisplayText(participant, model);
 		}
 		sb.append(StringUtils.isNotEmpty(participantText)? participantText: "Unknown Participant");
 

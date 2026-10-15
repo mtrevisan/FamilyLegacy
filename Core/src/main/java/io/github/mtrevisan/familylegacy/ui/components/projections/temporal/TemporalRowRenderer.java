@@ -191,9 +191,11 @@ public final class TemporalRowRenderer{
 	private static String truncate(final Graphics2D g, final String text, final int maxWidth){
 		if(text == null)
 			return StringUtils.EMPTY;
+
 		final FontMetrics fm = g.getFontMetrics();
 		if(fm.stringWidth(text) <= maxWidth)
 			return text;
+
 		final int suffixWidth = fm.stringWidth(TRUNCATION_SUFFIX);
 		int end = text.length();
 		while(end > 0 && fm.stringWidth(text.substring(0, end)) + suffixWidth > maxWidth)

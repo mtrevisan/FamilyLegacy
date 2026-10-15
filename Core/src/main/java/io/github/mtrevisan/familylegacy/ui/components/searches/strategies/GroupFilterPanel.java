@@ -65,7 +65,7 @@ public class GroupFilterPanel extends JPanel implements RecordFilterPanel{
 
 	private void initComponents(){
 		setLayout(new MigLayout("wrap 2,gap 5", "[][grow,fill]", "[]"));
-		setBorder(BorderFactory.createTitledBorder(I18N.tf("dialog.search.filter.title", I18N.t("dialog.component.group"))));
+		setBorder(BorderFactory.createTitledBorder(I18N.tf("dialog.search_filter.title", I18N.t("dialog.component.groups"))));
 
 		add(new JLabel(I18N.t("dialog.group.name") + ":"));
 		add(nameField, "growx");

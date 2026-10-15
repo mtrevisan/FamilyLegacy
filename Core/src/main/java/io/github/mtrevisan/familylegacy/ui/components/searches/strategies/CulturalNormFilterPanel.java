@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.ui.components.searches.strategies;
 
 import io.github.mtrevisan.familylegacy.io.model.readers.CulturalNormReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.DateReader;
+import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.ui.components.searches.RecordFilterPanel;
 import io.github.mtrevisan.familylegacy.ui.components.searches.SearchCriteria;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
@@ -53,9 +54,9 @@ public class CulturalNormFilterPanel extends JPanel implements RecordFilterPanel
 	private final JComboBox<String> ruleTypeCombo = new JComboBox<>(GUIHelper.fillCombo(CulturalNormReader.TYPES, I18N.t("search.combo.any")));
 	private final JTextField placeField = new JTextField(20);
 	private final JTextField dateFromField = new JTextField(10);
-	private final JComboBox<String> calendarFromCombo = new JComboBox<>(DateReader.CALENDARS);
+	private final BoundComboBox<String> calendarFromCombo = new BoundComboBox<>(DateReader.TAG_CALENDAR, DateReader.CALENDARS);
 	private final JTextField dateToField = new JTextField(10);
-	private final JComboBox<String> calendarToCombo = new JComboBox<>(DateReader.CALENDARS);
+	private final BoundComboBox<String> calendarToCombo = new BoundComboBox<>(DateReader.TAG_CALENDAR, DateReader.CALENDARS);
 
 	private final Consumer<SearchCriteria> onChanged;
 
@@ -71,11 +72,14 @@ public class CulturalNormFilterPanel extends JPanel implements RecordFilterPanel
 
 	private void initComponents(){
 		setLayout(new MigLayout("wrap 2,gap 5", "[][grow,fill]", "[]"));
-		setBorder(BorderFactory.createTitledBorder(I18N.tf("dialog.search.filter.title", I18N.t("dialog.component.cultural.norm"))));
+		setBorder(BorderFactory.createTitledBorder(I18N.tf("dialog.search_filter.title", I18N.t("dialog.component.cultural.norms"))));
 
-		add(new JLabel(I18N.t("dialog.cultural.norm.title") + ":"));
+		calendarFromCombo.setI18NPrefix("enum.date.calendar");
+		calendarToCombo.setI18NPrefix("enum.date.calendar");
+
+		add(new JLabel(I18N.t("dialog.cultural_norm.title") + ":"));
 		add(titleField, "growx");
-		add(new JLabel(I18N.t("dialog.cultural.norm.rule.type") + ":"));
+		add(new JLabel(I18N.t("dialog.cultural_norm.rule_type") + ":"));
 		add(ruleTypeCombo, "growx");
 		add(new JLabel(I18N.t("dialog.place") + ":"));
 		add(placeField, "growx");

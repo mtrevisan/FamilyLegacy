@@ -141,7 +141,7 @@ public class EntityField extends BoundTextField{
 	private Consumer<MenuBuilder> createMenuItemsForCitationWrapper(){
 		return builder -> {
 			if(handlers.size() == 1)
-				builder.item(I18N.t("popupmenu.create.new"), this::createNewItem);
+				builder.item(I18N.t("popupmenu.create_new"), this::createNewItem);
 			builder.item(I18N.t("popupmenu.set"), this::addItem);
 			builder.separator();
 			builder.selectionSensitiveItem(I18N.t("popupmenu.edit.record"), this::editTargetItem);

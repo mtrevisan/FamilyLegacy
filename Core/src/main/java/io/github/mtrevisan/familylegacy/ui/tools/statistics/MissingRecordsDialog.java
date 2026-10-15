@@ -125,6 +125,7 @@ final class MissingRecordsDialog extends JDialog{
 			JOptionPane.showMessageDialog(this,
 				"No editor registered for record type '" + tag + "'.",
 				"Statistics", JOptionPane.WARNING_MESSAGE);
+
 			return;
 		}
 

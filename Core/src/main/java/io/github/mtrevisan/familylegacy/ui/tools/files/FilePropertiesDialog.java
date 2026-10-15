@@ -82,7 +82,7 @@ public final class FilePropertiesDialog extends JDialog{
 		final JScrollPane scroll = new JScrollPane(area);
 		scroll.setPreferredSize(new Dimension(620, 440));
 
-		final JButton copy = new JButton(I18N.t("button.copy.to.clipboard"));
+		final JButton copy = new JButton(I18N.t("button.copy_to_clipboard"));
 		copy.addActionListener(e -> {
 			final StringSelection selection = new StringSelection(area.getText());
 			Toolkit.getDefaultToolkit()

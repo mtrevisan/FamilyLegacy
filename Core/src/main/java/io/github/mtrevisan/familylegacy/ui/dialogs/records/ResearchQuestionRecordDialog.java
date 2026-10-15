@@ -136,7 +136,7 @@ public class ResearchQuestionRecordDialog extends BaseRecordDialog{
 
 		titleField = new BoundTextField(ResearchQuestionReader.TAG_TITLE);
 		questionArea = new BoundTextArea(ResearchQuestionReader.TAG_QUESTION, 3, 30);
-		targetPanel = EntityListPanel.createForOneOfReference(ResearchQuestionReader.TAG_TARGET, this, I18N.t("dialog.research.question.target"), model)
+		targetPanel = EntityListPanel.createForOneOfReference(ResearchQuestionReader.TAG_TARGET, this, I18N.t("dialog.research_question.target"), model)
 			.withHandlerTypes(IndividualHandler.class, GroupHandler.class, EventHandler.class,
 				EventParticipationHandler.class, RelationshipHandler.class, IndividualAttributeHandler.class,
 				GroupAttributeHandler.class, PlaceHandler.class, PlaceRelationshipHandler.class, SourceHandler.class,
@@ -172,28 +172,28 @@ public class ResearchQuestionRecordDialog extends BaseRecordDialog{
 	@Override
 	protected JPanel createPropertiesPanel(){
 		// title
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.research.question.title") + "*:", titleField);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.research_question.title") + "*:", titleField);
 
 		// question
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.research.question.question") + "*:", questionArea);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.research_question.question") + "*:", questionArea);
 
 		// target
 		GUIHelper.addComponent(propertiesPanel, targetPanel);
 
 		// status
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.research.question.status") + "*:", statusPanel);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.research_question.status") + "*:", statusPanel);
 
 		// conclusion panel:
 		final JPanel conclusionPanel = GUIHelper.createLabelFieldPanel(5, "[]5[]");
-		conclusionPanel.setBorder(BorderFactory.createTitledBorder(I18N.t("dialog.research.question.conclusion")));
+		conclusionPanel.setBorder(BorderFactory.createTitledBorder(I18N.t("dialog.research_question.conclusion")));
 		// conclusion
 		GUIHelper.addComponent(conclusionPanel, conclusionArea);
 		// confidence
-		GUIHelper.addLabeledComponent(conclusionPanel, I18N.t("dialog.research.question.confidence") + ":", conclusionConfidenceCombo);
+		GUIHelper.addLabeledComponent(conclusionPanel, I18N.t("dialog.research_question.confidence") + ":", conclusionConfidenceCombo);
 		GUIHelper.addComponent(propertiesPanel, conclusionPanel);
 
 		// rationale
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.research.question.rationale") + ":", rationaleArea);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.research_question.rationale") + ":", rationaleArea);
 
 		// closed date
 		//calculated
@@ -240,14 +240,14 @@ public class ResearchQuestionRecordDialog extends BaseRecordDialog{
 	protected boolean validData(){
 		if(titleField.isEmpty()){
 			GUIHelper.showValidationErrorAndFocus(this,
-				I18N.tf("validation.required", I18N.t("dialog.research.question.title")),
+				I18N.tf("validation.required", I18N.t("dialog.research_question.title")),
 				tabbedPane, propertiesPanel, titleField);
 			return false;
 		}
 
 		if(questionArea.isEmpty()){
 			GUIHelper.showValidationErrorAndFocus(this,
-				I18N.tf("validation.required", I18N.t("dialog.research.question.question")),
+				I18N.tf("validation.required", I18N.t("dialog.research_question.question")),
 				tabbedPane, propertiesPanel, questionArea);
 			return false;
 		}

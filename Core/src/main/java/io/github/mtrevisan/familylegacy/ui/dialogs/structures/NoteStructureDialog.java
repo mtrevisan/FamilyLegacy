@@ -107,7 +107,7 @@ public class NoteStructureDialog extends BaseRecordDialog{
 		textArea = new BoundTextArea(NoteReader.TAG_TEXT, 3, 25);
 		textArea.setToolTipText(I18N.t("dialog.note.text.tooltip"));
 		mimeCombo = new BoundComboBox<>(NoteReader.TAG_MIME, MIME_TYPES);
-		mimeCombo.setI18NPrefix("enum.note.mime.type");
+		mimeCombo.setI18NPrefix("enum.note.mime_type");
 		localeCombo = new BoundFilteredComboBox<>(NoteReader.TAG_LOCALE, LocaleHelper.getAvailableLanguageTags());
 		localeCombo.setEditable(true);
 		translationPanel = new TranslationListPanel(NoteReader.TAG_TRANSLATION, this, I18N.t("dialog.note.translations"));
@@ -141,7 +141,7 @@ public class NoteStructureDialog extends BaseRecordDialog{
 		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.note.text") + "*:", textArea);
 
 		// mime
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.note.mime.type") + ":", mimeCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.note.mime_type") + ":", mimeCombo);
 
 		// locale
 		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.note.locale") + ":", localeCombo);

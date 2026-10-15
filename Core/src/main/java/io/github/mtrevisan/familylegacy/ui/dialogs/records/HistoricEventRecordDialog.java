@@ -93,7 +93,7 @@ public class HistoricEventRecordDialog extends BaseRecordDialog{
 		super(parent, model, record, HistoricEventHandler.getInstance());
 
 		typeCombo = new BoundComboBox<>(HistoricEventReader.TAG_TYPE, GUIHelper.fillCombo(HistoricEventReader.TYPES, null));
-		typeCombo.setI18NPrefix("enum.historic.event.type");
+		typeCombo.setI18NPrefix("enum.historic_event.type");
 		typeCombo.setEditable(true);
 		titleField = new BoundTextField(HistoricEventReader.TAG_TITLE);
 		dateField = DateField.createWithWrapperTag(HistoricEventReader.TAG_DATE, this, "Date", model);
@@ -101,7 +101,7 @@ public class HistoricEventRecordDialog extends BaseRecordDialog{
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.CONTEXT_IMPACT_ON_CONTEXT, ContextImpactHandler.TYPE, I18N.t("dialog.component.context.impact"))
+			.withComponent(PanelKey.CONTEXT_IMPACT_ON_CONTEXT, ContextImpactHandler.TYPE, I18N.t("dialog.component.context.impacts"))
 			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, I18N.t("dialog.component.conclusions"))
 			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, I18N.t("dialog.component.research.questions"))
 			.withComponent(PanelKey.SOURCE, HistoricEventReader.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
@@ -126,13 +126,13 @@ public class HistoricEventRecordDialog extends BaseRecordDialog{
 		final JPanel propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]10[]10[]");
 
 		// type
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.historic.event.type") + ":", typeCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.historic_event.type") + ":", typeCombo);
 
 		// title
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.historic.event.title") + ":", titleField);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.historic_event.title") + ":", titleField);
 
 		// date
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.historic.event.date") + ":", dateField);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.historic_event.date") + ":", dateField);
 
 		// place
 		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.place") + ":", placeField);

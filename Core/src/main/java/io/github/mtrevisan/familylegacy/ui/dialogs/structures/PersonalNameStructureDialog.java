@@ -111,7 +111,7 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]");
 
 		typeCombo = new BoundComboBox<>(NameReader.TAG_TYPE, GUIHelper.fillCombo(NameReader.PERSONAL_TYPES, null));
-		typeCombo.setI18NPrefix("enum.personal.name.type");
+		typeCombo.setI18NPrefix("enum.personal_name.type");
 		typeCombo.setEditable(true);
 		partPanel = EntityListPanel.createForStructure(NameReader.TAG_PART, this, I18N.t("dialog.name.parts") + "*", model, PartHandler.class);
 		localeCombo = new BoundFilteredComboBox<>(NameReader.TAG_LOCALE, LocaleHelper.getAvailableLanguageTags());
@@ -203,7 +203,7 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 	protected boolean validData(){
 		if(partPanel.isEmpty()){
 			GUIHelper.showValidationErrorAndFocus(this,
-				I18N.tf("validation.at.least.one", I18N.t("dialog.name.parts")),
+				I18N.tf("validation.at_least_one", I18N.t("dialog.name.parts")),
 				tabbedPane, propertiesPanel, partPanel);
 
 			return false;

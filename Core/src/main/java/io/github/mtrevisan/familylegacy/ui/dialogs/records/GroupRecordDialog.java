@@ -82,8 +82,6 @@ import java.io.IOException;
  * Tab 9 (Privacy): privacy
  * Tab 10 (Audit): audit
  */
-// FIXME add a member to a group should show RelationshipRecordDialog
-// FIXME also on GroupRecordDialog and IndividualRecordDialog, tab Relationships | Add Existing
 public class GroupRecordDialog extends BaseRecordDialog{
 
 	private final PreferredImagePanel preferredImagePanel;
@@ -111,10 +109,10 @@ public class GroupRecordDialog extends BaseRecordDialog{
 
 		components = new RecordDialogBuilder(this, model, record)
 			.withComponent(PanelKey.GROUP_ATTRIBUTE, GroupAttributeHandler.TYPE, I18N.t("dialog.component.group.attributes"))
-			.withComponent(PanelKey.RELATIONSHIP_ON_OBJECT, RelationshipHandler.TYPE, I18N.t("dialog.component.group.relationship.on.target"))
-			.withComponent(PanelKey.RELATIONSHIP_ON_SUBJECT, RelationshipHandler.TYPE, I18N.t("dialog.component.relationship.on.subject"))
+			.withComponent(PanelKey.RELATIONSHIP_ON_OBJECT, RelationshipHandler.TYPE, I18N.t("dialog.component.group.relationships.on.target"))
+			.withComponent(PanelKey.RELATIONSHIP_ON_SUBJECT, RelationshipHandler.TYPE, I18N.t("dialog.component.relationships.on.subject"))
 			.withComponent(PanelKey.EVENT_PARTICIPATION_ON_PARTICIPANT, EventParticipationHandler.TYPE, I18N.t("dialog.component.event.participations"))
-			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, ContextImpactHandler.TYPE, I18N.t("dialog.component.context.impact"))
+			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, ContextImpactHandler.TYPE, I18N.t("dialog.component.context.impacts"))
 			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, I18N.t("dialog.component.conclusions"))
 			.withComponent(PanelKey.IDENTITY_HYPOTHESIS_ON_IDENTITY, IdentityHypothesisHandler.TYPE, I18N.t("dialog.component.identity.hypotheses"))
 			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, I18N.t("dialog.component.research.questions"))

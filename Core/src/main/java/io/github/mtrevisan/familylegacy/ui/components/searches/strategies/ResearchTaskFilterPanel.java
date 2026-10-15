@@ -67,15 +67,15 @@ public class ResearchTaskFilterPanel extends JPanel implements RecordFilterPanel
 
 	private void initComponents(){
 		setLayout(new MigLayout("wrap 2,gap 5", "[][grow,fill]", "[]"));
-		setBorder(BorderFactory.createTitledBorder(I18N.tf("dialog.search.filter.title", I18N.t("dialog.component.research.task"))));
+		setBorder(BorderFactory.createTitledBorder(I18N.tf("dialog.search_filter.title", I18N.t("dialog.component.research.tasks"))));
 
-		add(new JLabel(I18N.t("dialog.research.task.description") + ":"));
+		add(new JLabel(I18N.t("dialog.research_task.description") + ":"));
 		add(descriptionField, "growx");
-		add(new JLabel(I18N.t("dialog.research.task.status") + ":"));
+		add(new JLabel(I18N.t("dialog.research_task.status") + ":"));
 		add(statusCombo, "growx");
-		add(new JLabel(I18N.t("dialog.research.task.priority") + ":"));
+		add(new JLabel(I18N.t("dialog.research_task.priority") + ":"));
 		add(priorityCombo, "growx");
-		add(new JLabel(I18N.t("dialog.research.task.outcome") + ":"));
+		add(new JLabel(I18N.t("dialog.research_task.outcome") + ":"));
 		add(outcomeField, "growx");
 	}
 

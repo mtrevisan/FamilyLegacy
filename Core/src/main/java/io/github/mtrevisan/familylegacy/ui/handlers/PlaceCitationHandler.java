@@ -59,7 +59,7 @@ public class PlaceCitationHandler extends AbstractRecordTypeHandler<PlaceCitatio
 
 	@Override
 	public String getLabel(){
-		return I18N.t("confirmation.exist.record.place.citation");
+		return I18N.t("confirmation.exist_record.place_citation");
 	}
 
 	@Override

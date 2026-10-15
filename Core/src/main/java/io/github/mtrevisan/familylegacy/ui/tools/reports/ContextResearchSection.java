@@ -115,12 +115,15 @@ final class ContextResearchSection implements SectionBuilder{
 		final FLEFRecord contextField = FLEFRecordHelper.findChild(contextImpact, ContextImpactReader.TAG_CONTEXT);
 		if(contextField == null)
 			return StringUtils.EMPTY;
+
 		final FLEFRecord ref = contextField.getTheOnlyChild();
 		if(ref == null)
 			return StringUtils.EMPTY;
+
 		final String refId = ref.getValue();
 		if(refId == null)
 			return StringUtils.EMPTY;
+
 		final String label = ctx.resolveContextLabel(refId);
 		return (label != null? label: StringUtils.EMPTY);
 	}

@@ -174,7 +174,7 @@ public class RepositoryRecordDialog extends BaseRecordDialog{
 	protected boolean validData(){
 		if(!namePanel.hasData()){
 			GUIHelper.showValidationErrorAndFocus(this,
-				I18N.tf("validation.at.least.one", I18N.t("dialog.repository.name")),
+				I18N.tf("validation.at_least_one", I18N.t("dialog.repository.name")),
 				tabbedPane, propertiesPanel, namePanel);
 
 			return false;

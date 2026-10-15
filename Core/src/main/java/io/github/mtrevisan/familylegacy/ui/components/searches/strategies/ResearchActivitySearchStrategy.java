@@ -117,11 +117,11 @@ public class ResearchActivitySearchStrategy implements SearchStrategy{
 		details.setEmptyValue(StringUtils.EMPTY);
 
 		if(StringUtils.isNotEmpty(type))
-			details.add(I18N.t("dialog.research.activity.type") + ": " + type);
+			details.add(I18N.t("dialog.research_activity.type") + ": " + type);
 		if(StringUtils.isNotEmpty(status))
-			details.add(I18N.t("dialog.research.activity.status") + ": " + status);
+			details.add(I18N.t("dialog.research_activity.status") + ": " + status);
 		if(StringUtils.isNotEmpty(result))
-			details.add(I18N.t("dialog.research.activity.result") + ": " + result);
+			details.add(I18N.t("dialog.research_activity.result") + ": " + result);
 
 		return baseDisplayText + details;
 	}

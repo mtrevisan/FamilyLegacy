@@ -36,6 +36,7 @@ import io.github.mtrevisan.familylegacy.ui.components.projections.relationshipgr
 import io.github.mtrevisan.familylegacy.ui.components.projections.repository.EgoNetworkMutator;
 import io.github.mtrevisan.familylegacy.ui.components.projections.repository.GenealogyRepository;
 import io.github.mtrevisan.familylegacy.ui.components.projections.repository.TreeChangeListener;
+import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.helpers.ViewportPanSupport;
 
 import javax.swing.JFrame;
@@ -73,8 +74,6 @@ import java.util.function.Consumer;
  * Extracted delegation logic to {@link EgoNetworkSelectionController}, {@link EgoNetworkLayoutBuilder},
  * {@link EgoNetworkActionHandler}, and {@link EgoNetworkListener}.
  */
-// FIXME add a member to a group should show RelationshipRecordDialog
-// FIXME also on GroupRecordDialog and IndividualRecordDialog, tab Relationships | Add Existing
 public class EgoNetworkPanel extends JPanel implements TreeChangeListener{
 
 	private static final Color BACKGROUND_COLOR = new Color(242, 238, 228);
@@ -197,8 +196,10 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener{
 		final JViewport viewport = networkScrollPane.getViewport();
 		viewport.setScrollMode(JViewport.SIMPLE_SCROLL_MODE);
 		viewport.setBackground(BACKGROUND_COLOR);
-		networkScrollPane.getVerticalScrollBar().setUnitIncrement(16);
-		networkScrollPane.getHorizontalScrollBar().setUnitIncrement(16);
+		networkScrollPane.getVerticalScrollBar()
+			.setUnitIncrement(GUIHelper.SCROLLBAR_UNIT_INCREMENT);
+		networkScrollPane.getHorizontalScrollBar()
+			.setUnitIncrement(GUIHelper.SCROLLBAR_UNIT_INCREMENT);
 
 		timeline = new GlobalEventTimelinePanel(model);
 		timeline.setVisible(false);

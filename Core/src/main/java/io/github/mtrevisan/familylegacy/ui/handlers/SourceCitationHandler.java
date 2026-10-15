@@ -59,7 +59,7 @@ public class SourceCitationHandler extends AbstractRecordTypeHandler<SourceCitat
 
 	@Override
 	public String getLabel(){
-		return I18N.t("confirmation.exist.record.source.citation");
+		return I18N.t("confirmation.exist_record.source_citation");
 	}
 
 	@Override

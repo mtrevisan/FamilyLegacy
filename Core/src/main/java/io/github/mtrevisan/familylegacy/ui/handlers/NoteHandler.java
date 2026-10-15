@@ -57,7 +57,7 @@ public class NoteHandler extends AbstractRecordTypeHandler<NoteStructureDialog>{
 
 	@Override
 	public String getLabel(){
-		return I18N.t("confirmation.exist.record.note");
+		return I18N.t("confirmation.exist_record.note");
 	}
 
 	@Override

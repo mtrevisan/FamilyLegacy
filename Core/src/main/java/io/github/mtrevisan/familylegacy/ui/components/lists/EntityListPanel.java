@@ -219,10 +219,10 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 
 	private Consumer<MenuBuilder> createMenuItemsForDefault(){
 		return builder -> {
-			builder.item(I18N.t("popupmenu.create.new"), this::createNewItem);
+			builder.item(I18N.t("popupmenu.create_new"), this::createNewItem);
 			// Only show "Add Existing" for ENTITY_REFERENCE and ONEOF_REFERENCE (not for STRUCTURE)
 			if(type != ListType.STRUCTURE)
-				builder.item(I18N.t("popupmenu.add.existing"), this::addItem);
+				builder.item(I18N.t("popupmenu.add_existing"), this::addItem);
 			builder.separator();
 			builder.selectionSensitiveItem(I18N.t("popupmenu.edit"), this::editItem);
 			builder.separator();
@@ -232,8 +232,8 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 
 	private Consumer<MenuBuilder> createMenuItemsForCitationWrapper(){
 		return builder -> {
-			builder.item(I18N.t("popupmenu.create.new"), this::createNewItem);
-			builder.item(I18N.t("popupmenu.add.existing"), this::addItem);
+			builder.item(I18N.t("popupmenu.create_new"), this::createNewItem);
+			builder.item(I18N.t("popupmenu.add_existing"), this::addItem);
 			builder.separator();
 			builder.selectionSensitiveItem(I18N.t("popupmenu.edit.record"), this::editTargetItem);
 			builder.selectionSensitiveItem(I18N.t("popupmenu.edit.citation"), this::editItem);
@@ -249,9 +249,6 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 			return "--";
 
 		final RecordTypeHandler<?> handler = findHandler(record);
-		if(handler == null)
-			return "--";
-
 		return handler.getDisplayText(record, model);
 	}
 
@@ -335,11 +332,13 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 		if(citationDialog.isSaved()){
 			final FLEFRecord newCitation = citationDialog.getRecord();
 			addItemDirectly(newCitation);
+
 			return newCitation;
 		}
 		else{
 			// Rollback: remove the target entity
 			model.removeRecord(targetId);
+
 			return null;
 		}
 	}
@@ -348,7 +347,7 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 	protected FLEFRecord showEditDialog(final FLEFRecord record){
 		if(record == null){
 			JOptionPane.showMessageDialog(parent,
-				I18N.t("error.record.not.found"),
+				I18N.t("error.record_not_found"),
 				I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
 
 			return null;

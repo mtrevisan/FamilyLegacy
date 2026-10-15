@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.ui.tools.sources;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.readers.DocumentReader;
+import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import io.github.mtrevisan.familylegacy.ui.tools.ReportDialog;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolContext;
@@ -176,7 +177,8 @@ public final class MediaManagerDialog extends JDialog{
 		});
 
 		final JScrollPane gridScroll = new JScrollPane(documentList);
-		gridScroll.getVerticalScrollBar().setUnitIncrement(20);
+		gridScroll.getVerticalScrollBar()
+			.setUnitIncrement(GUIHelper.SCROLLBAR_UNIT_INCREMENT);
 
 		final JPanel details = new JPanel(new BorderLayout(6, 6));
 		details.setBorder(BorderFactory.createTitledBorder("Details"));

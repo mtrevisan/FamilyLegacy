@@ -197,7 +197,7 @@ public final class ProjectionSwitcherPanel extends JPanel{
 	 */
 	public ProjectionType getCurrentProjectionType(){
 		if(currentPanel == treeGraphPanel)
-			return (treeGraphPanel.getLayoutEngine() == TREE_LAYOUT_ENGINE? ProjectionType.TREE: ProjectionType.GRAPH);
+			return (treeGraphPanel.getLayoutEngine() == TREE_LAYOUT_ENGINE? ProjectionType.BIOLOGICAL_TREE : ProjectionType.SUGIYAMA_GRAPH);
 
 		return ProjectionType.EGO_NETWORK;
 	}
@@ -212,11 +212,11 @@ public final class ProjectionSwitcherPanel extends JPanel{
 			return;
 
 		final JPanel target = switch(type){
-			case TREE -> {
+			case BIOLOGICAL_TREE -> {
 				treeGraphPanel.setLayoutEngine(TREE_LAYOUT_ENGINE);
 				yield treeGraphPanel;
 			}
-			case GRAPH -> {
+			case SUGIYAMA_GRAPH -> {
 				treeGraphPanel.setLayoutEngine(GRAPH_LAYOUT_ENGINE);
 				yield treeGraphPanel;
 			}
@@ -471,11 +471,11 @@ public final class ProjectionSwitcherPanel extends JPanel{
 		final ActionMap actionMap = component.getActionMap();
 
 		bindProjection(inputMap, actionMap,
-			ShortcutRegistry.VIEW_ANCESTOR_TREE.keyStroke(),
-			ProjectionType.TREE, ACTION_PROJECTION_ANCESTOR_TREE);
+			ShortcutRegistry.VIEW_BIOLOGICAL_TREE.keyStroke(),
+			ProjectionType.BIOLOGICAL_TREE, ACTION_PROJECTION_ANCESTOR_TREE);
 		bindProjection(inputMap, actionMap,
 			ShortcutRegistry.VIEW_SUGIYAMA_GRAPH.keyStroke(),
-			ProjectionType.GRAPH, ACTION_PROJECTION_SUGIYAMA_GRAPH);
+			ProjectionType.SUGIYAMA_GRAPH, ACTION_PROJECTION_SUGIYAMA_GRAPH);
 		bindProjection(inputMap, actionMap,
 			ShortcutRegistry.VIEW_EGO_NETWORK.keyStroke(),
 			ProjectionType.EGO_NETWORK, ACTION_PROJECTION_EGO);

@@ -217,6 +217,7 @@ public final class MarkdownReportRenderer implements ReportRenderer{
 	private static String escapeCell(final String s){
 		if(s == null)
 			return StringUtils.EMPTY;
+
 		return linkify(s)
 			.replace("|", "\\|")
 			.replace("\r", StringUtils.EMPTY)

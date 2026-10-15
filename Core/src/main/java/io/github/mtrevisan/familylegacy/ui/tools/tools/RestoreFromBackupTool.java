@@ -75,8 +75,8 @@ public final class RestoreFromBackupTool implements ToolOperation{
 			return;
 
 		final int choice = JOptionPane.showConfirmDialog(context.owner(),
-			I18N.tf("confirmation.restore.from.backup.message", file.getName()),
-			I18N.t("confirmation.restore.from.backup.title"),
+			I18N.tf("confirmation.restore_from_backup.message", file.getName()),
+			I18N.t("confirmation.restore_from_backup.title"),
 			JOptionPane.YES_NO_OPTION,
 			JOptionPane.WARNING_MESSAGE);
 		if(choice != JOptionPane.YES_OPTION)

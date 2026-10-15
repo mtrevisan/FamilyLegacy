@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
+import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.renderers.DocxReportRenderer;
@@ -183,7 +184,7 @@ public final class ReportDialog extends JDialog{
 		final JScrollPane scrollPane = new JScrollPane(mainPanel);
 		scrollPane.setBorder(BorderFactory.createEmptyBorder());
 		scrollPane.getVerticalScrollBar()
-			.setUnitIncrement(16);
+			.setUnitIncrement(GUIHelper.SCROLLBAR_UNIT_INCREMENT);
 
 		// Bottom button panel
 		final JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT, 6, 6));

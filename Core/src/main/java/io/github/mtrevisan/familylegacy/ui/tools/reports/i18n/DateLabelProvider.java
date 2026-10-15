@@ -111,6 +111,7 @@ public final class DateLabelProvider{
 	public String centuryPart(final String part){
 		if(part == null || part.isBlank())
 			return StringUtils.EMPTY;
+
 		final String key = "CENTURY_PART_" + part.toUpperCase(Locale.ROOT);
 		try{
 			return labels.getString(key);
@@ -127,6 +128,7 @@ public final class DateLabelProvider{
 	public String calendarDisplay(final String code){
 		if(code == null || code.isBlank())
 			return StringUtils.EMPTY;
+
 		final String key = "CALENDAR_" + code.toUpperCase(Locale.ROOT);
 		try{
 			return labels.getString(key);

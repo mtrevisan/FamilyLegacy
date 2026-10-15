@@ -95,7 +95,7 @@ public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 	private final EntityField identity1Field;
 	private final EntityField identity2Field;
 	private final BoundTextArea commentArea;
-	private final JButton compareIdentitiesButton = new JButton(I18N.t("dialog.identity.hypothesis.button.compare"));
+	private final JButton compareIdentitiesButton = new JButton(I18N.t("dialog.identity_hypothesis.button.compare"));
 
 
 	public static IdentityHypothesisRecordDialog createNew(final Window parent, final FLEFModel model){
@@ -121,7 +121,7 @@ public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, ContextImpactHandler.TYPE, I18N.t("dialog.component.context.impact"))
+			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, ContextImpactHandler.TYPE, I18N.t("dialog.component.context.impacts"))
 			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, I18N.t("dialog.component.conclusions"))
 			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, I18N.t("dialog.component.research.questions"))
 			.withComponent(PanelKey.SOURCE, IdentityHypothesisReader.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
@@ -144,10 +144,10 @@ public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 	@Override
 	protected JPanel createPropertiesPanel(){
 		// identity 1
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.identity.hypothesis.identity.one") + "*:", identity1Field);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.identity_hypothesis.identity.one") + "*:", identity1Field);
 
 		// identity 2
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.identity.hypothesis.identity.two") + "*:", identity2Field);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.identity_hypothesis.identity.two") + "*:", identity2Field);
 
 		// compare button, right under the two identity fields
 		final JPanel compareRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
@@ -156,7 +156,7 @@ public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 		GUIHelper.addComponent(propertiesPanel, compareRow);
 
 		// comment
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.identity.hypothesis.comment") + ":", commentArea);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.identity_hypothesis.comment") + ":", commentArea);
 
 		// evidence
 		final JPanel evidencePanel = components.getPanel(PanelKey.EVIDENCE);
@@ -227,7 +227,7 @@ public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 		final FLEFRecord identity2Ref = identity2Field.getEntity();
 		if(identity1Ref == null || identity1Ref.getId() == null || identity2Ref == null || identity2Ref.getId() == null){
 			JOptionPane.showMessageDialog(this,
-				I18N.t("error.identities.set"),
+				I18N.t("error.identities_set"),
 				I18N.t("error.title"),
 				JOptionPane.WARNING_MESSAGE);
 
@@ -238,7 +238,7 @@ public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 		final FLEFRecord identity2 = model.getRecordById(identity2Ref.getId());
 		if(identity1 == null || identity2 == null){
 			JOptionPane.showMessageDialog(this,
-				I18N.t("error.identities.not.present"),
+				I18N.t("error.identities_not_present"),
 				I18N.t("error.title"),
 				JOptionPane.WARNING_MESSAGE);
 
@@ -247,7 +247,7 @@ public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 
 		RecordDiffDialog.showComparison(
 			SwingUtilities.getWindowAncestor(this),
-			I18N.t("dialog.identity.hypothesis.comparison.title"),
+			I18N.t("dialog.identity_hypothesis.comparison.title"),
 			identity1,
 			identity2);
 	}
@@ -264,7 +264,7 @@ public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 			final EntityField field = (choice? identity1Field: identity2Field);
 			final JLabel label = GUIHelper.getLabeledComponent(choice? identity2Field: identity1Field);
 
-			label.setText(I18N.t("dialog.identity.hypothesis.identity") + "*:");
+			label.setText(I18N.t("dialog.identity_hypothesis.identity") + "*:");
 			field.setEntity(FLEFRecord.createMainRecord(parentEntity.getText(), parentEntity.getPath()));
 
 			GUIHelper.setComponentVisible(field, false);
@@ -287,7 +287,7 @@ public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 	protected boolean validData(){
 		if(!identity1Field.hasData()){
 			GUIHelper.showValidationErrorAndFocus(this,
-				I18N.tf("validation.required", I18N.t("dialog.identity.hypothesis.identity.one")),
+				I18N.tf("validation.required", I18N.t("dialog.identity_hypothesis.identity.one")),
 				tabbedPane, propertiesPanel, identity1Field);
 
 			return false;
@@ -295,7 +295,7 @@ public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 
 		if(!identity2Field.hasData()){
 			GUIHelper.showValidationErrorAndFocus(this,
-				I18N.tf("validation.required", I18N.t("dialog.identity.hypothesis.identity.two")),
+				I18N.tf("validation.required", I18N.t("dialog.identity_hypothesis.identity.two")),
 				tabbedPane, propertiesPanel, identity2Field);
 
 			return false;
@@ -308,7 +308,7 @@ public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 		final String identity2Id = (identity2 != null? identity2.getId(): null);
 		if(Objects.equals(identity1Id, identity2Id)){
 			GUIHelper.showValidationErrorAndFocus(this,
-				I18N.tf("validation.required.not.same", I18N.t("dialog.identity.hypothesis.identity.one"), I18N.t("dialog.identity.hypothesis.identity.two")),
+				I18N.tf("validation.required_not_same", I18N.t("dialog.identity_hypothesis.identity.one"), I18N.t("dialog.identity_hypothesis.identity.two")),
 				tabbedPane, propertiesPanel, identity1Field);
 
 			return false;

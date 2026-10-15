@@ -106,8 +106,7 @@ public final class IndividualDialogProvider{
 	FLEFRecord showSearchDialog(final Window parent, final SexType sex){
 		final FLEFRecord[] result = {null};
 		@SuppressWarnings("unchecked")
-		final RecordSelectionDialog dialog = RecordSelectionDialog.createWithAllowRecordCreation(
-			parent, model,
+		final RecordSelectionDialog dialog = RecordSelectionDialog.createWithAllowRecordCreation(parent, model,
 			(record, handler) -> result[0] = record,
 			IndividualHandler.class);
 		if(sex != null)

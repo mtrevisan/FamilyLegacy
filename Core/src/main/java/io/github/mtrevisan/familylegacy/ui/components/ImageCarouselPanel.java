@@ -73,7 +73,7 @@ public class ImageCarouselPanel extends JPanel{
 
 	public ImageCarouselPanel(){
 		setLayout(new CardLayout());
-		setBorder(BorderFactory.createTitledBorder(I18N.t("dialog.document.images.carousel.title")));
+		setBorder(BorderFactory.createTitledBorder(I18N.t("dialog.document.images_carousel.title")));
 
 		// Scroll pane with the list
 		final JList<ThumbnailInfo> list = new JList<>(model);
@@ -90,7 +90,7 @@ public class ImageCarouselPanel extends JPanel{
 		scrollPane.setBorder(BorderFactory.createEmptyBorder());
 
 		// Empty state label
-		final JLabel emptyLabel = new JLabel(I18N.t("dialog.document.images.carousel.empty"), SwingConstants.CENTER);
+		final JLabel emptyLabel = new JLabel(I18N.t("dialog.document.images_carousel.empty"), SwingConstants.CENTER);
 		emptyLabel.setFont(emptyLabel.getFont().deriveFont(Font.ITALIC));
 		emptyLabel.setForeground(Color.GRAY);
 		emptyLabel.setPreferredSize(new Dimension(0, 80));
@@ -199,7 +199,7 @@ public class ImageCarouselPanel extends JPanel{
 		g2.fillRect(0, 0, size, size);
 		g2.setColor(Color.DARK_GRAY);
 		g2.setFont(g2.getFont().deriveFont(10.f));
-		g2.drawString(I18N.t("dialog.preferred.image.no.image"), 10, size / 2);
+		g2.drawString(I18N.t("dialog.preferred.image.no_image"), 10, size / 2);
 		g2.dispose();
 		return new ImageIcon(img);
 	}

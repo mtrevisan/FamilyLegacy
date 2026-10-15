@@ -140,7 +140,7 @@ public class ConclusionSearchStrategy implements SearchStrategy{
 		if(StringUtils.isNotEmpty(issue))
 			details.add(I18N.t("dialog.conclusion.issue") + ": " + issue);
 		if(StringUtils.isNotEmpty(status))
-			details.add(I18N.t("dialog.conclusion.proof.status") + ": " + status);
+			details.add(I18N.t("dialog.conclusion.proof_status") + ": " + status);
 
 		return baseDisplayText + details;
 	}

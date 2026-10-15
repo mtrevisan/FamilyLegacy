@@ -134,6 +134,7 @@ public final class SocialNetworkInteractionHandler{
 	private static String escape(final String text){
 		if(text == null)
 			return StringUtils.EMPTY;
+
 		return text.replace("&", "&amp;")
 			.replace("<", "&lt;")
 			.replace(">", "&gt;");

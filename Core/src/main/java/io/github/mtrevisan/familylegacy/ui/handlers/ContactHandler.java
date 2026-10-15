@@ -56,7 +56,7 @@ public class ContactHandler extends AbstractRecordTypeHandler<ContactStructureDi
 
 	@Override
 	public String getLabel(){
-		return I18N.t("confirmation.exist.record.contact");
+		return I18N.t("confirmation.exist_record.contact");
 	}
 
 	@Override

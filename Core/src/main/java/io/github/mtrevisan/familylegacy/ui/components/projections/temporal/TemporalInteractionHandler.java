@@ -177,6 +177,7 @@ public final class TemporalInteractionHandler{
 	private static String describeSpan(final TemporalSpan span){
 		if(span == null)
 			return StringUtils.EMPTY;
+
 		if(span.isPoint()){
 			final NormalizedDate start = span.start();
 			final String calendar = (start.isGregorian()? StringUtils.EMPTY: " (" + start.calendar() + ")");

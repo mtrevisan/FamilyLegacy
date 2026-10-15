@@ -55,7 +55,7 @@ public class SourceHandler extends AbstractRecordTypeHandler<SourceRecordDialog>
 
 	@Override
 	public String getLabel(){
-		return I18N.t("confirmation.exist.record.source");
+		return I18N.t("confirmation.exist_record.source");
 	}
 
 	@Override

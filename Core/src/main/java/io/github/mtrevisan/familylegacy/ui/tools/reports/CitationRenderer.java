@@ -127,6 +127,7 @@ final class CitationRenderer{
 		if(locale != null && !locale.isBlank()) tags.add(locale.trim());
 		if(tags.isEmpty())
 			return StringUtils.EMPTY;
+
 		return " — *(" + ReportFormatters.escape(String.join(", ", tags)) + ")*";
 	}
 

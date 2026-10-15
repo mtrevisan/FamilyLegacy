@@ -58,7 +58,7 @@ public class GroupAttributeHandler extends AbstractRecordTypeHandler<GroupAttrib
 
 	@Override
 	public String getLabel(){
-		return I18N.t("confirmation.exist.record.group.attribute");
+		return I18N.t("confirmation.exist_record.group_attribute");
 	}
 
 	@Override

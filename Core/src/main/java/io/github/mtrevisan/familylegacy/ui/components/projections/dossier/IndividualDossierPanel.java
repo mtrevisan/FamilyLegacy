@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
+import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -212,7 +213,7 @@ public class IndividualDossierPanel extends JPanel{
 			JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 		scroll.setBorder(null);
 		scroll.getVerticalScrollBar()
-			.setUnitIncrement(16);
+			.setUnitIncrement(GUIHelper.SCROLLBAR_UNIT_INCREMENT);
 		scroll.getViewport()
 			.setBackground(SECTION_BACKGROUND);
 		add(scroll, BorderLayout.CENTER);
@@ -622,10 +623,8 @@ public class IndividualDossierPanel extends JPanel{
 			final FLEFRecord record = entry.editRecord();
 			if(record == null)
 				return;
-			final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(record.getTag());
-			if(handler == null)
-				return;
 
+			final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(record.getTag());
 			final Window owner = SwingUtilities.getWindowAncestor(IndividualDossierPanel.this);
 			final BaseRecordDialog dialog = handler.createEditDialog(owner, model, record);
 			dialog.setVisible(true);

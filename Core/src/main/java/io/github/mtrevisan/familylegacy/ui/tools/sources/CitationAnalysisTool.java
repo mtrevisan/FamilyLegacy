@@ -60,7 +60,7 @@ public final class CitationAnalysisTool implements ToolOperation{
 
 	@Override
 	public String getName(){
-		return I18N.t("menu.source.citation.analysis");
+		return I18N.t("menu.source_citation.analysis");
 	}
 
 	@Override

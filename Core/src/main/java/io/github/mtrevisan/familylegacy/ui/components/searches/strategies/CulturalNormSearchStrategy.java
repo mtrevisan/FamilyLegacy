@@ -132,7 +132,7 @@ public class CulturalNormSearchStrategy implements SearchStrategy{
 		if(StringUtils.isNotEmpty(title))
 			details.add(title);
 		if(StringUtils.isNotEmpty(type))
-			details.add(I18N.t("dialog.cultural.norm.rule.type") + ": " + type);
+			details.add(I18N.t("dialog.cultural_norm.rule_type") + ": " + type);
 
 		return baseDisplayText + details;
 	}

@@ -53,7 +53,7 @@ public class GroupHandler extends AbstractRecordTypeHandler<GroupRecordDialog>{
 
 	@Override
 	public String getLabel(){
-		return I18N.t("confirmation.exist.record.group");
+		return I18N.t("confirmation.exist_record.group");
 	}
 
 	@Override

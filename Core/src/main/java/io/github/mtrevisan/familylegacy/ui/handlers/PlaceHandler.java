@@ -55,7 +55,7 @@ public class PlaceHandler extends AbstractRecordTypeHandler<PlaceRecordDialog>{
 
 	@Override
 	public String getLabel(){
-		return I18N.t("confirmation.exist.record.place");
+		return I18N.t("confirmation.exist_record.place");
 	}
 
 	@Override

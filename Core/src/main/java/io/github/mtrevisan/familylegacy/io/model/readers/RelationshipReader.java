@@ -28,7 +28,6 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
-import org.apache.commons.lang3.Strings;
 
 import java.util.HashSet;
 import java.util.List;
@@ -199,17 +198,19 @@ public final class RelationshipReader{
 	}
 
 
-	public static String[] getValidTypes(final String subjectType, final String objectType){
-		if(subjectType == null || objectType == null)
+	public static String[] getValidTypes(final FLEFRecord subject, final FLEFRecord object){
+		if(subject == null || object == null)
 			return EMPTY_TYPES;
 
-		if(Strings.CI.equals(IndividualHandler.TYPE, subjectType) && Strings.CI.equals(IndividualHandler.TYPE, objectType))
-			return INDIVIDUAL_TO_INDIVIDUAL_TYPES;
+		if(IndividualHandler.isOfType(subject)){
+			if(IndividualHandler.isOfType(object))
+				return INDIVIDUAL_TO_INDIVIDUAL_TYPES;
 
-		if(Strings.CI.equals(IndividualHandler.TYPE, subjectType) && Strings.CI.equals(GroupHandler.TYPE, objectType))
-			return INDIVIDUAL_TO_GROUP_TYPES;
+			if(GroupHandler.isOfType(object))
+				return INDIVIDUAL_TO_GROUP_TYPES;
+		}
 
-		if(Strings.CI.equals(GroupHandler.TYPE, subjectType) && Strings.CI.equals(GroupHandler.TYPE, objectType))
+		if(GroupHandler.isOfType(subject))
 			return GROUP_TO_GROUP_TYPES;
 
 		return GROUP_TO_INDIVIDUAL_TYPES;

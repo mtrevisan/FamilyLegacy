@@ -74,8 +74,9 @@ public final class GroupAttributeReader{
 	public static final String TAG_PRIVACY = "privacy";
 	public static final String TAG_AUDIT = "audit";
 
+	public static final String ENUM_TYPE_RESIDENCE = "residence";
 	public static final String[] TYPES = new String[]{
-		"residence", "member_count", "children_count", "social_class", "ethnicity", "religion", "language",
+		ENUM_TYPE_RESIDENCE, "member_count", "children_count", "social_class", "ethnicity", "religion", "language",
 		"wealth", "land_holding", "primary_income_source"
 	};
 

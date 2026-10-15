@@ -58,7 +58,7 @@ public class IndividualAttributeHandler extends AbstractRecordTypeHandler<Indivi
 
 	@Override
 	public String getLabel(){
-		return I18N.t("confirmation.exist.record.individual.attribute");
+		return I18N.t("confirmation.exist_record.individual_attribute");
 	}
 
 	@Override

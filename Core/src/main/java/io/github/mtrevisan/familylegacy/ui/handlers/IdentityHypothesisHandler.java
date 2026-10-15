@@ -59,6 +59,10 @@ public class IdentityHypothesisHandler extends AbstractRecordTypeHandler<Identit
 		return TYPE;
 	}
 
+	public static boolean isOfType(final FLEFRecord record){
+		return (record != null && TYPE.equalsIgnoreCase(record.getTag()));
+	}
+
 	@Override
 	public String getIdPrefix(){
 		return ID_PREFIX;
@@ -66,7 +70,7 @@ public class IdentityHypothesisHandler extends AbstractRecordTypeHandler<Identit
 
 	@Override
 	public String getLabel(){
-		return I18N.t("confirmation.exist.record.identity.hypothesis");
+		return I18N.t("confirmation.exist_record.identity_hypothesis");
 	}
 
 	@Override

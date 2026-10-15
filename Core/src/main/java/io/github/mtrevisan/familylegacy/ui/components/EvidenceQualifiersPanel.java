@@ -76,19 +76,19 @@ public class EvidenceQualifiersPanel extends JPanel{
 		setBorder(BorderFactory.createTitledBorder(panelTitle));
 
 		sourceTypeCombo = new BoundComboBox<>(EvidenceQualifiersReader.TAG_SOURCE_TYPE, GUIHelper.fillCombo(EvidenceQualifiersReader.SOURCE_TYPES, null));
-		sourceTypeCombo.setI18NPrefix("enum.evidence.source.type");
-		sourceTypeCombo.setToolTipText(I18N.t("dialog.evidence.qualifiers.source.type.tooltip"));
+		sourceTypeCombo.setI18NPrefix("enum.evidence.source_type");
+		sourceTypeCombo.setToolTipText(I18N.t("dialog.evidence.qualifiers.source_type.tooltip"));
 		informationTypeCombo = new BoundComboBox<>(EvidenceQualifiersReader.TAG_INFORMATION_TYPE, GUIHelper.fillCombo(EvidenceQualifiersReader.INFORMATION_TYPES, null));
-		informationTypeCombo.setI18NPrefix("enum.evidence.information.type");
-		informationTypeCombo.setToolTipText(I18N.t("dialog.evidence.qualifiers.information.type.tooltip"));
+		informationTypeCombo.setI18NPrefix("enum.evidence.information_type");
+		informationTypeCombo.setToolTipText(I18N.t("dialog.evidence.qualifiers.information_type.tooltip"));
 		evidenceTypeCombo = new BoundComboBox<>(EvidenceQualifiersReader.TAG_EVIDENCE_TYPE, GUIHelper.fillCombo(EvidenceQualifiersReader.EVIDENCE_TYPES, null));
-		evidenceTypeCombo.setI18NPrefix("enum.evidence.evidence.type");
-		evidenceTypeCombo.setToolTipText(I18N.t("dialog.evidence.qualifiers.evidence.type.tooltip"));
+		evidenceTypeCombo.setI18NPrefix("enum.evidence.evidence_type");
+		evidenceTypeCombo.setToolTipText(I18N.t("dialog.evidence.qualifiers.evidence_type.tooltip"));
 
 		// Layout: label + combo per row
-		GUIHelper.addLabeledComponent(this, I18N.t("dialog.evidence.qualifiers.source.type") + ":", sourceTypeCombo);
-		GUIHelper.addLabeledComponent(this, I18N.t("dialog.evidence.qualifiers.information.type") + ":", informationTypeCombo);
-		GUIHelper.addLabeledComponent(this, I18N.t("dialog.evidence.qualifiers.evidence.type") + ":", evidenceTypeCombo);
+		GUIHelper.addLabeledComponent(this, I18N.t("dialog.evidence.qualifiers.source_type") + ":", sourceTypeCombo);
+		GUIHelper.addLabeledComponent(this, I18N.t("dialog.evidence.qualifiers.information_type") + ":", informationTypeCombo);
+		GUIHelper.addLabeledComponent(this, I18N.t("dialog.evidence.qualifiers.evidence_type") + ":", evidenceTypeCombo);
 
 		// Attach hover tooltip listeners
 		attachTooltipListener(sourceTypeCombo);

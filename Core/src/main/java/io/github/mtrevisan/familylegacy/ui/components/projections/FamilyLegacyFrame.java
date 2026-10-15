@@ -237,12 +237,12 @@ public class FamilyLegacyFrame extends JFrame{
 		final BookmarkType bookmarkType;
 		final String rootId;
 		switch(projection){
-			case TREE -> {
-				bookmarkType = BookmarkType.TREE;
+			case BIOLOGICAL_TREE -> {
+				bookmarkType = BookmarkType.BIOLOGICAL_TREE;
 				rootId = switcher.getTreeGraphPanel().getRootIndividualId();
 			}
-			case GRAPH -> {
-				bookmarkType = BookmarkType.GRAPH;
+			case SUGIYAMA_GRAPH -> {
+				bookmarkType = BookmarkType.SUGIYAMA_GRAPH;
 				rootId = switcher.getTreeGraphPanel().getRootIndividualId();
 				props.put("showPartner", "true");
 			}
@@ -265,8 +265,8 @@ public class FamilyLegacyFrame extends JFrame{
 		}
 
 		final ProjectionType projection = switch(bookmark.type()){
-			case TREE -> ProjectionType.TREE;
-			case GRAPH -> ProjectionType.GRAPH;
+			case BIOLOGICAL_TREE -> ProjectionType.BIOLOGICAL_TREE;
+			case SUGIYAMA_GRAPH -> ProjectionType.SUGIYAMA_GRAPH;
 			case EGO_NETWORK -> ProjectionType.EGO_NETWORK;
 		};
 

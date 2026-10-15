@@ -267,6 +267,7 @@ public final class HtmlReportRenderer implements ReportRenderer{
 	private static String html(final String s){
 		if(s == null)
 			return StringUtils.EMPTY;
+
 		return s.replace("&", "&amp;")
 			.replace("<", "&lt;")
 			.replace(">", "&gt;")

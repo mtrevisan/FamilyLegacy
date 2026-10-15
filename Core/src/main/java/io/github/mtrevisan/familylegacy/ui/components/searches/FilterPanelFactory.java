@@ -99,11 +99,7 @@ public class FilterPanelFactory{
 	 * @param onChanged callback to update the search criteria
 	 * @return a JPanel containing the filters
 	 */
-	public static JPanel createPanel(final RecordTypeHandler<?> handler,
-			final Consumer<SearchCriteria> onChanged){
-		if(handler == null)
-			return null;
-
+	public static JPanel createPanel(final RecordTypeHandler<?> handler, final Consumer<SearchCriteria> onChanged){
 		final Function<Consumer<SearchCriteria>, RecordFilterPanel> builder = REGISTRY.get(handler.getClass());
 		return (builder != null? (JPanel)builder.apply(onChanged): null);
 	}

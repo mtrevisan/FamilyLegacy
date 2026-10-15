@@ -54,7 +54,7 @@ public class ContextImpactHandler extends AbstractRecordTypeHandler<ContextImpac
 
 	@Override
 	public String getLabel(){
-		return I18N.t("confirmation.exist.record.context.impact");
+		return I18N.t("confirmation.exist_record.context_impact");
 	}
 
 	@Override
@@ -142,9 +142,6 @@ public class ContextImpactHandler extends AbstractRecordTypeHandler<ContextImpac
 			return null;
 
 		final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(refNode.getTag());
-		if(handler == null)
-			return null;
-
 		return handler.getDisplayText(targetRecord, model);
 	}
 

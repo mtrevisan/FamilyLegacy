@@ -216,7 +216,7 @@ final class ApplicationMenuBar{
 	 * list" entry is added at the bottom when the list is not empty.
 	 */
 	private JMenu createRecentFilesMenu(final FileMenuController fileController){
-		final JMenu menu = new JMenu(I18N.t("menu.file.open.recent"));
+		final JMenu menu = new JMenu(I18N.t("menu.file.open_recent"));
 		menu.setMnemonic(KeyEvent.VK_R);
 
 		menu.addMenuListener(new MenuListener(){
@@ -226,7 +226,7 @@ final class ApplicationMenuBar{
 
 				final List<File> recent = fileController.recentFiles().list();
 				if(recent.isEmpty()){
-					final JMenuItem empty = new JMenuItem(I18N.t("menu.file.open.recent.empty"));
+					final JMenuItem empty = new JMenuItem(I18N.t("menu.file.open_recent.empty"));
 					empty.setEnabled(false);
 					menu.add(empty);
 					return;
@@ -240,7 +240,7 @@ final class ApplicationMenuBar{
 				}
 
 				menu.addSeparator();
-				final JMenuItem clear = new JMenuItem(I18N.t("menu.file.open.recent.clear"));
+				final JMenuItem clear = new JMenuItem(I18N.t("menu.file.open_recent.clear"));
 				clear.addActionListener(a -> fileController.recentFiles().clear());
 				menu.add(clear);
 			}
@@ -289,8 +289,8 @@ final class ApplicationMenuBar{
 		final JMenu projections = new JMenu(I18N.t("menu.view.projection"));
 		projections.setMnemonic(KeyEvent.VK_P);
 
-		final JRadioButtonMenuItem treeItem = projectionItem(ShortcutRegistry.VIEW_ANCESTOR_TREE.action(), ProjectionType.TREE, ShortcutRegistry.VIEW_ANCESTOR_TREE.keyStrokeCode());
-		final JRadioButtonMenuItem graphItem = projectionItem(ShortcutRegistry.VIEW_SUGIYAMA_GRAPH.action(), ProjectionType.GRAPH, ShortcutRegistry.VIEW_SUGIYAMA_GRAPH.keyStrokeCode());
+		final JRadioButtonMenuItem treeItem = projectionItem(ShortcutRegistry.VIEW_BIOLOGICAL_TREE.action(), ProjectionType.BIOLOGICAL_TREE, ShortcutRegistry.VIEW_BIOLOGICAL_TREE.keyStrokeCode());
+		final JRadioButtonMenuItem graphItem = projectionItem(ShortcutRegistry.VIEW_SUGIYAMA_GRAPH.action(), ProjectionType.SUGIYAMA_GRAPH, ShortcutRegistry.VIEW_SUGIYAMA_GRAPH.keyStrokeCode());
 		final JRadioButtonMenuItem egoItem = projectionItem(ShortcutRegistry.VIEW_EGO_NETWORK.action(), ProjectionType.EGO_NETWORK, ShortcutRegistry.VIEW_EGO_NETWORK.keyStrokeCode());
 
 		final ButtonGroup projectionGroup = new ButtonGroup();
@@ -309,8 +309,8 @@ final class ApplicationMenuBar{
 			@Override
 			public void menuSelected(final MenuEvent e){
 				switch(frame.switcher().getCurrentProjectionType()){
-					case TREE -> treeItem.setSelected(true);
-					case GRAPH -> graphItem.setSelected(true);
+					case BIOLOGICAL_TREE -> treeItem.setSelected(true);
+					case SUGIYAMA_GRAPH -> graphItem.setSelected(true);
 					case EGO_NETWORK -> egoItem.setSelected(true);
 				}
 			}
@@ -735,20 +735,20 @@ final class ApplicationMenuBar{
 		}
 		catch(final URISyntaxException e){
 			JOptionPane.showMessageDialog(frame,
-				I18N.tf("error.invalid.url", url),
+				I18N.tf("error.invalid_url", url),
 				I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
 		}
 		catch(final IOException e){
 			JOptionPane.showMessageDialog(frame,
-				I18N.tf("error.unable.to.open.url", url, e.getMessage()),
+				I18N.tf("error.unable_to_open_url", url, e.getMessage()),
 				I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
 		}
 	}
 
 	private void showUnsupportedBrowserMessage(){
 		JOptionPane.showMessageDialog(frame,
-			I18N.t("error.not.supported.message"),
-			I18N.t("error.not.supported.title"), JOptionPane.WARNING_MESSAGE);
+			I18N.t("error.not_supported.message"),
+			I18N.t("error.not_supported.title"), JOptionPane.WARNING_MESSAGE);
 	}
 
 	private void checkForUpdates(){

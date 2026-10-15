@@ -71,7 +71,7 @@ public class PersonalNameHandler extends AbstractRecordTypeHandler<PersonalNameS
 
 	@Override
 	public String getLabel(){
-		return I18N.t("confirmation.exist.record.personal.name");
+		return I18N.t("confirmation.exist_record.personal_name");
 	}
 
 	@Override

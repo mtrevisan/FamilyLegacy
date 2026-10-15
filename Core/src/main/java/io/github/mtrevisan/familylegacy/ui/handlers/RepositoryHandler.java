@@ -55,7 +55,7 @@ public class RepositoryHandler extends AbstractRecordTypeHandler<RepositoryRecor
 
 	@Override
 	public String getLabel(){
-		return I18N.t("confirmation.exist.record.repository");
+		return I18N.t("confirmation.exist_record.repository");
 	}
 
 	@Override

@@ -635,9 +635,6 @@ public final class AgoraPanel extends JPanel{
 			return;
 
 		final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(record.getTag());
-		if(handler == null)
-			return;
-
 		final Window owner = SwingUtilities.getWindowAncestor(this);
 		final BaseRecordDialog dialog = handler.createEditDialog(owner, model, record);
 		dialog.setVisible(true);

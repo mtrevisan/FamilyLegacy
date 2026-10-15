@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.ui.components.searches.strategies;
 import io.github.mtrevisan.familylegacy.io.model.readers.DateReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.ui.components.searches.RecordFilterPanel;
 import io.github.mtrevisan.familylegacy.ui.components.searches.SearchCriteria;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
@@ -53,9 +54,9 @@ public class IndividualFilterPanel extends JPanel implements RecordFilterPanel{
 	private final JComboBox<String> sexCombo = new JComboBox<>(GUIHelper.fillCombo(IndividualReader.SEXES, I18N.t("search.combo.any")));
 	private final JComboBox<String> eventTypeCombo = new JComboBox<>(GUIHelper.fillCombo(EventReader.TYPES, I18N.t("search.combo.any")));
 	private final JTextField dateFromField = new JTextField(10);
-	private final JComboBox<String> calendarFromCombo = new JComboBox<>(DateReader.CALENDARS);
+	private final BoundComboBox<String> calendarFromCombo = new BoundComboBox<>(DateReader.TAG_CALENDAR, DateReader.CALENDARS);
 	private final JTextField dateToField = new JTextField(10);
-	private final JComboBox<String> calendarToCombo = new JComboBox<>(DateReader.CALENDARS);
+	private final BoundComboBox<String> calendarToCombo = new BoundComboBox<>(DateReader.TAG_CALENDAR, DateReader.CALENDARS);
 	private final JTextField placeField = new JTextField(20);
 
 	private final Consumer<SearchCriteria> onChanged;
@@ -72,7 +73,10 @@ public class IndividualFilterPanel extends JPanel implements RecordFilterPanel{
 
 	private void initComponents(){
 		setLayout(new MigLayout("wrap 2,gap 5", "[][grow,fill]", "[]"));
-		setBorder(BorderFactory.createTitledBorder(I18N.tf("dialog.search.filter.title", I18N.t("dialog.component.event"))));
+		setBorder(BorderFactory.createTitledBorder(I18N.tf("dialog.search_filter.title", I18N.t("dialog.component.individuals"))));
+
+		calendarFromCombo.setI18NPrefix("enum.date.calendar");
+		calendarToCombo.setI18NPrefix("enum.date.calendar");
 
 		add(new JLabel(I18N.t("dialog.individual.sex") + ":"));
 		add(sexCombo, "growx");

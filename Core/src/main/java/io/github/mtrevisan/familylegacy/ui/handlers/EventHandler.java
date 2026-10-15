@@ -54,7 +54,7 @@ public class EventHandler extends AbstractRecordTypeHandler<EventRecordDialog>{
 
 	@Override
 	public String getLabel(){
-		return I18N.t("confirmation.exist.record.event");
+		return I18N.t("confirmation.exist_record.event");
 	}
 
 	@Override

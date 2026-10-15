@@ -68,7 +68,7 @@ public class ContactNameHandler extends AbstractRecordTypeHandler<ContactNameStr
 
 	@Override
 	public String getLabel(){
-		return I18N.t("confirmation.exist.record.contact.name");
+		return I18N.t("confirmation.exist_record.contact.name");
 	}
 
 	@Override

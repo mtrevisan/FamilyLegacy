@@ -75,17 +75,17 @@ public final class ToolBarBuilder{
 		toolBar.addSeparator();
 
 		// Projections
-		btnTreeLayout = new JToggleButton(I18N.t("toolbar.projection.tree.layout"));
-		btnTreeLayout.setToolTipText(I18N.t("toolbar.projection.tree.layout.tooltip") + " (" + ShortcutRegistry.VIEW_ANCESTOR_TREE.displayKeys() + ")");
+		btnTreeLayout = new JToggleButton(I18N.t("toolbar.projection.biological_tree.layout"));
+		btnTreeLayout.setToolTipText(I18N.t("toolbar.projection.biological_tree.layout.tooltip") + " (" + ShortcutRegistry.VIEW_BIOLOGICAL_TREE.displayKeys() + ")");
 		btnTreeLayout.setSelected(true);
-		btnTreeLayout.addActionListener(e -> onProjectionSelect.accept(ProjectionType.TREE));
+		btnTreeLayout.addActionListener(e -> onProjectionSelect.accept(ProjectionType.BIOLOGICAL_TREE));
 
-		btnGraphLayout = new JToggleButton(I18N.t("toolbar.projection.sugiyama.graph"));
-		btnGraphLayout.setToolTipText(I18N.t("toolbar.projection.sugiyama.graph.tooltip") + " (" + ShortcutRegistry.VIEW_SUGIYAMA_GRAPH.displayKeys() + ")");
-		btnGraphLayout.addActionListener(e -> onProjectionSelect.accept(ProjectionType.GRAPH));
+		btnGraphLayout = new JToggleButton(I18N.t("toolbar.projection.sugiyama_graph"));
+		btnGraphLayout.setToolTipText(I18N.t("toolbar.projection.sugiyama_graph.tooltip") + " (" + ShortcutRegistry.VIEW_SUGIYAMA_GRAPH.displayKeys() + ")");
+		btnGraphLayout.addActionListener(e -> onProjectionSelect.accept(ProjectionType.SUGIYAMA_GRAPH));
 
-		btnEgoLayout = new JToggleButton(I18N.t("toolbar.projection.ego.network"));
-		btnEgoLayout.setToolTipText(I18N.t("toolbar.projection.ego.network.tooltip") + " (" + ShortcutRegistry.VIEW_EGO_NETWORK.displayKeys() + ")");
+		btnEgoLayout = new JToggleButton(I18N.t("toolbar.projection.ego_network"));
+		btnEgoLayout.setToolTipText(I18N.t("toolbar.projection.ego_network.tooltip") + " (" + ShortcutRegistry.VIEW_EGO_NETWORK.displayKeys() + ")");
 		btnEgoLayout.addActionListener(e -> onProjectionSelect.accept(ProjectionType.EGO_NETWORK));
 
 		final ButtonGroup projectionGroup = new ButtonGroup();
@@ -110,8 +110,8 @@ public final class ToolBarBuilder{
 
 	public void updateProjectionState(final ProjectionType type){
 		switch(type){
-			case TREE -> btnTreeLayout.setSelected(true);
-			case GRAPH -> btnGraphLayout.setSelected(true);
+			case BIOLOGICAL_TREE -> btnTreeLayout.setSelected(true);
+			case SUGIYAMA_GRAPH -> btnGraphLayout.setSelected(true);
 			case EGO_NETWORK -> btnEgoLayout.setSelected(true);
 		}
 	}

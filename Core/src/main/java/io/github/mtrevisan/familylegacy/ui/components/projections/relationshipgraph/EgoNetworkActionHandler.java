@@ -163,8 +163,7 @@ public class EgoNetworkActionHandler{
 		final Window parent = SwingUtilities.getWindowAncestor(parentComponent);
 
 		@SuppressWarnings("unchecked")
-		final RecordSelectionDialog dialog = RecordSelectionDialog.createWithAllowRecordCreation(
-			parent, model,
+		final RecordSelectionDialog dialog = RecordSelectionDialog.createWithAllowRecordCreation(parent, model,
 			(record, handler) -> result[0] = record,
 			handlerClass);
 		dialog.setVisible(true);

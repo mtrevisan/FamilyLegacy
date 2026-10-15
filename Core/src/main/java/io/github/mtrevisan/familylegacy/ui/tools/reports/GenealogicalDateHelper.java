@@ -50,7 +50,7 @@ import java.util.function.Function;
  *       {@code original_text}, the normalized date value and the
  *       qualifiers ({@code approximate.basis}, {@code approximate.margin},
  *       {@code approximate.cultural_norm}, {@code calendar},
- *       {@code century.part}) into a single localized string.</li>
+ *       {@code century_part}) into a single localized string.</li>
  * </ul>
  *
  * <p>Qualifiers are resolved on every branch of the {@code SingleDate}
@@ -72,8 +72,8 @@ final class GenealogicalDateHelper{
 	private static final String[] SINGLE_DATE_BASES = {
 		"date.value.bounded.not_before",
 		"date.value.bounded.not_after",
-		"date.value.spanning.from",
-		"date.value.spanning.to"
+		"date.value.spanning_from",
+		"date.value.spanning_to"
 	};
 
 	private static final String DEFAULT_CALENDAR = "gregorian";
@@ -186,8 +186,8 @@ final class GenealogicalDateHelper{
 		if(notAfter != null)
 			return String.format(labels.dates().dateBefore(), notAfter);
 
-		final String from = singleDate(rec, fieldTag + ".value.spanning.from", labels);
-		final String to = singleDate(rec, fieldTag + ".value.spanning.to", labels);
+		final String from = singleDate(rec, fieldTag + ".value.spanning_from", labels);
+		final String to = singleDate(rec, fieldTag + ".value.spanning_to", labels);
 		if(from != null && to != null)
 			return String.format(labels.dates().dateFromTo(), from, to);
 		if(from != null)
@@ -213,7 +213,7 @@ final class GenealogicalDateHelper{
 		// century
 		final String ordinal = FLEFRecordHelper.getChildValue(rec, base + ".century.ordinal");
 		if(ordinal != null && !ordinal.isBlank()){
-			final String part = FLEFRecordHelper.getChildValue(rec, base + ".century.part");
+			final String part = FLEFRecordHelper.getChildValue(rec, base + ".century_part");
 			if(part != null && !part.isBlank())
 				return String.format(labels.dates().dateCenturyWithPart(),
 					labels.dates().centuryPart(part), ordinal.trim());

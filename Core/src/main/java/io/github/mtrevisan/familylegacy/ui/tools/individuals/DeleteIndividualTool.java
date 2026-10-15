@@ -28,6 +28,8 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.ui.dialogs.help.ShortcutRegistry;
+import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolOperation;
@@ -35,6 +37,7 @@ import io.github.mtrevisan.familylegacy.ui.tools.ToolOperation;
 import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
 import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -65,13 +68,14 @@ public final class DeleteIndividualTool implements ToolOperation{
 		if(individual == null)
 			return;
 
-		final List<String> relationshipIds = IndividualHelper.relationshipIdsForIndividual(id, model);
+		final Map<Class<? extends RecordTypeHandler<?>>, List<FLEFRecord>> relationshipIds = IndividualHelper.relationshipIds(id, model);
 		final String displayName = IndividualReader.extractPrimaryFullname(individual);
-
-		final int relationshipCount = relationshipIds.size();
+		int relationshipCount = 0;
+		for(final Map.Entry<Class<? extends RecordTypeHandler<?>>, List<FLEFRecord>> entry : relationshipIds.entrySet())
+			relationshipCount += entry.getValue().size();
 		final int confirm = JOptionPane.showConfirmDialog(context.owner(),
-			I18N.tf("dialog.individual.remove.message", displayName, id, (relationshipCount == 1), relationshipCount),
-			I18N.t("dialog.individual.remove.title"),
+			I18N.tf("dialog.remove.record.message", IndividualHandler.getInstance().getLabel(), displayName, id, (relationshipCount == 1), relationshipCount),
+			I18N.t("dialog.remove.record.title"),
 			JOptionPane.YES_NO_OPTION,
 			JOptionPane.WARNING_MESSAGE
 		);

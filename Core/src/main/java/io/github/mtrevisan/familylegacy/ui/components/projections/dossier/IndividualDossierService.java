@@ -853,16 +853,16 @@ public final class IndividualDossierService{
 
 		final StringBuilder sb = new StringBuilder();
 		if(StringUtils.isNotEmpty(sourceType))
-			sb.append(I18N.t("enum.evidence.source.type.abbreviation." + sourceType));
+			sb.append(I18N.t("enum.evidence.source_type.abbreviation." + sourceType));
 		if(StringUtils.isNotEmpty(infoType)){
 			if(!sb.isEmpty())
 				sb.append('/');
-			sb.append(I18N.t("enum.evidence.information.type.abbreviation." + infoType));
+			sb.append(I18N.t("enum.evidence.information_type.abbreviation." + infoType));
 		}
 		if(StringUtils.isNotEmpty(evidenceType)){
 			if(!sb.isEmpty())
 				sb.append('/');
-			sb.append(I18N.t("enum.evidence.evidence.type.abbreviation." + evidenceType));
+			sb.append(I18N.t("enum.evidence.evidence_type.abbreviation." + evidenceType));
 		}
 		return sb.toString();
 	}

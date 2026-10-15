@@ -79,7 +79,7 @@ public class HeaderHandler extends AbstractRecordTypeHandler<HeaderDialog>{
 
 	@Override
 	public String getLabel(){
-		return I18N.t("confirmation.exist.record.header");
+		return I18N.t("confirmation.exist_record.header");
 	}
 
 	@Override

@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.ui.tools.places;
 
+import io.github.mtrevisan.familylegacy.ui.components.searches.RecordSelectionDialog;
+import io.github.mtrevisan.familylegacy.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolOperation;
@@ -39,7 +41,12 @@ public final class ManagePlacesTool implements ToolOperation{
 
 	@Override
 	public void run(final ToolContext context){
-		final PlaceManagementDialog dialog = new PlaceManagementDialog(context);
+		@SuppressWarnings("unchecked")
+		final RecordSelectionDialog dialog = RecordSelectionDialog.createWithAllowRecordCreation(context.owner(),
+			context.model(),
+			null,
+			PlaceHandler.class
+		);
 		dialog.setVisible(true);
 	}
 
