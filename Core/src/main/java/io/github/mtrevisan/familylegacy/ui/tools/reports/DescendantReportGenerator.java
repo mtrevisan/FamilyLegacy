@@ -45,9 +45,8 @@ public final class DescendantReportGenerator{
 	private final ReportConfig config;
 
 
-	public DescendantReportGenerator(final FLEFModel model, final FLEFRecord root,
-		final ReportConfig config){
-		this.model = Objects.requireNonNull(model);
+	public DescendantReportGenerator(final FLEFModel model, final FLEFRecord root, final ReportConfig config){
+		this.model = model;
 		this.root = Objects.requireNonNull(root);
 		this.config = Objects.requireNonNull(config);
 	}

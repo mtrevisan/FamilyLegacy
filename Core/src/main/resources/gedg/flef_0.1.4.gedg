@@ -27,7 +27,6 @@ alias Uri            = string   // resource URI, following RFC 3986 specificatio
 alias LocaleCode     = string   // locale identifier, as defined by IETF BCP 47, https://tools.ietf.org/html/bcp47
 alias SemVer         = string   // as defined by Semantic Versioning, https://semver.org
 alias Coord          = string   // geographic coordinates, as defined by ISO 6709, https://en.wikipedia.org/wiki/ISO_6709
-alias Bool           = bool
 alias Int            = int
 
 

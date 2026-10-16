@@ -53,7 +53,7 @@ public abstract class AbstractProjectionMutator implements ProjectionMutator{
 
 
 	protected AbstractProjectionMutator(final FLEFModel model, final TreeChangeListener listener){
-		this.model = Objects.requireNonNull(model, "Model cannot be null");
+		this.model = model;
 		this.listener = listener;
 	}
 

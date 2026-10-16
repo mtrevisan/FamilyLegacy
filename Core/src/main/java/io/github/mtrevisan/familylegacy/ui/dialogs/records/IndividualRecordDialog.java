@@ -155,8 +155,8 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 
 		components = new RecordDialogBuilder(this, model, this.record)
 			.withComponent(PanelKey.INDIVIDUAL_ATTRIBUTE, IndividualAttributeHandler.TYPE, I18N.t("dialog.component.individual.attributes"))
-			.withComponent(PanelKey.RELATIONSHIP_ON_SUBJECT, RelationshipHandler.TYPE, I18N.t("dialog.component.individual.relationships.on.target"))
-			.withComponent(PanelKey.RELATIONSHIP_ON_OBJECT, RelationshipHandler.TYPE, I18N.t("dialog.component.relationships.on.subject"))
+			.withComponent(PanelKey.RELATIONSHIP_ON_SUBJECT, RelationshipHandler.TYPE, I18N.t("dialog.component.individual.relationships_on_target"))
+			.withComponent(PanelKey.RELATIONSHIP_ON_OBJECT, RelationshipHandler.TYPE, I18N.t("dialog.component.relationships_on_subject"))
 			.withComponent(PanelKey.EVENT_PARTICIPATION_ON_PARTICIPANT, EventParticipationHandler.TYPE, I18N.t("dialog.component.event.participations"))
 			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, ContextImpactHandler.TYPE, I18N.t("dialog.component.context.impacts"))
 			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, I18N.t("dialog.component.conclusions"))

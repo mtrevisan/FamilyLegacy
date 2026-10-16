@@ -59,7 +59,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Objects;
 
 
 /**
@@ -92,7 +91,7 @@ public class FamilyLegacyFrame extends JFrame{
 
 		this.treeType = treeType;
 
-		this.model = Objects.requireNonNull(model);
+		this.model = model;
 		switcher = new ProjectionSwitcherPanel(treeType, model);
 		fileController = new FileMenuController(this, this::model, this::replaceModel, () -> {});
 

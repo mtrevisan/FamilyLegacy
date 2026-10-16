@@ -1263,7 +1263,7 @@ public class GEDCOMHelper{
 		if(placNode == null && addrNode == null)
 			return;
 
-		final String placeName = (placNode != null ? placNode.getValue() : null);
+		final String placeName = (placNode != null? placNode.getValue(): null);
 
 		// Extract address components if present
 		final StringBuilder streetAddr = new StringBuilder();
@@ -1289,7 +1289,7 @@ public class GEDCOMHelper{
 		if(StringUtils.isEmpty(placeName)){
 			// Only ADDR exists, use address as place name
 			finalPlaceName = streetAddr.toString().replace(StringUtils.LF, ", ");
-			targetPlacNode = (addrNode != null ? addrNode : new GEDCOMNode(1, "PLAC", finalPlaceName));
+			targetPlacNode = (addrNode != null? addrNode: new GEDCOMNode(1, "PLAC", finalPlaceName));
 		}
 		else if(streetAddr.isEmpty()){
 			// Only PLAC exists
@@ -1346,7 +1346,7 @@ public class GEDCOMHelper{
 
 
 		// Use PlaceCache to handle hierarchy, splitting, deduplication, and links
-		final FLEFRecord placeRecord = (placeCache != null ? placeCache.getOrCreatePlace(targetPlacNode) : null);
+		final FLEFRecord placeRecord = (placeCache != null? placeCache.getOrCreatePlace(targetPlacNode): null);
 		if(placeRecord == null)
 			return;
 

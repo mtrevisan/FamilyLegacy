@@ -139,8 +139,8 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, this.record)
-			.withComponent(PanelKey.PLACE_RELATIONSHIP_ON_SUBJECT, PlaceRelationshipHandler.TYPE, I18N.t("dialog.component.place.relationships.on.subject"))
-			.withComponent(PanelKey.PLACE_RELATIONSHIP_ON_OBJECT, PlaceRelationshipHandler.TYPE, I18N.t("dialog.component.place.relationships.on.target"))
+			.withComponent(PanelKey.PLACE_RELATIONSHIP_ON_SUBJECT, PlaceRelationshipHandler.TYPE, I18N.t("dialog.component.place_relationships_on_subject"))
+			.withComponent(PanelKey.PLACE_RELATIONSHIP_ON_OBJECT, PlaceRelationshipHandler.TYPE, I18N.t("dialog.component.place_relationships_on_target"))
 			.withComponent(PanelKey.EVENT_PARTICIPATION_ON_PARTICIPANT, EventParticipationHandler.TYPE, I18N.t("dialog.component.event.participations"))
 			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, ContextImpactHandler.TYPE, I18N.t("dialog.component.context.impacts"))
 			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, I18N.t("dialog.component.conclusions"))

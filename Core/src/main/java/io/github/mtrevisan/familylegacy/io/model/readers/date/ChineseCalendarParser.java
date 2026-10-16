@@ -231,7 +231,7 @@ final class ChineseCalendarParser{
 
 		// If an explicit year is provided (e.g., from an era or numerical indicator),
 		// use it as a base to anchor the correct 60-year cycle.
-		final int baseAnchor = (explicitYear != null ? explicitYear : 1984);
+		final int baseAnchor = (explicitYear != null? explicitYear: 1984);
 
 		int anchorYear = baseAnchor + ((sexagenaryIndex - (baseAnchor - 1984) % 60 + 60) % 60);
 		// If the calculated distance exceeds 30 years from the explicit year, normalize to the nearest 60-year occurrence
@@ -304,9 +304,9 @@ final class ChineseCalendarParser{
 
 		return switch(prefix){
 			case '初' -> unitValue + 1;
-			case '十' -> 10 + (unitValue != -1 ? unitValue + 1 : 0);
-			case '廿', '念' -> 20 + (unitValue != -1 ? unitValue + 1 : 0);
-			case '卅' -> 30 + (unitValue != -1 ? unitValue + 1 : 0);
+			case '十' -> 10 + (unitValue != -1? unitValue + 1: 0);
+			case '廿', '念' -> 20 + (unitValue != -1? unitValue + 1: 0);
+			case '卅' -> 30 + (unitValue != -1? unitValue + 1: 0);
 			default -> parseChineseNumber(dayToken);
 		};
 	}

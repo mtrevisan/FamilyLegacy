@@ -46,15 +46,13 @@ public final class PlaceToolRegistry{
 		return List.of(
 			new ManagePlacesTool(),
 			new NewPlaceTool(),
-			new PlaceHierarchyTool(),
-			new PlaceRelationshipsTool()
+			new PlaceHierarchyTool()
 		);
 	}
 
 	public static List<ToolOperation> geoAndNormalizationTools(){
 		return List.of(
-			new ShowOnMapTool(),
-			new NormalizePlaceNamesTool()
+			new ShowOnMapTool()
 		);
 	}
 

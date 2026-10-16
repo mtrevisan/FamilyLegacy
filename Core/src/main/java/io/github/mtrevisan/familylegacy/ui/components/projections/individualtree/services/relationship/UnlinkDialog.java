@@ -620,7 +620,7 @@ public class UnlinkDialog extends JDialog{
 		for(final FLEFRecord record : groupRecords){
 			final String recordId = record.getId();
 			final RecordTypeHandler<?> recHandler = HandlerRegistry.getHandler(record.getTag());
-			final String description = (recHandler != null ? recHandler.getDisplayText(record, model) : record.getTag() + " [" + recordId + "]");
+			final String description = (recHandler != null? recHandler.getDisplayText(record, model): record.getTag() + " [" + recordId + "]");
 			final JPanel row = createWrappedCheckbox(List.of(recordId), recordId, description);
 
 			// Extract the checkbox from the created row (it is the first component added in createWrappedCheckbox)

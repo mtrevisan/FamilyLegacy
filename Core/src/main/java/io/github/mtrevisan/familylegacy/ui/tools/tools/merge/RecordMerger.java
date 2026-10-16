@@ -65,7 +65,7 @@ public final class RecordMerger{
 
 
 	public RecordMerger(final FLEFModel model){
-		this.model = Objects.requireNonNull(model, "Model must not be null");
+		this.model = model;
 	}
 
 

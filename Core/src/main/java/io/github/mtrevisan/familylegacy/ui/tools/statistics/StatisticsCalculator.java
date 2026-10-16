@@ -47,7 +47,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 
 
@@ -80,7 +79,7 @@ public final class StatisticsCalculator{
 
 
 	public StatisticsCalculator(final FLEFModel model){
-		this.model = Objects.requireNonNull(model, "Model must not be null");
+		this.model = model;
 	}
 
 

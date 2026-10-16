@@ -30,7 +30,8 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceRelationshipReader;
-import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
+import io.github.mtrevisan.familylegacy.ui.components.searches.SearchMatcher;
+import io.github.mtrevisan.familylegacy.ui.components.searches.SearchMode;
 import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.PlaceHandler;
@@ -40,21 +41,17 @@ import io.github.mtrevisan.familylegacy.ui.tools.ReportDialog;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
-import javax.swing.JTextField;
 import javax.swing.JTextPane;
 import javax.swing.JTree;
 import javax.swing.SwingUtilities;
+import javax.swing.SwingWorker;
 import javax.swing.UIManager;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
+import javax.swing.event.HyperlinkEvent;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.DefaultTreeModel;
@@ -62,56 +59,63 @@ import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Cursor;
+import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.EventQueue;
-import java.awt.FlowLayout;
 import java.awt.Window;
-import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
-import java.util.TreeSet;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 
 
 /**
  * Panel that presents the place hierarchy as a navigable tree.
  * <p>
  * The hierarchy is read by {@link PlaceHierarchyService} and rendered as
- * a {@link JTree}. Because the underlying data is a DAG (a place can be
- * administratively part of one entity and ecclesiastically part of
- * another), a place can appear under several parents: the tree
- * duplicates it as needed and marks the duplication in the renderer.
- * Cycles, which the protocol discourages but does not forbid, are broken
- * at the first repeated node and flagged in the same way.
+ * a {@link JTree}. Because the underlying data is a DAG, a place can
+ * appear under several parents: the tree duplicates it as needed and
+ * marks the duplication in the renderer. Cycles are broken at the first
+ * repeated node and flagged in the same way.
  * <p>
- * <b>Orphan places.</b> Places with no declared hierarchy are shown as
- * roots without children, alongside the places that are genuinely at the
- * top of a hierarchy. There is no separate "unclassified" section: an
- * orphan place is a legitimate top-level entry, not an error state.
+ * <b>No toolbar.</b> The panel is a passive view: it does not own the
+ * search field or the relation-type filter. Those controls belong to the
+ * host, which drives the panel through {@link #setFilters(Set, String, String)}.
  * <p>
- * <b>Filtering.</b> The toolbar offers a search field (case-insensitive
- * substring on the place name and type) and a combo box to restrict the
- * tree to a single relation type (administrative, ecclesiastical,
- * judicial, cadastral, geographic). When the combo is set to the "All"
- * entry, every relation is shown.
+ * <b>Filtering semantics.</b> A node is visible when it matches the
+ * search filter, or when it is an ancestor of a node that matches. The
+ * matching is delegated to {@link SearchMatcher}. A node with no
+ * children after filtering is dropped if it does not match the search
+ * filter. This applies to every node, roots included. Cycle nodes are
+ * also filtered: a cycle that does not match the search filter is
+ * dropped, together with its ancestors.
  * <p>
- * <b>Details.</b> A side panel shows the full information of the
- * selected place: type, coordinates, notes, incoming relations
- * (parents), and outgoing relations (children), each with its type and
- * validity dates. A double-click opens the record editor through the
- * registered {@link RecordTypeHandler}.
+ * <b>Asynchronous rebuilding.</b> The tree is rebuilt on a background
+ * thread. The host can listen for progress updates through
+ * {@link #PROPERTY_FILTERING_PROGRESS} (an {@link Integer} between 0 and
+ * 100) and for completion through {@link #PROPERTY_FILTERING_DONE}.
+ * <p>
+ * <b>Picker mode.</b> When the panel is embedded in a selection dialog,
+ * the host can call {@link #setEditable(boolean) setEditable(false)} to
+ * disable the edit-on-double-click behavior and read the selected
+ * {@code PlaceRelationshipRecord} through
+ * {@link #getSelectedPlaceRecord()}.
  */
 public final class PlaceHierarchyPanel extends JPanel{
 
-	/** Sentinel for the "no filter" entry of the relation type combo. */
-	private static final String FILTER_ALL_KEY = "any";
+	/** Property fired with the percentage (0-100) of the tree rebuild. */
+	public static final String PROPERTY_FILTERING_PROGRESS = "filteringProgress";
+	/** Property fired when the asynchronous rebuild completes. */
+	public static final String PROPERTY_FILTERING_DONE = "filteringDone";
 
 	private static final int TREE_MIN_WIDTH = 360;
 	private static final int DETAILS_MIN_WIDTH = 300;
@@ -119,13 +123,42 @@ public final class PlaceHierarchyPanel extends JPanel{
 
 	private final FLEFModel model;
 
-	private final DefaultMutableTreeNode treeRoot = new DefaultMutableTreeNode("Places");
+	/** When {@code false}, the edit-on-double-click behavior is disabled. */
+	private boolean editable = true;
+
+	/** Free-text search filter. */
+	private String searchFilter = StringUtils.EMPTY;
+
+	/** The admission modes that control how the search filter is applied. */
+	private Set<SearchMode> searchModes = Set.of();
+
+	/** Restrict the tree to a single relation type, or {@code null} for all. */
+	private String relationTypeFilter;
+
+	/**
+	 * The {@code PlaceRelationshipRecord} selected in the tree, or
+	 * {@code null} when the current selection is empty or points to a
+	 * root place.
+	 */
+	private FLEFRecord selectedPlaceRecord;
+
+	private DefaultMutableTreeNode treeRoot = new DefaultMutableTreeNode("Places");
 	private final DefaultTreeModel treeModel = new DefaultTreeModel(treeRoot);
 	private final JTree tree = new JTree(treeModel){
+		{
+			// Disable the built-in double-click-to-expand behavior:
+			// a double-click on a node must open the editor and must
+			// not also toggle the node expansion. Single-click on the
+			// expand/collapse handle still toggles, because that path
+			// (BasicTreeUI.Handler.mouseReleased → isLocationInExpandControl)
+			// is independent of toggleClickCount.
+			setToggleClickCount(0);
+		}
+
 		@Override
 		protected void processMouseEvent(final MouseEvent e){
-			// If it's a double click, consume/prevent expansion and trigger editor instead
-			if(e.getID() == MouseEvent.MOUSE_PRESSED && e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e)){
+			if(e.getID() == MouseEvent.MOUSE_CLICKED && SwingUtilities.isLeftMouseButton(e) && e.getClickCount() == 2
+					&& PlaceHierarchyPanel.this.editable){
 				final int row = getRowForLocation(e.getX(), e.getY());
 				if(row != -1){
 					// Consume the event so BasicTreeUI doesn't see the double-click and doesn't toggle
@@ -136,31 +169,26 @@ public final class PlaceHierarchyPanel extends JPanel{
 					return;
 				}
 			}
+
 			super.processMouseEvent(e);
 		}
 	};
 
-	private final JTextField searchField = new JTextField(20);
-	private final BoundComboBox<String> relationTypeFilter = new BoundComboBox<>(PlaceRelationshipReader.TAG_TYPE);
-	private final JLabel statusLabel = new JLabel(StringUtils.SPACE);
-
-	private PlaceDetailsPanel detailsPanel;
+	private final PlaceDetailsPanel detailsPanel = new PlaceDetailsPanel();
 
 	private PlaceHierarchyService.Hierarchy hierarchy;
 
+	/** The active worker that rebuilds the tree, if any. */
+	private SwingWorker<DefaultMutableTreeNode, Integer> rebuildWorker;
+
 
 	public PlaceHierarchyPanel(final FLEFModel model){
-		this.model = Objects.requireNonNull(model, "model must not be null");
+		this.model = model;
 
 		setLayout(new BorderLayout());
-
-		add(createToolbar(), BorderLayout.NORTH);
 		add(createCenter(), BorderLayout.CENTER);
-		add(createStatusBar(), BorderLayout.SOUTH);
 
 		reload();
-
-		relationTypeFilter.addActionListener(e -> rebuildTree());
 	}
 
 
@@ -171,19 +199,70 @@ public final class PlaceHierarchyPanel extends JPanel{
 	/**
 	 * Re-reads the hierarchy from the model and rebuilds the tree. Called
 	 * on construction and whenever the underlying model has changed. The
-	 * currently selected place, the search text, and the relation-type
+	 * currently selected place, the search filter, and the relation-type
 	 * filter are preserved across the reload.
 	 */
 	public void reload(){
 		final String previousSelection = selectedPlaceId();
 
 		this.hierarchy = PlaceHierarchyService.load(model);
-		rebuildRelationTypeModel();
+
 		rebuildTree();
 
 		restoreSelection(previousSelection);
+	}
 
-		updateStatus();
+	/**
+	 * Sets all filters at once and triggers an asynchronous tree rebuild.
+	 * <p>
+	 * Using a single method for all filters avoids starting multiple
+	 * concurrent workers when the host changes more than one filter in
+	 * the same user action.
+	 *
+	 * @param modes        the admission modes; may be {@code null}
+	 * @param search       the free-text search filter; may be {@code null}
+	 * @param relationType the relation type filter; may be {@code null}
+	 */
+	public boolean setFilters(final Set<SearchMode> modes, final String search, final String relationType){
+		final Set<SearchMode> normalizedModes = (modes != null? Set.copyOf(modes): Set.of());
+		final String normalizedSearch = (search != null? search: StringUtils.EMPTY);
+		final String normalizedType = (StringUtils.isBlank(relationType)? null: relationType);
+
+		if(Objects.equals(searchModes, normalizedModes)
+			&& Objects.equals(searchFilter, normalizedSearch)
+			&& Objects.equals(relationTypeFilter, normalizedType))
+			return false;
+
+		this.searchModes = normalizedModes;
+		this.searchFilter = normalizedSearch;
+		this.relationTypeFilter = normalizedType;
+
+		rebuildTree();
+		return true;
+	}
+
+	/**
+	 * Enables or disables the edit-on-double-click behavior. When the
+	 * panel is used as a picker inside a selection dialog, editing must
+	 * be disabled: the user is choosing a record to reference, not
+	 * editing an existing one.
+	 *
+	 * @param editable {@code true} to enable the edit-on-double-click
+	 *                 behavior, {@code false} to disable it
+	 */
+	public void setEditable(final boolean editable){
+		this.editable = editable;
+	}
+
+	/**
+	 * Returns the {@code PlaceRelationshipRecord} currently selected in
+	 * the tree, or {@code null} when the selection is empty or points to
+	 * a root place.
+	 *
+	 * @return the selected relationship, or {@code null}
+	 */
+	public FLEFRecord getSelectedPlaceRecord(){
+		return selectedPlaceRecord;
 	}
 
 
@@ -191,49 +270,16 @@ public final class PlaceHierarchyPanel extends JPanel{
 	 *                          UI composition
 	 * ====================================================================== */
 
-	private JComponent createToolbar(){
-		final JPanel toolbar = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 4));
-		toolbar.setBorder(BorderFactory.createEmptyBorder(2, 4, 2, 4));
-
-		toolbar.add(new JLabel("Search:"));
-		toolbar.add(searchField);
-		searchField.getDocument().addDocumentListener(new DocumentListener(){
-			@Override public void insertUpdate(final DocumentEvent e){ rebuildTree(); }
-			@Override public void removeUpdate(final DocumentEvent e){ rebuildTree(); }
-			@Override public void changedUpdate(final DocumentEvent e){ rebuildTree(); }
-		});
-
-		toolbar.add(new JLabel("Relation:"));
-		relationTypeFilter.setI18NPrefix("enum.place_relationship.type");
-		relationTypeFilter.setPreferredSize(new Dimension(180,
-			relationTypeFilter.getPreferredSize().height));
-		toolbar.add(relationTypeFilter);
-
-		final JButton reloadButton = new JButton("Reload");
-		reloadButton.addActionListener(e -> reload());
-		toolbar.add(reloadButton);
-
-		return toolbar;
-	}
-
 	private JComponent createCenter(){
 		tree.setRootVisible(true);
 		tree.setShowsRootHandles(true);
 		tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
 		tree.setCellRenderer(new PlaceTreeCellRenderer());
 		tree.addTreeSelectionListener(e -> onTreeSelectionChanged());
-		tree.addMouseListener(new MouseAdapter(){
-			@Override
-			public void mouseClicked(final MouseEvent e){
-				if(e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e))
-					openEditorForSelection();
-			}
-		});
 
 		final JScrollPane treeScroll = new JScrollPane(tree);
 		treeScroll.setMinimumSize(new Dimension(TREE_MIN_WIDTH, 200));
 
-		detailsPanel = new PlaceDetailsPanel();
 		final JScrollPane detailsScroll = new JScrollPane(detailsPanel);
 		detailsScroll.setMinimumSize(new Dimension(DETAILS_MIN_WIDTH, 200));
 		detailsScroll.setBorder(BorderFactory.createEmptyBorder());
@@ -246,120 +292,204 @@ public final class PlaceHierarchyPanel extends JPanel{
 		return split;
 	}
 
-	private JComponent createStatusBar(){
-		final JPanel bar = new JPanel(new BorderLayout());
-		bar.setBorder(BorderFactory.createEmptyBorder(2, 6, 2, 6));
-		bar.add(statusLabel, BorderLayout.WEST);
-		return bar;
-	}
-
 
 	/* ======================================================================
 	 *                          Tree construction
 	 * ====================================================================== */
 
-	private void rebuildRelationTypeModel(){
-		// Start from the declared types, add any custom type found in the
-		// data, and prepend the "All" entry. The sentinel is a display
-		// label, not a protocol type, so it is compared by identity in
-		// the filter logic below.
-		final Set<String> types = new TreeSet<>(PlaceHierarchyService.declaredRelationTypes());
-		for(final PlaceHierarchyService.PlaceRelation rel : hierarchy.relations())
-			if(rel.relationType() != null && !rel.relationType().isBlank())
-				types.add(rel.relationType());
-
-		final String previous = (String)relationTypeFilter.getSelectedItem();
-		final List<String> items = new ArrayList<>();
-		items.add(FILTER_ALL_KEY);
-		items.addAll(types);
-		relationTypeFilter.setModel(new DefaultComboBoxModel<>(items.toArray(new String[0])));
-		if(previous != null && items.contains(previous))
-			relationTypeFilter.setSelectedItem(previous);
-		else
-			relationTypeFilter.setSelectedItem(FILTER_ALL_KEY);
-	}
-
+	/**
+	 * Rebuilds the tree asynchronously. The new tree structure is
+	 * computed on a background thread and applied to the {@link JTree}
+	 * on the EDT. The progress is reported in percentage through
+	 * {@link #PROPERTY_FILTERING_PROGRESS}, and completion through
+	 * {@link #PROPERTY_FILTERING_DONE}.
+	 */
 	private void rebuildTree(){
-		treeRoot.removeAllChildren();
+		if(rebuildWorker != null && !rebuildWorker.isDone())
+			rebuildWorker.cancel(true);
 
-		final String filter = (String)relationTypeFilter.getSelectedItem();
-		final String search = searchField.getText();
-		final boolean hasFilter = (filter != null && !FILTER_ALL_KEY.equals(filter));
+		final String currentSearch = searchFilter;
+		final String currentType = relationTypeFilter;
+		final Set<SearchMode> currentModes = searchModes;
+		final int totalNodes = hierarchy.places().size();
+		final AtomicInteger visited = new AtomicInteger(0);
+		final AtomicInteger lastPercent = new AtomicInteger(-1);
 
-		for(final String rootId : hierarchy.rootIds()){
-			final DefaultMutableTreeNode node = buildNode(rootId, null,
-				new HashSet<>(), hasFilter, filter, search);
-			if(node != null)
-				treeRoot.add(node);
-		}
+		// Fire 0% immediately so the progress bar moves from its initial
+		// state before the first chunk is processed.
+		firePropertyChange(PROPERTY_FILTERING_PROGRESS, null, 0);
 
-		treeModel.reload();
-		// Expand the first two levels by default, so the panel does not
-		// open with everything collapsed.
-		expandFirstLevels(2);
+		rebuildWorker = new SwingWorker<>(){
+			@Override
+			protected DefaultMutableTreeNode doInBackground(){
+				final DefaultMutableTreeNode newRoot = new DefaultMutableTreeNode("Places");
+				for(final String rootId : hierarchy.rootIds()){
+					if(isCancelled()) return newRoot;
+
+					final Consumer<Integer> throttledPublisher = percent -> {
+						if(percent > lastPercent.getAndSet(percent))
+							publish(percent);
+					};
+
+					final DefaultMutableTreeNode node = buildNode(rootId, null, new HashSet<>(),
+						currentSearch, currentType, currentModes, visited, totalNodes, throttledPublisher);
+					if(node != null)
+						newRoot.add(node);
+				}
+				return newRoot;
+			}
+
+			@Override
+			protected void process(final List<Integer> chunks){
+				if(isCancelled())
+					return;
+
+				final int latest = chunks.getLast();
+				PlaceHierarchyPanel.this.firePropertyChange(PROPERTY_FILTERING_PROGRESS, null, latest);
+			}
+
+			@Override
+			protected void done(){
+				if(isCancelled()) return;
+
+				try{
+					PlaceHierarchyPanel.this.treeRoot = get();
+					treeModel.setRoot(treeRoot);
+
+					tree.expandPath(new TreePath(treeRoot));
+
+					// Final progress (100%) and completion event. Firing
+					// 100 explicitly covers the case where filtering
+					// pruned some nodes and `visited` never reached
+					// `totalNodes`.
+					PlaceHierarchyPanel.this.firePropertyChange(PROPERTY_FILTERING_PROGRESS, null, 100);
+					PlaceHierarchyPanel.this.firePropertyChange(PROPERTY_FILTERING_DONE, false, true);
+				}
+				catch(final Exception ignored){
+					// Ignore exceptions from canceled workers, but
+					// ensure the progress bar is closed anyway to avoid
+					// leaving the host in a "loading" state.
+					PlaceHierarchyPanel.this.firePropertyChange(PROPERTY_FILTERING_DONE, false, true);
+				}
+			}
+		};
+
+		rebuildWorker.execute();
 	}
 
 	/**
 	 * Builds a {@link DefaultMutableTreeNode} for the given place and,
-	 * recursively, for its children. The {@code path} set contains the
-	 * places already visited on the current path from the root, so a
-	 * cycle is broken at the first repeated node and the node is marked
-	 * as a cycle for the renderer.
+	 * recursively, for its children.
+	 * <p>
+	 * A node is kept when at least one of the following holds:
+	 * <ul>
+	 *   <li>it has children after filtering;</li>
+	 *   <li>the search filter is active and the node matches it;</li>
+	 *   <li>the search filter is empty, the type filter is active, and
+	 *       the node is the child endpoint of a matching relation.</li>
+	 * </ul>
+	 * A leaf node that satisfies none of the above is dropped. This
+	 * applies to roots as well: a root whose entire subtree has been
+	 * filtered out disappears, so the tree does not show empty
+	 * branches.
+	 * <p>
+	 * The {@code path} set contains the places already visited on the
+	 * current path from the root, so a cycle is broken at the first
+	 * repeated node and the node is marked as a cycle for the renderer.
 	 */
 	private DefaultMutableTreeNode buildNode(final String placeId, final PlaceHierarchyService.PlaceRelation incoming,
-			final Set<String> path, final boolean hasFilter, final String filter, final String search){
-		final PlaceHierarchyService.PlaceReference place = hierarchy.places().get(placeId);
+			final Set<String> path, final String currentSearch, final String currentType,
+			final Set<SearchMode> currentModes, final AtomicInteger visited, final int totalNodes,
+			final Consumer<Integer> progressPublisher){
+		final PlaceHierarchyService.PlaceReference place = hierarchy.places()
+			.get(placeId);
 		if(place == null)
 			return null;
+
+		// Report progress for every node visited, regardless of whether
+		// it is kept or dropped. The count is capped so that a filter
+		// that prunes many nodes still reaches 100 at the end (the
+		// explicit firePropertyChange in done() guarantees the final
+		// value).
+		final int v = visited.incrementAndGet();
+		if(totalNodes > 0 && progressPublisher != null){
+			final int percent = Math.min(100, (int)(v * 100. / totalNodes));
+
+			progressPublisher.accept(percent);
+		}
 
 		final boolean isCycle = path.contains(placeId);
 		final PlaceTreePayload payload = new PlaceTreePayload(place, incoming, isCycle);
 		final DefaultMutableTreeNode node = new DefaultMutableTreeNode(payload);
 
-		if(isCycle)
-			return node;
+		// Cycle nodes are filtered like any other leaf: if a search filter
+		// is active and the cycle node does not match, it is dropped,
+		// together with the ancestors that would otherwise survive only
+		// because of the cycle.
+		if(isCycle){
+			if(currentSearch.isBlank() || matches(place, currentSearch, currentModes))
+				return node;
+
+			return null;
+		}
 
 		final Set<String> newPath = new HashSet<>(path);
 		newPath.add(placeId);
 
+		// Step 1: build the children, applying the type filter on edges.
+		// The type filter is a property of the *edge*, so it is applied
+		// here, before the recursion.
+		final boolean hasTypeFilter = (currentType != null);
 		for(final PlaceHierarchyService.PlaceRelation rel : hierarchy.childrenOf(placeId)){
-			if(hasFilter && !filter.equals(rel.relationType()))
+			if(hasTypeFilter && !currentType.equals(rel.relationType()))
 				continue;
-			final DefaultMutableTreeNode child = buildNode(rel.childId(), rel, newPath,
-				hasFilter, filter, search);
+
+			final DefaultMutableTreeNode child = buildNode(rel.childId(), rel, newPath, currentSearch, currentType,
+				currentModes, visited, totalNodes, progressPublisher);
 			if(child != null)
 				node.add(child);
 		}
 
-		// When a search string is active and this node does not match, we
-		// still keep it if any of its children match. If neither matches,
-		// the node is dropped (unless it is a root, which is always kept
-		// to preserve the top-level structure).
-		if(search != null && !search.isBlank() && incoming != null){
-			if(!matches(place, search) && node.isLeaf())
-				return null;
+		final boolean hasSearchFilter = !currentSearch.isBlank();
+		if(hasSearchFilter || hasTypeFilter){
+			if(node.isLeaf()){
+				if(hasSearchFilter){
+					if(!matches(place, currentSearch, currentModes))
+						return null;
+				}
+				else if(incoming == null)
+					return null;
+			}
 		}
 
 		return node;
 	}
 
-	private static boolean matches(final PlaceHierarchyService.PlaceReference place, final String search){
-		final String needle = search.trim().toLowerCase(Locale.ROOT);
-		if(needle.isEmpty())
+	/**
+	 * Returns whether the given place matches the search filter.
+	 * <p>
+	 * The actual comparison is delegated to {@link SearchMatcher}, the
+	 * same component used by every other search strategy in the
+	 * application. This keeps the search behaviour consistent: a query
+	 * that uses fuzzy or whole-word mode behaves the same way whether
+	 * it is evaluated against a flat list or against the hierarchy.
+	 * <p>
+	 * The target text used for the comparison is the canonical display
+	 * text produced by {@link PlaceHandler#getDisplayText(FLEFRecord, FLEFModel)},
+	 * which is the same text shown in the flat list. This guarantees
+	 * that a place visible in one context is visible in the other.
+	 */
+	private boolean matches(final PlaceHierarchyService.PlaceReference place,
+		final String currentSearch, final Set<SearchMode> currentModes){
+		if(currentSearch.isBlank())
 			return true;
-		if(place.name() != null && place.name().toLowerCase(Locale.ROOT).contains(needle))
-			return true;
-		if(place.type() != null && place.type().toLowerCase(Locale.ROOT).contains(needle))
-			return true;
-		return false;
-	}
 
-	private void expandFirstLevels(final int levels){
-		int row = 0;
-		while(row < tree.getRowCount() && tree.getPathForRow(row).getPathCount() <= levels){
-			tree.expandRow(row);
-			row ++;
-		}
+		final String targetText = place.displayText();
+		if(targetText == null)
+			return false;
+
+		return SearchMatcher.score(currentSearch, targetText, currentModes)
+			.passes();
 	}
 
 
@@ -369,22 +499,26 @@ public final class PlaceHierarchyPanel extends JPanel{
 
 	private void onTreeSelectionChanged(){
 		final PlaceTreePayload payload = selectedPayload();
+		selectedPlaceRecord = null;
+
+		if(payload != null){
+			final String childId = payload.place().id();
+			selectedPlaceRecord = model.getRecordById(childId);
+		}
+
 		detailsPanel.showPlace(payload != null? payload.place(): null, hierarchy);
 	}
 
-	private void openEditorForSelection(){
+	public void openEditorForSelection(){
+		if(!editable)
+			return;
+
 		final PlaceTreePayload payload = selectedPayload();
 		if(payload == null)
 			return;
 
 		final FLEFRecord record = model.getRecordById(payload.place().id());
-		if(record == null)
-			return;
-
 		final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(record.getTag());
-		if(handler == null)
-			return;
-
 		final Window owner = SwingUtilities.getWindowAncestor(this);
 		final BaseRecordDialog dialog = handler.createEditDialog(owner, model, record);
 		dialog.setVisible(true);
@@ -549,8 +683,7 @@ public final class PlaceHierarchyPanel extends JPanel{
 	private static DefaultMutableTreeNode findNodeById(final DefaultMutableTreeNode root, final String placeId){
 		for(int i = 0; i < root.getChildCount(); i ++){
 			final DefaultMutableTreeNode child = (DefaultMutableTreeNode)root.getChildAt(i);
-			if(child.getUserObject() instanceof PlaceTreePayload payload
-					&& payload.place().id().equals(placeId))
+			if(child.getUserObject() instanceof PlaceTreePayload payload && payload.place().id().equals(placeId))
 				return child;
 
 			final DefaultMutableTreeNode nested = findNodeById(child, placeId);
@@ -558,13 +691,6 @@ public final class PlaceHierarchyPanel extends JPanel{
 				return nested;
 		}
 		return null;
-	}
-
-	private void updateStatus(){
-		final int placeCount = hierarchy.places().size();
-		final int relationCount = hierarchy.relations().size();
-		final int rootCount = hierarchy.rootIds().size();
-		statusLabel.setText(placeCount + " places, " + relationCount + " relations, " + rootCount + " roots");
 	}
 
 
@@ -600,13 +726,51 @@ public final class PlaceHierarchyPanel extends JPanel{
 
 		PlaceDetailsPanel(){
 			setLayout(new BorderLayout());
+
 			content.setEditable(false);
 			content.setContentType("text/html");
+
+			// Listener to open links in the system browser
+			content.addHyperlinkListener(e -> {
+				if(e.getEventType() == HyperlinkEvent.EventType.ACTIVATED){
+					if(Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)){
+						try{
+							Desktop.getDesktop()
+								.browse(e.getURL().toURI());
+						}
+						catch(final Exception ignored){
+							// Log or ignore
+						}
+					}
+				}
+			});
+
+			// Listener to change the cursor to a hand when hovering over a link
+			content.addHyperlinkListener(e -> {
+				if(e.getEventType() == HyperlinkEvent.EventType.ACTIVATED){
+					if(Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)){
+						try{
+							Desktop.getDesktop()
+								.browse(e.getURL().toURI());
+						}
+						catch(final Exception ignored){
+							// Log or ignore
+						}
+					}
+				}
+				else if(e.getEventType() == HyperlinkEvent.EventType.ENTERED)
+					// Change cursor to hand when hovering over a link
+					content.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+				else if(e.getEventType() == HyperlinkEvent.EventType.EXITED)
+					// Restore default cursor when leaving the link
+					content.setCursor(Cursor.getDefaultCursor());
+			});
+
 			add(new JScrollPane(content), BorderLayout.CENTER);
 		}
 
 		void showPlace(final PlaceHierarchyService.PlaceReference place,
-			final PlaceHierarchyService.Hierarchy hierarchy){
+				final PlaceHierarchyService.Hierarchy hierarchy){
 			if(place == null){
 				content.setText(StringUtils.EMPTY);
 
@@ -614,45 +778,73 @@ public final class PlaceHierarchyPanel extends JPanel{
 			}
 
 			final StringBuilder sb = new StringBuilder();
-			sb.append("<html><body style='font-family:SansSerif;font-size:12px;padding:8px'>");
-			sb.append("<h2 style='margin:0 0 6px 0'>").append(escape(place.name())).append("</h2>");
-			if(place.type() != null)
-				sb.append("<p><b>Type:</b> ").append(escape(place.type())).append("</p>");
-			if(place.coordinates() != null)
-				sb.append("<p><b>Coordinates:</b> ").append(escape(place.coordinates())).append("</p>");
+			// Base typography and padding for the whole document
+			sb.append("<html><body style='font-family: \"Segoe UI\", Helvetica, Arial, sans-serif; font-size: 13px; color: #333333; padding: 16px;'>");
 
+			// Title section
+			sb.append("<div style='font-size: 20px; font-weight: bold; color: #202124; margin-bottom: 4px'>")
+				.append(escape(place.name()))
+				.append("</div>");
+
+			// Metadata line (Type & Coordinates)
+			boolean hasMeta = false;
+			final StringBuilder metaSb = new StringBuilder();
+			if(StringUtils.isNotBlank(place.type())){
+				metaSb.append("Type: ").append(escape(place.type()));
+				hasMeta = true;
+			}
+			if(StringUtils.isNotBlank(place.coordinates())){
+				if(hasMeta)
+					metaSb.append(" &nbsp;•&nbsp; ");
+
+				// Build the map URL (reusing the logic from ShowOnMapTool)
+				final String mapUrl = buildMapUrl(place.coordinates(), place.name());
+				if(mapUrl != null){
+					// Escape & to &amp; to prevent the HTML parser from choking
+					final String safeUrl = mapUrl.replace("&", "&amp;");
+					metaSb.append("<a href='").append(safeUrl).append("' style='color: #0066cc; text-decoration: underline;'>")
+						.append("Coordinates: ").append(escape(place.coordinates()))
+						.append("</a>");
+				}
+				else
+					metaSb.append("Coordinates: ").append(escape(place.coordinates()));
+
+				hasMeta = true;
+			}
+			if(hasMeta)
+				sb.append("<div style='font-size: 12px; color: #5f6368; margin-bottom: 20px;'>")
+					.append(metaSb)
+					.append("</div>");
+
+			// --- Parents Section ---
 			final List<PlaceHierarchyService.PlaceRelation> parents = hierarchy.parentsOf(place.id());
+			sb.append("<div style='font-size: 11px; font-weight: bold; color: #888888; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 12px; margin-bottom: 8px; border-bottom: 1px solid #eaeaea; padding-bottom: 4px;'>Parents</div>");
 			if(!parents.isEmpty()){
-				sb.append("<h3 style='margin:12px 0 4px 0'>Parents</h3><ul>");
 				for(final PlaceHierarchyService.PlaceRelation rel : parents){
 					final PlaceHierarchyService.PlaceReference parent = hierarchy.places().get(rel.parentId());
-					sb.append("<li>").append(escape(parent != null? parent.name(): rel.parentId()));
-					appendRelationInfo(sb, rel);
-					sb.append("</li>");
+					appendRelationRow(sb, parent != null? parent.name(): rel.parentId(), rel);
 				}
-				sb.append("</ul>");
 			}
 			else
-				sb.append("<p><i>No parent declared.</i></p>");
+				sb.append("<div style='color: #999999; font-style: italic;'>No parent declared.</div>");
 
+			// --- Children Section ---
 			final List<PlaceHierarchyService.PlaceRelation> children = hierarchy.childrenOf(place.id());
+			sb.append("<div style='font-size: 11px; font-weight: bold; color: #888888; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 12px; margin-bottom: 8px; border-bottom: 1px solid #eaeaea; padding-bottom: 4px;'>Children</div>");
 			if(!children.isEmpty()){
-				sb.append("<h3 style='margin:12px 0 4px 0'>Children</h3><ul>");
 				for(final PlaceHierarchyService.PlaceRelation rel : children){
 					final PlaceHierarchyService.PlaceReference child = hierarchy.places().get(rel.childId());
-					sb.append("<li>").append(escape(child != null? child.name(): rel.childId()));
-					appendRelationInfo(sb, rel);
-					sb.append("</li>");
+					appendRelationRow(sb, child != null? child.name(): rel.childId(), rel);
 				}
-				sb.append("</ul>");
 			}
 			else
-				sb.append("<p><i>No child declared.</i></p>");
+				sb.append("<div style='color: #999999; font-style: italic;'>No child declared.</div>");
 
+			// --- Notes Section ---
 			if(!place.notes().isEmpty()){
-				sb.append("<h3 style='margin:12px 0 4px 0'>Notes</h3>");
+				sb.append("<div style='font-size: 11px; font-weight: bold; color: #888888; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 12px; margin-bottom: 8px; border-bottom: 1px solid #eaeaea; padding-bottom: 4px;'>Notes</div>");
 				for(final String note : place.notes())
-					sb.append("<p style='margin:2px 0'>").append(escape(note)).append("</p>");
+					sb.append("<div style='margin-bottom: 6px; line-height: 1.4;'>").append(escape(note)).append("</div>");
 			}
 
 			sb.append("</body></html>");
@@ -660,18 +852,63 @@ public final class PlaceHierarchyPanel extends JPanel{
 			content.setCaretPosition(0);
 		}
 
+		private static String buildMapUrl(final String coordinates, final String name){
+			if(StringUtils.isNotBlank(coordinates)){
+				final String[] parts = coordinates.split("[,\\s]+");
+				if(parts.length >= 2){
+					try{
+						final double lat = Double.parseDouble(parts[0]);
+						final double lon = Double.parseDouble(parts[1]);
+						return "https://www.openstreetmap.org/?mlat=" + lat + "&mlon=" + lon + "#map=14/" + lat + "/" + lon;
+					}
+					catch(final NumberFormatException ignored){
+						// Fall through to the search by name.
+					}
+				}
+			}
+			if(StringUtils.isNotBlank(name))
+				return "https://www.openstreetmap.org/search?query=" + URLEncoder.encode(name, StandardCharsets.UTF_8);
+			return null;
+		}
+
+		/**
+		 * Helper to render a single row in the parents/children list with
+		 * a clean, modern layout instead of standard HTML bullets.
+		 */
+		private static void appendRelationRow(final StringBuilder sb, final String name, final PlaceHierarchyService.PlaceRelation rel){
+			sb.append("<div style='margin-bottom: 10px; line-height: 1.4;'>");
+			// Place name
+			sb.append("<b>").append(escape(name)).append("</b>");
+
+			// Relation type in a subtle blue/grey
+			if(rel.relationType() != null && !rel.relationType().isBlank())
+				sb.append(" <span style='color: #0066cc; font-style: italic; font-size: 12px;'>— ")
+					.append(escape(formatRelationType(rel.relationType())))
+					.append("</span>");
+
+			// Dates in a lighter, smaller font
+			final String from = rel.validFrom();
+			final String to = rel.validTo();
+			if(from != null || to != null)
+				sb.append(" <span style='color: #999999; font-size: 11px;'>[")
+					.append(from != null? escape(from): "?")
+					.append(" – ")
+					.append(to != null? escape(to): "?")
+					.append("]</span>");
+			sb.append("</div>");
+		}
+
 		private static void appendRelationInfo(final StringBuilder sb, final PlaceHierarchyService.PlaceRelation rel){
 			if(rel.relationType() != null && !rel.relationType().isBlank())
 				sb.append(" <i>— ").append(escape(formatRelationType(rel.relationType()))).append("</i>");
 			final String from = rel.validFrom();
 			final String to = rel.validTo();
-			if(from != null || to != null){
-				sb.append(" <font color='#666'>[");
-				sb.append(from != null? escape(from): "?");
-				sb.append(" – ");
-				sb.append(to != null? escape(to): "?");
-				sb.append("]</font>");
-			}
+			if(from != null || to != null)
+				sb.append(" <font color='#666'>[")
+					.append(from != null? escape(from): "?")
+					.append(" – ")
+					.append(to != null? escape(to): "?")
+					.append("]</font>");
 		}
 
 		private static String escape(final String s){
@@ -781,6 +1018,7 @@ public final class PlaceHierarchyPanel extends JPanel{
 
 		EventQueue.invokeLater(() -> {
 			final PlaceHierarchyPanel panel = new PlaceHierarchyPanel(model);
+			panel.setEditable(true);
 
 			final JFrame frame = new JFrame();
 			frame.setLayout(new BorderLayout());

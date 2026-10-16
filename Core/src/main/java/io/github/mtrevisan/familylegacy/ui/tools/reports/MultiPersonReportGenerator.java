@@ -57,9 +57,9 @@ final class MultiPersonReportGenerator{
 	}
 
 
-	MultiPersonReportGenerator(final FLEFModel model, final List<FLEFRecord> persons,
-		final ReportConfig config, final String title, final List<SectionBuilder> opening){
-		this.model = Objects.requireNonNull(model);
+	MultiPersonReportGenerator(final FLEFModel model, final List<FLEFRecord> persons, final ReportConfig config,
+			final String title, final List<SectionBuilder> opening){
+		this.model = model;
 		this.persons = List.copyOf(persons);
 		this.config = Objects.requireNonNull(config);
 		this.title = Objects.requireNonNull(title);

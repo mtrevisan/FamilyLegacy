@@ -83,6 +83,8 @@ public class PlaceHandler extends AbstractRecordTypeHandler<PlaceRecordDialog>{
 			return PlaceCitationHandler.getInstance()
 				.getDisplayText(record, model);
 
+		final String type = PlaceReader.extractType(record);
+
 		final String primaryName = PlaceReader.extractPrimaryName(record);
 		if(primaryName == null)
 			return "[" + id + "]";

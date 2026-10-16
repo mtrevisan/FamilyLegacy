@@ -27,12 +27,15 @@ package io.github.mtrevisan.familylegacy.ui.components.searches;
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceRelationshipReader;
 import io.github.mtrevisan.familylegacy.ui.bindings.BindingsHelper;
 import io.github.mtrevisan.familylegacy.ui.bindings.Debouncer;
 import io.github.mtrevisan.familylegacy.ui.bindings.FilteredComboBox;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.services.relationship.UnlinkDialog;
+import io.github.mtrevisan.familylegacy.ui.components.projections.places.PlaceHierarchyPanel;
 import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
+import io.github.mtrevisan.familylegacy.ui.handlers.PlaceRelationshipHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
@@ -63,6 +66,7 @@ import javax.swing.UIManager;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import java.awt.BorderLayout;
+import java.awt.CardLayout;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Window;
@@ -77,6 +81,7 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
@@ -92,17 +97,23 @@ import java.util.function.Consumer;
  *       exactly, instead of appearing anywhere inside it;</li>
  *   <li><b>Fuzzy</b>: small typographical differences are tolerated.</li>
  * </ul>
- * The two modifiers are independent and can be combined in any way:
- * <ul>
- *   <li>neither: plain substring match;</li>
- *   <li>whole word only: exact token match;</li>
- *   <li>fuzzy only: typo-tolerant substring match;</li>
- *   <li>both: typo-tolerant match restricted to whole tokens.</li>
- * </ul>
- * Whichever the combination, the records are ranked by the number of
- * matched query tokens first, and by the sum of the per-token fuzzy
- * scores second, so a record matching both words of a two-word query
- * always ranks above a record matching only one.
+ * The two modifiers are independent and can be combined in any way.
+ * <p>
+ * <b>Place-relationship mode.</b> When the selected record type is
+ * {@code place_relationship}, the dialog swaps the flat list for a
+ * {@link PlaceHierarchyPanel}: a place relationship is meaningful only
+ * in the context of the hierarchy it belongs to, so a flat list of
+ * relations would be incomprehensible.
+ * <p>
+ * In that mode the search field and the dynamic filter panel remain
+ * visible and functional: the text field drives the hierarchy's
+ * substring filter, and the dynamic filter panel (a
+ * {@code PlaceRelationshipFilterPanel}) drives the hierarchy's
+ * relation-type filter. The fuzzy and whole-word checkboxes are hidden,
+ * because the hierarchy uses a plain substring match and the checkboxes
+ * would imply an effect that does not exist. Edit, unlink, and delete
+ * are disabled, because the dialog is being used to pick a reference,
+ * not to modify existing records.
  */
 public class RecordSelectionDialog extends JDialog{
 
@@ -117,6 +128,9 @@ public class RecordSelectionDialog extends JDialog{
 
 	private static final Dimension SCROLL_PANE_PREFERRED_SIZE = new Dimension(450, 200);
 	public static final String ACTION_CANCEL_SEARCH_OR_DIALOG = "cancelSearchOrDialog";
+
+	private static final String CARD_LIST = "card-list";
+	private static final String CARD_HIERARCHY = "card-hierarchy";
 
 
 	private record DisplayItem(FLEFRecord record, String displayText){}
@@ -150,6 +164,20 @@ public class RecordSelectionDialog extends JDialog{
 	private final JList<DisplayItem> resultList = BindingsHelper.createList(listModel);
 	private final JLabel statusLabel = new JLabel(StringUtils.SPACE);
 	private final JProgressBar progressBar = new JProgressBar(0, 100);
+
+	/**
+	 * Card container for the central area. Holds the flat list card and,
+	 * lazily, the place-hierarchy card. Exactly one card is visible at a
+	 * time; the switch is driven by the selected record type.
+	 */
+	private final JPanel centerPanel = new JPanel(new CardLayout());
+
+	/**
+	 * The place-hierarchy card. Created lazily on the first switch to a
+	 * {@code place_relationship} type, so that a dialog opened for a
+	 * different type does not pay the cost of building the hierarchy.
+	 */
+	private PlaceHierarchyPanel placeHierarchyPanel;
 
 	// Services & Async tasks
 	private final SearchService searchService;
@@ -248,7 +276,7 @@ public class RecordSelectionDialog extends JDialog{
 		combo.setRenderer(new DefaultListCellRenderer(){
 			@Override
 			public Component getListCellRendererComponent(final JList<?> list, final Object value,
-				final int index, final boolean isSelected, final boolean cellHasFocus){
+					final int index, final boolean isSelected, final boolean cellHasFocus){
 				super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
 
 				if(value instanceof RecordTypeHandler<?> handler)
@@ -296,7 +324,8 @@ public class RecordSelectionDialog extends JDialog{
 		// Dynamic Filters Panel
 		add(filterPanelHolder, "growx,wrap");
 
-		// Results Panel
+		// Results Panel: a card container that switches between the flat
+		// list and the place hierarchy, depending on the selected type.
 		resultList.setFixedCellHeight(22);
 		resultList.setCellRenderer(new DefaultListCellRenderer(){
 			@Override
@@ -312,7 +341,8 @@ public class RecordSelectionDialog extends JDialog{
 		final JScrollPane scrollPane = GUIHelper.createScrollPane(resultList);
 		scrollPane.setBorder(BorderFactory.createTitledBorder(I18N.t("search.results_panel.title")));
 		scrollPane.setPreferredSize(SCROLL_PANE_PREFERRED_SIZE);
-		add(scrollPane, "grow,push,wrap");
+		centerPanel.add(scrollPane, CARD_LIST);
+		add(centerPanel, "grow,push,wrap");
 
 		// Status Bar with Progress Bar
 		progressBar.setIndeterminate(false);
@@ -326,6 +356,8 @@ public class RecordSelectionDialog extends JDialog{
 
 		// Action Buttons Panel
 		final JButton selectButton = new JButton(I18N.t("button.select"));
+		// Buttons kept as fields so their enabled state can be toggled when
+		// the dialog switches to the hierarchy card.
 		final JButton editButton = new JButton(I18N.t("button.edit"));
 		final JButton unlinkButton = new JButton(I18N.t("button.unlink"));
 		final JButton deleteButton = new JButton(I18N.t("button.delete"));
@@ -414,7 +446,7 @@ public class RecordSelectionDialog extends JDialog{
 	private void updateWindowTitle(){
 		final RecordTypeHandler<?> desc = getSelectedHandler();
 		setTitle(I18N.tf("search.title_with_record", (desc != null), I18N.t("confirmation.exist_record."
-			+ (desc != null? desc.getType().replace('_', '.').toLowerCase(): StringUtils.EMPTY))));
+			+ (desc != null? desc.getType().toLowerCase(): StringUtils.EMPTY))));
 	}
 
 	private RecordTypeHandler<?> getSelectedHandler(){
@@ -422,6 +454,16 @@ public class RecordSelectionDialog extends JDialog{
 			return defaultType;
 
 		return (typeCombo != null? (RecordTypeHandler<?>)typeCombo.getSelectedItem(): null);
+	}
+
+	/**
+	 * Returns {@code true} when the currently selected record type is
+	 * {@code place_relationship}. In that case the dialog shows the
+	 * place hierarchy instead of the flat list.
+	 */
+	private boolean isPlaceRelationshipHandler(){
+		final RecordTypeHandler<?> handler = getSelectedHandler();
+		return (handler != null && Objects.equals(PlaceRelationshipHandler.TYPE, handler.getType()));
 	}
 
 	/**
@@ -436,15 +478,81 @@ public class RecordSelectionDialog extends JDialog{
 			modes.add(SearchMode.FUZZY);
 		if(wholeWordCheckBox.isSelected())
 			modes.add(SearchMode.WHOLE_WORD);
+
 		return modes;
 	}
 
+	/**
+	 * Refreshes the central content and the toolbar controls when the
+	 * selected record type changes.
+	 * <p>
+	 * For {@code place_relationship}, the flat list is swapped for the
+	 * place hierarchy. The search field and the dynamic filter panel
+	 * stay visible and drive the hierarchy's filters through
+	 * {@link #applyFiltersToHierarchy()}. The fuzzy and whole-word
+	 * checkboxes are hidden because they would imply an effect that the
+	 * hierarchy does not have. Edit, unlink, and delete are disabled
+	 * because the dialog is picking a reference, not modifying records.
+	 * <p>
+	 * For every other type, the flat list is restored and the search
+	 * controls are made visible again.
+	 */
 	private void updateFilterPanel(){
 		displayTextCache.clear();
 
 		updateWindowTitle();
 
 		final RecordTypeHandler<?> handler = getSelectedHandler();
+		final boolean isPlaceRelationship = isPlaceRelationshipHandler();
+
+		if(isPlaceRelationship)
+			showHierarchyCard();
+		else
+			showListCard();
+
+		updateControlsVisibility();
+		rebuildDynamicFilterPanel(handler);
+
+		if(isPlaceRelationship)
+			applyFiltersToHierarchy();
+
+		pack();
+	}
+
+	private void showHierarchyCard(){
+		// The hierarchy panel is created lazily on the first switch to
+		// the place_relationship type. Once created, it stays in the
+		// card layout and is merely reloaded on subsequent switches.
+		if(placeHierarchyPanel == null){
+			placeHierarchyPanel = new PlaceHierarchyPanel(model);
+			placeHierarchyPanel.setEditable(true);
+
+			final JPanel wrapper = new JPanel(new BorderLayout());
+			wrapper.setBorder(BorderFactory.createTitledBorder(I18N.t("search.results_panel.title")));
+			wrapper.add(placeHierarchyPanel, BorderLayout.CENTER);
+
+			centerPanel.add(wrapper, CARD_HIERARCHY);
+		}
+		else
+			placeHierarchyPanel.reload();
+
+		final CardLayout layout = (CardLayout)centerPanel.getLayout();
+		layout.show(centerPanel, CARD_HIERARCHY);
+	}
+
+	private void showListCard(){
+		final CardLayout layout = (CardLayout)centerPanel.getLayout();
+		layout.show(centerPanel, CARD_LIST);
+	}
+
+	private void updateControlsVisibility(){
+		searchField.setVisible(true);
+		filterPanelHolder.setVisible(true);
+		wholeWordCheckBox.setVisible(true);
+		fuzzyCheckBox.setVisible(true);
+	}
+
+	private void rebuildDynamicFilterPanel(final RecordTypeHandler<?> handler){
 		filterPanelHolder.removeAll();
 		if(handler != null){
 			final JPanel panel = FilterPanelFactory.createPanel(handler, criteria -> scheduleSearch());
@@ -454,8 +562,6 @@ public class RecordSelectionDialog extends JDialog{
 
 		filterPanelHolder.revalidate();
 		filterPanelHolder.repaint();
-
-		pack();
 	}
 
 	private void scheduleSearch(){
@@ -463,6 +569,16 @@ public class RecordSelectionDialog extends JDialog{
 	}
 
 	private void performSearch(){
+		// In place-relationship mode the search is routed to the
+		// hierarchy: the same text field and the same dynamic filter
+		// panel drive the tree. The flat-list search pipeline is not
+		// started at all.
+		if(isPlaceRelationshipHandler()){
+			applyFiltersToHierarchy();
+
+			return;
+		}
+
 		if(currentWorker != null && !currentWorker.isDone())
 			currentWorker.cancel(true);
 
@@ -546,6 +662,53 @@ public class RecordSelectionDialog extends JDialog{
 		currentWorker.execute();
 	}
 
+	/**
+	 * Forwards the current search text and the current filter panel to
+	 * the hierarchy. Called whenever the search input changes while the
+	 * dialog is in {@code place_relationship} mode.
+	 */
+	private void applyFiltersToHierarchy(){
+		if(placeHierarchyPanel == null)
+			return;
+
+		if(placeHierarchyPanel.getPropertyChangeListeners(
+			PlaceHierarchyPanel.PROPERTY_FILTERING_PROGRESS).length == 0){
+			placeHierarchyPanel.addPropertyChangeListener(
+				PlaceHierarchyPanel.PROPERTY_FILTERING_PROGRESS, evt -> {
+					final Integer progress = (Integer)evt.getNewValue();
+					if(progress != null){
+						progressBar.setValue(progress);
+						progressBar.repaint();
+					}
+				});
+		}
+		if(placeHierarchyPanel.getPropertyChangeListeners(PlaceHierarchyPanel.PROPERTY_FILTERING_DONE).length == 0)
+			placeHierarchyPanel.addPropertyChangeListener(
+				PlaceHierarchyPanel.PROPERTY_FILTERING_DONE, evt -> {
+					progressBar.setValue(100);
+					progressBar.setVisible(false);
+					statusLabel.setText(StringUtils.SPACE);
+				});
+
+		String relationType = null;
+		if(filterPanelHolder.getComponentCount() > 0
+				&& filterPanelHolder.getComponent(0) instanceof RecordFilterPanel filterPanel){
+			final Map<String, String> filters = filterPanel.getFilters();
+			relationType = filters.get(PlaceRelationshipReader.TAG_TYPE);
+		}
+
+		final boolean rebuildStarted = placeHierarchyPanel.setFilters(
+			currentMode(), searchField.getText().trim(), relationType);
+
+		if(rebuildStarted){
+			progressBar.setIndeterminate(false);
+			progressBar.setValue(0);
+			progressBar.setVisible(true);
+			progressBar.repaint();
+			statusLabel.setText(I18N.t("search.searching"));
+		}
+	}
+
 	private void updateResults(final List<DisplayItem> items){
 		listModel.clear();
 
@@ -588,6 +751,38 @@ public class RecordSelectionDialog extends JDialog{
 	}
 
 	private void selectResult(){
+		// In place-relationship mode the selection comes from the
+		// hierarchy tree, not from the flat list. A node with no incoming
+		// relation (a root place) yields null, which tells the user that
+		// no relationship is selected: a relationship is meaningful only
+		// as an edge between a child place and a parent place.
+		if(isPlaceRelationshipHandler()){
+			if(placeHierarchyPanel == null)
+				return;
+
+			final FLEFRecord selectedRelationship = placeHierarchyPanel.getSelectedPlaceRecord();
+			if(selectedRelationship == null){
+				JOptionPane.showMessageDialog(this,
+					I18N.t("search.no_selection.place_relationship"),
+					I18N.t("search.no_selection.title"), JOptionPane.INFORMATION_MESSAGE);
+
+				return;
+			}
+
+			selectedRecord = selectedRelationship;
+			selectedType = PlaceRelationshipHandler.TYPE;
+			confirmed = true;
+
+			if(onSelect != null)
+				onSelect.accept(selectedRecord, getSelectedHandler());
+
+			firePropertyChange(PROPERTY_TYPE_SELECTED, null, null);
+
+			dispose();
+
+			return;
+		}
+
 		final DisplayItem selectedItem = resultList.getSelectedValue();
 		if(selectedItem != null && selectedItem.record() != null){
 			final RecordTypeHandler<?> handler = getSelectedHandler();
@@ -611,11 +806,19 @@ public class RecordSelectionDialog extends JDialog{
 	}
 
 	private void editRecord(){
+		if(isPlaceRelationshipHandler()){
+			placeHierarchyPanel.openEditorForSelection();
+
+			return;
+		}
+
 		final RecordTypeHandler<?> handler = getSelectedHandler();
 		if(handler != null){
 			final DisplayItem selectedItem = resultList.getSelectedValue();
-			final FLEFRecord record = selectedItem.record();
+			if(selectedItem == null || selectedItem.record() == null)
+				return;
 
+			final FLEFRecord record = selectedItem.record();
 			final BaseRecordDialog dialog = handler.createEditDialog(this, model, record);
 			dialog.setVisible(true);
 
@@ -628,16 +831,71 @@ public class RecordSelectionDialog extends JDialog{
 		}
 	}
 
+	// TODO test
 	private void deleteRecord(){
-		// TODO show delete dialog (see DeleteIndividualTool)
+		final FLEFRecord record;
+		final String displayText;
+
+		// 1. Retrieve the selected record and its display text based on the current mode
+		if(isPlaceRelationshipHandler()){
+			record = placeHierarchyPanel.getSelectedPlaceRecord();
+			displayText = searchService.getDisplayText(record);
+		}
+		else {
+			final DisplayItem selectedItem = resultList.getSelectedValue();
+			if(selectedItem == null || selectedItem.record() == null)
+				return;
+
+			record = selectedItem.record();
+			displayText = selectedItem.displayText();
+		}
+
+		// 2. Ask for confirmation
+		final int confirm = JOptionPane.showConfirmDialog(this,
+			I18N.tf("confirmation.delete.record.message", false,
+				I18N.t("confirmation.exist_record." + record.getTag()), displayText),
+			I18N.t("confirmation.delete.record.title"),
+			JOptionPane.YES_NO_OPTION,
+			JOptionPane.WARNING_MESSAGE);
+
+		if(confirm != JOptionPane.YES_OPTION)
+			return;
+
+		// 3. Remove the target record from the model
+		model.removeRecord(record.getId());
+
+		// 4. Clean cache and refresh the appropriate view
+		displayTextCache.remove(record);
+		if(isPlaceRelationshipHandler())
+			placeHierarchyPanel.reload();
+		else
+			performSearch();
 	}
 
+	// TODO test
 	private void unlinkRecord(){
-		final DisplayItem selectedItem = resultList.getSelectedValue();
-		final FLEFRecord record = selectedItem.record();
+		final FLEFRecord record;
+		final String displayText;
+
+		// 1. Retrieve the selected record and its display text based on the current mode
+		if(isPlaceRelationshipHandler()){
+			record = placeHierarchyPanel.getSelectedPlaceRecord();
+			displayText = searchService.getDisplayText(record);
+		}
+		else {
+			final DisplayItem selectedItem = resultList.getSelectedValue();
+			if(selectedItem == null || selectedItem.record() == null)
+				return;
+
+			record = selectedItem.record();
+			displayText = selectedItem.displayText();
+		}
+
 		final String recordId = record.getId();
 
-		// Check if the record has active relationships using UnlinkRelationshipsDialog
+		// 2. Check if the record has active relationships using UnlinkRelationshipsDialog
+		// Since we are now selecting a PlaceRecord (both in hierarchy and flat list),
+		// this dialog correctly lists all relationships pointing to/from this place.
 		final UnlinkDialog dialog = new UnlinkDialog(this, model, recordId);
 		dialog.setVisible(true);
 
@@ -645,51 +903,30 @@ public class RecordSelectionDialog extends JDialog{
 		if(linkIdsToRemove.isEmpty())
 			return;
 
-		// Prompt confirmation before deleting the record itself
+		// 3. Prompt confirmation before deleting the record itself
 		final int confirm = JOptionPane.showConfirmDialog(this,
-			I18N.tf("confirmation.delete.record.message", dialog.removeParentRecord(), I18N.t("confirmation.exist_record." + record.getTag()), selectedItem.displayText()),
+			I18N.tf("confirmation.delete.record.message", dialog.removeParentRecord(),
+				I18N.t("confirmation.exist_record." + record.getTag()), displayText),
 			I18N.t("confirmation.delete.record.title"),
 			JOptionPane.YES_NO_OPTION,
 			JOptionPane.WARNING_MESSAGE);
 		if(confirm != JOptionPane.YES_OPTION)
 			return;
 
-		// First, remove any selected relationship records to maintain referential integrity
+		// 4. First, remove any selected relationship records to maintain referential integrity
 		for(final String linkId : linkIdsToRemove)
 			model.removeRecord(linkId);
 
-		// Then, remove the target record itself from the model
+		// 5. Then, remove the target record itself from the model (if requested)
 		if(dialog.removeParentRecord())
 			model.removeRecord(recordId);
 
-		// Clean cache and refresh the search results list
+		// 6. Clean cache and refresh the appropriate view
 		displayTextCache.remove(record);
-		performSearch();
-	}
-
-	private void deleteRecord2(){
-		final DisplayItem selectedItem = resultList.getSelectedValue();
-		final FLEFRecord record = selectedItem.record();
-
-		// Optional: prompt a confirmation dialog showing the display text
-		final int confirm = JOptionPane.showConfirmDialog(this,
-			I18N.tf("confirmation.delete.record.message", selectedItem.displayText()),
-			I18N.t("confirmation.delete.record.title"),
-			JOptionPane.YES_NO_OPTION,
-			JOptionPane.WARNING_MESSAGE);
-
-		if(confirm != JOptionPane.YES_OPTION)
-			return;
-
-		// Remove record from model.
-		// Note: Ensure model.removeRecord(id) handles or safely drops references,
-		// or check if additional cascade cleanup is required by your FLEFModel implementation.
-		model.removeRecord(record.getId());
-
-		// Refresh the list and clear cache
-		displayTextCache.remove(record);
-
-		performSearch();
+		if(isPlaceRelationshipHandler())
+			placeHierarchyPanel.reload();
+		else
+			performSearch();
 	}
 
 	public boolean isConfirmed(){
@@ -736,6 +973,7 @@ public class RecordSelectionDialog extends JDialog{
 //				io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler.class);
 //				io.github.mtrevisan.familylegacy.ui.handlers.PlaceHandler.class);
 				io.github.mtrevisan.familylegacy.ui.handlers.RelationshipHandler.class);
+//				io.github.mtrevisan.familylegacy.ui.handlers.PlaceRelationshipHandler.class);
 //				io.github.mtrevisan.familylegacy.ui.handlers.RepositoryHandler.class);
 //				io.github.mtrevisan.familylegacy.ui.handlers.ResearchActivityHandler.class);
 //				io.github.mtrevisan.familylegacy.ui.handlers.ResearchQuestionHandler.class);

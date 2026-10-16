@@ -40,7 +40,6 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 
 
@@ -85,7 +84,7 @@ public final class EntityMerger{
 
 
 	public EntityMerger(final FLEFModel model){
-		this.model = Objects.requireNonNull(model, "Model must not be null");
+		this.model = model;
 	}
 
 

@@ -33,6 +33,7 @@ import io.github.mtrevisan.familylegacy.ui.components.searches.strategies.Histor
 import io.github.mtrevisan.familylegacy.ui.components.searches.strategies.IdentityHypothesisFilterPanel;
 import io.github.mtrevisan.familylegacy.ui.components.searches.strategies.IndividualFilterPanel;
 import io.github.mtrevisan.familylegacy.ui.components.searches.strategies.PlaceFilterPanel;
+import io.github.mtrevisan.familylegacy.ui.components.searches.strategies.PlaceRelationshipFilterPanel;
 import io.github.mtrevisan.familylegacy.ui.components.searches.strategies.RelationshipFilterPanel;
 import io.github.mtrevisan.familylegacy.ui.components.searches.strategies.RepositoryFilterPanel;
 import io.github.mtrevisan.familylegacy.ui.components.searches.strategies.ResearchActivityFilterPanel;
@@ -48,6 +49,7 @@ import io.github.mtrevisan.familylegacy.ui.handlers.HistoricEventHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IdentityHypothesisHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.PlaceHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.PlaceRelationshipHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RelationshipHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RepositoryHandler;
@@ -80,6 +82,7 @@ public class FilterPanelFactory{
 		REGISTRY.put(IndividualHandler.class, IndividualFilterPanel::new);
 		REGISTRY.put(PlaceHandler.class, PlaceFilterPanel::new);
 		REGISTRY.put(RelationshipHandler.class, RelationshipFilterPanel::new);
+		REGISTRY.put(PlaceRelationshipHandler.class, PlaceRelationshipFilterPanel::new);
 		REGISTRY.put(RepositoryHandler.class, RepositoryFilterPanel::new);
 		REGISTRY.put(ResearchActivityHandler.class, ResearchActivityFilterPanel::new);
 		REGISTRY.put(ResearchQuestionHandler.class, ResearchQuestionFilterPanel::new);

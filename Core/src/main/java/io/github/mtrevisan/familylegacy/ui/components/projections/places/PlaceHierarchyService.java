@@ -85,7 +85,8 @@ import java.util.Set;
 public final class PlaceHierarchyService{
 
 	/** A minimal, immutable view of a {@code PlaceRecord}. */
-	public record PlaceReference(String id, String name, String type, String coordinates, List<String> notes){
+	public record PlaceReference(String id, String name, String type, String coordinates, List<String> notes,
+			String displayText){
 
 		public PlaceReference{
 			notes = (notes != null? List.copyOf(notes): List.of());
@@ -157,7 +158,9 @@ public final class PlaceHierarchyService{
 		final Map<String, PlaceReference> places = new LinkedHashMap<>();
 		final List<FLEFRecord> placeRecords = model.getRecordsByType(PlaceHandler.TYPE);
 		for(final FLEFRecord place : placeRecords){
-			final PlaceReference ref = toPlaceReference(place);
+			final String displayText = PlaceHandler.getInstance()
+				.getDisplayText(place, model);
+			final PlaceReference ref = toPlaceReference(place, displayText);
 			if(ref != null)
 				places.put(ref.id(), ref);
 		}
@@ -221,7 +224,7 @@ public final class PlaceHierarchyService{
 	 *                          Extraction helpers
 	 * ====================================================================== */
 
-	private static PlaceReference toPlaceReference(final FLEFRecord record){
+	private static PlaceReference toPlaceReference(final FLEFRecord record, final String displayText){
 		final String id = record.getId();
 		if(id == null)
 			return null;
@@ -230,7 +233,7 @@ public final class PlaceHierarchyService{
 		final String type = PlaceReader.extractType(record);
 		final String coordinates = PlaceReader.extractCoordinates(record);
 		final List<String> notes = extractNotes(record);
-		return new PlaceReference(id, (name != null? name: record.getId()), type, coordinates, notes);
+		return new PlaceReference(id, (name != null? name: record.getId()), type, coordinates, notes, displayText);
 	}
 
 	/**

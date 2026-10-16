@@ -45,9 +45,8 @@ public final class AncestorReportGenerator{
 	private final ReportConfig config;
 
 
-	public AncestorReportGenerator(final FLEFModel model, final FLEFRecord root,
-		final ReportConfig config){
-		this.model = Objects.requireNonNull(model);
+	public AncestorReportGenerator(final FLEFModel model, final FLEFRecord root, final ReportConfig config){
+		this.model = model;
 		this.root = Objects.requireNonNull(root);
 		this.config = Objects.requireNonNull(config);
 	}

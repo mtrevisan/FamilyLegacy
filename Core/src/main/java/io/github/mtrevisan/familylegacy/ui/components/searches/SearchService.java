@@ -34,6 +34,7 @@ import io.github.mtrevisan.familylegacy.ui.components.searches.strategies.GroupS
 import io.github.mtrevisan.familylegacy.ui.components.searches.strategies.HistoricEventSearchStrategy;
 import io.github.mtrevisan.familylegacy.ui.components.searches.strategies.IdentityHypothesisSearchStrategy;
 import io.github.mtrevisan.familylegacy.ui.components.searches.strategies.IndividualSearchStrategy;
+import io.github.mtrevisan.familylegacy.ui.components.searches.strategies.PlaceRelationshipSearchStrategy;
 import io.github.mtrevisan.familylegacy.ui.components.searches.strategies.PlaceSearchStrategy;
 import io.github.mtrevisan.familylegacy.ui.components.searches.strategies.RelationshipSearchStrategy;
 import io.github.mtrevisan.familylegacy.ui.components.searches.strategies.RepositorySearchStrategy;
@@ -46,10 +47,12 @@ import io.github.mtrevisan.familylegacy.ui.handlers.CulturalNormHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.DocumentHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.GroupHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.HistoricEventHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IdentityHypothesisHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.PlaceHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.PlaceRelationshipHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RelationshipHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RepositoryHandler;
@@ -102,6 +105,7 @@ public class SearchService{
 		REGISTRY.put(IndividualHandler.class, new IndividualSearchStrategy());
 		REGISTRY.put(PlaceHandler.class, new PlaceSearchStrategy());
 		REGISTRY.put(RelationshipHandler.class, new RelationshipSearchStrategy());
+		REGISTRY.put(PlaceRelationshipHandler.class, new PlaceRelationshipSearchStrategy());
 		REGISTRY.put(RepositoryHandler.class, new RepositorySearchStrategy());
 		REGISTRY.put(ResearchActivityHandler.class, new ResearchActivitySearchStrategy());
 		REGISTRY.put(ResearchQuestionHandler.class, new ResearchQuestionSearchStrategy());
@@ -233,7 +237,23 @@ public class SearchService{
 	}
 
 	public String getDisplayText(final FLEFRecord record){
-		return strategy.getDisplayText(record, model);
+		if(record == null)
+			return null;
+
+		// 1. Resolve the handler for the record's type dynamically.
+		// This avoids relying on the 'strategy' field, which is only
+		// set during a flat-list search and remains null in hierarchy mode.
+		final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(record.getTag());
+		if(handler == null)
+			return record.getId();
+
+		// 2. Look up the corresponding strategy for this handler.
+		final SearchStrategy strat = REGISTRY.get(handler.getClass());
+		if(strat != null)
+			return strat.getDisplayText(record, model);
+
+		// 3. Fallback to the handler's display text if no strategy is found.
+		return handler.getDisplayText(record, model);
 	}
 
 }
