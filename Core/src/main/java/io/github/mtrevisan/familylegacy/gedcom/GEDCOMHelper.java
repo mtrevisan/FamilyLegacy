@@ -30,9 +30,11 @@ import io.github.mtrevisan.familylegacy.gedcom.utils.GEDCOMDateParser;
 import io.github.mtrevisan.familylegacy.gedcom.utils.GEDCOMMapper;
 import io.github.mtrevisan.familylegacy.gedcom.utils.IDGenerator;
 import io.github.mtrevisan.familylegacy.gedcom.utils.IDNormalizer;
+import io.github.mtrevisan.familylegacy.gedcom.utils.PlaceCache;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.readers.DateReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EvidenceQualifiersReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.ui.handlers.DocumentHandler;
@@ -40,7 +42,6 @@ import io.github.mtrevisan.familylegacy.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventParticipationHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.GroupAttributeHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualAttributeHandler;
-import io.github.mtrevisan.familylegacy.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RelationshipHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.SourceHandler;
 import org.apache.commons.lang3.StringUtils;
@@ -786,7 +787,8 @@ public class GEDCOMHelper{
 
 
 	public static void attachIndividualEvent(FLEFRecord parent, FLEFModel model,
-			GEDCOMNode node, Map<String, GEDCOMNode> noteRawMap, Map<String, GEDCOMNode> sourRawMap, Map<String, GEDCOMNode> objeRawMap, List<GEDCOMNode> roots){
+			GEDCOMNode node, Map<String, GEDCOMNode> noteRawMap, Map<String, GEDCOMNode> sourRawMap,
+			Map<String, GEDCOMNode> objeRawMap, PlaceCache placeCache, List<GEDCOMNode> roots){
 		// Determine the FLEF event type
 		String customType = node.getTag();
 		String type = GEDCOMMapper.mapEvent(customType, (customType != null? customType: "other"));
@@ -805,12 +807,13 @@ public class GEDCOMHelper{
 			event.addChild(FLEFRecord.createChildWithTagAndValue("description", eventValue));
 		}
 
-		attachEventOrFactDetail(parent, event, model, node, noteRawMap, objeRawMap, roots);
+		attachEventOrFactDetail(parent, event, model, node, noteRawMap, objeRawMap, placeCache, roots);
 	}
 
 
 	public static void attachIndividualAttribute(FLEFRecord parent, FLEFModel model,
-			GEDCOMNode node, Map<String, GEDCOMNode> noteRawMap, Map<String, GEDCOMNode> sourRawMap, Map<String, GEDCOMNode> objeRawMap, List<GEDCOMNode> roots){
+			GEDCOMNode node, Map<String, GEDCOMNode> noteRawMap, Map<String, GEDCOMNode> sourRawMap,
+			Map<String, GEDCOMNode> objeRawMap, PlaceCache placeCache, List<GEDCOMNode> roots){
 		// Determine the FLEF attribute type
 		GEDCOMNode typeNode = findFirstChild(node, "TYPE");
 		String customType = (typeNode != null? typeNode.getValue().trim(): null);
@@ -833,16 +836,16 @@ public class GEDCOMHelper{
 		attachDate(individualAttribute, "valid_from", getDateTime(dateNode));
 		attachDate(individualAttribute, "valid_to", getDateTime(dateNode));
 
-		attachEventOrFactDetail(parent, individualAttribute, model, node, noteRawMap, objeRawMap, roots);
+		attachEventOrFactDetail(parent, individualAttribute, model, node, noteRawMap, objeRawMap, placeCache, roots);
 	}
 
 	private static void attachEventOrFactDetail(FLEFRecord parent, FLEFRecord record, FLEFModel model, GEDCOMNode node,
-			Map<String, GEDCOMNode> noteRawMap, Map<String, GEDCOMNode> objeRawMap, List<GEDCOMNode> roots){
+			Map<String, GEDCOMNode> noteRawMap, Map<String, GEDCOMNode> objeRawMap, PlaceCache placeCache, List<GEDCOMNode> roots){
 		// Place
 		GEDCOMNode placNode = findFirstChild(node, "PLAC");
 		GEDCOMNode addrNode = findFirstChild(node, "ADDR");
 		attachPlaceCitation(record, model,
-			placNode, addrNode, noteRawMap);
+			placNode, addrNode, noteRawMap, placeCache);
 
 		// Agency (AGNC) -- ONLY FOR EVENTS!
 		GEDCOMNode agncNode = findFirstChild(node, "AGNC");
@@ -1029,7 +1032,9 @@ public class GEDCOMHelper{
 
 
 	public static void attachGroupAttribute(FLEFRecord parent, FLEFModel model,
-			GEDCOMNode node, Map<String, GEDCOMNode> noteRawMap, Map<String, GEDCOMNode> sourRawMap, Map<String, GEDCOMNode> objeRawMap, List<GEDCOMNode> roots, String groupId, String husbandId, String wifeId){
+			GEDCOMNode node, Map<String, GEDCOMNode> noteRawMap, Map<String, GEDCOMNode> sourRawMap,
+			Map<String, GEDCOMNode> objeRawMap, PlaceCache placeCache, List<GEDCOMNode> roots, String groupId,
+			String husbandId, String wifeId){
 		GEDCOMNode husbNode = findFirstChild(node, "HUSB");
 		GEDCOMNode husbAgeNode = findFirstChild(husbNode, "AGE");
 		String husbAge = (husbAgeNode != null? husbAgeNode.getValue(): null);
@@ -1060,7 +1065,7 @@ public class GEDCOMHelper{
 		attachDate(groupAttribute, "valid_from", getDateTime(dateNode));
 		attachDate(groupAttribute, "valid_to", getDateTime(dateNode));
 
-		attachEventOrFactDetail(parent, groupAttribute, model, node, noteRawMap, objeRawMap, roots);
+		attachEventOrFactDetail(parent, groupAttribute, model, node, noteRawMap, objeRawMap, placeCache, roots);
 
 		// Link participants
 		if(husbandId != null){
@@ -1123,10 +1128,10 @@ public class GEDCOMHelper{
 					if(dateInfo.isApproximate()){
 						FLEFRecord approx = FLEFRecord.createChildWithTag("approximate");
 						String basis = switch(dateInfo.getQualifier()){
-							case "ABT" -> "stated";
-							case "CAL" -> "calculated";
-							case "EST" -> "conventional";
-							default -> "unspecified";
+							case "ABT" -> DateReader.ENUM_BASIS_STATED;
+							case "CAL" -> DateReader.ENUM_BASIS_CALCULATED;
+							case "EST" -> DateReader.ENUM_BASIS_CONVENTIONAL;
+							default -> DateReader.ENUM_BASIS_UNSPECIFIED;
 						};
 						approx.addChild(FLEFRecord.createChildWithTagAndValue("basis", basis));
 						valuePointFullDate.addChild(approx);
@@ -1151,7 +1156,7 @@ public class GEDCOMHelper{
 						nbNode.addChild(nb);
 						if(dateInfo.isApproximate()){
 							FLEFRecord approx = FLEFRecord.createChildWithTag("approximate");
-							approx.addChild(FLEFRecord.createChildWithTagAndValue("basis", "stated"));
+							approx.addChild(FLEFRecord.createChildWithTagAndValue("basis", DateReader.ENUM_BASIS_STATED));
 							nbNode.addChild(approx);
 						}
 						boundedRec.addChild(nbNode);
@@ -1162,7 +1167,7 @@ public class GEDCOMHelper{
 						naNode.addChild(na);
 						if(dateInfo.isApproximate()){
 							FLEFRecord approx = FLEFRecord.createChildWithTag("approximate");
-							approx.addChild(FLEFRecord.createChildWithTagAndValue("basis", "stated"));
+							approx.addChild(FLEFRecord.createChildWithTagAndValue("basis", DateReader.ENUM_BASIS_STATED));
 							naNode.addChild(approx);
 						}
 						boundedRec.addChild(naNode);
@@ -1187,7 +1192,7 @@ public class GEDCOMHelper{
 						fromNode.addChild(from);
 						if(dateInfo.isApproximate()){
 							FLEFRecord approx = FLEFRecord.createChildWithTag("approximate");
-							approx.addChild(FLEFRecord.createChildWithTagAndValue("basis", "stated"));
+							approx.addChild(FLEFRecord.createChildWithTagAndValue("basis", DateReader.ENUM_BASIS_STATED));
 							fromNode.addChild(approx);
 						}
 						spanningRec.addChild(fromNode);
@@ -1198,7 +1203,7 @@ public class GEDCOMHelper{
 						toNode.addChild(to);
 						if(dateInfo.isApproximate()){
 							FLEFRecord approx = FLEFRecord.createChildWithTag("approximate");
-							approx.addChild(FLEFRecord.createChildWithTagAndValue("basis", "stated"));
+							approx.addChild(FLEFRecord.createChildWithTagAndValue("basis", DateReader.ENUM_BASIS_STATED));
 							toNode.addChild(approx);
 						}
 						spanningRec.addChild(toNode);
@@ -1254,15 +1259,57 @@ public class GEDCOMHelper{
 	 * It also creates/updates the underlying PlaceRecord with subfields.
 	 */
 	public static void attachPlaceCitation(FLEFRecord parent, FLEFModel model,
-			GEDCOMNode placNode, GEDCOMNode addrNode, Map<String, GEDCOMNode> noteRawMap){
-		if(placNode == null){
+			GEDCOMNode placNode, GEDCOMNode addrNode, Map<String, GEDCOMNode> noteRawMap, PlaceCache placeCache){
+		if(placNode == null && addrNode == null)
 			return;
+
+		final String placeName = (placNode != null ? placNode.getValue() : null);
+
+		// Extract address components if present
+		final StringBuilder streetAddr = new StringBuilder();
+		if(addrNode != null){
+			boolean hasSubTags = false;
+			for(final String subTag : List.of("ADR1", "ADR2", "ADR3")){
+				final GEDCOMNode sub = findFirstChild(addrNode, subTag);
+				if(sub != null && sub.getValue() != null){
+					hasSubTags = true;
+					if(!streetAddr.isEmpty())
+						streetAddr.append(StringUtils.LF);
+					streetAddr.append(sub.getValue());
+				}
+			}
+			// Fallback to main address value if no specific street sub-tags were found
+			if(!hasSubTags && addrNode.getValue() != null){
+				streetAddr.append(extractFullText(addrNode));
+			}
 		}
 
-		String placeName = placNode.getValue();
+		final String finalPlaceName;
+		final GEDCOMNode targetPlacNode;
 		if(StringUtils.isEmpty(placeName)){
-			return;
+			// Only ADDR exists, use address as place name
+			finalPlaceName = streetAddr.toString().replace(StringUtils.LF, ", ");
+			targetPlacNode = (addrNode != null ? addrNode : new GEDCOMNode(1, "PLAC", finalPlaceName));
 		}
+		else if(streetAddr.isEmpty()){
+			// Only PLAC exists
+			finalPlaceName = placeName;
+			targetPlacNode = placNode;
+		}
+		else{
+			// Both exist: combine street address with place name, avoiding duplication
+			final String streetStr = streetAddr.toString().replace(StringUtils.LF, ", ");
+			if(!placeName.toLowerCase(Locale.ROOT).contains(streetStr.toLowerCase(Locale.ROOT))){
+				finalPlaceName = streetStr + ", " + placeName;
+			}
+			else{
+				finalPlaceName = streetStr;
+			}
+			targetPlacNode = createSyntheticPlacNode(placNode, finalPlaceName);
+		}
+
+		if(StringUtils.isEmpty(finalPlaceName))
+			return;
 
 		// TODO
 //		// ---- FONE (phonetic variation) ----
@@ -1298,54 +1345,28 @@ public class GEDCOMHelper{
 //		}
 
 
-		final StringBuilder fullAddr = new StringBuilder(addrNode != null && addrNode.getValue() != null? extractFullText(addrNode): StringUtils.EMPTY);
-		for(String subTag : List.of("ADR1", "ADR2", "ADR3", "CITY", "STAE", "POST", "CTRY")){
-			GEDCOMNode sub = findFirstChild(addrNode, subTag);
-			if(sub != null && sub.getValue() != null){
-				if(!fullAddr.isEmpty())
-					fullAddr.append(StringUtils.LF);
-				fullAddr.append(sub.getValue());
-			}
+		// Use PlaceCache to handle hierarchy, splitting, deduplication, and links
+		final FLEFRecord placeRecord = (placeCache != null ? placeCache.getOrCreatePlace(targetPlacNode) : null);
+		if(placeRecord == null)
+			return;
+
+		// Attach NOTE (notes under PLAC) to the leaf place if needed
+		for(final GEDCOMNode noteNode : findChildren(placNode, "NOTE")){
+			attachNote(placeRecord, noteNode, noteRawMap);
 		}
 
-
-		String addr = (!fullAddr.isEmpty()? fullAddr.toString().replace(StringUtils.LF, ", "): placeName);
-		if(!addr.endsWith(placeName))
-			addr += ", " + placeName;
-		FLEFRecord place = FLEFRecord.createMainRecord(IDGenerator.nextId(PlaceHandler.ID_PREFIX), PlaceHandler.TYPE)
-			.addChild(FLEFRecord.createChildWithTag("name")
-				.addChild(FLEFRecord.createChildWithTagAndValue("value", addr))
-			)
-			.addChild(AuditBuilder.build(placNode));
-
-		// ---- MAP (coordinates) ----
-		GEDCOMNode mapNode = findFirstChild(placNode, "MAP");
-		if(mapNode != null){
-			GEDCOMNode latiNode = findFirstChild(mapNode, "LATI");
-			GEDCOMNode longNode = findFirstChild(mapNode, "LONG");
-			if(latiNode != null && longNode != null && latiNode.getValue() != null && longNode.getValue() != null){
-				FLEFRecord mapRecord = FLEFRecord.createChildWithTag("map")
-					.addChild(FLEFRecord.createChildWithTagAndValue("coordinates", latiNode.getValue() + StringUtils.SPACE + longNode.getValue()));
-				place.addChild(mapRecord);
-			}
-		}
-
-		// ---- NOTE (notes under PLAC) ----
-		for(GEDCOMNode noteNode : findChildren(placNode, "NOTE")){
-			attachNote(place,
-				noteNode, noteRawMap);
-		}
-
-
-		// check for duplicates before adding
-		String placeRecordId = Deduplicator.getDeduplicatedRecordId(model, place);
-
-
-		FLEFRecord placeCitation = FLEFRecord.createChildWithTag("place");
-		placeCitation.setValue(placeRecordId);
+		final FLEFRecord placeCitation = FLEFRecord.createChildWithTag("place");
+		placeCitation.setValue(placeRecord.getId());
 		parent.addChild(FLEFRecord.createChildWithTag("place")
 			.addChild(placeCitation)
 		);
+	}
+
+	private static GEDCOMNode createSyntheticPlacNode(final GEDCOMNode originalPlac, final String newAddress){
+		final GEDCOMNode synthetic = new GEDCOMNode(originalPlac.getLevel(), "PLAC", newAddress);
+		for(final GEDCOMNode child : originalPlac.getChildren())
+			synthetic.addChild(child);
+		return synthetic;
 	}
 
 
@@ -1451,7 +1472,7 @@ public class GEDCOMHelper{
 	public static String createAndAddEventRecord(
 		GEDCOMNode eventNode,
 		Map<String, GEDCOMNode> noteRawMap,
-		Map<String, GEDCOMNode> objeRawMap, FLEFModel model){
+		Map<String, GEDCOMNode> objeRawMap, PlaceCache placeCache, FLEFModel model){
 
 		if(eventNode == null)
 			return null;
@@ -1475,7 +1496,7 @@ public class GEDCOMHelper{
 		GEDCOMNode addrNode = findFirstChild(eventNode, "ADDR");
 		if(placNode != null && placNode.getValue() != null){
 			attachPlaceCitation(eventRecord, model,
-				placNode, addrNode, noteRawMap);
+				placNode, addrNode, noteRawMap, placeCache);
 		}
 
 		// Inline Notes

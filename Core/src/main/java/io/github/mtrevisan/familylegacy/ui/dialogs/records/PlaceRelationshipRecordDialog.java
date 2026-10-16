@@ -57,7 +57,18 @@ import java.io.IOException;
  *   id: LocalID
  *   subject: Xref&lt;PlaceRecord&gt;
  *   target: Xref&lt;PlaceRecord&gt;
- *   type: enum { administrative_part_of, geographic_part_of, ecclesiastical_part_of, judicial_part_of, cadastral_part_of } | Text
+ *   type: enum {
+ *     administrative_part_of,   // subject is part of an administrative jurisdiction, e.g., Treviso → Veneto
+ *     geographic_part_of,       // subject is geographically contained within another place
+ *     ecclesiastical_part_of,   // subject belongs to an ecclesiastical jurisdiction such as a parish, diocese, or archdiocese
+ *     judicial_part_of,         // subject belongs to a court, district, or judicial jurisdiction
+ *     cadastral_part_of,        // subject belongs to a cadastral or land-records district
+ *     predecessor_of,           // subject ceased to exist and was succeeded by the OBJECT place
+ *     successor_of,             // subject replaced or inherited the identity, territory, or function of the OBJECT place
+ *     merged_into,              // subject was merged into the OBJECT place
+ *     split_from,               // subject was created from the division of the OBJECT place
+ *     transferred_to            // subject place was reassigned, wholly or partially, to the jurisdiction of the OBJECT place
+ *   } | Text
  *   valid_from?: DateStructure
  *   valid_to?: DateStructure
  *   source*: SourceCitation
@@ -112,7 +123,7 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 		validToField = DateField.createWithWrapperTag(PlaceRelationshipReader.TAG_VALID_TO, this, I18N.t("dialog.date.valid_to"), model);
 
 		// Build common panels using the builder
-		components = new RecordDialogBuilder(this, model, record)
+		components = new RecordDialogBuilder(this, model, this.record)
 			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, ContextImpactHandler.TYPE, I18N.t("dialog.component.context.impacts"))
 			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, I18N.t("dialog.component.conclusions"))
 			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, I18N.t("dialog.component.research.questions"))
@@ -227,8 +238,8 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 			subjectField.setEntity(FLEFRecord.createMainRecord(parentEntity.getText(), parentEntity.getPath()));
 
 			final boolean showAll = (parentEntity == null || parentEntity.isEmpty());
-			GUIHelper.setComponentVisible(subjectField, showAll);
-			GUIHelper.setComponentVisible(objectField, true);
+			GUIHelper.setComponentEnabled(subjectField, showAll);
+			GUIHelper.setComponentEnabled(objectField, true);
 		}
 
 		return this;
@@ -241,8 +252,8 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 			objectField.setEntity(FLEFRecord.createMainRecord(parentEntity.getText(), parentEntity.getPath()));
 
 			final boolean showAll = (parentEntity == null || parentEntity.isEmpty());
-			GUIHelper.setComponentVisible(subjectField, true);
-			GUIHelper.setComponentVisible(objectField, showAll);
+			GUIHelper.setComponentEnabled(subjectField, true);
+			GUIHelper.setComponentEnabled(objectField, showAll);
 		}
 
 		return this;

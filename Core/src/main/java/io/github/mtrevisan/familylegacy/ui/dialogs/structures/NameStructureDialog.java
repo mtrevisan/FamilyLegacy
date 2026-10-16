@@ -32,6 +32,7 @@ import io.github.mtrevisan.familylegacy.ui.bindings.BoundFilteredComboBox;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextField;
 import io.github.mtrevisan.familylegacy.ui.components.PanelKey;
 import io.github.mtrevisan.familylegacy.ui.components.RecordDialogBuilder;
+import io.github.mtrevisan.familylegacy.ui.components.fields.DateField;
 import io.github.mtrevisan.familylegacy.ui.components.lists.TextValueVariantListPanel;
 import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.NameHandler;
@@ -39,6 +40,7 @@ import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.helpers.LocaleHelper;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 
+import javax.swing.BorderFactory;
 import javax.swing.JPanel;
 import java.awt.Window;
 
@@ -50,25 +52,42 @@ import java.awt.Window;
  * <pre>
  * struct NameStructure {
  *   type?: enum {
- *     official, legal,
- *     colonial, indigenous, traditional,
- *     translated, romanized,
- *     historic, former,
- *     common, colloquial,
- *     abbreviated, acronym,
- *     religious,
- *     administrative, archival
+ *     // official and legal names
+ *     official,         // officially recognized name used by a government, institution,
+ *     legal,            // name defined by law, regulation, charter, or legal act
+ *     // historical naming traditions
+ *     colonial,         // name introduced or imposed during a colonial period
+ *     indigenous,       // name originating from the local or native population
+ *     traditional,      // name established through long-standing customary use
+ *     // language and localization variants
+ *     translated,       // name translated into another language
+ *     transcribed,      // name transliterated or transcribed into another writing system
+ *     // historical variants
+ *     historic,         // historical name used during a specific period
+ *     // common usage
+ *     common,           // commonly used name regardless of official status
+ *     colloquial,       // informal or popular name used in everyday speech
+ *     // abbreviated forms
+ *     abbreviated,      // shortened form of a name
+ *     acronym,          // name formed from initials or abbreviations
+ *     // religious and ecclesiastical forms
+ *     religious,        // name used in a religious, ecclesiastical, or liturgical context
+ *     // administrative and archival forms
+ *     administrative,   // name used by an administrative authority
+ *     archival          // name appearing in archival, documentary, or cataloging contexts
  *   } | Text
  *   value: Text
  *   locale?: LocaleCode | Text
  *   variant*: TextValueVariant
+ *   valid_from?: DateStructure    // The date from which this name is known or believed to have been valid.
+ *   valid_to?: DateStructure      // The date until which this name is known or believed to have been valid.
  *   source*: SourceCitation
  *   note*: Xref&lt;NoteRecord&gt;
  * }
  * </pre>
  * <p>
  * Tabs:
- * Tab 1 (Properties): value, type, locale, variant
+ * Tab 1 (Properties): value, type, variant, valid_from, valid_to, locale
  * Tab 7 (Sources): source
  * Tab 8 (Notes): note
  */
@@ -79,6 +98,8 @@ public class NameStructureDialog extends BaseRecordDialog{
 	private final BoundTextField valueField;
 	private final BoundComboBox<String> typeCombo;
 	private final TextValueVariantListPanel variantPanel;
+	private final DateField validFromField;
+	private final DateField validToField;
 	private final BoundFilteredComboBox<String> localeCombo;
 
 
@@ -95,18 +116,20 @@ public class NameStructureDialog extends BaseRecordDialog{
 	private NameStructureDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, NameHandler.getInstance());
 
-		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]15[]");
+		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]15[]10[]");
 
 		valueField = new BoundTextField(NameReader.TAG_VALUE);
 		typeCombo = new BoundComboBox<>(NameReader.TAG_TYPE, GUIHelper.fillCombo(NameReader.TYPES, null));
 		typeCombo.setI18NPrefix("enum.name.type");
 		typeCombo.setEditable(true);
 		variantPanel = new TextValueVariantListPanel(NameReader.TAG_PART_VARIANT, this, I18N.t("dialog.name.variant"), model);
+		validFromField = DateField.createWithWrapperTag(NameReader.TAG_VALID_FROM, this, I18N.t("dialog.date.valid_from"), model);
+		validToField = DateField.createWithWrapperTag(NameReader.TAG_VALID_TO, this, I18N.t("dialog.date.valid_to"), model);
 		localeCombo = new BoundFilteredComboBox<>(NameReader.TAG_LOCALE, LocaleHelper.getAvailableLanguageTags());
 		localeCombo.setEditable(true);
 
 		// Build common panels using the builder
-		components = new RecordDialogBuilder(this, model, record)
+		components = new RecordDialogBuilder(this, model, this.record)
 			.withComponent(PanelKey.SOURCE, NameReader.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
 			.withComponent(PanelKey.NOTE, NameReader.TAG_NOTE, null)
 			.build();
@@ -136,6 +159,15 @@ public class NameStructureDialog extends BaseRecordDialog{
 
 		// variant
 		GUIHelper.addComponent(propertiesPanel, variantPanel);
+
+		// validity range:
+		final JPanel validityPanel = GUIHelper.createLabelFieldPanel(5, "[]10[]");
+		validityPanel.setBorder(BorderFactory.createTitledBorder(I18N.t("dialog.validity.range")));
+		// valid from
+		GUIHelper.addLabeledComponent(validityPanel, I18N.t("dialog.valid_from") + ":", validFromField);
+		// valid to
+		GUIHelper.addLabeledComponent(validityPanel, I18N.t("dialog.valid_to") + ":", validToField);
+		GUIHelper.addComponent(propertiesPanel, validityPanel);
 
 		return propertiesPanel;
 	}
@@ -170,6 +202,8 @@ public class NameStructureDialog extends BaseRecordDialog{
 		components.load(record);
 
 		variantPanel.load(record);
+		validFromField.load(record);
+		validToField.load(record);
 
 
 		// Initially, update carousel based on the first selected source (if any)
@@ -194,6 +228,8 @@ public class NameStructureDialog extends BaseRecordDialog{
 		components.save(record);
 
 		variantPanel.save(record);
+		validFromField.save(record);
+		validToField.save(record);
 	}
 
 

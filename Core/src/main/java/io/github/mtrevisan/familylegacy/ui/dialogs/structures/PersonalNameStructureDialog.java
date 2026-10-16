@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundFilteredComboBox;
 import io.github.mtrevisan.familylegacy.ui.components.PanelKey;
 import io.github.mtrevisan.familylegacy.ui.components.RecordDialogBuilder;
+import io.github.mtrevisan.familylegacy.ui.components.fields.DateField;
 import io.github.mtrevisan.familylegacy.ui.components.lists.EntityListPanel;
 import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.CulturalNormHandler;
@@ -40,6 +41,7 @@ import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.helpers.LocaleHelper;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 
+import javax.swing.BorderFactory;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
@@ -61,6 +63,8 @@ import java.awt.Window;
  *   } | Text
  *   part+: PartStructure
  *   locale?: LocaleCode | Text
+ *   valid_from?: DateStructure    // The date from which this name is known or believed to have been valid.
+ *   valid_to?: DateStructure      // The date until which this name is known or believed to have been valid.
  *   cultural_norm*: Xref&lt;CulturalNormRecord&gt;
  *   source*: SourceCitation
  *   note*: Xref&lt;NoteRecord&gt;
@@ -92,6 +96,8 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 	private final BoundComboBox<String> typeCombo;
 	private final EntityListPanel partPanel;
 	private final BoundFilteredComboBox<String> localeCombo;
+	private final DateField validFromField;
+	private final DateField validToField;
 	private final EntityListPanel culturalNormPanel;
 
 
@@ -108,7 +114,7 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 	private PersonalNameStructureDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, PersonalNameHandler.getInstance());
 
-		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]");
+		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]10[]");
 
 		typeCombo = new BoundComboBox<>(NameReader.TAG_TYPE, GUIHelper.fillCombo(NameReader.PERSONAL_TYPES, null));
 		typeCombo.setI18NPrefix("enum.personal_name.type");
@@ -116,12 +122,14 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 		partPanel = EntityListPanel.createForStructure(NameReader.TAG_PART, this, I18N.t("dialog.name.parts") + "*", model, PartHandler.class);
 		localeCombo = new BoundFilteredComboBox<>(NameReader.TAG_LOCALE, LocaleHelper.getAvailableLanguageTags());
 		localeCombo.setEditable(true);
+		validFromField = DateField.createWithWrapperTag(NameReader.TAG_VALID_FROM, this, I18N.t("dialog.date.valid_from"), model);
+		validToField = DateField.createWithWrapperTag(NameReader.TAG_VALID_TO, this, I18N.t("dialog.date.valid_to"), model);
 
 		culturalNormPanel = EntityListPanel.createForEntityReference(NameReader.TAG_CULTURAL_NORM, parent, I18N.t("dialog.name.cultural.norms"),
 			model, CulturalNormHandler.class);
 
 		// Build common panels using the builder
-		components = new RecordDialogBuilder(this, model, record)
+		components = new RecordDialogBuilder(this, model, this.record)
 			.withComponent(PanelKey.SOURCE, NameReader.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
 			.withComponent(PanelKey.NOTE, NameReader.TAG_NOTE, null)
 			.build();
@@ -147,6 +155,15 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 
 		// locale
 		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.name.locale") + ":", localeCombo);
+
+		// validity range:
+		final JPanel validityPanel = GUIHelper.createLabelFieldPanel(5, "[]10[]");
+		validityPanel.setBorder(BorderFactory.createTitledBorder(I18N.t("dialog.validity.range")));
+		// valid from
+		GUIHelper.addLabeledComponent(validityPanel, I18N.t("dialog.valid_from") + ":", validFromField);
+		// valid to
+		GUIHelper.addLabeledComponent(validityPanel, I18N.t("dialog.valid_to") + ":", validToField);
+		GUIHelper.addComponent(propertiesPanel, validityPanel);
 
 		return propertiesPanel;
 	}
@@ -191,7 +208,8 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 		components.load(record);
 
 		partPanel.load(record);
-
+		validFromField.load(record);
+		validToField.load(record);
 		culturalNormPanel.load(record);
 
 
@@ -217,7 +235,8 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 		components.save(record);
 
 		partPanel.save(record);
-
+		validFromField.save(record);
+		validToField.save(record);
 		culturalNormPanel.save(record);
 	}
 

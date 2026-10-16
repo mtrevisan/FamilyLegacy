@@ -25,6 +25,8 @@
 package io.github.mtrevisan.familylegacy.ui.components.projections;
 
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
+import io.github.mtrevisan.familylegacy.io.grammar.FLEFGrammar;
+import io.github.mtrevisan.familylegacy.io.grammar.FLEFGrammarParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.ui.components.projections.bookmarks.Bookmark;
 import io.github.mtrevisan.familylegacy.ui.components.projections.bookmarks.BookmarkStore;
@@ -51,7 +53,10 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -315,7 +320,15 @@ public class FamilyLegacyFrame extends JFrame{
 	}
 
 
-	public static void main(final String[] args) throws IOException{
+	public static void main(final String[] args) throws IOException, URISyntaxException{
+		final Path root = Paths.get(FamilyLegacyFrame.class
+			.getProtectionDomain()
+			.getCodeSource()
+			.getLocation()
+			.toURI());
+		final Path path = root.resolve("gedg/flef_0.1.4.gedg");
+		final FLEFGrammar grammar = FLEFGrammarParser.parse(path);
+
 		final String modelUri = "/tests/TGMZ.flef";
 //		final String rootIndividualId = "I1";
 		final String rootIndividualId = "I1430";

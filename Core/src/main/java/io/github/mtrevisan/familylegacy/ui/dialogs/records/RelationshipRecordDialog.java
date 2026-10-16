@@ -141,7 +141,7 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 		validToField = DateField.createWithWrapperTag(RelationshipReader.TAG_VALID_TO, this, I18N.t("dialog.date.valid_to"), model);
 
 		// Build common panels using the builder
-		components = new RecordDialogBuilder(this, model, record)
+		components = new RecordDialogBuilder(this, model, this.record)
 			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, ContextImpactHandler.TYPE, I18N.t("dialog.component.context.impacts"))
 			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, I18N.t("dialog.component.conclusions"))
 			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, I18N.t("dialog.component.research.questions"))
@@ -281,8 +281,8 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 			subjectField.setEntity(FLEFRecord.createMainRecord(parentEntity.getText(), parentEntity.getPath()));
 
 			final boolean showAll = (parentEntity == null || parentEntity.isEmpty());
-			GUIHelper.setComponentVisible(subjectField, showAll);
-			GUIHelper.setComponentVisible(objectField, true);
+			GUIHelper.setComponentEnabled(subjectField, showAll);
+			GUIHelper.setComponentEnabled(objectField, true);
 		}
 
 		return this;
@@ -295,8 +295,8 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 			objectField.setEntity(FLEFRecord.createMainRecord(parentEntity.getText(), parentEntity.getPath()));
 
 			final boolean showAll = (parentEntity == null || parentEntity.isEmpty());
-			GUIHelper.setComponentVisible(subjectField, true);
-			GUIHelper.setComponentVisible(objectField, showAll);
+			GUIHelper.setComponentEnabled(subjectField, true);
+			GUIHelper.setComponentEnabled(objectField, showAll);
 		}
 
 		return this;

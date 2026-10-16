@@ -118,7 +118,7 @@ public class EventParticipationRecordDialog extends BaseRecordDialog{
 		roleCombo.setEditable(true);
 
 		// Build common panels using the builder
-		components = new RecordDialogBuilder(this, model, record)
+		components = new RecordDialogBuilder(this, model, this.record)
 			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, ContextImpactHandler.TYPE, I18N.t("dialog.component.context.impacts"))
 			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, I18N.t("dialog.component.conclusions"))
 			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, I18N.t("dialog.component.research.questions"))
@@ -222,10 +222,10 @@ public class EventParticipationRecordDialog extends BaseRecordDialog{
 		if(!confirmRecordExistsForType(eventId, EventHandler.getInstance().getLabel()))
 			return this;
 
-		GUIHelper.setComponentVisible(participantField, true);
+		GUIHelper.setComponentEnabled(participantField, true);
 
 		eventField.setEntity(FLEFRecord.createMainRecord(eventId, HandlerRegistry.getHandlerType(EventHandler.class)));
-		GUIHelper.setComponentVisible(eventField, false);
+		GUIHelper.setComponentEnabled(eventField, false);
 
 		return this;
 	}
@@ -236,10 +236,10 @@ public class EventParticipationRecordDialog extends BaseRecordDialog{
 		if(!confirmRecordExistsForType(participantId, participantHandler.getLabel()))
 			return this;
 
-		GUIHelper.setComponentVisible(eventField, true);
+		GUIHelper.setComponentEnabled(eventField, true);
 
 		participantField.setEntity(FLEFRecord.createMainRecord(participantId, participantHandler.getType()));
-		GUIHelper.setComponentVisible(participantField, false);
+		GUIHelper.setComponentEnabled(participantField, false);
 
 		return this;
 	}

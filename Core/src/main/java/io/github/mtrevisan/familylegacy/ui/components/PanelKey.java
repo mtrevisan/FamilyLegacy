@@ -222,8 +222,14 @@ public enum PanelKey{
 			final Class<? extends RecordTypeHandler<?>> handlerType){
 		final EntityListPanel panel = EntityListPanel.createForOneOfReference(cfg.tag(), owner, cfg.title(), model, actorType)
 			.withHandlerTypes(handlerType);
-		if(record != null)
-			panel.withParentEntity(record);
+		if(record != null){
+			if(actorType == EntityListPanel.ActorType.SUBJECT)
+				panel.withSubjectEntity(record);
+			else if(actorType == EntityListPanel.ActorType.OBJECT)
+				panel.withObjectEntity(record);
+			else
+				panel.withParentEntity(record);
+		}
 		return panel;
 	}
 

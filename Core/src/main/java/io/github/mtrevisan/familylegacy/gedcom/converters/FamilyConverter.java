@@ -101,6 +101,7 @@ public class FamilyConverter{
 	private final Map<String, GEDCOMNode> noteRawMap;
 	private final Map<String, GEDCOMNode> sourRawMap;
 	private final Map<String, GEDCOMNode> objeRawMap;
+	private final PlaceCache placeCache;
 	private final StructureParser structParser;
 
 	private final List<FamilyLink> familyLinks = new ArrayList<>();
@@ -137,6 +138,7 @@ public class FamilyConverter{
 		this.noteRawMap = noteRawMap;
 		this.sourRawMap = sourRawMap;
 		this.objeRawMap = objeRawMap;
+		this.placeCache = placeCache;
 		this.structParser = new StructureParser(placeCache);
 	}
 
@@ -496,7 +498,7 @@ public class FamilyConverter{
 		GEDCOMNode placNode = GEDCOMHelper.findFirstChild(eventNode, "PLAC");
 		GEDCOMNode addrNode = GEDCOMHelper.findFirstChild(eventNode, "ADDR");
 		if(placNode != null && placNode.getValue() != null){
-			GEDCOMHelper.attachPlaceCitation(eventRecord, model, placNode, addrNode, noteRawMap);
+			GEDCOMHelper.attachPlaceCitation(eventRecord, model, placNode, addrNode, noteRawMap, placeCache);
 		}
 
 		// Agency (if any)
@@ -580,7 +582,7 @@ public class FamilyConverter{
 		GEDCOMNode placNode = GEDCOMHelper.findFirstChild(attrNode, "PLAC");
 		GEDCOMNode addrNode = GEDCOMHelper.findFirstChild(attrNode, "ADDR");
 		if(placNode != null && placNode.getValue() != null){
-			GEDCOMHelper.attachPlaceCitation(groupAttribute, model, placNode, addrNode, noteRawMap);
+			GEDCOMHelper.attachPlaceCitation(groupAttribute, model, placNode, addrNode, noteRawMap, placeCache);
 		}
 
 		// Notes

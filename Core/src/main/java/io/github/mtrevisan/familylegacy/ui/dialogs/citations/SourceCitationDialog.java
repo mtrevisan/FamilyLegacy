@@ -108,7 +108,7 @@ public class SourceCitationDialog extends BaseRecordDialog{
 		extractPanel = new ExtractListPanel(SourceCitationReader.TAG_EXTRACT, this, I18N.t("dialog.source_citation.extract.title"), model);
 
 		// Build common panels using the builder
-		components = new RecordDialogBuilder(this, model, record)
+		components = new RecordDialogBuilder(this, model, this.record)
 			.withComponent(PanelKey.EVIDENCE, SourceCitationReader.TAG_EVIDENCE, I18N.t("dialog.component.evidence"))
 			.withComponent(PanelKey.PRIVACY, SourceCitationReader.TAG_PRIVACY, null)
 			.build();

@@ -576,7 +576,8 @@ public final class TemporalProjectionPanel extends JPanel implements TreeChangeL
 			content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
 		}
 
-		final FLEFModel model = new FLEFParser().parse(content);
+		final FLEFParser parser = new FLEFParser();
+		final FLEFModel model = parser.parse(content);
 
 		SwingUtilities.invokeLater(() -> {
 			final TemporalProjectionPanel panel = new TemporalProjectionPanel(model);

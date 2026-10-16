@@ -78,7 +78,7 @@ import java.time.ZoneOffset;
 public class HeaderDialog extends BaseRecordDialog{
 
 	private static final String PROTOCOL_NAME = "Family LEgacy Format";
-	private static final String PROTOCOL_VERSION = "0.1.3";
+	private static final String PROTOCOL_VERSION = "0.1.4";
 	private static final String SOURCE_ORGANIZATION = "Mauro Trevisan";
 
 	private final BoundTextField protocolNameField;
@@ -117,7 +117,7 @@ public class HeaderDialog extends BaseRecordDialog{
 		scopeArea = new BoundTextArea(HeaderReader.TAG_SCOPE, 3, 25);
 
 		// Build common panels using the builder
-		components = new RecordDialogBuilder(this, model, record)
+		components = new RecordDialogBuilder(this, model, this.record)
 			.build();
 
 		components.bind(protocolNameField);

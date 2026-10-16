@@ -107,7 +107,7 @@ public class GroupRecordDialog extends BaseRecordDialog{
 		typeCombo.setI18NPrefix("enum.group.type");
 		typeCombo.setEditable(true);
 
-		components = new RecordDialogBuilder(this, model, record)
+		components = new RecordDialogBuilder(this, model, this.record)
 			.withComponent(PanelKey.GROUP_ATTRIBUTE, GroupAttributeHandler.TYPE, I18N.t("dialog.component.group.attributes"))
 			.withComponent(PanelKey.RELATIONSHIP_ON_OBJECT, RelationshipHandler.TYPE, I18N.t("dialog.component.group.relationships.on.target"))
 			.withComponent(PanelKey.RELATIONSHIP_ON_SUBJECT, RelationshipHandler.TYPE, I18N.t("dialog.component.relationships.on.subject"))

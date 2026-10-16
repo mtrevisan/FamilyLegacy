@@ -57,18 +57,26 @@ public final class FLEFRecordHelper{
 	private static final String TAG_PLACE_ORIGINAL_TEXT = FLEFRecordHelper.composePath(PlaceCitationReader.TAG_PLACE, PlaceCitationReader.TAG_ORIGINAL_TEXT);
 
 
-	private record Segment(String tag, int index){
+	private record Segment(String tag, int index, boolean wildcard){
+
+		private static final String ANY = "*";
+
 		static Segment parse(final String segment){
 			final int startArrayIndex = segment.indexOf('[');
 			if(startArrayIndex < 0)
-				return new Segment(segment, -1);
+				return new Segment(segment, -1, false);
 
 			final String tag = segment.substring(0, startArrayIndex)
 				.toLowerCase(Locale.ROOT);
 			final int endArrayIndex = segment.indexOf(']', startArrayIndex);
+			final String indexStr = segment.substring(startArrayIndex + 1, endArrayIndex)
+				.trim();
+			if(ANY.equals(indexStr))
+				return new Segment(tag, -1, true);
+
 			final int index;
 			try{
-				index = Integer.parseInt(segment.substring(startArrayIndex + 1, endArrayIndex));
+				index = Integer.parseInt(indexStr);
 			}
 			catch(final NumberFormatException ignored){
 				return null;
@@ -76,7 +84,7 @@ public final class FLEFRecordHelper{
 			if(index < 0)
 				return null;
 
-			return new Segment(tag, index);
+			return new Segment(tag, index, false);
 		}
 	}
 
@@ -97,29 +105,18 @@ public final class FLEFRecordHelper{
 	 * @return	The matching record, or {@code null} if any tag in the path is not found.
 	 */
 	public static FLEFRecord findChild(final FLEFRecord parent, final String path){
-		if(parent == null || StringUtils.isEmpty(path))
-			return parent;
+		final List<FLEFRecord> children = findChildren(parent, path);
+		if(children.size() > 1)
+			throw new IllegalArgumentException("Ambiguous reference: " + path);
 
-		FLEFRecord current = parent;
-		final String[] segments = StringUtils.split(path, '.');
-		for(final String segment : segments){
-			if(current == null)
-				break;
-
-			final Segment seg = Segment.parse(segment);
-			if(seg == null)
-				return null;
-
-			current = getNthChild(current, seg);
-		}
-		return current;
+		return (!children.isEmpty()? children.getFirst(): null);
 	}
 
 	/**
 	 * Finds all children with the given tag.
 	 *
 	 * @param parent	The parent record.
-	 * @param paths	The array of dot‑separated tag paths to search for(e.g. "[GROUP, ROOT.RESTRICTION[2].CODE]").
+	 * @param paths	The array of dot‑separated tag paths to search for (e.g. "[GROUP, ROOT.RESTRICTION[2].CODE]").
 	 * @return	A (unordered) list of matching child records.
 	 */
 	public static List<FLEFRecord> findChildren(final FLEFRecord parent, final String... paths){
@@ -133,49 +130,64 @@ public final class FLEFRecordHelper{
 	}
 
 	/**
-	 * Finds all children with the given tag path, supporting multiple intermediate segments.
+	 * Finds all children with the given tag path, supporting multiple intermediate segments and wildcards ([*]).
+	 * Optimized to avoid unnecessary list allocations at each loop iteration.
 	 *
 	 * @param parent The parent record.
-	 * @param path   The dot‑separated tag path to search for(e.g. "source.extract.value").
+	 * @param path   The dot-separated tag path to search for (e.g. "name[*].part.variant[*]").
 	 * @return A list of matching child records.
 	 */
 	public static List<FLEFRecord> findChildren(final FLEFRecord parent, final String path){
-		final List<FLEFRecord> result = new ArrayList<>();
 		if(parent == null)
-			return result;
+			return Collections.emptyList();
 		if(StringUtils.isEmpty(path))
 			return parent.getChildren();
 
 		final String[] segments = StringUtils.split(path, '.');
-		final List<FLEFRecord> currentNodes = new ArrayList<>();
+		List<FLEFRecord> currentNodes = new ArrayList<>();
 		currentNodes.add(parent);
+		List<FLEFRecord> nextLevelNodes = new ArrayList<>();
 		for(final String segmentStr : segments){
 			final Segment seg = Segment.parse(segmentStr);
 			if(seg == null)
 				return Collections.emptyList();
 
-			final List<FLEFRecord> nextLevelNodes = new ArrayList<>();
+			nextLevelNodes.clear();
 
 			for(final FLEFRecord current : currentNodes){
-				final List<FLEFRecord> matchingChildren = new ArrayList<>();
+				final List<FLEFRecord> children = current.getChildren();
+				final int childSize = children.size();
 
-				for(final FLEFRecord child : current.getChildren())
-					if(Strings.CI.equals(seg.tag, child.getTag()))
-						matchingChildren.add(child);
+				if(seg.wildcard || seg.index < 0){
+					// Wildcard [*] or no index: add all matching children directly
+					for(final FLEFRecord child : children)
+						if(Strings.CI.equals(seg.tag, child.getTag()))
+							nextLevelNodes.add(child);
+				}
+				else{
+					// Optional index filtering, e.g. RESTRICTION[2]
+					int occurrence = 0;
+					for(int i = 0; i < childSize; i++){
+						final FLEFRecord child = children.get(i);
+						if(Strings.CI.equals(seg.tag, child.getTag())){
+							if(occurrence == seg.index){
+								nextLevelNodes.add(child);
 
-				// Handles optional index filtering, e.g. RESTRICTION[2]
-				if(seg.index < 0)
-					nextLevelNodes.addAll(matchingChildren);
-				if(seg.index >= 0 && seg.index < matchingChildren.size())
-					nextLevelNodes.add(matchingChildren.get(seg.index));
+								break;
+							}
+							occurrence ++;
+						}
+					}
+				}
 			}
 
-			currentNodes.clear();
-
 			if(nextLevelNodes.isEmpty())
-				break;
+				return Collections.emptyList();
 
-			currentNodes.addAll(nextLevelNodes);
+			// Swap list references instead of clearing and re-adding elements
+			final List<FLEFRecord> temp = currentNodes;
+			currentNodes = nextLevelNodes;
+			nextLevelNodes = temp;
 		}
 
 		return currentNodes;
@@ -418,7 +430,7 @@ public final class FLEFRecordHelper{
 	 * Collects values of all children with the given tag as a comma-separated string.
 	 *
 	 * @param parent	The parent record.
-	 * @param path	The dot‑separated tag path to search for(e.g. "ROOT.RESTRICTION[2].CODE").
+	 * @param path	The dot‑separated tag path to search for (e.g. "ROOT.RESTRICTION[2].CODE").
 	 * @return	A comma-separated string of values, or empty string if none found.
 	 */
 	public static String getChildValuesAsString(final FLEFRecord parent, final String path){
@@ -594,7 +606,7 @@ public final class FLEFRecordHelper{
 		if(lastSegment == null)
 			return false;
 
-		if(lastSegment.index >= 0){
+		if(lastSegment.index >= 0 || lastSegment.wildcard){
 			removeChild(parent, path);
 
 			return true;

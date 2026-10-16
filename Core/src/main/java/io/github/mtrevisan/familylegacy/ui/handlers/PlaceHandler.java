@@ -27,11 +27,15 @@ package io.github.mtrevisan.familylegacy.ui.handlers;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceRelationshipReader;
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.PlaceRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 
 import java.awt.Window;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 
 /**
@@ -79,8 +83,50 @@ public class PlaceHandler extends AbstractRecordTypeHandler<PlaceRecordDialog>{
 			return PlaceCitationHandler.getInstance()
 				.getDisplayText(record, model);
 
-		final List<String> names = PlaceReader.extractNames(record);
-		return (!names.isEmpty()? names.getFirst() + " [" + id + "]": "[" + id + "]");
+		final String primaryName = PlaceReader.extractPrimaryName(record);
+		if(primaryName == null)
+			return "[" + id + "]";
+
+		// Reconstruct the full hierarchical path by walking up parent relationships
+		final List<String> pathNames = new ArrayList<>();
+		pathNames.add(primaryName);
+
+		if(model != null){
+			String currentId = id;
+			final Set<String> visited = new HashSet<>();
+			visited.add(currentId);
+
+			while(true){
+				String parentId = null;
+				String parentName = null;
+
+				final List<FLEFRecord> placeRelationships = model.getRecordsByType(PlaceRelationshipHandler.TYPE);
+				for(final FLEFRecord placeRelationship : placeRelationships){
+					final String subjId = placeRelationship.extractReferencedId(PlaceRelationshipReader.TAG_SUBJECT, TYPE);
+					if(currentId.equals(subjId)){
+						final String objId = placeRelationship.extractReferencedId(PlaceRelationshipReader.TAG_OBJECT, TYPE);
+						if(objId != null && visited.add(objId)){
+							final FLEFRecord parentRecord = model.getRecordById(objId);
+							if(parentRecord != null){
+								parentName = PlaceReader.extractPrimaryName(parentRecord);
+
+								parentId = objId;
+
+								break;
+							}
+						}
+					}
+				}
+
+				if(parentName == null)
+					break;
+
+				pathNames.add(parentName);
+				currentId = parentId;
+			}
+		}
+
+		return String.join(", ", pathNames) + " [" + id + "]";
 	}
 
 	@Override

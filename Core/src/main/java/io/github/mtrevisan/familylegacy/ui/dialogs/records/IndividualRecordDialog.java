@@ -153,7 +153,7 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 		sexCombo = new BoundComboBox<>(IndividualReader.TAG_SEX, GUIHelper.fillCombo(IndividualReader.SEXES, null));
 		sexCombo.setI18NPrefix("enum.individual.sex");
 
-		components = new RecordDialogBuilder(this, model, record)
+		components = new RecordDialogBuilder(this, model, this.record)
 			.withComponent(PanelKey.INDIVIDUAL_ATTRIBUTE, IndividualAttributeHandler.TYPE, I18N.t("dialog.component.individual.attributes"))
 			.withComponent(PanelKey.RELATIONSHIP_ON_SUBJECT, RelationshipHandler.TYPE, I18N.t("dialog.component.individual.relationships.on.target"))
 			.withComponent(PanelKey.RELATIONSHIP_ON_OBJECT, RelationshipHandler.TYPE, I18N.t("dialog.component.relationships.on.subject"))

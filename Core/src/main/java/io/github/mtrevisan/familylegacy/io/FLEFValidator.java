@@ -433,7 +433,7 @@ public class FLEFValidator{
 	 * ====================================================================== */
 
 	public static void main(final String[] args) throws Exception{
-		final Path path = Paths.get("src/main/resources/gedg/flef_0.1.3.gedg");
+		final Path path = Paths.get("src/main/resources/gedg/flef_0.1.4.gedg");
 		final FLEFGrammar grammar = FLEFGrammarParser.parse(path);
 
 		final FLEFParser parser = new FLEFParser();

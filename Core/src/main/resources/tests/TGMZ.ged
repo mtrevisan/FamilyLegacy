@@ -81473,7 +81473,7 @@
 4 DATE 4 JUN 2019
 1 DEAT Y
 2 DATE 30 DEC 2003
-2 PLAC 45.78347°, 12.49437°
+2 PLAC 45.78347 N 12.49437 E
 2 CAUS suicide
 2 SOUR @S2776@
 3 QUAY 3
@@ -145188,7 +145188,7 @@
 2 PEDI birth
 1 BIRT Y
 2 DATE 20 DEC 1955
-2 PLAC Bento Gonçalves, Rio Grande do Sul, Brazil? Guaporé, Rio Grande do Sul, Brazil (S28.84583, W51.89)?
+2 PLAC Bento Gonçalves, Rio Grande do Sul, Brazil? Guaporé, Rio Grande do Sul, Brazil (S28.84583 W51.89)?
 1 CHAN
 2 DATE 16 MAY 2021
 3 TIME 16:46:47
@@ -145201,7 +145201,7 @@
 1 FAMS @F904@
 1 BIRT Y
 2 DATE 12 SEP 1955
-2 PLAC Bento Gonçalves, Rio Grande do Sul, Brazil? Guaporé, Rio Grande do Sul, Brazil (S28.84583, W51.89)?
+2 PLAC Bento Gonçalves, Rio Grande do Sul, Brazil? Guaporé, Rio Grande do Sul, Brazil (S28.84583 W51.89)?
 1 OBJE
 2 TITL Gheno Clair Mário 20190726
 2 _DATE 26 JUL 2019

@@ -134,7 +134,7 @@ public class EventRecordDialog extends BaseRecordDialog{
 		causeEvidencePanel = new EvidenceQualifiersPanel(EventReader.TAG_CAUSE_EVIDENCE, I18N.t("dialog.event.cause.evidence"));
 
 		// Build common panels using the builder
-		components = new RecordDialogBuilder(this, model, record)
+		components = new RecordDialogBuilder(this, model, this.record)
 			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, ContextImpactHandler.TYPE, I18N.t("dialog.component.context.impacts"))
 			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, I18N.t("dialog.component.conclusions"))
 			.withComponent(PanelKey.EVENT_PARTICIPATION_ON_EVENT, EventParticipationHandler.TYPE, I18N.t("dialog.component.event.participations"))

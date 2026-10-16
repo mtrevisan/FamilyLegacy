@@ -1101,7 +1101,9 @@ public class ChronomapPanel extends JPanel{
 		try(final InputStream is = ChronomapPanel.class.getResourceAsStream("/tests/TGMZ.flef")){
 			content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
 		}
-		final FLEFModel model = new FLEFParser().parse(content);
+
+		final FLEFParser parser = new FLEFParser();
+		final FLEFModel model = parser.parse(content);
 
 		SwingUtilities.invokeLater(() -> {
 			final ChronomapPanel panel = create(model);

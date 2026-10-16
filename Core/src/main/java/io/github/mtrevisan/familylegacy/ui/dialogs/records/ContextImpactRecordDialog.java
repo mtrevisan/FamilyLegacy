@@ -124,7 +124,7 @@ public class ContextImpactRecordDialog extends BaseRecordDialog{
 		confidenceCombo.setI18NPrefix("enum.confidence");
 
 		// Build common panels using the builder
-		components = new RecordDialogBuilder(this, model, record)
+		components = new RecordDialogBuilder(this, model, this.record)
 			.withComponent(PanelKey.SOURCE, ContextImpactReader.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
 			.withComponent(PanelKey.EVIDENCE, ContextImpactReader.TAG_EVIDENCE, I18N.t("dialog.component.evidence"))
 			.withComponent(PanelKey.AUDIT, ContextImpactReader.TAG_AUDIT, null)

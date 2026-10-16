@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.gedcom.GEDCOMHelper;
 import io.github.mtrevisan.familylegacy.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.readers.DateReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EvidenceQualifiersReader;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventParticipationHandler;
@@ -138,10 +139,10 @@ public class StructureParser{
 				if(info.isApproximate()){
 					FLEFRecord approx = FLEFRecord.createChildWithTag("approximate");
 					String basis = switch(info.getQualifier()){
-						case "ABT" -> "stated";
-						case "CAL" -> "calculated";
-						case "EST" -> "conventional";
-						default -> "unspecified";
+						case "ABT" -> DateReader.ENUM_BASIS_STATED;
+						case "CAL" -> DateReader.ENUM_BASIS_CALCULATED;
+						case "EST" -> DateReader.ENUM_BASIS_CONVENTIONAL;
+						default -> DateReader.ENUM_BASIS_UNSPECIFIED;
 					};
 					approx.addChild(FLEFRecord.createChildWithTagAndValue("basis", basis));
 					fullDateRec.addChild(approx);
@@ -156,7 +157,7 @@ public class StructureParser{
 					nbNode.addChild(nb);
 					if(info.isApproximate()){
 						FLEFRecord approx = FLEFRecord.createChildWithTag("approximate");
-						approx.addChild(FLEFRecord.createChildWithTagAndValue("basis", "stated"));
+						approx.addChild(FLEFRecord.createChildWithTagAndValue("basis", DateReader.ENUM_BASIS_STATED));
 						nbNode.addChild(approx);
 					}
 					boundedRec.addChild(nbNode);
@@ -167,7 +168,7 @@ public class StructureParser{
 					naNode.addChild(na);
 					if(info.isApproximate()){
 						FLEFRecord approx = FLEFRecord.createChildWithTag("approximate");
-						approx.addChild(FLEFRecord.createChildWithTagAndValue("basis", "stated"));
+						approx.addChild(FLEFRecord.createChildWithTagAndValue("basis", DateReader.ENUM_BASIS_STATED));
 						naNode.addChild(approx);
 					}
 					boundedRec.addChild(naNode);
@@ -182,7 +183,7 @@ public class StructureParser{
 					fromNode.addChild(from);
 					if(info.isApproximate()){
 						FLEFRecord approx = FLEFRecord.createChildWithTag("approximate");
-						approx.addChild(FLEFRecord.createChildWithTagAndValue("basis", "stated"));
+						approx.addChild(FLEFRecord.createChildWithTagAndValue("basis", DateReader.ENUM_BASIS_STATED));
 						fromNode.addChild(approx);
 					}
 					spanningRec.addChild(fromNode);
@@ -193,7 +194,7 @@ public class StructureParser{
 					toNode.addChild(to);
 					if(info.isApproximate()){
 						FLEFRecord approx = FLEFRecord.createChildWithTag("approximate");
-						approx.addChild(FLEFRecord.createChildWithTagAndValue("basis", "stated"));
+						approx.addChild(FLEFRecord.createChildWithTagAndValue("basis", DateReader.ENUM_BASIS_STATED));
 						toNode.addChild(approx);
 					}
 					spanningRec.addChild(toNode);

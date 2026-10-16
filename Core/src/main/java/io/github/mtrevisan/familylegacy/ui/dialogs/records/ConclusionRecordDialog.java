@@ -147,7 +147,7 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 		narrativeArea = new BoundTextArea(ConclusionReader.TAG_NARRATIVE, 5, 30);
 
 		// Build common panels using the builder
-		components = new RecordDialogBuilder(this, model, record)
+		components = new RecordDialogBuilder(this, model, this.record)
 			.withComponent(PanelKey.RESEARCH_QUESTION, ConclusionReader.TAG_RESEARCH, I18N.t("dialog.component.research.questions"))
 			.withComponent(PanelKey.SOURCE, ConclusionReader.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
 			.withComponent(PanelKey.PRIVACY, ConclusionReader.TAG_PRIVACY, null)

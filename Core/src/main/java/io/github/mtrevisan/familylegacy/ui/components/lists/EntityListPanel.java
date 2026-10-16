@@ -103,6 +103,8 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 	private List<Class<? extends RecordTypeHandler<?>>> handlerTypes;
 	// if true, save a VOID node when the list is empty
 	private boolean saveAsVoid;
+	private FLEFRecord subjectEntity;
+	private FLEFRecord objectEntity;
 	private FLEFRecord parentEntity;
 
 	// used to reload the list after editing
@@ -189,8 +191,25 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 	}
 
 	/**
+	 * Sets a subject entity that will be automatically linked when creating new records
+	 */
+	public EntityListPanel withSubjectEntity(final FLEFRecord subjectEntity){
+		this.subjectEntity = subjectEntity;
+
+		return this;
+	}
+
+	/**
+	 * Sets an object entity that will be automatically linked when creating new records
+	 */
+	public EntityListPanel withObjectEntity(final FLEFRecord objectEntity){
+		this.objectEntity = objectEntity;
+
+		return this;
+	}
+
+	/**
 	 * Sets a parent entity that will be automatically linked when creating new records
-	 * (e.g., as SUBJECT/OBJECT in a relationship).
 	 */
 	public EntityListPanel withParentEntity(final FLEFRecord parentEntity){
 		this.parentEntity = parentEntity;
@@ -284,6 +303,18 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 			if(handlerTypes.size() == 1){
 				final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(handlerTypes.getFirst());
 				final BaseRecordDialog dialog = handler.createNewDialog(parent, model);
+				if(dialog instanceof PlaceRelationshipRecordDialog placeRelationshipDialog){
+					if(subjectEntity != null)
+						placeRelationshipDialog.withSubject(subjectEntity);
+					if(objectEntity != null)
+						placeRelationshipDialog.withObject(objectEntity);
+				}
+				else if(dialog instanceof RelationshipRecordDialog relationshipDialog){
+					if(subjectEntity != null)
+						relationshipDialog.withSubject(subjectEntity);
+					if(objectEntity != null)
+						relationshipDialog.withObject(objectEntity);
+				}
 				getDialogSetup().accept(dialog);
 				dialog.setVisible(true);
 
@@ -668,6 +699,9 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 
 	private Consumer<BaseRecordDialog> getDialogSetup(){
 		return dialog -> {
+			if(parentRecord == null)
+				return;
+
 			// Configure relationship dialogs based on `actorType` and `type`
 			if(dialog instanceof RelationshipRecordDialog relationshipDialog
 					&& (type == ListType.ONEOF_REFERENCE || type == ListType.ENTITY_REFERENCE)){

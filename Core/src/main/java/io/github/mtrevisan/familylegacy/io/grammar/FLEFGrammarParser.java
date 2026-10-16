@@ -298,10 +298,11 @@ public final class FLEFGrammarParser{
 		position ++;
 	}
 
-	private void putType(final Map<String, TypeDefinition> types, final String name,
-		final TypeDefinition definition, final int line){
+	private void putType(final Map<String, TypeDefinition> types, final String name, final TypeDefinition definition,
+			final int line){
 		if(types.containsKey(name))
 			warnings.add("Line " + line + ": duplicate definition of type '" + name + "' (previous definition is overwritten)");
+
 		types.put(name, definition);
 	}
 
@@ -320,6 +321,7 @@ public final class FLEFGrammarParser{
 				case TAG_FILE -> {
 					if(fileDef != null)
 						warnings.add("Line " + peekToken().line() + ": multiple 'file' definitions found, keeping the last one");
+
 					fileDef = parseFileDefinition();
 				}
 				case TAG_ALIAS -> parseAlias(types);
@@ -333,7 +335,11 @@ public final class FLEFGrammarParser{
 		if(fileDef == null)
 			warnings.add("No 'file' definition found in the grammar");
 
-		return new FLEFGrammar(fileDef, types, warnings);
+		final FLEFGrammar grammar = new FLEFGrammar(fileDef, types, warnings);
+
+		XrefPathIndex.initialize(grammar);
+
+		return grammar;
 	}
 
 	/**
@@ -768,7 +774,7 @@ public final class FLEFGrammarParser{
 
 
 	public static void main(final String[] args) throws Exception{
-		final Path path = Paths.get("src/main/resources/gedg/flef_0.1.3.gedg");
+		final Path path = Paths.get("src/main/resources/gedg/flef_0.1.4.gedg");
 		final FLEFGrammar grammar = FLEFGrammarParser.parse(path);
 
 		System.out.println("File definition: " + (grammar.getFileDefinition() != null

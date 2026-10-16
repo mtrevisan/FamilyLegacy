@@ -87,7 +87,7 @@ public class PlaceCitationDialog extends BaseRecordDialog{
 		originalTextField = new BoundTextField(PlaceCitationReader.TAG_ORIGINAL_TEXT);
 
 		// Build common panels using the builder
-		components = new RecordDialogBuilder(this, model, record)
+		components = new RecordDialogBuilder(this, model, this.record)
 			.withComponent(PanelKey.SOURCE, PlaceCitationReader.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
 			.withComponent(PanelKey.EVIDENCE, PlaceCitationReader.TAG_EVIDENCE, I18N.t("dialog.component.evidence"))
 			.build();

@@ -27,8 +27,14 @@ package io.github.mtrevisan.familylegacy.ui.components.projections.places;
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceRelationshipReader;
+import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
+import io.github.mtrevisan.familylegacy.ui.handlers.PlaceHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.PlaceRelationshipHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.ui.tools.ReportDialog;
 import org.apache.commons.lang3.StringUtils;
@@ -36,7 +42,6 @@ import org.apache.commons.lang3.StringUtils;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
-import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -106,7 +111,7 @@ import java.util.TreeSet;
 public final class PlaceHierarchyPanel extends JPanel{
 
 	/** Sentinel for the "no filter" entry of the relation type combo. */
-	private static final String FILTER_ALL_KEY = "places.filter.all";
+	private static final String FILTER_ALL_KEY = "any";
 
 	private static final int TREE_MIN_WIDTH = 360;
 	private static final int DETAILS_MIN_WIDTH = 300;
@@ -116,10 +121,27 @@ public final class PlaceHierarchyPanel extends JPanel{
 
 	private final DefaultMutableTreeNode treeRoot = new DefaultMutableTreeNode("Places");
 	private final DefaultTreeModel treeModel = new DefaultTreeModel(treeRoot);
-	private final JTree tree = new JTree(treeModel);
+	private final JTree tree = new JTree(treeModel){
+		@Override
+		protected void processMouseEvent(final MouseEvent e){
+			// If it's a double click, consume/prevent expansion and trigger editor instead
+			if(e.getID() == MouseEvent.MOUSE_PRESSED && e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e)){
+				final int row = getRowForLocation(e.getX(), e.getY());
+				if(row != -1){
+					// Consume the event so BasicTreeUI doesn't see the double-click and doesn't toggle
+					e.consume();
+
+					openEditorForSelection();
+
+					return;
+				}
+			}
+			super.processMouseEvent(e);
+		}
+	};
 
 	private final JTextField searchField = new JTextField(20);
-	private final JComboBox<String> relationTypeFilter = new JComboBox<>();
+	private final BoundComboBox<String> relationTypeFilter = new BoundComboBox<>(PlaceRelationshipReader.TAG_TYPE);
 	private final JLabel statusLabel = new JLabel(StringUtils.SPACE);
 
 	private PlaceDetailsPanel detailsPanel;
@@ -137,6 +159,8 @@ public final class PlaceHierarchyPanel extends JPanel{
 		add(createStatusBar(), BorderLayout.SOUTH);
 
 		reload();
+
+		relationTypeFilter.addActionListener(e -> rebuildTree());
 	}
 
 
@@ -152,10 +176,13 @@ public final class PlaceHierarchyPanel extends JPanel{
 	 */
 	public void reload(){
 		final String previousSelection = selectedPlaceId();
+
 		this.hierarchy = PlaceHierarchyService.load(model);
 		rebuildRelationTypeModel();
 		rebuildTree();
+
 		restoreSelection(previousSelection);
+
 		updateStatus();
 	}
 
@@ -177,18 +204,10 @@ public final class PlaceHierarchyPanel extends JPanel{
 		});
 
 		toolbar.add(new JLabel("Relation:"));
+		relationTypeFilter.setI18NPrefix("enum.place_relationship.type");
 		relationTypeFilter.setPreferredSize(new Dimension(180,
 			relationTypeFilter.getPreferredSize().height));
-		relationTypeFilter.addActionListener(e -> rebuildTree());
 		toolbar.add(relationTypeFilter);
-
-		final JButton expandAll = new JButton("Expand all");
-		expandAll.addActionListener(e -> expandAll());
-		toolbar.add(expandAll);
-
-		final JButton collapseAll = new JButton("Collapse all");
-		collapseAll.addActionListener(e -> collapseAll());
-		toolbar.add(collapseAll);
 
 		final JButton reloadButton = new JButton("Reload");
 		reloadButton.addActionListener(e -> reload());
@@ -343,22 +362,6 @@ public final class PlaceHierarchyPanel extends JPanel{
 		}
 	}
 
-	private void expandAll(){
-		int row = 0;
-		while(row < tree.getRowCount()){
-			tree.expandRow(row);
-			row ++;
-		}
-	}
-
-	private void collapseAll(){
-		int row = tree.getRowCount() - 1;
-		while(row >= 0){
-			tree.collapseRow(row);
-			row --;
-		}
-	}
-
 
 	/* ======================================================================
 	 *                          Selection and details
@@ -386,8 +389,125 @@ public final class PlaceHierarchyPanel extends JPanel{
 		final BaseRecordDialog dialog = handler.createEditDialog(owner, model, record);
 		dialog.setVisible(true);
 
-		if(dialog.isSaved())
-			reload();
+		if(dialog.isSaved()){
+			// Check if the place name was changed to match an existing place, and merge them if necessary
+			mergeDuplicatePlacesIfAny(record, new HashSet<>());
+
+			removeDuplicateRelationships();
+
+			// NOTE: already done by rebuildRelationTypeModel when setting relationTypeFilter
+			//reload();
+		}
+	}
+
+	private void mergeDuplicatePlacesIfAny(final FLEFRecord modifiedRecord, final Set<String> visited){
+		if(!visited.add(modifiedRecord.getId()))
+			return;
+
+		if(!PlaceHandler.isOfType(modifiedRecord))
+			return;
+
+		final String modifiedName = extractPlaceName(modifiedRecord);
+		if(StringUtils.isEmpty(modifiedName))
+			return;
+
+		// Search for another place record with the exact same name
+		String activeId = modifiedRecord.getId();
+		FLEFRecord targetPlace = null;
+		final List<FLEFRecord> records = model.getRecords();
+		for(final FLEFRecord record : records){
+			if(PlaceHandler.isOfType(record) && !record.getId().equals(activeId)
+					&& modifiedName.equalsIgnoreCase(extractPlaceName(record))){
+				targetPlace = record;
+
+				break;
+			}
+		}
+
+		if(targetPlace != null){
+			final String oldId = activeId;
+			final String newId = targetPlace.getId();
+
+			// Replace all references pointing to oldId with newId across the model
+			model.replaceRecordId(oldId, newId);
+
+			// Remove the redundant duplicate record from the tree view UI
+			final DefaultMutableTreeNode duplicateNode = findNodeById(treeRoot, oldId);
+			if(duplicateNode != null)
+				treeModel.removeNodeFromParent(duplicateNode);
+
+			// Clear selection and details if the removed node was currently selected
+			if(oldId.equals(selectedPlaceId())){
+				tree.clearSelection();
+
+				detailsPanel.showPlace(null, hierarchy);
+			}
+
+			activeId = newId;
+		}
+
+		// Recursively check children and parents to merge matching sub-structures
+		final List<FLEFRecord> relatedRecords = new ArrayList<>();
+		for(final FLEFRecord record : records)
+			if(PlaceRelationshipHandler.isOfType(record)){
+				final FLEFRecord subj = extractRelationshipPlace(record, PlaceRelationshipReader.TAG_SUBJECT);
+				final FLEFRecord obj = extractRelationshipPlace(record, PlaceRelationshipReader.TAG_OBJECT);
+				if(subj != null && activeId.equals(subj.getValue()))
+					relatedRecords.add(obj);
+				else if(obj != null && activeId.equals(obj.getValue()))
+					relatedRecords.add(subj);
+			}
+
+		for(final FLEFRecord nextRecord : relatedRecords)
+			mergeDuplicatePlacesIfAny(nextRecord, visited);
+	}
+
+	private static String extractPlaceName(final FLEFRecord placeRecord){
+		for(final FLEFRecord child : placeRecord.getChildren())
+			if(PlaceReader.TAG_NAME.equals(child.getTag()))
+				for(final FLEFRecord sub : child.getChildren())
+					if(NameReader.TAG_VALUE.equals(sub.getTag()) && sub.getValue() != null)
+						return sub.getValue().trim();
+		return null;
+	}
+
+	private static FLEFRecord extractRelationshipPlace(final FLEFRecord relRecord, final String sideTag){
+		for(final FLEFRecord child : relRecord.getChildren())
+			if(sideTag.equals(child.getTag()))
+				for(final FLEFRecord sub : child.getChildren())
+					if(PlaceHandler.isOfType(sub))
+						return sub;
+		return null;
+	}
+
+	private void removeDuplicateRelationships(){
+		final Set<String> seenRelations = new HashSet<>();
+		final List<FLEFRecord> toRemove = new ArrayList<>();
+
+		for(final FLEFRecord rec : new ArrayList<>(model.getRecords())){
+			if(PlaceRelationshipHandler.isOfType(rec)){
+				final FLEFRecord subj = extractRelationshipPlace(rec, PlaceRelationshipReader.TAG_SUBJECT);
+				final FLEFRecord obj = extractRelationshipPlace(rec, PlaceRelationshipReader.TAG_OBJECT);
+				final String type = extractRelationshipType(rec);
+
+				// Create a unique signature for this relationship direction and type
+				final String signature = type
+					+ "|" + (subj != null? subj.getValue(): StringUtils.EMPTY)
+					+ "|" + (obj != null? obj.getValue(): StringUtils.EMPTY);
+				if(!seenRelations.add(signature))
+					toRemove.add(rec);
+			}
+		}
+
+		for(final FLEFRecord rec : toRemove)
+			model.removeRecord(rec.getId());
+	}
+
+	private static String extractRelationshipType(final FLEFRecord relRecord){
+		for(final FLEFRecord child : relRecord.getChildren())
+			if(PlaceRelationshipReader.TAG_TYPE.equalsIgnoreCase(child.getTag()) && child.getValue() != null)
+				return child.getValue();
+		return StringUtils.EMPTY;
 	}
 
 	private PlaceTreePayload selectedPayload(){
@@ -656,7 +776,8 @@ public final class PlaceHierarchyPanel extends JPanel{
 			content = new String(Objects.requireNonNull(is).readAllBytes(), StandardCharsets.UTF_8);
 		}
 
-		final FLEFModel model = new FLEFParser().parse(content);
+		final FLEFParser parser = new FLEFParser();
+		final FLEFModel model = parser.parse(content);
 
 		EventQueue.invokeLater(() -> {
 			final PlaceHierarchyPanel panel = new PlaceHierarchyPanel(model);

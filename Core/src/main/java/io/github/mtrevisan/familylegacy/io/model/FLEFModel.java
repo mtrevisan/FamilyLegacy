@@ -24,9 +24,15 @@
  */
 package io.github.mtrevisan.familylegacy.io.model;
 
+import io.github.mtrevisan.familylegacy.io.grammar.XrefPathIndex;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.ResearchQuestionHandler;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
+import org.apache.commons.text.CaseUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -44,11 +50,15 @@ import java.util.Set;
  */
 public class FLEFModel{
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(FLEFModel.class);
+
+
 	private FLEFRecord header;
 	private final List<FLEFRecord> records = new ArrayList<>();
 
 	private final Map<String, List<FLEFRecord>> recordsByType = new HashMap<>();
 	private final Map<String, FLEFRecord> recordsById = new HashMap<>();
+
 	private final Map<String, FLEFRecord> placesById = new HashMap<>();
 	private final Map<String, FLEFRecord> eventsById = new HashMap<>();
 	private final Map<String, FLEFRecord> questionsById = new HashMap<>();
@@ -121,6 +131,10 @@ public class FLEFModel{
 		return records.isEmpty();
 	}
 
+	public int getRecordCount(){
+		return records.size();
+	}
+
 	public FLEFRecord removeRecord(final String id){
 		if(id == null)
 			return null;
@@ -149,12 +163,64 @@ public class FLEFModel{
 		return recordsById.containsKey(id);
 	}
 
-	public int getRecordCount(){
-		return records.size();
-	}
-
 	public Set<String> getRecordTypes(){
 		return recordsByType.keySet();
+	}
+
+	/**
+	 * Replaces all occurrences of oldId with newId strictly across pre-indexed Xref paths derived from the grammar.
+	 *
+	 * @param oldId the ID to replace
+	 * @param newId the target ID
+	 */
+	/**
+	 * Replaces all occurrences of oldId with newId strictly across pre-indexed Xref paths derived from the grammar.
+	 * Highly optimized to avoid global record lookups per path iteration.
+	 *
+	 * @param oldId the ID to replace
+	 * @param newId the target ID
+	 */
+	public void replaceRecordId(final String oldId, final String newId){
+		if(!XrefPathIndex.isInitialized())
+			throw new IllegalStateException("Xref paths index is not initialized");
+
+		if(StringUtils.isEmpty(oldId) || oldId.equals(newId))
+			return;
+
+		final FLEFRecord newRecord = getRecordById(newId);
+		final String newRecordType = newRecord.getTag();
+		final String newTargetRecordType = CaseUtils.toCamelCase(newRecordType, true, '_')
+			+ XrefPathIndex.RECORD_UNION_NAME;
+		final Set<String> xrefPaths = XrefPathIndex.getPaths(newTargetRecordType);
+		if(xrefPaths.isEmpty())
+			return;
+
+		// Iterate once through all records in the model
+		for(final FLEFRecord record : records){
+			final String recordType = record.getTag();
+			for(final String path : xrefPaths){
+				final int searchRecordTypeIndex = path.indexOf('.');
+				final String searchRecordType = path.substring(0, searchRecordTypeIndex);
+				if(!Strings.CI.equals(searchRecordType, recordType))
+					continue;
+
+				final String searchPath = path.substring(searchRecordTypeIndex + 1);
+				final List<FLEFRecord> targetNodes = FLEFRecordHelper.findChildren(record, searchPath);
+				for(final FLEFRecord node : targetNodes)
+					if(oldId.equals(node.getValue())){
+						node.setValue(newId);
+
+						LOGGER.info("Updated Xref ID from {} to {} in record {}, path {}", oldId, newId, record.getId(),
+							searchPath);
+					}
+			}
+		}
+
+		// Update internal model maps if a top-level record ID changed
+		recordsById.remove(oldId);
+		placesById.remove(oldId);
+		eventsById.remove(oldId);
+		questionsById.remove(oldId);
 	}
 
 

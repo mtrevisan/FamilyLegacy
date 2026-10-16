@@ -631,7 +631,8 @@ public final class SocialNetworkPanel extends JPanel implements TreeChangeListen
 			content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
 		}
 
-		final FLEFModel model = new FLEFParser().parse(content);
+		final FLEFParser parser = new FLEFParser();
+		final FLEFModel model = parser.parse(content);
 
 		SwingUtilities.invokeLater(() -> {
 			final SocialNetworkPanel panel = new SocialNetworkPanel(model);

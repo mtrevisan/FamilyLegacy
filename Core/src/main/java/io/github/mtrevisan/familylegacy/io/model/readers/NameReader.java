@@ -141,7 +141,7 @@ public final class NameReader{
 		// language and localization variants
 		"translated", "transcribed",
 		// historical variants
-		"historic", "former",
+		"historic",
 		// common usage
 		"common", "colloquial",
 		// abbreviated forms
@@ -156,6 +156,8 @@ public final class NameReader{
 	public static final String TAG_PART_TYPE = "type";
 	public static final String TAG_PART_VALUE = "value";
 	public static final String TAG_PART_VARIANT = "variant";
+	public static final String TAG_VALID_FROM = "valid_from";
+	public static final String TAG_VALID_TO = "valid_to";
 
 	public static final String[] PART_TYPES = {
 		"given", "generation",

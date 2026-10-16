@@ -60,8 +60,8 @@ public final class ValidateFileTool implements ToolOperation{
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ValidateFileTool.class);
 
-	private static final String GRAMMAR_CLASSPATH = "/gedg/flef_0.1.3.gedg";
-	private static final String GRAMMAR_FILE = "src/main/resources/gedg/flef_0.1.3.gedg";
+	private static final String GRAMMAR_CLASSPATH = "/gedg/flef_0.1.4.gedg";
+	private static final String GRAMMAR_FILE = "src/main/resources/gedg/flef_0.1.4.gedg";
 
 	private static volatile FLEFGrammar cachedGrammar;
 	private static volatile boolean grammarLoaded;

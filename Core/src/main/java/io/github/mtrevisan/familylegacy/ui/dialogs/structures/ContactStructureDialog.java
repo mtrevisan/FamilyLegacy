@@ -103,7 +103,7 @@ public class ContactStructureDialog extends BaseRecordDialog{
 		noteAreaScroll.setBorder(BorderFactory.createTitledBorder(I18N.t("dialog.name.note")));
 
 		// Build common panels using the builder
-		components = new RecordDialogBuilder(this, model, record)
+		components = new RecordDialogBuilder(this, model, this.record)
 			.withComponent(PanelKey.PRIVACY, ContactReader.TAG_PRIVACY, null)
 			.withComponent(PanelKey.AUDIT, ContactReader.TAG_AUDIT, null)
 			.build();

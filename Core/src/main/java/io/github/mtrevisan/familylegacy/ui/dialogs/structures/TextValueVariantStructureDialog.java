@@ -117,7 +117,7 @@ public class TextValueVariantStructureDialog extends BaseRecordDialog{
 		transcriptionValueField = new BoundTextField(TextValueVariantReader.TAG_TRANSCRIPTION_VALUE);
 
 		// Build common panels using the builder
-		components = new RecordDialogBuilder(this, model, record)
+		components = new RecordDialogBuilder(this, model, this.record)
 			.build();
 
 		components.bind(phoneticSystemField);
@@ -189,7 +189,7 @@ public class TextValueVariantStructureDialog extends BaseRecordDialog{
 		transcriptionSystemCombo.setEnabled(isTranscription);
 
 		// Toggle visibility for Type components
-		GUIHelper.setComponentVisible(typeCombo, isTranscription);
+		GUIHelper.setComponentEnabled(typeCombo, isTranscription);
 
 		pack();
 	}

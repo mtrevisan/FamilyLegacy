@@ -113,7 +113,7 @@ public class NoteStructureDialog extends BaseRecordDialog{
 		translationPanel = new TranslationListPanel(NoteReader.TAG_TRANSLATION, this, I18N.t("dialog.note.translations"));
 
 		// Build common panels using the builder
-		components = new RecordDialogBuilder(this, model, record)
+		components = new RecordDialogBuilder(this, model, this.record)
 			.withComponent(PanelKey.SOURCE, NoteReader.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
 			.withComponent(PanelKey.PRIVACY, NoteReader.TAG_PRIVACY, null)
 			.withComponent(PanelKey.AUDIT, NoteReader.TAG_AUDIT, null)

@@ -108,7 +108,7 @@ public class DocumentRecordDialog extends BaseRecordDialog{
 		descriptionArea = new BoundTextArea(DocumentReader.TAG_DESCRIPTION, 3, 25);
 
 		// Build common panels using the builder
-		components = new RecordDialogBuilder(this, model, record)
+		components = new RecordDialogBuilder(this, model, this.record)
 			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, I18N.t("dialog.component.research.questions"))
 			.withComponent(PanelKey.SOURCE_ON_DOCUMENT, SourceHandler.TYPE, I18N.t("dialog.component.sources"))
 			.withComponent(PanelKey.NOTE, DocumentReader.TAG_NOTE, null)

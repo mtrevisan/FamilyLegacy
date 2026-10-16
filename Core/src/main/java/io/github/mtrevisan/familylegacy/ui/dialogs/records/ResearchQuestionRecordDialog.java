@@ -150,7 +150,7 @@ public class ResearchQuestionRecordDialog extends BaseRecordDialog{
 		rationaleArea = new BoundTextArea(ResearchQuestionReader.TAG_RATIONALE, 3, 30);
 
 		// Build common panels using the builder
-		components = new RecordDialogBuilder(this, model, record)
+		components = new RecordDialogBuilder(this, model, this.record)
 			.withComponent(PanelKey.CONCLUSION_ON_RESEARCH, ConclusionHandler.TYPE, I18N.t("dialog.component.conclusions"))
 			.withComponent(PanelKey.RESEARCH_ACTIVITY_ON_QUESTION, ResearchActivityHandler.TYPE, I18N.t("dialog.component.research.activities"))
 			.withComponent(PanelKey.RESEARCH_TASK_ON_QUESTION, ResearchTaskHandler.TYPE, I18N.t("dialog.component.research.tasks"))

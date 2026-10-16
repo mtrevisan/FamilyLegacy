@@ -73,6 +73,7 @@ public class IndividualConverter {
 	private final Map<String, GEDCOMNode> sourRawMap;
 	private final Map<String, GEDCOMNode> objeRawMap;
 	private final Map<String, FLEFRecord> sourceMap;
+	private final PlaceCache placeCache;
 	private final Map<String, FLEFRecord> multimediaMap;
 	private final StructureParser structParser;
 
@@ -87,13 +88,15 @@ public class IndividualConverter {
 	 * @param placeCache     cache for place records
 	 */
 	public IndividualConverter(FLEFModel model, Map<String, FLEFRecord> individualMap, Map<String, GEDCOMNode> noteRawMap,
-			Map<String, GEDCOMNode> sourRawMap, Map<String, GEDCOMNode> objeRawMap, Map<String, FLEFRecord> sourceMap, Map<String, FLEFRecord> multimediaMap, PlaceCache placeCache){
+			Map<String, GEDCOMNode> sourRawMap, Map<String, GEDCOMNode> objeRawMap, Map<String, FLEFRecord> sourceMap,
+			Map<String, FLEFRecord> multimediaMap, PlaceCache placeCache){
 		this.model = model;
 		this.individualMap = individualMap;
 		this.noteRawMap = noteRawMap;
 		this.sourRawMap = sourRawMap;
 		this.objeRawMap = objeRawMap;
 		this.sourceMap = sourceMap;
+		this.placeCache = placeCache;
 		this.multimediaMap = multimediaMap;
 		this.structParser = new StructureParser(placeCache);
 	}
@@ -122,14 +125,14 @@ public class IndividualConverter {
 		// ---- Events ----
 		for(String tag : GEDCOMMapper.EVENT_MAP.keySet()){
 			for(GEDCOMNode evtNode : GEDCOMHelper.findChildren(indiNode, tag)){
-				GEDCOMHelper.attachIndividualEvent(individual, model, evtNode, noteRawMap, sourRawMap, objeRawMap, roots);
+				GEDCOMHelper.attachIndividualEvent(individual, model, evtNode, noteRawMap, sourRawMap, objeRawMap, placeCache, roots);
 			}
 		}
 
 		// ---- Attributes ----
 		for(String tag : GEDCOMMapper.ATTRIBUTE_MAP.keySet()){
 			for(GEDCOMNode attrNode : GEDCOMHelper.findChildren(indiNode, tag)){
-				GEDCOMHelper.attachIndividualAttribute(individual, model, attrNode, noteRawMap, sourRawMap, objeRawMap, roots);
+				GEDCOMHelper.attachIndividualAttribute(individual, model, attrNode, noteRawMap, sourRawMap, objeRawMap, placeCache, roots);
 			}
 		}
 

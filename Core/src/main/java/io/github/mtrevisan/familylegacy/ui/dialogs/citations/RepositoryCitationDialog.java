@@ -86,7 +86,7 @@ public class RepositoryCitationDialog extends BaseRecordDialog{
 		locatorField = new BoundTextField(RepositoryCitationReader.TAG_LOCATOR);
 
 		// Build common panels using the builder
-		components = new RecordDialogBuilder(this, model, record)
+		components = new RecordDialogBuilder(this, model, this.record)
 			.withComponent(PanelKey.NOTE, RepositoryCitationReader.TAG_NOTE, null)
 			.build();
 

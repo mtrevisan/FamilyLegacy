@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.ui.tools.reports;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.readers.DateReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.GenealogicalDate;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.UniversalDateConverter;
 
@@ -244,9 +245,9 @@ final class GenealogicalDateHelper{
 			return labels.dates().approxBasisUnspecified();
 
 		return switch(basis.toLowerCase(Locale.ROOT)){
-			case "stated" -> labels.dates().approxBasisStated();
-			case "calculated" -> labels.dates().approxBasisCalculated();
-			case "conventional" -> {
+			case DateReader.ENUM_BASIS_STATED -> labels.dates().approxBasisStated();
+			case DateReader.ENUM_BASIS_CALCULATED -> labels.dates().approxBasisCalculated();
+			case DateReader.ENUM_BASIS_CONVENTIONAL -> {
 				final List<String> norms = resolveNormTitles(approx, normResolver);
 				yield (norms.isEmpty()
 					? labels.dates().approxBasisConventional()

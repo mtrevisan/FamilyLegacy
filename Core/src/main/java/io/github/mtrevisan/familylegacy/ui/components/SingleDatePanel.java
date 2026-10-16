@@ -159,10 +159,10 @@ public class SingleDatePanel extends JPanel{
 		singleDateTypeCombo.addActionListener(e -> {
 			final DateType selected = (DateType)singleDateTypeCombo.getSelectedItem();
 			if(selected != null){
-				GUIHelper.setComponentVisible(fullDateValueField, (selected == DateType.FULL_DATE));
-				GUIHelper.setComponentVisible(decadeStartYearField, (selected == DateType.DECADE));
-				GUIHelper.setComponentVisible(centuryOrdinalField, (selected == DateType.CENTURY));
-				GUIHelper.setComponentVisible(centuryPartCombo, (selected == DateType.CENTURY));
+				GUIHelper.setComponentEnabled(fullDateValueField, (selected == DateType.FULL_DATE));
+				GUIHelper.setComponentEnabled(decadeStartYearField, (selected == DateType.DECADE));
+				GUIHelper.setComponentEnabled(centuryOrdinalField, (selected == DateType.CENTURY));
+				GUIHelper.setComponentEnabled(centuryPartCombo, (selected == DateType.CENTURY));
 
 				cardLayout.show(cardPanel, selected.name());
 

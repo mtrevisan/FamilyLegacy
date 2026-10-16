@@ -100,7 +100,7 @@ public class RepositoryRecordDialog extends BaseRecordDialog{
 		contactPanel = EntityListPanel.createForStructure(RepositoryReader.TAG_CONTACT, this, I18N.t("dialog.repository.contacts"), model, ContactHandler.class);
 
 		// Build common panels using the builder
-		components = new RecordDialogBuilder(this, model, record)
+		components = new RecordDialogBuilder(this, model, this.record)
 			.withComponent(PanelKey.SOURCE_ON_REPOSITORY, SourceHandler.TYPE, I18N.t("dialog.component.sources.with.citations"))
 			.withComponent(PanelKey.NOTE, RepositoryReader.TAG_NOTE, null)
 			.withComponent(PanelKey.PRIVACY, RepositoryReader.TAG_PRIVACY, null)

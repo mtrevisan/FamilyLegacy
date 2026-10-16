@@ -150,7 +150,7 @@ public final class DateReader{
 	public static final String TAG_CENTURY_PART = FLEFRecordHelper.composePath(TAG_CENTURY, TAG_PART);
 
 	public static final String ENUM_CALENDAR_GREGORIAN = "gregorian";
-	// TODO use CalendarType
+	// TODO use CalendarType to retrieve the list of calendars
 	public static final String[] CALENDARS = {
 		ENUM_CALENDAR_GREGORIAN, "julian", "reformed_julian", "islamic", "hebrew", "chinese", "indian", "buddhist",
 		"french_republican", "coptic", "soviet_eternal", "ethiopian", "mayan", "persian", "parsi", "byzantine",
@@ -176,6 +176,13 @@ public final class DateReader{
 	public static final String[] DATE_TAGS = {
 		"date", "valid_from", "valid_to", "closed_date", "due_date"
 	};
+
+	public static final String ENUM_BASIS_STATED = "stated";
+	public static final String ENUM_BASIS_CALCULATED = "calculated";
+	public static final String ENUM_BASIS_CONVENTIONAL = "conventional";
+	public static final String ENUM_BASIS_UNSPECIFIED = "unspecified";
+	public static final String[] BASES = {
+		ENUM_BASIS_STATED, ENUM_BASIS_CALCULATED, ENUM_BASIS_CONVENTIONAL, ENUM_BASIS_UNSPECIFIED};
 
 
 	private DateReader(){}

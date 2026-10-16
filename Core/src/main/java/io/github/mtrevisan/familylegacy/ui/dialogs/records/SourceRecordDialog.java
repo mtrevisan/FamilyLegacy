@@ -111,7 +111,7 @@ public class SourceRecordDialog extends BaseRecordDialog{
 		mediaTypeCombo.setI18NPrefix("enum.source.media_type");
 		mediaTypeCombo.setEditable(true);
 
-		components = new RecordDialogBuilder(this, model, record)
+		components = new RecordDialogBuilder(this, model, this.record)
 			.withComponent(PanelKey.REPOSITORY, SourceReader.TAG_REPOSITORY, I18N.t("dialog.component.repositories.with.citations"))
 			.withComponent(PanelKey.DOCUMENT, SourceReader.TAG_DOCUMENT, I18N.t("dialog.component.documents"))
 			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, I18N.t("dialog.component.conclusions"))

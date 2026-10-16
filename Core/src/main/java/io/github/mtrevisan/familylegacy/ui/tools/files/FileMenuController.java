@@ -175,8 +175,9 @@ public final class FileMenuController{
 			@Override
 			protected FLEFModel doInBackground() throws Exception{
 				progress.update(0, "Reading file…");
-				return new FLEFParser()
-					.parse(file.toPath(), progress::update);
+
+				final FLEFParser parser = new FLEFParser();
+				return parser.parse(file.toPath(), progress::update);
 			}
 
 			@Override

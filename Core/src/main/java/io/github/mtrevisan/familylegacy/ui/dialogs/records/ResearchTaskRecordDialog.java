@@ -106,7 +106,7 @@ public class ResearchTaskRecordDialog extends BaseRecordDialog{
 		outcomeArea = new BoundTextArea(ResearchTaskReader.TAG_OUTCOME, 3, 30);
 
 		// Build common panels using the builder
-		components = new RecordDialogBuilder(this, model, record)
+		components = new RecordDialogBuilder(this, model, this.record)
 			.withComponent(PanelKey.RESEARCH_QUESTION, ResearchTaskReader.TAG_QUESTION, I18N.t("dialog.component.research.questions"))
 			.withComponent(PanelKey.PRIVACY, ResearchTaskReader.TAG_PRIVACY, null)
 			.withComponent(PanelKey.AUDIT, ResearchTaskReader.TAG_AUDIT, null)

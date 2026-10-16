@@ -87,7 +87,7 @@ public class PartStructureDialog extends BaseRecordDialog{
 		variantPanel = new TextValueVariantListPanel(NameReader.TAG_PART_VARIANT, this, I18N.t("dialog.name.variant"), model);
 
 		// Build common panels using the builder
-		components = new RecordDialogBuilder(this, model, record)
+		components = new RecordDialogBuilder(this, model, this.record)
 			.build();
 
 		components.bind(typeCombo);

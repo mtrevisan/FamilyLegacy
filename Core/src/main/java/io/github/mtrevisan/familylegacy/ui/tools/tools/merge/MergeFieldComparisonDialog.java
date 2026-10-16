@@ -218,7 +218,7 @@ public final class MergeFieldComparisonDialog extends JDialog{
 
 		private static FLEFGrammar load(){
 			try{
-				final Path path = Paths.get("src/main/resources/gedg/flef_0.1.3.gedg");
+				final Path path = Paths.get("src/main/resources/gedg/flef_0.1.4.gedg");
 				return FLEFGrammarParser.parse(path);
 			}
 			catch(final Exception ex){
@@ -898,8 +898,9 @@ public final class MergeFieldComparisonDialog extends JDialog{
 			+ "}" + StringUtils.LF
 			+ "}" + StringUtils.LF;
 
-		final FLEFModel model = new FLEFParser()
-			.parse(wrapped);
+		final FLEFParser parser = new FLEFParser();
+		final FLEFModel model = parser.parse(wrapped);
+
 		final FLEFRecord synthetic = model.getRecordById(syntheticId);
 		if(synthetic == null)
 			return List.of();

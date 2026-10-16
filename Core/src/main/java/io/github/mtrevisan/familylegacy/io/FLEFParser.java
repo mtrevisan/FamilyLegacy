@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.io.grammar.FLEFGrammarParser;
 import io.github.mtrevisan.familylegacy.io.grammar.FLEFGrammarValidator;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 
@@ -84,12 +85,12 @@ public class FLEFParser{
 
 	public FLEFModel parse(final Path path, final ProgressListener listener) throws IOException{
 		final ProgressListener l = (listener != null? listener: ProgressListener.NOOP);
-		l.onProgress(0, "Reading file…");
+		l.onProgress(0, I18N.t("parser.reading.file"));
 
 		final byte[] data = Files.readAllBytes(path);
 		final String content;
 		if(isGzipCompressed(data)){
-			l.onProgress(-1, "Decompressing…");
+			l.onProgress(-1, I18N.t("parser.decompressing"));
 
 			try(final ByteArrayInputStream bais = new ByteArrayInputStream(data);
 				 final GZIPInputStream gis = new GZIPInputStream(bais)){
@@ -116,7 +117,7 @@ public class FLEFParser{
 
 	public FLEFModel parse(final InputStream inputStream, final ProgressListener listener) throws IOException{
 		final ProgressListener l = (listener != null? listener: ProgressListener.NOOP);
-		l.onProgress(0, "Reading stream…");
+		l.onProgress(0, I18N.t("parser.reading.stream"));
 
 		final String content;
 
@@ -127,7 +128,7 @@ public class FLEFParser{
 		if(read == 2 && isGzipMagic(header)){
 			pushback.unread(header, 0, 2);
 
-			l.onProgress(-1, "Decompressing…");
+			l.onProgress(-1, I18N.t("parser.decompressing"));
 
 			try(final GZIPInputStream gis = new GZIPInputStream(pushback)){
 				content = new String(gis.readAllBytes(), StandardCharsets.UTF_8);
@@ -290,7 +291,8 @@ public class FLEFParser{
 		final int percent = (int)(position * 100L / length);
 		if(percent != lastReportedPercent){
 			lastReportedPercent = percent;
-			progressListener.onProgress(percent, "Parsing…");
+
+			progressListener.onProgress(percent, I18N.t("parser.parsing"));
 		}
 	}
 
@@ -675,7 +677,7 @@ Bianchi
 			}
 			""";
 
-		final Path path = Paths.get("src/main/resources/gedg/flef_0.1.3.gedg");
+		final Path path = Paths.get("src/main/resources/gedg/flef_0.1.4.gedg");
 		final FLEFGrammar grammar = FLEFGrammarParser.parse(path);
 		for(final String warning : grammar.getParseWarnings())
 			System.out.println(warning);

@@ -60,12 +60,33 @@ import java.io.IOException;
  *   id: LocalID
  *   name+: NameStructure
  *   type?: enum {
- *     address, building, street, hamlet, village, town, municipality, city,
- *     metropolitan_area, county, province, department, district, region,
- *     macro_region, country, empire, parish, diocese, cemetery, archive, unknown
+ *     // settlements and built environments
+ *     address,             // specific postal or civic address
+ *     building,            // individual building or structure
+ *     street,              // street, road, avenue, lane, or similar thoroughfare
+ *     hamlet,              // very small settlement, usually smaller than a village
+ *     village,             // small rural settlement
+ *     town,                // populated settlement larger than a village
+ *     municipality,        // local administrative unit with self-government
+ *     city,                // major urban settlement
+ *     metropolitan_area,   // urban area consisting of a central city and surrounding communities
+ *     // administrative jurisdictions
+ *     county,              // county-level administrative division
+ *     province,            // province-level administrative division
+ *     department,          // department-level administrative division
+ *     district,            // district-level administrative division
+ *     region,              // region-level administrative division
+ *     macro_region,        // supra-regional grouping of multiple regions
+ *     country,             // sovereign state or nation
+ *     empire,              // multi-ethnic or multi-national imperial state
+ *     // ecclesiastical jurisdictions
+ *     parish,              // ecclesiastical parish
+ *     diocese,             // ecclesiastical diocese or equivalent jurisdiction
+ *     // sites and institutions
+ *     cemetery             // burial ground or cemetery
  *   } | Text
- *   map?: struct {
- *     coordinates: Coord
+ *   map?: struct {         // Contains the location of a place in a Global Positioning System.
+ *     coordinates: Coord   // geographic coordinates of the place, representative point, not necessarily the full territorial extent of the place
  *     evidence?: EvidenceQualifiers
  *   }
  *   source*: SourceCitation
@@ -117,7 +138,7 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 		mapEvidencePanel = new EvidenceQualifiersPanel(PlaceReader.TAG_MAP_EVIDENCE, I18N.t("dialog.place.map.evidence"));
 
 		// Build common panels using the builder
-		components = new RecordDialogBuilder(this, model, record)
+		components = new RecordDialogBuilder(this, model, this.record)
 			.withComponent(PanelKey.PLACE_RELATIONSHIP_ON_SUBJECT, PlaceRelationshipHandler.TYPE, I18N.t("dialog.component.place.relationships.on.subject"))
 			.withComponent(PanelKey.PLACE_RELATIONSHIP_ON_OBJECT, PlaceRelationshipHandler.TYPE, I18N.t("dialog.component.place.relationships.on.target"))
 			.withComponent(PanelKey.EVENT_PARTICIPATION_ON_PARTICIPANT, EventParticipationHandler.TYPE, I18N.t("dialog.component.event.participations"))

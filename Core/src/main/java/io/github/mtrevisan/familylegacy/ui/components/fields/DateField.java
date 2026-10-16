@@ -38,7 +38,7 @@ import javax.swing.JTextField;
 import java.awt.Window;
 
 
-// TODO EntityField?
+// TODO can it be an EntityField?
 /**
  * Component for selecting and displaying dates.
  */

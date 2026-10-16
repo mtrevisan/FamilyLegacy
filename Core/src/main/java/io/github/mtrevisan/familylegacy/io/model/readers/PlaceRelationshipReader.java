@@ -73,9 +73,10 @@ public final class PlaceRelationshipReader{
 	public static final String TAG_EVIDENCE = "evidence";
 	public static final String TAG_AUDIT = "audit";
 
+	public static final String ENUM_TYPE_ADMINISTRATIVE_PART_OF = "administrative_part_of";
 	public static final String[] TYPES = new String[]{
-		"administrative_part_of", "geographic_part_of", "ecclesiastical_part_of", "judicial_part_of",
-		"cadastral_part_of"
+		ENUM_TYPE_ADMINISTRATIVE_PART_OF, "geographic_part_of", "ecclesiastical_part_of", "judicial_part_of",
+		"cadastral_part_of", "predecessor_of", "successor_of", "merged_into", "split_from", "transferred_to"
 	};
 
 

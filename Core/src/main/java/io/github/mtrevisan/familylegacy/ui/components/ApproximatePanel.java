@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.io.model.readers.DateReader;
+import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.ui.components.lists.EntityListPanel;
 import io.github.mtrevisan.familylegacy.ui.handlers.CulturalNormHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
@@ -36,7 +37,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
 import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
@@ -63,15 +63,10 @@ import java.awt.Window;
  */
 public class ApproximatePanel extends JPanel{
 
-	private static final String[] BASES = {
-		StringUtils.EMPTY,
-		"stated", "calculated", "conventional", "unspecified"};
-
-
 	private String path;
 
 	private final JCheckBox approximateCheck = new JCheckBox(I18N.tf("dialog.date.approximate"));
-	private final JComboBox<String> basisCombo = new JComboBox<>(BASES);
+	private BoundComboBox<String> basisCombo;
 	private final EntityListPanel culturalNormPanel;
 	private final JTextField marginField = new JTextField(null);
 
@@ -95,6 +90,8 @@ public class ApproximatePanel extends JPanel{
 
 		// basis
 		final JPanel basisPanel = GUIHelper.createLabelFieldPanel(0, "[]");
+		basisCombo = new BoundComboBox<>(DateReader.TAG_BASIS, DateReader.BASES);
+		basisCombo.setI18NPrefix("enum.date.basis");
 		GUIHelper.addLabeledComponent(basisPanel, I18N.t("dialog.date.basis") + ":", basisCombo);
 		GUIHelper.addComponent(this, basisPanel);
 
@@ -193,10 +190,10 @@ public class ApproximatePanel extends JPanel{
 				return false;
 			}
 
-			if("conventional".equals(basis) && culturalNormPanel.isEmpty()){
-				// TODO internationalize 'conventional'
+			if(DateReader.ENUM_BASIS_CONVENTIONAL.equals(basis) && culturalNormPanel.isEmpty()){
 				JOptionPane.showMessageDialog(this,
-					I18N.tf("validation.required_when_is", I18N.t("dialog.name.cultural.norms"), I18N.t("dialog.date.basis"), "conventional"),
+					I18N.tf("validation.required_when_is", I18N.t("dialog.name.cultural.norms"),
+						I18N.t("dialog.date.basis"), I18N.t("enum.date.basis.conventional")),
 					I18N.t("validation.title"), JOptionPane.ERROR_MESSAGE);
 
 				return false;

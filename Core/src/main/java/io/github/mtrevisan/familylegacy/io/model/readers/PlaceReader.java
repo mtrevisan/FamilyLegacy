@@ -45,7 +45,7 @@ import java.util.List;
  *   type?: enum {
  *     address, building, street, hamlet, village, town, municipality, city,
  *     metropolitan_area, county, province, department, district, region,
- *     macro_region, country, empire, parish, diocese, cemetery, archive, unknown
+ *     macro_region, country, empire, parish, diocese, cemetery, archive
  *   } | Text
  *   map?: struct {         // Contains the location of a place in a Global Positioning System.
  *     coordinates: Coord   // geographic coordinates of the place
@@ -75,7 +75,7 @@ public final class PlaceReader{
 	public static final String[] TYPES = new String[]{
 		"address", "building", "street", "hamlet", "village", "town", "municipality", "city", "metropolitan_area",
 		"county", "province", "department", "district", "region", "macro_region", "country", "empire", "parish",
-		"diocese", "cemetery", "archive", "unknown"
+		"diocese", "cemetery"
 	};
 
 

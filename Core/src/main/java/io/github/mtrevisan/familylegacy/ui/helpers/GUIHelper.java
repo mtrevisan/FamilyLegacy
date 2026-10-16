@@ -323,11 +323,11 @@ public final class GUIHelper{
 		container.add((field instanceof JTextArea? createScrollPane(field): field), "span 2,growx");
 	}
 
-	public static void setComponentVisible(final JComponent field, final boolean visible){
+	public static void setComponentEnabled(final JComponent field, final boolean visible){
 		final JLabel label = (JLabel)field.getClientProperty(PROPERTY_ASSOCIATED_LABEL);
 		if(label != null)
-			label.setVisible(visible);
-		field.setVisible(visible);
+			label.setEnabled(visible);
+		field.setEnabled(visible);
 
 		final Container parent = field.getParent();
 		if(parent != null && parent.isShowing()){
@@ -719,7 +719,7 @@ public final class GUIHelper{
 
 	private static void validate(FLEFModel model) throws IOException{
 		final String grammarContent;
-		try(final InputStream is = GUIHelper.class.getResourceAsStream("/gedg/flef_0.1.3.gedg")){
+		try(final InputStream is = GUIHelper.class.getResourceAsStream("/gedg/flef_0.1.4.gedg")){
 			grammarContent = new String(is.readAllBytes(), StandardCharsets.UTF_8);
 		}
 

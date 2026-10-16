@@ -712,7 +712,9 @@ public final class AgoraPanel extends JPanel{
 		try(final InputStream is = AgoraPanel.class.getResourceAsStream("/tests/TGMZ.flef")){
 			content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
 		}
-		final FLEFModel model = new FLEFParser().parse(content);
+
+		final FLEFParser parser = new FLEFParser();
+		final FLEFModel model = parser.parse(content);
 
 		final Path cacheFile = Path.of(System.getProperty("user.home"), ".familylegacy", "geocoding.properties");
 		final PlaceCoordinateResolver resolver = new PlaceCoordinateResolver(model, cacheFile);

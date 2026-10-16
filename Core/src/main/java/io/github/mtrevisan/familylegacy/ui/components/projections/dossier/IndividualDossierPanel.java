@@ -648,7 +648,9 @@ public class IndividualDossierPanel extends JPanel{
 		try(final InputStream is = IndividualDossierPanel.class.getResourceAsStream(modelUri)){
 			content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
 		}
-		final FLEFModel model = new FLEFParser().parse(content);
+
+		final FLEFParser parser = new FLEFParser();
+		final FLEFModel model = parser.parse(content);
 
 		SwingUtilities.invokeLater(() -> {
 			final IndividualDossierPanel panel = new IndividualDossierPanel(model);

@@ -84,7 +84,9 @@ public final class RestoreFromBackupTool implements ToolOperation{
 
 		try{
 			final String content = Files.readString(file.toPath(), StandardCharsets.UTF_8);
-			final FLEFModel restored = new FLEFParser().parse(content);
+
+			final FLEFParser parser = new FLEFParser();
+			final FLEFModel restored = parser.parse(content);
 
 			context.replaceModel(restored);
 		}

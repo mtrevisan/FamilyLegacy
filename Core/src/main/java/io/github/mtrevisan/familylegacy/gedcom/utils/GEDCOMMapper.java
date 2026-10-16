@@ -229,10 +229,10 @@ public final class GEDCOMMapper{
 		// ------------------------------
 		// Basis for approximate dates
 		// ------------------------------
-		BASIS_MAP.put("STATED", "stated");
-		BASIS_MAP.put("CALCULATED", "calculated");
-		BASIS_MAP.put("CONVENTIONAL", "conventional");
-		BASIS_MAP.put("UNSPECIFIED", "unspecified");
+		BASIS_MAP.put("STATED", DateReader.ENUM_BASIS_STATED);
+		BASIS_MAP.put("CALCULATED", DateReader.ENUM_BASIS_CALCULATED);
+		BASIS_MAP.put("CONVENTIONAL", DateReader.ENUM_BASIS_CONVENTIONAL);
+		BASIS_MAP.put("UNSPECIFIED", DateReader.ENUM_BASIS_UNSPECIFIED);
 
 		// ------------------------------
 		// Evidence qualifiers
@@ -359,9 +359,9 @@ public final class GEDCOMMapper{
 
 	public static String mapBasis(String gedcomBasis){
 		if(gedcomBasis == null){
-			return "unspecified";
+			return DateReader.ENUM_BASIS_UNSPECIFIED;
 		}
-		return BASIS_MAP.getOrDefault(gedcomBasis.toUpperCase(Locale.ROOT), "unspecified");
+		return BASIS_MAP.getOrDefault(gedcomBasis.toUpperCase(Locale.ROOT), DateReader.ENUM_BASIS_UNSPECIFIED);
 	}
 
 	public static String mapSourceType(String gedcomSourceType){
