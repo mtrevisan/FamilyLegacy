@@ -117,7 +117,7 @@ class StatusIconLabel extends JLabel{
 				g2.drawLine(cx - drawSize >> 3, cy + drawSize >> 2,
 					cx + drawSize / 3, cy - drawSize >> 2);
 			}
-			case ResearchQuestionReader.ENUM_STATUS_DISPROVEN -> {
+			case ResearchQuestionReader.ENUM_STATUS_CLOSED -> {
 				// White square with red X
 				g2.setColor(Color.WHITE);
 				g2.fillRect(drawX, drawY, drawSize, drawSize);

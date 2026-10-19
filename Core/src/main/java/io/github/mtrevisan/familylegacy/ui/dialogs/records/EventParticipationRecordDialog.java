@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.ui.dialogs.records;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.ui.components.PanelKey;
@@ -48,24 +49,24 @@ import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import javax.swing.JPanel;
 import java.awt.Window;
 import java.io.IOException;
+import java.util.List;
 
 
 /**
- * Dialog for editing an {@code EVENT_PARTICIPATION_RECORD} according to FLEF 0.1.3.
+ * Dialog for editing an {@code EVENT_PARTICIPATION_RECORD} according to FLEF 0.2.0.
  * <p>
  * Structure:
  * <pre>
  * record EventParticipationRecord {
- *   id: LocalID
  *   participant: EventParticipant
  *   event: Xref&lt;EventRecord&gt;
  *   role?: enum {
  *     child, parent, spouse, power_of_attorney, prisoner, witness, officiant, informant, executor, grantor, grantee,
- *     landlord, tenant, soldier, commander, victim, survivor, accused, judge
+ *     landlord, tenant, soldier, commander, victim, survivor, accused, judge, property
  *   } | Text
  *   source*: SourceCitation
  *   note*: Xref&lt;NoteRecord&gt;
- *   evidence?: EvidenceQualifiers
+ *   confidence?: Confidence   // confidence that this participation was true
  *   privacy?: PrivacyStructure
  *   audit: AuditStructure
  * }
@@ -78,7 +79,7 @@ import java.io.IOException;
  * </pre>
  * <p>
  * Tabs:
- * Tab 1 (Properties): event, participant, role, evidence
+ * Tab 1 (Properties): event, participant, role, confidence
  * Tab 5 (Context): ContextImpactRecord (target[event_participation] = this participation)
  * Tab 6 (Research): ConclusionRecord (resolves = this participation), ResearchQuestionRecord (target[event_participation] = this participation)
  * Tab 7 (Sources): source
@@ -93,6 +94,7 @@ public class EventParticipationRecordDialog extends BaseRecordDialog{
 	private final EntityField participantField;
 	private final EntityField eventField;
 	private final BoundComboBox<String> roleCombo;
+	private final BoundComboBox<String> confidenceCombo;
 
 
 	public static EventParticipationRecordDialog createNew(final Window parent, final FLEFModel model){
@@ -112,30 +114,40 @@ public class EventParticipationRecordDialog extends BaseRecordDialog{
 
 		participantField = EntityField.createForRecordFromOneofReference(EventParticipationReader.TAG_PARTICIPANT, this, model)
 			.withHandlerTypes(IndividualHandler.class, GroupHandler.class, PlaceHandler.class);
+		participantField.addPropertyChangeListener(EntityField.PROPERTY_ENTITY_CHANGED, e -> updateRoleCombo());
 		eventField = EntityField.createForRecordFromReference(EventParticipationReader.TAG_EVENT, this, model, EventHandler.class);
 		roleCombo = new BoundComboBox<>(EventParticipationReader.TAG_ROLE, GUIHelper.fillCombo(EventParticipationReader.ROLES, null));
 		roleCombo.setI18NPrefix("enum.event_participation.role");
 		roleCombo.setEditable(true);
+		confidenceCombo = new BoundComboBox<>(EventParticipationReader.TAG_CONFIDENCE, GUIHelper.fillCombo(ConfidenceReader.CONFIDENCES, null));
+		confidenceCombo.setI18NPrefix("enum.confidence");
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, this.record)
 			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, ContextImpactHandler.TYPE, I18N.t("dialog.component.context.impacts"))
 			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, I18N.t("dialog.component.conclusions"))
 			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, I18N.t("dialog.component.research.questions"))
-			.withComponent(PanelKey.SOURCE, EventParticipationReader.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
+			.withComponent(PanelKey.SOURCE, EventParticipationReader.TAG_SOURCE, I18N.t("dialog.component.sources_with_citations"))
 			.withComponent(PanelKey.NOTE, EventParticipationReader.TAG_NOTE, null)
-			.withComponent(PanelKey.EVIDENCE, EventParticipationReader.TAG_EVIDENCE, I18N.t("dialog.component.evidence"))
 			.withComponent(PanelKey.PRIVACY, EventParticipationReader.TAG_PRIVACY, null)
 			.withComponent(PanelKey.AUDIT, EventParticipationReader.TAG_AUDIT, null)
 			.build();
 
 		components.bind(roleCombo);
+		components.bind(confidenceCombo);
 
 
 		// Set up the image carousel selection listener on the source list
 		setupSourceListSelection();
 
 		finalizeDialog(parent);
+	}
+
+	private void updateRoleCombo(){
+		final FLEFRecord participant = participantField.getEntity();
+		final String[] validRoles = EventParticipationReader.getValidRoles(participant);
+		roleCombo.updateItems(List.of(validRoles));
+		roleCombo.setEnabled(validRoles.length > 0);
 	}
 
 
@@ -150,9 +162,8 @@ public class EventParticipationRecordDialog extends BaseRecordDialog{
 		// role
 		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.event_participation.role") + ":", roleCombo);
 
-		// evidence
-		final JPanel evidencePanel = components.getPanel(PanelKey.EVIDENCE);
-		GUIHelper.addComponent(propertiesPanel, evidencePanel);
+		// confidence
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.event_participation.confidence") + ":", confidenceCombo);
 
 		return propertiesPanel;
 	}
@@ -251,6 +262,8 @@ public class EventParticipationRecordDialog extends BaseRecordDialog{
 		eventField.load(record);
 
 		components.load(record);
+
+		updateRoleCombo();
 
 
 		// Initially, update carousel based on the first selected source (if any)

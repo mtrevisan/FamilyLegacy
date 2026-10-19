@@ -196,7 +196,7 @@ public final class GroupDossierService{
 				continue;
 
 			final String memberId = extractRef(relationship, RelationshipReader.TAG_SUBJECT);
-			final String objectId = extractRef(relationship, RelationshipReader.TAG_OBJECT);
+			final String objectId = extractRef(relationship, RelationshipReader.TAG_TARGET);
 			if(!groupId.equals(objectId) || memberId == null)
 				continue;
 
@@ -241,7 +241,7 @@ public final class GroupDossierService{
 				continue;
 
 			final String subjectId = extractRef(relationship, RelationshipReader.TAG_SUBJECT);
-			final String objectId = extractRef(relationship, RelationshipReader.TAG_OBJECT);
+			final String objectId = extractRef(relationship, RelationshipReader.TAG_TARGET);
 			final boolean isParent = groupId.equals(objectId);
 			final boolean isChild = groupId.equals(subjectId);
 			if(!isParent && !isChild)
@@ -396,7 +396,7 @@ public final class GroupDossierService{
 		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
 		for(final FLEFRecord relationship : relationships){
 			final String subjectId = extractRef(relationship, RelationshipReader.TAG_SUBJECT);
-			final String objectId = extractRef(relationship, RelationshipReader.TAG_OBJECT);
+			final String objectId = extractRef(relationship, RelationshipReader.TAG_TARGET);
 			if(groupId.equals(subjectId) || groupId.equals(objectId))
 				collectSources(relationship, "Relationship", entries, seen);
 		}
@@ -591,7 +591,7 @@ public final class GroupDossierService{
 		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
 		for(final FLEFRecord relationship : relationships){
 			final String subjectId = extractRef(relationship, RelationshipReader.TAG_SUBJECT);
-			final String objectId = extractRef(relationship, RelationshipReader.TAG_OBJECT);
+			final String objectId = extractRef(relationship, RelationshipReader.TAG_TARGET);
 			if(groupId.equals(subjectId) || groupId.equals(objectId))
 				collectNotes(relationship, "Relationship", entries);
 		}

@@ -52,7 +52,7 @@ import java.util.function.Function;
  * personal data, events, attributes, relationships, notes, cited sources
  * and audit trail.
  *
- * <p>Exhaustively renders all FLEF 0.1.3 attribute and event metadata fields including
+ * <p>Exhaustively renders all FLEF 0.2.0 attribute and event metadata fields including
  * places, agencies, date ranges, causes, statuses, and linked citations.</p>
  */
 final class IndividualLifeStorySection implements SectionBuilder{
@@ -324,7 +324,7 @@ final class IndividualLifeStorySection implements SectionBuilder{
 	}
 
 
-	/* ----- Attributes (Fully Rendered for FLEF 0.1.3) ----------------------- */
+	/* ----- Attributes (Fully Rendered for FLEF 0.2.0) ----------------------- */
 
 	private void writeAttributes(final List<ReportSection> out){
 		final List<FLEFRecord> attrs = ctx.index.attributesOf(ctx.root);
@@ -456,7 +456,7 @@ final class IndividualLifeStorySection implements SectionBuilder{
 			rel, IndividualAttributeReader.TAG_VALID_FROM, ctx.labels, contextLabels);
 		final String to = GenealogicalDateHelper.formatDateStructure(
 			rel, IndividualAttributeReader.TAG_VALID_TO, ctx.labels, contextLabels);
-		final String objectId = rel.extractReferencedId(RelationshipReader.TAG_OBJECT, IndividualHandler.TYPE);
+		final String objectId = rel.extractReferencedId(RelationshipReader.TAG_TARGET, IndividualHandler.TYPE);
 		final FLEFRecord object = (objectId != null? ctx.model.getRecordById(objectId): null);
 		final String objectLabel = (object != null? ctx.displayText(object)
 			: ReportFormatters.orEmpty(objectId));

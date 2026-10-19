@@ -585,7 +585,7 @@ public final class PlaceHierarchyPanel extends JPanel{
 		for(final FLEFRecord record : records)
 			if(PlaceRelationshipHandler.isOfType(record)){
 				final FLEFRecord subj = extractRelationshipPlace(record, PlaceRelationshipReader.TAG_SUBJECT);
-				final FLEFRecord obj = extractRelationshipPlace(record, PlaceRelationshipReader.TAG_OBJECT);
+				final FLEFRecord obj = extractRelationshipPlace(record, PlaceRelationshipReader.TAG_TARGET);
 				if(subj != null && activeId.equals(subj.getValue()))
 					relatedRecords.add(obj);
 				else if(obj != null && activeId.equals(obj.getValue()))
@@ -621,7 +621,7 @@ public final class PlaceHierarchyPanel extends JPanel{
 		for(final FLEFRecord rec : new ArrayList<>(model.getRecords())){
 			if(PlaceRelationshipHandler.isOfType(rec)){
 				final FLEFRecord subj = extractRelationshipPlace(rec, PlaceRelationshipReader.TAG_SUBJECT);
-				final FLEFRecord obj = extractRelationshipPlace(rec, PlaceRelationshipReader.TAG_OBJECT);
+				final FLEFRecord obj = extractRelationshipPlace(rec, PlaceRelationshipReader.TAG_TARGET);
 				final String type = extractRelationshipType(rec);
 
 				// Create a unique signature for this relationship direction and type

@@ -76,11 +76,13 @@ final class IdentityHypothesisRootSection implements SectionBuilder{
 		final List<String> items = new ArrayList<>();
 		for(final FLEFRecord cand : FLEFRecordHelper.findChildren(ctx.root, IdentityHypothesisReader.TAG_IDENTITY)){
 			final FLEFRecord ref = cand.getTheOnlyChild();
-			if(ref == null || FLEFRecord.TAG_VOID.equalsIgnoreCase(ref.getTag()))
+			if(ref == null)
 				continue;
+
 			final String id = ref.getValue();
 			if(id == null)
 				continue;
+
 			final FLEFRecord rec = ctx.visible(ctx.model.getRecordById(id));
 			items.add(rec != null? ctx.displayText(rec): id);
 		}

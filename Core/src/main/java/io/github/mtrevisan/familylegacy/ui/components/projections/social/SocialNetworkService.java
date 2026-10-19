@@ -248,7 +248,7 @@ public final class SocialNetworkService{
 			return null;
 
 		final TemporalEntityRef subject = resolveParticipant(relationship, RelationshipReader.TAG_SUBJECT);
-		final TemporalEntityRef target = resolveParticipant(relationship, RelationshipReader.TAG_OBJECT);
+		final TemporalEntityRef target = resolveParticipant(relationship, RelationshipReader.TAG_TARGET);
 		if(subject == null || target == null || subject.equals(target))
 			return null;
 
@@ -402,7 +402,7 @@ public final class SocialNetworkService{
 				continue;
 
 			final String subjectId = extractParticipantId(relationship, RelationshipReader.TAG_SUBJECT);
-			final String objectId = extractParticipantId(relationship, RelationshipReader.TAG_OBJECT);
+			final String objectId = extractParticipantId(relationship, RelationshipReader.TAG_TARGET);
 			if(subjectId != null)
 				relationships.computeIfAbsent(subjectId, k -> new ArrayList<>())
 					.add(relationship);

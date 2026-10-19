@@ -474,17 +474,20 @@ final class ContextResearchSection implements SectionBuilder{
 		final List<FLEFRecord> hyps = identityHypothesesFor();
 		if(hyps.isEmpty())
 			return;
+
 		out.add(new ReportSection.Heading(1, ctx.labels.sections().identityHypotheses()));
 		for(final FLEFRecord h : hyps){
 			final List<String> candidates = new ArrayList<>();
 			for(final FLEFRecord cand : FLEFRecordHelper.findChildren(h, IdentityHypothesisReader.TAG_IDENTITY)){
 				final FLEFRecord ref = cand.getTheOnlyChild();
-				if(ref == null || FLEFRecord.TAG_VOID.equalsIgnoreCase(ref.getTag()))
+				if(ref == null)
 					continue;
+
 				final String id = ref.getValue();
 				final FLEFRecord rec = (id != null? ctx.model.getRecordById(id): null);
 				if(rec != null && !ctx.isVisible(rec))
 					continue;
+
 				candidates.add(rec != null? ctx.displayText(rec): ReportFormatters.orEmpty(id));
 			}
 			if(candidates.isEmpty())
@@ -537,9 +540,11 @@ final class ContextResearchSection implements SectionBuilder{
 	private String describeOneOf(final FLEFRecord field){
 		if(field == null)
 			return null;
+
 		final FLEFRecord ref = field.getTheOnlyChild();
-		if(ref == null || FLEFRecord.TAG_VOID.equalsIgnoreCase(ref.getTag()))
+		if(ref == null)
 			return null;
+
 		final String tag = ref.getTag();
 		final String id = ref.getValue();
 		if(id == null || id.isBlank())
@@ -548,6 +553,7 @@ final class ContextResearchSection implements SectionBuilder{
 		final FLEFRecord rec = ctx.model.getRecordById(id);
 		if(!ctx.isVisible(rec))
 			return tag + StringUtils.SPACE + id;
+
 		return ctx.displayText(rec);
 	}
 

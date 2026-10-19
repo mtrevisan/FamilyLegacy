@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.ui.dialogs.records;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchActivityReader;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextArea;
@@ -59,12 +60,11 @@ import java.io.IOException;
 
 
 /**
- * Dialog for editing a {@code RESEARCH_ACTIVITY_RECORD} according to FLEF 0.1.3.
+ * Dialog for editing a {@code RESEARCH_ACTIVITY_RECORD} according to FLEF 0.2.0.
  * <p>
  * Structure:
  * <pre>
  * record ResearchActivityRecord {
- *   id: LocalID
  *   question*: Xref&lt;ResearchQuestionRecord&gt;
  *   activity_type: enum { search, review, analysis, correspondence, interview, hypothesis }
  *   status: enum { planned, in_progress, completed, abandoned }
@@ -79,7 +79,7 @@ import java.io.IOException;
  *   result?: enum { positive, negative, inconclusive, conflicting, unavailable }
  *   observation?: Text
  *   conclusion?: Text
- *   conclusion_confidence?: enum { low, medium, high }
+ *   conclusion_confidence?: Confidence
  *
  *   source*: SourceCitation
  *   parent_activity?: Xref&lt;ResearchActivityRecord&gt;
@@ -138,17 +138,16 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 			.withHandlerTypes(IndividualHandler.class, GroupHandler.class, EventHandler.class,
 				EventParticipationHandler.class, RelationshipHandler.class, IndividualAttributeHandler.class,
 				GroupAttributeHandler.class, PlaceHandler.class, PlaceRelationshipHandler.class, SourceHandler.class,
-				DocumentHandler.class, IdentityHypothesisHandler.class, CulturalNormHandler.class, HistoricEventHandler.class)
-			.withSaveAsVoid();
+				DocumentHandler.class, IdentityHypothesisHandler.class, CulturalNormHandler.class, HistoricEventHandler.class);
 		searchScopeTypeCombo = new BoundComboBox<>(ResearchActivityReader.TAG_SEARCH_SCOPE_TYPE, GUIHelper.fillCombo(ResearchActivityReader.SEARCH_SCOPES, null));
-		searchScopeTypeCombo.setI18NPrefix("enum.research_activity.search.scope");
+		searchScopeTypeCombo.setI18NPrefix("enum.research_activity.search_scope");
 		searchScopeDetailArea = new BoundTextArea(ResearchActivityReader.TAG_SEARCH_SCOPE_DETAIL, 3, 30);
 
 		resultCombo = new BoundComboBox<>(ResearchActivityReader.TAG_RESULT, GUIHelper.fillCombo(ResearchActivityReader.RESULTS, null));
 		resultCombo.setI18NPrefix("enum.research_activity.result");
 		observationArea = new BoundTextArea(ResearchActivityReader.TAG_OBSERVATION, 3, 30);
 		conclusionArea = new BoundTextArea(ResearchActivityReader.TAG_CONCLUSION, 3, 30);
-		conclusionConfidenceCombo = new BoundComboBox<>(ResearchActivityReader.TAG_CONCLUSION_CONFIDENCE, GUIHelper.fillCombo(ResearchActivityReader.CONFIDENCES, null));
+		conclusionConfidenceCombo = new BoundComboBox<>(ResearchActivityReader.TAG_CONCLUSION_CONFIDENCE, GUIHelper.fillCombo(ConfidenceReader.CONFIDENCES, null));
 		conclusionConfidenceCombo.setI18NPrefix("enum.confidence");
 
 		parentActivityField = EntityField.createForRecordFromReference(ResearchActivityReader.TAG_PARENT_ACTIVITY, this, model,
@@ -158,7 +157,7 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 		components = new RecordDialogBuilder(this, model, this.record)
 			.withComponent(PanelKey.RESEARCH_QUESTION, ResearchActivityReader.TAG_QUESTION, I18N.t("dialog.component.research.questions"))
 			.withComponent(PanelKey.TASK, ResearchActivityReader.TAG_TASK, I18N.t("dialog.component.research.tasks"))
-			.withComponent(PanelKey.SOURCE, ResearchActivityReader.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
+			.withComponent(PanelKey.SOURCE, ResearchActivityReader.TAG_SOURCE, I18N.t("dialog.component.sources_with_citations"))
 			.withComponent(PanelKey.PRIVACY, ResearchActivityReader.TAG_PRIVACY, null)
 			.withComponent(PanelKey.AUDIT, ResearchActivityReader.TAG_AUDIT, null)
 			.build();
@@ -208,11 +207,11 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 
 		// search scope:
 		final JPanel searchScopePanel = GUIHelper.createLabelFieldPanel(5, "[]10[]");
-		searchScopePanel.setBorder(BorderFactory.createTitledBorder(I18N.t("dialog.research_activity.search.scope")));
+		searchScopePanel.setBorder(BorderFactory.createTitledBorder(I18N.t("dialog.research_activity.search_scope")));
 		// type
-		GUIHelper.addLabeledComponent(searchScopePanel, I18N.t("dialog.research_activity.search.scope.type") + "*:", searchScopeTypeCombo);
+		GUIHelper.addLabeledComponent(searchScopePanel, I18N.t("dialog.research_activity.search_scope.type") + "*:", searchScopeTypeCombo);
 		// detail
-		GUIHelper.addLabeledComponent(searchScopePanel, I18N.t("dialog.research_activity.search.scope.detail") + ":", searchScopeDetailArea);
+		GUIHelper.addLabeledComponent(searchScopePanel, I18N.t("dialog.research_activity.search_scope.detail") + ":", searchScopeDetailArea);
 		GUIHelper.addComponent(panel, searchScopePanel);
 
 		return panel;

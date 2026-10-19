@@ -27,7 +27,6 @@ package io.github.mtrevisan.familylegacy.ui.tools.reports;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.io.model.readers.AuditReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.DateReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EvidenceQualifiersReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.NoteReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PrivacyReader;
@@ -228,53 +227,6 @@ final class CitationRenderer{
 		if(!rows.isEmpty())
 			out.add(new ReportSection.Paragraph(
 				"*" + ctx.labels.sections().evidence() + ":* " + String.join(", ", rows)));
-	}
-
-
-	/* ======================================================================
-	 *                          Date provenance
-	 * ====================================================================== */
-
-	void addDateProvenance(final FLEFRecord rec, final String fieldTag,
-		final List<ReportSection> out){
-		if(!ctx.config.dateProvenance())
-			return;
-
-		final FLEFRecord dateField = FLEFRecordHelper.findChild(rec, fieldTag);
-		if(dateField == null)
-			return;
-
-		final List<FLEFRecord> cites = ctx.visibleChildren(dateField, DateReader.TAG_SOURCE);
-		final boolean hasEvidence = FLEFRecordHelper.findChild(dateField, DateReader.TAG_EVIDENCE) != null;
-		if(cites.isEmpty() && !hasEvidence)
-			return;
-
-		final List<String> items = new ArrayList<>();
-		for(final FLEFRecord c : cites){
-			if(!ctx.isVisible(c))
-				continue;
-			final String sid = ReportFormatters.extractSourceId(c);
-			if(sid == null)
-				continue;
-			if(!ctx.isVisible(ctx.model.getRecordById(sid)))
-				continue;
-			final String locator = FLEFRecordHelper.getChildValue(c, SourceCitationReader.TAG_LOCATOR);
-			final StringBuilder sb = new StringBuilder(ctx.sourceTitle(sid));
-			if(locator != null)
-				sb.append(" — *").append(ReportFormatters.escape(locator)).append('*');
-			items.add(sb.toString());
-		}
-
-		if(!items.isEmpty()){
-			out.add(new ReportSection.Paragraph("*" + ctx.labels.sections().dateProvenance() + ":*"));
-			out.add(new ReportSection.BulletList(items));
-		}
-
-		if(hasEvidence){
-			final List<ReportSection> ev = new ArrayList<>();
-			addEvidence(dateField, ev);
-			out.addAll(ev);
-		}
 	}
 
 

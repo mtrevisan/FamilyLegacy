@@ -831,7 +831,6 @@ public class RecordSelectionDialog extends JDialog{
 		}
 	}
 
-	// TODO test
 	private void deleteRecord(){
 		final FLEFRecord record;
 		final String displayText;
@@ -857,7 +856,6 @@ public class RecordSelectionDialog extends JDialog{
 			I18N.t("confirmation.delete.record.title"),
 			JOptionPane.YES_NO_OPTION,
 			JOptionPane.WARNING_MESSAGE);
-
 		if(confirm != JOptionPane.YES_OPTION)
 			return;
 
@@ -872,7 +870,6 @@ public class RecordSelectionDialog extends JDialog{
 			performSearch();
 	}
 
-	// TODO test
 	private void unlinkRecord(){
 		final FLEFRecord record;
 		final String displayText;

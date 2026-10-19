@@ -135,7 +135,7 @@ public final class IndividualData{
 		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
 		for(final FLEFRecord relationship : relationships){
 			final String subjectId = relationship.extractReferencedId(RelationshipReader.TAG_SUBJECT, IndividualHandler.TYPE);
-			final String objectId = relationship.extractReferencedId(RelationshipReader.TAG_OBJECT, IndividualHandler.TYPE);
+			final String objectId = relationship.extractReferencedId(RelationshipReader.TAG_TARGET, IndividualHandler.TYPE);
 			if(subjectId == null || objectId == null || !subjectId.equals(id) && !objectId.equals(id))
 				continue;
 

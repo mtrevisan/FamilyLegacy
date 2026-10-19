@@ -118,7 +118,7 @@ public class GenealogyRepository{
 			return;
 
 		final String subjectId = relationship.extractReferencedId(RelationshipReader.TAG_SUBJECT, IndividualHandler.TYPE);
-		final String objectId = relationship.extractReferencedId(RelationshipReader.TAG_OBJECT, IndividualHandler.TYPE);
+		final String objectId = relationship.extractReferencedId(RelationshipReader.TAG_TARGET, IndividualHandler.TYPE);
 		if(subjectId == null || objectId == null)
 			return;
 

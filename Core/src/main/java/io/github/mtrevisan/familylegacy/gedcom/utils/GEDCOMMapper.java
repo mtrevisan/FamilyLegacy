@@ -32,7 +32,7 @@ import java.util.Map;
 
 
 /**
- * Mappa i tag e valori GEDCOM 5.5.1 ai valori enum di FLEF 0.1.3.
+ * Mappa i tag e valori GEDCOM 5.5.1 ai valori enum di FLEF 0.2.0.
  * Tutti i confronti sono case‑insensibili.
  */
 public final class GEDCOMMapper{
@@ -188,6 +188,7 @@ public final class GEDCOMMapper{
 		ROLE_MAP.put("SURVIVOR", "survivor");
 		ROLE_MAP.put("ACCUSED", "accused");
 		ROLE_MAP.put("JUDGE", "judge");
+		ROLE_MAP.put("PROPERTY", "property");
 
 		// ------------------------------
 		// Relationship status

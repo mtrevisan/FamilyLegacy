@@ -97,7 +97,7 @@ public class EgoNetworkService{
 					continue;
 
 				final String subjectId = extractParticipantId(relationship, RelationshipReader.TAG_SUBJECT);
-				final String objectId = extractParticipantId(relationship, RelationshipReader.TAG_OBJECT);
+				final String objectId = extractParticipantId(relationship, RelationshipReader.TAG_TARGET);
 				if(subjectId == null || objectId == null)
 					continue;
 
@@ -223,7 +223,7 @@ public class EgoNetworkService{
 		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
 		for(final FLEFRecord relationship : relationships){
 			final String subjectId = extractParticipantId(relationship, RelationshipReader.TAG_SUBJECT);
-			final String objectId = extractParticipantId(relationship, RelationshipReader.TAG_OBJECT);
+			final String objectId = extractParticipantId(relationship, RelationshipReader.TAG_TARGET);
 			if(subjectId != null)
 				relationshipsByEntityId.computeIfAbsent(subjectId, k -> new ArrayList<>()).add(relationship);
 			if(objectId != null)

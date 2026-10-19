@@ -136,7 +136,7 @@ public final class GroupHelper{
 
 			final String subject = relationship.extractReferencedId(RelationshipReader.TAG_SUBJECT, IndividualHandler.TYPE);
 			final String subjectGroup = relationship.extractReferencedId(RelationshipReader.TAG_SUBJECT, GroupHandler.TYPE);
-			final String objectGroup = relationship.extractReferencedId(RelationshipReader.TAG_OBJECT, GroupHandler.TYPE);
+			final String objectGroup = relationship.extractReferencedId(RelationshipReader.TAG_TARGET, GroupHandler.TYPE);
 
 			if(RelationshipReader.isTypeGroupMember(t)){
 				// subject = individual, target = group.
@@ -242,7 +242,7 @@ public final class GroupHelper{
 			.addChild(FLEFRecord.createChildWithTag(RelationshipReader.TAG_SUBJECT)
 				.addChild(FLEFRecord.createChildWithTagAndValue(IndividualHandler.TYPE, individualId))
 			)
-			.addChild(FLEFRecord.createChildWithTag(RelationshipReader.TAG_OBJECT)
+			.addChild(FLEFRecord.createChildWithTag(RelationshipReader.TAG_TARGET)
 				.addChild(FLEFRecord.createChildWithTagAndValue(GroupHandler.TYPE, groupId))
 			);
 		if(role != null && !role.isBlank())
@@ -272,7 +272,7 @@ public final class GroupHelper{
 			if(!RelationshipReader.isTypeGroupMember(type))
 				continue;
 
-			final String object = relationship.extractReferencedId(RelationshipReader.TAG_OBJECT, GroupHandler.TYPE);
+			final String object = relationship.extractReferencedId(RelationshipReader.TAG_TARGET, GroupHandler.TYPE);
 			if(groupId.equals(object))
 				result.add(relationship.getId());
 		}
@@ -310,7 +310,7 @@ public final class GroupHelper{
 		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
 		for(final FLEFRecord relationship : relationships){
 			final String subjectId = relationship.extractReferencedId(RelationshipReader.TAG_SUBJECT, GroupHandler.TYPE);
-			final String objectId = relationship.extractReferencedId(RelationshipReader.TAG_OBJECT, GroupHandler.TYPE);
+			final String objectId = relationship.extractReferencedId(RelationshipReader.TAG_TARGET, GroupHandler.TYPE);
 			if(groupId.equals(subjectId) || groupId.equals(objectId))
 				result.computeIfAbsent(RelationshipHandler.class, k -> new ArrayList<>())
 					.add(relationship);

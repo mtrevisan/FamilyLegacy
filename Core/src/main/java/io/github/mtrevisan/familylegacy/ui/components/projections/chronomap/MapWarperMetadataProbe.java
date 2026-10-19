@@ -359,12 +359,14 @@ final class MapWarperMetadataProbe{
 		// Remove every year range, then every single year. The order
 		// matters: removing ranges first prevents "1930-1950" from being
 		// reduced to "-1950" by the single-year pattern.
-		String cleaned = YEAR_RANGE.matcher(title).replaceAll(" ");
-		cleaned = YEAR_SINGLE.matcher(cleaned).replaceAll(" ");
+		String cleaned = YEAR_RANGE.matcher(title)
+			.replaceAll(StringUtils.SPACE);
+		cleaned = YEAR_SINGLE.matcher(cleaned)
+			.replaceAll(StringUtils.SPACE);
 
 		// Collapse any run of whitespace (including Unicode spaces) into a
 		// single regular space.
-		cleaned = cleaned.replaceAll("[\\s\\p{Z}]+", " ");
+		cleaned = cleaned.replaceAll("[\\s\\p{Z}]+", StringUtils.SPACE);
 
 		// Strip leading and trailing punctuation, including spaces and
 		// dashes. This handles titles like "(1790) Italy" → "Italy" and

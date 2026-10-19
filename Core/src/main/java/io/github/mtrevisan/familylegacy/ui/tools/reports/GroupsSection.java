@@ -120,7 +120,7 @@ final class GroupsSection implements SectionBuilder{
 		final String direct = FLEFRecordHelper.getChildValue(rel, "target.group");
 		if(direct != null)
 			return direct;
-		final FLEFRecord objectNode = FLEFRecordHelper.findChild(rel, RelationshipReader.TAG_OBJECT);
+		final FLEFRecord objectNode = FLEFRecordHelper.findChild(rel, RelationshipReader.TAG_TARGET);
 		if(objectNode == null)
 			return null;
 		final FLEFRecord ref = objectNode.getTheOnlyChild();

@@ -110,7 +110,7 @@ public final class IndividualHelper{
 			.addChild(FLEFRecord.createChildWithTag(RelationshipReader.TAG_SUBJECT)
 				.addChild(FLEFRecord.createChildWithTagAndValue(IndividualHandler.TYPE, subjectId))
 			)
-			.addChild(FLEFRecord.createChildWithTag(RelationshipReader.TAG_OBJECT)
+			.addChild(FLEFRecord.createChildWithTag(RelationshipReader.TAG_TARGET)
 				.addChild(FLEFRecord.createChildWithTagAndValue(IndividualHandler.TYPE, targetId))
 			)
 			.addChild(AuditBuilder.build());
@@ -146,7 +146,7 @@ public final class IndividualHelper{
 		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
 		for(final FLEFRecord relationship : relationships){
 			final String subjectId = relationship.extractReferencedId(RelationshipReader.TAG_SUBJECT, IndividualHandler.TYPE);
-			final String objectId = relationship.extractReferencedId(RelationshipReader.TAG_OBJECT, IndividualHandler.TYPE);
+			final String objectId = relationship.extractReferencedId(RelationshipReader.TAG_TARGET, IndividualHandler.TYPE);
 			if(individualId.equals(subjectId) || individualId.equals(objectId))
 				result.computeIfAbsent(RelationshipHandler.class, k -> new ArrayList<>())
 					.add(relationship);
@@ -222,7 +222,7 @@ public final class IndividualHelper{
 				continue;
 
 			final String child = relationship.extractReferencedId(RelationshipReader.TAG_SUBJECT, IndividualHandler.TYPE);
-			final String parent = relationship.extractReferencedId(RelationshipReader.TAG_OBJECT, IndividualHandler.TYPE);
+			final String parent = relationship.extractReferencedId(RelationshipReader.TAG_TARGET, IndividualHandler.TYPE);
 			if(!individualId.equals(child) || parent == null)
 				continue;
 
@@ -304,7 +304,7 @@ public final class IndividualHelper{
 				continue;
 
 			final String child = relationship.extractReferencedId(RelationshipReader.TAG_SUBJECT, IndividualHandler.TYPE);
-			final String parent = relationship.extractReferencedId(RelationshipReader.TAG_OBJECT, IndividualHandler.TYPE);
+			final String parent = relationship.extractReferencedId(RelationshipReader.TAG_TARGET, IndividualHandler.TYPE);
 			if(individualId.equals(child) && parent != null)
 				result.add(parent);
 		}
@@ -327,7 +327,7 @@ public final class IndividualHelper{
 				continue;
 
 			final String subject = relationship.extractReferencedId(RelationshipReader.TAG_SUBJECT, IndividualHandler.TYPE);
-			final String object = relationship.extractReferencedId(RelationshipReader.TAG_OBJECT, IndividualHandler.TYPE);
+			final String object = relationship.extractReferencedId(RelationshipReader.TAG_TARGET, IndividualHandler.TYPE);
 			if(individualId.equals(subject) && object != null)
 				result.add(object);
 			else if(individualId.equals(object) && subject != null)
@@ -351,7 +351,7 @@ public final class IndividualHelper{
 				continue;
 
 			final String subject = relationship.extractReferencedId(RelationshipReader.TAG_SUBJECT, IndividualHandler.TYPE);
-			final String objectGroup = relationship.extractReferencedId(RelationshipReader.TAG_OBJECT, GroupHandler.TYPE);
+			final String objectGroup = relationship.extractReferencedId(RelationshipReader.TAG_TARGET, GroupHandler.TYPE);
 			if(individualId.equals(subject) && objectGroup != null)
 				result.add(objectGroup);
 		}
@@ -373,7 +373,7 @@ public final class IndividualHelper{
 				continue;
 
 			final String child = relationship.extractReferencedId(RelationshipReader.TAG_SUBJECT, IndividualHandler.TYPE);
-			final String parent = relationship.extractReferencedId(RelationshipReader.TAG_OBJECT, IndividualHandler.TYPE);
+			final String parent = relationship.extractReferencedId(RelationshipReader.TAG_TARGET, IndividualHandler.TYPE);
 			if(individualId.equals(parent) && child != null)
 				result.add(child);
 		}
@@ -409,7 +409,7 @@ public final class IndividualHelper{
 				continue;
 
 			final String subject = relationship.extractReferencedId(RelationshipReader.TAG_SUBJECT, IndividualHandler.TYPE);
-			final String object = relationship.extractReferencedId(RelationshipReader.TAG_OBJECT, IndividualHandler.TYPE);
+			final String object = relationship.extractReferencedId(RelationshipReader.TAG_TARGET, IndividualHandler.TYPE);
 			if(RelationshipReader.isTypeBiologicalChild(type)){
 				if(individualId.equals(object) && subject != null)
 					children.add(subject);

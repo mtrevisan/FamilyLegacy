@@ -223,7 +223,7 @@ public final class DuplicateFinderService{
 		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
 		for(final FLEFRecord relationship : relationships){
 			final String subject = relationship.extractReferencedId(RelationshipReader.TAG_SUBJECT, IndividualHandler.TYPE);
-			final String object = relationship.extractReferencedId(RelationshipReader.TAG_OBJECT, IndividualHandler.TYPE);
+			final String object = relationship.extractReferencedId(RelationshipReader.TAG_TARGET, IndividualHandler.TYPE);
 			if(subject != null)
 				relationshipsByEndpoint.computeIfAbsent(subject, k -> new ArrayList<>()).add(relationship);
 			if(object != null && !object.equals(subject))
@@ -272,9 +272,9 @@ public final class DuplicateFinderService{
 				continue;
 
 			final String child = rel.extractReferencedId("subject", IndividualHandler.TYPE);
-			final String object = rel.extractReferencedId("object", IndividualHandler.TYPE);
-			if(child != null && object != null)
-				childrenByParent.computeIfAbsent(object, k -> new LinkedHashSet<>()).add(child);
+			final String target = rel.extractReferencedId("target", IndividualHandler.TYPE);
+			if(child != null && target != null)
+				childrenByParent.computeIfAbsent(target, k -> new LinkedHashSet<>()).add(child);
 		}
 
 		final Map<String, Profile> profiles = new LinkedHashMap<>();

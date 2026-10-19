@@ -315,7 +315,7 @@ public class FamilyConverter{
 					.addChild(FLEFRecord.createChildWithTag("subject")
 						.addChild(FLEFRecord.createChildWithTagAndValue("individual", link.husbandId))
 					)
-					.addChild(FLEFRecord.createChildWithTag("object")
+					.addChild(FLEFRecord.createChildWithTag("target")
 						.addChild(FLEFRecord.createChildWithTagAndValue("individual", link.wifeId))
 					);
 				if(("civil".equalsIgnoreCase(marriageType) || "religious".equalsIgnoreCase(marriageType)))
@@ -429,7 +429,7 @@ public class FamilyConverter{
 				IDGenerator.nextId(RelationshipHandler.ID_PREFIX), RelationshipHandler.TYPE)
 			.addChild(FLEFRecord.createChildWithTag("subject")
 				.addChild(FLEFRecord.createChildWithTagAndValue("individual", individualId)))
-			.addChild(FLEFRecord.createChildWithTag("object")
+			.addChild(FLEFRecord.createChildWithTag("target")
 				.addChild(FLEFRecord.createChildWithTagAndValue("group", groupId)))
 			.addChild(FLEFRecord.createChildWithTagAndValue("type",
 				RelationshipReader.ENUM_TYPE_GROUP_MEMBER));
@@ -445,7 +445,7 @@ public class FamilyConverter{
 				IDGenerator.nextId(RelationshipHandler.ID_PREFIX), RelationshipHandler.TYPE)
 			.addChild(FLEFRecord.createChildWithTag("subject")
 				.addChild(FLEFRecord.createChildWithTagAndValue("individual", childId)))
-			.addChild(FLEFRecord.createChildWithTag("object")
+			.addChild(FLEFRecord.createChildWithTag("target")
 				.addChild(FLEFRecord.createChildWithTagAndValue("individual", parentId)))
 			.addChild(FLEFRecord.createChildWithTagAndValue("type", RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD))
 			.addChild(FLEFRecord.createChildWithTagAndValue("status", "active"))

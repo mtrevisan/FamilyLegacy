@@ -123,9 +123,6 @@ public final class ResearchActivityReader{
 	public static final String[] RESULTS = new String[]{
 		"positive", "negative", "inconclusive", "conflicting", "unavailable"
 	};
-	public static final String[] CONFIDENCES = new String[]{
-		"low", "medium", "high"
-	};
 
 
 	private ResearchActivityReader(){}

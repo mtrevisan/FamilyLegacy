@@ -150,7 +150,7 @@ public class FLEFRecordFlattener{
 			}
 			if("type".equalsIgnoreCase(child.getTag()))
 				fields.put("place_type", child.getValue());
-			if("map".equalsIgnoreCase(child.getTag())){
+			if("location".equalsIgnoreCase(child.getTag())){
 				final String coord = FLEFRecordHelper.getChildValue(child, "coordinates");
 				if(coord != null)
 					fields.put("coordinates", coord);

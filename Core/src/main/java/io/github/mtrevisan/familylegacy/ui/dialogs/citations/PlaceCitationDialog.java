@@ -27,7 +27,9 @@ package io.github.mtrevisan.familylegacy.ui.dialogs.citations;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceCitationReader;
+import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextField;
 import io.github.mtrevisan.familylegacy.ui.components.PanelKey;
 import io.github.mtrevisan.familylegacy.ui.components.RecordDialogBuilder;
@@ -45,7 +47,7 @@ import java.awt.Window;
 
 
 /**
- * Dialog for editing a {@code PLACE_CITATION} according to FLEF 0.1.3.
+ * Dialog for editing a {@code PLACE_CITATION} according to FLEF 0.2.0.
  * <p>
  * Structure:
  * <pre>
@@ -53,12 +55,12 @@ import java.awt.Window;
  *   place: Xref&lt;PlaceRecord&gt;
  *   original_text?: Text
  *   source*: SourceCitation
- *   evidence?: EvidenceQualifiers
+ *   confidence?: Confidence
  * }
  * </pre>
  * <p>
  * Tabs:
- * Tab 1 (Properties): original text, evidence
+ * Tab 1 (Properties): original text, confidence
  * Tab 7 (Sources): source
  */
 public class PlaceCitationDialog extends BaseRecordDialog{
@@ -67,6 +69,7 @@ public class PlaceCitationDialog extends BaseRecordDialog{
 
 	private final BoundTextField placeField;
 	private final BoundTextField originalTextField;
+	private final BoundComboBox<String> confidenceCombo;
 
 
 	public static PlaceCitationDialog createNew(final Window parent, final FLEFModel model){
@@ -85,15 +88,17 @@ public class PlaceCitationDialog extends BaseRecordDialog{
 
 		placeField = new BoundTextField(PlaceHandler.TYPE);
 		originalTextField = new BoundTextField(PlaceCitationReader.TAG_ORIGINAL_TEXT);
+		confidenceCombo = new BoundComboBox<>(PlaceCitationReader.TAG_CONFIDENCE, GUIHelper.fillCombo(ConfidenceReader.CONFIDENCES, null));
+		confidenceCombo.setI18NPrefix("enum.confidence");
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, this.record)
-			.withComponent(PanelKey.SOURCE, PlaceCitationReader.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
-			.withComponent(PanelKey.EVIDENCE, PlaceCitationReader.TAG_EVIDENCE, I18N.t("dialog.component.evidence"))
+			.withComponent(PanelKey.SOURCE, PlaceCitationReader.TAG_SOURCE, I18N.t("dialog.component.sources_with_citations"))
 			.build();
 
 		components.bind(placeField);
 		components.bind(originalTextField);
+		components.bind(confidenceCombo);
 
 
 		// Set up the image carousel selection listener on the source list
@@ -106,11 +111,10 @@ public class PlaceCitationDialog extends BaseRecordDialog{
 	@Override
 	protected JPanel createPropertiesPanel(){
 		// original text
-		GUIHelper.addLabeledComponent(propertiesPanel, "Original Text*:", originalTextField);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.place_citation.original_text") + "*:", originalTextField);
 
-		// evidence
-		final JPanel evidencePanel = components.getPanel(PanelKey.EVIDENCE);
-		GUIHelper.addComponent(propertiesPanel, evidencePanel);
+		// confidence
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.place_citation.confidence") + ":", confidenceCombo);
 
 		return propertiesPanel;
 	}

@@ -117,7 +117,7 @@ public final class DateReader{
 	public static final String TAG_VALUE = "value";
 	public static final String TAG_ORIGINAL_TEXT = "original_text";
 	public static final String TAG_SOURCE = "source";
-	public static final String TAG_EVIDENCE = "evidence";
+	public static final String TAG_CONFIDENCE = "confidence";
 
 	public static final String TAG_POINT = "point";
 	public static final String TAG_BOUNDED = "bounded";

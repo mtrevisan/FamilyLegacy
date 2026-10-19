@@ -27,7 +27,9 @@ package io.github.mtrevisan.familylegacy.ui.dialogs.records;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IdentityHypothesisReader;
+import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextArea;
 import io.github.mtrevisan.familylegacy.ui.components.PanelKey;
 import io.github.mtrevisan.familylegacy.ui.components.RecordDialogBuilder;
@@ -57,16 +59,15 @@ import java.util.Objects;
 
 
 /**
- * Dialog for editing an {@code IDENTITY_HYPOTHESIS_RECORD} according to FLEF 0.1.3.
+ * Dialog for editing an {@code IDENTITY_HYPOTHESIS_RECORD} according to FLEF 0.2.0.
  * <p>
  * Structure:
  * <pre>
  * record IdentityHypothesisRecord {
- *   id: LocalID
  *   identity+: IdentityCandidate
  *   comment?: Text
  *   source*: SourceCitation
- *   evidence?: EvidenceQualifiers
+ *   confidence?: Confidence
  *   audit: AuditStructure
  *
  *   require count(identity) == 2
@@ -82,7 +83,7 @@ import java.util.Objects;
  * </pre>
  * <p>
  * Tabs:
- * Tab 1 (Properties): identity 1, identity 2, comment, evidence
+ * Tab 1 (Properties): identity 1, identity 2, comment, confidence
  * Tab 5 (Context): ContextImpactRecord (target[identity_hypothesis] = this hypothesis)
  * Tab 6 (Research): ConclusionRecord (resolves = this hypothesis), ResearchQuestionRecord (target[identity_hypothesis] = this hypothesis)
  * Tab 7 (Sources): source
@@ -95,6 +96,8 @@ public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 	private final EntityField identity1Field;
 	private final EntityField identity2Field;
 	private final BoundTextArea commentArea;
+	private final BoundComboBox<String> confidenceCombo;
+
 	private final JButton compareIdentitiesButton = new JButton(I18N.t("dialog.identity_hypothesis.button.compare"));
 
 
@@ -118,19 +121,21 @@ public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 		identity2Field = EntityField.createForRecordFromOneofReference(IdentityHypothesisReader.TAG_IDENTITY, this, model)
 			.withHandlerTypes(IndividualHandler.class, GroupHandler.class, PlaceHandler.class);
 		commentArea = new BoundTextArea(IdentityHypothesisReader.TAG_COMMENT, 3, 30);
+		confidenceCombo = new BoundComboBox<>(IdentityHypothesisReader.TAG_CONFIDENCE, GUIHelper.fillCombo(ConfidenceReader.CONFIDENCES, null));
+		confidenceCombo.setI18NPrefix("enum.confidence");
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, this.record)
 			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, ContextImpactHandler.TYPE, I18N.t("dialog.component.context.impacts"))
 			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, I18N.t("dialog.component.conclusions"))
 			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, I18N.t("dialog.component.research.questions"))
-			.withComponent(PanelKey.SOURCE, IdentityHypothesisReader.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
+			.withComponent(PanelKey.SOURCE, IdentityHypothesisReader.TAG_SOURCE, I18N.t("dialog.component.sources_with_citations"))
 			.withComponent(PanelKey.NOTE, IdentityHypothesisReader.TAG_NOTE, null)
-			.withComponent(PanelKey.EVIDENCE, IdentityHypothesisReader.TAG_EVIDENCE, I18N.t("dialog.component.evidence"))
 			.withComponent(PanelKey.AUDIT, IdentityHypothesisReader.TAG_AUDIT, null)
 			.build();
 
 		components.bind(commentArea);
+		components.bind(confidenceCombo);
 
 		compareIdentitiesButton.addActionListener(e -> openIdentityComparison());
 
@@ -158,9 +163,8 @@ public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 		// comment
 		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.identity_hypothesis.comment") + ":", commentArea);
 
-		// evidence
-		final JPanel evidencePanel = components.getPanel(PanelKey.EVIDENCE);
-		GUIHelper.addComponent(propertiesPanel, evidencePanel);
+		// confidence
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.identity_hypothesis.confidence") + ":", confidenceCombo);
 
 		return propertiesPanel;
 	}

@@ -73,7 +73,6 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
  *   identity_hypothesis: Xref&lt;IdentityHypothesisRecord&gt;
  *   cultural_norm: Xref&lt;CulturalNormRecord&gt;
  *   historic_event: Xref&lt;HistoricEventRecord&gt;
- *   void: struct {}
  * }
  * </pre>
  */
@@ -93,16 +92,12 @@ public final class ResearchQuestionReader{
 	public static final String ENUM_STATUS_OPEN = "open";
 	public static final String ENUM_STATUS_ON_HOLD = "on_hold";
 	public static final String ENUM_STATUS_RESOLVED = "resolved";
-	public static final String ENUM_STATUS_DISPROVEN = "disproven";
+	public static final String ENUM_STATUS_CLOSED = "closed";
 	public static final String[] STATUSES = new String[]{
 		ENUM_STATUS_OPEN,
 		ENUM_STATUS_ON_HOLD,
 		ENUM_STATUS_RESOLVED,
-		ENUM_STATUS_DISPROVEN
-	};
-
-	public static final String[] CONFIDENCES = new String[]{
-		"low", "medium", "high"
+		ENUM_STATUS_CLOSED
 	};
 
 

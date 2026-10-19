@@ -55,12 +55,8 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
  *     causes        // Directly contributes to the occurrence or existence of the target.
  *   } | Text
  *   rationale?: Text          // Explanation of how and why the contextual factor influences, explains, constrains, motivates, or causes the target.
- *   confidence?: enum {
- *      low,
- *      medium,
- *      high
- *   }
  *   source*: SourceCitation   // Sources supporting the existence or interpretation of this contextual relationship.
+ *   confidence?: Confidence
  *   evidence?: EvidenceQualifiers
  *   audit: AuditStructure
  * }
@@ -94,9 +90,8 @@ public final class ContextImpactReader{
 	public static final String TAG_TARGET = "target";
 	public static final String TAG_IMPACT_TYPE = "impact_type";
 	public static final String TAG_RATIONALE = "rationale";
-	public static final String TAG_CONFIDENCE = "confidence";
 	public static final String TAG_SOURCE = "source";
-	public static final String TAG_EVIDENCE = "evidence";
+	public static final String TAG_CONFIDENCE = "confidence";
 	public static final String TAG_AUDIT = "audit";
 
 	public static final String[] IMPACT_TYPES = new String[]{
@@ -105,9 +100,6 @@ public final class ContextImpactReader{
 		"constrains",
 		"motivates",
 		"causes"
-	};
-	public static final String[] CONFIDENCES = new String[]{
-		"low", "medium", "high"
 	};
 
 

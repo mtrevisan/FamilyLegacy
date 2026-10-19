@@ -89,7 +89,7 @@ final class HistoricEventSection implements SectionBuilder{
 				continue;
 
 			final FLEFRecord ref = contextNode.getTheOnlyChild();
-			if(ref == null || FLEFRecord.TAG_VOID.equalsIgnoreCase(ref.getTag()))
+			if(ref == null)
 				continue;
 
 			if(!HistoricEventHandler.isOfType(ref))

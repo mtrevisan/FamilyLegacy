@@ -63,12 +63,11 @@ import java.io.IOException;
 
 
 /**
- * Dialog for editing a {@code CONCLUSION_RECORD} according to FLEF 0.1.3.
+ * Dialog for editing a {@code CONCLUSION_RECORD} according to FLEF 0.2.0.
  * <p>
  * Structure:
  * <pre>
  * record ConclusionRecord {
- *   id: LocalID
  *   issue: Text
  *   proof_status: enum { unresearched, conflicting_evidence, supported, proven, disproven }
  *   narrative?: Text
@@ -123,8 +122,7 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 			.withHandlerTypes(EventHandler.class, EventParticipationHandler.class, RelationshipHandler.class,
 				IndividualHandler.class, IndividualAttributeHandler.class, GroupHandler.class, GroupAttributeHandler.class,
 				IdentityHypothesisHandler.class, PlaceHandler.class, PlaceRelationshipHandler.class, SourceHandler.class,
-				CulturalNormHandler.class, HistoricEventHandler.class)
-			.withSaveAsVoid();
+				CulturalNormHandler.class, HistoricEventHandler.class);
 		resolvesPanel.addPropertyChangeListener(PROPERTY_CONCLUSION, evt -> updatePreferredCombo());
 		preferredCombo = new BoundComboBox<>(ConclusionReader.TAG_PREFERRED);
 		preferredCombo.setRenderer(new DefaultListCellRenderer(){
@@ -143,13 +141,13 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 			}
 		});
 		proofStatusCombo = new BoundComboBox<>(ConclusionReader.TAG_PROOF_STATUS, ConclusionReader.PROOF_STATUSES);
-		proofStatusCombo.setI18NPrefix("enum.conclusion.proof_status");
+		proofStatusCombo.setI18NPrefix("enum.proof_status");
 		narrativeArea = new BoundTextArea(ConclusionReader.TAG_NARRATIVE, 5, 30);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, this.record)
 			.withComponent(PanelKey.RESEARCH_QUESTION, ConclusionReader.TAG_RESEARCH, I18N.t("dialog.component.research.questions"))
-			.withComponent(PanelKey.SOURCE, ConclusionReader.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
+			.withComponent(PanelKey.SOURCE, ConclusionReader.TAG_SOURCE, I18N.t("dialog.component.sources_with_citations"))
 			.withComponent(PanelKey.PRIVACY, ConclusionReader.TAG_PRIVACY, null)
 			.withComponent(PanelKey.AUDIT, ConclusionReader.TAG_AUDIT, null)
 			.build();

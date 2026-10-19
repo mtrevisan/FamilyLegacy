@@ -352,7 +352,7 @@ public class UnlinkDialog extends JDialog{
 				continue;
 
 			final String subjectId = extractAnyReferencedId(relationship, RelationshipReader.TAG_SUBJECT);
-			final String objectId = extractAnyReferencedId(relationship, RelationshipReader.TAG_OBJECT);
+			final String objectId = extractAnyReferencedId(relationship, RelationshipReader.TAG_TARGET);
 			if(subjectId == null || objectId == null)
 				continue;
 

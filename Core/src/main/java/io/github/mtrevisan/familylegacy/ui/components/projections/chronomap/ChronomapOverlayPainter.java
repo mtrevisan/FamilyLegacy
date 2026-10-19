@@ -318,7 +318,7 @@ public final class ChronomapOverlayPainter implements ChronomapLayer{
 
 		final int steps = 30;
 		Point2D prevPoint = null;
-		for(int i = 0; i <= steps; i++){
+		for(int i = 0; i <= steps; i ++){
 			final double t = i / (double)steps;
 			final double[] latLon = slerp(p1.latitude(), p1.longitude(), p2.latitude(), p2.longitude(), t);
 			final Point2D currentPoint = map.convertGeoPositionToPoint(new GeoPosition(latLon[0], latLon[1]));

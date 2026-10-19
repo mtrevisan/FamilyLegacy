@@ -50,7 +50,7 @@ public class HeaderConverter{
 		// ---- Protocol (hardcoded) ----
 		FLEFRecord protocol = FLEFRecord.createChildWithTag("protocol")
 			.addChild(FLEFRecord.createChildWithTagAndValue("name", "Family LEgacy Format"))
-			.addChild(FLEFRecord.createChildWithTagAndValue("version", "0.1.4"));
+			.addChild(FLEFRecord.createChildWithTagAndValue("version", "0.2.0"));
 		header.addChild(protocol);
 
 		// ---- Source (from GEDCOM SOUR) ----

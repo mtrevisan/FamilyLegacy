@@ -73,6 +73,8 @@ public abstract class BaseRecordDialog extends JDialog{
 
 	static final String PANEL_PROPERTY_NAME = "name";
 	public static final String TAB_NAME_PROPERTIES = "properties";
+	public static final String TAB_NAME_CAUSE = "cause";
+	public static final String TAB_NAME_LOCATION = "location";
 	public static final String TAB_NAME_ATTRIBUTES = "attributes";
 	public static final String TAB_NAME_RELATIONSHIPS = "relationships";
 	public static final String TAB_NAME_PARTICIPATIONS = "participations";
@@ -142,6 +144,8 @@ public abstract class BaseRecordDialog extends JDialog{
 
 	protected void initComponents(){
 		final JPanel propertiesPanel = createPropertiesPanel();
+		final JPanel causePanel = createCausePanel();
+		final JPanel mapPanel = createLocationPanel();
 		final JPanel attributesPanel = createAttributesPanel();
 		final JPanel relationshipsPanel = createRelationshipsPanel();
 		final JPanel participationsPanel = createParticipationsPanel();
@@ -163,6 +167,8 @@ public abstract class BaseRecordDialog extends JDialog{
 		}
 		else{
 			addTabIfNotNull(tabbedPane, TAB_NAME_PROPERTIES, propertiesPanel);
+			addTabIfNotNull(tabbedPane, TAB_NAME_CAUSE, causePanel);
+			addTabIfNotNull(tabbedPane, TAB_NAME_LOCATION, mapPanel);
 			addTabIfNotNull(tabbedPane, TAB_NAME_ATTRIBUTES, attributesPanel);
 			addTabIfNotNull(tabbedPane, TAB_NAME_RELATIONSHIPS, relationshipsPanel);
 			addTabIfNotNull(tabbedPane, TAB_NAME_PARTICIPATIONS, participationsPanel);
@@ -308,6 +314,14 @@ public abstract class BaseRecordDialog extends JDialog{
 	}
 
 	protected JPanel createPropertiesPanel(){
+		return null;
+	}
+
+	protected JPanel createCausePanel(){
+		return null;
+	}
+
+	protected JPanel createLocationPanel(){
 		return null;
 	}
 

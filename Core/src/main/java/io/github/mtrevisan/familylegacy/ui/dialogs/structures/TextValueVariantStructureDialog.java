@@ -44,7 +44,7 @@ import java.awt.Window;
 
 
 /**
- * Dialog for editing a {@code TEXT_VALUE_VARIANT} according to FLEF 0.1.3.
+ * Dialog for editing a {@code TEXT_VALUE_VARIANT} according to FLEF 0.2.0.
  * <p>
  * Structure:
  * <pre>

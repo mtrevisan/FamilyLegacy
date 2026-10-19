@@ -73,7 +73,6 @@ public class EntityField extends BoundTextField{
 
 	private final EntityType type;
 	private List<? extends RecordTypeHandler<?>> handlers;
-	private boolean saveAsVoid;
 
 	private FLEFRecord entityRef;
 
@@ -189,12 +188,6 @@ public class EntityField extends BoundTextField{
 		initComponents();
 
 		addPropertyChangeListener(PROPERTY_ENTITY_CHANGED, e -> updateDisplay());
-
-		return this;
-	}
-
-	public EntityField withSaveAsVoid(){
-		saveAsVoid = true;
 
 		return this;
 	}
@@ -316,12 +309,6 @@ public class EntityField extends BoundTextField{
 				final FLEFRecord parent = FLEFRecordHelper.getOrCreateTargetNode(targetRecord, path);
 				parent.addChildren(recordItems);
 			}
-		}
-		else if(saveAsVoid){
-			final FLEFRecord child = FLEFRecord.createChildWithTag(FLEFRecord.TAG_VOID);
-			final FLEFRecord itemRecord = FLEFRecord.createChildWithTag(path)
-				.addChild(child);
-			targetRecord.addChild(itemRecord);
 		}
 	}
 

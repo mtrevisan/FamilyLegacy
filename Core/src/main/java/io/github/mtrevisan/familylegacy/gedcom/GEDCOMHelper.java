@@ -967,8 +967,8 @@ public class GEDCOMHelper{
 			.addChild(FLEFRecord.createChildWithTag("subject")
 				.addChild(FLEFRecord.createChildWithTagAndValue("individual", parent.getId()))
 			)
-			// object
-			.addChild(FLEFRecord.createChildWithTag("object")
+			// target
+			.addChild(FLEFRecord.createChildWithTag("target")
 				.addChild(FLEFRecord.createChildWithTagAndValue(objectTag, objectXrefId))
 			)
 			.addChild(FLEFRecord.createChildWithTagAndValue("type", (node.getTag().equalsIgnoreCase("ADOP")? RelationshipReader.ENUM_TYPE_ADOPTIVE_CHILD: RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD)))
@@ -1006,8 +1006,8 @@ public class GEDCOMHelper{
 					.addChild(FLEFRecord.createChildWithTag("subject")
 						.addChild(FLEFRecord.createChildWithTagAndValue("individual", parent.getId()))
 					)
-					// object: group
-					.addChild(FLEFRecord.createChildWithTag("object")
+					// target: group
+					.addChild(FLEFRecord.createChildWithTag("target")
 						.addChild(FLEFRecord.createChildWithTagAndValue("group", cleanId(famsNode.getValue())))
 					)
 					.addChild(FLEFRecord.createChildWithTagAndValue("type", "civil_spouse"));

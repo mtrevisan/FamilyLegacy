@@ -310,7 +310,7 @@ public class StructureParser{
 			GEDCOMNode longNode = GEDCOMHelper.findFirstChild(mapNode, "LONG");
 			if(latiNode != null && longNode != null &&
 				latiNode.getValue() != null && longNode.getValue() != null){
-				FLEFRecord mapRecord = FLEFRecord.createChildWithTag("map");
+				FLEFRecord mapRecord = FLEFRecord.createChildWithTag("location");
 				mapRecord.addChild(FLEFRecord.createChildWithTagAndValue("coordinates",
 					latiNode.getValue() + StringUtils.SPACE + longNode.getValue()));
 				// Evidence can be added if present (optional)

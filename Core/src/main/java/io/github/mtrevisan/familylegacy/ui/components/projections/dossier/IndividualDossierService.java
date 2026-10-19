@@ -355,7 +355,7 @@ public final class IndividualDossierService{
 		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
 		for(final FLEFRecord relationship : relationships){
 			final String subjectId = EventParticipationReader.extractParticipantRef(relationship, RelationshipReader.TAG_SUBJECT);
-			final String objectId = EventParticipationReader.extractParticipantRef(relationship, RelationshipReader.TAG_OBJECT);
+			final String objectId = EventParticipationReader.extractParticipantRef(relationship, RelationshipReader.TAG_TARGET);
 			final boolean isSubject = individualId.equals(subjectId);
 			final boolean isTarget = individualId.equals(objectId);
 			if(!isSubject && !isTarget)
@@ -373,7 +373,7 @@ public final class IndividualDossierService{
 			: "Relationship");
 
 		final String otherId = (isSubject
-			? EventParticipationReader.extractParticipantRef(relationship, RelationshipReader.TAG_OBJECT)
+			? EventParticipationReader.extractParticipantRef(relationship, RelationshipReader.TAG_TARGET)
 			: EventParticipationReader.extractParticipantRef(relationship, RelationshipReader.TAG_SUBJECT));
 		final String otherName = resolveParticipantName(otherId);
 
@@ -428,7 +428,7 @@ public final class IndividualDossierService{
 		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
 		for(final FLEFRecord relationship : relationships){
 			final String subjectId = EventParticipationReader.extractParticipantRef(relationship, RelationshipReader.TAG_SUBJECT);
-			final String objectId = EventParticipationReader.extractParticipantRef(relationship, RelationshipReader.TAG_OBJECT);
+			final String objectId = EventParticipationReader.extractParticipantRef(relationship, RelationshipReader.TAG_TARGET);
 			if(individualId.equals(subjectId) || individualId.equals(objectId))
 				collectSources(relationship, "Relationship", entries, seenSourceIds);
 		}
@@ -653,7 +653,7 @@ public final class IndividualDossierService{
 		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
 		for(final FLEFRecord relationship : relationships){
 			final String subjectId = EventParticipationReader.extractParticipantRef(relationship, RelationshipReader.TAG_SUBJECT);
-			final String objectId = EventParticipationReader.extractParticipantRef(relationship, RelationshipReader.TAG_OBJECT);
+			final String objectId = EventParticipationReader.extractParticipantRef(relationship, RelationshipReader.TAG_TARGET);
 			if(individualId.equals(subjectId) || individualId.equals(objectId))
 				collectNotes(relationship, "Relationship", entries);
 		}

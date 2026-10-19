@@ -55,12 +55,12 @@ public class DirectRelationshipCellRenderer extends DefaultListCellRenderer{
 
 		if(value instanceof FLEFRecord record){
 			final String type = RelationshipReader.extractType(record);
-			final FLEFRecord object = FLEFRecordHelper.extractRecordsFromOneOfReference(record, RelationshipReader.TAG_OBJECT, model)
+			final FLEFRecord target = FLEFRecordHelper.extractRecordsFromOneOfReference(record, RelationshipReader.TAG_TARGET, model)
 				.getFirst();
 			String targetDisplayText = "--";
-			if(object != null){
-				final RecordTypeHandler<?> objectHandler = HandlerRegistry.getHandler(object.getTag());
-				targetDisplayText = objectHandler.getDisplayText(object, model);
+			if(target != null){
+				final RecordTypeHandler<?> objectHandler = HandlerRegistry.getHandler(target.getTag());
+				targetDisplayText = objectHandler.getDisplayText(target, model);
 			}
 			final String role = RelationshipReader.extractRole(record);
 

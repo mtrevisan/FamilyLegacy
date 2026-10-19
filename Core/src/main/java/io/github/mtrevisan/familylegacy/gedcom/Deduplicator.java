@@ -59,13 +59,13 @@ public final class Deduplicator{
 			String type = FLEFRecordHelper.getChildValue(record, "type");
 			if(RelationshipReader.isTypeBiologicalChild(type)){
 				FLEFRecord subject = FLEFRecordHelper.findChild(record, "subject");
-				FLEFRecord object = FLEFRecordHelper.findChild(record, "object");
+				FLEFRecord target = FLEFRecordHelper.findChild(record, "target");
 
 				StringBuilder sb = new StringBuilder();
 				sb.append("|subject:");
 				sb.append(GEDCOMHelper.computeSignature(subject));
-				sb.append("|object:");
-				sb.append(GEDCOMHelper.computeSignature(object));
+				sb.append("|target:");
+				sb.append(GEDCOMHelper.computeSignature(target));
 				String thisSignature = sb.toString();
 
 				FLEFRecord existingRecord = CANONICAL_MAP_RELATIONSHIP.get(thisSignature);

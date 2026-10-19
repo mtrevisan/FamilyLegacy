@@ -218,7 +218,7 @@ public final class MergeFieldComparisonDialog extends JDialog{
 
 		private static FLEFGrammar load(){
 			try{
-				final Path path = Paths.get("src/main/resources/gedg/flef_0.1.4.gedg");
+				final Path path = Paths.get("src/main/resources/gedg/flef_0.2.0.gedg");
 				return FLEFGrammarParser.parse(path);
 			}
 			catch(final Exception ex){

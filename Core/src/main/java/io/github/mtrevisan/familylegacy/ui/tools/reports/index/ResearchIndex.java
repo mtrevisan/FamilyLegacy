@@ -97,10 +97,12 @@ public final class ResearchIndex{
 		for(final FLEFRecord contextImpact : contextImpacts){
 			if(!filter.test(contextImpact))
 				continue;
+
 			for(final FLEFRecord t : FLEFRecordHelper.findChildren(contextImpact, "target")){
 				final FLEFRecord ref = t.getTheOnlyChild();
-				if(ref == null || "void".equalsIgnoreCase(ref.getTag()))
+				if(ref == null)
 					continue;
+
 				final String id = ref.getValue();
 				if(id != null && !id.isBlank())
 					contextImpactsByTarget.computeIfAbsent(id, k -> new ArrayList<>()).add(contextImpact);
@@ -111,10 +113,12 @@ public final class ResearchIndex{
 		for(final FLEFRecord researchQuestion : researchQuestions){
 			if(!filter.test(researchQuestion))
 				continue;
+
 			for(final FLEFRecord t : FLEFRecordHelper.findChildren(researchQuestion, "target")){
 				final FLEFRecord ref = t.getTheOnlyChild();
-				if(ref == null || "void".equalsIgnoreCase(ref.getTag()))
+				if(ref == null)
 					continue;
+
 				final String id = ref.getValue();
 				if(id != null && !id.isBlank())
 					researchQuestionsByTarget.computeIfAbsent(id, k -> new ArrayList<>()).add(researchQuestion);

@@ -45,12 +45,11 @@ import java.io.IOException;
 
 
 /**
- * Dialog for editing a {@code ResearchTaskRecord} according to FLEF 0.1.3.
+ * Dialog for editing a {@code ResearchTaskRecord} according to FLEF 0.2.0.
  * <p>
  * Structure:
  * <pre>
  * record ResearchTaskRecord {
- *   id: LocalID
  *   description: Text
  *   question*: Xref&lt;ResearchQuestionRecord&gt;
  *   created_by?: Xref&lt;ResearchActivityRecord&gt;

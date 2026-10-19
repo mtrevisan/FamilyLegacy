@@ -256,7 +256,7 @@ public final class TemporalProjectionService{
 		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
 		for(final FLEFRecord relationship : relationships){
 			final String subjectId = relationship.extractReferencedId(RelationshipReader.TAG_SUBJECT, IndividualHandler.TYPE);
-			final String objectId = relationship.extractReferencedId(RelationshipReader.TAG_OBJECT, IndividualHandler.TYPE);
+			final String objectId = relationship.extractReferencedId(RelationshipReader.TAG_TARGET, IndividualHandler.TYPE);
 			if(subjectId == null || objectId == null)
 				continue;
 			if(!includedIds.contains(subjectId) || !includedIds.contains(objectId))
@@ -298,7 +298,7 @@ public final class TemporalProjectionService{
 		final List<FLEFRecord> placeRelationships = model.getRecordsByType(PlaceRelationshipHandler.TYPE);
 		for(final FLEFRecord placeRelationship : placeRelationships){
 			final String subjectId = placeRelationship.extractReferencedId(PlaceRelationshipReader.TAG_SUBJECT, PlaceHandler.TYPE);
-			final String objectId = placeRelationship.extractReferencedId(PlaceRelationshipReader.TAG_OBJECT, PlaceHandler.TYPE);
+			final String objectId = placeRelationship.extractReferencedId(PlaceRelationshipReader.TAG_TARGET, PlaceHandler.TYPE);
 			if(subjectId == null || objectId == null)
 				continue;
 			if(!includedIds.contains(subjectId) || !includedIds.contains(objectId))

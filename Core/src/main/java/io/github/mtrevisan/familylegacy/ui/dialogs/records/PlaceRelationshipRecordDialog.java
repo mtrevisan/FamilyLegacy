@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.ui.dialogs.records;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceRelationshipReader;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.ui.components.PanelKey;
@@ -49,31 +50,34 @@ import java.io.IOException;
 
 
 /**
- * Dialog for editing a {@code PLACE_RELATIONSHIP_RECORD} according to FLEF 0.1.3.
+ * Dialog for editing a {@code PLACE_RELATIONSHIP_RECORD} according to FLEF 0.2.0.
  * <p>
  * Structure:
  * <pre>
  * record PlaceRelationshipRecord {
- *   id: LocalID
- *   subject: Xref&lt;PlaceRecord&gt;
- *   target: Xref&lt;PlaceRecord&gt;
+ *   subject: struct {
+ *     place: Xref<PlaceRecord>   // the place for which the relationship is asserted. The SUBJECT is always the place whose role is described by TYPE relative to the TARGET.
+ *   }
+ *   target: struct {
+ *     place: Xref<PlaceRecord>   // the place to which the subject is related
+ *   }
  *   type: enum {
- *     administrative_part_of,   // subject is part of an administrative jurisdiction, e.g., Treviso → Veneto
- *     geographic_part_of,       // subject is geographically contained within another place
- *     ecclesiastical_part_of,   // subject belongs to an ecclesiastical jurisdiction such as a parish, diocese, or archdiocese
- *     judicial_part_of,         // subject belongs to a court, district, or judicial jurisdiction
- *     cadastral_part_of,        // subject belongs to a cadastral or land-records district
- *     predecessor_of,           // subject ceased to exist and was succeeded by the OBJECT place
- *     successor_of,             // subject replaced or inherited the identity, territory, or function of the OBJECT place
- *     merged_into,              // subject was merged into the OBJECT place
- *     split_from,               // subject was created from the division of the OBJECT place
- *     transferred_to            // subject place was reassigned, wholly or partially, to the jurisdiction of the OBJECT place
+ *     administrative_part_of,    // subject is part of an administrative jurisdiction, e.g., Treviso → Veneto
+ *     geographic_part_of,        // subject is geographically contained within another place
+ *     ecclesiastical_part_of,    // subject belongs to an ecclesiastical jurisdiction such as a parish, diocese, or archdiocese
+ *     judicial_part_of,          // subject belongs to a court, district, or judicial jurisdiction
+ *     cadastral_part_of,         // subject belongs to a cadastral or land-records district
+ *     predecessor_of,            // subject ceased to exist and was succeeded by the TARGET place
+ *     successor_of,              // subject replaced or inherited the identity, territory, or function of the TARGET place
+ *     merged_into,               // subject was merged into the TARGET place
+ *     split_from,                // subject was created from the division of the TARGET place
+ *     territory_transferred_to   // subject place was reassigned, wholly or partially, to the jurisdiction of the TARGET place
  *   } | Text
  *   valid_from?: DateStructure
  *   valid_to?: DateStructure
  *   source*: SourceCitation
  *   note*: Xref&lt;NoteRecord&gt;
- *   evidence?: EvidenceQualifiers
+ *   confidence?: Confidence      // confidence that this place relationship was true
  *   audit: AuditStructure
  * }
  * </pre>
@@ -91,10 +95,11 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 	private final JPanel propertiesPanel;
 
 	private final EntityField subjectField;
-	private final EntityField objectField;
+	private final EntityField targetField;
 	private final BoundComboBox<String> typeCombo;
 	private final DateField validFromField;
 	private final DateField validToField;
+	private final BoundComboBox<String> confidenceCombo;
 
 
 	public static PlaceRelationshipRecordDialog createNew(final Window parent, final FLEFModel model){
@@ -114,26 +119,28 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 
 		subjectField = EntityField.createForRecordFromOneofReference(PlaceRelationshipReader.TAG_SUBJECT, this, model)
 			.withHandlerTypes(PlaceHandler.class);
-		objectField = EntityField.createForRecordFromOneofReference(PlaceRelationshipReader.TAG_OBJECT, this, model)
+		targetField = EntityField.createForRecordFromOneofReference(PlaceRelationshipReader.TAG_TARGET, this, model)
 			.withHandlerTypes(PlaceHandler.class);
 		typeCombo = new BoundComboBox<>(PlaceRelationshipReader.TAG_TYPE, GUIHelper.fillCombo(PlaceRelationshipReader.TYPES, null));
 		typeCombo.setI18NPrefix("enum.place_relationship.type");
 		typeCombo.setEditable(true);
 		validFromField = DateField.createWithWrapperTag(PlaceRelationshipReader.TAG_VALID_FROM, this, I18N.t("dialog.date.valid_from"), model);
 		validToField = DateField.createWithWrapperTag(PlaceRelationshipReader.TAG_VALID_TO, this, I18N.t("dialog.date.valid_to"), model);
+		confidenceCombo = new BoundComboBox<>(PlaceRelationshipReader.TAG_CONFIDENCE, GUIHelper.fillCombo(ConfidenceReader.CONFIDENCES, null));
+		confidenceCombo.setI18NPrefix("enum.confidence");
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, this.record)
 			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, ContextImpactHandler.TYPE, I18N.t("dialog.component.context.impacts"))
 			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, I18N.t("dialog.component.conclusions"))
 			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, I18N.t("dialog.component.research.questions"))
-			.withComponent(PanelKey.SOURCE, PlaceRelationshipReader.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
+			.withComponent(PanelKey.SOURCE, PlaceRelationshipReader.TAG_SOURCE, I18N.t("dialog.component.sources_with_citations"))
 			.withComponent(PanelKey.NOTE, PlaceRelationshipReader.TAG_NOTE, null)
-			.withComponent(PanelKey.EVIDENCE, PlaceRelationshipReader.TAG_EVIDENCE, I18N.t("dialog.component.evidence"))
 			.withComponent(PanelKey.AUDIT, PlaceRelationshipReader.TAG_AUDIT, null)
 			.build();
 
 		components.bind(typeCombo);
+		components.bind(confidenceCombo);
 
 
 		finalizeDialog(parent);
@@ -145,8 +152,8 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 		// subject
 		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.place_relationship.subject") + "*:", subjectField);
 
-		// object
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.place_relationship.object") + "*:", objectField);
+		// target
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.place_relationship.target") + "*:", targetField);
 
 		// type
 		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.place_relationship.part.type") + "*:", typeCombo);
@@ -160,9 +167,8 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 		GUIHelper.addLabeledComponent(validityPanel, I18N.t("dialog.valid_to") + ":", validToField);
 		GUIHelper.addComponent(propertiesPanel, validityPanel);
 
-		// evidence
-		final JPanel evidencePanel = components.getPanel(PanelKey.EVIDENCE);
-		GUIHelper.addComponent(propertiesPanel, evidencePanel);
+		// confidence
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.place_relationship.confidence") + ":", confidenceCombo);
 
 		return propertiesPanel;
 	}
@@ -239,21 +245,21 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 
 			final boolean showAll = (parentEntity == null || parentEntity.isEmpty());
 			GUIHelper.setComponentEnabled(subjectField, showAll);
-			GUIHelper.setComponentEnabled(objectField, true);
+			GUIHelper.setComponentEnabled(targetField, true);
 		}
 
 		return this;
 	}
 
-	public PlaceRelationshipRecordDialog withObject(final FLEFRecord object){
-		super.withParentEntity(object);
+	public PlaceRelationshipRecordDialog withTarget(final FLEFRecord target){
+		super.withParentEntity(target);
 
 		if(parentEntity != null && !parentEntity.isEmpty()){
-			objectField.setEntity(FLEFRecord.createMainRecord(parentEntity.getText(), parentEntity.getPath()));
+			targetField.setEntity(FLEFRecord.createMainRecord(parentEntity.getText(), parentEntity.getPath()));
 
 			final boolean showAll = (parentEntity == null || parentEntity.isEmpty());
 			GUIHelper.setComponentEnabled(subjectField, true);
-			GUIHelper.setComponentEnabled(objectField, showAll);
+			GUIHelper.setComponentEnabled(targetField, showAll);
 		}
 
 		return this;
@@ -263,7 +269,7 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 	@Override
 	protected void loadData(){
 		subjectField.load(record);
-		objectField.load(record);
+		targetField.load(record);
 
 		components.load(record);
 
@@ -285,10 +291,10 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 			return false;
 		}
 
-		if(!objectField.hasData()){
+		if(!targetField.hasData()){
 			GUIHelper.showValidationErrorAndFocus(this,
-				I18N.tf("validation.required", I18N.t("dialog.place_relationship.object")),
-				tabbedPane, propertiesPanel, objectField);
+				I18N.tf("validation.required", I18N.t("dialog.place_relationship.target")),
+				tabbedPane, propertiesPanel, targetField);
 
 			return false;
 		}
@@ -307,7 +313,7 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 	@Override
 	protected void saveData(){
 		subjectField.saveReferences(record);
-		objectField.saveReferences(record);
+		targetField.saveReferences(record);
 
 		components.save(record);
 

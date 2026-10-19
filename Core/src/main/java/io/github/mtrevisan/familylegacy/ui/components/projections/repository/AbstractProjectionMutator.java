@@ -69,7 +69,7 @@ public abstract class AbstractProjectionMutator implements ProjectionMutator{
 			.addChild(FLEFRecord.createChildWithTag(RelationshipReader.TAG_SUBJECT)
 				.addChild(FLEFRecord.createChildWithTagAndValue(IndividualHandler.TYPE, subjectId))
 			)
-			.addChild(FLEFRecord.createChildWithTag(RelationshipReader.TAG_OBJECT)
+			.addChild(FLEFRecord.createChildWithTag(RelationshipReader.TAG_TARGET)
 				.addChild(FLEFRecord.createChildWithTagAndValue(IndividualHandler.TYPE, targetId))
 			)
 			.addChild(AuditBuilder.build());
@@ -139,8 +139,8 @@ public abstract class AbstractProjectionMutator implements ProjectionMutator{
 			final String groupSubjectId = relationship.extractReferencedId(RelationshipReader.TAG_SUBJECT, GroupHandler.TYPE);
 			final String targetSubjectId = (subjectId != null? subjectId: groupSubjectId);
 
-			final String relationshipObjectId = relationship.extractReferencedId(RelationshipReader.TAG_OBJECT, IndividualHandler.TYPE);
-			final String groupObjectId = relationship.extractReferencedId(RelationshipReader.TAG_OBJECT, GroupHandler.TYPE);
+			final String relationshipObjectId = relationship.extractReferencedId(RelationshipReader.TAG_TARGET, IndividualHandler.TYPE);
+			final String groupObjectId = relationship.extractReferencedId(RelationshipReader.TAG_TARGET, GroupHandler.TYPE);
 			final String targetObjectId = (relationshipObjectId != null? relationshipObjectId: groupObjectId);
 
 			if(targetId.equals(targetSubjectId) || targetId.equals(targetObjectId))

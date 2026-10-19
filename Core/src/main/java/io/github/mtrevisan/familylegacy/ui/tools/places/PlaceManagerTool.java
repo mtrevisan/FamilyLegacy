@@ -22,35 +22,43 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.ui.tools.files;
+package io.github.mtrevisan.familylegacy.ui.tools.places;
 
+import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.ui.components.searches.RecordSelectionDialog;
+import io.github.mtrevisan.familylegacy.ui.handlers.PlaceRelationshipHandler;
+import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolOperation;
-import org.apache.commons.lang3.StringUtils;
-
-import javax.swing.JOptionPane;
 
 
 /**
- * Base class for the import/export tools that are not yet implemented.
- * <p>
- * Every subclass declares its own name; the {@link #run(ToolContext)}
- * method is shared and shows a placeholder dialog with a clear
- * description of the missing feature. When the actual implementation
- * lands, the subclass overrides {@code run} and the placeholder
- * disappears.
- * <p>
- * Keeping the placeholder behaviour in one place avoids ten copies of
- * the same dialog.
+ * Opens the place hierarchy panel in a non-modal window, so the user can
+ * keep it side by side with the main frame. The window is created lazily
+ * and reused on subsequent invocations: if it is already open, the call
+ * brings it to front and reloads its content, so any change made to the
+ * model in the meantime is reflected.
  */
-public abstract class PlaceholderFileTool implements ToolOperation{
+public final class PlaceManagerTool implements ToolOperation{
 
+	@Override
+	public String getName(){
+		return I18N.t("menu.place.place.manager");
+	}
 
 	@Override
 	public void run(final ToolContext context){
-		JOptionPane.showMessageDialog(context.owner(),
-			"\"" + getName().replace("…", StringUtils.EMPTY).trim() + "\" is not implemented yet.",
-			"Feature Not Available", JOptionPane.INFORMATION_MESSAGE);
+		final FLEFModel model = context.model();
+		@SuppressWarnings("unchecked")
+		final RecordSelectionDialog dialog = RecordSelectionDialog.createWithAllowRecordCreation(context.owner(), model,
+			(record, handler) -> {},
+			PlaceRelationshipHandler.class);
+		dialog.setVisible(true);
+	}
+
+	@Override
+	public boolean isEnabled(final ToolContext context){
+		return (context != null && context.hasAnyPlaces());
 	}
 
 }

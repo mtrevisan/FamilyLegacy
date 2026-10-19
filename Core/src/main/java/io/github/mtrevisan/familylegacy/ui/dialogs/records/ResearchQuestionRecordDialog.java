@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.ui.dialogs.records;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchQuestionReader;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextArea;
@@ -63,18 +64,17 @@ import java.io.IOException;
 
 
 /**
- * Dialog for editing a {@code RESEARCH_QUESTION_RECORD} according to FLEF 0.1.3.
+ * Dialog for editing a {@code RESEARCH_QUESTION_RECORD} according to FLEF 0.2.0.
  * <p>
  * Structure:
  * <pre>
  * record ResearchQuestionRecord {
- *   id: LocalID
  *   title: Text
  *   question: Text
  *   target*: ResearchTarget
  *   status: enum { open, on_hold, resolved, disproven }
  *   conclusion?: Text
- *   conclusion_confidence?: enum { low, medium, high }
+ *   conclusion_confidence?: Confidence
  *   rationale?: Text
  *   closed_date?: Date
  *   privacy?: PrivacyStructure
@@ -96,7 +96,6 @@ import java.io.IOException;
  *   identity_hypothesis: Xref&lt;IdentityHypothesisRecord&gt;
  *   cultural_norm: Xref&lt;CulturalNormRecord&gt;
  *   historic_event: Xref&lt;HistoricEventRecord&gt;
- *   void: struct {}
  * }
  * </pre>
  * <p>
@@ -141,11 +140,10 @@ public class ResearchQuestionRecordDialog extends BaseRecordDialog{
 				EventParticipationHandler.class, RelationshipHandler.class, IndividualAttributeHandler.class,
 				GroupAttributeHandler.class, PlaceHandler.class, PlaceRelationshipHandler.class, SourceHandler.class,
 				DocumentHandler.class, IdentityHypothesisHandler.class, CulturalNormHandler.class,
-				HistoricEventHandler.class)
-			.withSaveAsVoid();
+				HistoricEventHandler.class);
 		statusPanel = new ResearchQuestionStatusPanel();
 		conclusionArea = new BoundTextArea(ResearchQuestionReader.TAG_CONCLUSION, 3, 30);
-		conclusionConfidenceCombo = new BoundComboBox<>(ResearchQuestionReader.TAG_CONCLUSION_CONFIDENCE, GUIHelper.fillCombo(ResearchQuestionReader.CONFIDENCES, null));
+		conclusionConfidenceCombo = new BoundComboBox<>(ResearchQuestionReader.TAG_CONCLUSION_CONFIDENCE, GUIHelper.fillCombo(ConfidenceReader.CONFIDENCES, null));
 		conclusionConfidenceCombo.setI18NPrefix("enum.confidence");
 		rationaleArea = new BoundTextArea(ResearchQuestionReader.TAG_RATIONALE, 3, 30);
 

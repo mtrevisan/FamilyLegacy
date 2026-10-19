@@ -719,7 +719,7 @@ public final class GUIHelper{
 
 	private static void validate(FLEFModel model) throws IOException{
 		final String grammarContent;
-		try(final InputStream is = GUIHelper.class.getResourceAsStream("/gedg/flef_0.1.4.gedg")){
+		try(final InputStream is = GUIHelper.class.getResourceAsStream("/gedg/flef_0.2.0.gedg")){
 			grammarContent = new String(is.readAllBytes(), StandardCharsets.UTF_8);
 		}
 

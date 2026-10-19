@@ -34,7 +34,7 @@ import java.awt.Window;
 
 
 /**
- * Handler for {@code SOURCE_CITATION} entities according to FLEF 0.1.3.
+ * Handler for {@code SOURCE_CITATION} entities according to FLEF 0.2.0.
  */
 public class SourceCitationHandler extends AbstractRecordTypeHandler<SourceCitationDialog>{
 

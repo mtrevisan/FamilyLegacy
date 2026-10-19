@@ -149,7 +149,7 @@ public final class EntityMerger{
 		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
 		for(final FLEFRecord relationship : relationships){
 			final String subjectId = relationship.extractReferencedId(RelationshipReader.TAG_SUBJECT, IndividualHandler.TYPE);
-			final String objectIdOfRel = relationship.extractReferencedId(RelationshipReader.TAG_OBJECT, IndividualHandler.TYPE);
+			final String objectIdOfRel = relationship.extractReferencedId(RelationshipReader.TAG_TARGET, IndividualHandler.TYPE);
 			final String type = RelationshipReader.extractType(relationship);
 			if(type == null)
 				continue;
@@ -181,7 +181,7 @@ public final class EntityMerger{
 			if(sourceIsSubject)
 				IndividualHelper.setRelationshipEndpoint(relationship, RelationshipReader.TAG_SUBJECT, newSubject);
 			if(sourceIsTarget)
-				IndividualHelper.setRelationshipEndpoint(relationship, RelationshipReader.TAG_OBJECT, newTarget);
+				IndividualHelper.setRelationshipEndpoint(relationship, RelationshipReader.TAG_TARGET, newTarget);
 			existingEdges.add(edgeKey);
 			repointed ++;
 		}
@@ -202,7 +202,7 @@ public final class EntityMerger{
 		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
 		for(final FLEFRecord relationship : relationships){
 			final String subjectId = relationship.extractReferencedId(RelationshipReader.TAG_SUBJECT, IndividualHandler.TYPE);
-			final String objectId = relationship.extractReferencedId(RelationshipReader.TAG_OBJECT, IndividualHandler.TYPE);
+			final String objectId = relationship.extractReferencedId(RelationshipReader.TAG_TARGET, IndividualHandler.TYPE);
 			final String type = RelationshipReader.extractType(relationship);
 			if(subjectId != null && objectId != null && type != null
 					&& !sourceId.equals(subjectId) && !sourceId.equals(objectId))

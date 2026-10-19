@@ -584,7 +584,7 @@ public final class KinshipCalculator{
 
 			final String t = type.toLowerCase(Locale.ROOT);
 			final String subject = relationship.extractReferencedId(RelationshipReader.TAG_SUBJECT, IndividualHandler.TYPE);
-			final String object = relationship.extractReferencedId(RelationshipReader.TAG_OBJECT, IndividualHandler.TYPE);
+			final String object = relationship.extractReferencedId(RelationshipReader.TAG_TARGET, IndividualHandler.TYPE);
 			if(subject == null || object == null)
 				continue;
 

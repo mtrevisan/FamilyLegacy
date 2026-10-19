@@ -53,8 +53,8 @@ import java.util.regex.Pattern;
  * <p>
  * The class parses the grammar directly, so it does not depend on the
  * internal {@code FLEFGrammar} model classes. The grammar is loaded
- * from the classpath first ({@code /gedg/flef_0.1.4.gedg}), then from
- * the filesystem ({@code src/main/resources/gedg/flef_0.1.4.gedg}),
+ * from the classpath first ({@code /gedg/flef_0.2.0.gedg}), then from
+ * the filesystem ({@code src/main/resources/gedg/flef_0.2.0.gedg}),
  * so the class works both when run from an IDE and from a packaged
  * JAR.
  * <p>
@@ -100,8 +100,8 @@ public final class TagSuggester{
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(TagSuggester.class);
 
-	private static final String GRAMMAR_CLASSPATH = "/gedg/flef_0.1.4.gedg";
-	private static final String GRAMMAR_FILE = "src/main/resources/gedg/flef_0.1.4.gedg";
+	private static final String GRAMMAR_CLASSPATH = "/gedg/flef_0.2.0.gedg";
+	private static final String GRAMMAR_FILE = "src/main/resources/gedg/flef_0.2.0.gedg";
 
 	/**
 	 * Matches the start of a type declaration: {@code struct X {}},

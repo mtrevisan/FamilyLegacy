@@ -87,12 +87,12 @@ public class RelationshipHandler extends AbstractRecordTypeHandler<RelationshipR
 			subjectDisplayText = subjectHandler.getDisplayText(subject, model);
 		}
 
-		final FLEFRecord object = FLEFRecordHelper.extractRecordsFromOneOfReference(record, RelationshipReader.TAG_OBJECT, model)
+		final FLEFRecord target = FLEFRecordHelper.extractRecordsFromOneOfReference(record, RelationshipReader.TAG_TARGET, model)
 			.getFirst();
 		String objectDisplayText = "--";
-		if(object != null){
-			final RecordTypeHandler<?> objectHandler = HandlerRegistry.getHandler(object.getTag());
-			objectDisplayText = objectHandler.getDisplayText(object, model);
+		if(target != null){
+			final RecordTypeHandler<?> objectHandler = HandlerRegistry.getHandler(target.getTag());
+			objectDisplayText = objectHandler.getDisplayText(target, model);
 		}
 
 		final String type = RelationshipReader.extractType(record);
@@ -101,10 +101,10 @@ public class RelationshipHandler extends AbstractRecordTypeHandler<RelationshipR
 
 		String display;
 		if(StringUtils.isNotEmpty(role))
-			display = I18N.tf("dialog.relationship.display.with.role", subjectDisplayText, role, objectDisplayText,
+			display = I18N.tf("dialog.relationship.display_with_role", subjectDisplayText, role, objectDisplayText,
 				type);
 		else
-			display = I18N.tf("dialog.relationship.display.without.role", subjectDisplayText, objectDisplayText, type);
+			display = I18N.tf("dialog.relationship.display_without_role", subjectDisplayText, objectDisplayText, type);
 		return display + " [" + id + "]";
 	}
 

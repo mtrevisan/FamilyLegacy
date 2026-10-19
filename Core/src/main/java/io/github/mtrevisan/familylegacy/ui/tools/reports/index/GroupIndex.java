@@ -72,7 +72,7 @@ public final class GroupIndex{
 
 			final String type = RelationshipReader.extractType(relationship);
 			final String subjectId = FLEFRecordHelper.getChildValue(relationship, RelationshipReader.TAG_SUBJECT + DOT + IndividualHandler.TYPE);
-			final String objectGroup = FLEFRecordHelper.getChildValue(relationship, RelationshipReader.TAG_OBJECT + DOT + GroupHandler.TYPE);
+			final String objectGroup = FLEFRecordHelper.getChildValue(relationship, RelationshipReader.TAG_TARGET + DOT + GroupHandler.TYPE);
 			final String subjectGroup = FLEFRecordHelper.getChildValue(relationship, RelationshipReader.TAG_SUBJECT + DOT + GroupHandler.TYPE);
 
 			if("group_member".equalsIgnoreCase(type) && objectGroup != null){

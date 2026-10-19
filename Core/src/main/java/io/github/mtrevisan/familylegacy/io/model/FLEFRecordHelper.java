@@ -167,7 +167,7 @@ public final class FLEFRecordHelper{
 				else{
 					// Optional index filtering, e.g. RESTRICTION[2]
 					int occurrence = 0;
-					for(int i = 0; i < childSize; i++){
+					for(int i = 0; i < childSize; i ++){
 						final FLEFRecord child = children.get(i);
 						if(Strings.CI.equals(seg.tag, child.getTag())){
 							if(occurrence == seg.index){
@@ -305,10 +305,6 @@ public final class FLEFRecordHelper{
 
 			reference = reference.getTheOnlyChild();
 
-			final String referencedTag = reference.getTag();
-			if(Strings.CI.equals(FLEFRecord.TAG_VOID, referencedTag))
-				continue;
-
 			final String referencedId = reference.getValue();
 			if(StringUtils.isEmpty(referencedId)){
 				System.err.println("No referenced ID found from reference " + reference + " from record " + record);
@@ -318,6 +314,7 @@ public final class FLEFRecordHelper{
 
 			final FLEFRecord referencedRecord = model.getRecordById(referencedId);
 			if(referencedRecord != null){
+				final String referencedTag = reference.getTag();
 				if(!Strings.CI.equals(referencedRecord.getTag(), referencedTag)){
 					System.err.println("Referenced tag differs from reference " + reference + " from record " + record);
 

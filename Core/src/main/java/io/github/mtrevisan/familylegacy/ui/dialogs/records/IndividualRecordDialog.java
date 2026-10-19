@@ -97,12 +97,11 @@ protected void onOk(){
 }
 */
 /**
- * Dialog for editing an {@code INDIVIDUAL_RECORD} according to FLEF 0.1.3.
+ * Dialog for editing an {@code INDIVIDUAL_RECORD} according to FLEF 0.2.0.
  * <p>
  * Structure:
  * <pre>
  * record IndividualRecord {
- *   id: LocalID
  *   name*: PersonalNameStructure
  *   sex?: enum { male, female, unknown }
  *   source*: SourceCitation
@@ -162,7 +161,7 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, I18N.t("dialog.component.conclusions"))
 			.withComponent(PanelKey.IDENTITY_HYPOTHESIS_ON_IDENTITY, IdentityHypothesisHandler.TYPE, I18N.t("dialog.component.identity.hypotheses"))
 			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, I18N.t("dialog.component.research.questions"))
-			.withComponent(PanelKey.SOURCE, IndividualReader.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
+			.withComponent(PanelKey.SOURCE, IndividualReader.TAG_SOURCE, I18N.t("dialog.component.sources_with_citations"))
 			.withComponent(PanelKey.NOTE, IndividualReader.TAG_NOTE, null)
 			.withComponent(PanelKey.PRIVACY, IndividualReader.TAG_PRIVACY, null)
 			.withComponent(PanelKey.AUDIT, IndividualReader.TAG_AUDIT, null)

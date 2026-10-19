@@ -106,7 +106,7 @@ public class PlaceHandler extends AbstractRecordTypeHandler<PlaceRecordDialog>{
 				for(final FLEFRecord placeRelationship : placeRelationships){
 					final String subjId = placeRelationship.extractReferencedId(PlaceRelationshipReader.TAG_SUBJECT, TYPE);
 					if(currentId.equals(subjId)){
-						final String objId = placeRelationship.extractReferencedId(PlaceRelationshipReader.TAG_OBJECT, TYPE);
+						final String objId = placeRelationship.extractReferencedId(PlaceRelationshipReader.TAG_TARGET, TYPE);
 						if(objId != null && visited.add(objId)){
 							final FLEFRecord parentRecord = model.getRecordById(objId);
 							if(parentRecord != null){

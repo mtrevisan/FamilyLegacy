@@ -325,7 +325,7 @@ public class FamilyLegacyFrame extends JFrame{
 			.getCodeSource()
 			.getLocation()
 			.toURI());
-		final Path path = root.resolve("gedg/flef_0.1.4.gedg");
+		final Path path = root.resolve("gedg/flef_0.2.0.gedg");
 		final FLEFGrammar grammar = FLEFGrammarParser.parse(path);
 
 		final String modelUri = "/tests/TGMZ.flef";

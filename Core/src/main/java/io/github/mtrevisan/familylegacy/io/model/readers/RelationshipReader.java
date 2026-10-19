@@ -47,7 +47,7 @@ import java.util.TreeSet;
  * // Implementations SHOULD validate the allowed SUBJECT and TARGET types according to the relationship TYPE.
  * record RelationshipRecord {
  *   subject: RelationshipParticipant   // The entity for which the relationship is being asserted. The SUBJECT is always the entity whose role is described by TYPE and ROLE relative to the TARGET. Example: `biological_child(Alice -> John)` means that Alice is the biological child of John.
- *   object: RelationshipParticipant    // the entity to which the subject is related to
+ *   target: RelationshipParticipant    // the entity to which the subject is related to
  *   type: enum {
  *     biological_child,     // (Individual -> Individual) relationship exists through birth
  *     adoptive_child,       // (Individual -> Individual) relationship created through legal adoption
@@ -87,7 +87,7 @@ import java.util.TreeSet;
 public final class RelationshipReader{
 
 	public static final String TAG_SUBJECT = "subject";
-	public static final String TAG_OBJECT = "object";
+	public static final String TAG_TARGET = "target";
 	public static final String TAG_TYPE = "type";
 	public static final String TAG_ROLE = "role";
 	public static final String TAG_STATUS = "status";
@@ -95,7 +95,7 @@ public final class RelationshipReader{
 	public static final String TAG_VALID_TO = "valid_to";
 	public static final String TAG_SOURCE = "source";
 	public static final String TAG_NOTE = "note";
-	public static final String TAG_EVIDENCE = "evidence";
+	public static final String TAG_CONFIDENCE = "confidence";
 	public static final String TAG_PRIVACY = "privacy";
 	public static final String TAG_AUDIT = "audit";
 
@@ -198,15 +198,15 @@ public final class RelationshipReader{
 	}
 
 
-	public static String[] getValidTypes(final FLEFRecord subject, final FLEFRecord object){
-		if(subject == null || object == null)
+	public static String[] getValidTypes(final FLEFRecord subject, final FLEFRecord target){
+		if(subject == null || target == null)
 			return EMPTY_TYPES;
 
 		if(IndividualHandler.isOfType(subject)){
-			if(IndividualHandler.isOfType(object))
+			if(IndividualHandler.isOfType(target))
 				return INDIVIDUAL_TO_INDIVIDUAL_TYPES;
 
-			if(GroupHandler.isOfType(object))
+			if(GroupHandler.isOfType(target))
 				return INDIVIDUAL_TO_GROUP_TYPES;
 		}
 

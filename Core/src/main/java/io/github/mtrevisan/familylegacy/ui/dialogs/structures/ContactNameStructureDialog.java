@@ -40,7 +40,7 @@ import java.awt.Window;
 
 
 /**
- * Dialog for editing a {@code NAME_STRUCTURE} according to FLEF 0.1.3.
+ * Dialog for editing a {@code NAME_STRUCTURE} according to FLEF 0.2.0.
  * <p>
  * Structure:
  * <pre>

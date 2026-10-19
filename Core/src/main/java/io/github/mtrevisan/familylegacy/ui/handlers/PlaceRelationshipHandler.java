@@ -79,12 +79,12 @@ public class PlaceRelationshipHandler extends AbstractRecordTypeHandler<PlaceRel
 			subjectDisplayText = subjectHandler.getDisplayText(subject, model);
 		}
 
-		final FLEFRecord object = FLEFRecordHelper.extractRecordsFromOneOfReference(record, PlaceRelationshipReader.TAG_OBJECT, model)
+		final FLEFRecord target = FLEFRecordHelper.extractRecordsFromOneOfReference(record, PlaceRelationshipReader.TAG_TARGET, model)
 			.getFirst();
 		String objectDisplayText = "--";
-		if(object != null){
-			final RecordTypeHandler<?> objectHandler = HandlerRegistry.getHandler(object.getTag());
-			objectDisplayText = objectHandler.getDisplayText(object, model);
+		if(target != null){
+			final RecordTypeHandler<?> objectHandler = HandlerRegistry.getHandler(target.getTag());
+			objectDisplayText = objectHandler.getDisplayText(target, model);
 		}
 
 		final String type = PlaceRelationshipReader.extractType(record);

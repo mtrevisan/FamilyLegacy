@@ -37,22 +37,14 @@ import java.util.List;
  */
 public final class PlaceToolRegistry{
 
-	private PlaceToolRegistry(){
-	}
+	private PlaceToolRegistry(){}
 
 
 	/** Tools that perform real work, in menu order. */
 	public static List<ToolOperation> primaryTools(){
 		return List.of(
-			new ManagePlacesTool(),
-			new NewPlaceTool(),
-			new PlaceHierarchyTool()
-		);
-	}
-
-	public static List<ToolOperation> geoAndNormalizationTools(){
-		return List.of(
-			new ShowOnMapTool()
+			new PlaceManagerTool(),
+			new NewPlaceTool()
 		);
 	}
 

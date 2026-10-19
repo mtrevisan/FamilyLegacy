@@ -39,7 +39,7 @@ import java.awt.Window;
 
 
 /**
- * Panel for BOUNDED date (uncertainty interval) according to FLEF 0.1.3.
+ * Panel for BOUNDED date (uncertainty interval) according to FLEF 0.2.0.
  * <p>
  * Structure:
  * <pre>

@@ -92,7 +92,7 @@ public class GEDCOMConverterMain{
 			.getCodeSource()
 			.getLocation()
 			.toURI());
-		final Path path = root.resolve("gedg/flef_0.1.4.gedg");
+		final Path path = root.resolve("gedg/flef_0.2.0.gedg");
 		final FLEFGrammar grammar = FLEFGrammarParser.parse(path);
 		for(final String warning : grammar.getParseWarnings())
 			System.err.println(warning);

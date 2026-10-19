@@ -35,7 +35,7 @@ import java.awt.Window;
 
 
 /**
- * Handler for {@code PLACE_CITATION} entities according to FLEF 0.1.3.
+ * Handler for {@code PLACE_CITATION} entities according to FLEF 0.2.0.
  */
 public class PlaceCitationHandler extends AbstractRecordTypeHandler<PlaceCitationDialog>{
 

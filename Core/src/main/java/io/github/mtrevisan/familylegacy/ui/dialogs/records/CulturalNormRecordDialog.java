@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.ui.dialogs.records;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.CulturalNormReader;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextField;
@@ -53,12 +54,11 @@ import java.io.IOException;
 
 
 /**
- * Dialog for editing a {@code CULTURAL_NORM_RECORD} according to FLEF 0.1.3.
+ * Dialog for editing a {@code CULTURAL_NORM_RECORD} according to FLEF 0.2.0.
  * <p>
  * Structure:
  * <pre>
  * record CulturalNormRecord {
- *   id: LocalID
  *   title?: Text
  *   rule_type?: enum {
  *     age_of_majority, marriage_minimum_age, baptism_age, confirmation_age, military_service_age, retirement_age,
@@ -75,13 +75,13 @@ import java.io.IOException;
  *   valid_to?: DateStructure
  *   source*: SourceCitation
  *   note*: Xref&lt;NoteRecord&gt;
- *   evidence?: EvidenceQualifiers
+ *   confidence?: Confidence
  *   audit: AuditStructure
  * }
  * </pre>
  * <p>
  * Tabs:
- * Tab 1 (Properties): title, rule_type, place, valid_from, valid_to, evidence
+ * Tab 1 (Properties): title, rule_type, place, valid_from, valid_to, confidence
  * Tab 5 (Context): ContextImpactRecord (context[cultural_norm] = this norm)
  * Tab 6 (Research): ConclusionRecord (resolves = this norm), ResearchQuestionRecord (target[cultural_norm] = this norm)
  * Tab 7 (Sources): source
@@ -96,6 +96,7 @@ public class CulturalNormRecordDialog extends BaseRecordDialog{
 	private final EvidenceQualifiersPanel placeEvidencePanel;
 	private final DateField validFromField;
 	private final DateField validToField;
+	private final BoundComboBox<String> confidenceCombo;
 
 
 	public static CulturalNormRecordDialog createNew(final Window parent, final FLEFModel model){
@@ -119,20 +120,22 @@ public class CulturalNormRecordDialog extends BaseRecordDialog{
 		placeEvidencePanel = new EvidenceQualifiersPanel(CulturalNormReader.TAG_PLACE_EVIDENCE, I18N.t("dialog.component.evidence"));
 		validFromField = DateField.createWithWrapperTag(CulturalNormReader.TAG_VALID_FROM, this, I18N.t("dialog.date.valid_from"), model);
 		validToField = DateField.createWithWrapperTag(CulturalNormReader.TAG_VALID_TO, this, I18N.t("dialog.date.valid_to"), model);
+		confidenceCombo = new BoundComboBox<>(CulturalNormReader.TAG_CONFIDENCE, GUIHelper.fillCombo(ConfidenceReader.CONFIDENCES, null));
+		confidenceCombo.setI18NPrefix("enum.confidence");
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, this.record)
 			.withComponent(PanelKey.CONTEXT_IMPACT_ON_CONTEXT, ContextImpactHandler.TYPE, I18N.t("dialog.component.context.impacts"))
 			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, I18N.t("dialog.component.conclusions"))
 			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, I18N.t("dialog.component.research.questions"))
-			.withComponent(PanelKey.SOURCE, CulturalNormReader.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
+			.withComponent(PanelKey.SOURCE, CulturalNormReader.TAG_SOURCE, I18N.t("dialog.component.sources_with_citations"))
 			.withComponent(PanelKey.NOTE, CulturalNormReader.TAG_NOTE, null)
-			.withComponent(PanelKey.EVIDENCE, CulturalNormReader.TAG_EVIDENCE, I18N.t("dialog.component.evidence"))
 			.withComponent(PanelKey.AUDIT, CulturalNormReader.TAG_AUDIT, null)
 			.build();
 
 		components.bind(titleField);
 		components.bind(typeCombo);
+		components.bind(confidenceCombo);
 
 
 		// Set up the image carousel selection listener on the source list
@@ -155,7 +158,7 @@ public class CulturalNormRecordDialog extends BaseRecordDialog{
 		// place panel:
 		final JPanel placePanel = new JPanel(new MigLayout("ins 10,hidemode 3,fillx,top,wrap 1",
 			"[grow,fill]", "[]10[]"));
-		placePanel.setBorder(new TitledBorder(I18N.t("dialog.place.with.citation")));
+		placePanel.setBorder(new TitledBorder(I18N.t("dialog.place_with_citation")));
 		placePanel.add(placeField, "growx");
 		placePanel.add(placeEvidencePanel, "growx");
 		GUIHelper.addComponent(propertiesPanel, placePanel);
@@ -169,9 +172,8 @@ public class CulturalNormRecordDialog extends BaseRecordDialog{
 		GUIHelper.addLabeledComponent(validityPanel, I18N.t("dialog.valid_to") + ":", validToField);
 		GUIHelper.addComponent(propertiesPanel, validityPanel);
 
-		// evidence
-		final JPanel evidencePanel = components.getPanel(PanelKey.EVIDENCE);
-		GUIHelper.addComponent(propertiesPanel, evidencePanel);
+		// confidence
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.cultural_norm.confidence") + ":", confidenceCombo);
 
 		return propertiesPanel;
 	}

@@ -109,7 +109,7 @@ final class ResearchQuestionRootSection implements SectionBuilder{
 		final List<String> items = new ArrayList<>();
 		for(final FLEFRecord t : FLEFRecordHelper.findChildren(ctx.root, ResearchQuestionReader.TAG_TARGET)){
 			final FLEFRecord ref = t.getTheOnlyChild();
-			if(ref == null || FLEFRecord.TAG_VOID.equalsIgnoreCase(ref.getTag()))
+			if(ref == null)
 				continue;
 
 			final String id = ref.getValue();

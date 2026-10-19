@@ -22,37 +22,29 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.ui.tools.places;
-
-import io.github.mtrevisan.familylegacy.ui.components.searches.RecordSelectionDialog;
-import io.github.mtrevisan.familylegacy.ui.handlers.PlaceHandler;
-import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
-import io.github.mtrevisan.familylegacy.ui.tools.ToolContext;
-import io.github.mtrevisan.familylegacy.ui.tools.ToolOperation;
+package io.github.mtrevisan.familylegacy.io.model.readers;
 
 
-/** Opens the place management dialog. */
-public final class ManagePlacesTool implements ToolOperation{
+/**
+ * Handler for CONFIDENCE records.
+ * <p>
+ * Structure:
+ * <pre>
+ * // The researcher's confidence that an assertion is true, based on the citations supporting it.
+ * enum Confidence {
+ *   low,      // limited evidence, unresolved conflicts, or speculative
+ *   medium,   // evidence generally supports the assertion, but gaps or uncertainties remain
+ *   high      // evidence strongly supports the assertion and no significant unresolved conflicts are known
+ * }
+ * </pre>
+ */
+public final class ConfidenceReader{
 
-	@Override
-	public String getName(){
-		return I18N.t("menu.place.manage.places");
-	}
+	public static final String[] CONFIDENCES = new String[]{
+		"low", "medium", "high"
+	};
 
-	@Override
-	public void run(final ToolContext context){
-		@SuppressWarnings("unchecked")
-		final RecordSelectionDialog dialog = RecordSelectionDialog.createWithAllowRecordCreation(context.owner(),
-			context.model(),
-			null,
-			PlaceHandler.class
-		);
-		dialog.setVisible(true);
-	}
 
-	@Override
-	public boolean isEnabled(final ToolContext context){
-		return (context != null && context.hasAnyPlaces());
-	}
+	private ConfidenceReader(){}
 
 }

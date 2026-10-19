@@ -27,7 +27,6 @@ package io.github.mtrevisan.familylegacy.ui.tools.research;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.io.model.readers.DateReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EvidenceQualifiersReader;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import io.github.mtrevisan.familylegacy.ui.tools.ReportDialog;
@@ -61,10 +60,12 @@ import java.util.TreeMap;
  */
 public final class EvidenceQualifiersTool implements ToolOperation{
 
+	private static final String TAG_EVIDENCE = "evidence";
+
 
 	@Override
 	public String getName(){
-		return I18N.t("menu.research.evidence.qualifiers");
+		return I18N.t("menu.research.evidence_qualifiers");
 	}
 
 	@Override
@@ -80,8 +81,7 @@ public final class EvidenceQualifiersTool implements ToolOperation{
 		for(final String type : SCANNED_TYPES){
 			final List<FLEFRecord> records = model.getRecordsByType(type);
 			for(final FLEFRecord record : records){
-				// NOTE not quite the right place to retrieve TAG_EVIDENCE, because it's shared...
-				final FLEFRecord qualifiers = FLEFRecordHelper.findChild(record, DateReader.TAG_EVIDENCE);
+				final FLEFRecord qualifiers = FLEFRecordHelper.findChild(record, TAG_EVIDENCE);
 				if(qualifiers == null){
 					withoutQualifiers ++;
 					continue;

@@ -219,7 +219,7 @@ public class DateService{
 
 			String value;
 			if(part != null)
-				value = I18N.tf("dialog.date.description.century.abbreviation.with.part", part, ordinal);
+				value = I18N.tf("dialog.date.description.century.abbreviation_with_part", part, ordinal);
 			else
 				value = I18N.tf("dialog.date.description.century.abbreviation", ordinal);
 

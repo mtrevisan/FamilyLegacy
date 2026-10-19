@@ -1,33 +1,94 @@
-// PROTOCOL_VERSION = 0.1.4
-// PROTOCOL_DATE = 2026-10-16
+// PROTOCOL_VERSION = 0.2.0
+// PROTOCOL_DATE = 2026-10-19
 // PROTOCOL_DESCRIPTION = Family LEgacy Format - DRAFT Release
 
 // ## Global Validation Rules
 // The protocol distinguishes between source assertions, researcher interpretations, evidence assessments,
 // hypotheses, conclusions, and research activities. These concepts represent different layers of knowledge
 // and MUST NOT be treated as equivalent.
+// An IndividualRecord (and likewise a GroupRecord or PlaceRecord) represents the researcher's current conclusion about one
+// real-world entity. Source assertions are preserved at the level of the records and citations attached to it.
+// Evidence is expressed exclusively through SourceCitation (each citation is one piece of evidence, classified by its
+// EvidenceQualifiers). The researcher's judgment about an assertion is expressed through CONFIDENCE; the formal resolution of
+// conflicting evidence is expressed through ConclusionRecord.
 // - ID values of each record MUST be unique within a file.
-// - References MUST resolve to an existing record unless explicitly declared as VOID.
+// - IDs are local to a file and are not stable across merges; they MUST NOT be used as persistent external keys.
 // - Circular citation chains SHOULD be avoided.
 // - Place relationship cycles SHOULD be prevented.
 // - Identity hypotheses SHOULD be unique per unordered pair.
-// - blocked_by relationships SHOULD form a DAG.
-// - follow_up relationships SHOULD be acyclic.
+// - PARENT_ACTIVITY chains of ResearchActivityRecord MUST be acyclic.
+// - ResearchActivityRecord.TASK and ResearchTaskRecord.CREATED_BY MUST be consistent: if activity A lists task T, then T.CREATED_BY,
+//   when present, MUST be A, and a task MUST NOT be listed by more than one activity.
+// - CONFIDENCE expresses the researcher's current confidence in the assertion represented by the containing structure.
+// - SOURCE citations support the assertion represented by the containing structure unless explicitly stated otherwise.
+
+// ## Merge
+// When two records are judged to represent the same real-world entity, they are merged:
+// - only the surviving record remains; every reference to the absorbed record is redirected to the survivor;
+// - the IdentityHypothesisRecord that proposed the merge is deleted;
+// - references to deleted records are cascaded: entries in repeated fields are removed, optional single fields are cleared,
+//   records whose required single field referenced a deleted record are deleted, and a ConclusionRecord whose RESOLVES becomes
+//   empty or whose PREFERRED was removed is deleted;
+// - the survivor SHOULD add an AUDIT.UPDATE entry whose COMMENT states the absorbed ID and the evidence that justified the merge.
+// Merge is the only operation by which a conclusion leads to the deletion of records.
+
+// ## Instance syntax
+// A file is a sequence of blocks. The header is written as `header { … }`; each record is written as
+//     <record_kind> <Id> { <assignments> }
+// where <record_kind> is an arm name of the Record union (e.g. `place_relationship`) and <Id> is the record identifier, e.g.
+//     place_relationship PR1077 {
+//       subject.place P1035
+//       target.place P354
+//       type administrative_part_of
+//       audit.creation.date 2026-10-16T09:30:00+02:00
+//     }
+// Assignments:
+// - An assignment is `<path> <value>` and terminates at the end of the line. One assignment per line.
+// - A structured value is written as a block: `<path> { <assignments> }`.
+// - A dotted path is a shorthand for nested blocks: `a.b.c v` is the same as `a { b { c v } }`. When a path segment names a
+//   `oneof` arm, it selects that arm; at most one arm per `oneof` may be assigned.
+// - Blocks for the same singular field are merged.
+// - Each block or dotted line passing through a repeated field (`*`, `+`) creates a new occurrence of that field. A repeated
+//   element with more than one field MUST therefore be written as a block, e.g.
+//       audit.update {
+//         date 2026-10-17T09:30:00+02:00
+//         comment fixed place
+//       }
+// Values:
+// - An `Xref<T>` value is written as the bare Id of a record of kind T. The Id prefix carries no meaning; validators check the
+//   kind of the referenced record, not its prefix.
+// - A single-line value runs to the end of the line and is trimmed at both ends; an empty or whitespace-only value is invalid.
+// - A multi-line value is enclosed in triple quotes (`"""` … `"""`): the opening `"""` is followed by a
+//   line break, incidental indentation (up to the closing `"""`) is stripped, and no escape sequences are processed.
+// - In an `enum | Text` position, a bare token is an enum member if the protocol version declared in HEADER.PROTOCOL.VERSION
+//   defines it; otherwise it is a custom value. Custom values MUST match [a-z0-9_]+ so that they can later be promoted to
+//   enum members without rewriting data. Validators SHOULD warn about unknown tokens (especially near-misses of enum members)
+//   but MUST accept them. Free prose belongs in DESCRIPTION or NOTE fields, not in TYPE fields.
+//
+// ## Privacy
+// - The effective privacy level of a structure is the most restrictive of: its own PRIVACY, the effective level of the structure
+//   that contains it, and the effective level of every IndividualRecord or GroupRecord it references (directly, or for an
+//   EventRecord through the EventParticipationRecords that reference it).
+// - A nested or dependent structure MAY be more restrictive than what it inherits, never less restrictive.
+//   Restriction levels in increasing order: public, restricted, confidential.
+// - A PRIVACY whose EXPIRES date has passed no longer contributes to the effective level.
+// - A DocumentRecord referenced as PREFERRED_IMAGE inherits the effective level of the IndividualRecord or GroupRecord referencing it.
 
 
 // ============================================================
 // Base scalar types
 // ============================================================
 
-alias Text           = string
-alias Date           = string   // complete ISO 8601 calendar date, as defined by ISO 8601, https://en.wikipedia.org/wiki/ISO_8601
+alias Text = string
+alias Id = string   // record identifier, matching [A-Za-z][A-Za-z0-9_-]*, unique within a file; written as the token after the record kind (e.g. `individual I12 { … }`)
+alias DateTime = string   // ISO 8601 date and time with mandatory UTC offset (YYYY-MM-DDThh:mm:ss±hh:mm or YYYY-MM-DDThh:mm:ssZ), as defined by ISO 8601, https://en.wikipedia.org/wiki/ISO_8601
 alias HistoricalDate = string   // historical date, reduced precision forms are allowed, such as a year ("1894") or year-month ("1894-03"), as defined by ISO 8601, https://en.wikipedia.org/wiki/ISO_8601
-alias Duration       = string   // duration, as defined by ISO 8601, https://en.wikipedia.org/wiki/ISO_8601#Durations (e.g. "P2Y")
-alias Uri            = string   // resource URI, following RFC 3986 specifications, https://datatracker.ietf.org/doc/html/rfc3986
-alias LocaleCode     = string   // locale identifier, as defined by IETF BCP 47, https://tools.ietf.org/html/bcp47
-alias SemVer         = string   // as defined by Semantic Versioning, https://semver.org
-alias Coord          = string   // geographic coordinates, as defined by ISO 6709, https://en.wikipedia.org/wiki/ISO_6709
-alias Int            = int
+alias Duration = string   // duration, as defined by ISO 8601, https://en.wikipedia.org/wiki/ISO_8601#Durations (e.g. "P2Y")
+alias Uri = string   // resource URI, following RFC 3986 specifications, https://datatracker.ietf.org/doc/html/rfc3986
+alias LocaleCode = string   // locale identifier, as defined by IETF BCP 47, https://tools.ietf.org/html/bcp47
+alias SemVer = string   // as defined by Semantic Versioning, https://semver.org
+alias Coord = string   // geographic coordinates, as defined by ISO 6709, https://en.wikipedia.org/wiki/ISO_6709
+alias Int = int
 
 
 // ============================================================
@@ -40,6 +101,7 @@ file FamilyLegacyFile {
 }
 
 // Top-level record container. Every record type appearing in a file must be represented through this union.
+// Every record has an implicit mandatory identifier of type Id, written after the record kind (see Instance syntax).
 Record = oneof {
   individual: IndividualRecord
   group: GroupRecord
@@ -79,7 +141,7 @@ struct Header {
     version?: SemVer   // the version of the software product. It is defined and changed by the creators of the product.
     organization?: Text   // the name of the organization or person that produced or commissioned the product
   }
-  date: Date         // the date this source was created
+  date: DateTime     // the date this file was created
   copyright?: Text   // a copyright statement needed to protect the copyrights of the submitter of this file
   submitter?: struct {
     contact*: ContactStructure   // contact information for the submitter (phone, email, web, etc.)
@@ -94,16 +156,17 @@ struct Header {
 // ============================================================
 
 // primary record
-// A representation of a historical individual together with the facts, events, relationships, and evidence believed to apply to that individual.
+// The researcher's current conclusion about one historical individual, together with the facts, events, relationships, and evidence believed to apply
+// to that individual. Two records believed to describe the same individual are candidates for a merge (see IdentityHypothesisRecord and Merge).
 record IndividualRecord {
   name*: PersonalNameStructure   // names associated with this individual (birth name, married name, alias, etc.)
   sex?: enum {                   // Biological sex as recorded in sources or inferred from evidence. This represents a genealogical conclusion and may be revised as additional evidence becomes available.
     male, female, unknown
   }
-  source*: SourceCitation        // source citations supporting facts about this individual
+  source*: SourceCitation        // the evidence that this individual existed and, when present, for SEX; facts about the individual are cited on their own records (names, events, attributes, relationships)
   note*: NoteStructure           // free-text notes about this individual
   preferred_image?: struct {
-    uri: Uri          // Resource URI pointing to a preferred image of this individual. FIXME? document: Xref<DocumentRecord>
+    uri: Uri          // Resource URI pointing to a preferred image of this individual. TODO document: Xref<DocumentRecord>
     crop?: CropRect   // normalized rectangle identifying the region of interest within the image
   }
   privacy?: PrivacyStructure
@@ -143,7 +206,7 @@ struct NamePartStructure {
     // personal and birth names
     given, generation,
     // direct family relationships (descent)
-    patronymic, matronymic, kunya (كُنيَة),
+    patronymic, matronymic, kunya,   // kunya: كُنيَة, Arabic teknonym (e.g. "Abu ...", "Umm ...")
     // extended family and social belonging
     family, family_nickname, lineage, house, clan, tribal, caste,
     // geographical and territorial origin
@@ -183,12 +246,13 @@ record EventRecord {
   place?: PlaceCitation           // the location of the event
   agency?: Text                   // Organization, institution, authority, corporation, or person responsible for the associated context (e.g., an employer, a church that administered rites, an archiving organization)
   cause?: struct {
-    reason: Text   // used in special cases to record the reasons which precipitated an event, e.g. cause of death subordinate to a death event
-    evidence?: EvidenceQualifiers
+    reason: Text              // used in special cases to record the reasons which precipitated an event, e.g. cause of death subordinate to a death event
+    source*: SourceCitation   // the evidence that this was the cause
+    confidence?: Confidence   // confidence that this was the cause
   }
-  source*: SourceCitation
+  source*: SourceCitation         // the evidence that this event happened
   note*: NoteStructure
-  evidence?: EvidenceQualifiers   // evidence qualifiers for the event
+  confidence?: Confidence         // confidence that this event happened
   privacy?: PrivacyStructure
   audit: AuditStructure
 }
@@ -266,7 +330,7 @@ record IndividualAttributeRecord {
   place?: PlaceCitation                // Place specifically associated with this attribute.
   source*: SourceCitation              // Sources supporting this attribute.
   note*: NoteStructure
-  evidence?: EvidenceQualifiers        // Evidentiary assessment of this assertion.
+  confidence?: Confidence              // confidence that this attribute was true
   privacy?: PrivacyStructure
   audit: AuditStructure
 }
@@ -281,16 +345,18 @@ record IndividualAttributeRecord {
 // be represented through EVENT_PARTICIPATION records. This design allows the same event to have multiple participants (e.g., a marriage has two
 // spouses) and the same entity to participate in multiple events (e.g., a person can be born, married, and buried).
 // Implementations SHOULD validate participant types according to the EVENT type when such constraints are known.
+// A place participant MUST have role PROPERTY (or a custom role); individual and group participants MUST NOT use PROPERTY.
 record EventParticipationRecord {
   participant: EventParticipant   // may reference any record type capable of participating in an event, including individuals, groups, or future extensible entities
   event: Xref<EventRecord>        // the event in which the entity participated
   role?: enum {                   // optional because the role may be unknown or not applicable
     child, parent, spouse, power_of_attorney, prisoner, witness, officiant, informant, executor, grantor, grantee,
-    landlord, tenant, soldier, commander, victim, survivor, accused, judge
+    landlord, tenant, soldier, commander, victim, survivor, accused, judge,
+	 property   // the place that is the object of the event (participant MUST be a place)
   } | Text
-  source*: SourceCitation
+  source*: SourceCitation   // the evidence that this participation was true
   note*: NoteStructure
-  evidence?: EvidenceQualifiers
+  confidence?: Confidence   // confidence that this participation was true
   privacy?: PrivacyStructure
   audit: AuditStructure
 }
@@ -298,7 +364,7 @@ record EventParticipationRecord {
 EventParticipant = oneof {
   individual: Xref<IndividualRecord>
   group: Xref<GroupRecord>
-  place: Xref<PlaceRecord>
+  place: Xref<PlaceRecord>   // a place that is the object of the event (e.g. the land conveyed by a deed), not where it happened; use EventRecord.PLACE for the location
 }
 
 
@@ -308,18 +374,18 @@ EventParticipant = oneof {
 
 // primary record
 // A group of genealogical entities. A group can be a family, a household, a neighborhood, a club, a research group, etc. Membership in a GROUP is
-// determined exclusively through RELATIONSHIP_RECORD objects whose OBJECT references the GROUP record and whose TYPE identifies a group membership
+// determined exclusively through RELATIONSHIP_RECORD objects whose TARGET references the GROUP record and whose TYPE identifies a group membership
 // relationship (e.g., 'group_member'). GROUP_RECORD does not directly contain a member list. This design ensures that membership is treated as a
 // relationship with its own properties (dates, evidence, conclusions).
 record GroupRecord {
-  name*: NameStructure   // names associated with the group. Different names may represent historical, official, customary, translated, abbreviated, or otherwise variant forms used at different times or in different contexts.
+  name*: NameStructure      // names associated with the group. Different names may represent historical, official, customary, translated, abbreviated, or otherwise variant forms used at different times or in different contexts.
   type?: enum {
     family, household, neighborhood, fraternity, club, literary_society, association, organization, tribe
   } | Text
-  source*: SourceCitation
+  source*: SourceCitation   // the evidence that this group existed; facts about the group are cited on their own records (attributes, relationships, events)
   note*: NoteStructure
   preferred_image?: struct {
-    uri: Uri          // Resource URI pointing to a preferred image of this individual. FIXME? document: Xref<DocumentRecord>
+    uri: Uri          // Resource URI pointing to a preferred image of this group. TODO document: Xref<DocumentRecord>
     crop?: CropRect   // specifies the portion of the image that should be displayed as the preferred representation
   }
   privacy?: PrivacyStructure
@@ -354,9 +420,9 @@ record GroupAttributeRecord {
   valid_from?: DateStructure      // The date from which this attribute is known or believed to have been valid.
   valid_to?: DateStructure        // The date until which this attribute is known or believed to have been valid.
   place?: PlaceCitation           // Place specifically associated with this attribute, when different from the group's general residence.
-  source*: SourceCitation         // Sources supporting this attribute.
+  source*: SourceCitation         // the evidence that this attribute was true
   note*: NoteStructure
-  evidence?: EvidenceQualifiers   // Evidentiary assessment of this assertion.
+  confidence?: Confidence         // confidence that this attribute was true
   privacy?: PrivacyStructure
   audit: AuditStructure
 }
@@ -462,10 +528,10 @@ TextValueVariant = oneof {
 // before, during, or after one or more events. Events that create, modify, recognize, or terminate a relationship SHOULD be represented separately
 // using EVENT records. This separation allows relationships to exist independently of events (e.g., a biological parent-child relationship
 // exists regardless of whether a birth event is documented).
-// Implementations SHOULD validate the allowed SUBJECT and OBJECT types according to the relationship TYPE.
+// Implementations SHOULD validate the allowed SUBJECT and TARGET types according to the relationship TYPE.
 record RelationshipRecord {
-  subject: RelationshipParticipant   // The entity for which the relationship is being asserted. The SUBJECT is always the entity whose role is described by TYPE and ROLE relative to the OBJECT. Example: `biological_child(Alice -> John)` means that Alice is the biological child of John.
-  object: RelationshipParticipant    // the entity to which the subject is related to
+  subject: RelationshipParticipant   // The entity for which the relationship is being asserted. The SUBJECT is always the entity whose role is described by TYPE and ROLE relative to the TARGET. Example: `biological_child(Alice -> John)` means that Alice is the biological child of John.
+  target: RelationshipParticipant    // the entity to which the subject is related to
   type: enum {
     biological_child,     // (Individual -> Individual) relationship exists through birth
     adoptive_child,       // (Individual -> Individual) relationship created through legal adoption
@@ -478,10 +544,10 @@ record RelationshipRecord {
     cohabiting_partner,   // (Individual -> Individual) non-marital domestic partnership
     engaged_partner,      // (Individual -> Individual) promise or agreement to marry
     group_member,         // (Individual -> Group) membership of an individual in a group
-    associate             // (Individual -> Individual | Individual -> Group | Group -> Group) general association
+    associate,            // (Individual -> Individual | Individual -> Group | Group -> Group) general association
     part_of               // (Group -> Group) membership of a group within a larger group
   }
-  role?: Text                        // the function, position, capacity or responsibility held by the SUBJECT relative to the OBJECT. This field provides additional contextual, organizational, legal, social, or cultural interpretation that is not fully expressed by TYPE alone. ROLE supplements TYPE and SHOULD NOT contradict it. Implementations SHOULD verify that ROLE is semantically compatible with TYPE (ex. biological_child/adoptive_child/foster_child/guarded_child/step_child/civil_spouse/religious_spouse/customary_spouse/cohabiting_partner/engaged_partner/part_of -> ROLE is normally unnecessary and SHOULD be omitted, group_member -> examples include member, president, secretary, treasurer, resident, head_of_household, tribal_leader, elder, custodian, ..., associate -> any role MAY be supplied because the relationship itself is generic).
+  role?: Text                        // the function, position, capacity or responsibility held by the SUBJECT relative to the TARGET. This field provides additional contextual, organizational, legal, social, or cultural interpretation that is not fully expressed by TYPE alone. ROLE supplements TYPE and SHOULD NOT contradict it. Implementations SHOULD verify that ROLE is semantically compatible with TYPE (ex. biological_child/adoptive_child/foster_child/guarded_child/step_child/civil_spouse/religious_spouse/customary_spouse/cohabiting_partner/engaged_partner/part_of -> ROLE is normally unnecessary and SHOULD be omitted, group_member -> examples include member, president, secretary, treasurer, resident, head_of_household, tribal_leader, elder, custodian, ..., associate -> any role MAY be supplied because the relationship itself is generic).
   status?: enum {
     active,   // relationship currently exists
     ended,    // relationship no longer exists
@@ -489,9 +555,9 @@ record RelationshipRecord {
   }
   valid_from?: DateStructure         // the date from which this relationship was known to be in effect
   valid_to?: DateStructure           // the date until which this relationship was known to be in effect
-  source*: SourceCitation
+  source*: SourceCitation            // the evidence that this relationship was true
   note*: NoteStructure
-  evidence?: EvidenceQualifiers
+  confidence?: Confidence            // confidence that this relationship was true
   privacy?: PrivacyStructure
   audit: AuditStructure
 }
@@ -510,7 +576,7 @@ RelationshipParticipant = oneof {
 // A geographical, administrative, ecclesiastical, cadastral, historical, or physical location. Places may be linked together using PLACE_RELATIONSHIP
 // records in order to model changing jurisdictions and historical geography.
 record PlaceRecord {
-  name+: NameStructure   // the name of the place formatted for display and address generation
+  name+: NameStructure      // the name of the place formatted for display and address generation
   type?: enum {
     // settlements and built environments
     address,             // specific postal or civic address
@@ -533,28 +599,30 @@ record PlaceRecord {
     empire,              // multi-ethnic or multi-national imperial state
     // ecclesiastical jurisdictions
     parish,              // ecclesiastical parish
+    archdiocese,
     diocese,             // ecclesiastical diocese or equivalent jurisdiction
     // sites and institutions
     cemetery             // burial ground or cemetery
   } | Text
-  map?: struct {         // Contains the location of a place in a Global Positioning System.
-    coordinates: Coord   // geographic coordinates of the place, representative point, not necessarily the full territorial extent of the place
-    evidence?: EvidenceQualifiers
+  location?: struct {       // Contains a representative geographic location for the place.
+    coordinates: Coord        // geographic coordinates of the place, representative point, not necessarily the full territorial extent of the place
+    source*: SourceCitation   // the evidence that this location was true for the place
+    confidence?: Confidence   // confidence that this location was true for the place
   }
-  source*: SourceCitation
-  evidence?: EvidenceQualifiers
+  source*: SourceCitation   // the evidence that this place really existed
+  confidence?: Confidence   // confidence that this place really existed
   privacy?: PrivacyStructure
   audit: AuditStructure
 }
 
 // embedded
-// Reference to a PLACE record together with location-specific citations and evidence qualifiers.
+// Reference to a PLACE record together with location-specific citations.
 // Implementations SHOULD prevent cyclic expansion of citation metadata (PlaceCitation > SourceCitation > SourceRecord > PlaceCitation).
 struct PlaceCitation {
   place: Xref<PlaceRecord>
-  original_text?: Text   // The place name exactly as recorded in the source. This value MAY coexist with PLACE when the source wording is preserved alongside a normalized place identification.
-  source*: SourceCitation
-  evidence?: EvidenceQualifiers
+  original_text?: Text      // The place name exactly as recorded in the source. This value MAY coexist with PLACE when the source wording is preserved alongside a normalized place identification.
+  source*: SourceCitation   // the evidence that this place is really the one cited
+  confidence?: Confidence   // confidence that this place is really the one cited
 }
 
 // association record
@@ -565,28 +633,28 @@ struct PlaceCitation {
 // Relationships are directional: `administrative_part_of(Treviso -> Veneto)` is NOT equivalent to `administrative_part_of(Veneto -> Treviso)`.
 record PlaceRelationshipRecord {
   subject: struct {
-    place: Xref<PlaceRecord>   // the place for which the relationship is asserted. The SUBJECT is always the place whose role is described by TYPE relative to the OBJECT.
+    place: Xref<PlaceRecord>   // the place for which the relationship is asserted. The SUBJECT is always the place whose role is described by TYPE relative to the TARGET.
   }
-  object: struct {
+  target: struct {
     place: Xref<PlaceRecord>   // the place to which the subject is related
   }
   type: enum {
-    administrative_part_of,   // subject is part of an administrative jurisdiction, e.g., Treviso → Veneto
-    geographic_part_of,       // subject is geographically contained within another place
-    ecclesiastical_part_of,   // subject belongs to an ecclesiastical jurisdiction such as a parish, diocese, or archdiocese
-    judicial_part_of,         // subject belongs to a court, district, or judicial jurisdiction
-    cadastral_part_of,        // subject belongs to a cadastral or land-records district
-    predecessor_of,           // subject ceased to exist and was succeeded by the OBJECT place
-    successor_of,             // subject replaced or inherited the identity, territory, or function of the OBJECT place
-    merged_into,              // subject was merged into the OBJECT place
-    split_from,               // subject was created from the division of the OBJECT place
-    transferred_to            // subject place was reassigned, wholly or partially, to the jurisdiction of the OBJECT place
+    administrative_part_of,    // subject is part of an administrative jurisdiction, e.g., Treviso → Veneto
+    geographic_part_of,        // subject is geographically contained within another place
+    ecclesiastical_part_of,    // subject belongs to an ecclesiastical jurisdiction such as a parish, diocese, or archdiocese
+    judicial_part_of,          // subject belongs to a court, district, or judicial jurisdiction
+    cadastral_part_of,         // subject belongs to a cadastral or land-records district
+    predecessor_of,            // subject ceased to exist and was succeeded by the TARGET place
+    successor_of,              // subject replaced or inherited the identity, territory, or function of the TARGET place
+    merged_into,               // subject was merged into the TARGET place
+    split_from,                // subject was created from the division of the TARGET place
+    territory_transferred_to   // subject place was reassigned, wholly or partially, to the jurisdiction of the TARGET place
   } | Text
   valid_from?: DateStructure   // the date from which this place relationship is known or believed to have been valid
   valid_to?: DateStructure     // the date until which this place relationship is known or believed to have been valid
-  source*: SourceCitation      // a list of source citations supporting the existence, interpretation, or dating of this place relationship
+  source*: SourceCitation      // the evidence that this place relationship was true, including its interpretation and dating
   note*: NoteStructure         // a note containing commentary, interpretation, or discussion related to this place relationship
-  evidence?: EvidenceQualifiers
+  confidence?: Confidence      // confidence that this place relationship was true
   audit: AuditStructure
 }
 
@@ -595,7 +663,7 @@ record PlaceRelationshipRecord {
 // Note
 // ============================================================
 
-// primary record
+// embedded
 struct NoteStructure {
   title?: Text   // note title
   text: Text     // comments or opinions from the submitter. If markdown, references to structures in this file can be written as `[text](@id@)`, "confidential" data can be written as `[text](confidential)`, and this last marks text that SHOULD be hidden when confidential information is suppressed.
@@ -699,8 +767,8 @@ record CulturalNormRecord {
   valid_from?: DateStructure   // the date from which this cultural norm was in effect
   valid_to?: DateStructure     // the date until which this cultural norm was in effect
   note*: NoteStructure
-  source*: SourceCitation
-  evidence?: EvidenceQualifiers
+  source*: SourceCitation      // the evidence that this cultural norm was true
+  confidence?: Confidence      // confidence that this cultural norm was true
   audit: AuditStructure
 }
 
@@ -727,13 +795,8 @@ record ContextImpactRecord {
     causes        // Directly contributes to the occurrence or existence of the target.
   } | Text
   rationale?: Text          // Explanation of how and why the contextual factor influences, explains, constrains, motivates, or causes the target.
-  confidence?: enum {
-     low,
-     medium,
-     high
-  }
-  source*: SourceCitation   // Sources supporting the existence or interpretation of this contextual relationship.
-  evidence?: EvidenceQualifiers
+  source*: SourceCitation   // the evidence that this context impact was true
+  confidence?: Confidence   // confidence that this context impact was true
   audit: AuditStructure
 }
 
@@ -793,12 +856,13 @@ record SourceRecord {
 }
 
 // embedded
-// Reference to a SOURCE record used as evidence for an assertion, together with optional location, notes, crop coordinates, and evidence assessment.
+// Reference to a SOURCE record used as evidence for an assertion, together with optional location, extracts, and evidence classification.
+// A SourceCitation is one piece of evidence for the assertion that contains it.
 struct SourceCitation {
   source: Xref<SourceRecord>
   locator?: Text   // specific location within the source referenced, in the form of a label and value pair (e.g., 'Line: 28', or 'Page: 143, Entry: 17', or 'folio', etc.)
   extract*: ExtractStructure
-  evidence?: EvidenceQualifiers
+  evidence?: EvidenceQualifiers   // classification of this source's contribution to the assertion it is cited for
   privacy?: PrivacyStructure
 
   require extract.document_part.document in source.document
@@ -866,12 +930,12 @@ record DocumentRecord {
 // embedded
 // Used for historical, documentary, and genealogical dates whose value may require interpretation, source evaluation, calendar conversion, or
 // evidentiary analysis. Administrative dates such as creation dates, update dates, search dates, expiration dates, and other system metadata should
-// use the simpler `Date` type instead.
+// use the simpler `DateTime` type instead.
 struct DateStructure {
-  value: DateValue       // contains the normalized date assertion according to the conventions of this protocol. The normalized value MAY be derived from a source expression, calendar conversion, date normalization, abbreviation expansion, calculation, or researcher interpretation.
-  original_text?: Text   // preserves the date expression exactly as found in the source, when available
-  source*: SourceCitation
-  evidence?: EvidenceQualifiers
+  value: DateValue          // contains the normalized date assertion according to the conventions of this protocol. The normalized value MAY be derived from a source expression, calendar conversion, date normalization, abbreviation expansion, calculation, or researcher interpretation.
+  original_text?: Text      // preserves the date expression exactly as found in the source, when available
+  source*: SourceCitation   // the evidence that this date was true
+  confidence?: Confidence   // confidence that this date was true
 }
 
 // embedded
@@ -974,12 +1038,12 @@ record HistoricEventRecord {
     social_movement,        // Organized social or cultural movement that influences societal norms, rights, or collective behavior.
     pandemic                // Epidemic affecting multiple countries or continents.
   } | Text
-  title?: Text            // the title of the event
-  date?: DateStructure    // the date on which this historic event happened
-  place?: PlaceCitation   // the place in which this historic event happened
+  title?: Text              // the title of the event
+  date?: DateStructure      // the date on which this historic event happened
+  place?: PlaceCitation     // the place in which this historic event happened
   note*: NoteStructure
-  source*: SourceCitation
-  evidence?: EvidenceQualifiers
+  source*: SourceCitation   // the evidence that this historic event was true
+  confidence?: Confidence   // confidence that this historic event was true
   audit: AuditStructure
 }
 
@@ -999,17 +1063,17 @@ record HistoricEventRecord {
 record ResearchQuestionRecord {
   title: Text               // short human-readable summary of the research objective
   question: Text            // the actual research question or hypothesis being investigated
-  target*: ResearchTarget   // people, families, events, places, or records involved in the question
+  target*: ResearchTarget   // people, families, events, places, or records involved in the question; empty when no target has been identified yet
   status: enum {
     open,       // investigation is ongoing
     on_hold,    // temporarily suspended
     resolved,   // sufficient evidence has been gathered
-    disproven   // the underlying hypothesis was shown to be incorrect
+    abandoned   // investigation is abandoned
   }
   conclusion?: Text         // Current answer or working conclusion for this research question. This field is intended as a concise human-readable summary of the researcher's current assessment. Unlike ConclusionRecord, this field does not formally resolve conflicting evidence and does not provide structured proof analysis. It serves as an executive summary of the present state of research.
-  conclusion_confidence?: enum { low, medium, high } // Indicates the researcher's confidence in the current conclusion. This value reflects the current state of investigation and is intended for planning, prioritization, reporting, and user interfaces. It does not replace formal proof evaluation expressed through ConclusionRecord. Suggested interpretation are low: limited evidence, unresolved conflicts, or speculative conclusion; medium: evidence generally supports the conclusion, but gaps or uncertainties remain; high: evidence strongly supports the conclusion and no significant unresolved conflicts are currently known
+  conclusion_confidence?: Confidence   // The researcher's confidence in the current conclusion. It is intended for planning, prioritization, reporting, and user interfaces, and does not replace formal proof evaluation expressed through ConclusionRecord.
   rationale?: Text          // explanation supporting the conclusion
-  closed_date?: Date        // date the question was resolved or disproven
+  closed_date?: DateTime    // date the question was resolved or abandoned
   privacy?: PrivacyStructure
   audit: AuditStructure
 }
@@ -1029,7 +1093,6 @@ ResearchTarget = oneof {
   identity_hypothesis: Xref<IdentityHypothesisRecord>
   cultural_norm: Xref<CulturalNormRecord>
   historic_event: Xref<HistoricEventRecord>
-  void: struct {}
 }
 
 // primary record
@@ -1073,7 +1136,7 @@ record ResearchActivityRecord {
   }
   observation?: Text                               // objective notes describing what was observed
   conclusion?: Text                                // interpretation or conclusion drawn from the observations
-  conclusion_confidence?: enum { low, medium, high }   // confidence in the interpretation produced by this activity
+  conclusion_confidence?: Confidence               // confidence in the interpretation produced by this activity
 
   source*: SourceCitation                          // sources consulted, examined, or discovered
   parent_activity?: Xref<ResearchActivityRecord>   // previous activity from which this activity originated
@@ -1095,7 +1158,7 @@ record ResearchTaskRecord {
    abandoned      // intentionally discontinued
   }
   priority?: enum { low, normal, high }
-  due_date?: Date                             // optional target completion date
+  due_date?: DateTime                         // optional target completion date
   outcome?: Text                              // notes describing the result once completed
   privacy?: PrivacyStructure
   audit: AuditStructure
@@ -1106,10 +1169,9 @@ record ResearchTaskRecord {
 // analysis of the sources.
 // Conclusions are research outcomes rather than source assertions. A conclusion records the researcher’s evaluation of competing
 // evidence and is separate from the underlying records it analyzes.
-// A conclusion does not modify, invalidate, or delete the records it evaluates. All competing assertions remain preserved so that the reasoning process
-// remains transparent and auditable.
-// Conclusions never replace evidence. The protocol preserves source assertions, competing hypotheses,
-// and researcher conclusions simultaneously.
+// A conclusion does not modify, invalidate, or delete the records it evaluates (the only exception is Merge, see the global rules). All competing
+// assertions remain preserved so that the reasoning process remains transparent and auditable.
+// Conclusions never replace evidence. The protocol preserves source assertions, competing hypotheses, and researcher conclusions simultaneously.
 record ConclusionRecord {
   issue: Text                               // the specific issue that is resolved, e.g. "birth_date", "marriage_place", "parentage", "death_cause", "relationship_type"
   proof_status: enum {
@@ -1125,7 +1187,7 @@ record ConclusionRecord {
   source*: SourceCitation                   // any sources that support the conclusion itself (e.g., a methodology treatise, or a secondary source that has already resolved the conflict)
   privacy?: PrivacyStructure
   audit: AuditStructure
-  
+
   require preferred member_of resolves
 }
 
@@ -1162,7 +1224,7 @@ struct PrivacyStructure {
   reason?: enum {   // Standardized reason for the restriction. Custom values MAY be supplied for application-specific needs. REASON SHOULD be omitted when LEVEL is public.
     living_person, privacy_law, copyright, repository_license, sensitive_information
   } | Text
-  expires?: Date    // the date this restriction expires
+  expires?: DateTime   // the date this restriction expires
 }
 
 // embedded
@@ -1170,30 +1232,31 @@ struct PrivacyStructure {
 // subject represented by the record.
 struct AuditStructure {
   creation: struct {
-    date: Date   // the date of the creation of this structure
+    date: DateTime   // the date of the creation of this structure
     comment?: Text
   }
   update*: struct {
-    date: Date   // the date of the changing of this structure
-    comment?: Text
+    date: DateTime   // the date of the changing of this structure
+    comment?: Text   // after a merge, SHOULD state the ID of the absorbed record and the evidence that justified the merge
   }
 }
 
 // association record
-// Represents the possibility that two records describe the same real-world entity. The hypothesis itself carries no acceptance
-// or rejection status. Evaluation of the hypothesis is expressed through one or more ConclusionRecord instances.
-// SUBJECT and CANDIDATE MUST reference different records.
-// The record expresses a possibility, not a probability assessment. The presence of an identity hypothesis does not imply that the entities
-// are likely to be identical.
+// Represents the possibility that two records describe the same real-world entity and are therefore candidates for a merge.
+// The hypothesis itself carries no acceptance or rejection status: it can be evaluated through ConclusionRecord instances, and it is accepted by
+// performing the merge (see Merge in the global rules), after which it is deleted.
+// IDENTITY[0] and IDENTITY[1] MUST reference different records of the same kind.
+// The presence of an identity hypothesis does not imply that the entities are likely to be identical; CONFIDENCE expresses the researcher's
+// current estimate.
 // Multiple conclusions MAY evaluate the same identity hypothesis over time.
 record IdentityHypothesisRecord {
   identity+: IdentityCandidate
-  comment?: Text   // a note explaining the basis for the possible duplicate hypothesis
+  comment?: Text            // a note explaining the basis for the possible duplicate hypothesis
   source*: SourceCitation
   note*: NoteStructure
-  evidence?: EvidenceQualifiers
+  confidence?: Confidence   // confidence that this hypothesis is true
   audit: AuditStructure
-  
+
   require count(identity) == 2
   require identity[0] != identity[1]
   require type(identity[0]) == type(identity[1])
@@ -1206,16 +1269,28 @@ IdentityCandidate = oneof {
 }
 
 // embedded
-// Qualifiers describing the evidentiary assessment of a specific assertion.
-// These qualifiers apply to the assertion being cited and do not express the reliability, authority, or quality of the source as a whole.
+// Classification of one source's contribution to one assertion.
+// These qualifiers apply to the source as cited for that specific assertion and do not express the reliability, authority, or quality of the source as a whole.
 struct EvidenceQualifiers {
-  source_type?: enum {        // Classification of the source itself.
-    original, derived
+  source_type?: enum {        // Classification of the source item
+    original,   // first recording
+    derived     // copy, transcription, abstract, index, ...
   }
-  information_type?: enum {   // Classification of the information provided by the source.
-    primary, secondary, undetermined
+  information_type?: enum {   // Classification of the information provided by the source
+    primary,       // informant with first-hand knowledge
+    secondary,     // informant with second-hand knowledge
+    undetermined
   }
-  evidence_type?: enum {      // Nature of the evidentiary contribution toward the assertion.
-    direct, indirect, negative
+  evidence_type?: enum {      // Relation between the information and the assertion
+    direct,     // states it
+    indirect,   // implies it
+    negative    // inferred from absence
   }
+}
+
+// The researcher's confidence that an assertion is true, based on the citations supporting it.
+enum Confidence {
+  low,      // limited evidence, unresolved conflicts, or speculative
+  medium,   // evidence generally supports the assertion, but gaps or uncertainties remain
+  high      // evidence strongly supports the assertion and no significant unresolved conflicts are known
 }

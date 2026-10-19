@@ -47,12 +47,11 @@ import java.io.IOException;
 
 
 /**
- * Dialog for editing a {@code DOCUMENT_RECORD} according to FLEF 0.1.3.
+ * Dialog for editing a {@code DOCUMENT_RECORD} according to FLEF 0.2.0.
  * <p>
  * Structure:
  * <pre>
  * record DocumentRecord {
- *   id: LocalID
  *   uri: Uri
  *   mapping?: enum { spherical_UV, cylindrical_equirectangular_horizontal, cylindrical_equirectangular_vertical } | Text
  *   description?: Text

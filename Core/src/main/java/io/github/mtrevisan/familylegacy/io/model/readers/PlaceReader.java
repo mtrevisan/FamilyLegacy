@@ -47,9 +47,10 @@ import java.util.List;
  *     metropolitan_area, county, province, department, district, region,
  *     macro_region, country, empire, parish, diocese, cemetery, archive
  *   } | Text
- *   map?: struct {         // Contains the location of a place in a Global Positioning System.
- *     coordinates: Coord   // geographic coordinates of the place
- *     evidence?: EvidenceQualifiers
+ *   map?: struct {              // Contains a representative geographic location for the place.
+ *     coordinates: Coord        // geographic coordinates of the place, representative point, not necessarily the full territorial extent of the place
+ *     source*: SourceCitation   // the evidence that this location was true for the place
+ *     confidence?: Confidence   // confidence that this location was true for the place
  *   }
  *   source*: SourceCitation
  *   evidence?: EvidenceQualifiers
@@ -62,20 +63,21 @@ public final class PlaceReader{
 
 	public static final String TAG_NAME = "name";
 	public static final String TAG_TYPE = "type";
-	public static final String TAG_MAP = "map";
+	public static final String TAG_LOCATION = "location";
 	public static final String TAG_COORDINATES = "coordinates";
 	public static final String TAG_SOURCE = "source";
-	public static final String TAG_EVIDENCE = "evidence";
+	public static final String TAG_CONFIDENCE = "confidence";
 	public static final String TAG_PRIVACY = "privacy";
 	public static final String TAG_AUDIT = "audit";
 
-	public static final String TAG_MAP_COORDINATES = FLEFRecordHelper.composePath(TAG_MAP, TAG_COORDINATES);
-	public static final String TAG_MAP_EVIDENCE = FLEFRecordHelper.composePath(TAG_MAP, TAG_EVIDENCE);
+	public static final String TAG_LOCATION_COORDINATES = FLEFRecordHelper.composePath(TAG_LOCATION, TAG_COORDINATES);
+	public static final String TAG_LOCATION_SOURCE = FLEFRecordHelper.composePath(TAG_LOCATION, TAG_SOURCE);
+	public static final String TAG_LOCATION_CONFIDENCE = FLEFRecordHelper.composePath(TAG_LOCATION, TAG_CONFIDENCE);
 
 	public static final String[] TYPES = new String[]{
 		"address", "building", "street", "hamlet", "village", "town", "municipality", "city", "metropolitan_area",
 		"county", "province", "department", "district", "region", "macro_region", "country", "empire", "parish",
-		"diocese", "cemetery"
+		"archdiocese", "diocese", "cemetery"
 	};
 
 
@@ -111,7 +113,7 @@ public final class PlaceReader{
 	 * {@code map.coordinates} structure, or {@code null} when missing.
 	 */
 	public static String extractCoordinates(final FLEFRecord record){
-		return FLEFRecordHelper.getChildValue(record, TAG_MAP_COORDINATES);
+		return FLEFRecordHelper.getChildValue(record, TAG_LOCATION_COORDINATES);
 	}
 
 }

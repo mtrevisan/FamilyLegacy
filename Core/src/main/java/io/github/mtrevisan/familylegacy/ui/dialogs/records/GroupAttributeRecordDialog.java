@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.ui.dialogs.records;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.GroupAttributeReader;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextField;
@@ -53,12 +54,11 @@ import java.io.IOException;
 
 
 /**
- * Dialog for editing a {@code GROUP_ATTRIBUTE_RECORD} according to FLEF 0.1.3.
+ * Dialog for editing a {@code GROUP_ATTRIBUTE_RECORD} according to FLEF 0.2.0.
  * <p>
  * Structure:
  * <pre>
  * record GroupAttributeRecord {
- *   id: LocalID
  *   group: Xref&lt;GroupRecord&gt;
  *   type: enum {
  *     residence,
@@ -78,14 +78,14 @@ import java.io.IOException;
  *   place?: PlaceCitation
  *   source*: SourceCitation
  *   note*: Xref&lt;NoteRecord&gt;
- *   evidence?: EvidenceQualifiers
+ *   confidence?: Confidence
  *   privacy?: PrivacyStructure
  *   audit: AuditStructure
  * }
  * </pre>
  * <p>
  * Tabs:
- * Tab 1 (Properties): group, type, value, valid_from, valid_to, place, evidence
+ * Tab 1 (Properties): group, type, value, valid_from, valid_to, place, confidence
  * Tab 5 (Context): ContextImpactRecord (target[group_attribute] = this attribute)
  * Tab 6 (Research): ConclusionRecord (resolves = this attribute), ResearchQuestionRecord (target[group_attribute] = this attribute)
  * Tab 7 (Sources): source
@@ -102,6 +102,7 @@ public class GroupAttributeRecordDialog extends BaseRecordDialog{
 	private final DateField validFromField;
 	private final DateField validToField;
 	private final EntityField placeField;
+	private final BoundComboBox<String> confidenceCombo;
 
 
 	public static GroupAttributeRecordDialog createNew(final Window parent, final FLEFModel model){
@@ -126,21 +127,23 @@ public class GroupAttributeRecordDialog extends BaseRecordDialog{
 		validFromField = DateField.createWithWrapperTag(GroupAttributeReader.TAG_VALID_FROM, this, I18N.t("dialog.valid_from"), model);
 		validToField = DateField.createWithWrapperTag(GroupAttributeReader.TAG_VALID_TO, this, I18N.t("dialog.valid_to"), model);
 		placeField = EntityField.createForStructureWithReference(GroupAttributeReader.TAG_PLACE, this, model, PlaceCitationHandler.class);
+		confidenceCombo = new BoundComboBox<>(GroupAttributeReader.TAG_CONFIDENCE, GUIHelper.fillCombo(ConfidenceReader.CONFIDENCES, null));
+		confidenceCombo.setI18NPrefix("enum.confidence");
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, this.record)
 			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, ContextImpactHandler.TYPE, I18N.t("dialog.component.context.impacts"))
 			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, I18N.t("dialog.component.conclusions"))
 			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, I18N.t("dialog.component.research.questions"))
-			.withComponent(PanelKey.SOURCE, GroupAttributeReader.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
+			.withComponent(PanelKey.SOURCE, GroupAttributeReader.TAG_SOURCE, I18N.t("dialog.component.sources_with_citations"))
 			.withComponent(PanelKey.NOTE, GroupAttributeReader.TAG_NOTE, null)
-			.withComponent(PanelKey.EVIDENCE, GroupAttributeReader.TAG_EVIDENCE, I18N.t("dialog.component.evidence"))
 			.withComponent(PanelKey.PRIVACY, GroupAttributeReader.TAG_PRIVACY, null)
 			.withComponent(PanelKey.AUDIT, GroupAttributeReader.TAG_AUDIT, null)
 			.build();
 
 		components.bind(typeCombo);
 		components.bind(valueField);
+		components.bind(confidenceCombo);
 
 
 		// Set up the image carousel selection listener on the source list
@@ -173,9 +176,8 @@ public class GroupAttributeRecordDialog extends BaseRecordDialog{
 		// place
 		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.place") + ":", placeField);
 
-		// evidence
-		final JPanel evidencePanel = components.getPanel(PanelKey.EVIDENCE);
-		GUIHelper.addComponent(propertiesPanel, evidencePanel);
+		// confidence
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.group_attribute.confidence") + ":", confidenceCombo);
 
 		return propertiesPanel;
 	}

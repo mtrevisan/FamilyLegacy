@@ -45,7 +45,7 @@ import java.util.List;
 
 
 /**
- * Panel for managing a list of a simple {@code NOTE} references according to FLEF 0.1.3.
+ * Panel for managing a list of a simple {@code NOTE} references according to FLEF 0.2.0.
  */
 public class BasicNoteListPanel extends AbstractListPanel<FLEFRecord>{
 

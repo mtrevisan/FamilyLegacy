@@ -47,7 +47,7 @@ import java.time.ZoneOffset;
 
 
 /**
- * Dialog for editing the {@code HEADER} singleton structure according to FLEF 0.1.3.
+ * Dialog for editing the {@code HEADER} singleton structure according to FLEF 0.2.0.
  * <p>
  * Structure:
  * <pre>
@@ -78,7 +78,7 @@ import java.time.ZoneOffset;
 public class HeaderDialog extends BaseRecordDialog{
 
 	private static final String PROTOCOL_NAME = "Family LEgacy Format";
-	private static final String PROTOCOL_VERSION = "0.1.4";
+	private static final String PROTOCOL_VERSION = "0.2.0";
 	private static final String SOURCE_ORGANIZATION = "Mauro Trevisan";
 
 	private final BoundTextField protocolNameField;

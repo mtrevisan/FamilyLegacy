@@ -68,7 +68,7 @@ import java.util.function.Consumer;
  *   <li>Multiple handler types (for polymorphic lists)</li>
  *   <li>Parent entity linking for relationship dialogs</li>
  *   <li>Reverse lookup via {@link #loadReferenceWithType} and {@link #loadCitationsWithType}</li>
- *   <li>Special save modes: {@link #withSaveAsVoid()} and {@link ConclusionTargetHandler}</li>
+ *   <li>Special save modes: {@link ConclusionTargetHandler}</li>
  * </ul>
  */
 public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
@@ -101,8 +101,6 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 	// used for relationship dialogs (SUBJECT/OBJECT etc.)
 	private final ActorType actorType;
 	private List<Class<? extends RecordTypeHandler<?>>> handlerTypes;
-	// if true, save a VOID node when the list is empty
-	private boolean saveAsVoid;
 	private FLEFRecord subjectEntity;
 	private FLEFRecord objectEntity;
 	private FLEFRecord parentEntity;
@@ -177,15 +175,6 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 	public JPanel withCellRenderer(final ListCellRenderer<? super FLEFRecord> renderer){
 		if(renderer != null)
 			list.setCellRenderer(renderer);
-
-		return this;
-	}
-
-	/**
-	 * Enables saving a VOID node when the list is empty (only applicable to ONEOF_REFERENCE).
-	 */
-	public EntityListPanel withSaveAsVoid(){
-		this.saveAsVoid = true;
 
 		return this;
 	}
@@ -307,13 +296,13 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 					if(subjectEntity != null)
 						placeRelationshipDialog.withSubject(subjectEntity);
 					if(objectEntity != null)
-						placeRelationshipDialog.withObject(objectEntity);
+						placeRelationshipDialog.withTarget(objectEntity);
 				}
 				else if(dialog instanceof RelationshipRecordDialog relationshipDialog){
 					if(subjectEntity != null)
 						relationshipDialog.withSubject(subjectEntity);
 					if(objectEntity != null)
-						relationshipDialog.withObject(objectEntity);
+						relationshipDialog.withTarget(objectEntity);
 				}
 				getDialogSetup().accept(dialog);
 				dialog.setVisible(true);
@@ -675,11 +664,6 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 					record.addChild(FLEFRecord.createChildWithTag(path)
 						.addChild(FLEFRecord.createChildWithTagAndValue(item.getTag(), item.getFormattedId()))
 					);
-			else if(saveAsVoid)
-				// Save a VOID marker if the list is empty and saveAsVoid is enabled
-				record.addChild(FLEFRecord.createChildWithTag(path)
-					.addChild(FLEFRecord.createChildWithTag(FLEFRecord.TAG_VOID))
-				);
 		}
 		else if(type == ListType.CITATION_WRAPPER)
 			// Citation wrapper: items are already full citation records; add them under the path.
@@ -708,14 +692,14 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 				if(actorType == ActorType.SUBJECT)
 					relationshipDialog.withSubject(parentRecord);
 				else if(actorType == ActorType.OBJECT)
-					relationshipDialog.withObject(parentRecord);
+					relationshipDialog.withTarget(parentRecord);
 			}
 			else if(dialog instanceof PlaceRelationshipRecordDialog placeRelationshipDialog
 					&& (type == ListType.ONEOF_REFERENCE || type == ListType.ENTITY_REFERENCE)){
 				if(actorType == ActorType.SUBJECT)
 					placeRelationshipDialog.withSubject(parentRecord);
 				else if(actorType == ActorType.OBJECT)
-					placeRelationshipDialog.withObject(parentRecord);
+					placeRelationshipDialog.withTarget(parentRecord);
 			}
 			else if(dialog instanceof IdentityHypothesisRecordDialog identityDialog
 					&& (type == ListType.ONEOF_REFERENCE || type == ListType.ENTITY_REFERENCE))

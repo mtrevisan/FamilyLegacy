@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.ui.dialogs.records;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.HistoricEventReader;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextField;
@@ -51,20 +52,19 @@ import java.io.IOException;
  * Structure:
  * <pre>
  * record HistoricEventRecord {
- *   id: LocalID
  *   type?: enum { war, epidemic, famine, migration, legal_reform, political_change, territorial_change, natural_disaster, economic_crisis, scientific_discovery, religious_reform, social_movement, pandemic } | Text
  *   title?: Text
  *   date?: DateStructure
  *   place?: PlaceCitation
  *   source*: SourceCitation
  *   note*: Xref&lt;NoteRecord&gt;
- *   evidence?: EvidenceQualifiers
+ *   confidence?: Confidence
  *   audit: AuditStructure
  * }
  * </pre>
  * <p>
  * Tabs:
- * Tab 1 (Properties): type, title, date, place, evidence
+ * Tab 1 (Properties): type, title, date, place, confidence
  * Tab 5 (Context): ContextImpactRecord (context[historic_event] = this historic event)
  * Tab 6 (Research): ConclusionRecord (resolves = this historic event), ResearchQuestionRecord (target[historic_event] = this historic event)
  * Tab 7 (Sources): source
@@ -77,6 +77,7 @@ public class HistoricEventRecordDialog extends BaseRecordDialog{
 	private final BoundTextField titleField;
 	private final DateField dateField;
 	private final EntityField placeField;
+	private final BoundComboBox<String> confidenceCombo;
 
 
 	public static HistoricEventRecordDialog createNew(final Window parent, final FLEFModel model){
@@ -98,20 +99,22 @@ public class HistoricEventRecordDialog extends BaseRecordDialog{
 		titleField = new BoundTextField(HistoricEventReader.TAG_TITLE);
 		dateField = DateField.createWithWrapperTag(HistoricEventReader.TAG_DATE, this, "Date", model);
 		placeField = EntityField.createForStructureWithReference(HistoricEventReader.TAG_PLACE, this, model, PlaceCitationHandler.class);
+		confidenceCombo = new BoundComboBox<>(HistoricEventReader.TAG_CONFIDENCE, GUIHelper.fillCombo(ConfidenceReader.CONFIDENCES, null));
+		confidenceCombo.setI18NPrefix("enum.confidence");
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, this.record)
 			.withComponent(PanelKey.CONTEXT_IMPACT_ON_CONTEXT, ContextImpactHandler.TYPE, I18N.t("dialog.component.context.impacts"))
 			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, I18N.t("dialog.component.conclusions"))
 			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, I18N.t("dialog.component.research.questions"))
-			.withComponent(PanelKey.SOURCE, HistoricEventReader.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
+			.withComponent(PanelKey.SOURCE, HistoricEventReader.TAG_SOURCE, I18N.t("dialog.component.sources_with_citations"))
 			.withComponent(PanelKey.NOTE, HistoricEventReader.TAG_NOTE, null)
-			.withComponent(PanelKey.EVIDENCE, HistoricEventReader.TAG_EVIDENCE, I18N.t("dialog.component.evidence"))
 			.withComponent(PanelKey.AUDIT, HistoricEventReader.TAG_AUDIT, null)
 			.build();
 
 		components.bind(typeCombo);
 		components.bind(titleField);
+		components.bind(confidenceCombo);
 
 
 		// Set up the image carousel selection listener on the source list
@@ -135,11 +138,10 @@ public class HistoricEventRecordDialog extends BaseRecordDialog{
 		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.historic_event.date") + ":", dateField);
 
 		// place
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.place") + ":", placeField);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.historic_event.place") + ":", placeField);
 
-		// evidence
-		final JPanel evidencePanel = components.getPanel(PanelKey.EVIDENCE);
-		GUIHelper.addComponent(propertiesPanel, evidencePanel);
+		// confidence
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.historic_event.confidence") + ":", confidenceCombo);
 
 		return propertiesPanel;
 	}

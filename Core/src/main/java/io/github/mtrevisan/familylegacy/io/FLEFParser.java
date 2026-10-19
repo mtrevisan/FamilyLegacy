@@ -618,7 +618,7 @@ public class FLEFParser{
 			header {
 			  protocol {
 			    name Family LEgacy Format
-			    version 0.1.3
+			    version 0.2.0
 			  }
 			  source {
 			    name My Genealogy Software
@@ -677,7 +677,7 @@ Bianchi
 			}
 			""";
 
-		final Path path = Paths.get("src/main/resources/gedg/flef_0.1.4.gedg");
+		final Path path = Paths.get("src/main/resources/gedg/flef_0.2.0.gedg");
 		final FLEFGrammar grammar = FLEFGrammarParser.parse(path);
 		for(final String warning : grammar.getParseWarnings())
 			System.out.println(warning);

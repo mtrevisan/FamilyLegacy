@@ -427,8 +427,6 @@ final class ApplicationMenuBar{
 		final List<ToolItemBinding> bindings = new ArrayList<>();
 
 		addToolsToMenu(menu, PlaceToolRegistry.primaryTools(), bindings);
-		menu.add(new JSeparator());
-		addToolsToMenu(menu, PlaceToolRegistry.geoAndNormalizationTools(), bindings);
 
 		bindDynamicEnablement(menu, bindings);
 

@@ -62,7 +62,7 @@ public final class PedigreeIndex{
 
 			final String type = RelationshipReader.extractType(relationship);
 			final String subjectId = FLEFRecordHelper.getChildValue(relationship, RelationshipReader.TAG_SUBJECT + DOT + IndividualHandler.TYPE);
-			final String objectId = FLEFRecordHelper.getChildValue(relationship, RelationshipReader.TAG_OBJECT + DOT + IndividualHandler.TYPE);
+			final String objectId = FLEFRecordHelper.getChildValue(relationship, RelationshipReader.TAG_TARGET + DOT + IndividualHandler.TYPE);
 
 			if(subjectId == null || objectId == null || type == null)
 				continue;

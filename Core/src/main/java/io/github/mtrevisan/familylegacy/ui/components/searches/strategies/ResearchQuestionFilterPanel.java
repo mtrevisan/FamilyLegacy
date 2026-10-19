@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.searches.strategies;
 
+import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchQuestionReader;
 import io.github.mtrevisan.familylegacy.ui.components.searches.RecordFilterPanel;
 import io.github.mtrevisan.familylegacy.ui.components.searches.SearchCriteria;
@@ -51,7 +52,7 @@ public class ResearchQuestionFilterPanel extends JPanel implements RecordFilterP
 	private final JTextField titleField = new JTextField(20);
 	private final JTextField questionField = new JTextField(20);
 	private final JComboBox<String> statusCombo = new JComboBox<>(GUIHelper.fillCombo(ResearchQuestionReader.STATUSES, I18N.t("search.combo.any")));
-	private final JComboBox<String> confidenceCombo = new JComboBox<>(GUIHelper.fillCombo(ResearchQuestionReader.CONFIDENCES, I18N.t("search.combo.any")));
+	private final JComboBox<String> confidenceCombo = new JComboBox<>(GUIHelper.fillCombo(ConfidenceReader.CONFIDENCES, I18N.t("search.combo.any")));
 
 	private final Consumer<SearchCriteria> onChanged;
 
@@ -75,7 +76,7 @@ public class ResearchQuestionFilterPanel extends JPanel implements RecordFilterP
 		add(questionField, "growx");
 		add(new JLabel(I18N.t("dialog.research_question.status") + ":"));
 		add(statusCombo, "growx");
-		add(new JLabel(I18N.t("dialog.research_question.confidence") + ":"));
+		add(new JLabel(I18N.t("dialog.component.confidence") + ":"));
 		add(confidenceCombo, "growx");
 	}
 

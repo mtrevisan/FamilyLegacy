@@ -65,7 +65,7 @@ public final class IdentityHypothesisReader{
 	public static final String TAG_COMMENT = "comment";
 	public static final String TAG_SOURCE = "source";
 	public static final String TAG_NOTE = "note";
-	public static final String TAG_EVIDENCE = "evidence";
+	public static final String TAG_CONFIDENCE = "confidence";
 	public static final String TAG_AUDIT = "audit";
 
 

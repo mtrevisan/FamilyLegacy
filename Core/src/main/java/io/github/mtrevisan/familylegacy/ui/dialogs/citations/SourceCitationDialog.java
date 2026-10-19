@@ -46,7 +46,7 @@ import java.awt.Window;
 
 
 /**
- * Dialog for editing a {@code SOURCE_CITATION} according to FLEF 0.1.3.
+ * Dialog for editing a {@code SOURCE_CITATION} according to FLEF 0.2.0.
  * <p>
  * Structure:
  * <pre>

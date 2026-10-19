@@ -177,6 +177,8 @@ public enum PanelKey{
 	PLACE((owner, cfg, model, record) -> createCitationWrapperPanel(owner, cfg, model, PlaceCitationHandler.class)),
 	REPOSITORY((owner, cfg, model, record) -> createCitationWrapperPanel(owner, cfg, model, RepositoryCitationHandler.class)),
 	SOURCE((owner, cfg, model, record) -> createCitationWrapperPanel(owner, cfg, model, SourceCitationHandler.class)),
+	SOURCE_FOR_CAUSE((owner, cfg, model, record) -> createCitationWrapperPanel(owner, cfg, model, SourceCitationHandler.class)),
+	SOURCE_FOR_LOCATION((owner, cfg, model, record) -> createCitationWrapperPanel(owner, cfg, model, SourceCitationHandler.class)),
 
 	// Structure panel
 	NOTE((owner, cfg, model, record) -> createStructurePanel(owner, cfg, model, NoteHandler.class)),

@@ -89,7 +89,7 @@ public class EgoNetworkMutator extends AbstractProjectionMutator{
 				continue;
 
 			final String subjectId = relationship.extractReferencedId(RelationshipReader.TAG_SUBJECT, sourceTag);
-			final String relationshipObjectId = relationship.extractReferencedId(RelationshipReader.TAG_OBJECT, targetTag);
+			final String relationshipObjectId = relationship.extractReferencedId(RelationshipReader.TAG_TARGET, targetTag);
 			if((sourceId.equals(subjectId) && targetId.equals(relationshipObjectId))
 					|| (targetId.equals(subjectId) && sourceId.equals(relationshipObjectId)))
 				toRemove.add(relationship.getId());

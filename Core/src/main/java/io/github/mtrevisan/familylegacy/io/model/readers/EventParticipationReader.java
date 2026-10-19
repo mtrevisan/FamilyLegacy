@@ -27,6 +27,9 @@ package io.github.mtrevisan.familylegacy.io.model.readers;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.ui.handlers.GroupHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.PlaceHandler;
 
 import java.util.Set;
 
@@ -45,7 +48,7 @@ import java.util.Set;
  *   event: Xref&lt;EventRecord&gt;        // the event in which the entity participated
  *   role?: enum {                   // optional because the role may be unknown or not applicable
  *     child, parent, spouse, power_of_attorney, prisoner, witness, officiant, informant, executor, grantor, grantee,
- *     landlord, tenant, soldier, commander, victim, survivor, accused, judge
+ *     landlord, tenant, soldier, commander, victim, survivor, accused, judge, property
  *   } | Text
  *   source*: SourceCitation
  *   note*: NoteStructure
@@ -68,7 +71,7 @@ public final class EventParticipationReader{
 	public static final String TAG_ROLE = "role";
 	public static final String TAG_SOURCE = "source";
 	public static final String TAG_NOTE = "note";
-	public static final String TAG_EVIDENCE = "evidence";
+	public static final String TAG_CONFIDENCE = "confidence";
 	public static final String TAG_PRIVACY = "privacy";
 	public static final String TAG_AUDIT = "audit";
 
@@ -83,7 +86,8 @@ public final class EventParticipationReader{
 		"landlord", "tenant",
 		"soldier", "commander",
 		"victim", "survivor",
-		"accused", "judge"
+		"accused", "judge",
+		"property"
 	};
 
 	// Roles carried by EventParticipationRecord that express a social link.
@@ -96,6 +100,24 @@ public final class EventParticipationReader{
 		"landlord", "tenant",
 		"accused", "judge"
 	);
+
+	public static final String[] INDIVIDUAL_OR_GROUP_ROLES = new String[]{
+		"child", "parent", "spouse",
+		"power_of_attorney",
+		"prisoner",
+		"witness",
+		"officiant", "informant",
+		"executor",
+		"grantor", "grantee",
+		"landlord", "tenant",
+		"soldier", "commander",
+		"victim", "survivor",
+		"accused", "judge"
+	};
+
+	public static final String[] PLACE_ROLES = new String[]{
+		"property"
+	};
 
 
 	private EventParticipationReader(){}
@@ -118,6 +140,17 @@ public final class EventParticipationReader{
 
 		final FLEFRecord ref = participant.getTheOnlyChild();
 		return (ref != null && participantTag.equalsIgnoreCase(ref.getTag())? ref.getValue(): null);
+	}
+
+	public static String[] getValidRoles(final FLEFRecord participant){
+		if(participant != null){
+			if(IndividualHandler.isOfType(participant) || GroupHandler.isOfType(participant))
+				return INDIVIDUAL_OR_GROUP_ROLES;
+
+			if(PlaceHandler.isOfType(participant))
+				return PLACE_ROLES;
+		}
+		return ROLES;
 	}
 
 }

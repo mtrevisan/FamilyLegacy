@@ -38,7 +38,7 @@ import java.util.List;
 
 
 /**
- * Handler for {@code PERSONAL_NAME_STRUCTURE} entities according to FLEF 0.1.3.
+ * Handler for {@code PERSONAL_NAME_STRUCTURE} entities according to FLEF 0.2.0.
  * <p>
  * This handler provides the necessary operations for managing name structures:
  * creation, editing, display name generation, and type identification.

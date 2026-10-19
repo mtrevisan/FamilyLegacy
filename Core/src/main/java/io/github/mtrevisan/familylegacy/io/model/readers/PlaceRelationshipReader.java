@@ -42,7 +42,7 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
  *   subject: struct {
  *     place: Xref&lt;PlaceRecord&gt;   // the place for which the relationship is asserted. The SUBJECT is always the place whose role is described by TYPE relative to the TARGET.
  *   }
- *   object: struct {
+ *   target: struct {
  *     place: Xref&lt;PlaceRecord&gt;   // the place to which the subject is related
  *   }
  *   type: enum {
@@ -64,19 +64,19 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
 public final class PlaceRelationshipReader{
 
 	public static final String TAG_SUBJECT = "subject";
-	public static final String TAG_OBJECT = "object";
+	public static final String TAG_TARGET = "target";
 	public static final String TAG_TYPE = "type";
 	public static final String TAG_VALID_FROM = "valid_from";
 	public static final String TAG_VALID_TO = "valid_to";
 	public static final String TAG_SOURCE = "source";
 	public static final String TAG_NOTE = "note";
-	public static final String TAG_EVIDENCE = "evidence";
+	public static final String TAG_CONFIDENCE = "confidence";
 	public static final String TAG_AUDIT = "audit";
 
 	public static final String ENUM_TYPE_ADMINISTRATIVE_PART_OF = "administrative_part_of";
 	public static final String[] TYPES = new String[]{
 		ENUM_TYPE_ADMINISTRATIVE_PART_OF, "geographic_part_of", "ecclesiastical_part_of", "judicial_part_of",
-		"cadastral_part_of", "predecessor_of", "successor_of", "merged_into", "split_from", "transferred_to"
+		"cadastral_part_of", "predecessor_of", "successor_of", "merged_into", "split_from", "territory_transferred_to"
 	};
 
 

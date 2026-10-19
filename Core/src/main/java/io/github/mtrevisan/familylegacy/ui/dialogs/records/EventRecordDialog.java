@@ -26,11 +26,11 @@ package io.github.mtrevisan.familylegacy.ui.dialogs.records;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextArea;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextField;
-import io.github.mtrevisan.familylegacy.ui.components.EvidenceQualifiersPanel;
 import io.github.mtrevisan.familylegacy.ui.components.PanelKey;
 import io.github.mtrevisan.familylegacy.ui.components.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.ui.components.fields.DateField;
@@ -47,18 +47,16 @@ import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 
 import javax.swing.JPanel;
-import javax.swing.border.TitledBorder;
 import java.awt.Window;
 import java.io.IOException;
 
 
 /**
- * Dialog for editing an {@code EVENT_RECORD} according to FLEF 0.1.3.
+ * Dialog for editing an {@code EVENT_RECORD} according to FLEF 0.2.0.
  * <p>
  * Structure:
  * <pre>
  * record EventRecord {
- *   id: LocalID
  *   type: enum {
  *     birth, death, adoption, graduation, immigration, naturalization, bankruptcy,
  *     guardianship, coroner_report, cremation, burial, education, retirement,
@@ -76,18 +74,20 @@ import java.io.IOException;
  *   agency?: Text
  *   cause?: struct {
  *     reason: Text
- *     evidence?: EvidenceQualifiers
+ *     source*: SourceCitation
+ *     confidence?: Confidence
  *   }
  *   source*: SourceCitation
  *   note*: Xref&lt;NoteRecord&gt;
- *   evidence?: EvidenceQualifiers
+ *   confidence?: Confidence
  *   privacy?: PrivacyStructure
  *   audit: AuditStructure
  * }
  * </pre>
  * <p>
  * Tabs:
- * Tab 1 (Properties): type, description, date, place, agency, cause, evidence
+ * Tab 1 (Properties): type, description, date, place, agency, confidence
+ * Tab 1bis (Cause): cause
  * Tab 4 (Participations): EventParticipationRecord (event = this event)
  * Tab 5 (Context): ContextImpactRecord (target[event] = this event)
  * Tab 6 (Research): ConclusionRecord (resolves = this event), ResearchQuestionRecord (target[event] = this event)
@@ -106,7 +106,8 @@ public class EventRecordDialog extends BaseRecordDialog{
 	private final EntityField placeField;
 	private final BoundTextField agencyField;
 	private final BoundTextField causeReasonField;
-	private final EvidenceQualifiersPanel causeEvidencePanel;
+	private final BoundComboBox<String> causeConfidenceCombo;
+	private final BoundComboBox<String> confidenceCombo;
 
 
 	public static EventRecordDialog createNew(final Window parent, final FLEFModel model){
@@ -121,7 +122,7 @@ public class EventRecordDialog extends BaseRecordDialog{
 	private EventRecordDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, EventHandler.getInstance());
 
-		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]15[]10[]15[]15[]15[]");
+		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]15[]10[]15[]");
 
 		typeCombo = new BoundComboBox<>(EventReader.TAG_TYPE, GUIHelper.fillCombo(EventReader.TYPES, I18N.t("search.combo.any")));
 		typeCombo.setI18NPrefix("enum.event.type");
@@ -131,7 +132,10 @@ public class EventRecordDialog extends BaseRecordDialog{
 		placeField = EntityField.createForStructureWithReference(PlaceHandler.TYPE, this, model, PlaceCitationHandler.class);
 		agencyField = new BoundTextField(EventReader.TAG_AGENCY);
 		causeReasonField = new BoundTextField(EventReader.TAG_CAUSE_REASON);
-		causeEvidencePanel = new EvidenceQualifiersPanel(EventReader.TAG_CAUSE_EVIDENCE, I18N.t("dialog.event.cause.evidence"));
+		causeConfidenceCombo = new BoundComboBox<>(EventReader.TAG_CAUSE_CONFIDENCE, GUIHelper.fillCombo(ConfidenceReader.CONFIDENCES, null));
+		causeConfidenceCombo.setI18NPrefix("enum.confidence");
+		confidenceCombo = new BoundComboBox<>(EventReader.TAG_CONFIDENCE, GUIHelper.fillCombo(ConfidenceReader.CONFIDENCES, null));
+		confidenceCombo.setI18NPrefix("enum.confidence");
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, this.record)
@@ -139,9 +143,9 @@ public class EventRecordDialog extends BaseRecordDialog{
 			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, I18N.t("dialog.component.conclusions"))
 			.withComponent(PanelKey.EVENT_PARTICIPATION_ON_EVENT, EventParticipationHandler.TYPE, I18N.t("dialog.component.event.participations"))
 			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, I18N.t("dialog.component.research.questions"))
-			.withComponent(PanelKey.SOURCE, EventReader.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
+			.withComponent(PanelKey.SOURCE, EventReader.TAG_SOURCE, I18N.t("dialog.component.sources_with_citations"))
+			.withComponent(PanelKey.SOURCE_FOR_CAUSE, EventReader.TAG_CAUSE_SOURCE, I18N.t("dialog.component.sources_with_citations"))
 			.withComponent(PanelKey.NOTE, EventReader.TAG_NOTE, null)
-			.withComponent(PanelKey.EVIDENCE, EventReader.TAG_EVIDENCE, I18N.t("dialog.component.evidence"))
 			.withComponent(PanelKey.PRIVACY, EventReader.TAG_PRIVACY, null)
 			.withComponent(PanelKey.AUDIT, EventReader.TAG_AUDIT, null)
 			.build();
@@ -150,6 +154,8 @@ public class EventRecordDialog extends BaseRecordDialog{
 		components.bind(descriptionArea);
 		components.bind(agencyField);
 		components.bind(causeReasonField);
+		components.bind(causeConfidenceCombo);
+		components.bind(confidenceCombo);
 
 
 		// Set up the image carousel selection listener on the source list
@@ -176,18 +182,24 @@ public class EventRecordDialog extends BaseRecordDialog{
 		// agency
 		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.event.agency") + ":", agencyField);
 
-		// cause panel:
-		final JPanel causePanel = GUIHelper.createLabelFieldPanel(5, "[]10[]");
-		causePanel.setBorder(new TitledBorder(I18N.t("dialog.event.cause")));
-		GUIHelper.addComponent(causePanel, causeReasonField);
-		GUIHelper.addComponent(causePanel, causeEvidencePanel);
-		GUIHelper.addComponent(propertiesPanel, causePanel);
-
-		// evidence
-		final JPanel evidencePanel = components.getPanel(PanelKey.EVIDENCE);
-		GUIHelper.addComponent(propertiesPanel, evidencePanel);
+		// confidence
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.event.confidence") + ":", confidenceCombo);
 
 		return propertiesPanel;
+	}
+
+	@Override
+	protected JPanel createCausePanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(5, "[]10[]");
+
+		GUIHelper.addLabeledComponent(panel, I18N.t("dialog.event.cause.reason") + "*:", causeReasonField);
+
+		final JPanel sourcePanel = components.getPanel(PanelKey.SOURCE_FOR_CAUSE);
+		GUIHelper.addComponent(panel, sourcePanel);
+
+		GUIHelper.addLabeledComponent(panel, I18N.t("dialog.event.cause.evidence") + ":", causeConfidenceCombo);
+
+		return panel;
 	}
 
 	@Override
@@ -264,7 +276,6 @@ public class EventRecordDialog extends BaseRecordDialog{
 
 		dateField.load(record);
 		placeField.load(record);
-		causeEvidencePanel.load(record);
 
 
 		// Initially, update carousel based on the first selected source (if any)
@@ -298,7 +309,6 @@ public class EventRecordDialog extends BaseRecordDialog{
 
 		dateField.save(record);
 		placeField.saveReferences(record);
-		causeEvidencePanel.save(record);
 	}
 
 

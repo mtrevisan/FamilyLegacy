@@ -165,7 +165,7 @@ final class PlacesSection implements SectionBuilder{
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().placeType(),
 			FLEFRecordHelper.getChildValue(place, PlaceReader.TAG_TYPE));
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().placeCoordinates(),
-			FLEFRecordHelper.getChildValue(place, PlaceReader.TAG_MAP + "." + PlaceReader.TAG_COORDINATES));
+			FLEFRecordHelper.getChildValue(place, PlaceReader.TAG_LOCATION + "." + PlaceReader.TAG_COORDINATES));
 		if(!rows.isEmpty())
 			out.add(new ReportSection.BulletList(rows));
 	}

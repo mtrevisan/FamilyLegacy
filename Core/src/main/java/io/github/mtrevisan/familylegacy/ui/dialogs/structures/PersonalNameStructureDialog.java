@@ -49,7 +49,7 @@ import java.awt.Window;
 
 
 /**
- * Dialog for editing a {@code PERSONAL_NAME_STRUCTURE} according to FLEF 0.1.3.
+ * Dialog for editing a {@code PERSONAL_NAME_STRUCTURE} according to FLEF 0.2.0.
  * <p>
  * Structure:
  * <pre>
@@ -130,7 +130,7 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, this.record)
-			.withComponent(PanelKey.SOURCE, NameReader.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
+			.withComponent(PanelKey.SOURCE, NameReader.TAG_SOURCE, I18N.t("dialog.component.sources_with_citations"))
 			.withComponent(PanelKey.NOTE, NameReader.TAG_NOTE, null)
 			.build();
 

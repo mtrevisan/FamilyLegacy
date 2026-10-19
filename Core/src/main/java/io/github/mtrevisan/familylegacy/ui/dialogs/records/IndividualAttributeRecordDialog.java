@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.ui.dialogs.records;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualAttributeReader;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextField;
@@ -53,12 +54,11 @@ import java.io.IOException;
 
 
 /**
- * Dialog for editing a {@code INDIVIDUAL_ATTRIBUTE_RECORD} according to FLEF 0.1.3.
+ * Dialog for editing a {@code INDIVIDUAL_ATTRIBUTE_RECORD} according to FLEF 0.2.0.
  * <p>
  * Structure:
  * <pre>
  * record IndividualAttributeRecord {
- *   id: LocalID
  *   individual: Xref&lt;IndividualRecord&gt;
  *   type: enum {
  *     characteristic, residence, occupation, possession, military_rank, caste, social_class, ethnicity, citizenship,
@@ -70,14 +70,14 @@ import java.io.IOException;
  *   place?: PlaceCitation
  *   source*: SourceCitation
  *   note*: Xref&lt;NoteRecord&gt;
- *   evidence?: EvidenceQualifiers
+ *   confidence?: Confidence
  *   privacy?: PrivacyStructure
  *   audit: AuditStructure
  * }
  * </pre>
  * <p>
  * Tabs:
- * Tab 1 (Properties): individual, type, value, valid_from, valid_to, place, evidence
+ * Tab 1 (Properties): individual, type, value, valid_from, valid_to, place, confidence
  * Tab 5 (Context): ContextImpactRecord (target[individual_attribute] = this attribute)
  * Tab 6 (Research): ConclusionRecord (resolves = this attribute), ResearchQuestionRecord (target[individual_attribute] = this attribute)
  * Tab 7 (Sources): source
@@ -94,6 +94,7 @@ public class IndividualAttributeRecordDialog extends BaseRecordDialog{
 	private final DateField validFromField;
 	private final DateField validToField;
 	private final EntityField placeField;
+	private final BoundComboBox<String> confidenceCombo;
 
 
 	public static IndividualAttributeRecordDialog createNew(final Window parent, final FLEFModel model){
@@ -118,21 +119,23 @@ public class IndividualAttributeRecordDialog extends BaseRecordDialog{
 		validFromField = DateField.createWithWrapperTag(IndividualAttributeReader.TAG_VALID_FROM, this, I18N.t("dialog.valid_from"), model);
 		validToField = DateField.createWithWrapperTag(IndividualAttributeReader.TAG_VALID_TO, this, I18N.t("dialog.valid_to"), model);
 		placeField = EntityField.createForStructureWithReference(IndividualAttributeReader.TAG_PLACE, this, model, PlaceCitationHandler.class);
+		confidenceCombo = new BoundComboBox<>(IndividualAttributeReader.TAG_CONFIDENCE, GUIHelper.fillCombo(ConfidenceReader.CONFIDENCES, null));
+		confidenceCombo.setI18NPrefix("enum.confidence");
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, this.record)
 			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, ContextImpactHandler.TYPE, I18N.t("dialog.component.context.impacts"))
 			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, I18N.t("dialog.component.conclusions"))
 			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, I18N.t("dialog.component.research.questions"))
-			.withComponent(PanelKey.SOURCE, IndividualAttributeReader.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
+			.withComponent(PanelKey.SOURCE, IndividualAttributeReader.TAG_SOURCE, I18N.t("dialog.component.sources_with_citations"))
 			.withComponent(PanelKey.NOTE, IndividualAttributeReader.TAG_NOTE, null)
-			.withComponent(PanelKey.EVIDENCE, IndividualAttributeReader.TAG_EVIDENCE, I18N.t("dialog.component.evidence"))
 			.withComponent(PanelKey.PRIVACY, IndividualAttributeReader.TAG_PRIVACY, null)
 			.withComponent(PanelKey.AUDIT, IndividualAttributeReader.TAG_AUDIT, null)
 			.build();
 
 		components.bind(typeCombo);
 		components.bind(valueField);
+		components.bind(confidenceCombo);
 
 
 		// Set up the image carousel selection listener on the source list
@@ -165,9 +168,8 @@ public class IndividualAttributeRecordDialog extends BaseRecordDialog{
 		// place
 		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.place") + ":", placeField);
 
-		// evidence
-		final JPanel evidencePanel = components.getPanel(PanelKey.EVIDENCE);
-		GUIHelper.addComponent(propertiesPanel, evidencePanel);
+		// confidence
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.individual_attribute.confidence") + ":", confidenceCombo);
 
 		return propertiesPanel;
 	}

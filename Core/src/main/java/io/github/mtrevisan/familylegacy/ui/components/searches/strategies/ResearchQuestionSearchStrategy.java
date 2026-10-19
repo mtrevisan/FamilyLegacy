@@ -113,7 +113,7 @@ public class ResearchQuestionSearchStrategy implements SearchStrategy{
 		if(StringUtils.isNotEmpty(status))
 			details.add(I18N.t("dialog.research_question.status") + ": " + status);
 		if(StringUtils.isNotEmpty(confidence))
-			details.add(I18N.t("dialog.research_question.confidence") + ": " + confidence);
+			details.add(I18N.t("dialog.component.confidence") + ": " + confidence);
 
 		return baseDisplayText + details;
 	}

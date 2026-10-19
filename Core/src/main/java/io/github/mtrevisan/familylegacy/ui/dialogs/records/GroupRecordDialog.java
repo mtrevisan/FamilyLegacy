@@ -51,12 +51,11 @@ import java.io.IOException;
 
 
 /**
- * Dialog for editing a {@code GROUP_RECORD} according to FLEF 0.1.3.
+ * Dialog for editing a {@code GROUP_RECORD} according to FLEF 0.2.0.
  * <p>
  * Structure:
  * <pre>
  * record GroupRecord {
- *   id: LocalID
  *   name*: NameStructure
  *   type?: enum { family, household, neighborhood, fraternity, club, literary_society, association, organization, tribe } | Text
  *   source*: SourceCitation
@@ -116,7 +115,7 @@ public class GroupRecordDialog extends BaseRecordDialog{
 			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, I18N.t("dialog.component.conclusions"))
 			.withComponent(PanelKey.IDENTITY_HYPOTHESIS_ON_IDENTITY, IdentityHypothesisHandler.TYPE, I18N.t("dialog.component.identity.hypotheses"))
 			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, I18N.t("dialog.component.research.questions"))
-			.withComponent(PanelKey.SOURCE, GroupReader.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
+			.withComponent(PanelKey.SOURCE, GroupReader.TAG_SOURCE, I18N.t("dialog.component.sources_with_citations"))
 			.withComponent(PanelKey.NOTE, GroupReader.TAG_NOTE, null)
 			.withComponent(PanelKey.PRIVACY, GroupReader.TAG_PRIVACY, null)
 			.withComponent(PanelKey.AUDIT, GroupReader.TAG_AUDIT, null)

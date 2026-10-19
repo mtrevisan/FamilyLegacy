@@ -82,7 +82,7 @@ public class PlaceCache{
 
 			// Build the place hierarchy by linking each part to its parent container
 			FLEFRecord currentPlace = leafPlace;
-			for(int i = 0; i < parts.size() - 1; i++){
+			for(int i = 0; i < parts.size() - 1; i ++){
 				final FLEFRecord parentPlace = getOrCreateSinglePlace(parts.get(i + 1), placNode, false);
 				linkPlaces(currentPlace, parentPlace, placNode);
 				currentPlace = parentPlace;
@@ -137,11 +137,11 @@ public class PlaceCache{
 					final GEDCOMNode longNode = GEDCOMHelper.findFirstChild(mapNode, "LONG");
 					if(latiNode != null && latiNode.getValue() != null &&
 						longNode != null && longNode.getValue() != null){
-						final FLEFRecord map = FLEFRecord.createChildWithTag(PlaceReader.TAG_MAP);
+						final FLEFRecord location = FLEFRecord.createChildWithTag(PlaceReader.TAG_LOCATION);
 						// Coordinates string: "lat long" (ISO 6709 format)
 						final String coords = latiNode.getValue().trim() + StringUtils.SPACE + longNode.getValue().trim();
-						map.addChild(FLEFRecord.createChildWithTagAndValue(PlaceReader.TAG_COORDINATES, coords));
-						place.addChild(map);
+						location.addChild(FLEFRecord.createChildWithTagAndValue(PlaceReader.TAG_COORDINATES, coords));
+						place.addChild(location);
 					}
 				}
 
@@ -169,7 +169,7 @@ public class PlaceCache{
 				.addChild(FLEFRecord.createChildWithTag(PlaceRelationshipReader.TAG_SUBJECT)
 					.addChild(FLEFRecord.createChildWithTagAndValue(PlaceHandler.TYPE, child.getId()))
 				)
-				.addChild(FLEFRecord.createChildWithTag(PlaceRelationshipReader.TAG_OBJECT)
+				.addChild(FLEFRecord.createChildWithTag(PlaceRelationshipReader.TAG_TARGET)
 					.addChild(FLEFRecord.createChildWithTagAndValue(PlaceHandler.TYPE, parent.getId()))
 				)
 				.addChild(FLEFRecord.createChildWithTagAndValue(PlaceRelationshipReader.TAG_TYPE, PlaceRelationshipReader.ENUM_TYPE_ADMINISTRATIVE_PART_OF))

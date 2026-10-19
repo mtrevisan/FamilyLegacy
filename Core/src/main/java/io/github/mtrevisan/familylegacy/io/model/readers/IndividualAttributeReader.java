@@ -78,7 +78,7 @@ public final class IndividualAttributeReader{
 	public static final String TAG_PLACE = "place";
 	public static final String TAG_SOURCE = "source";
 	public static final String TAG_NOTE = "note";
-	public static final String TAG_EVIDENCE = "evidence";
+	public static final String TAG_CONFIDENCE = "confidence";
 	public static final String TAG_PRIVACY = "privacy";
 	public static final String TAG_AUDIT = "audit";
 

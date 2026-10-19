@@ -27,8 +27,10 @@ package io.github.mtrevisan.familylegacy.ui.components;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.DateReader;
 import io.github.mtrevisan.familylegacy.ui.bindings.BindingManager;
+import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextField;
 import io.github.mtrevisan.familylegacy.ui.components.lists.EntityListPanel;
 import io.github.mtrevisan.familylegacy.ui.handlers.SourceCitationHandler;
@@ -49,7 +51,7 @@ import java.awt.Window;
 
 
 /**
- * Panel for editing a {@code DATE_STRUCTURE} according to FLEF 0.1.3.
+ * Panel for editing a {@code DATE_STRUCTURE} according to FLEF 0.2.0.
  * <p>
  * Structure:
  * <pre>
@@ -57,7 +59,7 @@ import java.awt.Window;
  *   value: DateValue
  *   original_text?: Text
  *   source*: SourceCitation
- *   evidence?: EvidenceQualifiers
+ *   confidence?: Confidence
  * }
  *
  * DateValue = oneof {
@@ -79,7 +81,7 @@ public class DateStructurePanel extends JPanel{
 
 	private final BoundTextField originalTextField;
 	private final EntityListPanel sourcePanel;
-	private final EvidenceQualifiersPanel qualifiers;
+	private final BoundComboBox<String> confidenceCombo;
 
 
 	public DateStructurePanel(final Window parent, final FLEFModel model){
@@ -88,9 +90,10 @@ public class DateStructurePanel extends JPanel{
 		spanningDateValuePanel = new SpanningDatePanel(parent, model);
 
 		originalTextField = new BoundTextField(DateReader.TAG_ORIGINAL_TEXT);
-		sourcePanel = EntityListPanel.createForCitationWrapper(DateReader.TAG_SOURCE, parent, I18N.t("dialog.component.sources.with.citations"),
+		sourcePanel = EntityListPanel.createForCitationWrapper(DateReader.TAG_SOURCE, parent, I18N.t("dialog.component.sources_with_citations"),
 			model, SourceCitationHandler.class);
-		qualifiers = new EvidenceQualifiersPanel(null, I18N.t("dialog.component.evidence"));
+		confidenceCombo = new BoundComboBox<>(DateReader.TAG_CONFIDENCE, GUIHelper.fillCombo(ConfidenceReader.CONFIDENCES, null));
+		confidenceCombo.setI18NPrefix("enum.confidence");
 
 
 		initComponents();
@@ -99,9 +102,10 @@ public class DateStructurePanel extends JPanel{
 
 	private void initComponents(){
 		bindingManager.bind(originalTextField);
+		bindingManager.bind(confidenceCombo);
 
 
-		setLayout(new MigLayout("ins 0,fillx,wrap 1", "[grow]", "[]5[]5[]"));
+		setLayout(new MigLayout("ins 0,fillx,wrap 2", "[][grow]", "[]5[]5[]5[]"));
 
 		// Tabbed pane for date types
 		final JPanel pointPanel = new JPanel(new MigLayout("ins 0,fillx"));
@@ -131,7 +135,7 @@ public class DateStructurePanel extends JPanel{
 				}
 			}
 		});
-		add(tabbedPane, "growx,wrap");
+		add(tabbedPane, "span 2,growx");
 
 		final JLabel originalTextLabel = new JLabel(I18N.t("dialog.date.original_text") + ":");
 		originalTextLabel.setLabelFor(originalTextField);
@@ -139,10 +143,13 @@ public class DateStructurePanel extends JPanel{
 		add(originalTextField, "growx");
 
 		// source
-		add(sourcePanel, "growx");
+		add(sourcePanel, "span 2,growx");
 
-		// qualifiers
-		add(qualifiers, "span 2,growx");
+		// confidence
+		final JLabel confidenceLabel = new JLabel(I18N.t("dialog.component.confidence") + ":");
+		confidenceLabel.setLabelFor(confidenceCombo);
+		add(confidenceLabel, "align label");
+		add(confidenceCombo, "growx");
 	}
 
 
@@ -187,9 +194,6 @@ public class DateStructurePanel extends JPanel{
 
 		// source
 		sourcePanel.load(record);
-
-		// evidence
-		qualifiers.load(record.getTheOnlyChild(DateReader.TAG_EVIDENCE));
 	}
 
 	/**
@@ -216,18 +220,16 @@ public class DateStructurePanel extends JPanel{
 		// source
 		sourcePanel.save(record);
 
-		// evidence
-		qualifiers.save(record);
-
 		return (record.hasData()? record: null);
 	}
 
 	public void clear(){
+		bindingManager.clear();
+
 		pointDateValuePanel.clear();
 		boundedDateValuePanel.clear();
 		spanningDateValuePanel.clear();
 		sourcePanel.clear();
-		qualifiers.clear();
 	}
 
 	public boolean hasData(){

@@ -46,12 +46,11 @@ import java.awt.Window;
 
 
 /**
- * Dialog for editing a {@code NOTE_STRUCTURE} according to FLEF 0.1.3.
+ * Dialog for editing a {@code NOTE_STRUCTURE} according to FLEF 0.2.0.
  * <p>
  * Structure:
  * <pre>
  * struct NoteStructure {
- *   id: LocalID
  *   title?: Text
  *   text: Text
  *   mime?: Text
@@ -114,7 +113,7 @@ public class NoteStructureDialog extends BaseRecordDialog{
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, this.record)
-			.withComponent(PanelKey.SOURCE, NoteReader.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
+			.withComponent(PanelKey.SOURCE, NoteReader.TAG_SOURCE, I18N.t("dialog.component.sources_with_citations"))
 			.withComponent(PanelKey.PRIVACY, NoteReader.TAG_PRIVACY, null)
 			.withComponent(PanelKey.AUDIT, NoteReader.TAG_AUDIT, null)
 			.build();

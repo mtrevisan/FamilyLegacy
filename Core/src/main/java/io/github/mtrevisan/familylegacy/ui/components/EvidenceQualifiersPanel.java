@@ -41,7 +41,7 @@ import java.awt.event.MouseEvent;
 
 
 /**
- * Reusable panel that groups all evidence qualifiers as defined in the FLEF protocol according to FLEF 0.1.3:
+ * Reusable panel that groups all evidence qualifiers as defined in the FLEF protocol according to FLEF 0.2.0:
  * source_type, information_type, and evidence_type.
  * All combos are optional (empty selection allowed).
  * <p>
@@ -66,7 +66,7 @@ public class EvidenceQualifiersPanel extends JPanel{
 	/**
 	 * Constructs a new panel with the given path prefix and title.
 	 *
-	 * @param path	the path prefix for child fields (e.g., "EVIDENCE" or "EVIDENCE.QUALIFIERS")
+	 * @param path	the path prefix for child fields (e.g., "EVIDENCE")
 	 * @param panelTitle	the title to display in the TitledBorder
 	 */
 	public EvidenceQualifiersPanel(final String path, final String panelTitle){
@@ -77,18 +77,18 @@ public class EvidenceQualifiersPanel extends JPanel{
 
 		sourceTypeCombo = new BoundComboBox<>(EvidenceQualifiersReader.TAG_SOURCE_TYPE, GUIHelper.fillCombo(EvidenceQualifiersReader.SOURCE_TYPES, null));
 		sourceTypeCombo.setI18NPrefix("enum.evidence.source_type");
-		sourceTypeCombo.setToolTipText(I18N.t("dialog.evidence.qualifiers.source_type.tooltip"));
+		sourceTypeCombo.setToolTipText(I18N.t("dialog.evidence_qualifiers.source_type.tooltip"));
 		informationTypeCombo = new BoundComboBox<>(EvidenceQualifiersReader.TAG_INFORMATION_TYPE, GUIHelper.fillCombo(EvidenceQualifiersReader.INFORMATION_TYPES, null));
 		informationTypeCombo.setI18NPrefix("enum.evidence.information_type");
-		informationTypeCombo.setToolTipText(I18N.t("dialog.evidence.qualifiers.information_type.tooltip"));
+		informationTypeCombo.setToolTipText(I18N.t("dialog.evidence_qualifiers.information_type.tooltip"));
 		evidenceTypeCombo = new BoundComboBox<>(EvidenceQualifiersReader.TAG_EVIDENCE_TYPE, GUIHelper.fillCombo(EvidenceQualifiersReader.EVIDENCE_TYPES, null));
 		evidenceTypeCombo.setI18NPrefix("enum.evidence.evidence_type");
-		evidenceTypeCombo.setToolTipText(I18N.t("dialog.evidence.qualifiers.evidence_type.tooltip"));
+		evidenceTypeCombo.setToolTipText(I18N.t("dialog.evidence_qualifiers.evidence_type.tooltip"));
 
 		// Layout: label + combo per row
-		GUIHelper.addLabeledComponent(this, I18N.t("dialog.evidence.qualifiers.source_type") + ":", sourceTypeCombo);
-		GUIHelper.addLabeledComponent(this, I18N.t("dialog.evidence.qualifiers.information_type") + ":", informationTypeCombo);
-		GUIHelper.addLabeledComponent(this, I18N.t("dialog.evidence.qualifiers.evidence_type") + ":", evidenceTypeCombo);
+		GUIHelper.addLabeledComponent(this, I18N.t("dialog.evidence_qualifiers.source_type") + ":", sourceTypeCombo);
+		GUIHelper.addLabeledComponent(this, I18N.t("dialog.evidence_qualifiers.information_type") + ":", informationTypeCombo);
+		GUIHelper.addLabeledComponent(this, I18N.t("dialog.evidence_qualifiers.evidence_type") + ":", evidenceTypeCombo);
 
 		// Attach hover tooltip listeners
 		attachTooltipListener(sourceTypeCombo);

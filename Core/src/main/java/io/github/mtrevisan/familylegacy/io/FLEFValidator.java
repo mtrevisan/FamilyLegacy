@@ -37,6 +37,7 @@ import io.github.mtrevisan.familylegacy.ui.handlers.EventParticipationHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IdentityHypothesisHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RelationshipHandler;
+import org.apache.commons.lang3.StringUtils;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -433,7 +434,7 @@ public class FLEFValidator{
 	 * ====================================================================== */
 
 	public static void main(final String[] args) throws Exception{
-		final Path path = Paths.get("src/main/resources/gedg/flef_0.1.4.gedg");
+		final Path path = Paths.get("src/main/resources/gedg/flef_0.2.0.gedg");
 		final FLEFGrammar grammar = FLEFGrammarParser.parse(path);
 
 		final FLEFParser parser = new FLEFParser();
@@ -441,7 +442,7 @@ public class FLEFValidator{
 			header {
 			  protocol {
 			    name Family LEgacy Format
-			    version 0.1.3
+			    version 0.2.0
 			  }
 			  source {
 			    system_id MyGenealogySoftware
@@ -490,7 +491,7 @@ public class FLEFValidator{
 		System.out.println("Validation errors: " + errors.size());
 		for(final ValidationError e : errors)
 			System.out.println("  - " + e.message()
-				+ (e.hasRecord()? "   [record: " + e.recordId() + "]": ""));
+				+ (e.hasRecord()? "   [record: " + e.recordId() + "]": StringUtils.EMPTY));
 	}
 
 }

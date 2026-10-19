@@ -140,7 +140,7 @@ public final class ConsistencyService{
 
 	private static void checkSelfReference(final FLEFRecord relationship, final List<Issue> issues){
 		final String subjectId = relationship.extractReferencedId(RelationshipReader.TAG_SUBJECT, IndividualHandler.TYPE);
-		final String objectId = relationship.extractReferencedId(RelationshipReader.TAG_OBJECT, IndividualHandler.TYPE);
+		final String objectId = relationship.extractReferencedId(RelationshipReader.TAG_TARGET, IndividualHandler.TYPE);
 		if(subjectId != null && subjectId.equals(objectId))
 			issues.add(new Issue(Severity.ERROR, relationship.getId(),
 				"Relationship points to itself (" + subjectId + ")."));
@@ -151,7 +151,7 @@ public final class ConsistencyService{
 		if(!RelationshipReader.isTypeBiologicalChild(type))
 			return;
 		final String childId = relationship.extractReferencedId(RelationshipReader.TAG_SUBJECT, IndividualHandler.TYPE);
-		final String parentId = relationship.extractReferencedId(RelationshipReader.TAG_OBJECT, IndividualHandler.TYPE);
+		final String parentId = relationship.extractReferencedId(RelationshipReader.TAG_TARGET, IndividualHandler.TYPE);
 		if(childId != null && parentId != null)
 			parentsOf.computeIfAbsent(childId, k -> new ArrayList<>()).add(parentId);
 	}

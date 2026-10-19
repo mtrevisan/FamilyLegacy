@@ -26,10 +26,10 @@ package io.github.mtrevisan.familylegacy.ui.dialogs.records;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextField;
-import io.github.mtrevisan.familylegacy.ui.components.EvidenceQualifiersPanel;
 import io.github.mtrevisan.familylegacy.ui.components.PanelKey;
 import io.github.mtrevisan.familylegacy.ui.components.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.ui.components.lists.EntityListPanel;
@@ -46,18 +46,16 @@ import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 
 import javax.swing.JPanel;
-import javax.swing.border.TitledBorder;
 import java.awt.Window;
 import java.io.IOException;
 
 
 /**
- * Dialog for editing a {@code PLACE_RECORD} according to FLEF 0.1.3.
+ * Dialog for editing a {@code PLACE_RECORD} according to FLEF 0.2.0.
  * <p>
  * Structure:
  * <pre>
  * record PlaceRecord {
- *   id: LocalID
  *   name+: NameStructure
  *   type?: enum {
  *     // settlements and built environments
@@ -85,19 +83,20 @@ import java.io.IOException;
  *     // sites and institutions
  *     cemetery             // burial ground or cemetery
  *   } | Text
- *   map?: struct {         // Contains the location of a place in a Global Positioning System.
- *     coordinates: Coord   // geographic coordinates of the place, representative point, not necessarily the full territorial extent of the place
- *     evidence?: EvidenceQualifiers
+ *   map?: struct {              // Contains a representative geographic location for the place.
+ *     coordinates: Coord        // geographic coordinates of the place, representative point, not necessarily the full territorial extent of the place
+ *     source*: SourceCitation   // the evidence that this location was true for the place
+ *     confidence?: Confidence   // confidence that this location was true for the place
  *   }
  *   source*: SourceCitation
- *   evidence?: EvidenceQualifiers
+ *   confidence?: Confidence
  *   privacy?: PrivacyStructure
  *   audit: AuditStructure
  * }
  * </pre>
  * <p>
  * Tabs:
- * Tab 1 (Properties): name, type, map, evidence
+ * Tab 1 (Properties): name, type, map, confidence
  * Tab 3 (Relationships): PlaceRelationshipRecord (subject = this place), PlaceRelationshipRecord (target = this place)
  * Tab 4 (Participations): EventParticipationRecord (participant[place] = this place)
  * Tab 5 (Context): ContextImpactRecord (target[place] = this place)
@@ -112,8 +111,9 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 
 	private final EntityListPanel namePanel;
 	private final BoundComboBox<String> typeCombo;
-	private final BoundTextField mapCoordinatesField;
-	private final EvidenceQualifiersPanel mapEvidencePanel;
+	private final BoundTextField locationCoordinatesField;
+	private final BoundComboBox<String> locationConfidenceCombo;
+	private final BoundComboBox<String> confidenceCombo;
 
 
 	public static PlaceRecordDialog createNew(final Window parent, final FLEFModel model){
@@ -128,14 +128,17 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 	private PlaceRecordDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, PlaceHandler.getInstance());
 
-		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]10[]");
+		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]");
 
 		namePanel = EntityListPanel.createForStructure(PlaceReader.TAG_NAME, this, I18N.t("dialog.place.names") + "*", model, NameHandler.class);
 		typeCombo = new BoundComboBox<>(PlaceReader.TAG_TYPE, GUIHelper.fillCombo(PlaceReader.TYPES, null));
 		typeCombo.setI18NPrefix("enum.place.type");
 		typeCombo.setEditable(true);
-		mapCoordinatesField = new BoundTextField(PlaceReader.TAG_MAP_COORDINATES);
-		mapEvidencePanel = new EvidenceQualifiersPanel(PlaceReader.TAG_MAP_EVIDENCE, I18N.t("dialog.place.map.evidence"));
+		locationCoordinatesField = new BoundTextField(PlaceReader.TAG_LOCATION_COORDINATES);
+		locationConfidenceCombo = new BoundComboBox<>(PlaceReader.TAG_LOCATION_CONFIDENCE, GUIHelper.fillCombo(ConfidenceReader.CONFIDENCES, null));
+		locationConfidenceCombo.setI18NPrefix("enum.confidence");
+		confidenceCombo = new BoundComboBox<>(PlaceReader.TAG_CONFIDENCE, GUIHelper.fillCombo(ConfidenceReader.CONFIDENCES, null));
+		confidenceCombo.setI18NPrefix("enum.confidence");
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, this.record)
@@ -146,14 +149,16 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, I18N.t("dialog.component.conclusions"))
 			.withComponent(PanelKey.IDENTITY_HYPOTHESIS_ON_IDENTITY, IdentityHypothesisHandler.TYPE, I18N.t("dialog.component.identity.hypotheses"))
 			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, I18N.t("dialog.component.research.questions"))
-			.withComponent(PanelKey.SOURCE, PlaceReader.TAG_SOURCE, I18N.t("dialog.component.sources.with.citations"))
-			.withComponent(PanelKey.EVIDENCE, PlaceReader.TAG_EVIDENCE, I18N.t("dialog.component.evidence"))
+			.withComponent(PanelKey.SOURCE, PlaceReader.TAG_SOURCE, I18N.t("dialog.component.sources_with_citations"))
+			.withComponent(PanelKey.SOURCE_FOR_LOCATION, PlaceReader.TAG_LOCATION_SOURCE, I18N.t("dialog.component.location.sources_with_citations"))
 			.withComponent(PanelKey.PRIVACY, PlaceReader.TAG_PRIVACY, null)
 			.withComponent(PanelKey.AUDIT, PlaceReader.TAG_AUDIT, null)
 			.build();
 
 		components.bind(typeCombo);
-		components.bind(mapCoordinatesField);
+		components.bind(locationCoordinatesField);
+		components.bind(locationConfidenceCombo);
+		components.bind(confidenceCombo);
 
 
 		finalizeDialog(parent);
@@ -168,18 +173,24 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 		// type
 		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.place.type") + ":", typeCombo);
 
-		// map panel:
-		final JPanel mapPanel = GUIHelper.createLabelFieldPanel(10, "[]5[]");
-		mapPanel.setBorder(new TitledBorder(I18N.t("dialog.place.map")));
-		GUIHelper.addLabeledComponent(mapPanel, I18N.t("dialog.place.map.coordinates") + ":", mapCoordinatesField);
-		GUIHelper.addComponent(mapPanel, mapEvidencePanel);
-		GUIHelper.addComponent(propertiesPanel, mapPanel);
-
 		// place evidence
-		final JPanel evidencePanel = components.getPanel(PanelKey.EVIDENCE);
-		GUIHelper.addComponent(propertiesPanel, evidencePanel);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.place.confidence") + ":", confidenceCombo);
 
 		return propertiesPanel;
+	}
+
+	@Override
+	protected JPanel createLocationPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(5, "[]5[]5[]");
+
+		GUIHelper.addLabeledComponent(panel, I18N.t("dialog.place.location.coordinates") + ":", locationCoordinatesField);
+
+		final JPanel sourcePanel = components.getPanel(PanelKey.SOURCE_FOR_LOCATION);
+		GUIHelper.addComponent(panel, sourcePanel);
+
+		GUIHelper.addLabeledComponent(panel, I18N.t("dialog.place.location.confidence") + ":", locationConfidenceCombo);
+
+		return panel;
 	}
 
 	@Override
@@ -264,7 +275,6 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 		components.load(record);
 
 		namePanel.load(record);
-		mapEvidencePanel.load(record);
 
 
 		// Initially, update carousel based on the first selected source (if any)
@@ -289,8 +299,6 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 		namePanel.save(record);
 
 		components.save(record);
-
-		mapEvidencePanel.save(record);
 	}
 
 

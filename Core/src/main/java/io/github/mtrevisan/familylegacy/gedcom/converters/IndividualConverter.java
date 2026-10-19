@@ -380,8 +380,8 @@ public class IndividualConverter {
 							.addChild(FLEFRecord.createChildWithTag("subject")
 								.addChild(FLEFRecord.createChildWithTagAndValue("individual", node.getXrefId()))
 							)
-							// object: individual/group
-							.addChild(FLEFRecord.createChildWithTag("object")
+							// target: individual/group
+							.addChild(FLEFRecord.createChildWithTag("target")
 								.addChild(FLEFRecord.createChildWithTagAndValue(
 									(GEDCOMHelper.cleanId(child.getValue()).startsWith(IndividualHandler.ID_PREFIX)? "individual": "group"),
 									GEDCOMHelper.cleanId(child.getValue())

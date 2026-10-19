@@ -102,10 +102,10 @@ public final class RecordDialogComponents{
 		loadReferenceIfPresent(PanelKey.GROUP_ATTRIBUTE, elp -> elp.loadReference(record.getId()));
 
 		loadReferenceIfPresent(PanelKey.RELATIONSHIP_ON_SUBJECT, elp -> elp.loadReferenceWithType(record.getId(), RelationshipReader.TAG_SUBJECT));
-		loadReferenceIfPresent(PanelKey.RELATIONSHIP_ON_OBJECT, elp -> elp.loadReferenceWithType(record.getId(), RelationshipReader.TAG_OBJECT));
+		loadReferenceIfPresent(PanelKey.RELATIONSHIP_ON_OBJECT, elp -> elp.loadReferenceWithType(record.getId(), RelationshipReader.TAG_TARGET));
 
 		loadReferenceIfPresent(PanelKey.PLACE_RELATIONSHIP_ON_SUBJECT, elp -> elp.loadReferenceWithType(record.getId(), PlaceRelationshipReader.TAG_SUBJECT));
-		loadReferenceIfPresent(PanelKey.PLACE_RELATIONSHIP_ON_OBJECT, elp -> elp.loadReferenceWithType(record.getId(), PlaceRelationshipReader.TAG_OBJECT));
+		loadReferenceIfPresent(PanelKey.PLACE_RELATIONSHIP_ON_OBJECT, elp -> elp.loadReferenceWithType(record.getId(), PlaceRelationshipReader.TAG_TARGET));
 
 		loadReferenceIfPresent(PanelKey.EVENT_PARTICIPATION_ON_PARTICIPANT, elp -> elp.loadReferenceWithType(record.getId(), EventParticipationReader.TAG_PARTICIPANT));
 		loadReferenceIfPresent(PanelKey.EVENT_PARTICIPATION_ON_EVENT, elp -> elp.withParentEntity(record).loadCitationsWithType(record.getId(), EventParticipationReader.TAG_EVENT));
@@ -123,6 +123,8 @@ public final class RecordDialogComponents{
 		loadReferenceIfPresent(PanelKey.PLACE, elp -> elp.load(record));
 		loadReferenceIfPresent(PanelKey.REPOSITORY, elp -> elp.load(record));
 		loadReferenceIfPresent(PanelKey.SOURCE, elp -> elp.load(record));
+		loadReferenceIfPresent(PanelKey.SOURCE_FOR_CAUSE, elp -> elp.load(record));
+		loadReferenceIfPresent(PanelKey.SOURCE_FOR_LOCATION, elp -> elp.load(record));
 		loadReferenceIfPresent(PanelKey.SOURCE_ON_REPOSITORY, elp -> elp.withParentEntity(record).loadCitationsWithType2(record.getId(), SourceReader.TAG_REPOSITORY));
 		loadReferenceIfPresent(PanelKey.SOURCE_ON_DOCUMENT, elp -> elp.withParentEntity(record).loadCitationsWithType3(record.getId(), SourceReader.TAG_DOCUMENT));
 

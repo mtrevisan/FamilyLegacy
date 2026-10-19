@@ -51,12 +51,11 @@ import java.io.IOException;
 
 
 /**
- * Dialog for editing a {@code SOURCE_RECORD} according to FLEF 0.1.3.
+ * Dialog for editing a {@code SOURCE_RECORD} according to FLEF 0.2.0.
  * <p>
  * Structure:
  * <pre>
  * record SourceRecord {
- *   id: LocalID
  *   title+: NameStructure
  *   author?: Text
  *   publisher?: Text
@@ -112,7 +111,7 @@ public class SourceRecordDialog extends BaseRecordDialog{
 		mediaTypeCombo.setEditable(true);
 
 		components = new RecordDialogBuilder(this, model, this.record)
-			.withComponent(PanelKey.REPOSITORY, SourceReader.TAG_REPOSITORY, I18N.t("dialog.component.repositories.with.citations"))
+			.withComponent(PanelKey.REPOSITORY, SourceReader.TAG_REPOSITORY, I18N.t("dialog.component.repositories_with_citations"))
 			.withComponent(PanelKey.DOCUMENT, SourceReader.TAG_DOCUMENT, I18N.t("dialog.component.documents"))
 			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, I18N.t("dialog.component.conclusions"))
 			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, I18N.t("dialog.component.research.questions"))

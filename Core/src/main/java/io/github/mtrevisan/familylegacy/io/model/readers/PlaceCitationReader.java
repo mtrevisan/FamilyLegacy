@@ -36,7 +36,7 @@ package io.github.mtrevisan.familylegacy.io.model.readers;
  *   place: Xref&lt;PlaceRecord&gt;
  *   original_text?: Text   // The place name exactly as recorded in the source. This value MAY coexist with PLACE when the source wording is preserved alongside a normalized place identification.
  *   source*: SourceCitation
- *   evidence?: EvidenceQualifiers
+ *   confidence?: Confidence
  * }
  * </pre>
  */
@@ -45,7 +45,7 @@ public final class PlaceCitationReader{
 	public static final String TAG_PLACE = "place";
 	public static final String TAG_ORIGINAL_TEXT = "original_text";
 	public static final String TAG_SOURCE = "source";
-	public static final String TAG_EVIDENCE = "evidence";
+	public static final String TAG_CONFIDENCE = "confidence";
 
 
 	private PlaceCitationReader(){}

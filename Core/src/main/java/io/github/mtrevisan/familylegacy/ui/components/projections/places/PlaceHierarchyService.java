@@ -259,7 +259,7 @@ public final class PlaceHierarchyService{
 		// object is the containing place (the parent). The naming in the
 		// returned record follows the tree semantics, not the field names.
 		final String childId = record.extractReferencedId(PlaceRelationshipReader.TAG_SUBJECT, PlaceHandler.TYPE);
-		final String parentId = record.extractReferencedId(PlaceRelationshipReader.TAG_OBJECT, PlaceHandler.TYPE);
+		final String parentId = record.extractReferencedId(PlaceRelationshipReader.TAG_TARGET, PlaceHandler.TYPE);
 		if(parentId == null || childId == null)
 			return null;
 
@@ -279,7 +279,7 @@ public final class PlaceHierarchyService{
 	 * Extracts the value of a nested {@code DateStructure}, or
 	 * {@code null} when the field is absent or empty.
 	 * <p>
-	 * In FLEF 0.1.3, {@code DateStructure.value} is a {@code DateValue}
+	 * In FLEF 0.2.0, {@code DateStructure.value} is a {@code DateValue}
 	 * oneof: {@code point.full_date.value},
 	 * {@code bounded.not_before.full_date.value},
 	 * {@code bounded.not_after.full_date.value},

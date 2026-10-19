@@ -484,7 +484,7 @@ public final class PlaceCoordinateResolver{
 				continue;
 
 			final String childId = extractPlaceRef(placeRelationship, PlaceRelationshipReader.TAG_SUBJECT);
-			final String objectId = extractPlaceRef(placeRelationship, PlaceRelationshipReader.TAG_OBJECT);
+			final String objectId = extractPlaceRef(placeRelationship, PlaceRelationshipReader.TAG_TARGET);
 			if(childId == null || objectId == null)
 				continue;
 
