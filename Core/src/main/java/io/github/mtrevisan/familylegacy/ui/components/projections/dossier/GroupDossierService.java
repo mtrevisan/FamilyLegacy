@@ -544,7 +544,7 @@ public final class GroupDossierService{
 			entries.add(new DossierEntry("Conclusion",
 				(StringUtils.isNotEmpty(issue)? issue: "?"),
 				(proof != null? proof: StringUtils.EMPTY), StringUtils.EMPTY, conclusion, DossierEntry.Kind.NORMAL,
-				ProofStatus.fromString(proof)));
+				ProofStatus.valueOf(proof)));
 		}
 		return entries;
 	}
@@ -641,10 +641,8 @@ public final class GroupDossierService{
 		final Map<String, ProofStatus> index = new HashMap<>();
 		final List<FLEFRecord> conclusions = model.getRecordsByType(ConclusionHandler.TYPE);
 		for(final FLEFRecord conclusion : conclusions){
-			final ProofStatus status = ProofStatus.fromString(
+			final ProofStatus status = ProofStatus.valueOf(
 				FLEFRecordHelper.getChildValue(conclusion, ConclusionReader.TAG_PROOF_STATUS));
-			if(status == null)
-				continue;
 
 			for(final FLEFRecord target : FLEFRecordHelper.findChildren(conclusion, ConclusionReader.TAG_RESOLVES)){
 				final String targetId = extractRef(target, null);

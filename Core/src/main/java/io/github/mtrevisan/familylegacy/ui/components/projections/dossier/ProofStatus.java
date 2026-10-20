@@ -25,7 +25,6 @@
 package io.github.mtrevisan.familylegacy.ui.components.projections.dossier;
 
 import java.awt.Color;
-import java.util.Locale;
 
 
 /**
@@ -50,50 +49,29 @@ public enum ProofStatus{
 	SUPPORTED("supported", new Color(70, 120, 200)),
 
 	/** The evidence is conflicting, none prevails. */
-	CONFLICTING("conflicting evidence", new Color(200, 170, 60)),
+	CONFLICTING("conflicting_evidence", new Color(200, 170, 60)),
 
 	/** Proven false. */
 	DISPROVEN("disproven", new Color(200, 80, 80));
 
 
-	private final String displayName;
+	private final String code;
 	private final Color color;
 
 
-	ProofStatus(final String displayName, final Color color){
-		this.displayName = displayName;
+	ProofStatus(final String code, final Color color){
+		this.code = code;
 		this.color = color;
 	}
 
 
-	/** Human-readable label, used in tooltips. */
-	public String displayName(){
-		return displayName;
+	public String code(){
+		return code;
 	}
 
 	/** Color of the indicator dot. */
 	public Color color(){
 		return color;
-	}
-
-	/**
-	 * Parses the FLEF enum value of {@code proof_status}. Returns
-	 * {@code null} for an unknown or empty value.
-	 *
-	 * @param raw the raw value, may be {@code null}
-	 * @return the matching status, or {@code null}
-	 */
-	public static ProofStatus fromString(final String raw){
-		if(raw == null)
-			return null;
-
-		return switch(raw.toLowerCase(Locale.ROOT)){
-			case "proven" -> PROVEN;
-			case "supported" -> SUPPORTED;
-			case "conflicting_evidence" -> CONFLICTING;
-			case "disproven" -> DISPROVEN;
-			default -> null;
-		};
 	}
 
 }

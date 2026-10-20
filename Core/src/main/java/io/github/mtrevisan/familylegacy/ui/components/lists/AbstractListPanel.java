@@ -36,6 +36,7 @@ import org.apache.commons.lang3.StringUtils;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
+import javax.swing.Icon;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
@@ -63,27 +64,6 @@ import java.util.List;
  * @param <T>	The type of elements managed in this list.
  */
 public abstract class AbstractListPanel<T> extends JPanel{
-
-	private class ItemCellRenderer extends DefaultListCellRenderer{
-		@Override
-		public Component getListCellRendererComponent(final JList<?> list, final Object value, final int index,
-				final boolean isSelected, final boolean cellHasFocus){
-			final JLabel label = (JLabel)super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-			label.setBorder(BorderFactory.createEmptyBorder(3, 4, 3, 4));
-
-			if(value != null){
-				@SuppressWarnings("unchecked")
-				final T item = (T)value;
-				setText(getDisplayText(item));
-			}
-			else
-				setText("--");
-
-			return this;
-		}
-
-	}
-
 
 	protected final Window parent;
 	private final String title;
@@ -345,6 +325,48 @@ public abstract class AbstractListPanel<T> extends JPanel{
 		final FLEFRecord parent = FLEFRecordHelper.getOrCreateTargetNode(record, parentPath);
 		for(final T item : items)
 			parent.addChildWithTag(lastChildTag, (FLEFRecord)item);
+	}
+
+
+	private class ItemCellRenderer extends DefaultListCellRenderer{
+		@Override
+		public Component getListCellRendererComponent(final JList<?> list, final Object value, final int index,
+				final boolean isSelected, final boolean cellHasFocus){
+			final JLabel label = (JLabel)super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+			label.setBorder(BorderFactory.createEmptyBorder(3, 4, 3, 4));
+
+			if(value != null){
+				@SuppressWarnings("unchecked")
+				final T item = (T)value;
+				label.setText(getDisplayText(item));
+				label.setIcon(getItemIcon(item));
+			}
+			else{
+				label.setText("--");
+				label.setIcon(null);
+			}
+
+			return label;
+		}
+	}
+
+	/**
+	 * Returns the icon for the list item. By default, no icon is shown.
+	 * Subclasses can override this to display status icons (e.g., conclusions).
+	 */
+	protected Icon getItemIcon(final T item){
+		return null;
+	}
+
+	/**
+	 * Returns the display string for an item.
+	 * Subclasses can override this to return HTML (e.g., for badges or strikethrough).
+	 *
+	 * @param item	The item.
+	 * @return	The display string.
+	 */
+	protected String getRichDisplayText(final T item){
+		return getDisplayText(item);
 	}
 
 }

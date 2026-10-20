@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.ui.helpers;
 
 import net.coobird.thumbnailator.Thumbnails;
+import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.rendering.ImageType;
 import org.apache.pdfbox.rendering.PDFRenderer;
@@ -405,7 +406,7 @@ public final class ResourceHelper{
 		if(file == null || !file.exists())
 			return null;
 
-		try(final PDDocument document = PDDocument.load(file)){
+		try(final PDDocument document = Loader.loadPDF(file)){
 			final PDFRenderer renderer = new PDFRenderer(document);
 			return renderer.renderImageWithDPI(0, 100, ImageType.RGB);
 		}

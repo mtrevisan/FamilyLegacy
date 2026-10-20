@@ -463,7 +463,7 @@ public class IndividualDossierPanel extends JPanel{
 				dot.setBorder(BorderFactory.createLineBorder(
 					entry.proofStatus().color().darker()));
 				dot.setPreferredSize(new Dimension(8, 8));
-				dot.setToolTipText("Proof status: " + entry.proofStatus().displayName());
+				dot.setToolTipText("Proof status: " + entry.proofStatus().code());
 				add(dot, "aligny center");
 			}
 			else{

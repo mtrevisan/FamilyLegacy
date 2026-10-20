@@ -35,6 +35,7 @@ import io.github.mtrevisan.familylegacy.ui.dialogs.records.EventParticipationRec
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.IdentityHypothesisRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.PlaceRelationshipRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.RelationshipRecordDialog;
+import io.github.mtrevisan.familylegacy.ui.handlers.ConclusionHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.ConclusionTargetHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
@@ -42,13 +43,26 @@ import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 
+import javax.swing.Icon;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.ListCellRenderer;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
+import java.awt.RenderingHints;
 import java.awt.Window;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 
 
@@ -98,17 +112,22 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 
 	private final String path;
 	private final ListType type;
-	// used for relationship dialogs (SUBJECT/OBJECT etc.)
+	// Used for relationship dialogs (SUBJECT/OBJECT etc.)
 	private final ActorType actorType;
 	private List<Class<? extends RecordTypeHandler<?>>> handlerTypes;
 	private FLEFRecord subjectEntity;
 	private FLEFRecord objectEntity;
 	private FLEFRecord parentEntity;
 
-	// used to reload the list after editing
+	// Used to reload the list after editing
 	private FLEFRecord parentRecord;
-	// true if loaded via reverse lookup (loadReference*)
+	// True if loaded via reverse lookup (loadReference*)
 	private boolean isReference;
+
+	// Flag to enable the conclusion logic only where requested
+	private boolean supportsConclusions = false;
+	// Cache to avoid scanning the model on every repaint
+	private final Map<String, FLEFRecord> conclusionCache = new HashMap<>();
 
 
 	public static EntityListPanel createForEntityReference(final String path, final Window parent,
@@ -167,6 +186,19 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 	}
 
 	/**
+	 * Enables conclusion icon support for this panel.
+	 * When enabled, records that have an associated ConclusionRecord
+	 * will display a clickable icon to open it.
+	 *
+	 * @return this panel (for chaining)
+	 */
+	public EntityListPanel withConclusions(){
+		this.supportsConclusions = true;
+
+		return this;
+	}
+
+	/**
 	 * Sets a custom cell renderer for the underlying list component.
 	 *
 	 * @param renderer the cell renderer to use
@@ -210,6 +242,27 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 	@Override
 	protected void initComponents(){
 		super.initComponents();
+
+		// If conclusions are supported, add the click listener for the icon
+		if(supportsConclusions){
+			list.addMouseListener(new MouseAdapter(){
+				@Override
+				public void mouseClicked(final MouseEvent e){
+					final int index = list.locationToIndex(e.getPoint());
+					if(index < 0)
+						return;
+
+					final Rectangle bounds = list.getCellBounds(index, index);
+					// The icon is on the left. Clickable area: the first 24 pixels.
+					if(e.getX() >= bounds.x && e.getX() <= bounds.x + 24){
+						final FLEFRecord item = listModel.get(index);
+						final FLEFRecord conclusion = conclusionCache.get(item.getId());
+						if(conclusion != null)
+							openConclusionDialog(conclusion);
+					}
+				}
+			});
+		}
 
 		final Consumer<MenuBuilder> menuItems;
 		if(type == ListType.CITATION_WRAPPER)
@@ -258,6 +311,47 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 
 		final RecordTypeHandler<?> handler = findHandler(record);
 		return handler.getDisplayText(record, model);
+	}
+
+	@Override
+	protected Icon getItemIcon(final FLEFRecord item){
+		if(!supportsConclusions || item == null)
+			return null;
+
+		final FLEFRecord conclusion = conclusionCache.computeIfAbsent(item.getId(), this::findConclusionFor);
+		return new ConclusionIcon(conclusion != null);
+	}
+
+	private void openConclusionDialog(final FLEFRecord conclusion){
+		final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(ConclusionHandler.class);
+		if(handler != null){
+			final BaseRecordDialog dialog = handler.createEditDialog(parent, model, conclusion);
+			dialog.setVisible(true);
+		}
+	}
+
+	private FLEFRecord findConclusionFor(final String recordId){
+		if(recordId == null)
+			return null;
+
+		for(final FLEFRecord c : model.getRecordsByType(ConclusionHandler.TYPE)){
+			final List<FLEFRecord> resolves = FLEFRecordHelper.findChildren(c, TAG_RESOLVES);
+			for(final FLEFRecord r : resolves)
+				if(containsId(r, recordId))
+					return c;
+		}
+		return null;
+	}
+
+	private boolean containsId(final FLEFRecord node, final String id){
+		if(node.getValue() != null && node.getValue().equals(id))
+			return true;
+
+		for(final FLEFRecord child : node.getChildren())
+			if(containsId(child, id))
+				return true;
+
+		return false;
 	}
 
 
@@ -383,8 +477,8 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 				// Use the stored parent record info to reload
 				if(type == ListType.ENTITY_REFERENCE || type == ListType.ONEOF_REFERENCE)
 					loadReferenceWithType(parentRecord.getId(), StringUtils.split(parentRecord.getTag(), '|'));
-				// For STRUCTURE or CITATION_WRAPPER, we might need a different reload
-				// Fallback: reload from the parent record if available
+					// For STRUCTURE or CITATION_WRAPPER, we might need a different reload
+					// Fallback: reload from the parent record if available
 				else
 					load(parentEntity);
 			}
@@ -757,6 +851,49 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 			+ ", type = " + type
 			+ ", items = " + listModel.size()
 			+ '}';
+	}
+
+
+	/**
+	 * Custom Icon to draw a small badge (full for conclusion present, faded for absent).
+	 */
+	private static class ConclusionIcon implements Icon{
+		private final boolean active;
+		private final int size = 14;
+
+		public ConclusionIcon(final boolean active){
+			this.active = active;
+		}
+
+		@Override
+		public void paintIcon(final Component c, final Graphics g, final int x, final int y){
+			final Graphics2D g2 = (Graphics2D)g.create();
+			g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+			if(active){
+				g2.setColor(new Color(0, 120, 215)); // Blue for active
+				g2.fillOval(x, y, size, size);
+				g2.setColor(Color.WHITE);
+			}
+			else{
+				g2.setColor(new Color(220, 220, 220)); // Light gray for inactive
+				g2.fillOval(x, y, size, size);
+				g2.setColor(new Color(150, 150, 150));
+			}
+
+			g2.setFont(new Font("SansSerif", Font.BOLD, 10));
+			final FontMetrics fm = g2.getFontMetrics();
+			final int stringWidth = fm.stringWidth("C");
+			g2.drawString("C", x + (size - stringWidth) / 2, y + (size + fm.getAscent()) / 2 - 1);
+
+			g2.dispose();
+		}
+
+		@Override
+		public int getIconWidth(){ return size; }
+
+		@Override
+		public int getIconHeight(){ return size; }
 	}
 
 }

@@ -153,6 +153,8 @@
 		<!-- https://mvnrepository.com/artifact/com.twelvemonkeys.imageio/imageio-tiff -->
 		<!-- https://mvnrepository.com/artifact/com.twelvemonkeys.imageio/imageio-webp -->
 		<twelvemonkeys.imageio-core.version>3.15.3</twelvemonkeys.imageio-core.version>
+		<!-- Source: https://mvnrepository.com/artifact/org.apache.pdfbox/pdfbox -->
+		<apache.pdfbox.version>3.0.8</apache.pdfbox.version>
 		<!-- https://mvnrepository.com/artifact/org.apache.xmlgraphics/batik-transcoder -->
 		<!-- https://mvnrepository.com/artifact/org.apache.xmlgraphics/batik-svggen -->
 		<!-- https://mvnrepository.com/artifact/org.apache.xmlgraphics/batik-codec -->
@@ -558,6 +560,11 @@
 				<groupId>com.twelvemonkeys.imageio</groupId>
 				<artifactId>imageio-tiff</artifactId>
 				<version>${twelvemonkeys.imageio-core.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.pdfbox</groupId>
+				<artifactId>pdfbox</artifactId>
+				<version>${apache.pdfbox.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.bytedeco</groupId>

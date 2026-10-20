@@ -33,7 +33,9 @@ import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.ui.bindings.BindingsHelper;
 import io.github.mtrevisan.familylegacy.ui.components.ImageCropDialog;
+import io.github.mtrevisan.familylegacy.ui.components.PageInputDialog;
 import io.github.mtrevisan.familylegacy.ui.components.PreferredImagePanel;
+import io.github.mtrevisan.familylegacy.ui.components.TimeRangeDialog;
 import io.github.mtrevisan.familylegacy.ui.components.searches.RecordSelectionDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.DocumentHandler;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
@@ -47,13 +49,15 @@ import java.util.List;
 
 
 /**
- * Panel for managing document parts with image cropping functionality.
+ * Panel for managing document parts with image cropping, page, and time range functionality.
  */
 public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
 
 	private final String path;
 
 	private final ImageCropDialog cropDialog;
+	private final PageInputDialog pageDialog;
+	private final TimeRangeDialog timeRangeDialog;
 
 	private final DocumentHandler documentHandler = DocumentHandler.getInstance();
 
@@ -64,7 +68,8 @@ public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
 		this.path = path;
 
 		cropDialog = ImageCropDialog.create(parent);
-
+		pageDialog = PageInputDialog.create(parent);
+		timeRangeDialog = TimeRangeDialog.create(parent);
 
 		initComponents();
 	}
@@ -75,68 +80,98 @@ public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
 		super.initComponents();
 
 		BindingsHelper.installBehavior(list,
-			this::editCrop, null,
+			this::editDocumentPart, null,
 			null, this::removeItem,
 			builder -> {
 				builder.item(I18N.t("popupmenu.add_existing"), this::addItem);
 				builder.separator();
-				builder.selectionSensitiveItem(I18N.t("popupmenu.edit.crop"), this::editCrop);
+				builder.selectionSensitiveItem(I18N.t("popupmenu.edit.crop"), this::editDocumentPart);
 				builder.selectionSensitiveItem(I18N.t("popupmenu.remove"), this::removeItem);
 			}
 		);
 	}
 
 	/**
-	 * Edits the crop rectangle for the currently selected document part.
-	 * <p>
-	 * This method:
-	 * <ol>
-	 *   <li>Gets the selected document part from the list</li>
-	 *   <li>Extracts the current crop rectangle (if any)</li>
-	 *   <li>Loads the image and shows the crop dialog</li>
-	 *   <li>If a crop is confirmed, updates the crop rectangle</li>
-	 * </ol>
+	 * Edits the metadata (crop, page, or time range) for the currently selected document part.
+	 * Delegates to the appropriate dialog based on the media type.
 	 */
-	private void editCrop(){
+	private void editDocumentPart(){
 		final int itemIndex = list.getSelectedIndex();
 		if(itemIndex < 0)
 			return;
 
-
-		// TODO this does not return a document_part, but a document!
 		final FLEFRecord documentPart = listModel.get(itemIndex);
-		final FLEFRecord crop = FLEFRecordHelper.findChild(documentPart, PreferredImagePanel.TAG_CROP);
-		Rectangle imageCropRect = CropReader.extractPreferredImageCrop(crop);
-		final String documentId = FLEFRecordHelper.findChild(documentPart, SourceReader.TAG_DOCUMENT)
-			.getValue();
+		final String documentId = FLEFRecordHelper.getChildValue(documentPart, SourceReader.TAG_DOCUMENT);
 		final FLEFRecord document = model.getRecordById(documentId);
+
+		if(document == null)
+			return;
+
 		final String uri = FLEFRecordHelper.getChildValue(document, DocumentReader.TAG_URI);
 
-		try{
-			cropDialog.loadData(uri, imageCropRect);
-			cropDialog.setVisible(true);
-
-			if(cropDialog.isSaved())
-				extractCrop(documentPart);
+		if(isPagedDocument(uri)){
+			final Integer currentPage = parseInteger(FLEFRecordHelper.getChildValue(documentPart, SourceCitationReader.TAG_PAGE));
+			pageDialog.loadData(uri, currentPage);
+			pageDialog.setVisible(true);
+			if(pageDialog.isSaved())
+				updateDocumentPart(documentPart, SourceCitationReader.TAG_PAGE, String.valueOf(pageDialog.getPage()));
 		}
-		catch(final IOException ioe){
-			ioe.printStackTrace();
+		else if(isAudioVideo(uri)){
+			final String start = FLEFRecordHelper.getChildValue(documentPart, SourceCitationReader.TAG_START);
+			final String end = FLEFRecordHelper.getChildValue(documentPart, SourceCitationReader.TAG_END);
+			timeRangeDialog.loadData(start, end);
+			timeRangeDialog.setVisible(true);
+			if(timeRangeDialog.isSaved()){
+				updateDocumentPart(documentPart, SourceCitationReader.TAG_START, timeRangeDialog.getStart());
+				updateDocumentPart(documentPart, SourceCitationReader.TAG_END, timeRangeDialog.getEnd());
+			}
+		}
+		else{
+			// Default to image crop
+			final FLEFRecord crop = FLEFRecordHelper.findChild(documentPart, PreferredImagePanel.TAG_CROP);
+			final Rectangle imageCropRect = CropReader.extractPreferredImageCrop(crop);
 
-			JOptionPane.showMessageDialog(parent,
-				I18N.tf("error.image", uri),
-				I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
+			try{
+				cropDialog.loadData(uri, imageCropRect);
+				cropDialog.setVisible(true);
+
+				if(cropDialog.isSaved())
+					extractCrop(documentPart);
+			}
+			catch(final IOException ioe){
+				ioe.printStackTrace();
+
+				JOptionPane.showMessageDialog(parent,
+					I18N.tf("error.image", uri),
+					I18N.t("error.title"),
+					JOptionPane.ERROR_MESSAGE);
+			}
 		}
 	}
 
 	@Override
 	protected String getDisplayText(final FLEFRecord documentPart){
 		if(documentPart != null){
-			FLEFRecord doc = documentPart;
-			if(documentPart.getId() == null){
-				final String documentId = SourceReader.extractDocument(documentPart);
-				doc = model.getRecordById(documentId);
+			final String documentId = FLEFRecordHelper.getChildValue(documentPart, SourceReader.TAG_DOCUMENT);
+			if(documentId != null){
+				final FLEFRecord doc = model.getRecordById(documentId);
+				if(doc != null){
+					String text = documentHandler.getDisplayText(doc, model);
+
+					// Append specific metadata to the label if present
+					final String page = FLEFRecordHelper.getChildValue(documentPart, SourceCitationReader.TAG_PAGE);
+					final String start = FLEFRecordHelper.getChildValue(documentPart, SourceCitationReader.TAG_START);
+					final String end = FLEFRecordHelper.getChildValue(documentPart, SourceCitationReader.TAG_END);
+
+					if(page != null)
+						text += " [" + I18N.t("dialog.preferred.page.input.label") + ": " + page + "]";
+					if(start != null || end != null)
+						text += " [" + (start != null? start: "0") + " - " + (end != null? end: "∞") + "]";
+
+					return text;
+				}
 			}
-			return documentHandler.getDisplayText(doc, model);
+			return documentHandler.getDisplayText(documentPart, model);
 		}
 
 		return "--";
@@ -149,26 +184,45 @@ public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
 		final RecordSelectionDialog dialog = RecordSelectionDialog.createWithAllowRecordCreation(parent, model,
 			(record, handler) -> {
 				final FLEFRecord document = model.getRecordById(record.getId());
-				if(document != null && !listModel.contains(document)){
+				if(document != null){
+					// Wrap the document in a document_part structure as required by the FLEF protocol
+					final FLEFRecord documentPart = FLEFRecord.createChildWithTag(SourceCitationReader.TAG_DOCUMENT_PART);
+					documentPart.addChild(FLEFRecord.createChildWithTagAndValue(SourceReader.TAG_DOCUMENT, document.getId()));
+
 					final String uri = FLEFRecordHelper.getChildValue(document, DocumentReader.TAG_URI);
 
-					// TODO choose here what kind of dialog to show in order to populate either crop, or page, or start-stop
-					try{
-						cropDialog.loadData(uri, null);
-						cropDialog.setVisible(true);
-
-						if(cropDialog.isSaved())
-							extractCrop(record);
+					// Prompt the user with the correct dialog based on the file type
+					if(isPagedDocument(uri)){
+						pageDialog.loadData(uri, 1);
+						pageDialog.setVisible(true);
+						if(pageDialog.isSaved())
+							updateDocumentPart(documentPart, SourceCitationReader.TAG_PAGE, String.valueOf(pageDialog.getPage()));
 					}
-					catch(final IOException ioe){
-						ioe.printStackTrace();
-
-						JOptionPane.showMessageDialog(parent,
-							I18N.tf("error.image", uri),
-							I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
+					else if(isAudioVideo(uri)){
+						timeRangeDialog.loadData(null, null);
+						timeRangeDialog.setVisible(true);
+						if(timeRangeDialog.isSaved()){
+							updateDocumentPart(documentPart, SourceCitationReader.TAG_START, timeRangeDialog.getStart());
+							updateDocumentPart(documentPart, SourceCitationReader.TAG_END, timeRangeDialog.getEnd());
+						}
 					}
+					else{
+						try{
+							cropDialog.loadData(uri, null);
+							cropDialog.setVisible(true);
+							if(cropDialog.isSaved())
+								extractCrop(documentPart);
+						}
+						catch(final IOException ioe){
+							ioe.printStackTrace();
 
-					result[0] = document;
+							JOptionPane.showMessageDialog(parent,
+								I18N.tf("error.image", uri),
+								I18N.t("error.title"),
+								JOptionPane.ERROR_MESSAGE);
+						}
+					}
+					result[0] = documentPart;
 				}
 			},
 			DocumentHandler.class);
@@ -177,10 +231,45 @@ public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
 		return result[0];
 	}
 
+	// --- Helper methods for media type detection and safe updating ---
+
+	private boolean isPagedDocument(final String uri){
+		if(uri == null)
+			return false;
+
+		final String lowerUri = uri.toLowerCase();
+		return (lowerUri.endsWith(".pdf") || lowerUri.endsWith(".tif") || lowerUri.endsWith(".tiff"));
+	}
+
+	private boolean isAudioVideo(final String uri){
+		if(uri == null)
+			return false;
+
+		final String lowerUri = uri.toLowerCase();
+		return (lowerUri.endsWith(".mp3") || lowerUri.endsWith(".wav") || lowerUri.endsWith(".mp4")
+			|| lowerUri.endsWith(".avi") || lowerUri.endsWith(".mov"));
+	}
+
+	private void updateDocumentPart(final FLEFRecord documentPart, final String tag, final String value){
+		if(value == null || value.trim().isEmpty())
+			FLEFRecordHelper.removeChild(documentPart, tag);
+		else
+			FLEFRecordHelper.updateChildValue(documentPart, tag, value.trim());
+	}
+
+	private Integer parseInteger(final String value){
+		try{
+			return (value != null? Integer.parseInt(value): null);
+		}
+		catch(final NumberFormatException e){
+			return null;
+		}
+	}
+
 	private void extractCrop(final FLEFRecord documentPart){
 		final Rectangle documentCropRect = cropDialog.getCrop();
 		if(documentCropRect != null && !documentCropRect.isEmpty()){
-			// FIXME temporarily save under DOCUMENT
+			// Correctly save the crop under the document_part structure
 			final FLEFRecord crop = FLEFRecordHelper.getOrCreateTargetNode(documentPart, PreferredImagePanel.TAG_CROP);
 			FLEFRecordHelper.updateChildValue(crop, CropReader.TAG_X, String.valueOf(documentCropRect.x));
 			FLEFRecordHelper.updateChildValue(crop, CropReader.TAG_Y, String.valueOf(documentCropRect.y));
@@ -204,17 +293,23 @@ public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
 			return null;
 		}
 
-		final JDialog dialog = documentHandler.createEditDialog(parent, model, record);
-		dialog.setVisible(true);
+		// Resolve the underlying document to edit its properties
+		final String documentId = FLEFRecordHelper.getChildValue(record, SourceReader.TAG_DOCUMENT);
+		final FLEFRecord document = (documentId != null ? model.getRecordById(documentId) : record);
 
-		// Return the same record (it was updated in place)
+		if(document != null){
+			final JDialog dialog = documentHandler.createEditDialog(parent, model, document);
+			dialog.setVisible(true);
+		}
+
+		// Return the same document_part structure (it was updated in place)
 		return record;
 	}
 
 	/**
 	 * Loads document parts from the given record.
-	 * <p>
-	 * Resolves document references to actual document records from the model.
+	 * Extracts the actual document_part structures, which hold the document reference
+	 * and the associated crop/page/timing data.
 	 *
 	 * @param record	the record containing the document parts
 	 */
@@ -224,25 +319,22 @@ public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
 		if(record == null || record.isEmpty())
 			return;
 
-		final List<FLEFRecord> referencedEntities = FLEFRecordHelper.extractRecordsFromReference(record, path, model);
-		setItems(referencedEntities);
+		// Extract the structures instead of resolving the records,
+		// so we keep the crop/page/timing metadata
+		final List<FLEFRecord> documentParts = FLEFRecordHelper.extractStructures(record, path);
+		setItems(documentParts);
 	}
 
 	/**
-	 * Saves document part references to the given record.
-	 * <p>
-	 * Creates {@code DOCUMENT_PART} records with references to documents and their crop data.
+	 * Saves document part structures to the given record.
+	 * Appends the document_part structures directly, as they already contain
+	 * the document references and their crop data.
 	 *
 	 * @param record	the record to save to
 	 */
 	public void saveReferences(final FLEFRecord record){
-		for(final FLEFRecord documentPart : getItems()){
-			final FLEFRecord part = FLEFRecord.createChildWithTag(SourceCitationReader.TAG_DOCUMENT_PART);
-			part.addChild(FLEFRecord.createChildWithTagAndValue(SourceReader.TAG_DOCUMENT, documentPart.getId()));
-			final FLEFRecord crop = FLEFRecordHelper.findChild(documentPart, PreferredImagePanel.TAG_CROP);
-			part.addChild(crop);
-			record.addChild(part);
-		}
+		for(final FLEFRecord documentPart : getItems())
+			record.addChild(documentPart);
 	}
 
 }

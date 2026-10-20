@@ -119,42 +119,35 @@ public final class RecordDialogComponents{
 
 		resta fuori: event, individual, group, cultural_norm, historic_event
 		 */
-		// TODO manage Conclusion on dialog
-		loadReferenceIfPresent(PanelKey.INDIVIDUAL_ATTRIBUTE, elp -> elp.loadReference(record.getId()));
-		loadReferenceIfPresent(PanelKey.GROUP_ATTRIBUTE, elp -> elp.loadReference(record.getId()));
+		loadReferenceIfPresent(PanelKey.INDIVIDUAL_ATTRIBUTE, elp -> elp.withConclusions().loadReference(record.getId()));
+		loadReferenceIfPresent(PanelKey.GROUP_ATTRIBUTE, elp -> elp.withConclusions().loadReference(record.getId()));
 
-		// TODO manage Conclusion on dialog
-		loadReferenceIfPresent(PanelKey.RELATIONSHIP_ON_SUBJECT, elp -> elp.loadReferenceWithType(record.getId(), RelationshipReader.TAG_SUBJECT));
-		loadReferenceIfPresent(PanelKey.RELATIONSHIP_ON_OBJECT, elp -> elp.loadReferenceWithType(record.getId(), RelationshipReader.TAG_TARGET));
+		loadReferenceIfPresent(PanelKey.RELATIONSHIP_ON_SUBJECT, elp -> elp.withConclusions().loadReferenceWithType(record.getId(), RelationshipReader.TAG_SUBJECT));
+		loadReferenceIfPresent(PanelKey.RELATIONSHIP_ON_OBJECT, elp -> elp.withConclusions().loadReferenceWithType(record.getId(), RelationshipReader.TAG_TARGET));
 
-		// TODO manage Conclusion on dialog
-		loadReferenceIfPresent(PanelKey.PLACE_RELATIONSHIP_ON_SUBJECT, elp -> elp.loadReferenceWithType(record.getId(), PlaceRelationshipReader.TAG_SUBJECT));
-		loadReferenceIfPresent(PanelKey.PLACE_RELATIONSHIP_ON_OBJECT, elp -> elp.loadReferenceWithType(record.getId(), PlaceRelationshipReader.TAG_TARGET));
+		loadReferenceIfPresent(PanelKey.PLACE_RELATIONSHIP_ON_SUBJECT, elp -> elp.withConclusions().loadReferenceWithType(record.getId(), PlaceRelationshipReader.TAG_SUBJECT));
+		loadReferenceIfPresent(PanelKey.PLACE_RELATIONSHIP_ON_OBJECT, elp -> elp.withConclusions().loadReferenceWithType(record.getId(), PlaceRelationshipReader.TAG_TARGET));
 
-		// TODO manage Conclusion on dialog
-		loadReferenceIfPresent(PanelKey.EVENT_PARTICIPATION_ON_PARTICIPANT, elp -> elp.loadReferenceWithType(record.getId(), EventParticipationReader.TAG_PARTICIPANT));
-		loadReferenceIfPresent(PanelKey.EVENT_PARTICIPATION_ON_EVENT, elp -> elp.withParentEntity(record).loadCitationsWithType(record.getId(), EventParticipationReader.TAG_EVENT));
+		loadReferenceIfPresent(PanelKey.EVENT_PARTICIPATION_ON_PARTICIPANT, elp -> elp.withConclusions().loadReferenceWithType(record.getId(), EventParticipationReader.TAG_PARTICIPANT));
+		loadReferenceIfPresent(PanelKey.EVENT_PARTICIPATION_ON_EVENT, elp -> elp.withConclusions().withParentEntity(record).loadCitationsWithType(record.getId(), EventParticipationReader.TAG_EVENT));
 
 		loadReferenceIfPresent(PanelKey.CONTEXT_IMPACT_ON_TARGET, elp -> elp.loadReferenceWithType(record.getId(), ContextImpactReader.TAG_TARGET));
 		loadReferenceIfPresent(PanelKey.CONTEXT_IMPACT_ON_CONTEXT, elp -> elp.loadReferenceWithType(record.getId(), ContextImpactReader.TAG_CONTEXT));
 
 		loadReferenceIfPresent(PanelKey.CONCLUSION_ON_RESOLVES, elp -> elp.loadReferenceWithType(record.getId(), ConclusionReader.TAG_RESOLVES));
 		loadReferenceIfPresent(PanelKey.CONCLUSION_ON_RESEARCH, elp -> elp.withParentEntity(record).loadCitationsWithType(record.getId(), ConclusionReader.TAG_RESEARCH));
-		// TODO manage Conclusion on dialog
-		loadReferenceIfPresent(PanelKey.IDENTITY_HYPOTHESIS_ON_IDENTITY, elp -> elp.loadReferenceWithType(record.getId(), IdentityHypothesisReader.TAG_IDENTITY));
+		loadReferenceIfPresent(PanelKey.IDENTITY_HYPOTHESIS_ON_IDENTITY, elp -> elp.withConclusions().loadReferenceWithType(record.getId(), IdentityHypothesisReader.TAG_IDENTITY));
 		loadReferenceIfPresent(PanelKey.RESEARCH_QUESTION_ON_TARGET, elp -> elp.loadReferenceWithType(record.getId(), ResearchQuestionReader.TAG_TARGET));
 		loadReferenceIfPresent(PanelKey.RESEARCH_ACTIVITY_ON_QUESTION, elp -> elp.withParentEntity(record).loadCitationsWithType3(record.getId(), ResearchActivityReader.TAG_QUESTION));
 		loadReferenceIfPresent(PanelKey.RESEARCH_ACTIVITY_ON_SOURCE, elp -> elp.withParentEntity(record).loadCitationsWithType2(record.getId(), ResearchActivityReader.TAG_SOURCE));
 
-		// TODO manage Conclusion on dialog
-		loadReferenceIfPresent(PanelKey.PLACE, elp -> elp.load(record));
+		loadReferenceIfPresent(PanelKey.PLACE, elp -> elp.withConclusions().load(record));
 		loadReferenceIfPresent(PanelKey.REPOSITORY, elp -> elp.load(record));
-		// TODO manage Conclusion on dialog
-		loadReferenceIfPresent(PanelKey.SOURCE, elp -> elp.load(record));
-		loadReferenceIfPresent(PanelKey.SOURCE_FOR_CAUSE, elp -> elp.load(record));
-		loadReferenceIfPresent(PanelKey.SOURCE_FOR_LOCATION, elp -> elp.load(record));
-		loadReferenceIfPresent(PanelKey.SOURCE_ON_REPOSITORY, elp -> elp.withParentEntity(record).loadCitationsWithType2(record.getId(), SourceReader.TAG_REPOSITORY));
-		loadReferenceIfPresent(PanelKey.SOURCE_ON_DOCUMENT, elp -> elp.withParentEntity(record).loadCitationsWithType3(record.getId(), SourceReader.TAG_DOCUMENT));
+		loadReferenceIfPresent(PanelKey.SOURCE, elp -> elp.withConclusions().load(record));
+		loadReferenceIfPresent(PanelKey.SOURCE_FOR_CAUSE, elp -> elp.withConclusions().load(record));
+		loadReferenceIfPresent(PanelKey.SOURCE_FOR_LOCATION, elp -> elp.withConclusions().load(record));
+		loadReferenceIfPresent(PanelKey.SOURCE_ON_REPOSITORY, elp -> elp.withConclusions().withParentEntity(record).loadCitationsWithType2(record.getId(), SourceReader.TAG_REPOSITORY));
+		loadReferenceIfPresent(PanelKey.SOURCE_ON_DOCUMENT, elp -> elp.withConclusions().withParentEntity(record).loadCitationsWithType3(record.getId(), SourceReader.TAG_DOCUMENT));
 
 		loadReferenceIfPresent(PanelKey.DOCUMENT, elp -> elp.load(record));
 		loadReferenceIfPresent(PanelKey.RESEARCH_QUESTION, elp -> elp.load(record));
