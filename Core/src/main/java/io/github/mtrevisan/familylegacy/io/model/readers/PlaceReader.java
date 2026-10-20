@@ -78,7 +78,7 @@ public final class PlaceReader{
 	public static final String[] TYPES = new String[]{
 		"address", "building", "street", "hamlet", "village", "town", "municipality", "city", "metropolitan_area",
 		"county", "province", "department", "district", "region", "macro_region", "country", "empire", "parish",
-		"archdiocese", "diocese", "cemetery"
+		"diocese", "archdiocese", "cemetery"
 	};
 
 

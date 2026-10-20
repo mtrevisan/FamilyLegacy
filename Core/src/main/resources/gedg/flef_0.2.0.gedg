@@ -665,8 +665,8 @@ record PlaceRecord {
     empire,              // multi-ethnic or multi-national imperial state
     // ecclesiastical jurisdictions
     parish,              // ecclesiastical parish
-    archdiocese,         // ecclesiastical province headed by a metropolitan archbishop
     diocese,             // ecclesiastical diocese or equivalent jurisdiction
+    archdiocese,         // ecclesiastical province headed by a metropolitan archbishop
     // sites and institutions
     cemetery             // burial ground or cemetery
   } | Text
