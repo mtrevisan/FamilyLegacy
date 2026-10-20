@@ -98,15 +98,40 @@ public final class RecordDialogComponents{
 
 		bindingManager.load(record);
 
+		/*
+		2. Nei pannelli di dettaglio o nelle liste (Gestione delle alternative)
+		Quando l'utente apre il dettaglio di un individuo, di un evento o di una relazione, puoi implementare un approccio
+		trasparente sfruttando proprio la tua intuizione sul grigetto/stile attenuato:
+		- Il valore/record scelto (preferred): Viene mostrato normalmente, magari arricchito da un’icona o un badge
+			discreto (es. un'etichetta "Concluso: Proven" o "Concluso: Supported").
+		- Le alternative in conflitto (resolves esclusi dal preferred) o disprovate (disproven):
+			- In grigetto / Dimmed: Puoi renderizzarle con un colore attenuato (grigio) o un font sbiadito nelle liste
+				storiche o nei pannelli delle fonti.
+			- Barrate (Strikethrough): Se il proof_status della conclusione è disproven (provato falso), un testo barrato o
+				un'etichetta esplicita "Smentito / Disproven" è perfetto per indicare visivamente che quella pista è stata
+				scartata dall'analisi.
+		3. Mostrare il "Perché" (Narrative e Proof Status)
+		Un valore aggiunto enorme per un software genealogico basato su FLEF è rendere cliccabile o ispezionabile il
+		ConclusionRecord:
+			- Se l'utente clicca su un'informazione derivata da una conclusione, un tooltip o un piccolo pannello laterale
+				dovrebbe mostrare il campo narrative del ConclusionRecord (la spiegazione logica del ricercatore) e le
+				source a supporto della conclusione stessa.
+
+		resta fuori: event, individual, group, cultural_norm, historic_event
+		 */
+		// TODO manage Conclusion on dialog
 		loadReferenceIfPresent(PanelKey.INDIVIDUAL_ATTRIBUTE, elp -> elp.loadReference(record.getId()));
 		loadReferenceIfPresent(PanelKey.GROUP_ATTRIBUTE, elp -> elp.loadReference(record.getId()));
 
+		// TODO manage Conclusion on dialog
 		loadReferenceIfPresent(PanelKey.RELATIONSHIP_ON_SUBJECT, elp -> elp.loadReferenceWithType(record.getId(), RelationshipReader.TAG_SUBJECT));
 		loadReferenceIfPresent(PanelKey.RELATIONSHIP_ON_OBJECT, elp -> elp.loadReferenceWithType(record.getId(), RelationshipReader.TAG_TARGET));
 
+		// TODO manage Conclusion on dialog
 		loadReferenceIfPresent(PanelKey.PLACE_RELATIONSHIP_ON_SUBJECT, elp -> elp.loadReferenceWithType(record.getId(), PlaceRelationshipReader.TAG_SUBJECT));
 		loadReferenceIfPresent(PanelKey.PLACE_RELATIONSHIP_ON_OBJECT, elp -> elp.loadReferenceWithType(record.getId(), PlaceRelationshipReader.TAG_TARGET));
 
+		// TODO manage Conclusion on dialog
 		loadReferenceIfPresent(PanelKey.EVENT_PARTICIPATION_ON_PARTICIPANT, elp -> elp.loadReferenceWithType(record.getId(), EventParticipationReader.TAG_PARTICIPANT));
 		loadReferenceIfPresent(PanelKey.EVENT_PARTICIPATION_ON_EVENT, elp -> elp.withParentEntity(record).loadCitationsWithType(record.getId(), EventParticipationReader.TAG_EVENT));
 
@@ -115,13 +140,16 @@ public final class RecordDialogComponents{
 
 		loadReferenceIfPresent(PanelKey.CONCLUSION_ON_RESOLVES, elp -> elp.loadReferenceWithType(record.getId(), ConclusionReader.TAG_RESOLVES));
 		loadReferenceIfPresent(PanelKey.CONCLUSION_ON_RESEARCH, elp -> elp.withParentEntity(record).loadCitationsWithType(record.getId(), ConclusionReader.TAG_RESEARCH));
+		// TODO manage Conclusion on dialog
 		loadReferenceIfPresent(PanelKey.IDENTITY_HYPOTHESIS_ON_IDENTITY, elp -> elp.loadReferenceWithType(record.getId(), IdentityHypothesisReader.TAG_IDENTITY));
 		loadReferenceIfPresent(PanelKey.RESEARCH_QUESTION_ON_TARGET, elp -> elp.loadReferenceWithType(record.getId(), ResearchQuestionReader.TAG_TARGET));
 		loadReferenceIfPresent(PanelKey.RESEARCH_ACTIVITY_ON_QUESTION, elp -> elp.withParentEntity(record).loadCitationsWithType3(record.getId(), ResearchActivityReader.TAG_QUESTION));
 		loadReferenceIfPresent(PanelKey.RESEARCH_ACTIVITY_ON_SOURCE, elp -> elp.withParentEntity(record).loadCitationsWithType2(record.getId(), ResearchActivityReader.TAG_SOURCE));
 
+		// TODO manage Conclusion on dialog
 		loadReferenceIfPresent(PanelKey.PLACE, elp -> elp.load(record));
 		loadReferenceIfPresent(PanelKey.REPOSITORY, elp -> elp.load(record));
+		// TODO manage Conclusion on dialog
 		loadReferenceIfPresent(PanelKey.SOURCE, elp -> elp.load(record));
 		loadReferenceIfPresent(PanelKey.SOURCE_FOR_CAUSE, elp -> elp.load(record));
 		loadReferenceIfPresent(PanelKey.SOURCE_FOR_LOCATION, elp -> elp.load(record));

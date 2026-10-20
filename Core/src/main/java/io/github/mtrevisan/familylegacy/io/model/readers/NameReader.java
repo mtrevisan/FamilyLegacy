@@ -52,7 +52,7 @@ import java.util.Set;
  *     regnal, slave_name
  *   } | Text
  *   part+: PartStructure   // The order of PART elements is significant and reflects the culturally appropriate representation of the full name (e.g., 'given' then 'family' for Western names, 'family' then 'given' for East Asian names). No semantic ordering is implied by the individual part types. Consumers must preserve the original order.
- *   locale?: LocaleCode | Text
+ *   locale?: LocaleCode
  *   cultural_norm*: Xref&lt;CulturalNormRecord&gt;   // Unlike ContextImpactRecord, CULTURAL_NORM here describes the naming system that governs the structure of the name itself.
  *   source*: SourceCitation
  *   note*: NoteStructure
@@ -82,7 +82,7 @@ import java.util.Set;
  *     administrative, archival
  *   } | Text
  *   value: Text                   // the primary textual value
- *   locale?: LocaleCode | Text
+ *   locale?: LocaleCode
  *   variant*: TextValueVariant    // alternative phonetic, transliterated, or transcribed representations
  *   cultural_norm*: Xref&lt;CulturalNormRecord&gt;   // Unlike ContextImpactRecord, CULTURAL_NORM here describes the naming system that governs the structure of the name itself.
  *   source*: SourceCitation
@@ -127,7 +127,7 @@ public final class NameReader{
 		// legal, immigration, and naturalization changes
 		"legal", "immigrant", "adapted",
 		// informal, stage, and social names
-		"alias", "nickname", "artistic", "professional", "user",
+		"alias", "nickname", "artistic", "professional",
 		// historical and dynastic contexts
 		"regnal", "slave_name"
 	};

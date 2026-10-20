@@ -106,10 +106,6 @@ final class EventRootSection implements SectionBuilder{
 		if(place != null)
 			rows.add("**" + ctx.labels.sections().place() + ":** " + ReportFormatters.escape(place));
 
-		final String agency = FLEFRecordHelper.getChildValue(ctx.root, EventReader.TAG_AGENCY);
-		if(agency != null)
-			rows.add("**" + ctx.labels.sections().agency() + ":** " + ReportFormatters.escape(agency));
-
 		String cause = FLEFRecordHelper.getChildValue(ctx.root, EventReader.TAG_CAUSE_REASON);
 		if(cause != null)
 			rows.add("**" + ctx.labels.sections().cause() + ":** " + ReportFormatters.escape(cause));

@@ -122,7 +122,6 @@ public class TranslationListPanel extends AbstractListPanel<FLEFRecord>{
 		GUIHelper.addLabeledComponent(dialog, I18N.t("dialog.note.text") + "*:", textArea);
 
 		final BoundFilteredComboBox<String> localeCombo = new BoundFilteredComboBox<>(NoteReader.TAG_LOCALE, LocaleHelper.getAvailableLanguageTags());
-		localeCombo.setEditable(true);
 		if(record != null && StringUtils.isNotEmpty(locale))
 			localeCombo.setSelectedItem(locale);
 		GUIHelper.addLabeledComponent(dialog, I18N.t("dialog.note.locale") + ":", localeCombo);

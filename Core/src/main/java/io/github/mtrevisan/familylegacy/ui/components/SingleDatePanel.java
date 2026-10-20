@@ -26,7 +26,6 @@ package io.github.mtrevisan.familylegacy.ui.components;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.io.model.readers.DateReader;
 import io.github.mtrevisan.familylegacy.ui.bindings.BindingManager;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
@@ -51,26 +50,23 @@ import java.util.Map;
 
 
 /**
- * Panel for editing a single date (FULL_DATE, DECADE, or CENTURY) with optional APPROXIMATE.
+ * Panel for editing a single date struct according to FLEF 0.2.0.
  * <p>
  * Structure:
  * <pre>
- *   full_date: struct {
- *     value: HistoricalDate
- *     approximate?: Approximate
- *     calendar: CalendarType | Text
+ * struct SingleDate {
+ *   value: oneof {
+ *     full_date: HistoricalDate
+ *     decade: Int
+ *     century: struct {
+ *       ordinal: Int
+ *       part?: CenturyPart
+ *     }
  *   }
- *   decade: struct {
- *     start_year: Int
- *     approximate?: Approximate
- *     calendar: CalendarType | Text
- *   }
- *   century: struct {
- *     ordinal: Int
- *     part?: CenturyPart
- *     approximate?: Approximate
- *     calendar: CalendarType | Text
- *   }
+ *   calendar: CalendarType | Text
+ *   jdn_first?: Int
+ *   jdn_last?: Int
+ *   approximate?: Approximate
  * }
  * </pre>
  */
@@ -93,10 +89,10 @@ public class SingleDatePanel extends JPanel{
 
 
 	public SingleDatePanel(final Window parent, final FLEFModel model){
-		fullDateValueField = new BoundTextField(DateReader.TAG_FULL_DATE_VALUE);
-		decadeStartYearField = new BoundTextField(DateReader.TAG_DECADE_START_YEAR);
-		centuryOrdinalField = new BoundTextField(DateReader.TAG_CENTURY_ORDINAL);
-		centuryPartCombo = new BoundComboBox<>(DateReader.TAG_CENTURY_PART, GUIHelper.fillCombo(DateReader.CENTURY_PARTS, null));
+		fullDateValueField = new BoundTextField(DateReader.TAG_VALUE_FULL_DATE);
+		decadeStartYearField = new BoundTextField(DateReader.TAG_VALUE_DECADE);
+		centuryOrdinalField = new BoundTextField(DateReader.TAG_VALUE_CENTURY_ORDINAL);
+		centuryPartCombo = new BoundComboBox<>(DateReader.TAG_VALUE_CENTURY_PART, GUIHelper.fillCombo(DateReader.CENTURY_PARTS, null));
 		centuryPartCombo.setI18NPrefix("enum.date.century_part");
 		calendarCombo = new BoundComboBox<>(DateReader.TAG_CALENDAR, DateReader.CALENDARS);
 		calendarCombo.setI18NPrefix("enum.date.calendar");
@@ -206,9 +202,6 @@ public class SingleDatePanel extends JPanel{
 		final DateType singleDateType = DateType.fromNode(record);
 		singleDateTypeCombo.setSelectedItem(singleDateType);
 
-		approxPanel.setPath(FLEFRecordHelper.composePath(singleDateType.getTagName(), DateReader.TAG_APPROXIMATE));
-		calendarCombo.setPath(FLEFRecordHelper.composePath(singleDateType.getTagName(), DateReader.TAG_CALENDAR));
-
 		approxPanel.loadFromRecord(record);
 
 		bindingManager.load(record);
@@ -237,12 +230,18 @@ public class SingleDatePanel extends JPanel{
 		if(singleDateType != DateType.CENTURY)
 			centuryPartCombo.setText(StringUtils.EMPTY);
 
-		approxPanel.setPath(FLEFRecordHelper.composePath(singleDateType.getTagName(), DateReader.TAG_CALENDAR));
-		calendarCombo.setPath(FLEFRecordHelper.composePath(singleDateType.getTagName(), DateReader.TAG_CALENDAR));
+		// Build the value container for the oneof
+		final FLEFRecord valueContainer = FLEFRecord.createEmpty();
+		bindingManager.save(valueContainer);
 
-		final FLEFRecord record = FLEFRecord.createChildWithTag(DateReader.TAG_VALUE);
+		// Build the root SingleDate struct record
+		final FLEFRecord record = FLEFRecord.createEmpty();
+		if(valueContainer.hasData())
+			record.addChildWithTag(DateReader.TAG_VALUE, valueContainer);
 
-		bindingManager.save(record);
+		final String calendar = calendarCombo.getText();
+		if(StringUtils.isNotEmpty(calendar))
+			record.addChild(FLEFRecord.createChildWithTagAndValue(DateReader.TAG_CALENDAR, calendar));
 
 		approxPanel.saveToRecord(record);
 

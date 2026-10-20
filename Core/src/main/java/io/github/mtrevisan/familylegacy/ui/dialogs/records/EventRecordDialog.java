@@ -41,7 +41,6 @@ import io.github.mtrevisan.familylegacy.ui.handlers.ContextImpactHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventParticipationHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.PlaceCitationHandler;
-import io.github.mtrevisan.familylegacy.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.ResearchQuestionHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
@@ -71,7 +70,6 @@ import java.io.IOException;
  *   description?: Text
  *   date?: DateStructure
  *   place?: PlaceCitation
- *   agency?: Text
  *   cause?: struct {
  *     reason: Text
  *     source*: SourceCitation
@@ -86,7 +84,7 @@ import java.io.IOException;
  * </pre>
  * <p>
  * Tabs:
- * Tab 1 (Properties): type, description, date, place, agency, confidence
+ * Tab 1 (Properties): type, description, date, place, confidence
  * Tab 1bis (Cause): cause
  * Tab 4 (Participations): EventParticipationRecord (event = this event)
  * Tab 5 (Context): ContextImpactRecord (target[event] = this event)
@@ -104,7 +102,6 @@ public class EventRecordDialog extends BaseRecordDialog{
 	private final BoundTextArea descriptionArea;
 	private final DateField dateField;
 	private final EntityField placeField;
-	private final BoundTextField agencyField;
 	private final BoundTextField causeReasonField;
 	private final BoundComboBox<String> causeConfidenceCombo;
 	private final BoundComboBox<String> confidenceCombo;
@@ -122,15 +119,14 @@ public class EventRecordDialog extends BaseRecordDialog{
 	private EventRecordDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, EventHandler.getInstance());
 
-		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]15[]10[]15[]");
+		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]15[]10[]");
 
 		typeCombo = new BoundComboBox<>(EventReader.TAG_TYPE, GUIHelper.fillCombo(EventReader.TYPES, I18N.t("search.combo.any")));
 		typeCombo.setI18NPrefix("enum.event.type");
 		typeCombo.setEditable(true);
 		descriptionArea = new BoundTextArea(EventReader.TAG_DESCRIPTION, 3, 25);
 		dateField = DateField.createWithWrapperTag(EventReader.TAG_DATE, this, I18N.t("dialog.event.date"), model);
-		placeField = EntityField.createForStructureWithReference(PlaceHandler.TYPE, this, model, PlaceCitationHandler.class);
-		agencyField = new BoundTextField(EventReader.TAG_AGENCY);
+		placeField = EntityField.createForStructureWithReference(EventReader.TAG_PLACE, this, model, PlaceCitationHandler.class);
 		causeReasonField = new BoundTextField(EventReader.TAG_CAUSE_REASON);
 		causeConfidenceCombo = new BoundComboBox<>(EventReader.TAG_CAUSE_CONFIDENCE, GUIHelper.fillCombo(ConfidenceReader.CONFIDENCES, null));
 		causeConfidenceCombo.setI18NPrefix("enum.confidence");
@@ -152,7 +148,6 @@ public class EventRecordDialog extends BaseRecordDialog{
 
 		components.bind(typeCombo);
 		components.bind(descriptionArea);
-		components.bind(agencyField);
 		components.bind(causeReasonField);
 		components.bind(causeConfidenceCombo);
 		components.bind(confidenceCombo);
@@ -178,9 +173,6 @@ public class EventRecordDialog extends BaseRecordDialog{
 
 		// place
 		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.place") + ":", placeField);
-
-		// agency
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.event.agency") + ":", agencyField);
 
 		// confidence
 		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.event.confidence") + ":", confidenceCombo);

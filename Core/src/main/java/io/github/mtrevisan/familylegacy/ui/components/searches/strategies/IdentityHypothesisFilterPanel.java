@@ -47,7 +47,7 @@ import java.util.function.Consumer;
 public class IdentityHypothesisFilterPanel extends JPanel implements RecordFilterPanel{
 
 	private final JTextField candidateField = new JTextField(20);
-	private final JTextField commentField = new JTextField(20);
+	private final JTextField rationaleField = new JTextField(20);
 
 	private final Consumer<SearchCriteria> onChanged;
 
@@ -67,8 +67,8 @@ public class IdentityHypothesisFilterPanel extends JPanel implements RecordFilte
 
 		add(new JLabel(I18N.t("dialog.identity_hypothesis.identity") + ":"));
 		add(candidateField, "growx");
-		add(new JLabel(I18N.t("dialog.identity_hypothesis.comment") + ":"));
-		add(commentField, "growx");
+		add(new JLabel(I18N.t("dialog.identity_hypothesis.rationale") + ":"));
+		add(rationaleField, "growx");
 	}
 
 	private void setupListeners(){
@@ -91,7 +91,7 @@ public class IdentityHypothesisFilterPanel extends JPanel implements RecordFilte
 
 		candidateField.getDocument()
 			.addDocumentListener(docListener);
-		commentField.getDocument()
+		rationaleField.getDocument()
 			.addDocumentListener(docListener);
 	}
 
@@ -104,7 +104,7 @@ public class IdentityHypothesisFilterPanel extends JPanel implements RecordFilte
 	public Map<String, String> getFilters(){
 		final Map<String, String> filters = new HashMap<>();
 		filters.put(IdentityHypothesisReader.TAG_IDENTITY, getCandidate());
-		filters.put(IdentityHypothesisReader.TAG_COMMENT, getComment());
+		filters.put(IdentityHypothesisReader.TAG_RATIONALE, getRationale());
 		return filters;
 	}
 
@@ -113,8 +113,8 @@ public class IdentityHypothesisFilterPanel extends JPanel implements RecordFilte
 			.trim();
 	}
 
-	public String getComment(){
-		return commentField.getText()
+	public String getRationale(){
+		return rationaleField.getText()
 			.trim();
 	}
 

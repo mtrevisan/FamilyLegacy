@@ -221,7 +221,7 @@ public final class IdentityHypothesesDialog extends JDialog{
 			return;
 
 		final int confirm = JOptionPane.showConfirmDialog(this,
-			I18N.tf("confirmation.delete.identity_hypothesis.message", IdentityHypothesisReader.extractComment(identityHypothesis)),
+			I18N.tf("confirmation.delete.identity_hypothesis.message", IdentityHypothesisReader.extractRationale(identityHypothesis)),
 			I18N.t("confirmation.delete.identity_hypothesis.title"),
 			JOptionPane.YES_NO_OPTION,
 			JOptionPane.WARNING_MESSAGE);

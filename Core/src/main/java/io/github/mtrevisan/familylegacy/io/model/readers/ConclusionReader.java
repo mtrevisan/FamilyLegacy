@@ -71,7 +71,9 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
  *   identity_hypothesis: Xref&lt;IdentityHypothesisRecord&gt;
  *   place: Xref&lt;PlaceRecord&gt;
  *   place_relationship: Xref&lt;PlaceRelationshipRecord&gt;
+ *   repository: Xref&lt;RepositoryRecord&gt;
  *   source: Xref&lt;SourceRecord&gt;
+ *   document: Xref&lt;DocumentRecord&gt;
  *   cultural_norm: Xref&lt;CulturalNormRecord&gt;
  *   historic_event: Xref&lt;HistoricEventRecord&gt;
  * }

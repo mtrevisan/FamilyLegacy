@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.ui.components.projections.individual;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.readers.ConclusionReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.DateReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
@@ -38,6 +39,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.date.NormalizedDate;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.TemporalSpan;
 import io.github.mtrevisan.familylegacy.ui.components.projections.BoxPanelType;
 import io.github.mtrevisan.familylegacy.ui.components.projections.PlaceholderImages;
+import io.github.mtrevisan.familylegacy.ui.handlers.ConclusionHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RelationshipHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.AsyncResourceLoader;
@@ -176,16 +178,10 @@ public final class IndividualData{
 				break;
 		}
 
-		// extract events
+		// Extract events and resolve birth/death considering ConclusionRecords
 		final List<EventInfo> events = extractEvents(individual, eventsMap, model);
-		final EventInfo birthInfo = events.stream()
-			.filter(e -> EventReader.isTypeBirth(e.type()) && e.representativeDate() != null)
-			.min(Comparator.comparing(e -> e.representativeDate().jdn()))
-			.orElse(null);
-		final EventInfo deathInfo = events.stream()
-			.filter(e -> EventReader.isTypeDeath(e.type()) && e.representativeDate() != null)
-			.max(Comparator.comparing(e -> e.representativeDate().jdn()))
-			.orElse(null);
+		final EventInfo birthInfo = resolvePreferredEvent(events, model, true);
+		final EventInfo deathInfo = resolvePreferredEvent(events, model, false);
 
 		// ---- Birth/Death summary ----
 		final NormalizedDate normalizedBirthDate = (birthInfo != null && birthInfo.date() != null
@@ -224,11 +220,11 @@ public final class IndividualData{
 		final String deathCause = (deathInfo != null? deathInfo.deathCause(): null);
 		if(birthPlace != null || deathPlace != null || deathCause != null){
 			tooltip.add(TAG_HTML_OPEN);
-			tooltip.add(birthInfo != null? birthInfo.rawDate(): NO_DATA);
+			tooltip.add(birthInfo != null? birthInfo.date(): NO_DATA);
 			if(birthPlace != null)
 				tooltip.add(TAG_BR + birthPlace);
 			tooltip.add(TAG_BR + TAG_FIGURE_DASH + TAG_BR);
-			tooltip.add(deathInfo != null? deathInfo.rawDate(): NO_DATA);
+			tooltip.add(deathInfo != null? deathInfo.date(): NO_DATA);
 			if(deathPlace != null)
 				tooltip.add(TAG_BR + deathPlace);
 			if(deathCause != null)
@@ -236,9 +232,9 @@ public final class IndividualData{
 			tooltip.add(TAG_HTML_CLOSE);
 		}
 		else{
-			tooltip.add(birthInfo != null? birthInfo.rawDate(): NO_DATA);
+			tooltip.add(birthInfo != null? birthInfo.date(): NO_DATA);
 			tooltip.add(StringUtils.SPACE + TAG_FIGURE_DASH + StringUtils.SPACE);
-			tooltip.add(deathInfo != null? deathInfo.rawDate(): NO_DATA);
+			tooltip.add(deathInfo != null? deathInfo.date(): NO_DATA);
 		}
 		infoText = sj.toString();
 		infoTooltip = tooltip.toString();
@@ -340,6 +336,7 @@ public final class IndividualData{
 	}
 
 	private EventInfo extractEventInfo(final FLEFRecord event, final String type, final FLEFModel model){
+		final String eventId = event.getId();
 		final FLEFRecord dateRecord = FLEFRecordHelper.findChild(event, EventReader.TAG_DATE);
 		final String dateOriginalText = DateReader.extractOriginalText(dateRecord);
 		final String date = DateReader.extractPrettyPrintDate(dateRecord);
@@ -349,7 +346,91 @@ public final class IndividualData{
 		final NormalizedDate representativeDate = (temporalSpan != null? temporalSpan.representativeDate(): null);
 		final String place = FLEFRecordHelper.extractPlace(event, model);
 		final String cause = (EventReader.isTypeDeath(type)? EventReader.extractCauseReason(event): null);
-		return new EventInfo(type, dateOriginalText, date, year, representativeDate, place, cause);
+		return new EventInfo(type, dateOriginalText, date, year, representativeDate, place, cause, eventId);
+	}
+
+	/**
+	 * Resolves the preferred birth or death event using applicable ConclusionRecords,
+	 * falling back to heuristic date selection if no formal conclusion exists.
+	 */
+	private static EventInfo resolvePreferredEvent(final List<EventInfo> events, final FLEFModel model,
+			final boolean isBirth){
+		if(events == null || events.isEmpty())
+			return null;
+
+		final List<EventInfo> candidates = new ArrayList<>();
+		for(final EventInfo e : events)
+			if((isBirth? EventReader.isTypeBirth(e.type()): EventReader.isTypeDeath(e.type()))
+				&& e.representativeDate() != null)
+				candidates.add(e);
+		if(candidates.isEmpty())
+			return null;
+
+		// Evaluate ConclusionRecords for preferred assertion selection
+		final List<FLEFRecord> conclusions = model.getRecordsByType(ConclusionHandler.TYPE);
+		EventInfo preferredEvent = null;
+		String bestStatus = null;
+
+		for(final FLEFRecord conclusion : conclusions){
+			final String issue = FLEFRecordHelper.getChildValue(conclusion, ConclusionReader.TAG_ISSUE);
+			if(issue == null || !issue.toLowerCase(Locale.ROOT).contains(isBirth? EventReader.ENUM_TYPE_BIRTH: EventReader.ENUM_TYPE_DEATH))
+				continue;
+
+			final FLEFRecord preferred = FLEFRecordHelper.findChild(conclusion, ConclusionReader.TAG_PREFERRED);
+			if(preferred == null)
+				continue;
+			final FLEFRecord ref = preferred.getTheOnlyChild();
+			if(ref == null || ref.getValue() == null)
+				continue;
+
+			final String targetId = ref.getValue();
+			for(final EventInfo candidate : candidates)
+				if(candidate.matchesId(targetId)){
+					final String status = FLEFRecordHelper.getChildValue(conclusion, ConclusionReader.TAG_PROOF_STATUS);
+					if(preferredEvent == null || isProofStatusStronger(status, bestStatus)){
+						preferredEvent = candidate;
+						bestStatus = status;
+					}
+				}
+		}
+
+		if(preferredEvent != null)
+			return preferredEvent;
+
+		// Fallback to default heuristic (min for birth, max for death)
+		return (isBirth
+			? candidates.stream().min(Comparator.comparing(e -> e.representativeDate().jdn())).orElse(null)
+			: candidates.stream().max(Comparator.comparing(e -> e.representativeDate().jdn())).orElse(null));
+	}
+
+	private static boolean isProofStatusStronger(final String newStatus, final String currentStatus){
+		return rankOfStatus(newStatus) > rankOfStatus(currentStatus);
+	}
+
+	private static int rankOfStatus(final String status){
+		if("proven".equals(status))
+			return 3;
+		if("supported".equals(status))
+			return 2;
+		if("conflicting_evidence".equals(status))
+			return 1;
+		return 0;
+	}
+
+
+	private record EventInfo(
+		String type,
+		String rawDate,
+		String date,
+		String year,
+		NormalizedDate representativeDate,
+		String place,
+		String deathCause,
+		String eventId
+	){
+		public boolean matchesId(final String id){
+			return eventId != null && eventId.equals(id);
+		}
 	}
 
 

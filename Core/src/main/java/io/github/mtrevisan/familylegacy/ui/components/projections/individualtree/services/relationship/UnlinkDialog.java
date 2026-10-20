@@ -320,7 +320,7 @@ public class UnlinkDialog extends JDialog{
 			return GroupHelper.relationshipIds(entityId, model);
 		if(PlaceHandler.isOfType(record))
 			return PlaceHelper.relationshipIds(entityId, model);
-		//TODO
+		// TODO
 //		if(SourceHandler.isOfType(record))
 //			return SourceHelper.relationshipIds(entityId, model);
 //		if(EventHandler.isOfType(record))

@@ -77,7 +77,7 @@ import java.awt.Window;
  *     archival          // name appearing in archival, documentary, or cataloging contexts
  *   } | Text
  *   value: Text
- *   locale?: LocaleCode | Text
+ *   locale?: LocaleCode
  *   variant*: TextValueVariant
  *   valid_from?: DateStructure    // The date from which this name is known or believed to have been valid.
  *   valid_to?: DateStructure      // The date until which this name is known or believed to have been valid.
@@ -126,7 +126,6 @@ public class NameStructureDialog extends BaseRecordDialog{
 		validFromField = DateField.createWithWrapperTag(NameReader.TAG_VALID_FROM, this, I18N.t("dialog.date.valid_from"), model);
 		validToField = DateField.createWithWrapperTag(NameReader.TAG_VALID_TO, this, I18N.t("dialog.date.valid_to"), model);
 		localeCombo = new BoundFilteredComboBox<>(NameReader.TAG_LOCALE, LocaleHelper.getAvailableLanguageTags());
-		localeCombo.setEditable(true);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, this.record)

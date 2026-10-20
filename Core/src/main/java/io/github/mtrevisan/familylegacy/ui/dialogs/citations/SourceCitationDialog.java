@@ -68,8 +68,8 @@ import java.awt.Window;
  *   }
  *   text?: Text
  *   type?: enum { verbatim, summarized, translated, normalized }
- *   locale?: LocaleCode | Text
- *   note*: Text
+ *   locale?: LocaleCode
+ *   remark*: Text
  *
  *   require one_of(document_part, text)
  * }
@@ -77,7 +77,7 @@ import java.awt.Window;
  * <p>
  * Tabs:
  * Tab 1 (Properties): locator, extract, evidence
- * Tab 8 (Notes): note
+ * Tab 8 (Notes): remark
  * Tab 9 (Privacy): privacy
  */
 public class SourceCitationDialog extends BaseRecordDialog{

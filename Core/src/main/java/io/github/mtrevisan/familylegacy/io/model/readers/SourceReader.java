@@ -43,7 +43,7 @@ import java.util.List;
  * // Citation relationships SHOULD NOT form cycles.
  * record SourceRecord {
  *   title+: NameStructure             // the title of the work, record, or item and, when appropriate, the title of the larger work or series of which it is a part
- *   author?: Text                     // the person, agency, or entity who created the record. For a published work, this could be the author, compiler, transcriber, abstractor, or editor. For an unpublished source, this may be an individual, a government agency, church organization, or private organization, etc.
+ *   author*: Agent                    // the person, agency, or entity who created the record. For a published work, this could be the author, compiler, transcriber, abstractor, or editor. For an unpublished source, this may be an individual, a government agency, church organization, or private organization, etc.
  *   publisher?: Text                  // name of the publisher of the publication
  *   date?: DateStructure              // the date this source was created
  *   place?: PlaceCitation             // the place this source was created
@@ -56,12 +56,22 @@ import java.util.List;
  *   privacy?: PrivacyStructure
  *   audit: AuditStructure
  * }
+ *
+ * Agent = oneof {
+ *  individual: Xref&lt;IndividualRecord&gt;   // the author is an individual described in this file
+ *  group: Xref&lt;GroupRecord&gt;             // the author is a group or organization described in this file (e.g. a parish, a confraternity)
+ *  text: Text                           // the author is not described in this file (e.g. a publisher's editor, an unidentified clerk)
+ * }
  * </pre>
  */
 public final class SourceReader{
 
 	public static final String TAG_TITLE = "title";
 	public static final String TAG_AUTHOR = "author";
+	// TODO
+	public static final String TAG_INDIVIDUAL = "individual";
+	public static final String TAG_GROUP = "group";
+	public static final String TAG_TEXT = "text";
 	public static final String TAG_PUBLISHER = "publisher";
 	public static final String TAG_DATE = "date";
 	public static final String TAG_PLACE = "place";

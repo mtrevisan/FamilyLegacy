@@ -66,6 +66,7 @@ public final class PlaceReader{
 	public static final String TAG_LOCATION = "location";
 	public static final String TAG_COORDINATES = "coordinates";
 	public static final String TAG_SOURCE = "source";
+	public static final String TAG_NOTE = "note";
 	public static final String TAG_CONFIDENCE = "confidence";
 	public static final String TAG_PRIVACY = "privacy";
 	public static final String TAG_AUDIT = "audit";

@@ -37,10 +37,10 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
  *   title?: Text   // note title
  *   text: Text     // comments or opinions from the submitter. If markdown, references to structures in this file can be written as `[text](@id@)`, "confidential" data can be written as `[text](confidential)`, and this last marks text that SHOULD be hidden when confidential information is suppressed.
  *   mime?: Text    // e.g., text/html, text/markdown
- *   locale?: LocaleCode | Text
+ *   locale?: LocaleCode
  *   translation*: struct {
  *     text: Text   // a translated version of the note
- *     locale?: LocaleCode | Text
+ *     locale?: LocaleCode
  *   }
  *   source*: SourceCitation
  *   privacy?: PrivacyStructure

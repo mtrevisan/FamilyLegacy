@@ -52,7 +52,6 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Locale;
-import java.util.Objects;
 
 
 public final class ResourceHelper{
@@ -315,8 +314,6 @@ public final class ResourceHelper{
 	 * @throws IOException if reading fails
 	 */
 	public static BufferedImage readBufferedImage(final Object source) throws IOException{
-		Objects.requireNonNull(source, "Source cannot be null");
-
 		// URL: ImageIO.createImageInputStream does not accept URL, so open
 		// the stream here and let ImageIO.read(InputStream) create the
 		// cache internally. The try-with-resources closes the URL stream;

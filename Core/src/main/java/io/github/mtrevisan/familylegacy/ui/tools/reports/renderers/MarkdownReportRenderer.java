@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.tools.reports.renderers;
 
+import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.ReportDocument;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.ReportSection;
 import org.apache.commons.lang3.StringUtils;
@@ -283,8 +284,9 @@ public final class MarkdownReportRenderer implements ReportRenderer{
 	 * left untouched, so any legitimate {@code @} in the text is preserved.
 	 */
 	private static String linkify(final String text){
-		if(text == null || !text.contains("@"))
+		if(text == null || !text.startsWith(FLEFModel.FLEF_LINK_PREFIX))
 			return text == null? StringUtils.EMPTY: text;
+
 		final Matcher m = INTERNAL_LINK_PATTERN.matcher(text);
 		final StringBuilder sb = new StringBuilder();
 		while(m.find())

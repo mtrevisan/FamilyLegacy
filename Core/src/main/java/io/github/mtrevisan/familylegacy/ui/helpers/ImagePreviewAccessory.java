@@ -26,7 +26,6 @@ package io.github.mtrevisan.familylegacy.ui.helpers;
 
 import io.github.mtrevisan.familylegacy.ui.images.ScaledImage;
 
-import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.JFileChooser;
 import javax.swing.JPanel;
@@ -90,7 +89,7 @@ public class ImagePreviewAccessory extends JPanel implements PropertyChangeListe
 					@Override
 					protected BufferedImage doInBackground(){
 						try{
-							final BufferedImage image = ImageIO.read(selectedFile);
+							final BufferedImage image = ResourceHelper.readBufferedImage(selectedFile);
 							if(image == null || isCancelled())
 								return null;
 

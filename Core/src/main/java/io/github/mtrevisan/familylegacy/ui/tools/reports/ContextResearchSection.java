@@ -497,7 +497,7 @@ final class ContextResearchSection implements SectionBuilder{
 				"**" + ctx.labels.sections().identityCandidates() + ":** "
 					+ ReportFormatters.escape(String.join(" ↔ ", candidates))));
 
-			final String comment = FLEFRecordHelper.getChildValue(h, IdentityHypothesisReader.TAG_COMMENT);
+			final String comment = FLEFRecordHelper.getChildValue(h, IdentityHypothesisReader.TAG_RATIONALE);
 			if(comment != null)
 				out.add(new ReportSection.Paragraph(
 					"**" + ctx.labels.sections().identityComment() + ":** "

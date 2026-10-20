@@ -90,7 +90,6 @@ public final class RelationshipReader{
 	public static final String TAG_TARGET = "target";
 	public static final String TAG_TYPE = "type";
 	public static final String TAG_ROLE = "role";
-	public static final String TAG_STATUS = "status";
 	public static final String TAG_VALID_FROM = "valid_from";
 	public static final String TAG_VALID_TO = "valid_to";
 	public static final String TAG_SOURCE = "source";
@@ -99,11 +98,13 @@ public final class RelationshipReader{
 	public static final String TAG_PRIVACY = "privacy";
 	public static final String TAG_AUDIT = "audit";
 
+	public static final String ENUM_TYPE_CHILD = "child";
 	public static final String ENUM_TYPE_BIOLOGICAL_CHILD = "biological_child";
 	public static final String ENUM_TYPE_ADOPTIVE_CHILD = "adoptive_child";
 	private static final String ENUM_TYPE_FOSTER_CHILD = "foster_child";
 	private static final String ENUM_TYPE_GUARDED_CHILD = "guarded_child";
 	private static final String ENUM_TYPE_STEP_CHILD = "step_child";
+	private static final String ENUM_TYPE_SPOUSE = "spouse";
 	private static final String ENUM_TYPE_CIVIL_SPOUSE = "civil_spouse";
 	private static final String ENUM_TYPE_RELIGIOUS_SPOUSE = "religious_spouse";
 	private static final String ENUM_TYPE_CUSTOMARY_SPOUSE = "customary_spouse";
@@ -113,16 +114,18 @@ public final class RelationshipReader{
 	private static final String ENUM_TYPE_ASSOCIATE = "associate";
 	private static final String ENUM_TYPE_PART_OF = "part_of";
 	public static final String[] TYPES = new String[]{
-		ENUM_TYPE_BIOLOGICAL_CHILD, ENUM_TYPE_ADOPTIVE_CHILD, ENUM_TYPE_FOSTER_CHILD, ENUM_TYPE_GUARDED_CHILD,
-		ENUM_TYPE_STEP_CHILD, ENUM_TYPE_CIVIL_SPOUSE, ENUM_TYPE_RELIGIOUS_SPOUSE, ENUM_TYPE_CUSTOMARY_SPOUSE,
-		ENUM_TYPE_COHABITING_PARTNER, ENUM_TYPE_ENGAGED_PARTNER, ENUM_TYPE_GROUP_MEMBER, ENUM_TYPE_ASSOCIATE,
-		ENUM_TYPE_PART_OF
+		ENUM_TYPE_CHILD, ENUM_TYPE_BIOLOGICAL_CHILD, ENUM_TYPE_ADOPTIVE_CHILD, ENUM_TYPE_FOSTER_CHILD,
+		ENUM_TYPE_GUARDED_CHILD, ENUM_TYPE_STEP_CHILD, ENUM_TYPE_SPOUSE, ENUM_TYPE_CIVIL_SPOUSE,
+		ENUM_TYPE_RELIGIOUS_SPOUSE, ENUM_TYPE_CUSTOMARY_SPOUSE, ENUM_TYPE_COHABITING_PARTNER, ENUM_TYPE_ENGAGED_PARTNER,
+		ENUM_TYPE_GROUP_MEMBER, ENUM_TYPE_ASSOCIATE, ENUM_TYPE_PART_OF
 	};
 	public static final String[] INDIVIDUAL_TO_INDIVIDUAL_CHILD_TYPES = new String[]{
-		ENUM_TYPE_BIOLOGICAL_CHILD, ENUM_TYPE_ADOPTIVE_CHILD, ENUM_TYPE_FOSTER_CHILD, ENUM_TYPE_GUARDED_CHILD, ENUM_TYPE_STEP_CHILD
+		ENUM_TYPE_CHILD, ENUM_TYPE_BIOLOGICAL_CHILD, ENUM_TYPE_ADOPTIVE_CHILD, ENUM_TYPE_FOSTER_CHILD,
+		ENUM_TYPE_GUARDED_CHILD, ENUM_TYPE_STEP_CHILD
 	};
 	private static final String[] INDIVIDUAL_TO_INDIVIDUAL_TYPES = new String[]{
-		ENUM_TYPE_BIOLOGICAL_CHILD, ENUM_TYPE_ADOPTIVE_CHILD, ENUM_TYPE_FOSTER_CHILD, ENUM_TYPE_GUARDED_CHILD, ENUM_TYPE_STEP_CHILD,
+		ENUM_TYPE_CHILD, ENUM_TYPE_BIOLOGICAL_CHILD, ENUM_TYPE_ADOPTIVE_CHILD, ENUM_TYPE_FOSTER_CHILD,
+		ENUM_TYPE_GUARDED_CHILD, ENUM_TYPE_STEP_CHILD,
 		"civil_spouse", "religious_spouse", "customary_spouse", "cohabiting_partner", "engaged_partner",
 		"associate"
 	};
@@ -138,19 +141,15 @@ public final class RelationshipReader{
 	public static final String[] GROUP_TO_GROUP_TYPES = new String[]{"part_of", "associate"};
 	private static final String[] GROUP_TO_INDIVIDUAL_TYPES = new String[0];
 	private static final String[] EMPTY_TYPES = new String[0];
-	public static final Set<String> CHILD_TYPES = new HashSet<>(List.of(ENUM_TYPE_BIOLOGICAL_CHILD,
+	public static final Set<String> CHILD_TYPES = new HashSet<>(List.of(ENUM_TYPE_CHILD, ENUM_TYPE_BIOLOGICAL_CHILD,
 		ENUM_TYPE_ADOPTIVE_CHILD, ENUM_TYPE_FOSTER_CHILD, ENUM_TYPE_GUARDED_CHILD, ENUM_TYPE_STEP_CHILD));
 
-	public static final String[] BIOLOGICAL = new String[]{ENUM_TYPE_BIOLOGICAL_CHILD};
+	public static final String[] BIOLOGICAL = new String[]{ENUM_TYPE_CHILD, ENUM_TYPE_BIOLOGICAL_CHILD};
 	public static final String[] FAMILY = CHILD_TYPES.toArray(String[]::new);
 
 	public static final Set<String> PARTNER_TYPES = new TreeSet<>(List.of(
-		ENUM_TYPE_CIVIL_SPOUSE, ENUM_TYPE_RELIGIOUS_SPOUSE, ENUM_TYPE_CUSTOMARY_SPOUSE, ENUM_TYPE_COHABITING_PARTNER,
-		ENUM_TYPE_ENGAGED_PARTNER));
-
-	public static final String[] STATUSES = new String[]{
-		"active", "ended", "unknown"
-	};
+		ENUM_TYPE_SPOUSE, ENUM_TYPE_CIVIL_SPOUSE, ENUM_TYPE_RELIGIOUS_SPOUSE, ENUM_TYPE_CUSTOMARY_SPOUSE,
+		ENUM_TYPE_COHABITING_PARTNER, ENUM_TYPE_ENGAGED_PARTNER));
 
 
 	private RelationshipReader(){}

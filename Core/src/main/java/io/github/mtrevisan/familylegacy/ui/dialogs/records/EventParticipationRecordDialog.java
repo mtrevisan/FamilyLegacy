@@ -61,7 +61,7 @@ import java.util.List;
  *   participant: EventParticipant
  *   event: Xref&lt;EventRecord&gt;
  *   role?: enum {
- *     child, parent, spouse, power_of_attorney, prisoner, witness, officiant, informant, executor, grantor, grantee,
+ *     principal, sponsor, power_of_attorney, prisoner, witness, officiant, informant, executor, grantor, grantee,
  *     landlord, tenant, soldier, commander, victim, survivor, accused, judge, property
  *   } | Text
  *   source*: SourceCitation

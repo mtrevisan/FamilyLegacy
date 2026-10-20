@@ -38,10 +38,9 @@ import java.util.Locale;
  * <p>
  * Handles all three alternatives of the {@code DateValue} union
  * ({@code point}, {@code bounded}, {@code spanning}) and all three
- * alternatives of {@code SingleDate} ({@code full_date}, {@code decade},
- * {@code century}). Approximation ({@code basis}, {@code margin}) and
- * non‑Gregorian calendars are preserved on the resulting
- * {@link NormalizedDate}.
+ * alternatives of {@code SingleDate} value ({@code full_date}, {@code decade},
+ * {@code century}). Approximation and calendar are now read from the
+ * root {@code SingleDate} struct level.
  */
 public final class DateNormalizer{
 
@@ -123,27 +122,33 @@ public final class DateNormalizer{
 	 * ====================================================================== */
 
 	private static NormalizedDate normalizeSingleDate(final FLEFRecord singleDate, final String originalText){
-		final FLEFRecord fullDate = FLEFRecordHelper.findChild(singleDate, DateReader.TAG_FULL_DATE);
+		final String calendar = defaultCalendar(FLEFRecordHelper.getChildValue(singleDate, DateReader.TAG_CALENDAR));
+
+		final FLEFRecord valueContainer = FLEFRecordHelper.findChild(singleDate, DateReader.TAG_VALUE);
+		if(valueContainer == null)
+			return null;
+
+		final FLEFRecord fullDate = FLEFRecordHelper.findChild(valueContainer, DateReader.TAG_FULL_DATE);
 		if(fullDate != null)
-			return normalizeFullDate(fullDate, originalText);
+			return normalizeFullDate(singleDate, fullDate, calendar, originalText);
 
-		final FLEFRecord decade = FLEFRecordHelper.findChild(singleDate, DateReader.TAG_DECADE);
+		final FLEFRecord decade = FLEFRecordHelper.findChild(valueContainer, DateReader.TAG_DECADE);
 		if(decade != null)
-			return normalizeDecade(decade, originalText);
+			return normalizeDecade(singleDate, decade, calendar, originalText);
 
-		final FLEFRecord century = FLEFRecordHelper.findChild(singleDate, DateReader.TAG_CENTURY);
+		final FLEFRecord century = FLEFRecordHelper.findChild(valueContainer, DateReader.TAG_CENTURY);
 		if(century != null)
-			return normalizeCentury(century, originalText);
+			return normalizeCentury(singleDate, century, calendar, originalText);
 
 		return null;
 	}
 
-	private static NormalizedDate normalizeFullDate(final FLEFRecord fullDate, final String originalText){
-		final String raw = FLEFRecordHelper.getChildValue(fullDate, DateReader.TAG_VALUE);
+	private static NormalizedDate normalizeFullDate(final FLEFRecord singleDate, final FLEFRecord fullDate,
+			final String calendar, final String originalText){
+		final String raw = fullDate.getValue();
 		if(raw == null || raw.isBlank())
 			return null;
 
-		final String calendar = defaultCalendar(FLEFRecordHelper.getChildValue(fullDate, DateReader.TAG_CALENDAR));
 		final int[] ymd = parseHistoricalDate(raw);
 		if(ymd == null)
 			return null;
@@ -152,29 +157,29 @@ public final class DateNormalizer{
 			: (ymd[1] > 0? DatePrecision.MONTH: DatePrecision.YEAR));
 		final long jdn = CalendarConverter.toJdn(calendar, ymd[0], Math.max(1, ymd[1]), Math.max(1, ymd[2]));
 
-		return applyApproximation(fullDate, jdn, precision, calendar, originalText);
+		return applyApproximation(singleDate, jdn, precision, calendar, originalText);
 	}
 
-	private static NormalizedDate normalizeDecade(final FLEFRecord decade, final String originalText){
-		final String rawYear = FLEFRecordHelper.getChildValue(decade, DateReader.TAG_START_YEAR);
+	private static NormalizedDate normalizeDecade(final FLEFRecord singleDate, final FLEFRecord decade,
+			final String calendar, final String originalText){
+		final String rawYear = decade.getValue();
 		if(rawYear == null)
 			return null;
 		final int startYear = Integer.parseInt(rawYear.trim());
-		final String calendar = defaultCalendar(FLEFRecordHelper.getChildValue(decade, DateReader.TAG_CALENDAR));
 		final long jdn = CalendarConverter.toJdnStartOfYear(calendar, startYear);
-		return applyApproximation(decade, jdn, DatePrecision.DECADE, calendar, originalText);
+		return applyApproximation(singleDate, jdn, DatePrecision.DECADE, calendar, originalText);
 	}
 
-	private static NormalizedDate normalizeCentury(final FLEFRecord century, final String originalText){
+	private static NormalizedDate normalizeCentury(final FLEFRecord singleDate, final FLEFRecord century,
+			final String calendar, final String originalText){
 		final String rawOrdinal = FLEFRecordHelper.getChildValue(century, DateReader.TAG_ORDINAL);
 		if(rawOrdinal == null)
 			return null;
 		final int ordinal = Integer.parseInt(rawOrdinal.trim());
 		// Century N of the common era covers years (N-1)*100+1 .. N*100.
 		final int startYear = (ordinal - 1) * 100 + 1;
-		final String calendar = defaultCalendar(FLEFRecordHelper.getChildValue(century, DateReader.TAG_CALENDAR));
 		final long jdn = CalendarConverter.toJdnStartOfYear(calendar, startYear);
-		return applyApproximation(century, jdn, DatePrecision.CENTURY, calendar, originalText);
+		return applyApproximation(singleDate, jdn, DatePrecision.CENTURY, calendar, originalText);
 	}
 
 
@@ -182,9 +187,9 @@ public final class DateNormalizer{
 	 *                       Helpers
 	 * ====================================================================== */
 
-	private static NormalizedDate applyApproximation(final FLEFRecord container, final long jdn,
-		final DatePrecision precision, final String calendar, final String originalText){
-		final FLEFRecord approx = FLEFRecordHelper.findChild(container, DateReader.TAG_APPROXIMATE);
+	private static NormalizedDate applyApproximation(final FLEFRecord singleDate, final long jdn,
+			final DatePrecision precision, final String calendar, final String originalText){
+		final FLEFRecord approx = FLEFRecordHelper.findChild(singleDate, DateReader.TAG_APPROXIMATE);
 		if(approx == null)
 			return NormalizedDate.exact(jdn, precision, calendar)
 				.withOriginalText(originalText);

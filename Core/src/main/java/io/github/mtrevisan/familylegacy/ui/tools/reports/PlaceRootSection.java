@@ -57,7 +57,6 @@ final class PlaceRootSection implements SectionBuilder{
 	private static final String TAG_VALID_FROM = "valid_from";
 	private static final String TAG_VALID_TO = "valid_to";
 	private static final String TAG_DESCRIPTION = "description";
-	private static final String TAG_AGENCY = "agency";
 
 
 	private final ReportContext ctx;
@@ -249,11 +248,6 @@ final class PlaceRootSection implements SectionBuilder{
 		if(place != null)
 			out.add(new ReportSection.Paragraph(
 				"**" + ctx.labels.sections().place() + ":** " + ReportFormatters.escape(place)));
-
-		final String agency = FLEFRecordHelper.getChildValue(evt, TAG_AGENCY);
-		if(agency != null)
-			out.add(new ReportSection.Paragraph(
-				"**" + ctx.labels.sections().agency() + ":** " + ReportFormatters.escape(agency)));
 
 		final String descr = FLEFRecordHelper.getChildValue(evt, TAG_DESCRIPTION);
 		if(descr != null)

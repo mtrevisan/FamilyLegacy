@@ -112,7 +112,7 @@ public final class GEDCOMMapper{
 		ATTRIBUTE_MAP.put("CAST", "caste");
 		ATTRIBUTE_MAP.put("DSCR", "characteristic");
 		ATTRIBUTE_MAP.put("EDUC", "education");
-		ATTRIBUTE_MAP.put("IDNO", "ssn");
+		ATTRIBUTE_MAP.put("IDNO", "national_id");
 		ATTRIBUTE_MAP.put("NATI", "nationality");
 		ATTRIBUTE_MAP.put("NCHI", "children_count");
 		ATTRIBUTE_MAP.put("NMR", "marriages_count");
@@ -120,7 +120,7 @@ public final class GEDCOMMapper{
 		ATTRIBUTE_MAP.put("PROP", "possession");
 		ATTRIBUTE_MAP.put("RELI", "religion");
 		ATTRIBUTE_MAP.put("RESI", "residence");
-		ATTRIBUTE_MAP.put("SSN", "ssn");
+		ATTRIBUTE_MAP.put("SSN", "national_id");
 		ATTRIBUTE_MAP.put("TITL", "title");
 		ATTRIBUTE_MAP.put("FACT", "other");
 
@@ -152,11 +152,13 @@ public final class GEDCOMMapper{
 		// ------------------------------
 		// Relationship types
 		// ------------------------------
+		RELATIONSHIP_TYPE_MAP.put("child", "child");
 		RELATIONSHIP_TYPE_MAP.put("biological_child", "biological_child");
 		RELATIONSHIP_TYPE_MAP.put("adoptive_child", "adoptive_child");
 		RELATIONSHIP_TYPE_MAP.put("foster_child", "foster_child");
 		RELATIONSHIP_TYPE_MAP.put("guarded_child", "guarded_child");
 		RELATIONSHIP_TYPE_MAP.put("step_child", "step_child");
+		RELATIONSHIP_TYPE_MAP.put("spouse", "spouse");
 		RELATIONSHIP_TYPE_MAP.put("civil_spouse", "civil_spouse");
 		RELATIONSHIP_TYPE_MAP.put("religious_spouse", "religious_spouse");
 		RELATIONSHIP_TYPE_MAP.put("customary_spouse", "customary_spouse");
@@ -169,13 +171,15 @@ public final class GEDCOMMapper{
 		// ------------------------------
 		// Roles
 		// ------------------------------
-		ROLE_MAP.put("CHILD", "child");
-		ROLE_MAP.put("PARENT", "parent");
-		ROLE_MAP.put("SPOUSE", "spouse");
+		ROLE_MAP.put("CHILD", "principal");
+		ROLE_MAP.put("PARENT", "principal");
+		ROLE_MAP.put("SPOUSE", "principal");
+		ROLE_MAP.put("SPONSOR", "sponsor");
 		ROLE_MAP.put("POWER_OF_ATTORNEY", "power_of_attorney");
 		ROLE_MAP.put("PRISONER", "prisoner");
 		ROLE_MAP.put("WITNESS", "witness");
 		ROLE_MAP.put("OFFICIANT", "officiant");
+		ROLE_MAP.put("DECLARANT", "informant");
 		ROLE_MAP.put("INFORMANT", "informant");
 		ROLE_MAP.put("EXECUTOR", "executor");
 		ROLE_MAP.put("GRANTOR", "grantor");

@@ -60,7 +60,6 @@ public class EventSearchStrategy implements SearchStrategy{
 	private String date;
 	private String calendar;
 	private String place;
-	private String agency;
 	private String causeReason;
 	private Set<SearchMode> modes;
 
@@ -72,7 +71,6 @@ public class EventSearchStrategy implements SearchStrategy{
 		date = criteria.getFilterFor(EventReader.TAG_DATE);
 		calendar = criteria.getFilterFor(DateReader.TAG_CALENDAR);
 		place = criteria.getFilterFor(EventReader.TAG_PLACE);
-		agency = criteria.getFilterFor(EventReader.TAG_AGENCY);
 		causeReason = criteria.getFilterFor(EventReader.TAG_CAUSE_REASON);
 		modes = criteria.modes();
 
@@ -98,13 +96,6 @@ public class EventSearchStrategy implements SearchStrategy{
 			// Place filter
 			if(!SearchHelper.matchesPlace(event, place, model, modes, FUZZY_THRESHOLD))
 				return false;
-
-			// Agency filter
-			if(StringUtils.isNotEmpty(agency)){
-				final String agency = FLEFRecordHelper.getChildValue(event, EventReader.TAG_AGENCY);
-				if(!TextSearchHelper.matchesText(agency, this.agency, modes, FUZZY_THRESHOLD))
-					return false;
-			}
 
 			// Cause Reason filter
 			if(StringUtils.isNotEmpty(causeReason)){

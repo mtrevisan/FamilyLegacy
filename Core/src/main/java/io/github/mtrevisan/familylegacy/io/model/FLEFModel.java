@@ -25,7 +25,9 @@
 package io.github.mtrevisan.familylegacy.io.model;
 
 import io.github.mtrevisan.familylegacy.io.grammar.XrefPathIndex;
+import io.github.mtrevisan.familylegacy.io.model.readers.NoteReader;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.ResearchQuestionHandler;
 import org.apache.commons.lang3.StringUtils;
@@ -51,6 +53,9 @@ import java.util.Set;
 public class FLEFModel{
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(FLEFModel.class);
+
+
+	public static final String FLEF_LINK_PREFIX = "flef:";
 
 
 	private FLEFRecord header;
@@ -169,12 +174,6 @@ public class FLEFModel{
 
 	/**
 	 * Replaces all occurrences of oldId with newId strictly across pre-indexed Xref paths derived from the grammar.
-	 *
-	 * @param oldId the ID to replace
-	 * @param newId the target ID
-	 */
-	/**
-	 * Replaces all occurrences of oldId with newId strictly across pre-indexed Xref paths derived from the grammar.
 	 * Highly optimized to avoid global record lookups per path iteration.
 	 *
 	 * @param oldId the ID to replace
@@ -195,7 +194,7 @@ public class FLEFModel{
 		if(xrefPaths.isEmpty())
 			return;
 
-		// Iterate once through all records in the model
+		// Iterate once through all records in the model to update structural Xref fields
 		for(final FLEFRecord record : records){
 			final String recordType = record.getTag();
 			for(final String path : xrefPaths){
@@ -216,11 +215,49 @@ public class FLEFModel{
 			}
 		}
 
+		// Construct the markdown link patterns for FLEF: URI references (e.g., flef:I12)
+		final String flefLinkOld = FLEF_LINK_PREFIX + oldId;
+		final String flefLinkNew = FLEF_LINK_PREFIX + newId;
+		// Iterate through all records to update flf: links inside NoteStructure text fields and translations
+		for(final FLEFRecord record : records)
+			updateNoteLinksRecursive(record, flefLinkOld, flefLinkNew);
+
 		// Update internal model maps if a top-level record ID changed
 		recordsById.remove(oldId);
 		placesById.remove(oldId);
 		eventsById.remove(oldId);
 		questionsById.remove(oldId);
+	}
+
+	/**
+	 * Recursively searches for note nodes and updates markdown flf: URI references.
+	 *
+	 * @param record     the current FLEF record being inspected
+	 * @param flefLinkOld the old {@code flef:} link string
+	 * @param flefLinkNew the new {@code flef:} link string
+	 */
+	private void updateNoteLinksRecursive(final FLEFRecord record, final String flefLinkOld, final String flefLinkNew){
+		if(record == null)
+			return;
+
+		// If the record is a note structure, check and replace within its text field
+		if(NoteHandler.isOfType(record)){
+			final FLEFRecord textNode = FLEFRecordHelper.findChild(record, NoteReader.TAG_TEXT);
+			if(textNode != null && textNode.getValue() != null){
+				final String text = textNode.getValue();
+				if(text.contains(flefLinkOld)){
+					final String updatedText = text.replace(flefLinkOld, flefLinkNew);
+					textNode.setValue(updatedText);
+
+					LOGGER.info("Updated markdown note link from {} to {} in record {}", flefLinkOld, flefLinkNew,
+						record.getId());
+				}
+			}
+		}
+
+		// Recursively inspect child nodes (including translations or nested structures)
+		for(final FLEFRecord child : record.getChildren())
+			updateNoteLinksRecursive(child, flefLinkOld, flefLinkNew);
 	}
 
 

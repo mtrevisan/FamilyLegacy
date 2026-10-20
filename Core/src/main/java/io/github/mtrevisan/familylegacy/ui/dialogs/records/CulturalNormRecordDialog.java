@@ -40,7 +40,6 @@ import io.github.mtrevisan.familylegacy.ui.handlers.ConclusionHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.ContextImpactHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.CulturalNormHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.PlaceCitationHandler;
-import io.github.mtrevisan.familylegacy.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.ResearchQuestionHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
@@ -116,7 +115,7 @@ public class CulturalNormRecordDialog extends BaseRecordDialog{
 		typeCombo = new BoundComboBox<>(CulturalNormReader.TAG_TYPE, GUIHelper.fillCombo(CulturalNormReader.TYPES, null));
 		typeCombo.setI18NPrefix("enum.cultural_norm.rule_type");
 		typeCombo.setEditable(true);
-		placeField = EntityField.createForStructureWithReference(PlaceHandler.TYPE, this, model, PlaceCitationHandler.class);
+		placeField = EntityField.createForStructureWithReference(CulturalNormReader.TAG_PLACE, this, model, PlaceCitationHandler.class);
 		placeEvidencePanel = new EvidenceQualifiersPanel(CulturalNormReader.TAG_PLACE_EVIDENCE, I18N.t("dialog.component.evidence"));
 		validFromField = DateField.createWithWrapperTag(CulturalNormReader.TAG_VALID_FROM, this, I18N.t("dialog.date.valid_from"), model);
 		validToField = DateField.createWithWrapperTag(CulturalNormReader.TAG_VALID_TO, this, I18N.t("dialog.date.valid_to"), model);

@@ -38,7 +38,6 @@ import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.ConclusionHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.NameHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.PlaceCitationHandler;
-import io.github.mtrevisan.familylegacy.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.ResearchActivityHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.ResearchQuestionHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.SourceHandler;
@@ -57,7 +56,7 @@ import java.io.IOException;
  * <pre>
  * record SourceRecord {
  *   title+: NameStructure
- *   author?: Text
+ *   author*: Agent             // the person, agency, or entity who created the record. For a published work, this could be the author, compiler, transcriber, abstractor, or editor. For an unpublished source, this may be an individual, a government agency, church organization, or private organization, etc.
  *   publisher?: Text
  *   date?: DateStructure
  *   place?: PlaceCitation
@@ -67,6 +66,12 @@ import java.io.IOException;
  *   note*: Xref&lt;NoteRecord&gt;
  *   privacy?: PrivacyStructure
  *   audit: AuditStructure
+ * }
+ *
+ * Agent = oneof {
+ *  individual: Xref&lt;IndividualRecord&gt;   // the author is an individual described in this file
+ *  group: Xref&lt;GroupRecord&gt;             // the author is a group or organization described in this file (e.g. a parish, a confraternity)
+ *  text: Text                           // the author is not described in this file (e.g. a publisher's editor, an unidentified clerk)
  * }
  * </pre>
  * <p>
@@ -80,6 +85,7 @@ import java.io.IOException;
 public class SourceRecordDialog extends BaseRecordDialog{
 
 	private final EntityListPanel titlePanel;
+	// TODO
 	private final BoundTextField authorField;
 	private final BoundTextField publisherField;
 	private final DateField dateField;
@@ -104,7 +110,7 @@ public class SourceRecordDialog extends BaseRecordDialog{
 		authorField = new BoundTextField(SourceReader.TAG_AUTHOR);
 		publisherField = new BoundTextField(SourceReader.TAG_PUBLISHER);
 		dateField = DateField.createWithWrapperTag(SourceReader.TAG_DATE, this, I18N.t("dialog.source.valid_date"), model);
-		placeField = EntityField.createForStructureWithReference(PlaceHandler.TYPE, this, model,
+		placeField = EntityField.createForStructureWithReference(SourceReader.TAG_PLACE, this, model,
 			PlaceCitationHandler.class);
 		mediaTypeCombo = new BoundComboBox<>(SourceReader.TAG_MEDIA_TYPE, GUIHelper.fillCombo(SourceReader.MEDIA_TYPES, null));
 		mediaTypeCombo.setI18NPrefix("enum.source.media_type");

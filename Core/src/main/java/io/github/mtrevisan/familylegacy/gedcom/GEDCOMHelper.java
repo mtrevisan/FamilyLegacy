@@ -521,16 +521,16 @@ public class GEDCOMHelper{
 		if(cleanId(sourValue) != null){
 			// TODO is there something to fetch from actual raw source?
 
-			FLEFRecord event = null;
+//			FLEFRecord event = null;
 			GEDCOMNode pageNode = findFirstChild(node, "PAGE");
-			GEDCOMNode evenNode = findFirstChild(node, "EVEN");
-			String evenValue = (evenNode != null? evenNode.getValue(): null);
-			if(StringUtils.isNotEmpty(evenValue)){
-				GEDCOMNode evenRoleNode = findFirstChild(evenNode, "ROLE");
-				String roleValue = (evenRoleNode != null? evenRoleNode.getValue(): null);
-
-				String role = GEDCOMMapper.mapRole(roleValue, roleValue);
-				String roleType = GEDCOMMapper.mapEvent(evenValue, evenValue);
+//			GEDCOMNode evenNode = findFirstChild(node, "EVEN");
+//			String evenValue = (evenNode != null? evenNode.getValue(): null);
+//			if(StringUtils.isNotEmpty(evenValue)){
+//				GEDCOMNode evenRoleNode = findFirstChild(evenNode, "ROLE");
+//				String roleValue = (evenRoleNode != null? evenRoleNode.getValue(): null);
+//
+//				String role = GEDCOMMapper.mapRole(roleValue, roleValue);
+//				String roleType = GEDCOMMapper.mapEvent(evenValue, evenValue);
 //				StringJoiner sj = new StringJoiner(StringUtils.LF);
 //				if(StringUtils.isNotEmpty(role))
 //					sj.add("Role: " + role);
@@ -554,7 +554,7 @@ public class GEDCOMHelper{
 //
 //				// check for duplicates before adding
 //				Deduplicator.getDeduplicatedRecordId(model, eventParticipant);
-			}
+//			}
 
 			FLEFRecord sourceCitation = FLEFRecord.createChildWithTag("source");
 
@@ -849,7 +849,7 @@ public class GEDCOMHelper{
 
 		// Agency (AGNC) -- ONLY FOR EVENTS!
 		GEDCOMNode agncNode = findFirstChild(node, "AGNC");
-		transferValue(record, "agency", agncNode);
+		GEDCOMHelper.attachNote(record, agncNode, noteRawMap);
 
 		// Cause (CAUS) -- ONLY FOR EVENTS!
 		GEDCOMNode causNode = findFirstChild(node, "CAUS");
@@ -903,6 +903,7 @@ public class GEDCOMHelper{
 				.addChild(FLEFRecord.createChildWithTagAndValue("individual", parent.getId()))
 			)
 			.addChild(FLEFRecord.createChildWithTagAndValue("event", record.getId()))
+			.addChild(FLEFRecord.createChildWithTagAndValue("role", "principal"))
 			.addChild(AuditBuilder.build(node));
 		// check for duplicates before adding
 		Deduplicator.getDeduplicatedRecordId(model, eventParticipant);
@@ -1010,7 +1011,7 @@ public class GEDCOMHelper{
 					.addChild(FLEFRecord.createChildWithTag("target")
 						.addChild(FLEFRecord.createChildWithTagAndValue("group", cleanId(famsNode.getValue())))
 					)
-					.addChild(FLEFRecord.createChildWithTagAndValue("type", "civil_spouse"));
+					.addChild(FLEFRecord.createChildWithTagAndValue("type", "spouse"));
 				relationship.addChild(AuditBuilder.build(node));
 
 				// ---- Notes (GEDCOM NOTE) – inline structs ----
@@ -1069,10 +1070,10 @@ public class GEDCOMHelper{
 
 		// Link participants
 		if(husbandId != null){
-			createEventParticipation(groupId, husbandId, husbAge, "individual", "spouse", model, node);
+			createEventParticipation(groupId, husbandId, husbAge, "individual", "principal", model, node);
 		}
 		if(wifeId != null){
-			createEventParticipation(groupId, wifeId, wifeAge, "individual", "spouse", model, node);
+			createEventParticipation(groupId, wifeId, wifeAge, "individual", "principal", model, node);
 		}
 	}
 
@@ -1121,9 +1122,13 @@ public class GEDCOMHelper{
 
 					FLEFRecord valuePoint = FLEFRecord.createChildWithTag("point");
 					FLEFRecord valuePointFullDate = FLEFRecord.createChildWithTag("full_date");
-					valuePointFullDate.addChild(FLEFRecord.createChildWithTagAndValue("value", dateInfo.getValue()));
-					valuePointFullDate.addChild(FLEFRecord.createChildWithTagAndValue("calendar", getCalendarForDate(dateInfo.getValue())));
-					valuePoint.addChild(valuePointFullDate);
+					valuePointFullDate.setValue(dateInfo.getValue());
+
+					FLEFRecord valueContainer = FLEFRecord.createChildWithTag("value");
+					valueContainer.addChild(valuePointFullDate);
+					valuePoint.addChild(valueContainer);
+
+					valuePoint.addChild(FLEFRecord.createChildWithTagAndValue("calendar", getCalendarForDate(dateInfo.getValue())));
 
 					if(dateInfo.isApproximate()){
 						FLEFRecord approx = FLEFRecord.createChildWithTag("approximate");
@@ -1134,7 +1139,7 @@ public class GEDCOMHelper{
 							default -> DateReader.ENUM_BASIS_UNSPECIFIED;
 						};
 						approx.addChild(FLEFRecord.createChildWithTagAndValue("basis", basis));
-						valuePointFullDate.addChild(approx);
+						valuePoint.addChild(approx);
 					}
 					dateValue.addChild(valuePoint);
 				}
@@ -1151,26 +1156,12 @@ public class GEDCOMHelper{
 
 					FLEFRecord boundedRec = FLEFRecord.createChildWithTag("bounded");
 					if(dateInfo.getNotBefore() != null){
-						FLEFRecord nb = buildQualifiedDate(dateInfo.getNotBefore());
-						FLEFRecord nbNode = FLEFRecord.createChildWithTag("not_before");
-						nbNode.addChild(nb);
-						if(dateInfo.isApproximate()){
-							FLEFRecord approx = FLEFRecord.createChildWithTag("approximate");
-							approx.addChild(FLEFRecord.createChildWithTagAndValue("basis", DateReader.ENUM_BASIS_STATED));
-							nbNode.addChild(approx);
-						}
-						boundedRec.addChild(nbNode);
+						FLEFRecord nbNode = buildSingleDateForHelper(dateInfo.getNotBefore(), dateInfo.isApproximate());
+						boundedRec.addChild(nbNode.setTag("not_before"));
 					}
 					if(dateInfo.getNotAfter() != null){
-						FLEFRecord na = buildQualifiedDate(dateInfo.getNotAfter());
-						FLEFRecord naNode = FLEFRecord.createChildWithTag("not_after");
-						naNode.addChild(na);
-						if(dateInfo.isApproximate()){
-							FLEFRecord approx = FLEFRecord.createChildWithTag("approximate");
-							approx.addChild(FLEFRecord.createChildWithTagAndValue("basis", DateReader.ENUM_BASIS_STATED));
-							naNode.addChild(approx);
-						}
-						boundedRec.addChild(naNode);
+						FLEFRecord naNode = buildSingleDateForHelper(dateInfo.getNotAfter(), dateInfo.isApproximate());
+						boundedRec.addChild(naNode.setTag("not_after"));
 					}
 					dateValue.addChild(boundedRec);
 				}
@@ -1187,26 +1178,12 @@ public class GEDCOMHelper{
 
 					FLEFRecord spanningRec = FLEFRecord.createChildWithTag("spanning");
 					if(dateInfo.getFrom() != null){
-						FLEFRecord from = buildQualifiedDate(dateInfo.getFrom());
-						FLEFRecord fromNode = FLEFRecord.createChildWithTag("from");
-						fromNode.addChild(from);
-						if(dateInfo.isApproximate()){
-							FLEFRecord approx = FLEFRecord.createChildWithTag("approximate");
-							approx.addChild(FLEFRecord.createChildWithTagAndValue("basis", DateReader.ENUM_BASIS_STATED));
-							fromNode.addChild(approx);
-						}
-						spanningRec.addChild(fromNode);
+						FLEFRecord fromNode = buildSingleDateForHelper(dateInfo.getFrom(), dateInfo.isApproximate());
+						spanningRec.addChild(fromNode.setTag("from"));
 					}
 					if(dateInfo.getTo() != null){
-						FLEFRecord to = buildQualifiedDate(dateInfo.getTo());
-						FLEFRecord toNode = FLEFRecord.createChildWithTag("to");
-						toNode.addChild(to);
-						if(dateInfo.isApproximate()){
-							FLEFRecord approx = FLEFRecord.createChildWithTag("approximate");
-							approx.addChild(FLEFRecord.createChildWithTagAndValue("basis", DateReader.ENUM_BASIS_STATED));
-							toNode.addChild(approx);
-						}
-						spanningRec.addChild(toNode);
+						FLEFRecord toNode = buildSingleDateForHelper(dateInfo.getTo(), dateInfo.isApproximate());
+						spanningRec.addChild(toNode.setTag("to"));
 					}
 					dateValue.addChild(spanningRec);
 				}
@@ -1215,6 +1192,30 @@ public class GEDCOMHelper{
 				.addChild(dateValue)
 			);
 		}
+	}
+
+	private static FLEFRecord buildSingleDateForHelper(String isoDate, boolean approximate){
+		if(StringUtils.isEmpty(isoDate)){
+			isoDate = null;
+		}
+		FLEFRecord singleDate = FLEFRecord.createEmpty();
+		FLEFRecord fullDate = FLEFRecord.createChildWithTag("full_date");
+		if(isoDate != null)
+			fullDate.setValue(isoDate);
+
+		FLEFRecord valueContainer = FLEFRecord.createChildWithTag("value");
+		valueContainer.addChild(fullDate);
+		singleDate.addChild(valueContainer);
+
+		if(isoDate != null)
+			singleDate.addChild(FLEFRecord.createChildWithTagAndValue("calendar", getCalendarForDate(isoDate)));
+
+		if(approximate){
+			FLEFRecord approx = FLEFRecord.createChildWithTag("approximate");
+			approx.addChild(FLEFRecord.createChildWithTagAndValue("basis", DateReader.ENUM_BASIS_STATED));
+			singleDate.addChild(approx);
+		}
+		return singleDate;
 	}
 
 	/**
@@ -1532,10 +1533,7 @@ public class GEDCOMHelper{
 			return;
 		}
 
-		FLEFRecord participation = FLEFRecord.createMainRecord(
-			IDGenerator.nextId(EventParticipationHandler.ID_PREFIX),
-			EventParticipationHandler.TYPE
-		);
+		FLEFRecord participation = FLEFRecord.createMainRecord(IDGenerator.nextId(EventParticipationHandler.ID_PREFIX), EventParticipationHandler.TYPE);
 
 		participation.addChild(FLEFRecord.createChildWithTagAndValue("event", eventId));
 

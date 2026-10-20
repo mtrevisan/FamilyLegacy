@@ -37,6 +37,8 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
  * // resource.
  * record DocumentRecord {
  *   uri: Uri             // URI identifying the underlying resource.
+ *   width?: Int          // width in pixels of the image at URI; CROP_RECTs referring to this document are expressed in this pixel space
+ *   height?: Int         // height in pixels of the image at URI
  *   mapping?: enum {     // Describes how visual image data should be interpreted and rendered.
  *     planar,                                   // Standard two-dimensional image with no panoramic or 3D projection.
  *     spherical_equirectangular,                // Full spherical panorama stored using an equirectangular projection, typically with a 2:1 aspect ratio and intended for 360° viewing.
@@ -55,6 +57,8 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
 public final class DocumentReader{
 
 	public static final String TAG_URI = "uri";
+	public static final String TAG_WIDTH = "width";
+	public static final String TAG_HEIGHT = "height";
 	public static final String TAG_MAPPING = "mapping";
 	public static final String TAG_DESCRIPTION = "description";
 	public static final String TAG_NOTE = "note";

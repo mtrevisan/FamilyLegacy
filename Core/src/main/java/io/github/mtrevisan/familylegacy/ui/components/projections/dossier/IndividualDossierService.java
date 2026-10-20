@@ -285,12 +285,6 @@ public final class IndividualDossierService{
 		final String role = FLEFRecordHelper.getChildValue(eventParticipation, EventParticipationReader.TAG_ROLE);
 		if(StringUtils.isNotEmpty(role))
 			subtitle.append("role: ").append(role);
-		final String agency = FLEFRecordHelper.getChildValue(event, EventReader.TAG_AGENCY);
-		if(StringUtils.isNotEmpty(agency)){
-			if(!subtitle.isEmpty())
-				subtitle.append(" · ");
-			subtitle.append(agency);
-		}
 		final String description = FLEFRecordHelper.getChildValue(event, EventReader.TAG_DESCRIPTION);
 		if(StringUtils.isNotEmpty(description)){
 			if(!subtitle.isEmpty())
@@ -385,12 +379,6 @@ public final class IndividualDossierService{
 		final String role = FLEFRecordHelper.getChildValue(relationship, RelationshipReader.TAG_ROLE);
 		if(StringUtils.isNotEmpty(role))
 			subtitle.append("role: ").append(role);
-		final String status = FLEFRecordHelper.getChildValue(relationship, RelationshipReader.TAG_STATUS);
-		if(StringUtils.isNotEmpty(status)){
-			if(!subtitle.isEmpty())
-				subtitle.append(" · ");
-			subtitle.append(status);
-		}
 		final String validity = formatting.formatValidity(relationship, RelationshipReader.TAG_VALID_FROM,
 			RelationshipReader.TAG_VALID_TO);
 		if(StringUtils.isNotEmpty(validity)){
@@ -557,7 +545,7 @@ public final class IndividualDossierService{
 				}
 
 			final String otherName = (otherId != null? resolveParticipantName(otherId): "?");
-			final String comment = FLEFRecordHelper.getChildValue(hypothesis, IdentityHypothesisReader.TAG_COMMENT);
+			final String comment = FLEFRecordHelper.getChildValue(hypothesis, IdentityHypothesisReader.TAG_RATIONALE);
 
 			entries.add(new DossierEntry("Possible duplicate",
 				(otherName != null? otherName: otherId),

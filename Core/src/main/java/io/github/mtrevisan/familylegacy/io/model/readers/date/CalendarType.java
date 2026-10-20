@@ -246,7 +246,6 @@ public enum CalendarType implements CalendarConverterPlugin{
 		@Override
 		public long parseToJdn(final String dateExpression){
 			// Expected native format: "光绪二十五年 庚子年 正月 初一" or "2020年 庚子年 正月 初一"
-			// 1. Leverage your string parser to break down the native text
 			final ChineseDateInput date = ChineseCalendarParser.parse(dateExpression);
 			final int year = date.getYear();
 			final int month = date.getMonth();
@@ -378,17 +377,26 @@ public enum CalendarType implements CalendarConverterPlugin{
 	PERSIAN("persian"){
 		@Override
 		public long parseToJdn(final String dateExpression){
-			// TODO
-//			final long epYear = year - (year >= 0? 474: 473);
-//			final long cycle = epYear / 2820;
-//			final long cYear = epYear % 2820;
-//			final long aux = (cYear < 1029? cYear: cYear - 2820);
-//			final long yCycle = (aux >= 0? aux: aux + 2820);
-//			final long yIndex = yCycle + 474;
-//
-//			final long daysInMonths = (month <= 7? (month - 1) * 31L: (month - 1) * 30L + 6);
-//			return day + daysInMonths + (yIndex * 682 - 110) / 2816 + (yIndex - 1) * 365 + cycle * 1029983 + 1948320;
-			return -1l;
+			// Expected native format: "۱ فروردین ۱۳۰۰" or "۱۰ رمضان ۱۲۶۸ هـ.ق"
+			final PersianDateInput date = PersianCalendarParser.parse(dateExpression);
+			final int year = date.getYear();
+			final int month = date.getMonth();
+			final int day = date.getDay();
+
+			// Persian epoch base year
+			final long epBase = year - (year >= 0? 474: 473);
+
+			// Year inside the 2820-year cycle
+			final long epYear = 474 + Math.floorMod(epBase, 2820);
+
+			// Days elapsed in previous months
+			final long monthDays = (month <= 7
+				? (month - 1) * 31L
+				: (month - 1) * 30L + 6L);
+
+			// Julian Day Number
+			return day + monthDays + (epYear * 682 - 110) / 2816 + (epYear - 1) * 365
+				+ Math.floorDiv(epBase, 2820) * 1_029_983L + 1_948_319L;
 		}
 	},
 	PARSI("parsi"){

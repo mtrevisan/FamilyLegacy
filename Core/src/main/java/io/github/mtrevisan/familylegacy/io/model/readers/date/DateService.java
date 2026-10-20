@@ -69,19 +69,19 @@ public class DateService{
 	 * Extracts a single date string from a node that may contain FULL_DATE, DECADE, or CENTURY
 	 * and optional APPROXIMATE.
 	 */
-	private static String getPointDisplayText(final FLEFRecord record){
-		final StringBuilder dateStr = new StringBuilder(getSingleDateDisplayText(record));
+	private static String getPointDisplayText(final FLEFRecord singleDateRecord){
+		final StringBuilder dateStr = new StringBuilder(getSingleDateDisplayText(singleDateRecord));
 		if(dateStr.isEmpty())
 			return "--";
 
-		// Check for APPROXIMATE (direct child of the node)
-		final FLEFRecord approx = FLEFRecordHelper.findChild(record, DateReader.TAG_APPROXIMATE);
+		// Check for APPROXIMATE (direct child of SingleDate struct)
+		final FLEFRecord approx = FLEFRecordHelper.findChild(singleDateRecord, DateReader.TAG_APPROXIMATE);
 		if(approx != null){
 			final String basis = FLEFRecordHelper.getChildValue(approx, DateReader.TAG_BASIS);
 			final String margin = FLEFRecordHelper.getChildValue(approx, DateReader.TAG_MARGIN);
 			if(basis != null || margin != null){
 				dateStr.append(StringUtils.SPACE)
-					.append('(')
+					.append('[')
 					.append(I18N.t("dialog.date.description.approximate.abbreviation"));
 				if(basis != null)
 					dateStr.append(StringUtils.SPACE)
@@ -95,13 +95,13 @@ public class DateService{
 						.append(':')
 						.append(StringUtils.SPACE)
 						.append(margin);
-				dateStr.append(')');
+				dateStr.append(']');
 			}
 			else
 				dateStr.append(StringUtils.SPACE)
-					.append('(')
+					.append('[')
 					.append(I18N.t("dialog.date.description.approximate.abbreviation"))
-					.append(')');
+					.append(']');
 		}
 		return dateStr.toString();
 	}
@@ -113,31 +113,33 @@ public class DateService{
 		if(singleDateRecord == null)
 			return StringUtils.EMPTY;
 
-		final FLEFRecord fullDate = singleDateRecord.getTheOnlyChild(DateReader.TAG_FULL_DATE);
+		final String calendar = FLEFRecordHelper.getChildValue(singleDateRecord, DateReader.TAG_CALENDAR);
+		final FLEFRecord valueContainer = FLEFRecordHelper.findChild(singleDateRecord, DateReader.TAG_VALUE);
+		if(valueContainer == null)
+			return StringUtils.EMPTY;
+
+		final FLEFRecord fullDate = FLEFRecordHelper.findChild(valueContainer, DateReader.TAG_FULL_DATE);
 		if(fullDate != null){
-			final String value = FLEFRecordHelper.getChildValue(fullDate, DateReader.TAG_VALUE);
-			final String calendar = FLEFRecordHelper.getChildValue(fullDate, DateReader.TAG_CALENDAR);
-			return value + (calendar != null? StringUtils.SPACE + calendar: StringUtils.EMPTY);
+			final String value = fullDate.getValue();
+			return value + (calendar != null? StringUtils.SPACE + "(" + calendar + ")": StringUtils.EMPTY);
 		}
 
-		final FLEFRecord decade = singleDateRecord.getTheOnlyChild(DateReader.TAG_DECADE);
+		final FLEFRecord decade = FLEFRecordHelper.findChild(valueContainer, DateReader.TAG_DECADE);
 		if(decade != null){
-			final String startYear = FLEFRecordHelper.getChildValue(decade, DateReader.TAG_START_YEAR);
-			final String calendar = FLEFRecordHelper.getChildValue(decade, DateReader.TAG_CALENDAR);
+			final String startYear = decade.getValue();
 			return I18N.tf("dialog.date.description.decade", startYear)
-				+ (calendar != null? StringUtils.SPACE + calendar: StringUtils.EMPTY);
+				+ (calendar != null? StringUtils.SPACE + "(" + calendar + ")": StringUtils.EMPTY);
 		}
 
-		final FLEFRecord century = singleDateRecord.getTheOnlyChild(DateReader.TAG_CENTURY);
+		final FLEFRecord century = FLEFRecordHelper.findChild(valueContainer, DateReader.TAG_CENTURY);
 		if(century != null){
 			final String ordinal = FLEFRecordHelper.getChildValue(century, DateReader.TAG_ORDINAL);
 			final String part = FLEFRecordHelper.getChildValue(century, DateReader.TAG_PART);
-			final String calendar = FLEFRecordHelper.getChildValue(century, DateReader.TAG_CALENDAR);
 			String centuryStr = I18N.tf("dialog.date.description.century", ordinal);
 			if(part != null)
 				centuryStr += " (" + part + ")";
 			if(calendar != null)
-				centuryStr += StringUtils.SPACE + calendar;
+				centuryStr += StringUtils.SPACE + "(" + calendar + ")";
 			return centuryStr;
 		}
 
@@ -145,9 +147,9 @@ public class DateService{
 	}
 
 	private static String getBoundedDisplayText(final FLEFRecord boundedRecord){
-		final FLEFRecord notBeforeRecord = boundedRecord.getTheOnlyChild(DateReader.TAG_NOT_BEFORE);
+		final FLEFRecord notBeforeRecord = FLEFRecordHelper.findChild(boundedRecord, DateReader.TAG_NOT_BEFORE);
 		final String notBefore = getSingleDateDisplayText(notBeforeRecord);
-		final FLEFRecord notAfterRecord = boundedRecord.getTheOnlyChild(DateReader.TAG_NOT_AFTER);
+		final FLEFRecord notAfterRecord = FLEFRecordHelper.findChild(boundedRecord, DateReader.TAG_NOT_AFTER);
 		final String notAfter = getSingleDateDisplayText(notAfterRecord);
 		if(!notBefore.isEmpty() && !notAfter.isEmpty())
 			return I18N.tf("dialog.date.description.between.and", notBefore, notAfter);
@@ -159,9 +161,9 @@ public class DateService{
 	}
 
 	private static String getSpanningDisplayText(final FLEFRecord spanningRecord){
-		final FLEFRecord fromRecord = spanningRecord.getTheOnlyChild(DateReader.TAG_FROM);
+		final FLEFRecord fromRecord = FLEFRecordHelper.findChild(spanningRecord, DateReader.TAG_FROM);
 		final String from = getSingleDateDisplayText(fromRecord);
-		final FLEFRecord toRecord = spanningRecord.getTheOnlyChild(DateReader.TAG_TO);
+		final FLEFRecord toRecord = FLEFRecordHelper.findChild(spanningRecord, DateReader.TAG_TO);
 		final String to = getSingleDateDisplayText(toRecord);
 		if(!from.isEmpty() && !to.isEmpty())
 			return I18N.tf("dialog.date.description.from.to", from, to);
@@ -196,23 +198,27 @@ public class DateService{
 		if(singleDateRecord == null)
 			return StringUtils.EMPTY;
 
-		final FLEFRecord fullDate = singleDateRecord.getTheOnlyChild(DateReader.TAG_FULL_DATE);
+		final FLEFRecord valueContainer = FLEFRecordHelper.findChild(singleDateRecord, DateReader.TAG_VALUE);
+		if(valueContainer == null)
+			return StringUtils.EMPTY;
+
+		final FLEFRecord fullDate = FLEFRecordHelper.findChild(valueContainer, DateReader.TAG_FULL_DATE);
 		if(fullDate != null){
-			final String calendar = FLEFRecordHelper.getChildValue(fullDate, DateReader.TAG_CALENDAR);
-			final String date = FLEFRecordHelper.getChildValue(fullDate, DateReader.TAG_VALUE);
+			final String calendar = FLEFRecordHelper.getChildValue(singleDateRecord, DateReader.TAG_CALENDAR);
+			final String date = fullDate.getValue();
 			final GenealogicalDate genealogicalDate = UniversalDateConverter.parse(calendar, date);
 			final int year = genealogicalDate.isoDate().getYear();
 			return applyApproximatePrefix(singleDateRecord, String.valueOf(year));
 		}
 
-		final FLEFRecord decade = singleDateRecord.getTheOnlyChild(DateReader.TAG_DECADE);
+		final FLEFRecord decade = FLEFRecordHelper.findChild(valueContainer, DateReader.TAG_DECADE);
 		if(decade != null){
-			final String year = FLEFRecordHelper.getChildValue(decade, DateReader.TAG_START_YEAR);
+			final String year = decade.getValue();
 			final String value = I18N.tf("dialog.date.description.decade.abbreviation", year);
 			return applyApproximatePrefix(singleDateRecord, value);
 		}
 
-		final FLEFRecord century = singleDateRecord.getTheOnlyChild(DateReader.TAG_CENTURY);
+		final FLEFRecord century = FLEFRecordHelper.findChild(valueContainer, DateReader.TAG_CENTURY);
 		if(century != null){
 			final String ordinal = FLEFRecordHelper.getChildValue(century, DateReader.TAG_ORDINAL);
 			final String part = FLEFRecordHelper.getChildValue(century, DateReader.TAG_PART);
@@ -230,8 +236,8 @@ public class DateService{
 	}
 
 	private static String getBoundedYearDisplayText(final FLEFRecord boundedRecord){
-		final FLEFRecord notBeforeRecord = boundedRecord.getTheOnlyChild(DateReader.TAG_NOT_BEFORE);
-		final FLEFRecord notAfterRecord = boundedRecord.getTheOnlyChild(DateReader.TAG_NOT_AFTER);
+		final FLEFRecord notBeforeRecord = FLEFRecordHelper.findChild(boundedRecord, DateReader.TAG_NOT_BEFORE);
+		final FLEFRecord notAfterRecord = FLEFRecordHelper.findChild(boundedRecord, DateReader.TAG_NOT_AFTER);
 		final String notBefore = getSingleDateYearDisplayText(notBeforeRecord);
 		final String notAfter = getSingleDateYearDisplayText(notAfterRecord);
 
@@ -248,8 +254,8 @@ public class DateService{
 	}
 
 	private static String getSpanningYearDisplayText(final FLEFRecord spanningRecord){
-		final FLEFRecord fromRecord = spanningRecord.getTheOnlyChild(DateReader.TAG_FROM);
-		final FLEFRecord toRecord = spanningRecord.getTheOnlyChild(DateReader.TAG_TO);
+		final FLEFRecord fromRecord = FLEFRecordHelper.findChild(spanningRecord, DateReader.TAG_FROM);
+		final FLEFRecord toRecord = FLEFRecordHelper.findChild(spanningRecord, DateReader.TAG_TO);
 		final String from = getSingleDateYearDisplayText(fromRecord);
 		final String to = getSingleDateYearDisplayText(toRecord);
 
@@ -269,7 +275,7 @@ public class DateService{
 		if(singleDateRecord == null || value.isEmpty())
 			return value;
 
-		final FLEFRecord approximate = singleDateRecord.getTheOnlyChild(DateReader.TAG_APPROXIMATE);
+		final FLEFRecord approximate = FLEFRecordHelper.findChild(singleDateRecord, DateReader.TAG_APPROXIMATE);
 
 		return (approximate != null
 			? "~" + value

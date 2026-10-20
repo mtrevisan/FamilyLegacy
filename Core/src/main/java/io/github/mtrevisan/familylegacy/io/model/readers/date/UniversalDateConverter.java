@@ -85,7 +85,7 @@ public final class UniversalDateConverter{
 	 * i.e. the JDN that corresponds to {@link LocalDate#ofEpochDay(long)}
 	 * day {@code 0}. Used to convert a JDN into a {@link LocalDate}.
 	 */
-	private static final long UNIX_EPOCH_JDN = 2440588L;
+	static final long UNIX_EPOCH_JDN = 2440588L;
 
 
 	private record PatternMatch(DateTimeFormatter formatter, GenealogicalDate.DatePrecision precision, boolean hasDay,

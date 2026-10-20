@@ -55,7 +55,7 @@ import java.awt.Window;
  *   }
  *   transcription: struct {
  *     system: enum {
- *       rōmaji, hepburn, kunreishiki, nihonshiki,
+ *       romaji, hepburn, kunreishiki, nihonshiki,
  *       pinyin, wadegiles,
  *       bgn_pcgn,
  *       iso9,

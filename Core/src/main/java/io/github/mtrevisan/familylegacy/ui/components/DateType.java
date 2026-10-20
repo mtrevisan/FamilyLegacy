@@ -32,9 +32,9 @@ import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 
 public enum DateType{
 
-	FULL_DATE("dialog.date.full_date", DateReader.TAG_FULL_DATE),
-	DECADE("dialog.date.decade", DateReader.TAG_DECADE),
-	CENTURY("dialog.date.century", DateReader.TAG_CENTURY);
+	FULL_DATE("dialog.date.full_date", DateReader.TAG_VALUE_FULL_DATE),
+	DECADE("dialog.date.decade", DateReader.TAG_VALUE_DECADE),
+	CENTURY("dialog.date.century", DateReader.TAG_VALUE_CENTURY);
 
 
 	private final String label;

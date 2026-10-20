@@ -55,7 +55,7 @@ import java.awt.Window;
  *     value: Text
  *     variant*: TextValueVariant
  *   }
- *   note?: Text
+ *   remark?: Text
  *   privacy?: PrivacyStructure
  *   audit: AuditStructure
  * }
@@ -74,7 +74,7 @@ public class ContactStructureDialog extends BaseRecordDialog{
 	private final BoundTextField valueField;
 	private final BoundComboBox<String> typeCombo;
 	private final EntityListPanel namePanel;
-	private final BoundTextArea noteArea;
+	private final BoundTextArea remarkArea;
 	private final JScrollPane noteAreaScroll;
 
 
@@ -97,9 +97,9 @@ public class ContactStructureDialog extends BaseRecordDialog{
 		typeCombo.setI18NPrefix("enum.contact.type");
 		namePanel = EntityListPanel.createForStructure(ContactReader.TAG_NAME, this, I18N.t("dialog.name.name"), model,
 			ContactNameHandler.class);
-		noteArea = new BoundTextArea(ContactReader.TAG_NOTE, 3, 25);
-		noteArea.setBorder(BorderFactory.createEmptyBorder(6, 6, 6, 6));
-		noteAreaScroll = new JScrollPane(noteArea);
+		remarkArea = new BoundTextArea(ContactReader.TAG_REMARK, 3, 25);
+		remarkArea.setBorder(BorderFactory.createEmptyBorder(6, 6, 6, 6));
+		noteAreaScroll = new JScrollPane(remarkArea);
 		noteAreaScroll.setBorder(BorderFactory.createTitledBorder(I18N.t("dialog.name.note")));
 
 		// Build common panels using the builder
@@ -110,7 +110,7 @@ public class ContactStructureDialog extends BaseRecordDialog{
 
 		components.bind(valueField);
 		components.bind(typeCombo);
-		components.bind(noteArea);
+		components.bind(remarkArea);
 
 
 		finalizeDialog(parent);

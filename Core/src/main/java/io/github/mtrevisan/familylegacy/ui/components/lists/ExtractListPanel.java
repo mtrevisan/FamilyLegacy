@@ -162,15 +162,14 @@ public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
 		final BoundComboBox<String> typeCombo = new BoundComboBox<>(SourceCitationReader.TAG_TYPE, GUIHelper.fillCombo(SourceCitationReader.EXTRACT_TYPES, I18N.t("search.combo.any")));
 		typeCombo.setI18NPrefix("enum.extract_type");
 		final BoundFilteredComboBox<String> localeCombo = new BoundFilteredComboBox<>(SourceCitationReader.TAG_LOCALE, LocaleHelper.getAvailableLanguageTags());
-		localeCombo.setEditable(true);
-		final BasicNoteListPanel basicNote = new BasicNoteListPanel(SourceCitationReader.TAG_NOTE, parent, "Notes", SourceCitationReader.TAG_NOTE);
+		final BasicNoteListPanel remark = new BasicNoteListPanel(SourceCitationReader.TAG_REMARK, parent, I18N.t("dialog.extract.remark"), SourceCitationReader.TAG_REMARK);
 
 
-		loadExtractData(record, documentPartPanel, textArea, typeCombo, localeCombo, basicNote);
+		loadExtractData(record, documentPartPanel, textArea, typeCombo, localeCombo, remark);
 
 
 		final JDialog dialog = new JDialog(parent, I18N.t(record == null? "dialog.extract.title.add": "dialog.extract.title.edit"), Dialog.ModalityType.APPLICATION_MODAL);
-		initExtractComponents(dialog, documentPartPanel, textArea, typeCombo, localeCombo, basicNote);
+		initExtractComponents(dialog, documentPartPanel, textArea, typeCombo, localeCombo, remark);
 
 		final FLEFRecord[] result = {record};
 		final JPanel buttonPanel = GUIHelper.createButtonPanel(dialog,
@@ -184,8 +183,8 @@ public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
 					res.addChild(FLEFRecord.createChildWithTagAndValue(SourceCitationReader.TAG_TEXT, textArea.getText()));
 					res.addChild(FLEFRecord.createChildWithTagAndValue(SourceCitationReader.TAG_TYPE, (String)typeCombo.getSelectedItem()));
 					res.addChild(FLEFRecord.createChildWithTagAndValue(SourceCitationReader.TAG_LOCALE, (String)localeCombo.getSelectedItem()));
-					for(final FLEFRecord note : basicNote.getItems())
-						res.addChild(FLEFRecord.createChildWithTagAndValue(SourceCitationReader.TAG_NOTE, NoteReader.extractText(note)));
+					for(final FLEFRecord note : remark.getItems())
+						res.addChild(FLEFRecord.createChildWithTagAndValue(SourceCitationReader.TAG_REMARK, NoteReader.extractText(note)));
 					result[0] = res;
 				}
 				else{
@@ -193,8 +192,8 @@ public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
 					FLEFRecordHelper.updateChildValue(record, SourceCitationReader.TAG_TEXT, textArea.getText());
 					FLEFRecordHelper.updateChildValue(record, SourceCitationReader.TAG_TYPE, (String)typeCombo.getSelectedItem());
 					FLEFRecordHelper.updateChildValue(record, SourceCitationReader.TAG_LOCALE, (String)localeCombo.getSelectedItem());
-					for(final FLEFRecord note : basicNote.getItems())
-						FLEFRecordHelper.updateChildValue(record, SourceCitationReader.TAG_NOTE, NoteReader.extractText(note));
+					for(final FLEFRecord note : remark.getItems())
+						FLEFRecordHelper.updateChildValue(record, SourceCitationReader.TAG_REMARK, NoteReader.extractText(note));
 				}
 
 				dialog.dispose();
@@ -235,7 +234,7 @@ public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
 		final String text = SourceCitationReader.extractExtractText(record);
 		final String type = SourceCitationReader.extractExtractType(record);
 		final String locale = SourceCitationReader.extractExtractLocale(record);
-		final List<String> notes = FLEFRecordHelper.findChildren(record, SourceCitationReader.TAG_NOTE).stream()
+		final List<String> notes = FLEFRecordHelper.findChildren(record, SourceCitationReader.TAG_REMARK).stream()
 			.map(FLEFRecord::getValue)
 			.toList();
 
@@ -247,7 +246,7 @@ public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
 		if(StringUtils.isNotEmpty(locale))
 			localeCombo.setSelectedItem(locale);
 		for(final String note : notes)
-			basicNote.addItemDirectly(FLEFRecord.createChildWithTagAndValue(SourceCitationReader.TAG_NOTE, note));
+			basicNote.addItemDirectly(FLEFRecord.createChildWithTagAndValue(SourceCitationReader.TAG_REMARK, note));
 	}
 
 	private static boolean validExtractData(final JDialog dialog, final DocumentPartListPanel documentPartPanel,

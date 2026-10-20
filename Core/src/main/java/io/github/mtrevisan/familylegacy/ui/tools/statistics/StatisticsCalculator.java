@@ -133,7 +133,7 @@ public final class StatisticsCalculator{
 			if(type == null)
 				continue;
 
-			if(!type.toLowerCase(Locale.ROOT).endsWith("_child"))
+			if(!type.toLowerCase(Locale.ROOT).equals("child") && !type.toLowerCase(Locale.ROOT).endsWith("_child"))
 				continue;
 
 			final String subj = relationship.extractReferencedId(RelationshipReader.TAG_SUBJECT, IndividualHandler.TYPE);

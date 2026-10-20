@@ -41,12 +41,18 @@ import java.util.List;
  * // A representation of where a source or set of sources is located. May be formal, like a library, or informal, like the owner of a family book.
  * record RepositoryRecord {
  *   name+: NameStructure                 // the official name of the archive in which the stated source material is stored
- *   custodian?: Xref<IndividualRecord>   // the individual acting as custodian of the repository or its source material
+ *   custodian?: Agent                    // the current custodian of the repository or of its material
  *   place?: PlaceCitation                // the location of the repository
  *   contact*: ContactStructure
  *   note*: NoteStructure
  *   privacy?: PrivacyStructure
  *   audit: AuditStructure
+ * }
+ *
+ * Agent = oneof {
+ *  individual: Xref&lt;IndividualRecord&gt;   // the author is an individual described in this file
+ *  group: Xref&lt;GroupRecord&gt;             // the author is a group or organization described in this file (e.g. a parish, a confraternity)
+ *  text: Text                           // the author is not described in this file (e.g. a publisher's editor, an unidentified clerk)
  * }
  * </pre>
  */

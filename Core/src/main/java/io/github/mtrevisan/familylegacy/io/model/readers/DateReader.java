@@ -26,9 +26,12 @@ package io.github.mtrevisan.familylegacy.io.model.readers;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.CalendarType;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateNormalizer;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateService;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.TemporalSpan;
+
+import java.util.Arrays;
 
 
 /**
@@ -80,25 +83,21 @@ import io.github.mtrevisan.familylegacy.io.model.readers.date.TemporalSpan;
  *   margin?: Duration                          // e.g., 'P2Y' = plus/minus 2 years, when the margin is quantifiable
  * }
  *
- * // A single point in time expressed at an explicitly declared level of precision. The granularity is determined by the selected representation
- * // and is not inferred from formatting conventions.
- * SingleDate = oneof {
- *   full_date: struct {
- *     value: HistoricalDate       // a historical date
- *     approximate?: Approximate   // Qualifies the precision of this date. The underlying date remains the asserted value; APPROXIMATE describes uncertainty about that value.
- *     calendar: CalendarType | Text
+ * struct SingleDate {
+ *   value: oneof {
+ *     full_date: HistoricalDate   // a historical date, in the notation of CALENDAR
+ *     decade: Int                 // a decade identified by its starting year. For example, 1490 represents the decade commonly referred to as the '1490s'
+ *     century: struct {
+ *       ordinal: Int              // a century designation, such as 15 for the 15th century
+ *       part?: CenturyPart        // an optional subdivision of the century
+ *     }
  *   }
- *   decade: struct {
- *     start_year: Int             // a decade identified by its starting year. For example, 1490 represents the decade commonly referred to as the '1490s'
- *     approximate?: Approximate   // Qualifies the precision of this date. The underlying date remains the asserted value; APPROXIMATE describes uncertainty about that value.
- *     calendar: CalendarType | Text
- *   }
- *   century: struct {
- *     ordinal: Int                // a century designation, such as 15 for the 15th century
- *     part?: CenturyPart          // an optional subdivision of the century
- *     approximate?: Approximate   // Qualifies the precision of this date. The underlying date remains the asserted value; APPROXIMATE describes uncertainty about that value.
- *     calendar: CalendarType | Text
- *   }
+ *   calendar: CalendarType | Text
+ *   jdn_first?: Int               // Julian Day Number of the first day of the period denoted by VALUE, as computed by the producer
+ *   jdn_last?: Int                // Julian Day Number of the last day of the period denoted by VALUE; when omitted, equal to JDN_FIRST
+ *   approximate?: Approximate     // Qualifies the precision of this date. The underlying date remains the asserted value; APPROXIMATE describes uncertainty about that value.
+ *
+ *   require jdn_first <= jdn_last
  * }
  *
  * enum CalendarType {
@@ -133,29 +132,26 @@ public final class DateReader{
 	public static final String TAG_CULTURAL_NORM = "cultural_norm";
 	public static final String TAG_MARGIN = "margin";
 
-	public static final String TAG_APPROXIMATE = "approximate";
 	public static final String TAG_CALENDAR = "calendar";
+	public static final String TAG_APPROXIMATE = "approximate";
 
 	public static final String TAG_FULL_DATE = "full_date";
-	public static final String TAG_FULL_DATE_VALUE = FLEFRecordHelper.composePath(TAG_FULL_DATE, TAG_VALUE);
+	public static final String TAG_VALUE_FULL_DATE = FLEFRecordHelper.composePath(TAG_VALUE, TAG_FULL_DATE);
 
 	public static final String TAG_DECADE = "decade";
-	public static final String TAG_START_YEAR = "start_year";
-	public static final String TAG_DECADE_START_YEAR = FLEFRecordHelper.composePath(TAG_DECADE, TAG_START_YEAR);
+	public static final String TAG_VALUE_DECADE = FLEFRecordHelper.composePath(TAG_VALUE, TAG_DECADE);
 
 	public static final String TAG_CENTURY = "century";
 	public static final String TAG_ORDINAL = "ordinal";
 	public static final String TAG_PART = "part";
-	public static final String TAG_CENTURY_ORDINAL = FLEFRecordHelper.composePath(TAG_CENTURY, TAG_ORDINAL);
-	public static final String TAG_CENTURY_PART = FLEFRecordHelper.composePath(TAG_CENTURY, TAG_PART);
+	public static final String TAG_VALUE_CENTURY = FLEFRecordHelper.composePath(TAG_VALUE, TAG_CENTURY);
+	public static final String TAG_VALUE_CENTURY_ORDINAL = FLEFRecordHelper.composePath(TAG_VALUE, TAG_CENTURY, TAG_ORDINAL);
+	public static final String TAG_VALUE_CENTURY_PART = FLEFRecordHelper.composePath(TAG_VALUE, TAG_CENTURY, TAG_PART);
 
-	public static final String ENUM_CALENDAR_GREGORIAN = "gregorian";
-	// TODO use CalendarType to retrieve the list of calendars
-	public static final String[] CALENDARS = {
-		ENUM_CALENDAR_GREGORIAN, "julian", "reformed_julian", "islamic", "hebrew", "chinese", "indian", "buddhist",
-		"french_republican", "coptic", "soviet_eternal", "ethiopian", "mayan", "persian", "parsi", "byzantine",
-		"egyptian", "seleucid", "armenian", "rumi"
-	};
+	public static final String ENUM_CALENDAR_GREGORIAN = CalendarType.GREGORIAN.getCode();
+	public static final String[] CALENDARS = Arrays.stream(CalendarType.values())
+		.map(CalendarType::getCode)
+		.toArray(String[]::new);
 
 	public static final String ENUM_PART_FIRST_QUARTER = "first_quarter";
 	public static final String ENUM_PART_SECOND_QUARTER = "second_quarter";

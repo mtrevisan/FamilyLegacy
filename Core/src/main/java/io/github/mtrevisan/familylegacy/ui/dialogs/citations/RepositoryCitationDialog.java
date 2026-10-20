@@ -51,7 +51,7 @@ import java.awt.Window;
  * struct RepositoryCitation {
  *   repository: Xref&lt;RepositoryRecord&gt;
  *   locator?: Text
- *   note*: Text
+ *   remark*: Text
  * }
  * </pre>
  * <p>
@@ -87,7 +87,7 @@ public class RepositoryCitationDialog extends BaseRecordDialog{
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, this.record)
-			.withComponent(PanelKey.NOTE, RepositoryCitationReader.TAG_NOTE, null)
+			.withComponent(PanelKey.NOTE, RepositoryCitationReader.TAG_REMARK, null)
 			.build();
 
 		components.bind(repositoryField);

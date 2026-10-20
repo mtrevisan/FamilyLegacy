@@ -129,7 +129,7 @@ public final class PlaceHelper{
 					.add(eventParticipation);
 		}
 
-		//TODO place citation
+		// TODO place citation
 		final List<FLEFRecord> events = model.getRecordsByType(EventHandler.TYPE);
 		for(final FLEFRecord event : events){
 			final FLEFRecord place = FLEFRecordHelper.extractStructureWithReference(event, EventReader.TAG_PLACE);

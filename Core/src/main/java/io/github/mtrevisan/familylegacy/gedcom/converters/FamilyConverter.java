@@ -288,12 +288,12 @@ public class FamilyConverter{
 			// list, and any view that iterates group_member to build the
 			// member list would show nothing.
 			if(link.husbandId != null)
-				createGroupMembership(link.husbandId, group.getId(), "husband", link.famNode);
+				createGroupMembership(link.husbandId, group.getId(), "principal", link.famNode);
 			if(link.wifeId != null)
-				createGroupMembership(link.wifeId, group.getId(), "wife", link.famNode);
+				createGroupMembership(link.wifeId, group.getId(), "principal", link.famNode);
 			for(String childId : link.childrenIds)
 				if(individualMap.containsKey(childId))
-					createGroupMembership(childId, group.getId(), "child", link.famNode);
+					createGroupMembership(childId, group.getId(), "principal", link.famNode);
 
 			// ---- Spouse relationship (Inter-individual) ----
 			if(link.husbandId != null && link.wifeId != null){
@@ -321,7 +321,7 @@ public class FamilyConverter{
 				if(("civil".equalsIgnoreCase(marriageType) || "religious".equalsIgnoreCase(marriageType)))
 					relationship.addChild(FLEFRecord.createChildWithTagAndValue("type", marriageType.toLowerCase(Locale.ROOT) + "_spouse"));
 				else
-					relationship.addChild(FLEFRecord.createChildWithTagAndValue("type", "civil_spouse"))
+					relationship.addChild(FLEFRecord.createChildWithTagAndValue("type", "spouse"))
 						.addChild(FLEFRecord.createChildWithTag("note")
 							.addChild(FLEFRecord.createChildWithTagAndValue("text",
 								(StringUtils.isNotEmpty(marriageType)? marriageType + " -- ": StringUtils.EMPTY)
@@ -372,12 +372,12 @@ public class FamilyConverter{
 					// Attach Husband and Wife if present
 					if(link.husbandId != null){
 						GEDCOMHelper.attachEventParticipation(
-							eventFlefId, "individual", link.husbandId, "husband", model
+							eventFlefId, "individual", link.husbandId, "principal", model
 						);
 					}
 					if(link.wifeId != null){
 						GEDCOMHelper.attachEventParticipation(
-							eventFlefId, "individual", link.wifeId, "wife", model
+							eventFlefId, "individual", link.wifeId, "principal", model
 						);
 					}
 				}
@@ -408,10 +408,6 @@ public class FamilyConverter{
 	 * group exists but has no members, and any view that iterates
 	 * {@code group_member} to populate the member list would show
 	 * nothing.
-	 * <p>
-	 * The {@code role} is informational and helps the UI show
-	 * "husband", "wife", "child" in the member list, instead of a
-	 * generic "member".
 	 *
 	 * @param individualId the individual who belongs to the group
 	 * @param groupId      the family group
@@ -504,7 +500,7 @@ public class FamilyConverter{
 		// Agency (if any)
 		GEDCOMNode agncNode = GEDCOMHelper.findFirstChild(eventNode, "AGNC");
 		if(agncNode != null && agncNode.getValue() != null){
-			eventRecord.addChild(FLEFRecord.createChildWithTagAndValue("agency", agncNode.getValue()));
+			GEDCOMHelper.attachNote(eventRecord, agncNode, noteRawMap);
 		}
 
 		// Cause (if any)

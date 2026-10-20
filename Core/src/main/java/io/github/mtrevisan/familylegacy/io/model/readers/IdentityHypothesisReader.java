@@ -41,10 +41,9 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
  * // Multiple conclusions MAY evaluate the same identity hypothesis over time.
  * record IdentityHypothesisRecord {
  *   identity+: IdentityCandidate
- *   comment?: Text   // a note explaining the basis for the possible duplicate hypothesis
+ *   rationale?: Text
  *   source*: SourceCitation
- *   note*: NoteStructure
- *   evidence?: EvidenceQualifiers
+ *   confidence?: Confidence
  *   audit: AuditStructure
  *
  *   require count(identity) == 2
@@ -56,15 +55,19 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
  *   individual: Xref&lt;IndividualRecord&gt;
  *   group: Xref&lt;GroupRecord&gt;
  *   place: Xref&lt;PlaceRecord&gt;
+ *   source: Xref&lt;SourceRecord&gt;
+ *   repository: Xref&lt;RepositoryRecord&gt;
+ *   document: Xref&lt;DocumentRecord&gt;
+ *   cultural_norm: Xref&lt;CulturalNormRecord&gt;
+ *   historic_event: Xref&lt;HistoricEventRecord&gt;
  * }
  * </pre>
  */
 public final class IdentityHypothesisReader{
 
 	public static final String TAG_IDENTITY = "identity";
-	public static final String TAG_COMMENT = "comment";
+	public static final String TAG_RATIONALE = "rationale";
 	public static final String TAG_SOURCE = "source";
-	public static final String TAG_NOTE = "note";
 	public static final String TAG_CONFIDENCE = "confidence";
 	public static final String TAG_AUDIT = "audit";
 
@@ -72,8 +75,8 @@ public final class IdentityHypothesisReader{
 	private IdentityHypothesisReader(){}
 
 
-	public static String extractComment(final FLEFRecord record){
-		return FLEFRecordHelper.getChildValue(record, TAG_COMMENT);
+	public static String extractRationale(final FLEFRecord record){
+		return FLEFRecordHelper.getChildValue(record, TAG_RATIONALE);
 	}
 
 }

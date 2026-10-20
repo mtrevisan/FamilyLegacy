@@ -39,7 +39,7 @@ import org.apache.commons.lang3.StringUtils;
  *   <li>{@code "phonetic"} — a phonetic or phonemic representation, with
  *       a {@code system} such as {@code IPA} or {@code canIPA};</li>
  *   <li>{@code "transcription"} — a transliteration or transcription into
- *       another writing system, with a {@code system} (e.g. {@code rōmaji},
+ *       another writing system, with a {@code system} (e.g. {@code romaji},
  *       {@code pinyin}, {@code iso9}) and an optional {@code type}
  *       (e.g. {@code romanized}, {@code anglicized}, {@code hellenized}).</li>
  * </ul>

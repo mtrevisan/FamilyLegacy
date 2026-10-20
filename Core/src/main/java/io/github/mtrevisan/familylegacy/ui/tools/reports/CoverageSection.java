@@ -113,7 +113,7 @@ final class CoverageSection implements SectionBuilder{
 					out.add(coverageOf(e, "event", "type", "date", "place"));
 			}
 			case EVENT -> out.add(coverageOf(ctx.root, "event",
-				"type", "date", "place", "agency"));
+				"type", "date", "place"));
 			case SOURCE -> out.add(coverageOf(ctx.root, "source",
 				"title", "author", "publisher", "date", "repository"));
 			case PLACE -> out.add(coverageOf(ctx.root, "place", "name", "type"));

@@ -26,7 +26,6 @@ package io.github.mtrevisan.familylegacy.ui.components.projections.relationshipg
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualData;
 import io.github.mtrevisan.familylegacy.ui.components.projections.repository.GenealogyRepository;
@@ -92,7 +91,6 @@ public class EgoNetworkService{
 
 				final String type = RelationshipReader.extractType(relationship);
 				final String role = RelationshipReader.extractRole(relationship);
-				final String status = normalizeStatus(FLEFRecordHelper.getChildValue(relationship, RelationshipReader.TAG_STATUS));
 				if(type == null)
 					continue;
 
@@ -102,10 +100,10 @@ public class EgoNetworkService{
 					continue;
 
 				if(egoId.equals(subjectId))
-					processEgoAsSubject(egoNode, type, role, status, objectId);
+					processEgoAsSubject(egoNode, type, role, objectId);
 
 				if(egoId.equals(objectId))
-					processEgoAsObject(egoNode, type, role, status, subjectId);
+					processEgoAsObject(egoNode, type, role, subjectId);
 			}
 		}
 
@@ -123,55 +121,53 @@ public class EgoNetworkService{
 		};
 	}
 
-	private void processEgoAsSubject(final EgoNode egoNode, final String type, final String role, final String status,
-			final String targetId){
+	private void processEgoAsSubject(final EgoNode egoNode, final String type, final String role, final String targetId){
 		final FLEFRecord targetRecord = model.getRecordById(targetId);
 		if(targetRecord == null)
 			return;
 
 		if(RelationshipReader.isTypeChild(type))
-			getOrAddRelatedIndividual(egoNode, EgoNode.RelationshipCategory.PARENT, targetRecord, type, role, status, false);
+			getOrAddRelatedIndividual(egoNode, EgoNode.RelationshipCategory.PARENT, targetRecord, type, role, false);
 		else if(RelationshipReader.isTypePartner(type))
-			getOrAddRelatedIndividual(egoNode, EgoNode.RelationshipCategory.PARTNER, targetRecord, type, role, status, false);
+			getOrAddRelatedIndividual(egoNode, EgoNode.RelationshipCategory.PARTNER, targetRecord, type, role, false);
 		else if(RelationshipReader.isTypeGroupMember(type) || RelationshipReader.isTypePartOf(type)){
 			// group_member (Individual -> Group) and part_of (Group -> Group):
 			// Ego is the member/sub-group, the target is the enclosing group
 			if(isGroup(targetRecord))
-				getOrAddRelatedGroup(egoNode, targetRecord, type, role, status, false);
+				getOrAddRelatedGroup(egoNode, targetRecord, type, role, false);
 			else
-				getOrAddRelatedIndividual(egoNode, EgoNode.RelationshipCategory.PARENT, targetRecord, type, role, status, false);
+				getOrAddRelatedIndividual(egoNode, EgoNode.RelationshipCategory.PARENT, targetRecord, type, role, false);
 		}
 		else if(RelationshipReader.isTypeAssociate(type)){
 			if(isGroup(targetRecord))
-				getOrAddRelatedGroup(egoNode, targetRecord, type, role, status, false);
+				getOrAddRelatedGroup(egoNode, targetRecord, type, role, false);
 			else
-				getOrAddRelatedIndividual(egoNode, EgoNode.RelationshipCategory.ASSOCIATE, targetRecord, type, role, status, false);
+				getOrAddRelatedIndividual(egoNode, EgoNode.RelationshipCategory.ASSOCIATE, targetRecord, type, role, false);
 		}
 	}
 
-	private void processEgoAsObject(final EgoNode egoNode, final String type, final String role, final String status,
-			final String subjectId){
+	private void processEgoAsObject(final EgoNode egoNode, final String type, final String role, final String subjectId){
 		final FLEFRecord subjectRecord = model.getRecordById(subjectId);
 		if(subjectRecord == null)
 			return;
 
 		if(RelationshipReader.isTypeChild(type))
-			getOrAddRelatedIndividual(egoNode, EgoNode.RelationshipCategory.CHILD, subjectRecord, type, role, status, true);
+			getOrAddRelatedIndividual(egoNode, EgoNode.RelationshipCategory.CHILD, subjectRecord, type, role, true);
 		else if(RelationshipReader.isTypePartner(type))
-			getOrAddRelatedIndividual(egoNode, EgoNode.RelationshipCategory.PARTNER, subjectRecord, type, role, status, true);
+			getOrAddRelatedIndividual(egoNode, EgoNode.RelationshipCategory.PARTNER, subjectRecord, type, role, true);
 		else if(RelationshipReader.isTypeGroupMember(type) || RelationshipReader.isTypePartOf(type)){
 			// group_member (Individual -> Group) and part_of (Group -> Group):
 			// Ego is the group/super-group, the subject is the member/sub-group
 			if(isGroup(subjectRecord))
-				getOrAddRelatedGroup(egoNode, subjectRecord, type, role, status, true);
+				getOrAddRelatedGroup(egoNode, subjectRecord, type, role, true);
 			else
-				getOrAddRelatedIndividual(egoNode, EgoNode.RelationshipCategory.CHILD, subjectRecord, type, role, status, true);
+				getOrAddRelatedIndividual(egoNode, EgoNode.RelationshipCategory.CHILD, subjectRecord, type, role, true);
 		}
 		else if(RelationshipReader.isTypeAssociate(type)){
 			if(isGroup(subjectRecord))
-				getOrAddRelatedGroup(egoNode, subjectRecord, type, role, status, true);
+				getOrAddRelatedGroup(egoNode, subjectRecord, type, role, true);
 			else
-				getOrAddRelatedIndividual(egoNode, EgoNode.RelationshipCategory.ASSOCIATE, subjectRecord, type, role, status, true);
+				getOrAddRelatedIndividual(egoNode, EgoNode.RelationshipCategory.ASSOCIATE, subjectRecord, type, role, true);
 		}
 	}
 
@@ -180,12 +176,12 @@ public class EgoNetworkService{
 	}
 
 	private static void getOrAddRelatedGroup(final EgoNode egoNode, final FLEFRecord record, final String type,
-			final String role, final String status, final boolean isInverse){
-		egoNode.addGroupRecord(record, type, role, status, isInverse);
+			final String role, final boolean isInverse){
+		egoNode.addGroupRecord(record, type, role, isInverse);
 	}
 
 	private void getOrAddRelatedIndividual(final EgoNode egoNode, final EgoNode.RelationshipCategory category,
-			final FLEFRecord record, final String type, final String role, final String status, final boolean isInverse){
+			final FLEFRecord record, final String type, final String role, final boolean isInverse){
 		EgoNode targetNode = null;
 		for(final EgoNode existingNode : egoNode.getRelatedNodes(category))
 			if(record.getId().equals(existingNode.getEgoId())){
@@ -200,7 +196,7 @@ public class EgoNetworkService{
 			egoNode.addRelatedNode(category, targetNode);
 		}
 
-		targetNode.addRelationInfo(type, role, status, isInverse);
+		targetNode.addRelationInfo(type, role, isInverse);
 	}
 
 	private String extractParticipantId(final FLEFRecord relRecord, final String fieldTag){

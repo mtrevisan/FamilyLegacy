@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.tools.reports.renderers;
 
+import io.github.mtrevisan.familylegacy.ui.helpers.ResourceHelper;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.ReportDocument;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.ReportSection;
 import org.apache.commons.lang3.StringUtils;
@@ -38,7 +39,6 @@ import org.apache.poi.xwpf.usermodel.XWPFTable;
 import org.apache.poi.xwpf.usermodel.XWPFTableCell;
 import org.apache.poi.xwpf.usermodel.XWPFTableRow;
 
-import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
@@ -369,7 +369,7 @@ public final class DocxReportRenderer implements ReportRenderer{
 	 */
 	private static int[] scaledImageSize(final Path file, final int maxW, final int maxH){
 		try(final InputStream is = Files.newInputStream(file)){
-			final BufferedImage img = ImageIO.read(is);
+			final BufferedImage img = ResourceHelper.readBufferedImage(is);
 			if(img == null)
 				return new int[]{maxW, maxH};
 

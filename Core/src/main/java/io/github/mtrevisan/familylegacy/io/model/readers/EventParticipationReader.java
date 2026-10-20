@@ -46,9 +46,14 @@ import java.util.Set;
  * record EventParticipationRecord {
  *   participant: EventParticipant   // may reference any record type capable of participating in an event, including individuals, groups, or future extensible entities
  *   event: Xref&lt;EventRecord&gt;        // the event in which the entity participated
- *   role?: enum {                   // optional because the role may be unknown or not applicable
- *     child, parent, spouse, power_of_attorney, prisoner, witness, officiant, informant, executor, grantor, grantee,
- *     landlord, tenant, soldier, commander, victim, survivor, accused, judge, property
+ *   role?: enum {                   // the function of the participant in the event; roles never express kinship (see RelationshipRecord)
+ *     principal,          // the participant the event is about (the person born, baptized, buried; each of the persons married or divorced)
+ *     officiant,          // the person who performed or administered the event (priest, registrar, notary)
+ *     witness,            // a person who witnessed the event
+ *     informant,          // a person who reported the event (e.g. the declarant of a birth or death)
+ *     sponsor,            // godparent or sponsor (baptism, confirmation)
+ *     power_of_attorney, prisoner, executor, grantor, grantee, landlord, tenant, soldier, commander, victim, survivor, accused, judge,
+ *     property            // the place that is the object of the event (participant MUST be a place)
  *   } | Text
  *   source*: SourceCitation
  *   note*: NoteStructure
@@ -76,11 +81,13 @@ public final class EventParticipationReader{
 	public static final String TAG_AUDIT = "audit";
 
 	public static final String[] ROLES = new String[]{
-		"child", "parent", "spouse",
+		"principal",
+		"officiant",
+		"witness",
+		"informant",
+		"sponsor",
 		"power_of_attorney",
 		"prisoner",
-		"witness",
-		"officiant", "informant",
 		"executor",
 		"grantor", "grantee",
 		"landlord", "tenant",
@@ -102,7 +109,7 @@ public final class EventParticipationReader{
 	);
 
 	public static final String[] INDIVIDUAL_OR_GROUP_ROLES = new String[]{
-		"child", "parent", "spouse",
+		"principal", "sponsor",
 		"power_of_attorney",
 		"prisoner",
 		"witness",

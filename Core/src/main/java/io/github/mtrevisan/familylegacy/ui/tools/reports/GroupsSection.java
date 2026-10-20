@@ -198,9 +198,6 @@ final class GroupsSection implements SectionBuilder{
 			final List<String> meta = new ArrayList<>();
 			ReportFormatters.appendIfPresent(meta, ctx.labels.sections().role(),
 				FLEFRecordHelper.getChildValue(membership, RelationshipReader.TAG_ROLE));
-			ReportFormatters.appendIfPresent(meta, ctx.labels.sections().status(),
-				ReportFormatters.enumLabel(
-					FLEFRecordHelper.getChildValue(membership, RelationshipReader.TAG_STATUS)));
 
 			final String from = GenealogicalDateHelper.formatDateStructure(
 				membership, RelationshipReader.TAG_VALID_FROM, ctx.labels, contextLabels);
@@ -354,11 +351,6 @@ final class GroupsSection implements SectionBuilder{
 			if(place != null)
 				out.add(new ReportSection.Paragraph(
 					"**" + ctx.labels.sections().place() + ":** " + ReportFormatters.escape(place)));
-
-			final String agency = FLEFRecordHelper.getChildValue(evt, EventReader.TAG_AGENCY);
-			if(agency != null)
-				out.add(new ReportSection.Paragraph(
-					"**" + ctx.labels.sections().agency() + ":** " + ReportFormatters.escape(agency)));
 
 			final String descr = FLEFRecordHelper.getChildValue(evt, EventReader.TAG_DESCRIPTION);
 			if(descr != null)

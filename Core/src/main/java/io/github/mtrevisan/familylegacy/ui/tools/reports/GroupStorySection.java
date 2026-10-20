@@ -103,9 +103,11 @@ final class GroupStorySection implements SectionBuilder{
 		final FLEFRecord preferred = FLEFRecordHelper.findChild(ctx.root, GroupReader.TAG_PREFERRED_IMAGE);
 		if(preferred == null)
 			return;
+
 		final String uri = GroupReader.extractPreferredImageUri(preferred);
 		if(uri == null)
 			return;
+
 		final String caption = ReportFormatters.imageCaption(
 			preferred, ctx.labels.sections().preferredImage(), ctx.labels);
 		try{
@@ -171,9 +173,6 @@ final class GroupStorySection implements SectionBuilder{
 				ReportFormatters.escape(ReportFormatters.orEmpty(
 					FLEFRecordHelper.getChildValue(m, RelationshipReader.TAG_ROLE))),
 				ReportFormatters.escape(ReportFormatters.orEmpty(
-					ReportFormatters.enumLabel(
-						FLEFRecordHelper.getChildValue(m, RelationshipReader.TAG_STATUS)))),
-				ReportFormatters.escape(ReportFormatters.orEmpty(
 					GenealogicalDateHelper.formatDateStructure(
 						m, RelationshipReader.TAG_VALID_FROM, ctx.labels, contextLabels))),
 				ReportFormatters.escape(ReportFormatters.orEmpty(
@@ -186,8 +185,8 @@ final class GroupStorySection implements SectionBuilder{
 			return;
 
 		out.add(new ReportSection.Table(
-			List.of(ctx.labels.sections().person(), ctx.labels.sections().role(), ctx.labels.sections().status(),
-				ctx.labels.sections().from(), ctx.labels.sections().to()),
+			List.of(ctx.labels.sections().person(), ctx.labels.sections().role(), ctx.labels.sections().from(),
+				ctx.labels.sections().to()),
 			rows));
 
 		// Full details of each membership (notes/sources/evidence/audit).
@@ -325,11 +324,6 @@ final class GroupStorySection implements SectionBuilder{
 		if(place != null)
 			out.add(new ReportSection.Paragraph(
 				"**" + ctx.labels.sections().place() + ":** " + ReportFormatters.escape(place)));
-
-		final String agency = FLEFRecordHelper.getChildValue(evt, EventReader.TAG_AGENCY);
-		if(agency != null)
-			out.add(new ReportSection.Paragraph(
-				"**" + ctx.labels.sections().agency() + ":** " + ReportFormatters.escape(agency)));
 
 		final String descr = FLEFRecordHelper.getChildValue(evt, EventReader.TAG_DESCRIPTION);
 		if(descr != null)

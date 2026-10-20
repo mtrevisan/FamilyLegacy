@@ -92,7 +92,7 @@ final class IdentityHypothesisRootSection implements SectionBuilder{
 			"**" + ctx.labels.sections().identityCandidates() + ":** "
 				+ ReportFormatters.escape(String.join(" ↔ ", items))));
 
-		final String comment = FLEFRecordHelper.getChildValue(ctx.root, IdentityHypothesisReader.TAG_COMMENT);
+		final String comment = FLEFRecordHelper.getChildValue(ctx.root, IdentityHypothesisReader.TAG_RATIONALE);
 		if(comment != null)
 			out.add(new ReportSection.Paragraph(
 				"**" + ctx.labels.sections().identityComment() + ":** "

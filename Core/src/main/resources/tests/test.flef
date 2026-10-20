@@ -252,8 +252,8 @@ records {
 	INDIVIDUAL_ATTRIBUTE IA1 {
 		INDIVIDUAL I1
 		VALID_FROM {
-			VALUE.POINT.FULL_DATE {
-				VALUE 2001-02-03
+			VALUE.POINT {
+				VALUE.FULL_DATE 2001-02-03
 				CALENDAR gregorian
 			}
 			ORIGINAL_TEXT original text
@@ -263,8 +263,8 @@ records {
 			}
 			CONFIDENCE low
 		}
-		VALID_TO.VALUE.POINT.DECADE {
-			START_YEAR 1940
+		VALID_TO.VALUE.POINT {
+			VALUE.DECADE 1940
 			CALENDAR julian
 			APPROXIMATE {
 				BASIS calculated
@@ -407,12 +407,12 @@ records {
 		}
 		VALID_FROM {
 			VALUE.BOUNDED {
-				NOT_BEFORE.FULL_DATE {
-					VALUE 2001-01-01
+				NOT_BEFORE {
+					VALUE.FULL_DATE 2001-01-01
 					CALENDAR gregorian
 				}
-				NOT_AFTER.FULL_DATE {
-					VALUE 2001-02-02
+				NOT_AFTER {
+					VALUE.FULL_DATE 2001-02-02
 					CALENDAR gregorian
 				}
 			}
@@ -425,12 +425,12 @@ records {
 		}
 		VALID_TO {
 			VALUE.SPANNING {
-				FROM.FULL_DATE {
-					VALUE 2001-01-01
+				FROM {
+					VALUE.FULL_DATE 2001-01-01
 					CALENDAR gregorian
 				}
-				TO.FULL_DATE {
-					VALUE 2001-02-02
+				TO {
+					VALUE.FULL_DATE 2001-02-02
 					CALENDAR gregorian
 				}
 			}
@@ -1684,8 +1684,8 @@ person"""
 		}
 		AUTHOR author
 		PUBLISHER pub
-		DATE.VALUE.POINT.FULL_DATE {
-			VALUE 2001-01-01
+		DATE.VALUE.POINT {
+			VALUE.FULL_DATE 2001-01-01
 			CALENDAR gregorian
 		}
 		PLACE {
@@ -1893,12 +1893,12 @@ person"""
 		GROUP G1
 		VALID_FROM {
 			VALUE.BOUNDED {
-				NOT_BEFORE.FULL_DATE {
-					VALUE 2001-01-01
+				NOT_BEFORE {
+					VALUE.FULL_DATE 2001-01-01
 					CALENDAR gregorian
 				}
-				NOT_AFTER.FULL_DATE {
-					VALUE 2001-02-02
+				NOT_AFTER {
+					VALUE.FULL_DATE 2001-02-02
 					CALENDAR gregorian
 				}
 			}
@@ -1911,12 +1911,12 @@ person"""
 		}
 		VALID_TO {
 			VALUE.SPANNING {
-				FROM.FULL_DATE {
-					VALUE 2001-01-01
+				FROM {
+					VALUE.FULL_DATE 2001-01-01
 					CALENDAR gregorian
 				}
-				TO.FULL_DATE {
-					VALUE 2001-02-02
+				TO {
+					VALUE.FULL_DATE 2001-02-02
 					CALENDAR gregorian
 				}
 			}
@@ -2023,12 +2023,12 @@ person"""
 		}
 		VALID_FROM {
 			VALUE.BOUNDED {
-				NOT_BEFORE.FULL_DATE {
-					VALUE 2001-01-01
+				NOT_BEFORE {
+					VALUE.FULL_DATE 2001-01-01
 					CALENDAR gregorian
 				}
-				NOT_AFTER.FULL_DATE {
-					VALUE 2001-02-02
+				NOT_AFTER {
+					VALUE.FULL_DATE 2001-02-02
 					CALENDAR gregorian
 				}
 			}
@@ -2041,12 +2041,12 @@ person"""
 		}
 		VALID_TO {
 			VALUE.SPANNING {
-				FROM.FULL_DATE {
-					VALUE 2001-01-01
+				FROM {
+					VALUE.FULL_DATE 2001-01-01
 					CALENDAR gregorian
 				}
-				TO.FULL_DATE {
-					VALUE 2001-02-02
+				TO {
+					VALUE.FULL_DATE 2001-02-02
 					CALENDAR gregorian
 				}
 			}
@@ -2130,9 +2130,11 @@ person"""
 				COMMENT second update
 			}
 		}
-		DATE.VALUE.POINT.CENTURY {
-			ORDINAL 19
-			PART late
+		DATE.VALUE.POINT {
+			VALUE {
+				CENTURY.ORDINAL 19
+				CENTURY.PART late
+			}
 			CALENDAR gregorian
 		}
 		PLACE {
@@ -2285,12 +2287,12 @@ person"""
 		}
 		VALID_FROM {
 			VALUE.BOUNDED {
-				NOT_BEFORE.FULL_DATE {
-					VALUE 2001-01-01
+				NOT_BEFORE {
+					VALUE.FULL_DATE 2001-01-01
 					CALENDAR gregorian
 				}
-				NOT_AFTER.FULL_DATE {
-					VALUE 2001-02-02
+				NOT_AFTER {
+					VALUE.FULL_DATE 2001-02-02
 					CALENDAR gregorian
 				}
 			}
@@ -2303,12 +2305,12 @@ person"""
 		}
 		VALID_TO {
 			VALUE.SPANNING {
-				FROM.FULL_DATE {
-					VALUE 2001-01-01
+				FROM {
+					VALUE.FULL_DATE 2001-01-01
 					CALENDAR gregorian
 				}
-				TO.FULL_DATE {
-					VALUE 2001-02-02
+				TO {
+					VALUE.FULL_DATE 2001-02-02
 					CALENDAR gregorian
 				}
 			}
@@ -2608,8 +2610,8 @@ person"""
 			}
 		}
 		DATE {
-			VALUE.POINT.FULL_DATE {
-				VALUE 2001-02-03
+			VALUE.POINT {
+				VALUE.FULL_DATE 2001-02-03
 				CALENDAR gregorian
 			}
 			ORIGINAL_TEXT original text

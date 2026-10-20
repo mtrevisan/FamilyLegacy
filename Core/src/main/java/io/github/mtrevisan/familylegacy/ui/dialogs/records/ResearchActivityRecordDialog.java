@@ -83,7 +83,7 @@ import java.io.IOException;
  *
  *   source*: SourceCitation
  *   parent_activity?: Xref&lt;ResearchActivityRecord&gt;
- *   task*: Xref&lt;ResearchTaskRecord&gt;
+ *   follow_up*: Xref&lt;ResearchTaskRecord&gt;
  *   privacy?: PrivacyStructure
  *   audit: AuditStructure
  * }
@@ -156,7 +156,7 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, this.record)
 			.withComponent(PanelKey.RESEARCH_QUESTION, ResearchActivityReader.TAG_QUESTION, I18N.t("dialog.component.research.questions"))
-			.withComponent(PanelKey.TASK, ResearchActivityReader.TAG_TASK, I18N.t("dialog.component.research.tasks"))
+			.withComponent(PanelKey.TASK, ResearchActivityReader.TAG_FOLLOW_UP, I18N.t("dialog.component.research.follow_ups"))
 			.withComponent(PanelKey.SOURCE, ResearchActivityReader.TAG_SOURCE, I18N.t("dialog.component.sources_with_citations"))
 			.withComponent(PanelKey.PRIVACY, ResearchActivityReader.TAG_PRIVACY, null)
 			.withComponent(PanelKey.AUDIT, ResearchActivityReader.TAG_AUDIT, null)

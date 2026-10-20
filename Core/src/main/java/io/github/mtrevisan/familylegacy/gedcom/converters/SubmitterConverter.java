@@ -26,7 +26,6 @@ package io.github.mtrevisan.familylegacy.gedcom.converters;
 
 import io.github.mtrevisan.familylegacy.gedcom.GEDCOMHelper;
 import io.github.mtrevisan.familylegacy.gedcom.GEDCOMNode;
-import io.github.mtrevisan.familylegacy.gedcom.utils.AuditBuilder;
 import io.github.mtrevisan.familylegacy.gedcom.utils.IDGenerator;
 import io.github.mtrevisan.familylegacy.gedcom.utils.PlaceCache;
 import io.github.mtrevisan.familylegacy.gedcom.utils.StructureParser;
@@ -121,10 +120,7 @@ public class SubmitterConverter{
 			String tag = child.getTag();
 			if(tag.equals("RFN") /*|| tag.equals("RIN")*/){
 				if(StringUtils.isNotEmpty(child.getValue())){
-					FLEFRecord note = FLEFRecord.createChildWithTag("note")
-						.addChild(FLEFRecord.createChildWithTagAndValue("text", tag + ": " + child.getValue()))
-						.addChild(AuditBuilder.build(child));
-					submitter.addChild(note);
+					submitter.addChild(FLEFRecord.createChildWithTagAndValue("remark", tag + ": " + child.getValue()));
 				}
 			}
 		}

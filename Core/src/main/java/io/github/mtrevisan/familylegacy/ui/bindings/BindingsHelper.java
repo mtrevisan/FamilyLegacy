@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.ui.bindings;
 
 import io.github.mtrevisan.familylegacy.ui.helpers.DualActionListEnhancer;
 import io.github.mtrevisan.familylegacy.ui.helpers.DualActionTextFieldEnhancer;
+import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.AbstractAction;
@@ -62,11 +63,6 @@ public class BindingsHelper{
 	private static final Color COLOR_BACKGROUND = UIManager.getColor("TextField.background");
 	public static final Color COLOR_FOREGROUND_ENABLED = UIManager.getColor("TextField.foreground");
 	public static final Color COLOR_FOREGROUND_DISABLED = UIManager.getColor("Label.disabledForeground");
-
-	private static final String PLACEHOLDER_LIST = "(no items)";
-	private static final String PLACEHOLDER_TEXT = "(right-click to set)";
-	private static final String TOOLTIP_TEXT = "Right-click for actions, double‑click to edit";
-	private static final String TOOLTIP_DUAL_ACTION_TEXT = "Right-click for actions, double‑click to edit citation, shift+double-click to edit record";
 
 
 	private BindingsHelper(){}
@@ -107,7 +103,7 @@ public class BindingsHelper{
 			final Runnable doubleClickAction, final Runnable shiftDoubleClickAction, final Runnable keyInsertAction,
 			final Runnable keyDeleteAction, final Consumer<MenuBuilder> menuBuilder){
 		component.setBackground(COLOR_BACKGROUND);
-		component.setToolTipText(shiftDoubleClickAction == null? TOOLTIP_TEXT: TOOLTIP_DUAL_ACTION_TEXT);
+		component.setToolTipText(I18N.t(shiftDoubleClickAction == null? "tooltip.text": "tooltip.dual_action_text"));
 		if(component instanceof JTextComponent field)
 			field.setEditable(false);
 		else if(component instanceof JList<?> list)
@@ -120,13 +116,18 @@ public class BindingsHelper{
 
 		// Mouse listener for popup trigger and double‑click
 		component.addMouseListener(new MouseAdapter(){
+			// Action selected by the second press of a double-click; it is run on release, when the mouse gesture is complete
+			private Runnable pendingAction;
+
 			@Override
 			public void mousePressed(final MouseEvent e){
+				pendingAction = null;
+
 				if(SwingUtilities.isLeftMouseButton(e) && e.getClickCount() == 2 && hasSelection.get()){
-					if(shiftDoubleClickAction != null && e.isShiftDown())
-						shiftDoubleClickAction.run();
-					else if(doubleClickAction != null)
-						doubleClickAction.run();
+					pendingAction = (shiftDoubleClickAction != null && e.isShiftDown()
+						? shiftDoubleClickAction
+						: doubleClickAction);
+					e.consume();
 				}
 				else if(e.isPopupTrigger())
 					showPopup(e);
@@ -134,7 +135,16 @@ public class BindingsHelper{
 
 			@Override
 			public void mouseReleased(final MouseEvent me){
-				if(me.isPopupTrigger())
+				if(pendingAction != null){
+					final Runnable action = pendingAction;
+					pendingAction = null;
+					me.consume();
+
+					// Run after the release has been fully dispatched, so that a modal dialog opened by the action does not
+					// leave the double-click gesture half-processed
+					SwingUtilities.invokeLater(action);
+				}
+				else if(me.isPopupTrigger())
 					showPopup(me);
 			}
 
@@ -218,7 +228,7 @@ public class BindingsHelper{
 	}
 
 	private static boolean isPlaceholder(final String text){
-		return PLACEHOLDER_TEXT.equals(text);
+		return I18N.t("placeholder.text").equals(text);
 	}
 
 	public static void updateDisplay(final JTextComponent component, final Supplier<Boolean> hasData,
@@ -231,9 +241,9 @@ public class BindingsHelper{
 				}
 				else{
 					if(component instanceof BoundTextField btf)
-						btf.forceSetText(PLACEHOLDER_TEXT);
+						btf.forceSetText(I18N.t("placeholder.text"));
 					else
-						component.setText(PLACEHOLDER_TEXT);
+						component.setText(I18N.t("placeholder.text"));
 					component.setForeground(COLOR_FOREGROUND_DISABLED);
 				}
 			});
@@ -252,7 +262,7 @@ public class BindingsHelper{
 			component.setForeground(COLOR_FOREGROUND_ENABLED);
 		}
 		else{
-			setText.accept(PLACEHOLDER_TEXT);
+			setText.accept(I18N.t("placeholder.text"));
 			component.setForeground(COLOR_FOREGROUND_DISABLED);
 		}
 
@@ -274,7 +284,7 @@ public class BindingsHelper{
 			component.setForeground(COLOR_FOREGROUND_ENABLED);
 		}
 		else{
-			setText.accept(PLACEHOLDER_TEXT);
+			setText.accept(I18N.t("placeholder.text"));
 			component.setForeground(COLOR_FOREGROUND_DISABLED);
 		}
 
@@ -303,7 +313,7 @@ public class BindingsHelper{
 						g2.setFont(getFont());
 
 						final FontMetrics fm = g2.getFontMetrics();
-						g2.drawString(PLACEHOLDER_LIST, 2, fm.getAscent() + 3);
+						g2.drawString(I18N.t("placeholder.list.no_items"), 2, fm.getAscent() + 3);
 					}
 					finally{
 						g2.dispose();

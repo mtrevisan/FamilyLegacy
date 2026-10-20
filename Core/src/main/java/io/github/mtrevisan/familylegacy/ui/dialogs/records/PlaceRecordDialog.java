@@ -89,6 +89,7 @@ import java.io.IOException;
  *     confidence?: Confidence   // confidence that this location was true for the place
  *   }
  *   source*: SourceCitation
+ *   note*: NoteStructure
  *   confidence?: Confidence
  *   privacy?: PrivacyStructure
  *   audit: AuditStructure
@@ -102,6 +103,7 @@ import java.io.IOException;
  * Tab 5 (Context): ContextImpactRecord (target[place] = this place)
  * Tab 6 (Research): ConclusionRecord (resolves = this place), IdentityHypothesisRecord (identity = this place), ResearchQuestionRecord (target[place] = this place)
  * Tab 7 (Sources): source
+ * Tab 8 (Notes): note
  * Tab 9 (Privacy): privacy
  * Tab 10 (Audit): audit
  */
@@ -151,6 +153,7 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, I18N.t("dialog.component.research.questions"))
 			.withComponent(PanelKey.SOURCE, PlaceReader.TAG_SOURCE, I18N.t("dialog.component.sources_with_citations"))
 			.withComponent(PanelKey.SOURCE_FOR_LOCATION, PlaceReader.TAG_LOCATION_SOURCE, I18N.t("dialog.component.location.sources_with_citations"))
+			.withComponent(PanelKey.NOTE, PlaceReader.TAG_NOTE, null)
 			.withComponent(PanelKey.PRIVACY, PlaceReader.TAG_PRIVACY, null)
 			.withComponent(PanelKey.AUDIT, PlaceReader.TAG_AUDIT, null)
 			.build();
@@ -255,6 +258,16 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 		// Image carousel below the source list
 		// It will be hidden if no images are found
 		GUIHelper.addComponent(panel, imageCarouselPanel);
+
+		return panel;
+	}
+
+	@Override
+	protected JPanel createNotesPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
+
+		final JPanel notePanel = components.getPanel(PanelKey.NOTE);
+		GUIHelper.addComponent(panel, notePanel);
 
 		return panel;
 	}

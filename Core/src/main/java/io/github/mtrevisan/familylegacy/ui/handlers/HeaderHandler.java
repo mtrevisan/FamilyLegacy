@@ -51,7 +51,7 @@ import java.awt.Window;
  *   copyright?: Text   // a copyright statement needed to protect the copyrights of the submitter of this file
  *   submitter?: struct {
  *     contact*: ContactStructure   // contact information for the submitter (phone, email, web, etc.)
- *     note?: Text                  // any notes related to the submitter
+ *     remark?: Text                // any notes related to the submitter
  *   }
  *   scope?: Text       // a brief description of the file's genealogical scope (e.g., "Ancestors of John Doe")
  * }

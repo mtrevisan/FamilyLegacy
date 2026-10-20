@@ -133,8 +133,6 @@ public class FLEFRecordFlattener{
 				if(orig != null)
 					fields.put("place", orig);
 			}
-			if("agency".equalsIgnoreCase(child.getTag()))
-				fields.put("agency", child.getValue());
 		}
 	}
 

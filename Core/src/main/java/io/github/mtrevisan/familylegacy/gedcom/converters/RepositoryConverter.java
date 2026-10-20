@@ -102,8 +102,7 @@ public class RepositoryConverter{
 
 		// ---- Notes (GEDCOM NOTE) – inline structs ----
 		for(GEDCOMNode noteNode : GEDCOMHelper.findChildren(repoNode, "NOTE")){
-			GEDCOMHelper.attachNote(repository,
-				noteNode, noteRawMap);
+			repository.addChild(FLEFRecord.createChildWithTagAndValue("remark", GEDCOMHelper.extractFullText(noteNode)));
 		}
 
 		// ---- 10. Audit (required) ----

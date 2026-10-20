@@ -65,6 +65,10 @@ public class NoteHandler extends AbstractRecordTypeHandler<NoteStructureDialog>{
 		return TYPE;
 	}
 
+	public static boolean isOfType(final FLEFRecord record){
+		return (record != null && TYPE.equalsIgnoreCase(record.getTag()));
+	}
+
 	@Override
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
 		final String value = NoteReader.extractText(record);

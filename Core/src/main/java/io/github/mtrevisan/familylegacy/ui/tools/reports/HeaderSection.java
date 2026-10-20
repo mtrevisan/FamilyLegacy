@@ -141,7 +141,7 @@ final class HeaderSection implements SectionBuilder{
 			if(rendered != null)
 				rows.add(rendered);
 		}
-		final String note = FLEFRecordHelper.getChildValue(header, HeaderReader.TAG_SUBMITTER_NOTE);
+		final String note = FLEFRecordHelper.getChildValue(header, HeaderReader.TAG_SUBMITTER_REMARK);
 		if(note != null && !note.isBlank())
 			rows.add("**" + ctx.labels.sections().headerSubmitterNote() + ":** "
 				+ ReportFormatters.escape(note));

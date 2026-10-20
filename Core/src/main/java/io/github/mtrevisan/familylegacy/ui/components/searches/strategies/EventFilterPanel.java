@@ -54,7 +54,6 @@ public class EventFilterPanel extends JPanel implements RecordFilterPanel{
 	private final JTextField dateField = new JTextField(10);
 	private final JComboBox<String> calendarCombo = new JComboBox<>(DateReader.CALENDARS);
 	private final JTextField placeField = new JTextField(20);
-	private final JTextField agencyField = new JTextField(20);
 	private final JTextField causeReasonField = new JTextField(20);
 
 	private final Consumer<SearchCriteria> onChanged;
@@ -83,8 +82,6 @@ public class EventFilterPanel extends JPanel implements RecordFilterPanel{
 		add(calendarCombo, "growx");
 		add(new JLabel(I18N.t("dialog.place") + ":"));
 		add(placeField, "growx");
-		add(new JLabel(I18N.t("dialog.event.agency") + ":"));
-		add(agencyField, "growx");
 		add(new JLabel(I18N.t("dialog.event.cause.reason") + ":"));
 		add(causeReasonField, "growx");
 	}
@@ -115,8 +112,6 @@ public class EventFilterPanel extends JPanel implements RecordFilterPanel{
 			.addDocumentListener(docListener);
 		placeField.getDocument()
 			.addDocumentListener(docListener);
-		agencyField.getDocument()
-			.addDocumentListener(docListener);
 		causeReasonField.getDocument()
 			.addDocumentListener(docListener);
 	}
@@ -134,7 +129,6 @@ public class EventFilterPanel extends JPanel implements RecordFilterPanel{
 		filters.put(EventReader.TAG_DATE, getDate());
 		filters.put(DateReader.TAG_CALENDAR, getCalendar());
 		filters.put(EventReader.TAG_PLACE, getPlace());
-		filters.put(EventReader.TAG_AGENCY, getAgency());
 		filters.put(EventReader.TAG_CAUSE_REASON, getCauseReason());
 		return filters;
 	}
@@ -159,11 +153,6 @@ public class EventFilterPanel extends JPanel implements RecordFilterPanel{
 
 	public String getPlace(){
 		return placeField.getText()
-			.trim();
-	}
-
-	public String getAgency(){
-		return agencyField.getText()
 			.trim();
 	}
 

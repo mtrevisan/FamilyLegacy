@@ -341,25 +341,14 @@ public final class SocialNetworkService{
 	private TemporalSpan buildSpan(final FLEFRecord relationship){
 		final FLEFRecord from = FLEFRecordHelper.findChild(relationship, RelationshipReader.TAG_VALID_FROM);
 		final FLEFRecord to = FLEFRecordHelper.findChild(relationship, RelationshipReader.TAG_VALID_TO);
-		final String status = normalizeStatus(FLEFRecordHelper.getChildValue(relationship, RelationshipReader.TAG_STATUS));
-		final TemporalSpan span = DateNormalizer.combineBounds(from, to, status);
+		final TemporalSpan span = DateNormalizer.combineBounds(from, to);
 		if(span != null)
 			return span;
 
 		// Fallback: relationships with no date at all are represented as an
 		// unbounded span, so they remain visible in the network regardless of
 		// the temporal filter.
-		return TemporalSpan.unbounded(status);
-	}
-
-	private static String normalizeStatus(final String raw){
-		if(raw == null)
-			return TemporalSpan.STATUS_UNKNOWN;
-		return switch(raw.toLowerCase()){
-			case TemporalSpan.STATUS_ACTIVE -> TemporalSpan.STATUS_ACTIVE;
-			case TemporalSpan.STATUS_ENDED -> TemporalSpan.STATUS_ENDED;
-			default -> TemporalSpan.STATUS_UNKNOWN;
-		};
+		return TemporalSpan.unbounded(TemporalSpan.STATUS_UNKNOWN);
 	}
 
 

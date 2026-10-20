@@ -67,11 +67,10 @@ import java.io.IOException;
  *     ecclesiastical_part_of,    // subject belongs to an ecclesiastical jurisdiction such as a parish, diocese, or archdiocese
  *     judicial_part_of,          // subject belongs to a court, district, or judicial jurisdiction
  *     cadastral_part_of,         // subject belongs to a cadastral or land-records district
- *     predecessor_of,            // subject ceased to exist and was succeeded by the TARGET place
- *     successor_of,              // subject replaced or inherited the identity, territory, or function of the TARGET place
- *     merged_into,               // subject was merged into the TARGET place
+ *     successor_of,              // subject replaced or inherited the identity or function of the TARGET place, other than by merger or division
+ *     merged_from,               // subject was created, wholly or partially, by the merger of the TARGET place (one record per merged place)
  *     split_from,                // subject was created from the division of the TARGET place
- *     territory_transferred_to   // subject place was reassigned, wholly or partially, to the jurisdiction of the TARGET place
+ *     received_territory_from    // subject received part or all of the territory of the TARGET place, which continued to exist
  *   } | Text
  *   valid_from?: DateStructure
  *   valid_to?: DateStructure

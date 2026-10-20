@@ -91,8 +91,10 @@ import java.io.IOException;
  *   group_attribute: Xref&lt;GroupAttributeRecord&gt;
  *   place: Xref&lt;PlaceRecord&gt;
  *   place_relationship: Xref&lt;PlaceRelationshipRecord&gt;
+ *   repository: Xref&lt;RepositoryRecord&gt;
  *   source: Xref&lt;SourceRecord&gt;
  *   document: Xref&lt;DocumentRecord&gt;
+ *   conclusion: Xref&lt;ConclusionRecord&gt;
  *   identity_hypothesis: Xref&lt;IdentityHypothesisRecord&gt;
  *   cultural_norm: Xref&lt;CulturalNormRecord&gt;
  *   historic_event: Xref&lt;HistoricEventRecord&gt;
@@ -151,7 +153,7 @@ public class ResearchQuestionRecordDialog extends BaseRecordDialog{
 		components = new RecordDialogBuilder(this, model, this.record)
 			.withComponent(PanelKey.CONCLUSION_ON_RESEARCH, ConclusionHandler.TYPE, I18N.t("dialog.component.conclusions"))
 			.withComponent(PanelKey.RESEARCH_ACTIVITY_ON_QUESTION, ResearchActivityHandler.TYPE, I18N.t("dialog.component.research.activities"))
-			.withComponent(PanelKey.RESEARCH_TASK_ON_QUESTION, ResearchTaskHandler.TYPE, I18N.t("dialog.component.research.tasks"))
+			.withComponent(PanelKey.RESEARCH_TASK_ON_QUESTION, ResearchTaskHandler.TYPE, I18N.t("dialog.component.research.follow_ups"))
 			.withComponent(PanelKey.PRIVACY, ResearchQuestionReader.TAG_PRIVACY, null)
 			.withComponent(PanelKey.AUDIT, ResearchQuestionReader.TAG_AUDIT, null)
 			.build();

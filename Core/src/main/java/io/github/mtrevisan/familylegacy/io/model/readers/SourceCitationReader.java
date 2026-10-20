@@ -46,8 +46,11 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
  *
  * struct ExtractStructure {
  *   document_part*: struct {
- *     document: Xref&lt;DocumentRecord&gt;
- *     crop?: CropRect   // Used when the citation refers to a specific region of an image rather than the entire image.
+ *     document: Xref<DocumentRecord>
+ *     page?: Int          // 1-based page, for multi-page documents (e.g. PDF, TIFF); CROP refers to this page
+ *     crop?: CropRect     // region of the image or page, in pixels
+ *     start?: Duration    // for audio and video: start of the cited segment, from the beginning of the media
+ *     end?: Duration      // for audio and video: end of the cited segment
  *   }
  *   text?: Text
  *   type?: enum {   // Describes how the TEXT value relates to the content of the cited source.
@@ -56,8 +59,8 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
  *     translated,   // The text is a translation of source content into another language. The meaning should be preserved, but the wording differs from the source because of the language conversion.
  *     normalized    // The text has been regularized for readability or analysis while remaining in the same language. Examples include expanding abbreviations, modernizing spelling, standardizing capitalization, converting archaic letter forms, or regularizing date and name formats.
  *   }
- *   locale?: LocaleCode | Text
- *   note*: Text
+ *   locale?: LocaleCode
+ *   remark*: Text
  *
  *   require at_least_one(document_part, text)
  * }
@@ -85,11 +88,14 @@ public final class SourceCitationReader{
 	// Extract structure
 	public static final String TAG_DOCUMENT_PART = "document_part";
 	public static final String TAG_DOCUMENT = "document";
+	public static final String TAG_PAGE = "page";
 	public static final String TAG_CROP = "crop";
+	public static final String TAG_START = "start";
+	public static final String TAG_END = "end";
 	public static final String TAG_TEXT = "text";
 	public static final String TAG_TYPE = "type";
 	public static final String TAG_LOCALE = "locale";
-	public static final String TAG_NOTE = "note";
+	public static final String TAG_REMARK = "remark";
 
 	public static final String TAG_DOCUMENT_PART_DOCUMENT = FLEFRecordHelper.composePath(TAG_DOCUMENT_PART, TAG_DOCUMENT);
 
@@ -121,8 +127,8 @@ public final class SourceCitationReader{
 		return FLEFRecordHelper.getChildValue(extractRecord, TAG_LOCALE);
 	}
 
-	public static String extractExtractNote(final FLEFRecord extractRecord){
-		return FLEFRecordHelper.getChildValue(extractRecord, TAG_NOTE);
+	public static String extractExtractRemark(final FLEFRecord extractRecord){
+		return FLEFRecordHelper.getChildValue(extractRecord, TAG_REMARK);
 	}
 
 }

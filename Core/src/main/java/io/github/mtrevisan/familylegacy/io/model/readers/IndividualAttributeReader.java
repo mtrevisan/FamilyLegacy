@@ -47,7 +47,7 @@ package io.github.mtrevisan.familylegacy.io.model.readers;
  *     ethnicity,         // Ethnic, tribal, cultural, or ancestral identity.
  *     citizenship,       // Citizenship, nationality, or legal political allegiance.
  *     nationality,       // National identity, ethnic-national affiliation, or nationality associated with the individual. Unlike CITIZENSHIP, nationality may reflect cultural or historical identity rather than legal status.
- *     ssn,               // Government-issued personal identification number (e.g. Social Security Number, Tax Code, National ID).
+ *     national_id,       // Government-issued personal identification number (e.g. Social Security Number, Tax Code, National ID).
  *     title,             // Noble, honorific, professional, hereditary, religious, or administrative title associated with the individual (e.g. "Count", "Doctor", "Bishop", "Sir").
  *     children_count,    // Reported number of children associated with the individual.
  *     marriages_count,   // Reported number of marriages associated with the individual.
@@ -88,7 +88,7 @@ public final class IndividualAttributeReader{
 	public static final String ENUM_TYPE_TITLE = "title";
 	public static final String[] TYPES = new String[]{
 		ENUM_TYPE_CHARACTERISTIC, ENUM_TYPE_RESIDENCE, ENUM_TYPE_OCCUPATION, "possession", "military_rank", "caste",
-		"social_class", "ethnicity", "citizenship", "nationality", "ssn", ENUM_TYPE_TITLE, "children_count",
+		"social_class", "ethnicity", "citizenship", "nationality", "national_id", ENUM_TYPE_TITLE, "children_count",
 		"marriages_count", "religion", "language", "literacy", "education"
 	};
 

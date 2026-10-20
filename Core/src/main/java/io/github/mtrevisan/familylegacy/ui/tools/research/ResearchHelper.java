@@ -172,7 +172,7 @@ public final class ResearchHelper{
 
 	/** Comment of an identity hypothesis. */
 	public static String identityComment(final FLEFRecord hypothesis){
-		return firstTextValue(hypothesis, IdentityHypothesisReader.TAG_COMMENT);
+		return firstTextValue(hypothesis, IdentityHypothesisReader.TAG_RATIONALE);
 	}
 
 

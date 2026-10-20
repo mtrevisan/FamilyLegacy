@@ -232,9 +232,9 @@ public class ContextImpactRecordDialog extends BaseRecordDialog{
 
 		final FLEFRecord contextImpact = FLEFRecord.createMainRecord("CI1", ContextImpactHandler.TYPE);
 		contextImpact.addChild(FLEFRecord.createChildWithTag("CONTEXT")
-			.addChild(FLEFRecord.createChildWithTagAndValue("CULTURAL_NORM", "@CN1@")));
+			.addChild(FLEFRecord.createChildWithTagAndValue("CULTURAL_NORM", "CN1")));
 		contextImpact.addChild(FLEFRecord.createChildWithTag("TARGET")
-			.addChild(FLEFRecord.createChildWithTagAndValue("INDIVIDUAL", "@I1@")));
+			.addChild(FLEFRecord.createChildWithTagAndValue("INDIVIDUAL", "I1")));
 		contextImpact.addChild(FLEFRecord.createChildWithTagAndValue("IMPACT_TYPE", "constrains"));
 		contextImpact.addChild(FLEFRecord.createChildWithTagAndValue("RATIONALE", "rationale"));
 		contextImpact.addChild(FLEFRecord.createChildWithTagAndValue("CONFIDENCE", "medium"));

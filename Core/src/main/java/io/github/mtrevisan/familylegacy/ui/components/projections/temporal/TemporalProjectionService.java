@@ -366,22 +366,7 @@ public final class TemporalProjectionService{
 		final boolean isRelationship = RelationshipHandler.isOfType(relationship);
 		final FLEFRecord from = FLEFRecordHelper.findChild(relationship, (isRelationship? RelationshipReader.TAG_VALID_FROM: PlaceRelationshipReader.TAG_VALID_FROM));
 		final FLEFRecord to = FLEFRecordHelper.findChild(relationship, (isRelationship? RelationshipReader.TAG_VALID_TO: PlaceRelationshipReader.TAG_VALID_TO));
-
-		final String status = (isRelationship
-			? normalizeStatus(FLEFRecordHelper.getChildValue(relationship, RelationshipReader.TAG_STATUS))
-			: null);
-
-		return DateNormalizer.combineBounds(from, to, status);
-	}
-
-	private static String normalizeStatus(final String raw){
-		if(raw == null)
-			return TemporalSpan.STATUS_UNKNOWN;
-		return switch(raw.toLowerCase()){
-			case TemporalSpan.STATUS_ACTIVE -> TemporalSpan.STATUS_ACTIVE;
-			case TemporalSpan.STATUS_ENDED -> TemporalSpan.STATUS_ENDED;
-			default -> TemporalSpan.STATUS_UNKNOWN;
-		};
+		return DateNormalizer.combineBounds(from, to);
 	}
 
 

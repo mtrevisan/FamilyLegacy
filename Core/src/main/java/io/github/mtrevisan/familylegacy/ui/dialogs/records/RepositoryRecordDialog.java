@@ -53,12 +53,18 @@ import java.io.IOException;
  * <pre>
  * record RepositoryRecord {
  *   name+: NameStructure
- *   custodian?: Xref&lt;IndividualRecord&gt;
+ *   custodian?: Agent
  *   place?: PlaceCitation
  *   contact*: ContactStructure
  *   note*: Xref&lt;NoteRecord&gt;
  *   privacy?: PrivacyStructure
  *   audit: AuditStructure
+ * }
+ *
+ * Agent = oneof {
+ *  individual: Xref&lt;IndividualRecord&gt;   // the author is an individual described in this file
+ *  group: Xref&lt;GroupRecord&gt;             // the author is a group or organization described in this file (e.g. a parish, a confraternity)
+ *  text: Text                           // the author is not described in this file (e.g. a publisher's editor, an unidentified clerk)
  * }
  * </pre>
  * <p>
@@ -74,6 +80,7 @@ public class RepositoryRecordDialog extends BaseRecordDialog{
 	private final JPanel propertiesPanel;
 
 	private final EntityListPanel namePanel;
+	// TODO
 	private final EntityField custodianField;
 	private final EntityField placeField;
 	private final EntityListPanel contactPanel;

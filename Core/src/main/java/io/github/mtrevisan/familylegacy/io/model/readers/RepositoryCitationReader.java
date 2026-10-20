@@ -38,7 +38,7 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
  * struct RepositoryCitation {
  *   repository: Xref&lt;RepositoryRecord&gt;
  *   locator?: Text   // location of the referenced material inside the repository (e.g., 'Shelf Mark: 12, Film: 1234567, Frame: 344, Line: 28', or 'Volume: 2, Page: 143, Entry: 17', or 'folio', 'image', etc.)
- *   note*: Text
+ *   remark*: Text
  * }
  * </pre>
  */
@@ -46,7 +46,7 @@ public final class RepositoryCitationReader{
 
 	public static final String TAG_REPOSITORY = "repository";
 	public static final String TAG_LOCATOR = "locator";
-	public static final String TAG_NOTE = "note";
+	public static final String TAG_REMARK = "remark";
 
 
 	private RepositoryCitationReader(){}

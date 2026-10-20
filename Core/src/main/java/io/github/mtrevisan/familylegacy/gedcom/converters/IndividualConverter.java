@@ -387,10 +387,10 @@ public class IndividualConverter {
 									GEDCOMHelper.cleanId(child.getValue())
 								))
 							);
-						if(RelationshipReader.isTypeBiologicalChild(relation)
+						if("child".equals(relation) || RelationshipReader.isTypeBiologicalChild(relation)
 								|| RelationshipReader.isTypeAdoptiveChild(relation)
 								|| "foster_child".equals(relation) || "guarded_child".equals(relation)
-								|| "step_child".equals(relation) || "civil_spouse".equals(relation)
+								|| "step_child".equals(relation) || "spouse".equals(relation) || "civil_spouse".equals(relation)
 								|| "religious_spouse".equals(relation) || "customary_spouse".equals(relation)
 								|| "cohabiting_partner".equals(relation) || "engaged_partner".equals(relation)
 								|| "group_member".equals(relation)|| "associate".equals(relation)|| "part_of".equals(relation))

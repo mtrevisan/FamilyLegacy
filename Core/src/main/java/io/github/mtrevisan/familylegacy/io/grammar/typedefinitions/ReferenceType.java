@@ -27,7 +27,6 @@ package io.github.mtrevisan.familylegacy.io.grammar.typedefinitions;
 import io.github.mtrevisan.familylegacy.io.grammar.FLEFGrammar;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import org.apache.commons.lang3.Strings;
 
 import java.util.List;
 

@@ -990,7 +990,7 @@ public final class MultiLifespanStripPanel extends JPanel{
 		if(t.contains("religion") || t.contains("caste") || t.contains("ethnicity") || t.contains("social"))
 			return new Color(210, 180, 120, 200);
 		if(t.contains("characteristic") || t.contains("language") || t.contains("children") || t.contains("marriages")
-			|| t.contains("possession") || t.contains("ssn"))
+			|| t.contains("possession") || t.contains("national_id"))
 			return new Color(200, 150, 200, 200);
 		return new Color(180, 180, 180, 200);
 	}

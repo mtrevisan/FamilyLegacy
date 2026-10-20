@@ -38,10 +38,14 @@ import io.github.mtrevisan.familylegacy.ui.handlers.DocumentHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.ResearchQuestionHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.ui.helpers.ResourceHelper;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.JPanel;
 import java.awt.Window;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 
@@ -53,6 +57,8 @@ import java.io.IOException;
  * <pre>
  * record DocumentRecord {
  *   uri: Uri
+ *   width?: Int          // width in pixels of the image at URI; CROP_RECTs referring to this document are expressed in this pixel space
+ *   height?: Int         // height in pixels of the image at URI
  *   mapping?: enum { spherical_UV, cylindrical_equirectangular_horizontal, cylindrical_equirectangular_vertical } | Text
  *   description?: Text
  *   note*: Xref&lt;NoteRecord&gt;
@@ -71,9 +77,14 @@ import java.io.IOException;
  */
 public class DocumentRecordDialog extends BaseRecordDialog{
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(DocumentRecordDialog.class);
+
+
 	private final JPanel propertiesPanel;
 
 	private final BoundTextField uriField;
+	private final BoundTextField widthField;
+	private final BoundTextField heightField;
 	private final BoundComboBox<String> mappingCombo;
 	private final BoundTextArea descriptionArea;
 
@@ -99,8 +110,10 @@ public class DocumentRecordDialog extends BaseRecordDialog{
 			builder -> {
 				builder.item(I18N.t("popupmenu.set"), this::setNewItem);
 				builder.separator();
-				builder.selectionSensitiveItem(I18N.t("popupmenu.clear"), uriField::clear);
+				builder.selectionSensitiveItem(I18N.t("popupmenu.clear"), this::clearItem);
 			});
+		widthField = new BoundTextField(DocumentReader.TAG_WIDTH);
+		heightField = new BoundTextField(DocumentReader.TAG_HEIGHT);
 		mappingCombo = new BoundComboBox<>(DocumentReader.TAG_MAPPING, GUIHelper.fillCombo(DocumentReader.MAPPINGS, null));
 		mappingCombo.setI18NPrefix("enum.document.mapping");
 		mappingCombo.setEditable(true);
@@ -116,6 +129,8 @@ public class DocumentRecordDialog extends BaseRecordDialog{
 			.build();
 
 		components.bind(uriField);
+		components.bind(widthField);
+		components.bind(heightField);
 		components.bind(mappingCombo);
 		components.bind(descriptionArea);
 
@@ -125,8 +140,31 @@ public class DocumentRecordDialog extends BaseRecordDialog{
 
 	private void setNewItem(){
 		final File selectedFile = GUIHelper.selectImageFile(getParent(), uriField.getText());
-		if(selectedFile != null)
+		if(selectedFile != null){
 			uriField.setText(selectedFile.getAbsolutePath());
+
+			// Read image dimensions in pixels to populate width and height fields
+			try{
+				final BufferedImage image = ResourceHelper.readBufferedImage(selectedFile);
+				if(image != null){
+					widthField.setText(String.valueOf(image.getWidth()));
+					heightField.setText(String.valueOf(image.getHeight()));
+				}
+				else
+					throw new IOException("Cannot retrieve image dimensions for " + selectedFile.getAbsolutePath());
+			}
+			catch(final IOException e){
+				LOGGER.error("Error: {}", e.getMessage(), e);
+
+				uriField.clear();
+			}
+		}
+	}
+
+	private void clearItem(){
+		uriField.clear();
+		widthField.clear();
+		heightField.clear();
 	}
 
 

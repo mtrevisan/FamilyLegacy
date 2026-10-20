@@ -54,10 +54,10 @@ import java.awt.Window;
  *   title?: Text
  *   text: Text
  *   mime?: Text
- *   locale?: LocaleCode | Text
+ *   locale?: LocaleCode
  *   translation*: struct {
  *     text: Text
- *     locale?: LocaleCode | Text
+ *     locale?: LocaleCode
  *   }
  *   source*: SourceCitation
  *   privacy?: PrivacyStructure
@@ -108,7 +108,6 @@ public class NoteStructureDialog extends BaseRecordDialog{
 		mimeCombo = new BoundComboBox<>(NoteReader.TAG_MIME, MIME_TYPES);
 		mimeCombo.setI18NPrefix("enum.note.mime_type");
 		localeCombo = new BoundFilteredComboBox<>(NoteReader.TAG_LOCALE, LocaleHelper.getAvailableLanguageTags());
-		localeCombo.setEditable(true);
 		translationPanel = new TranslationListPanel(NoteReader.TAG_TRANSLATION, this, I18N.t("dialog.note.translations"));
 
 		// Build common panels using the builder

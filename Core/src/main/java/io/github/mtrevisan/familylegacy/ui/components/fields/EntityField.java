@@ -90,18 +90,14 @@ public class EntityField extends BoundTextField{
 	}
 
 	public static EntityField createForRecordFromReference(final String path, final Window parent,
-			final FLEFModel model,
-			final Class<? extends RecordTypeHandler<?>> handlerType){
-		return new EntityField(path, parent, model,
-				EntityType.ENTITY_REFERENCE)
+			final FLEFModel model, final Class<? extends RecordTypeHandler<?>> handlerType){
+		return new EntityField(path, parent, model, EntityType.ENTITY_REFERENCE)
 			.withHandlerTypes(handlerType);
 	}
 
 	public static EntityField createForStructureWithReference(final String path, final Window parent,
-			final FLEFModel model,
-			final Class<? extends RecordTypeHandler<?>> handlerType){
-		return new EntityField(path, parent, model,
-				EntityType.CITATION_WRAPPER)
+			final FLEFModel model, final Class<? extends RecordTypeHandler<?>> handlerType){
+		return new EntityField(path, parent, model, EntityType.CITATION_WRAPPER)
 			.withHandlerTypes(handlerType);
 	}
 
@@ -278,8 +274,10 @@ public class EntityField extends BoundTextField{
 	}
 
 	/**
-	 * Saves the current entity into the target record.
-	 * Removes any existing child with the given path and adds a new one.
+	 * Saves the current entity into the target record, appending it at the given path.
+	 * <p>
+	 * Existing children at the path are NOT removed, because list panels call this method once per item on the same
+	 * target. For a singular field, the caller MUST pass a target that does not already contain the path.
 	 *
 	 * @param targetRecord	the record to save into
 	 */
@@ -314,30 +312,49 @@ public class EntityField extends BoundTextField{
 
 	private void addItem(){
 		final List<Class<? extends RecordTypeHandler<?>>> cleaned = extractParentHandlers();
+		// Dialog of a record created from within the selection dialog (if any): it tells a newly created record, which
+		// must be discarded when the citation is cancelled, from an existing one, which must be kept
+		final BaseRecordDialog[] creationDialog = new BaseRecordDialog[1];
 		@SuppressWarnings("unchecked")
 		final RecordSelectionDialog dialog = RecordSelectionDialog.createWithAllowRecordCreation(parent, model,
-			(record, handler) -> {
+			(record, selectedHandler) -> {
 				if(type == EntityType.CITATION_WRAPPER){
+					final boolean newlyCreated = (creationDialog[0] != null && creationDialog[0].getRecord() == record);
+
+					// The selection dialog works on the cited type: the citation itself is edited by the citation handler
+					final RecordTypeHandler<?> citationHandler = Objects.requireNonNullElse(
+						findHandler(selectedHandler.getType()), selectedHandler);
+
 					final String selectedRecordId = record.getId();
-					final String entityRefTag = entityRef.getTag();
-					final FLEFRecord citation = FLEFRecord.createChildWithTag(entityRefTag);
+					final FLEFRecord citation = FLEFRecord.createChildWithTag(getCitationTag(citationHandler));
 					FLEFRecordHelper.updateChildValue(citation, path, selectedRecordId);
 
-					final BaseRecordDialog citationDialog = handler.createEditDialog(parent, model, citation);
+					final BaseRecordDialog citationDialog = citationHandler.createEditDialog(parent, model, citation);
 					citationDialog.setVisible(true);
 
 					if(citationDialog.isSaved()){
 						final FLEFRecord newCitationRecord = citationDialog.getRecord();
 						setEntity(newCitationRecord);
 					}
-					else
+					else if(newlyCreated)
 						model.removeRecord(selectedRecordId);
 				}
 				else
 					setEntity(record);
 			},
 			cleaned.toArray(Class[]::new));
+		dialog.withSetupDialog(createdDialog -> creationDialog[0] = createdDialog);
 		dialog.setVisible(true);
+	}
+
+	/**
+	 * Returns the tag of the citation wrapper: the tag of the current citation, if any, otherwise the type of the
+	 * citation handler.
+	 */
+	private String getCitationTag(final RecordTypeHandler<?> citationHandler){
+		return (entityRef != null && StringUtils.isNotEmpty(entityRef.getTag())
+			? entityRef.getTag()
+			: citationHandler.getType());
 	}
 
 	private void editItem(){
@@ -357,10 +374,21 @@ public class EntityField extends BoundTextField{
 	}
 
 	/**
-	 * Creates a new place and adds a citation for it.
+	 * Creates a new cited record (e.g. a place) and adds a citation for it.
+	 * <p>
+	 * When the field is empty and accepts more than one citation type, the type cannot be decided here, so the
+	 * selection dialog is opened instead.
 	 */
 	private FLEFRecord createNewItem(){
-		final RecordTypeHandler<?> handler = findHandler(entityRef.getTag());
+		final RecordTypeHandler<?> handler = (hasData()
+			? findHandler(entityRef.getTag())
+			: (handlers.size() == 1? handlers.getFirst(): null));
+		if(handler == null){
+			addItem();
+
+			return null;
+		}
+
 		final RecordTypeHandler<?> parentHandler = handler.getParentHandler();
 		final BaseRecordDialog dialog = parentHandler.createNewDialog(parent, model);
 		dialog.setVisible(true);
@@ -369,7 +397,7 @@ public class EntityField extends BoundTextField{
 			final FLEFRecord newRecord = dialog.getRecord();
 			if(newRecord != null){
 				final String newRecordId = newRecord.getId();
-				final FLEFRecord citation = FLEFRecord.createEmpty();
+				final FLEFRecord citation = FLEFRecord.createChildWithTag(getCitationTag(handler));
 				FLEFRecordHelper.updateChildValue(citation, path, newRecordId);
 
 				final BaseRecordDialog citationDialog = handler.createEditDialog(parent, model, citation);

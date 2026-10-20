@@ -51,7 +51,7 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
  *     value: Text                  // the name of the person associated with this contact
  *     variant*: TextValueVariant   // alternative phonetic, transliterated, or transcribed representations
  *   }
- *   note?: Text
+ *   remark?: Text
  *   privacy?: PrivacyStructure
  *   audit: AuditStructure
  * }
@@ -63,7 +63,7 @@ public final class ContactReader{
 	public static final String TAG_TYPE = "type";
 	public static final String TAG_NAME = "name";
 	public static final String TAG_VARIANT = "variant";
-	public static final String TAG_NOTE = "note";
+	public static final String TAG_REMARK = "remark";
 	public static final String TAG_PRIVACY = "privacy";
 	public static final String TAG_AUDIT = "audit";
 

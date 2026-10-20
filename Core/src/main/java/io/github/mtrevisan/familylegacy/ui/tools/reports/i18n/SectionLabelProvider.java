@@ -283,10 +283,6 @@ public final class SectionLabelProvider{
 	 *                          Event / attribute / relationship labels
 	 * ====================================================================== */
 
-	public String agency(){
-		return labels.getString("AGENCY");
-	}
-
 	public String note(){
 		return labels.getString("NOTE");
 	}

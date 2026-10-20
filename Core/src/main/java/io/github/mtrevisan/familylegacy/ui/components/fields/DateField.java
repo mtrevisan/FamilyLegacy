@@ -26,33 +26,18 @@ package io.github.mtrevisan.familylegacy.ui.components.fields;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.io.model.readers.DateReader;
-import io.github.mtrevisan.familylegacy.ui.bindings.BindingsHelper;
 import io.github.mtrevisan.familylegacy.ui.dialogs.structures.DateStructureDialog;
-import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
-import net.miginfocom.swing.MigLayout;
 
-import javax.swing.JPanel;
-import javax.swing.JTextField;
 import java.awt.Window;
 
 
-// TODO can it be an EntityField?
 /**
- * Component for selecting and displaying dates.
+ * Component for selecting and displaying dates ({@code DateStructure}).
  */
-public class DateField extends JPanel{
+public final class DateField extends StructureField{
 
-	private final Window parent;
 	private final String dialogTitle;
-
-	private final String path;
-	private final FLEFModel model;
-
-	private FLEFRecord record;
-
-	private final JTextField displayField = new JTextField(null);
 
 
 	public static DateField create(final Window parent, final String dialogTitle, final FLEFModel model){
@@ -66,118 +51,31 @@ public class DateField extends JPanel{
 
 
 	private DateField(final String path, final Window parent, final String dialogTitle, final FLEFModel model){
-		super(new MigLayout("ins 0,fillx", "[grow]"));
+		super(path, parent, model);
 
-		this.parent = parent;
 		this.dialogTitle = dialogTitle;
-
-		this.path = path;
-		this.model = model;
-
-
-		initComponents();
-	}
-
-
-	private void initComponents(){
-		setupField(displayField,
-			this::createNew,
-			this::edit,
-			this::clear
-		);
-
-		add(displayField, "growx");
-	}
-
-	private void setupField(final JTextField field,
-			final Runnable newAction, final Runnable editAction, final Runnable clearAction){
-		BindingsHelper.installBehavior(field,
-			editAction, null,
-			null, null,
-			builder -> {
-				builder.item(I18N.t("popupmenu.set"), newAction);
-				builder.separator();
-				builder.selectionSensitiveItem(I18N.t("popupmenu.edit"), editAction);
-				builder.selectionSensitiveItem(I18N.t("popupmenu.clear"), clearAction);
-			}
-		);
-
-		updateDisplay();
-	}
-
-	/**
-	 * Updates the underlying record and automatically refreshes the display.
-	 */
-	public void setRecord(final FLEFRecord record){
-		this.record = record;
-
-		updateDisplay();
-	}
-
-	public void clear(){
-		setRecord(null);
-	}
-
-	public boolean hasData(){
-		return (record != null && record.hasData());
-	}
-
-	public void load(final FLEFRecord record){
-		clear();
-
-		if(record == null || record.isEmpty())
-			return;
-
-		final FLEFRecord child = FLEFRecordHelper.findChild(record, path);
-		setRecord(child);
-	}
-
-	public void save(final FLEFRecord targetRecord){
-		if(record != null){
-			final FLEFRecord targetNode = FLEFRecordHelper.getOrCreateTargetNode(targetRecord, path);
-			targetNode.addChildren(record.getChildren());
-		}
-	}
-
-	private void createNew(){
-		final DateStructureDialog dialog = DateStructureDialog.createNew(parent, model, dialogTitle);
-		dialog.setVisible(true);
-
-		if(dialog.isSaved())
-			setRecord(dialog.getRecord());
-	}
-
-	private void edit(){
-		if(!hasData()){
-			createNew();
-
-			return;
-		}
-
-		final DateStructureDialog dialog = DateStructureDialog.createEdit(parent, model, dialogTitle, record);
-		dialog.setVisible(true);
-
-		if(dialog.isSaved())
-			// Only necessary here if changes are in-place
-			updateDisplay();
-	}
-
-	private void updateDisplay(){
-		BindingsHelper.updateDisplay(displayField,
-			this::hasData,
-			() -> DateReader.extractPrettyPrintDate(record));
 	}
 
 
 	@Override
-	public String toString(){
-		final StringBuilder sb = new StringBuilder();
-		sb.append("value: ");
-		final String text = BindingsHelper.getText(displayField.getText());
-		sb.append(text != null? (text.isEmpty()? "''": text): "<null>")
-			.append(", path: ")
-			.append(path);
-		return sb.toString();
+	protected FLEFRecord openNewDialog(){
+		final DateStructureDialog dialog = DateStructureDialog.createNew(parent, model, dialogTitle);
+		dialog.setVisible(true);
+
+		return (dialog.isSaved()? dialog.getRecord(): null);
+	}
+
+	@Override
+	protected boolean openEditDialog(final FLEFRecord record){
+		final DateStructureDialog dialog = DateStructureDialog.createEdit(parent, model, dialogTitle, record);
+		dialog.setVisible(true);
+
+		return dialog.isSaved();
+	}
+
+	@Override
+	protected String toDisplayText(final FLEFRecord record){
+		return DateReader.extractPrettyPrintDate(record);
 	}
 
 }

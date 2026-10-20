@@ -65,7 +65,7 @@ import java.util.Objects;
  * <pre>
  * record IdentityHypothesisRecord {
  *   identity+: IdentityCandidate
- *   comment?: Text
+ *   rationale?: Text
  *   source*: SourceCitation
  *   confidence?: Confidence
  *   audit: AuditStructure
@@ -83,7 +83,7 @@ import java.util.Objects;
  * </pre>
  * <p>
  * Tabs:
- * Tab 1 (Properties): identity 1, identity 2, comment, confidence
+ * Tab 1 (Properties): identity 1, identity 2, rationale, confidence
  * Tab 5 (Context): ContextImpactRecord (target[identity_hypothesis] = this hypothesis)
  * Tab 6 (Research): ConclusionRecord (resolves = this hypothesis), ResearchQuestionRecord (target[identity_hypothesis] = this hypothesis)
  * Tab 7 (Sources): source
@@ -95,7 +95,7 @@ public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 
 	private final EntityField identity1Field;
 	private final EntityField identity2Field;
-	private final BoundTextArea commentArea;
+	private final BoundTextArea rationaleArea;
 	private final BoundComboBox<String> confidenceCombo;
 
 	private final JButton compareIdentitiesButton = new JButton(I18N.t("dialog.identity_hypothesis.button.compare"));
@@ -120,7 +120,7 @@ public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 			.withHandlerTypes(IndividualHandler.class, GroupHandler.class, PlaceHandler.class);
 		identity2Field = EntityField.createForRecordFromOneofReference(IdentityHypothesisReader.TAG_IDENTITY, this, model)
 			.withHandlerTypes(IndividualHandler.class, GroupHandler.class, PlaceHandler.class);
-		commentArea = new BoundTextArea(IdentityHypothesisReader.TAG_COMMENT, 3, 30);
+		rationaleArea = new BoundTextArea(IdentityHypothesisReader.TAG_RATIONALE, 3, 30);
 		confidenceCombo = new BoundComboBox<>(IdentityHypothesisReader.TAG_CONFIDENCE, GUIHelper.fillCombo(ConfidenceReader.CONFIDENCES, null));
 		confidenceCombo.setI18NPrefix("enum.confidence");
 
@@ -130,11 +130,10 @@ public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, I18N.t("dialog.component.conclusions"))
 			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, I18N.t("dialog.component.research.questions"))
 			.withComponent(PanelKey.SOURCE, IdentityHypothesisReader.TAG_SOURCE, I18N.t("dialog.component.sources_with_citations"))
-			.withComponent(PanelKey.NOTE, IdentityHypothesisReader.TAG_NOTE, null)
 			.withComponent(PanelKey.AUDIT, IdentityHypothesisReader.TAG_AUDIT, null)
 			.build();
 
-		components.bind(commentArea);
+		components.bind(rationaleArea);
 		components.bind(confidenceCombo);
 
 		compareIdentitiesButton.addActionListener(e -> openIdentityComparison());
@@ -160,8 +159,8 @@ public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 		compareRow.add(compareIdentitiesButton);
 		GUIHelper.addComponent(propertiesPanel, compareRow);
 
-		// comment
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.identity_hypothesis.comment") + ":", commentArea);
+		// rationale
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.identity_hypothesis.rationale") + ":", rationaleArea);
 
 		// confidence
 		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.identity_hypothesis.confidence") + ":", confidenceCombo);
@@ -202,16 +201,6 @@ public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 		// Image carousel below the source list
 		// It will be hidden if no images are found
 		GUIHelper.addComponent(panel, imageCarouselPanel);
-
-		return panel;
-	}
-
-	@Override
-	protected JPanel createNotesPanel(){
-		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
-
-		final JPanel notePanel = components.getPanel(PanelKey.NOTE);
-		GUIHelper.addComponent(panel, notePanel);
 
 		return panel;
 	}

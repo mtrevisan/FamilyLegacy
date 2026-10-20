@@ -65,7 +65,7 @@ import java.time.ZoneOffset;
  *   copyright?: Text
  *   submitter?: struct {
  *     contact*: ContactStructure
- *     note*: Text
+ *     remark?: Text
  *   }
  *   scope?: Text
  * }
@@ -93,7 +93,7 @@ public class HeaderDialog extends BaseRecordDialog{
 	private final BoundTextArea copyrightArea;
 
 	private final EntityListPanel submitterContactListPanel;
-	private final BoundTextArea submitterNoteArea;
+	private final BoundTextArea submitterRemarkArea;
 
 	private final BoundTextArea scopeArea;
 
@@ -112,8 +112,8 @@ public class HeaderDialog extends BaseRecordDialog{
 		dateField = new BoundTextField(HeaderReader.TAG_DATE);
 		dateField.setEnabled(false);
 		copyrightArea = new BoundTextArea(HeaderReader.TAG_COPYRIGHT, 3, 25);
-		submitterContactListPanel = EntityListPanel.createForStructure(HeaderReader.TAG_SUBMITTER_CONTACT, this, "Contacts", model, ContactHandler.class);
-		submitterNoteArea = new BoundTextArea(HeaderReader.TAG_SUBMITTER_NOTE, 3, 25);
+		submitterContactListPanel = EntityListPanel.createForStructure(HeaderReader.TAG_SUBMITTER_CONTACT, this, I18N.t("dialog.header.contacts"), model, ContactHandler.class);
+		submitterRemarkArea = new BoundTextArea(HeaderReader.TAG_SUBMITTER_REMARK, 3, 25);
 		scopeArea = new BoundTextArea(HeaderReader.TAG_SCOPE, 3, 25);
 
 		// Build common panels using the builder
@@ -127,7 +127,7 @@ public class HeaderDialog extends BaseRecordDialog{
 		components.bind(sourceOrganizationField);
 		components.bind(dateField);
 		components.bind(copyrightArea);
-		components.bind(submitterNoteArea);
+		components.bind(submitterRemarkArea);
 		components.bind(scopeArea);
 
 
@@ -174,7 +174,7 @@ public class HeaderDialog extends BaseRecordDialog{
 		GUIHelper.addComponent(panel, submitterContactListPanel);
 
 		// note
-		GUIHelper.addLabeledComponent(panel, I18N.t("dialog.header.note") + ":", submitterNoteArea);
+		GUIHelper.addLabeledComponent(panel, I18N.t("dialog.header.remark") + ":", submitterRemarkArea);
 
 		return panel;
 	}

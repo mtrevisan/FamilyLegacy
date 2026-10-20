@@ -588,7 +588,7 @@ public final class KinshipCalculator{
 			if(subject == null || object == null)
 				continue;
 
-			final boolean childRel = t.endsWith("_child");
+			final boolean childRel = t.equals("child") || t.endsWith("_child");
 			final boolean parentRel = t.endsWith("_parent");
 			if(!childRel && !parentRel)
 				continue;

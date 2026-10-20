@@ -256,25 +256,29 @@ public class SearchHelper{
 	}
 
 	/**
-	 * Extracts [minYear, maxYear] from a SingleDate variant (full_date, decade, century).
+	 * Extracts [minYear, maxYear] from a SingleDate struct (reading calendar from root struct
+	 * and variants from the nested value container).
 	 */
 	private static Integer[] extractYearRangeFromSingleDate(final FLEFRecord singleDateRecord){
 		if(singleDateRecord == null)
 			return null;
 
+		final String calendar = FLEFRecordHelper.getChildValue(singleDateRecord, DateReader.TAG_CALENDAR);
+		final FLEFRecord valueContainer = FLEFRecordHelper.findChild(singleDateRecord, DateReader.TAG_VALUE);
+		final FLEFRecord targetValue = (valueContainer != null? valueContainer: singleDateRecord);
+
 		// Variant A: full_date
-		final FLEFRecord fullDateRecord = FLEFRecordHelper.findChild(singleDateRecord, DateReader.TAG_FULL_DATE);
+		final FLEFRecord fullDateRecord = FLEFRecordHelper.findChild(targetValue, DateReader.TAG_FULL_DATE);
 		if(fullDateRecord != null){
-			final String date = FLEFRecordHelper.getChildValue(fullDateRecord, DateReader.TAG_VALUE);
-			final String calendar = FLEFRecordHelper.getChildValue(fullDateRecord, DateReader.TAG_CALENDAR);
+			final String date = fullDateRecord.getValue();
 			final Integer year = extractYear(date, calendar);
 			return (year != null? new Integer[]{year, year}: null);
 		}
 
 		// Variant B: decade
-		final FLEFRecord decadeRecord = FLEFRecordHelper.findChild(singleDateRecord, DateReader.TAG_DECADE);
+		final FLEFRecord decadeRecord = FLEFRecordHelper.findChild(targetValue, DateReader.TAG_DECADE);
 		if(decadeRecord != null){
-			final String startYearStr = FLEFRecordHelper.getChildValue(decadeRecord, DateReader.TAG_START_YEAR);
+			final String startYearStr = decadeRecord.getValue();
 			if(StringUtils.isNumeric(startYearStr)){
 				final int startYear = Integer.parseInt(startYearStr);
 				return new Integer[]{startYear, startYear + 9};
@@ -282,7 +286,7 @@ public class SearchHelper{
 		}
 
 		// Variant C: century
-		final FLEFRecord centuryRecord = FLEFRecordHelper.findChild(singleDateRecord, DateReader.TAG_CENTURY);
+		final FLEFRecord centuryRecord = FLEFRecordHelper.findChild(targetValue, DateReader.TAG_CENTURY);
 		if(centuryRecord != null){
 			final String ordinalStr = FLEFRecordHelper.getChildValue(centuryRecord, DateReader.TAG_ORDINAL);
 			if(StringUtils.isNumeric(ordinalStr)){

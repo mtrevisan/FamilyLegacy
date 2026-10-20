@@ -103,6 +103,7 @@ public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
 			return;
 
 
+		// TODO this does not return a document_part, but a document!
 		final FLEFRecord documentPart = listModel.get(itemIndex);
 		final FLEFRecord crop = FLEFRecordHelper.findChild(documentPart, PreferredImagePanel.TAG_CROP);
 		Rectangle imageCropRect = CropReader.extractPreferredImageCrop(crop);
@@ -151,6 +152,7 @@ public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
 				if(document != null && !listModel.contains(document)){
 					final String uri = FLEFRecordHelper.getChildValue(document, DocumentReader.TAG_URI);
 
+					// TODO choose here what kind of dialog to show in order to populate either crop, or page, or start-stop
 					try{
 						cropDialog.loadData(uri, null);
 						cropDialog.setVisible(true);

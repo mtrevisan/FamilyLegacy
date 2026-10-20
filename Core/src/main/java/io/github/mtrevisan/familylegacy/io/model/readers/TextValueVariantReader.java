@@ -43,7 +43,7 @@ import org.apache.commons.lang3.StringUtils;
  *   }
  *   transcription: struct {
  *     system: enum {   // indicates the system used to transcribe the text to the transcribed variation
- *       rōmaji, hepburn, kunreishiki, nihonshiki,   // Japanese
+ *       romaji, hepburn, kunreishiki, nihonshiki,   // Japanese
  *       pinyin, wadegiles,                          // Chinese
  *       bgn_pcgn,                                   // various geographic standards
  *       iso9,                                       // Cyrillic -> Latin

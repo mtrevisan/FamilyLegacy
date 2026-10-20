@@ -202,18 +202,12 @@ public final class GroupDossierService{
 
 			final String name = resolveIndividualName(memberId);
 			final String role = FLEFRecordHelper.getChildValue(relationship, RelationshipReader.TAG_ROLE);
-			final String status = FLEFRecordHelper.getChildValue(relationship, RelationshipReader.TAG_STATUS);
 			final String validity = formatting.formatValidity(relationship, GroupAttributeReader.TAG_VALID_FROM,
 				GroupAttributeReader.TAG_VALID_TO);
 
 			final StringBuilder subtitle = new StringBuilder();
 			if(StringUtils.isNotEmpty(role))
 				subtitle.append("role: ").append(role);
-			if(StringUtils.isNotEmpty(status)){
-				if(!subtitle.isEmpty())
-					subtitle.append(" · ");
-				subtitle.append(status);
-			}
 			if(StringUtils.isNotEmpty(validity)){
 				if(!subtitle.isEmpty())
 					subtitle.append(" · ");
@@ -250,13 +244,10 @@ public final class GroupDossierService{
 			final String otherId = (isParent? subjectId: objectId);
 			final String otherName = resolveGroupNameById(otherId);
 			final String label = (isParent? "Subgroup": "Supergroup");
-			final String status = FLEFRecordHelper.getChildValue(relationship, RelationshipReader.TAG_STATUS);
 			final String validity = formatting.formatValidity(relationship, RelationshipReader.TAG_VALID_FROM,
 				RelationshipReader.TAG_VALID_TO);
 
 			final StringBuilder subtitle = new StringBuilder();
-			if(StringUtils.isNotEmpty(status))
-				subtitle.append(status);
 			if(StringUtils.isNotEmpty(validity)){
 				if(!subtitle.isEmpty())
 					subtitle.append(" · ");
@@ -348,12 +339,6 @@ public final class GroupDossierService{
 			final String role = FLEFRecordHelper.getChildValue(participation, EventParticipationReader.TAG_ROLE);
 			if(StringUtils.isNotEmpty(role))
 				subtitle.append("role: ").append(role);
-			final String agency = FLEFRecordHelper.getChildValue(event, EventReader.TAG_AGENCY);
-			if(StringUtils.isNotEmpty(agency)){
-				if(!subtitle.isEmpty())
-					subtitle.append(" · ");
-				subtitle.append(agency);
-			}
 			final String description = FLEFRecordHelper.getChildValue(event, EventReader.TAG_DESCRIPTION);
 			if(StringUtils.isNotEmpty(description)){
 				if(!subtitle.isEmpty())
@@ -636,7 +621,7 @@ public final class GroupDossierService{
 		final List<DossierEntry> entries){
 		for(final FLEFRecord note : FLEFRecordHelper.findChildren(parent, TAG_NOTE)){
 			final String title = FLEFRecordHelper.getChildValue(note, NoteReader.TAG_TITLE);
-			final String text = FLEFRecordHelper.getChildValue(note, NoteReader.TAG_TEXT);
+			final String text = NoteReader.extractText(note);
 			final String label = origin + " note";
 			final String value = (StringUtils.isNotEmpty(title)? title: text);
 			final String subtitle = (StringUtils.isNotEmpty(title) && StringUtils.isNotEmpty(text)

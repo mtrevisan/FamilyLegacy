@@ -142,13 +142,6 @@ final class IndividualNarrator{
 			final FLEFRecord spouse = spouseFromEvent(person, m);
 			final String spouseName = (spouse != null? displayName(spouse): null);
 			sentences.add(labels.narrativeMarriage(name, spouseName, d, p));
-
-			// Check status tag on relationship or marriage record
-			final String status = FLEFRecordHelper.getChildValue(m, RelationshipReader.TAG_STATUS);
-			if("ended".equalsIgnoreCase(status) || "divorced".equalsIgnoreCase(status) || "annulled".equalsIgnoreCase(status)){
-				final String validTo = extractValidDate(m, RelationshipReader.TAG_VALID_TO);
-				sentences.add(labels.narrativeDivorce(name, spouseName, validTo));
-			}
 		}
 
 		// 3b. Divorces / annulments events
@@ -295,7 +288,7 @@ final class IndividualNarrator{
 	 */
 	private void addIndividualNotes(final List<String> sentences, final FLEFRecord person){
 		for(final FLEFRecord noteRec : FLEFRecordHelper.findChildren(person, IndividualReader.TAG_NOTE)){
-			final String text = FLEFRecordHelper.getChildValue(noteRec, NoteReader.TAG_TEXT);
+			final String text = NoteReader.extractText(noteRec);
 			if(text != null && !text.isBlank()){
 				sentences.add(text.trim());
 			}

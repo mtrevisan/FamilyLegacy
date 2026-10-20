@@ -33,7 +33,6 @@ import java.awt.Component;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Stroke;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -111,8 +110,7 @@ final class EgoNetworkRenderer{
 			final JPanel targetPanel = nodeToPanelMap.get(node);
 			if(targetPanel != null){
 				final Point targetPoint = getPanelCenter(targetPanel, container);
-				final Stroke stroke = pickStroke(node.getRelationsWithEgo());
-				drawOrthogonalLine(g2, centerPoint, targetPoint, stroke);
+				drawOrthogonalLine(g2, centerPoint, targetPoint, STROKE_UNKNOWN);
 			}
 		}
 	}
@@ -123,36 +121,9 @@ final class EgoNetworkRenderer{
 			final JPanel targetPanel = groupToPanelMap.get(groupRecord);
 			if(targetPanel != null){
 				final Point targetPoint = getPanelCenter(targetPanel, container);
-				final Stroke stroke = pickStroke(rootEgoNode.getGroupRelationInfo(groupRecord));
-				drawOrthogonalLine(g2, centerPoint, targetPoint, stroke);
+				drawOrthogonalLine(g2, centerPoint, targetPoint, STROKE_UNKNOWN);
 			}
 		}
-	}
-
-	/**
-	 * Aggregates the statuses of a list of relations and returns the
-	 * corresponding stroke.
-	 */
-	private static Stroke pickStroke(final List<EgoNode.RelationInfo> relations){
-		if(relations == null || relations.isEmpty())
-			return STROKE_UNKNOWN;
-
-		boolean hasActive = false;
-		boolean hasEnded = false;
-		for(final EgoNode.RelationInfo info : relations){
-			final String status = info.status();
-			if(status == null)
-				continue;
-			if("active".equalsIgnoreCase(status))
-				hasActive = true;
-			else if("ended".equalsIgnoreCase(status))
-				hasEnded = true;
-		}
-		if(hasActive)
-			return STROKE_ACTIVE;
-		if(hasEnded)
-			return STROKE_ENDED;
-		return STROKE_UNKNOWN;
 	}
 
 	private static Point getPanelCenter(final JPanel panel, final Component container){

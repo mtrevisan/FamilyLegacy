@@ -36,7 +36,6 @@ import io.github.mtrevisan.familylegacy.ui.handlers.SourceHandler;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 
@@ -132,9 +131,14 @@ public class StructureParser{
 			case POINT -> {
 				FLEFRecord pointRec = FLEFRecord.createChildWithTag("point");
 				FLEFRecord fullDateRec = FLEFRecord.createChildWithTag("full_date");
-				fullDateRec.addChild(FLEFRecord.createChildWithTagAndValue("value", info.getValue()));
-				fullDateRec.addChild(FLEFRecord.createChildWithTagAndValue("calendar", getCalendarForDate(info.getValue())));
-				pointRec.addChild(fullDateRec);
+				fullDateRec.setValue(info.getValue());
+
+				FLEFRecord valueContainer = FLEFRecord.createChildWithTag("value");
+				valueContainer.addChild(fullDateRec);
+				pointRec.addChild(valueContainer);
+
+				// Calendar and approximate are fields of SingleDate struct (point container)
+				pointRec.addChild(FLEFRecord.createChildWithTagAndValue("calendar", getCalendarForDate(info.getValue())));
 
 				if(info.isApproximate()){
 					FLEFRecord approx = FLEFRecord.createChildWithTag("approximate");
@@ -145,59 +149,31 @@ public class StructureParser{
 						default -> DateReader.ENUM_BASIS_UNSPECIFIED;
 					};
 					approx.addChild(FLEFRecord.createChildWithTagAndValue("basis", basis));
-					fullDateRec.addChild(approx);
+					pointRec.addChild(approx);
 				}
 				valueRec.addChild(pointRec);
 			}
 			case BOUNDED -> {
 				FLEFRecord boundedRec = FLEFRecord.createChildWithTag("bounded");
 				if(info.getNotBefore() != null){
-					FLEFRecord nb = buildQualifiedDate(info.getNotBefore());
-					FLEFRecord nbNode = FLEFRecord.createChildWithTag("not_before");
-					nbNode.addChild(nb);
-					if(info.isApproximate()){
-						FLEFRecord approx = FLEFRecord.createChildWithTag("approximate");
-						approx.addChild(FLEFRecord.createChildWithTagAndValue("basis", DateReader.ENUM_BASIS_STATED));
-						nbNode.addChild(approx);
-					}
-					boundedRec.addChild(nbNode);
+					FLEFRecord nbNode = buildSingleDateForBounded(info.getNotBefore(), info.isApproximate());
+					boundedRec.addChild(nbNode.setTag("not_before"));
 				}
 				if(info.getNotAfter() != null){
-					FLEFRecord na = buildQualifiedDate(info.getNotAfter());
-					FLEFRecord naNode = FLEFRecord.createChildWithTag("not_after");
-					naNode.addChild(na);
-					if(info.isApproximate()){
-						FLEFRecord approx = FLEFRecord.createChildWithTag("approximate");
-						approx.addChild(FLEFRecord.createChildWithTagAndValue("basis", DateReader.ENUM_BASIS_STATED));
-						naNode.addChild(approx);
-					}
-					boundedRec.addChild(naNode);
+					FLEFRecord naNode = buildSingleDateForBounded(info.getNotAfter(), info.isApproximate());
+					boundedRec.addChild(naNode.setTag("not_after"));
 				}
 				valueRec.addChild(boundedRec);
 			}
 			case SPANNING -> {
 				FLEFRecord spanningRec = FLEFRecord.createChildWithTag("spanning");
 				if(info.getFrom() != null){
-					FLEFRecord from = buildQualifiedDate(info.getFrom());
-					FLEFRecord fromNode = FLEFRecord.createChildWithTag("from");
-					fromNode.addChild(from);
-					if(info.isApproximate()){
-						FLEFRecord approx = FLEFRecord.createChildWithTag("approximate");
-						approx.addChild(FLEFRecord.createChildWithTagAndValue("basis", DateReader.ENUM_BASIS_STATED));
-						fromNode.addChild(approx);
-					}
-					spanningRec.addChild(fromNode);
+					FLEFRecord fromNode = buildSingleDateForBounded(info.getFrom(), info.isApproximate());
+					spanningRec.addChild(fromNode.setTag("from"));
 				}
 				if(info.getTo() != null){
-					FLEFRecord to = buildQualifiedDate(info.getTo());
-					FLEFRecord toNode = FLEFRecord.createChildWithTag("to");
-					toNode.addChild(to);
-					if(info.isApproximate()){
-						FLEFRecord approx = FLEFRecord.createChildWithTag("approximate");
-						approx.addChild(FLEFRecord.createChildWithTagAndValue("basis", DateReader.ENUM_BASIS_STATED));
-						toNode.addChild(approx);
-					}
-					spanningRec.addChild(toNode);
+					FLEFRecord toNode = buildSingleDateForBounded(info.getTo(), info.isApproximate());
+					spanningRec.addChild(toNode.setTag("to"));
 				}
 				valueRec.addChild(spanningRec);
 			}
@@ -205,6 +181,33 @@ public class StructureParser{
 
 		dateStruct.addChild(valueRec);
 		return dateStruct;
+	}
+
+	/**
+	 * Builds a SingleDate record structure for bounded/spanning bounds.
+	 */
+	private FLEFRecord buildSingleDateForBounded(String isoDate, boolean approximate){
+		if(StringUtils.isEmpty(isoDate)){
+			isoDate = null;
+		}
+		FLEFRecord singleDate = FLEFRecord.createEmpty();
+		FLEFRecord fullDate = FLEFRecord.createChildWithTag("full_date");
+		if(isoDate != null)
+			fullDate.setValue(isoDate);
+
+		FLEFRecord valueContainer = FLEFRecord.createChildWithTag("value");
+		valueContainer.addChild(fullDate);
+		singleDate.addChild(valueContainer);
+
+		if(isoDate != null)
+			singleDate.addChild(FLEFRecord.createChildWithTagAndValue("calendar", getCalendarForDate(isoDate)));
+
+		if(approximate){
+			FLEFRecord approx = FLEFRecord.createChildWithTag("approximate");
+			approx.addChild(FLEFRecord.createChildWithTagAndValue("basis", DateReader.ENUM_BASIS_STATED));
+			singleDate.addChild(approx);
+		}
+		return singleDate;
 	}
 
 	/**
@@ -460,7 +463,9 @@ public class StructureParser{
 					participationRecord.addChild(evtRef);
 
 					// Preserva il ruolo mantenendo la stringa pulita
-					participationRecord.addChild(FLEFRecord.createChildWithTagAndValue("role", roleValue.trim().toLowerCase(Locale.ROOT)));
+					String role = GEDCOMMapper.mapRole(roleValue.trim(), null);
+					if(role != null)
+						participationRecord.addChild(FLEFRecord.createChildWithTagAndValue("role", role));
 					participationRecord.addChild(createAudit(evenNode));
 					model.addRecord(participationRecord);
 				}

@@ -169,7 +169,7 @@ final class SourcesSection implements SectionBuilder{
 		out.add(new ReportSection.Paragraph(line.toString()));
 
 		// Repository citation note.
-		final String repoNote = FLEFRecordHelper.getChildValue(rc, RepositoryCitationReader.TAG_NOTE);
+		final String repoNote = FLEFRecordHelper.getChildValue(rc, RepositoryCitationReader.TAG_REMARK);
 		if(repoNote != null && !repoNote.isBlank())
 			out.add(new ReportSection.Paragraph(
 				"  *" + ctx.labels.sections().sourceRepositoryNote() + ":* "

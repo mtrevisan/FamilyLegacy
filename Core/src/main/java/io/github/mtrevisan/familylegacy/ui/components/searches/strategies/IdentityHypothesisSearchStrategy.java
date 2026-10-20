@@ -62,7 +62,7 @@ public class IdentityHypothesisSearchStrategy implements SearchStrategy{
 	@Override
 	public Predicate<FLEFRecord> buildPredicate(final SearchCriteria criteria, final FLEFModel model){
 		candidate = criteria.getFilterFor(IdentityHypothesisReader.TAG_IDENTITY);
-		comment = criteria.getFilterFor(IdentityHypothesisReader.TAG_COMMENT);
+		comment = criteria.getFilterFor(IdentityHypothesisReader.TAG_RATIONALE);
 		modes = criteria.modes();
 
 		return hypothesis -> {
@@ -92,7 +92,7 @@ public class IdentityHypothesisSearchStrategy implements SearchStrategy{
 
 			// Comment filter
 			if(StringUtils.isNotEmpty(comment)){
-				final String comment = IdentityHypothesisReader.extractComment(hypothesis);
+				final String comment = IdentityHypothesisReader.extractRationale(hypothesis);
 				if(!TextSearchHelper.matchesText(comment, this.comment, modes, FUZZY_THRESHOLD))
 					return false;
 			}
@@ -105,7 +105,7 @@ public class IdentityHypothesisSearchStrategy implements SearchStrategy{
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
 		final String baseDisplayText = HANDLER.getDisplayText(record, model);
 
-		final String comment = IdentityHypothesisReader.extractComment(record);
+		final String comment = IdentityHypothesisReader.extractRationale(record);
 
 		final StringJoiner details = new StringJoiner(", ", " (", ")");
 		details.setEmptyValue(StringUtils.EMPTY);

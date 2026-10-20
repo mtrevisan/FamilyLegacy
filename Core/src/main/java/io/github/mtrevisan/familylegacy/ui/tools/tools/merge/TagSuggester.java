@@ -525,11 +525,6 @@ public final class TagSuggester{
 		if(value.isEmpty())
 			return null;
 
-		if(value.length() >= 2 && value.startsWith("@") && value.endsWith("@"))
-			value = value.substring(1, value.length() - 1);
-		if(value.isEmpty())
-			return null;
-
 		return new ReferenceHit(field.referenceTag, value);
 	}
 

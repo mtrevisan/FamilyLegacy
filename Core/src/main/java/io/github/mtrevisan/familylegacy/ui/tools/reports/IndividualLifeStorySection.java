@@ -240,10 +240,6 @@ final class IndividualLifeStorySection implements SectionBuilder{
 		if(place != null && !place.isBlank())
 			details.add("**" + ctx.labels.sections().place() + ":** " + ReportFormatters.escape(place));
 
-		final String agency = FLEFRecordHelper.getChildValue(evt, EventReader.TAG_AGENCY);
-		if(agency != null && !agency.isBlank())
-			details.add("**" + ctx.labels.sections().agency() + ":** " + ReportFormatters.escape(agency));
-
 		final String descr = FLEFRecordHelper.getChildValue(evt, EventReader.TAG_DESCRIPTION);
 		if(descr != null && !descr.isBlank())
 			details.add("**" + ctx.labels.sections().description() + ":** " + ReportFormatters.escape(descr));
@@ -360,12 +356,6 @@ final class IndividualLifeStorySection implements SectionBuilder{
 			details.add("**" + ctx.labels.sections().place() + ":** " + ReportFormatters.escape(place));
 		}
 
-		// 2. Agency / Employer / Institution
-		final String agency = FLEFRecordHelper.getChildValue(attr, EventReader.TAG_AGENCY);
-		if(agency != null && !agency.isBlank()){
-			details.add("**" + ctx.labels.sections().agency() + ":** " + ReportFormatters.escape(agency));
-		}
-
 		// 3. Time Span (valid_from - valid_to)
 		final String from = GenealogicalDateHelper.formatDateStructure(attr, IndividualAttributeReader.TAG_VALID_FROM, ctx.labels, contextLabels);
 		final String to = GenealogicalDateHelper.formatDateStructure(attr, IndividualAttributeReader.TAG_VALID_TO, ctx.labels, contextLabels);
@@ -451,7 +441,6 @@ final class IndividualLifeStorySection implements SectionBuilder{
 		final String relType = ReportFormatters.orEmpty(
 			FLEFRecordHelper.getChildValue(rel, RelationshipReader.TAG_TYPE));
 		final String role = FLEFRecordHelper.getChildValue(rel, RelationshipReader.TAG_ROLE);
-		final String status = FLEFRecordHelper.getChildValue(rel, RelationshipReader.TAG_STATUS);
 		final String from = GenealogicalDateHelper.formatDateStructure(
 			rel, IndividualAttributeReader.TAG_VALID_FROM, ctx.labels, contextLabels);
 		final String to = GenealogicalDateHelper.formatDateStructure(
@@ -467,9 +456,6 @@ final class IndividualLifeStorySection implements SectionBuilder{
 				+ ": " + ReportFormatters.escape(objectLabel)));
 
 		final List<String> meta = new ArrayList<>();
-		if(status != null)
-			meta.add("**" + ctx.labels.sections().relationshipStatus() + ":** "
-				+ ReportFormatters.escape(status));
 		if(from != null)
 			meta.add("**" + ctx.labels.sections().validFrom() + ":** " + ReportFormatters.escape(from));
 		if(to != null)
