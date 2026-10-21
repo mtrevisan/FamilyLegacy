@@ -42,4 +42,14 @@ public final class FallbackEphemerisEngine implements EphemerisEngine{
 		throw new UnsupportedOperationException("Ephemeris engine plugin not installed.");
 	}
 
+	@Override
+	public double calculateSunset(double midnightUtJd, double latitude, double longitude){
+		throw new UnsupportedOperationException("Ephemeris engine plugin not installed.");
+	}
+
+	@Override
+	public double calculateMoonset(double midnightUtJd, double latitude, double longitude){
+		throw new UnsupportedOperationException("Ephemeris engine plugin not installed.");
+	}
+
 }

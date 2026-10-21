@@ -28,29 +28,15 @@ import io.github.mtrevisan.familylegacy.gedcom.utils.AuditBuilder;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.io.model.readers.ConclusionReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.ContextImpactReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.IdentityHypothesisReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.IndividualAttributeReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.ResearchQuestionReader;
-import io.github.mtrevisan.familylegacy.ui.handlers.ConclusionHandler;
-import io.github.mtrevisan.familylegacy.ui.handlers.ContextImpactHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventParticipationHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.GroupHandler;
-import io.github.mtrevisan.familylegacy.ui.handlers.IdentityHypothesisHandler;
-import io.github.mtrevisan.familylegacy.ui.handlers.IndividualAttributeHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RelationshipHandler;
-import io.github.mtrevisan.familylegacy.ui.handlers.RepositoryHandler;
-import io.github.mtrevisan.familylegacy.ui.handlers.ResearchQuestionHandler;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -119,92 +105,25 @@ public final class IndividualHelper{
 	}
 
 	/**
-	 * Returns the ids of every relationship in which the given
-	 * individual appears as subject or target.
+	 * Deletes the given individual and all the relationships that
+	 * involve it, in a single operation. The relationships are removed
+	 * first, so the model is never left with a dangling reference.
+	 *
+	 * @param individualId the individual to delete
+	 * @param model        the model
 	 */
-	public static Map<Class<? extends RecordTypeHandler<?>>, List<FLEFRecord>> relationshipIds(final String individualId, final FLEFModel model){
-		final Map<Class<? extends RecordTypeHandler<?>>, List<FLEFRecord>> result = new HashMap<>();
+
+	public static void deleteIndividual(final String individualId, final FLEFModel model){
 		if(individualId == null)
-			return result;
+			return;
 
-		final List<FLEFRecord> individualAttributes = model.getRecordsByType(IndividualAttributeHandler.TYPE);
-		for(final FLEFRecord individualAttribute : individualAttributes){
-			final String individualRecordId = individualAttribute.extractReferencedId(IndividualAttributeReader.TAG_INDIVIDUAL, IndividualHandler.TYPE);
-			if(individualId.equals(individualRecordId))
-				result.computeIfAbsent(IndividualAttributeHandler.class, k -> new ArrayList<>())
-					.add(individualAttribute);
-		}
+		final Map<Class<? extends RecordTypeHandler<?>>, Set<FLEFRecord>> relationshipIds
+			= model.getReferencingRecords(individualId);
+		for(final Map.Entry<Class<? extends RecordTypeHandler<?>>, Set<FLEFRecord>> entry : relationshipIds.entrySet())
+			for(final FLEFRecord record : entry.getValue())
+				model.removeRecord(record.getId());
 
-		final List<FLEFRecord> eventParticipations = model.getRecordsByType(EventParticipationHandler.TYPE);
-		for(final FLEFRecord eventParticipation : eventParticipations){
-			final String participant = eventParticipation.extractReferencedId(EventParticipationReader.TAG_PARTICIPANT, IndividualHandler.TYPE);
-			if(individualId.equals(participant))
-				result.computeIfAbsent(EventParticipationHandler.class, k -> new ArrayList<>())
-					.add(eventParticipation);
-		}
-
-		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
-		for(final FLEFRecord relationship : relationships){
-			final String subjectId = relationship.extractReferencedId(RelationshipReader.TAG_SUBJECT, IndividualHandler.TYPE);
-			final String objectId = relationship.extractReferencedId(RelationshipReader.TAG_TARGET, IndividualHandler.TYPE);
-			if(individualId.equals(subjectId) || individualId.equals(objectId))
-				result.computeIfAbsent(RelationshipHandler.class, k -> new ArrayList<>())
-					.add(relationship);
-		}
-
-		final List<FLEFRecord> repositories = model.getRecordsByType(RepositoryHandler.TYPE);
-		for(final FLEFRecord repository : repositories){
-			final List<FLEFRecord> custodian = FLEFRecordHelper.findChildren(repository, RepositoryReader.TAG_CUSTODIAN, IndividualHandler.TYPE);
-			if(!custodian.isEmpty() && individualId.equals(custodian.getFirst().getId()))
-				result.computeIfAbsent(RepositoryHandler.class, k -> new ArrayList<>())
-					.add(repository);
-		}
-
-		final List<FLEFRecord> contextImpacts = model.getRecordsByType(ContextImpactHandler.TYPE);
-		for(final FLEFRecord contextImpact : contextImpacts){
-			final String target = contextImpact.extractReferencedId(ContextImpactReader.TAG_TARGET, IndividualHandler.TYPE);
-			if(individualId.equals(target))
-				result.computeIfAbsent(ContextImpactHandler.class, k -> new ArrayList<>())
-					.add(contextImpact);
-		}
-
-		final List<FLEFRecord> researchQuestions = model.getRecordsByType(ResearchQuestionHandler.TYPE);
-		for(final FLEFRecord researchQuestion : researchQuestions){
-			final List<FLEFRecord> targets = FLEFRecordHelper.findChildren(researchQuestion, ResearchQuestionReader.TAG_TARGET, IndividualHandler.TYPE);
-			for(final FLEFRecord target : targets)
-				if(individualId.equals(target.getId())){
-					result.computeIfAbsent(ResearchQuestionHandler.class, k -> new ArrayList<>())
-						.add(researchQuestion);
-
-					break;
-				}
-		}
-
-		final List<FLEFRecord> conclusions = model.getRecordsByType(ConclusionHandler.TYPE);
-		for(final FLEFRecord conclusion : conclusions){
-			final List<FLEFRecord> resolves = FLEFRecordHelper.findChildren(conclusion, ConclusionReader.TAG_RESOLVES, IndividualHandler.TYPE);
-			for(final FLEFRecord resolve : resolves)
-				if(individualId.equals(resolve.getId())){
-					result.computeIfAbsent(ConclusionHandler.class, k -> new ArrayList<>())
-						.add(conclusion);
-
-					break;
-				}
-		}
-
-		final List<FLEFRecord> identityHypotheses = model.getRecordsByType(IdentityHypothesisHandler.TYPE);
-		for(final FLEFRecord identityHypothesis : identityHypotheses){
-			final List<FLEFRecord> identities = FLEFRecordHelper.findChildren(identityHypothesis, IdentityHypothesisReader.TAG_IDENTITY, IndividualHandler.TYPE);
-			for(final FLEFRecord identity : identities)
-				if(individualId.equals(identity.getId())){
-					result.computeIfAbsent(IdentityHypothesisHandler.class, k -> new ArrayList<>())
-						.add(identityHypothesis);
-
-					break;
-				}
-		}
-
-		return result;
+		model.removeRecord(individualId);
 	}
 
 	/**
@@ -267,27 +186,6 @@ public final class IndividualHelper{
 	/* ======================================================================
 	 *                          Cleanup before delete
 	 * ====================================================================== */
-
-	/**
-	 * Deletes the given individual and all the relationships that
-	 * involve it, in a single operation. The relationships are removed
-	 * first, so the model is never left with a dangling reference.
-	 *
-	 * @param individualId the individual to delete
-	 * @param model        the model
-	 */
-	public static void deleteIndividual(final String individualId, final FLEFModel model){
-		if(individualId == null)
-			return;
-
-		final Map<Class<? extends RecordTypeHandler<?>>, List<FLEFRecord>> relationshipIds = relationshipIds(individualId, model);
-		for(final Map.Entry<Class<? extends RecordTypeHandler<?>>, List<FLEFRecord>> entry : relationshipIds.entrySet())
-			for(final FLEFRecord record : entry.getValue())
-				model.removeRecord(record.getId());
-
-		model.removeRecord(individualId);
-	}
-
 
 	/**
 	 * Returns the set of IDs of all parents of the given individual (across all child relationship types).

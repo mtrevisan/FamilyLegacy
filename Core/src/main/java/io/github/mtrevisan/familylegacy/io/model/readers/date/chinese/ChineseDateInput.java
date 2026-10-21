@@ -22,13 +22,13 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.io.model.readers.date;
+package io.github.mtrevisan.familylegacy.io.model.readers.date.chinese;
 
 
 /**
  * A lightweight data record holding raw integers parsed from traditional Chinese calendar strings.
  */
-final class ChineseDateInput{
+public final class ChineseDateInput{
 
 	private final int year;
 	private final int month;

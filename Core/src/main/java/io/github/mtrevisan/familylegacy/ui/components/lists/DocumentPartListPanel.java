@@ -126,6 +126,7 @@ public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
 			}
 		}
 		else if(isAudioVideo(uri)){
+			// TODO test
 			final String start = FLEFRecordHelper.getChildValue(documentPart, SourceCitationReader.TAG_START);
 			final String end = FLEFRecordHelper.getChildValue(documentPart, SourceCitationReader.TAG_END);
 			timeRangeDialog.loadData(uri, start, end);

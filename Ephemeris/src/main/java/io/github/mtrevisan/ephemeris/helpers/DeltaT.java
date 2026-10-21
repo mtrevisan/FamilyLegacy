@@ -110,9 +110,6 @@ public final class DeltaT{
 	/** Classpath resource for the Stephenson-Morrison-Hohenkerk spline. */
 	private static final String SPLINE_RESOURCE = "/Table-S15.2020.txt";
 
-	/** Number of seconds in a day; used to convert ΔT to days. */
-	public static final double SECONDS_PER_DAY = 86_400.;
-
 	/**
 	 * Half-width, in years, of the transition zone between two adjacent
 	 * sources. Inside {@code [boundary − TAPER_YEARS, boundary + TAPER_YEARS]}
@@ -136,8 +133,7 @@ public final class DeltaT{
 	 * first day of the month, the same instant as a decimal year, and
 	 * the corresponding ΔT in seconds.
 	 */
-	private record IersSample(double jd, double decimalYear, double deltaT){
-	}
+	private record IersSample(double jd, double decimalYear, double deltaT){}
 
 
 	private static final List<IersSample> IERS_SAMPLES;
@@ -279,7 +275,7 @@ public final class DeltaT{
 	 * converting between UT and TT.
 	 */
 	public static double deltaTDays(final double decimalYear){
-		return deltaTSeconds(decimalYear) / SECONDS_PER_DAY;
+		return deltaTSeconds(decimalYear) / JulianDate.SECONDS_PER_DAY;
 	}
 
 

@@ -24,8 +24,10 @@
  */
 package io.github.mtrevisan.ephemeris;
 
+import io.github.mtrevisan.ephemeris.engine.MoonHorizonEvents;
 import io.github.mtrevisan.ephemeris.engine.MoonPosition;
 import io.github.mtrevisan.ephemeris.engine.NutationCorrections;
+import io.github.mtrevisan.ephemeris.engine.SolarHorizonEvents;
 import io.github.mtrevisan.ephemeris.engine.SunPosition;
 import io.github.mtrevisan.ephemeris.helpers.DeltaT;
 import io.github.mtrevisan.ephemeris.helpers.IllinoisSolver;
@@ -43,6 +45,10 @@ public final class AstronomicalEngineAdapter implements EphemerisEngine{
 	// Precision target for root-finding (~0.08 seconds of day)
 	private static final double ACCURACY_THRESHOLD = 1.e-6;
 	private static final int MAX_ITERATIONS = 50;
+
+	// Standard structural altitude for solar disk upper limb sunset:
+	// -34 arcminutes (atmospheric refraction) - 16 arcminutes (solar semidiameter) = -50 arcminutes = -0.8333333333333334 degrees
+	private static final double STANDARD_SUNSET_ALTITUDE = StrictMath.toRadians(-50. / 60.);
 
 
 	@Override
@@ -128,6 +134,29 @@ public final class AstronomicalEngineAdapter implements EphemerisEngine{
 
 		return MathHelper.mod2pi(sunLng - targetLongitude + StrictMath.PI) - StrictMath.PI;
 	}
+
+
+	/**
+	 * Computes the exact Julian Date (UT) of sunset for a specific civil day and location.
+	 * Accounts for VSOP2013 planetary perturbations, IAU 2000A nutation, and standard atmospheric refraction.
+	 *
+	 * @param midnightUtJd the Julian Date representing local civil midnight converted to UT (ending in .5)
+	 * @param latitude     the observer's geodetic latitude in degrees (North positive)
+	 * @param longitude    the observer's geodetic longitude in degrees (East positive)
+	 * @return the Julian Date (UT) of the sunset event, or {@code Double.NaN} if the Sun is circumpolar
+	 */
+	@Override
+	public double calculateSunset(double midnightUtJd, double latitude, double longitude){
+		return SolarHorizonEvents.calculateSunset(midnightUtJd, latitude, longitude,
+			AstronomicalEngineAdapter::getTerrestrialCenturies);
+	}
+
+	@Override
+	public double calculateMoonset(double midnightUtJd, double latitude, double longitude){
+		return MoonHorizonEvents.calculateMoonset(midnightUtJd, latitude, longitude,
+			AstronomicalEngineAdapter::getTerrestrialCenturies);
+	}
+
 
 	private static double getTerrestrialCenturies(final double jdUT){
 		final double dt = DeltaT.deltaTSecondsFromJd(jdUT);

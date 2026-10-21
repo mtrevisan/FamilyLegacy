@@ -36,8 +36,8 @@ import io.github.mtrevisan.familylegacy.ui.tools.ToolOperation;
 
 import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 
 /**
@@ -68,10 +68,11 @@ public final class DeleteIndividualTool implements ToolOperation{
 		if(individual == null)
 			return;
 
-		final Map<Class<? extends RecordTypeHandler<?>>, List<FLEFRecord>> relationshipIds = IndividualHelper.relationshipIds(id, model);
+		final Map<Class<? extends RecordTypeHandler<?>>, Set<FLEFRecord>> relationshipIds
+			= model.getReferencingRecords(id);
 		final String displayName = IndividualReader.extractPrimaryFullname(individual);
 		int relationshipCount = 0;
-		for(final Map.Entry<Class<? extends RecordTypeHandler<?>>, List<FLEFRecord>> entry : relationshipIds.entrySet())
+		for(final Map.Entry<Class<? extends RecordTypeHandler<?>>, Set<FLEFRecord>> entry : relationshipIds.entrySet())
 			relationshipCount += entry.getValue().size();
 		final int confirm = JOptionPane.showConfirmDialog(context.owner(),
 			I18N.tf("dialog.remove.record.message", IndividualHandler.getInstance().getLabel(), displayName, id, (relationshipCount == 1), relationshipCount),

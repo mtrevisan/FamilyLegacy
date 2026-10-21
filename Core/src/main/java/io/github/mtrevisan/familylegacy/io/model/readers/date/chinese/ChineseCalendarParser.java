@@ -22,7 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.io.model.readers.date;
+package io.github.mtrevisan.familylegacy.io.model.readers.date.chinese;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -37,7 +37,7 @@ import java.util.regex.Pattern;
  * Handles historical Era names (niánhào) with reign years, Sexagenary Cycle (gānzhī) years,
  * intercalary month flags (rùn), and decade day prefixes.
  */
-final class ChineseCalendarParser{
+public final class ChineseCalendarParser{
 
 	// 10 Celestial Stems (Tiangan)
 	private static final String STEMS = "甲乙丙丁戊己庚辛壬癸";

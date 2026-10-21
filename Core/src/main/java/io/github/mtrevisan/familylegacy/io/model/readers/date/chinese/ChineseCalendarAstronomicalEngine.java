@@ -22,7 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.io.model.readers.date;
+package io.github.mtrevisan.familylegacy.io.model.readers.date.chinese;
 
 import io.github.mtrevisan.familylegacy.services.EphemerisEngine;
 import io.github.mtrevisan.familylegacy.services.EphemerisEngineFactory;
@@ -66,11 +66,10 @@ import io.github.mtrevisan.familylegacy.services.MathHelper;
  * Chinese Calendar</i>, and the Chinese Academy of Sciences' Purple
  * Mountain Observatory publications on the Shixian calendar.</p>
  */
-final class ChineseCalendarAstronomicalEngine{
+public final class ChineseCalendarAstronomicalEngine{
 
 	// JD for January 29, 1645 (Astronomical Shixian Calendar Reform boundary)
 	private static final double JD1645_SHIXIAN = 2321912.;
-
 	// JD for January 1, 1929 (Official adoption of modern Standard Time UTC+8)
 	private static final double JD1929_STANDARD_TIME = 2425612.;
 

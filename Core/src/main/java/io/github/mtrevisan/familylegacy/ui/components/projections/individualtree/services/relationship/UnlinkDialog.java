@@ -34,14 +34,10 @@ import io.github.mtrevisan.familylegacy.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
-import io.github.mtrevisan.familylegacy.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RelationshipHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
-import io.github.mtrevisan.familylegacy.ui.tools.groups.GroupHelper;
-import io.github.mtrevisan.familylegacy.ui.tools.individuals.IndividualHelper;
-import io.github.mtrevisan.familylegacy.ui.tools.places.PlaceHelper;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.BorderFactory;
@@ -69,6 +65,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.function.Predicate;
 
@@ -121,10 +118,15 @@ public class UnlinkDialog extends JDialog{
 		}
 	}
 
-	private record RelationshipCheckbox(JCheckBox checkbox, List<String> recordIds, String entityId){}
+	private record RelationshipCheckbox(JCheckBox checkbox, List<String> recordIds, String entityId){
+	}
 
 	private static class ArrowIcon implements Icon{
-		private enum State{EMPTY, PARTIAL, FULL}
+		private enum State{
+			EMPTY,
+			PARTIAL,
+			FULL
+		}
 
 		private State state = State.EMPTY;
 
@@ -210,7 +212,7 @@ public class UnlinkDialog extends JDialog{
 	}
 
 	public UnlinkDialog(final Window parent, final FLEFModel model,
-			final Predicate<String> relationshipTypeFilter, final String entityId){
+		final Predicate<String> relationshipTypeFilter, final String entityId){
 		super(parent, I18N.t("dialog.unlink.title"), ModalityType.APPLICATION_MODAL);
 
 		this.model = model;
@@ -233,13 +235,13 @@ public class UnlinkDialog extends JDialog{
 		setLayout(new BorderLayout());
 
 		// Retrieve all related records grouped by handler class using the appropriate helper
-		final Map<Class<? extends RecordTypeHandler<?>>, List<FLEFRecord>> allRelatedIds = extractRelatedIds();
+		final Map<Class<? extends RecordTypeHandler<?>>, Set<FLEFRecord>> allRelatedIds = extractRelatedIds();
 
 		final JTabbedPane tabbedPane = new JTabbedPane();
 		boolean anyRendered = false;
 
 		// Sort entries: RelationshipHandler always first, then alphabetically by tab label
-		final List<Map.Entry<Class<? extends RecordTypeHandler<?>>, List<FLEFRecord>>> sortedEntries =
+		final List<Map.Entry<Class<? extends RecordTypeHandler<?>>, Set<FLEFRecord>>> sortedEntries =
 			new ArrayList<>(allRelatedIds.entrySet());
 		sortedEntries.sort((e1, e2) -> {
 			if(e1.getKey().equals(RelationshipHandler.class))
@@ -252,9 +254,9 @@ public class UnlinkDialog extends JDialog{
 			return h1.getType().compareToIgnoreCase(h2.getType());
 		});
 
-		for(final Map.Entry<Class<? extends RecordTypeHandler<?>>, List<FLEFRecord>> entry : sortedEntries){
+		for(final Map.Entry<Class<? extends RecordTypeHandler<?>>, Set<FLEFRecord>> entry : sortedEntries){
 			final Class<? extends RecordTypeHandler<?>> handlerClass = entry.getKey();
-			final List<FLEFRecord> records = entry.getValue();
+			final Set<FLEFRecord> records = entry.getValue();
 			if(records == null || records.isEmpty())
 				continue;
 
@@ -311,34 +313,17 @@ public class UnlinkDialog extends JDialog{
 	/**
 	 * Extracts dependent records using the correct helper based on the entity type.
 	 */
-	private Map<Class<? extends RecordTypeHandler<?>>, List<FLEFRecord>> extractRelatedIds(){
-		final FLEFRecord record = model.getRecordById(entityId);
+	private Map<Class<? extends RecordTypeHandler<?>>, Set<FLEFRecord>> extractRelatedIds(){
+		if(entityId == null)
+			return Collections.emptyMap();
 
-		if(IndividualHandler.isOfType(record))
-			return IndividualHelper.relationshipIds(entityId, model);
-		if(GroupHandler.isOfType(record))
-			return GroupHelper.relationshipIds(entityId, model);
-		if(PlaceHandler.isOfType(record))
-			return PlaceHelper.relationshipIds(entityId, model);
-		// TODO
-//		if(SourceHandler.isOfType(record))
-//			return SourceHelper.relationshipIds(entityId, model);
-//		if(EventHandler.isOfType(record))
-//			return EventHelper.relationshipIds(entityId, model);
-//		if(ResearchQuestionHandler.isOfType(record))
-//			return ResearchQuestionHelper.relationshipIds(entityId, model);
-//		if(ResearchActivityHandler.isOfType(record))
-//			return ResearchActivityHelper.relationshipIds(entityId, model);
-//		if(ResearchTaskHandler.isOfType(record))
-//			return ResearchTaskHelper.relationshipIds(entityId, model);
-
-		return Collections.emptyMap();
+		return model.getReferencingRecords(entityId);
 	}
 
 	/**
 	 * Categorizes and builds the panel for relationship records with rich descriptions and directions.
 	 */
-	private JPanel createCategorizedRelationshipsPanel(final List<FLEFRecord> relationships){
+	private JPanel createCategorizedRelationshipsPanel(final Set<FLEFRecord> relationships){
 		final Map<Category, Map<String, RelationshipInfo>> byCategory = new EnumMap<>(Category.class);
 		for(final Category cat : Category.values())
 			byCategory.put(cat, new HashMap<>());
@@ -368,7 +353,8 @@ public class UnlinkDialog extends JDialog{
 			if(category == null)
 				continue;
 
-			final String baseDescription = getDisplayText(other, otherId);
+			final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(other.getTag());
+			final String baseDescription = handler.getDisplayText(record, model);
 			final RelationshipInfo info = byCategory.get(category)
 				.computeIfAbsent(otherId, id -> new RelationshipInfo(id, baseDescription));
 			info.addRelationship(relationship.getId(), isDirect);
@@ -395,7 +381,7 @@ public class UnlinkDialog extends JDialog{
 	 * Categorizes and builds the panel for generic dependent records, grouping them alphabetically by their specific sub-type or tag,
 	 * with each group rendered as a separate independent accordion starting collapsed and compacting cleanly at the top.
 	 */
-	private JPanel createCategorizedGenericRecordsPanel(final List<FLEFRecord> records){
+	private JPanel createCategorizedGenericRecordsPanel(final Set<FLEFRecord> records){
 		final Map<String, List<FLEFRecord>> groups = new TreeMap<>();
 		for(final FLEFRecord record : records){
 			final String groupKey = extractSubGroupKey(record);
@@ -443,12 +429,12 @@ public class UnlinkDialog extends JDialog{
 	 *   <li>{@code associate}: symmetric, always an associate.</li>
 	 * </ul>
 	 *
-	 * @param type          the relationship type, not lowercased
-	 * @param focusIsGroup  {@code true} when the focus entity is a group
+	 * @param type           the relationship type, not lowercased
+	 * @param focusIsGroup   {@code true} when the focus entity is a group
 	 * @param focusIsSubject {@code true} when the focus is the subject
-	 *                      of the relationship
+	 *                       of the relationship
 	 * @return the category, or {@code null} when the relationship should
-	 *         be ignored
+	 * be ignored
 	 */
 	private static Category classify(final String type, final boolean focusIsGroup, final boolean focusIsSubject){
 		final String t = type.toLowerCase(Locale.ROOT);
@@ -491,33 +477,6 @@ public class UnlinkDialog extends JDialog{
 		if(refId == null)
 			refId = relationship.extractReferencedId(tag, GroupHandler.TYPE);
 		return refId;
-	}
-
-	private String getDisplayText(final FLEFRecord record, final String fallbackId){
-		if(record == null)
-			return fallbackId;
-
-		if(GroupHandler.isOfType(record))
-			return GroupHandler.getInstance()
-				.getDisplayText(record, model);
-		if(IndividualHandler.isOfType(record))
-			return IndividualHandler.getInstance()
-				.getDisplayText(record, model);
-		if(PlaceHandler.isOfType(record))
-			return PlaceHelper.displayName(record);
-		// TODO
-//		if(SourceHandler.isOfType(record))
-//			return SourceHelper.displayName(record);
-//		if(EventHandler.isOfType(record))
-//			return EventHelper.displayName(record);
-//		if(ResearchQuestionHandler.isOfType(record))
-//			return ResearchQuestionHelper.displayName(record);
-//		if(ResearchActivityHandler.isOfType(record))
-//			return ResearchActivityHelper.displayName(record);
-//		if(ResearchTaskHandler.isOfType(record))
-//			return ResearchTaskHelper.displayName(record);
-
-		return record.getTag() + " [" + fallbackId + "]";
 	}
 
 	private JPanel createGroupPanel(final String title, final List<RelationshipInfo> infos){
@@ -618,9 +577,9 @@ public class UnlinkDialog extends JDialog{
 		final List<JCheckBox> accordionCheckboxes = new ArrayList<>();
 
 		for(final FLEFRecord record : groupRecords){
+			final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(record.getTag());
+			final String description = handler.getDisplayText(record, model);
 			final String recordId = record.getId();
-			final RecordTypeHandler<?> recHandler = HandlerRegistry.getHandler(record.getTag());
-			final String description = (recHandler != null? recHandler.getDisplayText(record, model): record.getTag() + " [" + recordId + "]");
 			final JPanel row = createWrappedCheckbox(List.of(recordId), recordId, description);
 
 			// Extract the checkbox from the created row (it is the first component added in createWrappedCheckbox)

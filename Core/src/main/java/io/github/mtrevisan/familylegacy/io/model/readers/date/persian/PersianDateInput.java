@@ -1,7 +1,7 @@
-package io.github.mtrevisan.familylegacy.io.model.readers.date;
+package io.github.mtrevisan.familylegacy.io.model.readers.date.persian;
 
 
-final class PersianDateInput{
+public final class PersianDateInput{
 
 	private final int year;
 	private final int month;

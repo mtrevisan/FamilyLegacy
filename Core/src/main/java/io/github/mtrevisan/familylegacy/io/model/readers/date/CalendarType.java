@@ -25,6 +25,12 @@
 package io.github.mtrevisan.familylegacy.io.model.readers.date;
 
 
+import io.github.mtrevisan.familylegacy.io.model.readers.date.chinese.ChineseCalendarAstronomicalEngine;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.chinese.ChineseCalendarParser;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.chinese.ChineseDateInput;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.islamic.IslamicCalendarAstronomicalEngine;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.persian.PersianCalendarParser;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.persian.PersianDateInput;
 import org.apache.commons.lang3.StringUtils;
 
 import java.time.LocalDate;
@@ -44,10 +50,7 @@ public enum CalendarType implements CalendarConverterPlugin{
 			final int month = localDate.getMonthValue();
 			final int day = localDate.getDayOfMonth();
 
-			final long a = (14 - month) / 12;
-			final long y = year + 4800L - a;
-			final long m = month + 12L * a - 3;
-			return day + (153 * m + 2) / 5 + 365 * y + y / 4 - y / 100 + y / 400 - 32045;
+			return gregorianDateToJdn(year, month, day);
 		}
 	},
 	JULIAN("julian"){
@@ -62,7 +65,10 @@ public enum CalendarType implements CalendarConverterPlugin{
 			final long a = (14 - month) / 12;
 			final long y = year + 4800L - a;
 			final long m = month + 12L * a - 3;
-			return day + (153 * m + 2) / 5 + 365 * y + y / 4 - 32083;
+			return day
+				+ (153 * m + 2) / 5
+				+ 365 * y + y / 4
+				- 32083;
 		}
 	},
 	REFORMED_JULIAN("reformed_julian"){
@@ -79,24 +85,23 @@ public enum CalendarType implements CalendarConverterPlugin{
 			final long m = month + 12L * a - 3;
 			final long century = y / 100;
 			final long leapCenturies = (century * 2 + 2) / 9;
-			return day + (153 * m + 2) / 5 + 365 * y + y / 4 - century + leapCenturies - 32022;
+			return day
+				+ (153 * m + 2) / 5
+				+ 365 * y + y / 4
+				- century + leapCenturies
+				- 32022;
 		}
 	},
 	ISLAMIC("islamic"){
 		@Override
 		public long parseToJdn(final String dateExpression){
-			// FIXME Using astronomical calculations for the position of the sun and moon, the moon's illumination, and other factors, it is possible to determine the start of a lunar month with a fairly high degree of certainty
 			final GenealogicalDate date = UniversalDateConverter.parse(getCode(), dateExpression);
 			final LocalDate localDate = date.isoDate();
 			final int year = localDate.getYear();
 			final int month = localDate.getMonthValue();
 			final int day = localDate.getDayOfMonth();
 
-			return day
-				+ (long)Math.ceil(29.5 * (month - 1))
-				+ (year - 1L) * 354L
-				+ (long)Math.floor((3 + 11. * year) / 30.)
-				+ 1948440L - 1L;
+			return IslamicCalendarAstronomicalEngine.toJdn(year, month, day);
 		}
 	},
 	BUDDHIST("buddhist"){
@@ -109,7 +114,7 @@ public enum CalendarType implements CalendarConverterPlugin{
 			final int day = localDate.getDayOfMonth();
 
 			// Solar Buddhist calendar uses Gregorian arithmetic with a +543 year offset (BE = CE + 543)
-			return GREGORIAN.parseToJdn(day + StringUtils.SPACE + month + StringUtils.SPACE + (year - 543));
+			return gregorianDateToJdn(year - 543, month, day);
 		}
 	},
 	COPTIC("coptic"){
@@ -451,6 +456,16 @@ public enum CalendarType implements CalendarConverterPlugin{
 			return -1l;
 		}
 	};
+
+	private static long gregorianDateToJdn(final int year, final int month, final int day){
+		final long a = (14 - month) / 12;
+		final long y = year + 4800L - a;
+		final long m = month + 12L * a - 3;
+		return day
+			+ (153 * m + 2) / 5
+			+ 365 * y + y / 4 - y / 100 + y / 400
+			- 32045;
+	}
 
 
 	private final String code;

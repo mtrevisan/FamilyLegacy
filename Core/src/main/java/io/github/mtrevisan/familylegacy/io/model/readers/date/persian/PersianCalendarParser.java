@@ -1,4 +1,4 @@
-package io.github.mtrevisan.familylegacy.io.model.readers.date;
+package io.github.mtrevisan.familylegacy.io.model.readers.date.persian;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -18,7 +18,7 @@ import java.util.regex.Pattern;
  * - 1 Farvardin 1300
  * - ۱ فروردین ۱۳۰۰
  */
-final class PersianCalendarParser{
+public final class PersianCalendarParser{
 
 	private static final Map<String, Integer> MONTHS = new HashMap<>();
 

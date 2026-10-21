@@ -54,4 +54,28 @@ public interface EphemerisEngine{
 	 */
 	double findSolarLongitudeEvent(double approximateJdUT, double targetLongitude);
 
+
+	/**
+	 * Computes the exact Julian Date (UT) of sunset for a specific civil day and location.
+	 * Accounts for VSOP2013 planetary perturbations, IAU 2000A nutation, and standard atmospheric refraction.
+	 *
+	 * @param midnightUtJd the Julian Date representing local civil midnight converted to UT (ending in .5)
+	 * @param latitude     the observer's geodetic latitude in degrees (North positive)
+	 * @param longitude    the observer's geodetic longitude in degrees (East positive)
+	 * @return the Julian Date (UT) of the sunset event, or {@code Double.NaN} if the Sun is circumpolar
+	 */
+	double calculateSunset(double midnightUtJd, double latitude, double longitude);
+
+	/**
+	 * Computes the exact Julian Date (UT) of moonset for a specific civil day and location.
+	 * Accounts for ELP/MPP02 lunar perturbations, topocentric parallax corrections, and apparent lunar semidiameter
+	 * variations.
+	 *
+	 * @param midnightUtJd the Julian Date representing local civil midnight converted to UT (ending in .5)
+	 * @param latitude     the observer's geodetic latitude in degrees (North positive)
+	 * @param longitude    the observer's geodetic longitude in degrees (East positive)
+	 * @return the Julian Date (UT) of the moonset event, or {@code Double.NaN} if the Moon is circumpolar
+	 */
+	double calculateMoonset(double midnightUtJd, double latitude, double longitude);
+
 }
