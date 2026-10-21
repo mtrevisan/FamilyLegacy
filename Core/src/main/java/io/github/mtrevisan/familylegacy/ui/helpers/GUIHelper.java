@@ -624,12 +624,18 @@ public final class GUIHelper{
 	}
 
 
-	public static File selectImageFile(final Component parentComponent, final String currentUriPath){
+	public static File selectDocumentFile(final Component parentComponent, final String currentUriPath){
 		final JFileChooser fileChooser = new JFileChooser();
 		fileChooser.setDialogTitle("Select Image File");
-		final String[] extensions = ImageIO.getReaderFileSuffixes();
-		final String description = "Supported Images (" + String.join(", ", extensions) + ")";
-		fileChooser.setFileFilter(new FileNameExtensionFilter(description, extensions));
+		final String[] imageExtensions = ImageIO.getReaderFileSuffixes();
+		fileChooser.addChoosableFileFilter(
+			new FileNameExtensionFilter(
+				"Images (" + String.join(", ", imageExtensions) + ")",
+				imageExtensions)
+		);
+		fileChooser.addChoosableFileFilter(
+			new FileNameExtensionFilter("PDF Documents (pdf)", "pdf")
+		);
 		fileChooser.setAccessory(new ImagePreviewAccessory(fileChooser));
 
 		if(StringUtils.isNotEmpty(currentUriPath)){

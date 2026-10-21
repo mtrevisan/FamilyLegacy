@@ -404,7 +404,7 @@ public final class PdfReportRenderer implements ReportRenderer{
 	 */
 	private static Phrase inline(final String text, final Font base){
 		final Phrase phrase = new Phrase();
-		if(text == null || text.isEmpty())
+		if(StringUtils.isEmpty(text))
 			return phrase;
 
 		final Font bold = new Font(base.getFamily(), base.getSize(), Font.BOLD, base.getColor());

@@ -46,7 +46,7 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
  *
  * struct ExtractStructure {
  *   document_part*: struct {
- *     document: Xref<DocumentRecord>
+ *     document: Xref&lt;DocumentRecord&gt;
  *     page?: Int          // 1-based page, for multi-page documents (e.g. PDF, TIFF); CROP refers to this page
  *     crop?: CropRect     // region of the image or page, in pixels
  *     start?: Duration    // for audio and video: start of the cited segment, from the beginning of the media

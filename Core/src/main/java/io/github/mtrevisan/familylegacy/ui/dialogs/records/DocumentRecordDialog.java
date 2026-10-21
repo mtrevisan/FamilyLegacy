@@ -139,7 +139,7 @@ public class DocumentRecordDialog extends BaseRecordDialog{
 	}
 
 	private void setNewItem(){
-		final File selectedFile = GUIHelper.selectImageFile(getParent(), uriField.getText());
+		final File selectedFile = GUIHelper.selectDocumentFile(getParent(), uriField.getText());
 		if(selectedFile != null){
 			uriField.setText(selectedFile.getAbsolutePath());
 

@@ -266,7 +266,7 @@ public final class MediaManagerDialog extends JDialog{
 	}
 
 	private static ImageIcon createThumbnail(final String uri){
-		if(uri == null || uri.isBlank())
+		if(StringUtils.isEmpty(uri))
 			return null;
 
 		try{
@@ -410,7 +410,7 @@ public final class MediaManagerDialog extends JDialog{
 			return;
 
 		final String uri = SourceHelper.documentUri(selectedDocument);
-		if(uri == null || uri.isBlank())
+		if(StringUtils.isEmpty(uri))
 			return;
 
 		try{

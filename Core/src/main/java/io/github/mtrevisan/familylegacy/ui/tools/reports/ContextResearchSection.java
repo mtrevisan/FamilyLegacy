@@ -547,7 +547,7 @@ final class ContextResearchSection implements SectionBuilder{
 
 		final String tag = ref.getTag();
 		final String id = ref.getValue();
-		if(id == null || id.isBlank())
+		if(StringUtils.isEmpty(id))
 			return null;
 
 		final FLEFRecord rec = ctx.model.getRecordById(id);

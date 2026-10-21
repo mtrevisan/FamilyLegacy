@@ -1682,7 +1682,9 @@ person"""
 				VALUE kaxa
 			}
 		}
-		AUTHOR author
+		AUTHOR {
+		    TEXT author
+		}
 		PUBLISHER pub
 		DATE.VALUE.POINT {
 			VALUE.FULL_DATE 2001-01-01
@@ -2131,10 +2133,10 @@ person"""
 			}
 		}
 		DATE.VALUE.POINT {
-			VALUE {
-				CENTURY.ORDINAL 19
-				CENTURY.PART late
-			}
+            VALUE.CENTURY {
+                ORDINAL 19
+                PART late
+            }
 			CALENDAR gregorian
 		}
 		PLACE {
@@ -2441,7 +2443,9 @@ person"""
 				}
 			}
 		}
-		CUSTODIAN I1
+		CUSTODIAN {
+		    INDIVIDUAL I1
+		}
 		PLACE {
 			PLACE P1
 			ORIGINAL_TEXT sto pòsto kuà

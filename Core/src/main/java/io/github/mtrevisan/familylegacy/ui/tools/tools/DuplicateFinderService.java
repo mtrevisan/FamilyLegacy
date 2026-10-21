@@ -435,7 +435,7 @@ public final class DuplicateFinderService{
 					continue;
 				final String type = FLEFRecordHelper.getChildValue(part, "type");
 				final String value = FLEFRecordHelper.getChildValue(part, "value");
-				if(value == null || value.isBlank())
+				if(StringUtils.isEmpty(value))
 					continue;
 				final String norm = normalize(value);
 				if(fullName.length() > 0)
@@ -509,7 +509,7 @@ public final class DuplicateFinderService{
 	}
 
 	private static Integer extractYear(final String raw){
-		if(raw == null || raw.isBlank())
+		if(StringUtils.isEmpty(raw))
 			return null;
 		final String s = raw.trim();
 		// Accept "1894", "1894-03", "1894-03-01", or "17 JUN 1894".

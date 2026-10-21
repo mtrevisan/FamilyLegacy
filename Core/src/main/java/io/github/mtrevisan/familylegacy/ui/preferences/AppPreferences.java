@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.ui.preferences;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -104,13 +106,13 @@ public final class AppPreferences{
 	/** Returns the persisted UI font family, or {@code null} for the system default. */
 	public String fontFamily(){
 		final String v = properties.getProperty(KEY_FONT_FAMILY);
-		return (v == null || v.isBlank()? null: v);
+		return (StringUtils.isEmpty(v)? null: v);
 	}
 
 	/** Returns the persisted UI font size, or the default when unset. */
 	public int fontSize(){
 		final String v = properties.getProperty(KEY_FONT_SIZE);
-		if(v == null || v.isBlank())
+		if(StringUtils.isEmpty(v))
 			return DEFAULT_FONT_SIZE;
 		try{
 			return Integer.parseInt(v.trim());
@@ -132,7 +134,7 @@ public final class AppPreferences{
 
 	/** Persists the UI font family. Passing {@code null} resets to system default. */
 	public void setFontFamily(final String family){
-		if(family == null || family.isBlank())
+		if(StringUtils.isEmpty(family))
 			properties.remove(KEY_FONT_FAMILY);
 		else
 			properties.setProperty(KEY_FONT_FAMILY, family);
@@ -155,7 +157,7 @@ public final class AppPreferences{
 	 * ====================================================================== */
 
 	private void put(final String key, final String value){
-		if(value == null || value.isBlank())
+		if(StringUtils.isEmpty(value))
 			properties.remove(key);
 		else
 			properties.setProperty(key, value);

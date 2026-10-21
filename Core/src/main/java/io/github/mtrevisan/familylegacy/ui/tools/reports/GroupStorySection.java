@@ -134,7 +134,7 @@ final class GroupStorySection implements SectionBuilder{
 		for(final FLEFRecord nameRec : FLEFRecordHelper.findChildren(ctx.root, GroupReader.TAG_NAME)){
 			final String nameType = FLEFRecordHelper.getChildValue(nameRec, NameReader.TAG_TYPE);
 			final String value = FLEFRecordHelper.getChildValue(nameRec, NameReader.TAG_VALUE);
-			if(value == null || value.isBlank())
+			if(StringUtils.isEmpty(value))
 				continue;
 			final StringBuilder line = new StringBuilder();
 			line.append("**").append(ctx.labels.sections().name());
@@ -272,7 +272,7 @@ final class GroupStorySection implements SectionBuilder{
 		final FLEFRecord counterpart = (counterpartId != null
 			? ctx.visible(ctx.model.getRecordById(counterpartId)): null);
 		final String label = (counterpart != null? ctx.displayText(counterpart): counterpartId);
-		if(label == null || label.isBlank())
+		if(StringUtils.isEmpty(label))
 			return;
 
 		out.add(new ReportSection.Heading(3, ReportFormatters.escape(label)));

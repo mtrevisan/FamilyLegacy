@@ -195,7 +195,7 @@ public final class EventParticipantsDialog extends JDialog{
 		@SuppressWarnings("unchecked")
 		final TableRowSorter<ParticipationTableModel> sorter =
 			(TableRowSorter<ParticipationTableModel>)table.getRowSorter();
-		if(text == null || text.isBlank())
+		if(StringUtils.isEmpty(text))
 			sorter.setRowFilter(null);
 		else{
 			final String needle = text.trim().toLowerCase(Locale.ROOT);

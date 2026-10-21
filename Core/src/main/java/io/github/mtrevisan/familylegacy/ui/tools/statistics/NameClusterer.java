@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.ui.tools.statistics;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -129,7 +131,7 @@ final class NameClusterer{
 	 * ====================================================================== */
 
 	private static boolean areVariants(final String a, final String b){
-		if(a == null || b == null || a.isEmpty() || b.isEmpty())
+		if(StringUtils.isEmpty(a) || StringUtils.isEmpty(b))
 			return false;
 		if(a.equals(b))
 			return true;

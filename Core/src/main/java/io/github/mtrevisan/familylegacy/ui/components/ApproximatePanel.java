@@ -182,7 +182,7 @@ public class ApproximatePanel extends JPanel{
 	public boolean validateData(){
 		if(approximateCheck.isSelected()){
 			String basis = (String)basisCombo.getSelectedItem();
-			if(basis == null || basis.isEmpty()){
+			if(StringUtils.isEmpty(basis)){
 				JOptionPane.showMessageDialog(this,
 					I18N.tf("validation.required", I18N.t("dialog.date.basis")),
 					I18N.t("validation.title"), JOptionPane.ERROR_MESSAGE);

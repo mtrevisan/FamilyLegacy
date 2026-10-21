@@ -83,14 +83,31 @@ public class BindingManager{
 	 * @param record	the record to write into
 	 */
 	public void save(final FLEFRecord record){
+		clearRecord(record);
+
 		for(final PathBound comp : boundComponents){
 			final String path = comp.getPath();
-			if(path == null || path.isEmpty())
+			if(StringUtils.isEmpty(path))
 				continue;
 
 			final String value = comp.getText();
 			if(StringUtils.isNotEmpty(value))
 				FLEFRecordHelper.updateChildValue(record, path, value);
+		}
+	}
+
+	/**
+	 * Clears all tags from the record before saving.
+	 *
+	 * @param record the FLEF record to clean
+	 */
+	private void clearRecord(final FLEFRecord record){
+		for(final PathBound comp : boundComponents){
+			final String path = comp.getPath();
+			if(StringUtils.isEmpty(path))
+				continue;
+
+			FLEFRecordHelper.removeChildren(record, path);
 		}
 	}
 

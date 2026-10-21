@@ -205,7 +205,7 @@ public final class DocumentManagementDialog extends JDialog{
 		@SuppressWarnings("unchecked")
 		final TableRowSorter<DocumentTableModel> sorter =
 			(TableRowSorter<DocumentTableModel>)table.getRowSorter();
-		if(text == null || text.isBlank())
+		if(StringUtils.isEmpty(text))
 			sorter.setRowFilter(null);
 		else{
 			final String needle = text.trim().toLowerCase(Locale.ROOT);
@@ -266,7 +266,7 @@ public final class DocumentManagementDialog extends JDialog{
 	 * cannot be read as an image.
 	 */
 	private static ImageIcon tryLoadImage(final String uri){
-		if(uri == null || uri.isBlank())
+		if(StringUtils.isEmpty(uri))
 			return null;
 		try{
 			final URI parsed = URI.create(uri);

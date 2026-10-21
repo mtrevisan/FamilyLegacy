@@ -571,7 +571,7 @@ final class IndividualNarrator{
 
 
 	private static String orNull(final String s){
-		return (s == null || s.isBlank()? null: s);
+		return (StringUtils.isNotEmpty(s)? s: null);
 	}
 
 }

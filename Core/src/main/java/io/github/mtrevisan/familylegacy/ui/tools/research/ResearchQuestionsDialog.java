@@ -207,7 +207,7 @@ public final class ResearchQuestionsDialog extends JDialog{
 		@SuppressWarnings("unchecked")
 		final TableRowSorter<QuestionTableModel> sorter =
 			(TableRowSorter<QuestionTableModel>)table.getRowSorter();
-		if(text == null || text.isBlank())
+		if(StringUtils.isEmpty(text))
 			sorter.setRowFilter(null);
 		else{
 			final String needle = text.trim().toLowerCase(Locale.ROOT);

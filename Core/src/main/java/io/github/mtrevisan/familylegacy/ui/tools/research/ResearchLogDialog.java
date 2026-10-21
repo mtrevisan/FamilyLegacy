@@ -184,7 +184,7 @@ public final class ResearchLogDialog extends JDialog{
 		@SuppressWarnings("unchecked")
 		final TableRowSorter<LogTableModel> sorter =
 			(TableRowSorter<LogTableModel>)table.getRowSorter();
-		if(text == null || text.isBlank())
+		if(StringUtils.isEmpty(text))
 			sorter.setRowFilter(null);
 		else{
 			final String needle = text.trim().toLowerCase(Locale.ROOT);

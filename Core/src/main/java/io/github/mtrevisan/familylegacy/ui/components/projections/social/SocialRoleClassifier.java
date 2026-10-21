@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections.social;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -82,7 +84,7 @@ public final class SocialRoleClassifier{
 	 * @return the matching category, never {@code null}
 	 */
 	public static SocialRelationCategory classify(final String role){
-		if(role == null || role.isBlank())
+		if(StringUtils.isEmpty(role))
 			return DEFAULT_CATEGORY;
 		final String normalized = role.trim()
 			.toLowerCase(Locale.ROOT);
@@ -106,7 +108,7 @@ public final class SocialRoleClassifier{
 	public static SocialRelationCategory classify(final String role, final SocialRelationCategory emptyRoleCategory){
 		if(emptyRoleCategory == null)
 			throw new IllegalArgumentException("Empty-role category must not be null");
-		if(role == null || role.isBlank())
+		if(StringUtils.isEmpty(role))
 			return emptyRoleCategory;
 		return classify(role);
 	}
@@ -118,7 +120,7 @@ public final class SocialRoleClassifier{
 	 * @return {@code true} if the role has an explicit entry in the table
 	 */
 	public static boolean isKnownRole(final String role){
-		if(role == null || role.isBlank())
+		if(StringUtils.isEmpty(role))
 			return false;
 		final String normalized = role.trim()
 			.toLowerCase(Locale.ROOT);

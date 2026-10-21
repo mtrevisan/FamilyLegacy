@@ -30,6 +30,8 @@ import io.github.mtrevisan.familylegacy.io.model.readers.names.NameAnatomyServic
 import io.github.mtrevisan.familylegacy.ui.handlers.PlaceHandler;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.AbstractMap;
 import java.util.ArrayDeque;
@@ -50,6 +52,9 @@ import java.util.stream.Collectors;
  * Provides common operations for finding, adding, and updating child records.
  */
 public final class FLEFRecordHelper{
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(FLEFRecordHelper.class);
+
 
 	private static final String DOT = ".";
 
@@ -298,7 +303,7 @@ public final class FLEFRecordHelper{
 			if(size == 0)
 				continue;
 			if(size > 1){
-				System.err.println("Record with more than one " + referencePath + ": " + record);
+				LOGGER.debug("Record with more than one " + referencePath + ": " + record);
 
 				continue;
 			}
@@ -307,7 +312,7 @@ public final class FLEFRecordHelper{
 
 			final String referencedId = reference.getValue();
 			if(StringUtils.isEmpty(referencedId)){
-				System.err.println("No referenced ID found from reference " + reference + " from record " + record);
+				LOGGER.debug("No referenced ID found from reference " + reference + " from record " + record);
 
 				continue;
 			}
@@ -316,7 +321,7 @@ public final class FLEFRecordHelper{
 			if(referencedRecord != null){
 				final String referencedTag = reference.getTag();
 				if(!Strings.CI.equals(referencedRecord.getTag(), referencedTag)){
-					System.err.println("Referenced tag differs from reference " + reference + " from record " + record);
+					LOGGER.debug("Referenced tag differs from reference " + reference + " from record " + record);
 
 					continue;
 				}

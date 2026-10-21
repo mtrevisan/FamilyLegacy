@@ -32,8 +32,8 @@ import io.github.mtrevisan.familylegacy.ui.components.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.ui.components.fields.EntityField;
 import io.github.mtrevisan.familylegacy.ui.components.lists.EntityListPanel;
 import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.ui.handlers.AgentHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.ContactHandler;
-import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.NameHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.PlaceCitationHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RepositoryHandler;
@@ -80,8 +80,7 @@ public class RepositoryRecordDialog extends BaseRecordDialog{
 	private final JPanel propertiesPanel;
 
 	private final EntityListPanel namePanel;
-	// TODO
-	private final EntityField custodianField;
+	private final EntityListPanel custodianPanel;
 	private final EntityField placeField;
 	private final EntityListPanel contactPanel;
 
@@ -101,7 +100,8 @@ public class RepositoryRecordDialog extends BaseRecordDialog{
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]5[]10[]");
 
 		namePanel = EntityListPanel.createForStructure(RepositoryReader.TAG_NAME, this, I18N.t("dialog.repository.name") + "*", model, NameHandler.class);
-		custodianField = EntityField.createForRecordFromReference(RepositoryReader.TAG_CUSTODIAN, this, model, IndividualHandler.class);
+		custodianPanel = EntityListPanel.createForStructure(RepositoryReader.TAG_CUSTODIAN, this, I18N.t("dialog.repository.custodian"), model,
+			AgentHandler.class);
 		placeField = EntityField.createForStructureWithReference(RepositoryReader.TAG_PLACE, this, model, PlaceCitationHandler.class);
 		contactPanel = EntityListPanel.createForStructure(RepositoryReader.TAG_CONTACT, this, I18N.t("dialog.repository.contacts"), model, ContactHandler.class);
 
@@ -124,7 +124,7 @@ public class RepositoryRecordDialog extends BaseRecordDialog{
 		GUIHelper.addComponent(propertiesPanel, namePanel);
 
 		// custodian
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.repository.custodian") + ":", custodianField);
+		GUIHelper.addComponent(propertiesPanel, custodianPanel);
 
 		// place
 		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.place") + ":", placeField);
@@ -171,7 +171,7 @@ public class RepositoryRecordDialog extends BaseRecordDialog{
 		components.load(record);
 
 		namePanel.load(record);
-		custodianField.load(record);
+		custodianPanel.load(record);
 		placeField.load(record);
 		contactPanel.load(record);
 	}
@@ -194,7 +194,7 @@ public class RepositoryRecordDialog extends BaseRecordDialog{
 		components.save(record);
 
 		namePanel.save(record);
-		custodianField.saveReferences(record);
+		custodianPanel.save(record);
 		placeField.saveReferences(record);
 		contactPanel.save(record);
 	}

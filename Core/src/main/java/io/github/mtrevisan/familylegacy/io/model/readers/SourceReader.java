@@ -68,10 +68,6 @@ public final class SourceReader{
 
 	public static final String TAG_TITLE = "title";
 	public static final String TAG_AUTHOR = "author";
-	// TODO
-	public static final String TAG_INDIVIDUAL = "individual";
-	public static final String TAG_GROUP = "group";
-	public static final String TAG_TEXT = "text";
 	public static final String TAG_PUBLISHER = "publisher";
 	public static final String TAG_DATE = "date";
 	public static final String TAG_PLACE = "place";
@@ -116,7 +112,8 @@ public final class SourceReader{
 	}
 
 	public static String extractAuthor(final FLEFRecord record){
-		return FLEFRecordHelper.getChildValue(record, TAG_AUTHOR);
+		final FLEFRecord agentNode = FLEFRecordHelper.findChild(record, TAG_AUTHOR);
+		return (agentNode != null? AgentReader.extractAgent(agentNode): null);
 	}
 
 	public static String extractPublisher(final FLEFRecord record){

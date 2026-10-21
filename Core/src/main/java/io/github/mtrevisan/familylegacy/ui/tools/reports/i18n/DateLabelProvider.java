@@ -109,7 +109,7 @@ public final class DateLabelProvider{
 	 * prettified by replacing underscores with spaces.
 	 */
 	public String centuryPart(final String part){
-		if(part == null || part.isBlank())
+		if(StringUtils.isEmpty(part))
 			return StringUtils.EMPTY;
 
 		final String key = "CENTURY_PART_" + part.toUpperCase(Locale.ROOT);
@@ -126,7 +126,7 @@ public final class DateLabelProvider{
 	 * the raw code.
 	 */
 	public String calendarDisplay(final String code){
-		if(code == null || code.isBlank())
+		if(StringUtils.isEmpty(code))
 			return StringUtils.EMPTY;
 
 		final String key = "CALENDAR_" + code.toUpperCase(Locale.ROOT);

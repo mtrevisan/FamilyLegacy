@@ -319,7 +319,7 @@ public class IndividualConverter {
 
 		// Title: use document description or default
 		String docDesc = FLEFRecordHelper.getChildValue(docRecord, "description");
-		if(docDesc == null || docDesc.isEmpty()){
+		if(StringUtils.isEmpty(docDesc)){
 			docDesc = "Image";
 		}
 		FLEFRecord titleRec = FLEFRecord.createChildWithTag("title")

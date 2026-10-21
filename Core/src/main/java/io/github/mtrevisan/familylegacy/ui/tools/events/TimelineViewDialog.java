@@ -288,7 +288,7 @@ public final class TimelineViewDialog extends JDialog{
 	}
 
 	private static LocalDate parseDate(final String text){
-		if(text == null || text.isBlank())
+		if(StringUtils.isEmpty(text))
 			return null;
 		try{
 			return LocalDate.parse(text.trim());

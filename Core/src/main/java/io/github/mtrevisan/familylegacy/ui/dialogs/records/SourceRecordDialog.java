@@ -35,6 +35,7 @@ import io.github.mtrevisan.familylegacy.ui.components.fields.DateField;
 import io.github.mtrevisan.familylegacy.ui.components.fields.EntityField;
 import io.github.mtrevisan.familylegacy.ui.components.lists.EntityListPanel;
 import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.ui.handlers.AgentHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.ConclusionHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.NameHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.PlaceCitationHandler;
@@ -85,8 +86,7 @@ import java.io.IOException;
 public class SourceRecordDialog extends BaseRecordDialog{
 
 	private final EntityListPanel titlePanel;
-	// TODO
-	private final BoundTextField authorField;
+	private final EntityListPanel authorPanel;
 	private final BoundTextField publisherField;
 	private final DateField dateField;
 	private final EntityField placeField;
@@ -107,7 +107,8 @@ public class SourceRecordDialog extends BaseRecordDialog{
 
 		titlePanel = EntityListPanel.createForStructure(SourceReader.TAG_TITLE, this, I18N.t("dialog.source.title") + "*", model,
 			NameHandler.class);
-		authorField = new BoundTextField(SourceReader.TAG_AUTHOR);
+		authorPanel = EntityListPanel.createForStructure(SourceReader.TAG_AUTHOR, this, I18N.t("dialog.source.author"), model,
+			AgentHandler.class);
 		publisherField = new BoundTextField(SourceReader.TAG_PUBLISHER);
 		dateField = DateField.createWithWrapperTag(SourceReader.TAG_DATE, this, I18N.t("dialog.source.valid_date"), model);
 		placeField = EntityField.createForStructureWithReference(SourceReader.TAG_PLACE, this, model,
@@ -127,7 +128,6 @@ public class SourceRecordDialog extends BaseRecordDialog{
 			.withComponent(PanelKey.AUDIT, SourceReader.TAG_AUDIT, null)
 			.build();
 
-		components.bind(authorField);
 		components.bind(publisherField);
 		components.bind(mediaTypeCombo);
 
@@ -143,7 +143,7 @@ public class SourceRecordDialog extends BaseRecordDialog{
 		GUIHelper.addComponent(panel, titlePanel);
 
 		// author
-		GUIHelper.addLabeledComponent(panel, I18N.t("dialog.source.author") + ":", authorField);
+		GUIHelper.addComponent(panel, authorPanel);
 
 		// publisher
 		GUIHelper.addLabeledComponent(panel, I18N.t("dialog.source.publisher") + ":", publisherField);
@@ -221,6 +221,7 @@ public class SourceRecordDialog extends BaseRecordDialog{
 	@Override
 	protected void loadData(){
 		titlePanel.load(record);
+		authorPanel.load(record);
 		dateField.load(record);
 		placeField.load(record);
 
@@ -230,6 +231,7 @@ public class SourceRecordDialog extends BaseRecordDialog{
 	@Override
 	protected void saveData(){
 		titlePanel.save(record);
+		authorPanel.save(record);
 		dateField.save(record);
 		placeField.saveReferences(record);
 

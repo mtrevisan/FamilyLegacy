@@ -438,7 +438,7 @@ public final class DocxReportRenderer implements ReportRenderer{
 	private static void writeInlineMarkdown(final XWPFParagraph p, final String text,
 		final int baseSize, final boolean baseBold, final boolean baseItalic,
 		final String baseColor){
-		if(text == null || text.isEmpty())
+		if(StringUtils.isEmpty(text))
 			return;
 
 		final StringBuilder buf = new StringBuilder();

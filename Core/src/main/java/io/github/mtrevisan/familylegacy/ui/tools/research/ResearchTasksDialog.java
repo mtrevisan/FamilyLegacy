@@ -174,7 +174,7 @@ public final class ResearchTasksDialog extends JDialog{
 		@SuppressWarnings("unchecked")
 		final TableRowSorter<TaskTableModel> sorter =
 			(TableRowSorter<TaskTableModel>)table.getRowSorter();
-		if(text == null || text.isBlank())
+		if(StringUtils.isEmpty(text))
 			sorter.setRowFilter(null);
 		else{
 			final String needle = text.trim().toLowerCase(Locale.ROOT);

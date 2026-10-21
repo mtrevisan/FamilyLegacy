@@ -445,8 +445,8 @@ record GroupRecord {
   source*: SourceCitation   // the evidence that this group existed; facts about the group are cited on their own records (attributes, relationships, events)
   note*: NoteStructure
   preferred_image?: struct {
-    uri: Uri          // Resource URI pointing to a preferred image of this group. TODO document: Xref<DocumentRecord>
-    crop?: CropRect   // specifies the portion of the image that should be displayed as the preferred representation
+    document: Xref<DocumentRecord>   // Resource pointing to a preferred image of this group.
+    crop?: CropRect                  // specifies the portion of the image that should be displayed as the preferred representation
   }
   privacy?: PrivacyStructure
   audit: AuditStructure
@@ -947,7 +947,7 @@ struct SourceCitation {
 struct ExtractStructure {
   document_part*: struct {
     document: Xref<DocumentRecord>
-    page?: Int          // 1-based page, for multi-page documents (e.g. PDF, TIFF); CROP refers to this page TODO
+    page?: Int          // 1-based page, for multi-page documents (e.g. PDF, TIFF); CROP refers to this page
     crop?: CropRect     // region of the image or page, in pixels
     start?: Duration    // for audio and video: start of the cited segment, from the beginning of the media TODO
     end?: Duration      // for audio and video: end of the cited segment TODO
@@ -1166,10 +1166,10 @@ ResearchTarget = oneof {
   group_attribute: Xref<GroupAttributeRecord>
   place: Xref<PlaceRecord>
   place_relationship: Xref<PlaceRelationshipRecord>
-  repository: Xref<RepositoryRecord>	// TODO new
+  repository: Xref<RepositoryRecord>
   source: Xref<SourceRecord>
   document: Xref<DocumentRecord>
-  conclusion: Xref<ConclusionRecord>	// TODO new
+  conclusion: Xref<ConclusionRecord>
   identity_hypothesis: Xref<IdentityHypothesisRecord>
   cultural_norm: Xref<CulturalNormRecord>
   historic_event: Xref<HistoricEventRecord>
@@ -1283,9 +1283,9 @@ ConclusionTarget = oneof {
   identity_hypothesis: Xref<IdentityHypothesisRecord>
   place: Xref<PlaceRecord>
   place_relationship: Xref<PlaceRelationshipRecord>
-  repository: Xref<RepositoryRecord>	// TODO new
+  repository: Xref<RepositoryRecord>
   source: Xref<SourceRecord>
-  document: Xref<DocumentRecord>			// TODO new
+  document: Xref<DocumentRecord>
   cultural_norm: Xref<CulturalNormRecord>
   historic_event: Xref<HistoricEventRecord>
 }

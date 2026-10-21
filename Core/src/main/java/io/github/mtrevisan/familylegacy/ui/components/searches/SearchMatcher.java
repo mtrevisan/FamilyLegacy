@@ -112,7 +112,7 @@ public final class SearchMatcher{
 	 * @return the score, never {@code null}
 	 */
 	public static MatchScore score(final String query, final String target, final Set<SearchMode> modes){
-		if(query == null || query.isBlank())
+		if(StringUtils.isEmpty(query))
 			return MatchScore.ANY;
 		if(target == null)
 			return MatchScore.NONE;

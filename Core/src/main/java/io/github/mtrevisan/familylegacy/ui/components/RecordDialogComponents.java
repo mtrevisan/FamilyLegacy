@@ -26,6 +26,8 @@ package io.github.mtrevisan.familylegacy.ui.components;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.readers.AgentReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ConclusionReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ContextImpactReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
@@ -178,6 +180,9 @@ public final class RecordDialogComponents{
 	 * Saves data from all panels into the given record.
 	 */
 	public void save(final FLEFRecord record){
+		// clear all the children
+		FLEFRecordHelper.removeChildren(record, AgentReader.TAG_INDIVIDUAL, AgentReader.TAG_GROUP, AgentReader.TAG_TEXT);
+
 		bindingManager.save(record);
 
 		for(final JPanel panel : panels.values()){

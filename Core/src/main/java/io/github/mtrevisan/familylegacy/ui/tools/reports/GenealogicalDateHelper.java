@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.io.model.readers.DateReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.GenealogicalDate;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.UniversalDateConverter;
+import org.apache.commons.lang3.StringUtils;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -119,7 +120,7 @@ final class GenealogicalDateHelper{
 
 	static LocalDate exactDateOrNull(final FLEFRecord event){
 		final String value = FLEFRecordHelper.getChildValue(event, PATH_FULL_DATE_VALUE);
-		if(value == null || value.isBlank())
+		if(StringUtils.isEmpty(value))
 			return null;
 		final String calendar = FLEFRecordHelper.getChildValue(event, PATH_FULL_DATE_CAL);
 		return parseExactDate(calendar, value);
@@ -241,7 +242,7 @@ final class GenealogicalDateHelper{
 			return null;
 
 		final String basis = FLEFRecordHelper.getChildValue(approx, "basis");
-		if(basis == null || basis.isBlank())
+		if(StringUtils.isEmpty(basis))
 			return labels.dates().approxBasisUnspecified();
 
 		return switch(basis.toLowerCase(Locale.ROOT)){
@@ -280,7 +281,7 @@ final class GenealogicalDateHelper{
 		if(calendarNode == null)
 			return null;
 		final String code = calendarNode.getValue();
-		if(code == null || code.isBlank())
+		if(StringUtils.isEmpty(code))
 			return null;
 		final String normalized = normalizeCalendar(code);
 		if("gregorian".equals(normalized))
@@ -324,7 +325,7 @@ final class GenealogicalDateHelper{
 			if(!"cultural_norm".equalsIgnoreCase(child.getTag()))
 				continue;
 			final String id = child.getValue();
-			if(id == null || id.isBlank())
+			if(StringUtils.isEmpty(id))
 				continue;
 			final String label = normResolver.apply(id);
 			if(label != null && !label.isBlank())
@@ -339,7 +340,7 @@ final class GenealogicalDateHelper{
 	 * ====================================================================== */
 
 	private static String parseMargin(final String isoDuration, final ReportLabels labels){
-		if(isoDuration == null || isoDuration.isBlank())
+		if(StringUtils.isEmpty(isoDuration))
 			return null;
 		final String s = isoDuration.trim();
 		if(!s.startsWith("P"))
@@ -386,7 +387,7 @@ final class GenealogicalDateHelper{
 
 	private static Integer readFullDate(final FLEFRecord event, final String base){
 		final String value = FLEFRecordHelper.getChildValue(event, base + ".full_date.value");
-		if(value == null || value.isBlank())
+		if(StringUtils.isEmpty(value))
 			return null;
 		final String calendar = FLEFRecordHelper.getChildValue(event, base + ".full_date.calendar");
 		return parseYear(calendar, value);
@@ -394,7 +395,7 @@ final class GenealogicalDateHelper{
 
 	private static Integer readDecade(final FLEFRecord event, final String base){
 		final String v = FLEFRecordHelper.getChildValue(event, base + ".decade.start_year");
-		if(v == null || v.isBlank())
+		if(StringUtils.isEmpty(v))
 			return null;
 		try{
 			return Integer.parseInt(v.trim());
@@ -406,7 +407,7 @@ final class GenealogicalDateHelper{
 
 	private static Integer readCentury(final FLEFRecord event, final String base){
 		final String v = FLEFRecordHelper.getChildValue(event, base + ".century.ordinal");
-		if(v == null || v.isBlank())
+		if(StringUtils.isEmpty(v))
 			return null;
 		try{
 			return (Integer.parseInt(v.trim()) - 1) * 100 + 50;
@@ -417,7 +418,7 @@ final class GenealogicalDateHelper{
 	}
 
 	private static Integer parseYear(final String calendarCode, final String rawDate){
-		if(rawDate == null || rawDate.isBlank())
+		if(StringUtils.isEmpty(rawDate))
 			return null;
 		try{
 			final GenealogicalDate parsed = UniversalDateConverter.parse(
@@ -431,7 +432,7 @@ final class GenealogicalDateHelper{
 	}
 
 	private static LocalDate parseExactDate(final String calendarCode, final String rawDate){
-		if(rawDate == null || rawDate.isBlank())
+		if(StringUtils.isEmpty(rawDate))
 			return null;
 		try{
 			final GenealogicalDate parsed = UniversalDateConverter.parse(
@@ -446,7 +447,7 @@ final class GenealogicalDateHelper{
 	}
 
 	private static String normalizeCalendar(final String calendarCode){
-		if(calendarCode == null || calendarCode.isBlank())
+		if(StringUtils.isEmpty(calendarCode))
 			return DEFAULT_CALENDAR;
 		String c = calendarCode.trim();
 		if(c.startsWith("@#") && c.endsWith("@"))

@@ -159,7 +159,7 @@ public final class TagSuggester{
 		}
 
 		static Cardinality fromModifier(final String modifier){
-			if(modifier == null || modifier.isEmpty())
+			if(StringUtils.isEmpty(modifier))
 				return REQUIRED;
 			return switch(modifier){
 				case "?" -> OPTIONAL;

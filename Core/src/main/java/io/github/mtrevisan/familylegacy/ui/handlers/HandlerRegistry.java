@@ -41,6 +41,7 @@ public final class HandlerRegistry{
 
 	private static final Map<String, RecordTypeHandler<?>> HANDLERS = new HashMap<>();
 	static{
+		HANDLERS.put(AgentHandler.TYPE, AgentHandler.getInstance());
 		HANDLERS.put(ConclusionHandler.TYPE, ConclusionHandler.getInstance());
 		HANDLERS.put(ContactHandler.TYPE, ContactHandler.getInstance());
 		HANDLERS.put(ContactNameHandler.TYPE, ContactNameHandler.getInstance());

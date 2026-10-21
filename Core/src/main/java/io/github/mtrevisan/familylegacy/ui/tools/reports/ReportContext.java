@@ -252,7 +252,7 @@ final class ReportContext{
 	 */
 	boolean isPrivacyExpired(final FLEFRecord rec){
 		final String expires = FLEFRecordHelper.getChildValue(rec, TAG_PRIVACY + "." + PrivacyReader.TAG_EXPIRES);
-		if(expires == null || expires.isBlank())
+		if(StringUtils.isEmpty(expires))
 			return false;
 		try{
 			final LocalDate expiry = LocalDate.parse(expires.trim());

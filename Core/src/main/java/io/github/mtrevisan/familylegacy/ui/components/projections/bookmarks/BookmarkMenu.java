@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections.bookmarks;
 
+import org.apache.commons.lang3.StringUtils;
+
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
@@ -120,7 +122,7 @@ public final class BookmarkMenu extends JMenu{
 	private void onSave(final ActionEvent e){
 		final String name = JOptionPane.showInputDialog(this, "Bookmark name:",
 			"Save bookmark", JOptionPane.PLAIN_MESSAGE);
-		if(name == null || name.isBlank())
+		if(StringUtils.isEmpty(name))
 			return;
 
 		final Bookmark b = capture.capture(name.trim());

@@ -66,6 +66,7 @@ public final class AutocompleteController{
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(AutocompleteController.class);
 
+
 	private static final int POPUP_WIDTH = 240;
 	private static final int POPUP_HEIGHT = 200;
 

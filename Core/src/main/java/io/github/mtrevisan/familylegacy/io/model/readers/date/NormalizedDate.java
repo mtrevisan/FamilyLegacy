@@ -69,7 +69,7 @@ public record NormalizedDate(
 	public NormalizedDate{
 		if(precision == null)
 			throw new IllegalArgumentException("Precision must not be null");
-		if(calendar == null || calendar.isBlank())
+		if(StringUtils.isEmpty(calendar))
 			throw new IllegalArgumentException("Calendar must not be null or blank");
 		if(!approximate){
 			if(approximateBasis != null)

@@ -1529,7 +1529,7 @@ public class GEDCOMHelper{
 		String entityId,
 		String role, FLEFModel model){
 
-		if(eventId == null || entityId == null){
+		if(StringUtils.isEmpty(eventId)){
 			return;
 		}
 

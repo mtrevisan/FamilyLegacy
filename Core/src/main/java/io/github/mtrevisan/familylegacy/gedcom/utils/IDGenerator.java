@@ -43,7 +43,7 @@ public final class IDGenerator{
 	 * If the ID does not match the pattern (letter + digits), it is ignored.
 	 */
 	public static void registerExistingId(String id){
-		if(id == null || id.isEmpty())
+		if(StringUtils.isEmpty(id))
 			return;
 		// Remove '@' if present
 		String clean = id.replace("@", StringUtils.EMPTY);

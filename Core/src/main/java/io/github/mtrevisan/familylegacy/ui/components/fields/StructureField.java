@@ -160,9 +160,7 @@ public abstract class StructureField extends BoundTextField{
 		if(target == null)
 			return;
 
-		final boolean hasPath = StringUtils.isNotEmpty(path);
-		if(hasPath)
-			FLEFRecordHelper.removeChildren(target, path);
+		clearRecord(record);
 
 		if(!hasData())
 			return;
@@ -170,11 +168,21 @@ public abstract class StructureField extends BoundTextField{
 		final FLEFRecord copy = FLEFRecord.createEmpty();
 		record.deepCopyTo(copy);
 		final FLEFRecord targetNode = FLEFRecordHelper.getOrCreateTargetNode(target, path);
-		if(!hasPath)
+		if(StringUtils.isEmpty(path))
 			// No wrapper node: replace only the children that the structure is about to write
 			for(final FLEFRecord child : copy.getChildren())
 				FLEFRecordHelper.removeChildren(targetNode, child.getTag());
 		targetNode.addChildren(copy.getChildren());
+	}
+
+	/**
+	 * Clears all tags from the record before saving.
+	 *
+	 * @param record the FLEF record to clean
+	 */
+	private void clearRecord(final FLEFRecord record){
+		if(StringUtils.isNotEmpty(path))
+			FLEFRecordHelper.removeChildren(record, path);
 	}
 
 

@@ -56,10 +56,10 @@ import java.io.IOException;
  * <pre>
  * record PlaceRelationshipRecord {
  *   subject: struct {
- *     place: Xref<PlaceRecord>   // the place for which the relationship is asserted. The SUBJECT is always the place whose role is described by TYPE relative to the TARGET.
+ *     place: Xref&lt;PlaceRecord&gt;   // the place for which the relationship is asserted. The SUBJECT is always the place whose role is described by TYPE relative to the TARGET.
  *   }
  *   target: struct {
- *     place: Xref<PlaceRecord>   // the place to which the subject is related
+ *     place: Xref&lt;PlaceRecord&gt;   // the place to which the subject is related
  *   }
  *   type: enum {
  *     administrative_part_of,    // subject is part of an administrative jurisdiction, e.g., Treviso → Veneto

@@ -292,8 +292,10 @@ public class EntityField extends BoundTextField{
 			else if(type == EntityType.ONEOF_REFERENCE){
 				final String tag = entityRef.getTag();
 				final String id = entityRef.getFormattedId();
-				final FLEFRecord parentNode = FLEFRecord.createChildWithTag(path)
-					.addChild(FLEFRecord.createChildWithTagAndValue(tag, id));
+				final FLEFRecord parentNode = (StringUtils.isNotEmpty(path)
+					? FLEFRecord.createChildWithTag(path).addChild(FLEFRecord.createChildWithTagAndValue(tag, id))
+					: FLEFRecord.createChildWithTagAndValue(tag, id)
+				);
 				targetRecord.addChild(parentNode);
 			}
 			else if(type == EntityType.CITATION_WRAPPER){

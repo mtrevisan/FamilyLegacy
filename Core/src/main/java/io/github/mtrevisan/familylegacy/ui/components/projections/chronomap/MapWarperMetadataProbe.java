@@ -292,7 +292,7 @@ final class MapWarperMetadataProbe{
 	 * Returns {@code null} when no year is present.
 	 */
 	private static Integer[] parseYears(final String text){
-		if(text == null || text.isBlank())
+		if(StringUtils.isEmpty(text))
 			return null;
 
 		// 1. Try a range first, so that "1930-1950" is captured as a whole.
@@ -353,7 +353,7 @@ final class MapWarperMetadataProbe{
 	 * the web and is not matched by {@code \s} in Java's default mode.
 	 */
 	private static String extractPlaceFromTitle(final String title){
-		if(title == null || title.isBlank())
+		if(StringUtils.isEmpty(title))
 			return null;
 
 		// Remove every year range, then every single year. The order

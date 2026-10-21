@@ -159,7 +159,7 @@ public final class EventTypesDialog extends JDialog{
 		final FLEFModel model = context.model();
 		for(final FLEFRecord event : EventHelper.listAllEvents(model)){
 			final String type = EventHelper.eventType(event);
-			if(type == null || type.isBlank())
+			if(StringUtils.isEmpty(type))
 				continue;
 			counts.merge(type, 1, Integer::sum);
 		}
@@ -176,7 +176,7 @@ public final class EventTypesDialog extends JDialog{
 		@SuppressWarnings("unchecked")
 		final TableRowSorter<TypeTableModel> sorter =
 			(TableRowSorter<TypeTableModel>)table.getRowSorter();
-		if(text == null || text.isBlank())
+		if(StringUtils.isEmpty(text))
 			sorter.setRowFilter(null);
 		else{
 			final String needle = text.trim().toLowerCase(Locale.ROOT);

@@ -52,7 +52,7 @@ import java.util.StringJoiner;
  *   source*: SourceCitation        // source citations supporting facts about this individual
  *   note*: NoteStructure           // free-text notes about this individual
  *   preferred_image?: struct {
- *     uri: Uri          // Resource URI pointing to a preferred image of this individual.
+ *     document: Xref&lt;DocumentRecord&gt;
  *     crop?: CropRect   // normalized rectangle identifying the region of interest within the image
  *   }
  *   privacy?: PrivacyStructure

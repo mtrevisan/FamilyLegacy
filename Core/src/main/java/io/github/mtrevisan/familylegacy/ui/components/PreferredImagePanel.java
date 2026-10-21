@@ -24,13 +24,18 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components;
 
+import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.io.model.readers.CropReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.GroupReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
 import io.github.mtrevisan.familylegacy.ui.bindings.BindingsHelper;
+import io.github.mtrevisan.familylegacy.ui.components.fields.EntityField;
+import io.github.mtrevisan.familylegacy.ui.handlers.DocumentHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualAttributeHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import net.miginfocom.swing.MigLayout;
@@ -59,15 +64,17 @@ import java.io.IOException;
  * Structure:
  * <pre>
  * struct {
- *   uri: Uri
+ *   uri: Uri	TODO remove
+ *   document: Xref&lt;DocumentRecord&gt;	TODO substitute with
  *   crop?: CropRect
  * }
  * </pre>
  */
 public class PreferredImagePanel extends JPanel{
 
-	public static final String TAG_URI = "URI";
-	public static final String TAG_CROP = "CROP";
+	public static final String TAG_DOCUMENT = "document";
+	public static final String TAG_CROP = "crop";
+
 
 	public static final Icon PLACEHOLDER_ICON = createPlaceholderIcon();
 
@@ -82,7 +89,8 @@ public class PreferredImagePanel extends JPanel{
 
 	private final JButton imageButton;
 
-	private String uri;
+	private final EntityField document;
+
 	private Rectangle cropRect;
 
 
@@ -91,12 +99,14 @@ public class PreferredImagePanel extends JPanel{
 	 *
 	 * @param parent	the parent dialog (for showing modal dialogs)
 	 */
-	public PreferredImagePanel(final String path, final Window parent){
+	public PreferredImagePanel(final String path, final Window parent, final FLEFModel model){
 		this.parent = parent;
 
 		this.path = path;
 
 		this.imageButton = new JButton();
+
+		document = EntityField.createForRecordFromReference(TAG_DOCUMENT, parent, model, DocumentHandler.class);
 
 		cropDialog = ImageCropDialog.create(parent);
 
@@ -165,9 +175,9 @@ public class PreferredImagePanel extends JPanel{
 	 * @param record	the record to save into
 	 */
 	public void save(final FLEFRecord record){
-		if(StringUtils.isNotEmpty(uri)){
+		if(StringUtils.isNotEmpty(documentId)){
 			final FLEFRecord preferredImage = FLEFRecordHelper.getOrCreateTargetNode(record, path);
-			FLEFRecordHelper.updateChildValue(preferredImage, TAG_URI, uri);
+			FLEFRecordHelper.updateChildValue(preferredImage, TAG_DOCUMENT, documentId);
 			if(cropRect != null && !cropRect.isEmpty()){
 				final FLEFRecord crop = FLEFRecordHelper.getOrCreateTargetNode(preferredImage, TAG_CROP);
 				FLEFRecordHelper.updateChildValue(crop, CropReader.TAG_X, String.valueOf(cropRect.x));
@@ -210,7 +220,7 @@ public class PreferredImagePanel extends JPanel{
 		catch(final IOException ioe){
 			ioe.printStackTrace();
 
-			JOptionPane.showMessageDialog(parent,
+			JOptionPane.showMessageDialog(this,
 				I18N.tf("error.image", uri),
 				I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
 		}
@@ -220,7 +230,7 @@ public class PreferredImagePanel extends JPanel{
 	 * Opens a system file chooser to pick an image file and displays the {@link ImageCropDialog} to set the crop.
 	 */
 	private void setNewItem(){
-		final File selectedFile = GUIHelper.selectImageFile(parent, uri);
+		final File selectedFile = GUIHelper.selectDocumentFile(this, uri);
 		if(selectedFile == null)
 			return;
 
@@ -238,7 +248,7 @@ public class PreferredImagePanel extends JPanel{
 		catch(final IOException ioe){
 			ioe.printStackTrace();
 
-			JOptionPane.showMessageDialog(parent,
+			JOptionPane.showMessageDialog(this,
 				I18N.tf("error.image", uri),
 				I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
 		}
@@ -278,7 +288,7 @@ public class PreferredImagePanel extends JPanel{
 	 */
 	private void removeItem(){
 		if(hasImage()){
-			final int response = JOptionPane.showConfirmDialog(parent,
+			final int response = JOptionPane.showConfirmDialog(this,
 				I18N.t("confirmation.remove.image.message"),
 				I18N.t("confirmation.remove.title"),
 				JOptionPane.YES_NO_OPTION);

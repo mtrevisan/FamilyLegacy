@@ -39,6 +39,7 @@ import io.github.mtrevisan.familylegacy.ui.components.TimeRangeDialog;
 import io.github.mtrevisan.familylegacy.ui.components.searches.RecordSelectionDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.DocumentHandler;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
@@ -52,6 +53,9 @@ import java.util.List;
  * Panel for managing document parts with image cropping, page, and time range functionality.
  */
 public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
+
+	public static final String EXTENSION_PDF = ".pdf";
+
 
 	private final String path;
 
@@ -111,15 +115,20 @@ public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
 
 		if(isPagedDocument(uri)){
 			final Integer currentPage = parseInteger(FLEFRecordHelper.getChildValue(documentPart, SourceCitationReader.TAG_PAGE));
-			pageDialog.loadData(uri, currentPage);
+			final FLEFRecord crop = FLEFRecordHelper.findChild(documentPart, PreferredImagePanel.TAG_CROP);
+			final Rectangle imageCropRect = CropReader.extractPreferredImageCrop(crop);
+
+			pageDialog.loadData(uri, currentPage, imageCropRect);
 			pageDialog.setVisible(true);
-			if(pageDialog.isSaved())
+			if(pageDialog.isSaved()){
 				updateDocumentPart(documentPart, SourceCitationReader.TAG_PAGE, String.valueOf(pageDialog.getPage()));
+				updateCrop(documentPart, pageDialog.getCropRect());
+			}
 		}
 		else if(isAudioVideo(uri)){
 			final String start = FLEFRecordHelper.getChildValue(documentPart, SourceCitationReader.TAG_START);
 			final String end = FLEFRecordHelper.getChildValue(documentPart, SourceCitationReader.TAG_END);
-			timeRangeDialog.loadData(start, end);
+			timeRangeDialog.loadData(uri, start, end);
 			timeRangeDialog.setVisible(true);
 			if(timeRangeDialog.isSaved()){
 				updateDocumentPart(documentPart, SourceCitationReader.TAG_START, timeRangeDialog.getStart());
@@ -193,13 +202,15 @@ public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
 
 					// Prompt the user with the correct dialog based on the file type
 					if(isPagedDocument(uri)){
-						pageDialog.loadData(uri, 1);
+						pageDialog.loadData(uri, 1, null);
 						pageDialog.setVisible(true);
-						if(pageDialog.isSaved())
+						if(pageDialog.isSaved()){
 							updateDocumentPart(documentPart, SourceCitationReader.TAG_PAGE, String.valueOf(pageDialog.getPage()));
+							updateCrop(documentPart, pageDialog.getCropRect());
+						}
 					}
 					else if(isAudioVideo(uri)){
-						timeRangeDialog.loadData(null, null);
+						timeRangeDialog.loadData(uri, null, null);
 						timeRangeDialog.setVisible(true);
 						if(timeRangeDialog.isSaved()){
 							updateDocumentPart(documentPart, SourceCitationReader.TAG_START, timeRangeDialog.getStart());
@@ -238,7 +249,7 @@ public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
 			return false;
 
 		final String lowerUri = uri.toLowerCase();
-		return (lowerUri.endsWith(".pdf") || lowerUri.endsWith(".tif") || lowerUri.endsWith(".tiff"));
+		return (lowerUri.endsWith(EXTENSION_PDF) || lowerUri.endsWith(".tif") || lowerUri.endsWith(".tiff"));
 	}
 
 	private boolean isAudioVideo(final String uri){
@@ -251,7 +262,7 @@ public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
 	}
 
 	private void updateDocumentPart(final FLEFRecord documentPart, final String tag, final String value){
-		if(value == null || value.trim().isEmpty())
+		if(StringUtils.isEmpty(value))
 			FLEFRecordHelper.removeChild(documentPart, tag);
 		else
 			FLEFRecordHelper.updateChildValue(documentPart, tag, value.trim());
@@ -267,7 +278,10 @@ public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
 	}
 
 	private void extractCrop(final FLEFRecord documentPart){
-		final Rectangle documentCropRect = cropDialog.getCrop();
+		updateCrop(documentPart, cropDialog.getCrop());
+	}
+
+	private void updateCrop(final FLEFRecord documentPart, final Rectangle documentCropRect){
 		if(documentCropRect != null && !documentCropRect.isEmpty()){
 			// Correctly save the crop under the document_part structure
 			final FLEFRecord crop = FLEFRecordHelper.getOrCreateTargetNode(documentPart, PreferredImagePanel.TAG_CROP);
@@ -276,6 +290,8 @@ public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
 			FLEFRecordHelper.updateChildValue(crop, CropReader.TAG_WIDTH, String.valueOf(documentCropRect.width));
 			FLEFRecordHelper.updateChildValue(crop, CropReader.TAG_HEIGHT, String.valueOf(documentCropRect.height));
 		}
+		else
+			FLEFRecordHelper.removeChild(documentPart, PreferredImagePanel.TAG_CROP);
 	}
 
 	@Override

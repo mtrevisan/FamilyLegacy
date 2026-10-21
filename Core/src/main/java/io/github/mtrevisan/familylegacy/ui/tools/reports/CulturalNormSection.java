@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.io.model.readers.CulturalNormReader;
 import io.github.mtrevisan.familylegacy.ui.handlers.CulturalNormHandler;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -181,7 +182,7 @@ final class CulturalNormSection implements SectionBuilder{
 
 	private String ruleTypeOf(final FLEFRecord norm){
 		String v = FLEFRecordHelper.getChildValue(norm, CulturalNormReader.TAG_TYPE);
-		if(v == null || v.isBlank())
+		if(StringUtils.isEmpty(v))
 			return null;
 		return v.replace('_', ' ');
 	}

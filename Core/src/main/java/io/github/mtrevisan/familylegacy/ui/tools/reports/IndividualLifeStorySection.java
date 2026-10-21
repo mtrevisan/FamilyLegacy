@@ -203,7 +203,7 @@ final class IndividualLifeStorySection implements SectionBuilder{
 		final List<String> out = new ArrayList<>();
 		for(final FLEFRecord cn : FLEFRecordHelper.findChildren(nameRec, NameReader.TAG_CULTURAL_NORM)){
 			final String id = cn.getValue();
-			if(id == null || id.isBlank())
+			if(StringUtils.isEmpty(id))
 				continue;
 			final String label = ctx.resolveContextLabel(id);
 			if(label != null && !label.isBlank())

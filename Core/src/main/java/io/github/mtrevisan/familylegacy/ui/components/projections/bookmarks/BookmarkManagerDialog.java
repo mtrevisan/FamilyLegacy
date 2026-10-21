@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.ui.components.projections.bookmarks;
 
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import net.miginfocom.swing.MigLayout;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
@@ -122,7 +123,7 @@ public final class BookmarkManagerDialog extends JDialog{
 			return;
 
 		final String newName = JOptionPane.showInputDialog(this, "New name:", selected.name());
-		if(newName == null || newName.isBlank())
+		if(StringUtils.isEmpty(newName))
 			return;
 
 		store.rename(selected.id(), newName.trim());

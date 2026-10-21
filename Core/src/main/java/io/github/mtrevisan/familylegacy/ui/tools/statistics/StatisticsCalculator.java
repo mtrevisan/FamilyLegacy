@@ -38,6 +38,7 @@ import io.github.mtrevisan.familylegacy.ui.handlers.EventParticipationHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RelationshipHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.SourceHandler;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -165,7 +166,7 @@ public final class StatisticsCalculator{
 			if(!hasDirectSource(ind))
 				noSource.add(ind);
 			final String sex = IndividualReader.extractRawSex(ind);
-			if(sex == null || sex.isBlank())
+			if(StringUtils.isEmpty(sex))
 				noSex.add(ind);
 		}
 
@@ -190,7 +191,7 @@ public final class StatisticsCalculator{
 				for(final FLEFRecord part : FLEFRecordHelper.findChildren(nameBlock, NameReader.TAG_PART)){
 					final String type = FLEFRecordHelper.getChildValue(part, NameReader.TAG_PART_TYPE);
 					final String value = FLEFRecordHelper.getChildValue(part, NameReader.TAG_PART_VALUE);
-					if(value == null || value.isBlank())
+					if(StringUtils.isEmpty(value))
 						continue;
 					final String key = value.toLowerCase(Locale.ROOT)
 						.trim();

@@ -107,7 +107,7 @@ protected void onOk(){
  *   source*: SourceCitation
  *   note*: Xref&lt;NoteRecord&gt;
  *   preferred_image?: struct {
- *     uri: Uri
+ *     document: Xref&lt;DocumentRecord&gt;
  *     crop?: CropRect
  *   }
  *   privacy?: PrivacyStructure

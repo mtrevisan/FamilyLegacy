@@ -73,7 +73,7 @@ public final class InConstraint extends Constraint{
 		for(final FLEFRecord fieldNode : fieldNodes){
 			final String fieldValue = fieldNode.getValue();
 
-			if(fieldValue == null || fieldValue.isEmpty()){
+			if(StringUtils.isEmpty(fieldValue)){
 				errors.add(String.format("Constraint violation at '%s': field '%s' has no value, record %s",
 					contextPath, field, record));
 

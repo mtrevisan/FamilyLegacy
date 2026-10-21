@@ -124,7 +124,7 @@ final class PlaceRootSection implements SectionBuilder{
 			final String type = FLEFRecordHelper.getChildValue(n, NameReader.TAG_TYPE);
 			final String value = FLEFRecordHelper.getChildValue(n, NameReader.TAG_VALUE);
 			final String locale = FLEFRecordHelper.getChildValue(n, NameReader.TAG_LOCALE);
-			if(value == null || value.isBlank())
+			if(StringUtils.isEmpty(value))
 				continue;
 			if(n == primary && type == null && locale == null)
 				continue;
@@ -184,7 +184,7 @@ final class PlaceRootSection implements SectionBuilder{
 		final FLEFRecord counterpart = (counterpartId != null
 			? ctx.visible(ctx.model.getRecordById(counterpartId)): null);
 		final String label = (counterpart != null? primaryName(counterpart): counterpartId);
-		if(label == null || label.isBlank())
+		if(StringUtils.isEmpty(label))
 			return;
 
 		final String type = FLEFRecordHelper.getChildValue(rel, TAG_TYPE);

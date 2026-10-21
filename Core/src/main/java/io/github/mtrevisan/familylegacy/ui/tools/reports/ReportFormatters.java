@@ -138,7 +138,7 @@ public final class ReportFormatters{
 			return null;
 
 		final String value = FLEFRecordHelper.getChildValue(branch, "value");
-		if(value == null || value.isBlank())
+		if(StringUtils.isEmpty(value))
 			return null;
 
 		if("phonetic".equalsIgnoreCase(tag)){
@@ -206,7 +206,7 @@ public final class ReportFormatters{
 			return null;
 
 		final String value = FLEFRecordHelper.getChildValue(contact, "value");
-		if(value == null || value.isBlank())
+		if(StringUtils.isEmpty(value))
 			return null;
 
 		final String type = FLEFRecordHelper.getChildValue(contact, "type");
@@ -238,7 +238,7 @@ public final class ReportFormatters{
 		final List<String> out = new ArrayList<>();
 		for(final FLEFRecord tr : FLEFRecordHelper.findChildren(note, "translation")){
 			final String text = FLEFRecordHelper.getChildValue(tr, "text");
-			if(text == null || text.isBlank())
+			if(StringUtils.isEmpty(text))
 				continue;
 			final String locale = FLEFRecordHelper.getChildValue(tr, "locale");
 
@@ -325,7 +325,7 @@ public final class ReportFormatters{
 	 * {@code null} for null or blank input.
 	 */
 	static String enumLabel(final String code){
-		if(code == null || code.isBlank())
+		if(StringUtils.isEmpty(code))
 			return null;
 		return code.trim().replace('_', ' ');
 	}
@@ -340,7 +340,7 @@ public final class ReportFormatters{
 	static String noteBody(final FLEFRecord note){
 		final String text = noteText(note);
 		final String mime = FLEFRecordHelper.getChildValue(note, "mime");
-		if(mime == null || mime.isBlank())
+		if(StringUtils.isEmpty(mime))
 			return text;
 		if(mime.contains("markdown"))
 			return text;

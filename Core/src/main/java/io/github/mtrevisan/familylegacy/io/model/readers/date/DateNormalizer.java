@@ -146,7 +146,7 @@ public final class DateNormalizer{
 	private static NormalizedDate normalizeFullDate(final FLEFRecord singleDate, final FLEFRecord fullDate,
 			final String calendar, final String originalText){
 		final String raw = fullDate.getValue();
-		if(raw == null || raw.isBlank())
+		if(StringUtils.isEmpty(raw))
 			return null;
 
 		final int[] ymd = parseHistoricalDate(raw);
@@ -226,7 +226,7 @@ public final class DateNormalizer{
 	 *         unparsable or lacks a year
 	 */
 	private static int[] parseHistoricalDate(final String raw){
-		if(raw == null || raw.isBlank())
+		if(StringUtils.isEmpty(raw))
 			return null;
 		final String trimmed = raw.trim();
 

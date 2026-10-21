@@ -240,7 +240,7 @@ public final class DateCalculatorDialog extends JDialog{
 
 	private static LocalDate parseDate(final JTextField field){
 		final String text = field.getText();
-		if(text == null || text.isBlank() || DATE_PLACEHOLDER.equals(text.trim()))
+		if(StringUtils.isEmpty(text) || DATE_PLACEHOLDER.equals(text.trim()))
 			return null;
 		try{
 			return LocalDate.parse(text.trim());
@@ -252,7 +252,7 @@ public final class DateCalculatorDialog extends JDialog{
 
 	private static Integer parseInt(final JTextField field){
 		final String text = field.getText();
-		if(text == null || text.isBlank())
+		if(StringUtils.isEmpty(text))
 			return 0;
 		try{
 			return Integer.parseInt(text.trim());

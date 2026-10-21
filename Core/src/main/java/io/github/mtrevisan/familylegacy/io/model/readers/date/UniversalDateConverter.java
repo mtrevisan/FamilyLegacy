@@ -131,7 +131,7 @@ public final class UniversalDateConverter{
 	 * ====================================================================== */
 
 	public static GenealogicalDate parse(final String calendarCode, String rawDate){
-		if(rawDate == null || rawDate.isEmpty())
+		if(StringUtils.isEmpty(rawDate))
 			throw new IllegalArgumentException("Date string is required");
 
 		// Strip embedded calendar escape tags (e.g. @#DGREGORIAN@)

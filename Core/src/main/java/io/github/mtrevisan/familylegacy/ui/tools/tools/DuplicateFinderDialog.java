@@ -258,7 +258,7 @@ public final class DuplicateFinderDialog extends JDialog{
 		@SuppressWarnings("unchecked")
 		final TableRowSorter<CandidateTableModel> sorter =
 			(TableRowSorter<CandidateTableModel>)table.getRowSorter();
-		if(text == null || text.isBlank())
+		if(StringUtils.isEmpty(text))
 			sorter.setRowFilter(null);
 		else{
 			final String needle = text.trim().toLowerCase(Locale.ROOT);

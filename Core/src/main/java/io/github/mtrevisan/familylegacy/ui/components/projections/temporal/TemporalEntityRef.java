@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.ui.components.projections.temporal;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Objects;
 
@@ -57,7 +58,7 @@ public record TemporalEntityRef(TemporalEntityType type, String id, FLEFRecord r
 	public TemporalEntityRef{
 		if(type == null)
 			throw new IllegalArgumentException("Entity type must not be null");
-		if(id == null || id.isBlank())
+		if(StringUtils.isEmpty(id))
 			throw new IllegalArgumentException("Entity id must not be null or blank");
 		if(record == null)
 			throw new IllegalArgumentException("Backing record must not be null");

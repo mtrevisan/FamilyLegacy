@@ -116,7 +116,7 @@ public final class SocialNetworkService{
 	public SocialGraph build(final String centerId, final SocialFilters filters){
 		if(filters == null)
 			throw new IllegalArgumentException("Filters must not be null");
-		if(centerId == null || centerId.isBlank() || !model.hasRecord(centerId))
+		if(StringUtils.isEmpty(centerId) || !model.hasRecord(centerId))
 			return SocialGraph.empty(filters);
 
 		ensureIndices();
@@ -326,7 +326,7 @@ public final class SocialNetworkService{
 	}
 
 	private static boolean isRelationalRole(final String role){
-		if(role == null || role.isBlank())
+		if(StringUtils.isEmpty(role))
 			return false;
 
 		return EventParticipationReader.RELATIONAL_EVENT_ROLES.contains(role.trim()

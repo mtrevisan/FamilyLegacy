@@ -774,6 +774,16 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 		}
 	}
 
+	/**
+	 * Clears all tags from the record before saving.
+	 *
+	 * @param record the FLEF record to clean
+	 */
+	private void clearRecord(final FLEFRecord record){
+		if(StringUtils.isNotEmpty(path))
+			FLEFRecordHelper.removeChildren(record, path);
+	}
+
 
 	private Consumer<BaseRecordDialog> getDialogSetup(){
 		return dialog -> {

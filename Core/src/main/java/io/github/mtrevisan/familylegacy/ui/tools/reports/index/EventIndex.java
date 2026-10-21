@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventParticipationHandler;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -154,7 +155,7 @@ public final class EventIndex{
 			return null;
 		final String tag = ref.getTag();
 		final String id = ref.getValue();
-		if(tag == null || id == null || id.isBlank())
+		if(tag == null || StringUtils.isEmpty(id))
 			return null;
 		return new Ref(tag.toLowerCase(Locale.ROOT), id);
 	}

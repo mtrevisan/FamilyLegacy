@@ -73,7 +73,7 @@ public record TemporalConnection(
 			throw new IllegalArgumentException("Target must be a row entity, got: " + targetRow.type());
 		if(span == null)
 			throw new IllegalArgumentException("Span must not be null");
-		if(relationshipType == null || relationshipType.isBlank())
+		if(StringUtils.isEmpty(relationshipType))
 			throw new IllegalArgumentException("Relationship type must not be null or blank");
 		if(role == null)
 			role = StringUtils.EMPTY;

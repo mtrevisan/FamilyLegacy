@@ -42,6 +42,7 @@ import io.github.mtrevisan.familylegacy.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolContexts;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolDispatcher;
 import io.github.mtrevisan.familylegacy.ui.tools.files.FileMenuController;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JFrame;
 import javax.swing.JMenuBar;
@@ -256,7 +257,7 @@ public class FamilyLegacyFrame extends JFrame{
 			}
 		}
 
-		if(rootId == null || rootId.isBlank()){
+		if(StringUtils.isEmpty(rootId)){
 			return null;
 		}
 

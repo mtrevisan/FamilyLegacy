@@ -461,7 +461,7 @@ public final class AgoraPanel extends JPanel{
 
 	private void applyFilter(){
 		final String text = searchField.getText();
-		if(text == null || text.isBlank())
+		if(StringUtils.isEmpty(text))
 			sorter.setRowFilter(null);
 		else
 			sorter.setRowFilter(RowFilter.regexFilter("(?i)" + Pattern.quote(text.trim())));

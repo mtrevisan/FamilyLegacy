@@ -174,7 +174,7 @@ public final class SourceManagementDialog extends JDialog{
 		@SuppressWarnings("unchecked")
 		final TableRowSorter<SourceTableModel> sorter =
 			(TableRowSorter<SourceTableModel>)table.getRowSorter();
-		if(text == null || text.isBlank())
+		if(StringUtils.isEmpty(text))
 			sorter.setRowFilter(null);
 		else{
 			final String needle = text.trim().toLowerCase(Locale.ROOT);

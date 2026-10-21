@@ -544,7 +544,7 @@ public final class PlaceCoordinateResolver{
 	}
 
 	private static ChronomapIndex.GeoCoordinate parseCoordinateString(final String val){
-		if(val == null || val.isEmpty() || NOT_FOUND.equals(val))
+		if(StringUtils.isEmpty(val) || NOT_FOUND.equals(val))
 			return null;
 
 		final String[] parts = StringUtils.split(val, ',');

@@ -25,6 +25,9 @@
 package io.github.mtrevisan.familylegacy.io.model.readers.date;
 
 
+import org.apache.commons.lang3.StringUtils;
+
+
 /**
  * The extension of time occupied by a single assertion in the General
  * Temporal Projection.
@@ -65,7 +68,7 @@ public record TemporalSpan(
 	public TemporalSpan{
 		if(kind == null)
 			throw new IllegalArgumentException("Span kind must not be null");
-		if(status == null || status.isBlank())
+		if(StringUtils.isEmpty(status))
 			throw new IllegalArgumentException("Status must not be null or blank");
 		if(!STATUS_ACTIVE.equals(status) && !STATUS_ENDED.equals(status) && !STATUS_UNKNOWN.equals(status))
 			throw new IllegalArgumentException("Unknown status: " + status);

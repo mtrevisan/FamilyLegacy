@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.gedcom.utils;
 
 import io.github.mtrevisan.familylegacy.io.model.readers.DateReader;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
 import java.util.Locale;
@@ -397,7 +398,7 @@ public final class GEDCOMMapper{
 	 * @return the mapped FLEF privacy level string ("restricted", "private", "confidential", or "public")
 	 */
 	public static String mapPrivacyLevel(String gedcomLevel){
-		if(gedcomLevel == null || gedcomLevel.isBlank()){
+		if(StringUtils.isEmpty(gedcomLevel)){
 			return "public";
 		}
 

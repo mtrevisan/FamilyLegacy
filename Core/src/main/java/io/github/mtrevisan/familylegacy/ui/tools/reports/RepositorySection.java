@@ -158,7 +158,7 @@ final class RepositorySection implements SectionBuilder{
 			final String type = FLEFRecordHelper.getChildValue(n, NameReader.TAG_TYPE);
 			final String value = FLEFRecordHelper.getChildValue(n, NameReader.TAG_VALUE);
 			final String locale = FLEFRecordHelper.getChildValue(n, NameReader.TAG_LOCALE);
-			if(value == null || value.isBlank())
+			if(StringUtils.isEmpty(value))
 				continue;
 			final StringBuilder line = new StringBuilder();
 			line.append("**").append(ctx.labels.sections().name());

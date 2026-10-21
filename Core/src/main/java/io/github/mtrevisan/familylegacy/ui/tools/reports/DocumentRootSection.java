@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.io.model.readers.DocumentReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
+import org.apache.commons.lang3.StringUtils;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -82,7 +83,7 @@ final class DocumentRootSection implements SectionBuilder{
 
 	private void writePreview(final List<ReportSection> out){
 		final String uri = FLEFRecordHelper.getChildValue(ctx.root, DocumentReader.TAG_URI);
-		if(uri == null || uri.isBlank())
+		if(StringUtils.isEmpty(uri))
 			return;
 		try{
 			out.add(new ReportSection.Image(Path.of(uri), documentTitle(ctx.root)));

@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.io.model.readers.ContextImpactReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.HistoricEventReader;
 import io.github.mtrevisan.familylegacy.ui.handlers.HistoricEventHandler;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -96,7 +97,7 @@ final class HistoricEventSection implements SectionBuilder{
 				continue;
 
 			final String id = ref.getValue();
-			if(id == null || id.isBlank())
+			if(StringUtils.isEmpty(id))
 				continue;
 			ids.add(id);
 		}

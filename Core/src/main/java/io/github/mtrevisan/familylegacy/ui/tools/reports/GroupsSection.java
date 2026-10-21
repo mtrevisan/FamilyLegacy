@@ -169,7 +169,7 @@ final class GroupsSection implements SectionBuilder{
 				continue;
 
 			final String type = FLEFRecordHelper.getChildValue(n, NameReader.TAG_TYPE);
-			if(value == null || value.isBlank())
+			if(StringUtils.isEmpty(value))
 				continue;
 
 			final StringBuilder line = new StringBuilder();
@@ -303,7 +303,7 @@ final class GroupsSection implements SectionBuilder{
 		final FLEFRecord counterpart = (counterpartId != null
 			? ctx.visible(ctx.model.getRecordById(counterpartId)): null);
 		final String label = (counterpart != null? GroupReader.extractPrimaryName(counterpart): counterpartId);
-		if(label == null || label.isBlank())
+		if(StringUtils.isEmpty(label))
 			return;
 
 		out.add(new ReportSection.Heading(4, ReportFormatters.escape(label)));

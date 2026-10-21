@@ -170,7 +170,7 @@ public final class ConclusionsDialog extends JDialog{
 		@SuppressWarnings("unchecked")
 		final TableRowSorter<ConclusionTableModel> sorter =
 			(TableRowSorter<ConclusionTableModel>)table.getRowSorter();
-		if(text == null || text.isBlank())
+		if(StringUtils.isEmpty(text))
 			sorter.setRowFilter(null);
 		else{
 			final String needle = text.trim().toLowerCase(Locale.ROOT);

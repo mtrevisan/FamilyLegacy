@@ -169,7 +169,7 @@ public final class RepositoryManagementDialog extends JDialog{
 		@SuppressWarnings("unchecked")
 		final TableRowSorter<RepositoryTableModel> sorter =
 			(TableRowSorter<RepositoryTableModel>)table.getRowSorter();
-		if(text == null || text.isBlank())
+		if(StringUtils.isEmpty(text))
 			sorter.setRowFilter(null);
 		else{
 			final String needle = text.trim().toLowerCase(Locale.ROOT);

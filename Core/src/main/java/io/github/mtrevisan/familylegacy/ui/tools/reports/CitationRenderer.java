@@ -313,7 +313,7 @@ final class CitationRenderer{
 	private void appendAuditRow(final List<String> rows, final String label,
 		final FLEFRecord entry){
 		final String date = FLEFRecordHelper.getChildValue(entry, AuditReader.TAG_DATE);
-		if(date == null || date.isBlank())
+		if(StringUtils.isEmpty(date))
 			return;
 
 		final StringBuilder sb = new StringBuilder("**").append(label).append(":** ")

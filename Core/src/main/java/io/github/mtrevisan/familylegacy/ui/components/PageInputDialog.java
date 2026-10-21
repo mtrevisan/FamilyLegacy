@@ -24,8 +24,10 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components;
 
+import io.github.mtrevisan.familylegacy.ui.components.lists.DocumentPartListPanel;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
+import io.github.mtrevisan.familylegacy.ui.images.ScaledImage;
 import net.miginfocom.swing.MigLayout;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -35,23 +37,25 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.imageio.ImageIO;
+import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
-import javax.swing.ImageIcon;
 import javax.swing.JDialog;
-import javax.swing.JLabel;
+import javax.swing.JFormattedTextField;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
+import javax.swing.KeyStroke;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 import javax.swing.event.ChangeListener;
+import javax.swing.text.DefaultFormatter;
 import java.awt.Dimension;
-import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Point;
-import java.awt.RenderingHints;
+import java.awt.Rectangle;
 import java.awt.Window;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseWheelEvent;
 import java.awt.image.BufferedImage;
@@ -62,35 +66,33 @@ import java.util.Map;
 
 
 /**
- * Dialog for selecting a specific page within a paged document (e.g., a PDF or multi-page TIFF).
- * Includes an asynchronous, cached preview with zoom (Ctrl + Mouse Wheel) and fit-to-window support.
+ * Dialog for selecting a specific page and defining a crop area within a paged document (e.g., a PDF or multi-page TIFF).
+ * Includes zoom support (Ctrl + Mouse Wheel).
  */
 public class PageInputDialog extends JDialog{
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(PageInputDialog.class);
 
 
+	private static final String ACTION_COMMIT_AND_CLAMP = "commitAndClamp";
+
+
 	private final JSpinner pageSpinner;
-	private final JLabel previewLabel;
+	private final ScaledImage imageHolder;
 	private final JScrollPane previewScrollPane;
 
 	private String documentUri;
 	private boolean isSaved;
 
 	// --- Caching & Optimization Fields ---
-	private PDDocument currentPdfDocument;
-	private PDFRenderer currentPdfRenderer;
-
-	// Cache for rendered pages (unscaled) to avoid re-rendering when navigating back and forth
-	private final Map<Integer, Image> pageCache = new HashMap<>();
-
-	// Keep track of the current worker to cancel it if the user changes page rapidly
-	private SwingWorker<Image, Void> currentRenderWorker;
+	private final Map<Integer, BufferedImage> pageCache = new HashMap<>();
 
 	// --- Zoom State ---
-	private Image currentOriginalImage;
+	private BufferedImage currentOriginalImage;
 	private double currentZoom = 1.0;
 	private static final double ZOOM_STEP = 1.15;
+
+	private Rectangle cropRectInOriginalSpace;
 
 
 	public static PageInputDialog create(final Window parent){
@@ -104,16 +106,100 @@ public class PageInputDialog extends JDialog{
 	private PageInputDialog(final Window parent){
 		super(parent, ModalityType.APPLICATION_MODAL);
 
-		pageSpinner = new JSpinner(new SpinnerNumberModel(1, 1, Integer.MAX_VALUE, 1));
-		previewLabel = new JLabel();
+		// Initialize spinner model with range [1, 1] (will be updated dynamically)
+		final SpinnerNumberModel spinnerModel = new SpinnerNumberModel(1, 1, 1, 1);
+		pageSpinner = new JSpinner(spinnerModel);
 
-		// Standard Swing approach: put the label inside the scroll pane
-		previewScrollPane = new JScrollPane(previewLabel);
+		configureSpinnerClamping();
+
+		imageHolder = ScaledImage.create();
+
+		previewScrollPane = new JScrollPane(imageHolder);
 		previewScrollPane.setBorder(BorderFactory.createEtchedBorder());
 
-		// Enable fast scrolling
-		previewScrollPane.getVerticalScrollBar().setUnitIncrement(20);
-		previewScrollPane.getHorizontalScrollBar().setUnitIncrement(20);
+		previewScrollPane.getVerticalScrollBar()
+			.setUnitIncrement(20);
+		previewScrollPane.getHorizontalScrollBar()
+			.setUnitIncrement(20);
+	}
+
+	/**
+	 * Configures the JSpinner editor to strictly clamp manual inputs, Enter key presses,
+	 * focus loss, and arrow key edits within [minimum, maximum].
+	 */
+	private void configureSpinnerClamping(){
+		final JSpinner.DefaultEditor editor = (JSpinner.DefaultEditor)pageSpinner.getEditor();
+		final JFormattedTextField textField = editor.getTextField();
+
+		// Set commit policy to COMMIT (forces text parsing on value change)
+		final JFormattedTextField.AbstractFormatter formatter = textField.getFormatter();
+		if(formatter instanceof DefaultFormatter defaultFormatter){
+			// Disallow arbitrary invalid input
+			defaultFormatter.setAllowsInvalid(false);
+			// Commit instantly on typing
+			defaultFormatter.setCommitsOnValidEdit(true);
+		}
+
+		// Intercept Enter key and focus loss to force clamping
+		textField.addActionListener(e -> commitAndClampSpinner());
+		textField.addFocusListener(new java.awt.event.FocusAdapter(){
+			@Override
+			public void focusLost(final java.awt.event.FocusEvent e){
+				commitAndClampSpinner();
+			}
+		});
+
+		// Ensure arrow keys up/down inside the text field trigger model clamping
+		textField.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), ACTION_COMMIT_AND_CLAMP);
+		textField.getActionMap().put(ACTION_COMMIT_AND_CLAMP, new AbstractAction(){
+			@Override
+			public void actionPerformed(final java.awt.event.ActionEvent e){
+				commitAndClampSpinner();
+			}
+		});
+	}
+
+	/**
+	 * Parses current text/value and forces it within the model's [min, max] range.
+	 */
+	private void commitAndClampSpinner(){
+		final JSpinner.DefaultEditor editor = (JSpinner.DefaultEditor)pageSpinner.getEditor();
+		final JFormattedTextField textField = editor.getTextField();
+
+		int value;
+		try{
+			// Try parsing text typed by user manually
+			final String text = textField.getText().trim();
+			value = Integer.parseInt(text);
+		}
+		catch(final NumberFormatException e){
+			// Fallback to current model value if parsing fails
+			value = (Integer)pageSpinner.getValue();
+		}
+
+		final SpinnerNumberModel model = (SpinnerNumberModel)pageSpinner.getModel();
+		final int min = ((Number)model.getMinimum()).intValue();
+		final int max = ((Number)model.getMaximum()).intValue();
+
+		// Clamp the value between min and max
+		final int clampedValue = Math.clamp(value, min, max);
+
+		pageSpinner.setValue(clampedValue);
+		textField.setText(String.valueOf(clampedValue));
+	}
+
+	/**
+	 * Dynamically updates the upper page limit when a document is opened.
+	 */
+	private void updatePageLimit(final int maxPages){
+		final int validMax = Math.max(1, maxPages);
+		final SpinnerNumberModel model = (SpinnerNumberModel)pageSpinner.getModel();
+		model.setMaximum(validMax);
+
+		// Clamp current value if it exceeds new maximum
+		final int currentValue = (Integer)pageSpinner.getValue();
+		if(currentValue > validMax)
+			pageSpinner.setValue(validMax);
 	}
 
 
@@ -129,10 +215,6 @@ public class PageInputDialog extends JDialog{
 
 	private void initComponents(){
 		setTitle(I18N.t("dialog.preferred.page.input.title"));
-
-		// Center the preview content
-		previewLabel.setHorizontalAlignment(JLabel.CENTER);
-		previewLabel.setVerticalAlignment(JLabel.CENTER);
 
 		// Add a listener to update the preview when the page changes
 		pageSpinner.addChangeListener(e -> updatePreview());
@@ -153,7 +235,7 @@ public class PageInputDialog extends JDialog{
 	}
 
 	private void initLayout(){
-		// Layout with 3 rows: 
+		// Layout with 3 rows:
 		// 1. Preview (takes all available space)
 		// 2. Page selection
 		// 3. Buttons
@@ -165,8 +247,7 @@ public class PageInputDialog extends JDialog{
 
 		// 2. Below the preview: Page selection
 		final JPanel contentPanel = GUIHelper.createLabelFieldPanel(0, "[grow,fill]");
-		GUIHelper.addComponent(contentPanel, new JLabel(I18N.t("dialog.preferred.page.input.label")));
-		GUIHelper.addComponent(contentPanel, pageSpinner);
+		GUIHelper.addLabeledComponent(contentPanel, I18N.t("dialog.preferred.page.input.label"), pageSpinner);
 		add(contentPanel, "growx");
 
 		// 3. Bottom panel: Buttons
@@ -180,7 +261,7 @@ public class PageInputDialog extends JDialog{
 	 * Loads the document URI and initializes the spinner with the current page.
 	 * If the document changes, clears the cache and closes the previous document.
 	 */
-	public void loadData(final String uri, final Integer page){
+	public void loadData(final String uri, final Integer page, final Rectangle initialCrop){
 		isSaved = false;
 
 		// If we are opening a different file, we must clear the cache and close the old document
@@ -189,6 +270,8 @@ public class PageInputDialog extends JDialog{
 
 			this.documentUri = uri;
 		}
+
+		this.cropRectInOriginalSpace = initialCrop;
 
 		final ChangeListener[] listeners = pageSpinner.getChangeListeners();
 		for(final ChangeListener l : listeners)
@@ -207,8 +290,8 @@ public class PageInputDialog extends JDialog{
 	 */
 	private void updatePreview(){
 		if(documentUri == null || documentUri.trim().isEmpty()){
-			previewLabel.setIcon(null);
-			previewLabel.setText("No document loaded");
+			imageHolder.setRectangularImage(null);
+			currentOriginalImage = null;
 			return;
 		}
 
@@ -221,22 +304,11 @@ public class PageInputDialog extends JDialog{
 			return;
 		}
 
-		// Cancel the previous rendering task if it's still running
-		if(currentRenderWorker != null && !currentRenderWorker.isDone())
-			currentRenderWorker.cancel(true);
-
-		previewLabel.setIcon(null);
-		previewLabel.setText("Loading page " + page + "...");
-
-		currentRenderWorker = new SwingWorker<>(){
+		final SwingWorker<BufferedImage, Void> currentRenderWorker = new SwingWorker<>(){
 			@Override
-			protected Image doInBackground(){
-				final Image img = renderPage(documentUri, page);
-				if(img != null && !isCancelled())
-					// Cache the original unscaled image
-					pageCache.put(page, img);
-
-				return img;
+			protected BufferedImage doInBackground(){
+				// Render the page in an isolated, thread-safe manner
+				return renderPage(documentUri, page);
 			}
 
 			@Override
@@ -245,19 +317,25 @@ public class PageInputDialog extends JDialog{
 					return;
 
 				try{
-					final Image img = get();
-					if(img != null)
-						displayImage(img);
+					final BufferedImage img = get();
+					if(img != null){
+						// Cache the successfully rendered page
+						pageCache.put(page, img);
+
+						// Only update if this is still the currently requested page
+						if(page == (Integer)pageSpinner.getValue())
+							displayImage(img);
+					}
 					else{
-						previewLabel.setText("Preview not available or page out of bounds.");
-						previewLabel.setPreferredSize(null);
+						imageHolder.setRectangularImage(null);
+						currentOriginalImage = null;
 					}
 				}
 				catch(final Exception e){
 					LOGGER.error("Error rendering preview", e);
 
-					previewLabel.setText("Error loading preview.");
-					previewLabel.setPreferredSize(null);
+					imageHolder.setRectangularImage(null);
+					currentOriginalImage = null;
 				}
 			}
 		};
@@ -267,16 +345,17 @@ public class PageInputDialog extends JDialog{
 	/**
 	 * Displays the unscaled image and fits it to the window.
 	 */
-	private void displayImage(final Image img){
+	private void displayImage(final BufferedImage img){
 		this.currentOriginalImage = img;
+		imageHolder.setRectangularImage(img);
+		imageHolder.setCrop(cropRectInOriginalSpace);
 
-		// Fit to window when a new page is loaded.
-		// We use invokeLater to ensure the scroll pane has been laid out and has a valid viewport size.
+		// Fit to window initially
 		SwingUtilities.invokeLater(this::fitToWindow);
 	}
 
 	/**
-	 * Calculates the scale factor to fit the entire image inside the current viewport.
+	 * Calculates the scale factor to fit the entire page inside the current viewport.
 	 */
 	private void fitToWindow(){
 		if(currentOriginalImage == null)
@@ -286,55 +365,39 @@ public class PageInputDialog extends JDialog{
 		if(viewportSize.width <= 0 || viewportSize.height <= 0)
 			return;
 
-		final double scaleX = (double) viewportSize.width / currentOriginalImage.getWidth(null);
-		final double scaleY = (double) viewportSize.height / currentOriginalImage.getHeight(null);
+		final double scaleX = (double)viewportSize.width / currentOriginalImage.getWidth();
+		final double scaleY = (double)viewportSize.height / currentOriginalImage.getHeight();
 
-		// Use the smaller scale to ensure the whole image fits
+		// Use the smaller scale to ensure the whole page fits
 		final double fitScale = Math.min(scaleX, scaleY);
 
-		// Apply zoom and reset scroll position to top-left
 		applyZoom(fitScale);
 		previewScrollPane.getViewport().setViewPosition(new Point(0, 0));
 	}
 
 	/**
-	 * Scales the original image by the given factor and updates the UI.
-	 * Uses Graphics2D for fast and high-quality rendering.
+	 * Scales the original image dimensions by the given zoom factor.
 	 */
 	private void applyZoom(final double newZoom){
 		if(currentOriginalImage == null)
 			return;
 
-		// Constrain zoom between 10% and 500% to avoid extreme sizes
-		this.currentZoom = Math.max(0.1, Math.min(newZoom, 5.0));
+		// Constrain zoom between 10% and 500%
+		this.currentZoom = Math.clamp(newZoom, 0.1, 5.);
 
-		final int w = (int) (currentOriginalImage.getWidth(null) * currentZoom);
-		final int h = (int) (currentOriginalImage.getHeight(null) * currentZoom);
+		final int w = (int)(currentOriginalImage.getWidth() * currentZoom);
+		final int h = (int)(currentOriginalImage.getHeight() * currentZoom);
 
-		// Create a new scaled image
-		final BufferedImage scaledImage = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
-		final Graphics2D g2 = scaledImage.createGraphics();
-
-		// Use bilinear interpolation for a good balance of speed and quality
-		g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-		g2.drawImage(currentOriginalImage, 0, 0, w, h, null);
-		g2.dispose();
-
-		// Update the label
-		previewLabel.setText(null);
-		previewLabel.setPreferredSize(new Dimension(w, h));
-		previewLabel.setIcon(new ImageIcon(scaledImage));
-
-		// Refresh the layout
-		previewLabel.revalidate();
-		previewLabel.repaint();
+		imageHolder.setPreferredSize(new Dimension(w, h));
+		imageHolder.revalidate();
+		imageHolder.repaint();
 	}
 
 	/**
 	 * Renders a specific page of a document to an Image.
 	 * Uses Apache PDFBox for PDF files and ImageIO (with TwelveMonkeys) for images/TIFFs.
 	 */
-	private Image renderPage(final String uri, final int page){
+	private BufferedImage renderPage(final String uri, final int page){
 		final File file = new File(uri);
 		if(!file.exists())
 			return null;
@@ -342,24 +405,30 @@ public class PageInputDialog extends JDialog{
 		final String lowerUri = uri.toLowerCase();
 
 		// --- 1. PDF Rendering (Apache PDFBox 3.x) ---
-		if(lowerUri.endsWith(".pdf")){
-			try{
-				// Keep the PDFDocument open if it's already loaded
-				if(currentPdfDocument == null){
-					currentPdfDocument = Loader.loadPDF(file);
-					currentPdfRenderer = new PDFRenderer(currentPdfDocument);
-				}
+		if(lowerUri.endsWith(DocumentPartListPanel.EXTENSION_PDF)){
+			try(final PDDocument document = Loader.loadPDF(file)){
+				final int totalPages = document.getNumberOfPages();
+				// Update spinner maximum on the EDT thread
+				SwingUtilities.invokeLater(() -> updatePageLimit(totalPages));
 
-				if(page > 0 && page <= currentPdfDocument.getNumberOfPages()){
-					// 72 DPI is usually sufficient for a preview
-					return currentPdfRenderer.renderImageWithDPI(page - 1, 72, ImageType.RGB);
+				final PDFRenderer renderer = new PDFRenderer(document);
+				if(page > 0 && page <= totalPages){
+					final Image renderedImg = renderer.renderImageWithDPI(page - 1, 150, ImageType.RGB);
+					if(renderedImg instanceof BufferedImage bufferedImage)
+						return bufferedImage;
+
+					final BufferedImage bimage = new BufferedImage(renderedImg.getWidth(null),
+						renderedImg.getHeight(null), BufferedImage.TYPE_INT_RGB);
+					final java.awt.Graphics2D g = bimage.createGraphics();
+					g.drawImage(renderedImg, 0, 0, null);
+					g.dispose();
+					return bimage;
 				}
 			}
 			catch(final IOException e){
-				LOGGER.error("Error reading PDF: {}", e.getMessage());
-
-				// Reset on error
-				closeCurrentDocument();
+				// Log only if it's not a normal interruption/closed channel due to fast navigation
+				if(!(e instanceof java.nio.channels.ClosedChannelException))
+					LOGGER.error("Error reading PDF: {}", e.getMessage());
 			}
 			return null;
 		}
@@ -372,13 +441,11 @@ public class PageInputDialog extends JDialog{
 					final var reader = readers.next();
 					try{
 						reader.setInput(imageInputStream, true, true);
+						final int totalPages = reader.getNumImages(true);
+						SwingUtilities.invokeLater(() -> updatePageLimit(totalPages));
 
-						// For multi-page formats (like TIFF), read the requested page
-						if(reader.getNumImages(true) >= page)
+						if(page > 0 && page <= totalPages)
 							return reader.read(page - 1);
-						// Fallback for single-page images (JPG, PNG, etc.)
-						else if(reader.getNumImages(true) == 1 && page == 1)
-							return reader.read(0);
 					}
 					finally{
 						reader.dispose();
@@ -393,22 +460,11 @@ public class PageInputDialog extends JDialog{
 		return null;
 	}
 
-	/**
-	 * Safely closes the currently open PDF document to free up memory.
-	 */
 	private void closeCurrentDocument(){
-		if(currentPdfDocument != null){
-			try{
-				currentPdfDocument.close();
-			}
-			catch(final IOException e){
-				LOGGER.error("Error closing PDF document", e);
-			}
-			currentPdfDocument = null;
-			currentPdfRenderer = null;
-		}
 		pageCache.clear();
+		cropRectInOriginalSpace = null;
 		currentOriginalImage = null;
+		imageHolder.setRectangularImage(null);
 	}
 
 	@Override
@@ -421,6 +477,7 @@ public class PageInputDialog extends JDialog{
 
 	public void save(){
 		isSaved = true;
+		cropRectInOriginalSpace = imageHolder.getCrop();
 
 		setVisible(false);
 	}
@@ -431,6 +488,10 @@ public class PageInputDialog extends JDialog{
 
 	public Integer getPage(){
 		return (Integer)pageSpinner.getValue();
+	}
+
+	public Rectangle getCropRect(){
+		return cropRectInOriginalSpace;
 	}
 
 }

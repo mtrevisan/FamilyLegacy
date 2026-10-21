@@ -705,7 +705,7 @@ public class FamilyConverter{
 		FLEFRecord source = FLEFRecord.createMainRecord(
 			IDGenerator.nextId(SourceHandler.ID_PREFIX), SourceHandler.TYPE);
 		String docDesc = FLEFRecordHelper.getChildValue(docRecord, "description");
-		if(docDesc == null || docDesc.isEmpty()) docDesc = "Image";
+		if(StringUtils.isEmpty(docDesc)) docDesc = "Image";
 		FLEFRecord titleRec = FLEFRecord.createChildWithTag("title")
 			.addChild(FLEFRecord.createChildWithTagAndValue("value", docDesc));
 		source.addChild(titleRec);

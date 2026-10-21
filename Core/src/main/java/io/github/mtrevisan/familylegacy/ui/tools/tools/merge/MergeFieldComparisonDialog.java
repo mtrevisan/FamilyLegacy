@@ -772,7 +772,7 @@ public final class MergeFieldComparisonDialog extends JDialog{
 	}
 
 	private static int countLines(final String text){
-		if(text == null || text.isEmpty())
+		if(StringUtils.isEmpty(text))
 			return 0;
 		int n = 1;
 		for(int i = 0; i < text.length(); i ++)
@@ -884,7 +884,7 @@ public final class MergeFieldComparisonDialog extends JDialog{
 	 * @throws IOException on a syntax error in the fragment
 	 */
 	private List<FLEFRecord> parseResultText(final String text) throws IOException{
-		if(text == null || text.isBlank())
+		if(StringUtils.isEmpty(text))
 			return List.of();
 
 		final String recordTag = (targetRecord != null && targetRecord.getTag() != null

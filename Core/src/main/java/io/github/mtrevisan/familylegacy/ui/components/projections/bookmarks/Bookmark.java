@@ -54,7 +54,7 @@ public record Bookmark(
 ){
 
 	public Bookmark{
-		if(id == null || id.isBlank())
+		if(StringUtils.isEmpty(id))
 			throw new IllegalArgumentException("Bookmark id must not be blank");
 		if(type == null)
 			throw new IllegalArgumentException("Bookmark type must not be null");

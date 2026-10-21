@@ -447,9 +447,11 @@ public abstract class BaseRecordDialog extends JDialog{
 	 * @param tabbedPane	The dialog's fully populated tabbed pane.
 	 */
 	protected void finalizeLayout(final JTabbedPane tabbedPane){
-		setLayout(new MigLayout("ins 10,fillx,top"));
+		if(tabbedPane.getTabCount() > 0){
+			setLayout(new MigLayout("ins 10,fillx,top"));
 
-		add(tabbedPane, "growx");
+			add(tabbedPane, "growx");
+		}
 
 		final JPanel buttonPanel = GUIHelper.createButtonPanel(this,
 			this::save,
@@ -469,6 +471,9 @@ public abstract class BaseRecordDialog extends JDialog{
 	protected void setupSourceListSelection(){
 		// Find the JList inside the source panel (assume it's an EntityListPanel or a panel with a list)
 		final EntityListPanel sourcePanel = (EntityListPanel)components.getPanel(PanelKey.SOURCE);
+		if(sourcePanel == null)
+			return;
+
 		final JList<?> sourceList = sourcePanel.getList();
 		final ListSelectionListener sourceSelectionListener = e -> {
 			if(!e.getValueIsAdjusting())
@@ -483,6 +488,9 @@ public abstract class BaseRecordDialog extends JDialog{
 	 */
 	protected void updateCarouselFromSelectedSource(){
 		final EntityListPanel sourcePanel = (EntityListPanel)components.getPanel(PanelKey.SOURCE);
+		if(sourcePanel == null)
+			return;
+
 		final FLEFRecord selected = sourcePanel.getSelectedItem();
 		List<String> uris = null;
 		if(selected != null)
@@ -531,6 +539,7 @@ public abstract class BaseRecordDialog extends JDialog{
 	 */
 	public final void save(){
 		if(validData()){
+			// TODO this removes too much, each dialog should remove only his properties
 			record.clear();
 
 			saveData();
