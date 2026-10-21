@@ -24,10 +24,12 @@
  */
 package io.github.mtrevisan.familylegacy.io.model.readers;
 
+import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.io.model.readers.names.Name;
 import io.github.mtrevisan.familylegacy.io.model.readers.names.NameAnatomyService;
+import io.github.mtrevisan.familylegacy.ui.components.PreferredImagePanel;
 import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Rectangle;
@@ -66,8 +68,8 @@ public final class GroupReader{
 	public static final String TAG_SOURCE = "source";
 	public static final String TAG_NOTE = "note";
 	public static final String TAG_PREFERRED_IMAGE = "preferred_image";
-	private static final String TAG_PREFERRED_IMAGE_URI = FLEFRecordHelper.composePath(TAG_PREFERRED_IMAGE, "uri");
-	private static final String TAG_PREFERRED_IMAGE_CROP = FLEFRecordHelper.composePath(TAG_PREFERRED_IMAGE, "crop");
+	private static final String TAG_PREFERRED_IMAGE_DOCUMENT = FLEFRecordHelper.composePath(TAG_PREFERRED_IMAGE, PreferredImagePanel.TAG_DOCUMENT);
+	private static final String TAG_PREFERRED_IMAGE_CROP = FLEFRecordHelper.composePath(TAG_PREFERRED_IMAGE, PreferredImagePanel.TAG_CROP);
 	public static final String TAG_PRIVACY = "privacy";
 	public static final String TAG_AUDIT = "audit";
 
@@ -85,8 +87,11 @@ public final class GroupReader{
 	}
 
 
-	public static String extractPreferredImageUri(final FLEFRecord record){
-		return FLEFRecordHelper.getChildValue(record, TAG_PREFERRED_IMAGE_URI);
+	public static String extractPreferredImageUri(final FLEFRecord record, final FLEFModel model){
+		final String documentId = FLEFRecordHelper.getChildValue(record, TAG_PREFERRED_IMAGE_DOCUMENT);
+		final FLEFRecord document = model.getRecordById(documentId);
+		final String uri = DocumentReader.extractUri(document);
+		return (uri != null? documentId: null);
 	}
 
 	public static Rectangle extractPreferredImageCrop(final FLEFRecord record){

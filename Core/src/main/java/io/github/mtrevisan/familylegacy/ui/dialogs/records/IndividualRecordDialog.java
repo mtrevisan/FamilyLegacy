@@ -147,7 +147,7 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 	private IndividualRecordDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, IndividualHandler.getInstance());
 
-		preferredImagePanel = new PreferredImagePanel(IndividualReader.TAG_PREFERRED_IMAGE, this);
+		preferredImagePanel = new PreferredImagePanel(IndividualReader.TAG_PREFERRED_IMAGE, this, model);
 		personalNamePanel = EntityListPanel.createForStructure(IndividualReader.TAG_NAME, this, I18N.t("dialog.individual.personal_name") + "*", model, PersonalNameHandler.class);
 		sexCombo = new BoundComboBox<>(IndividualReader.TAG_SEX, GUIHelper.fillCombo(IndividualReader.SEXES, null));
 		sexCombo.setI18NPrefix("enum.individual.sex");

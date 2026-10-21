@@ -307,6 +307,8 @@ public abstract class AbstractListPanel<T> extends JPanel{
 	 * Saves list elements into a target FLEFRecord path when {@code T} is {@code FLEFRecord}.
 	 */
 	public final void save(final FLEFRecord record, final String path){
+		clearRecord(record, path);
+
 		if(listModel.isEmpty())
 			return;
 
@@ -325,6 +327,17 @@ public abstract class AbstractListPanel<T> extends JPanel{
 		final FLEFRecord parent = FLEFRecordHelper.getOrCreateTargetNode(record, parentPath);
 		for(final T item : items)
 			parent.addChildWithTag(lastChildTag, (FLEFRecord)item);
+	}
+
+	/**
+	 * Clears all tags from the record before saving.
+	 *
+	 * @param record the FLEF record to clean
+	 * @param path   the specific path to remove
+	 */
+	void clearRecord(final FLEFRecord record, final String path){
+		if(StringUtils.isNotEmpty(path))
+			FLEFRecordHelper.removeChildren(record, path);
 	}
 
 

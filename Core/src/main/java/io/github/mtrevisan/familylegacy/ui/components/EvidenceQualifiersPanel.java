@@ -135,9 +135,22 @@ public class EvidenceQualifiersPanel extends JPanel{
 	 * @param record	the record to save into
 	 */
 	public void save(final FLEFRecord record){
+		clearRecord(record);
+
 		FLEFRecordHelper.updateChildValue(record, FLEFRecordHelper.composePath(path, EvidenceQualifiersReader.TAG_SOURCE_TYPE), getSourceType());
 		FLEFRecordHelper.updateChildValue(record, FLEFRecordHelper.composePath(path, EvidenceQualifiersReader.TAG_INFORMATION_TYPE), getInformationType());
 		FLEFRecordHelper.updateChildValue(record, FLEFRecordHelper.composePath(path, EvidenceQualifiersReader.TAG_EVIDENCE_TYPE), getEvidenceType());
+	}
+
+	/**
+	 * Clears all tags from the record before saving.
+	 *
+	 * @param record the FLEF record to clean
+	 */
+	private void clearRecord(final FLEFRecord record){
+		FLEFRecordHelper.removeChildren(record, FLEFRecordHelper.composePath(path, EvidenceQualifiersReader.TAG_SOURCE_TYPE),
+			FLEFRecordHelper.composePath(path, EvidenceQualifiersReader.TAG_INFORMATION_TYPE),
+			FLEFRecordHelper.composePath(path, EvidenceQualifiersReader.TAG_EVIDENCE_TYPE));
 	}
 
 	public String getSourceType(){

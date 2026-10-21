@@ -157,7 +157,7 @@ public final class GroupDossierService{
 			entries.add(DossierEntry.of("Type", type.replace('_', ' '), group));
 
 		// Preferred image.
-		final String uri = GroupReader.extractPreferredImageUri(group);
+		final String uri = GroupReader.extractPreferredImageUri(group, model);
 		if(StringUtils.isNotEmpty(uri))
 			entries.add(DossierEntry.of("Photo", uri, group));
 

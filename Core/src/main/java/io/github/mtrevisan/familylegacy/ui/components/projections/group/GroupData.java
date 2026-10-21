@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections.group;
 
+import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.readers.GroupReader;
 import io.github.mtrevisan.familylegacy.ui.components.projections.BoxPanelType;
@@ -74,14 +75,14 @@ public final class GroupData{
 	private ImageIcon imageSecondary;
 
 
-	public static GroupData create(final FLEFRecord group){
+	public static GroupData create(final FLEFRecord group, final FLEFModel model){
 		return (group != null
-			? new GroupData(group)
+			? new GroupData(group, model)
 			: null);
 	}
 
 
-	private GroupData(final FLEFRecord group){
+	private GroupData(final FLEFRecord group, final FLEFModel model){
 		this.group = group;
 		id = group.getId();
 
@@ -96,7 +97,7 @@ public final class GroupData{
 		final String rawType = GroupReader.extractType(group);
 		type = (rawType != null? rawType.replace('_', ' '): StringUtils.EMPTY);
 
-		extractPreferredImage(group);
+		extractPreferredImage(group, model);
 	}
 
 
@@ -137,7 +138,7 @@ public final class GroupData{
 	}
 
 
-	private void extractPreferredImage(final FLEFRecord record){
+	private void extractPreferredImage(final FLEFRecord record, final FLEFModel model){
 		if(record == null){
 			preferredImageUri = null;
 			preferredImageCropRect = null;
@@ -148,7 +149,7 @@ public final class GroupData{
 			return;
 		}
 
-		preferredImageUri = GroupReader.extractPreferredImageUri(record);
+		preferredImageUri = GroupReader.extractPreferredImageUri(record, model);
 		preferredImageCropRect = GroupReader.extractPreferredImageCrop(record);
 
 		// Set the default image immediately

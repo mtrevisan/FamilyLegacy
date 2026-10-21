@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.tools.reports;
 
+import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
@@ -70,7 +71,7 @@ final class GroupStorySection implements SectionBuilder{
 		out.add(new ReportSection.Heading(1, String.format(ctx.labels.narrative().groupLifeOf(), who)));
 
 		writeNarrative(out);
-		writePreferredImage(out);
+		writePreferredImage(out, ctx.model);
 		writePersonalData(out);
 		if(ctx.config.groupMembers())
 			writeMembers(out);
@@ -99,12 +100,12 @@ final class GroupStorySection implements SectionBuilder{
 
 	/* ----- Preferred image ------------------------------------------------- */
 
-	private void writePreferredImage(final List<ReportSection> out){
+	private void writePreferredImage(final List<ReportSection> out, final FLEFModel model){
 		final FLEFRecord preferred = FLEFRecordHelper.findChild(ctx.root, GroupReader.TAG_PREFERRED_IMAGE);
 		if(preferred == null)
 			return;
 
-		final String uri = GroupReader.extractPreferredImageUri(preferred);
+		final String uri = GroupReader.extractPreferredImageUri(preferred, model);
 		if(uri == null)
 			return;
 

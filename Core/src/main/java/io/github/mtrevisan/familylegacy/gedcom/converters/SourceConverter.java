@@ -103,7 +103,9 @@ public class SourceConverter {
 		if(authNode != null){
 			String fullAuthor = GEDCOMHelper.extractFullText(authNode);
 			if(fullAuthor != null && !fullAuthor.isBlank()){
-				source.addChild(FLEFRecord.createChildWithTagAndValue("author", fullAuthor));
+				source.addChild(FLEFRecord.createChildWithTag("author")
+					.addChild(FLEFRecord.createChildWithTagAndValue("text", fullAuthor))
+				);
 			}
 		}
 

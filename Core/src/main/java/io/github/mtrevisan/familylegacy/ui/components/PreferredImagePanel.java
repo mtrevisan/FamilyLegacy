@@ -28,15 +28,10 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.io.model.readers.CropReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.GroupReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.DocumentReader;
 import io.github.mtrevisan.familylegacy.ui.bindings.BindingsHelper;
-import io.github.mtrevisan.familylegacy.ui.components.fields.EntityField;
+import io.github.mtrevisan.familylegacy.ui.components.searches.RecordSelectionDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.DocumentHandler;
-import io.github.mtrevisan.familylegacy.ui.handlers.IndividualAttributeHandler;
-import io.github.mtrevisan.familylegacy.ui.handlers.SourceHandler;
-import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
@@ -49,23 +44,21 @@ import javax.swing.JPanel;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
-import java.awt.Image;
 import java.awt.Rectangle;
+import java.awt.RenderingHints;
 import java.awt.Window;
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.IOException;
 
 
 /**
  * Panel for selecting and managing a preferred image associated with a record.
- * The image is referenced via a Source record and can be cropped.
+ * The image is referenced via a DocumentRecord and can be cropped.
  * <p>
  * Structure:
  * <pre>
  * struct {
- *   uri: Uri	TODO remove
- *   document: Xref&lt;DocumentRecord&gt;	TODO substitute with
+ *   document: Xref&lt;DocumentRecord&gt;
  *   crop?: CropRect
  * }
  * </pre>
@@ -86,11 +79,11 @@ public class PreferredImagePanel extends JPanel{
 	private final Window parent;
 
 	private final String path;
+	private final FLEFModel model;
 
 	private final JButton imageButton;
 
-	private final EntityField document;
-
+	private String documentId;
 	private Rectangle cropRect;
 
 
@@ -103,10 +96,9 @@ public class PreferredImagePanel extends JPanel{
 		this.parent = parent;
 
 		this.path = path;
+		this.model = model;
 
 		this.imageButton = new JButton();
-
-		document = EntityField.createForRecordFromReference(TAG_DOCUMENT, parent, model, DocumentHandler.class);
 
 		cropDialog = ImageCropDialog.create(parent);
 
@@ -118,7 +110,7 @@ public class PreferredImagePanel extends JPanel{
 	private void initComponents(){
 		setLayout(new MigLayout("ins 0,fillx", "[grow,align center]"));
 
-		imageButton.setPreferredSize(new Dimension(80, 80));
+		imageButton.setPreferredSize(new Dimension(MAX_DIMENSION_SIZE, MAX_DIMENSION_SIZE));
 		imageButton.setIcon(PLACEHOLDER_ICON);
 		imageButton.setToolTipText(I18N.t("dialog.preferred.image.image.tooltip"));
 
@@ -156,14 +148,10 @@ public class PreferredImagePanel extends JPanel{
 		if(preferredImage == null)
 			return;
 
-		final boolean isIndividual = IndividualAttributeHandler.isOfType(record);
-		uri = (isIndividual? IndividualReader.extractPreferredImageUri(record): GroupReader.extractPreferredImageUri(record));
-		cropRect = (isIndividual? IndividualReader.extractPreferredImageCrop(record): GroupReader.extractPreferredImageCrop(record));
-
-		try{
-			cropDialog.loadData(uri, cropRect);
-		}
-		catch(final IOException ignored){}
+		documentId = FLEFRecordHelper.getChildValue(preferredImage, TAG_DOCUMENT);
+		final FLEFRecord crop = FLEFRecordHelper.findChild(preferredImage, TAG_CROP);
+		if(crop != null)
+			cropRect = CropReader.extractPreferredImageCrop(crop);
 
 		updatePreferredImage();
 	}
@@ -175,6 +163,8 @@ public class PreferredImagePanel extends JPanel{
 	 * @param record	the record to save into
 	 */
 	public void save(final FLEFRecord record){
+		clearRecord(record);
+
 		if(StringUtils.isNotEmpty(documentId)){
 			final FLEFRecord preferredImage = FLEFRecordHelper.getOrCreateTargetNode(record, path);
 			FLEFRecordHelper.updateChildValue(preferredImage, TAG_DOCUMENT, documentId);
@@ -189,12 +179,23 @@ public class PreferredImagePanel extends JPanel{
 	}
 
 	/**
+	 * Clears all tags from the preferred image node before saving.
+	 *
+	 * @param record the FLEF record to clean
+	 */
+	private void clearRecord(final FLEFRecord record){
+		final FLEFRecord preferredImage = FLEFRecordHelper.findChild(record, path);
+		if(preferredImage != null)
+			FLEFRecordHelper.removeChildren(preferredImage, TAG_DOCUMENT, TAG_CROP);
+	}
+
+	/**
 	 * Returns whether an image is currently selected.
 	 *
 	 * @return {@code true} if an image is selected, {@code false} otherwise
 	 */
 	public boolean hasImage(){
-		return StringUtils.isNotEmpty(uri);
+		return StringUtils.isNotEmpty(documentId);
 	}
 
 	/**
@@ -206,6 +207,14 @@ public class PreferredImagePanel extends JPanel{
 
 			return;
 		}
+
+		final FLEFRecord document = model.getRecordById(documentId);
+		if(document == null)
+			return;
+
+		final String uri = DocumentReader.extractUri(document);
+		if(uri == null)
+			return;
 
 		try{
 			cropDialog.loadData(uri, cropRect);
@@ -227,60 +236,82 @@ public class PreferredImagePanel extends JPanel{
 	}
 
 	/**
-	 * Opens a system file chooser to pick an image file and displays the {@link ImageCropDialog} to set the crop.
+	 * Opens a selection dialog to pick or create a DocumentRecord.
 	 */
 	private void setNewItem(){
-		final File selectedFile = GUIHelper.selectDocumentFile(this, uri);
-		if(selectedFile == null)
-			return;
-
-		try{
-			cropDialog.loadData(selectedFile, null);
-			cropDialog.setVisible(true);
-
-			if(cropDialog.isSaved()){
-				uri = selectedFile.getAbsolutePath();
-				cropRect = cropDialog.getCrop();
-
-				updatePreferredImage();
-			}
-		}
-		catch(final IOException ioe){
-			ioe.printStackTrace();
-
-			JOptionPane.showMessageDialog(this,
-				I18N.tf("error.image", uri),
-				I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
-		}
+		final RecordSelectionDialog dialog = RecordSelectionDialog.createWithAllowRecordCreation(
+			parent, model,
+			(record, handler) -> {
+				if(record != null){
+					documentId = record.getId();
+					cropRect = null; // Reset crop when a new document is selected
+					editCrop(); // Immediately prompt the user to select the crop
+				}
+			},
+			DocumentHandler.class);
+		dialog.setVisible(true);
 	}
 
 	private void updatePreferredImage(){
-		final BufferedImage img = cropDialog.getImage();
-		if(img != null){
-			BufferedImage source = img;
-			if(cropRect != null){
-				// Intersect rectangle with image bounds to prevent RasterFormatException
-				final Rectangle imgBounds = new Rectangle(0, 0, img.getWidth(), img.getHeight());
-				final Rectangle validCrop = cropRect.intersection(imgBounds);
-
-				if(!validCrop.isEmpty())
-					source = img.getSubimage(validCrop.x, validCrop.y, validCrop.width, validCrop.height);
-			}
-
-			final int origWidth = source.getWidth();
-			final int origHeight = source.getHeight();
-			int newWidth = MAX_DIMENSION_SIZE;
-			int newHeight = MAX_DIMENSION_SIZE;
-			if(origWidth > origHeight)
-				newHeight = (int)(origHeight * (double)MAX_DIMENSION_SIZE / origWidth);
-			else
-				newWidth = (int)(origWidth * (double)MAX_DIMENSION_SIZE / origHeight);
-			final Image scaled = source.getScaledInstance(newWidth, newHeight, Image.SCALE_SMOOTH);
-
-			imageButton.setIcon(new ImageIcon(scaled));
-		}
-		else
+		if(documentId == null){
 			imageButton.setIcon(PLACEHOLDER_ICON);
+
+			return;
+		}
+
+		final FLEFRecord document = model.getRecordById(documentId);
+		if(document == null){
+			imageButton.setIcon(PLACEHOLDER_ICON);
+
+			return;
+		}
+
+		final String uri = DocumentReader.extractUri(document);
+		if(uri == null){
+			imageButton.setIcon(PLACEHOLDER_ICON);
+
+			return;
+		}
+
+		try{
+			cropDialog.loadData(uri, cropRect);
+			final BufferedImage img = cropDialog.getImage();
+
+			if(img != null){
+				BufferedImage source = img;
+				if(cropRect != null){
+					// Intersect rectangle with image bounds to prevent RasterFormatException
+					final Rectangle imgBounds = new Rectangle(0, 0, img.getWidth(), img.getHeight());
+					final Rectangle validCrop = cropRect.intersection(imgBounds);
+
+					if(!validCrop.isEmpty())
+						source = img.getSubimage(validCrop.x, validCrop.y, validCrop.width, validCrop.height);
+				}
+
+				final int origWidth = source.getWidth();
+				final int origHeight = source.getHeight();
+				int newWidth = MAX_DIMENSION_SIZE;
+				int newHeight = MAX_DIMENSION_SIZE;
+				if(origWidth > origHeight)
+					newHeight = (int)(origHeight * (double)MAX_DIMENSION_SIZE / origWidth);
+				else
+					newWidth = (int)(origWidth * (double)MAX_DIMENSION_SIZE / origHeight);
+
+				// Use Graphics2D for fast scaling instead of getScaledInstance
+				final BufferedImage scaled = new BufferedImage(newWidth, newHeight, BufferedImage.TYPE_INT_ARGB);
+				final Graphics2D g2 = scaled.createGraphics();
+				g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+				g2.drawImage(source, 0, 0, newWidth, newHeight, null);
+				g2.dispose();
+
+				imageButton.setIcon(new ImageIcon(scaled));
+			}
+			else
+				imageButton.setIcon(PLACEHOLDER_ICON);
+		}
+		catch(final IOException e){
+			imageButton.setIcon(PLACEHOLDER_ICON);
+		}
 	}
 
 	/**
@@ -298,16 +329,16 @@ public class PreferredImagePanel extends JPanel{
 	}
 
 	private void clearImage(){
-		uri = null;
+		documentId = null;
 		cropRect = null;
 		imageButton.setIcon(PLACEHOLDER_ICON);
 	}
 
 	private static Icon createPlaceholderIcon(){
-		final BufferedImage img = new BufferedImage(80, 80, BufferedImage.TYPE_INT_ARGB);
+		final BufferedImage img = new BufferedImage(MAX_DIMENSION_SIZE, MAX_DIMENSION_SIZE, BufferedImage.TYPE_INT_ARGB);
 		final Graphics2D g2 = img.createGraphics();
 		g2.setColor(Color.LIGHT_GRAY);
-		g2.fillRect(0, 0, 80, 80);
+		g2.fillRect(0, 0, MAX_DIMENSION_SIZE, MAX_DIMENSION_SIZE);
 		g2.setColor(Color.DARK_GRAY);
 		g2.drawString(I18N.t("dialog.preferred.image.no_image"), 10, 45);
 		g2.dispose();

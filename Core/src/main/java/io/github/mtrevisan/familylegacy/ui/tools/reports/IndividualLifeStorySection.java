@@ -104,7 +104,7 @@ final class IndividualLifeStorySection implements SectionBuilder{
 		final FLEFRecord preferred = FLEFRecordHelper.findChild(ctx.root, IndividualReader.TAG_PREFERRED_IMAGE);
 		if(preferred == null)
 			return;
-		final String uri = IndividualReader.extractPreferredImageUri(ctx.root);
+		final String uri = IndividualReader.extractPreferredImageUri(ctx.root, ctx.model);
 		if(uri == null)
 			return;
 		final String caption = ReportFormatters.imageCaption(

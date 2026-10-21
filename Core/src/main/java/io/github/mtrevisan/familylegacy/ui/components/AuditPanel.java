@@ -131,6 +131,8 @@ public class AuditPanel extends JPanel{
 	 * @param record	the record to save into
 	 */
 	public void save(final FLEFRecord record){
+		clearRecord(record);
+
 		// creation.date
 		if(StringUtils.isEmpty(creationDate))
 			creationDate = DateTimeFormatter.ISO_INSTANT.format(Instant.now().truncatedTo(ChronoUnit.SECONDS));
@@ -140,6 +142,17 @@ public class AuditPanel extends JPanel{
 
 		// update
 		updateListPanel.save(record);
+	}
+
+	/**
+	 * Clears all tags from the record before saving.
+	 *
+	 * @param record the FLEF record to clean
+	 */
+	private void clearRecord(final FLEFRecord record){
+		FLEFRecordHelper.removeChildren(record, FLEFRecordHelper.composePath(path, AuditReader.TAG_CREATION));
+
+		updateListPanel.clearRecord(record);
 	}
 
 	public void clear(){

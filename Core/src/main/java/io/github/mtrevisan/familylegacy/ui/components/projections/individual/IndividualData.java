@@ -239,7 +239,7 @@ public final class IndividualData{
 		infoText = sj.toString();
 		infoTooltip = tooltip.toString();
 
-		extractPreferredImage(individual);
+		extractPreferredImage(individual, model);
 	}
 
 
@@ -434,7 +434,7 @@ public final class IndividualData{
 	}
 
 
-	private void extractPreferredImage(final FLEFRecord record){
+	private void extractPreferredImage(final FLEFRecord record, final FLEFModel model){
 		if(record == null){
 			preferredImageUri = null;
 			preferredImageCropRect = null;
@@ -445,7 +445,7 @@ public final class IndividualData{
 			return;
 		}
 
-		preferredImageUri = IndividualReader.extractPreferredImageUri(record);
+		preferredImageUri = IndividualReader.extractPreferredImageUri(record, model);
 		preferredImageCropRect = IndividualReader.extractPreferredImageCrop(record);
 
 		final String rawSex = IndividualReader.extractRawSex(record);

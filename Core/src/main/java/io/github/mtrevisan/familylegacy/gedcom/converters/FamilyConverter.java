@@ -642,7 +642,13 @@ public class FamilyConverter{
 			}
 			if(document == null){
 				document = createDocumentRecord(objNode);
-				Deduplicator.getDeduplicatedRecordId(model, document);
+
+				// Check for duplicates and get the actual ID in the model
+				String dedupId = Deduplicator.getDeduplicatedRecordId(model, document);
+				document = model.getRecordById(dedupId);
+				if(document == null)
+					document = createDocumentRecord(objNode); // Fallback
+
 				multimediaMap.put(document.getId(), document);
 			}
 
@@ -650,7 +656,9 @@ public class FamilyConverter{
 				String fileUri = FLEFRecordHelper.getChildValue(document, "uri");
 				if(fileUri != null && !fileUri.isEmpty()){
 					FLEFRecord prefImg = FLEFRecord.createChildWithTag("preferred_image");
-					prefImg.addChild(FLEFRecord.createChildWithTagAndValue("uri", fileUri));
+					// Referencing the document by ID instead of URI
+					prefImg.addChild(FLEFRecord.createChildWithTagAndValue("document", document.getId()));
+
 					GEDCOMNode cutdNode = GEDCOMHelper.findFirstChild(objNode, "_CUTD");
 					if(cutdNode != null && cutdNode.getValue() != null){
 						String[] parts = StringUtils.split(cutdNode.getValue(),' ');
@@ -676,12 +684,17 @@ public class FamilyConverter{
 			}
 			else{
 				FLEFRecord source = createSourceRecordFromDocument(document, objNode);
-				Deduplicator.getDeduplicatedRecordId(model, source);
-				sourceMap.put(source.getId(), source);
 
-				FLEFRecord sourceCitation = FLEFRecord.createChildWithTag("source");
-				sourceCitation.addChild(FLEFRecord.createChildWithTagAndValue("source", source.getId()));
-				group.addChild(sourceCitation);
+				// check for duplicates before adding
+				String dedupId = Deduplicator.getDeduplicatedRecordId(model, source);
+				source = model.getRecordById(dedupId);
+				if(source != null){
+					sourceMap.put(source.getId(), source);
+
+					FLEFRecord sourceCitation = FLEFRecord.createChildWithTag("source");
+					sourceCitation.addChild(FLEFRecord.createChildWithTagAndValue("source", source.getId()));
+					group.addChild(sourceCitation);
+				}
 			}
 		}
 	}

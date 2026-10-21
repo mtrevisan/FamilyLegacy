@@ -746,31 +746,51 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 		if(isReference)
 			return;
 
+		clearRecord(record);
+
+		if(isEmpty())
+			return;
+
 		if(type == ListType.ENTITY_REFERENCE){
-			// Simple: add each item's ID as a child with the given path
 			for(final FLEFRecord item : getItems())
 				FLEFRecordHelper.addChildValue(record, path, item.getFormattedId());
 		}
 		else if(type == ListType.ONEOF_REFERENCE){
-			// One‑of: add a node with a child that has tag and value
-			if(hasData())
-				for(final FLEFRecord item : getItems())
-					record.addChild(FLEFRecord.createChildWithTag(path)
-						.addChild(FLEFRecord.createChildWithTagAndValue(item.getTag(), item.getFormattedId()))
-					);
+			for(final FLEFRecord item : getItems())
+				record.addChild(FLEFRecord.createChildWithTag(path)
+					.addChild(FLEFRecord.createChildWithTagAndValue(item.getTag(), item.getFormattedId()))
+				);
 		}
-		else if(type == ListType.CITATION_WRAPPER)
+		else if(type == ListType.CITATION_WRAPPER){
 			// Citation wrapper: items are already full citation records; add them under the path.
-			super.save(record, path);
+			addItemsToPath(record, path);
+		}
 		else if(type == ListType.STRUCTURE){
-			// Structure: save the entire structures under the path.
-			// Special case: if handler is ConclusionTargetHandler, save under TAG_RESOLVES.
 			if(handlerTypes.size() == 1 && ConclusionTargetHandler.class.equals(handlerTypes.getFirst())){
 				final FLEFRecord parentRecord = FLEFRecordHelper.getOrCreateTargetNode(record, TAG_RESOLVES);
-				super.save(parentRecord, path);
+				addItemsToPath(parentRecord, path);
 			}
 			else
-				super.save(record, path);
+				addItemsToPath(record, path);
+		}
+	}
+
+	/**
+	 * Helper to add items under a specific path.
+	 */
+	private void addItemsToPath(final FLEFRecord record, final String path){
+		if(StringUtils.isEmpty(path)){
+			for(final FLEFRecord item : getItems())
+				record.addChild(item);
+		}
+		else{
+			final int lastDotIndex = path.lastIndexOf('.');
+			final String parentPath = (lastDotIndex >= 0? path.substring(0, lastDotIndex): null);
+			final String lastChildTag = (lastDotIndex >= 0? path.substring(lastDotIndex + 1): path);
+			final FLEFRecord parent = FLEFRecordHelper.getOrCreateTargetNode(record, parentPath);
+
+			for(final FLEFRecord item : getItems())
+				parent.addChildWithTag(lastChildTag, item);
 		}
 	}
 
@@ -779,9 +799,32 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 	 *
 	 * @param record the FLEF record to clean
 	 */
-	private void clearRecord(final FLEFRecord record){
-		if(StringUtils.isNotEmpty(path))
-			FLEFRecordHelper.removeChildren(record, path);
+	void clearRecord(final FLEFRecord record){
+		if(type == ListType.ENTITY_REFERENCE || type == ListType.ONEOF_REFERENCE){
+			if(StringUtils.isNotEmpty(path))
+				FLEFRecordHelper.removeChildren(record, path);
+		}
+		else if(type == ListType.CITATION_WRAPPER || type == ListType.STRUCTURE){
+			final boolean isConclusionTarget = (handlerTypes.size() == 1
+				&& ConclusionTargetHandler.class.equals(handlerTypes.getFirst()));
+
+			if(isConclusionTarget)
+				FLEFRecordHelper.removeChildren(record, TAG_RESOLVES);
+			else if(StringUtils.isNotEmpty(path))
+				FLEFRecordHelper.removeChildren(record, path);
+			else{
+				// If path is empty, clear all tags associated with the handlers
+				for(final Class<? extends RecordTypeHandler<?>> handlerClass : handlerTypes){
+					final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(handlerClass);
+					if(handler != null){
+						FLEFRecordHelper.removeChildren(record, handler.getType());
+						final RecordTypeHandler<?> parent = handler.getParentHandler();
+						if(parent != null)
+							FLEFRecordHelper.removeChildren(record, parent.getType());
+					}
+				}
+			}
+		}
 	}
 
 

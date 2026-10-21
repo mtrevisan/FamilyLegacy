@@ -25,7 +25,6 @@
 package io.github.mtrevisan.familylegacy.ui.components.lists;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.handlers.TextValueVariantHandler;
 
 import java.awt.Window;
@@ -41,17 +40,6 @@ public class TextValueVariantListPanel extends EntityListPanel{
 		super(path, parent, panelTitle, model, ListType.STRUCTURE, null);
 
 		withHandlerTypes(TextValueVariantHandler.class);
-	}
-
-
-	/**
-	 * Saves the current variants to the given record.
-	 *
-	 * @param record	the record to save to
-	 */
-	public void save(final FLEFRecord record){
-		for(final FLEFRecord item : getItems())
-			record.addChild(item);
 	}
 
 }

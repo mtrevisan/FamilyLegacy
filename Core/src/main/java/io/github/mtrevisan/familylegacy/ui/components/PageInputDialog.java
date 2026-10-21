@@ -477,6 +477,7 @@ public class PageInputDialog extends JDialog{
 
 	public void save(){
 		isSaved = true;
+
 		cropRectInOriginalSpace = imageHolder.getCrop();
 
 		setVisible(false);

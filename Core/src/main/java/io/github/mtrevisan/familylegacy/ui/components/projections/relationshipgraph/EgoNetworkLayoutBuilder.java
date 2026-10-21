@@ -130,7 +130,7 @@ class EgoNetworkLayoutBuilder{
 
 		for(final FLEFRecord groupRecord : groups){
 			final GroupPanel panel = GroupPanel.create(BoxPanelType.SECONDARY, model)
-				.withGroupData(GroupData.create(groupRecord))
+				.withGroupData(GroupData.create(groupRecord, model))
 				.withListener(groupListener, new EgoNetworkGroupPopupMenuFactory());
 
 			final List<EgoNode.RelationInfo> relations = rootEgoNode.getGroupRelationInfo(groupRecord);
@@ -149,7 +149,7 @@ class EgoNetworkLayoutBuilder{
 		final FLEFRecord record = node.getEgoRecord();
 		if(GroupHandler.isOfType(record)){
 			final GroupPanel groupPanel = GroupPanel.create(boxType, model)
-				.withGroupData(GroupData.create(record))
+				.withGroupData(GroupData.create(record, model))
 				.withListener(groupListener, new EgoNetworkGroupPopupMenuFactory());
 			if(boxType == BoxPanelType.PRIMARY)
 				groupPanel.withSelected(true);

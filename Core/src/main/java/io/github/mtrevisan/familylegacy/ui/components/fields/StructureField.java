@@ -160,7 +160,7 @@ public abstract class StructureField extends BoundTextField{
 		if(target == null)
 			return;
 
-		clearRecord(record);
+		clearRecord(target);
 
 		if(!hasData())
 			return;

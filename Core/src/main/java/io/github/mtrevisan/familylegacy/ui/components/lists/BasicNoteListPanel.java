@@ -187,7 +187,18 @@ public class BasicNoteListPanel extends AbstractListPanel<FLEFRecord>{
 	 * @param record	the record to save to
 	 */
 	public void save(final FLEFRecord record){
+		clearRecord(record);
+
 		record.addChildren(getItems());
+	}
+
+	/**
+	 * Clears all tags from the record before saving.
+	 *
+	 * @param record the FLEF record to clean
+	 */
+	public void clearRecord(final FLEFRecord record){
+		FLEFRecordHelper.removeChildren(record, path);
 	}
 
 }

@@ -710,6 +710,8 @@ public class GEDCOMHelper{
 					document.addChild(note);
 				}
 
+				document.addChild(AuditBuilder.build(node));
+
 				// Crop from _CUTD
 				FLEFRecord crop = null;
 				GEDCOMNode cutdNode = GEDCOMHelper.findFirstChild(node, "_CUTD");
@@ -732,6 +734,16 @@ public class GEDCOMHelper{
 					}
 				}
 
+				// TODO _PUBL
+
+				// check for duplicates before adding
+				objeXrefId = Deduplicator.getDeduplicatedRecordId(model, document);
+
+				// Retrieve the actual document record from the model after deduplication
+				FLEFRecord actualDocument = model.getRecordById(objeXrefId);
+				if(actualDocument == null)
+					actualDocument = document; // Fallback
+
 				// Find the primary OBJE (with _PRIMARY Y)
 				GEDCOMNode preferredObj = null;
 				GEDCOMNode primaryNode = GEDCOMHelper.findFirstChild(node, "_PRIMARY");
@@ -744,36 +756,33 @@ public class GEDCOMHelper{
 						preferredObj = node;
 					}
 				}
+
 				if(preferredObj != null){
-					String fileUri = FLEFRecordHelper.getChildValue(document, "uri");
+					String fileUri = FLEFRecordHelper.getChildValue(actualDocument, "uri");
 					if(fileUri != null && !fileUri.isEmpty()){
 						FLEFRecord prefImg = FLEFRecord.createChildWithTag("preferred_image");
-						prefImg.addChild(FLEFRecord.createChildWithTagAndValue("uri", fileUri));
-						prefImg.addChild(crop);
+						// Referencing the document by ID instead of URI
+						prefImg.addChild(FLEFRecord.createChildWithTagAndValue("document", actualDocument.getId()));
+
+						if(crop != null)
+							prefImg.addChild(crop);
 
 						parent.addChild(prefImg);
 					}
 				}
 
-				// TODO _PUBL
-
-				document.addChild(AuditBuilder.build(node));
-
-				// check for duplicates before adding
-				objeXrefId = Deduplicator.getDeduplicatedRecordId(model, document);
-
 				FLEFRecord source = FLEFRecord.createMainRecord(IDGenerator.nextId(SourceHandler.ID_PREFIX), SourceHandler.TYPE)
 					.addChild(FLEFRecord.createChildWithTag("title")
-						.addChild(FLEFRecord.createChildWithTagAndValue("value", "Document " + objeXrefId))
+						.addChild(FLEFRecord.createChildWithTagAndValue("value", "Document " + actualDocument.getId()))
 					)
-					.addChild(FLEFRecord.createChildWithTagAndValue("document", objeXrefId))
+					.addChild(FLEFRecord.createChildWithTagAndValue("document", actualDocument.getId()))
 					.addChild(AuditBuilder.build(node));
 
 				FLEFRecord sourceCitation = FLEFRecord.createChildWithTag("source")
 					.addChild(FLEFRecord.createChildWithTagAndValue("source", source.getId()))
 					.addChild(FLEFRecord.createChildWithTag("extract")
 						.addChild(FLEFRecord.createChildWithTag("document_part")
-							.addChild(FLEFRecord.createChildWithTagAndValue("document", objeXrefId))
+							.addChild(FLEFRecord.createChildWithTagAndValue("document", actualDocument.getId()))
 							.addChild(crop)
 						)
 					);
@@ -787,8 +796,8 @@ public class GEDCOMHelper{
 
 
 	public static void attachIndividualEvent(FLEFRecord parent, FLEFModel model,
-			GEDCOMNode node, Map<String, GEDCOMNode> noteRawMap, Map<String, GEDCOMNode> sourRawMap,
-			Map<String, GEDCOMNode> objeRawMap, PlaceCache placeCache, List<GEDCOMNode> roots){
+		GEDCOMNode node, Map<String, GEDCOMNode> noteRawMap, Map<String, GEDCOMNode> sourRawMap,
+		Map<String, GEDCOMNode> objeRawMap, PlaceCache placeCache, List<GEDCOMNode> roots){
 		// Determine the FLEF event type
 		String customType = node.getTag();
 		String type = GEDCOMMapper.mapEvent(customType, (customType != null? customType: "other"));
@@ -1371,8 +1380,7 @@ public class GEDCOMHelper{
 	}
 
 
-	public static void attachRestriction(FLEFRecord parent,
-			GEDCOMNode node){
+	public static void attachRestriction(FLEFRecord parent, GEDCOMNode node){
 		GEDCOMNode resnNode = findFirstChild(node, "RESN");
 		if(resnNode != null && resnNode.getValue() != null){
 			String level = GEDCOMMapper.mapPrivacyLevel(resnNode.getValue());

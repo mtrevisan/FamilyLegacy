@@ -88,8 +88,8 @@ public class IndividualConverter {
 	 * @param placeCache     cache for place records
 	 */
 	public IndividualConverter(FLEFModel model, Map<String, FLEFRecord> individualMap, Map<String, GEDCOMNode> noteRawMap,
-			Map<String, GEDCOMNode> sourRawMap, Map<String, GEDCOMNode> objeRawMap, Map<String, FLEFRecord> sourceMap,
-			Map<String, FLEFRecord> multimediaMap, PlaceCache placeCache){
+		Map<String, GEDCOMNode> sourRawMap, Map<String, GEDCOMNode> objeRawMap, Map<String, FLEFRecord> sourceMap,
+		Map<String, FLEFRecord> multimediaMap, PlaceCache placeCache){
 		this.model = model;
 		this.individualMap = individualMap;
 		this.noteRawMap = noteRawMap;
@@ -210,18 +210,23 @@ public class IndividualConverter {
 			if(document == null){
 				document = createDocumentRecord(objNode);
 
-				// check for duplicates before adding
-				Deduplicator.getDeduplicatedRecordId(model, document);
+				// Check for duplicates and get the actual ID in the model
+				String dedupId = Deduplicator.getDeduplicatedRecordId(model, document);
+				document = model.getRecordById(dedupId);
+				if(document == null)
+					document = createDocumentRecord(objNode); // Fallback
 
 				multimediaMap.put(document.getId(), document);
 			}
 
 			// 2. If primary: create preferred_image
 			if(objNode == preferredObj){
-				String fileUri = FLEFRecordHelper.getChildValue(document, "file");
+				// Use "uri" tag as defined in DocumentRecord
+				String fileUri = FLEFRecordHelper.getChildValue(document, "uri");
 				if(fileUri != null && !fileUri.isEmpty()){
 					FLEFRecord prefImg = FLEFRecord.createChildWithTag("preferred_image");
-					prefImg.addChild(FLEFRecord.createChildWithTagAndValue("uri", fileUri));
+					// Referencing the document by ID instead of URI
+					prefImg.addChild(FLEFRecord.createChildWithTagAndValue("document", document.getId()));
 
 					// Crop from _CUTD
 					GEDCOMNode cutdNode = GEDCOMHelper.findFirstChild(objNode, "_CUTD");
@@ -250,16 +255,18 @@ public class IndividualConverter {
 				FLEFRecord source = createSourceRecordFromDocument(document, objNode);
 
 				// check for duplicates before adding
-				Deduplicator.getDeduplicatedRecordId(model, source);
+				String dedupId = Deduplicator.getDeduplicatedRecordId(model, source);
+				source = model.getRecordById(dedupId);
+				if(source != null){
+					sourceMap.put(source.getId(), source);
 
-				sourceMap.put(source.getId(), source);
-
-				// Create SourceCitation for the individual
-				FLEFRecord sourceCitation = FLEFRecord.createChildWithTag("source");
-				FLEFRecord sourceRef = FLEFRecord.createChildWithTag("source");
-				sourceRef.setValue(source.getId());
-				sourceCitation.addChild(sourceRef);
-				indi.addChild(sourceCitation);
+					// Create SourceCitation for the individual
+					FLEFRecord sourceCitation = FLEFRecord.createChildWithTag("source");
+					FLEFRecord sourceRef = FLEFRecord.createChildWithTag("source");
+					sourceRef.setValue(source.getId());
+					sourceCitation.addChild(sourceRef);
+					indi.addChild(sourceCitation);
+				}
 			}
 		}
 	}
@@ -388,12 +395,12 @@ public class IndividualConverter {
 								))
 							);
 						if("child".equals(relation) || RelationshipReader.isTypeBiologicalChild(relation)
-								|| RelationshipReader.isTypeAdoptiveChild(relation)
-								|| "foster_child".equals(relation) || "guarded_child".equals(relation)
-								|| "step_child".equals(relation) || "spouse".equals(relation) || "civil_spouse".equals(relation)
-								|| "religious_spouse".equals(relation) || "customary_spouse".equals(relation)
-								|| "cohabiting_partner".equals(relation) || "engaged_partner".equals(relation)
-								|| "group_member".equals(relation)|| "associate".equals(relation)|| "part_of".equals(relation))
+							|| RelationshipReader.isTypeAdoptiveChild(relation)
+							|| "foster_child".equals(relation) || "guarded_child".equals(relation)
+							|| "step_child".equals(relation) || "spouse".equals(relation) || "civil_spouse".equals(relation)
+							|| "religious_spouse".equals(relation) || "customary_spouse".equals(relation)
+							|| "cohabiting_partner".equals(relation) || "engaged_partner".equals(relation)
+							|| "group_member".equals(relation)|| "associate".equals(relation)|| "part_of".equals(relation))
 							relationship.addChild(FLEFRecord.createChildWithTagAndValue("type", relation));
 						else
 							relationship.addChild(FLEFRecord.createChildWithTagAndValue("type", "associate"))

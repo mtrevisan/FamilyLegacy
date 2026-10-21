@@ -46,6 +46,7 @@ import io.github.mtrevisan.familylegacy.ui.handlers.HistoricEventHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IdentityHypothesisHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualAttributeHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.PlaceCitationHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.PlaceRelationshipHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
@@ -129,7 +130,7 @@ public final class PlaceHelper{
 					.add(eventParticipation);
 		}
 
-		// TODO place citation
+		// TODO use FLEFModel.replaceRecordId to retrieve every place in which a place is referenced
 		final List<FLEFRecord> events = model.getRecordsByType(EventHandler.TYPE);
 		for(final FLEFRecord event : events){
 			final FLEFRecord place = FLEFRecordHelper.extractStructureWithReference(event, EventReader.TAG_PLACE);

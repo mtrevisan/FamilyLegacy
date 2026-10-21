@@ -192,7 +192,7 @@ public final class IndividualDossierService{
 		}
 
 		// Preferred image.
-		final String uri = IndividualReader.extractPreferredImageUri(individual);
+		final String uri = IndividualReader.extractPreferredImageUri(individual, model);
 		if(StringUtils.isNotEmpty(uri))
 			entries.add(DossierEntry.of("Photo", uri, individual));
 

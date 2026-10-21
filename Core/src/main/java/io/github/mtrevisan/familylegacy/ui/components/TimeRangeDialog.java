@@ -161,6 +161,7 @@ public class TimeRangeDialog extends JDialog{
 
 	public void save(){
 		isSaved = true;
+
 		setVisible(false);
 	}
 

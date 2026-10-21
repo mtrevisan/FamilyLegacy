@@ -100,7 +100,7 @@ public class GroupRecordDialog extends BaseRecordDialog{
 	private GroupRecordDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, GroupHandler.getInstance());
 
-		preferredImagePanel = new PreferredImagePanel(GroupReader.TAG_PREFERRED_IMAGE, this);
+		preferredImagePanel = new PreferredImagePanel(GroupReader.TAG_PREFERRED_IMAGE, this, model);
 		namePanel = EntityListPanel.createForStructure(GroupReader.TAG_NAME, this, I18N.t("dialog.group.name"), model, NameHandler.class);
 		typeCombo = new BoundComboBox<>(GroupReader.TAG_TYPE, GUIHelper.fillCombo(GroupReader.TYPES, null));
 		typeCombo.setI18NPrefix("enum.group.type");

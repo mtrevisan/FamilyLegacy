@@ -539,9 +539,6 @@ public abstract class BaseRecordDialog extends JDialog{
 	 */
 	public final void save(){
 		if(validData()){
-			// TODO this removes too much, each dialog should remove only his properties
-			record.clear();
-
 			saveData();
 
 			if(isNew && handler.isTopLevelEntity())

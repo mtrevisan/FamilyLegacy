@@ -221,7 +221,7 @@ record IndividualRecord {
   source*: SourceCitation        // the evidence that this individual existed and, when present, for SEX; facts about the individual are cited on their own records (names, events, attributes, relationships)
   note*: NoteStructure           // free-text notes about this individual
   preferred_image?: struct {
-    uri: Uri          // Resource URI pointing to a preferred image of this individual. TODO document: Xref<DocumentRecord>
+    document: Xref<DocumentRecord>   // Resource pointing to a preferred image of this individual.
     crop?: CropRect   // specifies the portion of the image that should be displayed as the preferred representation
   }
   privacy?: PrivacyStructure

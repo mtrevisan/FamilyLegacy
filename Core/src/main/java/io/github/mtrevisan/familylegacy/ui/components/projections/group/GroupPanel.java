@@ -413,7 +413,7 @@ public class GroupPanel extends JPanel{
 
 		SwingUtilities.invokeLater(() -> {
 			final FLEFRecord groupRecord = model.getRecordById(recordId);
-			final GroupData data = GroupData.create(groupRecord);
+			final GroupData data = GroupData.create(groupRecord, model);
 			final GroupPanel panel = GroupPanel.create(BoxPanelType.PRIMARY, model)
 				.withGroupData(data);
 
