@@ -10,8 +10,6 @@ import java.util.function.Function;
 /**
  * High-precision lunar horizon event calculator utilizing ELP/MPP02 planetary theory,
  * topocentric parallax adjustments, and dynamical semidiameter variations.
- *
- * @author Mauro Trevisan
  */
 public final class MoonHorizonEvents{
 

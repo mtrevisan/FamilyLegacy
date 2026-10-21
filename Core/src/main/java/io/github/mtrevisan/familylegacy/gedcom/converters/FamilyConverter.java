@@ -468,20 +468,22 @@ public class FamilyConverter{
 		FLEFRecord eventRecord = FLEFRecord.createMainRecord(eventFlefId, EventHandler.TYPE);
 
 		// Determine FLEF event type using GEDCOMMapper.
-		// If tag is EVEN, try to get TYPE child for custom classification.
-		String gedcomTag = eventNode.getTag();
+		final String gedcomTag = eventNode.getTag();
 		String customType = null;
 		if("EVEN".equals(gedcomTag) || "MARR".equals(gedcomTag)){
-			GEDCOMNode typeNode = GEDCOMHelper.findFirstChild(eventNode, "TYPE");
+			final GEDCOMNode typeNode = GEDCOMHelper.findFirstChild(eventNode, "TYPE");
 			if(typeNode != null && typeNode.getValue() != null){
 				customType = typeNode.getValue().trim();
 			}
 		}
-		String flefType = GEDCOMMapper.mapEvent(gedcomTag, (customType != null? customType: gedcomTag));
-//		// FIXME civil_marriage/religious_marriage does not exist, exist civil_spouse/religious_spouse in Relationship
-//		eventRecord.addChild(FLEFRecord.createChildWithTagAndValue("type",
-//			("civil".equals(customType) || "religious".equals(customType)? customType + "_": StringUtils.EMPTY)
-//				+ flefType));
+
+		// FIXED: The distinction between civil/religious marriage belongs to the RelationshipRecord
+		// (civil_spouse, religious_spouse), not to the EventRecord. The EventRecord type should
+		// simply be 'marriage'. For generic EVEN tags, the custom TYPE maps to the event type.
+		final String flefType = ("EVEN".equals(gedcomTag) && customType != null)
+			? GEDCOMMapper.mapEvent(gedcomTag, customType)
+			: GEDCOMMapper.mapEvent(gedcomTag, gedcomTag);
+
 		eventRecord.addChild(FLEFRecord.createChildWithTagAndValue("type", flefType));
 
 		// Date

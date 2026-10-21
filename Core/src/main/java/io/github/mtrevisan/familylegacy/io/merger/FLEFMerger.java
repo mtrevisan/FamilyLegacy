@@ -377,8 +377,7 @@ public class FLEFMerger{
 				if("birth".equalsIgnoreCase(type)){
 					final FLEFRecord date = FLEFRecordHelper.findChild(child, "date");
 					if(date != null){
-						// FIXME
-						final String val = FLEFRecordHelper.getChildValue(date, "value.point.full_date.value");
+						final String val = FLEFRecordHelper.getChildValue(date, "value.point.full_date");
 						if(val != null && val.matches("\\d{4}-\\d{2}-\\d{2}"))
 							return val.substring(0, 4);
 

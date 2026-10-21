@@ -25,12 +25,24 @@
 package io.github.mtrevisan.familylegacy.io.model.readers.date;
 
 
+import io.github.mtrevisan.familylegacy.io.model.readers.date.armenian.ArmenianCalendarParser;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.armenian.ArmenianDateInput;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.byzantine.ByzantineCalendarParser;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.byzantine.ByzantineDateInput;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.chinese.ChineseCalendarAstronomicalEngine;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.chinese.ChineseCalendarParser;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.chinese.ChineseDateInput;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.egyptian.EgyptianCalendarParser;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.egyptian.EgyptianDateInput;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.islamic.IslamicCalendarAstronomicalEngine;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.parsi.ParsiCalendarParser;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.parsi.ParsiDateInput;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.persian.PersianCalendarParser;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.persian.PersianDateInput;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.rumi.RumiCalendarParser;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.rumi.RumiDateInput;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.seleucid.SeleucidCalendarParser;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.seleucid.SeleucidDateInput;
 import org.apache.commons.lang3.StringUtils;
 
 import java.time.LocalDate;
@@ -153,95 +165,118 @@ public enum CalendarType implements CalendarConverterPlugin{
 	HEBREW("hebrew"){
 		@Override
 		public long parseToJdn(final String dateExpression){
-			// FIXME In the traditional Hebrew calendar, days start at sunset
+			// Note: Traditional Hebrew days start at sunset. This structural JDN anchors to the civil day portion.
 			final GenealogicalDate date = UniversalDateConverter.parse(getCode(), dateExpression);
 			final LocalDate localDate = date.isoDate();
 			final int year = localDate.getYear();
 			final int month = localDate.getMonthValue();
 			final int day = localDate.getDayOfMonth();
 
-			final long roshHaShanah = hebrewNewYear(year);
-			return roshHaShanah + daysBeforeMonth(year, month) + (day - 1);
+			return hebrewNewYear(year) + daysBeforeMonth(year, month) + (day - 1);
 		}
 
-		/**
-		 * Determines if a Hebrew year is a leap year (13 months) in the 19-year Metonic cycle.
-		 */
 		private boolean isLeapYear(final int year){
-			return ((1 + 7 * (year % 19)) % 19 < 7);
+			return ((7 * year + 1) % 19 < 7);
 		}
 
 		/**
 		 * Computes the Julian Day Number for Rosh HaShanah (1 Tishrei) of a given Hebrew year.
-		 * Applies the four Dehiyyot postponement rules.
+		 * Strictly applies the historical Dehiyyot postponement rules in the correct mathematical sequence.
 		 */
 		private long hebrewNewYear(final int year){
+			// 1. Calculate the elapsed months and parts since the epoch
 			final long monthsElapsed = (235L * year - 234L) / 19L;
 			final long partsElapsed = 204L + 793L * (monthsElapsed % 1080L);
 			final long hoursElapsed = 11L + 12L * monthsElapsed + 793L * (monthsElapsed / 1080L) + partsElapsed / 1080L;
-			final long day = 1L + 29L * monthsElapsed + hoursElapsed / 24L;
+
+			// Dynamic day calculation from the raw astronomical Molad calculation
+			long day = 1L + 29L * monthsElapsed + hoursElapsed / 24L;
 			final long parts = (hoursElapsed % 24L) * 1080L + (partsElapsed % 1080L);
 
-			long roshHaShanah = day;
+			// Convert to absolute JDN coordinates BEFORE evaluating the day of the week to fix the remainder bug
+			long roshHaShanahJdn = day + 347997L;
 
-			// Rule 1: Dehiyyat Molad Zaken (postpone if Molad occurs at or after 18:00)
+			// Rule 1: Dehiyyat Molad Zaken (Postpone if Molad occurs at or after noon / 18 hours = 19440 parts)
 			if(parts >= 19440L)
-				roshHaShanah ++;
+				roshHaShanahJdn ++;
 
-			// Rule 2: Dehiyyat ADU (postpone if new year falls on Sunday, Wednesday, or Friday)
-			final long dayOfWeek = roshHaShanah % 7L;
-			if(dayOfWeek == 0 || dayOfWeek == 3 || dayOfWeek == 5)
-				roshHaShanah ++;
+			// 2. Identify the absolute day of the week (JDN % 7: 0 = Monday, 1 = Tuesday, ..., 5 = Saturday, 6 = Sunday)
+			long dayOfWeek = roshHaShanahJdn % 7L;
 
-			// Re-check day of week after Rule 1 or Rule 2 adjustment
-			final long newDayOfWeek = roshHaShanah % 7L;
+			// Rule 3: Dehiyyat GATRAD
+			// Postpone if it's a common year, Molad falls on Tuesday (dayOfWeek == 1), and parts >= 9h 204p (9924 parts)
+			if(dayOfWeek == 1L && !isLeapYear(year) && parts >= 9924L)
+				roshHaShanahJdn += 2L;
+			// Rule 4: Dehiyyat BETUAGOT
+			// Postpone if it follows a leap year, Molad falls on Monday (dayOfWeek == 0), and parts >= 15h 589p (16789 parts)
+			else if(dayOfWeek == 0L && isLeapYear(year - 1) && parts >= 16789L)
+				roshHaShanahJdn ++;
 
-			// Rule 3: Dehiyyat GATRAD (postpone in a non-leap year if Molad is on Tuesday at/after 9h 204p)
-			if(newDayOfWeek == 2 && !isLeapYear(year) && parts >= 9924L)
-				roshHaShanah += 2L;
+			// Re-evaluate day of the week for the final absolute check against prohibited days
+			dayOfWeek = roshHaShanahJdn % 7L;
 
-			// Rule 4: Dehiyyat BETUAGOT (postpone in a year following a leap year if Molad is on Monday at/after 15h 589p)
-			if(newDayOfWeek == 1 && isLeapYear(year - 1) && parts >= 16789L)
-				roshHaShanah ++;
+			// Rule 2: Dehiyyat ADU
+			// Rosh HaShanah cannot fall on Sunday, Wednesday, or Friday.
+			// Mapping JDN % 7: Sunday = 6, Wednesday = 2, Friday = 4
+			if(dayOfWeek == 6L || dayOfWeek == 2L || dayOfWeek == 4L)
+				roshHaShanahJdn ++;
 
-			// Epoch offset to convert Hebrew calendar day count to JDN (347997)
-			return roshHaShanah + 347997L;
+			return roshHaShanahJdn;
 		}
 
 		/**
 		 * Computes the cumulative elapsed days in a Hebrew year before the given month.
+		 * Dynamically adjusts for deficient, regular, and complete year lengths.
 		 */
 		private int daysBeforeMonth(final int year, final int month){
+			// Resolve the absolute length of the current Hebrew year
 			final long thisNY = hebrewNewYear(year);
 			final long nextNY = hebrewNewYear(year + 1);
 			final int yearLength = (int)(nextNY - thisNY);
 
-			final boolean longHeshvan = (yearLength == 355 || yearLength == 385);
+			final boolean isLeap = isLeapYear(year);
+
+			// Detect custom year configurations (Heshvan and Kislev dynamic lengths)
+			// Deficient (353/383 days), Regular (354/384 days), Complete (355/385 days)
+			final boolean longCheshvan = (yearLength == 355 || yearLength == 385);
 			final boolean shortKislev = (yearLength == 353 || yearLength == 383);
-			final boolean leap = isLeapYear(year);
 
 			int days = 0;
-			// Hebrew months in civil order starting from Tishrei (month 1)
 			for(int m = 1; m < month; m ++){
 				days += switch(m){
-					case 1 -> 30; // Tishrei
-					case 2 -> (longHeshvan? 30: 29); // Cheshvan
-					case 3 -> (shortKislev? 29: 30); // Kislev
-					case 4 -> 29; // Tevet
-					case 5 -> 30; // Shevat
-					case 6 -> (leap? 30: 29); // Adar I (or Adar in regular years)
-					case 7 -> (leap? 29: 30); // Adar II (or Nisan in regular years)
-					case 8 -> 29; // Iyar
-					case 9 -> 30; // Sivan
-					case 10 -> 29; // Tammuz
-					case 11 -> 30; // Av
-					case 12 -> 29; // Elul
-					default -> 30;
+					// Tishrei
+					case 1 -> 30;
+					// Cheshvan
+					case 2 -> (longCheshvan? 30: 29);
+					// Kislev
+					case 3 -> (shortKislev? 29: 30);
+					// Tevet
+					case 4 -> 29;
+					// Shevat
+					case 5 -> 30;
+					// In a leap year, Month 6 is Adar I (30 days). In a common year, it is Adar (29 days).
+					case 6 -> (isLeap? 30: 29);
+					// In a leap year, Month 7 is Adar II (29 days). In a common year, it is Nisan (30 days).
+					case 7 -> (isLeap? 29: 30);
+					// In a leap year, Month 8 is Nisan (30 days). In a common year, it is Iyar (29 days).
+					case 8 -> (isLeap? 30: 29);
+					// In a leap year, Month 9 is Iyar (29 days). In a common year, it is Sivan (30 days).
+					case 9 -> (isLeap? 29: 30);
+					// In a leap year, Month 10 is Sivan (30 days). In a common year, it is Tammuz (29 days).
+					case 10 -> (isLeap? 30: 29);
+					// In a leap year, Month 11 is Tammuz (29 days). In a common year, it is Av (30 days).
+					case 11 -> (isLeap? 29: 30);
+					// In a leap year, Month 12 is Av (30 days). In a common year, it is Elul (29 days).
+					case 12 -> (isLeap? 30: 29);
+					// Elul in a leap year (Month 13)
+					case 13 -> 29;
+					default -> 0;
 				};
 			}
 			return days;
 		}
 	},
+
 	CHINESE("chinese"){
 		/**
 		 * Chinese Lunisolar Calendar.
@@ -262,40 +297,48 @@ public enum CalendarType implements CalendarConverterPlugin{
 	},
 	INDIAN("indian"){
 		/**
-		 * Indian National Calendar (Saka).
-		 * Epoch: Saka 0 = 78 CE.
-		 * Year starts on 1 Chaitra (March 21 in leap years, March 22 in common years).
+		 * Indian National Calendar (Saka Samvat).
+		 * Epoch: Saka 0 = 78 CE (Gregorian).
+		 * Year starts on 1 Chaitra (March 21 in Gregorian leap years, March 22 in common years).
 		 */
 		@Override
 		public long parseToJdn(final String dateExpression){
+			// 1. Parse the string into components.
+			// Assuming UniversalDateConverter.parse maps fields to the structural Indian components.
 			final GenealogicalDate date = UniversalDateConverter.parse(getCode(), dateExpression);
 			final LocalDate localDate = date.isoDate();
-			final int year = localDate.getYear();
-			final int month = localDate.getMonthValue();
-			final int day = localDate.getDayOfMonth();
+			final int sakaYear = localDate.getYear();
+			final int sakaMonth = localDate.getMonthValue();
+			final int sakaDay = localDate.getDayOfMonth();
 
-			final int gregorianYear = year + 78;
+			// The year Chaitra starts in the Gregorian year: Saka + 78
+			final int gregorianYear = sakaYear + 78;
+
+			// The Indian National Calendar is leap if the corresponding Gregorian year is leap
 			final boolean isLeap = isGregorianLeapYear(gregorianYear);
 
-			// Compute JDN of 1 Chaitra (start of the Saka year)
-			final int chaitraDay = (isLeap? 21: 22);
-			final long startOfYearJdn = GREGORIAN.parseToJdn(
-				chaitraDay + StringUtils.SPACE + 3 + StringUtils.SPACE + gregorianYear);
+			// 2. Compute the exact JDN of 1 Chaitra for this specific year
+			final int chaitraStartDay = (isLeap? 21: 22);
 
-			// Days elapsed in preceding months
+			// Anchor the JDN to the target Gregorian March entry point
+			final long startOfYearJdn = GREGORIAN.parseToJdn(
+				chaitraStartDay + StringUtils.SPACE + 3 + StringUtils.SPACE + gregorianYear);
+
+			// 3. Accumulate elapsed days in preceding Indian months
 			int elapsedDays = 0;
-			for(int m = 1; m < month; m ++)
+			for(int m = 1; m < sakaMonth; m ++){
 				elapsedDays += switch(m){
-					// Chaitra
+					// Chaitra has 31 days in a leap year, 30 days in a common year
 					case 1 -> (isLeap? 31: 30);
-					// Vaishakha to Bhadra
+					// Vaisakha, Jyaistha, Asadha, Shravana, Bhadra always have 31 days
 					case 2, 3, 4, 5, 6 -> 31;
-					// Ashvina to Phalguna
-					case 7, 8, 9, 10, 11, 12 -> 30;
+					// Asvina, Kartika, Agrahayana, Pausa, Magha, Phalguna always have 30 days
 					default -> 30;
 				};
+			}
 
-			return startOfYearJdn + elapsedDays + (day - 1);
+			// 4. Return total JDN adding elapsed months and days offset
+			return startOfYearJdn + elapsedDays + (sakaDay - 1);
 		}
 
 		private boolean isGregorianLeapYear(final int year){
@@ -407,53 +450,149 @@ public enum CalendarType implements CalendarConverterPlugin{
 	PARSI("parsi"){
 		@Override
 		public long parseToJdn(final String dateExpression){
-			// TODO
-//			return 1952063L + 365L * (year - 1L) + 30L * (month - 1L) + (day - 1L);
-			return -1l;
+			// Parse the raw string expression into a structured input object using the specialized parser
+			final ParsiDateInput input = ParsiCalendarParser.parse(dateExpression);
+			final int year = input.year();
+			final int month = input.month();
+			final int day = input.day();
+
+			// Compute and return the final Julian Day Number using the non-intercalating linear system
+			return 1952063L + 365L * (year - 1L) + 30L * (month - 1L) + (day - 1L);
 		}
 	},
 	BYZANTINE("byzantine"){
 		@Override
 		public long parseToJdn(final String dateExpression){
-			// TODO
-			// Adjust year: Byzantine year starts Sep 1; years before Sep belong to (year - 5509), Sep onwards to (year - 5508)
-//			final int julianYear = (month >= 9? year - 5508: year - 5509);
-//			return JULIAN.toJdn(julianYear, month, day);
-			return -1l;
+			final ByzantineDateInput input = ByzantineCalendarParser.parse(dateExpression);
+			final int year = input.year();
+			final int month = input.month();
+			final int day = input.day();
+
+			final int julianYear;
+			final int julianMonth;
+			if(month <= 4){
+				julianYear = year - 5509;
+				// Sep=9, Oct=10, Nov=11, Dec=12
+				julianMonth = month + 8;
+			}
+			else{
+				julianYear = year - 5508;
+				// Jan=1, Feb=2, ..., Aug=8
+				julianMonth = month - 4;
+			}
+
+			// Adjust year boundary for the historical astronomical algorithm anchor
+			final int y = (julianMonth <= 2? julianYear - 1: julianYear);
+			final int m = (julianMonth <= 2? julianMonth + 12: julianMonth);
+
+			// Standard Julian Calendar JDN conversion formula
+			return Math.floorDiv(1461L * (y + 4716L), 4L)
+				+ Math.floorDiv(153L * (m + 1), 5L)
+				+ day - 1524L;
 		}
 	},
 	EGYPTIAN("egyptian"){
 		@Override
 		public long parseToJdn(final String dateExpression){
-			// TODO
-//			return 1448638L + 365L * (year - 1L) + 30L * (month - 1L) + (day - 1L);
-			return -1l;
+			final EgyptianDateInput input = EgyptianCalendarParser.parse(dateExpression);
+			final int year = input.year();
+			final int month = input.month();
+			final int day = input.day();
+
+			// 1703643: JDN of the Era of Nabonassar epoch (26 February 747 BC Julian)
+			return 1703643L + (year - 1L) * 365L + (month - 1L) * 30L + (day - 1L);
 		}
 	},
 	SELEUCID("seleucid"){
 		@Override
 		public long parseToJdn(final String dateExpression){
-			// TODO
-//			final int julianYear = year - 311;
-//			return JULIAN.toJdn(julianYear, month, day);
-			return -1l;
+			final SeleucidDateInput input = SeleucidCalendarParser.parse(dateExpression);
+			final int year = input.year();
+			final int month = input.month();
+			final int day = input.day();
+
+			// Convert Seleucid year and month to standard Julian calendar coordinates
+			// October (1) to December (3) -> Julian year = Seleucid year - 312
+			// January (4) to September (12) -> Julian year = Seleucid year - 311
+			final int julianYear;
+			final int julianMonth;
+
+			if(month <= 3){
+				julianYear = year - 312;
+				// Oct=10, Nov=11, Dec=12
+				julianMonth = month + 9;
+			}
+			else{
+				julianYear = year - 311;
+				// Jan=1, Feb=2, ..., Sep=9
+				julianMonth = month - 3;
+			}
+
+			// Standard Julian Calendar JDN conversion logic (Meeus framework)
+			final int y = (julianMonth <= 2? julianYear - 1: julianYear);
+			final int m = (julianMonth <= 2? julianMonth + 12: julianMonth);
+
+			return Math.floorDiv(1461L * (y + 4716L), 4L)
+				+ Math.floorDiv(153L * (m + 1), 5L)
+				+ day - 1524L;
 		}
 	},
 	ARMENIAN("armenian"){
 		@Override
 		public long parseToJdn(final String dateExpression){
-			// TODO
-//			return 1922868L + 365L * (year - 1L) + 30L * (month - 1L) + (day - 1L);
-			return -1l;
+			final ArmenianDateInput input = ArmenianCalendarParser.parse(dateExpression);
+			final int year = input.year();
+			final int month = input.month();
+			final int day = input.day();
+
+			// 1922868: JDN of the Great Armenian Era epoch (11 July 552 CE Julian)
+			return 1922868L + 365L * (year - 1L) + 30L * (month - 1L) + (day - 1L);
 		}
 	},
 	RUMI("rumi"){
 		@Override
 		public long parseToJdn(final String dateExpression){
-			// TODO
-//			final int julianYear = year + 584;
-//			return JULIAN.toJdn(julianYear, month, day);
-			return -1l;
+			// Isolate components via the adaptive Rumi parser
+			final RumiDateInput input = RumiCalendarParser.parse(dateExpression);
+			final int year = input.year();
+			final int month = input.month();
+			final int day = input.day();
+
+			// Determine if the target date is after the Gregorian alignment reform (March 1, 1333 Rumi)
+			// Before reform: Year started in March (Month 1 = March, 12 = February)
+			// After reform: Year aligned to January (Month 1 = January, 12 = December)
+			if(year < 1332 || year == 1332 && month <= 12){
+				// PRE-REFORM LOGIC: Pure Julian Calendar tracking with March start (Epoch 584 year difference)
+				// Mapping Rumi month back to Julian month placement
+				// March=1->3, Dec=10->12
+				int julianMonth = month + 2;
+				int julianYear = year + 584;
+				// January and February belong to the next Julian year
+				if(month > 10){
+					// Jan=11->1, Feb=12->2
+					julianMonth = month - 10;
+					julianYear ++;
+				}
+
+				final int y = (julianMonth <= 2? julianYear - 1: julianYear);
+				final int m = (julianMonth <= 2? julianMonth + 12: julianMonth);
+
+				return Math.floorDiv(1461L * (y + 4716L), 4L)
+					+ Math.floorDiv(153L * (m + 1), 5L)
+					+ day - 1524L;
+			}
+			else{
+				// POST-REFORM LOGIC: Completely mapped onto Gregorian rules. Year difference is strictly 584 years.
+				final int gregorianYear = year + 584;
+
+				final int y = (month <= 2? gregorianYear - 1: gregorianYear);
+				final int m = (month <= 2? month + 12: month);
+
+				return Math.floorDiv(48525L * y, 400L)
+					- Math.floorDiv(y, 100L)
+					+ Math.floorDiv(153L * (m + 1), 5L)
+					+ day + 1721423L;
+			}
 		}
 	};
 

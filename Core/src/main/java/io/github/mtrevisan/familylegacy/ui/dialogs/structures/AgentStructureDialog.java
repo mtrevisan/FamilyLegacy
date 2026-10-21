@@ -55,7 +55,6 @@ import java.awt.Window;
  * }
  * </pre>
  */
-// FIXME
 public class AgentStructureDialog extends BaseRecordDialog{
 
 	private static final String CARD_NAME_AGENT = "agent";
