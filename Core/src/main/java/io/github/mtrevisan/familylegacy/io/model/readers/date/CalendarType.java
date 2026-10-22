@@ -43,6 +43,8 @@ import io.github.mtrevisan.familylegacy.io.model.readers.date.rumi.RumiCalendarP
 import io.github.mtrevisan.familylegacy.io.model.readers.date.rumi.RumiDateInput;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.seleucid.SeleucidCalendarParser;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.seleucid.SeleucidDateInput;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.venetan.VenetanCalendarParser;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.venetan.VenetanDateInput;
 import org.apache.commons.lang3.StringUtils;
 
 import java.time.LocalDate;
@@ -63,6 +65,40 @@ public enum CalendarType implements CalendarConverterPlugin{
 			final int day = localDate.getDayOfMonth();
 
 			return gregorianDateToJdn(year, month, day);
+		}
+	},
+	VENETAN("venetan"){
+		@Override
+		public long parseToJdn(final String dateExpression){
+			final VenetanDateInput input = VenetanCalendarParser.parse(dateExpression);
+			final int year = input.year();
+			final int month = input.month();
+			final int day = input.day();
+
+			// Convert more Veneto coordinates to standard Julian calendar coordinates
+			// Months 1 (March) to 10 (December) share the same chronological year.
+			// Months 11 (January) and 12 (February) belong to the next Julian year.
+			final int julianYear;
+			final int julianMonth;
+			if(month <= 10){
+				julianYear = year;
+				// March=1->3, Dec=10->12
+				julianMonth = month + 2;
+			}
+			else{
+				// January and February shift forward by 1 year
+				julianYear = year + 1;
+				// Jan=11->1, Feb=12->2
+				julianMonth = month - 10;
+			}
+
+			// Standard Julian Calendar JDN conversion logic (Meeus framework)
+			final int y = (julianMonth <= 2? julianYear - 1: julianYear);
+			final int m = (julianMonth <= 2? julianMonth + 12: julianMonth);
+
+			return Math.floorDiv(1461L * (y + 4716L), 4L)
+				+ Math.floorDiv(153L * (m + 1), 5L)
+				+ day - 1524L;
 		}
 	},
 	JULIAN("julian"){
@@ -373,7 +409,6 @@ public enum CalendarType implements CalendarConverterPlugin{
 		 */
 		@Override
 		public long parseToJdn(final String dateExpression){
-			// FIXME to test
 			final GenealogicalDate date = UniversalDateConverter.parse(getCode(), dateExpression);
 			final LocalDate localDate = date.isoDate();
 			final int year = localDate.getYear();
