@@ -94,9 +94,8 @@ public final class EphemerisEngineFactory{
 			final ServiceLoader<EphemerisEngine> loader = ServiceLoader.load(pluginLayer, EphemerisEngine.class);
 			for(final ServiceLoader.Provider<EphemerisEngine> provider : loader.stream().toList()){
 				final EphemerisEngine engine = provider.get();
-				if(engine.isAvailable()){
+				if(engine.isAvailable())
 					return engine;
-				}
 			}
 		}
 		catch(final Exception ignored){}

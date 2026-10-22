@@ -26,7 +26,6 @@ package io.github.mtrevisan.familylegacy.io.model.readers.date.chinese;
 
 import io.github.mtrevisan.familylegacy.services.EphemerisEngine;
 import io.github.mtrevisan.familylegacy.services.EphemerisEngineFactory;
-import io.github.mtrevisan.familylegacy.services.MathHelper;
 
 
 /**
@@ -216,24 +215,14 @@ public final class ChineseCalendarAstronomicalEngine{
 				final double nextMonthStartUT = nextMonthStartLocalJd
 					- getChinaUtcOffset(nextMonthStartLocalJd) / 24.;
 
-				boolean hasZhongqi = false;
-				for(int m = 0; m < 12; m ++){
-					// Major Solar Term angles: 270, 300, 330, 0, 30, 60, 90, 120, 150, 180, 210, 240 degrees
-					final double targetZhongqiAngle = MathHelper.mod2pi(WINTER_SOLSTICE_LONGITUDE
-						+ m * PI_BY_6);
-					final double zhongqiUT = engine.findSolarLongitudeEvent(currentMonthStartUT, targetZhongqiAngle);
-
-					if(zhongqiUT >= currentMonthStartUT && zhongqiUT < nextMonthStartUT){
-//System.out.println("zhongqi found: m=" + m + ", zhongqiUT=" + zhongqiUT);
-						hasZhongqi = true;
-
-						break;
-					}
-				}
-
-//System.out.println("hasZhongqi=" + hasZhongqi);
-				if(!hasZhongqi){
-					// This month has no Major Solar Term, it is the Leap Month!
+				// Fetch apparent longitudes safely via the interface proxy layer
+				final double lonStart = engine.calculateApparentSunLongitude(currentMonthStartUT);
+				double lonEnd = engine.calculateApparentSunLongitude(nextMonthStartUT);
+				if(lonEnd < lonStart)
+					lonEnd += 2. * StrictMath.PI;
+				final int codeStart = (int)StrictMath.floor(lonStart / PI_BY_6);
+				final int codeEnd = (int)StrictMath.floor(lonEnd / PI_BY_6);
+				if(codeStart == codeEnd){
 					leapMonthIndex = i;
 
 					break;

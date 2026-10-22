@@ -1,6 +1,6 @@
 package io.github.mtrevisan.familylegacy.io.model.readers.date.venetan;
 
-import io.github.mtrevisan.familylegacy.io.model.readers.date.UniversalDateConverter;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.CalendarType;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
@@ -116,41 +116,41 @@ public final class VenetanCalendarParser{
 		MONTHS.put("febraio mv", 12);
 
 		// Autun (Autumn) -> Maps to Autumnal Equinox flag
-		MONTHS.put("auton", UniversalDateConverter.SEASON_AUTUMN);
-		MONTHS.put("autun", UniversalDateConverter.SEASON_AUTUMN);
-		MONTHS.put("autuno", UniversalDateConverter.SEASON_AUTUMN);
-		MONTHS.put("otun", UniversalDateConverter.SEASON_AUTUMN);
-		MONTHS.put("otuno", UniversalDateConverter.SEASON_AUTUMN);
-		MONTHS.put("utun", UniversalDateConverter.SEASON_AUTUMN);
-		MONTHS.put("utuno", UniversalDateConverter.SEASON_AUTUMN);
-		MONTHS.put("ferdima", UniversalDateConverter.SEASON_AUTUMN);
-		MONTHS.put("fardima", UniversalDateConverter.SEASON_AUTUMN);
-		MONTHS.put("farnima", UniversalDateConverter.SEASON_AUTUMN);
-		MONTHS.put("fraima", UniversalDateConverter.SEASON_AUTUMN);
-		MONTHS.put("frima", UniversalDateConverter.SEASON_AUTUMN);
-		MONTHS.put("fredima", UniversalDateConverter.SEASON_AUTUMN);
+		MONTHS.put("auton", CalendarType.SEASON_AUTUMN);
+		MONTHS.put("autun", CalendarType.SEASON_AUTUMN);
+		MONTHS.put("autuno", CalendarType.SEASON_AUTUMN);
+		MONTHS.put("otun", CalendarType.SEASON_AUTUMN);
+		MONTHS.put("otuno", CalendarType.SEASON_AUTUMN);
+		MONTHS.put("utun", CalendarType.SEASON_AUTUMN);
+		MONTHS.put("utuno", CalendarType.SEASON_AUTUMN);
+		MONTHS.put("ferdima", CalendarType.SEASON_AUTUMN);
+		MONTHS.put("fardima", CalendarType.SEASON_AUTUMN);
+		MONTHS.put("farnima", CalendarType.SEASON_AUTUMN);
+		MONTHS.put("fraima", CalendarType.SEASON_AUTUMN);
+		MONTHS.put("frima", CalendarType.SEASON_AUTUMN);
+		MONTHS.put("fredima", CalendarType.SEASON_AUTUMN);
 		// Invèrno (Winter) -> Maps to Hibernal Solstice flag
-		MONTHS.put("invèrno", UniversalDateConverter.SEASON_WINTER);
-		MONTHS.put("invièrno", UniversalDateConverter.SEASON_WINTER);
-		MONTHS.put("inbèrno", UniversalDateConverter.SEASON_WINTER);
-		MONTHS.put("divèr", UniversalDateConverter.SEASON_WINTER);
+		MONTHS.put("invèrno", CalendarType.SEASON_WINTER);
+		MONTHS.put("invièrno", CalendarType.SEASON_WINTER);
+		MONTHS.put("inbèrno", CalendarType.SEASON_WINTER);
+		MONTHS.put("divèr", CalendarType.SEASON_WINTER);
 		// Vèrta (Spring) -> Maps to Vernal Equinox flag
-		MONTHS.put("primavera", UniversalDateConverter.SEASON_SPRING);
-		MONTHS.put("primavèra", UniversalDateConverter.SEASON_SPRING);
-		MONTHS.put("primavèrta", UniversalDateConverter.SEASON_SPRING);
-		MONTHS.put("vèrta", UniversalDateConverter.SEASON_SPRING);
-		MONTHS.put("insuta", UniversalDateConverter.SEASON_SPRING);
-		MONTHS.put("ansuda", UniversalDateConverter.SEASON_SPRING);
+		MONTHS.put("primavera", CalendarType.SEASON_SPRING);
+		MONTHS.put("primavèra", CalendarType.SEASON_SPRING);
+		MONTHS.put("primavèrta", CalendarType.SEASON_SPRING);
+		MONTHS.put("vèrta", CalendarType.SEASON_SPRING);
+		MONTHS.put("insuta", CalendarType.SEASON_SPRING);
+		MONTHS.put("ansuda", CalendarType.SEASON_SPRING);
 		// Istà (Summer) -> Maps to Estival Solstice flag
-		MONTHS.put("istade", UniversalDateConverter.SEASON_SUMMER);
-		MONTHS.put("istae", UniversalDateConverter.SEASON_SUMMER);
-		MONTHS.put("istà", UniversalDateConverter.SEASON_SUMMER);
-		MONTHS.put("instade", UniversalDateConverter.SEASON_SUMMER);
-		MONTHS.put("instae", UniversalDateConverter.SEASON_SUMMER);
-		MONTHS.put("instà", UniversalDateConverter.SEASON_SUMMER);
-		MONTHS.put("estade", UniversalDateConverter.SEASON_SUMMER);
-		MONTHS.put("estae", UniversalDateConverter.SEASON_SUMMER);
-		MONTHS.put("està", UniversalDateConverter.SEASON_SUMMER);
+		MONTHS.put("istade", CalendarType.SEASON_SUMMER);
+		MONTHS.put("istae", CalendarType.SEASON_SUMMER);
+		MONTHS.put("istà", CalendarType.SEASON_SUMMER);
+		MONTHS.put("instade", CalendarType.SEASON_SUMMER);
+		MONTHS.put("instae", CalendarType.SEASON_SUMMER);
+		MONTHS.put("instà", CalendarType.SEASON_SUMMER);
+		MONTHS.put("estade", CalendarType.SEASON_SUMMER);
+		MONTHS.put("estae", CalendarType.SEASON_SUMMER);
+		MONTHS.put("està", CalendarType.SEASON_SUMMER);
 	}
 
 	// Pattern mapping: "Day Month Year" with optional trailing "MV" or "More Veneto" markers

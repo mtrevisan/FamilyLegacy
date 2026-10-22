@@ -248,7 +248,7 @@ public class TimeRangeDialog extends JDialog{
 					sample = audioData[index];
 				}
 
-				final int sampleHeight = (int)((double)sample / 32768.0 * centerY);
+				final int sampleHeight = (int)((double)sample / 32768. * centerY);
 				g2.drawLine(x, centerY - sampleHeight, x, centerY + sampleHeight);
 			}
 

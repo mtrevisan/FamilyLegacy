@@ -27,8 +27,7 @@ package io.github.mtrevisan.familylegacy.ui.tools.reports;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.io.model.readers.DateReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.date.GenealogicalDate;
-import io.github.mtrevisan.familylegacy.io.model.readers.date.UniversalDateConverter;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.CalendarType;
 import org.apache.commons.lang3.StringUtils;
 
 import java.time.LocalDate;
@@ -421,10 +420,10 @@ final class GenealogicalDateHelper{
 		if(StringUtils.isEmpty(rawDate))
 			return null;
 		try{
-			final GenealogicalDate parsed = UniversalDateConverter.parse(
-				normalizeCalendar(calendarCode), rawDate);
-			if(parsed.isoDate() != null)
-				return parsed.isoDate().getYear();
+			final CalendarType calendarType = (calendarCode != null? CalendarType.valueOf(normalizeCalendar(calendarCode).toUpperCase(Locale.ROOT)): CalendarType.GREGORIAN);
+			final long dateJdn = calendarType.parseToJdn(rawDate);
+			final LocalDate prolepticDate = CalendarType.jdnToProlepticGregorianLocalDate(dateJdn);
+			return prolepticDate.getYear();
 		}
 		catch(final RuntimeException ignored){
 		}
@@ -435,11 +434,14 @@ final class GenealogicalDateHelper{
 		if(StringUtils.isEmpty(rawDate))
 			return null;
 		try{
-			final GenealogicalDate parsed = UniversalDateConverter.parse(
-				normalizeCalendar(calendarCode), rawDate);
-			if(parsed.precision() != GenealogicalDate.DatePrecision.EXACT)
+			final CalendarType calendarType = (calendarCode != null? CalendarType.valueOf(normalizeCalendar(calendarCode).toUpperCase(Locale.ROOT)): CalendarType.GREGORIAN);
+			final CalendarType.CalendarMetadata metadata = calendarType.getMetadata(rawDate);
+			if(!metadata.isComplete())
 				return null;
-			return parsed.isoDate();
+
+			final long dateJdn = calendarType.parseToJdn(rawDate);
+			final LocalDate prolepticDate = CalendarType.jdnToProlepticGregorianLocalDate(dateJdn);
+			return prolepticDate;
 		}
 		catch(final RuntimeException ignored){
 			return null;

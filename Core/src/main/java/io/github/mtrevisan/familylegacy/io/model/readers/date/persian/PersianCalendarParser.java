@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.io.model.readers.date.persian;
 
+import io.github.mtrevisan.familylegacy.io.model.readers.date.CalendarType;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
@@ -45,7 +46,6 @@ import java.util.regex.Pattern;
 public final class PersianCalendarParser{
 
 	private static final Map<String, Integer> MONTHS = new HashMap<>();
-
 	static{
 		// Persian names
 		MONTHS.put("فروردین", 1);
@@ -60,7 +60,6 @@ public final class PersianCalendarParser{
 		MONTHS.put("دی", 10);
 		MONTHS.put("بهمن", 11);
 		MONTHS.put("اسفند", 12);
-
 		// Transliterations
 		MONTHS.put("farvardin", 1);
 		MONTHS.put("ordibehesht", 2);
@@ -74,14 +73,37 @@ public final class PersianCalendarParser{
 		MONTHS.put("dey", 10);
 		MONTHS.put("bahman", 11);
 		MONTHS.put("esfand", 12);
+
+		// Paeez (Autumn) -> Maps to Autumnal Equinox flag
+		MONTHS.put("paeez", CalendarType.SEASON_AUTUMN);
+		MONTHS.put("payiz", CalendarType.SEASON_AUTUMN);
+		MONTHS.put("پاییز", CalendarType.SEASON_AUTUMN);
+		// Zemestan (Winter) -> Maps to Hibernal Solstice flag
+		MONTHS.put("zemestan", CalendarType.SEASON_WINTER);
+		MONTHS.put("زمستان", CalendarType.SEASON_WINTER);
+		// Bahar (Spring) -> Maps to Vernal Equinox flag
+		MONTHS.put("bahar", CalendarType.SEASON_SPRING);
+		MONTHS.put("بهار", CalendarType.SEASON_SPRING);
+		// Tabestan (Summer) -> Maps to Estival Solstice flag
+		MONTHS.put("tabestan", CalendarType.SEASON_SUMMER);
+		MONTHS.put("تابستان", CalendarType.SEASON_SUMMER);
 	}
 
-	private static final Pattern DATE_PATTERN = Pattern.compile("(\\S+)\\s+(\\S+)\\s+(\\S+)");
+	// Adaptive pattern supporting both standalone seasonal notations ("Bahar 1357")
+	// and explicit three-token expressions ("22 Bahman 1357")
+	private static final Pattern DATE_PATTERN = Pattern.compile("(?:(\\d+)\\s+)?([a-zA-Zأ-ی\\s-]+?)\\s+(\\d+)");
 
 
 	private PersianCalendarParser(){}
 
 
+	/**
+	 * Parses a raw Persian text string into a validated structural model.
+	 *
+	 * @param rawDate the string representing the Persian date
+	 * @return a configured PersianDateInput instance
+	 * @throws IllegalArgumentException if the expression layout is invalid
+	 */
 	public static PersianDateInput parse(final String rawDate){
 		final String normalized = StringUtils.normalizeSpace(convertDigitsToAscii(rawDate));
 
@@ -89,16 +111,25 @@ public final class PersianCalendarParser{
 		if(!matcher.matches())
 			throw new IllegalArgumentException("Invalid Persian date: " + rawDate);
 
-		final int day = Integer.parseInt(matcher.group(1));
-
+		final String dayGroup = matcher.group(1);
 		final String monthName = matcher.group(2)
-			.toLowerCase(Locale.ROOT);
+			.toLowerCase(Locale.ROOT)
+			.trim();
+		final int year = Integer.parseInt(matcher.group(3));
 
 		final Integer month = MONTHS.get(monthName);
 		if(month == null)
-			throw new IllegalArgumentException("Unknown Persian month: " + monthName);
+			throw new IllegalArgumentException("Unknown Persian month or seasonal descriptor: " + monthName);
 
-		final int year = Integer.parseInt(matcher.group(3));
+		// Operational default for pure seasonal entries
+		final int day = (dayGroup != null? Integer.parseInt(dayGroup): 1);
+
+		if(month > 0 && month <= 6 && (day < 1 || day > 31))
+			throw new IllegalArgumentException("The first six Persian months consist strictly of 31 days.");
+		if(month >= 7 && month <= 11 && (day < 1 || day > 30))
+			throw new IllegalArgumentException("Persian months 7 through 11 consist strictly of 30 days.");
+		if(month == 12 && (day < 1 || day > 30))
+			throw new IllegalArgumentException("The final Persian month cannot exceed 30 days.");
 
 		return new PersianDateInput(year, month, day);
 	}
@@ -111,7 +142,7 @@ public final class PersianCalendarParser{
 		for(int i = 0; i < text.length(); i ++){
 			final char c = text.charAt(i);
 
-			if(c >= '۰' && c <= '۹')
+			if(c >= '۰' && c <= '微')
 				sb.append((char)('0' + c - '۰'));
 			else if(c >= '٠' && c <= '٩')
 				sb.append((char)('0' + c - '٠'));

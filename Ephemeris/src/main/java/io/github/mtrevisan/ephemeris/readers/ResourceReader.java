@@ -39,6 +39,18 @@ import java.util.Map;
 
 public final class ResourceReader{
 
+	/**
+	 * Pre-compiled powers of 10 array to optimize scientific floating-point scaling.
+	 */
+	private static final double[] POWERS_OF_10;
+
+	static{
+		POWERS_OF_10 = new double[700];
+		for(int i = 0; i < POWERS_OF_10.length; i ++)
+			POWERS_OF_10[i] = StrictMath.pow(10., i - 350);
+	}
+
+
 	private ResourceReader(){}
 
 
@@ -82,6 +94,14 @@ public final class ResourceReader{
 	}
 
 
+	/**
+	 * Parses a planetary perturbation text file into a contextual multi-variable data layout.
+	 * Utilizes zero-allocation loops for all fixed-width integer and scientific double properties.
+	 *
+	 * @param filename the relative classpath data file path
+	 * @return an EnumMap pairing variable indexes to parsed dataset lists
+	 * @throws IOException if a stream error occurs during ingestion
+	 */
 	public static Map<VariableIndex, List<VSOP2013Data>> readData(final String filename) throws IOException{
 		final ClassLoader classLoader = ResourceReader.class.getClassLoader();
 		final InputStream is = classLoader.getResourceAsStream(filename);
@@ -108,45 +128,138 @@ public final class ResourceReader{
 					line = reader.readLine();
 
 					final VSOP2013Coeffs coeffs = new VSOP2013Coeffs();
-					coeffs.iphi[0] = Integer.parseInt(line.substring(5, 9).trim());
-					coeffs.iphi[1] = Integer.parseInt(line.substring(9, 12).trim());
-					coeffs.iphi[2] = Integer.parseInt(line.substring(12, 15).trim());
-					coeffs.iphi[3] = Integer.parseInt(line.substring(15, 18).trim());
+					coeffs.iphi[0] = parseIntFast(line, 5, 9);
+					coeffs.iphi[1] = parseIntFast(line, 9, 12);
+					coeffs.iphi[2] = parseIntFast(line, 12, 15);
+					coeffs.iphi[3] = parseIntFast(line, 15, 18);
 
-					coeffs.iphi[4] = Integer.parseInt(line.substring(18, 22).trim());
-					coeffs.iphi[5] = Integer.parseInt(line.substring(22, 25).trim());
-					coeffs.iphi[6] = Integer.parseInt(line.substring(25, 28).trim());
-					coeffs.iphi[7] = Integer.parseInt(line.substring(28, 31).trim());
-					coeffs.iphi[8] = Integer.parseInt(line.substring(31, 34).trim());
+					coeffs.iphi[4] = parseIntFast(line, 18, 22);
+					coeffs.iphi[5] = parseIntFast(line, 22, 25);
+					coeffs.iphi[6] = parseIntFast(line, 25, 28);
+					coeffs.iphi[7] = parseIntFast(line, 28, 31);
+					coeffs.iphi[8] = parseIntFast(line, 31, 34);
 
-					coeffs.iphi[9] = Integer.parseInt(line.substring(34, 39).trim());
-					coeffs.iphi[10] = Integer.parseInt(line.substring(39, 43).trim());
-					coeffs.iphi[11] = Integer.parseInt(line.substring(43, 47).trim());
-					coeffs.iphi[12] = Integer.parseInt(line.substring(47, 51).trim());
+					coeffs.iphi[9] = parseIntFast(line, 34, 39);
+					coeffs.iphi[10] = parseIntFast(line, 39, 43);
+					coeffs.iphi[11] = parseIntFast(line, 43, 47);
+					coeffs.iphi[12] = parseIntFast(line, 47, 51);
 
-					coeffs.iphi[13] = Integer.parseInt(line.substring(51, 58).trim());
+					coeffs.iphi[13] = parseIntFast(line, 51, 58);
 
-					coeffs.iphi[14] = Integer.parseInt(line.substring(58, 62).trim());
-					coeffs.iphi[15] = Integer.parseInt(line.substring(62, 65).trim());
-					coeffs.iphi[16] = Integer.parseInt(line.substring(65, 68).trim());
+					coeffs.iphi[14] = parseIntFast(line, 58, 62);
+					coeffs.iphi[15] = parseIntFast(line, 62, 65);
+					coeffs.iphi[16] = parseIntFast(line, 65, 68);
 
-					final String sinMantissa = line.substring(68, 88).trim();
-					final int sinExp = Integer.parseInt(line.substring(88, 92).trim());
-					coeffs.sine = Double.parseDouble(sinMantissa + "e" + sinExp);
-
-					final String cosMantissa = line.substring(92, 112).trim();
-					final int cosExp = Integer.parseInt(line.substring(112, 116).trim());
-					coeffs.cosine = Double.parseDouble(cosMantissa + "e" + cosExp);
+					coeffs.sine = parseScientificDoubleFast(line, 68, 88, 88, 92);
+					coeffs.cosine = parseScientificDoubleFast(line, 92, 112, 112, 116);
 
 					data.coeffs[i] = coeffs;
 				}
 
-				datas.computeIfAbsent(variable, v -> new ArrayList<>(1))
+				datas.computeIfAbsent(variable, v -> new ArrayList<>(20))
 					.add(data);
 			}
 
 			return datas;
 		}
+	}
+
+	/**
+	 * Scans a fixed-width string slice converting character indices directly to primitive intergers.
+	 * Mimics a virtual trim layer and checks arithmetic sign parameters safely.
+	 */
+	private static int parseIntFast(final String s, final int start, final int end){
+		int result = 0;
+		boolean negative = false;
+		int i = start;
+
+		// Skip leading whitespace characters (Virtual Trim)
+		while(i < end && s.charAt(i) == ' ')
+			i ++;
+		if(i >= end)
+			return 0;
+
+		// Evaluate arithmetic sign configuration
+		final char firstChar = s.charAt(i);
+		if(firstChar == '-'){
+			negative = true;
+
+			i ++;
+		}
+		else if(firstChar == '+')
+			i ++;
+
+		// Construct the primitive base integer safely
+		while(i < end){
+			final char c = s.charAt(i);
+			if(c >= '0' && c <= '9')
+				result = result * 10 + (c - '0');
+			else if(c == ' ')
+				// Break if encountering standard column trailing spaces
+				break;
+			i ++;
+		}
+
+		return (negative? -result: result);
+	}
+
+	/**
+	 * Parses scientific notations (Mantissa text segment combined with an Exponent segment)
+	 * without performing string concatenations or using Double.parseDouble.
+	 */
+	private static double parseScientificDoubleFast(final String s,  final int mStart, final int mEnd, final int eStart,
+			final int eEnd){
+		long mantissa = 0;
+		boolean mNegative = false;
+		int mDecPlaces = -1;
+		int i = mStart;
+
+		// Virtual trim for the mantissa window
+		while(i < mEnd && s.charAt(i) == ' ')
+			i ++;
+
+		if(i < mEnd){
+			final char c = s.charAt(i);
+			if(c == '-'){
+				mNegative = true;
+
+				i ++;
+			}
+			else if(c == '+')
+				i ++;
+		}
+
+		// Process mantissa integer chain while recording the implicit decimal point position
+		while(i < mEnd){
+			final char c = s.charAt(i);
+			if(c >= '0' && c <= '9'){
+				mantissa = mantissa * 10 + (c - '0');
+				if(mDecPlaces >= 0)
+					mDecPlaces ++;
+			}
+			else if(c == '.')
+				mDecPlaces = 0;
+			else if(c == ' ')
+				break;
+
+			i ++;
+		}
+
+		// Read the associated scientific exponent slice
+		final int exponent = parseIntFast(s, eStart, eEnd);
+
+		// Rebalance the exponent tracker by subtracting the counted decimal fraction places
+		final int finalExponent = exponent - Math.max(mDecPlaces, 0);
+
+		double value = mantissa;
+		// Lookup the pre-compiled floating-point scaling multiplier (Index 350 centers the zero-offset)
+		final int lookupIndex = finalExponent + 350;
+		if(lookupIndex >= 0 && lookupIndex < POWERS_OF_10.length)
+			value *= POWERS_OF_10[lookupIndex];
+		else
+			value *= StrictMath.pow(10., finalExponent);
+
+		return (mNegative? -value: value);
 	}
 
 }

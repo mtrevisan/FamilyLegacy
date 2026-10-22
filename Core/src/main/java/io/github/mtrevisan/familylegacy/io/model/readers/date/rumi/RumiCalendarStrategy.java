@@ -1,0 +1,116 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+package io.github.mtrevisan.familylegacy.io.model.readers.date.rumi;
+
+import io.github.mtrevisan.familylegacy.io.model.readers.date.CalendarConverterPlugin;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.CalendarType;
+import io.github.mtrevisan.familylegacy.services.EphemerisEngine;
+import io.github.mtrevisan.familylegacy.services.EphemerisEngineFactory;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+
+public class RumiCalendarStrategy implements CalendarConverterPlugin{
+
+	@Override
+	public long parseToJdn(final String rawDate){
+		// Isolate components via the adaptive Rumi parser
+		final RumiDateInput input = RumiCalendarParser.parse(rawDate);
+		final int year = input.year();
+		final int month = input.month();
+		final int day = input.day();
+
+		if(month < 0){
+			// Step A: Determine the absolute temporal anchor window for this year.
+			// Rumi Year + 584 gives the Gregorian/Julian year parameter space.
+			final long startOfYearJdn = toJdn(year, 1, 1);
+			final double approximateMiddleJdUT = startOfYearJdn + 182.5 - 0.5;
+
+			// Step B: Map negative flag parameters directly onto true solar ecliptic target boundaries
+			final double targetLongitude = CalendarType.getGeneralTargetLongitude(month);
+
+			// Step C: Execute high-fidelity calculation to track the exact instant the transit occurs
+			final EphemerisEngine engine = EphemerisEngineFactory.getEngine();
+			final double exactSeasonJdUT = engine.findSolarLongitudeEvent(approximateMiddleJdUT, targetLongitude);
+
+			return (long)Math.floor(exactSeasonJdUT + 0.5);
+		}
+		else
+			// Standard numeric execution path using your dual-era Rumi calculation engine logic
+			return toJdn(year, month, day);
+	}
+
+	private static long toJdn(final int year, final int month, final int day){
+		// Determine if the target date is after the Gregorian alignment reform (March 1, 1333 Rumi)
+		// Before reform: Year started in March (Month 1 = March, 12 = February)
+		// After reform: Year aligned to January (Month 1 = January, 12 = December)
+		if(year < 1332 || year == 1332 && month <= 12){
+			// PRE-REFORM LOGIC: Pure Julian Calendar tracking with March start (Epoch 584 year difference)
+			// Mapping Rumi month back to Julian month placement
+			// March=1->3, Dec=10->12
+			int julianMonth = month + 2;
+			int julianYear = year + 584;
+			// January and February belong to the next Julian year
+			if(month > 10){
+				// Jan=11->1, Feb=12->2
+				julianMonth = month - 10;
+				julianYear ++;
+			}
+
+			final int y = (julianMonth <= 2? julianYear - 1: julianYear);
+			final int m = (julianMonth <= 2? julianMonth + 12: julianMonth);
+
+			return Math.floorDiv(1461L * (y + 4716L), 4L)
+				+ Math.floorDiv(153L * (m + 1), 5L)
+				+ day - 1524L;
+		}
+		else{
+			// POST-REFORM LOGIC: Completely mapped onto Gregorian rules. Year difference is strictly 584 years.
+			final int gregorianYear = year + 584;
+
+			final int y = (month <= 2? gregorianYear - 1: gregorianYear);
+			final int m = (month <= 2? month + 12: month);
+
+			return Math.floorDiv(48525L * y, 400L)
+				- Math.floorDiv(y, 100L)
+				+ Math.floorDiv(153L * (m + 1), 5L)
+				+ day + 1721423L;
+		}
+	}
+
+	@Override
+	public CalendarType.CalendarMetadata getMetadata(final String rawDate) {
+		final RumiDateInput input = RumiCalendarParser.parse(rawDate);
+		final Map<String, Boolean> components = new LinkedHashMap<>();
+		components.put("year", (input.year() != 0));
+		components.put("month", (input.month() != 0));
+		components.put("day", (input.day() != 0));
+
+		final boolean isComplete = (input.year() != 0 && input.month() != 0 && input.day() != 0);
+		return new CalendarType.CalendarMetadata(components, isComplete);
+	}
+
+}

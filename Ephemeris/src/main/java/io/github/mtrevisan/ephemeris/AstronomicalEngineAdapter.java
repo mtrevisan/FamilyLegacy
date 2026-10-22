@@ -46,10 +46,6 @@ public final class AstronomicalEngineAdapter implements EphemerisEngine{
 	private static final double ACCURACY_THRESHOLD = 1.e-6;
 	private static final int MAX_ITERATIONS = 50;
 
-	// Standard structural altitude for solar disk upper limb sunset:
-	// -34 arcminutes (atmospheric refraction) - 16 arcminutes (solar semidiameter) = -50 arcminutes = -0.8333333333333334 degrees
-	private static final double STANDARD_SUNSET_ALTITUDE = StrictMath.toRadians(-50. / 60.);
-
 
 	@Override
 	public boolean isAvailable(){
@@ -89,15 +85,16 @@ public final class AstronomicalEngineAdapter implements EphemerisEngine{
 		final double ttJc = getTerrestrialCenturies(jdUT);
 		final NutationCorrections nutation = NutationCorrections.calculate(ttJc);
 		final double deltaPsi = nutation.getDeltaPsi();
-
 		final double sunLng = SunPosition.apparentSunLongitude(ttJc, deltaPsi);
+
 		final double moonLng = MoonPosition.computeApparentMoonLongitude(ttJc, deltaPsi);
 
 		return MathHelper.mod2pi(moonLng - sunLng + StrictMath.PI) - StrictMath.PI;
 	}
 
 	/**
-	 * Computes the exact Julian Date (Universal Time) of a specific Solar Term (Jieqi).
+	 * Computes the exact Julian Date (Universal Time) of a specific Solar Term or Season.
+	 * Optimistically bypasses linear scans by attempting immediate 3-point Meeus interpolation.
 	 *
 	 * @param approximateJdUT the starting guess in Julian Date UT
 	 * @param targetLongitude the targeted solar longitude step [rad] (e.g., 0 for Spring Equinox, π/6 for next term)
@@ -105,13 +102,38 @@ public final class AstronomicalEngineAdapter implements EphemerisEngine{
 	 */
 	@Override
 	public double findSolarLongitudeEvent(final double approximateJdUT, final double targetLongitude){
-		double x1 = approximateJdUT;
+		// 1. Optimistic Step: Execute high-speed Jean Meeus 3-point inverse interpolation
+		final double dayStep = 5.;
+		final double t1 = approximateJdUT - dayStep;
+		final double t2 = approximateJdUT;
+		final double t3 = approximateJdUT + dayStep;
+
+		final double y1 = evaluateSolarLongitudeFunction(t1, targetLongitude);
+		final double y2 = evaluateSolarLongitudeFunction(t2, targetLongitude);
+		final double y3 = evaluateSolarLongitudeFunction(t3, targetLongitude);
+
+		final double a = (y1 + y3) / 2. - y2;
+		final double b = (y3 - y1) / 2.;
+		final double c = y2;
+
+		final double discriminant = b * b - 4. * a * c;
+		if(discriminant >= 0.){
+			double correctionFactor = (-b + StrictMath.sqrt(discriminant)) / (2. * a);
+			if(StrictMath.abs(correctionFactor) > 1.)
+				correctionFactor = (-b - StrictMath.sqrt(discriminant)) / (2. * a);
+			// If the adjustment is tightly bounded within our window, return immediately
+			if(StrictMath.abs(correctionFactor) <= 1.)
+				return approximateJdUT + correctionFactor * dayStep;
+		}
+
+		// 2. Fallback Step: Execute robust sequential scanning if interpolation fails
+		// Widen fallback bracket backward to catch missed targets
+		double x1 = approximateJdUT - 15.;
 		double f1 = evaluateSolarLongitudeFunction(x1, targetLongitude);
 
 		// Scan forward in steps to locate an interval with a sign change
-		final double step = 5.;
-		for(int i = 0; i < 80; i ++){
-			final double x2 = x1 + step;
+		for(int i = 0; i < 12; i ++){
+			final double x2 = x1 + dayStep;
 			final double f2 = evaluateSolarLongitudeFunction(x2, targetLongitude);
 
 			if(f1 < 0. && f2 >= 0.)
@@ -126,35 +148,47 @@ public final class AstronomicalEngineAdapter implements EphemerisEngine{
 			+ approximateJdUT + " and target angle: " + targetLongitude);
 	}
 
-	private static double evaluateSolarLongitudeFunction(final double jdUT, final double targetLongitude){
+	private double evaluateSolarLongitudeFunction(final double jdUT, final double targetLongitude){
+		final double sunLng = calculateApparentSunLongitude(jdUT);
+		return MathHelper.mod2pi(sunLng - targetLongitude + StrictMath.PI) - StrictMath.PI;
+	}
+
+	/**
+	 * Computes the apparent ecliptic longitude of the Sun for a given Universal Time instant.
+	 * Accounts for VSOP2013 planetary perturbations, annual aberration, and IAU 2000A nutation.
+	 *
+	 * @param jdUT the Julian Date in Universal Time (UT/UTC) scale
+	 * @return the apparent solar longitude in radians, reduced to the interval [0, 2π)
+	 */
+	@Override
+	public double calculateApparentSunLongitude(final double jdUT){
 		final double ttJc = getTerrestrialCenturies(jdUT);
 		final NutationCorrections nutation = NutationCorrections.calculate(ttJc);
 		final double deltaPsi = nutation.getDeltaPsi();
-		final double sunLng = SunPosition.apparentSunLongitude(ttJc, deltaPsi);
-
-		return MathHelper.mod2pi(sunLng - targetLongitude + StrictMath.PI) - StrictMath.PI;
+		return SunPosition.apparentSunLongitude(ttJc, deltaPsi);
 	}
 
 
 	/**
-	 * Computes the exact Julian Date (UT) of sunset for a specific civil day and location.
-	 * Accounts for VSOP2013 planetary perturbations, IAU 2000A nutation, and standard atmospheric refraction.
+	 * Computes the exact Julian Date (UT) of a horizon crossing event for a specific body, day and location.
+	 * Consolidates parallax corrections, refraction, and dynamical semidiameter variations polimorphically.
 	 *
+	 * @param body         the targeted celestial body (SUN or MOON)
 	 * @param midnightUtJd the Julian Date representing local civil midnight converted to UT (ending in .5)
 	 * @param latitude     the observer's geodetic latitude in degrees (North positive)
 	 * @param longitude    the observer's geodetic longitude in degrees (East positive)
-	 * @return the Julian Date (UT) of the sunset event, or {@code Double.NaN} if the Sun is circumpolar
+	 * @return the Julian Date (UT) of the horizon event, or {@code Double.NaN} if the body is circumpolar
 	 */
 	@Override
-	public double calculateSunset(double midnightUtJd, double latitude, double longitude){
-		return SolarHorizonEvents.calculateSunset(midnightUtJd, latitude, longitude,
-			AstronomicalEngineAdapter::getTerrestrialCenturies);
-	}
+	public double calculateHorizonEvent(final CelestialBody body, final double midnightUtJd, final double latitude,
+			final double longitude){
+		return switch(body){
+			case SUN -> SolarHorizonEvents.calculateSunset(midnightUtJd, latitude, longitude,
+				AstronomicalEngineAdapter::getTerrestrialCenturies);
 
-	@Override
-	public double calculateMoonset(double midnightUtJd, double latitude, double longitude){
-		return MoonHorizonEvents.calculateMoonset(midnightUtJd, latitude, longitude,
-			AstronomicalEngineAdapter::getTerrestrialCenturies);
+			case MOON -> MoonHorizonEvents.calculateMoonset(midnightUtJd, latitude, longitude,
+				AstronomicalEngineAdapter::getTerrestrialCenturies);
+		};
 	}
 
 

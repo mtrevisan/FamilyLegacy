@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.io.model.readers.date.chinese;
 
+import io.github.mtrevisan.familylegacy.io.model.readers.date.CalendarType;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
@@ -107,7 +108,28 @@ public final class ChineseCalendarParser{
 		ERA_BASE_YEARS.put("民国", 1912);
 	}
 
+	private static final Map<String, Integer> SEASONS = new HashMap<>();
+	static{
+		// Qiū / Lìqiū (Autumn Loop) -> Longitude 135°
+		SEASONS.put("秋", CalendarType.SEASON_AUTUMN);
+		SEASONS.put("秋天", CalendarType.SEASON_AUTUMN);
+		SEASONS.put("立秋", CalendarType.SEASON_AUTUMN);
+		// Dōng / Lìdōng (Winter Loop) -> Longitude 225°
+		SEASONS.put("冬", CalendarType.SEASON_WINTER);
+		SEASONS.put("冬天", CalendarType.SEASON_WINTER);
+		SEASONS.put("立冬", CalendarType.SEASON_WINTER);
+		// Chūn / Lìchūn (Spring Loop) -> Longitude 315°
+		SEASONS.put("春", CalendarType.SEASON_SPRING);
+		SEASONS.put("春天", CalendarType.SEASON_SPRING);
+		SEASONS.put("立春", CalendarType.SEASON_SPRING);
+		// Xià / Lìxià (Summer Loop) -> Longitude 45°
+		SEASONS.put("夏", CalendarType.SEASON_SUMMER);
+		SEASONS.put("夏天", CalendarType.SEASON_SUMMER);
+		SEASONS.put("立夏", CalendarType.SEASON_SUMMER);
+	}
+
 	private static final Pattern YEAR_PATTERN = Pattern.compile("^(\\d{4})年");
+	private static final Pattern DATE_PATTERN = Pattern.compile("(?:(\\d+)\\s+)?([\\p{L}\\p{M}\\s-]+?)\\s+(\\d+)");
 
 	private static final String DIGITS = "一二三四五六七八九";
 
@@ -127,6 +149,17 @@ public final class ChineseCalendarParser{
 		String cleanStr = chineseDateString.replaceAll("\\s+", StringUtils.EMPTY);
 		if(cleanStr.startsWith(NONGLI1) || cleanStr.startsWith(NONGLI2))
 			cleanStr = cleanStr.substring(2);
+
+		// Check if the prefix maps to a direct seasonal/Jieqi token property
+		Integer seasonalFlag = null;
+		for(final String term : SEASONS.keySet())
+			if(cleanStr.startsWith(term)){
+				seasonalFlag = SEASONS.get(term);
+
+				cleanStr = cleanStr.substring(term.length());
+
+				break;
+			}
 
 		final int cycleYear;
 
@@ -175,6 +208,11 @@ public final class ChineseCalendarParser{
 			cycleYear = parseCyclicalYear(yearToken, explicitYear);
 			cleanStr = cleanStr.substring(yearEndIndex + 1);
 		}
+
+		// Handle conditional routing branching rules
+		if(seasonalFlag != null)
+			// SEASONAL JUNCTION CONTEXT: Skip standard lunisolar moon-day parsing operations
+			return new ChineseDateInput(cycleYear, seasonalFlag, false, 1);
 
 		// 2. Parse Intercalary Month Flag (Runyue)
 		boolean isLeapMonth = false;
@@ -319,10 +357,10 @@ public final class ChineseCalendarParser{
 		System.out.println("Year: 1980, Month: 1 (Leap: false), Day: 1");
 
 		final double exactJdUT1 = ChineseCalendarAstronomicalEngine.toJulianDateUT(
-			input1.getYear(),
-			input1.getMonth(),
-			input1.isLeapMonth(),
-			input1.getDay()
+			input1.year(),
+			input1.month(),
+			input1.leapMonth(),
+			input1.day()
 		);
 		System.out.println("Resulting Julian Date UT: " + exactJdUT1);
 		System.out.println("Resulting Julian Date UT: 2444477.1666666665");
@@ -334,10 +372,10 @@ public final class ChineseCalendarParser{
 		System.out.println("Year: 1696, Month: 8 (Leap: false), Day: 2");
 
 		final double exactJdUT2 = ChineseCalendarAstronomicalEngine.toJulianDateUT(
-			input2.getYear(),
-			input2.getMonth(),
-			input2.isLeapMonth(),
-			input2.getDay()
+			input2.year(),
+			input2.month(),
+			input2.leapMonth(),
+			input2.day()
 		);
 		System.out.println("Resulting Julian Date UT: " + exactJdUT2);
 		System.out.println("Resulting Julian Date UT: 2340973.176620375");

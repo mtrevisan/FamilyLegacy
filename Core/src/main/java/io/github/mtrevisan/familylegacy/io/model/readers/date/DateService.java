@@ -30,6 +30,9 @@ import io.github.mtrevisan.familylegacy.io.model.readers.DateReader;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 
+import java.time.LocalDate;
+import java.util.Locale;
+
 
 public class DateService{
 
@@ -206,9 +209,10 @@ public class DateService{
 		if(fullDate != null){
 			final String calendar = FLEFRecordHelper.getChildValue(singleDateRecord, DateReader.TAG_CALENDAR);
 			final String date = fullDate.getValue();
-			final GenealogicalDate genealogicalDate = UniversalDateConverter.parse(calendar, date);
-			final int year = genealogicalDate.isoDate().getYear();
-			return applyApproximatePrefix(singleDateRecord, String.valueOf(year));
+			final CalendarType calendarType = (calendar != null? CalendarType.valueOf(calendar.toUpperCase(Locale.ROOT)): CalendarType.GREGORIAN);
+			final long dateJdn = calendarType.parseToJdn(date);
+			final LocalDate prolepticDate = CalendarType.jdnToProlepticGregorianLocalDate(dateJdn);
+			return applyApproximatePrefix(singleDateRecord, String.valueOf(prolepticDate.getYear()));
 		}
 
 		final FLEFRecord decade = FLEFRecordHelper.findChild(valueContainer, DateReader.TAG_DECADE);

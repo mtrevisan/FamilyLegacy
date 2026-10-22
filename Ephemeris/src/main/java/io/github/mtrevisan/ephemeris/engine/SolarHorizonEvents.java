@@ -72,7 +72,7 @@ public final class SolarHorizonEvents{
 		final double trueObliquityNoon = epsilon0Noon + deltaEpsilonNoon;
 
 		// Find approximate solar geometric position
-		final double lambdaApparentNoon = SunPosition.apparentSunLongitude(jcNoon * 10., deltaPsiNoon);
+		final double lambdaApparentNoon = SunPosition.apparentSunLongitude(jcNoon, deltaPsiNoon);
 		final double declinationNoon = StrictMath.asin(StrictMath.sin(trueObliquityNoon)
 			* StrictMath.sin(lambdaApparentNoon));
 
