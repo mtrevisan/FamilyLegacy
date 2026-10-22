@@ -78,4 +78,19 @@ public interface EphemerisEngine{
 	 */
 	double calculateMoonset(double midnightUtJd, double latitude, double longitude);
 
+
+	/**
+	 * Computes the exact Julian Date (UT) when the Sun enters a specific season
+	 * for a given target calendar year.
+	 *
+	 * @param approximateJdUT A baseline guess JDN within that year to anchor the search spectrum
+	 * @param solarLongitudeTarget The targeted astronomical intersection angle in radians:
+	 *                              - Spring (Vernal Equinox): 0.0 (0°)
+	 *                              - Summer (Estival Solstice): 𝜋 / 2 (90°)
+	 *                              - Autumn (Autumnal Equinox): 𝜋 (180°)
+	 *                              - Winter (Hibernal Solstice): 3𝜋 / 2 (270°)
+	 * @return The exact Julian Date UT when the spatial transition occurs
+	 */
+	double calculateSeason(double approximateJdUT, double solarLongitudeTarget);
+
 }

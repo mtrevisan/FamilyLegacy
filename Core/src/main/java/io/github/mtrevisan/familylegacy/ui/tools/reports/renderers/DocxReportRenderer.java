@@ -388,7 +388,9 @@ public final class DocxReportRenderer implements ReportRenderer{
 
 	/** Maps a file extension to the POI picture-type constant. */
 	private static PictureType pictureTypeFor(final Path file){
-		final String name = file.getFileName().toString().toLowerCase(Locale.ROOT);
+		final String name = file.getFileName()
+			.toString()
+			.toLowerCase(Locale.ROOT);
 		if(name.endsWith(".png"))
 			return PictureType.findByOoxmlId(XWPFDocument.PICTURE_TYPE_PNG);
 		if(name.endsWith(".gif"))

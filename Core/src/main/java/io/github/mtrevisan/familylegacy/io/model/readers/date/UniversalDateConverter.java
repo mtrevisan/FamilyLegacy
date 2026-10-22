@@ -28,6 +28,8 @@ import com.ibm.icu.util.Calendar;
 import com.ibm.icu.util.HebrewCalendar;
 import com.ibm.icu.util.IndianCalendar;
 import com.ibm.icu.util.TimeZone;
+import io.github.mtrevisan.familylegacy.services.EphemerisEngine;
+import io.github.mtrevisan.familylegacy.services.EphemerisEngineFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 import org.threeten.extra.chrono.CopticChronology;
@@ -86,6 +88,11 @@ public final class UniversalDateConverter{
 	 * day {@code 0}. Used to convert a JDN into a {@link LocalDate}.
 	 */
 	static final long UNIX_EPOCH_JDN = 2440588L;
+
+	public static final int SEASON_AUTUMN = -1;
+	public static final int SEASON_WINTER = -2;
+	public static final int SEASON_SPRING = -3;
+	public static final int SEASON_SUMMER = -4;
 
 
 	private record PatternMatch(DateTimeFormatter formatter, GenealogicalDate.DatePrecision precision, boolean hasDay,
@@ -155,8 +162,10 @@ public final class UniversalDateConverter{
 		// Replace standard GEDCOM / date delimiters ('/', '.', '-') with spaces
 		rawDate = StringUtils.replaceChars(rawDate, "/.-", "   ");
 		final String cleanedDate = StringUtils.normalizeSpace(rawDate);
-		final ParsePosition pos = new ParsePosition(0);
+
 		final CalendarType type = CalendarType.fromCode(calendarCode);
+
+		final ParsePosition pos = new ParsePosition(0);
 		for(final PatternMatch pm : PATTERNS){
 			try{
 				pos.setIndex(0);
@@ -194,7 +203,7 @@ public final class UniversalDateConverter{
 					 * resulting JDN is turned into a proleptic Gregorian
 					 * date. This covers the calendars that previously
 					 * returned {@code null} from the switch. */
-					case PERSIAN, PARSI, BYZANTINE,
+					case VENETAN, PERSIAN, PARSI, BYZANTINE,
 						  EGYPTIAN, SELEUCID, ARMENIAN, RUMI
 						-> parseViaJdn(type, accessor, pm);
 				};
@@ -280,8 +289,41 @@ public final class UniversalDateConverter{
 		final int month = (pm.hasMonth()? accessor.get(ChronoField.MONTH_OF_YEAR): 1);
 		final int day = (pm.hasDay()? accessor.get(ChronoField.DAY_OF_MONTH): 1);
 
-		final long jdn = type.parseToJdn(day + StringUtils.SPACE + month + StringUtils.SPACE + year);
+		final EphemerisEngine engine = EphemerisEngineFactory.getEngine();
+		final long jdn;
+		// Check if the parser registered a negative month value (Dynamic Astronomical Season Flag)
+		if(month < 0){
+			// Step A: Approximate a baseline JDN anchor for the center of that calendar year
+			// June-equivalent middle calculation
+			final long baselineApproxJdn = type.parseToJdn("1 6 " + year);
+			final double approximateJdUT = baselineApproxJdn - 0.5;
+
+			// Step B: Define solar target longitude based on flag indices
+			// Let's assume uniform mapping conventions across our parser flags:
+			// Autumn = 𝜋, Winter = 3𝜋/2, Spring = 0, Summer = 𝜋/2
+			final double targetLongitude = getTargetLongitude(month);
+
+			// Step C: Trigger engine execution to track the orbital solar coordinate cross point precisely
+			final double exactEventJdUT = engine.calculateSeason(approximateJdUT, targetLongitude);
+
+			// Round down fractional Julian Dates to their absolute integer JDN values
+			jdn = (long)Math.floor(exactEventJdUT + 0.5);
+		}
+		else
+			// Standard numeric calculation path for regular months
+			jdn = type.parseToJdn(day + StringUtils.SPACE + month + StringUtils.SPACE + year);
+
 		return LocalDate.ofEpochDay(jdn - UNIX_EPOCH_JDN);
+	}
+
+	static double getTargetLongitude(final int month){
+		return switch(month){
+			case UniversalDateConverter.SEASON_AUTUMN -> Math.PI;          // Autumn
+			case UniversalDateConverter.SEASON_WINTER -> 1.5 * Math.PI;    // Winter
+			case UniversalDateConverter.SEASON_SPRING -> 0.;               // Spring
+			case UniversalDateConverter.SEASON_SUMMER -> 0.5 * Math.PI;    // Summer
+			default -> 0.;
+		};
 	}
 
 

@@ -172,7 +172,8 @@ public final class IdentityHypothesesDialog extends JDialog{
 		if(StringUtils.isEmpty(text))
 			sorter.setRowFilter(null);
 		else{
-			final String needle = text.trim().toLowerCase(Locale.ROOT);
+			final String needle = text.trim()
+				.toLowerCase(Locale.ROOT);
 			sorter.setRowFilter(new RowFilter<>(){
 				@Override
 				public boolean include(final Entry<? extends HypothesisTableModel, ? extends Integer> entry){

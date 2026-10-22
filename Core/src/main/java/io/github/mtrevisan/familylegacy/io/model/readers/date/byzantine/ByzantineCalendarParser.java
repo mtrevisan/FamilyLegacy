@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.io.model.readers.date.byzantine;
 
+import io.github.mtrevisan.familylegacy.io.model.readers.date.UniversalDateConverter;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
@@ -69,9 +70,24 @@ public final class ByzantineCalendarParser{
 		MONTHS.put("ιούνιος", 10);
 		MONTHS.put("ιούλιος", 11);
 		MONTHS.put("αύγουστος", 12);
+
+		// Phthinoporo (Autumn)
+		MONTHS.put("φθινόπωρο", UniversalDateConverter.SEASON_AUTUMN);
+		MONTHS.put("phthinoporo", UniversalDateConverter.SEASON_AUTUMN);
+		// Cheimonas (Winter)
+		MONTHS.put("χειμώνας", UniversalDateConverter.SEASON_WINTER);
+		MONTHS.put("cheimonas", UniversalDateConverter.SEASON_WINTER);
+		// Anoixi (Spring)
+		MONTHS.put("άνοιξη", UniversalDateConverter.SEASON_SPRING);
+		MONTHS.put("anoixi", UniversalDateConverter.SEASON_SPRING);
+		// Theros / Kalokairi (Summer)
+		MONTHS.put("θέρος", UniversalDateConverter.SEASON_SUMMER);
+		MONTHS.put("theros", UniversalDateConverter.SEASON_SUMMER);
+		MONTHS.put("καλοκαίρι", UniversalDateConverter.SEASON_SUMMER);
+		MONTHS.put("kalokairi", UniversalDateConverter.SEASON_SUMMER);
 	}
 
-	private static final Pattern DATE_PATTERN = Pattern.compile("(\\S+)\\s+(\\S+)\\s+(\\S+)");
+	private static final Pattern DATE_PATTERN = Pattern.compile("(?:(\\d+)\\s+)?(\\S+)\\s+(\\d+)");
 
 
 	private ByzantineCalendarParser(){}
@@ -80,43 +96,33 @@ public final class ByzantineCalendarParser{
 	/**
 	 * Parses a raw Byzantine text expression into a validated structural DTO.
 	 *
-	 * @param rawDate the date string (e.g., "1 Σεπτέμβριος 7000" or "15 September 6500")
+	 * @param rawDate the date string (e.g., "1 Σεπτέμβριος 7000" or "15 September 6500" or "Theros 6508")
 	 * @return a configured ByzantineDateInput instance
+	 * @throws IllegalArgumentException if string validations or regex checks fail
 	 */
 	public static ByzantineDateInput parse(final String rawDate){
-		final String normalized = StringUtils.normalizeSpace(convertDigitsToAscii(rawDate));
+		final String normalized = StringUtils.normalizeSpace(rawDate);
 
 		final Matcher matcher = DATE_PATTERN.matcher(normalized);
 		if(!matcher.matches())
 			throw new IllegalArgumentException("Invalid Byzantine date format: " + rawDate);
 
-		final int day = Integer.parseInt(matcher.group(1));
-		final String monthName = matcher.group(2).toLowerCase(Locale.ROOT);
+		final String dayGroup = matcher.group(1);
+		final String monthName = matcher.group(2)
+			.toLowerCase(Locale.ROOT);
+		final int year = Integer.parseInt(matcher.group(3));
 
 		final Integer month = MONTHS.get(monthName);
 		if(month == null)
-			throw new IllegalArgumentException("Unknown Byzantine month context: " + monthName);
+			throw new IllegalArgumentException("Unknown Byzantine month or seasonal context: " + monthName);
 
-		final int year = Integer.parseInt(matcher.group(3));
+		final int day = (dayGroup != null? Integer.parseInt(dayGroup): 1);
 
 		// Basic sanity boundary check (Julian structure mapping)
-		if(day < 1 || day > 31)
+		if(month > 0 && (day < 1 || day > 31))
 			throw new IllegalArgumentException("Invalid day count for the targeted Julian boundary.");
 
 		return new ByzantineDateInput(year, month, day);
-	}
-
-	private static String convertDigitsToAscii(final String text){
-		final StringBuilder sb = new StringBuilder(text.length());
-		for(int i = 0; i < text.length(); i ++){
-			final char c = text.charAt(i);
-			// Handle basic eastern script anomalies if present
-			if(c >= '۰' && c <= '精')
-				sb.append((char)('0' + c - '۰'));
-			else
-				sb.append(c);
-		}
-		return sb.toString();
 	}
 
 }

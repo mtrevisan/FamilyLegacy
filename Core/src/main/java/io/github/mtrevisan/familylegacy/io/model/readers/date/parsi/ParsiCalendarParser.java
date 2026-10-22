@@ -100,7 +100,8 @@ public final class ParsiCalendarParser{
 			throw new IllegalArgumentException("Invalid Parsi date format: " + rawDate);
 
 		final int day = Integer.parseInt(matcher.group(1));
-		final String monthName = matcher.group(2).toLowerCase(Locale.ROOT);
+		final String monthName = matcher.group(2)
+			.toLowerCase(Locale.ROOT);
 
 		final Integer month = MONTHS.get(monthName);
 		if(month == null)

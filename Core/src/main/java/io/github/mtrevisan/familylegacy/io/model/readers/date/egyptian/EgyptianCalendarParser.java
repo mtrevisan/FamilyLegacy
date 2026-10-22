@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.io.model.readers.date.egyptian;
 
+import io.github.mtrevisan.familylegacy.io.model.readers.date.UniversalDateConverter;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
@@ -63,9 +64,18 @@ public final class EgyptianCalendarParser{
 		MONTHS.put("epagomenai", 13);
 		MONTHS.put("epagomenal", 13);
 		MONTHS.put("meskut", 13);
+
+		// NATIVE SEASONAL FLAGS (Negative integers map to dynamic astronomical calculation scopes)
+		// Akhet (Inundation / Autumn)
+		MONTHS.put("akhet", UniversalDateConverter.SEASON_AUTUMN);
+		// Peret (Emergence / Winter)
+		MONTHS.put("peret", UniversalDateConverter.SEASON_WINTER);
+		// Shemu (Low Water / Summer)
+		MONTHS.put("shemu", UniversalDateConverter.SEASON_SPRING);
+		MONTHS.put("shomu", UniversalDateConverter.SEASON_SPRING);
 	}
 
-	private static final Pattern DATE_PATTERN = Pattern.compile("(\\S+)\\s+(\\S+)\\s+(\\S+)");
+	private static final Pattern DATE_PATTERN = Pattern.compile("(?:(\\d+)\\s+)?(\\S+)\\s+(\\d+)");
 
 
 	private EgyptianCalendarParser(){}
@@ -84,17 +94,20 @@ public final class EgyptianCalendarParser{
 		if(!matcher.matches())
 			throw new IllegalArgumentException("Invalid Egyptian date format: " + rawDate);
 
-		final int day = Integer.parseInt(matcher.group(1));
-		final String monthName = matcher.group(2).toLowerCase(Locale.ROOT);
+		final String dayGroup = matcher.group(1);
+		final String monthName = matcher.group(2)
+			.toLowerCase(Locale.ROOT);
+		final int year = Integer.parseInt(matcher.group(3));
 
 		final Integer month = MONTHS.get(monthName);
 		if(month == null)
-			throw new IllegalArgumentException("Unknown Egyptian month or epagomenal marker: " + monthName);
+			throw new IllegalArgumentException("Unknown Egyptian month or seasonal descriptor: " + monthName);
 
-		final int year = Integer.parseInt(matcher.group(3));
+		// For seasonal tokens, day parameter acts as an internal flag or defaults to 1
+		final int day = (dayGroup != null? Integer.parseInt(dayGroup): 1);
 
-		// Boundary checks matching Egyptian civil constraints
-		if(month <= 12 && (day < 1 || day > 30))
+		// Standard Egyptian civil calendar parameter validation boundaries
+		if(month > 0 && month <= 12 && (day < 1 || day > 30))
 			throw new IllegalArgumentException("Standard Egyptian months must have exactly 30 days.");
 		if(month == 13 && (day < 1 || day > 5))
 			throw new IllegalArgumentException("Epagomenal period consists strictly of 5 days.");

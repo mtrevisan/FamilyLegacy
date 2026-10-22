@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.io.model.readers.date.armenian;
 
+import io.github.mtrevisan.familylegacy.io.model.readers.date.UniversalDateConverter;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
@@ -54,13 +55,25 @@ public final class ArmenianCalendarParser{
 		MONTHS.put("mareri", 10);
 		MONTHS.put("margats", 11);
 		MONTHS.put("hrotits", 12);
-
 		// Intercalary 5 epagomenal days
 		MONTHS.put("avelyats", 13);
 		MONTHS.put("aveliats", 13);
+
+		// Ashun / Ashnan (Autumn)
+		MONTHS.put("ashun", UniversalDateConverter.SEASON_AUTUMN);
+		MONTHS.put("ashnan", UniversalDateConverter.SEASON_AUTUMN);
+		// Dzmer / Dzmeran (Winter)
+		MONTHS.put("dzmer", UniversalDateConverter.SEASON_WINTER);
+		MONTHS.put("dzmeran", UniversalDateConverter.SEASON_WINTER);
+		// Garun / Garnan (Spring)
+		MONTHS.put("garun", UniversalDateConverter.SEASON_SPRING);
+		MONTHS.put("garnan", UniversalDateConverter.SEASON_SPRING);
+		// Amar / Amran (Summer)
+		MONTHS.put("amar", UniversalDateConverter.SEASON_SUMMER);
+		MONTHS.put("amran", UniversalDateConverter.SEASON_SUMMER);
 	}
 
-	private static final Pattern DATE_PATTERN = Pattern.compile("(\\S+)\\s+(\\S+)\\s+(\\S+)");
+	private static final Pattern DATE_PATTERN = Pattern.compile("(?:(\\d+)\\s+)?(\\S+)\\s+(\\d+)");
 
 
 	private ArmenianCalendarParser(){}
@@ -79,17 +92,19 @@ public final class ArmenianCalendarParser{
 		if(!matcher.matches())
 			throw new IllegalArgumentException("Invalid Armenian date format: " + rawDate);
 
-		final int day = Integer.parseInt(matcher.group(1));
-		final String monthName = matcher.group(2).toLowerCase(Locale.ROOT);
+		final String dayGroup = matcher.group(1);
+		final String monthName = matcher.group(2)
+			.toLowerCase(Locale.ROOT);
+		final int year = Integer.parseInt(matcher.group(3));
 
 		final Integer month = MONTHS.get(monthName);
 		if(month == null)
-			throw new IllegalArgumentException("Unknown Armenian month or intercalary marker: " + monthName);
+			throw new IllegalArgumentException("Unknown Armenian month or seasonal descriptor: " + monthName);
 
-		final int year = Integer.parseInt(matcher.group(3));
+		final int day = (dayGroup != null? Integer.parseInt(dayGroup): 1);
 
 		// Defensive boundary checks matching physical constraints
-		if(month <= 12 && (day < 1 || day > 30))
+		if(month > 0 && month <= 12 && (day < 1 || day > 30))
 			throw new IllegalArgumentException("Standard Armenian months must have exactly 30 days.");
 		if(month == 13 && (day < 1 || day > 5))
 			throw new IllegalArgumentException("Avelyats intercalary period consists strictly of 5 days.");

@@ -45,6 +45,8 @@ import io.github.mtrevisan.familylegacy.io.model.readers.date.seleucid.SeleucidC
 import io.github.mtrevisan.familylegacy.io.model.readers.date.seleucid.SeleucidDateInput;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.venetan.VenetanCalendarParser;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.venetan.VenetanDateInput;
+import io.github.mtrevisan.familylegacy.services.EphemerisEngine;
+import io.github.mtrevisan.familylegacy.services.EphemerisEngineFactory;
 import org.apache.commons.lang3.StringUtils;
 
 import java.time.LocalDate;
@@ -75,6 +77,26 @@ public enum CalendarType implements CalendarConverterPlugin{
 			final int month = input.month();
 			final int day = input.day();
 
+			if(input.month() < 0){
+				// Step A: Align the approximate year coordinate for the seasonal solver anchor.
+				// Since more Veneto shifts January/February back, we anchor onto the real historical timeline.
+				// June calculation baseline
+				final long baselineApproxJdn = toJdn(year, 4, 1);
+				final double approximateJdUT = baselineApproxJdn - 0.5;
+
+				// Step B: Resolve exact longitude map assignments matching the parser flags
+				final double targetLongitude = UniversalDateConverter.getTargetLongitude(month);
+
+				// Step C: Trigger engine execution to track the exact solar coordinate transition point
+				final EphemerisEngine engine = EphemerisEngineFactory.getEngine();
+				final double exactEventJdUT = engine.calculateSeason(approximateJdUT, targetLongitude);
+				return (long)Math.floor(exactEventJdUT + 0.5);
+			}
+			else
+				return toJdn(year, month, day);
+		}
+
+		private static long toJdn(final int year, final int month, final int day){
 			// Convert more Veneto coordinates to standard Julian calendar coordinates
 			// Months 1 (March) to 10 (December) share the same chronological year.
 			// Months 11 (January) and 12 (February) belong to the next Julian year.
