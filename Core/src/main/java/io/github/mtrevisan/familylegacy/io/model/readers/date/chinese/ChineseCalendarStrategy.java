@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.io.model.readers.date.chinese;
 
 import io.github.mtrevisan.familylegacy.io.model.readers.date.CalendarConverterPlugin;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.CalendarType;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.gregorian.GregorianCalendarStrategy;
 import io.github.mtrevisan.familylegacy.services.EphemerisEngine;
 import io.github.mtrevisan.familylegacy.services.EphemerisEngineFactory;
 
@@ -61,10 +62,7 @@ public class ChineseCalendarStrategy implements CalendarConverterPlugin{
 				default -> 6;
 			};
 
-			final long baselineApproxJdn = Math.floorDiv(48525L * year, 400L)
-				- Math.floorDiv(year, 100L)
-				+ Math.floorDiv(153L * (approximateTargetGregorianMonth + 1), 5L)
-				+ 1 + 1721423L;
+			final long baselineApproxJdn = GregorianCalendarStrategy.toJdn(year, approximateTargetGregorianMonth, 1);
 			final double approximateMiddleJdUT = baselineApproxJdn - 0.5;
 
 			// Step B: Map negative flag parameters directly onto true solar ecliptic target boundaries.

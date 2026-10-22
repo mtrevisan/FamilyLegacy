@@ -42,9 +42,8 @@ public class EgyptianCalendarStrategy implements CalendarConverterPlugin{
 		final int month = input.month();
 		final int day = input.day();
 
-		// Using your absolute epoch constant anchor: July 19, 2781 BC Julian = JDN 1448638L.
-		// (If using Nabonassar instead, swap out for 1703643L).
-		final long egyptianEpochJdn = 1703643L;
+		// Era of Nabonassar (Ptolemy, Almagest): 1 Thoth 1 = 26 February 747 BCE Julian = JDN 1448638.
+		final long egyptianEpochJdn = 1448638L;
 
 		if(month < 0){
 			// Step A: Determine the absolute linear window of this shifting Egyptian year.

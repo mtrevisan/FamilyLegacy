@@ -73,7 +73,7 @@ public class EthiopianCalendarStrategy implements CalendarConverterPlugin{
 		else{
 			// Standard arithmetic execution mapping path for typical regular Ethiopian months (fixed Julian translation)
 			// Incarnation Epoch
-			final long ethiopianEpochJdn = 1724220L;
+			final long ethiopianEpochJdn = 1724221L; // 29 August 8 CE Julian
 
 			// Arithmetic tracking: 365 days per year flat + leap years added every 4 years
 			return ethiopianEpochJdn + (year - 1) * 365L

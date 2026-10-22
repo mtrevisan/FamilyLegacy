@@ -59,7 +59,7 @@ public class ReformedJulianCalendarStrategy implements CalendarConverterPlugin{
 				- Math.floorDiv(y, 100L)
 				+ Math.floorDiv(2L * Math.floorDiv(y, 100L) + 6, 9L)
 				+ Math.floorDiv(153L * (m + 1), 5L)
-				+ 1 + 1721422L;
+				+ 1 + 1720997L;
 			final double approximateMiddleJdUT = baselineApproxJdn - 0.5;
 
 			// Step B: Map negative flag parameters directly onto true solar ecliptic target boundaries
@@ -82,7 +82,7 @@ public class ReformedJulianCalendarStrategy implements CalendarConverterPlugin{
 				- Math.floorDiv(y, 100L)
 				+ Math.floorDiv(2L * Math.floorDiv(y, 100L) + 6, 9L)
 				+ Math.floorDiv(153L * (m + 1), 5L)
-				+ day + 1721422L;
+				+ day + 1720997L;
 		}
 	}
 

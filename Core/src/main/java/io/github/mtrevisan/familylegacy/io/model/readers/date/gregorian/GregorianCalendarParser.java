@@ -56,7 +56,7 @@ public final class GregorianCalendarParser{
 		// Hardcoded fallback anchors for core legacy and shorthand symbols
 		SEASONS.put("aut", CalendarType.SEASON_AUTUMN);
 		SEASONS.put("win", CalendarType.SEASON_WINTER);
-		SEASONS.put("spr", CalendarType.SEASON_SUMMER);
+		SEASONS.put("spr", CalendarType.SEASON_SPRING);
 		SEASONS.put("sum", CalendarType.SEASON_SUMMER);
 	}
 

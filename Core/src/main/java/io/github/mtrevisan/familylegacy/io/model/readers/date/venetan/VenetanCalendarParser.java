@@ -186,7 +186,7 @@ public final class VenetanCalendarParser{
 			.replace("ƚe", "l")
 			.replace("ƚi", "l")
 			.replace("gn", "ñ");
-		monthName = monthName.replaceAll("aro?", "èr");
+		monthName = monthName.replaceAll("aro?$", "èr");
 
 		final Integer month = MONTHS.get(monthName);
 		if(month == null)

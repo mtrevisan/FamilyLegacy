@@ -103,13 +103,9 @@ public final class RumiCalendarParser{
 			.trim();
 		final int year = Integer.parseInt(matcher.group(3));
 
-		Integer month = MONTHS.get(monthName);
+		final Integer month = MONTHS.get(monthName);
 		if(month == null)
 			throw new IllegalArgumentException("Unknown Rumi month or seasonal descriptor: " + monthName);
-
-		// If processing a date after the 1917 reform (Year 1333+), normalize months to standard Gregorian order
-		if(year > 1332 && monthName.matches("ocak|kanun-i sani"))
-			month = 1; // January becomes Month 1 after reform alignment
 
 		// Operational fallback for pure seasonal records
 		final int day = (dayGroup != null? Integer.parseInt(dayGroup): 1);

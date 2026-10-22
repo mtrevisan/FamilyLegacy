@@ -45,8 +45,8 @@ public class FrenchRepublicanCalendarStrategy implements CalendarConverterPlugin
 
 		if(month < 0){
 			// Step A: Determine an approximate baseline anchor for the year.
-			// Year 1 began at JDN 2375839L (September 22, 1792).
-			final long startOfYearJdn = 2375839L + (long)((year - 1) * 365.2422);
+			// Year 1 began at JDN 2375840L (September 22, 1792).
+			final long startOfYearJdn = 2375840L + (long)((year - 1) * 365.2422);
 			final double approximateMiddleJdUT = startOfYearJdn + 182.5 - 0.5;
 
 			// Step B: Map negative flag parameters directly onto true solar ecliptic target boundaries
@@ -60,7 +60,7 @@ public class FrenchRepublicanCalendarStrategy implements CalendarConverterPlugin
 		}
 		else{
 			// Standard arithmetic execution mapping path for regular months (Romme arithmetic rule alignment)
-			final long epochJdn = 2375839L; // JDN of September 22, 1792
+			final long epochJdn = 2375840L; // JDN of September 22, 1792
 
 			// Days elapsed = (years * 365) + leap corrections + month days + current day offset
 			final long daysToAdd = (year - 1) * 365L

@@ -60,7 +60,7 @@ public class SeleucidCalendarStrategy implements CalendarConverterPlugin{
 		}
 		else
 			// Standard numeric execution path using your existing Julian shifting logic
-			return toJdn(month, year, day);
+			return toJdn(year, month, day);
 	}
 
 	private static long toJdn(final int year, final int month, final int day){

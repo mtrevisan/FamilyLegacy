@@ -64,14 +64,14 @@ class ChineseCalendarConverterTest{
 
 	@Test
 	void prcProclamation(){
-final long start = System.currentTimeMillis();
+//final long start = System.currentTimeMillis();
 		// Proclamation of the PRC (2 Oct 1949 Gregorian -> 11th Day of 8th Month)
 		final long jdn = CalendarType.CHINESE.parseToJdn("民国38年 八月 十一");
 // 50121 ms
 //  5797 ms
 //  1659 ms
 //  1439 ms
-System.out.println("PRC proclamation: " + (System.currentTimeMillis() - start) + " ms");
+//System.out.println("PRC proclamation: " + (System.currentTimeMillis() - start) + " ms");
 
 		Assertions.assertEquals(2433192L, jdn);
 	}
@@ -91,6 +91,14 @@ System.out.println("PRC proclamation: " + (System.currentTimeMillis() - start) +
 		final long jdn = CalendarType.CHINESE.parseToJdn("2020年 庚子年 正月 初一");
 
 		Assertions.assertEquals(2458874L, jdn);
+	}
+
+	@Test
+	void startOfSpring2024(){
+		// Lìchūn 2024, solar longitude 315° (4 Feb 2024 08:27 UT)
+		final long jdn = CalendarType.CHINESE.parseToJdn("立春 2024年 甲辰年");
+
+		Assertions.assertEquals(2460345L, jdn);
 	}
 
 	@Test

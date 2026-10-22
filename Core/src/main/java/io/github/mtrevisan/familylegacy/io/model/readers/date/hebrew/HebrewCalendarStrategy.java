@@ -60,9 +60,14 @@ public class HebrewCalendarStrategy implements CalendarConverterPlugin{
 
 			return (long)Math.floor(exactSeasonJdUT + 0.5);
 		}
-		else
+		else{
+			// The parser numbers the months as in a leap year (Adar I = 6, Adar II = 7, Nisan = 8, ..., Elul = 13):
+			// in a common year there is a single Adar (6), and Nisan to Elul shift back by one (7 to 12)
+			final int yearMonth = (!isLeapYear(year) && month >= 7? Math.max(month - 1, 6): month);
+
 			// Standard numeric execution path using the rabbinic calculation algorithm for regular Hebrew dates
-			return hebrewNewYear(year) + daysBeforeMonth(year, month) + (day - 1);
+			return hebrewNewYear(year) + daysBeforeMonth(year, yearMonth) + (day - 1);
+		}
 	}
 
 	/**

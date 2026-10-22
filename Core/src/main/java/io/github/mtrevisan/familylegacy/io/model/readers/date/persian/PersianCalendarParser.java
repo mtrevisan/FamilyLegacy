@@ -91,7 +91,7 @@ public final class PersianCalendarParser{
 
 	// Adaptive pattern supporting both standalone seasonal notations ("Bahar 1357")
 	// and explicit three-token expressions ("22 Bahman 1357")
-	private static final Pattern DATE_PATTERN = Pattern.compile("(?:(\\d+)\\s+)?([a-zA-Zأ-ی\\s-]+?)\\s+(\\d+)");
+	private static final Pattern DATE_PATTERN = Pattern.compile("(?:(\\d+)\\s+)?([a-zA-Zآ-ی\\s-]+?)\\s+(\\d+)");
 
 
 	private PersianCalendarParser(){}
@@ -142,7 +142,7 @@ public final class PersianCalendarParser{
 		for(int i = 0; i < text.length(); i ++){
 			final char c = text.charAt(i);
 
-			if(c >= '۰' && c <= '微')
+			if(c >= '۰' && c <= '۹')
 				sb.append((char)('0' + c - '۰'));
 			else if(c >= '٠' && c <= '٩')
 				sb.append((char)('0' + c - '٠'));

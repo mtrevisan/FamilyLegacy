@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.io.model.readers.date.indian;
 
 import io.github.mtrevisan.familylegacy.io.model.readers.date.CalendarConverterPlugin;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.CalendarType;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.gregorian.GregorianCalendarStrategy;
 import io.github.mtrevisan.familylegacy.services.EphemerisEngine;
 import io.github.mtrevisan.familylegacy.services.EphemerisEngineFactory;
 
@@ -54,7 +55,6 @@ public class IndianCalendarStrategy implements CalendarConverterPlugin{
 		if(month < 0){
 			// Step A: Calculate a dynamic baseline anchor for the center of the target year.
 			// We calculate June 1st (Month 6) of that target Gregorian framework year.
-			final int y = gregorianYear;
 			// Maps each unique traditional Ritu directly onto its target Gregorian month neighborhood
 			final int m = switch(month){
 				case IndianCalendarParser.RITU_VASANTA -> 3;  // Spring -> March
@@ -65,10 +65,7 @@ public class IndianCalendarStrategy implements CalendarConverterPlugin{
 				case IndianCalendarParser.RITU_SHISHIRA -> 12;// Winter -> December
 				default -> 6;
 			};
-			final long baselineApproxJdn = Math.floorDiv(48525L * y, 400L)
-				- Math.floorDiv(y, 100L)
-				+ Math.floorDiv(153L * (m + 1), 5L)
-				+ 1 + 1721423L;
+			final long baselineApproxJdn = GregorianCalendarStrategy.toJdn(gregorianYear, m, 1);
 			final double approximateMiddleJdUT = baselineApproxJdn - 0.5;
 
 			// Step B: Map negative flag parameters directly onto true solar ecliptic target boundaries.
@@ -88,12 +85,8 @@ public class IndianCalendarStrategy implements CalendarConverterPlugin{
 			final boolean isLeap = isLeapYear(gregorianYear);
 			final int chaitraStartDay = (isLeap? 21: 22);
 
-			final int referenceYear = gregorianYear;
-			final int referenceMonth = 6;
-			long startOfYearJdn = Math.floorDiv(48525L * referenceYear, 400L)
-				- Math.floorDiv(referenceYear, 100L)
-				+ Math.floorDiv(153L * (referenceMonth + 1), 5L)
-				+ chaitraStartDay + 1721423L;
+			// Chaitra 1 falls on 22 March (21 March in Gregorian leap years)
+			final long startOfYearJdn = GregorianCalendarStrategy.toJdn(gregorianYear, 3, chaitraStartDay);
 
 			int elapsedDays = 0;
 			for(int m = 1; m < month; m ++){

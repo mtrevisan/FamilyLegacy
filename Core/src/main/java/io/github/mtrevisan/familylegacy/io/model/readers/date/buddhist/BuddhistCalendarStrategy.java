@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.io.model.readers.date.buddhist;
 
 import io.github.mtrevisan.familylegacy.io.model.readers.date.CalendarConverterPlugin;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.CalendarType;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.gregorian.GregorianCalendarStrategy;
 import io.github.mtrevisan.familylegacy.services.EphemerisEngine;
 import io.github.mtrevisan.familylegacy.services.EphemerisEngineFactory;
 
@@ -48,7 +49,6 @@ public class BuddhistCalendarStrategy implements CalendarConverterPlugin{
 
 		if(month < 0){
 			// Step A: Calculate a dynamic baseline anchor for the center of the target year.
-			final int y = gregorianYear;
 			final int m = switch(month){
 				case CalendarType.SEASON_SPRING -> 3;  // March
 				case CalendarType.SEASON_SUMMER -> 6;  // June
@@ -56,10 +56,7 @@ public class BuddhistCalendarStrategy implements CalendarConverterPlugin{
 				case CalendarType.SEASON_WINTER -> 12; // December
 				default -> 6;
 			};
-			final long baselineApproxJdn = Math.floorDiv(48525L * y, 400L)
-				- Math.floorDiv(y, 100L)
-				+ Math.floorDiv(153L * (m + 1), 5L)
-				+ 1 + 1721423L;
+			final long baselineApproxJdn = GregorianCalendarStrategy.toJdn(gregorianYear, m, 1);
 			final double approxMiddleJdUT = baselineApproxJdn - 0.5;
 
 			// Step B: Map negative flag parameters directly onto true solar ecliptic target boundaries
@@ -72,16 +69,9 @@ public class BuddhistCalendarStrategy implements CalendarConverterPlugin{
 
 			return (long)Math.floor(exactSeasonJdUT + 0.5);
 		}
-		else{
+		else
 			// Standard numeric execution path using the canonical algorithm for regular Gregorian dates via gregorianYear
-			final int y = (month <= 2? gregorianYear - 1: gregorianYear);
-			final int m = (month <= 2? month + 12: month);
-
-			return Math.floorDiv(48525L * y, 400L)
-				- Math.floorDiv(y, 100L)
-				+ Math.floorDiv(153L * (m + 1), 5L)
-				+ day + 1721423L;
-		}
+			return GregorianCalendarStrategy.toJdn(gregorianYear, month, day);
 	}
 
 	@Override

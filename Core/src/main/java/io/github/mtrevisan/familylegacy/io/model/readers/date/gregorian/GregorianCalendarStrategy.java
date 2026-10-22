@@ -47,7 +47,6 @@ public class GregorianCalendarStrategy implements CalendarConverterPlugin{
 			// Step A: Determine an approximate baseline anchor for the center of the target year.
 			// Gregorian year 1970-01-01 = JDN 2440588L.
 			// We calculate June 1st of that target year to center our initial search window.
-			final int y = year;
 			final int m = switch(month){
 				case CalendarType.SEASON_SPRING -> 3;  // March
 				case CalendarType.SEASON_SUMMER -> 6;  // June
@@ -55,10 +54,7 @@ public class GregorianCalendarStrategy implements CalendarConverterPlugin{
 				case CalendarType.SEASON_WINTER -> 12; // December
 				default -> 6;
 			};
-			final long baselineApproxJdn = Math.floorDiv(48525L * y, 400L)
-				- Math.floorDiv(y, 100L)
-				+ Math.floorDiv(153L * (m + 1), 5L)
-				+ 1 + 1721423L;
+			final long baselineApproxJdn = toJdn(year, m, 1);
 			final double approximateMiddleJdUT = baselineApproxJdn - 0.5;
 
 			// Step B: Map negative flag parameters directly onto true solar ecliptic target boundaries
@@ -71,16 +67,27 @@ public class GregorianCalendarStrategy implements CalendarConverterPlugin{
 
 			return (long)Math.floor(exactSeasonJdUT + 0.5);
 		}
-		else{
+		else
 			// Standard numeric execution path using the canonical algorithm for regular Gregorian dates
-			final int y = (month <= 2? year - 1: year);
-			final int m = (month <= 2? month + 12: month);
+			return toJdn(year, month, day);
+	}
 
-			return Math.floorDiv(48525L * y, 400L)
-				- Math.floorDiv(y, 100L)
-				+ Math.floorDiv(153L * (m + 1), 5L)
-				+ day + 1721423L;
-		}
+	/**
+	 * Converts a proleptic Gregorian date into its Julian Day Number (Meeus, Astronomical Algorithms, ch. 7).
+	 *
+	 * @param year  the astronomical year (1 BCE = 0)
+	 * @param month the month (1 to 12)
+	 * @param day   the day of the month
+	 * @return the Julian Day Number
+	 */
+	public static long toJdn(final int year, final int month, final int day){
+		final int y = (month <= 2? year - 1: year);
+		final int m = (month <= 2? month + 12: month);
+		final long century = Math.floorDiv(y, 100L);
+
+		return Math.floorDiv(1461L * (y + 4716L), 4L)
+			+ Math.floorDiv(153L * (m + 1), 5L)
+			+ day + 2 - century + Math.floorDiv(century, 4L) - 1524L;
 	}
 
 	@Override

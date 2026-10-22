@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.io.model.readers.date.rumi;
 
 import io.github.mtrevisan.familylegacy.io.model.readers.date.CalendarConverterPlugin;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.CalendarType;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.gregorian.GregorianCalendarStrategy;
 import io.github.mtrevisan.familylegacy.services.EphemerisEngine;
 import io.github.mtrevisan.familylegacy.services.EphemerisEngineFactory;
 
@@ -64,41 +65,31 @@ public class RumiCalendarStrategy implements CalendarConverterPlugin{
 	}
 
 	private static long toJdn(final int year, final int month, final int day){
-		// Determine if the target date is after the Gregorian alignment reform (March 1, 1333 Rumi)
-		// Before reform: Year started in March (Month 1 = March, 12 = February)
-		// After reform: Year aligned to January (Month 1 = January, 12 = December)
-		if(year < 1332 || year == 1332 && month <= 12){
-			// PRE-REFORM LOGIC: Pure Julian Calendar tracking with March start (Epoch 584 year difference)
-			// Mapping Rumi month back to Julian month placement
-			// March=1->3, Dec=10->12
-			int julianMonth = month + 2;
-			int julianYear = year + 584;
-			// January and February belong to the next Julian year
-			if(month > 10){
-				// Jan=11->1, Feb=12->2
-				julianMonth = month - 10;
-				julianYear ++;
-			}
-
-			final int y = (julianMonth <= 2? julianYear - 1: julianYear);
-			final int m = (julianMonth <= 2? julianMonth + 12: julianMonth);
-
-			return Math.floorDiv(1461L * (y + 4716L), 4L)
-				+ Math.floorDiv(153L * (m + 1), 5L)
-				+ day - 1524L;
+		// Rumi months are numbered from March (Mart = 1, ..., Kânûn-ı Evvel = 10, Kânûn-ı Sânî = 11, Şubat = 12), year difference is
+		// 584 years
+		// March=1->3, Dec=10->12
+		int calendarMonth = month + 2;
+		int calendarYear = year + 584;
+		if(month > 10){
+			// Jan=11->1, Feb=12->2
+			calendarMonth = month - 10;
+			// Until 1333 the year started in March, so January and February belong to the next Julian/Gregorian year;
+			// from 1334 (1918) the year starts in January
+			if(year < 1334)
+				calendarYear ++;
 		}
-		else{
-			// POST-REFORM LOGIC: Completely mapped onto Gregorian rules. Year difference is strictly 584 years.
-			final int gregorianYear = year + 584;
 
-			final int y = (month <= 2? gregorianYear - 1: gregorianYear);
-			final int m = (month <= 2? month + 12: month);
+		// 1917 reform: 15 Şubat 1332 (Julian) was followed by 1 Mart 1333 (Gregorian)
+		if(year > 1332)
+			return GregorianCalendarStrategy.toJdn(calendarYear, calendarMonth, day);
 
-			return Math.floorDiv(48525L * y, 400L)
-				- Math.floorDiv(y, 100L)
-				+ Math.floorDiv(153L * (m + 1), 5L)
-				+ day + 1721423L;
-		}
+		// PRE-REFORM LOGIC: Pure Julian Calendar tracking with March start
+		final int y = (calendarMonth <= 2? calendarYear - 1: calendarYear);
+		final int m = (calendarMonth <= 2? calendarMonth + 12: calendarMonth);
+
+		return Math.floorDiv(1461L * (y + 4716L), 4L)
+			+ Math.floorDiv(153L * (m + 1), 5L)
+			+ day - 1524L;
 	}
 
 	@Override

@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.io.model.readers.date.sovieteternal;
 
 import io.github.mtrevisan.familylegacy.io.model.readers.date.CalendarConverterPlugin;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.CalendarType;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.gregorian.GregorianCalendarStrategy;
 import io.github.mtrevisan.familylegacy.services.EphemerisEngine;
 import io.github.mtrevisan.familylegacy.services.EphemerisEngineFactory;
 
@@ -53,7 +54,6 @@ public class SovietEternalCalendarStrategy implements CalendarConverterPlugin{
 		if(month < 0){
 			// Step A: Determine an approximate baseline anchor for the year.
 			// Soviet dates align completely with Gregorian absolute years. Gregorian year 1970-01-01 = JDN 2440588L.
-			final int y = year;
 			final int m = switch(month){
 				case CalendarType.SEASON_SPRING -> 3;  // March
 				case CalendarType.SEASON_SUMMER -> 6;  // June
@@ -61,10 +61,7 @@ public class SovietEternalCalendarStrategy implements CalendarConverterPlugin{
 				case CalendarType.SEASON_WINTER -> 12; // December
 				default -> 6;
 			};
-			final long baselineApproxJdn = Math.floorDiv(48525L * y, 400L)
-				- Math.floorDiv(y, 100L)
-				+ Math.floorDiv(153L * (m + 1), 5L)
-				+ 1 + 1721423L;
+			final long baselineApproxJdn = GregorianCalendarStrategy.toJdn(year, m, 1);
 			final double approximateMiddleJdUT = baselineApproxJdn - 0.5;
 
 			// Step B: Map negative flag parameters directly onto true solar ecliptic target boundaries
@@ -76,17 +73,10 @@ public class SovietEternalCalendarStrategy implements CalendarConverterPlugin{
 
 			return (long)Math.floor(exactSeasonJdUT + 0.5);
 		}
-		else{
+		else
 			// Standard numeric execution path using your existing arithmetic baseline formula for Soviet dates
 			// Since the production cycles share solar boundaries, it maps directly back onto Gregorian JDN steps:
-			final int y = (month <= 2? year - 1: year);
-			final int m = (month <= 2? month + 12: month);
-
-			return Math.floorDiv(48525L * y, 400L)
-				- Math.floorDiv(y, 100L)
-				+ Math.floorDiv(153L * (m + 1), 5L)
-				+ day + 1721423L;
-		}
+			return GregorianCalendarStrategy.toJdn(year, month, day);
 	}
 
 	@Override

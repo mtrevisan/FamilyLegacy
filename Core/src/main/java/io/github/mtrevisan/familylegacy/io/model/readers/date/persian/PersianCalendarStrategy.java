@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.io.model.readers.date.persian;
 
 import io.github.mtrevisan.familylegacy.io.model.readers.date.CalendarConverterPlugin;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.CalendarType;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.gregorian.GregorianCalendarStrategy;
 import io.github.mtrevisan.familylegacy.services.EphemerisEngine;
 import io.github.mtrevisan.familylegacy.services.EphemerisEngineFactory;
 
@@ -34,6 +35,17 @@ import java.util.Map;
 
 
 public class PersianCalendarStrategy implements CalendarConverterPlugin{
+
+	/**
+	 * Years in which the 33-year leap pattern restarts, so that the arithmetic calendar follows the official astronomical one
+	 * (vernal equinox before or after noon at Tehran) within the years -61 to 3177 AP.
+	 *
+	 * @see <a href="https://doi.org/10.1007/BF00055188">K. M. Borkowski, The Persian calendar for 3000 years, Earth, Moon and Planets
+	 * 74, 1996</a>
+	 */
+	private static final int[] BREAKS = {-61, 9, 38, 199, 426, 686, 756, 818, 1111, 1181, 1210, 1635, 2060, 2097, 2192, 2262, 2324,
+		2394, 2456, 3178};
+
 
 	@Override
 	public long parseToJdn(final String rawDate){
@@ -66,20 +78,50 @@ public class PersianCalendarStrategy implements CalendarConverterPlugin{
 	}
 
 	private static long toJdn(final int year, final int month, final int day){
+		if(year < BREAKS[0] || year >= BREAKS[BREAKS.length - 1])
+			return toJdnArithmetic(year, month, day);
+
+		// Find the Gregorian day of March on which 1 Farvardin falls (Borkowski algorithm)
+		final int gregorianYear = year + 621;
+		int leapJ = -14;
+		int jp = BREAKS[0];
+		int jump = 0;
+		for(int i = 1; i < BREAKS.length; i ++){
+			final int jm = BREAKS[i];
+			jump = jm - jp;
+			if(year < jm)
+				break;
+
+			leapJ += (jump / 33) * 8 + (jump % 33) / 4;
+			jp = jm;
+		}
+		final int n = year - jp;
+		leapJ += (n / 33) * 8 + (n % 33 + 3) / 4;
+		if(jump % 33 == 4 && jump - n == 4)
+			leapJ ++;
+		final int leapG = gregorianYear / 4 - ((gregorianYear / 100 + 1) * 3) / 4 - 150;
+		final int march = 20 + leapJ - leapG;
+
+		return GregorianCalendarStrategy.toJdn(gregorianYear, 3, march) + daysBeforeMonth(month) + (day - 1);
+	}
+
+	private static long toJdnArithmetic(final int year, final int month, final int day){
 		// Persian epoch base year
 		final long epBase = year - (year >= 0? 474: 473);
 
 		// Year inside the 2820-year cycle
 		final long epYear = 474 + Math.floorMod(epBase, 2820);
 
-		// Days elapsed in previous months
-		final long monthDays = (month <= 7
+		// Julian Day Number
+		return day + daysBeforeMonth(month) + (epYear * 682 - 110) / 2816 + (epYear - 1) * 365
+			+ Math.floorDiv(epBase, 2820) * 1_029_983L + 1_948_320L;
+	}
+
+	private static long daysBeforeMonth(final int month){
+		// The first six months have 31 days, the next five 30 days, and Esfand 29 or 30 days
+		return (month <= 7
 			? (month - 1) * 31L
 			: (month - 1) * 30L + 6L);
-
-		// Julian Day Number
-		return day + monthDays + (epYear * 682 - 110) / 2816 + (epYear - 1) * 365
-			+ Math.floorDiv(epBase, 2820) * 1_029_983L + 1_948_319L;
 	}
 
 	@Override

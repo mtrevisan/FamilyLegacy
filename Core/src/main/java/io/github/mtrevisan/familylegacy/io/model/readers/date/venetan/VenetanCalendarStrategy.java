@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.io.model.readers.date.venetan;
 
 import io.github.mtrevisan.familylegacy.io.model.readers.date.CalendarConverterPlugin;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.CalendarType;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.gregorian.GregorianCalendarStrategy;
 import io.github.mtrevisan.familylegacy.services.EphemerisEngine;
 import io.github.mtrevisan.familylegacy.services.EphemerisEngineFactory;
 
@@ -78,6 +79,11 @@ public class VenetanCalendarStrategy implements CalendarConverterPlugin{
 			// Jan=11->1, Feb=12->2
 			julianMonth = month - 10;
 		}
+
+		// The Republic of Venice adopted the Gregorian calendar in October 1582 (4 October was followed by 15 October),
+		// while keeping the more Veneto start of the year
+		if(julianYear > 1582 || julianYear == 1582 && (julianMonth > 10 || julianMonth == 10 && day >= 15))
+			return GregorianCalendarStrategy.toJdn(julianYear, julianMonth, day);
 
 		// Standard Julian Calendar JDN conversion logic (Meeus framework)
 		final int y = (julianMonth <= 2? julianYear - 1: julianYear);
