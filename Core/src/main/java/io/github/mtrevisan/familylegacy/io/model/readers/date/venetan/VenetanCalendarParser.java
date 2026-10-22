@@ -18,34 +18,109 @@ public final class VenetanCalendarParser{
 	private static final Map<String, Integer> MONTHS = new HashMap<>();
 	static{
 		// Venetian Month Names (Year starting in March)
+		MONTHS.put("marŧo", 1);
+		MONTHS.put("marŧo mv", 1);
+		MONTHS.put("marso", 1);
+		MONTHS.put("marso mv", 1);
 		MONTHS.put("marzo", 1);
 		MONTHS.put("marzo mv", 1);
 
+		MONTHS.put("april", 2);
 		MONTHS.put("aprile", 2);
+		MONTHS.put("abril", 2);
+		MONTHS.put("abrile", 2);
+		MONTHS.put("avril", 2);
+		MONTHS.put("avrile", 2);
+		MONTHS.put("averil", 2);
+		MONTHS.put("averile", 2);
+		MONTHS.put("veril", 2);
+		MONTHS.put("verile", 2);
+		MONTHS.put("mađo", 3);
+		MONTHS.put("maxo", 3);
+		MONTHS.put("mai", 3);
 		MONTHS.put("maio", 3);
+		MONTHS.put("majo", 3);
 		MONTHS.put("maggio", 3);
-		MONTHS.put("giugno", 4);
+		MONTHS.put("đuño", 4);
+		MONTHS.put("xuño", 4);
+		MONTHS.put("junio", 4);
+		MONTHS.put("giuño", 4);
+		MONTHS.put("lujo", 5);
+		MONTHS.put("lulio", 5);
 		MONTHS.put("lugio", 5);
 		MONTHS.put("luglio", 5);
 		MONTHS.put("agosto", 6);
+		MONTHS.put("agusto", 6);
+		MONTHS.put("avosto", 6);
+		MONTHS.put("aosto", 6);
 
 		// Traditional numerical naming style often found in scripts
+		MONTHS.put("setenbre", 7);
+		MONTHS.put("setènbre", 7);
+		MONTHS.put("seténbare", 7);
+		MONTHS.put("setenbro", 7);
+		MONTHS.put("setenbrio", 7);
 		MONTHS.put("settembre", 7);
 		MONTHS.put("september", 7);
+		MONTHS.put("otore", 8);
+		MONTHS.put("otobre", 8);
+		MONTHS.put("otóbare", 8);
+		MONTHS.put("otobro", 8);
+		MONTHS.put("otobrio", 8);
+		MONTHS.put("otubrio", 8);
+		MONTHS.put("otovre", 8);
 		MONTHS.put("ottobre", 8);
+		MONTHS.put("noenbre", 9);
+		MONTHS.put("novenbre", 9);
+		MONTHS.put("novènbre", 9);
+		MONTHS.put("novénbare", 9);
+		MONTHS.put("novenbro", 9);
+		MONTHS.put("novenbrio", 9);
 		MONTHS.put("novembre", 9);
+		MONTHS.put("deŧenbre", 10);
+		MONTHS.put("desenbre", 10);
+		MONTHS.put("deŧènbre", 10);
+		MONTHS.put("desènbre", 10);
+		MONTHS.put("desénbare", 10);
+		MONTHS.put("deŧenbro", 10);
+		MONTHS.put("desenbro", 10);
+		MONTHS.put("deŧenbrio", 10);
+		MONTHS.put("desenbrio", 10);
 		MONTHS.put("dicembre", 10);
 
 		// Crucial shift months (implicitly or explicitly marked as MV)
-		MONTHS.put("zenaro", 11);
+		MONTHS.put("genèr", 11);
+		MONTHS.put("genèr mv", 11);
+		MONTHS.put("zenèr", 11);
+		MONTHS.put("zenèr mv", 11);
 		MONTHS.put("gennaio", 11);
-		MONTHS.put("genaro", 11);
-		MONTHS.put("zenaro mv", 11);
 		MONTHS.put("gennaio mv", 11);
+		MONTHS.put("đanèr", 11);
+		MONTHS.put("đanèr mv", 11);
+		MONTHS.put("xanèr", 11);
+		MONTHS.put("xanèr mv", 11);
+		MONTHS.put("đenèr", 11);
+		MONTHS.put("đenèr mv", 11);
+		MONTHS.put("xenèr", 11);
+		MONTHS.put("xenèr mv", 11);
+		MONTHS.put("đeñèr", 11);
+		MONTHS.put("đeñèr mv", 11);
+		MONTHS.put("xeñèr", 11);
+		MONTHS.put("xeñèr mv", 11);
+		MONTHS.put("jeñèr", 11);
+		MONTHS.put("jeñèr mv", 11);
 
-		MONTHS.put("febraro", 12);
+		MONTHS.put("febrèr", 12);
+		MONTHS.put("febrèr mv", 12);
+		MONTHS.put("fevrèr", 12);
+		MONTHS.put("fevrèr mv", 12);
+		MONTHS.put("feverèr", 12);
+		MONTHS.put("feverèr mv", 12);
+		MONTHS.put("fevèr", 12);
+		MONTHS.put("fevèr mv", 12);
+		MONTHS.put("frevèr", 12);
+		MONTHS.put("frevèr mv", 12);
 		MONTHS.put("febbraio", 12);
-		MONTHS.put("febraro mv", 12);
 		MONTHS.put("febbraio mv", 12);
 	}
 
@@ -71,7 +146,17 @@ public final class VenetanCalendarParser{
 		}
 
 		final int day = Integer.parseInt(matcher.group(1));
-		final String monthName = matcher.group(2).trim();
+		String monthName = matcher.group(2)
+			.trim();
+		monthName = monthName.replace("dh", "đ")
+			.replace("th", "ŧ")
+			.replace("jh", "ɉ")
+			.replace("ɉ", "j")
+			.replace("ƚe", "l")
+			.replace("ƚi", "l")
+			.replace("gn", "ñ");
+		monthName = monthName.replaceAll("aro?", "èr");
+
 		final int year = Integer.parseInt(matcher.group(3));
 
 		final Integer month = MONTHS.get(monthName);
