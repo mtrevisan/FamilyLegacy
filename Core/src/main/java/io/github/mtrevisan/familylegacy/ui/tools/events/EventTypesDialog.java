@@ -185,7 +185,9 @@ public final class EventTypesDialog extends JDialog{
 				@Override
 				public boolean include(final Entry<? extends TypeTableModel, ? extends Integer> entry){
 					final TypeRow row = tableModel.getRow(entry.getIdentifier());
-					return row.type().toLowerCase(Locale.ROOT).contains(needle);
+					return row.type()
+						.toLowerCase(Locale.ROOT)
+						.contains(needle);
 				}
 			});
 		}

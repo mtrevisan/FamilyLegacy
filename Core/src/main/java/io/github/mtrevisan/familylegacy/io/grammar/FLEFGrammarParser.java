@@ -662,7 +662,8 @@ public final class FLEFGrammarParser{
 			if(peekIs(TAG_CLOSE_CURLY_BRACE))
 				break;
 
-			values.add(next().toLowerCase(Locale.ROOT));
+			values.add(next()
+				.toLowerCase(Locale.ROOT));
 
 			// Skip an optional parenthesized display hint following the
 			// value, e.g. "kunya (كُنيَة)". Hints are not part of the
