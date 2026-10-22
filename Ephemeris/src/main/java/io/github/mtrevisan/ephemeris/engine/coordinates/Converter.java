@@ -60,6 +60,34 @@ public class Converter{
 		-0.320334e-14
 	};
 
+	/**
+	 * Polynomial coefficients of the general precession in longitude {@code p_A} [arcsec], IAU 2006 (Capitaine et al.
+	 * 2003, P03; IERS Conventions 2010, eq. 5.39).
+	 */
+	private static final double[] GENERAL_PRECESSION_COEFFS = {
+		0.,
+		5028.796195,
+		1.1054348,
+		0.00007964,
+		-0.000023857,
+		-0.0000000383
+	};
+
+	private static final double ARCSEC_TO_RADIANS = StrictMath.PI / 648_000.;
+
+
+	/**
+	 * General precession in longitude {@code p_A}: the angle along the ecliptic of date from the departure point (the
+	 * non-rotating origin moving with the ecliptic, used by the {@code P}, {@code Q} rotation) to the mean equinox of
+	 * date.
+	 *
+	 * @param jce Julian Ephemeris Century of Terrestrial Time from J2000.0
+	 * @return the general precession in longitude [rad]
+	 */
+	public static double generalPrecessionInLongitude(final double jce){
+		return MathHelper.polynomial(jce, GENERAL_PRECESSION_COEFFS) * ARCSEC_TO_RADIANS;
+	}
+
 
 	/**
 	 * Converts geocentric rectangular J2000.0 coordinates into rectangular
@@ -68,7 +96,10 @@ public class Converter{
 	 * This method performs the forward transformation, rotating vectors from the
 	 * <b>inertial mean ecliptic and dynamical equinox J2000.0</b> to the
 	 * <b>mean ecliptic and equinox of date</b>. It applies the transpose of Chapront
-	 * &amp; Francou's (2003) matrix to invert the rotation direction.
+	 * &amp; Francou's (2003) matrix to invert the rotation direction (bringing the
+	 * vector onto the ecliptic of date, with longitudes counted from the departure
+	 * point), then a rotation about the ecliptic pole by the general precession in
+	 * longitude, to count longitudes from the mean equinox of date.
 	 * </p>
 	 *
 	 * @param jce  Julian Ephemeris Century of Barycentric Dynamical Time (TDB) from J2000.0
@@ -96,7 +127,15 @@ public class Converter{
 		final double y = twoPQ * xJ2000 + oneMinus2Q2 * yJ2000 + twoQSqrt * zJ2000;
 		final double z = twoPSqrt * xJ2000 - twoQSqrt * yJ2000 + (oneMinus2P2 - 2. * q * q) * zJ2000;
 
-		return new double[]{x, y, z};
+		// Rotation about the ecliptic pole from the departure point to the mean equinox of date
+		final double precession = generalPrecessionInLongitude(jce);
+		final double cosPrecession = StrictMath.cos(precession);
+		final double sinPrecession = StrictMath.sin(precession);
+		return new double[]{
+			x * cosPrecession - y * sinPrecession,
+			x * sinPrecession + y * cosPrecession,
+			z
+		};
 	}
 
 }

@@ -230,8 +230,9 @@ public final class AstronomicalEngineAdapter implements EphemerisEngine{
 
 
 	private static double getTerrestrialCenturies(final double jdUT){
-		final double dt = DeltaT.deltaTSecondsFromJd(jdUT);
-		return JulianDate.centuryJ2000Of(jdUT + DeltaT.deltaTDays(dt));
+		// TT = UT + ΔT
+		final double deltaTSeconds = DeltaT.deltaTSecondsFromJd(jdUT);
+		return JulianDate.centuryJ2000Of(jdUT + deltaTSeconds / JulianDate.SECONDS_PER_DAY);
 	}
 
 }

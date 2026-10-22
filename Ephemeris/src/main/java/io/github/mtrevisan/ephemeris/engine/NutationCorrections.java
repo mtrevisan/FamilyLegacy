@@ -86,6 +86,11 @@ public final class NutationCorrections{
 		450160.398036, -6962890.5431, 7.4722, 0.007702, -0.00005939
 	};
 
+	// Mean obliquity of the ecliptic ε_A, IAU 2006 (arcseconds)
+	private static final double[] MEAN_OBLIQUITY = {
+		84381.406, -46.836769, -0.0001831, 0.00200340, -0.000000576, -0.0000000434
+	};
+
 	// Planetary arguments (indices 5 to 12) & General precession in longitude (index 13), IERS Conventions 2003
 	// (same as eq. 5.44 of the IERS Conventions 2010)
 	// Order of coefficients: [t^0, t^1, t^2], in radians and Julian centuries from J2000.0
@@ -225,6 +230,17 @@ public final class NutationCorrections{
 		}
 	}
 
+
+	/**
+	 * Mean obliquity of the ecliptic, IAU 2006 (IERS Conventions 2010, eq. 5.40).
+	 *
+	 * @param jc Julian Century of Terrestrial Time from J2000.0.
+	 * @return the mean obliquity [rad]
+	 */
+	public static double meanObliquity(final double jc){
+		final double arcsecToRad = StrictMath.PI / (180. * JulianDate.SECONDS_PER_HOUR);
+		return MathHelper.polynomial(jc, MEAN_OBLIQUITY) * arcsecToRad;
+	}
 
 	public static double moonLongitudeAscendingNode(final double jc){
 		final double arcsecToRad = StrictMath.PI / (180. * JulianDate.SECONDS_PER_HOUR);
