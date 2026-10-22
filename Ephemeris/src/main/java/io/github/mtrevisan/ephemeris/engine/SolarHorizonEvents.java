@@ -24,8 +24,8 @@
  */
 package io.github.mtrevisan.ephemeris.engine;
 
-import io.github.mtrevisan.ephemeris.helpers.JulianDate;
 import io.github.mtrevisan.ephemeris.helpers.MathHelper;
+import io.github.mtrevisan.ephemeris.helpers.SiderealTime;
 
 import java.util.function.Function;
 
@@ -68,7 +68,7 @@ public final class SolarHorizonEvents{
 		final double deltaEpsilonNoon = nutationNoon.getDeltaEpsilon();
 
 		// Approximate true obliquity of date
-		final double epsilon0Noon = StrictMath.toRadians(23.43929111 - 46.836769 * jcNoon / 3600.);
+		final double epsilon0Noon = NutationCorrections.meanObliquity(jcNoon);
 		final double trueObliquityNoon = epsilon0Noon + deltaEpsilonNoon;
 
 		// Find approximate solar geometric position
@@ -128,7 +128,6 @@ public final class SolarHorizonEvents{
 	private static double computeSolarAltitude(final double utJd, final double latRad, final double longitude,
 			final Function<Double, Double> ttCenturyFunction){
 		final double ttJc = ttCenturyFunction.apply(utJd);
-		final double jc = JulianDate.centuryJ2000Of(utJd);
 
 		// 1. Calculate nutation parameters for the current date centurial slice
 		final NutationCorrections nutation = NutationCorrections.calculate(ttJc);
@@ -140,7 +139,7 @@ public final class SolarHorizonEvents{
 		final double lambdaApparent = SunPosition.apparentSunLongitude(ttJc, deltaPsi);
 
 		// 3. Compute true obliquity of date
-		final double epsilon0 = StrictMath.toRadians(23.43929111 - 46.836769 * ttJc / 3600.);
+		final double epsilon0 = NutationCorrections.meanObliquity(ttJc);
 		final double trueObliquity = epsilon0 + deltaEpsilon;
 
 		// 4. Convert ecliptic apparent coordinates to geocentric equatorial coordinates
@@ -150,8 +149,7 @@ public final class SolarHorizonEvents{
 		final double declination = StrictMath.asin(StrictMath.sin(trueObliquity) * StrictMath.sin(lambdaApparent));
 
 		// 5. Derive the Apparent Greenwich Sidereal Time (GAST) to link Earth rotation position
-		final double gmst = computeGMST(utJd, jc);
-		final double gast = gmst + deltaPsi * StrictMath.cos(trueObliquity);
+		final double gast = SiderealTime.greenwichApparentSiderealTime(utJd, ttJc, deltaPsi, trueObliquity);
 
 		// 6. Calculate Local Hour Angle (LHA) for the spatial coordinate translation
 		final double localSiderealTime = gast + StrictMath.toRadians(longitude);
@@ -160,22 +158,6 @@ public final class SolarHorizonEvents{
 		// 7. Map geocentric equatorial coordinates to the local horizontal coordinate plane
 		return StrictMath.asin(StrictMath.sin(latRad) * StrictMath.sin(declination)
 			+ StrictMath.cos(latRad) * StrictMath.cos(declination) * StrictMath.cos(hourAngle));
-	}
-
-	/**
-	 * Computes the Greenwich Mean Sidereal Time (GMST) matching IAU 1982 definitions.
-	 */
-	private static double computeGMST(final double utJd, final double jc){
-		// Fractional day calculation to maintain high-frequency rotational precision
-		final double utFraction = (utJd + 0.5) % 1.;
-
-		double gmstArcseconds = 24110.54841 + (8640184.812866 + (0.093104 - 6.2e-6 * jc) * jc) * jc;
-
-		// Complete rotational component alignment using standard diurnal rates
-		gmstArcseconds += utFraction * 86400. * 1.002737909350795;
-
-		// Convert to radians reduced to standard orbital circle boundaries
-		return MathHelper.mod2pi(StrictMath.toRadians(gmstArcseconds / 240.));
 	}
 
 }

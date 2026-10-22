@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.ephemeris.engine;
 
+import io.github.mtrevisan.ephemeris.engine.coordinates.Converter;
 import io.github.mtrevisan.ephemeris.engine.coordinates.EclipticCoordinates;
 import io.github.mtrevisan.ephemeris.helpers.JulianDate;
 import io.github.mtrevisan.ephemeris.helpers.MathHelper;
@@ -342,9 +343,9 @@ public final class MoonPosition{
 	 * @return apparent moon longitude [rad]
 	 */
 	public static double computeApparentMoonLongitude(final double jce, final double deltaPsi) {
-		// The class native method returns the longitude on the mean ecliptic of date
-		final double lambdaMean = getInstanceLLR()
-			.longitudeOfDate(jce);
+		// The class native method returns the longitude on the mean ecliptic of date from the departure point, the
+		// general precession brings it to the mean equinox of date
+		final double lambdaMean = toEquinoxOfDate(getInstanceLLR().longitudeFromDeparturePoint(jce), jce);
 
 		return apparentLongitude(lambdaMean, deltaPsi);
 	}
@@ -361,13 +362,18 @@ public final class MoonPosition{
 		return apparentLongitude(eclipticOfDate.getLongitude(), deltaPsi);
 	}
 
+	/** Counts a longitude on the ecliptic of date from the mean equinox of date instead of the departure point. */
+	private static double toEquinoxOfDate(final double longitudeFromDeparturePoint, final double jce){
+		return MathHelper.mod2pi(longitudeFromDeparturePoint + Converter.generalPrecessionInLongitude(jce));
+	}
+
 	private static double apparentLongitude(final double lambdaMean, final double deltaPsi){
 		// Apply nutation (aberration is negligible for the Moon)
 		return MathHelper.mod2pi(lambdaMean + deltaPsi);
 	}
 
 	/**
-	 * Geocentric ecliptic coordinates of the Moon referred to the inertial mean ecliptic and dynamical equinox J2000.0.
+	 * Geocentric ecliptic coordinates of the Moon referred to the mean ecliptic and equinox of date.
 	 *
 	 * @param t Julian centuries of TDB from J2000: {@code (JD_TDB − 2451545.) / 36525}
 	 * @return the position
@@ -377,7 +383,7 @@ public final class MoonPosition{
 		// computations. This is the only allocation in the hot path.
 		final double[] args = arguments(t);
 		final double latitude = latitudeOfDate(t, args);
-		final double longitude = longitudeOfDate(t, args);
+		final double longitude = toEquinoxOfDate(longitudeFromDeparturePoint(t, args), t);
 		final double distance = distance(t, args);
 		return new EclipticCoordinates(latitude, longitude, distance);
 	}
@@ -407,9 +413,11 @@ public final class MoonPosition{
 		final double p = MathHelper.polynomial(jce, P_COEFFS);
 		final double q = MathHelper.polynomial(jce, Q_COEFFS);
 
-		final double rCosVcosU = sph.getDistance() * StrictMath.cos(sph.getLongitude())
+		// The rotation of Chapront & Francou expects the longitude counted from the departure point
+		final double v = sph.getLongitude() - Converter.generalPrecessionInLongitude(jce);
+		final double rCosVcosU = sph.getDistance() * StrictMath.cos(v)
 			* StrictMath.cos(sph.getLatitude());
-		final double rSinVcosU = sph.getDistance() * StrictMath.sin(sph.getLongitude())
+		final double rSinVcosU = sph.getDistance() * StrictMath.sin(v)
 			* StrictMath.cos(sph.getLatitude());
 		final double rSinU = sph.getDistance() * StrictMath.sin(sph.getLatitude());
 
@@ -429,13 +437,13 @@ public final class MoonPosition{
 	}
 
 	/**
-	 * Geocentric ecliptic longitude of the Moon referred to the mean ecliptic of date.
+	 * Geocentric ecliptic longitude of the Moon referred to the mean ecliptic of date, counted from the departure point.
 	 *
 	 * @param t Julian centuries of TDB from J2000
 	 * @return longitude [rad], in the interval [0, 2π)
 	 */
-	private double longitudeOfDate(final double t){
-		return longitudeOfDate(t, arguments(t));
+	private double longitudeFromDeparturePoint(final double t){
+		return longitudeFromDeparturePoint(t, arguments(t));
 	}
 
 
@@ -510,13 +518,14 @@ public final class MoonPosition{
 	 * ====================================================================== */
 
 	/**
-	 * Longitude {@code V = W1 + main series + perturbation series}.
+	 * Longitude {@code V = W1 + main series + perturbation series}, on the mean ecliptic of date counted from the
+	 * departure point (the ELP/MPP02 mean longitude W1 does not include the precession of the equinox).
 	 *
 	 * <p>The three perturbation series are summed, then combined by Horner
 	 * evaluation. No temporary array is allocated: the four coefficients
 	 * are held in local variables.</p>
 	 */
-	private double longitudeOfDate(final double t, final double[] args){
+	private double longitudeFromDeparturePoint(final double t, final double[] args){
 		final double p0 = perturbationSum(perturbationLongitude[0], args);
 		final double p1 = perturbationSum(perturbationLongitude[1], args);
 		final double p2 = perturbationSum(perturbationLongitude[2], args);

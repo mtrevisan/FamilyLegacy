@@ -53,7 +53,7 @@ public final class JulianDate{
 
 	public static final double MJD = 2_400_000.5;
 	/** 1.5 Jan 2000 UT - Julian epoch. */
-	private static final double J2000 = 2_451_545.;
+	public static final double J2000 = 2_451_545.;
 
 	//[day]
 	public static final double MEAN_TROPICAL_YEAR_LENGTH = 365.2422;

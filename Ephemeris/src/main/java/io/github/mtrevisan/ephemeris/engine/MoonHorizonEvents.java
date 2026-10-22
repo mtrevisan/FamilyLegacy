@@ -24,8 +24,9 @@
  */
 package io.github.mtrevisan.ephemeris.engine;
 
-import io.github.mtrevisan.ephemeris.helpers.JulianDate;
-import io.github.mtrevisan.ephemeris.helpers.MathHelper;
+import io.github.mtrevisan.ephemeris.engine.coordinates.EclipticCoordinates;
+import io.github.mtrevisan.ephemeris.helpers.IllinoisSolver;
+import io.github.mtrevisan.ephemeris.helpers.SiderealTime;
 
 import java.util.function.Function;
 
@@ -33,14 +34,28 @@ import java.util.function.Function;
 /**
  * High-precision lunar horizon event calculator utilizing ELP/MPP02 planetary theory,
  * topocentric parallax adjustments, and dynamical semidiameter variations.
+ * <p>
+ * The moonset is the instant the upper limb of the Moon touches the horizon, with the standard refraction of 34', as
+ * in the U.S. Naval Observatory tables.
+ * </p>
  */
 public final class MoonHorizonEvents{
 
 	// Standard atmospheric refraction at the horizon: 34 arcminutes
 	private static final double HORIZON_REFRACTION = StrictMath.toRadians(34. / 60.);
 
-	// Earth equatorial radius in kilometers (WGS-84 standard)
-	private static final double EARTH_EQUATORIAL_RADIUS_KM = 6378.137;
+	// Earth equatorial radius in kilometers (IAU 1976, as in Meeus, Astronomical Algorithms, ch. 11)
+	private static final double EARTH_EQUATORIAL_RADIUS_KM = 6378.14;
+	// Polar to equatorial radius ratio b/a of the Earth ellipsoid (flattening 1/298.257)
+	private static final double EARTH_AXIS_RATIO = 0.99664719;
+	// Ratio of the lunar radius to the Earth equatorial radius (IAU)
+	private static final double MOON_TO_EARTH_RADIUS = 0.2725076;
+
+	// The day is scanned with this step to bracket the moonset [day]
+	private static final double SCAN_STEP = 1. / 24.;
+	// Precision of the moonset [day] (~0.01 s)
+	private static final double ACCURACY = 1.e-7;
+	private static final int MAX_ITERATIONS = 50;
 
 
 	private MoonHorizonEvents(){}
@@ -53,145 +68,108 @@ public final class MoonHorizonEvents{
 	 * @param latitude          The observer's geodetic latitude in degrees (North positive)
 	 * @param longitude         The observer's geodetic longitude in degrees (East positive)
 	 * @param ttCenturyFunction Functional bridge to calculate Terrestrial Centuries from a Julian Date UT
-	 * @return The Julian Date (UT) of the moonset event, or Double.NaN if the Moon is circumpolar
+	 * @return The Julian Date (UT) of the moonset event, or Double.NaN if the Moon does not set during that day (it is
+	 * 	circumpolar, continuously below the horizon, or simply sets the day after, as happens about once a month)
 	 */
 	public static double calculateMoonset(final double midnightUtJd, final double latitude, final double longitude,
 			final Function<Double, Double> ttCenturyFunction){
-		final double latRad = StrictMath.toRadians(latitude);
+		final Observer observer = new Observer(latitude, longitude);
 
-		// 1. Coarse estimation of the moonset time using standard geometric projections
-		final double approximateNoonUt = midnightUtJd + 0.5 - longitude / 360.;
-		final double ttJcNoon = ttCenturyFunction.apply(approximateNoonUt);
+		// 1. Scan the civil day to bracket the moonset: the height of the upper limb above the horizon changes sign
+		//    from positive to negative (the Moon moves by less than a degree per hour with respect to the stars, so an
+		//    hourly step cannot skip a setting)
+		double previousTime = midnightUtJd;
+		double previousHeight = upperLimbHeight(previousTime, observer, ttCenturyFunction);
+		for(double time = midnightUtJd + SCAN_STEP; time < midnightUtJd + 1. + SCAN_STEP / 2.; time += SCAN_STEP){
+			final double height = upperLimbHeight(time, observer, ttCenturyFunction);
+			if(previousHeight > 0. && height <= 0.)
+				// 2. Refine the instant inside the bracketing step
+				return IllinoisSolver.solve(previousTime, time, ACCURACY, MAX_ITERATIONS,
+					jd -> upperLimbHeight(jd, observer, ttCenturyFunction));
 
-		// Fetch geocentric moon position elements
-		final double[] rMoonKmNoon = MoonPosition.getInstanceLLR().rectangular(ttJcNoon);
-		final double distanceNoon = StrictMath.sqrt(rMoonKmNoon[0] * rMoonKmNoon[0]
-			+ rMoonKmNoon[1] * rMoonKmNoon[1] + rMoonKmNoon[2] * rMoonKmNoon[2]);
-
-		final NutationCorrections nutationNoon = NutationCorrections.calculate(ttJcNoon);
-		final double deltaPsiNoon = nutationNoon.getDeltaPsi();
-		final double lambdaMoonNoon = MathHelper.mod2pi(MoonPosition.computeApparentMoonLongitude(ttJcNoon,
-			deltaPsiNoon));
-
-		final double epsilon0Noon = StrictMath.toRadians(23.43929111 - 46.836769 * ttJcNoon / 3600.);
-		final double trueObliquityNoon = epsilon0Noon + nutationNoon.getDeltaEpsilon();
-		final double declinationNoon = StrictMath.asin(StrictMath.sin(trueObliquityNoon)
-			* StrictMath.sin(lambdaMoonNoon));
-
-		// Compute dynamic target altitude for the coarse step
-		final double semidiameterNoon = StrictMath.asin(EARTH_EQUATORIAL_RADIUS_KM * 0.2725 / distanceNoon);
-		final double targetAltitudeNoon = -HORIZON_REFRACTION - semidiameterNoon;
-
-		final double cosH0 = (StrictMath.sin(targetAltitudeNoon)
-			- StrictMath.sin(latRad) * StrictMath.sin(declinationNoon))
-			/ (StrictMath.cos(latRad) * StrictMath.cos(declinationNoon));
-
-		if(cosH0 > 1. || cosH0 < -1.)
-			// Moon is circumpolar
-			return Double.NaN;
-
-		final double h0Deg = StrictMath.toDegrees(StrictMath.acos(cosH0));
-		final double approximateMoonsetFraction = (12. + (h0Deg - longitude) / 15.) / 24.;
-		final double targetMoonsetUtJd = midnightUtJd + approximateMoonsetFraction;
-
-		// 2. High-Precision Refinement Framework via Three-Point Inverse Interpolation
-		final double hourInJd = 1. / 24.;
-
-		// To track structural changes over a dynamic horizon, we store the threshold limits per point
-		final double[] targetThresholds = new double[3];
-		final double t1 = targetMoonsetUtJd - hourInJd;
-		final double t2 = targetMoonsetUtJd;
-		final double t3 = targetMoonsetUtJd + hourInJd;
-
-		final double rawY1 = computeTopocentricMoonAltitude(t1, latRad, longitude, ttCenturyFunction, targetThresholds, 0);
-		final double rawY2 = computeTopocentricMoonAltitude(t2, latRad, longitude, ttCenturyFunction, targetThresholds, 1);
-		final double rawY3 = computeTopocentricMoonAltitude(t3, latRad, longitude, ttCenturyFunction, targetThresholds, 2);
-
-		// This forces the interpolation matrix to solve for the exact delta cross-over boundary (y = 0)
-		final double y1 = rawY1 - targetThresholds[0];
-		final double y2 = rawY2 - targetThresholds[1];
-		final double y3 = rawY3 - targetThresholds[2];
-
-		// Interpolate the functional differences against the dynamic normalized altitude limits
-		final double a = (y1 + y3) / 2. - y2;
-		final double b = (y3 - y1) / 2.;
-		final double c = y2;
-
-		final double discriminant = b * b - 4. * a * c;
-		if(discriminant < 0.)
-			return targetMoonsetUtJd;
-
-		double correctionFactor = (-b + StrictMath.sqrt(discriminant)) / (2. * a);
-		if(StrictMath.abs(correctionFactor) > 1.)
-			correctionFactor = (-b - StrictMath.sqrt(discriminant)) / (2. * a);
-
-		return targetMoonsetUtJd + (correctionFactor * hourInJd);
+			previousTime = time;
+			previousHeight = height;
+		}
+		return Double.NaN;
 	}
 
 	/**
-	 * Computes the apparent topocentric local altitude of the Moon, applying parallax adjustments
-	 * and logging the dynamic geometric horizon boundaries.
+	 * Computes the height of the upper limb of the Moon above the apparent horizon, applying parallax adjustments,
+	 * refraction and the topocentric semidiameter.
+	 *
+	 * @return the height [rad]: positive if the upper limb is visible, negative otherwise
 	 */
-	private static double computeTopocentricMoonAltitude(final double utJd, final double latRad, final double longitude,
-			final Function<Double, Double> ttCenturyFunction, final double[] thresholds, final int thresholdIdx){
+	private static double upperLimbHeight(final double utJd, final Observer observer,
+			final Function<Double, Double> ttCenturyFunction){
 		final double ttJc = ttCenturyFunction.apply(utJd);
-		final double jcUt = JulianDate.centuryJ2000Of(utJd);
 
-		// 1. Fetch geocentric raw rectangular vectors from ELP series
-		final double[] rGeocentricKm = MoonPosition.getInstanceLLR().rectangular(ttJc);
-		final double distanceKm = StrictMath.sqrt(rGeocentricKm[0] * rGeocentricKm[0]
-			+ rGeocentricKm[1] * rGeocentricKm[1] + rGeocentricKm[2] * rGeocentricKm[2]);
-
-		// Extract apparent equatorial angles
+		// 1. Apparent geocentric ecliptic coordinates of date
+		final EclipticCoordinates moon = MoonPosition.getInstanceLLR()
+			.eclipticOfDate(ttJc);
 		final NutationCorrections nutation = NutationCorrections.calculate(ttJc);
 		final double deltaPsi = nutation.getDeltaPsi();
-		final double lambdaApparent = MoonPosition.computeApparentMoonLongitude(ttJc, deltaPsi);
+		final double lambda = MoonPosition.computeApparentMoonLongitude(moon, deltaPsi);
+		final double beta = moon.getLatitude();
+		final double distanceKm = moon.getDistance();
+		final double trueObliquity = NutationCorrections.meanObliquity(ttJc) + nutation.getDeltaEpsilon();
 
-		final double epsilon0 = StrictMath.toRadians(23.43929111 - 46.836769 * ttJc / 3600.);
-		final double trueObliquity = epsilon0 + nutation.getDeltaEpsilon();
+		// 2. Ecliptic to equatorial coordinates (Meeus, Astronomical Algorithms, eqs. 13.3 and 13.4)
+		final double sinEpsilon = StrictMath.sin(trueObliquity);
+		final double cosEpsilon = StrictMath.cos(trueObliquity);
+		final double sinBeta = StrictMath.sin(beta);
+		final double cosBeta = StrictMath.cos(beta);
+		final double sinLambda = StrictMath.sin(lambda);
+		final double rightAscension = StrictMath.atan2(sinLambda * cosEpsilon * cosBeta - sinBeta * sinEpsilon,
+			StrictMath.cos(lambda) * cosBeta);
+		final double declination = StrictMath.asin(sinBeta * cosEpsilon + cosBeta * sinEpsilon * sinLambda);
 
-		final double rightAscension = MathHelper.mod2pi(StrictMath.atan2(
-			StrictMath.sin(lambdaApparent) * StrictMath.cos(trueObliquity), StrictMath.cos(lambdaApparent)));
-		final double declination = StrictMath.asin(StrictMath.sin(trueObliquity) * StrictMath.sin(lambdaApparent));
+		// 3. Local hour angle from the Greenwich apparent sidereal time
+		final double gast = SiderealTime.greenwichApparentSiderealTime(utJd, ttJc, deltaPsi, trueObliquity);
+		final double hourAngle = gast + observer.longitude - rightAscension;
 
-		// 2. Compute true Earth spatial orientation (GAST)
-		final double gmst = computeGMST(utJd, jcUt);
-		final double gast = gmst + deltaPsi * StrictMath.cos(trueObliquity);
-		final double localSiderealTime = gast + StrictMath.toRadians(longitude);
-		final double hourAngle = localSiderealTime - rightAscension;
-
-		// 3. Transform geocentric parameters into local topocentric coordinates to eliminate parallax distortion
-		final double cosDec = StrictMath.cos(declination);
-		final double sinDec = StrictMath.sin(declination);
-		final double cosLat = StrictMath.cos(latRad);
-		final double sinLat = StrictMath.sin(latRad);
-
-		// Compute coordinate distances scaled against the Earth's radius
-		final double deltaX = distanceKm * cosDec * StrictMath.cos(hourAngle) - EARTH_EQUATORIAL_RADIUS_KM * cosLat;
-		final double deltaY = distanceKm * cosDec * StrictMath.sin(hourAngle);
-		final double deltaZ = distanceKm * sinDec - EARTH_EQUATORIAL_RADIUS_KM * sinLat;
-
-		// Topocentric distance and corrected horizontal orientation
-		final double topocentricDistKm = StrictMath.sqrt(deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ);
-		final double topocentricDec = StrictMath.asin(deltaZ / topocentricDistKm);
+		// 4. Topocentric coordinates, removing the parallax (geocentric position of the observer on the ellipsoid)
+		final double cosDeclination = StrictMath.cos(declination);
+		final double deltaX = distanceKm * cosDeclination * StrictMath.cos(hourAngle)
+			- EARTH_EQUATORIAL_RADIUS_KM * observer.rhoCosPhi;
+		final double deltaY = distanceKm * cosDeclination * StrictMath.sin(hourAngle);
+		final double deltaZ = distanceKm * StrictMath.sin(declination)
+			- EARTH_EQUATORIAL_RADIUS_KM * observer.rhoSinPhi;
+		final double topocentricDistanceKm = StrictMath.sqrt(deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ);
+		final double topocentricDeclination = StrictMath.asin(deltaZ / topocentricDistanceKm);
 		final double topocentricHourAngle = StrictMath.atan2(deltaY, deltaX);
 
-		// Compute true topocentric altitude
-		final double topocentricAltitude = StrictMath.asin(sinLat * StrictMath.sin(topocentricDec)
-			+ cosLat * StrictMath.cos(topocentricDec) * StrictMath.cos(topocentricHourAngle));
+		// 5. Altitude of the center (Meeus, Astronomical Algorithms, eq. 13.6)
+		final double altitude = StrictMath.asin(observer.sinLatitude * StrictMath.sin(topocentricDeclination)
+			+ observer.cosLatitude * StrictMath.cos(topocentricDeclination) * StrictMath.cos(topocentricHourAngle));
 
-		// 4. Log the dynamic structural upper-limb edge criteria for the interpolation matrix
-		final double dynamicSemidiameter = StrictMath.asin(EARTH_EQUATORIAL_RADIUS_KM * 0.2725 / topocentricDistKm);
-		thresholds[thresholdIdx] = -HORIZON_REFRACTION - dynamicSemidiameter;
-
-		return topocentricAltitude;
+		// 6. The upper limb is on the horizon when the center is a semidiameter plus the refraction below it
+		final double semidiameter = StrictMath.asin(MOON_TO_EARTH_RADIUS * EARTH_EQUATORIAL_RADIUS_KM
+			/ topocentricDistanceKm);
+		return altitude + HORIZON_REFRACTION + semidiameter;
 	}
 
-	private static double computeGMST(final double utJd, final double jcUt){
-		final double utFraction = (utJd + 0.5) % 1.;
-		double gmstArcseconds = 24110.54841 + 8640184.812866 * jcUt + 0.093104 * jcUt * jcUt - 6.2e-6 * jcUt * jcUt * jcUt;
-		gmstArcseconds += utFraction * 86400. * 1.002737909350795;
-		return MathHelper.mod2pi(StrictMath.toRadians(gmstArcseconds / 240.0));
+
+	/**
+	 * The observer, with the geocentric coordinates of the place at sea level (Meeus, Astronomical Algorithms,
+	 * ch. 11).
+	 */
+	private static final class Observer{
+		private final double longitude;
+		private final double sinLatitude;
+		private final double cosLatitude;
+		private final double rhoSinPhi;
+		private final double rhoCosPhi;
+
+		private Observer(final double latitude, final double longitude){
+			final double latRad = StrictMath.toRadians(latitude);
+			this.longitude = StrictMath.toRadians(longitude);
+			sinLatitude = StrictMath.sin(latRad);
+			cosLatitude = StrictMath.cos(latRad);
+
+			final double u = StrictMath.atan(EARTH_AXIS_RATIO * StrictMath.tan(latRad));
+			rhoSinPhi = EARTH_AXIS_RATIO * StrictMath.sin(u);
+			rhoCosPhi = StrictMath.cos(u);
+		}
 	}
 
 }

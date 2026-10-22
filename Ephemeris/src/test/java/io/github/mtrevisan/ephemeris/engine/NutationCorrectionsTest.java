@@ -42,6 +42,30 @@ class NutationCorrectionsTest{
 		Assertions.assertEquals(0.4063238496887249798e-4, corrections.getDeltaEpsilon(), 1.e-10);
 	}
 
+	/**
+	 * Reference: J. Meeus, <i>Astronomical Algorithms</i>, 2nd ed., Example 22.a (1987 April 10, 0h TD):
+	 * Δψ = −3.788", Δε = +9.443". Meeus uses the IAU 1980 theory, which differs from IAU 2000A by some mas.
+	 */
+	@Test
+	void meeusExample(){
+		final double jc = JulianDate.centuryJ2000Of(2446895.5);
+		final NutationCorrections corrections = NutationCorrections.calculate(jc);
+
+		final double arcsecPerRadian = 180. * 3600. / StrictMath.PI;
+		Assertions.assertEquals(-3.788, corrections.getDeltaPsi() * arcsecPerRadian, 0.02);
+		Assertions.assertEquals(9.443, corrections.getDeltaEpsilon() * arcsecPerRadian, 0.02);
+	}
+
+	/**
+	 * Reference: SOFA test suite (t_sofa_c.c, t_faom03): Ω(t = 0.8) = −5.973618440951302183 rad, here reduced to
+	 * [0, 2π).
+	 */
+	@Test
+	void moonLongitudeAscendingNodeMatchesSofa(){
+		Assertions.assertEquals(-5.973618440951302183 + 2. * StrictMath.PI,
+			NutationCorrections.moonLongitudeAscendingNode(0.8), 1.e-12);
+	}
+
 	@Test
 	void past(){
 		final double jd = JulianDate.of(1950, 1, 1);
