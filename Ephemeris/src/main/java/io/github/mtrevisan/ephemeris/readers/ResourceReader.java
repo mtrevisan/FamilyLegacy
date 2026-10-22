@@ -32,6 +32,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -82,16 +83,25 @@ public final class ResourceReader{
 		}
 	}
 
+	/**
+	 * A VSOP2013 series stored in flat primitive arrays.
+	 * <p>
+	 * Only the non-zero argument multipliers are kept: the multipliers of term {@code j} are
+	 * {@code argumentMultiplier[k]} applied to argument {@code argumentIndex[k]}, for
+	 * {@code k} in {@code [argumentStart[j], argumentStart[j + 1])}.
+	 * </p>
+	 */
 	public static final class VSOP2013Data{
 		public int timePower;
-		public VSOP2013Coeffs[] coeffs;
+		public double[] sines;
+		public double[] cosines;
+		public int[] argumentStart;
+		public byte[] argumentIndex;
+		public int[] argumentMultiplier;
 	}
 
-	public static final class VSOP2013Coeffs{
-		public final int[] iphi = new int[17];
-		public double sine;
-		public double cosine;
-	}
+	/** Column boundaries of the 17 argument multipliers in a VSOP2013 term line. */
+	private static final int[] MULTIPLIER_COLUMNS = {5, 9, 12, 15, 18, 22, 25, 28, 31, 34, 39, 43, 47, 51, 58, 62, 65, 68};
 
 
 	/**
@@ -123,38 +133,32 @@ public final class ResourceReader{
 				final VariableIndex variable = VariableIndex.of(Integer.parseInt(header[2]));
 				data.timePower = Integer.parseInt(header[3]);
 				final int count = Integer.parseInt(header[4]);
-				data.coeffs = new VSOP2013Coeffs[count];
+				data.sines = new double[count];
+				data.cosines = new double[count];
+				data.argumentStart = new int[count + 1];
+				final int maxArguments = count * (MULTIPLIER_COLUMNS.length - 1);
+				final byte[] argumentIndex = new byte[maxArguments];
+				final int[] argumentMultiplier = new int[maxArguments];
+				int arguments = 0;
 				for(int i = 0; i < count; i ++){
 					line = reader.readLine();
 
-					final VSOP2013Coeffs coeffs = new VSOP2013Coeffs();
-					coeffs.iphi[0] = parseIntFast(line, 5, 9);
-					coeffs.iphi[1] = parseIntFast(line, 9, 12);
-					coeffs.iphi[2] = parseIntFast(line, 12, 15);
-					coeffs.iphi[3] = parseIntFast(line, 15, 18);
+					data.argumentStart[i] = arguments;
+					for(int k = 0; k < MULTIPLIER_COLUMNS.length - 1; k ++){
+						final int multiplier = parseIntFast(line, MULTIPLIER_COLUMNS[k], MULTIPLIER_COLUMNS[k + 1]);
+						if(multiplier != 0){
+							argumentIndex[arguments] = (byte)k;
+							argumentMultiplier[arguments] = multiplier;
+							arguments ++;
+						}
+					}
 
-					coeffs.iphi[4] = parseIntFast(line, 18, 22);
-					coeffs.iphi[5] = parseIntFast(line, 22, 25);
-					coeffs.iphi[6] = parseIntFast(line, 25, 28);
-					coeffs.iphi[7] = parseIntFast(line, 28, 31);
-					coeffs.iphi[8] = parseIntFast(line, 31, 34);
-
-					coeffs.iphi[9] = parseIntFast(line, 34, 39);
-					coeffs.iphi[10] = parseIntFast(line, 39, 43);
-					coeffs.iphi[11] = parseIntFast(line, 43, 47);
-					coeffs.iphi[12] = parseIntFast(line, 47, 51);
-
-					coeffs.iphi[13] = parseIntFast(line, 51, 58);
-
-					coeffs.iphi[14] = parseIntFast(line, 58, 62);
-					coeffs.iphi[15] = parseIntFast(line, 62, 65);
-					coeffs.iphi[16] = parseIntFast(line, 65, 68);
-
-					coeffs.sine = parseScientificDoubleFast(line, 68, 88, 88, 92);
-					coeffs.cosine = parseScientificDoubleFast(line, 92, 112, 112, 116);
-
-					data.coeffs[i] = coeffs;
+					data.sines[i] = parseScientificDoubleFast(line, 68, 88, 88, 92);
+					data.cosines[i] = parseScientificDoubleFast(line, 92, 112, 112, 116);
 				}
+				data.argumentStart[count] = arguments;
+				data.argumentIndex = Arrays.copyOf(argumentIndex, arguments);
+				data.argumentMultiplier = Arrays.copyOf(argumentMultiplier, arguments);
 
 				datas.computeIfAbsent(variable, v -> new ArrayList<>(20))
 					.add(data);

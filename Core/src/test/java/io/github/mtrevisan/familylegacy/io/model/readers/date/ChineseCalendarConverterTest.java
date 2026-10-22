@@ -69,6 +69,8 @@ final long start = System.currentTimeMillis();
 		final long jdn = CalendarType.CHINESE.parseToJdn("民国38年 八月 十一");
 // 50121 ms
 //  5797 ms
+//  1659 ms
+//  1439 ms
 System.out.println("PRC proclamation: " + (System.currentTimeMillis() - start) + " ms");
 
 		Assertions.assertEquals(2433192L, jdn);

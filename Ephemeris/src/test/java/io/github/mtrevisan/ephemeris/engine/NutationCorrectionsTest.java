@@ -32,13 +32,24 @@ import org.junit.jupiter.api.Test;
 class NutationCorrectionsTest{
 
 	@Test
+	void sofaReference(){
+		// SOFA test suite (t_sofa_c.c, t_nut06a): TT = 2400000.5 + 53736.0
+		final double jc = (2400000.5 + 53736.0 - 2451545.) / 36525.;
+		final NutationCorrections corrections = NutationCorrections.calculate(jc);
+
+		// tolerance 1e-10 rad = 0.02 mas (the IERS tables are truncated at 0.1 µas per term)
+		Assertions.assertEquals(-0.9630912025820308797e-5, corrections.getDeltaPsi(), 1.e-10);
+		Assertions.assertEquals(0.4063238496887249798e-4, corrections.getDeltaEpsilon(), 1.e-10);
+	}
+
+	@Test
 	void past(){
 		final double jd = JulianDate.of(1950, 1, 1);
 		final double jc = JulianDate.centuryJ2000Of(jd);
 		final NutationCorrections corrections = NutationCorrections.calculate(jc);
 
-		Assertions.assertEquals(-1.6012487704991984e-5, corrections.getDeltaPsi(), 0.000_000_001);
-		Assertions.assertEquals(4.035072836631418e-5, corrections.getDeltaEpsilon(), 0.000_000_001);
+		Assertions.assertEquals(-1.6014287318429332e-5, corrections.getDeltaPsi(), 0.000_000_001);
+		Assertions.assertEquals(4.035167807923474e-5, corrections.getDeltaEpsilon(), 0.000_000_001);
 
 
 		final double mlan = NutationCorrections.moonLongitudeAscendingNode(jc);
@@ -51,8 +62,8 @@ class NutationCorrectionsTest{
 		final double jc = JulianDate.centuryJ2000Of(jd);
 		final NutationCorrections corrections = NutationCorrections.calculate(jc);
 
-		Assertions.assertEquals(4.007513875177848e-5, corrections.getDeltaPsi(), 0.000_000_001);
-		Assertions.assertEquals(3.978719433686745e-5, corrections.getDeltaEpsilon(), 0.000_000_001);
+		Assertions.assertEquals(4.007550241476701e-5, corrections.getDeltaPsi(), 0.000_000_001);
+		Assertions.assertEquals(3.9786410628155436e-5, corrections.getDeltaEpsilon(), 0.000_000_001);
 
 
 		final double mlan = NutationCorrections.moonLongitudeAscendingNode(jc);
@@ -65,8 +76,8 @@ class NutationCorrectionsTest{
 		final double jc = JulianDate.centuryJ2000Of(jd);
 		final NutationCorrections corrections = NutationCorrections.calculate(jc);
 
-		Assertions.assertEquals(7.355226541589181e-5, corrections.getDeltaPsi(), 0.000_000_001);
-		Assertions.assertEquals(-2.5840848107024025e-5, corrections.getDeltaEpsilon(), 0.000_000_001);
+		Assertions.assertEquals(7.355338029843851e-5, corrections.getDeltaPsi(), 0.000_000_001);
+		Assertions.assertEquals(-2.583918113248748e-5, corrections.getDeltaEpsilon(), 0.000_000_001);
 
 
 		final double mlan = NutationCorrections.moonLongitudeAscendingNode(jc);

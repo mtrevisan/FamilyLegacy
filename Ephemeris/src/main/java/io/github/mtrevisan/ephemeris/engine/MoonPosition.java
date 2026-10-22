@@ -33,6 +33,7 @@ import io.github.mtrevisan.ephemeris.readers.ElpSeriesReader;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.List;
 
 
@@ -213,8 +214,16 @@ public final class MoonPosition{
 			loadFromClasspath(ElpParameters.DE405));
 	}
 
-	/** The loaded coefficients. */
-	private final ElpCoefficients coefs;
+	/*
+	 * The loaded coefficients, flattened into primitive arrays for fast evaluation. The perturbation series are indexed
+	 * by power of T.
+	 */
+	private final MainSeries mainLongitude;
+	private final MainSeries mainLatitude;
+	private final MainSeries mainDistance;
+	private final PerturbationSeries[] perturbationLongitude;
+	private final PerturbationSeries[] perturbationLatitude;
+	private final PerturbationSeries[] perturbationDistance;
 
 	/*
 	 * Pre-computed polynomial coefficient arrays. These carry the
@@ -246,7 +255,18 @@ public final class MoonPosition{
 
 
 	private MoonPosition(final ElpParameters params, final ElpCoefficients coefs){
-		this.coefs = coefs;
+		mainLongitude = MainSeries.of(coefs.mainLongitude);
+		mainLatitude = MainSeries.of(coefs.mainLatitude);
+		mainDistance = MainSeries.of(coefs.mainDistance);
+		perturbationLongitude = new PerturbationSeries[]{
+			PerturbationSeries.of(coefs.perturbationLongitudeT0), PerturbationSeries.of(coefs.perturbationLongitudeT1),
+			PerturbationSeries.of(coefs.perturbationLongitudeT2), PerturbationSeries.of(coefs.perturbationLongitudeT3)};
+		perturbationLatitude = new PerturbationSeries[]{
+			PerturbationSeries.of(coefs.perturbationLatitudeT0), PerturbationSeries.of(coefs.perturbationLatitudeT1),
+			PerturbationSeries.of(coefs.perturbationLatitudeT2)};
+		perturbationDistance = new PerturbationSeries[]{
+			PerturbationSeries.of(coefs.perturbationDistanceT0), PerturbationSeries.of(coefs.perturbationDistanceT1),
+			PerturbationSeries.of(coefs.perturbationDistanceT2), PerturbationSeries.of(coefs.perturbationDistanceT3)};
 
 		// One-time construction of the corrected coefficient arrays. The
 		// base arrays are the static constants defined above; each clone
@@ -326,6 +346,22 @@ public final class MoonPosition{
 		final double lambdaMean = getInstanceLLR()
 			.longitudeOfDate(jce);
 
+		return apparentLongitude(lambdaMean, deltaPsi);
+	}
+
+	/**
+	 * Computes the apparent ecliptic longitude of the Moon from an already computed position.
+	 *
+	 * @param eclipticOfDate the position of the Moon referred to the mean ecliptic of date, as returned by
+	 *                       {@link #eclipticOfDate(double)}
+	 * @param deltaPsi       nutation in longitude [rad]
+	 * @return apparent moon longitude [rad]
+	 */
+	public static double computeApparentMoonLongitude(final EclipticCoordinates eclipticOfDate, final double deltaPsi){
+		return apparentLongitude(eclipticOfDate.getLongitude(), deltaPsi);
+	}
+
+	private static double apparentLongitude(final double lambdaMean, final double deltaPsi){
 		// Apply nutation (aberration is negligible for the Moon)
 		return MathHelper.mod2pi(lambdaMean + deltaPsi);
 	}
@@ -354,8 +390,19 @@ public final class MoonPosition{
 	 * @return a three-element array {@code [X, Y, Z]}, in kilometres
 	 */
 	public double[] rectangular(final double jce){
-		final EclipticCoordinates sph = eclipticOfDate(jce);
+		return rectangular(jce, eclipticOfDate(jce));
+	}
 
+	/**
+	 * Geocentric rectangular coordinates referred to the <em>mean ecliptic
+	 * and equinox of J2000.0</em>, from an already computed position.
+	 *
+	 * @param jce Julian Ephemeris Century of Barycentric Dynamical Time from J2000.0.
+	 * @param sph the position referred to the mean ecliptic of date at {@code jce}, as returned by
+	 *            {@link #eclipticOfDate(double)}
+	 * @return a three-element array {@code [X, Y, Z]}, in kilometres
+	 */
+	public static double[] rectangular(final double jce, final EclipticCoordinates sph){
 		// Precession angles from the ecliptic of date to J2000
 		final double p = MathHelper.polynomial(jce, P_COEFFS);
 		final double q = MathHelper.polynomial(jce, Q_COEFFS);
@@ -470,34 +517,34 @@ public final class MoonPosition{
 	 * are held in local variables.</p>
 	 */
 	private double longitudeOfDate(final double t, final double[] args){
-		final double p0 = perturbationSum(coefs.perturbationLongitudeT0, args);
-		final double p1 = perturbationSum(coefs.perturbationLongitudeT1, args);
-		final double p2 = perturbationSum(coefs.perturbationLongitudeT2, args);
-		final double p3 = perturbationSum(coefs.perturbationLongitudeT3, args);
+		final double p0 = perturbationSum(perturbationLongitude[0], args);
+		final double p1 = perturbationSum(perturbationLongitude[1], args);
+		final double p2 = perturbationSum(perturbationLongitude[2], args);
+		final double p3 = perturbationSum(perturbationLongitude[3], args);
 		final double pert = p0 + t * (p1 + t * (p2 + t * p3));
 
 		return MathHelper.mod2pi(args[ARG_W1]
-			+ mainSum(coefs.mainLongitude, args, true)
+			+ mainSum(mainLongitude, args, true)
 			+ pert);
 	}
 
 	private double latitudeOfDate(final double t, final double[] args){
-		final double p0 = perturbationSum(coefs.perturbationLatitudeT0, args);
-		final double p1 = perturbationSum(coefs.perturbationLatitudeT1, args);
-		final double p2 = perturbationSum(coefs.perturbationLatitudeT2, args);
+		final double p0 = perturbationSum(perturbationLatitude[0], args);
+		final double p1 = perturbationSum(perturbationLatitude[1], args);
+		final double p2 = perturbationSum(perturbationLatitude[2], args);
 		final double pert = p0 + t * (p1 + t * p2);
 
-		return mainSum(coefs.mainLatitude, args, true) + pert;
+		return mainSum(mainLatitude, args, true) + pert;
 	}
 
 	private double distance(final double t, final double[] args){
-		final double p0 = perturbationSum(coefs.perturbationDistanceT0, args);
-		final double p1 = perturbationSum(coefs.perturbationDistanceT1, args);
-		final double p2 = perturbationSum(coefs.perturbationDistanceT2, args);
-		final double p3 = perturbationSum(coefs.perturbationDistanceT3, args);
+		final double p0 = perturbationSum(perturbationDistance[0], args);
+		final double p1 = perturbationSum(perturbationDistance[1], args);
+		final double p2 = perturbationSum(perturbationDistance[2], args);
+		final double p3 = perturbationSum(perturbationDistance[3], args);
 		final double pert = p0 + t * (p1 + t * (p2 + t * p3));
 
-		return RA0 * (mainSum(coefs.mainDistance, args, false) + pert);
+		return RA0 * (mainSum(mainDistance, args, false) + pert);
 	}
 
 
@@ -511,19 +558,25 @@ public final class MoonPosition{
 	 * corrected at load time. Longitude and latitude are sine series,
 	 * distance is a cosine series.
 	 */
-	private static double mainSum(final List<ElpCoefficients.MainTerm> terms, final double[] args, final boolean sine){
+	private static double mainSum(final MainSeries series, final double[] args, final boolean sine){
 		final double d = args[ARG_D];
 		final double f = args[ARG_F];
 		final double l = args[ARG_L];
 		final double lp = args[ARG_LP];
 
+		final double[] i1 = series.i1;
+		final double[] i2 = series.i2;
+		final double[] i3 = series.i3;
+		final double[] i4 = series.i4;
+		final double[] amplitude = series.amplitude;
 		double sum = 0.;
-		for(int i = 0, n = terms.size(); i < n; i ++){
-			final ElpCoefficients.MainTerm term = terms.get(i);
-			final double arg = term.i1() * d + term.i2() * f
-				+ term.i3() * l + term.i4() * lp;
-			sum += term.amplitude() * (sine? StrictMath.sin(arg): StrictMath.cos(arg));
-		}
+		//hot loops: Math (JIT intrinsic) is several times faster than StrictMath here
+		if(sine)
+			for(int i = 0, n = amplitude.length; i < n; i ++)
+				sum += amplitude[i] * Math.sin(i1[i] * d + i2[i] * f + i3[i] * l + i4[i] * lp);
+		else
+			for(int i = 0, n = amplitude.length; i < n; i ++)
+				sum += amplitude[i] * Math.cos(i1[i] * d + i2[i] * f + i3[i] * l + i4[i] * lp);
 		return sum;
 	}
 
@@ -531,19 +584,102 @@ public final class MoonPosition{
 	 * Sums a perturbation series. The argument of each term is {@code Σ iⱼ·argⱼ + φ₀}; the amplitude is multiplied by
 	 * {@code sin(argument)}.
 	 */
-	private static double perturbationSum(final List<ElpCoefficients.PertTerm> terms, final double[] args){
+	private static double perturbationSum(final PerturbationSeries series, final double[] args){
+		final double[] amplitude = series.amplitude;
+		final double[] phase = series.phase;
+		final int[] argumentStart = series.argumentStart;
+		final byte[] argumentIndex = series.argumentIndex;
+		final int[] argumentMultiplier = series.argumentMultiplier;
 		double sum = 0.;
-		for(int k = 0, n = terms.size(); k < n; k ++){
-			final ElpCoefficients.PertTerm term = terms.get(k);
-
-			final int[] m = term.multipliers();
-			double arg = term.phase();
-			for(int j = 0; j < ARG_COUNT - 1; j ++)
-				if(m[j] != 0)
-					arg += m[j] * args[j];
-			sum += term.amplitude() * StrictMath.sin(arg);
+		for(int k = 0, n = amplitude.length; k < n; k ++){
+			double arg = phase[k];
+			for(int j = argumentStart[k], end = argumentStart[k + 1]; j < end; j ++)
+				arg += argumentMultiplier[j] * args[argumentIndex[j]];
+			sum += amplitude[k] * Math.sin(arg);
 		}
 		return sum;
+	}
+
+
+	/**
+	 * A main-problem series in flat primitive arrays: the argument of term {@code k} is
+	 * {@code i1[k]·D + i2[k]·F + i3[k]·l + i4[k]·l'}.
+	 */
+	private static final class MainSeries{
+		private final double[] i1;
+		private final double[] i2;
+		private final double[] i3;
+		private final double[] i4;
+		private final double[] amplitude;
+
+		private MainSeries(final int size){
+			i1 = new double[size];
+			i2 = new double[size];
+			i3 = new double[size];
+			i4 = new double[size];
+			amplitude = new double[size];
+		}
+
+		private static MainSeries of(final List<ElpCoefficients.MainTerm> terms){
+			final MainSeries series = new MainSeries(terms.size());
+			for(int k = 0, n = terms.size(); k < n; k ++){
+				final ElpCoefficients.MainTerm term = terms.get(k);
+				series.i1[k] = term.i1();
+				series.i2[k] = term.i2();
+				series.i3[k] = term.i3();
+				series.i4[k] = term.i4();
+				series.amplitude[k] = term.amplitude();
+			}
+			return series;
+		}
+	}
+
+	/**
+	 * A perturbation series in flat primitive arrays, keeping only the non-zero multipliers: the multipliers of term
+	 * {@code k} are {@code argumentMultiplier[j]} applied to argument {@code argumentIndex[j]}, for {@code j} in
+	 * {@code [argumentStart[k], argumentStart[k + 1])}.
+	 */
+	private static final class PerturbationSeries{
+		private final double[] amplitude;
+		private final double[] phase;
+		private final int[] argumentStart;
+		private final byte[] argumentIndex;
+		private final int[] argumentMultiplier;
+
+		private PerturbationSeries(final double[] amplitude, final double[] phase, final int[] argumentStart,
+				final byte[] argumentIndex, final int[] argumentMultiplier){
+			this.amplitude = amplitude;
+			this.phase = phase;
+			this.argumentStart = argumentStart;
+			this.argumentIndex = argumentIndex;
+			this.argumentMultiplier = argumentMultiplier;
+		}
+
+		private static PerturbationSeries of(final List<ElpCoefficients.PertTerm> terms){
+			final int size = terms.size();
+			final double[] amplitude = new double[size];
+			final double[] phase = new double[size];
+			final int[] argumentStart = new int[size + 1];
+			final byte[] argumentIndex = new byte[size * (ARG_COUNT - 1)];
+			final int[] argumentMultiplier = new int[size * (ARG_COUNT - 1)];
+			int arguments = 0;
+			for(int k = 0; k < size; k ++){
+				final ElpCoefficients.PertTerm term = terms.get(k);
+				amplitude[k] = term.amplitude();
+				phase[k] = term.phase();
+				argumentStart[k] = arguments;
+				final int[] m = term.multipliers();
+				for(int j = 0; j < ARG_COUNT - 1; j ++)
+					if(m[j] != 0){
+						argumentIndex[arguments] = (byte)j;
+						argumentMultiplier[arguments] = m[j];
+						arguments ++;
+					}
+			}
+			argumentStart[size] = arguments;
+			return new PerturbationSeries(amplitude, phase, argumentStart, Arrays.copyOf(argumentIndex, arguments),
+				Arrays.copyOf(argumentMultiplier, arguments));
+		}
 	}
 
 }

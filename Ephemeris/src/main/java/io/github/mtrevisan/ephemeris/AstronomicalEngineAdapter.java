@@ -29,11 +29,14 @@ import io.github.mtrevisan.ephemeris.engine.MoonPosition;
 import io.github.mtrevisan.ephemeris.engine.NutationCorrections;
 import io.github.mtrevisan.ephemeris.engine.SolarHorizonEvents;
 import io.github.mtrevisan.ephemeris.engine.SunPosition;
+import io.github.mtrevisan.ephemeris.engine.coordinates.EclipticCoordinates;
 import io.github.mtrevisan.ephemeris.helpers.DeltaT;
 import io.github.mtrevisan.ephemeris.helpers.IllinoisSolver;
 import io.github.mtrevisan.ephemeris.helpers.JulianDate;
 import io.github.mtrevisan.ephemeris.helpers.MathHelper;
 import io.github.mtrevisan.familylegacy.services.EphemerisEngine;
+
+import java.util.function.DoubleUnaryOperator;
 
 
 /**
@@ -45,6 +48,13 @@ public final class AstronomicalEngineAdapter implements EphemerisEngine{
 	// Precision target for root-finding (~0.08 seconds of day)
 	private static final double ACCURACY_THRESHOLD = 1.e-6;
 	private static final int MAX_ITERATIONS = 50;
+
+	// Mean angular rates used to seed the secant iterations [rad/day]
+	private static final double MEAN_ELONGATION_RATE = 2. * StrictMath.PI / 29.530588853;
+	private static final double MEAN_SOLAR_RATE = 2. * StrictMath.PI / 365.242189;
+	private static final int MAX_SECANT_ITERATIONS = 10;
+	// A secant root farther than this from its starting guess is rejected in favour of the bracketing scan [day]
+	private static final double MAX_SECANT_DISTANCE = 60.;
 
 
 	@Override
@@ -63,6 +73,17 @@ public final class AstronomicalEngineAdapter implements EphemerisEngine{
 		double x1 = fromJd;
 		double f1 = evaluateNewMoonFunction(x1);
 
+		// 1. Optimistic Step: extrapolate the elongation still to be covered with the mean synodic motion, then refine
+		//	with a secant iteration (the function is smooth around the conjunction, the jump is at full moon)
+		final double remainingElongation = (f1 < 0.? -f1: 2. * StrictMath.PI - f1);
+		final double guess = fromJd + remainingElongation / MEAN_ELONGATION_RATE;
+		final double root = solveSecant(guess, evaluateNewMoonFunction(guess), MEAN_ELONGATION_RATE,
+			AstronomicalEngineAdapter::evaluateNewMoonFunction);
+		if(root >= fromJd - ACCURACY_THRESHOLD && root - guess <= MAX_SECANT_DISTANCE
+				&& guess - root <= MAX_SECANT_DISTANCE)
+			return root;
+
+		// 2. Fallback Step: scan forward day by day to bracket the conjunction
 		final double step = 1.;
 		for(int i = 0; i < 40; i ++){
 			final double x2 = x1 + step;
@@ -85,9 +106,13 @@ public final class AstronomicalEngineAdapter implements EphemerisEngine{
 		final double ttJc = getTerrestrialCenturies(jdUT);
 		final NutationCorrections nutation = NutationCorrections.calculate(ttJc);
 		final double deltaPsi = nutation.getDeltaPsi();
-		final double sunLng = SunPosition.apparentSunLongitude(ttJc, deltaPsi);
+		// the Moon is computed once, and shared by the Earth-Moon barycenter correction of the Sun and the Moon longitude
+		final EclipticCoordinates moonOfDate = MoonPosition.getInstanceLLR()
+			.eclipticOfDate(ttJc);
+		final double sunLng = SunPosition.apparentSunLongitude(ttJc, deltaPsi,
+			MoonPosition.rectangular(ttJc, moonOfDate));
 
-		final double moonLng = MoonPosition.computeApparentMoonLongitude(ttJc, deltaPsi);
+		final double moonLng = MoonPosition.computeApparentMoonLongitude(moonOfDate, deltaPsi);
 
 		return MathHelper.mod2pi(moonLng - sunLng + StrictMath.PI) - StrictMath.PI;
 	}
@@ -102,32 +127,18 @@ public final class AstronomicalEngineAdapter implements EphemerisEngine{
 	 */
 	@Override
 	public double findSolarLongitudeEvent(final double approximateJdUT, final double targetLongitude){
-		// 1. Optimistic Step: Execute high-speed Jean Meeus 3-point inverse interpolation
-		final double dayStep = 5.;
-		final double t1 = approximateJdUT - dayStep;
-		final double t2 = approximateJdUT;
-		final double t3 = approximateJdUT + dayStep;
+		final DoubleUnaryOperator function = jdUT -> evaluateSolarLongitudeFunction(jdUT, targetLongitude);
 
-		final double y1 = evaluateSolarLongitudeFunction(t1, targetLongitude);
-		final double y2 = evaluateSolarLongitudeFunction(t2, targetLongitude);
-		final double y3 = evaluateSolarLongitudeFunction(t3, targetLongitude);
+		// 1. Optimistic Step: the function is smooth for months around the root, so a secant iteration seeded with the
+		//	mean solar motion converges in a handful of evaluations
+		final double root = solveSecant(approximateJdUT, function.applyAsDouble(approximateJdUT), MEAN_SOLAR_RATE,
+			function);
+		if(StrictMath.abs(root - approximateJdUT) <= MAX_SECANT_DISTANCE)
+			return root;
 
-		final double a = (y1 + y3) / 2. - y2;
-		final double b = (y3 - y1) / 2.;
-		final double c = y2;
-
-		final double discriminant = b * b - 4. * a * c;
-		if(discriminant >= 0.){
-			double correctionFactor = (-b + StrictMath.sqrt(discriminant)) / (2. * a);
-			if(StrictMath.abs(correctionFactor) > 1.)
-				correctionFactor = (-b - StrictMath.sqrt(discriminant)) / (2. * a);
-			// If the adjustment is tightly bounded within our window, return immediately
-			if(StrictMath.abs(correctionFactor) <= 1.)
-				return approximateJdUT + correctionFactor * dayStep;
-		}
-
-		// 2. Fallback Step: Execute robust sequential scanning if interpolation fails
+		// 2. Fallback Step: Execute robust sequential scanning if the secant iteration fails
 		// Widen fallback bracket backward to catch missed targets
+		final double dayStep = 5.;
 		double x1 = approximateJdUT - 15.;
 		double f1 = evaluateSolarLongitudeFunction(x1, targetLongitude);
 
@@ -137,8 +148,7 @@ public final class AstronomicalEngineAdapter implements EphemerisEngine{
 			final double f2 = evaluateSolarLongitudeFunction(x2, targetLongitude);
 
 			if(f1 < 0. && f2 >= 0.)
-				return IllinoisSolver.solve(x1, x2, ACCURACY_THRESHOLD, MAX_ITERATIONS,
-					jdUT -> evaluateSolarLongitudeFunction(jdUT, targetLongitude));
+				return IllinoisSolver.solve(x1, x2, ACCURACY_THRESHOLD, MAX_ITERATIONS, function);
 
 			x1 = x2;
 			f1 = f2;
@@ -146,6 +156,33 @@ public final class AstronomicalEngineAdapter implements EphemerisEngine{
 
 		throw new IllegalArgumentException("Unable to find the solar longitude event for approximate JD UT "
 			+ approximateJdUT + " and target angle: " + targetLongitude);
+	}
+
+	/**
+	 * Finds a root of a smooth function with the secant method, using the expected mean slope for the first step.
+	 *
+	 * @param x0        the starting guess
+	 * @param y0        the function value at {@code x0}
+	 * @param meanSlope the expected mean slope of the function [rad/day]
+	 * @param function  the function
+	 * @return the root, or {@code NaN} if the iteration does not converge
+	 */
+	private static double solveSecant(double x0, double y0, final double meanSlope, final DoubleUnaryOperator function){
+		double x1 = x0 - y0 / meanSlope;
+		for(int i = 0; i < MAX_SECANT_ITERATIONS; i ++){
+			final double y1 = function.applyAsDouble(x1);
+			if(y1 == y0)
+				return (y1 == 0.? x1: Double.NaN);
+
+			final double x2 = x1 - y1 * (x1 - x0) / (y1 - y0);
+			if(StrictMath.abs(x2 - x1) < ACCURACY_THRESHOLD)
+				return x2;
+
+			x0 = x1;
+			y0 = y1;
+			x1 = x2;
+		}
+		return Double.NaN;
 	}
 
 	private double evaluateSolarLongitudeFunction(final double jdUT, final double targetLongitude){
