@@ -48,7 +48,6 @@ public interface EphemerisEngine{
 
 	/**
 	 * Computes the exact Julian Date (UT) of the New Moon conjunction closest to a target date.
-	 * Condition: Apparent Moon Longitude - Apparent Sun Longitude == 0
 	 *
 	 * @param approximateJdUT the starting guess in Julian Date UT
 	 * @return the exact Julian Date UT of the conjunction
@@ -66,7 +65,6 @@ public interface EphemerisEngine{
 
 	/**
 	 * Computes the apparent ecliptic longitude of the Sun for a given Universal Time instant.
-	 * Accounts for VSOP2013 planetary perturbations, annual aberration, and IAU 2000A nutation.
 	 *
 	 * @param jdUT the Julian Date in Universal Time (UT/UTC) scale
 	 * @return the apparent solar longitude in radians, reduced to the interval [0, 2π)
@@ -75,14 +73,15 @@ public interface EphemerisEngine{
 
 	/**
 	 * Computes the exact Julian Date (UT) of a horizon crossing event for a specific body, day and location.
-	 * Consolidates parallax corrections, refraction, and dynamical semidiameter variations polimorphically.
 	 *
 	 * @param body         the targeted celestial body (SUN or MOON)
 	 * @param midnightUtJd the Julian Date representing local civil midnight converted to UT (ending in .5)
 	 * @param latitude     the observer's geodetic latitude in degrees (North positive)
 	 * @param longitude    the observer's geodetic longitude in degrees (East positive)
-	 * @return the Julian Date (UT) of the horizon event, or {@code Double.NaN} if the body is circumpolar
+	 * @param zenith       horizon definition (OFFICIAL, CIVIL, NAUTICAL, ASTRONOMICAL)
+	 * @return a configured immutable instance of {@link SunlightPhase}
 	 */
-	double calculateHorizonEvent(CelestialBody body, double midnightUtJd, double latitude, double longitude);
+	SunlightPhase calculateHorizonEvent(CelestialBody body, double midnightUtJd, double latitude, double longitude,
+		ZenithInterface zenith);
 
 }

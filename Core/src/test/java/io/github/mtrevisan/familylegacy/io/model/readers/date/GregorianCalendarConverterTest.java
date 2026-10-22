@@ -70,4 +70,16 @@ class GregorianCalendarConverterTest{
 		Assertions.assertEquals(2460482L, jdn);
 	}
 
+	@Test
+	void englishDualEpoch(){
+		long jdn = CalendarType.GREGORIAN.parseToJdn("12 FEB 1704/5");
+
+		Assertions.assertEquals(CalendarType.GREGORIAN.parseToJdn("12 2 1705"), jdn);
+
+
+		jdn = CalendarType.GREGORIAN.parseToJdn("12 AUG 1752/53");
+
+		Assertions.assertEquals(CalendarType.GREGORIAN.parseToJdn("12 8 1752"), jdn);
+	}
+
 }

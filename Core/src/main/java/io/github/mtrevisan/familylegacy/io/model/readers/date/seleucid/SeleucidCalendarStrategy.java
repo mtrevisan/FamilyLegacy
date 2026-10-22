@@ -91,7 +91,7 @@ public class SeleucidCalendarStrategy implements CalendarConverterPlugin{
 	}
 
 	@Override
-	public CalendarType.CalendarMetadata getMetadata(final String rawDate) {
+	public CalendarType.CalendarMetadata getMetadata(final String rawDate){
 		final SeleucidDateInput input = SeleucidCalendarParser.parse(rawDate);
 		final Map<String, Boolean> components = new LinkedHashMap<>();
 		components.put("year", (input.year() != 0));

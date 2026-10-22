@@ -342,7 +342,7 @@ public final class MoonPosition{
 	 * @param deltaPsi nutation in longitude [rad]
 	 * @return apparent moon longitude [rad]
 	 */
-	public static double computeApparentMoonLongitude(final double jce, final double deltaPsi) {
+	public static double computeApparentMoonLongitude(final double jce, final double deltaPsi){
 		// The class native method returns the longitude on the mean ecliptic of date from the departure point, the
 		// general precession brings it to the mean equinox of date
 		final double lambdaMean = toEquinoxOfDate(getInstanceLLR().longitudeFromDeparturePoint(jce), jce);

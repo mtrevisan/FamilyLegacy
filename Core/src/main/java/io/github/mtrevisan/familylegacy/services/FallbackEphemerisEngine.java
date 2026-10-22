@@ -48,8 +48,8 @@ public final class FallbackEphemerisEngine implements EphemerisEngine{
 	}
 
 	@Override
-	public double calculateHorizonEvent(final CelestialBody body, final double midnightUtJd, final double latitude,
-			final double longitude){
+	public SunlightPhase calculateHorizonEvent(final CelestialBody body, final double midnightUtJd,
+			final double latitude, final double longitude, final ZenithInterface zenith){
 		throw new UnsupportedOperationException("Ephemeris engine plugin not installed.");
 	}
 

@@ -29,6 +29,9 @@ import io.github.mtrevisan.ephemeris.engine.MoonPosition;
 import io.github.mtrevisan.ephemeris.engine.NutationCorrections;
 import io.github.mtrevisan.ephemeris.engine.SolarHorizonEvents;
 import io.github.mtrevisan.ephemeris.engine.SunPosition;
+import io.github.mtrevisan.familylegacy.services.SunlightPhase;
+import io.github.mtrevisan.familylegacy.services.Zenith;
+import io.github.mtrevisan.familylegacy.services.ZenithInterface;
 import io.github.mtrevisan.ephemeris.engine.coordinates.EclipticCoordinates;
 import io.github.mtrevisan.ephemeris.helpers.DeltaT;
 import io.github.mtrevisan.ephemeris.helpers.IllinoisSolver;
@@ -36,6 +39,9 @@ import io.github.mtrevisan.ephemeris.helpers.JulianDate;
 import io.github.mtrevisan.ephemeris.helpers.MathHelper;
 import io.github.mtrevisan.familylegacy.services.EphemerisEngine;
 
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.function.DoubleUnaryOperator;
 
 
@@ -206,6 +212,7 @@ public final class AstronomicalEngineAdapter implements EphemerisEngine{
 	}
 
 
+	// TODO add test
 	/**
 	 * Computes the exact Julian Date (UT) of a horizon crossing event for a specific body, day and location.
 	 * Consolidates parallax corrections, refraction, and dynamical semidiameter variations polimorphically.
@@ -214,18 +221,126 @@ public final class AstronomicalEngineAdapter implements EphemerisEngine{
 	 * @param midnightUtJd the Julian Date representing local civil midnight converted to UT (ending in .5)
 	 * @param latitude     the observer's geodetic latitude in degrees (North positive)
 	 * @param longitude    the observer's geodetic longitude in degrees (East positive)
-	 * @return the Julian Date (UT) of the horizon event, or {@code Double.NaN} if the body is circumpolar
+	 * @param zenith       the solar zenith angle definition configuration (e.g. OFFICIAL, CIVIL)
+	 * @return a fully resolved, localized structural instance of {@link SunlightPhase}
 	 */
 	@Override
-	public double calculateHorizonEvent(final CelestialBody body, final double midnightUtJd, final double latitude,
-			final double longitude){
-		return switch(body){
+	public SunlightPhase calculateHorizonEvent(final CelestialBody body, final double midnightUtJd,
+			final double latitude, final double longitude, final ZenithInterface zenith){
+		// 1. Establish the standardized temporal coordinate context (UTC fallback baseline)
+		final ZoneId utcZone = ZoneOffset.UTC;
+		final ZonedDateTime baselineMidnightZoned = JulianDate.dateTimeOf(midnightUtJd + 0.5)
+			.atZone(utcZone);
+
+		// 2. Calculate the precise geocentric solar transit time (Solar Noon) as our structural axis symmetry center
+		final double transitJdUt = midnightUtJd + 0.5 - longitude / 360.;
+		final ZonedDateTime transitZoned = addFractionOfDay(baselineMidnightZoned, transitJdUt - midnightUtJd);
+
+		// 3. Delegate the downward horizon event (Sunset/Moonset) to the specialized three-point solvers
+		final double targetSunsetJdUt = switch(body){
 			case SUN -> SolarHorizonEvents.calculateSunset(midnightUtJd, latitude, longitude,
 				AstronomicalEngineAdapter::getTerrestrialCenturies);
 
 			case MOON -> MoonHorizonEvents.calculateMoonset(midnightUtJd, latitude, longitude,
 				AstronomicalEngineAdapter::getTerrestrialCenturies);
 		};
+
+		// 4. Polar phenomenon check: If the engine returns NaN, the celestial body never crosses the horizon line
+		if(Double.isNaN(targetSunsetJdUt)){
+			final double currentSunLongitude = calculateApparentSunLongitude(transitJdUt);
+			final boolean isSummerSolsticeHemisphere
+				= (latitude > 0. && currentSunLongitude > 0. && currentSunLongitude < StrictMath.PI)
+				|| (latitude < 0. && (currentSunLongitude > StrictMath.PI || currentSunLongitude < 0.));
+
+			return isSummerSolsticeHemisphere ? new SunlightPhase.AlwaysDay(transitZoned) : new SunlightPhase.AlwaysNight(transitZoned);
+		}
+
+		// 5. MAP THE SYMMETRIC HOUR ANGLES FOR EXACT SUNRISE
+		// The coarse geometric hour angle is perfectly symmetric relative to the solar noon transit line.
+		// We mirror the localized sunset fraction backward across the transit axis to anchor our exact sunrise window.
+		final double sunsetFractionFromTransit = targetSunsetJdUt - transitJdUt;
+		final double approximateSunriseJdUt = transitJdUt - sunsetFractionFromTransit;
+
+		// 6. Execute high-precision Three-Point Parabolic Interpolation specifically for the morning crossing
+		final double hourInJd = 1. / 24.;
+		final double t1 = approximateSunriseJdUt - hourInJd;
+		final double t2 = approximateSunriseJdUt;
+		final double t3 = approximateSunriseJdUt + hourInJd;
+
+		final double latRad = StrictMath.toRadians(latitude);
+
+		// Fetch the raw topocentric altitudes across the morning tracking window
+		final double y1 = computeSolarAltitudeForSunrise(t1, latRad, longitude);
+		final double y2 = computeSolarAltitudeForSunrise(t2, latRad, longitude);
+		final double y3 = computeSolarAltitudeForSunrise(t3, latRad, longitude);
+
+		// Standard structural altitude for solar disk upper limb: -50 arcminutes (-0.8333333°).
+		// For custom twilights (CIVIL, NAUTICAL), we extract the target elevation dynamically from your Zenith token.
+		final double targetAltitude = (zenith == Zenith.OFFICIAL
+			? StrictMath.toRadians(-50. / 60.)
+			: zenith.getElevation());
+
+		// Calculate parabolic interpolation coefficients across the morning tracking window
+		final double a = (y1 + y3) / 2. - y2;
+		final double b = (y3 - y1) / 2.;
+		final double c = y2 - targetAltitude;
+
+		double sunriseCorrectionFactor = 0.;
+		final double discriminant = b * b - 4. * a * c;
+		if(discriminant >= 0. && StrictMath.abs(a) >= 1e-12){
+			sunriseCorrectionFactor = (-b - StrictMath.sqrt(discriminant)) / (2. * a);
+			if(StrictMath.abs(sunriseCorrectionFactor) > 1.)
+				sunriseCorrectionFactor = (-b + StrictMath.sqrt(discriminant)) / (2. * a);
+		}
+
+		// Calculate the exact final structural sunrise Julian Date
+		final double exactSunriseJdUt = approximateSunriseJdUt + (sunriseCorrectionFactor * hourInJd);
+
+		// 7. Map the continuous absolute timelines into the polymorphic RegularDay container
+		final ZonedDateTime exactSunriseZoned = addFractionOfDay(baselineMidnightZoned,
+			exactSunriseJdUt - midnightUtJd);
+		final ZonedDateTime exactSunsetZoned = addFractionOfDay(baselineMidnightZoned,
+			targetSunsetJdUt - midnightUtJd);
+
+		return new SunlightPhase.RegularDay(exactSunriseZoned, transitZoned, exactSunsetZoned);
+	}
+
+	/**
+	 * Computes the geocentric/topocentric apparent local solar altitude tracking point for sunrise interpolation.
+	 */
+	private static double computeSolarAltitudeForSunrise(final double utJd, final double latRad, final double longitude){
+		final double ttJc = getTerrestrialCenturies(utJd);
+		final double jc = JulianDate.centuryJ2000Of(utJd);
+
+		final NutationCorrections nutation = NutationCorrections.calculate(ttJc);
+		final double lambdaApparent = SunPosition.apparentSunLongitude(ttJc, nutation.getDeltaPsi());
+
+		final double epsilon0 = StrictMath.toRadians(23.43929111 - 46.836769 * ttJc / 3600.);
+		final double trueObliquity = epsilon0 + nutation.getDeltaEpsilon();
+
+		final double rightAscension = MathHelper.mod2pi(StrictMath.atan2(
+			StrictMath.sin(lambdaApparent) * StrictMath.cos(trueObliquity), StrictMath.cos(lambdaApparent)));
+		final double declination = StrictMath.asin(StrictMath.sin(trueObliquity) * StrictMath.sin(lambdaApparent));
+
+		// Derive GAST and Local Sidereal Time components
+		final double utFraction = (utJd + 0.5) % 1.;
+		double gmstArcseconds = 24110.54841 + (8640184.812866 + (0.093104 - 6.2e-6 * jc) * jc) * jc;
+		gmstArcseconds += utFraction * 86400.0 * 1.002737909350795;
+		final double gmst = MathHelper.mod2pi(StrictMath.toRadians(gmstArcseconds / 240.));
+		final double gast = gmst + nutation.getDeltaPsi() * StrictMath.cos(trueObliquity);
+
+		final double localSiderealTime = gast + StrictMath.toRadians(longitude);
+		final double hourAngle = localSiderealTime - rightAscension;
+
+		return StrictMath.asin(StrictMath.sin(latRad) * StrictMath.sin(declination)
+			+ StrictMath.cos(latRad) * StrictMath.cos(declination) * StrictMath.cos(hourAngle));
+	}
+
+	private static ZonedDateTime addFractionOfDay(final ZonedDateTime date, final double fraction){
+		// Secure standard day boundaries to prevent out-of-bounds adjustments
+		final long totalMillisOffset = Math.round(fraction * JulianDate.MILLISECONDS_PER_DAY);
+		return date.truncatedTo(java.time.temporal.ChronoUnit.DAYS)
+			.plus(totalMillisOffset, java.time.temporal.ChronoUnit.MILLIS);
 	}
 
 

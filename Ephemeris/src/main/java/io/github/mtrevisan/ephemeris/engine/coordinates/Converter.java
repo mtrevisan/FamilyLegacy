@@ -109,7 +109,7 @@ public class Converter{
 	 * @return a double array containing the rectangular coordinates [x, y, z] of date
 	 */
 	public static double[] toRectangularFromJ2000ToDate(final double jce, final double xJ2000, final double yJ2000,
-			final double zJ2000) {
+			final double zJ2000){
 		// Precession angles from the ecliptic of date to J2000
 		final double p = MathHelper.polynomial(jce, P_COEFFS);
 		final double q = MathHelper.polynomial(jce, Q_COEFFS);

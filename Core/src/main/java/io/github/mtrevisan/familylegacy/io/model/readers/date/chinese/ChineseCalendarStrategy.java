@@ -54,7 +54,7 @@ public class ChineseCalendarStrategy implements CalendarConverterPlugin{
 			// Step A: Dynamically determine the spatial window of this exact solar year.
 			// Instead of a fixed June anchor which misses February (Lìchūn) or November (Lìdōng),
 			// we anchor onto the specific calendar month space corresponding to the season.
-			final int approximateTargetGregorianMonth = switch(month) {
+			final int approximateTargetGregorianMonth = switch(month){
 				case CalendarType.SEASON_SPRING -> 2;  // Lìchūn -> Feb
 				case CalendarType.SEASON_SUMMER -> 5;  // Lìxià  -> May
 				case CalendarType.SEASON_AUTUMN -> 8;  // Lìqiū  -> Aug
@@ -95,7 +95,7 @@ public class ChineseCalendarStrategy implements CalendarConverterPlugin{
 	}
 
 	@Override
-	public CalendarType.CalendarMetadata getMetadata(final String rawDate) {
+	public CalendarType.CalendarMetadata getMetadata(final String rawDate){
 		final ChineseDateInput input = ChineseCalendarParser.parse(rawDate);
 		final Map<String, Boolean> components = new LinkedHashMap<>();
 		components.put("year", (input.year() != 0));

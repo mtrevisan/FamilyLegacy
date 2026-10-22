@@ -74,7 +74,7 @@ public class FrenchRepublicanCalendarStrategy implements CalendarConverterPlugin
 	}
 
 	@Override
-	public CalendarType.CalendarMetadata getMetadata(final String rawDate) {
+	public CalendarType.CalendarMetadata getMetadata(final String rawDate){
 		final FrenchRepublicanDateInput input = FrenchRepublicanCalendarParser.parse(rawDate);
 		final Map<String, Boolean> components = new LinkedHashMap<>();
 		components.put("year", (input.year() != 0));

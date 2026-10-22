@@ -1,3 +1,27 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
 package io.github.mtrevisan.familylegacy.io.model.readers.date.gregorian;
 
 import io.github.mtrevisan.familylegacy.io.model.readers.date.CalendarType;
@@ -17,8 +41,11 @@ import java.util.regex.Pattern;
 /**
  * High-fidelity polyglot parser for standard solar calendars (Gregorian, Julian, Reformed Julian).
  * Dynamically resolves month names (full or abbreviated) across all system locales and intercepts seasonal text markers.
+ * Natively parses historical English dual-dating expressions (e.g., "1704/5") and maps them to historical timelines.
  */
 public final class GregorianCalendarParser{
+
+	private static final String SLASH = "/";
 
 	private static final Map<String, Integer> SEASONS = new HashMap<>();
 	static{
@@ -37,20 +64,23 @@ public final class GregorianCalendarParser{
 					.toFormatter(locale);
 
 				// Sample dummy date elements to extract localized strings safely
-				registerSeasonString(quarterFormatterLong.format(LocalDate.of(2000, 3, 21)), CalendarType.SEASON_SPRING);
-				registerSeasonString(quarterFormatterShort.format(LocalDate.of(2000, 3, 21)), CalendarType.SEASON_SPRING);
+				LocalDate temporal = LocalDate.of(2000, 3, 21);
+				registerSeasonString(quarterFormatterLong.format(temporal), CalendarType.SEASON_SPRING);
+				registerSeasonString(quarterFormatterShort.format(temporal), CalendarType.SEASON_SPRING);
 
-				registerSeasonString(quarterFormatterLong.format(LocalDate.of(2000, 6, 21)), CalendarType.SEASON_SUMMER);
-				registerSeasonString(quarterFormatterShort.format(LocalDate.of(2000, 6, 21)), CalendarType.SEASON_SUMMER);
+				temporal = LocalDate.of(2000, 6, 21);
+				registerSeasonString(quarterFormatterLong.format(temporal), CalendarType.SEASON_SUMMER);
+				registerSeasonString(quarterFormatterShort.format(temporal), CalendarType.SEASON_SUMMER);
 
-				registerSeasonString(quarterFormatterLong.format(LocalDate.of(2000, 9, 21)), CalendarType.SEASON_AUTUMN);
-				registerSeasonString(quarterFormatterShort.format(LocalDate.of(2000, 9, 21)), CalendarType.SEASON_AUTUMN);
+				temporal = LocalDate.of(2000, 9, 21);
+				registerSeasonString(quarterFormatterLong.format(temporal), CalendarType.SEASON_AUTUMN);
+				registerSeasonString(quarterFormatterShort.format(temporal), CalendarType.SEASON_AUTUMN);
 
-				registerSeasonString(quarterFormatterLong.format(LocalDate.of(2000, 12, 21)), CalendarType.SEASON_WINTER);
-				registerSeasonString(quarterFormatterShort.format(LocalDate.of(2000, 12, 21)), CalendarType.SEASON_WINTER);
+				temporal = LocalDate.of(2000, 12, 21);
+				registerSeasonString(quarterFormatterLong.format(temporal), CalendarType.SEASON_WINTER);
+				registerSeasonString(quarterFormatterShort.format(temporal), CalendarType.SEASON_WINTER);
 			}
-			catch(Exception ignored){
-			}
+			catch(Exception ignored){}
 		}
 
 		// Hardcoded fallback anchors for core legacy and shorthand symbols
@@ -61,12 +91,20 @@ public final class GregorianCalendarParser{
 	}
 
 	private static void registerSeasonString(final String text, final int flag){
-		if(StringUtils.isNotBlank(text))
+		if(StringUtils.isNotBlank(text) && !StringUtils.isNumeric(text))
 			SEASONS.put(text.toLowerCase(Locale.ROOT).trim(), flag);
 	}
 
-	// Robust, exception-free Unicode pattern supporting optional day prefix and localized alphabets
-	private static final Pattern DATE_PATTERN = Pattern.compile("(?:(\\d+)\\s+)?([\\p{L}\\p{M}\\s-]+?)\\s+(\\d+)");
+	/**
+	 * Robust, exception-free Unicode pattern supporting optional day prefix and localized alphabets, and dual-dating fractions.
+	 * Group 1: Optional Day. Group 2: Month name. Group 3: Civil Year. Group 4: Optional historical fraction string.
+	 */
+	private static final Pattern DATE_PATTERN = Pattern.compile("(?:(\\d+)\\s+)?(\\d+|[\\p{L}\\p{M}\\s-]+?)\\s+(\\d+)(?:/(\\d+))?");
+
+	/** RegEx pattern matching inverted textual strings like "August 2, 2000" or "August 2 2000" */
+	private static final Pattern INVERTED_TEXTUAL_PATTERN = Pattern.compile("^([\\p{L}\\p{M}\\s-]+?)\\s+(\\d+)\\s*,?\\s*(\\d+)(?:/(\\d+))?$");
+
+	private static final Pattern DUAL_DATE_PATTERN = Pattern.compile(".*\\d{4}/\\d{1,4}$");
 
 
 	private GregorianCalendarParser(){}
@@ -81,8 +119,12 @@ public final class GregorianCalendarParser{
 	 * @throws IllegalArgumentException if the text layout expression matches an invalid layout format or unknown month
 	 */
 	public static GregorianDateInput parse(final String rawDate){
-		final String normalized = StringUtils.normalizeSpace(rawDate);
+		if(StringUtils.isBlank(rawDate))
+			throw new IllegalArgumentException("Date string context cannot be empty.");
 
+		final String normalized = normalize(rawDate);
+
+		// Match via the consolidated structural regex pattern
 		final Matcher matcher = DATE_PATTERN.matcher(normalized);
 		if(!matcher.matches())
 			throw new IllegalArgumentException("Invalid Gregorian date format: " + rawDate);
@@ -91,18 +133,19 @@ public final class GregorianCalendarParser{
 		final String monthName = matcher.group(2)
 			.toLowerCase(Locale.ROOT)
 			.trim();
-		final int year = Integer.parseInt(matcher.group(3));
+		final int civilYear = Integer.parseInt(matcher.group(3));
+		final String dualYearFraction = matcher.group(4);
 
-		// 1. Check if the token maps straight to a registered seasonal marker
-		final String lowerMonthName = monthName.toLowerCase(Locale.ROOT);
-		if(SEASONS.containsKey(lowerMonthName)){
-			final int seasonFlag = SEASONS.get(lowerMonthName);
-			final int day = (dayGroup != null) ? Integer.parseInt(dayGroup) : 1;
-			return new GregorianDateInput(year, seasonFlag, day);
+		// Check if the token maps straight to a registered seasonal marker
+		int month = 0;
+		boolean isSeason = false;
+		if(SEASONS.containsKey(monthName)){
+			month = SEASONS.get(monthName);
+			isSeason = true;
 		}
-
-		// 2. Resolve multi-lingual full or abbreviated months using internal Java internationalization tables
-		final int month = resolvePolyglotMonth(monthName);
+		else
+			// Resolve multi-lingual full or abbreviated months using internal Java internationalization tables
+			month = resolvePolyglotMonth(monthName);
 
 		// Operational fallback for standalone seasonal records
 		final int day = (dayGroup != null? Integer.parseInt(dayGroup): 1);
@@ -110,13 +153,81 @@ public final class GregorianCalendarParser{
 		if(month > 0 && (day < 1 || day > 31))
 			throw new IllegalArgumentException("Day variable breaches standard monthly boundaries.");
 
-		return new GregorianDateInput(year, month, day);
+		// Calculate the final historical year mapping boundary
+		int finalHistoricalYear = civilYear;
+		// Dual dating strictly applies to transition months (January, February, March)
+		if(dualYearFraction != null && !isSeason && month <= 3){
+			if(dualYearFraction.length() <= 2){
+				// Handles shorthand formats like "1704/5" -> extracts 1700 prefix + 5
+				final int centuryPrefix = Math.floorDiv(civilYear, 100) * 100;
+				finalHistoricalYear = centuryPrefix + Integer.parseInt(dualYearFraction);
+			}
+			else
+				// Handles full explicit expansions like "1704/1705"
+				finalHistoricalYear = Integer.parseInt(dualYearFraction);
+		}
+
+		return new GregorianDateInput(finalHistoricalYear, month, day);
+	}
+
+	private static String normalize(final String rawDate){
+		// Uniformly convert delimiters (-, ., /) to clean tracking whitespace
+		String normalized = rawDate.replace('-', ' ')
+			.replace('.', ' ');
+		// If a slash is present, only treat it as a delimiter if it's not a dual-date boundary (e.g., "1704/5")
+		if(normalized.contains(SLASH) && !DUAL_DATE_PATTERN.matcher(normalized).matches())
+			normalized = normalized.replace('/', ' ');
+		normalized = StringUtils.normalizeSpace(normalized);
+
+		// Normalize pure numeric ISO formats: "2000 01 22" -> transform to "22 01 2000"
+		final String[] numericTokens = StringUtils.split(normalized);
+		if(numericTokens.length >= 3 && isPureNumericDataset(numericTokens) && numericTokens[0].length() == 4){
+			// Swaps "yyyy MM dd" to "dd MM yyyy"
+			normalized = numericTokens[2] + StringUtils.SPACE + numericTokens[1] + StringUtils.SPACE + numericTokens[0];
+			// keep trailing dual-date fragments if present
+			if(numericTokens.length == 4)
+				normalized += SLASH + numericTokens[3];
+		}
+
+		// Extract the leading text token to check for season status
+		final String[] textTokens = StringUtils.split(normalized);
+		boolean isSeasonExpression = false;
+		if(textTokens.length > 0){
+			final String leadingToken = textTokens[0].toLowerCase(Locale.ROOT)
+				.trim();
+			if(SEASONS.containsKey(leadingToken))
+				isSeasonExpression = true;
+		}
+
+		// Conditional Inversion: ONLY rearrange inverted formats if the token is NOT a season
+		if(!isSeasonExpression){
+			// Normalize inverted textual formats: "August 2, 2000" -> transform to "2 August 2000"
+			final Matcher invertedMatcher = INVERTED_TEXTUAL_PATTERN.matcher(normalized);
+			if(invertedMatcher.matches()){
+				normalized = invertedMatcher.group(2) + StringUtils.SPACE + invertedMatcher.group(1) + StringUtils.SPACE
+					+ invertedMatcher.group(3);
+				if(invertedMatcher.group(4) != null)
+					normalized += SLASH + invertedMatcher.group(4);
+			}
+		}
+
+		return normalized;
+	}
+
+	private static boolean isPureNumericDataset(final String[] tokens){
+		for(int i = 0; i < 3; i ++)
+			if(!StringUtils.isNumeric(tokens[i]))
+				return false;
+		return true;
 	}
 
 	/**
 	 * Iterates over available network locales to map full or abbreviated text back to its calendar numeric month index.
 	 */
 	private static int resolvePolyglotMonth(final String token){
+		if(StringUtils.isNumeric(token))
+			return Integer.parseInt(token);
+
 		for(final Locale locale : Locale.getAvailableLocales()){
 			final int month = parseMonthWithLocale(token, locale);
 			if(month != -1)

@@ -172,7 +172,7 @@ public class HebrewCalendarStrategy implements CalendarConverterPlugin{
 	}
 
 	@Override
-	public CalendarType.CalendarMetadata getMetadata(final String rawDate) {
+	public CalendarType.CalendarMetadata getMetadata(final String rawDate){
 		final HebrewDateInput input = HebrewCalendarParser.parse(rawDate);
 		final Map<String, Boolean> components = new LinkedHashMap<>();
 		components.put("year", (input.year() != 0));

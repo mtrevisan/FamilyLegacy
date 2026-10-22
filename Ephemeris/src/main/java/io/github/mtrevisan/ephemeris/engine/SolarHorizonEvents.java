@@ -109,7 +109,7 @@ public final class SolarHorizonEvents{
 
 		// Solve the quadratic equation a*x^2 + b*x + c = 0 to isolate the boundary transition offset
 		final double discriminant = b * b - 4. * a * c;
-		if(discriminant < 0.)
+		if(discriminant < 0. || StrictMath.abs(a) < 1e-12)
 			// Parabolic vertex does not intersect threshold; return coarse estimate as fallback
 			return targetSunsetUtJd;
 

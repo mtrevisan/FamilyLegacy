@@ -80,7 +80,7 @@ public class SovietEternalCalendarStrategy implements CalendarConverterPlugin{
 	}
 
 	@Override
-	public CalendarType.CalendarMetadata getMetadata(final String rawDate) {
+	public CalendarType.CalendarMetadata getMetadata(final String rawDate){
 		final SovietEternalDateInput input = SovietEternalCalendarParser.parse(rawDate);
 		final Map<String, Boolean> components = new LinkedHashMap<>();
 		components.put("year", (input.year() != 0));

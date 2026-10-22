@@ -92,7 +92,7 @@ public class MayanCalendarStrategy implements CalendarConverterPlugin{
 	}
 
 	@Override
-	public CalendarType.CalendarMetadata getMetadata(final String rawDate) {
+	public CalendarType.CalendarMetadata getMetadata(final String rawDate){
 		final boolean isComplete = (StringUtils.countMatches(rawDate, '.') == 4);
 		return new CalendarType.CalendarMetadata(Collections.emptyMap(), isComplete);
 	}

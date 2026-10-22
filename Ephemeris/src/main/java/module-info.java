@@ -35,6 +35,6 @@ module io.github.mtrevisan.ephemeris {
 	opens io.github.mtrevisan.ephemeris to io.github.mtrevisan.familylegacy.core;
 
 	// Register SPI implementation
-	provides EphemerisEngine
+	provides io.github.mtrevisan.familylegacy.services.EphemerisEngine
 		with io.github.mtrevisan.ephemeris.AstronomicalEngineAdapter;
 }

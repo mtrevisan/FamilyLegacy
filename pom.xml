@@ -45,28 +45,25 @@
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
 		<java.version>21</java.version>
-		<maven.compiler.source>21</maven.compiler.source>
-		<maven.compiler.target>21</maven.compiler.target>
+		<maven.compiler.release>21</maven.compiler.release>
 
 		<javadoc.html.version>-html5</javadoc.html.version>
 
 		<!-- Profiles & Build -->
-		<!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-deploy-plugin -->
-		<maven-deploy-plugin.version>3.2.0</maven-deploy-plugin.version>
 		<!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-gpg-plugin -->
 		<maven-gpg-plugin.version>3.2.8</maven-gpg-plugin.version>
-		<!-- https://mvnrepository.com/artifact/org.sonatype.plugins/nexus-staging-maven-plugin -->
-		<sonatype.nexus-staging-maven-plugin.version>1.7.0</sonatype.nexus-staging-maven-plugin.version>
+		<!-- https://mvnrepository.com/artifact/org.sonatype.central/central-publishing-maven-plugin -->
+		<sonatype.central-publishing-maven-plugin.version>0.12.0</sonatype.central-publishing-maven-plugin.version>
 		<!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-source-plugin -->
 		<maven-source-plugin.version>3.4.0</maven-source-plugin.version>
 		<!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-javadoc-plugin -->
 		<maven-javadoc-plugin.version>3.12.0</maven-javadoc-plugin.version>
 		<!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-compiler-plugin -->
 		<maven-compiler-plugin.version>3.16.0</maven-compiler-plugin.version>
-		<!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-help-plugin -->
-		<maven-help-plugin.version>3.5.2</maven-help-plugin.version>
 		<!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-shade-plugin -->
 		<maven-shade-plugin.version>3.6.2</maven-shade-plugin.version>
+		<!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-antrun-plugin -->
+		<maven-antrun-plugin.version>3.2.0</maven-antrun-plugin.version>
 
 		<!-- Apache -->
 		<!-- https://mvnrepository.com/artifact/org.apache.commons/commons-lang3 -->
@@ -133,7 +130,7 @@
 
 		<!-- JSON -->
 		<!-- https://mvnrepository.com/artifact/tools.jackson.core/jackson-databind -->
-<!--		<fasterxml.jackson-databind.version>3.2.3</fasterxml.jackson-databind.version>-->
+<!--		<fasterxml.jackson-databind.version>3.2.4</fasterxml.jackson-databind.version>-->
 		<!-- https://mvnrepository.com/artifact/com.jayway.jsonpath/json-path -->
 <!--		<jayway.json-path.version>3.0.0</jayway.json-path.version>-->
 		<!-- https://mvnrepository.com/artifact/com.github.fge/jackson-coreutils -->
@@ -153,12 +150,12 @@
 		<!-- https://mvnrepository.com/artifact/com.twelvemonkeys.imageio/imageio-tiff -->
 		<!-- https://mvnrepository.com/artifact/com.twelvemonkeys.imageio/imageio-webp -->
 		<twelvemonkeys.imageio-core.version>3.15.3</twelvemonkeys.imageio-core.version>
-		<!-- Source: https://mvnrepository.com/artifact/org.apache.pdfbox/pdfbox -->
+		<!-- https://mvnrepository.com/artifact/org.apache.pdfbox/pdfbox -->
 		<apache.pdfbox.version>3.0.8</apache.pdfbox.version>
 		<!-- https://mvnrepository.com/artifact/org.apache.xmlgraphics/batik-transcoder -->
 		<!-- https://mvnrepository.com/artifact/org.apache.xmlgraphics/batik-svggen -->
 		<!-- https://mvnrepository.com/artifact/org.apache.xmlgraphics/batik-codec -->
-		<apache.xmlgraphics.batik.version>1.19</apache.xmlgraphics.batik.version>
+		<apache.xmlgraphics.batik.version>1.20</apache.xmlgraphics.batik.version>
 
 		<!-- Reports -->
 		<!-- PDF support -->
@@ -180,22 +177,6 @@
 	</properties>
 
 	<profiles>
-		<profile>
-			<id>stage</id>
-			<activation>
-				<activeByDefault>true</activeByDefault>
-			</activation>
-			<build>
-				<plugins>
-					<!-- Deploy -->
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-deploy-plugin</artifactId>
-						<version>${maven-deploy-plugin.version}</version>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
 		<profile>
 			<!-- mvn clean deploy -U -Dmaven.test.skip=true-->
 			<!-- mvn clean deploy -Pdeploy -->
@@ -222,24 +203,14 @@
 					</plugin>
 					<!-- Nexus Staging Plugin -->
 					<plugin>
-						<groupId>org.sonatype.plugins</groupId>
-						<artifactId>nexus-staging-maven-plugin</artifactId>
-						<version>${sonatype.nexus-staging-maven-plugin.version}</version>
+						<groupId>org.sonatype.central</groupId>
+						<artifactId>central-publishing-maven-plugin</artifactId>
+						<version>${sonatype.central-publishing-maven-plugin.version}</version>
 						<extensions>true</extensions>
-						<executions>
-							<execution>
-								<id>default-deploy</id>
-								<phase>deploy</phase>
-								<goals>
-									<goal>deploy</goal>
-								</goals>
-							</execution>
-						</executions>
 						<configuration>
-							<!-- The Base URL of Nexus instance where we want to stage -->
-							<serverId>sonatype-nexus-staging</serverId>
-							<nexusUrl>https://oss.sonatype.org/</nexusUrl>
-							<autoReleaseAfterClose>true</autoReleaseAfterClose>
+							<publishingServerId>central</publishingServerId>
+							<autoPublish>true</autoPublish>
+							<waitUntil>published</waitUntil>
 						</configuration>
 					</plugin>
 					<!-- Source -->
@@ -277,21 +248,6 @@
 					</plugin>
 				</plugins>
 			</build>
-
-			<distributionManagement>
-				<snapshotRepository>
-					<id>sonatype-nexus-snapshots</id>
-					<name>Sonatype Nexus Snapshots</name>
-					<url>https://oss.sonatype.org/content/repositories/snapshots/</url>
-					<uniqueVersion>true</uniqueVersion>
-				</snapshotRepository>
-				<repository>
-					<id>sonatype-nexus-staging</id>
-					<name>Nexus Release Repository</name>
-					<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-					<uniqueVersion>false</uniqueVersion>
-				</repository>
-			</distributionManagement>
 		</profile>
 	</profiles>
 
@@ -299,17 +255,17 @@
 		<resources>
 			<resource>
 				<directory>src/main/resources</directory>
-				<filtering>false</filtering>
-				<includes>
-					<include>**/*</include>
-				</includes>
-			</resource>
-			<resource>
-				<directory>src/main/resources</directory>
 				<filtering>true</filtering>
 				<includes>
 					<include>version.properties</include>
 				</includes>
+			</resource>
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>false</filtering>
+				<excludes>
+					<exclude>version.properties</exclude>
+				</excludes>
 			</resource>
 		</resources>
 
@@ -320,85 +276,54 @@
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>${maven-compiler-plugin.version}</version>
 				<configuration>
-					<source>${maven.compiler.source}</source>
-					<target>${maven.compiler.target}</target>
+					<release>${maven.compiler.release}</release>
 					<encoding>${project.build.sourceEncoding}</encoding>
 					<showDeprecation>true</showDeprecation>
 				</configuration>
 			</plugin>
-			<!-- Help -->
-			<!-- display active profile in compile phase -->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-help-plugin</artifactId>
-				<version>${maven-help-plugin.version}</version>
-				<executions>
-					<execution>
-						<id>show-profiles</id>
-						<phase>compile</phase>
-						<goals>
-							<goal>active-profiles</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
 			<!-- Templating -->
-			<!-- https://mvnrepository.com/artifact/org.codehaus.mojo/templating-maven-plugin -->
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>templating-maven-plugin</artifactId>
-				<version>1.0.0</version>
-				<executions>
-					<execution>
-						<id>generate-version-class</id>
-						<goals>
-							<goal>filter-sources</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-			<!-- Shade -->
+<!--			<plugin>-->
+<!--				<groupId>org.codehaus.mojo</groupId>-->
+<!--				<artifactId>build-helper-maven-plugin</artifactId>-->
+<!--				<version>3.6.2</version>-->
+<!--				<executions>-->
+<!--					<execution>-->
+<!--						<id>add-source</id>-->
+<!--						<phase>generate-sources</phase>-->
+<!--						<goals><goal>add-source</goal></goals>-->
+<!--						<configuration>-->
+<!--							<sources>-->
+<!--								<source>${project.build.directory}/generated-sources/templates</source>-->
+<!--							</sources>-->
+<!--						</configuration>-->
+<!--					</execution>-->
+<!--				</executions>-->
+<!--			</plugin>-->
+<!--			<plugin>-->
+<!--				<groupId>org.apache.maven.plugins</groupId>-->
+<!--				<artifactId>maven-resources-plugin</artifactId>-->
+<!--				<version>3.3.1</version>-->
+<!--				<executions>-->
+<!--					<execution>-->
+<!--						<id>filter-templates</id>-->
+<!--						<phase>generate-sources</phase>-->
+<!--						<goals><goal>copy-resources</goal></goals>-->
+<!--						<configuration>-->
+<!--							<outputDirectory>${project.build.directory}/generated-sources/templates</outputDirectory>-->
+<!--							<resources>-->
+<!--								<resource>-->
+<!--									<directory>src/main/java-templates</directory>-->
+<!--									<filtering>true</filtering>-->
+<!--								</resource>-->
+<!--							</resources>-->
+<!--						</configuration>-->
+<!--					</execution>-->
+<!--				</executions>-->
+<!--			</plugin>-->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-shade-plugin</artifactId>
-				<version>${maven-shade-plugin.version}</version>
-				<executions>
-					<execution>
-						<!-- Run shade goal on package phase -->
-						<phase>package</phase>
-						<goals>
-							<goal>shade</goal>
-						</goals>
-						<configuration>
-							<minimizeJar>true</minimizeJar>
-							<shadedArtifactAttached>true</shadedArtifactAttached>
-							<shadedClassifierName>shaded</shadedClassifierName>
-							<createDependencyReducedPom>false</createDependencyReducedPom>
-
-							<filters>
-								<!-- FIXME: strengthen the inclusions -->
-								<!-- ClassNotFoundException: ch.qos.logback.classic.boolex.OnMarkerEvaluator-->
-								<filter>
-									<artifact>ch.qos.logback:logback-classic</artifact>
-									<includes>
-										<include>**</include>
-									</includes>
-								</filter>
-							</filters>
-							<transformers>
-								<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-									<manifestEntries>
-										<X-Compile-Source-JDK>${maven.compiler.source}</X-Compile-Source-JDK>
-										<X-Compile-Target-JDK>${maven.compiler.target}</X-Compile-Target-JDK>
-										<Built-By>Mauro Trevisan</Built-By>
-										<Build-Jdk>${java.version} (${java.vendor} ${java.vm.version})</Build-Jdk>
-										<Build-OS>${os.name} ${os.arch} ${os.version}</Build-OS>
-									</manifestEntries>
-								</transformer>
-							</transformers>
-						</configuration>
-					</execution>
-				</executions>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>3.6.0</version>
 			</plugin>
 		</plugins>
 	</build>

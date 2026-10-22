@@ -45,6 +45,10 @@ import io.github.mtrevisan.familylegacy.io.model.readers.date.rumi.RumiCalendarS
 import io.github.mtrevisan.familylegacy.io.model.readers.date.seleucid.SeleucidCalendarStrategy;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.sovieteternal.SovietEternalCalendarStrategy;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.venetan.VenetanCalendarStrategy;
+import io.github.mtrevisan.familylegacy.services.EphemerisEngine;
+import io.github.mtrevisan.familylegacy.services.EphemerisEngineFactory;
+import io.github.mtrevisan.familylegacy.services.SunlightPhase;
+import io.github.mtrevisan.familylegacy.services.ZenithInterface;
 
 import java.time.LocalDate;
 import java.util.Collections;
@@ -157,6 +161,33 @@ public enum CalendarType implements CalendarConverterPlugin{
 			case SEASON_SUMMER -> 0.5 * Math.PI;
 			default -> 0.;
 		};
+	}
+
+
+	/**
+	 * Computes the precise localized sunlight phase tracking boundaries for any historical date.
+	 *
+	 * @param calendarCode the native calendar tracking system code
+	 * @param rawDate      the uncleaned date expression text string
+	 * @param latitude     observer geodetic latitude in degrees
+	 * @param longitude    observer geodetic longitude in degrees
+	 * @param zenith       the targeted zenith boundary (e.g. OFFICIAL, CIVIL twilight)
+	 * @return a localized polymorphic {@link SunlightPhase} container instance
+	 */
+	public static SunlightPhase getSunlightPhase(final String calendarCode, final String rawDate,
+			final double latitude, final double longitude, final ZenithInterface zenith){
+		final CalendarType type = CalendarType.fromCode(calendarCode);
+		final long jdn = type.parseToJdn(rawDate);
+
+		// Align absolute Julian Day Number to Greenwich Midnight UT
+		final double midnightUtJd = jdn - 0.5;
+
+		final EphemerisEngine engine = EphemerisEngineFactory.getEngine();
+		if(!engine.isAvailable())
+			throw new UnsupportedOperationException("Astronomical computation framework requires the Ephemeris JAR.");
+
+		// Execute the proxy calculation call out to the plugin JAR
+		return engine.calculateHorizonEvent(EphemerisEngine.CelestialBody.SUN, midnightUtJd, latitude, longitude, zenith);
 	}
 
 }

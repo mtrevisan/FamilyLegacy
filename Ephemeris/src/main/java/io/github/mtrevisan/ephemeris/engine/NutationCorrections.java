@@ -259,7 +259,7 @@ public final class NutationCorrections{
 
 
 	// FIXME
-	public static void main(final String[] args) {
+	public static void main(final String[] args){
 		final double[] testJDs = {
 			JulianDate.of(1950, 1, 1), // Past
 			JulianDate.of(2026, 10, 1), // Present
