@@ -45,9 +45,6 @@ import io.github.mtrevisan.familylegacy.services.EphemerisEngineFactory;
  */
 public final class IslamicCalendarAstronomicalEngine{
 
-	//1 January 2000, at 12:00 UTC
-	private static final double JD2000 = 2451545.;
-
 	// JDN of 1 Muharram 1 AH (16 July 622 CE Julian)
 	private static final long ISLAMIC_EPOCH_JDN = 1948440L;
 
@@ -100,8 +97,10 @@ public final class IslamicCalendarAstronomicalEngine{
 		final long startJdn;
 		if(newMoonUtJd >= UMM_AL_QURA_PHASE3_START_JD){
 			// Find the sunset and moonset for the local day (returned in UT, so we add the offset to compare locally)
-			final double sunsetUt = engine.calculateSunset(testMidnightUtJd, MECCA_LATITUDE, MECCA_LONGITUDE);
-			final double moonsetUt = engine.calculateMoonset(sunsetUt, MECCA_LATITUDE, MECCA_LONGITUDE);
+			final double sunsetUt = engine.calculateHorizonEvent(EphemerisEngine.CelestialBody.SUN, testMidnightUtJd,
+				MECCA_LATITUDE, MECCA_LONGITUDE);
+			final double moonsetUt = engine.calculateHorizonEvent(EphemerisEngine.CelestialBody.MOON, sunsetUt,
+				MECCA_LATITUDE, MECCA_LONGITUDE);
 
 			// criteria
 			final boolean conjunctionBeforeSunset = (newMoonUtJd < sunsetUt);
@@ -116,8 +115,10 @@ public final class IslamicCalendarAstronomicalEngine{
 				startJdn = localConjunctionCivilJdn + 2;
 		}
 		else if(newMoonUtJd >= UMM_AL_QURA_PHASE2_START_JD){
-			final double sunsetUt = engine.calculateSunset(testMidnightUtJd, MECCA_LATITUDE, MECCA_LONGITUDE);
-			final double moonsetUt = engine.calculateMoonset(sunsetUt, MECCA_LATITUDE, MECCA_LONGITUDE);
+			final double sunsetUt = engine.calculateHorizonEvent(EphemerisEngine.CelestialBody.SUN, testMidnightUtJd,
+				MECCA_LATITUDE, MECCA_LONGITUDE);
+			final double moonsetUt = engine.calculateHorizonEvent(EphemerisEngine.CelestialBody.MOON, sunsetUt,
+				MECCA_LATITUDE, MECCA_LONGITUDE);
 
 			// criteria
 			final boolean moonsetAfterSunset = (moonsetUt > sunsetUt);
@@ -130,7 +131,8 @@ public final class IslamicCalendarAstronomicalEngine{
 		else {
 			final double riyadhUtcOffsetDays = getRiyadhUtcOffset() / 24.;
 			final double riyadhTestMidnightUtJd = localConjunctionCivilJdn - 0.5 - riyadhUtcOffsetDays;
-			final double sunsetRiyadhUt = engine.calculateSunset(riyadhTestMidnightUtJd, RIYADH_LATITUDE, RIYADH_LONGITUDE);
+			final double sunsetRiyadhUt = engine.calculateHorizonEvent(EphemerisEngine.CelestialBody.SUN,
+				riyadhTestMidnightUtJd, RIYADH_LATITUDE, RIYADH_LONGITUDE);
 
 			// criteria
 			final double moonAgeAtSunsetDays = sunsetRiyadhUt - newMoonUtJd;

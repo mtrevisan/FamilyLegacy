@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.io.model.readers.date.parsi;
 
+import io.github.mtrevisan.familylegacy.io.model.readers.date.CalendarType;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
@@ -59,11 +60,9 @@ public final class ParsiCalendarParser{
 		MONTHS.put("dae", 10);
 		MONTHS.put("bahman", 11);
 		MONTHS.put("aspandarmad", 12);
-
 		// Intercalary holy days (Gatha / Panje days)
 		MONTHS.put("gatha", 13);
 		MONTHS.put("panje", 13);
-
 		// Traditional Gujarati script names (highly common in Parsi records)
 		MONTHS.put("ફરવરદીન", 1);
 		MONTHS.put("અર્દિબહેશ્ત", 2);
@@ -78,9 +77,31 @@ public final class ParsiCalendarParser{
 		MONTHS.put("બહમન", 11);
 		MONTHS.put("અસ્પંદારમદ", 12);
 		MONTHS.put("ગાથા", 13);
+
+		// Padiz / Autumn (Autumnal Equinox)
+		MONTHS.put("padiz", CalendarType.SEASON_AUTUMN);
+		MONTHS.put("patiz", CalendarType.SEASON_AUTUMN);
+		MONTHS.put("autumn", CalendarType.SEASON_AUTUMN);
+		MONTHS.put("maidhyairya", CalendarType.SEASON_AUTUMN);
+		// Zayan / Winter (Hibernal Solstice)
+		MONTHS.put("zayan", CalendarType.SEASON_WINTER);
+		MONTHS.put("vayan", CalendarType.SEASON_WINTER);
+		MONTHS.put("winter", CalendarType.SEASON_WINTER);
+		MONTHS.put("maidyozarem", CalendarType.SEASON_WINTER);
+		// Vahar / Spring (Vernal Equinox)
+		MONTHS.put("vahar", CalendarType.SEASON_SPRING);
+		MONTHS.put("wahar", CalendarType.SEASON_SPRING);
+		MONTHS.put("spring", CalendarType.SEASON_SPRING);
+		MONTHS.put("hamaspathmaedaya", CalendarType.SEASON_SPRING);
+		// Hamin / Summer (Estival Solstice)
+		MONTHS.put("hamin", CalendarType.SEASON_SUMMER);
+		MONTHS.put("summer", CalendarType.SEASON_SUMMER);
+		MONTHS.put("maidhyoshema", CalendarType.SEASON_SUMMER);
 	}
 
-	private static final Pattern DATE_PATTERN = Pattern.compile("(\\S+)\\s+(\\S+)\\s+(\\S+)");
+	// Adaptive pattern supporting both standalone seasonal notations ("Hamin 1320")
+	// and explicit three-token expressions ("1 Fravardin 1390")
+	private static final Pattern DATE_PATTERN = Pattern.compile("(?:(\\d+)\\s+)?([\\p{L}\\p{M}\\s-]+?)\\s+(\\d+)");
 
 
 	private ParsiCalendarParser(){}
@@ -91,6 +112,7 @@ public final class ParsiCalendarParser{
 	 *
 	 * @param rawDate the string representing the Parsi date
 	 * @return a container with year, month, and day fields
+	 * @throws IllegalArgumentException if the expression layout is invalid
 	 */
 	public static ParsiDateInput parse(final String rawDate){
 		final String normalized = StringUtils.normalizeSpace(convertDigitsToAscii(rawDate));
@@ -99,18 +121,21 @@ public final class ParsiCalendarParser{
 		if(!matcher.matches())
 			throw new IllegalArgumentException("Invalid Parsi date format: " + rawDate);
 
-		final int day = Integer.parseInt(matcher.group(1));
+		final String dayGroup = matcher.group(1);
 		final String monthName = matcher.group(2)
-			.toLowerCase(Locale.ROOT);
+			.toLowerCase(Locale.ROOT)
+			.trim();
+		final int year = Integer.parseInt(matcher.group(3));
 
 		final Integer month = MONTHS.get(monthName);
 		if(month == null)
-			throw new IllegalArgumentException("Unknown Parsi month or holy term: " + monthName);
+			throw new IllegalArgumentException("Unknown Parsi month or seasonal descriptor: " + monthName);
 
-		final int year = Integer.parseInt(matcher.group(3));
+		// Operational placeholder default for pure astronomical expressions
+		final int day = (dayGroup != null? Integer.parseInt(dayGroup): 1);
 
 		// Validation boundaries
-		if(month <= 12 && (day < 1 || day > 30))
+		if(month > 0 && month <= 12 && (day < 1 || day > 30))
 			throw new IllegalArgumentException("Standard Parsi months must have exactly 30 days.");
 		if(month == 13 && (day < 1 || day > 5))
 			throw new IllegalArgumentException("Gatha intercalary period must be between 1 and 5 days.");

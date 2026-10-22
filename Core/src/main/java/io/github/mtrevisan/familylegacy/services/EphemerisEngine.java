@@ -32,9 +32,19 @@ package io.github.mtrevisan.familylegacy.services;
 public interface EphemerisEngine{
 
 	/**
+	 * Descriptor flags to identify the targeted spatial celestial body for horizon events.
+	 */
+	enum CelestialBody{
+		SUN,
+		MOON
+	}
+
+
+	/**
 	 * Returns whether the astronomical calculation provider is fully functional.
 	 */
 	boolean isAvailable();
+
 
 	/**
 	 * Computes the exact Julian Date (UT) of the New Moon conjunction closest to a target date.
@@ -54,43 +64,25 @@ public interface EphemerisEngine{
 	 */
 	double findSolarLongitudeEvent(double approximateJdUT, double targetLongitude);
 
+	/**
+	 * Computes the apparent ecliptic longitude of the Sun for a given Universal Time instant.
+	 * Accounts for VSOP2013 planetary perturbations, annual aberration, and IAU 2000A nutation.
+	 *
+	 * @param jdUT the Julian Date in Universal Time (UT/UTC) scale
+	 * @return the apparent solar longitude in radians, reduced to the interval [0, 2π)
+	 */
+	double calculateApparentSunLongitude(double jdUT);
 
 	/**
-	 * Computes the exact Julian Date (UT) of sunset for a specific civil day and location.
-	 * Accounts for VSOP2013 planetary perturbations, IAU 2000A nutation, and standard atmospheric refraction.
+	 * Computes the exact Julian Date (UT) of a horizon crossing event for a specific body, day and location.
+	 * Consolidates parallax corrections, refraction, and dynamical semidiameter variations polimorphically.
 	 *
+	 * @param body         the targeted celestial body (SUN or MOON)
 	 * @param midnightUtJd the Julian Date representing local civil midnight converted to UT (ending in .5)
 	 * @param latitude     the observer's geodetic latitude in degrees (North positive)
 	 * @param longitude    the observer's geodetic longitude in degrees (East positive)
-	 * @return the Julian Date (UT) of the sunset event, or {@code Double.NaN} if the Sun is circumpolar
+	 * @return the Julian Date (UT) of the horizon event, or {@code Double.NaN} if the body is circumpolar
 	 */
-	double calculateSunset(double midnightUtJd, double latitude, double longitude);
-
-	/**
-	 * Computes the exact Julian Date (UT) of moonset for a specific civil day and location.
-	 * Accounts for ELP/MPP02 lunar perturbations, topocentric parallax corrections, and apparent lunar semidiameter
-	 * variations.
-	 *
-	 * @param midnightUtJd the Julian Date representing local civil midnight converted to UT (ending in .5)
-	 * @param latitude     the observer's geodetic latitude in degrees (North positive)
-	 * @param longitude    the observer's geodetic longitude in degrees (East positive)
-	 * @return the Julian Date (UT) of the moonset event, or {@code Double.NaN} if the Moon is circumpolar
-	 */
-	double calculateMoonset(double midnightUtJd, double latitude, double longitude);
-
-
-	/**
-	 * Computes the exact Julian Date (UT) when the Sun enters a specific season
-	 * for a given target calendar year.
-	 *
-	 * @param approximateJdUT A baseline guess JDN within that year to anchor the search spectrum
-	 * @param solarLongitudeTarget The targeted astronomical intersection angle in radians:
-	 *                              - Spring (Vernal Equinox): 0.0 (0°)
-	 *                              - Summer (Estival Solstice): 𝜋 / 2 (90°)
-	 *                              - Autumn (Autumnal Equinox): 𝜋 (180°)
-	 *                              - Winter (Hibernal Solstice): 3𝜋 / 2 (270°)
-	 * @return The exact Julian Date UT when the spatial transition occurs
-	 */
-	double calculateSeason(double approximateJdUT, double solarLongitudeTarget);
+	double calculateHorizonEvent(CelestialBody body, double midnightUtJd, double latitude, double longitude);
 
 }

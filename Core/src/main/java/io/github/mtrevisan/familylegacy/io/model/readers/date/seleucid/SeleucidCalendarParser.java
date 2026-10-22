@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.io.model.readers.date.seleucid;
 
+import io.github.mtrevisan.familylegacy.io.model.readers.date.CalendarType;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
@@ -42,67 +43,53 @@ public final class SeleucidCalendarParser{
 	private static final Map<String, Integer> MONTHS = new HashMap<>();
 	static{
 		// Month 1: October
-		MONTHS.put("october", 1);
 		MONTHS.put("hyperberetaios", 1);
 		MONTHS.put("tishrin qdim", 1);
-
 		// Month 2: November
-		MONTHS.put("november", 2);
 		MONTHS.put("dios", 2);
 		MONTHS.put("tishrin hray", 2);
-
 		// Month 3: December
-		MONTHS.put("december", 3);
 		MONTHS.put("apellaios", 3);
 		MONTHS.put("kanun qdim", 3);
-
 		// Month 4: January
-		MONTHS.put("january", 4);
 		MONTHS.put("audynaios", 4);
 		MONTHS.put("kanun hray", 4);
-
 		// Month 5: February
-		MONTHS.put("february", 5);
 		MONTHS.put("peritios", 5);
 		MONTHS.put("shbat", 5);
-
 		// Month 6: March
-		MONTHS.put("march", 6);
 		MONTHS.put("dystros", 6);
 		MONTHS.put("adar", 6);
-
 		// Month 7: April
-		MONTHS.put("april", 7);
 		MONTHS.put("xanthikos", 7);
 		MONTHS.put("nisan", 7);
-
 		// Month 8: May
-		MONTHS.put("may", 8);
 		MONTHS.put("artemisios", 8);
 		MONTHS.put("iyar", 8);
-
 		// Month 9: June
-		MONTHS.put("june", 9);
 		MONTHS.put("daisios", 9);
 		MONTHS.put("haziran", 9);
-
 		// Month 10: July
-		MONTHS.put("july", 10);
 		MONTHS.put("panemos", 10);
 		MONTHS.put("tamuz", 10);
-
 		// Month 11: August
-		MONTHS.put("august", 11);
 		MONTHS.put("loios", 11);
 		MONTHS.put("ab", 11);
-
 		// Month 12: September
-		MONTHS.put("september", 12);
 		MONTHS.put("gorpiose", 12);
 		MONTHS.put("aylar", 12);
+
+		// Autumn -> Maps to Autumnal Equinox flag
+		MONTHS.put("hyperberetaios-season", CalendarType.SEASON_AUTUMN);
+		// Winter -> Maps to Hibernal Solstice flag
+		MONTHS.put("audynaios-season", CalendarType.SEASON_WINTER);
+		// Spring -> Maps to Vernal Equinox flag
+		MONTHS.put("xanthikos-season", CalendarType.SEASON_SPRING);
+		// Summer -> Maps to Estival Solstice flag
+		MONTHS.put("panemos-season", CalendarType.SEASON_SUMMER);
 	}
 
-	private static final Pattern DATE_PATTERN = Pattern.compile("(\\S+)\\s+(\\S+)\\s+(\\S+)");
+	private static final Pattern DATE_PATTERN = Pattern.compile("(?:(\\d+)\\s+)?([\\p{L}\\p{M}\\s-]+?)\\s+(\\d+)");
 
 
 	private SeleucidCalendarParser(){}
@@ -113,6 +100,7 @@ public final class SeleucidCalendarParser{
 	 *
 	 * @param rawDate the date string (e.g., "15 Nisan 315" or "1 October 500")
 	 * @return a configured SeleucidDateInput instance
+	 * @throws IllegalArgumentException if the layout or parameters breach structural constraints
 	 */
 	public static SeleucidDateInput parse(final String rawDate){
 		final String normalized = StringUtils.normalizeSpace(rawDate);
@@ -121,18 +109,21 @@ public final class SeleucidCalendarParser{
 		if(!matcher.matches())
 			throw new IllegalArgumentException("Invalid Seleucid date format: " + rawDate);
 
-		final int day = Integer.parseInt(matcher.group(1));
+		final String dayGroup = matcher.group(1);
 		final String monthName = matcher.group(2)
-			.toLowerCase(Locale.ROOT);
+			.toLowerCase(Locale.ROOT)
+			.trim();
+		final int year = Integer.parseInt(matcher.group(3));
 
 		final Integer month = MONTHS.get(monthName);
 		if(month == null)
-			throw new IllegalArgumentException("Unknown Seleucid month entry: " + monthName);
+			throw new IllegalArgumentException("Unknown Seleucid month or seasonal descriptor: " + monthName);
 
-		final int year = Integer.parseInt(matcher.group(3));
+		// Operational fallback for pure seasonal records
+		final int day = (dayGroup != null? Integer.parseInt(dayGroup): 1);
 
 		// Validation mapping onto Julian month limits
-		if(day < 1 || day > 31)
+		if(month > 0 && (day < 1 || day > 31))
 			throw new IllegalArgumentException("Invalid day count for the targeted Julian boundary.");
 
 		return new SeleucidDateInput(year, month, day);

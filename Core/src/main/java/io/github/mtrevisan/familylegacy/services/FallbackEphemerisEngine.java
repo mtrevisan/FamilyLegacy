@@ -33,22 +33,23 @@ public final class FallbackEphemerisEngine implements EphemerisEngine{
 	}
 
 	@Override
-	public double findNextNewMoon(double approximateJdUT){
+	public double findNextNewMoon(final double approximateJdUT){
 		throw new UnsupportedOperationException("Ephemeris engine plugin not installed.");
 	}
 
 	@Override
-	public double findSolarLongitudeEvent(double approximateJdUT, double targetLongitude){
+	public double findSolarLongitudeEvent(final double approximateJdUT, final double targetLongitude){
 		throw new UnsupportedOperationException("Ephemeris engine plugin not installed.");
 	}
 
 	@Override
-	public double calculateSunset(double midnightUtJd, double latitude, double longitude){
+	public double calculateApparentSunLongitude(final double jdUT){
 		throw new UnsupportedOperationException("Ephemeris engine plugin not installed.");
 	}
 
 	@Override
-	public double calculateMoonset(double midnightUtJd, double latitude, double longitude){
+	public double calculateHorizonEvent(final CelestialBody body, final double midnightUtJd, final double latitude,
+			final double longitude){
 		throw new UnsupportedOperationException("Ephemeris engine plugin not installed.");
 	}
 

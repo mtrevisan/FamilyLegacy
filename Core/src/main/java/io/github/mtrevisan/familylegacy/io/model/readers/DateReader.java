@@ -208,11 +208,6 @@ public final class DateReader{
 //		return DateService.getYearDisplayText(value);
 //	}
 
-//	public static GenealogicalDate extractGenealogicalDate(final FLEFRecord dateStructureRecord){
-//		final FLEFRecord value = FLEFRecordHelper.findChild(dateStructureRecord, TAG_VALUE);
-//		return UniversalDateConverter.parse(calendarStr, dateStr);
-//	}
-
 
 
 	public static String extractBasis(final FLEFRecord approxRecord){

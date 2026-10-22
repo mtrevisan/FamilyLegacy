@@ -97,6 +97,22 @@ public final class SunPosition{
 	 * @return the apparent longitude of the Sun [rad], reduced to the interval [0, 2π)
 	 */
 	public static double apparentSunLongitude(final double jce, final double deltaPsi){
+		final double[] rMoonJ2000Km = MoonPosition.getInstanceLLR()
+			.rectangular(jce);
+		return apparentSunLongitude(jce, deltaPsi, rMoonJ2000Km);
+	}
+
+	/**
+	 * Computes the apparent ecliptic longitude of the Sun with respect to the Earth, from an already computed position
+	 * of the Moon.
+	 *
+	 * @param jce          Julian Ephemeris Century of Barycentric Dynamical Time (TDB) from J2000.0
+	 * @param deltaPsi     nutation in longitude [rad]
+	 * @param rMoonJ2000Km the geocentric rectangular coordinates of the Moon at {@code jce} in J2000.0 [km], as returned
+	 *                     by {@link MoonPosition#rectangular(double)}
+	 * @return the apparent longitude of the Sun [rad], reduced to the interval [0, 2π)
+	 */
+	public static double apparentSunLongitude(final double jce, final double deltaPsi, final double[] rMoonJ2000Km){
 		// 1. Calculate the heliocentric spherical coordinates of the EMB in J2000.0 (VSOP2013 uses millennia)
 		final double jme = jce / 10.;
 		final EclipticCoordinates embSph = SunPosition.embTrueHeliocentricPosition(jme);
@@ -107,36 +123,32 @@ public final class SunPosition{
 		final double yEmbJ2000 = embSph.getDistance() * StrictMath.sin(embSph.getLongitude()) * cosLat;
 		final double zEmbJ2000 = embSph.getDistance() * StrictMath.sin(embSph.getLatitude());
 
-		// 3. Retrieve the geocentric rectangular coordinates of the Moon in J2000.0 (in kilometers)
-		final double[] rMoonJ2000Km = MoonPosition.getInstanceLLR()
-			.rectangular(jce);
-
-		// 4. Convert the Moon's vector from kilometers to Astronomical Units (AU)
+		// 3. Convert the Moon's vector from kilometers to Astronomical Units (AU)
 		final double xMoonAu = rMoonJ2000Km[0] / ASTRONOMICAL_UNIT;
 		final double yMoonAu = rMoonJ2000Km[1] / ASTRONOMICAL_UNIT;
 		final double zMoonAu = rMoonJ2000Km[2] / ASTRONOMICAL_UNIT;
 
-		// 5. Apply the standard mass ratio factor to isolate the true geometric position of the Earth in J2000.0
+		// 4. Apply the standard mass ratio factor to isolate the true geometric position of the Earth in J2000.0
 		//    Formula: R_earth = R_emb - (mu / (1 + mu)) * r_moon
 		final double xEarthJ2000 = xEmbJ2000 - SunPosition.MU_FACTOR * xMoonAu;
 		final double yEarthJ2000 = yEmbJ2000 - SunPosition.MU_FACTOR * yMoonAu;
 		final double zEarthJ2000 = zEmbJ2000 - SunPosition.MU_FACTOR * zMoonAu;
 
-		// 6. Invert the vector orientation to obtain the geocentric geometric position of the Sun in J2000.0
+		// 5. Invert the vector orientation to obtain the geocentric geometric position of the Sun in J2000.0
 		final double xSunJ2000 = -xEarthJ2000;
 		final double ySunJ2000 = -yEarthJ2000;
 		final double zSunJ2000 = -zEarthJ2000;
 
-		// 7. Rotate the geocentric Sun vector from the J2000.0 frame to the mean ecliptic and equinox of date
+		// 6. Rotate the geocentric Sun vector from the J2000.0 frame to the mean ecliptic and equinox of date
 		//    Note: This passes the individual components to your updated transpose matrix conversion method
 		final double[] rSunDate = Converter.toRectangularFromJ2000ToDate(jce, xSunJ2000, ySunJ2000, zSunJ2000);
 
-		// 8. Extract the mean ecliptic longitude and the true geometric distance (radius vector R)
+		// 7. Extract the mean ecliptic longitude and the true geometric distance (radius vector R)
 		final double lambdaMean = MathHelper.mod2pi(StrictMath.atan2(rSunDate[1], rSunDate[0]));
 		final double distance = StrictMath.sqrt(rSunDate[0] * rSunDate[0] + rSunDate[1] * rSunDate[1]
 			+ rSunDate[2] * rSunDate[2]);
 
-		// 9. Apply physical corrections for annual aberration and nutation to obtain the final apparent longitude
+		// 8. Apply physical corrections for annual aberration and nutation to obtain the final apparent longitude
 		final double aberration = SunPosition.aberrationCorrection(distance);
 
 		return MathHelper.mod2pi(lambdaMean + deltaPsi + aberration);
@@ -217,16 +229,18 @@ public final class SunPosition{
 		for(int k = 0, size = seriesList.size(); k < size; k ++){
 			final ResourceReader.VSOP2013Data series = seriesList.get(k);
 
+			final double[] sines = series.sines;
+			final double[] cosines = series.cosines;
+			final int[] argumentStart = series.argumentStart;
+			final byte[] argumentIndex = series.argumentIndex;
+			final int[] argumentMultiplier = series.argumentMultiplier;
 			double sum = 0.;
-			final ResourceReader.VSOP2013Coeffs[] coeffs = series.coeffs;
-			for(int j = 0, coeffsLength = coeffs.length; j < coeffsLength; j ++){
-				final ResourceReader.VSOP2013Coeffs coeff = coeffs[j];
-
+			for(int j = 0, terms = sines.length; j < terms; j ++){
 				double phase = 0.;
-				for(int i = 0; i < ARGUMENTS; i++)
-					if(coeff.iphi[i] != 0)
-						phase += coeff.iphi[i] * ll[i];
-				sum += coeff.sine * StrictMath.sin(phase) + coeff.cosine * StrictMath.cos(phase);
+				for(int i = argumentStart[j], end = argumentStart[j + 1]; i < end; i ++)
+					phase += argumentMultiplier[i] * ll[argumentIndex[i]];
+				//hot loop over ~300k terms: Math (JIT intrinsic) is several times faster than StrictMath here
+				sum += sines[j] * Math.sin(phase) + cosines[j] * Math.cos(phase);
 			}
 			total += sum * StrictMath.pow(jme, series.timePower);
 		}

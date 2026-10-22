@@ -103,14 +103,19 @@ public final class MoonHorizonEvents{
 		final double t2 = targetMoonsetUtJd;
 		final double t3 = targetMoonsetUtJd + hourInJd;
 
-		final double y1 = computeTopocentricMoonAltitude(t1, latRad, longitude, ttCenturyFunction, targetThresholds, 0);
-		final double y2 = computeTopocentricMoonAltitude(t2, latRad, longitude, ttCenturyFunction, targetThresholds, 1);
-		final double y3 = computeTopocentricMoonAltitude(t3, latRad, longitude, ttCenturyFunction, targetThresholds, 2);
+		final double rawY1 = computeTopocentricMoonAltitude(t1, latRad, longitude, ttCenturyFunction, targetThresholds, 0);
+		final double rawY2 = computeTopocentricMoonAltitude(t2, latRad, longitude, ttCenturyFunction, targetThresholds, 1);
+		final double rawY3 = computeTopocentricMoonAltitude(t3, latRad, longitude, ttCenturyFunction, targetThresholds, 2);
 
-		// Interpolate the functional differences against the dynamic altitude limits
+		// This forces the interpolation matrix to solve for the exact delta cross-over boundary (y = 0)
+		final double y1 = rawY1 - targetThresholds[0];
+		final double y2 = rawY2 - targetThresholds[1];
+		final double y3 = rawY3 - targetThresholds[2];
+
+		// Interpolate the functional differences against the dynamic normalized altitude limits
 		final double a = (y1 + y3) / 2. - y2;
 		final double b = (y3 - y1) / 2.;
-		final double c = y2 - targetThresholds[1];
+		final double c = y2;
 
 		final double discriminant = b * b - 4. * a * c;
 		if(discriminant < 0.)
@@ -185,7 +190,7 @@ public final class MoonHorizonEvents{
 	private static double computeGMST(final double utJd, final double jcUt){
 		final double utFraction = (utJd + 0.5) % 1.;
 		double gmstArcseconds = 24110.54841 + 8640184.812866 * jcUt + 0.093104 * jcUt * jcUt - 6.2e-6 * jcUt * jcUt * jcUt;
-		gmstArcseconds += utFraction * 86400.0 * 1.002737909350795;
+		gmstArcseconds += utFraction * 86400. * 1.002737909350795;
 		return MathHelper.mod2pi(StrictMath.toRadians(gmstArcseconds / 240.0));
 	}
 

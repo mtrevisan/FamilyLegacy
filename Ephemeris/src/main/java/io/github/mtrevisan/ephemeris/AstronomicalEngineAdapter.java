@@ -29,11 +29,14 @@ import io.github.mtrevisan.ephemeris.engine.MoonPosition;
 import io.github.mtrevisan.ephemeris.engine.NutationCorrections;
 import io.github.mtrevisan.ephemeris.engine.SolarHorizonEvents;
 import io.github.mtrevisan.ephemeris.engine.SunPosition;
+import io.github.mtrevisan.ephemeris.engine.coordinates.EclipticCoordinates;
 import io.github.mtrevisan.ephemeris.helpers.DeltaT;
 import io.github.mtrevisan.ephemeris.helpers.IllinoisSolver;
 import io.github.mtrevisan.ephemeris.helpers.JulianDate;
 import io.github.mtrevisan.ephemeris.helpers.MathHelper;
 import io.github.mtrevisan.familylegacy.services.EphemerisEngine;
+
+import java.util.function.DoubleUnaryOperator;
 
 
 /**
@@ -46,9 +49,12 @@ public final class AstronomicalEngineAdapter implements EphemerisEngine{
 	private static final double ACCURACY_THRESHOLD = 1.e-6;
 	private static final int MAX_ITERATIONS = 50;
 
-	// Standard structural altitude for solar disk upper limb sunset:
-	// -34 arcminutes (atmospheric refraction) - 16 arcminutes (solar semidiameter) = -50 arcminutes = -0.8333333333333334 degrees
-	private static final double STANDARD_SUNSET_ALTITUDE = StrictMath.toRadians(-50. / 60.);
+	// Mean angular rates used to seed the secant iterations [rad/day]
+	private static final double MEAN_ELONGATION_RATE = 2. * StrictMath.PI / 29.530588853;
+	private static final double MEAN_SOLAR_RATE = 2. * StrictMath.PI / 365.242189;
+	private static final int MAX_SECANT_ITERATIONS = 10;
+	// A secant root farther than this from its starting guess is rejected in favour of the bracketing scan [day]
+	private static final double MAX_SECANT_DISTANCE = 60.;
 
 
 	@Override
@@ -67,6 +73,17 @@ public final class AstronomicalEngineAdapter implements EphemerisEngine{
 		double x1 = fromJd;
 		double f1 = evaluateNewMoonFunction(x1);
 
+		// 1. Optimistic Step: extrapolate the elongation still to be covered with the mean synodic motion, then refine
+		//	with a secant iteration (the function is smooth around the conjunction, the jump is at full moon)
+		final double remainingElongation = (f1 < 0.? -f1: 2. * StrictMath.PI - f1);
+		final double guess = fromJd + remainingElongation / MEAN_ELONGATION_RATE;
+		final double root = solveSecant(guess, evaluateNewMoonFunction(guess), MEAN_ELONGATION_RATE,
+			AstronomicalEngineAdapter::evaluateNewMoonFunction);
+		if(root >= fromJd - ACCURACY_THRESHOLD && root - guess <= MAX_SECANT_DISTANCE
+				&& guess - root <= MAX_SECANT_DISTANCE)
+			return root;
+
+		// 2. Fallback Step: scan forward day by day to bracket the conjunction
 		final double step = 1.;
 		for(int i = 0; i < 40; i ++){
 			final double x2 = x1 + step;
@@ -89,15 +106,20 @@ public final class AstronomicalEngineAdapter implements EphemerisEngine{
 		final double ttJc = getTerrestrialCenturies(jdUT);
 		final NutationCorrections nutation = NutationCorrections.calculate(ttJc);
 		final double deltaPsi = nutation.getDeltaPsi();
+		// the Moon is computed once, and shared by the Earth-Moon barycenter correction of the Sun and the Moon longitude
+		final EclipticCoordinates moonOfDate = MoonPosition.getInstanceLLR()
+			.eclipticOfDate(ttJc);
+		final double sunLng = SunPosition.apparentSunLongitude(ttJc, deltaPsi,
+			MoonPosition.rectangular(ttJc, moonOfDate));
 
-		final double sunLng = SunPosition.apparentSunLongitude(ttJc, deltaPsi);
-		final double moonLng = MoonPosition.computeApparentMoonLongitude(ttJc, deltaPsi);
+		final double moonLng = MoonPosition.computeApparentMoonLongitude(moonOfDate, deltaPsi);
 
 		return MathHelper.mod2pi(moonLng - sunLng + StrictMath.PI) - StrictMath.PI;
 	}
 
 	/**
-	 * Computes the exact Julian Date (Universal Time) of a specific Solar Term (Jieqi).
+	 * Computes the exact Julian Date (Universal Time) of a specific Solar Term or Season.
+	 * Optimistically bypasses linear scans by attempting immediate 3-point Meeus interpolation.
 	 *
 	 * @param approximateJdUT the starting guess in Julian Date UT
 	 * @param targetLongitude the targeted solar longitude step [rad] (e.g., 0 for Spring Equinox, π/6 for next term)
@@ -105,18 +127,28 @@ public final class AstronomicalEngineAdapter implements EphemerisEngine{
 	 */
 	@Override
 	public double findSolarLongitudeEvent(final double approximateJdUT, final double targetLongitude){
-		double x1 = approximateJdUT;
+		final DoubleUnaryOperator function = jdUT -> evaluateSolarLongitudeFunction(jdUT, targetLongitude);
+
+		// 1. Optimistic Step: the function is smooth for months around the root, so a secant iteration seeded with the
+		//	mean solar motion converges in a handful of evaluations
+		final double root = solveSecant(approximateJdUT, function.applyAsDouble(approximateJdUT), MEAN_SOLAR_RATE,
+			function);
+		if(StrictMath.abs(root - approximateJdUT) <= MAX_SECANT_DISTANCE)
+			return root;
+
+		// 2. Fallback Step: Execute robust sequential scanning if the secant iteration fails
+		// Widen fallback bracket backward to catch missed targets
+		final double dayStep = 5.;
+		double x1 = approximateJdUT - 15.;
 		double f1 = evaluateSolarLongitudeFunction(x1, targetLongitude);
 
 		// Scan forward in steps to locate an interval with a sign change
-		final double step = 5.;
-		for(int i = 0; i < 80; i ++){
-			final double x2 = x1 + step;
+		for(int i = 0; i < 12; i ++){
+			final double x2 = x1 + dayStep;
 			final double f2 = evaluateSolarLongitudeFunction(x2, targetLongitude);
 
 			if(f1 < 0. && f2 >= 0.)
-				return IllinoisSolver.solve(x1, x2, ACCURACY_THRESHOLD, MAX_ITERATIONS,
-					jdUT -> evaluateSolarLongitudeFunction(jdUT, targetLongitude));
+				return IllinoisSolver.solve(x1, x2, ACCURACY_THRESHOLD, MAX_ITERATIONS, function);
 
 			x1 = x2;
 			f1 = f2;
@@ -126,35 +158,74 @@ public final class AstronomicalEngineAdapter implements EphemerisEngine{
 			+ approximateJdUT + " and target angle: " + targetLongitude);
 	}
 
-	private static double evaluateSolarLongitudeFunction(final double jdUT, final double targetLongitude){
+	/**
+	 * Finds a root of a smooth function with the secant method, using the expected mean slope for the first step.
+	 *
+	 * @param x0        the starting guess
+	 * @param y0        the function value at {@code x0}
+	 * @param meanSlope the expected mean slope of the function [rad/day]
+	 * @param function  the function
+	 * @return the root, or {@code NaN} if the iteration does not converge
+	 */
+	private static double solveSecant(double x0, double y0, final double meanSlope, final DoubleUnaryOperator function){
+		double x1 = x0 - y0 / meanSlope;
+		for(int i = 0; i < MAX_SECANT_ITERATIONS; i ++){
+			final double y1 = function.applyAsDouble(x1);
+			if(y1 == y0)
+				return (y1 == 0.? x1: Double.NaN);
+
+			final double x2 = x1 - y1 * (x1 - x0) / (y1 - y0);
+			if(StrictMath.abs(x2 - x1) < ACCURACY_THRESHOLD)
+				return x2;
+
+			x0 = x1;
+			y0 = y1;
+			x1 = x2;
+		}
+		return Double.NaN;
+	}
+
+	private double evaluateSolarLongitudeFunction(final double jdUT, final double targetLongitude){
+		final double sunLng = calculateApparentSunLongitude(jdUT);
+		return MathHelper.mod2pi(sunLng - targetLongitude + StrictMath.PI) - StrictMath.PI;
+	}
+
+	/**
+	 * Computes the apparent ecliptic longitude of the Sun for a given Universal Time instant.
+	 * Accounts for VSOP2013 planetary perturbations, annual aberration, and IAU 2000A nutation.
+	 *
+	 * @param jdUT the Julian Date in Universal Time (UT/UTC) scale
+	 * @return the apparent solar longitude in radians, reduced to the interval [0, 2π)
+	 */
+	@Override
+	public double calculateApparentSunLongitude(final double jdUT){
 		final double ttJc = getTerrestrialCenturies(jdUT);
 		final NutationCorrections nutation = NutationCorrections.calculate(ttJc);
 		final double deltaPsi = nutation.getDeltaPsi();
-		final double sunLng = SunPosition.apparentSunLongitude(ttJc, deltaPsi);
-
-		return MathHelper.mod2pi(sunLng - targetLongitude + StrictMath.PI) - StrictMath.PI;
+		return SunPosition.apparentSunLongitude(ttJc, deltaPsi);
 	}
 
 
 	/**
-	 * Computes the exact Julian Date (UT) of sunset for a specific civil day and location.
-	 * Accounts for VSOP2013 planetary perturbations, IAU 2000A nutation, and standard atmospheric refraction.
+	 * Computes the exact Julian Date (UT) of a horizon crossing event for a specific body, day and location.
+	 * Consolidates parallax corrections, refraction, and dynamical semidiameter variations polimorphically.
 	 *
+	 * @param body         the targeted celestial body (SUN or MOON)
 	 * @param midnightUtJd the Julian Date representing local civil midnight converted to UT (ending in .5)
 	 * @param latitude     the observer's geodetic latitude in degrees (North positive)
 	 * @param longitude    the observer's geodetic longitude in degrees (East positive)
-	 * @return the Julian Date (UT) of the sunset event, or {@code Double.NaN} if the Sun is circumpolar
+	 * @return the Julian Date (UT) of the horizon event, or {@code Double.NaN} if the body is circumpolar
 	 */
 	@Override
-	public double calculateSunset(double midnightUtJd, double latitude, double longitude){
-		return SolarHorizonEvents.calculateSunset(midnightUtJd, latitude, longitude,
-			AstronomicalEngineAdapter::getTerrestrialCenturies);
-	}
+	public double calculateHorizonEvent(final CelestialBody body, final double midnightUtJd, final double latitude,
+			final double longitude){
+		return switch(body){
+			case SUN -> SolarHorizonEvents.calculateSunset(midnightUtJd, latitude, longitude,
+				AstronomicalEngineAdapter::getTerrestrialCenturies);
 
-	@Override
-	public double calculateMoonset(double midnightUtJd, double latitude, double longitude){
-		return MoonHorizonEvents.calculateMoonset(midnightUtJd, latitude, longitude,
-			AstronomicalEngineAdapter::getTerrestrialCenturies);
+			case MOON -> MoonHorizonEvents.calculateMoonset(midnightUtJd, latitude, longitude,
+				AstronomicalEngineAdapter::getTerrestrialCenturies);
+		};
 	}
 
 

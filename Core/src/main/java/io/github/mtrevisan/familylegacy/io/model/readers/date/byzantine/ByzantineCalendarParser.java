@@ -24,7 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.io.model.readers.date.byzantine;
 
-import io.github.mtrevisan.familylegacy.io.model.readers.date.UniversalDateConverter;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.CalendarType;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
@@ -72,19 +72,19 @@ public final class ByzantineCalendarParser{
 		MONTHS.put("αύγουστος", 12);
 
 		// Phthinoporo (Autumn)
-		MONTHS.put("φθινόπωρο", UniversalDateConverter.SEASON_AUTUMN);
-		MONTHS.put("phthinoporo", UniversalDateConverter.SEASON_AUTUMN);
+		MONTHS.put("φθινόπωρο", CalendarType.SEASON_AUTUMN);
+		MONTHS.put("phthinoporo", CalendarType.SEASON_AUTUMN);
 		// Cheimonas (Winter)
-		MONTHS.put("χειμώνας", UniversalDateConverter.SEASON_WINTER);
-		MONTHS.put("cheimonas", UniversalDateConverter.SEASON_WINTER);
+		MONTHS.put("χειμώνας", CalendarType.SEASON_WINTER);
+		MONTHS.put("cheimonas", CalendarType.SEASON_WINTER);
 		// Anoixi (Spring)
-		MONTHS.put("άνοιξη", UniversalDateConverter.SEASON_SPRING);
-		MONTHS.put("anoixi", UniversalDateConverter.SEASON_SPRING);
+		MONTHS.put("άνοιξη", CalendarType.SEASON_SPRING);
+		MONTHS.put("anoixi", CalendarType.SEASON_SPRING);
 		// Theros / Kalokairi (Summer)
-		MONTHS.put("θέρος", UniversalDateConverter.SEASON_SUMMER);
-		MONTHS.put("theros", UniversalDateConverter.SEASON_SUMMER);
-		MONTHS.put("καλοκαίρι", UniversalDateConverter.SEASON_SUMMER);
-		MONTHS.put("kalokairi", UniversalDateConverter.SEASON_SUMMER);
+		MONTHS.put("θέρος", CalendarType.SEASON_SUMMER);
+		MONTHS.put("theros", CalendarType.SEASON_SUMMER);
+		MONTHS.put("καλοκαίρι", CalendarType.SEASON_SUMMER);
+		MONTHS.put("kalokairi", CalendarType.SEASON_SUMMER);
 	}
 
 	private static final Pattern DATE_PATTERN = Pattern.compile("(?:(\\d+)\\s+)?(\\S+)\\s+(\\d+)");

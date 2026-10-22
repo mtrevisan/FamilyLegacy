@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.io.model.readers.date.rumi;
 
+import io.github.mtrevisan.familylegacy.io.model.readers.date.CalendarType;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
@@ -58,9 +59,25 @@ public final class RumiCalendarParser{
 		MONTHS.put("kanun-i sani", 11);  // January (Ottoman)
 		MONTHS.put("ocak", 11);         // January (Modern)
 		MONTHS.put("subat", 12);        // February
+
+		// Güz / Sonbahar (Autumn)
+		MONTHS.put("güz", CalendarType.SEASON_AUTUMN);
+		MONTHS.put("sonbahar", CalendarType.SEASON_AUTUMN);
+		MONTHS.put("eylul-season", CalendarType.SEASON_AUTUMN);
+		// Kış (Winter)
+		MONTHS.put("kış", CalendarType.SEASON_WINTER);
+		MONTHS.put("kis", CalendarType.SEASON_WINTER);
+		MONTHS.put("subat-season", CalendarType.SEASON_WINTER);
+		// Bahar / İlkbahar (Spring)
+		MONTHS.put("bahar", CalendarType.SEASON_SPRING);
+		MONTHS.put("ilkbahar", CalendarType.SEASON_SPRING);
+		MONTHS.put("mart-season", CalendarType.SEASON_SPRING);
+		// Yaz (Summer)
+		MONTHS.put("yaz", CalendarType.SEASON_SUMMER);
+		MONTHS.put("haziran-season", CalendarType.SEASON_SUMMER);
 	}
 
-	private static final Pattern DATE_PATTERN = Pattern.compile("(\\S+)\\s+(\\S+)\\s+(\\S+)");
+	private static final Pattern DATE_PATTERN = Pattern.compile("(?:(\\d+)\\s+)?([\\p{L}\\p{M}\\s-]+?)\\s+(\\d+)");
 
 
 	private RumiCalendarParser(){}
@@ -68,6 +85,10 @@ public final class RumiCalendarParser{
 
 	/**
 	 * Parses a raw Rumi string expression into a validated architectural container.
+	 *
+	 * @param rawDate the string representing the Rumi date
+	 * @return a configured RumiDateInput instance
+	 * @throws IllegalArgumentException if the expression layout is invalid
 	 */
 	public static RumiDateInput parse(final String rawDate){
 		final String normalized = StringUtils.normalizeSpace(rawDate);
@@ -76,21 +97,24 @@ public final class RumiCalendarParser{
 		if(!matcher.matches())
 			throw new IllegalArgumentException("Invalid Rumi date format: " + rawDate);
 
-		final int day = Integer.parseInt(matcher.group(1));
+		final String dayGroup = matcher.group(1);
 		final String monthName = matcher.group(2)
-			.toLowerCase(Locale.ROOT);
+			.toLowerCase(Locale.ROOT)
+			.trim();
+		final int year = Integer.parseInt(matcher.group(3));
 
 		Integer month = MONTHS.get(monthName);
 		if(month == null)
-			throw new IllegalArgumentException("Unknown Rumi month descriptor: " + monthName);
-
-		int year = Integer.parseInt(matcher.group(3));
+			throw new IllegalArgumentException("Unknown Rumi month or seasonal descriptor: " + monthName);
 
 		// If processing a date after the 1917 reform (Year 1333+), normalize months to standard Gregorian order
 		if(year > 1332 && monthName.matches("ocak|kanun-i sani"))
 			month = 1; // January becomes Month 1 after reform alignment
 
-		if(day < 1 || day > 31)
+		// Operational fallback for pure seasonal records
+		final int day = (dayGroup != null? Integer.parseInt(dayGroup): 1);
+
+		if(month > 0 && (day < 1 || day > 31))
 			throw new IllegalArgumentException("Day variable breaches Rumi monthly limits.");
 
 		return new RumiDateInput(year, month, day);

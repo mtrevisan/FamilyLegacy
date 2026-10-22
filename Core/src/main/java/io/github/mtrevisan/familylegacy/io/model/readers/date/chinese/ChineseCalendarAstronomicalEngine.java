@@ -26,7 +26,9 @@ package io.github.mtrevisan.familylegacy.io.model.readers.date.chinese;
 
 import io.github.mtrevisan.familylegacy.services.EphemerisEngine;
 import io.github.mtrevisan.familylegacy.services.EphemerisEngineFactory;
-import io.github.mtrevisan.familylegacy.services.MathHelper;
+
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 
 /**
@@ -83,6 +85,23 @@ public final class ChineseCalendarAstronomicalEngine{
 
 	private static final double PI_BY_6 = StrictMath.PI / 6.;
 
+	/** Maximum number of New Moons needed to encompass a leap year plus the two months following the next Month 11. */
+	private static final int MAX_NEW_MOONS = 17;
+
+	/** Astronomical layout of each Chinese year computed so far, keyed by Chinese year. */
+	private static final Map<Integer, LunarYear> LUNAR_YEARS = new ConcurrentHashMap<>();
+
+	/**
+	 * Astronomical layout of a Chinese year.
+	 *
+	 * @param newMoonsLocalMidnight the local midnights of the New Moons starting from the one before the Winter Solstice
+	 *                              preceding the year
+	 * @param month11Index          the index of the month containing the preceding Winter Solstice
+	 * @param nextMonth11Index      the index of the month containing the following Winter Solstice
+	 * @param leapMonthIndex        the index of the leap month, or {@code -1} if none
+	 */
+	private record LunarYear(double[] newMoonsLocalMidnight, int month11Index, int nextMonth11Index, int leapMonthIndex){}
+
 
 	private ChineseCalendarAstronomicalEngine(){}
 
@@ -126,121 +145,11 @@ public final class ChineseCalendarAstronomicalEngine{
 		if(!engine.isAvailable())
 			throw new UnsupportedOperationException("Chinese calendar requires the optional Ephemeris astronomical plugin JAR in classpath.");
 
-		// 1. Estimate the Julian Date of the Winter Solstice preceding the target Chinese Year precisely using Meeus' polynomial approximation.
-		final double y = (chineseYear - 1 - 2000.) / 1000.;
-		final double approxWinterSolsticeGregorianJd = 2451900.05952
-			+ (365242.74049 + (0.06223 + (-0.00823 - 0.00032 * y) * y) * y) * y;
-//System.out.println("approxWinterSolsticeGregorianJd: " + approxWinterSolsticeGregorianJd);
-
-		// Anticipate the base date further back (subtracting 10 days) ensures the forward scanner
-		//	always brackets the winter solstice correctly without missing it.
-		final double targetWinterSolsticeUT = engine.findSolarLongitudeEvent(
-			approxWinterSolsticeGregorianJd - 10., WINTER_SOLSTICE_LONGITUDE);
-//System.out.println("targetWinterSolsticeUT: " + targetWinterSolsticeUT);
-
-		// 2. Find the Midnight boundary in China Local Time for this Winter Solstice.
-		//    This Winter Solstice always falls inside Lunar Month 11 of the preceding year.
-		final double solsticeOffset = getChinaUtcOffset(targetWinterSolsticeUT) / 24.;
-		final double solsticeMidnightLocalJd = StrictMath.floor(targetWinterSolsticeUT + solsticeOffset + 0.5) - 0.5;
-//System.out.println("solsticeMidnightLocalJd: " + solsticeMidnightLocalJd);
-
-		// 3. Scan and locate the sequential New Moons (up to 15 months to fully encompass any potential leap year)
-		//    We start looking from 29 days before the Winter Solstice.
-		final int size = 17;
-		final double[] newMoonsLocalMidnight = new double[size];
-		double searchStartJd = targetWinterSolsticeUT - 35.;
-		for(int i = 0; i < size; i ++){
-			final double newMoonUT = engine.findNextNewMoon(searchStartJd);
-			final double offset = getChinaUtcOffset(newMoonUT) / 24.;
-//System.out.println("newMoonUT=" + newMoonUT);
-//System.out.println("offset=" + offset);
-//System.out.println("localJD=" + (newMoonUT + offset));
-			newMoonsLocalMidnight[i] = StrictMath.floor(newMoonUT + offset + 0.5) - 0.5;
-			// Step to the next lunar cycle window
-			searchStartJd = newMoonUT + MEAN_SYNODIC_MONTH - 5.;
-		}
-//System.out.println("newMoonsLocalMidnight: " + Arrays.toString(newMoonsLocalMidnight));
-
-		// 4. Identify which month index corresponds to Month 11
-		int month11Index = -1;
-		for(int i = 0; i < size - 1; i ++)
-			if(solsticeMidnightLocalJd >= newMoonsLocalMidnight[i]
-					&& solsticeMidnightLocalJd < newMoonsLocalMidnight[i + 1]){
-				month11Index = i;
-
-				break;
-			}
-//System.out.println("month11Index: " + month11Index);
-
-		// 5. Determine next Winter Solstice and locate the corresponding Month 11 index dynamically
-		// Approximate next year (+1 year in millenia scale)
-		final double yNext = y + 0.001;
-		final double approxNextWinterSolsticeJd = 2451900.05952
-			+ (365242.74049 + (0.06223 + (-0.00823 - 0.00032 * yNext) * yNext) * yNext) * yNext;
-		final double nextWinterSolsticeUT = engine.findSolarLongitudeEvent(
-			approxNextWinterSolsticeJd - 10., WINTER_SOLSTICE_LONGITUDE);
-//System.out.println("nextWinterSolsticeUT: " + nextWinterSolsticeUT);
-
-		final double nextSolsticeOffset = getChinaUtcOffset(nextWinterSolsticeUT) / 24.;
-		final double nextSolsticeMidnightLocalJd = StrictMath.floor(nextWinterSolsticeUT + nextSolsticeOffset + 0.5)
-			- 0.5;
-		// Locate the index of Month 11 for the next winter solstice (can be 12 or 13 months later)
-		int nextMonth11Index = -1;
-		for(int i = month11Index + 1; i < size - 1; i ++)
-			if(nextSolsticeMidnightLocalJd >= newMoonsLocalMidnight[i]
-					&& nextSolsticeMidnightLocalJd < newMoonsLocalMidnight[i + 1]){
-				nextMonth11Index = i;
-
-				break;
-			}
-		// A leap year occurs if there are 13 months between the two Month 11 instances
-		final boolean isLeapYear = (nextMonth11Index - month11Index == 13);
-//System.out.println("nextSolsticeMidnightLocalJd: " + nextSolsticeMidnightLocalJd);
-//System.out.println("isLeapYear: " + isLeapYear);
-
-		int leapMonthIndex = -1;
-		if(isLeapYear){
-			// Find the first month in the sequence that does not contain a Major Solar Term (Zhongqi)
-			// Major Solar Terms occur at multiples of 30° (pi/6 radians), starting from 270° (Winter Solstice)
-			for(int i = month11Index + 1; i < nextMonth11Index; i ++){
-//System.out.println("-----");
-//System.out.println("monthIndex=" + i);
-//System.out.println("monthStart=" + newMoonsLocalMidnight[i]);
-//System.out.println("nextMonthStart=" + newMoonsLocalMidnight[i + 1]);
-				final double currentMonthStartLocalJd = newMoonsLocalMidnight[i];
-				final double nextMonthStartLocalJd = newMoonsLocalMidnight[i + 1];
-
-				// Convert local midnights back to UT to feed the solar term scanner safely
-				final double currentMonthStartUT = currentMonthStartLocalJd
-					- getChinaUtcOffset(currentMonthStartLocalJd) / 24.;
-				final double nextMonthStartUT = nextMonthStartLocalJd
-					- getChinaUtcOffset(nextMonthStartLocalJd) / 24.;
-
-				boolean hasZhongqi = false;
-				for(int m = 0; m < 12; m ++){
-					// Major Solar Term angles: 270, 300, 330, 0, 30, 60, 90, 120, 150, 180, 210, 240 degrees
-					final double targetZhongqiAngle = MathHelper.mod2pi(WINTER_SOLSTICE_LONGITUDE
-						+ m * PI_BY_6);
-					final double zhongqiUT = engine.findSolarLongitudeEvent(currentMonthStartUT, targetZhongqiAngle);
-
-					if(zhongqiUT >= currentMonthStartUT && zhongqiUT < nextMonthStartUT){
-//System.out.println("zhongqi found: m=" + m + ", zhongqiUT=" + zhongqiUT);
-						hasZhongqi = true;
-
-						break;
-					}
-				}
-
-//System.out.println("hasZhongqi=" + hasZhongqi);
-				if(!hasZhongqi){
-					// This month has no Major Solar Term, it is the Leap Month!
-					leapMonthIndex = i;
-
-					break;
-				}
-			}
-		}
-//System.out.println("leapMonthIndex: " + leapMonthIndex);
+		final LunarYear lunarYear = LUNAR_YEARS.computeIfAbsent(chineseYear, year -> computeLunarYear(engine, year));
+		final double[] newMoonsLocalMidnight = lunarYear.newMoonsLocalMidnight();
+		final int month11Index = lunarYear.month11Index();
+		final int nextMonth11Index = lunarYear.nextMonth11Index();
+		final int leapMonthIndex = lunarYear.leapMonthIndex();
 
 		// 6. Match the requested month and leap flag.
 		// Months 11 and 12 of Chinese year Y follow the winter solstice of year Y (next cycle),
@@ -287,6 +196,125 @@ public final class ChineseCalendarAstronomicalEngine{
 		// 7. Advance to the specific target day (local midnight, JD ending in .5)
 //System.out.println("rawResult=" + (targetMonthStartLocalMidnightJd + (chineseDay - 1)));
 		return targetMonthStartLocalMidnightJd + (chineseDay - 1);
+	}
+
+	/**
+	 * Computes the astronomical layout (new moons, months 11, leap month) of a Chinese year.
+	 * <p>
+	 * This is by far the most expensive part of a conversion, and depends only on the year, so it is cached.
+	 * </p>
+	 */
+	private static LunarYear computeLunarYear(final EphemerisEngine engine, final int chineseYear){
+		// 1. Estimate the Julian Date of the Winter Solstice preceding the target Chinese Year precisely using Meeus' polynomial approximation.
+		final double y = (chineseYear - 1 - 2000.) / 1000.;
+		final double approxWinterSolsticeGregorianJd = 2451900.05952
+			+ (365242.74049 + (0.06223 + (-0.00823 - 0.00032 * y) * y) * y) * y;
+//System.out.println("approxWinterSolsticeGregorianJd: " + approxWinterSolsticeGregorianJd);
+
+		// Anticipate the base date further back (subtracting 10 days) ensures the forward scanner
+		//	always brackets the winter solstice correctly without missing it.
+		final double targetWinterSolsticeUT = engine.findSolarLongitudeEvent(
+			approxWinterSolsticeGregorianJd - 10., WINTER_SOLSTICE_LONGITUDE);
+//System.out.println("targetWinterSolsticeUT: " + targetWinterSolsticeUT);
+
+		// 2. Find the Midnight boundary in China Local Time for this Winter Solstice.
+		//    This Winter Solstice always falls inside Lunar Month 11 of the preceding year.
+		final double solsticeOffset = getChinaUtcOffset(targetWinterSolsticeUT) / 24.;
+		final double solsticeMidnightLocalJd = StrictMath.floor(targetWinterSolsticeUT + solsticeOffset + 0.5) - 0.5;
+//System.out.println("solsticeMidnightLocalJd: " + solsticeMidnightLocalJd);
+
+		// 3. Determine next Winter Solstice
+		// Approximate next year (+1 year in millennia scale)
+		final double yNext = y + 0.001;
+		final double approxNextWinterSolsticeJd = 2451900.05952
+			+ (365242.74049 + (0.06223 + (-0.00823 - 0.00032 * yNext) * yNext) * yNext) * yNext;
+		final double nextWinterSolsticeUT = engine.findSolarLongitudeEvent(
+			approxNextWinterSolsticeJd - 10., WINTER_SOLSTICE_LONGITUDE);
+//System.out.println("nextWinterSolsticeUT: " + nextWinterSolsticeUT);
+
+		final double nextSolsticeOffset = getChinaUtcOffset(nextWinterSolsticeUT) / 24.;
+		final double nextSolsticeMidnightLocalJd = StrictMath.floor(nextWinterSolsticeUT + nextSolsticeOffset + 0.5)
+			- 0.5;
+
+		// 4. Scan and locate the sequential New Moons (up to 17 to fully encompass any potential leap year)
+		//    We start looking from 35 days before the Winter Solstice, and stop at the month following the Month 11 of
+		//    the next Winter Solstice (needed by months 11 and 12 of the target year), since every New Moon is expensive.
+		final double[] newMoonsLocalMidnight = new double[MAX_NEW_MOONS];
+		int month11Index = -1;
+		int nextMonth11Index = -1;
+		double searchStartJd = targetWinterSolsticeUT - 35.;
+		for(int i = 0; i < MAX_NEW_MOONS && (nextMonth11Index < 0 || i < nextMonth11Index + 2); i ++){
+			final double newMoonUT = engine.findNextNewMoon(searchStartJd);
+			final double offset = getChinaUtcOffset(newMoonUT) / 24.;
+//System.out.println("newMoonUT=" + newMoonUT);
+//System.out.println("offset=" + offset);
+//System.out.println("localJD=" + (newMoonUT + offset));
+			newMoonsLocalMidnight[i] = StrictMath.floor(newMoonUT + offset + 0.5) - 0.5;
+			// Step to the next lunar cycle window
+			searchStartJd = newMoonUT + MEAN_SYNODIC_MONTH - 5.;
+
+			if(i == 0)
+				continue;
+
+			// 5. Identify which month index corresponds to Month 11, and the one of the next winter solstice (can be 12
+			//    or 13 months later)
+			if(month11Index < 0){
+				if(solsticeMidnightLocalJd >= newMoonsLocalMidnight[i - 1]
+						&& solsticeMidnightLocalJd < newMoonsLocalMidnight[i])
+					month11Index = i - 1;
+			}
+			else if(nextSolsticeMidnightLocalJd >= newMoonsLocalMidnight[i - 1]
+					&& nextSolsticeMidnightLocalJd < newMoonsLocalMidnight[i])
+				nextMonth11Index = i - 1;
+		}
+//System.out.println("newMoonsLocalMidnight: " + Arrays.toString(newMoonsLocalMidnight));
+//System.out.println("month11Index: " + month11Index);
+
+		// A leap year occurs if there are 13 months between the two Month 11 instances
+		final boolean isLeapYear = (nextMonth11Index - month11Index == 13);
+//System.out.println("nextSolsticeMidnightLocalJd: " + nextSolsticeMidnightLocalJd);
+//System.out.println("isLeapYear: " + isLeapYear);
+
+		int leapMonthIndex = -1;
+		if(isLeapYear){
+			// Find the first month in the sequence that does not contain a Major Solar Term (Zhongqi)
+			// Major Solar Terms occur at multiples of 30° (pi/6 radians), starting from 270° (Winter Solstice)
+			double nextLonStart = Double.NaN;
+			for(int i = month11Index + 1; i < nextMonth11Index; i ++){
+//System.out.println("-----");
+//System.out.println("monthIndex=" + i);
+//System.out.println("monthStart=" + newMoonsLocalMidnight[i]);
+//System.out.println("nextMonthStart=" + newMoonsLocalMidnight[i + 1]);
+				final double currentMonthStartLocalJd = newMoonsLocalMidnight[i];
+				final double nextMonthStartLocalJd = newMoonsLocalMidnight[i + 1];
+
+				// Convert local midnights back to UT to feed the solar term scanner safely
+				final double currentMonthStartUT = currentMonthStartLocalJd
+					- getChinaUtcOffset(currentMonthStartLocalJd) / 24.;
+				final double nextMonthStartUT = nextMonthStartLocalJd
+					- getChinaUtcOffset(nextMonthStartLocalJd) / 24.;
+
+				// Fetch apparent longitudes safely via the interface proxy layer (the end of a month is the start of the
+				// next one, so its longitude is reused)
+				final double lonStart = (Double.isNaN(nextLonStart)
+					? engine.calculateApparentSunLongitude(currentMonthStartUT)
+					: nextLonStart);
+				double lonEnd = engine.calculateApparentSunLongitude(nextMonthStartUT);
+				nextLonStart = lonEnd;
+				if(lonEnd < lonStart)
+					lonEnd += 2. * StrictMath.PI;
+				final int codeStart = (int)StrictMath.floor(lonStart / PI_BY_6);
+				final int codeEnd = (int)StrictMath.floor(lonEnd / PI_BY_6);
+				if(codeStart == codeEnd){
+					leapMonthIndex = i;
+
+					break;
+				}
+			}
+		}
+//System.out.println("leapMonthIndex: " + leapMonthIndex);
+
+		return new LunarYear(newMoonsLocalMidnight, month11Index, nextMonth11Index, leapMonthIndex);
 	}
 
 	/**

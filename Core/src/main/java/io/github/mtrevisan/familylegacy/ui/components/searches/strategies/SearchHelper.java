@@ -31,10 +31,9 @@ import io.github.mtrevisan.familylegacy.io.model.readers.DateReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.date.GenealogicalDate;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.CalendarType;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.NormalizedDate;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.TemporalSpan;
-import io.github.mtrevisan.familylegacy.io.model.readers.date.UniversalDateConverter;
 import io.github.mtrevisan.familylegacy.ui.components.searches.SearchMatcher;
 import io.github.mtrevisan.familylegacy.ui.components.searches.SearchMode;
 import io.github.mtrevisan.familylegacy.ui.components.searches.TextSearchHelper;
@@ -44,7 +43,9 @@ import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.PlaceHandler;
 import org.apache.commons.lang3.StringUtils;
 
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -327,8 +328,10 @@ public class SearchHelper{
 		if(StringUtils.isEmpty(dateStr))
 			return null;
 
-		final GenealogicalDate parsedDate = UniversalDateConverter.parse(calendarStr, dateStr);
-		return (parsedDate.isoDate() != null? parsedDate.isoDate().getYear(): null);
+		final CalendarType calendarType = (calendarStr != null? CalendarType.valueOf(calendarStr.toUpperCase(Locale.ROOT)): CalendarType.GREGORIAN);
+		final long dateJdn = calendarType.parseToJdn(dateStr);
+		final LocalDate prolepticDate = CalendarType.jdnToProlepticGregorianLocalDate(dateJdn);
+		return prolepticDate.getYear();
 	}
 
 }

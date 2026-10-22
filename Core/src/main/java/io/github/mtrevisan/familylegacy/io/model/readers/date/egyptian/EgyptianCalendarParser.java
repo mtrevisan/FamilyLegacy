@@ -24,7 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.io.model.readers.date.egyptian;
 
-import io.github.mtrevisan.familylegacy.io.model.readers.date.UniversalDateConverter;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.CalendarType;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
@@ -67,12 +67,12 @@ public final class EgyptianCalendarParser{
 
 		// NATIVE SEASONAL FLAGS (Negative integers map to dynamic astronomical calculation scopes)
 		// Akhet (Inundation / Autumn)
-		MONTHS.put("akhet", UniversalDateConverter.SEASON_AUTUMN);
+		MONTHS.put("akhet", CalendarType.SEASON_AUTUMN);
 		// Peret (Emergence / Winter)
-		MONTHS.put("peret", UniversalDateConverter.SEASON_WINTER);
+		MONTHS.put("peret", CalendarType.SEASON_WINTER);
 		// Shemu (Low Water / Summer)
-		MONTHS.put("shemu", UniversalDateConverter.SEASON_SPRING);
-		MONTHS.put("shomu", UniversalDateConverter.SEASON_SPRING);
+		MONTHS.put("shemu", CalendarType.SEASON_SPRING);
+		MONTHS.put("shomu", CalendarType.SEASON_SPRING);
 	}
 
 	private static final Pattern DATE_PATTERN = Pattern.compile("(?:(\\d+)\\s+)?(\\S+)\\s+(\\d+)");

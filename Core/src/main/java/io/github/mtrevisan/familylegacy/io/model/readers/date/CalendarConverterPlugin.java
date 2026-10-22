@@ -40,4 +40,6 @@ public interface CalendarConverterPlugin{
 	 */
 	long parseToJdn(String dateExpression);
 
+	CalendarType.CalendarMetadata getMetadata(final String rawDate);
+
 }

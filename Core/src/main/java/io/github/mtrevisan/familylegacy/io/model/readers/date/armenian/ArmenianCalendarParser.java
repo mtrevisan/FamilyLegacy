@@ -24,7 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.io.model.readers.date.armenian;
 
-import io.github.mtrevisan.familylegacy.io.model.readers.date.UniversalDateConverter;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.CalendarType;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
@@ -60,17 +60,17 @@ public final class ArmenianCalendarParser{
 		MONTHS.put("aveliats", 13);
 
 		// Ashun / Ashnan (Autumn)
-		MONTHS.put("ashun", UniversalDateConverter.SEASON_AUTUMN);
-		MONTHS.put("ashnan", UniversalDateConverter.SEASON_AUTUMN);
+		MONTHS.put("ashun", CalendarType.SEASON_AUTUMN);
+		MONTHS.put("ashnan", CalendarType.SEASON_AUTUMN);
 		// Dzmer / Dzmeran (Winter)
-		MONTHS.put("dzmer", UniversalDateConverter.SEASON_WINTER);
-		MONTHS.put("dzmeran", UniversalDateConverter.SEASON_WINTER);
+		MONTHS.put("dzmer", CalendarType.SEASON_WINTER);
+		MONTHS.put("dzmeran", CalendarType.SEASON_WINTER);
 		// Garun / Garnan (Spring)
-		MONTHS.put("garun", UniversalDateConverter.SEASON_SPRING);
-		MONTHS.put("garnan", UniversalDateConverter.SEASON_SPRING);
+		MONTHS.put("garun", CalendarType.SEASON_SPRING);
+		MONTHS.put("garnan", CalendarType.SEASON_SPRING);
 		// Amar / Amran (Summer)
-		MONTHS.put("amar", UniversalDateConverter.SEASON_SUMMER);
-		MONTHS.put("amran", UniversalDateConverter.SEASON_SUMMER);
+		MONTHS.put("amar", CalendarType.SEASON_SUMMER);
+		MONTHS.put("amran", CalendarType.SEASON_SUMMER);
 	}
 
 	private static final Pattern DATE_PATTERN = Pattern.compile("(?:(\\d+)\\s+)?(\\S+)\\s+(\\d+)");

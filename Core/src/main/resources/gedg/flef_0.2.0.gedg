@@ -137,7 +137,7 @@
 alias Text = string
 alias Id = string   // record identifier, matching [A-Za-z][A-Za-z0-9_-]*, unique within a file; written as the token after the record kind (e.g. `individual I12 { … }`)
 alias DateTime = string   // ISO 8601 date and time with mandatory UTC offset (YYYY-MM-DDThh:mm:ss±hh:mm or YYYY-MM-DDThh:mm:ssZ), as defined by ISO 8601, https://en.wikipedia.org/wiki/ISO_8601
-alias HistoricalDate = string   // historical date in the notation of the declared CALENDAR. TODO: notations are not yet normative.
+alias HistoricalDate = string   // historical date in the notation of the declared CALENDAR.
 alias Duration = string   // duration, as defined by ISO 8601, https://en.wikipedia.org/wiki/ISO_8601#Durations (e.g. "P2Y")
 alias Uri = string   // resource URI, following RFC 3986 specifications, https://datatracker.ietf.org/doc/html/rfc3986
 alias LocaleCode = string   // locale identifier; use private-use subtags (x-...) for varieties without a registered code; as defined by IETF BCP 47, https://tools.ietf.org/html/bcp47
@@ -949,8 +949,8 @@ struct ExtractStructure {
     document: Xref<DocumentRecord>
     page?: Int          // 1-based page, for multi-page documents (e.g. PDF, TIFF); CROP refers to this page
     crop?: CropRect     // region of the image or page, in pixels
-    start?: Duration    // for audio and video: start of the cited segment, from the beginning of the media TODO
-    end?: Duration      // for audio and video: end of the cited segment TODO
+    start?: Duration    // for audio and video: start of the cited segment, from the beginning of the media
+    end?: Duration      // for audio and video: end of the cited segment
   }
   text?: Text
   type?: enum {   // Describes how the TEXT value relates to the content of the cited source.

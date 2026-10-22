@@ -68,7 +68,9 @@ final long start = System.currentTimeMillis();
 		// Proclamation of the PRC (2 Oct 1949 Gregorian -> 11th Day of 8th Month)
 		final long jdn = CalendarType.CHINESE.parseToJdn("民国38年 八月 十一");
 // 50121 ms
-// 47971 ms if!=0
+//  5797 ms
+//  1659 ms
+//  1439 ms
 System.out.println("PRC proclamation: " + (System.currentTimeMillis() - start) + " ms");
 
 		Assertions.assertEquals(2433192L, jdn);
@@ -93,7 +95,7 @@ System.out.println("PRC proclamation: " + (System.currentTimeMillis() - start) +
 
 	@Test
 	void lastDayOf12MonthBeforeNewYear2025(){
-		// Last Day of 12th Month before Chinese New Year 2025 (29 Jan 2025 Gregorian)
+		// Last Day of 12th Month before Chinese New Year 2025 (28 Jan 2025 Gregorian)
 		final long jdn = CalendarType.CHINESE.parseToJdn("2024年 甲辰年 腊月 三十");
 
 		Assertions.assertEquals(2460705L, jdn);
