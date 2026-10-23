@@ -93,7 +93,7 @@ class LiturgicalCalendarConverterTest{
 	@Test
 	void weekdayAfterAndBefore(){
 		// 11 November 2024 is a Monday
-		assertSameDay("14 November 2024", "il giovedì dopo San Martino 2024");
+		assertSameDay("14 November 2024", "il giovedí dopo San Martino 2024");
 		assertSameDay("18 November 2024", "lunedì dopo San Martino 2024");
 		assertSameDay("4 November 2024", "Monday before Martinmas 2024");
 		assertSameDay("23 March 2024", "Saturday before Palm Sunday 2024");

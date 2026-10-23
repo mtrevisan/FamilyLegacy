@@ -42,49 +42,133 @@ public final class ByzantineCalendarParser{
 
 	private static final Map<String, Integer> MONTHS = new HashMap<>();
 	static{
-		// Byzantine year starts in September
-		// Latin / Ecclesiastical Transliterations
+		// Month 1: September
 		MONTHS.put("september", 1);
+		MONTHS.put("septembrio", 1);        // Medieval Latin dative/ablative
+		MONTHS.put("σεπτέμβριος", 1);       // Modern Greek
+		MONTHS.put("σεπτέμβριον", 1);       // Byzantine Katharevousa form
+		MONTHS.put("septembrios", 1);        // Greek Romanization
+		MONTHS.put("ruyen", 1);             // Old Church Slavonic (OCS) agricultural name
+
+		// Month 2: October
 		MONTHS.put("october", 2);
-		MONTHS.put("november", 3);
-		MONTHS.put("december", 4);
-		MONTHS.put("january", 5);
-		MONTHS.put("february", 6);
-		MONTHS.put("march", 7);
-		MONTHS.put("april", 8);
-		MONTHS.put("may", 9);
-		MONTHS.put("june", 10);
-		MONTHS.put("july", 11);
-		MONTHS.put("august", 12);
-
-		// Greek Classical/Medieval Script names
-		MONTHS.put("σεπτέμβριος", 1);
+		MONTHS.put("octobrio", 2);
 		MONTHS.put("οκτώβριος", 2);
-		MONTHS.put("νοέμβριος", 3);
-		MONTHS.put("δεκέμβριος", 4);
-		MONTHS.put("ιανουάριος", 5);
-		MONTHS.put("φεβρουάριος", 6);
-		MONTHS.put("μάρτιος", 7);
-		MONTHS.put("απρίλιος", 8);
-		MONTHS.put("μάιος", 9);
-		MONTHS.put("ιούνιος", 10);
-		MONTHS.put("ιούλιος", 11);
-		MONTHS.put("αύγουστος", 12);
+		MONTHS.put("ὀκτώβριος", 2);        // Polytonic/Byzantine spelling variant
+		MONTHS.put("οκτώβριον", 2);         // Byzantine Katharevousa form
+		MONTHS.put("oktobrios", 2);
+		MONTHS.put("listopad", 2);          // Old Church Slavonic (OCS) agricultural name
 
-		// Phthinoporo (Autumn)
+		// Month 3: November
+		MONTHS.put("november", 3);
+		MONTHS.put("nouember", 3);          // Classical/Medieval Latin spelling
+		MONTHS.put("νοέμβριος", 3);
+		MONTHS.put("νοέμβριον", 3);         // Byzantine Katharevousa form
+		MONTHS.put("noembrios", 3);
+		MONTHS.put("gruden", 3);            // Old Church Slavonic (OCS) agricultural name
+
+		// Month 4: December
+		MONTHS.put("december", 4);
+		MONTHS.put("deceamber", 4);         // Common Medieval spelling variation
+		MONTHS.put("δεκέμβριος", 4);
+		MONTHS.put("δεκέμβριον", 4);        // Byzantine Katharevousa form
+		MONTHS.put("dekembrios", 4);
+		MONTHS.put("studen", 4);            // Old Church Slavonic (OCS) agricultural name
+
+		// Month 5: January
+		MONTHS.put("january", 5);
+		MONTHS.put("ianuarius", 5);         // Ecclesiastical Latin nominative
+		MONTHS.put("ιανουάριος", 5);
+		MONTHS.put("ιανουάριον", 5);        // Byzantine Katharevousa form
+		MONTHS.put("ianouarios", 5);
+		MONTHS.put("prosinets", 5);         // Old Church Slavonic (OCS) agricultural name
+
+		// Month 6: February
+		MONTHS.put("february", 6);
+		MONTHS.put("februarius", 6);
+		MONTHS.put("φεβρουάριος", 6);
+		MONTHS.put("φεβρουάριον", 6);       // Byzantine Katharevousa form
+		MONTHS.put("phebrouarios", 6);      // Phonetic/Erasmian Greek Romanization
+		MONTHS.put("sechen", 6);            // Old Church Slavonic (OCS) agricultural name
+
+		// Month 7: March
+		MONTHS.put("march", 7);
+		MONTHS.put("martius", 7);           // Ecclesiastical Latin nominative
+		MONTHS.put("μάρτιος", 7);
+		MONTHS.put("μάρτιον", 7);           // Byzantine Katharevousa form
+		MONTHS.put("martios", 7);
+		MONTHS.put("sukhov", 7);            // Old Church Slavonic (OCS) agricultural name
+
+		// Month 8: April
+		MONTHS.put("april", 8);
+		MONTHS.put("aprilis", 8);
+		MONTHS.put("απρίλιος", 8);
+		MONTHS.put("απρίλιον", 8);          // Byzantine Katharevousa form
+		MONTHS.put("aprilios", 8);
+		MONTHS.put("tsveten", 8);           // Old Church Slavonic (OCS) agricultural name
+
+		// Month 9: May
+		MONTHS.put("may", 9);
+		MONTHS.put("maius", 9);
+		MONTHS.put("μάιος", 9);
+		MONTHS.put("μάϊος", 9);             // Byzantine Polytonic dieresis variant
+		MONTHS.put("maios", 9);
+		MONTHS.put("traven", 9);            // Old Church Slavonic (OCS) agricultural name
+
+		// Month 10: June
+		MONTHS.put("june", 10);
+		MONTHS.put("iunius", 10);
+		MONTHS.put("ιούνιος", 10);
+		MONTHS.put("ιούνιον", 10);          // Byzantine Katharevousa form
+		MONTHS.put("iounios", 10);
+		MONTHS.put("izok", 10);             // Old Church Slavonic (OCS) agricultural name
+
+		// Month 11: July
+		MONTHS.put("july", 11);
+		MONTHS.put("iulius", 11);
+		MONTHS.put("ιούλιος", 11);
+		MONTHS.put("ιούλιον", 11);          // Byzantine Katharevousa form
+		MONTHS.put("ioulios", 11);
+		MONTHS.put("cherven", 11);          // Old Church Slavonic (OCS) agricultural name
+
+		// Month 12: August
+		MONTHS.put("august", 12);
+		MONTHS.put("augustus", 12);
+		MONTHS.put("αύγουστος", 12);
+		MONTHS.put("αὔγουστος", 12);        // Byzantine Polytonic spelling variant
+		MONTHS.put("αύγουστον", 12);         // Byzantine Katharevousa form
+		MONTHS.put("avgoustos", 12);
+		MONTHS.put("zarevo", 12);           // Old Church Slavonic (OCS) agricultural name
+
+
+		// Autumn
 		MONTHS.put("φθινόπωρο", CalendarType.SEASON_AUTUMN);
+		MONTHS.put("φθινόπωρον", CalendarType.SEASON_AUTUMN); // Byzantine/Katharevousa nominal neuter
 		MONTHS.put("phthinoporo", CalendarType.SEASON_AUTUMN);
-		// Cheimonas (Winter)
+		MONTHS.put("phthinoporon", CalendarType.SEASON_AUTUMN);
+		MONTHS.put("osen", CalendarType.SEASON_AUTUMN);         // Old Church Slavonic (OCS) autumn
+
+		// Winter
 		MONTHS.put("χειμώνας", CalendarType.SEASON_WINTER);
+		MONTHS.put("χειμών", CalendarType.SEASON_WINTER);     // Classical Byzantine nominative masculine
 		MONTHS.put("cheimonas", CalendarType.SEASON_WINTER);
-		// Anoixi (Spring)
+		MONTHS.put("cheimon", CalendarType.SEASON_WINTER);
+		MONTHS.put("zima", CalendarType.SEASON_WINTER);        // Old Church Slavonic (OCS) winter
+
+		// Spring
 		MONTHS.put("άνοιξη", CalendarType.SEASON_SPRING);
+		MONTHS.put("ἔαρ", CalendarType.SEASON_SPRING);          // Pure Attic/Byzantine literary term for Spring
+		MONTHS.put("ἄνοιξις", CalendarType.SEASON_SPRING);      // Byzantine Katharevousa nominal variant
 		MONTHS.put("anoixi", CalendarType.SEASON_SPRING);
-		// Theros / Kalokairi (Summer)
-		MONTHS.put("θέρος", CalendarType.SEASON_SUMMER);
-		MONTHS.put("theros", CalendarType.SEASON_SUMMER);
+		MONTHS.put("ear", CalendarType.SEASON_SPRING);
+		MONTHS.put("vesna", CalendarType.SEASON_SPRING);       // Old Church Slavonic (OCS) spring
+
+		// Summer
+		MONTHS.put("θέρος", CalendarType.SEASON_SUMMER);       // Classical Byzantine agricultural summer
 		MONTHS.put("καλοκαίρι", CalendarType.SEASON_SUMMER);
+		MONTHS.put("theros", CalendarType.SEASON_SUMMER);
 		MONTHS.put("kalokairi", CalendarType.SEASON_SUMMER);
+		MONTHS.put("leto", CalendarType.SEASON_SUMMER);
 	}
 
 	private static final Pattern DATE_PATTERN = Pattern.compile("(?:(\\d+)\\s+)?(\\S+)\\s+(\\d+)");

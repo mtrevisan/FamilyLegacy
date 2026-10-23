@@ -42,38 +42,106 @@ public final class RumiCalendarParser{
 
 	private static final Map<String, Integer> MONTHS = new HashMap<>();
 	static{
-		// Traditional Ottoman Rumi Month Maps (March-anchored structure fallback)
-		MONTHS.put("mart", 1);          // March
-		MONTHS.put("nisan", 2);         // April
-		MONTHS.put("mayis", 3);         // May
-		MONTHS.put("haziran", 4);       // June
-		MONTHS.put("temmuz", 5);        // July
-		MONTHS.put("agustos", 6);       // August
-		MONTHS.put("eylul", 7);         // September
-		MONTHS.put("tesrin-i evvel", 8); // October (Ottoman)
-		MONTHS.put("ekim", 8);          // October (Modern)
-		MONTHS.put("tesrin-i sani", 9);  // November (Ottoman)
-		MONTHS.put("kasim", 9);         // November (Modern)
-		MONTHS.put("kanun-i evvel", 10); // December (Ottoman)
-		MONTHS.put("aralik", 10);       // December (Modern)
-		MONTHS.put("kanun-i sani", 11);  // January (Ottoman)
-		MONTHS.put("ocak", 11);         // January (Modern)
-		MONTHS.put("subat", 12);        // February
+		// Month 1: Mart (March) - The anchor of the fiscal year
+		MONTHS.put("mart", 1);
+		MONTHS.put("مارت", 1);               // Ottoman Arabic script
 
-		// Güz / Sonbahar (Autumn)
+		// Month 2: Nisan (April)
+		MONTHS.put("nisan", 2);
+		MONTHS.put("نيسان", 2);
+
+		// Month 3: Mayıs (May)
+		MONTHS.put("mayis", 3);
+		MONTHS.put("mayıs", 3);
+		MONTHS.put("مائيس", 3);
+
+		// Month 4: Haziran (June)
+		MONTHS.put("haziran", 4);
+		MONTHS.put("حزيران", 4);
+
+		// Month 5: Temmuz (July)
+		MONTHS.put("temmuz", 5);
+		MONTHS.put("تموز", 5);
+
+		// Month 6: Ağustos (August)
+		MONTHS.put("agustos", 6);
+		MONTHS.put("ağustos", 6);
+		MONTHS.put("اغستوس", 6);
+
+		// Month 7: Eylül (September)
+		MONTHS.put("eylul", 7);
+		MONTHS.put("eylül", 7);
+		MONTHS.put("ايلول", 7);
+
+		// Month 8: Teşrin-i Evvel / Ekim (October)
+		MONTHS.put("tesrin-i evvel", 8);
+		MONTHS.put("teşrin-i evvel", 8);
+		MONTHS.put("birinci tesrin", 8);    // Transitional 20th-century name ("First Teshrin")
+		MONTHS.put("birinci teşrin", 8);
+		MONTHS.put("tesrinevvel", 8);
+		MONTHS.put("ekim", 8);
+		MONTHS.put("تشرين اول", 8);          // Ottoman Arabic script
+
+		// Month 9: Teşrin-i Sani / Kasım (November)
+		MONTHS.put("tesrin-i sani", 9);
+		MONTHS.put("teşrin-i sani", 9);
+		MONTHS.put("ikinci tesrin", 9);     // Transitional name variant ("Second Teshrin")
+		MONTHS.put("ikinci teşrin", 9);
+		MONTHS.put("tesrinsani", 9);
+		MONTHS.put("kasim", 9);
+		MONTHS.put("kasım", 9);
+		MONTHS.put("تشرين ثانى", 9);          // Ottoman Arabic script
+
+		// Month 10: Kânûn-ı Evvel / Aralık (December)
+		MONTHS.put("kanun-i evvel", 10);
+		MONTHS.put("kânûn-ı evvel", 10);
+		MONTHS.put("birinci kanun", 10);    // Transitional name variant ("First Kanun")
+		MONTHS.put("birinci kânûn", 10);
+		MONTHS.put("kanunevvel", 10);
+		MONTHS.put("aralik", 10);
+		MONTHS.put("aralık", 10);
+		MONTHS.put("كانون اول", 10);         // Ottoman Arabic script
+
+		// Month 11: Kânûn-ı Sani / Ocak (January)
+		MONTHS.put("kanun-i sani", 11);
+		MONTHS.put("kânûn-ı sani", 11);
+		MONTHS.put("ikinci kanun", 11);     // Transitional name variant ("Second Kanun")
+		MONTHS.put("ikinci kânûn", 11);
+		MONTHS.put("son kanun", 11);        // Alternate transitional variant ("Last Kanun")
+		MONTHS.put("son kânûn", 11);
+		MONTHS.put("kanunsani", 11);
+		MONTHS.put("ocak", 11);
+		MONTHS.put("كانون ثانى", 11);         // Ottoman Arabic script
+
+		// Month 12: Şubat (February)
+		MONTHS.put("subat", 12);
+		MONTHS.put("şubat", 12);
+		MONTHS.put("شباط", 12);
+
+
+		// Autumn
 		MONTHS.put("güz", CalendarType.SEASON_AUTUMN);
+		MONTHS.put("guz", CalendarType.SEASON_AUTUMN);
 		MONTHS.put("sonbahar", CalendarType.SEASON_AUTUMN);
+		MONTHS.put("خريف", CalendarType.SEASON_AUTUMN);         // Ottoman literary Arabic loan-word
 		MONTHS.put("eylul-season", CalendarType.SEASON_AUTUMN);
-		// Kış (Winter)
+
+		// Winter
 		MONTHS.put("kış", CalendarType.SEASON_WINTER);
 		MONTHS.put("kis", CalendarType.SEASON_WINTER);
+		MONTHS.put("شتاء", CalendarType.SEASON_WINTER);         // Ottoman literary Arabic loan-word
+		MONTHS.put("zemheri", CalendarType.SEASON_WINTER);      // Traditional folk peak winter token
 		MONTHS.put("subat-season", CalendarType.SEASON_WINTER);
-		// Bahar / İlkbahar (Spring)
+
+		// Spring
 		MONTHS.put("bahar", CalendarType.SEASON_SPRING);
 		MONTHS.put("ilkbahar", CalendarType.SEASON_SPRING);
+		MONTHS.put("بهار", CalendarType.SEASON_SPRING);         // Ottoman Persian loan-word script
 		MONTHS.put("mart-season", CalendarType.SEASON_SPRING);
-		// Yaz (Summer)
+
+		// Summer
 		MONTHS.put("yaz", CalendarType.SEASON_SUMMER);
+		MONTHS.put("صيف", CalendarType.SEASON_SUMMER);          // Ottoman literary Arabic loan-word
 		MONTHS.put("haziran-season", CalendarType.SEASON_SUMMER);
 	}
 

@@ -76,7 +76,7 @@ public class CopticCalendarStrategy implements CalendarConverterPlugin{
 			return (long)Math.floor(exactSeasonJdUT + 0.5);
 		}
 		else{
-			// Standard arithmetic execution mapping path for typical regular Coptic months (fixed Julian translation)
+			// Standard arithmetic execution mapping path for typical regular Coptic months
 			final long copticEpochJdn = 1825030L; // Diocletian Era / Era of Martyrs
 
 			// Arithmetic tracking: 365 days per year flat + leap years added every 4 years

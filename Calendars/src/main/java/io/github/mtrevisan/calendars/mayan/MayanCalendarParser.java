@@ -18,17 +18,35 @@ public final class MayanCalendarParser{
 
 	private static final Map<String, Integer> STATIONS = new HashMap<>();
 	static{
-		// Chikin (West / Autumnal Equinox structural cross-point)
-		STATIONS.put("chikin", CalendarType.SEASON_AUTUMN);
-		STATIONS.put("chik'in", CalendarType.SEASON_AUTUMN);
-		// K'an / Nohol (South / Hibernal Solstice structural cross-point)
-		STATIONS.put("kan", CalendarType.SEASON_WINTER);
-		STATIONS.put("k'an", CalendarType.SEASON_WINTER);
-		// Lik'in (East / Vernal Equinox structural cross-point)
-		STATIONS.put("likin", CalendarType.SEASON_SPRING);
-		STATIONS.put("lik'in", CalendarType.SEASON_SPRING);
-		// Yax (North / Estival Solstice structural cross-point)
-		STATIONS.put("yax", CalendarType.SEASON_SUMMER);
+		// --- AUTUMN / WESTERN STATION (Chik'in / Aligned to Autumnal Equinox) ---
+		STATIONS.put("chikin", CalendarType.SEASON_AUTUMN);    // Plain ASCII variant
+		STATIONS.put("chik'in", CalendarType.SEASON_AUTUMN);   // Correct Mayan glottalized spelling
+		STATIONS.put("chikin-k'in", CalendarType.SEASON_AUTUMN); // Full phrase ("Where the sun enters/sets")
+		STATIONS.put("chikkin", CalendarType.SEASON_AUTUMN);   // Common phonetic variant
+		STATIONS.put("ek", CalendarType.SEASON_AUTUMN);        // Black color token bound to the West
+
+		// --- WINTER / SOUTHERN STATION (Nohol / Aligned to Hibernal Solstice) ---
+		STATIONS.put("nohol", CalendarType.SEASON_WINTER);     // Correct Mayan noun for "South"
+		STATIONS.put("noohol", CalendarType.SEASON_WINTER);    // Classic epigraphic spelling variant
+		STATIONS.put("kan", CalendarType.SEASON_WINTER);        // Plain ASCII color token
+		STATIONS.put("k'an", CalendarType.SEASON_WINTER);       // Yellow color token bound to the South
+
+		// --- SPRING / EASTERN STATION (Lik'in / Aligned to Vernal Equinox) ---
+		STATIONS.put("likin", CalendarType.SEASON_SPRING);     // Plain ASCII variant
+		STATIONS.put("lik'in", CalendarType.SEASON_SPRING);    // Correct Mayan glottalized spelling
+		STATIONS.put("lak'in", CalendarType.SEASON_SPRING);    // Classical epigraphic text variant
+		STATIONS.put("ch'een", CalendarType.SEASON_SPRING);    // Transitional solar station notation
+		STATIONS.put("chac", CalendarType.SEASON_SPRING);      // Plain ASCII color token
+		STATIONS.put("chac", CalendarType.SEASON_SPRING);      // Red color token bound to the East
+		STATIONS.put("ch'ak", CalendarType.SEASON_SPRING);
+
+		// --- SUMMER / NORTHERN STATION (Xaman / Aligned to Estival Solstice) ---
+		STATIONS.put("xaman", CalendarType.SEASON_SUMMER);     // FIXED: Correct Mayan noun for "North"
+		STATIONS.put("shaman", CalendarType.SEASON_SUMMER);    // Modern phonetic Spanish spelling variant
+		STATIONS.put("yax", CalendarType.SEASON_SUMMER);       // Green/Blue cosmic center prefix (Your original anchor)
+		STATIONS.put("yaxk'in", CalendarType.SEASON_SUMMER);   // "New Sun / Green Sun" historical summer terminal name
+		STATIONS.put("sac", CalendarType.SEASON_SUMMER);       // Plain ASCII color token
+		STATIONS.put("sac", CalendarType.SEASON_SUMMER);       // White color token bound to the North
 	}
 
 	// Robust Unicode pattern handling custom text delimiters, spaces, dots, and numbers

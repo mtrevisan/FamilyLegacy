@@ -27,13 +27,23 @@ package io.github.mtrevisan.calendars.gregorian;
 import io.github.mtrevisan.calendars.CalendarType;
 import org.apache.commons.lang3.StringUtils;
 
-import java.time.LocalDate;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
+import java.time.Month;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
+import java.time.format.TextStyle;
 import java.time.temporal.ChronoField;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -47,53 +57,54 @@ public final class GregorianCalendarParser{
 
 	private static final String SLASH = "/";
 
+	private static final String RESOURCE = "seasons.csv";
+
+	// Set of language tags that do not use the solar Gregorian/Julian calendar frameworks as their primary script
+	private static final Set<String> NON_SOLAR_LANGUAGES = new HashSet<>(Arrays.asList("th", "lo", "my", "dz", "bo",
+		"am"));
+
+	private static final Map<String, Integer> MONTHS = new HashMap<>();
 	private static final Map<String, Integer> SEASONS = new HashMap<>();
 	static{
-		// AUTOMATIC GLOBAL SEASON REGISTRATION
-		// Sweep across all available system locales on startup and dynamically extract
-		// localized strings for quarters/seasons to completely avoid manual code maintenance.
 		final Locale[] locales = Locale.getAvailableLocales();
 		for(final Locale locale : locales){
-			try{
-				// 1. Extract Quarter-of-Year localized textual names from java.time (mapping onto astronomical seasons)
-				// Q1 = Spring, Q2 = Summer, Q3 = Autumn, Q4 = Winter (Northern Civil/Astronomical baselines)
-				final DateTimeFormatter quarterFormatterLong = new DateTimeFormatterBuilder()
-					.appendPattern("qqqq")
-					.toFormatter(locale);
-				final DateTimeFormatter quarterFormatterShort = new DateTimeFormatterBuilder()
-					.appendPattern("qqq")
-					.toFormatter(locale);
+			final String language = locale.getLanguage();
 
-				// Sample dummy date elements to extract localized strings safely
-				LocalDate temporal = LocalDate.of(2000, 3, 21);
-				registerSeasonString(quarterFormatterLong.format(temporal), CalendarType.SEASON_SPRING);
-				registerSeasonString(quarterFormatterShort.format(temporal), CalendarType.SEASON_SPRING);
+			// Guard clause against empty root configurations and non-solar language parameters
+			if(language.isEmpty() || NON_SOLAR_LANGUAGES.contains(language))
+				continue;
 
-				temporal = LocalDate.of(2000, 6, 21);
-				registerSeasonString(quarterFormatterLong.format(temporal), CalendarType.SEASON_SUMMER);
-				registerSeasonString(quarterFormatterShort.format(temporal), CalendarType.SEASON_SUMMER);
-
-				temporal = LocalDate.of(2000, 9, 21);
-				registerSeasonString(quarterFormatterLong.format(temporal), CalendarType.SEASON_AUTUMN);
-				registerSeasonString(quarterFormatterShort.format(temporal), CalendarType.SEASON_AUTUMN);
-
-				temporal = LocalDate.of(2000, 12, 21);
-				registerSeasonString(quarterFormatterLong.format(temporal), CalendarType.SEASON_WINTER);
-				registerSeasonString(quarterFormatterShort.format(temporal), CalendarType.SEASON_WINTER);
+			// Extract standard solar months (1 to 12) across Full and Short text styles
+			for(final Month month : Month.values()){
+				MONTHS.put(month.getDisplayName(TextStyle.FULL, locale), month.getValue());
+				MONTHS.put(month.getDisplayName(TextStyle.SHORT, locale), month.getValue());
 			}
-			catch(Exception ignored){}
 		}
 
-		// Hardcoded fallback anchors for core legacy and shorthand symbols
-		SEASONS.put("aut", CalendarType.SEASON_AUTUMN);
-		SEASONS.put("win", CalendarType.SEASON_WINTER);
-		SEASONS.put("spr", CalendarType.SEASON_SPRING);
-		SEASONS.put("sum", CalendarType.SEASON_SUMMER);
-	}
+		try(final InputStream is = GregorianCalendarParser.class.getResourceAsStream(RESOURCE)){
+			if(is == null)
+				throw new IllegalStateException("Missing resource " + RESOURCE);
 
-	private static void registerSeasonString(final String text, final int flag){
-		if(StringUtils.isNotBlank(text) && !StringUtils.isNumeric(text))
-			SEASONS.put(text.toLowerCase(Locale.ROOT).trim(), flag);
+			final BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
+			String line;
+			while((line = reader.readLine()) != null){
+				if(line.isBlank() || line.startsWith("#"))
+					continue;
+
+				final String[] fields = StringUtils.split(line, ';');
+				for(final String autumn : StringUtils.split(fields[1], ','))
+					SEASONS.put(autumn, CalendarType.SEASON_AUTUMN);
+				for(final String winter : StringUtils.split(fields[2], ','))
+					SEASONS.put(winter, CalendarType.SEASON_WINTER);
+				for(final String spring : StringUtils.split(fields[3], ','))
+					SEASONS.put(spring, CalendarType.SEASON_SPRING);
+				for(final String summer : StringUtils.split(fields[4], ','))
+					SEASONS.put(summer, CalendarType.SEASON_SUMMER);
+			}
+		}
+		catch(final IOException ioe){
+			throw new UncheckedIOException(ioe);
+		}
 	}
 
 	/**
@@ -295,7 +306,7 @@ public final class GregorianCalendarParser{
 		if(textTokens.length > 0){
 			final String leadingToken = textTokens[0].toLowerCase(Locale.ROOT)
 				.trim();
-			if(SEASONS.containsKey(leadingToken))
+			if(MONTHS.containsKey(leadingToken))
 				isSeasonExpression = true;
 		}
 

@@ -42,51 +42,123 @@ public final class SeleucidCalendarParser{
 
 	private static final Map<String, Integer> MONTHS = new HashMap<>();
 	static{
-		// Month 1: October
+		// Month 1: Hyperberetaios / Tishrin Qadim (October)
+		MONTHS.put("ὑπερβερεταῖος", 1);    // Native Macedonian Greek script
+		MONTHS.put("ܬܫܪܝܢ ܩܕܝܡ", 1);        // Native Syriac script
 		MONTHS.put("hyperberetaios", 1);
+		MONTHS.put("hyperberetaos", 1);     // Common variant spelling
 		MONTHS.put("tishrin qdim", 1);
-		// Month 2: November
-		MONTHS.put("dios", 2);
-		MONTHS.put("tishrin hray", 2);
-		// Month 3: December
-		MONTHS.put("apellaios", 3);
-		MONTHS.put("kanun qdim", 3);
-		// Month 4: January
-		MONTHS.put("audynaios", 4);
-		MONTHS.put("kanun hray", 4);
-		// Month 5: February
-		MONTHS.put("peritios", 5);
-		MONTHS.put("shbat", 5);
-		// Month 6: March
-		MONTHS.put("dystros", 6);
-		MONTHS.put("adar", 6);
-		// Month 7: April
-		MONTHS.put("xanthikos", 7);
-		MONTHS.put("nisan", 7);
-		// Month 8: May
-		MONTHS.put("artemisios", 8);
-		MONTHS.put("iyar", 8);
-		// Month 9: June
-		MONTHS.put("daisios", 9);
-		MONTHS.put("haziran", 9);
-		// Month 10: July
-		MONTHS.put("panemos", 10);
-		MONTHS.put("tamuz", 10);
-		// Month 11: August
-		MONTHS.put("loios", 11);
-		MONTHS.put("ab", 11);
-		// Month 12: September
-		MONTHS.put("gorpiose", 12);
-		MONTHS.put("aylar", 12);
+		MONTHS.put("tishrin al-awwal", 1);  // Arabic-Syriac crossover variant
+		MONTHS.put("tishri", 1);            // Jewish/Babylonian autumn lunar epoch alignment
 
-		// Autumn -> Maps to Autumnal Equinox flag
+		// Month 2: Dios / Tishrin Hray (November)
+		MONTHS.put("δῖος", 2);
+		MONTHS.put("ܬܫܪܝܢ ܐܚܪܝ", 2);
+		MONTHS.put("dios", 2);
+		MONTHS.put("dius", 2);              // Latinized epigraphic variant
+		MONTHS.put("tishrin hray", 2);
+		MONTHS.put("tishrin al-thani", 2);
+		MONTHS.put("marcheshvan", 2);
+
+		// Month 3: Apellaios / Kanun Qadim (December)
+		MONTHS.put("ἀπελλαῖος", 3);
+		MONTHS.put("ܟܢܘܢ ܩܕܝܡ", 3);
+		MONTHS.put("apellaios", 3);
+		MONTHS.put("apelleos", 3);
+		MONTHS.put("kanun qdim", 3);
+		MONTHS.put("kanun al-awwal", 3);
+		MONTHS.put("kislev", 3);
+
+		// Month 4: Audynaios / Kanun Hray (January)
+		MONTHS.put("αὐδυναῖος", 4);
+		MONTHS.put("ܟܢܘܢ ܐܚܪܝ", 4);
+		MONTHS.put("audynaios", 4);
+		MONTHS.put("audeneos", 4);
+		MONTHS.put("audnaios", 4);
+		MONTHS.put("kanun hray", 4);
+		MONTHS.put("kanun al-thani", 4);
+		MONTHS.put("tevet", 4);
+
+		// Month 5: Peritios / Shbat (February)
+		MONTHS.put("περίτιος", 5);
+		MONTHS.put("ܫܒܛ", 5);
+		MONTHS.put("peritios", 5);
+		MONTHS.put("periteos", 5);
+		MONTHS.put("shbat", 5);
+		MONTHS.put("shebat", 5);
+		MONTHS.put("shubat", 5);
+		MONTHS.put("shevat", 5);
+
+		// Month 6: Dystros / Adar (March)
+		MONTHS.put("δύστρος", 6);
+		MONTHS.put("ܐܕܪ", 6);
+		MONTHS.put("dystros", 6);
+		MONTHS.put("dystrus", 6);
+		MONTHS.put("adar", 6);
+
+		// Month 7: Xanthikos / Nisan (April) - The Spring Lunar Epoch Anchor
+		MONTHS.put("ξανθικός", 7);
+		MONTHS.put("ܢܝܣܢ", 7);
+		MONTHS.put("xanthikos", 7);
+		MONTHS.put("xanticus", 7);          // Latinized historical variant
+		MONTHS.put("nisan", 7);
+		MONTHS.put("nissan", 7);
+
+		// Month 8: Artemisios / Iyar (May)
+		MONTHS.put("ἀρτεμίσιος", 8);
+		MONTHS.put("ܐܝܪ", 8);
+		MONTHS.put("artemisios", 8);
+		MONTHS.put("artemiseos", 8);
+		MONTHS.put("iyar", 8);
+		MONTHS.put("ijar", 8);
+
+		// Month 9: Daisios / Haziran (June)
+		MONTHS.put("δαίσιος", 9);
+		MONTHS.put("ܚܙܝܪܢ", 9);
+		MONTHS.put("daisios", 9);
+		MONTHS.put("daiseos", 9);
+		MONTHS.put("haziran", 9);
+
+		// Month 10: Panemos / Tamuz (July)
+		MONTHS.put("πάνεμος", 10);
+		MONTHS.put("ܬܡܘܙ", 10);
+		MONTHS.put("panemos", 10);
+		MONTHS.put("panamusi", 10);         // Babylon-Semitic transcription variant
+		MONTHS.put("tamuz", 10);
+		MONTHS.put("tammuz", 10);
+
+		// Month 11: Loios / Ab (August)
+		MONTHS.put("λώιος", 11);
+		MONTHS.put("ܐܒ", 11);
+		MONTHS.put("loios", 11);
+		MONTHS.put("loius", 11);
+		MONTHS.put("ab", 11);
+		MONTHS.put("av", 11);
+
+		// Month 12: Gorpiaios / Aylul (September)
+		MONTHS.put("γορπιαῖος", 12);
+		MONTHS.put("ܐܝܠܘܠ", 12);
+		MONTHS.put("gorpiaios", 12);
+		MONTHS.put("gorpiose", 12);         // Kept original phonetic variant for compatibility
+		MONTHS.put("aylul", 12);
+		MONTHS.put("elul", 12);
+
+
+		// Autumn
 		MONTHS.put("hyperberetaios-season", CalendarType.SEASON_AUTUMN);
-		// Winter -> Maps to Hibernal Solstice flag
+		MONTHS.put("tishrin-season", CalendarType.SEASON_AUTUMN);
+
+		// Winter
 		MONTHS.put("audynaios-season", CalendarType.SEASON_WINTER);
-		// Spring -> Maps to Vernal Equinox flag
+		MONTHS.put("kanun-season", CalendarType.SEASON_WINTER);
+
+		// Spring
 		MONTHS.put("xanthikos-season", CalendarType.SEASON_SPRING);
-		// Summer -> Maps to Estival Solstice flag
+		MONTHS.put("nisan-season", CalendarType.SEASON_SPRING);
+
+		// Summer
 		MONTHS.put("panemos-season", CalendarType.SEASON_SUMMER);
+		MONTHS.put("tammuz-season", CalendarType.SEASON_SUMMER);
 	}
 
 	private static final Pattern DATE_PATTERN = Pattern.compile("(?:(\\d+)\\s+)?([\\p{L}\\p{M}\\s-]+?)\\s+(\\d+)");

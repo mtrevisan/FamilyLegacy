@@ -18,50 +18,121 @@ public final class IslamicCalendarParser{
 
 	private static final Map<String, Integer> MONTHS = new HashMap<>();
 	static{
-		// Standard Hijri Months
-		MONTHS.put("muharram", 1);
+		// Month 1: Muharram (Sacred Month / New Year)
 		MONTHS.put("محرم", 1);
-		MONTHS.put("safar", 2);
-		MONTHS.put("صفر", 2);
-		MONTHS.put("rabi al-awwal", 3);
-		MONTHS.put("ربيع الأول", 3);
-		MONTHS.put("rabi al-thani", 4);
-		MONTHS.put("ربيع الثاني", 4);
-		MONTHS.put("jumada al-awwal", 5);
-		MONTHS.put("جمادى الأولى", 5);
-		MONTHS.put("jumada al-thani", 6);
-		MONTHS.put("جمادى الآخرة", 6);
-		MONTHS.put("rajab", 7);
-		MONTHS.put("رجب", 7);
-		MONTHS.put("shaban", 8);
-		MONTHS.put("شعبان", 8);
-		MONTHS.put("ramadan", 9);
-		MONTHS.put("رمضان", 9);
-		MONTHS.put("shawwal", 10);
-		MONTHS.put("شوال", 10);
-		MONTHS.put("dhu al-qadah", 11);
-		MONTHS.put("ذو القعدة", 11);
-		MONTHS.put("dhu al-hijjah", 12);
-		MONTHS.put("ذو الحجة", 12);
+		MONTHS.put("muharram", 1);
+		MONTHS.put("moharram", 1);
+		MONTHS.put("muharram al-haram", 1); // Full formal ceremonial name
 
+		// Month 2: Safar
+		MONTHS.put("صفر", 2);
+		MONTHS.put("safar", 2);
+		MONTHS.put("saphar", 2);
+
+		// Month 3: Rabi al-Awwal (The First Rabi)
+		MONTHS.put("ربيع الأول", 3);
+		MONTHS.put("rabi al-awwal", 3);
+		MONTHS.put("rabi al-awal", 3);
+		MONTHS.put("rabiul-awwal", 3);       // Combined phonetic variant
+		MONTHS.put("rabiulawal", 3);        // Highly common Southeast Asian spelling
+		MONTHS.put("rabi i", 3);            // Roman numeral standard shortcut
+
+		// Month 4: Rabi al-Thani / Rabi al-Akhir (The Second/Last Rabi)
+		MONTHS.put("ربيع الثاني", 4);
+		MONTHS.put("ربيع الآخر", 4);         // Alternative native script variant
+		MONTHS.put("rabi al-thani", 4);
+		MONTHS.put("rabi al-akhir", 4);     // Critical missing alternative name
+		MONTHS.put("rabi al-akhar", 4);
+		MONTHS.put("rabiul-thani", 4);
+		MONTHS.put("rabiul-akhir", 4);
+		MONTHS.put("rabiulakhir", 4);       // Highly common variant
+		MONTHS.put("rabi ii", 4);           // Roman numeral standard shortcut
+
+		// Month 5: Jumada al-Awwal (The First Jumada)
+		MONTHS.put("جمادى الأولى", 5);
+		MONTHS.put("جمادى الأول", 5);
+		MONTHS.put("jumada al-awwal", 5);
+		MONTHS.put("jumada al-awal", 5);
+		MONTHS.put("jumada i", 5);
+		MONTHS.put("jumadil-awwal", 5);
+		MONTHS.put("jumadilawal", 5);
+
+		// Month 6: Jumada al-Thani / Jumada al-Akhirah (The Second/Last Jumada)
+		MONTHS.put("جمادى الآخرة", 6);
+		MONTHS.put("جمادى الثاني", 6);
+		MONTHS.put("jumada al-thani", 6);
+		MONTHS.put("jumada al-akhirah", 6); // Critical missing alternative name
+		MONTHS.put("jumada al-akhir", 6);
+		MONTHS.put("jumada ii", 6);
+		MONTHS.put("jumadil-thani", 6);
+		MONTHS.put("jumadil-akhir", 6);
+		MONTHS.put("jumadilakhir", 6);
+
+		// Month 7: Rajab (Sacred Month)
+		MONTHS.put("رجب", 7);
+		MONTHS.put("rajab", 7);
+		MONTHS.put("rajab al-murajjab", 7); // Full ceremonial name
+
+		// Month 8: Shaban
+		MONTHS.put("شعبان", 8);
+		MONTHS.put("shaban", 8);
+		MONTHS.put("sha'ban", 8);           // Transliteration with explicit Ayn stop
+		MONTHS.put("shaaban", 8);
+
+		// Month 9: Ramadan (The Month of Fasting)
+		MONTHS.put("رمضان", 9);
+		MONTHS.put("ramadan", 9);
+		MONTHS.put("ramadhan", 9);          // Highly common Southeast Asian/South Asian variant
+		MONTHS.put("ramazan", 9);           // Turkish, Persian, and Urdu standard spelling
+
+		// Month 10: Shawwal
+		MONTHS.put("شوال", 10);
+		MONTHS.put("shawwal", 10);
+		MONTHS.put("shawal", 10);
+
+		// Month 11: Dhu al-Qadah (Sacred Month)
+		MONTHS.put("ذو القعدة", 11);
+		MONTHS.put("dhu al-qadah", 11);
+		MONTHS.put("dhu'l-qa'dah", 11);
+		MONTHS.put("dhul-qadah", 11);
+		MONTHS.put("zulqadah", 11);         // Common phonetic variant (Dhu -> Z)
+		MONTHS.put("dhu al-qi'dah", 11);
+
+		// Month 12: Dhu al-Hijjah (Sacred Month / Month of Hajj)
+		MONTHS.put("ذو الحجة", 12);
+		MONTHS.put("dhu al-hijjah", 12);
+		MONTHS.put("dhu'l-hijjah", 12);
+		MONTHS.put("dhul-hijjah", 12);
+		MONTHS.put("zulhijjah", 12);         // Highly common colloquial variant
+		MONTHS.put("dhu al-hajjah", 12);
+
+
+		// =============================================================================
 		// TRADITIONAL ARABIC SEASONAL FLAGS
-		// Al-Kharif (Autumn)
+		// =============================================================================
+
+		// Al-Kharif (Autumn Cycle)
 		MONTHS.put("al-kharif", CalendarType.SEASON_AUTUMN);
 		MONTHS.put("kharif", CalendarType.SEASON_AUTUMN);
 		MONTHS.put("الخريف", CalendarType.SEASON_AUTUMN);
-		// Al-Shita (Winter)
+
+		// Al-Shita (Winter Cycle)
 		MONTHS.put("al-shita", CalendarType.SEASON_WINTER);
 		MONTHS.put("shita", CalendarType.SEASON_WINTER);
+		MONTHS.put("al-shitaa", CalendarType.SEASON_WINTER);
 		MONTHS.put("الشتاء", CalendarType.SEASON_WINTER);
-		// Al-Rabi (Spring)
+
+		// Al-Rabi (Spring Cycle)
 		MONTHS.put("al-rabi", CalendarType.SEASON_SPRING);
 		MONTHS.put("rabi", CalendarType.SEASON_SPRING);
 		MONTHS.put("الربيع", CalendarType.SEASON_SPRING);
-		// Al-Sayf / Al-Qayz (Summer)
+
+		// Al-Sayf / Al-Qayz (Summer Cycle / Extreme Heat Node)
 		MONTHS.put("al-sayf", CalendarType.SEASON_SUMMER);
 		MONTHS.put("sayf", CalendarType.SEASON_SUMMER);
 		MONTHS.put("الصيف", CalendarType.SEASON_SUMMER);
 		MONTHS.put("qayz", CalendarType.SEASON_SUMMER);
+		MONTHS.put("al-qayz", CalendarType.SEASON_SUMMER);
 		MONTHS.put("القيظ", CalendarType.SEASON_SUMMER);
 	}
 

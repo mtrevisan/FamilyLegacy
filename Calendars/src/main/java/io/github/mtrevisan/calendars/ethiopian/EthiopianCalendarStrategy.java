@@ -76,7 +76,7 @@ public class EthiopianCalendarStrategy implements CalendarConverterPlugin{
 			return (long)Math.floor(exactSeasonJdUT + 0.5);
 		}
 		else{
-			// Standard arithmetic execution mapping path for typical regular Ethiopian months (fixed Julian translation)
+			// Standard arithmetic execution mapping path for typical regular Ethiopian months
 			// Incarnation Epoch
 			final long ethiopianEpochJdn = 1724221L; // 29 August 8 CE Julian
 

@@ -18,43 +18,107 @@ public final class EthiopianCalendarParser{
 
 	private static final Map<String, Integer> MONTHS = new HashMap<>();
 	static{
-		// Standard Ethiopian Months (Transliterated Amharic parameters)
-		MONTHS.put("mäskeräm", 1);
-		MONTHS.put("meskerem", 1);
+		// Month 1: Mäskeräm (New Year / Enkutatash)
+		MONTHS.put("መስከረም", 1);             // Native Fidäl script
+		MONTHS.put("mäskeräm", 1);          // Scientific linguistic transliteration
+		MONTHS.put("meskerem", 1);          // Standard ASCII variant
+		MONTHS.put("maskaram", 1);          // Common phonetic variation
+
+		// Month 2: Ṭəqəmt
+		MONTHS.put("ጥቅምት", 2);
 		MONTHS.put("ṭəqəmt", 2);
 		MONTHS.put("tekemt", 2);
+		MONTHS.put("tseqemt", 2);           // Common phonetic rendering of the explosive T (ጠ)
+		MONTHS.put("tiqimt", 2);            // Alternate vowel notation
+
+		// Month 3: ḫədar
+		MONTHS.put("ህዳር", 3);
 		MONTHS.put("ḫədar", 3);
 		MONTHS.put("hedar", 3);
+		MONTHS.put("hidar", 3);             // Most frequent English/Amharic media spelling
+
+		// Month 4: Taḫśaś
+		MONTHS.put("ታኅሣሥ", 4);
 		MONTHS.put("taḫśaś", 4);
 		MONTHS.put("tahasas", 4);
+		MONTHS.put("tahsas", 4);            // Standard plain text variant
+
+		// Month 5: Ṭərr
+		MONTHS.put("ጥር", 5);
 		MONTHS.put("ṭərr", 5);
 		MONTHS.put("ter", 5);
+		MONTHS.put("tir", 5);               // Alternate vowel notation
+
+		// Month 6: Yäkatit
+		MONTHS.put("የካቲት", 6);
 		MONTHS.put("yäkatit", 6);
 		MONTHS.put("yekatit", 6);
+		MONTHS.put("yakatit", 6);
+
+		// Month 7: Mäggabit
+		MONTHS.put("መጋቢት", 7);
 		MONTHS.put("maggabit", 7);
 		MONTHS.put("megabit", 7);
+		MONTHS.put("magabit", 7);
+
+		// Month 8: Miyazya
+		MONTHS.put("ሚያዝያ", 8);
 		MONTHS.put("miyazya", 8);
 		MONTHS.put("miyazia", 8);
+		MONTHS.put("miazia", 8);
+
+		// Month 9: Gənboṭ
+		MONTHS.put("ግንቦት", 9);
 		MONTHS.put("gənboṭ", 9);
 		MONTHS.put("genbot", 9);
+		MONTHS.put("ginbot", 9);            // Highly frequent alternate spelling
+
+		// Month 10: Sänē
+		MONTHS.put("ሰኔ", 10);
 		MONTHS.put("sänē", 10);
 		MONTHS.put("sene", 10);
+		MONTHS.put("sanie", 10);
+
+		// Month 11: Ḥamle
+		MONTHS.put("ሐምሌ", 11);
 		MONTHS.put("ḥamle", 11);
 		MONTHS.put("hamle", 11);
+		MONTHS.put("hamlie", 11);
+
+		// Month 12: Nähase
+		MONTHS.put("ነሐሴ", 12);
 		MONTHS.put("nähase", 12);
 		MONTHS.put("nehase", 12);
+		MONTHS.put("nahase", 12);
 
-		// Intercalary Month (Little Month / Epagomenal Days)
+		// Month 13: Pagumēn (Intercalary Month / 5 or 6 Epagomenal Days)
+		MONTHS.put("ጳጉሜን", 13);
 		MONTHS.put("pagumēn", 13);
 		MONTHS.put("pagumen", 13);
+		MONTHS.put("pagume", 13);           // Truncated spoken form
 
-		// Bega (The Dry Season / Winter)
+
+		// =============================================================================
+		// ETHIOPIAN SEASONS ALIGNMENT (Traditional Agricultural & Literary Grid)
+		// =============================================================================
+
+		// Season 1: Bega (The Long Dry Season - Aligned to Winter Cross-grid)
+		MONTHS.put("በጋ", CalendarType.SEASON_WINTER);
 		MONTHS.put("bega", CalendarType.SEASON_WINTER);
-		// Tseday / Belg (Spring Transition) -> Maps to Vernal Equinox flag
-		MONTHS.put("tseday", CalendarType.SEASON_SPRING);
+
+		// Season 2: Belg (The Short Rainy Season / Spring Transition)
+		MONTHS.put("በልግ", CalendarType.SEASON_SPRING);
 		MONTHS.put("belg", CalendarType.SEASON_SPRING);
-		// Keremt (The Heavy Rainy Season / Summer) -> Maps to Estival Solstice flag
+
+		// Season 3: Kremt (The Heavy Monsoon Rainy Season - Aligned to Summer Cross-grid)
+		MONTHS.put("ክረምት", CalendarType.SEASON_SUMMER);
 		MONTHS.put("keremt", CalendarType.SEASON_SUMMER);
+		MONTHS.put("kremt", CalendarType.SEASON_SUMMER);
+
+		// Season 4: Tseday (The Blossom Season / Post-Rain Autumn - FIXED and mapped to Autumn)
+		MONTHS.put("ጸደይ", CalendarType.SEASON_AUTUMN);     // Native Amharic script for Autumn bloom
+		MONTHS.put("tseday", CalendarType.SEASON_AUTUMN);    // Correct astronomical alignment
+		MONTHS.put("ceday", CalendarType.SEASON_AUTUMN);     // Linguistic ISO variant
 	}
 
 	// Robust, exception-free Unicode pattern supporting optional day prefix and world alphabets

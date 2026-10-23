@@ -18,42 +18,120 @@ public final class FrenchRepublicanCalendarParser{
 
 	private static final Map<String, Integer> MONTHS = new HashMap<>();
 	static{
-		// Autumn Months
+		// --- AUTUMN MONTHS (Mois d'automne) ---
+
+		// Month 1: Vendémiaire (Vintage Month)
 		MONTHS.put("vendémiaire", 1);
 		MONTHS.put("vendemiaire", 1);
+		MONTHS.put("vend.", 1);              // Common historical abbreviation
+		MONTHS.put("vendem", 1);             // Alternate text abbreviation
+
+		// Month 2: Brumaire (Fog Month)
 		MONTHS.put("brumaire", 2);
+		MONTHS.put("brum.", 2);              // Common historical abbreviation
+		MONTHS.put("brum", 2);
+
+		// Month 3: Frimaire (Sleet Month)
 		MONTHS.put("frimaire", 3);
-		// Winter Months
+		MONTHS.put("frim.", 3);              // Common historical abbreviation
+		MONTHS.put("frim", 3);
+
+		// --- WINTER MONTHS (Mois d'hiver) ---
+
+		// Month 4: Nivôse (Snow Month)
 		MONTHS.put("nivôse", 4);
 		MONTHS.put("nivose", 4);
+		MONTHS.put("niv.", 4);               // Common historical abbreviation
+		MONTHS.put("nivos", 4);
+
+		// Month 5: Pluviôse (Rain Month)
 		MONTHS.put("pluviôse", 5);
 		MONTHS.put("pluviose", 5);
+		MONTHS.put("pluv.", 5);              // Common historical abbreviation
+		MONTHS.put("pluvios", 5);
+
+		// Month 6: Ventôse (Wind Month)
 		MONTHS.put("ventôse", 6);
 		MONTHS.put("ventose", 6);
-		// Spring Months
+		MONTHS.put("vent.", 6);              // Common historical abbreviation
+		MONTHS.put("ventos", 6);
+
+		// --- SPRING MONTHS (Mois de printemps) ---
+
+		// Month 7: Germinal (Seed Month)
 		MONTHS.put("germinal", 7);
+		MONTHS.put("germ.", 7);              // Common historical abbreviation
+		MONTHS.put("germ", 7);
+
+		// Month 8: Floréal (Blossom Month)
 		MONTHS.put("floréal", 8);
 		MONTHS.put("floreal", 8);
+		MONTHS.put("flor.", 8);              // Common historical abbreviation
+		MONTHS.put("flor", 8);
+
+		// Month 9: Prairial (Meadow Month)
 		MONTHS.put("prairial", 9);
-		// Summer Months
+		MONTHS.put("prair.", 9);             // Common historical abbreviation
+		MONTHS.put("prair", 9);
+
+		// --- SUMMER MONTHS (Mois d'été) ---
+
+		// Month 10: Messidor (Harvest Month)
 		MONTHS.put("messidor", 10);
+		MONTHS.put("mess.", 10);             // Common historical abbreviation
+		MONTHS.put("mess", 10);
+
+		// Month 11: Thermidor (Heat Month)
 		MONTHS.put("thermidor", 11);
+		MONTHS.put("therm.", 11);            // Common historical abbreviation
+		MONTHS.put("therm", 11);
+		MONTHS.put("fervidor", 11);          // Rare early alternative name variant
+
+		// Month 12: Fructidor (Fruit Month)
 		MONTHS.put("fructidor", 12);
-		// Complementary Year-End Days
+		MONTHS.put("fruct.", 12);            // Common historical abbreviation
+		MONTHS.put("fruct", 12);
+
+		// --- COMPLEMENTARY DAYS / SANS-CULOTTIDES (Jours complémentaires) ---
+
+		// Month 13: Collective names
 		MONTHS.put("sansculottides", 13);
+		MONTHS.put("sans-culottides", 13);
 		MONTHS.put("complémentaires", 13);
 		MONTHS.put("complementaires", 13);
+		MONTHS.put("jours complémentaires", 13);
+		MONTHS.put("sans-culottides-days", 13);
 
-		// Automne (Autumn) -> Maps to Autumnal Equinox flag
+		// Month 13: Specific legal individual names of the 5/6 festival days
+		MONTHS.put("jour de la vertu", 13);   // Day 1: Virtue Day
+		MONTHS.put("jour du génie", 13);     // Day 2: Genius Day
+		MONTHS.put("jour du genie", 13);
+		MONTHS.put("jour du travail", 13);   // Day 3: Labour Day
+		MONTHS.put("jour de l'opinion", 13); // Day 4: Opinion Day
+		MONTHS.put("jour des récompenses", 13); // Day 5: Rewards Day
+		MONTHS.put("jour des recompenses", 13);
+		MONTHS.put("jour de la révolution", 13); // Day 6: Leap-year Revolutionary Day
+		MONTHS.put("jour de la revolution", 13);
+		MONTHS.put("franciade", 13);         // The leap-year quadrennial cycle name
+
+
+		// =============================================================================
+		// REPUBLICAN SEASONAL ALIGNMENT (Aligned to structural Equinox/Solstice grids)
+		// =============================================================================
+
+		// Autumn
 		MONTHS.put("automne", CalendarType.SEASON_AUTUMN);
 		MONTHS.put("automne-season", CalendarType.SEASON_AUTUMN);
-		// Hiver (Winter) -> Maps to Hibernal Solstice flag
+
+		// Winter
 		MONTHS.put("hiver", CalendarType.SEASON_WINTER);
 		MONTHS.put("hiver-season", CalendarType.SEASON_WINTER);
-		// Printemps (Spring) -> Maps to Vernal Equinox flag
+
+		// Spring
 		MONTHS.put("printemps", CalendarType.SEASON_SPRING);
 		MONTHS.put("printemps-season", CalendarType.SEASON_SPRING);
-		// Été (Summer) -> Maps to Estival Solstice flag
+
+		// Summer
 		MONTHS.put("été", CalendarType.SEASON_SUMMER);
 		MONTHS.put("ete", CalendarType.SEASON_SUMMER);
 		MONTHS.put("été-season", CalendarType.SEASON_SUMMER);

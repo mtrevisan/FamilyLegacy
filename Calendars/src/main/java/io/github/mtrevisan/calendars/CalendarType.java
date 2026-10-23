@@ -25,6 +25,7 @@
 package io.github.mtrevisan.calendars;
 
 import io.github.mtrevisan.calendars.armenian.ArmenianCalendarStrategy;
+import io.github.mtrevisan.calendars.astronomy.Zenith;
 import io.github.mtrevisan.calendars.bahai.BahaiCalendarStrategy;
 import io.github.mtrevisan.calendars.berber.BerberCalendarStrategy;
 import io.github.mtrevisan.calendars.buddhist.BuddhistCalendarStrategy;
@@ -67,6 +68,8 @@ import io.github.mtrevisan.calendars.astronomy.SunlightPhase;
 import io.github.mtrevisan.calendars.astronomy.ZenithInterface;
 
 import java.time.LocalDate;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.Map;
 
@@ -232,6 +235,11 @@ public enum CalendarType implements CalendarConverterPlugin{
 
 		// Execute the proxy calculation call out to the plugin JAR
 		return engine.calculateHorizonEvent(EphemerisEngine.CelestialBody.SUN, midnightUtJd, latitude, longitude, zenith);
+	}
+
+	public static void main(String[] args){
+		CalendarType.getSunlightPhase("gregorian", "INV 2026",
+			45.714920, 12.194179, Zenith.CIVIL);
 	}
 
 }

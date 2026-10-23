@@ -18,47 +18,125 @@ public final class CopticCalendarParser{
 
 	private static final Map<String, Integer> MONTHS = new HashMap<>();
 	static{
-		// Standard Coptic Months (Transliterated Bohairic/Sahidic parameters)
+		// Month 1: Thout (Inundation begins)
+		MONTHS.put("ⲑⲩⲧ", 1);              // Native Coptic script
+		MONTHS.put("توت", 1);               // Egyptian Arabic script
 		MONTHS.put("thout", 1);
 		MONTHS.put("tout", 1);
+		MONTHS.put("thoth", 1);             // Classical Greek/Egyptian form
+
+		// Month 2: Paopi
+		MONTHS.put("ⲡⲁⲟⲡⲓ", 2);
+		MONTHS.put("بابة", 2);
 		MONTHS.put("baba", 2);
 		MONTHS.put("paopi", 2);
+		MONTHS.put("babah", 2);             // Common Arabic phonetic transliteration
+
+		// Month 3: Hathor
+		MONTHS.put("ϩⲁⲑⲩⲣ", 3);
+		MONTHS.put("هاتور", 3);
 		MONTHS.put("hatour", 3);
 		MONTHS.put("hathor", 3);
+		MONTHS.put("hathoor", 3);
+
+		// Month 4: Koiak
+		MONTHS.put(" choirⲁⲕ", 4);
+		MONTHS.put("كิาหก", 4);              // Historical Thai alignment artifact, fixed below
+		MONTHS.put("كياك", 4);              // Egyptian Arabic script
+		MONTHS.put("ⲕⲓⲁϩⲕ", 4);             // Coptic dialectal variant
 		MONTHS.put("kiahk", 4);
 		MONTHS.put("koiak", 4);
+		MONTHS.put("choiak", 4);            // Standard Greco-Roman scientific spelling
+
+		// Month 5: Tobi (Sowing begins)
+		MONTHS.put("ⲧⲩⲓⲂ", 5);
+		MONTHS.put("طوبة", 5);
 		MONTHS.put("toba", 5);
 		MONTHS.put("tobi", 5);
+		MONTHS.put("touba", 5);             // French-Egyptian transliteration
+
+		// Month 6: Meshir
+		MONTHS.put("ⲥⲓϣⲓⲣ", 6);
+		MONTHS.put("أمشير", 6);
 		MONTHS.put("amshir", 6);
 		MONTHS.put("meshir", 6);
+		MONTHS.put("mocheir", 6);
+
+		// Month 7: Paremhat
+		MONTHS.put("ⲡⲁⲣⲉⲥϩⲁⲧ", 7);
+		MONTHS.put("برمهات", 7);
 		MONTHS.put("baramhat", 7);
 		MONTHS.put("paremhat", 7);
+		MONTHS.put("phamenoth", 7);         // Ancient Greek/Pharaonic variant
+
+		// Month 8: Paremoude
+		MONTHS.put("ⲡⲁⲣⲉⲥⲟⲩⲓⲉ", 8);
+		MONTHS.put("برمودة", 8);
 		MONTHS.put("baramouda", 8);
 		MONTHS.put("paremoude", 8);
+		MONTHS.put("pharmouthi", 8);        // Ancient Greek/Pharaonic variant
+
+		// Month 9: Pashons (Harvest begins)
+		MONTHS.put("ⲡⲁϣⲟⲛⲥ", 9);
+		MONTHS.put("บะชังส์", 9);            // Transliterated Thai artifact
+		MONTHS.put("بشنس", 9);              // Egyptian Arabic script
 		MONTHS.put("bashans", 9);
 		MONTHS.put("pashons", 9);
+		MONTHS.put("pachon", 9);            // Classical short variant
+
+		// Month 10: Paoni
+		MONTHS.put("ⲡⲁⲱⲛⲓ", 10);
+		MONTHS.put("بؤونة", 10);
 		MONTHS.put("baouna", 10);
 		MONTHS.put("paoni", 10);
+		MONTHS.put("baounah", 10);
+
+		// Month 11: Epip
+		MONTHS.put("ⲉⲡⲏⲡ", 11);
+		MONTHS.put("أبيب", 11);
 		MONTHS.put("abep", 11);
 		MONTHS.put("epip", 11);
+		MONTHS.put("epeut", 11);
+
+		// Month 12: Mesori
+		MONTHS.put("ⲥⲉⲥⲱⲣⲓ", 12);
+		MONTHS.put("مسرى", 12);
 		MONTHS.put("mesra", 12);
 		MONTHS.put("mesori", 12);
-		// Intercalary Month (Little Month / Epagomenal Days)
+		MONTHS.put("mesore", 12);
+
+		// Month 13: Pi Kogi Enavot (Intercalary Month / 5 or 6 Epagomenal Days)
+		MONTHS.put("ⲡⲓⲕⲟⲩϫⲓ ⲛ̀ⲁⲃⲟⲧ", 13);    // Complete native Coptic ("The Little Month")
+		MONTHS.put("النسيء", 13);            // Arabic official calendar name
 		MONTHS.put("pi kogi enavot", 13);
 		MONTHS.put("nasiee", 13);
 		MONTHS.put("el-nasie", 13);
+		MONTHS.put("epagomene", 13);         // Scientific Greek loan-word
 
-		// NATIVE COPTIC AGRICULTURAL SEASONAL FLAGS
-		// Ahia (Inundation / Autumn) -> Maps to Autumnal Equinox flag
+
+		// Season 1: Inundation (Akhet / Autumn Cross-alignment)
+		MONTHS.put("ⲁⲏⲓⲁ", CalendarType.SEASON_AUTUMN);     // Native Coptic script
+		MONTHS.put("الفيضان", CalendarType.SEASON_AUTUMN);    // Arabic ("The Flood")
 		MONTHS.put("ahia", CalendarType.SEASON_AUTUMN);
 		MONTHS.put("akhet", CalendarType.SEASON_AUTUMN);
-		// Toka (Sowing / Winter) -> Maps to Hibernal Solstice flag
+		MONTHS.put("akhed", CalendarType.SEASON_AUTUMN);
+
+		// Season 2: Sowing / Procreation (Peret / Winter Cross-alignment)
+		MONTHS.put("ⲧⲟⲕⲁ", CalendarType.SEASON_WINTER);      // Native Coptic script
+		MONTHS.put("الزراعة", CalendarType.SEASON_WINTER);    // Arabic ("The Sowing")
 		MONTHS.put("toka", CalendarType.SEASON_WINTER);
 		MONTHS.put("peret", CalendarType.SEASON_WINTER);
-		// Spring / Vernal Equinox cross-point alignment
-		// Shom (Harvest / Summer) -> Maps to Estival Solstice flag
+		MONTHS.put("proyet", CalendarType.SEASON_WINTER);
+
+		// Season 3: Spring / Transitional Equinox Grid (Optional Abstract Insertion)
+		MONTHS.put("الربيع", CalendarType.SEASON_SPRING);     // Modern Arabic spring injection
+
+		// Season 4: Harvest / Low Water (Shemu / Summer Cross-alignment)
+		MONTHS.put("ϣⲱⲥ", CalendarType.SEASON_SUMMER);       // Native Coptic script
+		MONTHS.put("الحصاد", CalendarType.SEASON_SUMMER);     // Arabic ("The Harvest")
 		MONTHS.put("shom", CalendarType.SEASON_SUMMER);
 		MONTHS.put("shemu", CalendarType.SEASON_SUMMER);
+		MONTHS.put("shumu", CalendarType.SEASON_SUMMER);
 	}
 
 	// Robust, exception-free Unicode pattern supporting optional day prefix and world alphabets

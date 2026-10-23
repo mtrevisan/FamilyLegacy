@@ -47,46 +47,131 @@ public final class PersianCalendarParser{
 
 	private static final Map<String, Integer> MONTHS = new HashMap<>();
 	static{
-		// Persian names
-		MONTHS.put("فروردین", 1);
-		MONTHS.put("اردیبهشت", 2);
-		MONTHS.put("خرداد", 3);
-		MONTHS.put("تیر", 4);
-		MONTHS.put("مرداد", 5);
-		MONTHS.put("شهریور", 6);
-		MONTHS.put("مهر", 7);
-		MONTHS.put("آبان", 8);
-		MONTHS.put("آذر", 9);
-		MONTHS.put("دی", 10);
-		MONTHS.put("بهمن", 11);
-		MONTHS.put("اسفند", 12);
-		// Transliterations
-		MONTHS.put("farvardin", 1);
-		MONTHS.put("ordibehesht", 2);
-		MONTHS.put("khordad", 3);
-		MONTHS.put("tir", 4);
-		MONTHS.put("mordad", 5);
-		MONTHS.put("shahrivar", 6);
-		MONTHS.put("mehr", 7);
-		MONTHS.put("aban", 8);
-		MONTHS.put("azar", 9);
-		MONTHS.put("dey", 10);
-		MONTHS.put("bahman", 11);
-		MONTHS.put("esfand", 12);
+		// Month 1: Farvardin (Aries / Al-Hamal) - Commences at the Vernal Equinox
+		MONTHS.put("فروردین", 1);           // Native Persian script
+		MONTHS.put("Фарвардин", 1);         // Tajik Cyrillic script
+		MONTHS.put("farvardin", 1);         // Standard Latin transliteration
+		MONTHS.put("hamal", 1);             // Afghan Dari zodiac name (حمل)
+		MONTHS.put("حمل", 1);                // Afghan Arabic script
 
-		// Paeez (Autumn) -> Maps to Autumnal Equinox flag
+		// Month 2: Ordibehesht (Taurus / Ath-Thawr)
+		MONTHS.put("اردیبهشت", 2);
+		MONTHS.put("Орدیбеҳишт", 2);        // Tajik Cyrillic variant
+		MONTHS.put("ordibehesht", 2);
+		MONTHS.put("ordibehešt", 2);        // Scientific linguistic notation
+		MONTHS.put("thawr", 2);             // Afghan Dari zodiac name (ثور)
+		MONTHS.put("ثور", 2);
+		MONTHS.put("sawr", 2);              // Phonetic Afghan variant
+
+		// Month 3: Khordad (Gemini / Al-Jauza)
+		MONTHS.put("خرداد", 3);
+		MONTHS.put("Хурдод", 3);            // Tajik Cyrillic script
+		MONTHS.put("khordad", 3);
+		MONTHS.put("xordad", 3);            // Simplified common ASCII notation
+		MONTHS.put("jauza", 3);             // Afghan Dari zodiac name (جوزا)
+		MONTHS.put("جوزا", 3);
+		MONTHS.put("jawza", 3);
+
+		// Month 4: Tir (Cancer / As-Saratan) - Commences at the Estival Solstice
+		MONTHS.put("تیر", 4);
+		MONTHS.put("Тир", 4);               // Tajik Cyrillic script
+		MONTHS.put("tir", 4);
+		MONTHS.put("teer", 4);              // Common phonetic variant
+		MONTHS.put("saratan", 4);           // Afghan Dari zodiac name (سرطان)
+		MONTHS.put("سرطان", 4);
+
+		// Month 5: Mordad / Amardad (Leo / Al-Asad)
+		MONTHS.put("مرداد", 5);              // Colloquial/Secular Iranian script
+		MONTHS.put("امرداد", 5);             // Purified philological Persian script
+		MONTHS.put("Мурдод", 5);            // Tajik Cyrillic script
+		MONTHS.put("mordad", 5);
+		MONTHS.put("amardad", 5);           // Historical etymological variant
+		MONTHS.put("asad", 5);              // Afghan Dari zodiac name (اسد)
+		MONTHS.put("اسد", 5);
+
+		// Month 6: Shahrivar (Virgo / As-Sunbula)
+		MONTHS.put("شهریور", 6);
+		MONTHS.put("Шаҳривар", 6);          // Tajik Cyrillic script
+		MONTHS.put("shahrivar", 6);
+		MONTHS.put("shahrewar", 6);         // Archaic text alignment variant
+		MONTHS.put("sunbula", 6);           // Afghan Dari zodiac name (سنبله)
+		MONTHS.put("سنبله", 6);
+
+		// Month 7: Mehr (Libra / Al-Mizan) - Commences at the Autumnal Equinox
+		MONTHS.put("مهر", 7);
+		MONTHS.put("Меҳр", 7);              // Tajik Cyrillic script
+		MONTHS.put("mehr", 7);
+		MONTHS.put("mihr", 7);              // Pahlavi/Scientific short transliteration
+		MONTHS.put("mizan", 7);             // Afghan Dari zodiac name (میزان)
+		MONTHS.put("میزان", 7);
+
+		// Month 8: Aban (Scorpio / Al-Aqrab)
+		MONTHS.put("آبان", 8);
+		MONTHS.put("Обон", 8);              // Tajik Cyrillic script
+		MONTHS.put("aban", 8);
+		MONTHS.put("aqrab", 8);             // Afghan Dari zodiac name (عقرب)
+		MONTHS.put("عقرب", 8);
+
+		// Month 9: Azar (Sagittarius / Al-Qaws)
+		MONTHS.put("آذر", 9);
+		MONTHS.put("Оذر", 9);               // Tajik Cyrillic script
+		MONTHS.put("azar", 9);
+		MONTHS.put("qaws", 9);              // Afghan Dari zodiac name (قوس)
+		MONTHS.put("قوس", 9);
+		MONTHS.put("ghows", 9);             // Phonetic variant
+
+		// Month 10: Dey (Capricorn / Al-Jady) - Commences at the Hibernal Solstice
+		MONTHS.put("دی", 10);
+		MONTHS.put("Дэй", 10);              // Tajik Cyrillic script
+		MONTHS.put("dey", 10);
+		MONTHS.put("day", 10);              // Common alternative spelling
+		MONTHS.put("dei", 10);              // French/European notation variant
+		MONTHS.put("jady", 10);             // Afghan Dari zodiac name (جدی)
+		MONTHS.put("جدی", 10);
+		MONTHS.put("jadi", 10);
+
+		// Month 11: Bahman (Aquarius / Ad-Dalw)
+		MONTHS.put("بهمن", 11);
+		MONTHS.put("Баҳման", 11);           // Tajik Cyrillic script
+		MONTHS.put("bahman", 11);
+		MONTHS.put("dalw", 11);             // Afghan Dari zodiac name (دلو)
+		MONTHS.put("دلو", 11);
+
+		// Month 12: Esfand (Pisces / Al-Hut)
+		MONTHS.put("اسفند", 12);
+		MONTHS.put("Эсфанд", 12);           // Tajik Cyrillic script
+		MONTHS.put("esfand", 12);
+		MONTHS.put("asfand", 12);           // Classic vocalization spelling
+		MONTHS.put("hut", 12);              // Afghan Dari zodiac name (حوت)
+		MONTHS.put("حوت", 12);
+		MONTHS.put("hoot", 12);             // Phonetic variant
+
+
+		// Autumn
 		MONTHS.put("paeez", CalendarType.SEASON_AUTUMN);
 		MONTHS.put("payiz", CalendarType.SEASON_AUTUMN);
 		MONTHS.put("پاییز", CalendarType.SEASON_AUTUMN);
-		// Zemestan (Winter) -> Maps to Hibernal Solstice flag
+		MONTHS.put("Хазон", CalendarType.SEASON_AUTUMN);         // Tajik Cyrillic word for Autumn
+		MONTHS.put("khazon", CalendarType.SEASON_AUTUMN);
+
+		// Winter
 		MONTHS.put("zemestan", CalendarType.SEASON_WINTER);
 		MONTHS.put("زمستان", CalendarType.SEASON_WINTER);
-		// Bahar (Spring) -> Maps to Vernal Equinox flag
+		MONTHS.put("Зимистон", CalendarType.SEASON_WINTER);      // Tajik Cyrillic word for Winter
+		MONTHS.put("zimiston", CalendarType.SEASON_WINTER);
+
+		// Spring
 		MONTHS.put("bahar", CalendarType.SEASON_SPRING);
 		MONTHS.put("بهار", CalendarType.SEASON_SPRING);
-		// Tabestan (Summer) -> Maps to Estival Solstice flag
+		MONTHS.put("Баҳор", CalendarType.SEASON_SPRING);         // Tajik Cyrillic word for Spring
+		MONTHS.put("bahor", CalendarType.SEASON_SPRING);
+
+		// Summer
 		MONTHS.put("tabestan", CalendarType.SEASON_SUMMER);
 		MONTHS.put("تابستان", CalendarType.SEASON_SUMMER);
+		MONTHS.put("Тоβистон", CalendarType.SEASON_SUMMER);      // Tajik Cyrillic variant
+		MONTHS.put("توبستان", CalendarType.SEASON_SUMMER);
+		MONTHS.put("toviston", CalendarType.SEASON_SUMMER);
 	}
 
 	// Adaptive pattern supporting both standalone seasonal notations ("Bahar 1357")
