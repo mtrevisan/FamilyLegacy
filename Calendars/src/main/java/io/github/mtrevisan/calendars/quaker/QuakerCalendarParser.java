@@ -85,7 +85,8 @@ public final class QuakerCalendarParser{
 		String normalized = StringUtils.normalizeSpace(rawDate.toLowerCase(Locale.ROOT)
 			.replace('.', ' ')
 			.replace(',', ' '));
-		for(final Map.Entry<String, Integer> ordinal : ORDINALS.entrySet())
+		final Set<Map.Entry<String, Integer>> ordinals = ORDINALS.entrySet();
+		for(final Map.Entry<String, Integer> ordinal : ordinals)
 			normalized = normalized.replaceAll("\\b" + Pattern.quote(ordinal.getKey()) + "\\b", " " + ordinal.getValue() + " ");
 		normalized = StringUtils.normalizeSpace(normalized);
 

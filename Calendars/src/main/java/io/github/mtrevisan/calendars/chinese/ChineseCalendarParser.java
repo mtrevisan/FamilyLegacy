@@ -29,6 +29,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -169,7 +170,8 @@ public final class ChineseCalendarParser{
 
 		// Check if the prefix maps to a direct seasonal/Jieqi token property
 		Integer seasonalFlag = null;
-		for(final String term : SEASONS.keySet())
+		final Set<String> terms = SEASONS.keySet();
+		for(final String term : terms)
 			if(cleanStr.startsWith(term)){
 				seasonalFlag = SEASONS.get(term);
 
@@ -191,7 +193,8 @@ public final class ChineseCalendarParser{
 		// 1. Check if the string contains a historical Era name (Nianhao)
 		String matchedEra = null;
 		int eraIndex = -1;
-		for(final String era : ERA_BASE_YEARS.keySet()){
+		final Set<String> eras = ERA_BASE_YEARS.keySet();
+		for(final String era : eras){
 			final int idx = cleanStr.indexOf(era);
 			if(idx != -1){
 				eraIndex = idx;

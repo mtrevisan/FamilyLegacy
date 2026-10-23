@@ -59,6 +59,9 @@ public class IslamicCalendarStrategy implements CalendarConverterPlugin{
 
 			// Step C: Execute high-fidelity calculation to track the exact instant the Sun pierces this seasonal step
 			final EphemerisEngine engine = EphemerisEngineFactory.getEngine();
+			if(!engine.isAvailable())
+				throw new UnsupportedOperationException("Islamic calendar requires the Ephemeris plugin.");
+
 			final double exactSeasonJdUT = engine.findSolarLongitudeEvent(approximateMiddleJdUT, targetLongitude);
 
 			// Verify if the calculated event mathematically fell inside this year's physical boundaries.

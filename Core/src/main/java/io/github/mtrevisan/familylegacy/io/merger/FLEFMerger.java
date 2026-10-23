@@ -31,6 +31,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
@@ -176,7 +177,8 @@ public class FLEFMerger{
 
 		// Step 2: Leader‑based clustering with incremental average
 		final List<ClusterData> clusters = new ArrayList<>();
-		for(final List<FLEFRecord> block : blocks.values()){
+		final Collection<List<FLEFRecord>> blockList = blocks.values();
+		for(final List<FLEFRecord> block : blockList){
 			if(block.isEmpty())
 				continue;
 
@@ -371,7 +373,8 @@ public class FLEFMerger{
 
 	private String extractBirthYear(final FLEFRecord rec){
 		// search for event of type birth and extract date year
-		for(FLEFRecord child : rec.getChildren())
+		final List<FLEFRecord> children = rec.getChildren();
+		for(FLEFRecord child : children)
 			if("event".equalsIgnoreCase(child.getTag())){
 				final String type = FLEFRecordHelper.getChildValue(child, "type");
 				if("birth".equalsIgnoreCase(type)){
@@ -422,9 +425,11 @@ public class FLEFMerger{
 			return deepCopy(h1);
 
 		final FLEFRecord merged = FLEFRecord.createChildWithTag("header");
-		for(final FLEFRecord child : h1.getChildren())
+		final List<FLEFRecord> h1Children = h1.getChildren();
+		for(final FLEFRecord child : h1Children)
 			merged.addChild(deepCopy(child));
-		for(final FLEFRecord child : h2.getChildren()){
+		final List<FLEFRecord> h2Children = h2.getChildren();
+		for(final FLEFRecord child : h2Children){
 			final String tag = child.getTag();
 			if("contact".equalsIgnoreCase(tag))
 				merged.addChild(deepCopy(child));
@@ -451,7 +456,8 @@ public class FLEFMerger{
 				if(newId != null && !newId.equals(id))
 					rec.setValue(newId);
 			}
-			for(final FLEFRecord child : rec.getChildren())
+			final List<FLEFRecord> children = rec.getChildren();
+			for(final FLEFRecord child : children)
 				stack.push(child);
 		}
 	}

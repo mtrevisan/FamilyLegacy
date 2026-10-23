@@ -294,7 +294,8 @@ public class VikramSamvatCalendarStrategy implements CalendarConverterPlugin{
 		int tithi = 0;
 		boolean amanta = false;
 		boolean kartikadi = false;
-		for(final String word : TextNormalizer.tokenize(rawDate)){
+		final String[] words = TextNormalizer.tokenize(rawDate);
+		for(final String word : words){
 			if(FILLERS.contains(word) || NIJA.contains(word) || PURNIMANTA.contains(word))
 				continue;
 

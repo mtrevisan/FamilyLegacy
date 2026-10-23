@@ -67,13 +67,15 @@ public class RecordClusterMerger{
 
 		// Merge children: add any child not already present
 		final Set<String> existingSignatures = new HashSet<>();
-		for(final FLEFRecord child : merged.getChildren())
+		final List<FLEFRecord> children = merged.getChildren();
+		for(final FLEFRecord child : children)
 			existingSignatures.add(signature(child));
 
 		for(final FLEFRecord rec : records){
 			if(rec == base)
 				continue;
-			for(final FLEFRecord child : rec.getChildren()){
+			final List<FLEFRecord> recordChildren = rec.getChildren();
+			for(final FLEFRecord child : recordChildren){
 				final String sig = signature(child);
 				if(!existingSignatures.contains(sig)){
 					merged.addChild(deepCopy(child));
@@ -104,7 +106,8 @@ public class RecordClusterMerger{
 				.append(record.getValue());
 		// include children signatures sorted
 		final List<String> childSigs = new ArrayList<>();
-		for(final FLEFRecord child : record.getChildren())
+		final List<FLEFRecord> children = record.getChildren();
+		for(final FLEFRecord child : children)
 			childSigs.add(signature(child));
 		Collections.sort(childSigs);
 		for(final String s : childSigs)

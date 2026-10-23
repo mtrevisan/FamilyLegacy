@@ -333,15 +333,18 @@ public final class SimilarityMetrics{
 	 * Extracts the given name part (e.g., "given", "family") from a record.
 	 */
 	public static String extractNamePart(final FLEFRecord record, final String partType){
-		for(final FLEFRecord name : record.getChildren())
-			if("name".equalsIgnoreCase(name.getTag()))
-				for(FLEFRecord part : name.getChildren())
+		final List<FLEFRecord> names = record.getChildren();
+		for(final FLEFRecord name : names)
+			if("name".equalsIgnoreCase(name.getTag())){
+				final List<FLEFRecord> parts = name.getChildren();
+				for(FLEFRecord part : parts)
 					if(Strings.CI.equals("part", part.getTag())){
 						final String type = FLEFRecordHelper.getChildValue(part, "type");
 						final String value = FLEFRecordHelper.getChildValue(part, "value");
 						if(Strings.CI.equals(partType, type) && value != null)
 							return value;
 					}
+			}
 		return StringUtils.EMPTY;
 	}
 

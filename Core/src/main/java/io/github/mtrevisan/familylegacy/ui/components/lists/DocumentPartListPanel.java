@@ -127,13 +127,13 @@ public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
 		}
 		else if(isAudioVideo(uri)){
 			// TODO test
-			final String start = FLEFRecordHelper.getChildValue(documentPart, SourceCitationReader.TAG_START);
-			final String end = FLEFRecordHelper.getChildValue(documentPart, SourceCitationReader.TAG_END);
-			timeRangeDialog.loadData(uri, start, end);
+			final String startTime = FLEFRecordHelper.getChildValue(documentPart, SourceCitationReader.TAG_START_TIME);
+			final String endTime = FLEFRecordHelper.getChildValue(documentPart, SourceCitationReader.TAG_END_TIME);
+			timeRangeDialog.loadData(uri, startTime, endTime);
 			timeRangeDialog.setVisible(true);
 			if(timeRangeDialog.isSaved()){
-				updateDocumentPart(documentPart, SourceCitationReader.TAG_START, timeRangeDialog.getStart());
-				updateDocumentPart(documentPart, SourceCitationReader.TAG_END, timeRangeDialog.getEnd());
+				updateDocumentPart(documentPart, SourceCitationReader.TAG_START_TIME, timeRangeDialog.getStart());
+				updateDocumentPart(documentPart, SourceCitationReader.TAG_END_TIME, timeRangeDialog.getEnd());
 			}
 		}
 		else{
@@ -170,13 +170,13 @@ public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
 
 					// Append specific metadata to the label if present
 					final String page = FLEFRecordHelper.getChildValue(documentPart, SourceCitationReader.TAG_PAGE);
-					final String start = FLEFRecordHelper.getChildValue(documentPart, SourceCitationReader.TAG_START);
-					final String end = FLEFRecordHelper.getChildValue(documentPart, SourceCitationReader.TAG_END);
+					final String startTime = FLEFRecordHelper.getChildValue(documentPart, SourceCitationReader.TAG_START_TIME);
+					final String endTime = FLEFRecordHelper.getChildValue(documentPart, SourceCitationReader.TAG_END_TIME);
 
 					if(page != null)
 						text += " [" + I18N.t("dialog.preferred.page.input.label") + ": " + page + "]";
-					if(start != null || end != null)
-						text += " [" + (start != null? start: "0") + " - " + (end != null? end: "∞") + "]";
+					if(startTime != null || endTime != null)
+						text += " [" + (startTime != null? startTime: "0") + " - " + (endTime != null? endTime: "∞") + "]";
 
 					return text;
 				}
@@ -214,8 +214,8 @@ public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
 						timeRangeDialog.loadData(uri, null, null);
 						timeRangeDialog.setVisible(true);
 						if(timeRangeDialog.isSaved()){
-							updateDocumentPart(documentPart, SourceCitationReader.TAG_START, timeRangeDialog.getStart());
-							updateDocumentPart(documentPart, SourceCitationReader.TAG_END, timeRangeDialog.getEnd());
+							updateDocumentPart(documentPart, SourceCitationReader.TAG_START_TIME, timeRangeDialog.getStart());
+							updateDocumentPart(documentPart, SourceCitationReader.TAG_END_TIME, timeRangeDialog.getEnd());
 						}
 					}
 					else{

@@ -52,7 +52,8 @@ public final class GregorianCalendarParser{
 		// AUTOMATIC GLOBAL SEASON REGISTRATION
 		// Sweep across all available system locales on startup and dynamically extract
 		// localized strings for quarters/seasons to completely avoid manual code maintenance.
-		for(final Locale locale : Locale.getAvailableLocales()){
+		final Locale[] locales = Locale.getAvailableLocales();
+		for(final Locale locale : locales){
 			try{
 				// 1. Extract Quarter-of-Year localized textual names from java.time (mapping onto astronomical seasons)
 				// Q1 = Spring, Q2 = Summer, Q3 = Autumn, Q4 = Winter (Northern Civil/Astronomical baselines)
@@ -360,7 +361,8 @@ public final class GregorianCalendarParser{
 		if(historicalMonth != null)
 			return historicalMonth;
 
-		for(final Locale locale : Locale.getAvailableLocales()){
+		final Locale[] locales = Locale.getAvailableLocales();
+		for(final Locale locale : locales){
 			final int month = parseMonthWithLocale(token, locale);
 			if(month != -1)
 				return month;

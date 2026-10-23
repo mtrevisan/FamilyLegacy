@@ -118,7 +118,8 @@ public class NepaliCalendarStrategy implements CalendarConverterPlugin{
 	 */
 	private static int[] parse(final String rawDate){
 		final List<String> words = new ArrayList<>();
-		for(final String word : TextNormalizer.tokenize(rawDate))
+		final String[] wordList = TextNormalizer.tokenize(rawDate);
+		for(final String word : wordList)
 			if(!ERA_WORDS.contains(word))
 				words.add(word);
 		if(words.isEmpty() || words.size() > 3)
@@ -180,9 +181,11 @@ public class NepaliCalendarStrategy implements CalendarConverterPlugin{
 		}
 
 		long newYear = FIRST_NEW_YEAR_JDN;
-		for(final Map.Entry<Integer, int[]> entry : MONTH_LENGTHS.entrySet()){
+		final Set<Map.Entry<Integer, int[]>> entries = MONTH_LENGTHS.entrySet();
+		for(final Map.Entry<Integer, int[]> entry : entries){
 			NEW_YEARS.put(entry.getKey(), newYear);
-			for(final int length : entry.getValue())
+			final int[] lengths = entry.getValue();
+			for(final int length : lengths)
 				newYear += length;
 		}
 	}

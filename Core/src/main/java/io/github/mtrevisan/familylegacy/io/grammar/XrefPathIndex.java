@@ -38,6 +38,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -73,7 +74,8 @@ public final class XrefPathIndex{
 		final TypeDefinition recordTypeDef = grammar.getType(RECORD_UNION_NAME);
 		if(recordTypeDef instanceof UnionType recordUnion){
 			// Iterate over each alternative/choice inside the Record union (e.g., individual, place, event, etc.)
-			for(final Map.Entry<String, TypeDefinition> choice : recordUnion.getChoices().entrySet()){
+			final Set<Map.Entry<String, TypeDefinition>> choices = recordUnion.getChoices().entrySet();
+			for(final Map.Entry<String, TypeDefinition> choice : choices){
 				final String recordWrapperName = choice.getKey();
 				TypeDefinition choiceType = choice.getValue();
 
@@ -120,7 +122,8 @@ public final class XrefPathIndex{
 			}
 		}
 		else if(typeDef instanceof StructType structType){
-			for(final FieldDefinition fieldDef : structType.getFields()){
+			final List<FieldDefinition> fieldDefinitions = structType.getFields();
+			for(final FieldDefinition fieldDef : fieldDefinitions){
 				final String fieldName = fieldDef.name();
 				// Check if the field cardinality allows multiple items (* or +)
 				final boolean isMultiple = (fieldDef.cardinality() == Cardinality.ZERO_OR_MORE
@@ -134,7 +137,8 @@ public final class XrefPathIndex{
 			}
 		}
 		else if(typeDef instanceof UnionType unionType){
-			for(final Map.Entry<String, TypeDefinition> choice : unionType.getChoices().entrySet()){
+			final Set<Map.Entry<String, TypeDefinition>> choices = unionType.getChoices().entrySet();
+			for(final Map.Entry<String, TypeDefinition> choice : choices){
 				final String choiceName = choice.getKey();
 				final String nextPath = (currentPath.isEmpty()
 					? choiceName
@@ -143,7 +147,8 @@ public final class XrefPathIndex{
 			}
 		}
 		else if(typeDef instanceof AlternationType altType){
-			for(final TypeDefinition alt : altType.getAlternatives())
+			final List<TypeDefinition> alternatives = altType.getAlternatives();
+			for(final TypeDefinition alt : alternatives)
 				collectPaths(alt, grammar, currentPath);
 		}
 	}

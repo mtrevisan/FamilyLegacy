@@ -84,7 +84,7 @@ public final class SovietEternalCalendarParser{
 			throw new IllegalArgumentException("Unknown Soviet month or seasonal descriptor: " + monthName);
 
 		// A missing day (month and year only, or a seasonal record) is kept as 0
-		final int day = (dayGroup != null) ? Integer.parseInt(dayGroup) : 0;
+		final int day = (dayGroup != null? Integer.parseInt(dayGroup): 0);
 
 		if(dayGroup != null && month > 0 && (day < 1 || day > 31)){
 			throw new IllegalArgumentException("Day variable breaches monthly operational limits.");

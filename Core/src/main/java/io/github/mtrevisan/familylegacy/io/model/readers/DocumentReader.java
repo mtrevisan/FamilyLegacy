@@ -37,8 +37,6 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
  * // resource.
  * record DocumentRecord {
  *   uri: Uri             // URI identifying the underlying resource.
- *   width?: Int          // width in pixels of the image at URI; CROP_RECTs referring to this document are expressed in this pixel space
- *   height?: Int         // height in pixels of the image at URI
  *   mapping?: enum {     // Describes how visual image data should be interpreted and rendered.
  *     planar,                                   // Standard two-dimensional image with no panoramic or 3D projection.
  *     spherical_equirectangular,                // Full spherical panorama stored using an equirectangular projection, typically with a 2:1 aspect ratio and intended for 360° viewing.
@@ -52,13 +50,59 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
  *   privacy?: PrivacyStructure
  *   audit: AuditStructure
  * }
+ * TODO substitute with
+ * // A digital media resource associated with genealogical research.
+ * // A media resource may be an image, a textual document, an audio recording, or a video recording.
+ * MediaRecord = oneof {
+ *   image: ImageRecord
+ *   document: DocumentRecord
+ *   audio: AudioRecord
+ *   video: VideoRecord
+ * }
+ *
+ * // Properties common to all media resources.
+ * struct MediaInfo {
+ *   uri: Uri                     // URI identifying the underlying media resource.
+ *   mime?: Text                  // MIME type of the media resource (e.g. image/jpeg, application/pdf, audio/mpeg)
+ *   description?: Text           // Optional human-readable description of the media resource.
+ *   note*: NoteStructure         // Notes related to the media resource.
+ *   privacy?: PrivacyStructure   // Privacy restrictions applicable to the media resource.
+ *   audit: AuditStructure        // Audit trail for the media record.
+ * }
+ *
+ * // A still image such as a photograph, scan, map, or illustration.
+ * record ImageRecord {
+ *   info: MediaInfo
+ *
+ *   mapping?: enum {     // Describes how visual image data should be interpreted and rendered.
+ *     planar,                                   // Standard two-dimensional image with no panoramic or 3D projection.
+ *     spherical_equirectangular,                // Full spherical panorama stored using an equirectangular projection, typically with a 2:1 aspect ratio and intended for 360° viewing.
+ *     spherical_uv,                             // Image mapped directly onto a sphere using UV texture coordinates.
+ *     cubemap,                                  // Image represented as six cube faces forming a complete panoramic view.
+ *     cylindrical_equirectangular_horizontal,   // Cylindrical panorama wrapped horizontally around a cylinder.
+ *     cylindrical_equirectangular_vertical      // Cylindrical panorama wrapped vertically around a cylinder.
+ *   } | Text
+ * }
+ *
+ * // A textual or paginated document such as a PDF, transcription, OCR output, manuscript transcription, or word-processing document.
+ * record DocumentRecord {
+ *   info: MediaInfo
+ * }
+ *
+ * // An audio recording such as an interview, oral history, speech, or other sound recording.
+ * record AudioRecord {
+ *   info: MediaInfo
+ * }
+ *
+ * // A video recording such as a documentary, interview, family recording, or moving-image record.
+ * record VideoRecord {
+ *   info: MediaInfo
+ * }
  * </pre>
  */
 public final class DocumentReader{
 
 	public static final String TAG_URI = "uri";
-	public static final String TAG_WIDTH = "width";
-	public static final String TAG_HEIGHT = "height";
 	public static final String TAG_MAPPING = "mapping";
 	public static final String TAG_DESCRIPTION = "description";
 	public static final String TAG_NOTE = "note";

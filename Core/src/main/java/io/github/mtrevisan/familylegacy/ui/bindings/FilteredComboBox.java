@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.bindings;
 
+import io.github.mtrevisan.familylegacy.ui.helpers.LocaleHelper;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.DefaultComboBoxModel;
@@ -75,11 +76,12 @@ public class FilteredComboBox<E> extends JComboBox<E>{
 	private final Debouncer<String> filterDebouncer = new Debouncer<>(key -> onTextChanged(), DEBOUNCE_TIME);
 
 
+	@SuppressWarnings("unchecked")
 	public FilteredComboBox(){
-		this(Collections.emptyList());
+		this((E[])new Object[0]);
 	}
 
-	public FilteredComboBox(final List<E> items){
+	public FilteredComboBox(final E[] items){
 		super();
 
 		this.model = new DefaultComboBoxModel<>();
@@ -117,7 +119,7 @@ public class FilteredComboBox<E> extends JComboBox<E>{
 	 *
 	 * @param items	The new list of items.
 	 */
-	public void setItems(final List<E> items){
+	public void setItems(final E[] items){
 		this.filterCache.clear();
 		if(items != null)
 			for(final E item : items){
@@ -226,17 +228,8 @@ public class FilteredComboBox<E> extends JComboBox<E>{
 		catch(final Exception ignored){}
 
 		// Extract BCP 47 language tags (e.g. "en-US - English (United States)")
-		final TreeSet<String> languageCodes = new TreeSet<>(Comparator.naturalOrder());
-		for(final Locale locale : Locale.getAvailableLocales()){
-			final String tag = locale.toLanguageTag();
-			if(!tag.equals("und") && !tag.isBlank()){
-				final String displayName = locale.getDisplayName(Locale.ENGLISH);
-				if(!displayName.isBlank())
-					languageCodes.add(tag + " - " + displayName);
-				else
-					languageCodes.add(tag);
-			}
-		}
+		final String[] languageCodes = LocaleHelper.getAvailableLanguageTags()
+			.toArray(String[]::new);
 
 		SwingUtilities.invokeLater(() -> {
 			final JFrame frame = new JFrame("Filtered Language Codes Demo");
@@ -244,7 +237,7 @@ public class FilteredComboBox<E> extends JComboBox<E>{
 			frame.setSize(450, 150);
 			frame.setLayout(new FlowLayout(FlowLayout.CENTER, 20, 30));
 
-			final FilteredComboBox<String> comboBox = new FilteredComboBox<>(new ArrayList<>(languageCodes));
+			final FilteredComboBox<String> comboBox = new FilteredComboBox<>(languageCodes);
 
 			frame.add(comboBox);
 			frame.setLocationRelativeTo(null);

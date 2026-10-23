@@ -297,7 +297,8 @@ public class GEDCOMHelper{
 		if(noteNode.getValue() != null && StringUtils.isNotEmpty(noteNode.getValue())){
 			sb.append(noteNode.getValue());
 		}
-		for(GEDCOMNode child : noteNode.getChildren()){
+		final List<GEDCOMNode> children = noteNode.getChildren();
+		for(GEDCOMNode child : children){
 			String tag = child.getTag();
 			if("CONC".equals(tag) || "CONT".equals(tag)){
 				if(child.getValue() != null){

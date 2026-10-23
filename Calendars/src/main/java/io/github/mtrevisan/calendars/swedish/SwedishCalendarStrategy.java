@@ -77,7 +77,11 @@ public class SwedishCalendarStrategy implements CalendarConverterPlugin{
 			final double targetLongitude = CalendarType.getGeneralTargetLongitude(month);
 
 			final EphemerisEngine engine = EphemerisEngineFactory.getEngine();
+			if(!engine.isAvailable())
+				throw new UnsupportedOperationException("Swedish calendar requires the Ephemeris plugin.");
+
 			final double exactSeasonJdUT = engine.findSolarLongitudeEvent(approximateJdUT, targetLongitude);
+
 			return (long)Math.floor(exactSeasonJdUT + 0.5);
 		}
 

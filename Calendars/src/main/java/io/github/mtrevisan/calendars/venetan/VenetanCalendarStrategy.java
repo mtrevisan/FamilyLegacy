@@ -58,7 +58,11 @@ public class VenetanCalendarStrategy implements CalendarConverterPlugin{
 
 			// Step C: Trigger engine execution to track the exact solar coordinate transition point
 			final EphemerisEngine engine = EphemerisEngineFactory.getEngine();
+			if(!engine.isAvailable())
+				throw new UnsupportedOperationException("Venetan calendar requires the Ephemeris plugin.");
+
 			final double exactEventJdUT = engine.findSolarLongitudeEvent(approximateJdUT, targetLongitude);
+
 			return (long)Math.floor(exactEventJdUT + 0.5);
 		}
 		else{

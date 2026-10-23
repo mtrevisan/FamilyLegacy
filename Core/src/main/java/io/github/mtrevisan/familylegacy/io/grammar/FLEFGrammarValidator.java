@@ -83,7 +83,8 @@ public final class FLEFGrammarValidator{
 
 		validateFileDefinition();
 
-		for(final Map.Entry<String, TypeDefinition> entry : grammar.getTypes().entrySet())
+		final Set<Map.Entry<String, TypeDefinition>> entries = grammar.getTypes().entrySet();
+		for(final Map.Entry<String, TypeDefinition> entry : entries)
 			validateNamedType(entry.getKey(), entry.getValue());
 	}
 
@@ -139,21 +140,24 @@ public final class FLEFGrammarValidator{
 
 	private void validateStructLike(final StructType struct, final String context){
 		final Set<String> fieldNames = new HashSet<>();
-		for(final FieldDefinition field : struct.getFields()){
+		final List<FieldDefinition> fields = struct.getFields();
+		for(final FieldDefinition field : fields){
 			if(!fieldNames.add(field.name()))
 				errors.add(context + ": duplicate field '" + field.name() + "'");
 			validateTypeUsage(field.type(), FLEFRecordHelper.composePath(context, field.name()));
 		}
 
-		for(final Constraint constraint : struct.getConstraints())
+		final List<Constraint> constraints = struct.getConstraints();
+		for(final Constraint constraint : constraints)
 			validateConstraint(constraint, fieldNames, context);
 	}
 
 	private void validateConstraint(final Constraint constraint, final Set<String> fieldNames, final String context){
 		if(constraint instanceof OneOfConstraint oneOf){
-			if(oneOf.getFields().size() < 2)
+			final List<String> fields = oneOf.getFields();
+			if(fields.size() < 2)
 				warnings.add(context + ": " + oneOf + " lists fewer than two fields");
-			for(final String f : oneOf.getFields())
+			for(final String f : fields)
 				if(!fieldNames.contains(f))
 					errors.add(context + ": " + oneOf + " references unknown field '" + f + "'");
 		}
@@ -161,7 +165,8 @@ public final class FLEFGrammarValidator{
 			if(!fieldNames.contains(cond.getConditionField()))
 				errors.add(context + ": " + cond + " has unknown condition field '" + cond.getConditionField() + "'");
 
-			for(final String f : cond.getRequiredFields())
+			final List<String> fields = cond.getRequiredFields();
+			for(final String f : fields)
 				if(!fieldNames.contains(f))
 					errors.add(context + ": " + cond + " requires unknown field '" + f + "'");
 		}
@@ -170,28 +175,32 @@ public final class FLEFGrammarValidator{
 	private void validateUnion(final UnionType union, final String context){
 		if(union.getChoices().isEmpty())
 			warnings.add(context + ": oneof has no choices");
-		for(final Map.Entry<String, TypeDefinition> choice : union.getChoices().entrySet())
+		final Set<Map.Entry<String, TypeDefinition>> choices = union.getChoices().entrySet();
+		for(final Map.Entry<String, TypeDefinition> choice : choices)
 			validateTypeUsage(choice.getValue(), FLEFRecordHelper.composePath(context, choice.getKey()));
 	}
 
 	private void validateEnum(final EnumType enumType, final String context){
-		if(enumType.getValues().isEmpty()){
+		final List<String> values = enumType.getValues();
+		if(values.isEmpty()){
 			errors.add(context + ": enum has no values");
 
 			return;
 		}
+
 		final Set<String> seen = new HashSet<>();
-		for(final String value : enumType.getValues())
+		for(final String value : values)
 			if(!seen.add(value))
 				errors.add(context + ": duplicate enum value '" + value + "'");
 	}
 
 	private void validateAlternation(final AlternationType alt, final String context){
-		if(alt.getAlternatives().size() < 2){
+		final List<TypeDefinition> alternatives = alt.getAlternatives();
+		if(alternatives.size() < 2)
 			warnings.add(context + ": alternation with fewer than two alternatives");
-		}
+
 		int i = 0;
-		for(final TypeDefinition alternative : alt.getAlternatives())
+		for(final TypeDefinition alternative : alternatives)
 			validateTypeUsage(alternative, context + " (alt " + (i ++) + ")");
 	}
 

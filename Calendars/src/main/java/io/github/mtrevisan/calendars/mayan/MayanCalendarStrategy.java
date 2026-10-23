@@ -73,6 +73,9 @@ public class MayanCalendarStrategy implements CalendarConverterPlugin{
 
 			// Step C: Trigger exact calculation to find the point where the Sun enters this station
 			final EphemerisEngine engine = EphemerisEngineFactory.getEngine();
+			if(!engine.isAvailable())
+				throw new UnsupportedOperationException("Mayan calendar requires the Ephemeris plugin.");
+
 			final double exactSeasonJdUT = engine.findSolarLongitudeEvent(approximateMiddleJdUT, targetLongitude);
 
 			return (long)Math.floor(exactSeasonJdUT + 0.5);

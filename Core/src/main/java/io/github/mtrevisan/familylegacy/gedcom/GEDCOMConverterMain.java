@@ -44,6 +44,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 
+// TODO rivedere tutta la conversione con claudio, dopo che ha terminato con i calendari
 public class GEDCOMConverterMain{
 
 	// Usage: java GEDCOMConverterMain <input.ged> <output.flef>
@@ -94,13 +95,16 @@ public class GEDCOMConverterMain{
 			.toURI());
 		final Path path = root.resolve("gedg/flef_0.2.0.gedg");
 		final FLEFGrammar grammar = FLEFGrammarParser.parse(path);
-		for(final String warning : grammar.getParseWarnings())
+		final List<String> grammarWarnings = grammar.getParseWarnings();
+		for(final String warning : grammarWarnings)
 			System.err.println(warning);
 
 		final FLEFGrammarValidator.ValidationResult validationResult = FLEFGrammarValidator.validate(grammar);
-		for(final String error : validationResult.errors())
+		final List<String> errors = validationResult.errors();
+		for(final String error : errors)
 			System.err.println(error);
-		for(final String warning : validationResult.warnings())
+		final List<String> validationWarnings = validationResult.warnings();
+		for(final String warning : validationWarnings)
 			System.err.println(warning);
 
 		final FLEFValidator validator = new FLEFValidator(grammar);

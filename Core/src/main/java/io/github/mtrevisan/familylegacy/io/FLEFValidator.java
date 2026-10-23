@@ -312,9 +312,11 @@ public class FLEFValidator{
 			final String path = current.path();
 
 			final TypeDefinition typeDef = grammar.getType(record.getTag());
-			if(typeDef instanceof StructType structType)
-				for(final Constraint constraint : structType.getConstraints())
+			if(typeDef instanceof StructType structType){
+				final List<Constraint> constraints = structType.getConstraints();
+				for(final Constraint constraint : constraints)
 					constraint.validate(path, record, model, errors);
+			}
 
 			final List<FLEFRecord> children = record.getChildren();
 			for(int i = children.size() - 1; i >= 0; i --){

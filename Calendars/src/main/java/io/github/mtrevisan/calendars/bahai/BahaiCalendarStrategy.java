@@ -176,7 +176,7 @@ public class BahaiCalendarStrategy implements CalendarConverterPlugin{
 		return COMPUTED_NAW_RUZ.computeIfAbsent(year, y -> {
 			final EphemerisEngine engine = EphemerisEngineFactory.getEngine();
 			if(!engine.isAvailable())
-				throw new UnsupportedOperationException("The Bahá'í calendar after 221 BE requires the Ephemeris plugin.");
+				throw new UnsupportedOperationException("Bahá'í calendar requires the Ephemeris plugin.");
 
 			final double approximateEquinox = GregorianCalendarStrategy.toJdn(y + ERA_OFFSET, 3, 20) - 0.5;
 			final double equinox = engine.findSolarLongitudeEvent(approximateEquinox, 0.);

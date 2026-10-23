@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
 import org.apache.commons.lang3.Strings;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 
@@ -74,7 +75,8 @@ public class FLEFRecordFlattener{
 
 	private static void extractIndividual(final FLEFRecord record, final Map<String, String> fields){
 		// Extract name parts
-		for(final FLEFRecord child : record.getChildren()){
+		final List<FLEFRecord> children = record.getChildren();
+		for(final FLEFRecord child : children){
 			if(Strings.CI.equals("name", child.getTag())){
 				for(final FLEFRecord part : child.getChildren()){
 					if(Strings.CI.equals("part", part.getTag())){
@@ -98,7 +100,8 @@ public class FLEFRecordFlattener{
 	}
 
 	private static void extractGroup(final FLEFRecord record, final Map<String, String> fields){
-		for(final FLEFRecord child : record.getChildren()){
+		final List<FLEFRecord> children = record.getChildren();
+		for(final FLEFRecord child : children){
 			if("name".equalsIgnoreCase(child.getTag())){
 				final String name = child.getValue();
 				if(name != null)
@@ -114,7 +117,8 @@ public class FLEFRecordFlattener{
 	}
 
 	private static void extractEvent(final FLEFRecord record, final Map<String, String> fields){
-		for(final FLEFRecord child : record.getChildren()){
+		final List<FLEFRecord> children = record.getChildren();
+		for(final FLEFRecord child : children){
 			if("type".equalsIgnoreCase(child.getTag()))
 				fields.put("event_type", child.getValue());
 			if("description".equalsIgnoreCase(child.getTag()))
@@ -136,7 +140,8 @@ public class FLEFRecordFlattener{
 	}
 
 	private static void extractPlace(final FLEFRecord record, final Map<String, String> fields){
-		for(final FLEFRecord child : record.getChildren()){
+		final List<FLEFRecord> children = record.getChildren();
+		for(final FLEFRecord child : children){
 			if("name".equalsIgnoreCase(child.getTag())){
 				final String name = child.getValue();
 				if(name != null)
@@ -156,7 +161,8 @@ public class FLEFRecordFlattener{
 	}
 
 	private static void extractSource(final FLEFRecord record, final Map<String, String> fields){
-		for(final FLEFRecord child : record.getChildren()){
+		final List<FLEFRecord> children = record.getChildren();
+		for(final FLEFRecord child : children){
 			if("title".equalsIgnoreCase(child.getTag())){
 				final String val = FLEFRecordHelper.getChildValue(child, "value");
 				if(val != null)
@@ -177,7 +183,8 @@ public class FLEFRecordFlattener{
 	}
 
 	private static void extractDocument(final FLEFRecord record, final Map<String, String> fields){
-		for(final FLEFRecord child : record.getChildren()){
+		final List<FLEFRecord> children = record.getChildren();
+		for(final FLEFRecord child : children){
 			if("uri".equalsIgnoreCase(child.getTag()))
 				fields.put("uri", child.getValue());
 			if("description".equalsIgnoreCase(child.getTag()))
@@ -188,13 +195,15 @@ public class FLEFRecordFlattener{
 	}
 
 	private static void extractGeneric(final FLEFRecord record, final Map<String, String> fields){
-		for(final FLEFRecord child : record.getChildren())
+		final List<FLEFRecord> children = record.getChildren();
+		for(final FLEFRecord child : children)
 			if(child.getValue() != null)
 				fields.put(child.getTag(), child.getValue());
 	}
 
 	private static String extractEventDate(final FLEFRecord record, final String eventType){
-		for(final FLEFRecord child : record.getChildren())
+		final List<FLEFRecord> children = record.getChildren();
+		for(final FLEFRecord child : children)
 			if("event".equalsIgnoreCase(child.getTag())){
 				final String type = FLEFRecordHelper.getChildValue(child, "type");
 				if(eventType.equalsIgnoreCase(type)){

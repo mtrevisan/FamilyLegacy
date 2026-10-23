@@ -53,6 +53,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -363,7 +364,8 @@ public final class FLEFGrammarParser{
 
 		FieldDefinition header = null;
 		FieldDefinition records = null;
-		for(final FieldDefinition fd : body.fields()){
+		final List<FieldDefinition> fieldDefinitions = body.fields();
+		for(final FieldDefinition fd : fieldDefinitions){
 			if(Strings.CI.equals(FIELD_HEADER, fd.name()))
 				header = fd;
 			else if(Strings.CI.equals(FIELD_RECORDS, fd.name()))
@@ -785,8 +787,11 @@ public final class FLEFGrammarParser{
 		System.out.println("Total top-level types: " + grammar.getTypeNames().size());
 
 		final Map<String, Integer> counts = new LinkedHashMap<>();
-		for(final TypeDefinition t : grammar.getTypes().values()){
-			final String kind = t.getClass().getSimpleName();
+		final Collection<TypeDefinition> types = grammar.getTypes()
+			.values();
+		for(final TypeDefinition type : types){
+			final String kind = type.getClass()
+				.getSimpleName();
 			counts.merge(kind, 1, Integer::sum);
 		}
 		counts.forEach((k, v) -> System.out.println("  " + k + ": " + v));

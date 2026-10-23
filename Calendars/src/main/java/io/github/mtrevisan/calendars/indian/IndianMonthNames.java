@@ -80,7 +80,8 @@ final class IndianMonthNames{
 		int year = 0;
 		int month = 0;
 		int day = 0;
-		for(final String word : TextNormalizer.tokenize(rawDate)){
+		final String[] words = TextNormalizer.tokenize(rawDate);
+		for(final String word : words){
 			if(ERA_WORDS.contains(word))
 				continue;
 

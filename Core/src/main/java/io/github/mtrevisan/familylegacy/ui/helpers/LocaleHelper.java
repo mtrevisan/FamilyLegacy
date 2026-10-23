@@ -35,7 +35,7 @@ import java.util.TreeSet;
 
 public final class LocaleHelper{
 
-	private static List<String> cachedLocaleCodes;
+	private static TreeSet<String> cachedLocaleCodes;
 
 
 	private LocaleHelper(){}
@@ -45,11 +45,12 @@ public final class LocaleHelper{
 	 * Returns an immutable list of sorted BCP 47 language tags available in the JVM,
 	 * prepended with an empty string for empty selection.
 	 */
-	public static synchronized List<String> getAvailableLanguageTags(){
+	public static synchronized TreeSet<String> getAvailableLanguageTags(){
 		if(cachedLocaleCodes == null){
 			// Extract BCP 47 language tags (e.g. "en-US - English (United States)")
 			final TreeSet<String> tags = new TreeSet<>(Comparator.naturalOrder());
-			for(final Locale locale : Locale.getAvailableLocales()){
+			final Locale[] locales = Locale.getAvailableLocales();
+			for(final Locale locale : locales){
 				final String tag = locale.toLanguageTag();
 				if(!tag.equals("und") && !tag.isBlank()){
 					final String displayName = locale.getDisplayName(Locale.ENGLISH);
@@ -59,10 +60,7 @@ public final class LocaleHelper{
 						tags.add(tag);
 				}
 			}
-			final List<String> list = new ArrayList<>(tags.size() + 1);
-			list.add(StringUtils.EMPTY);
-			list.addAll(tags);
-			cachedLocaleCodes = list;
+			cachedLocaleCodes = tags;
 		}
 		return cachedLocaleCodes;
 	}

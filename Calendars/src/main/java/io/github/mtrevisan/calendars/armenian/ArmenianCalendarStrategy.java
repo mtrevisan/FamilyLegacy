@@ -57,6 +57,9 @@ public class ArmenianCalendarStrategy implements CalendarConverterPlugin{
 
 			// Step C: Execute high-fidelity calculation to track the exact instant the Sun cross point occurs
 			final EphemerisEngine engine = EphemerisEngineFactory.getEngine();
+			if(!engine.isAvailable())
+				throw new UnsupportedOperationException("Armenian calendar requires the Ephemeris plugin.");
+
 			final double exactSeasonJdUT = engine.findSolarLongitudeEvent(approximateMiddleJdUT, targetLongitude);
 
 			return (long)Math.floor(exactSeasonJdUT + 0.5);

@@ -144,7 +144,8 @@ public enum CalendarType implements CalendarConverterPlugin{
 	}
 
 	public static CalendarType fromCode(final String code){
-		for(final CalendarType type : values())
+		final CalendarType[] values = values();
+		for(final CalendarType type : values)
 			if(type.code.equalsIgnoreCase(code))
 				return type;
 
@@ -206,6 +207,7 @@ public enum CalendarType implements CalendarConverterPlugin{
 	}
 
 
+	// TODO write test
 	/**
 	 * Computes the precise localized sunlight phase tracking boundaries for any historical date.
 	 *

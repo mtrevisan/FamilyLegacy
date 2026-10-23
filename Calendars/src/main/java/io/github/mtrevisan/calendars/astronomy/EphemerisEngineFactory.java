@@ -94,7 +94,9 @@ public final class EphemerisEngineFactory{
 
 			// Discover SPI provider implementations inside the dynamic layer
 			final ServiceLoader<EphemerisEngine> loader = ServiceLoader.load(pluginLayer, EphemerisEngine.class);
-			for(final ServiceLoader.Provider<EphemerisEngine> provider : loader.stream().toList()){
+			final List<ServiceLoader.Provider<EphemerisEngine>> providers = loader.stream()
+				.toList();
+			for(final ServiceLoader.Provider<EphemerisEngine> provider : providers){
 				final EphemerisEngine engine = provider.get();
 				if(engine.isAvailable())
 					return engine;

@@ -144,14 +144,17 @@ public enum JapaneseEra{
 	 */
 	static Map<String, String> aliases(){
 		final Map<String, String> aliases = new HashMap<>();
-		for(final JapaneseEra era : values()){
+		final JapaneseEra[] eras = values();
+		for(final JapaneseEra era : eras){
 			final List<String> names = new ArrayList<>();
 			names.add(era.kanji);
 			names.add(era.romanization);
 			names.addAll(List.of(era.variants));
-			for(final String name : names)
-				for(final String alias : romanizationVariants(name))
+			for(final String name : names){
+				final List<String> aliasList = romanizationVariants(name);
+				for(final String alias : aliasList)
 					aliases.put(alias, era.name());
+			}
 		}
 		return aliases;
 	}

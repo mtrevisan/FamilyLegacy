@@ -315,8 +315,12 @@ public class FLEFModel{
 		}
 
 		// Recursively inspect child nodes (including translations or nested structures)
-		for(final FLEFRecord child : record.getChildren())
+		final List<FLEFRecord> children = record.getChildren();
+		for(int i = 0, childrenSize = children.size(); i < childrenSize; i ++){
+			final FLEFRecord child = children.get(i);
+
 			updateNoteLinksRecursive(child, flefLinkOld, flefLinkNew);
+		}
 	}
 
 

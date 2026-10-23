@@ -166,7 +166,8 @@ public final class IndividualReader{
 
 	private static String parsePersonalName(final Name name){
 		final StringJoiner fullName = new StringJoiner(StringUtils.SPACE);
-		for(final NamePart part : name.parts()){
+		final List<NamePart> parts = name.parts();
+		for(final NamePart part : parts){
 			final String value = part.value();
 			if(value != null)
 				fullName.add(value);

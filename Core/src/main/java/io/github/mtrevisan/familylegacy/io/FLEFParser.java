@@ -177,7 +177,8 @@ public class FLEFParser{
 			if(Strings.CI.equals(FIELD_HEADER, tag))
 				root.setHeader(record);
 			else if(Strings.CI.equals(FIELD_RECORDS, tag)){
-				for(final FLEFRecord child : record.getChildren())
+				final List<FLEFRecord> children = record.getChildren();
+				for(final FLEFRecord child : children)
 					root.addRecord(child);
 			}
 			else

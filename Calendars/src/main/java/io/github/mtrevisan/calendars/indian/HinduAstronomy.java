@@ -65,6 +65,7 @@ final class HinduAstronomy{
 		final EphemerisEngine engine = EphemerisEngineFactory.getEngine();
 		if(!engine.isAvailable())
 			throw new UnsupportedOperationException("The Indian calendars require the Ephemeris astronomical plugin.");
+
 		return engine;
 	}
 

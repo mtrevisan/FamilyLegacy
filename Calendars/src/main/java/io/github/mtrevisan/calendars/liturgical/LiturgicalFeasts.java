@@ -302,7 +302,8 @@ public final class LiturgicalFeasts{
 	 */
 	private static String key(final String name, final boolean dropSecondary){
 		final List<String> words = new ArrayList<>();
-		for(final String word : TextNormalizer.tokenize(name))
+		final String[] wordList = TextNormalizer.tokenize(name);
+		for(final String word : wordList)
 			if(!FILLERS.contains(word) && !(dropSecondary && SECONDARY_FILLERS.contains(word)))
 				words.add(word);
 		return String.join(" ", words);

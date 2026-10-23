@@ -56,6 +56,9 @@ public class SeleucidCalendarStrategy implements CalendarConverterPlugin{
 
 			// Step C: Execute high-fidelity calculation to track the exact instant the transit occurs
 			final EphemerisEngine engine = EphemerisEngineFactory.getEngine();
+			if(!engine.isAvailable())
+				throw new UnsupportedOperationException("Seleucid calendar requires the Ephemeris plugin.");
+
 			final double exactSeasonJdUT = engine.findSolarLongitudeEvent(approximateMiddleJdUT, targetLongitude);
 
 			return (long)Math.floor(exactSeasonJdUT + 0.5);

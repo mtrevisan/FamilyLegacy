@@ -161,7 +161,7 @@ public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
 		final BoundTextArea textArea = new BoundTextArea(SourceCitationReader.TAG_TEXT, 3, 25);
 		final BoundComboBox<String> typeCombo = new BoundComboBox<>(SourceCitationReader.TAG_TYPE, GUIHelper.fillCombo(SourceCitationReader.EXTRACT_TYPES, I18N.t("search.combo.any")));
 		typeCombo.setI18NPrefix("enum.extract_type");
-		final BoundFilteredComboBox<String> localeCombo = new BoundFilteredComboBox<>(SourceCitationReader.TAG_LOCALE, LocaleHelper.getAvailableLanguageTags());
+		final BoundFilteredComboBox<String> localeCombo = new BoundFilteredComboBox<>(SourceCitationReader.TAG_LOCALE, GUIHelper.fillCombo(LocaleHelper.getAvailableLanguageTags().toArray(String[]::new), null));
 		final BasicNoteListPanel remark = new BasicNoteListPanel(SourceCitationReader.TAG_REMARK, parent, I18N.t("dialog.extract.remark"), SourceCitationReader.TAG_REMARK);
 
 

@@ -33,6 +33,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -152,7 +153,8 @@ public final class EastAsianEraDateParser{
 			era = defaultEra;
 		}
 
-		for(final Map.Entry<String, String> special : SPECIAL_NAMES.entrySet())
+		final Set<Map.Entry<String, String>> specials = SPECIAL_NAMES.entrySet();
+		for(final Map.Entry<String, String> special : specials)
 			rest = rest.replace(special.getKey(), special.getValue());
 		final Matcher leapMatcher = LEAP_MARKER.matcher(rest);
 		final boolean leapMonth = leapMatcher.find();

@@ -180,7 +180,8 @@ public final class Reigns{
 				final String[] fields = line.split(";", -1);
 				final int ordinal = Integer.parseInt(fields[4]);
 				final Set<String> names = new LinkedHashSet<>();
-				for(final String name : new String[]{fields[1], fields[2], fields[3]})
+				final String[] nameList = {fields[1], fields[2], fields[3]};
+				for(final String name : nameList)
 					addPopeNames(names, stripOrdinal(TextNormalizer.normalize(name)));
 				final Reign.CivilDate election = date(fields[6]);
 				final Reign.CivilDate start = (StringUtils.isNotBlank(fields[7])? date(fields[7]): election);
@@ -210,11 +211,15 @@ public final class Reigns{
 		forms.addAll(NAME_VARIANTS.getOrDefault(name, List.of()));
 		// variants of the single words (e.g. "ioannes paulus" -> "johannes paulus")
 		final String[] words = StringUtils.split(name);
-		if(words.length > 1)
-			for(final Map.Entry<String, List<String>> variant : NAME_VARIANTS.entrySet())
-				if(name.contains(variant.getKey()))
-					for(final String replacement : variant.getValue())
+		if(words.length > 1){
+			final Set<Map.Entry<String, List<String>>> variants = NAME_VARIANTS.entrySet();
+			for(final Map.Entry<String, List<String>> variant : variants)
+				if(name.contains(variant.getKey())){
+					final List<String> replacements = variant.getValue();
+					for(final String replacement : replacements)
 						forms.add(name.replace(variant.getKey(), replacement));
+				}
+		}
 
 		for(final String form : forms){
 			names.add(form);

@@ -90,8 +90,8 @@ public final class SourceCitationReader{
 	public static final String TAG_DOCUMENT = "document";
 	public static final String TAG_PAGE = "page";
 	public static final String TAG_CROP = "crop";
-	public static final String TAG_START = "start";
-	public static final String TAG_END = "end";
+	public static final String TAG_START_TIME = "start_time";
+	public static final String TAG_END_TIME = "end_time";
 	public static final String TAG_TEXT = "text";
 	public static final String TAG_TYPE = "type";
 	public static final String TAG_LOCALE = "locale";

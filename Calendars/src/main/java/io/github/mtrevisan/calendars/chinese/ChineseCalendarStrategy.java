@@ -75,6 +75,9 @@ public class ChineseCalendarStrategy implements CalendarConverterPlugin{
 
 			// Step C: Trigger exact calculation to find the point where the Sun enters this solar term
 			final EphemerisEngine engine = EphemerisEngineFactory.getEngine();
+			if(!engine.isAvailable())
+				throw new UnsupportedOperationException("Chinese calendar requires the Ephemeris plugin.");
+
 			final double exactSeasonJdUT = engine.findSolarLongitudeEvent(approximateMiddleJdUT, targetLongitude);
 
 			return (long)Math.floor(exactSeasonJdUT + 0.5);

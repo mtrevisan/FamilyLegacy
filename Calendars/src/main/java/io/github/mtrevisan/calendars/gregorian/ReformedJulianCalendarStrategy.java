@@ -73,6 +73,9 @@ public class ReformedJulianCalendarStrategy implements CalendarConverterPlugin{
 
 			// Step C: Execute high-precision calculation to track the exact instant the Sun enters this season
 			final EphemerisEngine engine = EphemerisEngineFactory.getEngine();
+			if(!engine.isAvailable())
+				throw new UnsupportedOperationException("Reformed Julian calendar requires the Ephemeris plugin.");
+
 			final double exactSeasonJdUT = engine.findSolarLongitudeEvent(approximateMiddleJdUT, targetLongitude);
 
 			return (long)Math.floor(exactSeasonJdUT + 0.5);

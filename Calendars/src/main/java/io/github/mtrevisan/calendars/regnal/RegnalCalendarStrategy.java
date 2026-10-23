@@ -110,7 +110,8 @@ public class RegnalCalendarStrategy implements CalendarConverterPlugin{
 
 		final List<Long> results = new ArrayList<>();
 		final List<String> errors = new ArrayList<>();
-		for(final Reign reign : date.candidates()){
+		final List<Reign> reigns = date.candidates();
+		for(final Reign reign : reigns){
 			try{
 				final long jdn = toJdn(reign, date, rawDate);
 				if(date.incarnationYear() == 0 || Math.abs(yearOf(jdn) - date.incarnationYear()) <= 1)
@@ -209,8 +210,9 @@ public class RegnalCalendarStrategy implements CalendarConverterPlugin{
 		int matchEnd = -1;
 		int matchEndWithoutOrdinal = -1;
 		for(int i = 0; i < words.size() && withOrdinal.isEmpty() && withoutOrdinal.isEmpty(); i ++)
-			for(final Reign reign : reigns)
-				for(final String name : reign.names()){
+			for(final Reign reign : reigns){
+				final List<String> names = reign.names();
+				for(final String name : names){
 					final String[] nameWords = StringUtils.split(name);
 					if(!matchesAt(words, i, nameWords))
 						continue;
@@ -237,6 +239,7 @@ public class RegnalCalendarStrategy implements CalendarConverterPlugin{
 						matchEndWithoutOrdinal = Math.max(matchEndWithoutOrdinal, i + nameWords.length);
 					}
 				}
+			}
 		// an explicit ordinal excludes the rulers matched without it
 		final List<Reign> rulers = (!withOrdinal.isEmpty()? withOrdinal: withoutOrdinal);
 		if(rulers.isEmpty())
@@ -301,7 +304,8 @@ public class RegnalCalendarStrategy implements CalendarConverterPlugin{
 	 * @return the position of the day next to the month (before it, or after it), or {@code -1}
 	 */
 	private static int findDay(final List<String> words, final int monthIndex){
-		for(final int index : new int[]{monthIndex - 1, monthIndex}){
+		final int[] indices = {monthIndex - 1, monthIndex};
+		for(final int index : indices){
 			if(index < 0 || index >= words.size())
 				continue;
 

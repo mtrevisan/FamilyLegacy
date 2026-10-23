@@ -79,7 +79,8 @@ public record NamePart(String type, String value, List<TextValueVariant> variant
 		final List<TextValueVariant> variants = new ArrayList<>();
 		final List<FLEFRecord> variantWrappers = FLEFRecordHelper.findChildren(partRecord, NameReader.TAG_PART_VARIANT);
 		for(final FLEFRecord variantWrapper : variantWrappers){
-			for(final FLEFRecord kindChild : variantWrapper.getChildren()){
+			final List<FLEFRecord> kindChildren = variantWrapper.getChildren();
+			for(final FLEFRecord kindChild : kindChildren){
 				final String kind = kindChild.getTag();
 				if(!TextValueVariantReader.isPhonetic(kind) && !TextValueVariantReader.isTranscription(kind))
 					continue;
