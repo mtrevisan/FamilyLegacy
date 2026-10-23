@@ -230,7 +230,7 @@ public class FamilyConverter{
 
 		// Sources (SOUR) – attach directly to group
 		for(GEDCOMNode sourNode : GEDCOMHelper.findChildren(famNode, "SOUR")){
-			GEDCOMHelper.attachSource(group, model, sourNode, noteRawMap, objeRawMap);
+			GEDCOMHelper.attachSource(group, model, sourNode, noteRawMap, objeRawMap, sourRawMap);
 		}
 
 		// Notes – inline structs
@@ -526,7 +526,7 @@ public class FamilyConverter{
 
 		// Sources
 		for(GEDCOMNode sourNode : GEDCOMHelper.findChildren(eventNode, "SOUR")){
-			GEDCOMHelper.attachSource(eventRecord, model, sourNode, noteRawMap, objeRawMap);
+			GEDCOMHelper.attachSource(eventRecord, model, sourNode, noteRawMap, objeRawMap, sourRawMap);
 		}
 
 		// Multimedia
@@ -590,7 +590,7 @@ public class FamilyConverter{
 
 		// Sources
 		for(GEDCOMNode sourNode : GEDCOMHelper.findChildren(attrNode, "SOUR")){
-			GEDCOMHelper.attachSource(groupAttribute, model, sourNode, noteRawMap, objeRawMap);
+			GEDCOMHelper.attachSource(groupAttribute, model, sourNode, noteRawMap, objeRawMap, sourRawMap);
 		}
 
 		// Multimedia

@@ -68,7 +68,7 @@ public class MultimediaConverter{
 	 *
 	 * @param objNode the GEDCOM node with tag "OBJE"
 	 */
-	public void convert(GEDCOMNode objNode){
+	public void convert(GEDCOMNode objNode, Map<String, GEDCOMNode> sourRawMap){
 		if(objNode == null)
 			return;
 
@@ -193,7 +193,7 @@ public class MultimediaConverter{
 		// ---- Sources (SOUR) ----
 		for(GEDCOMNode sourNode : GEDCOMHelper.findChildren(objNode, "SOUR")){
 			GEDCOMHelper.attachSource(document, model,
-				sourNode, noteRawMap, objeRawMap);
+				sourNode, noteRawMap, objeRawMap, sourRawMap);
 		}
 
 		// ---- Notes (GEDCOM NOTE) – inline structs ----

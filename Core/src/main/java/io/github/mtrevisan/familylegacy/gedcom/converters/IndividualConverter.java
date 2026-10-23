@@ -113,7 +113,7 @@ public class IndividualConverter {
 
 		// ---- Names ----
 		for(GEDCOMNode nameNode : GEDCOMHelper.findChildren(indiNode, "NAME")){
-			GEDCOMHelper.attachPersonalNameStructure(individual, nameNode, model, noteRawMap, objeRawMap);
+			GEDCOMHelper.attachPersonalNameStructure(individual, nameNode, model, noteRawMap, objeRawMap, sourRawMap);
 		}
 
 		// ---- Sex ----
@@ -139,7 +139,7 @@ public class IndividualConverter {
 		// ---- Sources (SOUR) ----
 		for(GEDCOMNode sourNode : GEDCOMHelper.findChildren(indiNode, "SOUR")){
 			GEDCOMHelper.attachSource(individual, model,
-				sourNode, noteRawMap, objeRawMap);
+				sourNode, noteRawMap, objeRawMap, sourRawMap);
 		}
 
 		// ---- Notes (GEDCOM NOTE) – inline structs ----
@@ -410,7 +410,7 @@ public class IndividualConverter {
 						// ---- Sources (SOUR) ----
 						for(GEDCOMNode sourNode : GEDCOMHelper.findChildren(child, "SOUR")){
 							GEDCOMHelper.attachSource(relationship, model,
-								sourNode, noteRawMap, objeRawMap);
+								sourNode, noteRawMap, objeRawMap, sourRawMap);
 						}
 
 						// ---- Notes (GEDCOM NOTE) – inline structs ----

@@ -383,7 +383,8 @@ public class GEDCOMHelper{
 	 * (GIVN, SURN, NPFX, NSFX, SPFX, NICK), inline sources, and notes with CONC/CONT.
 	 */
 	public static void attachPersonalNameStructure(FLEFRecord parent,
-			GEDCOMNode nameNode, FLEFModel model, Map<String, GEDCOMNode> noteRawMap, Map<String, GEDCOMNode> objeRawMap){
+			GEDCOMNode nameNode, FLEFModel model, Map<String, GEDCOMNode> noteRawMap, Map<String, GEDCOMNode> objeRawMap,
+			Map<String, GEDCOMNode> sourRawMap){
 		if(nameNode == null){
 			return;
 		}
@@ -417,39 +418,41 @@ public class GEDCOMHelper{
 		// Explicit parts mapping: priority to sub-tags, fallback to inline parsing
 		personalNamePieces(name, nameNode, given, family);
 
-		// TODO
 		// Phonetic variations (FONE)
-//		FLEFRecord namePhoneticVariations = FLEFRecord.createChildWithTag("name");
-//		for(GEDCOMNode nameFoneNode : findChildren(nameNode, "FONE")){
-//			GEDCOMNode nameFoneType = findFirstChild(nameFoneNode, "TYPE");
-//			personalNamePieces(namePhoneticVariations, nameFoneNode, null, null);
-//
-//			FLEFRecord variant = FLEFRecord.createChildWithTag("variant");
-//			FLEFRecord phonetic = FLEFRecord.createChildWithTag("phonetic");
-//			transferValue(phonetic, "system", nameFoneType);
-//			transferValue(phonetic, "value", nameFoneNode);
-//			if(!phonetic.isEmpty())
-//				variant.addChild(phonetic);
-//			if(!variant.isEmpty())
-//				namePhoneticVariations.addChild(variant);
-//		}
+		for(GEDCOMNode nameFoneNode : findChildren(nameNode, "FONE")){
+			GEDCOMNode nameFoneType = findFirstChild(nameFoneNode, "TYPE");
+			String system = (nameFoneType != null && nameFoneType.getValue() != null ? nameFoneType.getValue() : "ipa");
+			String value = extractFullText(nameFoneNode);
 
-		// TODO
-//		// Romanized variations (ROMN)
-//		for(GEDCOMNode romn : findChildren(nameNode, "ROMN")){
-//			FLEFRecord variant = FLEFRecord.createChildWithTag("variant");
-//			FLEFRecord transcription = FLEFRecord.createChildWithTag("transcription");
-//			GEDCOMNode romnType = findFirstChild(romn, "TYPE");
-//			String system = (romnType != null && romnType.getValue() != null? romnType.getValue(): "scientific");
-//			transcription.addChild(FLEFRecord.createChildWithTagAndValue("system", system));
-//			transcription.addChild(FLEFRecord.createChildWithTagAndValue("value", romn.getValue()));
-//			variant.addChild(transcription);
-//			namePhoneticVariations.addChild(variant);
-//		}
+			if(StringUtils.isNotEmpty(value)){
+				FLEFRecord variant = FLEFRecord.createChildWithTag("variant");
+				FLEFRecord phonetic = FLEFRecord.createChildWithTag("phonetic")
+					.addChild(FLEFRecord.createChildWithTagAndValue("system", system))
+					.addChild(FLEFRecord.createChildWithTagAndValue("value", value));
+				variant.addChild(phonetic);
+				name.addChild(variant); // Aggiunto a 'name' (la struttura PersonalNameStructure in FLEF)
+			}
+		}
+
+		// Romanized variations (ROMN)
+		for(GEDCOMNode romn : findChildren(nameNode, "ROMN")){
+			GEDCOMNode romnType = findFirstChild(romn, "TYPE");
+			String system = (romnType != null && romnType.getValue() != null ? romnType.getValue() : "pinyin");
+			String value = extractFullText(romn);
+
+			if(StringUtils.isNotEmpty(value)){
+				FLEFRecord variant = FLEFRecord.createChildWithTag("variant");
+				FLEFRecord transcription = FLEFRecord.createChildWithTag("transcription")
+					.addChild(FLEFRecord.createChildWithTagAndValue("system", system))
+					.addChild(FLEFRecord.createChildWithTagAndValue("value", value));
+				variant.addChild(transcription);
+				name.addChild(variant);
+			}
+		}
 
 		for(GEDCOMNode sourNode : findChildren(nameNode, "SOUR")){
 			attachSource(parent, model,
-				sourNode, noteRawMap, objeRawMap);
+				sourNode, noteRawMap, objeRawMap, sourRawMap);
 		}
 
 		for(GEDCOMNode noteNode : findChildren(nameNode, "NOTE")){
@@ -513,49 +516,13 @@ public class GEDCOMHelper{
 	]
 	 */
 	public static void attachSource(FLEFRecord parent, FLEFModel model,
-			GEDCOMNode node, Map<String, GEDCOMNode> noteRawMap, Map<String, GEDCOMNode> objeRawMap){
+			GEDCOMNode node, Map<String, GEDCOMNode> noteRawMap, Map<String, GEDCOMNode> objeRawMap,
+			Map<String, GEDCOMNode> sourRawMap){
 		if(node == null)
 			return;
 
 		String sourValue = extractFullText(node);
 		if(cleanId(sourValue) != null){
-			// TODO is there something to fetch from actual raw source?
-
-//			FLEFRecord event = null;
-			GEDCOMNode pageNode = findFirstChild(node, "PAGE");
-//			GEDCOMNode evenNode = findFirstChild(node, "EVEN");
-//			String evenValue = (evenNode != null? evenNode.getValue(): null);
-//			if(StringUtils.isNotEmpty(evenValue)){
-//				GEDCOMNode evenRoleNode = findFirstChild(evenNode, "ROLE");
-//				String roleValue = (evenRoleNode != null? evenRoleNode.getValue(): null);
-//
-//				String role = GEDCOMMapper.mapRole(roleValue, roleValue);
-//				String roleType = GEDCOMMapper.mapEvent(evenValue, evenValue);
-//				StringJoiner sj = new StringJoiner(StringUtils.LF);
-//				if(StringUtils.isNotEmpty(role))
-//					sj.add("Role: " + role);
-//				if(StringUtils.isNotEmpty(roleType))
-//					sj.add("Role type: " + roleType);
-//				parent.addChild(createNoteStruct(sj.toString(), null));
-//				event = FLEFRecord.createMainRecord(IDGenerator.nextId(EventHandler.ID_PREFIX), EventHandler.TYPE)
-//					.addChild(FLEFRecord.createChildWithTagAndValue("type", GEDCOMMapper.mapEvent(evenValue, evenValue)))
-//					.addChild(AuditBuilder.build(node));
-//
-//				model.addRecord(event);
-//
-//				FLEFRecord eventParticipant = FLEFRecord.createMainRecord(IDGenerator.nextId(EventParticipationHandler.ID_PREFIX), EventParticipationHandler.TYPE)
-//					.addChild(FLEFRecord.createChildWithTag("participant")
-//						.addChild(FLEFRecord.createChildWithTagAndValue("individual", parent.getId()))
-//					)
-//					.addChild(FLEFRecord.createChildWithTagAndValue("event", event.getId()));
-//				if(StringUtils.isNotEmpty(roleValue))
-//					eventParticipant.addChild(FLEFRecord.createChildWithTagAndValue("role", GEDCOMMapper.mapRole(roleValue, roleValue)));
-//				eventParticipant.addChild(AuditBuilder.build(node));
-//
-//				// check for duplicates before adding
-//				Deduplicator.getDeduplicatedRecordId(model, eventParticipant);
-//			}
-
 			FLEFRecord sourceCitation = FLEFRecord.createChildWithTag("source");
 
 			GEDCOMNode dataNode = findFirstChild(node, "DATA");
@@ -573,10 +540,8 @@ public class GEDCOMHelper{
 				attachNote(source, noteNode, noteRawMap);
 			}
 			source.addChild(AuditBuilder.build(node));
-			// check for duplicates before adding
-			Deduplicator.getDeduplicatedRecordId(model, source);
 
-			sourceCitation.addChild(FLEFRecord.createChildWithTagAndValue("source", sourValue));
+			GEDCOMNode pageNode = findFirstChild(node, "PAGE");
 			transferValue(sourceCitation, "locator", pageNode);
 			if(StringUtils.isNotEmpty(dataTextNode)){
 				sourceCitation.addChild(FLEFRecord.createChildWithTag("extract")
@@ -584,6 +549,32 @@ public class GEDCOMHelper{
 				);
 			}
 			attachQuay(source, node);
+
+			final GEDCOMNode rawSource = (sourRawMap != null? sourRawMap.get(sourValue): null);
+			if(rawSource != null){
+				final GEDCOMNode titlNode = findFirstChild(rawSource, "TITL");
+				if(titlNode != null && StringUtils.isNotEmpty(titlNode.getValue())){
+					final String titleText = extractFullText(titlNode);
+					if(StringUtils.isNotEmpty(titleText)){
+						source.addChild(FLEFRecord.createChildWithTag("title")
+							.addChild(FLEFRecord.createChildWithTagAndValue("value", titleText))
+						);
+					}
+				}
+				final GEDCOMNode authNode = findFirstChild(rawSource, "AUTH");
+				if(authNode != null && StringUtils.isNotEmpty(authNode.getValue())){
+					source.addChild(FLEFRecord.createChildWithTag("author")
+						.addChild(FLEFRecord.createChildWithTagAndValue("text", extractFullText(authNode)))
+					);
+				}
+				final GEDCOMNode publNode = findFirstChild(rawSource, "PUBL");
+				if(publNode != null && StringUtils.isNotEmpty(publNode.getValue())){
+					source.addChild(FLEFRecord.createChildWithTagAndValue("publisher", extractFullText(publNode)));
+				}
+			}
+			// check for duplicates before adding
+			String sourceId = Deduplicator.getDeduplicatedRecordId(model, source);
+			sourceCitation.addChild(FLEFRecord.createChildWithTagAndValue("source", sourceId));
 
 			parent.addChild(sourceCitation);
 		}
@@ -734,7 +725,15 @@ public class GEDCOMHelper{
 					}
 				}
 
-				// TODO _PUBL
+				// _PUBL
+				GEDCOMNode publNode = GEDCOMHelper.findFirstChild(node, "_PUBL");
+				if(publNode != null && StringUtils.isNotEmpty(publNode.getValue()) && !"Y".equals(publNode.getValue())
+						&& !"N".equals(publNode.getValue())){
+					FLEFRecord note = FLEFRecord.createChildWithTag("note")
+						.addChild(FLEFRecord.createChildWithTagAndValue("text", "Published by: " + publNode.getValue()))
+						.addChild(AuditBuilder.build(node));
+					document.addChild(note);
+				}
 
 				// check for duplicates before adding
 				objeXrefId = Deduplicator.getDeduplicatedRecordId(model, document);
@@ -816,7 +815,7 @@ public class GEDCOMHelper{
 			event.addChild(FLEFRecord.createChildWithTagAndValue("description", eventValue));
 		}
 
-		attachEventOrFactDetail(parent, event, model, node, noteRawMap, objeRawMap, placeCache, roots);
+		attachEventOrFactDetail(parent, event, model, node, noteRawMap, objeRawMap, sourRawMap, placeCache, roots);
 	}
 
 
@@ -845,11 +844,12 @@ public class GEDCOMHelper{
 		attachDate(individualAttribute, "valid_from", getDateTime(dateNode));
 		attachDate(individualAttribute, "valid_to", getDateTime(dateNode));
 
-		attachEventOrFactDetail(parent, individualAttribute, model, node, noteRawMap, objeRawMap, placeCache, roots);
+		attachEventOrFactDetail(parent, individualAttribute, model, node, noteRawMap, objeRawMap, sourRawMap, placeCache, roots);
 	}
 
 	private static void attachEventOrFactDetail(FLEFRecord parent, FLEFRecord record, FLEFModel model, GEDCOMNode node,
-			Map<String, GEDCOMNode> noteRawMap, Map<String, GEDCOMNode> objeRawMap, PlaceCache placeCache, List<GEDCOMNode> roots){
+			Map<String, GEDCOMNode> noteRawMap, Map<String, GEDCOMNode> objeRawMap, Map<String, GEDCOMNode> sourRawMap,
+		PlaceCache placeCache, List<GEDCOMNode> roots){
 		// Place
 		GEDCOMNode placNode = findFirstChild(node, "PLAC");
 		GEDCOMNode addrNode = findFirstChild(node, "ADDR");
@@ -871,7 +871,7 @@ public class GEDCOMHelper{
 		// ---- Sources (SOUR) ----
 		for(GEDCOMNode sourNode : findChildren(node, "SOUR")){
 			attachSource(record, model,
-				sourNode, noteRawMap, objeRawMap);
+				sourNode, noteRawMap, objeRawMap, sourRawMap);
 		}
 
 		// ---- Notes (GEDCOM NOTE) – inline structs ----
@@ -1075,7 +1075,7 @@ public class GEDCOMHelper{
 		attachDate(groupAttribute, "valid_from", getDateTime(dateNode));
 		attachDate(groupAttribute, "valid_to", getDateTime(dateNode));
 
-		attachEventOrFactDetail(parent, groupAttribute, model, node, noteRawMap, objeRawMap, placeCache, roots);
+		attachEventOrFactDetail(parent, groupAttribute, model, node, noteRawMap, objeRawMap, sourRawMap, placeCache, roots);
 
 		// Link participants
 		if(husbandId != null){
@@ -1321,44 +1321,38 @@ public class GEDCOMHelper{
 		if(StringUtils.isEmpty(finalPlaceName))
 			return;
 
-		// TODO
-//		// ---- FONE (phonetic variation) ----
-//		for(GEDCOMNode foneNode : findChildren(placNode, "FONE")){
-//			String phonetic = extractFullText(foneNode);
-//			if(StringUtils.isNotEmpty(phonetic)){
-//				// Store as a variant note
-//				String system = "IPA"; // default
-//				GEDCOMNode typeNode = findFirstChild(foneNode, "TYPE");
-//				if(typeNode != null && typeNode.getValue() != null){
-//					system = typeNode.getValue();
-//				}
-//				String text = "Phonetic (" + system + "): " + phonetic;
-//				FLEFRecord note = createNoteStruct(text, foneNode);
-//				if(note != null) place.addChild(note);
-//			}
-//		}
-
-		// TODO
-//		// ---- ROMN (romanized variation) ----
-//		for(GEDCOMNode romnNode : findChildren(placNode, "ROMN")){
-//			String romanized = extractFullText(romnNode);
-//			if(StringUtils.isNotEmpty(romanized)){
-//				String system = "scientific"; // default
-//				GEDCOMNode typeNode = findFirstChild(romnNode, "TYPE");
-//				if(typeNode != null && typeNode.getValue() != null){
-//					system = typeNode.getValue();
-//				}
-//				String text = "Romanized (" + system + "): " + romanized;
-//				FLEFRecord note = createNoteStruct(text, romnNode);
-//				if(note != null) place.addChild(note);
-//			}
-//		}
-
-
 		// Use PlaceCache to handle hierarchy, splitting, deduplication, and links
 		final FLEFRecord placeRecord = (placeCache != null? placeCache.getOrCreatePlace(targetPlacNode): null);
 		if(placeRecord == null)
 			return;
+
+		// ---- FONE (phonetic variation) ----
+		for(GEDCOMNode foneNode : findChildren(placNode, "FONE")){
+			String phonetic = extractFullText(foneNode);
+			if(StringUtils.isNotEmpty(phonetic)){
+				String system = "IPA";
+				GEDCOMNode typeNode = findFirstChild(foneNode, "TYPE");
+				if(typeNode != null && typeNode.getValue() != null){
+					system = typeNode.getValue();
+				}
+				FLEFRecord note = createNoteStruct("Phonetic (" + system + "): " + phonetic, foneNode);
+				if(note != null) placeRecord.addChild(note);
+			}
+		}
+
+		// ---- ROMN (romanized variation) ----
+		for(GEDCOMNode romnNode : findChildren(placNode, "ROMN")){
+			String romanized = extractFullText(romnNode);
+			if(StringUtils.isNotEmpty(romanized)){
+				String system = "scientific";
+				GEDCOMNode typeNode = findFirstChild(romnNode, "TYPE");
+				if(typeNode != null && typeNode.getValue() != null){
+					system = typeNode.getValue();
+				}
+				FLEFRecord note = createNoteStruct("Romanized (" + system + "): " + romanized, romnNode);
+				if(note != null) placeRecord.addChild(note);
+			}
+		}
 
 		// Attach NOTE (notes under PLAC) to the leaf place if needed
 		for(final GEDCOMNode noteNode : findChildren(placNode, "NOTE")){
@@ -1481,7 +1475,7 @@ public class GEDCOMHelper{
 	public static String createAndAddEventRecord(
 		GEDCOMNode eventNode,
 		Map<String, GEDCOMNode> noteRawMap,
-		Map<String, GEDCOMNode> objeRawMap, PlaceCache placeCache, FLEFModel model){
+		Map<String, GEDCOMNode> objeRawMap, Map<String, GEDCOMNode> sourRawMap, PlaceCache placeCache, FLEFModel model){
 
 		if(eventNode == null)
 			return null;
@@ -1515,7 +1509,7 @@ public class GEDCOMHelper{
 
 		// Inline Sources
 		for(GEDCOMNode sourNode : findChildren(eventNode, "SOUR")){
-			attachSource(eventRecord, model, sourNode, noteRawMap, objeRawMap);
+			attachSource(eventRecord, model, sourNode, noteRawMap, objeRawMap, sourRawMap);
 		}
 
 		// Se roots gestisce gli FLEFRecord principali

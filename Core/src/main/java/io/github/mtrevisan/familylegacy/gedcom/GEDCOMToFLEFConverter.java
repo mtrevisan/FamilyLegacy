@@ -134,7 +134,7 @@ public class GEDCOMToFLEFConverter {
 				case "FAM" -> familyConverter.collect(node);
 				case "SOUR" -> sourceConverter.convert(node);
 				case "REPO" -> repositoryConverter.convert(node);
-				case "OBJE" -> multimediaConverter.convert(node);
+				case "OBJE" -> multimediaConverter.convert(node, sourRawMap);
 //				case "SUBM" -> submitterConverter.convert(node);
 //				case "NOTE" -> noteConverter.convert(node);
 				// SUBN (submission records) are ignored.
