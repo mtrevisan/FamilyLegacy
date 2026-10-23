@@ -31,7 +31,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.DateReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.date.CalendarType;
+import io.github.mtrevisan.calendars.CalendarType;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.NormalizedDate;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.TemporalSpan;
 import io.github.mtrevisan.familylegacy.ui.components.searches.SearchMatcher;

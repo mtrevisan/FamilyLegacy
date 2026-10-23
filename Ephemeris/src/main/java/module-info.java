@@ -1,4 +1,4 @@
-import io.github.mtrevisan.familylegacy.services.EphemerisEngine;
+import io.github.mtrevisan.calendars.astronomy.EphemerisEngine;
 
 
 /**
@@ -28,13 +28,13 @@ import io.github.mtrevisan.familylegacy.services.EphemerisEngine;
 
 
 module io.github.mtrevisan.ephemeris {
-	requires io.github.mtrevisan.familylegacy.core;
+	requires io.github.mtrevisan.calendars;
 	requires org.apache.commons.lang3;
 
 	// Open resources directory so the dataset can be read at runtime
-	opens io.github.mtrevisan.ephemeris to io.github.mtrevisan.familylegacy.core;
+	opens io.github.mtrevisan.ephemeris to io.github.mtrevisan.calendars;
 
 	// Register SPI implementation
-	provides io.github.mtrevisan.familylegacy.services.EphemerisEngine
+	provides io.github.mtrevisan.calendars.astronomy.EphemerisEngine
 		with io.github.mtrevisan.ephemeris.AstronomicalEngineAdapter;
 }

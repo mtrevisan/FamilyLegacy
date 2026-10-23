@@ -29,15 +29,15 @@ import io.github.mtrevisan.ephemeris.engine.MoonPosition;
 import io.github.mtrevisan.ephemeris.engine.NutationCorrections;
 import io.github.mtrevisan.ephemeris.engine.SolarHorizonEvents;
 import io.github.mtrevisan.ephemeris.engine.SunPosition;
-import io.github.mtrevisan.familylegacy.services.SunlightPhase;
-import io.github.mtrevisan.familylegacy.services.Zenith;
-import io.github.mtrevisan.familylegacy.services.ZenithInterface;
+import io.github.mtrevisan.calendars.astronomy.SunlightPhase;
+import io.github.mtrevisan.calendars.astronomy.Zenith;
+import io.github.mtrevisan.calendars.astronomy.ZenithInterface;
 import io.github.mtrevisan.ephemeris.engine.coordinates.EclipticCoordinates;
 import io.github.mtrevisan.ephemeris.helpers.DeltaT;
 import io.github.mtrevisan.ephemeris.helpers.IllinoisSolver;
 import io.github.mtrevisan.ephemeris.helpers.JulianDate;
 import io.github.mtrevisan.ephemeris.helpers.MathHelper;
-import io.github.mtrevisan.familylegacy.services.EphemerisEngine;
+import io.github.mtrevisan.calendars.astronomy.EphemerisEngine;
 
 import java.time.Instant;
 import java.time.ZoneOffset;
@@ -217,6 +217,22 @@ public final class AstronomicalEngineAdapter implements EphemerisEngine{
 		return SunPosition.apparentSunLongitude(ttJc, deltaPsi);
 	}
 
+
+	/**
+	 * Computes the apparent (geocentric) ecliptic longitude of the Moon for a given Universal Time instant.
+	 * Uses the ELP2000-82B lunar theory and IAU 2000A nutation.
+	 *
+	 * @param jdUT the Julian Date in Universal Time (UT/UTC) scale
+	 * @return the apparent lunar longitude in radians, reduced to the interval [0, 2π)
+	 */
+	@Override
+	public double calculateApparentMoonLongitude(final double jdUT){
+		final double ttJc = getTerrestrialCenturies(jdUT);
+		final NutationCorrections nutation = NutationCorrections.calculate(ttJc);
+		final EclipticCoordinates moonOfDate = MoonPosition.getInstanceLLR()
+			.eclipticOfDate(ttJc);
+		return MathHelper.mod2pi(MoonPosition.computeApparentMoonLongitude(moonOfDate, nutation.getDeltaPsi()));
+	}
 
 	/**
 	 * Computes the horizon events (rise, upper transit, set) of a specific body, for a civil day and location.

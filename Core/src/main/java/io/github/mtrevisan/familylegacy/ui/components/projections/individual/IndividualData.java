@@ -33,7 +33,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SexType;
-import io.github.mtrevisan.familylegacy.io.model.readers.date.CalendarConverter;
+import io.github.mtrevisan.calendars.CalendarType;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateService;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.NormalizedDate;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.TemporalSpan;
@@ -191,10 +191,10 @@ public final class IndividualData{
 			? deathInfo.representativeDate()
 			: null);
 		final LocalDate birthDate = (normalizedBirthDate != null
-			? CalendarConverter.jdnToGregorian(normalizedBirthDate.jdn())
+			? CalendarType.jdnToProlepticGregorianLocalDate(normalizedBirthDate.jdn())
 			: null);
 		final LocalDate deathDate = (normalizedDeathDate != null
-			? CalendarConverter.jdnToGregorian(normalizedDeathDate.jdn())
+			? CalendarType.jdnToProlepticGregorianLocalDate(normalizedDeathDate.jdn())
 			: null);
 		String age = null;
 		if(birthDate != null && deathDate != null){

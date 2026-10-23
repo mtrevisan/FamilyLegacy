@@ -26,10 +26,10 @@ package io.github.mtrevisan.ephemeris.engine;
 
 import io.github.mtrevisan.ephemeris.AstronomicalEngineAdapter;
 import io.github.mtrevisan.ephemeris.helpers.JulianDate;
-import io.github.mtrevisan.familylegacy.services.EphemerisEngine;
-import io.github.mtrevisan.familylegacy.services.SunlightPhase;
-import io.github.mtrevisan.familylegacy.services.Zenith;
-import io.github.mtrevisan.familylegacy.services.ZenithInterface;
+import io.github.mtrevisan.calendars.astronomy.EphemerisEngine;
+import io.github.mtrevisan.calendars.astronomy.SunlightPhase;
+import io.github.mtrevisan.calendars.astronomy.Zenith;
+import io.github.mtrevisan.calendars.astronomy.ZenithInterface;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -54,6 +54,21 @@ class AstronomicalEngineAdapterTest{
 	/** USNO times are rounded to the minute; the Moon horizon conventions may differ slightly. */
 	private static final double MOON_TOLERANCE_MINUTES = 2.;
 
+
+	@Test
+	void moonLongitudeAtNewMoonEqualsSunLongitude(){
+		// new moon of 11 January 2024, 11:57 UT
+		final double newMoon = ENGINE.findNextNewMoon(2_460_315.5);
+		final double moon = ENGINE.calculateApparentMoonLongitude(newMoon);
+		final double sun = ENGINE.calculateApparentSunLongitude(newMoon);
+
+		Assertions.assertEquals(0., Math.IEEEremainder(moon - sun, 2. * Math.PI), 1.e-6);
+		// first quarter of 18 January 2024, 03:53 UT: the elongation is 90°
+		final double firstQuarter = 2_460_327.5 + (3. + 53. / 60.) / 24.;
+		final double elongation = Math.toDegrees(ENGINE.calculateApparentMoonLongitude(firstQuarter)
+			- ENGINE.calculateApparentSunLongitude(firstQuarter));
+		Assertions.assertEquals(90., ((elongation % 360.) + 360.) % 360., 0.1);
+	}
 
 	@Test
 	void romeSummerSolstice(){

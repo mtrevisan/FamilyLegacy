@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+			xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+			xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>io.github.mtrevisan</groupId>
+		<artifactId>FamilyLegacy</artifactId>
+		<version>0.0.0-SNAPSHOT</version>
+	</parent>
+
+	<!-- Conversion of historical calendar expressions into Julian Day Numbers, and the SPI of the astronomical engine -->
+	<artifactId>Calendars</artifactId>
+	<packaging>jar</packaging>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<argLine>
+						--add-reads io.github.mtrevisan.calendars=org.junit.jupiter.api
+						--add-opens io.github.mtrevisan.calendars/io.github.mtrevisan.calendars=org.junit.platform.commons
+					</argLine>
+					<systemPropertyVariables>
+						<!-- the astronomical engine plugin is built by the Ephemeris module into the plugins directory of Core -->
+						<calendars.plugins.dir>${project.basedir}/../Core/plugins</calendars.plugins.dir>
+					</systemPropertyVariables>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+	<dependencies>
+		<!-- Apache -->
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+		</dependency>
+
+		<!-- JUnit -->
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter</artifactId>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+</project>

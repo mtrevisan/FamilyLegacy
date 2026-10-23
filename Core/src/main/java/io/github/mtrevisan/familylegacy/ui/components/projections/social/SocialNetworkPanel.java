@@ -27,8 +27,7 @@ package io.github.mtrevisan.familylegacy.ui.components.projections.social;
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.readers.date.CalendarConverter;
-import io.github.mtrevisan.familylegacy.io.model.readers.date.CalendarType;
+import io.github.mtrevisan.calendars.CalendarType;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DatePrecision;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.NormalizedDate;
 import io.github.mtrevisan.familylegacy.ui.components.projections.repository.TreeChangeListener;
@@ -502,7 +501,7 @@ public final class SocialNetworkPanel extends JPanel implements TreeChangeListen
 	 * calendar, at {@link DatePrecision#DAY} granularity.
 	 * <p>
 	 * The conversion uses {@link Calendar} to extract the local year, month
-	 * and day, then relies on {@link CalendarConverter} to compute the Julian
+	 * and day, then relies on {@link CalendarType} to compute the Julian
 	 * Day Number. The time component is discarded: the temporal filter
 	 * operates at day granularity.
 	 */

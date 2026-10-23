@@ -1,6 +1,3 @@
-import io.github.mtrevisan.familylegacy.services.EphemerisEngine;
-
-
 /**
  * Copyright (c) 2026 Mauro Trevisan
  *
@@ -29,6 +26,7 @@ import io.github.mtrevisan.familylegacy.services.EphemerisEngine;
 
 module io.github.mtrevisan.familylegacy.core {
 	requires java.base;
+	requires io.github.mtrevisan.calendars;
 	requires org.apache.commons.lang3;
 	requires java.desktop;
 	requires com.miglayout.swing;
@@ -46,10 +44,4 @@ module io.github.mtrevisan.familylegacy.core {
 	requires org.threeten.extra;
 	requires org.apache.poi.poi;
 	requires org.apache.poi.ooxml;
-
-	// Export packages needed by external modules/plugins
-	exports io.github.mtrevisan.familylegacy.services;
-
-	// Declare SPI consumption
-	uses EphemerisEngine;
 }

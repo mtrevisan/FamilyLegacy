@@ -25,6 +25,7 @@
 	</developers>
 
 	<modules>
+		<module>Calendars</module>
 		<module>Core</module>
 		<module>Ephemeris</module>
 	</modules>

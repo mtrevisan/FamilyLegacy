@@ -24,12 +24,11 @@
  */
 package io.github.mtrevisan.familylegacy.io.model.readers.date;
 
+import io.github.mtrevisan.calendars.CalendarType;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.io.model.readers.DateReader;
 import org.apache.commons.lang3.StringUtils;
-
-import java.util.Locale;
 
 
 /**
@@ -43,12 +42,6 @@ import java.util.Locale;
  * root {@code SingleDate} struct level.
  */
 public final class DateNormalizer{
-
-	private static final String[] MONTH_ABBREVIATIONS = {
-		"JAN", "FEB", "MAR", "APR", "MAY", "JUN",
-		"JUL", "AUG", "SEP", "OCT", "NOV", "DEC"
-	};
-
 
 	private DateNormalizer(){}
 
@@ -146,18 +139,24 @@ public final class DateNormalizer{
 	private static NormalizedDate normalizeFullDate(final FLEFRecord singleDate, final FLEFRecord fullDate,
 			final String calendar, final String originalText){
 		final String raw = fullDate.getValue();
-		if(StringUtils.isEmpty(raw))
+		if(StringUtils.isBlank(raw))
 			return null;
 
-		final int[] ymd = parseHistoricalDate(raw);
-		if(ymd == null)
+		// The full date is expressed in the notation of its calendar: its parser gives both the JDN and the components
+		// actually present, from which the precision follows
+		final CalendarType type = CalendarType.fromCode(calendar);
+		try{
+			final long jdn = type.parseToJdn(raw);
+			final CalendarType.CalendarMetadata metadata = type.getMetadata(raw);
+			final DatePrecision precision = (metadata.isComplete()? DatePrecision.DAY
+				: (Boolean.TRUE.equals(metadata.nativeComponents().get("month"))? DatePrecision.MONTH: DatePrecision.YEAR));
+
+			return applyApproximation(singleDate, jdn, precision, calendar, originalText);
+		}
+		catch(final IllegalArgumentException | UnsupportedOperationException ignored){
+			// The date is not valid in the notation of its calendar, or the calendar needs the Ephemeris plugin
 			return null;
-
-		final DatePrecision precision = (ymd[2] > 0? DatePrecision.DAY
-			: (ymd[1] > 0? DatePrecision.MONTH: DatePrecision.YEAR));
-		final long jdn = CalendarConverter.toJdn(calendar, ymd[0], Math.max(1, ymd[1]), Math.max(1, ymd[2]));
-
-		return applyApproximation(singleDate, jdn, precision, calendar, originalText);
+		}
 	}
 
 	private static NormalizedDate normalizeDecade(final FLEFRecord singleDate, final FLEFRecord decade,
@@ -166,8 +165,8 @@ public final class DateNormalizer{
 		if(rawYear == null)
 			return null;
 		final int startYear = Integer.parseInt(rawYear.trim());
-		final long jdn = CalendarConverter.toJdnStartOfYear(calendar, startYear);
-		return applyApproximation(singleDate, jdn, DatePrecision.DECADE, calendar, originalText);
+		final Long jdn = startOfYearJdn(calendar, startYear);
+		return (jdn != null? applyApproximation(singleDate, jdn, DatePrecision.DECADE, calendar, originalText): null);
 	}
 
 	private static NormalizedDate normalizeCentury(final FLEFRecord singleDate, final FLEFRecord century,
@@ -178,8 +177,22 @@ public final class DateNormalizer{
 		final int ordinal = Integer.parseInt(rawOrdinal.trim());
 		// Century N of the common era covers years (N-1)*100+1 .. N*100.
 		final int startYear = (ordinal - 1) * 100 + 1;
-		final long jdn = CalendarConverter.toJdnStartOfYear(calendar, startYear);
-		return applyApproximation(singleDate, jdn, DatePrecision.CENTURY, calendar, originalText);
+		final Long jdn = startOfYearJdn(calendar, startYear);
+		return (jdn != null? applyApproximation(singleDate, jdn, DatePrecision.CENTURY, calendar, originalText): null);
+	}
+
+	/**
+	 * @return the JDN of the first day of the year in the given calendar, or {@code null} if the calendar cannot express
+	 * 	a year alone, or needs the Ephemeris plugin
+	 */
+	private static Long startOfYearJdn(final String calendar, final int year){
+		try{
+			return CalendarType.fromCode(calendar)
+				.parseToJdn(Integer.toString(year));
+		}
+		catch(final IllegalArgumentException | UnsupportedOperationException ignored){
+			return null;
+		}
 	}
 
 
@@ -202,135 +215,6 @@ public final class DateNormalizer{
 
 	private static String defaultCalendar(final String raw){
 		return (raw != null && !raw.isBlank()? raw.toLowerCase(): CalendarType.GREGORIAN.getCode());
-	}
-
-	/**
-	 * Parses a historical date string into {@code [year, month, day]}.
-	 * <p>
-	 * Two syntaxes are accepted:
-	 * <ul>
-	 *   <li><b>ISO 8601</b>, possibly reduced to year or year-month:
-	 *       {@code "1886-08-19"}, {@code "1886-08"}, {@code "1886"};</li>
-	 *   <li><b>Legacy FLEF</b> as found in historical files:
-	 *       {@code "19 AUG 1886"}, {@code "AUG 1886"}, {@code "19 AUG 1886 BC"},
-	 *       with the month name abbreviated in English, case-insensitive.</li>
-	 * </ul>
-	 * Missing components are returned as 0. <b>The year is mandatory</b>: an
-	 * expression that only carries a day and/or a month (e.g.
-	 * {@code "19 AUG"} or {@code "AUG"}) is rejected, because without a year
-	 * the date cannot be placed on a temporal axis and would produce
-	 * misleading placements in every downstream view.
-	 *
-	 * @param raw the date expression
-	 * @return the parsed triple, or {@code null} if the expression is
-	 *         unparsable or lacks a year
-	 */
-	private static int[] parseHistoricalDate(final String raw){
-		if(StringUtils.isEmpty(raw))
-			return null;
-		final String trimmed = raw.trim();
-
-		// Try ISO 8601 first: it is unambiguous and does not need heuristics.
-		final int[] iso = parseIso8601(trimmed);
-		if(iso != null)
-			return iso;
-
-		// Try the legacy "DD MMM YYYY" / "MMM YYYY" form.
-		return parseLegacyDate(trimmed);
-	}
-
-	/**
-	 * Parses an ISO 8601 date, possibly reduced to year or year-month.
-	 * Returns {@code null} when the expression is malformed or does not
-	 * carry a year.
-	 */
-	private static int[] parseIso8601(final String raw){
-		final String[] parts = StringUtils.split(raw, "-", 4);
-		if(parts.length == 0 || parts.length > 3)
-			return null;
-		try{
-			final int year = Integer.parseInt(parts[0]);
-			final int month = (parts.length > 1? Integer.parseInt(parts[1]): 0);
-			final int day = (parts.length > 2? Integer.parseInt(parts[2]): 0);
-			if(month < 0 || month > 12 || day < 0 || day > 31)
-				return null;
-			// The year is mandatory and must not be zero: an expression that
-			// only carries a month and/or a day is unparsable as a date.
-			if(year == 0)
-				return null;
-			return new int[]{year, month, day};
-		}
-		catch(final NumberFormatException ignored){
-			return null;
-		}
-	}
-
-	/**
-	 * Parses a legacy FLEF date: "DD MMM YYYY", "MMM YYYY", "YYYY",
-	 * optionally with a "BC" suffix. The month is matched against the
-	 * English three-letter abbreviations, case-insensitively.
-	 * <p>
-	 * The year is mandatory: an expression that only carries a day and/or a
-	 * month (e.g. {@code "19 AUG"}) is rejected.
-	 */
-	private static int[] parseLegacyDate(final String raw){
-		final String[] tokens = StringUtils.split(raw.toUpperCase(Locale.ROOT).trim());
-		if(tokens.length == 0)
-			return null;
-
-		int year = 0;
-		int month = 0;
-		int day = 0;
-		boolean bc = false;
-
-		for(final String token : tokens){
-			if("BC".equals(token) || "BCE".equals(token)){
-				bc = true;
-				continue;
-			}
-
-			final int monthIndex = monthIndex(token);
-			if(monthIndex > 0 && month == 0){
-				month = monthIndex;
-				continue;
-			}
-
-			// Numeric token: could be a day or a year. A value greater than
-			// 31 can only be a year; a value up to 31 is treated as the day
-			// if the day is still empty, otherwise as the year.
-			try{
-				final int value = Integer.parseInt(token);
-				if(value > 31)
-					year = value;
-				else if(day == 0)
-					day = value;
-				else if(year == 0)
-					year = value;
-			}
-			catch(final NumberFormatException ignored){
-				// Unrecognized token: fail the whole parse.
-				return null;
-			}
-		}
-
-		// The year is mandatory: without it, the date cannot be placed on a
-		// temporal axis.
-		if(year == 0)
-			return null;
-		if(bc)
-			year = -Math.abs(year);
-		return new int[]{year, month, day};
-	}
-
-	/**
-	 * Returns the 1-based month index of an English three-letter month
-	 * abbreviation, or 0 if the token is not a month name.
-	 */
-	private static int monthIndex(final String token){
-		for(int i = 0; i < MONTH_ABBREVIATIONS.length; i ++)
-			if(MONTH_ABBREVIATIONS[i].equals(token))
-				return i + 1;
-		return 0;
 	}
 
 

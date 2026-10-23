@@ -1078,7 +1078,7 @@ SingleDateValue = oneof {
 
 // embedded
 enum CalendarType {
-  gregorian, julian, reformed_julian, islamic, hebrew, chinese, indian, buddhist, french_republican, coptic, soviet_eternal, ethiopian, mayan, persian, parsi, byzantine, egyptian, seleucid, armenian, rumi
+  gregorian, venetan, florentine, pisan, nativity, byzantine_style, easter_style, julian, reformed_julian, swedish, quaker, liturgical, liturgical_julian, english_regnal, pontifical, islamic, buddhist, coptic, ethiopian, hebrew, chinese, japanese, minguo, dangi, juche, korean, vietnamese, indian, bengali, bengali_bangladesh, tamil, malayalam, nepali, vikram_samvat, french_republican, soviet_eternal, mayan, persian, parsi, byzantine, egyptian, seleucid, armenian, rumi, bahai, berber
 }
 
 // embedded

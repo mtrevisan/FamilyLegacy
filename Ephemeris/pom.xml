@@ -128,10 +128,10 @@
 	</build>
 
 	<dependencies>
-		<!-- Depend on Core module only at compile-time (provided by Host application) -->
+		<!-- Depend on the Calendars module (the SPI) only at compile-time (provided by Host application) -->
 		<dependency>
 			<groupId>io.github.mtrevisan</groupId>
-			<artifactId>Core</artifactId>
+			<artifactId>Calendars</artifactId>
 			<version>${project.version}</version>
 			<scope>provided</scope>
 		</dependency>

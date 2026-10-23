@@ -24,7 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections.temporal;
 
-import io.github.mtrevisan.familylegacy.io.model.readers.date.CalendarType;
+import io.github.mtrevisan.calendars.CalendarType;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.NormalizedDate;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.TemporalSpan;
 import io.github.mtrevisan.familylegacy.ui.tools.events.CalendarConverterDialog;

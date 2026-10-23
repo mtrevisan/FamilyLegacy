@@ -26,7 +26,7 @@ package io.github.mtrevisan.familylegacy.io.model.readers;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.io.model.readers.date.CalendarType;
+import io.github.mtrevisan.calendars.CalendarType;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateNormalizer;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateService;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.TemporalSpan;
@@ -101,7 +101,7 @@ import java.util.Arrays;
  * }
  *
  * enum CalendarType {
- *   gregorian, julian, islamic, hebrew, chinese, indian, buddhist, french_republican, coptic, soviet_eternal, ethiopian, mayan
+ *   gregorian, venetan, florentine, pisan, nativity, byzantine_style, easter_style, julian, reformed_julian, swedish, quaker, liturgical, liturgical_julian, english_regnal, pontifical, islamic, buddhist, coptic, ethiopian, hebrew, chinese, japanese, minguo, dangi, juche, korean, vietnamese, indian, bengali, bengali_bangladesh, tamil, malayalam, nepali, vikram_samvat, french_republican, soviet_eternal, mayan, persian, parsi, byzantine, egyptian, seleucid, armenian, rumi, bahai, berber
  * }
  *
  * // A subdivision of the century, such as a quarter, half, or relative position.
