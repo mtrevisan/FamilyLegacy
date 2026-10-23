@@ -26,6 +26,10 @@ package io.github.mtrevisan.familylegacy.io.model.readers.date.islamic;
 
 import io.github.mtrevisan.familylegacy.services.EphemerisEngine;
 import io.github.mtrevisan.familylegacy.services.EphemerisEngineFactory;
+import io.github.mtrevisan.familylegacy.services.SunlightPhase;
+import io.github.mtrevisan.familylegacy.services.Zenith;
+
+import java.time.ZonedDateTime;
 
 
 /**
@@ -56,6 +60,10 @@ public final class IslamicCalendarAstronomicalEngine{
 	private static final double SAUDI_ARABIA_STANDARD_TIME_START_JD = 2429617.5; // 1 January 1940 (Adoption of UTC+3)
 	private static final double UMM_AL_QURA_PHASE2_START_JD = 2451286.5;         // 18 April 1999 (1 Muḥarram 1420 AH)
 	private static final double UMM_AL_QURA_PHASE3_START_JD = 2452348.5;         // 15 March 2002 (1 Muḥarram 1423 AH)
+
+	// Julian Date of 1970-01-01T00:00Z
+	private static final double UNIX_EPOCH_JD = 2440587.5;
+	private static final double MILLISECONDS_PER_DAY = 86_400_000.;
 
 
 	private IslamicCalendarAstronomicalEngine(){}
@@ -96,15 +104,15 @@ public final class IslamicCalendarAstronomicalEngine{
 
 		final long startJdn;
 		if(newMoonUtJd >= UMM_AL_QURA_PHASE3_START_JD){
-			// Find the sunset and moonset for the local day (returned in UT, so we add the offset to compare locally)
-			final double sunsetUt = engine.calculateHorizonEvent(EphemerisEngine.CelestialBody.SUN, testMidnightUtJd,
+			// Find the sunset and moonset for the local day (in UT)
+			final double sunsetUtJd = calculateSetting(engine, EphemerisEngine.CelestialBody.SUN, testMidnightUtJd,
 				MECCA_LATITUDE, MECCA_LONGITUDE);
-			final double moonsetUt = engine.calculateHorizonEvent(EphemerisEngine.CelestialBody.MOON, sunsetUt,
+			final double moonsetUtJd = calculateSetting(engine, EphemerisEngine.CelestialBody.MOON, testMidnightUtJd,
 				MECCA_LATITUDE, MECCA_LONGITUDE);
 
 			// criteria
-			final boolean conjunctionBeforeSunset = (newMoonUtJd < sunsetUt);
-			final boolean moonsetAfterSunset = (moonsetUt > sunsetUt);
+			final boolean conjunctionBeforeSunset = (newMoonUtJd < sunsetUtJd);
+			final boolean moonsetAfterSunset = (moonsetUtJd > sunsetUtJd);
 
 			// The month starts on the civil day following the evening when both criteria are met.
 			if(conjunctionBeforeSunset && moonsetAfterSunset)
@@ -115,13 +123,13 @@ public final class IslamicCalendarAstronomicalEngine{
 				startJdn = localConjunctionCivilJdn + 2;
 		}
 		else if(newMoonUtJd >= UMM_AL_QURA_PHASE2_START_JD){
-			final double sunsetUt = engine.calculateHorizonEvent(EphemerisEngine.CelestialBody.SUN, testMidnightUtJd,
+			final double sunsetUtJd = calculateSetting(engine, EphemerisEngine.CelestialBody.SUN, testMidnightUtJd,
 				MECCA_LATITUDE, MECCA_LONGITUDE);
-			final double moonsetUt = engine.calculateHorizonEvent(EphemerisEngine.CelestialBody.MOON, sunsetUt,
+			final double moonsetUtJd = calculateSetting(engine, EphemerisEngine.CelestialBody.MOON, testMidnightUtJd,
 				MECCA_LATITUDE, MECCA_LONGITUDE);
 
 			// criteria
-			final boolean moonsetAfterSunset = (moonsetUt > sunsetUt);
+			final boolean moonsetAfterSunset = (moonsetUtJd > sunsetUtJd);
 
 			if(moonsetAfterSunset)
 				startJdn = localConjunctionCivilJdn + 1;
@@ -129,13 +137,11 @@ public final class IslamicCalendarAstronomicalEngine{
 				startJdn = localConjunctionCivilJdn + 2;
 		}
 		else {
-			final double riyadhUtcOffsetDays = getRiyadhUtcOffset() / 24.;
-			final double riyadhTestMidnightUtJd = localConjunctionCivilJdn - 0.5 - riyadhUtcOffsetDays;
-			final double sunsetRiyadhUt = engine.calculateHorizonEvent(EphemerisEngine.CelestialBody.SUN,
-				riyadhTestMidnightUtJd, RIYADH_LATITUDE, RIYADH_LONGITUDE);
+			final double sunsetRiyadhUtJd = calculateSetting(engine, EphemerisEngine.CelestialBody.SUN, testMidnightUtJd,
+				RIYADH_LATITUDE, RIYADH_LONGITUDE);
 
 			// criteria
-			final double moonAgeAtSunsetDays = sunsetRiyadhUt - newMoonUtJd;
+			final double moonAgeAtSunsetDays = sunsetRiyadhUtJd - newMoonUtJd;
 			final double moonAgeHours = moonAgeAtSunsetDays * 24.;
 
 			if(moonAgeHours >= 12.)
@@ -166,8 +172,26 @@ public final class IslamicCalendarAstronomicalEngine{
 		return MECCA_LONGITUDE / 15.;
 	}
 
-	private static double getRiyadhUtcOffset(){
-		return RIYADH_LONGITUDE / 15.;
+	/**
+	 * Computes the setting (upper limb on the apparent horizon) of a celestial body.
+	 *
+	 * @param engine       the ephemeris engine
+	 * @param body         the celestial body
+	 * @param midnightUtJd the Julian Date of the local civil midnight, in UT
+	 * @param latitude     the observer's geodetic latitude in degrees (North positive)
+	 * @param longitude    the observer's geodetic longitude in degrees (East positive)
+	 * @return the Julian Date (UT) of the setting, or {@link Double#NaN} if the body does not set during that day
+	 */
+	private static double calculateSetting(final EphemerisEngine engine, final EphemerisEngine.CelestialBody body,
+			final double midnightUtJd, final double latitude, final double longitude){
+		final SunlightPhase phase = engine.calculateHorizonEvent(body, midnightUtJd, latitude, longitude, Zenith.OFFICIAL);
+		return (phase instanceof final SunlightPhase.RegularDay regularDay && regularDay.sunset() != null
+			? toJulianDate(regularDay.sunset())
+			: Double.NaN);
+	}
+
+	private static double toJulianDate(final ZonedDateTime dateTime){
+		return dateTime.toInstant().toEpochMilli() / MILLISECONDS_PER_DAY + UNIX_EPOCH_JD;
 	}
 
 }

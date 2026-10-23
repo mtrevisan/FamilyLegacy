@@ -41,7 +41,8 @@ public class GregorianCalendarStrategy implements CalendarConverterPlugin{
 		final GregorianDateInput input = GregorianCalendarParser.parse(rawDate);
 		final int year = input.year();
 		final int month = input.month();
-		final int day = input.day();
+		final int day = input.dayOrFirst();
+		input.validateLeapDay(year % 4 == 0 && (year % 100 != 0 || year % 400 == 0));
 
 		if(month < 0){
 			// Step A: Determine an approximate baseline anchor for the center of the target year.

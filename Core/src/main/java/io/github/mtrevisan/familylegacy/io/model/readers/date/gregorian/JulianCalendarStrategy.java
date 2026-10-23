@@ -40,7 +40,8 @@ public class JulianCalendarStrategy implements CalendarConverterPlugin{
 		final GregorianDateInput input = GregorianCalendarParser.parse(rawDate);
 		final int year = input.year();
 		final int month = input.month();
-		final int day = input.day();
+		final int day = input.dayOrFirst();
+		input.validateLeapDay(Math.floorMod(year, 4) == 0);
 
 		if(month < 0){
 			// Step A: Calculate a dynamic baseline anchor for the center of the target year.

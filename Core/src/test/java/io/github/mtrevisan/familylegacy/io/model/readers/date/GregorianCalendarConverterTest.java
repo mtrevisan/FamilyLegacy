@@ -82,4 +82,174 @@ class GregorianCalendarConverterTest{
 		Assertions.assertEquals(CalendarType.GREGORIAN.parseToJdn("12 8 1752"), jdn);
 	}
 
+
+	@Test
+	void monthNameIsCaseInsensitive(){
+		// 15 Jan 1953 Gregorian
+		final long jdn = CalendarType.GREGORIAN.parseToJdn("15 GENNAIO 1953");
+
+		Assertions.assertEquals(2434393L, jdn);
+	}
+
+	@Test
+	void abbreviatedMonthName(){
+		// 15 Jan 1953 Gregorian
+		final long jdn = CalendarType.GREGORIAN.parseToJdn("15 Jan 1953");
+
+		Assertions.assertEquals(2434393L, jdn);
+	}
+
+	@Test
+	void abbreviatedMonthNameWithDot(){
+		// 15 Sep 1953 Gregorian
+		final long jdn = CalendarType.GREGORIAN.parseToJdn("15 Sept. 1953");
+
+		Assertions.assertEquals(2434636L, jdn);
+	}
+
+	@Test
+	void frenchMonthNameWithDiacritics(){
+		// 15 Aug 1953 Gregorian
+		final long jdn = CalendarType.GREGORIAN.parseToJdn("15 août 1953");
+
+		Assertions.assertEquals(2434605L, jdn);
+	}
+
+	@Test
+	void russianGenitiveMonthName(){
+		// 15 Jan 1953 Gregorian, Cyrillic script
+		final long jdn = CalendarType.GREGORIAN.parseToJdn("15 января 1953");
+
+		Assertions.assertEquals(2434393L, jdn);
+	}
+
+	@Test
+	void greekGenitiveMonthName(){
+		// 15 Jan 1953 Gregorian, Greek script
+		final long jdn = CalendarType.GREGORIAN.parseToJdn("15 Ιανουαρίου 1953");
+
+		Assertions.assertEquals(2434393L, jdn);
+	}
+
+	@Test
+	void numericWithSlashes(){
+		// 15 Jan 1953 Gregorian, day/month/year
+		final long jdn = CalendarType.GREGORIAN.parseToJdn("15/01/1953");
+
+		Assertions.assertEquals(2434393L, jdn);
+	}
+
+	@Test
+	void numericWithDots(){
+		// 15 Jan 1953 Gregorian, day.month.year
+		final long jdn = CalendarType.GREGORIAN.parseToJdn("15.01.1953");
+
+		Assertions.assertEquals(2434393L, jdn);
+	}
+
+	@Test
+	void isoDate(){
+		// 15 Jan 1953 Gregorian, ISO 8601
+		final long jdn = CalendarType.GREGORIAN.parseToJdn("1953-01-15");
+
+		Assertions.assertEquals(2434393L, jdn);
+	}
+
+	@Test
+	void monthDayYearWithComma(){
+		// 15 Jan 1953 Gregorian, US order
+		final long jdn = CalendarType.GREGORIAN.parseToJdn("January 15, 1953");
+
+		Assertions.assertEquals(2434393L, jdn);
+	}
+
+	@Test
+	void extraWhitespace(){
+		// 15 Jan 1953 Gregorian
+		final long jdn = CalendarType.GREGORIAN.parseToJdn("  15   January   1953  ");
+
+		Assertions.assertEquals(2434393L, jdn);
+	}
+
+	@Test
+	void monthAndYear(){
+		// Without the day, the first day of the month (1 Aug 1953 Gregorian)
+		final long jdn = CalendarType.GREGORIAN.parseToJdn("August 1953");
+
+		Assertions.assertEquals(2434591L, jdn);
+	}
+
+	@Test
+	void abbreviatedMonthAndYear(){
+		// Without the day, the first day of the month (1 Aug 2026 Gregorian)
+		final long jdn = CalendarType.GREGORIAN.parseToJdn("Aug 2026");
+
+		Assertions.assertEquals(2461254L, jdn);
+	}
+
+	@Test
+	void monthAndYearIsIncomplete(){
+		final CalendarType.CalendarMetadata metadata = CalendarType.GREGORIAN.getMetadata("August 1953");
+
+		Assertions.assertTrue(metadata.nativeComponents().get("year"));
+		Assertions.assertTrue(metadata.nativeComponents().get("month"));
+		Assertions.assertFalse(metadata.nativeComponents().get("day"));
+		Assertions.assertFalse(metadata.isComplete());
+	}
+
+	@Test
+	void fullDateIsComplete(){
+		final CalendarType.CalendarMetadata metadata = CalendarType.GREGORIAN.getMetadata("15 January 1953");
+
+		Assertions.assertTrue(metadata.isComplete());
+	}
+
+	@Test
+	void dayOutOfRange(){
+		Assertions.assertThrows(IllegalArgumentException.class,
+			() -> CalendarType.GREGORIAN.parseToJdn("32 January 1953"));
+	}
+
+	@Test
+	void dayZero(){
+		Assertions.assertThrows(IllegalArgumentException.class,
+			() -> CalendarType.GREGORIAN.parseToJdn("0 January 1953"));
+	}
+
+	@Test
+	void dayBeyondMonthLength(){
+		Assertions.assertThrows(IllegalArgumentException.class,
+			() -> CalendarType.GREGORIAN.parseToJdn("31 February 2023"));
+	}
+
+	@Test
+	void leapDayInCommonYear(){
+		Assertions.assertThrows(IllegalArgumentException.class,
+			() -> CalendarType.GREGORIAN.parseToJdn("29 February 2023"));
+	}
+
+	@Test
+	void numericMonthOutOfRange(){
+		Assertions.assertThrows(IllegalArgumentException.class,
+			() -> CalendarType.GREGORIAN.parseToJdn("15 13 1953"));
+	}
+
+	@Test
+	void unknownMonthName(){
+		Assertions.assertThrows(IllegalArgumentException.class,
+			() -> CalendarType.GREGORIAN.parseToJdn("15 Foo 1953"));
+	}
+
+	@Test
+	void missingYear(){
+		Assertions.assertThrows(IllegalArgumentException.class,
+			() -> CalendarType.GREGORIAN.parseToJdn("January"));
+	}
+
+	@Test
+	void blankDate(){
+		Assertions.assertThrows(IllegalArgumentException.class,
+			() -> CalendarType.GREGORIAN.parseToJdn("  "));
+	}
+
 }

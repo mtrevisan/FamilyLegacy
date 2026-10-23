@@ -53,7 +53,8 @@ public class PersianCalendarStrategy implements CalendarConverterPlugin{
 		final PersianDateInput date = PersianCalendarParser.parse(rawDate);
 		final int year = date.year();
 		final int month = date.month();
-		final int day = date.day();
+		// a missing day stands for the first day of the month
+		final int day = (date.day() > 0? date.day(): 1);
 
 		if(month < 0){
 			// Step A: Determine an approximate baseline anchor for the year.

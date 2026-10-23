@@ -212,7 +212,8 @@ public final class ChineseCalendarParser{
 		// Handle conditional routing branching rules
 		if(seasonalFlag != null)
 			// SEASONAL JUNCTION CONTEXT: Skip standard lunisolar moon-day parsing operations
-			return new ChineseDateInput(cycleYear, seasonalFlag, false, 1);
+			// The day is not specified (kept as 0)
+			return new ChineseDateInput(cycleYear, seasonalFlag, false, 0);
 
 		// 2. Parse Intercalary Month Flag (Runyue)
 		boolean isLeapMonth = false;

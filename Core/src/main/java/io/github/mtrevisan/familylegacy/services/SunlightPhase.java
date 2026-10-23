@@ -35,10 +35,15 @@ public sealed interface SunlightPhase{
 
 	/**
 	 * Result type for a day with sunrise and sunset.
+	 * <p>
+	 * An event that does not happen during the day is {@code null}: this happens about once a month for each event of
+	 * the Moon (that rises, transits and sets about 50 minutes later each day), and for the Sun close to the polar day
+	 * or night.
+	 * </p>
 	 *
-	 * @param sunrise	Time of sunrise.
+	 * @param sunrise	Time of sunrise (or of the rising of the body).
 	 * @param transit	Time of transit (culmination), i.e. when the sun is closest to the zenith.
-	 * @param sunset	Time of sunset.
+	 * @param sunset	Time of sunset (or of the setting of the body).
 	 */
 	record RegularDay(ZonedDateTime sunrise, ZonedDateTime transit, ZonedDateTime sunset) implements SunlightPhase{}
 

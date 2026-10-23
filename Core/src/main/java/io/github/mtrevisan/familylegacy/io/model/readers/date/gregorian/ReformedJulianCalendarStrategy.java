@@ -40,7 +40,11 @@ public class ReformedJulianCalendarStrategy implements CalendarConverterPlugin{
 		final GregorianDateInput input = GregorianCalendarParser.parse(rawDate);
 		final int year = input.year();
 		final int month = input.month();
-		final int day = input.day();
+		final int day = input.dayOrFirst();
+		// century years are leap only when they give remainder 200 or 600 when divided by 900
+		final int centuryRemainder = Math.floorMod(year, 900);
+		input.validateLeapDay(Math.floorMod(year, 4) == 0
+			&& (year % 100 != 0 || centuryRemainder == 200 || centuryRemainder == 600));
 
 		if(month < 0){
 			// Step A: Calculate a dynamic baseline anchor for the center of the target year.

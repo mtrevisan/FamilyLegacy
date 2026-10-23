@@ -116,10 +116,10 @@ public final class ByzantineCalendarParser{
 		if(month == null)
 			throw new IllegalArgumentException("Unknown Byzantine month or seasonal context: " + monthName);
 
-		final int day = (dayGroup != null? Integer.parseInt(dayGroup): 1);
+		final int day = (dayGroup != null? Integer.parseInt(dayGroup): 0);
 
 		// Basic sanity boundary check (Julian structure mapping)
-		if(month > 0 && (day < 1 || day > 31))
+		if(dayGroup != null && month > 0 && (day < 1 || day > 31))
 			throw new IllegalArgumentException("Invalid day count for the targeted Julian boundary.");
 
 		return new ByzantineDateInput(year, month, day);

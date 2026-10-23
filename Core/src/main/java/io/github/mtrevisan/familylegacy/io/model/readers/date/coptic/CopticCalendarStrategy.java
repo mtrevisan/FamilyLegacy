@@ -41,7 +41,8 @@ public class CopticCalendarStrategy implements CalendarConverterPlugin{
 		final CopticDateInput input = CopticCalendarParser.parse(rawDate);
 		final int year = input.year();
 		final int month = input.month();
-		final int day = input.day();
+		// a missing day stands for the first day of the month
+		final int day = (input.day() > 0? input.day(): 1);
 
 		if(month < 0){
 			// Step A: Calculate a dynamic baseline anchor for the center of the target year.

@@ -42,7 +42,8 @@ public class BuddhistCalendarStrategy implements CalendarConverterPlugin{
 		final BuddhistDateInput input = BuddhistCalendarParser.parse(rawDate);
 		final int year = input.year();
 		final int month = input.month();
-		final int day = input.day();
+		// a missing day stands for the first day of the month
+		final int day = (input.day() > 0? input.day(): 1);
 
 		// Resolve true Gregorian temporal mapping baseline (Epoch offset: -543 years)
 		final int gregorianYear = year - 543;

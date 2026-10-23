@@ -119,38 +119,56 @@ public final class VenetanCalendarParser{
 		MONTHS.put("auton", CalendarType.SEASON_AUTUMN);
 		MONTHS.put("autun", CalendarType.SEASON_AUTUMN);
 		MONTHS.put("autuno", CalendarType.SEASON_AUTUMN);
+		MONTHS.put("aut", CalendarType.SEASON_AUTUMN);
 		MONTHS.put("otun", CalendarType.SEASON_AUTUMN);
 		MONTHS.put("otuno", CalendarType.SEASON_AUTUMN);
+		MONTHS.put("otu", CalendarType.SEASON_AUTUMN);
 		MONTHS.put("utun", CalendarType.SEASON_AUTUMN);
 		MONTHS.put("utuno", CalendarType.SEASON_AUTUMN);
+		MONTHS.put("utu", CalendarType.SEASON_AUTUMN);
 		MONTHS.put("ferdima", CalendarType.SEASON_AUTUMN);
+		MONTHS.put("fer", CalendarType.SEASON_AUTUMN);
 		MONTHS.put("fardima", CalendarType.SEASON_AUTUMN);
 		MONTHS.put("farnima", CalendarType.SEASON_AUTUMN);
+		MONTHS.put("far", CalendarType.SEASON_AUTUMN);
 		MONTHS.put("fraima", CalendarType.SEASON_AUTUMN);
+		MONTHS.put("fra", CalendarType.SEASON_AUTUMN);
 		MONTHS.put("frima", CalendarType.SEASON_AUTUMN);
+		MONTHS.put("fri", CalendarType.SEASON_AUTUMN);
 		MONTHS.put("fredima", CalendarType.SEASON_AUTUMN);
+		MONTHS.put("fre", CalendarType.SEASON_AUTUMN);
 		// Invèrno (Winter) -> Maps to Hibernal Solstice flag
 		MONTHS.put("invèrno", CalendarType.SEASON_WINTER);
 		MONTHS.put("invièrno", CalendarType.SEASON_WINTER);
+		MONTHS.put("inv", CalendarType.SEASON_WINTER);
 		MONTHS.put("inbèrno", CalendarType.SEASON_WINTER);
+		MONTHS.put("inb", CalendarType.SEASON_WINTER);
 		MONTHS.put("divèr", CalendarType.SEASON_WINTER);
+		MONTHS.put("div", CalendarType.SEASON_WINTER);
 		// Vèrta (Spring) -> Maps to Vernal Equinox flag
 		MONTHS.put("primavera", CalendarType.SEASON_SPRING);
 		MONTHS.put("primavèra", CalendarType.SEASON_SPRING);
 		MONTHS.put("primavèrta", CalendarType.SEASON_SPRING);
+		MONTHS.put("pri", CalendarType.SEASON_SPRING);
 		MONTHS.put("vèrta", CalendarType.SEASON_SPRING);
+		MONTHS.put("vèr", CalendarType.SEASON_SPRING);
 		MONTHS.put("insuta", CalendarType.SEASON_SPRING);
+		MONTHS.put("ins", CalendarType.SEASON_SPRING);
 		MONTHS.put("ansuda", CalendarType.SEASON_SPRING);
+		MONTHS.put("ans", CalendarType.SEASON_SPRING);
 		// Istà (Summer) -> Maps to Estival Solstice flag
 		MONTHS.put("istade", CalendarType.SEASON_SUMMER);
 		MONTHS.put("istae", CalendarType.SEASON_SUMMER);
 		MONTHS.put("istà", CalendarType.SEASON_SUMMER);
+		MONTHS.put("ist", CalendarType.SEASON_SUMMER);
 		MONTHS.put("instade", CalendarType.SEASON_SUMMER);
 		MONTHS.put("instae", CalendarType.SEASON_SUMMER);
 		MONTHS.put("instà", CalendarType.SEASON_SUMMER);
+		MONTHS.put("ins", CalendarType.SEASON_SUMMER);
 		MONTHS.put("estade", CalendarType.SEASON_SUMMER);
 		MONTHS.put("estae", CalendarType.SEASON_SUMMER);
 		MONTHS.put("està", CalendarType.SEASON_SUMMER);
+		MONTHS.put("est", CalendarType.SEASON_SUMMER);
 	}
 
 	// Pattern mapping: "Day Month Year" with optional trailing "MV" or "More Veneto" markers
@@ -192,11 +210,11 @@ public final class VenetanCalendarParser{
 		if(month == null)
 			throw new IllegalArgumentException("Unknown Venetian month or seasonal descriptor: " + monthName);
 
-		// Operational fallback for seasons
-		final int day = (dayGroup != null? Integer.parseInt(dayGroup): 1);
+		// A missing day (month and year only, or a seasonal record) is kept as 0
+		final int day = (dayGroup != null? Integer.parseInt(dayGroup): 0);
 
 		// Julian framework boundary verification
-		if(month > 0 && (day < 1 || day > 31))
+		if(dayGroup != null && month > 0 && (day < 1 || day > 31))
 			throw new IllegalArgumentException("Day count violates standard Julian calendar monthly limits.");
 
 		return new VenetanDateInput(year, month, day);

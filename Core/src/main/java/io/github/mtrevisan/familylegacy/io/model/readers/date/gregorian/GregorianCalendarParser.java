@@ -101,8 +101,14 @@ public final class GregorianCalendarParser{
 	 */
 	private static final Pattern DATE_PATTERN = Pattern.compile("(?:(\\d+)\\s+)?(\\d+|[\\p{L}\\p{M}\\s-]+?)\\s+(\\d+)(?:/(\\d+))?");
 
-	/** RegEx pattern matching inverted textual strings like "August 2, 2000" or "August 2 2000" */
-	private static final Pattern INVERTED_TEXTUAL_PATTERN = Pattern.compile("^([\\p{L}\\p{M}\\s-]+?)\\s+(\\d+)\\s*,?\\s*(\\d+)(?:/(\\d+))?$");
+	/**
+	 * RegEx pattern matching inverted textual strings like "August 2, 2000" or "August 2 2000" (the day must be
+	 * separated from the year, so that "August 2000" is not split into day and year)
+	 */
+	private static final Pattern INVERTED_TEXTUAL_PATTERN = Pattern.compile("^([\\p{L}\\p{M}\\s-]+?)\\s+(\\d{1,2})(?:\\s*,\\s*|\\s+)(\\d+)(?:/(\\d+))?$");
+
+	/** Maximum number of days of each month (February in a leap year). */
+	private static final int[] MONTH_MAX_DAYS = {31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 
 	private static final Pattern DUAL_DATE_PATTERN = Pattern.compile(".*\\d{4}/\\d{1,4}$");
 
@@ -147,20 +153,23 @@ public final class GregorianCalendarParser{
 			// Resolve multi-lingual full or abbreviated months using internal Java internationalization tables
 			month = resolvePolyglotMonth(monthName);
 
-		// Operational fallback for standalone seasonal records
-		final int day = (dayGroup != null? Integer.parseInt(dayGroup): 1);
+		// A missing day (month and year only, or a seasonal record) is kept as 0
+		final int day = (dayGroup != null? Integer.parseInt(dayGroup): 0);
 
-		if(month > 0 && (day < 1 || day > 31))
+		if(dayGroup != null && month > 0 && (day < 1 || day > MONTH_MAX_DAYS[month - 1]))
 			throw new IllegalArgumentException("Day variable breaches standard monthly boundaries.");
 
 		// Calculate the final historical year mapping boundary
 		int finalHistoricalYear = civilYear;
 		// Dual dating strictly applies to transition months (January, February, March)
 		if(dualYearFraction != null && !isSeason && month <= 3){
-			if(dualYearFraction.length() <= 2){
-				// Handles shorthand formats like "1704/5" -> extracts 1700 prefix + 5
-				final int centuryPrefix = Math.floorDiv(civilYear, 100) * 100;
-				finalHistoricalYear = centuryPrefix + Integer.parseInt(dualYearFraction);
+			if(dualYearFraction.length() < 4){
+				// Handles shorthand formats like "1704/5" or "1731/2", replacing the last digits of the civil year:
+				// the historical year is the one after the civil year (e.g. "1709/10" -> 1710, "1699/00" -> 1700)
+				final int modulus = (dualYearFraction.length() == 1? 10: (dualYearFraction.length() == 2? 100: 1000));
+				finalHistoricalYear = civilYear - Math.floorMod(civilYear, modulus) + Integer.parseInt(dualYearFraction);
+				if(finalHistoricalYear <= civilYear)
+					finalHistoricalYear += modulus;
 			}
 			else
 				// Handles full explicit expansions like "1704/1705"
@@ -225,8 +234,13 @@ public final class GregorianCalendarParser{
 	 * Iterates over available network locales to map full or abbreviated text back to its calendar numeric month index.
 	 */
 	private static int resolvePolyglotMonth(final String token){
-		if(StringUtils.isNumeric(token))
-			return Integer.parseInt(token);
+		if(StringUtils.isNumeric(token)){
+			final int month = Integer.parseInt(token);
+			if(month < 1 || month > 12)
+				throw new IllegalArgumentException("Month must be between 1 and 12: " + token);
+
+			return month;
+		}
 
 		for(final Locale locale : Locale.getAvailableLocales()){
 			final int month = parseMonthWithLocale(token, locale);

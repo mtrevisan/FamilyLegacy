@@ -35,18 +35,24 @@ import java.util.Map;
 
 public class ParsiCalendarStrategy implements CalendarConverterPlugin{
 
+	// Yazdegerdi era epoch (16 June 632 Julian)
+	private static final long YAZDEGERDI_EPOCH_JDN = 1952063L;
+
+
 	@Override
 	public long parseToJdn(final String rawDate){
 		// 1. Unpack structural components using the specialized text parser
 		final ParsiDateInput input = ParsiCalendarParser.parse(rawDate);
 		final int year = input.year();
 		final int month = input.month();
-		final int day = input.day();
+		// a missing day stands for the first day of the month
+		final int day = (input.day() > 0? input.day(): 1);
+		final long epochJdn = YAZDEGERDI_EPOCH_JDN + input.variant().getOffsetDays();
 
 		if(month < 0){
 			// Step A: Determine the absolute linear window of this shifting Parsi year.
-			// The Parsi year is exactly 365 days long. Epoch starts at JDN 1952063L.
-			final long startOfYearJdn = 1952063L + (year - 1) * 365L;
+			// The Parsi year is exactly 365 days long.
+			final long startOfYearJdn = epochJdn + (year - 1) * 365L;
 
 			// Establish the middle of this specific shifting year block as an initial guess anchor
 			final double approximateMiddleJdUT = startOfYearJdn + 182.5 - 0.5;
@@ -62,7 +68,7 @@ public class ParsiCalendarStrategy implements CalendarConverterPlugin{
 		}
 		else
 			// Standard arithmetic execution mapping path for typical regular Parsi months
-			return 1952063L + 365L * (year - 1L) + 30L * (month - 1L) + (day - 1L);
+			return epochJdn + 365L * (year - 1L) + 30L * (month - 1L) + (day - 1L);
 	}
 
 	@Override

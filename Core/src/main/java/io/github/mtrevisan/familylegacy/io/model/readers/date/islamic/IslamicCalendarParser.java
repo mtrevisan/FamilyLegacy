@@ -97,10 +97,10 @@ public final class IslamicCalendarParser{
 		if(month == null)
 			throw new IllegalArgumentException("Unknown Islamic month or seasonal descriptor: " + monthName);
 
-		// Operational default for pure astronomical queries
-		final int day = (dayGroup != null? Integer.parseInt(dayGroup): 1);
+		// A missing day (month and year only, or a seasonal record) is kept as 0
+		final int day = (dayGroup != null? Integer.parseInt(dayGroup): 0);
 
-		if(month > 0 && (day < 1 || day > 30))
+		if(dayGroup != null && month > 0 && (day < 1 || day > 30))
 			throw new IllegalArgumentException("Standard Islamic lunar months cannot exceed 30 days.");
 
 		return new IslamicDateInput(year, month, day);

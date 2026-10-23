@@ -47,6 +47,30 @@ class JulianCalendarConverterTest{
 	}
 
 	@Test
+	void birthOfIsaacNewton(){
+		// Isaac Newton was born on 25 Dec 1642 Old Style (4 Jan 1643 Gregorian)
+		final long jdn = CalendarType.JULIAN.parseToJdn("25 December 1642");
+
+		Assertions.assertEquals(2321157L, jdn);
+	}
+
+	@Test
+	void birthOfBenjaminFranklinDualDated(){
+		// Benjamin Franklin was born on 6 Jan 1705/6 Old Style, with the year starting on 25 March (17 Jan 1706 Gregorian)
+		final long jdn = CalendarType.JULIAN.parseToJdn("6 January 1705/6");
+
+		Assertions.assertEquals(2344180L, jdn);
+	}
+
+	@Test
+	void birthOfGeorgeWashingtonDualDated(){
+		// George Washington was born on February 11, 1731/2 Old Style (22 Feb 1732 Gregorian)
+		final long jdn = CalendarType.JULIAN.parseToJdn("February 11, 1731/2");
+
+		Assertions.assertEquals(2353712L, jdn);
+	}
+
+	@Test
 	void fallOfConstantinople(){
 		// Fall of Constantinople (29 May 1453 Julian, 7 Jun 1453 Gregorian)
 		final long jdn = CalendarType.JULIAN.parseToJdn("29 May 1453");

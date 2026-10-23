@@ -103,13 +103,13 @@ public final class EgyptianCalendarParser{
 		if(month == null)
 			throw new IllegalArgumentException("Unknown Egyptian month or seasonal descriptor: " + monthName);
 
-		// For seasonal tokens, day parameter acts as an internal flag or defaults to 1
-		final int day = (dayGroup != null? Integer.parseInt(dayGroup): 1);
+		// A missing day (month and year only, or a seasonal record) is kept as 0
+		final int day = (dayGroup != null? Integer.parseInt(dayGroup): 0);
 
 		// Standard Egyptian civil calendar parameter validation boundaries
-		if(month > 0 && month <= 12 && (day < 1 || day > 30))
+		if(dayGroup != null && month > 0 && month <= 12 && (day < 1 || day > 30))
 			throw new IllegalArgumentException("Standard Egyptian months must have exactly 30 days.");
-		if(month == 13 && (day < 1 || day > 5))
+		if(dayGroup != null && month == 13 && (day < 1 || day > 5))
 			throw new IllegalArgumentException("Epagomenal period consists strictly of 5 days.");
 
 		return new EgyptianDateInput(year, month, day);

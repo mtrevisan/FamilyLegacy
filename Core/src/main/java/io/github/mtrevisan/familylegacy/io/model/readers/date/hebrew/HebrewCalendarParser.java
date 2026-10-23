@@ -88,10 +88,10 @@ public final class HebrewCalendarParser{
 		if(month == null)
 			throw new IllegalArgumentException("Unknown Hebrew month or Tekufah descriptor: " + monthName);
 
-		// Operational fallback for standalone seasonal records
-		final int day = (dayGroup != null? Integer.parseInt(dayGroup): 1);
+		// A missing day (month and year only, or a seasonal record) is kept as 0
+		final int day = (dayGroup != null? Integer.parseInt(dayGroup): 0);
 
-		if(month > 0 && (day < 1 || day > 30))
+		if(dayGroup != null && month > 0 && (day < 1 || day > 30))
 			throw new IllegalArgumentException("Day variable breaches standard monthly boundaries.");
 
 		return new HebrewDateInput(year, month, day);

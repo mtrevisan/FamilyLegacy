@@ -64,7 +64,7 @@ public final class MoonHorizonEvents{
 	/**
 	 * Calculates the exact Julian Date (Universal Time) of moonset for a specific civil day and location.
 	 *
-	 * @param midnightUtJd      The Julian Date representing local civil midnight converted to UT (ending in .5)
+	 * @param midnightUtJd      The Julian Date representing local civil midnight converted to UT
 	 * @param latitude          The observer's geodetic latitude in degrees (North positive)
 	 * @param longitude         The observer's geodetic longitude in degrees (East positive)
 	 * @param ttCenturyFunction Functional bridge to calculate Terrestrial Centuries from a Julian Date UT
@@ -73,33 +73,67 @@ public final class MoonHorizonEvents{
 	 */
 	public static double calculateMoonset(final double midnightUtJd, final double latitude, final double longitude,
 			final Function<Double, Double> ttCenturyFunction){
+		return calculateEvents(midnightUtJd, latitude, longitude, ttCenturyFunction)
+			.set();
+	}
+
+	/**
+	 * Calculates the exact Julian Dates (Universal Time) of moonrise, upper transit and moonset for a specific civil day
+	 * and location.
+	 *
+	 * @param midnightUtJd      The Julian Date representing local civil midnight converted to UT
+	 * @param latitude          The observer's geodetic latitude in degrees (North positive)
+	 * @param longitude         The observer's geodetic longitude in degrees (East positive)
+	 * @param ttCenturyFunction Functional bridge to calculate Terrestrial Centuries from a Julian Date UT
+	 * @return The events of the day; each one is Double.NaN if it does not happen during that day (the Moon rises,
+	 * 	transits, and sets about 50 minutes later each day, so about once a month one of them falls on the day after)
+	 */
+	public static LunarDay calculateEvents(final double midnightUtJd, final double latitude, final double longitude,
+			final Function<Double, Double> ttCenturyFunction){
 		final Observer observer = new Observer(latitude, longitude);
 
-		// 1. Scan the civil day to bracket the moonset: the height of the upper limb above the horizon changes sign
-		//    from positive to negative (the Moon moves by less than a degree per hour with respect to the stars, so an
-		//    hourly step cannot skip a setting)
+		// 1. Scan the civil day to bracket the events: the height of the upper limb above the horizon changes sign at
+		//    moonrise and moonset, the hour angle changes sign at the upper transit (the Moon moves by less than a degree
+		//    per hour with respect to the stars, so an hourly step cannot skip an event)
+		double rise = Double.NaN;
+		double transit = Double.NaN;
+		double set = Double.NaN;
 		double previousTime = midnightUtJd;
-		double previousHeight = upperLimbHeight(previousTime, observer, ttCenturyFunction);
+		MoonState previous = moonState(previousTime, observer, ttCenturyFunction);
+		final MoonState noon = moonState(midnightUtJd + 0.5, observer, ttCenturyFunction);
+		double transitHeight = noon.height;
 		for(double time = midnightUtJd + SCAN_STEP; time < midnightUtJd + 1. + SCAN_STEP / 2.; time += SCAN_STEP){
-			final double height = upperLimbHeight(time, observer, ttCenturyFunction);
-			if(previousHeight > 0. && height <= 0.)
-				// 2. Refine the instant inside the bracketing step
-				return IllinoisSolver.solve(previousTime, time, ACCURACY, MAX_ITERATIONS,
-					jd -> upperLimbHeight(jd, observer, ttCenturyFunction));
+			final MoonState current = moonState(time, observer, ttCenturyFunction);
+
+			// 2. Refine the instants inside the bracketing steps
+			if(Double.isNaN(rise) && previous.height <= 0. && current.height > 0.)
+				rise = IllinoisSolver.solve(previousTime, time, ACCURACY, MAX_ITERATIONS,
+					jd -> moonState(jd, observer, ttCenturyFunction).height);
+			if(Double.isNaN(set) && previous.height > 0. && current.height <= 0.)
+				set = IllinoisSolver.solve(previousTime, time, ACCURACY, MAX_ITERATIONS,
+					jd -> moonState(jd, observer, ttCenturyFunction).height);
+			// the hour angle increases through zero at the upper transit, while it jumps from +π to -π at the lower one
+			if(Double.isNaN(transit) && previous.hourAngle < 0. && current.hourAngle >= 0.
+					&& current.hourAngle - previous.hourAngle < StrictMath.PI){
+				transit = IllinoisSolver.solve(previousTime, time, ACCURACY, MAX_ITERATIONS,
+					jd -> moonState(jd, observer, ttCenturyFunction).hourAngle);
+				transitHeight = moonState(transit, observer, ttCenturyFunction).height;
+			}
 
 			previousTime = time;
-			previousHeight = height;
+			previous = current;
 		}
-		return Double.NaN;
+		return new LunarDay(rise, transit, set, transitHeight);
 	}
 
 	/**
 	 * Computes the height of the upper limb of the Moon above the apparent horizon, applying parallax adjustments,
-	 * refraction and the topocentric semidiameter.
+	 * refraction and the topocentric semidiameter, and its topocentric hour angle.
 	 *
-	 * @return the height [rad]: positive if the upper limb is visible, negative otherwise
+	 * @return the height [rad] (positive if the upper limb is visible, negative otherwise), and the hour angle [rad] in
+	 * 	the interval (-π, π]
 	 */
-	private static double upperLimbHeight(final double utJd, final Observer observer,
+	private static MoonState moonState(final double utJd, final Observer observer,
 			final Function<Double, Double> ttCenturyFunction){
 		final double ttJc = ttCenturyFunction.apply(utJd);
 
@@ -145,8 +179,22 @@ public final class MoonHorizonEvents{
 		// 6. The upper limb is on the horizon when the center is a semidiameter plus the refraction below it
 		final double semidiameter = StrictMath.asin(MOON_TO_EARTH_RADIUS * EARTH_EQUATORIAL_RADIUS_KM
 			/ topocentricDistanceKm);
-		return altitude + HORIZON_REFRACTION + semidiameter;
+		return new MoonState(altitude + HORIZON_REFRACTION + semidiameter, topocentricHourAngle);
 	}
+
+
+	/**
+	 * The lunar events of a day.
+	 *
+	 * @param rise          the Julian Date (UT) of moonrise, or Double.NaN if the Moon does not rise during the day
+	 * @param transit       the Julian Date (UT) of the upper transit, or Double.NaN if it does not happen during the day
+	 * @param set           the Julian Date (UT) of moonset, or Double.NaN if the Moon does not set during the day
+	 * @param transitHeight the height of the upper limb above the horizon at the upper transit (or at noon, if there is
+	 * 	no transit during the day) [rad]
+	 */
+	public record LunarDay(double rise, double transit, double set, double transitHeight){}
+
+	private record MoonState(double height, double hourAngle){}
 
 
 	/**

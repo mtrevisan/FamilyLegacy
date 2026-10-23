@@ -101,12 +101,12 @@ public final class ArmenianCalendarParser{
 		if(month == null)
 			throw new IllegalArgumentException("Unknown Armenian month or seasonal descriptor: " + monthName);
 
-		final int day = (dayGroup != null? Integer.parseInt(dayGroup): 1);
+		final int day = (dayGroup != null? Integer.parseInt(dayGroup): 0);
 
 		// Defensive boundary checks matching physical constraints
-		if(month > 0 && month <= 12 && (day < 1 || day > 30))
+		if(dayGroup != null && month > 0 && month <= 12 && (day < 1 || day > 30))
 			throw new IllegalArgumentException("Standard Armenian months must have exactly 30 days.");
-		if(month == 13 && (day < 1 || day > 5))
+		if(dayGroup != null && month == 13 && (day < 1 || day > 5))
 			throw new IllegalArgumentException("Avelyats intercalary period consists strictly of 5 days.");
 
 		return new ArmenianDateInput(year, month, day);

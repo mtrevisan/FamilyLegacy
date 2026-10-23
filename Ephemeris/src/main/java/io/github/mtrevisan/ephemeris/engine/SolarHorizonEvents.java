@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.ephemeris.engine;
 
+import io.github.mtrevisan.ephemeris.helpers.IllinoisSolver;
 import io.github.mtrevisan.ephemeris.helpers.MathHelper;
 import io.github.mtrevisan.ephemeris.helpers.SiderealTime;
 
@@ -38,7 +39,13 @@ public final class SolarHorizonEvents{
 
 	// Standard structural altitude for solar disk upper limb sunset:
 	// -34 arcminutes (atmospheric refraction) - 16 arcminutes (solar semidiameter) = -50 arcminutes = -0.8333333 degrees
-	private static final double STANDARD_SUNSET_ALTITUDE = StrictMath.toRadians(-50. / 60.);
+	public static final double STANDARD_SUNSET_ALTITUDE = StrictMath.toRadians(-50. / 60.);
+
+	// The day is scanned with this step to bracket the events [day]
+	private static final double SCAN_STEP = 1. / 24.;
+	// Precision of the events [day] (~0.01 s)
+	private static final double ACCURACY = 1.e-7;
+	private static final int MAX_ITERATIONS = 50;
 
 
 	private SolarHorizonEvents(){}
@@ -47,117 +54,166 @@ public final class SolarHorizonEvents{
 	/**
 	 * Calculates the exact Julian Date (Universal Time) of sunset for a specific civil day and location.
 	 *
-	 * @param midnightUtJd The Julian Date representing local civil midnight converted to UT (ending in .5)
+	 * @param midnightUtJd The Julian Date representing local civil midnight converted to UT
 	 * @param latitude     The observer's geodetic latitude in degrees (North positive)
 	 * @param longitude    The observer's geodetic longitude in degrees (East positive)
 	 * @param ttCenturyFunction Functional bridge to calculate Terrestrial Centuries from a Julian Date UT
-	 * @return The Julian Date (UT) of the sunset event, or Double.NaN if the Sun is circumpolar (polar day/night)
+	 * @return The Julian Date (UT) of the sunset event, or Double.NaN if the Sun does not set during that day (polar
+	 * 	day/night)
 	 */
 	public static double calculateSunset(final double midnightUtJd, final double latitude, final double longitude,
 			final Function<Double, Double> ttCenturyFunction){
-		final double latRad = StrictMath.toRadians(latitude);
-
-		// 1. Coarse estimation of the sunset time using standard geometric projections.
-		// Approximate Greenwich Hour Angle calculation for solar noon.
-		final double approximateNoonUt = midnightUtJd + 0.5 - longitude / 360.;
-		final double jcNoon = ttCenturyFunction.apply(approximateNoonUt);
-
-		// Fetch basic nutation and apparent solar coordinates to evaluate approximate declination
-		final NutationCorrections nutationNoon = NutationCorrections.calculate(jcNoon);
-		final double deltaPsiNoon = nutationNoon.getDeltaPsi();
-		final double deltaEpsilonNoon = nutationNoon.getDeltaEpsilon();
-
-		// Approximate true obliquity of date
-		final double epsilon0Noon = NutationCorrections.meanObliquity(jcNoon);
-		final double trueObliquityNoon = epsilon0Noon + deltaEpsilonNoon;
-
-		// Find approximate solar geometric position
-		final double lambdaApparentNoon = SunPosition.apparentSunLongitude(jcNoon, deltaPsiNoon);
-		final double declinationNoon = StrictMath.asin(StrictMath.sin(trueObliquityNoon)
-			* StrictMath.sin(lambdaApparentNoon));
-
-		// Calculate diurnal semi-arc hour angle (H0)
-		final double cosH0 = (StrictMath.sin(STANDARD_SUNSET_ALTITUDE)
-			- StrictMath.sin(latRad) * StrictMath.sin(declinationNoon))
-			/ (StrictMath.cos(latRad) * StrictMath.cos(declinationNoon));
-
-		if(cosH0 > 1. || cosH0 < -1.)
-			// Sun is either continuously above or below the horizon (polar phenomena)
-			return Double.NaN;
-
-		final double h0Deg = StrictMath.toDegrees(StrictMath.acos(cosH0));
-
-		// Coarse estimate of sunset in fractions of a day from UT midnight
-		final double approximateSunsetFraction = (12. + (h0Deg - longitude) / 15.) / 24.;
-		final double targetSunsetUtJd = midnightUtJd + approximateSunsetFraction;
-
-		// 2. High-Precision Refinement Framework via Three-Point Inverse Interpolation.
-		// We sample 3 tracking points: 1 hour before, exactly at, and 1 hour after the coarse estimate.
-		final double hourInJd = 1. / 24.;
-		final double t1 = targetSunsetUtJd - hourInJd;
-		final double t2 = targetSunsetUtJd;
-		final double t3 = targetSunsetUtJd + hourInJd;
-
-		final double y1 = computeSolarAltitude(t1, latRad, longitude, ttCenturyFunction);
-		final double y2 = computeSolarAltitude(t2, latRad, longitude, ttCenturyFunction);
-		final double y3 = computeSolarAltitude(t3, latRad, longitude, ttCenturyFunction);
-
-		// Calculate parabolic interpolation coefficients across the tracking window
-		final double a = (y1 + y3) / 2. - y2;
-		final double b = (y3 - y1) / 2.;
-		final double c = y2 - STANDARD_SUNSET_ALTITUDE;
-
-		// Solve the quadratic equation a*x^2 + b*x + c = 0 to isolate the boundary transition offset
-		final double discriminant = b * b - 4. * a * c;
-		if(discriminant < 0. || StrictMath.abs(a) < 1e-12)
-			// Parabolic vertex does not intersect threshold; return coarse estimate as fallback
-			return targetSunsetUtJd;
-
-		// Interpolation correction factor (ranging from -1.0 to +1.0 hour)
-		double correctionFactor = (-b + StrictMath.sqrt(discriminant)) / (2. * a);
-		if(StrictMath.abs(correctionFactor) > 1.)
-			correctionFactor = (-b - StrictMath.sqrt(discriminant)) / (2. * a);
-
-		// Apply temporal correction factor mapping back onto the Julian Timeline
-		return targetSunsetUtJd + correctionFactor * hourInJd;
+		return calculateEvents(midnightUtJd, latitude, longitude, STANDARD_SUNSET_ALTITUDE, ttCenturyFunction)
+			.set();
 	}
 
 	/**
-	 * Computes the apparent topocentric local altitude of the Sun for a given time and location.
+	 * Calculates the exact Julian Dates (Universal Time) of the crossings of a given altitude by the Sun, and of its
+	 * upper transit, for a specific civil day and location.
+	 *
+	 * @param midnightUtJd      The Julian Date representing local civil midnight converted to UT
+	 * @param latitude          The observer's geodetic latitude in degrees (North positive)
+	 * @param longitude         The observer's geodetic longitude in degrees (East positive)
+	 * @param targetAltitude    The altitude of the center of the Sun [rad] (e.g. {@link #STANDARD_SUNSET_ALTITUDE} for
+	 * 	sunrise and sunset, -6° for the civil twilight)
+	 * @param ttCenturyFunction Functional bridge to calculate Terrestrial Centuries from a Julian Date UT
+	 * @return The events of the day; rise and set are Double.NaN if they do not happen during that day
 	 */
-	private static double computeSolarAltitude(final double utJd, final double latRad, final double longitude,
-			final Function<Double, Double> ttCenturyFunction){
-		final double ttJc = ttCenturyFunction.apply(utJd);
+	public static SolarDay calculateEvents(final double midnightUtJd, final double latitude, final double longitude,
+			final double targetAltitude, final Function<Double, Double> ttCenturyFunction){
+		final SunTrack track = new SunTrack(midnightUtJd, latitude, longitude, ttCenturyFunction);
 
-		// 1. Calculate nutation parameters for the current date centurial slice
-		final NutationCorrections nutation = NutationCorrections.calculate(ttJc);
-		final double deltaPsi = nutation.getDeltaPsi();
-		final double deltaEpsilon = nutation.getDeltaEpsilon();
+		// 1. Scan the civil day to bracket the events: the altitude crosses the target at rise and set, the hour angle
+		//    changes sign at the upper transit
+		double rise = Double.NaN;
+		double transit = Double.NaN;
+		double set = Double.NaN;
+		double previousTime = midnightUtJd;
+		double previousHeight = track.altitude(previousTime) - targetAltitude;
+		double previousHourAngle = track.hourAngle(previousTime);
+		for(double time = midnightUtJd + SCAN_STEP; time < midnightUtJd + 1. + SCAN_STEP / 2.; time += SCAN_STEP){
+			final double height = track.altitude(time) - targetAltitude;
+			final double hourAngle = track.hourAngle(time);
 
-		// 2. Extract apparent ecliptic longitude from the VSOP2013 analytical series
-		// Note: apparentSunLongitude requires Julian Ephemeris Centuries from J2000
-		final double lambdaApparent = SunPosition.apparentSunLongitude(ttJc, deltaPsi);
+			// 2. Refine the instants inside the bracketing steps
+			if(Double.isNaN(rise) && previousHeight <= 0. && height > 0.)
+				rise = IllinoisSolver.solve(previousTime, time, ACCURACY, MAX_ITERATIONS,
+					jd -> track.altitude(jd) - targetAltitude);
+			if(Double.isNaN(set) && previousHeight > 0. && height <= 0.)
+				set = IllinoisSolver.solve(previousTime, time, ACCURACY, MAX_ITERATIONS,
+					jd -> track.altitude(jd) - targetAltitude);
+			// the hour angle increases through zero at the upper transit, while it jumps from +π to -π at the lower one
+			if(Double.isNaN(transit) && previousHourAngle < 0. && hourAngle >= 0.
+					&& hourAngle - previousHourAngle < StrictMath.PI)
+				transit = IllinoisSolver.solve(previousTime, time, ACCURACY, MAX_ITERATIONS, track::hourAngle);
 
-		// 3. Compute true obliquity of date
-		final double epsilon0 = NutationCorrections.meanObliquity(ttJc);
-		final double trueObliquity = epsilon0 + deltaEpsilon;
+			previousTime = time;
+			previousHeight = height;
+			previousHourAngle = hourAngle;
+		}
 
-		// 4. Convert ecliptic apparent coordinates to geocentric equatorial coordinates
-		final double sinAlphaNum = StrictMath.sin(lambdaApparent) * StrictMath.cos(trueObliquity);
-		final double cosAlphaDen = StrictMath.cos(lambdaApparent);
-		final double rightAscension = MathHelper.mod2pi(StrictMath.atan2(sinAlphaNum, cosAlphaDen));
-		final double declination = StrictMath.asin(StrictMath.sin(trueObliquity) * StrictMath.sin(lambdaApparent));
+		final double transitAltitude = track.altitude(Double.isNaN(transit)? midnightUtJd + 0.5: transit);
+		return new SolarDay(rise, transit, set, transitAltitude);
+	}
 
-		// 5. Derive the Apparent Greenwich Sidereal Time (GAST) to link Earth rotation position
-		final double gast = SiderealTime.greenwichApparentSiderealTime(utJd, ttJc, deltaPsi, trueObliquity);
 
-		// 6. Calculate Local Hour Angle (LHA) for the spatial coordinate translation
-		final double localSiderealTime = gast + StrictMath.toRadians(longitude);
-		final double hourAngle = localSiderealTime - rightAscension;
+	/**
+	 * The solar events of a day.
+	 *
+	 * @param rise            the Julian Date (UT) of the rising crossing, or Double.NaN if it does not happen during the day
+	 * @param transit         the Julian Date (UT) of the upper transit, or Double.NaN if it does not happen during the day
+	 * @param set             the Julian Date (UT) of the setting crossing, or Double.NaN if it does not happen during the
+	 * 	day
+	 * @param transitAltitude the altitude of the center of the Sun at the upper transit (or at noon, if there is no
+	 * 	transit during the day) [rad]
+	 */
+	public record SolarDay(double rise, double transit, double set, double transitAltitude){}
 
-		// 7. Map geocentric equatorial coordinates to the local horizontal coordinate plane
-		return StrictMath.asin(StrictMath.sin(latRad) * StrictMath.sin(declination)
-			+ StrictMath.cos(latRad) * StrictMath.cos(declination) * StrictMath.cos(hourAngle));
+
+	/**
+	 * Apparent equatorial coordinates of the Sun during a day, interpolated from three positions (Meeus, Astronomical
+	 * Algorithms, ch. 15), and the corresponding horizontal coordinates for an observer.
+	 */
+	private static final class SunTrack{
+		private final double midnightUtJd;
+		private final double sinLatitude;
+		private final double cosLatitude;
+		private final double longitude;
+		private final Function<Double, Double> ttCenturyFunction;
+
+		// right ascension (unwrapped) and declination at midnight, noon, and the next midnight [rad]
+		private final double[] rightAscension = new double[3];
+		private final double[] declination = new double[3];
+		// nutation in longitude and true obliquity at noon (their variation during a day is negligible) [rad]
+		private final double deltaPsi;
+		private final double trueObliquity;
+
+
+		private SunTrack(final double midnightUtJd, final double latitude, final double longitude,
+				final Function<Double, Double> ttCenturyFunction){
+			this.midnightUtJd = midnightUtJd;
+			final double latRad = StrictMath.toRadians(latitude);
+			sinLatitude = StrictMath.sin(latRad);
+			cosLatitude = StrictMath.cos(latRad);
+			this.longitude = StrictMath.toRadians(longitude);
+			this.ttCenturyFunction = ttCenturyFunction;
+
+			double noonDeltaPsi = 0.;
+			double noonTrueObliquity = 0.;
+			for(int i = 0; i < 3; i ++){
+				final double ttJc = ttCenturyFunction.apply(midnightUtJd + i * 0.5);
+				final NutationCorrections nutation = NutationCorrections.calculate(ttJc);
+				final double lambda = SunPosition.apparentSunLongitude(ttJc, nutation.getDeltaPsi());
+				final double obliquity = NutationCorrections.meanObliquity(ttJc) + nutation.getDeltaEpsilon();
+
+				// ecliptic to equatorial coordinates (the latitude of the Sun is below 1")
+				double alpha = MathHelper.mod2pi(StrictMath.atan2(StrictMath.sin(lambda) * StrictMath.cos(obliquity),
+					StrictMath.cos(lambda)));
+				if(i > 0)
+					// keep the right ascension continuous across 0h
+					alpha = rightAscension[i - 1] + MathHelper.modpipi(alpha - rightAscension[i - 1]);
+				rightAscension[i] = alpha;
+				declination[i] = StrictMath.asin(StrictMath.sin(obliquity) * StrictMath.sin(lambda));
+
+				if(i == 1){
+					noonDeltaPsi = nutation.getDeltaPsi();
+					noonTrueObliquity = obliquity;
+				}
+			}
+			deltaPsi = noonDeltaPsi;
+			trueObliquity = noonTrueObliquity;
+		}
+
+		/**
+		 * @return the altitude of the center of the Sun, without refraction [rad]
+		 */
+		private double altitude(final double utJd){
+			final double dec = interpolate(declination, utJd);
+			return StrictMath.asin(sinLatitude * StrictMath.sin(dec)
+				+ cosLatitude * StrictMath.cos(dec) * StrictMath.cos(rawHourAngle(utJd)));
+		}
+
+		/**
+		 * @return the local hour angle of the Sun in the interval [-π, π) [rad]
+		 */
+		private double hourAngle(final double utJd){
+			return MathHelper.modpipi(rawHourAngle(utJd));
+		}
+
+		private double rawHourAngle(final double utJd){
+			final double gast = SiderealTime.greenwichApparentSiderealTime(utJd, ttCenturyFunction.apply(utJd), deltaPsi,
+				trueObliquity);
+			return gast + longitude - interpolate(rightAscension, utJd);
+		}
+
+		/** Quadratic interpolation through the values at midnight, noon, and the next midnight. */
+		private double interpolate(final double[] values, final double utJd){
+			// position in half days from noon
+			final double n = 2. * (utJd - midnightUtJd) - 1.;
+			final double a = values[1] - values[0];
+			final double b = values[2] - values[1];
+			return values[1] + n / 2. * (a + b + n * (b - a));
+		}
 	}
 
 }

@@ -121,14 +121,14 @@ public final class PersianCalendarParser{
 		if(month == null)
 			throw new IllegalArgumentException("Unknown Persian month or seasonal descriptor: " + monthName);
 
-		// Operational default for pure seasonal entries
-		final int day = (dayGroup != null? Integer.parseInt(dayGroup): 1);
+		// A missing day (month and year only, or a seasonal record) is kept as 0
+		final int day = (dayGroup != null? Integer.parseInt(dayGroup): 0);
 
-		if(month > 0 && month <= 6 && (day < 1 || day > 31))
+		if(dayGroup != null && month > 0 && month <= 6 && (day < 1 || day > 31))
 			throw new IllegalArgumentException("The first six Persian months consist strictly of 31 days.");
-		if(month >= 7 && month <= 11 && (day < 1 || day > 30))
+		if(dayGroup != null && month >= 7 && month <= 11 && (day < 1 || day > 30))
 			throw new IllegalArgumentException("Persian months 7 through 11 consist strictly of 30 days.");
-		if(month == 12 && (day < 1 || day > 30))
+		if(dayGroup != null && month == 12 && (day < 1 || day > 30))
 			throw new IllegalArgumentException("The final Persian month cannot exceed 30 days.");
 
 		return new PersianDateInput(year, month, day);

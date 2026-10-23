@@ -42,7 +42,8 @@ public class RumiCalendarStrategy implements CalendarConverterPlugin{
 		final RumiDateInput input = RumiCalendarParser.parse(rawDate);
 		final int year = input.year();
 		final int month = input.month();
-		final int day = input.day();
+		// a missing day stands for the first day of the month
+		final int day = (input.day() > 0? input.day(): 1);
 
 		if(month < 0){
 			// Step A: Determine the absolute temporal anchor window for this year.

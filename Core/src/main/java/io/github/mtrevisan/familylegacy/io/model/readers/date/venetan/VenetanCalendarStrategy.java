@@ -41,7 +41,8 @@ public class VenetanCalendarStrategy implements CalendarConverterPlugin{
 		final VenetanDateInput input = VenetanCalendarParser.parse(rawDate);
 		final int year = input.year();
 		final int month = input.month();
-		final int day = input.day();
+		// a missing day stands for the first day of the month
+		final int day = (input.day() > 0? input.day(): 1);
 
 		if(month < 0){
 			// Step A: Align the approximate year coordinate for the seasonal solver anchor.

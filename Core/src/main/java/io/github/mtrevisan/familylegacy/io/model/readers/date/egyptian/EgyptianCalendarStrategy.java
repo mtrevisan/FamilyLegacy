@@ -40,7 +40,8 @@ public class EgyptianCalendarStrategy implements CalendarConverterPlugin{
 		final EgyptianDateInput input = EgyptianCalendarParser.parse(rawDate);
 		final int year = input.year();
 		final int month = input.month();
-		final int day = input.day();
+		// a missing day stands for the first day of the month
+		final int day = (input.day() > 0? input.day(): 1);
 
 		// Era of Nabonassar (Ptolemy, Almagest): 1 Thoth 1 = 26 February 747 BCE Julian = JDN 1448638.
 		final long egyptianEpochJdn = 1448638L;

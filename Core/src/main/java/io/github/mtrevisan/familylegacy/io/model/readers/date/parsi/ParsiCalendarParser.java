@@ -41,6 +41,10 @@ import java.util.regex.Pattern;
  * - 1 Fravardin 1390
  * - ۲۲ فروردین ۱۳۹۰
  * - 3 Gatha 1385
+ * - 1 Fravardin 1390 Kadmi
+ * </p>
+ * <p>
+ * The reckoning (Shahenshahi or Kadmi) can follow the year; it defaults to Shahenshahi.
  * </p>
  */
 public final class ParsiCalendarParser{
@@ -63,6 +67,21 @@ public final class ParsiCalendarParser{
 		// Intercalary holy days (Gatha / Panje days)
 		MONTHS.put("gatha", 13);
 		MONTHS.put("panje", 13);
+		// Persian script names (Iranian Zoroastrian records)
+		MONTHS.put("فروردین", 1);
+		MONTHS.put("اردیبهشت", 2);
+		MONTHS.put("خرداد", 3);
+		MONTHS.put("تیر", 4);
+		MONTHS.put("امرداد", 5);
+		MONTHS.put("مرداد", 5);
+		MONTHS.put("شهریور", 6);
+		MONTHS.put("مهر", 7);
+		MONTHS.put("آبان", 8);
+		MONTHS.put("آذر", 9);
+		MONTHS.put("دی", 10);
+		MONTHS.put("بهمن", 11);
+		MONTHS.put("اسفند", 12);
+		MONTHS.put("پنجه", 13);
 		// Traditional Gujarati script names (highly common in Parsi records)
 		MONTHS.put("ફરવરદીન", 1);
 		MONTHS.put("અર્દિબહેશ્ત", 2);
@@ -99,9 +118,24 @@ public final class ParsiCalendarParser{
 		MONTHS.put("maidhyoshema", CalendarType.SEASON_SUMMER);
 	}
 
+	private static final String ZERO_WIDTH_NON_JOINER = "‌";
+
+	private static final Map<String, ParsiVariant> VARIANTS = new HashMap<>();
+	static{
+		VARIANTS.put("shahenshahi", ParsiVariant.SHAHENSHAHI);
+		VARIANTS.put("shahanshahi", ParsiVariant.SHAHENSHAHI);
+		VARIANTS.put("shehenshahi", ParsiVariant.SHAHENSHAHI);
+		VARIANTS.put("shenshai", ParsiVariant.SHAHENSHAHI);
+		VARIANTS.put("shensai", ParsiVariant.SHAHENSHAHI);
+		VARIANTS.put("kadmi", ParsiVariant.KADMI);
+		VARIANTS.put("kadimi", ParsiVariant.KADMI);
+		VARIANTS.put("qadimi", ParsiVariant.KADMI);
+		VARIANTS.put("qadmi", ParsiVariant.KADMI);
+	}
+
 	// Adaptive pattern supporting both standalone seasonal notations ("Hamin 1320")
-	// and explicit three-token expressions ("1 Fravardin 1390")
-	private static final Pattern DATE_PATTERN = Pattern.compile("(?:(\\d+)\\s+)?([\\p{L}\\p{M}\\s-]+?)\\s+(\\d+)");
+	// and explicit three-token expressions ("1 Fravardin 1390"), with an optional trailing reckoning ("1 Fravardin 1390 Kadmi")
+	private static final Pattern DATE_PATTERN = Pattern.compile("(?:(\\d+)\\s+)?([\\p{L}\\p{M}\\s-]+?)\\s+(\\d+)(?:\\s+([\\p{L}\\p{M}]+))?");
 
 
 	private ParsiCalendarParser(){}
@@ -115,7 +149,9 @@ public final class ParsiCalendarParser{
 	 * @throws IllegalArgumentException if the expression layout is invalid
 	 */
 	public static ParsiDateInput parse(final String rawDate){
-		final String normalized = StringUtils.normalizeSpace(convertDigitsToAscii(rawDate));
+		// The zero-width non-joiner is optional inside Persian words (e.g. "اردی‌بهشت")
+		final String normalized = StringUtils.normalizeSpace(convertDigitsToAscii(rawDate)
+			.replace(ZERO_WIDTH_NON_JOINER, StringUtils.EMPTY));
 
 		final Matcher matcher = DATE_PATTERN.matcher(normalized);
 		if(!matcher.matches())
@@ -126,21 +162,29 @@ public final class ParsiCalendarParser{
 			.toLowerCase(Locale.ROOT)
 			.trim();
 		final int year = Integer.parseInt(matcher.group(3));
+		final String variantName = matcher.group(4);
 
 		final Integer month = MONTHS.get(monthName);
 		if(month == null)
 			throw new IllegalArgumentException("Unknown Parsi month or seasonal descriptor: " + monthName);
 
-		// Operational placeholder default for pure astronomical expressions
-		final int day = (dayGroup != null? Integer.parseInt(dayGroup): 1);
+		// Without an explicit reckoning, default to the Shahenshahi one, followed by most Parsis in India
+		final ParsiVariant variant = (variantName != null
+			? VARIANTS.get(variantName.toLowerCase(Locale.ROOT))
+			: ParsiVariant.SHAHENSHAHI);
+		if(variant == null)
+			throw new IllegalArgumentException("Unknown Parsi reckoning: " + variantName);
+
+		// A missing day (month and year only, or a seasonal record) is kept as 0
+		final int day = (dayGroup != null? Integer.parseInt(dayGroup): 0);
 
 		// Validation boundaries
-		if(month > 0 && month <= 12 && (day < 1 || day > 30))
+		if(dayGroup != null && month > 0 && month <= 12 && (day < 1 || day > 30))
 			throw new IllegalArgumentException("Standard Parsi months must have exactly 30 days.");
-		if(month == 13 && (day < 1 || day > 5))
+		if(dayGroup != null && month == 13 && (day < 1 || day > 5))
 			throw new IllegalArgumentException("Gatha intercalary period must be between 1 and 5 days.");
 
-		return new ParsiDateInput(year, month, day);
+		return new ParsiDateInput(year, month, day, variant);
 	}
 
 	/**

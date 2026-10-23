@@ -38,7 +38,8 @@ public class ByzantineCalendarStrategy implements CalendarConverterPlugin{
 		final ByzantineDateInput input = ByzantineCalendarParser.parse(rawDate);
 		final int year = input.year();
 		final int month = input.month();
-		final int day = input.day();
+		// a missing day stands for the first day of the month
+		final int day = (input.day() > 0? input.day(): 1);
 
 		final int julianYear;
 		final int julianMonth;

@@ -89,12 +89,12 @@ public final class FrenchRepublicanCalendarParser{
 		if(month == null)
 			throw new IllegalArgumentException("Unknown French Republican month or seasonal descriptor: " + monthName);
 
-		// Operational fallback for pure seasonal records
-		final int day = (dayGroup != null? Integer.parseInt(dayGroup): 1);
+		// A missing day (month and year only, or a seasonal record) is kept as 0
+		final int day = (dayGroup != null? Integer.parseInt(dayGroup): 0);
 
-		if(month > 0 && month <= 12 && (day < 1 || day > 30))
+		if(dayGroup != null && month > 0 && month <= 12 && (day < 1 || day > 30))
 			throw new IllegalArgumentException("Standard Revolutionary months consist strictly of 30 days.");
-		if(month == 13 && (day < 1 || day > 6))
+		if(dayGroup != null && month == 13 && (day < 1 || day > 6))
 			throw new IllegalArgumentException("Sansculottides complementary days are bound between 1 and 6 days.");
 
 		return new FrenchRepublicanDateInput(year, month, day);

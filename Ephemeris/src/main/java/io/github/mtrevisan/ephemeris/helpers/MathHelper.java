@@ -63,7 +63,7 @@ public final class MathHelper{
 	 * Reduce an angle in radians to the range {@code -π} to {@code π}.
 	 */
 	public static double modpipi(final double angle){
-		return (angle + StrictMath.PI) % TWO_PI - StrictMath.PI;
+		return mod2pi(angle + StrictMath.PI) - StrictMath.PI;
 	}
 
 	public static double toDegrees(final int degree, final int minute, final double second){

@@ -75,7 +75,7 @@ public interface EphemerisEngine{
 	 * Computes the exact Julian Date (UT) of a horizon crossing event for a specific body, day and location.
 	 *
 	 * @param body         the targeted celestial body (SUN or MOON)
-	 * @param midnightUtJd the Julian Date representing local civil midnight converted to UT (ending in .5)
+	 * @param midnightUtJd the Julian Date representing local civil midnight converted to UT
 	 * @param latitude     the observer's geodetic latitude in degrees (North positive)
 	 * @param longitude    the observer's geodetic longitude in degrees (East positive)
 	 * @param zenith       horizon definition (OFFICIAL, CIVIL, NAUTICAL, ASTRONOMICAL)
