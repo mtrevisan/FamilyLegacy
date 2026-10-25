@@ -34,9 +34,13 @@ import io.github.mtrevisan.familylegacy.ui.bindings.FilteredComboBox;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.services.relationship.UnlinkDialog;
 import io.github.mtrevisan.familylegacy.ui.components.projections.places.PlaceHierarchyPanel;
 import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.ui.handlers.DocumentHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
+import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.PlaceRelationshipHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.RepositoryHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import net.miginfocom.swing.MigLayout;
@@ -219,7 +223,7 @@ public class RecordSelectionDialog extends JDialog{
 	private RecordSelectionDialog(final Window parent, final FLEFModel model,
 			final BiConsumer<FLEFRecord, RecordTypeHandler<?>> onSelect,
 			final boolean allowCreation, final Class<? extends RecordTypeHandler<?>>... handlerTypes){
-		super(parent, I18N.t("search.title"), ModalityType.APPLICATION_MODAL);
+		super(parent, I18N.t("search.title.select_record"), ModalityType.APPLICATION_MODAL);
 
 		this.model = model;
 		this.onSelect = onSelect;
@@ -445,8 +449,20 @@ public class RecordSelectionDialog extends JDialog{
 
 	private void updateWindowTitle(){
 		final RecordTypeHandler<?> desc = getSelectedHandler();
-		setTitle(I18N.tf("search.title_with_record", (desc != null), I18N.t("confirmation.exist_record."
-			+ (desc != null? desc.getType().toLowerCase(): StringUtils.EMPTY))));
+		final String title;
+		if(desc instanceof IndividualHandler)
+			title = I18N.t("search.title.select_record");
+		else if(desc instanceof PlaceRelationshipHandler)
+			title = I18N.t("search.title.manage.places");
+		else if(desc instanceof SourceHandler)
+			title = I18N.t("search.title.manage.sources");
+		else if(desc instanceof RepositoryHandler)
+			title = I18N.t("search.title.manage.repositories");
+		else if(desc instanceof DocumentHandler)
+			title = I18N.t("search.title.manage.documents");
+		else
+			title = "--";
+		setTitle(title);
 	}
 
 	private RecordTypeHandler<?> getSelectedHandler(){

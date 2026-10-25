@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.searches.strategies;
 
+import io.github.mtrevisan.calendars.CalendarType;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
@@ -31,7 +32,6 @@ import io.github.mtrevisan.familylegacy.io.model.readers.DateReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
-import io.github.mtrevisan.calendars.CalendarType;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.NormalizedDate;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.TemporalSpan;
 import io.github.mtrevisan.familylegacy.ui.components.searches.SearchMatcher;
@@ -329,9 +329,14 @@ public class SearchHelper{
 			return null;
 
 		final CalendarType calendarType = (calendarStr != null? CalendarType.valueOf(calendarStr.toUpperCase(Locale.ROOT)): CalendarType.GREGORIAN);
-		final long dateJdn = calendarType.parseToJdn(dateStr);
-		final LocalDate prolepticDate = CalendarType.jdnToProlepticGregorianLocalDate(dateJdn);
-		return prolepticDate.getYear();
+		try{
+			final long dateJdn = calendarType.parseToJdn(dateStr);
+			final LocalDate prolepticDate = CalendarType.jdnToProlepticGregorianLocalDate(dateJdn);
+			return prolepticDate.getYear();
+		}
+		catch(final IllegalArgumentException ignored){
+			return null;
+		}
 	}
 
 }

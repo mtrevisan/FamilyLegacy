@@ -43,7 +43,7 @@ public final class PlaceManagerTool implements ToolOperation{
 
 	@Override
 	public String getName(){
-		return I18N.t("menu.place.place.manager");
+		return I18N.t("menu.place.manage.places");
 	}
 
 	@Override

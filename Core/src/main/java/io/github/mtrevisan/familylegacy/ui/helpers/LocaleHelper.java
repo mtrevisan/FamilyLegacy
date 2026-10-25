@@ -24,11 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.helpers;
 
-import org.apache.commons.lang3.StringUtils;
-
-import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.List;
 import java.util.Locale;
 import java.util.TreeSet;
 

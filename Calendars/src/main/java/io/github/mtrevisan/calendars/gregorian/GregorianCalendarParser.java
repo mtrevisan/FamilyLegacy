@@ -64,7 +64,6 @@ public final class GregorianCalendarParser{
 		"am"));
 
 	private static final Map<String, Integer> MONTHS = new HashMap<>();
-	private static final Map<String, Integer> SEASONS = new HashMap<>();
 	static{
 		final Locale[] locales = Locale.getAvailableLocales();
 		for(final Locale locale : locales){
@@ -93,13 +92,13 @@ public final class GregorianCalendarParser{
 
 				final String[] fields = StringUtils.split(line, ';');
 				for(final String autumn : StringUtils.split(fields[1], ','))
-					SEASONS.put(autumn, CalendarType.SEASON_AUTUMN);
+					MONTHS.put(autumn, CalendarType.SEASON_AUTUMN);
 				for(final String winter : StringUtils.split(fields[2], ','))
-					SEASONS.put(winter, CalendarType.SEASON_WINTER);
+					MONTHS.put(winter, CalendarType.SEASON_WINTER);
 				for(final String spring : StringUtils.split(fields[3], ','))
-					SEASONS.put(spring, CalendarType.SEASON_SPRING);
+					MONTHS.put(spring, CalendarType.SEASON_SPRING);
 				for(final String summer : StringUtils.split(fields[4], ','))
-					SEASONS.put(summer, CalendarType.SEASON_SUMMER);
+					MONTHS.put(summer, CalendarType.SEASON_SUMMER);
 			}
 		}
 		catch(final IOException ioe){
@@ -221,11 +220,9 @@ public final class GregorianCalendarParser{
 
 		// Check if the token maps straight to a registered seasonal marker
 		int month = 0;
-		boolean isSeason = false;
-		if(SEASONS.containsKey(monthName)){
-			month = SEASONS.get(monthName);
-			isSeason = true;
-		}
+		final Integer season = MONTHS.get(monthName);
+		if(season != null && season < 0)
+			month = season;
 		else
 			// Resolve multi-lingual full or abbreviated months using internal Java internationalization tables
 			month = resolvePolyglotMonth(monthName);
@@ -240,7 +237,7 @@ public final class GregorianCalendarParser{
 		// Calculate the final historical year mapping boundary
 		int finalHistoricalYear = civilYear;
 		// Dual dating strictly applies to transition months (January, February, March)
-		final boolean dualYear = (dualYearFraction != null && !isSeason && month <= 3);
+		final boolean dualYear = (dualYearFraction != null && month > 0 && month <= 3);
 		if(dualYear){
 			if(dualYearFraction.length() < 4){
 				// Handles shorthand formats like "1704/5" or "1731/2", replacing the last digits of the civil year:
@@ -255,7 +252,8 @@ public final class GregorianCalendarParser{
 				finalHistoricalYear = Integer.parseInt(dualYearFraction);
 		}
 
-		return new GregorianDateInput(toAstronomicalYear(finalHistoricalYear, beforeChrist), month, day, dualYear, indiction);
+		return new GregorianDateInput(toAstronomicalYear(finalHistoricalYear, beforeChrist), month, day, dualYear,
+			indiction);
 	}
 
 	/**

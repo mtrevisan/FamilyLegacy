@@ -26,8 +26,6 @@ package io.github.mtrevisan.familylegacy.ui.bindings;
 
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.List;
-
 
 /**
  * Filtered combo box supporting property binding via {@link PathBound}.

@@ -44,7 +44,7 @@ public final class SourceToolRegistry{
 	/** Sources subgroup, in menu order. */
 	public static List<ToolOperation> primaryTools(){
 		return List.of(
-			new ManageSourcesTool(),
+			new SourceManagerTool(),
 			new NewSourceTool()
 		);
 	}
@@ -52,15 +52,15 @@ public final class SourceToolRegistry{
 	/** Repositories subgroup. */
 	public static List<ToolOperation> repositoryTools(){
 		return List.of(
-			new ManageRepositoriesTool()
+			new RepositoryManagerTool(),
+			new NewRepositoryTool()
 		);
 	}
 
 	/** Documents subgroup. */
 	public static List<ToolOperation> documentTools(){
 		return List.of(
-			new ManageDocumentsTool(),
-			new MediaManagerTool()
+			new ManageDocumentsTool()
 		);
 	}
 

@@ -24,28 +24,28 @@
  */
 package io.github.mtrevisan.familylegacy.ui.tools.sources;
 
+import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.ui.handlers.RepositoryHandler;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolOperation;
 
 
-/** Opens the source management dialog. */
-public final class ManageSourcesTool implements ToolOperation{
+/** Opens the "new repository" dialog. */
+public final class NewRepositoryTool implements ToolOperation{
 
 	@Override
 	public String getName(){
-		return I18N.t("menu.source.manage.sources");
+		return I18N.t("menu.source.new.repository");
 	}
 
 	@Override
 	public void run(final ToolContext context){
-		final SourceManagementDialog dialog = new SourceManagementDialog(context);
+		final FLEFModel model = context.model();
+		final BaseRecordDialog dialog = RepositoryHandler.getInstance()
+			.createNewDialog(context.owner(), model);
 		dialog.setVisible(true);
-	}
-
-	@Override
-	public boolean isEnabled(final ToolContext context){
-		return (context != null && context.hasAnySources());
 	}
 
 }

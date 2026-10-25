@@ -24,28 +24,35 @@
  */
 package io.github.mtrevisan.familylegacy.ui.tools.sources;
 
+import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.ui.components.searches.RecordSelectionDialog;
+import io.github.mtrevisan.familylegacy.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolOperation;
 
 
-/** Opens the media manager dialog. */
-public final class MediaManagerTool implements ToolOperation{
+/** Opens the source management dialog. */
+public final class SourceManagerTool implements ToolOperation{
 
 	@Override
 	public String getName(){
-		return I18N.t("menu.source.media.manager");
+		return I18N.t("menu.source.manage.sources");
 	}
 
 	@Override
 	public void run(final ToolContext context){
-		final MediaManagerDialog dialog = new MediaManagerDialog(context);
+		final FLEFModel model = context.model();
+		@SuppressWarnings("unchecked")
+		final RecordSelectionDialog dialog = RecordSelectionDialog.createWithAllowRecordCreation(context.owner(), model,
+			(record, handler) -> {},
+			SourceHandler.class);
 		dialog.setVisible(true);
 	}
 
 	@Override
 	public boolean isEnabled(final ToolContext context){
-		return (context != null && context.hasAnyDocuments());
+		return (context != null && context.hasAnySources());
 	}
 
 }

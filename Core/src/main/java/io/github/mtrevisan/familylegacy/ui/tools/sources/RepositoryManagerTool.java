@@ -24,13 +24,16 @@
  */
 package io.github.mtrevisan.familylegacy.ui.tools.sources;
 
+import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.ui.components.searches.RecordSelectionDialog;
+import io.github.mtrevisan.familylegacy.ui.handlers.RepositoryHandler;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolOperation;
 
 
 /** Opens the repository management dialog. */
-public final class ManageRepositoriesTool implements ToolOperation{
+public final class RepositoryManagerTool implements ToolOperation{
 
 	@Override
 	public String getName(){
@@ -39,7 +42,11 @@ public final class ManageRepositoriesTool implements ToolOperation{
 
 	@Override
 	public void run(final ToolContext context){
-		final RepositoryManagementDialog dialog = new RepositoryManagementDialog(context);
+		final FLEFModel model = context.model();
+		@SuppressWarnings("unchecked")
+		final RecordSelectionDialog dialog = RecordSelectionDialog.createWithAllowRecordCreation(context.owner(), model,
+			(record, handler) -> {},
+			RepositoryHandler.class);
 		dialog.setVisible(true);
 	}
 

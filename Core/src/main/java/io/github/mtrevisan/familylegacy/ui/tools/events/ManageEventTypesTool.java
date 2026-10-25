@@ -34,7 +34,7 @@ public final class ManageEventTypesTool implements ToolOperation{
 
 	@Override
 	public String getName(){
-		return I18N.t("menu.event.manage.event.types");
+		return I18N.t("menu.event.manage.event_types");
 	}
 
 	@Override
