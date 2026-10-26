@@ -70,6 +70,7 @@ public final class GregorianCalendarParser{
 		"am"));
 
 	private static final Map<String, Integer> MONTHS = new HashMap<>();
+	private static final Map<String, Integer> SEASONS = new HashMap<>();
 	/** Words that are different seasons in different languages: without the language of the date they are rejected. */
 	private static final Set<String> AMBIGUOUS_SEASONS = new HashSet<>();
 	static{
@@ -114,16 +115,16 @@ public final class GregorianCalendarParser{
 			throw new UncheckedIOException(ioe);
 		}
 		for(final String word : AMBIGUOUS_SEASONS)
-			MONTHS.remove(word);
+			SEASONS.remove(word);
 	}
 
 	private static void putSeason(final String words, final int season, final Set<String> seasonWins){
 		for(final String word : StringUtils.split(words, ',')){
-			final Integer previous = (seasonWins.contains(word)
-				? MONTHS.put(word, season)
-				: MONTHS.putIfAbsent(word, season));
-			if(previous != null && previous < 0 && previous != season)
-				AMBIGUOUS_SEASONS.add(word);
+			if(!MONTHS.containsKey(word) || seasonWins.contains(word)){
+				final Integer previous = SEASONS.put(word, season);
+				if(previous != null && previous != season)
+					AMBIGUOUS_SEASONS.add(word);
+			}
 		}
 	}
 
@@ -241,12 +242,17 @@ public final class GregorianCalendarParser{
 
 		// Check if the token maps straight to a registered seasonal marker
 		int month;
-		final Integer season = MONTHS.get(monthName);
-		if(season != null && season < 0)
-			month = season;
-		else
-			// Resolve multilingual full or abbreviated months using internal Java internationalization tables
+		if(dayGroup != null)
+			// When a day is present, strictly resolve as a month (seasons cannot have a day number)
 			month = resolvePolyglotMonth(monthName);
+		else{
+			final Integer season = SEASONS.get(monthName);
+			if(season != null)
+				month = season;
+			else
+				// Resolve multilingual full or abbreviated months using internal Java internationalization tables
+				month = resolvePolyglotMonth(monthName);
+		}
 
 		// A missing day (month and year only, or a seasonal record) is kept as 0
 		final int day = (dayGroup != null? Integer.parseInt(dayGroup): 0);
@@ -325,8 +331,7 @@ public final class GregorianCalendarParser{
 		if(textTokens.length > 0){
 			final String leadingToken = textTokens[0].toLowerCase(Locale.ROOT)
 				.trim();
-			final Integer season = MONTHS.get(leadingToken);
-			if(season != null && season < 0)
+			if(SEASONS.containsKey(leadingToken) && !MONTHS.containsKey(leadingToken))
 				isSeasonExpression = true;
 		}
 
@@ -392,11 +397,15 @@ public final class GregorianCalendarParser{
 		if(historicalMonth != null)
 			return historicalMonth;
 
+		final Integer month = MONTHS.get(token);
+		if(month != null)
+			return month;
+
 		final Locale[] locales = Locale.getAvailableLocales();
 		for(final Locale locale : locales){
-			final int month = parseMonthWithLocale(token, locale);
-			if(month != -1)
-				return month;
+			final int resolvedMonth = parseMonthWithLocale(token, locale);
+			if(resolvedMonth != -1)
+				return resolvedMonth;
 		}
 
 		if(AMBIGUOUS_SEASONS.contains(token))

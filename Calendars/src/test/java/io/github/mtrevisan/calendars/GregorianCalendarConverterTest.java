@@ -75,6 +75,23 @@ class GregorianCalendarConverterTest{
 	}
 
 	@Test
+	void dayForcesMonthOverSeason(){
+		// "pri" without day is spring (Albanian April vs Romance spring: season wins)
+		Assertions.assertEquals(2460390L, CalendarType.GREGORIAN.parseToJdn("pri 2024"));
+		// "pri" with day is April (Albanian)
+		Assertions.assertEquals(CalendarType.GREGORIAN.parseToJdn("15 April 2024"), CalendarType.GREGORIAN.parseToJdn("15 pri 2024"));
+
+		// "ber" without day is spring (Kurdish December vs Sardinian spring: season wins)
+		Assertions.assertEquals(2460390L, CalendarType.GREGORIAN.parseToJdn("ber 2024"));
+		// "ber" with day is December (Kurdish)
+		Assertions.assertEquals(CalendarType.GREGORIAN.parseToJdn("15 December 2024"), CalendarType.GREGORIAN.parseToJdn("15 ber 2024"));
+
+		// Pure seasons with a day number are rejected as invalid dates
+		Assertions.assertThrows(IllegalArgumentException.class, () -> CalendarType.GREGORIAN.parseToJdn("15 spring 2024"));
+		Assertions.assertThrows(IllegalArgumentException.class, () -> CalendarType.GREGORIAN.parseToJdn("15 estate 2024"));
+	}
+
+	@Test
 	void seasonOfDifferentLanguagesIsRejected(){
 		// "yaz" is spring in Azerbaijani and summer in Turkish
 		Assertions.assertThrows(IllegalArgumentException.class, () -> CalendarType.GREGORIAN.parseToJdn("yaz 2024"));
