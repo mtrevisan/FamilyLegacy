@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.calendars;
 
+import io.github.mtrevisan.calendars.spi.CalendarMetadata;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -100,9 +101,9 @@ class CalendarTypeTest{
 				final CalendarType type = (CalendarType)date[0];
 				final String monthAndYear = (String)date[1];
 				final String firstDayOfMonth = (String)date[2];
-				final CalendarType.CalendarMetadata metadata = type.getMetadata(monthAndYear);
+				final CalendarMetadata metadata = type.getMetadata(monthAndYear);
 
-				Assertions.assertTrue(metadata.nativeComponents().get("year"), type + ": year");
+				Assertions.assertTrue(metadata.nativeComponents().get(CalendarMetadata.COMPONENT_YEAR), type + ": year");
 				Assertions.assertTrue(metadata.nativeComponents().get("month"), type + ": month");
 				Assertions.assertFalse(metadata.nativeComponents().get("day"), type + ": day");
 				Assertions.assertFalse(metadata.isComplete(), type + ": month and year is complete");
@@ -160,9 +161,9 @@ class CalendarTypeTest{
 			.map(date -> () -> {
 				final CalendarType type = (CalendarType)date[0];
 				final String year = (String)date[1];
-				final CalendarType.CalendarMetadata metadata = type.getMetadata(year);
+				final CalendarMetadata metadata = type.getMetadata(year);
 
-				Assertions.assertTrue(metadata.nativeComponents().get("year"), type + ": year");
+				Assertions.assertTrue(metadata.nativeComponents().get(CalendarMetadata.COMPONENT_YEAR), type + ": year");
 				Assertions.assertFalse(metadata.nativeComponents().get("month"), type + ": month");
 				Assertions.assertFalse(metadata.nativeComponents().get("day"), type + ": day");
 				Assertions.assertEquals(type.parseToJdn((String)date[2]), type.parseToJdn(year), type + ": JDN");
@@ -181,7 +182,7 @@ class CalendarTypeTest{
 		Assertions.assertAll(Arrays.stream(seasons)
 			.map(season -> () -> {
 				final CalendarType type = (CalendarType)season[0];
-				final CalendarType.CalendarMetadata metadata = type.getMetadata((String)season[1]);
+				final CalendarMetadata metadata = type.getMetadata((String)season[1]);
 
 				Assertions.assertFalse(metadata.nativeComponents().get("day"), type + ": day");
 				Assertions.assertFalse(metadata.isComplete(), type + ": season is complete");

@@ -24,13 +24,11 @@
  */
 package io.github.mtrevisan.calendars.egyptian;
 
-import io.github.mtrevisan.calendars.CalendarConverterPlugin;
-import io.github.mtrevisan.calendars.CalendarType;
+import io.github.mtrevisan.calendars.astronomy.CalendarSeason;
 import io.github.mtrevisan.calendars.astronomy.EphemerisEngine;
 import io.github.mtrevisan.calendars.astronomy.EphemerisEngineFactory;
-
-import java.util.LinkedHashMap;
-import java.util.Map;
+import io.github.mtrevisan.calendars.spi.CalendarConverterPlugin;
+import io.github.mtrevisan.calendars.spi.CalendarMetadata;
 
 
 public class EgyptianCalendarStrategy implements CalendarConverterPlugin{
@@ -49,22 +47,7 @@ public class EgyptianCalendarStrategy implements CalendarConverterPlugin{
 
 		if(month < 0){
 			// Step A: Determine the absolute linear window of this shifting Egyptian year.
-			final long startOfYearJdn = egyptianEpochJdn + (year - 1) * 365L;
-
-			// Establish the middle of this specific shifting year block as an initial guess anchor
-			final double approximateMiddleJdUT = startOfYearJdn + 182.5 - 0.5;
-
-			// Step B: Map negative flag parameters directly onto true solar ecliptic target boundaries
-			// Note: Mapped to match standard seasonal definitions:
-			// Akhet (Autumn = 𝜋), Peret (Winter = 3𝜋/2), Shemu (Summer = 𝜋/2)
-			final double targetLongitude = CalendarType.getGeneralTargetLongitude(month);
-
-			// Step C: Execute high-fidelity calculation to track the exact instant the transit occurs
-			final EphemerisEngine engine = EphemerisEngineFactory.getEngine();
-			if(!engine.isAvailable())
-				throw new UnsupportedOperationException("Egyptian calendar requires the Ephemeris plugin.");
-
-			final double exactSeasonJdUT = engine.findSolarLongitudeEvent(approximateMiddleJdUT, targetLongitude);
+			final double exactSeasonJdUT = exactSeasonJdUT(egyptianEpochJdn, year, month);
 
 			return (long)Math.floor(exactSeasonJdUT + 0.5);
 		}
@@ -72,16 +55,29 @@ public class EgyptianCalendarStrategy implements CalendarConverterPlugin{
 			return egyptianEpochJdn + 365L * (year - 1L) + 30L * (month - 1L) + (day - 1L);
 	}
 
-	@Override
-	public CalendarType.CalendarMetadata getMetadata(final String rawDate){
-		final EgyptianDateInput input = EgyptianCalendarParser.parse(rawDate);
-		final Map<String, Boolean> components = new LinkedHashMap<>();
-		components.put("year", (input.year() != 0));
-		components.put("month", (input.month() != 0));
-		components.put("day", (input.day() != 0));
+	private static double exactSeasonJdUT(final long egyptianEpochJdn, final int year, final int month){
+		final long startOfYearJdn = egyptianEpochJdn + (year - 1) * 365L;
 
-		final boolean isComplete = (input.year() != 0 && input.month() != 0 && input.day() != 0);
-		return new CalendarType.CalendarMetadata(components, isComplete);
+		// Establish the middle of this specific shifting year block as an initial guess anchor
+		final double approximateMiddleJdUT = startOfYearJdn + 182.5 - 0.5;
+
+		// Step B: Map negative flag parameters directly onto true solar ecliptic target boundaries
+		// Note: Mapped to match standard seasonal definitions:
+		// Akhet (Autumn = 𝜋), Peret (Winter = 3𝜋/2), Shemu (Summer = 𝜋/2)
+		final double targetLongitude = CalendarSeason.getGeneralTargetLongitude(month);
+
+		// Step C: Execute high-fidelity calculation to track the exact instant the transit occurs
+		final EphemerisEngine engine = EphemerisEngineFactory.getEngine();
+		if(!engine.isAvailable())
+			throw new UnsupportedOperationException("Egyptian calendar requires the Ephemeris plugin.");
+
+		return engine.findSolarLongitudeEvent(approximateMiddleJdUT, targetLongitude);
+	}
+
+	@Override
+	public CalendarMetadata getMetadata(final String rawDate){
+		final EgyptianDateInput input = EgyptianCalendarParser.parse(rawDate);
+		return CalendarMetadata.createFromYearMonthDay(input.year(), input.month(), input.day());
 	}
 
 }

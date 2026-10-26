@@ -32,7 +32,6 @@ import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReade
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.GroupAttributeReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualAttributeReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateNormalizer;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.NormalizedDate;
@@ -448,11 +447,7 @@ public final class ChronomapIndex{
 		if(place == null)
 			return null;
 
-		final FLEFRecord nameStruct = FLEFRecordHelper.findChild(place, PlaceReader.TAG_NAME);
-		if(nameStruct == null)
-			return null;
-
-		return FLEFRecordHelper.getChildValue(nameStruct, NameReader.TAG_VALUE);
+		return PlaceReader.extractPrimaryName(place);
 	}
 
 	private static String extractPlaceId(final FLEFRecord record){

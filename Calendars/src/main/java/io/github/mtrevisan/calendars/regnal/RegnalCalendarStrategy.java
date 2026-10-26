@@ -24,19 +24,17 @@
  */
 package io.github.mtrevisan.calendars.regnal;
 
-import io.github.mtrevisan.calendars.CalendarConverterPlugin;
-import io.github.mtrevisan.calendars.CalendarType;
 import io.github.mtrevisan.calendars.gregorian.CalendarReform;
 import io.github.mtrevisan.calendars.gregorian.GregorianCalendarParser;
+import io.github.mtrevisan.calendars.spi.CalendarConverterPlugin;
+import io.github.mtrevisan.calendars.spi.CalendarMetadata;
 import io.github.mtrevisan.calendars.text.Ordinals;
 import io.github.mtrevisan.calendars.text.TextNormalizer;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 
@@ -318,13 +316,9 @@ public class RegnalCalendarStrategy implements CalendarConverterPlugin{
 	}
 
 	@Override
-	public CalendarType.CalendarMetadata getMetadata(final String rawDate){
-		final RegnalDate date = parse(rawDate);
-		final Map<String, Boolean> components = new LinkedHashMap<>();
-		components.put("year", true);
-		components.put("month", (date.month() != 0));
-		components.put("day", (date.day() != 0));
-		return new CalendarType.CalendarMetadata(components, (date.month() != 0 && date.day() != 0));
+	public CalendarMetadata getMetadata(final String rawDate){
+		final RegnalDate input = parse(rawDate);
+		return CalendarMetadata.createFromMonthDay(input.month(), input.day());
 	}
 
 }

@@ -28,6 +28,8 @@ import io.github.mtrevisan.familylegacy.gedcom.GEDCOMHelper;
 import io.github.mtrevisan.familylegacy.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.gedcom.utils.AuditBuilder;
 import io.github.mtrevisan.familylegacy.gedcom.utils.IDGenerator;
+import io.github.mtrevisan.familylegacy.gedcom.utils.PlaceCache;
+import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.handlers.RepositoryHandler;
 
@@ -40,31 +42,31 @@ import java.util.Map;
  * Handles:
  * <ul>
  *   <li>Name (NAME) → name+: NameStructure</li>
- *   <li>Place (PLAC) → place: PlaceCitation</li>
- *   <li>Address (ADDR) → contact: ContactStructure</li>
- *   <li>Date (DATE) → date</li>
- *   <li>_DATE (extension) → date (if no DATE present)</li>
- *   <li>OBJE → DocumentRecord + document reference</li>
+ *   <li>Address structure (ADDR, PHON, EMAIL, FAX, WWW) → contact*: ContactStructure</li>
+ *   <li>Place (PLAC, an extension of some programs) → place: PlaceCitation</li>
  *   <li>Notes (NOTE) → inline NoteStructure (with audit)</li>
- *   <li>Extra fields (RIN, REFN) → inline NoteStructure (with audit)</li>
- *   <li>Privacy (RESN) → PrivacyStructure</li>
  *   <li>Audit (CHAN) → AuditStructure</li>
  * </ul>
+ * REFN and RIN have no counterpart.
  */
 public class RepositoryConverter{
 
+	private final FLEFModel model;
 	private final Map<String, FLEFRecord> repositoryMap;
 	private final Map<String, GEDCOMNode> noteRawMap;
+	private final PlaceCache placeCache;
 
 	/**
 	 * Constructor.
 	 *
 	 * @param repositoryMap map of repository IDs to FLEF records
 	 */
-	public RepositoryConverter(Map<String, FLEFRecord> repositoryMap,
-		Map<String, GEDCOMNode> noteRawMap){
+	public RepositoryConverter(FLEFModel model, Map<String, FLEFRecord> repositoryMap, Map<String, GEDCOMNode> noteRawMap,
+			PlaceCache placeCache){
+		this.model = model;
 		this.repositoryMap = repositoryMap;
 		this.noteRawMap = noteRawMap;
+		this.placeCache = placeCache;
 	}
 
 	/**
@@ -77,36 +79,35 @@ public class RepositoryConverter{
 		if(xref == null)
 			return;
 
-		String cleanId = GEDCOMHelper.cleanId(xref);
-		IDGenerator.registerExistingId(cleanId);
+		IDGenerator.registerExistingId(xref);
 
-		FLEFRecord repository = FLEFRecord.createMainRecord(cleanId, RepositoryHandler.TYPE);
-		repositoryMap.put(cleanId, repository);
+		FLEFRecord repository = FLEFRecord.createMainRecord(xref, RepositoryHandler.TYPE);
+		repositoryMap.put(xref, repository);
 
 		// ---- 1. NAME (name+: NameStructure) ----
-		GEDCOMNode nameNode = GEDCOMHelper.findFirstChild(repoNode, "NAME");
-		if(nameNode != null && nameNode.getValue() != null){
-			FLEFRecord classifiedName = FLEFRecord.createChildWithTag("name")
-				.addChild(FLEFRecord.createChildWithTagAndValue("value", nameNode.getValue()));
-			// Optional type (not standard for REPO NAME, but harmless)
-			GEDCOMNode typeNode = GEDCOMHelper.findFirstChild(nameNode, "TYPE");
-			if(typeNode != null && typeNode.getValue() != null){
-				classifiedName.addChild(FLEFRecord.createChildWithTagAndValue("type", typeNode.getValue()));
-			}
-			repository.addChild(classifiedName);
-		}
+		final String name = GEDCOMHelper.findFirstValue(repoNode, "NAME");
+		repository.addChild(FLEFRecord.createChildWithTag("name")
+			.addChild(FLEFRecord.createChildWithTagAndValue("value", (name != null? name: "Repository " + xref))));
 
-		// ---- 2. ADDRESS_STRUCTURE (ADDR, PHON, EMAIL, FAX, WWW) ----
-		GEDCOMNode addrNode = GEDCOMHelper.findFirstChild(repoNode, "ADDR");
-		GEDCOMHelper.attachAddressToContact(repository, addrNode, repoNode);
+		// ---- 2. PLAC (place: PlaceCitation) ----
+		GEDCOMHelper.attachPlaceCitation(repository, model, GEDCOMHelper.findFirstChild(repoNode, "PLAC"), null, noteRawMap,
+			placeCache);
+
+		// ---- 3. ADDRESS_STRUCTURE (ADDR, PHON, EMAIL, FAX, WWW) ----
+		GEDCOMHelper.attachContacts(repository, repoNode, null);
 
 		// ---- Notes (GEDCOM NOTE) – inline structs ----
 		for(GEDCOMNode noteNode : GEDCOMHelper.findChildren(repoNode, "NOTE")){
-			repository.addChild(FLEFRecord.createChildWithTagAndValue("remark", GEDCOMHelper.extractFullText(noteNode)));
+			GEDCOMHelper.attachNote(repository, noteNode, noteRawMap);
 		}
 
-		// ---- 10. Audit (required) ----
+		// ---- Privacy (RESN, an extension of some programs) ----
+		GEDCOMHelper.attachRestriction(repository, repoNode);
+
+		// ---- Audit (required) ----
 		repository.addChild(AuditBuilder.build(repoNode));
+
+		model.addRecord(repository);
 	}
 
 }

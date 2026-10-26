@@ -28,8 +28,9 @@ package io.github.mtrevisan.calendars.parsi;
 /**
  * Reckonings of the Parsi (Yazdegerdi) calendar.
  * <p>
- * Both count 365-day years from the Yazdegerdi era (16 June 632 Julian), but the Shahenshahi community intercalated one
- * month once (sometime around the 12th century), so its dates fall 30 days after the Kadmi ones with the same year number.
+ * Shahenshahi and Kadmi count 365-day years from the Yazdegerdi era (16 June 632 Julian), but the Shahenshahi community
+ * intercalated one month once (sometime around the 12th century), so its dates fall 30 days after the Kadmi ones with the
+ * same year number. The Fasli reckoning keeps the year aligned with the seasons instead.
  * </p>
  */
 public enum ParsiVariant{
@@ -37,7 +38,13 @@ public enum ParsiVariant{
 	/** Shahenshahi (Shenshai), followed by most Parsis in India. */
 	SHAHENSHAHI(30),
 	/** Kadmi (Qadimi), the reckoning without intercalation, adopted by part of the Parsis of Surat in 1745. */
-	KADMI(0);
+	KADMI(0),
+	/**
+	 * Fasli (Bastani), proposed in 1906 by the Zarathushti Fasili Sal Mandal: the year starts on 21 March (Jamshedi
+	 * Navroz), the YZ year being the Gregorian year − 630, and the year containing a Gregorian 29 February has a sixth
+	 * Gatha day, Avardad-sal-Gah, on 20 March (the offset is not used).
+	 */
+	FASLI(0);
 
 
 	private final int offsetDays;

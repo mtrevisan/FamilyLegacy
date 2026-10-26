@@ -24,14 +24,12 @@
  */
 package io.github.mtrevisan.calendars.chinese;
 
-import io.github.mtrevisan.calendars.CalendarConverterPlugin;
-import io.github.mtrevisan.calendars.CalendarType;
-import io.github.mtrevisan.calendars.gregorian.GregorianCalendarStrategy;
+import io.github.mtrevisan.calendars.astronomy.CalendarSeason;
 import io.github.mtrevisan.calendars.astronomy.EphemerisEngine;
 import io.github.mtrevisan.calendars.astronomy.EphemerisEngineFactory;
-
-import java.util.LinkedHashMap;
-import java.util.Map;
+import io.github.mtrevisan.calendars.gregorian.GregorianCalendarStrategy;
+import io.github.mtrevisan.calendars.spi.CalendarConverterPlugin;
+import io.github.mtrevisan.calendars.spi.CalendarMetadata;
 
 
 public class ChineseCalendarStrategy implements CalendarConverterPlugin{
@@ -55,30 +53,15 @@ public class ChineseCalendarStrategy implements CalendarConverterPlugin{
 			// Instead of a fixed June anchor which misses February (Lìchūn) or November (Lìdōng),
 			// we anchor onto the specific calendar month space corresponding to the season.
 			final int approximateTargetGregorianMonth = switch(month){
-				case CalendarType.SEASON_SPRING -> 2;  // Lìchūn -> Feb
-				case CalendarType.SEASON_SUMMER -> 5;  // Lìxià  -> May
-				case CalendarType.SEASON_AUTUMN -> 8;  // Lìqiū  -> Aug
-				case CalendarType.SEASON_WINTER -> 11; // Lìdōng -> Nov
+				case CalendarSeason.SEASON_SPRING -> 2;	// Lìchūn -> Feb
+				case CalendarSeason.SEASON_SUMMER -> 5;	// Lìxià  -> May
+				case CalendarSeason.SEASON_AUTUMN -> 8;	// Lìqiū  -> Aug
+				case CalendarSeason.SEASON_WINTER -> 11;	// Lìdōng -> Nov
 				default -> 6;
 			};
 
 			final long baselineApproxJdn = GregorianCalendarStrategy.toJdn(year, approximateTargetGregorianMonth, 1);
-			final double approximateMiddleJdUT = baselineApproxJdn - 0.5;
-
-			// Step B: Map negative flag parameters directly onto true solar ecliptic target boundaries.
-			// Maps the 4 primary Solar Terms boundaries to their precise tropical longitude radian coordinates:
-			// Qiū / Lìqiū (-1)  = 135° = 3𝜋 / 4
-			// Dōng / Lìdōng (-2) = 225° = 5𝜋 / 4
-			// Chūn / Lìchūn (-3) = 315° = 7𝜋 / 4
-			// Xià / Lìxià (-4)  = 45°  = 𝜋 / 4
-			final double targetLongitude = getTargetLongitude(month);
-
-			// Step C: Trigger exact calculation to find the point where the Sun enters this solar term
-			final EphemerisEngine engine = EphemerisEngineFactory.getEngine();
-			if(!engine.isAvailable())
-				throw new UnsupportedOperationException("Chinese calendar requires the Ephemeris plugin.");
-
-			final double exactSeasonJdUT = engine.findSolarLongitudeEvent(approximateMiddleJdUT, targetLongitude);
+			final double exactSeasonJdUT = exactSeasonJdUT(baselineApproxJdn, month);
 
 			return (long)Math.floor(exactSeasonJdUT + 0.5);
 		}
@@ -87,26 +70,39 @@ public class ChineseCalendarStrategy implements CalendarConverterPlugin{
 			return ChineseCalendarAstronomicalEngine.toJdn(year, month, leapMonth, day);
 	}
 
+	private static double exactSeasonJdUT(final long baselineApproxJdn, final int month){
+		final double approximateMiddleJdUT = baselineApproxJdn - 0.5;
+
+		// Step B: Map negative flag parameters directly onto true solar ecliptic target boundaries.
+		// Maps the 4 primary Solar Terms boundaries to their precise tropical longitude radian coordinates:
+		// Qiū / Lìqiū (-1)  = 135° = 3𝜋 / 4
+		// Dōng / Lìdōng (-2) = 225° = 5𝜋 / 4
+		// Chūn / Lìchūn (-3) = 315° = 7𝜋 / 4
+		// Xià / Lìxià (-4)  = 45°  = 𝜋 / 4
+		final double targetLongitude = getTargetLongitude(month);
+
+		// Step C: Trigger exact calculation to find the point where the Sun enters this solar term
+		final EphemerisEngine engine = EphemerisEngineFactory.getEngine();
+		if(!engine.isAvailable())
+			throw new UnsupportedOperationException("Chinese calendar requires the Ephemeris plugin.");
+
+		return engine.findSolarLongitudeEvent(approximateMiddleJdUT, targetLongitude);
+	}
+
 	private static double getTargetLongitude(final int month){
 		return switch(month){
-			case CalendarType.SEASON_AUTUMN -> 0.75 * Math.PI;   // Lìqiū (Start of Autumn)
-			case CalendarType.SEASON_WINTER -> 1.25 * Math.PI;   // Lìdōng (Start of Winter)
-			case CalendarType.SEASON_SPRING -> 1.75 * Math.PI;   // Lìchūn (Start of Spring)
-			case CalendarType.SEASON_SUMMER -> 0.25 * Math.PI;   // Lìxià (Start of Summer)
+			case CalendarSeason.SEASON_AUTUMN -> 0.75 * Math.PI;		// Lìqiū (Start of Autumn)
+			case CalendarSeason.SEASON_WINTER -> 1.25 * Math.PI;		// Lìdōng (Start of Winter)
+			case CalendarSeason.SEASON_SPRING -> 1.75 * Math.PI;		// Lìchūn (Start of Spring)
+			case CalendarSeason.SEASON_SUMMER -> 0.25 * Math.PI;		// Lìxià (Start of Summer)
 			default -> 0.;
 		};
 	}
 
 	@Override
-	public CalendarType.CalendarMetadata getMetadata(final String rawDate){
+	public CalendarMetadata getMetadata(final String rawDate){
 		final ChineseDateInput input = ChineseCalendarParser.parse(rawDate);
-		final Map<String, Boolean> components = new LinkedHashMap<>();
-		components.put("year", (input.year() != 0));
-		components.put("month", (input.month() != 0));
-		components.put("day", (input.day() != 0));
-
-		final boolean isComplete = (input.year() != 0 && input.month() != 0 && input.day() != 0);
-		return new CalendarType.CalendarMetadata(components, isComplete);
+		return CalendarMetadata.createFromYearMonthDay(input.year(), input.month(), input.day());
 	}
 
 }

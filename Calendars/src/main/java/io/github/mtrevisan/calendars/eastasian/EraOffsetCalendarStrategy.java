@@ -24,9 +24,9 @@
  */
 package io.github.mtrevisan.calendars.eastasian;
 
-import io.github.mtrevisan.calendars.CalendarConverterPlugin;
-import io.github.mtrevisan.calendars.CalendarType;
 import io.github.mtrevisan.calendars.gregorian.GregorianCalendarStrategy;
+import io.github.mtrevisan.calendars.spi.CalendarConverterPlugin;
+import io.github.mtrevisan.calendars.spi.CalendarMetadata;
 
 import java.time.DateTimeException;
 import java.time.LocalDate;
@@ -114,7 +114,7 @@ public class EraOffsetCalendarStrategy implements CalendarConverterPlugin{
 	}
 
 	@Override
-	public CalendarType.CalendarMetadata getMetadata(final String rawDate){
+	public CalendarMetadata getMetadata(final String rawDate){
 		return parse(rawDate).toMetadata();
 	}
 

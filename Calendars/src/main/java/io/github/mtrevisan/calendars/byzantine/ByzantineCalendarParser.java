@@ -24,7 +24,7 @@
  */
 package io.github.mtrevisan.calendars.byzantine;
 
-import io.github.mtrevisan.calendars.CalendarType;
+import io.github.mtrevisan.calendars.astronomy.CalendarSeason;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
@@ -142,33 +142,33 @@ public final class ByzantineCalendarParser{
 
 
 		// Autumn
-		MONTHS.put("φθινόπωρο", CalendarType.SEASON_AUTUMN);
-		MONTHS.put("φθινόπωρον", CalendarType.SEASON_AUTUMN); // Byzantine/Katharevousa nominal neuter
-		MONTHS.put("phthinoporo", CalendarType.SEASON_AUTUMN);
-		MONTHS.put("phthinoporon", CalendarType.SEASON_AUTUMN);
-		MONTHS.put("osen", CalendarType.SEASON_AUTUMN);         // Old Church Slavonic (OCS) autumn
+		MONTHS.put("φθινόπωρο", CalendarSeason.SEASON_AUTUMN);
+		MONTHS.put("φθινόπωρον", CalendarSeason.SEASON_AUTUMN); // Byzantine/Katharevousa nominal neuter
+		MONTHS.put("phthinoporo", CalendarSeason.SEASON_AUTUMN);
+		MONTHS.put("phthinoporon", CalendarSeason.SEASON_AUTUMN);
+		MONTHS.put("osen", CalendarSeason.SEASON_AUTUMN);         // Old Church Slavonic (OCS) autumn
 
 		// Winter
-		MONTHS.put("χειμώνας", CalendarType.SEASON_WINTER);
-		MONTHS.put("χειμών", CalendarType.SEASON_WINTER);     // Classical Byzantine nominative masculine
-		MONTHS.put("cheimonas", CalendarType.SEASON_WINTER);
-		MONTHS.put("cheimon", CalendarType.SEASON_WINTER);
-		MONTHS.put("zima", CalendarType.SEASON_WINTER);        // Old Church Slavonic (OCS) winter
+		MONTHS.put("χειμώνας", CalendarSeason.SEASON_WINTER);
+		MONTHS.put("χειμών", CalendarSeason.SEASON_WINTER);     // Classical Byzantine nominative masculine
+		MONTHS.put("cheimonas", CalendarSeason.SEASON_WINTER);
+		MONTHS.put("cheimon", CalendarSeason.SEASON_WINTER);
+		MONTHS.put("zima", CalendarSeason.SEASON_WINTER);        // Old Church Slavonic (OCS) winter
 
 		// Spring
-		MONTHS.put("άνοιξη", CalendarType.SEASON_SPRING);
-		MONTHS.put("ἔαρ", CalendarType.SEASON_SPRING);          // Pure Attic/Byzantine literary term for Spring
-		MONTHS.put("ἄνοιξις", CalendarType.SEASON_SPRING);      // Byzantine Katharevousa nominal variant
-		MONTHS.put("anoixi", CalendarType.SEASON_SPRING);
-		MONTHS.put("ear", CalendarType.SEASON_SPRING);
-		MONTHS.put("vesna", CalendarType.SEASON_SPRING);       // Old Church Slavonic (OCS) spring
+		MONTHS.put("άνοιξη", CalendarSeason.SEASON_SPRING);
+		MONTHS.put("ἔαρ", CalendarSeason.SEASON_SPRING);          // Pure Attic/Byzantine literary term for Spring
+		MONTHS.put("ἄνοιξις", CalendarSeason.SEASON_SPRING);      // Byzantine Katharevousa nominal variant
+		MONTHS.put("anoixi", CalendarSeason.SEASON_SPRING);
+		MONTHS.put("ear", CalendarSeason.SEASON_SPRING);
+		MONTHS.put("vesna", CalendarSeason.SEASON_SPRING);       // Old Church Slavonic (OCS) spring
 
 		// Summer
-		MONTHS.put("θέρος", CalendarType.SEASON_SUMMER);       // Classical Byzantine agricultural summer
-		MONTHS.put("καλοκαίρι", CalendarType.SEASON_SUMMER);
-		MONTHS.put("theros", CalendarType.SEASON_SUMMER);
-		MONTHS.put("kalokairi", CalendarType.SEASON_SUMMER);
-		MONTHS.put("leto", CalendarType.SEASON_SUMMER);
+		MONTHS.put("θέρος", CalendarSeason.SEASON_SUMMER);       // Classical Byzantine agricultural summer
+		MONTHS.put("καλοκαίρι", CalendarSeason.SEASON_SUMMER);
+		MONTHS.put("theros", CalendarSeason.SEASON_SUMMER);
+		MONTHS.put("kalokairi", CalendarSeason.SEASON_SUMMER);
+		MONTHS.put("leto", CalendarSeason.SEASON_SUMMER);
 	}
 
 	private static final Pattern DATE_PATTERN = Pattern.compile("(?:(\\d+)\\s+)?(\\S+)\\s+(\\d+)");

@@ -51,27 +51,27 @@ import java.util.stream.Collectors;
 
 
 /**
- * Imports a GEDCOM file by parsing it and replacing the current model
- * with the parsed one.
+ * Imports a GEDCOM file by converting it into a new FLEF file, which
+ * becomes the current document.
  * <p>
- * Unlike Open, which is a document-level operation (it changes the
- * current file), Import is a model-level operation: the imported
- * records are merged into the current model, or replace it, according
- * to the user's choice. The document (the current file path) is left
- * unchanged, so the user can continue editing and save under the
- * original name.
+ * GEDCOM 5.5, 5.5.1, and 7 are read; the version is the one declared
+ * by the header of the file (see {@link GEDCOMToFLEFConverter}).
  * <p>
- * The tool is deliberately simple: it either replaces the model or
- * refuses to import when the current model is not empty. A real
- * merge-with-conflict-resolution flow would need a diff engine and a
- * resolution dialog, which are out of scope for this tool.
+ * Once the conversion succeeds, the user chooses where to save the FLEF
+ * file; the file is written and then opened, as Open would do (see
+ * {@link io.github.mtrevisan.familylegacy.ui.tools.files.FileMenuController#openImported}).
+ * Cancelling the choice discards the import.
+ * <p>
+ * The tool is deliberately simple: it never merges into the current
+ * model. A real merge-with-conflict-resolution flow would need a diff
+ * engine and a resolution dialog, which are out of scope for this tool.
  */
 public final class ImportGedcomTool implements ToolOperation{
 
 
 	@Override
 	public String getName(){
-		return "GEDCOM 5.5.1…";
+		return "GEDCOM 5.5.x / 7.0…";
 	}
 
 	@Override
@@ -119,21 +119,18 @@ public final class ImportGedcomTool implements ToolOperation{
 				}
 
 				final GEDCOMToFLEFConverter converter = new GEDCOMToFLEFConverter();
-				return converter.convert(roots,
-					(percent, text) -> progress.update(percent, text));
+				return converter.convert(roots, progress::update);
 			}
 
 			@Override
 			protected void done(){
-				// We are on the EDT here. Close the dialog first, then
-				// schedule the model swap: replaceModel() itself uses
-				// invokeLater, so the order of the two queued tasks is
-				// preserved (close, then swap).
+				// We are on the EDT here: close the dialog first, then
+				// save the imported model and open the saved file.
 				progress.close();
 
 				try{
 					final FLEFModel imported = get();
-					context.replaceModel(imported);
+					context.openImported(imported, file);
 				}
 				catch(final InterruptedException ex){
 					Thread.currentThread().interrupt();

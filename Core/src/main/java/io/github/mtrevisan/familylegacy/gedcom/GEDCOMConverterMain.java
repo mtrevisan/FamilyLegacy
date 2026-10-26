@@ -44,7 +44,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 
-// TODO rivedere tutta la conversione con claudio, dopo che ha terminato con i calendari
 public class GEDCOMConverterMain{
 
 	// Usage: java GEDCOMConverterMain <input.ged> <output.flef>

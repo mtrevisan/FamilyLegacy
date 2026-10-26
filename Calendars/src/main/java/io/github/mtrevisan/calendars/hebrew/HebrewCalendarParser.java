@@ -1,6 +1,30 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
 package io.github.mtrevisan.calendars.hebrew;
 
-import io.github.mtrevisan.calendars.CalendarType;
+import io.github.mtrevisan.calendars.astronomy.CalendarSeason;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
@@ -22,11 +46,11 @@ public final class HebrewCalendarParser{
 		MONTHS.put("תשרי", 1);
 		MONTHS.put("tishrei", 1);
 		MONTHS.put("tishri", 1);
-		MONTHS.put("tischri", 1);           // German-Jewish phonetic variant
+		MONTHS.put("tischri", 1);		// German-Jewish phonetic variant
 
 		// Month 2: Cheshvan / Marcheshvan
 		MONTHS.put("חשון", 2);
-		MONTHS.put("מרחשון", 2);             // Traditional formal full spelling
+		MONTHS.put("מרחשון", 2);		// Traditional formal full spelling
 		MONTHS.put("cheshvan", 2);
 		MONTHS.put("heshvan", 2);
 		MONTHS.put("marcheshvan", 2);
@@ -35,8 +59,8 @@ public final class HebrewCalendarParser{
 		// Month 3: Kislev
 		MONTHS.put("כסלו", 3);
 		MONTHS.put("kislev", 3);
-		MONTHS.put("chizlev", 3);           // Archaic phonetic variant
-		MONTHS.put("chislew", 3);           // Historical German-Jewish spelling
+		MONTHS.put("chizlev", 3);		// Archaic phonetic variant
+		MONTHS.put("chislew", 3);		// Historical German-Jewish spelling
 
 		// Month 4: Tevet (Winter Solstice Month)
 		MONTHS.put("טבת", 4);
@@ -51,20 +75,20 @@ public final class HebrewCalendarParser{
 
 		// Month 6: Adar (Standard/Non-Leap Year) or Adar I (Intercalary Leap Month)
 		MONTHS.put("אדר", 6);
-		MONTHS.put("אדר א", 6);              // Native script for Adar Aleph
-		MONTHS.put("אדר ראשון", 6);          // Full native string ("First Adar")
+		MONTHS.put("אדר א", 6);			// Native script for Adar Aleph
+		MONTHS.put("אדר ראשון", 6);	// Full native string ("First Adar")
 		MONTHS.put("adar", 6);
 		MONTHS.put("adar i", 6);
 		MONTHS.put("adar aleph", 6);
 		MONTHS.put("adar rishon", 6);
 
 		// Month 7: Adar II (Only exists in 13-month Leap Years)
-		MONTHS.put("אדר ב", 7);              // Native script for Adar Bet
-		MONTHS.put("אדר שני", 7);             // Full native string ("Second Adar")
+		MONTHS.put("אדר ב", 7);			// Native script for Adar Bet
+		MONTHS.put("אדר שני", 7);		// Full native string ("Second Adar")
 		MONTHS.put("adar ii", 7);
 		MONTHS.put("adar bet", 7);
 		MONTHS.put("adar sheni", 7);
-		MONTHS.put("ve'adar", 7);           // Classical prefix notation ("And Adar")
+		MONTHS.put("ve'adar", 7);		// Classical prefix notation ("And Adar")
 		MONTHS.put("veadar", 7);
 
 		// Month 8: Nisan (Spring Equinox Month / Ecclesiastical Month 1)
@@ -92,7 +116,7 @@ public final class HebrewCalendarParser{
 		MONTHS.put("אב", 12);
 		MONTHS.put("av", 12);
 		MONTHS.put("ab", 12);
-		MONTHS.put("menachem av", 12);      // Comforting traditional title suffix
+		MONTHS.put("menachem av", 12);	// Comforting traditional title suffix
 		MONTHS.put("menachem-ab", 12);
 
 		// Month 13: Elul
@@ -105,32 +129,32 @@ public final class HebrewCalendarParser{
 		// =============================================================================
 
 		// Autumn / Autumnal Equinox (Tekufat Tishrei)
-		MONTHS.put("תקופת תשרי", CalendarType.SEASON_AUTUMN); // Native script
-		MONTHS.put("tekufat tishrei", CalendarType.SEASON_AUTUMN);
-		MONTHS.put("tekufat tishri", CalendarType.SEASON_AUTUMN);
-		MONTHS.put("stav", CalendarType.SEASON_AUTUMN);           // Modern Hebrew word for Autumn (סתיו)
-		MONTHS.put("סתיו", CalendarType.SEASON_AUTUMN);
+		MONTHS.put("תקופת תשרי", CalendarSeason.SEASON_AUTUMN);		// Native script
+		MONTHS.put("tekufat tishrei", CalendarSeason.SEASON_AUTUMN);
+		MONTHS.put("tekufat tishri", CalendarSeason.SEASON_AUTUMN);
+		MONTHS.put("stav", CalendarSeason.SEASON_AUTUMN);				// Modern Hebrew word for Autumn (סתיו)
+		MONTHS.put("סתיו", CalendarSeason.SEASON_AUTUMN);
 
 		// Winter / Hibernal Solstice (Tekufat Tevet)
-		MONTHS.put("תקופת טבת", CalendarType.SEASON_WINTER);   // Native script
-		MONTHS.put("tekufat tevet", CalendarType.SEASON_WINTER);
-		MONTHS.put("tekufat tebeth", CalendarType.SEASON_WINTER);
-		MONTHS.put("horef", CalendarType.SEASON_WINTER);          // Modern Hebrew word for Winter (חורף)
-		MONTHS.put("חורף", CalendarType.SEASON_WINTER);
+		MONTHS.put("תקופת טבת", CalendarSeason.SEASON_WINTER);		// Native script
+		MONTHS.put("tekufat tevet", CalendarSeason.SEASON_WINTER);
+		MONTHS.put("tekufat tebeth", CalendarSeason.SEASON_WINTER);
+		MONTHS.put("horef", CalendarSeason.SEASON_WINTER);			// Modern Hebrew word for Winter (חורף)
+		MONTHS.put("חורף", CalendarSeason.SEASON_WINTER);
 
 		// Spring / Vernal Equinox (Tekufat Nisan)
-		MONTHS.put("תקופת ניסן", CalendarType.SEASON_SPRING);  // Native script
-		MONTHS.put("tekufat nisan", CalendarType.SEASON_SPRING);
-		MONTHS.put("tekufat nissan", CalendarType.SEASON_SPRING);
-		MONTHS.put("aviv", CalendarType.SEASON_SPRING);           // Modern Hebrew word for Spring (אביב)
-		MONTHS.put("אביב", CalendarType.SEASON_SPRING);
+		MONTHS.put("תקופת ניסן", CalendarSeason.SEASON_SPRING);		// Native script
+		MONTHS.put("tekufat nisan", CalendarSeason.SEASON_SPRING);
+		MONTHS.put("tekufat nissan", CalendarSeason.SEASON_SPRING);
+		MONTHS.put("aviv", CalendarSeason.SEASON_SPRING);				// Modern Hebrew word for Spring (אביב)
+		MONTHS.put("אביב", CalendarSeason.SEASON_SPRING);
 
 		// Summer / Estival Solstice (Tekufat Tammuz)
-		MONTHS.put("תקופת תמוז", CalendarType.SEASON_SUMMER);  // Native script
-		MONTHS.put("tekufat tammuz", CalendarType.SEASON_SUMMER);
-		MONTHS.put("tekufat tamuz", CalendarType.SEASON_SUMMER);
-		MONTHS.put("kayitz", CalendarType.SEASON_SUMMER);         // Modern Hebrew word for Summer (קיץ)
-		MONTHS.put("קיץ", CalendarType.SEASON_SUMMER);
+		MONTHS.put("תקופת תמוז", CalendarSeason.SEASON_SUMMER);		// Native script
+		MONTHS.put("tekufat tammuz", CalendarSeason.SEASON_SUMMER);
+		MONTHS.put("tekufat tamuz", CalendarSeason.SEASON_SUMMER);
+		MONTHS.put("kayitz", CalendarSeason.SEASON_SUMMER);			// Modern Hebrew word for Summer (קיץ)
+		MONTHS.put("קיץ", CalendarSeason.SEASON_SUMMER);
 	}
 
 	// Robust, exception-free Unicode pattern supporting optional day prefix and localized alphabets

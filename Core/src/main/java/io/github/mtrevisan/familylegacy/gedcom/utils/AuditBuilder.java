@@ -48,9 +48,9 @@ public class AuditBuilder{
 
 		// Extraction of CHAN -> DATE and TIME
 		String isoDateTime = DateTimeFormatter.ISO_INSTANT.format(Instant.now().truncatedTo(ChronoUnit.DAYS));
-		GEDCOMNode dateNode = GEDCOMHelper.findFirstChild(chanNode, "DATE");
-		if(dateNode != null && StringUtils.isNotEmpty(dateNode.getValue()))
-			isoDateTime = GEDCOMHelper.getDateTime(dateNode);
+		final String chanDateTime = GEDCOMDateConverter.toDateTime(GEDCOMHelper.findFirstChild(chanNode, "DATE"));
+		if(chanDateTime != null)
+			isoDateTime = chanDateTime;
 
 		// Extraction of CHAN -> NOTE
 		GEDCOMNode noteNode = GEDCOMHelper.findFirstChild(chanNode, "NOTE");
@@ -59,12 +59,21 @@ public class AuditBuilder{
 //			chanNoteText = "From GEDCOM conversion";
 //		}
 
-		final FLEFRecord creation = FLEFRecord.createChildWithTag("creation");
-		creation.addChild(FLEFRecord.createChildWithTagAndValue("date", isoDateTime));
-		if(StringUtils.isNotEmpty(chanNoteText))
-			creation.addChild(FLEFRecord.createChildWithTagAndValue("comment", chanNoteText));
+		// GEDCOM 7 records the creation (CREA): the last change (CHAN) is then an update
+		final GEDCOMNode creaNode = (node != null? GEDCOMHelper.findFirstChild(node, "CREA"): null);
+		final String creationDateTime = GEDCOMDateConverter.toDateTime(GEDCOMHelper.findFirstChild(creaNode, "DATE"));
 
-		audit.addChild(creation);
+		final FLEFRecord creation = FLEFRecord.createChildWithTag("creation")
+			.addChild(FLEFRecord.createChildWithTagAndValue("date", (creationDateTime != null? creationDateTime: isoDateTime)));
+		final FLEFRecord update = (creationDateTime != null && chanDateTime != null
+			? FLEFRecord.createChildWithTag("update")
+				.addChild(FLEFRecord.createChildWithTagAndValue("date", chanDateTime))
+			: null);
+		if(StringUtils.isNotEmpty(chanNoteText))
+			(update != null? update: creation).addChild(FLEFRecord.createChildWithTagAndValue("comment", chanNoteText));
+
+		audit.addChild(creation)
+			.addChild(update);
 
 		return audit;
 	}

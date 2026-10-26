@@ -73,7 +73,7 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
  *   place_relationship: Xref&lt;PlaceRelationshipRecord&gt;
  *   repository: Xref&lt;RepositoryRecord&gt;
  *   source: Xref&lt;SourceRecord&gt;
- *   document: Xref&lt;DocumentRecord&gt;
+ *   media: Xref&lt;MediaRecord&gt;
  *   cultural_norm: Xref&lt;CulturalNormRecord&gt;
  *   historic_event: Xref&lt;HistoricEventRecord&gt;
  * }

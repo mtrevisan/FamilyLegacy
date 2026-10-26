@@ -27,6 +27,8 @@ package io.github.mtrevisan.familylegacy.ui.tools;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.ui.components.projections.repository.ProjectionMutator;
 
+import java.io.File;
+
 
 /**
  * Single dispatcher interface for executing UI mutations or high-level application actions.
@@ -46,6 +48,13 @@ public interface ToolDispatcher{
 	default void loadRoot(final String id){}
 
 	default void replaceModel(final FLEFModel newModel){}
+
+	/**
+	 * Saves a model imported from another format as a new FLEF file, chosen by the user, and opens it.
+	 *
+	 * @param source	The file the model was imported from.
+	 */
+	default void openImported(final FLEFModel importedModel, final File source){}
 
 	/**
 	 * Returns the ProjectionMutator for the active projection view, if available.

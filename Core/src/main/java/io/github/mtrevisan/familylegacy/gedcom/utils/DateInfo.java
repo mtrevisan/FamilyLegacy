@@ -40,6 +40,7 @@ public class DateInfo{
 	private final String to;          // for SPANNING
 	private final String qualifier;   // "ABT", "CAL", "EST", etc.
 	private final boolean approximate;
+	private final String phrase;      // the text of an INT date, or of a date given only as "(phrase)"
 
 	private DateInfo(Builder builder){
 		this.type = builder.type;
@@ -50,6 +51,7 @@ public class DateInfo{
 		this.to = builder.to;
 		this.qualifier = builder.qualifier;
 		this.approximate = builder.approximate;
+		this.phrase = builder.phrase;
 	}
 
 	public Type getType(){
@@ -84,6 +86,15 @@ public class DateInfo{
 		return approximate;
 	}
 
+	public String getPhrase(){
+		return phrase;
+	}
+
+	/** Whether the date has no value to normalize, only a phrase. */
+	public boolean isPhraseOnly(){
+		return (value == null && notBefore == null && notAfter == null && from == null && to == null);
+	}
+
 	public static class Builder{
 		private Type type = Type.POINT;
 		private String value;
@@ -93,6 +104,7 @@ public class DateInfo{
 		private String to;
 		private String qualifier;
 		private boolean approximate = false;
+		private String phrase;
 
 		public Builder type(Type type){
 			this.type = type;
@@ -131,6 +143,11 @@ public class DateInfo{
 
 		public Builder approximate(boolean approximate){
 			this.approximate = approximate;
+			return this;
+		}
+
+		public Builder phrase(String phrase){
+			this.phrase = phrase;
 			return this;
 		}
 

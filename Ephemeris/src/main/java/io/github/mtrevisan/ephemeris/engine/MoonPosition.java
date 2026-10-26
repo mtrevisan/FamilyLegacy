@@ -256,18 +256,18 @@ public final class MoonPosition{
 
 
 	private MoonPosition(final ElpParameters params, final ElpCoefficients coefs){
-		mainLongitude = MainSeries.of(coefs.mainLongitude);
-		mainLatitude = MainSeries.of(coefs.mainLatitude);
-		mainDistance = MainSeries.of(coefs.mainDistance);
+		mainLongitude = MainSeries.of(coefs.mainLongitude());
+		mainLatitude = MainSeries.of(coefs.mainLatitude());
+		mainDistance = MainSeries.of(coefs.mainDistance());
 		perturbationLongitude = new PerturbationSeries[]{
-			PerturbationSeries.of(coefs.perturbationLongitudeT0), PerturbationSeries.of(coefs.perturbationLongitudeT1),
-			PerturbationSeries.of(coefs.perturbationLongitudeT2), PerturbationSeries.of(coefs.perturbationLongitudeT3)};
+			PerturbationSeries.of(coefs.perturbationLongitudeT0()), PerturbationSeries.of(coefs.perturbationLongitudeT1()),
+			PerturbationSeries.of(coefs.perturbationLongitudeT2()), PerturbationSeries.of(coefs.perturbationLongitudeT3())};
 		perturbationLatitude = new PerturbationSeries[]{
-			PerturbationSeries.of(coefs.perturbationLatitudeT0), PerturbationSeries.of(coefs.perturbationLatitudeT1),
-			PerturbationSeries.of(coefs.perturbationLatitudeT2)};
+			PerturbationSeries.of(coefs.perturbationLatitudeT0()), PerturbationSeries.of(coefs.perturbationLatitudeT1()),
+			PerturbationSeries.of(coefs.perturbationLatitudeT2())};
 		perturbationDistance = new PerturbationSeries[]{
-			PerturbationSeries.of(coefs.perturbationDistanceT0), PerturbationSeries.of(coefs.perturbationDistanceT1),
-			PerturbationSeries.of(coefs.perturbationDistanceT2), PerturbationSeries.of(coefs.perturbationDistanceT3)};
+			PerturbationSeries.of(coefs.perturbationDistanceT0()), PerturbationSeries.of(coefs.perturbationDistanceT1()),
+			PerturbationSeries.of(coefs.perturbationDistanceT2()), PerturbationSeries.of(coefs.perturbationDistanceT3())};
 
 		// One-time construction of the corrected coefficient arrays. The
 		// base arrays are the static constants defined above; each clone
@@ -359,7 +359,7 @@ public final class MoonPosition{
 	 * @return apparent moon longitude [rad]
 	 */
 	public static double computeApparentMoonLongitude(final EclipticCoordinates eclipticOfDate, final double deltaPsi){
-		return apparentLongitude(eclipticOfDate.getLongitude(), deltaPsi);
+		return apparentLongitude(eclipticOfDate.longitude(), deltaPsi);
 	}
 
 	/** Counts a longitude on the ecliptic of date from the mean equinox of date instead of the departure point. */
@@ -414,14 +414,14 @@ public final class MoonPosition{
 		final double q = MathHelper.polynomial(jce, Q_COEFFS);
 
 		// The rotation of Chapront & Francou expects the longitude counted from the departure point
-		final double v = sph.getLongitude() - Converter.generalPrecessionInLongitude(jce);
-		final double rCosVcosU = sph.getDistance() * StrictMath.cos(v)
-			* StrictMath.cos(sph.getLatitude());
-		final double rSinVcosU = sph.getDistance() * StrictMath.sin(v)
-			* StrictMath.cos(sph.getLatitude());
-		final double rSinU = sph.getDistance() * StrictMath.sin(sph.getLatitude());
+		final double v = sph.longitude() - Converter.generalPrecessionInLongitude(jce);
+		final double rCosVcosU = sph.distance() * StrictMath.cos(v)
+			* StrictMath.cos(sph.latitude());
+		final double rSinVcosU = sph.distance() * StrictMath.sin(v)
+			* StrictMath.cos(sph.latitude());
+		final double rSinU = sph.distance() * StrictMath.sin(sph.latitude());
 
-		// Rotation matrix from Chapront & Francou (2003), eq. 26.
+		// Rotation matrix elements from Chapront & Francou (2003), eq. 26.
 		final double oneMinus2P2 = 1. - 2. * p * p;
 		final double oneMinus2Q2 = 1. - 2. * q * q;
 		final double twoPQ = 2. * p * q;
@@ -460,7 +460,7 @@ public final class MoonPosition{
 	 * in the same order as the perturbation multipliers, index 13 is the
 	 * Moon mean longitude {@code W1}.</p>
 	 * <p>Order: {@code [D, F, l, l', Me, Ve, EM, Ma, Ju, Sa, Ur, Ne, ζ]}.
-	 * All values are in radians, reduced to [0, 2π).</p>
+	 * All values are in radians, reduced to {@code [0, 2π)}.</p>
 	 */
 	private double[] arguments(final double t){
 		final double[] a = new double[ARG_COUNT];
@@ -648,21 +648,8 @@ public final class MoonPosition{
 	 * {@code k} are {@code argumentMultiplier[j]} applied to argument {@code argumentIndex[j]}, for {@code j} in
 	 * {@code [argumentStart[k], argumentStart[k + 1])}.
 	 */
-	private static final class PerturbationSeries{
-		private final double[] amplitude;
-		private final double[] phase;
-		private final int[] argumentStart;
-		private final byte[] argumentIndex;
-		private final int[] argumentMultiplier;
-
-		private PerturbationSeries(final double[] amplitude, final double[] phase, final int[] argumentStart,
-				final byte[] argumentIndex, final int[] argumentMultiplier){
-			this.amplitude = amplitude;
-			this.phase = phase;
-			this.argumentStart = argumentStart;
-			this.argumentIndex = argumentIndex;
-			this.argumentMultiplier = argumentMultiplier;
-		}
+		private record PerturbationSeries(double[] amplitude, double[] phase, int[] argumentStart, byte[] argumentIndex,
+													 int[] argumentMultiplier){
 
 		private static PerturbationSeries of(final List<ElpCoefficients.PertTerm> terms){
 			final int size = terms.size();
@@ -672,23 +659,24 @@ public final class MoonPosition{
 			final byte[] argumentIndex = new byte[size * (ARG_COUNT - 1)];
 			final int[] argumentMultiplier = new int[size * (ARG_COUNT - 1)];
 			int arguments = 0;
-			for(int k = 0; k < size; k ++){
+			for(int k = 0; k < size; k++){
 				final ElpCoefficients.PertTerm term = terms.get(k);
 				amplitude[k] = term.amplitude();
 				phase[k] = term.phase();
 				argumentStart[k] = arguments;
 				final int[] m = term.multipliers();
-				for(int j = 0; j < ARG_COUNT - 1; j ++)
+				for(int j = 0; j < ARG_COUNT - 1; j++)
 					if(m[j] != 0){
 						argumentIndex[arguments] = (byte)j;
 						argumentMultiplier[arguments] = m[j];
-						arguments ++;
+						arguments++;
 					}
 			}
 			argumentStart[size] = arguments;
 			return new PerturbationSeries(amplitude, phase, argumentStart, Arrays.copyOf(argumentIndex, arguments),
 				Arrays.copyOf(argumentMultiplier, arguments));
 		}
+
 	}
 
 }

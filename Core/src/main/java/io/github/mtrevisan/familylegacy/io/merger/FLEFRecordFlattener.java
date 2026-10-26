@@ -66,7 +66,7 @@ public class FLEFRecordFlattener{
 			case "event" -> extractEvent(record, fields);
 			case "place" -> extractPlace(record, fields);
 			case "source" -> extractSource(record, fields);
-			case "document" -> extractDocument(record, fields);
+			case "media" -> extractDocument(record, fields);
 			default -> extractGeneric(record, fields);
 		}
 

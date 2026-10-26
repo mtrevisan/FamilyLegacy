@@ -24,14 +24,13 @@
  */
 package io.github.mtrevisan.calendars.rumi;
 
-import io.github.mtrevisan.calendars.CalendarConverterPlugin;
-import io.github.mtrevisan.calendars.CalendarType;
-import io.github.mtrevisan.calendars.gregorian.GregorianCalendarStrategy;
+import io.github.mtrevisan.calendars.astronomy.CalendarSeason;
 import io.github.mtrevisan.calendars.astronomy.EphemerisEngine;
 import io.github.mtrevisan.calendars.astronomy.EphemerisEngineFactory;
-
-import java.util.LinkedHashMap;
-import java.util.Map;
+import io.github.mtrevisan.calendars.gregorian.GregorianCalendarStrategy;
+import io.github.mtrevisan.calendars.gregorian.JulianCalendarStrategy;
+import io.github.mtrevisan.calendars.spi.CalendarConverterPlugin;
+import io.github.mtrevisan.calendars.spi.CalendarMetadata;
 
 
 public class RumiCalendarStrategy implements CalendarConverterPlugin{
@@ -50,23 +49,27 @@ public class RumiCalendarStrategy implements CalendarConverterPlugin{
 			// Step A: Determine the absolute temporal anchor window for this year.
 			// Rumi Year + 584 gives the Gregorian/Julian year parameter space.
 			final long startOfYearJdn = toJdn(year, 1, 1);
-			final double approximateMiddleJdUT = startOfYearJdn + 182.5 - 0.5;
-
-			// Step B: Map negative flag parameters directly onto true solar ecliptic target boundaries
-			final double targetLongitude = CalendarType.getGeneralTargetLongitude(month);
-
-			// Step C: Execute high-fidelity calculation to track the exact instant the transit occurs
-			final EphemerisEngine engine = EphemerisEngineFactory.getEngine();
-			if(!engine.isAvailable())
-				throw new UnsupportedOperationException("Rumi calendar requires the Ephemeris plugin.");
-
-			final double exactSeasonJdUT = engine.findSolarLongitudeEvent(approximateMiddleJdUT, targetLongitude);
+			final double exactSeasonJdUT = exactSeasonJdUT(startOfYearJdn, month);
 
 			return (long)Math.floor(exactSeasonJdUT + 0.5);
 		}
 		else
 			// Standard numeric execution path using your dual-era Rumi calculation engine logic
 			return toJdn(year, month, day);
+	}
+
+	private static double exactSeasonJdUT(final long startOfYearJdn, final int month){
+		final double approximateMiddleJdUT = startOfYearJdn + 182.5 - 0.5;
+
+		// Step B: Map negative flag parameters directly onto true solar ecliptic target boundaries
+		final double targetLongitude = CalendarSeason.getGeneralTargetLongitude(month);
+
+		// Step C: Execute high-fidelity calculation to track the exact instant the transit occurs
+		final EphemerisEngine engine = EphemerisEngineFactory.getEngine();
+		if(!engine.isAvailable())
+			throw new UnsupportedOperationException("Rumi calendar requires the Ephemeris plugin.");
+
+		return engine.findSolarLongitudeEvent(approximateMiddleJdUT, targetLongitude);
 	}
 
 	private static long toJdn(final int year, final int month, final int day){
@@ -89,24 +92,13 @@ public class RumiCalendarStrategy implements CalendarConverterPlugin{
 			return GregorianCalendarStrategy.toJdn(calendarYear, calendarMonth, day);
 
 		// PRE-REFORM LOGIC: Pure Julian Calendar tracking with March start
-		final int y = (calendarMonth <= 2? calendarYear - 1: calendarYear);
-		final int m = (calendarMonth <= 2? calendarMonth + 12: calendarMonth);
-
-		return Math.floorDiv(1461L * (y + 4716L), 4L)
-			+ Math.floorDiv(153L * (m + 1), 5L)
-			+ day - 1524L;
+		return JulianCalendarStrategy.toJdn(calendarYear, calendarMonth, day);
 	}
 
 	@Override
-	public CalendarType.CalendarMetadata getMetadata(final String rawDate){
+	public CalendarMetadata getMetadata(final String rawDate){
 		final RumiDateInput input = RumiCalendarParser.parse(rawDate);
-		final Map<String, Boolean> components = new LinkedHashMap<>();
-		components.put("year", (input.year() != 0));
-		components.put("month", (input.month() != 0));
-		components.put("day", (input.day() != 0));
-
-		final boolean isComplete = (input.year() != 0 && input.month() != 0 && input.day() != 0);
-		return new CalendarType.CalendarMetadata(components, isComplete);
+		return CalendarMetadata.createFromYearMonthDay(input.year(), input.month(), input.day());
 	}
 
 }

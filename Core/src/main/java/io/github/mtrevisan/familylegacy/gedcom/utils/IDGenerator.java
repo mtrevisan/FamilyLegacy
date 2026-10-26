@@ -37,6 +37,11 @@ public final class IDGenerator{
 	private IDGenerator(){
 	}
 
+	/** Forgets all the registered and generated IDs; to be called before each conversion. */
+	public static void reset(){
+		counters.clear();
+	}
+
 	/**
 	 * Registers an existing ID so that the counter starts after its number.
 	 * For example, "I7" registers prefix "I" with value 7.

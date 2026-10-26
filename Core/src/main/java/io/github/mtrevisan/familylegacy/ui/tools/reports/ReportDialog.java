@@ -26,7 +26,7 @@ package io.github.mtrevisan.familylegacy.ui.tools.reports;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.ui.components.lists.DocumentPartListPanel;
+import io.github.mtrevisan.familylegacy.ui.components.lists.MediaPartListPanel;
 import io.github.mtrevisan.familylegacy.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
@@ -245,7 +245,7 @@ public final class ReportDialog extends JDialog{
 		if(cbDocx.isSelected())
 			renderers.put(baseName + ".docx", new DocxReportRenderer());
 		if(cbPdf.isSelected())
-			renderers.put(baseName + DocumentPartListPanel.EXTENSION_PDF, new PdfReportRenderer());
+			renderers.put(baseName + MediaPartListPanel.EXTENSION_PDF, new PdfReportRenderer());
 
 		return renderers;
 	}

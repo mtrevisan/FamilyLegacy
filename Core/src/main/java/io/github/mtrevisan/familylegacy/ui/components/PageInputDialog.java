@@ -24,7 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components;
 
-import io.github.mtrevisan.familylegacy.ui.components.lists.DocumentPartListPanel;
+import io.github.mtrevisan.familylegacy.ui.components.lists.MediaPartListPanel;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import io.github.mtrevisan.familylegacy.ui.images.ScaledImage;
@@ -405,7 +405,7 @@ public class PageInputDialog extends JDialog{
 		final String lowerUri = uri.toLowerCase();
 
 		// --- 1. PDF Rendering (Apache PDFBox 3.x) ---
-		if(lowerUri.endsWith(DocumentPartListPanel.EXTENSION_PDF)){
+		if(lowerUri.endsWith(MediaPartListPanel.EXTENSION_PDF)){
 			try(final PDDocument document = Loader.loadPDF(file)){
 				final int totalPages = document.getNumberOfPages();
 				// Update spinner maximum on the EDT thread

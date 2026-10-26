@@ -24,17 +24,15 @@
  */
 package io.github.mtrevisan.calendars.yearstart;
 
-import io.github.mtrevisan.calendars.CalendarConverterPlugin;
-import io.github.mtrevisan.calendars.CalendarType;
 import io.github.mtrevisan.calendars.gregorian.CalendarReform;
 import io.github.mtrevisan.calendars.gregorian.GregorianCalendarParser;
 import io.github.mtrevisan.calendars.gregorian.GregorianDateInput;
 import io.github.mtrevisan.calendars.gregorian.Indiction;
 import io.github.mtrevisan.calendars.liturgical.Computus;
+import io.github.mtrevisan.calendars.spi.CalendarConverterPlugin;
+import io.github.mtrevisan.calendars.spi.CalendarMetadata;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -141,17 +139,11 @@ public class EasterStyleCalendarStrategy implements CalendarConverterPlugin{
 	}
 
 	@Override
-	public CalendarType.CalendarMetadata getMetadata(final String rawDate){
+	public CalendarMetadata getMetadata(final String rawDate){
 		final String text = AFTER_EASTER.matcher(BEFORE_EASTER.matcher(rawDate).replaceAll(StringUtils.SPACE))
 			.replaceAll(StringUtils.SPACE);
 		final GregorianDateInput input = GregorianCalendarParser.parse(StringUtils.normalizeSpace(text));
-		final Map<String, Boolean> components = new LinkedHashMap<>();
-		components.put("year", (input.year() != 0));
-		components.put("month", (input.month() != 0));
-		components.put("day", (input.day() != 0));
-
-		final boolean isComplete = (input.year() != 0 && input.month() != 0 && input.day() != 0);
-		return new CalendarType.CalendarMetadata(components, isComplete);
+		return CalendarMetadata.createFromYearMonthDay(input.year(), input.month(), input.day());
 	}
 
 }

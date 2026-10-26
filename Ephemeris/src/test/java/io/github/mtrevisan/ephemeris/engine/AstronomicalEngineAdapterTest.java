@@ -24,12 +24,12 @@
  */
 package io.github.mtrevisan.ephemeris.engine;
 
-import io.github.mtrevisan.ephemeris.AstronomicalEngineAdapter;
-import io.github.mtrevisan.ephemeris.helpers.JulianDate;
 import io.github.mtrevisan.calendars.astronomy.EphemerisEngine;
 import io.github.mtrevisan.calendars.astronomy.SunlightPhase;
 import io.github.mtrevisan.calendars.astronomy.Zenith;
 import io.github.mtrevisan.calendars.astronomy.ZenithInterface;
+import io.github.mtrevisan.ephemeris.AstronomicalEngineAdapter;
+import io.github.mtrevisan.ephemeris.helpers.JulianDate;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 

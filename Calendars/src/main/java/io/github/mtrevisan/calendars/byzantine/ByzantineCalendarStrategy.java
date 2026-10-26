@@ -24,11 +24,9 @@
  */
 package io.github.mtrevisan.calendars.byzantine;
 
-import io.github.mtrevisan.calendars.CalendarConverterPlugin;
-import io.github.mtrevisan.calendars.CalendarType;
-
-import java.util.LinkedHashMap;
-import java.util.Map;
+import io.github.mtrevisan.calendars.gregorian.JulianCalendarStrategy;
+import io.github.mtrevisan.calendars.spi.CalendarConverterPlugin;
+import io.github.mtrevisan.calendars.spi.CalendarMetadata;
 
 
 public class ByzantineCalendarStrategy implements CalendarConverterPlugin{
@@ -56,25 +54,13 @@ public class ByzantineCalendarStrategy implements CalendarConverterPlugin{
 		}
 
 		// Adjust year boundary for the historical astronomical algorithm anchor
-		final int y = (julianMonth <= 2? julianYear - 1: julianYear);
-		final int m = (julianMonth <= 2? julianMonth + 12: julianMonth);
-
-		// Standard Julian Calendar JDN conversion formula
-		return Math.floorDiv(1461L * (y + 4716L), 4L)
-			+ Math.floorDiv(153L * (m + 1), 5L)
-			+ day - 1524L;
+		return JulianCalendarStrategy.toJdn(julianYear, julianMonth, day);
 	}
 
 	@Override
-	public CalendarType.CalendarMetadata getMetadata(final String rawDate){
+	public CalendarMetadata getMetadata(final String rawDate){
 		final ByzantineDateInput input = ByzantineCalendarParser.parse(rawDate);
-		final Map<String, Boolean> components = new LinkedHashMap<>();
-		components.put("year", (input.year() != 0));
-		components.put("month", (input.month() != 0));
-		components.put("day", (input.day() != 0));
-
-		final boolean isComplete = (input.year() != 0 && input.month() != 0 && input.day() != 0);
-		return new CalendarType.CalendarMetadata(components, isComplete);
+		return CalendarMetadata.createFromYearMonthDay(input.year(), input.month(), input.day());
 	}
 
 }

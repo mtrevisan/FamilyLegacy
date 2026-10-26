@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.io.model.readers.date;
 
+import io.github.mtrevisan.calendars.spi.CalendarMetadata;
 import io.github.mtrevisan.calendars.CalendarType;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
@@ -147,7 +148,7 @@ public final class DateNormalizer{
 		final CalendarType type = CalendarType.fromCode(calendar);
 		try{
 			final long jdn = type.parseToJdn(raw);
-			final CalendarType.CalendarMetadata metadata = type.getMetadata(raw);
+			final CalendarMetadata metadata = type.getMetadata(raw);
 			final DatePrecision precision = (metadata.isComplete()? DatePrecision.DAY
 				: (Boolean.TRUE.equals(metadata.nativeComponents().get("month"))? DatePrecision.MONTH: DatePrecision.YEAR));
 

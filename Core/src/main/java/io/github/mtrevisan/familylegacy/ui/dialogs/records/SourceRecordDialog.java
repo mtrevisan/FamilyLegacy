@@ -63,7 +63,7 @@ import java.io.IOException;
  *   place?: PlaceCitation
  *   media_type?: enum { audio, book, card, electronic, fiche, film, magazine, manuscript, map, newspaper, photo, tombstone, video } | Text
  *   repository*: RepositoryCitation
- *   document*: Xref&lt;DocumentRecord&gt;
+ *   media*: Xref&lt;MediaRecord&gt;
  *   note*: Xref&lt;NoteRecord&gt;
  *   privacy?: PrivacyStructure
  *   audit: AuditStructure
@@ -119,7 +119,7 @@ public class SourceRecordDialog extends BaseRecordDialog{
 
 		components = new RecordDialogBuilder(this, model, this.record)
 			.withComponent(PanelKey.REPOSITORY, SourceReader.TAG_REPOSITORY, I18N.t("dialog.component.repositories_with_citations"))
-			.withComponent(PanelKey.DOCUMENT, SourceReader.TAG_DOCUMENT, I18N.t("dialog.component.documents"))
+			.withComponent(PanelKey.DOCUMENT, SourceReader.TAG_MEDIA, I18N.t("dialog.component.media"))
 			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, I18N.t("dialog.component.conclusions"))
 			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, I18N.t("dialog.component.research.questions"))
 			.withComponent(PanelKey.RESEARCH_ACTIVITY_ON_SOURCE, ResearchActivityHandler.TYPE, I18N.t("dialog.component.research.activities"))

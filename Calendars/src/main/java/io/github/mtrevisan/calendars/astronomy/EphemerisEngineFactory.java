@@ -40,7 +40,7 @@ import java.util.stream.Stream;
 public final class EphemerisEngineFactory{
 
 	private static final String PLUGINS_DIR = "plugins";
-	/** System property that overrides the location of the plugins directory. */
+	/** System property that overrides the location of the plugins' directory. */
 	private static final String PLUGINS_DIR_PROPERTY = "calendars.plugins.dir";
 
 	private static final EphemerisEngine ENGINE;
@@ -114,7 +114,7 @@ public final class EphemerisEngineFactory{
 	 * @return The resolved Path to the plugins directory, or null if not found.
 	 */
 	private static Path resolvePluginsDirectory(){
-		// 0. An explicit location (e.g. for the tests of a module that does not own the plugins directory)
+		// 0. An explicit location (e.g. for the tests of a module that does not own the plugins' directory)
 		final String explicitPlugins = System.getProperty(PLUGINS_DIR_PROPERTY);
 		if(explicitPlugins != null){
 			final Path explicitPath = Paths.get(explicitPlugins);

@@ -24,9 +24,9 @@
  */
 package io.github.mtrevisan.calendars.nepali;
 
-import io.github.mtrevisan.calendars.CalendarConverterPlugin;
-import io.github.mtrevisan.calendars.CalendarType;
 import io.github.mtrevisan.calendars.gregorian.GregorianCalendarStrategy;
+import io.github.mtrevisan.calendars.spi.CalendarConverterPlugin;
+import io.github.mtrevisan.calendars.spi.CalendarMetadata;
 import io.github.mtrevisan.calendars.text.TextNormalizer;
 import org.apache.commons.lang3.StringUtils;
 
@@ -38,7 +38,6 @@ import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -191,13 +190,9 @@ public class NepaliCalendarStrategy implements CalendarConverterPlugin{
 	}
 
 	@Override
-	public CalendarType.CalendarMetadata getMetadata(final String rawDate){
-		final int[] date = parse(rawDate);
-		final Map<String, Boolean> components = new LinkedHashMap<>();
-		components.put("year", true);
-		components.put("month", (date[1] != 0));
-		components.put("day", (date[2] != 0));
-		return new CalendarType.CalendarMetadata(components, (date[1] != 0 && date[2] != 0));
+	public CalendarMetadata getMetadata(final String rawDate){
+		final int[] input = parse(rawDate);
+		return CalendarMetadata.createFromMonthDay(input[1], input[2]);
 	}
 
 }

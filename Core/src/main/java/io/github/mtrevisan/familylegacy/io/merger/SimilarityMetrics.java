@@ -39,6 +39,7 @@ import java.util.Objects;
 
 /**
  * Provides static methods for computing similarity between strings, dates, and FLEFRecord structures.
+ * TODO rivedere con claude
  */
 public final class SimilarityMetrics{
 
@@ -348,7 +349,6 @@ public final class SimilarityMetrics{
 		return StringUtils.EMPTY;
 	}
 
-	// TODO test
 	private static String extractPlace(final FLEFRecord record){
 		final FLEFRecord place = FLEFRecordHelper.findChild(record, "place");
 		if(place != null){

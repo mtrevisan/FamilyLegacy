@@ -24,7 +24,7 @@
  */
 package io.github.mtrevisan.calendars.egyptian;
 
-import io.github.mtrevisan.calendars.CalendarType;
+import io.github.mtrevisan.calendars.astronomy.CalendarSeason;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
@@ -131,22 +131,22 @@ public final class EgyptianCalendarParser{
 
 
 		// Season 1: Akhet (Inundation - Aligned to Autumn Cross-grid)
-		MONTHS.put("akhet", CalendarType.SEASON_AUTUMN);
-		MONTHS.put("3xt", CalendarType.SEASON_AUTUMN);            // Scientific Hieroglyphic notation
-		MONTHS.put("axet", CalendarType.SEASON_AUTUMN);           // Simplified phonetic variant
+		MONTHS.put("akhet", CalendarSeason.SEASON_AUTUMN);
+		MONTHS.put("3xt", CalendarSeason.SEASON_AUTUMN);            // Scientific Hieroglyphic notation
+		MONTHS.put("axet", CalendarSeason.SEASON_AUTUMN);           // Simplified phonetic variant
 
 		// Season 2: Peret (Emergence / Growing - Aligned to Winter Cross-grid)
-		MONTHS.put("peret", CalendarType.SEASON_WINTER);
-		MONTHS.put("prt", CalendarType.SEASON_WINTER);            // Scientific Hieroglyphic notation
-		MONTHS.put("proyet", CalendarType.SEASON_WINTER);
+		MONTHS.put("peret", CalendarSeason.SEASON_WINTER);
+		MONTHS.put("prt", CalendarSeason.SEASON_WINTER);            // Scientific Hieroglyphic notation
+		MONTHS.put("proyet", CalendarSeason.SEASON_WINTER);
 
 		// Season 3: Spring Grid (Abstract astronomical interpolation if needed by parser)
-		MONTHS.put("egyptian-spring", CalendarType.SEASON_SPRING);
+		MONTHS.put("egyptian-spring", CalendarSeason.SEASON_SPRING);
 
 		// Season 4: Shemu (Harvest / Low Water / Summer - FIXED from Spring to Summer)
-		MONTHS.put("shemu", CalendarType.SEASON_SUMMER);          // Correct historical alignment
-		MONTHS.put("shomu", CalendarType.SEASON_SUMMER);          // Phonetic variant
-		MONTHS.put("smw", CalendarType.SEASON_SUMMER);            // Scientific Hieroglyphic notation
+		MONTHS.put("shemu", CalendarSeason.SEASON_SUMMER);          // Correct historical alignment
+		MONTHS.put("shomu", CalendarSeason.SEASON_SUMMER);          // Phonetic variant
+		MONTHS.put("smw", CalendarSeason.SEASON_SUMMER);            // Scientific Hieroglyphic notation
 	}
 
 	private static final Pattern DATE_PATTERN = Pattern.compile("(?:(\\d+)\\s+)?(\\S+)\\s+(\\d+)");

@@ -24,15 +24,13 @@
  */
 package io.github.mtrevisan.calendars.venetan;
 
-import io.github.mtrevisan.calendars.CalendarConverterPlugin;
-import io.github.mtrevisan.calendars.CalendarType;
-import io.github.mtrevisan.calendars.gregorian.Indiction;
-import io.github.mtrevisan.calendars.yearstart.YearStartStyleCalendarStrategy;
+import io.github.mtrevisan.calendars.astronomy.CalendarSeason;
 import io.github.mtrevisan.calendars.astronomy.EphemerisEngine;
 import io.github.mtrevisan.calendars.astronomy.EphemerisEngineFactory;
-
-import java.util.LinkedHashMap;
-import java.util.Map;
+import io.github.mtrevisan.calendars.gregorian.Indiction;
+import io.github.mtrevisan.calendars.spi.CalendarConverterPlugin;
+import io.github.mtrevisan.calendars.spi.CalendarMetadata;
+import io.github.mtrevisan.calendars.yearstart.YearStartStyleCalendarStrategy;
 
 
 public class VenetanCalendarStrategy implements CalendarConverterPlugin{
@@ -51,17 +49,7 @@ public class VenetanCalendarStrategy implements CalendarConverterPlugin{
 			// Since more Veneto shifts January/February back, we anchor onto the real historical timeline.
 			// June calculation baseline
 			final long baselineApproxJdn = toJdn(year, 4, 1);
-			final double approximateJdUT = baselineApproxJdn - 0.5;
-
-			// Step B: Resolve exact longitude map assignments matching the parser flags
-			final double targetLongitude = CalendarType.getGeneralTargetLongitude(month);
-
-			// Step C: Trigger engine execution to track the exact solar coordinate transition point
-			final EphemerisEngine engine = EphemerisEngineFactory.getEngine();
-			if(!engine.isAvailable())
-				throw new UnsupportedOperationException("Venetan calendar requires the Ephemeris plugin.");
-
-			final double exactEventJdUT = engine.findSolarLongitudeEvent(approximateJdUT, targetLongitude);
+			final double exactEventJdUT = exactEventJdUT(baselineApproxJdn, month);
 
 			return (long)Math.floor(exactEventJdUT + 0.5);
 		}
@@ -74,6 +62,20 @@ public class VenetanCalendarStrategy implements CalendarConverterPlugin{
 		}
 	}
 
+	private static double exactEventJdUT(final long baselineApproxJdn, final int month){
+		final double approximateJdUT = baselineApproxJdn - 0.5;
+
+		// Step B: Resolve exact longitude map assignments matching the parser flags
+		final double targetLongitude = CalendarSeason.getGeneralTargetLongitude(month);
+
+		// Step C: Trigger engine execution to track the exact solar coordinate transition point
+		final EphemerisEngine engine = EphemerisEngineFactory.getEngine();
+		if(!engine.isAvailable())
+			throw new UnsupportedOperationException("Venetan calendar requires the Ephemeris plugin.");
+
+		return engine.findSolarLongitudeEvent(approximateJdUT, targetLongitude);
+	}
+
 	private static long toJdn(final int year, final int month, final int day){
 		// Convert more Veneto months (1 = March, ..., 12 = February) to civil months: January and February (months 11
 		// and 12) belong to the next civil year, which the year-start style takes care of.
@@ -84,15 +86,9 @@ public class VenetanCalendarStrategy implements CalendarConverterPlugin{
 	}
 
 	@Override
-	public CalendarType.CalendarMetadata getMetadata(final String rawDate){
+	public CalendarMetadata getMetadata(final String rawDate){
 		final VenetanDateInput input = VenetanCalendarParser.parse(rawDate);
-		final Map<String, Boolean> components = new LinkedHashMap<>();
-		components.put("year", (input.year() != 0));
-		components.put("month", (input.month() != 0));
-		components.put("day", (input.day() != 0));
-
-		final boolean isComplete = (input.year() != 0 && input.month() != 0 && input.day() != 0);
-		return new CalendarType.CalendarMetadata(components, isComplete);
+		return CalendarMetadata.createFromYearMonthDay(input.year(), input.month(), input.day());
 	}
 
 }

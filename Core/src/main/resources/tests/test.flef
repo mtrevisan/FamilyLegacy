@@ -76,7 +76,7 @@ header {
 records {
 	INDIVIDUAL I1 {
 		PREFERRED_IMAGE {
-			DOCUMENT D1
+			MEDIA D1
 			CROP {
 				X 178
 				Y 0
@@ -113,13 +113,17 @@ records {
 					TYPE summarized
 					LOCALE en-US
 				}
+				STANCE supports
 			}
 			NOTE {
 				TITLE note 1 title
 				TEXT note 1
 				MIME text/plain
 				LOCALE it-IT
-				SOURCE.SOURCE S1
+				SOURCE {
+				    SOURCE S1
+        			STANCE supports
+				}
 				PRIVACY {
 					LEVEL restricted
 					REASON because
@@ -163,13 +167,17 @@ records {
 				TYPE summarized
 				LOCALE en-US
 			}
+			STANCE contradicts
 		}
 		NOTE {
 			TITLE note 1 title
 			TEXT note 1
 			MIME text/plain
 			LOCALE it-IT
-			SOURCE.SOURCE S1
+            SOURCE {
+                SOURCE S1
+                STANCE supports
+            }
 			PRIVACY {
 				LEVEL restricted
 				REASON because
@@ -260,6 +268,7 @@ records {
 			SOURCE {
 				SOURCE S1
 				LOCATOR src loc
+				STANCE supports
 			}
 			CONFIDENCE low
 		}
@@ -287,13 +296,17 @@ records {
 				TYPE summarized
 				LOCALE en-US
 			}
+				STANCE supports
 		}
 		NOTE {
 			TITLE note 1 title
 			TEXT note 1
 			MIME text/plain
 			LOCALE it-IT
-			SOURCE.SOURCE S1
+            SOURCE {
+                SOURCE S1
+                STANCE supports
+            }
 			PRIVACY {
 				LEVEL restricted
 				REASON because
@@ -354,13 +367,17 @@ records {
 				TYPE summarized
 				LOCALE en-US
 			}
+			STANCE supports
 		}
 		NOTE {
 			TITLE note 1 title
 			TEXT note 1
 			MIME text/plain
 			LOCALE it-IT
-			SOURCE.SOURCE S1
+            SOURCE {
+                SOURCE S1
+                STANCE supports
+            }
 			PRIVACY {
 				LEVEL restricted
 				REASON because
@@ -420,6 +437,7 @@ records {
 			SOURCE {
 				SOURCE S1
 				LOCATOR src loc
+				STANCE supports
 			}
 			CONFIDENCE low
 		}
@@ -438,6 +456,7 @@ records {
 			SOURCE {
 				SOURCE S1
 				LOCATOR src loc
+				STANCE supports
 			}
 			CONFIDENCE low
 		}
@@ -476,13 +495,17 @@ records {
 				TYPE summarized
 				LOCALE en-US
 			}
+			STANCE supports
 		}
 		NOTE {
 			TITLE note 1 title
 			TEXT note 1
 			MIME text/plain
 			LOCALE it-IT
-			SOURCE.SOURCE S1
+            SOURCE {
+                SOURCE S1
+                STANCE supports
+            }
 			PRIVACY {
 				LEVEL restricted
 				REASON because
@@ -582,6 +605,7 @@ records {
 				TYPE summarized
 				LOCALE en-US
 			}
+			STANCE supports
 		}
 		CONFIDENCE low
 		AUDIT {
@@ -833,6 +857,7 @@ records {
 				TYPE summarized
 				LOCALE en-US
 			}
+			STANCE supports
 		}
 		PRIVACY {
 			LEVEL restricted
@@ -1146,13 +1171,17 @@ person"""
 				TYPE summarized
 				LOCALE en-US
 			}
+			STANCE supports
 		}
 		NOTE {
 			TITLE note 1 title
 			TEXT note 1
 			MIME text/plain
 			LOCALE it-IT
-			SOURCE.SOURCE S1
+            SOURCE {
+                SOURCE S1
+                STANCE supports
+            }
 			PRIVACY {
 				LEVEL restricted
 				REASON because
@@ -1411,7 +1440,7 @@ person"""
 	RESEARCH_QUESTION RQ8 {
 		TITLE cn rq title doc
 		QUESTION is doc?
-		TARGET.DOCUMENT D1
+		TARGET.MEDIA D1
 		STATUS resolved
 		AUDIT {
 			CREATION {
@@ -1596,6 +1625,7 @@ person"""
 				TYPE summarized
 				LOCALE en-US
 			}
+			STANCE supports
 		}
 		QUESTION RQ1
 		QUESTION RQ2
@@ -1701,13 +1731,16 @@ person"""
 			LOCATOR shelf 1
 			NOTE repo note
 		}
-		DOCUMENT D1
+		MEDIA D1
 		NOTE {
 			TITLE note 1 title
 			TEXT note 1
 			MIME text/plain
 			LOCALE it-IT
-			SOURCE.SOURCE S1
+            SOURCE {
+                SOURCE S1
+                STANCE supports
+            }
 			PRIVACY {
 				LEVEL restricted
 				REASON because
@@ -1773,7 +1806,7 @@ person"""
 
 	GROUP G1 {
 		PREFERRED_IMAGE {
-			DOCUMENT D1
+			MEDIA D1
 			CROP {
 				X 380
 				Y 22
@@ -1789,13 +1822,19 @@ person"""
 				SYSTEM canIPA
 				VALUE kaxa
 			}
-			SOURCE.SOURCE S1
+            SOURCE {
+                SOURCE S1
+                STANCE supports
+            }
 			NOTE {
 				TITLE note 1 title
 				TEXT note 1
 				MIME text/plain
 				LOCALE it-IT
-				SOURCE.SOURCE S1
+				SOURCE {
+				    SOURCE S1
+        			STANCE supports
+				}
 				PRIVACY {
 					LEVEL restricted
 					REASON because
@@ -1822,13 +1861,19 @@ person"""
 			}
 		}
 		TYPE household
-		SOURCE.SOURCE S2
+        SOURCE {
+            SOURCE S2
+            STANCE supports
+        }
 		NOTE {
 			TITLE note 1 title
 			TEXT note 1
 			MIME text/plain
 			LOCALE it-IT
-			SOURCE.SOURCE S1
+            SOURCE {
+                SOURCE S1
+                STANCE supports
+            }
 			PRIVACY {
 				LEVEL restricted
 				REASON because
@@ -1908,6 +1953,7 @@ person"""
 			SOURCE {
 				SOURCE S1
 				LOCATOR src loc
+			    STANCE supports
 			}
 			CONFIDENCE low
 		}
@@ -1926,6 +1972,7 @@ person"""
 			SOURCE {
 				SOURCE S1
 				LOCATOR src loc
+			    STANCE supports
 			}
 			CONFIDENCE low
 		}
@@ -1939,13 +1986,17 @@ person"""
 		SOURCE {
 			SOURCE S1
 			LOCATOR src loc
+			STANCE supports
 		}
 		NOTE {
 			TITLE note 1 title
 			TEXT note 1
 			MIME text/plain
 			LOCALE it-IT
-			SOURCE.SOURCE S1
+            SOURCE {
+                SOURCE S1
+                STANCE supports
+            }
 			PRIVACY {
 				LEVEL restricted
 				REASON because
@@ -1985,13 +2036,17 @@ person"""
 		SOURCE {
 			SOURCE S1
 			LOCATOR src loc
+			STANCE supports
 		}
 		NOTE {
 			TITLE note 1 title
 			TEXT note 1
 			MIME text/plain
 			LOCALE it-IT
-			SOURCE.SOURCE S1
+            SOURCE {
+                SOURCE S1
+                STANCE supports
+            }
 			PRIVACY {
 				LEVEL restricted
 				REASON because
@@ -2038,6 +2093,7 @@ person"""
 			SOURCE {
 				SOURCE S1
 				LOCATOR src loc
+    			STANCE supports
 			}
     		CONFIDENCE low
 		}
@@ -2056,6 +2112,7 @@ person"""
 			SOURCE {
 				SOURCE S1
 				LOCATOR src loc
+    			STANCE supports
 			}
     		CONFIDENCE low
 		}
@@ -2070,6 +2127,7 @@ person"""
     		SOURCE {
 	    		SOURCE S1
 		    	LOCATOR grave
+    			STANCE supports
 		    }
     		CONFIDENCE low
 		}
@@ -2081,13 +2139,17 @@ person"""
 				TYPE summarized
 				LOCALE en-US
 			}
+			STANCE supports
 		}
 		NOTE {
 			TITLE note 1 title
 			TEXT note 1
 			MIME text/plain
 			LOCALE it-IT
-			SOURCE.SOURCE S1
+            SOURCE {
+                SOURCE S1
+                STANCE supports
+            }
 			PRIVACY {
 				LEVEL restricted
 				REASON because
@@ -2150,7 +2212,10 @@ person"""
 		DESCRIPTION something groupy
 		AGENCY government
 		CAUSE.REASON cause value
-		SOURCE.SOURCE S1
+        SOURCE {
+            SOURCE S1
+            STANCE supports
+        }
 		AUDIT {
 			CREATION {
 				DATE 1990-02-02
@@ -2183,12 +2248,14 @@ person"""
             SOURCE {
                 SOURCE S1
                 LOCATOR the world
+    			STANCE supports
             }
        		CONFIDENCE low
 		}
 		SOURCE {
 			SOURCE S1
 			LOCATOR src place loc
+			STANCE supports
 		}
         CONFIDENCE low
 		PRIVACY {
@@ -2241,13 +2308,17 @@ person"""
 		SOURCE {
 			SOURCE S1
 			LOCATOR src loc place rel
+			STANCE supports
 		}
 		NOTE {
 			TITLE note 1 title
 			TEXT note 1
 			MIME text/plain
 			LOCALE it-IT
-			SOURCE.SOURCE S1
+            SOURCE {
+                SOURCE S1
+                STANCE supports
+            }
 			PRIVACY {
 				LEVEL restricted
 				REASON because
@@ -2302,6 +2373,7 @@ person"""
 			SOURCE {
 				SOURCE S1
 				LOCATOR src loc
+    			STANCE supports
 			}
             CONFIDENCE low
 		}
@@ -2320,6 +2392,7 @@ person"""
 			SOURCE {
 				SOURCE S1
 				LOCATOR src loc
+    			STANCE supports
 			}
             CONFIDENCE low
 		}
@@ -2351,7 +2424,10 @@ person"""
 			TEXT note 1
 			MIME text/plain
 			LOCALE it-IT
-			SOURCE.SOURCE S1
+            SOURCE {
+                SOURCE S1
+                STANCE supports
+            }
 			PRIVACY {
 				LEVEL restricted
 				REASON because
@@ -2411,13 +2487,17 @@ person"""
 					TYPE summarized
 					LOCALE en-US
 				}
+    			STANCE supports
 			}
 			NOTE {
 				TITLE note 1 title
 				TEXT note 1
 				MIME text/plain
 				LOCALE it-IT
-				SOURCE.SOURCE S1
+				SOURCE {
+				    SOURCE S1
+        			STANCE supports
+				}
 				PRIVACY {
 					LEVEL restricted
 					REASON because
@@ -2488,8 +2568,9 @@ person"""
 		}
 	}
 
-	DOCUMENT D1 {
+	MEDIA D1 {
 		URI C:\Users\mauro\OneDrive\Documents\engineer-a-thousand-millions_eaqq.1920.gif
+		KIND image
 		MAPPING planar
 		DESCRIPTION doc desc
 		NOTE {
@@ -2497,7 +2578,10 @@ person"""
 			TEXT note 1
 			MIME text/plain
 			LOCALE it-IT
-			SOURCE.SOURCE S1
+            SOURCE {
+                SOURCE S1
+                STANCE supports
+            }
 			PRIVACY {
 				LEVEL restricted
 				REASON because
@@ -2549,13 +2633,17 @@ person"""
 		SOURCE {
 			SOURCE S1
 			LOCATOR src he
+			STANCE supports
 		}
 		NOTE {
 			TITLE note 1 title
 			TEXT note 1
 			MIME text/plain
 			LOCALE it-IT
-			SOURCE.SOURCE S1
+            SOURCE {
+                SOURCE S1
+                STANCE supports
+            }
 			PRIVACY {
 				LEVEL restricted
 				REASON because
@@ -2622,6 +2710,7 @@ person"""
 			SOURCE {
 				SOURCE S1
 				LOCATOR src loc
+    			STANCE supports
 			}
             CONFIDENCE low
 		}

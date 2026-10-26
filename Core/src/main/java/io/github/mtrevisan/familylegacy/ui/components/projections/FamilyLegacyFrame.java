@@ -52,6 +52,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
@@ -305,6 +306,11 @@ public class FamilyLegacyFrame extends JFrame{
 				@Override
 				public void replaceModel(final FLEFModel newModel){
 					FamilyLegacyFrame.this.replaceModel(newModel);
+				}
+
+				@Override
+				public void openImported(final FLEFModel importedModel, final File source){
+					fileController.openImported(importedModel, source);
 				}
 
 				@Override

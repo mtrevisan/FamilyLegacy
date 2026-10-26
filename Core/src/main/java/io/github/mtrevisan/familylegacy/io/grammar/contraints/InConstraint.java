@@ -61,7 +61,7 @@ public final class InConstraint extends Constraint{
 	@Override
 	public void validate(final String contextPath, final FLEFRecord record, final FLEFModel model,
 			final List<String> errors){
-		// Fetch all matching target records for field (e.g. extract.document_part.document)
+		// Fetch all matching target records for field (e.g. extract.media_part.media)
 		final List<FLEFRecord> fieldNodes = FLEFRecordHelper.findChildren(record, field);
 		if(fieldNodes == null || fieldNodes.isEmpty())
 			return;

@@ -41,6 +41,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.NoteReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PrivacyReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchQuestionReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.names.Name;
 import io.github.mtrevisan.familylegacy.io.model.readers.names.NameAnatomyService;
@@ -74,7 +75,7 @@ import java.util.Set;
  */
 public final class GroupDossierService{
 
-	private static final String TAG_SOURCE = "SOURCE";
+	private static final String TAG_SOURCE = "source";
 	private static final String TAG_LOCATOR = "locator";
 	private static final String TAG_NOTE = "note";
 	private static final String TAG_EVIDENCE = "evidence";
@@ -401,7 +402,9 @@ public final class GroupDossierService{
 		final List<FLEFRecord> citations = FLEFRecordHelper.findChildren(parent, TAG_SOURCE);
 		for(final FLEFRecord citation : citations){
 			final String sourceId = extractRef(citation, TAG_SOURCE);
-			if(sourceId == null || !seen.add(sourceId))
+			//the same source may both support and contradict
+			final boolean contradicting = SourceCitationReader.isContradicting(citation);
+			if(sourceId == null || !seen.add(sourceId + (contradicting? "|" + SourceCitationReader.STANCE_CONTRADICTS: StringUtils.EMPTY)))
 				continue;
 
 			final FLEFRecord source = model.getRecordById(sourceId);
@@ -410,7 +413,7 @@ public final class GroupDossierService{
 
 			final String title = resolveSourceTitle(source);
 			final String locator = FLEFRecordHelper.getChildValue(citation, TAG_LOCATOR);
-			final String label = origin + " source";
+			final String label = origin + (contradicting? " source (contradicts)": " source");
 			final String subtitle = (StringUtils.isNotEmpty(locator)
 				? "locator: " + locator: StringUtils.EMPTY);
 
@@ -421,14 +424,9 @@ public final class GroupDossierService{
 	}
 
 	private static String resolveSourceTitle(final FLEFRecord source){
-		final FLEFRecord titleStruct = FLEFRecordHelper.findChild(source, SourceReader.TAG_TITLE);
-		if(titleStruct != null){
-			final String v = FLEFRecordHelper.getChildValue(titleStruct, NameReader.TAG_VALUE);
-			if(StringUtils.isNotEmpty(v))
-				return v;
-			if(StringUtils.isNotEmpty(titleStruct.getValue()))
-				return titleStruct.getValue();
-		}
+		final String v = SourceReader.extractPrimaryTitle(source);
+		if(StringUtils.isNotEmpty(v))
+			return v;
 		final String id = source.getId();
 		return (id != null? id: "?");
 	}

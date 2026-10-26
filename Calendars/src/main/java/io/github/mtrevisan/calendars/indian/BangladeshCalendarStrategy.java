@@ -24,12 +24,9 @@
  */
 package io.github.mtrevisan.calendars.indian;
 
-import io.github.mtrevisan.calendars.CalendarConverterPlugin;
-import io.github.mtrevisan.calendars.CalendarType;
 import io.github.mtrevisan.calendars.gregorian.GregorianCalendarStrategy;
-
-import java.util.LinkedHashMap;
-import java.util.Map;
+import io.github.mtrevisan.calendars.spi.CalendarConverterPlugin;
+import io.github.mtrevisan.calendars.spi.CalendarMetadata;
 
 
 /**
@@ -98,13 +95,9 @@ public class BangladeshCalendarStrategy implements CalendarConverterPlugin{
 	}
 
 	@Override
-	public CalendarType.CalendarMetadata getMetadata(final String rawDate){
-		final IndianMonthNames.SolarDate date = MONTH_NAMES.parse(rawDate, "Bengali");
-		final Map<String, Boolean> components = new LinkedHashMap<>();
-		components.put("year", true);
-		components.put("month", (date.month() != 0));
-		components.put("day", (date.day() != 0));
-		return new CalendarType.CalendarMetadata(components, (date.month() != 0 && date.day() != 0));
+	public CalendarMetadata getMetadata(final String rawDate){
+		final IndianMonthNames.SolarDate input = MONTH_NAMES.parse(rawDate, "Bengali");
+		return CalendarMetadata.createFromMonthDay(input.month(), input.day());
 	}
 
 }

@@ -164,11 +164,6 @@ final class ApplicationMenuBar{
 
 		menu.add(new JSeparator());
 
-		final JMenuItem save = new JMenuItem(ShortcutRegistry.FILE_SAVE.action(), ShortcutRegistry.FILE_SAVE.keyStrokeCode());
-		save.setAccelerator(ShortcutRegistry.FILE_SAVE.keyStroke());
-		save.addActionListener(e -> fileController.save());
-		menu.add(save);
-
 		final JMenuItem saveAs = new JMenuItem(ShortcutRegistry.FILE_SAVE_AS.action(), ShortcutRegistry.FILE_SAVE_AS.keyStrokeCode());
 		saveAs.setAccelerator(ShortcutRegistry.FILE_SAVE_AS.keyStroke());
 		saveAs.addActionListener(e -> fileController.saveAs());

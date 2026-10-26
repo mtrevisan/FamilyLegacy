@@ -38,7 +38,6 @@ import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.ConclusionHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.ConclusionTargetHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.CulturalNormHandler;
-import io.github.mtrevisan.familylegacy.ui.handlers.DocumentHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventParticipationHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.GroupAttributeHandler;
@@ -47,6 +46,7 @@ import io.github.mtrevisan.familylegacy.ui.handlers.HistoricEventHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IdentityHypothesisHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualAttributeHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.MediaHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.PlaceRelationshipHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RelationshipHandler;
@@ -124,7 +124,7 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 			.withHandlerTypes(EventHandler.class, EventParticipationHandler.class, RelationshipHandler.class,
 				IndividualHandler.class, IndividualAttributeHandler.class, GroupHandler.class, GroupAttributeHandler.class,
 				IdentityHypothesisHandler.class, PlaceHandler.class, PlaceRelationshipHandler.class,
-				RepositoryHandler.class, SourceHandler.class, DocumentHandler.class, CulturalNormHandler.class,
+				RepositoryHandler.class, SourceHandler.class, MediaHandler.class, CulturalNormHandler.class,
 				HistoricEventHandler.class);
 		resolvesPanel.addPropertyChangeListener(PROPERTY_CONCLUSION, evt -> updatePreferredCombo());
 		preferredCombo = new BoundComboBox<>(ConclusionReader.TAG_PREFERRED);

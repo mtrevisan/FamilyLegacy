@@ -24,7 +24,7 @@
  */
 package io.github.mtrevisan.calendars.chinese;
 
-import io.github.mtrevisan.calendars.CalendarType;
+import io.github.mtrevisan.calendars.astronomy.CalendarSeason;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
@@ -129,48 +129,48 @@ public final class ChineseCalendarParser{
 	private static final Map<String, Integer> SEASONS = new HashMap<>();
 	static{
 		// Autumn Cycle (Solar Longitude 135° to 180° - Commences at Liqiu)
-		SEASONS.put("秋", CalendarType.SEASON_AUTUMN);        // Simplified & Traditional character
-		SEASONS.put("秋天", CalendarType.SEASON_AUTUMN);      // Common colloquial form (Qiutian)
-		SEASONS.put("秋季", CalendarType.SEASON_AUTUMN);      // Formal seasonal form (Qiuji)
-		SEASONS.put("立秋", CalendarType.SEASON_AUTUMN);      // "Start of Autumn" Solar Term (Liqiu)
-		SEASONS.put("qiu", CalendarType.SEASON_AUTUMN);       // Standard Pinyin (no tones)
-		SEASONS.put("qiutian", CalendarType.SEASON_AUTUMN);   // Colloquial Pinyin
-		SEASONS.put("qiuji", CalendarType.SEASON_AUTUMN);     // Formal Pinyin
-		SEASONS.put("liqiu", CalendarType.SEASON_AUTUMN);     // Solar term Pinyin
-		SEASONS.put("li-ch'iu", CalendarType.SEASON_AUTUMN);  // Wade-Giles transliteration
+		SEASONS.put("秋", CalendarSeason.SEASON_AUTUMN);			// Simplified & Traditional character
+		SEASONS.put("秋天", CalendarSeason.SEASON_AUTUMN);			// Common colloquial form (Qiutian)
+		SEASONS.put("秋季", CalendarSeason.SEASON_AUTUMN);			// Formal seasonal form (Qiuji)
+		SEASONS.put("立秋", CalendarSeason.SEASON_AUTUMN);			// "Start of Autumn" Solar Term (Liqiu)
+		SEASONS.put("qiu", CalendarSeason.SEASON_AUTUMN);			// Standard Pinyin (no tones)
+		SEASONS.put("qiutian", CalendarSeason.SEASON_AUTUMN);	// Colloquial Pinyin
+		SEASONS.put("qiuji", CalendarSeason.SEASON_AUTUMN);		// Formal Pinyin
+		SEASONS.put("liqiu", CalendarSeason.SEASON_AUTUMN);		// Solar term Pinyin
+		SEASONS.put("li-ch'iu", CalendarSeason.SEASON_AUTUMN);	// Wade-Giles transliteration
 
 		// Winter Cycle (Solar Longitude 225° to 270° - Commences at Lidong)
-		SEASONS.put("冬", CalendarType.SEASON_WINTER);        // Simplified & Traditional character
-		SEASONS.put("冬天", CalendarType.SEASON_WINTER);      // Common colloquial form (Dongtian)
-		SEASONS.put("冬季", CalendarType.SEASON_WINTER);      // Formal seasonal form (Dongji)
-		SEASONS.put("立冬", CalendarType.SEASON_WINTER);      // "Start of Winter" Solar Term (Lidong)
-		SEASONS.put("dong", CalendarType.SEASON_WINTER);      // Standard Pinyin
-		SEASONS.put("dongtian", CalendarType.SEASON_WINTER);  // Colloquial Pinyin
-		SEASONS.put("dongji", CalendarType.SEASON_WINTER);    // Formal Pinyin
-		SEASONS.put("lidong", CalendarType.SEASON_WINTER);    // Solar term Pinyin
-		SEASONS.put("li-tung", CalendarType.SEASON_WINTER);   // Wade-Giles transliteration
+		SEASONS.put("冬", CalendarSeason.SEASON_WINTER);			// Simplified & Traditional character
+		SEASONS.put("冬天", CalendarSeason.SEASON_WINTER);			// Common colloquial form (Dongtian)
+		SEASONS.put("冬季", CalendarSeason.SEASON_WINTER);			// Formal seasonal form (Dongji)
+		SEASONS.put("立冬", CalendarSeason.SEASON_WINTER);			// "Start of Winter" Solar Term (Lidong)
+		SEASONS.put("dong", CalendarSeason.SEASON_WINTER);		// Standard Pinyin
+		SEASONS.put("dongtian", CalendarSeason.SEASON_WINTER);	// Colloquial Pinyin
+		SEASONS.put("dongji", CalendarSeason.SEASON_WINTER);		// Formal Pinyin
+		SEASONS.put("lidong", CalendarSeason.SEASON_WINTER);		// Solar term Pinyin
+		SEASONS.put("li-tung", CalendarSeason.SEASON_WINTER);	// Wade-Giles transliteration
 
 		// Spring Cycle (Solar Longitude 315° to 360°/0° - Commences at Lichun)
-		SEASONS.put("春", CalendarType.SEASON_SPRING);        // Simplified & Traditional character
-		SEASONS.put("春天", CalendarType.SEASON_SPRING);      // Common colloquial form (Chuntian)
-		SEASONS.put("春季", CalendarType.SEASON_SPRING);      // Formal seasonal form (Chunji)
-		SEASONS.put("立春", CalendarType.SEASON_SPRING);      // "Start of Spring" Solar Term (Lichun)
-		SEASONS.put("chun", CalendarType.SEASON_SPRING);      // Standard Pinyin
-		SEASONS.put("chuntian", CalendarType.SEASON_SPRING);  // Colloquial Pinyin
-		SEASONS.put("chunji", CalendarType.SEASON_SPRING);    // Formal Pinyin
-		SEASONS.put("lichun", CalendarType.SEASON_SPRING);    // Solar term Pinyin
-		SEASONS.put("li-ch'un", CalendarType.SEASON_SPRING);  // Wade-Giles transliteration
+		SEASONS.put("春", CalendarSeason.SEASON_SPRING);			// Simplified & Traditional character
+		SEASONS.put("春天", CalendarSeason.SEASON_SPRING);			// Common colloquial form (Chuntian)
+		SEASONS.put("春季", CalendarSeason.SEASON_SPRING);			// Formal seasonal form (Chunji)
+		SEASONS.put("立春", CalendarSeason.SEASON_SPRING);			// "Start of Spring" Solar Term (Lichun)
+		SEASONS.put("chun", CalendarSeason.SEASON_SPRING);		// Standard Pinyin
+		SEASONS.put("chuntian", CalendarSeason.SEASON_SPRING);	// Colloquial Pinyin
+		SEASONS.put("chunji", CalendarSeason.SEASON_SPRING);		// Formal Pinyin
+		SEASONS.put("lichun", CalendarSeason.SEASON_SPRING);		// Solar term Pinyin
+		SEASONS.put("li-ch'un", CalendarSeason.SEASON_SPRING);	// Wade-Giles transliteration
 
 		// Summer Cycle (Solar Longitude 45° to 90° - Commences at Lixia)
-		SEASONS.put("夏", CalendarType.SEASON_SUMMER);        // Simplified Chinese character
-		SEASONS.put("夏天", CalendarType.SEASON_SUMMER);      // Common colloquial form (Xiatian)
-		SEASONS.put("夏季", CalendarType.SEASON_SUMMER);      // Formal seasonal form (Xiaji)
-		SEASONS.put("立夏", CalendarType.SEASON_SUMMER);      // "Start of Summer" Solar Term (Lixia)
-		SEASONS.put("xia", CalendarType.SEASON_SUMMER);       // Standard Pinyin
-		SEASONS.put("xiatian", CalendarType.SEASON_SUMMER);   // Colloquial Pinyin
-		SEASONS.put("xiaji", CalendarType.SEASON_SUMMER);     // Formal Pinyin
-		SEASONS.put("lixia", CalendarType.SEASON_SUMMER);     // Solar term Pinyin
-		SEASONS.put("li-hsia", CalendarType.SEASON_SUMMER);   // Wade-Giles transliteration
+		SEASONS.put("夏", CalendarSeason.SEASON_SUMMER);			// Simplified Chinese character
+		SEASONS.put("夏天", CalendarSeason.SEASON_SUMMER);			// Common colloquial form (Xiatian)
+		SEASONS.put("夏季", CalendarSeason.SEASON_SUMMER);			// Formal seasonal form (Xiaji)
+		SEASONS.put("立夏", CalendarSeason.SEASON_SUMMER);			// "Start of Summer" Solar Term (Lixia)
+		SEASONS.put("xia", CalendarSeason.SEASON_SUMMER);			// Standard Pinyin
+		SEASONS.put("xiatian", CalendarSeason.SEASON_SUMMER);	// Colloquial Pinyin
+		SEASONS.put("xiaji", CalendarSeason.SEASON_SUMMER);		// Formal Pinyin
+		SEASONS.put("lixia", CalendarSeason.SEASON_SUMMER);		// Solar term Pinyin
+		SEASONS.put("li-hsia", CalendarSeason.SEASON_SUMMER);	// Wade-Giles transliteration
 	}
 
 	private static final Pattern YEAR_PATTERN = Pattern.compile("^(\\d{4})年");
@@ -299,20 +299,7 @@ public final class ChineseCalendarParser{
 	}
 
 	private static int parseCyclicalYear(final String ganzhi, final Integer explicitYear){
-		final char stem = ganzhi.charAt(0);
-		final char branch = ganzhi.charAt(1);
-
-		final int stemIdx = STEMS.indexOf(stem);
-		final int branchIdx = BRANCHES.indexOf(branch);
-
-		if(stemIdx == -1 || branchIdx == -1)
-			throw new IllegalArgumentException("The provided combination '" + ganzhi + "' contains invalid Stem/Branch characters.");
-
-		// Calculate the sexagenary index within the [0, 59] boundary spectrum
-		int sexagenaryIndex = (stemIdx - branchIdx);
-		if(sexagenaryIndex < 0)
-			sexagenaryIndex += 12;
-		sexagenaryIndex = (sexagenaryIndex * 5) + stemIdx;
+		int sexagenaryIndex = sexagenaryIndex(ganzhi);
 
 		// If an explicit year is provided (e.g., from an era or numerical indicator),
 		// use it as a base to anchor the correct 60-year cycle.
@@ -328,6 +315,24 @@ public final class ChineseCalendarParser{
 		}
 
 		return anchorYear;
+	}
+
+	private static int sexagenaryIndex(final String ganzhi){
+		final char stem = ganzhi.charAt(0);
+		final char branch = ganzhi.charAt(1);
+
+		final int stemIdx = STEMS.indexOf(stem);
+		final int branchIdx = BRANCHES.indexOf(branch);
+
+		if(stemIdx == -1 || branchIdx == -1)
+			throw new IllegalArgumentException("The provided combination '" + ganzhi + "' contains invalid Stem/Branch characters.");
+
+		// Calculate the sexagenary index within the [0, 59] boundary spectrum
+		int sexagenaryIndex = (stemIdx - branchIdx);
+		if(sexagenaryIndex < 0)
+			sexagenaryIndex += 12;
+		sexagenaryIndex = (sexagenaryIndex * 5) + stemIdx;
+		return sexagenaryIndex;
 	}
 
 	private static int parseChineseNumber(final String token){
@@ -359,16 +364,13 @@ public final class ChineseCalendarParser{
 	}
 
 	private static int parseMonth(final String monthToken){
-		if(monthToken.equals(ZHENG))
-			return 1;
-		if(monthToken.equals(LA1) || monthToken.equals(LA2))
-			return 12;
-		if(monthToken.equals(SHIYI))
-			return 11;
-		if(monthToken.equals(SHIER))
-			return 12;
-
-		return parseChineseNumber(monthToken);
+		return switch(monthToken){
+			case ZHENG -> 1;
+			case LA1, LA2 -> 12;
+			case SHIYI -> 11;
+			case SHIER -> 12;
+			default -> parseChineseNumber(monthToken);
+		};
 	}
 
 	private static int parseDay(final String dayToken){

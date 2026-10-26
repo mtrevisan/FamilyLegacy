@@ -46,7 +46,7 @@ public final class MoonHorizonEvents{
 
 	// Earth equatorial radius in kilometers (IAU 1976, as in Meeus, Astronomical Algorithms, ch. 11)
 	private static final double EARTH_EQUATORIAL_RADIUS_KM = 6378.14;
-	// Polar to equatorial radius ratio b/a of the Earth ellipsoid (flattening 1/298.257)
+	// Polar to equatorial radius ratio `b/a` of the Earth ellipsoid (flattening 1/298.257)
 	private static final double EARTH_AXIS_RATIO = 0.99664719;
 	// Ratio of the lunar radius to the Earth equatorial radius (IAU)
 	private static final double MOON_TO_EARTH_RADIUS = 0.2725076;
@@ -131,7 +131,7 @@ public final class MoonHorizonEvents{
 	 * refraction and the topocentric semidiameter, and its topocentric hour angle.
 	 *
 	 * @return the height [rad] (positive if the upper limb is visible, negative otherwise), and the hour angle [rad] in
-	 * 	the interval (-π, π]
+	 * 	the interval {@code (-π, π]}
 	 */
 	private static MoonState moonState(final double utJd, final Observer observer,
 			final Function<Double, Double> ttCenturyFunction){
@@ -143,8 +143,8 @@ public final class MoonHorizonEvents{
 		final NutationCorrections nutation = NutationCorrections.calculate(ttJc);
 		final double deltaPsi = nutation.getDeltaPsi();
 		final double lambda = MoonPosition.computeApparentMoonLongitude(moon, deltaPsi);
-		final double beta = moon.getLatitude();
-		final double distanceKm = moon.getDistance();
+		final double beta = moon.latitude();
+		final double distanceKm = moon.distance();
 		final double trueObliquity = NutationCorrections.meanObliquity(ttJc) + nutation.getDeltaEpsilon();
 
 		// 2. Ecliptic to equatorial coordinates (Meeus, Astronomical Algorithms, eqs. 13.3 and 13.4)

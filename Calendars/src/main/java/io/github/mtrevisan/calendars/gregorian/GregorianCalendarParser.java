@@ -24,7 +24,7 @@
  */
 package io.github.mtrevisan.calendars.gregorian;
 
-import io.github.mtrevisan.calendars.CalendarType;
+import io.github.mtrevisan.calendars.astronomy.CalendarSeason;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.BufferedReader;
@@ -58,12 +58,20 @@ public final class GregorianCalendarParser{
 	private static final String SLASH = "/";
 
 	private static final String RESOURCE = "seasons.csv";
+	/**
+	 * Comment of {@link #RESOURCE} declaring that a season word is kept even if it is also the abbreviation of a month in
+	 * another language (otherwise the month wins, and the collision is documented by a {@code # collision (month wins): }
+	 * comment).
+	 */
+	private static final String SEASON_WINS_PREFIX = "# collision (season wins): ";
 
 	// Set of language tags that do not use the solar Gregorian/Julian calendar frameworks as their primary script
 	private static final Set<String> NON_SOLAR_LANGUAGES = new HashSet<>(Arrays.asList("th", "lo", "my", "dz", "bo",
 		"am"));
 
 	private static final Map<String, Integer> MONTHS = new HashMap<>();
+	/** Words that are different seasons in different languages: without the language of the date they are rejected. */
+	private static final Set<String> AMBIGUOUS_SEASONS = new HashSet<>();
 	static{
 		final Locale[] locales = Locale.getAvailableLocales();
 		for(final Locale locale : locales){
@@ -73,12 +81,15 @@ public final class GregorianCalendarParser{
 			if(language.isEmpty() || NON_SOLAR_LANGUAGES.contains(language))
 				continue;
 
-			// Extract standard solar months (1 to 12) across Full and Short text styles
+			// Extract standard solar months (1 to 12) across Full and Short text styles (the lookups are in lowercase)
 			for(final Month month : Month.values()){
-				MONTHS.put(month.getDisplayName(TextStyle.FULL, locale), month.getValue());
-				MONTHS.put(month.getDisplayName(TextStyle.SHORT, locale), month.getValue());
+				MONTHS.put(month.getDisplayName(TextStyle.FULL, locale).toLowerCase(Locale.ROOT), month.getValue());
+				MONTHS.put(month.getDisplayName(TextStyle.SHORT, locale).toLowerCase(Locale.ROOT), month.getValue());
 			}
 		}
+
+		// A season word does not hide a month with the same name, unless declared otherwise
+		final Set<String> seasonWins = new HashSet<>();
 
 		try(final InputStream is = GregorianCalendarParser.class.getResourceAsStream(RESOURCE)){
 			if(is == null)
@@ -87,22 +98,32 @@ public final class GregorianCalendarParser{
 			final BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
 			String line;
 			while((line = reader.readLine()) != null){
+				if(line.startsWith(SEASON_WINS_PREFIX))
+					seasonWins.add(StringUtils.split(line.substring(SEASON_WINS_PREFIX.length()))[0]);
 				if(line.isBlank() || line.startsWith("#"))
 					continue;
 
 				final String[] fields = StringUtils.split(line, ';');
-				for(final String autumn : StringUtils.split(fields[1], ','))
-					MONTHS.put(autumn, CalendarType.SEASON_AUTUMN);
-				for(final String winter : StringUtils.split(fields[2], ','))
-					MONTHS.put(winter, CalendarType.SEASON_WINTER);
-				for(final String spring : StringUtils.split(fields[3], ','))
-					MONTHS.put(spring, CalendarType.SEASON_SPRING);
-				for(final String summer : StringUtils.split(fields[4], ','))
-					MONTHS.put(summer, CalendarType.SEASON_SUMMER);
+				putSeason(fields[1], CalendarSeason.SEASON_AUTUMN, seasonWins);
+				putSeason(fields[2], CalendarSeason.SEASON_WINTER, seasonWins);
+				putSeason(fields[3], CalendarSeason.SEASON_SPRING, seasonWins);
+				putSeason(fields[4], CalendarSeason.SEASON_SUMMER, seasonWins);
 			}
 		}
 		catch(final IOException ioe){
 			throw new UncheckedIOException(ioe);
+		}
+		for(final String word : AMBIGUOUS_SEASONS)
+			MONTHS.remove(word);
+	}
+
+	private static void putSeason(final String words, final int season, final Set<String> seasonWins){
+		for(final String word : StringUtils.split(words, ',')){
+			final Integer previous = (seasonWins.contains(word)
+				? MONTHS.put(word, season)
+				: MONTHS.putIfAbsent(word, season));
+			if(previous != null && previous < 0 && previous != season)
+				AMBIGUOUS_SEASONS.add(word);
 		}
 	}
 
@@ -219,12 +240,12 @@ public final class GregorianCalendarParser{
 		final String dualYearFraction = matcher.group(4);
 
 		// Check if the token maps straight to a registered seasonal marker
-		int month = 0;
+		int month;
 		final Integer season = MONTHS.get(monthName);
 		if(season != null && season < 0)
 			month = season;
 		else
-			// Resolve multi-lingual full or abbreviated months using internal Java internationalization tables
+			// Resolve multilingual full or abbreviated months using internal Java internationalization tables
 			month = resolvePolyglotMonth(monthName);
 
 		// A missing day (month and year only, or a seasonal record) is kept as 0
@@ -304,7 +325,8 @@ public final class GregorianCalendarParser{
 		if(textTokens.length > 0){
 			final String leadingToken = textTokens[0].toLowerCase(Locale.ROOT)
 				.trim();
-			if(MONTHS.containsKey(leadingToken))
+			final Integer season = MONTHS.get(leadingToken);
+			if(season != null && season < 0)
 				isSeasonExpression = true;
 		}
 
@@ -377,6 +399,8 @@ public final class GregorianCalendarParser{
 				return month;
 		}
 
+		if(AMBIGUOUS_SEASONS.contains(token))
+			throw new IllegalArgumentException("The word is a different season in different languages: " + token);
 		throw new IllegalArgumentException("Unknown Gregorian month or seasonal descriptor across global locale parameters: " + token);
 	}
 

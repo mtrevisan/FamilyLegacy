@@ -24,20 +24,20 @@
  */
 package io.github.mtrevisan.ephemeris;
 
+import io.github.mtrevisan.calendars.astronomy.EphemerisEngine;
+import io.github.mtrevisan.calendars.astronomy.SunlightPhase;
+import io.github.mtrevisan.calendars.astronomy.Zenith;
+import io.github.mtrevisan.calendars.astronomy.ZenithInterface;
 import io.github.mtrevisan.ephemeris.engine.MoonHorizonEvents;
 import io.github.mtrevisan.ephemeris.engine.MoonPosition;
 import io.github.mtrevisan.ephemeris.engine.NutationCorrections;
 import io.github.mtrevisan.ephemeris.engine.SolarHorizonEvents;
 import io.github.mtrevisan.ephemeris.engine.SunPosition;
-import io.github.mtrevisan.calendars.astronomy.SunlightPhase;
-import io.github.mtrevisan.calendars.astronomy.Zenith;
-import io.github.mtrevisan.calendars.astronomy.ZenithInterface;
 import io.github.mtrevisan.ephemeris.engine.coordinates.EclipticCoordinates;
 import io.github.mtrevisan.ephemeris.helpers.DeltaT;
 import io.github.mtrevisan.ephemeris.helpers.IllinoisSolver;
 import io.github.mtrevisan.ephemeris.helpers.JulianDate;
 import io.github.mtrevisan.ephemeris.helpers.MathHelper;
-import io.github.mtrevisan.calendars.astronomy.EphemerisEngine;
 
 import java.time.Instant;
 import java.time.ZoneOffset;

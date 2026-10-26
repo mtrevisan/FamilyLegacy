@@ -24,14 +24,12 @@
  */
 package io.github.mtrevisan.calendars.liturgical;
 
-import io.github.mtrevisan.calendars.CalendarConverterPlugin;
-import io.github.mtrevisan.calendars.CalendarType;
 import io.github.mtrevisan.calendars.gregorian.CalendarReform;
 import io.github.mtrevisan.calendars.gregorian.JulianCalendarStrategy;
+import io.github.mtrevisan.calendars.spi.CalendarConverterPlugin;
+import io.github.mtrevisan.calendars.spi.CalendarMetadata;
 
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 
 /**
@@ -45,7 +43,7 @@ import java.util.Map;
  */
 public class LiturgicalCalendarStrategy implements CalendarConverterPlugin{
 
-	/** Catholic usage: Julian calendar and computus up to 1582, Gregorian afterwards. */
+	/** Catholic usage: Julian calendar and computus up to 1582, Gregorian afterward. */
 	public static final LiturgicalCalendarStrategy WESTERN = new LiturgicalCalendarStrategy(CalendarReform.ROME);
 	/** Julian calendar and computus. */
 	public static final LiturgicalCalendarStrategy JULIAN = new LiturgicalCalendarStrategy(null);
@@ -138,18 +136,13 @@ public class LiturgicalCalendarStrategy implements CalendarConverterPlugin{
 	 * @return the weekday, from {@code 0} (Monday) to {@code 6} (Sunday)
 	 */
 	private static int weekday(final long jdn){
-		return (int)Math.floorMod(jdn, DAYS_IN_WEEK);
+		return Math.floorMod(jdn, DAYS_IN_WEEK);
 	}
 
 	@Override
-	public CalendarType.CalendarMetadata getMetadata(final String rawDate){
+	public CalendarMetadata getMetadata(final String rawDate){
 		// a liturgical date always identifies a day
-		LiturgicalDateParser.parse(rawDate);
-		final Map<String, Boolean> components = new LinkedHashMap<>();
-		components.put("year", true);
-		components.put("month", true);
-		components.put("day", true);
-		return new CalendarType.CalendarMetadata(components, true);
+		return CalendarMetadata.createTrue();
 	}
 
 }

@@ -47,7 +47,7 @@ public final class HandlerRegistry{
 		HANDLERS.put(ContactNameHandler.TYPE, ContactNameHandler.getInstance());
 		HANDLERS.put(ContextImpactHandler.TYPE, ContextImpactHandler.getInstance());
 		HANDLERS.put(CulturalNormHandler.TYPE, CulturalNormHandler.getInstance());
-		HANDLERS.put(DocumentHandler.TYPE, DocumentHandler.getInstance());
+		HANDLERS.put(MediaHandler.TYPE, MediaHandler.getInstance());
 		HANDLERS.put(EventHandler.TYPE, EventHandler.getInstance());
 		HANDLERS.put(EventParticipationHandler.TYPE, EventParticipationHandler.getInstance());
 		HANDLERS.put(GroupAttributeHandler.TYPE, GroupAttributeHandler.getInstance());

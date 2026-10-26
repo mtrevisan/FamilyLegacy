@@ -147,7 +147,7 @@ public final class RecordDialogComponents{
 		loadReferenceIfPresent(PanelKey.SOURCE_FOR_CAUSE, elp -> elp.withConclusions().load(record));
 		loadReferenceIfPresent(PanelKey.SOURCE_FOR_LOCATION, elp -> elp.withConclusions().load(record));
 		loadReferenceIfPresent(PanelKey.SOURCE_ON_REPOSITORY, elp -> elp.withConclusions().withParentEntity(record).loadCitationsWithType2(record.getId(), SourceReader.TAG_REPOSITORY));
-		loadReferenceIfPresent(PanelKey.SOURCE_ON_DOCUMENT, elp -> elp.withConclusions().withParentEntity(record).loadCitationsWithType3(record.getId(), SourceReader.TAG_DOCUMENT));
+		loadReferenceIfPresent(PanelKey.SOURCE_ON_DOCUMENT, elp -> elp.withConclusions().withParentEntity(record).loadCitationsWithType3(record.getId(), SourceReader.TAG_MEDIA));
 
 		loadReferenceIfPresent(PanelKey.DOCUMENT, elp -> elp.load(record));
 		loadReferenceIfPresent(PanelKey.RESEARCH_QUESTION, elp -> elp.load(record));

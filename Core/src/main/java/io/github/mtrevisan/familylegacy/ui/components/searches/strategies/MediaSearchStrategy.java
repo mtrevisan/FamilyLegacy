@@ -26,11 +26,11 @@ package io.github.mtrevisan.familylegacy.ui.components.searches.strategies;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.readers.DocumentReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.MediaReader;
 import io.github.mtrevisan.familylegacy.ui.components.searches.SearchCriteria;
 import io.github.mtrevisan.familylegacy.ui.components.searches.SearchMode;
 import io.github.mtrevisan.familylegacy.ui.components.searches.SearchStrategy;
-import io.github.mtrevisan.familylegacy.ui.handlers.DocumentHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.MediaHandler;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Set;
@@ -42,9 +42,9 @@ import java.util.function.Predicate;
  * Search strategy for Document records.
  * Supports filtering by description, mapping projection, and URI path.
  */
-public class DocumentSearchStrategy implements SearchStrategy{
+public class MediaSearchStrategy implements SearchStrategy{
 
-	private static final DocumentHandler HANDLER = DocumentHandler.getInstance();
+	private static final MediaHandler HANDLER = MediaHandler.getInstance();
 
 
 	private String description;
@@ -55,29 +55,29 @@ public class DocumentSearchStrategy implements SearchStrategy{
 
 	@Override
 	public Predicate<FLEFRecord> buildPredicate(final SearchCriteria criteria, final FLEFModel model){
-		description = criteria.getFilterFor(DocumentReader.TAG_DESCRIPTION);
-		mapping = criteria.getFilterFor(DocumentReader.TAG_MAPPING);
-		uri = criteria.getFilterFor(DocumentReader.TAG_URI);
+		description = criteria.getFilterFor(MediaReader.TAG_DESCRIPTION);
+		mapping = criteria.getFilterFor(MediaReader.TAG_MAPPING);
+		uri = criteria.getFilterFor(MediaReader.TAG_URI);
 		modes = criteria.modes();
 
 		return document -> {
 			// Description filter
 			if(StringUtils.isNotEmpty(description)){
-				final String recordDescription = DocumentReader.extractDescription(document);
+				final String recordDescription = MediaReader.extractDescription(document);
 				if(!SearchHelper.matches(recordDescription, description, modes))
 					return false;
 			}
 
 			// Mapping filter
 			if(StringUtils.isNotEmpty(mapping)){
-				final String recordMapping = DocumentReader.extractMapping(document);
+				final String recordMapping = MediaReader.extractMapping(document);
 				if(!mapping.equalsIgnoreCase(recordMapping))
 					return false;
 			}
 
 			// URI filter
 			if(StringUtils.isNotEmpty(uri)){
-				final String recordUri = DocumentReader.extractUri(document);
+				final String recordUri = MediaReader.extractUri(document);
 				if(!SearchHelper.matches(recordUri, uri, modes))
 					return false;
 			}
@@ -90,8 +90,8 @@ public class DocumentSearchStrategy implements SearchStrategy{
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
 		final String baseDisplayText = HANDLER.getDisplayText(record, model);
 
-		final String mapping = DocumentReader.extractMapping(record);
-		final String description = DocumentReader.extractDescription(record);
+		final String mapping = MediaReader.extractMapping(record);
+		final String description = MediaReader.extractDescription(record);
 
 		final StringJoiner details = new StringJoiner(", ", " (", ")");
 		details.setEmptyValue(StringUtils.EMPTY);

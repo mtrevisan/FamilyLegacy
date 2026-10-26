@@ -24,16 +24,15 @@
  */
 package io.github.mtrevisan.calendars.indian;
 
-import io.github.mtrevisan.calendars.CalendarConverterPlugin;
-import io.github.mtrevisan.calendars.CalendarType;
 import io.github.mtrevisan.calendars.astronomy.EphemerisEngine;
 import io.github.mtrevisan.calendars.gregorian.GregorianCalendarStrategy;
+import io.github.mtrevisan.calendars.spi.CalendarConverterPlugin;
+import io.github.mtrevisan.calendars.spi.CalendarMetadata;
 import io.github.mtrevisan.calendars.text.TextNormalizer;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -169,8 +168,6 @@ public class VikramSamvatCalendarStrategy implements CalendarConverterPlugin{
 		final LunarMonth month;
 		int tithi = (date.tithi() != 0? date.tithi(): 1);
 		final boolean krishna = (date.krishna() || date.tithi() == 0 && !date.amanta() && !date.adhika());
-		if(date.tithi() == 0 && krishna)
-			tithi = 1;
 		if(krishna && !date.amanta() && !date.adhika()){
 			// the dark fortnight of a purnimanta month is the one of the preceding amanta month
 			month = precedingAmanta(months, date.month(), rawDate);
@@ -348,13 +345,9 @@ public class VikramSamvatCalendarStrategy implements CalendarConverterPlugin{
 	}
 
 	@Override
-	public CalendarType.CalendarMetadata getMetadata(final String rawDate){
+	public CalendarMetadata getMetadata(final String rawDate){
 		final LunisolarDate date = parse(rawDate);
-		final Map<String, Boolean> components = new LinkedHashMap<>();
-		components.put("year", true);
-		components.put("month", (date.month() != -1));
-		components.put("day", (date.tithi() != 0));
-		return new CalendarType.CalendarMetadata(components, (date.month() != -1 && date.tithi() != 0));
+		return CalendarMetadata.createLunisolar(date.month(), date.tithi());
 	}
 
 }

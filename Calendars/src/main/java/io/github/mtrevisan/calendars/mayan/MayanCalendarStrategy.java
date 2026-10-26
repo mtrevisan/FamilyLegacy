@@ -24,13 +24,11 @@
  */
 package io.github.mtrevisan.calendars.mayan;
 
-import io.github.mtrevisan.calendars.CalendarConverterPlugin;
-import io.github.mtrevisan.calendars.CalendarType;
+import io.github.mtrevisan.calendars.astronomy.CalendarSeason;
 import io.github.mtrevisan.calendars.astronomy.EphemerisEngine;
 import io.github.mtrevisan.calendars.astronomy.EphemerisEngineFactory;
-import org.apache.commons.lang3.StringUtils;
-
-import java.util.Collections;
+import io.github.mtrevisan.calendars.spi.CalendarConverterPlugin;
+import io.github.mtrevisan.calendars.spi.CalendarMetadata;
 
 
 public class MayanCalendarStrategy implements CalendarConverterPlugin{
@@ -61,22 +59,7 @@ public class MayanCalendarStrategy implements CalendarConverterPlugin{
 			// Step A: Approximate a baseline JDN anchor for the center of the targeted Gregorian year.
 			// Mayan kin holds the year value. Gregorian 1970-01-01 = JDN 2440588L.
 			// We calculate June 1st of that target year as our search anchor guess.
-			final int targetYear = kin;
-
-			// Establish a simple leap-safe baseline calculation to anchor our initial search window
-			final long baselineApproxJdn = 1721426L + (long)((targetYear - 1) * 365.2425) + 152L;
-			final double approximateMiddleJdUT = baselineApproxJdn - 0.5;
-
-			// Step B: Map negative flag parameters directly onto true solar ecliptic target boundaries
-			// Matching standard alignments: Autumn (-1) = 𝜋, Winter (-2) = 3𝜋/2, Spring (-3) = 0, Summer (-4) = 𝜋/2
-			final double targetLongitude = CalendarType.getGeneralTargetLongitude(baktun);
-
-			// Step C: Trigger exact calculation to find the point where the Sun enters this station
-			final EphemerisEngine engine = EphemerisEngineFactory.getEngine();
-			if(!engine.isAvailable())
-				throw new UnsupportedOperationException("Mayan calendar requires the Ephemeris plugin.");
-
-			final double exactSeasonJdUT = engine.findSolarLongitudeEvent(approximateMiddleJdUT, targetLongitude);
+			final double exactSeasonJdUT = exactSeasonJdUT(kin, baktun);
 
 			return (long)Math.floor(exactSeasonJdUT + 0.5);
 		}
@@ -94,10 +77,28 @@ public class MayanCalendarStrategy implements CalendarConverterPlugin{
 		}
 	}
 
+	private static double exactSeasonJdUT(final int kin, final int baktun){
+		final int targetYear = kin;
+
+		// Establish a simple leap-safe baseline calculation to anchor our initial search window
+		final long baselineApproxJdn = 1721426L + (long)((targetYear - 1) * 365.2425) + 152L;
+		final double approximateMiddleJdUT = baselineApproxJdn - 0.5;
+
+		// Step B: Map negative flag parameters directly onto true solar ecliptic target boundaries
+		// Matching standard alignments: Autumn (-1) = 𝜋, Winter (-2) = 3𝜋/2, Spring (-3) = 0, Summer (-4) = 𝜋/2
+		final double targetLongitude = CalendarSeason.getGeneralTargetLongitude(baktun);
+
+		// Step C: Trigger exact calculation to find the point where the Sun enters this station
+		final EphemerisEngine engine = EphemerisEngineFactory.getEngine();
+		if(!engine.isAvailable())
+			throw new UnsupportedOperationException("Mayan calendar requires the Ephemeris plugin.");
+
+		return engine.findSolarLongitudeEvent(approximateMiddleJdUT, targetLongitude);
+	}
+
 	@Override
-	public CalendarType.CalendarMetadata getMetadata(final String rawDate){
-		final boolean isComplete = (StringUtils.countMatches(rawDate, '.') == 4);
-		return new CalendarType.CalendarMetadata(Collections.emptyMap(), isComplete);
+	public CalendarMetadata getMetadata(final String rawDate){
+		return CalendarMetadata.createRawDate(rawDate);
 	}
 
 }

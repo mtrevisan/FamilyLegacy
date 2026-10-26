@@ -28,11 +28,11 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.components.projections.repository.ProjectionMutator;
 import io.github.mtrevisan.familylegacy.ui.handlers.ConclusionHandler;
-import io.github.mtrevisan.familylegacy.ui.handlers.DocumentHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IdentityHypothesisHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.MediaHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RepositoryHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.ResearchActivityHandler;
@@ -45,6 +45,7 @@ import org.apache.commons.lang3.StringUtils;
 import javax.swing.SwingUtilities;
 import java.awt.Component;
 import java.awt.Window;
+import java.io.File;
 import java.util.Objects;
 
 
@@ -127,6 +128,10 @@ public record ToolContext(
 
 	public void replaceModel(final FLEFModel newModel){
 		dispatcher.replaceModel(newModel);
+	}
+
+	public void openImported(final FLEFModel importedModel, final File source){
+		dispatcher.openImported(importedModel, source);
 	}
 
 	public void performEdit(final String id){
@@ -280,7 +285,7 @@ public record ToolContext(
 	 * Returns whether the current model contains at least one document.
 	 */
 	public boolean hasAnyDocuments(){
-		return !model.getRecordsByType(DocumentHandler.TYPE)
+		return !model.getRecordsByType(MediaHandler.TYPE)
 			.isEmpty();
 	}
 

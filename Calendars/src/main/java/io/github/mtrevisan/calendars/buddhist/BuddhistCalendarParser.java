@@ -1,6 +1,30 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
 package io.github.mtrevisan.calendars.buddhist;
 
-import io.github.mtrevisan.calendars.CalendarType;
+import io.github.mtrevisan.calendars.astronomy.CalendarSeason;
 import io.github.mtrevisan.calendars.text.TextNormalizer;
 import org.apache.commons.lang3.StringUtils;
 
@@ -86,49 +110,49 @@ public final class BuddhistCalendarParser{
 
 		// Thai Seasons Alignment
 		// Winter / Cold Cycle
-		MONTHS.put("ฤดูหนาว", CalendarType.SEASON_WINTER);   // Common formal form
-		MONTHS.put("หน้าหนาว", CalendarType.SEASON_WINTER);   // Colloquial spoken form
-		MONTHS.put("เหมันต์", CalendarType.SEASON_WINTER);    // Literary Sanskrit form (Hemanta)
-		MONTHS.put("เหมันตฤดู", CalendarType.SEASON_WINTER);   // Complete literary form
-		MONTHS.put("hemanta", CalendarType.SEASON_WINTER);
-		MONTHS.put("hemanta-rue-du", CalendarType.SEASON_WINTER);
-		MONTHS.put("ru-du-nao", CalendarType.SEASON_WINTER);   // Correct RTGS transliteration
-		MONTHS.put("ru-du-naow", CalendarType.SEASON_WINTER);  // Common phonetic variant
-		MONTHS.put("rudunao", CalendarType.SEASON_WINTER);
-		MONTHS.put("nha-nao", CalendarType.SEASON_WINTER);
-		MONTHS.put("nhanao", CalendarType.SEASON_WINTER);
+		MONTHS.put("ฤดูหนาว", CalendarSeason.SEASON_WINTER);   // Common formal form
+		MONTHS.put("หน้าหนาว", CalendarSeason.SEASON_WINTER);   // Colloquial spoken form
+		MONTHS.put("เหมันต์", CalendarSeason.SEASON_WINTER);    // Literary Sanskrit form (Hemanta)
+		MONTHS.put("เหมันตฤดู", CalendarSeason.SEASON_WINTER);   // Complete literary form
+		MONTHS.put("hemanta", CalendarSeason.SEASON_WINTER);
+		MONTHS.put("hemanta-rue-du", CalendarSeason.SEASON_WINTER);
+		MONTHS.put("ru-du-nao", CalendarSeason.SEASON_WINTER);   // Correct RTGS transliteration
+		MONTHS.put("ru-du-naow", CalendarSeason.SEASON_WINTER);  // Common phonetic variant
+		MONTHS.put("rudunao", CalendarSeason.SEASON_WINTER);
+		MONTHS.put("nha-nao", CalendarSeason.SEASON_WINTER);
+		MONTHS.put("nhanao", CalendarSeason.SEASON_WINTER);
 
 		// Summer / Hot Cycle
-		MONTHS.put("ฤดูร้อน", CalendarType.SEASON_SUMMER);    // Common formal form
-		MONTHS.put("หน้าร้อน", CalendarType.SEASON_SUMMER);    // Colloquial spoken form
-		MONTHS.put("คิมหันต์", CalendarType.SEASON_SUMMER);    // Literary Sanskrit form (Kimhana)
-		MONTHS.put("คิมหันตฤดู", CalendarType.SEASON_SUMMER);   // Complete literary form
-		MONTHS.put("kimmhana", CalendarType.SEASON_SUMMER);
-		MONTHS.put("kimhant", CalendarType.SEASON_SUMMER);
-		MONTHS.put("ru-du-ron", CalendarType.SEASON_SUMMER);
-		MONTHS.put("ruduron", CalendarType.SEASON_SUMMER);
-		MONTHS.put("nha-ron", CalendarType.SEASON_SUMMER);
-		MONTHS.put("nharon", CalendarType.SEASON_SUMMER);
+		MONTHS.put("ฤดูร้อน", CalendarSeason.SEASON_SUMMER);    // Common formal form
+		MONTHS.put("หน้าร้อน", CalendarSeason.SEASON_SUMMER);    // Colloquial spoken form
+		MONTHS.put("คิมหันต์", CalendarSeason.SEASON_SUMMER);    // Literary Sanskrit form (Kimhana)
+		MONTHS.put("คิมหันตฤดู", CalendarSeason.SEASON_SUMMER);   // Complete literary form
+		MONTHS.put("kimmhana", CalendarSeason.SEASON_SUMMER);
+		MONTHS.put("kimhant", CalendarSeason.SEASON_SUMMER);
+		MONTHS.put("ru-du-ron", CalendarSeason.SEASON_SUMMER);
+		MONTHS.put("ruduron", CalendarSeason.SEASON_SUMMER);
+		MONTHS.put("nha-ron", CalendarSeason.SEASON_SUMMER);
+		MONTHS.put("nharon", CalendarSeason.SEASON_SUMMER);
 
 		// Spring / Vernal Equinox Cross-alignment
-		MONTHS.put("ฤดูใบไม้ผลิ", CalendarType.SEASON_SPRING); // Common form ("Sprouting leaves")
-		MONTHS.put("วสันต์", CalendarType.SEASON_SPRING);       // Literary Sanskrit form (Vasanta)
-		MONTHS.put("วสันตฤดู", CalendarType.SEASON_SPRING);     // Complete literary form
-		MONTHS.put("vasanta", CalendarType.SEASON_SPRING);
-		MONTHS.put("wasan", CalendarType.SEASON_SPRING);
-		MONTHS.put("wasanta", CalendarType.SEASON_SPRING);
-		MONTHS.put("ru-du-bai-mai-phli", CalendarType.SEASON_SPRING);
-		MONTHS.put("rudubaimaiphli", CalendarType.SEASON_SPRING);
+		MONTHS.put("ฤดูใบไม้ผลิ", CalendarSeason.SEASON_SPRING); // Common form ("Sprouting leaves")
+		MONTHS.put("วสันต์", CalendarSeason.SEASON_SPRING);       // Literary Sanskrit form (Vasanta)
+		MONTHS.put("วสันตฤดู", CalendarSeason.SEASON_SPRING);     // Complete literary form
+		MONTHS.put("vasanta", CalendarSeason.SEASON_SPRING);
+		MONTHS.put("wasan", CalendarSeason.SEASON_SPRING);
+		MONTHS.put("wasanta", CalendarSeason.SEASON_SPRING);
+		MONTHS.put("ru-du-bai-mai-phli", CalendarSeason.SEASON_SPRING);
+		MONTHS.put("rudubaimaiphli", CalendarSeason.SEASON_SPRING);
 
 		// Autumn / Autumnal Equinox Cross-alignment
-		MONTHS.put("ฤดูใบไม้ร่วง", CalendarType.SEASON_AUTUMN); // Common form ("Falling leaves")
-		MONTHS.put("สารท", CalendarType.SEASON_AUTUMN);        // Literary Sanskrit form (Sarada)
-		MONTHS.put("ศารทฤดู", CalendarType.SEASON_AUTUMN);      // Complete literary form
-		MONTHS.put("osen", CalendarType.SEASON_AUTUMN);         // Cross-point alignment variant
-		MONTHS.put("sarada", CalendarType.SEASON_AUTUMN);
-		MONTHS.put("sarat", CalendarType.SEASON_AUTUMN);
-		MONTHS.put("ru-du-bai-mai-ruang", CalendarType.SEASON_AUTUMN);
-		MONTHS.put("rudubaimairuang", CalendarType.SEASON_AUTUMN);
+		MONTHS.put("ฤดูใบไม้ร่วง", CalendarSeason.SEASON_AUTUMN); // Common form ("Falling leaves")
+		MONTHS.put("สารท", CalendarSeason.SEASON_AUTUMN);        // Literary Sanskrit form (Sarada)
+		MONTHS.put("ศารทฤดู", CalendarSeason.SEASON_AUTUMN);      // Complete literary form
+		MONTHS.put("osen", CalendarSeason.SEASON_AUTUMN);         // Cross-point alignment variant
+		MONTHS.put("sarada", CalendarSeason.SEASON_AUTUMN);
+		MONTHS.put("sarat", CalendarSeason.SEASON_AUTUMN);
+		MONTHS.put("ru-du-bai-mai-ruang", CalendarSeason.SEASON_AUTUMN);
+		MONTHS.put("rudubaimairuang", CalendarSeason.SEASON_AUTUMN);
 	}
 
 	private static final Pattern RATTANAKOSIN_MARKER = Pattern.compile("(?i)ร\\.?\\s?ศ\\.?|(?<![\\p{L}])r\\.?\\s?s\\.?(?![\\p{L}])");

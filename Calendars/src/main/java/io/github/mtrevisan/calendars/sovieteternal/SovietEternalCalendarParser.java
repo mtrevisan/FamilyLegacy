@@ -3,7 +3,7 @@
 */
 package io.github.mtrevisan.calendars.sovieteternal;
 
-import io.github.mtrevisan.calendars.CalendarType;
+import io.github.mtrevisan.calendars.astronomy.CalendarSeason;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
@@ -106,21 +106,21 @@ public final class SovietEternalCalendarParser{
 
 
 		// Autumn
-		MONTHS.put("осень", CalendarType.SEASON_AUTUMN);
-		MONTHS.put("осен", CalendarType.SEASON_AUTUMN);            // Truncated phonetic token
-		MONTHS.put("osen", CalendarType.SEASON_AUTUMN);
+		MONTHS.put("осень", CalendarSeason.SEASON_AUTUMN);
+		MONTHS.put("осен", CalendarSeason.SEASON_AUTUMN);            // Truncated phonetic token
+		MONTHS.put("osen", CalendarSeason.SEASON_AUTUMN);
 
 		// Winter
-		MONTHS.put("зима", CalendarType.SEASON_WINTER);
-		MONTHS.put("zima", CalendarType.SEASON_WINTER);
+		MONTHS.put("зима", CalendarSeason.SEASON_WINTER);
+		MONTHS.put("zima", CalendarSeason.SEASON_WINTER);
 
 		// Spring
-		MONTHS.put("весна", CalendarType.SEASON_SPRING);
-		MONTHS.put("vesna", CalendarType.SEASON_SPRING);
+		MONTHS.put("весна", CalendarSeason.SEASON_SPRING);
+		MONTHS.put("vesna", CalendarSeason.SEASON_SPRING);
 
 		// Summer
-		MONTHS.put("лето", CalendarType.SEASON_SUMMER);
-		MONTHS.put("leto", CalendarType.SEASON_SUMMER);
+		MONTHS.put("лето", CalendarSeason.SEASON_SUMMER);
+		MONTHS.put("leto", CalendarSeason.SEASON_SUMMER);
 	}
 
 	// Robust, exception-free Unicode pattern supporting optional day prefix and world alphabets

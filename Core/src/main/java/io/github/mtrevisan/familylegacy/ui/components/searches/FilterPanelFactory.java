@@ -26,12 +26,12 @@ package io.github.mtrevisan.familylegacy.ui.components.searches;
 
 import io.github.mtrevisan.familylegacy.ui.components.searches.strategies.ConclusionFilterPanel;
 import io.github.mtrevisan.familylegacy.ui.components.searches.strategies.CulturalNormFilterPanel;
-import io.github.mtrevisan.familylegacy.ui.components.searches.strategies.DocumentFilterPanel;
 import io.github.mtrevisan.familylegacy.ui.components.searches.strategies.EventFilterPanel;
 import io.github.mtrevisan.familylegacy.ui.components.searches.strategies.GroupFilterPanel;
 import io.github.mtrevisan.familylegacy.ui.components.searches.strategies.HistoricEventFilterPanel;
 import io.github.mtrevisan.familylegacy.ui.components.searches.strategies.IdentityHypothesisFilterPanel;
 import io.github.mtrevisan.familylegacy.ui.components.searches.strategies.IndividualFilterPanel;
+import io.github.mtrevisan.familylegacy.ui.components.searches.strategies.MediaFilterPanel;
 import io.github.mtrevisan.familylegacy.ui.components.searches.strategies.PlaceFilterPanel;
 import io.github.mtrevisan.familylegacy.ui.components.searches.strategies.PlaceRelationshipFilterPanel;
 import io.github.mtrevisan.familylegacy.ui.components.searches.strategies.RelationshipFilterPanel;
@@ -42,12 +42,12 @@ import io.github.mtrevisan.familylegacy.ui.components.searches.strategies.Resear
 import io.github.mtrevisan.familylegacy.ui.components.searches.strategies.SourceFilterPanel;
 import io.github.mtrevisan.familylegacy.ui.handlers.ConclusionHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.CulturalNormHandler;
-import io.github.mtrevisan.familylegacy.ui.handlers.DocumentHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.HistoricEventHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IdentityHypothesisHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.MediaHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.PlaceRelationshipHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
@@ -74,7 +74,7 @@ public class FilterPanelFactory{
 	static {
 		REGISTRY.put(ConclusionHandler.class, ConclusionFilterPanel::new);
 		REGISTRY.put(CulturalNormHandler.class, CulturalNormFilterPanel::new);
-		REGISTRY.put(DocumentHandler.class, DocumentFilterPanel::new);
+		REGISTRY.put(MediaHandler.class, MediaFilterPanel::new);
 		REGISTRY.put(EventHandler.class, EventFilterPanel::new);
 		REGISTRY.put(GroupHandler.class, GroupFilterPanel::new);
 		REGISTRY.put(HistoricEventHandler.class, HistoricEventFilterPanel::new);

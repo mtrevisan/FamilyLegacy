@@ -118,10 +118,10 @@ public final class SunPosition{
 		final EclipticCoordinates embSph = SunPosition.embTrueHeliocentricPosition(jme);
 
 		// 2. Convert the EMB spherical coordinates back to rectangular J2000.0 components (in AU)
-		final double cosLat = StrictMath.cos(embSph.getLatitude());
-		final double xEmbJ2000 = embSph.getDistance() * StrictMath.cos(embSph.getLongitude()) * cosLat;
-		final double yEmbJ2000 = embSph.getDistance() * StrictMath.sin(embSph.getLongitude()) * cosLat;
-		final double zEmbJ2000 = embSph.getDistance() * StrictMath.sin(embSph.getLatitude());
+		final double cosLat = StrictMath.cos(embSph.latitude());
+		final double xEmbJ2000 = embSph.distance() * StrictMath.cos(embSph.longitude()) * cosLat;
+		final double yEmbJ2000 = embSph.distance() * StrictMath.sin(embSph.longitude()) * cosLat;
+		final double zEmbJ2000 = embSph.distance() * StrictMath.sin(embSph.latitude());
 
 		// 3. Convert the Moon's vector from kilometers to Astronomical Units (AU)
 		final double xMoonAu = rMoonJ2000Km[0] / ASTRONOMICAL_UNIT;

@@ -60,7 +60,7 @@ public final class SourceToolRegistry{
 	/** Documents subgroup. */
 	public static List<ToolOperation> documentTools(){
 		return List.of(
-			new ManageDocumentsTool()
+			new ManageMediaTool()
 		);
 	}
 

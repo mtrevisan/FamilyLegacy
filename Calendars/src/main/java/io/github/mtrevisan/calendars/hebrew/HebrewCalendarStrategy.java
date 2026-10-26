@@ -24,13 +24,11 @@
  */
 package io.github.mtrevisan.calendars.hebrew;
 
-import io.github.mtrevisan.calendars.CalendarConverterPlugin;
-import io.github.mtrevisan.calendars.CalendarType;
+import io.github.mtrevisan.calendars.astronomy.CalendarSeason;
 import io.github.mtrevisan.calendars.astronomy.EphemerisEngine;
 import io.github.mtrevisan.calendars.astronomy.EphemerisEngineFactory;
-
-import java.util.LinkedHashMap;
-import java.util.Map;
+import io.github.mtrevisan.calendars.spi.CalendarConverterPlugin;
+import io.github.mtrevisan.calendars.spi.CalendarMetadata;
 
 
 public class HebrewCalendarStrategy implements CalendarConverterPlugin{
@@ -50,18 +48,7 @@ public class HebrewCalendarStrategy implements CalendarConverterPlugin{
 			// Step A: Calculate a dynamic baseline anchor for the center of the target Hebrew year.
 			// We sample the start of the current year and estimate a middle point shift.
 			final long startOfYearJdn = hebrewNewYear(year);
-			final double approximateMiddleJdUT = startOfYearJdn + 177. - 0.5;
-
-			// Step B: Map negative flag parameters directly onto true solar ecliptic target boundaries
-			// Matching structural alignments: Autumn (-1) = 𝜋, Winter (-2) = 3𝜋/2, Spring (-3) = 0, Summer (-4) = 𝜋/2
-			final double targetLongitude = CalendarType.getGeneralTargetLongitude(month);
-
-			// Step C: Execute high-precision calculation to track the exact instant the Sun enters this season
-			final EphemerisEngine engine = EphemerisEngineFactory.getEngine();
-			if(!engine.isAvailable())
-				throw new UnsupportedOperationException("Hebrew calendar requires the Ephemeris plugin.");
-
-			final double exactSeasonJdUT = engine.findSolarLongitudeEvent(approximateMiddleJdUT, targetLongitude);
+			final double exactSeasonJdUT = exactSeasonJdUT(startOfYearJdn, month);
 
 			return (long)Math.floor(exactSeasonJdUT + 0.5);
 		}
@@ -73,6 +60,21 @@ public class HebrewCalendarStrategy implements CalendarConverterPlugin{
 			// Standard numeric execution path using the rabbinic calculation algorithm for regular Hebrew dates
 			return hebrewNewYear(year) + daysBeforeMonth(year, yearMonth) + (day - 1);
 		}
+	}
+
+	private static double exactSeasonJdUT(final long startOfYearJdn, final int month){
+		final double approximateMiddleJdUT = startOfYearJdn + 177. - 0.5;
+
+		// Step B: Map negative flag parameters directly onto true solar ecliptic target boundaries
+		// Matching structural alignments: Autumn (-1) = 𝜋, Winter (-2) = 3𝜋/2, Spring (-3) = 0, Summer (-4) = 𝜋/2
+		final double targetLongitude = CalendarSeason.getGeneralTargetLongitude(month);
+
+		// Step C: Execute high-precision calculation to track the exact instant the Sun enters this season
+		final EphemerisEngine engine = EphemerisEngineFactory.getEngine();
+		if(!engine.isAvailable())
+			throw new UnsupportedOperationException("Hebrew calendar requires the Ephemeris plugin.");
+
+		return engine.findSolarLongitudeEvent(approximateMiddleJdUT, targetLongitude);
 	}
 
 	/**
@@ -177,15 +179,9 @@ public class HebrewCalendarStrategy implements CalendarConverterPlugin{
 	}
 
 	@Override
-	public CalendarType.CalendarMetadata getMetadata(final String rawDate){
+	public CalendarMetadata getMetadata(final String rawDate){
 		final HebrewDateInput input = HebrewCalendarParser.parse(rawDate);
-		final Map<String, Boolean> components = new LinkedHashMap<>();
-		components.put("year", (input.year() != 0));
-		components.put("month", (input.month() != 0));
-		components.put("day", (input.day() != 0));
-
-		final boolean isComplete = (input.year() != 0 && input.month() != 0 && input.day() != 0);
-		return new CalendarType.CalendarMetadata(components, isComplete);
+		return CalendarMetadata.createFromYearMonthDay(input.year(), input.month(), input.day());
 	}
 
 }

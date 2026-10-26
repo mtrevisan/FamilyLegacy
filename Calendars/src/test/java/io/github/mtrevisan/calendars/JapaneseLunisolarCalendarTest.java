@@ -137,9 +137,29 @@ class JapaneseLunisolarCalendarTest{
 	}
 
 	@Test
+	void senmyoCalendar(){
+		// Dates published by ja.wikipedia (本能寺の変, 関ヶ原の戦い, 豊臣秀頼, 徳川家康)
+		Assertions.assertEquals(CalendarType.JULIAN.parseToJdn("21 June 1582"), CalendarType.JAPANESE.parseToJdn("天正10年6月2日"));
+		Assertions.assertEquals(CalendarType.GREGORIAN.parseToJdn("21 October 1600"), CalendarType.JAPANESE.parseToJdn("慶長5年9月15日"));
+		Assertions.assertEquals(CalendarType.GREGORIAN.parseToJdn("4 June 1615"), CalendarType.JAPANESE.parseToJdn("慶長20年5月8日"));
+		Assertions.assertEquals(CalendarType.GREGORIAN.parseToJdn("1 June 1616"), CalendarType.JAPANESE.parseToJdn("元和2年4月17日"));
+	}
+
+	@Test
+	void senmyoLeapMonthAndTableBoundaries(){
+		// NAOJ: 天正元年 starts on 13 February 1573 (Gregorian), 天正2年 has a leap 11th month, 1684 ends on 3 February 1685
+		Assertions.assertEquals(CalendarType.GREGORIAN.parseToJdn("13 February 1573"), CalendarType.JAPANESE.parseToJdn("天正元年1月1日"));
+		Assertions.assertEquals(CalendarType.GREGORIAN.parseToJdn("13 February 1573"), CalendarType.JAPANESE.parseToJdn("天正元年"));
+		Assertions.assertEquals(CalendarType.JAPANESE.parseToJdn("天正2年11月1日") + 30,
+			CalendarType.JAPANESE.parseToJdn("天正2年閏11月1日"));
+		Assertions.assertEquals(CalendarType.GREGORIAN.parseToJdn("4 February 1685") - 1,
+			CalendarType.JAPANESE.parseToJdn("貞享元年12月晦日"));
+	}
+
+	@Test
 	void invalidDates(){
-		// the Senmyō calendar (before 1685)
-		Assertions.assertThrows(IllegalArgumentException.class, () -> CalendarType.JAPANESE.parseToJdn("貞享元年10月21日"));
+		// 天正2年 has a leap 11th month, but no leap 10th month
+		Assertions.assertThrows(IllegalArgumentException.class, () -> CalendarType.JAPANESE.parseToJdn("天正2年閏10月1日"));
 		// 嘉永2年 has a leap 4th month, but no leap 5th month
 		Assertions.assertThrows(IllegalArgumentException.class, () -> CalendarType.JAPANESE.parseToJdn("嘉永2年閏5月1日"));
 		// the 12th month of 明治5年 has only two days

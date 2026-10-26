@@ -24,7 +24,7 @@
  */
 package io.github.mtrevisan.calendars.seleucid;
 
-import io.github.mtrevisan.calendars.CalendarType;
+import io.github.mtrevisan.calendars.astronomy.CalendarSeason;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
@@ -43,19 +43,19 @@ public final class SeleucidCalendarParser{
 	private static final Map<String, Integer> MONTHS = new HashMap<>();
 	static{
 		// Month 1: Hyperberetaios / Tishrin Qadim (October)
-		MONTHS.put("ὑπερβερεταῖος", 1);    // Native Macedonian Greek script
-		MONTHS.put("ܬܫܪܝܢ ܩܕܝܡ", 1);        // Native Syriac script
+		MONTHS.put("ὑπερβερεταῖος", 1);		// Native Macedonian Greek script
+		MONTHS.put("ܬܫܪܝܢ ܩܕܝܡ", 1);				// Native Syriac script
 		MONTHS.put("hyperberetaios", 1);
-		MONTHS.put("hyperberetaos", 1);     // Common variant spelling
+		MONTHS.put("hyperberetaos", 1);		// Common variant spelling
 		MONTHS.put("tishrin qdim", 1);
-		MONTHS.put("tishrin al-awwal", 1);  // Arabic-Syriac crossover variant
-		MONTHS.put("tishri", 1);            // Jewish/Babylonian autumn lunar epoch alignment
+		MONTHS.put("tishrin al-awwal", 1);	// Arabic-Syriac crossover variant
+		MONTHS.put("tishri", 1);				// Jewish/Babylonian autumn lunar epoch alignment
 
 		// Month 2: Dios / Tishrin Hray (November)
 		MONTHS.put("δῖος", 2);
 		MONTHS.put("ܬܫܪܝܢ ܐܚܪܝ", 2);
 		MONTHS.put("dios", 2);
-		MONTHS.put("dius", 2);              // Latinized epigraphic variant
+		MONTHS.put("dius", 2);					// Latinized epigraphic variant
 		MONTHS.put("tishrin hray", 2);
 		MONTHS.put("tishrin al-thani", 2);
 		MONTHS.put("marcheshvan", 2);
@@ -100,7 +100,7 @@ public final class SeleucidCalendarParser{
 		MONTHS.put("ξανθικός", 7);
 		MONTHS.put("ܢܝܣܢ", 7);
 		MONTHS.put("xanthikos", 7);
-		MONTHS.put("xanticus", 7);          // Latinized historical variant
+		MONTHS.put("xanticus", 7);				// Latinized historical variant
 		MONTHS.put("nisan", 7);
 		MONTHS.put("nissan", 7);
 
@@ -123,7 +123,7 @@ public final class SeleucidCalendarParser{
 		MONTHS.put("πάνεμος", 10);
 		MONTHS.put("ܬܡܘܙ", 10);
 		MONTHS.put("panemos", 10);
-		MONTHS.put("panamusi", 10);         // Babylon-Semitic transcription variant
+		MONTHS.put("panamusi", 10);			// Babylon-Semitic transcription variant
 		MONTHS.put("tamuz", 10);
 		MONTHS.put("tammuz", 10);
 
@@ -139,26 +139,26 @@ public final class SeleucidCalendarParser{
 		MONTHS.put("γορπιαῖος", 12);
 		MONTHS.put("ܐܝܠܘܠ", 12);
 		MONTHS.put("gorpiaios", 12);
-		MONTHS.put("gorpiose", 12);         // Kept original phonetic variant for compatibility
+		MONTHS.put("gorpiose", 12);			// Kept original phonetic variant for compatibility
 		MONTHS.put("aylul", 12);
 		MONTHS.put("elul", 12);
 
 
 		// Autumn
-		MONTHS.put("hyperberetaios-season", CalendarType.SEASON_AUTUMN);
-		MONTHS.put("tishrin-season", CalendarType.SEASON_AUTUMN);
+		MONTHS.put("hyperberetaios-season", CalendarSeason.SEASON_AUTUMN);
+		MONTHS.put("tishrin-season", CalendarSeason.SEASON_AUTUMN);
 
 		// Winter
-		MONTHS.put("audynaios-season", CalendarType.SEASON_WINTER);
-		MONTHS.put("kanun-season", CalendarType.SEASON_WINTER);
+		MONTHS.put("audynaios-season", CalendarSeason.SEASON_WINTER);
+		MONTHS.put("kanun-season", CalendarSeason.SEASON_WINTER);
 
 		// Spring
-		MONTHS.put("xanthikos-season", CalendarType.SEASON_SPRING);
-		MONTHS.put("nisan-season", CalendarType.SEASON_SPRING);
+		MONTHS.put("xanthikos-season", CalendarSeason.SEASON_SPRING);
+		MONTHS.put("nisan-season", CalendarSeason.SEASON_SPRING);
 
 		// Summer
-		MONTHS.put("panemos-season", CalendarType.SEASON_SUMMER);
-		MONTHS.put("tammuz-season", CalendarType.SEASON_SUMMER);
+		MONTHS.put("panemos-season", CalendarSeason.SEASON_SUMMER);
+		MONTHS.put("tammuz-season", CalendarSeason.SEASON_SUMMER);
 	}
 
 	private static final Pattern DATE_PATTERN = Pattern.compile("(?:(\\d+)\\s+)?([\\p{L}\\p{M}\\s-]+?)\\s+(\\d+)");

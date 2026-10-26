@@ -24,7 +24,7 @@
  */
 package io.github.mtrevisan.calendars.persian;
 
-import io.github.mtrevisan.calendars.CalendarType;
+import io.github.mtrevisan.calendars.astronomy.CalendarSeason;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
@@ -148,30 +148,30 @@ public final class PersianCalendarParser{
 
 
 		// Autumn
-		MONTHS.put("paeez", CalendarType.SEASON_AUTUMN);
-		MONTHS.put("payiz", CalendarType.SEASON_AUTUMN);
-		MONTHS.put("پاییز", CalendarType.SEASON_AUTUMN);
-		MONTHS.put("Хазон", CalendarType.SEASON_AUTUMN);         // Tajik Cyrillic word for Autumn
-		MONTHS.put("khazon", CalendarType.SEASON_AUTUMN);
+		MONTHS.put("paeez", CalendarSeason.SEASON_AUTUMN);
+		MONTHS.put("payiz", CalendarSeason.SEASON_AUTUMN);
+		MONTHS.put("پاییز", CalendarSeason.SEASON_AUTUMN);
+		MONTHS.put("Хазон", CalendarSeason.SEASON_AUTUMN);         // Tajik Cyrillic word for Autumn
+		MONTHS.put("khazon", CalendarSeason.SEASON_AUTUMN);
 
 		// Winter
-		MONTHS.put("zemestan", CalendarType.SEASON_WINTER);
-		MONTHS.put("زمستان", CalendarType.SEASON_WINTER);
-		MONTHS.put("Зимистон", CalendarType.SEASON_WINTER);      // Tajik Cyrillic word for Winter
-		MONTHS.put("zimiston", CalendarType.SEASON_WINTER);
+		MONTHS.put("zemestan", CalendarSeason.SEASON_WINTER);
+		MONTHS.put("زمستان", CalendarSeason.SEASON_WINTER);
+		MONTHS.put("Зимистон", CalendarSeason.SEASON_WINTER);      // Tajik Cyrillic word for Winter
+		MONTHS.put("zimiston", CalendarSeason.SEASON_WINTER);
 
 		// Spring
-		MONTHS.put("bahar", CalendarType.SEASON_SPRING);
-		MONTHS.put("بهار", CalendarType.SEASON_SPRING);
-		MONTHS.put("Баҳор", CalendarType.SEASON_SPRING);         // Tajik Cyrillic word for Spring
-		MONTHS.put("bahor", CalendarType.SEASON_SPRING);
+		MONTHS.put("bahar", CalendarSeason.SEASON_SPRING);
+		MONTHS.put("بهار", CalendarSeason.SEASON_SPRING);
+		MONTHS.put("Баҳор", CalendarSeason.SEASON_SPRING);         // Tajik Cyrillic word for Spring
+		MONTHS.put("bahor", CalendarSeason.SEASON_SPRING);
 
 		// Summer
-		MONTHS.put("tabestan", CalendarType.SEASON_SUMMER);
-		MONTHS.put("تابستان", CalendarType.SEASON_SUMMER);
-		MONTHS.put("Тоβистон", CalendarType.SEASON_SUMMER);      // Tajik Cyrillic variant
-		MONTHS.put("توبستان", CalendarType.SEASON_SUMMER);
-		MONTHS.put("toviston", CalendarType.SEASON_SUMMER);
+		MONTHS.put("tabestan", CalendarSeason.SEASON_SUMMER);
+		MONTHS.put("تابستان", CalendarSeason.SEASON_SUMMER);
+		MONTHS.put("Тоβистон", CalendarSeason.SEASON_SUMMER);      // Tajik Cyrillic variant
+		MONTHS.put("توبستان", CalendarSeason.SEASON_SUMMER);
+		MONTHS.put("toviston", CalendarSeason.SEASON_SUMMER);
 	}
 
 	// Adaptive pattern supporting both standalone seasonal notations ("Bahar 1357")

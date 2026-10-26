@@ -139,7 +139,7 @@ final class ReportContext{
 			case "source" -> RootKind.SOURCE;
 			case "place" -> RootKind.PLACE;
 			case "repository" -> RootKind.REPOSITORY;
-			case "document" -> RootKind.DOCUMENT;
+			case "media" -> RootKind.DOCUMENT;
 			case "research_question" -> RootKind.RESEARCH_QUESTION;
 			case "research_activity" -> RootKind.RESEARCH_ACTIVITY;
 			case "research_task" -> RootKind.RESEARCH_TASK;

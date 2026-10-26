@@ -24,18 +24,16 @@
  */
 package io.github.mtrevisan.calendars.swedish;
 
-import io.github.mtrevisan.calendars.CalendarConverterPlugin;
-import io.github.mtrevisan.calendars.CalendarType;
+import io.github.mtrevisan.calendars.astronomy.CalendarSeason;
+import io.github.mtrevisan.calendars.astronomy.EphemerisEngine;
+import io.github.mtrevisan.calendars.astronomy.EphemerisEngineFactory;
 import io.github.mtrevisan.calendars.gregorian.GregorianCalendarParser;
 import io.github.mtrevisan.calendars.gregorian.GregorianCalendarStrategy;
 import io.github.mtrevisan.calendars.gregorian.GregorianDateInput;
 import io.github.mtrevisan.calendars.gregorian.Indiction;
 import io.github.mtrevisan.calendars.gregorian.JulianCalendarStrategy;
-import io.github.mtrevisan.calendars.astronomy.EphemerisEngine;
-import io.github.mtrevisan.calendars.astronomy.EphemerisEngineFactory;
-
-import java.util.LinkedHashMap;
-import java.util.Map;
+import io.github.mtrevisan.calendars.spi.CalendarConverterPlugin;
+import io.github.mtrevisan.calendars.spi.CalendarMetadata;
 
 
 /**
@@ -66,15 +64,9 @@ public class SwedishCalendarStrategy implements CalendarConverterPlugin{
 		final int day = input.dayOrFirst();
 
 		if(month < 0){
-			final int m = switch(month){
-				case CalendarType.SEASON_SPRING -> 3;  // March
-				case CalendarType.SEASON_SUMMER -> 6;  // June
-				case CalendarType.SEASON_AUTUMN -> 9;  // September
-				case CalendarType.SEASON_WINTER -> 12; // December
-				default -> 6;
-			};
+			final int m = CalendarSeason.gregorianSeasonMonth(month);
 			final double approximateJdUT = toJdn(year, m, 1) - 0.5;
-			final double targetLongitude = CalendarType.getGeneralTargetLongitude(month);
+			final double targetLongitude = CalendarSeason.getGeneralTargetLongitude(month);
 
 			final EphemerisEngine engine = EphemerisEngineFactory.getEngine();
 			if(!engine.isAvailable())
@@ -130,15 +122,9 @@ public class SwedishCalendarStrategy implements CalendarConverterPlugin{
 	}
 
 	@Override
-	public CalendarType.CalendarMetadata getMetadata(final String rawDate){
+	public CalendarMetadata getMetadata(final String rawDate){
 		final GregorianDateInput input = GregorianCalendarParser.parse(rawDate, FEBRUARY_MAX_DAYS);
-		final Map<String, Boolean> components = new LinkedHashMap<>();
-		components.put("year", (input.year() != 0));
-		components.put("month", (input.month() != 0));
-		components.put("day", (input.day() != 0));
-
-		final boolean isComplete = (input.year() != 0 && input.month() != 0 && input.day() != 0);
-		return new CalendarType.CalendarMetadata(components, isComplete);
+		return CalendarMetadata.createFromYearMonthDay(input.year(), input.month(), input.day());
 	}
 
 }

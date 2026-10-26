@@ -1,6 +1,3 @@
-import io.github.mtrevisan.calendars.astronomy.EphemerisEngine;
-
-
 /**
  * Copyright (c) 2026 Mauro Trevisan
  * <p>
@@ -25,6 +22,7 @@ import io.github.mtrevisan.calendars.astronomy.EphemerisEngine;
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
+import io.github.mtrevisan.calendars.astronomy.EphemerisEngine;
 
 
 module io.github.mtrevisan.calendars {
@@ -34,6 +32,7 @@ module io.github.mtrevisan.calendars {
 	exports io.github.mtrevisan.calendars;
 	// SPI of the astronomical engine, implemented by the Ephemeris plugin
 	exports io.github.mtrevisan.calendars.astronomy;
+	exports io.github.mtrevisan.calendars.spi;
 
 	// Declare SPI consumption
 	uses EphemerisEngine;

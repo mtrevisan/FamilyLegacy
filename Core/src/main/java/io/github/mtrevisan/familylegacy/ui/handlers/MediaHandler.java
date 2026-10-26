@@ -26,8 +26,8 @@ package io.github.mtrevisan.familylegacy.ui.handlers;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.readers.DocumentReader;
-import io.github.mtrevisan.familylegacy.ui.dialogs.records.DocumentRecordDialog;
+import io.github.mtrevisan.familylegacy.io.model.readers.MediaReader;
+import io.github.mtrevisan.familylegacy.ui.dialogs.records.MediaRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
@@ -38,25 +38,25 @@ import java.awt.Window;
 /**
  * Handler for DOCUMENT records.
  */
-public class DocumentHandler extends AbstractRecordTypeHandler<DocumentRecordDialog>{
+public class MediaHandler extends AbstractRecordTypeHandler<MediaRecordDialog>{
 
-	public static final String TYPE = "DOCUMENT";
-	public static final String ID_PREFIX = "D";
+	public static final String TYPE = "MEDIA";
+	public static final String ID_PREFIX = "M";
 
 
 	private static final class SingletonHelper{
-		private static final DocumentHandler INSTANCE = new DocumentHandler();
+		private static final MediaHandler INSTANCE = new MediaHandler();
 	}
 
 
-	public static DocumentHandler getInstance(){
+	public static MediaHandler getInstance(){
 		return SingletonHelper.INSTANCE;
 	}
 
 
 	@Override
 	public String getLabel(){
-		return I18N.t("confirmation.exist_record.document");
+		return I18N.t("confirmation.exist_record.media");
 	}
 
 	@Override
@@ -75,12 +75,12 @@ public class DocumentHandler extends AbstractRecordTypeHandler<DocumentRecordDia
 
 	@Override
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
-		String uri = DocumentReader.extractUri(record);
+		String uri = MediaReader.extractUri(record);
 		if(uri == null){
 			// it's a citation, extract URI from true record
 			final String documentId = record.getValue();
 			final FLEFRecord document = model.getRecordById(documentId);
-			uri = DocumentReader.extractUri(document);
+			uri = MediaReader.extractUri(document);
 		}
 
 		final StringBuilder sb = new StringBuilder();
@@ -98,13 +98,13 @@ public class DocumentHandler extends AbstractRecordTypeHandler<DocumentRecordDia
 	}
 
 	@Override
-	public DocumentRecordDialog createNewDialog(final Window parent, final FLEFModel model){
-		return DocumentRecordDialog.createNew(parent, model);
+	public MediaRecordDialog createNewDialog(final Window parent, final FLEFModel model){
+		return MediaRecordDialog.createNew(parent, model);
 	}
 
 	@Override
-	public DocumentRecordDialog createEditDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
-		return DocumentRecordDialog.createEdit(parent, model, record);
+	public MediaRecordDialog createEditDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
+		return MediaRecordDialog.createEdit(parent, model, record);
 	}
 
 }

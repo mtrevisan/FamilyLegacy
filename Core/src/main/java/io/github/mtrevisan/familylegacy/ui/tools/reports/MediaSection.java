@@ -26,8 +26,8 @@ package io.github.mtrevisan.familylegacy.ui.tools.reports;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.io.model.readers.DocumentReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.MediaReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 
@@ -74,7 +74,7 @@ final class MediaSection implements SectionBuilder{
 		final FLEFRecord preferred = FLEFRecordHelper.findChild(ctx.root, "preferred_image");
 		if(preferred == null)
 			return;
-		final String uri = DocumentReader.extractUri(preferred);
+		final String uri = MediaReader.extractUri(preferred);
 		if(uri == null)
 			return;
 
@@ -92,12 +92,12 @@ final class MediaSection implements SectionBuilder{
 			final FLEFRecord doc = ctx.visible(ctx.model.getRecordById(docId));
 			if(doc == null)
 				continue;
-			final String uri = DocumentReader.extractUri(doc);
+			final String uri = MediaReader.extractUri(doc);
 			if(uri == null)
 				continue;
 
-			final String description = FLEFRecordHelper.getChildValue(doc, DocumentReader.TAG_DESCRIPTION);
-			final String mapping = FLEFRecordHelper.getChildValue(doc, DocumentReader.TAG_MAPPING);
+			final String description = FLEFRecordHelper.getChildValue(doc, MediaReader.TAG_DESCRIPTION);
+			final String mapping = FLEFRecordHelper.getChildValue(doc, MediaReader.TAG_MAPPING);
 
 			try{
 				out.add(new ReportSection.Image(Path.of(uri),
@@ -128,7 +128,7 @@ final class MediaSection implements SectionBuilder{
 			final FLEFRecord src = ctx.visible(ctx.model.getRecordById(sid));
 			if(src == null)
 				continue;
-			for(final FLEFRecord docRef : FLEFRecordHelper.findChildren(src, SourceReader.TAG_DOCUMENT))
+			for(final FLEFRecord docRef : FLEFRecordHelper.findChildren(src, SourceReader.TAG_MEDIA))
 				if(docRef.getValue() != null)
 					docIds.add(docRef.getValue());
 		}
@@ -136,7 +136,7 @@ final class MediaSection implements SectionBuilder{
 		for(final FLEFRecord individual : individualRecords())
 			for(final FLEFRecord sourceCitation : FLEFRecordHelper.findChildren(individual, IndividualReader.TAG_SOURCE))
 				for(final FLEFRecord extract : FLEFRecordHelper.findChildren(sourceCitation, SourceCitationReader.TAG_EXTRACT))
-					for(final FLEFRecord docRef : FLEFRecordHelper.findChildren(extract, SourceCitationReader.TAG_DOCUMENT_PART_DOCUMENT))
+					for(final FLEFRecord docRef : FLEFRecordHelper.findChildren(extract, SourceCitationReader.TAG_MEDIA_PART_MEDIA))
 						if(docRef.getValue() != null)
 							docIds.add(docRef.getValue());
 		return docIds;

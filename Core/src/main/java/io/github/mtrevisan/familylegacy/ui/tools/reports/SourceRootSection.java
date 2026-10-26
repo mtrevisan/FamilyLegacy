@@ -26,7 +26,7 @@ package io.github.mtrevisan.familylegacy.ui.tools.reports;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.io.model.readers.DocumentReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.MediaReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
@@ -146,8 +146,8 @@ final class SourceRootSection implements SectionBuilder{
 			final FLEFRecord doc = ctx.visible(ctx.model.getRecordById(docId));
 			if(doc == null)
 				continue;
-			final String uri = FLEFRecordHelper.getChildValue(doc, DocumentReader.TAG_URI);
-			final String descr = FLEFRecordHelper.getChildValue(doc, DocumentReader.TAG_DESCRIPTION);
+			final String uri = FLEFRecordHelper.getChildValue(doc, MediaReader.TAG_URI);
+			final String descr = FLEFRecordHelper.getChildValue(doc, MediaReader.TAG_DESCRIPTION);
 			final StringBuilder sb = new StringBuilder("- ");
 			if(descr != null && !descr.isBlank())
 				sb.append(ReportFormatters.escape(descr));

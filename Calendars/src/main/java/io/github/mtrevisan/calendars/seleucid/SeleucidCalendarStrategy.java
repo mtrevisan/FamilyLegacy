@@ -24,13 +24,12 @@
  */
 package io.github.mtrevisan.calendars.seleucid;
 
-import io.github.mtrevisan.calendars.CalendarConverterPlugin;
-import io.github.mtrevisan.calendars.CalendarType;
+import io.github.mtrevisan.calendars.astronomy.CalendarSeason;
 import io.github.mtrevisan.calendars.astronomy.EphemerisEngine;
 import io.github.mtrevisan.calendars.astronomy.EphemerisEngineFactory;
-
-import java.util.LinkedHashMap;
-import java.util.Map;
+import io.github.mtrevisan.calendars.gregorian.JulianCalendarStrategy;
+import io.github.mtrevisan.calendars.spi.CalendarConverterPlugin;
+import io.github.mtrevisan.calendars.spi.CalendarMetadata;
 
 
 public class SeleucidCalendarStrategy implements CalendarConverterPlugin{
@@ -49,23 +48,27 @@ public class SeleucidCalendarStrategy implements CalendarConverterPlugin{
 			// The Seleucid Era (Syro-Macedonian) epoch starts roughly at JDN 1607739L.
 			// We calculate an approximate middle point for that specific calendar year.
 			final long startOfYearJdn = toJdn(year, 1, 1);
-			final double approximateMiddleJdUT = startOfYearJdn + 182.5 - 0.5;
-
-			// Step B: Map negative flag parameters directly onto true solar ecliptic target boundaries
-			final double targetLongitude = CalendarType.getGeneralTargetLongitude(month);
-
-			// Step C: Execute high-fidelity calculation to track the exact instant the transit occurs
-			final EphemerisEngine engine = EphemerisEngineFactory.getEngine();
-			if(!engine.isAvailable())
-				throw new UnsupportedOperationException("Seleucid calendar requires the Ephemeris plugin.");
-
-			final double exactSeasonJdUT = engine.findSolarLongitudeEvent(approximateMiddleJdUT, targetLongitude);
+			final double exactSeasonJdUT = exactSeasonJdUT(startOfYearJdn, month);
 
 			return (long)Math.floor(exactSeasonJdUT + 0.5);
 		}
 		else
 			// Standard numeric execution path using your existing Julian shifting logic
 			return toJdn(year, month, day);
+	}
+
+	private static double exactSeasonJdUT(final long startOfYearJdn, final int month){
+		final double approximateMiddleJdUT = startOfYearJdn + 182.5 - 0.5;
+
+		// Step B: Map negative flag parameters directly onto true solar ecliptic target boundaries
+		final double targetLongitude = CalendarSeason.getGeneralTargetLongitude(month);
+
+		// Step C: Execute high-fidelity calculation to track the exact instant the transit occurs
+		final EphemerisEngine engine = EphemerisEngineFactory.getEngine();
+		if(!engine.isAvailable())
+			throw new UnsupportedOperationException("Seleucid calendar requires the Ephemeris plugin.");
+
+		return engine.findSolarLongitudeEvent(approximateMiddleJdUT, targetLongitude);
 	}
 
 	private static long toJdn(final int year, final int month, final int day){
@@ -87,24 +90,13 @@ public class SeleucidCalendarStrategy implements CalendarConverterPlugin{
 		}
 
 		// Standard Julian Calendar JDN conversion logic (Meeus framework)
-		final int y = (julianMonth <= 2? julianYear - 1: julianYear);
-		final int m = (julianMonth <= 2? julianMonth + 12: julianMonth);
-
-		return Math.floorDiv(1461L * (y + 4716L), 4L)
-			+ Math.floorDiv(153L * (m + 1), 5L)
-			+ day - 1524L;
+		return JulianCalendarStrategy.toJdn(julianYear, julianMonth, day);
 	}
 
 	@Override
-	public CalendarType.CalendarMetadata getMetadata(final String rawDate){
+	public CalendarMetadata getMetadata(final String rawDate){
 		final SeleucidDateInput input = SeleucidCalendarParser.parse(rawDate);
-		final Map<String, Boolean> components = new LinkedHashMap<>();
-		components.put("year", (input.year() != 0));
-		components.put("month", (input.month() != 0));
-		components.put("day", (input.day() != 0));
-
-		final boolean isComplete = (input.year() != 0 && input.month() != 0 && input.day() != 0);
-		return new CalendarType.CalendarMetadata(components, isComplete);
+		return CalendarMetadata.createFromYearMonthDay(input.year(), input.month(), input.day());
 	}
 
 }

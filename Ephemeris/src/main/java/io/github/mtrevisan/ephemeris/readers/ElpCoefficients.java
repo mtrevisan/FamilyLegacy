@@ -40,8 +40,19 @@ import java.util.List;
  * by the factors {@code fA}, {@code fB1}..{@code fB5} from the chosen
  * parameter set (LLR or DE405). The perturbation series carry their raw
  * amplitude and phase, which are independent of the parameter set.</p>
+ *
+ * @param mainLongitude           ----- Main problem -----
+ * @param perturbationLongitudeT0 ----- Perturbations, longitude -----
+ * @param perturbationLatitudeT0  ----- Perturbations, latitude -----
+ * @param perturbationDistanceT0  ----- Perturbations, distance -----
  */
-public final class ElpCoefficients{
+public record ElpCoefficients(List<MainTerm> mainLongitude, List<MainTerm> mainLatitude, List<MainTerm> mainDistance,
+										List<PertTerm> perturbationLongitudeT0, List<PertTerm> perturbationLongitudeT1,
+										List<PertTerm> perturbationLongitudeT2, List<PertTerm> perturbationLongitudeT3,
+										List<PertTerm> perturbationLatitudeT0, List<PertTerm> perturbationLatitudeT1,
+										List<PertTerm> perturbationLatitudeT2, List<PertTerm> perturbationDistanceT0,
+										List<PertTerm> perturbationDistanceT1, List<PertTerm> perturbationDistanceT2,
+										List<PertTerm> perturbationDistanceT3){
 
 	/**
 	 * A term of the main-problem series: four integer multipliers of the
@@ -55,52 +66,5 @@ public final class ElpCoefficients{
 	 */
 	public record PertTerm(int[] multipliers, double amplitude, double phase){}
 
-
-	/* ----- Main problem ----- */
-	public final List<MainTerm> mainLongitude;
-	public final List<MainTerm> mainLatitude;
-	public final List<MainTerm> mainDistance;
-
-	/* ----- Perturbations, longitude ----- */
-	public final List<PertTerm> perturbationLongitudeT0;
-	public final List<PertTerm> perturbationLongitudeT1;
-	public final List<PertTerm> perturbationLongitudeT2;
-	public final List<PertTerm> perturbationLongitudeT3;
-
-	/* ----- Perturbations, latitude ----- */
-	public final List<PertTerm> perturbationLatitudeT0;
-	public final List<PertTerm> perturbationLatitudeT1;
-	public final List<PertTerm> perturbationLatitudeT2;
-
-	/* ----- Perturbations, distance ----- */
-	public final List<PertTerm> perturbationDistanceT0;
-	public final List<PertTerm> perturbationDistanceT1;
-	public final List<PertTerm> perturbationDistanceT2;
-	public final List<PertTerm> perturbationDistanceT3;
-
-
-	public ElpCoefficients(final List<MainTerm> mainLongitude, final List<MainTerm> mainLatitude,
-			final List<MainTerm> mainDistance,
-			final List<PertTerm> perturbationLongitudeT0, final List<PertTerm> perturbationLongitudeT1,
-			final List<PertTerm> perturbationLongitudeT2, final List<PertTerm> perturbationLongitudeT3,
-			final List<PertTerm> perturbationLatitudeT0, final List<PertTerm> perturbationLatitudeT1,
-			final List<PertTerm> perturbationLatitudeT2,
-			final List<PertTerm> perturbationDistanceT0, final List<PertTerm> perturbationDistanceT1,
-			final List<PertTerm> perturbationDistanceT2, final List<PertTerm> perturbationDistanceT3){
-		this.mainLongitude = mainLongitude;
-		this.mainLatitude = mainLatitude;
-		this.mainDistance = mainDistance;
-		this.perturbationLongitudeT0 = perturbationLongitudeT0;
-		this.perturbationLongitudeT1 = perturbationLongitudeT1;
-		this.perturbationLongitudeT2 = perturbationLongitudeT2;
-		this.perturbationLongitudeT3 = perturbationLongitudeT3;
-		this.perturbationLatitudeT0 = perturbationLatitudeT0;
-		this.perturbationLatitudeT1 = perturbationLatitudeT1;
-		this.perturbationLatitudeT2 = perturbationLatitudeT2;
-		this.perturbationDistanceT0 = perturbationDistanceT0;
-		this.perturbationDistanceT1 = perturbationDistanceT1;
-		this.perturbationDistanceT2 = perturbationDistanceT2;
-		this.perturbationDistanceT3 = perturbationDistanceT3;
-	}
 
 }

@@ -28,10 +28,10 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.io.model.readers.CropReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.DocumentReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.MediaReader;
 import io.github.mtrevisan.familylegacy.ui.bindings.BindingsHelper;
 import io.github.mtrevisan.familylegacy.ui.components.searches.RecordSelectionDialog;
-import io.github.mtrevisan.familylegacy.ui.handlers.DocumentHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.MediaHandler;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
@@ -53,19 +53,19 @@ import java.io.IOException;
 
 /**
  * Panel for selecting and managing a preferred image associated with a record.
- * The image is referenced via a DocumentRecord and can be cropped.
+ * The image is referenced via a MediaRecord and can be cropped.
  * <p>
  * Structure:
  * <pre>
  * struct {
- *   document: Xref&lt;DocumentRecord&gt;
+ *   media: Xref&lt;MediaRecord&gt;
  *   crop?: CropRect
  * }
  * </pre>
  */
 public class PreferredImagePanel extends JPanel{
 
-	public static final String TAG_DOCUMENT = "document";
+	public static final String TAG_MEDIA = "media";
 	public static final String TAG_CROP = "crop";
 
 
@@ -148,7 +148,7 @@ public class PreferredImagePanel extends JPanel{
 		if(preferredImage == null)
 			return;
 
-		documentId = FLEFRecordHelper.getChildValue(preferredImage, TAG_DOCUMENT);
+		documentId = FLEFRecordHelper.getChildValue(preferredImage, TAG_MEDIA);
 		final FLEFRecord crop = FLEFRecordHelper.findChild(preferredImage, TAG_CROP);
 		if(crop != null)
 			cropRect = CropReader.extractPreferredImageCrop(crop);
@@ -167,7 +167,7 @@ public class PreferredImagePanel extends JPanel{
 
 		if(StringUtils.isNotEmpty(documentId)){
 			final FLEFRecord preferredImage = FLEFRecordHelper.getOrCreateTargetNode(record, path);
-			FLEFRecordHelper.updateChildValue(preferredImage, TAG_DOCUMENT, documentId);
+			FLEFRecordHelper.updateChildValue(preferredImage, TAG_MEDIA, documentId);
 			if(cropRect != null && !cropRect.isEmpty()){
 				final FLEFRecord crop = FLEFRecordHelper.getOrCreateTargetNode(preferredImage, TAG_CROP);
 				FLEFRecordHelper.updateChildValue(crop, CropReader.TAG_X, String.valueOf(cropRect.x));
@@ -186,7 +186,7 @@ public class PreferredImagePanel extends JPanel{
 	private void clearRecord(final FLEFRecord record){
 		final FLEFRecord preferredImage = FLEFRecordHelper.findChild(record, path);
 		if(preferredImage != null)
-			FLEFRecordHelper.removeChildren(preferredImage, TAG_DOCUMENT, TAG_CROP);
+			FLEFRecordHelper.removeChildren(preferredImage, TAG_MEDIA, TAG_CROP);
 	}
 
 	/**
@@ -212,7 +212,7 @@ public class PreferredImagePanel extends JPanel{
 		if(document == null)
 			return;
 
-		final String uri = DocumentReader.extractUri(document);
+		final String uri = MediaReader.extractUri(document);
 		if(uri == null)
 			return;
 
@@ -236,7 +236,7 @@ public class PreferredImagePanel extends JPanel{
 	}
 
 	/**
-	 * Opens a selection dialog to pick or create a DocumentRecord.
+	 * Opens a selection dialog to pick or create a MediaRecord.
 	 */
 	private void setNewItem(){
 		final RecordSelectionDialog dialog = RecordSelectionDialog.createWithAllowRecordCreation(
@@ -248,7 +248,7 @@ public class PreferredImagePanel extends JPanel{
 					editCrop(); // Immediately prompt the user to select the crop
 				}
 			},
-			DocumentHandler.class);
+			MediaHandler.class);
 		dialog.setVisible(true);
 	}
 
@@ -266,7 +266,7 @@ public class PreferredImagePanel extends JPanel{
 			return;
 		}
 
-		final String uri = DocumentReader.extractUri(document);
+		final String uri = MediaReader.extractUri(document);
 		if(uri == null){
 			imageButton.setIcon(PLACEHOLDER_ICON);
 

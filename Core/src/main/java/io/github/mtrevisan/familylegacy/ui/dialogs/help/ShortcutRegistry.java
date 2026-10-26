@@ -71,7 +71,6 @@ public final class ShortcutRegistry{
 	// Global Definitions
 	public static final ShortcutDefinition FILE_NEW = register(I18N.t("menu.file"), I18N.t("menu.file.new.file"), KeyStroke.getKeyStroke(KeyEvent.VK_N, MENU_MASK), "Ctrl+N");
 	public static final ShortcutDefinition FILE_OPEN = register(I18N.t("menu.file"), I18N.t("menu.file.open.file"), KeyStroke.getKeyStroke(KeyEvent.VK_O, MENU_MASK), "Ctrl+O");
-	public static final ShortcutDefinition FILE_SAVE = register(I18N.t("menu.file"), I18N.t("menu.file.save"), KeyStroke.getKeyStroke(KeyEvent.VK_S, MENU_MASK), "Ctrl+S");
 	public static final ShortcutDefinition FILE_SAVE_AS = register(I18N.t("menu.file"), I18N.t("menu.file.save_as"), KeyStroke.getKeyStroke(KeyEvent.VK_S, MENU_MASK | InputEvent.SHIFT_DOWN_MASK), "Ctrl+Shift+S");
 	public static final ShortcutDefinition FILE_EXIT = register(I18N.t("menu.file"), I18N.t("menu.file.exit"), KeyStroke.getKeyStroke(KeyEvent.VK_Q, MENU_MASK), "Ctrl+Q");
 

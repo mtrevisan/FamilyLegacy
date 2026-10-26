@@ -24,10 +24,7 @@
  */
 package io.github.mtrevisan.calendars.eastasian;
 
-import io.github.mtrevisan.calendars.CalendarType;
-
-import java.util.LinkedHashMap;
-import java.util.Map;
+import io.github.mtrevisan.calendars.spi.CalendarMetadata;
 
 
 /**
@@ -62,14 +59,8 @@ public record EastAsianDateInput(String era, int year, int month, boolean leapMo
 	/**
 	 * @return which components the date expression contains
 	 */
-	public CalendarType.CalendarMetadata toMetadata(){
-		final Map<String, Boolean> components = new LinkedHashMap<>();
-		components.put("year", (year != 0));
-		components.put("month", (month != 0));
-		components.put("day", (day != 0));
-
-		final boolean isComplete = (year != 0 && month != 0 && day != 0);
-		return new CalendarType.CalendarMetadata(components, isComplete);
+	public CalendarMetadata toMetadata(){
+		return CalendarMetadata.createFromYearMonthDay(year, month, day);
 	}
 
 }

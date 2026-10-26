@@ -158,8 +158,10 @@ final class CitationRenderer{
 			if(!ctx.isVisible(ctx.model.getRecordById(sid)))
 				continue;
 
-			final StringBuilder sb = new StringBuilder("• ")
-				.append(ReportFormatters.escape(ctx.sourceTitle(sid)));
+			final StringBuilder sb = new StringBuilder("• ");
+			if(SourceCitationReader.isContradicting(c))
+				sb.append("**[").append(ctx.labels.sections().stanceContradicts()).append("]** ");
+			sb.append(ReportFormatters.escape(ctx.sourceTitle(sid)));
 
 			final String locator = FLEFRecordHelper.getChildValue(c, SourceCitationReader.TAG_LOCATOR);
 			if(locator != null)

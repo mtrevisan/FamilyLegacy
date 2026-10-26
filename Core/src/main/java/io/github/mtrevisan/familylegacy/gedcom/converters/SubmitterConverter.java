@@ -26,13 +26,10 @@ package io.github.mtrevisan.familylegacy.gedcom.converters;
 
 import io.github.mtrevisan.familylegacy.gedcom.GEDCOMHelper;
 import io.github.mtrevisan.familylegacy.gedcom.GEDCOMNode;
-import io.github.mtrevisan.familylegacy.gedcom.utils.IDGenerator;
-import io.github.mtrevisan.familylegacy.gedcom.utils.PlaceCache;
-import io.github.mtrevisan.familylegacy.gedcom.utils.StructureParser;
-import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import org.apache.commons.lang3.StringUtils;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 
@@ -45,31 +42,23 @@ import java.util.Map;
  * <p>
  * Handles:
  * <ul>
- *   <li>Name (NAME) → ContactStructure.name</li>
- *   <li>Address (ADDR) → ContactStructure (if present)</li>
- *   <li>Language (LANG) → note (inline)</li>
- *   <li>Registered numbers (RFN, RIN) → notes (inline)</li>
+ *   <li>Name (NAME) → name of each contact</li>
+ *   <li>Address structure (ADDR, PHON, EMAIL, FAX, WWW) → contact</li>
+ *   <li>Language (LANG), registered number (RFN) → remark</li>
  * </ul>
+ * A submitter without contacts keeps its name in the remark.
  */
 public class SubmitterConverter{
 
-	private final FLEFModel model;
 	private final Map<String, FLEFRecord> submitterMap;
-	private final StructureParser structParser;
 
 	/**
 	 * Constructor.
 	 *
-	 * @param model        the FLEF model
 	 * @param submitterMap map of submitter IDs to FLEF submitter structures
-	 * @param placeCache   cache for place records (used by StructureParser for addresses)
 	 */
-	public SubmitterConverter(FLEFModel model,
-		Map<String, FLEFRecord> submitterMap,
-		PlaceCache placeCache){
-		this.model = model;
+	public SubmitterConverter(Map<String, FLEFRecord> submitterMap){
 		this.submitterMap = submitterMap;
-		this.structParser = new StructureParser(placeCache);
 	}
 
 	/**
@@ -82,51 +71,25 @@ public class SubmitterConverter{
 		if(xref == null)
 			return;
 
-		String cleanId = GEDCOMHelper.cleanId(xref);
-		IDGenerator.registerExistingId(cleanId);
-
-		// Create the submitter structure (this will be used in the header)
 		FLEFRecord submitter = FLEFRecord.createChildWithTag("submitter");
-		submitter.setId(cleanId);
-		submitterMap.put(cleanId, submitter);
 
-		// ---- Name (NAME) -> ContactStructure ----
-		GEDCOMNode nameNode = GEDCOMHelper.findFirstChild(subNode, "NAME");
-		if(nameNode != null && nameNode.getValue() != null){
-			FLEFRecord contact = FLEFRecord.createChildWithTag("contact");
-			// Name goes inside the contact structure
-			FLEFRecord nameStruct = FLEFRecord.createChildWithTag("name");
-			nameStruct.addChild(FLEFRecord.createChildWithTagAndValue("value", nameNode.getValue()));
-			contact.addChild(nameStruct);
-			submitter.addChild(contact);
-		}
+		final String name = GEDCOMHelper.findFirstValue(subNode, "NAME");
+		GEDCOMHelper.attachContacts(submitter, subNode, name);
 
-		// ---- Address (ADDR) -> ContactStructure ----
-		GEDCOMNode addrNode = GEDCOMHelper.findFirstChild(subNode, "ADDR");
-		if(addrNode != null){
-			FLEFRecord contact = structParser.parseAddressToContact(addrNode, subNode);
-			if(contact != null) submitter.addChild(contact);
-		}
+		final List<String> remarks = new ArrayList<>();
+		if(name != null && !submitter.hasChildren())
+			remarks.add(name);
+		for(GEDCOMNode langNode : GEDCOMHelper.findChildren(subNode, "LANG"))
+			if(langNode.getValue() != null)
+				remarks.add("Language: " + langNode.getValue().trim());
+		final String rfn = GEDCOMHelper.findFirstValue(subNode, "RFN");
+		if(rfn != null)
+			remarks.add("RFN: " + rfn);
+		if(!remarks.isEmpty())
+			submitter.addChild(FLEFRecord.createChildWithTagAndValue("remark", String.join("\n", remarks)));
 
-		// ---- Language (LANG) -> inline note ----
-		GEDCOMNode langNode = GEDCOMHelper.findFirstChild(subNode, "LANG");
-		if(langNode != null && langNode.getValue() != null){
-			FLEFRecord note = structParser.createNoteStruct("Language: " + langNode.getValue(), subNode);
-			if(note != null) submitter.addChild(note);
-		}
-
-		// ---- Extra fields (RFN, RIN) as inline notes ----
-		for(GEDCOMNode child : subNode.getChildren()){
-			String tag = child.getTag();
-			if(tag.equals("RFN") /*|| tag.equals("RIN")*/){
-				if(StringUtils.isNotEmpty(child.getValue())){
-					submitter.addChild(FLEFRecord.createChildWithTagAndValue("remark", tag + ": " + child.getValue()));
-				}
-			}
-		}
-
-		// Note: submitter does NOT have an audit field in the FLEF grammar.
-		// Audit is only for records, not for the submitter structure.
+		if(submitter.hasChildren())
+			submitterMap.put(xref, submitter);
 	}
 
 }

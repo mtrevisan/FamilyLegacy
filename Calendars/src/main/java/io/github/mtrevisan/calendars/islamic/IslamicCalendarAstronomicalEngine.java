@@ -36,7 +36,7 @@ import java.time.ZonedDateTime;
  * Converter between the Islamic calendar and the Gregorian calendar using the Umm al-Qura criteria.
  * <p>
  * The Umm al-Qura calendar (used in Saudi Arabia) determines the start of a lunar month based on 
- * astronomical calculations in Mecca (21.4225° N, 39.8262° E). A new month begins on the 
+ * astronomical calculations in Mecca (21.4225° N, 39.8262° E). A new month begins in the
  * evening when:
  * 1. The geocentric conjunction (new moon) occurs before sunset in Mecca.
  * 2. The moon sets after the sun in Mecca.
@@ -79,16 +79,7 @@ public final class IslamicCalendarAstronomicalEngine{
 	 */
 	public static long toJdn(final int year, final int month, final int day){
 		final EphemerisEngine engine = EphemerisEngineFactory.getEngine();
-		if(!engine.isAvailable())
-			throw new UnsupportedOperationException("Islamic astronomical calendar requires the Ephemeris plugin.");
-
-		// 1. Approximate JDN of the start of the month using the arithmetic formula
-		final long approxStartJdn = ISLAMIC_EPOCH_JDN + (year - 1L) * 354L
-			+ Math.floorDiv(3 + 11L * year, 30L) + (month - 1L) * 29L;
-
-		// 2. Find the conjunction (new moon) closest to the approximate start
-		// Search window: 5 days before the approximate start
-		final double searchStartJd = approxStartJdn - 5.;
+		final double searchStartJd = searchStartJd(year, month, engine);
 		final double newMoonUtJd = engine.findNextNewMoon(searchStartJd);
 
 		// 3. Determine the historical timezone offset for Mecca at this specific date
@@ -151,6 +142,19 @@ public final class IslamicCalendarAstronomicalEngine{
 		}
 
 		return startJdn + (day - 1);
+	}
+
+	private static double searchStartJd(final int year, final int month, final EphemerisEngine engine){
+		if(!engine.isAvailable())
+			throw new UnsupportedOperationException("Islamic astronomical calendar requires the Ephemeris plugin.");
+
+		// 1. Approximate JDN of the start of the month using the arithmetic formula
+		final long approxStartJdn = ISLAMIC_EPOCH_JDN + (year - 1L) * 354L
+			+ Math.floorDiv(3 + 11L * year, 30L) + (month - 1L) * 29L;
+
+		// 2. Find the conjunction (new moon) closest to the approximate start
+		// Search window: 5 days before the approximate start
+		return approxStartJdn - 5.;
 	}
 
 	/**

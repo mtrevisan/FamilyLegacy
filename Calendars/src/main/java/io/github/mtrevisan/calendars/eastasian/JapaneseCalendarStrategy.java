@@ -24,9 +24,9 @@
  */
 package io.github.mtrevisan.calendars.eastasian;
 
-import io.github.mtrevisan.calendars.CalendarConverterPlugin;
-import io.github.mtrevisan.calendars.CalendarType;
 import io.github.mtrevisan.calendars.gregorian.GregorianCalendarStrategy;
+import io.github.mtrevisan.calendars.spi.CalendarConverterPlugin;
+import io.github.mtrevisan.calendars.spi.CalendarMetadata;
 
 import java.time.DateTimeException;
 import java.time.LocalDate;
@@ -40,10 +40,9 @@ import java.util.Map;
  * (1573) onward, e.g. "明治45年7月29日", "天保十四年閏九月十日", "Shōwa 20 8 15", "H1.1.8".
  * <ul>
  *   <li>From 1 January 1873 (明治6年) the months and days are Gregorian.</li>
- *   <li>From 1685 (the Jōkyō calendar) to 31 December 1872 (明治5年12月2日) they are lunisolar, converted with the
- *   month starts published by the National Astronomical Observatory of Japan (see {@link JapaneseLunisolarTable}),
- *   including the leap months (閏) and the last day of the month (晦日).</li>
- *   <li>The earlier dates belong to the Senmyō calendar, whose days cannot be reconstructed reliably, and are rejected.</li>
+ *   <li>Up to 31 December 1872 (明治5年12月2日) they are lunisolar (the Senmyō calendar up to 1684, then the Jōkyō
+ *   calendar and its successors), converted with the month starts published by the National Astronomical Observatory
+ *   of Japan (see {@link JapaneseLunisolarTable}), including the leap months (閏) and the last day of the month (晦日).</li>
  * </ul>
  */
 public class JapaneseCalendarStrategy implements CalendarConverterPlugin{
@@ -71,8 +70,8 @@ public class JapaneseCalendarStrategy implements CalendarConverterPlugin{
 
 	private static long lunisolarToJdn(final EastAsianDateInput input, final int lunarYear, final String rawDate){
 		if(lunarYear < JapaneseLunisolarTable.firstYear())
-			throw new IllegalArgumentException("Japanese dates before 1685 belong to the Senmyō calendar, whose days cannot be"
-				+ " reconstructed reliably: " + rawDate);
+			throw new IllegalArgumentException("Japanese lunisolar dates are supported from " + JapaneseLunisolarTable.firstYear()
+				+ ": " + rawDate);
 
 		return JapaneseLunisolarTable.toJdn(lunarYear, input.monthOrFirst(), input.leapMonth(), input.dayOrFirst());
 	}
@@ -128,7 +127,7 @@ public class JapaneseCalendarStrategy implements CalendarConverterPlugin{
 	}
 
 	@Override
-	public CalendarType.CalendarMetadata getMetadata(final String rawDate){
+	public CalendarMetadata getMetadata(final String rawDate){
 		return EastAsianEraDateParser.parse(rawDate, ERA_ALIASES, null)
 			.toMetadata();
 	}

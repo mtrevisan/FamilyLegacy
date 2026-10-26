@@ -82,7 +82,7 @@ public record CalendarReform(int lastJulianYear, int lastJulianMonth, int lastJu
 
 	/**
 	 * @param year the astronomical year
-	 * @return whether the year has a 29 February (the reform never falls in a year where the two rules differ)
+	 * @return whether the year has a 29 February (the reform never falls in a year when the two rules differ)
 	 */
 	public boolean isLeapYear(final int year){
 		return (year > firstGregorianYear

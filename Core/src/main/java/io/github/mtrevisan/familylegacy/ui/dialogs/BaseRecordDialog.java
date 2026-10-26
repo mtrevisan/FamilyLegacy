@@ -27,7 +27,7 @@ package io.github.mtrevisan.familylegacy.ui.dialogs;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.io.model.readers.DocumentReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.MediaReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextField;
 import io.github.mtrevisan.familylegacy.ui.components.ImageCarouselPanel;
@@ -510,12 +510,12 @@ public abstract class BaseRecordDialog extends JDialog{
 
 		final String sourceId = FLEFRecordHelper.getChildValue(sourceCitation, SourceHandler.TYPE);
 		final FLEFRecord source = model.getRecordById(sourceId);
-		final List<FLEFRecord> documents = FLEFRecordHelper.findChildren(source, SourceReader.TAG_DOCUMENT);
+		final List<FLEFRecord> documents = FLEFRecordHelper.findChildren(source, SourceReader.TAG_MEDIA);
 		for(final FLEFRecord documentRef : documents){
 			final String documentId = documentRef.getValue();
 
 			final FLEFRecord doc = model.getRecordById(documentId);
-			final String uri = FLEFRecordHelper.getChildValue(doc, DocumentReader.TAG_URI);
+			final String uri = FLEFRecordHelper.getChildValue(doc, MediaReader.TAG_URI);
 			if(StringUtils.isNotEmpty(uri))
 				uris.add(uri);
 		}

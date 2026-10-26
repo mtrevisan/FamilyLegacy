@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.io.merger;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -45,7 +46,7 @@ public final class TrustScorer{
 	 * Returns a trust score between 0 and 1.
 	 * The score is increased when:
 	 * - the record has an audit with a recent creation date (within the last year)
-	 * - the record has at least one source citation
+	 * - the record has at least one source citation that supports it (a contradicting citation gives no bonus)
 	 */
 	public static double score(final FLEFRecord record){
 		if(record == null)
@@ -71,8 +72,8 @@ public final class TrustScorer{
 			}
 		}
 
-		// Source citations increase trust
-		if(FLEFRecordHelper.findChild(record, "source") != null)
+		// Source citations increase trust, unless they all speak against the record
+		if(SourceCitationReader.hasSupportingCitation(record))
 			score += 0.1;
 
 		return Math.min(1., score);

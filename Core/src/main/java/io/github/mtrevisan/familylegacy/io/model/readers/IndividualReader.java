@@ -54,7 +54,7 @@ import java.util.StringJoiner;
  *   source*: SourceCitation        // source citations supporting facts about this individual
  *   note*: NoteStructure           // free-text notes about this individual
  *   preferred_image?: struct {
- *     document: Xref&lt;DocumentRecord&gt;
+ *     media: Xref&lt;MediaRecord&gt;
  *     crop?: CropRect   // normalized rectangle identifying the region of interest within the image
  *   }
  *   privacy?: PrivacyStructure
@@ -69,7 +69,7 @@ public final class IndividualReader{
 	public static final String TAG_SOURCE = "source";
 	public static final String TAG_NOTE = "note";
 	public static final String TAG_PREFERRED_IMAGE = "preferred_image";
-	private static final String TAG_PREFERRED_IMAGE_DOCUMENT = FLEFRecordHelper.composePath(TAG_PREFERRED_IMAGE, PreferredImagePanel.TAG_DOCUMENT);
+	private static final String TAG_PREFERRED_IMAGE_DOCUMENT = FLEFRecordHelper.composePath(TAG_PREFERRED_IMAGE, PreferredImagePanel.TAG_MEDIA);
 	private static final String TAG_PREFERRED_IMAGE_CROP = FLEFRecordHelper.composePath(TAG_PREFERRED_IMAGE, PreferredImagePanel.TAG_CROP);
 	public static final String TAG_PRIVACY = "privacy";
 	public static final String TAG_AUDIT = "audit";
@@ -132,7 +132,7 @@ public final class IndividualReader{
 	public static String extractPreferredImageUri(final FLEFRecord record, final FLEFModel model){
 		final String documentId = FLEFRecordHelper.getChildValue(record, TAG_PREFERRED_IMAGE_DOCUMENT);
 		final FLEFRecord document = model.getRecordById(documentId);
-		return DocumentReader.extractUri(document);
+		return MediaReader.extractUri(document);
 	}
 
 	public static Rectangle extractPreferredImageCrop(final FLEFRecord record){

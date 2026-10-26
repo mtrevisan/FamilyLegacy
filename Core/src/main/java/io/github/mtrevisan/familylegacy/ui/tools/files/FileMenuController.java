@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.io.FLEFWriter;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.ui.dialogs.ProgressDialog;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JFileChooser;
@@ -88,7 +89,6 @@ public final class FileMenuController{
 	private final RecentFilesManager recentFiles = new RecentFilesManager();
 
 	private File currentFile;
-	private boolean dirty;
 
 	/** Last directory used by a file chooser, so the next one opens there. */
 	private File lastDirectory;
@@ -114,16 +114,6 @@ public final class FileMenuController{
 		return currentFile;
 	}
 
-	/** Returns whether the current document has unsaved changes. */
-	public boolean isDirty(){
-		return dirty;
-	}
-
-	/** Marks the current document as dirty. Called when the model is mutated. */
-	public void markDirty(){
-		dirty = true;
-	}
-
 	/** Returns the recent files manager, for the Recent submenu. */
 	public RecentFilesManager recentFiles(){
 		return recentFiles;
@@ -141,7 +131,6 @@ public final class FileMenuController{
 
 		modelReplacer.accept(new FLEFModel());
 		currentFile = null;
-		dirty = false;
 	}
 
 	/** Opens a file through a chooser. */
@@ -191,7 +180,6 @@ public final class FileMenuController{
 					modelReplacer.accept(model);
 					currentFile = file;
 					lastDirectory = file.getParentFile();
-					dirty = false;
 					recentFiles.add(file);
 				}
 				catch(final InterruptedException ex){
@@ -228,13 +216,62 @@ public final class FileMenuController{
 
 	/** Saves the current document under a new file, chosen by the user. */
 	public boolean saveAs(){
-		final JFileChooser chooser = new JFileChooser(lastDirectory);
-		chooser.setDialogTitle("Save FLEF file");
-		chooser.setFileFilter(new FileNameExtensionFilter("FLEF files (*.flef)", FLEF_EXTENSION));
-		if(currentFile != null)
-			chooser.setSelectedFile(currentFile);
-		if(chooser.showSaveDialog(owner) != JFileChooser.APPROVE_OPTION)
+		final File target = chooseSaveTarget("Save FLEF file", lastDirectory, currentFile);
+		if(target == null)
 			return false;
+
+		if(writeTo(target)){
+			currentFile = target;
+			lastDirectory = target.getParentFile();
+			recentFiles.add(target);
+			return true;
+		}
+		return false;
+	}
+
+
+	/* ======================================================================
+	 *                          Import
+	 * ====================================================================== */
+
+	/**
+	 * Saves a model imported from another format (GEDCOM, Gramps XML) as a new FLEF file, chosen by the user, and opens that file
+	 * as the current document.
+	 * <p>
+	 * The file chooser starts next to the imported file, with its name and the FLEF extension. If the user cancels the chooser, the
+	 * import is discarded and the current document is left as it is.
+	 *
+	 * @param source	The file the model was imported from.
+	 */
+	public void openImported(final FLEFModel importedModel, final File source){
+		final File suggested = new File(source.getParentFile(),
+			FilenameUtils.getBaseName(source.getName()) + "." + FLEF_EXTENSION);
+		final File target = chooseSaveTarget("Save imported file as FLEF", source.getParentFile(), suggested);
+		if(target == null)
+			return;
+
+		// the document is the saved file, read back as any other file
+		if(writeTo(target, importedModel))
+			openFile(target);
+	}
+
+
+	/**
+	 * Asks the user for the FLEF file to save to, appending the extension when not typed and confirming the overwrite of an
+	 * existing file.
+	 *
+	 * @param directory	The directory the chooser starts in, may be {@code null}.
+	 * @param suggested	The file initially selected, may be {@code null}.
+	 * @return	The file, or {@code null} if the user cancelled.
+	 */
+	private File chooseSaveTarget(final String title, final File directory, final File suggested){
+		final JFileChooser chooser = new JFileChooser(directory);
+		chooser.setDialogTitle(title);
+		chooser.setFileFilter(new FileNameExtensionFilter("FLEF files (*.flef)", FLEF_EXTENSION));
+		if(suggested != null)
+			chooser.setSelectedFile(suggested);
+		if(chooser.showSaveDialog(owner) != JFileChooser.APPROVE_OPTION)
+			return null;
 
 		File target = chooser.getSelectedFile();
 		// Append the FLEF extension when the user did not type one.
@@ -248,16 +285,9 @@ public final class FileMenuController{
 				JOptionPane.YES_NO_OPTION,
 				JOptionPane.WARNING_MESSAGE);
 			if(confirm != JOptionPane.YES_OPTION)
-				return false;
+				return null;
 		}
-
-		if(writeTo(target)){
-			currentFile = target;
-			lastDirectory = target.getParentFile();
-			recentFiles.add(target);
-			return true;
-		}
-		return false;
+		return target;
 	}
 
 
@@ -288,7 +318,10 @@ public final class FileMenuController{
 	 * ====================================================================== */
 
 	private boolean writeTo(final File file){
-		final FLEFModel model = currentModel.get();
+		return writeTo(file, currentModel.get());
+	}
+
+	private boolean writeTo(final File file, final FLEFModel model){
 		if(model == null)
 			return false;
 
@@ -317,7 +350,6 @@ public final class FileMenuController{
 				progress.close();
 				try{
 					get();
-					dirty = false;
 					modelClean.run();
 					success[0] = true;
 				}
@@ -348,7 +380,7 @@ public final class FileMenuController{
 	 * discard the changes) and {@code false} when the user cancelled.
 	 */
 	private boolean confirmDiscardChanges(){
-		if(!dirty || currentModel.get() == null)
+		if(currentModel.get() == null)
 			return true;
 
 		final int choice = JOptionPane.showOptionDialog(owner,

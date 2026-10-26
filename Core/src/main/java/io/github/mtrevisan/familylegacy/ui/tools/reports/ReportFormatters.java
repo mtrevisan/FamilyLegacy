@@ -373,12 +373,12 @@ public final class ReportFormatters{
 	}
 
 	/**
-	 * Renders an {@code ExtractStructure.document_part.crop} as a compact
+	 * Renders an {@code ExtractStructure.media_part.crop} as a compact
 	 * string for the citation. Returns {@code null} when the crop is absent.
 	 */
 	static String extractCrop(final FLEFRecord citation){
 		final FLEFRecord crop = FLEFRecordHelper.findChild(citation,
-			"extract.document_part.crop");
+			"extract.media_part.crop");
 		if(crop == null)
 			return null;
 		final String x = FLEFRecordHelper.getChildValue(crop, "x");

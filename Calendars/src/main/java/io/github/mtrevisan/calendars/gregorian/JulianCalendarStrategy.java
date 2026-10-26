@@ -24,13 +24,11 @@
  */
 package io.github.mtrevisan.calendars.gregorian;
 
-import io.github.mtrevisan.calendars.CalendarConverterPlugin;
-import io.github.mtrevisan.calendars.CalendarType;
+import io.github.mtrevisan.calendars.astronomy.CalendarSeason;
 import io.github.mtrevisan.calendars.astronomy.EphemerisEngine;
 import io.github.mtrevisan.calendars.astronomy.EphemerisEngineFactory;
-
-import java.util.LinkedHashMap;
-import java.util.Map;
+import io.github.mtrevisan.calendars.spi.CalendarConverterPlugin;
+import io.github.mtrevisan.calendars.spi.CalendarMetadata;
 
 
 public class JulianCalendarStrategy implements CalendarConverterPlugin{
@@ -47,35 +45,33 @@ public class JulianCalendarStrategy implements CalendarConverterPlugin{
 		if(month < 0){
 			// Step A: Calculate a dynamic baseline anchor for the center of the target year.
 			// We calculate June 1st (Month 6) of that target Julian year to center our search window.
-			final int y = year;
-			final int m = switch(month){
-				case CalendarType.SEASON_SPRING -> 3;  // March
-				case CalendarType.SEASON_SUMMER -> 6;  // June
-				case CalendarType.SEASON_AUTUMN -> 9;  // September
-				case CalendarType.SEASON_WINTER -> 12; // December
-				default -> 6;
-			};
-			final long baselineApproxJdn = Math.floorDiv(1461L * (y + 4716L), 4L)
-				+ Math.floorDiv(153L * (m + 1), 5L)
-				+ 1 - 1524L;
-			final double approximateMiddleJdUT = baselineApproxJdn - 0.5;
-
-			// Step B: Map negative flag parameters directly onto true solar ecliptic target boundaries
-			// Matching structural alignments: Autumn (-1) = 𝜋, Winter (-2) = 3𝜋/2, Spring (-3) = 0, Summer (-4) = 𝜋/2
-			final double targetLongitude = CalendarType.getGeneralTargetLongitude(month);
-
-			// Step C: Execute high-precision calculation to track the exact instant the Sun enters this season
-			final EphemerisEngine engine = EphemerisEngineFactory.getEngine();
-			if(!engine.isAvailable())
-				throw new UnsupportedOperationException("Julian calendar requires the Ephemeris plugin.");
-
-			final double exactSeasonJdUT = engine.findSolarLongitudeEvent(approximateMiddleJdUT, targetLongitude);
+			final double exactSeasonJdUT = exactSeasonJdUT(year, month);
 
 			return (long)Math.floor(exactSeasonJdUT + 0.5);
 		}
 		else
 			// Standard numeric execution path using the canonical algorithm for regular Julian dates
 			return toJdn(year, month, day);
+	}
+
+	private static double exactSeasonJdUT(final int year, final int month){
+		final int y = year;
+		final int m = CalendarSeason.gregorianSeasonMonth(month);
+		final long baselineApproxJdn = Math.floorDiv(1461L * (y + 4716L), 4L)
+			+ Math.floorDiv(153L * (m + 1), 5L)
+			+ 1 - 1524L;
+		final double approximateMiddleJdUT = baselineApproxJdn - 0.5;
+
+		// Step B: Map negative flag parameters directly onto true solar ecliptic target boundaries
+		// Matching structural alignments: Autumn (-1) = 𝜋, Winter (-2) = 3𝜋/2, Spring (-3) = 0, Summer (-4) = 𝜋/2
+		final double targetLongitude = CalendarSeason.getGeneralTargetLongitude(month);
+
+		// Step C: Execute high-precision calculation to track the exact instant the Sun enters this season
+		final EphemerisEngine engine = EphemerisEngineFactory.getEngine();
+		if(!engine.isAvailable())
+			throw new UnsupportedOperationException("Julian calendar requires the Ephemeris plugin.");
+
+		return engine.findSolarLongitudeEvent(approximateMiddleJdUT, targetLongitude);
 	}
 
 	/**
@@ -96,15 +92,9 @@ public class JulianCalendarStrategy implements CalendarConverterPlugin{
 	}
 
 	@Override
-	public CalendarType.CalendarMetadata getMetadata(final String rawDate){
+	public CalendarMetadata getMetadata(final String rawDate){
 		final GregorianDateInput input = GregorianCalendarParser.parse(rawDate);
-		final Map<String, Boolean> components = new LinkedHashMap<>();
-		components.put("year", (input.year() != 0));
-		components.put("month", (input.month() != 0));
-		components.put("day", (input.day() != 0));
-
-		final boolean isComplete = (input.year() != 0 && input.month() != 0 && input.day() != 0);
-		return new CalendarType.CalendarMetadata(components, isComplete);
+		return CalendarMetadata.createFromYearMonthDay(input.year(), input.month(), input.day());
 	}
 
 }

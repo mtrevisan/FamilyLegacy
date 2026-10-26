@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.ui.tools.reports;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 
 import java.util.ArrayList;
@@ -45,7 +46,6 @@ import java.util.List;
  */
 final class CoverageSection implements SectionBuilder{
 
-	private static final String TAG_SOURCE = "source";
 	private static final String TAG_EVIDENCE = "evidence";
 	private static final String TAG_DATE = "date";
 	private static final String TAG_PLACE = "place";
@@ -128,7 +128,7 @@ final class CoverageSection implements SectionBuilder{
 		for(final String field : expectedFields)
 			if(isPopulated(rec, field))
 				present ++;
-		final boolean hasSource = FLEFRecordHelper.findChild(rec, TAG_SOURCE) != null;
+		final boolean hasSource = SourceCitationReader.hasSupportingCitation(rec);
 		final boolean hasEvidence = FLEFRecordHelper.findChild(rec, TAG_EVIDENCE) != null;
 		return new CoverageEntry(rec, kind, present, expectedFields.length, hasSource, hasEvidence);
 	}

@@ -51,7 +51,7 @@ public final class RelationIndex{
 	private final PedigreeIndex pedigreeIndex;
 	private final PlaceIndex placeIndex;
 	private final GroupIndex groupIndex;
-	private final SourceAndDocumentIndex sourceAndDocumentIndex;
+	private final SourceAndMediaIndex sourceAndDocumentIndex;
 	private final ResearchIndex researchIndex;
 	private final KinshipResolver kinshipResolver;
 
@@ -63,7 +63,7 @@ public final class RelationIndex{
 		this.pedigreeIndex = new PedigreeIndex(model, filter);
 		this.placeIndex = new PlaceIndex(model, filter);
 		this.groupIndex = new GroupIndex(model, filter);
-		this.sourceAndDocumentIndex = new SourceAndDocumentIndex(model, filter);
+		this.sourceAndDocumentIndex = new SourceAndMediaIndex(model, filter);
 		this.researchIndex = new ResearchIndex(model, filter);
 		this.kinshipResolver = new KinshipResolver(this.pedigreeIndex, this.relationshipIndex);
 	}

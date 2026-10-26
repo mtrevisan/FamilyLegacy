@@ -45,6 +45,7 @@ public class GEDCOMParser{
 		BufferedReader br = new BufferedReader(reader);
 		String line;
 		GEDCOMNode lastNode = null;
+		boolean gedcom7 = false;
 
 		while((line = br.readLine()) != null){
 			// Rimuove il BOM UTF-8 se presente al primo livello
@@ -90,16 +91,27 @@ public class GEDCOMParser{
 				value = rest.substring(space + 1); // Preserva gli spazi iniziali del valore
 			}
 
+			// '@' inside a text value is escaped as '@@' (pointers never contain it); GEDCOM 7 doubles only a leading '@'
+			if(value != null)
+				value = (gedcom7
+					? (value.startsWith("@@")? value.substring(1): value)
+					: value.replace("@@", "@"));
+
 			// Concatenazione CONC / CONT esatta senza inserire spazi arbitrari
 			if("CONC".equals(tag) || "CONT".equals(tag)){
-				if(lastNode != null){
-					String current = (lastNode.getValue() != null? lastNode.getValue(): StringUtils.EMPTY);
+				// CONC/CONT continue the value of their superior (level - 1), not of the last line read, which can be a
+				// sibling sub-structure
+				while(!stack.isEmpty() && stack.peek().getLevel() >= level)
+					stack.pop();
+				final GEDCOMNode target = (!stack.isEmpty()? stack.peek(): lastNode);
+				if(target != null){
+					String current = (target.getValue() != null? target.getValue(): StringUtils.EMPTY);
 					String appendVal = (value != null? value: StringUtils.EMPTY);
 					if("CONC".equals(tag))
 						current += appendVal;
 					else
 						current += StringUtils.LF + appendVal;
-					lastNode.setValue(current);
+					target.setValue(current);
 				}
 				continue;
 			}
@@ -124,6 +136,10 @@ public class GEDCOMParser{
 					stack.pop();
 				}
 				if(!stack.isEmpty()){
+					// HEAD.GEDC.VERS, the version, comes before any record
+					if(level == 2 && "VERS".equals(tag) && "GEDC".equals(stack.peek().getTag()) && value != null
+							&& value.trim().startsWith("7"))
+						gedcom7 = true;
 					stack.peek().addChild(node);
 				}
 				else{

@@ -76,8 +76,9 @@ public final class Computus{
 		final int k = c % 4;
 		final int l = (32 + 2 * e + 2 * i - h - k) % 7;
 		final int m = (a + 11 * h + 22 * l) / 451;
-		final int month = (h + l - 7 * m + 114) / 31;
-		final int day = (h + l - 7 * m + 114) % 31 + 1;
+		final int totalDays = h + l - 7 * m + 114;
+		final int month = totalDays / 31;
+		final int day = totalDays % 31 + 1;
 		return MonthDay.of(month, day);
 	}
 

@@ -27,7 +27,7 @@ package io.github.mtrevisan.familylegacy.ui.components.lists;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.io.model.readers.DocumentReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.MediaReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.NoteReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
 import io.github.mtrevisan.familylegacy.ui.bindings.BindingsHelper;
@@ -96,21 +96,21 @@ public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
 		if(StringUtils.isNotEmpty(text))
 			sb.append(GUIHelper.limitTextLength(StringUtils.replaceChars(text, '\n', '|')));
 		else{
-			// First document_part
-			final FLEFRecord documentPart = FLEFRecordHelper.findChildren(record, SourceCitationReader.TAG_DOCUMENT_PART).stream()
+			// First media_part
+			final FLEFRecord documentPart = FLEFRecordHelper.findChildren(record, SourceCitationReader.TAG_MEDIA_PART).stream()
 				.findFirst()
 				.orElse(null);
 			if(documentPart != null){
-				final FLEFRecord documentCitation = FLEFRecordHelper.findChild(documentPart, SourceCitationReader.TAG_DOCUMENT);
+				final FLEFRecord documentCitation = FLEFRecordHelper.findChild(documentPart, SourceCitationReader.TAG_MEDIA);
 				final String documentId = (documentCitation != null? documentCitation.getValue(): null);
 				final FLEFRecord document = model.getRecordById(documentId);
 				if(document != null){
-					final String description = FLEFRecordHelper.getChildValue(document, DocumentReader.TAG_DESCRIPTION);
+					final String description = FLEFRecordHelper.getChildValue(document, MediaReader.TAG_DESCRIPTION);
 
 					if(StringUtils.isNotEmpty(description))
 						sb.append(description);
 					else{
-						final String uri = FLEFRecordHelper.getChildValue(document, DocumentReader.TAG_URI);
+						final String uri = FLEFRecordHelper.getChildValue(document, MediaReader.TAG_URI);
 						if(StringUtils.isNotEmpty(uri))
 							sb.append(FileHelper.getFilename(uri));
 						else
@@ -157,7 +157,7 @@ public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
 	 * @return the created/updated extract record, or {@code null} if canceled
 	 */
 	private FLEFRecord showExtractDialog(final FLEFRecord record){
-		final DocumentPartListPanel documentPartPanel = new DocumentPartListPanel(SourceCitationReader.TAG_DOCUMENT_PART, parent, I18N.t("dialog.extract.document.parts.title"), model);
+		final MediaPartListPanel documentPartPanel = new MediaPartListPanel(SourceCitationReader.TAG_MEDIA_PART, parent, I18N.t("dialog.extract.media.parts.title"), model);
 		final BoundTextArea textArea = new BoundTextArea(SourceCitationReader.TAG_TEXT, 3, 25);
 		final BoundComboBox<String> typeCombo = new BoundComboBox<>(SourceCitationReader.TAG_TYPE, GUIHelper.fillCombo(SourceCitationReader.EXTRACT_TYPES, I18N.t("search.combo.any")));
 		typeCombo.setI18NPrefix("enum.extract_type");
@@ -208,10 +208,10 @@ public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
 		return result[0];
 	}
 
-	private static void initExtractComponents(final JDialog dialog, final DocumentPartListPanel documentPartPanel,
+	private static void initExtractComponents(final JDialog dialog, final MediaPartListPanel documentPartPanel,
 			final BoundTextArea textArea, final BoundComboBox<String> typeCombo,
 			final BoundFilteredComboBox<String> localeCombo, final BasicNoteListPanel basicNote){
-		dialog.setLayout(GUIHelper.createLabelFieldLayout(10, "[]10[]"));
+		dialog.setLayout(GUIHelper.createLabelFieldLayout(10, "[]10[]10[]10[]10[]"));
 
 		GUIHelper.addComponent(dialog, documentPartPanel);
 
@@ -224,13 +224,13 @@ public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
 		GUIHelper.addComponent(dialog, basicNote);
 	}
 
-	private static void loadExtractData(final FLEFRecord record, final DocumentPartListPanel documentPartPanel,
+	private static void loadExtractData(final FLEFRecord record, final MediaPartListPanel documentPartPanel,
 			final BoundTextArea textArea, final BoundComboBox<String> typeCombo,
 			final BoundFilteredComboBox<String> localeCombo, final BasicNoteListPanel basicNote){
 		if(record == null)
 			return;
 
-		final List<FLEFRecord> documentParts = FLEFRecordHelper.findChildren(record, SourceCitationReader.TAG_DOCUMENT_PART);
+		final List<FLEFRecord> documentParts = FLEFRecordHelper.findChildren(record, SourceCitationReader.TAG_MEDIA_PART);
 		final String text = SourceCitationReader.extractExtractText(record);
 		final String type = SourceCitationReader.extractExtractType(record);
 		final String locale = SourceCitationReader.extractExtractLocale(record);
@@ -249,11 +249,11 @@ public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
 			basicNote.addItemDirectly(FLEFRecord.createChildWithTagAndValue(SourceCitationReader.TAG_REMARK, note));
 	}
 
-	private static boolean validExtractData(final JDialog dialog, final DocumentPartListPanel documentPartPanel,
+	private static boolean validExtractData(final JDialog dialog, final MediaPartListPanel documentPartPanel,
 			final BoundTextArea textArea){
 		if(documentPartPanel.isEmpty() && textArea.isEmpty()){
 			GUIHelper.showValidationErrorAndFocus(dialog,
-				I18N.tf("validation.at_least_one_of", I18N.t("dialog.extract.document_part"), I18N.t("dialog.extract.text")),
+				I18N.tf("validation.at_least_one_of", I18N.t("dialog.extract.media_part"), I18N.t("dialog.extract.text")),
 				null, null, documentPartPanel);
 
 			return false;

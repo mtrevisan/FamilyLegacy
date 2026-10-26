@@ -24,14 +24,11 @@
  */
 package io.github.mtrevisan.calendars.indian;
 
-import io.github.mtrevisan.calendars.CalendarConverterPlugin;
-import io.github.mtrevisan.calendars.CalendarType;
-import io.github.mtrevisan.calendars.gregorian.GregorianCalendarStrategy;
 import io.github.mtrevisan.calendars.astronomy.EphemerisEngine;
 import io.github.mtrevisan.calendars.astronomy.EphemerisEngineFactory;
-
-import java.util.LinkedHashMap;
-import java.util.Map;
+import io.github.mtrevisan.calendars.gregorian.GregorianCalendarStrategy;
+import io.github.mtrevisan.calendars.spi.CalendarConverterPlugin;
+import io.github.mtrevisan.calendars.spi.CalendarMetadata;
 
 
 public class IndianCalendarStrategy implements CalendarConverterPlugin{
@@ -59,29 +56,16 @@ public class IndianCalendarStrategy implements CalendarConverterPlugin{
 			// We calculate June 1st (Month 6) of that target Gregorian framework year.
 			// Maps each unique traditional Ritu directly onto its target Gregorian month neighborhood
 			final int m = switch(month){
-				case IndianCalendarParser.RITU_VASANTA -> 3;  // Spring -> March
-				case IndianCalendarParser.RITU_GRISHMA -> 6;  // Summer -> June
-				case IndianCalendarParser.RITU_VARSHA -> 8;   // Monsoon -> August
-				case IndianCalendarParser.RITU_SHARAD -> 9;   // Autumn -> September
-				case IndianCalendarParser.RITU_HEMANTA -> 11; // Pre-Winter -> November
-				case IndianCalendarParser.RITU_SHISHIRA -> 12;// Winter -> December
+				case IndianCalendarParser.RITU_VASANTA -> 3;		// Spring -> March
+				case IndianCalendarParser.RITU_GRISHMA -> 6;		// Summer -> June
+				case IndianCalendarParser.RITU_VARSHA -> 8;		// Monsoon -> August
+				case IndianCalendarParser.RITU_SHARAD -> 9;		// Autumn -> September
+				case IndianCalendarParser.RITU_HEMANTA -> 11;	// Pre-Winter -> November
+				case IndianCalendarParser.RITU_SHISHIRA -> 12;	// Winter -> December
 				default -> 6;
 			};
 			final long baselineApproxJdn = GregorianCalendarStrategy.toJdn(gregorianYear, m, 1);
-			final double approximateMiddleJdUT = baselineApproxJdn - 0.5;
-
-			// Step B: Map negative flag parameters directly onto true solar ecliptic target boundaries.
-			// Maps the six traditional Ritus to their precise tropical longitude cross-points or structural arc mid-points:
-			// Sharad (Autumn = 𝜋), Shishira (Winter = 3𝜋/2), Vasanta (Spring = 0), Grishma (Summer = 𝜋/2)
-			// Varsha and Hemanta correspond to the specific solar cross-points tracking mid-season peaks (𝜋/3 offsets).
-			final double targetLongitude = getTargetLongitude(month);
-
-			// Step C: Execute high-precision calculation to track the exact instant the Sun enters this season
-			final EphemerisEngine engine = EphemerisEngineFactory.getEngine();
-			if(!engine.isAvailable())
-				throw new UnsupportedOperationException("Indian calendar requires the Ephemeris plugin.");
-
-			final double exactSeasonJdUT = engine.findSolarLongitudeEvent(approximateMiddleJdUT, targetLongitude);
+			final double exactSeasonJdUT = exactSeasonJdUT(baselineApproxJdn, month);
 
 			return (long)Math.floor(exactSeasonJdUT + 0.5);
 		}
@@ -104,6 +88,23 @@ public class IndianCalendarStrategy implements CalendarConverterPlugin{
 
 			return startOfYearJdn + elapsedDays + (day - 1);
 		}
+	}
+
+	private static double exactSeasonJdUT(final long baselineApproxJdn, final int month){
+		final double approximateMiddleJdUT = baselineApproxJdn - 0.5;
+
+		// Step B: Map negative flag parameters directly onto true solar ecliptic target boundaries.
+		// Maps the six traditional Ritus to their precise tropical longitude cross-points or structural arc mid-points:
+		// Sharad (Autumn = 𝜋), Shishira (Winter = 3𝜋/2), Vasanta (Spring = 0), Grishma (Summer = 𝜋/2)
+		// Varsha and Hemanta correspond to the specific solar cross-points tracking mid-season peaks (𝜋/3 offsets).
+		final double targetLongitude = getTargetLongitude(month);
+
+		// Step C: Execute high-precision calculation to track the exact instant the Sun enters this season
+		final EphemerisEngine engine = EphemerisEngineFactory.getEngine();
+		if(!engine.isAvailable())
+			throw new UnsupportedOperationException("Indian calendar requires the Ephemeris plugin.");
+
+		return engine.findSolarLongitudeEvent(approximateMiddleJdUT, targetLongitude);
 	}
 
 	private static double getTargetLongitude(final int month){
@@ -129,15 +130,9 @@ public class IndianCalendarStrategy implements CalendarConverterPlugin{
 	}
 
 	@Override
-	public CalendarType.CalendarMetadata getMetadata(final String rawDate){
+	public CalendarMetadata getMetadata(final String rawDate){
 		final IndianDateInput input = IndianCalendarParser.parse(rawDate);
-		final Map<String, Boolean> components = new LinkedHashMap<>();
-		components.put("year", (input.year() != 0));
-		components.put("month", (input.month() != 0));
-		components.put("day", (input.day() != 0));
-
-		final boolean isComplete = (input.year() != 0 && input.month() != 0 && input.day() != 0);
-		return new CalendarType.CalendarMetadata(components, isComplete);
+		return CalendarMetadata.createFromYearMonthDay(input.year(), input.month(), input.day());
 	}
 
 }

@@ -30,16 +30,16 @@ import io.github.mtrevisan.familylegacy.ui.tools.ToolOperation;
 
 
 /** Opens the document management dialog. */
-public final class ManageDocumentsTool implements ToolOperation{
+public final class ManageMediaTool implements ToolOperation{
 
 	@Override
 	public String getName(){
-		return I18N.t("menu.source.manage.documents");
+		return I18N.t("menu.source.manage.media");
 	}
 
 	@Override
 	public void run(final ToolContext context){
-		final DocumentManagementDialog dialog = new DocumentManagementDialog(context);
+		final MediaManagementDialog dialog = new MediaManagementDialog(context);
 		dialog.setVisible(true);
 	}
 

@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.io.grammar;
 import io.github.mtrevisan.familylegacy.io.grammar.contraints.ConditionalRequireConstraint;
 import io.github.mtrevisan.familylegacy.io.grammar.contraints.Constraint;
 import io.github.mtrevisan.familylegacy.io.grammar.contraints.OneOfConstraint;
+import io.github.mtrevisan.familylegacy.io.grammar.contraints.OnlyIfInConstraint;
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.AlternationType;
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.Cardinality;
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.EnumType;
@@ -169,6 +170,12 @@ public final class FLEFGrammarValidator{
 			for(final String f : fields)
 				if(!fieldNames.contains(f))
 					errors.add(context + ": " + cond + " requires unknown field '" + f + "'");
+		}
+		else if(constraint instanceof OnlyIfInConstraint onlyIf){
+			if(!fieldNames.contains(onlyIf.getField()))
+				errors.add(context + ": " + onlyIf + " references unknown field '" + onlyIf.getField() + "'");
+			if(!fieldNames.contains(onlyIf.getConditionField()))
+				errors.add(context + ": " + onlyIf + " has unknown condition field '" + onlyIf.getConditionField() + "'");
 		}
 	}
 

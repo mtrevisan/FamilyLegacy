@@ -32,11 +32,11 @@ import io.github.mtrevisan.familylegacy.ui.dialogs.DirectRelationshipCellRendere
 import io.github.mtrevisan.familylegacy.ui.dialogs.InverseRelationshipCellRenderer;
 import io.github.mtrevisan.familylegacy.ui.handlers.ConclusionHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.ContextImpactHandler;
-import io.github.mtrevisan.familylegacy.ui.handlers.DocumentHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventParticipationHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.GroupAttributeHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IdentityHypothesisHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualAttributeHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.MediaHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.PlaceCitationHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.PlaceRelationshipHandler;
@@ -184,7 +184,7 @@ public enum PanelKey{
 	NOTE((owner, cfg, model, record) -> createStructurePanel(owner, cfg, model, NoteHandler.class)),
 
 	// Entity reference panels
-	DOCUMENT((owner, cfg, model, record) -> createEntityReferencePanel(owner, cfg, model, DocumentHandler.class)),
+	DOCUMENT((owner, cfg, model, record) -> createEntityReferencePanel(owner, cfg, model, MediaHandler.class)),
 	RESEARCH_QUESTION((owner, cfg, model, record) -> createEntityReferencePanel(owner, cfg, model, ResearchQuestionHandler.class)),
 	TASK((owner, cfg, model, record) -> createEntityReferencePanel(owner, cfg, model, ResearchTaskHandler.class)),
 

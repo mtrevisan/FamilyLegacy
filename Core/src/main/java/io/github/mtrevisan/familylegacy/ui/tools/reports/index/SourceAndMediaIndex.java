@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.ui.tools.reports.index;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.CulturalNormRootSection;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.ReportFormatters;
@@ -39,7 +40,7 @@ import java.util.Map;
 import java.util.function.Predicate;
 
 
-public final class SourceAndDocumentIndex{
+public final class SourceAndMediaIndex{
 
 	private final Map<String, List<FLEFRecord>> sourceToCitationsMap = new HashMap<>();
 	private final Map<String, List<FLEFRecord>> sourceToDocumentsMap = new HashMap<>();
@@ -48,7 +49,7 @@ public final class SourceAndDocumentIndex{
 	private final Map<String, List<FLEFRecord>> docToCitationsMap = new HashMap<>();
 	private final Map<String, List<FLEFRecord>> repoToSourcesMap = new HashMap<>();
 
-	public SourceAndDocumentIndex(final FLEFModel model, final Predicate<FLEFRecord> filter){
+	public SourceAndMediaIndex(final FLEFModel model, final Predicate<FLEFRecord> filter){
 		if(model == null)
 			return;
 
@@ -58,7 +59,7 @@ public final class SourceAndDocumentIndex{
 				continue;
 			final String srcId = source.getId();
 
-			for(final FLEFRecord docRef : FLEFRecordHelper.findChildren(source, "document")){
+			for(final FLEFRecord docRef : FLEFRecordHelper.findChildren(source, SourceReader.TAG_MEDIA)){
 				if(docRef.getValue() != null){
 					sourceToDocumentsMap.computeIfAbsent(srcId, k -> new ArrayList<>()).add(docRef);
 					docToSourcesMap.computeIfAbsent(docRef.getValue(), k -> new ArrayList<>()).add(source);
@@ -81,7 +82,7 @@ public final class SourceAndDocumentIndex{
 				if(sid != null && filter.test(model.getRecordById(sid))){
 					sourceToCitationsMap.computeIfAbsent(sid, k -> new ArrayList<>()).add(cit);
 				}
-				for(final FLEFRecord dp : FLEFRecordHelper.findChildren(cit, "extract.document_part.document")){
+				for(final FLEFRecord dp : FLEFRecordHelper.findChildren(cit, "extract.media_part.media")){
 					final String did = dp.getValue();
 					if(did != null){
 						docToCitationsMap.computeIfAbsent(did, k -> new ArrayList<>()).add(cit);

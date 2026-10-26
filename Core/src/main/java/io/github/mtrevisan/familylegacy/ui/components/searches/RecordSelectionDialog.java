@@ -34,9 +34,9 @@ import io.github.mtrevisan.familylegacy.ui.bindings.FilteredComboBox;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.services.relationship.UnlinkDialog;
 import io.github.mtrevisan.familylegacy.ui.components.projections.places.PlaceHierarchyPanel;
 import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
-import io.github.mtrevisan.familylegacy.ui.handlers.DocumentHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.MediaHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.PlaceRelationshipHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RepositoryHandler;
@@ -458,8 +458,8 @@ public class RecordSelectionDialog extends JDialog{
 			title = I18N.t("search.title.manage.sources");
 		else if(desc instanceof RepositoryHandler)
 			title = I18N.t("search.title.manage.repositories");
-		else if(desc instanceof DocumentHandler)
-			title = I18N.t("search.title.manage.documents");
+		else if(desc instanceof MediaHandler)
+			title = I18N.t("search.title.manage.media");
 		else
 			title = "--";
 		setTitle(title);

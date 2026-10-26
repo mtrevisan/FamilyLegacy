@@ -24,13 +24,11 @@
  */
 package io.github.mtrevisan.calendars.gregorian;
 
-import io.github.mtrevisan.calendars.CalendarConverterPlugin;
-import io.github.mtrevisan.calendars.CalendarType;
+import io.github.mtrevisan.calendars.astronomy.CalendarSeason;
 import io.github.mtrevisan.calendars.astronomy.EphemerisEngine;
 import io.github.mtrevisan.calendars.astronomy.EphemerisEngineFactory;
-
-import java.util.LinkedHashMap;
-import java.util.Map;
+import io.github.mtrevisan.calendars.spi.CalendarConverterPlugin;
+import io.github.mtrevisan.calendars.spi.CalendarMetadata;
 
 
 public class ReformedJulianCalendarStrategy implements CalendarConverterPlugin{
@@ -50,33 +48,7 @@ public class ReformedJulianCalendarStrategy implements CalendarConverterPlugin{
 		if(month < 0){
 			// Step A: Calculate a dynamic baseline anchor for the center of the target year.
 			// We calculate June 1st (Month 6) of that target Reformed Julian year to center our search window.
-			final int y = year;
-			final int m = switch(month){
-				case CalendarType.SEASON_SPRING -> 3;  // March
-				case CalendarType.SEASON_SUMMER -> 6;  // June
-				case CalendarType.SEASON_AUTUMN -> 9;  // September
-				case CalendarType.SEASON_WINTER -> 12; // December
-				default -> 6;
-			};
-			// Reformed Julian 900-year cycle mathematical calculation framework
-			final long baselineApproxJdn = Math.floorDiv(365L * y, 1L)
-				+ Math.floorDiv(y, 4L)
-				- Math.floorDiv(y, 100L)
-				+ Math.floorDiv(2L * Math.floorDiv(y, 100L) + 6, 9L)
-				+ Math.floorDiv(153L * (m + 1), 5L)
-				+ 1 + 1720997L;
-			final double approximateMiddleJdUT = baselineApproxJdn - 0.5;
-
-			// Step B: Map negative flag parameters directly onto true solar ecliptic target boundaries
-			// Matching structural alignments: Autumn (-1) = 𝜋, Winter (-2) = 3𝜋/2, Spring (-3) = 0, Summer (-4) = 𝜋/2
-			final double targetLongitude = CalendarType.getGeneralTargetLongitude(month);
-
-			// Step C: Execute high-precision calculation to track the exact instant the Sun enters this season
-			final EphemerisEngine engine = EphemerisEngineFactory.getEngine();
-			if(!engine.isAvailable())
-				throw new UnsupportedOperationException("Reformed Julian calendar requires the Ephemeris plugin.");
-
-			final double exactSeasonJdUT = engine.findSolarLongitudeEvent(approximateMiddleJdUT, targetLongitude);
+			final double exactSeasonJdUT = exactSeasonJdUT(year, month);
 
 			return (long)Math.floor(exactSeasonJdUT + 0.5);
 		}
@@ -94,16 +66,34 @@ public class ReformedJulianCalendarStrategy implements CalendarConverterPlugin{
 		}
 	}
 
-	@Override
-	public CalendarType.CalendarMetadata getMetadata(final String rawDate){
-		final GregorianDateInput input = GregorianCalendarParser.parse(rawDate);
-		final Map<String, Boolean> components = new LinkedHashMap<>();
-		components.put("year", (input.year() != 0));
-		components.put("month", (input.month() != 0));
-		components.put("day", (input.day() != 0));
+	private static double exactSeasonJdUT(final int year, final int month){
+		final int y = year;
+		final int m = CalendarSeason.gregorianSeasonMonth(month);
+		// Reformed Julian 900-year cycle mathematical calculation framework
+		final long baselineApproxJdn = Math.floorDiv(365L * y, 1L)
+			+ Math.floorDiv(y, 4L)
+			- Math.floorDiv(y, 100L)
+			+ Math.floorDiv(2L * Math.floorDiv(y, 100L) + 6, 9L)
+			+ Math.floorDiv(153L * (m + 1), 5L)
+			+ 1 + 1720997L;
+		final double approximateMiddleJdUT = baselineApproxJdn - 0.5;
 
-		final boolean isComplete = (input.year() != 0 && input.month() != 0 && input.day() != 0);
-		return new CalendarType.CalendarMetadata(components, isComplete);
+		// Step B: Map negative flag parameters directly onto true solar ecliptic target boundaries
+		// Matching structural alignments: Autumn (-1) = 𝜋, Winter (-2) = 3𝜋/2, Spring (-3) = 0, Summer (-4) = 𝜋/2
+		final double targetLongitude = CalendarSeason.getGeneralTargetLongitude(month);
+
+		// Step C: Execute high-precision calculation to track the exact instant the Sun enters this season
+		final EphemerisEngine engine = EphemerisEngineFactory.getEngine();
+		if(!engine.isAvailable())
+			throw new UnsupportedOperationException("Reformed Julian calendar requires the Ephemeris plugin.");
+
+		return engine.findSolarLongitudeEvent(approximateMiddleJdUT, targetLongitude);
+	}
+
+	@Override
+	public CalendarMetadata getMetadata(final String rawDate){
+		final GregorianDateInput input = GregorianCalendarParser.parse(rawDate);
+		return CalendarMetadata.createFromYearMonthDay(input.year(), input.month(), input.day());
 	}
 
 }

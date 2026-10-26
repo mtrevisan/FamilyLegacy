@@ -39,10 +39,11 @@ import java.util.TreeMap;
 
 
 /**
- * The Japanese lunisolar calendar from 1685 (the Jōkyō calendar) to its end on 31 December 1872 (明治5年12月2日), as
- * published by the National Astronomical Observatory of Japan (日本の暦日データベース, after 内田正男『日本暦日原典』).
+ * The Japanese lunisolar calendar from 1573 (the Tenshō era, under the Senmyō calendar) to its end on 31 December 1872
+ * (明治5年12月2日), as published by the National Astronomical Observatory of Japan (日本の暦日データベース, after
+ * 内田正男『日本暦日原典』).
  * <p>
- * The calendars of the Edo period (Jōkyō, Hōreki, Kansei, Tenpō) were computed for the meridian of Kyoto with methods
+ * The Senmyō calendar (used until 1684) and the calendars of the Edo period (Jōkyō, Hōreki, Kansei, Tenpō) were computed for the meridian of Kyoto with methods
  * and ephemerides of their time, so their months cannot be reproduced exactly by modern astronomy: the published
  * month starts are used instead.
  */

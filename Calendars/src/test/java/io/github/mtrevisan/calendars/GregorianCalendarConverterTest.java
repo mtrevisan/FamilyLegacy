@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.calendars;
 
+import io.github.mtrevisan.calendars.spi.CalendarMetadata;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -60,6 +61,23 @@ class GregorianCalendarConverterTest{
 		final long jdn = CalendarType.GREGORIAN.parseToJdn("spr 2024");
 
 		Assertions.assertEquals(2460390L, jdn);
+	}
+
+	@Test
+	void seasonAndMonthCollisions(){
+		// "pri" is spring (Italian, Spanish, ...) and the abbreviation of April in Albanian: the season wins
+		Assertions.assertEquals(2460390L, CalendarType.GREGORIAN.parseToJdn("pri 2024"));
+		// "hydref" is autumn and October in Welsh, "est" is summer in Italian and August in Cornish: the month wins
+		Assertions.assertEquals(CalendarType.GREGORIAN.parseToJdn("1 October 1850"), CalendarType.GREGORIAN.parseToJdn("Hydref 1850"));
+		Assertions.assertEquals(CalendarType.GREGORIAN.parseToJdn("1 August 1850"), CalendarType.GREGORIAN.parseToJdn("Est 1850"));
+		// "estate" is only summer
+		Assertions.assertEquals(2460482L, CalendarType.GREGORIAN.parseToJdn("estate 2024"));
+	}
+
+	@Test
+	void seasonOfDifferentLanguagesIsRejected(){
+		// "yaz" is spring in Azerbaijani and summer in Turkish
+		Assertions.assertThrows(IllegalArgumentException.class, () -> CalendarType.GREGORIAN.parseToJdn("yaz 2024"));
 	}
 
 	@Test
@@ -193,7 +211,7 @@ class GregorianCalendarConverterTest{
 	void yearAlone(){
 		// Without month and day, the first day of the year (1 Jan 1953 Gregorian)
 		final long jdn = CalendarType.GREGORIAN.parseToJdn("1953");
-		final CalendarType.CalendarMetadata metadata = CalendarType.GREGORIAN.getMetadata("1953");
+		final CalendarMetadata metadata = CalendarType.GREGORIAN.getMetadata("1953");
 
 		Assertions.assertEquals(2434379L, jdn);
 		Assertions.assertFalse(metadata.nativeComponents().get("month"));
@@ -226,9 +244,9 @@ class GregorianCalendarConverterTest{
 
 	@Test
 	void monthAndYearIsIncomplete(){
-		final CalendarType.CalendarMetadata metadata = CalendarType.GREGORIAN.getMetadata("August 1953");
+		final CalendarMetadata metadata = CalendarType.GREGORIAN.getMetadata("August 1953");
 
-		Assertions.assertTrue(metadata.nativeComponents().get("year"));
+		Assertions.assertTrue(metadata.nativeComponents().get(CalendarMetadata.COMPONENT_YEAR));
 		Assertions.assertTrue(metadata.nativeComponents().get("month"));
 		Assertions.assertFalse(metadata.nativeComponents().get("day"));
 		Assertions.assertFalse(metadata.isComplete());
@@ -236,7 +254,7 @@ class GregorianCalendarConverterTest{
 
 	@Test
 	void fullDateIsComplete(){
-		final CalendarType.CalendarMetadata metadata = CalendarType.GREGORIAN.getMetadata("15 January 1953");
+		final CalendarMetadata metadata = CalendarType.GREGORIAN.getMetadata("15 January 1953");
 
 		Assertions.assertTrue(metadata.isComplete());
 	}

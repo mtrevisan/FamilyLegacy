@@ -27,11 +27,11 @@ package io.github.mtrevisan.familylegacy.ui.tools.sources;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.io.model.readers.DocumentReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.MediaReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
-import io.github.mtrevisan.familylegacy.ui.handlers.DocumentHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.MediaHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RepositoryHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.SourceHandler;
 import org.apache.commons.lang3.StringUtils;
@@ -44,7 +44,7 @@ import java.util.Map;
 /**
  * Shared extraction utilities for the source-related records:
  * {@code SourceRecord}, {@code RepositoryRecord}, and
- * {@code DocumentRecord}.
+ * {@code MediaRecord}.
  * <p>
  * The methods here are the single point where source fields are read
  * from the model. Every tool in the {@code sources} package goes through
@@ -65,7 +65,7 @@ public final class SourceHelper{
 	}
 
 	public static List<FLEFRecord> listAllDocuments(final FLEFModel model){
-		return model.getRecordsByType(DocumentHandler.TYPE);
+		return model.getRecordsByType(MediaHandler.TYPE);
 	}
 
 	public static Map<String, FLEFRecord> indexById(final List<FLEFRecord> records){
@@ -139,11 +139,11 @@ public final class SourceHelper{
 	}
 
 	public static String documentUri(final FLEFRecord document){
-		return firstTextValue(document, DocumentReader.TAG_URI);
+		return firstTextValue(document, MediaReader.TAG_URI);
 	}
 
 	public static String documentDescription(final FLEFRecord document){
-		return firstTextValue(document, DocumentReader.TAG_DESCRIPTION);
+		return firstTextValue(document, MediaReader.TAG_DESCRIPTION);
 	}
 
 	public static String sourceAuthor(final FLEFRecord source){
@@ -188,7 +188,7 @@ public final class SourceHelper{
 		// Documents referenced directly by a source.
 		for(final FLEFRecord source : listAllSources(model))
 			for(final FLEFRecord child : source.getChildren())
-				if(DocumentHandler.isOfType(child)){
+				if(MediaHandler.isOfType(child)){
 					final String docId = child.getTheOnlyChild() != null
 						? child.getTheOnlyChild().getValue(): null;
 					if(docId != null)
@@ -228,10 +228,10 @@ public final class SourceHelper{
 					continue;
 
 				for(final FLEFRecord part : extract.getChildren()){
-					if(!SourceCitationReader.TAG_DOCUMENT_PART.equalsIgnoreCase(part.getTag()))
+					if(!SourceCitationReader.TAG_MEDIA_PART.equalsIgnoreCase(part.getTag()))
 						continue;
 
-					final String docId = FLEFRecordHelper.getChildValue(part, SourceCitationReader.TAG_DOCUMENT);
+					final String docId = FLEFRecordHelper.getChildValue(part, SourceCitationReader.TAG_MEDIA);
 					if(docId != null)
 						counts.merge(docId, 1, Integer::sum);
 				}
@@ -328,7 +328,7 @@ public final class SourceHelper{
 			id,
 			documentUri(document),
 			documentDescription(document),
-			firstTextValue(document, DocumentReader.TAG_MAPPING),
+			firstTextValue(document, MediaReader.TAG_MAPPING),
 			referenceCounts.getOrDefault(id, 0)
 		);
 	}

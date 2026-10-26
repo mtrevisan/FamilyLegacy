@@ -24,14 +24,12 @@
  */
 package io.github.mtrevisan.calendars.buddhist;
 
-import io.github.mtrevisan.calendars.CalendarConverterPlugin;
-import io.github.mtrevisan.calendars.CalendarType;
-import io.github.mtrevisan.calendars.gregorian.GregorianCalendarStrategy;
+import io.github.mtrevisan.calendars.astronomy.CalendarSeason;
 import io.github.mtrevisan.calendars.astronomy.EphemerisEngine;
 import io.github.mtrevisan.calendars.astronomy.EphemerisEngineFactory;
-
-import java.util.LinkedHashMap;
-import java.util.Map;
+import io.github.mtrevisan.calendars.gregorian.GregorianCalendarStrategy;
+import io.github.mtrevisan.calendars.spi.CalendarConverterPlugin;
+import io.github.mtrevisan.calendars.spi.CalendarMetadata;
 
 
 /**
@@ -72,26 +70,9 @@ public class BuddhistCalendarStrategy implements CalendarConverterPlugin{
 
 		if(month < 0){
 			// Step A: Calculate a dynamic baseline anchor for the center of the target year.
-			final int m = switch(month){
-				case CalendarType.SEASON_SPRING -> 3;  // March
-				case CalendarType.SEASON_SUMMER -> 6;  // June
-				case CalendarType.SEASON_AUTUMN -> 9;  // September
-				case CalendarType.SEASON_WINTER -> 12; // December
-				default -> 6;
-			};
+			final int m = CalendarSeason.gregorianSeasonMonth(month);
 			final long baselineApproxJdn = GregorianCalendarStrategy.toJdn(gregorianYear, m, 1);
-			final double approxMiddleJdUT = baselineApproxJdn - 0.5;
-
-			// Step B: Map negative flag parameters directly onto true solar ecliptic target boundaries
-			// Matching structural alignments: Autumn (-1) = 𝜋, Winter (-2) = 3𝜋/2, Spring (-3) = 0, Summer (-4) = 𝜋/2
-			final double targetLongitude = CalendarType.getGeneralTargetLongitude(month);
-
-			// Step C: Execute high-precision calculation to track the exact instant the Sun enters this season
-			final EphemerisEngine engine = EphemerisEngineFactory.getEngine();
-			if(!engine.isAvailable())
-				throw new UnsupportedOperationException("Buddhist calendar requires the Ephemeris plugin.");
-
-			final double exactSeasonJdUT = engine.findSolarLongitudeEvent(approxMiddleJdUT, targetLongitude);
+			final double exactSeasonJdUT = exactSeasonJdUT(baselineApproxJdn, month);
 
 			return (long)Math.floor(exactSeasonJdUT + 0.5);
 		}
@@ -100,16 +81,25 @@ public class BuddhistCalendarStrategy implements CalendarConverterPlugin{
 			return GregorianCalendarStrategy.toJdn(gregorianYear, month, day);
 	}
 
-	@Override
-	public CalendarType.CalendarMetadata getMetadata(final String rawDate){
-		final BuddhistDateInput input = BuddhistCalendarParser.parse(rawDate);
-		final Map<String, Boolean> components = new LinkedHashMap<>();
-		components.put("year", (input.year() != 0));
-		components.put("month", (input.month() != 0));
-		components.put("day", (input.day() != 0));
+	private static double exactSeasonJdUT(final long baselineApproxJdn, final int month){
+		final double approxMiddleJdUT = baselineApproxJdn - 0.5;
 
-		final boolean isComplete = (input.year() != 0 && input.month() != 0 && input.day() != 0);
-		return new CalendarType.CalendarMetadata(components, isComplete);
+		// Step B: Map negative flag parameters directly onto true solar ecliptic target boundaries
+		// Matching structural alignments: Autumn (-1) = 𝜋, Winter (-2) = 3𝜋/2, Spring (-3) = 0, Summer (-4) = 𝜋/2
+		final double targetLongitude = CalendarSeason.getGeneralTargetLongitude(month);
+
+		// Step C: Execute high-precision calculation to track the exact instant the Sun enters this season
+		final EphemerisEngine engine = EphemerisEngineFactory.getEngine();
+		if(!engine.isAvailable())
+			throw new UnsupportedOperationException("Buddhist calendar requires the Ephemeris plugin.");
+
+		return engine.findSolarLongitudeEvent(approxMiddleJdUT, targetLongitude);
+	}
+
+	@Override
+	public CalendarMetadata getMetadata(final String rawDate){
+		final BuddhistDateInput input = BuddhistCalendarParser.parse(rawDate);
+		return CalendarMetadata.createFromYearMonthDay(input.year(), input.month(), input.day());
 	}
 
 }

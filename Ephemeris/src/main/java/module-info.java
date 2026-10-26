@@ -1,6 +1,3 @@
-import io.github.mtrevisan.calendars.astronomy.EphemerisEngine;
-
-
 /**
  * Copyright (c) 2026 Mauro Trevisan
  * <p>

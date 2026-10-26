@@ -38,7 +38,6 @@ import io.github.mtrevisan.familylegacy.ui.components.lists.EntityListPanel;
 import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.ConclusionHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.CulturalNormHandler;
-import io.github.mtrevisan.familylegacy.ui.handlers.DocumentHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventParticipationHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.GroupAttributeHandler;
@@ -47,6 +46,7 @@ import io.github.mtrevisan.familylegacy.ui.handlers.HistoricEventHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IdentityHypothesisHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualAttributeHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.MediaHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.PlaceRelationshipHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RelationshipHandler;
@@ -94,7 +94,7 @@ import java.io.IOException;
  *   place_relationship: Xref&lt;PlaceRelationshipRecord&gt;
  *   repository: Xref&lt;RepositoryRecord&gt;
  *   source: Xref&lt;SourceRecord&gt;
- *   document: Xref&lt;DocumentRecord&gt;
+ *   media: Xref&lt;MediaRecord&gt;
  *   conclusion: Xref&lt;ConclusionRecord&gt;
  *   identity_hypothesis: Xref&lt;IdentityHypothesisRecord&gt;
  *   cultural_norm: Xref&lt;CulturalNormRecord&gt;
@@ -142,7 +142,7 @@ public class ResearchQuestionRecordDialog extends BaseRecordDialog{
 			.withHandlerTypes(IndividualHandler.class, GroupHandler.class, EventHandler.class,
 				EventParticipationHandler.class, RelationshipHandler.class, IndividualAttributeHandler.class,
 				GroupAttributeHandler.class, PlaceHandler.class, PlaceRelationshipHandler.class, RepositoryHandler.class,
-				SourceHandler.class, DocumentHandler.class, ConclusionHandler.class, IdentityHypothesisHandler.class,
+				SourceHandler.class, MediaHandler.class, ConclusionHandler.class, IdentityHypothesisHandler.class,
 				CulturalNormHandler.class, HistoricEventHandler.class);
 		statusPanel = new ResearchQuestionStatusPanel();
 		conclusionArea = new BoundTextArea(ResearchQuestionReader.TAG_CONCLUSION, 3, 30);

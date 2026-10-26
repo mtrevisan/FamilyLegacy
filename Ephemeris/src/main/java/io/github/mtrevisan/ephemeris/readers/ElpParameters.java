@@ -64,8 +64,8 @@ public final class ElpParameters{
 
 	/**
 	 * Numerical coefficients of the auxiliary B' polynomials used in the
-	 * computation of the correction factors. Row i corresponds to
-	 * B'_{2,i} and B'_{3,i}; row 0 holds the terms that appear in both.
+	 * computation of the correction factors. Row {@code i} corresponds to
+	 * {@code B'_{2,i}} and {@code B'_{3,i}}; row 0 holds the terms that appear in both.
 	 * Reference: Chapront &amp; Francou (2003), Table 3.
 	 */
 	private static final double[][] BP = {

@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.gedcom.GEDCOMHelper;
 import io.github.mtrevisan.familylegacy.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceRelationshipReader;
 import io.github.mtrevisan.familylegacy.ui.handlers.PlaceHandler;
@@ -40,14 +41,18 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 
 public class PlaceCache{
 
+	private static final Pattern DEGREES_PATTERN = Pattern.compile("\\d+(?:\\.\\d+)?");
+
+
 	private final FLEFModel model;
 	private final Map<String, FLEFRecord> cache = new HashMap<>();
-	private final Map<String, FLEFRecord> placeNameCache = new HashMap<>();
 	private final Set<String> relationshipCache = new HashSet<>();
 
 
@@ -59,104 +64,184 @@ public class PlaceCache{
 	 * Gets or creates a PlaceRecord from a GEDCOM PLAC node.
 	 * Parses hierarchical place parts separated by commas, creates individual PlaceRecords
 	 * for each level, links them hierarchically, and avoids duplicate or redundant information.
+	 * <p>
+	 * A place is identified by its name together with the names of the places containing it, so that places with the same name
+	 * in different jurisdictions (e.g. "San Martino, Treviso" and "San Martino, Venezia", or the town and the province in
+	 * "Treviso, Treviso, Italia") stay distinct.
 	 */
 	public FLEFRecord getOrCreatePlace(GEDCOMNode placNode){
 		String placeName = placNode.getValue();
-		if(StringUtils.isEmpty(placeName))
+		if(StringUtils.isBlank(placeName))
 			return null;
 
-		return cache.computeIfAbsent(placeName, name -> {
-			// Split place name into clean, non-redundant parts (removing adjacent duplicates)
-			final List<String> parts = new ArrayList<>();
-			for(final String rawPart : placeName.split("\\s*,\\s*")){
-				final String trimmed = rawPart.trim();
-				if(!trimmed.isEmpty() && (parts.isEmpty() || !parts.get(parts.size() - 1).equalsIgnoreCase(trimmed)))
-					parts.add(trimmed);
-			}
+		// Split place name into its jurisdictions, skipping the empty ones (e.g. ", , Treviso, Italia")
+		final List<String> parts = new ArrayList<>();
+		for(final String rawPart : placeName.split(",")){
+			final String trimmed = StringUtils.normalizeSpace(rawPart);
+			if(!trimmed.isEmpty())
+				parts.add(trimmed);
+		}
+		if(parts.isEmpty())
+			return null;
 
-			if(parts.isEmpty())
-				return null;
-
-			// Get or create the most specific (leaf) place with full metadata (FONE, ROMN, MAP, TYPE)
-			final FLEFRecord leafPlace = getOrCreateSinglePlace(parts.get(0), placNode, true);
-
+		final String placeKey = String.join(", ", parts).toLowerCase(Locale.ROOT);
+		FLEFRecord leafPlace = cache.get(placeKey);
+		if(leafPlace == null){
 			// Build the place hierarchy by linking each part to its parent container
-			FLEFRecord currentPlace = leafPlace;
-			for(int i = 0; i < parts.size() - 1; i ++){
-				final FLEFRecord parentPlace = getOrCreateSinglePlace(parts.get(i + 1), placNode, false);
-				linkPlaces(currentPlace, parentPlace, placNode);
-				currentPlace = parentPlace;
+			FLEFRecord containerPlace = null;
+			for(int i = parts.size() - 1; i >= 0; i --){
+				final String key = String.join(", ", parts.subList(i, parts.size())).toLowerCase(Locale.ROOT);
+				final FLEFRecord place = getOrCreateSinglePlace(key, parts.get(i), placNode);
+				if(containerPlace != null)
+					linkPlaces(place, containerPlace, placNode);
+				containerPlace = place;
 			}
+			leafPlace = containerPlace;
+		}
 
-			return leafPlace;
-		});
+		// The metadata of a PLAC (FONE, ROMN, LANG, TRAN, MAP, TYPE) is about the most specific place
+		attachPlaceMetadata(leafPlace, placNode);
+		return leafPlace;
 	}
 
 	/**
-	 * Gets or creates a single PlaceRecord for a specific part name.
-	 * Specific metadata (coordinates, phonetic/romanized variants, type) is attached only to the leaf place.
+	 * Gets or creates a single PlaceRecord.
+	 *
+	 * @param key	The name of the place followed by the names of the places containing it, lowercase.
 	 */
-	private FLEFRecord getOrCreateSinglePlace(final String partName, final GEDCOMNode placNode, final boolean isLeaf){
-		final String cacheKey = partName.toLowerCase(Locale.ROOT);
-		return placeNameCache.computeIfAbsent(cacheKey, key -> {
+	private FLEFRecord getOrCreateSinglePlace(final String key, final String partName, final GEDCOMNode placNode){
+		return cache.computeIfAbsent(key, k -> {
 			final FLEFRecord place = FLEFRecord.createMainRecord(IDGenerator.nextId(PlaceHandler.ID_PREFIX), PlaceHandler.TYPE)
 				// ---- Primary name (text.value) ----
 				.addChild(FLEFRecord.createChildWithTag("name")
 					.addChild(FLEFRecord.createChildWithTagAndValue("value", partName))
-				);
-
-			if(isLeaf){
-				// ---- Phonetic variations (FONE) -> variant > phonetic ----
-				for(final GEDCOMNode fone : GEDCOMHelper.findChildren(placNode, "FONE")){
-					final FLEFRecord variant = FLEFRecord.createChildWithTag("variant");
-					final FLEFRecord phonetic = FLEFRecord.createChildWithTag("phonetic");
-					final GEDCOMNode foneType = GEDCOMHelper.findFirstChild(fone, "TYPE");
-					final String system = (foneType != null && foneType.getValue() != null)? foneType.getValue(): "IPA";
-					phonetic.addChild(FLEFRecord.createChildWithTagAndValue("system", system));
-					phonetic.addChild(FLEFRecord.createChildWithTagAndValue("value", fone.getValue()));
-					variant.addChild(phonetic);
-					place.addChild(variant);
-				}
-
-				// ---- Romanized variations (ROMN) -> variant > transcription ----
-				for(final GEDCOMNode romn : GEDCOMHelper.findChildren(placNode, "ROMN")){
-					final FLEFRecord variant = FLEFRecord.createChildWithTag("variant");
-					final FLEFRecord transcription = FLEFRecord.createChildWithTag("transcription");
-					final GEDCOMNode romnType = GEDCOMHelper.findFirstChild(romn, "TYPE");
-					final String system = (romnType != null && romnType.getValue() != null)? romnType.getValue(): "scientific";
-					transcription.addChild(FLEFRecord.createChildWithTagAndValue("system", system));
-					transcription.addChild(FLEFRecord.createChildWithTagAndValue("value", romn.getValue()));
-					variant.addChild(transcription);
-					place.addChild(variant);
-				}
-
-				// ---- Map coordinates (MAP -> LATI, LONG) ----
-				final GEDCOMNode mapNode = GEDCOMHelper.findFirstChild(placNode, "MAP");
-				if(mapNode != null){
-					final GEDCOMNode latiNode = GEDCOMHelper.findFirstChild(mapNode, "LATI");
-					final GEDCOMNode longNode = GEDCOMHelper.findFirstChild(mapNode, "LONG");
-					if(latiNode != null && latiNode.getValue() != null &&
-						longNode != null && longNode.getValue() != null){
-						final FLEFRecord location = FLEFRecord.createChildWithTag(PlaceReader.TAG_LOCATION);
-						// Coordinates string: "lat long" (ISO 6709 format)
-						final String coords = latiNode.getValue().trim() + StringUtils.SPACE + longNode.getValue().trim();
-						location.addChild(FLEFRecord.createChildWithTagAndValue(PlaceReader.TAG_COORDINATES, coords));
-						place.addChild(location);
-					}
-				}
-
-				// ---- Type (optional) ----
-				final GEDCOMNode typeNode = GEDCOMHelper.findFirstChild(placNode, "TYPE");
-				if(typeNode != null && typeNode.getValue() != null)
-					place.addChild(FLEFRecord.createChildWithTagAndValue(PlaceReader.TAG_TYPE, typeNode.getValue()));
-			}
-
-			// ---- Audit ----
-			place.addChild(AuditBuilder.build(placNode));
+				)
+				// ---- Audit ----
+				.addChild(AuditBuilder.build(placNode));
 
 			model.addRecord(place);
 			return place;
 		});
+	}
+
+	/** Attaches the variants of the name, the coordinates, and the type, when not already present. */
+	private static void attachPlaceMetadata(final FLEFRecord place, final GEDCOMNode placNode){
+		final FLEFRecord name = FLEFRecordHelper.findChildren(place, "name").stream()
+			.findFirst()
+			.orElse(null);
+		if(name != null && FLEFRecordHelper.findChildren(name, "variant").isEmpty()){
+			// ---- Phonetic variations (FONE) -> name.variant.phonetic ----
+			for(final GEDCOMNode fone : GEDCOMHelper.findChildren(placNode, "FONE"))
+				addNameVariant(name, "phonetic", fone, "ipa");
+			// ---- Romanized variations (ROMN) -> name.variant.transcription ----
+			for(final GEDCOMNode romn : GEDCOMHelper.findChildren(placNode, "ROMN"))
+				addNameVariant(name, "transcription", romn, "scientific");
+		}
+
+		// ---- Language (LANG, GEDCOM 7) -> name.locale ----
+		final String locale = GEDCOMHelper.findFirstValue(placNode, "LANG");
+		if(name != null && locale != null && FLEFRecordHelper.findChild(name, "locale") == null)
+			name.addChild(FLEFRecord.createChildWithTagAndValue("locale", locale));
+
+		// ---- Translations (TRAN, GEDCOM 7) -> name of type translated ----
+		for(final GEDCOMNode tran : GEDCOMHelper.findChildren(placNode, "TRAN"))
+			addTranslatedName(place, tran);
+
+		// ---- Map coordinates (MAP -> LATI, LONG) ----
+		if(FLEFRecordHelper.findChild(place, PlaceReader.TAG_LOCATION) == null){
+			final GEDCOMNode mapNode = GEDCOMHelper.findFirstChild(placNode, "MAP");
+			final String coordinates = toISO6709(GEDCOMHelper.findFirstValue(mapNode, "LATI"),
+				GEDCOMHelper.findFirstValue(mapNode, "LONG"));
+			if(coordinates != null){
+				final FLEFRecord location = FLEFRecord.createChildWithTag(PlaceReader.TAG_LOCATION)
+					.addChild(FLEFRecord.createChildWithTagAndValue(PlaceReader.TAG_COORDINATES, coordinates));
+				// the location goes after the name and the type, as in the schema
+				place.addChild(location);
+			}
+		}
+
+		// ---- Type (optional) ----
+		if(FLEFRecordHelper.findChild(place, PlaceReader.TAG_TYPE) == null){
+			final String type = GEDCOMMapper.toTypeToken(GEDCOMHelper.findFirstValue(placNode, "TYPE"));
+			if(type != null)
+				place.addChild(FLEFRecord.createChildWithTagAndValue(PlaceReader.TAG_TYPE, type));
+		}
+	}
+
+	/**
+	 * Adds the translation of a place name, if not already there.
+	 * <p>
+	 * The translation lists the jurisdictions as the PLAC does: its first one is the name of the most specific place.
+	 */
+	private static void addTranslatedName(final FLEFRecord place, final GEDCOMNode tranNode){
+		final String[] jurisdictions = StringUtils.split(StringUtils.defaultString(tranNode.getValue()), ',');
+		final String value = (jurisdictions.length > 0? StringUtils.trimToNull(jurisdictions[0]): null);
+		if(value == null)
+			return;
+
+		final String locale = GEDCOMHelper.findFirstValue(tranNode, "LANG");
+		final boolean present = FLEFRecordHelper.findChildren(place, "name").stream()
+			.anyMatch(name -> value.equals(FLEFRecordHelper.getChildValue(name, "value"))
+				&& Objects.equals(locale, FLEFRecordHelper.getChildValue(name, "locale")));
+		if(present)
+			return;
+
+		final FLEFRecord name = FLEFRecord.createChildWithTag("name")
+			.addChild(FLEFRecord.createChildWithTagAndValue("type", "translated"))
+			.addChild(FLEFRecord.createChildWithTagAndValue("value", value));
+		if(locale != null)
+			name.addChild(FLEFRecord.createChildWithTagAndValue("locale", locale));
+		// the names go first, as in the schema
+		final List<FLEFRecord> names = FLEFRecordHelper.findChildren(place, "name");
+		place.getChildren().add(place.getChildren().indexOf(names.getLast()) + 1, name);
+	}
+
+	private static void addNameVariant(final FLEFRecord name, final String kind, final GEDCOMNode variantNode,
+			final String defaultSystem){
+		if(StringUtils.isBlank(variantNode.getValue()))
+			return;
+
+		final String system = GEDCOMMapper.toTypeToken(GEDCOMHelper.findFirstValue(variantNode, "TYPE"));
+		name.addChild(FLEFRecord.createChildWithTag("variant")
+			.addChild(FLEFRecord.createChildWithTag(kind)
+				.addChild(FLEFRecord.createChildWithTagAndValue("system", (system != null? system: defaultSystem)))
+				.addChild(FLEFRecord.createChildWithTagAndValue("value", variantNode.getValue().trim()))));
+	}
+
+	/**
+	 * Converts GEDCOM coordinates (e.g. {@code N45.65}, {@code W12.2}) into ISO 6709 (e.g. {@code +45.65-012.2/}).
+	 *
+	 * @return	The coordinates, or {@code null} if absent or malformed.
+	 */
+	static String toISO6709(final String latitude, final String longitude){
+		final String lat = toSignedDegrees(latitude, 'N', 'S', 2);
+		final String lon = toSignedDegrees(longitude, 'E', 'W', 3);
+		return (lat != null && lon != null? lat + lon + "/": null);
+	}
+
+	private static String toSignedDegrees(final String value, final char positive, final char negative, final int integerDigits){
+		if(StringUtils.isBlank(value))
+			return null;
+
+		String text = value.trim().toUpperCase(Locale.ROOT);
+		char sign = '+';
+		final char hemisphere = text.charAt(0);
+		if(hemisphere == positive || hemisphere == negative){
+			sign = (hemisphere == negative? '-': '+');
+			text = text.substring(1).trim();
+		}
+		else if(hemisphere == '+' || hemisphere == '-'){
+			sign = hemisphere;
+			text = text.substring(1).trim();
+		}
+		if(!DEGREES_PATTERN.matcher(text).matches())
+			return null;
+
+		final int dot = text.indexOf('.');
+		final String integerPart = (dot >= 0? text.substring(0, dot): text);
+		if(integerPart.length() > integerDigits)
+			return null;
+		return sign + StringUtils.leftPad(integerPart, integerDigits, '0') + (dot >= 0? text.substring(dot): StringUtils.EMPTY);
 	}
 
 	/**

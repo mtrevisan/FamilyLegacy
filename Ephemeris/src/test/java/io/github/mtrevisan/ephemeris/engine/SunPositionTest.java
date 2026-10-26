@@ -37,9 +37,9 @@ class SunPositionTest{
 		final double t = JulianDate.millenniumJ2000Of(2444269.5);
 		final EclipticCoordinates coord = SunPosition.embTrueHeliocentricPosition(t);
 
-		Assertions.assertEquals(3.182657571886453E-5, coord.getLatitude(), 0.000_000_1);
-		Assertions.assertEquals(2.278426072988786, coord.getLongitude(), 0.000_000_1);
-		Assertions.assertEquals(0.9851322735478121, coord.getDistance(), 0.000_000_1);
+		Assertions.assertEquals(3.182657571886453E-5, coord.latitude(), 0.000_000_1);
+		Assertions.assertEquals(2.278426072988786, coord.longitude(), 0.000_000_1);
+		Assertions.assertEquals(0.9851322735478121, coord.distance(), 0.000_000_1);
 	}
 
 	/**
@@ -64,14 +64,14 @@ class SunPositionTest{
 			final EclipticCoordinates coord = SunPosition.embTrueHeliocentricPosition(
 				JulianDate.millenniumJ2000Of(controlValue[0]));
 
-			final double cosLatitude = StrictMath.cos(coord.getLatitude());
+			final double cosLatitude = StrictMath.cos(coord.latitude());
 			final String message = "JD " + controlValue[0];
 			// 1e-10 AU = 15 m
-			Assertions.assertEquals(controlValue[1], coord.getDistance() * cosLatitude * StrictMath.cos(coord.getLongitude()),
+			Assertions.assertEquals(controlValue[1], coord.distance() * cosLatitude * StrictMath.cos(coord.longitude()),
 				1.e-10, message);
-			Assertions.assertEquals(controlValue[2], coord.getDistance() * cosLatitude * StrictMath.sin(coord.getLongitude()),
+			Assertions.assertEquals(controlValue[2], coord.distance() * cosLatitude * StrictMath.sin(coord.longitude()),
 				1.e-10, message);
-			Assertions.assertEquals(controlValue[3], coord.getDistance() * StrictMath.sin(coord.getLatitude()),
+			Assertions.assertEquals(controlValue[3], coord.distance() * StrictMath.sin(coord.latitude()),
 				1.e-10, message);
 		}
 	}

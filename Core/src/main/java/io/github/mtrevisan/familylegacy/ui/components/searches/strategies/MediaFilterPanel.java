@@ -24,7 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.searches.strategies;
 
-import io.github.mtrevisan.familylegacy.io.model.readers.DocumentReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.MediaReader;
 import io.github.mtrevisan.familylegacy.ui.components.searches.RecordFilterPanel;
 import io.github.mtrevisan.familylegacy.ui.components.searches.SearchCriteria;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
@@ -46,16 +46,16 @@ import java.util.function.Consumer;
 /**
  * Filter panel for Document records based on description, mapping projection, and URI.
  */
-public class DocumentFilterPanel extends JPanel implements RecordFilterPanel{
+public class MediaFilterPanel extends JPanel implements RecordFilterPanel{
 
 	private final JTextField descriptionField = new JTextField(20);
-	private final JComboBox<String> mappingCombo = new JComboBox<>(GUIHelper.fillCombo(DocumentReader.MAPPINGS, I18N.t("search.combo.any")));
+	private final JComboBox<String> mappingCombo = new JComboBox<>(GUIHelper.fillCombo(MediaReader.MAPPINGS, I18N.t("search.combo.any")));
 	private final JTextField uriField = new JTextField(20);
 
 	private final Consumer<SearchCriteria> onChanged;
 
 
-	public DocumentFilterPanel(final Consumer<SearchCriteria> onChanged){
+	public MediaFilterPanel(final Consumer<SearchCriteria> onChanged){
 		this.onChanged = onChanged;
 
 		initComponents();
@@ -66,13 +66,13 @@ public class DocumentFilterPanel extends JPanel implements RecordFilterPanel{
 
 	private void initComponents(){
 		setLayout(new MigLayout("wrap 2,gap 5", "[][grow,fill]", "[]"));
-		setBorder(BorderFactory.createTitledBorder(I18N.tf("dialog.search_filter.title", I18N.t("dialog.component.documents"))));
+		setBorder(BorderFactory.createTitledBorder(I18N.tf("dialog.search_filter.title", I18N.t("dialog.component.media"))));
 
-		add(new JLabel(I18N.t("dialog.document.description") + ":"));
+		add(new JLabel(I18N.t("dialog.media.description") + ":"));
 		add(descriptionField, "growx");
-		add(new JLabel(I18N.t("dialog.document.mapping") + ":"));
+		add(new JLabel(I18N.t("dialog.media.mapping") + ":"));
 		add(mappingCombo, "growx");
-		add(new JLabel(I18N.t("dialog.document.uri") + ":"));
+		add(new JLabel(I18N.t("dialog.media.uri") + ":"));
 		add(uriField, "growx");
 	}
 
@@ -110,9 +110,9 @@ public class DocumentFilterPanel extends JPanel implements RecordFilterPanel{
 	@Override
 	public Map<String, String> getFilters(){
 		final Map<String, String> filters = new HashMap<>();
-		filters.put(DocumentReader.TAG_DESCRIPTION, getDescription());
-		filters.put(DocumentReader.TAG_MAPPING, getMapping());
-		filters.put(DocumentReader.TAG_URI, getUri());
+		filters.put(MediaReader.TAG_DESCRIPTION, getDescription());
+		filters.put(MediaReader.TAG_MAPPING, getMapping());
+		filters.put(MediaReader.TAG_URI, getUri());
 		return filters;
 	}
 

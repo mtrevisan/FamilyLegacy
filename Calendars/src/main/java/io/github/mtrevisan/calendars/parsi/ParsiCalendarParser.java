@@ -24,7 +24,7 @@
  */
 package io.github.mtrevisan.calendars.parsi;
 
-import io.github.mtrevisan.calendars.CalendarType;
+import io.github.mtrevisan.calendars.astronomy.CalendarSeason;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
@@ -42,76 +42,74 @@ import java.util.regex.Pattern;
  * - ۲۲ فروردین ۱۳۹۰
  * - 3 Gatha 1385
  * - 1 Fravardin 1390 Kadmi
+ * - 6 Gatha 1385 Fasli
  * </p>
  * <p>
- * The reckoning (Shahenshahi or Kadmi) can follow the year; it defaults to Shahenshahi.
+ * The reckoning (Shahenshahi, Kadmi, or Fasli) can follow the year; it defaults to Shahenshahi.
  * </p>
  */
-// TODO FASLI calendar?
 public final class ParsiCalendarParser{
 
 	private static final Map<String, Integer> MONTHS = new HashMap<>();
 	static{
 		// Month 1: Fravardin / Frawardin
 		MONTHS.put("fravardin", 1);
-		MONTHS.put("frawardin", 1);          // Middle Persian / Pahlavi transliteration
-		MONTHS.put("farvardin", 1);         // Modern Iranian Solar Pahlavi variant
+		MONTHS.put("frawardin", 1);		// Middle Persian / Pahlavi transliteration
+		MONTHS.put("farvardin", 1);		// Modern Iranian Solar Pahlavi variant
 		MONTHS.put("فروردین", 1);
 		MONTHS.put("ફરવરદીન", 1);
 
 		// Month 2: Ardibehest / Ardwahisht
 		MONTHS.put("ardibehest", 2);
 		MONTHS.put("ardibahesht", 2);
-		MONTHS.put("ardwahisht", 2);        // Classical Avestan/Pahlavi linguistic root
+		MONTHS.put("ardwahisht", 2);		// Classical Avestan/Pahlavi linguistic root
 		MONTHS.put("اردیبهشت", 2);
 		MONTHS.put("અર્દિբહેશ્ત", 2);
 
 		// Month 3: Khordad / Horvadat
 		MONTHS.put("khordad", 3);
-		MONTHS.put("xordad", 3);            // Scientific Latin notation variant
-		MONTHS.put("khordad", 3);
+		MONTHS.put("xordad", 3);			// Scientific Latin notation variant
 		MONTHS.put("خرداد", 3);
-		MONTHS.put("ขੋਰદાદ", 3);
-		MONTHS.put("ખોરદાદ", 3);            // Native Gujarati character correction
+		MONTHS.put("ખોરદાદ", 3);
 
 		// Month 4: Tir / Tishtrya
 		MONTHS.put("tir", 4);
-		MONTHS.put("tishtrya", 4);          // Sacred Avestan star-deity name
+		MONTHS.put("tishtrya", 4);			// Sacred Avestan star-deity name
 		MONTHS.put("تیر", 4);
 		MONTHS.put("તીર", 4);
 
 		// Month 5: Amardad / Ameretat (The Immortal Cycle)
 		MONTHS.put("amardad", 5);
-		MONTHS.put("ameretat", 5);          // Exact theological Avestan form
-		MONTHS.put("امرداد", 5);             // Strict traditional Zoroastrian Persian spelling
-		MONTHS.put("مرداد", 5);              // Modern secular Iranian variant (often parsed)
+		MONTHS.put("ameretat", 5);			// Exact theological Avestan form
+		MONTHS.put("امرداد", 5);			// Strict traditional Zoroastrian Persian spelling
+		MONTHS.put("مرداد", 5);				// Modern secular Iranian variant (often parsed)
 		MONTHS.put("અમרદાદ", 5);
 
 		// Month 6: Sharivar / Shahrewar
 		MONTHS.put("sharivar", 6);
 		MONTHS.put("shahrivar", 6);
-		MONTHS.put("shahrewar", 6);         // Middle Persian linguistic spelling
+		MONTHS.put("shahrewar", 6);		// Middle Persian linguistic spelling
 		MONTHS.put("شهریور", 6);
 		MONTHS.put("શહરીવર", 6);
 
 		// Month 7: Meheer / Mithra (The Equinox Turning Point)
 		MONTHS.put("meher", 7);
-		MONTHS.put("mihr", 7);              // Pahlavi standard short notation
+		MONTHS.put("mihr", 7);				// Pahlavi standard short notation
 		MONTHS.put("mehar", 7);
 		MONTHS.put("مهر", 7);
 		MONTHS.put("મેહર", 7);
 
 		// Month 8: Ava / Aban
 		MONTHS.put("ava", 8);
-		MONTHS.put("avan", 8);              // Colloquial Parsi Gujarati suffix format
-		MONTHS.put("aban", 8);              // Iranian continental alternative
+		MONTHS.put("avan", 8);				// Colloquial Parsi Gujarati suffix format
+		MONTHS.put("aban", 8);				// Iranian continental alternative
 		MONTHS.put("آبان", 8);
 		MONTHS.put("આવાં", 8);
 
 		// Month 9: Adar / Atar (The Sacred Fire)
 		MONTHS.put("adar", 9);
-		MONTHS.put("azar", 9);              // Modern Persian phonetic variation
-		MONTHS.put("atar", 9);              // Pure Avestan fire stem
+		MONTHS.put("azar", 9);				// Modern Persian phonetic variation
+		MONTHS.put("atar", 9);				// Pure Avestan fire stem
 		MONTHS.put("آذر", 9);
 		MONTHS.put("આદર", 9);
 
@@ -124,52 +122,52 @@ public final class ParsiCalendarParser{
 
 		// Month 11: Bahman / Vohuman
 		MONTHS.put("bahman", 11);
-		MONTHS.put("vohuman", 11);          // Pahlavi ethical concept term ("Good Mind")
+		MONTHS.put("vohuman", 11);			// Pahlavi ethical concept term ("Good Mind")
 		MONTHS.put("بهمن", 11);
 		MONTHS.put("બહમન", 11);
 
 		// Month 12: Aspandarmad / Spandarmad
 		MONTHS.put("aspandarmad", 12);
 		MONTHS.put("aspandarmard", 12);
-		MONTHS.put("spandarmad", 12);       // Middle Persian standard entry
-		MONTHS.put("esfand", 12);           // Simplified modern Iranian solar variant
+		MONTHS.put("spandarmad", 12);			// Middle Persian standard entry
+		MONTHS.put("esfand", 12);				// Simplified modern Iranian solar variant
 		MONTHS.put("اسفند", 12);
-		MONTHS.put("અસ્પંદારܡદ", 12);
+		MONTHS.put("અસ્પંદારમદ", 12);
 
 		// Month 13: Intercalary Period (The 5 Holy Gatha Days / Muktad Period)
 		MONTHS.put("gatha", 13);
 		MONTHS.put("panje", 13);
 		MONTHS.put("panjah", 13);
-		MONTHS.put("andargah", 13);         // Historical Persian astrological name
+		MONTHS.put("andargah", 13);			// Historical Persian astrological name
 		MONTHS.put("پنجه", 13);
 		MONTHS.put("ગાથા", 13);
-		MONTHS.put("મુક્તાદ", 13);          // Parsi Gujarati colloquial term for festival days (Muktad)
+		MONTHS.put("મુક્તાદ", 13);					// Parsi Gujarati colloquial term for festival days (Muktad)
 
 
 		// --- Autumn Cycle (Padiz / Patiz) ---
-		MONTHS.put("padiz", CalendarType.SEASON_AUTUMN);
-		MONTHS.put("patiz", CalendarType.SEASON_AUTUMN);
-		MONTHS.put("autumn", CalendarType.SEASON_AUTUMN);
-		MONTHS.put("ayathrem", CalendarType.SEASON_AUTUMN);       // CORRECTED: Autumn home-coming harvest feast
-		MONTHS.put("paitishahya", CalendarType.SEASON_AUTUMN);    // CORRECTED: Late Summer / Early Autumn harvest feast
+		MONTHS.put("padiz", CalendarSeason.SEASON_AUTUMN);
+		MONTHS.put("patiz", CalendarSeason.SEASON_AUTUMN);
+		MONTHS.put("autumn", CalendarSeason.SEASON_AUTUMN);
+		MONTHS.put("ayathrem", CalendarSeason.SEASON_AUTUMN);
+		MONTHS.put("paitishahya", CalendarSeason.SEASON_AUTUMN);
 
 		// --- Winter Cycle (Zayan / Vayan) ---
-		MONTHS.put("zayan", CalendarType.SEASON_WINTER);
-		MONTHS.put("vayan", CalendarType.SEASON_WINTER);
-		MONTHS.put("winter", CalendarType.SEASON_WINTER);
-		MONTHS.put("maidhyairya", CalendarType.SEASON_WINTER);    // CORRECTED: Mid-Winter Solstice Gahambar flag
+		MONTHS.put("zayan", CalendarSeason.SEASON_WINTER);
+		MONTHS.put("vayan", CalendarSeason.SEASON_WINTER);
+		MONTHS.put("winter", CalendarSeason.SEASON_WINTER);
+		MONTHS.put("maidhyairya", CalendarSeason.SEASON_WINTER);
 
 		// --- Spring Cycle (Vahar / Wahar) ---
-		MONTHS.put("vahar", CalendarType.SEASON_SPRING);
-		MONTHS.put("wahar", CalendarType.SEASON_SPRING);
-		MONTHS.put("spring", CalendarType.SEASON_SPRING);
-		MONTHS.put("maidyozarem", CalendarType.SEASON_SPRING);    // CORRECTED: Mid-Spring sowing festival token
-		MONTHS.put("hamaspathmaedaya", CalendarType.SEASON_SPRING); // Year-end/Pre-Equinox transitional festival
+		MONTHS.put("vahar", CalendarSeason.SEASON_SPRING);
+		MONTHS.put("wahar", CalendarSeason.SEASON_SPRING);
+		MONTHS.put("spring", CalendarSeason.SEASON_SPRING);
+		MONTHS.put("maidyozarem", CalendarSeason.SEASON_SPRING);
+		MONTHS.put("hamaspathmaedaya", CalendarSeason.SEASON_SPRING);	// Year-end/Pre-Equinox transitional festival
 
 		// --- Summer Cycle (Hamin) ---
-		MONTHS.put("hamin", CalendarType.SEASON_SUMMER);
-		MONTHS.put("summer", CalendarType.SEASON_SUMMER);
-		MONTHS.put("maidhyoshema", CalendarType.SEASON_SUMMER);   // Mid-Summer Solstice harvest festival token
+		MONTHS.put("hamin", CalendarSeason.SEASON_SUMMER);
+		MONTHS.put("summer", CalendarSeason.SEASON_SUMMER);
+		MONTHS.put("maidhyoshema", CalendarSeason.SEASON_SUMMER);	// Mid-Summer Solstice harvest festival token
 	}
 
 	private static final String ZERO_WIDTH_NON_JOINER = "‌";
@@ -188,6 +186,11 @@ public final class ParsiCalendarParser{
 		VARIANTS.put("kadimi", ParsiVariant.KADMI);
 		VARIANTS.put("qadimi", ParsiVariant.KADMI);
 		VARIANTS.put("qadmi", ParsiVariant.KADMI);
+
+		// Fasli Variant Setup (Seasonal calendar, the year starting on 21 March)
+		VARIANTS.put("fasli", ParsiVariant.FASLI);
+		VARIANTS.put("fasili", ParsiVariant.FASLI);
+		VARIANTS.put("bastani", ParsiVariant.FASLI);
 	}
 
 	// Adaptive pattern supporting both standalone seasonal notations ("Hamin 1320")
@@ -242,8 +245,10 @@ public final class ParsiCalendarParser{
 		// Validation boundaries
 		if(dayGroup != null && month > 0 && month <= 12 && (day < 1 || day > 30))
 			throw new IllegalArgumentException("Standard Parsi months must have exactly 30 days.");
-		if(dayGroup != null && month == 13 && (day < 1 || day > 5))
-			throw new IllegalArgumentException("Gatha intercalary period must be between 1 and 5 days.");
+		// The sixth Gatha day (Avardad-sal-Gah) of the Fasli leap years is checked by the calendar
+		final int gathaDays = (variant == ParsiVariant.FASLI? 6: 5);
+		if(dayGroup != null && month == 13 && (day < 1 || day > gathaDays))
+			throw new IllegalArgumentException("Gatha intercalary period must be between 1 and " + gathaDays + " days.");
 
 		return new ParsiDateInput(year, month, day, variant);
 	}

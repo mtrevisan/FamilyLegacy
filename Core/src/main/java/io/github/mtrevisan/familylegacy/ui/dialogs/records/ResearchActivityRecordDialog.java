@@ -36,7 +36,6 @@ import io.github.mtrevisan.familylegacy.ui.components.fields.EntityField;
 import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.ConclusionHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.CulturalNormHandler;
-import io.github.mtrevisan.familylegacy.ui.handlers.DocumentHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventParticipationHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.GroupAttributeHandler;
@@ -45,6 +44,7 @@ import io.github.mtrevisan.familylegacy.ui.handlers.HistoricEventHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IdentityHypothesisHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualAttributeHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.MediaHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.PlaceRelationshipHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RelationshipHandler;
@@ -140,7 +140,7 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 			.withHandlerTypes(IndividualHandler.class, GroupHandler.class, EventHandler.class,
 				EventParticipationHandler.class, RelationshipHandler.class, IndividualAttributeHandler.class,
 				GroupAttributeHandler.class, PlaceHandler.class, PlaceRelationshipHandler.class, RepositoryHandler.class,
-				SourceHandler.class, DocumentHandler.class, ConclusionHandler.class, IdentityHypothesisHandler.class,
+				SourceHandler.class, MediaHandler.class, ConclusionHandler.class, IdentityHypothesisHandler.class,
 				CulturalNormHandler.class, HistoricEventHandler.class);
 		searchScopeTypeCombo = new BoundComboBox<>(ResearchActivityReader.TAG_SEARCH_SCOPE_TYPE, GUIHelper.fillCombo(ResearchActivityReader.SEARCH_SCOPES, null));
 		searchScopeTypeCombo.setI18NPrefix("enum.research_activity.search_scope");

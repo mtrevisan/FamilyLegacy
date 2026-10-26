@@ -51,7 +51,7 @@ import java.util.List;
  *     audio, book, card, electronic, fiche, film, magazine, manuscript, map, newspaper, photo, tombstone, video
  *   } | Text
  *   repository*: RepositoryCitation
- *   document*: Xref&lt;DocumentRecord&gt;   // a document reference to the auxiliary data to be linked to this context
+ *   media*: Xref&lt;MediaRecord&gt;        // the media (scans, photographs, recordings, ...) of this source
  *   note*: NoteStructure              // may contain information to identify a book (ISBN code, ...), a digital archive (website name, creator, ...), a microfilm (record title, record file, collection, film UUID, roll number, ...), etc.
  *   privacy?: PrivacyStructure
  *   audit: AuditStructure
@@ -73,7 +73,7 @@ public final class SourceReader{
 	public static final String TAG_PLACE = "place";
 	public static final String TAG_MEDIA_TYPE = "media_type";
 	public static final String TAG_REPOSITORY = "repository";
-	public static final String TAG_DOCUMENT = "document";
+	public static final String TAG_MEDIA = "media";
 	public static final String TAG_NOTE = "note";
 	public static final String TAG_PRIVACY = "privacy";
 	public static final String TAG_AUDIT = "audit";
@@ -108,7 +108,7 @@ public final class SourceReader{
 	}
 
 	public static String extractDocument(final FLEFRecord record){
-		return FLEFRecordHelper.getChildValue(record, TAG_DOCUMENT);
+		return FLEFRecordHelper.getChildValue(record, TAG_MEDIA);
 	}
 
 	public static String extractAuthor(final FLEFRecord record){

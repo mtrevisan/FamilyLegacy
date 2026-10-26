@@ -38,22 +38,24 @@ import java.util.List;
 
 public final class NutationReader{
 
-	public static final class NutationTerm{
-		private static final double UAS_TO_RAD = StrictMath.PI / (180. * JulianDate.SECONDS_PER_HOUR * 1_000_000.);
+	/**
+	 * @param j         0 = constant term, 1 = linear term with time
+	 * @param arguments l, l', F, D, Om, L_Me, L_Ve, L_E, L_Ma, L_J, L_Sa, L_U, L_Ne, p_A
+	 * @param bSin      B"_i (sin component)
+	 * @param bCos      B_i (cos component)
+	 */
+	public record NutationTerm(int j, int[] arguments, double bSin, double bCos){
+			private static final double UAS_TO_RAD = StrictMath.PI / (180. * JulianDate.SECONDS_PER_HOUR * 1_000_000.);
 
-		public final int j; // 0 = constant term, 1 = linear term with time
-		public final int[] arguments; // l, l', F, D, Om, L_Me, L_Ve, L_E, L_Ma, L_J, L_Sa, L_U, L_Ne, p_A
-		public final double bSin; // B"_i (sin component)
-		public final double bCos; // B_i (cos component)
+			public NutationTerm(final int j, final int[] arguments, final double bSin, final double bCos){
+				this.j = j;
+				this.arguments = arguments;
 
-		public NutationTerm(final int j, final int[] arguments, final double bSin, final double bCos){
-			this.j = j;
-			this.arguments = arguments;
+				// Convert microarcseconds (uas) to radians
+				this.bSin = bSin * UAS_TO_RAD;
+				this.bCos = bCos * UAS_TO_RAD;
+			}
 
-			// Convert microarcseconds (uas) to radians
-			this.bSin = bSin * UAS_TO_RAD;
-			this.bCos = bCos * UAS_TO_RAD;
-		}
 	}
 
 

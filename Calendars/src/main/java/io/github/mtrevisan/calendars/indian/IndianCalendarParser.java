@@ -1,3 +1,27 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
 package io.github.mtrevisan.calendars.indian;
 
 import org.apache.commons.lang3.StringUtils;
@@ -26,64 +50,64 @@ public final class IndianCalendarParser{
 	private static final Map<String, Integer> MONTHS = new HashMap<>();
 	static{
 		// Month 1: Chaitra (Starts on Vernal Equinox - March 22 / March 21 in leap years)
-		MONTHS.put("चैत्र", 1);             // Native Devanagari script
-		MONTHS.put("chaitra", 1);           // Classical Sanskrit transliteration
-		MONTHS.put("caitra", 1);            // Standard ISO transliteration
-		MONTHS.put("chithirai", 1);         // Tamil regional phonetic variant
-		MONTHS.put("choitro", 1);           // Bengali regional phonetic variant
+		MONTHS.put("चैत्र", 1);						// Native Devanagari script
+		MONTHS.put("chaitra", 1);				// Classical Sanskrit transliteration
+		MONTHS.put("caitra", 1);				// Standard ISO transliteration
+		MONTHS.put("chithirai", 1);			// Tamil regional phonetic variant
+		MONTHS.put("choitro", 1);				// Bengali regional phonetic variant
 
 		// Month 2: Vaisakha
 		MONTHS.put("वैशाख", 2);
 		MONTHS.put("vaisakha", 2);
 		MONTHS.put("vaishakha", 2);
-		MONTHS.put("boishak", 2);           // Highly common Bengali/Commercial variant
-		MONTHS.put("vaigasi", 2);           // Tamil regional alignment variant
+		MONTHS.put("boishak", 2);				// Highly common Bengali/Commercial variant
+		MONTHS.put("vaigasi", 2);				// Tamil regional alignment variant
 
 		// Month 3: Jyaistha
 		MONTHS.put("ज्येष्ठ", 3);
 		MONTHS.put("jyaistha", 3);
 		MONTHS.put("jyaist'ha", 3);
 		MONTHS.put("jaishtha", 3);
-		MONTHS.put("jeth", 3);              // Common Hindi vernacular short form
+		MONTHS.put("jeth", 3);					// Common Hindi vernacular short form
 
 		// Month 4: Asadha
 		MONTHS.put("आषाढ़", 4);
 		MONTHS.put("asadha", 4);
 		MONTHS.put("ashadha", 4);
-		MONTHS.put("aashadh", 4);           // Phonetic long-vowel variant
+		MONTHS.put("aashadh", 4);				// Phonetic long-vowel variant
 
 		// Month 5: Shravana
 		MONTHS.put("श्रावण", 5);
 		MONTHS.put("shravana", 5);
 		MONTHS.put("sravana", 5);
-		MONTHS.put("sawan", 5);             // Vernacular Hindi/Prakrit form
-		MONTHS.put("shrabon", 5);           // Bengali regional variant
+		MONTHS.put("sawan", 5);					// Vernacular Hindi/Prakrit form
+		MONTHS.put("shrabon", 5);				// Bengali regional variant
 
 		// Month 6: Bhadra / Bhadrapada
 		MONTHS.put("भाद्रपद", 6);
 		MONTHS.put("भाโด", 6);
 		MONTHS.put("bhadra", 6);
 		MONTHS.put("bhadrapada", 6);
-		MONTHS.put("bhadoo", 6);            // Vernacular short form
+		MONTHS.put("bhadoo", 6);				// Vernacular short form
 
 		// Month 7: Asvina
 		MONTHS.put("आश्विन", 7);
 		MONTHS.put("asvina", 7);
-		MONTHS.put("ashwin", 7);            // Most common colloquial spelling
+		MONTHS.put("ashwin", 7);				// Most common colloquial spelling
 		MONTHS.put("asvin", 7);
 
 		// Month 8: Kartika
 		MONTHS.put("कार्तिक", 8);
 		MONTHS.put("kartika", 8);
-		MONTHS.put("kartik", 8);            // Standard colloquial short form
+		MONTHS.put("kartik", 8);				// Standard colloquial short form
 
 		// Month 9: Agrahayana / Margashirsha
 		MONTHS.put("मार्गशीर्ष", 9);
-		MONTHS.put("अग्रहायण", 9);           // Alternate traditional Sanskrit name
+		MONTHS.put("अग्रहायण", 9);				// Alternate traditional Sanskrit name
 		MONTHS.put("agrahayana", 9);
 		MONTHS.put("margashirsha", 9);
 		MONTHS.put("margsirsa", 9);
-		MONTHS.put("margsir", 9);           // Common short form
+		MONTHS.put("margsir", 9);				// Common short form
 
 		// Month 10: Pausa
 		MONTHS.put("पौष", 10);
@@ -100,32 +124,32 @@ public final class IndianCalendarParser{
 		// Month 12: Phalguna
 		MONTHS.put("फाल्गुन", 12);
 		MONTHS.put("phalguna", 12);
-		MONTHS.put("falgun", 12);           // Highly common simplified phonetic format
+		MONTHS.put("falgun", 12);				// Highly common simplified phonetic format
 
 
 		// 1. Vasanta (Spring Cycle - Centered around Vernal Equinox)
-		MONTHS.put("वसन्त", RITU_VASANTA);    // Native Devanagari script
+		MONTHS.put("वसन्त", RITU_VASANTA);	// Native Devanagari script
 		MONTHS.put("vasanta", RITU_VASANTA);
 		MONTHS.put("basant", RITU_VASANTA);
 
 		// 2. Grishma (Summer Cycle - Centered around Estival Solstice)
-		MONTHS.put("ग्रीष्म", RITU_GRISHMA);   // Native Devanagari script
+		MONTHS.put("ग्रीष्म", RITU_GRISHMA);		// Native Devanagari script
 		MONTHS.put("grishma", RITU_GRISHMA);
 
 		// 3. Varsha (Monsoon Cycle - Aligned to mid/late Summer rainy transition parameters)
-		MONTHS.put("वर्षा", RITU_VARSHA);     // Native Devanagari script
+		MONTHS.put("वर्षा", RITU_VARSHA);		// Native Devanagari script
 		MONTHS.put("varsha", RITU_VARSHA);
 
 		// 4. Sharad (Autumn Cycle - Centered around Autumnal Equinox)
-		MONTHS.put("शरद", RITU_SHARAD);     // Native Devanagari script
+		MONTHS.put("शरद", RITU_SHARAD);		// Native Devanagari script
 		MONTHS.put("sharad", RITU_SHARAD);
 
 		// 5. Hemanta (Pre-Winter Cycle - Late Autumn / Early Winter transition)
-		MONTHS.put("हेमन्त", RITU_HEMANTA);    // Native Devanagari script
+		MONTHS.put("हेमन्त", RITU_HEMANTA);	// Native Devanagari script
 		MONTHS.put("hemanta", RITU_HEMANTA);
 
 		// 6. Shishira (Winter Cycle - Centered around Hibernal Solstice)
-		MONTHS.put("शिशिर", RITU_SHISHIRA);    // Native Devanagari script
+		MONTHS.put("शिशिर", RITU_SHISHIRA);	// Native Devanagari script
 		MONTHS.put("shishira", RITU_SHISHIRA);
 		MONTHS.put("sisira", RITU_SHISHIRA);
 	}

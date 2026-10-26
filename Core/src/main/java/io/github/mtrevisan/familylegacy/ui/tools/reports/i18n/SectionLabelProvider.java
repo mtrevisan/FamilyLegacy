@@ -251,6 +251,10 @@ public final class SectionLabelProvider{
 		return labels.getString("EXTRACT_CROP");
 	}
 
+	public String stanceContradicts(){
+		return labels.getString("STANCE_CONTRADICTS");
+	}
+
 	public String sourceRepositoryNote(){
 		return labels.getString("SOURCE_REPOSITORY_NOTE");
 	}

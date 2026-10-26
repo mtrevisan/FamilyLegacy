@@ -28,12 +28,12 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.components.searches.strategies.ConclusionSearchStrategy;
 import io.github.mtrevisan.familylegacy.ui.components.searches.strategies.CulturalNormSearchStrategy;
-import io.github.mtrevisan.familylegacy.ui.components.searches.strategies.DocumentSearchStrategy;
 import io.github.mtrevisan.familylegacy.ui.components.searches.strategies.EventSearchStrategy;
 import io.github.mtrevisan.familylegacy.ui.components.searches.strategies.GroupSearchStrategy;
 import io.github.mtrevisan.familylegacy.ui.components.searches.strategies.HistoricEventSearchStrategy;
 import io.github.mtrevisan.familylegacy.ui.components.searches.strategies.IdentityHypothesisSearchStrategy;
 import io.github.mtrevisan.familylegacy.ui.components.searches.strategies.IndividualSearchStrategy;
+import io.github.mtrevisan.familylegacy.ui.components.searches.strategies.MediaSearchStrategy;
 import io.github.mtrevisan.familylegacy.ui.components.searches.strategies.PlaceRelationshipSearchStrategy;
 import io.github.mtrevisan.familylegacy.ui.components.searches.strategies.PlaceSearchStrategy;
 import io.github.mtrevisan.familylegacy.ui.components.searches.strategies.RelationshipSearchStrategy;
@@ -44,13 +44,13 @@ import io.github.mtrevisan.familylegacy.ui.components.searches.strategies.Resear
 import io.github.mtrevisan.familylegacy.ui.components.searches.strategies.SourceSearchStrategy;
 import io.github.mtrevisan.familylegacy.ui.handlers.ConclusionHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.CulturalNormHandler;
-import io.github.mtrevisan.familylegacy.ui.handlers.DocumentHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.HistoricEventHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IdentityHypothesisHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.MediaHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.PlaceRelationshipHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
@@ -97,7 +97,7 @@ public class SearchService{
 	static{
 		REGISTRY.put(ConclusionHandler.class, new ConclusionSearchStrategy());
 		REGISTRY.put(CulturalNormHandler.class, new CulturalNormSearchStrategy());
-		REGISTRY.put(DocumentHandler.class, new DocumentSearchStrategy());
+		REGISTRY.put(MediaHandler.class, new MediaSearchStrategy());
 		REGISTRY.put(EventHandler.class, new EventSearchStrategy());
 		REGISTRY.put(GroupHandler.class, new GroupSearchStrategy());
 		REGISTRY.put(HistoricEventHandler.class, new HistoricEventSearchStrategy());

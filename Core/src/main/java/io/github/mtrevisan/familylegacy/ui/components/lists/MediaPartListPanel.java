@@ -28,7 +28,7 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.io.model.readers.CropReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.DocumentReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.MediaReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.ui.bindings.BindingsHelper;
@@ -37,7 +37,7 @@ import io.github.mtrevisan.familylegacy.ui.components.PageInputDialog;
 import io.github.mtrevisan.familylegacy.ui.components.PreferredImagePanel;
 import io.github.mtrevisan.familylegacy.ui.components.TimeRangeDialog;
 import io.github.mtrevisan.familylegacy.ui.components.searches.RecordSelectionDialog;
-import io.github.mtrevisan.familylegacy.ui.handlers.DocumentHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.MediaHandler;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 
@@ -52,7 +52,7 @@ import java.util.List;
 /**
  * Panel for managing document parts with image cropping, page, and time range functionality.
  */
-public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
+public class MediaPartListPanel extends AbstractListPanel<FLEFRecord>{
 
 	public static final String EXTENSION_PDF = ".pdf";
 
@@ -63,10 +63,10 @@ public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
 	private final PageInputDialog pageDialog;
 	private final TimeRangeDialog timeRangeDialog;
 
-	private final DocumentHandler documentHandler = DocumentHandler.getInstance();
+	private final MediaHandler documentHandler = MediaHandler.getInstance();
 
 
-	public DocumentPartListPanel(final String path, final Window parent, final String panelTitle, final FLEFModel model){
+	public MediaPartListPanel(final String path, final Window parent, final String panelTitle, final FLEFModel model){
 		super(parent, panelTitle, model);
 
 		this.path = path;
@@ -105,13 +105,13 @@ public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
 			return;
 
 		final FLEFRecord documentPart = listModel.get(itemIndex);
-		final String documentId = FLEFRecordHelper.getChildValue(documentPart, SourceReader.TAG_DOCUMENT);
+		final String documentId = FLEFRecordHelper.getChildValue(documentPart, SourceReader.TAG_MEDIA);
 		final FLEFRecord document = model.getRecordById(documentId);
 
 		if(document == null)
 			return;
 
-		final String uri = FLEFRecordHelper.getChildValue(document, DocumentReader.TAG_URI);
+		final String uri = FLEFRecordHelper.getChildValue(document, MediaReader.TAG_URI);
 
 		if(isPagedDocument(uri)){
 			final Integer currentPage = parseInteger(FLEFRecordHelper.getChildValue(documentPart, SourceCitationReader.TAG_PAGE));
@@ -162,7 +162,7 @@ public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
 	@Override
 	protected String getDisplayText(final FLEFRecord documentPart){
 		if(documentPart != null){
-			final String documentId = FLEFRecordHelper.getChildValue(documentPart, SourceReader.TAG_DOCUMENT);
+			final String documentId = FLEFRecordHelper.getChildValue(documentPart, SourceReader.TAG_MEDIA);
 			if(documentId != null){
 				final FLEFRecord doc = model.getRecordById(documentId);
 				if(doc != null){
@@ -195,11 +195,11 @@ public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
 			(record, handler) -> {
 				final FLEFRecord document = model.getRecordById(record.getId());
 				if(document != null){
-					// Wrap the document in a document_part structure as required by the FLEF protocol
-					final FLEFRecord documentPart = FLEFRecord.createChildWithTag(SourceCitationReader.TAG_DOCUMENT_PART);
-					documentPart.addChild(FLEFRecord.createChildWithTagAndValue(SourceReader.TAG_DOCUMENT, document.getId()));
+					// Wrap the document in a media_part structure as required by the FLEF protocol
+					final FLEFRecord documentPart = FLEFRecord.createChildWithTag(SourceCitationReader.TAG_MEDIA_PART);
+					documentPart.addChild(FLEFRecord.createChildWithTagAndValue(SourceReader.TAG_MEDIA, document.getId()));
 
-					final String uri = FLEFRecordHelper.getChildValue(document, DocumentReader.TAG_URI);
+					final String uri = FLEFRecordHelper.getChildValue(document, MediaReader.TAG_URI);
 
 					// Prompt the user with the correct dialog based on the file type
 					if(isPagedDocument(uri)){
@@ -237,7 +237,7 @@ public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
 					result[0] = documentPart;
 				}
 			},
-			DocumentHandler.class);
+			MediaHandler.class);
 		dialog.setVisible(true);
 
 		return result[0];
@@ -284,7 +284,7 @@ public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
 
 	private void updateCrop(final FLEFRecord documentPart, final Rectangle documentCropRect){
 		if(documentCropRect != null && !documentCropRect.isEmpty()){
-			// Correctly save the crop under the document_part structure
+			// Correctly save the crop under the media_part structure
 			final FLEFRecord crop = FLEFRecordHelper.getOrCreateTargetNode(documentPart, PreferredImagePanel.TAG_CROP);
 			FLEFRecordHelper.updateChildValue(crop, CropReader.TAG_X, String.valueOf(documentCropRect.x));
 			FLEFRecordHelper.updateChildValue(crop, CropReader.TAG_Y, String.valueOf(documentCropRect.y));
@@ -311,7 +311,7 @@ public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
 		}
 
 		// Resolve the underlying document to edit its properties
-		final String documentId = FLEFRecordHelper.getChildValue(record, SourceReader.TAG_DOCUMENT);
+		final String documentId = FLEFRecordHelper.getChildValue(record, SourceReader.TAG_MEDIA);
 		final FLEFRecord document = (documentId != null ? model.getRecordById(documentId) : record);
 
 		if(document != null){
@@ -319,13 +319,13 @@ public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
 			dialog.setVisible(true);
 		}
 
-		// Return the same document_part structure (it was updated in place)
+		// Return the same media_part structure (it was updated in place)
 		return record;
 	}
 
 	/**
 	 * Loads document parts from the given record.
-	 * Extracts the actual document_part structures, which hold the document reference
+	 * Extracts the actual media_part structures, which hold the document reference
 	 * and the associated crop/page/timing data.
 	 *
 	 * @param record	the record containing the document parts
@@ -344,7 +344,7 @@ public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
 
 	/**
 	 * Saves document part structures to the given record.
-	 * Appends the document_part structures directly, as they already contain
+	 * Appends the media_part structures directly, as they already contain
 	 * the document references and their crop data.
 	 *
 	 * @param record	the record to save to

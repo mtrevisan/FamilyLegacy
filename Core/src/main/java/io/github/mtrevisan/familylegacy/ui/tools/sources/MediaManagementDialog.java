@@ -26,9 +26,9 @@ package io.github.mtrevisan.familylegacy.ui.tools.sources;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.readers.DocumentReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.MediaReader;
 import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
-import io.github.mtrevisan.familylegacy.ui.handlers.DocumentHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.MediaHandler;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolDialogs;
@@ -69,7 +69,7 @@ import java.util.Map;
 
 
 /**
- * Modal dialog that lists every {@code DocumentRecord}, shows a
+ * Modal dialog that lists every {@code MediaRecord}, shows a
  * thumbnail preview of the selected document, and allows the user to
  * create, edit, and delete documents.
  * <p>
@@ -79,7 +79,7 @@ import java.util.Map;
  * placeholder instead. This keeps the dialog responsive and avoids
  * network access from the EDT.
  */
-public final class DocumentManagementDialog extends JDialog{
+public final class MediaManagementDialog extends JDialog{
 
 	private static final int PREVIEW_WIDTH = 360;
 	private static final int PREVIEW_HEIGHT = 360;
@@ -93,7 +93,7 @@ public final class DocumentManagementDialog extends JDialog{
 	private final JLabel previewLabel = new JLabel("Select a document to preview", JLabel.CENTER);
 
 
-	public DocumentManagementDialog(final ToolContext context){
+	public MediaManagementDialog(final ToolContext context){
 		super(context.owner(), "Manage Documents", ModalityType.APPLICATION_MODAL);
 
 		this.context = context;
@@ -164,7 +164,7 @@ public final class DocumentManagementDialog extends JDialog{
 		});
 
 		final JScrollPane tableScroll = new JScrollPane(table);
-		tableScroll.setBorder(BorderFactory.createTitledBorder("Documents"));
+		tableScroll.setBorder(BorderFactory.createTitledBorder("Media"));
 
 		previewLabel.setPreferredSize(new Dimension(PREVIEW_WIDTH, PREVIEW_HEIGHT));
 		previewLabel.setBorder(BorderFactory.createTitledBorder("Preview"));
@@ -301,7 +301,7 @@ public final class DocumentManagementDialog extends JDialog{
 	}
 
 	private void openEditor(final FLEFRecord document){
-		final DocumentHandler handler = DocumentHandler.getInstance();
+		final MediaHandler handler = MediaHandler.getInstance();
 		final BaseRecordDialog dialog;
 		final FLEFModel model = context.model();
 		if(document == null)
@@ -320,8 +320,8 @@ public final class DocumentManagementDialog extends JDialog{
 			return;
 
 		final int confirm = JOptionPane.showConfirmDialog(this,
-			I18N.tf("confirmation.delete.document.message", DocumentReader.extractDescription(document)),
-			I18N.t("confirmation.delete.document.title"),
+			I18N.tf("confirmation.delete.media.message", MediaReader.extractDescription(document)),
+			I18N.t("confirmation.delete.media.title"),
 			JOptionPane.YES_NO_OPTION,
 			JOptionPane.WARNING_MESSAGE);
 		if(confirm != JOptionPane.YES_OPTION)

@@ -42,6 +42,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.NoteReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PrivacyReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchQuestionReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.names.Name;
 import io.github.mtrevisan.familylegacy.io.model.readers.names.NameAnatomyService;
@@ -436,7 +437,10 @@ public final class IndividualDossierService{
 		final List<FLEFRecord> citations = FLEFRecordHelper.findChildren(parent, TAG_SOURCE);
 		for(final FLEFRecord citation : citations){
 			final String sourceId = extractRef(citation, TAG_SOURCE);
-			if(sourceId == null || !seenSourceIds.add(sourceId))
+			//the same source may both support and contradict
+			final boolean contradicting = SourceCitationReader.isContradicting(citation);
+			if(sourceId == null
+					|| !seenSourceIds.add(sourceId + (contradicting? "|" + SourceCitationReader.STANCE_CONTRADICTS: StringUtils.EMPTY)))
 				continue;
 
 			final FLEFRecord source = model.getRecordById(sourceId);
@@ -445,7 +449,7 @@ public final class IndividualDossierService{
 
 			final String title = resolveSourceTitle(source);
 			final String locator = FLEFRecordHelper.getChildValue(citation, TAG_LOCATOR);
-			final String label = origin + " source";
+			final String label = origin + (contradicting? " source (contradicts)": " source");
 			final String subtitle = (StringUtils.isNotEmpty(locator)
 				? "locator: " + locator
 				: StringUtils.EMPTY);
@@ -457,15 +461,9 @@ public final class IndividualDossierService{
 	}
 
 	private static String resolveSourceTitle(final FLEFRecord source){
-		final FLEFRecord titleStruct = FLEFRecordHelper.findChild(source, SourceReader.TAG_TITLE);
-		if(titleStruct != null){
-			final String value = FLEFRecordHelper.getChildValue(titleStruct, NameReader.TAG_VALUE);
-			if(StringUtils.isNotEmpty(value))
-				return value;
-			final String direct = titleStruct.getValue();
-			if(StringUtils.isNotEmpty(direct))
-				return direct;
-		}
+		final String value = SourceReader.extractPrimaryTitle(source);
+		if(StringUtils.isNotEmpty(value))
+			return value;
 		final String id = source.getId();
 		return (id != null? id: "?");
 	}

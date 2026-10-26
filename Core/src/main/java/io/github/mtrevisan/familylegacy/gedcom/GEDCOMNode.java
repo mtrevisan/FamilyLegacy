@@ -37,7 +37,7 @@ import java.util.List;
 public class GEDCOMNode{
 
 	private final int level;
-	private final String tag;
+	private String tag;
 	private String value;
 	private String xrefId;    // e.g., @I123@, only for level 0 records
 	private final List<GEDCOMNode> children = new ArrayList<>();
@@ -55,6 +55,10 @@ public class GEDCOMNode{
 
 	public String getTag(){
 		return tag;
+	}
+
+	public void setTag(String tag){
+		this.tag = tag;
 	}
 
 	public String getValue(){

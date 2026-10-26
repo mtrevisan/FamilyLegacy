@@ -33,6 +33,7 @@ import io.github.mtrevisan.familylegacy.io.grammar.contraints.EqualTypeConstrain
 import io.github.mtrevisan.familylegacy.io.grammar.contraints.InConstraint;
 import io.github.mtrevisan.familylegacy.io.grammar.contraints.MemberOfConstraint;
 import io.github.mtrevisan.familylegacy.io.grammar.contraints.OneOfConstraint;
+import io.github.mtrevisan.familylegacy.io.grammar.contraints.OnlyIfInConstraint;
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.AlternationType;
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.Cardinality;
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.EnumType;
@@ -79,6 +80,7 @@ import java.util.Map;
  *               | 'require' 'count' '(' fieldRef ')' '==' INTEGER
  *               | 'require' 'type' '(' fieldRef ')' '==' 'type' '(' fieldRef ')'
  *               | 'require' 'if' IDENT '==' IDENT ':' fieldRefList
+ *               | 'require' fieldRef 'only' 'if' fieldRef 'in' '(' fieldRefList ')'
  *               | 'require' fieldRef 'in' IDENT
  *               | 'require' fieldRef 'member_of' fieldRef
  *               | 'require' fieldRef ('!=' | '==' | '>' | '>=' | '<' | '<=') fieldRef
@@ -129,6 +131,7 @@ public final class FLEFGrammarParser{
 	private static final String TAG_COUNT = "count";
 	private static final String TAG_TYPE_FN = "type";
 	private static final String TAG_IF = "if";
+	private static final String TAG_ONLY = "only";
 	private static final String TAG_IN = "in";
 	private static final String TAG_MEMBER_OF = "member_of";
 	private static final String TAG_XREF = "Xref";
@@ -573,6 +576,20 @@ public final class FLEFGrammarParser{
 
 		// require field in container
 		final String firstToken = parseFieldReference();
+
+		// require field only if conditionField in (value, ...)
+		if(peekIs(TAG_ONLY)){
+			next();
+
+			expect(TAG_IF);
+			final String conditionField = parseFieldReference();
+			expect(TAG_IN);
+			expect(TAG_OPEN_PARENTHESIS);
+			final List<String> allowedValues = parseFieldRefListUntil(TAG_CLOSE_PARENTHESIS);
+			expect(TAG_CLOSE_PARENTHESIS);
+			return new OnlyIfInConstraint(firstToken, conditionField, allowedValues);
+		}
+
 		if(peekIs(TAG_IN)){
 			next();
 			final String container = next();
@@ -596,7 +613,7 @@ public final class FLEFGrammarParser{
 			return new ComparisonConstraint(left, op, right);
 		}
 
-		throw new FLEFGrammarParseException("Expected 'one_of', 'at_least_one', 'count', 'if', 'in', 'member_of', or comparison after 'require', found '" + peek() + "'",
+		throw new FLEFGrammarParseException("Expected 'one_of', 'at_least_one', 'count', 'if', 'only', 'in', 'member_of', or comparison after 'require', found '" + peek() + "'",
 			(peekToken() != null? peekToken().line(): 0));
 	}
 

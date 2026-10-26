@@ -26,7 +26,7 @@ package io.github.mtrevisan.familylegacy.ui.tools.reports;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.io.model.readers.DocumentReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.MediaReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
@@ -197,7 +197,7 @@ final class SourcesSection implements SectionBuilder{
 	/* ----- Documents ------------------------------------------------------- */
 
 	private void appendDocuments(final List<ReportSection> out, final FLEFRecord src){
-		final List<FLEFRecord> docRefs = ctx.visibleChildren(src, SourceReader.TAG_DOCUMENT);
+		final List<FLEFRecord> docRefs = ctx.visibleChildren(src, SourceReader.TAG_MEDIA);
 		if(docRefs.isEmpty())
 			return;
 
@@ -221,9 +221,9 @@ final class SourcesSection implements SectionBuilder{
 		if(doc == null)
 			return ReportFormatters.escape(docId);
 
-		final String uri = FLEFRecordHelper.getChildValue(doc, DocumentReader.TAG_URI);
-		final String desc = FLEFRecordHelper.getChildValue(doc, DocumentReader.TAG_DESCRIPTION);
-		final String mapping = FLEFRecordHelper.getChildValue(doc, DocumentReader.TAG_MAPPING);
+		final String uri = FLEFRecordHelper.getChildValue(doc, MediaReader.TAG_URI);
+		final String desc = FLEFRecordHelper.getChildValue(doc, MediaReader.TAG_DESCRIPTION);
+		final String mapping = FLEFRecordHelper.getChildValue(doc, MediaReader.TAG_MAPPING);
 
 		final StringBuilder sb = new StringBuilder();
 		if(desc != null && !desc.isBlank())

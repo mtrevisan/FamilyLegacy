@@ -1,6 +1,30 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
 package io.github.mtrevisan.calendars.venetan;
 
-import io.github.mtrevisan.calendars.CalendarType;
+import io.github.mtrevisan.calendars.astronomy.CalendarSeason;
 import io.github.mtrevisan.calendars.gregorian.Indiction;
 import org.apache.commons.lang3.StringUtils;
 
@@ -117,59 +141,59 @@ public final class VenetanCalendarParser{
 		MONTHS.put("febraio mv", 12);
 
 		// Autun (Autumn) -> Maps to Autumnal Equinox flag
-		MONTHS.put("auton", CalendarType.SEASON_AUTUMN);
-		MONTHS.put("autun", CalendarType.SEASON_AUTUMN);
-		MONTHS.put("autuno", CalendarType.SEASON_AUTUMN);
-		MONTHS.put("aut", CalendarType.SEASON_AUTUMN);
-		MONTHS.put("otun", CalendarType.SEASON_AUTUMN);
-		MONTHS.put("otuno", CalendarType.SEASON_AUTUMN);
-		MONTHS.put("otu", CalendarType.SEASON_AUTUMN);
-		MONTHS.put("utun", CalendarType.SEASON_AUTUMN);
-		MONTHS.put("utuno", CalendarType.SEASON_AUTUMN);
-		MONTHS.put("utu", CalendarType.SEASON_AUTUMN);
-		MONTHS.put("ferdima", CalendarType.SEASON_AUTUMN);
-		MONTHS.put("fer", CalendarType.SEASON_AUTUMN);
-		MONTHS.put("fardima", CalendarType.SEASON_AUTUMN);
-		MONTHS.put("farnima", CalendarType.SEASON_AUTUMN);
-		MONTHS.put("far", CalendarType.SEASON_AUTUMN);
-		MONTHS.put("fraima", CalendarType.SEASON_AUTUMN);
-		MONTHS.put("fra", CalendarType.SEASON_AUTUMN);
-		MONTHS.put("frima", CalendarType.SEASON_AUTUMN);
-		MONTHS.put("fri", CalendarType.SEASON_AUTUMN);
-		MONTHS.put("fredima", CalendarType.SEASON_AUTUMN);
-		MONTHS.put("fre", CalendarType.SEASON_AUTUMN);
+		MONTHS.put("auton", CalendarSeason.SEASON_AUTUMN);
+		MONTHS.put("autun", CalendarSeason.SEASON_AUTUMN);
+		MONTHS.put("autuno", CalendarSeason.SEASON_AUTUMN);
+		MONTHS.put("aut", CalendarSeason.SEASON_AUTUMN);
+		MONTHS.put("otun", CalendarSeason.SEASON_AUTUMN);
+		MONTHS.put("otuno", CalendarSeason.SEASON_AUTUMN);
+		MONTHS.put("otu", CalendarSeason.SEASON_AUTUMN);
+		MONTHS.put("utun", CalendarSeason.SEASON_AUTUMN);
+		MONTHS.put("utuno", CalendarSeason.SEASON_AUTUMN);
+		MONTHS.put("utu", CalendarSeason.SEASON_AUTUMN);
+		MONTHS.put("ferdima", CalendarSeason.SEASON_AUTUMN);
+		MONTHS.put("fer", CalendarSeason.SEASON_AUTUMN);
+		MONTHS.put("fardima", CalendarSeason.SEASON_AUTUMN);
+		MONTHS.put("farnima", CalendarSeason.SEASON_AUTUMN);
+		MONTHS.put("far", CalendarSeason.SEASON_AUTUMN);
+		MONTHS.put("fraima", CalendarSeason.SEASON_AUTUMN);
+		MONTHS.put("fra", CalendarSeason.SEASON_AUTUMN);
+		MONTHS.put("frima", CalendarSeason.SEASON_AUTUMN);
+		MONTHS.put("fri", CalendarSeason.SEASON_AUTUMN);
+		MONTHS.put("fredima", CalendarSeason.SEASON_AUTUMN);
+		MONTHS.put("fre", CalendarSeason.SEASON_AUTUMN);
 		// Invèrno (Winter) -> Maps to Hibernal Solstice flag
-		MONTHS.put("invèrno", CalendarType.SEASON_WINTER);
-		MONTHS.put("invièrno", CalendarType.SEASON_WINTER);
-		MONTHS.put("inv", CalendarType.SEASON_WINTER);
-		MONTHS.put("inbèrno", CalendarType.SEASON_WINTER);
-		MONTHS.put("inb", CalendarType.SEASON_WINTER);
-		MONTHS.put("divèr", CalendarType.SEASON_WINTER);
-		MONTHS.put("div", CalendarType.SEASON_WINTER);
+		MONTHS.put("invèrno", CalendarSeason.SEASON_WINTER);
+		MONTHS.put("invièrno", CalendarSeason.SEASON_WINTER);
+		MONTHS.put("inv", CalendarSeason.SEASON_WINTER);
+		MONTHS.put("inbèrno", CalendarSeason.SEASON_WINTER);
+		MONTHS.put("inb", CalendarSeason.SEASON_WINTER);
+		MONTHS.put("divèr", CalendarSeason.SEASON_WINTER);
+		MONTHS.put("div", CalendarSeason.SEASON_WINTER);
 		// Vèrta (Spring) -> Maps to Vernal Equinox flag
-		MONTHS.put("primavera", CalendarType.SEASON_SPRING);
-		MONTHS.put("primavèra", CalendarType.SEASON_SPRING);
-		MONTHS.put("primavèrta", CalendarType.SEASON_SPRING);
-		MONTHS.put("pri", CalendarType.SEASON_SPRING);
-		MONTHS.put("vèrta", CalendarType.SEASON_SPRING);
-		MONTHS.put("vèr", CalendarType.SEASON_SPRING);
-		MONTHS.put("insuta", CalendarType.SEASON_SPRING);
-		MONTHS.put("ins", CalendarType.SEASON_SPRING);
-		MONTHS.put("ansuda", CalendarType.SEASON_SPRING);
-		MONTHS.put("ans", CalendarType.SEASON_SPRING);
+		MONTHS.put("primavera", CalendarSeason.SEASON_SPRING);
+		MONTHS.put("primavèra", CalendarSeason.SEASON_SPRING);
+		MONTHS.put("primavèrta", CalendarSeason.SEASON_SPRING);
+		MONTHS.put("pri", CalendarSeason.SEASON_SPRING);
+		MONTHS.put("vèrta", CalendarSeason.SEASON_SPRING);
+		MONTHS.put("vèr", CalendarSeason.SEASON_SPRING);
+		MONTHS.put("insuta", CalendarSeason.SEASON_SPRING);
+		MONTHS.put("ins", CalendarSeason.SEASON_SPRING);
+		MONTHS.put("ansuda", CalendarSeason.SEASON_SPRING);
+		MONTHS.put("ans", CalendarSeason.SEASON_SPRING);
 		// Istà (Summer) -> Maps to Estival Solstice flag
-		MONTHS.put("istade", CalendarType.SEASON_SUMMER);
-		MONTHS.put("istae", CalendarType.SEASON_SUMMER);
-		MONTHS.put("istà", CalendarType.SEASON_SUMMER);
-		MONTHS.put("ist", CalendarType.SEASON_SUMMER);
-		MONTHS.put("instade", CalendarType.SEASON_SUMMER);
-		MONTHS.put("instae", CalendarType.SEASON_SUMMER);
-		MONTHS.put("instà", CalendarType.SEASON_SUMMER);
-		MONTHS.put("ins", CalendarType.SEASON_SUMMER);
-		MONTHS.put("estade", CalendarType.SEASON_SUMMER);
-		MONTHS.put("estae", CalendarType.SEASON_SUMMER);
-		MONTHS.put("està", CalendarType.SEASON_SUMMER);
-		MONTHS.put("est", CalendarType.SEASON_SUMMER);
+		MONTHS.put("istade", CalendarSeason.SEASON_SUMMER);
+		MONTHS.put("istae", CalendarSeason.SEASON_SUMMER);
+		MONTHS.put("istà", CalendarSeason.SEASON_SUMMER);
+		MONTHS.put("ist", CalendarSeason.SEASON_SUMMER);
+		MONTHS.put("instade", CalendarSeason.SEASON_SUMMER);
+		MONTHS.put("instae", CalendarSeason.SEASON_SUMMER);
+		MONTHS.put("instà", CalendarSeason.SEASON_SUMMER);
+//		MONTHS.put("ins", CalendarSeason.SEASON_SUMMER);		// `Instà` does not have an abbreviation
+		MONTHS.put("estade", CalendarSeason.SEASON_SUMMER);
+		MONTHS.put("estae", CalendarSeason.SEASON_SUMMER);
+		MONTHS.put("està", CalendarSeason.SEASON_SUMMER);
+		MONTHS.put("est", CalendarSeason.SEASON_SUMMER);
 	}
 
 	/** Words of the date formulas that carry no information (e.g. "adì 5 marzo 1500", "die 5 mensis martii"). */

@@ -102,20 +102,24 @@ public final class ElpSeriesReader{
 				final int i2 = Integer.parseInt(tokens[1]);
 				final int i3 = Integer.parseInt(tokens[2]);
 				final int i4 = Integer.parseInt(tokens[3]);
-				final double a = Double.parseDouble(tokens[4]);
-				final double b1 = Double.parseDouble(tokens[5]);
-				final double b2 = Double.parseDouble(tokens[6]);
-				final double b3 = Double.parseDouble(tokens[7]);
-				final double b4 = Double.parseDouble(tokens[8]);
-				final double b5 = Double.parseDouble(tokens[9]);
-				// B6 is read but not used in the computation.
-				final double amplitude = params.fA * a
-					+ params.fB1 * b1 + params.fB2 * b2 + params.fB3 * b3
-					+ params.fB4 * b4 + params.fB5 * b5;
+				final double amplitude = calculateAmplitude(params, tokens);
 				out.add(new ElpCoefficients.MainTerm(i1, i2, i3, i4, amplitude));
 			}
 		}
 		return out;
+	}
+
+	private static double calculateAmplitude(final ElpParameters params, final String[] tokens){
+		final double a = Double.parseDouble(tokens[4]);
+		final double b1 = Double.parseDouble(tokens[5]);
+		final double b2 = Double.parseDouble(tokens[6]);
+		final double b3 = Double.parseDouble(tokens[7]);
+		final double b4 = Double.parseDouble(tokens[8]);
+		final double b5 = Double.parseDouble(tokens[9]);
+		// B6 is read but not used in the computation.
+		return params.fA * a
+			+ params.fB1 * b1 + params.fB2 * b2 + params.fB3 * b3
+			+ params.fB4 * b4 + params.fB5 * b5;
 	}
 
 

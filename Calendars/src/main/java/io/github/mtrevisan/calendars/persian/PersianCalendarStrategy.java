@@ -24,14 +24,12 @@
  */
 package io.github.mtrevisan.calendars.persian;
 
-import io.github.mtrevisan.calendars.CalendarConverterPlugin;
-import io.github.mtrevisan.calendars.CalendarType;
-import io.github.mtrevisan.calendars.gregorian.GregorianCalendarStrategy;
+import io.github.mtrevisan.calendars.astronomy.CalendarSeason;
 import io.github.mtrevisan.calendars.astronomy.EphemerisEngine;
 import io.github.mtrevisan.calendars.astronomy.EphemerisEngineFactory;
-
-import java.util.LinkedHashMap;
-import java.util.Map;
+import io.github.mtrevisan.calendars.gregorian.GregorianCalendarStrategy;
+import io.github.mtrevisan.calendars.spi.CalendarConverterPlugin;
+import io.github.mtrevisan.calendars.spi.CalendarMetadata;
 
 
 public class PersianCalendarStrategy implements CalendarConverterPlugin{
@@ -60,19 +58,7 @@ public class PersianCalendarStrategy implements CalendarConverterPlugin{
 		if(month < 0){
 			// Step A: Determine an approximate baseline anchor for the year.
 			// Solar Hijri Year + 622 gives the Gregorian year parameter space.
-			final long baselineApproxJdn = 1948320L + (long)((year - 1) * 365.24219);
-			// Middle of the year shift
-			final double approximateMiddleJdUT = baselineApproxJdn + 182. - 0.5;
-
-			// Step B: Map negative flag parameters directly onto true solar ecliptic target boundaries
-			final double targetLongitude = CalendarType.getGeneralTargetLongitude(month);
-
-			// Step C: Execute high-fidelity calculation to track the exact instant the Sun pierces this seasonal step
-			final EphemerisEngine engine = EphemerisEngineFactory.getEngine();
-			if(!engine.isAvailable())
-				throw new UnsupportedOperationException("Persian calendar requires the Ephemeris plugin.");
-
-			final double exactSeasonJdUT = engine.findSolarLongitudeEvent(approximateMiddleJdUT, targetLongitude);
+			final double exactSeasonJdUT = exactSeasonJdUT(year, month);
 
 			return (long)Math.floor(exactSeasonJdUT + 0.5);
 		}
@@ -80,6 +66,22 @@ public class PersianCalendarStrategy implements CalendarConverterPlugin{
 			// Standard numeric execution path using your existing arithmetic baseline formula for Persian dates
 			// e.g., mapping back via your custom Persian JDN translation algorithms
 			return toJdn(year, month, day);
+	}
+
+	private static double exactSeasonJdUT(final int year, final int month){
+		final long baselineApproxJdn = 1948320L + (long)((year - 1) * 365.24219);
+		// Middle of the year shift
+		final double approximateMiddleJdUT = baselineApproxJdn + 182. - 0.5;
+
+		// Step B: Map negative flag parameters directly onto true solar ecliptic target boundaries
+		final double targetLongitude = CalendarSeason.getGeneralTargetLongitude(month);
+
+		// Step C: Execute high-fidelity calculation to track the exact instant the Sun pierces this seasonal step
+		final EphemerisEngine engine = EphemerisEngineFactory.getEngine();
+		if(!engine.isAvailable())
+			throw new UnsupportedOperationException("Persian calendar requires the Ephemeris plugin.");
+
+		return engine.findSolarLongitudeEvent(approximateMiddleJdUT, targetLongitude);
 	}
 
 	private static long toJdn(final int year, final int month, final int day){
@@ -130,15 +132,9 @@ public class PersianCalendarStrategy implements CalendarConverterPlugin{
 	}
 
 	@Override
-	public CalendarType.CalendarMetadata getMetadata(final String rawDate){
+	public CalendarMetadata getMetadata(final String rawDate){
 		final PersianDateInput input = PersianCalendarParser.parse(rawDate);
-		final Map<String, Boolean> components = new LinkedHashMap<>();
-		components.put("year", (input.year() != 0));
-		components.put("month", (input.month() != 0));
-		components.put("day", (input.day() != 0));
-
-		final boolean isComplete = (input.year() != 0 && input.month() != 0 && input.day() != 0);
-		return new CalendarType.CalendarMetadata(components, isComplete);
+		return CalendarMetadata.createFromYearMonthDay(input.year(), input.month(), input.day());
 	}
 
 }

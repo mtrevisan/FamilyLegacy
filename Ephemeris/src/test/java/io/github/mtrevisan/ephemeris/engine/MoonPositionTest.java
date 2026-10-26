@@ -77,9 +77,9 @@ class MoonPositionTest{
 		final EclipticCoordinates coord = MoonPosition.getInstanceLLR()
 			.eclipticOfDate(JulianDate.centuryJ2000Of(2448724.5));
 
-		Assertions.assertEquals(0., angularDifferenceArcsec(coord.getLongitude(), StrictMath.toRadians(133.162655)), 10.);
-		Assertions.assertEquals(0., angularDifferenceArcsec(coord.getLatitude(), StrictMath.toRadians(-3.229126)), 4.);
-		Assertions.assertEquals(368409.7, coord.getDistance(), 10.);
+		Assertions.assertEquals(0., angularDifferenceArcsec(coord.longitude(), StrictMath.toRadians(133.162655)), 10.);
+		Assertions.assertEquals(0., angularDifferenceArcsec(coord.latitude(), StrictMath.toRadians(-3.229126)), 4.);
+		Assertions.assertEquals(368409.7, coord.distance(), 10.);
 	}
 
 	/**

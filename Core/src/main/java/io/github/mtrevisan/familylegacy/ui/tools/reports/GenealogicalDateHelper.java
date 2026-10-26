@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.tools.reports;
 
+import io.github.mtrevisan.calendars.spi.CalendarMetadata;
 import io.github.mtrevisan.calendars.CalendarType;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
@@ -435,7 +436,7 @@ final class GenealogicalDateHelper{
 			return null;
 		try{
 			final CalendarType calendarType = (calendarCode != null? CalendarType.valueOf(normalizeCalendar(calendarCode).toUpperCase(Locale.ROOT)): CalendarType.GREGORIAN);
-			final CalendarType.CalendarMetadata metadata = calendarType.getMetadata(rawDate);
+			final CalendarMetadata metadata = calendarType.getMetadata(rawDate);
 			if(!metadata.isComplete())
 				return null;
 

@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.ui.handlers;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
 import io.github.mtrevisan.familylegacy.ui.dialogs.citations.SourceCitationDialog;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
@@ -84,7 +85,9 @@ public class SourceCitationHandler extends AbstractRecordTypeHandler<SourceCitat
 
 		final String sourceId = SourceCitationReader.extractSource(record);
 		final FLEFRecord source = model.getRecordById(sourceId);
-		return "❝ " + SourceHandler.getInstance().getDisplayText(source, model);
+		final String stance = FLEFRecordHelper.getChildValue(record, SourceCitationReader.TAG_STANCE);
+		return "❝ [" + I18N.t("enum.source_citation.stance." + stance) + "] "
+			+ SourceHandler.getInstance().getDisplayText(source, model);
 	}
 
 	@Override

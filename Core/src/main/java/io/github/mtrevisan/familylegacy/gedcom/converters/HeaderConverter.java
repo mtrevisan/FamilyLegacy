@@ -26,66 +26,92 @@ package io.github.mtrevisan.familylegacy.gedcom.converters;
 
 import io.github.mtrevisan.familylegacy.gedcom.GEDCOMHelper;
 import io.github.mtrevisan.familylegacy.gedcom.GEDCOMNode;
+import io.github.mtrevisan.familylegacy.gedcom.utils.GEDCOMDateConverter;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.Map;
 
 
+/**
+ * Converts the GEDCOM HEAD into the FLEF Header.
+ * <p>
+ * Handles:
+ * <ul>
+ *   <li>SOUR (NAME, VERS, CORP) → source</li>
+ *   <li>DATE (TIME) → date</li>
+ *   <li>COPR → copyright</li>
+ *   <li>SUBM → submitter (from the SUBM record)</li>
+ *   <li>NOTE (or the shared note it points to) → scope</li>
+ * </ul>
+ * DEST, FILE, GEDC, CHAR, LANG, PLAC, and SCHMA describe the GEDCOM file itself and have no counterpart.
+ */
 public class HeaderConverter{
 
+	private static final String PROTOCOL_NAME = "Family LEgacy Format";
+	private static final String PROTOCOL_VERSION = "0.2.0";
+
+
 	private final FLEFModel model;
+	private final Map<String, GEDCOMNode> noteRawMap;
 
 
-	public HeaderConverter(FLEFModel model){
+	public HeaderConverter(FLEFModel model, Map<String, GEDCOMNode> noteRawMap){
 		this.model = model;
+		this.noteRawMap = noteRawMap;
 	}
 
-	public void convert(GEDCOMNode headNode){
+	/**
+	 * @param submitterMap	The submitter structures, by GEDCOM SUBM id.
+	 */
+	public void convert(GEDCOMNode headNode, Map<String, FLEFRecord> submitterMap){
 		FLEFRecord header = FLEFRecord.createChildWithTag("header");
 
 		// ---- Protocol (hardcoded) ----
 		FLEFRecord protocol = FLEFRecord.createChildWithTag("protocol")
-			.addChild(FLEFRecord.createChildWithTagAndValue("name", "Family LEgacy Format"))
-			.addChild(FLEFRecord.createChildWithTagAndValue("version", "0.2.0"));
+			.addChild(FLEFRecord.createChildWithTagAndValue("name", PROTOCOL_NAME))
+			.addChild(FLEFRecord.createChildWithTagAndValue("version", PROTOCOL_VERSION));
 		header.addChild(protocol);
 
-		// ---- Source (from GEDCOM SOUR) ----
+		// ---- Source (from GEDCOM SOUR: the value is the system id, used when there is no name) ----
 		GEDCOMNode sourNode = GEDCOMHelper.findFirstChild(headNode, "SOUR");
 		if(sourNode != null){
-			GEDCOMNode nameNode = GEDCOMHelper.findFirstChild(sourNode, "NAME");
-			GEDCOMNode versNode = GEDCOMHelper.findFirstChild(sourNode, "VERS");
-			GEDCOMNode corpNode = GEDCOMHelper.findFirstChild(sourNode, "CORP");
-
 			FLEFRecord source = FLEFRecord.createChildWithTag("source");
-			GEDCOMHelper.transferValue(source, "system_id", sourNode);
-			GEDCOMHelper.transferValue(source, "name", nameNode);
-			GEDCOMHelper.transferValue(source, "version", versNode);
-			GEDCOMHelper.transferValue(source, "organization", corpNode);
+			final String name = ObjectUtils.firstNonNull(GEDCOMHelper.findFirstValue(sourNode, "NAME"), sourNode.getValue());
+			if(name != null)
+				source.addChild(FLEFRecord.createChildWithTagAndValue("name", name.trim()));
+			GEDCOMHelper.transferValue(source, "version", GEDCOMHelper.findFirstChild(sourNode, "VERS"));
+			GEDCOMHelper.transferValue(source, "organization", GEDCOMHelper.findFirstChild(sourNode, "CORP"));
 			header.addChild(source);
 		}
 
 		// ---- Date (transmission date) ----
-		String iso = DateTimeFormatter.ISO_INSTANT.format(Instant.now().truncatedTo(ChronoUnit.DAYS));
-		GEDCOMNode dateNode = GEDCOMHelper.findFirstChild(headNode, "DATE");
-		if(dateNode != null && StringUtils.isNotEmpty(dateNode.getValue()))
-			iso = GEDCOMHelper.getDateTime(dateNode);
+		String iso = GEDCOMDateConverter.toDateTime(GEDCOMHelper.findFirstChild(headNode, "DATE"));
+		if(iso == null)
+			iso = DateTimeFormatter.ISO_INSTANT.format(Instant.now().truncatedTo(ChronoUnit.SECONDS));
 		header.addChild(FLEFRecord.createChildWithTagAndValue("date", iso));
 
 		// ---- Copyright ----
 		GEDCOMNode coprNode = GEDCOMHelper.findFirstChild(headNode, "COPR");
 		GEDCOMHelper.transferValue(header, "copyright", coprNode);
 
+		// ---- Submitter ----
+		final String submitterId = GEDCOMHelper.pointer(GEDCOMHelper.findFirstValue(headNode, "SUBM"));
+		final FLEFRecord submitter = (submitterId != null? submitterMap.get(submitterId): null);
+		if(submitter != null)
+			header.addChild(submitter);
+
 		// ---- Scope (from NOTE) ----
 		GEDCOMNode noteNode = GEDCOMHelper.findFirstChild(headNode, "NOTE");
-		if(noteNode != null && noteNode.getValue() != null){
-			header.addChild(FLEFRecord.createChildWithTagAndValue("scope", GEDCOMHelper.extractFullText(noteNode)));
-		}
+		final String scope = StringUtils.trimToNull(GEDCOMHelper.extractFullText(GEDCOMHelper.resolveNote(noteNode, noteRawMap)));
+		if(scope != null)
+			header.addChild(FLEFRecord.createChildWithTagAndValue("scope", scope));
 
-		// ---- Submitter (will be added later) ----
 		model.setHeader(header);
 	}
 

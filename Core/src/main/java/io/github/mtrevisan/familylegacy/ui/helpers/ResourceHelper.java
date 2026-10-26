@@ -24,7 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.helpers;
 
-import io.github.mtrevisan.familylegacy.ui.components.lists.DocumentPartListPanel;
+import io.github.mtrevisan.familylegacy.ui.components.lists.MediaPartListPanel;
 import net.coobird.thumbnailator.Thumbnails;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -417,15 +417,15 @@ public final class ResourceHelper{
 		if(source instanceof File file)
 			return file.getName()
 				.toLowerCase(Locale.ROOT)
-				.endsWith(DocumentPartListPanel.EXTENSION_PDF);
+				.endsWith(MediaPartListPanel.EXTENSION_PDF);
 
 		if(source instanceof Path path){
 			final Path fileName = path.getFileName();
-			return (fileName != null && fileName.toString().toLowerCase(Locale.ROOT).endsWith(DocumentPartListPanel.EXTENSION_PDF));
+			return (fileName != null && fileName.toString().toLowerCase(Locale.ROOT).endsWith(MediaPartListPanel.EXTENSION_PDF));
 		}
 		if(source instanceof URL url){
 			final String p = url.getPath();
-			return (p != null && p.toLowerCase(Locale.ROOT).endsWith(DocumentPartListPanel.EXTENSION_PDF));
+			return (p != null && p.toLowerCase(Locale.ROOT).endsWith(MediaPartListPanel.EXTENSION_PDF));
 		}
 		return false;
 	}

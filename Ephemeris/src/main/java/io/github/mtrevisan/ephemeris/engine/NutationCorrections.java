@@ -37,7 +37,7 @@ import java.util.List;
 
 public final class NutationCorrections{
 
-	/** Number of fundamental arguments: l, l', F, D, Ω, 8 planetary mean longitudes, general precession. */
+	/** Number of fundamental arguments: ̧{@code l, l', F, D, Ω}, 8 planetary mean longitudes, general precession. */
 	private static final int FUNDAMENTAL_ARGUMENTS = 14;
 
 	/*
@@ -65,23 +65,23 @@ public final class NutationCorrections{
 	 * Fundamental arguments IAU 2000 / IERS 2010 (in arcseconds).
 	 * Order of coefficients: [t^0, t^1, t^2, t^3, t^4]
 	 */
-	// l: Mean anomaly of the Moon
+	// `l`: Mean anomaly of the Moon
 	private static final double[] MOON_MEAN_ANOMALY = {
 		485868.249036, 1717915923.2178, 31.8792, 0.051635, -0.00024470
 	};
-	// l': Mean anomaly of the Sun
+	// `l'`: Mean anomaly of the Sun
 	private static final double[] SUN_MEAN_ANOMALY = {
 		1287102.740744, 129596581.0481, -0.5532, 0.000136, -0.00001149
 	};
-	// F: Mean argument of latitude of the Moon
+	// `F`: Mean argument of latitude of the Moon
 	private static final double[] MOON_ARGUMENT_LATITUDE = {
 		335779.526232, 1739527262.8478, -12.7512, -0.001037, 0.00000417
 	};
-	// D: Mean elongation of the Moon from the Sun
+	// `D`: Mean elongation of the Moon from the Sun
 	public static final double[] MOON_ELONGATION_SUN = {
 		1072260.703692, 1602961601.2090, -6.3706, 0.006593, -0.00003169
 	};
-	// Omega: Mean longitude of the ascending node of the Moon
+	// `Ω`: Mean longitude of the ascending node of the Moon
 	private static final double[] MOON_LONGITUDE_NODE = {
 		450160.398036, -6962890.5431, 7.4722, 0.007702, -0.00005939
 	};
@@ -184,50 +184,40 @@ public final class NutationCorrections{
 	 * {@code i} are {@code argumentMultiplier[k]} applied to argument {@code argumentIndex[k]}, for {@code k} in
 	 * {@code [argumentStart[i], argumentStart[i + 1])}.
 	 */
-	private static final class NutationSeries{
-		private final double[] bSin;
-		private final double[] bCos;
-		private final int[] argumentStart;
-		private final byte[] argumentIndex;
-		private final int[] argumentMultiplier;
+		private record NutationSeries(double[] bSin, double[] bCos, int[] argumentStart, byte[] argumentIndex,
+												int[] argumentMultiplier){
 
-		private NutationSeries(final double[] bSin, final double[] bCos, final int[] argumentStart,
-				final byte[] argumentIndex, final int[] argumentMultiplier){
-			this.bSin = bSin;
-			this.bCos = bCos;
-			this.argumentStart = argumentStart;
-			this.argumentIndex = argumentIndex;
-			this.argumentMultiplier = argumentMultiplier;
-		}
-
-		/** Collects the terms with the given power of time. */
-		private static NutationSeries of(final List<NutationTerm> terms, final int j){
-			final List<NutationTerm> selected = terms.stream()
-				.filter(term -> term.j == j)
-				.toList();
-			final int size = selected.size();
-			final double[] bSin = new double[size];
-			final double[] bCos = new double[size];
-			final int[] argumentStart = new int[size + 1];
-			final byte[] argumentIndex = new byte[size * FUNDAMENTAL_ARGUMENTS];
-			final int[] argumentMultiplier = new int[size * FUNDAMENTAL_ARGUMENTS];
-			int arguments = 0;
-			for(int i = 0; i < size; i ++){
-				final NutationTerm term = selected.get(i);
-				bSin[i] = term.bSin;
-				bCos[i] = term.bCos;
-				argumentStart[i] = arguments;
-				for(int k = 0; k < FUNDAMENTAL_ARGUMENTS; k ++)
-					if(term.arguments[k] != 0){
-						argumentIndex[arguments] = (byte)k;
-						argumentMultiplier[arguments] = term.arguments[k];
-						arguments ++;
-					}
+		/**
+		 * Collects the terms with the given power of time.
+		 */
+			private static NutationSeries of(final List<NutationTerm> terms, final int j){
+				final List<NutationTerm> selected = terms.stream()
+					.filter(term -> term.j() == j)
+					.toList();
+				final int size = selected.size();
+				final double[] bSin = new double[size];
+				final double[] bCos = new double[size];
+				final int[] argumentStart = new int[size + 1];
+				final byte[] argumentIndex = new byte[size * FUNDAMENTAL_ARGUMENTS];
+				final int[] argumentMultiplier = new int[size * FUNDAMENTAL_ARGUMENTS];
+				int arguments = 0;
+				for(int i = 0; i < size; i++){
+					final NutationTerm term = selected.get(i);
+					bSin[i] = term.bSin();
+					bCos[i] = term.bCos();
+					argumentStart[i] = arguments;
+					for(int k = 0; k < FUNDAMENTAL_ARGUMENTS; k++)
+						if(term.arguments()[k] != 0){
+							argumentIndex[arguments] = (byte)k;
+							argumentMultiplier[arguments] = term.arguments()[k];
+							arguments++;
+						}
+				}
+				argumentStart[size] = arguments;
+				return new NutationSeries(bSin, bCos, argumentStart, Arrays.copyOf(argumentIndex, arguments),
+					Arrays.copyOf(argumentMultiplier, arguments));
 			}
-			argumentStart[size] = arguments;
-			return new NutationSeries(bSin, bCos, argumentStart, Arrays.copyOf(argumentIndex, arguments),
-				Arrays.copyOf(argumentMultiplier, arguments));
-		}
+
 	}
 
 
@@ -255,39 +245,6 @@ public final class NutationCorrections{
 	/** @return Nutation in obliquity (Δε) [rad]. */
 	public double getDeltaEpsilon(){
 		return evaluateSeries(NUTATION_EPS_SERIES, lunisolarFundamentalArgs, jc);
-	}
-
-
-	// FIXME
-	public static void main(final String[] args){
-		final double[] testJDs = {
-			JulianDate.of(1950, 1, 1), // Past
-			JulianDate.of(2026, 10, 1), // Present
-			JulianDate.of(2050, 1, 1)  // Future
-		};
-
-//		JD: 2433282.5
-//			Δψ: -3.302812674004184"
-//			Δε: 8.32293516840701"
-//		JD: 2461314.5
-//			Δψ: 8.26609072996109"
-//			Δε: 8.206697931009534"
-//		JD: 2469807.5
-//			Δψ: 15.17124377504393"
-//			Δε: -5.330057528055957"
-
-		for(int i = 0, size = testJDs.length; i < size; i ++){
-			final double jd = testJDs[i];
-
-			final double jc = JulianDate.centuryJ2000Of(jd);
-			final NutationCorrections corrections = NutationCorrections.calculate(jc);
-//			System.out.println("JD: " + jd + "\n"
-//				+ "Δψ: " + corrections.getDeltaPsi() + " rad\n"
-//				+ "Δε: " + corrections.getDeltaEpsilon() + " rad");
-			System.out.println("JD: " + jd + "\n"
-				+ "Δψ: " + (corrections.getDeltaPsi() * JulianDate.SECONDS_PER_HOUR * 180. / Math.PI) + "\"\n"
-				+ "Δε: " + (corrections.getDeltaEpsilon() * JulianDate.SECONDS_PER_HOUR * 180. / Math.PI) + "\"");
-		}
 	}
 
 }

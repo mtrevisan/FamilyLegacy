@@ -26,7 +26,7 @@ package io.github.mtrevisan.familylegacy.ui.dialogs.records;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.readers.DocumentReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.MediaReader;
 import io.github.mtrevisan.familylegacy.ui.bindings.BindingsHelper;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextArea;
@@ -34,7 +34,7 @@ import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextField;
 import io.github.mtrevisan.familylegacy.ui.components.PanelKey;
 import io.github.mtrevisan.familylegacy.ui.components.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
-import io.github.mtrevisan.familylegacy.ui.handlers.DocumentHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.MediaHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.ResearchQuestionHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
@@ -49,57 +49,57 @@ import java.io.IOException;
 
 
 /**
- * Dialog for editing a {@code DOCUMENT_RECORD} according to FLEF 0.2.0.
+ * Dialog for editing a {@code MEDIA_RECORD} according to FLEF 0.2.0.
  * <p>
  * Structure:
  * <pre>
- * record DocumentRecord {
+ * record MediaRecord {
  *   uri: Uri
- *   width?: Int          // width in pixels of the image at URI; CROP_RECTs referring to this document are expressed in this pixel space
- *   height?: Int         // height in pixels of the image at URI
- *   mapping?: enum { spherical_UV, cylindrical_equirectangular_horizontal, cylindrical_equirectangular_vertical } | Text
+ *   kind: enum { image, document, audio, video }
+ *   mapping?: enum { planar, spherical_equirectangular, spherical_uv, cubemap, cylindrical_equirectangular_horizontal, cylindrical_equirectangular_vertical } | Text
  *   description?: Text
- *   note*: Xref&lt;NoteRecord&gt;
+ *   note*: NoteStructure
  *   privacy?: PrivacyStructure
  *   audit: AuditStructure
  * }
  * </pre>
  * <p>
  * Tabs:
- * Tab 1 (Properties): uri, mapping, description
- * Tab 6 (Research): ResearchQuestionRecord (target[document] = this document)
- * Tab 7 (Sources): SourceRecord (document contains this document)
+ * Tab 1 (Properties): uri, kind, mapping, description
+ * Tab 6 (Research): ResearchQuestionRecord (target[media] = this media)
+ * Tab 7 (Sources): SourceRecord (media contains this media)
  * Tab 8 (Notes): note
  * Tab 9 (Privacy): privacy
  * Tab 10 (Audit): audit
  */
-public class DocumentRecordDialog extends BaseRecordDialog{
+public class MediaRecordDialog extends BaseRecordDialog{
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(DocumentRecordDialog.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(MediaRecordDialog.class);
 
 
 	private final JPanel propertiesPanel;
 
 	private final BoundTextField uriField;
+	private final BoundComboBox<String> kindCombo;
 	private final BoundComboBox<String> mappingCombo;
 	private final BoundTextArea descriptionArea;
 
 
-	public static DocumentRecordDialog createNew(final Window parent, final FLEFModel model){
-		return createNew(parent, model, DocumentRecordDialog::new);
+	public static MediaRecordDialog createNew(final Window parent, final FLEFModel model){
+		return createNew(parent, model, MediaRecordDialog::new);
 	}
 
-	public static DocumentRecordDialog createEdit(final Window parent, final FLEFModel model, final FLEFRecord record){
-		return createEdit(parent, model, record, DocumentRecordDialog::new);
+	public static MediaRecordDialog createEdit(final Window parent, final FLEFModel model, final FLEFRecord record){
+		return createEdit(parent, model, record, MediaRecordDialog::new);
 	}
 
 
-	private DocumentRecordDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
-		super(parent, model, record, DocumentHandler.getInstance());
+	private MediaRecordDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
+		super(parent, model, record, MediaHandler.getInstance());
 
-		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]5[]10[]");
+		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]5[]5[]10[]");
 
-		uriField = new BoundTextField(DocumentReader.TAG_URI);
+		uriField = new BoundTextField(MediaReader.TAG_URI);
 		BindingsHelper.installBehavior(uriField,
 			this::setNewItem, null,
 			null, null,
@@ -108,21 +108,24 @@ public class DocumentRecordDialog extends BaseRecordDialog{
 				builder.separator();
 				builder.selectionSensitiveItem(I18N.t("popupmenu.clear"), this::clearItem);
 			});
-		mappingCombo = new BoundComboBox<>(DocumentReader.TAG_MAPPING, GUIHelper.fillCombo(DocumentReader.MAPPINGS, null));
-		mappingCombo.setI18NPrefix("enum.document.mapping");
+		kindCombo = new BoundComboBox<>(MediaReader.TAG_KIND, GUIHelper.fillCombo(MediaReader.KINDS, null));
+		kindCombo.setI18NPrefix("enum.media.kind");
+		mappingCombo = new BoundComboBox<>(MediaReader.TAG_MAPPING, GUIHelper.fillCombo(MediaReader.MAPPINGS, null));
+		mappingCombo.setI18NPrefix("enum.media.mapping");
 		mappingCombo.setEditable(true);
-		descriptionArea = new BoundTextArea(DocumentReader.TAG_DESCRIPTION, 3, 25);
+		descriptionArea = new BoundTextArea(MediaReader.TAG_DESCRIPTION, 3, 25);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, this.record)
 			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, I18N.t("dialog.component.research.questions"))
 			.withComponent(PanelKey.SOURCE_ON_DOCUMENT, SourceHandler.TYPE, I18N.t("dialog.component.sources"))
-			.withComponent(PanelKey.NOTE, DocumentReader.TAG_NOTE, null)
-			.withComponent(PanelKey.PRIVACY, DocumentReader.TAG_PRIVACY, null)
-			.withComponent(PanelKey.AUDIT, DocumentReader.TAG_AUDIT, null)
+			.withComponent(PanelKey.NOTE, MediaReader.TAG_NOTE, null)
+			.withComponent(PanelKey.PRIVACY, MediaReader.TAG_PRIVACY, null)
+			.withComponent(PanelKey.AUDIT, MediaReader.TAG_AUDIT, null)
 			.build();
 
 		components.bind(uriField);
+		components.bind(kindCombo);
 		components.bind(mappingCombo);
 		components.bind(descriptionArea);
 
@@ -132,8 +135,11 @@ public class DocumentRecordDialog extends BaseRecordDialog{
 
 	private void setNewItem(){
 		final File selectedFile = GUIHelper.selectDocumentFile(getParent(), uriField.getText());
-		if(selectedFile != null)
+		if(selectedFile != null){
 			uriField.setText(selectedFile.getAbsolutePath());
+			if(!kindCombo.isValued())
+				kindCombo.setText(MediaReader.inferKind(selectedFile.getName()));
+		}
 	}
 
 	private void clearItem(){
@@ -144,13 +150,16 @@ public class DocumentRecordDialog extends BaseRecordDialog{
 	@Override
 	protected JPanel createPropertiesPanel(){
 		// file
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.document.uri") + "*:", uriField);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.media.uri") + "*:", uriField);
+
+		// kind
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.media.kind") + "*:", kindCombo);
 
 		// mapping
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.document.mapping") + ":", mappingCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.media.mapping") + ":", mappingCombo);
 
 		// description
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.document.description") + ":", descriptionArea);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.media.description") + ":", descriptionArea);
 
 		return propertiesPanel;
 	}
@@ -206,8 +215,15 @@ public class DocumentRecordDialog extends BaseRecordDialog{
 	protected boolean validData(){
 		if(uriField.isEmpty()){
 			GUIHelper.showValidationErrorAndFocus(this,
-				I18N.tf("validation.required", I18N.t("dialog.document.uri")),
+				I18N.tf("validation.required", I18N.t("dialog.media.uri")),
 				tabbedPane, propertiesPanel, uriField);
+
+			return false;
+		}
+		if(!kindCombo.isValued()){
+			GUIHelper.showValidationErrorAndFocus(this,
+				I18N.tf("validation.required", I18N.t("dialog.media.kind")),
+				tabbedPane, propertiesPanel, kindCombo);
 
 			return false;
 		}
@@ -222,7 +238,7 @@ public class DocumentRecordDialog extends BaseRecordDialog{
 
 
 	public static void main(final String[] args) throws IOException{
-		GUIHelper.launch(DocumentRecordDialog::createEdit, "/tests/test.flef", "D1");
+		GUIHelper.launch(MediaRecordDialog::createEdit, "/tests/test.flef", "D1");
 	}
 
 }

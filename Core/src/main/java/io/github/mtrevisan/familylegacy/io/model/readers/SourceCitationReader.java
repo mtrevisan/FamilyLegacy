@@ -38,15 +38,16 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
  *   source: Xref&lt;SourceRecord&gt;
  *   locator?: Text   // specific location within the source referenced, in the form of a label and value pair (e.g., 'Line: 28', or 'Page: 143, Entry: 17', or 'folio', etc.)
  *   extract*: ExtractStructure
+ *   stance: enum { supports, contradicts }
  *   evidence?: EvidenceQualifiers
  *   privacy?: PrivacyStructure
  *
- *   require extract.document_part.document in source.document
+ *   require extract.media_part.media in source.media
  * }
  *
  * struct ExtractStructure {
- *   document_part*: struct {
- *     document: Xref&lt;DocumentRecord&gt;
+ *   media_part*: struct {
+ *     media: Xref&lt;MediaRecord&gt;
  *     page?: Int          // 1-based page, for multi-page documents (e.g. PDF, TIFF); CROP refers to this page
  *     crop?: CropRect     // region of the image or page, in pixels
  *     start?: Duration    // for audio and video: start of the cited segment, from the beginning of the media
@@ -62,7 +63,7 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
  *   locale?: LocaleCode
  *   remark*: Text
  *
- *   require at_least_one(document_part, text)
+ *   require at_least_one(media_part, text)
  * }
  *
  * // Cropping rectangle expressed in image pixels.
@@ -82,12 +83,20 @@ public final class SourceCitationReader{
 	public static final String TAG_SOURCE = "source";
 	public static final String TAG_LOCATOR = "locator";
 	public static final String TAG_EXTRACT = "extract";
+	public static final String TAG_STANCE = "stance";
 	public static final String TAG_EVIDENCE = "evidence";
 	public static final String TAG_PRIVACY = "privacy";
 
+	public static final String STANCE_SUPPORTS = "supports";
+	public static final String STANCE_CONTRADICTS = "contradicts";
+	public static final String[] STANCES = {
+		STANCE_SUPPORTS,
+		STANCE_CONTRADICTS
+	};
+
 	// Extract structure
-	public static final String TAG_DOCUMENT_PART = "document_part";
-	public static final String TAG_DOCUMENT = "document";
+	public static final String TAG_MEDIA_PART = "media_part";
+	public static final String TAG_MEDIA = "media";
 	public static final String TAG_PAGE = "page";
 	public static final String TAG_CROP = "crop";
 	public static final String TAG_START_TIME = "start_time";
@@ -97,7 +106,7 @@ public final class SourceCitationReader{
 	public static final String TAG_LOCALE = "locale";
 	public static final String TAG_REMARK = "remark";
 
-	public static final String TAG_DOCUMENT_PART_DOCUMENT = FLEFRecordHelper.composePath(TAG_DOCUMENT_PART, TAG_DOCUMENT);
+	public static final String TAG_MEDIA_PART_MEDIA = FLEFRecordHelper.composePath(TAG_MEDIA_PART, TAG_MEDIA);
 
 	public static final String[] EXTRACT_TYPES = {
 		"verbatim",
@@ -112,6 +121,21 @@ public final class SourceCitationReader{
 
 	public static String extractSource(final FLEFRecord record){
 		return FLEFRecordHelper.getChildValue(record, TAG_SOURCE);
+	}
+
+	public static boolean isContradicting(final FLEFRecord citation){
+		final String stance = FLEFRecordHelper.getChildValue(citation, SourceCitationReader.TAG_STANCE);
+		return STANCE_CONTRADICTS.equals(stance);
+	}
+
+	/**
+	 * Whether the record is cited by at least one source that supports it (a contradicting citation is not a backing).
+	 */
+	public static boolean hasSupportingCitation(final FLEFRecord record){
+		for(final FLEFRecord citation : FLEFRecordHelper.findChildren(record, TAG_SOURCE))
+			if(!isContradicting(citation))
+				return true;
+		return false;
 	}
 
 

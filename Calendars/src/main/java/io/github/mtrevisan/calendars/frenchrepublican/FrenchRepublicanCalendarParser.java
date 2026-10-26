@@ -1,6 +1,30 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
 package io.github.mtrevisan.calendars.frenchrepublican;
 
-import io.github.mtrevisan.calendars.CalendarType;
+import io.github.mtrevisan.calendars.astronomy.CalendarSeason;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
@@ -120,21 +144,21 @@ public final class FrenchRepublicanCalendarParser{
 		// =============================================================================
 
 		// Autumn
-		MONTHS.put("automne", CalendarType.SEASON_AUTUMN);
-		MONTHS.put("automne-season", CalendarType.SEASON_AUTUMN);
+		MONTHS.put("automne", CalendarSeason.SEASON_AUTUMN);
+		MONTHS.put("automne-season", CalendarSeason.SEASON_AUTUMN);
 
 		// Winter
-		MONTHS.put("hiver", CalendarType.SEASON_WINTER);
-		MONTHS.put("hiver-season", CalendarType.SEASON_WINTER);
+		MONTHS.put("hiver", CalendarSeason.SEASON_WINTER);
+		MONTHS.put("hiver-season", CalendarSeason.SEASON_WINTER);
 
 		// Spring
-		MONTHS.put("printemps", CalendarType.SEASON_SPRING);
-		MONTHS.put("printemps-season", CalendarType.SEASON_SPRING);
+		MONTHS.put("printemps", CalendarSeason.SEASON_SPRING);
+		MONTHS.put("printemps-season", CalendarSeason.SEASON_SPRING);
 
 		// Summer
-		MONTHS.put("été", CalendarType.SEASON_SUMMER);
-		MONTHS.put("ete", CalendarType.SEASON_SUMMER);
-		MONTHS.put("été-season", CalendarType.SEASON_SUMMER);
+		MONTHS.put("été", CalendarSeason.SEASON_SUMMER);
+		MONTHS.put("ete", CalendarSeason.SEASON_SUMMER);
+		MONTHS.put("été-season", CalendarSeason.SEASON_SUMMER);
 	}
 
 	// Robust, exception-free Unicode pattern supporting optional day prefix and world alphabets

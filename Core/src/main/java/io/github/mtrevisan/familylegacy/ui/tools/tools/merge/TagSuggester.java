@@ -75,12 +75,12 @@ import java.util.regex.Pattern;
  * child.
  * <p>
  * <b>Inline structs.</b> The grammar allows both named types and inline
- * anonymous structs ({@code document_part*: struct { ... }}). An inline
+ * anonymous structs ({@code media_part*: struct { ... }}). An inline
  * struct has no name, so it is not covered by the {@code TypeDeclaration}
  * pass, and a path that walks through one could not be resolved. To fix
  * that, every inline struct is registered in the type table under a
  * synthetic name derived from its parent type and its field name
- * (e.g. {@code ExtractStructure.document_part}). The rest of the code
+ * (e.g. {@code ExtractStructure.media_part}). The rest of the code
  * does not need to know: as soon as a path segment resolves to a
  * {@code FieldInfo} whose {@code typeName} is a key in the table, the
  * walk continues normally.
@@ -462,7 +462,7 @@ public final class TagSuggester{
 	 * <p>
 	 * The parent type is resolved through the same path walker used by
 	 * the tag suggestions, so a reference nested inside an inline struct
-	 * (e.g. {@code document} inside {@code extract.document_part}) is
+	 * (e.g. {@code media} inside {@code extract.media_part}) is
 	 * correctly identified.
 	 *
 	 * @param text  the text of the whole column
@@ -678,7 +678,7 @@ public final class TagSuggester{
 	 * <p>
 	 * Inline structs are resolved through the synthetic names registered
 	 * during parsing, so a path like
-	 * {@code source → extract → document_part → document} resolves
+	 * {@code source → extract → media_part → media} resolves
 	 * correctly and the reference at {@code document} is found.
 	 */
 	private String resolveTypeFromPath(final List<String> path){
@@ -939,7 +939,7 @@ public final class TagSuggester{
 					// the record tag: in the FLEF grammar the reference
 					// field always takes the name of the record it
 					// points to (source: Xref<SourceRecord>,
-					// document: Xref<DocumentRecord>, ...).
+					// media: Xref<MediaRecord>, ...).
 					final String referenceTag = (typeText.startsWith("Xref<")? name: null);
 
 					final boolean inlineStruct = typeText.startsWith("struct");

@@ -54,6 +54,12 @@ public final class Deduplicator{
 	private Deduplicator(){}
 
 
+	/** Forgets the records seen so far; to be called before each conversion, as they belong to the model being built. */
+	public static void reset(){
+		CANONICAL_MAP.clear();
+		CANONICAL_MAP_RELATIONSHIP.clear();
+	}
+
 	public static String getDeduplicatedRecordId(FLEFModel model, FLEFRecord record){
 		if(record.getTag().equalsIgnoreCase(RelationshipHandler.TYPE)){
 			String type = FLEFRecordHelper.getChildValue(record, "type");

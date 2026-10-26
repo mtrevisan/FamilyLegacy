@@ -27,7 +27,6 @@ package io.github.mtrevisan.familylegacy.ui.components.projections.dossier;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateNormalizer;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.NormalizedDate;
@@ -115,12 +114,10 @@ final class DossierFormatting{
 		if(place == null)
 			return placeId;
 
-		final FLEFRecord nameStruct = FLEFRecordHelper.findChild(place, PlaceReader.TAG_NAME);
-		if(nameStruct != null){
-			final String v = FLEFRecordHelper.getChildValue(nameStruct, NameReader.TAG_VALUE);
-			if(StringUtils.isNotEmpty(v))
-				return v;
-		}
+		// a place may have more names (e.g. translated ones): the first is the primary one
+		final String v = PlaceReader.extractPrimaryName(place);
+		if(StringUtils.isNotEmpty(v))
+			return v;
 		return placeId;
 	}
 

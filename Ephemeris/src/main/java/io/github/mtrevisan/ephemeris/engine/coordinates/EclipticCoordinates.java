@@ -32,69 +32,67 @@ import java.text.DecimalFormat;
 /**
  * (Polar) Ecliptic coordinates.
  *
+ * @param latitude  [rad]
+ * @param longitude [rad]
+ * @param distance  [AU]
  * @see <a href="https://en.wikipedia.org/wiki/Ecliptic_coordinate_system">Ecliptic coordinate system</>
  */
-public final class EclipticCoordinates{
-
-	//[rad]
-	private final double latitude;
-	//[rad]
-	private final double longitude;
-	//[AU]
-	private final double distance;
-
+public record EclipticCoordinates(double latitude, double longitude, double distance){
 
 	/**
 	 * Creates a new instance with the given parameters.
 	 *
-	 * @param latitude	The latitude [rad].
-	 * @param longitude	The longitude [rad].
-	 * @param distance	The distance [AU].
-	 * @return	An instance.
+	 * @param latitude  The latitude [rad].
+	 * @param longitude The longitude [rad].
+	 * @param distance  The distance [AU].
+	 * @return   An instance.
 	 */
 	public static EclipticCoordinates create(final double latitude, final double longitude, final double distance){
 		return new EclipticCoordinates(latitude, longitude, distance);
 	}
 
 
-	public EclipticCoordinates(final double latitude, final double longitude, final double distance){
-		if(Double.isNaN(latitude) || Double.isInfinite(latitude))
+	public EclipticCoordinates{
+		if(Double.isNaN(latitude) || Double.isInfinite(latitude)){
 			throw new IllegalArgumentException("Not finite latitude: " + latitude);
-		if(Double.isNaN(longitude) || Double.isInfinite(longitude))
+		}
+		if(Double.isNaN(longitude) || Double.isInfinite(longitude)){
 			throw new IllegalArgumentException("Not finite longitude: " + longitude);
-		if(Double.isNaN(distance) || Double.isInfinite(distance))
+		}
+		if(Double.isNaN(distance) || Double.isInfinite(distance)){
 			throw new IllegalArgumentException("Not finite distance: " + distance);
+		}
 
-		this.latitude = latitude;
-		this.longitude = longitude;
-		this.distance = distance;
 	}
 
 
 	/**
 	 * The latitude.
 	 *
-	 * @return	The latitude [rad].
+	 * @return   The latitude [rad].
 	 */
-	public double getLatitude(){
+	@Override
+	public double latitude(){
 		return latitude;
 	}
 
 	/**
 	 * The longitude.
 	 *
-	 * @return	The longitude [rad].
+	 * @return   The longitude [rad].
 	 */
-	public double getLongitude(){
+	@Override
+	public double longitude(){
 		return longitude;
 	}
 
 	/**
 	 * The distance.
 	 *
-	 * @return	The distance [AU].
+	 * @return   The distance [AU].
 	 */
-	public double getDistance(){
+	@Override
+	public double distance(){
 		return distance;
 	}
 

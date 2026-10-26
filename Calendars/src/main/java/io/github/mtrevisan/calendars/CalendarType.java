@@ -25,7 +25,10 @@
 package io.github.mtrevisan.calendars;
 
 import io.github.mtrevisan.calendars.armenian.ArmenianCalendarStrategy;
-import io.github.mtrevisan.calendars.astronomy.Zenith;
+import io.github.mtrevisan.calendars.astronomy.EphemerisEngine;
+import io.github.mtrevisan.calendars.astronomy.EphemerisEngineFactory;
+import io.github.mtrevisan.calendars.astronomy.SunlightPhase;
+import io.github.mtrevisan.calendars.astronomy.ZenithInterface;
 import io.github.mtrevisan.calendars.bahai.BahaiCalendarStrategy;
 import io.github.mtrevisan.calendars.berber.BerberCalendarStrategy;
 import io.github.mtrevisan.calendars.buddhist.BuddhistCalendarStrategy;
@@ -47,10 +50,10 @@ import io.github.mtrevisan.calendars.indian.BangladeshCalendarStrategy;
 import io.github.mtrevisan.calendars.indian.HinduSolarCalendarStrategy;
 import io.github.mtrevisan.calendars.indian.IndianCalendarStrategy;
 import io.github.mtrevisan.calendars.indian.VikramSamvatCalendarStrategy;
-import io.github.mtrevisan.calendars.nepali.NepaliCalendarStrategy;
 import io.github.mtrevisan.calendars.islamic.IslamicCalendarStrategy;
 import io.github.mtrevisan.calendars.liturgical.LiturgicalCalendarStrategy;
 import io.github.mtrevisan.calendars.mayan.MayanCalendarStrategy;
+import io.github.mtrevisan.calendars.nepali.NepaliCalendarStrategy;
 import io.github.mtrevisan.calendars.parsi.ParsiCalendarStrategy;
 import io.github.mtrevisan.calendars.persian.PersianCalendarStrategy;
 import io.github.mtrevisan.calendars.quaker.QuakerCalendarStrategy;
@@ -58,25 +61,18 @@ import io.github.mtrevisan.calendars.regnal.RegnalCalendarStrategy;
 import io.github.mtrevisan.calendars.rumi.RumiCalendarStrategy;
 import io.github.mtrevisan.calendars.seleucid.SeleucidCalendarStrategy;
 import io.github.mtrevisan.calendars.sovieteternal.SovietEternalCalendarStrategy;
+import io.github.mtrevisan.calendars.spi.CalendarConverterPlugin;
+import io.github.mtrevisan.calendars.spi.CalendarMetadata;
 import io.github.mtrevisan.calendars.swedish.SwedishCalendarStrategy;
 import io.github.mtrevisan.calendars.venetan.VenetanCalendarStrategy;
 import io.github.mtrevisan.calendars.yearstart.EasterStyleCalendarStrategy;
 import io.github.mtrevisan.calendars.yearstart.YearStartStyleCalendarStrategy;
-import io.github.mtrevisan.calendars.astronomy.EphemerisEngine;
-import io.github.mtrevisan.calendars.astronomy.EphemerisEngineFactory;
-import io.github.mtrevisan.calendars.astronomy.SunlightPhase;
-import io.github.mtrevisan.calendars.astronomy.ZenithInterface;
 
 import java.time.LocalDate;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Collections;
-import java.util.Map;
 
 
 /**
  * Supported calendar systems and their conversion algorithms to Julian Day Number (JDN).
- * TODO altri calendari da aggiungere (se non già presenti): juche, korean, nengo, thai, vietnamese, Senmyō
  */
 public enum CalendarType implements CalendarConverterPlugin{
 
@@ -169,12 +165,6 @@ public enum CalendarType implements CalendarConverterPlugin{
 		return strategy.getMetadata(rawDate);
 	}
 
-	public record CalendarMetadata(Map<String, Boolean> nativeComponents, boolean isComplete){
-		public CalendarMetadata{
-			nativeComponents = Collections.unmodifiableMap(nativeComponents);
-		}
-	}
-
 	/**
 	 * Julian Day Number of 1970-01-01 in the proleptic Gregorian calendar,
 	 * i.e. the JDN that corresponds to {@link LocalDate#ofEpochDay(long)}
@@ -193,41 +183,29 @@ public enum CalendarType implements CalendarConverterPlugin{
 		return LocalDate.ofEpochDay(jdn - UNIX_EPOCH_JDN);
 	}
 
-
-	public static final int SEASON_AUTUMN = -1;
-	public static final int SEASON_WINTER = -2;
-	public static final int SEASON_SPRING = -3;
-	public static final int SEASON_SUMMER = -4;
-
-	public static double getGeneralTargetLongitude(final int month){
-		return switch(month){
-			case SEASON_AUTUMN -> Math.PI;
-			case SEASON_WINTER -> 1.5 * Math.PI;
-			case SEASON_SPRING -> 0.;
-			case SEASON_SUMMER -> 0.5 * Math.PI;
-			default -> 0.;
-		};
-	}
-
-
-	// TODO write test
 	/**
-	 * Computes the precise localized sunlight phase tracking boundaries for any historical date.
+	 * Computes the sunrise, transit, and sunset of the Sun on a (historical) date at a place.
+	 * <p>
+	 * The day is the local one, from the midnight of the local mean time of the place (the historical dates predate
+	 * the time zones), so that the events of the day are found also far from Greenwich.
+	 * </p>
 	 *
 	 * @param calendarCode the native calendar tracking system code
 	 * @param rawDate      the uncleaned date expression text string
-	 * @param latitude     observer geodetic latitude in degrees
-	 * @param longitude    observer geodetic longitude in degrees
+	 * @param latitude     observer geodetic latitude in degrees (North positive)
+	 * @param longitude    observer geodetic longitude in degrees (East positive)
 	 * @param zenith       the targeted zenith boundary (e.g. OFFICIAL, CIVIL twilight)
-	 * @return a localized polymorphic {@link SunlightPhase} container instance
+	 * @return a {@link SunlightPhase} with the events in UTC
+	 * @throws UnsupportedOperationException if the Ephemeris plugin is not installed
 	 */
 	public static SunlightPhase getSunlightPhase(final String calendarCode, final String rawDate,
 			final double latitude, final double longitude, final ZenithInterface zenith){
 		final CalendarType type = CalendarType.fromCode(calendarCode);
 		final long jdn = type.parseToJdn(rawDate);
 
-		// Align absolute Julian Day Number to Greenwich Midnight UT
-		final double midnightUtJd = jdn - 0.5;
+		// Local mean midnight, in UT: the Julian Day Number starts at Greenwich noon, and the local mean time is ahead of
+		// UT by one hour every 15° East
+		final double midnightUtJd = jdn - 0.5 - longitude / 360.;
 
 		final EphemerisEngine engine = EphemerisEngineFactory.getEngine();
 		if(!engine.isAvailable())
@@ -235,11 +213,6 @@ public enum CalendarType implements CalendarConverterPlugin{
 
 		// Execute the proxy calculation call out to the plugin JAR
 		return engine.calculateHorizonEvent(EphemerisEngine.CelestialBody.SUN, midnightUtJd, latitude, longitude, zenith);
-	}
-
-	public static void main(String[] args){
-		CalendarType.getSunlightPhase("gregorian", "INV 2026",
-			45.714920, 12.194179, Zenith.CIVIL);
 	}
 
 }

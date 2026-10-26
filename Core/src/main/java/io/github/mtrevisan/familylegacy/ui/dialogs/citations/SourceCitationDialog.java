@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.ui.dialogs.citations;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
+import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextField;
 import io.github.mtrevisan.familylegacy.ui.components.PanelKey;
 import io.github.mtrevisan.familylegacy.ui.components.RecordDialogBuilder;
@@ -54,16 +55,17 @@ import java.awt.Window;
  *   source: Xref&lt;SourceRecord&gt;
  *   locator?: Text
  *   extract*: ExtractStructure
+ *   stance: enum { supports, contradicts }
  *   note*: Xref&lt;NoteRecord&gt;
  *   evidence?: EvidenceQualifiers
  *   privacy?: PrivacyStructure
  *
- *   require extract.document_part.document in source.document
+ *   require extract.media_part.media in source.media
  * }
  *
  * struct ExtractStructure {
- *   document_part*: struct {
- *     document: Xref&lt;DocumentRecord&gt;
+ *   media_part*: struct {
+ *     media: Xref&lt;MediaRecord&gt;
  *     crop?: CropRect
  *   }
  *   text?: Text
@@ -71,7 +73,7 @@ import java.awt.Window;
  *   locale?: LocaleCode
  *   remark*: Text
  *
- *   require one_of(document_part, text)
+ *   require one_of(media_part, text)
  * }
  * </pre>
  * <p>
@@ -87,6 +89,7 @@ public class SourceCitationDialog extends BaseRecordDialog{
 	private final EntityField sourceField;
 	private final BoundTextField locatorField;
 	private final ExtractListPanel extractPanel;
+	private final BoundComboBox<String> stanceCombo;
 
 
 	public static SourceCitationDialog createNew(final Window parent, final FLEFModel model){
@@ -101,11 +104,14 @@ public class SourceCitationDialog extends BaseRecordDialog{
 	private SourceCitationDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, SourceCitationHandler.getInstance());
 
-		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]");
+		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]10[]");
 
 		sourceField = EntityField.createForRecordFromReference(SourceCitationReader.TAG_SOURCE, this, model, SourceHandler.class);
 		locatorField = new BoundTextField(SourceCitationReader.TAG_LOCATOR);
 		extractPanel = new ExtractListPanel(SourceCitationReader.TAG_EXTRACT, this, I18N.t("dialog.source_citation.extract.title"), model);
+
+		stanceCombo = new BoundComboBox<>(SourceCitationReader.TAG_STANCE, SourceCitationReader.STANCES);
+		stanceCombo.setI18NPrefix("enum.source_citation.stance");
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, this.record)
@@ -114,6 +120,7 @@ public class SourceCitationDialog extends BaseRecordDialog{
 			.build();
 
 		components.bind(locatorField);
+		components.bind(stanceCombo);
 
 
 		finalizeDialog(parent);
@@ -123,13 +130,16 @@ public class SourceCitationDialog extends BaseRecordDialog{
 	@Override
 	protected JPanel createPropertiesPanel(){
 		// source
-		GUIHelper.addLabeledComponent(propertiesPanel, "Source:", sourceField);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.source_citation.source") + "*:", sourceField);
 
 		// locator
-		GUIHelper.addLabeledComponent(propertiesPanel, "Locator:", locatorField);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.source_citation.locator") + ":", locatorField);
 
 		// extract
 		GUIHelper.addComponent(propertiesPanel, extractPanel);
+
+		// stance
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.source_citation.stance") + "*:", stanceCombo);
 
 		// evidence
 		final JPanel evidencePanel = components.getPanel(PanelKey.EVIDENCE);
@@ -167,7 +177,14 @@ public class SourceCitationDialog extends BaseRecordDialog{
 	protected boolean validData(){
 		if(sourceField.isEmpty()){
 			GUIHelper.showValidationErrorAndFocus(this,
-				"Source is required.",
+				I18N.tf("validation.required", I18N.t("dialog.source_citation.source")),
+				tabbedPane, propertiesPanel, sourceField);
+
+			return false;
+		}
+		if(!stanceCombo.isValued()){
+			GUIHelper.showValidationErrorAndFocus(this,
+				I18N.tf("validation.required", I18N.t("dialog.source_citation.stance")),
 				tabbedPane, propertiesPanel, sourceField);
 
 			return false;

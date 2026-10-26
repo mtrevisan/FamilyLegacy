@@ -22,7 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.calendars;
+package io.github.mtrevisan.calendars.spi;
 
 
 /**
@@ -40,6 +40,6 @@ public interface CalendarConverterPlugin{
 	 */
 	long parseToJdn(String dateExpression);
 
-	CalendarType.CalendarMetadata getMetadata(final String rawDate);
+	CalendarMetadata getMetadata(final String rawDate);
 
 }

@@ -106,7 +106,7 @@ public final class ReportGenerator{
 			case SOURCE -> out.add(new SourceRootSection(ctx));
 			case PLACE -> out.add(new PlaceRootSection(ctx));
 			case REPOSITORY -> out.add(new RepositoryRootSection(ctx));
-			case DOCUMENT -> out.add(new DocumentRootSection(ctx));
+			case DOCUMENT -> out.add(new MediaRootSection(ctx));
 			case RESEARCH_QUESTION -> out.add(new ResearchQuestionRootSection(ctx));
 			case RESEARCH_ACTIVITY -> out.add(new ResearchActivityRootSection(ctx));
 			case RESEARCH_TASK -> out.add(new ResearchTaskRootSection(ctx));

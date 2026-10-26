@@ -24,14 +24,12 @@
  */
 package io.github.mtrevisan.calendars.sovieteternal;
 
-import io.github.mtrevisan.calendars.CalendarConverterPlugin;
-import io.github.mtrevisan.calendars.CalendarType;
-import io.github.mtrevisan.calendars.gregorian.GregorianCalendarStrategy;
+import io.github.mtrevisan.calendars.astronomy.CalendarSeason;
 import io.github.mtrevisan.calendars.astronomy.EphemerisEngine;
 import io.github.mtrevisan.calendars.astronomy.EphemerisEngineFactory;
-
-import java.util.LinkedHashMap;
-import java.util.Map;
+import io.github.mtrevisan.calendars.gregorian.GregorianCalendarStrategy;
+import io.github.mtrevisan.calendars.spi.CalendarConverterPlugin;
+import io.github.mtrevisan.calendars.spi.CalendarMetadata;
 
 
 public class SovietEternalCalendarStrategy implements CalendarConverterPlugin{
@@ -56,25 +54,9 @@ public class SovietEternalCalendarStrategy implements CalendarConverterPlugin{
 		if(month < 0){
 			// Step A: Determine an approximate baseline anchor for the year.
 			// Soviet dates align completely with Gregorian absolute years. Gregorian year 1970-01-01 = JDN 2440588L.
-			final int m = switch(month){
-				case CalendarType.SEASON_SPRING -> 3;  // March
-				case CalendarType.SEASON_SUMMER -> 6;  // June
-				case CalendarType.SEASON_AUTUMN -> 9;  // September
-				case CalendarType.SEASON_WINTER -> 12; // December
-				default -> 6;
-			};
+			final int m = CalendarSeason.gregorianSeasonMonth(month);
 			final long baselineApproxJdn = GregorianCalendarStrategy.toJdn(year, m, 1);
-			final double approximateMiddleJdUT = baselineApproxJdn - 0.5;
-
-			// Step B: Map negative flag parameters directly onto true solar ecliptic target boundaries
-			final double targetLongitude = CalendarType.getGeneralTargetLongitude(month);
-
-			// Step C: Execute high-precision calculation to track the exact instant the Sun cross point occurs
-			final EphemerisEngine engine = EphemerisEngineFactory.getEngine();
-			if(!engine.isAvailable())
-				throw new UnsupportedOperationException("Sovietic Eternal calendar requires the Ephemeris plugin.");
-
-			final double exactSeasonJdUT = engine.findSolarLongitudeEvent(approximateMiddleJdUT, targetLongitude);
+			final double exactSeasonJdUT = exactSeasonJdUT(baselineApproxJdn, month);
 
 			return (long)Math.floor(exactSeasonJdUT + 0.5);
 		}
@@ -84,16 +66,24 @@ public class SovietEternalCalendarStrategy implements CalendarConverterPlugin{
 			return GregorianCalendarStrategy.toJdn(year, month, day);
 	}
 
-	@Override
-	public CalendarType.CalendarMetadata getMetadata(final String rawDate){
-		final SovietEternalDateInput input = SovietEternalCalendarParser.parse(rawDate);
-		final Map<String, Boolean> components = new LinkedHashMap<>();
-		components.put("year", (input.year() != 0));
-		components.put("month", (input.month() != 0));
-		components.put("day", (input.day() != 0));
+	private static double exactSeasonJdUT(final long baselineApproxJdn, final int month){
+		final double approximateMiddleJdUT = baselineApproxJdn - 0.5;
 
-		final boolean isComplete = (input.year() != 0 && input.month() != 0 && input.day() != 0);
-		return new CalendarType.CalendarMetadata(components, isComplete);
+		// Step B: Map negative flag parameters directly onto true solar ecliptic target boundaries
+		final double targetLongitude = CalendarSeason.getGeneralTargetLongitude(month);
+
+		// Step C: Execute high-precision calculation to track the exact instant the Sun cross point occurs
+		final EphemerisEngine engine = EphemerisEngineFactory.getEngine();
+		if(!engine.isAvailable())
+			throw new UnsupportedOperationException("Sovietic Eternal calendar requires the Ephemeris plugin.");
+
+		return engine.findSolarLongitudeEvent(approximateMiddleJdUT, targetLongitude);
+	}
+
+	@Override
+	public CalendarMetadata getMetadata(final String rawDate){
+		final SovietEternalDateInput input = SovietEternalCalendarParser.parse(rawDate);
+		return CalendarMetadata.createFromYearMonthDay(input.year(), input.month(), input.day());
 	}
 
 }

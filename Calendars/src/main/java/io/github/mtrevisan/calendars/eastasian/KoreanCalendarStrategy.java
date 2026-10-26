@@ -24,10 +24,10 @@
  */
 package io.github.mtrevisan.calendars.eastasian;
 
-import io.github.mtrevisan.calendars.CalendarConverterPlugin;
-import io.github.mtrevisan.calendars.CalendarType;
 import io.github.mtrevisan.calendars.chinese.LunisolarAstronomicalEngine;
 import io.github.mtrevisan.calendars.gregorian.GregorianCalendarStrategy;
+import io.github.mtrevisan.calendars.spi.CalendarConverterPlugin;
+import io.github.mtrevisan.calendars.spi.CalendarMetadata;
 
 import java.util.Map;
 
@@ -79,7 +79,7 @@ public class KoreanCalendarStrategy implements CalendarConverterPlugin{
 	}
 
 	@Override
-	public CalendarType.CalendarMetadata getMetadata(final String rawDate){
+	public CalendarMetadata getMetadata(final String rawDate){
 		return EastAsianEraDateParser.parse(rawDate, MARKERS, LUNAR)
 			.toMetadata();
 	}
