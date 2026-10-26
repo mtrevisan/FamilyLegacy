@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.io;
 import io.github.mtrevisan.familylegacy.io.grammar.FLEFGrammar;
 import io.github.mtrevisan.familylegacy.io.grammar.FLEFGrammarParser;
 import io.github.mtrevisan.familylegacy.io.grammar.FLEFGrammarValidator;
+import io.github.mtrevisan.familylegacy.io.grammar.SingularFieldIndex;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
@@ -50,6 +51,7 @@ public class FLEFParser{
 
 	private static final char TAG_OPEN_CURLY_BRACE = '{';
 	private static final char TAG_CLOSE_CURLY_BRACE = '}';
+	private static final char BYTE_ORDER_MARK = '﻿';
 
 	private static final String FIELD_HEADER = "header";
 	private static final String FIELD_RECORDS = "records";
@@ -168,21 +170,35 @@ public class FLEFParser{
 
 		final FLEFModel root = new FLEFModel();
 
+		// A byte order mark at the start of the file may be present, and is ignored
+		if(!eof() && peek() == BYTE_ORDER_MARK)
+			advance();
 		skipIgnored();
 
 		while(!eof()){
+			final int recordPosition = position;
 			final FLEFRecord record = parseRecord();
 
 			final String tag = record.getTag();
-			if(Strings.CI.equals(FIELD_HEADER, tag))
+			if(Strings.CI.equals(FIELD_HEADER, tag)){
+				SingularFieldIndex.mergeSingularBlocks(record);
 				root.setHeader(record);
-			else if(Strings.CI.equals(FIELD_RECORDS, tag)){
+			}
+			else if(Strings.CI.equals(FIELD_RECORDS, tag) && record.getId() == null){
+				// legacy layout, with every record inside a `records { … }` block
 				final List<FLEFRecord> children = record.getChildren();
-				for(final FLEFRecord child : children)
+				for(final FLEFRecord child : children){
+					SingularFieldIndex.mergeSingularBlocks(child);
 					root.addRecord(child);
+				}
+			}
+			else if(record.getId() != null){
+				// `<record_kind> <Id> { … }`, as defined by the protocol
+				SingularFieldIndex.mergeSingularBlocks(record);
+				root.addRecord(record);
 			}
 			else
-				throw new RuntimeException("Unexpected tag: " + tag + " at position " + position);
+				throw new RuntimeException("Unexpected tag: " + tag + " at position " + recordPosition);
 
 			skipIgnored();
 		}
@@ -525,7 +541,7 @@ public class FLEFParser{
 			final char c = peek();
 			if(Character.isWhitespace(c))
 				advance();
-			else if(c == '#' || (c == '/' && peek() == '/')){
+			else if(c == '#' || (c == '/' && position + 1 < length && text.charAt(position + 1) == '/')){
 				// Skip single-line comments (# or //)
 				while(!eof() && peek() != '\n' && peek() != '\r')
 					advance();

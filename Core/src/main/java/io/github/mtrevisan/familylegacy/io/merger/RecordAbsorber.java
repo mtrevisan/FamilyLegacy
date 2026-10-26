@@ -201,7 +201,7 @@ public final class RecordAbsorber{
 
 				final boolean[] involved = {false};
 				for(final FLEFRecord record : group)
-					references.forEachReference(record, (owner, node, path, targetKind) -> {
+					references.forEachReference(record, (owner, parent, node, path, targetKind) -> {
 						if(survivorId.equals(node.getValue()))
 							involved[0] = true;
 					});

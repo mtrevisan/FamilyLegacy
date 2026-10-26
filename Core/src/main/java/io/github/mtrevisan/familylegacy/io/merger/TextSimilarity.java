@@ -107,6 +107,40 @@ final class TextSimilarity{
 	}
 
 	/**
+	 * Compares two already normalized place names. Unlike personal names, a name with more words is another place
+	 * ({@code San Martino} and {@code San Martino di Lupari}, {@code Pordenone} and {@code Prata di Pordenone}): only abbreviations
+	 * and initials ({@code S. Martino}) partially agree.
+	 *
+	 * @return the agreement, or {@code null} if either text is empty
+	 */
+	static Agreement comparePlaceNormalized(final String a, final String b){
+		final Agreement agreement = compareNormalized(a, b);
+		if(agreement != Agreement.SUBSET && agreement != Agreement.SIMILAR)
+			return agreement;
+
+		return (StringUtils.split(a).length == StringUtils.split(b).length? agreement: Agreement.DIFFERENT);
+	}
+
+	/**
+	 * Best agreement between any place name of the first group and any of the second.
+	 *
+	 * @return the agreement, or {@code null} if either group has no name
+	 */
+	static Agreement bestPlace(final Collection<String> groupA, final Collection<String> groupB){
+		Agreement best = null;
+		for(final String a : groupA)
+			for(final String b : groupB){
+				final Agreement agreement = comparePlaceNormalized(a, b);
+				if(agreement != null && (best == null || agreement.isAtLeast(best))){
+					best = agreement;
+					if(best == Agreement.EXACT)
+						return best;
+				}
+			}
+		return best;
+	}
+
+	/**
 	 * Best agreement between any text of the first group and any of the second.
 	 *
 	 * @return the agreement, or {@code null} if either group has no text

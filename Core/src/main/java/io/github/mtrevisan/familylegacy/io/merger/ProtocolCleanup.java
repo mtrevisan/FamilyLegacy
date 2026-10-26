@@ -51,11 +51,13 @@ final class ProtocolCleanup{
 
 	private final MergeSession session;
 	private final ProtocolRules rules;
+	private final double reviewThreshold;
 
 
-	ProtocolCleanup(final MergeSession session, final ProtocolRules rules){
+	ProtocolCleanup(final MergeSession session, final ProtocolRules rules, final double reviewThreshold){
 		this.session = session;
 		this.rules = rules;
+		this.reviewThreshold = reviewThreshold;
 	}
 
 
@@ -89,6 +91,7 @@ final class ProtocolCleanup{
 				pairs.add(pair);
 		}
 
+		EntityMatcher matcher = null;
 		for(final EntityLinker.Candidate candidate : candidates){
 			final String idA = session.resolve(candidate.idA());
 			final String idB = session.resolve(candidate.idB());
@@ -97,10 +100,21 @@ final class ProtocolCleanup{
 			// a merge does not judge the duplicates already inside the base: that is what deduplication is for
 			if(session.isMergeMode() && !session.isIncoming(idA) && !session.isIncoming(idB))
 				continue;
-			if(!pairs.add(ProtocolRules.unorderedPair(List.of(idA, idB))))
+			if(pairs.contains(ProtocolRules.unorderedPair(List.of(idA, idB))))
 				continue;
 
-			final MatchScore score = candidate.score();
+			// a candidate absorbed into another record is another pair: its score is taken again, on the records as merged
+			MatchScore score = candidate.score();
+			if(!idA.equals(candidate.idA()) || !idB.equals(candidate.idB())){
+				if(matcher == null)
+					matcher = new EntityMatcher(new ModelIndex(session.records(), session.references), session.signature,
+						session.isMergeMode());
+				score = matcher.compare(session.record(idA), session.record(idB));
+				if(score.isVetoed() || score.probability() < reviewThreshold)
+					continue;
+			}
+			pairs.add(ProtocolRules.unorderedPair(List.of(idA, idB)));
+
 			final String id = session.newId(HYPOTHESIS_ID_TEMPLATE);
 			final FLEFRecord hypothesis = FLEFRecord.createMainRecord(id, ProtocolRules.KIND_IDENTITY_HYPOTHESIS);
 			hypothesis.addChild(FLEFRecord.createChildWithTag(ProtocolRules.TAG_IDENTITY)

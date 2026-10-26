@@ -29,13 +29,16 @@ import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateNormalizer;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.TemporalSpan;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 
 
 /**
@@ -55,6 +58,8 @@ final class ModelIndex{
 	static final String KIND_PLACE = "place";
 	static final String KIND_PLACE_RELATIONSHIP = "place_relationship";
 	static final String KIND_INDIVIDUAL_ATTRIBUTE = "individual_attribute";
+	static final String KIND_GROUP_ATTRIBUTE = "group_attribute";
+	static final String KIND_SOURCE = "source";
 
 	static final String TAG_TYPE = "type";
 	static final String TAG_DATE = "date";
@@ -82,6 +87,10 @@ final class ModelIndex{
 	private final Map<String, Set<String>> spousesOf = new HashMap<>();
 	private final Map<String, Set<String>> membersOf = new HashMap<>();
 	private final Map<String, Set<String>> placeParentsOf = new HashMap<>();
+	private final Map<String, Set<String>> placeChildrenOf = new HashMap<>();
+	private final Map<String, Set<String>> placeSuccessionsOf = new HashMap<>();
+	private final Map<String, Set<String>> usagesOf = new HashMap<>();
+	private final Map<String, Set<String>> locatedUsagesOf = new HashMap<>();
 	private final Map<String, Integer> referenceCount = new HashMap<>();
 
 
@@ -103,8 +112,76 @@ final class ModelIndex{
 			}
 		}
 
-		references.forEachReference(records, (owner, node, path, targetKind)
-			-> referenceCount.merge(node.getValue(), 1, Integer::sum));
+		// the participations are all indexed: the subjects of every assertion can be told
+		references.forEachReference(records, (owner, parent, node, path, targetKind) -> {
+			referenceCount.merge(node.getValue(), 1, Integer::sum);
+
+			final boolean place = (KIND_PLACE.equals(targetKind) && !KIND_PLACE_RELATIONSHIP.equals(owner.getTag()));
+			if(place || KIND_SOURCE.equals(targetKind))
+				indexUsage(owner, parent, node.getValue(), targetKind);
+		});
+	}
+
+	/**
+	 * Records that a place or a source is used by an assertion, as {@code subjects|kind:type}, and, for a source cited with a
+	 * locator, as {@code subjects|kind:type|locator}.
+	 */
+	private void indexUsage(final FLEFRecord owner, final FLEFRecord parent, final String usedId, final String usedKind){
+		final String subjects = subjectsOf(owner);
+		if(subjects == null)
+			return;
+
+		final String type = value(owner, TAG_TYPE);
+		final String usage = subjects + "|" + owner.getTag() + (type != null? ":" + type: "");
+		usagesOf.computeIfAbsent(usedId, k -> new LinkedHashSet<>())
+			.add(usage);
+		if(KIND_SOURCE.equals(usedKind)){
+			final String locator = TextSimilarity.normalize(value(parent, TAG_LOCATOR));
+			if(!locator.isEmpty())
+				locatedUsagesOf.computeIfAbsent(usedId, k -> new LinkedHashSet<>())
+					.add(usage + "|" + locator);
+		}
+	}
+
+	/**
+	 * The entities an assertion is about, sorted and joined: the principals of an event, the participant of a participation, the
+	 * owner of an attribute, the two ends of a relationship, the record itself otherwise.
+	 */
+	private String subjectsOf(final FLEFRecord owner){
+		final Set<String> subjects = new TreeSet<>();
+		switch(owner.getTag()){
+			case KIND_EVENT -> {
+				final Set<String> all = new TreeSet<>();
+				for(final FLEFRecord participation : participationsOfEvent(owner.getId())){
+					final String participant = armValue(FieldMerger.first(participation, TAG_PARTICIPANT));
+					if(participant == null)
+						continue;
+
+					all.add(participant);
+					final String role = value(participation, TAG_ROLE);
+					if(role == null || ROLE_PRINCIPAL.equals(role))
+						subjects.add(participant);
+				}
+				if(subjects.isEmpty())
+					subjects.addAll(all);
+			}
+			case KIND_EVENT_PARTICIPATION -> addIfPresent(subjects, armValue(FieldMerger.first(owner, TAG_PARTICIPANT)));
+			case KIND_INDIVIDUAL_ATTRIBUTE -> addIfPresent(subjects, value(owner, KIND_INDIVIDUAL));
+			case KIND_GROUP_ATTRIBUTE -> addIfPresent(subjects, value(owner, KIND_GROUP));
+			case KIND_RELATIONSHIP -> {
+				final String subject = armValue(FieldMerger.first(owner, TAG_SUBJECT));
+				final String target = armValue(FieldMerger.first(owner, TAG_TARGET));
+				// the direction matters: the child of a parent is not the parent of a child
+				return (subject != null && target != null? subject + ">" + target: null);
+			}
+			default -> subjects.add(owner.getId());
+		}
+		return (subjects.isEmpty()? null: String.join(",", subjects));
+	}
+
+	private static void addIfPresent(final Set<String> set, final String value){
+		if(value != null)
+			set.add(value);
 	}
 
 	private void indexParticipation(final FLEFRecord participation){
@@ -147,9 +224,22 @@ final class ModelIndex{
 		final String type = value(relationship, TAG_TYPE);
 		final String subject = armValue(FieldMerger.first(relationship, TAG_SUBJECT));
 		final String target = armValue(FieldMerger.first(relationship, TAG_TARGET));
-		if(type != null && type.endsWith(PART_OF_SUFFIX) && subject != null && target != null)
+		if(type == null || subject == null || target == null)
+			return;
+
+		if(type.endsWith(PART_OF_SUFFIX)){
 			placeParentsOf.computeIfAbsent(subject, k -> new LinkedHashSet<>())
 				.add(target);
+			placeChildrenOf.computeIfAbsent(target, k -> new LinkedHashSet<>())
+				.add(subject);
+		}
+		else{
+			// succession, merger, division: the researcher keeps these places apart on purpose
+			placeSuccessionsOf.computeIfAbsent(subject, k -> new LinkedHashSet<>())
+				.add(target);
+			placeSuccessionsOf.computeIfAbsent(target, k -> new LinkedHashSet<>())
+				.add(subject);
+		}
 	}
 
 
@@ -296,6 +386,44 @@ final class ModelIndex{
 
 	Set<String> placeParentsOf(final String placeId){
 		return placeParentsOf.getOrDefault(placeId, Set.of());
+	}
+
+	/**
+	 * Every place a place is part of, at any level (its parish, its municipality, its province, …).
+	 */
+	Set<String> placeAncestorsOf(final String placeId){
+		final Set<String> ancestors = new LinkedHashSet<>();
+		final Deque<String> pending = new ArrayDeque<>(placeParentsOf(placeId));
+		while(!pending.isEmpty()){
+			final String ancestor = pending.poll();
+			// cycles should not exist, but must not loop
+			if(!ancestor.equals(placeId) && ancestors.add(ancestor))
+				pending.addAll(placeParentsOf(ancestor));
+		}
+		return ancestors;
+	}
+
+	Set<String> placeChildrenOf(final String placeId){
+		return placeChildrenOf.getOrDefault(placeId, Set.of());
+	}
+
+	/** Places linked to a place by succession, merger, division, or transfer of territory. */
+	Set<String> placeSuccessionsOf(final String placeId){
+		return placeSuccessionsOf.getOrDefault(placeId, Set.of());
+	}
+
+	/**
+	 * How a place or a source is used, as {@code subjects|kind:type} (e.g. {@code I12|event:birth}).
+	 */
+	Set<String> usagesOf(final String id){
+		return usagesOf.getOrDefault(id, Set.of());
+	}
+
+	/**
+	 * How a source is cited with a locator, as {@code subjects|kind:type|locator}.
+	 */
+	Set<String> locatedUsagesOf(final String sourceId){
+		return locatedUsagesOf.getOrDefault(sourceId, Set.of());
 	}
 
 	/**

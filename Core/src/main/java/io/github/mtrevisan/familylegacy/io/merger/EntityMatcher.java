@@ -57,7 +57,8 @@ final class EntityMatcher{
 	static final List<String> MATCHABLE_KINDS = List.of("repository", "media", "source", "place", "cultural_norm",
 		"historic_event", ModelIndex.KIND_INDIVIDUAL, ModelIndex.KIND_GROUP);
 	/** Kinds compared also through the records related to them, which are merged in the same phase. */
-	static final List<String> RELATIONAL_KINDS = List.of(ModelIndex.KIND_INDIVIDUAL, ModelIndex.KIND_GROUP);
+	static final List<String> RELATIONAL_KINDS = List.of(ModelIndex.KIND_INDIVIDUAL, ModelIndex.KIND_GROUP, ModelIndex.KIND_PLACE,
+		ModelIndex.KIND_SOURCE);
 
 	private static final Set<String> BIRTH_TYPES = Set.of("birth");
 	private static final Set<String> BIRTH_PROXY_TYPES = Set.of("baptism", "christening");
@@ -75,6 +76,8 @@ final class EntityMatcher{
 	private static final String TAG_PUBLISHER = "publisher";
 	private static final String TAG_MEDIA_TYPE = "media_type";
 	private static final String TAG_REPOSITORY = "repository";
+	private static final String TAG_MEDIA = "media";
+	private static final String TAG_LOCATOR = "locator";
 	private static final String TAG_CONTACT = "contact";
 	private static final String TAG_LOCATION = "location";
 	private static final String TAG_COORDINATES = "coordinates";
@@ -150,6 +153,20 @@ final class EntityMatcher{
 			case "source" -> {
 				for(final String title : names(record, TAG_TITLE))
 					keys.add("t:" + TextSimilarity.prefix(title, 12));
+				// sources titled differently are compared when they share a scan, a call number, or a cited entry
+				for(final String media : values(record, TAG_MEDIA))
+					keys.add("m:" + media);
+				for(final Map.Entry<String, Set<String>> callNumbers : callNumbers(record).entrySet())
+					for(final String locator : callNumbers.getValue())
+						keys.add("r:" + callNumbers.getKey() + "|" + locator);
+				for(final String usage : index.locatedUsagesOf(record.getId()))
+					keys.add("c:" + usage);
+			}
+			case ModelIndex.KIND_PLACE -> {
+				for(final String leaf : placeNames(record).leaves())
+					keys.add("n:" + TextSimilarity.prefix(leaf, 4));
+				for(final String usage : index.usagesOf(record.getId()))
+					keys.add("u:" + usage);
 			}
 			case "cultural_norm", "historic_event" -> {
 				final String title = TextSimilarity.normalize(ModelIndex.value(record, TAG_TITLE));
@@ -383,7 +400,7 @@ final class EntityMatcher{
 				return;
 			}
 
-		final Agreement agreement = TextSimilarity.best(placeNames(placesA), placeNames(placesB));
+		final Agreement agreement = TextSimilarity.bestPlace(placeNames(placesA), placeNames(placesB));
 		if(agreement == null)
 			return;
 		switch(agreement){
@@ -398,7 +415,7 @@ final class EntityMatcher{
 		for(final String placeId : placeIds){
 			final FLEFRecord place = index.record(placeId);
 			if(place != null)
-				names.addAll(names(place, TAG_NAME));
+				names.addAll(placeNames(place).leaves());
 		}
 		return names;
 	}
@@ -480,19 +497,32 @@ final class EntityMatcher{
 
 	private MatchScore comparePlaces(final FLEFRecord a, final FLEFRecord b){
 		final MatchScore.Builder score = new MatchScore.Builder(PRIOR_PLACE);
-		addIdenticalContent(score, a, b);
 
-		// the type of a place is fixed for the lifetime of its record: a change of type is a different record
+		// places the researcher related to each other are different records on purpose
+		if(index.placeAncestorsOf(a.getId()).contains(b.getId()) || index.placeAncestorsOf(b.getId()).contains(a.getId()))
+			return score.veto("one place is part of the other")
+				.build();
+		if(index.placeSuccessionsOf(a.getId()).contains(b.getId()))
+			return score.veto("places linked by succession, merger, or division")
+				.build();
+
 		final String typeA = ModelIndex.value(a, ModelIndex.TAG_TYPE);
 		final String typeB = ModelIndex.value(b, ModelIndex.TAG_TYPE);
 		if(typeA != null && typeB != null){
-			if(!typeA.equals(typeB))
+			if(typeA.equals(typeB))
+				score.add(1., "same type");
+			// the type of a place is fixed for the lifetime of its record: inside a file a change of type is a different record, while
+			// two researchers may classify the same settlement differently
+			else if(crossFile && placeTypeFamily(typeA).equals(placeTypeFamily(typeB)))
+				score.add(-2., "types differ (" + typeA + ", " + typeB + ")");
+			else
 				return score.veto("different place types (" + typeA + ", " + typeB + ")")
 					.build();
-			score.add(1., "same type");
 		}
 
-		addAgreement(score, TextSimilarity.best(names(a, TAG_NAME), names(b, TAG_NAME)), "name", 5., 2.5, 2.5, -5.);
+		final PlaceNames namesA = placeNames(a);
+		final PlaceNames namesB = placeNames(b);
+		addAgreement(score, TextSimilarity.bestPlace(namesA.leaves(), namesB.leaves()), "name", 5., 2.5, 2.5, -5.);
 
 		final ChronomapIndex.GeoCoordinate coordinateA = coordinates(a);
 		final ChronomapIndex.GeoCoordinate coordinateB = coordinates(b);
@@ -508,23 +538,107 @@ final class EntityMatcher{
 				score.add(-6., "locations " + Math.round(km) + " km apart");
 		}
 
-		final Set<String> parentsA = index.placeParentsOf(a.getId());
-		final Set<String> parentsB = index.placeParentsOf(b.getId());
-		if(!parentsA.isEmpty() && !parentsB.isEmpty()){
-			final Set<String> common = new HashSet<>(parentsA);
-			common.retainAll(parentsB);
-			if(!common.isEmpty())
-				score.add(3., "same parent place");
+		// the jurisdiction, at any level: the ancestors in the hierarchy and the qualifiers written in the name
+		// (`San Martino, Treviso` and a San Martino part of a province part of Treviso agree)
+		final Set<String> jurisdictionA = jurisdiction(a, namesA);
+		final Set<String> jurisdictionB = jurisdiction(b, namesB);
+		boolean differentJurisdictions = false;
+		if(!jurisdictionA.isEmpty() && !jurisdictionB.isEmpty()){
+			final int common = intersection(jurisdictionA, jurisdictionB);
+			if(common >= 2)
+				score.add(4., "same jurisdiction");
+			else if(common == 1)
+				score.add(3., "a jurisdiction agrees");
 			else{
-				final Agreement agreement = TextSimilarity.best(placeNames(parentsA), placeNames(parentsB));
-				if(agreement != null && agreement.isAtLeast(Agreement.SUBSET))
-					score.add(2., "parent place names agree");
-				else
-					score.add(-4., "parent places differ");
+				score.add(-4., "different jurisdictions");
+				differentJurisdictions = true;
 			}
 		}
+		// the hierarchy is in other records: two places identical in their own record but in different jurisdictions are namesakes
+		if(!differentJurisdictions)
+			addIdenticalContent(score, a, b);
+
+		// the subdivisions, from below: two Trevisos with the same hamlets
+		final int commonChildren = intersection(childNames(a), childNames(b));
+		if(commonChildren > 0)
+			score.add(commonChildren >= 3? 4.: 2., commonChildren + " subdivisions in common");
+
+		// the uses: the same birth, residence, or burial (of records already merged) took place there
+		final int commonUses = intersection(index.usagesOf(a.getId()), index.usagesOf(b.getId()));
+		if(commonUses > 0)
+			score.add(commonUses >= 2? 5.: 3., commonUses + " uses in common");
 
 		return score.build();
+	}
+
+	/**
+	 * The names of a place, split at the commas: the first part names the place, the others qualify it with its jurisdiction
+	 * (e.g. {@code San Martino, Treviso, Veneto}).
+	 *
+	 * @param leaves     the normalized names of the place itself
+	 * @param qualifiers the normalized names of the jurisdictions written in the names
+	 */
+	private record PlaceNames(List<String> leaves, Set<String> qualifiers){}
+
+	private static PlaceNames placeNames(final FLEFRecord place){
+		final List<String> texts = new ArrayList<>();
+		for(final FLEFRecord name : FieldMerger.children(place, TAG_NAME)){
+			texts.add(ModelIndex.value(name, TAG_VALUE));
+			addVariants(name, texts);
+		}
+
+		final List<String> leaves = new ArrayList<>();
+		final Set<String> qualifiers = new LinkedHashSet<>();
+		for(final String text : texts){
+			if(text == null)
+				continue;
+
+			final String[] parts = text.split(",");
+			leaves.add(parts[0]);
+			for(int i = 1; i < parts.length; i ++){
+				final String qualifier = TextSimilarity.normalize(parts[i]);
+				if(!qualifier.isEmpty())
+					qualifiers.add(qualifier);
+			}
+		}
+		return new PlaceNames(TextSimilarity.normalizeAll(leaves), qualifiers);
+	}
+
+	/**
+	 * The jurisdictions of a place, as names (qualifiers and names of the ancestors) and as ids of the ancestors.
+	 */
+	private Set<String> jurisdiction(final FLEFRecord place, final PlaceNames names){
+		final Set<String> jurisdiction = new HashSet<>(names.qualifiers());
+		for(final String ancestorId : index.placeAncestorsOf(place.getId())){
+			jurisdiction.add("@" + ancestorId);
+			final FLEFRecord ancestor = index.record(ancestorId);
+			if(ancestor != null)
+				jurisdiction.addAll(placeNames(ancestor).leaves());
+		}
+		return jurisdiction;
+	}
+
+	private Set<String> childNames(final FLEFRecord place){
+		final Set<String> names = new HashSet<>();
+		for(final String childId : index.placeChildrenOf(place.getId())){
+			final FLEFRecord child = index.record(childId);
+			if(child != null)
+				names.addAll(placeNames(child).leaves());
+		}
+		return names;
+	}
+
+	/**
+	 * Types two researchers may use for the same place: the kinds of settlement, of civil and of ecclesiastical jurisdiction.
+	 */
+	private static String placeTypeFamily(final String type){
+		return switch(type){
+			case "hamlet", "village", "town", "municipality", "city", "metropolitan_area" -> "settlement";
+			case "county", "province", "department", "district", "region", "macro_region" -> "jurisdiction";
+			case "parish", "diocese", "archdiocese" -> "ecclesiastical";
+			case "address", "building", "street" -> "address";
+			default -> type;
+		};
 	}
 
 	private MatchScore compareSources(final FLEFRecord a, final FLEFRecord b){
@@ -555,15 +669,91 @@ final class EntityMatcher{
 
 		addRecordDates(score, a, b);
 
-		final Set<String> repositoriesA = references(a, TAG_REPOSITORY, TAG_REPOSITORY);
-		final Set<String> repositoriesB = references(b, TAG_REPOSITORY, TAG_REPOSITORY);
-		if(!repositoriesA.isEmpty() && !repositoriesB.isEmpty()){
-			final Set<String> common = new HashSet<>(repositoriesA);
-			common.retainAll(repositoriesB);
-			score.add(common.isEmpty()? -0.5: 1.5, common.isEmpty()? "repositories differ": "same repository");
+		addRepositoryCitations(score, callNumbers(a), callNumbers(b));
+
+		// the scans or recordings of the source (media are merged on their resource before sources)
+		final Set<String> mediaA = values(a, TAG_MEDIA);
+		final Set<String> mediaB = values(b, TAG_MEDIA);
+		if(!mediaA.isEmpty() && !mediaB.isEmpty()){
+			final int common = intersection(mediaA, mediaB);
+			if(common > 0)
+				score.add(6., common + " media in common");
+			else
+				// a new scan of the same document is still the same document
+				score.add(-1., "different media");
 		}
 
+		// the uses: the same entries cited for the same assertions about the same (already merged) records
+		final int sameEntries = intersection(index.locatedUsagesOf(a.getId()), index.locatedUsagesOf(b.getId()));
+		if(sameEntries > 0)
+			score.add(sameEntries >= 2? 6.: 4., sameEntries + " same entries cited for the same assertions");
+		else if(intersection(index.usagesOf(a.getId()), index.usagesOf(b.getId())) > 0)
+			score.add(1.5, "cited for the same assertions");
+
 		return score.build();
+	}
+
+	/**
+	 * A call number (the locator of a repository citation) identifies an item inside its repository: the same call number in the
+	 * same repository is the same item, different call numbers are different items.
+	 */
+	private static void addRepositoryCitations(final MatchScore.Builder score, final Map<String, Set<String>> callNumbersA,
+			final Map<String, Set<String>> callNumbersB){
+		if(callNumbersA.isEmpty() || callNumbersB.isEmpty())
+			return;
+
+		boolean sameRepository = false;
+		boolean differentItems = false;
+		for(final Map.Entry<String, Set<String>> entry : callNumbersA.entrySet()){
+			final Set<String> locatorsB = callNumbersB.get(entry.getKey());
+			if(locatorsB == null)
+				continue;
+
+			sameRepository = true;
+			final Set<String> locatorsA = entry.getValue();
+			if(!locatorsA.isEmpty() && !locatorsB.isEmpty()){
+				if(intersection(locatorsA, locatorsB) > 0){
+					score.add(5., "same call number in the same repository");
+					return;
+				}
+				differentItems = true;
+			}
+		}
+		if(differentItems)
+			score.add(-3., "different call numbers in the same repository");
+		else if(sameRepository)
+			score.add(1.5, "same repository");
+		else
+			score.add(-0.5, "repositories differ");
+	}
+
+	/**
+	 * The repositories of a source, each with the normalized call numbers it is cited with.
+	 */
+	private static Map<String, Set<String>> callNumbers(final FLEFRecord source){
+		final Map<String, Set<String>> callNumbers = new HashMap<>();
+		for(final FLEFRecord citation : FieldMerger.children(source, TAG_REPOSITORY)){
+			final String repository = ModelIndex.value(citation, TAG_REPOSITORY);
+			if(repository == null)
+				continue;
+
+			final Set<String> locators = callNumbers.computeIfAbsent(repository, k -> new HashSet<>());
+			final String locator = TextSimilarity.normalize(ModelIndex.value(citation, TAG_LOCATOR));
+			if(!locator.isEmpty())
+				locators.add(locator);
+		}
+		return callNumbers;
+	}
+
+	/**
+	 * The values of the repeated leaf {@code tag} (e.g. the media of a source).
+	 */
+	private static Set<String> values(final FLEFRecord record, final String tag){
+		final Set<String> values = new HashSet<>();
+		for(final FLEFRecord child : FieldMerger.children(record, tag))
+			if(child.getValue() != null)
+				values.add(child.getValue());
+		return values;
 	}
 
 	private MatchScore compareRepositories(final FLEFRecord a, final FLEFRecord b){

@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.StructType;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -53,6 +54,7 @@ final class ReferenceRewriter{
 	private static final String TAG_NOTE = "note";
 	private static final String TAG_TEXT = "text";
 	private static final String TAG_TRANSLATION = "translation";
+	private static final String WILDCARD = "[*]";
 
 	/** A {@code flef:} link; the id stops at the first character that cannot belong to an id, so {@code flef:I1} never matches {@code flef:I12}. */
 	private static final Pattern FLEF_LINK = Pattern.compile(Pattern.quote(FLEFModel.FLEF_LINK_PREFIX) + "([A-Za-z][A-Za-z0-9_-]*)");
@@ -67,11 +69,12 @@ final class ReferenceRewriter{
 	interface ReferenceVisitor{
 		/**
 		 * @param owner      the top-level record that contains the reference
+		 * @param parent     the node that holds the reference (e.g. the citation holding a {@code source} reference)
 		 * @param node       the node whose value is the referenced id
 		 * @param path       the path of the node, relative to the owner
 		 * @param targetKind the record kind the reference must point to
 		 */
-		void visit(FLEFRecord owner, FLEFRecord node, String path, String targetKind);
+		void visit(FLEFRecord owner, FLEFRecord parent, FLEFRecord node, String path, String targetKind);
 	}
 
 
@@ -102,10 +105,18 @@ final class ReferenceRewriter{
 	}
 
 	void forEachReference(final FLEFRecord owner, final ReferenceVisitor visitor){
-		for(final XrefPath xrefPath : pathsOf(owner.getTag()))
-			for(final FLEFRecord node : FLEFRecordHelper.findChildren(owner, xrefPath.path()))
-				if(node.getValue() != null)
-					visitor.visit(owner, node, xrefPath.path(), xrefPath.targetKind());
+		for(final XrefPath xrefPath : pathsOf(owner.getTag())){
+			final String path = xrefPath.path();
+			final int separator = path.lastIndexOf('.');
+			final List<FLEFRecord> parents = (separator < 0
+				? List.of(owner)
+				: FLEFRecordHelper.findChildren(owner, path.substring(0, separator)));
+			final String tag = StringUtils.removeEnd(path.substring(separator + 1), WILDCARD);
+			for(final FLEFRecord parent : parents)
+				for(final FLEFRecord node : parent.getChildren())
+					if(tag.equals(node.getTag()) && node.getValue() != null)
+						visitor.visit(owner, parent, node, path, xrefPath.targetKind());
+		}
 	}
 
 	void forEachReference(final Collection<FLEFRecord> owners, final ReferenceVisitor visitor){
@@ -125,7 +136,7 @@ final class ReferenceRewriter{
 			return 0;
 
 		final int[] count = {0};
-		forEachReference(records, (owner, node, path, targetKind) -> {
+		forEachReference(records, (owner, parent, node, path, targetKind) -> {
 			final String newId = mapping.get(node.getValue());
 			if(newId != null){
 				node.setValue(newId);

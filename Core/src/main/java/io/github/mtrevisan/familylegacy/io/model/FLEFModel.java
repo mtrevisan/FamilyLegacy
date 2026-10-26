@@ -47,6 +47,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 /**
@@ -59,6 +61,7 @@ public class FLEFModel{
 
 
 	public static final String FLEF_LINK_PREFIX = "flef:";
+	private static final String TAG_NOTE_TRANSLATION_TEXT = "translation.text";
 
 
 	private FLEFRecord header;
@@ -235,11 +238,13 @@ public class FLEFModel{
 	}
 
 	/**
-	 * Replaces all occurrences of oldId with newId strictly across pre-indexed Xref paths derived from the grammar.
+	 * Redirects to {@code newId} every reference to {@code oldId}, strictly across pre-indexed Xref paths derived from the grammar,
+	 * together with the {@code flef:} links in notes, then removes the record {@code oldId}.
 	 * Highly optimized to avoid global record lookups per path iteration.
 	 *
 	 * @param oldId the ID to replace
-	 * @param newId the target ID
+	 * @param newId the target ID, of an existing record
+	 * @throws IllegalArgumentException if {@code newId} is not a record of this model
 	 */
 	public void replaceRecordId(final String oldId, final String newId){
 		if(!XrefPathIndex.isInitialized())
@@ -249,6 +254,8 @@ public class FLEFModel{
 			return;
 
 		final FLEFRecord newRecord = getRecordById(newId);
+		if(newRecord == null)
+			throw new IllegalArgumentException("Record does not exist: " + newId);
 		final String newRecordType = newRecord.getTag();
 		final String newTargetRecordType = CaseUtils.toCamelCase(newRecordType, true, '_')
 			+ XrefPathIndex.RECORD_UNION_NAME;
@@ -277,42 +284,43 @@ public class FLEFModel{
 			}
 		}
 
-		// Construct the markdown link patterns for FLEF: URI references (e.g., flef:I12)
-		final String flefLinkOld = FLEF_LINK_PREFIX + oldId;
-		final String flefLinkNew = FLEF_LINK_PREFIX + newId;
-		// Iterate through all records to update flf: links inside NoteStructure text fields and translations
+		// Construct the markdown link pattern for FLEF: URI references (e.g., flef:I12); the id ends at the first character that cannot
+		// belong to an id, so that flef:I1 does not match flef:I12
+		final Pattern flefLinkOld = Pattern.compile(Pattern.quote(FLEF_LINK_PREFIX + oldId) + "(?![A-Za-z0-9_-])");
+		final String flefLinkNew = Matcher.quoteReplacement(FLEF_LINK_PREFIX + newId);
+		// Iterate through all records to update flef: links inside NoteStructure text fields and translations
 		for(final FLEFRecord record : records)
 			updateNoteLinksRecursive(record, flefLinkOld, flefLinkNew);
 
-		// Update internal model maps if a top-level record ID changed
-		recordsById.remove(oldId);
-		placesById.remove(oldId);
-		eventsById.remove(oldId);
-		questionsById.remove(oldId);
+		// The old record is now unreferenced: remove it from the records and from every index
+		removeRecord(oldId);
 	}
 
 	/**
-	 * Recursively searches for note nodes and updates markdown flf: URI references.
+	 * Recursively searches for note nodes and updates markdown flef: URI references in their text and translations.
 	 *
-	 * @param record     the current FLEF record being inspected
-	 * @param flefLinkOld the old {@code flef:} link string
-	 * @param flefLinkNew the new {@code flef:} link string
+	 * @param record      the current FLEF record being inspected
+	 * @param flefLinkOld the pattern of the old {@code flef:} link
+	 * @param flefLinkNew the replacement {@code flef:} link
 	 */
-	private void updateNoteLinksRecursive(final FLEFRecord record, final String flefLinkOld, final String flefLinkNew){
+	private void updateNoteLinksRecursive(final FLEFRecord record, final Pattern flefLinkOld, final String flefLinkNew){
 		if(record == null)
 			return;
 
-		// If the record is a note structure, check and replace within its text field
+		// If the record is a note structure, check and replace within its text field and the text of its translations
 		if(NoteHandler.isOfType(record)){
-			final FLEFRecord textNode = FLEFRecordHelper.findChild(record, NoteReader.TAG_TEXT);
-			if(textNode != null && textNode.getValue() != null){
+			final List<FLEFRecord> textNodes = new ArrayList<>(FLEFRecordHelper.findChildren(record, NoteReader.TAG_TEXT));
+			textNodes.addAll(FLEFRecordHelper.findChildren(record, TAG_NOTE_TRANSLATION_TEXT));
+			for(final FLEFRecord textNode : textNodes){
 				final String text = textNode.getValue();
-				if(text.contains(flefLinkOld)){
-					final String updatedText = text.replace(flefLinkOld, flefLinkNew);
+				if(text == null)
+					continue;
+
+				final String updatedText = flefLinkOld.matcher(text).replaceAll(flefLinkNew);
+				if(!updatedText.equals(text)){
 					textNode.setValue(updatedText);
 
-					LOGGER.info("Updated markdown note link from {} to {} in record {}", flefLinkOld, flefLinkNew,
-						record.getId());
+					LOGGER.info("Updated markdown note link to {} in record {}", flefLinkNew, record.getId());
 				}
 			}
 		}

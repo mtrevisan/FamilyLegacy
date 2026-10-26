@@ -56,7 +56,6 @@ public class FLEFWriter{
 	private static final String TAG_OPEN_CURLY_BRACE = "{";
 	private static final String TAG_CLOSE_CURLY_BRACE = "}";
 
-	private static final String FIELD_RECORDS = "records";
 
 	private static final String TAG_VALUE_MULTILINE = "\"\"\"";
 
@@ -222,26 +221,15 @@ public class FLEFWriter{
 			done ++;
 		}
 
-		// Write top-level records
-		if(!records.isEmpty()){
-			if(model.getHeader() != null)
+		// Write the records, each as a top-level block `<record_kind> <Id> { … }`, as defined by the protocol
+		for(int i = 0, size = records.size(); i < size; i ++){
+			if(i > 0 || hasHeader)
 				writer.write(StringUtils.LF);
-			writer.write(FIELD_RECORDS);
-			writer.write(StringUtils.SPACE);
-			writer.write(TAG_OPEN_CURLY_BRACE);
-			writer.write(StringUtils.LF);
-			for(int i = 0, size = records.size(); i < size; i ++){
-				final FLEFRecord record = records.get(i);
 
-				writeRecord(record, writer, 1);
-				if(i < records.size() - 1)
-					writer.write(StringUtils.LF);
+			writeRecord(records.get(i), writer, 0);
 
-				done ++;
-				reportProgress(done, total);
-			}
-			writer.write(TAG_CLOSE_CURLY_BRACE);
-			writer.write(StringUtils.LF);
+			done ++;
+			reportProgress(done, total);
 		}
 
 		writer.flush();

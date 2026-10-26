@@ -197,6 +197,77 @@ class FLEFMergerTest{
 	}
 
 	@Test
+	void aJurisdictionWrittenInTheNameAgreesWithTheHierarchy(){
+		final FLEFModel base = parse(village("P1", "San Martino") + place("P2", "Treviso")
+			+ partOf("PR1", "P1", "P2"));
+		final FLEFModel sameJurisdiction = parse(village("P1", "San Martino, Treviso"));
+		final FLEFModel otherJurisdiction = parse(village("P1", "San Martino") + place("P2", "Padova")
+			+ partOf("PR1", "P1", "P2"));
+
+		final MergeReport same = merger().merge(base, sameJurisdiction);
+		final MergeReport other = merger().merge(base, otherJurisdiction);
+
+		Assertions.assertEquals("P1", same.idMapping().get("P1"));
+		Assertions.assertEquals(2, same.mergedModel().getRecordsByType("place").size());
+		// two villages named alike in different provinces are different places
+		Assertions.assertNotEquals("P1", other.idMapping().get("P1"));
+		Assertions.assertTrue(other.decisionsNeedingReview().stream().noneMatch(d -> d.kind().equals("place")),
+			other.decisionsNeedingReview().toString());
+	}
+
+	@Test
+	void aPlaceUsedForTheSameBirthIsTheSamePlace(){
+		// the incoming copy of the village adds its coordinates: name and type alone leave the identity uncertain
+		final FLEFModel base = parse(person("I1", "Mario", "Rossi", "male")
+			+ birth("E1", "EP1", "I1", "15 JUN 1900", "P1")
+			+ village("P1", "San Martino"));
+		final FLEFModel incoming = parse(person("I1", "Mario", "Rossi", "male")
+			+ birth("E1", "EP1", "I1", "15 JUN 1900", "P1")
+			+ village("P1", "San Martino").replace("\ttype village\n", "\ttype village\n\tlocation.coordinates +45.7+012.2/\n"));
+
+		final MergeReport report = merger().merge(base, incoming);
+
+		Assertions.assertEquals(1, report.mergedModel().getRecordsByType("place").size());
+		final MergeReport.Decision placeMerge = report.decisions(MergeReport.DecisionType.AUTO_MERGED).stream()
+			.filter(d -> d.kind().equals("place"))
+			.findFirst()
+			.orElseThrow();
+		Assertions.assertTrue(placeMerge.rationale().contains("uses in common"), placeMerge.rationale());
+		Assertions.assertEquals(1, report.mergedModel().getRecordsByType("event").size());
+		Assertions.assertTrue(report.decisionsNeedingReview().isEmpty(), report.decisionsNeedingReview().toString());
+	}
+
+	@Test
+	void placesLinkedBySuccessionAreKeptApart(){
+		final FLEFModel model = parse(place("P1", "Treviso") + place("P2", "Treviso")
+			+ "place_relationship PR1 {\n\tsubject.place P2\n\ttarget.place P1\n\ttype successor_of\n"
+			+ "\taudit.creation.date 2020-01-01T00:00:00Z\n}\n");
+
+		final MergeReport report = merger().deduplicate(model);
+
+		Assertions.assertEquals(2, report.mergedModel().getRecordsByType("place").size());
+		Assertions.assertTrue(report.decisions().isEmpty(), report.decisions().toString());
+	}
+
+	@Test
+	void aCallNumberIdentifiesAnItemOfItsRepository(){
+		final String repository = "repository R1 {\n\tname.value Archivio parrocchiale di San Martino\n"
+			+ "\taudit.creation.date 2020-01-01T00:00:00Z\n}\n";
+		final FLEFModel model = parse(repository
+			+ register("S1", "vol. 3") + register("S2", "vol. 3")
+			+ register("S3", "vol. 4"));
+
+		final MergeReport report = merger().deduplicate(model);
+		final FLEFModel merged = report.mergedModel();
+
+		// the same volume twice is one source, another volume of the same series is another source
+		Assertions.assertEquals(2, merged.getRecordsByType("source").size());
+		Assertions.assertEquals("S1", report.idMapping().get("S2"));
+		Assertions.assertNotNull(merged.getRecordById("S3"));
+		Assertions.assertTrue(report.decisionsNeedingReview().isEmpty(), report.decisionsNeedingReview().toString());
+	}
+
+	@Test
 	void anUncertainPairBecomesAnIdentityHypothesis(){
 		// same name and birth year, nothing else: possibly cousins named after the same grandfather
 		final FLEFModel model = parse(person("I1", "Giovanni", "Trevisan", "male")
@@ -385,7 +456,7 @@ class FLEFMergerTest{
 	}
 
 	private static FLEFModel parse(final String records){
-		return new FLEFParser().parse(HEADER + "records {\n" + records + "}\n");
+		return new FLEFParser().parse(HEADER + records);
 	}
 
 	private static FLEFModel parseResource(final String resource) throws IOException{
@@ -454,6 +525,27 @@ class FLEFMergerTest{
 		return "place " + id + " {\n"
 			+ "\tname.value " + name + "\n"
 			+ "\ttype city\n"
+			+ "\taudit.creation.date 2020-01-01T00:00:00Z\n"
+			+ "}\n";
+	}
+
+	private static String village(final String id, final String name){
+		return place(id, name).replace("\ttype city\n", "\ttype village\n");
+	}
+
+	private static String partOf(final String id, final String placeId, final String parentId){
+		return "place_relationship " + id + " {\n"
+			+ "\tsubject.place " + placeId + "\n"
+			+ "\ttarget.place " + parentId + "\n"
+			+ "\ttype administrative_part_of\n"
+			+ "\taudit.creation.date 2020-01-01T00:00:00Z\n"
+			+ "}\n";
+	}
+
+	private static String register(final String id, final String callNumber){
+		return "source " + id + " {\n"
+			+ "\ttitle.value Registro dei battesimi\n"
+			+ "\trepository {\n\t\trepository R1\n\t\tlocator " + callNumber + "\n\t}\n"
 			+ "\taudit.creation.date 2020-01-01T00:00:00Z\n"
 			+ "}\n";
 	}

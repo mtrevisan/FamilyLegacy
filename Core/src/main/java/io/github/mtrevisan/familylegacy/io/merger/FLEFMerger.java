@@ -31,6 +31,8 @@ import java.time.Clock;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 
@@ -61,7 +63,7 @@ public final class FLEFMerger{
 	/** Pairs at or above this probability, and below the automatic threshold, become identity hypotheses. */
 	public static final double DEFAULT_REVIEW_THRESHOLD = 0.5;
 
-	/** Rounds of comparison of individuals and groups, each using the merges of the previous one. */
+	/** Rounds of comparison of the relational kinds, each using the merges of the previous one. */
 	private static final int MAX_RELATIONAL_ROUNDS = 5;
 
 
@@ -132,16 +134,24 @@ public final class FLEFMerger{
 		session.load(base, incoming);
 
 		final EntityLinker linker = new EntityLinker(session, autoThreshold, reviewThreshold);
-		for(final String kind : EntityMatcher.MATCHABLE_KINDS)
-			if(!EntityMatcher.RELATIONAL_KINDS.contains(kind))
-				linker.link(kind);
-		// individuals and groups are compared also through their relatives and members: each round of merges is new evidence for the
-		// next one (e.g. once the parents are merged, their children have the same parents)
+		int totalMerges = 0;
+		final Map<String, Integer> mergesAtLastLink = new HashMap<>();
+		for(final String kind : EntityMatcher.MATCHABLE_KINDS){
+			totalMerges += linker.link(kind);
+			mergesAtLastLink.put(kind, totalMerges);
+		}
+		// individuals, groups, places, and sources are compared also through the records related to them: each round of merges is
+		// new evidence for the next one (once the parents are merged their children have the same parents, once the individuals
+		// are merged the places of their births are the same use)
 		for(int round = 0; round < MAX_RELATIONAL_ROUNDS; round ++){
-			int merges = 0;
+			final int mergesBeforeRound = totalMerges;
 			for(final String kind : EntityMatcher.RELATIONAL_KINDS)
-				merges += linker.link(kind);
-			if(merges == 0)
+				// nothing changed since the last comparison of this kind, so nothing new would be found
+				if(mergesAtLastLink.get(kind) < totalMerges){
+					totalMerges += linker.link(kind);
+					mergesAtLastLink.put(kind, totalMerges);
+				}
+			if(totalMerges == mergesBeforeRound)
 				break;
 		}
 
@@ -149,7 +159,7 @@ public final class FLEFMerger{
 		new AssertionDeduplicator(session, session.references, session.signature, session.fields, rules, session.now,
 			AssertionDeduplicator.sessionPolicy(session))
 			.run();
-		new ProtocolCleanup(session, rules)
+		new ProtocolCleanup(session, rules, reviewThreshold)
 			.run(linker.reviewCandidates());
 
 		return session.report();

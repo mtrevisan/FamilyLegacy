@@ -342,6 +342,7 @@ public final class FLEFGrammarParser{
 		final FLEFGrammar grammar = new FLEFGrammar(fileDef, types, warnings);
 
 		XrefPathIndex.initialize(grammar);
+		SingularFieldIndex.initialize(grammar);
 
 		return grammar;
 	}
