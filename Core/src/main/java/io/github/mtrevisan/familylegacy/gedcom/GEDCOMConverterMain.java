@@ -72,7 +72,7 @@ public class GEDCOMConverterMain{
 
 		validate(model);
 
-//		FLEFMerger merger = FLEFMerger.defaultMerger();
+//		FLEFMerger merger = new FLEFMerger(grammar);
 //		MergeReport dedupReport = merger.deduplicate(model);
 
 		// Write FLEF file

@@ -148,6 +148,9 @@ public class FLEFModel{
 			return null;
 
 		final FLEFRecord record = recordsById.remove(id);
+		placesById.remove(id);
+		eventsById.remove(id);
+		questionsById.remove(id);
 
 		if(record != null){
 			records.remove(record);

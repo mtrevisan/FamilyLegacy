@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.ui.tools.tools.merge;
 
+import io.github.mtrevisan.familylegacy.io.grammar.FLEFGrammar;
+import io.github.mtrevisan.familylegacy.io.merger.RecordAbsorber;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import org.apache.commons.lang3.StringUtils;
@@ -38,34 +40,37 @@ import java.util.Set;
 
 
 /**
- * Plans and applies the merge of two records of the same type.
+ * Plans and applies the merge of two records of the same type, decided by the user.
  * <p>
- * The merge is <b>field-based</b>: every direct child tag of the two
- * records is treated as a field. For each tag:
+ * The merge is <b>field-based</b>: every direct child tag of the two records is a field, and its role comes from the grammar (see
+ * {@link RecordAbsorber.FieldRole}). For each field:
  * <ul>
- *   <li>if only the target has instances, they are kept;</li>
- *   <li>if only the source has instances, they are added to the target;</li>
- *   <li>if both have instances and they are equal, nothing changes;</li>
- *   <li>otherwise a collision is recorded and the user must decide
- *       whether to keep the target's, the source's, or both.</li>
+ *   <li>if both records have it and the occurrences differ, a collision is recorded and the user decides whether to keep the
+ *       target's, the source's, or (for repeated fields only) both;</li>
+ *   <li>otherwise it is merged automatically with the rules of the protocol: the source's occurrences are added, an occurrence
+ *       stating the same thing as one of the target unites its citations and notes into it, a singular field is taken only if
+ *       the target lacks it;</li>
+ *   <li>AUDIT is never a collision: the target keeps its own, and gains an update entry naming the source;</li>
+ *   <li>PRIVACY is never a collision: the most restrictive of the two is kept, since a merge must not weaken it.</li>
  * </ul>
- * After the fields are merged, the references to the source are
- * re-pointed to the target: any value in the model that equals the
- * source id becomes the target id. This is what keeps relationships,
- * event participations, attributes, identity hypotheses, and any other
- * reference valid after the source is deleted.
- * <p>
- * The service works on any record type. It does not use a schema: the
- * FLEF format is self-describing, so tags and values are enough to
- * decide what to merge and what to re-point.
+ * The fields being final, the source is absorbed following the Merge rule of the protocol (see {@link RecordAbsorber#absorb}):
+ * every reference and {@code flef:} link is redirected to the target, the association records that became identical are
+ * collapsed, the source is deleted, and the identity hypothesis that proposed the merge is deleted with its cascade.
  */
 public final class RecordMerger{
 
 	private final FLEFModel model;
+	private final RecordAbsorber absorber;
 
 
-	public RecordMerger(final FLEFModel model){
+	/**
+	 * @param model   the model to merge in
+	 * @param grammar the FLEF grammar, which tells references and field cardinalities
+	 * @throws NullPointerException if the grammar is {@code null}
+	 */
+	public RecordMerger(final FLEFModel model, final FLEFGrammar grammar){
 		this.model = model;
+		absorber = new RecordAbsorber(Objects.requireNonNull(grammar, "The FLEF grammar is required to merge records"));
 	}
 
 
@@ -96,29 +101,35 @@ public final class RecordMerger{
 			throw new IllegalArgumentException("Source and target are not the same record type: "
 				+ source.getTag() + " vs " + target.getTag());
 
+		final String kind = target.getTag();
 		final Map<String, List<FLEFRecord>> targetByTag = indexChildrenByTag(target);
 		final Map<String, List<FLEFRecord>> sourceByTag = indexChildrenByTag(source);
 
 		// Every tag that appears on either side is a candidate field.
 		// A field is a collision only when both sides have at least one
-		// instance and the instances differ; otherwise it is auto-resolved
-		// during apply.
+		// instance and they state different things; otherwise it is
+		// merged automatically during apply.
 		final Set<String> allTags = new LinkedHashSet<>();
 		allTags.addAll(targetByTag.keySet());
 		allTags.addAll(sourceByTag.keySet());
 
 		final List<MergeField> collisions = new ArrayList<>();
 		for(final String tag : allTags){
+			final RecordAbsorber.FieldRole role = absorber.fieldRole(kind, tag);
+			if(role == RecordAbsorber.FieldRole.AUDIT || role == RecordAbsorber.FieldRole.PRIVACY)
+				continue;
+
 			final List<FLEFRecord> targetInstances = targetByTag.getOrDefault(tag, List.of());
 			final List<FLEFRecord> sourceInstances = sourceByTag.getOrDefault(tag, List.of());
-
 			if(targetInstances.isEmpty() || sourceInstances.isEmpty())
 				continue;
-			if(equalInstances(targetInstances, sourceInstances))
+			if(absorber.sameContent(kind, tag, targetInstances, sourceInstances))
 				continue;
 
-			final MergeDecision suggested = suggest(targetInstances, sourceInstances);
-			collisions.add(new MergeField(tag, targetInstances, sourceInstances, suggested));
+			// a field unknown to the grammar may be repeated: keeping both preserves it, as the protocol requires
+			final boolean repeated = (role != RecordAbsorber.FieldRole.SINGULAR);
+			final MergeDecision suggested = (repeated? MergeDecision.KEEP_BOTH: MergeDecision.KEEP_TARGET);
+			collisions.add(new MergeField(tag, targetInstances, sourceInstances, suggested, repeated));
 		}
 
 		return new MergePlan(source, target, collisions, List.of());
@@ -135,32 +146,6 @@ public final class RecordMerger{
 		return byTag;
 	}
 
-	private static boolean equalInstances(final List<FLEFRecord> a, final List<FLEFRecord> b){
-		if(a.size() != b.size())
-			return false;
-
-		for(int i = 0; i < a.size(); i ++)
-			if(!a.get(i).equals(b.get(i)))
-				return false;
-		return true;
-	}
-
-	/**
-	 * Default suggestion for a collision:
-	 * <ul>
-	 *   <li>repeated fields (more than one instance on either side) →
-	 *       {@code KEEP_BOTH}, the additive choice;</li>
-	 *   <li>single-valued fields → {@code KEEP_TARGET}, because the
-	 *       target is the surviving record and its value is the one the
-	 *       user has been looking at.</li>
-	 * </ul>
-	 */
-	private static MergeDecision suggest(final List<FLEFRecord> targetInstances, final List<FLEFRecord> sourceInstances){
-		if(targetInstances.size() > 1 || sourceInstances.size() > 1)
-			return MergeDecision.KEEP_BOTH;
-		return MergeDecision.KEEP_TARGET;
-	}
-
 
 	/* ======================================================================
 	 *                          Applying
@@ -168,50 +153,53 @@ public final class RecordMerger{
 
 	/**
 	 * Applies the plan to the model: writes the source's fields into the
-	 * target according to the decisions, re-points every reference to the
-	 * source to the target, and finally removes the source record.
+	 * target according to the decisions, then absorbs the source into the
+	 * target.
 	 *
 	 * @param plan the plan, with the user's decisions already recorded
-	 * @return a summary of what was moved
+	 * @return a summary of what changed
+	 * @throws IllegalArgumentException if a decision would assign a singular field twice; the model is left untouched
 	 */
 	public MergeResult apply(final MergePlan plan){
 		final FLEFRecord source = plan.source();
 		final FLEFRecord target = plan.target();
-		final String sourceId = source.getId();
-		final String targetId = target.getId();
+
+		for(final MergeField field : plan.collisions())
+			if(!field.isRepeated() && field.resultInstances().size() > 1)
+				throw new IllegalArgumentException("Field '" + field.tag() + "' holds a single value: keep either the target's or the"
+					+ " source's");
+
+		final int childrenBefore = target.getChildren().size();
+		final List<String> conflicts = new ArrayList<>();
 
 		// 1. Per-tag decisions on collisions.
-		for(final MergeField field : plan.collisions())
-			applyCollision(target, field);
-
-		// 2. Tags that appear only on the source: taken automatically.
 		final Set<String> collisionTags = new LinkedHashSet<>();
-		for(final MergeField field : plan.collisions())
+		for(final MergeField field : plan.collisions()){
 			collisionTags.add(field.tag());
 
-		int addedFromSource = 0;
-		final Map<String, List<FLEFRecord>> sourceByTag = indexChildrenByTag(source);
-		for(final Map.Entry<String, List<FLEFRecord>> entry : sourceByTag.entrySet()){
-			if(collisionTags.contains(entry.getKey()))
-				continue;
-
-			for(final FLEFRecord field : entry.getValue()){
-				target.addChild(copyOf(field));
-				addedFromSource ++;
-			}
+			if(field.chosen() == MergeDecision.KEEP_BOTH && !field.isComposed())
+				// union that does not duplicate what the target already states
+				conflicts.addAll(absorber.mergeField(target, source, field.tag()));
+			else
+				applyCollision(target, field);
 		}
 
-		// 3. Re-point references: any value in the model that equals the
-		//    source id becomes the target id. Skipped inside the source
-		//    (about to be deleted) and inside the target (already
-		//    handled by the field merge; any inner reference to the
-		//    source is meaningful and gets updated too).
-		final int repointed = repointReferences(sourceId, targetId, source);
+		// 2. Every other field, with the rules of the protocol.
+		final Set<String> otherTags = new LinkedHashSet<>();
+		for(final FLEFRecord child : source.getChildren())
+			if(child.getTag() != null && !collisionTags.contains(child.getTag()))
+				otherTags.add(child.getTag());
+		for(final FLEFRecord child : target.getChildren())
+			if(child.getTag() != null && !collisionTags.contains(child.getTag()))
+				otherTags.add(child.getTag());
+		for(final String tag : otherTags)
+			conflicts.addAll(absorber.mergeField(target, source, tag));
 
-		// 4. Delete the source.
-		model.removeRecord(sourceId);
+		// 3. Redirect the references, collapse the duplicates, delete the source and the accepted hypothesis.
+		final RecordAbsorber.Result result = absorber.absorb(model, source.getId(), target.getId(), null);
 
-		return new MergeResult(addedFromSource, repointed);
+		return new MergeResult(Math.max(0, target.getChildren().size() - childrenBefore), result.referencesRedirected(),
+			result.collapsedIds(), result.deletedIds(), conflicts);
 	}
 
 	/**
@@ -262,50 +250,6 @@ public final class RecordMerger{
 
 
 	/* ======================================================================
-	 *                          Reference re-pointing
-	 * ====================================================================== */
-
-	/**
-	 * Re-points every value in the model that equals {@code sourceId} to
-	 * {@code targetId}, except inside the records listed in
-	 * {@code skipRecords}.
-	 * <p>
-	 * The walk is generic and does not use a schema: it treats every
-	 * value as a potential reference and replaces it when the whole
-	 * value matches the source id exactly. False positives are unlikely
-	 * because ids are unique within the file, and the exact-match rule
-	 * excludes any string that merely contains the id.
-	 */
-	private int repointReferences(final String sourceId, final String targetId, final FLEFRecord... skipRecords){
-		final Set<String> skipIds = new LinkedHashSet<>();
-		for(final FLEFRecord r : skipRecords)
-			if(r != null && r.getId() != null)
-				skipIds.add(r.getId());
-
-		int count = 0;
-		final List<FLEFRecord> records = model.getRecords();
-		for(final FLEFRecord record : records){
-			if(skipIds.contains(record.getId()))
-				continue;
-
-			count += repointIn(record, sourceId, targetId);
-		}
-		return count;
-	}
-
-	private static int repointIn(final FLEFRecord record, final String oldId, final String newId){
-		int count = 0;
-		if(oldId.equals(record.getValue())){
-			record.setValue(newId);
-			count ++;
-		}
-		for(final FLEFRecord child : record.getChildren())
-			count += repointIn(child, oldId, newId);
-		return count;
-	}
-
-
-	/* ======================================================================
 	 *                          Validation
 	 * ====================================================================== */
 
@@ -320,11 +264,13 @@ public final class RecordMerger{
 	/**
 	 * Summary of what a merge changed.
 	 *
-	 * @param fieldsTakenFromSource number of field instances added to the
-	 *                              target
-	 * @param referencesRepointed   number of references re-pointed from
-	 *                              the source to the target
+	 * @param fieldsTakenFromSource number of field instances added to the target
+	 * @param referencesRepointed   number of references (and {@code flef:} links) re-pointed from the source to the target
+	 * @param collapsedIds          association records collapsed into an identical one after the merge
+	 * @param deletedIds            records deleted by the merge (the accepted identity hypothesis and its cascade)
+	 * @param conflicts             values of the source that could not be kept in the target
 	 */
-	public record MergeResult(int fieldsTakenFromSource, int referencesRepointed){}
+	public record MergeResult(int fieldsTakenFromSource, int referencesRepointed, List<String> collapsedIds,
+		List<String> deletedIds, List<String> conflicts){}
 
 }

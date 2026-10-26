@@ -41,6 +41,8 @@ public final class MergeField{
 	private final List<FLEFRecord> targetInstances;
 	private final List<FLEFRecord> sourceInstances;
 	private final MergeDecision suggested;
+	/** {@code false} when the field holds a single value, so that {@link MergeDecision#KEEP_BOTH} is not allowed. */
+	private final boolean repeated;
 	private MergeDecision chosen;
 	private List<FLEFRecord> resultInstances;
 	/** {@code true} once the user has made an explicit decision on this field. */
@@ -48,11 +50,12 @@ public final class MergeField{
 
 
 	MergeField(final String tag, final List<FLEFRecord> targetInstances,
-		final List<FLEFRecord> sourceInstances, final MergeDecision suggested){
+		final List<FLEFRecord> sourceInstances, final MergeDecision suggested, final boolean repeated){
 		this.tag = tag;
 		this.targetInstances = List.copyOf(targetInstances);
 		this.sourceInstances = List.copyOf(sourceInstances);
 		this.suggested = suggested;
+		this.repeated = repeated;
 		this.chosen = suggested;
 	}
 
@@ -65,6 +68,16 @@ public final class MergeField{
 
 	public boolean isResolved(){
 		return resolved;
+	}
+
+	/** Whether the field can hold more than one value (and so be merged with {@link MergeDecision#KEEP_BOTH}). */
+	public boolean isRepeated(){
+		return repeated;
+	}
+
+	/** Whether the result was composed in the comparison dialog rather than chosen as a whole. */
+	public boolean isComposed(){
+		return (resultInstances != null);
 	}
 
 	/**

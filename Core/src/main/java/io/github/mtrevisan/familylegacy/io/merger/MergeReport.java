@@ -25,115 +25,79 @@
 package io.github.mtrevisan.familylegacy.io.merger;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import org.apache.commons.lang3.StringUtils;
 
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 
 /**
- * Detailed report of a merge or deduplication operation.
+ * Outcome of a merge or of a deduplication: the resulting model and every decision taken to build it.
+ *
+ * @param mergedModel the resulting model; the input models are never modified
+ * @param decisions   the decisions, in the order they were taken
+ * @param idMapping   for {@link FLEFMerger#merge(FLEFModel, FLEFModel) merge}: every id of the incoming model to the id of the record
+ *                    that represents it in the merged model (records deleted by the merge are missing); for
+ *                    {@link FLEFMerger#deduplicate(FLEFModel) deduplicate}: every absorbed id to the id of its survivor
+ * @param warnings    situations that the merge left for the researcher to resolve (e.g. competing single-valued assertions)
  */
-public class MergeReport{
+public record MergeReport(FLEFModel mergedModel, List<Decision> decisions, Map<String, String> idMapping, List<String> warnings){
 
 	public enum DecisionType{
-		// automatically merged into a single record
+		/** Two records judged to describe the same entity were merged (see Merge in the protocol). */
 		AUTO_MERGED,
-		// similarity is moderate; user should decide
-		MANUAL_REVIEW,
-		// similarity too low; kept separate
-		REJECTED,
-		// no conflict or single record
-		KEPT_AS_IS
+		/** Two association records stating the same assertion were collapsed into one, uniting their evidence. */
+		DUPLICATE_COLLAPSED,
+		/** Two records may describe the same entity: an IdentityHypothesisRecord was created for the researcher to evaluate. */
+		HYPOTHESIS_CREATED,
+		/** A record was deleted by the cascade that follows a merge (see Deletion in the protocol). */
+		DELETED
 	}
 
 
 	/**
-	 * A single decision made for a group of records.
+	 * A single decision.
+	 * <p>
+	 * Ids of records that no longer exist (absorbed or deleted records) are given as they were in their input model.
+	 *
+	 * @param type        the kind of decision
+	 * @param kind        the record kind involved (e.g. {@code individual})
+	 * @param recordId    the surviving record (merges), the created hypothesis (hypotheses), or the deleted record (deletions)
+	 * @param relatedIds  the absorbed record (merges), the two candidate records in the merged model (hypotheses), none otherwise
+	 * @param probability the match probability, {@link Double#NaN} when not applicable
+	 * @param rationale   the evidence that justified the decision
+	 * @param conflicts   values of the absorbed record that could not be kept in the survivor
 	 */
-	public static class Decision{
-		private final DecisionType type;
-		private final Set<String> recordIds;
-		private final String mergedId;
-		private final double score;
-		private final List<String> conflicts;
-		private final String reason;
+	public record Decision(DecisionType type, String kind, String recordId, List<String> relatedIds, double probability,
+			String rationale, List<String> conflicts){
 
-		public Decision(final DecisionType type, final Set<String> recordIds, final String mergedId, final double score,
-				final List<String> conflicts, final String reason){
-			this.type = type;
-			this.recordIds = recordIds;
-			this.mergedId = mergedId;
-			this.score = score;
-			this.conflicts = (conflicts != null? conflicts: List.of());
-			this.reason = reason != null? reason: StringUtils.EMPTY;
+		public Decision{
+			relatedIds = List.copyOf(relatedIds);
+			conflicts = List.copyOf(conflicts);
 		}
 
-		public DecisionType getType(){
-			return type;
-		}
-
-		public Set<String> getRecordIds(){
-			return recordIds;
-		}
-
-		public String getMergedId(){
-			return mergedId;
-		}
-
-		public double getScore(){
-			return score;
-		}
-
-		public List<String> getConflicts(){
-			return conflicts;
-		}
-
-		public String getReason(){
-			return reason;
-		}
 	}
 
 
-	private final FLEFModel mergedModel;
-	private final List<Decision> decisions;
-	private final Map<String, String> idMapping;
-	private final Map<String, Set<String>> idToCluster;
-
-
-	public MergeReport(final FLEFModel mergedModel, final List<Decision> decisions, final Map<String, String> idMapping,
-			final Map<String, Set<String>> idToCluster){
-		this.mergedModel = mergedModel;
-		this.decisions = decisions;
-		this.idMapping = idMapping;
-		this.idToCluster = idToCluster;
+	public MergeReport{
+		decisions = List.copyOf(decisions);
+		idMapping = Collections.unmodifiableMap(new LinkedHashMap<>(idMapping));
+		warnings = List.copyOf(warnings);
 	}
 
 
-	public FLEFModel getMergedModel(){
-		return mergedModel;
-	}
-
-	public List<Decision> getDecisions(){
-		return decisions;
-	}
-
-	public Map<String, String> getIdMapping(){
-		return idMapping;
-	}
-
-	public Map<String, Set<String>> getIdToCluster(){
-		return idToCluster;
-	}
-
-	/**
-	 * Returns decisions that require human review (MANUAL_REVIEW type).
-	 */
-	public List<Decision> getDecisionsNeedingReview(){
+	public List<Decision> decisions(final DecisionType type){
 		return decisions.stream()
-			.filter(d -> d.getType() == DecisionType.MANUAL_REVIEW)
+			.filter(decision -> decision.type() == type)
 			.toList();
+	}
+
+	/**
+	 * Decisions that require the researcher: the identity hypotheses to evaluate.
+	 */
+	public List<Decision> decisionsNeedingReview(){
+		return decisions(DecisionType.HYPOTHESIS_CREATED);
 	}
 
 }

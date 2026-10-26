@@ -22,6 +22,9 @@
 						--add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.io.model.readers.date=ALL-UNNAMED
 						--add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.io.model.readers.date=org.junit.platform.commons
 						--add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.io.model.readers.date=org.junit.jupiter.api
+						--add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.io.merger=ALL-UNNAMED
+						--add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.io.merger=org.junit.platform.commons
+						--add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.io.merger=org.junit.jupiter.api
 						--add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.gedcom=ALL-UNNAMED
 						--add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.gedcom=org.junit.platform.commons
 						--add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.gedcom=org.junit.jupiter.api

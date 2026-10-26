@@ -108,7 +108,8 @@ public final class MergeRecordsDialog extends JDialog{
 		super(context.owner(), "Merge Records", ModalityType.APPLICATION_MODAL);
 
 		this.context = context;
-		this.merger = new RecordMerger(context.model());
+		// without the grammar references and cardinalities are unknown, and a merge would break the file
+		this.merger = (MergeGrammar.instance() != null? new RecordMerger(context.model(), MergeGrammar.instance()): null);
 
 		// The two fields own their own popup menu (Set/Edit/Clear) and
 		// render the record through the handler's display text. The
@@ -230,8 +231,20 @@ public final class MergeRecordsDialog extends JDialog{
 		columnModel.getColumn(4).setPreferredWidth(28);
 		columnModel.getColumn(4).setMaxWidth(40);
 
-		columnModel.getColumn(ACTION_COLUMN).setCellEditor(
-			new DefaultCellEditor(new JComboBox<>(MergeDecision.values())));
+		// a field holding a single value cannot keep both
+		final JComboBox<MergeDecision> decisionCombo = new JComboBox<>(MergeDecision.values());
+		columnModel.getColumn(ACTION_COLUMN).setCellEditor(new DefaultCellEditor(decisionCombo){
+			@Override
+			public Component getTableCellEditorComponent(final JTable table, final Object value, final boolean isSelected,
+					final int row, final int column){
+				final MergeField field = tableModel.fieldAt(row);
+				decisionCombo.removeAllItems();
+				for(final MergeDecision decision : MergeDecision.values())
+					if(decision != MergeDecision.KEEP_BOTH || field == null || field.isRepeated())
+						decisionCombo.addItem(decision);
+				return super.getTableCellEditorComponent(table, value, isSelected, row, column);
+			}
+		});
 		collisionsTable.setDefaultRenderer(Object.class, new ResolvedAwareRenderer(tableModel));
 
 		// Mouse listener: double-click opens the comparison, single-click on
@@ -315,7 +328,7 @@ public final class MergeRecordsDialog extends JDialog{
 		final FLEFRecord source = sourceField.getEntity();
 		final FLEFRecord target = targetField.getEntity();
 
-		if(source == null || target == null || source.getId() == null || target.getId() == null){
+		if(merger == null || source == null || target == null || source.getId() == null || target.getId() == null){
 			plan = null;
 			tableModel.setFields(List.of());
 			return;
@@ -370,6 +383,10 @@ public final class MergeRecordsDialog extends JDialog{
 		final FLEFRecord source = sourceField.getEntity();
 		final FLEFRecord target = targetField.getEntity();
 
+		if(merger == null){
+			warn("The FLEF grammar is not available: records cannot be merged.");
+			return;
+		}
 		if(source == null || target == null){
 			warn("Choose both a source and a target.");
 			return;
@@ -393,11 +410,18 @@ public final class MergeRecordsDialog extends JDialog{
 			final RecordMerger.MergeResult result = merger.apply(plan);
 			confirmed = true;
 
-			JOptionPane.showMessageDialog(this,
-				"Merge completed." + StringUtils.LF
-					+ "Fields taken from source: " + result.fieldsTakenFromSource() + StringUtils.LF
-					+ "References re-pointed: " + result.referencesRepointed(),
-				"Merge Records", JOptionPane.INFORMATION_MESSAGE);
+			final StringBuilder summary = new StringBuilder("Merge completed.")
+				.append(StringUtils.LF).append("Fields taken from source: ").append(result.fieldsTakenFromSource())
+				.append(StringUtils.LF).append("References re-pointed: ").append(result.referencesRepointed());
+			if(!result.collapsedIds().isEmpty())
+				summary.append(StringUtils.LF).append("Duplicate records collapsed: ").append(String.join(", ", result.collapsedIds()));
+			if(!result.deletedIds().isEmpty())
+				summary.append(StringUtils.LF).append("Records deleted (accepted hypothesis and cascade): ")
+					.append(String.join(", ", result.deletedIds()));
+			if(!result.conflicts().isEmpty())
+				summary.append(StringUtils.LF).append("Values of the source not kept:").append(StringUtils.LF)
+					.append(String.join(StringUtils.LF, result.conflicts()));
+			JOptionPane.showMessageDialog(this, summary.toString(), "Merge Records", JOptionPane.INFORMATION_MESSAGE);
 
 			dispose();
 		}

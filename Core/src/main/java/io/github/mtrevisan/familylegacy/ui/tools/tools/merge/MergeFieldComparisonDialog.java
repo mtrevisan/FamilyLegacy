@@ -27,7 +27,6 @@ package io.github.mtrevisan.familylegacy.ui.tools.tools.merge;
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.FLEFValidator;
 import io.github.mtrevisan.familylegacy.io.grammar.FLEFGrammar;
-import io.github.mtrevisan.familylegacy.io.grammar.FLEFGrammarParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
@@ -64,8 +63,6 @@ import java.awt.event.AdjustmentListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -194,45 +191,6 @@ public final class MergeFieldComparisonDialog extends JDialog{
 				case NONE -> null;
 			};
 		}
-
-	}
-
-
-	/* ======================================================================
-	 *                          Grammar holder
-	 * ====================================================================== */
-
-	/**
-	 * Lazy holder of the grammar used to validate the merge result and
-	 * to drive the autocomplete.
-	 * <p>
-	 * The grammar file is fixed and never changes at runtime, so it is
-	 * parsed once and shared across every dialog instance. A missing or
-	 * unreadable grammar disables schema validation and lets the
-	 * autocomplete fall back to the hardcoded table in
-	 * {@link TagSuggester}, rather than breaking the dialog.
-	 */
-	private static final class GrammarHolder{
-
-		private static final FLEFGrammar INSTANCE = load();
-
-		private static FLEFGrammar load(){
-			try{
-				final Path path = Paths.get("src/main/resources/gedg/flef_0.2.0.gedg");
-				return FLEFGrammarParser.parse(path);
-			}
-			catch(final Exception ex){
-				LOGGER.warn("Unable to load FLEF grammar; autocomplete falls back to "
-					+ "the hardcoded table, schema validation is skipped", ex);
-				return null;
-			}
-		}
-
-		static FLEFGrammar instance(){
-			return INSTANCE;
-		}
-
-		private GrammarHolder(){}
 
 	}
 
@@ -388,7 +346,7 @@ public final class MergeFieldComparisonDialog extends JDialog{
 		this.field = Objects.requireNonNull(field, "field must not be null");
 		this.targetRecord = targetRecord;
 		this.model = model;
-		this.grammar = GrammarHolder.instance();
+		this.grammar = MergeGrammar.instance();
 
 		final String ownerTag = (targetRecord != null? targetRecord.getTag(): null);
 		this.suggester = new TagSuggester(ownerTag, field.tag());
