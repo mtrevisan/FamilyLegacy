@@ -52,7 +52,6 @@ import java.util.Set;
  */
 final class NameClusterer{
 
-
 	/**
 	 * Minimum Dice similarity for two names to be considered variants.
 	 * 0.6 is a good balance for Italian names: it merges the common

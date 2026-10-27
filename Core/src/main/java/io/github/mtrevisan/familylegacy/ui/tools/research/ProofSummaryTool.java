@@ -55,7 +55,6 @@ import java.util.Map;
  */
 public final class ProofSummaryTool implements ToolOperation{
 
-
 	@Override
 	public String getName(){
 		return I18N.t("menu.research.proof.summary");

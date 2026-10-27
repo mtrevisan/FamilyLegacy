@@ -53,7 +53,6 @@ import java.nio.file.Files;
  */
 public final class RestoreFromBackupTool implements ToolOperation{
 
-
 	@Override
 	public String getName(){
 		return "Restore from Backup…";

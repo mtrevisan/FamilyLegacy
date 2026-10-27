@@ -65,7 +65,6 @@ import java.util.stream.Collectors;
  */
 public final class ImportGrampsXmlTool implements ToolOperation{
 
-
 	// TODO should be managed at least Gramps Xml 1.7.2
 	@Override
 	public String getName(){

@@ -105,7 +105,6 @@ record KinshipResult(
 	int chineseGeneration
 ){
 
-
 	/**
 	 * A single step in the chain from one individual up to the MRCA.
 	 *

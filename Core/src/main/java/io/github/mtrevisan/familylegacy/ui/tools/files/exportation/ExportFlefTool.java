@@ -53,7 +53,6 @@ import java.util.Locale;
  */
 public final class ExportFlefTool implements ToolOperation{
 
-
 	@Override
 	public String getName(){
 		return "FLEF File…";

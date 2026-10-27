@@ -68,7 +68,6 @@ import java.util.stream.Collectors;
  */
 public final class ImportGedcomTool implements ToolOperation{
 
-
 	@Override
 	public String getName(){
 		return "GEDCOM 5.5.x / 7.0…";

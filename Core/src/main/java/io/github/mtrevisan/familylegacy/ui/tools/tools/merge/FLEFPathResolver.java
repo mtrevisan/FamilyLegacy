@@ -47,7 +47,6 @@ import java.util.List;
  */
 public final class FLEFPathResolver{
 
-
 	private FLEFPathResolver(){}
 
 

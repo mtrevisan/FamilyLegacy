@@ -64,7 +64,6 @@ import java.util.Set;
  */
 public final class StatisticsCalculator{
 
-
 	/** Receives progress updates; may be called from a background thread. */
 	@FunctionalInterface
 	public interface Progress{
