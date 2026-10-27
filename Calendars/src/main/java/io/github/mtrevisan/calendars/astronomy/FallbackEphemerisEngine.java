@@ -32,10 +32,17 @@ public final class FallbackEphemerisEngine implements EphemerisEngine{
 		return false;
 	}
 
+
 	@Override
 	public double findNextNewMoon(final double approximateJdUT){
 		throw new UnsupportedOperationException("Ephemeris engine plugin not installed.");
 	}
+
+	@Override
+	public double calculateApparentMoonLongitude(double jdUT){
+		throw new UnsupportedOperationException("Ephemeris engine plugin not installed.");
+	}
+
 
 	@Override
 	public double findSolarLongitudeEvent(final double approximateJdUT, final double targetLongitude){
@@ -46,6 +53,7 @@ public final class FallbackEphemerisEngine implements EphemerisEngine{
 	public double calculateApparentSunLongitude(final double jdUT){
 		throw new UnsupportedOperationException("Ephemeris engine plugin not installed.");
 	}
+
 
 	@Override
 	public SunlightPhase calculateHorizonEvent(final CelestialBody body, final double midnightUtJd,

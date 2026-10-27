@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components;
 
+import io.github.mtrevisan.calendars.CalendarType;
+import io.github.mtrevisan.calendars.spi.DateInterpretation;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.readers.DateReader;
@@ -36,17 +38,24 @@ import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
+import javax.swing.ButtonGroup;
 import javax.swing.JComboBox;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 import javax.swing.SwingUtilities;
 import java.awt.CardLayout;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Window;
+import java.util.ArrayList;
 import java.util.EnumMap;
+import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 
 
 /**
@@ -289,7 +298,103 @@ public class SingleDatePanel extends JPanel{
 			return false;
 		}
 
+		if(selected == DateType.FULL_DATE && !validateFullDate(calendar))
+			return false;
+
 		return approxPanel.validateData();
+	}
+
+	/**
+	 * Checks that the full date has a single reading, and that it is recognized by its calendar.
+	 *
+	 * @param calendar	The code of the calendar of the date.
+	 * @return	Whether the date can be saved.
+	 */
+	private boolean validateFullDate(final String calendar){
+		final CalendarType calendarType = CalendarType.fromCode(calendar);
+		// a calendar unknown to the parsers cannot be checked
+		if(!calendarType.getCode().equalsIgnoreCase(calendar))
+			return true;
+
+		return (resolveAmbiguousDate(calendarType) && confirmUnrecognizedDate(calendarType));
+	}
+
+	/**
+	 * Lets the user choose among the readings of a date that can be understood in more than one way (e.g. "est 1850",
+	 * summer in Italian and August in Cornish), replacing the date with the chosen one, or go back to edit the date.
+	 *
+	 * @param calendarType	The calendar of the date.
+	 * @return	Whether the date has a single reading (possibly after the choice of the user).
+	 */
+	private boolean resolveAmbiguousDate(final CalendarType calendarType){
+		final String date = fullDateValueField.getText();
+		final List<DateInterpretation> interpretations = calendarType.getInterpretations(date, Locale.getDefault());
+		if(interpretations.isEmpty())
+			return true;
+
+		final JPanel messagePanel = new JPanel(new MigLayout("ins 0,wrap 1"));
+		messagePanel.add(new JLabel(I18N.tf("validation.date.ambiguous", date)));
+		final ButtonGroup readingGroup = new ButtonGroup();
+		final List<JRadioButton> readingButtons = new ArrayList<>(interpretations.size());
+		for(final DateInterpretation interpretation : interpretations){
+			final JRadioButton readingButton = new JRadioButton(I18N.tf("validation.date.ambiguous.reading",
+				interpretation.expression(), interpretation.meaning()));
+			readingGroup.add(readingButton);
+			readingButtons.add(readingButton);
+			messagePanel.add(readingButton, "gapleft 10");
+		}
+		// the reading chosen by the parser
+		readingButtons.getFirst()
+			.setSelected(true);
+
+		final Object[] options = {I18N.t("validation.date.ambiguous.choose"), I18N.t("validation.date.ambiguous.edit")};
+		final int choice = JOptionPane.showOptionDialog(this, messagePanel, I18N.t("validation.date.ambiguous.title"),
+			JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
+		if(choice != 0){
+			fullDateValueField.requestFocusInWindow();
+
+			return false;
+		}
+
+		for(int i = 0, count = readingButtons.size(); i < count; i ++)
+			if(readingButtons.get(i).isSelected())
+				fullDateValueField.setText(interpretations.get(i).expression());
+		return true;
+	}
+
+	/**
+	 * Asks the user whether to save a date that its calendar does not recognize, or go back to edit it.
+	 *
+	 * @param calendarType	The calendar of the date.
+	 * @return	Whether the date is recognized, or the user wants to save it anyway.
+	 */
+	private boolean confirmUnrecognizedDate(final CalendarType calendarType){
+		final String date = fullDateValueField.getText();
+		final String reason;
+		try{
+			calendarType.parseToJdn(date);
+
+			return true;
+		}
+		catch(final UnsupportedOperationException uoe){
+			// the date is recognized, but its conversion needs a missing plugin (e.g. the seasons need the Ephemeris)
+			return true;
+		}
+		catch(final RuntimeException re){
+			reason = Objects.toString(re.getMessage(), StringUtils.EMPTY);
+		}
+
+		final String calendarName = I18N.t("enum.date.calendar." + calendarType.getCode(), calendarType.getCode());
+		final int choice = JOptionPane.showConfirmDialog(this,
+			I18N.tf("validation.date.unrecognized", date, calendarName, reason),
+			I18N.t("validation.date.unrecognized.title"), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+		if(choice != JOptionPane.YES_OPTION){
+			fullDateValueField.requestFocusInWindow();
+
+			return false;
+		}
+
+		return true;
 	}
 
 }

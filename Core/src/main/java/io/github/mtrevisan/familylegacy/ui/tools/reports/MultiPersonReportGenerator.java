@@ -61,8 +61,8 @@ final class MultiPersonReportGenerator{
 			final String title, final List<SectionBuilder> opening){
 		this.model = model;
 		this.persons = List.copyOf(persons);
-		this.config = Objects.requireNonNull(config);
-		this.title = Objects.requireNonNull(title);
+		this.config = config;
+		this.title = title;
 		this.opening = List.copyOf(opening);
 	}
 

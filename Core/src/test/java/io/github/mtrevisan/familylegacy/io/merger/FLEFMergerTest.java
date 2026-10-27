@@ -268,6 +268,57 @@ class FLEFMergerTest{
 	}
 
 	@Test
+	void aPlaceMergedByHandUnitesItsRelationships(){
+		final String citation = "\tsource {\n\t\tsource S1\n\t\tstance supports\n\t}\n";
+		final FLEFModel model = parse(source("S1", "Atlante del Veneto")
+			+ place("P1", "Treviso") + place("P2", "Treviso") + place("P3", "Treviso") + place("P9", "Veneto")
+			+ partOf("PR1", "P1", "P9") + partOf("PR2", "P2", "P9").replace("\ttype administrative_part_of\n",
+				"\ttype administrative_part_of\n" + citation)
+			+ place("P8", "Ohio") + partOf("PR3", "P3", "P8"));
+		final RecordAbsorber absorber = new RecordAbsorber(grammar, CLOCK);
+
+		// the Treviso in Ohio is a namesake, not a candidate
+		final List<RecordAbsorber.Candidate> candidates = absorber.candidates(model, "P2", FLEFMerger.DEFAULT_REVIEW_THRESHOLD);
+		Assertions.assertEquals(List.of("P1"), candidates.stream().map(RecordAbsorber.Candidate::recordId).toList());
+
+		absorber.mergeFields(model.getRecordById("P1"), model.getRecordById("P2"));
+		final RecordAbsorber.Result result = absorber.absorb(model, "P2", "P1", candidates.getFirst().rationale());
+
+		Assertions.assertNull(model.getRecordById("P2"));
+		// both were part of the Veneto: one relationship remains, with the citation of the absorbed one
+		Assertions.assertEquals(List.of("PR2"), result.collapsedIds());
+		Assertions.assertEquals(2, model.getRecordsByType("place_relationship").size());
+		Assertions.assertEquals("S1", FLEFRecordHelper.getChildValue(model.getRecordById("PR1"), "source.source"));
+	}
+
+	@Test
+	void aRejectedIdentityIsNotProposedAgain(){
+		final FLEFModel model = parse(place("P1", "Treviso") + place("P2", "Treviso"));
+		final RecordAbsorber absorber = new RecordAbsorber(grammar, CLOCK);
+		Assertions.assertEquals(1, absorber.candidates(model, "P1", FLEFMerger.DEFAULT_REVIEW_THRESHOLD).size());
+
+		final RecordAbsorber.Rejection rejection = absorber.rejectIdentity(model, "P1", "P2", "same name",
+			"different places");
+
+		final FLEFRecord hypothesis = model.getRecordById(rejection.hypothesisId());
+		Assertions.assertEquals(List.of("P1", "P2"), ProtocolRules.identities(hypothesis));
+		final FLEFRecord conclusion = model.getRecordById(rejection.conclusionId());
+		Assertions.assertEquals("disproven", FLEFRecordHelper.getChildValue(conclusion, "proof_status"));
+		Assertions.assertEquals(rejection.hypothesisId(), FLEFRecordHelper.getChildValue(conclusion, "resolves.identity_hypothesis"));
+		Assertions.assertNull(FLEFRecordHelper.findChild(conclusion, "preferred"));
+		Assertions.assertEquals(List.of(), schemaErrors(model));
+
+		// neither the hand merge nor the automatic one propose the pair again
+		Assertions.assertTrue(absorber.candidates(model, "P1", FLEFMerger.DEFAULT_REVIEW_THRESHOLD).isEmpty());
+		final MergeReport report = merger().deduplicate(model);
+		Assertions.assertEquals(2, report.mergedModel().getRecordsByType("place").size());
+		Assertions.assertTrue(report.decisions().isEmpty(), report.decisions().toString());
+
+		// a second rejection reuses the hypothesis
+		Assertions.assertEquals(rejection.hypothesisId(), absorber.rejectIdentity(model, "P2", "P1", null, null).hypothesisId());
+	}
+
+	@Test
 	void anUncertainPairBecomesAnIdentityHypothesis(){
 		// same name and birth year, nothing else: possibly cousins named after the same grandfather
 		final FLEFModel model = parse(person("I1", "Giovanni", "Trevisan", "male")

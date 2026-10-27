@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.ui.tools.events;
 
 import io.github.mtrevisan.familylegacy.ui.tools.ToolOperation;
+import io.github.mtrevisan.familylegacy.ui.tools.context.ContextBoardTool;
 
 import java.util.List;
 
@@ -59,7 +60,8 @@ public final class EventToolRegistry{
 		return List.of(
 			new CalendarConverterTool(),
 			new DateCalculatorTool(),
-			new TimelineViewTool()
+			new TimelineViewTool(),
+			new ContextBoardTool()
 		);
 	}
 

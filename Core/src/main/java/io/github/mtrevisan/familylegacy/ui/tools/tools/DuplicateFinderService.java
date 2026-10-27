@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
+import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventParticipationHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IdentityHypothesisHandler;
@@ -215,24 +216,26 @@ public final class DuplicateFinderService{
 	 * ====================================================================== */
 
 	private static Map<String, Profile> buildProfiles(final FLEFModel model){
-		final List<FLEFRecord> individuals = model.getRecordsByType(IndividualHandler.TYPE);
+		final List<FLEFRecord> individuals = PrivacyService.visible(model, model.getRecordsByType(IndividualHandler.TYPE));
 
 		// Index relationships once. Each relationship is stored under
 		// both endpoints, so a single pass builds every lookup we need.
 		final Map<String, List<FLEFRecord>> relationshipsByEndpoint = new HashMap<>();
-		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
+		final List<FLEFRecord> relationships = PrivacyService.visible(model, model.getRecordsByType(RelationshipHandler.TYPE));
 		for(final FLEFRecord relationship : relationships){
 			final String subject = relationship.extractReferencedId(RelationshipReader.TAG_SUBJECT, IndividualHandler.TYPE);
 			final String object = relationship.extractReferencedId(RelationshipReader.TAG_TARGET, IndividualHandler.TYPE);
 			if(subject != null)
-				relationshipsByEndpoint.computeIfAbsent(subject, k -> new ArrayList<>()).add(relationship);
+				relationshipsByEndpoint.computeIfAbsent(subject, k -> new ArrayList<>())
+					.add(relationship);
 			if(object != null && !object.equals(subject))
-				relationshipsByEndpoint.computeIfAbsent(object, k -> new ArrayList<>()).add(relationship);
+				relationshipsByEndpoint.computeIfAbsent(object, k -> new ArrayList<>())
+					.add(relationship);
 		}
 
 		// Index participations by participant.
 		final Map<String, List<FLEFRecord>> participationsByIndividual = new HashMap<>();
-		final List<FLEFRecord> participations = model.getRecordsByType(EventParticipationHandler.TYPE);
+		final List<FLEFRecord> participations = PrivacyService.visible(model, model.getRecordsByType(EventParticipationHandler.TYPE));
 		for(final FLEFRecord participation : participations){
 			final FLEFRecord participantBlock = FLEFRecordHelper.findChild(participation, "participant");
 			if(participantBlock == null)
@@ -243,22 +246,24 @@ public final class DuplicateFinderService{
 			final FLEFRecord ref = oneof.getTheOnlyChild();
 			final String id = (ref != null? ref.getValue(): oneof.getValue());
 			if(id != null)
-				participationsByIndividual.computeIfAbsent(id, k -> new ArrayList<>()).add(participation);
+				participationsByIndividual.computeIfAbsent(id, k -> new ArrayList<>())
+					.add(participation);
 		}
 
 		// Index attributes by individual.
 		final Map<String, List<FLEFRecord>> attributesByIndividual = new HashMap<>();
-		final List<FLEFRecord> attributes = model.getRecordsByType(IndividualAttributeHandler.TYPE);
+		final List<FLEFRecord> attributes = PrivacyService.visible(model, model.getRecordsByType(IndividualAttributeHandler.TYPE));
 		for(final FLEFRecord attribute : attributes){
 			final String id = FLEFRecordHelper.getChildValue(attribute, IndividualHandler.TYPE);
 			if(id != null)
-				attributesByIndividual.computeIfAbsent(id, k -> new ArrayList<>()).add(attribute);
+				attributesByIndividual.computeIfAbsent(id, k -> new ArrayList<>())
+					.add(attribute);
 		}
 
 		// Index events by id, so date extraction does not scan the whole
 		// event list per participation.
 		final Map<String, FLEFRecord> eventsById = new LinkedHashMap<>();
-		final List<FLEFRecord> events = model.getRecordsByType(EventHandler.TYPE);
+		final List<FLEFRecord> events = PrivacyService.visible(model, model.getRecordsByType(EventHandler.TYPE));
 		for(final FLEFRecord event : events)
 			if(event.getId() != null)
 				eventsById.put(event.getId(), event);
@@ -274,7 +279,8 @@ public final class DuplicateFinderService{
 			final String child = rel.extractReferencedId("subject", IndividualHandler.TYPE);
 			final String target = rel.extractReferencedId("target", IndividualHandler.TYPE);
 			if(child != null && target != null)
-				childrenByParent.computeIfAbsent(target, k -> new LinkedHashSet<>()).add(child);
+				childrenByParent.computeIfAbsent(target, k -> new LinkedHashSet<>())
+					.add(child);
 		}
 
 		final Map<String, Profile> profiles = new LinkedHashMap<>();
@@ -597,7 +603,7 @@ public final class DuplicateFinderService{
 	 */
 	private static Set<String> existingHypothesisPairs(final FLEFModel model){
 		final Set<String> pairs = new HashSet<>();
-		final List<FLEFRecord> identityHypotheses = model.getRecordsByType(IdentityHypothesisHandler.TYPE);
+		final List<FLEFRecord> identityHypotheses = PrivacyService.visible(model, model.getRecordsByType(IdentityHypothesisHandler.TYPE));
 		for(final FLEFRecord identityHypothesis : identityHypotheses){
 			final List<String> candidates = new ArrayList<>();
 			for(final FLEFRecord child : identityHypothesis.getChildren()){

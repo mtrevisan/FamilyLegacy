@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.ui.dialogs.help;
 
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
+import io.github.mtrevisan.familylegacy.ui.tools.ToolDialogs;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -51,6 +52,7 @@ public final class KeyboardShortcutsDialog extends JDialog{
 
 	private KeyboardShortcutsDialog(final Window owner){
 		super(owner, I18N.t("dialog.keyboard.shortcuts.title"), ModalityType.APPLICATION_MODAL);
+		ToolDialogs.installEscapeToClose(this);
 
 		final List<ShortcutRegistry.ShortcutDefinition> shortcuts = ShortcutRegistry.getAllShortcuts().stream()
 			.sorted(Comparator.comparing(ShortcutRegistry.ShortcutDefinition::category)

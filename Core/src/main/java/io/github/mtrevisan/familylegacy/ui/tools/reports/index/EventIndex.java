@@ -79,15 +79,19 @@ public final class EventIndex{
 				continue;
 
 			final String participantId = participantRef.id();
-			participantToParticipationsMap.computeIfAbsent(participantId, k -> new ArrayList<>()).add(ep);
-			eventToParticipationsMap.computeIfAbsent(eventId, k -> new ArrayList<>()).add(ep);
+			participantToParticipationsMap.computeIfAbsent(participantId, k -> new ArrayList<>())
+				.add(ep);
+			eventToParticipationsMap.computeIfAbsent(eventId, k -> new ArrayList<>())
+				.add(ep);
 
 			final FLEFRecord event = model.getRecordById(eventId);
 			if(event != null && filter.test(event)){
-				personToEventsMap.computeIfAbsent(participantId, k -> new ArrayList<>()).add(event);
+				personToEventsMap.computeIfAbsent(participantId, k -> new ArrayList<>())
+					.add(event);
 
 				if("group".equalsIgnoreCase(participantRef.tag())){
-					groupToEventsMap.computeIfAbsent(participantId, k -> new ArrayList<>()).add(event);
+					groupToEventsMap.computeIfAbsent(participantId, k -> new ArrayList<>())
+						.add(event);
 				}
 			}
 		}

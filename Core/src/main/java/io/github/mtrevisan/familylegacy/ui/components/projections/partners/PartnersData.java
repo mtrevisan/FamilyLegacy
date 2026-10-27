@@ -137,7 +137,8 @@ public final class PartnersData{
 //				if(EVENT_TYPE_MARRIAGE.equals(type))
 //					childToMarriageEventMap.put(childId, event);
 //
-//				individualToEventMap.computeIfAbsent(individualRef.getValue(), k -> new ArrayList<>()).add(event);
+//				individualToEventMap.computeIfAbsent(individualRef.getValue(), k -> new ArrayList<>())
+//					.add(event);
 //			}
 //		}
 	}

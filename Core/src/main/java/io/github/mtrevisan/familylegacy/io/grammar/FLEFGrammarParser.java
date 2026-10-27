@@ -799,8 +799,7 @@ public final class FLEFGrammarParser{
 		final FLEFGrammar grammar = FLEFGrammarParser.parse(path);
 
 		System.out.println("File definition: " + (grammar.getFileDefinition() != null
-			? grammar.getFileDefinition()
-			.name()
+			? grammar.getFileDefinition().name()
 			: "<none>"));
 		System.out.println("Total top-level types: " + grammar.getTypeNames().size());
 

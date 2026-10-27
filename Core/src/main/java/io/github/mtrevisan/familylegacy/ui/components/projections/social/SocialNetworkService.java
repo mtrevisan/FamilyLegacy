@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReade
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateNormalizer;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.TemporalSpan;
+import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.ui.components.projections.temporal.TemporalEntityRef;
 import io.github.mtrevisan.familylegacy.ui.components.projections.temporal.TemporalEntityType;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventParticipationHandler;
@@ -385,7 +386,7 @@ public final class SocialNetworkService{
 			return;
 
 		final Map<String, List<FLEFRecord>> relationships = new HashMap<>();
-		for(final FLEFRecord relationship : model.getRecordsByType(RelationshipHandler.TYPE)){
+		for(final FLEFRecord relationship : PrivacyService.visible(model, model.getRecordsByType(RelationshipHandler.TYPE))){
 			final String type = RelationshipReader.extractType(relationship);
 			if(type == null || !RelationshipReader.SOCIAL_RELATIONSHIP_TYPES.contains(type.toLowerCase()))
 				continue;
@@ -402,7 +403,7 @@ public final class SocialNetworkService{
 
 		final Map<String, List<FLEFRecord>> participationsByEntity = new HashMap<>();
 		final Map<String, List<FLEFRecord>> participationsByEvent = new HashMap<>();
-		for(final FLEFRecord participation : model.getRecordsByType(EventParticipationHandler.TYPE)){
+		for(final FLEFRecord participation : PrivacyService.visible(model, model.getRecordsByType(EventParticipationHandler.TYPE))){
 			final String participantId = extractParticipantId(participation);
 			if(participantId != null)
 				participationsByEntity.computeIfAbsent(participantId, k -> new ArrayList<>())

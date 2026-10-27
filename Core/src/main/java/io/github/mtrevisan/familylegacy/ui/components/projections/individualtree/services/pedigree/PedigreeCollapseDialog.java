@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.services.pedigree;
 
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
+import io.github.mtrevisan.familylegacy.ui.tools.ToolDialogs;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -71,6 +72,7 @@ public class PedigreeCollapseDialog extends JDialog{
 	 */
 	public PedigreeCollapseDialog(final Window owner, final List<PedigreeCollapse> collapses){
 		super(owner, "Pedigree collapse report", ModalityType.APPLICATION_MODAL);
+		ToolDialogs.installEscapeToClose(this);
 
 		if(collapses == null)
 			throw new IllegalArgumentException("Collapses must not be null");

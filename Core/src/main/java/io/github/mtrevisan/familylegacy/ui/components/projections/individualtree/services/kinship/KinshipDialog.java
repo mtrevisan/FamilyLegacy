@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.ui.components.fields.EntityField;
 import io.github.mtrevisan.familylegacy.ui.components.projections.repository.TreeService;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
+import io.github.mtrevisan.familylegacy.ui.tools.ToolDialogs;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -100,6 +101,7 @@ public class KinshipDialog extends JDialog{
 	public KinshipDialog(final Window owner, final FLEFModel model, final TreeService service,
 			final FLEFRecord initialA, final FLEFRecord initialB){
 		super(owner, "Kinship between two individuals", ModalityType.APPLICATION_MODAL);
+		ToolDialogs.installEscapeToClose(this);
 
 		if(service == null)
 			throw new IllegalArgumentException("Tree service must not be null");

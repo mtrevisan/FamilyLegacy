@@ -29,6 +29,8 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
+import io.github.mtrevisan.familylegacy.privacy.PrivacyPolicy;
+import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualData;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventParticipationHandler;
@@ -122,6 +124,10 @@ public class GenealogyRepository{
 		if(subjectId == null || objectId == null)
 			return;
 
+		//a relationship with a hidden individual is not part of the views
+		if(isHidden(subjectId) || isHidden(objectId))
+			return;
+
 		final String relationshipId = relationship.getId();
 		if(relationshipId != null){
 			individualToRelationshipIdsMap.computeIfAbsent(subjectId, k -> new ArrayList<>())
@@ -151,6 +157,10 @@ public class GenealogyRepository{
 			addPartnerId(subjectId, objectId);
 			addPartnerId(objectId, subjectId);
 		}
+	}
+
+	private boolean isHidden(final String individualId){
+		return PrivacyService.isHidden(model, model.getRecordById(individualId));
 	}
 
 	private void addPartnerId(final String individualId, final String partnerId){
@@ -310,6 +320,13 @@ public class GenealogyRepository{
 			final String relationshipId){
 		if(!initialized)
 			return;
+
+		//the hidden individuals depend on the whole model: re-index lazily
+		if(PrivacyService.policy() != PrivacyPolicy.SHOW_ALL){
+			PrivacyService.invalidate();
+			invalidateIndices();
+			return;
+		}
 
 		if(relationshipId != null){
 			if(subjectId != null)

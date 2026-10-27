@@ -28,7 +28,8 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.io.model.readers.CulturalNormReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.PrivacyReader;
+import io.github.mtrevisan.familylegacy.privacy.PrivacyPolicy;
+import io.github.mtrevisan.familylegacy.privacy.PrivacyResolver;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.services.kinship.KinshipCalculator;
 import io.github.mtrevisan.familylegacy.ui.handlers.CulturalNormHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
@@ -38,7 +39,6 @@ import io.github.mtrevisan.familylegacy.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.index.RelationIndex;
 import org.apache.commons.lang3.StringUtils;
 
-import java.time.LocalDate;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
@@ -56,7 +56,6 @@ final class ReportContext{
 
 	private static final String TAG_TITLE = "title";
 	private static final String TAG_TYPE = "type";
-	private static final String TAG_PRIVACY = "privacy";
 
 
 	/** Categorizes the type of the root FLEF record being reported. */
@@ -87,6 +86,7 @@ final class ReportContext{
 
 	private final RootKind rootKind;
 	private Set<String> relatedRecordIds;
+	private PrivacyResolver privacy;
 
 	private KinshipCalculator kinship;
 	private CitationRenderer citations;
@@ -234,37 +234,14 @@ final class ReportContext{
 		if(policy == PrivacyPolicy.SHOW_ALL)
 			return true;
 
-		final String level = PrivacyReader.extractLevel(record);
-		if(PrivacyReader.isConfidential(level))
-			return false;
-		if(policy == PrivacyPolicy.HIDE_RESTRICTED_AND_CONFIDENTIAL && PrivacyReader.isRestricted(level))
-			return false;
-
-		// Even when the level allows display, an expired restriction means
-		// the data is now public.
-		return true;
+		//the level is the effective one: declared (unless expired), inherited, living person, national id
+		return !policy.hides(privacy().effectiveLevel(record));
 	}
 
-	/**
-	 * Whether the privacy restriction has expired as of current time.
-	 * A record with an expired restriction is treated as public even when
-	 * the policy would otherwise hide it.
-	 */
-	boolean isPrivacyExpired(final FLEFRecord rec){
-		final String expires = FLEFRecordHelper.getChildValue(rec, TAG_PRIVACY + "." + PrivacyReader.TAG_EXPIRES);
-		if(StringUtils.isEmpty(expires))
-			return false;
-		try{
-			final LocalDate expiry = LocalDate.parse(expires.trim());
-			return !expiry.isAfter(LocalDate.now());
-		}
-		catch(final Exception ignored){
-			return false;
-		}
-	}
-
-	boolean hasPrivacyRestriction(final FLEFRecord record){
-		return !PrivacyReader.isPublic(PrivacyReader.extractLevel(record));
+	private PrivacyResolver privacy(){
+		if(privacy == null)
+			privacy = new PrivacyResolver(model);
+		return privacy;
 	}
 
 	FLEFRecord visible(final FLEFRecord rec){

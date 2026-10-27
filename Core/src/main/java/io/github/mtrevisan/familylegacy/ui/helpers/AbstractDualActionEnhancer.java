@@ -53,7 +53,8 @@ public abstract class AbstractDualActionEnhancer{
 	private static volatile boolean shiftHeld;
 	static{
 		// Register a global dispatcher to update the shift state
-		KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(e -> {
+		final KeyboardFocusManager currentKeyboardFocusManager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
+		currentKeyboardFocusManager.addKeyEventDispatcher(e -> {
 			if(e.getID() == KeyEvent.KEY_PRESSED && e.getKeyCode() == KeyEvent.VK_SHIFT)
 				shiftHeld = true;
 			else if(e.getID() == KeyEvent.KEY_RELEASED && e.getKeyCode() == KeyEvent.VK_SHIFT)

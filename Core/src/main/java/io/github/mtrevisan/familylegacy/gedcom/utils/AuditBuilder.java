@@ -70,7 +70,8 @@ public class AuditBuilder{
 				.addChild(FLEFRecord.createChildWithTagAndValue("date", chanDateTime))
 			: null);
 		if(StringUtils.isNotEmpty(chanNoteText))
-			(update != null? update: creation).addChild(FLEFRecord.createChildWithTagAndValue("comment", chanNoteText));
+			(update != null? update: creation)
+				.addChild(FLEFRecord.createChildWithTagAndValue("comment", chanNoteText));
 
 		audit.addChild(creation)
 			.addChild(update);

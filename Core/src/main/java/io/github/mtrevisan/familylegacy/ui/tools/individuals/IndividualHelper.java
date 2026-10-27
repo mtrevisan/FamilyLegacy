@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
+import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventParticipationHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
@@ -63,7 +64,7 @@ public final class IndividualHelper{
 
 
 	public static List<FLEFRecord> listAllIndividuals(final FLEFModel model){
-		return model.getRecordsByType(IndividualHandler.TYPE);
+		return PrivacyService.visible(model, model.getRecordsByType(IndividualHandler.TYPE));
 	}
 
 	public static Map<String, FLEFRecord> indexIndividualsById(final FLEFModel model){
@@ -134,7 +135,7 @@ public final class IndividualHelper{
 	public static List<String> biologicalParentIds(final String individualId, final FLEFModel model){
 		final List<String> fathers = new ArrayList<>();
 		final List<String> mothers = new ArrayList<>();
-		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
+		final List<FLEFRecord> relationships = PrivacyService.visible(model, model.getRecordsByType(RelationshipHandler.TYPE));
 		for(final FLEFRecord relationship : relationships){
 			final String type = RelationshipReader.extractType(relationship);
 			if(!RelationshipReader.isTypeBiologicalChild(type))
@@ -160,29 +161,6 @@ public final class IndividualHelper{
 		return result;
 	}
 
-	/**
-	 * Re-points an existing relationship to a new endpoint. Used by the
-	 * merge operation to move relationships without recreating them.
-	 *
-	 * @param rel        the relationship to modify
-	 * @param wrapperTag {@code subject} or {@code target}
-	 * @param newId      the new individual id
-	 */
-	public static void setRelationshipEndpoint(final FLEFRecord rel, final String wrapperTag, final String newId){
-		final FLEFRecord wrapper = FLEFRecordHelper.findChild(rel, wrapperTag);
-		if(wrapper == null)
-			return;
-		final FLEFRecord entityBlock = wrapper.getTheOnlyChild();
-		if(entityBlock == null)
-			return;
-		final FLEFRecord idRef = entityBlock.getTheOnlyChild();
-		if(idRef != null)
-			idRef.setValue(newId);
-		else
-			entityBlock.setValue(newId);
-	}
-
-
 	/* ======================================================================
 	 *                          Cleanup before delete
 	 * ====================================================================== */
@@ -195,7 +173,7 @@ public final class IndividualHelper{
 		if(individualId == null)
 			return result;
 
-		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
+		final List<FLEFRecord> relationships = PrivacyService.visible(model, model.getRecordsByType(RelationshipHandler.TYPE));
 		for(final FLEFRecord relationship : relationships){
 			final String type = RelationshipReader.extractType(relationship);
 			if(!RelationshipReader.isTypeChild(type))
@@ -217,7 +195,7 @@ public final class IndividualHelper{
 		if(individualId == null)
 			return result;
 
-		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
+		final List<FLEFRecord> relationships = PrivacyService.visible(model, model.getRecordsByType(RelationshipHandler.TYPE));
 		for(final FLEFRecord relationship : relationships){
 			final String type = RelationshipReader.extractType(relationship);
 			if(type == null || RelationshipReader.isTypeChild(type)
@@ -242,7 +220,7 @@ public final class IndividualHelper{
 		if(individualId == null)
 			return result;
 
-		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
+		final List<FLEFRecord> relationships = PrivacyService.visible(model, model.getRecordsByType(RelationshipHandler.TYPE));
 		for(final FLEFRecord relationship : relationships){
 			final String type = RelationshipReader.extractType(relationship);
 			if(!RelationshipReader.isTypeGroupMember(type))
@@ -264,7 +242,7 @@ public final class IndividualHelper{
 		if(individualId == null)
 			return result;
 
-		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
+		final List<FLEFRecord> relationships = PrivacyService.visible(model, model.getRecordsByType(RelationshipHandler.TYPE));
 		for(final FLEFRecord relationship : relationships){
 			final String type = RelationshipReader.extractType(relationship);
 			if(!RelationshipReader.isTypeChild(type))
@@ -300,7 +278,7 @@ public final class IndividualHelper{
 		final Set<String> parents = new LinkedHashSet<>(biologicalParentIds(individualId, model));
 		final Set<String> children = new LinkedHashSet<>();
 		final Set<String> spouses = new LinkedHashSet<>();
-		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
+		final List<FLEFRecord> relationships = PrivacyService.visible(model, model.getRecordsByType(RelationshipHandler.TYPE));
 		for(final FLEFRecord relationship : relationships){
 			final String type = RelationshipReader.extractType(relationship);
 			if(type == null)
@@ -321,7 +299,7 @@ public final class IndividualHelper{
 		}
 
 		int eventCount = 0;
-		final List<FLEFRecord> participations = model.getRecordsByType(EventParticipationHandler.TYPE);
+		final List<FLEFRecord> participations = PrivacyService.visible(model, model.getRecordsByType(EventParticipationHandler.TYPE));
 		for(final FLEFRecord participation : participations){
 			final FLEFRecord participantBlock = FLEFRecordHelper.findChild(participation, "participant");
 			if(participantBlock == null)

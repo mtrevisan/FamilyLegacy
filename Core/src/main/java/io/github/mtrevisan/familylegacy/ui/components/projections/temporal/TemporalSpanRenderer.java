@@ -34,6 +34,7 @@ import java.awt.GradientPaint;
 import java.awt.Graphics2D;
 import java.awt.Paint;
 import java.awt.Rectangle;
+import java.awt.Shape;
 import java.awt.Stroke;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Path2D;
@@ -61,6 +62,10 @@ import java.awt.geom.Path2D;
  *   <li>{@link TemporalSpan#status()} — the fill alpha and the outline
  *       stroke vary: {@code active} solid, {@code ended} dashed,
  *       {@code unknown} dotted.</li>
+ *   <li>negative evidence ({@code evidence_type = negative}) — the body is
+ *       faded and crossed out: a diagonal hatch over bars, an X over point
+ *       markers, so that "the sources attest the absence" is not read as a
+ *       regular occurrence.</li>
  * </ul>
  */
 public final class TemporalSpanRenderer{
@@ -76,6 +81,8 @@ public final class TemporalSpanRenderer{
 	private static final int CORNER_ARC = 3;
 	private static final int HALO_PADDING = 4;
 	private static final int FADE_WIDTH = 12;
+	private static final int NEGATIVE_ALPHA = 90;
+	private static final int HATCH_SPACING = 5;
 
 
 	private TemporalSpanRenderer(){
@@ -93,10 +100,26 @@ public final class TemporalSpanRenderer{
 	 */
 	public static void drawSpan(final Graphics2D g, final Rectangle rect, final TemporalSpan span,
 		final Color baseColor, final boolean selected){
+		drawSpan(g, rect, span, baseColor, selected, false);
+	}
+
+	/**
+	 * Draws a single span into the given screen rectangle.
+	 *
+	 * @param g         the graphics context
+	 * @param rect      the screen rectangle (already translated to absolute coordinates)
+	 * @param span      the span to draw (must not be {@code null})
+	 * @param baseColor the base color, chosen by the caller based on the track
+	 * @param selected  whether the span is currently selected
+	 * @param negative  whether the assertion is backed by negative evidence (the absence is attested)
+	 */
+	public static void drawSpan(final Graphics2D g, final Rectangle rect, final TemporalSpan span,
+		final Color baseColor, final boolean selected, final boolean negative){
 		if(g == null || rect == null || span == null || baseColor == null)
 			return;
 
 		final Color color = (selected? COLOR_SELECTED: baseColor);
+		final Color bodyColor = (negative? withAlpha(color, NEGATIVE_ALPHA): color);
 
 		final Paint originalPaint = g.getPaint();
 		final Stroke originalStroke = g.getStroke();
@@ -109,12 +132,20 @@ public final class TemporalSpanRenderer{
 			switch(span.kind()){
 				case POINT -> {
 					if(span.start().isReduced())
-						drawReducedPrecisionBar(g, rect, color);
+						drawReducedPrecisionBar(g, rect, bodyColor);
 					else
-						drawPointMarker(g, rect, color);
+						drawPointMarker(g, rect, bodyColor);
 				}
-				case BOUNDED -> drawBoundedBar(g, rect, color);
-				case SPANNING -> drawSpanningBar(g, rect, color);
+				case BOUNDED -> drawBoundedBar(g, rect, bodyColor);
+				case SPANNING -> drawSpanningBar(g, rect, bodyColor);
+			}
+
+			// 3. Negative evidence (crossed out, on top of the body)
+			if(negative){
+				if(span.kind() == TemporalSpanKind.POINT && !span.start().isReduced())
+					drawNegativeCross(g, rect, color);
+				else
+					drawNegativeHatch(g, rect, color);
 			}
 		}
 		finally{
@@ -193,6 +224,29 @@ public final class TemporalSpanRenderer{
 		g.setStroke(new BasicStroke(1f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND,
 			10f, new float[]{4f, 3f}, 0f));
 		g.drawRoundRect(rect.x, rect.y, rect.width, rect.height, CORNER_ARC, CORNER_ARC);
+	}
+
+	private static void drawNegativeHatch(final Graphics2D g, final Rectangle rect, final Color color){
+		final Shape originalClip = g.getClip();
+		g.clipRect(rect.x, rect.y, rect.width + 1, rect.height + 1);
+		g.setColor(darken(withAlpha(color, 255), 0.6f));
+		g.setStroke(new BasicStroke(1f));
+		for(int x = rect.x - rect.height; x < rect.x + rect.width; x += HATCH_SPACING)
+			g.drawLine(x, rect.y + rect.height, x + rect.height, rect.y);
+		g.setClip(originalClip);
+
+		g.drawRoundRect(rect.x, rect.y, rect.width, rect.height, CORNER_ARC, CORNER_ARC);
+	}
+
+	private static void drawNegativeCross(final Graphics2D g, final Rectangle rect, final Color color){
+		final int cx = rect.x + rect.width / 2;
+		final int cy = rect.y + rect.height / 2;
+		final int half = Math.max(MARKER_MIN_SIZE, rect.height / 2);
+
+		g.setColor(darken(withAlpha(color, 255), 0.6f));
+		g.setStroke(new BasicStroke(1.5f));
+		g.drawLine(cx - half, cy - half, cx + half, cy + half);
+		g.drawLine(cx - half, cy + half, cx + half, cy - half);
 	}
 
 	private static void drawApproximationHalo(final Graphics2D g, final Rectangle rect){

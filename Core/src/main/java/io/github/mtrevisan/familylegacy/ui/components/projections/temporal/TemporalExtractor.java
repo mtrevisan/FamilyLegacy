@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.ContextImpactReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.CulturalNormReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.EvidenceQualifiersReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.GroupAttributeReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.HistoricEventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualAttributeReader;
@@ -132,7 +133,7 @@ public final class TemporalExtractor{
 			final String role = FLEFRecordHelper.getChildValue(eventParticipation, EventParticipationReader.TAG_ROLE);
 			final String label = (type != null? type.replace('_', ' '): "event");
 
-			result.add(new TemporalEntry(span, label, type, role, event, null));
+			result.add(new TemporalEntry(span, label, type, role, event, evidenceOf(event)));
 		}
 		return result;
 	}
@@ -217,7 +218,11 @@ public final class TemporalExtractor{
 		final String value = FLEFRecordHelper.getChildValue(attribute, (isIndividual? IndividualAttributeReader.TAG_VALUE: GroupAttributeReader.TAG_VALUE));
 		final String label = (type != null? type.replace('_', ' '): "attribute");
 
-		return new TemporalEntry(span, label, type, value, attribute, null);
+		return new TemporalEntry(span, label, type, value, attribute, evidenceOf(attribute));
+	}
+
+	private static FLEFRecord evidenceOf(final FLEFRecord record){
+		return FLEFRecordHelper.findChild(record, EvidenceQualifiersReader.TAG_EVIDENCE);
 	}
 
 	private TemporalSpan buildAttributeSpan(final FLEFRecord from, final FLEFRecord to){
@@ -274,7 +279,7 @@ public final class TemporalExtractor{
 			final String impactType = FLEFRecordHelper.getChildValue(impact, ContextImpactReader.TAG_IMPACT_TYPE);
 			final String label = context.getTag()
 				.replace('_', ' ');
-			output.add(new TemporalEntry(span, label, context.getTag(), impactType, context, null));
+			output.add(new TemporalEntry(span, label, context.getTag(), impactType, context, evidenceOf(impact)));
 		}
 	}
 
@@ -288,7 +293,7 @@ public final class TemporalExtractor{
 			final String type = FLEFRecordHelper.getChildValue(record, HistoricEventReader.TAG_TYPE);
 			final String title = FLEFRecordHelper.getChildValue(record, HistoricEventReader.TAG_TITLE);
 			final String label = (title != null? title: type != null? type: "historic event");
-			output.add(new TemporalEntry(span, label, type, StringUtils.EMPTY, record, null));
+			output.add(new TemporalEntry(span, label, type, StringUtils.EMPTY, record, evidenceOf(record)));
 		}
 	}
 
@@ -303,7 +308,7 @@ public final class TemporalExtractor{
 			final String ruleType = FLEFRecordHelper.getChildValue(record, CulturalNormReader.TAG_TYPE);
 			final String title = FLEFRecordHelper.getChildValue(record, CulturalNormReader.TAG_TITLE);
 			final String label = (title != null? title: ruleType != null? ruleType: "cultural norm");
-			output.add(new TemporalEntry(span, label, ruleType, StringUtils.EMPTY, record, null));
+			output.add(new TemporalEntry(span, label, ruleType, StringUtils.EMPTY, record, evidenceOf(record)));
 		}
 	}
 

@@ -54,6 +54,7 @@ import javax.swing.event.DocumentListener;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableRowSorter;
+import javax.swing.text.Document;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
@@ -149,10 +150,22 @@ public final class DuplicateFinderDialog extends JDialog{
 		toolbar.add(new JLabel("Filter (matches name or matched features):"), gbc);
 		gbc.gridy = 2;
 		toolbar.add(filterField, gbc);
-		filterField.getDocument().addDocumentListener(new DocumentListener(){
-			@Override public void insertUpdate(final DocumentEvent e){ applyFilter(); }
-			@Override public void removeUpdate(final DocumentEvent e){ applyFilter(); }
-			@Override public void changedUpdate(final DocumentEvent e){ applyFilter(); }
+		final Document document = filterField.getDocument();
+		document.addDocumentListener(new DocumentListener(){
+			@Override
+			public void insertUpdate(final DocumentEvent e){
+				applyFilter();
+			}
+
+			@Override
+			public void removeUpdate(final DocumentEvent e){
+				applyFilter();
+			}
+
+			@Override
+			public void changedUpdate(final DocumentEvent e){
+				applyFilter();
+			}
 		});
 
 		return toolbar;
@@ -169,7 +182,8 @@ public final class DuplicateFinderDialog extends JDialog{
 		columnModel.getColumn(3).setPreferredWidth(200);
 		columnModel.getColumn(4).setPreferredWidth(360);
 
-		table.getSelectionModel().addListSelectionListener(e -> {
+		final ListSelectionModel selectionModel = table.getSelectionModel();
+		selectionModel.addListSelectionListener(e -> {
 			if(!e.getValueIsAdjusting())
 				updateDetails();
 		});
@@ -391,9 +405,20 @@ public final class DuplicateFinderDialog extends JDialog{
 			return rows.get(index);
 		}
 
-		@Override public int getRowCount(){ return rows.size(); }
-		@Override public int getColumnCount(){ return COLUMNS.length; }
-		@Override public String getColumnName(final int column){ return COLUMNS[column]; }
+		@Override
+		public int getRowCount(){
+			return rows.size();
+		}
+
+		@Override
+		public int getColumnCount(){
+			return COLUMNS.length;
+		}
+
+		@Override
+		public String getColumnName(final int column){
+			return COLUMNS[column];
+		}
 
 		@Override
 		public Object getValueAt(final int rowIndex, final int columnIndex){

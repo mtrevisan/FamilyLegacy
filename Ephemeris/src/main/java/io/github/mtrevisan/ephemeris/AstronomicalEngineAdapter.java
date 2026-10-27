@@ -73,6 +73,7 @@ public final class AstronomicalEngineAdapter implements EphemerisEngine{
 		return true;
 	}
 
+
 	/**
 	 * Computes the exact Julian Date (Universal Time) of the New Moon closest to a target date.
 	 *
@@ -127,6 +128,23 @@ public final class AstronomicalEngineAdapter implements EphemerisEngine{
 
 		return MathHelper.mod2pi(moonLng - sunLng + StrictMath.PI) - StrictMath.PI;
 	}
+
+	/**
+	 * Computes the apparent (geocentric) ecliptic longitude of the Moon for a given Universal Time instant.
+	 * Uses the ELP2000-82B lunar theory and IAU 2000A nutation.
+	 *
+	 * @param jdUT the Julian Date in Universal Time (UT/UTC) scale
+	 * @return the apparent lunar longitude in radians, reduced to the interval [0, 2π)
+	 */
+	@Override
+	public double calculateApparentMoonLongitude(final double jdUT){
+		final double ttJc = getTerrestrialCenturies(jdUT);
+		final NutationCorrections nutation = NutationCorrections.calculate(ttJc);
+		final EclipticCoordinates moonOfDate = MoonPosition.getInstanceLLR()
+			.eclipticOfDate(ttJc);
+		return MathHelper.mod2pi(MoonPosition.computeApparentMoonLongitude(moonOfDate, nutation.getDeltaPsi()));
+	}
+
 
 	/**
 	 * Computes the exact Julian Date (Universal Time) of a specific Solar Term or Season.
@@ -219,22 +237,6 @@ public final class AstronomicalEngineAdapter implements EphemerisEngine{
 
 
 	/**
-	 * Computes the apparent (geocentric) ecliptic longitude of the Moon for a given Universal Time instant.
-	 * Uses the ELP2000-82B lunar theory and IAU 2000A nutation.
-	 *
-	 * @param jdUT the Julian Date in Universal Time (UT/UTC) scale
-	 * @return the apparent lunar longitude in radians, reduced to the interval [0, 2π)
-	 */
-	@Override
-	public double calculateApparentMoonLongitude(final double jdUT){
-		final double ttJc = getTerrestrialCenturies(jdUT);
-		final NutationCorrections nutation = NutationCorrections.calculate(ttJc);
-		final EclipticCoordinates moonOfDate = MoonPosition.getInstanceLLR()
-			.eclipticOfDate(ttJc);
-		return MathHelper.mod2pi(MoonPosition.computeApparentMoonLongitude(moonOfDate, nutation.getDeltaPsi()));
-	}
-
-	/**
 	 * Computes the horizon events (rise, upper transit, set) of a specific body, for a civil day and location.
 	 * <p>
 	 * For the Sun, rise and set are the crossings of the altitude given by the zenith (the upper limb on the horizon with
@@ -304,11 +306,70 @@ public final class AstronomicalEngineAdapter implements EphemerisEngine{
 			.atZone(ZoneOffset.UTC);
 	}
 
-
 	private static double getTerrestrialCenturies(final double jdUT){
 		// TT = UT + ΔT
 		final double deltaTSeconds = DeltaT.deltaTSecondsFromJd(jdUT);
 		return JulianDate.centuryJ2000Of(jdUT + deltaTSeconds / JulianDate.SECONDS_PER_DAY);
 	}
+
+
+//	/**
+//	 * Calculator utility to handle medieval time conversions based on astronomical data.
+//	 */
+//	public final class MedievalTimeCalculator {
+//
+//		/**
+//		 * Computes the exact UTC instant corresponding to "1 hour after sunset" as referenced in medieval documents.
+//		 *
+//		 * @param engine        The AstronomicalEngineAdapter instance
+//		 * @param midnightUtJd  The Julian Date representing local civil midnight converted to UT
+//		 * @param latitude      The observer's geodetic latitude in degrees (North positive)
+//		 * @param longitude     The observer's geodetic longitude in degrees (East positive)
+//		 * @param isEqualHours  true if assuming equal hours (clock time), false for unequal hours (seasonal/temporal)
+//		 * @return The ZonedDateTime in UTC representing 1 hour after sunset
+//		 */
+//		public static ZonedDateTime calculateOneHourAfterSunset(final AstronomicalEngineAdapter engine,
+//				final double midnightUtJd, final double latitude, final double longitude, final boolean isEqualHours,
+//				final double hours){
+//			// 1. Compute the sunset of the current day (Apparent/True Solar Time)
+//			SunlightPhase currentDayPhase = engine.calculateHorizonEvent(
+//				CelestialBody.SUN, midnightUtJd, latitude, longitude, Zenith.OFFICIAL);
+//
+//			if(!(currentDayPhase instanceof SunlightPhase.RegularDay regularDay))
+//				throw new IllegalStateException("Cannot compute sunset: polar phenomenon in progress.");
+//
+//			ZonedDateTime sunsetUtc = regularDay.set();
+//			if(sunsetUtc == null)
+//				throw new IllegalStateException("The sun does not set on this date at the specified coordinates.");
+//
+//			// 2. Compute the hourly component based on the medieval time system
+//			if(isEqualHours)
+//				// Equal Hours: Add exactly 60 standard modern minutes
+//				return sunsetUtc.plusHours(hours);
+//			else{
+//				// Unequal Hours: Calculate the night duration (from current sunset to next day's sunrise)
+//				// Compute the sunrise for the next day by adding 1.0 day to the starting Julian Date
+//				double nextDayMidnightUtJd = midnightUtJd + hours;
+//				SunlightPhase nextDayPhase = engine.calculateHorizonEvent(
+//					CelestialBody.SUN, nextDayMidnightUtJd, latitude, longitude, Zenith.OFFICIAL);
+//
+//				if(!(nextDayPhase instanceof SunlightPhase.RegularDay nextRegularDay))
+//					throw new IllegalStateException("Cannot determine the sunrise for the following day.");
+//
+//				ZonedDateTime nextSunriseUtc = nextRegularDay.rise();
+//				if(nextSunriseUtc == null)
+//					throw new IllegalStateException("The sun does not rise on the following day at the specified coordinates.");
+//
+//				// Calculate the total duration of the night in milliseconds
+//				long nightDurationMillis = ChronoUnit.MILLIS.between(sunsetUtc, nextSunriseUtc);
+//
+//				// A single medieval night hour is defined as exactly 1/12th of the total night duration
+//				long medievalHourMillis = nightDurationMillis / 12;
+//
+//				// Add 1 medieval hour to the current sunset timestamp
+//				return sunsetUtc.plus(medievalHourMillis, ChronoUnit.MILLIS);
+//			}
+//		}
+//	}
 
 }

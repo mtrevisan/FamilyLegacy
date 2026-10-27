@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.io.model.readers.EvidenceQualifiersReader;
+import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import io.github.mtrevisan.familylegacy.ui.tools.ReportDialog;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolContext;
@@ -79,7 +80,7 @@ public final class EvidenceQualifiersTool implements ToolOperation{
 		int withoutQualifiers = 0;
 
 		for(final String type : SCANNED_TYPES){
-			final List<FLEFRecord> records = model.getRecordsByType(type);
+			final List<FLEFRecord> records = PrivacyService.visible(model, model.getRecordsByType(type));
 			for(final FLEFRecord record : records){
 				final FLEFRecord qualifiers = FLEFRecordHelper.findChild(record, TAG_EVIDENCE);
 				if(qualifiers == null){

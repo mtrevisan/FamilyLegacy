@@ -224,7 +224,7 @@ public final class TemporalRowRenderer{
 				if(rect == null)
 					continue;
 				rect.x += contentBounds.x;
-				TemporalSpanRenderer.drawSpan(g, rect, entry.span(), baseColor, selected);
+				TemporalSpanRenderer.drawSpan(g, rect, entry.span(), baseColor, selected, entry.hasNegativeEvidence());
 			}
 		}
 	}

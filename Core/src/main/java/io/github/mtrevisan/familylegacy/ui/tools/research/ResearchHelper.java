@@ -32,6 +32,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.IdentityHypothesisReade
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchActivityReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchQuestionReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchTaskReader;
+import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.ui.handlers.ConclusionHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IdentityHypothesisHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
@@ -75,23 +76,23 @@ public final class ResearchHelper{
 	 * ====================================================================== */
 
 	public static List<FLEFRecord> listQuestions(final FLEFModel model){
-		return model.getRecordsByType(ResearchQuestionHandler.TYPE);
+		return PrivacyService.visible(model, model.getRecordsByType(ResearchQuestionHandler.TYPE));
 	}
 
 	public static List<FLEFRecord> listActivities(final FLEFModel model){
-		return model.getRecordsByType(ResearchActivityHandler.TYPE);
+		return PrivacyService.visible(model, model.getRecordsByType(ResearchActivityHandler.TYPE));
 	}
 
 	public static List<FLEFRecord> listTasks(final FLEFModel model){
-		return model.getRecordsByType(ResearchTaskHandler.TYPE);
+		return PrivacyService.visible(model, model.getRecordsByType(ResearchTaskHandler.TYPE));
 	}
 
 	public static List<FLEFRecord> listConclusions(final FLEFModel model){
-		return model.getRecordsByType(ConclusionHandler.TYPE);
+		return PrivacyService.visible(model, model.getRecordsByType(ConclusionHandler.TYPE));
 	}
 
 	public static List<FLEFRecord> listIdentityHypotheses(final FLEFModel model){
-		return model.getRecordsByType(IdentityHypothesisHandler.TYPE);
+		return PrivacyService.visible(model, model.getRecordsByType(IdentityHypothesisHandler.TYPE));
 	}
 
 
@@ -190,7 +191,8 @@ public final class ResearchHelper{
 		for(final FLEFRecord r : records){
 			final String key = firstTextValue(r, tag);
 			if(key != null && !key.isBlank())
-				result.computeIfAbsent(key, k -> new ArrayList<>()).add(r);
+				result.computeIfAbsent(key, k -> new ArrayList<>())
+					.add(r);
 		}
 		return result;
 	}

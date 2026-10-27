@@ -153,7 +153,8 @@ public final class ConsistencyService{
 		final String childId = relationship.extractReferencedId(RelationshipReader.TAG_SUBJECT, IndividualHandler.TYPE);
 		final String parentId = relationship.extractReferencedId(RelationshipReader.TAG_TARGET, IndividualHandler.TYPE);
 		if(childId != null && parentId != null)
-			parentsOf.computeIfAbsent(childId, k -> new ArrayList<>()).add(parentId);
+			parentsOf.computeIfAbsent(childId, k -> new ArrayList<>())
+				.add(parentId);
 	}
 
 	private static void checkCircularParentage(final Map<String, List<String>> parentsOf,

@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections;
 
+import io.github.mtrevisan.familylegacy.privacy.PrivacyPolicy;
+import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.ui.components.projections.bookmarks.BookmarkMenu;
 import io.github.mtrevisan.familylegacy.ui.components.projections.repository.GenealogyRepository;
 import io.github.mtrevisan.familylegacy.ui.dialogs.help.DiagnosticsDialog;
@@ -73,7 +75,10 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 
 /**
@@ -339,6 +344,10 @@ final class ApplicationMenuBar{
 		showSidebar.addActionListener(e -> frame.setSidebarVisible(showSidebar.isSelected()));
 		menu.add(showSidebar);
 
+		menu.add(new JSeparator());
+
+		menu.add(createPrivacyMenu());
+
 		// Synchronize checkbox states when the menu is selected
 		menu.addMenuListener(new MenuListener(){
 			@Override
@@ -353,6 +362,37 @@ final class ApplicationMenuBar{
 
 			@Override
 			public void menuCanceled(final MenuEvent e){}
+		});
+
+		return menu;
+	}
+
+
+	/** The privacy policy applied to the views and the searches (editors always show everything). */
+	private JMenu createPrivacyMenu(){
+		final JMenu menu = new JMenu(I18N.t("menu.view.privacy"));
+		menu.setMnemonic(KeyEvent.VK_Y);
+
+		final ButtonGroup group = new ButtonGroup();
+		final Map<PrivacyPolicy, JRadioButtonMenuItem> items = new EnumMap<>(PrivacyPolicy.class);
+		for(final PrivacyPolicy policy : PrivacyPolicy.values()){
+			final JRadioButtonMenuItem item = new JRadioButtonMenuItem(I18N.t("menu.view.privacy." + policy.name().toLowerCase(Locale.ROOT)));
+			item.addActionListener(e -> PrivacyService.setPolicy(policy));
+			group.add(item);
+			menu.add(item);
+			items.put(policy, item);
+		}
+
+		// Reflect the current policy every time the submenu is opened
+		menu.addMenuListener(new MenuListener(){
+			@Override
+			public void menuSelected(final MenuEvent e){
+				items.get(PrivacyService.policy())
+					.setSelected(true);
+			}
+
+			@Override public void menuDeselected(final MenuEvent e){}
+			@Override public void menuCanceled(final MenuEvent e){}
 		});
 
 		return menu;
@@ -638,21 +678,12 @@ final class ApplicationMenuBar{
 	 * ====================================================================== */
 
 	private JMenu createBookmarkMenu(){
-		final JMenu menu = new JMenu(I18N.t("menu.bookmarks"));
+		//the menu rebuilds its items every time it is opened, so that it follows the bookmarks and the privacy policy
+		final BookmarkMenu menu = new BookmarkMenu(frame, frame.bookmarkStore(), frame::model, frame::captureCurrentState,
+			frame::applyBookmark);
+		menu.setText(I18N.t("menu.bookmarks"));
 		menu.setMnemonic(KeyEvent.VK_B);
 
-		final BookmarkMenu bookmarkMenu = new BookmarkMenu(frame, frame.bookmarkStore(), frame::captureCurrentState,
-			frame::applyBookmark);
-
-		// Transfer the items of the existing BookmarkMenu into the new
-		// JMenu, so the rest of the menu bar keeps a consistent structure.
-		for(int i = 0; i < bookmarkMenu.getItemCount(); i ++){
-			final JMenuItem item = bookmarkMenu.getItem(i);
-			if(item == null)
-				menu.addSeparator();
-			else
-				menu.add(item);
-		}
 		return menu;
 	}
 

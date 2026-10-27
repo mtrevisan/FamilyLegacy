@@ -43,7 +43,7 @@ public enum ReportType{
 	private final String title;
 
 	ReportType(final String title){
-		this.title = Objects.requireNonNull(title);
+		this.title = title;
 	}
 
 	public String getTitle(){

@@ -162,7 +162,8 @@ final class CulturalNormSection implements SectionBuilder{
 		if(ctx.config.sources())
 			out.addAll(ctx.citations().citations(norm));
 		if(ctx.config.evidence())
-			ctx.citations().addEvidence(norm, out);
+			ctx.citations()
+				.addEvidence(norm, out);
 		out.addAll(ctx.citations().audit(norm));
 	}
 

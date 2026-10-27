@@ -22,25 +22,30 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.ui.tools.reports;
+package io.github.mtrevisan.familylegacy.ui.tools.context;
+
+import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
+import io.github.mtrevisan.familylegacy.ui.tools.ToolContext;
+import io.github.mtrevisan.familylegacy.ui.tools.ToolOperation;
 
 
-/**
- * How the report treats records marked with a {@code privacy} block.
- *
- * <p>The FLEF protocol defines three privacy levels: {@code public},
- * {@code restricted} and {@code confidential}. This enum captures the three
- * combinations the report supports.</p>
- */
-public enum PrivacyPolicy{
+/** Opens the context board: historic events, cultural norms, and their impacts in a single tree. */
+public final class ContextBoardTool implements ToolOperation{
 
-	/** Show every record, regardless of its declared privacy level. */
-	SHOW_ALL,
+	@Override
+	public String getName(){
+		return I18N.t("menu.event.context.board");
+	}
 
-	/** Hide {@code confidential} records; show {@code restricted} ones. */
-	HIDE_CONFIDENTIAL,
+	@Override
+	public void run(final ToolContext context){
+		final ContextBoardDialog dialog = new ContextBoardDialog(context);
+		dialog.setVisible(true);
+	}
 
-	/** Hide both {@code confidential} and {@code restricted} records. */
-	HIDE_RESTRICTED_AND_CONFIDENTIAL
+	@Override
+	public boolean isEnabled(final ToolContext context){
+		return (context != null);
+	}
 
 }

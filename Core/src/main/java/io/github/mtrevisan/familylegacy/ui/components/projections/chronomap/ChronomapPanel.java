@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.ui.components.projections.chronomap;
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.ui.dialogs.GeocodingProgressDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
@@ -1107,7 +1108,7 @@ public class ChronomapPanel extends JPanel{
 
 		SwingUtilities.invokeLater(() -> {
 			final ChronomapPanel panel = create(model);
-			panel.setIndividuals(model.getRecordsByType(IndividualHandler.TYPE)
+			panel.setIndividuals(PrivacyService.visible(model, model.getRecordsByType(IndividualHandler.TYPE))
 				.stream()
 				.map(FLEFRecord::getId)
 				.toList());

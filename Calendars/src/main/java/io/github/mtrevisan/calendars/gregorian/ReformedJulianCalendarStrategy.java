@@ -29,6 +29,10 @@ import io.github.mtrevisan.calendars.astronomy.EphemerisEngine;
 import io.github.mtrevisan.calendars.astronomy.EphemerisEngineFactory;
 import io.github.mtrevisan.calendars.spi.CalendarConverterPlugin;
 import io.github.mtrevisan.calendars.spi.CalendarMetadata;
+import io.github.mtrevisan.calendars.spi.DateInterpretation;
+
+import java.util.List;
+import java.util.Locale;
 
 
 public class ReformedJulianCalendarStrategy implements CalendarConverterPlugin{
@@ -88,6 +92,11 @@ public class ReformedJulianCalendarStrategy implements CalendarConverterPlugin{
 			throw new UnsupportedOperationException("Reformed Julian calendar requires the Ephemeris plugin.");
 
 		return engine.findSolarLongitudeEvent(approximateMiddleJdUT, targetLongitude);
+	}
+
+	@Override
+	public List<DateInterpretation> getInterpretations(final String rawDate, final Locale locale){
+		return GregorianCalendarParser.interpretations(rawDate, locale);
 	}
 
 	@Override

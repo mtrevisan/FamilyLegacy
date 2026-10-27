@@ -34,6 +34,7 @@ import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolContext;
+import io.github.mtrevisan.familylegacy.ui.tools.ToolDialogs;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.renderers.DocxReportRenderer;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.renderers.HtmlReportRenderer;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.renderers.MarkdownReportRenderer;
@@ -108,9 +109,10 @@ public final class ReportDialog extends JDialog{
 	private ReportDialog(final ToolContext context, final ReportType reportType){
 		// TODO i18n
 		super(context.owner(), reportType.getTitle(), ModalityType.APPLICATION_MODAL);
+		ToolDialogs.installEscapeToClose(this);
 
-		this.context = Objects.requireNonNull(context);
-		this.reportType = Objects.requireNonNull(reportType);
+		this.context = context;
+		this.reportType = reportType;
 		this.optionsPanel = new ReportOptionsPanel(ReportConfig.defaults());
 
 		resolveSelectedEntity();

@@ -37,6 +37,7 @@ import javax.swing.UIManager;
 import javax.swing.WindowConstants;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.text.Document;
 import javax.swing.text.JTextComponent;
 import java.awt.Component;
 import java.awt.FlowLayout;
@@ -139,7 +140,8 @@ public class FilteredComboBox<E> extends JComboBox<E>{
 		this.editorComponent = (JTextComponent)getEditor().getEditorComponent();
 
 		// Listen for all text modifications (typing, pasting, backspace, delete)
-		this.editorComponent.getDocument().addDocumentListener(new DocumentListener(){
+		final Document document = this.editorComponent.getDocument();
+		document.addDocumentListener(new DocumentListener(){
 			@Override
 			public void insertUpdate(final DocumentEvent e){
 				filterDebouncer.call(PROPERTY_DEBOUNCER);

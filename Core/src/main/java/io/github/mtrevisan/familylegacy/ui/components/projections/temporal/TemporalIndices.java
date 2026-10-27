@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.io.model.readers.ContextImpactReader;
+import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.ui.handlers.ContextImpactHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.CulturalNormHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventParticipationHandler;
@@ -108,14 +109,14 @@ public final class TemporalIndices{
 	 */
 	public static TemporalIndices build(final FLEFModel model){
 		// 1. Fetch each record type exactly once.
-		final List<FLEFRecord> eventParticipations = model.getRecordsByType(EventParticipationHandler.TYPE);
-		final List<FLEFRecord> individualAttributes = model.getRecordsByType(IndividualAttributeHandler.TYPE);
-		final List<FLEFRecord> groupAttributes = model.getRecordsByType(GroupAttributeHandler.TYPE);
-		final List<FLEFRecord> contextImpacts = model.getRecordsByType(ContextImpactHandler.TYPE);
-		final List<FLEFRecord> historicEvents = model.getRecordsByType(HistoricEventHandler.TYPE);
-		final List<FLEFRecord> culturalNorms = model.getRecordsByType(CulturalNormHandler.TYPE);
-		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
-		final List<FLEFRecord> placeRelationships = model.getRecordsByType(PlaceRelationshipHandler.TYPE);
+		final List<FLEFRecord> eventParticipations = PrivacyService.visible(model, model.getRecordsByType(EventParticipationHandler.TYPE));
+		final List<FLEFRecord> individualAttributes = PrivacyService.visible(model, model.getRecordsByType(IndividualAttributeHandler.TYPE));
+		final List<FLEFRecord> groupAttributes = PrivacyService.visible(model, model.getRecordsByType(GroupAttributeHandler.TYPE));
+		final List<FLEFRecord> contextImpacts = PrivacyService.visible(model, model.getRecordsByType(ContextImpactHandler.TYPE));
+		final List<FLEFRecord> historicEvents = PrivacyService.visible(model, model.getRecordsByType(HistoricEventHandler.TYPE));
+		final List<FLEFRecord> culturalNorms = PrivacyService.visible(model, model.getRecordsByType(CulturalNormHandler.TYPE));
+		final List<FLEFRecord> relationships = PrivacyService.visible(model, model.getRecordsByType(RelationshipHandler.TYPE));
+		final List<FLEFRecord> placeRelationships = PrivacyService.visible(model, model.getRecordsByType(PlaceRelationshipHandler.TYPE));
 
 		// 2. Build per-id maps.
 		final Map<String, List<FLEFRecord>> participationsByParticipantId =

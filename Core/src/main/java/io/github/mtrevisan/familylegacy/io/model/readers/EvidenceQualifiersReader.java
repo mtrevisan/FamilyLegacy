@@ -50,6 +50,8 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
  */
 public final class EvidenceQualifiersReader{
 
+	/** Tag of the {@code EvidenceQualifiers} structure inside the assertion that carries it. */
+	public static final String TAG_EVIDENCE = "evidence";
 	public static final String TAG_SOURCE_TYPE = "source_type";
 	public static final String TAG_INFORMATION_TYPE = "information_type";
 	public static final String TAG_EVIDENCE_TYPE = "evidence_type";
@@ -65,8 +67,9 @@ public final class EvidenceQualifiersReader{
 		INFORMATION_TYPE_PRIMARY, INFORMATION_TYPE_SECONDARY, INFORMATION_TYPE_UNDETERMINED
 	};
 
+	public static final String EVIDENCE_TYPE_NEGATIVE = "negative";
 	public static final String[] EVIDENCE_TYPES = {
-		"direct", "indirect", "negative"
+		"direct", "indirect", EVIDENCE_TYPE_NEGATIVE
 	};
 
 
@@ -83,6 +86,17 @@ public final class EvidenceQualifiersReader{
 
 	public static String extractEvidenceType(final FLEFRecord record){
 		return FLEFRecordHelper.getChildValue(record, TAG_EVIDENCE_TYPE);
+	}
+
+	/**
+	 * Returns whether the given {@code EvidenceQualifiers} structure states that the evidence is negative, that is, that the
+	 * source supports the <em>absence</em> of the assertion.
+	 *
+	 * @param evidence	The {@code EvidenceQualifiers} record (may be {@code null}).
+	 * @return	{@code true} if {@code evidence_type} is {@code negative}.
+	 */
+	public static boolean isNegative(final FLEFRecord evidence){
+		return (evidence != null && EVIDENCE_TYPE_NEGATIVE.equals(extractEvidenceType(evidence)));
 	}
 
 }

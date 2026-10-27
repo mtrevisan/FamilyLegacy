@@ -49,9 +49,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.swing.AbstractAction;
+import javax.swing.ActionMap;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
+import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -62,6 +64,7 @@ import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
+import javax.swing.JRootPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
@@ -69,6 +72,7 @@ import javax.swing.SwingWorker;
 import javax.swing.UIManager;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.text.Document;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Component;
@@ -396,7 +400,8 @@ public class RecordSelectionDialog extends JDialog{
 		add(bottomPanel, "growx");
 
 		// Listeners
-		searchField.getDocument().addDocumentListener(new DocumentListener(){
+		final Document document = searchField.getDocument();
+		document.addDocumentListener(new DocumentListener(){
 			@Override
 			public void insertUpdate(final DocumentEvent e){
 				scheduleSearch();
@@ -425,18 +430,19 @@ public class RecordSelectionDialog extends JDialog{
 	}
 
 	private void setupEscapeKey(){
-		getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
-			.put(GUIHelper.ESCAPE_STROKE, ACTION_CANCEL_SEARCH_OR_DIALOG);
-		getRootPane().getActionMap()
-			.put(ACTION_CANCEL_SEARCH_OR_DIALOG, new AbstractAction(){
+		final JRootPane rootPane1 = getRootPane();
+		final InputMap inputMap = rootPane1.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+		inputMap.put(GUIHelper.ESCAPE_STROKE, ACTION_CANCEL_SEARCH_OR_DIALOG);
+		final ActionMap actionMap = rootPane1.getActionMap();
+		actionMap.put(ACTION_CANCEL_SEARCH_OR_DIALOG, new AbstractAction(){
 				@Override
 				public void actionPerformed(final ActionEvent e){
-					if(currentWorker != null && !currentWorker.isDone())
-						cancelSearch();
-					else
-						dispose();
-				}
-			});
+				if(currentWorker != null && !currentWorker.isDone())
+					cancelSearch();
+				else
+					dispose();
+			}
+		});
 	}
 
 	private void cancelSearch(){

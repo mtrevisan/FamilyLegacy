@@ -109,7 +109,7 @@ public class FLEFWriter{
 
 
 	private FLEFWriter(final String indent, final boolean compactMode){
-		this.indentSequence = Objects.requireNonNull(indent, "Indent cannot be null");
+		this.indentSequence = indent;
 		this.compactMode = compactMode;
 	}
 
@@ -200,9 +200,6 @@ public class FLEFWriter{
 	}
 
 	public void write(final FLEFModel model, final Writer writer, final ProgressListener listener) throws IOException{
-		Objects.requireNonNull(model, "model cannot be null");
-		Objects.requireNonNull(writer, "writer cannot be null");
-
 		this.progressListener = (listener != null? listener: ProgressListener.NOOP);
 		this.lastReportedPercent = -1;
 
@@ -260,9 +257,6 @@ public class FLEFWriter{
 	 * @throws	IOException	If writing fails.
 	 */
 	public void write(final FLEFRecord record, final Writer writer) throws IOException{
-		Objects.requireNonNull(record, "record cannot be null");
-		Objects.requireNonNull(writer, "writer cannot be null");
-
 		writeRecord(record, writer, 1);
 
 		writer.flush();

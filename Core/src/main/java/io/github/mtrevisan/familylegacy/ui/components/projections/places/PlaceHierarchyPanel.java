@@ -25,11 +25,16 @@
 package io.github.mtrevisan.familylegacy.ui.components.projections.places;
 
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
+import io.github.mtrevisan.familylegacy.io.grammar.FLEFGrammar;
+import io.github.mtrevisan.familylegacy.io.merger.FLEFMerger;
+import io.github.mtrevisan.familylegacy.io.merger.RecordAbsorber;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
+import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceRelationshipReader;
+import io.github.mtrevisan.familylegacy.privacy.PrivacyResolver;
+import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
+import io.github.mtrevisan.familylegacy.ui.components.PrivacyBadge;
 import io.github.mtrevisan.familylegacy.ui.components.searches.SearchMatcher;
 import io.github.mtrevisan.familylegacy.ui.components.searches.SearchMode;
 import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
@@ -38,11 +43,13 @@ import io.github.mtrevisan.familylegacy.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.PlaceRelationshipHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.ui.tools.ReportDialog;
+import io.github.mtrevisan.familylegacy.ui.tools.tools.merge.MergeGrammar;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
@@ -69,9 +76,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -119,6 +129,10 @@ public final class PlaceHierarchyPanel extends JPanel{
 
 	private static final int TREE_MIN_WIDTH = 360;
 	private static final int DETAILS_MIN_WIDTH = 300;
+
+	private static final String PART_OF_SUFFIX = "_part_of";
+	private static final String TAG_SUBJECT_PLACE = "subject.place";
+	private static final String TAG_TARGET_PLACE = "target.place";
 
 
 	private final FLEFModel model;
@@ -274,7 +288,7 @@ public final class PlaceHierarchyPanel extends JPanel{
 		tree.setRootVisible(true);
 		tree.setShowsRootHandles(true);
 		tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
-		tree.setCellRenderer(new PlaceTreeCellRenderer());
+		tree.setCellRenderer(new PlaceTreeCellRenderer(model));
 		tree.addTreeSelectionListener(e -> onTreeSelectionChanged());
 
 		final JScrollPane treeScroll = new JScrollPane(tree);
@@ -524,124 +538,118 @@ public final class PlaceHierarchyPanel extends JPanel{
 		dialog.setVisible(true);
 
 		if(dialog.isSaved()){
-			// Check if the place name was changed to match an existing place, and merge them if necessary
-			mergeDuplicatePlacesIfAny(record, new HashSet<>());
+			// the edit may have made the place a copy of another one (e.g. a name changed to that of an existing place)
+			mergeDuplicatePlaces(record);
 
-			removeDuplicateRelationships();
-
-			// NOTE: already done by rebuildRelationTypeModel when setting relationTypeFilter
-			//reload();
+			reload();
 		}
 	}
 
-	private void mergeDuplicatePlacesIfAny(final FLEFRecord modifiedRecord, final Set<String> visited){
-		if(!visited.add(modifiedRecord.getId()))
+	/**
+	 * Proposes to merge the edited place with the places that may be the same, as the automatic merge judges them (names,
+	 * jurisdiction, coordinates, subdivisions, uses), and merges it following the protocol when the user confirms: the fields are
+	 * united, every reference is redirected, the duplicated relationships are collapsed uniting their evidence, and the merge is
+	 * recorded in the audit of the surviving place.
+	 * <p>
+	 * After a merge, the jurisdictions and the subdivisions of the merged place may in turn repeat each other, and are examined the
+	 * same way.
+	 */
+	private void mergeDuplicatePlaces(final FLEFRecord editedPlace){
+		final FLEFGrammar grammar = MergeGrammar.instance();
+		if(!PlaceHandler.isOfType(editedPlace) || grammar == null)
 			return;
 
-		if(!PlaceHandler.isOfType(modifiedRecord))
-			return;
+		final RecordAbsorber absorber = new RecordAbsorber(grammar);
+		final Window owner = SwingUtilities.getWindowAncestor(this);
+		final Deque<String> pending = new ArrayDeque<>(List.of(editedPlace.getId()));
+		final Set<String> examined = new HashSet<>();
+		while(!pending.isEmpty()){
+			final String placeId = pending.poll();
+			if(!examined.add(placeId) || !model.hasRecord(placeId))
+				continue;
 
-		final String modifiedName = extractPlaceName(modifiedRecord);
-		if(StringUtils.isEmpty(modifiedName))
-			return;
-
-		// Search for another place record with the exact same name
-		String activeId = modifiedRecord.getId();
-		FLEFRecord targetPlace = null;
-		final List<FLEFRecord> records = model.getRecords();
-		for(final FLEFRecord record : records){
-			if(PlaceHandler.isOfType(record) && !record.getId().equals(activeId)
-					&& modifiedName.equalsIgnoreCase(extractPlaceName(record))){
-				targetPlace = record;
-
-				break;
+			final String survivorId = proposeMerge(absorber, owner, placeId);
+			if(survivorId == null){
+				// even without a merge, the edit may have repeated a relationship of the place (e.g. the same province twice)
+				absorber.collapseDuplicates(model, placeId);
+				continue;
 			}
+			if(survivorId.isEmpty())
+				// the user stopped the merging
+				return;
+
+			examined.add(survivorId);
+			pending.addAll(relatedPlaces(survivorId));
 		}
-
-		if(targetPlace != null){
-			final String oldId = activeId;
-			final String newId = targetPlace.getId();
-
-			// Replace all references pointing to oldId with newId across the model
-			model.replaceRecordId(oldId, newId);
-
-			// Remove the redundant duplicate record from the tree view UI
-			final DefaultMutableTreeNode duplicateNode = findNodeById(treeRoot, oldId);
-			if(duplicateNode != null)
-				treeModel.removeNodeFromParent(duplicateNode);
-
-			// Clear selection and details if the removed node was currently selected
-			if(oldId.equals(selectedPlaceId())){
-				tree.clearSelection();
-
-				detailsPanel.showPlace(null, hierarchy);
-			}
-
-			activeId = newId;
-		}
-
-		// Recursively check children and parents to merge matching sub-structures
-		final List<FLEFRecord> relatedRecords = new ArrayList<>();
-		for(final FLEFRecord record : records)
-			if(PlaceRelationshipHandler.isOfType(record)){
-				final FLEFRecord subj = extractRelationshipPlace(record, PlaceRelationshipReader.TAG_SUBJECT);
-				final FLEFRecord obj = extractRelationshipPlace(record, PlaceRelationshipReader.TAG_TARGET);
-				if(subj != null && activeId.equals(subj.getValue()))
-					relatedRecords.add(obj);
-				else if(obj != null && activeId.equals(obj.getValue()))
-					relatedRecords.add(subj);
-			}
-
-		for(final FLEFRecord nextRecord : relatedRecords)
-			mergeDuplicatePlacesIfAny(nextRecord, visited);
 	}
 
-	private static String extractPlaceName(final FLEFRecord placeRecord){
-		for(final FLEFRecord child : placeRecord.getChildren())
-			if(PlaceReader.TAG_NAME.equals(child.getTag()))
-				for(final FLEFRecord sub : child.getChildren())
-					if(NameReader.TAG_VALUE.equals(sub.getTag()) && sub.getValue() != null)
-						return sub.getValue().trim();
+	/**
+	 * Asks the user about the candidates of a place, most likely first.
+	 *
+	 * @return the id of the place it was merged into, {@code null} if it was not merged, an empty string if the user stopped
+	 */
+	private String proposeMerge(final RecordAbsorber absorber, final Window owner, final String placeId){
+		final FLEFRecord place = model.getRecordById(placeId);
+		for(final RecordAbsorber.Candidate candidate : absorber.candidates(model, placeId, FLEFMerger.DEFAULT_REVIEW_THRESHOLD)){
+			final FLEFRecord other = model.getRecordById(candidate.recordId());
+			final String message = String.format(Locale.ROOT, """
+				%s (%s) may be the same place as %s (%s).
+
+				Match probability: %.0f%%
+				%s
+
+				Merge them? The first is merged into the second: its names, citations, and notes are kept, and every reference to it
+				is redirected.
+				Answering No records that they are different places, and they will not be proposed again.""",
+				displayText(place), placeId, displayText(other), other.getId(), candidate.probability() * 100.,
+				candidate.rationale().replace("; ", StringUtils.LF));
+			final int choice = JOptionPane.showConfirmDialog(owner, message, "Merge places", JOptionPane.YES_NO_CANCEL_OPTION,
+				JOptionPane.QUESTION_MESSAGE);
+			if(choice == JOptionPane.CANCEL_OPTION || choice == JOptionPane.CLOSED_OPTION)
+				return StringUtils.EMPTY;
+			if(choice != JOptionPane.YES_OPTION){
+				// the judgment is kept in the file: an identity hypothesis disproven by a conclusion
+				absorber.rejectIdentity(model, placeId, other.getId(), String.format(Locale.ROOT,
+						"Proposed in the place hierarchy (match probability %.3f): %s", candidate.probability(), candidate.rationale()),
+					"Judged different places by the researcher in the place hierarchy");
+				continue;
+			}
+
+			final List<String> conflicts = absorber.mergeFields(other, place);
+			absorber.absorb(model, placeId, other.getId(), String.format(Locale.ROOT,
+				"confirmed in the place hierarchy (match probability %.3f: %s)", candidate.probability(), candidate.rationale()));
+			if(!conflicts.isEmpty())
+				JOptionPane.showMessageDialog(owner, "Values of " + placeId + " not kept:" + StringUtils.LF
+					+ String.join(StringUtils.LF, conflicts), "Merge places", JOptionPane.INFORMATION_MESSAGE);
+			return other.getId();
+		}
 		return null;
 	}
 
-	private static FLEFRecord extractRelationshipPlace(final FLEFRecord relRecord, final String sideTag){
-		for(final FLEFRecord child : relRecord.getChildren())
-			if(sideTag.equals(child.getTag()))
-				for(final FLEFRecord sub : child.getChildren())
-					if(PlaceHandler.isOfType(sub))
-						return sub;
-		return null;
-	}
+	/**
+	 * The places a place is part of, and the places that are part of it.
+	 */
+	private List<String> relatedPlaces(final String placeId){
+		final List<String> related = new ArrayList<>();
+		for(final FLEFRecord relationship : PrivacyService.visible(model, model.getRecordsByType(PlaceRelationshipHandler.TYPE))){
+			final String type = FLEFRecordHelper.getChildValue(relationship, PlaceRelationshipReader.TAG_TYPE);
+			if(type == null || !type.endsWith(PART_OF_SUFFIX))
+				continue;
 
-	private void removeDuplicateRelationships(){
-		final Set<String> seenRelations = new HashSet<>();
-		final List<FLEFRecord> toRemove = new ArrayList<>();
-
-		for(final FLEFRecord rec : new ArrayList<>(model.getRecords())){
-			if(PlaceRelationshipHandler.isOfType(rec)){
-				final FLEFRecord subj = extractRelationshipPlace(rec, PlaceRelationshipReader.TAG_SUBJECT);
-				final FLEFRecord obj = extractRelationshipPlace(rec, PlaceRelationshipReader.TAG_TARGET);
-				final String type = extractRelationshipType(rec);
-
-				// Create a unique signature for this relationship direction and type
-				final String signature = type
-					+ "|" + (subj != null? subj.getValue(): StringUtils.EMPTY)
-					+ "|" + (obj != null? obj.getValue(): StringUtils.EMPTY);
-				if(!seenRelations.add(signature))
-					toRemove.add(rec);
-			}
+			final String subject = FLEFRecordHelper.getChildValue(relationship, TAG_SUBJECT_PLACE);
+			final String target = FLEFRecordHelper.getChildValue(relationship, TAG_TARGET_PLACE);
+			if(placeId.equals(subject) && target != null)
+				related.add(target);
+			else if(placeId.equals(target) && subject != null)
+				related.add(subject);
 		}
-
-		for(final FLEFRecord rec : toRemove)
-			model.removeRecord(rec.getId());
+		return related;
 	}
 
-	private static String extractRelationshipType(final FLEFRecord relRecord){
-		for(final FLEFRecord child : relRecord.getChildren())
-			if(PlaceRelationshipReader.TAG_TYPE.equalsIgnoreCase(child.getTag()) && child.getValue() != null)
-				return child.getValue();
-		return StringUtils.EMPTY;
+	private String displayText(final FLEFRecord place){
+		final String text = PlaceHandler.getInstance()
+			.getDisplayText(place, model);
+		return (StringUtils.isNotBlank(text)? text: place.getId());
 	}
 
 	private PlaceTreePayload selectedPayload(){
@@ -935,13 +943,28 @@ public final class PlaceHierarchyPanel extends JPanel{
 	 */
 	private static final class PlaceTreeCellRenderer extends DefaultTreeCellRenderer{
 
+		private final FLEFModel model;
+
+
+		PlaceTreeCellRenderer(final FLEFModel model){
+			this.model = model;
+		}
+
+
 		@Override
 		public Component getTreeCellRendererComponent(final JTree tree, final Object value, final boolean selected,
 				final boolean expanded, final boolean leaf, final int row, final boolean hasFocus){
 			super.getTreeCellRendererComponent(tree, value, selected, expanded, leaf, row, hasFocus);
 
-			if(value instanceof DefaultMutableTreeNode node && node.getUserObject() instanceof PlaceTreePayload payload)
+			if(value instanceof DefaultMutableTreeNode node && node.getUserObject() instanceof PlaceTreePayload payload){
 				setText(buildLabel(payload));
+
+				//a padlock signals a restricted or confidential place
+				final PrivacyResolver.Effective privacy = PrivacyService.resolver(model)
+					.describe(model.getRecordById(payload.place().id()));
+				setIcon(PrivacyBadge.of(privacy));
+				setToolTipText(PrivacyBadge.tooltip(privacy));
+			}
 			else
 				setText(value != null? value.toString(): StringUtils.EMPTY);
 			return this;
@@ -1010,7 +1033,7 @@ public final class PlaceHierarchyPanel extends JPanel{
 
 		final String content;
 		try(final InputStream is = PlaceHierarchyPanel.class.getResourceAsStream(modelUri)){
-			content = new String(Objects.requireNonNull(is).readAllBytes(), StandardCharsets.UTF_8);
+			content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
 		}
 
 		final FLEFParser parser = new FLEFParser();

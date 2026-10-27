@@ -162,14 +162,22 @@ public final class DateCalculatorDialog extends JDialog{
 
 
 	private void wireListeners(){
-		ageBirthField.getDocument().addDocumentListener(listener(this::computeAge));
-		ageReferenceField.getDocument().addDocumentListener(listener(this::computeAge));
-		intervalFromField.getDocument().addDocumentListener(listener(this::computeInterval));
-		intervalToField.getDocument().addDocumentListener(listener(this::computeInterval));
-		ebReferenceField.getDocument().addDocumentListener(listener(this::computeEstimatedBirth));
-		ebYearsField.getDocument().addDocumentListener(listener(this::computeEstimatedBirth));
-		ebMonthsField.getDocument().addDocumentListener(listener(this::computeEstimatedBirth));
-		ebDaysField.getDocument().addDocumentListener(listener(this::computeEstimatedBirth));
+		ageBirthField.getDocument()
+			.addDocumentListener(listener(this::computeAge));
+		ageReferenceField.getDocument()
+			.addDocumentListener(listener(this::computeAge));
+		intervalFromField.getDocument()
+			.addDocumentListener(listener(this::computeInterval));
+		intervalToField.getDocument()
+			.addDocumentListener(listener(this::computeInterval));
+		ebReferenceField.getDocument()
+			.addDocumentListener(listener(this::computeEstimatedBirth));
+		ebYearsField.getDocument()
+			.addDocumentListener(listener(this::computeEstimatedBirth));
+		ebMonthsField.getDocument()
+			.addDocumentListener(listener(this::computeEstimatedBirth));
+		ebDaysField.getDocument()
+			.addDocumentListener(listener(this::computeEstimatedBirth));
 	}
 
 	private static javax.swing.event.DocumentListener listener(final Runnable action){

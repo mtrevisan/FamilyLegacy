@@ -28,6 +28,8 @@ import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.NormalizedDate;
+import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
+import io.github.mtrevisan.familylegacy.ui.components.PrivacyBadge;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.services.lifespan.EventIndex;
 import io.github.mtrevisan.familylegacy.ui.components.projections.temporal.TemporalAxis;
 import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
@@ -574,6 +576,10 @@ public class GlobalEventTimelinePanel extends JPanel{
 					sb.append("<br>&nbsp;&nbsp;• ").append(escape(p.name()))
 						.append(p.isIndividual()? StringUtils.EMPTY: " (group)");
 			}
+			final String privacy = PrivacyBadge.tooltip(PrivacyService.resolver(model)
+				.describe(model.getRecordById(hit.id())));
+			if(privacy != null)
+				sb.append("<br>Privacy: ").append(escape(privacy));
 			sb.append("<br><i>Double-click to edit</i></html>");
 			return sb.toString();
 		}
@@ -679,6 +685,9 @@ public class GlobalEventTimelinePanel extends JPanel{
 				g2.fillOval(x - r, y - r, 2 * r, 2 * r);
 				g2.setColor(Color.WHITE);
 				g2.drawOval(x - r, y - r, 2 * r, 2 * r);
+				//a ring signals a restricted or confidential event
+				PrivacyBadge.paintRing(g2, PrivacyService.resolver(model)
+					.describe(model.getRecordById(event.id())), x, y, r);
 			}
 		}
 	}

@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.ui.tools.tools.merge;
 
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
+import io.github.mtrevisan.familylegacy.io.merger.RecordAbsorber;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.components.fields.EntityField;
@@ -38,8 +39,10 @@ import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.AbstractAction;
+import javax.swing.ActionMap;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultCellEditor;
+import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
@@ -97,6 +100,8 @@ public final class MergeRecordsDialog extends JDialog{
 	private final EntityField sourceField;
 	private final EntityField targetField;
 
+	private final JButton differentButton = new JButton(I18N.t("button.different_records"));
+
 	private final CollisionsTableModel tableModel = new CollisionsTableModel();
 	private final JTable collisionsTable = new JTable(tableModel);
 
@@ -105,7 +110,7 @@ public final class MergeRecordsDialog extends JDialog{
 
 
 	public MergeRecordsDialog(final ToolContext context, final Class<? extends RecordTypeHandler<?>> handlerType){
-		super(context.owner(), "Merge Records", ModalityType.APPLICATION_MODAL);
+		super(context.owner(), I18N.t("dialog.merge.title"), ModalityType.APPLICATION_MODAL);
 
 		this.context = context;
 		// without the grammar references and cardinalities are unknown, and a merge would break the file
@@ -214,11 +219,11 @@ public final class MergeRecordsDialog extends JDialog{
 		// Source row: label + EntityField. The field's own popup menu
 		// (Set…, Edit…, Clear) is the only way to change the selection,
 		// so no extra "Choose…" button is needed.
-		form.add(new JLabel("Source (to be deleted):"));
+		form.add(new JLabel(I18N.t("dialog.merge.source") + ":"));
 		form.add(sourceField, "growx");
 
 		// Target row.
-		form.add(new JLabel("Target (to be kept):"));
+		form.add(new JLabel(I18N.t("dialog.merge.target") + ":"));
 		form.add(targetField, "growx");
 
 		// Collisions table.
@@ -274,20 +279,20 @@ public final class MergeRecordsDialog extends JDialog{
 		});
 
 		// Keyboard shortcut: Delete on the selected row resets it.
-		collisionsTable.getInputMap()
-			.put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "reset-row");
-		collisionsTable.getActionMap()
-			.put("reset-row", new AbstractAction(){
-				@Override
-				public void actionPerformed(final ActionEvent e){
-					final int row = collisionsTable.getSelectedRow();
-					if(row >= 0){
-						final MergeField f = tableModel.fieldAt(row);
-						if(f != null && f.isResolved())
-							tableModel.resetRow(row);
-					}
+		final InputMap inputMap = collisionsTable.getInputMap();
+		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "reset-row");
+		final ActionMap actionMap = collisionsTable.getActionMap();
+		actionMap.put("reset-row", new AbstractAction(){
+			@Override
+			public void actionPerformed(final ActionEvent e){
+				final int row = collisionsTable.getSelectedRow();
+				if(row >= 0){
+					final MergeField f = tableModel.fieldAt(row);
+					if(f != null && f.isResolved())
+						tableModel.resetRow(row);
 				}
-			});
+			}
+		});
 
 		final JScrollPane tableScroll = new JScrollPane(collisionsTable);
 		tableScroll.setBorder(BorderFactory.createTitledBorder("Collisions"));
@@ -302,6 +307,12 @@ public final class MergeRecordsDialog extends JDialog{
 	private JPanel createButtons(){
 		final JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 		buttons.setBorder(BorderFactory.createEmptyBorder(4, 8, 8, 8));
+
+		// the alternative to merging: the judgment that they are not the same, kept in the file
+		differentButton.setToolTipText("Record that they are different entities: they will not be proposed for a merge again");
+		differentButton.setEnabled(false);
+		differentButton.addActionListener(e -> onReject());
+		buttons.add(differentButton);
 
 		final JButton ok = new JButton("Merge");
 		ok.addActionListener(e -> onConfirm());
@@ -327,6 +338,8 @@ public final class MergeRecordsDialog extends JDialog{
 	private void rebuildPlan(){
 		final FLEFRecord source = sourceField.getEntity();
 		final FLEFRecord target = targetField.getEntity();
+
+		differentButton.setEnabled(merger != null && merger.canReject(source, target));
 
 		if(merger == null || source == null || target == null || source.getId() == null || target.getId() == null){
 			plan = null;
@@ -400,9 +413,6 @@ public final class MergeRecordsDialog extends JDialog{
 			return;
 		}
 
-		// Push the table's current choices into the plan before applying.
-		tableModel.commitChoices(plan);
-
 		if(!confirm())
 			return;
 
@@ -422,6 +432,40 @@ public final class MergeRecordsDialog extends JDialog{
 				summary.append(StringUtils.LF).append("Values of the source not kept:").append(StringUtils.LF)
 					.append(String.join(StringUtils.LF, result.conflicts()));
 			JOptionPane.showMessageDialog(this, summary.toString(), "Merge Records", JOptionPane.INFORMATION_MESSAGE);
+
+			dispose();
+		}
+		catch(final IllegalArgumentException ex){
+			warn(ex.getMessage());
+		}
+	}
+
+	/**
+	 * Records that source and target are different entities, as an identity hypothesis disproven by a conclusion, instead of
+	 * merging them.
+	 */
+	private void onReject(){
+		final FLEFRecord source = sourceField.getEntity();
+		final FLEFRecord target = targetField.getEntity();
+		if(merger == null || !merger.canReject(source, target))
+			return;
+
+		final String narrative = JOptionPane.showInputDialog(this,
+			"Why are " + displayOf(source) + " and " + displayOf(target) + " different? (optional)" + StringUtils.LF
+				+ "Nothing is merged or deleted: the judgment is recorded in the file, and they will not be proposed"
+				+ " for a merge again.",
+			"Different Records", JOptionPane.QUESTION_MESSAGE);
+		if(narrative == null)
+			return;
+
+		try{
+			final RecordAbsorber.Rejection rejection = merger.reject(source.getId(), target.getId(),
+				(StringUtils.isNotBlank(narrative)? narrative.strip(): "Judged different by the researcher in the merge dialog"));
+
+			JOptionPane.showMessageDialog(this,
+				"Recorded as different: identity hypothesis " + rejection.hypothesisId()
+					+ " disproven by conclusion " + rejection.conclusionId() + ".",
+				"Different Records", JOptionPane.INFORMATION_MESSAGE);
 
 			dispose();
 		}
@@ -457,7 +501,8 @@ public final class MergeRecordsDialog extends JDialog{
 	 */
 	private static String displayOf(final FLEFRecord record){
 		if(record == null)
-			return "<none>";
+			return I18N.t("dialog.merge.record.none");
+
 		final String id = record.getId();
 		return (id != null? "[" + id + "] ": StringUtils.EMPTY) + record.getTag();
 	}
@@ -469,7 +514,9 @@ public final class MergeRecordsDialog extends JDialog{
 
 	private static final class CollisionsTableModel extends AbstractTableModel{
 
-		private static final String[] COLUMNS = {"Field", "Target", "Source", "Action", StringUtils.EMPTY};
+		private static final String[] COLUMNS = {I18N.t("dialog.merge.table.field"),
+			I18N.t("dialog.merge.table.target"), I18N.t("dialog.merge.table.source"),
+			I18N.t("dialog.merge.table.action"), StringUtils.EMPTY};
 
 		private final List<MergeField> fields = new ArrayList<>();
 		private final List<MergeDecision> chosen = new ArrayList<>();
@@ -482,13 +529,6 @@ public final class MergeRecordsDialog extends JDialog{
 				chosen.add(f.chosen());
 			}
 			fireTableDataChanged();
-		}
-
-		void commitChoices(final MergePlan plan){
-			// The plan holds the same MergeField instances the table is
-			// showing; the table's chosen values are the user's picks.
-			for(int i = 0; i < fields.size(); i ++)
-				fields.get(i).choose(chosen.get(i));
 		}
 
 		MergeField fieldAt(final int row){

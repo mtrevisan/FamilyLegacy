@@ -155,7 +155,8 @@ final class PlacesSection implements SectionBuilder{
 		if(ctx.config.sources())
 			out.addAll(ctx.citations().citations(place));
 		if(ctx.config.evidence())
-			ctx.citations().addEvidence(place, out);
+			ctx.citations()
+				.addEvidence(place, out);
 		out.addAll(ctx.citations().audit(place));
 	}
 
@@ -258,7 +259,8 @@ final class PlacesSection implements SectionBuilder{
 		if(ctx.config.sources())
 			out.addAll(ctx.citations().citations(rel));
 		if(ctx.config.evidence())
-			ctx.citations().addEvidence(rel, out);
+			ctx.citations()
+				.addEvidence(rel, out);
 		out.addAll(ctx.citations().audit(rel));
 	}
 
@@ -311,7 +313,8 @@ final class PlacesSection implements SectionBuilder{
 		if(ctx.config.sources())
 			out.addAll(ctx.citations().citations(rel));
 		if(ctx.config.evidence())
-			ctx.citations().addEvidence(rel, out);
+			ctx.citations()
+				.addEvidence(rel, out);
 		out.addAll(ctx.citations().audit(rel));
 	}
 
@@ -339,7 +342,8 @@ final class PlacesSection implements SectionBuilder{
 			if(ctx.config.sources())
 				block.addAll(ctx.citations().citations(ref.citation()));
 			if(ctx.config.evidence())
-				ctx.citations().addEvidence(ref.citation(), block);
+				ctx.citations()
+					.addEvidence(ref.citation(), block);
 
 			if(!block.isEmpty())
 				blocks.add(block);
@@ -436,7 +440,7 @@ final class PlacesSection implements SectionBuilder{
 		final List<CitationRef> citations = new ArrayList<>();
 
 		PlaceEntry(final FLEFRecord place){
-			this.place = Objects.requireNonNull(place);
+			this.place = place;
 		}
 
 		FLEFRecord place(){

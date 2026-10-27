@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.io.model.readers.MediaReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
+import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextField;
 import io.github.mtrevisan.familylegacy.ui.components.ImageCarouselPanel;
 import io.github.mtrevisan.familylegacy.ui.components.PanelKey;
@@ -427,8 +428,6 @@ public abstract class BaseRecordDialog extends JDialog{
 	 */
 	protected static <T extends BaseRecordDialog> T createEdit(final Window parent, final FLEFModel model,
 			final FLEFRecord record, final DialogFactory<T> factory){
-		Objects.requireNonNull(record, "Record cannot be null");
-
 		return factory.create(parent, model, record);
 	}
 
@@ -544,6 +543,8 @@ public abstract class BaseRecordDialog extends JDialog{
 			if(isNew && handler.isTopLevelEntity())
 				model.addRecord(record);
 			isSaved = true;
+			//an edit may change the privacy of the records
+			PrivacyService.invalidate();
 
 			dispose();
 		}

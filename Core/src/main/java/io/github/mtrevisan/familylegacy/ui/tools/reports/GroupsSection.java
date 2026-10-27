@@ -151,7 +151,8 @@ final class GroupsSection implements SectionBuilder{
 		if(ctx.config.sources())
 			out.addAll(ctx.citations().citations(group));
 		if(ctx.config.evidence())
-			ctx.citations().addEvidence(group, out);
+			ctx.citations()
+				.addEvidence(group, out);
 		out.addAll(ctx.citations().audit(group));
 	}
 
@@ -216,7 +217,8 @@ final class GroupsSection implements SectionBuilder{
 			if(ctx.config.sources())
 				out.addAll(ctx.citations().citations(membership));
 			if(ctx.config.evidence())
-				ctx.citations().addEvidence(membership, out);
+				ctx.citations()
+					.addEvidence(membership, out);
 			out.addAll(ctx.citations().audit(membership));
 		}
 	}
@@ -254,7 +256,8 @@ final class GroupsSection implements SectionBuilder{
 				if(ctx.config.sources())
 					extras.addAll(ctx.citations().citations(a));
 				if(ctx.config.evidence())
-					ctx.citations().addEvidence(a, extras);
+					ctx.citations()
+						.addEvidence(a, extras);
 				extras.addAll(ctx.citations().audit(a));
 				if(!extras.isEmpty()){
 					out.add(new ReportSection.Heading(4, ctx.labels.sections().type() + ": "
@@ -325,7 +328,8 @@ final class GroupsSection implements SectionBuilder{
 		if(ctx.config.sources())
 			out.addAll(ctx.citations().citations(rel));
 		if(ctx.config.evidence())
-			ctx.citations().addEvidence(rel, out);
+			ctx.citations()
+				.addEvidence(rel, out);
 		out.addAll(ctx.citations().audit(rel));
 	}
 

@@ -34,6 +34,7 @@ import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
+import io.github.mtrevisan.familylegacy.ui.tools.ToolDialogs;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -51,6 +52,7 @@ import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.text.Document;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -228,10 +230,20 @@ public final class MergeFieldComparisonDialog extends JDialog{
 			clearButton = createActionButton("\u2715",
 				"Remove this row from the result");
 
-			resultArea.getDocument().addDocumentListener(new DocumentListener(){
-				@Override public void insertUpdate(final DocumentEvent e){ onResultEdited(); }
-				@Override public void removeUpdate(final DocumentEvent e){ onResultEdited(); }
-				@Override public void changedUpdate(final DocumentEvent e){ /* plain text */ }
+			final Document document = resultArea.getDocument();
+			document.addDocumentListener(new DocumentListener(){
+				@Override
+				public void insertUpdate(final DocumentEvent e){
+					onResultEdited();
+				}
+
+				@Override
+				public void removeUpdate(final DocumentEvent e){
+					onResultEdited();
+				}
+
+				@Override
+				public void changedUpdate(final DocumentEvent e){ /* plain text */ }
 			});
 
 			refresh();
@@ -342,8 +354,9 @@ public final class MergeFieldComparisonDialog extends JDialog{
 	public MergeFieldComparisonDialog(final Window owner, final MergeField field,
 		final FLEFRecord targetRecord, final FLEFModel model){
 		super(owner, "Merge field: " + field.tag(), ModalityType.APPLICATION_MODAL);
+		ToolDialogs.installEscapeToClose(this);
 
-		this.field = Objects.requireNonNull(field, "field must not be null");
+		this.field = field;
 		this.targetRecord = targetRecord;
 		this.model = model;
 		this.grammar = MergeGrammar.instance();

@@ -42,6 +42,7 @@ public final class ResearchToolRegistry{
 	/** Planning and execution tools, in menu order. */
 	public static List<ToolOperation> planningTools(){
 		return List.of(
+			new ResearchBoardTool(),
 			new ManageResearchQuestionsTool(),
 			new ManageResearchActivitiesTool(),
 			new ManageResearchTasksTool()

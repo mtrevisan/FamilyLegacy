@@ -24,6 +24,9 @@
  */
 package io.github.mtrevisan.calendars.spi;
 
+import java.util.List;
+import java.util.Locale;
+
 
 /**
  * Strategy interface for converting cultural, non-linear text representations
@@ -41,5 +44,18 @@ public interface CalendarConverterPlugin{
 	long parseToJdn(String dateExpression);
 
 	CalendarMetadata getMetadata(final String rawDate);
+
+	/**
+	 * Lists the readings of a date expression that can be understood in more than one way (e.g. "est 1850", summer in
+	 * Italian and August in Cornish), so that the user can choose one; {@link #parseToJdn(String)} chooses by itself.
+	 *
+	 * @param dateExpression the raw calendar string
+	 * @param locale         the language of the descriptions of the readings
+	 * @return the readings, each one rewritten to have a single meaning, or an empty list if the expression has only one
+	 * 	reading (or cannot be parsed)
+	 */
+	default List<DateInterpretation> getInterpretations(final String dateExpression, final Locale locale){
+		return List.of();
+	}
 
 }

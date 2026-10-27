@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -72,6 +73,12 @@ final class ModelIndex{
 	private static final String TAG_NAME = "name";
 	private static final String TAG_SOURCE = "source";
 	private static final String TAG_LOCATOR = "locator";
+	private static final String TAG_RESOLVES = "resolves";
+	private static final String TAG_PROOF_STATUS = "proof_status";
+	private static final String TAG_AUDIT = "audit";
+	private static final String TAG_CREATION = "creation";
+	private static final String TAG_UPDATE = "update";
+	static final String PROOF_STATUS_DISPROVEN = "disproven";
 	private static final String TAG_VALUE = "value";
 
 	static final String ROLE_PRINCIPAL = "principal";
@@ -91,10 +98,13 @@ final class ModelIndex{
 	private final Map<String, Set<String>> placeSuccessionsOf = new HashMap<>();
 	private final Map<String, Set<String>> usagesOf = new HashMap<>();
 	private final Map<String, Set<String>> locatedUsagesOf = new HashMap<>();
+	private final Set<String> disprovenIdentities = new HashSet<>();
 	private final Map<String, Integer> referenceCount = new HashMap<>();
 
 
 	ModelIndex(final Collection<FLEFRecord> records, final ReferenceRewriter references){
+		final List<FLEFRecord> hypotheses = new ArrayList<>();
+		final List<FLEFRecord> conclusions = new ArrayList<>();
 		for(final FLEFRecord record : records){
 			byId.put(record.getId(), record);
 
@@ -102,6 +112,8 @@ final class ModelIndex{
 				case KIND_EVENT_PARTICIPATION -> indexParticipation(record);
 				case KIND_RELATIONSHIP -> indexRelationship(record);
 				case KIND_PLACE_RELATIONSHIP -> indexPlaceRelationship(record);
+				case ProtocolRules.KIND_IDENTITY_HYPOTHESIS -> hypotheses.add(record);
+				case ProtocolRules.KIND_CONCLUSION -> conclusions.add(record);
 				case KIND_INDIVIDUAL_ATTRIBUTE -> {
 					final String individual = value(record, KIND_INDIVIDUAL);
 					if(individual != null)
@@ -112,6 +124,8 @@ final class ModelIndex{
 			}
 		}
 
+		indexDisprovenIdentities(hypotheses, conclusions);
+
 		// the participations are all indexed: the subjects of every assertion can be told
 		references.forEachReference(records, (owner, parent, node, path, targetKind) -> {
 			referenceCount.merge(node.getValue(), 1, Integer::sum);
@@ -120,6 +134,60 @@ final class ModelIndex{
 			if(place || KIND_SOURCE.equals(targetKind))
 				indexUsage(owner, parent, node.getValue(), targetKind);
 		});
+	}
+
+	/**
+	 * The pairs of records whose identity hypothesis is disproven by its most recent conclusion (by audit): the researcher judged
+	 * them different entities, and they are never proposed again. A later conclusion that is not disproven reopens the pair.
+	 */
+	private void indexDisprovenIdentities(final List<FLEFRecord> hypotheses, final List<FLEFRecord> conclusions){
+		if(hypotheses.isEmpty() || conclusions.isEmpty())
+			return;
+
+		// hypothesis id to {date, proof status} of its most recent conclusion
+		final Map<String, String[]> latest = new HashMap<>();
+		for(final FLEFRecord conclusion : conclusions){
+			final String status = value(conclusion, TAG_PROOF_STATUS);
+			final String date = lastAuditDate(conclusion);
+			for(final FLEFRecord target : FieldMerger.children(conclusion, TAG_RESOLVES)){
+				if(!ProtocolRules.KIND_IDENTITY_HYPOTHESIS.equals(armTag(target)) || armValue(target) == null)
+					continue;
+
+				final String[] previous = latest.get(armValue(target));
+				if(previous == null || date.compareTo(previous[0]) >= 0)
+					latest.put(armValue(target), new String[]{date, status});
+			}
+		}
+
+		for(final FLEFRecord hypothesis : hypotheses){
+			final String[] conclusion = latest.get(hypothesis.getId());
+			final String pair = ProtocolRules.unorderedPair(ProtocolRules.identities(hypothesis));
+			if(conclusion != null && PROOF_STATUS_DISPROVEN.equals(conclusion[1]) && pair != null)
+				disprovenIdentities.add(pair);
+		}
+	}
+
+	/** The date of the last change of a record: its last update, or its creation. */
+	private static String lastAuditDate(final FLEFRecord record){
+		String last = "";
+		for(final FLEFRecord audit : FieldMerger.children(record, TAG_AUDIT)){
+			for(final FLEFRecord creation : FieldMerger.children(audit, TAG_CREATION))
+				last = max(last, value(creation, TAG_DATE));
+			for(final FLEFRecord update : FieldMerger.children(audit, TAG_UPDATE))
+				last = max(last, value(update, TAG_DATE));
+		}
+		return last;
+	}
+
+	private static String max(final String a, final String b){
+		return (b != null && b.compareTo(a) > 0? b: a);
+	}
+
+	/**
+	 * Whether the researcher concluded that two records are not the same entity.
+	 */
+	boolean isIdentityDisproven(final String idA, final String idB){
+		return disprovenIdentities.contains(ProtocolRules.unorderedPair(List.of(idA, idB)));
 	}
 
 	/**

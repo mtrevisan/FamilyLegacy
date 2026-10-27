@@ -54,7 +54,7 @@ public class TreeMutator extends AbstractProjectionMutator{
 	public TreeMutator(final TreeService treeService, final TreeChangeListener listener, final FLEFModel model){
 		super(model, listener);
 
-		this.treeService = Objects.requireNonNull(treeService, "Tree service cannot be null");
+		this.treeService = treeService;
 		this.relationshipTypeFilter = treeService.getRelationshipTypeFilter();
 	}
 

@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.ui.components.projections.chronomap;
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 
 import javax.swing.JFrame;
@@ -186,7 +187,7 @@ public final class ChronomapWorkspace extends JPanel{
 
 		SwingUtilities.invokeLater(() -> {
 			final ChronomapWorkspace workspace = new ChronomapWorkspace(model);
-			workspace.setIndividuals(model.getRecordsByType(IndividualHandler.TYPE)
+			workspace.setIndividuals(PrivacyService.visible(model, model.getRecordsByType(IndividualHandler.TYPE))
 				.stream()
 				.map(FLEFRecord::getId)
 				.toList());

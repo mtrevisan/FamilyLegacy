@@ -106,7 +106,8 @@ final class ContextResearchSection implements SectionBuilder{
 			if(ctx.config.sources())
 				out.addAll(ctx.citations().citations(imp));
 			if(ctx.config.evidence())
-				ctx.citations().addEvidence(imp, out);
+				ctx.citations()
+					.addEvidence(imp, out);
 			out.addAll(ctx.citations().audit(imp));
 		}
 	}
@@ -197,7 +198,8 @@ final class ContextResearchSection implements SectionBuilder{
 		if(ctx.config.sources())
 			out.addAll(ctx.citations().citations(q));
 		if(ctx.config.evidence())
-			ctx.citations().addEvidence(q, out);
+			ctx.citations()
+				.addEvidence(q, out);
 		out.addAll(ctx.citations().audit(q));
 	}
 
@@ -288,7 +290,8 @@ final class ContextResearchSection implements SectionBuilder{
 		if(ctx.config.sources())
 			out.addAll(ctx.citations().citations(a));
 		if(ctx.config.evidence())
-			ctx.citations().addEvidence(a, out);
+			ctx.citations()
+				.addEvidence(a, out);
 		out.addAll(ctx.citations().audit(a));
 	}
 
@@ -461,7 +464,8 @@ final class ContextResearchSection implements SectionBuilder{
 		if(ctx.config.sources())
 			out.addAll(ctx.citations().citations(c));
 		if(ctx.config.evidence())
-			ctx.citations().addEvidence(c, out);
+			ctx.citations()
+				.addEvidence(c, out);
 		out.addAll(ctx.citations().audit(c));
 	}
 
@@ -508,7 +512,8 @@ final class ContextResearchSection implements SectionBuilder{
 			if(ctx.config.sources())
 				out.addAll(ctx.citations().citations(h));
 			if(ctx.config.evidence())
-				ctx.citations().addEvidence(h, out);
+				ctx.citations()
+					.addEvidence(h, out);
 			out.addAll(ctx.citations().audit(h));
 		}
 	}

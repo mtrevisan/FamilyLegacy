@@ -121,6 +121,8 @@ public final class TemporalInteractionHandler{
 			if(entry.hasRole())
 				sb.append("<br>Role: ").append(entry.role());
 			sb.append("<br>").append(describeSpan(entry.span()));
+			if(entry.hasNegativeEvidence())
+				sb.append("<br><i>Negative evidence: the sources attest the absence of this assertion</i>");
 			sb.append("<br><i>Double-click to edit</i>");
 			return sb.append("</html>").toString();
 		}

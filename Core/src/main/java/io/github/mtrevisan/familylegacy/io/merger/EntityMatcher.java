@@ -197,6 +197,12 @@ final class EntityMatcher{
 	 * ====================================================================== */
 
 	MatchScore compare(final FLEFRecord a, final FLEFRecord b){
+		// the researcher's judgment prevails over any likeness
+		if(index.isIdentityDisproven(a.getId(), b.getId()))
+			return new MatchScore.Builder(0.)
+				.veto("identity disproven by a conclusion")
+				.build();
+
 		return switch(a.getTag()){
 			case ModelIndex.KIND_INDIVIDUAL -> compareIndividuals(a, b);
 			case ModelIndex.KIND_GROUP -> compareGroups(a, b);

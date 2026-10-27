@@ -95,9 +95,6 @@ import java.util.Set;
  */
 public final class SocialNetworkPanel extends JPanel implements TreeChangeListener{
 
-	private static final long serialVersionUID = 7192849102849102943L;
-
-
 	private static final double MIN_SCALE = 0.25;
 	private static final double MAX_SCALE = 3.;
 	private static final double ZOOM_STEP = 1.15;

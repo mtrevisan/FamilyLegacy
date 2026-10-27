@@ -70,7 +70,7 @@ public final class RecordMerger{
 	 */
 	public RecordMerger(final FLEFModel model, final FLEFGrammar grammar){
 		this.model = model;
-		absorber = new RecordAbsorber(Objects.requireNonNull(grammar, "The FLEF grammar is required to merge records"));
+		absorber = new RecordAbsorber(grammar);
 	}
 
 
@@ -246,6 +246,34 @@ public final class RecordMerger{
 		final FLEFRecord copy = FLEFRecord.createEmpty();
 		original.deepCopyTo(copy);
 		return copy;
+	}
+
+
+	/* ======================================================================
+	 *                          Rejecting
+	 * ====================================================================== */
+
+	/**
+	 * Whether the two records can be judged different entities instead of being merged: they are two records of the same kind,
+	 * and the kind can be the subject of an identity hypothesis (individuals, groups, places, sources, …).
+	 */
+	public boolean canReject(final FLEFRecord source, final FLEFRecord target){
+		return (source != null && target != null && source.getId() != null && target.getId() != null
+			&& !source.getId().equals(target.getId()) && Objects.equals(source.getTag(), target.getTag())
+			&& RecordAbsorber.isIdentityCandidate(source.getTag()));
+	}
+
+	/**
+	 * Records that the two records are different entities, as an identity hypothesis disproven by a conclusion: they will not be
+	 * proposed for a merge again (see {@link RecordAbsorber#rejectIdentity}). Nothing is merged or deleted.
+	 *
+	 * @param narrative why they are different; may be {@code null}
+	 * @return the hypothesis and the conclusion
+	 */
+	public RecordAbsorber.Rejection reject(final String sourceId, final String targetId, final String narrative){
+		validate(sourceId, targetId);
+
+		return absorber.rejectIdentity(model, sourceId, targetId, "Compared in the merge dialog", narrative);
 	}
 
 

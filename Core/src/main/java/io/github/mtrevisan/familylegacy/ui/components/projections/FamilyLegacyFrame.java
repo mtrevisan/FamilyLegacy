@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.grammar.FLEFGrammar;
 import io.github.mtrevisan.familylegacy.io.grammar.FLEFGrammarParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.ui.components.projections.bookmarks.Bookmark;
 import io.github.mtrevisan.familylegacy.ui.components.projections.bookmarks.BookmarkStore;
 import io.github.mtrevisan.familylegacy.ui.components.projections.bookmarks.BookmarkType;
@@ -143,6 +144,20 @@ public class FamilyLegacyFrame extends JFrame{
 		final JMenuBar menuBar = new ApplicationMenuBar(this)
 			.build(repository);
 		setJMenuBar(menuBar);
+
+		PrivacyService.addListener(this::refreshPrivacy);
+	}
+
+	/** Rebuilds the views after the privacy policy changed. */
+	private void refreshPrivacy(){
+		SwingUtilities.invokeLater(() -> {
+			PrivacyService.invalidate();
+			switcher.getRepository()
+				.invalidateIndices();
+
+			loadRoot(switcher.getRootIds()[0]);
+			dossierManager.rebuild(model);
+		});
 	}
 
 	private void openJumpToDialog(){

@@ -68,8 +68,6 @@ public record ToolContext(
 	 * accessors below can call them without a null check.
 	 */
 	public ToolContext{
-		Objects.requireNonNull(model, "model must not be null");
-
 		if(dispatcher == null)
 			dispatcher = new ToolDispatcher(){};
 	}

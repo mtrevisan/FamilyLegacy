@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.io.model.readers.ConclusionReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.ResearchQuestionReader;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextArea;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextField;
@@ -51,6 +52,7 @@ import io.github.mtrevisan.familylegacy.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.PlaceRelationshipHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RelationshipHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RepositoryHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.ResearchQuestionHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
@@ -166,6 +168,38 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 		finalizeDialog(parent);
 	}
 
+
+	/**
+	 * Prepares a new conclusion that resolves the given record: the record is added to the resolved targets, the issue is
+	 * suggested if still empty, and the research questions that have the record as target are linked.
+	 *
+	 * @param target	The record to resolve (it must already be in the model).
+	 * @param issue	The suggested issue, used only if the issue is empty.
+	 * @return	This dialog.
+	 */
+	public ConclusionRecordDialog withResolvedTarget(final FLEFRecord target, final String issue){
+		resolvesPanel.addItemDirectly(target);
+		updatePreferredCombo();
+
+		if(issueField.isEmpty() && StringUtils.isNotBlank(issue))
+			issueField.setText(issue);
+
+		final EntityListPanel questionsPanel = (EntityListPanel)components.getPanel(PanelKey.RESEARCH_QUESTION);
+		for(final FLEFRecord question : model.getRecordsByType(ResearchQuestionHandler.TYPE))
+			if(hasTarget(question, target.getId()))
+				questionsPanel.addItemDirectly(question);
+
+		return this;
+	}
+
+	private static boolean hasTarget(final FLEFRecord question, final String targetId){
+		for(final FLEFRecord questionTarget : FLEFRecordHelper.findChildren(question, ResearchQuestionReader.TAG_TARGET)){
+			final FLEFRecord reference = questionTarget.getTheOnlyChild();
+			if(reference != null && targetId.equals(reference.getValue()))
+				return true;
+		}
+		return false;
+	}
 
 	@Override
 	protected JPanel createPropertiesPanel(){

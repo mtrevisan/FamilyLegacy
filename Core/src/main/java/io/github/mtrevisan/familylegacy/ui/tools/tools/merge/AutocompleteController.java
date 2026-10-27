@@ -30,9 +30,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.swing.AbstractAction;
+import javax.swing.ActionMap;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
+import javax.swing.InputMap;
 import javax.swing.JList;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
@@ -491,10 +493,10 @@ public final class AutocompleteController{
 	 */
 	static void installSmartEnter(final JTextArea area, final int indentSize){
 		final String actionKey = "merge-smart-enter";
-		area.getInputMap()
-			.put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), actionKey);
-		area.getActionMap()
-			.put(actionKey, new AbstractAction(){
+		final InputMap inputMap = area.getInputMap();
+		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), actionKey);
+		final ActionMap actionMap = area.getActionMap();
+		actionMap.put(actionKey, new AbstractAction(){
 				@Override
 				public void actionPerformed(final ActionEvent e){
 					insertSmartNewline(area, indentSize);
@@ -578,21 +580,18 @@ public final class AutocompleteController{
 	static void installTabAsSpaces(final JTextArea area, final int indentSize){
 		final int unit = Math.max(1, indentSize);
 
-		area.getInputMap()
-			.put(KeyStroke.getKeyStroke(KeyEvent.VK_TAB, 0), "merge-indent");
-		area.getActionMap()
-			.put("merge-indent", new AbstractAction(){
+		final InputMap inputMap = area.getInputMap();
+		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_TAB, 0), "merge-indent");
+		final ActionMap actionMap = area.getActionMap();
+		actionMap.put("merge-indent", new AbstractAction(){
 				@Override
 				public void actionPerformed(final ActionEvent e){
 					indentSelection(area, unit, true);
 				}
 			});
 
-		area.getInputMap()
-			.put(KeyStroke.getKeyStroke(KeyEvent.VK_TAB, InputEvent.SHIFT_DOWN_MASK),
-				"merge-deindent");
-		area.getActionMap()
-			.put("merge-deindent", new AbstractAction(){
+		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_TAB, InputEvent.SHIFT_DOWN_MASK), "merge-deindent");
+		actionMap.put("merge-deindent", new AbstractAction(){
 				@Override
 				public void actionPerformed(final ActionEvent e){
 					indentSelection(area, unit, false);

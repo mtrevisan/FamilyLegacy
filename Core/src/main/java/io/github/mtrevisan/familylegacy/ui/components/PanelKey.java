@@ -198,7 +198,7 @@ public enum PanelKey{
 
 
 	PanelKey(final PanelFactory factory){
-		this.factory = Objects.requireNonNull(factory);
+		this.factory = factory;
 	}
 
 

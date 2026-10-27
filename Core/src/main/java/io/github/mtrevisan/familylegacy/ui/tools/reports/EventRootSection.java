@@ -84,7 +84,8 @@ final class EventRootSection implements SectionBuilder{
 			}
 		}
 		if(ctx.config.evidence())
-			ctx.citations().addEvidence(ctx.root, out);
+			ctx.citations()
+				.addEvidence(ctx.root, out);
 		final List<ReportSection> audit = ctx.citations().audit(ctx.root);
 		if(!audit.isEmpty()){
 			out.add(new ReportSection.Heading(2, ctx.labels.sections().audit()));

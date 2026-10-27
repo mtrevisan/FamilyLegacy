@@ -38,7 +38,9 @@ import org.slf4j.LoggerFactory;
 
 import javax.imageio.ImageIO;
 import javax.swing.AbstractAction;
+import javax.swing.ActionMap;
 import javax.swing.BorderFactory;
+import javax.swing.InputMap;
 import javax.swing.JDialog;
 import javax.swing.JFormattedTextField;
 import javax.swing.JPanel;
@@ -150,8 +152,10 @@ public class PageInputDialog extends JDialog{
 		});
 
 		// Ensure arrow keys up/down inside the text field trigger model clamping
-		textField.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), ACTION_COMMIT_AND_CLAMP);
-		textField.getActionMap().put(ACTION_COMMIT_AND_CLAMP, new AbstractAction(){
+		final InputMap inputMap = textField.getInputMap();
+		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), ACTION_COMMIT_AND_CLAMP);
+		final ActionMap actionMap = textField.getActionMap();
+		actionMap.put(ACTION_COMMIT_AND_CLAMP, new AbstractAction(){
 			@Override
 			public void actionPerformed(final java.awt.event.ActionEvent e){
 				commitAndClampSpinner();

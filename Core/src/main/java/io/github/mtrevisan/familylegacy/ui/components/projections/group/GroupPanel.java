@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.components.MultiLineLabel;
+import io.github.mtrevisan.familylegacy.ui.components.PrivacyBadge;
 import io.github.mtrevisan.familylegacy.ui.components.projections.BoxPanelType;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.EntityMouseListeners;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.EntityPopupMenuFactory;
@@ -314,6 +315,12 @@ public class GroupPanel extends JPanel{
 			nameLabel.setToolTipText(data.getNameTooltip());
 
 			typeLabel.setText(data.getType());
+
+			//the privacy of the group is signaled with a padlock
+			typeLabel.setIcon(PrivacyBadge.of(data.getPrivacy()));
+			final String privacyTooltip = PrivacyBadge.tooltip(data.getPrivacy());
+			if(privacyTooltip != null)
+				nameLabel.setToolTipText(Objects.toString(data.getNameTooltip(), "") + " " + privacyTooltip);
 
 			// Set the default image/placeholder
 			imageLabel.setIcon(boxType == BoxPanelType.PRIMARY

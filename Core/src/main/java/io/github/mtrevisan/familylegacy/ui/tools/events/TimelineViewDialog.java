@@ -47,6 +47,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableColumnModel;
+import javax.swing.text.Document;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
@@ -110,11 +111,13 @@ public final class TimelineViewDialog extends JDialog{
 
 		toolbar.add(new JLabel("From:"));
 		toolbar.add(fromField);
-		fromField.getDocument().addDocumentListener(refreshListener());
+		final Document fromDocument = fromField.getDocument();
+		fromDocument.addDocumentListener(refreshListener());
 
 		toolbar.add(new JLabel("To:"));
 		toolbar.add(toField);
-		toField.getDocument().addDocumentListener(refreshListener());
+		Document toDocument = toField.getDocument();
+		toDocument.addDocumentListener(refreshListener());
 
 		toolbar.add(new JLabel("Participant:"));
 		participantField.setEditable(false);

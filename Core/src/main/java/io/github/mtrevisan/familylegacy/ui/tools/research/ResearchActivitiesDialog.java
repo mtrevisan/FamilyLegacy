@@ -51,6 +51,7 @@ import javax.swing.event.DocumentListener;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableRowSorter;
+import javax.swing.text.Document;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
@@ -106,10 +107,22 @@ public final class ResearchActivitiesDialog extends JDialog{
 
 		toolbar.add(new JLabel("Search:"));
 		toolbar.add(searchField);
-		searchField.getDocument().addDocumentListener(new DocumentListener(){
-			@Override public void insertUpdate(final DocumentEvent e){ applyFilter(); }
-			@Override public void removeUpdate(final DocumentEvent e){ applyFilter(); }
-			@Override public void changedUpdate(final DocumentEvent e){ applyFilter(); }
+		final Document document = searchField.getDocument();
+		document.addDocumentListener(new DocumentListener(){
+			@Override
+			public void insertUpdate(final DocumentEvent e){
+				applyFilter();
+			}
+
+			@Override
+			public void removeUpdate(final DocumentEvent e){
+				applyFilter();
+			}
+
+			@Override
+			public void changedUpdate(final DocumentEvent e){
+				applyFilter();
+			}
 		});
 
 		final JButton newButton = new JButton(I18N.t("button.new"));

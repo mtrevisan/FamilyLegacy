@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.ui.components.projections.chronomap;
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.ui.components.projections.chronomap.ChronomapIndex.GeoAnchor;
 import io.github.mtrevisan.familylegacy.ui.components.projections.chronomap.ChronomapIndex.GeoCoordinate;
 import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
@@ -60,6 +61,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableRowSorter;
+import javax.swing.text.Document;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -262,7 +264,8 @@ public final class AgoraPanel extends JPanel{
 			}
 		});
 
-		table.getSelectionModel().addListSelectionListener(e -> {
+		final ListSelectionModel selectionModel = table.getSelectionModel();
+		selectionModel.addListSelectionListener(e -> {
 			if(e.getValueIsAdjusting() || updatingSelection)
 				return;
 
@@ -433,7 +436,8 @@ public final class AgoraPanel extends JPanel{
 		 *                          Filter wiring
 		 * ================================================================== */
 
-		searchField.getDocument().addDocumentListener(new DocumentListener(){
+		final Document document = searchField.getDocument();
+		document.addDocumentListener(new DocumentListener(){
 			@Override
 			public void insertUpdate(final DocumentEvent e){
 				applyFilter();
@@ -722,7 +726,7 @@ public final class AgoraPanel extends JPanel{
 
 		SwingUtilities.invokeLater(() -> {
 			final AgoraPanel panel = new AgoraPanel(model, index, null, null);
-			panel.setIndividuals(model.getRecordsByType(IndividualHandler.TYPE)
+			panel.setIndividuals(PrivacyService.visible(model, model.getRecordsByType(IndividualHandler.TYPE))
 				.stream()
 				.map(FLEFRecord::getId)
 				.toList());

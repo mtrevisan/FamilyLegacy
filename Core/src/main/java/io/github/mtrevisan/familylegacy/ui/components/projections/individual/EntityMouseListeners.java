@@ -275,8 +275,6 @@ public final class EntityMouseListeners{
 		}
 
 		public EntityMouseListeners build(){
-			Objects.requireNonNull(recordSupplier, "recordSupplier must not be null");
-
 			if(onHoverChanged == null)
 				onHoverChanged = h -> {};
 

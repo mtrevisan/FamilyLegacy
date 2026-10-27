@@ -50,7 +50,7 @@ public class EgoNetworkMutator extends AbstractProjectionMutator{
 			final TreeChangeListener listener){
 		super(model, listener);
 
-		this.networkService = Objects.requireNonNull(networkService, "Network service cannot be null");
+		this.networkService = networkService;
 	}
 
 

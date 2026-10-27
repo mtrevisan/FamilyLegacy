@@ -143,7 +143,7 @@ class SeasonsResourceTest{
 	}
 
 	private static List<String> readRawLines() throws IOException{
-		try(final InputStream is = Objects.requireNonNull(GregorianCalendarParser.class.getResourceAsStream("seasons.csv"));
+		try(final InputStream is = GregorianCalendarParser.class.getResourceAsStream("seasons.csv");
 				final BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))){
 			return reader.lines()
 				.toList();

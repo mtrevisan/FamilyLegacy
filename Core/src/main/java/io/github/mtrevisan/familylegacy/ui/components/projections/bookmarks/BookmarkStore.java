@@ -24,6 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections.bookmarks;
 
+import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
+
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -89,6 +92,19 @@ public final class BookmarkStore{
 		final List<Bookmark> list = new ArrayList<>(bookmarks.values());
 		list.sort(Comparator.comparingLong(Bookmark::createdAt));
 		return list;
+	}
+
+	/**
+	 * Returns the bookmarks that can be shown under the privacy policy: those whose root record is not hidden.
+	 *
+	 * @param model	The model the root ids refer to.
+	 * @return	The bookmarks, ordered by creation time (oldest first).
+	 */
+	public List<Bookmark> visible(final FLEFModel model){
+		return all().stream()
+			.filter(bookmark -> bookmark.rootId().isEmpty()
+				|| !PrivacyService.isHidden(model, model.getRecordById(bookmark.rootId())))
+			.toList();
 	}
 
 	public boolean isEmpty(){

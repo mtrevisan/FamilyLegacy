@@ -78,8 +78,8 @@ final class IndividualNarrator{
 
 	IndividualNarrator(final FLEFModel model, final RelationIndex idx, final ReportLabels labels){
 		this.model = model;
-		this.idx = Objects.requireNonNull(idx);
-		this.labels = Objects.requireNonNull(labels);
+		this.idx = idx;
+		this.labels = labels;
 	}
 
 
@@ -322,7 +322,8 @@ final class IndividualNarrator{
 			final ChildGroupKey key = new ChildGroupKey(
 				(otherParent != null? otherParent.getId(): null), relType);
 
-			groups.computeIfAbsent(key, k -> new ArrayList<>()).add(child);
+			groups.computeIfAbsent(key, k -> new ArrayList<>())
+				.add(child);
 		}
 
 		for(final Map.Entry<ChildGroupKey, List<FLEFRecord>> e : groups.entrySet()){

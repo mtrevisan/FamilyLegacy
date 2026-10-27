@@ -53,9 +53,9 @@ public final class AttributeIndex{
 				continue;
 
 			final String indId = FLEFRecordHelper.getChildValue(attr, IndividualHandler.TYPE);
-			if(indId != null){
-				personToAttrsMap.computeIfAbsent(indId, k -> new ArrayList<>()).add(attr);
-			}
+			if(indId != null)
+				personToAttrsMap.computeIfAbsent(indId, k -> new ArrayList<>())
+					.add(attr);
 		}
 	}
 

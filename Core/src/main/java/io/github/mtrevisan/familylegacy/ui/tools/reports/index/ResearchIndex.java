@@ -60,37 +60,34 @@ public final class ResearchIndex{
 		for(final FLEFRecord researchActivity : researchActivities){
 			if(!filter.test(researchActivity))
 				continue;
-			for(final FLEFRecord qRef : FLEFRecordHelper.findChildren(researchActivity, "question")){
-				if(qRef.getValue() != null){
-					questionToActivitiesMap.computeIfAbsent(qRef.getValue(), k -> new ArrayList<>()).add(researchActivity);
-				}
-			}
+			for(final FLEFRecord qRef : FLEFRecordHelper.findChildren(researchActivity, "question"))
+				if(qRef.getValue() != null)
+					questionToActivitiesMap.computeIfAbsent(qRef.getValue(), k -> new ArrayList<>())
+						.add(researchActivity);
 		}
 
 		final List<FLEFRecord> researchTasks = model.getRecordsByType(ResearchTaskHandler.TYPE);
 		for(final FLEFRecord researchTask : researchTasks){
 			if(!filter.test(researchTask))
 				continue;
-			for(final FLEFRecord qRef : FLEFRecordHelper.findChildren(researchTask, "question")){
-				if(qRef.getValue() != null){
-					questionToTasksMap.computeIfAbsent(qRef.getValue(), k -> new ArrayList<>()).add(researchTask);
-				}
-			}
+			for(final FLEFRecord qRef : FLEFRecordHelper.findChildren(researchTask, "question"))
+				if(qRef.getValue() != null)
+					questionToTasksMap.computeIfAbsent(qRef.getValue(), k -> new ArrayList<>())
+						.add(researchTask);
 			final String createdBy = FLEFRecordHelper.getChildValue(researchTask, "created_by");
-			if(createdBy != null){
-				activityToTasksMap.computeIfAbsent(createdBy, k -> new ArrayList<>()).add(researchTask);
-			}
+			if(createdBy != null)
+				activityToTasksMap.computeIfAbsent(createdBy, k -> new ArrayList<>())
+					.add(researchTask);
 		}
 
 		final List<FLEFRecord> conclusions = model.getRecordsByType(ConclusionHandler.TYPE);
 		for(final FLEFRecord conclusion : conclusions){
 			if(!filter.test(conclusion))
 				continue;
-			for(final FLEFRecord qRef : FLEFRecordHelper.findChildren(conclusion, "research")){
-				if(qRef.getValue() != null){
-					questionToConclusionsMap.computeIfAbsent(qRef.getValue(), k -> new ArrayList<>()).add(conclusion);
-				}
-			}
+			for(final FLEFRecord qRef : FLEFRecordHelper.findChildren(conclusion, "research"))
+				if(qRef.getValue() != null)
+					questionToConclusionsMap.computeIfAbsent(qRef.getValue(), k -> new ArrayList<>())
+						.add(conclusion);
 		}
 
 		final List<FLEFRecord> contextImpacts = model.getRecordsByType(ContextImpactHandler.TYPE);
@@ -105,7 +102,8 @@ public final class ResearchIndex{
 
 				final String id = ref.getValue();
 				if(id != null && !id.isBlank())
-					contextImpactsByTarget.computeIfAbsent(id, k -> new ArrayList<>()).add(contextImpact);
+					contextImpactsByTarget.computeIfAbsent(id, k -> new ArrayList<>())
+						.add(contextImpact);
 			}
 		}
 
@@ -121,7 +119,8 @@ public final class ResearchIndex{
 
 				final String id = ref.getValue();
 				if(id != null && !id.isBlank())
-					researchQuestionsByTarget.computeIfAbsent(id, k -> new ArrayList<>()).add(researchQuestion);
+					researchQuestionsByTarget.computeIfAbsent(id, k -> new ArrayList<>())
+						.add(researchQuestion);
 			}
 		}
 	}

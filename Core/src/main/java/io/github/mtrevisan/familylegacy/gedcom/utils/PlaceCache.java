@@ -193,7 +193,8 @@ public class PlaceCache{
 			name.addChild(FLEFRecord.createChildWithTagAndValue("locale", locale));
 		// the names go first, as in the schema
 		final List<FLEFRecord> names = FLEFRecordHelper.findChildren(place, "name");
-		place.getChildren().add(place.getChildren().indexOf(names.getLast()) + 1, name);
+		place.getChildren()
+			.add(place.getChildren().indexOf(names.getLast()) + 1, name);
 	}
 
 	private static void addNameVariant(final FLEFRecord name, final String kind, final GEDCOMNode variantNode,

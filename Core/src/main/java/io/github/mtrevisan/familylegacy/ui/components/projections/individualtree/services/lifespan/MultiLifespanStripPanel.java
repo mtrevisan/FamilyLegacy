@@ -27,6 +27,8 @@ package io.github.mtrevisan.familylegacy.ui.components.projections.individualtre
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.NormalizedDate;
+import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
+import io.github.mtrevisan.familylegacy.ui.components.PrivacyBadge;
 import io.github.mtrevisan.familylegacy.ui.components.projections.chronomap.TemporalAttributeIndex;
 import io.github.mtrevisan.familylegacy.ui.components.projections.temporal.TemporalAxis;
 import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
@@ -743,6 +745,10 @@ public final class MultiLifespanStripPanel extends JPanel{
 				sb.append(" — ").append(escape(formatDate(e.date())));
 			if(e.hasPlace())
 				sb.append("<br>Place: ").append(escape(e.placeName()));
+			final String privacy = PrivacyBadge.tooltip(PrivacyService.resolver(model)
+				.describe(model.getRecordById(e.id())));
+			if(privacy != null)
+				sb.append("<br>Privacy: ").append(escape(privacy));
 			sb.append("<br><i>Double-click to edit</i></html>");
 			return sb.toString();
 		}
@@ -876,8 +882,14 @@ public final class MultiLifespanStripPanel extends JPanel{
 				g2.setFont(NAME_FONT);
 				g2.setColor(NAME_COLOR);
 				final FontMetrics fm = g2.getFontMetrics();
-				final String name = truncate(fm, row.name(), NAME_WIDTH - 10);
+				//a padlock signals a restricted or confidential individual
+				final PrivacyBadge badge = PrivacyBadge.of(PrivacyService.resolver(model)
+					.describe(model.getRecordById(row.id())));
+				final int badgeWidth = (badge != null? badge.getIconWidth() + 4: 0);
+				final String name = truncate(fm, row.name(), NAME_WIDTH - 10 - badgeWidth);
 				g2.drawString(name, PADDING, y + (ROW_HEIGHT + fm.getAscent()) / 2 - 1);
+				if(badge != null)
+					badge.paintIcon(this, g2, NAME_WIDTH - 6 - badge.getIconWidth(), y + (ROW_HEIGHT - badge.getIconHeight()) / 2);
 
 				// From here on, restrict the drawing to the content area.
 				final Rectangle rowContentClip = new Rectangle(
@@ -927,6 +939,9 @@ public final class MultiLifespanStripPanel extends JPanel{
 					g2.fillOval(ex - r, centerY - r, 2 * r, 2 * r);
 					g2.setColor(Color.WHITE);
 					g2.drawOval(ex - r, centerY - r, 2 * r, 2 * r);
+					//a ring signals a restricted or confidential event
+					PrivacyBadge.paintRing(g2, PrivacyService.resolver(model)
+						.describe(model.getRecordById(e.id())), ex, centerY, r);
 				}
 
 				// Overlap strip: blue bar on the left edge of the content

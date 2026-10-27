@@ -108,7 +108,8 @@ public class FLEFModel{
 
 		records.add(record);
 		if(record.getTag() != null)
-			recordsByType.computeIfAbsent(record.getTag(), k -> new ArrayList<>()).add(record);
+			recordsByType.computeIfAbsent(record.getTag(), k -> new ArrayList<>())
+				.add(record);
 	}
 
 	public boolean hasRecordsByType(final String type){

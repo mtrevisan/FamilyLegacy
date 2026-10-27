@@ -27,6 +27,8 @@ package io.github.mtrevisan.familylegacy.ui.components.projections.group;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.readers.GroupReader;
+import io.github.mtrevisan.familylegacy.privacy.PrivacyResolver;
+import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.ui.components.projections.BoxPanelType;
 import io.github.mtrevisan.familylegacy.ui.components.projections.PlaceholderImages;
 import io.github.mtrevisan.familylegacy.ui.helpers.AsyncResourceLoader;
@@ -64,6 +66,7 @@ public final class GroupData{
 
 	private final FLEFRecord group;
 	private final String id;
+	private final PrivacyResolver.Effective privacy;
 	private final String nameText;
 	private String nameTooltip;
 	private final String type;
@@ -86,6 +89,18 @@ public final class GroupData{
 		this.group = group;
 		id = group.getId();
 
+		privacy = PrivacyService.resolver(model)
+			.describe(group);
+		if(PrivacyService.policy().hides(privacy.level())){
+			//the data of the group are not shown: only the id remains
+			nameText = NO_DATA;
+			nameTooltip = TAG_HTML_OPEN + "[" + id + "]" + TAG_HTML_CLOSE;
+			type = StringUtils.EMPTY;
+			//placeholders only: the preferred image is not loaded
+			extractPreferredImage(null, model);
+			return;
+		}
+
 		final List<String> names = GroupReader.extractNames(group);
 		if(!names.isEmpty()){
 			nameText = GroupReader.extractPrimaryName(group);
@@ -107,6 +122,11 @@ public final class GroupData{
 
 	public String getId(){
 		return id;
+	}
+
+	/** The effective privacy of the group (it is public when there is no restriction). */
+	public PrivacyResolver.Effective getPrivacy(){
+		return privacy;
 	}
 
 	public String getNameText(){

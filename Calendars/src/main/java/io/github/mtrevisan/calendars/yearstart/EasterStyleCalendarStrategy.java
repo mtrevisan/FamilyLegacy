@@ -31,8 +31,11 @@ import io.github.mtrevisan.calendars.gregorian.Indiction;
 import io.github.mtrevisan.calendars.liturgical.Computus;
 import io.github.mtrevisan.calendars.spi.CalendarConverterPlugin;
 import io.github.mtrevisan.calendars.spi.CalendarMetadata;
+import io.github.mtrevisan.calendars.spi.DateInterpretation;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.List;
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -139,11 +142,20 @@ public class EasterStyleCalendarStrategy implements CalendarConverterPlugin{
 	}
 
 	@Override
+	public List<DateInterpretation> getInterpretations(final String rawDate, final Locale locale){
+		return GregorianCalendarParser.interpretations(rawDate, removeQualifiers(rawDate), locale);
+	}
+
+	@Override
 	public CalendarMetadata getMetadata(final String rawDate){
+		final GregorianDateInput input = GregorianCalendarParser.parse(removeQualifiers(rawDate));
+		return CalendarMetadata.createFromYearMonthDay(input.year(), input.month(), input.day());
+	}
+
+	private static String removeQualifiers(final String rawDate){
 		final String text = AFTER_EASTER.matcher(BEFORE_EASTER.matcher(rawDate).replaceAll(StringUtils.SPACE))
 			.replaceAll(StringUtils.SPACE);
-		final GregorianDateInput input = GregorianCalendarParser.parse(StringUtils.normalizeSpace(text));
-		return CalendarMetadata.createFromYearMonthDay(input.year(), input.month(), input.day());
+		return StringUtils.normalizeSpace(text);
 	}
 
 }

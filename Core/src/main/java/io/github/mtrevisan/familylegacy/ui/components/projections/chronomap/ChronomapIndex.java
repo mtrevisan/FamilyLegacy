@@ -36,6 +36,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateNormalizer;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.NormalizedDate;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.TemporalSpan;
+import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventParticipationHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.GroupAttributeHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualAttributeHandler;
@@ -101,7 +102,7 @@ public final class ChronomapIndex{
 
 	public ChronomapIndex(final FLEFModel model, final PlaceCoordinateResolver placeResolver){
 		this.model = model;
-		this.placeResolver = Objects.requireNonNull(placeResolver, "PlaceCoordinateResolver must not be null");
+		this.placeResolver = placeResolver;
 		this.anchorsByOwner = build();
 
 		buildLifeEventIndex();
@@ -283,7 +284,7 @@ public final class ChronomapIndex{
 		final Map<String, List<GeoAnchor>> result = new HashMap<>();
 
 		// 1. Events: zero-duration anchors.
-		final List<FLEFRecord> eventParticipations = model.getRecordsByType(EventParticipationHandler.TYPE);
+		final List<FLEFRecord> eventParticipations = PrivacyService.visible(model, model.getRecordsByType(EventParticipationHandler.TYPE));
 		for(final FLEFRecord eventParticipation : eventParticipations){
 			final String ownerId = extractParticipantId(eventParticipation);
 			if(ownerId == null)
@@ -342,7 +343,7 @@ public final class ChronomapIndex{
 		deathJdnByOwner.clear();
 
 		final List<FLEFRecord> eventParticipations =
-			model.getRecordsByType(EventParticipationHandler.TYPE);
+			PrivacyService.visible(model, model.getRecordsByType(EventParticipationHandler.TYPE));
 
 		for(final FLEFRecord ep : eventParticipations){
 			final String ownerId = extractParticipantId(ep);
@@ -384,7 +385,7 @@ public final class ChronomapIndex{
 	private void addAttributeAnchors(final Map<String, List<GeoAnchor>> result, final String recordType){
 		final boolean isIndividual = IndividualAttributeHandler.TYPE.equalsIgnoreCase(recordType);
 		final String ownerTag = (isIndividual? IndividualAttributeReader.TAG_INDIVIDUAL: GroupAttributeReader.TAG_GROUP);
-		final List<FLEFRecord> attributes = model.getRecordsByType(recordType);
+		final List<FLEFRecord> attributes = PrivacyService.visible(model, model.getRecordsByType(recordType));
 		for(final FLEFRecord attribute : attributes){
 			final String ownerId = extractOwner(attribute, ownerTag);
 			if(ownerId == null)

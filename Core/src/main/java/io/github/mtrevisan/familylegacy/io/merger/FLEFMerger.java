@@ -86,8 +86,6 @@ public final class FLEFMerger{
 	 * @param clock           the clock of the audit entries
 	 */
 	public FLEFMerger(final FLEFGrammar grammar, final double autoThreshold, final double reviewThreshold, final Clock clock){
-		Objects.requireNonNull(grammar, "Grammar cannot be null");
-		Objects.requireNonNull(clock, "Clock cannot be null");
 		if(reviewThreshold < 0. || reviewThreshold > autoThreshold)
 			throw new IllegalArgumentException("Thresholds must satisfy 0 <= review <= auto, found review " + reviewThreshold
 				+ ", auto " + autoThreshold);
@@ -111,9 +109,6 @@ public final class FLEFMerger{
 	 * @return the merged model and the decisions taken; {@link MergeReport#idMapping()} tells where each incoming record ended
 	 */
 	public MergeReport merge(final FLEFModel base, final FLEFModel incoming){
-		Objects.requireNonNull(base, "Base model cannot be null");
-		Objects.requireNonNull(incoming, "Incoming model cannot be null");
-
 		return run(base, incoming);
 	}
 
@@ -124,8 +119,6 @@ public final class FLEFMerger{
 	 * @return the deduplicated model and the decisions taken
 	 */
 	public MergeReport deduplicate(final FLEFModel model){
-		Objects.requireNonNull(model, "Model cannot be null");
-
 		return run(model, null);
 	}
 

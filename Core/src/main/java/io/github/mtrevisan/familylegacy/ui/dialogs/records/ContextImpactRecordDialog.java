@@ -141,6 +141,20 @@ public class ContextImpactRecordDialog extends BaseRecordDialog{
 	}
 
 
+	/**
+	 * Prepares a new impact of the given context (a historic event or a cultural norm): the context field is filled and
+	 * locked.
+	 *
+	 * @param context	The context exerting the influence (it must already be in the model).
+	 * @return	This dialog.
+	 */
+	public ContextImpactRecordDialog withContext(final FLEFRecord context){
+		contextField.setEntity(FLEFRecord.createMainRecord(context.getId(), context.getTag()));
+		GUIHelper.setComponentEnabled(contextField, false);
+
+		return this;
+	}
+
 	@Override
 	protected JPanel createPropertiesPanel(){
 		// context

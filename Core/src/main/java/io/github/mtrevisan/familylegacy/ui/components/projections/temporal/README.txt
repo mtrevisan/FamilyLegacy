@@ -1,18 +1,32 @@
-1. Dimensione temporale e cronologia eventi (Timeline / Life Map)
-FLEF memorizza eventi datati (nascite, matrimoni, migrazioni, carriere, decessi) e sequenze temporali. Nessuna delle
-due viste mostra l'evoluzione nel tempo: manca una vista Timeline/Gantt per sovrapporre le vite, vedere eventi
-concomitanti e durate di unioni o carriere.
+# Dimensione temporale e cronologia eventi (Timeline / Life Map)
+
+FLEF memorizza eventi datati (nascite, matrimoni, migrazioni, carriere, decessi) e sequenze temporali. Questo documento
+elenca cosa il codice copre oggi e cosa manca. Legenda: DONE = verificato nel codice, TODO = non presente,
+PARZIALE = presente solo in parte o altrove.
+
+Stato verificato sul codice (ottobre 2026).
 
 
-Ecco l'analisi del punto 1, tenendo conto che **la General Temporal Projection è già stata implementata** nei layer 1–7. L'analisi quindi distingue tra ciò che è coperto e ciò che manca ancora.
+## Stato della General Temporal Projection
 
----
+Il package `temporal` contiene tutti i layer (modello, estrattore, indici, layout, renderer, asse, zoom, toolbar,
+`TemporalProjectionPanel`). **Il pannello però non è collegato a nessuna schermata**: `ProjectionType` espone solo
+`BIOLOGICAL_TREE`, `SUGIYAMA_GRAPH` ed `EGO_NETWORK`, e `TemporalProjectionPanel` non è istanziato da nessuna parte.
+Finché non viene aggiunto un `ProjectionType` (o un'altra via d'accesso) la proiezione è codice non raggiungibile.
 
-## Cosa FLEF fornisce (ripasso)
+TODO collegare `TemporalProjectionPanel` al `ProjectionSwitcherPanel` (nuovo `ProjectionType`, voce di menu, shortcut).
 
-Il protocollo è estremamente ricco sul piano temporale.
+Viste temporali già raggiungibili dall'utente, che coprono parte di questo punto:
+- `MultiLifespanStripPanel` (barra comprimibile sotto albero ed ego network): una riga per individuo, barra dal primo
+  all'ultimo evento datato, marker per evento, bande per gli attributi con validità, sfondo a secoli, hover che evidenzia le
+  vite sovrapposte, click per modificare il record.
+- `GlobalEventTimelinePanel` (sotto l'ego network): timeline globale degli eventi delle entità visibili.
+- `TimelineViewDialog` (menu Eventi): timeline in dialogo.
+- `ChronomapPanel` / `AgoraPanel`: mappa storica con asse temporale; Agorà mostra chi era vivo e dove in una data.
+- Report: `IndividualLifeStorySection` / `IndividualNarrator` generano la biografia narrativa.
 
-**Assertion temporali per entità:**
+
+## Cosa FLEF fornisce
 
 | Record | Campo | Semantica |
 |---|---|---|
@@ -25,163 +39,80 @@ Il protocollo è estremamente ricco sul piano temporale.
 | `HistoricEventRecord` | `date` | data dell'evento storico |
 | `ContextImpactRecord` | (implicita, via `context`) | impatto contestuale |
 
-**Forme del valore temporale:**
-- `point` / `SingleDate`: `full_date` (ISO 8601), `decade` (start_year), `century` (ordinal + part), ciascuno con `approximate` (basis + margin) e `calendar`.
-- `bounded` / `BoundedDate`: `not_before` / `not_after` (incertezza).
-- `spanning` / `SpanningDate`: `from` / `to` (durata reale).
+Forme del valore temporale: `point` / `SingleDate` (`full_date`, `decade`, `century`, con `approximate` e `calendar`),
+`bounded` / `BoundedDate` (`not_before` / `not_after`), `spanning` / `SpanningDate` (`from` / `to`).
 
-**Calendari:** 12 valori (`gregorian`, `julian`, `islamic`, `hebrew`, `chinese`, `indian`, `buddhist`, `french_republican`, `coptic`, `soviet_eternal`, `ethiopian`, `mayan`).
+Contesto: `ContextImpactRecord` collega `HistoricEventRecord` e `CulturalNormRecord` a un target qualsiasi con cinque tipi
+di impatto (`explains`, `influences`, `constrains`, `motivates`, `causes`).
 
-**Contesto:** `ContextImpactRecord` collega `HistoricEventRecord` e `CulturalNormRecord` a un target qualsiasi (individual, group, place, event, relationship, …) con cinque tipi di impatto (`explains`, `influences`, `constrains`, `motivates`, `causes`).
 
----
+## Calendari
 
-## Cosa copre già la General Temporal Projection
+DONE Tutti i 12 calendari del protocollo (`gregorian`, `julian`, `islamic`, `hebrew`, `chinese`, `indian`, `buddhist`,
+`french_republican`, `coptic`, `soviet_eternal`, `ethiopian`, `mayan`) sono implementati, più altri (armeno, bahai,
+berbero, bizantino, egizio, giapponese, coreano, vietnamita). La conversione sta nel modulo Maven `Calendars`
+(JPMS `io.github.mtrevisan.calendars`), non più in `CalendarConverter` di Core. I calendari astronomici (cinese, armeno)
+richiedono il plugin Ephemeris (`Core/plugins/ephemeris.jar`); senza il plugin lanciano
+`UnsupportedOperationException` con messaggio esplicito.
 
-| Aspetto | Coperto | Dove |
-|---|---|---|
-| Righe per individui, gruppi, luoghi | ✓ | `TemporalProjectionService.buildRows` |
-| EVENT track (partecipazioni a eventi) | ✓ | `TemporalExtractor.extractEventEntries` |
-| ATTRIBUTE track (validità attributi) | ✓ | `TemporalExtractor.buildAttributeEntry` |
-| CONTEXT track (impatti contestuali) | ✓ | `TemporalExtractor.collectContextImpactEntries` |
-| Connections individual↔individual | ✓ | `buildRelationshipConnections` |
-| Connections individual↔group | ✓ | idem |
-| Connections group↔group | ✓ | idem |
-| Connections place↔place | ✓ | `buildPlaceConnections` |
-| Bande di contesto (historic events, norms) | ✓ | `buildBands` |
-| Impact links | ✓ | `buildImpactLinks` |
-| Normalizzazione date (point, bounded, spanning) | ✓ | `DateNormalizer` |
-| Calendari non gregoriani (5 supportati) | ✓ | `CalendarConverter` |
-| Precisione ridotta (decade, secolo) | ✓ | `NormalizedDate` + renderer |
-| Approssimazione con alone | ✓ | `TemporalSpanRenderer` |
-| Stato active/ended/unknown | ✓ | `TemporalSpan.status` + stroke |
-| Zoom e pan | ✓ | `TemporalAxis` + `TemporalZoomController` |
-| Auto-scaling dell'asse | ✓ | `TemporalAxis.deriveZoomLevel` |
-| Filtri per tipo di entità | ✓ | `TemporalProjectionToolbar.EntityFilter` |
-| Toggle layer (bands, connections, impacts) | ✓ | `TemporalProjectionToolbar` |
-| Click su entry → edit dialog | ✓ | `TemporalProjectionPanel.openEditDialogFor` |
-| Multi-partecipante su singolo evento | ✓ | Una entry per partecipante, connesse allo stesso evento |
-| Evidenza negativa | ✗ | Non distinta visivamente |
+TODO conversione inversa JDN -> data nativa (rimandata per scelta).
 
----
+
+## Cosa copre la General Temporal Projection (codice nel package `temporal`)
+
+| Aspetto | Stato |
+|---|---|
+| Righe per individui, gruppi, luoghi | DONE |
+| Track EVENT, ATTRIBUTE, CONTEXT | DONE |
+| Connessioni individuo-individuo, individuo-gruppo, gruppo-gruppo, luogo-luogo | DONE |
+| Bande di contesto e impact link | DONE |
+| Normalizzazione date (point, bounded, spanning), precisione ridotta, approssimazione | DONE |
+| Stato active/ended/unknown | DONE |
+| Zoom, pan, auto-scaling dell'asse | DONE |
+| Filtri per tipo di entità, toggle dei layer | DONE |
+| Click su entry -> dialog di modifica | DONE |
+| Raggiungibilità dall'interfaccia | TODO (vedi sopra) |
+
 
 ## Cosa manca ancora
 
-1. **Lifespan bar.** Ogni individuo non ha una barra continua da nascita a morte. Ha singoli marker (nascita, eventi, morte). Una vera "life map" dovrebbe mostrare la vita come una linea continua, con gli eventi come marker sopra di essa. Questo permette di vedere a colpo d'occhio "quanto è vissuto" e "quando è successo cosa".
-2. **Allineamento per generazione.** Le righe sono ordinate per tipo e label, non per generazione. Una timeline genealogica tipicamente raggruppa gli individui per generazione (nonni, genitori, figli), così da vedere sovrapposizioni tra generazioni.
-3. **Età agli eventi.** "A che età si è sposato?", "quanti anni aveva quando è emigrato?". Il calcolo non esiste. Ogni evento puntuale su una persona potrebbe mostrare l'età della persona a quella data, calcolata dalla nascita.
-4. **Durata delle relazioni.** "Quanto è durato il matrimonio?" Non calcolato. Un'unione con `valid_from` e `valid_to` ha una durata esplicita.
-5. **Analisi di sovrapposizione.** "Chi era vivo nel 1850?", "quali eventi erano simultanei?", "chi era presente alla nascita di X?". Query non implementate.
-6. **Confronto affiancato.** Due individui (o due rami) con assi sincronizzati. L'attuale vista è un singolo focus.
-7. **Heatmap temporale.** Istogramma della densità di eventi nel tempo. "In quali anni ci sono stati più eventi?" Non esiste.
-8. **Gruppi di eventi per categoria.** Attualmente tutto è un unico EVENT track. Una separazione per categoria (vital events, migration events, career events, military events, legal events) renderebbe la vista più leggibile.
-9. **Biografia narrativa.** Generare un testo sequenziale dal modello temporale: "Mario nacque nel 1850 a Treviso. Nel 1866 si arruolò. Nel 1870 sposò Anna. Nel 1880 emigrò in Argentina. Nel 1920 morì." Non esiste.
-10. **Dettaglio on-hover del contesto.** Passando il mouse su un marker, vedere il contesto storico/normativo che lo influenza (via `ContextImpactRecord`). Il tooltip attuale mostra solo dati dell'evento.
-11. **Confronto con historic events.** "Cosa succedeva nel mondo quando X è nato?" Il layer delle bande mostra il contesto, ma non c'è una query esplicita "mostra tutti gli historic events attivi tra il 1850 e il 1860".
-12. **Supporto calendari completi.** Mancano `hebrew`, `chinese`, `indian`, `buddhist`, `french_republican`, `soviet_eternal`, `mayan`. Attualmente `CalendarConverter` lancia `UnsupportedOperationException`. Almeno `french_republican` è rilevante per genealogie italiane del periodo napoleonico.
-13. **Time slider.** Uno slider che scorre l'asse temporale senza cambiare lo zoom, con un indicatore verticale mobile. Utile per "cosa era visibile in questo istante".
-14. **Export in formato tabellare.** Non c'è modo di estrarre la timeline come CSV/Excel per analisi esterne.
-15. **Evidenza negativa.** `EvidenceQualifiers.evidence_type = negative` non è visualizzato. Un "nessun evento in questo intervallo" dovrebbe essere rappresentato come spazio vuoto attivo, non come semplice assenza di barra.
+1. PARZIALE **Lifespan bar.** Presente in `MultiLifespanStripPanel` (barra dal primo all'ultimo evento datato), non nella
+   proiezione temporale. Non distingue nascita/morte né tratteggia la morte incerta.
+2. TODO **Allineamento per generazione.** Né la proiezione né la strip raggruppano per generazione (le righe sono ordinate
+   per tipo e label).
+3. TODO **Età agli eventi.** Nessun calcolo dell'età a una data, nemmeno con "~X anni" per le precisioni ridotte.
+4. TODO **Durata delle relazioni.** Non calcolata né mostrata sui connettori.
+5. DONE **Analisi di sovrapposizione.** Hover della strip (vite sovrapposte evidenziate) e `AgoraPanel` ("chi era vivo
+   in questa data e dove"). Manca una query per le relazioni attive in un anno.
+6. PARZIALE **Confronto affiancato.** La strip confronta molte vite su un asse condiviso; non c'è un confronto di due
+   proiezioni con assi sincronizzati.
+7. **Heatmap temporale** (densità di eventi per anno).
+8. TODO **Categorie di eventi** (vital, migration, career, military, legal, ...): un solo EVENT track, colore per tipo.
+9. DONE **Biografia narrativa.** Generata nei report (`IndividualNarrator`, `IndividualLifeStorySection`). Manca il pannello
+   con hover sincronizzato alla timeline.
+10. TODO **Dettaglio on-hover del contesto** storico/normativo (via `ContextImpactRecord`) sui marker.
+11. TODO **Query "historic events attivi tra due anni".**
+12. DONE **Calendari completi** (vedi sopra).
+13. PARZIALE **Time slider.** Esiste la timeline di `ChronomapPanel`; non c'è nella proiezione temporale.
+14. TODO **Export tabellare** (CSV/Excel) della timeline.
+15. DONE **Evidenza negativa.** `evidence_type = negative` è letto da `TemporalExtractor` (`evidence` di evento, attributo, impatto, evento storico, norma) e disegnato da `TemporalSpanRenderer`: corpo attenuato con tratteggio diagonale sulle barre e X sui marker puntuali; il tooltip lo segnala. Vale solo per la proiezione temporale (non ancora raggiungibile, vedi sopra); le altre viste non lo mostrano.
 
----
 
-## Cosa è ancora utile implementare
+## Priorità suggerita
 
-Su questi 15 punti, la maggior parte è **estensione** della General Temporal Projection, non una nuova vista. Ecco la priorità che suggerirei.
+1. Collegare `TemporalProjectionPanel` a `ProjectionType` (senza questo il resto non è visibile).
+2. Allineamento per generazione, età agli eventi e durate (estendono `TemporalProjectionLayout` / `TemporalExtractor`).
+3. Categorie di eventi (solo colore, mantenendo le tre track).
+4. Heatmap, confronto affiancato, export tabellare.
 
-### Estensione A — Lifespan bar e allineamento per generazione
+Classi previste per le estensioni, tutte ancora da scrivere: `LifespanResolver`, `GenerationAssigner`,
+`LifespanBarRenderer`, `AgeCalculator`, `DurationCalculator`, `RelationshipDurationReport`, `TemporalOverlapQuery`,
+`TemporalDensityAnalyzer`, `BiographyPanel` + `BiographyGenerator` (se si vuole la vista sincronizzata),
+`TimelineComparisonPanel`, `TemporalEventCategory` + `TemporalEventClassifier`, `TemporalProjectionExporter`.
 
-Modifica di `TemporalProjectionLayout` e `TemporalExtractor` per:
-- aggiungere alla riga di un individuo una **barra dello span di vita** (da `birth` a `death`), disegnata come sfondo della riga;
-- raggruppare le righe per generazione, con un header di generazione tra i gruppi.
-
-**Nuove classi:**
-1. `LifespanResolver` — class. Calcola lo `span` di vita di un individuo dai suoi eventi `birth` e `death`.
-2. `GenerationAssigner` — class. Assegna ogni individuo a una generazione tramite analisi dell'albero biologico (già discusso per il Pedigree Graph).
-3. `LifespanBarRenderer` — class. Disegna la barra della vita come sfondo della riga, con distinzione tra nascita e morte (marker), e tratteggio per lo span di vita quando la data di morte è incerta (`BOUNDED`).
-
-### Estensione B — Età agli eventi e durate
-
-**Nuove classi:**
-4. `AgeCalculator` — class. Dato un individuo e una data, calcola l'età. Usa la data di nascita (evento `birth`) come riferimento. Gestisce precisione ridotta (decade, secolo) con output "~X anni".
-5. `DurationCalculator` — class. Data una coppia di date, restituisce la durata in anni/mesi/giorni.
-6. `RelationshipDurationReport` — record. Per un `RelationshipRecord` con `valid_from` e `valid_to`, contiene durata e status.
-
-**Estensione al renderer:** ogni entry può mostrare l'età dell'individuo accanto al marker, e ogni connection può mostrare la durata dell'unione al centro dell'arco.
-
-### Estensione C — Analisi di sovrapposizione
-
-**Nuove classi:**
-7. `TemporalOverlapQuery` — class. Dato un anno e un tipo di entità, restituisce tutti gli individui vivi in quell'anno (o tutte le relazioni attive). Costruita sui `TemporalSpan` già esistenti.
-8. `TemporalDensityAnalyzer` — class. Calcola la densità di eventi per unità di tempo (anno, decennio), per la heatmap.
-
-**Estensione UI:** uno slider temporale in `TemporalProjectionToolbar` che imposta un anno di interesse, e un comando "Mostra solo attivi al [anno]" che filtra la vista.
-
-### Estensione D — Vista biografica
-
-**Nuova vista complementare:**
-9. `BiographyPanel` — class. Per un individuo, mostra la sequenza cronologica dei suoi eventi in formato narrativo. Ogni riga è un paragrafo: "1850 — Nato a Treviso, da Giovanni e Maria". Con hover sincronizzato con la timeline: passare il mouse su un evento nella timeline evidenzia il paragrafo corrispondente, e viceversa.
-10. `BiographyGenerator` — class. Costruisce il testo biografico dai dati temporali, con template per ogni tipo di evento.
-
-### Estensione E — Confronto affiancato
-
-**Nuova vista:**
-11. `TimelineComparisonPanel` — class. Due `TemporalProjectionPanel` con un asse condiviso. La selezione su uno dei due sincronizza la selezione sull'altro. Utile per confrontare coniugi, fratelli, generazioni.
-
-### Estensione F — Categorie di eventi separate
-
-**Estensione al layer 3:**
-12. `TemporalEventCategory` — enum. `VITAL`, `MIGRATION`, `CAREER`, `MILITARY`, `LEGAL`, `RELIGIOUS`, `FINANCIAL`, `OTHER`.
-13. `TemporalEventClassifier` — class. Mappa un `EventRecord.type` del protocollo a una `TemporalEventCategory`.
-
-**Estensione al layout:** la EVENT track si divide in sotto-track per categoria, come già avviene per il Social Network con le categorie.
-
-### Estensione G — Calendari aggiuntivi
-
-**Estensione a `CalendarConverter`:**
-14. Implementare `french_republican` (calendario rivoluzionario francese, rilevante per genealogie italiane 1797–1805).
-15. Implementare `hebrew` (calendario ebraico, rilevante per genealogie ebraiche).
-
-Gli altri (`chinese`, `indian`, `buddhist`, `soviet_eternal`, `mayan`) richiedono dati astronomici o sono ambigui; possono restare `UnsupportedOperationException` con messaggio esplicito.
-
-### Estensione H — Export
-
-**Nuova classe:**
-16. `TemporalProjectionExporter` — class. Esporta la proiezione in CSV o Excel: una riga per entry con colonne `entity_id`, `entity_label`, `track`, `type`, `role`, `start_jdn`, `start_display`, `end_jdn`, `end_display`, `status`, `source_id`.
-
----
 
 ## Cosa NON fare
 
-- **Non ricostruire la General Temporal Projection.** È completa nella sua struttura.
-- **Non aggiungere motori di visualizzazione esterni** (JFreeChart, TimelineJS, ecc.). Il codebase ha già tutto il necessario.
-- **Non complicare il layout con troppe lane.** Se aggiungi categorie di eventi, il numero di track per riga può esplodere. Meglio mantenere la struttura a tre track (EVENT, ATTRIBUTE, CONTEXT) e usare il **colore** per distinguere le categorie dentro EVENT.
-- **Non tentare di supportare calendari astronomici.** Il protocollo lo permette, ma la complessità non è giustificata per una genealogia europea.
-
----
-
-## Riepilogo
-
-| Aspetto del punto 1 | Stato | Priorità |
-|---|---|---|
-| Timeline multi-entità con eventi, attributi, contesti | ✓ completo | — |
-| Calendari (5 su 12) | parziale | alta (french_republican, hebrew) |
-| Precisione ridotta (decade, secolo) | ✓ completo | — |
-| Approssimazione | ✓ completo | — |
-| Bounded / spanning | ✓ completo | — |
-| Stato active/ended/unknown | ✓ completo | — |
-| **Lifespan bar** | ✗ mancante | alta |
-| **Allineamento per generazione** | ✗ mancante | alta |
-| **Età agli eventi** | ✗ mancante | media |
-| **Durata delle relazioni** | ✗ mancante | media |
-| **Analisi sovrapposizione** | ✗ mancante | media |
-| **Biografia narrativa** | ✗ mancante | media |
-| **Confronto affiancato** | ✗ mancante | bassa |
-| **Categorie di eventi** | ✗ mancante | media |
-| **Export tabellare** | ✗ mancante | bassa |
-| **Heatmap temporale** | ✗ mancante | bassa |
-| **Evidenza negativa** | ✗ mancante | bassa |
-
-Il punto 1 è coperto **strutturalmente** dalla General Temporal Projection, ma mancano le estensioni che la rendono una **Life Map** completa (lifespan bar, età, generazioni) e gli strumenti di **analisi** (sovrapposizione, densità, biografia).
-
-Se vuoi procedere, suggerirei di partire dall'**Estensione A** (lifespan bar + generazioni), perché è quella che più cambia la percezione della vista: trasforma un grafico di eventi in una vera mappa delle vite.
+- Non ricostruire la General Temporal Projection: la struttura è completa.
+- Non aggiungere motori di visualizzazione esterni (JFreeChart, TimelineJS, ...).
+- Non moltiplicare le lane: mantenere tre track (EVENT, ATTRIBUTE, CONTEXT) e usare il colore per le categorie di evento.

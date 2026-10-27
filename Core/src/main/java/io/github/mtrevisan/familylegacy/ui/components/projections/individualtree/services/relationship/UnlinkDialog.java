@@ -385,7 +385,8 @@ public class UnlinkDialog extends JDialog{
 		final Map<String, List<FLEFRecord>> groups = new TreeMap<>();
 		for(final FLEFRecord record : records){
 			final String groupKey = extractSubGroupKey(record);
-			groups.computeIfAbsent(groupKey, k -> new ArrayList<>()).add(record);
+			groups.computeIfAbsent(groupKey, k -> new ArrayList<>())
+				.add(record);
 		}
 
 		final JPanel contentPanel = new JPanel(new MigLayout("ins 5,wrap 1,fillx,top,gapy 3", "[grow,fill]", "[]"));

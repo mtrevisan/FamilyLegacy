@@ -190,8 +190,7 @@ class GEDCOM7ToFLEFConverterTest{
 	void validAgainstTheSchema() throws IOException, URISyntaxException{
 		final FLEFModel model = convert();
 
-		final Path grammarPath = Path.of(Objects.requireNonNull(GEDCOM7ToFLEFConverterTest.class.getResource(
-			"/gedg/flef_0.2.0.gedg")).toURI());
+		final Path grammarPath = Path.of(GEDCOM7ToFLEFConverterTest.class.getResource("/gedg/flef_0.2.0.gedg").toURI());
 		final FLEFGrammar grammar = FLEFGrammarParser.parse(grammarPath);
 		final FLEFValidator validator = new FLEFValidator(grammar);
 		Assertions.assertEquals(List.of(), validator.validateSchema(model));

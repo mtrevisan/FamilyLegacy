@@ -63,12 +63,15 @@ import io.github.mtrevisan.calendars.seleucid.SeleucidCalendarStrategy;
 import io.github.mtrevisan.calendars.sovieteternal.SovietEternalCalendarStrategy;
 import io.github.mtrevisan.calendars.spi.CalendarConverterPlugin;
 import io.github.mtrevisan.calendars.spi.CalendarMetadata;
+import io.github.mtrevisan.calendars.spi.DateInterpretation;
 import io.github.mtrevisan.calendars.swedish.SwedishCalendarStrategy;
 import io.github.mtrevisan.calendars.venetan.VenetanCalendarStrategy;
 import io.github.mtrevisan.calendars.yearstart.EasterStyleCalendarStrategy;
 import io.github.mtrevisan.calendars.yearstart.YearStartStyleCalendarStrategy;
 
 import java.time.LocalDate;
+import java.util.List;
+import java.util.Locale;
 
 
 /**
@@ -163,6 +166,11 @@ public enum CalendarType implements CalendarConverterPlugin{
 	@Override
 	public CalendarMetadata getMetadata(final String rawDate){
 		return strategy.getMetadata(rawDate);
+	}
+
+	@Override
+	public List<DateInterpretation> getInterpretations(final String rawDate, final Locale locale){
+		return strategy.getInterpretations(rawDate, locale);
 	}
 
 	/**

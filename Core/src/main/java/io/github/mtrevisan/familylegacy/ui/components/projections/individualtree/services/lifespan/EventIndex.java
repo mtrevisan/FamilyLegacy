@@ -33,6 +33,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.NormalizedDate;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.TemporalSpan;
+import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventParticipationHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.GroupHandler;
@@ -101,29 +102,31 @@ public final class EventIndex{
 	public static EventIndex build(final FLEFModel model){
 		// Collect participations grouped by event.
 		final Map<String, List<FLEFRecord>> participationsByEvent = new LinkedHashMap<>();
-		final List<FLEFRecord> eventParticipations = model.getRecordsByType(EventParticipationHandler.TYPE);
+		final List<FLEFRecord> eventParticipations = PrivacyService.visible(model, model.getRecordsByType(EventParticipationHandler.TYPE));
 		for(final FLEFRecord eventParticipation : eventParticipations){
 			final String eventId = FLEFRecordHelper.getChildValue(eventParticipation, EventHandler.TYPE);
 			if(eventId == null)
 				continue;
 
-			participationsByEvent.computeIfAbsent(eventId, k -> new ArrayList<>()).add(eventParticipation);
+			participationsByEvent.computeIfAbsent(eventId, k -> new ArrayList<>())
+				.add(eventParticipation);
 		}
 
 		// Build the event datum for each event.
 		final List<EventDatum> events = new ArrayList<>();
 		final Map<String, EventDatum> byId = new HashMap<>();
-		final List<FLEFRecord> eventRecords = model.getRecordsByType(EventHandler.TYPE);
+		final List<FLEFRecord> eventRecords = PrivacyService.visible(model, model.getRecordsByType(EventHandler.TYPE));
 		for(final FLEFRecord event : eventRecords){
 			final String id = event.getId();
 			if(id == null)
 				continue;
 
 			final String type = EventReader.extractType(event);
-			final String description = FLEFRecordHelper.getChildValue(event, "description");
+			final String description = FLEFRecordHelper.getChildValue(event, EventReader.TAG_DESCRIPTION);
 
 			// Date.
-			final TemporalSpan span = DateReader.extractTemporalSpan(event);
+			final FLEFRecord eventDateRecord = FLEFRecordHelper.findChild(event, EventReader.TAG_DATE);
+			final TemporalSpan span = DateReader.extractTemporalSpan(eventDateRecord);
 			final NormalizedDate date = (span != null? span.start(): null);
 
 			// Place.
@@ -147,7 +150,7 @@ public final class EventIndex{
 			}
 
 			final EventDatum datum = new EventDatum(id, (type != null? type: "unknown"),
-				description != null? description: StringUtils.EMPTY, date, placeId, placeName, participants);
+				(description != null? description: StringUtils.EMPTY), date, placeId, placeName, participants);
 			events.add(datum);
 			byId.put(id, datum);
 		}
@@ -164,11 +167,14 @@ public final class EventIndex{
 		final Map<String, List<EventDatum>> byParticipant = new HashMap<>();
 		final Map<String, List<EventDatum>> byPlace = new HashMap<>();
 		for(final EventDatum e : events){
-			byType.computeIfAbsent(e.type(), k -> new ArrayList<>()).add(e);
+			byType.computeIfAbsent(e.type(), k -> new ArrayList<>())
+				.add(e);
 			for(final Participant p : e.participants())
-				byParticipant.computeIfAbsent(p.id(), k -> new ArrayList<>()).add(e);
+				byParticipant.computeIfAbsent(p.id(), k -> new ArrayList<>())
+					.add(e);
 			if(e.hasPlace())
-				byPlace.computeIfAbsent(e.placeId(), k -> new ArrayList<>()).add(e);
+				byPlace.computeIfAbsent(e.placeId(), k -> new ArrayList<>())
+					.add(e);
 		}
 
 		return new EventIndex(events, byType, byParticipant, byPlace, byId);

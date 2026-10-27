@@ -204,7 +204,8 @@ final class GroupStorySection implements SectionBuilder{
 				if(ctx.config.sources())
 					extras.addAll(ctx.citations().citations(m));
 				if(ctx.config.evidence())
-					ctx.citations().addEvidence(m, extras);
+					ctx.citations()
+						.addEvidence(m, extras);
 				extras.addAll(ctx.citations().audit(m));
 				if(!extras.isEmpty()){
 					out.add(new ReportSection.Heading(3,
@@ -295,7 +296,8 @@ final class GroupStorySection implements SectionBuilder{
 		if(ctx.config.sources())
 			out.addAll(ctx.citations().citations(rel));
 		if(ctx.config.evidence())
-			ctx.citations().addEvidence(rel, out);
+			ctx.citations()
+				.addEvidence(rel, out);
 		out.addAll(ctx.citations().audit(rel));
 	}
 
@@ -335,7 +337,8 @@ final class GroupStorySection implements SectionBuilder{
 		if(ctx.config.sources())
 			out.addAll(ctx.citations().citations(evt));
 		if(ctx.config.evidence())
-			ctx.citations().addEvidence(evt, out);
+			ctx.citations()
+				.addEvidence(evt, out);
 		out.addAll(ctx.citations().audit(evt));
 	}
 

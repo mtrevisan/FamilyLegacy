@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
+import io.github.mtrevisan.familylegacy.ui.tools.ToolDialogs;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JButton;
@@ -71,6 +72,7 @@ public final class FilePropertiesDialog extends JDialog{
 
 	private FilePropertiesDialog(final Window owner, final File file, final FLEFModel model){
 		super(owner, "File Properties", ModalityType.APPLICATION_MODAL);
+		ToolDialogs.installEscapeToClose(this);
 
 		final String report = buildReport(file, model);
 

@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.EvidenceQualifiersReade
 import io.github.mtrevisan.familylegacy.io.model.readers.NoteReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PrivacyReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
+import io.github.mtrevisan.familylegacy.privacy.PrivacyPolicy;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;

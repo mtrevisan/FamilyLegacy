@@ -78,7 +78,8 @@ final class SourceRootSection implements SectionBuilder{
 		if(ctx.config.notes())
 			out.addAll(ctx.citations().notes(ctx.root));
 		if(ctx.config.evidence())
-			ctx.citations().addEvidence(ctx.root, out);
+			ctx.citations()
+				.addEvidence(ctx.root, out);
 		out.addAll(ctx.citations().audit(ctx.root));
 		out.addAll(ctx.citations().privacyInfo(ctx.root));
 		return out;

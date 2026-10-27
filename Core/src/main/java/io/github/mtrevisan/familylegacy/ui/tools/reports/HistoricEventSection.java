@@ -144,7 +144,8 @@ final class HistoricEventSection implements SectionBuilder{
 		if(ctx.config.sources())
 			out.addAll(ctx.citations().citations(evt));
 		if(ctx.config.evidence())
-			ctx.citations().addEvidence(evt, out);
+			ctx.citations()
+				.addEvidence(evt, out);
 		out.addAll(ctx.citations().audit(evt));
 	}
 

@@ -30,7 +30,9 @@ import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.AbstractAction;
+import javax.swing.ActionMap;
 import javax.swing.Icon;
+import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JList;
@@ -184,10 +186,10 @@ public class BindingsHelper{
 
 	private static void addKeyboardShortcut(final JComponent component, final int virtualKey, final String actionMapKey,
 		final Runnable action){
-		component.getInputMap()
-			.put(KeyStroke.getKeyStroke(virtualKey, 0), actionMapKey);
-		component.getActionMap()
-			.put(actionMapKey, new AbstractAction(){
+		final InputMap inputMap = component.getInputMap();
+		inputMap.put(KeyStroke.getKeyStroke(virtualKey, 0), actionMapKey);
+		final ActionMap actionMap = component.getActionMap();
+		actionMap.put(actionMapKey, new AbstractAction(){
 				@Override
 				public void actionPerformed(final ActionEvent ae){
 					action.run();

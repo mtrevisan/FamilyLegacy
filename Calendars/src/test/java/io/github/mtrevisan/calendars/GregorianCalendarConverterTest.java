@@ -81,10 +81,9 @@ class GregorianCalendarConverterTest{
 		// "pri" with day is April (Albanian)
 		Assertions.assertEquals(CalendarType.GREGORIAN.parseToJdn("15 April 2024"), CalendarType.GREGORIAN.parseToJdn("15 pri 2024"));
 
-		// "ber" without day is spring (Kurdish December vs Sardinian spring: season wins)
+		// "ber" without day is spring (Kurdish December vs Sardinian spring: season wins); "15 ber" is not checked, because
+		// the Kurdish abbreviation of December depends on the CLDR data of the JDK ("ber" in JDK 17, "brf" in JDK 25)
 		Assertions.assertEquals(2460390L, CalendarType.GREGORIAN.parseToJdn("ber 2024"));
-		// "ber" with day is December (Kurdish)
-		Assertions.assertEquals(CalendarType.GREGORIAN.parseToJdn("15 December 2024"), CalendarType.GREGORIAN.parseToJdn("15 ber 2024"));
 
 		// Pure seasons with a day number are rejected as invalid dates
 		Assertions.assertThrows(IllegalArgumentException.class, () -> CalendarType.GREGORIAN.parseToJdn("15 spring 2024"));

@@ -51,7 +51,7 @@ public final class SearchCriteria{
 
 
 	public SearchCriteria(final RecordTypeHandler<?> handler, final String query, final Set<SearchMode> modes){
-		this.handler = Objects.requireNonNull(handler, "handler must not be null");
+		this.handler = handler;
 		this.query = (query != null? query: StringUtils.EMPTY);
 		this.modes = modes;
 	}

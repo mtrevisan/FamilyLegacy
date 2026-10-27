@@ -312,7 +312,8 @@ public final class ChronomapTimeline extends JPanel{
 	}
 
 	private void configureGlobalKeyDispatcher(){
-		KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(e -> {
+		final KeyboardFocusManager currentKeyboardFocusManager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
+		currentKeyboardFocusManager.addKeyEventDispatcher(e -> {
 			if(e.getID() != KeyEvent.KEY_PRESSED || !isShowing())
 				return false;
 

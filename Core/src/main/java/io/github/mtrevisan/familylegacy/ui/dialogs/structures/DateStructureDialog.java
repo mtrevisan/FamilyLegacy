@@ -67,8 +67,6 @@ public class DateStructureDialog extends JDialog{
 	 */
 	public static DateStructureDialog createEdit(final Window parent, final FLEFModel model, final String title,
 			final FLEFRecord record){
-		Objects.requireNonNull(record, "Record cannot be null");
-
 		return new DateStructureDialog(parent, model, title, record);
 	}
 

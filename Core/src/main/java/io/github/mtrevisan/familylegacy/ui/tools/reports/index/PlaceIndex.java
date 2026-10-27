@@ -88,7 +88,8 @@ public final class PlaceIndex{
 				continue;
 			final String placeId = FLEFRecordHelper.getChildValue(event, "place.place");
 			if(placeId != null)
-				placeToEventsMap.computeIfAbsent(placeId, k -> new ArrayList<>()).add(event);
+				placeToEventsMap.computeIfAbsent(placeId, k -> new ArrayList<>())
+					.add(event);
 		}
 
 		// ----- Events in which a place participates ---------------------
@@ -122,7 +123,8 @@ public final class PlaceIndex{
 				continue;
 			final String placeId = FLEFRecordHelper.getChildValue(individualAttribute, "place.place");
 			if(placeId != null)
-				placeToAttributesMap.computeIfAbsent(placeId, k -> new ArrayList<>()).add(individualAttribute);
+				placeToAttributesMap.computeIfAbsent(placeId, k -> new ArrayList<>())
+					.add(individualAttribute);
 		}
 
 		// ----- Place relationships (both directions) -------------------

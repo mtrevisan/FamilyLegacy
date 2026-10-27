@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceRelationshipReader;
+import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.PlaceRelationshipHandler;
 import org.apache.commons.lang3.StringUtils;
@@ -302,7 +303,7 @@ public final class PlaceCoordinateResolver{
 	 * @return the places that need a real Nominatim lookup; never {@code null}
 	 */
 	List<FLEFRecord> extractMissingPlaces(){
-		final List<FLEFRecord> places = model.getRecordsByType(PlaceHandler.TYPE);
+		final List<FLEFRecord> places = PrivacyService.visible(model, model.getRecordsByType(PlaceHandler.TYPE));
 		final List<FLEFRecord> unlocatedPlaces = new ArrayList<>();
 		int warmed = 0;
 		int skippedAsNotFound = 0;
@@ -462,7 +463,7 @@ public final class PlaceCoordinateResolver{
 
 	private void buildHierarchyCache(){
 		final Deque<String> queue = new ArrayDeque<>();
-		final List<FLEFRecord> places = model.getRecordsByType(PlaceHandler.TYPE);
+		final List<FLEFRecord> places = PrivacyService.visible(model, model.getRecordsByType(PlaceHandler.TYPE));
 		for(final FLEFRecord place : places){
 			final String placeId = place.getId();
 			if(placeId == null)
@@ -477,7 +478,7 @@ public final class PlaceCoordinateResolver{
 		}
 
 		final Map<String, List<String>> childrenOf = new HashMap<>();
-		final List<FLEFRecord> placeRelationships = model.getRecordsByType(PlaceRelationshipHandler.TYPE);
+		final List<FLEFRecord> placeRelationships = PrivacyService.visible(model, model.getRecordsByType(PlaceRelationshipHandler.TYPE));
 		for(final FLEFRecord placeRelationship : placeRelationships){
 			final String type = PlaceRelationshipReader.extractType(placeRelationship);
 			if(type == null || !PART_OF_TYPES.contains(type))
@@ -488,7 +489,8 @@ public final class PlaceCoordinateResolver{
 			if(childId == null || objectId == null)
 				continue;
 
-			childrenOf.computeIfAbsent(objectId, k -> new ArrayList<>()).add(childId);
+			childrenOf.computeIfAbsent(objectId, k -> new ArrayList<>())
+				.add(childId);
 		}
 
 		while(!queue.isEmpty()){

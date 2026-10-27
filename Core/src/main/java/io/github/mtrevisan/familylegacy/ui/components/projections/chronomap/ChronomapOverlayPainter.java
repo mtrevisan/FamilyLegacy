@@ -25,6 +25,8 @@
 package io.github.mtrevisan.familylegacy.ui.components.projections.chronomap;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
+import io.github.mtrevisan.familylegacy.ui.components.PrivacyBadge;
 import io.github.mtrevisan.familylegacy.ui.components.projections.chronomap.ChronomapIndex.GeoAnchor;
 import io.github.mtrevisan.familylegacy.ui.components.projections.chronomap.ChronomapIndex.GeoCoordinate;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
@@ -188,6 +190,10 @@ public final class ChronomapOverlayPainter implements ChronomapLayer{
 			}
 			else
 				drawMarker(g, (int)p.getX(), (int)p.getY(), colorFor(id), labelFor(id), selected);
+
+			//a ring signals a restricted or confidential individual or group
+			PrivacyBadge.paintRing(g, PrivacyService.resolver(model)
+				.describe(model.getRecordById(id)), (int)p.getX(), (int)p.getY(), MARKER_RADIUS);
 		}
 	}
 

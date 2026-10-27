@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.components.MultiLineLabel;
+import io.github.mtrevisan.familylegacy.ui.components.PrivacyBadge;
 import io.github.mtrevisan.familylegacy.ui.components.projections.BoxPanelType;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.helpers.PopupMouseAdapter;
@@ -429,6 +430,12 @@ public class IndividualPanel extends JPanel{
 
 			infoLabel.setText(data.getInfoText());
 			infoLabel.setToolTipText(data.getInfoTooltip());
+
+			//the privacy of the individual is signaled with a padlock
+			infoLabel.setIcon(PrivacyBadge.of(data.getPrivacy()));
+			final String privacyTooltip = PrivacyBadge.tooltip(data.getPrivacy());
+			if(privacyTooltip != null)
+				nameLabel.setToolTipText(Objects.toString(data.getNameTooltip(), "") + " " + privacyTooltip);
 
 			// Set the default image/placeholder
 			imageLabel.setIcon(boxType == BoxPanelType.PRIMARY

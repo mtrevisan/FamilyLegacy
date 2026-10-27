@@ -30,11 +30,14 @@ import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.AbstractAction;
+import javax.swing.ActionMap;
+import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JProgressBar;
+import javax.swing.JRootPane;
 import javax.swing.SwingUtilities;
 import java.awt.Dimension;
 import java.awt.Window;
@@ -81,10 +84,11 @@ public final class GeocodingProgressDialog extends JDialog{
 	}
 
 	private void setupEscapeKey(){
-		getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
-			.put(GUIHelper.ESCAPE_STROKE, ACTION_CANCEL_GEOCODING);
-		getRootPane().getActionMap()
-			.put(ACTION_CANCEL_GEOCODING, new AbstractAction(){
+		final JRootPane rootPane1 = getRootPane();
+		final InputMap inputMap = rootPane1.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+		inputMap.put(GUIHelper.ESCAPE_STROKE, ACTION_CANCEL_GEOCODING);
+		final ActionMap actionMap = rootPane1.getActionMap();
+		actionMap.put(ACTION_CANCEL_GEOCODING, new AbstractAction(){
 				@Override
 				public void actionPerformed(final ActionEvent e){
 					cancel();

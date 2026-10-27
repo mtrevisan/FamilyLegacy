@@ -43,7 +43,7 @@ import java.nio.file.Paths;
  * The grammar file is fixed and never changes at runtime, so it is parsed once and shared. It is read from the classpath, and
  * from the source tree when running from the IDE without resources.
  */
-final class MergeGrammar{
+public final class MergeGrammar{
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(MergeGrammar.class);
 
@@ -59,7 +59,7 @@ final class MergeGrammar{
 	/**
 	 * @return the grammar, or {@code null} if it cannot be read
 	 */
-	static FLEFGrammar instance(){
+	public static FLEFGrammar instance(){
 		return INSTANCE;
 	}
 

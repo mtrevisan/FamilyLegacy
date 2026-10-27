@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.ui.components.projections.relationshipg
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
+import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualData;
 import io.github.mtrevisan.familylegacy.ui.components.projections.repository.GenealogyRepository;
 import io.github.mtrevisan.familylegacy.ui.handlers.GroupHandler;
@@ -216,14 +217,16 @@ public class EgoNetworkService{
 			return;
 
 		// Index relationships by entity id.
-		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
+		final List<FLEFRecord> relationships = PrivacyService.visible(model, model.getRecordsByType(RelationshipHandler.TYPE));
 		for(final FLEFRecord relationship : relationships){
 			final String subjectId = extractParticipantId(relationship, RelationshipReader.TAG_SUBJECT);
 			final String objectId = extractParticipantId(relationship, RelationshipReader.TAG_TARGET);
 			if(subjectId != null)
-				relationshipsByEntityId.computeIfAbsent(subjectId, k -> new ArrayList<>()).add(relationship);
+				relationshipsByEntityId.computeIfAbsent(subjectId, k -> new ArrayList<>())
+					.add(relationship);
 			if(objectId != null)
-				relationshipsByEntityId.computeIfAbsent(objectId, k -> new ArrayList<>()).add(relationship);
+				relationshipsByEntityId.computeIfAbsent(objectId, k -> new ArrayList<>())
+					.add(relationship);
 		}
 
 		relationshipsIndexed = true;

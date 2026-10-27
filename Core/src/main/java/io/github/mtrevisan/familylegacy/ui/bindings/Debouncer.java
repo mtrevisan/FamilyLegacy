@@ -55,7 +55,7 @@ public class Debouncer<T>{
 
 
 	public Debouncer(final Consumer<T> callback, final int intervalMs){
-		this.callback = Objects.requireNonNull(callback, "Callback cannot be null");
+		this.callback = callback;
 		this.intervalMs = intervalMs;
 	}
 

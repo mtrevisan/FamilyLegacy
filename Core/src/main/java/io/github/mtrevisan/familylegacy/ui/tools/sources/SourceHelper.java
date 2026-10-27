@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.MediaReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
+import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.ui.handlers.MediaHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RepositoryHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.SourceHandler;
@@ -57,15 +58,15 @@ public final class SourceHelper{
 
 
 	public static List<FLEFRecord> listAllSources(final FLEFModel model){
-		return model.getRecordsByType(SourceHandler.TYPE);
+		return PrivacyService.visible(model, model.getRecordsByType(SourceHandler.TYPE));
 	}
 
 	public static List<FLEFRecord> listAllRepositories(final FLEFModel model){
-		return model.getRecordsByType(RepositoryHandler.TYPE);
+		return PrivacyService.visible(model, model.getRecordsByType(RepositoryHandler.TYPE));
 	}
 
 	public static List<FLEFRecord> listAllDocuments(final FLEFModel model){
-		return model.getRecordsByType(MediaHandler.TYPE);
+		return PrivacyService.visible(model, model.getRecordsByType(MediaHandler.TYPE));
 	}
 
 	public static Map<String, FLEFRecord> indexById(final List<FLEFRecord> records){
@@ -171,7 +172,7 @@ public final class SourceHelper{
 	public static Map<String, Integer> countCitationsPerSource(final FLEFModel model){
 		final Map<String, Integer> counts = new LinkedHashMap<>();
 		for(final String type : allSourceCitingTypes()){
-			final List<FLEFRecord> records = model.getRecordsByType(type);
+			final List<FLEFRecord> records = PrivacyService.visible(model, model.getRecordsByType(type));
 			for(final FLEFRecord record : records)
 				incrementCitations(record, counts);
 		}
@@ -197,7 +198,7 @@ public final class SourceHelper{
 
 		// Documents referenced by an extract inside a citation.
 		for(final String type : allSourceCitingTypes()){
-			final List<FLEFRecord> records = model.getRecordsByType(type);
+			final List<FLEFRecord> records = PrivacyService.visible(model, model.getRecordsByType(type));
 			for(final FLEFRecord record : records)
 				countDocumentsInCitations(record, counts);
 		}

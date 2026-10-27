@@ -78,9 +78,12 @@ public final class PedigreeIndex{
 				final FLEFRecord parent = model.getRecordById(parentId);
 
 				if(child != null && parent != null && filter.test(child) && filter.test(parent)){
-					parentToChildrenMap.computeIfAbsent(parentId, k -> new ArrayList<>()).add(child);
-					childToParentsMap.computeIfAbsent(childId, k -> new ArrayList<>()).add(parent);
-					childToParentEdgesMap.computeIfAbsent(childId, k -> new ArrayList<>()).add(new ParentEdge(parent, type));
+					parentToChildrenMap.computeIfAbsent(parentId, k -> new ArrayList<>())
+						.add(child);
+					childToParentsMap.computeIfAbsent(childId, k -> new ArrayList<>())
+						.add(parent);
+					childToParentEdgesMap.computeIfAbsent(childId, k -> new ArrayList<>())
+						.add(new ParentEdge(parent, type));
 				}
 			}
 		}

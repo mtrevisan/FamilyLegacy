@@ -66,7 +66,8 @@ final class IdentityHypothesisRootSection implements SectionBuilder{
 		if(ctx.config.sources())
 			out.addAll(ctx.citations().citations(ctx.root));
 		if(ctx.config.evidence())
-			ctx.citations().addEvidence(ctx.root, out);
+			ctx.citations()
+				.addEvidence(ctx.root, out);
 		out.addAll(ctx.citations().audit(ctx.root));
 		return out;
 	}

@@ -27,6 +27,9 @@ package io.github.mtrevisan.familylegacy.ui.components.projections.dossier;
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.privacy.PrivacyResolver;
+import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
+import io.github.mtrevisan.familylegacy.ui.components.PrivacyBadge;
 import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
@@ -331,6 +334,13 @@ public class GroupDossierPanel extends JPanel{
 			final JLabel valueLabel = new JLabel(entry.value());
 			valueLabel.setFont(VALUE_FONT);
 			valueLabel.setForeground(entry.isEditable()? LINK_COLOR: VALUE_COLOR);
+			if(entry.editRecord() != null){
+				//a padlock signals a restricted or confidential record
+				final PrivacyResolver.Effective privacy = PrivacyService.resolver(model)
+					.describe(entry.editRecord());
+				valueLabel.setIcon(PrivacyBadge.of(privacy));
+				valueLabel.setToolTipText(PrivacyBadge.tooltip(privacy));
+			}
 
 			final JLabel subtitleLabel = new JLabel(entry.subtitle());
 			subtitleLabel.setFont(SUBTITLE_FONT);

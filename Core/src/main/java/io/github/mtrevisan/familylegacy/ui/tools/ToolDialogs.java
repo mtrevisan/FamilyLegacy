@@ -31,6 +31,7 @@ import javax.swing.ActionMap;
 import javax.swing.InputMap;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
+import javax.swing.JRootPane;
 import java.awt.event.ActionEvent;
 
 
@@ -68,10 +69,9 @@ public final class ToolDialogs{
 	 *               {@code null}
 	 */
 	public static void installEscapeToClose(final JDialog dialog){
-		final InputMap inputMap = dialog.getRootPane()
-			.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
-		final ActionMap actionMap = dialog.getRootPane()
-			.getActionMap();
+		final JRootPane rootPane = dialog.getRootPane();
+		final InputMap inputMap = rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+		final ActionMap actionMap = rootPane.getActionMap();
 		inputMap.put(GUIHelper.ESCAPE_STROKE, ACTION_CLOSE);
 		actionMap.put(ACTION_CLOSE, new AbstractAction(){
 			@Override

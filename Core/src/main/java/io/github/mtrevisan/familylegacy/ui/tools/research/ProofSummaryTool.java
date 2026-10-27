@@ -70,7 +70,8 @@ public final class ProofSummaryTool implements ToolOperation{
 			final String status = ResearchHelper.proofStatus(conclusion);
 			final String key = (status != null && !status.isBlank()
 				? status.toLowerCase(Locale.ROOT): "(not set)");
-			byStatus.computeIfAbsent(key, k -> new ArrayList<>()).add(conclusion);
+			byStatus.computeIfAbsent(key, k -> new ArrayList<>())
+				.add(conclusion);
 		}
 
 		ReportDialog.showHtml(context.owner(), "Proof Summary",

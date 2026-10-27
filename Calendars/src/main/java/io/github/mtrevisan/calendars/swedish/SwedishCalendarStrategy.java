@@ -34,6 +34,10 @@ import io.github.mtrevisan.calendars.gregorian.Indiction;
 import io.github.mtrevisan.calendars.gregorian.JulianCalendarStrategy;
 import io.github.mtrevisan.calendars.spi.CalendarConverterPlugin;
 import io.github.mtrevisan.calendars.spi.CalendarMetadata;
+import io.github.mtrevisan.calendars.spi.DateInterpretation;
+
+import java.util.List;
+import java.util.Locale;
 
 
 /**
@@ -119,6 +123,11 @@ public class SwedishCalendarStrategy implements CalendarConverterPlugin{
 			|| year == SWEDISH_START_YEAR && month > 2
 			|| year == SWEDISH_END_YEAR && month <= 2);
 		return (swedishPeriod? julianJdn - 1: julianJdn);
+	}
+
+	@Override
+	public List<DateInterpretation> getInterpretations(final String rawDate, final Locale locale){
+		return GregorianCalendarParser.interpretations(rawDate, locale);
 	}
 
 	@Override

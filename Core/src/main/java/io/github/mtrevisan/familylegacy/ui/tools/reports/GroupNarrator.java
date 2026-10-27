@@ -60,8 +60,8 @@ final class GroupNarrator{
 
 	GroupNarrator(final FLEFModel model, final RelationIndex idx, final ReportLabels labels){
 		this.model = model;
-		this.idx = Objects.requireNonNull(idx);
-		this.labels = Objects.requireNonNull(labels);
+		this.idx = idx;
+		this.labels = labels;
 	}
 
 

@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.ui.tools.reports;
 
+import io.github.mtrevisan.familylegacy.privacy.PrivacyPolicy;
+
 import java.util.Objects;
 
 

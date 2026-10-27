@@ -61,7 +61,8 @@ public final class GroupIndex{
 				continue;
 			final String groupId = FLEFRecordHelper.getChildValue(groupAttribute, "group");
 			if(groupId != null){
-				groupToAttrsMap.computeIfAbsent(groupId, k -> new ArrayList<>()).add(groupAttribute);
+				groupToAttrsMap.computeIfAbsent(groupId, k -> new ArrayList<>())
+					.add(groupAttribute);
 			}
 		}
 
@@ -76,11 +77,14 @@ public final class GroupIndex{
 			final String subjectGroup = FLEFRecordHelper.getChildValue(relationship, RelationshipReader.TAG_SUBJECT + DOT + GroupHandler.TYPE);
 
 			if("group_member".equalsIgnoreCase(type) && objectGroup != null){
-				groupToMembersMap.computeIfAbsent(objectGroup, k -> new ArrayList<>()).add(relationship);
+				groupToMembersMap.computeIfAbsent(objectGroup, k -> new ArrayList<>())
+					.add(relationship);
 			}
 			else if("part_of".equalsIgnoreCase(type) && subjectGroup != null && objectGroup != null){
-				groupToParentGroupsMap.computeIfAbsent(subjectGroup, k -> new ArrayList<>()).add(relationship);
-				groupToChildGroupsMap.computeIfAbsent(objectGroup, k -> new ArrayList<>()).add(relationship);
+				groupToParentGroupsMap.computeIfAbsent(subjectGroup, k -> new ArrayList<>())
+					.add(relationship);
+				groupToChildGroupsMap.computeIfAbsent(objectGroup, k -> new ArrayList<>())
+					.add(relationship);
 			}
 		}
 	}

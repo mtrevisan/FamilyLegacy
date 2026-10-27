@@ -408,10 +408,10 @@ public final class GUIHelper{
 			}
 		};
 		cancelButton.addActionListener(escapeAction);
-		rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
-			.put(ESCAPE_STROKE, "escape");
-		rootPane.getActionMap()
-			.put("escape", escapeAction);
+		final InputMap inputMap = rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+		inputMap.put(ESCAPE_STROKE, "escape");
+		final ActionMap actionMap = rootPane.getActionMap();
+		actionMap.put("escape", escapeAction);
 
 		dialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
 		dialog.addWindowListener(new WindowAdapter(){
@@ -445,10 +445,10 @@ public final class GUIHelper{
 			}
 		};
 		cancelButton.addActionListener(escapeAction);
-		rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
-			.put(ESCAPE_STROKE, "escape");
-		rootPane.getActionMap()
-			.put("escape", escapeAction);
+		final InputMap inputMap = rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+		inputMap.put(ESCAPE_STROKE, "escape");
+		final ActionMap actionMap = rootPane.getActionMap();
+		actionMap.put("escape", escapeAction);
 
 		return buttonPanel;
 	}

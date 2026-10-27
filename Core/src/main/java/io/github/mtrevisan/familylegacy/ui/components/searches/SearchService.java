@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.ui.components.searches;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.ui.components.searches.strategies.ConclusionSearchStrategy;
 import io.github.mtrevisan.familylegacy.ui.components.searches.strategies.CulturalNormSearchStrategy;
 import io.github.mtrevisan.familylegacy.ui.components.searches.strategies.EventSearchStrategy;
@@ -158,7 +159,8 @@ public class SearchService{
 		// Stage 1: structural filters (sex, event type, date range, place, ...).
 		final Predicate<FLEFRecord> structuralFilter = strategy.buildPredicate(criteria, model);
 
-		final List<FLEFRecord> records = model.getRecordsByType(handler.getType());
+		//the records hidden by the privacy policy are not found
+		final List<FLEFRecord> records = PrivacyService.visible(model, model.getRecordsByType(handler.getType()));
 
 		// Fast path: no text query. Structural filters only, no ranking.
 		final String query = criteria.query();

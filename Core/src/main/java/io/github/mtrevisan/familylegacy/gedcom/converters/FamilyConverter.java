@@ -244,7 +244,8 @@ public class FamilyConverter{
 			String groupName = (husbandName.isEmpty()? "?": husbandName) + " and " + (wifeName.isEmpty()? "?": wifeName);
 			FLEFRecord nameRec = FLEFRecord.createChildWithTag("name")
 				.addChild(FLEFRecord.createChildWithTagAndValue("value", groupName + " family"));
-			group.getChildren().addFirst(nameRec);
+			group.getChildren()
+				.addFirst(nameRec);
 
 			// ---- Group memberships: every family member belongs to the family group ----
 			// A family is a group in the FLEF model, and the group only

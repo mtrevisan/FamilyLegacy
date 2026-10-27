@@ -94,13 +94,11 @@ public final class FileMenuController{
 	private File lastDirectory;
 
 
-	public FileMenuController(final JFrame owner,
-		final Supplier<FLEFModel> currentModel,
-		final Consumer<FLEFModel> modelReplacer,
-		final Runnable modelClean){
-		this.owner = Objects.requireNonNull(owner);
-		this.currentModel = Objects.requireNonNull(currentModel);
-		this.modelReplacer = Objects.requireNonNull(modelReplacer);
+	public FileMenuController(final JFrame owner, final Supplier<FLEFModel> currentModel,
+			final Consumer<FLEFModel> modelReplacer, final Runnable modelClean){
+		this.owner = owner;
+		this.currentModel = currentModel;
+		this.modelReplacer = modelReplacer;
 		this.modelClean = (modelClean != null? modelClean: () -> {});
 	}
 

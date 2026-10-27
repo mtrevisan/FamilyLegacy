@@ -33,6 +33,10 @@ import io.github.mtrevisan.calendars.gregorian.GregorianDateInput;
 import io.github.mtrevisan.calendars.gregorian.Indiction;
 import io.github.mtrevisan.calendars.spi.CalendarConverterPlugin;
 import io.github.mtrevisan.calendars.spi.CalendarMetadata;
+import io.github.mtrevisan.calendars.spi.DateInterpretation;
+
+import java.util.List;
+import java.util.Locale;
 
 
 /**
@@ -134,6 +138,11 @@ public class YearStartStyleCalendarStrategy implements CalendarConverterPlugin{
 		if(anticipating)
 			return (onOrAfterStart? year - 1: year);
 		return (onOrAfterStart? year: year + 1);
+	}
+
+	@Override
+	public List<DateInterpretation> getInterpretations(final String rawDate, final Locale locale){
+		return GregorianCalendarParser.interpretations(rawDate, locale);
 	}
 
 	@Override

@@ -66,13 +66,15 @@ public final class RelationshipIndex{
 			final String objectGroup = FLEFRecordHelper.getChildValue(relationship, "object.group");
 
 			if(subjectId != null)
-				personToRelationshipsMap.computeIfAbsent(subjectId, k -> new ArrayList<>()).add(relationship);
+				personToRelationshipsMap.computeIfAbsent(subjectId, k -> new ArrayList<>())
+					.add(relationship);
 			if(objectId != null && !objectId.equals(subjectId))
-				personToRelationshipsMap.computeIfAbsent(objectId, k -> new ArrayList<>()).add(relationship);
+				personToRelationshipsMap.computeIfAbsent(objectId, k -> new ArrayList<>())
+					.add(relationship);
 
-			if("group_member".equals(t) && subjectId != null && objectGroup != null){
-				personToGroupMembershipsMap.computeIfAbsent(subjectId, k -> new ArrayList<>()).add(relationship);
-			}
+			if(RelationshipReader.isTypeGroupMember(t) && subjectId != null && objectGroup != null)
+				personToGroupMembershipsMap.computeIfAbsent(subjectId, k -> new ArrayList<>())
+					.add(relationship);
 
 			if(subjectId != null && objectId != null){
 				final FLEFRecord subjRec = model.getRecordById(subjectId);
@@ -80,12 +82,16 @@ public final class RelationshipIndex{
 
 				if(subjRec != null && objeRec != null && filter.test(subjRec) && filter.test(objeRec)){
 					if(t.equals("spouse") || t.endsWith("_spouse") || t.endsWith("_partner")){
-						personToSpousesMap.computeIfAbsent(subjectId, k -> new ArrayList<>()).add(objeRec);
-						personToSpousesMap.computeIfAbsent(objectId, k -> new ArrayList<>()).add(subjRec);
+						personToSpousesMap.computeIfAbsent(subjectId, k -> new ArrayList<>())
+							.add(objeRec);
+						personToSpousesMap.computeIfAbsent(objectId, k -> new ArrayList<>())
+							.add(subjRec);
 					}
-					else if("associate".equals(t)){
-						personToAssociatesMap.computeIfAbsent(subjectId, k -> new ArrayList<>()).add(objeRec);
-						personToAssociatesMap.computeIfAbsent(objectId, k -> new ArrayList<>()).add(subjRec);
+					else if(RelationshipReader.isTypeAssociate(t)){
+						personToAssociatesMap.computeIfAbsent(subjectId, k -> new ArrayList<>())
+							.add(objeRec);
+						personToAssociatesMap.computeIfAbsent(objectId, k -> new ArrayList<>())
+							.add(subjRec);
 					}
 				}
 			}

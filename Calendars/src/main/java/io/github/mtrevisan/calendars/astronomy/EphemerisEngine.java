@@ -55,6 +55,16 @@ public interface EphemerisEngine{
 	double findNextNewMoon(double approximateJdUT);
 
 	/**
+	 * Computes the apparent (geocentric) ecliptic longitude of the Moon for a given Universal Time instant.
+	 *
+	 * @param jdUT the Julian Date in Universal Time (UT/UTC) scale
+	 * @return the apparent lunar longitude in radians, reduced to the interval [0, 2π)
+	 * @throws UnsupportedOperationException if the engine does not provide the Moon position
+	 */
+	double calculateApparentMoonLongitude(final double jdUT);
+
+
+	/**
 	 * Computes the exact Julian Date (UT) when the Sun reaches a specific apparent longitude.
 	 *
 	 * @param approximateJdUT the starting guess in Julian Date UT
@@ -71,16 +81,6 @@ public interface EphemerisEngine{
 	 */
 	double calculateApparentSunLongitude(double jdUT);
 
-	/**
-	 * Computes the apparent (geocentric) ecliptic longitude of the Moon for a given Universal Time instant.
-	 *
-	 * @param jdUT the Julian Date in Universal Time (UT/UTC) scale
-	 * @return the apparent lunar longitude in radians, reduced to the interval [0, 2π)
-	 * @throws UnsupportedOperationException if the engine does not provide the Moon position
-	 */
-	default double calculateApparentMoonLongitude(final double jdUT){
-		throw new UnsupportedOperationException("The astronomical engine does not provide the position of the Moon.");
-	}
 
 	/**
 	 * Computes the exact Julian Date (UT) of a horizon crossing event for a specific body, day and location.

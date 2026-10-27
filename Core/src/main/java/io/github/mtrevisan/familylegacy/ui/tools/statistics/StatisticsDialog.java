@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.ui.tools.statistics;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
+import io.github.mtrevisan.familylegacy.ui.tools.ToolDialogs;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
@@ -97,6 +98,7 @@ public final class StatisticsDialog extends JDialog{
 
 	public StatisticsDialog(final Window owner, final Statistics stats, final FLEFModel model){
 		super(owner, "Statistics", ModalityType.APPLICATION_MODAL);
+		ToolDialogs.installEscapeToClose(this);
 		this.model = model;
 
 		final JTabbedPane tabs = new JTabbedPane();

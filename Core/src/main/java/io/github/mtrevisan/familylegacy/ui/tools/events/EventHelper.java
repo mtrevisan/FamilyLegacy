@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.DateReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceCitationReader;
+import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventParticipationHandler;
 
@@ -63,11 +64,11 @@ public final class EventHelper{
 
 
 	public static List<FLEFRecord> listAllEvents(final FLEFModel model){
-		return model.getRecordsByType(EventHandler.TYPE);
+		return PrivacyService.visible(model, model.getRecordsByType(EventHandler.TYPE));
 	}
 
 	public static List<FLEFRecord> listAllParticipations(final FLEFModel model){
-		return model.getRecordsByType(EventParticipationHandler.TYPE);
+		return PrivacyService.visible(model, model.getRecordsByType(EventParticipationHandler.TYPE));
 	}
 
 	/** Returns the type of the event, or {@code null} when missing. */
@@ -252,7 +253,8 @@ public final class EventHelper{
 		for(final FLEFRecord eventParticipation : eventParticipations){
 			final Participation p = toParticipation(eventParticipation);
 			if(p.eventId() != null)
-				result.computeIfAbsent(p.eventId(), k -> new ArrayList<>()).add(p);
+				result.computeIfAbsent(p.eventId(), k -> new ArrayList<>())
+					.add(p);
 		}
 		return result;
 	}

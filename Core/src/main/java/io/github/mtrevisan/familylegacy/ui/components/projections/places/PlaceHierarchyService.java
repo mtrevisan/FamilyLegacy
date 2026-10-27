@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceRelationshipReader;
+import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.PlaceRelationshipHandler;
 import org.apache.commons.lang3.StringUtils;
@@ -156,7 +157,7 @@ public final class PlaceHierarchyService{
 	public static Hierarchy load(final FLEFModel model){
 		// --- 1. Index every place ---
 		final Map<String, PlaceReference> places = new LinkedHashMap<>();
-		final List<FLEFRecord> placeRecords = model.getRecordsByType(PlaceHandler.TYPE);
+		final List<FLEFRecord> placeRecords = PrivacyService.visible(model, model.getRecordsByType(PlaceHandler.TYPE));
 		for(final FLEFRecord place : placeRecords){
 			final String displayText = PlaceHandler.getInstance()
 				.getDisplayText(place, model);
@@ -167,7 +168,7 @@ public final class PlaceHierarchyService{
 
 		// --- 2. Index every relation that resolves to two known places ---
 		final List<PlaceRelation> relations = new ArrayList<>();
-		final List<FLEFRecord> placeRelationshipRecords = model.getRecordsByType(PlaceRelationshipHandler.TYPE);
+		final List<FLEFRecord> placeRelationshipRecords = PrivacyService.visible(model, model.getRecordsByType(PlaceRelationshipHandler.TYPE));
 		for(final FLEFRecord placeRelationship : placeRelationshipRecords){
 			final PlaceRelation rel = toPlaceRelation(placeRelationship, places);
 			if(rel != null)
@@ -179,8 +180,10 @@ public final class PlaceHierarchyService{
 		final Map<String, List<PlaceRelation>> outgoing = new LinkedHashMap<>();
 		final Map<String, List<PlaceRelation>> incoming = new LinkedHashMap<>();
 		for(final PlaceRelation rel : relations){
-			outgoing.computeIfAbsent(rel.parentId(), k -> new ArrayList<>()).add(rel);
-			incoming.computeIfAbsent(rel.childId(), k -> new ArrayList<>()).add(rel);
+			outgoing.computeIfAbsent(rel.parentId(), k -> new ArrayList<>())
+				.add(rel);
+			incoming.computeIfAbsent(rel.childId(), k -> new ArrayList<>())
+				.add(rel);
 		}
 		for(final List<PlaceRelation> list : outgoing.values())
 			sortRelationsByName(list, places, PlaceRelation::childId);

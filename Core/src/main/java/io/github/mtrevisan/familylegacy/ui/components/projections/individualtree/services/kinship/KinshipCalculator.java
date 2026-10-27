@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
+import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.ui.components.projections.repository.TreeService;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RelationshipHandler;
@@ -576,7 +577,7 @@ public final class KinshipCalculator{
 	 */
 	private static Map<String, List<FLEFRecord>> buildParentIndex(final FLEFModel model){
 		final Map<String, List<FLEFRecord>> index = new HashMap<>();
-		List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
+		List<FLEFRecord> relationships = PrivacyService.visible(model, model.getRecordsByType(RelationshipHandler.TYPE));
 		for(final FLEFRecord relationship : relationships){
 			final String type = RelationshipReader.extractType(relationship);
 			if(type == null)
@@ -600,7 +601,8 @@ public final class KinshipCalculator{
 			if(parent == null)
 				continue;
 
-			index.computeIfAbsent(childId, k -> new ArrayList<>()).add(parent);
+			index.computeIfAbsent(childId, k -> new ArrayList<>())
+				.add(parent);
 		}
 		return index;
 	}

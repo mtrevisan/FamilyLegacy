@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.tools.reports;
 
+import io.github.mtrevisan.familylegacy.privacy.PrivacyPolicy;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.BorderFactory;

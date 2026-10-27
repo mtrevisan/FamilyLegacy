@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.GroupAttributeReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualAttributeReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateNormalizer;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.TemporalSpan;
+import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.ui.handlers.GroupAttributeHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualAttributeHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.PlaceHandler;
@@ -84,7 +85,7 @@ public final class TemporalAttributeIndex{
 	 * ====================================================================== */
 
 	private void build(){
-		final List<FLEFRecord> individualAttributes = model.getRecordsByType(IndividualAttributeHandler.TYPE);
+		final List<FLEFRecord> individualAttributes = PrivacyService.visible(model, model.getRecordsByType(IndividualAttributeHandler.TYPE));
 		for(final FLEFRecord individualAttribute : individualAttributes){
 			final String ownerId = extractIndividualOwner(individualAttribute);
 			if(ownerId == null)
@@ -92,10 +93,11 @@ public final class TemporalAttributeIndex{
 
 			final AttributeDatum datum = parse(individualAttribute, ownerId);
 			if(datum != null)
-				attributesByOwner.computeIfAbsent(ownerId, k -> new ArrayList<>()).add(datum);
+				attributesByOwner.computeIfAbsent(ownerId, k -> new ArrayList<>())
+					.add(datum);
 		}
 
-		final List<FLEFRecord> groupAttributes = model.getRecordsByType(GroupAttributeHandler.TYPE);
+		final List<FLEFRecord> groupAttributes = PrivacyService.visible(model, model.getRecordsByType(GroupAttributeHandler.TYPE));
 		for(final FLEFRecord groupAttribute : groupAttributes){
 			final String ownerId = extractGroupOwner(groupAttribute);
 			if(ownerId == null)
@@ -103,7 +105,8 @@ public final class TemporalAttributeIndex{
 
 			final AttributeDatum datum = parse(groupAttribute, ownerId);
 			if(datum != null)
-				attributesByOwner.computeIfAbsent(ownerId, k -> new ArrayList<>()).add(datum);
+				attributesByOwner.computeIfAbsent(ownerId, k -> new ArrayList<>())
+					.add(datum);
 		}
 
 		for(final List<AttributeDatum> list : attributesByOwner.values())

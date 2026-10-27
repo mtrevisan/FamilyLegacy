@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.ui.components.projections.temporal;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.readers.EvidenceQualifiersReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.TemporalSpan;
 import org.apache.commons.lang3.StringUtils;
 
@@ -102,6 +103,16 @@ public record TemporalEntry(
 	 */
 	public boolean hasEvidence(){
 		return (evidence != null);
+	}
+
+	/**
+	 * Returns whether the evidence qualifier states that the assertion is supported by <em>negative</em> evidence, that is,
+	 * that the sources attest the absence of the event or attribute over the span.
+	 *
+	 * @return {@code true} if the evidence type is {@code negative}
+	 */
+	public boolean hasNegativeEvidence(){
+		return EvidenceQualifiersReader.isNegative(evidence);
 	}
 
 	@Override

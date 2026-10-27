@@ -47,7 +47,7 @@ public final class PlaceholderTool implements ToolOperation{
 
 
 	public PlaceholderTool(final String name){
-		this.name = Objects.requireNonNull(name, "name must not be null");
+		this.name = name;
 	}
 
 

@@ -37,6 +37,7 @@ import javax.swing.JList;
 import javax.swing.MutableComboBoxModel;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.text.Document;
 import javax.swing.text.JTextComponent;
 import javax.swing.undo.UndoableEditSupport;
 import java.awt.Component;
@@ -188,7 +189,8 @@ public class BoundComboBox<E> extends JComboBox<E> implements PathBound{
 	private void setupEditorUndoListener(){
 		final Component editorComp = getEditor().getEditorComponent();
 		if(editorComp instanceof JTextComponent textComp){
-			textComp.getDocument().addDocumentListener(new DocumentListener(){
+			final Document document = textComp.getDocument();
+			document.addDocumentListener(new DocumentListener(){
 				@Override
 				public void insertUpdate(final DocumentEvent e){
 					if(isEditable())

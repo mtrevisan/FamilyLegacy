@@ -33,6 +33,7 @@ import javax.swing.ActionMap;
 import javax.swing.InputMap;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
+import javax.swing.JRootPane;
 import javax.swing.text.JTextComponent;
 import java.awt.Component;
 import java.awt.KeyboardFocusManager;
@@ -52,8 +53,9 @@ public final class GlobalKeyboardController{
 
 
 	public static void install(final JFrame frame, final ProjectionSwitcherPanel switcher){
-		final InputMap inputMap = frame.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
-		final ActionMap actionMap = frame.getRootPane().getActionMap();
+		final JRootPane rootPane = frame.getRootPane();
+		final InputMap inputMap = rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+		final ActionMap actionMap = rootPane.getActionMap();
 
 		// Navigation Back / Forward
 		inputMap.put(ShortcutRegistry.NAV_BACK.keyStroke(), ACTION_NAVIGATE_BACK);
@@ -84,7 +86,8 @@ public final class GlobalKeyboardController{
 		});
 
 		// Spatial Arrow Navigation
-		KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(e -> {
+		final KeyboardFocusManager currentKeyboardFocusManager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
+		currentKeyboardFocusManager.addKeyEventDispatcher(e -> {
 			if(e.getID() != KeyEvent.KEY_PRESSED || !frame.isFocused())
 				return false;
 
@@ -93,7 +96,7 @@ public final class GlobalKeyboardController{
 					| InputEvent.SHIFT_DOWN_MASK)) != 0)
 				return false;
 
-			final Component focusOwner = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
+			final Component focusOwner = currentKeyboardFocusManager.getFocusOwner();
 			if(focusOwner instanceof JTextComponent)
 				return false;
 

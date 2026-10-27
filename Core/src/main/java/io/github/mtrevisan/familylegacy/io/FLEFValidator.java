@@ -97,7 +97,7 @@ public class FLEFValidator{
 
 
 	public FLEFValidator(final FLEFGrammar grammar){
-		this.grammar = Objects.requireNonNull(grammar, "grammar cannot be null");
+		this.grammar = grammar;
 	}
 
 

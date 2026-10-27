@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.ui.tools.sources;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import io.github.mtrevisan.familylegacy.ui.tools.ReportDialog;
@@ -82,7 +83,7 @@ public final class CitationAnalysisTool implements ToolOperation{
 		final Map<String, Integer> uncited = new TreeMap<>();
 		for(final String type : ASSERTION_TYPES){
 			int count = 0;
-			final List<FLEFRecord> records = model.getRecordsByType(type);
+			final List<FLEFRecord> records = PrivacyService.visible(model, model.getRecordsByType(type));
 			for(final FLEFRecord record : records)
 				if(!hasCitation(record))
 					count ++;

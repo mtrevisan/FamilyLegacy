@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.preferences;
 
+import io.github.mtrevisan.familylegacy.privacy.PrivacyPolicy;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
@@ -68,6 +69,7 @@ public final class AppPreferences{
 	public static final String KEY_LANGUAGE = "ui.language";
 	public static final String KEY_FONT_FAMILY = "ui.font.family";
 	public static final String KEY_FONT_SIZE = "ui.font.size";
+	public static final String KEY_PRIVACY_POLICY = "privacy.policy";
 
 	/* ----- Defaults -------------------------------------------------------- */
 
@@ -139,6 +141,21 @@ public final class AppPreferences{
 		else
 			properties.setProperty(KEY_FONT_FAMILY, family);
 		save();
+	}
+
+	/** Returns the persisted privacy policy, or {@link PrivacyPolicy#SHOW_ALL} when unset or unknown. */
+	public PrivacyPolicy privacyPolicy(){
+		try{
+			return PrivacyPolicy.valueOf(properties.getProperty(KEY_PRIVACY_POLICY, PrivacyPolicy.SHOW_ALL.name()));
+		}
+		catch(final IllegalArgumentException ignored){
+			return PrivacyPolicy.SHOW_ALL;
+		}
+	}
+
+	/** Persists the privacy policy. */
+	public void setPrivacyPolicy(final PrivacyPolicy policy){
+		put(KEY_PRIVACY_POLICY, Objects.requireNonNull(policy, "policy").name());
 	}
 
 	/** Persists the UI font size, in points. */

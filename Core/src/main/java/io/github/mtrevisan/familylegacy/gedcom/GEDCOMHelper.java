@@ -438,7 +438,8 @@ public class GEDCOMHelper{
 				translation.addChild(FLEFRecord.createChildWithTagAndValue("locale", translationLocale));
 			format.add(translation);
 		}
-		note.getChildren().addAll(note.getChildren().size() - 1, format);
+		note.getChildren()
+			.addAll(note.getChildren().size() - 1, format);
 	}
 
 	public static FLEFRecord createNoteStruct(String title, String text, GEDCOMNode node){
@@ -764,7 +765,8 @@ public class GEDCOMHelper{
 				final String noteId = pointer(noteNode.getValue());
 				final String text = extractFullText(noteId != null && noteRawMap != null? noteRawMap.get(noteId): noteNode);
 				if(StringUtils.isNotBlank(text))
-					extracts.getFirst().addChild(FLEFRecord.createChildWithTagAndValue("remark", text.trim()));
+					extracts.getFirst()
+						.addChild(FLEFRecord.createChildWithTagAndValue("remark", text.trim()));
 			}
 		}
 		for(final FLEFRecord extract : extracts)

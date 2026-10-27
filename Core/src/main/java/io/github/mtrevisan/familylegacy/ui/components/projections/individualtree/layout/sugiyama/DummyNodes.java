@@ -52,7 +52,8 @@ public class DummyNodes{
 						dummy.setWidth(10);
 						dummy.setHeight(10);
 
-						layers.get(l).add(dummy);
+						layers.get(l)
+							.add(dummy);
 
 						graph.addEdge(previous.getId(), dummy.getId());
 						previous = dummy;

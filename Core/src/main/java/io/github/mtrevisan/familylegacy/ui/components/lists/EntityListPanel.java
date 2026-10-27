@@ -27,15 +27,20 @@ package io.github.mtrevisan.familylegacy.ui.components.lists;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.ui.bindings.BindingsHelper;
 import io.github.mtrevisan.familylegacy.ui.bindings.MenuBuilder;
+import io.github.mtrevisan.familylegacy.ui.components.CompoundIcon;
+import io.github.mtrevisan.familylegacy.ui.components.PrivacyBadge;
 import io.github.mtrevisan.familylegacy.ui.components.searches.RecordSelectionDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.records.ConclusionRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.EventParticipationRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.IdentityHypothesisRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.PlaceRelationshipRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.RelationshipRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.ConclusionHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.IdentityHypothesisHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.ConclusionTargetHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
@@ -88,6 +93,7 @@ import java.util.function.Consumer;
 public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 
 	private static final String TAG_RESOLVES = "resolves";
+	private static final String ISSUE_IDENTITY = "identity";
 
 
 	public enum ListType{
@@ -315,11 +321,19 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 
 	@Override
 	protected Icon getItemIcon(final FLEFRecord item){
-		if(!supportsConclusions || item == null)
+		if(item == null)
 			return null;
 
-		final FLEFRecord conclusion = conclusionCache.computeIfAbsent(item.getId(), this::findConclusionFor);
-		return new ConclusionIcon(conclusion != null);
+		//a padlock signals a restricted or confidential record
+		final Icon privacyIcon = PrivacyBadge.of(PrivacyService.resolver(model)
+			.describe(item));
+
+		Icon conclusionIcon = null;
+		if(supportsConclusions){
+			final FLEFRecord conclusion = conclusionCache.computeIfAbsent(item.getId(), this::findConclusionFor);
+			conclusionIcon = new ConclusionIcon(conclusion != null);
+		}
+		return CompoundIcon.of(privacyIcon, conclusionIcon);
 	}
 
 	private void openConclusionDialog(final FLEFRecord conclusion){
@@ -858,6 +872,12 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 				else if(actorType == ActorType.EVENT)
 					eventDialog.withEvent(parentRecord);
 			}
+			else if(dialog instanceof ConclusionRecordDialog conclusionDialog
+					&& (type == ListType.ONEOF_REFERENCE || type == ListType.ENTITY_REFERENCE)
+					&& parentRecord.getId() != null && model.getRecordById(parentRecord.getId()) != null)
+				//the conclusion can reference the parent only once it is in the model
+				conclusionDialog.withResolvedTarget(parentRecord,
+					(Strings.CI.equals(parentRecord.getTag(), IdentityHypothesisHandler.TYPE)? ISSUE_IDENTITY: null));
 		};
 	}
 

@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.ui.components.projections.social;
 
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
+import io.github.mtrevisan.familylegacy.ui.tools.ToolDialogs;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -77,6 +78,7 @@ public final class SocialCategorySelectionDialog extends JDialog{
 
 	private SocialCategorySelectionDialog(final Window owner, final Set<SocialRelationCategory> initial){
 		super(owner, "Select categories", ModalityType.APPLICATION_MODAL);
+		ToolDialogs.installEscapeToClose(this);
 
 		initComponents(initial);
 

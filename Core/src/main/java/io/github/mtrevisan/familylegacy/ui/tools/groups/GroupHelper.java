@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.readers.GroupReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
+import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
@@ -69,7 +70,7 @@ public final class GroupHelper{
 
 
 	public static List<FLEFRecord> listAllGroups(final FLEFModel model){
-		return model.getRecordsByType(GroupHandler.TYPE);
+		return PrivacyService.visible(model, model.getRecordsByType(GroupHandler.TYPE));
 	}
 
 	public static Map<String, FLEFRecord> indexGroupsById(final FLEFModel model){
@@ -113,7 +114,7 @@ public final class GroupHelper{
 		final Map<String, Set<String>> children = new LinkedHashMap<>();
 		final Map<String, Set<String>> parents = new LinkedHashMap<>();
 
-		List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
+		List<FLEFRecord> relationships = PrivacyService.visible(model, model.getRecordsByType(RelationshipHandler.TYPE));
 		for(final FLEFRecord relationship : relationships){
 			final String type = RelationshipReader.extractType(relationship);
 			if(type == null)
@@ -252,7 +253,7 @@ public final class GroupHelper{
 		if(groupId == null)
 			return result;
 
-		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
+		final List<FLEFRecord> relationships = PrivacyService.visible(model, model.getRecordsByType(RelationshipHandler.TYPE));
 		for(final FLEFRecord relationship : relationships){
 			final String type = RelationshipReader.extractType(relationship);
 			if(!RelationshipReader.isTypeGroupMember(type))

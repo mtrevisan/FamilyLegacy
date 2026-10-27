@@ -29,6 +29,10 @@ import io.github.mtrevisan.calendars.astronomy.EphemerisEngine;
 import io.github.mtrevisan.calendars.astronomy.EphemerisEngineFactory;
 import io.github.mtrevisan.calendars.spi.CalendarConverterPlugin;
 import io.github.mtrevisan.calendars.spi.CalendarMetadata;
+import io.github.mtrevisan.calendars.spi.DateInterpretation;
+
+import java.util.List;
+import java.util.Locale;
 
 
 public class JulianCalendarStrategy implements CalendarConverterPlugin{
@@ -89,6 +93,11 @@ public class JulianCalendarStrategy implements CalendarConverterPlugin{
 		return Math.floorDiv(1461L * (y + 4716L), 4L)
 			+ Math.floorDiv(153L * (m + 1), 5L)
 			+ day - 1524L;
+	}
+
+	@Override
+	public List<DateInterpretation> getInterpretations(final String rawDate, final Locale locale){
+		return GregorianCalendarParser.interpretations(rawDate, locale);
 	}
 
 	@Override

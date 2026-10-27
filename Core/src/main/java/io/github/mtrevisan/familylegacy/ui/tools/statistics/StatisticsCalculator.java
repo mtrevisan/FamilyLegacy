@@ -33,6 +33,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
+import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventParticipationHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
@@ -98,7 +99,7 @@ public final class StatisticsCalculator{
 
 		// --- Index: event type by event id ---
 		final Map<String, String> eventTypeById = new HashMap<>();
-		final List<FLEFRecord> events = model.getRecordsByType(EventHandler.TYPE);
+		final List<FLEFRecord> events = PrivacyService.visible(model, model.getRecordsByType(EventHandler.TYPE));
 		for(final FLEFRecord e : events){
 			final String id = e.getId();
 			final String t = FLEFRecordHelper.getChildValue(e, EventReader.TAG_TYPE);
@@ -110,7 +111,7 @@ public final class StatisticsCalculator{
 		p.update(5, "Indexing participations…");
 		final Set<String> hasBirth = new HashSet<>();
 		final Set<String> hasDeath = new HashSet<>();
-		final List<FLEFRecord> eventParticipations = model.getRecordsByType(EventParticipationHandler.TYPE);
+		final List<FLEFRecord> eventParticipations = PrivacyService.visible(model, model.getRecordsByType(EventParticipationHandler.TYPE));
 		for(final FLEFRecord eventParticipation : eventParticipations){
 			final String indId = extractParticipantId(eventParticipation);
 			if(indId == null)
@@ -128,7 +129,7 @@ public final class StatisticsCalculator{
 		// --- Index: individuals with at least one parent relationship ---
 		p.update(10, "Indexing parent relationships…");
 		final Set<String> withParents = new HashSet<>();
-		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
+		final List<FLEFRecord> relationships = PrivacyService.visible(model, model.getRecordsByType(RelationshipHandler.TYPE));
 		for(final FLEFRecord relationship : relationships){
 			final String type = RelationshipReader.extractType(relationship);
 			if(type == null)
@@ -144,7 +145,7 @@ public final class StatisticsCalculator{
 
 		// --- Completeness ---
 		p.update(20, "Computing completeness…");
-		final List<FLEFRecord> individuals = model.getRecordsByType(IndividualHandler.TYPE);
+		final List<FLEFRecord> individuals = PrivacyService.visible(model, model.getRecordsByType(IndividualHandler.TYPE));
 		final List<Statistics.Completeness.Category> categories = new ArrayList<>();
 
 		final List<FLEFRecord> noBirth = new ArrayList<>();
@@ -176,7 +177,7 @@ public final class StatisticsCalculator{
 		categories.add(new Statistics.Completeness.Category("Without source citation", List.copyOf(noSource)));
 		categories.add(new Statistics.Completeness.Category("Without recorded sex", List.copyOf(noSex)));
 
-		final List<FLEFRecord> sources = model.getRecordsByType(SourceHandler.TYPE);
+		final List<FLEFRecord> sources = PrivacyService.visible(model, model.getRecordsByType(SourceHandler.TYPE));
 		final Statistics.Completeness completeness = new Statistics.Completeness(
 			individuals.size(), events.size(), sources.size(), categories);
 

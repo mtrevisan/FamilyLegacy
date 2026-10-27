@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections.bookmarks;
 
+import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JMenu;
@@ -38,6 +40,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 
 /**
@@ -59,14 +62,16 @@ public final class BookmarkMenu extends JMenu{
 	private final Capture capture;
 	private final Consumer<Bookmark> applier;
 	private final Window owner;
+	private final Supplier<FLEFModel> modelSupplier;
 
 
-	public BookmarkMenu(final Window owner, final BookmarkStore store, final Capture capture,
-			final Consumer<Bookmark> applier){
+	public BookmarkMenu(final Window owner, final BookmarkStore store, final Supplier<FLEFModel> modelSupplier,
+			final Capture capture, final Consumer<Bookmark> applier){
 		super("Bookmarks");
 
 		this.owner = owner;
 		this.store = store;
+		this.modelSupplier = modelSupplier;
 		this.capture = capture;
 		this.applier = applier;
 
@@ -98,7 +103,8 @@ public final class BookmarkMenu extends JMenu{
 
 		addSeparator();
 
-		final List<Bookmark> all = store.all();
+		//the bookmarks of the records hidden by the privacy policy are not listed
+		final List<Bookmark> all = store.visible(modelSupplier.get());
 		if(all.isEmpty()){
 			final JMenuItem empty = new JMenuItem("(no bookmarks yet)");
 			empty.setEnabled(false);
@@ -115,7 +121,7 @@ public final class BookmarkMenu extends JMenu{
 		addSeparator();
 
 		final JMenuItem manage = new JMenuItem("Manage bookmarks…");
-		manage.addActionListener(e -> new BookmarkManagerDialog(owner, store).setVisible(true));
+		manage.addActionListener(e -> new BookmarkManagerDialog(owner, store, modelSupplier).setVisible(true));
 		add(manage);
 	}
 

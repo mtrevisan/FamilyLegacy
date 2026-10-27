@@ -91,7 +91,8 @@ public class MultimediaConverter{
 		for(int i = 1; i < fileNodes.size(); i ++){
 			final FLEFRecord note = GEDCOMHelper.createNoteStruct("Additional file", fileNodes.get(i).getValue(), objNode);
 			// notes go before privacy and audit, the last fields of a MediaRecord
-			media.getChildren().add(media.getChildren().size() - 1, note);
+			media.getChildren()
+				.add(media.getChildren().size() - 1, note);
 		}
 
 		for(GEDCOMNode sourNode : GEDCOMHelper.findChildren(objNode, "SOUR")){

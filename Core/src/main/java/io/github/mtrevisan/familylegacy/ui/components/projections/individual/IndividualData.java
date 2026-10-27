@@ -37,6 +37,8 @@ import io.github.mtrevisan.familylegacy.io.model.readers.SexType;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateService;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.NormalizedDate;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.TemporalSpan;
+import io.github.mtrevisan.familylegacy.privacy.PrivacyResolver;
+import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.ui.components.projections.BoxPanelType;
 import io.github.mtrevisan.familylegacy.ui.components.projections.PlaceholderImages;
 import io.github.mtrevisan.familylegacy.ui.handlers.ConclusionHandler;
@@ -91,6 +93,7 @@ public final class IndividualData{
 
 	private final FLEFRecord individual;
 	private final String id;
+	private final PrivacyResolver.Effective privacy;
 	private final SexType sex;
 	private final String nameText;
 	private String nameTooltip;
@@ -123,6 +126,20 @@ public final class IndividualData{
 		this.individual = individual;
 		id = individual.getId();
 
+		privacy = PrivacyService.resolver(model)
+			.describe(individual);
+		if(PrivacyService.policy().hides(privacy.level())){
+			//the data of the individual are not shown: only the id remains
+			sex = SexType.UNKNOWN;
+			nameText = NO_DATA;
+			nameTooltip = TAG_HTML_OPEN + "[" + id + "]" + TAG_HTML_CLOSE;
+			infoText = StringUtils.EMPTY;
+			infoTooltip = StringUtils.EMPTY;
+			//placeholders only: the preferred image is not loaded
+			extractPreferredImage(null, model);
+			return;
+		}
+
 		sex = IndividualReader.extractSex(individual);
 
 		final List<String> names = IndividualReader.extractFullNames(individual);
@@ -139,6 +156,9 @@ public final class IndividualData{
 			final String subjectId = relationship.extractReferencedId(RelationshipReader.TAG_SUBJECT, IndividualHandler.TYPE);
 			final String objectId = relationship.extractReferencedId(RelationshipReader.TAG_TARGET, IndividualHandler.TYPE);
 			if(subjectId == null || objectId == null || !subjectId.equals(id) && !objectId.equals(id))
+				continue;
+			//a hidden relative does not count
+			if(PrivacyService.isHidden(model, model.getRecordById(subjectId.equals(id)? objectId: subjectId)))
 				continue;
 
 			String type = RelationshipReader.extractType(relationship);
@@ -305,6 +325,11 @@ public final class IndividualData{
 
 	public boolean isEmpty(){
 		return (id == null);
+	}
+
+	/** The effective privacy of the individual (it is public when there is no restriction). */
+	public PrivacyResolver.Effective getPrivacy(){
+		return privacy;
 	}
 
 

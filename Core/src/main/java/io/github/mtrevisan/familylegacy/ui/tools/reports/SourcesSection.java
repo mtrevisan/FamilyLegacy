@@ -113,7 +113,8 @@ final class SourcesSection implements SectionBuilder{
 		if(ctx.config.notes())
 			out.addAll(ctx.citations().notes(src));
 		if(ctx.config.evidence())
-			ctx.citations().addEvidence(src, out);
+			ctx.citations()
+				.addEvidence(src, out);
 		out.addAll(ctx.citations().audit(src));
 		out.addAll(ctx.citations().privacyInfo(src));
 	}
@@ -190,7 +191,8 @@ final class SourcesSection implements SectionBuilder{
 
 		// Repository citation evidence.
 		if(ctx.config.evidence())
-			ctx.citations().addEvidence(rc, out);
+			ctx.citations()
+				.addEvidence(rc, out);
 	}
 
 

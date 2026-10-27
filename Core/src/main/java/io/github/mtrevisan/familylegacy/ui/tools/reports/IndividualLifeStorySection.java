@@ -260,7 +260,8 @@ final class IndividualLifeStorySection implements SectionBuilder{
 		if(ctx.config.sources())
 			out.addAll(ctx.citations().citations(evt));
 		if(ctx.config.evidence())
-			ctx.citations().addEvidence(evt, out);
+			ctx.citations()
+				.addEvidence(evt, out);
 		out.addAll(ctx.citations().audit(evt));
 		if(ctx.config.eventFullParticipants())
 			appendOtherParticipants(out, evt);
@@ -378,7 +379,8 @@ final class IndividualLifeStorySection implements SectionBuilder{
 			out.addAll(ctx.citations().citations(attr));
 		}
 		if(ctx.config.evidence()){
-			ctx.citations().addEvidence(attr, out);
+			ctx.citations()
+				.addEvidence(attr, out);
 		}
 		out.addAll(ctx.citations().audit(attr));
 	}
@@ -473,7 +475,8 @@ final class IndividualLifeStorySection implements SectionBuilder{
 		if(ctx.config.sources())
 			out.addAll(ctx.citations().citations(rel));
 		if(ctx.config.evidence())
-			ctx.citations().addEvidence(rel, out);
+			ctx.citations()
+				.addEvidence(rel, out);
 		out.addAll(ctx.citations().audit(rel));
 	}
 

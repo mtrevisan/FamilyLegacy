@@ -24,11 +24,13 @@
  */
 package io.github.mtrevisan.familylegacy.ui.tools.reports;
 
+import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -48,7 +50,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * <p>The dialog is purely passive: it displays a message and a percentage,
  * and exposes a cancellation flag that the background task is expected to
  * poll between major steps. Closing the dialog via the window close button
- * sets the same flag, so the user has two ways to abort.</p>
+ * or pressing Escape sets the same flag, so the user has several ways to abort.</p>
  *
  * <p>All mutating methods are safe to call from any thread; they marshal
  * to the Event Dispatch Thread internally.</p>
@@ -80,6 +82,10 @@ public final class ProgressDialog extends JDialog{
 			messageLabel.setText("Cancelling…");
 		});
 		buttons.add(cancelButton);
+
+		// Escape is the same as clicking Cancel (it does nothing once the cancellation has been requested).
+		getRootPane().registerKeyboardAction(e -> cancelButton.doClick(), GUIHelper.ESCAPE_STROKE,
+			JComponent.WHEN_IN_FOCUSED_WINDOW);
 
 		add(content, BorderLayout.CENTER);
 		add(buttons, BorderLayout.SOUTH);

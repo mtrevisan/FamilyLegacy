@@ -34,6 +34,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.PlaceRelationshipReader
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateNormalizer;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.TemporalSpan;
+import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.ui.handlers.ContextImpactHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.CulturalNormHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.GroupHandler;
@@ -173,7 +174,7 @@ public final class TemporalProjectionService{
 	private void collectRows(final String recordType, final TemporalEntityType entityType,
 			final Predicate<TemporalEntityRef> filter, final List<TemporalRow> output){
 		final RecordTypeHandler<?> handler = handlerFor(entityType);
-		final List<FLEFRecord> records = model.getRecordsByType(recordType);
+		final List<FLEFRecord> records = PrivacyService.visible(model, model.getRecordsByType(recordType));
 		for(final FLEFRecord record : records){
 			final String id = record.getId();
 			if(id == null)
@@ -253,7 +254,7 @@ public final class TemporalProjectionService{
 		final List<TemporalConnection> connections = new ArrayList<>();
 		final Map<String, FLEFRecord> recordIndex = new HashMap<>();
 
-		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
+		final List<FLEFRecord> relationships = PrivacyService.visible(model, model.getRecordsByType(RelationshipHandler.TYPE));
 		for(final FLEFRecord relationship : relationships){
 			final String subjectId = relationship.extractReferencedId(RelationshipReader.TAG_SUBJECT, IndividualHandler.TYPE);
 			final String objectId = relationship.extractReferencedId(RelationshipReader.TAG_TARGET, IndividualHandler.TYPE);
@@ -295,7 +296,7 @@ public final class TemporalProjectionService{
 	private List<TemporalConnection> buildPlaceConnections(final Set<String> includedIds){
 		final List<TemporalConnection> result = new ArrayList<>();
 
-		final List<FLEFRecord> placeRelationships = model.getRecordsByType(PlaceRelationshipHandler.TYPE);
+		final List<FLEFRecord> placeRelationships = PrivacyService.visible(model, model.getRecordsByType(PlaceRelationshipHandler.TYPE));
 		for(final FLEFRecord placeRelationship : placeRelationships){
 			final String subjectId = placeRelationship.extractReferencedId(PlaceRelationshipReader.TAG_SUBJECT, PlaceHandler.TYPE);
 			final String objectId = placeRelationship.extractReferencedId(PlaceRelationshipReader.TAG_TARGET, PlaceHandler.TYPE);
@@ -382,7 +383,7 @@ public final class TemporalProjectionService{
 	}
 
 	private void collectHistoricEventBands(final List<TemporalContextBand> output){
-		final List<FLEFRecord> historicEvents = model.getRecordsByType(HistoricEventHandler.TYPE);
+		final List<FLEFRecord> historicEvents = PrivacyService.visible(model, model.getRecordsByType(HistoricEventHandler.TYPE));
 		for(final FLEFRecord historicEvent : historicEvents){
 			final String id = historicEvent.getId();
 			if(id == null)
@@ -406,7 +407,7 @@ public final class TemporalProjectionService{
 	}
 
 	private void collectCulturalNormBands(final List<TemporalContextBand> output){
-		final List<FLEFRecord> culturalNorms = model.getRecordsByType(CulturalNormHandler.TYPE);
+		final List<FLEFRecord> culturalNorms = PrivacyService.visible(model, model.getRecordsByType(CulturalNormHandler.TYPE));
 		for(final FLEFRecord culturalNorm : culturalNorms){
 			final String id = culturalNorm.getId();
 			if(id == null)
@@ -498,7 +499,7 @@ public final class TemporalProjectionService{
 
 		// Build impact links.
 		final List<ContextImpactLink> links = new ArrayList<>();
-		final List<FLEFRecord> contextImpacts = model.getRecordsByType(ContextImpactHandler.TYPE);
+		final List<FLEFRecord> contextImpacts = PrivacyService.visible(model, model.getRecordsByType(ContextImpactHandler.TYPE));
 		for(final FLEFRecord contextImpact : contextImpacts){
 			final FLEFRecord contextRef = FLEFRecordHelper.findChild(contextImpact, ContextImpactReader.TAG_CONTEXT);
 			if(contextRef == null)

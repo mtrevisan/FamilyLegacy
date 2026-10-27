@@ -32,6 +32,7 @@ import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
+import io.github.mtrevisan.familylegacy.ui.tools.ToolDialogs;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.JButton;
@@ -77,6 +78,7 @@ public final class SocialNetworkPathFinderDialog extends JDialog{
 	public SocialNetworkPathFinderDialog(final Window owner, final FLEFModel model, final FLEFRecord initialFromEntity,
 			final FLEFRecord initialToEntity){
 		super(owner, "Find social path", ModalityType.APPLICATION_MODAL);
+		ToolDialogs.installEscapeToClose(this);
 
 		this.model = model;
 		this.fromEntity = initialFromEntity;

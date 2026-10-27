@@ -24,7 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections.bookmarks;
 
+import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
+import io.github.mtrevisan.familylegacy.ui.tools.ToolDialogs;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -42,6 +44,7 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.Window;
 import java.util.List;
+import java.util.function.Supplier;
 
 
 /**
@@ -50,14 +53,17 @@ import java.util.List;
 public final class BookmarkManagerDialog extends JDialog{
 
 	private final BookmarkStore store;
+	private final Supplier<FLEFModel> modelSupplier;
 	private final DefaultListModel<Bookmark> model = new DefaultListModel<>();
 	private final JList<Bookmark> list = new JList<>(model);
 
 
-	public BookmarkManagerDialog(final Window owner, final BookmarkStore store){
+	public BookmarkManagerDialog(final Window owner, final BookmarkStore store, final Supplier<FLEFModel> modelSupplier){
 		super(owner, "Manage bookmarks", ModalityType.APPLICATION_MODAL);
+		ToolDialogs.installEscapeToClose(this);
 
 		this.store = store;
+		this.modelSupplier = modelSupplier;
 
 		buildUI();
 		reload();
@@ -112,7 +118,8 @@ public final class BookmarkManagerDialog extends JDialog{
 
 	private void reload(){
 		model.clear();
-		final List<Bookmark> all = store.all();
+		//the bookmarks of the records hidden by the privacy policy are not listed
+		final List<Bookmark> all = store.visible(modelSupplier.get());
 		for(final Bookmark b : all)
 			model.addElement(b);
 	}

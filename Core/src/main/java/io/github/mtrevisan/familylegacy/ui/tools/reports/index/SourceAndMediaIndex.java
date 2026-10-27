@@ -61,16 +61,20 @@ public final class SourceAndMediaIndex{
 
 			for(final FLEFRecord docRef : FLEFRecordHelper.findChildren(source, SourceReader.TAG_MEDIA)){
 				if(docRef.getValue() != null){
-					sourceToDocumentsMap.computeIfAbsent(srcId, k -> new ArrayList<>()).add(docRef);
-					docToSourcesMap.computeIfAbsent(docRef.getValue(), k -> new ArrayList<>()).add(source);
+					sourceToDocumentsMap.computeIfAbsent(srcId, k -> new ArrayList<>())
+						.add(docRef);
+					docToSourcesMap.computeIfAbsent(docRef.getValue(), k -> new ArrayList<>())
+						.add(source);
 				}
 			}
 
 			for(final FLEFRecord repoRef : FLEFRecordHelper.findChildren(source, "repository")){
 				final String repoId = FLEFRecordHelper.getChildValue(repoRef, "repository");
 				if(repoId != null){
-					sourceToRepositoriesMap.computeIfAbsent(srcId, k -> new ArrayList<>()).add(repoRef);
-					repoToSourcesMap.computeIfAbsent(repoId, k -> new ArrayList<>()).add(source);
+					sourceToRepositoriesMap.computeIfAbsent(srcId, k -> new ArrayList<>())
+						.add(repoRef);
+					repoToSourcesMap.computeIfAbsent(repoId, k -> new ArrayList<>())
+						.add(source);
 				}
 			}
 		}
@@ -80,12 +84,14 @@ public final class SourceAndMediaIndex{
 			for(final FLEFRecord cit : CulturalNormRootSection.collectDescendantsWithTag(record, "source")){
 				final String sid = ReportFormatters.extractSourceId(cit);
 				if(sid != null && filter.test(model.getRecordById(sid))){
-					sourceToCitationsMap.computeIfAbsent(sid, k -> new ArrayList<>()).add(cit);
+					sourceToCitationsMap.computeIfAbsent(sid, k -> new ArrayList<>())
+						.add(cit);
 				}
 				for(final FLEFRecord dp : FLEFRecordHelper.findChildren(cit, "extract.media_part.media")){
 					final String did = dp.getValue();
 					if(did != null){
-						docToCitationsMap.computeIfAbsent(did, k -> new ArrayList<>()).add(cit);
+						docToCitationsMap.computeIfAbsent(did, k -> new ArrayList<>())
+							.add(cit);
 					}
 				}
 			}

@@ -140,7 +140,8 @@ public class GEDCOMParser{
 					if(level == 2 && "VERS".equals(tag) && "GEDC".equals(stack.peek().getTag()) && value != null
 							&& value.trim().startsWith("7"))
 						gedcom7 = true;
-					stack.peek().addChild(node);
+					stack.peek()
+						.addChild(node);
 				}
 				else{
 					roots.add(node);
