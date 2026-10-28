@@ -2,6 +2,8 @@ package io.github.mtrevisan.familylegacy.ui.components.projections.repository;
 
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DatePrecision;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.NormalizedDate;
+import io.github.mtrevisan.familylegacy.ui.components.projections.individual.PresentationOrder;
+import io.github.mtrevisan.familylegacy.ui.preferences.PartnerOrder;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 

@@ -26,7 +26,7 @@ package io.github.mtrevisan.familylegacy.gedcom.converters;
 
 import io.github.mtrevisan.familylegacy.gedcom.GEDCOMHelper;
 import io.github.mtrevisan.familylegacy.gedcom.GEDCOMNode;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 
 import java.util.ArrayList;
 import java.util.List;

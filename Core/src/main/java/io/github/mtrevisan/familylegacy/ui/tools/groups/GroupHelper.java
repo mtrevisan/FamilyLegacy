@@ -24,9 +24,10 @@
  */
 package io.github.mtrevisan.familylegacy.ui.tools.groups;
 
-import io.github.mtrevisan.familylegacy.gedcom.utils.AuditBuilder;
+import io.github.mtrevisan.familylegacy.gedcom.AuditBuilder;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.readers.GroupReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
@@ -279,7 +280,7 @@ public final class GroupHelper{
 			return;
 
 		final Map<Class<? extends RecordTypeHandler<?>>, Set<FLEFRecord>> relationshipIds
-			= model.getReferencingRecords(groupId);
+			= HandlerRegistry.getReferencingRecords(model, groupId);
 		for(final Map.Entry<Class<? extends RecordTypeHandler<?>>, Set<FLEFRecord>> entry : relationshipIds.entrySet())
 			for(final FLEFRecord record : entry.getValue())
 				model.removeRecord(record.getId());

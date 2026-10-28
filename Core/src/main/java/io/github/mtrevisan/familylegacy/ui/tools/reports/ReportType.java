@@ -24,8 +24,6 @@
  */
 package io.github.mtrevisan.familylegacy.ui.tools.reports;
 
-import java.util.Objects;
-
 
 /**
  * Enumerates all supported report types along with their human-readable title.

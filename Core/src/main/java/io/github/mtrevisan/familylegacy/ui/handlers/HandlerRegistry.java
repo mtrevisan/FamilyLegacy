@@ -24,10 +24,20 @@
  */
 package io.github.mtrevisan.familylegacy.ui.handlers;
 
+import io.github.mtrevisan.familylegacy.io.grammar.XrefPathIndex;
+import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
+import org.apache.commons.lang3.Strings;
+import org.apache.commons.text.CaseUtils;
+
 import java.lang.reflect.Field;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 
@@ -117,6 +127,64 @@ public final class HandlerRegistry{
 				"Handler class " + handlerClass.getName() + " does not define a static `TYPE` field",
 				e);
 		}
+	}
+
+
+	/**
+	 * Finds all records in the model that reference the given target record ID.
+	 * <p>
+	 * This method uses the {@link XrefPathIndex} generated from the FLEF grammar to dynamically
+	 * find every possible path that can contain a reference to the target record type.
+	 * This avoids hardcoding every record type and specific path, making the code resilient to protocol changes.
+	 *
+	 * @param model the model
+	 * @param targetId the ID of the record to search for
+	 * @return a map grouping the referencing records by their handler class
+	 */
+	public static Map<Class<? extends RecordTypeHandler<?>>, Set<FLEFRecord>> getReferencingRecords(final FLEFModel model, final String targetId){
+		final Map<Class<? extends RecordTypeHandler<?>>, Set<FLEFRecord>> result = new HashMap<>();
+		if(targetId == null || !XrefPathIndex.isInitialized())
+			return result;
+
+		final FLEFRecord targetRecord = model.getRecordById(targetId);
+		if(targetRecord == null)
+			return result;
+
+		final String targetRecordType = targetRecord.getTag();
+		final String targetUnionType = CaseUtils.toCamelCase(targetRecordType, true, '_')
+			+ XrefPathIndex.RECORD_UNION_NAME;
+		final Set<String> xrefPaths = XrefPathIndex.getPaths(targetUnionType);
+		if(xrefPaths.isEmpty())
+			return result;
+
+		for(final FLEFRecord record : model.getRecords()){
+			final String recordType = record.getTag();
+			for(final String path : xrefPaths){
+				final int searchRecordTypeIndex = path.indexOf('.');
+				if(searchRecordTypeIndex == -1)
+					continue;
+
+				final String searchRecordType = path.substring(0, searchRecordTypeIndex);
+				if(!Strings.CI.equals(searchRecordType, recordType))
+					continue;
+
+				final String searchPath = path.substring(searchRecordTypeIndex + 1);
+				final List<FLEFRecord> targetNodes = FLEFRecordHelper.findChildren(record, searchPath);
+				for(final FLEFRecord node : targetNodes){
+					if(targetId.equals(node.getValue())){
+						final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(recordType);
+						if(handler != null)
+							// Use LinkedHashSet to avoid duplicates in O(1) while preserving insertion order
+							result.computeIfAbsent(handler.getClassType(), k -> new LinkedHashSet<>())
+								.add(record);
+
+						// Found a match in this record, move to the next record
+						break;
+					}
+				}
+			}
+		}
+		return result;
 	}
 
 }

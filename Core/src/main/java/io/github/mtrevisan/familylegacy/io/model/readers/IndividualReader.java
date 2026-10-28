@@ -24,13 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.io.model.readers;
 
-import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.io.model.readers.names.Name;
-import io.github.mtrevisan.familylegacy.io.model.readers.names.NameAnatomyService;
-import io.github.mtrevisan.familylegacy.io.model.readers.names.NamePart;
-import io.github.mtrevisan.familylegacy.ui.components.PreferredImagePanel;
+import io.github.mtrevisan.familylegacy.io.model.record.RecordLookup;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 
@@ -64,13 +60,16 @@ import java.util.StringJoiner;
  */
 public final class IndividualReader{
 
+	public static final String TYPE = "INDIVIDUAL";
+	public static final String ID_PREFIX = "I";
+
 	public static final String TAG_NAME = "name";
 	public static final String TAG_SEX = "sex";
 	public static final String TAG_SOURCE = "source";
 	public static final String TAG_NOTE = "note";
 	public static final String TAG_PREFERRED_IMAGE = "preferred_image";
-	private static final String TAG_PREFERRED_IMAGE_DOCUMENT = FLEFRecordHelper.composePath(TAG_PREFERRED_IMAGE, PreferredImagePanel.TAG_MEDIA);
-	private static final String TAG_PREFERRED_IMAGE_CROP = FLEFRecordHelper.composePath(TAG_PREFERRED_IMAGE, PreferredImagePanel.TAG_CROP);
+	private static final String TAG_PREFERRED_IMAGE_DOCUMENT = FLEFRecordHelper.composePath(TAG_PREFERRED_IMAGE, CropReader.TAG_MEDIA);
+	private static final String TAG_PREFERRED_IMAGE_CROP = FLEFRecordHelper.composePath(TAG_PREFERRED_IMAGE, CropReader.TAG_CROP);
 	public static final String TAG_PRIVACY = "privacy";
 	public static final String TAG_AUDIT = "audit";
 
@@ -85,6 +84,12 @@ public final class IndividualReader{
 
 
 	private IndividualReader(){}
+
+	/** @return whether the record is of this type (its tag is the type, ignoring case) */
+	public static boolean isOfType(final FLEFRecord record){
+		return (record != null && TYPE.equalsIgnoreCase(record.getTag()));
+	}
+
 
 
 	public static String extractRawSex(final FLEFRecord record){
@@ -129,7 +134,7 @@ public final class IndividualReader{
 	}
 
 
-	public static String extractPreferredImageUri(final FLEFRecord record, final FLEFModel model){
+	public static String extractPreferredImageUri(final FLEFRecord record, final RecordLookup model){
 		final String documentId = FLEFRecordHelper.getChildValue(record, TAG_PREFERRED_IMAGE_DOCUMENT);
 		final FLEFRecord document = model.getRecordById(documentId);
 		return MediaReader.extractUri(document);

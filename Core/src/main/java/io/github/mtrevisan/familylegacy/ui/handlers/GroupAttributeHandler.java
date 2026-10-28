@@ -25,8 +25,8 @@
 package io.github.mtrevisan.familylegacy.ui.handlers;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.io.model.readers.GroupAttributeReader;
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.GroupAttributeRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
@@ -42,8 +42,8 @@ import java.util.List;
  */
 public class GroupAttributeHandler extends AbstractRecordTypeHandler<GroupAttributeRecordDialog>{
 
-	public static final String TYPE = "GROUP_ATTRIBUTE";
-	public static final String ID_PREFIX = "GA";
+	public static final String TYPE = GroupAttributeReader.TYPE;
+	public static final String ID_PREFIX = GroupAttributeReader.ID_PREFIX;
 
 
 	private static final class SingletonHelper{

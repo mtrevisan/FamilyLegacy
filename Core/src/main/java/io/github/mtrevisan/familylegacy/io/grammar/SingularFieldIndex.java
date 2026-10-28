@@ -25,12 +25,13 @@
 package io.github.mtrevisan.familylegacy.io.grammar;
 
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.Cardinality;
+import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.FLEFGrammar;
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.FieldDefinition;
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.ScalarType;
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.StructType;
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.TypeDefinition;
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.UnionType;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 
 import java.util.ArrayList;
 import java.util.List;

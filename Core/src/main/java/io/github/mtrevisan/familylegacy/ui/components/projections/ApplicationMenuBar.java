@@ -26,12 +26,13 @@ package io.github.mtrevisan.familylegacy.ui.components.projections;
 
 import io.github.mtrevisan.familylegacy.privacy.PrivacyPolicy;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
-import io.github.mtrevisan.familylegacy.ui.assistant.ResearchAssistantService;
-import io.github.mtrevisan.familylegacy.ui.components.projections.repository.ChildrenOrder;
-import io.github.mtrevisan.familylegacy.ui.components.projections.repository.OrderPreferences;
-import io.github.mtrevisan.familylegacy.ui.components.projections.repository.PartnerOrder;
 import io.github.mtrevisan.familylegacy.ui.components.projections.bookmarks.BookmarkMenu;
+import io.github.mtrevisan.familylegacy.ui.components.projections.common.JumpToIndividualDialog;
+import io.github.mtrevisan.familylegacy.ui.components.projections.common.ProjectionType;
+import io.github.mtrevisan.familylegacy.ui.preferences.ChildrenOrder;
 import io.github.mtrevisan.familylegacy.ui.components.projections.repository.GenealogyRepository;
+import io.github.mtrevisan.familylegacy.ui.components.projections.individual.OrderPreferences;
+import io.github.mtrevisan.familylegacy.ui.preferences.PartnerOrder;
 import io.github.mtrevisan.familylegacy.ui.dialogs.help.DiagnosticsDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.help.HelpViewerDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.help.KeyboardShortcutsDialog;
@@ -641,11 +642,14 @@ final class ApplicationMenuBar{
 		menu.add(new JSeparator());
 		addToolsToMenu(menu, ToolToolRegistry.analysisTools(), bindings);
 
-		menu.add(new JSeparator());
-		final JMenuItem researchAssistant = new JMenuItem(ShortcutRegistry.TOOLS_RESEARCH_ASSISTANT.action());
-		researchAssistant.setAccelerator(ShortcutRegistry.TOOLS_RESEARCH_ASSISTANT.keyStroke());
-		researchAssistant.addActionListener(e -> ResearchAssistantService.getInstance().open());
-		menu.add(researchAssistant);
+		final ResearchAssistantPort assistant = frame.assistant();
+		if(assistant != null){
+			menu.add(new JSeparator());
+			final JMenuItem researchAssistant = new JMenuItem(ShortcutRegistry.TOOLS_RESEARCH_ASSISTANT.action());
+			researchAssistant.setAccelerator(ShortcutRegistry.TOOLS_RESEARCH_ASSISTANT.keyStroke());
+			researchAssistant.addActionListener(e -> assistant.open());
+			menu.add(researchAssistant);
+		}
 
 		bindDynamicEnablement(menu, bindings);
 

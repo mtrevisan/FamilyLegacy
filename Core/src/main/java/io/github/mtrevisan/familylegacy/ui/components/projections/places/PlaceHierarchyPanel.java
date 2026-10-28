@@ -25,16 +25,16 @@
 package io.github.mtrevisan.familylegacy.ui.components.projections.places;
 
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
-import io.github.mtrevisan.familylegacy.io.grammar.FLEFGrammar;
+import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.FLEFGrammar;
 import io.github.mtrevisan.familylegacy.io.merger.FLEFMerger;
 import io.github.mtrevisan.familylegacy.io.merger.RecordAbsorber;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceRelationshipReader;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyResolver;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
-import io.github.mtrevisan.familylegacy.ui.components.PrivacyBadge;
+import io.github.mtrevisan.familylegacy.ui.components.lists.PrivacyBadge;
 import io.github.mtrevisan.familylegacy.ui.components.searches.SearchMatcher;
 import io.github.mtrevisan.familylegacy.ui.components.searches.SearchMode;
 import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;

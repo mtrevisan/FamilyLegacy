@@ -25,8 +25,9 @@
 package io.github.mtrevisan.familylegacy.ui.components.projections.chronomap;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.readers.GeoCoordinate;
 import io.github.mtrevisan.familylegacy.io.model.readers.GroupAttributeReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualAttributeReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateNormalizer;
@@ -126,7 +127,7 @@ public final class TemporalAttributeIndex{
 		final long fromJdn = (from != null? from: Long.MIN_VALUE);
 		final long toJdn = (to != null? to: Long.MAX_VALUE);
 
-		final ChronomapIndex.GeoCoordinate position = resolvePlace(attribute);
+		final GeoCoordinate position = resolvePlace(attribute);
 
 		final String id = attribute.getId();
 		return new AttributeDatum(
@@ -151,7 +152,7 @@ public final class TemporalAttributeIndex{
 		return span.start().jdn();
 	}
 
-	private ChronomapIndex.GeoCoordinate resolvePlace(final FLEFRecord attribute){
+	private GeoCoordinate resolvePlace(final FLEFRecord attribute){
 		if(placeResolver == null)
 			return null;
 
@@ -211,6 +212,6 @@ public final class TemporalAttributeIndex{
 	 * @param position the resolved position, or {@code null}
 	 */
 	public record AttributeDatum(String id, String ownerId, String type, String value, long fromJdn, long toJdn,
-		boolean hasFrom, boolean hasTo, ChronomapIndex.GeoCoordinate position){}
+		boolean hasFrom, boolean hasTo, GeoCoordinate position){}
 
 }

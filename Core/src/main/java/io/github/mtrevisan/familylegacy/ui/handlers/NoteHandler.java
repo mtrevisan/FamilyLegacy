@@ -25,7 +25,7 @@
 package io.github.mtrevisan.familylegacy.ui.handlers;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.readers.NoteReader;
 import io.github.mtrevisan.familylegacy.ui.dialogs.structures.NoteStructureDialog;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
@@ -37,7 +37,7 @@ import java.awt.Window;
 
 public class NoteHandler extends AbstractRecordTypeHandler<NoteStructureDialog>{
 
-	public static final String TYPE = "NOTE";
+	public static final String TYPE = NoteReader.TYPE;
 
 
 	private static final class SingletonHelper{
@@ -66,7 +66,7 @@ public class NoteHandler extends AbstractRecordTypeHandler<NoteStructureDialog>{
 	}
 
 	public static boolean isOfType(final FLEFRecord record){
-		return (record != null && TYPE.equalsIgnoreCase(record.getTag()));
+		return NoteReader.isOfType(record);
 	}
 
 	@Override

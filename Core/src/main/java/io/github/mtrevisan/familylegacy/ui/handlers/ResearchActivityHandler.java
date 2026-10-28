@@ -25,7 +25,7 @@
 package io.github.mtrevisan.familylegacy.ui.handlers;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchActivityReader;
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.ResearchActivityRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
@@ -40,8 +40,8 @@ import java.awt.Window;
  */
 public class ResearchActivityHandler extends AbstractRecordTypeHandler<ResearchActivityRecordDialog>{
 
-	public static final String TYPE = "RESEARCH_ACTIVITY";
-	public static final String ID_PREFIX = "RA";
+	public static final String TYPE = ResearchActivityReader.TYPE;
+	public static final String ID_PREFIX = ResearchActivityReader.ID_PREFIX;
 
 
 	private static final class SingletonHelper{
@@ -60,7 +60,7 @@ public class ResearchActivityHandler extends AbstractRecordTypeHandler<ResearchA
 	}
 
 	public static boolean isOfType(final FLEFRecord record){
-		return (record != null && TYPE.equalsIgnoreCase(record.getTag()));
+		return ResearchActivityReader.isOfType(record);
 	}
 
 	@Override

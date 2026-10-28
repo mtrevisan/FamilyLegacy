@@ -24,8 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections.individual;
 
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.ui.components.projections.repository.ProjectionMutator;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.ui.components.projections.common.ProjectionMutator;
 
 
 public interface EntityListener{

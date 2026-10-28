@@ -24,19 +24,18 @@
  */
 package io.github.mtrevisan.familylegacy.gedcom.converters;
 
+import io.github.mtrevisan.familylegacy.gedcom.AuditBuilder;
 import io.github.mtrevisan.familylegacy.gedcom.Deduplicator;
 import io.github.mtrevisan.familylegacy.gedcom.GEDCOMHelper;
+import io.github.mtrevisan.familylegacy.gedcom.GEDCOMMapper;
 import io.github.mtrevisan.familylegacy.gedcom.GEDCOMNode;
-import io.github.mtrevisan.familylegacy.gedcom.utils.AuditBuilder;
-import io.github.mtrevisan.familylegacy.gedcom.utils.GEDCOMMapper;
-import io.github.mtrevisan.familylegacy.gedcom.utils.IDGenerator;
-import io.github.mtrevisan.familylegacy.gedcom.utils.PlaceCache;
+import io.github.mtrevisan.familylegacy.gedcom.IDGenerator;
+import io.github.mtrevisan.familylegacy.gedcom.PlaceCache;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.readers.IdentityHypothesisReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
-import io.github.mtrevisan.familylegacy.ui.handlers.IdentityHypothesisHandler;
-import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
-import io.github.mtrevisan.familylegacy.ui.handlers.RelationshipHandler;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -109,8 +108,8 @@ public class IndividualConverter {
 	 * @param indiNode the GEDCOM node with tag "INDI"
 	 */
 	public void convert(GEDCOMNode indiNode){
-		String id = GEDCOMHelper.extractId(indiNode, IndividualHandler.ID_PREFIX);
-		FLEFRecord individual = FLEFRecord.createMainRecord(id, IndividualHandler.TYPE);
+		String id = GEDCOMHelper.extractId(indiNode, IndividualReader.ID_PREFIX);
+		FLEFRecord individual = FLEFRecord.createMainRecord(id, IndividualReader.TYPE);
 		individualMap.put(id, individual);
 
 		// ---- Names ----
@@ -230,8 +229,8 @@ public class IndividualConverter {
 		if(aliasId.equals(individual.getId()) || !recordsById.containsKey(aliasId))
 			return;
 
-		final FLEFRecord identityHypothesis = FLEFRecord.createMainRecord(IDGenerator.nextId(IdentityHypothesisHandler.ID_PREFIX),
-				IdentityHypothesisHandler.TYPE)
+		final FLEFRecord identityHypothesis = FLEFRecord.createMainRecord(IDGenerator.nextId(IdentityHypothesisReader.ID_PREFIX),
+				IdentityHypothesisReader.TYPE)
 			.addChild(FLEFRecord.createChildWithTag("identity")
 				.addChild(FLEFRecord.createChildWithTagAndValue("individual", individual.getId())))
 			.addChild(FLEFRecord.createChildWithTag("identity")
@@ -266,8 +265,8 @@ public class IndividualConverter {
 		//RELA states the relation of the associate to the individual ("1 ASSO @I2@ 2 RELA Godfather": I2 is the godfather),
 		//and the subject of a relationship is the one whose role is described; a group can only be the target
 		final boolean associateIsGroup = "FAM".equals(associate.getTag());
-		final FLEFRecord relationship = FLEFRecord.createMainRecord(IDGenerator.nextId(RelationshipHandler.ID_PREFIX),
-				RelationshipHandler.TYPE)
+		final FLEFRecord relationship = FLEFRecord.createMainRecord(IDGenerator.nextId(RelationshipReader.ID_PREFIX),
+				RelationshipReader.TYPE)
 			.addChild(FLEFRecord.createChildWithTag("subject")
 				.addChild(FLEFRecord.createChildWithTagAndValue("individual", (associateIsGroup? individualId: associateId))))
 			.addChild(FLEFRecord.createChildWithTag("target")

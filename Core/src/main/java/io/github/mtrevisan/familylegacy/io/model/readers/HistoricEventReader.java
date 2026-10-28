@@ -24,8 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.io.model.readers;
 
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 
 
 /**
@@ -67,6 +67,9 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
  */
 public final class HistoricEventReader{
 
+	public static final String TYPE = "HISTORIC_EVENT";
+	public static final String ID_PREFIX = "HE";
+
 	public static final String TAG_TYPE = "type";
 	public static final String TAG_TITLE = "title";
 	public static final String TAG_DATE = "date";
@@ -84,6 +87,12 @@ public final class HistoricEventReader{
 
 
 	private HistoricEventReader(){}
+
+	/** @return whether the record is of this type (its tag is the type, ignoring case) */
+	public static boolean isOfType(final FLEFRecord record){
+		return (record != null && TYPE.equalsIgnoreCase(record.getTag()));
+	}
+
 
 
 	public static String extractTitle(final FLEFRecord record){

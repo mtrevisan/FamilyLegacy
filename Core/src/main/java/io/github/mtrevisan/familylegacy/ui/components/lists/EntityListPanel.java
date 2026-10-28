@@ -25,14 +25,12 @@
 package io.github.mtrevisan.familylegacy.ui.components.lists;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.ui.bindings.BindingsHelper;
 import io.github.mtrevisan.familylegacy.ui.bindings.MenuBuilder;
-import io.github.mtrevisan.familylegacy.ui.components.CompoundIcon;
-import io.github.mtrevisan.familylegacy.ui.components.PrivacyBadge;
-import io.github.mtrevisan.familylegacy.ui.components.searches.RecordSelectionDialog;
+import io.github.mtrevisan.familylegacy.ui.components.searches.service.RecordSelectionDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.ConclusionRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.EventParticipationRecordDialog;
@@ -40,9 +38,9 @@ import io.github.mtrevisan.familylegacy.ui.dialogs.records.IdentityHypothesisRec
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.PlaceRelationshipRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.RelationshipRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.ConclusionHandler;
-import io.github.mtrevisan.familylegacy.ui.handlers.IdentityHypothesisHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.ConclusionTargetHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
+import io.github.mtrevisan.familylegacy.ui.handlers.IdentityHypothesisHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;

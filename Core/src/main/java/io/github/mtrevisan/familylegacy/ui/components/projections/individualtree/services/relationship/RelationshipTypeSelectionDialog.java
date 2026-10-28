@@ -28,9 +28,6 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualListener;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
-import io.github.mtrevisan.familylegacy.ui.tools.ToolContext;
-import io.github.mtrevisan.familylegacy.ui.tools.ToolContexts;
-import io.github.mtrevisan.familylegacy.ui.tools.individuals.EditIndividualTool;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.BorderFactory;
@@ -166,11 +163,8 @@ public class RelationshipTypeSelectionDialog extends JDialog{
 				@Override
 				public void mousePressed(final MouseEvent e){
 					if(SwingUtilities.isLeftMouseButton(e) && e.getClickCount() == 2 && listener != null){
-						final ToolContext context = ToolContexts.withMutatorAndEdit(model, listener,
-							RelationshipTypeSelectionDialog.this, item.id(),
-							id -> listener.onEntityEdit(model.getRecordById(id)));
-						new EditIndividualTool()
-							.run(context);
+						if(item.id() != null)
+							listener.onEntityEdit(model.getRecordById(item.id()));
 					}
 				}
 			});

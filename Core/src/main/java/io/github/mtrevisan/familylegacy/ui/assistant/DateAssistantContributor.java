@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.ui.assistant;
 
 import io.github.mtrevisan.familylegacy.ui.components.HistoricalDateAssistantDialog;
+import io.github.mtrevisan.familylegacy.ui.components.HistoricalDateAssistantHost;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 
 import java.util.ArrayList;
@@ -35,7 +36,7 @@ import java.util.List;
  * The Historical Date Assistant, as actions of the Research Assistant: they are offered when the focus is in the editor of a
  * date, and open the assistant on the tool chosen.
  */
-final class DateAssistantContributor implements AssistantContributor{
+public final class DateAssistantContributor implements AssistantContributor{
 
 	/** The actions are listed before the ones of the other assistants: they are what the user needs in the editor of a date. */
 	private static final int RELEVANCE = 100;

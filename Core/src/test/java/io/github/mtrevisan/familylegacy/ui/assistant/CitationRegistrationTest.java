@@ -1,5 +1,6 @@
 package io.github.mtrevisan.familylegacy.ui.assistant;
 
+import io.github.mtrevisan.familylegacy.ui.assistant.app.DefaultResearchAssistant;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -12,7 +13,7 @@ class CitationRegistrationTest{
 	/** The default service offers the Source Citation Assistant in the editor of a citation, and nowhere else. */
 	@Test
 	void theCitationAssistantIsRegistered(){
-		final ResearchAssistantService service = ResearchAssistantService.createDefault();
+		final ResearchAssistantService service = DefaultResearchAssistant.createDefault(IgnoredFindings.inMemory());
 
 		final JPanel editor = new io.github.mtrevisan.familylegacy.ui.assistant.citation.CitationTestEditor();
 		final List<ResearchAssistantService.RankedAction> inside = service.search("citation",

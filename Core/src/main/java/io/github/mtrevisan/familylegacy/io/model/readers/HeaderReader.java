@@ -24,7 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.io.model.readers;
 
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 
 
 /**
@@ -53,6 +53,8 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
 * </pre>
  */
 public final class HeaderReader{
+
+	public static final String TYPE = "HEADER";
 
 	private static final String TAG_PROTOCOL = "protocol";
 	private static final String TAG_NAME = "name";

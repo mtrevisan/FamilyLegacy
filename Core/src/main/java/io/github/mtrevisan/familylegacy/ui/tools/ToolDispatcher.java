@@ -25,7 +25,7 @@
 package io.github.mtrevisan.familylegacy.ui.tools;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.ui.components.projections.repository.ProjectionMutator;
+import io.github.mtrevisan.familylegacy.ui.components.projections.common.ProjectionMutator;
 
 import java.io.File;
 

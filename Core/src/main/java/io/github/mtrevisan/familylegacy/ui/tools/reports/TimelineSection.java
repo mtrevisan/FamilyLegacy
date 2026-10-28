@@ -24,8 +24,10 @@
  */
 package io.github.mtrevisan.familylegacy.ui.tools.reports;
 
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceCitationReader;
+import io.github.mtrevisan.familylegacy.ui.tools.reports.index.ReportFormatters;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -73,7 +75,7 @@ final class TimelineSection implements SectionBuilder{
 					ctx.contextLabelResolver()));
 			final String type = ReportFormatters.orEmpty(FLEFRecordHelper.getChildValue(e, TAG_TYPE));
 			final String title = ReportFormatters.orEmpty(FLEFRecordHelper.getChildValue(e, TAG_TITLE));
-			final String place = ReportFormatters.orEmpty(FLEFRecordHelper.extractPlace(e, ctx.model));
+			final String place = ReportFormatters.orEmpty(PlaceCitationReader.extractPlace(e, ctx.model));
 			rows.add(List.of(
 				String.valueOf(year != null? year: StringUtils.EMPTY),
 				ReportFormatters.escape(date),

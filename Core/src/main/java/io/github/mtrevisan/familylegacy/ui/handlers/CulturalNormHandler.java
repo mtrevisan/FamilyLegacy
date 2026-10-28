@@ -25,7 +25,7 @@
 package io.github.mtrevisan.familylegacy.ui.handlers;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.readers.CulturalNormReader;
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.CulturalNormRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
@@ -39,8 +39,8 @@ import java.awt.Window;
  */
 public class CulturalNormHandler extends AbstractRecordTypeHandler<CulturalNormRecordDialog>{
 
-	public static final String TYPE = "CULTURAL_NORM";
-	public static final String ID_PREFIX = "CN";
+	public static final String TYPE = CulturalNormReader.TYPE;
+	public static final String ID_PREFIX = CulturalNormReader.ID_PREFIX;
 
 
 	private static final class SingletonHelper{
@@ -64,7 +64,7 @@ public class CulturalNormHandler extends AbstractRecordTypeHandler<CulturalNormR
 	}
 
 	public static boolean isOfType(final FLEFRecord record){
-		return (record != null && TYPE.equalsIgnoreCase(record.getTag()));
+		return CulturalNormReader.isOfType(record);
 	}
 
 	@Override

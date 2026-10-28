@@ -26,7 +26,7 @@ package io.github.mtrevisan.familylegacy.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.ProjectInfo;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.readers.HeaderReader;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextArea;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextField;

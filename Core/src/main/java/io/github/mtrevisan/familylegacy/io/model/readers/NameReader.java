@@ -24,8 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.io.model.readers;
 
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 
 import java.util.Set;
 
@@ -110,6 +110,8 @@ import java.util.Set;
  * </pre>
  */
 public final class NameReader{
+
+	public static final String TYPE = "NAME_STRUCTURE";
 
 	public static final String TAG_TYPE = "type";
 	public static final String TAG_VALUE = "value";

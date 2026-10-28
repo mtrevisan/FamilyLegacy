@@ -24,11 +24,13 @@
  */
 package io.github.mtrevisan.familylegacy.ui.tools.reports;
 
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.index.EventIndex;
+import io.github.mtrevisan.familylegacy.ui.tools.reports.index.ReportFormatters;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -246,7 +248,7 @@ final class PlaceRootSection implements SectionBuilder{
 		out.add(new ReportSection.Heading(3,
 			(type.isEmpty()? "Event": type) + (date.isEmpty()? StringUtils.EMPTY: " — " + date)));
 
-		final String place = FLEFRecordHelper.extractPlace(evt, ctx.model);
+		final String place = PlaceCitationReader.extractPlace(evt, ctx.model);
 		if(place != null)
 			out.add(new ReportSection.Paragraph(
 				"**" + ctx.labels.sections().place() + ":** " + ReportFormatters.escape(place)));

@@ -25,20 +25,23 @@
 package io.github.mtrevisan.familylegacy.ui.tools.reports;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualAttributeReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.NoteReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateService;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventParticipationHandler;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
+import io.github.mtrevisan.familylegacy.ui.tools.reports.i18n.ReportLabels;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.index.KinshipResolver;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.index.RelationIndex;
+import io.github.mtrevisan.familylegacy.ui.tools.reports.index.ReportFormatters;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -117,7 +120,7 @@ final class IndividualNarrator{
 		// 1. Birth
 		if(birth != null){
 			final String d = orNull(DateService.getDateDisplayText(birth));
-			final String p = orNull(FLEFRecordHelper.extractPlace(birth, model));
+			final String p = orNull(PlaceCitationReader.extractPlace(birth, model));
 			sentences.add(labels.narrativeBirth(name, d, p));
 		}
 		else
@@ -138,7 +141,7 @@ final class IndividualNarrator{
 		// 3. Marriages
 		for(final FLEFRecord m : marriages){
 			final String d = orNull(DateService.getDateDisplayText(m));
-			final String p = orNull(FLEFRecordHelper.extractPlace(m, model));
+			final String p = orNull(PlaceCitationReader.extractPlace(m, model));
 			final FLEFRecord spouse = spouseFromEvent(person, m);
 			final String spouseName = (spouse != null? displayName(spouse): null);
 			sentences.add(labels.narrativeMarriage(name, spouseName, d, p));
@@ -174,12 +177,12 @@ final class IndividualNarrator{
 		// 7. Migration events
 		if(emigration != null){
 			final String d = orNull(DateService.getDateDisplayText(emigration));
-			final String p = orNull(FLEFRecordHelper.extractPlace(emigration, model));
+			final String p = orNull(PlaceCitationReader.extractPlace(emigration, model));
 			sentences.add(labels.narrativeEmigration(name, d, p));
 		}
 		if(immigration != null){
 			final String d = orNull(DateService.getDateDisplayText(immigration));
-			final String p = orNull(FLEFRecordHelper.extractPlace(immigration, model));
+			final String p = orNull(PlaceCitationReader.extractPlace(immigration, model));
 			sentences.add(labels.narrativeImmigration(name, d, p));
 		}
 
@@ -195,19 +198,19 @@ final class IndividualNarrator{
 		// 11. Death, cause, burial/cremation
 		if(death != null){
 			final String d = orNull(DateService.getDateDisplayText(death));
-			final String p = orNull(FLEFRecordHelper.extractPlace(death, model));
+			final String p = orNull(PlaceCitationReader.extractPlace(death, model));
 			String cause = FLEFRecordHelper.getChildValue(death, EventReader.TAG_CAUSE_REASON);
 			sentences.add(labels.narrativeDeath(name, d, p, orNull(cause)));
 		}
 
 		if(burial != null){
 			final String d = orNull(DateService.getDateDisplayText(burial));
-			final String p = orNull(FLEFRecordHelper.extractPlace(burial, model));
+			final String p = orNull(PlaceCitationReader.extractPlace(burial, model));
 			sentences.add(labels.narrativeBurial(name, d, p));
 		}
 		else if(cremation != null){
 			final String d = orNull(DateService.getDateDisplayText(cremation));
-			final String p = orNull(FLEFRecordHelper.extractPlace(cremation, model));
+			final String p = orNull(PlaceCitationReader.extractPlace(cremation, model));
 			sentences.add(labels.narrativeCremation(name, d, p));
 		}
 
@@ -246,7 +249,7 @@ final class IndividualNarrator{
 			final String desc = FLEFRecordHelper.getChildValue(e, EventReader.TAG_DESCRIPTION);
 			if(desc != null && !desc.isBlank()){
 				final String d = orNull(DateService.getDateDisplayText(e));
-				final String p = orNull(FLEFRecordHelper.extractPlace(e, model));
+				final String p = orNull(PlaceCitationReader.extractPlace(e, model));
 
 				final StringBuilder valueBuilder = new StringBuilder(desc.trim());
 				if(d != null || p != null){

@@ -29,7 +29,6 @@ import io.github.mtrevisan.familylegacy.ui.tools.ToolOperation;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JOptionPane;
-import java.util.Objects;
 
 
 /**

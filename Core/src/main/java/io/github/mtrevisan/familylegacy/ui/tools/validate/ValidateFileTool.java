@@ -25,8 +25,8 @@
 package io.github.mtrevisan.familylegacy.ui.tools.validate;
 
 import io.github.mtrevisan.familylegacy.io.FLEFValidator;
-import io.github.mtrevisan.familylegacy.io.grammar.FLEFGrammar;
 import io.github.mtrevisan.familylegacy.io.grammar.FLEFGrammarParser;
+import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.FLEFGrammar;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolOperation;

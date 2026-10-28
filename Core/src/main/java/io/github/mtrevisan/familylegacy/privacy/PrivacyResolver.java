@@ -25,22 +25,18 @@
 package io.github.mtrevisan.familylegacy.privacy;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.readers.CropReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.GroupReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualAttributeReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.MediaReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PrivacyReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateNormalizer;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.TemporalSpan;
-import io.github.mtrevisan.familylegacy.ui.components.PreferredImagePanel;
-import io.github.mtrevisan.familylegacy.ui.handlers.EventHandler;
-import io.github.mtrevisan.familylegacy.ui.handlers.EventParticipationHandler;
-import io.github.mtrevisan.familylegacy.ui.handlers.GroupHandler;
-import io.github.mtrevisan.familylegacy.ui.handlers.IndividualAttributeHandler;
-import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
-import io.github.mtrevisan.familylegacy.ui.handlers.MediaHandler;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 
@@ -264,11 +260,11 @@ public final class PrivacyResolver{
 
 	/** The level that applies when the record declares no (non-expired) privacy. */
 	private Effective defaultFor(final FLEFRecord record){
-		if(IndividualHandler.isOfType(record)){
+		if(IndividualReader.isOfType(record)){
 			if(!notLiving.contains(record.getId()))
 				return new Effective(PrivacyLevel.RESTRICTED, Origin.LIVING_PERSON, "living_person", null);
 		}
-		else if(IndividualAttributeHandler.isOfType(record)
+		else if(IndividualAttributeReader.isOfType(record)
 				&& Strings.CI.equals(FLEFRecordHelper.getChildValue(record, IndividualAttributeReader.TAG_TYPE), TYPE_NATIONAL_ID))
 			return new Effective(PrivacyLevel.CONFIDENTIAL, Origin.NATIONAL_ID, "sensitive_information", null);
 		return Effective.PUBLIC;
@@ -277,12 +273,12 @@ public final class PrivacyResolver{
 	/** The ids of the records whose effective level the record inherits. */
 	private List<String> inheritanceSources(final FLEFRecord record){
 		final List<String> sources = new ArrayList<>();
-		if(IndividualHandler.isOfType(record) || GroupHandler.isOfType(record))
+		if(IndividualReader.isOfType(record) || GroupReader.isOfType(record))
 			return sources;
 
-		if(EventHandler.isOfType(record))
+		if(EventReader.isOfType(record))
 			sources.addAll(participantsByEvent.getOrDefault(record.getId(), List.of()));
-		else if(MediaHandler.isOfType(record))
+		else if(MediaReader.isOfType(record))
 			sources.addAll(ownersByMedia.getOrDefault(record.getId(), List.of()));
 		collectReferencedPeople(record, sources);
 		return sources;
@@ -292,7 +288,7 @@ public final class PrivacyResolver{
 	private void collectReferencedPeople(final FLEFRecord node, final List<String> sources){
 		for(final FLEFRecord child : node.getChildren()){
 			final String tag = child.getTag();
-			if((Strings.CI.equals(tag, IndividualHandler.TYPE) || Strings.CI.equals(tag, GroupHandler.TYPE))
+			if((Strings.CI.equals(tag, IndividualReader.TYPE) || Strings.CI.equals(tag, GroupReader.TYPE))
 					&& StringUtils.isNotBlank(child.getValue()))
 				sources.add(child.getValue());
 			collectReferencedPeople(child, sources);
@@ -310,10 +306,10 @@ public final class PrivacyResolver{
 		indexed = true;
 
 		final Map<String, FLEFRecord> events = new HashMap<>();
-		for(final FLEFRecord event : model.getRecordsByType(EventHandler.TYPE))
+		for(final FLEFRecord event : model.getRecordsByType(EventReader.TYPE))
 			events.put(event.getId(), event);
 
-		for(final FLEFRecord participation : model.getRecordsByType(EventParticipationHandler.TYPE)){
+		for(final FLEFRecord participation : model.getRecordsByType(EventParticipationReader.TYPE)){
 			final Participant participant = participantOf(participation);
 			final String eventId = FLEFRecordHelper.getChildValue(participation, EventParticipationReader.TAG_EVENT);
 			if(participant == null || eventId == null)
@@ -328,15 +324,15 @@ public final class PrivacyResolver{
 				notLiving.add(participantId);
 		}
 
-		for(final FLEFRecord owner : model.getRecordsByType(IndividualHandler.TYPE))
+		for(final FLEFRecord owner : model.getRecordsByType(IndividualReader.TYPE))
 			indexPreferredImage(owner);
-		for(final FLEFRecord owner : model.getRecordsByType(GroupHandler.TYPE))
+		for(final FLEFRecord owner : model.getRecordsByType(GroupReader.TYPE))
 			indexPreferredImage(owner);
 	}
 
 	private void indexPreferredImage(final FLEFRecord owner){
 		final String mediaId = FLEFRecordHelper.getChildValue(owner,
-			FLEFRecordHelper.composePath(IndividualReader.TAG_PREFERRED_IMAGE, PreferredImagePanel.TAG_MEDIA));
+			FLEFRecordHelper.composePath(IndividualReader.TAG_PREFERRED_IMAGE, CropReader.TAG_MEDIA));
 		if(StringUtils.isNotBlank(mediaId))
 			ownersByMedia.computeIfAbsent(mediaId, k -> new ArrayList<>())
 				.add(owner.getId());
@@ -346,12 +342,12 @@ public final class PrivacyResolver{
 	private static Participant participantOf(final FLEFRecord participation){
 		final FLEFRecord block = FLEFRecordHelper.findChild(participation, EventParticipationReader.TAG_PARTICIPANT);
 		final FLEFRecord oneOf = (block != null? block.getTheOnlyChild(): null);
-		if(oneOf == null || !(IndividualHandler.isOfType(oneOf) || GroupHandler.isOfType(oneOf)))
+		if(oneOf == null || !(IndividualReader.isOfType(oneOf) || GroupReader.isOfType(oneOf)))
 			return null;
 
 		final FLEFRecord reference = oneOf.getTheOnlyChild();
 		final String id = (reference != null? reference.getValue(): oneOf.getValue());
-		return (StringUtils.isNotBlank(id)? new Participant(id, IndividualHandler.isOfType(oneOf)): null);
+		return (StringUtils.isNotBlank(id)? new Participant(id, IndividualReader.isOfType(oneOf)): null);
 	}
 
 	private record Participant(String id, boolean individual){}

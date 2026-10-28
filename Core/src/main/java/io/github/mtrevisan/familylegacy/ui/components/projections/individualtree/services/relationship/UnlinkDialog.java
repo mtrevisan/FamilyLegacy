@@ -25,8 +25,8 @@
 package io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.services.relationship;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
@@ -317,7 +317,7 @@ public class UnlinkDialog extends JDialog{
 		if(entityId == null)
 			return Collections.emptyMap();
 
-		return model.getReferencingRecords(entityId);
+		return HandlerRegistry.getReferencingRecords(model, entityId);
 	}
 
 	/**

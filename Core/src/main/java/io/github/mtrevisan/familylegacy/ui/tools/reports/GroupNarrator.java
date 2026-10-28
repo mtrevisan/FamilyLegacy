@@ -25,18 +25,19 @@
 package io.github.mtrevisan.familylegacy.ui.tools.reports;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.GroupAttributeReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.GroupReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateService;
+import io.github.mtrevisan.familylegacy.ui.tools.reports.i18n.ReportLabels;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.index.RelationIndex;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 
 /**
@@ -83,14 +84,14 @@ final class GroupNarrator{
 
 		if(founding != null){
 			final String d = DateService.getDateDisplayText(founding);
-			final String p = FLEFRecordHelper.extractPlace(founding, model);
+			final String p = PlaceCitationReader.extractPlace(founding, model);
 			sentences.add(labels.narrative().groupNarrativeFounding(displayName, d, p));
 		}
 		else if(!unions.isEmpty()){
 			for(final FLEFRecord unionEvt : unions){
 				final String type = FLEFRecordHelper.getChildValue(unionEvt, EventReader.TAG_TYPE);
 				final String d = DateService.getDateDisplayText(unionEvt);
-				final String p = FLEFRecordHelper.extractPlace(unionEvt, model);
+				final String p = PlaceCitationReader.extractPlace(unionEvt, model);
 
 				final String typeLabel = (type != null? type.replace('_', ' '): "union");
 				if(d != null || p != null){
@@ -115,7 +116,7 @@ final class GroupNarrator{
 			final String t = FLEFRecordHelper.getChildValue(a, GroupAttributeReader.TAG_TYPE);
 			if(GroupAttributeReader.ENUM_TYPE_RESIDENCE.equalsIgnoreCase(t)){
 				final String v = FLEFRecordHelper.getChildValue(a, GroupAttributeReader.TAG_VALUE);
-				final String p = FLEFRecordHelper.extractPlace(a, model);
+				final String p = PlaceCitationReader.extractPlace(a, model);
 				final String loc = (v != null && !v.isBlank())? v.trim(): p;
 				if(loc != null && !loc.isBlank())
 					sentences.add(labels.narrative().groupNarrativeResidence(displayName, loc));
@@ -141,7 +142,7 @@ final class GroupNarrator{
 		final FLEFRecord dissolution = findEvent(events, EventReader.ENUM_TYPE_DIVORCE);
 		if(dissolution != null){
 			final String d = DateService.getDateDisplayText(dissolution);
-			final String p = FLEFRecordHelper.extractPlace(dissolution, model);
+			final String p = PlaceCitationReader.extractPlace(dissolution, model);
 			sentences.add(labels.narrative().groupNarrativeDissolution(displayName, d, p));
 		}
 

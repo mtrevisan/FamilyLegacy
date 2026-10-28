@@ -25,7 +25,7 @@
 package io.github.mtrevisan.familylegacy.ui.handlers;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.IndividualRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
@@ -37,8 +37,8 @@ import java.util.List;
 
 public class IndividualHandler extends AbstractRecordTypeHandler<IndividualRecordDialog>{
 
-	public static final String TYPE = "INDIVIDUAL";
-	public static final String ID_PREFIX = "I";
+	public static final String TYPE = IndividualReader.TYPE;
+	public static final String ID_PREFIX = IndividualReader.ID_PREFIX;
 
 
 	private static final class SingletonHelper{
@@ -62,7 +62,7 @@ public class IndividualHandler extends AbstractRecordTypeHandler<IndividualRecor
 	}
 
 	public static boolean isOfType(final FLEFRecord record){
-		return (record != null && TYPE.equalsIgnoreCase(record.getTag()));
+		return IndividualReader.isOfType(record);
 	}
 
 	@Override

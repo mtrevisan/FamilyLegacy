@@ -24,13 +24,13 @@
  */
 package io.github.mtrevisan.familylegacy.gedcom;
 
-import io.github.mtrevisan.familylegacy.gedcom.utils.GEDCOMMapper;
+import io.github.mtrevisan.familylegacy.gedcom.converters.GEDCOMToFLEFConverter;
 import io.github.mtrevisan.familylegacy.io.FLEFValidator;
-import io.github.mtrevisan.familylegacy.io.grammar.FLEFGrammar;
 import io.github.mtrevisan.familylegacy.io.grammar.FLEFGrammarParser;
+import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.FLEFGrammar;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -39,7 +39,6 @@ import java.io.StringReader;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Objects;
 
 
 class GEDCOMToFLEFConverterTest{

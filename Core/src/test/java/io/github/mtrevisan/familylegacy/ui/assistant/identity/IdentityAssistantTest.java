@@ -2,10 +2,10 @@ package io.github.mtrevisan.familylegacy.ui.assistant.identity;
 
 import io.github.mtrevisan.familylegacy.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.gedcom.GEDCOMParser;
-import io.github.mtrevisan.familylegacy.gedcom.GEDCOMToFLEFConverter;
+import io.github.mtrevisan.familylegacy.gedcom.converters.GEDCOMToFLEFConverter;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.ui.assistant.AssistantCategory;
 import io.github.mtrevisan.familylegacy.ui.assistant.AssistantContext;

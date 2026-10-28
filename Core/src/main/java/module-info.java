@@ -47,4 +47,9 @@ module io.github.mtrevisan.familylegacy.core {
 
 	// Assistants that plug into the Research Assistant
 	uses io.github.mtrevisan.familylegacy.ui.assistant.AssistantContributor;
+
+	// The main window finds the Research Assistant, it does not depend on it
+	uses io.github.mtrevisan.familylegacy.ui.components.projections.ResearchAssistantPort;
+	provides io.github.mtrevisan.familylegacy.ui.components.projections.ResearchAssistantPort
+		with io.github.mtrevisan.familylegacy.ui.assistant.app.FrameAssistantPort;
 }

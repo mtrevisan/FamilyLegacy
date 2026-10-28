@@ -24,14 +24,14 @@
  */
 package io.github.mtrevisan.familylegacy.ui.dialogs;
 
-import io.github.mtrevisan.familylegacy.io.grammar.FLEFGrammar;
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.AlternationType;
+import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.FLEFGrammar;
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.FieldDefinition;
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.ScalarType;
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.StructType;
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.TypeDefinition;
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.UnionType;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.tools.tools.merge.MergeGrammar;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;

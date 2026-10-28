@@ -25,15 +25,6 @@
 package io.github.mtrevisan.familylegacy.ui.assistant;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.ui.assistant.chronology.ChronologyAssistantContributor;
-import io.github.mtrevisan.familylegacy.ui.assistant.citation.CitationAssistantContributor;
-import io.github.mtrevisan.familylegacy.ui.assistant.conclusion.ConclusionAssistantContributor;
-import io.github.mtrevisan.familylegacy.ui.assistant.context.ContextAssistantContributor;
-import io.github.mtrevisan.familylegacy.ui.assistant.gap.GapAssistantContributor;
-import io.github.mtrevisan.familylegacy.ui.assistant.identity.IdentityAssistantContributor;
-import io.github.mtrevisan.familylegacy.ui.assistant.place.PlaceAssistantContributor;
-import io.github.mtrevisan.familylegacy.ui.assistant.planner.PlannerAssistantContributor;
-import io.github.mtrevisan.familylegacy.ui.assistant.relationship.RelationshipAssistantContributor;
 import io.github.mtrevisan.familylegacy.ui.dialogs.help.ShortcutRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,7 +39,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
-import java.util.ServiceLoader;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -64,8 +54,8 @@ import java.util.function.Supplier;
  * records, create conclusions, modify assertions or resolve conflicts automatically.
  * </p>
  * <p>
- * The assistants plug in through {@link AssistantContributor}: the built-in ones are registered in
- * {@link #createDefault()}, the other ones are found as {@link ServiceLoader} providers, so that a new assistant never needs
+ * The assistants plug in through {@link AssistantContributor}: they are registered with {@link #register} by the code that assembles the
+ * application (the package {@code app}), so that this class does not depend on the assistants and a new assistant never needs
  * a change in this class.
  * </p>
  */
@@ -76,8 +66,6 @@ public final class ResearchAssistantService{
 	/** An action with how well it matches what the user typed. */
 	public record RankedAction(AssistantAction action, int score){}
 
-
-	private static final ResearchAssistantService INSTANCE = createDefault();
 
 	private final List<AssistantAction> actions = new CopyOnWriteArrayList<>();
 	private final List<DiagnosticProvider> diagnosticProviders = new CopyOnWriteArrayList<>();
@@ -94,36 +82,13 @@ public final class ResearchAssistantService{
 		this(IgnoredFindings.inMemory());
 	}
 
-	ResearchAssistantService(final IgnoredFindings ignoredFindings){
+	public ResearchAssistantService(final IgnoredFindings ignoredFindings){
 		this.ignoredFindings = ignoredFindings;
-	}
-
-
-	public static ResearchAssistantService getInstance(){
-		return INSTANCE;
 	}
 
 	/** @return the findings the user ignored */
 	public IgnoredFindings ignoredFindings(){
 		return ignoredFindings;
-	}
-
-	/** @return a service with the built-in assistants and the ones provided by plugins */
-	static ResearchAssistantService createDefault(){
-		final ResearchAssistantService service = new ResearchAssistantService(IgnoredFindings.usingPreferences());
-		service.register(new DateAssistantContributor());
-		service.register(new ChronologyAssistantContributor());
-		service.register(new ConclusionAssistantContributor());
-		service.register(new RelationshipAssistantContributor());
-		service.register(new IdentityAssistantContributor());
-		service.register(new GapAssistantContributor());
-		service.register(new CitationAssistantContributor());
-		service.register(new PlaceAssistantContributor());
-		service.register(new PlannerAssistantContributor());
-		service.register(new ContextAssistantContributor());
-		ServiceLoader.load(AssistantContributor.class)
-			.forEach(service::register);
-		return service;
 	}
 
 

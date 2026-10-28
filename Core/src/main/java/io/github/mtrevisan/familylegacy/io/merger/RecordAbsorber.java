@@ -24,13 +24,13 @@
  */
 package io.github.mtrevisan.familylegacy.io.merger;
 
-import io.github.mtrevisan.familylegacy.io.grammar.FLEFGrammar;
+import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.FLEFGrammar;
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.FieldDefinition;
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.StructType;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.ui.handlers.ConclusionHandler;
-import io.github.mtrevisan.familylegacy.ui.handlers.IdentityHypothesisHandler;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.readers.ConclusionReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IdentityHypothesisReader;
 
 import java.time.Clock;
 import java.util.ArrayList;
@@ -271,7 +271,7 @@ public final class RecordAbsorber{
 				break;
 			}
 		if(hypothesis == null){
-			hypothesis = newRecord(model, ProtocolRules.KIND_IDENTITY_HYPOTHESIS, IdentityHypothesisHandler.ID_PREFIX);
+			hypothesis = newRecord(model, ProtocolRules.KIND_IDENTITY_HYPOTHESIS, IdentityHypothesisReader.ID_PREFIX);
 			hypothesis.addChild(FLEFRecord.createChildWithTag(ProtocolRules.TAG_IDENTITY)
 				.addChild(FLEFRecord.createChildWithTagAndValue(a.getTag(), idA)));
 			hypothesis.addChild(FLEFRecord.createChildWithTag(ProtocolRules.TAG_IDENTITY)
@@ -283,7 +283,7 @@ public final class RecordAbsorber{
 		}
 
 		// a disproven conclusion prefers none of what it resolves
-		final FLEFRecord conclusion = newRecord(model, ProtocolRules.KIND_CONCLUSION, ConclusionHandler.ID_PREFIX);
+		final FLEFRecord conclusion = newRecord(model, ProtocolRules.KIND_CONCLUSION, ConclusionReader.ID_PREFIX);
 		conclusion.addChild(FLEFRecord.createChildWithTagAndValue(TAG_ISSUE, ISSUE_IDENTITY));
 		conclusion.addChild(FLEFRecord.createChildWithTagAndValue(TAG_PROOF_STATUS, ModelIndex.PROOF_STATUS_DISPROVEN));
 		if(narrative != null && !narrative.isBlank())

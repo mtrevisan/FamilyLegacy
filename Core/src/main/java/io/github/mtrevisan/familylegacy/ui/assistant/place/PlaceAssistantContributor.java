@@ -27,7 +27,6 @@ package io.github.mtrevisan.familylegacy.ui.assistant.place;
 import io.github.mtrevisan.familylegacy.ui.assistant.AssistantAction;
 import io.github.mtrevisan.familylegacy.ui.assistant.AssistantContributor;
 import io.github.mtrevisan.familylegacy.ui.assistant.Diagnostic;
-import io.github.mtrevisan.familylegacy.ui.assistant.DiagnosticAction;
 import io.github.mtrevisan.familylegacy.ui.assistant.DiagnosticProvider;
 import io.github.mtrevisan.familylegacy.ui.assistant.identity.CompareRecordsAction;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;

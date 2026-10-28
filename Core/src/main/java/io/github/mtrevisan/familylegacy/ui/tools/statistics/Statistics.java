@@ -24,7 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.tools.statistics;
 
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 
 import java.util.List;
 

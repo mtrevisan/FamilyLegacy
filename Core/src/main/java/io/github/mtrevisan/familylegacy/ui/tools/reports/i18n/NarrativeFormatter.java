@@ -25,7 +25,6 @@
 package io.github.mtrevisan.familylegacy.ui.tools.reports.i18n;
 
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
-import io.github.mtrevisan.familylegacy.ui.tools.reports.ReportLabels;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Locale;

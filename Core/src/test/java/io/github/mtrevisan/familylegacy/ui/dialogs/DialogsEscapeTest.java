@@ -2,7 +2,7 @@ package io.github.mtrevisan.familylegacy.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.gedcom.GEDCOMParser;
-import io.github.mtrevisan.familylegacy.gedcom.GEDCOMToFLEFConverter;
+import io.github.mtrevisan.familylegacy.gedcom.converters.GEDCOMToFLEFConverter;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.ui.handlers.AgentHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.ConclusionHandler;

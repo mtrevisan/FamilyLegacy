@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections;
 
+import io.github.mtrevisan.familylegacy.ui.components.projections.common.ProjectionType;
 import io.github.mtrevisan.familylegacy.ui.dialogs.help.ShortcutRegistry;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 

@@ -24,8 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.io.model.readers;
 
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import org.apache.commons.lang3.StringUtils;
 
 
@@ -80,6 +80,8 @@ import org.apache.commons.lang3.StringUtils;
  * </pre>
  */
 public final class TextValueVariantReader{
+
+	public static final String TYPE = "TEXT_VALUE_VARIANT";
 
 	public static final String TAG_PHONETIC = "phonetic";
 	public static final String TAG_PHONETIC_SYSTEM = "system";

@@ -25,8 +25,8 @@
 package io.github.mtrevisan.familylegacy.ui.handlers;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceCitationReader;
 import io.github.mtrevisan.familylegacy.ui.dialogs.citations.PlaceCitationDialog;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
@@ -39,7 +39,7 @@ import java.awt.Window;
  */
 public class PlaceCitationHandler extends AbstractRecordTypeHandler<PlaceCitationDialog>{
 
-	public static final String TYPE = "PLACE_CITATION";
+	public static final String TYPE = PlaceCitationReader.TYPE;
 
 
 	private static final class SingletonHelper{

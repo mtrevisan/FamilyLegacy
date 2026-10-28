@@ -27,7 +27,7 @@ package io.github.mtrevisan.familylegacy.ui.tools.groups;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.ui.components.projections.group.GroupData;
 import io.github.mtrevisan.familylegacy.ui.components.projections.group.GroupPanel;
-import io.github.mtrevisan.familylegacy.ui.components.projections.individual.PopupMenuHelper;
+import io.github.mtrevisan.familylegacy.ui.tools.PopupMenuHelper;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolOperation;

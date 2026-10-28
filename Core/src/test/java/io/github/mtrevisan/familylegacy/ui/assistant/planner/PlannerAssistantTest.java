@@ -2,9 +2,9 @@ package io.github.mtrevisan.familylegacy.ui.assistant.planner;
 
 import io.github.mtrevisan.familylegacy.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.gedcom.GEDCOMParser;
-import io.github.mtrevisan.familylegacy.gedcom.GEDCOMToFLEFConverter;
+import io.github.mtrevisan.familylegacy.gedcom.converters.GEDCOMToFLEFConverter;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.assistant.AssistantContext;
 import io.github.mtrevisan.familylegacy.ui.assistant.Diagnostic;
 import org.junit.jupiter.api.Assertions;

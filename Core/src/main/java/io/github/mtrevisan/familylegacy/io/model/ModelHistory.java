@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.io.model;
 
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+
 import java.time.Instant;
 import java.util.ArrayDeque;
 import java.util.ArrayList;

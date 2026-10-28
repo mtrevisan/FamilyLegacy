@@ -24,7 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections.individualtree;
 
-import io.github.mtrevisan.familylegacy.ui.components.projections.SpatialNavigation;
+import io.github.mtrevisan.familylegacy.ui.components.projections.common.SpatialNavigation;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualData;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualPanel;
 import io.github.mtrevisan.familylegacy.ui.components.projections.partners.PartnersPanel;

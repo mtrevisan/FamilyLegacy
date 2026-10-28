@@ -25,7 +25,7 @@
 package io.github.mtrevisan.familylegacy.ui.handlers;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.readers.HistoricEventReader;
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.HistoricEventRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
@@ -39,8 +39,8 @@ import java.awt.Window;
  */
 public class HistoricEventHandler extends AbstractRecordTypeHandler<HistoricEventRecordDialog>{
 
-	public static final String TYPE = "HISTORIC_EVENT";
-	public static final String ID_PREFIX = "HE";
+	public static final String TYPE = HistoricEventReader.TYPE;
+	public static final String ID_PREFIX = HistoricEventReader.ID_PREFIX;
 
 
 	private static final class SingletonHelper{
@@ -64,7 +64,7 @@ public class HistoricEventHandler extends AbstractRecordTypeHandler<HistoricEven
 	}
 
 	public static boolean isOfType(final FLEFRecord record){
-		return (record != null && TYPE.equalsIgnoreCase(record.getTag()));
+		return HistoricEventReader.isOfType(record);
 	}
 
 	@Override

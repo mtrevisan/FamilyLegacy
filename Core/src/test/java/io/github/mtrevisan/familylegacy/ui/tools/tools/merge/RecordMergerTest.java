@@ -25,11 +25,11 @@
 package io.github.mtrevisan.familylegacy.ui.tools.tools.merge;
 
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
-import io.github.mtrevisan.familylegacy.io.grammar.FLEFGrammar;
 import io.github.mtrevisan.familylegacy.io.grammar.FLEFGrammarParser;
+import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.FLEFGrammar;
 import io.github.mtrevisan.familylegacy.io.merger.RecordAbsorber;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;

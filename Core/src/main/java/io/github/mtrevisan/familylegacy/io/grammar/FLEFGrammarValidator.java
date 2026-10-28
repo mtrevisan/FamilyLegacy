@@ -31,13 +31,15 @@ import io.github.mtrevisan.familylegacy.io.grammar.contraints.OnlyIfInConstraint
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.AlternationType;
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.Cardinality;
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.EnumType;
+import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.FLEFGrammar;
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.FieldDefinition;
+import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.FileDefinition;
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.ReferenceType;
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.ScalarType;
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.StructType;
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.TypeDefinition;
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.UnionType;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 
 import java.util.ArrayList;
 import java.util.HashSet;

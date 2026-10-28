@@ -25,7 +25,7 @@
 package io.github.mtrevisan.familylegacy.ui.components.projections.siblings;
 
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualData;
-import io.github.mtrevisan.familylegacy.ui.components.projections.repository.PresentationOrder;
+import io.github.mtrevisan.familylegacy.ui.components.projections.individual.PresentationOrder;
 
 import java.util.Collections;
 import java.util.List;

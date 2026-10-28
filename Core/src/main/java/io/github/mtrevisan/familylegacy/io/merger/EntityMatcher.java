@@ -25,10 +25,10 @@
 package io.github.mtrevisan.familylegacy.io.merger;
 
 import io.github.mtrevisan.familylegacy.io.merger.TextSimilarity.Agreement;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.readers.GeoCoordinate;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.NormalizedDate;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.TemporalSpan;
-import io.github.mtrevisan.familylegacy.ui.components.projections.chronomap.ChronomapIndex;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -530,8 +530,8 @@ final class EntityMatcher{
 		final PlaceNames namesB = placeNames(b);
 		addAgreement(score, TextSimilarity.bestPlace(namesA.leaves(), namesB.leaves()), "name", 5., 2.5, 2.5, -5.);
 
-		final ChronomapIndex.GeoCoordinate coordinateA = coordinates(a);
-		final ChronomapIndex.GeoCoordinate coordinateB = coordinates(b);
+		final GeoCoordinate coordinateA = coordinates(a);
+		final GeoCoordinate coordinateB = coordinates(b);
 		if(coordinateA != null && coordinateB != null){
 			final double km = distanceInKm(coordinateA, coordinateB);
 			if(km <= 2.)
@@ -929,12 +929,12 @@ final class EntityMatcher{
 		return ids;
 	}
 
-	private static ChronomapIndex.GeoCoordinate coordinates(final FLEFRecord place){
+	private static GeoCoordinate coordinates(final FLEFRecord place){
 		final FLEFRecord location = FieldMerger.first(place, TAG_LOCATION);
-		return (location != null? ChronomapIndex.GeoCoordinate.parse(ModelIndex.value(location, TAG_COORDINATES)): null);
+		return (location != null? GeoCoordinate.parse(ModelIndex.value(location, TAG_COORDINATES)): null);
 	}
 
-	private static double distanceInKm(final ChronomapIndex.GeoCoordinate a, final ChronomapIndex.GeoCoordinate b){
+	private static double distanceInKm(final GeoCoordinate a, final GeoCoordinate b){
 		final double lat1 = Math.toRadians(a.latitude());
 		final double lat2 = Math.toRadians(b.latitude());
 		final double dLat = lat2 - lat1;

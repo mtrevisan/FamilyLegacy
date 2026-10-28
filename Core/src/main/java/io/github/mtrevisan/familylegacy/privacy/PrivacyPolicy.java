@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.privacy;
 
+import io.github.mtrevisan.familylegacy.privacy.PrivacyLevel;
+
 
 /**
  * How records marked with a {@code privacy} block (or that inherit a restriction) are treated by the views, the searches,

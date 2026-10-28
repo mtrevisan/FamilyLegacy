@@ -25,10 +25,9 @@
 package io.github.mtrevisan.familylegacy.gedcom;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
-import io.github.mtrevisan.familylegacy.ui.handlers.RelationshipHandler;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -61,7 +60,7 @@ public final class Deduplicator{
 	}
 
 	public static String getDeduplicatedRecordId(FLEFModel model, FLEFRecord record){
-		if(record.getTag().equalsIgnoreCase(RelationshipHandler.TYPE)){
+		if(record.getTag().equalsIgnoreCase(RelationshipReader.TYPE)){
 			String type = FLEFRecordHelper.getChildValue(record, "type");
 			if(RelationshipReader.isTypeBiologicalChild(type)){
 				FLEFRecord subject = FLEFRecordHelper.findChild(record, "subject");

@@ -24,7 +24,6 @@
  */
 package io.github.mtrevisan.familylegacy.ui.assistant.conclusion;
 
-import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SexType;
 import io.github.mtrevisan.familylegacy.ui.assistant.AssistantCategory;

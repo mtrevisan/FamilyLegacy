@@ -24,11 +24,10 @@
  */
 package io.github.mtrevisan.familylegacy.io.grammar.typedefinitions;
 
-import io.github.mtrevisan.familylegacy.io.grammar.FLEFGrammar;
 import io.github.mtrevisan.familylegacy.io.grammar.contraints.Constraint;
-import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.record.RecordLookup;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 
@@ -68,7 +67,7 @@ public class StructType extends TypeDefinition{
 	}
 
 	@Override
-	public void validate(final String contextPath, final FLEFRecord record, final FLEFModel model,
+	public void validate(final String contextPath, final FLEFRecord record, final RecordLookup model,
 			final FLEFGrammar grammar, final List<String> errors){
 		// Check all fields defined for this structure
 		for(final FieldDefinition fieldDef : fields){

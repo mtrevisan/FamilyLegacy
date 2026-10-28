@@ -24,8 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.io.model.readers;
 
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 
 import java.awt.Rectangle;
 
@@ -49,6 +49,9 @@ import java.awt.Rectangle;
  */
 public final class CropReader{
 
+	/** The tags of a preferred image: the media and the crop of it. */
+	public static final String TAG_MEDIA = "media";
+	public static final String TAG_CROP = "crop";
 	public static final String TAG_X = "x";
 	public static final String TAG_Y = "y";
 	public static final String TAG_WIDTH = "width";

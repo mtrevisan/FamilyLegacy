@@ -24,9 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.io.grammar.contraints;
 
-import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.record.RecordLookup;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 
 import java.util.List;
 
@@ -55,7 +55,7 @@ public final class CountConstraint extends Constraint{
 	}
 
 	@Override
-	public void validate(final String contextPath, final FLEFRecord record, final FLEFModel model,
+	public void validate(final String contextPath, final FLEFRecord record, final RecordLookup model,
 			final List<String> errors){
 		final List<FLEFRecord> fields = FLEFRecordHelper.findChildren(record, field);
 		if(fields.size() != count)

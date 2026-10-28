@@ -24,7 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.ui.bindings;
 
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.ui.helpers.ComposesOwnTooltip;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
@@ -46,7 +47,7 @@ import java.util.List;
 import java.util.Objects;
 
 
-public class BoundComboBox<E> extends JComboBox<E> implements PathBound{
+public class BoundComboBox<E> extends JComboBox<E> implements PathBound, ComposesOwnTooltip{
 
 	private static final String NONE = "none";
 	private static final String TOOLTIP = "tooltip";

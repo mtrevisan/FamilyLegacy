@@ -2,9 +2,10 @@ package io.github.mtrevisan.familylegacy.ui.assistant;
 
 import io.github.mtrevisan.familylegacy.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.gedcom.GEDCOMParser;
-import io.github.mtrevisan.familylegacy.gedcom.GEDCOMToFLEFConverter;
+import io.github.mtrevisan.familylegacy.gedcom.converters.GEDCOMToFLEFConverter;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.ui.assistant.app.DefaultResearchAssistant;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -76,7 +77,7 @@ class RecalculationTest{
 	@Test
 	void nothingChangedIfNothingWasEdited() throws IOException{
 		final FLEFModel model = convert();
-		final ResearchAssistantService service = ResearchAssistantService.createDefault();
+		final ResearchAssistantService service = DefaultResearchAssistant.createDefault(IgnoredFindings.inMemory());
 		final List<Diagnostic> before = service.diagnose(context(model));
 		Assertions.assertFalse(before.isEmpty());
 
@@ -91,7 +92,7 @@ class RecalculationTest{
 	@Test
 	void aFindingResolvedByAConclusionIsGone() throws IOException{
 		final FLEFModel model = convert();
-		final ResearchAssistantService service = ResearchAssistantService.createDefault();
+		final ResearchAssistantService service = DefaultResearchAssistant.createDefault(IgnoredFindings.inMemory());
 		final List<Diagnostic> before = service.diagnose(context(model));
 
 		//the researcher writes the conclusion (what the draft starts) and saves it
@@ -114,7 +115,7 @@ class RecalculationTest{
 	@Test
 	void aFindingThatReturnsIsNew() throws IOException{
 		final FLEFModel model = convert();
-		final ResearchAssistantService service = ResearchAssistantService.createDefault();
+		final ResearchAssistantService service = DefaultResearchAssistant.createDefault(IgnoredFindings.inMemory());
 		final List<Diagnostic> conflicted = service.diagnose(context(model));
 		model.addRecord(conclusionOnTheBirths(conflicted));
 		final List<Diagnostic> settled = service.diagnose(context(model));
@@ -132,7 +133,7 @@ class RecalculationTest{
 	@Test
 	void theSameFindingsInAnotherOrderAreNotAChange() throws IOException{
 		final FLEFModel model = convert();
-		final ResearchAssistantService service = ResearchAssistantService.createDefault();
+		final ResearchAssistantService service = DefaultResearchAssistant.createDefault(IgnoredFindings.inMemory());
 		final List<Diagnostic> before = service.diagnose(context(model));
 
 		final List<Diagnostic> reversed = new java.util.ArrayList<>(before);

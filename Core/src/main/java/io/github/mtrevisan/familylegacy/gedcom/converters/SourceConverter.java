@@ -24,16 +24,16 @@
  */
 package io.github.mtrevisan.familylegacy.gedcom.converters;
 
+import io.github.mtrevisan.familylegacy.gedcom.AuditBuilder;
 import io.github.mtrevisan.familylegacy.gedcom.GEDCOMHelper;
+import io.github.mtrevisan.familylegacy.gedcom.GEDCOMMapper;
 import io.github.mtrevisan.familylegacy.gedcom.GEDCOMNode;
-import io.github.mtrevisan.familylegacy.gedcom.utils.AuditBuilder;
-import io.github.mtrevisan.familylegacy.gedcom.utils.GEDCOMMapper;
-import io.github.mtrevisan.familylegacy.gedcom.utils.IDGenerator;
-import io.github.mtrevisan.familylegacy.gedcom.utils.PlaceCache;
+import io.github.mtrevisan.familylegacy.gedcom.IDGenerator;
+import io.github.mtrevisan.familylegacy.gedcom.PlaceCache;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.ui.handlers.RepositoryHandler;
-import io.github.mtrevisan.familylegacy.ui.handlers.SourceHandler;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -95,7 +95,7 @@ public class SourceConverter {
 
 		IDGenerator.registerExistingId(xref);
 
-		FLEFRecord source = FLEFRecord.createMainRecord(xref, SourceHandler.TYPE);
+		FLEFRecord source = FLEFRecord.createMainRecord(xref, SourceReader.TYPE);
 		sourceMap.put(xref, source);
 
 		// ---- 1. TITL and ABBR (title+) ----
@@ -157,8 +157,8 @@ public class SourceConverter {
 			if(repositoryId == null || !model.hasRecord(repositoryId)){
 				// a repository not recorded (or described in the citation itself)
 				final String description = (repositoryId == null? StringUtils.trimToNull(repoNode.getValue()): null);
-				repositoryId = (repositoryId != null? repositoryId: IDGenerator.nextId(RepositoryHandler.ID_PREFIX));
-				model.addRecord(FLEFRecord.createMainRecord(repositoryId, RepositoryHandler.TYPE)
+				repositoryId = (repositoryId != null? repositoryId: IDGenerator.nextId(RepositoryReader.ID_PREFIX));
+				model.addRecord(FLEFRecord.createMainRecord(repositoryId, RepositoryReader.TYPE)
 					.addChild(FLEFRecord.createChildWithTag("name")
 						.addChild(FLEFRecord.createChildWithTagAndValue("value",
 							(description != null? description: "Repository " + repositoryId))))

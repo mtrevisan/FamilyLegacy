@@ -24,9 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.io.merger;
 
-import io.github.mtrevisan.familylegacy.io.grammar.FLEFGrammar;
 import io.github.mtrevisan.familylegacy.io.grammar.XrefPathIndex;
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.Cardinality;
+import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.FLEFGrammar;
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.FieldDefinition;
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.ScalarType;
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.StructType;

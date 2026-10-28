@@ -25,9 +25,9 @@
 package io.github.mtrevisan.familylegacy.ui.tools.groups;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.components.PanelKey;
-import io.github.mtrevisan.familylegacy.ui.components.projections.repository.ProjectionMutator;
+import io.github.mtrevisan.familylegacy.ui.components.projections.common.ProjectionMutator;
 import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.GroupRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.GroupHandler;

@@ -25,7 +25,7 @@
 package io.github.mtrevisan.familylegacy.ui.handlers;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.readers.GroupReader;
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.GroupRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
@@ -37,8 +37,8 @@ import java.util.List;
 
 public class GroupHandler extends AbstractRecordTypeHandler<GroupRecordDialog>{
 
-	public static final String TYPE = "GROUP";
-	public static final String ID_PREFIX = "G";
+	public static final String TYPE = GroupReader.TYPE;
+	public static final String ID_PREFIX = GroupReader.ID_PREFIX;
 
 
 	private static final class SingletonHelper{
@@ -62,7 +62,7 @@ public class GroupHandler extends AbstractRecordTypeHandler<GroupRecordDialog>{
 	}
 
 	public static boolean isOfType(final FLEFRecord record){
-		return (record != null && TYPE.equalsIgnoreCase(record.getTag()));
+		return GroupReader.isOfType(record);
 	}
 
 	@Override

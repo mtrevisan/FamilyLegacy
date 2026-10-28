@@ -24,7 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections;
 
-import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.layout.TreeLayout;
+import io.github.mtrevisan.familylegacy.ui.components.projections.common.TreeLayout;
 import io.github.mtrevisan.familylegacy.ui.helpers.ResourceHelper;
 
 import javax.swing.GrayFilter;

@@ -25,25 +25,23 @@
 package io.github.mtrevisan.familylegacy.ui.components.projections;
 
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
-import io.github.mtrevisan.familylegacy.io.grammar.FLEFGrammar;
 import io.github.mtrevisan.familylegacy.io.grammar.FLEFGrammarParser;
+import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.FLEFGrammar;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.ui.assistant.AssistantContext;
-import io.github.mtrevisan.familylegacy.ui.assistant.AssistantIndicator;
-import io.github.mtrevisan.familylegacy.ui.assistant.ResearchAssistantService;
-import io.github.mtrevisan.familylegacy.ui.helpers.DialogEscapeSupport;
 import io.github.mtrevisan.familylegacy.io.model.ModelHistory;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.ui.components.projections.bookmarks.Bookmark;
 import io.github.mtrevisan.familylegacy.ui.components.projections.bookmarks.BookmarkStore;
 import io.github.mtrevisan.familylegacy.ui.components.projections.bookmarks.BookmarkType;
-import io.github.mtrevisan.familylegacy.ui.components.projections.repository.OrderPreferences;
+import io.github.mtrevisan.familylegacy.ui.components.projections.common.JumpToIndividualDialog;
+import io.github.mtrevisan.familylegacy.ui.components.projections.common.ProjectionType;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.TreeType;
 import io.github.mtrevisan.familylegacy.ui.components.projections.repository.GenealogyRepository;
-import io.github.mtrevisan.familylegacy.ui.components.projections.repository.ProjectionMutator;
+import io.github.mtrevisan.familylegacy.ui.components.projections.individual.OrderPreferences;
+import io.github.mtrevisan.familylegacy.ui.components.projections.common.ProjectionMutator;
 import io.github.mtrevisan.familylegacy.ui.components.projections.services.DossierManager;
-import io.github.mtrevisan.familylegacy.ui.components.projections.services.GlobalKeyboardController;
 import io.github.mtrevisan.familylegacy.ui.components.projections.services.ModelUtils;
+import io.github.mtrevisan.familylegacy.ui.helpers.DialogEscapeSupport;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import io.github.mtrevisan.familylegacy.ui.preferences.AppearanceManager;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolContext;
@@ -52,12 +50,12 @@ import io.github.mtrevisan.familylegacy.ui.tools.ToolDispatcher;
 import io.github.mtrevisan.familylegacy.ui.tools.files.FileMenuController;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.swing.Box;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JMenuBar;
 import javax.swing.JOptionPane;
 import javax.swing.JSplitPane;
-import javax.swing.Box;
 import javax.swing.JToolBar;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
@@ -96,6 +94,8 @@ public class FamilyLegacyFrame extends JFrame{
 
 	private FLEFModel model;
 	private final ModelHistory history;
+	/** The Research Assistant, if the application has one: it is found as a service, so that the window does not depend on it. */
+	private final ResearchAssistantPort assistant = ResearchAssistantPort.find().orElse(null);
 	private RecentChangesDialog recentChangesDialog;
 	private ProjectionSwitcherPanel switcher;
 	private final BookmarkStore bookmarkStore = new BookmarkStore();
@@ -114,7 +114,8 @@ public class FamilyLegacyFrame extends JFrame{
 		this.treeType = treeType;
 
 		this.model = model;
-		ResearchAssistantService.getInstance().install(this::model, this::currentFilePath);
+		if(assistant != null)
+			assistant.install(this::model, this::currentFilePath);
 		DialogEscapeSupport.install();
 		history = new ModelHistory(model);
 		switcher = new ProjectionSwitcherPanel(treeType, model);
@@ -151,14 +152,16 @@ public class FamilyLegacyFrame extends JFrame{
 		switcher.setProjectionChangeListener(toolBarBuilder::updateProjectionState);
 		toolBarBuilder.updateProjectionState(switcher.getCurrentProjectionType());
 
-		//how many findings the Research Assistant has, at the right end of the toolbar; a click opens it
-		final AssistantIndicator indicator = new AssistantIndicator(ResearchAssistantService.getInstance(), this::assistantContext,
-			FamilyLegacyFrame::isModalDialogShowing);
-		toolBar.add(Box.createHorizontalGlue());
-		toolBar.add(indicator.component());
-		//the findings are computed again when the model changes (a step of the history, an undo, a redo, another file)
-		history.addChangeListener(indicator::refreshSoon);
-		indicator.refreshSoon();
+		if(assistant != null){
+			//how many findings the Research Assistant has, at the right end of the toolbar; a click opens it
+			final ResearchAssistantPort.Indicator indicator = assistant.createIndicator(this, this::model, this::currentFilePath,
+				FamilyLegacyFrame::isModalDialogShowing);
+			toolBar.add(Box.createHorizontalGlue());
+			toolBar.add(indicator.component());
+			//the findings are computed again when the model changes (a step of the history, an undo, a redo, another file)
+			history.addChangeListener(indicator::refreshSoon);
+			indicator.refreshSoon();
+		}
 
 		setLayout(new BorderLayout());
 		add(toolBar, BorderLayout.NORTH);
@@ -301,6 +304,11 @@ public class FamilyLegacyFrame extends JFrame{
 			switcher.loadRoot(individualId);
 	}
 
+	/** @return the Research Assistant, if the application has one */
+	ResearchAssistantPort assistant(){
+		return assistant;
+	}
+
 	FLEFModel model(){
 		return model;
 	}
@@ -311,12 +319,6 @@ public class FamilyLegacyFrame extends JFrame{
 
 	ProjectionSwitcherPanel switcher(){
 		return switcher;
-	}
-
-	/** @return the path of the file being edited (what the findings ignored by the user are kept by), or {@code null} if it was never saved */
-	/** @return where the user is: this window, the model and the file being edited */
-	private AssistantContext assistantContext(){
-		return new AssistantContext(this, null, model, currentFilePath());
 	}
 
 	/** @return the path of the file being edited (what the findings ignored by the user are kept by), or {@code null} if it was never saved */

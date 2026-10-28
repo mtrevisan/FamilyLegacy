@@ -25,7 +25,7 @@
 package io.github.mtrevisan.familylegacy.ui.handlers;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceRelationshipReader;
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.PlaceRecordDialog;
@@ -43,8 +43,8 @@ import java.util.Set;
  */
 public class PlaceHandler extends AbstractRecordTypeHandler<PlaceRecordDialog>{
 
-	public static final String TYPE = "PLACE";
-	public static final String ID_PREFIX = "P";
+	public static final String TYPE = PlaceReader.TYPE;
+	public static final String ID_PREFIX = PlaceReader.ID_PREFIX;
 
 
 	private static final class SingletonHelper{
@@ -68,7 +68,7 @@ public class PlaceHandler extends AbstractRecordTypeHandler<PlaceRecordDialog>{
 	}
 
 	public static boolean isOfType(final FLEFRecord record){
-		return (record != null && TYPE.equalsIgnoreCase(record.getTag()));
+		return PlaceReader.isOfType(record);
 	}
 
 	@Override

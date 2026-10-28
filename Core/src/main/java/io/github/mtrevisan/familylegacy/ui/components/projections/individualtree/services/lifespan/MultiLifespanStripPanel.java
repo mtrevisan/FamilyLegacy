@@ -25,10 +25,10 @@
 package io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.services.lifespan;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.NormalizedDate;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
-import io.github.mtrevisan.familylegacy.ui.components.PrivacyBadge;
+import io.github.mtrevisan.familylegacy.ui.components.lists.PrivacyBadge;
 import io.github.mtrevisan.familylegacy.ui.components.projections.chronomap.TemporalAttributeIndex;
 import io.github.mtrevisan.familylegacy.ui.components.projections.temporal.TemporalAxis;
 import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;

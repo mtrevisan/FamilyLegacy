@@ -25,9 +25,8 @@
 package io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.services.relationship;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualListener;
-import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.TreeContextHelper;
 import io.github.mtrevisan.familylegacy.ui.components.projections.repository.TreeMutator;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 

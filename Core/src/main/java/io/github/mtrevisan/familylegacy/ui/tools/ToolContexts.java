@@ -25,13 +25,13 @@
 package io.github.mtrevisan.familylegacy.ui.tools;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.components.projections.group.GroupListener;
 import io.github.mtrevisan.familylegacy.ui.components.projections.group.GroupPanel;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.EntityListener;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualListener;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualPanel;
-import io.github.mtrevisan.familylegacy.ui.components.projections.repository.ProjectionMutator;
+import io.github.mtrevisan.familylegacy.ui.components.projections.common.ProjectionMutator;
 
 import java.awt.Component;
 import java.util.function.Consumer;

@@ -25,8 +25,8 @@
 package io.github.mtrevisan.familylegacy.ui.handlers;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
 import io.github.mtrevisan.familylegacy.ui.dialogs.citations.SourceCitationDialog;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
@@ -39,7 +39,7 @@ import java.awt.Window;
  */
 public class SourceCitationHandler extends AbstractRecordTypeHandler<SourceCitationDialog>{
 
-	public static final String TYPE = "SOURCE_CITATION";
+	public static final String TYPE = SourceCitationReader.TYPE;
 	public static final String CITED_TYPE = "SOURCE";
 
 

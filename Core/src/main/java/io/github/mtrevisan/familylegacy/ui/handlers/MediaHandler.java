@@ -25,7 +25,7 @@
 package io.github.mtrevisan.familylegacy.ui.handlers;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.readers.MediaReader;
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.MediaRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.helpers.FileHelper;
@@ -40,8 +40,8 @@ import java.awt.Window;
  */
 public class MediaHandler extends AbstractRecordTypeHandler<MediaRecordDialog>{
 
-	public static final String TYPE = "MEDIA";
-	public static final String ID_PREFIX = "M";
+	public static final String TYPE = MediaReader.TYPE;
+	public static final String ID_PREFIX = MediaReader.ID_PREFIX;
 
 
 	private static final class SingletonHelper{
@@ -65,7 +65,7 @@ public class MediaHandler extends AbstractRecordTypeHandler<MediaRecordDialog>{
 	}
 
 	public static boolean isOfType(final FLEFRecord record){
-		return (record != null && TYPE.equalsIgnoreCase(record.getTag()));
+		return MediaReader.isOfType(record);
 	}
 
 	@Override

@@ -1,6 +1,8 @@
 package io.github.mtrevisan.familylegacy.ui.assistant;
 
+import io.github.mtrevisan.familylegacy.ui.assistant.app.DefaultResearchAssistant;
 import io.github.mtrevisan.familylegacy.ui.components.HistoricalDateAssistantDialog;
+import io.github.mtrevisan.familylegacy.ui.components.HistoricalDateAssistantHost;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -77,7 +79,7 @@ class ResearchAssistantServiceTest{
 		editor.add(field);
 		final AssistantContext inEditor = new AssistantContext(null, field, null);
 		final AssistantContext elsewhere = new AssistantContext(null, new JButton(), null);
-		final ResearchAssistantService service = ResearchAssistantService.createDefault();
+		final ResearchAssistantService service = DefaultResearchAssistant.createDefault(IgnoredFindings.inMemory());
 
 		final List<String> inEditorIds = ids(service.search("", inEditor));
 
@@ -94,7 +96,7 @@ class ResearchAssistantServiceTest{
 		final JTextField field = new JTextField();
 		editor.add(field);
 		final AssistantContext context = new AssistantContext(null, field, null);
-		final ResearchAssistantService service = ResearchAssistantService.createDefault();
+		final ResearchAssistantService service = DefaultResearchAssistant.createDefault(IgnoredFindings.inMemory());
 
 		final AssistantAction age = service.search("", context).stream()
 			.map(ResearchAssistantService.RankedAction::action)

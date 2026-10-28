@@ -27,7 +27,7 @@ package io.github.mtrevisan.familylegacy.ui.tools.files.importation;
 import io.github.mtrevisan.familylegacy.gedcom.GEDCOMHelper;
 import io.github.mtrevisan.familylegacy.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.gedcom.GEDCOMParser;
-import io.github.mtrevisan.familylegacy.gedcom.GEDCOMToFLEFConverter;
+import io.github.mtrevisan.familylegacy.gedcom.converters.GEDCOMToFLEFConverter;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.ui.dialogs.ProgressDialog;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;

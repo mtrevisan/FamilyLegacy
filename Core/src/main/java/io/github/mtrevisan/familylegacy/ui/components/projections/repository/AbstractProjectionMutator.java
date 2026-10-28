@@ -24,12 +24,13 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections.repository;
 
-import io.github.mtrevisan.familylegacy.gedcom.utils.AuditBuilder;
+import io.github.mtrevisan.familylegacy.gedcom.AuditBuilder;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
+import io.github.mtrevisan.familylegacy.ui.components.projections.common.ProjectionMutator;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventParticipationHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.GroupAttributeHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.GroupHandler;

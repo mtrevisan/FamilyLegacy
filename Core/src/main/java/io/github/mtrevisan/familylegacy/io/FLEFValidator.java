@@ -24,19 +24,19 @@
  */
 package io.github.mtrevisan.familylegacy.io;
 
-import io.github.mtrevisan.familylegacy.io.grammar.FLEFGrammar;
 import io.github.mtrevisan.familylegacy.io.grammar.FLEFGrammarParser;
-import io.github.mtrevisan.familylegacy.io.grammar.FileDefinition;
 import io.github.mtrevisan.familylegacy.io.grammar.contraints.Constraint;
+import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.FLEFGrammar;
+import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.FileDefinition;
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.StructType;
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.TypeDefinition;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.ui.handlers.EventParticipationHandler;
-import io.github.mtrevisan.familylegacy.ui.handlers.IdentityHypothesisHandler;
-import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
-import io.github.mtrevisan.familylegacy.ui.handlers.RelationshipHandler;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IdentityHypothesisReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import org.apache.commons.lang3.StringUtils;
 
 import java.nio.file.Path;
@@ -215,19 +215,19 @@ public class FLEFValidator{
 			final String contextPath = "records." + tag;
 			final String recordId = record.getId();
 
-			if(IndividualHandler.isOfType(record))
+			if(IndividualReader.isOfType(record))
 				for(final String msg : collect(em -> validateIndividualDates(record, contextPath, em)))
 					errors.add(new ValidationError(msg, recordId));
 
-			if(RelationshipHandler.isOfType(record))
+			if(RelationshipReader.isOfType(record))
 				for(final String msg : collect(em -> validateRelationshipDates(record, contextPath, em)))
 					errors.add(new ValidationError(msg, recordId));
 
-			if(IdentityHypothesisHandler.isOfType(record))
+			if(IdentityHypothesisReader.isOfType(record))
 				for(final String msg : collect(em -> validateIdentityHypothesis(record, contextPath, model, em)))
 					errors.add(new ValidationError(msg, recordId));
 
-			if(EventParticipationHandler.isOfType(record))
+			if(EventParticipationReader.isOfType(record))
 				for(final String msg : collect(em -> validateEventParticipation(record, contextPath, model, em)))
 					errors.add(new ValidationError(msg, recordId));
 		}

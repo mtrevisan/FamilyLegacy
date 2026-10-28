@@ -24,26 +24,19 @@
  */
 package io.github.mtrevisan.familylegacy.gedcom;
 
-import io.github.mtrevisan.familylegacy.gedcom.utils.AuditBuilder;
-import io.github.mtrevisan.familylegacy.gedcom.utils.GEDCOMDateConverter;
-import io.github.mtrevisan.familylegacy.gedcom.utils.GEDCOMMapper;
-import io.github.mtrevisan.familylegacy.gedcom.utils.IDGenerator;
-import io.github.mtrevisan.familylegacy.gedcom.utils.IDNormalizer;
-import io.github.mtrevisan.familylegacy.gedcom.utils.PlaceCache;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EvidenceQualifiersReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.GroupReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualAttributeReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.MediaReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
-import io.github.mtrevisan.familylegacy.ui.handlers.EventHandler;
-import io.github.mtrevisan.familylegacy.ui.handlers.EventParticipationHandler;
-import io.github.mtrevisan.familylegacy.ui.handlers.GroupHandler;
-import io.github.mtrevisan.familylegacy.ui.handlers.IndividualAttributeHandler;
-import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
-import io.github.mtrevisan.familylegacy.ui.handlers.MediaHandler;
-import io.github.mtrevisan.familylegacy.ui.handlers.RelationshipHandler;
-import io.github.mtrevisan.familylegacy.ui.handlers.SourceHandler;
+import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
@@ -695,7 +688,7 @@ public class GEDCOMHelper{
 			source = model.getRecordById(sourceId);
 			if(source == null){
 				// dangling pointer: keep the citation with a placeholder source
-				source = FLEFRecord.createMainRecord(sourceId, SourceHandler.TYPE)
+				source = FLEFRecord.createMainRecord(sourceId, SourceReader.TYPE)
 					.addChild(FLEFRecord.createChildWithTag("title")
 						.addChild(FLEFRecord.createChildWithTagAndValue("value", "Source " + sourceId)))
 					.addChild(AuditBuilder.build(node));
@@ -705,7 +698,7 @@ public class GEDCOMHelper{
 		else{
 			// a source description: the text is the title of an unrecorded source (GEDCOM 7 cites it as @VOID@, without text)
 			final String description = ObjectUtils.firstNonNull(StringUtils.trimToNull(extractFullText(node)), "Unspecified source");
-			source = FLEFRecord.createMainRecord(IDGenerator.nextId(SourceHandler.ID_PREFIX), SourceHandler.TYPE)
+			source = FLEFRecord.createMainRecord(IDGenerator.nextId(SourceReader.ID_PREFIX), SourceReader.TYPE)
 				.addChild(FLEFRecord.createChildWithTag("title")
 					.addChild(FLEFRecord.createChildWithTagAndValue("value", description)))
 				.addChild(AuditBuilder.build(node));
@@ -830,7 +823,7 @@ public class GEDCOMHelper{
 	public static void attachMultimediaLink(FLEFRecord parent, FLEFModel model, GEDCOMNode node,
 			Map<String, GEDCOMNode> noteRawMap){
 		final List<String> mediaIds = resolveMedia(model, node, noteRawMap);
-		if(SourceHandler.isOfType(parent)){
+		if(SourceReader.isOfType(parent)){
 			for(final String mediaId : mediaIds)
 				addMediaReference(parent, mediaId);
 			return;
@@ -838,7 +831,7 @@ public class GEDCOMHelper{
 
 		final boolean preferred = ("Y".equalsIgnoreCase(findFirstValue(node, "_PRIMARY"))
 			|| "Y".equalsIgnoreCase(findFirstValue(node, "_PREF")));
-		final boolean canHavePreferredImage = (IndividualHandler.isOfType(parent) || GroupHandler.isOfType(parent));
+		final boolean canHavePreferredImage = (IndividualReader.isOfType(parent) || GroupReader.isOfType(parent));
 		for(final String mediaId : mediaIds){
 			if(preferred && canHavePreferredImage && FLEFRecordHelper.findChild(parent, "preferred_image") == null)
 				parent.addChild(FLEFRecord.createChildWithTag("preferred_image")
@@ -848,7 +841,7 @@ public class GEDCOMHelper{
 			final FLEFRecord media = model.getRecordById(mediaId);
 			final String title = ObjectUtils.firstNonNull(FLEFRecordHelper.getChildValue(media, "description"),
 				"Media " + mediaId);
-			final FLEFRecord source = FLEFRecord.createMainRecord(IDGenerator.nextId(SourceHandler.ID_PREFIX), SourceHandler.TYPE)
+			final FLEFRecord source = FLEFRecord.createMainRecord(IDGenerator.nextId(SourceReader.ID_PREFIX), SourceReader.TYPE)
 				.addChild(FLEFRecord.createChildWithTag("title")
 					.addChild(FLEFRecord.createChildWithTagAndValue("value", title)))
 				.addChild(FLEFRecord.createChildWithTagAndValue("media", mediaId))
@@ -879,8 +872,8 @@ public class GEDCOMHelper{
 
 		final List<String> mediaIds = new ArrayList<>();
 		for(final GEDCOMNode fileNode : findChildren(node, "FILE")){
-			final FLEFRecord media = FLEFRecord.createMainRecord(IDGenerator.nextId(MediaHandler.ID_PREFIX),
-				MediaHandler.TYPE);
+			final FLEFRecord media = FLEFRecord.createMainRecord(IDGenerator.nextId(MediaReader.ID_PREFIX),
+				MediaReader.TYPE);
 			fillMediaRecord(media, node, fileNode, noteRawMap);
 			mediaIds.add(Deduplicator.getDeduplicatedRecordId(model, media));
 		}
@@ -1013,7 +1006,7 @@ public class GEDCOMHelper{
 		final String tag = node.getTag();
 		final String typeValue = findFirstValue(node, "TYPE");
 		final String type = GEDCOMMapper.mapEventType(tag, typeValue);
-		final FLEFRecord event = FLEFRecord.createMainRecord(IDGenerator.nextId(EventHandler.ID_PREFIX), EventHandler.TYPE)
+		final FLEFRecord event = FLEFRecord.createMainRecord(IDGenerator.nextId(EventReader.ID_PREFIX), EventReader.TYPE)
 			.addChild(FLEFRecord.createChildWithTagAndValue("type", type));
 
 		// Description: the value of the event (e.g. of EVEN), or else a TYPE that does not give the type of the event
@@ -1059,8 +1052,8 @@ public class GEDCOMHelper{
 			}
 		}
 
-		final FLEFRecord attribute = FLEFRecord.createMainRecord(IDGenerator.nextId(IndividualAttributeHandler.ID_PREFIX),
-				IndividualAttributeHandler.TYPE)
+		final FLEFRecord attribute = FLEFRecord.createMainRecord(IDGenerator.nextId(IndividualAttributeReader.ID_PREFIX),
+				IndividualAttributeReader.TYPE)
 			.addChild(FLEFRecord.createChildWithTagAndValue("individual", individualId))
 			.addChild(FLEFRecord.createChildWithTagAndValue("type", type));
 
@@ -1120,8 +1113,8 @@ public class GEDCOMHelper{
 		if(StringUtils.isEmpty(eventId) || StringUtils.isEmpty(entityId))
 			return;
 
-		final FLEFRecord participation = FLEFRecord.createMainRecord(IDGenerator.nextId(EventParticipationHandler.ID_PREFIX),
-				EventParticipationHandler.TYPE)
+		final FLEFRecord participation = FLEFRecord.createMainRecord(IDGenerator.nextId(EventParticipationReader.ID_PREFIX),
+				EventParticipationReader.TYPE)
 			.addChild(FLEFRecord.createChildWithTag("participant")
 				.addChild(FLEFRecord.createChildWithTagAndValue(entityType, entityId)))
 			.addChild(FLEFRecord.createChildWithTagAndValue("event", eventId));
@@ -1161,8 +1154,8 @@ public class GEDCOMHelper{
 
 			final String gedcomRole = findFirstValue(assoNode, "ROLE");
 			final String role = GEDCOMMapper.mapEventRole(gedcomRole);
-			final FLEFRecord participation = FLEFRecord.createMainRecord(IDGenerator.nextId(EventParticipationHandler.ID_PREFIX),
-					EventParticipationHandler.TYPE)
+			final FLEFRecord participation = FLEFRecord.createMainRecord(IDGenerator.nextId(EventParticipationReader.ID_PREFIX),
+					EventParticipationReader.TYPE)
 				.addChild(FLEFRecord.createChildWithTag("participant")
 					.addChild(FLEFRecord.createChildWithTagAndValue("individual", associateId)))
 				.addChild(FLEFRecord.createChildWithTagAndValue("event", eventId));
@@ -1291,8 +1284,8 @@ public class GEDCOMHelper{
 
 	private static void attachAdoptiveRelationship(FLEFRecord individual, FLEFModel model, GEDCOMNode adoptionNode,
 			GEDCOMNode famcNode, String parentId, Map<String, GEDCOMNode> noteRawMap){
-		final FLEFRecord relationship = FLEFRecord.createMainRecord(IDGenerator.nextId(RelationshipHandler.ID_PREFIX),
-				RelationshipHandler.TYPE)
+		final FLEFRecord relationship = FLEFRecord.createMainRecord(IDGenerator.nextId(RelationshipReader.ID_PREFIX),
+				RelationshipReader.TYPE)
 			.addChild(FLEFRecord.createChildWithTag("subject")
 				.addChild(FLEFRecord.createChildWithTagAndValue("individual", individual.getId())))
 			.addChild(FLEFRecord.createChildWithTag("target")

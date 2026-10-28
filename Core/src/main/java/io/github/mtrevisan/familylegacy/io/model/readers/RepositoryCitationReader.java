@@ -24,8 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.io.model.readers;
 
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 
 
 /**
@@ -43,6 +43,8 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
  * </pre>
  */
 public final class RepositoryCitationReader{
+
+	public static final String TYPE = "REPOSITORY_CITATION";
 
 	public static final String TAG_REPOSITORY = "repository";
 	public static final String TAG_LOCATOR = "locator";

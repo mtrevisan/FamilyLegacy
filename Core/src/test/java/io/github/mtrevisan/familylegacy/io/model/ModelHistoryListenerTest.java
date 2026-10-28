@@ -1,5 +1,7 @@
 package io.github.mtrevisan.familylegacy.io.model;
 
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 

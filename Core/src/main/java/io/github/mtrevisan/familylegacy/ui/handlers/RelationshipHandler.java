@@ -25,8 +25,8 @@
 package io.github.mtrevisan.familylegacy.ui.handlers;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.RelationshipRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
@@ -38,8 +38,8 @@ import java.util.List;
 
 public class RelationshipHandler extends AbstractRecordTypeHandler<RelationshipRecordDialog>{
 
-	public static final String TYPE = "RELATIONSHIP";
-	public static final String ID_PREFIX = "RL";
+	public static final String TYPE = RelationshipReader.TYPE;
+	public static final String ID_PREFIX = RelationshipReader.ID_PREFIX;
 
 
 	private static final class SingletonHelper{
@@ -63,7 +63,7 @@ public class RelationshipHandler extends AbstractRecordTypeHandler<RelationshipR
 	}
 
 	public static boolean isOfType(final FLEFRecord record){
-		return (record != null && TYPE.equalsIgnoreCase(record.getTag()));
+		return RelationshipReader.isOfType(record);
 	}
 
 	@Override

@@ -24,9 +24,10 @@
  */
 package io.github.mtrevisan.familylegacy.ui.tools.reports;
 
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.io.model.readers.HeaderReader;
+import io.github.mtrevisan.familylegacy.ui.tools.reports.index.ReportFormatters;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;

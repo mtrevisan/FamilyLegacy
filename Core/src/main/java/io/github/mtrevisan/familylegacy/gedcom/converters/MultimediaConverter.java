@@ -26,12 +26,12 @@ package io.github.mtrevisan.familylegacy.gedcom.converters;
 
 import io.github.mtrevisan.familylegacy.gedcom.GEDCOMHelper;
 import io.github.mtrevisan.familylegacy.gedcom.GEDCOMNode;
-import io.github.mtrevisan.familylegacy.gedcom.utils.IDGenerator;
+import io.github.mtrevisan.familylegacy.gedcom.IDGenerator;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.ui.handlers.MediaHandler;
-import io.github.mtrevisan.familylegacy.ui.handlers.SourceHandler;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.readers.MediaReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -85,7 +85,7 @@ public class MultimediaConverter{
 
 		IDGenerator.registerExistingId(xref);
 
-		final FLEFRecord media = FLEFRecord.createMainRecord(xref, MediaHandler.TYPE);
+		final FLEFRecord media = FLEFRecord.createMainRecord(xref, MediaReader.TYPE);
 		final List<GEDCOMNode> fileNodes = GEDCOMHelper.findChildren(objNode, "FILE");
 		GEDCOMHelper.fillMediaRecord(media, objNode, (!fileNodes.isEmpty()? fileNodes.getFirst(): null), noteRawMap);
 		for(int i = 1; i < fileNodes.size(); i ++){
@@ -113,7 +113,7 @@ public class MultimediaConverter{
 	public void linkSources(){
 		for(final String[] mediaSource : mediaSources){
 			final FLEFRecord source = model.getRecordById(mediaSource[1]);
-			if(!SourceHandler.isOfType(source))
+			if(!SourceReader.isOfType(source))
 				continue;
 
 			final boolean present = FLEFRecordHelper.findChildren(source, "media").stream()

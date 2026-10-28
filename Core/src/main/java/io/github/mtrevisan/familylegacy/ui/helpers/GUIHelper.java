@@ -27,12 +27,11 @@ package io.github.mtrevisan.familylegacy.ui.helpers;
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.FLEFValidator;
 import io.github.mtrevisan.familylegacy.io.FLEFWriter;
-import io.github.mtrevisan.familylegacy.io.grammar.FLEFGrammar;
 import io.github.mtrevisan.familylegacy.io.grammar.FLEFGrammarParser;
 import io.github.mtrevisan.familylegacy.io.grammar.FLEFGrammarValidator;
+import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.FLEFGrammar;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import net.miginfocom.swing.MigLayout;
@@ -377,7 +376,7 @@ public final class GUIHelper{
 	public static <C extends JComponent> C withTooltip(final C component, final String key){
 		final String text = I18N.t(key);
 		//a combo composes the tooltip with the explanation of the selected value, so it needs the plain text
-		component.setToolTipText(component instanceof BoundComboBox<?>? text: tooltipHtml(text));
+		component.setToolTipText(component instanceof ComposesOwnTooltip? text: tooltipHtml(text));
 		return component;
 	}
 

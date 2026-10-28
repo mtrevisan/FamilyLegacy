@@ -25,11 +25,8 @@
 package io.github.mtrevisan.familylegacy.io.model.readers;
 
 
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.ui.handlers.GroupHandler;
-import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
-import io.github.mtrevisan.familylegacy.ui.handlers.PlaceHandler;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 
 import java.util.Set;
 
@@ -70,6 +67,9 @@ import java.util.Set;
  * </pre>
  */
 public final class EventParticipationReader{
+
+	public static final String TYPE = "EVENT_PARTICIPATION";
+	public static final String ID_PREFIX = "EP";
 
 	public static final String TAG_PARTICIPANT = "participant";
 	public static final String TAG_EVENT = "event";
@@ -129,6 +129,12 @@ public final class EventParticipationReader{
 
 	private EventParticipationReader(){}
 
+	/** @return whether the record is of this type (its tag is the type, ignoring case) */
+	public static boolean isOfType(final FLEFRecord record){
+		return (record != null && TYPE.equalsIgnoreCase(record.getTag()));
+	}
+
+
 	public static String extractParticipantRef(final FLEFRecord eventParticipation){
 		final FLEFRecord participant = FLEFRecordHelper.findChild(eventParticipation,
 			EventParticipationReader.TAG_PARTICIPANT);
@@ -151,10 +157,10 @@ public final class EventParticipationReader{
 
 	public static String[] getValidRoles(final FLEFRecord participant){
 		if(participant != null){
-			if(IndividualHandler.isOfType(participant) || GroupHandler.isOfType(participant))
+			if(IndividualReader.isOfType(participant) || GroupReader.isOfType(participant))
 				return INDIVIDUAL_OR_GROUP_ROLES;
 
-			if(PlaceHandler.isOfType(participant))
+			if(PlaceReader.isOfType(participant))
 				return PLACE_ROLES;
 		}
 		return ROLES;

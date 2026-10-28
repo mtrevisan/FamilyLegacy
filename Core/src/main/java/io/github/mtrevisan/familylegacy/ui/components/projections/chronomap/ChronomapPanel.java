@@ -26,7 +26,8 @@ package io.github.mtrevisan.familylegacy.ui.components.projections.chronomap;
 
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.readers.GeoCoordinate;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.ui.dialogs.GeocodingProgressDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
@@ -437,7 +438,7 @@ public class ChronomapPanel extends JPanel{
 			if(state == null)
 				continue;
 
-			final ChronomapIndex.GeoCoordinate pos = state.coordinate();
+			final GeoCoordinate pos = state.coordinate();
 			final Point2D p = mapViewer.convertGeoPositionToPoint(
 				new GeoPosition(pos.latitude(), pos.longitude()));
 			final double d = p.distance(x, y);
@@ -594,7 +595,7 @@ public class ChronomapPanel extends JPanel{
 			if(state == null)
 				continue;
 
-			final ChronomapIndex.GeoCoordinate pos = state.coordinate();
+			final GeoCoordinate pos = state.coordinate();
 			points.add(new GeoPosition(pos.latitude(), pos.longitude()));
 		}
 
@@ -788,7 +789,7 @@ public class ChronomapPanel extends JPanel{
 			if(state == null)
 				continue;
 
-			final ChronomapIndex.GeoCoordinate pos = state.coordinate();
+			final GeoCoordinate pos = state.coordinate();
 			markers.add(new Pseudo3DGlobePanel.GlobeMarker(
 				pos.latitude(), pos.longitude(),
 				markerLayer.colorFor(id),

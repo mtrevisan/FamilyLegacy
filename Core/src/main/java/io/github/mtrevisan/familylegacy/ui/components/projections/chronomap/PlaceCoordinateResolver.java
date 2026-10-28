@@ -25,8 +25,9 @@
 package io.github.mtrevisan.familylegacy.ui.components.projections.chronomap;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.readers.GeoCoordinate;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceRelationshipReader;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
@@ -75,7 +76,7 @@ public final class PlaceCoordinateResolver{
 	private static final List<String> PART_OF_TYPES = new ArrayList<>(List.of(PlaceRelationshipReader.TYPES));
 
 	// Estimated uncertainty radii in meters
-	static final int UNCERTAINTY_DIRECT = 10;
+	static final int UNCERTAINTY_DIRECT = GeoCoordinate.UNCERTAINTY_DIRECT;
 	private static final int UNCERTAINTY_GEOCODED_FULL = 1_000;
 	private static final int UNCERTAINTY_HIERARCHY = 15_000;
 
@@ -106,12 +107,12 @@ public final class PlaceCoordinateResolver{
 	 *       the next run.</li>
 	 * </ul>
 	 */
-	private record NominatimOutcome(ChronomapIndex.GeoCoordinate coordinate, boolean responded){
+	private record NominatimOutcome(GeoCoordinate coordinate, boolean responded){
 
 		static final NominatimOutcome ERROR = new NominatimOutcome(null, false);
 		static final NominatimOutcome NOT_FOUND = new NominatimOutcome(null, true);
 
-		static NominatimOutcome found(final ChronomapIndex.GeoCoordinate c){
+		static NominatimOutcome found(final GeoCoordinate c){
 			return new NominatimOutcome(c, true);
 		}
 	}
@@ -127,7 +128,7 @@ public final class PlaceCoordinateResolver{
 		GEOCODED
 	}
 
-	public record Resolved(ChronomapIndex.GeoCoordinate coordinate, Source source, String matchedName){}
+	public record Resolved(GeoCoordinate coordinate, Source source, String matchedName){}
 
 
 	private final FLEFModel model;
@@ -184,7 +185,7 @@ public final class PlaceCoordinateResolver{
 			if(progress != null)
 				progress.onProgress(i + 1, total, primaryName);
 
-			ChronomapIndex.GeoCoordinate bestCoord = null;
+			GeoCoordinate bestCoord = null;
 			String bestMatchedQuery = null;
 
 			// Generate progressive left-truncated variants for each name
@@ -245,7 +246,7 @@ public final class PlaceCoordinateResolver{
 			}
 			else if(!cache.containsKey(placeId)){
 				// Fallback: Direct FLEF coordinates
-				final ChronomapIndex.GeoCoordinate directCoord = directCoordinates(place);
+				final GeoCoordinate directCoord = directCoordinates(place);
 				if(directCoord != null){
 					cache.put(placeId, new Resolved(directCoord, Source.DIRECT, null));
 
@@ -319,7 +320,7 @@ public final class PlaceCoordinateResolver{
 
 			final List<String> candidates = generateProgressiveCandidates(names);
 
-			ChronomapIndex.GeoCoordinate bestCoord = null;
+			GeoCoordinate bestCoord = null;
 			String bestName = null;
 			int unknownCandidates = 0;
 			int notFoundCandidates = 0;
@@ -335,7 +336,7 @@ public final class PlaceCoordinateResolver{
 
 					continue;
 				}
-				final ChronomapIndex.GeoCoordinate coord = parseCoordinateString(cachedProp);
+				final GeoCoordinate coord = parseCoordinateString(cachedProp);
 				if(coord != null)
 					if(bestCoord == null || coord.uncertainty() < bestCoord.uncertainty()){
 						bestCoord = coord;
@@ -423,7 +424,7 @@ public final class PlaceCoordinateResolver{
 				catch(final NumberFormatException ignored){}
 			}
 
-			return NominatimOutcome.found(new ChronomapIndex.GeoCoordinate(lat, lon, uncertainty));
+			return NominatimOutcome.found(new GeoCoordinate(lat, lon, uncertainty));
 		}
 		catch(final IOException | InterruptedException | NumberFormatException e){
 			if(e instanceof InterruptedException)
@@ -469,7 +470,7 @@ public final class PlaceCoordinateResolver{
 			if(placeId == null)
 				continue;
 
-			final ChronomapIndex.GeoCoordinate c = directCoordinates(place);
+			final GeoCoordinate c = directCoordinates(place);
 			if(c == null)
 				continue;
 
@@ -504,7 +505,7 @@ public final class PlaceCoordinateResolver{
 					continue;
 
 				// Assign inherited coordinate with hierarchy uncertainty radius
-				final ChronomapIndex.GeoCoordinate inheritedCoord = new ChronomapIndex.GeoCoordinate(
+				final GeoCoordinate inheritedCoord = new GeoCoordinate(
 					parent.coordinate().latitude(),
 					parent.coordinate().longitude(),
 					UNCERTAINTY_HIERARCHY
@@ -516,14 +517,14 @@ public final class PlaceCoordinateResolver{
 		}
 	}
 
-	private static ChronomapIndex.GeoCoordinate directCoordinates(final FLEFRecord place){
+	private static GeoCoordinate directCoordinates(final FLEFRecord place){
 		final String coords = PlaceReader.extractCoordinates(place);
 		if(coords == null)
 			return null;
 
-		final ChronomapIndex.GeoCoordinate parsed = ChronomapIndex.GeoCoordinate.parse(coords);
+		final GeoCoordinate parsed = GeoCoordinate.parse(coords);
 		return (parsed != null
-			? new ChronomapIndex.GeoCoordinate(parsed.latitude(), parsed.longitude(), UNCERTAINTY_DIRECT)
+			? new GeoCoordinate(parsed.latitude(), parsed.longitude(), UNCERTAINTY_DIRECT)
 			: null);
 	}
 
@@ -545,7 +546,7 @@ public final class PlaceCoordinateResolver{
 		return null;
 	}
 
-	private static ChronomapIndex.GeoCoordinate parseCoordinateString(final String val){
+	private static GeoCoordinate parseCoordinateString(final String val){
 		if(StringUtils.isEmpty(val) || NOT_FOUND.equals(val))
 			return null;
 
@@ -559,7 +560,7 @@ public final class PlaceCoordinateResolver{
 			final int uncertainty = (parts.length >= 3
 				? (int)Math.ceil(Double.parseDouble(parts[2]))
 				: UNCERTAINTY_GEOCODED_FULL);
-			return new ChronomapIndex.GeoCoordinate(lat, lon, uncertainty);
+			return new GeoCoordinate(lat, lon, uncertainty);
 		}
 		catch(final NumberFormatException ignored){
 			return null;

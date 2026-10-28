@@ -24,14 +24,14 @@
  */
 package io.github.mtrevisan.familylegacy.gedcom.converters;
 
+import io.github.mtrevisan.familylegacy.gedcom.AuditBuilder;
 import io.github.mtrevisan.familylegacy.gedcom.GEDCOMHelper;
 import io.github.mtrevisan.familylegacy.gedcom.GEDCOMNode;
-import io.github.mtrevisan.familylegacy.gedcom.utils.AuditBuilder;
-import io.github.mtrevisan.familylegacy.gedcom.utils.IDGenerator;
-import io.github.mtrevisan.familylegacy.gedcom.utils.PlaceCache;
+import io.github.mtrevisan.familylegacy.gedcom.IDGenerator;
+import io.github.mtrevisan.familylegacy.gedcom.PlaceCache;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.ui.handlers.RepositoryHandler;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryReader;
 
 import java.util.Map;
 
@@ -81,7 +81,7 @@ public class RepositoryConverter{
 
 		IDGenerator.registerExistingId(xref);
 
-		FLEFRecord repository = FLEFRecord.createMainRecord(xref, RepositoryHandler.TYPE);
+		FLEFRecord repository = FLEFRecord.createMainRecord(xref, RepositoryReader.TYPE);
 		repositoryMap.put(xref, repository);
 
 		// ---- 1. NAME (name+: NameStructure) ----

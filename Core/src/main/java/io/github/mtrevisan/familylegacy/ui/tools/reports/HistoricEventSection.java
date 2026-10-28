@@ -24,11 +24,13 @@
  */
 package io.github.mtrevisan.familylegacy.ui.tools.reports;
 
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.io.model.readers.ContextImpactReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.HistoricEventReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceCitationReader;
 import io.github.mtrevisan.familylegacy.ui.handlers.HistoricEventHandler;
+import io.github.mtrevisan.familylegacy.ui.tools.reports.index.ReportFormatters;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -132,7 +134,7 @@ final class HistoricEventSection implements SectionBuilder{
 		if(date != null)
 			rows.add("**" + ctx.labels.sections().date() + ":** " + ReportFormatters.escape(date));
 
-		final String place = FLEFRecordHelper.extractPlace(evt, ctx.model);
+		final String place = PlaceCitationReader.extractPlace(evt, ctx.model);
 		if(place != null)
 			rows.add("**" + ctx.labels.sections().place() + ":** " + ReportFormatters.escape(place));
 

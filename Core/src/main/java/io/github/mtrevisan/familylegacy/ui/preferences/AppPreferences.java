@@ -24,9 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.preferences;
 
-import io.github.mtrevisan.familylegacy.privacy.PrivacyPolicy;
-import io.github.mtrevisan.familylegacy.ui.components.projections.repository.ChildrenOrder;
-import io.github.mtrevisan.familylegacy.ui.components.projections.repository.PartnerOrder;
+
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
@@ -153,19 +151,14 @@ public final class AppPreferences{
 		save();
 	}
 
-	/** Returns the persisted privacy policy, or {@link PrivacyPolicy#SHOW_ALL} when unset or unknown. */
-	public PrivacyPolicy privacyPolicy(){
-		try{
-			return PrivacyPolicy.valueOf(properties.getProperty(KEY_PRIVACY_POLICY, PrivacyPolicy.SHOW_ALL.name()));
-		}
-		catch(final IllegalArgumentException ignored){
-			return PrivacyPolicy.SHOW_ALL;
-		}
+	/** Returns the persisted name of the privacy policy, or {@code null} when unset (the privacy package knows what the names mean). */
+	public String privacyPolicyName(){
+		return properties.getProperty(KEY_PRIVACY_POLICY);
 	}
 
-	/** Persists the privacy policy. */
-	public void setPrivacyPolicy(final PrivacyPolicy policy){
-		put(KEY_PRIVACY_POLICY, Objects.requireNonNull(policy, "policy").name());
+	/** Persists the name of the privacy policy. */
+	public void setPrivacyPolicyName(final String name){
+		put(KEY_PRIVACY_POLICY, Objects.requireNonNull(name, "name"));
 	}
 
 	/** Returns the persisted display order of the children, or the default (by birth date) when unset or unknown. */

@@ -24,10 +24,12 @@
  */
 package io.github.mtrevisan.familylegacy.ui.tools.reports;
 
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.io.model.readers.ContextImpactReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.HistoricEventReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceCitationReader;
+import io.github.mtrevisan.familylegacy.ui.tools.reports.index.ReportFormatters;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -83,7 +85,7 @@ final class HistoricEventRootSection implements SectionBuilder{
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().date(),
 			GenealogicalDateHelper.formatEventDate(ctx.root, ctx.labels, contextLabels));
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().place(),
-			FLEFRecordHelper.extractPlace(ctx.root, ctx.model));
+			PlaceCitationReader.extractPlace(ctx.root, ctx.model));
 		if(!rows.isEmpty())
 			out.add(new ReportSection.BulletList(rows));
 	}

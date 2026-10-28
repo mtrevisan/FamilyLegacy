@@ -25,7 +25,7 @@
 package io.github.mtrevisan.familylegacy.ui.handlers;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.readers.ConclusionReader;
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.ConclusionRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
@@ -37,8 +37,8 @@ import java.awt.Window;
 
 public class ConclusionHandler extends AbstractRecordTypeHandler<ConclusionRecordDialog>{
 
-	public static final String TYPE = "CONCLUSION";
-	public static final String ID_PREFIX = "CC";
+	public static final String TYPE = ConclusionReader.TYPE;
+	public static final String ID_PREFIX = ConclusionReader.ID_PREFIX;
 
 
 	private static final class SingletonHelper{

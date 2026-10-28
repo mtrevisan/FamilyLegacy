@@ -25,13 +25,13 @@
 package io.github.mtrevisan.familylegacy.ui.components.projections.relationshipgraph;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.ui.components.projections.BoxPanelType;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.ui.components.projections.common.BoxPanelType;
 import io.github.mtrevisan.familylegacy.ui.components.projections.group.GroupData;
 import io.github.mtrevisan.familylegacy.ui.components.projections.group.GroupListener;
 import io.github.mtrevisan.familylegacy.ui.components.projections.group.GroupPanel;
-import io.github.mtrevisan.familylegacy.ui.components.projections.individual.EgoNetworkGroupPopupMenuFactory;
-import io.github.mtrevisan.familylegacy.ui.components.projections.individual.EgoNetworkIndividualPopupMenuFactory;
+import io.github.mtrevisan.familylegacy.ui.components.projections.menus.EgoNetworkGroupPopupMenuFactory;
+import io.github.mtrevisan.familylegacy.ui.components.projections.menus.EgoNetworkIndividualPopupMenuFactory;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualListener;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualPanel;
 import io.github.mtrevisan.familylegacy.ui.handlers.GroupHandler;

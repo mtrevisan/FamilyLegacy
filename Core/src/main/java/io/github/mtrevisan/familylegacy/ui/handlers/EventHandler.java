@@ -25,10 +25,10 @@
 package io.github.mtrevisan.familylegacy.ui.handlers;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.io.model.readers.DateReader;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.DateReader;
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.EventRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
@@ -38,8 +38,8 @@ import java.awt.Window;
 
 public class EventHandler extends AbstractRecordTypeHandler<EventRecordDialog>{
 
-	public static final String TYPE = "EVENT";
-	public static final String ID_PREFIX = "E";
+	public static final String TYPE = EventReader.TYPE;
+	public static final String ID_PREFIX = EventReader.ID_PREFIX;
 
 
 	private static final class SingletonHelper{
@@ -63,7 +63,7 @@ public class EventHandler extends AbstractRecordTypeHandler<EventRecordDialog>{
 	}
 
 	public static boolean isOfType(final FLEFRecord record){
-		return (record != null && TYPE.equalsIgnoreCase(record.getTag()));
+		return EventReader.isOfType(record);
 	}
 
 	@Override

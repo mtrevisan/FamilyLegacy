@@ -24,9 +24,11 @@
  */
 package io.github.mtrevisan.familylegacy.ui.tools.reports;
 
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceCitationReader;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.index.EventIndex;
+import io.github.mtrevisan.familylegacy.ui.tools.reports.index.ReportFormatters;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -103,7 +105,7 @@ final class EventRootSection implements SectionBuilder{
 		if(date != null)
 			rows.add("**" + ctx.labels.sections().date() + ":** " + ReportFormatters.escape(date));
 
-		final String place = FLEFRecordHelper.extractPlace(ctx.root, ctx.model);
+		final String place = PlaceCitationReader.extractPlace(ctx.root, ctx.model);
 		if(place != null)
 			rows.add("**" + ctx.labels.sections().place() + ":** " + ReportFormatters.escape(place));
 

@@ -24,10 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.io.model.readers;
 
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.io.model.readers.names.Name;
-import io.github.mtrevisan.familylegacy.io.model.readers.names.NameAnatomyService;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
@@ -58,6 +56,9 @@ import java.util.List;
  */
 public final class RepositoryReader{
 
+	public static final String TYPE = "REPOSITORY";
+	public static final String ID_PREFIX = "R";
+
 	public static final String TAG_NAME = "name";
 	public static final String TAG_CUSTODIAN = "custodian";
 	public static final String TAG_PLACE = "place";
@@ -68,6 +69,12 @@ public final class RepositoryReader{
 
 
 	private RepositoryReader(){}
+
+	/** @return whether the record is of this type (its tag is the type, ignoring case) */
+	public static boolean isOfType(final FLEFRecord record){
+		return (record != null && TYPE.equalsIgnoreCase(record.getTag()));
+	}
+
 
 
 	/**

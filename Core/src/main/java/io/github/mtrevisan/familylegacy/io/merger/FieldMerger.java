@@ -27,8 +27,8 @@ package io.github.mtrevisan.familylegacy.io.merger;
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.FieldDefinition;
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.StructType;
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.UnionType;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 
 import java.util.ArrayList;
 import java.util.HashSet;

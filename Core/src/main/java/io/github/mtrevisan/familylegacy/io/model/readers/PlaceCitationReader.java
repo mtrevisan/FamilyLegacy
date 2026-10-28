@@ -24,6 +24,13 @@
  */
 package io.github.mtrevisan.familylegacy.io.model.readers;
 
+import io.github.mtrevisan.familylegacy.io.model.record.RecordLookup;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.List;
+
 
 /**
  * Handler for PLACE CITATION records.
@@ -42,12 +49,38 @@ package io.github.mtrevisan.familylegacy.io.model.readers;
  */
 public final class PlaceCitationReader{
 
+	public static final String TYPE = "PLACE_CITATION";
+
 	public static final String TAG_PLACE = "place";
 	public static final String TAG_ORIGINAL_TEXT = "original_text";
 	public static final String TAG_SOURCE = "source";
 	public static final String TAG_CONFIDENCE = "confidence";
 
+	private static final String TAG_PLACE_PLACE = FLEFRecordHelper.composePath(PlaceReader.TYPE, PlaceReader.TYPE);
+	private static final String TAG_PLACE_ORIGINAL_TEXT = FLEFRecordHelper.composePath(TAG_PLACE, TAG_ORIGINAL_TEXT);
+
 
 	private PlaceCitationReader(){}
+
+
+	/**
+	 * @param event	the record that has the place citation (an event, a repository, a source...)
+	 * @param model	the model
+	 * @return	the name of the place, or the text of the citation if the place is not a record, or {@code null} if there is none
+	 */
+	public static String extractPlace(final FLEFRecord event, final RecordLookup model){
+		final String placeId = FLEFRecordHelper.getChildValue(event, TAG_PLACE_PLACE);
+		if(placeId == null){
+			final String originalText = FLEFRecordHelper.getChildValue(event, TAG_PLACE_ORIGINAL_TEXT);
+			return (StringUtils.isNotEmpty(originalText)? originalText: null);
+		}
+
+		final FLEFRecord placeRecord = model.getRecordById(placeId);
+		if(placeRecord != null){
+			final List<Name> names = NameAnatomyService.extractForGeneric(placeRecord);
+			return (!names.isEmpty()? names.getFirst().value(): null);
+		}
+		return null;
+	}
 
 }

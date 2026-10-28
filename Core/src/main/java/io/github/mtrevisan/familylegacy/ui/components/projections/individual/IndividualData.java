@@ -26,21 +26,22 @@ package io.github.mtrevisan.familylegacy.ui.components.projections.individual;
 
 import io.github.mtrevisan.calendars.CalendarType;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.io.model.readers.ConclusionReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.DateReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SexType;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.DateReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateService;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.NormalizedDate;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.TemporalSpan;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyResolver;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
-import io.github.mtrevisan.familylegacy.ui.components.projections.BoxPanelType;
-import io.github.mtrevisan.familylegacy.ui.components.projections.PlaceholderImages;
+import io.github.mtrevisan.familylegacy.ui.components.projections.common.PlaceholderImages;
+import io.github.mtrevisan.familylegacy.ui.components.projections.common.BoxPanelType;
 import io.github.mtrevisan.familylegacy.ui.handlers.ConclusionHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RelationshipHandler;
@@ -388,7 +389,7 @@ public final class IndividualData{
 		final String year = DateService.getYearDisplayText(valueRecord);
 		final TemporalSpan temporalSpan = DateReader.extractTemporalSpan(dateRecord);
 		final NormalizedDate representativeDate = (temporalSpan != null? temporalSpan.representativeDate(): null);
-		final String place = FLEFRecordHelper.extractPlace(event, model);
+		final String place = PlaceCitationReader.extractPlace(event, model);
 		final String cause = (EventReader.isTypeDeath(type)? EventReader.extractCauseReason(event): null);
 		return new EventInfo(type, dateOriginalText, date, year, representativeDate, place, cause, eventId);
 	}

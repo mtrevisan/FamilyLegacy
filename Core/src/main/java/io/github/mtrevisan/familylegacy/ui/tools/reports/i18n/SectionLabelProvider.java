@@ -24,7 +24,6 @@
  */
 package io.github.mtrevisan.familylegacy.ui.tools.reports.i18n;
 
-import io.github.mtrevisan.familylegacy.ui.tools.reports.ReportLabels;
 
 
 /**

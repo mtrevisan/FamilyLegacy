@@ -24,7 +24,6 @@
  */
 package io.github.mtrevisan.familylegacy.gedcom;
 
-import io.github.mtrevisan.familylegacy.gedcom.utils.GEDCOMMapper;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;

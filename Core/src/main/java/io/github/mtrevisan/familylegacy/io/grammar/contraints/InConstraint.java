@@ -24,9 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.io.grammar.contraints;
 
-import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.record.RecordLookup;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -59,7 +59,7 @@ public final class InConstraint extends Constraint{
 	}
 
 	@Override
-	public void validate(final String contextPath, final FLEFRecord record, final FLEFModel model,
+	public void validate(final String contextPath, final FLEFRecord record, final RecordLookup model,
 			final List<String> errors){
 		// Fetch all matching target records for field (e.g. extract.media_part.media)
 		final List<FLEFRecord> fieldNodes = FLEFRecordHelper.findChildren(record, field);
@@ -89,9 +89,9 @@ public final class InConstraint extends Constraint{
 
 	/**
 	 * Navigates containerField path. If an intermediate or leaf node contains an Xref ID,
-	 * it resolves it against FLEFModel.
+	 * it resolves it against RecordLookup.
 	 */
-	private List<String> resolveContainerValues(final FLEFRecord record, final String path, final FLEFModel model){
+	private List<String> resolveContainerValues(final FLEFRecord record, final String path, final RecordLookup model){
 		final List<String> values = new ArrayList<>();
 		final String[] segments = StringUtils.split(path, '.');
 

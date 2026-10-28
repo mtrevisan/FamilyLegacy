@@ -25,12 +25,10 @@
 package io.github.mtrevisan.familylegacy.ui.tools.reports.index;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.ui.handlers.SourceHandler;
-import io.github.mtrevisan.familylegacy.ui.tools.reports.CulturalNormRootSection;
-import io.github.mtrevisan.familylegacy.ui.tools.reports.ReportFormatters;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -81,7 +79,7 @@ public final class SourceAndMediaIndex{
 
 		final List<FLEFRecord> records = model.getRecords();
 		for(final FLEFRecord record : records){
-			for(final FLEFRecord cit : CulturalNormRootSection.collectDescendantsWithTag(record, "source")){
+			for(final FLEFRecord cit : ReportFormatters.collectDescendantsWithTag(record, "source")){
 				final String sid = ReportFormatters.extractSourceId(cit);
 				if(sid != null && filter.test(model.getRecordById(sid))){
 					sourceToCitationsMap.computeIfAbsent(sid, k -> new ArrayList<>())

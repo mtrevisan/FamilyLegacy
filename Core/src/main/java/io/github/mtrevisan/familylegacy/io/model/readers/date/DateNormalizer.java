@@ -24,11 +24,10 @@
  */
 package io.github.mtrevisan.familylegacy.io.model.readers.date;
 
-import io.github.mtrevisan.calendars.spi.CalendarMetadata;
 import io.github.mtrevisan.calendars.CalendarType;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.io.model.readers.DateReader;
+import io.github.mtrevisan.calendars.spi.CalendarMetadata;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import org.apache.commons.lang3.StringUtils;
 
 

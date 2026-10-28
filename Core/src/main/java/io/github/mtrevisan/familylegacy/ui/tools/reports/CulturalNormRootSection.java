@@ -24,10 +24,12 @@
  */
 package io.github.mtrevisan.familylegacy.ui.tools.reports;
 
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.io.model.readers.CulturalNormReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceCitationReader;
 import io.github.mtrevisan.familylegacy.ui.handlers.CulturalNormHandler;
+import io.github.mtrevisan.familylegacy.ui.tools.reports.index.ReportFormatters;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -88,7 +90,7 @@ public final class CulturalNormRootSection implements SectionBuilder{
 			GenealogicalDateHelper.formatDateStructure(ctx.root, CulturalNormReader.TAG_VALID_TO,
 				ctx.labels, contextLabels));
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().culturalNormPlace(),
-			FLEFRecordHelper.extractPlace(ctx.root, ctx.model));
+			PlaceCitationReader.extractPlace(ctx.root, ctx.model));
 		if(!rows.isEmpty())
 			out.add(new ReportSection.BulletList(rows));
 	}
@@ -97,7 +99,7 @@ public final class CulturalNormRootSection implements SectionBuilder{
 	private void writeInvocations(final List<ReportSection> out){
 		final List<String> items = new ArrayList<>();
 		for(final FLEFRecord rec : ctx.model.getRecords()){
-			for(final FLEFRecord cn : collectDescendantsWithTag(rec, CulturalNormHandler.TYPE)){
+			for(final FLEFRecord cn : ReportFormatters.collectDescendantsWithTag(rec, CulturalNormHandler.TYPE)){
 				if(!ctx.root.getId().equals(cn.getValue()))
 					continue;
 				final String label = describeOwner(rec);
@@ -111,21 +113,6 @@ public final class CulturalNormRootSection implements SectionBuilder{
 		out.add(new ReportSection.Heading(2, ctx.labels.sections().culturalNormInvocations()));
 		out.add(new ReportSection.BulletList(items.stream()
 			.map(ReportFormatters::escape).toList()));
-	}
-
-	public static List<FLEFRecord> collectDescendantsWithTag(final FLEFRecord rec, final String tag){
-		final List<FLEFRecord> out = new ArrayList<>();
-		collectDescendantsWithTag(rec, tag, out);
-		return out;
-	}
-
-	private static void collectDescendantsWithTag(final FLEFRecord rec, final String tag,
-		final List<FLEFRecord> out){
-		for(final FLEFRecord child : rec.getChildren()){
-			if(tag.equalsIgnoreCase(child.getTag()))
-				out.add(child);
-			collectDescendantsWithTag(child, tag, out);
-		}
 	}
 
 	private String describeOwner(final FLEFRecord rec){

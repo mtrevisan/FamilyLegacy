@@ -24,9 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.io.grammar.typedefinitions;
 
-import io.github.mtrevisan.familylegacy.io.grammar.FLEFGrammar;
-import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.RecordLookup;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 
 import java.util.List;
 
@@ -59,7 +58,7 @@ public abstract class TypeDefinition{
 	/**
 	 * Validates the current model node against this type definition.
 	 */
-	public abstract void validate(String contextPath, FLEFRecord record, FLEFModel model, FLEFGrammar grammar,
+	public abstract void validate(String contextPath, FLEFRecord record, RecordLookup model, FLEFGrammar grammar,
 		List<String> errors);
 
 }

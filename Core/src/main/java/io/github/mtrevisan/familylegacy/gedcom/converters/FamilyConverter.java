@@ -24,20 +24,19 @@
  */
 package io.github.mtrevisan.familylegacy.gedcom.converters;
 
+import io.github.mtrevisan.familylegacy.gedcom.AuditBuilder;
 import io.github.mtrevisan.familylegacy.gedcom.Deduplicator;
 import io.github.mtrevisan.familylegacy.gedcom.GEDCOMHelper;
+import io.github.mtrevisan.familylegacy.gedcom.GEDCOMMapper;
 import io.github.mtrevisan.familylegacy.gedcom.GEDCOMNode;
-import io.github.mtrevisan.familylegacy.gedcom.utils.AuditBuilder;
-import io.github.mtrevisan.familylegacy.gedcom.utils.GEDCOMMapper;
-import io.github.mtrevisan.familylegacy.gedcom.utils.IDGenerator;
-import io.github.mtrevisan.familylegacy.gedcom.utils.PlaceCache;
+import io.github.mtrevisan.familylegacy.gedcom.IDGenerator;
+import io.github.mtrevisan.familylegacy.gedcom.PlaceCache;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.readers.GroupAttributeReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.GroupReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
-import io.github.mtrevisan.familylegacy.ui.handlers.GroupAttributeHandler;
-import io.github.mtrevisan.familylegacy.ui.handlers.GroupHandler;
-import io.github.mtrevisan.familylegacy.ui.handlers.RelationshipHandler;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -54,7 +53,7 @@ import java.util.Set;
  * EventRecord, EventParticipationRecord, and GroupAttributeRecord (for
  * RESI, NCHI).
  * <p>
- * A family is modelled in FLEF as a {@link GroupHandler#TYPE} record
+ * A family is modelled in FLEF as a {@link GroupReader#TYPE} record
  * whose members are linked through {@code group_member} relationships.
  * That is why the converter emits three families of relationships for
  * every family:
@@ -141,7 +140,7 @@ public class FamilyConverter{
 		IDGenerator.registerExistingId(famXref);
 
 		// Create GroupRecord
-		FLEFRecord group = FLEFRecord.createMainRecord(famXref, GroupHandler.TYPE)
+		FLEFRecord group = FLEFRecord.createMainRecord(famXref, GroupReader.TYPE)
 			.addChild(FLEFRecord.createChildWithTagAndValue("type", "family"));
 		familyMap.put(famXref, group);
 
@@ -174,7 +173,7 @@ public class FamilyConverter{
 				int actualCount = link.childrenIds.size();
 				if(reportedCount != actualCount){
 					FLEFRecord groupAttribute = FLEFRecord.createMainRecord(
-							IDGenerator.nextId(GroupAttributeHandler.ID_PREFIX), GroupAttributeHandler.TYPE)
+							IDGenerator.nextId(GroupAttributeReader.ID_PREFIX), GroupAttributeReader.TYPE)
 						.addChild(FLEFRecord.createChildWithTagAndValue("group", group.getId()))
 						.addChild(FLEFRecord.createChildWithTagAndValue("type", "children_count"))
 						.addChild(FLEFRecord.createChildWithTagAndValue("value", String.valueOf(reportedCount)))
@@ -332,7 +331,7 @@ public class FamilyConverter{
 	private void createGroupMembership(final String individualId, final String groupId,
 		final String role, final GEDCOMNode famNode){
 		final FLEFRecord relationship = FLEFRecord.createMainRecord(
-				IDGenerator.nextId(RelationshipHandler.ID_PREFIX), RelationshipHandler.TYPE)
+				IDGenerator.nextId(RelationshipReader.ID_PREFIX), RelationshipReader.TYPE)
 			.addChild(FLEFRecord.createChildWithTag("subject")
 				.addChild(FLEFRecord.createChildWithTagAndValue("individual", individualId)))
 			.addChild(FLEFRecord.createChildWithTag("target")
@@ -357,7 +356,7 @@ public class FamilyConverter{
 		if(endNode == null)
 			endNode = GEDCOMHelper.findFirstChild(link.famNode, "ANUL");
 
-		FLEFRecord relationship = FLEFRecord.createMainRecord(IDGenerator.nextId(RelationshipHandler.ID_PREFIX), RelationshipHandler.TYPE)
+		FLEFRecord relationship = FLEFRecord.createMainRecord(IDGenerator.nextId(RelationshipReader.ID_PREFIX), RelationshipReader.TYPE)
 			.addChild(FLEFRecord.createChildWithTag("subject")
 				.addChild(FLEFRecord.createChildWithTagAndValue("individual", link.husbandId))
 			)
@@ -405,7 +404,7 @@ public class FamilyConverter{
 			return;
 
 		FLEFRecord relationship = FLEFRecord.createMainRecord(
-				IDGenerator.nextId(RelationshipHandler.ID_PREFIX), RelationshipHandler.TYPE)
+				IDGenerator.nextId(RelationshipReader.ID_PREFIX), RelationshipReader.TYPE)
 			.addChild(FLEFRecord.createChildWithTag("subject")
 				.addChild(FLEFRecord.createChildWithTagAndValue("individual", childId)))
 			.addChild(FLEFRecord.createChildWithTag("target")
@@ -437,8 +436,8 @@ public class FamilyConverter{
 		if(associate == null || !"INDI".equals(associate.getTag()))
 			return;
 
-		final FLEFRecord relationship = FLEFRecord.createMainRecord(IDGenerator.nextId(RelationshipHandler.ID_PREFIX),
-				RelationshipHandler.TYPE)
+		final FLEFRecord relationship = FLEFRecord.createMainRecord(IDGenerator.nextId(RelationshipReader.ID_PREFIX),
+				RelationshipReader.TYPE)
 			.addChild(FLEFRecord.createChildWithTag("subject")
 				.addChild(FLEFRecord.createChildWithTagAndValue("individual", associateId)))
 			.addChild(FLEFRecord.createChildWithTag("target")
@@ -463,7 +462,7 @@ public class FamilyConverter{
 	 */
 	private void createGroupAttribute(GEDCOMNode attrNode, FLEFRecord group, String type){
 		FLEFRecord groupAttribute = FLEFRecord.createMainRecord(
-				IDGenerator.nextId(GroupAttributeHandler.ID_PREFIX), GroupAttributeHandler.TYPE)
+				IDGenerator.nextId(GroupAttributeReader.ID_PREFIX), GroupAttributeReader.TYPE)
 			.addChild(FLEFRecord.createChildWithTagAndValue("group", group.getId()))
 			.addChild(FLEFRecord.createChildWithTagAndValue("type", type));
 

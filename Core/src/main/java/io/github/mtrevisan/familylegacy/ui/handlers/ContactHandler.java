@@ -25,7 +25,7 @@
 package io.github.mtrevisan.familylegacy.ui.handlers;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.readers.ContactReader;
 import io.github.mtrevisan.familylegacy.ui.dialogs.structures.ContactStructureDialog;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
@@ -36,7 +36,7 @@ import java.awt.Window;
 
 public class ContactHandler extends AbstractRecordTypeHandler<ContactStructureDialog>{
 
-	public static final String TYPE = "CONTACT";
+	public static final String TYPE = ContactReader.TYPE;
 
 
 	private static final class SingletonHelper{

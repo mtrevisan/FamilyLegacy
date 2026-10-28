@@ -25,8 +25,8 @@
 package io.github.mtrevisan.familylegacy.ui.components.fields;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.readers.DateReader;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.DateReader;
 import io.github.mtrevisan.familylegacy.ui.dialogs.structures.DateStructureDialog;
 
 import java.awt.Window;

@@ -25,7 +25,7 @@
 package io.github.mtrevisan.familylegacy.ui.handlers;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
 import io.github.mtrevisan.familylegacy.ui.dialogs.structures.NameStructureDialog;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
@@ -44,7 +44,7 @@ import java.awt.Window;
  */
 public class NameHandler extends AbstractRecordTypeHandler<NameStructureDialog>{
 
-	public static final String TYPE = "NAME_STRUCTURE";
+	public static final String TYPE = NameReader.TYPE;
 	public static final String CITED_TYPE = "NAME";
 
 

@@ -25,13 +25,13 @@
 package io.github.mtrevisan.familylegacy.io.model;
 
 import io.github.mtrevisan.familylegacy.io.grammar.XrefPathIndex;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.NoteReader;
-import io.github.mtrevisan.familylegacy.ui.handlers.EventHandler;
-import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
-import io.github.mtrevisan.familylegacy.ui.handlers.NoteHandler;
-import io.github.mtrevisan.familylegacy.ui.handlers.PlaceHandler;
-import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
-import io.github.mtrevisan.familylegacy.ui.handlers.ResearchQuestionHandler;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.ResearchQuestionReader;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.record.RecordLookup;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 import org.apache.commons.text.CaseUtils;
@@ -41,7 +41,6 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -55,12 +54,13 @@ import java.util.regex.Pattern;
  * FLEF data model.
  * Contains the header and a list of top-level records.
  */
-public class FLEFModel{
+public class FLEFModel implements RecordLookup{
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(FLEFModel.class);
 
 
 	public static final String FLEF_LINK_PREFIX = "flef:";
+	private static final String TAG_NOTE_TEXT = "text";
 	private static final String TAG_NOTE_TRANSLATION_TEXT = "translation.text";
 
 
@@ -99,11 +99,11 @@ public class FLEFModel{
 			removeRecord(id);
 
 		recordsById.put(id, record);
-		if(id.startsWith(PlaceHandler.ID_PREFIX))
+		if(id.startsWith(PlaceReader.ID_PREFIX))
 			placesById.put(id, record);
-		if(id.startsWith(EventHandler.ID_PREFIX))
+		if(id.startsWith(EventReader.ID_PREFIX))
 			eventsById.put(id, record);
-		if(id.startsWith(ResearchQuestionHandler.ID_PREFIX))
+		if(id.startsWith(ResearchQuestionReader.ID_PREFIX))
 			questionsById.put(id, record);
 
 		records.add(record);
@@ -133,10 +133,12 @@ public class FLEFModel{
 		return !getRecordsByType(type).isEmpty();
 	}
 
+	@Override
 	public List<FLEFRecord> getRecordsByType(final String type){
 		return recordsByType.getOrDefault(type.toLowerCase(Locale.ROOT), List.of());
 	}
 
+	@Override
 	public FLEFRecord getRecordById(final String id){
 		if(id == null)
 			return null;
@@ -197,62 +199,6 @@ public class FLEFModel{
 
 	public Set<String> getRecordTypes(){
 		return recordsByType.keySet();
-	}
-
-	/**
-	 * Finds all records in the model that reference the given target record ID.
-	 * <p>
-	 * This method uses the {@link XrefPathIndex} generated from the FLEF grammar to dynamically
-	 * find every possible path that can contain a reference to the target record type.
-	 * This avoids hardcoding every record type and specific path, making the code resilient to protocol changes.
-	 *
-	 * @param targetId the ID of the record to search for
-	 * @return a map grouping the referencing records by their handler class
-	 */
-	public Map<Class<? extends RecordTypeHandler<?>>, Set<FLEFRecord>> getReferencingRecords(final String targetId){
-		final Map<Class<? extends RecordTypeHandler<?>>, Set<FLEFRecord>> result = new HashMap<>();
-		if(targetId == null || !XrefPathIndex.isInitialized())
-			return result;
-
-		final FLEFRecord targetRecord = getRecordById(targetId);
-		if(targetRecord == null)
-			return result;
-
-		final String targetRecordType = targetRecord.getTag();
-		final String targetUnionType = CaseUtils.toCamelCase(targetRecordType, true, '_')
-			+ XrefPathIndex.RECORD_UNION_NAME;
-		final Set<String> xrefPaths = XrefPathIndex.getPaths(targetUnionType);
-		if(xrefPaths.isEmpty())
-			return result;
-
-		for(final FLEFRecord record : records){
-			final String recordType = record.getTag();
-			for(final String path : xrefPaths){
-				final int searchRecordTypeIndex = path.indexOf('.');
-				if(searchRecordTypeIndex == -1)
-					continue;
-
-				final String searchRecordType = path.substring(0, searchRecordTypeIndex);
-				if(!Strings.CI.equals(searchRecordType, recordType))
-					continue;
-
-				final String searchPath = path.substring(searchRecordTypeIndex + 1);
-				final List<FLEFRecord> targetNodes = FLEFRecordHelper.findChildren(record, searchPath);
-				for(final FLEFRecord node : targetNodes){
-					if(targetId.equals(node.getValue())){
-						final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(recordType);
-						if(handler != null)
-							// Use LinkedHashSet to avoid duplicates in O(1) while preserving insertion order
-							result.computeIfAbsent(handler.getClassType(), k -> new LinkedHashSet<>())
-								.add(record);
-
-						// Found a match in this record, move to the next record
-						break;
-					}
-				}
-			}
-		}
-		return result;
 	}
 
 	/**
@@ -326,8 +272,8 @@ public class FLEFModel{
 			return;
 
 		// If the record is a note structure, check and replace within its text field and the text of its translations
-		if(NoteHandler.isOfType(record)){
-			final List<FLEFRecord> textNodes = new ArrayList<>(FLEFRecordHelper.findChildren(record, NoteReader.TAG_TEXT));
+		if(NoteReader.isOfType(record)){
+			final List<FLEFRecord> textNodes = new ArrayList<>(FLEFRecordHelper.findChildren(record, TAG_NOTE_TEXT));
 			textNodes.addAll(FLEFRecordHelper.findChildren(record, TAG_NOTE_TRANSLATION_TEXT));
 			for(final FLEFRecord textNode : textNodes){
 				final String text = textNode.getValue();

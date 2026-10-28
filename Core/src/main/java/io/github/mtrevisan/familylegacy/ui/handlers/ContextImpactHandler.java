@@ -25,8 +25,8 @@
 package io.github.mtrevisan.familylegacy.ui.handlers;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.io.model.readers.ContextImpactReader;
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.ContextImpactRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
@@ -38,8 +38,8 @@ import java.util.List;
 
 public class ContextImpactHandler extends AbstractRecordTypeHandler<ContextImpactRecordDialog>{
 
-	public static final String TYPE = "CONTEXT_IMPACT";
-	public static final String ID_PREFIX = "CI";
+	public static final String TYPE = ContextImpactReader.TYPE;
+	public static final String ID_PREFIX = ContextImpactReader.ID_PREFIX;
 
 
 	private static final class SingletonHelper{
