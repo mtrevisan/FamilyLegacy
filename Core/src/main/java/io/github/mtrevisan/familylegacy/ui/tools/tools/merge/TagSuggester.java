@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.tools.tools.merge;
 
+import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -955,7 +956,7 @@ public final class TagSuggester{
 						// guaranteed to be unique within the grammar
 						// because real type names cannot contain dots
 						// (the declaration regex only allows \w+).
-						final String syntheticName = parentTypeName + "." + name;
+						final String syntheticName = FLEFRecordHelper.composePath(parentTypeName, name);
 
 						// Accumulate the inline body starting from the
 						// current line, up to the matching closing brace.

@@ -146,6 +146,25 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 	}
 
 
+	/**
+	 * Fills the editor with what the Place Assistant suggests. Nothing is saved unless the user confirms the editor.
+	 *
+	 * @param subject	the place that is part of another one
+	 * @param target	the place that contains it (can be {@code null})
+	 * @param type		the type of the relationship (can be {@code null})
+	 * @return	This dialog.
+	 */
+	public PlaceRelationshipRecordDialog withDraft(final FLEFRecord subject, final FLEFRecord target, final String type){
+		subjectField.setEntity(subject);
+		if(target != null)
+			targetField.setEntity(target);
+		if(type != null)
+			typeCombo.setSelectedItem(type);
+
+		return this;
+	}
+
+
 	@Override
 	protected JPanel createPropertiesPanel(){
 		// subject

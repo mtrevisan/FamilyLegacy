@@ -124,9 +124,9 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 			final FLEFRecord subject = subjectField.getEntity();
 			if(subject != null && !subject.isEmpty()){
 				if(GroupHandler.isOfType(subject))
-					targetField.withHandlerTypes(GroupHandler.class);
+					targetField.restrictHandlerTypes(GroupHandler.class);
 				else if(IndividualHandler.isOfType(subject))
-					targetField.withHandlerTypes(IndividualHandler.class, GroupHandler.class);
+					targetField.restrictHandlerTypes(IndividualHandler.class, GroupHandler.class);
 			}
 
 			updateSubjectTypeCombo();
@@ -159,6 +159,26 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 		setupSourceListSelection();
 
 		finalizeDialog(parent);
+	}
+
+	/**
+	 * Starts the new relationship with a subject, a target and a type. The relationship is not saved: the user completes it, and
+	 * decides whether to save it.
+	 *
+	 * @param subject	The subject (it must already be in the model).
+	 * @param target	The target (it must already be in the model).
+	 * @param type	The type to propose, or {@code null} to leave the choice to the user (it is used only if valid for the participants).
+	 * @return	This dialog.
+	 */
+	public RelationshipRecordDialog withParticipants(final FLEFRecord subject, final FLEFRecord target, final String type){
+		subjectField.setEntity(subject);
+		targetField.setEntity(target);
+		updateSubjectTypeCombo();
+
+		if(type != null && List.of(RelationshipReader.getValidTypes(subject, target)).contains(type))
+			subjectTypeCombo.setSelectedItem(type);
+
+		return this;
 	}
 
 	private void updateSubjectTypeCombo(){

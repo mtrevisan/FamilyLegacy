@@ -105,9 +105,10 @@ public final class ReportFormatters{
 
 	/** Resolves the display name of a {@code place.place} reference, or null. */
 	static String resolvePlaceName(final FLEFModel model, final FLEFRecord rec){
-		final String ref = FLEFRecordHelper.getChildValue(rec, TAG_PLACE + "." + PlaceHandler.TYPE);
+		final String ref = FLEFRecordHelper.getChildValue(rec, FLEFRecordHelper.composePath(TAG_PLACE, PlaceHandler.TYPE));
 		if(ref == null)
 			return null;
+
 		final FLEFRecord place = model.getRecordById(ref);
 		return (place != null? placeName(place): null);
 	}

@@ -287,8 +287,10 @@ public class RecordSelectionDialog extends JDialog{
 					final int index, final boolean isSelected, final boolean cellHasFocus){
 				super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
 
-				if(value instanceof RecordTypeHandler<?> handler)
+				if(value instanceof RecordTypeHandler<?> handler){
 					setText(handler.getLabel());
+					setToolTipText(index >= 0? GUIHelper.usageTooltip(handler.getType()): null);
+				}
 				return this;
 			}
 		});

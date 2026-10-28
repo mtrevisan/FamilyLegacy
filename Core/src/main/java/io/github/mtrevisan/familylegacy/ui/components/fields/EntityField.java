@@ -177,15 +177,43 @@ public class EntityField extends BoundTextField{
 	public final EntityField withHandlerTypes(final Class<? extends RecordTypeHandler<?>>... handlerTypes){
 		assert this.handlers.isEmpty(): "Cannot assign handler type more than one time";
 
-		this.handlers = Arrays.stream(handlerTypes)
-			.map(HandlerRegistry::getHandler)
-			.toList();
+		this.handlers = resolveHandlers(handlerTypes);
 
 		initComponents();
 
 		addPropertyChangeListener(PROPERTY_ENTITY_CHANGED, e -> updateDisplay());
 
 		return this;
+	}
+
+	/**
+	 * Changes the record types a field already set up accepts, e.g. when the other field of a dialog restricts them (the target of
+	 * a relationship of a group can only be a group).
+	 * <p>
+	 * Unlike {@link #withHandlerTypes(Class[])} it does not set the field up again: the behavior (mouse, keys, popup menu) and the
+	 * listeners are installed once, and the handler types are read each time they are needed. It is not available to the fields that
+	 * wrap a citation, whose popup menu depends on how many types they accept.
+	 *
+	 * @param handlerTypes	the record types this field accepts from now on
+	 * @return	this field
+	 * @throws IllegalStateException	if the field is not set up yet, or it wraps a citation
+	 */
+	@SafeVarargs
+	public final EntityField restrictHandlerTypes(final Class<? extends RecordTypeHandler<?>>... handlerTypes){
+		if(handlers.isEmpty())
+			throw new IllegalStateException("The handler types must be assigned with withHandlerTypes() first");
+		if(type == EntityType.CITATION_WRAPPER)
+			throw new IllegalStateException("The handler types of a field that wraps a citation cannot be changed");
+
+		handlers = resolveHandlers(handlerTypes);
+
+		return this;
+	}
+
+	private static List<RecordTypeHandler<?>> resolveHandlers(final Class<? extends RecordTypeHandler<?>>[] handlerTypes){
+		return Arrays.stream(handlerTypes)
+			.<RecordTypeHandler<?>>map(HandlerRegistry::getHandler)
+			.toList();
 	}
 
 

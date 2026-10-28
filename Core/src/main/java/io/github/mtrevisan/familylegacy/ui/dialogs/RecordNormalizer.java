@@ -24,8 +24,17 @@
  */
 package io.github.mtrevisan.familylegacy.ui.dialogs;
 
+import io.github.mtrevisan.familylegacy.io.grammar.FLEFGrammar;
+import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.AlternationType;
+import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.FieldDefinition;
+import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.ScalarType;
+import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.StructType;
+import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.TypeDefinition;
+import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.UnionType;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.ui.tools.tools.merge.MergeGrammar;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -38,7 +47,9 @@ import java.util.List;
  * information but list their children in different orders compare equal
  * in a diff.
  * <p>
- * The sort key is {@code (tag, canonicalKey)}, where the canonical key
+ * The children are ordered as the fields are declared in the grammar (see {@link #normalize(FLEFRecord, FLEFGrammar)}); the
+ * children with the same tag, or all of them when the grammar does not know the record, are ordered by {@code (tag,
+ * canonicalKey)}, where the canonical key
  * is a stable string built from the record's tag, value, id, and
  * recursively sorted children. Two records with the same content in
  * different child orders produce the same canonical key.
@@ -61,6 +72,8 @@ public final class RecordNormalizer{
 	 */
 	private static final String ORDER_SIGNIFICANT_TAG = "name";
 
+	private static final int MAX_RESOLVE_DEPTH = 8;
+
 
 	private RecordNormalizer(){}
 
@@ -74,18 +87,111 @@ public final class RecordNormalizer{
 	 *         {@code null} if the input was {@code null}
 	 */
 	public static FLEFRecord normalize(final FLEFRecord record){
+		return normalize(record, MergeGrammar.instance());
+	}
+
+	/**
+	 * Same as {@link #normalize(FLEFRecord)}, but the children are ordered as the fields are declared in the grammar (children
+	 * whose field is unknown to the grammar come last, sorted by tag), instead of alphabetically.
+	 *
+	 * @param record	The record to normalize; may be {@code null}.
+	 * @param grammar	The grammar defining the order of the fields; may be {@code null}, in which case the children are sorted by
+	 * 	tag.
+	 * @return	A new record with children recursively sorted, or {@code null} if the input was {@code null}.
+	 */
+	public static FLEFRecord normalize(final FLEFRecord record, final FLEFGrammar grammar){
 		if(record == null)
 			return null;
 
+		return normalize(record, grammar, rootType(record, grammar));
+	}
+
+	private static FLEFRecord normalize(final FLEFRecord record, final FLEFGrammar grammar, final TypeDefinition type){
 		final FLEFRecord copy = copyShell(record);
 		final List<FLEFRecord> children = new ArrayList<>(record.getChildren());
-		if(!ORDER_SIGNIFICANT_TAG.equals(record.getTag()))
-			children.sort(Comparator
-				.comparing((FLEFRecord r) -> r.getTag() != null? r.getTag(): StringUtils.EMPTY)
-				.thenComparing(RecordNormalizer::canonicalKey));
+
+		final boolean orderSignificant = ORDER_SIGNIFICANT_TAG.equals(record.getTag());
+		final Comparator<FLEFRecord> byTag = Comparator.comparing(RecordNormalizer::tagOf);
+		final Comparator<FLEFRecord> order;
+		if(type instanceof StructType structType){
+			final Comparator<FLEFRecord> byField = Comparator.comparingInt(child -> fieldIndex(structType, child.getTag()));
+			order = (orderSignificant? byField: byField.thenComparing(byTag).thenComparing(RecordNormalizer::canonicalKey));
+		}
+		else
+			order = (orderSignificant? null: byTag.thenComparing(RecordNormalizer::canonicalKey));
+		if(order != null)
+			children.sort(order);
+
 		for(final FLEFRecord child : children)
-			copy.addChild(normalize(child));
+			copy.addChild(normalize(child, grammar, childType(type, child, grammar)));
 		return copy;
+	}
+
+	/** @return	The type defining the given top-level record (or header), or {@code null} if unknown. */
+	private static TypeDefinition rootType(final FLEFRecord record, final FLEFGrammar grammar){
+		if(grammar == null || grammar.getFileDefinition() == null)
+			return null;
+
+		final FieldDefinition recordsField = grammar.getFileDefinition()
+			.recordsField();
+		if(recordsField != null
+				&& resolve(grammar.getType(recordsField.type().getName()), grammar) instanceof UnionType union
+				&& union.getChoices().containsKey(record.getTag()))
+			return resolve(union.getChoices().get(record.getTag()), grammar);
+
+		final FieldDefinition headerField = grammar.getFileDefinition()
+			.headerField();
+		if(headerField != null && Strings.CI.equals(headerField.name(), record.getTag()))
+			return resolve(grammar.getType(headerField.type().getName()), grammar);
+		return null;
+	}
+
+	private static TypeDefinition childType(final TypeDefinition type, final FLEFRecord child, final FLEFGrammar grammar){
+		if(grammar == null)
+			return null;
+
+		if(type instanceof StructType structType){
+			final FieldDefinition field = structType.getField(child.getTag());
+			return (field != null? resolve(field.type(), grammar): null);
+		}
+		if(type instanceof UnionType union)
+			return resolve(union.getChoices().get(child.getTag()), grammar);
+		return null;
+	}
+
+	/** Dereferences named types and picks the first structured alternative of an alternation. */
+	private static TypeDefinition resolve(final TypeDefinition type, final FLEFGrammar grammar){
+		TypeDefinition current = type;
+		for(int depth = 0; depth < MAX_RESOLVE_DEPTH && current != null; depth ++){
+			if(current instanceof ScalarType scalar && grammar.hasType(scalar.getName()))
+				current = grammar.getType(scalar.getName());
+			else if(current instanceof AlternationType alternation){
+				TypeDefinition structured = null;
+				for(final TypeDefinition alternative : alternation.getAlternatives()){
+					final TypeDefinition resolved = resolve(alternative, grammar);
+					if(resolved instanceof StructType || resolved instanceof UnionType){
+						structured = resolved;
+						break;
+					}
+				}
+				return structured;
+			}
+			else
+				break;
+		}
+		return current;
+	}
+
+	private static int fieldIndex(final StructType type, final String tag){
+		final List<FieldDefinition> fields = type.getFields();
+		for(int i = 0, size = fields.size(); i < size; i ++)
+			if(Strings.CI.equals(fields.get(i).name(), tag))
+				return i;
+		return Integer.MAX_VALUE;
+	}
+
+	private static String tagOf(final FLEFRecord record){
+		return (record.getTag() != null? record.getTag(): StringUtils.EMPTY);
 	}
 
 

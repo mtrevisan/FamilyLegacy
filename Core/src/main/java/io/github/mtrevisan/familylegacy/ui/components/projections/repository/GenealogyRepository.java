@@ -27,8 +27,12 @@ package io.github.mtrevisan.familylegacy.ui.components.projections.repository;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.readers.DateReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.NormalizedDate;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.TemporalSpan;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyPolicy;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualData;
@@ -39,6 +43,7 @@ import io.github.mtrevisan.familylegacy.ui.handlers.RelationshipHandler;
 import org.apache.commons.lang3.ArrayUtils;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -74,6 +79,8 @@ public class GenealogyRepository{
 	private final Set<String> individualsWithDescendantsSet = new HashSet<>();
 	private final Map<String, List<String>> individualToRelationshipIdsMap = new HashMap<>();
 	private final Map<String, List<String>> individualToPartnerIdsMap = new HashMap<>();
+	// earliest valid_from of the partner relationships between two individuals (key: see partnerKey), used to order the partners
+	private final Map<String, NormalizedDate> partnerValidFromMap = new HashMap<>();
 
 	// Flyweight caches
 	private final Map<String, IndividualData> individualDataCache = new HashMap<>();
@@ -156,7 +163,22 @@ public class GenealogyRepository{
 		if(RelationshipReader.isTypePartner(type)){
 			addPartnerId(subjectId, objectId);
 			addPartnerId(objectId, subjectId);
+			indexPartnerValidFrom(relationship, subjectId, objectId);
 		}
+	}
+
+	private void indexPartnerValidFrom(final FLEFRecord relationship, final String subjectId, final String objectId){
+		final TemporalSpan span = DateReader.extractTemporalSpan(FLEFRecordHelper.findChild(relationship, RelationshipReader.TAG_VALID_FROM));
+		if(span == null)
+			return;
+
+		//several relationships may link the same couple (e.g. civil and religious spouse): the earliest wins
+		final NormalizedDate validFrom = span.representativeDate();
+		partnerValidFromMap.merge(partnerKey(subjectId, objectId), validFrom, (a, b) -> (b.compareTo(a) < 0? b: a));
+	}
+
+	private static String partnerKey(final String id1, final String id2){
+		return (id1.compareTo(id2) <= 0? id1 + "|" + id2: id2 + "|" + id1);
 	}
 
 	private boolean isHidden(final String individualId){
@@ -173,6 +195,12 @@ public class GenealogyRepository{
 			partners.add(partnerId);
 	}
 
+	/**
+	 * Returns the partners of an individual, ordered by the date of the union (see {@link UnionChronology}); the partners whose
+	 * union cannot be dated come last, in the order of the model.
+	 * <p>
+	 * The order is computed at render time from the evidence and is not genealogical data: nothing is written to the model.
+	 */
 	public List<String> getPartnerIds(final String individualId){
 		if(individualId == null)
 			return Collections.emptyList();
@@ -180,7 +208,37 @@ public class GenealogyRepository{
 		ensureIndices();
 
 		final List<String> ids = individualToPartnerIdsMap.get(individualId);
-		return (ids != null? List.copyOf(ids): Collections.emptyList());
+		return (ids != null? sortPartners(individualId, ids): Collections.emptyList());
+	}
+
+	/** Orders the partners of an individual by the date of the union (presentation only, see {@link PresentationOrder}). */
+	public List<String> sortPartners(final String individualId, final Collection<String> partnerIds){
+		return PresentationOrder.partners(partnerIds, partnerId -> unionDate(individualId, partnerId), partnerId -> {
+			final IndividualData data = getIndividualData(partnerId);
+			return (data != null && data.hasName()? data.getNameText(): null);
+		});
+	}
+
+	/**
+	 * @return	The date of the union of two partners, derived from the shared events and from the relationships, or {@code null} if it
+	 * 	cannot be determined.
+	 */
+	public NormalizedDate unionDate(final String individualId, final String partnerId){
+		ensureIndices();
+
+		final List<UnionChronology.SharedEvent> sharedEvents = new ArrayList<>();
+		final List<FLEFRecord> partnerEvents = individualToEventMap.getOrDefault(partnerId, Collections.emptyList());
+		final Set<String> partnerEventIds = new HashSet<>();
+		for(final FLEFRecord event : partnerEvents)
+			partnerEventIds.add(event.getId());
+		for(final FLEFRecord event : individualToEventMap.getOrDefault(individualId, Collections.emptyList()))
+			if(partnerEventIds.contains(event.getId())){
+				final TemporalSpan span = DateReader.extractTemporalSpan(FLEFRecordHelper.findChild(event, EventReader.TAG_DATE));
+				sharedEvents.add(new UnionChronology.SharedEvent(EventReader.extractType(event),
+					(span != null? span.representativeDate(): null)));
+			}
+
+		return UnionChronology.unionDate(sharedEvents, partnerValidFromMap.get(partnerKey(individualId, partnerId)));
 	}
 
 	private void indexEventParticipation(final FLEFRecord eventParticipation){
@@ -286,11 +344,20 @@ public class GenealogyRepository{
 		return null;
 	}
 
+	/**
+	 * Returns the children of a parent, ordered by birth (see {@link PresentationOrder}): the preferred birth of each child decides,
+	 * whatever the type of the relationship, and the children without a known birth come last, in the order of the model.
+	 * <p>
+	 * The order is computed at render time from the evidence and is not genealogical data: nothing is written to the model.
+	 */
 	public List<FLEFRecord> getChildren(final String parentId){
 		ensureIndices();
 
 		final List<FLEFRecord> children = parentToChildrenMap.get(parentId);
-		return (children != null && !children.isEmpty()? new ArrayList<>(children): Collections.emptyList());
+		if(children == null || children.isEmpty())
+			return Collections.emptyList();
+
+		return PresentationOrder.children(children, OrderPreferences.children(), this::getIndividualData);
 	}
 
 	public List<String> getRelationshipIdsForIndividual(final String individualId){
@@ -383,6 +450,7 @@ public class GenealogyRepository{
 		individualsWithDescendantsSet.clear();
 		individualToRelationshipIdsMap.clear();
 		individualToParentLinksMap.clear();
+		partnerValidFromMap.clear();
 
 		// Clear the flyweight cache so IndividualData instances are recreated without deleted relations
 		individualDataCache.clear();

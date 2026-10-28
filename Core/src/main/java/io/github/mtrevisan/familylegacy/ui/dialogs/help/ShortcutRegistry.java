@@ -78,6 +78,7 @@ public final class ShortcutRegistry{
 	public static final ShortcutDefinition EDIT_REDO = register(I18N.t("menu.edit"), I18N.t("menu.edit.redo"), KeyStroke.getKeyStroke(KeyEvent.VK_Y, MENU_MASK), KeyStroke.getKeyStroke(KeyEvent.VK_Z, MENU_MASK | InputEvent.SHIFT_DOWN_MASK), (IS_MAC? "⌘⇧Z": "Ctrl+Y"));
 
 	public static final ShortcutDefinition EDIT_RELOCATE_INDIVIDUAL = register(I18N.t("menu.edit"), I18N.t("menu.individual.relocate"), KeyStroke.getKeyStroke(KeyEvent.VK_X, MENU_MASK), "Ctrl+X");
+	public static final ShortcutDefinition TOOLS_RESEARCH_ASSISTANT = register(I18N.t("menu.tools"), I18N.t("menu.tools.research_assistant"), KeyStroke.getKeyStroke(KeyEvent.VK_A, MENU_MASK | InputEvent.SHIFT_DOWN_MASK), "Ctrl+Shift+A");
 	public static final ShortcutDefinition EDIT_DELETE_INDIVIDUAL = register(I18N.t("menu.edit"), I18N.t("menu.individual.delete"), KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "Del");
 	public static final ShortcutDefinition EDIT_SELECTION_INDIVIDUAL = register(I18N.t("menu.edit"), I18N.t("menu.individual.edit.individual"), KeyStroke.getKeyStroke(KeyEvent.VK_F2, 0), "F2");
 

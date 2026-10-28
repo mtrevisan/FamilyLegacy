@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.ui.components.projections.siblings;
 
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualData;
+import io.github.mtrevisan.familylegacy.ui.components.projections.repository.PresentationOrder;
 
 import java.util.Collections;
 import java.util.List;
@@ -73,7 +74,9 @@ public final class SiblingsData{
 	 */
 	private SiblingsData(final List<IndividualData> siblings, final Map<String, String> relationshipTypes,
 			final Set<String> siblingIdsWithDescendants){
-		this.siblings = (siblings != null? siblings: Collections.emptyList());
+		//the children are shown by birth, whatever the order they were given in; the order is computed here, at render time, from the
+		//evidence: it is not genealogical data and it is never written back to the model
+		this.siblings = (siblings != null? Collections.unmodifiableList(PresentationOrder.children(siblings)): Collections.emptyList());
 		this.relationshipTypes = (relationshipTypes != null? relationshipTypes: Collections.emptyMap());
 		this.siblingIdsWithDescendants = (siblingIdsWithDescendants != null
 			? siblingIdsWithDescendants

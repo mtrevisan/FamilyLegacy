@@ -168,16 +168,13 @@ final class CitationRenderer{
 			if(locator != null)
 				sb.append(" — *").append(ReportFormatters.escape(locator)).append('*');
 
-			final String extractText = FLEFRecordHelper.getChildValue(c,
-				SourceCitationReader.TAG_EXTRACT + "." + SourceCitationReader.TAG_TEXT);
+			final String extractText = FLEFRecordHelper.getChildValue(c, SourceCitationReader.TAG_EXTRACT_TEXT);
 			if(extractText != null){
 				sb.append(" — *").append(ctx.labels.sections().extractText()).append(":* \"")
 					.append(ReportFormatters.escape(extractText)).append('"');
 
-				final String extractType = FLEFRecordHelper.getChildValue(c,
-					SourceCitationReader.TAG_EXTRACT + "." + SourceCitationReader.TAG_TYPE);
-				final String extractLocale = FLEFRecordHelper.getChildValue(c,
-					SourceCitationReader.TAG_EXTRACT + "." + SourceCitationReader.TAG_LOCALE);
+				final String extractType = FLEFRecordHelper.getChildValue(c, SourceCitationReader.TAG_EXTRACT_TYPE);
+				final String extractLocale = FLEFRecordHelper.getChildValue(c, SourceCitationReader.TAG_EXTRACT_LOCALE);
 				final List<String> quals = new ArrayList<>();
 				if(extractType != null && !extractType.isBlank())
 					quals.add(ReportFormatters.orEmpty(

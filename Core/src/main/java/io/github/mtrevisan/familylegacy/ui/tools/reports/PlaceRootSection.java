@@ -106,7 +106,7 @@ final class PlaceRootSection implements SectionBuilder{
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().placeType(),
 			FLEFRecordHelper.getChildValue(ctx.root, PlaceReader.TAG_TYPE));
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().placeCoordinates(),
-			FLEFRecordHelper.getChildValue(ctx.root, PlaceReader.TAG_LOCATION + "." + PlaceReader.TAG_COORDINATES));
+			FLEFRecordHelper.getChildValue(ctx.root, PlaceReader.TAG_LOCATION_COORDINATES));
 		if(!rows.isEmpty())
 			out.add(new ReportSection.BulletList(rows));
 	}

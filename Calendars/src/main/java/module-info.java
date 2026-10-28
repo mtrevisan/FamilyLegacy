@@ -31,7 +31,11 @@ module io.github.mtrevisan.calendars {
 	// Conversion of calendar expressions into Julian Day Numbers
 	exports io.github.mtrevisan.calendars;
 	// SPI of the astronomical engine, implemented by the Ephemeris plugin
+	// Research aids that propose normalized dates with the reasoning behind them
+	exports io.github.mtrevisan.calendars.assistant;
 	exports io.github.mtrevisan.calendars.astronomy;
+	// The Gregorian reforms, used by the assistant
+	exports io.github.mtrevisan.calendars.gregorian;
 	exports io.github.mtrevisan.calendars.spi;
 
 	// Declare SPI consumption

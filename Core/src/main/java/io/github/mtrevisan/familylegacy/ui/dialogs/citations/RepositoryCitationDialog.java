@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryCitationReader;
+import io.github.mtrevisan.familylegacy.ui.assistant.citation.CitationHost;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextField;
 import io.github.mtrevisan.familylegacy.ui.components.PanelKey;
 import io.github.mtrevisan.familylegacy.ui.components.RecordDialogBuilder;
@@ -59,7 +60,7 @@ import java.awt.Window;
  * Tab 1 (Properties): locator
  * Tab 8 (Notes): note
  */
-public class RepositoryCitationDialog extends BaseRecordDialog{
+public class RepositoryCitationDialog extends BaseRecordDialog implements CitationHost{
 
 	private final JPanel propertiesPanel;
 
@@ -114,6 +115,32 @@ public class RepositoryCitationDialog extends BaseRecordDialog{
 		GUIHelper.addComponent(panel, notePanel);
 
 		return panel;
+	}
+
+
+	@Override
+	public String locator(){
+		return locatorField.getText();
+	}
+
+	@Override
+	public void applyLocator(final String locator){
+		locatorField.setText(locator);
+	}
+
+	@Override
+	public FLEFRecord citedSource(){
+		return null;
+	}
+
+	@Override
+	public boolean acceptsRepository(){
+		return true;
+	}
+
+	@Override
+	public void applyRepository(final FLEFRecord repository){
+		setRepository(repository.getId());
 	}
 
 

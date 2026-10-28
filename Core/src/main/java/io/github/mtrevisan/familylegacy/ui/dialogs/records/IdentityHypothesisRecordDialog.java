@@ -148,10 +148,10 @@ public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 	@Override
 	protected JPanel createPropertiesPanel(){
 		// identity 1
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.identity_hypothesis.identity.one") + "*:", identity1Field);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.identity_hypothesis.identity.one") + "*:", GUIHelper.withTooltip(identity1Field, "tooltip.identity_hypothesis.identity.one"));
 
 		// identity 2
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.identity_hypothesis.identity.two") + "*:", identity2Field);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.identity_hypothesis.identity.two") + "*:", GUIHelper.withTooltip(identity2Field, "tooltip.identity_hypothesis.identity.two"));
 
 		// compare button, right under the two identity fields
 		final JPanel compareRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
@@ -160,10 +160,10 @@ public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 		GUIHelper.addComponent(propertiesPanel, compareRow);
 
 		// rationale
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.identity_hypothesis.rationale") + ":", rationaleArea);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.identity_hypothesis.rationale") + ":", GUIHelper.withTooltip(rationaleArea, "tooltip.identity_hypothesis.rationale"));
 
 		// confidence
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.identity_hypothesis.confidence") + ":", confidenceCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.identity_hypothesis.confidence") + ":", GUIHelper.withTooltip(confidenceCombo, "tooltip.identity_hypothesis.confidence"));
 
 		return propertiesPanel;
 	}
@@ -262,6 +262,29 @@ public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 
 			GUIHelper.setComponentEnabled(field, false);
 		}
+	}
+
+	/**
+	 * Starts the new hypothesis with the two records it is about, a rationale and a confidence. The hypothesis is not saved: the user
+	 * completes it, and decides whether to save it.
+	 *
+	 * @param first	The first record (it must already be in the model).
+	 * @param second	The second record (it must already be in the model).
+	 * @param rationale	The text to start the rationale with, used only where still empty.
+	 * @param confidence	The confidence to propose ({@code low}, {@code medium}, {@code high}), or {@code null}.
+	 * @return	This dialog.
+	 */
+	public IdentityHypothesisRecordDialog withCandidates(final FLEFRecord first, final FLEFRecord second, final String rationale,
+			final String confidence){
+		identity1Field.setEntity(first);
+		identity2Field.setEntity(second);
+
+		if(rationaleArea.isEmpty() && rationale != null && !rationale.isBlank())
+			rationaleArea.setText(rationale);
+		if(confidence != null)
+			confidenceCombo.setSelectedItem(confidence);
+
+		return this;
 	}
 
 	@Override

@@ -232,6 +232,10 @@ public class SiblingsPanel extends JPanel{
 
 	/**
 	 * Populates the panel with siblings data. Ensures at least one placeholder box exists.
+	 * <p>
+	 * The siblings are displayed in the order of {@link SiblingsData#getSiblings()}, which is chronological (by preferred birth,
+	 * whatever the relationship type; the children without a known birth last). That order is computed at render time from the
+	 * evidence and is not genealogical data: it is never written to the model.
 	 *
 	 * @param data	Data containing the list of siblings/children.
 	 */

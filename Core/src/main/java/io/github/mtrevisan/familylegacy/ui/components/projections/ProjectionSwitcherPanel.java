@@ -183,6 +183,13 @@ public final class ProjectionSwitcherPanel extends JPanel{
 		notifyNavigation(individualId);
 	}
 
+	/** @return	The individual the current projection is rooted on. */
+	public String getCurrentRootId(){
+		if(currentPanel == treeGraphPanel)
+			return treeGraphPanel.getRootIndividualId();
+		return egoPanel.getCurrentEgoId();
+	}
+
 	public String[] getRootIds(){
 		if(currentPanel == treeGraphPanel)
 			return treeGraphPanel.getRootIds();

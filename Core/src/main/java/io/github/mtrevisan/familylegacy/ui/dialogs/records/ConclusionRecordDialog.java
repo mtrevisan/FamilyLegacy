@@ -192,6 +192,23 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 		return this;
 	}
 
+	/**
+	 * Starts the new conclusion with a proof status and a narrative, used only where still empty. The conclusion is not saved: the
+	 * user completes it, and decides whether to save it.
+	 *
+	 * @param proofStatus	The proof status to propose.
+	 * @param narrative	The text to start the narrative with.
+	 * @return	This dialog.
+	 */
+	public ConclusionRecordDialog withDraft(final String proofStatus, final String narrative){
+		if(StringUtils.isNotBlank(proofStatus))
+			proofStatusCombo.setSelectedItem(proofStatus);
+		if(narrativeArea.isEmpty() && StringUtils.isNotBlank(narrative))
+			narrativeArea.setText(narrative);
+
+		return this;
+	}
+
 	private static boolean hasTarget(final FLEFRecord question, final String targetId){
 		for(final FLEFRecord questionTarget : FLEFRecordHelper.findChildren(question, ResearchQuestionReader.TAG_TARGET)){
 			final FLEFRecord reference = questionTarget.getTheOnlyChild();
@@ -204,19 +221,19 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 	@Override
 	protected JPanel createPropertiesPanel(){
 		// issue
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.conclusion.issue") + "*:", issueField);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.conclusion.issue") + "*:", GUIHelper.withTooltip(issueField, "tooltip.conclusion.issue"));
 
 		// proof status
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.conclusion.proof_status") + "*:", proofStatusCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.conclusion.proof_status") + "*:", GUIHelper.withTooltip(proofStatusCombo, "tooltip.conclusion.proof_status"));
 
 		// narrative
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.conclusion.narrative") + ":", narrativeArea);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.conclusion.narrative") + ":", GUIHelper.withTooltip(narrativeArea, "tooltip.conclusion.narrative"));
 
 		// resolves
-		GUIHelper.addComponent(propertiesPanel, resolvesPanel);
+		GUIHelper.addComponent(propertiesPanel, GUIHelper.withTooltip(resolvesPanel, "tooltip.conclusion.resolves"));
 
 		// preferred
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.conclusion.preferred") + ":", preferredCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.conclusion.preferred") + ":", GUIHelper.withTooltip(preferredCombo, "tooltip.conclusion.preferred"));
 
 		return propertiesPanel;
 	}

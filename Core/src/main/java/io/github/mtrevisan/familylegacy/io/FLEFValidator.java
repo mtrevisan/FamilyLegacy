@@ -165,7 +165,7 @@ public class FLEFValidator{
 			if(recordsType != null){
 				final List<FLEFRecord> records = model.getRecords();
 				for(final FLEFRecord record : records){
-					final String contextPath = "records." + record.getTag();
+					final String contextPath = FLEFRecordHelper.composePath(FLEFGrammarParser.FIELD_RECORDS, record.getTag());
 					final String recordId = record.getId();
 
 					for(final String msg : collect(em -> recordsType.validate(contextPath,

@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.FieldDefiniti
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.StructType;
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.UnionType;
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -121,7 +122,7 @@ final class FieldMerger{
 	 */
 	void mergeField(final FLEFRecord target, final FLEFRecord source, final FieldDefinition field, final String path,
 			final List<String> conflicts){
-		final String fieldPath = path + "." + field.name();
+		final String fieldPath = FLEFRecordHelper.composePath(path, field.name());
 		final String typeName = grammar.declaredTypeName(field);
 		if(GrammarSupport.TYPE_AUDIT.equals(typeName))
 			foldSingular(target, null, field, fieldPath, conflicts);
@@ -217,7 +218,7 @@ final class FieldMerger{
 			return;
 		}
 
-		final String armPath = path + "." + keptArm.getTag();
+		final String armPath = FLEFRecordHelper.composePath(path, keptArm.getTag());
 		if(!Objects.equals(keptArm.getTag(), otherArm.getTag())){
 			conflicts.add(armPath + ": kept, discarded " + describe(otherArm));
 			return;
@@ -301,7 +302,7 @@ final class FieldMerger{
 				}
 			if(!present){
 				if(!children(target, tag).isEmpty())
-					conflicts.add(path + "." + tag + ": field unknown to the grammar, both occurrences preserved");
+					conflicts.add(FLEFRecordHelper.composePath(path, tag) + ": field unknown to the grammar, both occurrences preserved");
 				insertChild(target, copy(child));
 			}
 		}

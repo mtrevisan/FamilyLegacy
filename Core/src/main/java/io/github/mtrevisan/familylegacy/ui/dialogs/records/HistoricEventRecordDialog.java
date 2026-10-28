@@ -124,6 +124,22 @@ public class HistoricEventRecordDialog extends BaseRecordDialog{
 	}
 
 
+	/**
+	 * Fills the editor with what the Context Assistant suggests. Nothing is saved unless the user confirms the editor.
+	 *
+	 * @param type	The type of historic event (can be {@code null}).
+	 * @param title	The title, used only where still empty (can be {@code null}).
+	 * @return	This dialog.
+	 */
+	public HistoricEventRecordDialog withDraft(final String type, final String title){
+		if(type != null)
+			typeCombo.setSelectedItem(type);
+		if(title != null && !title.isBlank() && titleField.isEmpty())
+			titleField.setText(title);
+
+		return this;
+	}
+
 	@Override
 	protected JPanel createPropertiesPanel(){
 		final JPanel propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]10[]10[]");

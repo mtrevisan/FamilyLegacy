@@ -484,17 +484,20 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 		final RecordTypeHandler<?> handler = findHandler(record);
 		final BaseRecordDialog dialog = handler.createEditDialog(parent, model, record);
 		getDialogSetup().accept(dialog);
+		final FLEFRecord before = FLEFRecord.createEmpty();
+		record.deepCopyTo(before);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved()){
 			if(parentRecord != null){
-				// Use the stored parent record info to reload
-				if(type == ListType.ENTITY_REFERENCE || type == ListType.ONEOF_REFERENCE)
-					loadReferenceWithType(parentRecord.getId(), StringUtils.split(parentRecord.getTag(), '|'));
-					// For STRUCTURE or CITATION_WRAPPER, we might need a different reload
-					// Fallback: reload from the parent record if available
-				else
-					load(parentEntity);
+				reloadFromParent();
+
+				//make the change undoable from the dialog that hosts this list
+				if(parent instanceof BaseRecordDialog parentDialog){
+					final FLEFRecord after = FLEFRecord.createEmpty();
+					record.deepCopyTo(after);
+					parentDialog.addNestedEdit(record, before, after, this::reloadFromParent);
+				}
 			}
 
 			// Check if the record is still in the list; if not, it was removed.
@@ -504,6 +507,16 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 
 		// Return the same record (it was updated in place)
 		return record;
+	}
+
+	private void reloadFromParent(){
+		// Use the stored parent record info to reload
+		if(type == ListType.ENTITY_REFERENCE || type == ListType.ONEOF_REFERENCE)
+			loadReferenceWithType(parentRecord.getId(), StringUtils.split(parentRecord.getTag(), '|'));
+			// For STRUCTURE or CITATION_WRAPPER, we might need a different reload
+			// Fallback: reload from the parent record if available
+		else
+			load(parentEntity);
 	}
 
 	/**

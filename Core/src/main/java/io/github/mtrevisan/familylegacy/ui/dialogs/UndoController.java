@@ -53,6 +53,10 @@ public class UndoController{
 
 				undoManager.undo();
 			}
+			catch(final CannotUndoException ignored){
+				//the edit refers to a state that no longer exists (document changed programmatically): drop it, don't leave the stack stuck
+				undoManager.discardAllEdits();
+			}
 			finally{
 				isExecuting = false;
 			}
@@ -65,6 +69,9 @@ public class UndoController{
 				isExecuting = true;
 
 				undoManager.redo();
+			}
+			catch(final CannotRedoException ignored){
+				undoManager.discardAllEdits();
 			}
 			finally{
 				isExecuting = false;

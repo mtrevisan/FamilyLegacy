@@ -18,39 +18,7 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
 				<configuration>
-					<argLine>
-						--add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.io.model.readers.date=ALL-UNNAMED
-						--add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.io.model.readers.date=org.junit.platform.commons
-						--add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.io.model.readers.date=org.junit.jupiter.api
-						--add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.io=ALL-UNNAMED
-						--add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.io=org.junit.platform.commons
-						--add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.io=org.junit.jupiter.api
-						--add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.io.model=ALL-UNNAMED
-						--add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.io.model=org.junit.platform.commons
-						--add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.io.model=org.junit.jupiter.api
-						--add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.privacy=ALL-UNNAMED
-						--add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.privacy=org.junit.platform.commons
-						--add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.privacy=org.junit.jupiter.api
-						--add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.ui.tools.context=ALL-UNNAMED
-						--add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.ui.tools.context=org.junit.platform.commons
-						--add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.ui.tools.context=org.junit.jupiter.api
-						--add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.ui.tools.research=ALL-UNNAMED
-						--add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.ui.tools.research=org.junit.platform.commons
-						--add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.ui.tools.research=org.junit.jupiter.api
-						--add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.ui.tools.tools.merge=ALL-UNNAMED
-						--add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.ui.tools.tools.merge=org.junit.platform.commons
-						--add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.ui.tools.tools.merge=org.junit.jupiter.api
-						--add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.io.merger=ALL-UNNAMED
-						--add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.io.merger=org.junit.platform.commons
-						--add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.io.merger=org.junit.jupiter.api
-						--add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.gedcom=ALL-UNNAMED
-						--add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.gedcom=org.junit.platform.commons
-						--add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.gedcom=org.junit.jupiter.api
-						--add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.gedcom.utils=ALL-UNNAMED
-						--add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.gedcom.utils=org.junit.platform.commons
-						--add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.gedcom.utils=org.junit.jupiter.api
-						--add-reads io.github.mtrevisan.familylegacy.core=org.junit.jupiter.api
-					</argLine>
+					<argLine>@${project.basedir}/surefire-opens.args</argLine>
 				</configuration>
 			</plugin>
 			<!-- Shade -->

@@ -155,22 +155,43 @@ public class ContextImpactRecordDialog extends BaseRecordDialog{
 		return this;
 	}
 
+	/**
+	 * Fills the editor with what the Context Assistant suggests. Nothing is saved unless the user confirms the editor.
+	 *
+	 * @param context	The historic event or cultural norm.
+	 * @param target	The record it may have influenced.
+	 * @param impactType	The type of impact (can be {@code null}).
+	 * @param rationale	The start of the explanation, used only where still empty (can be {@code null}).
+	 * @return	This dialog.
+	 */
+	public ContextImpactRecordDialog withDraft(final FLEFRecord context, final FLEFRecord target, final String impactType,
+			final String rationale){
+		contextField.setEntity(context);
+		targetField.setEntity(target);
+		if(impactType != null)
+			impactTypeCombo.setSelectedItem(impactType);
+		if(rationale != null && !rationale.isBlank() && rationaleArea.isEmpty())
+			rationaleArea.setText(rationale);
+
+		return this;
+	}
+
 	@Override
 	protected JPanel createPropertiesPanel(){
 		// context
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.context_impact.context") + "*:", contextField);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.context_impact.context") + "*:", GUIHelper.withTooltip(contextField, "tooltip.context_impact.context"));
 
 		// target
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.context_impact.target") + "*:", targetField);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.context_impact.target") + "*:", GUIHelper.withTooltip(targetField, "tooltip.context_impact.target"));
 
 		// impact type
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.context_impact.impact_type") + ":", impactTypeCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.context_impact.impact_type") + ":", GUIHelper.withTooltip(impactTypeCombo, "tooltip.context_impact.impact_type"));
 
 		// explanation
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.context_impact.explanation") + ":", rationaleArea);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.context_impact.explanation") + ":", GUIHelper.withTooltip(rationaleArea, "tooltip.context_impact.explanation"));
 
 		// confidence
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.context_impact.confidence") + ":", confidenceCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.context_impact.confidence") + ":", GUIHelper.withTooltip(confidenceCombo, "tooltip.context_impact.confidence"));
 
 		return propertiesPanel;
 	}

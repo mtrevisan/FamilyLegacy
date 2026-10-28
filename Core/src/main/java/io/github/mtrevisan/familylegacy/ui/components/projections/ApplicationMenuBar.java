@@ -26,6 +26,10 @@ package io.github.mtrevisan.familylegacy.ui.components.projections;
 
 import io.github.mtrevisan.familylegacy.privacy.PrivacyPolicy;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
+import io.github.mtrevisan.familylegacy.ui.assistant.ResearchAssistantService;
+import io.github.mtrevisan.familylegacy.ui.components.projections.repository.ChildrenOrder;
+import io.github.mtrevisan.familylegacy.ui.components.projections.repository.OrderPreferences;
+import io.github.mtrevisan.familylegacy.ui.components.projections.repository.PartnerOrder;
 import io.github.mtrevisan.familylegacy.ui.components.projections.bookmarks.BookmarkMenu;
 import io.github.mtrevisan.familylegacy.ui.components.projections.repository.GenealogyRepository;
 import io.github.mtrevisan.familylegacy.ui.dialogs.help.DiagnosticsDialog;
@@ -79,6 +83,8 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 
 /**
@@ -263,8 +269,11 @@ final class ApplicationMenuBar{
 
 		final List<ToolItemBinding> bindings = new ArrayList<>();
 
-		menu.add(accelerated(ShortcutRegistry.EDIT_UNDO.action(), ShortcutRegistry.EDIT_UNDO.keyStrokeCode()));
-		menu.add(accelerated(ShortcutRegistry.EDIT_REDO.action(), ShortcutRegistry.EDIT_REDO.keyStrokeCode()));
+		menu.add(historyItem(ShortcutRegistry.EDIT_UNDO, frame::undo));
+		menu.add(historyItem(ShortcutRegistry.EDIT_REDO, frame::redo));
+		final JMenuItem recentChanges = new JMenuItem(I18N.t("menu.edit.recent_changes"));
+		recentChanges.addActionListener(e -> frame.showRecentChanges());
+		menu.add(recentChanges);
 		menu.add(new JSeparator());
 
 		addToolsToMenu(menu, List.of(
@@ -347,6 +356,7 @@ final class ApplicationMenuBar{
 		menu.add(new JSeparator());
 
 		menu.add(createPrivacyMenu());
+		menu.add(createOrderMenu());
 
 		// Synchronize checkbox states when the menu is selected
 		menu.addMenuListener(new MenuListener(){
@@ -362,6 +372,53 @@ final class ApplicationMenuBar{
 
 			@Override
 			public void menuCanceled(final MenuEvent e){}
+		});
+
+		return menu;
+	}
+
+
+	/**
+	 * How the views order children and partners. It is a view preference, stored in the user preferences and never in the genealogy:
+	 * choosing an order does not touch any record.
+	 */
+	private JMenu createOrderMenu(){
+		final JMenu menu = new JMenu(I18N.t("menu.view.order"));
+		menu.setMnemonic(KeyEvent.VK_O);
+
+		final JMenu childrenMenu = createEnumMenu("menu.view.order.children", ChildrenOrder.class, OrderPreferences::children,
+			OrderPreferences::setChildren);
+		final JMenu partnersMenu = createEnumMenu("menu.view.order.partners", PartnerOrder.class, OrderPreferences::partners,
+			OrderPreferences::setPartners);
+		menu.add(childrenMenu);
+		menu.add(partnersMenu);
+		return menu;
+	}
+
+	private static <E extends Enum<E>> JMenu createEnumMenu(final String key, final Class<E> type, final Supplier<E> current,
+			final Consumer<E> setter){
+		final JMenu menu = new JMenu(I18N.t(key));
+
+		final ButtonGroup group = new ButtonGroup();
+		final Map<E, JRadioButtonMenuItem> items = new EnumMap<>(type);
+		for(final E value : type.getEnumConstants()){
+			final JRadioButtonMenuItem item = new JRadioButtonMenuItem(I18N.t(key + "." + value.name().toLowerCase(Locale.ROOT)));
+			item.addActionListener(e -> setter.accept(value));
+			group.add(item);
+			menu.add(item);
+			items.put(value, item);
+		}
+
+		// Reflect the current choice every time the submenu is opened
+		menu.addMenuListener(new MenuListener(){
+			@Override
+			public void menuSelected(final MenuEvent e){
+				items.get(current.get())
+					.setSelected(true);
+			}
+
+			@Override public void menuDeselected(final MenuEvent e){}
+			@Override public void menuCanceled(final MenuEvent e){}
 		});
 
 		return menu;
@@ -583,6 +640,12 @@ final class ApplicationMenuBar{
 		addToolsToMenu(menu, ToolToolRegistry.validationTools(), bindings);
 		menu.add(new JSeparator());
 		addToolsToMenu(menu, ToolToolRegistry.analysisTools(), bindings);
+
+		menu.add(new JSeparator());
+		final JMenuItem researchAssistant = new JMenuItem(ShortcutRegistry.TOOLS_RESEARCH_ASSISTANT.action());
+		researchAssistant.setAccelerator(ShortcutRegistry.TOOLS_RESEARCH_ASSISTANT.keyStroke());
+		researchAssistant.addActionListener(e -> ResearchAssistantService.getInstance().open());
+		menu.add(researchAssistant);
 
 		bindDynamicEnablement(menu, bindings);
 
@@ -864,6 +927,14 @@ final class ApplicationMenuBar{
 	private record ToolItemBinding(JMenuItem item, ToolOperation tool){}
 
 	/** Creates a menu item with a platform-appropriate accelerator. */
+	/** Creates an Undo/Redo item acting on the application history. */
+	private JMenuItem historyItem(final ShortcutRegistry.ShortcutDefinition shortcut, final Runnable action){
+		final JMenuItem item = new JMenuItem(shortcut.action());
+		item.setAccelerator(shortcut.keyStroke());
+		item.addActionListener(e -> action.run());
+		return item;
+	}
+
 	private JMenuItem accelerated(final String text, final int keyCode){
 		return accelerated(text, keyCode, 0);
 	}

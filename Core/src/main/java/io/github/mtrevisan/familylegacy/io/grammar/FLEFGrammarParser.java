@@ -136,8 +136,8 @@ public final class FLEFGrammarParser{
 	private static final String TAG_MEMBER_OF = "member_of";
 	private static final String TAG_XREF = "Xref";
 
-	private static final String FIELD_HEADER = "header";
-	private static final String FIELD_RECORDS = "records";
+	public static final String FIELD_HEADER = "header";
+	public static final String FIELD_RECORDS = "records";
 
 
 	/**

@@ -218,6 +218,31 @@ public class SingleDatePanel extends JPanel{
 		cardLayout.show(cardPanel, singleDateType.name());
 	}
 
+	/** @return the calendar code currently selected */
+	public String getCalendar(){
+		return calendarCombo.getText();
+	}
+
+	/** @return the text of the full date currently entered */
+	public String getFullDateText(){
+		return fullDateValueField.getText();
+	}
+
+	/**
+	 * Replaces the content with a full date: used when the user applies a suggestion.
+	 *
+	 * @param calendarCode	the code of the calendar of the date
+	 * @param date	the date, in the notation of the calendar
+	 */
+	public void setFullDate(final String calendarCode, final String date){
+		clear();
+
+		singleDateTypeCombo.setSelectedItem(DateType.FULL_DATE);
+		fullDateValueField.setText(date);
+		calendarCombo.setSelectedItem(calendarCode);
+		cardLayout.show(cardPanel, DateType.FULL_DATE.name());
+	}
+
 	/**
 	 * Saves the current date into the given target record.
 	 * The target record will contain the chosen date tag (FULL_DATE, DECADE, or CENTURY)

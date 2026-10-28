@@ -138,8 +138,8 @@ public class RecordDiffDialog extends JDialog{
 		// children in different orders would be shown as different: a
 		// diff line would appear for every block whose position changed,
 		// even though the content is unchanged.
-		final String leftText = writer.writeToString(RecordNormalizer.normalize(before));
-		final String rightText = writer.writeToString(RecordNormalizer.normalize(after));
+		final String leftText = (before != null? writer.writeToString(RecordNormalizer.normalize(before)): StringUtils.EMPTY);
+		final String rightText = (after != null? writer.writeToString(RecordNormalizer.normalize(after)): StringUtils.EMPTY);
 
 		leftArea = createTextArea();
 		rightArea = createTextArea();

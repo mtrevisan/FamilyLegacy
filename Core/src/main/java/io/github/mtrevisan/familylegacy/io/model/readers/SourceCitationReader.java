@@ -107,6 +107,9 @@ public final class SourceCitationReader{
 	public static final String TAG_REMARK = "remark";
 
 	public static final String TAG_MEDIA_PART_MEDIA = FLEFRecordHelper.composePath(TAG_MEDIA_PART, TAG_MEDIA);
+	public static final String TAG_EXTRACT_TEXT = FLEFRecordHelper.composePath(TAG_EXTRACT, TAG_TEXT);
+	public static final String TAG_EXTRACT_TYPE = FLEFRecordHelper.composePath(TAG_EXTRACT, TAG_TYPE);
+	public static final String TAG_EXTRACT_LOCALE = FLEFRecordHelper.composePath(TAG_EXTRACT, TAG_LOCALE);
 
 	public static final String[] EXTRACT_TYPES = {
 		"verbatim",

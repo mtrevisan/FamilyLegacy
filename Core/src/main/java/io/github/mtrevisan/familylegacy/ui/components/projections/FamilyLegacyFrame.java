@@ -28,16 +28,23 @@ import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.grammar.FLEFGrammar;
 import io.github.mtrevisan.familylegacy.io.grammar.FLEFGrammarParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.ui.assistant.AssistantContext;
+import io.github.mtrevisan.familylegacy.ui.assistant.AssistantIndicator;
+import io.github.mtrevisan.familylegacy.ui.assistant.ResearchAssistantService;
+import io.github.mtrevisan.familylegacy.ui.helpers.DialogEscapeSupport;
+import io.github.mtrevisan.familylegacy.io.model.ModelHistory;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.ui.components.projections.bookmarks.Bookmark;
 import io.github.mtrevisan.familylegacy.ui.components.projections.bookmarks.BookmarkStore;
 import io.github.mtrevisan.familylegacy.ui.components.projections.bookmarks.BookmarkType;
+import io.github.mtrevisan.familylegacy.ui.components.projections.repository.OrderPreferences;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.TreeType;
 import io.github.mtrevisan.familylegacy.ui.components.projections.repository.GenealogyRepository;
 import io.github.mtrevisan.familylegacy.ui.components.projections.repository.ProjectionMutator;
 import io.github.mtrevisan.familylegacy.ui.components.projections.services.DossierManager;
 import io.github.mtrevisan.familylegacy.ui.components.projections.services.GlobalKeyboardController;
 import io.github.mtrevisan.familylegacy.ui.components.projections.services.ModelUtils;
+import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import io.github.mtrevisan.familylegacy.ui.preferences.AppearanceManager;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolContexts;
@@ -45,14 +52,24 @@ import io.github.mtrevisan.familylegacy.ui.tools.ToolDispatcher;
 import io.github.mtrevisan.familylegacy.ui.tools.files.FileMenuController;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JMenuBar;
+import javax.swing.JOptionPane;
 import javax.swing.JSplitPane;
+import javax.swing.Box;
 import javax.swing.JToolBar;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
+import java.awt.AWTEvent;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.Toolkit;
+import java.awt.Window;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -78,6 +95,8 @@ public class FamilyLegacyFrame extends JFrame{
 	private final TreeType treeType;
 
 	private FLEFModel model;
+	private final ModelHistory history;
+	private RecentChangesDialog recentChangesDialog;
 	private ProjectionSwitcherPanel switcher;
 	private final BookmarkStore bookmarkStore = new BookmarkStore();
 	private final FileMenuController fileController;
@@ -95,6 +114,9 @@ public class FamilyLegacyFrame extends JFrame{
 		this.treeType = treeType;
 
 		this.model = model;
+		ResearchAssistantService.getInstance().install(this::model, this::currentFilePath);
+		DialogEscapeSupport.install();
+		history = new ModelHistory(model);
 		switcher = new ProjectionSwitcherPanel(treeType, model);
 		fileController = new FileMenuController(this, this::model, this::replaceModel, () -> {});
 
@@ -129,6 +151,15 @@ public class FamilyLegacyFrame extends JFrame{
 		switcher.setProjectionChangeListener(toolBarBuilder::updateProjectionState);
 		toolBarBuilder.updateProjectionState(switcher.getCurrentProjectionType());
 
+		//how many findings the Research Assistant has, at the right end of the toolbar; a click opens it
+		final AssistantIndicator indicator = new AssistantIndicator(ResearchAssistantService.getInstance(), this::assistantContext,
+			FamilyLegacyFrame::isModalDialogShowing);
+		toolBar.add(Box.createHorizontalGlue());
+		toolBar.add(indicator.component());
+		//the findings are computed again when the model changes (a step of the history, an undo, a redo, another file)
+		history.addChangeListener(indicator::refreshSoon);
+		indicator.refreshSoon();
+
 		setLayout(new BorderLayout());
 		add(toolBar, BorderLayout.NORTH);
 		add(split, BorderLayout.CENTER);
@@ -146,18 +177,86 @@ public class FamilyLegacyFrame extends JFrame{
 		setJMenuBar(menuBar);
 
 		PrivacyService.addListener(this::refreshPrivacy);
+		//the order of children and partners is a view preference: changing it only rebuilds the views
+		OrderPreferences.addListener(this::refreshPrivacy);
+		installUndoCheckpoints();
 	}
 
 	/** Rebuilds the views after the privacy policy changed. */
 	private void refreshPrivacy(){
-		SwingUtilities.invokeLater(() -> {
-			PrivacyService.invalidate();
-			switcher.getRepository()
-				.invalidateIndices();
+		SwingUtilities.invokeLater(this::rebuildViews);
+	}
 
-			loadRoot(switcher.getRootIds()[0]);
-			dossierManager.rebuild(model);
-		});
+	private void rebuildViews(){
+		PrivacyService.invalidate();
+		switcher.getRepository()
+			.invalidateIndices();
+
+		String rootId = switcher.getCurrentRootId();
+		if(rootId == null || !model.hasRecord(rootId))
+			rootId = ModelUtils.findLowestIndividualId(model);
+		loadRoot(rootId);
+		dossierManager.rebuild(model);
+	}
+
+	/**
+	 * Detects the changes made to the model so far, so that each user action ends up in its own undo step.
+	 * <p>
+	 * The listener runs <em>before</em> the event is dispatched, hence the changes of the previous actions are recorded just before
+	 * the next one starts; a closing dialog is the exception, as it is where a record dialog saves.
+	 */
+	private void installUndoCheckpoints(){
+		Toolkit.getDefaultToolkit()
+			.addAWTEventListener(event -> {
+				//nested dialogs (e.g. name -> name part) save into the model one after the other: they make a single step, recorded
+				//when the last modal dialog closes
+				if(event instanceof WindowEvent windowEvent){
+					if(windowEvent.getID() == WindowEvent.WINDOW_CLOSED && windowEvent.getWindow() instanceof JDialog
+							&& !isModalDialogShowing())
+						history.checkpoint(ModelHistory.Origin.DIALOG);
+				}
+				else if(isModalDialogShowing())
+					return;
+				else if(event instanceof ActionEvent
+						|| event instanceof MouseEvent mouseEvent && mouseEvent.getID() == MouseEvent.MOUSE_PRESSED
+						|| event instanceof KeyEvent keyEvent && keyEvent.getID() == KeyEvent.KEY_PRESSED)
+					history.checkpoint();
+			}, AWTEvent.ACTION_EVENT_MASK | AWTEvent.MOUSE_EVENT_MASK | AWTEvent.KEY_EVENT_MASK | AWTEvent.WINDOW_EVENT_MASK);
+	}
+
+	private static boolean isModalDialogShowing(){
+		for(final Window window : Window.getWindows())
+			if(window instanceof JDialog dialog && dialog.isModal() && dialog.isShowing())
+				return true;
+		return false;
+	}
+
+	void undo(){
+		final ModelHistory.Origin origin = history.peekUndoOrigin();
+		if(origin == ModelHistory.Origin.DIALOG
+				&& JOptionPane.showConfirmDialog(this, I18N.t("confirmation.undo.dialog.message"),
+				I18N.t("confirmation.undo.dialog.title"), JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE)
+				!= JOptionPane.YES_OPTION)
+			return;
+
+		if(history.undo())
+			rebuildViews();
+	}
+
+	void showRecentChanges(){
+		if(recentChangesDialog != null && recentChangesDialog.isDisplayable()){
+			recentChangesDialog.toFront();
+			recentChangesDialog.refresh();
+			return;
+		}
+
+		recentChangesDialog = new RecentChangesDialog(this, this::model, history::recentChanges);
+		recentChangesDialog.setVisible(true);
+	}
+
+	void redo(){
+		if(history.redo())
+			rebuildViews();
 	}
 
 	private void openJumpToDialog(){
@@ -214,6 +313,18 @@ public class FamilyLegacyFrame extends JFrame{
 		return switcher;
 	}
 
+	/** @return the path of the file being edited (what the findings ignored by the user are kept by), or {@code null} if it was never saved */
+	/** @return where the user is: this window, the model and the file being edited */
+	private AssistantContext assistantContext(){
+		return new AssistantContext(this, null, model, currentFilePath());
+	}
+
+	/** @return the path of the file being edited (what the findings ignored by the user are kept by), or {@code null} if it was never saved */
+	private String currentFilePath(){
+		final java.io.File file = fileController.currentFile();
+		return (file != null? file.getAbsolutePath(): null);
+	}
+
 	FileMenuController fileController(){
 		return fileController;
 	}
@@ -232,6 +343,7 @@ public class FamilyLegacyFrame extends JFrame{
 
 		SwingUtilities.invokeLater(() -> {
 			model = newModel;
+			history.reset(newModel);
 
 			switcher = new ProjectionSwitcherPanel(treeType, newModel);
 			switcher.setSelectionCallback(dossierManager::showIndividualDossier);

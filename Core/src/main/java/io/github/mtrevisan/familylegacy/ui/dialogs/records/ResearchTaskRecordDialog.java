@@ -138,13 +138,13 @@ public class ResearchTaskRecordDialog extends BaseRecordDialog{
 		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.research_task.status") + "*:", statusCombo);
 
 		// priority
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.research_task.priority") + ":", priorityCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.research_task.priority") + ":", GUIHelper.withTooltip(priorityCombo, "tooltip.research_task.priority"));
 
 		// due date
 		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.research_task.due_date") + ":", dueDateField);
 
 		// outcome
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.research_task.outcome") + ":", outcomeArea);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.research_task.outcome") + ":", GUIHelper.withTooltip(outcomeArea, "tooltip.research_task.outcome"));
 
 		return propertiesPanel;
 	}
@@ -159,6 +159,31 @@ public class ResearchTaskRecordDialog extends BaseRecordDialog{
 		return components.getPanel(PanelKey.AUDIT);
 	}
 
+
+	/**
+	 * Starts the new task with a description, a priority and the questions it supports. The task is not saved: the user completes it,
+	 * and decides whether to save it.
+	 *
+	 * @param description	The work to do, used only where still empty.
+	 * @param priority	The priority to propose ({@code low}, {@code normal}, {@code high}), or {@code null}.
+	 * @param questions	The questions the task supports (they must already be in the model).
+	 * @return	This dialog.
+	 */
+	public ResearchTaskRecordDialog withDraft(final String description, final String priority,
+			final java.util.List<FLEFRecord> questions){
+		if(descriptionArea.isEmpty() && description != null && !description.isBlank())
+			descriptionArea.setText(description);
+		statusCombo.setSelectedItem("open");
+		if(priority != null)
+			priorityCombo.setSelectedItem(priority);
+
+		final io.github.mtrevisan.familylegacy.ui.components.lists.EntityListPanel questionsPanel
+			= (io.github.mtrevisan.familylegacy.ui.components.lists.EntityListPanel)components.getPanel(PanelKey.RESEARCH_QUESTION);
+		for(final FLEFRecord question : questions)
+			questionsPanel.addItemDirectly(question);
+
+		return this;
+	}
 
 	@Override
 	protected void loadData(){

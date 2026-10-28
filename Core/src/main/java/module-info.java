@@ -44,4 +44,7 @@ module io.github.mtrevisan.familylegacy.core {
 	requires org.threeten.extra;
 	requires org.apache.poi.poi;
 	requires org.apache.poi.ooxml;
+
+	// Assistants that plug into the Research Assistant
+	uses io.github.mtrevisan.familylegacy.ui.assistant.AssistantContributor;
 }

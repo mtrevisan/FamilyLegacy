@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.ui.bindings;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.WordUtils;
@@ -48,6 +49,7 @@ import java.util.Objects;
 public class BoundComboBox<E> extends JComboBox<E> implements PathBound{
 
 	private static final String NONE = "none";
+	private static final String TOOLTIP = "tooltip";
 
 	private static final String NON_BREAKING_SPACE = "\u00A0";
 
@@ -62,6 +64,9 @@ public class BoundComboBox<E> extends JComboBox<E> implements PathBound{
 	 * always the raw code, so persistence and undo are unaffected.
 	 */
 	private String i18nPrefix;
+
+	/** The tooltip of the field, without the explanation of the selected value. */
+	private String fieldTooltip;
 
 	private boolean readOnly;
 
@@ -120,6 +125,42 @@ public class BoundComboBox<E> extends JComboBox<E> implements PathBound{
 		this.i18nPrefix = (StringUtils.isBlank(i18nPrefix)? null: i18nPrefix);
 
 		installRenderer();
+
+		//default tooltip of the field, if the translations define it (a tooltip set explicitly afterwards wins)
+		if(this.i18nPrefix != null && fieldTooltip == null)
+			setToolTipText(I18N.t(FLEFRecordHelper.composePath(this.i18nPrefix, TOOLTIP), null));
+	}
+
+	/**
+	 * The tooltip is made of the text of the field, if any, followed by the explanation of the selected value, if the
+	 * translations define it ({@code <prefix>.<code>.tooltip}). The popup shows the explanation of each value.
+	 */
+	@Override
+	public void setToolTipText(final String text){
+		fieldTooltip = text;
+
+		super.setToolTipText(text);
+	}
+
+	@Override
+	public String getToolTipText(){
+		if(fieldTooltip != null && fieldTooltip.startsWith("<html>"))
+			return fieldTooltip;
+
+		final String itemTooltip = itemTooltip(getSelectedItem());
+		if(itemTooltip == null)
+			return GUIHelper.tooltipHtml(fieldTooltip);
+
+		final String selected = localize((String)getSelectedItem());
+		return GUIHelper.tooltipHtml(fieldTooltip, selected + ": " + itemTooltip);
+	}
+
+	/** @return	The explanation of the value, if the translations define it. */
+	private String itemTooltip(final Object value){
+		if(i18nPrefix == null || !(value instanceof String code) || code.isEmpty())
+			return null;
+
+		return I18N.t(FLEFRecordHelper.composePath(i18nPrefix, code, TOOLTIP), null);
 	}
 
 	/**
@@ -136,6 +177,7 @@ public class BoundComboBox<E> extends JComboBox<E> implements PathBound{
 
 				if(value instanceof String str)
 					setText(localize(str));
+				setToolTipText(index >= 0? GUIHelper.tooltipHtml(itemTooltip(value)): null);
 				return this;
 			}
 		});

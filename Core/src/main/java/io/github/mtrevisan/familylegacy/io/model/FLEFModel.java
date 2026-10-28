@@ -112,6 +112,23 @@ public class FLEFModel{
 				.add(record);
 	}
 
+	/**
+	 * Replaces all the records (and their indices) with the given ones.
+	 * <p>
+	 * NOTE: Used by {@link ModelHistory} only.
+	 */
+	void replaceRecords(final List<FLEFRecord> newRecords){
+		records.clear();
+		recordsByType.clear();
+		recordsById.clear();
+		placesById.clear();
+		eventsById.clear();
+		questionsById.clear();
+
+		for(final FLEFRecord record : newRecords)
+			addRecord(record);
+	}
+
 	public boolean hasRecordsByType(final String type){
 		return !getRecordsByType(type).isEmpty();
 	}

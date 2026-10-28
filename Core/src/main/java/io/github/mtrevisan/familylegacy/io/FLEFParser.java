@@ -53,9 +53,6 @@ public class FLEFParser{
 	private static final char TAG_CLOSE_CURLY_BRACE = '}';
 	private static final char BYTE_ORDER_MARK = '﻿';
 
-	private static final String FIELD_HEADER = "header";
-	private static final String FIELD_RECORDS = "records";
-
 	private static final String TAG_VALUE_MULTILINE = "\"\"\"";
 
 
@@ -180,11 +177,11 @@ public class FLEFParser{
 			final FLEFRecord record = parseRecord();
 
 			final String tag = record.getTag();
-			if(Strings.CI.equals(FIELD_HEADER, tag)){
+			if(Strings.CI.equals(FLEFGrammarParser.FIELD_HEADER, tag)){
 				SingularFieldIndex.mergeSingularBlocks(record);
 				root.setHeader(record);
 			}
-			else if(Strings.CI.equals(FIELD_RECORDS, tag) && record.getId() == null){
+			else if(Strings.CI.equals(FLEFGrammarParser.FIELD_RECORDS, tag) && record.getId() == null){
 				// legacy layout, with every record inside a `records { … }` block
 				final List<FLEFRecord> children = record.getChildren();
 				for(final FLEFRecord child : children){

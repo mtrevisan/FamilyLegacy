@@ -59,6 +59,8 @@ public class TreeService{
 
 	// Local cache for children data per parent
 	private final Map<String, Map<IndividualData, SiblingsData>> childrenDataCache = new HashMap<>();
+	// version of the order preferences the cached data were ordered with (the order is a presentation choice: see OrderPreferences)
+	private int childrenDataOrderVersion = OrderPreferences.version();
 
 
 	public TreeService(final GenealogyRepository repository, final FLEFModel model){
@@ -231,6 +233,10 @@ public class TreeService{
 			return Collections.emptyMap();
 
 		repository.ensureIndices();
+		if(childrenDataOrderVersion != OrderPreferences.version()){
+			childrenDataCache.clear();
+			childrenDataOrderVersion = OrderPreferences.version();
+		}
 		return childrenDataCache.computeIfAbsent(parentId, this::computeChildrenData);
 	}
 
@@ -253,6 +259,10 @@ public class TreeService{
 					candidatePartnerIds.add(link.parent().getId());
 			}
 		}
+		//the couples are shown in chronological order (the order is computed here, at render time: it is not stored anywhere)
+		final List<String> orderedPartnerIds = repository.sortPartners(parentId, candidatePartnerIds);
+		candidatePartnerIds.clear();
+		candidatePartnerIds.addAll(orderedPartnerIds);
 
 		// For each candidate partner, find the children shared with parentId
 		// and compute the couple relationship type for each shared child.

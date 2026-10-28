@@ -105,6 +105,8 @@ public final class IndividualData{
 
 	private final String infoText;
 	private final String infoTooltip;
+	/** The representative date of the preferred birth, if known (and not hidden): used to order the views, never stored. */
+	private final NormalizedDate birthDate;
 
 	private String preferredImageKey;
 	private String preferredImageUri;
@@ -135,6 +137,7 @@ public final class IndividualData{
 			nameTooltip = TAG_HTML_OPEN + "[" + id + "]" + TAG_HTML_CLOSE;
 			infoText = StringUtils.EMPTY;
 			infoTooltip = StringUtils.EMPTY;
+			birthDate = null;
 			//placeholders only: the preferred image is not loaded
 			extractPreferredImage(null, model);
 			return;
@@ -258,6 +261,7 @@ public final class IndividualData{
 		}
 		infoText = sj.toString();
 		infoTooltip = tooltip.toString();
+		this.birthDate = normalizedBirthDate;
 
 		extractPreferredImage(individual, model);
 	}
@@ -277,6 +281,11 @@ public final class IndividualData{
 
 	public String getNameText(){
 		return nameText;
+	}
+
+	/** @return	Whether the individual has a name (it has not when it is unknown or hidden by the privacy policy). */
+	public boolean hasName(){
+		return !NO_DATA.equals(nameText);
 	}
 
 	public String getNameTooltip(){
@@ -309,6 +318,16 @@ public final class IndividualData{
 
 	public String getInfoTooltip(){
 		return infoTooltip;
+	}
+
+	/**
+	 * The date of the preferred birth (the preferred assertion, if a conclusion selects one, otherwise the earliest birth), reduced
+	 * to its representative date when it is approximate or bounded.
+	 *
+	 * @return	The date, or {@code null} if the birth is unknown or hidden by the privacy policy.
+	 */
+	public NormalizedDate getBirthDate(){
+		return birthDate;
 	}
 
 	public String getPreferredImageKey(){
