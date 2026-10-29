@@ -43,6 +43,7 @@ import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.PlaceRelationshipHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
+import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import io.github.mtrevisan.familylegacy.ui.tools.ReportDialog;
 import io.github.mtrevisan.familylegacy.ui.tools.tools.merge.MergeGrammar;
 import org.apache.commons.lang3.StringUtils;
@@ -603,18 +604,10 @@ public final class PlaceHierarchyPanel extends JPanel implements PlaceHierarchyV
 		final FLEFRecord place = model.getRecordById(placeId);
 		for(final RecordAbsorber.Candidate candidate : absorber.candidates(model, placeId, FLEFMerger.DEFAULT_REVIEW_THRESHOLD)){
 			final FLEFRecord other = model.getRecordById(candidate.recordId());
-			final String message = String.format(Locale.ROOT, """
-				%s (%s) may be the same place as %s (%s).
-
-				Match probability: %.0f%%
-				%s
-
-				Merge them? The first is merged into the second: its names, citations, and notes are kept, and every reference to it
-				is redirected.
-				Answering No records that they are different places, and they will not be proposed again.""",
+			final String message = String.format(Locale.ROOT, I18N.t("dialog.merge.places.message"),
 				displayText(place), placeId, displayText(other), other.getId(), candidate.probability() * 100.,
 				candidate.rationale().replace("; ", StringUtils.LF));
-			final int choice = JOptionPane.showConfirmDialog(owner, message, "Merge places", JOptionPane.YES_NO_CANCEL_OPTION,
+			final int choice = JOptionPane.showConfirmDialog(owner, message, I18N.t("dialog.merge.places.title"), JOptionPane.YES_NO_CANCEL_OPTION,
 				JOptionPane.QUESTION_MESSAGE);
 			if(choice == JOptionPane.CANCEL_OPTION || choice == JOptionPane.CLOSED_OPTION)
 				return StringUtils.EMPTY;
@@ -630,8 +623,8 @@ public final class PlaceHierarchyPanel extends JPanel implements PlaceHierarchyV
 			absorber.absorb(model, placeId, other.getId(), String.format(Locale.ROOT,
 				"confirmed in the place hierarchy (match probability %.3f: %s)", candidate.probability(), candidate.rationale()));
 			if(!conflicts.isEmpty())
-				JOptionPane.showMessageDialog(owner, "Values of " + placeId + " not kept:" + StringUtils.LF
-					+ String.join(StringUtils.LF, conflicts), "Merge places", JOptionPane.INFORMATION_MESSAGE);
+				JOptionPane.showMessageDialog(owner, I18N.al(I18N.tf("dialog.merge.places.conflicts", placeId)) + StringUtils.LF
+					+ String.join(StringUtils.LF, conflicts), I18N.t("dialog.merge.places.title"), JOptionPane.INFORMATION_MESSAGE);
 			return other.getId();
 		}
 		return null;
@@ -642,7 +635,8 @@ public final class PlaceHierarchyPanel extends JPanel implements PlaceHierarchyV
 	 */
 	private List<String> relatedPlaces(final String placeId){
 		final List<String> related = new ArrayList<>();
-		for(final FLEFRecord relationship : PrivacyService.visible(model, model.getRecordsByType(PlaceRelationshipHandler.TYPE))){
+		final List<FLEFRecord> relationships = PrivacyService.visible(model, model.getRecordsByType(PlaceRelationshipHandler.TYPE));
+		for(final FLEFRecord relationship : relationships){
 			final String type = FLEFRecordHelper.getChildValue(relationship, PlaceRelationshipReader.TAG_TYPE);
 			if(type == null || !type.endsWith(PART_OF_SUFFIX))
 				continue;
@@ -873,7 +867,7 @@ public final class PlaceHierarchyPanel extends JPanel implements PlaceHierarchyV
 
 		private static String buildMapUrl(final String coordinates, final String name){
 			if(StringUtils.isNotBlank(coordinates)){
-				final String[] parts = coordinates.split("[,\\s]+");
+				final String[] parts = StringUtils.split(coordinates, ", \t\n\013\f\r");
 				if(parts.length >= 2){
 					try{
 						final double lat = Double.parseDouble(parts[0]);

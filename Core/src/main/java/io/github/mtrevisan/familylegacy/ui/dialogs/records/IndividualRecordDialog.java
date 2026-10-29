@@ -103,7 +103,7 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 		super(parent, model, record, IndividualHandler.getInstance());
 
 		preferredImagePanel = new PreferredImagePanel(IndividualReader.TAG_PREFERRED_IMAGE, this, model);
-		personalNamePanel = EntityListPanel.createForStructure(IndividualReader.TAG_NAME, this, I18N.t("dialog.individual.personal_name") + "*", model, PersonalNameHandler.class);
+		personalNamePanel = EntityListPanel.createForStructure(IndividualReader.TAG_NAME, this, GUIHelper.requiredTitle("dialog.individual.personal_name"), model, PersonalNameHandler.class);
 		sexCombo = new BoundComboBox<>(IndividualReader.TAG_SEX, GUIHelper.fillCombo(IndividualReader.SEXES, null));
 		sexCombo.setI18NPrefix("enum.individual.sex");
 
@@ -144,7 +144,7 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 
 		// sex
 		final JPanel sexPanel = GUIHelper.createLabelFieldPanel(0, "[]15[]10[]");
-		GUIHelper.addLabeledComponent(sexPanel, I18N.t("dialog.individual.sex") + ":", sexCombo);
+		GUIHelper.addLabeledComponent(sexPanel, I18N.l("dialog.individual.sex"), sexCombo);
 		GUIHelper.addComponent(panel, sexPanel);
 
 		return panel;

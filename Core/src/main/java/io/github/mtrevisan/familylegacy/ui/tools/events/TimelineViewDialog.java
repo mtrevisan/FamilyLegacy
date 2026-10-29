@@ -109,21 +109,21 @@ public final class TimelineViewDialog extends JDialog{
 		final JPanel toolbar = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 6));
 		toolbar.setBorder(BorderFactory.createEmptyBorder(2, 4, 2, 4));
 
-		toolbar.add(new JLabel("From:"));
+		toolbar.add(new JLabel(I18N.l("label.from")));
 		toolbar.add(fromField);
 		final Document fromDocument = fromField.getDocument();
 		fromDocument.addDocumentListener(refreshListener());
 
-		toolbar.add(new JLabel("To:"));
+		toolbar.add(new JLabel(I18N.l("label.to")));
 		toolbar.add(toField);
 		Document toDocument = toField.getDocument();
 		toDocument.addDocumentListener(refreshListener());
 
-		toolbar.add(new JLabel("Participant:"));
+		toolbar.add(new JLabel(I18N.l("label.participant")));
 		participantField.setEditable(false);
 		toolbar.add(participantField);
 
-		final JButton chooseParticipant = new JButton("Choose…");
+		final JButton chooseParticipant = new JButton(I18N.t("button.choose"));
 		chooseParticipant.addActionListener(e -> chooseParticipant());
 		toolbar.add(chooseParticipant);
 
@@ -150,7 +150,7 @@ public final class TimelineViewDialog extends JDialog{
 		columnModel.getColumn(4).setPreferredWidth(320);
 
 		final JScrollPane scroll = new JScrollPane(table);
-		scroll.setBorder(BorderFactory.createTitledBorder("Timeline"));
+		scroll.setBorder(BorderFactory.createTitledBorder(I18N.t("border.timeline")));
 		return scroll;
 	}
 

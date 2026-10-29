@@ -665,7 +665,7 @@ public abstract class BaseRecordDialog extends JDialog implements RecordDialog{
 	protected boolean confirmRecordExistsForType(final String participantId, final String participantLabel){
 		if(model.getRecordById(participantId) == null){
 			JOptionPane.showMessageDialog(this,
-				"Unknown " + participantLabel + " ID.",
+				I18N.tf("message.unknown_participant_id", participantLabel),
 				I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
 
 			return false;

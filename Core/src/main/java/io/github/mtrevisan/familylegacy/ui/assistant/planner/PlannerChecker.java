@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.ui.assistant.DiagnosticKeys;
 import io.github.mtrevisan.familylegacy.ui.assistant.gap.GapData;
 import io.github.mtrevisan.familylegacy.ui.assistant.gap.GapDraft;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -209,7 +210,7 @@ final class PlannerChecker{
 		final List<Candidate> candidates = new ArrayList<>();
 		final int bonus = (nothingStarted? 5: 0);
 		final Integer birthYear = person.birthYear();
-		final String year = (birthYear != null? String.valueOf(birthYear): "");
+		final String year = (birthYear != null? String.valueOf(birthYear): StringUtils.EMPTY);
 
 		final List<GapData.Event> births = eventsOf(person, data, EventReader.ENUM_TYPE_BIRTH);
 		if(births.isEmpty() && !person.hasBirth())
@@ -267,7 +268,7 @@ final class PlannerChecker{
 
 		final Diagnostic diagnostic = new Diagnostic(Diagnostic.Severity.INFORMATION, AssistantCategory.RESEARCH,
 			I18N.tf("planner.next_step.title", task),
-			I18N.tf("planner.next_step.explanation", title, why) + " " + I18N.tf("gap.usefulness", I18N.t("gap.usefulness." + level),
+			I18N.tf("planner.next_step.explanation", title, why) + StringUtils.SPACE + I18N.tf("gap.usefulness", I18N.t("gap.usefulness." + level),
 				String.valueOf(candidate.usefulness())),
 			List.of(question.id(), candidate.person().id()), null,
 			DiagnosticKeys.of("planner.next_step", List.of(question.id(), candidate.person().id()), step.key))
@@ -300,12 +301,12 @@ final class PlannerChecker{
 
 			final int usefulness = Math.min(85, 40 + Math.min(30, descendants * 3) + (person.birthYear() != null? 10: 0)
 				+ (person.eventCount() > 0? 5: 0));
-			final String year = (person.birthYear() != null? String.valueOf(person.birthYear()): "");
+			final String year = (person.birthYear() != null? String.valueOf(person.birthYear()): StringUtils.EMPTY);
 			final String level = level(usefulness);
 			final Diagnostic diagnostic = new Diagnostic(Diagnostic.Severity.INFORMATION, AssistantCategory.RESEARCH,
 				I18N.tf("planner.brick_wall.title", person.name()),
 				I18N.tf((person.birthYear() != null? "planner.brick_wall.explanation.year": "planner.brick_wall.explanation"),
-					person.name(), String.valueOf(descendants), year) + " " + I18N.tf("gap.usefulness", I18N.t("gap.usefulness." + level),
+					person.name(), String.valueOf(descendants), year) + StringUtils.SPACE + I18N.tf("gap.usefulness", I18N.t("gap.usefulness." + level),
 					String.valueOf(usefulness)),
 				List.of(person.id()), null, DiagnosticKeys.of("planner.brick_wall", List.of(person.id()), descendants))
 				.withRank(usefulness);

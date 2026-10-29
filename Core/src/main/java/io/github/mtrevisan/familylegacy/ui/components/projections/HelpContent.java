@@ -70,8 +70,7 @@ final class HelpContent{
     hypotheses separated and auditable.</p>
 
     <h2>Projections</h2>
-    <p>Three views are available and can be cycled with
-    <code>Ctrl+E</code>:</p>
+    <p>Four views are available:</p>
     <ul>
       <li><b>Ancestor tree</b> (<code>Ctrl+1</code>) — a classical
       pedigree layout with one box per individual and the couples drawn
@@ -82,6 +81,10 @@ final class HelpContent{
       converging edges rather than duplicated nodes.</li>
       <li><b>Ego network</b> (<code>Ctrl+3</code>) — the relations of a
       focal individual or group, shown as a graph.</li>
+      <li><b>Chronomap</b> (<code>Ctrl+4</code>) — the individuals on a map
+      and in a list, filtered by a timeline: where and when events
+      happened. The individual selected there is the one the other views
+      start from.</li>
     </ul>
 
     <h2>Navigation</h2>
@@ -143,8 +146,8 @@ final class HelpContent{
       <code>Ctrl+Right</code> to go forward in the navigation history.</li>
       <li>Use the arrow keys to move the visual selection and
       <code>Enter</code> to confirm it.</li>
-      <li>Press <code>Ctrl+E</code> to cycle through the three
-      projections (tree, Sugiyama graph, ego network).</li>
+      <li>Press <code>Ctrl+E</code> to cycle through the
+      projections (tree, Sugiyama graph, ego network, chronomap).</li>
     </ol>
 
     <h2>3. Reading the record set of an individual</h2>

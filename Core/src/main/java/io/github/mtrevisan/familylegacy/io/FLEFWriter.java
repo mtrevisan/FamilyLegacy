@@ -395,7 +395,7 @@ public class FLEFWriter{
 	 * @throws IOException if writing fails
 	 */
 	private void writeMultilineValue(final String text, final Writer writer, final int indentLevel) throws IOException{
-		final String[] lines = text.split("\r?\n", -1);
+		final String[] lines = StringUtils.splitPreserveAllTokens(StringUtils.replace(text, "\r\n", StringUtils.LF), '\n');
 		for(int i = 0, length = lines.length; i < length; i ++){
 			final String line = lines[i];
 

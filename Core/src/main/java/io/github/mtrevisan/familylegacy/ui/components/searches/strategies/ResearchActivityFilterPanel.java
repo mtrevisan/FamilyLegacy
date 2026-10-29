@@ -70,15 +70,15 @@ public class ResearchActivityFilterPanel extends JPanel implements RecordFilterP
 		setLayout(new MigLayout("wrap 2,gap 5", "[][grow,fill]", "[]"));
 		setBorder(BorderFactory.createTitledBorder(I18N.tf("dialog.search_filter.title", I18N.t("dialog.component.research.activities"))));
 
-		add(new JLabel(I18N.t("dialog.research_activity.type") + ":"));
+		add(new JLabel(I18N.l("dialog.research_activity.type")));
 		add(activityTypeCombo, "growx");
-		add(new JLabel(I18N.t("dialog.research_activity.status") + ":"));
+		add(new JLabel(I18N.l("dialog.research_activity.status")));
 		add(statusCombo, "growx");
-		add(new JLabel(I18N.t("dialog.research_activity.action") + ":"));
+		add(new JLabel(I18N.l("dialog.research_activity.action")));
 		add(actionField, "growx");
-		add(new JLabel(I18N.t("dialog.research_activity.result") + ":"));
+		add(new JLabel(I18N.l("dialog.research_activity.result")));
 		add(resultCombo, "growx");
-		add(new JLabel(I18N.t("dialog.research_activity.observation") + ":"));
+		add(new JLabel(I18N.l("dialog.research_activity.observation")));
 		add(observationField, "growx");
 	}
 

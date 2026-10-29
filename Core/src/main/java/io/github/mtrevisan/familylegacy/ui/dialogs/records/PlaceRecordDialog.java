@@ -132,7 +132,7 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]");
 
-		namePanel = EntityListPanel.createForStructure(PlaceReader.TAG_NAME, this, I18N.t("dialog.place.names") + "*", model, NameHandler.class);
+		namePanel = EntityListPanel.createForStructure(PlaceReader.TAG_NAME, this, GUIHelper.requiredTitle("dialog.place.names"), model, NameHandler.class);
 		typeCombo = new BoundComboBox<>(PlaceReader.TAG_TYPE, GUIHelper.fillCombo(PlaceReader.TYPES, null));
 		typeCombo.setI18NPrefix("enum.place.type");
 		typeCombo.setEditable(true);
@@ -174,10 +174,10 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 		GUIHelper.addComponent(propertiesPanel, namePanel);
 
 		// type
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.place.type") + ":", typeCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.place.type"), typeCombo);
 
 		// place evidence
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.place.confidence") + ":", confidenceCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.place.confidence"), confidenceCombo);
 
 		return propertiesPanel;
 	}
@@ -186,12 +186,12 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 	protected JPanel createLocationPanel(){
 		final JPanel panel = GUIHelper.createLabelFieldPanel(5, "[]5[]5[]");
 
-		GUIHelper.addLabeledComponent(panel, I18N.t("dialog.place.location.coordinates") + ":", locationCoordinatesField);
+		GUIHelper.addLabeledComponent(panel, I18N.l("dialog.place.location.coordinates"), locationCoordinatesField);
 
 		final JPanel sourcePanel = components.getPanel(PanelKey.SOURCE_FOR_LOCATION);
 		GUIHelper.addComponent(panel, sourcePanel);
 
-		GUIHelper.addLabeledComponent(panel, I18N.t("dialog.place.location.confidence") + ":", locationConfidenceCombo);
+		GUIHelper.addLabeledComponent(panel, I18N.l("dialog.place.location.confidence"), locationConfidenceCombo);
 
 		return panel;
 	}

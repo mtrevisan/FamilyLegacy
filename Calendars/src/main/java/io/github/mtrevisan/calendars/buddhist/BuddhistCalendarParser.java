@@ -176,8 +176,10 @@ public final class BuddhistCalendarParser{
 		// Thai digits, and the era markers: Buddhist (พ.ศ., BE) or Rattanakosin (ร.ศ., RS)
 		String text = TextNormalizer.asciiDigits(rawDate);
 		final boolean rattanakosin = RATTANAKOSIN_MARKER.matcher(text).find();
-		text = RATTANAKOSIN_MARKER.matcher(text).replaceAll(" ");
-		text = BUDDHIST_MARKER.matcher(text).replaceAll(" ");
+		text = RATTANAKOSIN_MARKER.matcher(text)
+			.replaceAll(StringUtils.SPACE);
+		text = BUDDHIST_MARKER.matcher(text)
+			.replaceAll(StringUtils.SPACE);
 		final String normalized = StringUtils.normalizeSpace(text);
 
 		// A year alone (e.g. the start of a decade or century) stands for the first day of the year

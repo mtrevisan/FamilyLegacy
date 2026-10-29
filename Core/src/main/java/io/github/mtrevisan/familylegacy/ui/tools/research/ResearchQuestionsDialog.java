@@ -107,7 +107,7 @@ public final class ResearchQuestionsDialog extends JDialog{
 		final JPanel toolbar = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 6));
 		toolbar.setBorder(BorderFactory.createEmptyBorder(2, 4, 2, 4));
 
-		toolbar.add(new JLabel("Search:"));
+		toolbar.add(new JLabel(I18N.l("label.search")));
 		toolbar.add(searchField);
 		final Document document = searchField.getDocument();
 		document.addDocumentListener(new DocumentListener(){
@@ -162,7 +162,7 @@ public final class ResearchQuestionsDialog extends JDialog{
 		});
 
 		final JScrollPane scroll = new JScrollPane(table);
-		scroll.setBorder(BorderFactory.createTitledBorder("Research questions"));
+		scroll.setBorder(BorderFactory.createTitledBorder(I18N.t("border.research_questions")));
 		return scroll;
 	}
 

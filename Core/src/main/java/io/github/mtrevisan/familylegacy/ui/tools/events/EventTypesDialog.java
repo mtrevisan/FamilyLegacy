@@ -107,7 +107,7 @@ public final class EventTypesDialog extends JDialog{
 		final JPanel toolbar = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 6));
 		toolbar.setBorder(BorderFactory.createEmptyBorder(2, 4, 2, 4));
 
-		toolbar.add(new JLabel("Search:"));
+		toolbar.add(new JLabel(I18N.l("label.search")));
 		toolbar.add(searchField);
 		final Document document = searchField.getDocument();
 		document.addDocumentListener(new DocumentListener(){
@@ -116,7 +116,7 @@ public final class EventTypesDialog extends JDialog{
 			@Override public void changedUpdate(final DocumentEvent e){ applyFilter(); }
 		});
 
-		final JButton showEvents = new JButton("Show events");
+		final JButton showEvents = new JButton(I18N.t("button.show_events"));
 		showEvents.addActionListener(e -> showEventsOfSelectedType());
 		toolbar.add(showEvents);
 
@@ -133,7 +133,7 @@ public final class EventTypesDialog extends JDialog{
 		columnModel.getColumn(2).setPreferredWidth(100);
 
 		final JScrollPane scroll = new JScrollPane(table);
-		scroll.setBorder(BorderFactory.createTitledBorder("Event types"));
+		scroll.setBorder(BorderFactory.createTitledBorder(I18N.t("border.event_types")));
 		return scroll;
 	}
 
@@ -200,8 +200,7 @@ public final class EventTypesDialog extends JDialog{
 		final int viewRow = table.getSelectedRow();
 		if(viewRow < 0){
 			JOptionPane.showMessageDialog(this,
-				"Select a type first.",
-				"Manage Event Types", JOptionPane.WARNING_MESSAGE);
+				I18N.t("message.select_type_first"), I18N.t("dialog.event_types.title"), JOptionPane.WARNING_MESSAGE);
 			return;
 		}
 		final String type = tableModel.getRow(table.convertRowIndexToModel(viewRow))

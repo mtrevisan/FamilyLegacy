@@ -3,6 +3,7 @@ package io.github.mtrevisan.familylegacy.ui.tools.research;
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.grammar.FLEFGrammarParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -38,7 +39,7 @@ class ResearchTreeBuilderTest{
 
 	private static String question(final String id, final String title){
 		return "research_question " + id + " {\n"
-			+ "\ttitle " + title + "\n"
+			+ "\ttitle " + title + StringUtils.LF
 			+ "\tquestion Who?\n"
 			+ "\tstatus open\n"
 			+ "\taudit.creation.date 2026-01-01T00:00:00Z\n"
@@ -47,7 +48,7 @@ class ResearchTreeBuilderTest{
 
 	private static String activity(final String id, final String questionId, final String extra){
 		return "research_activity " + id + " {\n"
-			+ "\tquestion " + questionId + "\n"
+			+ "\tquestion " + questionId + StringUtils.LF
 			+ "\tactivity_type search\n"
 			+ "\tstatus planned\n"
 			+ "\taction Look in the archive\n"
@@ -59,7 +60,7 @@ class ResearchTreeBuilderTest{
 	private static String task(final String id, final String questionId, final String extra){
 		return "research_task " + id + " {\n"
 			+ "\tdescription Ask the priest\n"
-			+ "\tquestion " + questionId + "\n"
+			+ "\tquestion " + questionId + StringUtils.LF
 			+ "\tstatus open\n"
 			+ extra
 			+ "\taudit.creation.date 2026-01-01T00:00:00Z\n"

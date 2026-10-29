@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.tools.placeholder;
 
+import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolOperation;
 import org.apache.commons.lang3.StringUtils;
@@ -58,8 +59,7 @@ public final class PlaceholderTool implements ToolOperation{
 	@Override
 	public void run(final ToolContext context){
 		JOptionPane.showMessageDialog(context.owner(),
-			"\"" + name.replace("…", StringUtils.EMPTY).trim() + "\" is not implemented yet.",
-			"Feature Not Available",
+			I18N.tf("message.not_implemented", name.replace("…", StringUtils.EMPTY).trim()), I18N.t("title.feature_not_available"),
 			JOptionPane.INFORMATION_MESSAGE);
 	}
 

@@ -92,7 +92,7 @@ final class MissingRecordsDialog extends JDialog{
 		final JLabel count = new JLabel(records.size()
 			+ (records.size() == 1? " record": " records"));
 
-		final JButton edit = new JButton("Open record");
+		final JButton edit = new JButton(I18N.t("button.open_record"));
 		edit.addActionListener(e -> editSelected());
 		final JButton close = new JButton(I18N.t("button.close"));
 		close.addActionListener(e -> dispose());
@@ -125,8 +125,7 @@ final class MissingRecordsDialog extends JDialog{
 		final RecordTypeHandler<?> handler = (tag != null? HandlerRegistry.getHandler(tag): null);
 		if(handler == null){
 			JOptionPane.showMessageDialog(this,
-				"No editor registered for record type '" + tag + "'.",
-				"Statistics", JOptionPane.WARNING_MESSAGE);
+				I18N.tf("message.no_editor_for_type", tag), I18N.t("dialog.statistics.title"), JOptionPane.WARNING_MESSAGE);
 
 			return;
 		}

@@ -27,6 +27,7 @@ package io.github.mtrevisan.calendars.regnal;
 import io.github.mtrevisan.calendars.gregorian.CalendarReform;
 import io.github.mtrevisan.calendars.gregorian.JulianCalendarStrategy;
 import io.github.mtrevisan.calendars.liturgical.Computus;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 
@@ -65,7 +66,7 @@ public record Reign(String id, List<String> names, int ordinal, CivilDate countS
 	public record CivilDate(int year, int month, int day){
 
 		static CivilDate parse(final String iso){
-			final String[] fields = iso.split("-");
+			final String[] fields = StringUtils.split(iso, '-');
 			return new CivilDate(Integer.parseInt(fields[0]), Integer.parseInt(fields[1]), Integer.parseInt(fields[2]));
 		}
 

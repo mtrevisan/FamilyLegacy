@@ -186,7 +186,7 @@ public class VikramSamvatCalendarStrategy implements CalendarConverterPlugin{
 		for(final LunarMonth month : months)
 			if(month.name() == name && month.adhika() == adhika)
 				return month;
-		throw new IllegalArgumentException("The " + (adhika? "adhika ": "") + "month does not exist in the year: " + rawDate);
+		throw new IllegalArgumentException("The " + (adhika? "adhika ": StringUtils.EMPTY) + "month does not exist in the year: " + rawDate);
 	}
 
 	/**

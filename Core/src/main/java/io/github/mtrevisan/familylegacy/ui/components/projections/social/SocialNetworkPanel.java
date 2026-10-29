@@ -38,6 +38,7 @@ import io.github.mtrevisan.familylegacy.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JFrame;
@@ -559,8 +560,7 @@ public final class SocialNetworkPanel extends JPanel implements TreeChangeListen
 			highlightedPath = null;
 			highlightedEdges = Collections.emptySet();
 			JOptionPane.showMessageDialog(this,
-				"No social path found between the chosen entities.",
-				"Path not found", JOptionPane.INFORMATION_MESSAGE);
+				I18N.t("dialog.social.path_not_found.message"), I18N.t("dialog.social.path_not_found.title"), JOptionPane.INFORMATION_MESSAGE);
 		}
 		else{
 			highlightedPath = path;

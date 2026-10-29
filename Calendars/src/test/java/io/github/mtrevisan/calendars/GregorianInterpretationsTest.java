@@ -26,6 +26,7 @@ package io.github.mtrevisan.calendars;
 
 import io.github.mtrevisan.calendars.gregorian.GregorianCalendarParser;
 import io.github.mtrevisan.calendars.spi.DateInterpretation;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -128,7 +129,7 @@ class GregorianInterpretationsTest{
 		for(final String reading : easterReadings){
 			// the Easter qualifier is kept, and the language follows it
 			Assertions.assertTrue(reading.startsWith("15 lis 1400 avant Pâques ("), reading);
-			easterMonths.add(GregorianCalendarParser.parse(reading.replace(" avant Pâques", "")).month());
+			easterMonths.add(GregorianCalendarParser.parse(reading.replace(" avant Pâques", StringUtils.EMPTY)).month());
 		}
 		Assertions.assertEquals(Set.of(10, 11), easterMonths);
 		Assertions.assertEquals(List.of("est 1850 (Cornish)", "est 1850 (Italian)"),

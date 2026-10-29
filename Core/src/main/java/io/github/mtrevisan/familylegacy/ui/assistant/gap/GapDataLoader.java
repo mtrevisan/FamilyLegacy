@@ -76,18 +76,20 @@ public final class GapDataLoader{
 
 
 	public static GapData load(final FLEFModel model, final LocalDate today){
-		final Map<String, FLEFRecord> individuals = new LinkedHashMap<>();
-		for(final FLEFRecord individual : model.getRecordsByType(IndividualHandler.TYPE))
+		final Map<String, FLEFRecord> filteredIndividuals = new LinkedHashMap<>();
+		final List<FLEFRecord> individuals = model.getRecordsByType(IndividualHandler.TYPE);
+		for(final FLEFRecord individual : individuals)
 			if(individual.getId() != null && !PrivacyService.isHidden(model, individual))
-				individuals.put(individual.getId(), individual);
+				filteredIndividuals.put(individual.getId(), individual);
 
 		final Map<String, List<String>> principals = new HashMap<>();
 		final Map<String, Set<String>> eventsOfPerson = new HashMap<>();
-		for(final FLEFRecord participation : model.getRecordsByType(EventParticipationHandler.TYPE)){
-			final String personId = armValue(FLEFRecordHelper.findChild(participation, EventParticipationReader.TAG_PARTICIPANT));
-			final String eventId = FLEFRecordHelper.getChildValue(participation, EventParticipationReader.TAG_EVENT);
-			final String role = FLEFRecordHelper.getChildValue(participation, EventParticipationReader.TAG_ROLE);
-			if(personId == null || eventId == null || !individuals.containsKey(personId)
+		final List<FLEFRecord> eventParticipations = model.getRecordsByType(EventParticipationHandler.TYPE);
+		for(final FLEFRecord eventParticipation : eventParticipations){
+			final String personId = armValue(FLEFRecordHelper.findChild(eventParticipation, EventParticipationReader.TAG_PARTICIPANT));
+			final String eventId = FLEFRecordHelper.getChildValue(eventParticipation, EventParticipationReader.TAG_EVENT);
+			final String role = FLEFRecordHelper.getChildValue(eventParticipation, EventParticipationReader.TAG_ROLE);
+			if(personId == null || eventId == null || !filteredIndividuals.containsKey(personId)
 					|| (role != null && !ROLE_PRINCIPAL.equals(role)))
 				continue;
 
@@ -124,12 +126,13 @@ public final class GapDataLoader{
 		}
 
 		final Set<String> withResidence = new HashSet<>();
-		for(final FLEFRecord attribute : model.getRecordsByType(IndividualAttributeHandler.TYPE))
-			if(TYPE_RESIDENCE.equals(FLEFRecordHelper.getChildValue(attribute, IndividualAttributeReader.TAG_TYPE)))
-				withResidence.add(FLEFRecordHelper.getChildValue(attribute, IndividualAttributeReader.TAG_INDIVIDUAL));
+		final List<FLEFRecord> individualAttributes = model.getRecordsByType(IndividualAttributeHandler.TYPE);
+		for(final FLEFRecord individualAttribute : individualAttributes)
+			if(TYPE_RESIDENCE.equals(FLEFRecordHelper.getChildValue(individualAttribute, IndividualAttributeReader.TAG_TYPE)))
+				withResidence.add(FLEFRecordHelper.getChildValue(individualAttribute, IndividualAttributeReader.TAG_INDIVIDUAL));
 
 		final Map<String, GapData.Person> persons = new LinkedHashMap<>();
-		for(final FLEFRecord individual : individuals.values()){
+		for(final FLEFRecord individual : filteredIndividuals.values()){
 			final String id = individual.getId();
 			final String name = IndividualReader.extractPrimaryFullname(individual);
 			persons.put(id, new GapData.Person(id, (name != null && !name.isBlank()? name: id), birthYears.get(id),
@@ -139,7 +142,8 @@ public final class GapDataLoader{
 
 		final List<GapData.ParentLink> parents = new ArrayList<>();
 		final List<GapData.Union> unions = new ArrayList<>();
-		for(final FLEFRecord relationship : model.getRecordsByType(RelationshipHandler.TYPE)){
+		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
+		for(final FLEFRecord relationship : relationships){
 			final String type = RelationshipReader.extractType(relationship);
 			final String subject = relationship.extractReferencedId(RelationshipReader.TAG_SUBJECT, IndividualHandler.TYPE);
 			final String target = relationship.extractReferencedId(RelationshipReader.TAG_TARGET, IndividualHandler.TYPE);
@@ -159,10 +163,11 @@ public final class GapDataLoader{
 
 	private static GapData loadResearch(final FLEFModel model, final LocalDate today, final Map<String, GapData.Person> persons,
 			final List<GapData.Event> events, final List<GapData.ParentLink> parents, final List<GapData.Union> unions){
-		final List<GapData.Question> questions = new ArrayList<>();
-		for(final FLEFRecord question : model.getRecordsByType(ResearchQuestionHandler.TYPE))
+		final List<GapData.Question> filteredQuestions = new ArrayList<>();
+		final List<FLEFRecord> questions = model.getRecordsByType(ResearchQuestionHandler.TYPE);
+		for(final FLEFRecord question : questions)
 			if(question.getId() != null)
-				questions.add(new GapData.Question(question.getId(), ResearchQuestionReader.extractTitle(question),
+				filteredQuestions.add(new GapData.Question(question.getId(), ResearchQuestionReader.extractTitle(question),
 					ResearchQuestionReader.extractStatus(question), notBlank(FLEFRecordHelper.getChildValue(question,
 						ResearchQuestionReader.TAG_CONCLUSION)),
 					targets(question)));
@@ -198,7 +203,7 @@ public final class GapDataLoader{
 					ResearchTaskReader.extractPriority(task), due(FLEFRecordHelper.getChildValue(task, ResearchTaskReader.TAG_DUE_DATE)),
 					values(task, ResearchTaskReader.TAG_QUESTION)));
 
-		return new GapData(today, persons, events, parents, unions, questions, activities, tasks);
+		return new GapData(today, persons, events, parents, unions, filteredQuestions, activities, tasks);
 	}
 
 

@@ -118,7 +118,7 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 		typeCombo = new BoundComboBox<>(NameReader.TAG_TYPE, GUIHelper.fillCombo(NameReader.PERSONAL_TYPES, null));
 		typeCombo.setI18NPrefix("enum.personal_name.type");
 		typeCombo.setEditable(true);
-		partPanel = EntityListPanel.createForStructure(NameReader.TAG_PART, this, I18N.t("dialog.name.parts") + "*", model, PartHandler.class);
+		partPanel = EntityListPanel.createForStructure(NameReader.TAG_PART, this, GUIHelper.requiredTitle("dialog.name.parts"), model, PartHandler.class);
 		localeCombo = new BoundFilteredComboBox<>(NameReader.TAG_LOCALE, GUIHelper.fillCombo(LocaleHelper.getAvailableLanguageTags().toArray(String[]::new), null));
 		validFromField = DateField.createWithWrapperTag(NameReader.TAG_VALID_FROM, this, I18N.t("dialog.date.valid_from"), model);
 		validToField = DateField.createWithWrapperTag(NameReader.TAG_VALID_TO, this, I18N.t("dialog.date.valid_to"), model);
@@ -146,21 +146,21 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 	@Override
 	protected JPanel createPropertiesPanel(){
 		// type
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.name.type") + ":", typeCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.name.type"), typeCombo);
 
 		// parts
 		GUIHelper.addComponent(propertiesPanel, partPanel);
 
 		// locale
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.name.locale") + ":", localeCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.name.locale"), localeCombo);
 
 		// validity range:
 		final JPanel validityPanel = GUIHelper.createLabelFieldPanel(5, "[]10[]");
 		validityPanel.setBorder(BorderFactory.createTitledBorder(I18N.t("dialog.validity.range")));
 		// valid from
-		GUIHelper.addLabeledComponent(validityPanel, I18N.t("dialog.valid_from") + ":", validFromField);
+		GUIHelper.addLabeledComponent(validityPanel, I18N.l("dialog.valid_from"), validFromField);
 		// valid to
-		GUIHelper.addLabeledComponent(validityPanel, I18N.t("dialog.valid_to") + ":", validToField);
+		GUIHelper.addLabeledComponent(validityPanel, I18N.l("dialog.valid_to"), validToField);
 		GUIHelper.addComponent(propertiesPanel, validityPanel);
 
 		return propertiesPanel;

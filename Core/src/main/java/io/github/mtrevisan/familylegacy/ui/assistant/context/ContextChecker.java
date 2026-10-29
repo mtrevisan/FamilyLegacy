@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.ui.assistant.Diagnostic;
 import io.github.mtrevisan.familylegacy.ui.assistant.DiagnosticKeys;
 import io.github.mtrevisan.familylegacy.ui.assistant.chronology.DateRange;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -208,7 +209,7 @@ final class ContextChecker{
 		final String hint = I18N.t("context.hint." + (context.historic()? "historic.": "norm.") + rule.hint());
 		final Diagnostic diagnostic = new Diagnostic(Diagnostic.Severity.INFORMATION, AssistantCategory.CONTEXT,
 			I18N.tf("context.candidate.title", context.title(), event.label()),
-			I18N.tf("context.candidate.explanation", context.title(), event.label(), why, hint) + " "
+			I18N.tf("context.candidate.explanation", context.title(), event.label(), why, hint) + StringUtils.SPACE
 				+ I18N.tf("gap.usefulness", I18N.t("gap.usefulness." + level(usefulness)), String.valueOf(usefulness)),
 			List.of(context.id(), event.id()), null,
 			DiagnosticKeys.of("context.candidate", List.of(context.id(), event.id()), rule.impact()))
@@ -285,7 +286,7 @@ final class ContextChecker{
 		cluster.forEach(event -> ids.add(event.id()));
 		final Diagnostic diagnostic = new Diagnostic(Diagnostic.Severity.INFORMATION, AssistantCategory.CONTEXT,
 			I18N.tf("context.cluster.title", place, years),
-			I18N.tf("context.cluster.explanation", String.valueOf(persons), place, years) + " "
+			I18N.tf("context.cluster.explanation", String.valueOf(persons), place, years) + StringUtils.SPACE
 				+ I18N.tf("gap.usefulness", I18N.t("gap.usefulness." + level(usefulness)), String.valueOf(usefulness)),
 			ids, null, DiagnosticKeys.of("context.cluster", List.of(placeId), years, persons)).withRank(usefulness);
 		return new ContextFinding(diagnostic, null, new ContextFinding.HistoricDraft("epidemic", I18N.tf("context.cluster.draft.title",

@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.ui.dialogs;
 import io.github.mtrevisan.familylegacy.io.FLEFWriter;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.helpers.DiffUtils;
+import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolDialogs;
 import org.apache.commons.lang3.StringUtils;
 
@@ -176,8 +177,8 @@ public class RecordDiffDialog extends JDialog{
 		// Buttons.
 		final JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 		if(!readOnly){
-			final JButton acceptLeftBtn = new JButton("Revert to Previous");
-			final JButton acceptRightBtn = new JButton("Keep Current");
+			final JButton acceptLeftBtn = new JButton(I18N.t("button.revert_to_previous"));
+			final JButton acceptRightBtn = new JButton(I18N.t("button.keep_current"));
 			acceptLeftBtn.addActionListener(e -> {
 				accepted = true;
 				keepRight = false;
@@ -191,7 +192,7 @@ public class RecordDiffDialog extends JDialog{
 			buttonPanel.add(acceptLeftBtn);
 			buttonPanel.add(acceptRightBtn);
 		}
-		final JButton cancelBtn = new JButton(readOnly? "Close": "Cancel");
+		final JButton cancelBtn = new JButton(I18N.t(readOnly? "button.close": "button.cancel"));
 		cancelBtn.addActionListener(e -> dispose());
 		buttonPanel.add(cancelBtn);
 

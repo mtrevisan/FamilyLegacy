@@ -91,6 +91,7 @@ public final class ShortcutRegistry{
 	public static final ShortcutDefinition VIEW_BIOLOGICAL_TREE = register(I18N.t("menu.view"), I18N.t("menu.view.biological_tree"), KeyStroke.getKeyStroke(KeyEvent.VK_1, MENU_MASK), "Ctrl+1");
 	public static final ShortcutDefinition VIEW_SUGIYAMA_GRAPH = register(I18N.t("menu.view"), I18N.t("menu.view.sugiyama_graph"), KeyStroke.getKeyStroke(KeyEvent.VK_2, MENU_MASK), "Ctrl+2");
 	public static final ShortcutDefinition VIEW_EGO_NETWORK = register(I18N.t("menu.view"), I18N.t("menu.view.ego_network"), KeyStroke.getKeyStroke(KeyEvent.VK_3, MENU_MASK), "Ctrl+3");
+	public static final ShortcutDefinition VIEW_CHRONOMAP = register(I18N.t("menu.view"), I18N.t("menu.view.chronomap"), KeyStroke.getKeyStroke(KeyEvent.VK_4, MENU_MASK), "Ctrl+4");
 	public static final ShortcutDefinition VIEW_FULLSCREEN = register(I18N.t("menu.view"), I18N.t("menu.view.full_screen"), KeyStroke.getKeyStroke(KeyEvent.VK_F11, 0), "F11");
 
 	public static final ShortcutDefinition NAV_BACK = register(I18N.t("menu.navigate"), I18N.t("menu.navigate.back"), KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, MENU_MASK), "Ctrl+Left");

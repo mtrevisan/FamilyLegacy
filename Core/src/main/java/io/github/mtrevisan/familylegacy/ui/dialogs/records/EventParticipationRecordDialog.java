@@ -155,16 +155,16 @@ public class EventParticipationRecordDialog extends BaseRecordDialog{
 	@Override
 	protected JPanel createPropertiesPanel(){
 		// participant
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.event_participation.participant") + "*:", participantField);
+		GUIHelper.addLabeledComponent(propertiesPanel, GUIHelper.requiredLabel("dialog.event_participation.participant"), participantField);
 
 		// event
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.event_participation.event") + "*:", eventField);
+		GUIHelper.addLabeledComponent(propertiesPanel, GUIHelper.requiredLabel("dialog.event_participation.event"), eventField);
 
 		// role
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.event_participation.role") + ":", roleCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.event_participation.role"), roleCombo);
 
 		// confidence
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.event_participation.confidence") + ":", confidenceCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.event_participation.confidence"), confidenceCombo);
 
 		return propertiesPanel;
 	}

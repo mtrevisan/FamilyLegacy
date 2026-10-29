@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JOptionPane;
 import java.awt.Window;
@@ -99,7 +100,7 @@ final class OpenRecordsAction implements DiagnosticAction{
 			//a record with an unexpected shape is still listed, by its identifier
 		}
 		final String type = (handler != null? handler.getLabel(): record.getTag());
-		return type + ": " + (text != null && !text.isBlank()? text + " ": "") + "[" + record.getId() + "]";
+		return type + ": " + (text != null && !text.isBlank()? text + StringUtils.SPACE: StringUtils.EMPTY) + "[" + record.getId() + "]";
 	}
 
 	private static void open(final Window owner, final FLEFModel model, final FLEFRecord record){

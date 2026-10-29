@@ -93,6 +93,7 @@ public class CitationAssistantDialog extends JDialog{
 	public CitationAssistantDialog(final Window parent, final FLEFModel model, final FLEFRecord source,
 			final String currentLocator, final Consumer<String> locatorApplier, final Consumer<FLEFRecord> repositoryApplier){
 		super(parent, I18N.t("dialog.citation_assistant.title"), ModalityType.APPLICATION_MODAL);
+		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
 		this.model = model;
 		this.currentLocator = StringUtils.defaultString(currentLocator);
@@ -203,7 +204,7 @@ public class CitationAssistantDialog extends JDialog{
 		for(final ArchivalReferenceParser.Part part : result.parts())
 			sb.append(part.label()).append(": ").append(part.value()).append('\n');
 		if(!result.unrecognized().isEmpty())
-			sb.append('\n').append(I18N.t("dialog.citation_assistant.unrecognized")).append(' ')
+			sb.append('\n').append(I18N.t("dialog.citation_assistant.unrecognized")).append(':').append(' ')
 				.append(String.join("; ", result.unrecognized())).append('\n');
 		for(final String note : result.notes())
 			sb.append('\n').append(note);

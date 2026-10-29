@@ -37,20 +37,18 @@ public enum DateType{
 	CENTURY("dialog.date.century", DateReader.TAG_VALUE_CENTURY);
 
 
-	private final String label;
+	private final String labelKey;
 	private final String tagName;
-	private final String errorMessage;
 
 
-	DateType(final String label, final String tagName){
-		this.label = I18N.t(label);
+	DateType(final String labelKey, final String tagName){
+		this.labelKey = labelKey;
 		this.tagName = tagName;
-		this.errorMessage = I18N.tf("validation.required", this.label);
 	}
 
 
 	public String getLabel(){
-		return label;
+		return I18N.t(labelKey);
 	}
 
 	public String getTagName(){
@@ -58,7 +56,7 @@ public enum DateType{
 	}
 
 	public String getErrorMessage(){
-		return errorMessage;
+		return I18N.tf("validation.required", getLabel());
 	}
 
 
@@ -72,7 +70,7 @@ public enum DateType{
 
 	@Override
 	public String toString(){
-		return label;
+		return getLabel();
 	}
 
 }

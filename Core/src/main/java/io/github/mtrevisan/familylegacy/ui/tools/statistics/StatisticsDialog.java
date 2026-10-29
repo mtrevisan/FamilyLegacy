@@ -102,9 +102,9 @@ public final class StatisticsDialog extends JDialog{
 		this.model = model;
 
 		final JTabbedPane tabs = new JTabbedPane();
-		tabs.addTab("Completeness", createCompletenessTab(stats));
-		tabs.addTab("Distribution", createDistributionTab(stats));
-		tabs.addTab("Source coverage", createCoverageTab(stats));
+		tabs.addTab(I18N.t("tab.title.completeness"), createCompletenessTab(stats));
+		tabs.addTab(I18N.t("tab.title.distribution"), createDistributionTab(stats));
+		tabs.addTab(I18N.t("tab.title.source_coverage"), createCoverageTab(stats));
 		tabs.setPreferredSize(new Dimension(920, 620));
 
 		// Clear the summary on tab switch: a selection in a hidden tab
@@ -156,7 +156,7 @@ public final class StatisticsDialog extends JDialog{
 
 		final JPanel header = new JPanel(new BorderLayout());
 		header.setBorder(BorderFactory.createEmptyBorder(6, 8, 6, 8));
-		header.add(new JLabel(GUIHelper.format("Individuals: %,d   Events: %,d   Sources: %,d",
+		header.add(new JLabel(GUIHelper.format(I18N.t("text.statistics.totals"),
 			stats.completeness().totalIndividuals(),
 			stats.completeness().totalEvents(),
 			stats.completeness().totalSources())), BorderLayout.WEST);
@@ -206,13 +206,13 @@ public final class StatisticsDialog extends JDialog{
 		attachSelectionSummary(givenTable, COUNT_COLUMN_NAMES, stats.distribution().totalGivenNames());
 
 		final JScrollPane surnameScroll = new JScrollPane(surnameTable);
-		surnameScroll.setBorder(BorderFactory.createTitledBorder("Top 20 surnames"));
+		surnameScroll.setBorder(BorderFactory.createTitledBorder(I18N.t("border.top_surnames")));
 		final JScrollPane givenScroll = new JScrollPane(givenTable);
-		givenScroll.setBorder(BorderFactory.createTitledBorder("Top 20 given names"));
+		givenScroll.setBorder(BorderFactory.createTitledBorder(I18N.t("border.top_given_names")));
 
 		final JPanel header = new JPanel(new BorderLayout());
 		header.setBorder(BorderFactory.createEmptyBorder(6, 8, 6, 8));
-		header.add(new JLabel(GUIHelper.format("Sex: %,d male, %,d female, %,d unknown",
+		header.add(new JLabel(GUIHelper.format(I18N.t("text.statistics.sex"),
 			stats.distribution().male(),
 			stats.distribution().female(),
 			stats.distribution().unknownSex())), BorderLayout.WEST);
@@ -268,7 +268,7 @@ public final class StatisticsDialog extends JDialog{
 		});
 
 		final JScrollPane coverageScroll = new JScrollPane(coverageTable);
-		coverageScroll.setBorder(BorderFactory.createTitledBorder("Coverage by record type"));
+		coverageScroll.setBorder(BorderFactory.createTitledBorder(I18N.t("border.coverage")));
 		final JScrollPane sourcesScroll = new JScrollPane(sourcesTable);
 		sourcesScroll.setBorder(BorderFactory.createTitledBorder(
 			"Most cited sources (double-click to open)"));

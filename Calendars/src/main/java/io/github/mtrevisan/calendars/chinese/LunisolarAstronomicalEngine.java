@@ -26,6 +26,7 @@ package io.github.mtrevisan.calendars.chinese;
 
 import io.github.mtrevisan.calendars.astronomy.EphemerisEngine;
 import io.github.mtrevisan.calendars.astronomy.EphemerisEngineFactory;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -162,13 +163,13 @@ public final class LunisolarAstronomicalEngine{
 				number = (number == 12? 1: number + 1);
 		}
 		if(targetIndex < 0)
-			throw new IllegalArgumentException("The " + (isLeapMonth? "leap ": "") + "month " + month
+			throw new IllegalArgumentException("The " + (isLeapMonth? "leap ": StringUtils.EMPTY) + "month " + month
 				+ " does not exist in the lunar year " + lunarYear);
 
 		final int monthLength = (int)StrictMath.round(newMoonsLocalMidnight[targetIndex + 1]
 			- newMoonsLocalMidnight[targetIndex]);
 		if(day < 1 || day > monthLength)
-			throw new IllegalArgumentException("The " + (isLeapMonth? "leap ": "") + "month " + month + " of the lunar year "
+			throw new IllegalArgumentException("The " + (isLeapMonth? "leap ": StringUtils.EMPTY) + "month " + month + " of the lunar year "
 				+ lunarYear + " has " + monthLength + " days");
 
 		return newMoonsLocalMidnight[targetIndex] + (day - 1);

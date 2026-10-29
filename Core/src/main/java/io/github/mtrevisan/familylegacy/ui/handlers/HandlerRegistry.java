@@ -163,7 +163,8 @@ public final class HandlerRegistry{
 		if(xrefPaths.isEmpty())
 			return result;
 
-		for(final FLEFRecord record : model.getRecords()){
+		final List<FLEFRecord> records = model.getRecords();
+		for(final FLEFRecord record : records){
 			final String recordType = record.getTag();
 			for(final String path : xrefPaths){
 				final int searchRecordTypeIndex = path.indexOf('.');

@@ -246,31 +246,33 @@ public final class ModelHistory{
 		snapshot.header().deepCopyTo(header);
 
 		final Map<String, FLEFRecord> live = new HashMap<>();
-		for(final FLEFRecord record : model.getRecords())
+		final List<FLEFRecord> records = model.getRecords();
+		for(final FLEFRecord record : records)
 			if(record.getId() != null)
 				live.put(record.getId(), record);
 
-		final List<FLEFRecord> records = new ArrayList<>(snapshot.records().size());
+		final List<FLEFRecord> filteredRecords = new ArrayList<>(snapshot.records().size());
 		for(final FLEFRecord record : snapshot.records()){
 			final FLEFRecord current = live.get(record.getId());
-			records.add(current != null && sameStructure(current, record)? current: copy(record));
+			filteredRecords.add(current != null && sameStructure(current, record)? current: copy(record));
 		}
-		model.replaceRecords(records);
+		model.replaceRecords(filteredRecords);
 	}
 
 	private static Snapshot capture(final FLEFModel model, final Snapshot previous){
 		final FLEFRecord header = copy(model.getHeader());
 
-		final List<FLEFRecord> records = new ArrayList<>(model.getRecords().size());
+		List<FLEFRecord> records = model.getRecords();
+		final List<FLEFRecord> filteredRecords = new ArrayList<>(records.size());
 		final Map<String, FLEFRecord> recordsById = new HashMap<>();
-		for(final FLEFRecord record : model.getRecords()){
+		for(final FLEFRecord record : records){
 			final FLEFRecord old = (previous != null && record.getId() != null? previous.recordsById().get(record.getId()): null);
 			final FLEFRecord snapshot = (old != null && sameStructure(old, record)? old: copy(record));
-			records.add(snapshot);
+			filteredRecords.add(snapshot);
 			if(snapshot.getId() != null)
 				recordsById.put(snapshot.getId(), snapshot);
 		}
-		return new Snapshot(header, records, recordsById);
+		return new Snapshot(header, filteredRecords, recordsById);
 	}
 
 	private static boolean isUnchanged(final Snapshot snapshot, final FLEFModel model){

@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.io.merger;
 
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -151,7 +152,7 @@ final class AssertionDeduplicator{
 					if(!kind.equals(record.getTag()))
 						continue;
 
-					final String participants = (index != null? participants(record.getId(), index): "");
+					final String participants = (index != null? participants(record.getId(), index): StringUtils.EMPTY);
 					final String key = signature.ofRecord(record) + "|" + participants;
 					groups.computeIfAbsent(key, k -> new ArrayList<>())
 						.add(record);

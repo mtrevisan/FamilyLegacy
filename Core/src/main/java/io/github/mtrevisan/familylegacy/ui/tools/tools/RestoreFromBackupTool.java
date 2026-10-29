@@ -56,7 +56,7 @@ public final class RestoreFromBackupTool implements ToolOperation{
 
 	@Override
 	public String getName(){
-		return "Restore from Backup…";
+		return I18N.t("menu.tools.restore");
 	}
 
 	@Override
@@ -92,13 +92,11 @@ public final class RestoreFromBackupTool implements ToolOperation{
 		}
 		catch(final IOException ex){
 			JOptionPane.showMessageDialog(context.owner(),
-				"Unable to read the backup:" + StringUtils.LF + ex.getMessage(),
-				"Restore from Backup", JOptionPane.ERROR_MESSAGE);
+				I18N.l("dialog.restore.error.read") + StringUtils.LF + ex.getMessage(), I18N.t("dialog.restore.title"), JOptionPane.ERROR_MESSAGE);
 		}
 		catch(final RuntimeException ex){
 			JOptionPane.showMessageDialog(context.owner(),
-				"The backup is not a valid FLEF document:" + StringUtils.LF + ex.getMessage(),
-				"Restore from Backup", JOptionPane.ERROR_MESSAGE);
+				I18N.l("dialog.restore.error.invalid") + StringUtils.LF + ex.getMessage(), I18N.t("dialog.restore.title"), JOptionPane.ERROR_MESSAGE);
 		}
 	}
 

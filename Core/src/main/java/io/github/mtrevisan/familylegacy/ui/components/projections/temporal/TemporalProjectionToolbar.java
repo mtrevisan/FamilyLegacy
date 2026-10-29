@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections.temporal;
 
+import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
+
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.JButton;
@@ -32,6 +34,7 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import java.awt.BorderLayout;
+import java.util.Locale;
 
 
 /**
@@ -62,30 +65,24 @@ public final class TemporalProjectionToolbar extends JPanel{
 
 	/** Entity type filter option values. */
 	public enum EntityFilter{
-		ALL("All"),
-		INDIVIDUALS("Individuals"),
-		GROUPS("Groups"),
-		PLACES("Places");
-
-		private final String label;
-
-		EntityFilter(final String label){
-			this.label = label;
-		}
+		ALL,
+		INDIVIDUALS,
+		GROUPS,
+		PLACES;
 
 		@Override
 		public String toString(){
-			return label;
+			return I18N.t("enum.temporal.entity_filter." + name().toLowerCase(Locale.ROOT));
 		}
 	}
 
 
 	private final JButton zoomInBtn = new JButton("+");
 	private final JButton zoomOutBtn = new JButton("−");
-	private final JButton fitBtn = new JButton("Fit");
-	private final JCheckBox showBandsCheck = new JCheckBox("Bands", true);
-	private final JCheckBox showConnectionsCheck = new JCheckBox("Connections", true);
-	private final JCheckBox showImpactLinksCheck = new JCheckBox("Impacts", true);
+	private final JButton fitBtn = new JButton(I18N.t("button.fit"));
+	private final JCheckBox showBandsCheck = new JCheckBox(I18N.t("checkbox.bands"), true);
+	private final JCheckBox showConnectionsCheck = new JCheckBox(I18N.t("checkbox.connections"), true);
+	private final JCheckBox showImpactLinksCheck = new JCheckBox(I18N.t("checkbox.impacts"), true);
 	private final JComboBox<EntityFilter> entityFilterCombo = new JComboBox<>(EntityFilter.values());
 	private final Listener listener;
 
@@ -127,7 +124,7 @@ public final class TemporalProjectionToolbar extends JPanel{
 		setLayout(new BorderLayout());
 
 		final JPanel content = new JPanel(new MigLayout("ins 6,gapx 6", "[]", "[]"));
-		content.add(new JLabel("Zoom:"));
+		content.add(new JLabel(I18N.l("label.zoom")));
 		content.add(zoomOutBtn);
 		content.add(zoomInBtn);
 		content.add(fitBtn);

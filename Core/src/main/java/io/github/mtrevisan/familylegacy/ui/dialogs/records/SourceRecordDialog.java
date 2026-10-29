@@ -105,7 +105,7 @@ public class SourceRecordDialog extends BaseRecordDialog{
 	private SourceRecordDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, SourceHandler.getInstance());
 
-		titlePanel = EntityListPanel.createForStructure(SourceReader.TAG_TITLE, this, I18N.t("dialog.source.title") + "*", model,
+		titlePanel = EntityListPanel.createForStructure(SourceReader.TAG_TITLE, this, GUIHelper.requiredTitle("dialog.source.title"), model,
 			NameHandler.class);
 		authorPanel = EntityListPanel.createForStructure(SourceReader.TAG_AUTHOR, this, I18N.t("dialog.source.author"), model,
 			AgentHandler.class);
@@ -146,16 +146,16 @@ public class SourceRecordDialog extends BaseRecordDialog{
 		GUIHelper.addComponent(panel, authorPanel);
 
 		// publisher
-		GUIHelper.addLabeledComponent(panel, I18N.t("dialog.source.publisher") + ":", publisherField);
+		GUIHelper.addLabeledComponent(panel, I18N.l("dialog.source.publisher"), publisherField);
 
 		// date
-		GUIHelper.addLabeledComponent(panel, I18N.t("dialog.source.date") + ":", dateField);
+		GUIHelper.addLabeledComponent(panel, I18N.l("dialog.source.date"), dateField);
 
 		// place
-		GUIHelper.addLabeledComponent(panel, I18N.t("dialog.place") + ":", placeField);
+		GUIHelper.addLabeledComponent(panel, I18N.l("dialog.place"), placeField);
 
 		// media type
-		GUIHelper.addLabeledComponent(panel, I18N.t("dialog.source.media_type") + ":", mediaTypeCombo);
+		GUIHelper.addLabeledComponent(panel, I18N.l("dialog.source.media_type"), mediaTypeCombo);
 
 		// repository
 		final JPanel repositoryCitationPanel = components.getPanel(PanelKey.REPOSITORY);

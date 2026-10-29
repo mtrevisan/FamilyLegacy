@@ -145,19 +145,19 @@ public class HistoricEventRecordDialog extends BaseRecordDialog{
 		final JPanel propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]10[]10[]");
 
 		// type
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.historic_event.type") + ":", typeCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.historic_event.type"), typeCombo);
 
 		// title
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.historic_event.title") + ":", titleField);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.historic_event.title"), titleField);
 
 		// date
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.historic_event.date") + ":", dateField);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.historic_event.date"), dateField);
 
 		// place
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.historic_event.place") + ":", placeField);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.historic_event.place"), placeField);
 
 		// confidence
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.historic_event.confidence") + ":", confidenceCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.historic_event.confidence"), confidenceCombo);
 
 		return propertiesPanel;
 	}

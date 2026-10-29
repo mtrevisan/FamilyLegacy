@@ -106,29 +106,29 @@ public final class AddCitationDialog extends JDialog{
 
 		// Target row.
 		gbc.gridx = 0; gbc.gridy = 0; gbc.weightx = 0;
-		form.add(new JLabel("Target record:"), gbc);
+		form.add(new JLabel(I18N.l("label.target_record")), gbc);
 		gbc.gridx = 1; gbc.weightx = 1;
 		targetField.setEditable(false);
 		form.add(targetField, gbc);
 		gbc.gridx = 2; gbc.weightx = 0;
-		final JButton pickTarget = new JButton("Choose…");
+		final JButton pickTarget = new JButton(I18N.t("button.choose"));
 		pickTarget.addActionListener(e -> chooseTarget());
 		form.add(pickTarget, gbc);
 
 		// Source row.
 		gbc.gridx = 0; gbc.gridy = 1; gbc.weightx = 0;
-		form.add(new JLabel("Source:"), gbc);
+		form.add(new JLabel(I18N.l("label.source")), gbc);
 		gbc.gridx = 1; gbc.weightx = 1;
 		sourceField.setEditable(false);
 		form.add(sourceField, gbc);
 		gbc.gridx = 2; gbc.weightx = 0;
-		final JButton pickSource = new JButton("Choose…");
+		final JButton pickSource = new JButton(I18N.t("button.choose"));
 		pickSource.addActionListener(e -> chooseSource());
 		form.add(pickSource, gbc);
 
 		// Locator row.
 		gbc.gridx = 0; gbc.gridy = 2; gbc.weightx = 0;
-		form.add(new JLabel("Locator:"), gbc);
+		form.add(new JLabel(I18N.l("label.locator")), gbc);
 		gbc.gridx = 1; gbc.gridwidth = 2; gbc.weightx = 1;
 		form.add(locatorField, gbc);
 		gbc.gridwidth = 1;
@@ -148,7 +148,7 @@ public final class AddCitationDialog extends JDialog{
 		final JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 		buttons.setBorder(BorderFactory.createEmptyBorder(4, 8, 8, 8));
 
-		final JButton ok = new JButton("Continue");
+		final JButton ok = new JButton(I18N.t("button.continue"));
 		ok.addActionListener(e -> onContinue());
 		buttons.add(ok);
 
@@ -203,14 +203,12 @@ public final class AddCitationDialog extends JDialog{
 	private void onContinue(){
 		if(targetRecord == null){
 			JOptionPane.showMessageDialog(this,
-				"Choose a target record first.",
-				"Add Citation", JOptionPane.WARNING_MESSAGE);
+				I18N.t("dialog.add_citation.no_target"), I18N.t("dialog.add_citation.title"), JOptionPane.WARNING_MESSAGE);
 			return;
 		}
 		if(sourceRecord == null){
 			JOptionPane.showMessageDialog(this,
-				"Choose a source first.",
-				"Add Citation", JOptionPane.WARNING_MESSAGE);
+				I18N.t("dialog.add_citation.no_source"), I18N.t("dialog.add_citation.title"), JOptionPane.WARNING_MESSAGE);
 			return;
 		}
 
@@ -222,10 +220,7 @@ public final class AddCitationDialog extends JDialog{
 		final RecordDialog editor = openEditorFor(targetRecord);
 		if(editor == null){
 			JOptionPane.showMessageDialog(context.owner(),
-				"No editor is wired for the target record type "
-					+ targetRecord.getTag() + "." + StringUtils.LF
-					+ "Open the record manually to add the citation.",
-				"Add Citation", JOptionPane.INFORMATION_MESSAGE);
+				I18N.tf("dialog.add_citation.no_editor", targetRecord.getTag()), I18N.t("dialog.add_citation.title"), JOptionPane.INFORMATION_MESSAGE);
 			return;
 		}
 		editor.setVisible(true);

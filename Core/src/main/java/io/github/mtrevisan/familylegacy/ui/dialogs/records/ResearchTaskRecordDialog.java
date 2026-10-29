@@ -125,26 +125,26 @@ public class ResearchTaskRecordDialog extends BaseRecordDialog{
 	@Override
 	protected JPanel createPropertiesPanel(){
 		// description
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.research_task.description") + "*:", descriptionArea);
+		GUIHelper.addLabeledComponent(propertiesPanel, GUIHelper.requiredLabel("dialog.research_task.description"), descriptionArea);
 
 		// question
 		final JPanel notePanel = components.getPanel(PanelKey.RESEARCH_QUESTION);
 		GUIHelper.addComponent(propertiesPanel, notePanel);
 
 		// created by
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.research_task.created.by") + ":", createdByField);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.research_task.created.by"), createdByField);
 
 		// status
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.research_task.status") + "*:", statusCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, GUIHelper.requiredLabel("dialog.research_task.status"), statusCombo);
 
 		// priority
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.research_task.priority") + ":", GUIHelper.withTooltip(priorityCombo, "tooltip.research_task.priority"));
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.research_task.priority"), GUIHelper.withTooltip(priorityCombo, "tooltip.research_task.priority"));
 
 		// due date
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.research_task.due_date") + ":", dueDateField);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.research_task.due_date"), dueDateField);
 
 		// outcome
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.research_task.outcome") + ":", GUIHelper.withTooltip(outcomeArea, "tooltip.research_task.outcome"));
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.research_task.outcome"), GUIHelper.withTooltip(outcomeArea, "tooltip.research_task.outcome"));
 
 		return propertiesPanel;
 	}

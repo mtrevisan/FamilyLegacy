@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.ui.assistant.citation;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashSet;
@@ -47,6 +49,12 @@ import java.util.regex.Pattern;
  */
 final class ArchivalReferenceParser{
 
+	private static final Pattern LEADING_CONNECTIVE = Pattern.compile("^(?i:e|and|et|und|y)\\s+");
+	private static final Pattern DASH_SPACED = Pattern.compile("\\s*-\\s*");
+	private static final Pattern DASH_LONG = Pattern.compile("\\s*[–—]\\s*");
+	private static final Pattern LEADING_ZEROS = Pattern.compile("(?<![\\d])0+(?=\\d)");
+	private static final Pattern VERSO_MARK = Pattern.compile("\\s*(?:verso)\\b");
+	private static final Pattern RECTO_MARK = Pattern.compile("\\s*(?:recto)\\b");
 	/** A label of the locator and its value. */
 	record Part(String label, String value){
 
@@ -144,7 +152,7 @@ final class ArchivalReferenceParser{
 		if(text == null || text.isBlank())
 			return new Result(List.of(), List.of(), List.of());
 
-		final String input = text.strip().replaceAll("\\s+", " ");
+		final String input = StringUtils.normalizeSpace(text);
 		final List<Keyword> keywords = keywords(input);
 		leftover(input.substring(0, (keywords.isEmpty()? input.length(): keywords.getFirst().start())), unrecognized, found);
 
@@ -164,7 +172,7 @@ final class ArchivalReferenceParser{
 		final List<Keyword> all = new ArrayList<>();
 		for(final Spec spec : SPECS)
 			for(final String word : spec.words()){
-				final String escaped = Pattern.quote(word).replace(" ", "\\E\\s*\\Q");
+				final String escaped = Pattern.quote(word).replace(StringUtils.SPACE, "\\E\\s*\\Q");
 				final String pattern = (word.length() == SINGLE_LETTER
 					? "(?<![\\p{L}\\p{N}])" + escaped + "(?:\\s*[.:]\\s*|\\s*(?=\\d))"
 					: "(?<![\\p{L}\\p{N}])" + escaped + "(?![\\p{L}])\\s*[.:]?\\s*");
@@ -186,7 +194,7 @@ final class ArchivalReferenceParser{
 
 	/** What comes before the first label: an archive, a series, a year. */
 	private static void leftover(final String text, final Set<String> unrecognized, final List<Part> found){
-		for(final String segment : text.split("[,;]")){
+		for(final String segment : StringUtils.split(text, ",;")){
 			final String clean = clean(segment);
 			if(clean.isEmpty())
 				continue;
@@ -205,16 +213,18 @@ final class ArchivalReferenceParser{
 		final String label = keyword.spec().label();
 		switch(keyword.spec().kind()){
 			case TEXT -> {
-				final String[] segments = value.split("[,;]", 2);
-				String own = LEADING_PARTICLE.matcher(clean(segments[0])).replaceFirst("");
+				final int cut = StringUtils.indexOfAny(value, ",;");
+				final String first = (cut >= 0? value.substring(0, cut): value);
+				final String rest = (cut >= 0? value.substring(cut + 1): null);
+				String own = LEADING_PARTICLE.matcher(clean(first)).replaceFirst("");
 				if(keyword.spec().keepKeyword())
 					own = keyword.word().substring(0, 1).toUpperCase(Locale.ROOT) + keyword.word().substring(1) + ". " + own;
-				if(clean(segments[0]).isEmpty())
+				if(clean(first).isEmpty())
 					notes.add(I18Nless.noValue(label));
 				else
 					found.add(new Part(label, own));
-				if(segments.length > 1)
-					leftover(segments[1], unrecognized, found);
+				if(rest != null)
+					leftover(rest, unrecognized, found);
 			}
 			case YEAR -> {
 				final Matcher matcher = YEAR_VALUE.matcher(value);
@@ -223,13 +233,13 @@ final class ArchivalReferenceParser{
 					leftover(value.substring(matcher.end()), unrecognized, found);
 				}
 				else
-					unrecognized.add(clean(keyword.word() + " " + value));
+					unrecognized.add(clean(keyword.word() + StringUtils.SPACE + value));
 			}
 			case NUMBER -> {
 				final Matcher matcher = NUMBER.matcher(value);
 				if(!matcher.find()){
 					if(!value.isEmpty())
-						unrecognized.add(clean(keyword.word() + " " + value));
+						unrecognized.add(clean(keyword.word() + StringUtils.SPACE + value));
 					return;
 				}
 
@@ -244,7 +254,7 @@ final class ArchivalReferenceParser{
 					if(keyword.word().length() == SINGLE_LETTER && "cf".contains(keyword.word().toLowerCase(Locale.ROOT)))
 						notes.add(I18Nless.abbreviation(keyword.word(), label));
 				}
-				for(final String rest : value.substring(matcher.end()).split("[,;]"))
+				for(final String rest : StringUtils.split(value.substring(matcher.end()), ",;"))
 					leftover(stripConnective(rest), unrecognized, found);
 			}
 		}
@@ -252,19 +262,19 @@ final class ArchivalReferenceParser{
 
 	/** "12 verso" is "12v", "045" is "45" (not for a film: its number is a code), "12 – 13" is "12-13". */
 	private static String normalize(final String label, final String number){
-		String value = number.replaceAll("\\s*(?:recto)\\b", "r").replaceAll("\\s*(?:verso)\\b", "v").replaceAll("\\s+", "");
+		String value = StringUtils.deleteWhitespace(VERSO_MARK.matcher(RECTO_MARK.matcher(number).replaceAll("r")).replaceAll("v"));
 		value = normalizeRange(value);
 		if(!"Film".equals(label) && !"Box".equals(label) && !"File".equals(label))
-			value = value.replaceAll("(?<![\\d])0+(?=\\d)", "");
+			value = LEADING_ZEROS.matcher(value).replaceAll(StringUtils.EMPTY);
 		return value;
 	}
 
 	private static String normalizeRange(final String value){
-		return value.replaceAll("\\s*[–—]\\s*", "-").replaceAll("\\s*-\\s*", "-").strip();
+		return DASH_SPACED.matcher(DASH_LONG.matcher(value).replaceAll("-")).replaceAll("-").strip();
 	}
 
 	private static String stripConnective(final String text){
-		return clean(text).replaceFirst("^(?i:e|and|et|und|y)\\s+", "");
+		return LEADING_CONNECTIVE.matcher(clean(text)).replaceFirst(StringUtils.EMPTY);
 	}
 
 	private static String clean(final String text){

@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualListener;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.BorderFactory;
@@ -146,9 +147,9 @@ public class RelationshipTypeSelectionDialog extends JDialog{
 		final JPanel tablePanel = new JPanel(new MigLayout("ins 0,fillx,gap 10 8", "[grow, fill][grow, fill]", "[]"));
 
 		// Column headers
-		final JLabel objectHeader = new JLabel("Target");
+		final JLabel objectHeader = new JLabel(I18N.t("label.target"));
 		objectHeader.setFont(objectHeader.getFont().deriveFont(Font.BOLD));
-		final JLabel typeHeader = new JLabel("Relationship Type");
+		final JLabel typeHeader = new JLabel(I18N.t("label.relationship_type"));
 		typeHeader.setFont(typeHeader.getFont().deriveFont(Font.BOLD));
 
 		tablePanel.add(objectHeader);

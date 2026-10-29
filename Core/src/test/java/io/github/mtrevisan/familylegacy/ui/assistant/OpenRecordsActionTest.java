@@ -8,6 +8,7 @@ import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.assistant.chronology.ChronologyAssistantContributor;
 import io.github.mtrevisan.familylegacy.ui.assistant.conclusion.ConclusionAssistantContributor;
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
@@ -101,7 +102,7 @@ class OpenRecordsActionTest{
 			//the records of the finding are the ones of the model, with an editor
 			final List<FLEFRecord> records = OpenRecordsAction.records(model, finding.recordIds());
 			Assertions.assertFalse(records.isEmpty(), finding.title());
-			Assertions.assertEquals(finding.recordIds().size(), records.size(), finding.title() + " " + finding.recordIds());
+			Assertions.assertEquals(finding.recordIds().size(), records.size(), finding.title() + StringUtils.SPACE + finding.recordIds());
 		}
 		//the conclusion findings keep the draft as the first action
 		Assertions.assertTrue(findings.stream().anyMatch(f -> f.action() != null

@@ -5,6 +5,7 @@ import io.github.mtrevisan.familylegacy.io.grammar.FLEFGrammarParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -40,7 +41,7 @@ class PrivacyExporterTest{
 	}
 
 	private static String record(final String type, final String id, final String body){
-		return type + " " + id + " {\n" + body + AUDIT + "}\n";
+		return type + StringUtils.SPACE + id + " {\n" + body + AUDIT + "}\n";
 	}
 
 

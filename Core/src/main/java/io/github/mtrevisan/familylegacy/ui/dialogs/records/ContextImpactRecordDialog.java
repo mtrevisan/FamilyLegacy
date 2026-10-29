@@ -179,19 +179,19 @@ public class ContextImpactRecordDialog extends BaseRecordDialog{
 	@Override
 	protected JPanel createPropertiesPanel(){
 		// context
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.context_impact.context") + "*:", GUIHelper.withTooltip(contextField, "tooltip.context_impact.context"));
+		GUIHelper.addLabeledComponent(propertiesPanel, GUIHelper.requiredLabel("dialog.context_impact.context"), GUIHelper.withTooltip(contextField, "tooltip.context_impact.context"));
 
 		// target
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.context_impact.target") + "*:", GUIHelper.withTooltip(targetField, "tooltip.context_impact.target"));
+		GUIHelper.addLabeledComponent(propertiesPanel, GUIHelper.requiredLabel("dialog.context_impact.target"), GUIHelper.withTooltip(targetField, "tooltip.context_impact.target"));
 
 		// impact type
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.context_impact.impact_type") + ":", GUIHelper.withTooltip(impactTypeCombo, "tooltip.context_impact.impact_type"));
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.context_impact.impact_type"), GUIHelper.withTooltip(impactTypeCombo, "tooltip.context_impact.impact_type"));
 
 		// explanation
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.context_impact.explanation") + ":", GUIHelper.withTooltip(rationaleArea, "tooltip.context_impact.explanation"));
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.context_impact.explanation"), GUIHelper.withTooltip(rationaleArea, "tooltip.context_impact.explanation"));
 
 		// confidence
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.context_impact.confidence") + ":", GUIHelper.withTooltip(confidenceCombo, "tooltip.context_impact.confidence"));
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.context_impact.confidence"), GUIHelper.withTooltip(confidenceCombo, "tooltip.context_impact.confidence"));
 
 		return propertiesPanel;
 	}

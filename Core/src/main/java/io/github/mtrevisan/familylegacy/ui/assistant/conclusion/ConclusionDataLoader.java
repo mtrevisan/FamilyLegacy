@@ -46,6 +46,7 @@ import io.github.mtrevisan.familylegacy.ui.handlers.IdentityHypothesisHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualAttributeHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RelationshipHandler;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -70,7 +71,8 @@ final class ConclusionDataLoader{
 
 	static ConclusionData load(final FLEFModel model){
 		final Map<String, ConclusionData.Person> persons = new LinkedHashMap<>();
-		for(final FLEFRecord individual : model.getRecordsByType(IndividualHandler.TYPE))
+		final List<FLEFRecord> individuals = model.getRecordsByType(IndividualHandler.TYPE);
+		for(final FLEFRecord individual : individuals)
 			if(individual.getId() != null && !PrivacyService.isHidden(model, individual)){
 				final String name = IndividualReader.extractPrimaryFullname(individual);
 				persons.put(individual.getId(), new ConclusionData.Person(individual.getId(),
@@ -86,7 +88,8 @@ final class ConclusionDataLoader{
 	private static List<ConclusionData.PrincipalEvent> loadEvents(final FLEFModel model, final Set<String> individualIds){
 		final Map<String, Set<String>> recordIds = new LinkedHashMap<>();
 		final Map<String, String[]> keys = new LinkedHashMap<>();
-		for(final FLEFRecord participation : model.getRecordsByType(EventParticipationHandler.TYPE)){
+		final List<FLEFRecord> eventParticipations = model.getRecordsByType(EventParticipationHandler.TYPE);
+		for(final FLEFRecord participation : eventParticipations){
 			final String personId = armValue(FLEFRecordHelper.findChild(participation, EventParticipationReader.TAG_PARTICIPANT));
 			final String eventId = FLEFRecordHelper.getChildValue(participation, EventParticipationReader.TAG_EVENT);
 			final String role = FLEFRecordHelper.getChildValue(participation, EventParticipationReader.TAG_ROLE);
@@ -113,7 +116,7 @@ final class ConclusionDataLoader{
 			final List<FLEFRecord> dates = FLEFRecordHelper.extractStructures(event, EventReader.TAG_DATE);
 			final FLEFRecord date = (dates.isEmpty()? null: dates.getFirst());
 			events.add(new ConclusionData.PrincipalEvent(entry.getValue()[1], entry.getValue()[0], entry.getValue()[2], range(date),
-				(date != null? DateReader.extractPrettyPrintDate(date): ""), recordIds.get(entry.getKey()),
+				(date != null? DateReader.extractPrettyPrintDate(date): StringUtils.EMPTY), recordIds.get(entry.getKey()),
 				FLEFRecordHelper.findChildren(event, EventReader.TAG_SOURCE).size(),
 				FLEFRecordHelper.getChildValue(event, EventReader.TAG_CONFIDENCE)));
 		}
@@ -122,7 +125,8 @@ final class ConclusionDataLoader{
 
 	private static List<ConclusionData.ParentLink> loadParents(final FLEFModel model, final Set<String> individualIds){
 		final List<ConclusionData.ParentLink> parents = new ArrayList<>();
-		for(final FLEFRecord relationship : model.getRecordsByType(RelationshipHandler.TYPE)){
+		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
+		for(final FLEFRecord relationship : relationships){
 			final String type = RelationshipReader.extractType(relationship);
 			if(type == null || !RelationshipReader.isTypeChild(type))
 				continue;
@@ -139,7 +143,8 @@ final class ConclusionDataLoader{
 
 	private static List<ConclusionData.Attribute> loadAttributes(final FLEFModel model, final Set<String> individualIds){
 		final List<ConclusionData.Attribute> attributes = new ArrayList<>();
-		for(final FLEFRecord attribute : model.getRecordsByType(IndividualAttributeHandler.TYPE)){
+		final List<FLEFRecord> individualAttributes = model.getRecordsByType(IndividualAttributeHandler.TYPE);
+		for(final FLEFRecord attribute : individualAttributes){
 			final String personId = FLEFRecordHelper.getChildValue(attribute, IndividualAttributeReader.TAG_INDIVIDUAL);
 			final String type = FLEFRecordHelper.getChildValue(attribute, IndividualAttributeReader.TAG_TYPE);
 			if(attribute.getId() != null && personId != null && type != null && individualIds.contains(personId))
@@ -152,7 +157,8 @@ final class ConclusionDataLoader{
 	/** The hypotheses between two individuals. */
 	private static List<ConclusionData.Hypothesis> loadHypotheses(final FLEFModel model){
 		final List<ConclusionData.Hypothesis> hypotheses = new ArrayList<>();
-		for(final FLEFRecord hypothesis : model.getRecordsByType(IdentityHypothesisHandler.TYPE)){
+		final List<FLEFRecord> identityHypotheses = model.getRecordsByType(IdentityHypothesisHandler.TYPE);
+		for(final FLEFRecord hypothesis : identityHypotheses){
 			final List<String> candidates = new ArrayList<>();
 			for(final FLEFRecord identity : FLEFRecordHelper.findChildren(hypothesis, IdentityHypothesisReader.TAG_IDENTITY))
 				if(!identity.getChildren().isEmpty() && TAG_IDENTITY_INDIVIDUAL.equals(identity.getChildren().getFirst().getTag())
@@ -165,17 +171,18 @@ final class ConclusionDataLoader{
 	}
 
 	private static List<ConclusionData.Conclusion> loadConclusions(final FLEFModel model){
-		final List<ConclusionData.Conclusion> conclusions = new ArrayList<>();
-		for(final FLEFRecord conclusion : model.getRecordsByType(ConclusionHandler.TYPE)){
+		final List<ConclusionData.Conclusion> filteredConclusions = new ArrayList<>();
+		final List<FLEFRecord> conclusions = model.getRecordsByType(ConclusionHandler.TYPE);
+		for(final FLEFRecord conclusion : conclusions){
 			final Set<String> resolves = new LinkedHashSet<>();
 			for(final FLEFRecord target : FLEFRecordHelper.findChildren(conclusion, ConclusionReader.TAG_RESOLVES))
 				if(armValue(target) != null)
 					resolves.add(armValue(target));
-			conclusions.add(new ConclusionData.Conclusion(conclusion.getId(), resolves,
+			filteredConclusions.add(new ConclusionData.Conclusion(conclusion.getId(), resolves,
 				armValue(FLEFRecordHelper.findChild(conclusion, ConclusionReader.TAG_PREFERRED)),
 				ConclusionReader.extractProofStatus(conclusion)));
 		}
-		return conclusions;
+		return filteredConclusions;
 	}
 
 

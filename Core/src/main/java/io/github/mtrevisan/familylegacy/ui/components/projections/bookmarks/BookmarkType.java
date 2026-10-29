@@ -39,25 +39,28 @@ import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 public enum BookmarkType{
 
 	/** Biologiacl tree loaded on a root individual. */
-	BIOLOGICAL_TREE(I18N.t("bookmark.biological_tree")),
+	BIOLOGICAL_TREE("bookmark.biological_tree"),
 
 	/** Sugiyama pedigree graph loaded on a root individual. */
-	SUGIYAMA_GRAPH(I18N.t("bookmark.sugiyama_graph")),
+	SUGIYAMA_GRAPH("bookmark.sugiyama_graph"),
 
 	/** Ego network loaded on a root individual or group. */
-	EGO_NETWORK(I18N.t("bookmark.ego_network"));
+	EGO_NETWORK("bookmark.ego_network"),
+
+	/** Chronomap, with the individual selected. */
+	CHRONOMAP("bookmark.chronomap");
 
 
-	private final String displayName;
+	private final String displayKey;
 
 
-	BookmarkType(final String displayName){
-		this.displayName = displayName;
+	BookmarkType(final String displayKey){
+		this.displayKey = displayKey;
 	}
 
 
 	public String displayName(){
-		return displayName;
+		return I18N.t(displayKey);
 	}
 
 }

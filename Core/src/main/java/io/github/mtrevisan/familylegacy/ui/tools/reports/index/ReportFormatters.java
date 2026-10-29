@@ -36,6 +36,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 
 /**
@@ -44,6 +45,10 @@ import java.util.List;
  */
 public final class ReportFormatters{
 
+	private static final Pattern HTML_TAG = Pattern.compile("<[^>]+>");
+	private static final Pattern HTML_P_OPEN = Pattern.compile("(?i)<p[^>]*>");
+	private static final Pattern HTML_P_CLOSE = Pattern.compile("(?i)</p>");
+	private static final Pattern HTML_BR = Pattern.compile("(?i)<br\\s*/?>");
 	private static final String TAG_PLACE = "place";
 	private static final String TAG_SOURCE = "source";
 
@@ -368,11 +373,12 @@ public final class ReportFormatters{
 
 	/** Very small HTML-to-text converter: keeps <br>/<p> as newlines. */
 	private static String stripHtml(final String html){
-		return html
-			.replaceAll("(?i)<br\\s*/?>", StringUtils.LF)
-			.replaceAll("(?i)</p>", StringUtils.LF + StringUtils.LF)
-			.replaceAll("(?i)<p[^>]*>", StringUtils.EMPTY)
-			.replaceAll("<[^>]+>", StringUtils.EMPTY)
+		final String text = HTML_TAG.matcher(HTML_P_OPEN.matcher(HTML_P_CLOSE.matcher(HTML_BR.matcher(html)
+			.replaceAll(StringUtils.LF))
+			.replaceAll(StringUtils.LF + StringUtils.LF))
+			.replaceAll(StringUtils.EMPTY))
+			.replaceAll(StringUtils.EMPTY);
+		return text
 			.replace("&amp;", "&")
 			.replace("&lt;", "<")
 			.replace("&gt;", ">")

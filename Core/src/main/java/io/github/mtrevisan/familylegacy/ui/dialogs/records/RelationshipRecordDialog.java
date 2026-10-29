@@ -194,28 +194,28 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 	@Override
 	protected JPanel createPropertiesPanel(){
 		// subject
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.relationship.subject") + "*:", subjectField);
+		GUIHelper.addLabeledComponent(propertiesPanel, GUIHelper.requiredLabel("dialog.relationship.subject"), subjectField);
 
 		// (subject) type
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.relationship.subject.type") + "*:", subjectTypeCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, GUIHelper.requiredLabel("dialog.relationship.subject.type"), subjectTypeCombo);
 
 		// (subject) role
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.relationship.subject.role") + ":", subjectRoleField);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.relationship.subject.role"), subjectRoleField);
 
 		// target
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.relationship.target") + "*:", targetField);
+		GUIHelper.addLabeledComponent(propertiesPanel, GUIHelper.requiredLabel("dialog.relationship.target"), targetField);
 
 		// validity range:
 		final JPanel validityPanel = GUIHelper.createLabelFieldPanel(5, "[]5[]");
 		validityPanel.setBorder(BorderFactory.createTitledBorder(I18N.t("dialog.validity.range")));
 		// valid from
-		GUIHelper.addLabeledComponent(validityPanel, I18N.t("dialog.valid_from") + ":", validFromField);
+		GUIHelper.addLabeledComponent(validityPanel, I18N.l("dialog.valid_from"), validFromField);
 		// valid to
-		GUIHelper.addLabeledComponent(validityPanel, I18N.t("dialog.valid_to") + ":", validToField);
+		GUIHelper.addLabeledComponent(validityPanel, I18N.l("dialog.valid_to"), validToField);
 		GUIHelper.addComponent(propertiesPanel, validityPanel);
 
 		// confidence
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.relationship.confidence") + ":", confidenceCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.relationship.confidence"), confidenceCombo);
 
 		return propertiesPanel;
 	}

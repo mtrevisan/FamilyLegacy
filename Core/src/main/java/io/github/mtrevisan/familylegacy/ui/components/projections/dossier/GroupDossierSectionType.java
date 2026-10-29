@@ -24,6 +24,10 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections.dossier;
 
+import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
+
+import java.util.Locale;
+
 
 /**
  * The sections that compose a group dossier.
@@ -35,39 +39,31 @@ package io.github.mtrevisan.familylegacy.ui.components.projections.dossier;
 public enum GroupDossierSectionType{
 
 	/** Names, type, image. */
-	IDENTITY("Identity"),
+	IDENTITY,
 
 	/** Individuals that are members of the group through group_member. */
-	MEMBERS("Members"),
+	MEMBERS,
 
 	/** Groups linked through part_of (both subgroups and supergroups). */
-	SUBGROUPS("Subgroups"),
+	SUBGROUPS,
 
 	/** {@code GroupAttributeRecord} entries owned by the group. */
-	ATTRIBUTES("Attributes"),
+	ATTRIBUTES,
 
 	/** Events in which the group participated. */
-	EVENTS("Events"),
+	EVENTS,
 
 	/** Source citations attached to the group and its records. */
-	SOURCES("Sources"),
+	SOURCES,
 
 	/** Contextual factors affecting the group. */
-	CONTEXT("Context"),
+	CONTEXT,
 
 	/** Research questions and conclusions about the group. */
-	RESEARCH("Research"),
+	RESEARCH,
 
 	/** Free-text notes attached to the group. */
-	NOTES("Notes");
-
-
-	private final String displayLabel;
-
-
-	GroupDossierSectionType(final String displayLabel){
-		this.displayLabel = displayLabel;
-	}
+	NOTES;
 
 
 	/**
@@ -76,7 +72,7 @@ public enum GroupDossierSectionType{
 	 * @return the display label, never {@code null}
 	 */
 	public String getDisplayLabel(){
-		return displayLabel;
+		return I18N.t("enum.group_dossier.section." + name().toLowerCase(Locale.ROOT));
 	}
 
 }

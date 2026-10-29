@@ -26,6 +26,7 @@ package io.github.mtrevisan.calendars.assistant;
 
 import io.github.mtrevisan.calendars.CalendarType;
 import io.github.mtrevisan.calendars.gregorian.CalendarReform;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -87,7 +88,7 @@ public final class RelativeDateTool{
 		final long days = (long)amount * unit.days;
 		final long shift = (after? days: -days);
 
-		final String distance = amount + " " + unit.label + (amount == 1? "": "s");
+		final String distance = amount + StringUtils.SPACE + unit.label + (amount == 1? StringUtils.EMPTY: "s");
 		final String meaning = distance + (after? " after ": " before ") + baseLabel;
 		final List<String> assumptions = new ArrayList<>();
 		assumptions.add("Days are counted exclusively of the base day, so that 1 day after is the following day");

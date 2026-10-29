@@ -41,8 +41,10 @@ import java.awt.GradientPaint;
 import java.awt.Graphics2D;
 import java.awt.Polygon;
 import java.awt.RenderingHints;
+import java.awt.Shape;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -66,6 +68,9 @@ public final class ChronomapOverlayPainter implements ChronomapLayer{
 	private static final float SELECTED_BORDER_WIDTH = 2.5f;
 
 	private static final double EARTH_CIRCUMFERENCE = 40_075_016.686;
+
+	/** The circle of uncertainty is never bigger than this (meters): the place of a country is not a place the map can show. */
+	static final double MAX_UNCERTAINTY_METERS = 100_000.;
 
 
 	private final FLEFModel model;
@@ -181,7 +186,7 @@ public final class ChronomapOverlayPainter implements ChronomapLayer{
 			final boolean selected = (selectedId != null && selectedId.equals(id));
 
 			if(showUncertainty && pos.uncertainty() > 0.)
-				drawUncertaintyCircle(g, map, pos, p, totalMapZoom);
+				drawUncertaintyCircle(g, map, pos, p, totalMapZoom, w, h);
 
 			if(state.isMoving()){
 				drawGreatCircleRoute(g, map, state.fromCoordinate(), state.toCoordinate(), colorFor(id));
@@ -290,24 +295,66 @@ public final class ChronomapOverlayPainter implements ChronomapLayer{
 	}
 
 	private static void drawUncertaintyCircle(final Graphics2D g, final JXMapViewer map,
-			final GeoCoordinate pos, final Point2D center, final int totalMapZoom){
-		final double metersPerPixel = getMetersPerPixel(pos.latitude(), totalMapZoom - map.getZoom());
-		final int pixelRadius = (int)Math.round(pos.uncertainty() / metersPerPixel);
+			final GeoCoordinate pos, final Point2D center, final int totalMapZoom, final int w, final int h){
+		final double pixelRadius = pixelRadius(pos.uncertainty(), pos.latitude(), totalMapZoom - map.getZoom());
 
-		if(pixelRadius < 1)
+		final Shape area = uncertaintyArea((int)center.getX(), (int)center.getY(), pixelRadius, w, h);
+		if(area == null)
 			return;
 
-		final int x = (int)center.getX() - pixelRadius;
-		final int y = (int)center.getY() - pixelRadius;
-		final int diameter = pixelRadius * 2;
-
 		g.setColor(new Color(255, 165, 0, 35));
-		g.fillOval(x, y, diameter, diameter);
+		g.fill(area);
 
-		g.setColor(new Color(230, 120, 0, 160));
-		g.setStroke(new BasicStroke(1.2f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND, 10.f, new float[]{4.f, 4.f}, 0.f));
-		g.drawOval(x, y, diameter, diameter);
-		g.setStroke(new BasicStroke(1.f));
+		//the outline of a circle that covers the whole map cannot be seen
+		if(area instanceof Ellipse2D){
+			g.setColor(new Color(230, 120, 0, 160));
+			g.setStroke(new BasicStroke(1.2f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND, 10.f, new float[]{4.f, 4.f}, 0.f));
+			g.draw(area);
+			g.setStroke(new BasicStroke(1.f));
+		}
+	}
+
+	/**
+	 * The radius of the circle of uncertainty on the screen.
+	 * <p>
+	 * The uncertainty of the place of a whole country or continent would cover half the globe, which says nothing: it is drawn as
+	 * if it were {@link #MAX_UNCERTAINTY_METERS}.
+	 *
+	 * @param uncertaintyMeters	The uncertainty of the place (meters).
+	 * @param latitude	The latitude of the place (degrees).
+	 * @param zoomLevel	The zoom level, as OpenStreetMap numbers it (the bigger, the closer).
+	 * @return	The radius (pixels); enormous at the poles, where a meter has (almost) no width.
+	 */
+	static double pixelRadius(final double uncertaintyMeters, final double latitude, final int zoomLevel){
+		final double metersPerPixel = getMetersPerPixel(latitude, zoomLevel);
+		return (metersPerPixel > 0.? Math.min(uncertaintyMeters, MAX_UNCERTAINTY_METERS) / metersPerPixel: Double.POSITIVE_INFINITY);
+	}
+
+	/**
+	 * What of the circle of uncertainty has to be drawn. A circle that is huge on the screen (the uncertainty of a region at a high
+	 * zoom is many thousands of pixels wide) is not drawn as such: it is slow to draw, and its size does not fit an {@code int}.
+	 *
+	 * @param x	The x of the center of the circle, in the map.
+	 * @param y	The y of the center of the circle, in the map.
+	 * @param radius	The radius of the circle (pixels); it may be infinite.
+	 * @param w	The width of the map.
+	 * @param h	The height of the map.
+	 * @return	{@code null} if there is nothing to draw (the circle is smaller than a pixel, or it is out of the map), the whole map if
+	 * 	the circle covers it, the circle otherwise.
+	 */
+	static Shape uncertaintyArea(final double x, final double y, final double radius, final int w, final int h){
+		if(!(radius >= 1.))
+			return null;
+
+		//the closest and the farthest points of the map from the center
+		final double nearest = Math.hypot(Math.max(Math.max(-x, x - w), 0.), Math.max(Math.max(-y, y - h), 0.));
+		if(nearest > radius)
+			return null;
+		final double farthest = Math.hypot(Math.max(x, w - x), Math.max(y, h - y));
+		if(radius >= farthest)
+			return new Rectangle2D.Double(0., 0., w, h);
+
+		return new Ellipse2D.Double(x - radius, y - radius, 2. * radius, 2. * radius);
 	}
 
 	private static double getMetersPerPixel(final double latitude, final int zoomLevel){

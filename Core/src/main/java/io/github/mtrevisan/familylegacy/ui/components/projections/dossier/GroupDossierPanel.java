@@ -34,6 +34,7 @@ import io.github.mtrevisan.familylegacy.ui.dialogs.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -190,10 +191,10 @@ public class GroupDossierPanel extends JPanel{
 	}
 
 	private void showEmpty(){
-		titleLabel.setText("Group dossier");
+		titleLabel.setText(I18N.t("text.group_dossier"));
 		subtitleLabel.setText(StringUtils.EMPTY);
 		contentPanel.removeAll();
-		final JLabel empty = new JLabel("Select a group to view its dossier.");
+		final JLabel empty = new JLabel(I18N.t("label.select_group"));
 		empty.setFont(EMPTY_FONT);
 		empty.setForeground(EMPTY_COLOR);
 		contentPanel.add(empty, "gapleft 12,gaptop 12");
@@ -218,7 +219,7 @@ public class GroupDossierPanel extends JPanel{
 			contentPanel.add(new SectionPanel(type, entries), "growx");
 		}
 		if(contentPanel.getComponentCount() == 0){
-			final JLabel empty = new JLabel("No records linked to this group.");
+			final JLabel empty = new JLabel(I18N.t("label.no_records_group"));
 			empty.setFont(EMPTY_FONT);
 			empty.setForeground(EMPTY_COLOR);
 			contentPanel.add(empty, "gapleft 12,gaptop 12");

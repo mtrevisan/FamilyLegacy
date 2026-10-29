@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.ui.assistant.Diagnostic;
 import io.github.mtrevisan.familylegacy.ui.assistant.DiagnosticKeys;
 import io.github.mtrevisan.familylegacy.ui.assistant.chronology.DateRange;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -136,7 +137,7 @@ final class ConclusionChecker{
 				.toList());
 			final boolean conflicting = areIncompatible(events);
 			findings.add(finding((conflicting? Diagnostic.Severity.WARNING: Diagnostic.Severity.INFORMATION),
-				(conflicting? "conflicting_events": "multiple_events"), ids, type + (conflicting? "_date": ""),
+				(conflicting? "conflicting_events": "multiple_events"), ids, type + (conflicting? "_date": StringUtils.EMPTY),
 				events.stream().map(ConclusionData.PrincipalEvent::eventId).toList(), person.name(), type, events.size(), dates,
 				suggestion(events)));
 		}
@@ -338,7 +339,7 @@ final class ConclusionChecker{
 	}
 
 	private static String normalize(final String value){
-		return value.strip().toLowerCase(Locale.ROOT).replaceAll("[\\s-]+", "");
+		return StringUtils.remove(StringUtils.deleteWhitespace(value.strip().toLowerCase(Locale.ROOT)), '-');
 	}
 
 	/** @return the data a finding reports, without the suggestion that closes the explanation of the conflicts of events (localized) */
@@ -355,7 +356,7 @@ final class ConclusionChecker{
 		final String title = I18N.tf("conclusion." + key + ".title", arguments);
 		final String explanation = I18N.tf("conclusion." + key + ".explanation", arguments);
 		return new ConclusionFinding(new Diagnostic(severity, AssistantCategory.CONCLUSIONS, title,
-			explanation + " " + I18N.t("conclusion.suggest.draft"), recordIds, null,
+			explanation + StringUtils.SPACE + I18N.t("conclusion.suggest.draft"), recordIds, null,
 			DiagnosticKeys.of("conclusion." + key, recordIds, keyData(key, arguments))),
 			new ConclusionDraft(issue, List.copyOf(resolves), title + ". " + explanation));
 	}

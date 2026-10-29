@@ -67,9 +67,9 @@ public class PlaceFilterPanel extends JPanel implements RecordFilterPanel{
 		setLayout(new MigLayout("wrap 2,gap 5", "[][grow,fill]", "[]"));
 		setBorder(BorderFactory.createTitledBorder(I18N.tf("dialog.search_filter.title", I18N.t("dialog.component.places"))));
 
-		add(new JLabel(I18N.t("dialog.place.name") + ":"));
+		add(new JLabel(I18N.l("dialog.place.name")));
 		add(nameField, "growx");
-		add(new JLabel(I18N.t("dialog.place.type") + ":"));
+		add(new JLabel(I18N.l("dialog.place.type")));
 		add(typeCombo, "growx");
 	}
 

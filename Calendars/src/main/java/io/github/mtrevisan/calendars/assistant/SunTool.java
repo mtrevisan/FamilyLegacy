@@ -29,6 +29,7 @@ import io.github.mtrevisan.calendars.astronomy.EphemerisEngine;
 import io.github.mtrevisan.calendars.astronomy.EphemerisEngineFactory;
 import io.github.mtrevisan.calendars.astronomy.SunlightPhase;
 import io.github.mtrevisan.calendars.astronomy.Zenith;
+import org.apache.commons.lang3.StringUtils;
 
 import java.time.Duration;
 import java.time.ZonedDateTime;
@@ -110,7 +111,7 @@ public final class SunTool{
 				final String times = "the Sun rises at " + localTime(sunrise, longitude) + " and sets at "
 					+ localTime(sunset, longitude) + " (local mean time)";
 				steps.add("Sunrise and sunset: " + times);
-				meaning = "On " + rawDate + " at " + place + " " + times;
+				meaning = "On " + rawDate + " at " + place + StringUtils.SPACE + times;
 			}
 			case SunlightPhase.AlwaysDay ignored -> meaning = "At " + place + " the Sun does not set on " + rawDate + " (polar day)";
 			case SunlightPhase.AlwaysNight ignored -> meaning = "At " + place + " the Sun does not rise on " + rawDate + " (polar night)";

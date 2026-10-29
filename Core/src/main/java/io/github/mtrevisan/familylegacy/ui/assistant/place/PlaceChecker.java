@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.ui.assistant.AssistantCategory;
 import io.github.mtrevisan.familylegacy.ui.assistant.Diagnostic;
 import io.github.mtrevisan.familylegacy.ui.assistant.DiagnosticKeys;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
+import org.apache.commons.lang3.StringUtils;
 
 import java.text.Normalizer;
 import java.util.ArrayList;
@@ -115,8 +116,10 @@ final class PlaceChecker{
 	/** @return the name without case, accents and punctuation, to compare names that are written in different ways */
 	static String normalize(final String name){
 		final String decomposed = Normalizer.normalize(name, Normalizer.Form.NFD);
-		return NOT_ALPHANUMERIC.matcher(DIACRITICS.matcher(decomposed).replaceAll("")).replaceAll(" ")
-			.strip().toLowerCase(Locale.ROOT);
+		return NOT_ALPHANUMERIC.matcher(DIACRITICS.matcher(decomposed).replaceAll(""))
+			.replaceAll(StringUtils.SPACE)
+			.strip()
+			.toLowerCase(Locale.ROOT);
 	}
 
 	/** @return the distance between two places on the surface of the Earth (km) */
@@ -406,7 +409,7 @@ final class PlaceChecker{
 	private static PlaceData.Place container(final PlaceData.Place place, final int scale,
 			final Map<String, List<PlaceData.Place>> byName){
 		for(final String name : place.names()){
-			final String[] parts = name.split(",");
+			final String[] parts = StringUtils.splitPreserveAllTokens(name, ',');
 			for(int i = 1; i < parts.length; i ++){
 				final List<PlaceData.Place> candidates = byName.getOrDefault(normalize(parts[i]), List.of()).stream()
 					.filter(candidate -> !candidate.id().equals(place.id()))

@@ -120,7 +120,7 @@ public final class SocialCategorySelectionDialog extends JDialog{
 			: EnumSet.noneOf(SocialRelationCategory.class));
 
 		final JPanel content = new JPanel(new MigLayout("ins 12,wrap 1", "[grow,fill]", "[]6[]6[]"));
-		content.add(new JLabel("Include the following relationship categories:"));
+		content.add(new JLabel(I18N.l("label.social_categories")));
 		content.add(buildCategoryPanel(current), "growx");
 		content.add(buildButtonsPanel(), "growx, align right");
 
@@ -172,10 +172,10 @@ public final class SocialCategorySelectionDialog extends JDialog{
 	private JPanel buildButtonsPanel(){
 		final JPanel panel = new JPanel(new MigLayout("ins 0", "[][][grow][][]", "[]"));
 
-		final JButton selectAllBtn = new JButton("All");
+		final JButton selectAllBtn = new JButton(I18N.t("button.all"));
 		selectAllBtn.addActionListener(e -> setAll(true));
 
-		final JButton selectNoneBtn = new JButton("None");
+		final JButton selectNoneBtn = new JButton(I18N.t("button.none"));
 		selectNoneBtn.addActionListener(e -> setAll(false));
 
 		final JButton okBtn = new JButton(I18N.t("button.ok"));

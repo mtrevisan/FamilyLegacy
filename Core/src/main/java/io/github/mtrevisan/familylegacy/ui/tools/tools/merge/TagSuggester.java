@@ -821,7 +821,7 @@ public final class TagSuggester{
 		// never match inside commented-out declarations or inside the
 		// trailing part of a field declaration.
 		final StringBuilder sb = new StringBuilder(rawContent.length());
-		for(final String raw : rawContent.split(StringUtils.LF, -1))
+		for(final String raw : StringUtils.splitPreserveAllTokens(rawContent, '\n'))
 			sb.append(stripLineComment(raw))
 				.append(StringUtils.LF);
 		final String content = sb.toString();
@@ -863,7 +863,7 @@ public final class TagSuggester{
 			final int bodyEnd = findMatchingBrace(content, bodyStart);
 			if(bodyStart >= 0 && bodyEnd > bodyStart){
 				final String body = content.substring(bodyStart + 1, bodyEnd);
-				for(final String line : body.split(StringUtils.LF, -1)){
+				for(final String line : StringUtils.splitPreserveAllTokens(body, '\n')){
 					final Matcher om = ONEOF_MAPPING.matcher(line.trim());
 					if(om.matches())
 						recordTagToType.put(om.group(1), om.group(2));
@@ -903,7 +903,7 @@ public final class TagSuggester{
 	private List<FieldInfo> parseBody(final String body, final Set<String> knownTypes,
 		final String parentTypeName){
 		final List<FieldInfo> fields = new ArrayList<>();
-		final String[] lines = body.split(StringUtils.LF, -1);
+		final String[] lines = StringUtils.splitPreserveAllTokens(body, '\n');
 		int depth = 0;
 		int i = 0;
 		while(i < lines.length){
@@ -1013,7 +1013,7 @@ public final class TagSuggester{
 
 		final String inner = accumulated.substring(open + 1, close);
 		final List<String> values = new ArrayList<>();
-		for(final String token : inner.split("[,\\s]+")){
+		for(final String token : StringUtils.split(inner, ", \t\n\013\f\r")){
 			final String t = token.trim();
 			if(!t.isEmpty() && Character.isLetterOrDigit(t.charAt(0)))
 				values.add(t);

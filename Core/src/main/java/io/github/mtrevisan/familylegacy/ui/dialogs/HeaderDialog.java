@@ -155,13 +155,13 @@ public class HeaderDialog extends BaseRecordDialog{
 		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]");
 
 		// date
-		GUIHelper.addLabeledComponent(panel, I18N.t("dialog.header.date") + ":", dateField);
+		GUIHelper.addLabeledComponent(panel, I18N.l("dialog.header.date"), dateField);
 
 		// copyright
-		GUIHelper.addLabeledComponent(panel, I18N.t("dialog.header.copyright") + ":", copyrightArea);
+		GUIHelper.addLabeledComponent(panel, I18N.l("dialog.header.copyright"), copyrightArea);
 
 		// scope
-		GUIHelper.addLabeledComponent(panel, I18N.t("dialog.header.scope") + ":", scopeArea);
+		GUIHelper.addLabeledComponent(panel, I18N.l("dialog.header.scope"), scopeArea);
 
 		return panel;
 	}
@@ -173,7 +173,7 @@ public class HeaderDialog extends BaseRecordDialog{
 		GUIHelper.addComponent(panel, submitterContactListPanel);
 
 		// note
-		GUIHelper.addLabeledComponent(panel, I18N.t("dialog.header.remark") + ":", submitterRemarkArea);
+		GUIHelper.addLabeledComponent(panel, I18N.l("dialog.header.remark"), submitterRemarkArea);
 
 		return panel;
 	}

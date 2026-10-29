@@ -26,12 +26,15 @@ package io.github.mtrevisan.familylegacy.gedcom;
 
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.regex.Pattern;
+
 
 /**
  * Utility to normalize GEDCOM local identifiers.
  */
 public final class IDNormalizer{
 
+	private static final Pattern ID_FORMAT = Pattern.compile("^[A-Za-z][A-Za-z0-9]*$");
 	private IDNormalizer(){
 	}
 
@@ -48,7 +51,7 @@ public final class IDNormalizer{
 	public static boolean isValidIdFormat(String id){
 		// Simple check: alphanumeric, no spaces or dashes (but dashes are allowed per spec, but we avoid)
 		// We'll accept letters and digits only.
-		return id != null && id.matches("^[A-Za-z][A-Za-z0-9]*$");
+		return id != null && ID_FORMAT.matcher(id).matches();
 	}
 
 }

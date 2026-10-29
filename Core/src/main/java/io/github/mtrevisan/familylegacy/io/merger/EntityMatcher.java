@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.GeoCoordinate;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.NormalizedDate;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.TemporalSpan;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -249,7 +250,7 @@ final class EntityMatcher{
 			else
 				score.add((parents.matched() >= 2? 5.: 3.) + 2. * parents.sameRecord(),
 					(parents.matched() >= 2? "both parents agree": "a parent agrees")
-						+ (parents.sameRecord() > 0? " (merged records)": ""));
+						+ (parents.sameRecord() > 0? " (merged records)": StringUtils.EMPTY));
 		}
 		final Relatives spouses = matchRelatives(index.spousesOf(a.getId()), index.spousesOf(b.getId()));
 		if(spouses != null){
@@ -257,12 +258,12 @@ final class EntityMatcher{
 				// remarriages make different spouses weak evidence
 				score.add(-1., "spouses differ");
 			else
-				score.add(spouses.sameRecord() > 0? 6.: 3., "a spouse agrees" + (spouses.sameRecord() > 0? " (merged record)": ""));
+				score.add(spouses.sameRecord() > 0? 6.: 3., "a spouse agrees" + (spouses.sameRecord() > 0? " (merged record)": StringUtils.EMPTY));
 		}
 		final Relatives children = matchRelatives(index.childrenOf(a.getId()), index.childrenOf(b.getId()));
 		// a record often lists only some of the children: different children are no evidence against
 		if(children != null && children.matched() > 0)
-			score.add(children.sameRecord() > 0? 6.: 3., "a child agrees" + (children.sameRecord() > 0? " (merged record)": ""));
+			score.add(children.sameRecord() > 0? 6.: 3., "a child agrees" + (children.sameRecord() > 0? " (merged record)": StringUtils.EMPTY));
 
 		addNeighborhood(score, fa, fb);
 
@@ -599,7 +600,7 @@ final class EntityMatcher{
 			if(text == null)
 				continue;
 
-			final String[] parts = text.split(",");
+			final String[] parts = (text.isEmpty()? new String[]{text}: StringUtils.splitPreserveAllTokens(text, ','));
 			leaves.add(parts[0]);
 			for(int i = 1; i < parts.length; i ++){
 				final String qualifier = TextSimilarity.normalize(parts[i]);
@@ -912,7 +913,7 @@ final class EntityMatcher{
 			if(value != null)
 				agents.add(AGENT_TEXT.equals(arm)? TextSimilarity.normalize(value): "@" + value);
 		}
-		agents.remove("");
+		agents.remove(StringUtils.EMPTY);
 		return agents;
 	}
 

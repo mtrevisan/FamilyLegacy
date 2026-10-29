@@ -70,15 +70,15 @@ public class SourceFilterPanel extends JPanel implements RecordFilterPanel{
 		setLayout(new MigLayout("wrap 2,gap 5", "[][grow,fill]", "[]"));
 		setBorder(BorderFactory.createTitledBorder(I18N.tf("dialog.search_filter.title", I18N.t("dialog.component.sources"))));
 
-		add(new JLabel(I18N.t("dialog.source.title") + ":"));
+		add(new JLabel(I18N.l("dialog.source.title")));
 		add(titleField, "growx");
-		add(new JLabel(I18N.t("dialog.source.author") + ":"));
+		add(new JLabel(I18N.l("dialog.source.author")));
 		add(authorField, "growx");
-		add(new JLabel(I18N.t("dialog.source.publisher") + ":"));
+		add(new JLabel(I18N.l("dialog.source.publisher")));
 		add(publisherField, "growx");
-		add(new JLabel(I18N.t("dialog.source.media_type") + ":"));
+		add(new JLabel(I18N.l("dialog.source.media_type")));
 		add(mediaTypeCombo, "growx");
-		add(new JLabel(I18N.t("dialog.place") + ":"));
+		add(new JLabel(I18N.l("dialog.place")));
 		add(placeField, "growx");
 	}
 

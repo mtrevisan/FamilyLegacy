@@ -150,16 +150,16 @@ public class MediaRecordDialog extends BaseRecordDialog{
 	@Override
 	protected JPanel createPropertiesPanel(){
 		// file
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.media.uri") + "*:", uriField);
+		GUIHelper.addLabeledComponent(propertiesPanel, GUIHelper.requiredLabel("dialog.media.uri"), uriField);
 
 		// kind
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.media.kind") + "*:", kindCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, GUIHelper.requiredLabel("dialog.media.kind"), kindCombo);
 
 		// mapping
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.media.mapping") + ":", mappingCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.media.mapping"), mappingCombo);
 
 		// description
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.media.description") + ":", descriptionArea);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.media.description"), descriptionArea);
 
 		return propertiesPanel;
 	}

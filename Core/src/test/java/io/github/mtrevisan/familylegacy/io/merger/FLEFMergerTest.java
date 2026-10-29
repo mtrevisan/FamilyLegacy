@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.FLEFGrammar;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -454,11 +455,13 @@ class FLEFMergerTest{
 		final MergeReport report = merger().merge(model, parseResource("/tests/TGC55C.flef"));
 
 		Assertions.assertEquals(recordCount, model.getRecordCount(), "the input must not be modified");
-		for(final String kind : model.getRecordTypes())
+		final Set<String> kinds = model.getRecordTypes();
+		for(final String kind : kinds)
 			Assertions.assertEquals(model.getRecordsByType(kind).size(), report.mergedModel().getRecordsByType(kind).size(), kind);
 		Assertions.assertTrue(report.decisionsNeedingReview().isEmpty(), report.decisionsNeedingReview().toString());
 		// every incoming record found its copy in the base (or an identical record, when the base already repeats it)
-		for(final FLEFRecord record : model.getRecords()){
+		final List<FLEFRecord> records = model.getRecords();
+		for(final FLEFRecord record : records){
 			final FLEFRecord target = report.mergedModel().getRecordById(report.idMapping().get(record.getId()));
 			Assertions.assertNotNull(target, record.getId());
 			Assertions.assertEquals(record.getTag(), target.getTag(), record.getId());
@@ -533,7 +536,7 @@ class FLEFMergerTest{
 			+ "\t\tpart {\n\t\t\ttype given\n\t\t\tvalue " + given + "\n\t\t}\n"
 			+ "\t\tpart {\n\t\t\ttype family\n\t\t\tvalue " + family + "\n\t\t}\n"
 			+ "\t}\n"
-			+ "\tsex " + sex + "\n"
+			+ "\tsex " + sex + StringUtils.LF
 			+ "\taudit.creation.date 2020-01-01T00:00:00Z\n"
 			+ "}\n";
 	}
@@ -550,14 +553,14 @@ class FLEFMergerTest{
 	private static String event(final String eventId, final String participationId, final String individualId, final String type,
 			final String date, final String placeId){
 		return "event " + eventId + " {\n"
-			+ "\ttype " + type + "\n"
+			+ "\ttype " + type + StringUtils.LF
 			+ "\tdate.value.point {\n\t\tvalue.full_date " + date + "\n\t\tcalendar gregorian\n\t}\n"
-			+ (placeId != null? "\tplace.place " + placeId + "\n": "")
+			+ (placeId != null? "\tplace.place " + placeId + StringUtils.LF: StringUtils.EMPTY)
 			+ "\taudit.creation.date 2020-01-01T00:00:00Z\n"
 			+ "}\n"
 			+ "event_participation " + participationId + " {\n"
-			+ "\tparticipant.individual " + individualId + "\n"
-			+ "\tevent " + eventId + "\n"
+			+ "\tparticipant.individual " + individualId + StringUtils.LF
+			+ "\tevent " + eventId + StringUtils.LF
 			+ "\trole principal\n"
 			+ "\taudit.creation.date 2020-01-01T00:00:00Z\n"
 			+ "}\n";
@@ -565,8 +568,8 @@ class FLEFMergerTest{
 
 	private static String child(final String id, final String childId, final String parentId){
 		return "relationship " + id + " {\n"
-			+ "\tsubject.individual " + childId + "\n"
-			+ "\ttarget.individual " + parentId + "\n"
+			+ "\tsubject.individual " + childId + StringUtils.LF
+			+ "\ttarget.individual " + parentId + StringUtils.LF
 			+ "\ttype biological_child\n"
 			+ "\taudit.creation.date 2020-01-01T00:00:00Z\n"
 			+ "}\n";
@@ -574,7 +577,7 @@ class FLEFMergerTest{
 
 	private static String place(final String id, final String name){
 		return "place " + id + " {\n"
-			+ "\tname.value " + name + "\n"
+			+ "\tname.value " + name + StringUtils.LF
 			+ "\ttype city\n"
 			+ "\taudit.creation.date 2020-01-01T00:00:00Z\n"
 			+ "}\n";
@@ -586,8 +589,8 @@ class FLEFMergerTest{
 
 	private static String partOf(final String id, final String placeId, final String parentId){
 		return "place_relationship " + id + " {\n"
-			+ "\tsubject.place " + placeId + "\n"
-			+ "\ttarget.place " + parentId + "\n"
+			+ "\tsubject.place " + placeId + StringUtils.LF
+			+ "\ttarget.place " + parentId + StringUtils.LF
 			+ "\ttype administrative_part_of\n"
 			+ "\taudit.creation.date 2020-01-01T00:00:00Z\n"
 			+ "}\n";
@@ -603,7 +606,7 @@ class FLEFMergerTest{
 
 	private static String source(final String id, final String title){
 		return "source " + id + " {\n"
-			+ "\ttitle.value " + title + "\n"
+			+ "\ttitle.value " + title + StringUtils.LF
 			+ "\taudit.creation.date 2020-01-01T00:00:00Z\n"
 			+ "}\n";
 	}

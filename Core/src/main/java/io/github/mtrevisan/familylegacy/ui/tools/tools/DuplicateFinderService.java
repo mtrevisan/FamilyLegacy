@@ -83,6 +83,8 @@ import java.util.regex.Pattern;
  */
 public final class DuplicateFinderService{
 
+	private static final Pattern PUNCTUATION_RUN = Pattern.compile("[\\p{Punct}]+");
+	private static final Pattern COMBINING_MARKS = Pattern.compile("\\p{M}+");
 	public static final int DEFAULT_THRESHOLD = 55;
 	public static final int DEFAULT_MAX_RESULTS = 500;
 
@@ -480,9 +482,9 @@ public final class DuplicateFinderService{
 
 		String s = text.toLowerCase(Locale.ROOT);
 		s = Normalizer.normalize(s, Normalizer.Form.NFD);
-		s = s.replaceAll("\\p{M}+", StringUtils.EMPTY);
-		s = s.replaceAll("[\\p{Punct}]+", StringUtils.SPACE);
-		s = s.replaceAll("\\s+", StringUtils.SPACE).trim();
+		s = COMBINING_MARKS.matcher(s).replaceAll(StringUtils.EMPTY);
+		s = PUNCTUATION_RUN.matcher(s).replaceAll(StringUtils.SPACE);
+		s = StringUtils.normalizeSpace(s);
 		return s;
 	}
 

@@ -27,6 +27,7 @@ package io.github.mtrevisan.calendars.assistant;
 import io.github.mtrevisan.calendars.CalendarType;
 import io.github.mtrevisan.calendars.gregorian.CalendarReform;
 import io.github.mtrevisan.calendars.liturgical.Computus;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -133,7 +134,7 @@ public final class LiturgicalTool{
 		}
 		steps.add("Rule: " + rule + ", Julian Day Number " + jdn);
 		steps.add("Written in the " + calendar + " calendar: " + date + " (" + CivilDates.weekdayName(jdn) + ")");
-		return new DateSuggestion(name, name + (year != null? " " + year: "") + " falls on " + date, assumptions, calendar, steps,
+		return new DateSuggestion(name, name + (year != null? StringUtils.SPACE + year: StringUtils.EMPTY) + " falls on " + date, assumptions, calendar, steps,
 			date);
 	}
 

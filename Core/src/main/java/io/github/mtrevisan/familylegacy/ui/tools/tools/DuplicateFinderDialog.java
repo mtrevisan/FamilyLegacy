@@ -89,12 +89,13 @@ public final class DuplicateFinderDialog extends JDialog{
 		DuplicateFinderService.DEFAULT_THRESHOLD, 0, 500, 5));
 	private final JSpinner maxResultsSpinner = new JSpinner(new SpinnerNumberModel(
 		DuplicateFinderService.DEFAULT_MAX_RESULTS, 10, 100000, 50));
-	private final JCheckBox sameSexCheck = new JCheckBox("Same sex only", true);
-	private final JCheckBox skipExistingCheck = new JCheckBox("Skip existing hypotheses", true);
+	private final JCheckBox sameSexCheck = new JCheckBox(I18N.t("checkbox.same_sex_only"), true);
+	private final JCheckBox skipExistingCheck = new JCheckBox(I18N.t("checkbox.skip_existing"), true);
 	private final JLabel statusLabel = new JLabel(StringUtils.SPACE);
 	private final JTextArea detailsArea = new JTextArea();
 
 	private List<DuplicateFinderService.Candidate> allCandidates = List.of();
+	private SwingWorker<List<DuplicateFinderService.Candidate>, Void> searchWorker;
 
 
 	public DuplicateFinderDialog(final ToolContext context){
@@ -126,12 +127,12 @@ public final class DuplicateFinderDialog extends JDialog{
 		gbc.anchor = GridBagConstraints.WEST;
 
 		gbc.gridx = 0; gbc.gridy = 0;
-		toolbar.add(new JLabel("Threshold:"), gbc);
+		toolbar.add(new JLabel(I18N.l("label.threshold")), gbc);
 		gbc.gridx = 1;
 		toolbar.add(thresholdSpinner, gbc);
 
 		gbc.gridx = 2;
-		toolbar.add(new JLabel("Max results:"), gbc);
+		toolbar.add(new JLabel(I18N.l("label.max_results")), gbc);
 		gbc.gridx = 3;
 		toolbar.add(maxResultsSpinner, gbc);
 
@@ -141,13 +142,13 @@ public final class DuplicateFinderDialog extends JDialog{
 		toolbar.add(skipExistingCheck, gbc);
 
 		gbc.gridx = 6;
-		final JButton searchButton = new JButton("Search");
+		final JButton searchButton = new JButton(I18N.t("button.search"));
 		searchButton.addActionListener(e -> runSearch());
 		toolbar.add(searchButton, gbc);
 
 		gbc.gridx = 0; gbc.gridy = 1; gbc.gridwidth = 6;
 		gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1;
-		toolbar.add(new JLabel("Filter (matches name or matched features):"), gbc);
+		toolbar.add(new JLabel(I18N.l("label.duplicates_filter")), gbc);
 		gbc.gridy = 2;
 		toolbar.add(filterField, gbc);
 		final Document document = filterField.getDocument();
@@ -196,13 +197,13 @@ public final class DuplicateFinderDialog extends JDialog{
 		});
 
 		final JScrollPane tableScroll = new JScrollPane(table);
-		tableScroll.setBorder(BorderFactory.createTitledBorder("Candidates"));
+		tableScroll.setBorder(BorderFactory.createTitledBorder(I18N.t("border.candidates")));
 
 		detailsArea.setEditable(false);
 		detailsArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
 		detailsArea.setBorder(BorderFactory.createEmptyBorder(6, 6, 6, 6));
 		final JScrollPane detailsScroll = new JScrollPane(detailsArea);
-		detailsScroll.setBorder(BorderFactory.createTitledBorder("Details"));
+		detailsScroll.setBorder(BorderFactory.createTitledBorder(I18N.t("border.details")));
 
 		final JSplitPane split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
 			tableScroll, detailsScroll);
@@ -216,7 +217,7 @@ public final class DuplicateFinderDialog extends JDialog{
 		final JPanel footer = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 		footer.setBorder(BorderFactory.createEmptyBorder(2, 6, 6, 6));
 
-		final JButton compare = new JButton("Compare records…");
+		final JButton compare = new JButton(I18N.t("button.compare_records"));
 		compare.addActionListener(e -> compareSelected());
 		footer.add(compare);
 
@@ -241,11 +242,14 @@ public final class DuplicateFinderDialog extends JDialog{
 		options.requireSameSex = sameSexCheck.isSelected();
 		options.skipExistingHypotheses = skipExistingCheck.isSelected();
 
-		statusLabel.setText("Searching…");
+		statusLabel.setText(I18N.t("text.searching"));
 		tableModel.setRows(List.of());
 
 		final FLEFModel model = context.model();
-		new SwingWorker<List<DuplicateFinderService.Candidate>, Void>(){
+		//a new search replaces the running one: its result must not overwrite the one of the new search
+		if(searchWorker != null)
+			searchWorker.cancel(true);
+		searchWorker = new SwingWorker<>(){
 			@Override
 			protected List<DuplicateFinderService.Candidate> doInBackground(){
 				return DuplicateFinderService.find(model, options);
@@ -253,6 +257,9 @@ public final class DuplicateFinderDialog extends JDialog{
 
 			@Override
 			protected void done(){
+				if(isCancelled())
+					return;
+
 				try{
 					allCandidates = get();
 					tableModel.setRows(allCandidates);
@@ -261,10 +268,19 @@ public final class DuplicateFinderDialog extends JDialog{
 						+ (allCandidates.size() == 1? " candidate": " candidates"));
 				}
 				catch(final Exception ex){
-					statusLabel.setText("Search failed: " + ex.getMessage());
+					statusLabel.setText(I18N.tf("text.search.failed", ex.getMessage()));
 				}
 			}
-		}.execute();
+		};
+		searchWorker.execute();
+	}
+
+	@Override
+	public void dispose(){
+		if(searchWorker != null)
+			searchWorker.cancel(true);
+
+		super.dispose();
 	}
 
 	private void applyFilter(){

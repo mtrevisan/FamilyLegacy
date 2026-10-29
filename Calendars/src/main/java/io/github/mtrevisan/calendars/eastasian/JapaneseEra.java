@@ -24,12 +24,15 @@
  */
 package io.github.mtrevisan.calendars.eastasian;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 
 /**
@@ -86,6 +89,8 @@ public enum JapaneseEra{
 	HEISEI("平成", "Heisei", 1989, "H"),
 	REIWA("令和", "Reiwa", 2019, "R");
 
+	private static final Pattern NASAL_BEFORE_LABIAL = Pattern.compile("n([pbm])");
+	private static final Pattern DIACRITIC_MARKS = Pattern.compile("[\\u0300-\\u036f]");
 
 	private final String kanji;
 	private final String romanization;
@@ -161,11 +166,12 @@ public enum JapaneseEra{
 
 	private static List<String> romanizationVariants(final String name){
 		final String lower = name.toLowerCase(Locale.ROOT);
-		final String withoutApostrophe = lower.replace("'", "").replace("’", "");
-		final String plain = Normalizer.normalize(withoutApostrophe, Normalizer.Form.NFD)
-			.replaceAll("[\\u0300-\\u036f]", "");
+		final String withoutApostrophe = lower.replace("'", StringUtils.EMPTY)
+			.replace("’", StringUtils.EMPTY);
+		final String plain = DIACRITIC_MARKS.matcher(Normalizer.normalize(withoutApostrophe, Normalizer.Form.NFD))
+			.replaceAll(StringUtils.EMPTY);
 		final String longVowels = withoutApostrophe.replace("ō", "ou").replace("ū", "uu");
-		final String labials = plain.replaceAll("n([pbm])", "m$1");
+		final String labials = NASAL_BEFORE_LABIAL.matcher(plain).replaceAll("m$1");
 		return List.of(lower, withoutApostrophe, plain, longVowels, labials);
 	}
 

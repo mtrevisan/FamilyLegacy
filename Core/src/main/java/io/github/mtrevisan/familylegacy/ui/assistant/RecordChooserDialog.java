@@ -70,6 +70,7 @@ final class RecordChooserDialog extends JDialog{
 
 	RecordChooserDialog(final Window owner, final FLEFModel model, final List<FLEFRecord> records, final Opener opener){
 		super(owner, I18N.t("assistant.open_records"), ModalityType.APPLICATION_MODAL);
+		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
 		this.model = model;
 		this.opener = opener;

@@ -31,6 +31,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -98,7 +99,8 @@ public final class PrivacyExporter{
 
 
 	private Result run(final FLEFModel model){
-		for(final FLEFRecord record : model.getRecords())
+		final List<FLEFRecord> records = model.getRecords();
+		for(final FLEFRecord record : records)
 			if(policy.hides(resolver.effectiveLevel(record)))
 				hiddenIds.add(record.getId());
 
@@ -110,7 +112,7 @@ public final class PrivacyExporter{
 		omitSubmitterContacts(header);
 		result.setHeader(header);
 
-		for(final FLEFRecord record : model.getRecords()){
+		for(final FLEFRecord record : records){
 			if(hiddenIds.contains(record.getId()))
 				continue;
 

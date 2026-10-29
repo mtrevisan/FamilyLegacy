@@ -203,7 +203,7 @@ public final class ReportDialog extends JDialog{
 		// Bottom button panel
 		final JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT, 6, 6));
 		final JButton cancelBtn = new JButton(I18N.t("button.cancel"));
-		final JButton generateBtn = new JButton("Generate…");
+		final JButton generateBtn = new JButton(I18N.t("button.generate"));
 
 		cancelBtn.addActionListener(e -> dispose());
 		generateBtn.addActionListener(e -> onGenerate());
@@ -219,13 +219,13 @@ public final class ReportDialog extends JDialog{
 
 	private JPanel createFormatSelectionPanel(){
 		final JPanel panel = new JPanel(new GridLayout(2, 3, 8, 4));
-		panel.setBorder(BorderFactory.createTitledBorder("Output Formats"));
+		panel.setBorder(BorderFactory.createTitledBorder(I18N.t("border.output_formats")));
 
-		cbText = new JCheckBox("Plain Text (.txt)", false);
-		cbMarkdown = new JCheckBox("Markdown (.md)", true);
-		cbHtml = new JCheckBox("HTML (.html)", false);
-		cbDocx = new JCheckBox("Word (.docx)", false);
-		cbPdf = new JCheckBox("PDF (.pdf)", false);
+		cbText = new JCheckBox(I18N.t("checkbox.format_text"), false);
+		cbMarkdown = new JCheckBox(I18N.t("checkbox.format_markdown"), true);
+		cbHtml = new JCheckBox(I18N.t("checkbox.format_html"), false);
+		cbDocx = new JCheckBox(I18N.t("checkbox.format_docx"), false);
+		cbPdf = new JCheckBox(I18N.t("checkbox.format_pdf"), false);
 
 		panel.add(cbText);
 		panel.add(cbMarkdown);
@@ -239,7 +239,7 @@ public final class ReportDialog extends JDialog{
 	private JPanel createLanguageSelectionPanel(){
 		final JPanel p = new JPanel(new MigLayout(
 			"ins 4 8 8 8,wrap 1,fillx", "[grow,fill]", "[]"));
-		p.setBorder(BorderFactory.createTitledBorder("Language"));
+		p.setBorder(BorderFactory.createTitledBorder(I18N.t("border.language")));
 		p.add(language);
 		return p;
 	}
@@ -268,9 +268,7 @@ public final class ReportDialog extends JDialog{
 			|| reportType == ReportType.DESCENDANT
 			|| reportType == ReportType.INDIVIDUAL)){
 			JOptionPane.showMessageDialog(this,
-				"Cannot generate " + reportType.getTitle()
-					+ " without a selected individual.",
-				"Missing Subject", JOptionPane.WARNING_MESSAGE);
+				I18N.tf("dialog.report.missing_subject.message", reportType.getTitle()), I18N.t("dialog.report.missing_subject.title"), JOptionPane.WARNING_MESSAGE);
 
 			return;
 		}
@@ -278,8 +276,7 @@ public final class ReportDialog extends JDialog{
 		final Map<String, ReportRenderer> renderers = getSelectedRenderers();
 		if(renderers.isEmpty()){
 			JOptionPane.showMessageDialog(this,
-				"Please select at least one output format.",
-				"No Format Selected", JOptionPane.WARNING_MESSAGE);
+				I18N.t("dialog.report.no_format.message"), I18N.t("dialog.report.no_format.title"), JOptionPane.WARNING_MESSAGE);
 
 			return;
 		}
@@ -319,7 +316,7 @@ public final class ReportDialog extends JDialog{
 		final ReportConfig config){
 
 		final ProgressDialog progressDialog =
-			new ProgressDialog(this, reportType.getTitle() + " — generating…");
+			new ProgressDialog(this, I18N.tf("dialog.report.generating", reportType.getTitle()));
 
 		final SwingWorker<GenerationResult, ProgressUpdate> worker =
 			new SwingWorker<>(){
@@ -373,8 +370,7 @@ public final class ReportDialog extends JDialog{
 
 					if(isCancelled()){
 						JOptionPane.showMessageDialog(ReportDialog.this,
-							"Report generation was cancelled.",
-							"Cancelled", JOptionPane.INFORMATION_MESSAGE);
+							I18N.t("dialog.report.cancelled.message"), I18N.t("dialog.report.cancelled.title"), JOptionPane.INFORMATION_MESSAGE);
 						return;
 					}
 
@@ -386,8 +382,7 @@ public final class ReportDialog extends JDialog{
 					catch(final Exception ex){
 						final Throwable cause = (ex.getCause() != null? ex.getCause(): ex);
 						JOptionPane.showMessageDialog(ReportDialog.this,
-							"Error while generating report:"
-								+ StringUtils.LF + cause.getMessage(),
+							I18N.l("dialog.report.error.message") + StringUtils.LF + cause.getMessage(),
 							I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
 					}
 				}
@@ -697,8 +692,8 @@ public final class ReportDialog extends JDialog{
 	 * ====================================================================== */
 
 	private void promptOpenFolder(final Path dir, final List<Path> files){
-		final Object[] dialogOptions = {"OK", "Open Directory"};
-		final StringBuilder msg = new StringBuilder("Report successfully written to:")
+		final Object[] dialogOptions = {I18N.t("button.ok"), I18N.t("button.open.directory")};
+		final StringBuilder msg = new StringBuilder(I18N.l("dialog.report.complete.message"))
 			.append(StringUtils.LF);
 		for(final Path f : files)
 			msg.append(" • ")
@@ -707,7 +702,7 @@ public final class ReportDialog extends JDialog{
 
 		final int choice = JOptionPane.showOptionDialog(this,
 			msg.toString(),
-			"Report Complete",
+			I18N.t("dialog.report.complete.title"),
 			JOptionPane.DEFAULT_OPTION,
 			JOptionPane.INFORMATION_MESSAGE,
 			null,
@@ -721,7 +716,7 @@ public final class ReportDialog extends JDialog{
 			}
 			catch(final Exception ex){
 				JOptionPane.showMessageDialog(this,
-					"Could not open directory:" + StringUtils.LF + ex.getMessage(),
+					I18N.l("dialog.report.open_directory.error") + StringUtils.LF + ex.getMessage(),
 					I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
 			}
 		}

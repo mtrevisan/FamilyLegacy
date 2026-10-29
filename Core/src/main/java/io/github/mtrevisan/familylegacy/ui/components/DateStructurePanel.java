@@ -116,7 +116,7 @@ public class DateStructurePanel extends JPanel implements HistoricalDateAssistan
 		final JPanel pointPanel = new JPanel(new MigLayout("ins 0,fillx"));
 		pointPanel.setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
 		final JPanel valueWrapper = GUIHelper.createLabelFieldPanel(7, "[]");
-		valueWrapper.setBorder(BorderFactory.createTitledBorder("Date"));
+		valueWrapper.setBorder(BorderFactory.createTitledBorder(I18N.t("border.date")));
 		GUIHelper.addComponent(valueWrapper, pointDateValuePanel);
 		pointPanel.add(valueWrapper, "growx");
 		tabbedPane.addTab(I18N.t("dialog.date.point"), pointPanel);
@@ -142,7 +142,7 @@ public class DateStructurePanel extends JPanel implements HistoricalDateAssistan
 		});
 		add(tabbedPane, "span 2,growx");
 
-		final JLabel originalTextLabel = new JLabel(I18N.t("dialog.date.original_text") + ":");
+		final JLabel originalTextLabel = new JLabel(I18N.l("dialog.date.original_text"));
 		originalTextLabel.setLabelFor(originalTextField);
 		add(originalTextLabel, "align label");
 		add(originalTextField, "growx");
@@ -151,7 +151,7 @@ public class DateStructurePanel extends JPanel implements HistoricalDateAssistan
 		add(sourcePanel, "span 2,growx");
 
 		// confidence
-		final JLabel confidenceLabel = new JLabel(I18N.t("dialog.component.confidence") + ":");
+		final JLabel confidenceLabel = new JLabel(I18N.l("dialog.component.confidence"));
 		confidenceLabel.setLabelFor(confidenceCombo);
 		add(confidenceLabel, "align label");
 		add(confidenceCombo, "growx");
@@ -343,7 +343,7 @@ public class DateStructurePanel extends JPanel implements HistoricalDateAssistan
 			DateStructurePanel panel = new DateStructurePanel(null, model);
 			frame.add(panel, BorderLayout.CENTER);
 
-			JButton printBtn = new JButton("Print Record");
+			JButton printBtn = new JButton(I18N.t("button.print_record"));
 			printBtn.addActionListener(e -> {
 				FLEFRecord record = panel.save();
 				if(record != null)

@@ -216,7 +216,7 @@ public final class DocxReportRenderer implements ReportRenderer{
 	}
 
 	private static void writeMonospaceBlock(final XWPFParagraph p, final String text){
-		final String[] lines = text.split(StringUtils.LF, -1);
+		final String[] lines = StringUtils.splitPreserveAllTokens(text, '\n');
 		for(int i = 0; i < lines.length; i ++){
 			final XWPFRun run = p.createRun();
 			run.setFontFamily("Consolas");

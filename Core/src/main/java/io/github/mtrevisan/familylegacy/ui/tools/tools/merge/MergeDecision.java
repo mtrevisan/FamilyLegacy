@@ -24,6 +24,10 @@
  */
 package io.github.mtrevisan.familylegacy.ui.tools.tools.merge;
 
+import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
+
+import java.util.Locale;
+
 
 /**
  * What to do with a field that exists on both the source and the target
@@ -32,10 +36,10 @@ package io.github.mtrevisan.familylegacy.ui.tools.tools.merge;
 public enum MergeDecision{
 
 	/** The target's instances win; the source's are discarded. */
-	KEEP_TARGET("Keep target"),
+	KEEP_TARGET,
 
 	/** The source's instances replace the target's. */
-	KEEP_SOURCE("Keep source"),
+	KEEP_SOURCE,
 
 	/**
 	 * The target's instances are kept and the source's are added after
@@ -43,19 +47,11 @@ public enum MergeDecision{
 	 * (notes, sources, names, events, ...). For single-valued fields it
 	 * produces a schema-invalid record.
 	 */
-	KEEP_BOTH("Keep both");
-
-
-	private final String label;
-
-
-	MergeDecision(final String label){
-		this.label = label;
-	}
+	KEEP_BOTH;
 
 
 	public String label(){
-		return label;
+		return I18N.t("enum.merge.decision." + name().toLowerCase(Locale.ROOT));
 	}
 
 }

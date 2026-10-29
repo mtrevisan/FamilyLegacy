@@ -159,25 +159,25 @@ public class GroupAttributeRecordDialog extends BaseRecordDialog{
 		//parentEntity
 
 		// type
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.group_attribute.type") + "*:", typeCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, GUIHelper.requiredLabel("dialog.group_attribute.type"), typeCombo);
 
 		// value
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.group_attribute.value") + ":", valueField);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.group_attribute.value"), valueField);
 
 		// validity range:
 		final JPanel validityPanel = GUIHelper.createLabelFieldPanel(5, "[]5[]");
 		validityPanel.setBorder(BorderFactory.createTitledBorder(I18N.t("dialog.validity.range")));
 		// valid from
-		GUIHelper.addLabeledComponent(validityPanel, I18N.t("dialog.valid_from") + ":", validFromField);
+		GUIHelper.addLabeledComponent(validityPanel, I18N.l("dialog.valid_from"), validFromField);
 		// valid to
-		GUIHelper.addLabeledComponent(validityPanel, I18N.t("dialog.valid_to") + ":", validToField);
+		GUIHelper.addLabeledComponent(validityPanel, I18N.l("dialog.valid_to"), validToField);
 		GUIHelper.addComponent(propertiesPanel, validityPanel);
 
 		// place
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.place") + ":", placeField);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.place"), placeField);
 
 		// confidence
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.group_attribute.confidence") + ":", confidenceCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.group_attribute.confidence"), confidenceCombo);
 
 		return propertiesPanel;
 	}

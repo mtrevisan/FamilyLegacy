@@ -29,7 +29,7 @@ import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 
 
 /**
- * The three projection views hosted by the {@link ProjectionSwitcherPanel}.
+ * The projection views hosted by the {@link ProjectionSwitcherPanel}.
  * <p>
  * The order of the constants matches the order in which the user cycles
  * through the views with the switch shortcut. The enum is used by the
@@ -39,26 +39,29 @@ import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 public enum ProjectionType{
 
 	/** Biological tree. */
-	BIOLOGICAL_TREE(I18N.t("menu.view.biological_tree")),
+	BIOLOGICAL_TREE("menu.view.biological_tree"),
 
 	/** Sugiyama pedigree graph. */
-	SUGIYAMA_GRAPH(I18N.t("menu.view.sugiyama_graph")),
+	SUGIYAMA_GRAPH("menu.view.sugiyama_graph"),
 
 	/** Ego-centric network. */
-	EGO_NETWORK(I18N.t("menu.view.ego_network"));
+	EGO_NETWORK("menu.view.ego_network"),
+
+	/** Map, list and timeline of the individuals that have a date and a place. */
+	CHRONOMAP("menu.view.chronomap");
 
 
-	private final String displayName;
+	private final String displayKey;
 
 
-	ProjectionType(final String displayName){
-		this.displayName = displayName;
+	ProjectionType(final String displayKey){
+		this.displayKey = displayKey;
 	}
 
 
 	/** Human-readable name, used in bookmark labels. */
 	public String displayName(){
-		return displayName;
+		return I18N.t(displayKey);
 	}
 
 }

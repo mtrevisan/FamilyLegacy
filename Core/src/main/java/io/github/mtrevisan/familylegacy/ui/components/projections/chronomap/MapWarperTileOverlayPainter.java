@@ -44,6 +44,7 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 
 /**
@@ -276,8 +277,12 @@ public final class MapWarperTileOverlayPainter implements ChronomapLayer{
 			return;
 		}
 
+		//the listener and the timeout race: the first one to decide wins, the other becomes a no-op
+		final AtomicBoolean decided = new AtomicBoolean();
+		final Timer timer = new Timer(PROBE_TIMEOUT_MS, null);
 		probeTile.addPropertyChangeListener("loaded", evt -> {
-			if(Boolean.TRUE.equals(evt.getNewValue()) && isTileGood(probeTile)){
+			if(Boolean.TRUE.equals(evt.getNewValue()) && isTileGood(probeTile) && decided.compareAndSet(false, true)){
+				timer.stop();
 				confirmedZooms.add(osmZoom);
 				probingZooms.remove(osmZoom);
 
@@ -285,7 +290,10 @@ public final class MapWarperTileOverlayPainter implements ChronomapLayer{
 			}
 		});
 
-		final Timer timer = new Timer(PROBE_TIMEOUT_MS, e -> {
+		timer.addActionListener(e -> {
+			if(!decided.compareAndSet(false, true))
+				return;
+
 			probingZooms.remove(osmZoom);
 			if(isTileGood(probeTile)){
 				confirmedZooms.add(osmZoom);

@@ -86,9 +86,9 @@ public class EvidenceQualifiersPanel extends JPanel{
 		evidenceTypeCombo.setToolTipText(I18N.t("dialog.evidence_qualifiers.evidence_type.tooltip"));
 
 		// Layout: label + combo per row
-		GUIHelper.addLabeledComponent(this, I18N.t("dialog.evidence_qualifiers.source_type") + ":", sourceTypeCombo);
-		GUIHelper.addLabeledComponent(this, I18N.t("dialog.evidence_qualifiers.information_type") + ":", informationTypeCombo);
-		GUIHelper.addLabeledComponent(this, I18N.t("dialog.evidence_qualifiers.evidence_type") + ":", evidenceTypeCombo);
+		GUIHelper.addLabeledComponent(this, I18N.l("dialog.evidence_qualifiers.source_type"), sourceTypeCombo);
+		GUIHelper.addLabeledComponent(this, I18N.l("dialog.evidence_qualifiers.information_type"), informationTypeCombo);
+		GUIHelper.addLabeledComponent(this, I18N.l("dialog.evidence_qualifiers.evidence_type"), evidenceTypeCombo);
 
 		// Attach hover tooltip listeners
 		attachTooltipListener(sourceTypeCombo);

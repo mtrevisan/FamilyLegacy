@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.io.FLEFValidator;
 import io.github.mtrevisan.familylegacy.io.grammar.FLEFGrammarParser;
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.FLEFGrammar;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolOperation;
 import org.apache.commons.lang3.StringUtils;
@@ -69,7 +70,7 @@ public final class ValidateFileTool implements ToolOperation{
 
 	@Override
 	public String getName(){
-		return "Validate File…";
+		return I18N.t("menu.tools.validate");
 	}
 
 	@Override
@@ -80,15 +81,14 @@ public final class ValidateFileTool implements ToolOperation{
 		final FLEFModel model = context.model();
 		if(model == null){
 			JOptionPane.showMessageDialog(context.owner(),
-				"No model loaded.", "Validate File", JOptionPane.WARNING_MESSAGE);
+				I18N.t("message.no_model_loaded"), I18N.t("dialog.validate.title"), JOptionPane.WARNING_MESSAGE);
 			return;
 		}
 
 		final FLEFGrammar grammar = grammar();
 		if(grammar == null){
 			JOptionPane.showMessageDialog(context.owner(),
-				"Grammar file not found: cannot validate.",
-				"Validate File", JOptionPane.ERROR_MESSAGE);
+				I18N.t("dialog.validate.no_grammar"), I18N.t("dialog.validate.title"), JOptionPane.ERROR_MESSAGE);
 			return;
 		}
 
@@ -115,8 +115,7 @@ public final class ValidateFileTool implements ToolOperation{
 					LOGGER.error("Validation failed", ex);
 					final Throwable cause = (ex.getCause() != null? ex.getCause(): ex);
 					JOptionPane.showMessageDialog(context.owner(),
-						"Validation failed:" + StringUtils.LF + cause.getMessage(),
-						"Validate File", JOptionPane.ERROR_MESSAGE);
+						I18N.l("dialog.validate.error") + StringUtils.LF + cause.getMessage(), I18N.t("dialog.validate.title"), JOptionPane.ERROR_MESSAGE);
 				}
 			}
 		};

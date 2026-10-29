@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.FLEFGrammar;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -205,7 +206,7 @@ class GEDCOM7ToFLEFConverterTest{
 		final String content;
 		try(BufferedReader reader = GEDCOMHelper.getBufferedReader(new ByteArrayInputStream(bytes))){
 			content = reader.lines()
-				.collect(Collectors.joining("\n"));
+				.collect(Collectors.joining(StringUtils.LF));
 		}
 		Assertions.assertTrue(content.contains("1 NAME Nuño /Rossi/"));
 	}

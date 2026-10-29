@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.ui.assistant.AssistantCategory;
 import io.github.mtrevisan.familylegacy.ui.assistant.Diagnostic;
 import io.github.mtrevisan.familylegacy.ui.assistant.DiagnosticKeys;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -347,7 +348,7 @@ final class GapChecker{
 			final int usefulness, final GapDraft draft, final Object... arguments){
 		final String level = level(usefulness);
 		final Diagnostic diagnostic = new Diagnostic(severity, AssistantCategory.RESEARCH, I18N.tf("gap." + key + ".title", arguments),
-			I18N.tf("gap." + key + ".explanation", arguments) + " " + I18N.tf("gap.usefulness", I18N.t("gap.usefulness." + level),
+			I18N.tf("gap." + key + ".explanation", arguments) + StringUtils.SPACE + I18N.tf("gap.usefulness", I18N.t("gap.usefulness." + level),
 				usefulness),
 			recordIds, null, DiagnosticKeys.of("gap." + key, recordIds, arguments), List.of(), usefulness);
 		return new GapFinding(diagnostic, draft);

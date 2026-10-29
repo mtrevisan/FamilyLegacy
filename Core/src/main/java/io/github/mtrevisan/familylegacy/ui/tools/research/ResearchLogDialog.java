@@ -103,7 +103,7 @@ public final class ResearchLogDialog extends JDialog{
 	private JPanel createToolbar(){
 		final JPanel toolbar = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 6));
 		toolbar.setBorder(BorderFactory.createEmptyBorder(2, 4, 2, 4));
-		toolbar.add(new JLabel("Filter:"));
+		toolbar.add(new JLabel(I18N.l("label.filter")));
 		toolbar.add(searchField);
 		final Document document = searchField.getDocument();
 		document.addDocumentListener(new DocumentListener(){
@@ -137,7 +137,7 @@ public final class ResearchLogDialog extends JDialog{
 		columnModel.getColumn(4).setPreferredWidth(120);
 
 		final JScrollPane scroll = new JScrollPane(table);
-		scroll.setBorder(BorderFactory.createTitledBorder("Research log"));
+		scroll.setBorder(BorderFactory.createTitledBorder(I18N.t("border.research_log")));
 		return scroll;
 	}
 

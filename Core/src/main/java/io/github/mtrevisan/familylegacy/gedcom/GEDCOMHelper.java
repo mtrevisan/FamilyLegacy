@@ -62,6 +62,7 @@ import java.util.regex.Pattern;
 
 public class GEDCOMHelper{
 
+	private static final Pattern UPPERCASE_LETTERS_THEN_DIGITS = Pattern.compile("^[A-Z]+\\d+$");
 	private static final Pattern PATTERN_SPACES = Pattern.compile("\\s+");
 	/** A name followed by its phonemic transcription between slashes, e.g. {@code Dorato /do.ˈra.to/}. */
 	private static final Pattern NAME_WITH_PHONETIC = Pattern.compile("^(?<name>[^/]+?)\\s*(?<phonetic>/[^/]+/)$");
@@ -257,14 +258,14 @@ public class GEDCOMHelper{
 	 * followed by one or more digits, and contains nothing else.
 	 */
 	public static boolean isUppercaseLettersThenNumbers(String value){
-		return value != null && value.matches("^[A-Z]+\\d+$");
+		return value != null && UPPERCASE_LETTERS_THEN_DIGITS.matcher(value).matches();
 	}
 
 	/**
 	 * Checks if the ID matches the FLEF format: letters followed by digits.
 	 */
 	private static boolean isValidIdFormat(String id){
-		return id != null && id.matches("^[A-Z]+\\d+$");
+		return id != null && UPPERCASE_LETTERS_THEN_DIGITS.matcher(id).matches();
 	}
 
 

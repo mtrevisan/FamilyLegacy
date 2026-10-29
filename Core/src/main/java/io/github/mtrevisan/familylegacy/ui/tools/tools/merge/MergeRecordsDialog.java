@@ -42,11 +42,13 @@ import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultCellEditor;
+import javax.swing.DefaultListCellRenderer;
 import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -219,11 +221,11 @@ public final class MergeRecordsDialog extends JDialog{
 		// Source row: label + EntityField. The field's own popup menu
 		// (Set…, Edit…, Clear) is the only way to change the selection,
 		// so no extra "Choose…" button is needed.
-		form.add(new JLabel(I18N.t("dialog.merge.source") + ":"));
+		form.add(new JLabel(I18N.l("dialog.merge.source")));
 		form.add(sourceField, "growx");
 
 		// Target row.
-		form.add(new JLabel(I18N.t("dialog.merge.target") + ":"));
+		form.add(new JLabel(I18N.l("dialog.merge.target")));
 		form.add(targetField, "growx");
 
 		// Collisions table.
@@ -238,6 +240,14 @@ public final class MergeRecordsDialog extends JDialog{
 
 		// a field holding a single value cannot keep both
 		final JComboBox<MergeDecision> decisionCombo = new JComboBox<>(MergeDecision.values());
+		decisionCombo.setRenderer(new DefaultListCellRenderer(){
+			@Override
+			public Component getListCellRendererComponent(final JList<?> list, final Object value, final int index,
+					final boolean isSelected, final boolean cellHasFocus){
+				return super.getListCellRendererComponent(list, (value instanceof MergeDecision decision? decision.label(): value),
+					index, isSelected, cellHasFocus);
+			}
+		});
 		columnModel.getColumn(ACTION_COLUMN).setCellEditor(new DefaultCellEditor(decisionCombo){
 			@Override
 			public Component getTableCellEditorComponent(final JTable table, final Object value, final boolean isSelected,
@@ -295,7 +305,7 @@ public final class MergeRecordsDialog extends JDialog{
 		});
 
 		final JScrollPane tableScroll = new JScrollPane(collisionsTable);
-		tableScroll.setBorder(BorderFactory.createTitledBorder("Collisions"));
+		tableScroll.setBorder(BorderFactory.createTitledBorder(I18N.t("border.collisions")));
 		// "span 2" spans both columns; "grow,push" takes the remaining
 		// horizontal and vertical space, so the table stretches with the
 		// dialog instead of staying at its preferred size.
@@ -309,12 +319,12 @@ public final class MergeRecordsDialog extends JDialog{
 		buttons.setBorder(BorderFactory.createEmptyBorder(4, 8, 8, 8));
 
 		// the alternative to merging: the judgment that they are not the same, kept in the file
-		differentButton.setToolTipText("Record that they are different entities: they will not be proposed for a merge again");
+		differentButton.setToolTipText(I18N.t("tooltip.merge_different"));
 		differentButton.setEnabled(false);
 		differentButton.addActionListener(e -> onReject());
 		buttons.add(differentButton);
 
-		final JButton ok = new JButton("Merge");
+		final JButton ok = new JButton(I18N.t("button.merge"));
 		ok.addActionListener(e -> onConfirm());
 		buttons.add(ok);
 
@@ -397,19 +407,19 @@ public final class MergeRecordsDialog extends JDialog{
 		final FLEFRecord target = targetField.getEntity();
 
 		if(merger == null){
-			warn("The FLEF grammar is not available: records cannot be merged.");
+			warn(I18N.t("dialog.merge.records.warn.no_grammar"));
 			return;
 		}
 		if(source == null || target == null){
-			warn("Choose both a source and a target.");
+			warn(I18N.t("dialog.merge.records.warn.choose_both"));
 			return;
 		}
 		if(source.getId().equals(target.getId())){
-			warn("The source and the target must be different records.");
+			warn(I18N.t("dialog.merge.records.warn.same"));
 			return;
 		}
 		if(plan == null){
-			warn("Unable to plan the merge: " + source.getTag() + " vs " + target.getTag());
+			warn(I18N.tf("dialog.merge.records.warn.plan_failed", source.getTag(), target.getTag()));
 			return;
 		}
 
@@ -420,18 +430,18 @@ public final class MergeRecordsDialog extends JDialog{
 			final RecordMerger.MergeResult result = merger.apply(plan);
 			confirmed = true;
 
-			final StringBuilder summary = new StringBuilder("Merge completed.")
-				.append(StringUtils.LF).append("Fields taken from source: ").append(result.fieldsTakenFromSource())
-				.append(StringUtils.LF).append("References re-pointed: ").append(result.referencesRepointed());
+			final StringBuilder summary = new StringBuilder(I18N.t("dialog.merge.records.completed"))
+				.append(StringUtils.LF).append(I18N.t("dialog.merge.records.fields.taken")).append(':').append(StringUtils.SPACE).append(result.fieldsTakenFromSource())
+				.append(StringUtils.LF).append(I18N.t("dialog.merge.records.references.repointed")).append(':').append(StringUtils.SPACE).append(result.referencesRepointed());
 			if(!result.collapsedIds().isEmpty())
-				summary.append(StringUtils.LF).append("Duplicate records collapsed: ").append(String.join(", ", result.collapsedIds()));
+				summary.append(StringUtils.LF).append(I18N.t("dialog.merge.records.collapsed")).append(':').append(StringUtils.SPACE).append(String.join(", ", result.collapsedIds()));
 			if(!result.deletedIds().isEmpty())
-				summary.append(StringUtils.LF).append("Records deleted (accepted hypothesis and cascade): ")
+				summary.append(StringUtils.LF).append(I18N.t("dialog.merge.records.deleted")).append(':').append(StringUtils.SPACE)
 					.append(String.join(", ", result.deletedIds()));
 			if(!result.conflicts().isEmpty())
-				summary.append(StringUtils.LF).append("Values of the source not kept:").append(StringUtils.LF)
+				summary.append(StringUtils.LF).append(I18N.t("dialog.merge.records.conflicts")).append(':').append(StringUtils.LF)
 					.append(String.join(StringUtils.LF, result.conflicts()));
-			JOptionPane.showMessageDialog(this, summary.toString(), "Merge Records", JOptionPane.INFORMATION_MESSAGE);
+			JOptionPane.showMessageDialog(this, summary.toString(), I18N.t("dialog.merge.records.title"), JOptionPane.INFORMATION_MESSAGE);
 
 			dispose();
 		}
@@ -451,10 +461,7 @@ public final class MergeRecordsDialog extends JDialog{
 			return;
 
 		final String narrative = JOptionPane.showInputDialog(this,
-			"Why are " + displayOf(source) + " and " + displayOf(target) + " different? (optional)" + StringUtils.LF
-				+ "Nothing is merged or deleted: the judgment is recorded in the file, and they will not be proposed"
-				+ " for a merge again.",
-			"Different Records", JOptionPane.QUESTION_MESSAGE);
+			I18N.tf("dialog.merge.records.different.prompt", displayOf(source), displayOf(target)), I18N.t("dialog.merge.records.different.title"), JOptionPane.QUESTION_MESSAGE);
 		if(narrative == null)
 			return;
 
@@ -463,9 +470,7 @@ public final class MergeRecordsDialog extends JDialog{
 				(StringUtils.isNotBlank(narrative)? narrative.strip(): "Judged different by the researcher in the merge dialog"));
 
 			JOptionPane.showMessageDialog(this,
-				"Recorded as different: identity hypothesis " + rejection.hypothesisId()
-					+ " disproven by conclusion " + rejection.conclusionId() + ".",
-				"Different Records", JOptionPane.INFORMATION_MESSAGE);
+				I18N.tf("dialog.merge.records.different.recorded", rejection.hypothesisId(), rejection.conclusionId()), I18N.t("dialog.merge.records.different.title"), JOptionPane.INFORMATION_MESSAGE);
 
 			dispose();
 		}
@@ -477,12 +482,9 @@ public final class MergeRecordsDialog extends JDialog{
 	private boolean confirm(){
 		final FLEFRecord source = sourceField.getEntity();
 		final FLEFRecord target = targetField.getEntity();
-		final String message = "Merge " + displayOf(source)
-			+ " into " + displayOf(target) + "?\n\n"
-			+ "The source record will be deleted. All references to it "
-			+ "will be re-pointed to the target.";
+		final String message = I18N.tf("dialog.merge.records.confirm.message", displayOf(source), displayOf(target));
 		final int choice = JOptionPane.showConfirmDialog(this, message,
-			"Confirm Merge",
+			I18N.t("dialog.merge.records.confirm.title"),
 			JOptionPane.YES_NO_OPTION,
 			JOptionPane.WARNING_MESSAGE);
 		return (choice == JOptionPane.YES_OPTION);
@@ -490,7 +492,7 @@ public final class MergeRecordsDialog extends JDialog{
 
 	private void warn(final String message){
 		JOptionPane.showMessageDialog(this, message,
-			"Merge Records", JOptionPane.WARNING_MESSAGE);
+			I18N.t("dialog.merge.records.title"), JOptionPane.WARNING_MESSAGE);
 	}
 
 	/**

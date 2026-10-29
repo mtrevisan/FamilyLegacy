@@ -41,6 +41,7 @@ import java.util.regex.Pattern;
  */
 public final class VenetanCalendarParser{
 
+	private static final Pattern ARO_SUFFIX = Pattern.compile("aro?$");
 	private static final Map<String, Integer> MONTHS = new HashMap<>();
 	static{
 		// Venetian Month Names (Year starting in March)
@@ -218,7 +219,7 @@ public final class VenetanCalendarParser{
 		// the indiction is checked against the year by the calendar, after the conversion
 		final Indiction.Extraction extraction = Indiction.extract(rawDate);
 		final int indiction = extraction.indiction();
-		final String normalized = StringUtils.normalizeSpace(FORMULA_WORDS.matcher(extraction.text()).replaceAll(" "))
+		final String normalized = StringUtils.normalizeSpace(FORMULA_WORDS.matcher(extraction.text()).replaceAll(StringUtils.SPACE))
 			.toLowerCase(Locale.ROOT);
 
 		// A year alone (e.g. the start of a decade or century) stands for the first day of the year
@@ -240,7 +241,8 @@ public final class VenetanCalendarParser{
 			.replace("ƚe", "l")
 			.replace("ƚi", "l")
 			.replace("gn", "ñ");
-		monthName = monthName.replaceAll("aro?$", "èr");
+		monthName = ARO_SUFFIX.matcher(monthName)
+			.replaceAll("èr");
 
 		final Integer month = MONTHS.get(monthName);
 		if(month == null)

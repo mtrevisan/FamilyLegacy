@@ -426,7 +426,7 @@ public class FLEFParser{
 			normalized = normalized.substring(1);
 
 		// Step 3: Split into lines (keep trailing empty lines)
-		final String[] lines = normalized.split(StringUtils.LF, -1);
+		final String[] lines = StringUtils.splitPreserveAllTokens(normalized, '\n');
 
 		// Step 4: Calculate the minimum indentation among all non‑blank content lines
 		// and also consider the indentation of the closing delimiter line.

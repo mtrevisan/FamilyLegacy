@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateNormalizer;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.TemporalSpan;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -169,7 +170,7 @@ final class ModelIndex{
 
 	/** The date of the last change of a record: its last update, or its creation. */
 	private static String lastAuditDate(final FLEFRecord record){
-		String last = "";
+		String last = StringUtils.EMPTY;
 		for(final FLEFRecord audit : FieldMerger.children(record, TAG_AUDIT)){
 			for(final FLEFRecord creation : FieldMerger.children(audit, TAG_CREATION))
 				last = max(last, value(creation, TAG_DATE));
@@ -200,7 +201,7 @@ final class ModelIndex{
 			return;
 
 		final String type = value(owner, TAG_TYPE);
-		final String usage = subjects + "|" + owner.getTag() + (type != null? ":" + type: "");
+		final String usage = subjects + "|" + owner.getTag() + (type != null? ":" + type: StringUtils.EMPTY);
 		usagesOf.computeIfAbsent(usedId, k -> new LinkedHashSet<>())
 			.add(usage);
 		if(KIND_SOURCE.equals(usedKind)){
@@ -416,7 +417,7 @@ final class ModelIndex{
 			final FLEFRecord place = FieldMerger.first(attribute, TAG_PLACE);
 			final String placeId = (place != null? value(place, TAG_PLACE): null);
 			if(type != null && (!attributeValue.isEmpty() || placeId != null))
-				keys.add(type + "|" + attributeValue + "|" + (placeId != null? placeId: ""));
+				keys.add(type + "|" + attributeValue + "|" + (placeId != null? placeId: StringUtils.EMPTY));
 		}
 		return keys;
 	}

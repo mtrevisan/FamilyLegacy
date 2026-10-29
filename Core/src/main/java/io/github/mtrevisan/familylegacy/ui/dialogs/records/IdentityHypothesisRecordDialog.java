@@ -149,10 +149,10 @@ public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 	@Override
 	protected JPanel createPropertiesPanel(){
 		// identity 1
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.identity_hypothesis.identity.one") + "*:", GUIHelper.withTooltip(identity1Field, "tooltip.identity_hypothesis.identity.one"));
+		GUIHelper.addLabeledComponent(propertiesPanel, GUIHelper.requiredLabel("dialog.identity_hypothesis.identity.one"), GUIHelper.withTooltip(identity1Field, "tooltip.identity_hypothesis.identity.one"));
 
 		// identity 2
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.identity_hypothesis.identity.two") + "*:", GUIHelper.withTooltip(identity2Field, "tooltip.identity_hypothesis.identity.two"));
+		GUIHelper.addLabeledComponent(propertiesPanel, GUIHelper.requiredLabel("dialog.identity_hypothesis.identity.two"), GUIHelper.withTooltip(identity2Field, "tooltip.identity_hypothesis.identity.two"));
 
 		// compare button, right under the two identity fields
 		final JPanel compareRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
@@ -161,10 +161,10 @@ public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 		GUIHelper.addComponent(propertiesPanel, compareRow);
 
 		// rationale
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.identity_hypothesis.rationale") + ":", GUIHelper.withTooltip(rationaleArea, "tooltip.identity_hypothesis.rationale"));
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.identity_hypothesis.rationale"), GUIHelper.withTooltip(rationaleArea, "tooltip.identity_hypothesis.rationale"));
 
 		// confidence
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.identity_hypothesis.confidence") + ":", GUIHelper.withTooltip(confidenceCombo, "tooltip.identity_hypothesis.confidence"));
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.identity_hypothesis.confidence"), GUIHelper.withTooltip(confidenceCombo, "tooltip.identity_hypothesis.confidence"));
 
 		return propertiesPanel;
 	}
@@ -258,7 +258,7 @@ public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 			final EntityField field = (choice? identity1Field: identity2Field);
 			final JLabel label = GUIHelper.getLabeledComponent(choice? identity2Field: identity1Field);
 
-			label.setText(I18N.t("dialog.identity_hypothesis.identity") + "*:");
+			label.setText(GUIHelper.requiredLabel("dialog.identity_hypothesis.identity"));
 			field.setEntity(FLEFRecord.createMainRecord(parentEntity.getText(), parentEntity.getPath()));
 
 			GUIHelper.setComponentEnabled(field, false);

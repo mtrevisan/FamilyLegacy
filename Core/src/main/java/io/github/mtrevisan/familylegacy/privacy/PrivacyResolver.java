@@ -305,11 +305,13 @@ public final class PrivacyResolver{
 			return;
 		indexed = true;
 
-		final Map<String, FLEFRecord> events = new HashMap<>();
-		for(final FLEFRecord event : model.getRecordsByType(EventReader.TYPE))
-			events.put(event.getId(), event);
+		final Map<String, FLEFRecord> filteredEvents = new HashMap<>();
+		final List<FLEFRecord> events = model.getRecordsByType(EventReader.TYPE);
+		for(final FLEFRecord event : events)
+			filteredEvents.put(event.getId(), event);
 
-		for(final FLEFRecord participation : model.getRecordsByType(EventParticipationReader.TYPE)){
+		final List<FLEFRecord> participations = model.getRecordsByType(EventParticipationReader.TYPE);
+		for(final FLEFRecord participation : participations){
 			final Participant participant = participantOf(participation);
 			final String eventId = FLEFRecordHelper.getChildValue(participation, EventParticipationReader.TAG_EVENT);
 			if(participant == null || eventId == null)
@@ -320,13 +322,15 @@ public final class PrivacyResolver{
 				.add(participantId);
 
 			if(participant.individual() && isPrincipal(participation)
-					&& isCertainlyDead(events.get(eventId)))
+					&& isCertainlyDead(filteredEvents.get(eventId)))
 				notLiving.add(participantId);
 		}
 
-		for(final FLEFRecord owner : model.getRecordsByType(IndividualReader.TYPE))
+		final List<FLEFRecord> individuals = model.getRecordsByType(IndividualReader.TYPE);
+		for(final FLEFRecord owner : individuals)
 			indexPreferredImage(owner);
-		for(final FLEFRecord owner : model.getRecordsByType(GroupReader.TYPE))
+		final List<FLEFRecord> groups = model.getRecordsByType(GroupReader.TYPE);
+		for(final FLEFRecord owner : groups)
 			indexPreferredImage(owner);
 	}
 

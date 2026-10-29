@@ -27,6 +27,7 @@ package io.github.mtrevisan.calendars.eastasian;
 import io.github.mtrevisan.calendars.gregorian.GregorianCalendarStrategy;
 import io.github.mtrevisan.calendars.spi.CalendarConverterPlugin;
 import io.github.mtrevisan.calendars.spi.CalendarMetadata;
+import org.apache.commons.lang3.StringUtils;
 
 import java.time.DateTimeException;
 import java.time.LocalDate;
@@ -120,7 +121,7 @@ public class EraOffsetCalendarStrategy implements CalendarConverterPlugin{
 
 	private EastAsianDateInput parse(final String rawDate){
 		// the Gregorian year written next to the era year, e.g. "주체112(2023)년"
-		final String withoutGregorianYear = (rawDate != null? PARENTHESIZED.matcher(rawDate).replaceAll(" "): null);
+		final String withoutGregorianYear = (rawDate != null? PARENTHESIZED.matcher(rawDate).replaceAll(StringUtils.SPACE): null);
 		return EastAsianEraDateParser.parse(withoutGregorianYear, eraAliases, defaultEra);
 	}
 

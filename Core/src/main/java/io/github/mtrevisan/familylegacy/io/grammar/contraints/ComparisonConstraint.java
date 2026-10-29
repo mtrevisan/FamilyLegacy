@@ -75,7 +75,7 @@ public final class ComparisonConstraint extends Constraint{
 
 	private boolean isField(final String token){
 		// A field is an identifier (letters, digits, underscores); a literal is a number or string.
-		return (!token.matches("^[0-9].*") && !token.startsWith("\""));
+		return ((token.isEmpty() || token.charAt(0) < '0' || token.charAt(0) > '9') && !token.startsWith("\""));
 	}
 
 	private String resolveValue(final FLEFRecord record, final String token){

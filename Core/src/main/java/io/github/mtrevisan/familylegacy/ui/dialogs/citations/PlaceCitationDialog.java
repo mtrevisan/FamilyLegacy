@@ -111,10 +111,10 @@ public class PlaceCitationDialog extends BaseRecordDialog{
 	@Override
 	protected JPanel createPropertiesPanel(){
 		// original text
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.place_citation.original_text") + "*:", originalTextField);
+		GUIHelper.addLabeledComponent(propertiesPanel, GUIHelper.requiredLabel("dialog.place_citation.original_text"), originalTextField);
 
 		// confidence
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.place_citation.confidence") + ":", confidenceCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.place_citation.confidence"), confidenceCombo);
 
 		return propertiesPanel;
 	}

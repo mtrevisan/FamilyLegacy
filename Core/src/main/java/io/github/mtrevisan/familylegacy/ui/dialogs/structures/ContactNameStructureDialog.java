@@ -93,7 +93,7 @@ public class ContactNameStructureDialog extends BaseRecordDialog{
 	@Override
 	protected JPanel createPropertiesPanel(){
 		// value
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.name.name") + "*:", valueField);
+		GUIHelper.addLabeledComponent(propertiesPanel, GUIHelper.requiredLabel("dialog.name.name"), valueField);
 
 		// variant
 		GUIHelper.addComponent(propertiesPanel, variantPanel);

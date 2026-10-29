@@ -95,13 +95,12 @@ public final class ImportGrampsXmlTool implements ToolOperation{
 			? w
 			: SwingUtilities.getWindowAncestor(context.owner());
 
-		final ProgressDialog progress = new ProgressDialog(owner, "Import Gramps XML",
-			"Importing " + file.getName() + "…");
+		final ProgressDialog progress = new ProgressDialog(owner, I18N.t("dialog.import.gramps.title"), I18N.tf("dialog.import.progress", file.getName()));
 
 		final SwingWorker<FLEFModel, Void> worker = new SwingWorker<>(){
 			@Override
 			protected FLEFModel doInBackground() throws Exception{
-				progress.update(-1, "Reading file…");
+				progress.update(-1, I18N.t("progress.reading_file"));
 				final String grampsXmlContent;
 				try(final BufferedReader br = GEDCOMHelper.getBufferedReader(
 					new FileInputStream(file))){
@@ -109,7 +108,7 @@ public final class ImportGrampsXmlTool implements ToolOperation{
 						.collect(Collectors.joining(System.lineSeparator()));
 				}
 
-				progress.update(-1, "Parsing Gramps XML…");
+				progress.update(-1, I18N.t("progress.parsing_gramps"));
 				final GEDCOMParser parser = new GEDCOMParser();
 				final List<GEDCOMNode> roots;
 				try(final StringReader reader = new StringReader(grampsXmlContent)){
@@ -136,8 +135,7 @@ public final class ImportGrampsXmlTool implements ToolOperation{
 				catch(final ExecutionException ex){
 					final Throwable cause = (ex.getCause() != null)? ex.getCause(): ex;
 					JOptionPane.showMessageDialog(context.owner(),
-						"The file is not a valid Gramps XML document:" + StringUtils.LF + cause.getMessage(),
-						"Import Error", JOptionPane.ERROR_MESSAGE);
+						I18N.l("error.import.gramps.invalid") + StringUtils.LF + cause.getMessage(), I18N.t("error.import.title"), JOptionPane.ERROR_MESSAGE);
 				}
 			}
 		};

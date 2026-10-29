@@ -74,15 +74,15 @@ public class HistoricEventFilterPanel extends JPanel implements RecordFilterPane
 
 		calendarCombo.setI18NPrefix("enum.date.calendar");
 
-		add(new JLabel(I18N.t("dialog.historic_event.type") + ":"));
+		add(new JLabel(I18N.l("dialog.historic_event.type")));
 		add(typeCombo, "growx");
-		add(new JLabel(I18N.t("dialog.historic_event.title") + ":"));
+		add(new JLabel(I18N.l("dialog.historic_event.title")));
 		add(titleField, "growx");
-		add(new JLabel(I18N.t("dialog.historic_event.date") + ":"));
+		add(new JLabel(I18N.l("dialog.historic_event.date")));
 		add(dateField, "growx");
-		add(new JLabel(I18N.t("search.date.calendar.from") + ":"));
+		add(new JLabel(I18N.l("search.date.calendar.from")));
 		add(calendarCombo, "growx");
-		add(new JLabel(I18N.t("dialog.place") + ":"));
+		add(new JLabel(I18N.l("dialog.place")));
 		add(locationField, "growx");
 	}
 

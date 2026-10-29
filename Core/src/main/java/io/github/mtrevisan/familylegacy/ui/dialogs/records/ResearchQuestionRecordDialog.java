@@ -173,16 +173,16 @@ public class ResearchQuestionRecordDialog extends BaseRecordDialog{
 	@Override
 	protected JPanel createPropertiesPanel(){
 		// title
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.research_question.title") + "*:", titleField);
+		GUIHelper.addLabeledComponent(propertiesPanel, GUIHelper.requiredLabel("dialog.research_question.title"), titleField);
 
 		// question
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.research_question.question") + "*:", questionArea);
+		GUIHelper.addLabeledComponent(propertiesPanel, GUIHelper.requiredLabel("dialog.research_question.question"), questionArea);
 
 		// target
 		GUIHelper.addComponent(propertiesPanel, targetPanel);
 
 		// status
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.research_question.status") + "*:", statusPanel);
+		GUIHelper.addLabeledComponent(propertiesPanel, GUIHelper.requiredLabel("dialog.research_question.status"), statusPanel);
 
 		// conclusion panel:
 		final JPanel conclusionPanel = GUIHelper.createLabelFieldPanel(5, "[]5[]");
@@ -190,11 +190,11 @@ public class ResearchQuestionRecordDialog extends BaseRecordDialog{
 		// conclusion
 		GUIHelper.addComponent(conclusionPanel, conclusionArea);
 		// confidence
-		GUIHelper.addLabeledComponent(conclusionPanel, I18N.t("dialog.research_question.confidence") + ":", GUIHelper.withTooltip(conclusionConfidenceCombo, "tooltip.research_question.confidence"));
+		GUIHelper.addLabeledComponent(conclusionPanel, I18N.l("dialog.research_question.confidence"), GUIHelper.withTooltip(conclusionConfidenceCombo, "tooltip.research_question.confidence"));
 		GUIHelper.addComponent(propertiesPanel, conclusionPanel);
 
 		// rationale
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.research_question.rationale") + ":", GUIHelper.withTooltip(rationaleArea, "tooltip.research_question.rationale"));
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.research_question.rationale"), GUIHelper.withTooltip(rationaleArea, "tooltip.research_question.rationale"));
 
 		// closed date
 		//calculated

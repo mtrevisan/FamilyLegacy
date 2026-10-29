@@ -229,6 +229,7 @@ public class RecordSelectionDialog extends JDialog{
 			final BiConsumer<FLEFRecord, RecordTypeHandler<?>> onSelect,
 			final boolean allowCreation, final Class<? extends RecordTypeHandler<?>>... handlerTypes){
 		super(parent, I18N.t("search.title.select_record"), ModalityType.APPLICATION_MODAL);
+		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
 		this.model = model;
 		this.onSelect = onSelect;
@@ -313,10 +314,10 @@ public class RecordSelectionDialog extends JDialog{
 		topPanel.setBorder(BorderFactory.createTitledBorder(I18N.t("search.search_panel.title")));
 
 		if(typeCombo != null){
-			topPanel.add(new JLabel(I18N.t("search.type") + ":"));
+			topPanel.add(new JLabel(I18N.l("search.type")));
 			topPanel.add(typeCombo, "growx");
 		}
-		topPanel.add(new JLabel(I18N.t("search.search_text") + ":"));
+		topPanel.add(new JLabel(I18N.l("search.search_text")));
 		topPanel.add(searchField, "growx");
 
 		// Search modifiers: two independent checkboxes. Both start

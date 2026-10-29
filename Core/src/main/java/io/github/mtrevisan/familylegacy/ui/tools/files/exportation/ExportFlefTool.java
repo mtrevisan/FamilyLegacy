@@ -94,14 +94,11 @@ public final class ExportFlefTool implements ToolOperation{
 
 			if(result.omittedRecords() > 0 || result.omittedNodes() > 0)
 				JOptionPane.showMessageDialog(context.owner(),
-					result.omittedRecords() + " record(s) and " + result.omittedNodes()
-						+ " nested item(s) have been omitted by the privacy policy.",
-					"Export", JOptionPane.INFORMATION_MESSAGE);
+					I18N.tf("dialog.export.flef.omitted.message", result.omittedRecords(), result.omittedNodes()), I18N.t("dialog.export.flef.omitted.title"), JOptionPane.INFORMATION_MESSAGE);
 		}
 		catch(final IOException ex){
 			JOptionPane.showMessageDialog(context.owner(),
-				"Unable to write the file:" + StringUtils.LF + ex.getMessage(),
-				"Export Error", JOptionPane.ERROR_MESSAGE);
+				I18N.l("dialog.export.flef.error.message") + StringUtils.LF + ex.getMessage(), I18N.t("dialog.export.flef.error.title"), JOptionPane.ERROR_MESSAGE);
 		}
 	}
 
@@ -112,8 +109,8 @@ public final class ExportFlefTool implements ToolOperation{
 		for(int i = 0; i < policies.length; i ++)
 			labels[i] = I18N.t("menu.view.privacy." + policies[i].name().toLowerCase(Locale.ROOT));
 
-		final Object choice = JOptionPane.showInputDialog(context.owner(), "Privacy of the exported file:",
-			"Export FLEF file", JOptionPane.QUESTION_MESSAGE, null, labels, labels[PrivacyService.policy().ordinal()]);
+		final Object choice = JOptionPane.showInputDialog(context.owner(), I18N.l("dialog.export.flef.privacy.prompt"),
+			I18N.t("dialog.export.flef.title"), JOptionPane.QUESTION_MESSAGE, null, labels, labels[PrivacyService.policy().ordinal()]);
 		if(choice == null)
 			return null;
 

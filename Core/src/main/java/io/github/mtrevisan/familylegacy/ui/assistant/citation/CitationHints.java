@@ -36,11 +36,13 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.regex.Pattern;
 
 
 /** Where the assistant looks for clues about a citation: the media of the cited source and the repositories of the model. */
 final class CitationHints{
 
+	private static final Pattern LETTER_DIGIT_BOUNDARY = Pattern.compile("(?<=\\p{L})(?=\\d)|(?<=\\d)(?=\\p{L})");
 	/**
 	 * A locator suggested by the name or the description of a media of the source.
 	 *
@@ -97,10 +99,8 @@ final class CitationHints{
 
 	/** Separates what a file name glues together: underscores, hyphens and the boundaries between letters and digits. */
 	private static String separate(final String text){
-		return text.replace('_', ' ')
-			.replaceAll("(?<=\\p{L})(?=\\d)|(?<=\\d)(?=\\p{L})", " ")
-			.replaceAll("\\s+", " ")
-			.strip();
+		return StringUtils.normalizeSpace(LETTER_DIGIT_BOUNDARY.matcher(text.replace('_', ' '))
+			.replaceAll(StringUtils.SPACE));
 	}
 
 
@@ -138,7 +138,7 @@ final class CitationHints{
 	/** The initials of the words of the name, from the ones that begin with an upper case letter: <em>Archivio di Stato di Venezia</em> is <em>asv</em>. */
 	static String acronym(final String name){
 		final StringBuilder sb = new StringBuilder();
-		for(final String word : name.strip().split("[\\s,.'-]+"))
+		for(final String word : StringUtils.split(name.strip(), " ,.'-\t\n\013\f\r"))
 			if(!word.isEmpty() && Character.isUpperCase(word.charAt(0)))
 				sb.append(Character.toLowerCase(word.charAt(0)));
 		return sb.toString();

@@ -130,21 +130,21 @@ public class SingleDatePanel extends JPanel{
 
 		// date type
 		final JPanel typePanel = GUIHelper.createLabelFieldPanel(0, "[]");
-		GUIHelper.addLabeledComponent(typePanel, I18N.t("dialog.date.type") + ":", singleDateTypeCombo);
+		GUIHelper.addLabeledComponent(typePanel, I18N.l("dialog.date.type"), singleDateTypeCombo);
 		GUIHelper.addComponent(this, typePanel);
 
 		// card panel for FULL_DATE, DECADE, CENTURY:
 		final JPanel fullDatePanel = GUIHelper.createLabelFieldPanel(0, "[]");
-		GUIHelper.addLabeledComponent(fullDatePanel, I18N.t("dialog.date.full_date") + ":", fullDateValueField);
+		GUIHelper.addLabeledComponent(fullDatePanel, I18N.l("dialog.date.full_date"), fullDateValueField);
 
 		final JPanel decadePanel = GUIHelper.createLabelFieldPanel(0, "[]");
-		GUIHelper.addLabeledComponent(decadePanel, I18N.t("dialog.date.decade") + ":", decadeStartYearField);
+		GUIHelper.addLabeledComponent(decadePanel, I18N.l("dialog.date.decade"), decadeStartYearField);
 		decadeStartYearField.setToolTipText(I18N.t("dialog.date.decade.tooltip"));
 
 		final JPanel centuryPanel = new JPanel(new MigLayout("ins 0,fillx,wrap 2", "[right]rel[grow,fill]"));
-		GUIHelper.addLabeledComponent(centuryPanel, I18N.t("dialog.date.century") + ":", centuryOrdinalField);
+		GUIHelper.addLabeledComponent(centuryPanel, I18N.l("dialog.date.century"), centuryOrdinalField);
 		centuryOrdinalField.setToolTipText(I18N.t("dialog.date.century.tooltip"));
-		GUIHelper.addLabeledComponent(centuryPanel, I18N.t("dialog.date.part") + ":", centuryPartCombo);
+		GUIHelper.addLabeledComponent(centuryPanel, I18N.l("dialog.date.part"), centuryPartCombo);
 
 		cardPanel.add(fullDatePanel, DateType.FULL_DATE.name());
 		cardPanel.add(decadePanel, DateType.DECADE.name());
@@ -155,7 +155,7 @@ public class SingleDatePanel extends JPanel{
 
 		// calendar
 		final JPanel calendarPanel = GUIHelper.createLabelFieldPanel(0, "[]");
-		GUIHelper.addLabeledComponent(calendarPanel, I18N.t("dialog.date.calendar") + ":", calendarCombo);
+		GUIHelper.addLabeledComponent(calendarPanel, I18N.l("dialog.date.calendar"), calendarCombo);
 		GUIHelper.addComponent(this, calendarPanel);
 
 		// Approximate
@@ -358,7 +358,7 @@ public class SingleDatePanel extends JPanel{
 			return true;
 
 		final JPanel messagePanel = new JPanel(new MigLayout("ins 0,wrap 1"));
-		messagePanel.add(new JLabel(I18N.tf("validation.date.ambiguous", date)));
+		messagePanel.add(new JLabel(I18N.al(I18N.tf("validation.date.ambiguous", date))));
 		final ButtonGroup readingGroup = new ButtonGroup();
 		final List<JRadioButton> readingButtons = new ArrayList<>(interpretations.size());
 		for(final DateInterpretation interpretation : interpretations){

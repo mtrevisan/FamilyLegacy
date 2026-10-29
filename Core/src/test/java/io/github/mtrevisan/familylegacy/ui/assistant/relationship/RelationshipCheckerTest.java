@@ -5,6 +5,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.SexType;
 import io.github.mtrevisan.familylegacy.ui.assistant.AssistantCategory;
 import io.github.mtrevisan.familylegacy.ui.assistant.Diagnostic;
 import io.github.mtrevisan.familylegacy.ui.assistant.chronology.DateRange;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -50,7 +51,7 @@ class RelationshipCheckerTest{
 			final RelationshipData.Kind targetKind = (groups.containsKey(target)
 				? RelationshipData.Kind.GROUP: RelationshipData.Kind.INDIVIDUAL);
 			relationships.add(new RelationshipData.Relationship("R" + (++ counter), subject, subjectKind, target, targetKind, type,
-				role, (from != null? day(from): null), (to != null? day(to): null), (from != null? "from " + from: ""), ended));
+				role, (from != null? day(from): null), (to != null? day(to): null), (from != null? "from " + from: StringUtils.EMPTY), ended));
 			return this;
 		}
 

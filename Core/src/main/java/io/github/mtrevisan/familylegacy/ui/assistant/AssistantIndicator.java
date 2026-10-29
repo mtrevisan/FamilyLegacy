@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.ui.assistant;
 
 import io.github.mtrevisan.familylegacy.ui.dialogs.help.ShortcutRegistry;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -212,14 +213,14 @@ public final class AssistantIndicator{
 		final String label = I18N.t("assistant.indicator.label");
 		final String shortcut = ShortcutRegistry.TOOLS_RESEARCH_ASSISTANT.displayKeys();
 		if(counts == null){
-			button.setText(label + " " + CHECKING);
+			button.setText(label + StringUtils.SPACE + CHECKING);
 			button.setToolTipText(I18N.tf("assistant.indicator.tooltip", shortcut, I18N.t("assistant.indicator.checking")));
 			return;
 		}
 
-		button.setText(label + " " + counts.label() + (running? " " + CHECKING: ""));
+		button.setText(label + StringUtils.SPACE + counts.label() + (running? StringUtils.SPACE + CHECKING: StringUtils.EMPTY));
 		button.setToolTipText(I18N.tf("assistant.indicator.tooltip", shortcut,
-			counts.summary() + (running? " (" + I18N.t("assistant.indicator.checking") + ")": "")));
+			counts.summary() + (running? " (" + I18N.t("assistant.indicator.checking") + ")": StringUtils.EMPTY)));
 	}
 
 	private static ExecutorService newExecutor(){

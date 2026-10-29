@@ -128,36 +128,36 @@ public final class CalendarConverterDialog extends JDialog{
 
 		// Source calendar.
 		gbc.gridx = 0; gbc.gridy = 0; gbc.weightx = 0;
-		form.add(new JLabel("Source calendar:"), gbc);
+		form.add(new JLabel(I18N.l("label.source_calendar")), gbc);
 		gbc.gridx = 1; gbc.gridwidth = 3; gbc.weightx = 1;
 		form.add(sourceCalendarCombo, gbc);
 		gbc.gridwidth = 1;
 
 		// Year / month / day.
 		gbc.gridx = 0; gbc.gridy = 1; gbc.weightx = 0;
-		form.add(new JLabel("Year:"), gbc);
+		form.add(new JLabel(I18N.l("label.year")), gbc);
 		gbc.gridx = 1; gbc.weightx = 1;
 		form.add(yearSpinner, gbc);
 		gbc.gridx = 2; gbc.weightx = 0;
-		form.add(new JLabel("Month:"), gbc);
+		form.add(new JLabel(I18N.l("label.month")), gbc);
 		gbc.gridx = 3; gbc.weightx = 1;
 		form.add(monthSpinner, gbc);
 
 		gbc.gridx = 0; gbc.gridy = 2; gbc.weightx = 0;
-		form.add(new JLabel("Day:"), gbc);
+		form.add(new JLabel(I18N.l("label.day")), gbc);
 		gbc.gridx = 1; gbc.weightx = 1;
 		form.add(daySpinner, gbc);
 
 		// Target calendar.
 		gbc.gridx = 0; gbc.gridy = 3; gbc.weightx = 0;
-		form.add(new JLabel("Target calendar:"), gbc);
+		form.add(new JLabel(I18N.l("label.target_calendar")), gbc);
 		gbc.gridx = 1; gbc.gridwidth = 3; gbc.weightx = 1;
 		form.add(targetCalendarCombo, gbc);
 		gbc.gridwidth = 1;
 
 		// Result.
 		gbc.gridx = 0; gbc.gridy = 4; gbc.weightx = 0;
-		form.add(new JLabel("Result:"), gbc);
+		form.add(new JLabel(I18N.l("label.result")), gbc);
 		gbc.gridx = 1; gbc.gridwidth = 3; gbc.weightx = 1;
 		form.add(resultField, gbc);
 
@@ -168,7 +168,7 @@ public final class CalendarConverterDialog extends JDialog{
 		final JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 		buttons.setBorder(BorderFactory.createEmptyBorder(4, 8, 8, 8));
 
-		final JButton swap = new JButton("Swap calendars");
+		final JButton swap = new JButton(I18N.t("button.swap_calendars"));
 		swap.addActionListener(e -> swapCalendars());
 		buttons.add(swap);
 

@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.helpers;
 
+import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import io.github.mtrevisan.familylegacy.ui.images.ScaledImage;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -80,7 +81,7 @@ public class ImagePreviewAccessory extends JPanel implements PropertyChangeListe
 
 		setPreferredSize(new Dimension(MAX_PREVIEW_WIDTH, MAX_PREVIEW_HEIGHT));
 
-		setBorder(BorderFactory.createTitledBorder("Preview"));
+		setBorder(BorderFactory.createTitledBorder(I18N.t("border.preview")));
 
 		add(previewImage, BorderLayout.CENTER);
 

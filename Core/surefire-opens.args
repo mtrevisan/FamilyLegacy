@@ -74,3 +74,6 @@
 --add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.ui.assistant.context=ALL-UNNAMED
 --add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.ui.assistant.context=org.junit.platform.commons
 --add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.ui.assistant.context=org.junit.jupiter.api
+--add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.ui.components.projections.chronomap=ALL-UNNAMED
+--add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.ui.components.projections.chronomap=org.junit.platform.commons
+--add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.ui.components.projections.chronomap=org.junit.jupiter.api

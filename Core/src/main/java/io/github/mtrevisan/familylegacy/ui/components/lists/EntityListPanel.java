@@ -340,11 +340,12 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 		if(recordId == null)
 			return null;
 
-		for(final FLEFRecord c : model.getRecordsByType(ConclusionHandler.TYPE)){
-			final List<FLEFRecord> resolves = FLEFRecordHelper.findChildren(c, TAG_RESOLVES);
-			for(final FLEFRecord r : resolves)
-				if(containsId(r, recordId))
-					return c;
+		final List<FLEFRecord> conclusions = model.getRecordsByType(ConclusionHandler.TYPE);
+		for(final FLEFRecord conclusion : conclusions){
+			final List<FLEFRecord> resolves = FLEFRecordHelper.findChildren(conclusion, TAG_RESOLVES);
+			for(final FLEFRecord resolve : resolves)
+				if(containsId(resolve, recordId))
+					return conclusion;
 		}
 		return null;
 	}

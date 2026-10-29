@@ -35,6 +35,10 @@ import io.github.mtrevisan.familylegacy.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.ui.tools.events.CalendarConverterDialog;
 import org.apache.commons.lang3.StringUtils;
 
+import java.time.Month;
+import java.time.format.TextStyle;
+import java.util.Locale;
+
 
 /**
  * Shared formatting helpers for the individual and group dossier
@@ -44,12 +48,6 @@ import org.apache.commons.lang3.StringUtils;
 final class DossierFormatting{
 
 	private static final String TAG_DATE = "date";
-
-	// FIXME
-	private static final String[] MONTH_NAMES = {
-		"Jan", "Feb", "Mar", "Apr", "May", "Jun",
-		"Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
-	};
 
 
 	private final FLEFModel model;
@@ -126,14 +124,18 @@ final class DossierFormatting{
 	 *                          Internals
 	 * ================================================================== */
 
+	private static String monthName(final int month){
+		return Month.of(month).getDisplayName(TextStyle.SHORT, Locale.getDefault());
+	}
+
 	private static String formatNormalizedDate(final NormalizedDate date){
 		if(date == null)
 			return StringUtils.EMPTY;
 
 		final int[] ymd = CalendarConverterDialog.jdnToGregorian(date.jdn());
 		return switch(date.precision()){
-			case DAY -> ymd[2] + StringUtils.SPACE + MONTH_NAMES[ymd[1] - 1] + StringUtils.SPACE + ymd[0];
-			case MONTH -> MONTH_NAMES[ymd[1] - 1] + StringUtils.SPACE + ymd[0];
+			case DAY -> ymd[2] + StringUtils.SPACE + monthName(ymd[1]) + StringUtils.SPACE + ymd[0];
+			case MONTH -> monthName(ymd[1]) + StringUtils.SPACE + ymd[0];
 			case YEAR -> Integer.toString(ymd[0]);
 			case DECADE -> (ymd[0] / 10 * 10) + "s";
 			case CENTURY -> (ymd[0] / 100 + 1) + "th c.";

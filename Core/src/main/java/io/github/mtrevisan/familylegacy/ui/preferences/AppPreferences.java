@@ -197,7 +197,7 @@ public final class AppPreferences{
 	 */
 	public synchronized Set<String> ignoredFindings(final String scope){
 		final String value = properties.getProperty(KEY_IGNORED_FINDINGS_PREFIX + scope, "");
-		return (value.isEmpty()? Set.of(): Set.copyOf(Arrays.asList(value.split(","))));
+		return (value.isEmpty()? Set.of(): Set.copyOf(Arrays.asList(StringUtils.split(value, ','))));
 	}
 
 	/** Persists the findings the user ignored for a file (a view preference: they are not stored in the genealogy). */

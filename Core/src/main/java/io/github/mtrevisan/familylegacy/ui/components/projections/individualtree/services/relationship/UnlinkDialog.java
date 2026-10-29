@@ -56,6 +56,7 @@ import javax.swing.Timer;
 import java.awt.BorderLayout;
 import java.awt.Cursor;
 import java.awt.Dimension;
+import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -538,6 +539,12 @@ public class UnlinkDialog extends JDialog implements UnlinkPrompt{
 		return outer;
 	}
 
+	private static int multiClickIntervalMs(){
+		return (Toolkit.getDefaultToolkit().getDesktopProperty("awt.multiClickInterval") instanceof Integer interval
+			? interval
+			: 250);
+	}
+
 	private JPanel createWrappedCheckbox(final List<String> recordIds, final String entityId, final String description){
 		final JPanel panel = new JPanel(new MigLayout("ins 2 0 2 0", "[]0[grow,fill,shrink]", "[]"));
 
@@ -545,7 +552,7 @@ public class UnlinkDialog extends JDialog implements UnlinkPrompt{
 		final JTextArea textArea = createTextArea(entityId, description, cb);
 
 		// Handle single click vs double click using a timer to prevent state collision
-		final Timer clickTimer = new Timer(250, e -> cb.setSelected(!cb.isSelected()));
+		final Timer clickTimer = new Timer(multiClickIntervalMs(), e -> cb.setSelected(!cb.isSelected()));
 		clickTimer.setRepeats(false);
 		textArea.addMouseListener(new MouseAdapter(){
 			@Override

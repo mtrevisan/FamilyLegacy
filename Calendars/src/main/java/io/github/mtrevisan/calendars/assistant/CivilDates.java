@@ -28,6 +28,7 @@ import io.github.mtrevisan.calendars.CalendarType;
 import io.github.mtrevisan.calendars.gregorian.CalendarReform;
 import io.github.mtrevisan.calendars.gregorian.GregorianCalendarStrategy;
 import io.github.mtrevisan.calendars.gregorian.JulianCalendarStrategy;
+import org.apache.commons.lang3.StringUtils;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -130,7 +131,7 @@ final class CivilDates{
 
 
 	private static String format(final int year, final Month month, final int day){
-		return day + " " + month.getDisplayName(TextStyle.FULL, Locale.ENGLISH) + " " + year;
+		return day + StringUtils.SPACE + month.getDisplayName(TextStyle.FULL, Locale.ENGLISH) + StringUtils.SPACE + year;
 	}
 
 }

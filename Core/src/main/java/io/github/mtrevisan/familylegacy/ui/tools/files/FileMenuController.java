@@ -155,12 +155,12 @@ public final class FileMenuController{
 		// dialog is modal but pumps events while visible, so the worker
 		// can update it from its own thread via update().
 		final ProgressDialog progress = new ProgressDialog(ownerWindow,
-			"Open FLEF file", "Opening " + file.getName() + "…");
+			I18N.t("dialog.file.open.title"), I18N.tf("dialog.file.open.progress", file.getName()));
 
 		final SwingWorker<FLEFModel, Void> worker = new SwingWorker<>(){
 			@Override
 			protected FLEFModel doInBackground() throws Exception{
-				progress.update(0, "Reading file…");
+				progress.update(0, I18N.t("progress.reading_file"));
 
 				final FLEFParser parser = new FLEFParser();
 				return parser.parse(file.toPath(), progress::update);
@@ -185,9 +185,9 @@ public final class FileMenuController{
 				catch(final ExecutionException ex){
 					final Throwable cause = (ex.getCause() != null? ex.getCause(): ex);
 					if(cause instanceof IOException io)
-						showError("Unable to open the file", io);
+						showError(I18N.t("error.file.open"), io);
 					else
-						showError("The file is not a valid FLEF document",
+						showError(I18N.t("error.file.invalid_flef"),
 							(cause instanceof RuntimeException re)? re: new RuntimeException(cause));
 				}
 			}
@@ -323,7 +323,7 @@ public final class FileMenuController{
 			return false;
 
 		final ProgressDialog progress = new ProgressDialog(owner,
-			"Save FLEF file", "Saving " + file.getName() + "…");
+			I18N.t("dialog.file.save.title"), I18N.tf("dialog.file.save.progress", file.getName()));
 
 		// Holder for the result, read after the modal dialog returns.
 		final boolean[] success = { false };
@@ -331,13 +331,13 @@ public final class FileMenuController{
 		final SwingWorker<Void, Void> worker = new SwingWorker<>(){
 			@Override
 			protected Void doInBackground() throws Exception{
-				progress.update(0, "Serializing…");
+				progress.update(0, I18N.t("progress.serializing"));
 				final String content = FLEFWriter.createCompact()
 					.writeToString(model, progress::update);
 
 				// The file write itself is a single blocking call, so we
 				// can only show it as an indeterminate step.
-				progress.update(-1, "Writing file…");
+				progress.update(-1, I18N.t("progress.writing_file"));
 				Files.writeString(file.toPath(), content, StandardCharsets.UTF_8);
 				return null;
 			}
@@ -356,9 +356,9 @@ public final class FileMenuController{
 				catch(final ExecutionException ex){
 					final Throwable cause = (ex.getCause() != null? ex.getCause(): ex);
 					if(cause instanceof IOException io)
-						showError("Unable to save the file", io);
+						showError(I18N.t("error.file.save"), io);
 					else
-						showError("Unable to save the file", new RuntimeException(cause));
+						showError(I18N.t("error.file.save"), new RuntimeException(cause));
 				}
 			}
 		};
@@ -381,13 +381,11 @@ public final class FileMenuController{
 			return true;
 
 		final int choice = JOptionPane.showOptionDialog(owner,
-			"The current document has unsaved changes." + StringUtils.LF
-				+ "Save before proceeding?",
-			"Unsaved Changes",
+			I18N.t("dialog.unsaved.message"), I18N.t("dialog.unsaved.title"),
 			JOptionPane.YES_NO_CANCEL_OPTION,
 			JOptionPane.WARNING_MESSAGE,
 			null,
-			new Object[]{I18N.t("button.save"), "Discard", I18N.t("button.cancel")},
+			new Object[]{I18N.t("button.save"), I18N.t("button.discard"), I18N.t("button.cancel")},
 			I18N.t("button.save"));
 
 		if(choice == 2 || choice == JOptionPane.CLOSED_OPTION)
@@ -402,7 +400,7 @@ public final class FileMenuController{
 	private void showError(final String message, final Exception ex){
 		JOptionPane.showMessageDialog(owner,
 			message + ":" + StringUtils.LF + ex.getMessage(),
-			"File Error", JOptionPane.ERROR_MESSAGE);
+			I18N.t("error.file.title"), JOptionPane.ERROR_MESSAGE);
 	}
 
 }

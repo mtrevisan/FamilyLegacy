@@ -24,28 +24,26 @@
  */
 package io.github.mtrevisan.familylegacy.ui.tools.reports;
 
+import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
+
+import java.util.Locale;
+
 
 /**
  * Enumerates all supported report types along with their human-readable title.
  */
 public enum ReportType{
 
-	ANCESTOR("Ancestor Report"),
-	DESCENDANT("Descendant Report"),
-	GROUP("Group Sheet"),
-	INDIVIDUAL("Individual Summary"),
-	RELATIONSHIP("Relationship Report"),
-	BIBLIOGRAPHY("Bibliography"),
-	RESEARCH_PROGRESS("Research Progress");
-
-	private final String title;
-
-	ReportType(final String title){
-		this.title = title;
-	}
+	ANCESTOR,
+	DESCENDANT,
+	GROUP,
+	INDIVIDUAL,
+	RELATIONSHIP,
+	BIBLIOGRAPHY,
+	RESEARCH_PROGRESS;
 
 	public String getTitle(){
-		return title;
+		return I18N.t("enum.report.type." + name().toLowerCase(Locale.ROOT));
 	}
 
 }

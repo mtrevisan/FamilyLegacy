@@ -27,6 +27,9 @@ package io.github.mtrevisan.familylegacy.ui.components.projections;
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
+import io.github.mtrevisan.familylegacy.ui.components.projections.chronomap.ChronomapWorkspace;
 import io.github.mtrevisan.familylegacy.ui.components.projections.common.ProjectionMutator;
 import io.github.mtrevisan.familylegacy.ui.components.projections.common.ProjectionType;
 import io.github.mtrevisan.familylegacy.ui.components.projections.common.SpatialNavigation;
@@ -38,6 +41,7 @@ import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree
 import io.github.mtrevisan.familylegacy.ui.components.projections.relationshipgraph.EgoNetworkPanel;
 import io.github.mtrevisan.familylegacy.ui.components.projections.repository.GenealogyRepository;
 import io.github.mtrevisan.familylegacy.ui.dialogs.help.ShortcutRegistry;
+import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
@@ -57,21 +61,22 @@ import java.awt.event.ActionEvent;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.function.Consumer;
 
 
 /**
- * Container that hosts three projection views (ancestor tree, Sugiyama
- * pedigree graph, ego network) and allows the user to cycle through them
- * with keyboard shortcuts.
+ * Container that hosts the projection views (ancestor tree, Sugiyama
+ * pedigree graph, ego network, chronomap) and allows the user to switch
+ * between them with keyboard shortcuts.
  * <p>
- * <b>Shortcuts.</b> Four shortcuts are installed on the panel itself
+ * <b>Shortcuts.</b> The shortcuts are installed on the panel itself
  * with {@link JComponent#WHEN_IN_FOCUSED_WINDOW}:
  * <ul>
- *   <li>{@code Ctrl+E} cycles to the next projection;</li>
  *   <li>{@code Ctrl+1} switches to the ancestor tree;</li>
  *   <li>{@code Ctrl+2} switches to the Sugiyama graph;</li>
- *   <li>{@code Ctrl+3} switches to the ego network.</li>
+ *   <li>{@code Ctrl+3} switches to the ego network;</li>
+ *   <li>{@code Ctrl+4} switches to the chronomap.</li>
  * </ul>
  * The same accelerators are also set on the View menu items, purely as
  * a visual hint. The panel bindings exist because menu accelerators can
@@ -99,13 +104,17 @@ public final class ProjectionSwitcherPanel extends JPanel{
 	private static final String ACTION_PROJECTION_ANCESTOR_TREE = "projectionTree";
 	private static final String ACTION_PROJECTION_SUGIYAMA_GRAPH = "projectionGraph";
 	private static final String ACTION_PROJECTION_EGO = "projectionEgo";
+	private static final String ACTION_PROJECTION_CHRONOMAP = "projectionChronomap";
 	private static final TreeLayoutEngine TREE_LAYOUT_ENGINE = new TreeLayoutEngine();
 	private static final GraphLayoutEngine GRAPH_LAYOUT_ENGINE = new GraphLayoutEngine();
 
 
+	private final FLEFModel model;
 	private final GenealogyRepository repository;
 	private final IndividualTreeGraphPanel treeGraphPanel;
 	private final EgoNetworkPanel egoPanel;
+	/** Created the first time it is shown: it geocodes the places of the file. */
+	private ChronomapWorkspace chronomapPanel;
 
 	/** Shared browser-style navigation history across the three views. */
 	private final NavigationHistory navigationHistory = new NavigationHistory();
@@ -128,8 +137,12 @@ public final class ProjectionSwitcherPanel extends JPanel{
 	/** Listener fired whenever the active projection changes. */
 	private Consumer<ProjectionType> projectionChangeListener;
 
+	/** Told when an individual is selected in any of the views. */
+	private Consumer<String> selectionCallback;
+
 
 	public ProjectionSwitcherPanel(final TreeType treeType, final FLEFModel model){
+		this.model = model;
 		final String[] allowedTypes = computeAllowedRelationshipTypes(treeType);
 		repository = new GenealogyRepository(allowedTypes, model);
 		this.treeGraphPanel = new IndividualTreeGraphPanel(TreeLayout.VERTICAL, TREE_LAYOUT_ENGINE, repository,
@@ -177,7 +190,11 @@ public final class ProjectionSwitcherPanel extends JPanel{
 		if(individualId == null)
 			return;
 
-		if(currentPanel == treeGraphPanel)
+		if(isChronomapShown()){
+			refreshChronomap();
+			chronomapPanel.selection().select(individualId);
+		}
+		else if(currentPanel == treeGraphPanel)
 			treeGraphPanel.load(individualId, DEFAULT_MAX_ANCESTORS);
 		else
 			egoPanel.load(individualId);
@@ -187,12 +204,16 @@ public final class ProjectionSwitcherPanel extends JPanel{
 
 	/** @return	The individual the current projection is rooted on. */
 	public String getCurrentRootId(){
+		if(isChronomapShown())
+			return chronomapPanel.selection().get();
 		if(currentPanel == treeGraphPanel)
 			return treeGraphPanel.getRootIndividualId();
 		return egoPanel.getCurrentEgoId();
 	}
 
 	public String[] getRootIds(){
+		if(isChronomapShown())
+			return new String[]{chronomapPanel.selection().get(), null};
 		if(currentPanel == treeGraphPanel)
 			return treeGraphPanel.getRootIds();
 		else
@@ -205,6 +226,8 @@ public final class ProjectionSwitcherPanel extends JPanel{
 	 * @return the active projection type, never {@code null}
 	 */
 	public ProjectionType getCurrentProjectionType(){
+		if(isChronomapShown())
+			return ProjectionType.CHRONOMAP;
 		if(currentPanel == treeGraphPanel)
 			return (treeGraphPanel.getLayoutEngine() == TREE_LAYOUT_ENGINE? ProjectionType.BIOLOGICAL_TREE : ProjectionType.SUGIYAMA_GRAPH);
 
@@ -230,15 +253,20 @@ public final class ProjectionSwitcherPanel extends JPanel{
 				yield treeGraphPanel;
 			}
 			case EGO_NETWORK -> egoPanel;
+			case CHRONOMAP -> chronomap();
 		};
 
 		// Synchronize the target projection's root before swapping
 		final String currentRootId = getSelectedEntityId();
+		if(target == chronomapPanel)
+			refreshChronomap();
 		if(currentRootId != null){
 			if(target == treeGraphPanel)
 				treeGraphPanel.load(currentRootId, DEFAULT_MAX_ANCESTORS);
 			else if(target == egoPanel)
 				egoPanel.load(currentRootId);
+			else if(target == chronomapPanel)
+				chronomapPanel.selection().select(currentRootId);
 		}
 
 		swapPanels(target);
@@ -258,6 +286,8 @@ public final class ProjectionSwitcherPanel extends JPanel{
 	 * @param callback the callback; may be {@code null} to remove it
 	 */
 	public void setSelectionCallback(final Consumer<String> callback){
+		selectionCallback = callback;
+
 		treeGraphPanel.withSelectionCallback(callback);
 		egoPanel.withSelectionCallback(callback);
 	}
@@ -299,7 +329,13 @@ public final class ProjectionSwitcherPanel extends JPanel{
 	 * Opens the edit dialog for the given entity.
 	 */
 	public void editEntity(final String id){
-		if(currentPanel == treeGraphPanel)
+		if(isChronomapShown()){
+			//the editing is the same whatever the view is
+			treeGraphPanel.editEntity(id);
+
+			refreshChronomap();
+		}
+		else if(currentPanel == treeGraphPanel)
 			treeGraphPanel.editEntity(id);
 		else
 			egoPanel.editEntity(id);
@@ -312,7 +348,8 @@ public final class ProjectionSwitcherPanel extends JPanel{
 	 * @param direction the direction to move; must not be {@code null}
 	 */
 	public void moveSelection(final SpatialNavigation.Direction direction){
-		if(direction == null)
+		//the chronomap is not made of boxes to move through: the arrows belong to its timeline
+		if(direction == null || isChronomapShown())
 			return;
 
 		if(currentPanel == treeGraphPanel)
@@ -326,6 +363,9 @@ public final class ProjectionSwitcherPanel extends JPanel{
 	 * the new root.
 	 */
 	public void confirmSelection(){
+		if(isChronomapShown())
+			return;
+
 		final String id = getSelectedEntityId();
 		if(currentPanel == treeGraphPanel)
 			treeGraphPanel.rootConfirmSelection(id);
@@ -342,6 +382,8 @@ public final class ProjectionSwitcherPanel extends JPanel{
 	 * within the active projection view, or {@code null} if no panel is selected.
 	 */
 	public Component getSelectedPanel(){
+		if(isChronomapShown())
+			return null;
 		if(currentPanel == treeGraphPanel)
 			return treeGraphPanel.getSelectedPanel();
 		return egoPanel.getSelectedPanel();
@@ -374,6 +416,8 @@ public final class ProjectionSwitcherPanel extends JPanel{
 	 * </ul>
 	 */
 	public String getSelectedEntityId(){
+		if(isChronomapShown())
+			return chronomapPanel.selection().get();
 		if(currentPanel == treeGraphPanel)
 			return treeGraphPanel.getSelectedIndividualId();
 		return egoPanel.getSelectedEntityId();
@@ -392,7 +436,15 @@ public final class ProjectionSwitcherPanel extends JPanel{
 		if(id == null)
 			return;
 
-		if(currentPanel == treeGraphPanel)
+		if(isChronomapShown()){
+			//the removal is the same whatever the view is
+			treeGraphPanel.removeEntity(id);
+
+			if(id.equals(chronomapPanel.selection().get()))
+				chronomapPanel.selection().clear();
+			refreshChronomap();
+		}
+		else if(currentPanel == treeGraphPanel)
 			treeGraphPanel.removeEntity(id);
 		else
 			egoPanel.removeEntity(id);
@@ -488,6 +540,9 @@ public final class ProjectionSwitcherPanel extends JPanel{
 		bindProjection(inputMap, actionMap,
 			ShortcutRegistry.VIEW_EGO_NETWORK.keyStroke(),
 			ProjectionType.EGO_NETWORK, ACTION_PROJECTION_EGO);
+		bindProjection(inputMap, actionMap,
+			ShortcutRegistry.VIEW_CHRONOMAP.keyStroke(),
+			ProjectionType.CHRONOMAP, ACTION_PROJECTION_CHRONOMAP);
 	}
 
 	private void bindProjection(final InputMap inputMap, final ActionMap actionMap,
@@ -507,10 +562,44 @@ public final class ProjectionSwitcherPanel extends JPanel{
 	 * ====================================================================== */
 
 	private void navigateCurrentViewTo(final String id){
-		if(currentPanel == treeGraphPanel)
+		if(isChronomapShown())
+			chronomapPanel.selection().select(id);
+		else if(currentPanel == treeGraphPanel)
 			treeGraphPanel.navigateTo(id);
 		else
 			egoPanel.navigateTo(id);
+	}
+
+	private boolean isChronomapShown(){
+		return (chronomapPanel != null && currentPanel == chronomapPanel);
+	}
+
+	/** Creates the chronomap the first time it is needed (it geocodes the places of the file). */
+	private ChronomapWorkspace chronomap(){
+		if(chronomapPanel == null){
+			chronomapPanel = new ChronomapWorkspace(model);
+			chronomapPanel.selection().addListener(id -> {
+				if(id != null && selectionCallback != null)
+					selectionCallback.accept(id);
+			});
+			chronomapPanel.setIndividuals(visibleIndividuals());
+		}
+		return chronomapPanel;
+	}
+
+	/** Shows what the file contains now: the individuals may have been changed, added or removed, or hidden by the privacy. */
+	private void refreshChronomap(){
+		if(chronomapPanel == null)
+			return;
+
+		chronomapPanel.index().rebuild();
+		chronomapPanel.setIndividuals(visibleIndividuals());
+	}
+
+	private List<String> visibleIndividuals(){
+		return PrivacyService.visible(model, model.getRecordsByType(IndividualHandler.TYPE)).stream()
+			.map(FLEFRecord::getId)
+			.toList();
 	}
 
 	private void notifyNavigation(final String id){

@@ -78,19 +78,19 @@ public class IndividualFilterPanel extends JPanel implements RecordFilterPanel{
 		calendarFromCombo.setI18NPrefix("enum.date.calendar");
 		calendarToCombo.setI18NPrefix("enum.date.calendar");
 
-		add(new JLabel(I18N.t("dialog.individual.sex") + ":"));
+		add(new JLabel(I18N.l("dialog.individual.sex")));
 		add(sexCombo, "growx");
-		add(new JLabel(I18N.t("dialog.event.type.extended") + ":"));
+		add(new JLabel(I18N.l("dialog.event.type.extended")));
 		add(eventTypeCombo, "growx");
-		add(new JLabel(I18N.t("search.date.from") + ":"));
+		add(new JLabel(I18N.l("search.date.from")));
 		add(dateFromField, "growx");
-		add(new JLabel(I18N.t("search.date.calendar.from") + ":"));
+		add(new JLabel(I18N.l("search.date.calendar.from")));
 		add(calendarFromCombo, "growx");
-		add(new JLabel(I18N.t("search.date.to") + ":"));
+		add(new JLabel(I18N.l("search.date.to")));
 		add(dateToField, "growx");
-		add(new JLabel(I18N.t("search.date.calendar.to") + ":"));
+		add(new JLabel(I18N.l("search.date.calendar.to")));
 		add(calendarToCombo, "growx");
-		add(new JLabel(I18N.t("search.place") + ":"));
+		add(new JLabel(I18N.l("search.place")));
 		add(placeField, "growx");
 	}
 

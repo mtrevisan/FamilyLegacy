@@ -26,6 +26,7 @@ package io.github.mtrevisan.calendars.assistant;
 
 import io.github.mtrevisan.calendars.CalendarType;
 import io.github.mtrevisan.calendars.gregorian.CalendarReform;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -141,13 +142,13 @@ public final class AgeEstimator{
 			assumptions.add("Only the years of the age are stated: the birth can be any day of that year of life");
 		}
 		assumptions.add("Ancient sources often round the age: widen the range if the age is approximate");
-		steps.add("Date of the event minus " + age + (days == null? " (and the unknown rest of the last unit)": ""));
+		steps.add("Date of the event minus " + age + (days == null? " (and the unknown rest of the last unit)": StringUtils.EMPTY));
 
 		final String meaning = "Born " + age + " before the " + eventName + " (" + eventLabel + ")";
 		final String earliest = CivilDates.format(lower, countingCalendar);
 		final String latest = CivilDates.format(upper, countingCalendar);
-		steps.add("Julian Day Number " + lower + (lower == upper? "": " to " + upper) + " written in the " + countingCalendar
-			+ " calendar: " + earliest + (lower == upper? "": " to " + latest));
+		steps.add("Julian Day Number " + lower + (lower == upper? StringUtils.EMPTY: " to " + upper) + " written in the " + countingCalendar
+			+ " calendar: " + earliest + (lower == upper? StringUtils.EMPTY: " to " + latest));
 
 		if(lower == upper)
 			return List.of(new DateSuggestion("Estimated birth date", meaning, assumptions, countingCalendar, steps, earliest));

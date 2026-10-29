@@ -149,10 +149,10 @@ public class CulturalNormRecordDialog extends BaseRecordDialog{
 		final JPanel propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]5[]10[]10[]10[]");
 
 		// title
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.cultural_norm.title") + ":", GUIHelper.withTooltip(titleField, "tooltip.cultural_norm.title"));
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.cultural_norm.title"), GUIHelper.withTooltip(titleField, "tooltip.cultural_norm.title"));
 
 		// rule type
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.cultural_norm.rule_type") + ":", GUIHelper.withTooltip(typeCombo, "tooltip.cultural_norm.rule_type"));
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.cultural_norm.rule_type"), GUIHelper.withTooltip(typeCombo, "tooltip.cultural_norm.rule_type"));
 
 		// place panel:
 		final JPanel placePanel = new JPanel(new MigLayout("ins 10,hidemode 3,fillx,top,wrap 1",
@@ -166,13 +166,13 @@ public class CulturalNormRecordDialog extends BaseRecordDialog{
 		final JPanel validityPanel = GUIHelper.createLabelFieldPanel(5, "[]10[]");
 		validityPanel.setBorder(BorderFactory.createTitledBorder(I18N.t("dialog.validity.range")));
 		// valid from
-		GUIHelper.addLabeledComponent(validityPanel, I18N.t("dialog.valid_from") + ":", GUIHelper.withTooltip(validFromField, "tooltip.valid_from"));
+		GUIHelper.addLabeledComponent(validityPanel, I18N.l("dialog.valid_from"), GUIHelper.withTooltip(validFromField, "tooltip.valid_from"));
 		// valid to
-		GUIHelper.addLabeledComponent(validityPanel, I18N.t("dialog.valid_to") + ":", GUIHelper.withTooltip(validToField, "tooltip.valid_to"));
+		GUIHelper.addLabeledComponent(validityPanel, I18N.l("dialog.valid_to"), GUIHelper.withTooltip(validToField, "tooltip.valid_to"));
 		GUIHelper.addComponent(propertiesPanel, validityPanel);
 
 		// confidence
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.cultural_norm.confidence") + ":", GUIHelper.withTooltip(confidenceCombo, "tooltip.cultural_norm.confidence"));
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.cultural_norm.confidence"), GUIHelper.withTooltip(confidenceCombo, "tooltip.cultural_norm.confidence"));
 
 		return propertiesPanel;
 	}

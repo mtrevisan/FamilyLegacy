@@ -39,6 +39,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 
 /**
@@ -46,6 +47,7 @@ import java.util.Set;
  */
 public final class Reigns{
 
+	private static final Pattern ROMAN_NUMERAL = Pattern.compile("[ivxlc]+");
 	private static final String POPES_RESOURCE = "popes.csv";
 
 	/** Variant spellings of the Latin, Italian, and English names of the popes. */
@@ -177,7 +179,7 @@ public final class Reigns{
 				}
 
 				// number;name_it;name_la;name_en;ordinal;antipope;election;start;start_kind;end;source
-				final String[] fields = line.split(";", -1);
+				final String[] fields = StringUtils.splitPreserveAllTokens(line, ';');
 				final int ordinal = Integer.parseInt(fields[4]);
 				final Set<String> names = new LinkedHashSet<>();
 				final String[] nameList = {fields[1], fields[2], fields[3]};
@@ -200,8 +202,8 @@ public final class Reigns{
 	/** Removes the trailing Roman numeral of a regnal name (e.g. "pius v" -> "pius"). */
 	private static String stripOrdinal(final String name){
 		final String[] words = StringUtils.split(name);
-		if(words.length > 1 && words[words.length - 1].matches("[ivxlc]+"))
-			return String.join(" ", Arrays.copyOf(words, words.length - 1));
+		if(words.length > 1 && ROMAN_NUMERAL.matcher(words[words.length - 1]).matches())
+			return String.join(StringUtils.SPACE, Arrays.copyOf(words, words.length - 1));
 		return name;
 	}
 

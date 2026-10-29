@@ -75,7 +75,8 @@ final class ContextDataLoader{
 
 	static ContextData load(final FLEFModel model){
 		final Map<String, String> placeLabels = new HashMap<>();
-		for(final FLEFRecord place : model.getRecordsByType(PlaceHandler.TYPE)){
+		final List<FLEFRecord> places = model.getRecordsByType(PlaceHandler.TYPE);
+		for(final FLEFRecord place : places){
 			final String name = PlaceReader.extractPrimaryName(place);
 			placeLabels.put(place.getId(), (name != null? name: place.getId()));
 		}
@@ -86,17 +87,19 @@ final class ContextDataLoader{
 
 	private static List<ContextData.Event> events(final FLEFModel model){
 		final Map<String, String> names = new LinkedHashMap<>();
-		for(final FLEFRecord individual : model.getRecordsByType(IndividualHandler.TYPE))
+		final List<FLEFRecord> individuals = model.getRecordsByType(IndividualHandler.TYPE);
+		for(final FLEFRecord individual : individuals)
 			if(individual.getId() != null && !PrivacyService.isHidden(model, individual)){
 				final String name = IndividualReader.extractPrimaryFullname(individual);
 				names.put(individual.getId(), (StringUtils.isNotBlank(name)? name: individual.getId()));
 			}
 
 		final Map<String, List<String>> principals = new LinkedHashMap<>();
-		for(final FLEFRecord participation : model.getRecordsByType(EventParticipationHandler.TYPE)){
-			final String personId = armValue(FLEFRecordHelper.findChild(participation, EventParticipationReader.TAG_PARTICIPANT));
-			final String eventId = FLEFRecordHelper.getChildValue(participation, EventParticipationReader.TAG_EVENT);
-			final String role = FLEFRecordHelper.getChildValue(participation, EventParticipationReader.TAG_ROLE);
+		final List<FLEFRecord> eventParticipations = model.getRecordsByType(EventParticipationHandler.TYPE);
+		for(final FLEFRecord eventParticipation : eventParticipations){
+			final String personId = armValue(FLEFRecordHelper.findChild(eventParticipation, EventParticipationReader.TAG_PARTICIPANT));
+			final String eventId = FLEFRecordHelper.getChildValue(eventParticipation, EventParticipationReader.TAG_EVENT);
+			final String role = FLEFRecordHelper.getChildValue(eventParticipation, EventParticipationReader.TAG_ROLE);
 			if(personId != null && eventId != null && names.containsKey(personId) && (role == null || ROLE_PRINCIPAL.equals(role)))
 				principals.computeIfAbsent(eventId, k -> new ArrayList<>()).add(personId);
 		}
@@ -114,7 +117,7 @@ final class ContextDataLoader{
 			final boolean bounded = (range != null && range.min() != Long.MIN_VALUE && range.max() != Long.MAX_VALUE);
 			events.add(new ContextData.Event(entry.getKey(), type, range, FLEFRecordHelper.getChildValue(event, PLACE_OF),
 				I18N.tf("context.event.label", what, who)
-					+ (bounded? " (" + CalendarType.jdnToProlepticGregorianLocalDate(range.min()).getYear() + ")": ""),
+					+ (bounded? " (" + CalendarType.jdnToProlepticGregorianLocalDate(range.min()).getYear() + ")": StringUtils.EMPTY),
 				entry.getValue()));
 		}
 		return events;
@@ -122,22 +125,24 @@ final class ContextDataLoader{
 
 	private static List<ContextData.Context> contexts(final FLEFModel model){
 		final List<ContextData.Context> contexts = new ArrayList<>();
-		for(final FLEFRecord record : model.getRecordsByType(HistoricEventHandler.TYPE)){
-			final String title = HistoricEventReader.extractTitle(record);
-			final String type = HistoricEventReader.extractType(record);
-			contexts.add(new ContextData.Context(record.getId(), true, type, label(title, type, record.getId()),
-				range(record, HistoricEventReader.TAG_DATE), FLEFRecordHelper.getChildValue(record, PLACE_OF)));
+		final List<FLEFRecord> historicEvents = model.getRecordsByType(HistoricEventHandler.TYPE);
+		for(final FLEFRecord historicEvent : historicEvents){
+			final String title = HistoricEventReader.extractTitle(historicEvent);
+			final String type = HistoricEventReader.extractType(historicEvent);
+			contexts.add(new ContextData.Context(historicEvent.getId(), true, type, label(title, type, historicEvent.getId()),
+				range(historicEvent, HistoricEventReader.TAG_DATE), FLEFRecordHelper.getChildValue(historicEvent, PLACE_OF)));
 		}
-		for(final FLEFRecord record : model.getRecordsByType(CulturalNormHandler.TYPE)){
-			final String title = FLEFRecordHelper.getChildValue(record, CulturalNormReader.TAG_TITLE);
-			final String type = FLEFRecordHelper.getChildValue(record, CulturalNormReader.TAG_TYPE);
-			final DateRange from = range(record, CulturalNormReader.TAG_VALID_FROM);
-			final DateRange to = range(record, CulturalNormReader.TAG_VALID_TO);
+		final List<FLEFRecord> culturalNorms = model.getRecordsByType(CulturalNormHandler.TYPE);
+		for(final FLEFRecord culturalNorm : culturalNorms){
+			final String title = FLEFRecordHelper.getChildValue(culturalNorm, CulturalNormReader.TAG_TITLE);
+			final String type = FLEFRecordHelper.getChildValue(culturalNorm, CulturalNormReader.TAG_TYPE);
+			final DateRange from = range(culturalNorm, CulturalNormReader.TAG_VALID_FROM);
+			final DateRange to = range(culturalNorm, CulturalNormReader.TAG_VALID_TO);
 			final long min = (from != null? from.min(): Long.MIN_VALUE);
 			final long max = (to != null? to.max(): Long.MAX_VALUE);
 			final DateRange validity = ((from != null || to != null) && min <= max? new DateRange(min, max): null);
-			contexts.add(new ContextData.Context(record.getId(), false, type, label(title, type, record.getId()), validity,
-				FLEFRecordHelper.getChildValue(record, PLACE_OF)));
+			contexts.add(new ContextData.Context(culturalNorm.getId(), false, type, label(title, type, culturalNorm.getId()), validity,
+				FLEFRecordHelper.getChildValue(culturalNorm, PLACE_OF)));
 		}
 		return contexts;
 	}
@@ -150,9 +155,10 @@ final class ContextDataLoader{
 
 	private static List<ContextData.Impact> impacts(final FLEFModel model){
 		final List<ContextData.Impact> impacts = new ArrayList<>();
-		for(final FLEFRecord record : model.getRecordsByType(ContextImpactHandler.TYPE)){
-			final String context = armValue(FLEFRecordHelper.findChild(record, ContextImpactReader.TAG_CONTEXT));
-			final String target = armValue(FLEFRecordHelper.findChild(record, ContextImpactReader.TAG_TARGET));
+		final List<FLEFRecord> contextImpacts = model.getRecordsByType(ContextImpactHandler.TYPE);
+		for(final FLEFRecord contextImpact : contextImpacts){
+			final String context = armValue(FLEFRecordHelper.findChild(contextImpact, ContextImpactReader.TAG_CONTEXT));
+			final String target = armValue(FLEFRecordHelper.findChild(contextImpact, ContextImpactReader.TAG_TARGET));
 			if(context != null && target != null)
 				impacts.add(new ContextData.Impact(context, target));
 		}
@@ -162,13 +168,14 @@ final class ContextDataLoader{
 	/** The places that contain each place, through the relationships of territory, at any depth. */
 	private static Map<String, Set<String>> ancestors(final FLEFModel model){
 		final Map<String, Set<String>> parents = new HashMap<>();
-		for(final FLEFRecord record : model.getRecordsByType(PlaceRelationshipHandler.TYPE)){
-			if(!TERRITORIAL.contains(PlaceRelationshipReader.extractType(record)))
+		final List<FLEFRecord> placeRelationships = model.getRecordsByType(PlaceRelationshipHandler.TYPE);
+		for(final FLEFRecord placeRelationship : placeRelationships){
+			if(!TERRITORIAL.contains(PlaceRelationshipReader.extractType(placeRelationship)))
 				continue;
 
-			final String subject = FLEFRecordHelper.getChildValue(record,
+			final String subject = FLEFRecordHelper.getChildValue(placeRelationship,
 				FLEFRecordHelper.composePath(PlaceRelationshipReader.TAG_SUBJECT, PlaceHandler.TYPE));
-			final String target = FLEFRecordHelper.getChildValue(record,
+			final String target = FLEFRecordHelper.getChildValue(placeRelationship,
 				FLEFRecordHelper.composePath(PlaceRelationshipReader.TAG_TARGET, PlaceHandler.TYPE));
 			if(subject != null && target != null)
 				parents.computeIfAbsent(subject, k -> new HashSet<>()).add(target);

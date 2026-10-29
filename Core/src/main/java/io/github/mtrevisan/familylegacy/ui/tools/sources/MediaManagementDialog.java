@@ -91,7 +91,7 @@ public final class MediaManagementDialog extends JDialog{
 	private final JTable table = new JTable(tableModel);
 	private final JTextField searchField = new JTextField(24);
 	private final JLabel statusLabel = new JLabel(StringUtils.SPACE);
-	private final JLabel previewLabel = new JLabel("Select a document to preview", JLabel.CENTER);
+	private final JLabel previewLabel = new JLabel(I18N.t("label.select_document"), JLabel.CENTER);
 
 
 	public MediaManagementDialog(final ToolContext context){
@@ -119,7 +119,7 @@ public final class MediaManagementDialog extends JDialog{
 		final JPanel toolbar = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 6));
 		toolbar.setBorder(BorderFactory.createEmptyBorder(2, 4, 2, 4));
 
-		toolbar.add(new JLabel("Search:"));
+		toolbar.add(new JLabel(I18N.l("label.search")));
 		toolbar.add(searchField);
 		final Document document = searchField.getDocument();
 		document.addDocumentListener(new DocumentListener(){
@@ -177,10 +177,10 @@ public final class MediaManagementDialog extends JDialog{
 		});
 
 		final JScrollPane tableScroll = new JScrollPane(table);
-		tableScroll.setBorder(BorderFactory.createTitledBorder("Media"));
+		tableScroll.setBorder(BorderFactory.createTitledBorder(I18N.t("border.media")));
 
 		previewLabel.setPreferredSize(new Dimension(PREVIEW_WIDTH, PREVIEW_HEIGHT));
-		previewLabel.setBorder(BorderFactory.createTitledBorder("Preview"));
+		previewLabel.setBorder(BorderFactory.createTitledBorder(I18N.t("border.preview")));
 		final JScrollPane previewScroll = new JScrollPane(previewLabel);
 
 		final JSplitPane split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
@@ -255,7 +255,7 @@ public final class MediaManagementDialog extends JDialog{
 		final FLEFRecord document = selectedDocument();
 		if(document == null){
 			previewLabel.setIcon(null);
-			previewLabel.setText("Select a document to preview");
+			previewLabel.setText(I18N.t("label.select_document"));
 
 			return;
 		}

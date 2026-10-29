@@ -39,6 +39,7 @@ import io.github.mtrevisan.familylegacy.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventParticipationHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RelationshipHandler;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -66,27 +67,30 @@ final class ChronologyDataLoader{
 
 
 	static ChronologyData load(final FLEFModel model){
-		final Map<String, FLEFRecord> individuals = new LinkedHashMap<>();
-		for(final FLEFRecord individual : model.getRecordsByType(IndividualHandler.TYPE))
+		final Map<String, FLEFRecord> filteredIndividuals = new LinkedHashMap<>();
+		final List<FLEFRecord> individuals = model.getRecordsByType(IndividualHandler.TYPE);
+		for(final FLEFRecord individual : individuals)
 			if(individual.getId() != null && !PrivacyService.isHidden(model, individual))
-				individuals.put(individual.getId(), individual);
+				filteredIndividuals.put(individual.getId(), individual);
 
-		final List<ChronologyData.LifeEvent> events = loadEvents(model, individuals.keySet());
+		final List<ChronologyData.LifeEvent> events = loadEvents(model, filteredIndividuals.keySet());
 		final Map<String, ChronologyData.Person> persons = new LinkedHashMap<>();
-		for(final FLEFRecord individual : individuals.values())
+		for(final FLEFRecord individual : filteredIndividuals.values())
 			persons.put(individual.getId(), loadPerson(individual, events));
 
 		final List<ChronologyData.ParentLink> parents = new ArrayList<>();
 		final List<ChronologyData.Union> unions = new ArrayList<>();
-		for(final FLEFRecord relationship : model.getRecordsByType(RelationshipHandler.TYPE))
-			loadRelationship(relationship, individuals.keySet(), parents, unions);
+		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
+		for(final FLEFRecord relationship : relationships)
+			loadRelationship(relationship, filteredIndividuals.keySet(), parents, unions);
 		return new ChronologyData(persons, events, parents, unions);
 	}
 
 
 	private static List<ChronologyData.LifeEvent> loadEvents(final FLEFModel model, final Set<String> individualIds){
 		final List<ChronologyData.LifeEvent> events = new ArrayList<>();
-		for(final FLEFRecord participation : model.getRecordsByType(EventParticipationHandler.TYPE)){
+		final List<FLEFRecord> participations = model.getRecordsByType(EventParticipationHandler.TYPE);
+		for(final FLEFRecord participation : participations){
 			final FLEFRecord participant = FLEFRecordHelper.findChild(participation, EventParticipationReader.TAG_PARTICIPANT);
 			final FLEFRecord reference = (participant != null? participant.getTheOnlyChild(): null);
 			final String personId = (reference != null? reference.getValue(): null);
@@ -178,7 +182,7 @@ final class ChronologyDataLoader{
 	}
 
 	private static String text(final FLEFRecord dateStructure){
-		return (dateStructure != null? DateReader.extractPrettyPrintDate(dateStructure): "");
+		return (dateStructure != null? DateReader.extractPrettyPrintDate(dateStructure): StringUtils.EMPTY);
 	}
 
 }

@@ -86,9 +86,9 @@ public final class ValidationReportDialog extends JDialog{
 	private final JTextArea detail = new JTextArea();
 	private final JLabel summary = new JLabel();
 
-	private final JButton openRecord = new JButton("Open record");
-	private final JButton copy = new JButton("Copy all");
-	private final JButton rerun = new JButton("Re-run");
+	private final JButton openRecord = new JButton(I18N.t("button.open_record"));
+	private final JButton copy = new JButton(I18N.t("button.copy_all"));
+	private final JButton rerun = new JButton(I18N.t("button.rerun"));
 	private final JButton close = new JButton(I18N.t("button.close"));
 
 
@@ -138,7 +138,7 @@ public final class ValidationReportDialog extends JDialog{
 		bottomButtons.add(close);
 
 		final JPanel detailPanel = new JPanel(new BorderLayout());
-		detailPanel.setBorder(BorderFactory.createTitledBorder("Details"));
+		detailPanel.setBorder(BorderFactory.createTitledBorder(I18N.t("border.details")));
 		detailPanel.add(new JScrollPane(detail), BorderLayout.CENTER);
 
 		final JPanel south = new JPanel(new BorderLayout());
@@ -199,16 +199,14 @@ public final class ValidationReportDialog extends JDialog{
 		final FLEFRecord record = model.getRecordById(err.recordId());
 		if(record == null){
 			JOptionPane.showMessageDialog(this,
-				"Record '" + err.recordId() + "' is no longer in the model.",
-				"Validate File", JOptionPane.WARNING_MESSAGE);
+				I18N.tf("message.record_not_in_model", err.recordId()), I18N.t("dialog.validate.title"), JOptionPane.WARNING_MESSAGE);
 			return;
 		}
 
 		final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(record.getTag());
 		if(handler == null){
 			JOptionPane.showMessageDialog(this,
-				"No editor registered for record type '" + record.getTag() + "'.",
-				"Validate File", JOptionPane.WARNING_MESSAGE);
+				I18N.tf("message.no_editor_for_type", record.getTag()), I18N.t("dialog.validate.title"), JOptionPane.WARNING_MESSAGE);
 
 			return;
 		}

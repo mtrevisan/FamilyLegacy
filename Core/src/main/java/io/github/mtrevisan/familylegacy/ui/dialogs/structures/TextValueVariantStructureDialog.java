@@ -141,18 +141,18 @@ public class TextValueVariantStructureDialog extends BaseRecordDialog{
 		radioPanel.add(phoneticRadio);
 		radioPanel.add(transcriptionRadio);
 
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.name.variant.kind") + ":", radioPanel);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.name.variant.kind"), radioPanel);
 
-		final JLabel phoneticsSystemLabel = new JLabel(I18N.t("dialog.name.variant.system") + "*:");
+		final JLabel phoneticsSystemLabel = new JLabel(GUIHelper.requiredLabel("dialog.name.variant.system"));
 		phoneticsSystemLabel.setLabelFor(phoneticSystemField);
 		propertiesPanel.add(phoneticsSystemLabel, "align label");
 		propertiesPanel.add(phoneticSystemField, "growx,wrap");
 		propertiesPanel.add(transcriptionSystemCombo, "growx,wrap");
 
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.name.variant.type") + ":", typeCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.name.variant.type"), typeCombo);
 
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.name.variant.phonetic.value") + "*:", phoneticValueField);
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.name.variant.transcription.value") + "*:", transcriptionValueField);
+		GUIHelper.addLabeledComponent(propertiesPanel, GUIHelper.requiredLabel("dialog.name.variant.phonetic.value"), phoneticValueField);
+		GUIHelper.addLabeledComponent(propertiesPanel, GUIHelper.requiredLabel("dialog.name.variant.transcription.value"), transcriptionValueField);
 
 		phoneticRadio.addActionListener(e -> updateFieldsState());
 		transcriptionRadio.addActionListener(e -> updateFieldsState());

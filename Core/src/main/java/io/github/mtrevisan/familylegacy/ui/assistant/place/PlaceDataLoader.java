@@ -51,30 +51,33 @@ final class PlaceDataLoader{
 
 	static PlaceData load(final FLEFModel model){
 		final Map<String, Integer> usage = new HashMap<>();
-		for(final FLEFRecord event : model.getRecordsByType(EventHandler.TYPE)){
+		final List<FLEFRecord> events = model.getRecordsByType(EventHandler.TYPE);
+		for(final FLEFRecord event : events){
 			final String placeId = FLEFRecordHelper.getChildValue(event, EVENT_PLACE);
 			if(placeId != null)
 				usage.merge(placeId, 1, Integer::sum);
 		}
 
-		final List<PlaceData.Place> places = new ArrayList<>();
-		for(final FLEFRecord record : model.getRecordsByType(PlaceHandler.TYPE)){
-			final double[] coordinates = PlaceChecker.parseCoordinates(PlaceReader.extractCoordinates(record));
-			places.add(new PlaceData.Place(record.getId(), PlaceReader.extractNames(record), PlaceReader.extractType(record),
+		final List<PlaceData.Place> filteredPlaces = new ArrayList<>();
+		final List<FLEFRecord> places = model.getRecordsByType(PlaceHandler.TYPE);
+		for(final FLEFRecord place : places){
+			final double[] coordinates = PlaceChecker.parseCoordinates(PlaceReader.extractCoordinates(place));
+			filteredPlaces.add(new PlaceData.Place(place.getId(), PlaceReader.extractNames(place), PlaceReader.extractType(place),
 				(coordinates != null? coordinates[0]: null), (coordinates != null? coordinates[1]: null),
-				usage.getOrDefault(record.getId(), 0)));
+				usage.getOrDefault(place.getId(), 0)));
 		}
 
 		final List<PlaceData.Relation> relations = new ArrayList<>();
-		for(final FLEFRecord record : model.getRecordsByType(PlaceRelationshipHandler.TYPE)){
-			final String subject = FLEFRecordHelper.getChildValue(record,
+		final List<FLEFRecord> placeRelationships = model.getRecordsByType(PlaceRelationshipHandler.TYPE);
+		for(final FLEFRecord placeRelationship : placeRelationships){
+			final String subject = FLEFRecordHelper.getChildValue(placeRelationship,
 				FLEFRecordHelper.composePath(PlaceRelationshipReader.TAG_SUBJECT, PlaceHandler.TYPE));
-			final String target = FLEFRecordHelper.getChildValue(record,
+			final String target = FLEFRecordHelper.getChildValue(placeRelationship,
 				FLEFRecordHelper.composePath(PlaceRelationshipReader.TAG_TARGET, PlaceHandler.TYPE));
 			if(subject != null && target != null)
-				relations.add(new PlaceData.Relation(record.getId(), subject, target, PlaceRelationshipReader.extractType(record)));
+				relations.add(new PlaceData.Relation(placeRelationship.getId(), subject, target, PlaceRelationshipReader.extractType(placeRelationship)));
 		}
-		return new PlaceData(places, relations);
+		return new PlaceData(filteredPlaces, relations);
 	}
 
 }

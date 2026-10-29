@@ -385,8 +385,9 @@ public final class SocialNetworkService{
 		if(indicesBuilt)
 			return;
 
-		final Map<String, List<FLEFRecord>> relationships = new HashMap<>();
-		for(final FLEFRecord relationship : PrivacyService.visible(model, model.getRecordsByType(RelationshipHandler.TYPE))){
+		final Map<String, List<FLEFRecord>> filteredRelationships = new HashMap<>();
+		final List<FLEFRecord> relationships = PrivacyService.visible(model, model.getRecordsByType(RelationshipHandler.TYPE));
+		for(final FLEFRecord relationship : relationships){
 			final String type = RelationshipReader.extractType(relationship);
 			if(type == null || !RelationshipReader.SOCIAL_RELATIONSHIP_TYPES.contains(type.toLowerCase()))
 				continue;
@@ -394,16 +395,17 @@ public final class SocialNetworkService{
 			final String subjectId = extractParticipantId(relationship, RelationshipReader.TAG_SUBJECT);
 			final String objectId = extractParticipantId(relationship, RelationshipReader.TAG_TARGET);
 			if(subjectId != null)
-				relationships.computeIfAbsent(subjectId, k -> new ArrayList<>())
+				filteredRelationships.computeIfAbsent(subjectId, k -> new ArrayList<>())
 					.add(relationship);
 			if(objectId != null)
-				relationships.computeIfAbsent(objectId, k -> new ArrayList<>())
+				filteredRelationships.computeIfAbsent(objectId, k -> new ArrayList<>())
 					.add(relationship);
 		}
 
 		final Map<String, List<FLEFRecord>> participationsByEntity = new HashMap<>();
 		final Map<String, List<FLEFRecord>> participationsByEvent = new HashMap<>();
-		for(final FLEFRecord participation : PrivacyService.visible(model, model.getRecordsByType(EventParticipationHandler.TYPE))){
+		final List<FLEFRecord> participations = PrivacyService.visible(model, model.getRecordsByType(EventParticipationHandler.TYPE));
+		for(final FLEFRecord participation : participations){
 			final String participantId = extractParticipantId(participation);
 			if(participantId != null)
 				participationsByEntity.computeIfAbsent(participantId, k -> new ArrayList<>())
@@ -418,7 +420,7 @@ public final class SocialNetworkService{
 					.add(participation);
 		}
 
-		socialRelationshipsByEntityId = relationships;
+		socialRelationshipsByEntityId = filteredRelationships;
 		eventParticipationsByEntityId = participationsByEntity;
 		relationalParticipationsByEventId = participationsByEvent;
 		indicesBuilt = true;

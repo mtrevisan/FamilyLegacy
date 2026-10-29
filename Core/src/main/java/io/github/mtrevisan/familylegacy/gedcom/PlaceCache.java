@@ -72,7 +72,7 @@ public class PlaceCache{
 
 		// Split place name into its jurisdictions, skipping the empty ones (e.g. ", , Treviso, Italia")
 		final List<String> parts = new ArrayList<>();
-		for(final String rawPart : placeName.split(",")){
+		for(final String rawPart : StringUtils.split(placeName, ',')){
 			final String trimmed = StringUtils.normalizeSpace(rawPart);
 			if(!trimmed.isEmpty())
 				parts.add(trimmed);

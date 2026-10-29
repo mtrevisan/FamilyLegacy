@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.ui.assistant;
 import io.github.mtrevisan.familylegacy.ui.dialogs.help.ShortcutRegistry;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import net.miginfocom.swing.MigLayout;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
@@ -96,8 +97,8 @@ final class ResearchAssistantPalette extends JDialog{
 	private final JTextField searchField = new JTextField();
 	private final DefaultListModel<Row> rowsModel = new DefaultListModel<>();
 	private final JList<Row> rowsList = new JList<>(rowsModel);
-	private final JLabel detailLabel = new JLabel(" ");
-	private final JLabel statusLabel = new JLabel(" ");
+	private final JLabel detailLabel = new JLabel(StringUtils.SPACE);
+	private final JLabel statusLabel = new JLabel(StringUtils.SPACE);
 	/** Shown while the findings are being computed. */
 	private final JProgressBar loadingBar = new JProgressBar();
 
@@ -124,6 +125,7 @@ final class ResearchAssistantPalette extends JDialog{
 	ResearchAssistantPalette(final ResearchAssistantService service, final AssistantContext context,
 			final ResearchAssistantService.Recalculation recalculation, final State state){
 		super(context.owner(), I18N.t("assistant.title"), ModalityType.APPLICATION_MODAL);
+		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
 		this.service = service;
 		this.context = context;
@@ -273,7 +275,7 @@ final class ResearchAssistantPalette extends JDialog{
 		final String status = (notice.isEmpty() || ignoredStatus.isEmpty()? notice + ignoredStatus: notice + " · " + ignoredStatus);
 		final boolean loading = (found == null);
 		loadingBar.setVisible(loading);
-		statusLabel.setText(loading? I18N.t("assistant.loading"): (status.isEmpty()? " ": status));
+		statusLabel.setText(loading? I18N.t("assistant.loading"): (status.isEmpty()? StringUtils.SPACE: status));
 		if(loading && rowsModel.isEmpty())
 			detailLabel.setText(I18N.t("assistant.loading.detail"));
 		else if(rowsModel.isEmpty())
@@ -358,7 +360,7 @@ final class ResearchAssistantPalette extends JDialog{
 		detailLabel.setText(switch(row){
 			case ActionRow a -> "<html>" + escape(a.action().description()) + "</html>";
 			case DiagnosticRow d -> "<html>" + escape(d.diagnostic().explanation()) + keyHints(d.diagnostic()) + "</html>";
-			case null, default -> " ";
+			case null, default -> StringUtils.SPACE;
 		});
 	}
 
@@ -408,7 +410,7 @@ final class ResearchAssistantPalette extends JDialog{
 				label.setForeground(UIManager.getColor("Label.disabledForeground"));
 			}
 			case ActionRow a -> label.setText(a.action().title() + "  ·  " + a.action().category().title());
-			case DiagnosticRow d -> label.setText(severitySymbol(d.diagnostic().severity()) + " " + d.diagnostic().title());
+			case DiagnosticRow d -> label.setText(severitySymbol(d.diagnostic().severity()) + StringUtils.SPACE + d.diagnostic().title());
 		}
 		return label;
 	}

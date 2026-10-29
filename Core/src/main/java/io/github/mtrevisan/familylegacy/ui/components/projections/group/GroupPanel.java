@@ -34,6 +34,7 @@ import io.github.mtrevisan.familylegacy.ui.components.projections.individual.Ent
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.EntityPopupMenuFactory;
 import io.github.mtrevisan.familylegacy.ui.helpers.PopupMouseAdapter;
 import net.miginfocom.swing.MigLayout;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
@@ -317,7 +318,7 @@ public class GroupPanel extends JPanel{
 			typeLabel.setIcon(PrivacyBadge.of(data.getPrivacy()));
 			final String privacyTooltip = PrivacyBadge.tooltip(data.getPrivacy());
 			if(privacyTooltip != null)
-				nameLabel.setToolTipText(Objects.toString(data.getNameTooltip(), "") + " " + privacyTooltip);
+				nameLabel.setToolTipText(Objects.toString(data.getNameTooltip(), "") + StringUtils.SPACE + privacyTooltip);
 
 			// Set the default image/placeholder
 			imageLabel.setIcon(boxType == BoxPanelType.PRIMARY

@@ -97,13 +97,12 @@ public final class ImportGedcomTool implements ToolOperation{
 			? w
 			: SwingUtilities.getWindowAncestor(context.owner());
 
-		final ProgressDialog progress = new ProgressDialog(owner, "Import GEDCOM",
-			"Importing " + file.getName() + "…");
+		final ProgressDialog progress = new ProgressDialog(owner, I18N.t("dialog.import.gedcom.title"), I18N.tf("dialog.import.progress", file.getName()));
 
 		final SwingWorker<FLEFModel, Void> worker = new SwingWorker<>(){
 			@Override
 			protected FLEFModel doInBackground() throws Exception{
-				progress.update(-1, "Reading file…");
+				progress.update(-1, I18N.t("progress.reading_file"));
 				final String gedcomContent;
 				try(final BufferedReader br = GEDCOMHelper.getBufferedReader(
 					new FileInputStream(file))){
@@ -111,7 +110,7 @@ public final class ImportGedcomTool implements ToolOperation{
 						.collect(Collectors.joining(System.lineSeparator()));
 				}
 
-				progress.update(-1, "Parsing GEDCOM…");
+				progress.update(-1, I18N.t("progress.parsing_gedcom"));
 				final GEDCOMParser parser = new GEDCOMParser();
 				final List<GEDCOMNode> roots;
 				try(final StringReader reader = new StringReader(gedcomContent)){
@@ -138,8 +137,7 @@ public final class ImportGedcomTool implements ToolOperation{
 				catch(final ExecutionException ex){
 					final Throwable cause = (ex.getCause() != null)? ex.getCause(): ex;
 					JOptionPane.showMessageDialog(context.owner(),
-						"The file is not a valid GEDCOM document:" + StringUtils.LF + cause.getMessage(),
-						"Import Error", JOptionPane.ERROR_MESSAGE);
+						I18N.l("error.import.gedcom.invalid") + StringUtils.LF + cause.getMessage(), I18N.t("error.import.title"), JOptionPane.ERROR_MESSAGE);
 				}
 			}
 		};

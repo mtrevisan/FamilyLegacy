@@ -325,6 +325,19 @@ public final class GUIHelper{
 	}
 
 	/**
+	 * Returns the localized text of {@code key} formatted as the label of a mandatory field (separator and mandatory
+	 * marker included, see {@code format.label_required}).
+	 */
+	public static String requiredLabel(final String key){
+		return I18N.tf("format.label_required", I18N.t(key));
+	}
+
+	/** Returns the localized title of a panel that holds a mandatory field (mandatory marker included). */
+	public static String requiredTitle(final String key){
+		return I18N.tf("format.title_required", I18N.t(key));
+	}
+
+	/**
 	 * Adds a labeled field to a panel that uses the two‑column layout.
 	 * The label is added with {@code split 2} and the field with {@code growx,pushx}.
 	 *
@@ -351,7 +364,7 @@ public final class GUIHelper{
 					.replace("&", "&amp;")
 					.replace("<", "&lt;")
 					.replace(">", "&gt;")
-					.replace("\n", "<br>"));
+					.replace(StringUtils.LF, "<br>"));
 			}
 		return (sb.isEmpty()? null: "<html><body style='width: " + TOOLTIP_WIDTH + "px'>" + sb + "</body></html>");
 	}
@@ -711,7 +724,7 @@ public final class GUIHelper{
 		final File selectedFile = fileChooser.getSelectedFile();
 		if(selectedFile == null || !selectedFile.exists()){
 			JOptionPane.showMessageDialog(parentComponent,
-				"Selected file does not exist.",
+				I18N.t("message.file_not_found"),
 				I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
 			return null;
 		}

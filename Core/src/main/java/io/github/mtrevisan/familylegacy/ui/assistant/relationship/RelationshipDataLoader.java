@@ -43,6 +43,7 @@ import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RelationshipHandler;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -66,27 +67,30 @@ final class RelationshipDataLoader{
 
 
 	static RelationshipData load(final FLEFModel model){
-		final Map<String, FLEFRecord> individuals = new LinkedHashMap<>();
-		for(final FLEFRecord individual : model.getRecordsByType(IndividualHandler.TYPE))
+		final Map<String, FLEFRecord> filteredIndividuals = new LinkedHashMap<>();
+		final List<FLEFRecord> individuals = model.getRecordsByType(IndividualHandler.TYPE);
+		for(final FLEFRecord individual : individuals)
 			if(individual.getId() != null && !PrivacyService.isHidden(model, individual))
-				individuals.put(individual.getId(), individual);
-		final Map<String, String> groups = new LinkedHashMap<>();
-		for(final FLEFRecord group : model.getRecordsByType(GroupHandler.TYPE))
+				filteredIndividuals.put(individual.getId(), individual);
+		final Map<String, String> filteredGroups = new LinkedHashMap<>();
+		final List<FLEFRecord> groups = model.getRecordsByType(GroupHandler.TYPE);
+		for(final FLEFRecord group : groups)
 			if(group.getId() != null && !PrivacyService.isHidden(model, group))
-				groups.put(group.getId(), displayText(model, group));
+				filteredGroups.put(group.getId(), displayText(model, group));
 
-		final List<RelationshipData.Event> events = loadEvents(model, individuals.keySet());
+		final List<RelationshipData.Event> events = loadEvents(model, filteredIndividuals.keySet());
 		final Map<String, RelationshipData.Person> persons = new LinkedHashMap<>();
-		for(final FLEFRecord individual : individuals.values())
+		for(final FLEFRecord individual : filteredIndividuals.values())
 			persons.put(individual.getId(), loadPerson(individual, events));
 
-		return new RelationshipData(persons, groups, loadRelationships(model, persons.keySet(), groups.keySet()), events);
+		return new RelationshipData(persons, filteredGroups, loadRelationships(model, persons.keySet(), filteredGroups.keySet()), events);
 	}
 
 
 	private static List<RelationshipData.Event> loadEvents(final FLEFModel model, final Set<String> individualIds){
 		final Map<String, List<RelationshipData.Participant>> participants = new LinkedHashMap<>();
-		for(final FLEFRecord participation : model.getRecordsByType(EventParticipationHandler.TYPE)){
+		final List<FLEFRecord> eventParticipations = model.getRecordsByType(EventParticipationHandler.TYPE);
+		for(final FLEFRecord participation : eventParticipations){
 			final String personId = armValue(FLEFRecordHelper.findChild(participation, EventParticipationReader.TAG_PARTICIPANT));
 			final String eventId = FLEFRecordHelper.getChildValue(participation, EventParticipationReader.TAG_EVENT);
 			if(personId == null || eventId == null || !individualIds.contains(personId))
@@ -126,8 +130,9 @@ final class RelationshipDataLoader{
 
 	private static List<RelationshipData.Relationship> loadRelationships(final FLEFModel model, final Set<String> individualIds,
 			final Set<String> groupIds){
-		final List<RelationshipData.Relationship> relationships = new ArrayList<>();
-		for(final FLEFRecord relationship : model.getRecordsByType(RelationshipHandler.TYPE)){
+		final List<RelationshipData.Relationship> filteredRelationships = new ArrayList<>();
+		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
+		for(final FLEFRecord relationship : relationships){
 			final String type = RelationshipReader.extractType(relationship);
 			final String[] subject = participant(relationship, RelationshipReader.TAG_SUBJECT, individualIds, groupIds);
 			final String[] target = participant(relationship, RelationshipReader.TAG_TARGET, individualIds, groupIds);
@@ -136,11 +141,11 @@ final class RelationshipDataLoader{
 
 			final FLEFRecord from = FLEFRecordHelper.findChild(relationship, RelationshipReader.TAG_VALID_FROM);
 			final FLEFRecord to = FLEFRecordHelper.findChild(relationship, RelationshipReader.TAG_VALID_TO);
-			relationships.add(new RelationshipData.Relationship(relationship.getId(), subject[0], kind(subject[1]), target[0],
+			filteredRelationships.add(new RelationshipData.Relationship(relationship.getId(), subject[0], kind(subject[1]), target[0],
 				kind(target[1]), type, RelationshipReader.extractRole(relationship), range(from), range(to), text(from),
 				STATUS_ENDED.equals(FLEFRecordHelper.getChildValue(relationship, TAG_STATUS))));
 		}
-		return relationships;
+		return filteredRelationships;
 	}
 
 	/** @return the identifier and the type of the individual or group a relationship names, or {@code null} if it is neither, or hidden */
@@ -196,7 +201,7 @@ final class RelationshipDataLoader{
 	}
 
 	private static String text(final FLEFRecord dateStructure){
-		return (dateStructure != null? DateReader.extractPrettyPrintDate(dateStructure): "");
+		return (dateStructure != null? DateReader.extractPrettyPrintDate(dateStructure): StringUtils.EMPTY);
 	}
 
 }

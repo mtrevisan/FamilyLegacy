@@ -114,7 +114,7 @@ public final class ContextBoardDialog extends JDialog{
 		final JPanel toolbar = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 6));
 		toolbar.setBorder(BorderFactory.createEmptyBorder(2, 4, 2, 4));
 
-		toolbar.add(new JLabel("Filter:"));
+		toolbar.add(new JLabel(I18N.l("label.filter")));
 		toolbar.add(searchField);
 		searchField.getDocument()
 			.addDocumentListener(new DocumentListener(){
@@ -139,7 +139,7 @@ public final class ContextBoardDialog extends JDialog{
 		newMenu.add(newItem("Historic event", ContextTreeBuilder.Kind.HISTORIC_EVENT));
 		newMenu.add(newItem("Cultural norm", ContextTreeBuilder.Kind.CULTURAL_NORM));
 		newMenu.add(newItem("Context impact", ContextTreeBuilder.Kind.IMPACT));
-		final JMenuItem selectedContextItem = new JMenuItem("Impact of the selected context");
+		final JMenuItem selectedContextItem = new JMenuItem(I18N.t("menu.item.selected_impact"));
 		selectedContextItem.addActionListener(e -> openNewImpact(selectedContext()));
 		newMenu.add(selectedContextItem);
 		newButton.addActionListener(e -> {
@@ -152,11 +152,11 @@ public final class ContextBoardDialog extends JDialog{
 		editButton.addActionListener(e -> openEditor(selectedNode()));
 		toolbar.add(editButton);
 
-		final JButton expandButton = new JButton("Expand all");
+		final JButton expandButton = new JButton(I18N.t("button.expand_all"));
 		expandButton.addActionListener(e -> expandAll());
 		toolbar.add(expandButton);
 
-		final JButton collapseButton = new JButton("Collapse all");
+		final JButton collapseButton = new JButton(I18N.t("button.collapse_all"));
 		collapseButton.addActionListener(e -> collapseAll());
 		toolbar.add(collapseButton);
 
@@ -190,9 +190,9 @@ public final class ContextBoardDialog extends JDialog{
 		details.setBorder(BorderFactory.createEmptyBorder(6, 6, 6, 6));
 
 		final JScrollPane treeScroll = new JScrollPane(tree);
-		treeScroll.setBorder(BorderFactory.createTitledBorder("Historic events, cultural norms, impacts"));
+		treeScroll.setBorder(BorderFactory.createTitledBorder(I18N.t("border.context_tree")));
 		final JScrollPane detailScroll = new JScrollPane(details);
-		detailScroll.setBorder(BorderFactory.createTitledBorder("Details"));
+		detailScroll.setBorder(BorderFactory.createTitledBorder(I18N.t("border.details")));
 
 		final JSplitPane split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, treeScroll, detailScroll);
 		split.setResizeWeight(0.65);

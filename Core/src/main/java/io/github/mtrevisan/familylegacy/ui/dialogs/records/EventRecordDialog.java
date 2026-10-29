@@ -163,19 +163,19 @@ public class EventRecordDialog extends BaseRecordDialog{
 	@Override
 	protected JPanel createPropertiesPanel(){
 		// type
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.event.type") + "*:", typeCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, GUIHelper.requiredLabel("dialog.event.type"), typeCombo);
 
 		// description
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.event.description") + "*:", descriptionArea);
+		GUIHelper.addLabeledComponent(propertiesPanel, GUIHelper.requiredLabel("dialog.event.description"), descriptionArea);
 
 		// date
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.event.date") + ":", dateField);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.event.date"), dateField);
 
 		// place
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.place") + ":", placeField);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.place"), placeField);
 
 		// confidence
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.event.confidence") + ":", confidenceCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.event.confidence"), confidenceCombo);
 
 		return propertiesPanel;
 	}
@@ -184,12 +184,12 @@ public class EventRecordDialog extends BaseRecordDialog{
 	protected JPanel createCausePanel(){
 		final JPanel panel = GUIHelper.createLabelFieldPanel(5, "[]10[]");
 
-		GUIHelper.addLabeledComponent(panel, I18N.t("dialog.event.cause.reason") + "*:", causeReasonField);
+		GUIHelper.addLabeledComponent(panel, GUIHelper.requiredLabel("dialog.event.cause.reason"), causeReasonField);
 
 		final JPanel sourcePanel = components.getPanel(PanelKey.SOURCE_FOR_CAUSE);
 		GUIHelper.addComponent(panel, sourcePanel);
 
-		GUIHelper.addLabeledComponent(panel, I18N.t("dialog.event.cause.evidence") + ":", causeConfidenceCombo);
+		GUIHelper.addLabeledComponent(panel, I18N.l("dialog.event.cause.evidence"), causeConfidenceCombo);
 
 		return panel;
 	}

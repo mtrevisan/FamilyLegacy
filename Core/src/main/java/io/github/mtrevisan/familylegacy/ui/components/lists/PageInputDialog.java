@@ -56,13 +56,15 @@ import java.awt.Image;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Window;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseWheelEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 
@@ -86,12 +88,19 @@ public class PageInputDialog extends JDialog{
 	private boolean isSaved;
 
 	// --- Caching & Optimization Fields ---
-	private final Map<Integer, BufferedImage> pageCache = new HashMap<>();
+	// the rendered pages of a PDF are big (about 9 MB each at 150 dpi): only the last ones are kept
+	private final Map<Integer, BufferedImage> pageCache = new LinkedHashMap<>(16, 0.75f, true){
+		@Override
+		protected boolean removeEldestEntry(final Map.Entry<Integer, BufferedImage> eldest){
+			return (size() > PAGE_CACHE_SIZE);
+		}
+	};
 
 	// --- Zoom State ---
 	private BufferedImage currentOriginalImage;
 	private double currentZoom = 1.0;
 	private static final double ZOOM_STEP = 1.15;
+	private static final int PAGE_CACHE_SIZE = 6;
 
 	private Rectangle cropRectInOriginalSpace;
 
@@ -106,6 +115,14 @@ public class PageInputDialog extends JDialog{
 
 	private PageInputDialog(final Window parent){
 		super(parent, ModalityType.APPLICATION_MODAL);
+
+		//the dialog is reused, but the rendered pages are not needed while it is hidden
+		addComponentListener(new ComponentAdapter(){
+			@Override
+			public void componentHidden(final ComponentEvent e){
+				pageCache.clear();
+			}
+		});
 
 		// Initialize spinner model with range [1, 1] (will be updated dynamically)
 		final SpinnerNumberModel spinnerModel = new SpinnerNumberModel(1, 1, 1, 1);

@@ -74,7 +74,8 @@ public final class IndividualData{
 	private static final Logger LOGGER = LoggerFactory.getLogger(IndividualData.class);
 
 
-	private static final AsyncResourceLoader<ImageIcon> IMAGE_LOADER = new AsyncResourceLoader<>();
+	private static final int IMAGE_CACHE_SIZE = 300;
+	private static final AsyncResourceLoader<ImageIcon> IMAGE_LOADER = new AsyncResourceLoader<>(IMAGE_CACHE_SIZE);
 
 	private static final String DOT = ".";
 	private static final String TAG_PIPE = "|";

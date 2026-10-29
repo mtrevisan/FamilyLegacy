@@ -29,7 +29,6 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.GeoCoordinate;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
-import io.github.mtrevisan.familylegacy.ui.dialogs.GeocodingProgressDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import org.jxmapviewer.JXMapViewer;
@@ -63,8 +62,8 @@ import javax.swing.UIManager;
 import javax.swing.event.MouseInputListener;
 import java.awt.BorderLayout;
 import java.awt.Image;
-import java.awt.Window;
 import java.awt.event.ActionEvent;
+import java.awt.event.HierarchyEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
@@ -124,6 +123,8 @@ public class ChronomapPanel extends JPanel{
 	// Global view constants
 	private static final GeoPosition WORLD_CENTER = new GeoPosition(0., 0.);
 	private static final int WORLD_ZOOM = 18;
+	/** The maps of an area are searched only when the zoom is this one or a closer one (the lower the zoom, the closer the view). */
+	private static final int HISTORICAL_SEARCH_ZOOM = 12;
 
 	/** Radius in pixels within which a click is considered a marker hit. */
 	private static final int MARKER_HIT_RADIUS_PX = 10;
@@ -158,57 +159,15 @@ public class ChronomapPanel extends JPanel{
 	/** Metadata of the maps currently shown, parallel to {@link #historicalMapOverlays}. */
 	private final List<HistoricalMapMetaData> activeHistoricalMaps = new ArrayList<>();
 	private final Map<Integer, DefaultTileFactory> mapWarperCache = new LinkedHashMap<>();
+	private final HistoricalMapCatalog historicalMapCatalog = new HistoricalMapCatalog(
+		Path.of(System.getProperty("user.home"), ".familylegacy", "historical-maps.properties"));
 
-	// https://mapwarper.net/maps/98752
-	// TODO see MapWarperMetadataProbe
-	private final List<HistoricalMapMetaData> availableHistoricalMaps = List.of(
-		new HistoricalMapMetaData(98752, "Italy [1499]", 2268559L, 2268923L,
-			new GeoPosition(47.8777742, 4.2787858), new GeoPosition(34.7527998, 19.1181981)),
-		new HistoricalMapMetaData(40917, "East Europe [1570]", firstDayOfYear(1570), lastDayOfYear(1570),
-			new GeoPosition(57.4950594973751, 8.055127588116198), new GeoPosition(33.46653425876917, 35.841168995341484)),
-		new HistoricalMapMetaData(40364, "Europe, the peace of Westphalia [1648]", firstDayOfYear(1648), lastDayOfYear(1648),
-			new GeoPosition(62.93794, -22.0289902), new GeoPosition(30.1449439, 54.4634365)),
-		new HistoricalMapMetaData(86282, "Europe [1696]", firstDayOfYear(1696), lastDayOfYear(1696),
-			new GeoPosition(76.2465603, -37.1024572), new GeoPosition(27.7860639, 91.9596861)),
-		new HistoricalMapMetaData(70055, "Italy [1790]", 2374845L, 2375209L,
-			new GeoPosition(49.2560582, 4.77068), new GeoPosition(32.2506154, 19.9735354)),
-		new HistoricalMapMetaData(101098, "Europe [1810]", firstDayOfYear(1810), lastDayOfYear(1810),
-			new GeoPosition(74.336858, -34.6566512), new GeoPosition(24.3812222, 87.5786717)),
-		new HistoricalMapMetaData(50110, "Italy [1811]", 2382514L, 2382878L,
-			new GeoPosition(48.6998699, 3.8993105), new GeoPosition(33.2088633, 23.9187322)),
-		new HistoricalMapMetaData(46121, "Europe map [1815]", firstDayOfYear(1815), lastDayOfYear(1815),
-			new GeoPosition(60.4193475, -13.6826846), new GeoPosition(32.8045958, 39.8144521)),
-		new HistoricalMapMetaData(109358, "Italy [1815]", 2383975L, 2384339L,
-			new GeoPosition(47.2788843, 3.7518328), new GeoPosition(34.9267374, 19.0513314)),
-		new HistoricalMapMetaData(46122, "Europe [1854]", firstDayOfYear(1854), lastDayOfYear(1854),
-			new GeoPosition(73.1984149, -50.6104437), new GeoPosition(21.9213243, 78.0662862)),
-		new HistoricalMapMetaData(694, "Central Europe [1875]", firstDayOfYear(1875), lastDayOfYear(1875),
-			new GeoPosition(58.82915948331553, -12.87125040612257), new GeoPosition(31.472393302609195, 42.76694731645283)),
-		new HistoricalMapMetaData(98610, "Europe Train Map [1889]", firstDayOfYear(1889), lastDayOfYear(1889),
-			new GeoPosition(67.1616677, -30.5444337), new GeoPosition(22.6591603, 67.9727088)),
-		new HistoricalMapMetaData(54313, "Europe [1895]", firstDayOfYear(1895), lastDayOfYear(1895),
-			new GeoPosition(75.4558424, -36.6280992), new GeoPosition(25.6867332, 85.789368)),
-		new HistoricalMapMetaData(13354, "Europe [1910]", firstDayOfYear(1910), lastDayOfYear(1910),
-			new GeoPosition(76.117162, -50.0199415), new GeoPosition(18.4774785, 87.5562268)),
-		new HistoricalMapMetaData(52583, "East Central Europe [1910]", firstDayOfYear(1910), lastDayOfYear(1910),
-			new GeoPosition(58.2223856, 9.2425931), new GeoPosition(33.2128363, 33.0980444)),
-		new HistoricalMapMetaData(23789, "Europe [1914]", firstDayOfYear(1914), lastDayOfYear(1914),
-			new GeoPosition(57.4161474, -8.5438205), new GeoPosition(39.0943806, 34.872125)),
-		new HistoricalMapMetaData(91403, "Map of Europe sep [193807]", firstDayOfYear(1938) + 181, firstDayOfYear(1938) + 211,
-			new GeoPosition(76.3769155, -20.9594392), new GeoPosition(31.9105175, 53.3787187)),
-		new HistoricalMapMetaData(65941, "Europe [1939]", firstDayOfYear(1939), lastDayOfYear(1939),
-			new GeoPosition(58.8626453, -20.9326147), new GeoPosition(25.7711045, 50.9206112)),
-		new HistoricalMapMetaData(103854, "Europe [1955]", firstDayOfYear(1955), lastDayOfYear(1955),
-			new GeoPosition(84.0118525, -79.7691404), new GeoPosition(9.8722811, 121.202397)),
-		new HistoricalMapMetaData(39802, "Europe [1955]", firstDayOfYear(1955), lastDayOfYear(1955),
-			new GeoPosition(83.3444685, -91.3676302), new GeoPosition(8.4669641, 112.0641015))
-	);
 
 	private final ChronomapLayerManager layerManager = new ChronomapLayerManager();
 	private final ChronomapOverlayPainter markerLayer;
 	private final ChronomapImageOverlayLayer imageLayer;
 
-	private final JCheckBox showUncertaintyCheckBox = new JCheckBox("Show uncertainty", true);
+	private final JCheckBox showUncertaintyCheckBox = new JCheckBox(I18N.t("checkbox.show_uncertainty"), true);
 
 	private final Map<String, JCheckBoxMenuItem> eventTypeItems = new LinkedHashMap<>();
 
@@ -242,38 +201,10 @@ public class ChronomapPanel extends JPanel{
 	private final JToggleButton button3D = new JToggleButton("3D");
 	private final ButtonGroup viewModeGroup = new ButtonGroup();
 
-	private final JButton resetButton = new JButton("Reset view");
+	private final JButton resetButton = new JButton(I18N.t("button.reset_view"));
+	private final JButton geocodeButton = new JButton(I18N.t("button.geocode_places"));
+	private SwingWorker<Integer, ?> geocodingWorker;
 
-
-	private record ProgressData(int current, int total, String placeName){}
-
-
-	/* ======================================================================
-	 *                          JDN helpers
-	 * ====================================================================== */
-
-	/**
-	 * Julian Day Number of January 1 of the given Gregorian year.
-	 * Gregorian proleptic calendar; all divisions are integer divisions.
-	 */
-	static long firstDayOfYear(final int year){
-		return gregorianToJdn(year, 1, 1);
-	}
-
-	/**
-	 * Julian Day Number of December 31 of the given Gregorian year.
-	 * Gregorian proleptic calendar; all divisions are integer divisions.
-	 */
-	static long lastDayOfYear(final int year){
-		return gregorianToJdn(year, 12, 31);
-	}
-
-	private static long gregorianToJdn(final int year, final int month, final int day){
-		final int a = (14 - month) / 12;
-		final int y = year + 4800 - a;
-		final int m = month + 12 * a - 3;
-		return day + (153L * m + 2) / 5 + 365L * y + y / 4 - y / 100 + y / 400 - 32045L;
-	}
 
 
 	/* ======================================================================
@@ -367,7 +298,46 @@ public class ChronomapPanel extends JPanel{
 			mapViewer.repaint();
 		});
 
-		startGeocodingWorker(placeResolver);
+		geocodeButton.setToolTipText(I18N.t("tooltip.geocode_places"));
+		geocodeButton.addActionListener(e -> startGeocoding(placeResolver));
+		startGeocoding(placeResolver);
+
+		//every tile factory has its own pool of threads and its cache of tiles: they are released with the window
+		addHierarchyListener(e -> {
+			if((e.getChangeFlags() & HierarchyEvent.DISPLAYABILITY_CHANGED) != 0 && !isDisplayable())
+				releaseTileFactories();
+		});
+	}
+
+	/** Starts the geocoding of the unresolved places, unless a run is already in progress. */
+	private void startGeocoding(final PlaceCoordinateResolver placeResolver){
+		if(geocodingWorker != null && !geocodingWorker.isDone())
+			return;
+
+		geocodingWorker = GeocodingWorker.start(this, placeResolver, () -> {
+			index.rebuild();
+
+			mapViewer.repaint();
+
+			if(globeModeActive)
+				refreshGlobeMarkers();
+		});
+
+		//the button is enabled only if there is something left to geocode, and no run is in progress
+		geocodeButton.setEnabled(false);
+		if(geocodingWorker != null)
+			geocodingWorker.addPropertyChangeListener(evt -> {
+				if("state".equals(evt.getPropertyName()) && evt.getNewValue() == SwingWorker.StateValue.DONE)
+					SwingUtilities.invokeLater(() -> geocodeButton.setEnabled(placeResolver.hasMissingPlaces()));
+			});
+	}
+
+	/** The tile factories recreate their pool of threads when they are needed again, so releasing them is always safe. */
+	private void releaseTileFactories(){
+		if(osmTileFactory != null)
+			osmTileFactory.dispose();
+		for(final DefaultTileFactory factory : mapWarperCache.values())
+			factory.dispose();
 	}
 
 
@@ -449,88 +419,6 @@ public class ChronomapPanel extends JPanel{
 		}
 		return bestId;
 	}
-
-
-	/* ======================================================================
-	 *                          Geocoding worker
-	 * ====================================================================== */
-
-	/**
-	 * Starts the background geocoding worker.
-	 * <p>
-	 * The worker is started only when there is actual network work to do.
-	 * The list of places to geocode is computed by
-	 * {@link PlaceCoordinateResolver#extractMissingPlaces()}, which
-	 * checks both the in-memory cache and the on-disk cache. When every
-	 * place is already resolved (a typical second run on the same file),
-	 * the method returns without showing the progress dialog or
-	 * scheduling any background task.
-	 */
-	private void startGeocodingWorker(final PlaceCoordinateResolver placeResolver){
-		final List<FLEFRecord> placesToGeocode = placeResolver.extractMissingPlaces();
-		if(placesToGeocode.isEmpty()){
-			LOGGER.debug("Geocoding skipped: all places are already cached");
-
-			return;
-		}
-
-		LOGGER.debug("Geocoding {} places not present in the cache", placesToGeocode.size());
-
-		final SwingWorker<Integer, ProgressData> worker = new SwingWorker<>(){
-			private GeocodingProgressDialog dialog;
-
-			@Override
-			protected Integer doInBackground(){
-				return placeResolver.geocodePlaces(
-					placesToGeocode,
-					(current, total, placeName) -> publish(new ProgressData(current, total, placeName)),
-					this::isCancelled
-				);
-			}
-
-			@Override
-			protected void process(final List<ProgressData> chunks){
-				if(isCancelled())
-					return;
-
-				final ProgressData latest = chunks.getLast();
-				if(dialog == null){
-					final Window windowOwner = SwingUtilities.getWindowAncestor(ChronomapPanel.this);
-					dialog = new GeocodingProgressDialog(
-						windowOwner,
-						I18N.t("dialog.geocoding.title"),
-						() -> cancel(true)
-					);
-					dialog.setVisible(true);
-				}
-				dialog.updateProgress(latest.current(), latest.total(), latest.placeName());
-			}
-
-			@Override
-			protected void done(){
-				if(dialog != null)
-					dialog.dispose();
-
-				try{
-					final int resolved = get();
-					if(resolved > 0){
-						index.rebuild();
-
-						mapViewer.repaint();
-
-						if(globeModeActive)
-							refreshGlobeMarkers();
-					}
-				}
-				catch(final Exception ignored){
-					LOGGER.debug("Geocoding worker cancelled or interrupted");
-				}
-			}
-		};
-
-		worker.execute();
-	}
-
 
 	/* ======================================================================
 	 *                          Public API
@@ -626,8 +514,8 @@ public class ChronomapPanel extends JPanel{
 	 * initial selection, matching the initial state of the panel.
 	 */
 	private void setupViewButtons(){
-		button2D.setToolTipText("Show the 2D map (Ctrl+2)");
-		button3D.setToolTipText("Show the pseudo-3D globe (Ctrl+3)");
+		button2D.setToolTipText(I18N.t("tooltip.map_2d"));
+		button3D.setToolTipText(I18N.t("tooltip.globe_3d"));
 
 		viewModeGroup.add(button2D);
 		viewModeGroup.add(button3D);
@@ -819,6 +707,7 @@ public class ChronomapPanel extends JPanel{
 		final JPanel toolbar = new JPanel();
 		resetButton.addActionListener(e -> resetView());
 		toolbar.add(resetButton);
+		toolbar.add(geocodeButton);
 
 		toolbar.add(button2D);
 		toolbar.add(button3D);
@@ -856,13 +745,24 @@ public class ChronomapPanel extends JPanel{
 		}
 
 		final GeoPosition currentCenter = mapViewer.getCenterPosition();
+		//the maps of the area are searched only when the area is looked at closely, not at the zoom of the whole world
+		if(mapViewer.getZoom() <= HISTORICAL_SEARCH_ZOOM)
+			historicalMapCatalog.requestArea(currentCenter, () -> autoSelectBaseMap(timeline.getCurrentTime()));
 
-		final List<HistoricalMapMetaData> matching = availableHistoricalMaps.stream()
-			.filter(map -> map.isMatching(currentJdn, currentCenter))
+		setHistoricalOverlays(mapsAt(currentJdn, currentCenter));
+	}
+
+	/**
+	 * The maps that depict the time and the place, from the largest to the smallest. Without a network, only the maps that have
+	 * some tiles already downloaded.
+	 */
+	private List<HistoricalMapMetaData> mapsAt(final double currentJdn, final GeoPosition center){
+		final boolean offline = historicalMapCatalog.isOffline();
+		return historicalMapCatalog.maps().stream()
+			.filter(map -> map.isMatching(currentJdn, center))
+			.filter(map -> !offline || HistoricalMapCatalog.hasLocalTiles(map.mapId()))
 			.sorted(Comparator.comparingDouble(ChronomapPanel::areaOf).reversed())
 			.toList();
-
-		setHistoricalOverlays(matching);
 	}
 
 	/**
@@ -937,14 +837,14 @@ public class ChronomapPanel extends JPanel{
 
 
 	private JButton createHistoricalMapButton(){
-		final JButton button = new JButton("Historical Map");
+		final JButton button = new JButton(I18N.t("button.historical_map"));
 		final JPopupMenu menu = new JPopupMenu();
 
 		button.addActionListener(e -> {
 			menu.removeAll();
 
 			// Option 1: auto-selection toggle.
-			final JCheckBoxMenuItem autoItem = new JCheckBoxMenuItem("Auto Select Historical Map", autoSelectMapEnabled);
+			final JCheckBoxMenuItem autoItem = new JCheckBoxMenuItem(I18N.t("checkbox.map_auto_select"), autoSelectMapEnabled);
 			autoItem.addActionListener(ev -> {
 				autoSelectMapEnabled = autoItem.isSelected();
 				if(autoSelectMapEnabled)
@@ -955,7 +855,7 @@ public class ChronomapPanel extends JPanel{
 
 			// Option 2: manual "None" (modern map only).
 			final boolean noneActive = (!autoSelectMapEnabled && activeHistoricalMaps.isEmpty());
-			final JRadioButtonMenuItem noneItem = new JRadioButtonMenuItem("None (modern map only)", noneActive);
+			final JRadioButtonMenuItem noneItem = new JRadioButtonMenuItem(I18N.t("checkbox.map_none"), noneActive);
 			noneItem.addActionListener(ev -> {
 				autoSelectMapEnabled = false;
 				setHistoricalOverlays(List.of());
@@ -965,7 +865,8 @@ public class ChronomapPanel extends JPanel{
 			// Option 3: manual override for available historical maps.
 			// Selecting one disables auto-selection and replaces the whole
 			// overlay set with just that map.
-			for(final HistoricalMapMetaData map : availableHistoricalMaps){
+			//only the maps of the time and place displayed: the catalog holds all the maps ever found
+			for(final HistoricalMapMetaData map : mapsAt(timeline.getCurrentTime(), mapViewer.getCenterPosition())){
 				final boolean isCurrent = !autoSelectMapEnabled
 					&& activeHistoricalMaps.size() == 1
 					&& activeHistoricalMaps.getFirst().mapId() == map.mapId();
@@ -1000,7 +901,7 @@ public class ChronomapPanel extends JPanel{
 	}
 
 	private JButton createLayersButton(){
-		final JButton button = new JButton("Layers");
+		final JButton button = new JButton(I18N.t("button.layers"));
 		final JPopupMenu menu = new JPopupMenu();
 
 		button.addActionListener(e -> {
@@ -1021,7 +922,7 @@ public class ChronomapPanel extends JPanel{
 	}
 
 	private JButton createEventsButton(){
-		final JButton button = new JButton("Events");
+		final JButton button = new JButton(I18N.t("button.events"));
 		final JPopupMenu menu = new JPopupMenu();
 
 		eventTypeItems.clear();

@@ -124,7 +124,7 @@ public class HistoricalDateAssistantDialog extends JDialog{
 	private final DefaultListModel<DateSuggestion> suggestionsModel = new DefaultListModel<>();
 	private final JList<DateSuggestion> suggestionsList = new JList<>(suggestionsModel);
 	private final JTextArea explanationArea = new JTextArea(10, 60);
-	private final JLabel messageLabel = new JLabel(" ");
+	private final JLabel messageLabel = new JLabel(StringUtils.SPACE);
 	private final JButton applyButton = new JButton(I18N.t("dialog.date_assistant.apply"));
 	private final JButton copyButton = new JButton(I18N.t("dialog.date_assistant.copy"));
 	private final JButton dismissButton = new JButton(I18N.t("dialog.date_assistant.dismiss"));
@@ -141,6 +141,7 @@ public class HistoricalDateAssistantDialog extends JDialog{
 	public HistoricalDateAssistantDialog(final Window parent, final Tool initialTool, final String calendarCode, final String dateText,
 			final FLEFModel model, final Consumer<DateSuggestion> applier){
 		super(parent, I18N.t("dialog.date_assistant.title"), ModalityType.APPLICATION_MODAL);
+		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
 		this.applier = applier;
 
@@ -222,9 +223,9 @@ public class HistoricalDateAssistantDialog extends JDialog{
 		run.addActionListener(e -> compute(() -> CalendarConversionTool.convert((String)calendar.getSelectedItem(), date.getText())));
 
 		final JPanel panel = new JPanel(new MigLayout("fillx", "[][grow,fill][]"));
-		panel.add(new JLabel(I18N.t("dialog.date.calendar") + ":"));
+		panel.add(new JLabel(I18N.l("dialog.date.calendar")));
 		panel.add(calendar);
-		panel.add(new JLabel(I18N.t("dialog.date.full_date") + ":"), "gapleft 10");
+		panel.add(new JLabel(I18N.l("dialog.date.full_date")), "gapleft 10");
 		panel.add(date, "growx");
 		panel.add(run);
 		return panel;
@@ -249,15 +250,15 @@ public class HistoricalDateAssistantDialog extends JDialog{
 			(direction.getSelectedIndex() == 0? 1: -1) * (long)(int)days.getValue(), selectedReform(reform)))));
 
 		final JPanel panel = new JPanel(new MigLayout("fillx", "[][grow,fill][][grow,fill]"));
-		panel.add(new JLabel(I18N.t("dialog.date_assistant.year") + ":"));
+		panel.add(new JLabel(I18N.l("dialog.date_assistant.year")));
 		panel.add(year);
-		panel.add(new JLabel(I18N.t("dialog.date_assistant.reform") + ":"), "gapleft 10");
+		panel.add(new JLabel(I18N.l("dialog.date_assistant.reform")), "gapleft 10");
 		panel.add(reform, "wrap");
 		panel.add(feasts, "span 4,wrap");
-		panel.add(new JLabel(I18N.t("dialog.date_assistant.liturgical.expression") + ":"));
+		panel.add(new JLabel(I18N.l("dialog.date_assistant.liturgical.expression")));
 		panel.add(expression, "span 2,growx");
 		panel.add(resolve, "wrap");
-		panel.add(new JLabel(I18N.t("dialog.date_assistant.liturgical.easter_distance") + ":"));
+		panel.add(new JLabel(I18N.l("dialog.date_assistant.liturgical.easter_distance")));
 		panel.add(days, "split 3,growx");
 		panel.add(direction);
 		panel.add(relative);
@@ -280,15 +281,15 @@ public class HistoricalDateAssistantDialog extends JDialog{
 			(StringUtils.isBlank(hours.getText())? null: Double.valueOf(hours.getText().trim().replace(',', '.'))))));
 
 		final JPanel panel = new JPanel(new MigLayout("fillx", "[][grow,fill][][grow,fill]"));
-		panel.add(new JLabel(I18N.t("dialog.date.calendar") + ":"));
+		panel.add(new JLabel(I18N.l("dialog.date.calendar")));
 		panel.add(calendar);
-		panel.add(new JLabel(I18N.t("dialog.date.full_date") + ":"), "gapleft 10");
+		panel.add(new JLabel(I18N.l("dialog.date.full_date")), "gapleft 10");
 		panel.add(date, "wrap");
-		panel.add(new JLabel(I18N.t("dialog.date_assistant.sun.latitude") + ":"));
+		panel.add(new JLabel(I18N.l("dialog.date_assistant.sun.latitude")));
 		panel.add(latitude);
-		panel.add(new JLabel(I18N.t("dialog.date_assistant.sun.longitude") + ":"), "gapleft 10");
+		panel.add(new JLabel(I18N.l("dialog.date_assistant.sun.longitude")), "gapleft 10");
 		panel.add(longitude, "wrap");
-		panel.add(new JLabel(I18N.t("dialog.date_assistant.sun.hours") + ":"));
+		panel.add(new JLabel(I18N.l("dialog.date_assistant.sun.hours")));
 		panel.add(hours, "split 2,growx");
 		panel.add(hourSystem);
 		panel.add(run, "skip 1");
@@ -307,11 +308,11 @@ public class HistoricalDateAssistantDialog extends JDialog{
 			(int)amount.getValue(), (RelativeDateTool.Unit)unit.getSelectedItem(), direction.getSelectedIndex() == 0)));
 
 		final JPanel panel = new JPanel(new MigLayout("fillx", "[][grow,fill][][grow,fill]"));
-		panel.add(new JLabel(I18N.t("dialog.date.calendar") + ":"));
+		panel.add(new JLabel(I18N.l("dialog.date.calendar")));
 		panel.add(calendar);
-		panel.add(new JLabel(I18N.t("dialog.date_assistant.relative.base") + ":"), "gapleft 10");
+		panel.add(new JLabel(I18N.l("dialog.date_assistant.relative.base")), "gapleft 10");
 		panel.add(date, "wrap");
-		panel.add(new JLabel(I18N.t("dialog.date_assistant.relative.distance") + ":"));
+		panel.add(new JLabel(I18N.l("dialog.date_assistant.relative.distance")));
 		panel.add(amount, "split 3,growx");
 		panel.add(unit);
 		panel.add(direction);
@@ -337,9 +338,9 @@ public class HistoricalDateAssistantDialog extends JDialog{
 		}));
 
 		final JPanel panel = new JPanel(new MigLayout("fillx", "[][grow,fill]"));
-		panel.add(new JLabel(I18N.t("dialog.date_assistant.event") + ":"));
+		panel.add(new JLabel(I18N.l("dialog.date_assistant.event")));
 		panel.add(event, "wrap");
-		panel.add(new JLabel(I18N.t("dialog.date_assistant.relative.distance") + ":"));
+		panel.add(new JLabel(I18N.l("dialog.date_assistant.relative.distance")));
 		panel.add(amount, "split 4,growx");
 		panel.add(unit);
 		panel.add(direction);
@@ -373,15 +374,15 @@ public class HistoricalDateAssistantDialog extends JDialog{
 		}));
 
 		final JPanel panel = new JPanel(new MigLayout("fillx", "[][grow,fill][][grow,fill]"));
-		panel.add(new JLabel(I18N.t("dialog.date_assistant.event") + ":"));
+		panel.add(new JLabel(I18N.l("dialog.date_assistant.event")));
 		panel.add(event, "span 3,wrap");
-		panel.add(new JLabel(I18N.t("dialog.date.calendar") + ":"));
+		panel.add(new JLabel(I18N.l("dialog.date.calendar")));
 		panel.add(calendar);
-		panel.add(new JLabel(I18N.t("dialog.date.full_date") + ":"), "gapleft 10");
+		panel.add(new JLabel(I18N.l("dialog.date.full_date")), "gapleft 10");
 		panel.add(date, "wrap");
-		panel.add(new JLabel(I18N.t("dialog.date_assistant.age.event_name") + ":"));
+		panel.add(new JLabel(I18N.l("dialog.date_assistant.age.event_name")));
 		panel.add(eventName, "wrap");
-		panel.add(new JLabel(I18N.t("dialog.date_assistant.age") + ":"));
+		panel.add(new JLabel(I18N.l("dialog.date_assistant.age")));
 		panel.add(years, "split 6,growx");
 		panel.add(new JLabel(I18N.t("dialog.date_assistant.age.months")));
 		panel.add(months);
@@ -415,11 +416,12 @@ public class HistoricalDateAssistantDialog extends JDialog{
 
 	/** The events of the model whose date is known to the day, month or year, or is a closed range, sorted by date. */
 	private static List<EventChoice> loadEvents(final FLEFModel model){
-		final List<EventChoice> events = new ArrayList<>();
+		final List<EventChoice> filteredEvents = new ArrayList<>();
 		if(model == null)
-			return events;
+			return filteredEvents;
 
-		for(final FLEFRecord event : model.getRecordsByType(EventHandler.TYPE)){
+		final List<FLEFRecord> events = model.getRecordsByType(EventHandler.TYPE);
+		for(final FLEFRecord event : events){
 			final List<FLEFRecord> dates = FLEFRecordHelper.extractStructures(event, EventReader.TAG_DATE);
 			if(dates.isEmpty())
 				continue;
@@ -440,11 +442,11 @@ public class HistoricalDateAssistantDialog extends JDialog{
 			final String description = EventReader.extractDescription(event);
 			final String date = DateReader.extractPrettyPrintDate(dates.getFirst());
 			final String name = type + (StringUtils.isNotBlank(description)? " (" + description + ")": StringUtils.EMPTY);
-			events.add(new EventChoice(name + ", " + date + " [" + event.getId() + "]", name + " " + date, type, min, max,
+			filteredEvents.add(new EventChoice(name + ", " + date + " [" + event.getId() + "]", name + StringUtils.SPACE + date, type, min, max,
 				(min < ROME_FIRST_GREGORIAN_JDN? "julian": "gregorian"), span.isApproximate()));
 		}
-		events.sort(Comparator.comparingLong(EventChoice::minJdn));
-		return events;
+		filteredEvents.sort(Comparator.comparingLong(EventChoice::minJdn));
+		return filteredEvents;
 	}
 
 	private static String summary(final DateSuggestion suggestion){
@@ -482,7 +484,7 @@ public class HistoricalDateAssistantDialog extends JDialog{
 	/** Runs a tool and shows its suggestions, or the reason it failed. */
 	private void compute(final Supplier<List<DateSuggestion>> tool){
 		suggestionsModel.clear();
-		messageLabel.setText(" ");
+		messageLabel.setText(StringUtils.SPACE);
 		try{
 			tool.get()
 				.forEach(suggestionsModel::addElement);

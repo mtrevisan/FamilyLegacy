@@ -133,16 +133,16 @@ public class NoteStructureDialog extends BaseRecordDialog{
 	@Override
 	protected JPanel createPropertiesPanel(){
 		// title
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.note.title") + ":", titleField);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.note.title"), titleField);
 
 		// text
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.note.text") + "*:", textArea);
+		GUIHelper.addLabeledComponent(propertiesPanel, GUIHelper.requiredLabel("dialog.note.text"), textArea);
 
 		// mime
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.note.mime_type") + ":", mimeCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.note.mime_type"), mimeCombo);
 
 		// locale
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.note.locale") + ":", localeCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.note.locale"), localeCombo);
 
 		// translation
 		GUIHelper.addComponent(propertiesPanel, translationPanel);

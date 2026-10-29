@@ -143,7 +143,7 @@ public class GroupRecordDialog extends BaseRecordDialog{
 
 		// type
 		final JPanel typePanel = GUIHelper.createLabelFieldPanel(0, "[]");
-		GUIHelper.addLabeledComponent(typePanel, I18N.t("dialog.group.type") + ":", typeCombo);
+		GUIHelper.addLabeledComponent(typePanel, I18N.l("dialog.group.type"), typeCombo);
 		GUIHelper.addComponent(panel, typePanel);
 
 		return panel;

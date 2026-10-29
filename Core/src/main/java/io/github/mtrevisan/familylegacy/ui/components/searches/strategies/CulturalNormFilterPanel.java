@@ -77,19 +77,19 @@ public class CulturalNormFilterPanel extends JPanel implements RecordFilterPanel
 		calendarFromCombo.setI18NPrefix("enum.date.calendar");
 		calendarToCombo.setI18NPrefix("enum.date.calendar");
 
-		add(new JLabel(I18N.t("dialog.cultural_norm.title") + ":"));
+		add(new JLabel(I18N.l("dialog.cultural_norm.title")));
 		add(titleField, "growx");
-		add(new JLabel(I18N.t("dialog.cultural_norm.rule_type") + ":"));
+		add(new JLabel(I18N.l("dialog.cultural_norm.rule_type")));
 		add(ruleTypeCombo, "growx");
-		add(new JLabel(I18N.t("dialog.place") + ":"));
+		add(new JLabel(I18N.l("dialog.place")));
 		add(placeField, "growx");
-		add(new JLabel(I18N.t("search.date.from") + ":"));
+		add(new JLabel(I18N.l("search.date.from")));
 		add(dateFromField, "growx");
-		add(new JLabel(I18N.t("search.date.calendar.from") + ":"));
+		add(new JLabel(I18N.l("search.date.calendar.from")));
 		add(calendarFromCombo, "growx");
-		add(new JLabel(I18N.t("search.date.to") + ":"));
+		add(new JLabel(I18N.l("search.date.to")));
 		add(dateToField, "growx");
-		add(new JLabel(I18N.t("search.date.calendar.to") + ":"));
+		add(new JLabel(I18N.l("search.date.calendar.to")));
 		add(calendarToCombo, "growx");
 	}
 

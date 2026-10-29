@@ -111,8 +111,8 @@ public class AgentStructureDialog extends BaseRecordDialog{
 
 	@Override
 	protected JPanel createPropertiesPanel(){
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.agent.type") + ":", typeCombo);
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.agent.value") + ":", cardPanel);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.agent.type"), typeCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.agent.value"), cardPanel);
 
 		return propertiesPanel;
 	}

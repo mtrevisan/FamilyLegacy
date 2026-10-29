@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.ui.tools.tools.merge;
 import io.github.mtrevisan.familylegacy.ui.tools.tools.merge.TagSuggester.Context;
 import io.github.mtrevisan.familylegacy.ui.tools.tools.merge.TagSuggester.ValueKind;
 
+import java.util.regex.Pattern;
 import javax.swing.JTextArea;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -67,6 +68,14 @@ import java.util.function.Function;
  */
 public final class TagHighlighter{
 
+	private static final Pattern COORD_VALUE = Pattern.compile("[+-]?\\d+(?:\\.\\d+)?[+-]\\d+(?:\\.\\d+)?.*");
+	private static final Pattern DURATION_VALUE = Pattern.compile("P.*");
+	private static final Pattern LOCALE_VALUE = Pattern.compile("[a-zA-Z]{2,3}(?:-[a-zA-Z0-9]+)*");
+	private static final Pattern SEMVER_VALUE = Pattern.compile("\\d+\\.\\d+\\.\\d+(?:[-+].*)?");
+	private static final Pattern URI_VALUE = Pattern.compile("[a-zA-Z][a-zA-Z0-9+.-]*:.+");
+	private static final Pattern HISTORICAL_DATE_VALUE = Pattern.compile("\\d{4}(-\\d{2}(-\\d{2})?)?");
+	private static final Pattern DATE_VALUE = Pattern.compile("\\d{4}-\\d{2}-\\d{2}");
+	private static final Pattern INT_VALUE = Pattern.compile("-?\\d+");
 	private static final Color COLOR_UNKNOWN = new Color(0xC03030);
 	private static final Color COLOR_INVALID_VALUE = new Color(0xC03030);
 	private static final Color COLOR_MISSING_BG = new Color(0xFF, 0xF3, 0xCD, 0x80);
@@ -225,15 +234,15 @@ public final class TagHighlighter{
 	private static boolean isValidValue(final String value, final ValueKind kind){
 		return switch(kind){
 			case ANY, ENUM -> true;
-			case INT -> value.matches("-?\\d+");
+			case INT -> INT_VALUE.matcher(value).matches();
 			case BOOL -> value.equals("true") || value.equals("false");
-			case DATE -> value.matches("\\d{4}-\\d{2}-\\d{2}");
-			case HISTORICAL_DATE -> value.matches("\\d{4}(-\\d{2}(-\\d{2})?)?");
-			case URI -> value.matches("[a-zA-Z][a-zA-Z0-9+.-]*:.+");
-			case SEMVER -> value.matches("\\d+\\.\\d+\\.\\d+(?:[-+].*)?");
-			case LOCALE -> value.matches("[a-zA-Z]{2,3}(?:-[a-zA-Z0-9]+)*");
-			case DURATION -> value.matches("P.*");
-			case COORD -> value.matches("[+-]?\\d+(?:\\.\\d+)?[+-]\\d+(?:\\.\\d+)?.*");
+			case DATE -> DATE_VALUE.matcher(value).matches();
+			case HISTORICAL_DATE -> HISTORICAL_DATE_VALUE.matcher(value).matches();
+			case URI -> URI_VALUE.matcher(value).matches();
+			case SEMVER -> SEMVER_VALUE.matcher(value).matches();
+			case LOCALE -> LOCALE_VALUE.matcher(value).matches();
+			case DURATION -> DURATION_VALUE.matcher(value).matches();
+			case COORD -> COORD_VALUE.matcher(value).matches();
 		};
 	}
 

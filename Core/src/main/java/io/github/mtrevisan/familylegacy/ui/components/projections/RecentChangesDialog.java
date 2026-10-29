@@ -139,7 +139,7 @@ final class RecentChangesDialog extends JDialog{
 		close.addActionListener(e -> dispose());
 
 		final JPanel filterPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-		filterPanel.add(new JLabel(I18N.t("recent_changes.filter.type")));
+		filterPanel.add(new JLabel(I18N.l("recent_changes.filter.type")));
 		filterPanel.add(typeFilter);
 
 		final JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT));

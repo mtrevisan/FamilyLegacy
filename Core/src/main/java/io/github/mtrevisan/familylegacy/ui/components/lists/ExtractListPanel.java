@@ -215,11 +215,11 @@ public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
 
 		GUIHelper.addComponent(dialog, documentPartPanel);
 
-		GUIHelper.addLabeledComponent(dialog, I18N.t("dialog.extract.text") + "*:", textArea);
+		GUIHelper.addLabeledComponent(dialog, GUIHelper.requiredLabel("dialog.extract.text"), textArea);
 
-		GUIHelper.addLabeledComponent(dialog, I18N.t("dialog.extract.type") + "*:", typeCombo);
+		GUIHelper.addLabeledComponent(dialog, GUIHelper.requiredLabel("dialog.extract.type"), typeCombo);
 
-		GUIHelper.addLabeledComponent(dialog, I18N.t("dialog.extract.locale") + ":", localeCombo);
+		GUIHelper.addLabeledComponent(dialog, I18N.l("dialog.extract.locale"), localeCombo);
 
 		GUIHelper.addComponent(dialog, basicNote);
 	}

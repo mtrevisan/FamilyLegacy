@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.ui.tools.reports;
 
 import io.github.mtrevisan.familylegacy.privacy.PrivacyPolicy;
+import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.i18n.ReportLanguage;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.index.CollateralScope;
 import net.miginfocom.swing.MigLayout;
@@ -257,7 +258,7 @@ public final class ReportOptionsPanel extends JPanel{
 
 	private JPanel privacyGroup(){
 		final JPanel p = new JPanel(new MigLayout("ins 4 8 8 8,wrap 1,fillx", "[grow,fill]", "[]2[]2[]2[]"));
-		p.setBorder(BorderFactory.createTitledBorder("Privacy"));
+		p.setBorder(BorderFactory.createTitledBorder(I18N.t("tab.title.privacy")));
 		p.add(privacyPolicy, "growx");
 		p.add(showPrivacyDetails);
 		p.add(audit);
@@ -272,7 +273,7 @@ public final class ReportOptionsPanel extends JPanel{
 	 */
 	private JPanel narrativeGroup(){
 		final JPanel p = new JPanel(new GridLayout(0, 2, 12, 2));
-		p.setBorder(BorderFactory.createTitledBorder("Narrative"));
+		p.setBorder(BorderFactory.createTitledBorder(I18N.t("border.narrative")));
 		p.add(introduction);
 		p.add(descendants);
 		p.add(paternal);
@@ -280,7 +281,7 @@ public final class ReportOptionsPanel extends JPanel{
 		p.add(maternal);
 		p.add(indirectRel);
 		// A small label + combo, still inside the grid.
-		p.add(new JLabel("Collaterals:"));
+		p.add(new JLabel(I18N.l("label.collaterals")));
 		p.add(collaterals);
 		return p;
 	}
@@ -288,7 +289,7 @@ public final class ReportOptionsPanel extends JPanel{
 
 	private JPanel contentGroup(){
 		final JPanel p = new JPanel(new GridLayout(0, 2, 12, 2));
-		p.setBorder(BorderFactory.createTitledBorder("Content sections"));
+		p.setBorder(BorderFactory.createTitledBorder(I18N.t("border.content_sections")));
 		p.add(notes);
 		p.add(contextResearch);
 		p.add(sources);
@@ -303,7 +304,7 @@ public final class ReportOptionsPanel extends JPanel{
 
 	private JPanel groupsGroup(){
 		final JPanel p = new JPanel(new GridLayout(0, 2, 12, 2));
-		p.setBorder(BorderFactory.createTitledBorder("Group report"));
+		p.setBorder(BorderFactory.createTitledBorder(I18N.t("border.group_report")));
 		p.add(groups);
 		p.add(groupMembers);
 		p.add(groupSubgroups);
@@ -314,7 +315,7 @@ public final class ReportOptionsPanel extends JPanel{
 
 	private JPanel diagnosticsGroup(){
 		final JPanel p = new JPanel(new GridLayout(0, 2, 12, 2));
-		p.setBorder(BorderFactory.createTitledBorder("Diagnostics"));
+		p.setBorder(BorderFactory.createTitledBorder(I18N.t("border.diagnostics")));
 		p.add(eventFull);
 		p.add(dateProvenance);
 		p.add(coverageReport);
@@ -325,7 +326,7 @@ public final class ReportOptionsPanel extends JPanel{
 
 	private JPanel indexesGroup(){
 		final JPanel p = new JPanel(new MigLayout("ins 4 8 8 8,wrap 1,fillx", "[grow,fill]", "[]2[]"));
-		p.setBorder(BorderFactory.createTitledBorder("Indexes"));
+		p.setBorder(BorderFactory.createTitledBorder(I18N.t("border.indexes")));
 		p.add(idxIndividuals);
 		p.add(idxPlaces);
 		return p;
@@ -334,7 +335,7 @@ public final class ReportOptionsPanel extends JPanel{
 
 	private JPanel styleGroup(){
 		final JPanel p = new JPanel(new MigLayout("ins 4 8 8 8,wrap 1,fillx", "[grow,fill]", "[]2[]"));
-		p.setBorder(BorderFactory.createTitledBorder("Style"));
+		p.setBorder(BorderFactory.createTitledBorder(I18N.t("border.style")));
 		p.add(descriptions);
 		p.add(pictures);
 		return p;

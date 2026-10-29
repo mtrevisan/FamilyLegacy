@@ -33,6 +33,7 @@ import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JRootPane;
 import java.awt.event.ActionEvent;
+import javax.swing.WindowConstants;
 
 
 /**
@@ -72,6 +73,7 @@ public final class ToolDialogs{
 		final JRootPane rootPane = dialog.getRootPane();
 		final InputMap inputMap = rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
 		final ActionMap actionMap = rootPane.getActionMap();
+		dialog.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		inputMap.put(GUIHelper.ESCAPE_STROKE, ACTION_CLOSE);
 		actionMap.put(ACTION_CLOSE, new AbstractAction(){
 			@Override

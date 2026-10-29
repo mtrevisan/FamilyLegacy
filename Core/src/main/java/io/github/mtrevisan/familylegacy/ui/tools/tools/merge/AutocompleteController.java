@@ -29,6 +29,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.awt.event.HierarchyEvent;
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
 import javax.swing.BorderFactory;
@@ -124,8 +125,11 @@ public final class AutocompleteController{
 		popup.setSize(POPUP_WIDTH, POPUP_HEIGHT);
 
 		triggerDispatcher = this::handleTriggerKey;
-		KeyboardFocusManager.getCurrentKeyboardFocusManager()
-			.addKeyEventDispatcher(triggerDispatcher);
+		area.addHierarchyListener(e -> {
+			if((e.getChangeFlags() & HierarchyEvent.DISPLAYABILITY_CHANGED) != 0)
+				updateTriggerDispatcher();
+		});
+		updateTriggerDispatcher();
 
 		installDocumentListener();
 		installSmartEnter(area, this.indentSize);
@@ -317,6 +321,21 @@ public final class AutocompleteController{
 			? loc.y - POPUP_HEIGHT - caretRect.height
 			: loc.y);
 		popup.setLocation(loc.x, y);
+	}
+
+	/**
+	 * The dispatcher is global: it listens to the key events only while the text area is displayable, otherwise it (and the
+	 * area, the dialog that owns it, and the popup window) would never be released.
+	 */
+	private void updateTriggerDispatcher(){
+		final KeyboardFocusManager manager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
+		manager.removeKeyEventDispatcher(triggerDispatcher);
+		if(area.isDisplayable())
+			manager.addKeyEventDispatcher(triggerDispatcher);
+		else{
+			closePopup();
+			popup.dispose();
+		}
 	}
 
 	private void closePopup(){
@@ -629,7 +648,7 @@ public final class AutocompleteController{
 				: text.indexOf('\n', selEnd));
 
 			final String block = text.substring(firstLineStart, lastLineEnd);
-			final String[] lines = block.split(StringUtils.LF, -1);
+			final String[] lines = (block.isEmpty()? new String[]{block}: StringUtils.splitPreserveAllTokens(block, '\n'));
 
 			final StringBuilder out = new StringBuilder();
 			for(int i = 0; i < lines.length; i ++){

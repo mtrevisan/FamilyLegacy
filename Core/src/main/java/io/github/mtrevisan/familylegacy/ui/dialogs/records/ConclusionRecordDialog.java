@@ -67,6 +67,7 @@ import javax.swing.JPanel;
 import java.awt.Component;
 import java.awt.Window;
 import java.io.IOException;
+import java.util.List;
 
 
 /**
@@ -190,7 +191,8 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 			issueField.setText(issue);
 
 		final EntityListPanel questionsPanel = (EntityListPanel)components.getPanel(PanelKey.RESEARCH_QUESTION);
-		for(final FLEFRecord question : model.getRecordsByType(ResearchQuestionHandler.TYPE))
+		final List<FLEFRecord> questions = model.getRecordsByType(ResearchQuestionHandler.TYPE);
+		for(final FLEFRecord question : questions)
 			if(hasTarget(question, target.getId()))
 				questionsPanel.addItemDirectly(question);
 
@@ -226,19 +228,19 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 	@Override
 	protected JPanel createPropertiesPanel(){
 		// issue
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.conclusion.issue") + "*:", GUIHelper.withTooltip(issueField, "tooltip.conclusion.issue"));
+		GUIHelper.addLabeledComponent(propertiesPanel, GUIHelper.requiredLabel("dialog.conclusion.issue"), GUIHelper.withTooltip(issueField, "tooltip.conclusion.issue"));
 
 		// proof status
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.conclusion.proof_status") + "*:", GUIHelper.withTooltip(proofStatusCombo, "tooltip.conclusion.proof_status"));
+		GUIHelper.addLabeledComponent(propertiesPanel, GUIHelper.requiredLabel("dialog.conclusion.proof_status"), GUIHelper.withTooltip(proofStatusCombo, "tooltip.conclusion.proof_status"));
 
 		// narrative
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.conclusion.narrative") + ":", GUIHelper.withTooltip(narrativeArea, "tooltip.conclusion.narrative"));
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.conclusion.narrative"), GUIHelper.withTooltip(narrativeArea, "tooltip.conclusion.narrative"));
 
 		// resolves
 		GUIHelper.addComponent(propertiesPanel, GUIHelper.withTooltip(resolvesPanel, "tooltip.conclusion.resolves"));
 
 		// preferred
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.conclusion.preferred") + ":", GUIHelper.withTooltip(preferredCombo, "tooltip.conclusion.preferred"));
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.conclusion.preferred"), GUIHelper.withTooltip(preferredCombo, "tooltip.conclusion.preferred"));
 
 		return propertiesPanel;
 	}

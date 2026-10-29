@@ -208,7 +208,7 @@ public class SourceConverter {
 			GEDCOMHelper.attachNote(source, noteNode, noteRawMap);
 		}
 		if(!eventsRecorded.isEmpty())
-			source.addChild(GEDCOMHelper.createNoteStruct("Events recorded", String.join("\n", eventsRecorded), dataNode));
+			source.addChild(GEDCOMHelper.createNoteStruct("Events recorded", String.join(StringUtils.LF, eventsRecorded), dataNode));
 		source.addChild(GEDCOMHelper.createNoteStruct("Text from source",
 			GEDCOMHelper.extractFullText(GEDCOMHelper.findFirstChild(sourNode, "TEXT")), sourNode));
 

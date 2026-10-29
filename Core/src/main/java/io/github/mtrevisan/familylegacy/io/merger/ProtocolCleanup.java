@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.io.merger;
 
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -170,7 +171,7 @@ final class ProtocolCleanup{
 						competing.add(participation.getId());
 				}
 				if(!isResolved(competing))
-					session.warn("Individual " + individualId + " has " + events.size() + " " + type + " events ("
+					session.warn("Individual " + individualId + " has " + events.size() + StringUtils.SPACE + type + " events ("
 						+ String.join(", ", events.stream().map(FLEFRecord::getId).toList())
 						+ "): competing assertions to resolve with a ConclusionRecord");
 			}
@@ -212,7 +213,7 @@ final class ProtocolCleanup{
 		for(final FLEFRecord relationship : relationships){
 			final String subject = ModelIndex.armValue(FieldMerger.first(relationship, "subject"));
 			if(subject != null && subject.equals(ModelIndex.armValue(FieldMerger.first(relationship, "target"))))
-				session.warn(relationship.getTag() + " " + relationship.getId() + " now relates " + subject
+				session.warn(relationship.getTag() + StringUtils.SPACE + relationship.getId() + " now relates " + subject
 					+ " to itself: its two ends were merged");
 		}
 	}

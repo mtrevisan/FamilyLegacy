@@ -84,7 +84,7 @@ public class KinshipDialog extends JDialog{
 	private final EntityField fieldA;
 	private final EntityField fieldB;
 
-	private final JButton swapButton = new JButton("Swap");
+	private final JButton swapButton = new JButton(I18N.t("button.swap"));
 	private final JButton closeButton = new JButton(I18N.t("button.close"));
 	private final JTextArea resultArea = new JTextArea();
 
@@ -163,7 +163,7 @@ public class KinshipDialog extends JDialog{
 		resultArea.setFont(new Font(DEFAULT_FONT_FAMILY, Font.PLAIN, 12));
 		resultArea.setBorder(BorderFactory.createEmptyBorder(6, 6, 6, 6));
 		final JScrollPane resultScroll = new JScrollPane(resultArea);
-		resultScroll.setBorder(BorderFactory.createTitledBorder("Result"));
+		resultScroll.setBorder(BorderFactory.createTitledBorder(I18N.t("border.result")));
 		main.add(resultScroll, "grow,push,wrap");
 
 		// Footer: close

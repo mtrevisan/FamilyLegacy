@@ -87,13 +87,13 @@ public class PrivacyPanel extends JPanel{
 		setLayout(GUIHelper.createLabelFieldLayout(10, "[]10[]10[]"));
 
 		// level
-		GUIHelper.addLabeledComponent(this, I18N.t("dialog.privacy.level") + ":", levelCombo);
+		GUIHelper.addLabeledComponent(this, I18N.l("dialog.privacy.level"), levelCombo);
 
 		// reason
-		GUIHelper.addLabeledComponent(this, I18N.t("dialog.privacy.reason") + ":", reasonCombo);
+		GUIHelper.addLabeledComponent(this, I18N.l("dialog.privacy.reason"), reasonCombo);
 
 		// expires
-		GUIHelper.addLabeledComponent(this, I18N.t("dialog.privacy.expires") + ":", expiresField);
+		GUIHelper.addLabeledComponent(this, I18N.l("dialog.privacy.expires"), expiresField);
 	}
 
 

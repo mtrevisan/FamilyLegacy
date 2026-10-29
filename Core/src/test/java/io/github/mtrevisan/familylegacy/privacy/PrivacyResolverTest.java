@@ -4,6 +4,7 @@ import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.grammar.FLEFGrammarParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -50,12 +51,12 @@ class PrivacyResolverTest{
 	}
 
 	private static String event(final String id, final String type, final String extra){
-		return "event " + id + " {\n\ttype " + type + "\n" + extra + AUDIT + "}\n";
+		return "event " + id + " {\n\ttype " + type + StringUtils.LF + extra + AUDIT + "}\n";
 	}
 
 	private static String participation(final String id, final String eventId, final String individualId, final String role){
-		return "event_participation " + id + " {\n\tevent " + eventId + "\n\tparticipant.individual " + individualId + "\n"
-			+ "\trole " + role + "\n" + AUDIT + "}\n";
+		return "event_participation " + id + " {\n\tevent " + eventId + "\n\tparticipant.individual " + individualId + StringUtils.LF
+			+ "\trole " + role + StringUtils.LF + AUDIT + "}\n";
 	}
 
 	private static String attribute(final String id, final String individualId, final String type){

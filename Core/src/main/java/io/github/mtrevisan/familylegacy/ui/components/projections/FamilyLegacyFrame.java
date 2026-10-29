@@ -381,6 +381,10 @@ public class FamilyLegacyFrame extends JFrame{
 				rootId = switcher.getTreeGraphPanel().getRootIndividualId();
 				props.put("showPartner", "true");
 			}
+			case CHRONOMAP -> {
+				bookmarkType = BookmarkType.CHRONOMAP;
+				rootId = switcher.getCurrentRootId();
+			}
 			default -> {
 				bookmarkType = BookmarkType.EGO_NETWORK;
 				rootId = switcher.getEgoPanel().getCurrentEgoId();
@@ -403,6 +407,7 @@ public class FamilyLegacyFrame extends JFrame{
 			case BIOLOGICAL_TREE -> ProjectionType.BIOLOGICAL_TREE;
 			case SUGIYAMA_GRAPH -> ProjectionType.SUGIYAMA_GRAPH;
 			case EGO_NETWORK -> ProjectionType.EGO_NETWORK;
+			case CHRONOMAP -> ProjectionType.CHRONOMAP;
 		};
 
 		switcher.setProjection(projection);

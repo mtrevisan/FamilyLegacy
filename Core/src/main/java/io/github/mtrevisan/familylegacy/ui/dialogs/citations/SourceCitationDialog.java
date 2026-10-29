@@ -130,16 +130,16 @@ public class SourceCitationDialog extends BaseRecordDialog implements CitationHo
 	@Override
 	protected JPanel createPropertiesPanel(){
 		// source
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.source_citation.source") + "*:", sourceField);
+		GUIHelper.addLabeledComponent(propertiesPanel, GUIHelper.requiredLabel("dialog.source_citation.source"), sourceField);
 
 		// locator
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.source_citation.locator") + ":", locatorField);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.source_citation.locator"), locatorField);
 
 		// extract
 		GUIHelper.addComponent(propertiesPanel, extractPanel);
 
 		// stance
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.source_citation.stance") + "*:", stanceCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, GUIHelper.requiredLabel("dialog.source_citation.stance"), stanceCombo);
 
 		// evidence
 		final JPanel evidencePanel = components.getPanel(PanelKey.EVIDENCE);

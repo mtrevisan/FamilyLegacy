@@ -190,13 +190,13 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 		GUIHelper.addComponent(propertiesPanel, notePanel);
 
 		// activity type
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.research_activity.type") + "*:", GUIHelper.withTooltip(activityTypeCombo, "tooltip.research_activity.type"));
+		GUIHelper.addLabeledComponent(propertiesPanel, GUIHelper.requiredLabel("dialog.research_activity.type"), GUIHelper.withTooltip(activityTypeCombo, "tooltip.research_activity.type"));
 
 		// status
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.research_activity.status") + "*:", GUIHelper.withTooltip(statusCombo, "tooltip.research_activity.status"));
+		GUIHelper.addLabeledComponent(propertiesPanel, GUIHelper.requiredLabel("dialog.research_activity.status"), GUIHelper.withTooltip(statusCombo, "tooltip.research_activity.status"));
 
 		// action
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.research_activity.action") + "*:", GUIHelper.withTooltip(actionArea, "tooltip.research_activity.action"));
+		GUIHelper.addLabeledComponent(propertiesPanel, GUIHelper.requiredLabel("dialog.research_activity.action"), GUIHelper.withTooltip(actionArea, "tooltip.research_activity.action"));
 
 		return propertiesPanel;
 	}
@@ -206,15 +206,15 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]10[]");
 
 		// target
-		GUIHelper.addLabeledComponent(panel, I18N.t("dialog.research_activity.target") + ":", GUIHelper.withTooltip(targetField, "tooltip.research_activity.target"));
+		GUIHelper.addLabeledComponent(panel, I18N.l("dialog.research_activity.target"), GUIHelper.withTooltip(targetField, "tooltip.research_activity.target"));
 
 		// search scope:
 		final JPanel searchScopePanel = GUIHelper.createLabelFieldPanel(5, "[]10[]");
 		searchScopePanel.setBorder(BorderFactory.createTitledBorder(I18N.t("dialog.research_activity.search_scope")));
 		// type
-		GUIHelper.addLabeledComponent(searchScopePanel, I18N.t("dialog.research_activity.search_scope.type") + "*:", GUIHelper.withTooltip(searchScopeTypeCombo, "tooltip.research_activity.search_scope.type"));
+		GUIHelper.addLabeledComponent(searchScopePanel, GUIHelper.requiredLabel("dialog.research_activity.search_scope.type"), GUIHelper.withTooltip(searchScopeTypeCombo, "tooltip.research_activity.search_scope.type"));
 		// detail
-		GUIHelper.addLabeledComponent(searchScopePanel, I18N.t("dialog.research_activity.search_scope.detail") + ":", GUIHelper.withTooltip(searchScopeDetailArea, "tooltip.research_activity.search_scope.detail"));
+		GUIHelper.addLabeledComponent(searchScopePanel, I18N.l("dialog.research_activity.search_scope.detail"), GUIHelper.withTooltip(searchScopeDetailArea, "tooltip.research_activity.search_scope.detail"));
 		GUIHelper.addComponent(panel, GUIHelper.withTooltip(searchScopePanel, "tooltip.research_activity.search_scope"));
 
 		return panel;
@@ -225,10 +225,10 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]");
 
 		// result
-		GUIHelper.addLabeledComponent(panel, I18N.t("dialog.research_activity.result") + ":", GUIHelper.withTooltip(resultCombo, "tooltip.research_activity.result"));
+		GUIHelper.addLabeledComponent(panel, I18N.l("dialog.research_activity.result"), GUIHelper.withTooltip(resultCombo, "tooltip.research_activity.result"));
 
 		// observation
-		GUIHelper.addLabeledComponent(panel, I18N.t("dialog.research_activity.observation") + ":", GUIHelper.withTooltip(observationArea, "tooltip.research_activity.observation"));
+		GUIHelper.addLabeledComponent(panel, I18N.l("dialog.research_activity.observation"), GUIHelper.withTooltip(observationArea, "tooltip.research_activity.observation"));
 
 		// conclusion panel:
 		final JPanel conclusionPanel = GUIHelper.createLabelFieldPanel(5, "[]10[]");
@@ -236,7 +236,7 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 		// conclusion
 		GUIHelper.addComponent(conclusionPanel, GUIHelper.withTooltip(conclusionArea, "tooltip.research_activity.conclusion"));
 		// confidence
-		GUIHelper.addLabeledComponent(conclusionPanel, I18N.t("dialog.research_activity.confidence") + ":", GUIHelper.withTooltip(conclusionConfidenceCombo, "tooltip.research_activity.confidence"));
+		GUIHelper.addLabeledComponent(conclusionPanel, I18N.l("dialog.research_activity.confidence"), GUIHelper.withTooltip(conclusionConfidenceCombo, "tooltip.research_activity.confidence"));
 		GUIHelper.addComponent(panel, GUIHelper.withTooltip(conclusionPanel, "tooltip.research_activity.conclusion"));
 
 		return panel;
@@ -247,7 +247,7 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]10[]");
 
 		// parent
-		final JLabel parentActivityLabel = new JLabel(I18N.t("dialog.research_activity.parent.activity") + ":");
+		final JLabel parentActivityLabel = new JLabel(I18N.l("dialog.research_activity.parent.activity"));
 		parentActivityLabel.setLabelFor(parentActivityField);
 		GUIHelper.withTooltip(parentActivityLabel, "tooltip.research_activity.parent");
 		GUIHelper.withTooltip(parentActivityField, "tooltip.research_activity.parent");

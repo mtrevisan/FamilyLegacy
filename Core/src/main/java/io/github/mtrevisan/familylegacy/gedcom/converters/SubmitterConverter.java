@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.gedcom.converters;
 import io.github.mtrevisan.familylegacy.gedcom.GEDCOMHelper;
 import io.github.mtrevisan.familylegacy.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -86,7 +87,7 @@ public class SubmitterConverter{
 		if(rfn != null)
 			remarks.add("RFN: " + rfn);
 		if(!remarks.isEmpty())
-			submitter.addChild(FLEFRecord.createChildWithTagAndValue("remark", String.join("\n", remarks)));
+			submitter.addChild(FLEFRecord.createChildWithTagAndValue("remark", String.join(StringUtils.LF, remarks)));
 
 		if(submitter.hasChildren())
 			submitterMap.put(xref, submitter);
