@@ -22,12 +22,12 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.ui.components.fields;
+package io.github.mtrevisan.familylegacy.ui.dialogs.structures;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateReader;
-import io.github.mtrevisan.familylegacy.ui.dialogs.structures.DateStructureDialog;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.ui.components.fields.StructureField;
 
 import java.awt.Window;
 

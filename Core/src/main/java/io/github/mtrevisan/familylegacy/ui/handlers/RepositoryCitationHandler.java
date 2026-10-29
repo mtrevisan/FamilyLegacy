@@ -25,9 +25,9 @@
 package io.github.mtrevisan.familylegacy.ui.handlers;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryCitationReader;
-import io.github.mtrevisan.familylegacy.ui.dialogs.citations.RepositoryCitationDialog;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.ui.dialogs.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 
 import java.awt.Window;
@@ -36,7 +36,7 @@ import java.awt.Window;
 /**
  * Handler for {@code REPOSITORY_CITATION} entities according to FLEF 0.2.0.
  */
-public class RepositoryCitationHandler extends AbstractRecordTypeHandler<RepositoryCitationDialog>{
+public class RepositoryCitationHandler extends AbstractRecordTypeHandler<RecordDialog>{
 
 	public static final String TYPE = RepositoryCitationReader.TYPE;
 	public static final String CITED_TYPE = "REPOSITORY";
@@ -88,14 +88,14 @@ public class RepositoryCitationHandler extends AbstractRecordTypeHandler<Reposit
 	}
 
 	@Override
-	public RepositoryCitationDialog createNewDialog(final Window parent, final FLEFModel model){
-		return RepositoryCitationDialog.createNew(parent, model);
+	public RecordDialog createNewDialog(final Window parent, final FLEFModel model){
+		return RecordDialogs.createNew(TYPE, parent, model);
 	}
 
 	@Override
-	public RepositoryCitationDialog createEditDialog(final Window parent, final FLEFModel model,
-			final FLEFRecord record){
-		return RepositoryCitationDialog.createEdit(parent, model, record);
+	public RecordDialog createEditDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
+		return RecordDialogs.createEdit(TYPE, parent, model, record);
 	}
+
 
 }

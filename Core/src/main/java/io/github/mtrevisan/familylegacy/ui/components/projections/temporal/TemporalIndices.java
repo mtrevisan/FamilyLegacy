@@ -25,9 +25,9 @@
 package io.github.mtrevisan.familylegacy.ui.components.projections.temporal;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.ContextImpactReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.io.model.readers.ContextImpactReader;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.ui.handlers.ContextImpactHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.CulturalNormHandler;

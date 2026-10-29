@@ -25,9 +25,9 @@
 package io.github.mtrevisan.familylegacy.ui.handlers;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.readers.AgentReader;
-import io.github.mtrevisan.familylegacy.ui.dialogs.structures.AgentStructureDialog;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.ui.dialogs.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 
 import java.awt.Window;
@@ -40,7 +40,7 @@ import java.awt.Window;
  * creation, editing, display name generation, and type identification.
  * </pre>
  */
-public class AgentHandler extends AbstractRecordTypeHandler<AgentStructureDialog>{
+public class AgentHandler extends AbstractRecordTypeHandler<RecordDialog>{
 
 	public static final String TYPE = AgentReader.TYPE;
 	public static final String CITED_TYPE = "AGENT";
@@ -98,13 +98,14 @@ public class AgentHandler extends AbstractRecordTypeHandler<AgentStructureDialog
 	}
 
 	@Override
-	public AgentStructureDialog createNewDialog(final Window parent, final FLEFModel model){
-		return AgentStructureDialog.createNew(parent, model);
+	public RecordDialog createNewDialog(final Window parent, final FLEFModel model){
+		return RecordDialogs.createNew(TYPE, parent, model);
 	}
 
 	@Override
-	public AgentStructureDialog createEditDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
-		return AgentStructureDialog.createEdit(parent, model, record);
+	public RecordDialog createEditDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
+		return RecordDialogs.createEdit(TYPE, parent, model, record);
 	}
+
 
 }

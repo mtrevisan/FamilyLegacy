@@ -25,9 +25,9 @@
 package io.github.mtrevisan.familylegacy.ui.handlers;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.readers.GroupReader;
-import io.github.mtrevisan.familylegacy.ui.dialogs.records.GroupRecordDialog;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.ui.dialogs.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 
@@ -35,7 +35,7 @@ import java.awt.Window;
 import java.util.List;
 
 
-public class GroupHandler extends AbstractRecordTypeHandler<GroupRecordDialog>{
+public class GroupHandler extends AbstractRecordTypeHandler<RecordDialog>{
 
 	public static final String TYPE = GroupReader.TYPE;
 	public static final String ID_PREFIX = GroupReader.ID_PREFIX;
@@ -101,13 +101,14 @@ public class GroupHandler extends AbstractRecordTypeHandler<GroupRecordDialog>{
 	}
 
 	@Override
-	public GroupRecordDialog createNewDialog(final Window parent, final FLEFModel model){
-		return GroupRecordDialog.createNew(parent, model);
+	public RecordDialog createNewDialog(final Window parent, final FLEFModel model){
+		return RecordDialogs.createNew(TYPE, parent, model);
 	}
 
 	@Override
-	public GroupRecordDialog createEditDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
-		return GroupRecordDialog.createEdit(parent, model, record);
+	public RecordDialog createEditDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
+		return RecordDialogs.createEdit(TYPE, parent, model, record);
 	}
+
 
 }

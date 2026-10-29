@@ -25,8 +25,8 @@
 package io.github.mtrevisan.familylegacy.ui.components.projections.relationshipgraph;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualData;
 import io.github.mtrevisan.familylegacy.ui.components.projections.repository.GenealogyRepository;

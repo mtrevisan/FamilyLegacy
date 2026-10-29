@@ -22,10 +22,9 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.ui.components;
+package io.github.mtrevisan.familylegacy.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.readers.ConclusionReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ContextImpactReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
@@ -36,10 +35,13 @@ import io.github.mtrevisan.familylegacy.io.model.readers.ResearchActivityReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchQuestionReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchTaskReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.bindings.BindingManager;
 import io.github.mtrevisan.familylegacy.ui.bindings.PathBound;
+import io.github.mtrevisan.familylegacy.ui.components.AuditPanel;
+import io.github.mtrevisan.familylegacy.ui.components.EvidenceQualifiersPanel;
+import io.github.mtrevisan.familylegacy.ui.components.PrivacyPanel;
 import io.github.mtrevisan.familylegacy.ui.components.lists.EntityListPanel;
-import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
 
 import javax.swing.JPanel;
 import java.util.EnumMap;

@@ -25,16 +25,15 @@
 package io.github.mtrevisan.familylegacy.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.io.model.readers.MediaReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextField;
 import io.github.mtrevisan.familylegacy.ui.components.ImageCarouselPanel;
-import io.github.mtrevisan.familylegacy.ui.components.PanelKey;
-import io.github.mtrevisan.familylegacy.ui.components.RecordDialogComponents;
 import io.github.mtrevisan.familylegacy.ui.components.lists.EntityListPanel;
+import io.github.mtrevisan.familylegacy.ui.dialogs.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.help.ShortcutRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.SourceHandler;
@@ -71,7 +70,7 @@ import java.util.List;
  * Abstract base class for all record editing dialogs.
  * Provides common functionality and utility methods.
  */
-public abstract class BaseRecordDialog extends JDialog{
+public abstract class BaseRecordDialog extends JDialog implements RecordDialog{
 
 	static final String PANEL_PROPERTY_NAME = "name";
 	public static final String TAB_NAME_PROPERTIES = "properties";
@@ -285,6 +284,7 @@ public abstract class BaseRecordDialog extends JDialog{
 	 * @param after	A copy of the record after the change.
 	 * @param refresh	Refreshes the components showing the record.
 	 */
+	@Override
 	public void addNestedEdit(final FLEFRecord target, final FLEFRecord before, final FLEFRecord after, final Runnable refresh){
 		undoController.addEdit(new AbstractUndoableEdit(){
 			@Override
@@ -646,12 +646,19 @@ public abstract class BaseRecordDialog extends JDialog{
 	}
 
 
+	@Override
 	public boolean isSaved(){
 		return isSaved;
 	}
 
+	@Override
 	public FLEFRecord getRecord(){
 		return (!record.isEmpty()? record: null);
+	}
+
+	@Override
+	public Window window(){
+		return this;
 	}
 
 

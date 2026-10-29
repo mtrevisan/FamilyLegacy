@@ -76,7 +76,7 @@ class AssistantDialogsEscapeTest{
 	void theListOfTheRecordsClosesOverTheEditorOfARecord() throws IOException{
 		Assumptions.assumeFalse(GraphicsEnvironment.isHeadless(), "The dialogs need a display");
 		final FLEFModel model = convert();
-		final JDialog editor = HandlerRegistry.getHandler(EventHandler.TYPE).createNewDialog(null, model);
+		final JDialog editor = (JDialog)HandlerRegistry.getHandler(EventHandler.TYPE).createNewDialog(null, model).window();
 
 		final RecordChooserDialog chooser = new RecordChooserDialog(editor, model, model.getRecordsByType("individual"),
 			(owner, m, record) -> {});
@@ -90,7 +90,7 @@ class AssistantDialogsEscapeTest{
 	void thePaletteClosesOverTheEditorItWasOpenedFrom() throws IOException{
 		Assumptions.assumeFalse(GraphicsEnvironment.isHeadless(), "The dialogs need a display");
 		final FLEFModel model = convert();
-		final JDialog editor = HandlerRegistry.getHandler(EventHandler.TYPE).createNewDialog(null, model);
+		final JDialog editor = (JDialog)HandlerRegistry.getHandler(EventHandler.TYPE).createNewDialog(null, model).window();
 
 		final ResearchAssistantPalette palette = new ResearchAssistantPalette(new ResearchAssistantService(),
 			new AssistantContext(editor, null, model));
@@ -105,11 +105,11 @@ class AssistantDialogsEscapeTest{
 		Assumptions.assumeFalse(GraphicsEnvironment.isHeadless(), "The dialogs need a display");
 		final FLEFModel model = convert();
 		//an editor, the list of the records opened from the palette, the editor of one of them
-		final JDialog editor = HandlerRegistry.getHandler(EventHandler.TYPE).createNewDialog(null, model);
+		final JDialog editor = (JDialog)HandlerRegistry.getHandler(EventHandler.TYPE).createNewDialog(null, model).window();
 		final RecordChooserDialog chooser = new RecordChooserDialog(editor, model, model.getRecordsByType("individual"),
 			(owner, m, record) -> {});
-		final JDialog opened = HandlerRegistry.getHandler("INDIVIDUAL").createEditDialog(chooser, model,
-			model.getRecordsByType("individual").getFirst());
+		final JDialog opened = (JDialog)HandlerRegistry.getHandler("INDIVIDUAL").createEditDialog(chooser, model,
+			model.getRecordsByType("individual").getFirst()).window();
 
 		pressEscape(opened);
 		Assertions.assertFalse(opened.isDisplayable());

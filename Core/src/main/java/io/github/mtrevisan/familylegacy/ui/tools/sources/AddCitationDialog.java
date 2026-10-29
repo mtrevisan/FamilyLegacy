@@ -27,7 +27,7 @@ package io.github.mtrevisan.familylegacy.ui.tools.sources;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.components.searches.service.RecordSelectionDialog;
-import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
@@ -219,7 +219,7 @@ public final class AddCitationDialog extends JDialog{
 		// Open the target record's editor. The editor already contains
 		// the Sources tab where the user can add the citation with the
 		// locator just entered.
-		final BaseRecordDialog editor = openEditorFor(targetRecord);
+		final RecordDialog editor = openEditorFor(targetRecord);
 		if(editor == null){
 			JOptionPane.showMessageDialog(context.owner(),
 				"No editor is wired for the target record type "
@@ -236,7 +236,7 @@ public final class AddCitationDialog extends JDialog{
 		// citation list; the user pastes it there.
 	}
 
-	private BaseRecordDialog openEditorFor(final FLEFRecord record){
+	private RecordDialog openEditorFor(final FLEFRecord record){
 		final Window owner = context.owner();
 		final FLEFModel model = context.model();
 		final String tag = record.getTag();

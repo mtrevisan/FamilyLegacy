@@ -24,10 +24,10 @@
  */
 package io.github.mtrevisan.familylegacy.io.merger;
 
-import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateNormalizer;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.TemporalSpan;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;

@@ -113,7 +113,7 @@ class DialogsEscapeTest{
 			parent.pack();
 			final JDialog child;
 			try{
-				child = HandlerRegistry.getHandler(type).createNewDialog(parent, model);
+				child = (JDialog)HandlerRegistry.getHandler(type).createNewDialog(parent, model).window();
 			}
 			catch(final RuntimeException | AssertionError e){
 				failed.add(type + ": " + e);
@@ -145,7 +145,7 @@ class DialogsEscapeTest{
 			parent.pack();
 			final JDialog child;
 			try{
-				child = HandlerRegistry.getHandler(type).createNewDialog(parent, model);
+				child = (JDialog)HandlerRegistry.getHandler(type).createNewDialog(parent, model).window();
 			}
 			catch(final RuntimeException | AssertionError e){
 				//a structure is edited inside a record: some of them cannot be built without the record that contains them
@@ -171,9 +171,9 @@ class DialogsEscapeTest{
 		final FLEFModel model = convert();
 
 		//a record dialog, over it another one, over it a third one
-		final JDialog first = HandlerRegistry.getHandler(EventHandler.TYPE).createNewDialog(null, model);
-		final JDialog second = HandlerRegistry.getHandler(IndividualHandler.TYPE).createNewDialog(first, model);
-		final JDialog third = HandlerRegistry.getHandler(PlaceHandler.TYPE).createNewDialog(second, model);
+		final JDialog first = (JDialog)HandlerRegistry.getHandler(EventHandler.TYPE).createNewDialog(null, model).window();
+		final JDialog second = (JDialog)HandlerRegistry.getHandler(IndividualHandler.TYPE).createNewDialog(first, model).window();
+		final JDialog third = (JDialog)HandlerRegistry.getHandler(PlaceHandler.TYPE).createNewDialog(second, model).window();
 
 		pressEscape(third);
 		Assertions.assertFalse(third.isDisplayable());

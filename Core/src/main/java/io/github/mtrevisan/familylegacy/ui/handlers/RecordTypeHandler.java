@@ -26,7 +26,7 @@ package io.github.mtrevisan.familylegacy.ui.handlers;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
-import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.api.RecordDialog;
 
 import java.awt.Window;
 import java.util.List;
@@ -38,7 +38,7 @@ import java.util.List;
  *
  * @param <T>	the specific dialog type that extends JDialog
  */
-public interface RecordTypeHandler<T extends BaseRecordDialog>{
+public interface RecordTypeHandler<T extends RecordDialog>{
 
 	@SuppressWarnings("unchecked")
 	default Class<? extends RecordTypeHandler<T>> getClassType(){

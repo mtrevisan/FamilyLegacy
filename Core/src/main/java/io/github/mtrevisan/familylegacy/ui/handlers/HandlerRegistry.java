@@ -89,6 +89,12 @@ public final class HandlerRegistry{
 	private HandlerRegistry(){}
 
 
+	/** @return the types of record that have a handler */
+	public static Set<String> types(){
+		return Set.copyOf(HANDLERS.keySet());
+	}
+
+
 	/**
 	 * Returns the handler for the given record type.
 	 * <p>

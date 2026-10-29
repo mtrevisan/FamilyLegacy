@@ -26,11 +26,10 @@ package io.github.mtrevisan.familylegacy.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.ProjectInfo;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.readers.HeaderReader;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextArea;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextField;
-import io.github.mtrevisan.familylegacy.ui.components.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.ui.components.lists.EntityListPanel;
 import io.github.mtrevisan.familylegacy.ui.handlers.ContactHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.HeaderHandler;

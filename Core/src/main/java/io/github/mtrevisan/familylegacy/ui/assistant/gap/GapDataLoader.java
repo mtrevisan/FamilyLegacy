@@ -26,8 +26,6 @@ package io.github.mtrevisan.familylegacy.ui.assistant.gap;
 
 import io.github.mtrevisan.calendars.CalendarType;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualAttributeReader;
@@ -37,6 +35,8 @@ import io.github.mtrevisan.familylegacy.io.model.readers.ResearchActivityReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchQuestionReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchTaskReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateNormalizer;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.ui.assistant.chronology.DateRange;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventHandler;

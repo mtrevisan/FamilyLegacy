@@ -24,7 +24,6 @@
  */
 package io.github.mtrevisan.familylegacy.ui.helpers;
 
-import io.github.mtrevisan.familylegacy.ui.components.lists.MediaPartListPanel;
 import io.github.mtrevisan.familylegacy.ui.images.ScaledImage;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -172,7 +171,7 @@ public class ImagePreviewAccessory extends JPanel implements PropertyChangeListe
 		final String fileName = file.getName().toLowerCase();
 
 		// 1. Handle PDF files using PDFBox
-		if(fileName.endsWith(MediaPartListPanel.EXTENSION_PDF))
+		if(fileName.endsWith(ResourceHelper.EXTENSION_PDF))
 			return renderPdfPreview(file);
 
 		// 2. Handle standard images and TIFFs using ImageIO + TwelveMonkeys

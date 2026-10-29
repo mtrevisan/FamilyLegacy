@@ -25,13 +25,13 @@
 package io.github.mtrevisan.familylegacy.ui.components.projections.relationshipgraph;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.ui.components.projections.common.ProjectionMutator;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualListener;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.services.relationship.RelationshipTypeSelectionDialog;
-import io.github.mtrevisan.familylegacy.ui.components.projections.common.ProjectionMutator;
 import io.github.mtrevisan.familylegacy.ui.components.searches.service.RecordSelectionDialog;
-import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
@@ -141,7 +141,7 @@ public class EgoNetworkActionHandler{
 		final RecordTypeHandler<?> handler = (IndividualHandler.isOfType(record)
 			? IndividualHandler.getInstance()
 			: GroupHandler.getInstance());
-		final BaseRecordDialog dialog = handler.createEditDialog(parent, model, record);
+		final RecordDialog dialog = handler.createEditDialog(parent, model, record);
 		dialog.setVisible(true);
 
 		return (dialog.isSaved()? dialog.getRecord(): null);
@@ -151,7 +151,7 @@ public class EgoNetworkActionHandler{
 		final Window parent = SwingUtilities.getWindowAncestor(parentComponent);
 		final RecordTypeHandler<?> handler = resolveHandler(handlerClass);
 
-		final BaseRecordDialog dialog = handler.createNewDialog(parent, model);
+		final RecordDialog dialog = handler.createNewDialog(parent, model);
 		dialog.setVisible(true);
 
 		return (dialog.isSaved()? dialog.getRecord(): null);

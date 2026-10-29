@@ -25,7 +25,7 @@
 package io.github.mtrevisan.familylegacy.ui.tools.events;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolContext;
@@ -43,7 +43,7 @@ public final class NewEventTool implements ToolOperation{
 	@Override
 	public void run(final ToolContext context){
 		final FLEFModel model = context.model();
-		final BaseRecordDialog dialog = EventHandler.getInstance()
+		final RecordDialog dialog = EventHandler.getInstance()
 			.createNewDialog(context.owner(), model);
 		dialog.setVisible(true);
 	}

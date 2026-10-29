@@ -25,7 +25,6 @@
 package io.github.mtrevisan.familylegacy.ui.components.projections.common;
 
 import io.github.mtrevisan.familylegacy.io.model.readers.SexType;
-import io.github.mtrevisan.familylegacy.ui.components.projections.common.BoxPanelType;
 import io.github.mtrevisan.familylegacy.ui.helpers.ResourceHelper;
 
 import javax.swing.ImageIcon;

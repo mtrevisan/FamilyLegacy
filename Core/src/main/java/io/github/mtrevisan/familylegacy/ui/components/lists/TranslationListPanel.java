@@ -24,9 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.lists;
 
+import io.github.mtrevisan.familylegacy.io.model.readers.NoteReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.io.model.readers.NoteReader;
 import io.github.mtrevisan.familylegacy.ui.bindings.BindingsHelper;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundFilteredComboBox;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextArea;

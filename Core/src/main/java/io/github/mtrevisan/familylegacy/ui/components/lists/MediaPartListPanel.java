@@ -25,19 +25,20 @@
 package io.github.mtrevisan.familylegacy.ui.components.lists;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.io.model.readers.CropReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.MediaReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.ui.bindings.BindingsHelper;
 import io.github.mtrevisan.familylegacy.ui.components.searches.service.RecordSelectionDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.MediaHandler;
+import io.github.mtrevisan.familylegacy.ui.helpers.ResourceHelper;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import java.awt.Rectangle;
 import java.awt.Window;
@@ -50,7 +51,7 @@ import java.util.List;
  */
 public class MediaPartListPanel extends AbstractListPanel<FLEFRecord>{
 
-	public static final String EXTENSION_PDF = ".pdf";
+	public static final String EXTENSION_PDF = ResourceHelper.EXTENSION_PDF;
 
 
 	private final String path;
@@ -311,7 +312,7 @@ public class MediaPartListPanel extends AbstractListPanel<FLEFRecord>{
 		final FLEFRecord document = (documentId != null ? model.getRecordById(documentId) : record);
 
 		if(document != null){
-			final JDialog dialog = documentHandler.createEditDialog(parent, model, document);
+			final RecordDialog dialog = documentHandler.createEditDialog(parent, model, document);
 			dialog.setVisible(true);
 		}
 

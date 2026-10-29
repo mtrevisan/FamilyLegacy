@@ -30,7 +30,7 @@ import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyResolver;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.ui.components.lists.PrivacyBadge;
-import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
@@ -394,7 +394,7 @@ public class GroupDossierPanel extends JPanel{
 
 			final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(record.getTag());
 			final Window owner = SwingUtilities.getWindowAncestor(GroupDossierPanel.this);
-			final BaseRecordDialog dialog = handler.createEditDialog(owner, model, record);
+			final RecordDialog dialog = handler.createEditDialog(owner, model, record);
 			dialog.setVisible(true);
 
 			if(dialog.isSaved())

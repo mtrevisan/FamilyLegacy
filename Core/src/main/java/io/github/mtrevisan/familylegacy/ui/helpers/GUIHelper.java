@@ -32,7 +32,7 @@ import io.github.mtrevisan.familylegacy.io.grammar.FLEFGrammarValidator;
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.FLEFGrammar;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
-import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.io.FilenameUtils;
@@ -813,7 +813,7 @@ public final class GUIHelper{
 		catch(final Exception ignored){}
 
 		SwingUtilities.invokeLater(() -> {
-			final BaseRecordDialog dialog = dialogFactory.apply(null, model);
+			final RecordDialog dialog = dialogFactory.apply(null, model);
 			dialog.setVisible(true);
 
 			System.out.println(FLEFWriter.createCompact().writeToString(model));

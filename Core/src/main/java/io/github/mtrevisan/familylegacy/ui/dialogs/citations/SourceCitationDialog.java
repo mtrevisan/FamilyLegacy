@@ -25,15 +25,15 @@
 package io.github.mtrevisan.familylegacy.ui.dialogs.citations;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextField;
-import io.github.mtrevisan.familylegacy.ui.components.PanelKey;
-import io.github.mtrevisan.familylegacy.ui.components.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.ui.components.fields.EntityField;
 import io.github.mtrevisan.familylegacy.ui.components.lists.ExtractListPanel;
 import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.PanelKey;
+import io.github.mtrevisan.familylegacy.ui.dialogs.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.ui.handlers.SourceCitationHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;

@@ -25,17 +25,18 @@
 package io.github.mtrevisan.familylegacy.ui.dialogs.records;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IdentityHypothesisReader;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextArea;
-import io.github.mtrevisan.familylegacy.ui.components.PanelKey;
-import io.github.mtrevisan.familylegacy.ui.components.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.ui.components.fields.EntityField;
 import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.PanelKey;
+import io.github.mtrevisan.familylegacy.ui.dialogs.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.ui.dialogs.RecordDiffDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.api.LinkRole;
 import io.github.mtrevisan.familylegacy.ui.handlers.ConclusionHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.ContextImpactHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.GroupHandler;
@@ -344,6 +345,13 @@ public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 
 	public static void main(final String[] args) throws IOException{
 		GUIHelper.launch(IdentityHypothesisRecordDialog::createEdit, "/tests/test.flef", "IH1");
+	}
+
+
+	@Override
+	public void link(final LinkRole role, final FLEFRecord record){
+		if(role == LinkRole.IDENTITY)
+			withIdentity(record);
 	}
 
 }

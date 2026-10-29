@@ -26,16 +26,16 @@ package io.github.mtrevisan.familylegacy.ui.components.projections.siblings;
 
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
-import io.github.mtrevisan.familylegacy.ui.components.projections.TreeIcons;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.components.projections.common.BoxPanelType;
+import io.github.mtrevisan.familylegacy.ui.components.projections.common.ConnectionStrokes;
+import io.github.mtrevisan.familylegacy.ui.components.projections.common.TreeIcons;
+import io.github.mtrevisan.familylegacy.ui.components.projections.common.TreeLayout;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.EntityPopupMenuFactory;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualData;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualListener;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualPanel;
-import io.github.mtrevisan.familylegacy.ui.components.projections.common.TreeLayout;
-import io.github.mtrevisan.familylegacy.ui.components.projections.partners.PartnersPanel;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
@@ -146,14 +146,14 @@ public class SiblingsPanel extends JPanel{
 					for(int i = 0, length = enterPoints.length; i < length; i ++){
 						final boolean biological = isBiologicalChild(i);
 						if(!biological)
-							g2.setStroke(PartnersPanel.CONNECTION_STROKE_ADOPTED);
+							g2.setStroke(ConnectionStrokes.CONNECTION_STROKE_ADOPTED);
 
 						final Point point = enterPoints[i];
 						g2.drawLine(point.x, 1,
 							point.x, point.y + 2);
 
 						if(!biological)
-							g2.setStroke(PartnersPanel.CONNECTION_STROKE);
+							g2.setStroke(ConnectionStrokes.CONNECTION_STROKE);
 					}
 				}
 				else{
@@ -169,7 +169,7 @@ public class SiblingsPanel extends JPanel{
 					for(int i = 0, length = enterPoints.length; i < length; i ++){
 						final boolean biological = isBiologicalChild(i);
 						if(!biological)
-							g2.setStroke(PartnersPanel.CONNECTION_STROKE_ADOPTED);
+							g2.setStroke(ConnectionStrokes.CONNECTION_STROKE_ADOPTED);
 
 						final Component comp = ((Container)getComponent(i))
 							.getComponent(0);
@@ -181,7 +181,7 @@ public class SiblingsPanel extends JPanel{
 							p.x, point.y);
 
 						if(!biological)
-							g2.setStroke(PartnersPanel.CONNECTION_STROKE);
+							g2.setStroke(ConnectionStrokes.CONNECTION_STROKE);
 					}
 				}
 			}
@@ -291,7 +291,7 @@ public class SiblingsPanel extends JPanel{
 
 	private JPanel createSiblingContainer(final boolean hasDescendants){
 		final JPanel container = new JPanel(new MigLayout("flowy,ins 0",
-			"[grow,right]", "[]" + PartnersPanel.NAVIGATION_ARROW_SEPARATION + "[]"));
+			"[grow,right]", "[]" + ConnectionStrokes.NAVIGATION_ARROW_SEPARATION + "[]"));
 		container.setOpaque(false);
 
 		final JLabel descendantsLabel = new JLabel();

@@ -25,9 +25,9 @@
 package io.github.mtrevisan.familylegacy.ui.handlers;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchQuestionReader;
-import io.github.mtrevisan.familylegacy.ui.dialogs.records.ResearchQuestionRecordDialog;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.ui.dialogs.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
@@ -38,7 +38,7 @@ import java.awt.Window;
 /**
  * Handler for RESEARCH_QUESTION records.
  */
-public class ResearchQuestionHandler extends AbstractRecordTypeHandler<ResearchQuestionRecordDialog>{
+public class ResearchQuestionHandler extends AbstractRecordTypeHandler<RecordDialog>{
 
 	public static final String TYPE = ResearchQuestionReader.TYPE;
 	public static final String ID_PREFIX = ResearchQuestionReader.ID_PREFIX;
@@ -90,14 +90,14 @@ public class ResearchQuestionHandler extends AbstractRecordTypeHandler<ResearchQ
 	}
 
 	@Override
-	public ResearchQuestionRecordDialog createNewDialog(final Window parent, final FLEFModel model){
-		return ResearchQuestionRecordDialog.createNew(parent, model);
+	public RecordDialog createNewDialog(final Window parent, final FLEFModel model){
+		return RecordDialogs.createNew(TYPE, parent, model);
 	}
 
 	@Override
-	public ResearchQuestionRecordDialog createEditDialog(final Window parent, final FLEFModel model,
-			final FLEFRecord record){
-		return ResearchQuestionRecordDialog.createEdit(parent, model, record);
+	public RecordDialog createEditDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
+		return RecordDialogs.createEdit(TYPE, parent, model, record);
 	}
+
 
 }

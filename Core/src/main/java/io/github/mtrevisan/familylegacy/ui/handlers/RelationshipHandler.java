@@ -25,10 +25,10 @@
 package io.github.mtrevisan.familylegacy.ui.handlers;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
-import io.github.mtrevisan.familylegacy.ui.dialogs.records.RelationshipRecordDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 
@@ -36,7 +36,7 @@ import java.awt.Window;
 import java.util.List;
 
 
-public class RelationshipHandler extends AbstractRecordTypeHandler<RelationshipRecordDialog>{
+public class RelationshipHandler extends AbstractRecordTypeHandler<RecordDialog>{
 
 	public static final String TYPE = RelationshipReader.TYPE;
 	public static final String ID_PREFIX = RelationshipReader.ID_PREFIX;
@@ -109,14 +109,14 @@ public class RelationshipHandler extends AbstractRecordTypeHandler<RelationshipR
 	}
 
 	@Override
-	public RelationshipRecordDialog createNewDialog(final Window parent, final FLEFModel model){
-		return RelationshipRecordDialog.createNew(parent, model);
+	public RecordDialog createNewDialog(final Window parent, final FLEFModel model){
+		return RecordDialogs.createNew(TYPE, parent, model);
 	}
 
 	@Override
-	public RelationshipRecordDialog createEditDialog(final Window parent, final FLEFModel model,
-			final FLEFRecord record){
-		return RelationshipRecordDialog.createEdit(parent, model, record);
+	public RecordDialog createEditDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
+		return RecordDialogs.createEdit(TYPE, parent, model, record);
 	}
+
 
 }

@@ -25,15 +25,14 @@
 package io.github.mtrevisan.familylegacy.ui.tools;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.components.projections.group.GroupData;
 import io.github.mtrevisan.familylegacy.ui.components.projections.group.GroupPanel;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualData;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualPanel;
 import io.github.mtrevisan.familylegacy.ui.components.projections.partners.PartnersPanel;
 import io.github.mtrevisan.familylegacy.ui.components.projections.partners.Side;
-import io.github.mtrevisan.familylegacy.ui.tools.ToolContext;
 
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;

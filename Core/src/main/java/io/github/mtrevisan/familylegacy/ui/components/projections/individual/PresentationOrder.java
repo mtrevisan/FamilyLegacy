@@ -25,7 +25,6 @@
 package io.github.mtrevisan.familylegacy.ui.components.projections.individual;
 
 import io.github.mtrevisan.familylegacy.io.model.readers.date.NormalizedDate;
-import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualData;
 import io.github.mtrevisan.familylegacy.ui.preferences.ChildrenOrder;
 import io.github.mtrevisan.familylegacy.ui.preferences.PartnerOrder;
 

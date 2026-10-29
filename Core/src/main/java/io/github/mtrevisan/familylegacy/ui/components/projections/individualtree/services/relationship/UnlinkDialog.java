@@ -25,11 +25,12 @@
 package io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.services.relationship;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
-import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.ui.components.searches.service.UnlinkPrompt;
+import io.github.mtrevisan.familylegacy.ui.dialogs.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
@@ -75,7 +76,7 @@ import java.util.function.Predicate;
  * organized into categorized sub-panels within dedicated tabs, allowing the user
  * to select which ones to unlink or remove before deleting the record.
  */
-public class UnlinkDialog extends JDialog{
+public class UnlinkDialog extends JDialog implements UnlinkPrompt{
 
 	private static final Cursor HAND_CURSOR = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
 
@@ -665,17 +666,19 @@ public class UnlinkDialog extends JDialog{
 			return;
 
 		final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(entity.getTag());
-		final BaseRecordDialog dialog = handler.createEditDialog(this, model, entity);
+		final RecordDialog dialog = handler.createEditDialog(this, model, entity);
 		dialog.setVisible(true);
 	}
 
 	/**
 	 * Returns the list of record IDs selected by the user to be unlinked/removed.
 	 */
+	@Override
 	public List<String> getSelectedLinkIds(){
 		return linkIdsToRemove;
 	}
 
+	@Override
 	public boolean removeParentRecord(){
 		return (linkIdsToRemove.size() == totalLinks);
 	}

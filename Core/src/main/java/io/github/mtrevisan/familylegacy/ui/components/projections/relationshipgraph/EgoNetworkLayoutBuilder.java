@@ -30,10 +30,10 @@ import io.github.mtrevisan.familylegacy.ui.components.projections.common.BoxPane
 import io.github.mtrevisan.familylegacy.ui.components.projections.group.GroupData;
 import io.github.mtrevisan.familylegacy.ui.components.projections.group.GroupListener;
 import io.github.mtrevisan.familylegacy.ui.components.projections.group.GroupPanel;
-import io.github.mtrevisan.familylegacy.ui.components.projections.menus.EgoNetworkGroupPopupMenuFactory;
-import io.github.mtrevisan.familylegacy.ui.components.projections.menus.EgoNetworkIndividualPopupMenuFactory;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualListener;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualPanel;
+import io.github.mtrevisan.familylegacy.ui.components.projections.menus.EgoNetworkGroupPopupMenuFactory;
+import io.github.mtrevisan.familylegacy.ui.components.projections.menus.EgoNetworkIndividualPopupMenuFactory;
 import io.github.mtrevisan.familylegacy.ui.handlers.GroupHandler;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;

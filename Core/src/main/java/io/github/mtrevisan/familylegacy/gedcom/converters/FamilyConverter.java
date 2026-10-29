@@ -32,11 +32,11 @@ import io.github.mtrevisan.familylegacy.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.gedcom.IDGenerator;
 import io.github.mtrevisan.familylegacy.gedcom.PlaceCache;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.io.model.readers.GroupAttributeReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.GroupReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 

@@ -25,9 +25,9 @@
 package io.github.mtrevisan.familylegacy.ui.tools.sources;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.readers.MediaReader;
-import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.ui.dialogs.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.MediaHandler;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolContext;
@@ -315,7 +315,7 @@ public final class MediaManagementDialog extends JDialog{
 
 	private void openEditor(final FLEFRecord document){
 		final MediaHandler handler = MediaHandler.getInstance();
-		final BaseRecordDialog dialog;
+		final RecordDialog dialog;
 		final FLEFModel model = context.model();
 		if(document == null)
 			dialog = handler.createNewDialog(this, model);

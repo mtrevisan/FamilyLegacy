@@ -26,7 +26,7 @@ package io.github.mtrevisan.familylegacy.ui.tools.statistics;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
-import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
@@ -131,7 +131,7 @@ final class MissingRecordsDialog extends JDialog{
 			return;
 		}
 
-		final BaseRecordDialog dialog = handler.createEditDialog(this, model, selected);
+		final RecordDialog dialog = handler.createEditDialog(this, model, selected);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved()){

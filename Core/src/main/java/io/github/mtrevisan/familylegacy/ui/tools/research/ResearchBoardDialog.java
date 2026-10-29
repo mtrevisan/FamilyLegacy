@@ -25,14 +25,14 @@
 package io.github.mtrevisan.familylegacy.ui.tools.research;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.readers.ConclusionReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchActivityReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchQuestionReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchTaskReader;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.ui.components.lists.PrivacyBadge;
-import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.ConclusionHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.ResearchActivityHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.ResearchQuestionHandler;
@@ -289,7 +289,7 @@ public final class ResearchBoardDialog extends JDialog{
 
 	private void openEditor(final ResearchTreeBuilder.Kind kind, final FLEFRecord record){
 		final FLEFModel model = context.model();
-		final BaseRecordDialog dialog = switch(kind){
+		final RecordDialog dialog = switch(kind){
 			case QUESTION -> (record == null
 				? ResearchQuestionHandler.getInstance().createNewDialog(this, model)
 				: ResearchQuestionHandler.getInstance().createEditDialog(this, model, record));

@@ -25,9 +25,9 @@
 package io.github.mtrevisan.familylegacy.ui.handlers;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.readers.MediaReader;
-import io.github.mtrevisan.familylegacy.ui.dialogs.records.MediaRecordDialog;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.ui.dialogs.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
@@ -38,7 +38,7 @@ import java.awt.Window;
 /**
  * Handler for DOCUMENT records.
  */
-public class MediaHandler extends AbstractRecordTypeHandler<MediaRecordDialog>{
+public class MediaHandler extends AbstractRecordTypeHandler<RecordDialog>{
 
 	public static final String TYPE = MediaReader.TYPE;
 	public static final String ID_PREFIX = MediaReader.ID_PREFIX;
@@ -98,13 +98,14 @@ public class MediaHandler extends AbstractRecordTypeHandler<MediaRecordDialog>{
 	}
 
 	@Override
-	public MediaRecordDialog createNewDialog(final Window parent, final FLEFModel model){
-		return MediaRecordDialog.createNew(parent, model);
+	public RecordDialog createNewDialog(final Window parent, final FLEFModel model){
+		return RecordDialogs.createNew(TYPE, parent, model);
 	}
 
 	@Override
-	public MediaRecordDialog createEditDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
-		return MediaRecordDialog.createEdit(parent, model, record);
+	public RecordDialog createEditDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
+		return RecordDialogs.createEdit(TYPE, parent, model, record);
 	}
+
 
 }

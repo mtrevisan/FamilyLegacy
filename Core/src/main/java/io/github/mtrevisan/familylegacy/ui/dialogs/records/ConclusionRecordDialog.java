@@ -25,17 +25,19 @@
 package io.github.mtrevisan.familylegacy.ui.dialogs.records;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.ConclusionReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IdentityHypothesisReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.ResearchQuestionReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.io.model.readers.ConclusionReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.ResearchQuestionReader;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextArea;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextField;
-import io.github.mtrevisan.familylegacy.ui.components.PanelKey;
-import io.github.mtrevisan.familylegacy.ui.components.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.ui.components.lists.EntityListPanel;
 import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.PanelKey;
+import io.github.mtrevisan.familylegacy.ui.dialogs.RecordDialogBuilder;
+import io.github.mtrevisan.familylegacy.ui.dialogs.api.LinkRole;
 import io.github.mtrevisan.familylegacy.ui.handlers.ConclusionHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.ConclusionTargetHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.CulturalNormHandler;
@@ -57,6 +59,7 @@ import io.github.mtrevisan.familylegacy.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JList;
@@ -94,6 +97,8 @@ import java.io.IOException;
  * Tab 10 (Audit): audit
  */
 public class ConclusionRecordDialog extends BaseRecordDialog{
+
+	private static final String ISSUE_IDENTITY = "identity";
 
 	public static final String PROPERTY_CONCLUSION = "conclusion";
 
@@ -334,6 +339,14 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 
 	public static void main(final String[] args) throws IOException{
 		GUIHelper.launch(ConclusionRecordDialog::createEdit, "/tests/test.flef", "CC1");
+	}
+
+
+	@Override
+	public void link(final LinkRole role, final FLEFRecord record){
+		//the conclusion can resolve the record only once it is in the model
+		if(role == LinkRole.RESOLVED_TARGET && record.getId() != null && model.getRecordById(record.getId()) != null)
+			withResolvedTarget(record, (Strings.CI.equals(record.getTag(), IdentityHypothesisReader.TYPE)? ISSUE_IDENTITY: null));
 	}
 
 }

@@ -25,9 +25,9 @@
 package io.github.mtrevisan.familylegacy.ui.dialogs.structures;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.AgentReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.io.model.readers.AgentReader;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextField;
 import io.github.mtrevisan.familylegacy.ui.components.fields.EntityField;

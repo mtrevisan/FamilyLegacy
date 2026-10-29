@@ -25,12 +25,12 @@
 package io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.layout.sugiyama;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.ui.components.projections.common.TreeLayout;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.EntityPopupMenuFactory;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualListener;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualPanel;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.layout.IndividualTreeGraphListener;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.layout.PartnerCycleHandler;
-import io.github.mtrevisan.familylegacy.ui.components.projections.common.TreeLayout;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.layout.TreeLayoutBuilder;
 import io.github.mtrevisan.familylegacy.ui.components.projections.partners.PartnersPanel;
 import io.github.mtrevisan.familylegacy.ui.components.projections.repository.GenealogyRepository;

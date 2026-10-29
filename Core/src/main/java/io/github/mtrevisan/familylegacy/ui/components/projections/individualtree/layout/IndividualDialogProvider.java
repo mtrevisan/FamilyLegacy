@@ -25,11 +25,11 @@
 package io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.layout;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SexType;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.components.searches.service.RecordSelectionDialog;
-import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.IndividualRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
@@ -74,7 +74,7 @@ public final class IndividualDialogProvider{
 			return null;
 
 		final IndividualHandler handler = IndividualHandler.getInstance();
-		final BaseRecordDialog dialog = handler.createEditDialog(parent, model, individual);
+		final RecordDialog dialog = handler.createEditDialog(parent, model, individual);
 		dialog.setVisible(true);
 
 		return (dialog.isSaved()? dialog.getRecord(): null);
@@ -88,8 +88,7 @@ public final class IndividualDialogProvider{
 	 * @return the created record, or {@code null} if the user canceled
 	 */
 	FLEFRecord showCreateDialog(final Window parent, final SexType sex){
-		final IndividualHandler handler = IndividualHandler.getInstance();
-		final IndividualRecordDialog dialog = handler.createNewDialog(parent, model)
+		final IndividualRecordDialog dialog = IndividualRecordDialog.createNew(parent, model)
 			.witSex(sex);
 		dialog.setVisible(true);
 

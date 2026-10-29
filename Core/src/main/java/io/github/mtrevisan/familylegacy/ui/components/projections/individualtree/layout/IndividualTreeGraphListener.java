@@ -25,8 +25,9 @@
 package io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.layout;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.readers.SexType;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.ui.components.projections.common.ProjectionMutator;
 import io.github.mtrevisan.familylegacy.ui.components.projections.common.TreeOperation;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualData;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualListener;
@@ -35,7 +36,6 @@ import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree
 import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.services.relationship.TreeContextHelper;
 import io.github.mtrevisan.familylegacy.ui.components.projections.partners.PartnersPanel;
 import io.github.mtrevisan.familylegacy.ui.components.projections.partners.Side;
-import io.github.mtrevisan.familylegacy.ui.components.projections.common.ProjectionMutator;
 import io.github.mtrevisan.familylegacy.ui.components.projections.repository.TreeMutator;
 import io.github.mtrevisan.familylegacy.ui.components.projections.repository.TreeNode;
 import io.github.mtrevisan.familylegacy.ui.components.projections.repository.TreeService;

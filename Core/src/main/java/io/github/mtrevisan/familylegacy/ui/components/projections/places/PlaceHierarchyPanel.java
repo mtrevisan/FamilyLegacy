@@ -29,15 +29,16 @@ import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.FLEFGrammar;
 import io.github.mtrevisan.familylegacy.io.merger.FLEFMerger;
 import io.github.mtrevisan.familylegacy.io.merger.RecordAbsorber;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceRelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.io.model.readers.PlaceRelationshipReader;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyResolver;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.ui.components.lists.PrivacyBadge;
 import io.github.mtrevisan.familylegacy.ui.components.searches.SearchMatcher;
 import io.github.mtrevisan.familylegacy.ui.components.searches.SearchMode;
-import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.ui.components.searches.service.PlaceHierarchyView;
+import io.github.mtrevisan.familylegacy.ui.dialogs.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.PlaceRelationshipHandler;
@@ -120,12 +121,12 @@ import java.util.function.Consumer;
  * {@code PlaceRelationshipRecord} through
  * {@link #getSelectedPlaceRecord()}.
  */
-public final class PlaceHierarchyPanel extends JPanel{
+public final class PlaceHierarchyPanel extends JPanel implements PlaceHierarchyView{
 
 	/** Property fired with the percentage (0-100) of the tree rebuild. */
-	public static final String PROPERTY_FILTERING_PROGRESS = "filteringProgress";
+	public static final String PROPERTY_FILTERING_PROGRESS = PlaceHierarchyView.PROPERTY_FILTERING_PROGRESS;
 	/** Property fired when the asynchronous rebuild completes. */
-	public static final String PROPERTY_FILTERING_DONE = "filteringDone";
+	public static final String PROPERTY_FILTERING_DONE = PlaceHierarchyView.PROPERTY_FILTERING_DONE;
 
 	private static final int TREE_MIN_WIDTH = 360;
 	private static final int DETAILS_MIN_WIDTH = 300;
@@ -216,6 +217,12 @@ public final class PlaceHierarchyPanel extends JPanel{
 	 * currently selected place, the search filter, and the relation-type
 	 * filter are preserved across the reload.
 	 */
+	@Override
+	public JComponent component(){
+		return this;
+	}
+
+	@Override
 	public void reload(){
 		final String previousSelection = selectedPlaceId();
 
@@ -237,6 +244,7 @@ public final class PlaceHierarchyPanel extends JPanel{
 	 * @param search       the free-text search filter; may be {@code null}
 	 * @param relationType the relation type filter; may be {@code null}
 	 */
+	@Override
 	public boolean setFilters(final Set<SearchMode> modes, final String search, final String relationType){
 		final Set<SearchMode> normalizedModes = (modes != null? Set.copyOf(modes): Set.of());
 		final String normalizedSearch = (search != null? search: StringUtils.EMPTY);
@@ -264,6 +272,7 @@ public final class PlaceHierarchyPanel extends JPanel{
 	 * @param editable {@code true} to enable the edit-on-double-click
 	 *                 behavior, {@code false} to disable it
 	 */
+	@Override
 	public void setEditable(final boolean editable){
 		this.editable = editable;
 	}
@@ -275,6 +284,7 @@ public final class PlaceHierarchyPanel extends JPanel{
 	 *
 	 * @return the selected relationship, or {@code null}
 	 */
+	@Override
 	public FLEFRecord getSelectedPlaceRecord(){
 		return selectedPlaceRecord;
 	}
@@ -523,6 +533,7 @@ public final class PlaceHierarchyPanel extends JPanel{
 		detailsPanel.showPlace(payload != null? payload.place(): null, hierarchy);
 	}
 
+	@Override
 	public void openEditorForSelection(){
 		if(!editable)
 			return;
@@ -534,7 +545,7 @@ public final class PlaceHierarchyPanel extends JPanel{
 		final FLEFRecord record = model.getRecordById(payload.place().id());
 		final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(record.getTag());
 		final Window owner = SwingUtilities.getWindowAncestor(this);
-		final BaseRecordDialog dialog = handler.createEditDialog(owner, model, record);
+		final RecordDialog dialog = handler.createEditDialog(owner, model, record);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved()){

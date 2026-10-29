@@ -25,17 +25,17 @@
 package io.github.mtrevisan.familylegacy.ui.handlers;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
-import io.github.mtrevisan.familylegacy.ui.dialogs.records.EventParticipationRecordDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Window;
 
 
-public class EventParticipationHandler extends AbstractRecordTypeHandler<EventParticipationRecordDialog>{
+public class EventParticipationHandler extends AbstractRecordTypeHandler<RecordDialog>{
 
 	public static final String TYPE = EventParticipationReader.TYPE;
 	public static final String ID_PREFIX = EventParticipationReader.ID_PREFIX;
@@ -113,14 +113,14 @@ public class EventParticipationHandler extends AbstractRecordTypeHandler<EventPa
 	}
 
 	@Override
-	public EventParticipationRecordDialog createNewDialog(final Window parent, final FLEFModel model){
-		return EventParticipationRecordDialog.createNew(parent, model);
+	public RecordDialog createNewDialog(final Window parent, final FLEFModel model){
+		return RecordDialogs.createNew(TYPE, parent, model);
 	}
 
 	@Override
-	public EventParticipationRecordDialog createEditDialog(final Window parent, final FLEFModel model,
-			final FLEFRecord record){
-		return EventParticipationRecordDialog.createEdit(parent, model, record);
+	public RecordDialog createEditDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
+		return RecordDialogs.createEdit(TYPE, parent, model, record);
 	}
+
 
 }

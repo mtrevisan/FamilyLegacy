@@ -24,7 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.ui.handlers;
 
-import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.api.RecordDialog;
+
 
 import java.util.Objects;
 
@@ -36,7 +37,7 @@ import java.util.Objects;
  *
  * @param <T> the dialog type associated with this handler
  */
-public abstract class AbstractRecordTypeHandler<T extends BaseRecordDialog> implements RecordTypeHandler<T>{
+public abstract class AbstractRecordTypeHandler<T extends RecordDialog> implements RecordTypeHandler<T>{
 
 	@Override
 	public boolean equals(final Object obj){

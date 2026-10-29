@@ -25,8 +25,8 @@
 package io.github.mtrevisan.familylegacy.ui.components.projections.menus;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.ui.components.projections.common.TreeOperation;
 import io.github.mtrevisan.familylegacy.ui.components.projections.common.ProjectionMutator;
+import io.github.mtrevisan.familylegacy.ui.components.projections.common.TreeOperation;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.EntityListener;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.EntityPopupMenuFactory;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualData;

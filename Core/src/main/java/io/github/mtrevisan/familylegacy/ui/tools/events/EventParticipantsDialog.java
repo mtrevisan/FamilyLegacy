@@ -25,12 +25,12 @@
 package io.github.mtrevisan.familylegacy.ui.tools.events;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.GroupReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
-import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.ui.dialogs.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventParticipationHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
@@ -244,7 +244,7 @@ public final class EventParticipantsDialog extends JDialog{
 
 	private void openEditor(final FLEFRecord eventParticipation){
 		final EventParticipationHandler handler = EventParticipationHandler.getInstance();
-		final BaseRecordDialog dialog;
+		final RecordDialog dialog;
 		final FLEFModel model = context.model();
 		if(eventParticipation == null)
 			dialog = handler.createNewDialog(this, model);

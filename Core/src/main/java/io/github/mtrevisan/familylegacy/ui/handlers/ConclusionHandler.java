@@ -25,9 +25,9 @@
 package io.github.mtrevisan.familylegacy.ui.handlers;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.readers.ConclusionReader;
-import io.github.mtrevisan.familylegacy.ui.dialogs.records.ConclusionRecordDialog;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.ui.dialogs.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
@@ -35,7 +35,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.awt.Window;
 
 
-public class ConclusionHandler extends AbstractRecordTypeHandler<ConclusionRecordDialog>{
+public class ConclusionHandler extends AbstractRecordTypeHandler<RecordDialog>{
 
 	public static final String TYPE = ConclusionReader.TYPE;
 	public static final String ID_PREFIX = ConclusionReader.ID_PREFIX;
@@ -83,13 +83,14 @@ public class ConclusionHandler extends AbstractRecordTypeHandler<ConclusionRecor
 	}
 
 	@Override
-	public ConclusionRecordDialog createNewDialog(final Window parent, final FLEFModel model){
-		return ConclusionRecordDialog.createNew(parent, model);
+	public RecordDialog createNewDialog(final Window parent, final FLEFModel model){
+		return RecordDialogs.createNew(TYPE, parent, model);
 	}
 
 	@Override
-	public ConclusionRecordDialog createEditDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
-		return ConclusionRecordDialog.createEdit(parent, model, record);
+	public RecordDialog createEditDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
+		return RecordDialogs.createEdit(TYPE, parent, model, record);
 	}
+
 
 }

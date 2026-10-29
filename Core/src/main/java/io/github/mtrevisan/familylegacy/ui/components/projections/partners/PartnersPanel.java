@@ -26,13 +26,14 @@ package io.github.mtrevisan.familylegacy.ui.components.projections.partners;
 
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.ui.components.projections.TreeIcons;
 import io.github.mtrevisan.familylegacy.ui.components.projections.common.BoxPanelType;
+import io.github.mtrevisan.familylegacy.ui.components.projections.common.ConnectionStrokes;
+import io.github.mtrevisan.familylegacy.ui.components.projections.common.TreeIcons;
+import io.github.mtrevisan.familylegacy.ui.components.projections.common.TreeLayout;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.EntityPopupMenuFactory;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualData;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualListener;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualPanel;
-import io.github.mtrevisan.familylegacy.ui.components.projections.common.TreeLayout;
 import io.github.mtrevisan.familylegacy.ui.components.projections.repository.GenealogyRepository;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
@@ -46,7 +47,6 @@ import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
-import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -100,7 +100,7 @@ public class PartnersPanel extends JPanel{
 	private static final Dimension ASCENDANTS_SIZE = new Dimension((int)((float)ASCENDANTS_HEIGHT / ASCENDANTS_ASPECT_RATIO), ASCENDANTS_HEIGHT);
 
 	/** Distance between descendants arrow and box. */
-	public static final int NAVIGATION_ARROW_SEPARATION = 2;
+	public static final int NAVIGATION_ARROW_SEPARATION = ConnectionStrokes.NAVIGATION_ARROW_SEPARATION;
 	public static final int ARROW_HEIGHT = (int)(ASCENDANTS_SIZE.getHeight() + NAVIGATION_ARROW_SEPARATION);
 
 	/** Height of the group line from the bottom of the individual panel [px]. */
@@ -113,10 +113,8 @@ public class PartnersPanel extends JPanel{
 //	/** Distance between ascendants arrow and box. */
 //	private static final int NAVIGATION_ASCENDANTS_ARROW_SEPARATION = (NAVIGATION_ARROW_SEPARATION << 1) + 3;
 
-	public static final Stroke CONNECTION_STROKE = new BasicStroke(1.f, BasicStroke.CAP_BUTT,
-		BasicStroke.JOIN_BEVEL, 0.f);
-	public static final Stroke CONNECTION_STROKE_ADOPTED = new BasicStroke(1.f, BasicStroke.CAP_BUTT,
-		BasicStroke.JOIN_BEVEL, 0.f, new float[]{2.f}, 0.f);
+	public static final Stroke CONNECTION_STROKE = ConnectionStrokes.CONNECTION_STROKE;
+	public static final Stroke CONNECTION_STROKE_ADOPTED = ConnectionStrokes.CONNECTION_STROKE_ADOPTED;
 
 
 	// State

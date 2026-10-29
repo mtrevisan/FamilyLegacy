@@ -26,13 +26,13 @@ package io.github.mtrevisan.familylegacy.ui.components.projections.relationshipg
 
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.NormalizedDate;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.ui.components.lists.PrivacyBadge;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.services.lifespan.EventIndex;
 import io.github.mtrevisan.familylegacy.ui.components.projections.temporal.TemporalAxis;
-import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.tools.events.CalendarConverterDialog;
@@ -527,7 +527,7 @@ public class GlobalEventTimelinePanel extends JPanel{
 			return;
 
 		final Window owner = SwingUtilities.getWindowAncestor(this);
-		final BaseRecordDialog dialog = EventHandler.getInstance()
+		final RecordDialog dialog = EventHandler.getInstance()
 			.createEditDialog(owner, model, record);
 		dialog.setVisible(true);
 

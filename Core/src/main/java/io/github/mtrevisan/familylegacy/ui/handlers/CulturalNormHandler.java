@@ -25,9 +25,9 @@
 package io.github.mtrevisan.familylegacy.ui.handlers;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.readers.CulturalNormReader;
-import io.github.mtrevisan.familylegacy.ui.dialogs.records.CulturalNormRecordDialog;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.ui.dialogs.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 
@@ -37,7 +37,7 @@ import java.awt.Window;
 /**
  * Handler for CULTURAL_NORM records.
  */
-public class CulturalNormHandler extends AbstractRecordTypeHandler<CulturalNormRecordDialog>{
+public class CulturalNormHandler extends AbstractRecordTypeHandler<RecordDialog>{
 
 	public static final String TYPE = CulturalNormReader.TYPE;
 	public static final String ID_PREFIX = CulturalNormReader.ID_PREFIX;
@@ -80,14 +80,14 @@ public class CulturalNormHandler extends AbstractRecordTypeHandler<CulturalNormR
 	}
 
 	@Override
-	public CulturalNormRecordDialog createNewDialog(final Window parent, final FLEFModel model){
-		return CulturalNormRecordDialog.createNew(parent, model);
+	public RecordDialog createNewDialog(final Window parent, final FLEFModel model){
+		return RecordDialogs.createNew(TYPE, parent, model);
 	}
 
 	@Override
-	public CulturalNormRecordDialog createEditDialog(final Window parent, final FLEFModel model,
-			final FLEFRecord record){
-		return CulturalNormRecordDialog.createEdit(parent, model, record);
+	public RecordDialog createEditDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
+		return RecordDialogs.createEdit(TYPE, parent, model, record);
 	}
+
 
 }

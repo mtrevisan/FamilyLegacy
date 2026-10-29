@@ -22,9 +22,8 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.ui.components.projections;
+package io.github.mtrevisan.familylegacy.ui.components.projections.common;
 
-import io.github.mtrevisan.familylegacy.ui.components.projections.common.TreeLayout;
 import io.github.mtrevisan.familylegacy.ui.helpers.ResourceHelper;
 
 import javax.swing.GrayFilter;

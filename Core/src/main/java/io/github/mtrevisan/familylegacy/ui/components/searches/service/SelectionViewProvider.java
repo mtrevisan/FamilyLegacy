@@ -22,32 +22,30 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.ui.components;
+package io.github.mtrevisan.familylegacy.ui.components.searches.service;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
-import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
 
-import javax.swing.JPanel;
+import java.awt.Window;
+import java.util.ServiceLoader;
 
 
 /**
- * Strategy interface to create a specific panel for a given record dialog configuration
- * without coupling component keys to concrete handler types.
+ * The views that the selection dialog uses and that live with the projections, which depend on the dialog: the dialog finds them as a
+ * service instead of naming them.
  */
-@FunctionalInterface
-public interface PanelFactory{
+public interface SelectionViewProvider{
 
-	/**
-	 * Creates a {@link JPanel} configured for the target record dialog context.
-	 *
-	 * @param owner  The parent dialog instance.
-	 * @param cfg    The entity reference configuration.
-	 * @param model  The FLEF model context.
-	 * @param record The target record bound to the dialog.
-	 * @return The constructed component panel.
-	 */
-	JPanel createPanel(BaseRecordDialog owner, RecordDialogBuilder.EntityReferenceConfig cfg, FLEFModel model,
-		FLEFRecord record);
+	/** @return the view of the hierarchy of the places */
+	PlaceHierarchyView createPlaceHierarchyView(FLEFModel model);
+
+	/** @return the dialog that lists the links of a record, to remove them */
+	UnlinkPrompt createUnlinkPrompt(Window parent, FLEFModel model, String entityId);
+
+	/** @return the provider of the application */
+	static SelectionViewProvider find(){
+		return ServiceLoader.load(SelectionViewProvider.class).findFirst()
+			.orElseThrow(() -> new IllegalStateException("No provider of the selection views is declared"));
+	}
 
 }

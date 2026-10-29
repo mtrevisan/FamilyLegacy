@@ -25,7 +25,7 @@
 package io.github.mtrevisan.familylegacy.ui.tools.sources;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolContext;
@@ -43,7 +43,7 @@ public final class NewSourceTool implements ToolOperation{
 	@Override
 	public void run(final ToolContext context){
 		final FLEFModel model = context.model();
-		final BaseRecordDialog dialog = SourceHandler.getInstance()
+		final RecordDialog dialog = SourceHandler.getInstance()
 			.createNewDialog(context.owner(), model);
 		dialog.setVisible(true);
 	}

@@ -25,13 +25,13 @@
 package io.github.mtrevisan.familylegacy.ui.tools.context;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.readers.ContextImpactReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.CulturalNormReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.HistoricEventReader;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.ui.components.lists.PrivacyBadge;
-import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.ContextImpactRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.ContextImpactHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.CulturalNormHandler;
@@ -306,7 +306,7 @@ public final class ContextBoardDialog extends JDialog{
 
 	private void openEditor(final ContextTreeBuilder.Kind kind, final FLEFRecord record){
 		final FLEFModel model = context.model();
-		final BaseRecordDialog dialog = switch(kind){
+		final RecordDialog dialog = switch(kind){
 			case HISTORIC_EVENT -> (record == null
 				? HistoricEventHandler.getInstance().createNewDialog(this, model)
 				: HistoricEventHandler.getInstance().createEditDialog(this, model, record));
@@ -327,7 +327,7 @@ public final class ContextBoardDialog extends JDialog{
 				.withContext(contextRecord));
 	}
 
-	private void show(final BaseRecordDialog dialog){
+	private void show(final RecordDialog dialog){
 		if(dialog == null)
 			return;
 

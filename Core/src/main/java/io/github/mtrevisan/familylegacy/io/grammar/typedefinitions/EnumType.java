@@ -24,8 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.io.grammar.typedefinitions;
 
-import io.github.mtrevisan.familylegacy.io.model.record.RecordLookup;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.RecordLookup;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;

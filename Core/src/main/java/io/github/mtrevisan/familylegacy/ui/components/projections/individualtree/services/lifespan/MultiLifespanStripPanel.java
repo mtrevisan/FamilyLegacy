@@ -25,13 +25,13 @@
 package io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.services.lifespan;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.NormalizedDate;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.ui.components.lists.PrivacyBadge;
 import io.github.mtrevisan.familylegacy.ui.components.projections.chronomap.TemporalAttributeIndex;
 import io.github.mtrevisan.familylegacy.ui.components.projections.temporal.TemporalAxis;
-import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
@@ -644,7 +644,7 @@ public final class MultiLifespanStripPanel extends JPanel{
 			return;
 
 		final Window owner = SwingUtilities.getWindowAncestor(this);
-		final BaseRecordDialog dialog = EventHandler.getInstance()
+		final RecordDialog dialog = EventHandler.getInstance()
 			.createEditDialog(owner, model, record);
 		dialog.setVisible(true);
 
@@ -666,7 +666,7 @@ public final class MultiLifespanStripPanel extends JPanel{
 
 		final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(record.getTag());
 		final Window owner = SwingUtilities.getWindowAncestor(this);
-		final BaseRecordDialog dialog = handler.createEditDialog(owner, model, record);
+		final RecordDialog dialog = handler.createEditDialog(owner, model, record);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved())

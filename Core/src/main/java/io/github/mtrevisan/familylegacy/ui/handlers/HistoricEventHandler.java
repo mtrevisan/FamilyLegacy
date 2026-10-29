@@ -25,9 +25,9 @@
 package io.github.mtrevisan.familylegacy.ui.handlers;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.readers.HistoricEventReader;
-import io.github.mtrevisan.familylegacy.ui.dialogs.records.HistoricEventRecordDialog;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.ui.dialogs.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 
@@ -37,7 +37,7 @@ import java.awt.Window;
 /**
  * Handler for HISTORIC_EVENT records.
  */
-public class HistoricEventHandler extends AbstractRecordTypeHandler<HistoricEventRecordDialog>{
+public class HistoricEventHandler extends AbstractRecordTypeHandler<RecordDialog>{
 
 	public static final String TYPE = HistoricEventReader.TYPE;
 	public static final String ID_PREFIX = HistoricEventReader.ID_PREFIX;
@@ -80,14 +80,14 @@ public class HistoricEventHandler extends AbstractRecordTypeHandler<HistoricEven
 	}
 
 	@Override
-	public HistoricEventRecordDialog createNewDialog(final Window parent, final FLEFModel model){
-		return HistoricEventRecordDialog.createNew(parent, model);
+	public RecordDialog createNewDialog(final Window parent, final FLEFModel model){
+		return RecordDialogs.createNew(TYPE, parent, model);
 	}
 
 	@Override
-	public HistoricEventRecordDialog createEditDialog(final Window parent, final FLEFModel model,
-			final FLEFRecord record){
-		return HistoricEventRecordDialog.createEdit(parent, model, record);
+	public RecordDialog createEditDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
+		return RecordDialogs.createEdit(TYPE, parent, model, record);
 	}
+
 
 }

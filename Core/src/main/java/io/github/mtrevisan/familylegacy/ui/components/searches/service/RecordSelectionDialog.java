@@ -26,17 +26,15 @@ package io.github.mtrevisan.familylegacy.ui.components.searches.service;
 
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceRelationshipReader;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.bindings.BindingsHelper;
 import io.github.mtrevisan.familylegacy.ui.bindings.Debouncer;
 import io.github.mtrevisan.familylegacy.ui.bindings.FilteredComboBox;
-import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.services.relationship.UnlinkDialog;
-import io.github.mtrevisan.familylegacy.ui.components.projections.places.PlaceHierarchyPanel;
 import io.github.mtrevisan.familylegacy.ui.components.searches.RecordFilterPanel;
 import io.github.mtrevisan.familylegacy.ui.components.searches.SearchCriteria;
 import io.github.mtrevisan.familylegacy.ui.components.searches.SearchMode;
-import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.MediaHandler;
@@ -112,7 +110,7 @@ import java.util.function.Consumer;
  * <p>
  * <b>Place-relationship mode.</b> When the selected record type is
  * {@code place_relationship}, the dialog swaps the flat list for a
- * {@link PlaceHierarchyPanel}: a place relationship is meaningful only
+ * {@link PlaceHierarchyView}: a place relationship is meaningful only
  * in the context of the hierarchy it belongs to, so a flat list of
  * relations would be incomprehensible.
  * <p>
@@ -150,7 +148,7 @@ public class RecordSelectionDialog extends JDialog{
 	private final FLEFModel model;
 	private final RecordTypeHandler<?> defaultType;
 	private final BiConsumer<FLEFRecord, RecordTypeHandler<?>> onSelect;
-	private Consumer<BaseRecordDialog> setupDialog;
+	private Consumer<RecordDialog> setupDialog;
 
 	private final Map<String, String> initialFilters = new HashMap<>();
 
@@ -188,7 +186,7 @@ public class RecordSelectionDialog extends JDialog{
 	 * {@code place_relationship} type, so that a dialog opened for a
 	 * different type does not pay the cost of building the hierarchy.
 	 */
-	private PlaceHierarchyPanel placeHierarchyPanel;
+	private PlaceHierarchyView placeHierarchyPanel;
 
 	// Services & Async tasks
 	private final SearchService searchService;
@@ -257,7 +255,7 @@ public class RecordSelectionDialog extends JDialog{
 	}
 
 
-	public RecordSelectionDialog withSetupDialog(final Consumer<BaseRecordDialog> setupDialog){
+	public RecordSelectionDialog withSetupDialog(final Consumer<RecordDialog> setupDialog){
 		this.setupDialog = setupDialog;
 
 		return this;
@@ -551,12 +549,12 @@ public class RecordSelectionDialog extends JDialog{
 		// the place_relationship type. Once created, it stays in the
 		// card layout and is merely reloaded on subsequent switches.
 		if(placeHierarchyPanel == null){
-			placeHierarchyPanel = new PlaceHierarchyPanel(model);
+			placeHierarchyPanel = SelectionViewProvider.find().createPlaceHierarchyView(model);
 			placeHierarchyPanel.setEditable(true);
 
 			final JPanel wrapper = new JPanel(new BorderLayout());
 			wrapper.setBorder(BorderFactory.createTitledBorder(I18N.t("search.results_panel.title")));
-			wrapper.add(placeHierarchyPanel, BorderLayout.CENTER);
+			wrapper.add(placeHierarchyPanel.component(), BorderLayout.CENTER);
 
 			centerPanel.add(wrapper, CARD_HIERARCHY);
 		}
@@ -698,10 +696,10 @@ public class RecordSelectionDialog extends JDialog{
 		if(placeHierarchyPanel == null)
 			return;
 
-		if(placeHierarchyPanel.getPropertyChangeListeners(
-			PlaceHierarchyPanel.PROPERTY_FILTERING_PROGRESS).length == 0){
-			placeHierarchyPanel.addPropertyChangeListener(
-				PlaceHierarchyPanel.PROPERTY_FILTERING_PROGRESS, evt -> {
+		if(placeHierarchyPanel.component().getPropertyChangeListeners(
+			PlaceHierarchyView.PROPERTY_FILTERING_PROGRESS).length == 0){
+			placeHierarchyPanel.component().addPropertyChangeListener(
+				PlaceHierarchyView.PROPERTY_FILTERING_PROGRESS, evt -> {
 					final Integer progress = (Integer)evt.getNewValue();
 					if(progress != null){
 						progressBar.setValue(progress);
@@ -709,9 +707,9 @@ public class RecordSelectionDialog extends JDialog{
 					}
 				});
 		}
-		if(placeHierarchyPanel.getPropertyChangeListeners(PlaceHierarchyPanel.PROPERTY_FILTERING_DONE).length == 0)
-			placeHierarchyPanel.addPropertyChangeListener(
-				PlaceHierarchyPanel.PROPERTY_FILTERING_DONE, evt -> {
+		if(placeHierarchyPanel.component().getPropertyChangeListeners(PlaceHierarchyView.PROPERTY_FILTERING_DONE).length == 0)
+			placeHierarchyPanel.component().addPropertyChangeListener(
+				PlaceHierarchyView.PROPERTY_FILTERING_DONE, evt -> {
 					progressBar.setValue(100);
 					progressBar.setVisible(false);
 					statusLabel.setText(StringUtils.SPACE);
@@ -755,7 +753,7 @@ public class RecordSelectionDialog extends JDialog{
 
 	private void createNewRecord(){
 		final RecordTypeHandler<?> handler = getSelectedHandler();
-		final BaseRecordDialog dialog = handler.createNewDialog(this, model);
+		final RecordDialog dialog = handler.createNewDialog(this, model);
 		if(setupDialog != null)
 			setupDialog.accept(dialog);
 		dialog.setVisible(true);
@@ -846,7 +844,7 @@ public class RecordSelectionDialog extends JDialog{
 				return;
 
 			final FLEFRecord record = selectedItem.record();
-			final BaseRecordDialog dialog = handler.createEditDialog(this, model, record);
+			final RecordDialog dialog = handler.createEditDialog(this, model, record);
 			dialog.setVisible(true);
 
 			if(dialog.isSaved()){
@@ -920,7 +918,7 @@ public class RecordSelectionDialog extends JDialog{
 		// 2. Check if the record has active relationships using UnlinkRelationshipsDialog
 		// Since we are now selecting a PlaceRecord (both in hierarchy and flat list),
 		// this dialog correctly lists all relationships pointing to/from this place.
-		final UnlinkDialog dialog = new UnlinkDialog(this, model, recordId);
+		final UnlinkPrompt dialog = SelectionViewProvider.find().createUnlinkPrompt(this, model, recordId);
 		dialog.setVisible(true);
 
 		final List<String> linkIdsToRemove = dialog.getSelectedLinkIds();

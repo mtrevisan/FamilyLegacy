@@ -28,7 +28,7 @@ import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.components.projections.repository.TreeChangeListener;
-import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
@@ -317,7 +317,7 @@ public final class TemporalProjectionPanel extends JPanel implements TreeChangeL
 
 		final RecordTypeHandler<?> handler = handlerForTag(record.getTag());
 		final Window parent = SwingUtilities.getWindowAncestor(this);
-		final BaseRecordDialog dialog = handler.createEditDialog(parent, flefModel, record);
+		final RecordDialog dialog = handler.createEditDialog(parent, flefModel, record);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved())

@@ -31,7 +31,7 @@ import io.github.mtrevisan.familylegacy.ui.bindings.BindingsHelper;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextField;
 import io.github.mtrevisan.familylegacy.ui.bindings.MenuBuilder;
 import io.github.mtrevisan.familylegacy.ui.components.searches.service.RecordSelectionDialog;
-import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
@@ -344,7 +344,7 @@ public class EntityField extends BoundTextField{
 		final List<Class<? extends RecordTypeHandler<?>>> cleaned = extractParentHandlers();
 		// Dialog of a record created from within the selection dialog (if any): it tells a newly created record, which
 		// must be discarded when the citation is cancelled, from an existing one, which must be kept
-		final BaseRecordDialog[] creationDialog = new BaseRecordDialog[1];
+		final RecordDialog[] creationDialog = new RecordDialog[1];
 		@SuppressWarnings("unchecked")
 		final RecordSelectionDialog dialog = RecordSelectionDialog.createWithAllowRecordCreation(parent, model,
 			(record, selectedHandler) -> {
@@ -359,7 +359,7 @@ public class EntityField extends BoundTextField{
 					final FLEFRecord citation = FLEFRecord.createChildWithTag(getCitationTag(citationHandler));
 					FLEFRecordHelper.updateChildValue(citation, path, selectedRecordId);
 
-					final BaseRecordDialog citationDialog = citationHandler.createEditDialog(parent, model, citation);
+					final RecordDialog citationDialog = citationHandler.createEditDialog(parent, model, citation);
 					citationDialog.setVisible(true);
 
 					if(citationDialog.isSaved()){
@@ -395,7 +395,7 @@ public class EntityField extends BoundTextField{
 		}
 
 		final RecordTypeHandler<?> handler = findHandler(entityRef.getTag());
-		final BaseRecordDialog dialog = handler.createEditDialog(parent, model, entityRef);
+		final RecordDialog dialog = handler.createEditDialog(parent, model, entityRef);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved())
@@ -420,7 +420,7 @@ public class EntityField extends BoundTextField{
 		}
 
 		final RecordTypeHandler<?> parentHandler = handler.getParentHandler();
-		final BaseRecordDialog dialog = parentHandler.createNewDialog(parent, model);
+		final RecordDialog dialog = parentHandler.createNewDialog(parent, model);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved()){
@@ -430,7 +430,7 @@ public class EntityField extends BoundTextField{
 				final FLEFRecord citation = FLEFRecord.createChildWithTag(getCitationTag(handler));
 				FLEFRecordHelper.updateChildValue(citation, path, newRecordId);
 
-				final BaseRecordDialog citationDialog = handler.createEditDialog(parent, model, citation);
+				final RecordDialog citationDialog = handler.createEditDialog(parent, model, citation);
 				citationDialog.setVisible(true);
 
 				if(citationDialog.isSaved()){
@@ -458,7 +458,7 @@ public class EntityField extends BoundTextField{
 		final String citedRecordId = FLEFRecordHelper.getChildValue(entityRef, handler.getCitedType());
 		final FLEFRecord citedRecord = model.getRecordById(citedRecordId);
 		final RecordTypeHandler<?> citedRecordHandler = HandlerRegistry.getHandler(citedRecord.getTag());
-		final BaseRecordDialog dialog = citedRecordHandler.createEditDialog(parent, model, citedRecord);
+		final RecordDialog dialog = citedRecordHandler.createEditDialog(parent, model, citedRecord);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved())

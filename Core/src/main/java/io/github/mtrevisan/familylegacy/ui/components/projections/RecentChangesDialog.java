@@ -25,10 +25,10 @@
 package io.github.mtrevisan.familylegacy.ui.components.projections;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.ModelHistory;
-import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.dialogs.RecordDiffDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
@@ -273,7 +273,7 @@ final class RecentChangesDialog extends JDialog{
 			return;
 		}
 
-		final BaseRecordDialog dialog = handler.createEditDialog(this, model, record);
+		final RecordDialog dialog = handler.createEditDialog(this, model, record);
 		dialog.setVisible(true);
 		refresh();
 	}

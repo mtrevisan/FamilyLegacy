@@ -28,10 +28,10 @@ import io.github.mtrevisan.familylegacy.gedcom.GEDCOMHelper;
 import io.github.mtrevisan.familylegacy.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.gedcom.IDGenerator;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.io.model.readers.MediaReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 
 import java.util.ArrayList;
 import java.util.List;

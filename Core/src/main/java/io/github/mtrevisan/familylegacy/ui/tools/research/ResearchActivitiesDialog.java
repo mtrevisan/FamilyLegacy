@@ -25,9 +25,9 @@
 package io.github.mtrevisan.familylegacy.ui.tools.research;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchActivityReader;
-import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.ui.dialogs.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.ResearchActivityHandler;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolContext;
@@ -228,7 +228,7 @@ public final class ResearchActivitiesDialog extends JDialog{
 
 	private void openEditor(final FLEFRecord researchActivity){
 		final ResearchActivityHandler handler = ResearchActivityHandler.getInstance();
-		final BaseRecordDialog dialog;
+		final RecordDialog dialog;
 		final FLEFModel model = context.model();
 		if(researchActivity == null)
 			dialog = handler.createNewDialog(this, model);

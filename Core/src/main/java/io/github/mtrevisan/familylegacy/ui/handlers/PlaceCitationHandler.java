@@ -25,10 +25,10 @@
 package io.github.mtrevisan.familylegacy.ui.handlers;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.io.model.readers.PlaceCitationReader;
-import io.github.mtrevisan.familylegacy.ui.dialogs.citations.PlaceCitationDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 
 import java.awt.Window;
@@ -37,7 +37,7 @@ import java.awt.Window;
 /**
  * Handler for {@code PLACE_CITATION} entities according to FLEF 0.2.0.
  */
-public class PlaceCitationHandler extends AbstractRecordTypeHandler<PlaceCitationDialog>{
+public class PlaceCitationHandler extends AbstractRecordTypeHandler<RecordDialog>{
 
 	public static final String TYPE = PlaceCitationReader.TYPE;
 
@@ -88,13 +88,14 @@ public class PlaceCitationHandler extends AbstractRecordTypeHandler<PlaceCitatio
 	}
 
 	@Override
-	public PlaceCitationDialog createNewDialog(final Window parent, final FLEFModel model){
-		return PlaceCitationDialog.createNew(parent, model);
+	public RecordDialog createNewDialog(final Window parent, final FLEFModel model){
+		return RecordDialogs.createNew(TYPE, parent, model);
 	}
 
 	@Override
-	public PlaceCitationDialog createEditDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
-		return PlaceCitationDialog.createEdit(parent, model, record);
+	public RecordDialog createEditDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
+		return RecordDialogs.createEdit(TYPE, parent, model, record);
 	}
+
 
 }

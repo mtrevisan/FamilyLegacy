@@ -25,10 +25,10 @@
 package io.github.mtrevisan.familylegacy.ui.handlers;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceRelationshipReader;
-import io.github.mtrevisan.familylegacy.ui.dialogs.records.PlaceRecordDialog;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.ui.dialogs.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 
 import java.awt.Window;
@@ -41,7 +41,7 @@ import java.util.Set;
 /**
  * Handler for PLACE records.
  */
-public class PlaceHandler extends AbstractRecordTypeHandler<PlaceRecordDialog>{
+public class PlaceHandler extends AbstractRecordTypeHandler<RecordDialog>{
 
 	public static final String TYPE = PlaceReader.TYPE;
 	public static final String ID_PREFIX = PlaceReader.ID_PREFIX;
@@ -132,13 +132,14 @@ public class PlaceHandler extends AbstractRecordTypeHandler<PlaceRecordDialog>{
 	}
 
 	@Override
-	public PlaceRecordDialog createNewDialog(final Window parent, final FLEFModel model){
-		return PlaceRecordDialog.createNew(parent, model);
+	public RecordDialog createNewDialog(final Window parent, final FLEFModel model){
+		return RecordDialogs.createNew(TYPE, parent, model);
 	}
 
 	@Override
-	public PlaceRecordDialog createEditDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
-		return PlaceRecordDialog.createEdit(parent, model, record);
+	public RecordDialog createEditDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
+		return RecordDialogs.createEdit(TYPE, parent, model, record);
 	}
+
 
 }

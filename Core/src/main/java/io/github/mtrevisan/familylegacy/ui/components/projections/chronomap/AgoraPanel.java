@@ -30,7 +30,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.GeoCoordinate;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.ui.components.projections.chronomap.ChronomapIndex.GeoAnchor;
-import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
@@ -640,7 +640,7 @@ public final class AgoraPanel extends JPanel{
 
 		final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(record.getTag());
 		final Window owner = SwingUtilities.getWindowAncestor(this);
-		final BaseRecordDialog dialog = handler.createEditDialog(owner, model, record);
+		final RecordDialog dialog = handler.createEditDialog(owner, model, record);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved()){

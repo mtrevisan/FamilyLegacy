@@ -25,10 +25,10 @@
 package io.github.mtrevisan.familylegacy.ui.handlers;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
-import io.github.mtrevisan.familylegacy.ui.dialogs.citations.SourceCitationDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 
 import java.awt.Window;
@@ -37,7 +37,7 @@ import java.awt.Window;
 /**
  * Handler for {@code SOURCE_CITATION} entities according to FLEF 0.2.0.
  */
-public class SourceCitationHandler extends AbstractRecordTypeHandler<SourceCitationDialog>{
+public class SourceCitationHandler extends AbstractRecordTypeHandler<RecordDialog>{
 
 	public static final String TYPE = SourceCitationReader.TYPE;
 	public static final String CITED_TYPE = "SOURCE";
@@ -91,13 +91,14 @@ public class SourceCitationHandler extends AbstractRecordTypeHandler<SourceCitat
 	}
 
 	@Override
-	public SourceCitationDialog createNewDialog(final Window parent, final FLEFModel model){
-		return SourceCitationDialog.createNew(parent, model);
+	public RecordDialog createNewDialog(final Window parent, final FLEFModel model){
+		return RecordDialogs.createNew(TYPE, parent, model);
 	}
 
 	@Override
-	public SourceCitationDialog createEditDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
-		return SourceCitationDialog.createEdit(parent, model, record);
+	public RecordDialog createEditDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
+		return RecordDialogs.createEdit(TYPE, parent, model, record);
 	}
+
 
 }

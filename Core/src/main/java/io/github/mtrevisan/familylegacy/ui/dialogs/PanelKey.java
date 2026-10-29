@@ -22,14 +22,14 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.ui.components;
+package io.github.mtrevisan.familylegacy.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.ui.components.AuditPanel;
+import io.github.mtrevisan.familylegacy.ui.components.EvidenceQualifiersPanel;
+import io.github.mtrevisan.familylegacy.ui.components.PrivacyPanel;
 import io.github.mtrevisan.familylegacy.ui.components.lists.EntityListPanel;
-import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
-import io.github.mtrevisan.familylegacy.ui.dialogs.DirectRelationshipCellRenderer;
-import io.github.mtrevisan.familylegacy.ui.dialogs.InverseRelationshipCellRenderer;
 import io.github.mtrevisan.familylegacy.ui.handlers.ConclusionHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.ContextImpactHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventParticipationHandler;

@@ -25,10 +25,10 @@
 package io.github.mtrevisan.familylegacy.ui.components.searches.strategies;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryReader;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.ui.components.searches.SearchCriteria;
 import io.github.mtrevisan.familylegacy.ui.components.searches.SearchMode;
 import io.github.mtrevisan.familylegacy.ui.components.searches.SearchStrategy;
