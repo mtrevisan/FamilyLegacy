@@ -32,8 +32,8 @@ import javax.swing.InputMap;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JRootPane;
-import java.awt.event.ActionEvent;
 import javax.swing.WindowConstants;
+import java.awt.event.ActionEvent;
 
 
 /**

@@ -22,11 +22,11 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.gedcom.converters;
+package io.github.mtrevisan.familylegacy.importer.gedcom.converters;
 
-import io.github.mtrevisan.familylegacy.gedcom.GEDCOMDateConverter;
-import io.github.mtrevisan.familylegacy.gedcom.GEDCOMHelper;
-import io.github.mtrevisan.familylegacy.gedcom.GEDCOMNode;
+import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMDateConverter;
+import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMHelper;
+import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import org.apache.commons.lang3.ObjectUtils;

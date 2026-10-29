@@ -22,7 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.gedcom;
+package io.github.mtrevisan.familylegacy.importer.gedcom;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
@@ -210,7 +210,7 @@ public class PlaceCache{
 	 *
 	 * @return	The coordinates, or {@code null} if absent or malformed.
 	 */
-	static String toISO6709(final String latitude, final String longitude){
+	public static String toISO6709(final String latitude, final String longitude){
 		final String lat = toSignedDegrees(latitude, 'N', 'S', 2);
 		final String lon = toSignedDegrees(longitude, 'E', 'W', 3);
 		return (lat != null && lon != null? lat + lon + "/": null);

@@ -24,7 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections.repository;
 
-import io.github.mtrevisan.familylegacy.gedcom.AuditBuilder;
+import io.github.mtrevisan.familylegacy.importer.gedcom.AuditBuilder;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;

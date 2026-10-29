@@ -24,10 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.ui.tools.files.importation;
 
-import io.github.mtrevisan.familylegacy.gedcom.GEDCOMHelper;
-import io.github.mtrevisan.familylegacy.gedcom.GEDCOMNode;
-import io.github.mtrevisan.familylegacy.gedcom.GEDCOMParser;
-import io.github.mtrevisan.familylegacy.gedcom.converters.GEDCOMToFLEFConverter;
+import io.github.mtrevisan.familylegacy.importer.gramps.GrampsPackageReader;
+import io.github.mtrevisan.familylegacy.importer.gramps.GrampsXMLToFLEFConverter;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.ui.dialogs.ProgressDialog;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
@@ -41,13 +39,10 @@ import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.Window;
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.StringReader;
-import java.util.List;
+import java.io.InputStream;
 import java.util.concurrent.ExecutionException;
-import java.util.stream.Collectors;
 
 
 /**
@@ -66,7 +61,6 @@ import java.util.stream.Collectors;
 public final class ImportGrampsXmlTool implements ToolOperation{
 
 
-	// TODO should be managed at least Gramps Xml 1.7.2
 	@Override
 	public String getName(){
 		return "Gramps XML 1.7.2…";
@@ -101,22 +95,13 @@ public final class ImportGrampsXmlTool implements ToolOperation{
 			@Override
 			protected FLEFModel doInBackground() throws Exception{
 				progress.update(-1, I18N.t("progress.reading_file"));
-				final String grampsXmlContent;
-				try(final BufferedReader br = GEDCOMHelper.getBufferedReader(
-					new FileInputStream(file))){
-					grampsXmlContent = br.lines()
-						.collect(Collectors.joining(System.lineSeparator()));
+				final byte[] grampsXml;
+				try(final InputStream in = new FileInputStream(file)){
+					grampsXml = GrampsPackageReader.readXml(in);
 				}
 
 				progress.update(-1, I18N.t("progress.parsing_gramps"));
-				final GEDCOMParser parser = new GEDCOMParser();
-				final List<GEDCOMNode> roots;
-				try(final StringReader reader = new StringReader(grampsXmlContent)){
-					roots = parser.parse(reader);
-				}
-
-				final GEDCOMToFLEFConverter converter = new GEDCOMToFLEFConverter();
-				return converter.convert(roots, progress::update);
+				return GrampsXMLToFLEFConverter.convert(grampsXml, progress::update);
 			}
 
 			@Override

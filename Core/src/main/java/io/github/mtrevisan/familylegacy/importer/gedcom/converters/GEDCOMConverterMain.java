@@ -22,11 +22,11 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.gedcom.converters;
+package io.github.mtrevisan.familylegacy.importer.gedcom.converters;
 
-import io.github.mtrevisan.familylegacy.gedcom.GEDCOMHelper;
-import io.github.mtrevisan.familylegacy.gedcom.GEDCOMNode;
-import io.github.mtrevisan.familylegacy.gedcom.GEDCOMParser;
+import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMHelper;
+import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMNode;
+import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMParser;
 import io.github.mtrevisan.familylegacy.io.FLEFValidator;
 import io.github.mtrevisan.familylegacy.io.FLEFWriter;
 import io.github.mtrevisan.familylegacy.io.grammar.FLEFGrammarParser;

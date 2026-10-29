@@ -22,15 +22,15 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.gedcom.converters;
+package io.github.mtrevisan.familylegacy.importer.gedcom.converters;
 
-import io.github.mtrevisan.familylegacy.gedcom.AuditBuilder;
-import io.github.mtrevisan.familylegacy.gedcom.Deduplicator;
-import io.github.mtrevisan.familylegacy.gedcom.GEDCOMHelper;
-import io.github.mtrevisan.familylegacy.gedcom.GEDCOMMapper;
-import io.github.mtrevisan.familylegacy.gedcom.GEDCOMNode;
-import io.github.mtrevisan.familylegacy.gedcom.IDGenerator;
-import io.github.mtrevisan.familylegacy.gedcom.PlaceCache;
+import io.github.mtrevisan.familylegacy.importer.gedcom.AuditBuilder;
+import io.github.mtrevisan.familylegacy.importer.gedcom.Deduplicator;
+import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMHelper;
+import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMMapper;
+import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMNode;
+import io.github.mtrevisan.familylegacy.importer.gedcom.IDGenerator;
+import io.github.mtrevisan.familylegacy.importer.gedcom.PlaceCache;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.IdentityHypothesisReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;

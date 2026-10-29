@@ -24,7 +24,11 @@
  */
 package io.github.mtrevisan.familylegacy.gedcom;
 
-import io.github.mtrevisan.familylegacy.gedcom.converters.GEDCOMToFLEFConverter;
+import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOM7Normalizer;
+import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMHelper;
+import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMNode;
+import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMParser;
+import io.github.mtrevisan.familylegacy.importer.gedcom.converters.GEDCOMToFLEFConverter;
 import io.github.mtrevisan.familylegacy.io.FLEFValidator;
 import io.github.mtrevisan.familylegacy.io.grammar.FLEFGrammarParser;
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.FLEFGrammar;

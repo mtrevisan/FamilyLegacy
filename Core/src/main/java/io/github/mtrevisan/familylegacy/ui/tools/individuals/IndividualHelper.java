@@ -24,7 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.tools.individuals;
 
-import io.github.mtrevisan.familylegacy.gedcom.AuditBuilder;
+import io.github.mtrevisan.familylegacy.importer.gedcom.AuditBuilder;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;

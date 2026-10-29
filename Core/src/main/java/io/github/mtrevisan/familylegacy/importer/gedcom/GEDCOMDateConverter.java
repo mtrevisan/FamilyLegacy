@@ -22,7 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.gedcom;
+package io.github.mtrevisan.familylegacy.importer.gedcom;
 
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
@@ -50,7 +50,7 @@ import java.util.regex.Pattern;
  * julian when before 1582 (or before Christ).
  * <p>
  * The calendars of GEDCOM 7 ({@code JULIAN 1 JAN 1700}) are rewritten as escapes by {@link
- * io.github.mtrevisan.familylegacy.gedcom.GEDCOM7Normalizer}.
+ * GEDCOM7Normalizer}.
  */
 public final class GEDCOMDateConverter{
 

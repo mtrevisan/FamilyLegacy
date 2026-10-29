@@ -27,7 +27,6 @@ package io.github.mtrevisan.familylegacy.ui.tools.tools.merge;
 import io.github.mtrevisan.familylegacy.ui.tools.tools.merge.TagSuggester.Context;
 import io.github.mtrevisan.familylegacy.ui.tools.tools.merge.TagSuggester.ValueKind;
 
-import java.util.regex.Pattern;
 import javax.swing.JTextArea;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -45,6 +44,7 @@ import java.awt.geom.Rectangle2D;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 
 
 /**
