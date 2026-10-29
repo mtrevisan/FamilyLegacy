@@ -25,14 +25,14 @@
 package io.github.mtrevisan.familylegacy.ui.tools.research;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.readers.ConclusionReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchActivityReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchQuestionReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchTaskReader;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
-import io.github.mtrevisan.familylegacy.ui.components.PrivacyBadge;
-import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.ui.components.lists.PrivacyBadge;
+import io.github.mtrevisan.familylegacy.ui.dialogs.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.ConclusionHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.ResearchActivityHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.ResearchQuestionHandler;
@@ -58,8 +58,8 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.DefaultTreeCellRenderer;
+import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 import java.awt.BorderLayout;
@@ -69,7 +69,6 @@ import java.awt.FlowLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Enumeration;
-import java.util.List;
 
 
 /**
@@ -117,7 +116,7 @@ public final class ResearchBoardDialog extends JDialog{
 		final JPanel toolbar = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 6));
 		toolbar.setBorder(BorderFactory.createEmptyBorder(2, 4, 2, 4));
 
-		toolbar.add(new JLabel("Filter:"));
+		toolbar.add(new JLabel(I18N.l("label.filter")));
 		toolbar.add(searchField);
 		searchField.getDocument()
 			.addDocumentListener(new DocumentListener(){
@@ -150,11 +149,11 @@ public final class ResearchBoardDialog extends JDialog{
 		editButton.addActionListener(e -> openEditor(selectedNode()));
 		toolbar.add(editButton);
 
-		final JButton expandButton = new JButton("Expand all");
+		final JButton expandButton = new JButton(I18N.t("button.expand_all"));
 		expandButton.addActionListener(e -> expandAll());
 		toolbar.add(expandButton);
 
-		final JButton collapseButton = new JButton("Collapse all");
+		final JButton collapseButton = new JButton(I18N.t("button.collapse_all"));
 		collapseButton.addActionListener(e -> collapseAll());
 		toolbar.add(collapseButton);
 
@@ -188,9 +187,9 @@ public final class ResearchBoardDialog extends JDialog{
 		details.setBorder(BorderFactory.createEmptyBorder(6, 6, 6, 6));
 
 		final JScrollPane treeScroll = new JScrollPane(tree);
-		treeScroll.setBorder(BorderFactory.createTitledBorder("Questions, activities, tasks, conclusions"));
+		treeScroll.setBorder(BorderFactory.createTitledBorder(I18N.t("border.research_tree")));
 		final JScrollPane detailScroll = new JScrollPane(details);
-		detailScroll.setBorder(BorderFactory.createTitledBorder("Details"));
+		detailScroll.setBorder(BorderFactory.createTitledBorder(I18N.t("border.details")));
 
 		final JSplitPane split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, treeScroll, detailScroll);
 		split.setResizeWeight(0.65);
@@ -290,7 +289,7 @@ public final class ResearchBoardDialog extends JDialog{
 
 	private void openEditor(final ResearchTreeBuilder.Kind kind, final FLEFRecord record){
 		final FLEFModel model = context.model();
-		final BaseRecordDialog dialog = switch(kind){
+		final RecordDialog dialog = switch(kind){
 			case QUESTION -> (record == null
 				? ResearchQuestionHandler.getInstance().createNewDialog(this, model)
 				: ResearchQuestionHandler.getInstance().createEditDialog(this, model, record));

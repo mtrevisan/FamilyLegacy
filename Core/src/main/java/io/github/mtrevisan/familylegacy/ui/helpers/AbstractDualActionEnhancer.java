@@ -26,8 +26,10 @@ package io.github.mtrevisan.familylegacy.ui.helpers;
 
 import javax.swing.JComponent;
 import java.awt.Cursor;
+import java.awt.KeyEventDispatcher;
 import java.awt.KeyboardFocusManager;
 import java.awt.Point;
+import java.awt.event.HierarchyEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -69,6 +71,8 @@ public abstract class AbstractDualActionEnhancer{
 
 	protected boolean mouseInside;
 
+	private final KeyEventDispatcher shiftDispatcher = this::onShiftEvent;
+
 
 	/**
 	 * Constructor.
@@ -103,22 +107,35 @@ public abstract class AbstractDualActionEnhancer{
 			}
 		});
 
-		// Global Shift listener (updates cursor if mouse is inside)
-		final KeyboardFocusManager currentKeyboardFocusManager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
-		currentKeyboardFocusManager.addKeyEventDispatcher(e -> {
-			if(e.getID() == KeyEvent.KEY_PRESSED && e.getKeyCode() == KeyEvent.VK_SHIFT)
-				updateCursor();
-			else if(e.getID() == KeyEvent.KEY_RELEASED && e.getKeyCode() == KeyEvent.VK_SHIFT)
-				component.setCursor(DEFAULT_CURSOR);
-
-			return false;
-		});
-
-		// Reset cursor when component is hidden
+		// Reset cursor when component is hidden; the global Shift listener lives as long as the component is displayable
 		component.addHierarchyListener(e -> {
+			if((e.getChangeFlags() & HierarchyEvent.DISPLAYABILITY_CHANGED) != 0)
+				updateShiftDispatcher();
+
 			if(!component.isShowing())
 				component.setCursor(DEFAULT_CURSOR);
 		});
+		updateShiftDispatcher();
+	}
+
+	/**
+	 * The Shift listener (updates cursor if mouse is inside) is global: it is registered only while the component is
+	 * displayable, otherwise it would keep the component (and its window) reachable for ever.
+	 */
+	private void updateShiftDispatcher(){
+		final KeyboardFocusManager manager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
+		manager.removeKeyEventDispatcher(shiftDispatcher);
+		if(component.isDisplayable())
+			manager.addKeyEventDispatcher(shiftDispatcher);
+	}
+
+	private boolean onShiftEvent(final KeyEvent e){
+		if(e.getID() == KeyEvent.KEY_PRESSED && e.getKeyCode() == KeyEvent.VK_SHIFT)
+			updateCursor();
+		else if(e.getID() == KeyEvent.KEY_RELEASED && e.getKeyCode() == KeyEvent.VK_SHIFT)
+			component.setCursor(DEFAULT_CURSOR);
+
+		return false;
 	}
 
 	/**

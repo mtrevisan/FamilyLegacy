@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.ui.tools.tools;
 
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
+import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolOperation;
 import io.github.mtrevisan.familylegacy.ui.tools.tools.merge.MergeRecordsDialog;
@@ -35,7 +36,7 @@ public final class MergeIndividualsTool implements ToolOperation{
 
 	@Override
 	public String getName(){
-		return "Merge Individuals…";
+		return I18N.t("menu.tools.merge_individuals");
 	}
 
 	@Override

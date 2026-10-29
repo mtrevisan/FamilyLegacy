@@ -93,6 +93,19 @@ public final class I18N{
 		}
 	}
 
+	/**
+	 * Returns the localized text of {@code key} formatted as the label of a field. The separator is part of the
+	 * translation ({@code format.label}), because it depends on the language (e.g., {@code "Nom :"} in French).
+	 */
+	public static String l(final String key){
+		return al(t(key));
+	}
+
+	/** Formats an already localized text as the label of a field (see {@link #l(String)}). */
+	public static String al(final String text){
+		return tf("format.label", text);
+	}
+
 
 	/* ======================================================================
 	 *                          ICU formatting

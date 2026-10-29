@@ -24,8 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.io.model.readers;
 
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 
 
 /**
@@ -41,6 +41,8 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
  * </pre>
  */
 public final class AgentReader{
+
+	public static final String TYPE = "AGENT_STRUCTURE";
 
 	public static final String TAG_INDIVIDUAL = "individual";
 	public static final String TAG_GROUP = "group";

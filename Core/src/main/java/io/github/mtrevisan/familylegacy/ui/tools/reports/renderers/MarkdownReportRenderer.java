@@ -221,7 +221,7 @@ public final class MarkdownReportRenderer implements ReportRenderer{
 
 		return linkify(s)
 			.replace("|", "\\|")
-			.replace("\r", StringUtils.EMPTY)
+			.replace(StringUtils.CR, StringUtils.EMPTY)
 			.replace(StringUtils.LF, StringUtils.SPACE);
 	}
 

@@ -27,7 +27,6 @@ package io.github.mtrevisan.familylegacy.ui.tools.reports.operations;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolOperation;
-import io.github.mtrevisan.familylegacy.ui.tools.reports.ReportDialog;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.ReportType;
 
 

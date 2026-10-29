@@ -25,9 +25,9 @@
 package io.github.mtrevisan.familylegacy.ui.dialogs.structures;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.io.model.readers.AgentReader;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextField;
 import io.github.mtrevisan.familylegacy.ui.components.fields.EntityField;
@@ -111,8 +111,8 @@ public class AgentStructureDialog extends BaseRecordDialog{
 
 	@Override
 	protected JPanel createPropertiesPanel(){
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.agent.type") + ":", typeCombo);
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.agent.value") + ":", cardPanel);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.agent.type"), typeCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.agent.value"), cardPanel);
 
 		return propertiesPanel;
 	}

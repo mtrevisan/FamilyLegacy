@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.io.model.readers;
 
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+
 
 /**
  * Handler for INDIVIDUAL ATTRIBUTE records.
@@ -70,6 +72,9 @@ package io.github.mtrevisan.familylegacy.io.model.readers;
  */
 public final class IndividualAttributeReader{
 
+	public static final String TYPE = "INDIVIDUAL_ATTRIBUTE";
+	public static final String ID_PREFIX = "IA";
+
 	public static final String TAG_INDIVIDUAL = "individual";
 	public static final String TAG_TYPE = "type";
 	public static final String TAG_VALUE = "value";
@@ -94,6 +99,12 @@ public final class IndividualAttributeReader{
 
 
 	private IndividualAttributeReader(){}
+
+	/** @return whether the record is of this type (its tag is the type, ignoring case) */
+	public static boolean isOfType(final FLEFRecord record){
+		return (record != null && TYPE.equalsIgnoreCase(record.getTag()));
+	}
+
 
 
 }

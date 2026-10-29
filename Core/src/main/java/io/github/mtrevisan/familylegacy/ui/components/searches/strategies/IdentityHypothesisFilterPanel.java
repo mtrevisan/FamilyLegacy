@@ -65,9 +65,9 @@ public class IdentityHypothesisFilterPanel extends JPanel implements RecordFilte
 		setLayout(new MigLayout("wrap 2,gap 5", "[][grow,fill]", "[]"));
 		setBorder(BorderFactory.createTitledBorder(I18N.tf("dialog.search_filter.title", I18N.t("dialog.component.identity.hypotheses"))));
 
-		add(new JLabel(I18N.t("dialog.identity_hypothesis.identity") + ":"));
+		add(new JLabel(I18N.l("dialog.identity_hypothesis.identity")));
 		add(candidateField, "growx");
-		add(new JLabel(I18N.t("dialog.identity_hypothesis.rationale") + ":"));
+		add(new JLabel(I18N.l("dialog.identity_hypothesis.rationale")));
 		add(rationaleField, "growx");
 	}
 

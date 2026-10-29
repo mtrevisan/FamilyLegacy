@@ -25,7 +25,7 @@
 package io.github.mtrevisan.familylegacy.io;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
@@ -39,7 +39,6 @@ import java.nio.file.Path;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
-import java.util.Objects;
 import java.util.zip.GZIPOutputStream;
 
 
@@ -396,7 +395,7 @@ public class FLEFWriter{
 	 * @throws IOException if writing fails
 	 */
 	private void writeMultilineValue(final String text, final Writer writer, final int indentLevel) throws IOException{
-		final String[] lines = text.split("\r?\n", -1);
+		final String[] lines = StringUtils.splitPreserveAllTokens(StringUtils.replace(text, "\r\n", StringUtils.LF), '\n');
 		for(int i = 0, length = lines.length; i < length; i ++){
 			final String line = lines[i];
 

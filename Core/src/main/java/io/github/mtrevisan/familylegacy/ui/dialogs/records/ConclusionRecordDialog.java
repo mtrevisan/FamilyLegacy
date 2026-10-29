@@ -25,17 +25,19 @@
 package io.github.mtrevisan.familylegacy.ui.dialogs.records;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.io.model.readers.ConclusionReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IdentityHypothesisReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchQuestionReader;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextArea;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextField;
-import io.github.mtrevisan.familylegacy.ui.components.PanelKey;
-import io.github.mtrevisan.familylegacy.ui.components.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.ui.components.lists.EntityListPanel;
 import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.PanelKey;
+import io.github.mtrevisan.familylegacy.ui.dialogs.RecordDialogBuilder;
+import io.github.mtrevisan.familylegacy.ui.dialogs.api.LinkRole;
 import io.github.mtrevisan.familylegacy.ui.handlers.ConclusionHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.ConclusionTargetHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.CulturalNormHandler;
@@ -57,6 +59,7 @@ import io.github.mtrevisan.familylegacy.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JList;
@@ -64,6 +67,7 @@ import javax.swing.JPanel;
 import java.awt.Component;
 import java.awt.Window;
 import java.io.IOException;
+import java.util.List;
 
 
 /**
@@ -94,6 +98,8 @@ import java.io.IOException;
  * Tab 10 (Audit): audit
  */
 public class ConclusionRecordDialog extends BaseRecordDialog{
+
+	private static final String ISSUE_IDENTITY = "identity";
 
 	public static final String PROPERTY_CONCLUSION = "conclusion";
 
@@ -185,9 +191,27 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 			issueField.setText(issue);
 
 		final EntityListPanel questionsPanel = (EntityListPanel)components.getPanel(PanelKey.RESEARCH_QUESTION);
-		for(final FLEFRecord question : model.getRecordsByType(ResearchQuestionHandler.TYPE))
+		final List<FLEFRecord> questions = model.getRecordsByType(ResearchQuestionHandler.TYPE);
+		for(final FLEFRecord question : questions)
 			if(hasTarget(question, target.getId()))
 				questionsPanel.addItemDirectly(question);
+
+		return this;
+	}
+
+	/**
+	 * Starts the new conclusion with a proof status and a narrative, used only where still empty. The conclusion is not saved: the
+	 * user completes it, and decides whether to save it.
+	 *
+	 * @param proofStatus	The proof status to propose.
+	 * @param narrative	The text to start the narrative with.
+	 * @return	This dialog.
+	 */
+	public ConclusionRecordDialog withDraft(final String proofStatus, final String narrative){
+		if(StringUtils.isNotBlank(proofStatus))
+			proofStatusCombo.setSelectedItem(proofStatus);
+		if(narrativeArea.isEmpty() && StringUtils.isNotBlank(narrative))
+			narrativeArea.setText(narrative);
 
 		return this;
 	}
@@ -204,19 +228,19 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 	@Override
 	protected JPanel createPropertiesPanel(){
 		// issue
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.conclusion.issue") + "*:", issueField);
+		GUIHelper.addLabeledComponent(propertiesPanel, GUIHelper.requiredLabel("dialog.conclusion.issue"), GUIHelper.withTooltip(issueField, "tooltip.conclusion.issue"));
 
 		// proof status
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.conclusion.proof_status") + "*:", proofStatusCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, GUIHelper.requiredLabel("dialog.conclusion.proof_status"), GUIHelper.withTooltip(proofStatusCombo, "tooltip.conclusion.proof_status"));
 
 		// narrative
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.conclusion.narrative") + ":", narrativeArea);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.conclusion.narrative"), GUIHelper.withTooltip(narrativeArea, "tooltip.conclusion.narrative"));
 
 		// resolves
-		GUIHelper.addComponent(propertiesPanel, resolvesPanel);
+		GUIHelper.addComponent(propertiesPanel, GUIHelper.withTooltip(resolvesPanel, "tooltip.conclusion.resolves"));
 
 		// preferred
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.conclusion.preferred") + ":", preferredCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.conclusion.preferred"), GUIHelper.withTooltip(preferredCombo, "tooltip.conclusion.preferred"));
 
 		return propertiesPanel;
 	}
@@ -317,6 +341,14 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 
 	public static void main(final String[] args) throws IOException{
 		GUIHelper.launch(ConclusionRecordDialog::createEdit, "/tests/test.flef", "CC1");
+	}
+
+
+	@Override
+	public void link(final LinkRole role, final FLEFRecord record){
+		//the conclusion can resolve the record only once it is in the model
+		if(role == LinkRole.RESOLVED_TARGET && record.getId() != null && model.getRecordById(record.getId()) != null)
+			withResolvedTarget(record, (Strings.CI.equals(record.getTag(), IdentityHypothesisReader.TYPE)? ISSUE_IDENTITY: null));
 	}
 
 }

@@ -24,10 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.io.model.readers;
 
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.ui.handlers.GroupHandler;
-import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 
 import java.util.HashSet;
 import java.util.List;
@@ -85,6 +83,9 @@ import java.util.TreeSet;
  * </pre>
  */
 public final class RelationshipReader{
+
+	public static final String TYPE = "RELATIONSHIP";
+	public static final String ID_PREFIX = "RL";
 
 	public static final String TAG_SUBJECT = "subject";
 	public static final String TAG_TARGET = "target";
@@ -154,6 +155,12 @@ public final class RelationshipReader{
 
 	private RelationshipReader(){}
 
+	/** @return whether the record is of this type (its tag is the type, ignoring case) */
+	public static boolean isOfType(final FLEFRecord record){
+		return (record != null && TYPE.equalsIgnoreCase(record.getTag()));
+	}
+
+
 
 	public static boolean isTypeBiologicalChild(final String type){
 		return ENUM_TYPE_BIOLOGICAL_CHILD.equals(type);
@@ -201,15 +208,15 @@ public final class RelationshipReader{
 		if(subject == null || target == null)
 			return EMPTY_TYPES;
 
-		if(IndividualHandler.isOfType(subject)){
-			if(IndividualHandler.isOfType(target))
+		if(IndividualReader.isOfType(subject)){
+			if(IndividualReader.isOfType(target))
 				return INDIVIDUAL_TO_INDIVIDUAL_TYPES;
 
-			if(GroupHandler.isOfType(target))
+			if(GroupReader.isOfType(target))
 				return INDIVIDUAL_TO_GROUP_TYPES;
 		}
 
-		if(GroupHandler.isOfType(subject))
+		if(GroupReader.isOfType(subject))
 			return GROUP_TO_GROUP_TYPES;
 
 		return GROUP_TO_INDIVIDUAL_TYPES;

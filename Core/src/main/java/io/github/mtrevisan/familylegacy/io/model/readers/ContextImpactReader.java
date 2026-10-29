@@ -24,8 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.io.model.readers;
 
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 
 
 /**
@@ -85,6 +85,9 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
  * </pre>
  */
 public final class ContextImpactReader{
+
+	public static final String TYPE = "CONTEXT_IMPACT";
+	public static final String ID_PREFIX = "CI";
 
 	public static final String TAG_CONTEXT = "context";
 	public static final String TAG_TARGET = "target";

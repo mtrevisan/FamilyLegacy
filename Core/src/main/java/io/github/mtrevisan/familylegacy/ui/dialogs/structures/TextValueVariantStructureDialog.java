@@ -25,12 +25,12 @@
 package io.github.mtrevisan.familylegacy.ui.dialogs.structures;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.readers.TextValueVariantReader;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextField;
-import io.github.mtrevisan.familylegacy.ui.components.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.ui.handlers.TextValueVariantHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
@@ -141,18 +141,18 @@ public class TextValueVariantStructureDialog extends BaseRecordDialog{
 		radioPanel.add(phoneticRadio);
 		radioPanel.add(transcriptionRadio);
 
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.name.variant.kind") + ":", radioPanel);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.name.variant.kind"), radioPanel);
 
-		final JLabel phoneticsSystemLabel = new JLabel(I18N.t("dialog.name.variant.system") + "*:");
+		final JLabel phoneticsSystemLabel = new JLabel(GUIHelper.requiredLabel("dialog.name.variant.system"));
 		phoneticsSystemLabel.setLabelFor(phoneticSystemField);
 		propertiesPanel.add(phoneticsSystemLabel, "align label");
 		propertiesPanel.add(phoneticSystemField, "growx,wrap");
 		propertiesPanel.add(transcriptionSystemCombo, "growx,wrap");
 
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.name.variant.type") + ":", typeCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.name.variant.type"), typeCombo);
 
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.name.variant.phonetic.value") + "*:", phoneticValueField);
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.name.variant.transcription.value") + "*:", transcriptionValueField);
+		GUIHelper.addLabeledComponent(propertiesPanel, GUIHelper.requiredLabel("dialog.name.variant.phonetic.value"), phoneticValueField);
+		GUIHelper.addLabeledComponent(propertiesPanel, GUIHelper.requiredLabel("dialog.name.variant.transcription.value"), transcriptionValueField);
 
 		phoneticRadio.addActionListener(e -> updateFieldsState());
 		transcriptionRadio.addActionListener(e -> updateFieldsState());

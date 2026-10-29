@@ -104,7 +104,7 @@ public class PedigreeCollapseDialog extends JDialog{
 		area.setBorder(BorderFactory.createEmptyBorder(6, 6, 6, 6));
 
 		final JScrollPane scroll = new JScrollPane(area);
-		scroll.setBorder(BorderFactory.createTitledBorder("Collapses"));
+		scroll.setBorder(BorderFactory.createTitledBorder(I18N.t("border.collapses")));
 		main.add(scroll, "grow,push,wrap");
 
 		// Footer

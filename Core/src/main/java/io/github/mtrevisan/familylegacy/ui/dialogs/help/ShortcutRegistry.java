@@ -78,6 +78,7 @@ public final class ShortcutRegistry{
 	public static final ShortcutDefinition EDIT_REDO = register(I18N.t("menu.edit"), I18N.t("menu.edit.redo"), KeyStroke.getKeyStroke(KeyEvent.VK_Y, MENU_MASK), KeyStroke.getKeyStroke(KeyEvent.VK_Z, MENU_MASK | InputEvent.SHIFT_DOWN_MASK), (IS_MAC? "⌘⇧Z": "Ctrl+Y"));
 
 	public static final ShortcutDefinition EDIT_RELOCATE_INDIVIDUAL = register(I18N.t("menu.edit"), I18N.t("menu.individual.relocate"), KeyStroke.getKeyStroke(KeyEvent.VK_X, MENU_MASK), "Ctrl+X");
+	public static final ShortcutDefinition TOOLS_RESEARCH_ASSISTANT = register(I18N.t("menu.tools"), I18N.t("menu.tools.research_assistant"), KeyStroke.getKeyStroke(KeyEvent.VK_A, MENU_MASK | InputEvent.SHIFT_DOWN_MASK), "Ctrl+Shift+A");
 	public static final ShortcutDefinition EDIT_DELETE_INDIVIDUAL = register(I18N.t("menu.edit"), I18N.t("menu.individual.delete"), KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "Del");
 	public static final ShortcutDefinition EDIT_SELECTION_INDIVIDUAL = register(I18N.t("menu.edit"), I18N.t("menu.individual.edit.individual"), KeyStroke.getKeyStroke(KeyEvent.VK_F2, 0), "F2");
 
@@ -90,6 +91,7 @@ public final class ShortcutRegistry{
 	public static final ShortcutDefinition VIEW_BIOLOGICAL_TREE = register(I18N.t("menu.view"), I18N.t("menu.view.biological_tree"), KeyStroke.getKeyStroke(KeyEvent.VK_1, MENU_MASK), "Ctrl+1");
 	public static final ShortcutDefinition VIEW_SUGIYAMA_GRAPH = register(I18N.t("menu.view"), I18N.t("menu.view.sugiyama_graph"), KeyStroke.getKeyStroke(KeyEvent.VK_2, MENU_MASK), "Ctrl+2");
 	public static final ShortcutDefinition VIEW_EGO_NETWORK = register(I18N.t("menu.view"), I18N.t("menu.view.ego_network"), KeyStroke.getKeyStroke(KeyEvent.VK_3, MENU_MASK), "Ctrl+3");
+	public static final ShortcutDefinition VIEW_CHRONOMAP = register(I18N.t("menu.view"), I18N.t("menu.view.chronomap"), KeyStroke.getKeyStroke(KeyEvent.VK_4, MENU_MASK), "Ctrl+4");
 	public static final ShortcutDefinition VIEW_FULLSCREEN = register(I18N.t("menu.view"), I18N.t("menu.view.full_screen"), KeyStroke.getKeyStroke(KeyEvent.VK_F11, 0), "F11");
 
 	public static final ShortcutDefinition NAV_BACK = register(I18N.t("menu.navigate"), I18N.t("menu.navigate.back"), KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, MENU_MASK), "Ctrl+Left");

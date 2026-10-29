@@ -62,6 +62,9 @@ package io.github.mtrevisan.familylegacy.io.model.readers;
  */
 public final class GroupAttributeReader{
 
+	public static final String TYPE = "GROUP_ATTRIBUTE";
+	public static final String ID_PREFIX = "GA";
+
 	public static final String TAG_GROUP = "group";
 	public static final String TAG_TYPE = "type";
 	public static final String TAG_VALUE = "value";

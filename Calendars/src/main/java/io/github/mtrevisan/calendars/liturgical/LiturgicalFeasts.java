@@ -25,6 +25,7 @@
 package io.github.mtrevisan.calendars.liturgical;
 
 import io.github.mtrevisan.calendars.text.TextNormalizer;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -292,7 +293,7 @@ public final class LiturgicalFeasts{
 	 * @return the feast, or {@code null} if the words do not name a known feast
 	 */
 	static Feast find(final List<String> words){
-		final String joined = String.join(" ", words);
+		final String joined = String.join(StringUtils.SPACE, words);
 		final Feast feast = FEASTS.get(key(joined, false));
 		return (feast != null? feast: FEASTS.get(key(joined, true)));
 	}
@@ -306,7 +307,7 @@ public final class LiturgicalFeasts{
 		for(final String word : wordList)
 			if(!FILLERS.contains(word) && !(dropSecondary && SECONDARY_FILLERS.contains(word)))
 				words.add(word);
-		return String.join(" ", words);
+		return String.join(StringUtils.SPACE, words);
 	}
 
 }

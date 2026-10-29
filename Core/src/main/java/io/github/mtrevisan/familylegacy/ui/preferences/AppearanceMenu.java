@@ -183,7 +183,7 @@ public final class AppearanceMenu{
 		// "Default" restores the L&F font.
 		final Font saved = AppearanceManager.savedFont();
 		final JRadioButtonMenuItem defaultItem =
-			new JRadioButtonMenuItem("Default", saved == null);
+			new JRadioButtonMenuItem(I18N.t("checkbox.default"), saved == null);
 		defaultItem.addActionListener(a -> AppearanceManager.applyFont(null));
 		group.add(defaultItem);
 		fontMenu.add(defaultItem);
@@ -212,7 +212,7 @@ public final class AppearanceMenu{
 	 * ====================================================================== */
 
 	private static JMenuItem createOpenPreferencesItem(final Window owner){
-		final JMenuItem item = new JMenuItem("Open preferences file…");
+		final JMenuItem item = new JMenuItem(I18N.t("menu.item.open_preferences_file"));
 		item.addActionListener(a -> onOpenPreferences(owner));
 		return item;
 	}
@@ -225,7 +225,7 @@ public final class AppearanceMenu{
 		}
 		catch(final Exception ex){
 			JOptionPane.showMessageDialog(owner,
-				"Could not open the preferences folder:\n" + ex.getMessage(),
+				I18N.t("message.preferences_folder.open_failed") + ":\n" + ex.getMessage(),
 				I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
 		}
 	}

@@ -25,15 +25,15 @@
 package io.github.mtrevisan.familylegacy.ui.dialogs.records;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ContextImpactReader;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextArea;
-import io.github.mtrevisan.familylegacy.ui.components.PanelKey;
-import io.github.mtrevisan.familylegacy.ui.components.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.ui.components.fields.EntityField;
 import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.PanelKey;
+import io.github.mtrevisan.familylegacy.ui.dialogs.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.ui.handlers.ConclusionHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.ContextImpactHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.CulturalNormHandler;
@@ -155,22 +155,43 @@ public class ContextImpactRecordDialog extends BaseRecordDialog{
 		return this;
 	}
 
+	/**
+	 * Fills the editor with what the Context Assistant suggests. Nothing is saved unless the user confirms the editor.
+	 *
+	 * @param context	The historic event or cultural norm.
+	 * @param target	The record it may have influenced.
+	 * @param impactType	The type of impact (can be {@code null}).
+	 * @param rationale	The start of the explanation, used only where still empty (can be {@code null}).
+	 * @return	This dialog.
+	 */
+	public ContextImpactRecordDialog withDraft(final FLEFRecord context, final FLEFRecord target, final String impactType,
+			final String rationale){
+		contextField.setEntity(context);
+		targetField.setEntity(target);
+		if(impactType != null)
+			impactTypeCombo.setSelectedItem(impactType);
+		if(rationale != null && !rationale.isBlank() && rationaleArea.isEmpty())
+			rationaleArea.setText(rationale);
+
+		return this;
+	}
+
 	@Override
 	protected JPanel createPropertiesPanel(){
 		// context
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.context_impact.context") + "*:", contextField);
+		GUIHelper.addLabeledComponent(propertiesPanel, GUIHelper.requiredLabel("dialog.context_impact.context"), GUIHelper.withTooltip(contextField, "tooltip.context_impact.context"));
 
 		// target
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.context_impact.target") + "*:", targetField);
+		GUIHelper.addLabeledComponent(propertiesPanel, GUIHelper.requiredLabel("dialog.context_impact.target"), GUIHelper.withTooltip(targetField, "tooltip.context_impact.target"));
 
 		// impact type
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.context_impact.impact_type") + ":", impactTypeCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.context_impact.impact_type"), GUIHelper.withTooltip(impactTypeCombo, "tooltip.context_impact.impact_type"));
 
 		// explanation
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.context_impact.explanation") + ":", rationaleArea);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.context_impact.explanation"), GUIHelper.withTooltip(rationaleArea, "tooltip.context_impact.explanation"));
 
 		// confidence
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.context_impact.confidence") + ":", confidenceCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.context_impact.confidence"), GUIHelper.withTooltip(confidenceCombo, "tooltip.context_impact.confidence"));
 
 		return propertiesPanel;
 	}

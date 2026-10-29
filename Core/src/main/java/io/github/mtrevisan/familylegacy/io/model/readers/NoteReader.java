@@ -24,8 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.io.model.readers;
 
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 
 
 /**
@@ -50,6 +50,8 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
  */
 public final class NoteReader{
 
+	public static final String TYPE = "NOTE";
+
 	public static final String TAG_TITLE = "title";
 	public static final String TAG_TEXT = "text";
 	public static final String TAG_MIME = "mime";
@@ -64,6 +66,12 @@ public final class NoteReader{
 
 
 	private NoteReader(){}
+
+	/** @return whether the record is of this type (its tag is the type, ignoring case) */
+	public static boolean isOfType(final FLEFRecord record){
+		return (record != null && TYPE.equalsIgnoreCase(record.getTag()));
+	}
+
 
 
 	public static String extractText(final FLEFRecord record){

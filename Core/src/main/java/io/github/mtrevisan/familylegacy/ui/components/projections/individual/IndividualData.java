@@ -26,21 +26,22 @@ package io.github.mtrevisan.familylegacy.ui.components.projections.individual;
 
 import io.github.mtrevisan.calendars.CalendarType;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.io.model.readers.ConclusionReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.DateReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SexType;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.DateReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateService;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.NormalizedDate;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.TemporalSpan;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyResolver;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
-import io.github.mtrevisan.familylegacy.ui.components.projections.BoxPanelType;
-import io.github.mtrevisan.familylegacy.ui.components.projections.PlaceholderImages;
+import io.github.mtrevisan.familylegacy.ui.components.projections.common.BoxPanelType;
+import io.github.mtrevisan.familylegacy.ui.components.projections.common.PlaceholderImages;
 import io.github.mtrevisan.familylegacy.ui.handlers.ConclusionHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RelationshipHandler;
@@ -73,7 +74,8 @@ public final class IndividualData{
 	private static final Logger LOGGER = LoggerFactory.getLogger(IndividualData.class);
 
 
-	private static final AsyncResourceLoader<ImageIcon> IMAGE_LOADER = new AsyncResourceLoader<>();
+	private static final int IMAGE_CACHE_SIZE = 300;
+	private static final AsyncResourceLoader<ImageIcon> IMAGE_LOADER = new AsyncResourceLoader<>(IMAGE_CACHE_SIZE);
 
 	private static final String DOT = ".";
 	private static final String TAG_PIPE = "|";
@@ -105,6 +107,8 @@ public final class IndividualData{
 
 	private final String infoText;
 	private final String infoTooltip;
+	/** The representative date of the preferred birth, if known (and not hidden): used to order the views, never stored. */
+	private final NormalizedDate birthDate;
 
 	private String preferredImageKey;
 	private String preferredImageUri;
@@ -135,6 +139,7 @@ public final class IndividualData{
 			nameTooltip = TAG_HTML_OPEN + "[" + id + "]" + TAG_HTML_CLOSE;
 			infoText = StringUtils.EMPTY;
 			infoTooltip = StringUtils.EMPTY;
+			birthDate = null;
 			//placeholders only: the preferred image is not loaded
 			extractPreferredImage(null, model);
 			return;
@@ -258,6 +263,7 @@ public final class IndividualData{
 		}
 		infoText = sj.toString();
 		infoTooltip = tooltip.toString();
+		this.birthDate = normalizedBirthDate;
 
 		extractPreferredImage(individual, model);
 	}
@@ -277,6 +283,11 @@ public final class IndividualData{
 
 	public String getNameText(){
 		return nameText;
+	}
+
+	/** @return	Whether the individual has a name (it has not when it is unknown or hidden by the privacy policy). */
+	public boolean hasName(){
+		return !NO_DATA.equals(nameText);
 	}
 
 	public String getNameTooltip(){
@@ -309,6 +320,16 @@ public final class IndividualData{
 
 	public String getInfoTooltip(){
 		return infoTooltip;
+	}
+
+	/**
+	 * The date of the preferred birth (the preferred assertion, if a conclusion selects one, otherwise the earliest birth), reduced
+	 * to its representative date when it is approximate or bounded.
+	 *
+	 * @return	The date, or {@code null} if the birth is unknown or hidden by the privacy policy.
+	 */
+	public NormalizedDate getBirthDate(){
+		return birthDate;
 	}
 
 	public String getPreferredImageKey(){
@@ -369,7 +390,7 @@ public final class IndividualData{
 		final String year = DateService.getYearDisplayText(valueRecord);
 		final TemporalSpan temporalSpan = DateReader.extractTemporalSpan(dateRecord);
 		final NormalizedDate representativeDate = (temporalSpan != null? temporalSpan.representativeDate(): null);
-		final String place = FLEFRecordHelper.extractPlace(event, model);
+		final String place = PlaceCitationReader.extractPlace(event, model);
 		final String cause = (EventReader.isTypeDeath(type)? EventReader.extractCauseReason(event): null);
 		return new EventInfo(type, dateOriginalText, date, year, representativeDate, place, cause, eventId);
 	}

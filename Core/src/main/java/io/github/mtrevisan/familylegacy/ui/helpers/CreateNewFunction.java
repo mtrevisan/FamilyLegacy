@@ -25,7 +25,7 @@
 package io.github.mtrevisan.familylegacy.ui.helpers;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.api.RecordDialog;
 
 import java.awt.Window;
 
@@ -33,6 +33,6 @@ import java.awt.Window;
 @FunctionalInterface
 public interface CreateNewFunction{
 
-	BaseRecordDialog apply(Window dialog, FLEFModel model);
+	RecordDialog apply(Window dialog, FLEFModel model);
 
 }

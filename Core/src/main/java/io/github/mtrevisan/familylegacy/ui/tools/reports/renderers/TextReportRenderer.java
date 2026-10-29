@@ -34,10 +34,12 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.regex.Pattern;
 
 
 public final class TextReportRenderer implements ReportRenderer{
 
+	private static final Pattern LONE_ASTERISK = Pattern.compile("(?<!\\*)\\*(?!\\*)");
 	@Override
 	public void render(final ReportDocument doc, final Path target) throws IOException{
 		try(BufferedWriter w = Files.newBufferedWriter(target, StandardCharsets.UTF_8)){
@@ -101,8 +103,8 @@ public final class TextReportRenderer implements ReportRenderer{
 
 	/** Rimuove **bold**, *italic*, `code`. */
 	static String stripInline(final String s){
-		return s.replace("**", StringUtils.EMPTY)
-			.replace("`", StringUtils.EMPTY)
-			.replaceAll("(?<!\\*)\\*(?!\\*)", StringUtils.EMPTY);
+		return LONE_ASTERISK.matcher(s.replace("**", StringUtils.EMPTY)
+			.replace("`", StringUtils.EMPTY))
+			.replaceAll(StringUtils.EMPTY);
 	}
 }

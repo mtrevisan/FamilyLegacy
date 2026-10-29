@@ -24,7 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.preferences;
 
-import io.github.mtrevisan.familylegacy.privacy.PrivacyPolicy;
+
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
@@ -32,8 +32,11 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.Properties;
+import java.util.Set;
+import java.util.TreeSet;
 
 
 /**
@@ -70,6 +73,11 @@ public final class AppPreferences{
 	public static final String KEY_FONT_FAMILY = "ui.font.family";
 	public static final String KEY_FONT_SIZE = "ui.font.size";
 	public static final String KEY_PRIVACY_POLICY = "privacy.policy";
+	// view preferences: how the views order children and partners (presentation only, never genealogical data)
+	public static final String KEY_CHILDREN_ORDER = "view.order.children";
+	public static final String KEY_PARTNER_ORDER = "view.order.partners";
+	// the findings of the Research Assistant ignored by the user, for each file (a presentation choice, never genealogical data)
+	private static final String KEY_IGNORED_FINDINGS_PREFIX = "assistant.ignored.";
 
 	/* ----- Defaults -------------------------------------------------------- */
 
@@ -143,19 +151,58 @@ public final class AppPreferences{
 		save();
 	}
 
-	/** Returns the persisted privacy policy, or {@link PrivacyPolicy#SHOW_ALL} when unset or unknown. */
-	public PrivacyPolicy privacyPolicy(){
+	/** Returns the persisted name of the privacy policy, or {@code null} when unset (the privacy package knows what the names mean). */
+	public String privacyPolicyName(){
+		return properties.getProperty(KEY_PRIVACY_POLICY);
+	}
+
+	/** Persists the name of the privacy policy. */
+	public void setPrivacyPolicyName(final String name){
+		put(KEY_PRIVACY_POLICY, Objects.requireNonNull(name, "name"));
+	}
+
+	/** Returns the persisted display order of the children, or the default (by birth date) when unset or unknown. */
+	public ChildrenOrder childrenOrder(){
 		try{
-			return PrivacyPolicy.valueOf(properties.getProperty(KEY_PRIVACY_POLICY, PrivacyPolicy.SHOW_ALL.name()));
+			return ChildrenOrder.valueOf(properties.getProperty(KEY_CHILDREN_ORDER, ChildrenOrder.BIRTH_DATE.name()));
 		}
 		catch(final IllegalArgumentException ignored){
-			return PrivacyPolicy.SHOW_ALL;
+			return ChildrenOrder.BIRTH_DATE;
 		}
 	}
 
-	/** Persists the privacy policy. */
-	public void setPrivacyPolicy(final PrivacyPolicy policy){
-		put(KEY_PRIVACY_POLICY, Objects.requireNonNull(policy, "policy").name());
+	/** Persists the display order of the children (a view preference: it is not stored in the genealogy). */
+	public void setChildrenOrder(final ChildrenOrder order){
+		put(KEY_CHILDREN_ORDER, Objects.requireNonNull(order, "order").name());
+	}
+
+	/** Returns the persisted display order of the partners, or the default (union chronology) when unset or unknown. */
+	public PartnerOrder partnerOrder(){
+		try{
+			return PartnerOrder.valueOf(properties.getProperty(KEY_PARTNER_ORDER, PartnerOrder.UNION_CHRONOLOGY.name()));
+		}
+		catch(final IllegalArgumentException ignored){
+			return PartnerOrder.UNION_CHRONOLOGY;
+		}
+	}
+
+	/** Persists the display order of the partners (a view preference: it is not stored in the genealogy). */
+	public void setPartnerOrder(final PartnerOrder order){
+		put(KEY_PARTNER_ORDER, Objects.requireNonNull(order, "order").name());
+	}
+
+	/**
+	 * @param scope	the digest of the file the findings are about
+	 * @return	the digests of the findings the user ignored for the file
+	 */
+	public synchronized Set<String> ignoredFindings(final String scope){
+		final String value = properties.getProperty(KEY_IGNORED_FINDINGS_PREFIX + scope, "");
+		return (value.isEmpty()? Set.of(): Set.copyOf(Arrays.asList(StringUtils.split(value, ','))));
+	}
+
+	/** Persists the findings the user ignored for a file (a view preference: they are not stored in the genealogy). */
+	public synchronized void setIgnoredFindings(final String scope, final Set<String> findings){
+		put(KEY_IGNORED_FINDINGS_PREFIX + scope, String.join(",", new TreeSet<>(findings)));
 	}
 
 	/** Persists the UI font size, in points. */

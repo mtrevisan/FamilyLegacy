@@ -24,12 +24,12 @@
  */
 package io.github.mtrevisan.familylegacy.io;
 
-import io.github.mtrevisan.familylegacy.io.grammar.FLEFGrammar;
 import io.github.mtrevisan.familylegacy.io.grammar.FLEFGrammarParser;
 import io.github.mtrevisan.familylegacy.io.grammar.FLEFGrammarValidator;
 import io.github.mtrevisan.familylegacy.io.grammar.SingularFieldIndex;
+import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.FLEFGrammar;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
@@ -52,9 +52,6 @@ public class FLEFParser{
 	private static final char TAG_OPEN_CURLY_BRACE = '{';
 	private static final char TAG_CLOSE_CURLY_BRACE = '}';
 	private static final char BYTE_ORDER_MARK = '﻿';
-
-	private static final String FIELD_HEADER = "header";
-	private static final String FIELD_RECORDS = "records";
 
 	private static final String TAG_VALUE_MULTILINE = "\"\"\"";
 
@@ -180,11 +177,11 @@ public class FLEFParser{
 			final FLEFRecord record = parseRecord();
 
 			final String tag = record.getTag();
-			if(Strings.CI.equals(FIELD_HEADER, tag)){
+			if(Strings.CI.equals(FLEFGrammarParser.FIELD_HEADER, tag)){
 				SingularFieldIndex.mergeSingularBlocks(record);
 				root.setHeader(record);
 			}
-			else if(Strings.CI.equals(FIELD_RECORDS, tag) && record.getId() == null){
+			else if(Strings.CI.equals(FLEFGrammarParser.FIELD_RECORDS, tag) && record.getId() == null){
 				// legacy layout, with every record inside a `records { … }` block
 				final List<FLEFRecord> children = record.getChildren();
 				for(final FLEFRecord child : children){
@@ -429,7 +426,7 @@ public class FLEFParser{
 			normalized = normalized.substring(1);
 
 		// Step 3: Split into lines (keep trailing empty lines)
-		final String[] lines = normalized.split(StringUtils.LF, -1);
+		final String[] lines = StringUtils.splitPreserveAllTokens(normalized, '\n');
 
 		// Step 4: Calculate the minimum indentation among all non‑blank content lines
 		// and also consider the indentation of the closing delimiter line.

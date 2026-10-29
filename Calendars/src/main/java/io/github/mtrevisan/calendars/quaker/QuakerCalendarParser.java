@@ -40,6 +40,7 @@ import java.util.regex.Pattern;
  */
 public final class QuakerCalendarParser{
 
+	private static final Map<Pattern, String> ORDINAL_PATTERNS = new LinkedHashMap<>();
 	private static final Map<String, Integer> ORDINALS = new LinkedHashMap<>();
 	static{
 		final String[] units = {"first", "second", "third", "fourth", "fifth", "sixth", "seventh", "eighth", "ninth"};
@@ -57,6 +58,10 @@ public final class QuakerCalendarParser{
 		ORDINALS.put("thirtieth", 30);
 		for(int i = 0; i < units.length; i ++)
 			ORDINALS.put(units[i], 1 + i);
+
+		for(final Map.Entry<String, Integer> ordinal : ORDINALS.entrySet())
+			ORDINAL_PATTERNS.put(Pattern.compile("\\b" + Pattern.quote(ordinal.getKey()) + "\\b"),
+				StringUtils.SPACE + ordinal.getValue() + StringUtils.SPACE);
 	}
 
 	private static final Set<String> MONTH_MARKERS = Set.of("month", "months", "mo", "mon", "mth", "m");
@@ -85,9 +90,8 @@ public final class QuakerCalendarParser{
 		String normalized = StringUtils.normalizeSpace(rawDate.toLowerCase(Locale.ROOT)
 			.replace('.', ' ')
 			.replace(',', ' '));
-		final Set<Map.Entry<String, Integer>> ordinals = ORDINALS.entrySet();
-		for(final Map.Entry<String, Integer> ordinal : ordinals)
-			normalized = normalized.replaceAll("\\b" + Pattern.quote(ordinal.getKey()) + "\\b", " " + ordinal.getValue() + " ");
+		for(final Map.Entry<Pattern, String> ordinal : ORDINAL_PATTERNS.entrySet())
+			normalized = ordinal.getKey().matcher(normalized).replaceAll(ordinal.getValue());
 		normalized = StringUtils.normalizeSpace(normalized);
 
 		final Matcher yearMatcher = YEAR_PATTERN.matcher(normalized);

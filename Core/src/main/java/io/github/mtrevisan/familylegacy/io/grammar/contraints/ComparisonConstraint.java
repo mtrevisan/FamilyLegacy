@@ -24,9 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.io.grammar.contraints;
 
-import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.record.RecordLookup;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
@@ -46,7 +46,7 @@ public final class ComparisonConstraint extends Constraint{
 	}
 
 	@Override
-	public void validate(final String contextPath, final FLEFRecord record, final FLEFModel model,
+	public void validate(final String contextPath, final FLEFRecord record, final RecordLookup model,
 			final List<String> errors){
 		final String leftValue = resolveValue(record, left);
 		final String rightValue = resolveValue(record, right);
@@ -75,7 +75,7 @@ public final class ComparisonConstraint extends Constraint{
 
 	private boolean isField(final String token){
 		// A field is an identifier (letters, digits, underscores); a literal is a number or string.
-		return (!token.matches("^[0-9].*") && !token.startsWith("\""));
+		return ((token.isEmpty() || token.charAt(0) < '0' || token.charAt(0) > '9') && !token.startsWith("\""));
 	}
 
 	private String resolveValue(final FLEFRecord record, final String token){

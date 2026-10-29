@@ -24,8 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.io.model.readers;
 
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Locale;
@@ -64,6 +64,9 @@ import java.util.Set;
  */
 public final class MediaReader{
 
+	public static final String TYPE = "MEDIA";
+	public static final String ID_PREFIX = "M";
+
 	public static final String TAG_URI = "uri";
 	public static final String TAG_KIND = "kind";
 	public static final String TAG_MAPPING = "mapping";
@@ -91,6 +94,12 @@ public final class MediaReader{
 
 
 	private MediaReader(){}
+
+	/** @return whether the record is of this type (its tag is the type, ignoring case) */
+	public static boolean isOfType(final FLEFRecord record){
+		return (record != null && TYPE.equalsIgnoreCase(record.getTag()));
+	}
+
 
 
 	public static String extractUri(final FLEFRecord record){

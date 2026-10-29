@@ -25,11 +25,12 @@
 package io.github.mtrevisan.familylegacy.ui.components.projections.repository;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SexType;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualData;
+import io.github.mtrevisan.familylegacy.ui.components.projections.individual.OrderPreferences;
 import io.github.mtrevisan.familylegacy.ui.components.projections.siblings.SiblingsData;
 import org.apache.commons.lang3.StringUtils;
 
@@ -59,6 +60,8 @@ public class TreeService{
 
 	// Local cache for children data per parent
 	private final Map<String, Map<IndividualData, SiblingsData>> childrenDataCache = new HashMap<>();
+	// version of the order preferences the cached data were ordered with (the order is a presentation choice: see OrderPreferences)
+	private int childrenDataOrderVersion = OrderPreferences.version();
 
 
 	public TreeService(final GenealogyRepository repository, final FLEFModel model){
@@ -231,6 +234,10 @@ public class TreeService{
 			return Collections.emptyMap();
 
 		repository.ensureIndices();
+		if(childrenDataOrderVersion != OrderPreferences.version()){
+			childrenDataCache.clear();
+			childrenDataOrderVersion = OrderPreferences.version();
+		}
 		return childrenDataCache.computeIfAbsent(parentId, this::computeChildrenData);
 	}
 
@@ -253,6 +260,10 @@ public class TreeService{
 					candidatePartnerIds.add(link.parent().getId());
 			}
 		}
+		//the couples are shown in chronological order (the order is computed here, at render time: it is not stored anywhere)
+		final List<String> orderedPartnerIds = repository.sortPartners(parentId, candidatePartnerIds);
+		candidatePartnerIds.clear();
+		candidatePartnerIds.addAll(orderedPartnerIds);
 
 		// For each candidate partner, find the children shared with parentId
 		// and compute the couple relationship type for each shared child.

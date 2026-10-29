@@ -25,11 +25,12 @@
 package io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.services.relationship;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
-import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.ui.components.searches.service.UnlinkPrompt;
+import io.github.mtrevisan.familylegacy.ui.dialogs.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
@@ -55,6 +56,7 @@ import javax.swing.Timer;
 import java.awt.BorderLayout;
 import java.awt.Cursor;
 import java.awt.Dimension;
+import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -75,7 +77,7 @@ import java.util.function.Predicate;
  * organized into categorized sub-panels within dedicated tabs, allowing the user
  * to select which ones to unlink or remove before deleting the record.
  */
-public class UnlinkDialog extends JDialog{
+public class UnlinkDialog extends JDialog implements UnlinkPrompt{
 
 	private static final Cursor HAND_CURSOR = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
 
@@ -317,7 +319,7 @@ public class UnlinkDialog extends JDialog{
 		if(entityId == null)
 			return Collections.emptyMap();
 
-		return model.getReferencingRecords(entityId);
+		return HandlerRegistry.getReferencingRecords(model, entityId);
 	}
 
 	/**
@@ -537,6 +539,12 @@ public class UnlinkDialog extends JDialog{
 		return outer;
 	}
 
+	private static int multiClickIntervalMs(){
+		return (Toolkit.getDefaultToolkit().getDesktopProperty("awt.multiClickInterval") instanceof Integer interval
+			? interval
+			: 250);
+	}
+
 	private JPanel createWrappedCheckbox(final List<String> recordIds, final String entityId, final String description){
 		final JPanel panel = new JPanel(new MigLayout("ins 2 0 2 0", "[]0[grow,fill,shrink]", "[]"));
 
@@ -544,7 +552,7 @@ public class UnlinkDialog extends JDialog{
 		final JTextArea textArea = createTextArea(entityId, description, cb);
 
 		// Handle single click vs double click using a timer to prevent state collision
-		final Timer clickTimer = new Timer(250, e -> cb.setSelected(!cb.isSelected()));
+		final Timer clickTimer = new Timer(multiClickIntervalMs(), e -> cb.setSelected(!cb.isSelected()));
 		clickTimer.setRepeats(false);
 		textArea.addMouseListener(new MouseAdapter(){
 			@Override
@@ -665,17 +673,19 @@ public class UnlinkDialog extends JDialog{
 			return;
 
 		final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(entity.getTag());
-		final BaseRecordDialog dialog = handler.createEditDialog(this, model, entity);
+		final RecordDialog dialog = handler.createEditDialog(this, model, entity);
 		dialog.setVisible(true);
 	}
 
 	/**
 	 * Returns the list of record IDs selected by the user to be unlinked/removed.
 	 */
+	@Override
 	public List<String> getSelectedLinkIds(){
 		return linkIdsToRemove;
 	}
 
+	@Override
 	public boolean removeParentRecord(){
 		return (linkIdsToRemove.size() == totalLinks);
 	}

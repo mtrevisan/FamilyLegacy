@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.ui.tools.consistency;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import io.github.mtrevisan.familylegacy.ui.tools.ReportDialog;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolOperation;
@@ -35,7 +36,7 @@ public final class CheckConsistencyTool implements ToolOperation{
 
 	@Override
 	public String getName(){
-		return "Check Consistency…";
+		return I18N.t("menu.tools.check_consistency");
 	}
 
 	@Override

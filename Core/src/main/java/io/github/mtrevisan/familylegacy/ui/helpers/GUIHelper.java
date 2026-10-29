@@ -27,12 +27,12 @@ package io.github.mtrevisan.familylegacy.ui.helpers;
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.FLEFValidator;
 import io.github.mtrevisan.familylegacy.io.FLEFWriter;
-import io.github.mtrevisan.familylegacy.io.grammar.FLEFGrammar;
 import io.github.mtrevisan.familylegacy.io.grammar.FLEFGrammarParser;
 import io.github.mtrevisan.familylegacy.io.grammar.FLEFGrammarValidator;
+import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.FLEFGrammar;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.ui.dialogs.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.io.FilenameUtils;
@@ -60,6 +60,7 @@ import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
+import javax.swing.ToolTipManager;
 import javax.swing.TransferHandler;
 import javax.swing.UIManager;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -134,6 +135,9 @@ public final class GUIHelper{
 	private static final String ELLIPSIS = I18N.t("dialog.ellipsis");
 
 	private static final String PROPERTY_ASSOCIATED_LABEL = "__associatedLabel";
+
+	/** [px] */
+	private static final int TOOLTIP_WIDTH = 340;
 
 	private static final String ACTION_MOVE_UP = "moveUp";
 	private static final String ACTION_MOVE_DOWN = "moveDown";
@@ -304,12 +308,33 @@ public final class GUIHelper{
 	 * @param field	The field component
 	 */
 	public static void addLabeledComponent(final Container container, final String labelText, final JComponent field){
-		final JLabel label = new JLabel(labelText);
+		//the label shows the tooltip of its field, whenever it is set
+		final JLabel label = new JLabel(labelText){
+			@Override
+			public String getToolTipText(){
+				return field.getToolTipText();
+			}
+		};
+		ToolTipManager.sharedInstance()
+			.registerComponent(label);
 		label.setLabelFor(field);
 		field.putClientProperty(PROPERTY_ASSOCIATED_LABEL, label);
 
 		container.add(label, "align label");
 		container.add((field instanceof JTextArea? createScrollPane(field): field), "growx");
+	}
+
+	/**
+	 * Returns the localized text of {@code key} formatted as the label of a mandatory field (separator and mandatory
+	 * marker included, see {@code format.label_required}).
+	 */
+	public static String requiredLabel(final String key){
+		return I18N.tf("format.label_required", I18N.t(key));
+	}
+
+	/** Returns the localized title of a panel that holds a mandatory field (mandatory marker included). */
+	public static String requiredTitle(final String key){
+		return I18N.tf("format.title_required", I18N.t(key));
 	}
 
 	/**
@@ -321,6 +346,51 @@ public final class GUIHelper{
 	 */
 	public static void addComponent(final Container container, final JComponent field){
 		container.add((field instanceof JTextArea? createScrollPane(field): field), "span 2,growx");
+	}
+
+	/**
+	 * Builds the HTML of a tooltip made of wrapped paragraphs (a plain tooltip is a single, unwrapped, line).
+	 *
+	 * @param paragraphs	The plain texts; blank ones are skipped.
+	 * @return	The HTML text, or {@code null} if there is nothing to show.
+	 */
+	public static String tooltipHtml(final String... paragraphs){
+		final StringBuilder sb = new StringBuilder();
+		for(final String paragraph : paragraphs)
+			if(StringUtils.isNotBlank(paragraph)){
+				if(!sb.isEmpty())
+					sb.append("<br><br>");
+				sb.append(paragraph.strip()
+					.replace("&", "&amp;")
+					.replace("<", "&lt;")
+					.replace(">", "&gt;")
+					.replace(StringUtils.LF, "<br>"));
+			}
+		return (sb.isEmpty()? null: "<html><body style='width: " + TOOLTIP_WIDTH + "px'>" + sb + "</body></html>");
+	}
+
+	/**
+	 * Explains when a type of record is to be used.
+	 *
+	 * @param recordType	The type of the record, as returned by the handler (e.g. {@code CONCLUSION}).
+	 * @return	The HTML tooltip, or {@code null} if the translations do not define it.
+	 */
+	public static String usageTooltip(final String recordType){
+		return tooltipHtml(I18N.t("record.usage." + recordType.toLowerCase(Locale.ROOT), null));
+	}
+
+	/**
+	 * Sets the tooltip of a component to the (wrapped) localized text.
+	 *
+	 * @param component	The component.
+	 * @param key	The i18n key of the tooltip text.
+	 * @return	The component.
+	 */
+	public static <C extends JComponent> C withTooltip(final C component, final String key){
+		final String text = I18N.t(key);
+		//a combo composes the tooltip with the explanation of the selected value, so it needs the plain text
+		component.setToolTipText(component instanceof ComposesOwnTooltip? text: tooltipHtml(text));
+		return component;
 	}
 
 	public static void setComponentEnabled(final JComponent field, final boolean visible){
@@ -654,7 +724,7 @@ public final class GUIHelper{
 		final File selectedFile = fileChooser.getSelectedFile();
 		if(selectedFile == null || !selectedFile.exists()){
 			JOptionPane.showMessageDialog(parentComponent,
-				"Selected file does not exist.",
+				I18N.t("message.file_not_found"),
 				I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
 			return null;
 		}
@@ -756,7 +826,7 @@ public final class GUIHelper{
 		catch(final Exception ignored){}
 
 		SwingUtilities.invokeLater(() -> {
-			final BaseRecordDialog dialog = dialogFactory.apply(null, model);
+			final RecordDialog dialog = dialogFactory.apply(null, model);
 			dialog.setVisible(true);
 
 			System.out.println(FLEFWriter.createCompact().writeToString(model));

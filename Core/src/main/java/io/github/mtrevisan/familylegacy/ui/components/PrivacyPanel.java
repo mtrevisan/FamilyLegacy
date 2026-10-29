@@ -24,9 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components;
 
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.io.model.readers.PrivacyReader;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.ui.bindings.BindingManager;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextField;
@@ -87,13 +87,13 @@ public class PrivacyPanel extends JPanel{
 		setLayout(GUIHelper.createLabelFieldLayout(10, "[]10[]10[]"));
 
 		// level
-		GUIHelper.addLabeledComponent(this, I18N.t("dialog.privacy.level") + ":", levelCombo);
+		GUIHelper.addLabeledComponent(this, I18N.l("dialog.privacy.level"), levelCombo);
 
 		// reason
-		GUIHelper.addLabeledComponent(this, I18N.t("dialog.privacy.reason") + ":", reasonCombo);
+		GUIHelper.addLabeledComponent(this, I18N.l("dialog.privacy.reason"), reasonCombo);
 
 		// expires
-		GUIHelper.addLabeledComponent(this, I18N.t("dialog.privacy.expires") + ":", expiresField);
+		GUIHelper.addLabeledComponent(this, I18N.l("dialog.privacy.expires"), expiresField);
 	}
 
 

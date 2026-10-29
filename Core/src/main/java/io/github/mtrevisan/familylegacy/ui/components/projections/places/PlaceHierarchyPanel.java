@@ -25,23 +25,25 @@
 package io.github.mtrevisan.familylegacy.ui.components.projections.places;
 
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
-import io.github.mtrevisan.familylegacy.io.grammar.FLEFGrammar;
+import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.FLEFGrammar;
 import io.github.mtrevisan.familylegacy.io.merger.FLEFMerger;
 import io.github.mtrevisan.familylegacy.io.merger.RecordAbsorber;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceRelationshipReader;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyResolver;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
-import io.github.mtrevisan.familylegacy.ui.components.PrivacyBadge;
+import io.github.mtrevisan.familylegacy.ui.components.lists.PrivacyBadge;
 import io.github.mtrevisan.familylegacy.ui.components.searches.SearchMatcher;
 import io.github.mtrevisan.familylegacy.ui.components.searches.SearchMode;
-import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.ui.components.searches.service.PlaceHierarchyView;
+import io.github.mtrevisan.familylegacy.ui.dialogs.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.PlaceRelationshipHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
+import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import io.github.mtrevisan.familylegacy.ui.tools.ReportDialog;
 import io.github.mtrevisan.familylegacy.ui.tools.tools.merge.MergeGrammar;
 import org.apache.commons.lang3.StringUtils;
@@ -120,12 +122,12 @@ import java.util.function.Consumer;
  * {@code PlaceRelationshipRecord} through
  * {@link #getSelectedPlaceRecord()}.
  */
-public final class PlaceHierarchyPanel extends JPanel{
+public final class PlaceHierarchyPanel extends JPanel implements PlaceHierarchyView{
 
 	/** Property fired with the percentage (0-100) of the tree rebuild. */
-	public static final String PROPERTY_FILTERING_PROGRESS = "filteringProgress";
+	public static final String PROPERTY_FILTERING_PROGRESS = PlaceHierarchyView.PROPERTY_FILTERING_PROGRESS;
 	/** Property fired when the asynchronous rebuild completes. */
-	public static final String PROPERTY_FILTERING_DONE = "filteringDone";
+	public static final String PROPERTY_FILTERING_DONE = PlaceHierarchyView.PROPERTY_FILTERING_DONE;
 
 	private static final int TREE_MIN_WIDTH = 360;
 	private static final int DETAILS_MIN_WIDTH = 300;
@@ -216,6 +218,12 @@ public final class PlaceHierarchyPanel extends JPanel{
 	 * currently selected place, the search filter, and the relation-type
 	 * filter are preserved across the reload.
 	 */
+	@Override
+	public JComponent component(){
+		return this;
+	}
+
+	@Override
 	public void reload(){
 		final String previousSelection = selectedPlaceId();
 
@@ -237,6 +245,7 @@ public final class PlaceHierarchyPanel extends JPanel{
 	 * @param search       the free-text search filter; may be {@code null}
 	 * @param relationType the relation type filter; may be {@code null}
 	 */
+	@Override
 	public boolean setFilters(final Set<SearchMode> modes, final String search, final String relationType){
 		final Set<SearchMode> normalizedModes = (modes != null? Set.copyOf(modes): Set.of());
 		final String normalizedSearch = (search != null? search: StringUtils.EMPTY);
@@ -264,6 +273,7 @@ public final class PlaceHierarchyPanel extends JPanel{
 	 * @param editable {@code true} to enable the edit-on-double-click
 	 *                 behavior, {@code false} to disable it
 	 */
+	@Override
 	public void setEditable(final boolean editable){
 		this.editable = editable;
 	}
@@ -275,6 +285,7 @@ public final class PlaceHierarchyPanel extends JPanel{
 	 *
 	 * @return the selected relationship, or {@code null}
 	 */
+	@Override
 	public FLEFRecord getSelectedPlaceRecord(){
 		return selectedPlaceRecord;
 	}
@@ -523,6 +534,7 @@ public final class PlaceHierarchyPanel extends JPanel{
 		detailsPanel.showPlace(payload != null? payload.place(): null, hierarchy);
 	}
 
+	@Override
 	public void openEditorForSelection(){
 		if(!editable)
 			return;
@@ -534,7 +546,7 @@ public final class PlaceHierarchyPanel extends JPanel{
 		final FLEFRecord record = model.getRecordById(payload.place().id());
 		final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(record.getTag());
 		final Window owner = SwingUtilities.getWindowAncestor(this);
-		final BaseRecordDialog dialog = handler.createEditDialog(owner, model, record);
+		final RecordDialog dialog = handler.createEditDialog(owner, model, record);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved()){
@@ -592,18 +604,10 @@ public final class PlaceHierarchyPanel extends JPanel{
 		final FLEFRecord place = model.getRecordById(placeId);
 		for(final RecordAbsorber.Candidate candidate : absorber.candidates(model, placeId, FLEFMerger.DEFAULT_REVIEW_THRESHOLD)){
 			final FLEFRecord other = model.getRecordById(candidate.recordId());
-			final String message = String.format(Locale.ROOT, """
-				%s (%s) may be the same place as %s (%s).
-
-				Match probability: %.0f%%
-				%s
-
-				Merge them? The first is merged into the second: its names, citations, and notes are kept, and every reference to it
-				is redirected.
-				Answering No records that they are different places, and they will not be proposed again.""",
+			final String message = String.format(Locale.ROOT, I18N.t("dialog.merge.places.message"),
 				displayText(place), placeId, displayText(other), other.getId(), candidate.probability() * 100.,
 				candidate.rationale().replace("; ", StringUtils.LF));
-			final int choice = JOptionPane.showConfirmDialog(owner, message, "Merge places", JOptionPane.YES_NO_CANCEL_OPTION,
+			final int choice = JOptionPane.showConfirmDialog(owner, message, I18N.t("dialog.merge.places.title"), JOptionPane.YES_NO_CANCEL_OPTION,
 				JOptionPane.QUESTION_MESSAGE);
 			if(choice == JOptionPane.CANCEL_OPTION || choice == JOptionPane.CLOSED_OPTION)
 				return StringUtils.EMPTY;
@@ -619,8 +623,8 @@ public final class PlaceHierarchyPanel extends JPanel{
 			absorber.absorb(model, placeId, other.getId(), String.format(Locale.ROOT,
 				"confirmed in the place hierarchy (match probability %.3f: %s)", candidate.probability(), candidate.rationale()));
 			if(!conflicts.isEmpty())
-				JOptionPane.showMessageDialog(owner, "Values of " + placeId + " not kept:" + StringUtils.LF
-					+ String.join(StringUtils.LF, conflicts), "Merge places", JOptionPane.INFORMATION_MESSAGE);
+				JOptionPane.showMessageDialog(owner, I18N.al(I18N.tf("dialog.merge.places.conflicts", placeId)) + StringUtils.LF
+					+ String.join(StringUtils.LF, conflicts), I18N.t("dialog.merge.places.title"), JOptionPane.INFORMATION_MESSAGE);
 			return other.getId();
 		}
 		return null;
@@ -631,7 +635,8 @@ public final class PlaceHierarchyPanel extends JPanel{
 	 */
 	private List<String> relatedPlaces(final String placeId){
 		final List<String> related = new ArrayList<>();
-		for(final FLEFRecord relationship : PrivacyService.visible(model, model.getRecordsByType(PlaceRelationshipHandler.TYPE))){
+		final List<FLEFRecord> relationships = PrivacyService.visible(model, model.getRecordsByType(PlaceRelationshipHandler.TYPE));
+		for(final FLEFRecord relationship : relationships){
 			final String type = FLEFRecordHelper.getChildValue(relationship, PlaceRelationshipReader.TAG_TYPE);
 			if(type == null || !type.endsWith(PART_OF_SUFFIX))
 				continue;
@@ -862,7 +867,7 @@ public final class PlaceHierarchyPanel extends JPanel{
 
 		private static String buildMapUrl(final String coordinates, final String name){
 			if(StringUtils.isNotBlank(coordinates)){
-				final String[] parts = coordinates.split("[,\\s]+");
+				final String[] parts = StringUtils.split(coordinates, ", \t\n\013\f\r");
 				if(parts.length >= 2){
 					try{
 						final double lat = Double.parseDouble(parts[0]);

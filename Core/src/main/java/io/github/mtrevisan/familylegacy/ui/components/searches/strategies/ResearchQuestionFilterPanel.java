@@ -70,13 +70,13 @@ public class ResearchQuestionFilterPanel extends JPanel implements RecordFilterP
 		setLayout(new MigLayout("wrap 2,gap 5", "[][grow,fill]", "[]"));
 		setBorder(BorderFactory.createTitledBorder(I18N.tf("dialog.search_filter.title", I18N.t("dialog.component.research.questions"))));
 
-		add(new JLabel(I18N.t("dialog.research_question.title") + ":"));
+		add(new JLabel(I18N.l("dialog.research_question.title")));
 		add(titleField, "growx");
-		add(new JLabel(I18N.t("dialog.research_question.question") + ":"));
+		add(new JLabel(I18N.l("dialog.research_question.question")));
 		add(questionField, "growx");
-		add(new JLabel(I18N.t("dialog.research_question.status") + ":"));
+		add(new JLabel(I18N.l("dialog.research_question.status")));
 		add(statusCombo, "growx");
-		add(new JLabel(I18N.t("dialog.component.confidence") + ":"));
+		add(new JLabel(I18N.l("dialog.component.confidence")));
 		add(confidenceCombo, "growx");
 	}
 

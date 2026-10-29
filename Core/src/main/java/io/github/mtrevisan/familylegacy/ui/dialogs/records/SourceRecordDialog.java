@@ -25,16 +25,16 @@
 package io.github.mtrevisan.familylegacy.ui.dialogs.records;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextField;
-import io.github.mtrevisan.familylegacy.ui.components.PanelKey;
-import io.github.mtrevisan.familylegacy.ui.components.RecordDialogBuilder;
-import io.github.mtrevisan.familylegacy.ui.components.fields.DateField;
 import io.github.mtrevisan.familylegacy.ui.components.fields.EntityField;
 import io.github.mtrevisan.familylegacy.ui.components.lists.EntityListPanel;
 import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.PanelKey;
+import io.github.mtrevisan.familylegacy.ui.dialogs.RecordDialogBuilder;
+import io.github.mtrevisan.familylegacy.ui.dialogs.structures.DateField;
 import io.github.mtrevisan.familylegacy.ui.handlers.AgentHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.ConclusionHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.NameHandler;
@@ -105,7 +105,7 @@ public class SourceRecordDialog extends BaseRecordDialog{
 	private SourceRecordDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, SourceHandler.getInstance());
 
-		titlePanel = EntityListPanel.createForStructure(SourceReader.TAG_TITLE, this, I18N.t("dialog.source.title") + "*", model,
+		titlePanel = EntityListPanel.createForStructure(SourceReader.TAG_TITLE, this, GUIHelper.requiredTitle("dialog.source.title"), model,
 			NameHandler.class);
 		authorPanel = EntityListPanel.createForStructure(SourceReader.TAG_AUTHOR, this, I18N.t("dialog.source.author"), model,
 			AgentHandler.class);
@@ -146,16 +146,16 @@ public class SourceRecordDialog extends BaseRecordDialog{
 		GUIHelper.addComponent(panel, authorPanel);
 
 		// publisher
-		GUIHelper.addLabeledComponent(panel, I18N.t("dialog.source.publisher") + ":", publisherField);
+		GUIHelper.addLabeledComponent(panel, I18N.l("dialog.source.publisher"), publisherField);
 
 		// date
-		GUIHelper.addLabeledComponent(panel, I18N.t("dialog.source.date") + ":", dateField);
+		GUIHelper.addLabeledComponent(panel, I18N.l("dialog.source.date"), dateField);
 
 		// place
-		GUIHelper.addLabeledComponent(panel, I18N.t("dialog.place") + ":", placeField);
+		GUIHelper.addLabeledComponent(panel, I18N.l("dialog.place"), placeField);
 
 		// media type
-		GUIHelper.addLabeledComponent(panel, I18N.t("dialog.source.media_type") + ":", mediaTypeCombo);
+		GUIHelper.addLabeledComponent(panel, I18N.l("dialog.source.media_type"), mediaTypeCombo);
 
 		// repository
 		final JPanel repositoryCitationPanel = components.getPanel(PanelKey.REPOSITORY);

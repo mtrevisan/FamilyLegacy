@@ -68,11 +68,11 @@ public class MediaFilterPanel extends JPanel implements RecordFilterPanel{
 		setLayout(new MigLayout("wrap 2,gap 5", "[][grow,fill]", "[]"));
 		setBorder(BorderFactory.createTitledBorder(I18N.tf("dialog.search_filter.title", I18N.t("dialog.component.media"))));
 
-		add(new JLabel(I18N.t("dialog.media.description") + ":"));
+		add(new JLabel(I18N.l("dialog.media.description")));
 		add(descriptionField, "growx");
-		add(new JLabel(I18N.t("dialog.media.mapping") + ":"));
+		add(new JLabel(I18N.l("dialog.media.mapping")));
 		add(mappingCombo, "growx");
-		add(new JLabel(I18N.t("dialog.media.uri") + ":"));
+		add(new JLabel(I18N.l("dialog.media.uri")));
 		add(uriField, "growx");
 	}
 

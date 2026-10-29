@@ -24,8 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.io.model.readers;
 
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 
 
 /**
@@ -85,6 +85,9 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
  */
 public final class ResearchActivityReader{
 
+	public static final String TYPE = "RESEARCH_ACTIVITY";
+	public static final String ID_PREFIX = "RA";
+
 	public static final String TAG_QUESTION = "question";
 	public static final String TAG_ACTIVITY_TYPE = "activity_type";
 	public static final String TAG_STATUS = "status";
@@ -126,6 +129,12 @@ public final class ResearchActivityReader{
 
 
 	private ResearchActivityReader(){}
+
+	/** @return whether the record is of this type (its tag is the type, ignoring case) */
+	public static boolean isOfType(final FLEFRecord record){
+		return (record != null && TYPE.equalsIgnoreCase(record.getTag()));
+	}
+
 
 
 	public static String extractAction(final FLEFRecord record){

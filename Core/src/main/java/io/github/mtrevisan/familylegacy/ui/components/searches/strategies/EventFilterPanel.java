@@ -24,8 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.searches.strategies;
 
-import io.github.mtrevisan.familylegacy.io.model.readers.DateReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.DateReader;
 import io.github.mtrevisan.familylegacy.ui.components.searches.RecordFilterPanel;
 import io.github.mtrevisan.familylegacy.ui.components.searches.SearchCriteria;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
@@ -72,17 +72,17 @@ public class EventFilterPanel extends JPanel implements RecordFilterPanel{
 		setLayout(new MigLayout("wrap 2,gap 5", "[][grow,fill]", "[]"));
 		setBorder(BorderFactory.createTitledBorder(I18N.tf("dialog.search_filter.title", I18N.t("dialog.component.events"))));
 
-		add(new JLabel(I18N.t("dialog.event.type") + ":"));
+		add(new JLabel(I18N.l("dialog.event.type")));
 		add(typeCombo, "growx");
-		add(new JLabel(I18N.t("dialog.event.description") + ":"));
+		add(new JLabel(I18N.l("dialog.event.description")));
 		add(descriptionField, "growx");
-		add(new JLabel(I18N.t("dialog.event.date") + ":"));
+		add(new JLabel(I18N.l("dialog.event.date")));
 		add(dateField, "growx");
-		add(new JLabel(I18N.t("dialog.date.calendar") + ":"));
+		add(new JLabel(I18N.l("dialog.date.calendar")));
 		add(calendarCombo, "growx");
-		add(new JLabel(I18N.t("dialog.place") + ":"));
+		add(new JLabel(I18N.l("dialog.place")));
 		add(placeField, "growx");
-		add(new JLabel(I18N.t("dialog.event.cause.reason") + ":"));
+		add(new JLabel(I18N.l("dialog.event.cause.reason")));
 		add(causeReasonField, "growx");
 	}
 

@@ -26,6 +26,8 @@ package io.github.mtrevisan.familylegacy.ui.helpers;
 
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
@@ -48,8 +50,27 @@ import java.util.function.Consumer;
  */
 public final class AsyncResourceLoader<T>{
 
-	private final Map<String, T[]> cache = new ConcurrentHashMap<>();
+	private final Map<String, T[]> cache;
 	private final Map<String, CompletableFuture<T[]>> inFlight = new ConcurrentHashMap<>();
+
+
+	/**
+	 * @param maxEntries	how many values to keep: the least recently used one is dropped to make room for a new one, so that the
+	 * 	cache (images, usually) cannot grow with the size of the file
+	 */
+	public AsyncResourceLoader(final int maxEntries){
+		cache = Collections.synchronizedMap(new LinkedHashMap<>(16, 0.75f, true){
+			@Override
+			protected boolean removeEldestEntry(final Map.Entry<String, T[]> eldest){
+				return (size() > maxEntries);
+			}
+		});
+	}
+
+	/** @return	How many values are cached. */
+	int cacheSize(){
+		return cache.size();
+	}
 
 
 	/**

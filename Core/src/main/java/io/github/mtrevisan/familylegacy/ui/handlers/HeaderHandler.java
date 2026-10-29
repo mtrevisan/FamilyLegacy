@@ -25,8 +25,9 @@
 package io.github.mtrevisan.familylegacy.ui.handlers;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.ui.dialogs.HeaderDialog;
+import io.github.mtrevisan.familylegacy.io.model.readers.HeaderReader;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.ui.dialogs.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 
 import java.awt.Window;
@@ -57,9 +58,9 @@ import java.awt.Window;
  * }
  * </pre>
  */
-public class HeaderHandler extends AbstractRecordTypeHandler<HeaderDialog>{
+public class HeaderHandler extends AbstractRecordTypeHandler<RecordDialog>{
 
-	public static final String TYPE = "HEADER";
+	public static final String TYPE = HeaderReader.TYPE;
 
 
 	private static final class SingletonHelper{
@@ -93,13 +94,14 @@ public class HeaderHandler extends AbstractRecordTypeHandler<HeaderDialog>{
 	}
 
 	@Override
-	public HeaderDialog createNewDialog(final Window parent, final FLEFModel model){
-		return createEditDialog(parent, model, null);
+	public RecordDialog createNewDialog(final Window parent, final FLEFModel model){
+		return RecordDialogs.createNew(TYPE, parent, model);
 	}
 
 	@Override
-	public HeaderDialog createEditDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
-		return new HeaderDialog(parent, model, null);
+	public RecordDialog createEditDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
+		return RecordDialogs.createEdit(TYPE, parent, model, record);
 	}
+
 
 }

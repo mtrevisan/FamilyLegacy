@@ -25,9 +25,9 @@
 package io.github.mtrevisan.familylegacy.ui.handlers;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchTaskReader;
-import io.github.mtrevisan.familylegacy.ui.dialogs.records.ResearchTaskRecordDialog;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.ui.dialogs.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
@@ -38,10 +38,10 @@ import java.awt.Window;
 /**
  * Handler for ResearchTaskRecord.
  */
-public class ResearchTaskHandler extends AbstractRecordTypeHandler<ResearchTaskRecordDialog>{
+public class ResearchTaskHandler extends AbstractRecordTypeHandler<RecordDialog>{
 
-	public static final String TYPE = "RESEARCH_TASK";
-	public static final String ID_PREFIX = "RT";
+	public static final String TYPE = ResearchTaskReader.TYPE;
+	public static final String ID_PREFIX = ResearchTaskReader.ID_PREFIX;
 
 
 	private static final class SingletonHelper{
@@ -60,7 +60,7 @@ public class ResearchTaskHandler extends AbstractRecordTypeHandler<ResearchTaskR
 	}
 
 	public static boolean isOfType(final FLEFRecord record){
-		return (record != null && TYPE.equalsIgnoreCase(record.getTag()));
+		return ResearchTaskReader.isOfType(record);
 	}
 
 	@Override
@@ -90,14 +90,14 @@ public class ResearchTaskHandler extends AbstractRecordTypeHandler<ResearchTaskR
 	}
 
 	@Override
-	public ResearchTaskRecordDialog createNewDialog(final Window parent, final FLEFModel model){
-		return ResearchTaskRecordDialog.createNew(parent, model);
+	public RecordDialog createNewDialog(final Window parent, final FLEFModel model){
+		return RecordDialogs.createNew(TYPE, parent, model);
 	}
 
 	@Override
-	public ResearchTaskRecordDialog createEditDialog(final Window parent, final FLEFModel model,
-			final FLEFRecord record){
-		return ResearchTaskRecordDialog.createEdit(parent, model, record);
+	public RecordDialog createEditDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
+		return RecordDialogs.createEdit(TYPE, parent, model, record);
 	}
+
 
 }

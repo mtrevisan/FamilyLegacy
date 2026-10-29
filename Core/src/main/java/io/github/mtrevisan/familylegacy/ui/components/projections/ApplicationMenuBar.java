@@ -27,13 +27,15 @@ package io.github.mtrevisan.familylegacy.ui.components.projections;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyPolicy;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.ui.components.projections.bookmarks.BookmarkMenu;
+import io.github.mtrevisan.familylegacy.ui.components.projections.common.ProjectionType;
+import io.github.mtrevisan.familylegacy.ui.components.projections.individual.OrderPreferences;
 import io.github.mtrevisan.familylegacy.ui.components.projections.repository.GenealogyRepository;
-import io.github.mtrevisan.familylegacy.ui.dialogs.help.DiagnosticsDialog;
-import io.github.mtrevisan.familylegacy.ui.dialogs.help.HelpViewerDialog;
-import io.github.mtrevisan.familylegacy.ui.dialogs.help.KeyboardShortcutsDialog;
+import io.github.mtrevisan.familylegacy.ui.components.searches.service.JumpToIndividualDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.help.ShortcutRegistry;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import io.github.mtrevisan.familylegacy.ui.preferences.AppearanceMenu;
+import io.github.mtrevisan.familylegacy.ui.preferences.ChildrenOrder;
+import io.github.mtrevisan.familylegacy.ui.preferences.PartnerOrder;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolOperation;
 import io.github.mtrevisan.familylegacy.ui.tools.events.EventToolRegistry;
@@ -67,18 +69,16 @@ import javax.swing.JSeparator;
 import javax.swing.KeyStroke;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
-import java.awt.Desktop;
 import java.awt.Toolkit;
 import java.awt.event.KeyEvent;
 import java.io.File;
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 
 /**
@@ -140,7 +140,7 @@ final class ApplicationMenuBar{
 		bar.add(createNavigateMenu());
 		bar.add(createBookmarkMenu());
 		bar.add(AppearanceMenu.create(frame));
-		bar.add(createHelpMenu());
+		bar.add(new HelpMenu(frame).create());
 		return bar;
 	}
 
@@ -263,8 +263,11 @@ final class ApplicationMenuBar{
 
 		final List<ToolItemBinding> bindings = new ArrayList<>();
 
-		menu.add(accelerated(ShortcutRegistry.EDIT_UNDO.action(), ShortcutRegistry.EDIT_UNDO.keyStrokeCode()));
-		menu.add(accelerated(ShortcutRegistry.EDIT_REDO.action(), ShortcutRegistry.EDIT_REDO.keyStrokeCode()));
+		menu.add(historyItem(ShortcutRegistry.EDIT_UNDO, frame::undo));
+		menu.add(historyItem(ShortcutRegistry.EDIT_REDO, frame::redo));
+		final JMenuItem recentChanges = new JMenuItem(I18N.t("menu.edit.recent_changes"));
+		recentChanges.addActionListener(e -> frame.showRecentChanges());
+		menu.add(recentChanges);
 		menu.add(new JSeparator());
 
 		addToolsToMenu(menu, List.of(
@@ -292,19 +295,22 @@ final class ApplicationMenuBar{
 		final JRadioButtonMenuItem treeItem = projectionItem(ShortcutRegistry.VIEW_BIOLOGICAL_TREE.action(), ProjectionType.BIOLOGICAL_TREE, ShortcutRegistry.VIEW_BIOLOGICAL_TREE.keyStrokeCode());
 		final JRadioButtonMenuItem graphItem = projectionItem(ShortcutRegistry.VIEW_SUGIYAMA_GRAPH.action(), ProjectionType.SUGIYAMA_GRAPH, ShortcutRegistry.VIEW_SUGIYAMA_GRAPH.keyStrokeCode());
 		final JRadioButtonMenuItem egoItem = projectionItem(ShortcutRegistry.VIEW_EGO_NETWORK.action(), ProjectionType.EGO_NETWORK, ShortcutRegistry.VIEW_EGO_NETWORK.keyStrokeCode());
+		final JRadioButtonMenuItem chronomapItem = projectionItem(ShortcutRegistry.VIEW_CHRONOMAP.action(), ProjectionType.CHRONOMAP, ShortcutRegistry.VIEW_CHRONOMAP.keyStrokeCode());
 
 		final ButtonGroup projectionGroup = new ButtonGroup();
 		projectionGroup.add(treeItem);
 		projectionGroup.add(graphItem);
 		projectionGroup.add(egoItem);
+		projectionGroup.add(chronomapItem);
 
 		projections.add(treeItem);
 		projections.add(graphItem);
 		projections.add(egoItem);
+		projections.add(chronomapItem);
 
 		// Refresh the selected radio button every time the submenu is
 		// opened, so it reflects the active projection even when the
-		// switch was triggered by Ctrl+1/2/3 or by the toolbar toggles.
+		// switch was triggered by Ctrl+1/2/3/4 or by the toolbar toggles.
 		projections.addMenuListener(new MenuListener(){
 			@Override
 			public void menuSelected(final MenuEvent e){
@@ -312,6 +318,7 @@ final class ApplicationMenuBar{
 					case BIOLOGICAL_TREE -> treeItem.setSelected(true);
 					case SUGIYAMA_GRAPH -> graphItem.setSelected(true);
 					case EGO_NETWORK -> egoItem.setSelected(true);
+				case CHRONOMAP -> chronomapItem.setSelected(true);
 				}
 			}
 
@@ -347,6 +354,7 @@ final class ApplicationMenuBar{
 		menu.add(new JSeparator());
 
 		menu.add(createPrivacyMenu());
+		menu.add(createOrderMenu());
 
 		// Synchronize checkbox states when the menu is selected
 		menu.addMenuListener(new MenuListener(){
@@ -362,6 +370,53 @@ final class ApplicationMenuBar{
 
 			@Override
 			public void menuCanceled(final MenuEvent e){}
+		});
+
+		return menu;
+	}
+
+
+	/**
+	 * How the views order children and partners. It is a view preference, stored in the user preferences and never in the genealogy:
+	 * choosing an order does not touch any record.
+	 */
+	private JMenu createOrderMenu(){
+		final JMenu menu = new JMenu(I18N.t("menu.view.order"));
+		menu.setMnemonic(KeyEvent.VK_O);
+
+		final JMenu childrenMenu = createEnumMenu("menu.view.order.children", ChildrenOrder.class, OrderPreferences::children,
+			OrderPreferences::setChildren);
+		final JMenu partnersMenu = createEnumMenu("menu.view.order.partners", PartnerOrder.class, OrderPreferences::partners,
+			OrderPreferences::setPartners);
+		menu.add(childrenMenu);
+		menu.add(partnersMenu);
+		return menu;
+	}
+
+	private static <E extends Enum<E>> JMenu createEnumMenu(final String key, final Class<E> type, final Supplier<E> current,
+			final Consumer<E> setter){
+		final JMenu menu = new JMenu(I18N.t(key));
+
+		final ButtonGroup group = new ButtonGroup();
+		final Map<E, JRadioButtonMenuItem> items = new EnumMap<>(type);
+		for(final E value : type.getEnumConstants()){
+			final JRadioButtonMenuItem item = new JRadioButtonMenuItem(I18N.t(key + "." + value.name().toLowerCase(Locale.ROOT)));
+			item.addActionListener(e -> setter.accept(value));
+			group.add(item);
+			menu.add(item);
+			items.put(value, item);
+		}
+
+		// Reflect the current choice every time the submenu is opened
+		menu.addMenuListener(new MenuListener(){
+			@Override
+			public void menuSelected(final MenuEvent e){
+				items.get(current.get())
+					.setSelected(true);
+			}
+
+			@Override public void menuDeselected(final MenuEvent e){}
+			@Override public void menuCanceled(final MenuEvent e){}
 		});
 
 		return menu;
@@ -584,6 +639,15 @@ final class ApplicationMenuBar{
 		menu.add(new JSeparator());
 		addToolsToMenu(menu, ToolToolRegistry.analysisTools(), bindings);
 
+		final ResearchAssistantPort assistant = frame.assistant();
+		if(assistant != null){
+			menu.add(new JSeparator());
+			final JMenuItem researchAssistant = new JMenuItem(ShortcutRegistry.TOOLS_RESEARCH_ASSISTANT.action());
+			researchAssistant.setAccelerator(ShortcutRegistry.TOOLS_RESEARCH_ASSISTANT.keyStroke());
+			researchAssistant.addActionListener(e -> assistant.open());
+			menu.add(researchAssistant);
+		}
+
 		bindDynamicEnablement(menu, bindings);
 
 		return menu;
@@ -689,125 +753,6 @@ final class ApplicationMenuBar{
 
 
 	/* ======================================================================
-	 *                          Help
-	 * ====================================================================== */
-
-	private JMenu createHelpMenu(){
-		final JMenu menu = new JMenu(I18N.t("menu.help"));
-		menu.setMnemonic(KeyEvent.VK_H);
-
-		final JMenuItem helpContents = new JMenuItem(ShortcutRegistry.HELP_CONTENTS.action(), KeyEvent.VK_H);
-		helpContents.setAccelerator(ShortcutRegistry.HELP_CONTENTS.keyStroke());
-		helpContents.addActionListener(e -> HelpViewerDialog.show(frame, I18N.t("menu.help.help.contents"), HelpContent.HELP_CONTENTS_HTML));
-		menu.add(helpContents);
-
-		final JMenuItem shortcuts = new JMenuItem(I18N.t("menu.help.keyboard.shortcuts"), KeyEvent.VK_K);
-		shortcuts.addActionListener(e -> KeyboardShortcutsDialog.show(frame));
-		menu.add(shortcuts);
-
-		menu.add(new JSeparator());
-
-		final JMenuItem userGuide = new JMenuItem(I18N.t("menu.help.user.guide"), KeyEvent.VK_G);
-		userGuide.addActionListener(e -> HelpViewerDialog.show(frame,
-			I18N.t("menu.help.user.guide.title"), HelpContent.USER_GUIDE_HTML));
-		menu.add(userGuide);
-
-		final JMenuItem onlineDocs = new JMenuItem(I18N.t("menu.help.online.documentation"), KeyEvent.VK_D);
-		onlineDocs.addActionListener(e -> openUrl(HelpContent.DOCUMENTATION_URL));
-		menu.add(onlineDocs);
-
-		menu.add(new JSeparator());
-
-		final JMenuItem checkUpdates = new JMenuItem(I18N.t("menu.help.chek.updates"), KeyEvent.VK_U);
-		checkUpdates.addActionListener(e -> checkForUpdates());
-		menu.add(checkUpdates);
-
-		final JMenuItem reportBug = new JMenuItem(I18N.t("menu.help.bug.report"), KeyEvent.VK_B);
-		reportBug.addActionListener(e -> openUrl(HelpContent.ISSUE_TRACKER_URL));
-		menu.add(reportBug);
-
-		final JMenuItem diagnostics = new JMenuItem(I18N.t("menu.help.diagnostics"), KeyEvent.VK_I);
-		diagnostics.addActionListener(e -> DiagnosticsDialog.show(frame, frame.model()));
-		menu.add(diagnostics);
-
-		menu.add(new JSeparator());
-
-		final JMenuItem about = new JMenuItem(I18N.t("menu.help.about"), KeyEvent.VK_A);
-		about.addActionListener(e -> showAboutDialog());
-		menu.add(about);
-
-		return menu;
-	}
-
-
-	/* ======================================================================
-	 *                          Help actions
-	 * ====================================================================== */
-
-	private void openUrl(final String url){
-		if(!Desktop.isDesktopSupported()){
-			showUnsupportedBrowserMessage();
-			return;
-		}
-		final Desktop desktop = Desktop.getDesktop();
-		if(!desktop.isSupported(Desktop.Action.BROWSE)){
-			showUnsupportedBrowserMessage();
-			return;
-		}
-		try{
-			desktop.browse(new URI(url));
-		}
-		catch(final URISyntaxException e){
-			JOptionPane.showMessageDialog(frame,
-				I18N.tf("error.invalid_url", url),
-				I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
-		}
-		catch(final IOException e){
-			JOptionPane.showMessageDialog(frame,
-				I18N.tf("error.unable_to_open_url", url, e.getMessage()),
-				I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
-		}
-	}
-
-	private void showUnsupportedBrowserMessage(){
-		JOptionPane.showMessageDialog(frame,
-			I18N.t("error.not_supported.message"),
-			I18N.t("error.not_supported.title"), JOptionPane.WARNING_MESSAGE);
-	}
-
-	private void checkForUpdates(){
-		// TODO i18n
-		final Object[] options = {"Open Releases Page", "Close"};
-		final int choice = JOptionPane.showOptionDialog(frame,
-			"<html>You are running <b>Family Legacy "
-				+ HelpContent.APPLICATION_VERSION + "</b>.<br><br>"
-				+ "Open the releases page to check whether a newer version is available?</html>",
-			"Check for Updates",
-			JOptionPane.DEFAULT_OPTION,
-			JOptionPane.INFORMATION_MESSAGE,
-			null, options, options[0]);
-		if(choice == 0)
-			openUrl(HelpContent.RELEASES_URL);
-	}
-
-	private void showAboutDialog(){
-		// TODO i18n
-		final String message = """
-			<html>
-			<b>Family Legacy</b><br>
-			Version %s<br><br>
-			A modern genealogical data manager based on the<br>
-			Family LEgacy Format (FLEF) protocol.<br><br>
-			&copy; 2026 Mauro Trevisan<br>
-			Distributed under the MIT License.
-			</html>
-			""".formatted(HelpContent.APPLICATION_VERSION);
-		JOptionPane.showMessageDialog(frame, message, "About Family Legacy",
-			JOptionPane.INFORMATION_MESSAGE);
-	}
-
-
-	/* ======================================================================
 	 *                          Helpers
 	 * ====================================================================== */
 
@@ -864,6 +809,14 @@ final class ApplicationMenuBar{
 	private record ToolItemBinding(JMenuItem item, ToolOperation tool){}
 
 	/** Creates a menu item with a platform-appropriate accelerator. */
+	/** Creates an Undo/Redo item acting on the application history. */
+	private JMenuItem historyItem(final ShortcutRegistry.ShortcutDefinition shortcut, final Runnable action){
+		final JMenuItem item = new JMenuItem(shortcut.action());
+		item.setAccelerator(shortcut.keyStroke());
+		item.addActionListener(e -> action.run());
+		return item;
+	}
+
 	private JMenuItem accelerated(final String text, final int keyCode){
 		return accelerated(text, keyCode, 0);
 	}
@@ -886,8 +839,7 @@ final class ApplicationMenuBar{
 
 	private void showNotImplemented(final String feature){
 		JOptionPane.showMessageDialog(frame,
-			"\"" + feature + "\" is not implemented yet.",
-			"Feature Not Available", JOptionPane.INFORMATION_MESSAGE);
+			I18N.tf("message.not_implemented", feature), I18N.t("title.feature_not_available"), JOptionPane.INFORMATION_MESSAGE);
 	}
 
 }

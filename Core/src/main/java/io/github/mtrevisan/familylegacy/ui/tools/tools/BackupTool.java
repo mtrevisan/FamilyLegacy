@@ -60,7 +60,7 @@ public final class BackupTool implements ToolOperation{
 
 	@Override
 	public String getName(){
-		return "Backup…";
+		return I18N.t("menu.tools.backup");
 	}
 
 	@Override
@@ -71,7 +71,7 @@ public final class BackupTool implements ToolOperation{
 		final FLEFModel model = context.model();
 		if(model == null){
 			JOptionPane.showMessageDialog(context.owner(),
-				"No model loaded.", "Backup", JOptionPane.WARNING_MESSAGE);
+				I18N.t("message.no_model_loaded"), I18N.t("dialog.backup.title"), JOptionPane.WARNING_MESSAGE);
 
 			return;
 		}
@@ -101,13 +101,11 @@ public final class BackupTool implements ToolOperation{
 			Files.writeString(target.toPath(), content, StandardCharsets.UTF_8);
 
 			JOptionPane.showMessageDialog(context.owner(),
-				"Backup saved to:" + StringUtils.LF + target.getAbsolutePath(),
-				"Backup", JOptionPane.INFORMATION_MESSAGE);
+				I18N.l("dialog.backup.saved") + StringUtils.LF + target.getAbsolutePath(), I18N.t("dialog.backup.title"), JOptionPane.INFORMATION_MESSAGE);
 		}
 		catch(final IOException ex){
 			JOptionPane.showMessageDialog(context.owner(),
-				"Unable to save the backup:" + StringUtils.LF + ex.getMessage(),
-				"Backup", JOptionPane.ERROR_MESSAGE);
+				I18N.l("dialog.backup.error") + StringUtils.LF + ex.getMessage(), I18N.t("dialog.backup.title"), JOptionPane.ERROR_MESSAGE);
 		}
 	}
 

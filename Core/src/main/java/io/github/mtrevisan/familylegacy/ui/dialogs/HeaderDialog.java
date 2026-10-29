@@ -26,11 +26,10 @@ package io.github.mtrevisan.familylegacy.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.ProjectInfo;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.readers.HeaderReader;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextArea;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextField;
-import io.github.mtrevisan.familylegacy.ui.components.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.ui.components.lists.EntityListPanel;
 import io.github.mtrevisan.familylegacy.ui.handlers.ContactHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.HeaderHandler;
@@ -156,13 +155,13 @@ public class HeaderDialog extends BaseRecordDialog{
 		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]");
 
 		// date
-		GUIHelper.addLabeledComponent(panel, I18N.t("dialog.header.date") + ":", dateField);
+		GUIHelper.addLabeledComponent(panel, I18N.l("dialog.header.date"), dateField);
 
 		// copyright
-		GUIHelper.addLabeledComponent(panel, I18N.t("dialog.header.copyright") + ":", copyrightArea);
+		GUIHelper.addLabeledComponent(panel, I18N.l("dialog.header.copyright"), copyrightArea);
 
 		// scope
-		GUIHelper.addLabeledComponent(panel, I18N.t("dialog.header.scope") + ":", scopeArea);
+		GUIHelper.addLabeledComponent(panel, I18N.l("dialog.header.scope"), scopeArea);
 
 		return panel;
 	}
@@ -174,7 +173,7 @@ public class HeaderDialog extends BaseRecordDialog{
 		GUIHelper.addComponent(panel, submitterContactListPanel);
 
 		// note
-		GUIHelper.addLabeledComponent(panel, I18N.t("dialog.header.remark") + ":", submitterRemarkArea);
+		GUIHelper.addLabeledComponent(panel, I18N.l("dialog.header.remark"), submitterRemarkArea);
 
 		return panel;
 	}

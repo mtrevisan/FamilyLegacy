@@ -25,9 +25,9 @@
 package io.github.mtrevisan.familylegacy.ui.handlers;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryReader;
-import io.github.mtrevisan.familylegacy.ui.dialogs.records.RepositoryRecordDialog;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.ui.dialogs.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 
 import java.awt.Window;
@@ -37,10 +37,10 @@ import java.util.List;
 /**
  * Handler for REPOSITORY records.
  */
-public class RepositoryHandler extends AbstractRecordTypeHandler<RepositoryRecordDialog>{
+public class RepositoryHandler extends AbstractRecordTypeHandler<RecordDialog>{
 
-	public static final String TYPE = "REPOSITORY";
-	public static final String ID_PREFIX = "R";
+	public static final String TYPE = RepositoryReader.TYPE;
+	public static final String ID_PREFIX = RepositoryReader.ID_PREFIX;
 
 
 	private static final class SingletonHelper{
@@ -64,7 +64,7 @@ public class RepositoryHandler extends AbstractRecordTypeHandler<RepositoryRecor
 	}
 
 	public static boolean isOfType(final FLEFRecord record){
-		return (record != null && TYPE.equalsIgnoreCase(record.getTag()));
+		return RepositoryReader.isOfType(record);
 	}
 
 	@Override
@@ -85,14 +85,14 @@ public class RepositoryHandler extends AbstractRecordTypeHandler<RepositoryRecor
 	}
 
 	@Override
-	public RepositoryRecordDialog createNewDialog(final Window parent, final FLEFModel model){
-		return RepositoryRecordDialog.createNew(parent, model);
+	public RecordDialog createNewDialog(final Window parent, final FLEFModel model){
+		return RecordDialogs.createNew(TYPE, parent, model);
 	}
 
 	@Override
-	public RepositoryRecordDialog createEditDialog(final Window parent, final FLEFModel model,
-			final FLEFRecord record){
-		return RepositoryRecordDialog.createEdit(parent, model, record);
+	public RecordDialog createEditDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
+		return RecordDialogs.createEdit(TYPE, parent, model, record);
 	}
+
 
 }

@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.ui.preferences;
 
+import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
+
 import javax.swing.JOptionPane;
 import java.awt.Window;
 import java.io.IOException;
@@ -75,15 +77,12 @@ public final class ApplicationRestarter{
 	 */
 	public static void restart(final Window owner, final String reason){
 		JOptionPane.showMessageDialog(owner,
-			reason + "\n\nThe application will restart now.",
-			"Restart required",
+			reason + "\n\n" + I18N.t("dialog.restart.message"), I18N.t("dialog.restart.title"),
 			JOptionPane.INFORMATION_MESSAGE);
 
 		if(!tryRestart())
 			JOptionPane.showMessageDialog(owner,
-				"Could not restart automatically.\n"
-					+ "Please close and reopen the application.",
-				"Restart failed",
+				I18N.t("dialog.restart.failed.message"), I18N.t("dialog.restart.failed.title"),
 				JOptionPane.WARNING_MESSAGE);
 	}
 

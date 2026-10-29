@@ -39,10 +39,12 @@ import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.KeyEventDispatcher;
 import java.awt.KeyboardFocusManager;
 import java.awt.Point;
 import java.awt.RenderingHints;
 import java.awt.event.ActionEvent;
+import java.awt.event.HierarchyEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -109,6 +111,7 @@ public final class ChronomapTimeline extends JPanel{
 	private int hoveredX = -1;
 
 	private final List<Consumer<Double>> timeListeners = new ArrayList<>();
+	private final KeyEventDispatcher keyDispatcher = this::onKeyEvent;
 
 
 	public ChronomapTimeline(){
@@ -311,25 +314,38 @@ public final class ChronomapTimeline extends JPanel{
 		});
 	}
 
+	/** The dispatcher is global, so it is registered only while the timeline is displayable: it must not outlive its window. */
 	private void configureGlobalKeyDispatcher(){
-		final KeyboardFocusManager currentKeyboardFocusManager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
-		currentKeyboardFocusManager.addKeyEventDispatcher(e -> {
-			if(e.getID() != KeyEvent.KEY_PRESSED || !isShowing())
-				return false;
-
-			final int keyCode = e.getKeyCode();
-			final boolean isShift = e.isShiftDown();
-
-			if(keyCode == KeyEvent.VK_LEFT){
-				stepTime(isShift? -DAYS_PER_YEAR: -DAYS_PER_MONTH);
-				return true;
-			}
-			else if(keyCode == KeyEvent.VK_RIGHT){
-				stepTime(isShift? DAYS_PER_YEAR: DAYS_PER_MONTH);
-				return true;
-			}
-			return false;
+		addHierarchyListener(e -> {
+			if((e.getChangeFlags() & HierarchyEvent.DISPLAYABILITY_CHANGED) != 0)
+				updateKeyDispatcher();
 		});
+		updateKeyDispatcher();
+	}
+
+	private void updateKeyDispatcher(){
+		final KeyboardFocusManager manager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
+		manager.removeKeyEventDispatcher(keyDispatcher);
+		if(isDisplayable())
+			manager.addKeyEventDispatcher(keyDispatcher);
+	}
+
+	private boolean onKeyEvent(final KeyEvent e){
+		if(e.getID() != KeyEvent.KEY_PRESSED || !isShowing())
+			return false;
+
+		final int keyCode = e.getKeyCode();
+		final boolean isShift = e.isShiftDown();
+
+		if(keyCode == KeyEvent.VK_LEFT){
+			stepTime(isShift? -DAYS_PER_YEAR: -DAYS_PER_MONTH);
+			return true;
+		}
+		else if(keyCode == KeyEvent.VK_RIGHT){
+			stepTime(isShift? DAYS_PER_YEAR: DAYS_PER_MONTH);
+			return true;
+		}
+		return false;
 	}
 
 	private void stepTime(final double deltaJdn){

@@ -27,17 +27,18 @@ package io.github.mtrevisan.familylegacy.ui.components.projections.social;
 import io.github.mtrevisan.calendars.CalendarType;
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DatePrecision;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.NormalizedDate;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.components.projections.repository.TreeChangeListener;
 import io.github.mtrevisan.familylegacy.ui.components.projections.temporal.TemporalEntityRef;
-import io.github.mtrevisan.familylegacy.ui.components.searches.RecordSelectionDialog;
-import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.ui.components.searches.service.RecordSelectionDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JFrame;
@@ -406,7 +407,7 @@ public final class SocialNetworkPanel extends JPanel implements TreeChangeListen
 
 		final RecordTypeHandler<?> handler = handlerForTag(record.getTag());
 		final Window parent = SwingUtilities.getWindowAncestor(this);
-		final BaseRecordDialog dialog = handler.createEditDialog(parent, model, record);
+		final RecordDialog dialog = handler.createEditDialog(parent, model, record);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved())
@@ -559,8 +560,7 @@ public final class SocialNetworkPanel extends JPanel implements TreeChangeListen
 			highlightedPath = null;
 			highlightedEdges = Collections.emptySet();
 			JOptionPane.showMessageDialog(this,
-				"No social path found between the chosen entities.",
-				"Path not found", JOptionPane.INFORMATION_MESSAGE);
+				I18N.t("dialog.social.path_not_found.message"), I18N.t("dialog.social.path_not_found.title"), JOptionPane.INFORMATION_MESSAGE);
 		}
 		else{
 			highlightedPath = path;

@@ -25,11 +25,11 @@
 package io.github.mtrevisan.familylegacy.ui.components.lists;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.io.model.readers.MediaReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.NoteReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.ui.bindings.BindingsHelper;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundFilteredComboBox;
@@ -215,11 +215,11 @@ public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
 
 		GUIHelper.addComponent(dialog, documentPartPanel);
 
-		GUIHelper.addLabeledComponent(dialog, I18N.t("dialog.extract.text") + "*:", textArea);
+		GUIHelper.addLabeledComponent(dialog, GUIHelper.requiredLabel("dialog.extract.text"), textArea);
 
-		GUIHelper.addLabeledComponent(dialog, I18N.t("dialog.extract.type") + "*:", typeCombo);
+		GUIHelper.addLabeledComponent(dialog, GUIHelper.requiredLabel("dialog.extract.type"), typeCombo);
 
-		GUIHelper.addLabeledComponent(dialog, I18N.t("dialog.extract.locale") + ":", localeCombo);
+		GUIHelper.addLabeledComponent(dialog, I18N.l("dialog.extract.locale"), localeCombo);
 
 		GUIHelper.addComponent(dialog, basicNote);
 	}

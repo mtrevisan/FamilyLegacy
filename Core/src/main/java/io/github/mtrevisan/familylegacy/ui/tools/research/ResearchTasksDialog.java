@@ -25,9 +25,9 @@
 package io.github.mtrevisan.familylegacy.ui.tools.research;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchTaskReader;
-import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.ui.dialogs.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.ResearchTaskHandler;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolContext;
@@ -101,7 +101,7 @@ public final class ResearchTasksDialog extends JDialog{
 		final JPanel toolbar = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 6));
 		toolbar.setBorder(BorderFactory.createEmptyBorder(2, 4, 2, 4));
 
-		toolbar.add(new JLabel("Search:"));
+		toolbar.add(new JLabel(I18N.l("label.search")));
 		toolbar.add(searchField);
 		final Document document = searchField.getDocument();
 		document.addDocumentListener(new DocumentListener(){
@@ -156,7 +156,7 @@ public final class ResearchTasksDialog extends JDialog{
 		});
 
 		final JScrollPane scroll = new JScrollPane(table);
-		scroll.setBorder(BorderFactory.createTitledBorder("Research tasks"));
+		scroll.setBorder(BorderFactory.createTitledBorder(I18N.t("border.research_tasks")));
 		return scroll;
 	}
 
@@ -222,7 +222,7 @@ public final class ResearchTasksDialog extends JDialog{
 
 	private void openEditor(final FLEFRecord researchTask){
 		final ResearchTaskHandler handler = ResearchTaskHandler.getInstance();
-		final BaseRecordDialog dialog;
+		final RecordDialog dialog;
 		final FLEFModel model = context.model();
 		if(researchTask == null)
 			dialog = handler.createNewDialog(this, model);

@@ -45,7 +45,6 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics2D;
-import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
@@ -68,7 +67,7 @@ public class ImageCarouselPanel extends JPanel{
 	private final DefaultListModel<ThumbnailInfo> model = new DefaultListModel<>();
 
 	private List<String> imageUris = new ArrayList<>();
-	private boolean loading;
+	private SwingWorker<Void, ThumbnailInfo> thumbnailWorker;
 
 
 	public ImageCarouselPanel(){
@@ -133,15 +132,20 @@ public class ImageCarouselPanel extends JPanel{
 	}
 
 	private void loadThumbnails(){
-		if(loading || imageUris.isEmpty())
+		//the list of the images changed: the thumbnails of the previous one are not needed any more
+		if(thumbnailWorker != null)
+			thumbnailWorker.cancel(true);
+		if(imageUris.isEmpty())
 			return;
 
-		loading = true;
-
+		final List<String> uris = List.copyOf(imageUris);
 		final SwingWorker<Void, ThumbnailInfo> worker = new SwingWorker<>(){
 			@Override
 			protected Void doInBackground(){
-				for(final String uri : imageUris){
+				for(final String uri : uris){
+					if(isCancelled())
+						break;
+
 					final ImageIcon thumb = loadThumbnail(uri);
 					publish(new ThumbnailInfo(uri, thumb));
 				}
@@ -151,6 +155,9 @@ public class ImageCarouselPanel extends JPanel{
 
 			@Override
 			protected void process(final List<ThumbnailInfo> chunks){
+				if(isCancelled())
+					return;
+
 				for(final ThumbnailInfo info : chunks)
 					for(int i = 0, size = model.size(); i < size; i ++){
 						final ThumbnailInfo existing = model.get(i);
@@ -164,11 +171,11 @@ public class ImageCarouselPanel extends JPanel{
 
 			@Override
 			protected void done(){
-				loading = false;
-
-				repaint();
+				if(!isCancelled())
+					repaint();
 			}
 		};
+		thumbnailWorker = worker;
 		worker.execute();
 	}
 
@@ -178,14 +185,9 @@ public class ImageCarouselPanel extends JPanel{
 			if(img == null)
 				return createPlaceholderIcon(THUMBNAIL_SIZE);
 
-			final int w = img.getWidth();
-			final int h = img.getHeight();
+			//a real (small) image: the one of Image#getScaledInstance keeps a reference to the full size one, for ever
 			final int targetSize = THUMBNAIL_SIZE - 4;
-			final double scale = Math.min((double)targetSize / w, (double)targetSize / h);
-			final int newW = (int)(w * scale);
-			final int newH = (int)(h * scale);
-			final Image scaled = img.getScaledInstance(newW, newH, Image.SCALE_SMOOTH);
-			return new ImageIcon(scaled);
+			return new ImageIcon(ResourceHelper.resize(img, targetSize, targetSize, false));
 		}
 		catch(final Exception e){
 			return createPlaceholderIcon(THUMBNAIL_SIZE);

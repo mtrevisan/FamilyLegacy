@@ -24,8 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.ui.tools.tools.merge;
 
-import io.github.mtrevisan.familylegacy.io.grammar.FLEFGrammar;
 import io.github.mtrevisan.familylegacy.io.grammar.FLEFGrammarParser;
+import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.FLEFGrammar;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

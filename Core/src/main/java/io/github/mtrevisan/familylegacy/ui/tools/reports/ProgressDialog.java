@@ -79,7 +79,7 @@ public final class ProgressDialog extends JDialog{
 		cancelButton.addActionListener(e -> {
 			cancelled.set(true);
 			cancelButton.setEnabled(false);
-			messageLabel.setText("Cancelling…");
+			messageLabel.setText(I18N.t("text.cancelling"));
 		});
 		buttons.add(cancelButton);
 
@@ -96,7 +96,7 @@ public final class ProgressDialog extends JDialog{
 			public void windowClosing(final WindowEvent e){
 				cancelled.set(true);
 				cancelButton.setEnabled(false);
-				messageLabel.setText("Cancelling…");
+				messageLabel.setText(I18N.t("text.cancelling"));
 			}
 		});
 

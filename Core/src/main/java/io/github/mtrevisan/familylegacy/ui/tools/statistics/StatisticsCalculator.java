@@ -25,20 +25,21 @@
 package io.github.mtrevisan.familylegacy.ui.tools.statistics;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventParticipationHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RelationshipHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.SourceHandler;
+import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -94,7 +95,7 @@ public final class StatisticsCalculator{
 		final Progress p = (progress != null? progress: (percent, message) -> {
 		});
 
-		p.update(0, "Indexing events…");
+		p.update(0, I18N.t("progress.statistics.indexing_events"));
 
 		// --- Index: event type by event id ---
 		final Map<String, String> eventTypeById = new HashMap<>();
@@ -107,7 +108,7 @@ public final class StatisticsCalculator{
 		}
 
 		// --- Index: participants and their birth/death events ---
-		p.update(5, "Indexing participations…");
+		p.update(5, I18N.t("progress.statistics.indexing_participations"));
 		final Set<String> hasBirth = new HashSet<>();
 		final Set<String> hasDeath = new HashSet<>();
 		final List<FLEFRecord> eventParticipations = PrivacyService.visible(model, model.getRecordsByType(EventParticipationHandler.TYPE));
@@ -126,7 +127,7 @@ public final class StatisticsCalculator{
 		}
 
 		// --- Index: individuals with at least one parent relationship ---
-		p.update(10, "Indexing parent relationships…");
+		p.update(10, I18N.t("progress.statistics.indexing_parents"));
 		final Set<String> withParents = new HashSet<>();
 		final List<FLEFRecord> relationships = PrivacyService.visible(model, model.getRecordsByType(RelationshipHandler.TYPE));
 		for(final FLEFRecord relationship : relationships){
@@ -143,7 +144,7 @@ public final class StatisticsCalculator{
 		}
 
 		// --- Completeness ---
-		p.update(20, "Computing completeness…");
+		p.update(20, I18N.t("progress.statistics.completeness"));
 		final List<FLEFRecord> individuals = PrivacyService.visible(model, model.getRecordsByType(IndividualHandler.TYPE));
 		final List<Statistics.Completeness.Category> categories = new ArrayList<>();
 
@@ -181,7 +182,7 @@ public final class StatisticsCalculator{
 			individuals.size(), events.size(), sources.size(), categories);
 
 		// --- Distribution ---
-		p.update(50, "Computing name distribution…");
+		p.update(50, I18N.t("progress.statistics.name_distribution"));
 		final Map<String, Integer> surnameCounts = new HashMap<>();
 		final Map<String, Integer> givenCounts = new HashMap<>();
 		int male = 0, female = 0, unknownSex = 0;
@@ -229,7 +230,7 @@ public final class StatisticsCalculator{
 			topSurnames, topGiven);
 
 		// --- Coverage ---
-		p.update(80, "Computing source coverage…");
+		p.update(80, I18N.t("progress.statistics.source_coverage"));
 		final Map<String, int[]> byTag = new LinkedHashMap<>();
 		final Map<String, Integer> sourceUseCount = new HashMap<>();
 
@@ -281,7 +282,7 @@ public final class StatisticsCalculator{
 		final Statistics.Coverage coverage = new Statistics.Coverage(totalRecords, totalCitations, coverageByType,
 			topSources);
 
-		p.update(100, "Done");
+		p.update(100, I18N.t("progress.statistics.done"));
 		return new Statistics(completeness, distribution, coverage);
 	}
 

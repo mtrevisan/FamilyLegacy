@@ -25,7 +25,7 @@
 package io.github.mtrevisan.familylegacy.ui.components.projections.services;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.components.projections.dossier.GroupDossierPanel;
 import io.github.mtrevisan.familylegacy.ui.components.projections.dossier.IndividualDossierPanel;
 import io.github.mtrevisan.familylegacy.ui.handlers.GroupHandler;

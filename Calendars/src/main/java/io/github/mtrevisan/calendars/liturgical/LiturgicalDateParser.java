@@ -33,6 +33,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 
 /**
@@ -53,6 +54,7 @@ import java.util.Set;
  */
 final class LiturgicalDateParser{
 
+	private static final Pattern YEAR_WORD = Pattern.compile("\\d{3,4}");
 	/** A relative position, applied to the day of a feast. */
 	record Shift(Kind kind, int weekday, int count, int days){
 
@@ -156,7 +158,7 @@ final class LiturgicalDateParser{
 	private static int extractYear(final List<String> words, final String rawDate){
 		int yearIndex = -1;
 		for(int i = 0; i < words.size(); i ++)
-			if(words.get(i).matches("\\d{3,4}")){
+			if(YEAR_WORD.matcher(words.get(i)).matches()){
 				if(yearIndex >= 0)
 					throw new IllegalArgumentException("More than one year in the liturgical date: " + rawDate);
 				yearIndex = i;

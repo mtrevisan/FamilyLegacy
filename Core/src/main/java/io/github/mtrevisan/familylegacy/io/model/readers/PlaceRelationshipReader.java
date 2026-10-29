@@ -24,8 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.io.model.readers;
 
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 
 
 /**
@@ -63,6 +63,9 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
  */
 public final class PlaceRelationshipReader{
 
+	public static final String TYPE = "PLACE_RELATIONSHIP";
+	public static final String ID_PREFIX = "PR";
+
 	public static final String TAG_SUBJECT = "subject";
 	public static final String TAG_TARGET = "target";
 	public static final String TAG_TYPE = "type";
@@ -81,6 +84,12 @@ public final class PlaceRelationshipReader{
 
 
 	private PlaceRelationshipReader(){}
+
+	/** @return whether the record is of this type (its tag is the type, ignoring case) */
+	public static boolean isOfType(final FLEFRecord record){
+		return (record != null && TYPE.equalsIgnoreCase(record.getTag()));
+	}
+
 
 
 	public static String extractType(final FLEFRecord record){

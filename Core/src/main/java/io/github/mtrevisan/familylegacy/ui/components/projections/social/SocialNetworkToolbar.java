@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections.social;
 
+import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
+
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.JButton;
@@ -94,17 +96,17 @@ public final class SocialNetworkToolbar extends JPanel{
 	}
 
 
-	private final JButton focusBtn = new JButton("Pick focus…");
+	private final JButton focusBtn = new JButton(I18N.t("button.pick_focus"));
 	private final JLabel focusLabel = new JLabel("(none)");
 	private final JSpinner maxDegreeSpinner = new JSpinner(new SpinnerNumberModel(1, 0, 6, 1));
 	private final JComboBox<SocialLayoutMode> layoutCombo = new JComboBox<>(SocialLayoutMode.values());
-	private final JCheckBox includeInactiveCheck = new JCheckBox("Ended");
-	private final JCheckBox includeEmptyRoleCheck = new JCheckBox("Empty role", true);
-	private final JButton categoriesBtn = new JButton("Categories…");
-	private final JButton pathFinderBtn = new JButton("Path finder…");
-	private final JButton fitBtn = new JButton("Fit");
+	private final JCheckBox includeInactiveCheck = new JCheckBox(I18N.t("checkbox.ended"));
+	private final JCheckBox includeEmptyRoleCheck = new JCheckBox(I18N.t("checkbox.empty_role"), true);
+	private final JButton categoriesBtn = new JButton(I18N.t("button.categories"));
+	private final JButton pathFinderBtn = new JButton(I18N.t("button.path_finder"));
+	private final JButton fitBtn = new JButton(I18N.t("button.fit"));
 
-	private final JCheckBox temporalFilterCheck = new JCheckBox("Dates");
+	private final JCheckBox temporalFilterCheck = new JCheckBox(I18N.t("checkbox.dates"));
 	private final JSpinner fromDateSpinner = createDateSpinner(defaultFromDate());
 	private final JSpinner toDateSpinner = createDateSpinner(defaultToDate());
 

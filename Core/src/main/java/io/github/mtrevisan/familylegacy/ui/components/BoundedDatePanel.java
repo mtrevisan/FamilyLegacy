@@ -25,9 +25,9 @@
 package io.github.mtrevisan.familylegacy.ui.components;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.io.model.readers.DateReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.DateReader;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import net.miginfocom.swing.MigLayout;
 
@@ -110,6 +110,22 @@ public class BoundedDatePanel extends JPanel{
 		}
 
 		return (record.hasData()? record.setTag(DateReader.TAG_BOUNDED): FLEFRecord.createEmpty());
+	}
+
+	/**
+	 * Replaces the content with a range of full dates: used when the user applies a suggestion.
+	 *
+	 * @param calendarCode	the code of the calendar of the dates
+	 * @param notBefore	the earliest date, or {@code null}
+	 * @param notAfter	the latest date, or {@code null}
+	 */
+	public void setRange(final String calendarCode, final String notBefore, final String notAfter){
+		clear();
+
+		if(notBefore != null)
+			notBeforePanel.setFullDate(calendarCode, notBefore);
+		if(notAfter != null)
+			notAfterPanel.setFullDate(calendarCode, notAfter);
 	}
 
 	public void clear(){

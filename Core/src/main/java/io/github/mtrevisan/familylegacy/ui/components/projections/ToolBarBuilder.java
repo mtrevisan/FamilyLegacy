@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections;
 
+import io.github.mtrevisan.familylegacy.ui.components.projections.common.ProjectionType;
 import io.github.mtrevisan.familylegacy.ui.dialogs.help.ShortcutRegistry;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 
@@ -43,6 +44,7 @@ public final class ToolBarBuilder{
 	private JToggleButton btnTreeLayout;
 	private JToggleButton btnGraphLayout;
 	private JToggleButton btnEgoLayout;
+	private JToggleButton btnChronomap;
 	private JToggleButton btnToggleSidebar;
 
 
@@ -60,7 +62,7 @@ public final class ToolBarBuilder{
 		btnForward.setToolTipText(I18N.t("toolbar.navigate.forward") + " (" + ShortcutRegistry.NAV_FORWARD.displayKeys() + ")");
 		btnForward.addActionListener(e -> onForward.run());
 
-		final JButton btnJump = new JButton("Jump To…");
+		final JButton btnJump = new JButton(I18N.t("button.jump_to"));
 		btnJump.setToolTipText(I18N.t("toolbar.jump.to") + " (" + ShortcutRegistry.NAV_JUMP_TO_INDIVIDUAL_OR_GROUP.displayKeys() + ")");
 		btnJump.addActionListener(e -> onJump.run());
 
@@ -88,14 +90,20 @@ public final class ToolBarBuilder{
 		btnEgoLayout.setToolTipText(I18N.t("toolbar.projection.ego_network.tooltip") + " (" + ShortcutRegistry.VIEW_EGO_NETWORK.displayKeys() + ")");
 		btnEgoLayout.addActionListener(e -> onProjectionSelect.accept(ProjectionType.EGO_NETWORK));
 
+		btnChronomap = new JToggleButton(I18N.t("toolbar.projection.chronomap"));
+		btnChronomap.setToolTipText(I18N.t("toolbar.projection.chronomap.tooltip") + " (" + ShortcutRegistry.VIEW_CHRONOMAP.displayKeys() + ")");
+		btnChronomap.addActionListener(e -> onProjectionSelect.accept(ProjectionType.CHRONOMAP));
+
 		final ButtonGroup projectionGroup = new ButtonGroup();
 		projectionGroup.add(btnTreeLayout);
 		projectionGroup.add(btnGraphLayout);
 		projectionGroup.add(btnEgoLayout);
+		projectionGroup.add(btnChronomap);
 
 		toolBar.add(btnTreeLayout);
 		toolBar.add(btnGraphLayout);
 		toolBar.add(btnEgoLayout);
+		toolBar.add(btnChronomap);
 		toolBar.addSeparator();
 
 		// Sidebar Toggle
@@ -113,6 +121,7 @@ public final class ToolBarBuilder{
 			case BIOLOGICAL_TREE -> btnTreeLayout.setSelected(true);
 			case SUGIYAMA_GRAPH -> btnGraphLayout.setSelected(true);
 			case EGO_NETWORK -> btnEgoLayout.setSelected(true);
+			case CHRONOMAP -> btnChronomap.setSelected(true);
 		}
 	}
 

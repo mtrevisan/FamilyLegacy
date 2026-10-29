@@ -25,7 +25,7 @@
 package io.github.mtrevisan.familylegacy.privacy;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.preferences.AppPreferences;
 
 import java.util.List;
@@ -48,14 +48,26 @@ public final class PrivacyService{
 
 	private static final List<Runnable> LISTENERS = new CopyOnWriteArrayList<>();
 
-	private static PrivacyPolicy policy = AppPreferences.getInstance()
-		.privacyPolicy();
+	private static PrivacyPolicy policy = persistedPolicy();
 	private static FLEFModel cachedModel;
 	private static int cachedRecordCount;
 	private static PrivacyResolver cachedResolver;
 
 
 	private PrivacyService(){}
+
+
+	/** @return the policy persisted in the preferences, or {@link PrivacyPolicy#SHOW_ALL} when unset or unknown */
+	private static PrivacyPolicy persistedPolicy(){
+		try{
+			final String name = AppPreferences.getInstance()
+				.privacyPolicyName();
+			return (name != null? PrivacyPolicy.valueOf(name): PrivacyPolicy.SHOW_ALL);
+		}
+		catch(final IllegalArgumentException ignored){
+			return PrivacyPolicy.SHOW_ALL;
+		}
+	}
 
 
 	public static synchronized PrivacyPolicy policy(){
@@ -73,7 +85,7 @@ public final class PrivacyService{
 			policy = newPolicy;
 		}
 		AppPreferences.getInstance()
-			.setPrivacyPolicy(newPolicy);
+			.setPrivacyPolicyName(newPolicy.name());
 		fireChanged();
 	}
 

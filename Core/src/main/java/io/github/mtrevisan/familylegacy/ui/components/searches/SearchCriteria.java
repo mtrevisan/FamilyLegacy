@@ -29,7 +29,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 
 
@@ -39,7 +38,7 @@ import java.util.Set;
  * date range, ...) set by the dynamic filter panel.
  * <p>
  * The mode is a {@link SearchMode} rather than a pair of booleans, so the
- * matcher in {@link SearchService} reads a single value and the dialog
+ * matcher in {@code SearchService} reads a single value and the dialog
  * exposes exactly one selected mode at a time.
  */
 public final class SearchCriteria{

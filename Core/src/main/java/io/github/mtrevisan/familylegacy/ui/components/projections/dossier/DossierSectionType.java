@@ -24,6 +24,10 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections.dossier;
 
+import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
+
+import java.util.Locale;
+
 
 /**
  * The sections that compose an individual dossier.
@@ -37,39 +41,31 @@ package io.github.mtrevisan.familylegacy.ui.components.projections.dossier;
 public enum DossierSectionType{
 
 	/** Names, sex, vital dates, photo, privacy. */
-	IDENTITY("Identity"),
+	IDENTITY,
 
 	/** All events in which the individual participated. */
-	EVENTS("Events"),
+	EVENTS,
 
 	/** Enduring attributes owned by the individual. */
-	ATTRIBUTES("Attributes"),
+	ATTRIBUTES,
 
 	/** All relationships involving the individual. */
-	RELATIONSHIPS("Relationships"),
+	RELATIONSHIPS,
 
 	/** Source citations attached to the individual and its records. */
-	SOURCES("Sources"),
+	SOURCES,
 
 	/** Contextual factors (historic events, cultural norms) affecting the individual. */
-	CONTEXT("Context"),
+	CONTEXT,
 
 	/** Identity hypothesis that include the individual as a candidate. */
-	IDENTITY_HYPOTHESES("Identity hypothesis"),
+	IDENTITY_HYPOTHESES,
 
 	/** Research questions and conclusions about the individual. */
-	RESEARCH("Research"),
+	RESEARCH,
 
 	/** Free-text notes attached to the individual and its records. */
-	NOTES("Notes");
-
-
-	private final String displayLabel;
-
-
-	DossierSectionType(final String displayLabel){
-		this.displayLabel = displayLabel;
-	}
+	NOTES;
 
 
 	/**
@@ -78,7 +74,7 @@ public enum DossierSectionType{
 	 * @return the display label, never {@code null}
 	 */
 	public String getDisplayLabel(){
-		return displayLabel;
+		return I18N.t("enum.dossier.section." + name().toLowerCase(Locale.ROOT));
 	}
 
 }

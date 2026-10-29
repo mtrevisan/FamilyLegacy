@@ -91,9 +91,9 @@ public final class DateCalculatorDialog extends JDialog{
 		ebResultField.setEditable(false);
 
 		final JTabbedPane tabs = new JTabbedPane();
-		tabs.addTab("Age at date", createAgePanel());
-		tabs.addTab("Interval", createIntervalPanel());
-		tabs.addTab("Estimated birth", createEstimatedBirthPanel());
+		tabs.addTab(I18N.t("tab.title.age_at_date"), createAgePanel());
+		tabs.addTab(I18N.t("tab.title.interval"), createIntervalPanel());
+		tabs.addTab(I18N.t("tab.title.estimated_birth"), createEstimatedBirthPanel());
 
 		setLayout(new BorderLayout(8, 8));
 		add(tabs, BorderLayout.CENTER);
@@ -136,14 +136,14 @@ public final class DateCalculatorDialog extends JDialog{
 
 		// Age row: three small fields.
 		gbc.gridx = 0; gbc.gridy = 1; gbc.weightx = 0;
-		panel.add(new JLabel("Age:"), gbc);
+		panel.add(new JLabel(I18N.l("label.age")), gbc);
 		final JPanel ageRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 0));
 		ageRow.add(ebYearsField);
-		ageRow.add(new JLabel("years"));
+		ageRow.add(new JLabel(I18N.t("label.years")));
 		ageRow.add(ebMonthsField);
-		ageRow.add(new JLabel("months"));
+		ageRow.add(new JLabel(I18N.l("label.months")));
 		ageRow.add(ebDaysField);
-		ageRow.add(new JLabel("days"));
+		ageRow.add(new JLabel(I18N.t("label.days")));
 		gbc.gridx = 1; gbc.weightx = 1;
 		panel.add(ageRow, gbc);
 
@@ -203,7 +203,7 @@ public final class DateCalculatorDialog extends JDialog{
 			return;
 		}
 		if(reference.isBefore(birth)){
-			ageResultField.setText("Reference date is before the birth date");
+			ageResultField.setText(I18N.t("text.age_before_birth"));
 			return;
 		}
 		final Period p = Period.between(birth, reference);
@@ -234,7 +234,7 @@ public final class DateCalculatorDialog extends JDialog{
 		final Integer months = parseInt(ebMonthsField);
 		final Integer days = parseInt(ebDaysField);
 		if(years == null || months == null || days == null){
-			ebResultField.setText("Invalid age");
+			ebResultField.setText(I18N.t("text.invalid_age"));
 			return;
 		}
 		LocalDate birth = reference.minusYears(years).minusMonths(months).minusDays(days);

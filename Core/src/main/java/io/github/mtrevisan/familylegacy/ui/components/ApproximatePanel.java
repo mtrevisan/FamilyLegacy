@@ -25,9 +25,9 @@
 package io.github.mtrevisan.familylegacy.ui.components;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.io.model.readers.DateReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.DateReader;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.ui.components.lists.EntityListPanel;
 import io.github.mtrevisan.familylegacy.ui.handlers.CulturalNormHandler;
@@ -92,7 +92,7 @@ public class ApproximatePanel extends JPanel{
 		final JPanel basisPanel = GUIHelper.createLabelFieldPanel(0, "[]");
 		basisCombo = new BoundComboBox<>(DateReader.TAG_BASIS, DateReader.BASES);
 		basisCombo.setI18NPrefix("enum.date.basis");
-		GUIHelper.addLabeledComponent(basisPanel, I18N.t("dialog.date.basis") + ":", basisCombo);
+		GUIHelper.addLabeledComponent(basisPanel, I18N.l("dialog.date.basis"), basisCombo);
 		GUIHelper.addComponent(this, basisPanel);
 
 		// cultural norm
@@ -100,7 +100,7 @@ public class ApproximatePanel extends JPanel{
 
 		// margin
 		final JPanel marginPanel = GUIHelper.createLabelFieldPanel(0, "[]");
-		GUIHelper.addLabeledComponent(marginPanel, I18N.t("dialog.date.margin") + ":", marginField);
+		GUIHelper.addLabeledComponent(marginPanel, I18N.l("dialog.date.margin"), marginField);
 		marginField.setToolTipText(I18N.t("dialog.date.margin.tooltip"));
 		GUIHelper.addComponent(this, marginPanel);
 

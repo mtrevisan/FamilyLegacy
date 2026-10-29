@@ -24,11 +24,12 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components;
 
+import io.github.mtrevisan.calendars.assistant.DateSuggestion;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.DateReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.DateReader;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.ui.bindings.BindingManager;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextField;
@@ -42,6 +43,7 @@ import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
@@ -69,8 +71,9 @@ import java.awt.Window;
  * }
  * </pre>
  */
-public class DateStructurePanel extends JPanel{
+public class DateStructurePanel extends JPanel implements HistoricalDateAssistantHost{
 
+	private final FLEFModel model;
 	private final JTabbedPane tabbedPane = new JTabbedPane();
 
 	private final BindingManager bindingManager = new BindingManager();
@@ -85,6 +88,8 @@ public class DateStructurePanel extends JPanel{
 
 
 	public DateStructurePanel(final Window parent, final FLEFModel model){
+		this.model = model;
+
 		pointDateValuePanel = new SingleDatePanel(parent, model);
 		boundedDateValuePanel = new BoundedDatePanel(parent, model);
 		spanningDateValuePanel = new SpanningDatePanel(parent, model);
@@ -111,7 +116,7 @@ public class DateStructurePanel extends JPanel{
 		final JPanel pointPanel = new JPanel(new MigLayout("ins 0,fillx"));
 		pointPanel.setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
 		final JPanel valueWrapper = GUIHelper.createLabelFieldPanel(7, "[]");
-		valueWrapper.setBorder(BorderFactory.createTitledBorder("Date"));
+		valueWrapper.setBorder(BorderFactory.createTitledBorder(I18N.t("border.date")));
 		GUIHelper.addComponent(valueWrapper, pointDateValuePanel);
 		pointPanel.add(valueWrapper, "growx");
 		tabbedPane.addTab(I18N.t("dialog.date.point"), pointPanel);
@@ -137,7 +142,7 @@ public class DateStructurePanel extends JPanel{
 		});
 		add(tabbedPane, "span 2,growx");
 
-		final JLabel originalTextLabel = new JLabel(I18N.t("dialog.date.original_text") + ":");
+		final JLabel originalTextLabel = new JLabel(I18N.l("dialog.date.original_text"));
 		originalTextLabel.setLabelFor(originalTextField);
 		add(originalTextLabel, "align label");
 		add(originalTextField, "growx");
@@ -146,7 +151,7 @@ public class DateStructurePanel extends JPanel{
 		add(sourcePanel, "span 2,growx");
 
 		// confidence
-		final JLabel confidenceLabel = new JLabel(I18N.t("dialog.component.confidence") + ":");
+		final JLabel confidenceLabel = new JLabel(I18N.l("dialog.component.confidence"));
 		confidenceLabel.setLabelFor(confidenceCombo);
 		add(confidenceLabel, "align label");
 		add(confidenceCombo, "growx");
@@ -251,6 +256,40 @@ public class DateStructurePanel extends JPanel{
 	}
 
 
+	@Override
+	public void openHistoricalDateAssistant(final HistoricalDateAssistantDialog.Tool tool){
+		final boolean point = (tabbedPane.getSelectedIndex() == 0);
+		new HistoricalDateAssistantDialog(SwingUtilities.getWindowAncestor(this), tool,
+			(point? pointDateValuePanel.getCalendar(): null), (point? pointDateValuePanel.getFullDateText(): null),
+			model, this::applySuggestion)
+			.setVisible(true);
+	}
+
+	/**
+	 * Applies a suggestion of the assistant, as a point date, after the user asked for it.
+	 * <p>
+	 * If a date is already present the user has to confirm the replacement.
+	 * </p>
+	 */
+	private void applySuggestion(final DateSuggestion suggestion){
+		if(!suggestion.isApplicable())
+			return;
+
+		if(hasData() && JOptionPane.showConfirmDialog(this, I18N.t("dialog.date_assistant.replace_confirm"),
+				I18N.t("dialog.date_assistant.title"), JOptionPane.YES_NO_OPTION) != JOptionPane.YES_OPTION)
+			return;
+
+		if(suggestion.isBounded()){
+			tabbedPane.setSelectedIndex(1);
+			boundedDateValuePanel.setRange(suggestion.calendarCode(), suggestion.notBefore(), suggestion.notAfter());
+		}
+		else{
+			tabbedPane.setSelectedIndex(0);
+			pointDateValuePanel.setFullDate(suggestion.calendarCode(), suggestion.normalizedDate());
+		}
+	}
+
+
 	/**
 	 * Saves a VALUE date.
 	 * Creates a VALUE node with children ISO/CENTURY/DECADE and APPROXIMATE.
@@ -304,7 +343,7 @@ public class DateStructurePanel extends JPanel{
 			DateStructurePanel panel = new DateStructurePanel(null, model);
 			frame.add(panel, BorderLayout.CENTER);
 
-			JButton printBtn = new JButton("Print Record");
+			JButton printBtn = new JButton(I18N.t("button.print_record"));
 			printBtn.addActionListener(e -> {
 				FLEFRecord record = panel.save();
 				if(record != null)

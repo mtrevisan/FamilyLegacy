@@ -24,10 +24,14 @@
  */
 package io.github.mtrevisan.familylegacy.ui.tools.tools;
 
+import io.github.mtrevisan.calendars.CalendarType;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.DateNormalizer;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.NormalizedDate;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.TemporalSpan;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventParticipationHandler;
@@ -79,6 +83,8 @@ import java.util.regex.Pattern;
  */
 public final class DuplicateFinderService{
 
+	private static final Pattern PUNCTUATION_RUN = Pattern.compile("[\\p{Punct}]+");
+	private static final Pattern COMBINING_MARKS = Pattern.compile("\\p{M}+");
 	public static final int DEFAULT_THRESHOLD = 55;
 	public static final int DEFAULT_MAX_RESULTS = 500;
 
@@ -476,9 +482,9 @@ public final class DuplicateFinderService{
 
 		String s = text.toLowerCase(Locale.ROOT);
 		s = Normalizer.normalize(s, Normalizer.Form.NFD);
-		s = s.replaceAll("\\p{M}+", StringUtils.EMPTY);
-		s = s.replaceAll("[\\p{Punct}]+", StringUtils.SPACE);
-		s = s.replaceAll("\\s+", StringUtils.SPACE).trim();
+		s = COMBINING_MARKS.matcher(s).replaceAll(StringUtils.EMPTY);
+		s = PUNCTUATION_RUN.matcher(s).replaceAll(StringUtils.SPACE);
+		s = StringUtils.normalizeSpace(s);
 		return s;
 	}
 
@@ -498,6 +504,18 @@ public final class DuplicateFinderService{
 		final FLEFRecord date = FLEFRecordHelper.findChild(event, "date");
 		if(date == null)
 			return null;
+
+		//the date structure of the protocol (point, bounded, spanning; calendar; precision): the normalizer reads all of them
+		try{
+			final TemporalSpan span = DateNormalizer.normalize(date);
+			final NormalizedDate representative = (span != null? span.representativeDate(): null);
+			if(representative != null)
+				return CalendarType.jdnToProlepticGregorianLocalDate(representative.jdn()).getYear();
+		}
+		catch(final RuntimeException ignored){
+			//a date that cannot be normalized is read as text, as before
+		}
+
 		final String raw = findFirstValue(date);
 		return extractYear(raw);
 	}

@@ -25,16 +25,17 @@
 package io.github.mtrevisan.familylegacy.ui.dialogs.records;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextField;
-import io.github.mtrevisan.familylegacy.ui.components.PanelKey;
-import io.github.mtrevisan.familylegacy.ui.components.RecordDialogBuilder;
-import io.github.mtrevisan.familylegacy.ui.components.fields.DateField;
 import io.github.mtrevisan.familylegacy.ui.components.fields.EntityField;
 import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.PanelKey;
+import io.github.mtrevisan.familylegacy.ui.dialogs.RecordDialogBuilder;
+import io.github.mtrevisan.familylegacy.ui.dialogs.api.LinkRole;
+import io.github.mtrevisan.familylegacy.ui.dialogs.structures.DateField;
 import io.github.mtrevisan.familylegacy.ui.handlers.ConclusionHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.ContextImpactHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.GroupHandler;
@@ -124,9 +125,9 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 			final FLEFRecord subject = subjectField.getEntity();
 			if(subject != null && !subject.isEmpty()){
 				if(GroupHandler.isOfType(subject))
-					targetField.withHandlerTypes(GroupHandler.class);
+					targetField.restrictHandlerTypes(GroupHandler.class);
 				else if(IndividualHandler.isOfType(subject))
-					targetField.withHandlerTypes(IndividualHandler.class, GroupHandler.class);
+					targetField.restrictHandlerTypes(IndividualHandler.class, GroupHandler.class);
 			}
 
 			updateSubjectTypeCombo();
@@ -161,6 +162,26 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 		finalizeDialog(parent);
 	}
 
+	/**
+	 * Starts the new relationship with a subject, a target and a type. The relationship is not saved: the user completes it, and
+	 * decides whether to save it.
+	 *
+	 * @param subject	The subject (it must already be in the model).
+	 * @param target	The target (it must already be in the model).
+	 * @param type	The type to propose, or {@code null} to leave the choice to the user (it is used only if valid for the participants).
+	 * @return	This dialog.
+	 */
+	public RelationshipRecordDialog withParticipants(final FLEFRecord subject, final FLEFRecord target, final String type){
+		subjectField.setEntity(subject);
+		targetField.setEntity(target);
+		updateSubjectTypeCombo();
+
+		if(type != null && List.of(RelationshipReader.getValidTypes(subject, target)).contains(type))
+			subjectTypeCombo.setSelectedItem(type);
+
+		return this;
+	}
+
 	private void updateSubjectTypeCombo(){
 		final FLEFRecord subject = subjectField.getEntity();
 		final FLEFRecord target = targetField.getEntity();
@@ -173,28 +194,28 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 	@Override
 	protected JPanel createPropertiesPanel(){
 		// subject
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.relationship.subject") + "*:", subjectField);
+		GUIHelper.addLabeledComponent(propertiesPanel, GUIHelper.requiredLabel("dialog.relationship.subject"), subjectField);
 
 		// (subject) type
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.relationship.subject.type") + "*:", subjectTypeCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, GUIHelper.requiredLabel("dialog.relationship.subject.type"), subjectTypeCombo);
 
 		// (subject) role
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.relationship.subject.role") + ":", subjectRoleField);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.relationship.subject.role"), subjectRoleField);
 
 		// target
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.relationship.target") + "*:", targetField);
+		GUIHelper.addLabeledComponent(propertiesPanel, GUIHelper.requiredLabel("dialog.relationship.target"), targetField);
 
 		// validity range:
 		final JPanel validityPanel = GUIHelper.createLabelFieldPanel(5, "[]5[]");
 		validityPanel.setBorder(BorderFactory.createTitledBorder(I18N.t("dialog.validity.range")));
 		// valid from
-		GUIHelper.addLabeledComponent(validityPanel, I18N.t("dialog.valid_from") + ":", validFromField);
+		GUIHelper.addLabeledComponent(validityPanel, I18N.l("dialog.valid_from"), validFromField);
 		// valid to
-		GUIHelper.addLabeledComponent(validityPanel, I18N.t("dialog.valid_to") + ":", validToField);
+		GUIHelper.addLabeledComponent(validityPanel, I18N.l("dialog.valid_to"), validToField);
 		GUIHelper.addComponent(propertiesPanel, validityPanel);
 
 		// confidence
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.relationship.confidence") + ":", confidenceCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.relationship.confidence"), confidenceCombo);
 
 		return propertiesPanel;
 	}
@@ -365,6 +386,15 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 
 	public static void main(final String[] args) throws IOException{
 		GUIHelper.launch(RelationshipRecordDialog::createEdit, "/tests/test.flef", "RL1");
+	}
+
+
+	@Override
+	public void link(final LinkRole role, final FLEFRecord record){
+		if(role == LinkRole.SUBJECT)
+			withSubject(record);
+		else if(role == LinkRole.TARGET)
+			withTarget(record);
 	}
 
 }

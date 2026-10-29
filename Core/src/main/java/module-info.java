@@ -44,4 +44,22 @@ module io.github.mtrevisan.familylegacy.core {
 	requires org.threeten.extra;
 	requires org.apache.poi.poi;
 	requires org.apache.poi.ooxml;
+
+	// Assistants that plug into the Research Assistant
+	uses io.github.mtrevisan.familylegacy.ui.assistant.AssistantContributor;
+
+	// The main window finds the Research Assistant, it does not depend on it
+	uses io.github.mtrevisan.familylegacy.ui.components.projections.ResearchAssistantPort;
+	provides io.github.mtrevisan.familylegacy.ui.components.projections.ResearchAssistantPort
+		with io.github.mtrevisan.familylegacy.ui.assistant.app.FrameAssistantPort;
+
+	// The handlers create the editors through a registry that the catalog of the editors fills
+	uses io.github.mtrevisan.familylegacy.ui.handlers.RecordDialogProvider;
+	provides io.github.mtrevisan.familylegacy.ui.handlers.RecordDialogProvider
+		with io.github.mtrevisan.familylegacy.ui.dialogs.registry.RecordDialogCatalog;
+
+	// The selection dialog finds the views of the projections it uses
+	uses io.github.mtrevisan.familylegacy.ui.components.searches.service.SelectionViewProvider;
+	provides io.github.mtrevisan.familylegacy.ui.components.searches.service.SelectionViewProvider
+		with io.github.mtrevisan.familylegacy.ui.components.searches.projections.ProjectionSelectionViews;
 }

@@ -75,7 +75,7 @@ public class PlaceRelationshipFilterPanel extends JPanel implements RecordFilter
 		setLayout(new MigLayout("wrap 2,gap 5", "[][grow,fill]", "[]"));
 		setBorder(BorderFactory.createTitledBorder(I18N.tf("dialog.search_filter.title", I18N.t("dialog.component.place.relationships"))));
 
-		add(new JLabel(I18N.t("dialog.place_relationship.type") + ":"));
+		add(new JLabel(I18N.l("dialog.place_relationship.type")));
 		add(typeCombo, "growx");
 	}
 

@@ -136,7 +136,7 @@ public final class Indiction{
 		final boolean nextAllowed = (month <= 0 || month >= FIRST_MONTH_OF_NEXT_INDICTION);
 		if(indiction != current && !(nextAllowed && indiction == next))
 			throw new IllegalArgumentException("The indiction " + indiction + " is not consistent with the year "
-				+ commonYear + " (indiction " + current + (nextAllowed? " or " + next: "") + ")");
+				+ commonYear + " (indiction " + current + (nextAllowed? " or " + next: StringUtils.EMPTY) + ")");
 	}
 
 }

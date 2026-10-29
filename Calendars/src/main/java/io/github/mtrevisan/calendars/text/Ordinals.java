@@ -150,7 +150,7 @@ public final class Ordinals{
 			return null;
 
 		if(index + 1 < words.length){
-			final Integer compound = WORDS.get(words[index] + " " + words[index + 1]);
+			final Integer compound = WORDS.get(words[index] + StringUtils.SPACE + words[index + 1]);
 			if(compound != null)
 				return new int[]{compound, 2};
 

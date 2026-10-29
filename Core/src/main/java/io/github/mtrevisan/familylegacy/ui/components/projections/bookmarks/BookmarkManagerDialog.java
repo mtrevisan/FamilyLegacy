@@ -99,7 +99,7 @@ public final class BookmarkManagerDialog extends JDialog{
 		add(scroll, BorderLayout.CENTER);
 
 		final JPanel buttons = new JPanel(new MigLayout("ins 6,gapx 6", "[]8[]8[grow,fill][]8[]", "[]"));
-		final JButton rename = new JButton("Rename…");
+		final JButton rename = new JButton(I18N.t("button.rename"));
 		final JButton delete = new JButton(I18N.t("button.delete"));
 		final JButton close = new JButton(I18N.t("button.close"));
 
@@ -129,7 +129,7 @@ public final class BookmarkManagerDialog extends JDialog{
 		if(selected == null)
 			return;
 
-		final String newName = JOptionPane.showInputDialog(this, "New name:", selected.name());
+		final String newName = JOptionPane.showInputDialog(this, I18N.l("dialog.bookmark.rename.prompt"), selected.name());
 		if(StringUtils.isEmpty(newName))
 			return;
 

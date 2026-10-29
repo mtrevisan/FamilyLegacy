@@ -25,16 +25,16 @@
 package io.github.mtrevisan.familylegacy.ui.dialogs.records;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.HistoricEventReader;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextField;
-import io.github.mtrevisan.familylegacy.ui.components.PanelKey;
-import io.github.mtrevisan.familylegacy.ui.components.RecordDialogBuilder;
-import io.github.mtrevisan.familylegacy.ui.components.fields.DateField;
 import io.github.mtrevisan.familylegacy.ui.components.fields.EntityField;
 import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.PanelKey;
+import io.github.mtrevisan.familylegacy.ui.dialogs.RecordDialogBuilder;
+import io.github.mtrevisan.familylegacy.ui.dialogs.structures.DateField;
 import io.github.mtrevisan.familylegacy.ui.handlers.ConclusionHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.ContextImpactHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.HistoricEventHandler;
@@ -124,24 +124,40 @@ public class HistoricEventRecordDialog extends BaseRecordDialog{
 	}
 
 
+	/**
+	 * Fills the editor with what the Context Assistant suggests. Nothing is saved unless the user confirms the editor.
+	 *
+	 * @param type	The type of historic event (can be {@code null}).
+	 * @param title	The title, used only where still empty (can be {@code null}).
+	 * @return	This dialog.
+	 */
+	public HistoricEventRecordDialog withDraft(final String type, final String title){
+		if(type != null)
+			typeCombo.setSelectedItem(type);
+		if(title != null && !title.isBlank() && titleField.isEmpty())
+			titleField.setText(title);
+
+		return this;
+	}
+
 	@Override
 	protected JPanel createPropertiesPanel(){
 		final JPanel propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]10[]10[]");
 
 		// type
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.historic_event.type") + ":", typeCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.historic_event.type"), typeCombo);
 
 		// title
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.historic_event.title") + ":", titleField);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.historic_event.title"), titleField);
 
 		// date
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.historic_event.date") + ":", dateField);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.historic_event.date"), dateField);
 
 		// place
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.historic_event.place") + ":", placeField);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.historic_event.place"), placeField);
 
 		// confidence
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.historic_event.confidence") + ":", confidenceCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.historic_event.confidence"), confidenceCombo);
 
 		return propertiesPanel;
 	}

@@ -25,6 +25,7 @@
 package io.github.mtrevisan.calendars.eastasian;
 
 import io.github.mtrevisan.calendars.gregorian.GregorianCalendarStrategy;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -121,13 +122,13 @@ public final class JapaneseLunisolarTable{
 		final LunarYear year = year(lunarYear);
 		final int index = year.indexOf(month, leapMonth);
 		if(index < 0)
-			throw new IllegalArgumentException("The " + (leapMonth? "leap ": "") + "month " + month
+			throw new IllegalArgumentException("The " + (leapMonth? "leap ": StringUtils.EMPTY) + "month " + month
 				+ " does not exist in the Japanese lunisolar year " + lunarYear);
 
 		final int length = year.lengths()[index];
 		final int dayOfMonth = (day == EastAsianDateInput.LAST_DAY? length: day);
 		if(dayOfMonth < 1 || dayOfMonth > length)
-			throw new IllegalArgumentException("The " + (leapMonth? "leap ": "") + "month " + month + " of the Japanese year "
+			throw new IllegalArgumentException("The " + (leapMonth? "leap ": StringUtils.EMPTY) + "month " + month + " of the Japanese year "
 				+ lunarYear + " has " + length + " days");
 
 		return year.monthStartJdn(index) + dayOfMonth - 1;
@@ -171,10 +172,10 @@ public final class JapaneseLunisolarTable{
 				if(line.isBlank() || line.startsWith(COMMENT))
 					continue;
 
-				final String[] fields = line.split(";");
+				final String[] fields = StringUtils.splitPreserveAllTokens(line, ';');
 				final int lunarYear = Integer.parseInt(fields[0]);
 				final LocalDate newYear = LocalDate.parse(fields[1]);
-				final String[] months = fields[2].split(" ");
+				final String[] months = StringUtils.split(fields[2], ' ');
 				final int[] numbers = new int[months.length];
 				final boolean[] leap = new boolean[months.length];
 				final int[] lengths = new int[months.length];

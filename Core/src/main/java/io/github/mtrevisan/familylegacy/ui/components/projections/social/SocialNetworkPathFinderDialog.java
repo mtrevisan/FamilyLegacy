@@ -25,8 +25,8 @@
 package io.github.mtrevisan.familylegacy.ui.components.projections.social;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.ui.components.searches.RecordSelectionDialog;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.ui.components.searches.service.RecordSelectionDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
@@ -69,9 +69,9 @@ public final class SocialNetworkPathFinderDialog extends JDialog{
 
 	private final JLabel fromLabel = new JLabel("(none)");
 	private final JLabel toLabel = new JLabel("(none)");
-	private final JButton fromBtn = new JButton("Pick…");
-	private final JButton toBtn = new JButton("Pick…");
-	private final JButton okBtn = new JButton("Find path");
+	private final JButton fromBtn = new JButton(I18N.t("button.pick"));
+	private final JButton toBtn = new JButton(I18N.t("button.pick"));
+	private final JButton okBtn = new JButton(I18N.t("button.find_path"));
 	private final JButton cancelBtn = new JButton(I18N.t("button.cancel"));
 
 
@@ -119,13 +119,13 @@ public final class SocialNetworkPathFinderDialog extends JDialog{
 	private void initComponents(){
 		final JPanel content = new JPanel(new MigLayout("ins 12,wrap 2", "[right][grow,fill]", "[]8[]16[]"));
 
-		content.add(new JLabel("From:"));
+		content.add(new JLabel(I18N.l("label.from")));
 		final JPanel fromPanel = new JPanel(new MigLayout("ins 0", "[grow,fill][]", "[]"));
 		fromPanel.add(fromLabel, "growx");
 		fromPanel.add(fromBtn);
 		content.add(fromPanel, "growx");
 
-		content.add(new JLabel("To:"));
+		content.add(new JLabel(I18N.l("label.to")));
 		final JPanel toPanel = new JPanel(new MigLayout("ins 0", "[grow,fill][]", "[]"));
 		toPanel.add(toLabel, "growx");
 		toPanel.add(toBtn);
@@ -144,8 +144,7 @@ public final class SocialNetworkPathFinderDialog extends JDialog{
 		okBtn.addActionListener(e -> {
 			if(fromEntity == null || toEntity == null || fromEntity.equals(toEntity)){
 				JOptionPane.showMessageDialog(this,
-					"Please choose two distinct entities.",
-					"Invalid selection", JOptionPane.WARNING_MESSAGE);
+					I18N.t("dialog.social.invalid_selection.message"), I18N.t("dialog.social.invalid_selection.title"), JOptionPane.WARNING_MESSAGE);
 
 				return;
 			}

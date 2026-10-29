@@ -3,6 +3,7 @@ package io.github.mtrevisan.familylegacy.ui.tools.context;
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.grammar.FLEFGrammarParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -39,14 +40,14 @@ class ContextTreeBuilderTest{
 	private static String historicEvent(final String id, final String title){
 		return "historic_event " + id + " {\n"
 			+ "\ttype war\n"
-			+ "\ttitle " + title + "\n"
+			+ "\ttitle " + title + StringUtils.LF
 			+ "\taudit.creation.date 2026-01-01T00:00:00Z\n"
 			+ "}\n";
 	}
 
 	private static String culturalNorm(final String id, final String title){
 		return "cultural_norm " + id + " {\n"
-			+ "\ttitle " + title + "\n"
+			+ "\ttitle " + title + StringUtils.LF
 			+ "\ttype naming_convention\n"
 			+ "\taudit.creation.date 2026-01-01T00:00:00Z\n"
 			+ "}\n";
@@ -55,9 +56,9 @@ class ContextTreeBuilderTest{
 	private static String impact(final String id, final String contextTag, final String contextId, final String targetId,
 			final String impactType){
 		return "context_impact " + id + " {\n"
-			+ "\tcontext." + contextTag + " " + contextId + "\n"
-			+ "\ttarget.individual " + targetId + "\n"
-			+ "\timpact_type " + impactType + "\n"
+			+ "\tcontext." + contextTag + StringUtils.SPACE + contextId + StringUtils.LF
+			+ "\ttarget.individual " + targetId + StringUtils.LF
+			+ "\timpact_type " + impactType + StringUtils.LF
 			+ "\taudit.creation.date 2026-01-01T00:00:00Z\n"
 			+ "}\n";
 	}

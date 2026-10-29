@@ -24,6 +24,11 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections.social;
 
+import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
+
+import java.util.Locale;
+
+
 /**
  * Broad semantic category of a non‑parental social relationship.
  * <p>
@@ -49,52 +54,44 @@ public enum SocialRelationCategory{
 	 * ({@code biological_child}, {@code civil_spouse}, …) are excluded from
 	 * the social network and do not fall into this category.
 	 */
-	FAMILY("Family"),
+	FAMILY,
 
 	/**
 	 * Religious roles and religious institutional relationships: godparent,
 	 * witness at a baptism, officiant, member of a religious order.
 	 */
-	RELIGIOUS("Religious"),
+	RELIGIOUS,
 
 	/**
 	 * Professional and economic roles: employer, employee, business partner,
 	 * mentor, apprentice, colleague, trade associate.
 	 */
-	PROFESSIONAL("Professional"),
+	PROFESSIONAL,
 
 	/**
 	 * Legal and judicial roles: executor, notary, judge, accused, grantor,
 	 * grantee, power of attorney, guardian (in the legal sense).
 	 */
-	LEGAL("Legal"),
+	LEGAL,
 
 	/**
 	 * Community and civic roles: neighbor, friend, member of a fraternity,
 	 * clan or tribe, elder, head of household, custodian.
 	 */
-	COMMUNITY("Community"),
+	COMMUNITY,
 
 	/**
 	 * Political and administrative roles: elected official, elector, noble
 	 * title bearer, subject or citizen of a polity.
 	 */
-	POLITICAL("Political"),
+	POLITICAL,
 
 	/**
 	 * Any relationship whose role is empty, unrecognized, or does not fit
 	 * any of the categories above. This is the fallback category and is
 	 * always accepted by any filter that includes it.
 	 */
-	OTHER("Other");
-
-
-	private final String displayLabel;
-
-
-	SocialRelationCategory(final String displayLabel){
-		this.displayLabel = displayLabel;
-	}
+	OTHER;
 
 
 	/**
@@ -104,7 +101,7 @@ public enum SocialRelationCategory{
 	 * @return the display label, never {@code null}
 	 */
 	public String getDisplayLabel(){
-		return displayLabel;
+		return I18N.t("enum.social.relation_category." + name().toLowerCase(Locale.ROOT));
 	}
 
 	/**

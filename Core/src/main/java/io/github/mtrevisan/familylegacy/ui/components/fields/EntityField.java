@@ -25,13 +25,13 @@
 package io.github.mtrevisan.familylegacy.ui.components.fields;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.ui.bindings.BindingsHelper;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextField;
 import io.github.mtrevisan.familylegacy.ui.bindings.MenuBuilder;
-import io.github.mtrevisan.familylegacy.ui.components.searches.RecordSelectionDialog;
-import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.ui.components.searches.service.RecordSelectionDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
@@ -177,15 +177,43 @@ public class EntityField extends BoundTextField{
 	public final EntityField withHandlerTypes(final Class<? extends RecordTypeHandler<?>>... handlerTypes){
 		assert this.handlers.isEmpty(): "Cannot assign handler type more than one time";
 
-		this.handlers = Arrays.stream(handlerTypes)
-			.map(HandlerRegistry::getHandler)
-			.toList();
+		this.handlers = resolveHandlers(handlerTypes);
 
 		initComponents();
 
 		addPropertyChangeListener(PROPERTY_ENTITY_CHANGED, e -> updateDisplay());
 
 		return this;
+	}
+
+	/**
+	 * Changes the record types a field already set up accepts, e.g. when the other field of a dialog restricts them (the target of
+	 * a relationship of a group can only be a group).
+	 * <p>
+	 * Unlike {@link #withHandlerTypes(Class[])} it does not set the field up again: the behavior (mouse, keys, popup menu) and the
+	 * listeners are installed once, and the handler types are read each time they are needed. It is not available to the fields that
+	 * wrap a citation, whose popup menu depends on how many types they accept.
+	 *
+	 * @param handlerTypes	the record types this field accepts from now on
+	 * @return	this field
+	 * @throws IllegalStateException	if the field is not set up yet, or it wraps a citation
+	 */
+	@SafeVarargs
+	public final EntityField restrictHandlerTypes(final Class<? extends RecordTypeHandler<?>>... handlerTypes){
+		if(handlers.isEmpty())
+			throw new IllegalStateException("The handler types must be assigned with withHandlerTypes() first");
+		if(type == EntityType.CITATION_WRAPPER)
+			throw new IllegalStateException("The handler types of a field that wraps a citation cannot be changed");
+
+		handlers = resolveHandlers(handlerTypes);
+
+		return this;
+	}
+
+	private static List<RecordTypeHandler<?>> resolveHandlers(final Class<? extends RecordTypeHandler<?>>[] handlerTypes){
+		return Arrays.stream(handlerTypes)
+			.<RecordTypeHandler<?>>map(HandlerRegistry::getHandler)
+			.toList();
 	}
 
 
@@ -316,7 +344,7 @@ public class EntityField extends BoundTextField{
 		final List<Class<? extends RecordTypeHandler<?>>> cleaned = extractParentHandlers();
 		// Dialog of a record created from within the selection dialog (if any): it tells a newly created record, which
 		// must be discarded when the citation is cancelled, from an existing one, which must be kept
-		final BaseRecordDialog[] creationDialog = new BaseRecordDialog[1];
+		final RecordDialog[] creationDialog = new RecordDialog[1];
 		@SuppressWarnings("unchecked")
 		final RecordSelectionDialog dialog = RecordSelectionDialog.createWithAllowRecordCreation(parent, model,
 			(record, selectedHandler) -> {
@@ -331,7 +359,7 @@ public class EntityField extends BoundTextField{
 					final FLEFRecord citation = FLEFRecord.createChildWithTag(getCitationTag(citationHandler));
 					FLEFRecordHelper.updateChildValue(citation, path, selectedRecordId);
 
-					final BaseRecordDialog citationDialog = citationHandler.createEditDialog(parent, model, citation);
+					final RecordDialog citationDialog = citationHandler.createEditDialog(parent, model, citation);
 					citationDialog.setVisible(true);
 
 					if(citationDialog.isSaved()){
@@ -367,7 +395,7 @@ public class EntityField extends BoundTextField{
 		}
 
 		final RecordTypeHandler<?> handler = findHandler(entityRef.getTag());
-		final BaseRecordDialog dialog = handler.createEditDialog(parent, model, entityRef);
+		final RecordDialog dialog = handler.createEditDialog(parent, model, entityRef);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved())
@@ -392,7 +420,7 @@ public class EntityField extends BoundTextField{
 		}
 
 		final RecordTypeHandler<?> parentHandler = handler.getParentHandler();
-		final BaseRecordDialog dialog = parentHandler.createNewDialog(parent, model);
+		final RecordDialog dialog = parentHandler.createNewDialog(parent, model);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved()){
@@ -402,7 +430,7 @@ public class EntityField extends BoundTextField{
 				final FLEFRecord citation = FLEFRecord.createChildWithTag(getCitationTag(handler));
 				FLEFRecordHelper.updateChildValue(citation, path, newRecordId);
 
-				final BaseRecordDialog citationDialog = handler.createEditDialog(parent, model, citation);
+				final RecordDialog citationDialog = handler.createEditDialog(parent, model, citation);
 				citationDialog.setVisible(true);
 
 				if(citationDialog.isSaved()){
@@ -430,7 +458,7 @@ public class EntityField extends BoundTextField{
 		final String citedRecordId = FLEFRecordHelper.getChildValue(entityRef, handler.getCitedType());
 		final FLEFRecord citedRecord = model.getRecordById(citedRecordId);
 		final RecordTypeHandler<?> citedRecordHandler = HandlerRegistry.getHandler(citedRecord.getTag());
-		final BaseRecordDialog dialog = citedRecordHandler.createEditDialog(parent, model, citedRecord);
+		final RecordDialog dialog = citedRecordHandler.createEditDialog(parent, model, citedRecord);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved())

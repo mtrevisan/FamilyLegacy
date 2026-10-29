@@ -58,6 +58,7 @@ public final class GeocodingProgressDialog extends JDialog{
 
 	public GeocodingProgressDialog(final Window owner, final String title, final Runnable cancelAction){
 		super(owner, title, ModalityType.MODELESS);
+		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
 		this.cancelAction = cancelAction;
 

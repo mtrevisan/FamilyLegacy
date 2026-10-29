@@ -26,10 +26,10 @@ package io.github.mtrevisan.familylegacy.ui.tools.tools.merge;
 
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.FLEFValidator;
-import io.github.mtrevisan.familylegacy.io.grammar.FLEFGrammar;
+import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.FLEFGrammar;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.ui.dialogs.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
@@ -531,7 +531,7 @@ public final class MergeFieldComparisonDialog extends JDialog{
 			return;
 		}
 
-		final BaseRecordDialog dialog = handler.createEditDialog(this, model, record);
+		final RecordDialog dialog = handler.createEditDialog(this, model, record);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved()){
@@ -802,7 +802,7 @@ public final class MergeFieldComparisonDialog extends JDialog{
 			instances = parseResultText(resultText);
 		}
 		catch(final IOException | RuntimeException ex){
-			showError("Invalid FLEF syntax",
+			showError(I18N.t("dialog.merge.field.invalid_syntax"),
 				(ex.getMessage() != null? ex.getMessage(): ex.toString()));
 			return;
 		}
@@ -943,8 +943,7 @@ public final class MergeFieldComparisonDialog extends JDialog{
 	}
 
 	private void showValidationErrors(final List<String> errors){
-		final StringBuilder message = new StringBuilder(
-			"The result field does not validate against the FLEF schema:")
+		final StringBuilder message = new StringBuilder(I18N.l("dialog.merge.field.invalid_schema"))
 			.append(StringUtils.LF)
 			.append(StringUtils.LF);
 		final int shown = Math.min(errors.size(), MAX_ERRORS_SHOWN);
@@ -953,13 +952,11 @@ public final class MergeFieldComparisonDialog extends JDialog{
 				.append(errors.get(i))
 				.append(StringUtils.LF);
 		if(errors.size() > shown)
-			message.append("  \u2026 and ")
-				.append(errors.size() - shown)
-				.append(" more")
+			message.append(I18N.tf("dialog.merge.field.more_errors", errors.size() - shown))
 				.append(StringUtils.LF);
 
 		JOptionPane.showMessageDialog(this, message.toString(),
-			"Invalid result", JOptionPane.ERROR_MESSAGE);
+			I18N.t("dialog.merge.field.invalid_result"), JOptionPane.ERROR_MESSAGE);
 	}
 
 	private void showError(final String title, final String body){

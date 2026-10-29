@@ -25,14 +25,15 @@
 package io.github.mtrevisan.familylegacy.ui.dialogs.records;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
-import io.github.mtrevisan.familylegacy.ui.components.PanelKey;
-import io.github.mtrevisan.familylegacy.ui.components.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.ui.components.fields.EntityField;
 import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.PanelKey;
+import io.github.mtrevisan.familylegacy.ui.dialogs.RecordDialogBuilder;
+import io.github.mtrevisan.familylegacy.ui.dialogs.api.LinkRole;
 import io.github.mtrevisan.familylegacy.ui.handlers.ConclusionHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.ContextImpactHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventHandler;
@@ -154,16 +155,16 @@ public class EventParticipationRecordDialog extends BaseRecordDialog{
 	@Override
 	protected JPanel createPropertiesPanel(){
 		// participant
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.event_participation.participant") + "*:", participantField);
+		GUIHelper.addLabeledComponent(propertiesPanel, GUIHelper.requiredLabel("dialog.event_participation.participant"), participantField);
 
 		// event
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.event_participation.event") + "*:", eventField);
+		GUIHelper.addLabeledComponent(propertiesPanel, GUIHelper.requiredLabel("dialog.event_participation.event"), eventField);
 
 		// role
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.event_participation.role") + ":", roleCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.event_participation.role"), roleCombo);
 
 		// confidence
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.event_participation.confidence") + ":", confidenceCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.event_participation.confidence"), confidenceCombo);
 
 		return propertiesPanel;
 	}
@@ -302,6 +303,15 @@ public class EventParticipationRecordDialog extends BaseRecordDialog{
 
 	public static void main(final String[] args) throws IOException{
 		GUIHelper.launch(EventParticipationRecordDialog::createEdit, "/tests/test.flef", "EP1");
+	}
+
+
+	@Override
+	public void link(final LinkRole role, final FLEFRecord record){
+		if(role == LinkRole.PARTICIPANT)
+			withParticipant(record);
+		else if(role == LinkRole.EVENT)
+			withEvent(record);
 	}
 
 }

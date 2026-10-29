@@ -190,7 +190,7 @@ public final class ChineseCalendarParser{
 	 */
 	public static ChineseDateInput parse(final String chineseDateString){
 		// Normalize text by removing spaces
-		String cleanStr = chineseDateString.replaceAll("\\s+", StringUtils.EMPTY);
+		String cleanStr = StringUtils.deleteWhitespace(chineseDateString);
 		if(cleanStr.startsWith(NONGLI1) || cleanStr.startsWith(NONGLI2))
 			cleanStr = cleanStr.substring(2);
 

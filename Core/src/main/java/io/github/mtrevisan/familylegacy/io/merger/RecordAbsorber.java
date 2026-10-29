@@ -24,13 +24,14 @@
  */
 package io.github.mtrevisan.familylegacy.io.merger;
 
-import io.github.mtrevisan.familylegacy.io.grammar.FLEFGrammar;
+import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.FLEFGrammar;
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.FieldDefinition;
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.StructType;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.ui.handlers.ConclusionHandler;
-import io.github.mtrevisan.familylegacy.ui.handlers.IdentityHypothesisHandler;
+import io.github.mtrevisan.familylegacy.io.model.readers.ConclusionReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IdentityHypothesisReader;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import org.apache.commons.lang3.StringUtils;
 
 import java.time.Clock;
 import java.util.ArrayList;
@@ -185,7 +186,7 @@ public final class RecordAbsorber{
 
 		final String now = FLEFMerger.now(clock);
 		FieldMerger.addAuditUpdate(survivor, now, "Merged record " + absorbedId
-			+ (comment != null && !comment.isBlank()? ": " + comment: ""));
+			+ (comment != null && !comment.isBlank()? ": " + comment: StringUtils.EMPTY));
 
 		final RecordStore store = RecordStore.of(model, references);
 		final int redirected = store.absorb(Map.of(absorbedId, survivorId));
@@ -265,13 +266,14 @@ public final class RecordAbsorber{
 		final String now = FLEFMerger.now(clock);
 		final String pair = ProtocolRules.unorderedPair(List.of(idA, idB));
 		FLEFRecord hypothesis = null;
-		for(final FLEFRecord existing : model.getRecordsByType(ProtocolRules.KIND_IDENTITY_HYPOTHESIS))
+		final List<FLEFRecord> identityHypotheses = model.getRecordsByType(ProtocolRules.KIND_IDENTITY_HYPOTHESIS);
+		for(final FLEFRecord existing : identityHypotheses)
 			if(pair.equals(ProtocolRules.unorderedPair(ProtocolRules.identities(existing)))){
 				hypothesis = existing;
 				break;
 			}
 		if(hypothesis == null){
-			hypothesis = newRecord(model, ProtocolRules.KIND_IDENTITY_HYPOTHESIS, IdentityHypothesisHandler.ID_PREFIX);
+			hypothesis = newRecord(model, ProtocolRules.KIND_IDENTITY_HYPOTHESIS, IdentityHypothesisReader.ID_PREFIX);
 			hypothesis.addChild(FLEFRecord.createChildWithTag(ProtocolRules.TAG_IDENTITY)
 				.addChild(FLEFRecord.createChildWithTagAndValue(a.getTag(), idA)));
 			hypothesis.addChild(FLEFRecord.createChildWithTag(ProtocolRules.TAG_IDENTITY)
@@ -283,7 +285,7 @@ public final class RecordAbsorber{
 		}
 
 		// a disproven conclusion prefers none of what it resolves
-		final FLEFRecord conclusion = newRecord(model, ProtocolRules.KIND_CONCLUSION, ConclusionHandler.ID_PREFIX);
+		final FLEFRecord conclusion = newRecord(model, ProtocolRules.KIND_CONCLUSION, ConclusionReader.ID_PREFIX);
 		conclusion.addChild(FLEFRecord.createChildWithTagAndValue(TAG_ISSUE, ISSUE_IDENTITY));
 		conclusion.addChild(FLEFRecord.createChildWithTagAndValue(TAG_PROOF_STATUS, ModelIndex.PROOF_STATUS_DISPROVEN));
 		if(narrative != null && !narrative.isBlank())
@@ -335,7 +337,8 @@ public final class RecordAbsorber{
 		final EntityMatcher matcher = new EntityMatcher(new ModelIndex(model.getRecords(), references), signature, false);
 		final Set<String> keys = matcher.blockingKeys(record);
 		final List<Candidate> candidates = new ArrayList<>();
-		for(final FLEFRecord other : model.getRecordsByType(record.getTag())){
+		final List<FLEFRecord> others = model.getRecordsByType(record.getTag());
+		for(final FLEFRecord other : others){
 			if(other == record || Collections.disjoint(keys, matcher.blockingKeys(other)))
 				continue;
 
@@ -355,7 +358,7 @@ public final class RecordAbsorber{
 		return new AssertionDeduplicator.Policy(){
 			@Override
 			public List<FLEFRecord> select(final List<FLEFRecord> group, final String participants){
-				for(final String participant : participants.split(","))
+				for(final String participant : StringUtils.split(participants, ','))
 					if(participant.endsWith(":" + survivorId))
 						return group;
 

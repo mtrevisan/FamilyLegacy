@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.ui.components.projections.bookmarks;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -95,7 +96,7 @@ public final class BookmarkMenu extends JMenu{
 	private void rebuild(){
 		removeAll();
 
-		final JMenuItem save = new JMenuItem("Bookmark current view…");
+		final JMenuItem save = new JMenuItem(I18N.t("menu.item.bookmark_current_view"));
 		save.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_D,
 			Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()));
 		save.addActionListener(this::onSave);
@@ -120,22 +121,21 @@ public final class BookmarkMenu extends JMenu{
 
 		addSeparator();
 
-		final JMenuItem manage = new JMenuItem("Manage bookmarks…");
+		final JMenuItem manage = new JMenuItem(I18N.t("menu.item.manage_bookmarks"));
 		manage.addActionListener(e -> new BookmarkManagerDialog(owner, store, modelSupplier).setVisible(true));
 		add(manage);
 	}
 
 	private void onSave(final ActionEvent e){
-		final String name = JOptionPane.showInputDialog(this, "Bookmark name:",
-			"Save bookmark", JOptionPane.PLAIN_MESSAGE);
+		final String name = JOptionPane.showInputDialog(this, I18N.l("dialog.bookmark.save.prompt"),
+			I18N.t("dialog.bookmark.save.title"), JOptionPane.PLAIN_MESSAGE);
 		if(StringUtils.isEmpty(name))
 			return;
 
 		final Bookmark b = capture.capture(name.trim());
 		if(b == null){
 			JOptionPane.showMessageDialog(this,
-				"No view to bookmark. Load an individual or a group first.",
-				"Nothing to bookmark", JOptionPane.INFORMATION_MESSAGE);
+				I18N.t("dialog.bookmark.empty.message"), I18N.t("dialog.bookmark.empty.title"), JOptionPane.INFORMATION_MESSAGE);
 
 			return;
 		}

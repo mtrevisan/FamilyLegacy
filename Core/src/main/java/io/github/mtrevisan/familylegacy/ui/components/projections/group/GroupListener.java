@@ -24,8 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections.group;
 
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.ui.components.projections.TreeOperation;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.ui.components.projections.common.TreeOperation;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.EntityListener;
 
 

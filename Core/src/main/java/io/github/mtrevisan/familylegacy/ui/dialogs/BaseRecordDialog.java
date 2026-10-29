@@ -25,16 +25,15 @@
 package io.github.mtrevisan.familylegacy.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.io.model.readers.MediaReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextField;
 import io.github.mtrevisan.familylegacy.ui.components.ImageCarouselPanel;
-import io.github.mtrevisan.familylegacy.ui.components.PanelKey;
-import io.github.mtrevisan.familylegacy.ui.components.RecordDialogComponents;
 import io.github.mtrevisan.familylegacy.ui.components.lists.EntityListPanel;
+import io.github.mtrevisan.familylegacy.ui.dialogs.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.help.ShortcutRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.SourceHandler;
@@ -54,8 +53,10 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.event.ListSelectionListener;
-import javax.swing.event.UndoableEditListener;
 import javax.swing.text.JTextComponent;
+import javax.swing.undo.AbstractUndoableEdit;
+import javax.swing.undo.CannotRedoException;
+import javax.swing.undo.CannotUndoException;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Container;
@@ -63,14 +64,13 @@ import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 
 /**
  * Abstract base class for all record editing dialogs.
  * Provides common functionality and utility methods.
  */
-public abstract class BaseRecordDialog extends JDialog{
+public abstract class BaseRecordDialog extends JDialog implements RecordDialog{
 
 	static final String PANEL_PROPERTY_NAME = "name";
 	public static final String TAB_NAME_PROPERTIES = "properties";
@@ -100,7 +100,6 @@ public abstract class BaseRecordDialog extends JDialog{
 	protected boolean isSaved;
 
 	private final UndoController undoController = new UndoController();
-	private final UndoableEditListener undoListener = e -> undoController.addEdit(e.getEdit());
 
 	protected BoundTextField parentEntity;
 
@@ -126,6 +125,7 @@ public abstract class BaseRecordDialog extends JDialog{
 
 	protected void finalizeDialog(final Window parent){
 		initComponents();
+		installUsageTooltip();
 
 		loadData();
 
@@ -141,6 +141,18 @@ public abstract class BaseRecordDialog extends JDialog{
 		repaint();
 
 		setLocationRelativeTo(parent);
+	}
+
+	/** Explains, on the first tab, when the record is to be used (if the translations define it). */
+	private void installUsageTooltip(){
+		final String html = GUIHelper.usageTooltip(handler.getType());
+		if(html == null)
+			return;
+
+		if(tabbedPane.getTabCount() > 0)
+			tabbedPane.setToolTipTextAt(0, html);
+		else if(getContentPane() instanceof JComponent content)
+			content.setToolTipText(html);
 	}
 
 	protected void initComponents(){
@@ -211,8 +223,13 @@ public abstract class BaseRecordDialog extends JDialog{
 		if(textComponent == null)
 			return;
 
+		//record only what the user types: programmatic `setText` calls (loading data, placeholders "(right-click to set)", refresh
+		//after a nested dialog) would otherwise pollute the stack, requiring several undos or altering untouched components
 		textComponent.getDocument()
-			.addUndoableEditListener(undoListener);
+			.addUndoableEditListener(e -> {
+				if(textComponent.isEditable() && textComponent.hasFocus())
+					undoController.addEdit(e.getEdit());
+			});
 
 		// Remove component-level shortcuts so they route through the dialog's RootPane
 		final InputMap inputMap = textComponent.getInputMap(JComponent.WHEN_FOCUSED);
@@ -257,6 +274,40 @@ public abstract class BaseRecordDialog extends JDialog{
 			else if(component instanceof Container subContainer)
 				registerUndoSupportRecursively(subContainer);
 		}
+	}
+
+	/**
+	 * Records a change made in place to a record by a nested dialog, so that it can be undone from this one.
+	 *
+	 * @param target	The record that was modified.
+	 * @param before	A copy of the record before the change.
+	 * @param after	A copy of the record after the change.
+	 * @param refresh	Refreshes the components showing the record.
+	 */
+	@Override
+	public void addNestedEdit(final FLEFRecord target, final FLEFRecord before, final FLEFRecord after, final Runnable refresh){
+		undoController.addEdit(new AbstractUndoableEdit(){
+			@Override
+			public void undo() throws CannotUndoException{
+				super.undo();
+
+				restore(before);
+			}
+
+			@Override
+			public void redo() throws CannotRedoException{
+				super.redo();
+
+				restore(after);
+			}
+
+			private void restore(final FLEFRecord state){
+				target.clear();
+				state.deepCopyTo(target);
+
+				refresh.run();
+			}
+		});
 	}
 
 	public void performUndo(){
@@ -595,19 +646,26 @@ public abstract class BaseRecordDialog extends JDialog{
 	}
 
 
+	@Override
 	public boolean isSaved(){
 		return isSaved;
 	}
 
+	@Override
 	public FLEFRecord getRecord(){
 		return (!record.isEmpty()? record: null);
+	}
+
+	@Override
+	public Window window(){
+		return this;
 	}
 
 
 	protected boolean confirmRecordExistsForType(final String participantId, final String participantLabel){
 		if(model.getRecordById(participantId) == null){
 			JOptionPane.showMessageDialog(this,
-				"Unknown " + participantLabel + " ID.",
+				I18N.tf("message.unknown_participant_id", participantLabel),
 				I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
 
 			return false;

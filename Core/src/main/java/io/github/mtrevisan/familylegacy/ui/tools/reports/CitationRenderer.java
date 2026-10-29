@@ -24,14 +24,15 @@
  */
 package io.github.mtrevisan.familylegacy.ui.tools.reports;
 
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.io.model.readers.AuditReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EvidenceQualifiersReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.NoteReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PrivacyReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyPolicy;
+import io.github.mtrevisan.familylegacy.ui.tools.reports.index.ReportFormatters;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -168,16 +169,13 @@ final class CitationRenderer{
 			if(locator != null)
 				sb.append(" — *").append(ReportFormatters.escape(locator)).append('*');
 
-			final String extractText = FLEFRecordHelper.getChildValue(c,
-				SourceCitationReader.TAG_EXTRACT + "." + SourceCitationReader.TAG_TEXT);
+			final String extractText = FLEFRecordHelper.getChildValue(c, SourceCitationReader.TAG_EXTRACT_TEXT);
 			if(extractText != null){
 				sb.append(" — *").append(ctx.labels.sections().extractText()).append(":* \"")
 					.append(ReportFormatters.escape(extractText)).append('"');
 
-				final String extractType = FLEFRecordHelper.getChildValue(c,
-					SourceCitationReader.TAG_EXTRACT + "." + SourceCitationReader.TAG_TYPE);
-				final String extractLocale = FLEFRecordHelper.getChildValue(c,
-					SourceCitationReader.TAG_EXTRACT + "." + SourceCitationReader.TAG_LOCALE);
+				final String extractType = FLEFRecordHelper.getChildValue(c, SourceCitationReader.TAG_EXTRACT_TYPE);
+				final String extractLocale = FLEFRecordHelper.getChildValue(c, SourceCitationReader.TAG_EXTRACT_LOCALE);
 				final List<String> quals = new ArrayList<>();
 				if(extractType != null && !extractType.isBlank())
 					quals.add(ReportFormatters.orEmpty(

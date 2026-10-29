@@ -26,17 +26,15 @@ package io.github.mtrevisan.familylegacy.ui.components.projections.group;
 
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.components.MultiLineLabel;
-import io.github.mtrevisan.familylegacy.ui.components.PrivacyBadge;
-import io.github.mtrevisan.familylegacy.ui.components.projections.BoxPanelType;
+import io.github.mtrevisan.familylegacy.ui.components.lists.PrivacyBadge;
+import io.github.mtrevisan.familylegacy.ui.components.projections.common.BoxPanelType;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.EntityMouseListeners;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.EntityPopupMenuFactory;
 import io.github.mtrevisan.familylegacy.ui.helpers.PopupMouseAdapter;
-import io.github.mtrevisan.familylegacy.ui.tools.ToolContext;
-import io.github.mtrevisan.familylegacy.ui.tools.ToolContexts;
-import io.github.mtrevisan.familylegacy.ui.tools.groups.EditGroupTool;
 import net.miginfocom.swing.MigLayout;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
@@ -320,7 +318,7 @@ public class GroupPanel extends JPanel{
 			typeLabel.setIcon(PrivacyBadge.of(data.getPrivacy()));
 			final String privacyTooltip = PrivacyBadge.tooltip(data.getPrivacy());
 			if(privacyTooltip != null)
-				nameLabel.setToolTipText(Objects.toString(data.getNameTooltip(), "") + " " + privacyTooltip);
+				nameLabel.setToolTipText(Objects.toString(data.getNameTooltip(), "") + StringUtils.SPACE + privacyTooltip);
 
 			// Set the default image/placeholder
 			imageLabel.setIcon(boxType == BoxPanelType.PRIMARY
@@ -370,10 +368,8 @@ public class GroupPanel extends JPanel{
 					listener.onGroupSelected(this, record);
 			})
 			.onEdit(record -> {
-				final ToolContext context = ToolContexts.withMutatorAndEdit(model, listener, this,
-					record.getId(), id -> listener.onEntityEdit(record));
-				new EditGroupTool()
-					.run(context);
+				if(record.getId() != null)
+					listener.onEntityEdit(record);
 			})
 			.onHoverChanged(h -> {
 				if(hovered != h){

@@ -25,15 +25,15 @@
 package io.github.mtrevisan.familylegacy.ui.dialogs.records;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SexType;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
-import io.github.mtrevisan.familylegacy.ui.components.PanelKey;
-import io.github.mtrevisan.familylegacy.ui.components.PreferredImagePanel;
-import io.github.mtrevisan.familylegacy.ui.components.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.ui.components.lists.EntityListPanel;
+import io.github.mtrevisan.familylegacy.ui.components.lists.PreferredImagePanel;
 import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.PanelKey;
+import io.github.mtrevisan.familylegacy.ui.dialogs.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.ui.handlers.ConclusionHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.ContextImpactHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventParticipationHandler;
@@ -51,51 +51,6 @@ import java.awt.Window;
 import java.io.IOException;
 
 
-/*
-TODO undo/redo a livello di record dopo che si è fatto salva di una dialog (chiedere, quindi ripristinare il record precedente)
-
-public class RecordUpdateCommand extends AbstractUndoableEdit{
-	private final FLEFModel model;
-	private final FLEFRecord originalState = FLEFRecord.createEmpty();
-	private final FLEFRecord newState = FLEFRecord.createEmpty();
-
-	public RecordUpdateCommand(FLEFModel model, FLEFRecord originalState, FLEFRecord newState){
-		this.model = model;
-
-		originalState.deepCopyTo(this.originalState);
-		newState.deepCopyTo(this.newState);
-	}
-
-	@Override
-	public void undo() throws CannotUndoException{
-		super.undo();
-
-		model.addRecord(originalState);
-	}
-
-	@Override
-	public void redo() throws CannotRedoException{
-		super.redo();
-
-		model.addRecord(newState);
-	}
-
-}
-
-protected void onOk(){
-  FLEFRecord copyBefore = record.clone();
-  saveData(); // Salva i dati dal dialog al record corrente
-
-  // Registra il comando nell'UndoManager globale
-  UndoManager globalUndoManager = model.getUndoManager();
-  globalUndoManager.addEdit(new RecordUpdateCommand(model, copyBefore, record));
-
-  // Notifica il ridisegno globale dell'albero (Direct Pull)
-  model.notifyDataChanged();
-
-  dispose();
-}
-*/
 /**
  * Dialog for editing an {@code INDIVIDUAL_RECORD} according to FLEF 0.2.0.
  * <p>
@@ -148,7 +103,7 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 		super(parent, model, record, IndividualHandler.getInstance());
 
 		preferredImagePanel = new PreferredImagePanel(IndividualReader.TAG_PREFERRED_IMAGE, this, model);
-		personalNamePanel = EntityListPanel.createForStructure(IndividualReader.TAG_NAME, this, I18N.t("dialog.individual.personal_name") + "*", model, PersonalNameHandler.class);
+		personalNamePanel = EntityListPanel.createForStructure(IndividualReader.TAG_NAME, this, GUIHelper.requiredTitle("dialog.individual.personal_name"), model, PersonalNameHandler.class);
 		sexCombo = new BoundComboBox<>(IndividualReader.TAG_SEX, GUIHelper.fillCombo(IndividualReader.SEXES, null));
 		sexCombo.setI18NPrefix("enum.individual.sex");
 
@@ -189,7 +144,7 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 
 		// sex
 		final JPanel sexPanel = GUIHelper.createLabelFieldPanel(0, "[]15[]10[]");
-		GUIHelper.addLabeledComponent(sexPanel, I18N.t("dialog.individual.sex") + ":", sexCombo);
+		GUIHelper.addLabeledComponent(sexPanel, I18N.l("dialog.individual.sex"), sexCombo);
 		GUIHelper.addComponent(panel, sexPanel);
 
 		return panel;

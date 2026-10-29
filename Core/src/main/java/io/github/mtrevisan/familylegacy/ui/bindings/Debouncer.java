@@ -25,7 +25,6 @@
 package io.github.mtrevisan.familylegacy.ui.bindings;
 
 import javax.swing.SwingUtilities;
-import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;

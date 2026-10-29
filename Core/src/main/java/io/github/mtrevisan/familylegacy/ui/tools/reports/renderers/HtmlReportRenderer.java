@@ -57,6 +57,9 @@ import java.util.regex.Pattern;
  */
 public final class HtmlReportRenderer implements ReportRenderer{
 
+	private static final Pattern INLINE_CODE = Pattern.compile("`([^`]+?)`");
+	private static final Pattern ITALIC = Pattern.compile("(?<!\\*)\\*(?!\\*)([^*]+?)(?<!\\*)\\*(?!\\*)");
+	private static final Pattern BOLD = Pattern.compile("\\*\\*(.+?)\\*\\*");
 	private static final String STYLE =
 		"body{font-family:Georgia,serif;max-width:48em;margin:2em auto;line-height:1.5;}"
 			+ "h1,h2,h3{border-bottom:1px solid #ccc;padding-bottom:.2em;}"
@@ -303,11 +306,11 @@ public final class HtmlReportRenderer implements ReportRenderer{
 		t = sb.toString();
 
 		// **bold**
-		t = t.replaceAll("\\*\\*(.+?)\\*\\*", "<b>$1</b>");
+		t = BOLD.matcher(t).replaceAll("<b>$1</b>");
 		// *italic* — single asterisk not adjacent to another asterisk
-		t = t.replaceAll("(?<!\\*)\\*(?!\\*)([^*]+?)(?<!\\*)\\*(?!\\*)", "<i>$1</i>");
+		t = ITALIC.matcher(t).replaceAll("<i>$1</i>");
 		// `code`
-		t = t.replaceAll("`([^`]+?)`", "<code>$1</code>");
+		t = INLINE_CODE.matcher(t).replaceAll("<code>$1</code>");
 
 		return t;
 	}

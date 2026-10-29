@@ -25,17 +25,17 @@
 package io.github.mtrevisan.familylegacy.ui.dialogs.records;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchQuestionReader;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextArea;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextField;
-import io.github.mtrevisan.familylegacy.ui.components.PanelKey;
-import io.github.mtrevisan.familylegacy.ui.components.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.ui.components.ResearchQuestionStatusPanel;
 import io.github.mtrevisan.familylegacy.ui.components.lists.EntityListPanel;
 import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.PanelKey;
+import io.github.mtrevisan.familylegacy.ui.dialogs.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.ui.handlers.ConclusionHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.CulturalNormHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventHandler;
@@ -173,16 +173,16 @@ public class ResearchQuestionRecordDialog extends BaseRecordDialog{
 	@Override
 	protected JPanel createPropertiesPanel(){
 		// title
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.research_question.title") + "*:", titleField);
+		GUIHelper.addLabeledComponent(propertiesPanel, GUIHelper.requiredLabel("dialog.research_question.title"), titleField);
 
 		// question
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.research_question.question") + "*:", questionArea);
+		GUIHelper.addLabeledComponent(propertiesPanel, GUIHelper.requiredLabel("dialog.research_question.question"), questionArea);
 
 		// target
 		GUIHelper.addComponent(propertiesPanel, targetPanel);
 
 		// status
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.research_question.status") + "*:", statusPanel);
+		GUIHelper.addLabeledComponent(propertiesPanel, GUIHelper.requiredLabel("dialog.research_question.status"), statusPanel);
 
 		// conclusion panel:
 		final JPanel conclusionPanel = GUIHelper.createLabelFieldPanel(5, "[]5[]");
@@ -190,11 +190,11 @@ public class ResearchQuestionRecordDialog extends BaseRecordDialog{
 		// conclusion
 		GUIHelper.addComponent(conclusionPanel, conclusionArea);
 		// confidence
-		GUIHelper.addLabeledComponent(conclusionPanel, I18N.t("dialog.research_question.confidence") + ":", conclusionConfidenceCombo);
+		GUIHelper.addLabeledComponent(conclusionPanel, I18N.l("dialog.research_question.confidence"), GUIHelper.withTooltip(conclusionConfidenceCombo, "tooltip.research_question.confidence"));
 		GUIHelper.addComponent(propertiesPanel, conclusionPanel);
 
 		// rationale
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.research_question.rationale") + ":", rationaleArea);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.research_question.rationale"), GUIHelper.withTooltip(rationaleArea, "tooltip.research_question.rationale"));
 
 		// closed date
 		//calculated
@@ -228,6 +228,26 @@ public class ResearchQuestionRecordDialog extends BaseRecordDialog{
 		return components.getPanel(PanelKey.AUDIT);
 	}
 
+
+	/**
+	 * Starts the new question with a title, the question and the records it is about. The question is not saved: the user completes
+	 * it, and decides whether to save it.
+	 *
+	 * @param title	The title, used only where still empty.
+	 * @param question	The question, used only where still empty.
+	 * @param targets	The records the question is about (they must already be in the model).
+	 * @return	This dialog.
+	 */
+	public ResearchQuestionRecordDialog withDraft(final String title, final String question, final java.util.List<FLEFRecord> targets){
+		if(titleField.isEmpty() && title != null && !title.isBlank())
+			titleField.setText(title);
+		if(questionArea.isEmpty() && question != null && !question.isBlank())
+			questionArea.setText(question);
+		for(final FLEFRecord target : targets)
+			targetPanel.addItemDirectly(target);
+
+		return this;
+	}
 
 	@Override
 	protected void loadData(){

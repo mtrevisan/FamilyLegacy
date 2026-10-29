@@ -25,15 +25,16 @@
 package io.github.mtrevisan.familylegacy.ui.dialogs.records;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceRelationshipReader;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
-import io.github.mtrevisan.familylegacy.ui.components.PanelKey;
-import io.github.mtrevisan.familylegacy.ui.components.RecordDialogBuilder;
-import io.github.mtrevisan.familylegacy.ui.components.fields.DateField;
 import io.github.mtrevisan.familylegacy.ui.components.fields.EntityField;
 import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.PanelKey;
+import io.github.mtrevisan.familylegacy.ui.dialogs.RecordDialogBuilder;
+import io.github.mtrevisan.familylegacy.ui.dialogs.api.LinkRole;
+import io.github.mtrevisan.familylegacy.ui.dialogs.structures.DateField;
 import io.github.mtrevisan.familylegacy.ui.handlers.ConclusionHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.ContextImpactHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.PlaceHandler;
@@ -146,28 +147,47 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 	}
 
 
+	/**
+	 * Fills the editor with what the Place Assistant suggests. Nothing is saved unless the user confirms the editor.
+	 *
+	 * @param subject	the place that is part of another one
+	 * @param target	the place that contains it (can be {@code null})
+	 * @param type		the type of the relationship (can be {@code null})
+	 * @return	This dialog.
+	 */
+	public PlaceRelationshipRecordDialog withDraft(final FLEFRecord subject, final FLEFRecord target, final String type){
+		subjectField.setEntity(subject);
+		if(target != null)
+			targetField.setEntity(target);
+		if(type != null)
+			typeCombo.setSelectedItem(type);
+
+		return this;
+	}
+
+
 	@Override
 	protected JPanel createPropertiesPanel(){
 		// subject
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.place_relationship.subject") + "*:", subjectField);
+		GUIHelper.addLabeledComponent(propertiesPanel, GUIHelper.requiredLabel("dialog.place_relationship.subject"), subjectField);
 
 		// target
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.place_relationship.target") + "*:", targetField);
+		GUIHelper.addLabeledComponent(propertiesPanel, GUIHelper.requiredLabel("dialog.place_relationship.target"), targetField);
 
 		// type
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.place_relationship.part.type") + "*:", typeCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, GUIHelper.requiredLabel("dialog.place_relationship.part.type"), typeCombo);
 
 		// validity range:
 		final JPanel validityPanel = GUIHelper.createLabelFieldPanel(5, "[]5[]");
 		validityPanel.setBorder(BorderFactory.createTitledBorder(I18N.t("dialog.validity.range")));
 		// valid from
-		GUIHelper.addLabeledComponent(validityPanel, I18N.t("dialog.valid_from") + ":", validFromField);
+		GUIHelper.addLabeledComponent(validityPanel, I18N.l("dialog.valid_from"), validFromField);
 		// valid to
-		GUIHelper.addLabeledComponent(validityPanel, I18N.t("dialog.valid_to") + ":", validToField);
+		GUIHelper.addLabeledComponent(validityPanel, I18N.l("dialog.valid_to"), validToField);
 		GUIHelper.addComponent(propertiesPanel, validityPanel);
 
 		// confidence
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.place_relationship.confidence") + ":", confidenceCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.place_relationship.confidence"), confidenceCombo);
 
 		return propertiesPanel;
 	}
@@ -323,6 +343,15 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 
 	public static void main(final String[] args) throws IOException{
 		GUIHelper.launch(PlaceRelationshipRecordDialog::createEdit, "/tests/test.flef", "PR1");
+	}
+
+
+	@Override
+	public void link(final LinkRole role, final FLEFRecord record){
+		if(role == LinkRole.SUBJECT)
+			withSubject(record);
+		else if(role == LinkRole.TARGET)
+			withTarget(record);
 	}
 
 }

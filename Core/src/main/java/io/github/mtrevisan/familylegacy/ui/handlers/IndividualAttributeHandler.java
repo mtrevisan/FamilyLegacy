@@ -25,10 +25,10 @@
 package io.github.mtrevisan.familylegacy.ui.handlers;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualAttributeReader;
-import io.github.mtrevisan.familylegacy.ui.dialogs.records.IndividualAttributeRecordDialog;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.ui.dialogs.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
@@ -40,10 +40,10 @@ import java.util.List;
 /**
  * Handler for {@code INDIVIDUAL_ATTRIBUTE_RECORD} entities according to FLEF 0.2.0.
  */
-public class IndividualAttributeHandler extends AbstractRecordTypeHandler<IndividualAttributeRecordDialog>{
+public class IndividualAttributeHandler extends AbstractRecordTypeHandler<RecordDialog>{
 
-	public static final String TYPE = "INDIVIDUAL_ATTRIBUTE";
-	public static final String ID_PREFIX = "IA";
+	public static final String TYPE = IndividualAttributeReader.TYPE;
+	public static final String ID_PREFIX = IndividualAttributeReader.ID_PREFIX;
 
 
 	private static final class SingletonHelper{
@@ -67,7 +67,7 @@ public class IndividualAttributeHandler extends AbstractRecordTypeHandler<Indivi
 	}
 
 	public static boolean isOfType(final FLEFRecord record){
-		return (record != null && TYPE.equalsIgnoreCase(record.getTag()));
+		return IndividualAttributeReader.isOfType(record);
 	}
 
 	@Override
@@ -115,14 +115,14 @@ public class IndividualAttributeHandler extends AbstractRecordTypeHandler<Indivi
 	}
 
 	@Override
-	public IndividualAttributeRecordDialog createNewDialog(final Window parent, final FLEFModel model){
-		return IndividualAttributeRecordDialog.createNew(parent, model);
+	public RecordDialog createNewDialog(final Window parent, final FLEFModel model){
+		return RecordDialogs.createNew(TYPE, parent, model);
 	}
 
 	@Override
-	public IndividualAttributeRecordDialog createEditDialog(final Window parent, final FLEFModel model,
-			final FLEFRecord record){
-		return IndividualAttributeRecordDialog.createEdit(parent, model, record);
+	public RecordDialog createEditDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
+		return RecordDialogs.createEdit(TYPE, parent, model, record);
 	}
+
 
 }

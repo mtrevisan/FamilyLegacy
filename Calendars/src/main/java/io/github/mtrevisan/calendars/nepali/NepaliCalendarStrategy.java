@@ -168,7 +168,7 @@ public class NepaliCalendarStrategy implements CalendarConverterPlugin{
 				if(line.isBlank() || line.startsWith("#") || line.startsWith("year"))
 					continue;
 
-				final String[] fields = line.split(";");
+				final String[] fields = StringUtils.splitPreserveAllTokens(line, ';');
 				final int[] lengths = new int[12];
 				for(int i = 0; i < 12; i ++)
 					lengths[i] = Integer.parseInt(fields[i + 1].trim());

@@ -66,9 +66,9 @@ public class RelationshipFilterPanel extends JPanel implements RecordFilterPanel
 		setLayout(new MigLayout("wrap 2,gap 5", "[][grow,fill]", "[]"));
 		setBorder(BorderFactory.createTitledBorder(I18N.tf("dialog.search_filter.title", I18N.t("dialog.component.relationships"))));
 
-		add(new JLabel(I18N.t("dialog.relationship.type") + ":"));
+		add(new JLabel(I18N.l("dialog.relationship.type")));
 		add(typeCombo, "growx");
-		add(new JLabel(I18N.t("dialog.relationship.role") + ":"));
+		add(new JLabel(I18N.l("dialog.relationship.role")));
 		add(roleField, "growx");
 	}
 

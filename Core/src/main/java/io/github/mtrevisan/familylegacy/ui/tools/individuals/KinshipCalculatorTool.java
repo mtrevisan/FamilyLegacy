@@ -62,7 +62,7 @@ public final class KinshipCalculatorTool implements ToolOperation{
 		final String selected = context.selectedEntityId();
 		final FLEFModel model = context.model();
 		final TreeService treeService = new TreeService(repository, model);
-		final io.github.mtrevisan.familylegacy.io.model.FLEFRecord initialA = (selected != null
+		final io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord initialA = (selected != null
 			? model.getRecordById(selected)
 			: null);
 		final KinshipDialog dialog = new KinshipDialog(context.owner(), model, treeService, initialA, null);

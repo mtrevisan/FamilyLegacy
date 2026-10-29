@@ -24,8 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.io.model.readers;
 
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 
 
 /**
@@ -65,6 +65,9 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
  */
 public final class IdentityHypothesisReader{
 
+	public static final String TYPE = "IDENTITY_HYPOTHESIS";
+	public static final String ID_PREFIX = "IH";
+
 	public static final String TAG_IDENTITY = "identity";
 	public static final String TAG_RATIONALE = "rationale";
 	public static final String TAG_SOURCE = "source";
@@ -73,6 +76,12 @@ public final class IdentityHypothesisReader{
 
 
 	private IdentityHypothesisReader(){}
+
+	/** @return whether the record is of this type (its tag is the type, ignoring case) */
+	public static boolean isOfType(final FLEFRecord record){
+		return (record != null && TYPE.equalsIgnoreCase(record.getTag()));
+	}
+
 
 
 	public static String extractRationale(final FLEFRecord record){

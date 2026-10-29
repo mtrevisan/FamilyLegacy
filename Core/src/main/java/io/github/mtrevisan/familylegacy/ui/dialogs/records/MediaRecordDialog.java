@@ -25,15 +25,15 @@
 package io.github.mtrevisan.familylegacy.ui.dialogs.records;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.readers.MediaReader;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.bindings.BindingsHelper;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextArea;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextField;
-import io.github.mtrevisan.familylegacy.ui.components.PanelKey;
-import io.github.mtrevisan.familylegacy.ui.components.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.PanelKey;
+import io.github.mtrevisan.familylegacy.ui.dialogs.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.ui.handlers.MediaHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.ResearchQuestionHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.SourceHandler;
@@ -150,16 +150,16 @@ public class MediaRecordDialog extends BaseRecordDialog{
 	@Override
 	protected JPanel createPropertiesPanel(){
 		// file
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.media.uri") + "*:", uriField);
+		GUIHelper.addLabeledComponent(propertiesPanel, GUIHelper.requiredLabel("dialog.media.uri"), uriField);
 
 		// kind
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.media.kind") + "*:", kindCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, GUIHelper.requiredLabel("dialog.media.kind"), kindCombo);
 
 		// mapping
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.media.mapping") + ":", mappingCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.media.mapping"), mappingCombo);
 
 		// description
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.media.description") + ":", descriptionArea);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.media.description"), descriptionArea);
 
 		return propertiesPanel;
 	}

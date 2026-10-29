@@ -25,9 +25,9 @@
 package io.github.mtrevisan.familylegacy.ui.handlers;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.readers.NoteReader;
-import io.github.mtrevisan.familylegacy.ui.dialogs.structures.NoteStructureDialog;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.ui.dialogs.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
@@ -35,9 +35,9 @@ import org.apache.commons.lang3.StringUtils;
 import java.awt.Window;
 
 
-public class NoteHandler extends AbstractRecordTypeHandler<NoteStructureDialog>{
+public class NoteHandler extends AbstractRecordTypeHandler<RecordDialog>{
 
-	public static final String TYPE = "NOTE";
+	public static final String TYPE = NoteReader.TYPE;
 
 
 	private static final class SingletonHelper{
@@ -66,7 +66,7 @@ public class NoteHandler extends AbstractRecordTypeHandler<NoteStructureDialog>{
 	}
 
 	public static boolean isOfType(final FLEFRecord record){
-		return (record != null && TYPE.equalsIgnoreCase(record.getTag()));
+		return NoteReader.isOfType(record);
 	}
 
 	@Override
@@ -78,13 +78,14 @@ public class NoteHandler extends AbstractRecordTypeHandler<NoteStructureDialog>{
 	}
 
 	@Override
-	public NoteStructureDialog createNewDialog(final Window parent, final FLEFModel model){
-		return NoteStructureDialog.createNew(parent, model);
+	public RecordDialog createNewDialog(final Window parent, final FLEFModel model){
+		return RecordDialogs.createNew(TYPE, parent, model);
 	}
 
 	@Override
-	public NoteStructureDialog createEditDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
-		return NoteStructureDialog.createEdit(parent, model, record);
+	public RecordDialog createEditDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
+		return RecordDialogs.createEdit(TYPE, parent, model, record);
 	}
+
 
 }

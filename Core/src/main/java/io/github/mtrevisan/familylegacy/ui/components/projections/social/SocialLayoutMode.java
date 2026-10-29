@@ -24,6 +24,11 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections.social;
 
+import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
+
+import java.util.Locale;
+
+
 /**
  * Layout algorithm used to position the nodes of the Social Network view.
  * <p>
@@ -50,7 +55,7 @@ public enum SocialLayoutMode{
 	 * from the focus immediately readable and is the default for the
 	 * Social Network view.
 	 */
-	CONCENTRIC("Concentric"),
+	CONCENTRIC,
 
 	/**
 	 * Radial tree layout. The graph is drawn as a tree rooted at the focus
@@ -64,15 +69,7 @@ public enum SocialLayoutMode{
 	 * relationships (e.g. "the contacts of my contacts") rather than
 	 * count how far each node is from the focus.
 	 */
-	RADIAL_TREE("Radial tree");
-
-
-	private final String displayLabel;
-
-
-	SocialLayoutMode(final String displayLabel){
-		this.displayLabel = displayLabel;
-	}
+	RADIAL_TREE;
 
 
 	/**
@@ -82,7 +79,7 @@ public enum SocialLayoutMode{
 	 * @return the display label, never {@code null}
 	 */
 	public String getDisplayLabel(){
-		return displayLabel;
+		return I18N.t("enum.social.layout_mode." + name().toLowerCase(Locale.ROOT));
 	}
 
 	/**
@@ -107,7 +104,7 @@ public enum SocialLayoutMode{
 
 	@Override
 	public String toString(){
-		return displayLabel;
+		return I18N.t("enum.social.layout_mode." + name().toLowerCase(Locale.ROOT));
 	}
 
 }

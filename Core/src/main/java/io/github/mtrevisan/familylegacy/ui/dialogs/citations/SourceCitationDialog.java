@@ -25,15 +25,15 @@
 package io.github.mtrevisan.familylegacy.ui.dialogs.citations;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextField;
-import io.github.mtrevisan.familylegacy.ui.components.PanelKey;
-import io.github.mtrevisan.familylegacy.ui.components.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.ui.components.fields.EntityField;
 import io.github.mtrevisan.familylegacy.ui.components.lists.ExtractListPanel;
 import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.PanelKey;
+import io.github.mtrevisan.familylegacy.ui.dialogs.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.ui.handlers.SourceCitationHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
@@ -82,7 +82,7 @@ import java.awt.Window;
  * Tab 8 (Notes): remark
  * Tab 9 (Privacy): privacy
  */
-public class SourceCitationDialog extends BaseRecordDialog{
+public class SourceCitationDialog extends BaseRecordDialog implements CitationHost{
 
 	private final JPanel propertiesPanel;
 
@@ -130,16 +130,16 @@ public class SourceCitationDialog extends BaseRecordDialog{
 	@Override
 	protected JPanel createPropertiesPanel(){
 		// source
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.source_citation.source") + "*:", sourceField);
+		GUIHelper.addLabeledComponent(propertiesPanel, GUIHelper.requiredLabel("dialog.source_citation.source"), sourceField);
 
 		// locator
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.source_citation.locator") + ":", locatorField);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.source_citation.locator"), locatorField);
 
 		// extract
 		GUIHelper.addComponent(propertiesPanel, extractPanel);
 
 		// stance
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.t("dialog.source_citation.stance") + "*:", stanceCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, GUIHelper.requiredLabel("dialog.source_citation.stance"), stanceCombo);
 
 		// evidence
 		final JPanel evidencePanel = components.getPanel(PanelKey.EVIDENCE);
@@ -161,6 +161,22 @@ public class SourceCitationDialog extends BaseRecordDialog{
 
 			sourceField.setText(sourceId);
 		}
+	}
+
+
+	@Override
+	public String locator(){
+		return locatorField.getText();
+	}
+
+	@Override
+	public void applyLocator(final String locator){
+		locatorField.setText(locator);
+	}
+
+	@Override
+	public FLEFRecord citedSource(){
+		return sourceField.getEntity();
 	}
 
 

@@ -24,15 +24,16 @@
  */
 package io.github.mtrevisan.familylegacy.ui.tools.individuals;
 
-import io.github.mtrevisan.familylegacy.gedcom.utils.AuditBuilder;
+import io.github.mtrevisan.familylegacy.importer.gedcom.AuditBuilder;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventParticipationHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.GroupHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RelationshipHandler;
@@ -119,7 +120,7 @@ public final class IndividualHelper{
 			return;
 
 		final Map<Class<? extends RecordTypeHandler<?>>, Set<FLEFRecord>> relationshipIds
-			= model.getReferencingRecords(individualId);
+			= HandlerRegistry.getReferencingRecords(model, individualId);
 		for(final Map.Entry<Class<? extends RecordTypeHandler<?>>, Set<FLEFRecord>> entry : relationshipIds.entrySet())
 			for(final FLEFRecord record : entry.getValue())
 				model.removeRecord(record.getId());

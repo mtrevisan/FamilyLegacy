@@ -209,10 +209,10 @@ public class BahaiCalendarStrategy implements CalendarConverterPlugin{
 		int day = 0;
 		if(StringUtils.isNumeric(words.getFirst()))
 			day = Integer.parseInt(words.removeFirst());
-		final String monthName = String.join(" ", words);
+		final String monthName = String.join(StringUtils.SPACE, words);
 		Integer month = MONTHS.get(monthName);
 		if(month == null)
-			month = MONTHS.get(monthName.replace(" ", ""));
+			month = MONTHS.get(monthName.replace(StringUtils.SPACE, StringUtils.EMPTY));
 		if(month == null && StringUtils.isNumeric(monthName)){
 			final int number = Integer.parseInt(monthName);
 			month = (number >= 1 && number <= DAYS_IN_MONTH? number: null);
@@ -235,7 +235,7 @@ public class BahaiCalendarStrategy implements CalendarConverterPlugin{
 				if(line.isBlank() || line.startsWith("#"))
 					continue;
 
-				final String[] fields = line.split(";");
+				final String[] fields = StringUtils.splitPreserveAllTokens(line, ';');
 				final LocalDate date = LocalDate.parse(fields[1]);
 				nawRuz.put(Integer.parseInt(fields[0]),
 					GregorianCalendarStrategy.toJdn(date.getYear(), date.getMonthValue(), date.getDayOfMonth()));

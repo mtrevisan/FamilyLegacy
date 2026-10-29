@@ -25,12 +25,12 @@
 package io.github.mtrevisan.familylegacy.ui.components.projections.group;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.readers.GroupReader;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyResolver;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
-import io.github.mtrevisan.familylegacy.ui.components.projections.BoxPanelType;
-import io.github.mtrevisan.familylegacy.ui.components.projections.PlaceholderImages;
+import io.github.mtrevisan.familylegacy.ui.components.projections.common.BoxPanelType;
+import io.github.mtrevisan.familylegacy.ui.components.projections.common.PlaceholderImages;
 import io.github.mtrevisan.familylegacy.ui.helpers.AsyncResourceLoader;
 import io.github.mtrevisan.familylegacy.ui.helpers.ResourceHelper;
 import org.apache.commons.lang3.StringUtils;
@@ -51,7 +51,8 @@ public final class GroupData{
 	private static final Logger LOGGER = LoggerFactory.getLogger(GroupData.class);
 
 
-	private static final AsyncResourceLoader<ImageIcon> IMAGE_LOADER = new AsyncResourceLoader<>();
+	private static final int IMAGE_CACHE_SIZE = 300;
+	private static final AsyncResourceLoader<ImageIcon> IMAGE_LOADER = new AsyncResourceLoader<>(IMAGE_CACHE_SIZE);
 
 
 	private static final String DOT = ".";

@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.ui.tools.statistics;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.ui.dialogs.ProgressDialog;
+import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolOperation;
 import org.apache.commons.lang3.StringUtils;
@@ -52,7 +53,7 @@ public final class StatisticsTool implements ToolOperation{
 
 	@Override
 	public String getName(){
-		return "Statistics…";
+		return I18N.t("menu.tools.statistics");
 	}
 
 	@Override
@@ -63,12 +64,12 @@ public final class StatisticsTool implements ToolOperation{
 		final FLEFModel model = context.model();
 		if(model == null){
 			JOptionPane.showMessageDialog(context.owner(),
-				"No model loaded.", "Statistics", JOptionPane.WARNING_MESSAGE);
+				I18N.t("message.no_model_loaded"), I18N.t("dialog.statistics.title"), JOptionPane.WARNING_MESSAGE);
 			return;
 		}
 
 		final ProgressDialog progress = new ProgressDialog(context.owner(),
-			"Statistics", "Preparing…");
+			I18N.t("dialog.statistics.title"), I18N.t("progress.statistics.preparing"));
 
 		final SwingWorker<Statistics, Void> worker = new SwingWorker<>(){
 			@Override
@@ -92,8 +93,7 @@ public final class StatisticsTool implements ToolOperation{
 					LOGGER.error("Statistics computation failed", ex);
 					final Throwable cause = (ex.getCause() != null? ex.getCause(): ex);
 					JOptionPane.showMessageDialog(context.owner(),
-						"Statistics computation failed:" + StringUtils.LF + cause.getMessage(),
-						"Statistics", JOptionPane.ERROR_MESSAGE);
+						I18N.l("dialog.statistics.error") + StringUtils.LF + cause.getMessage(), I18N.t("dialog.statistics.title"), JOptionPane.ERROR_MESSAGE);
 				}
 			}
 		};

@@ -24,8 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.ui.tools.reports;
 
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.ui.tools.reports.index.ReportFormatters;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -51,6 +52,8 @@ final class IndexSection implements SectionBuilder{
 
 	private static final String TAG_PLACE = "place";
 	private static final String TAG_ORIGINAL_TEXT = "original_text";
+
+	private static final String TAG_PLACE_ORIGINAL_TEXT = FLEFRecordHelper.composePath(TAG_PLACE, TAG_ORIGINAL_TEXT);
 
 
 	private final ReportContext ctx;
@@ -145,8 +148,7 @@ final class IndexSection implements SectionBuilder{
 
 
 	private void addPlacesOf(final FLEFRecord rec, final Set<String> out){
-		final String original = FLEFRecordHelper.getChildValue(rec,
-			TAG_PLACE + "." + TAG_ORIGINAL_TEXT);
+		final String original = FLEFRecordHelper.getChildValue(rec, TAG_PLACE_ORIGINAL_TEXT);
 		if(original != null && !original.isBlank())
 			out.add(original.trim());
 		final String name = ReportFormatters.resolvePlaceName(ctx.model, rec);

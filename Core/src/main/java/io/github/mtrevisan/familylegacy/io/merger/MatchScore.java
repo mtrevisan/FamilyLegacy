@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.io.merger;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -53,7 +55,7 @@ record MatchScore(double weight, double probability, List<String> evidence, Stri
 
 	String describe(){
 		final String features = String.join("; ", evidence);
-		return (isVetoed()? "excluded: " + veto + (features.isEmpty()? "": " (" + features + ")"): features);
+		return (isVetoed()? "excluded: " + veto + (features.isEmpty()? StringUtils.EMPTY: " (" + features + ")"): features);
 	}
 
 

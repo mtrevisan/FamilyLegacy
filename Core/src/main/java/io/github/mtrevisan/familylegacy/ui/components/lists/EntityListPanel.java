@@ -25,22 +25,15 @@
 package io.github.mtrevisan.familylegacy.ui.components.lists;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.ui.bindings.BindingsHelper;
 import io.github.mtrevisan.familylegacy.ui.bindings.MenuBuilder;
-import io.github.mtrevisan.familylegacy.ui.components.CompoundIcon;
-import io.github.mtrevisan.familylegacy.ui.components.PrivacyBadge;
-import io.github.mtrevisan.familylegacy.ui.components.searches.RecordSelectionDialog;
-import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
-import io.github.mtrevisan.familylegacy.ui.dialogs.records.ConclusionRecordDialog;
-import io.github.mtrevisan.familylegacy.ui.dialogs.records.EventParticipationRecordDialog;
-import io.github.mtrevisan.familylegacy.ui.dialogs.records.IdentityHypothesisRecordDialog;
-import io.github.mtrevisan.familylegacy.ui.dialogs.records.PlaceRelationshipRecordDialog;
-import io.github.mtrevisan.familylegacy.ui.dialogs.records.RelationshipRecordDialog;
+import io.github.mtrevisan.familylegacy.ui.components.searches.service.RecordSelectionDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.api.LinkRole;
+import io.github.mtrevisan.familylegacy.ui.dialogs.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.ConclusionHandler;
-import io.github.mtrevisan.familylegacy.ui.handlers.IdentityHypothesisHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.ConclusionTargetHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
@@ -93,7 +86,6 @@ import java.util.function.Consumer;
 public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 
 	private static final String TAG_RESOLVES = "resolves";
-	private static final String ISSUE_IDENTITY = "identity";
 
 
 	public enum ListType{
@@ -339,7 +331,7 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 	private void openConclusionDialog(final FLEFRecord conclusion){
 		final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(ConclusionHandler.class);
 		if(handler != null){
-			final BaseRecordDialog dialog = handler.createEditDialog(parent, model, conclusion);
+			final RecordDialog dialog = handler.createEditDialog(parent, model, conclusion);
 			dialog.setVisible(true);
 		}
 	}
@@ -348,11 +340,12 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 		if(recordId == null)
 			return null;
 
-		for(final FLEFRecord c : model.getRecordsByType(ConclusionHandler.TYPE)){
-			final List<FLEFRecord> resolves = FLEFRecordHelper.findChildren(c, TAG_RESOLVES);
-			for(final FLEFRecord r : resolves)
-				if(containsId(r, recordId))
-					return c;
+		final List<FLEFRecord> conclusions = model.getRecordsByType(ConclusionHandler.TYPE);
+		for(final FLEFRecord conclusion : conclusions){
+			final List<FLEFRecord> resolves = FLEFRecordHelper.findChildren(conclusion, TAG_RESOLVES);
+			for(final FLEFRecord resolve : resolves)
+				if(containsId(resolve, recordId))
+					return conclusion;
 		}
 		return null;
 	}
@@ -399,19 +392,12 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 			// Use the first handler (or if multiple, a selection dialog).
 			if(handlerTypes.size() == 1){
 				final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(handlerTypes.getFirst());
-				final BaseRecordDialog dialog = handler.createNewDialog(parent, model);
-				if(dialog instanceof PlaceRelationshipRecordDialog placeRelationshipDialog){
-					if(subjectEntity != null)
-						placeRelationshipDialog.withSubject(subjectEntity);
-					if(objectEntity != null)
-						placeRelationshipDialog.withTarget(objectEntity);
-				}
-				else if(dialog instanceof RelationshipRecordDialog relationshipDialog){
-					if(subjectEntity != null)
-						relationshipDialog.withSubject(subjectEntity);
-					if(objectEntity != null)
-						relationshipDialog.withTarget(objectEntity);
-				}
+				final RecordDialog dialog = handler.createNewDialog(parent, model);
+				//only the editors of a relationship have a subject and a target
+				if(subjectEntity != null)
+					dialog.link(LinkRole.SUBJECT, subjectEntity);
+				if(objectEntity != null)
+					dialog.link(LinkRole.TARGET, objectEntity);
 				getDialogSetup().accept(dialog);
 				dialog.setVisible(true);
 
@@ -439,7 +425,7 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 	private FLEFRecord createNewCitation(){
 		final RecordTypeHandler<?> citationHandler = HandlerRegistry.getHandler(handlerTypes.getFirst());
 		final RecordTypeHandler<?> targetHandler = citationHandler.getParentHandler();
-		final BaseRecordDialog targetDialog = targetHandler.createNewDialog(parent, model);
+		final RecordDialog targetDialog = targetHandler.createNewDialog(parent, model);
 		getDialogSetup().accept(targetDialog);
 		targetDialog.setVisible(true);
 
@@ -454,7 +440,7 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 		final String citedType = citationHandler.getCitedType();
 		FLEFRecordHelper.updateChildValue(citation, (citedType != null? citedType: path), targetId);
 
-		final BaseRecordDialog citationDialog = citationHandler.createEditDialog(parent, model, citation);
+		final RecordDialog citationDialog = citationHandler.createEditDialog(parent, model, citation);
 		citationDialog.setVisible(true);
 
 		if(citationDialog.isSaved()){
@@ -482,19 +468,22 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 		}
 
 		final RecordTypeHandler<?> handler = findHandler(record);
-		final BaseRecordDialog dialog = handler.createEditDialog(parent, model, record);
+		final RecordDialog dialog = handler.createEditDialog(parent, model, record);
 		getDialogSetup().accept(dialog);
+		final FLEFRecord before = FLEFRecord.createEmpty();
+		record.deepCopyTo(before);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved()){
 			if(parentRecord != null){
-				// Use the stored parent record info to reload
-				if(type == ListType.ENTITY_REFERENCE || type == ListType.ONEOF_REFERENCE)
-					loadReferenceWithType(parentRecord.getId(), StringUtils.split(parentRecord.getTag(), '|'));
-					// For STRUCTURE or CITATION_WRAPPER, we might need a different reload
-					// Fallback: reload from the parent record if available
-				else
-					load(parentEntity);
+				reloadFromParent();
+
+				//make the change undoable from the dialog that hosts this list
+				if(parent instanceof RecordDialog parentDialog){
+					final FLEFRecord after = FLEFRecord.createEmpty();
+					record.deepCopyTo(after);
+					parentDialog.addNestedEdit(record, before, after, this::reloadFromParent);
+				}
 			}
 
 			// Check if the record is still in the list; if not, it was removed.
@@ -504,6 +493,16 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 
 		// Return the same record (it was updated in place)
 		return record;
+	}
+
+	private void reloadFromParent(){
+		// Use the stored parent record info to reload
+		if(type == ListType.ENTITY_REFERENCE || type == ListType.ONEOF_REFERENCE)
+			loadReferenceWithType(parentRecord.getId(), StringUtils.split(parentRecord.getTag(), '|'));
+			// For STRUCTURE or CITATION_WRAPPER, we might need a different reload
+			// Fallback: reload from the parent record if available
+		else
+			load(parentEntity);
 	}
 
 	/**
@@ -519,7 +518,7 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 		final String targetId = FLEFRecordHelper.getChildValue(citation, citationHandler.getCitedType());
 		final FLEFRecord target = model.getRecordById(targetId);
 		final RecordTypeHandler<?> targetHandler = citationHandler.getParentHandler();
-		final BaseRecordDialog dialog = targetHandler.createEditDialog(parent, model, target);
+		final RecordDialog dialog = targetHandler.createEditDialog(parent, model, target);
 		getDialogSetup().accept(dialog);
 		dialog.setVisible(true);
 	}
@@ -541,7 +540,7 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 			// Fallback: use the path as the tag
 			FLEFRecordHelper.updateChildValue(citation, path, entityId);
 
-		final BaseRecordDialog citationDialog = handler.createEditDialog(parent, model, citation);
+		final RecordDialog citationDialog = handler.createEditDialog(parent, model, citation);
 		citationDialog.setVisible(true);
 
 		if(citationDialog.isSaved()){
@@ -842,42 +841,23 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 	}
 
 
-	private Consumer<BaseRecordDialog> getDialogSetup(){
+	private Consumer<RecordDialog> getDialogSetup(){
 		return dialog -> {
-			if(parentRecord == null)
+			if(parentRecord == null || (type != ListType.ONEOF_REFERENCE && type != ListType.ENTITY_REFERENCE))
 				return;
 
-			// Configure relationship dialogs based on `actorType` and `type`
-			if(dialog instanceof RelationshipRecordDialog relationshipDialog
-					&& (type == ListType.ONEOF_REFERENCE || type == ListType.ENTITY_REFERENCE)){
-				if(actorType == ActorType.SUBJECT)
-					relationshipDialog.withSubject(parentRecord);
-				else if(actorType == ActorType.OBJECT)
-					relationshipDialog.withTarget(parentRecord);
-			}
-			else if(dialog instanceof PlaceRelationshipRecordDialog placeRelationshipDialog
-					&& (type == ListType.ONEOF_REFERENCE || type == ListType.ENTITY_REFERENCE)){
-				if(actorType == ActorType.SUBJECT)
-					placeRelationshipDialog.withSubject(parentRecord);
-				else if(actorType == ActorType.OBJECT)
-					placeRelationshipDialog.withTarget(parentRecord);
-			}
-			else if(dialog instanceof IdentityHypothesisRecordDialog identityDialog
-					&& (type == ListType.ONEOF_REFERENCE || type == ListType.ENTITY_REFERENCE))
-				identityDialog.withIdentity(parentRecord);
-			else if(dialog instanceof EventParticipationRecordDialog eventDialog
-					&& (type == ListType.ONEOF_REFERENCE || type == ListType.ENTITY_REFERENCE)){
-				if(actorType == ActorType.PARTICIPANT)
-					eventDialog.withParticipant(parentRecord);
-				else if(actorType == ActorType.EVENT)
-					eventDialog.withEvent(parentRecord);
-			}
-			else if(dialog instanceof ConclusionRecordDialog conclusionDialog
-					&& (type == ListType.ONEOF_REFERENCE || type == ListType.ENTITY_REFERENCE)
-					&& parentRecord.getId() != null && model.getRecordById(parentRecord.getId()) != null)
-				//the conclusion can reference the parent only once it is in the model
-				conclusionDialog.withResolvedTarget(parentRecord,
-					(Strings.CI.equals(parentRecord.getTag(), IdentityHypothesisHandler.TYPE)? ISSUE_IDENTITY: null));
+			//the editors take the parts they have (a relationship has a subject and a target, an event participation a participant and an
+			//event...), and ignore the other ones
+			if(actorType == ActorType.SUBJECT)
+				dialog.link(LinkRole.SUBJECT, parentRecord);
+			else if(actorType == ActorType.OBJECT)
+				dialog.link(LinkRole.TARGET, parentRecord);
+			else if(actorType == ActorType.PARTICIPANT)
+				dialog.link(LinkRole.PARTICIPANT, parentRecord);
+			else if(actorType == ActorType.EVENT)
+				dialog.link(LinkRole.EVENT, parentRecord);
+			dialog.link(LinkRole.IDENTITY, parentRecord);
+			dialog.link(LinkRole.RESOLVED_TARGET, parentRecord);
 		};
 	}
 
