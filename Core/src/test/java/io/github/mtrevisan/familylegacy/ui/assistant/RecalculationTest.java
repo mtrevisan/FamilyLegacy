@@ -167,6 +167,7 @@ class RecalculationTest{
 			@Override
 			public List<DiagnosticProvider> diagnosticProviders(){
 				return List.of(context -> {
+					// TODO claude some test from Core end here, is it correct?
 					throw new IllegalStateException("the model was being edited");
 				});
 			}

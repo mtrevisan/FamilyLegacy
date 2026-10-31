@@ -51,6 +51,7 @@ import java.awt.Window;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.KeyEvent;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Consumer;
 
 
@@ -144,7 +145,7 @@ public class CitationAssistantDialog extends JDialog{
 			selected));
 		repositoriesList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		repositoriesList.setCellRenderer((list, value, index, selected, focus) -> row(list,
-			StringUtils.defaultString(RepositoryReader.extractPrimaryName(value), value.getId()), selected));
+			Objects.toString(RepositoryReader.extractPrimaryName(value), value.getId()), selected));
 
 		applyButton.addActionListener(e -> apply());
 		useHintButton.addActionListener(e -> {

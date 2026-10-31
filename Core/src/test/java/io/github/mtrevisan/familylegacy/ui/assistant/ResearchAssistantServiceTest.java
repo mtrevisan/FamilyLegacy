@@ -230,6 +230,7 @@ class ResearchAssistantServiceTest{
 		final ResearchAssistantService service = new ResearchAssistantService();
 		service.register(contributor(List.of(), List.of(
 			context -> {
+				// TODO claude some test from Core end here, is it correct?
 				throw new IllegalStateException("bug in an assistant");
 			},
 			context -> List.of(new Diagnostic(Diagnostic.Severity.WARNING, AssistantCategory.RESEARCH, "Missing death", "why")))));

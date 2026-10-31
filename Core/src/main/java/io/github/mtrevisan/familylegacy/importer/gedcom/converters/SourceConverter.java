@@ -39,6 +39,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 
 /**
@@ -132,7 +133,7 @@ public class SourceConverter {
 		// ---- 4. DATA.EVEN (events recorded, with the period covered and the jurisdiction) ----
 		final List<String> eventsRecorded = new ArrayList<>();
 		for(GEDCOMNode evenNode : GEDCOMHelper.findChildren(dataNode, "EVEN")){
-			final StringBuilder sb = new StringBuilder(StringUtils.defaultString(StringUtils.trimToNull(evenNode.getValue()),
+			final StringBuilder sb = new StringBuilder(Objects.toString(StringUtils.trimToNull(evenNode.getValue()),
 				"?"));
 			final String period = GEDCOMHelper.findFirstValue(evenNode, "DATE");
 			final GEDCOMNode placNode = GEDCOMHelper.findFirstChild(evenNode, "PLAC");

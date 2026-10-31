@@ -63,8 +63,8 @@ public final class AppearanceMenu{
 
 	/** The languages offered in the Language submenu. */
 	private static final Map<String, Locale> LANGUAGES = new LinkedHashMap<>();
-
 	static{
+		// TODO read from available internationalization files
 		// The languages exposed in the UI. Add more here as translations
 		// become available. Order is the order in the menu.
 		LANGUAGES.put("English", Locale.ENGLISH);
@@ -142,8 +142,7 @@ public final class AppearanceMenu{
 
 		for(final Map.Entry<String, Locale> e : LANGUAGES.entrySet()){
 			final Locale locale = e.getValue();
-			final JRadioButtonMenuItem item =
-				new JRadioButtonMenuItem(e.getKey(), sameLanguage(locale, current));
+			final JRadioButtonMenuItem item = new JRadioButtonMenuItem(e.getKey(), sameLanguage(locale, current));
 			item.addActionListener(a -> onLanguageSelected(owner, locale));
 			group.add(item);
 			language.add(item);

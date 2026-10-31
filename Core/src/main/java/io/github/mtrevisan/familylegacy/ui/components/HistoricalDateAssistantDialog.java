@@ -66,6 +66,7 @@ import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -453,7 +454,7 @@ public class HistoricalDateAssistantDialog extends JDialog{
 		if(suggestion.normalizedDate() != null)
 			return suggestion.normalizedDate();
 
-		return StringUtils.defaultString(suggestion.notBefore(), "…") + " – " + StringUtils.defaultString(suggestion.notAfter(), "…");
+		return Objects.toString(suggestion.notBefore(), "…") + " – " + Objects.toString(suggestion.notAfter(), "…");
 	}
 
 

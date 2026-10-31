@@ -10,8 +10,8 @@
 3 COPR
 1 SUBN @TCGB_SUBN@
 1 DEST GEDCOM551
-1 DATE 14 OCT 2026
-2 TIME 20:51:22
+1 DATE 31 OCT 2026
+2 TIME 18:36:20
 1 FILE Trevisan (Dorato)-Gallinaro-Masutti (Manfrin)-Zaros (Basso).ged
 1 COPR Mauro Trevisan
 1 GEDC
@@ -9271,7 +9271,7 @@
 3 MAP
 4 LATI N28.53333
 4 LONG W81.51667
-1 RELI Methodist Christian
+1 RELI methodist protestant christian
 1 OBJE
 2 TITL Masutti Bruno Egidio + Champion Maria 20160517
 2 _DATE 17 MAY 2016
@@ -9297,8 +9297,8 @@
 2 _CUT Y
 2 _CUTD 1745 659 330 308
 1 CHAN
-2 DATE 8 OCT 2019
-3 TIME 19:06:32
+2 DATE 29 OCT 2026
+3 TIME 18:48:47
 1 RIN TCGB_I54
 0 @I55@ INDI
 1 NAME Mauro /Trevisan/
@@ -79599,8 +79599,8 @@
 2 _CUT Y
 2 _CUTD 761 301 2233 3337
 1 CHAN
-2 DATE 5 DEC 2021
-3 TIME 16:43:36
+2 DATE 29 OCT 2026
+3 TIME 18:35:56
 1 RIN TCGB_I1074
 0 @I1075@ INDI
 1 NAME Eugenia V. /Masutti/
@@ -81190,6 +81190,7 @@
 3 MAP
 4 LATI N45.20167
 4 LONG W69.46222
+1 OCCU Gardener, Cook, Baker, Mechanic, Fix anything type of guy, Boatman, Engineer, Outdoorsman, Inventor, Merchant marine
 1 OCCU owner
 2 ADDR
 3 ADR1 10 Us Highway 46
@@ -81219,8 +81220,8 @@
 2 _CUT Y
 2 _CUTD 167 65 341 503
 1 CHAN
-2 DATE 8 OCT 2019
-3 TIME 20:39:40
+2 DATE 29 OCT 2026
+3 TIME 18:35:24
 1 RIN TCGB_I1108
 0 @I1109@ INDI
 1 NAME Piotr /Drużbański/
@@ -109216,8 +109217,8 @@
 3 TIME 14:46:56
 1 RIN TCGB_I1520
 0 @I1521@ INDI
-1 NAME Isidora Costantina /Masutti/
-2 GIVN Isidora Costantina
+1 NAME Isidora Constantina /Masutti/
+2 GIVN Isidora Constantina
 2 SURN Masutti
 1 SEX F
 1 FAMS @F614@
@@ -109243,8 +109244,8 @@
 3 CTRY France
 2 PLAC Sarreguemines, Moselle, France
 1 CHAN
-2 DATE 14 JUL 2018
-3 TIME 13:01:37
+2 DATE 29 OCT 2026
+3 TIME 18:40:30
 1 RIN TCGB_I1521
 0 @I1522@ INDI
 1 NAME Mira Vera /Masutti/
@@ -133625,7 +133626,6 @@
 3 ADR1 Pio Albergo Trivulzio
 3 ADR2 via Antonio Tolomeo Trivulzio 15
 3 CITY Milano
-3 CTRY Italia
 3 CTRY Italia
 2 PLAC Milano, Italia
 2 SOUR @S2828@
@@ -246577,9 +246577,12 @@
 1 WIFE @I1111@
 1 MARR Y
 2 DATE 1994
+1 EVEN
+2 TYPE Family Address
+2 PLAC Greenville, Piscataquis County, Maine, United States of America
 1 CHAN
-2 DATE 14 JAN 2019
-3 TIME 22:15:34
+2 DATE 29 OCT 2026
+3 TIME 18:35:43
 1 RIN TCGB_F431
 0 @F432@ FAM
 1 HUSB @I1112@
@@ -292503,9 +292506,9 @@
 1 PUBL The West Australian (Perth, WA : 1879 - 1954)
 1 TEXT https://trove.nla.gov.au/newspaper/article/49060359
 2 CONT
-2 CONT PESCE (Girolamo): Passed away Oct. 13, 1952, at Scorze, Venezia, Italia, dearly beloved husband of Ma
-2 CONC ria, loved father of Lina, Alfonso, Emidio, Assunta, father-in-law of Luigi Biasin and Gelsomino Tre
-2 CONC visan, grandfather of Gabriella Biasin: aged 58 years.
+2 CONT PESCE (Girolamo): Passed away Oct. 13, 1952, at Scorze, Venezia, Italia, dearly beloved husband of M
+2 CONC aria, loved father of Lina, Alfonso, Emidio, Assunta, father-in-law of Luigi Biasin and Gelsomino Tr
+2 CONC evisan, grandfather of Gabriella Biasin: aged 58 years.
 2 CONT R.I.P.
 1 OBJE
 2 TITL death Pesce Girolamo 19521013

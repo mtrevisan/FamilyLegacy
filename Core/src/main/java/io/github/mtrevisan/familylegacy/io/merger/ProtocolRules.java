@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.TypeDefinitio
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.UnionType;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -189,7 +190,7 @@ final class ProtocolRules{
 	}
 
 	private static String segment(final String segment){
-		return StringUtils.removeEnd(segment, WILDCARD);
+		return Strings.CS.removeEnd(segment, WILDCARD);
 	}
 
 

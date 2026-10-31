@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -111,7 +112,7 @@ final class ReferenceRewriter{
 			final List<FLEFRecord> parents = (separator < 0
 				? List.of(owner)
 				: FLEFRecordHelper.findChildren(owner, path.substring(0, separator)));
-			final String tag = StringUtils.removeEnd(path.substring(separator + 1), WILDCARD);
+			final String tag = Strings.CS.removeEnd(path.substring(separator + 1), WILDCARD);
 			for(final FLEFRecord parent : parents)
 				for(final FLEFRecord node : parent.getChildren())
 					if(tag.equals(node.getTag()) && node.getValue() != null)

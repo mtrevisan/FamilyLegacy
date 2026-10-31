@@ -95,7 +95,7 @@ public final class MediaManagementDialog extends JDialog{
 
 
 	public MediaManagementDialog(final ToolContext context){
-		super(context.owner(), "Manage Documents", ModalityType.APPLICATION_MODAL);
+		super(context.owner(), I18N.t("search.title.manage.media"), ModalityType.APPLICATION_MODAL);
 
 		this.context = context;
 

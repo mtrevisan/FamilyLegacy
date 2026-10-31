@@ -29,6 +29,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -160,7 +161,7 @@ public final class GEDCOM7Normalizer{
 				final String associate = GEDCOMHelper.findFirstValue(node, "PHRASE");
 				final String role = GEDCOMMapper.mapAssociationRoleLabel(GEDCOMHelper.findFirstValue(node, "ROLE"));
 				yield (associate != null || role != null
-					? new GEDCOMNode(node.getLevel(), "NOTE", "Associate: " + StringUtils.defaultString(associate, "unknown")
+					? new GEDCOMNode(node.getLevel(), "NOTE", "Associate: " + Objects.toString(associate, "unknown")
 						+ (role != null? " (" + role + ")": StringUtils.EMPTY))
 					: null);
 			}

@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.importer.gedcom;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -335,7 +336,7 @@ public final class GEDCOMDateConverter{
 		if(timeNode != null && StringUtils.isNotBlank(timeNode.getValue())){
 			try{
 				// GEDCOM 7 marks UTC with a trailing Z, the time zone GEDCOM 5.5.1 times are taken in anyway
-				time = LocalTime.parse(StringUtils.removeEnd(timeNode.getValue().trim(), "Z"));
+				time = LocalTime.parse(Strings.CS.removeEnd(timeNode.getValue().trim(), "Z"));
 			}
 			catch(final DateTimeParseException ignored){}
 		}

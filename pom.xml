@@ -72,7 +72,7 @@
 		<!-- https://mvnrepository.com/artifact/commons-validator/commons-validator -->
 		<apache.commons-validator.version>1.11.0</apache.commons-validator.version>
 		<!-- https://mvnrepository.com/artifact/org.apache.tika/tika-core -->
-		<apache.tika-core.version>4.1.0</apache.tika-core.version>
+		<apache.tika-core.version>4.2.0</apache.tika-core.version>
 		<!-- https://mvnrepository.com/artifact/org.apache.commons/commons-text -->
 		<apache.commons-text.version>1.15.0</apache.commons-text.version>
 		<!-- https://mvnrepository.com/artifact/commons-io/commons-io -->

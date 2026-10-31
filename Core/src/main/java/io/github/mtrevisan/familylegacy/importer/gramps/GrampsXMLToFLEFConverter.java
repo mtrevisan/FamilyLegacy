@@ -45,6 +45,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
@@ -62,6 +63,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -798,7 +800,7 @@ public final class GrampsXMLToFLEFConverter{
 	private void repository(final Element element){
 		final FLEFRecord repository = record(element, RepositoryReader.TYPE)
 			.addChild(FLEFRecord.createChildWithTag("name")
-				.addChild(child("value", StringUtils.defaultString(GrampsXML.childText(element, "rname"),
+				.addChild(child("value", Objects.toString(GrampsXML.childText(element, "rname"),
 					"Repository " + id(element)))));
 
 		for(final Element address : GrampsXML.children(element, "address")){
@@ -809,7 +811,7 @@ public final class GrampsXMLToFLEFConverter{
 		}
 		for(final Element url : GrampsXML.children(element, "url"))
 			repository.addChild(contact(GrampsXML.attribute(url, "href"), "website", null,
-				StringUtils.defaultString(GrampsXML.attribute(url, "description"), GrampsXML.attribute(url, "type"))));
+				Objects.toString(GrampsXML.attribute(url, "description"), GrampsXML.attribute(url, "type"))));
 
 		final String type = GrampsXML.childText(element, "type");
 		if(type != null)
@@ -846,7 +848,7 @@ public final class GrampsXMLToFLEFConverter{
 		if(!relative || mediaPath == null || mediaPath.contains("{"))
 			return source;
 
-		return StringUtils.removeEnd(mediaPath, "/") + "/" + source;
+		return Strings.CS.removeEnd(mediaPath, "/") + "/" + source;
 	}
 
 	private void source(final Element element){
@@ -1029,7 +1031,7 @@ public final class GrampsXMLToFLEFConverter{
 				IndividualAttributeReader.TYPE)
 			.addChild(child("individual", id(person)))
 			.addChild(child("type", "residence"))
-			.addChild(child("value", (value != null? StringUtils.replace(value, StringUtils.LF, ", "): null)));
+			.addChild(child("value", (value != null? Strings.CS.replace(value, StringUtils.LF, ", "): null)));
 		validity(record, dateOf(address), person);
 		citations(record, address);
 		final String phone = GrampsXML.childText(address, "phone");
@@ -1145,7 +1147,7 @@ public final class GrampsXMLToFLEFConverter{
 	 */
 	private void parentChild(final Element child, final Element parent, final String kind, final Element reference,
 			final Element family){
-		final String key = StringUtils.defaultString(kind, "Birth").toLowerCase(Locale.ROOT);
+		final String key = Objects.toString(kind, "Birth").toLowerCase(Locale.ROOT);
 		final String type = CHILD_RELATIONSHIPS.getOrDefault(key, "child");
 		final FLEFRecord relationship = FLEFRecord.createMainRecord(nextId(RelationshipReader.ID_PREFIX), RelationshipReader.TYPE)
 			.addChild(FLEFRecord.createChildWithTag("subject")
@@ -1164,7 +1166,7 @@ public final class GrampsXMLToFLEFConverter{
 
 	/** The relationship between the spouses: it lasts from the marriage to the divorce or the annulment. */
 	private void spouses(final Element family, final Element father, final Element mother){
-		final String kind = StringUtils.defaultString(GrampsXML.attribute(GrampsXML.child(family, "rel"), "type"), TYPE_UNKNOWN);
+		final String kind = Objects.toString(GrampsXML.attribute(GrampsXML.child(family, "rel"), "type"), TYPE_UNKNOWN);
 		final String type = switch(kind.toLowerCase(Locale.ROOT)){
 			case "civil union" -> "civil_spouse";
 			case "unmarried" -> "cohabiting_partner";
