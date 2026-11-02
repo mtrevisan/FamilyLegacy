@@ -315,9 +315,12 @@ public final class TemporalAxis{
 		final int x2 = jdnToX(endJdn);
 
 		final int clampedX1 = Math.max(0, x1);
-		final int clampedX2 = Math.clamp(clampedX1 + 1, x2, viewportWidth);
-		if(clampedX2 <= 0 || clampedX1 >= viewportWidth)
+		//a span that ends before the window or begins after it is not seen (checked first: the clamp below needs room for one pixel)
+		if(x2 < 0 || clampedX1 >= viewportWidth)
 			return null;
+
+		//the end is kept inside the window, one pixel after the start at least
+		final int clampedX2 = Math.clamp(x2, clampedX1 + 1, viewportWidth);
 
 		final int width = Math.max(1, clampedX2 - clampedX1);
 		final int h = Math.max(1, height);

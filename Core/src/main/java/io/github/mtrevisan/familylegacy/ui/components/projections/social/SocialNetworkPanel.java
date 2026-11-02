@@ -71,6 +71,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.function.Consumer;
 
 
 /**
@@ -117,6 +118,8 @@ public final class SocialNetworkPanel extends JPanel implements TreeChangeListen
 	private SocialLayout layout = SocialLayout.compute(graph, SocialLayoutMode.CONCENTRIC);
 
 	private TemporalEntityRef selectedEntity;
+	/** Told when an individual or a group is selected; {@code null} when nobody listens. */
+	private Consumer<String> selectionCallback;
 	private SocialPath highlightedPath;
 	private Set<SocialEdgeRef> highlightedEdges = Collections.emptySet();
 
@@ -148,6 +151,27 @@ public final class SocialNetworkPanel extends JPanel implements TreeChangeListen
 	/* ======================================================================
 	 *                          Public API
 	 * ====================================================================== */
+
+	/**
+	 * Registers a callback invoked with the id of an individual or a group when it is selected.
+	 *
+	 * @param callback	The callback, {@code null} to remove it.
+	 */
+	public SocialNetworkPanel withSelectionCallback(final Consumer<String> callback){
+		selectionCallback = callback;
+
+		return this;
+	}
+
+	/** @return	The entity the network is centered on, or {@code null}. */
+	public String getFocusId(){
+		return focusId;
+	}
+
+	/** @return	The selected entity, or {@code null}. */
+	public TemporalEntityRef getSelectedEntity(){
+		return selectedEntity;
+	}
 
 	/**
 	 * Sets the focus entity and rebuilds the network around it.
@@ -234,6 +258,8 @@ public final class SocialNetworkPanel extends JPanel implements TreeChangeListen
 					return;
 				}
 				selectedEntity = node.entity();
+				if(selectionCallback != null)
+					selectionCallback.accept(selectedEntity.id());
 
 				canvas.repaint();
 

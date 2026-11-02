@@ -115,6 +115,14 @@ public record ToolContext(
 		dispatcher.paste();
 	}
 
+	public void performConnectIndividual(){
+		dispatcher.connectIndividual();
+	}
+
+	public void performConnectChild(){
+		dispatcher.connectChild();
+	}
+
 	public void performRemove(final String id){
 		dispatcher.removeEntity(id);
 	}

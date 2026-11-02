@@ -107,7 +107,7 @@ public final class BookmarkMenu extends JMenu{
 		//the bookmarks of the records hidden by the privacy policy are not listed
 		final List<Bookmark> all = store.visible(modelSupplier.get());
 		if(all.isEmpty()){
-			final JMenuItem empty = new JMenuItem("(no bookmarks yet)");
+			final JMenuItem empty = new JMenuItem(I18N.t("menu.item.no_bookmarks"));
 			empty.setEnabled(false);
 			add(empty);
 		}

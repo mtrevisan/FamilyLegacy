@@ -10,11 +10,10 @@ Stato verificato sul codice (ottobre 2026).
 ## Stato della General Temporal Projection
 
 Il package `temporal` contiene tutti i layer (modello, estrattore, indici, layout, renderer, asse, zoom, toolbar,
-`TemporalProjectionPanel`). **Il pannello però non è collegato a nessuna schermata**: `ProjectionType` espone solo
-`BIOLOGICAL_TREE`, `SUGIYAMA_GRAPH` ed `EGO_NETWORK`, e `TemporalProjectionPanel` non è istanziato da nessuna parte.
-Finché non viene aggiunto un `ProjectionType` (o un'altra via d'accesso) la proiezione è codice non raggiungibile.
-
-TODO collegare `TemporalProjectionPanel` al `ProjectionSwitcherPanel` (nuovo `ProjectionType`, voce di menu, shortcut).
+`TemporalProjectionPanel`). DONE **Il pannello è collegato** (novembre 2026) a `ProjectionSwitcherPanel` (`ProjectionType.TEMPORAL`, segnalibro
+`BookmarkType.TEMPORAL`), ma **nascosto all'utente per ora** (niente bottone, menu, Ctrl+5: vedi `ProjectionType`); `ProjectionSwitcherPanel` lo crea alla prima apertura e, non avendo una
+radice propria, tiene l'ultimo individuo (`lastRootId`) per le altre viste. Un clic su una riga di individuo o gruppo avvisa il
+dossier. Test: `TemporalAndSocialProjectionTest`.
 
 Viste temporali già raggiungibili dall'utente, che coprono parte di questo punto:
 - `MultiLifespanStripPanel` (barra comprimibile sotto albero ed ego network): una riga per individuo, barra dal primo
@@ -95,12 +94,12 @@ TODO conversione inversa JDN -> data nativa (rimandata per scelta).
 12. DONE **Calendari completi** (vedi sopra).
 13. PARZIALE **Time slider.** Esiste la timeline di `ChronomapPanel`; non c'è nella proiezione temporale.
 14. TODO **Export tabellare** (CSV/Excel) della timeline.
-15. DONE **Evidenza negativa.** `evidence_type = negative` è letto da `TemporalExtractor` (`evidence` di evento, attributo, impatto, evento storico, norma) e disegnato da `TemporalSpanRenderer`: corpo attenuato con tratteggio diagonale sulle barre e X sui marker puntuali; il tooltip lo segnala. Vale solo per la proiezione temporale (non ancora raggiungibile, vedi sopra); le altre viste non lo mostrano.
+15. DONE **Evidenza negativa.** `evidence_type = negative` è letto da `TemporalExtractor` (`evidence` di evento, attributo, impatto, evento storico, norma) e disegnato da `TemporalSpanRenderer`: corpo attenuato con tratteggio diagonale sulle barre e X sui marker puntuali; il tooltip lo segnala. Vale solo per la proiezione temporale (oggi nascosta, vedi sopra); le altre viste non lo mostrano.
 
 
 ## Priorità suggerita
 
-1. Collegare `TemporalProjectionPanel` a `ProjectionType` (senza questo il resto non è visibile).
+1. DONE Collegare `TemporalProjectionPanel` a `ProjectionType`.
 2. Allineamento per generazione, età agli eventi e durate (estendono `TemporalProjectionLayout` / `TemporalExtractor`).
 3. Categorie di eventi (solo colore, mantenendo le tre track).
 4. Heatmap, confronto affiancato, export tabellare.

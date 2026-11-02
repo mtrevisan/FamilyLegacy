@@ -161,6 +161,19 @@ public class ResearchTaskRecordDialog extends BaseRecordDialog{
 
 
 	/**
+	 * Prepares a new task of the given research question: the question is already in the list of questions.
+	 *
+	 * @param question	The research question (it must already be in the model).
+	 * @return	This dialog.
+	 */
+	public ResearchTaskRecordDialog withQuestion(final FLEFRecord question){
+		((io.github.mtrevisan.familylegacy.ui.components.lists.EntityListPanel)components.getPanel(PanelKey.RESEARCH_QUESTION))
+			.addItemDirectly(question);
+
+		return this;
+	}
+
+	/**
 	 * Starts the new task with a description, a priority and the questions it supports. The task is not saved: the user completes it,
 	 * and decides whether to save it.
 	 *

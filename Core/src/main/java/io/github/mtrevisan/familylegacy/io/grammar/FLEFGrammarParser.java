@@ -69,7 +69,8 @@ import java.util.Map;
  * Grammar (informal):
  * <pre>
  * grammar      := (fileDef | aliasDef | enumDef | structDef | recordDef | oneofAliasDef)*
- * fileDef      := 'file' IDENT structBody
+ * fileDef      := 'file' IDENT '{' IDENT ('*' | '+')? '}'
+ *               | 'file' IDENT structBody   (legacy layout, with the fields 'header' and 'records')
  * aliasDef     := 'alias' IDENT '=' type
  * enumDef      := 'enum' IDENT '{' identList '}' ('|' IDENT)?
  * structDef    := 'struct' IDENT structBody
@@ -362,10 +363,26 @@ public final class FLEFGrammarParser{
 			putType(types, nameTok.text(), parseType(), nameTok.line());
 	}
 
+	// `file FileName { Record+ }` (a plain list of records, the header being one of them), or the legacy
 	// `file FileName { header: Header, records*: Record }`
 	private FileDefinition parseFileDefinition(){
 		expect(TAG_FILE);
 		final String name = next();
+		if(isPlainRecordList()){
+			expect(TAG_OPEN_CURLY_BRACE);
+			final TypeDefinition type = parseType();
+			Cardinality cardinality = Cardinality.ZERO_OR_MORE;
+			if(peekIs(TAG_CARDINALITY_ONE_OR_MORE)){
+				next();
+
+				cardinality = Cardinality.ONE_OR_MORE;
+			}
+			else if(peekIs(TAG_CARDINALITY_ZERO_OR_MORE))
+				next();
+			expect(TAG_CLOSE_CURLY_BRACE);
+			return new FileDefinition(name, null, new FieldDefinition(FIELD_RECORDS, type, cardinality));
+		}
+
 		final StructBody body = parseStructBody();
 
 		FieldDefinition header = null;
@@ -379,10 +396,24 @@ public final class FLEFGrammarParser{
 		}
 		if(header == null || records == null)
 			throw new FLEFGrammarParseException(
-				"'file " + name + "' must declare both a '" + FIELD_HEADER + "' and a '" + FIELD_RECORDS + "' field",
+				"'file " + name + "' must be either a plain list of records or declare both a '" + FIELD_HEADER + "' and a '"
+					+ FIELD_RECORDS + "' field",
 				0);
 
 		return new FileDefinition(name, header, records);
+	}
+
+	/** Whether the body of the `file` is `{ IDENT ('*' | '+')? }`, that is a plain list of records. */
+	private boolean isPlainRecordList(){
+		int index = position;
+		if(index + 2 >= tokens.size() || !TAG_OPEN_CURLY_BRACE.equals(tokens.get(index).text()))
+			return false;
+
+		index += 2;
+		final String afterType = tokens.get(index).text();
+		if(TAG_CARDINALITY_ONE_OR_MORE.equals(afterType) || TAG_CARDINALITY_ZERO_OR_MORE.equals(afterType))
+			index ++;
+		return (index < tokens.size() && TAG_CLOSE_CURLY_BRACE.equals(tokens.get(index).text()));
 	}
 
 	// `alias AliasName = Type`

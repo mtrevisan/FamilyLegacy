@@ -82,8 +82,6 @@ import java.util.Map;
 /**
  * Main application frame.
  */
-// TODO claude: la finestra di geocoding, non farla a finestra, sposta la progress bar da qualche parte, mantenendo comunque la possibilità di fermare il geocoding
-// TODO claude: quando si fa save di un record, inserire una nota in audit che indichi cosa è cambiato/aggiunto/cancellato
 public class FamilyLegacyFrame extends JFrame{
 
 	/** Initial width of the switcher side of the split pane. */
@@ -387,6 +385,14 @@ public class FamilyLegacyFrame extends JFrame{
 				bookmarkType = BookmarkType.CHRONOMAP;
 				rootId = switcher.getCurrentRootId();
 			}
+			case TEMPORAL -> {
+				bookmarkType = BookmarkType.TEMPORAL;
+				rootId = switcher.getCurrentRootId();
+			}
+			case SOCIAL_NETWORK -> {
+				bookmarkType = BookmarkType.SOCIAL_NETWORK;
+				rootId = switcher.getCurrentRootId();
+			}
 			default -> {
 				bookmarkType = BookmarkType.EGO_NETWORK;
 				rootId = switcher.getEgoPanel().getCurrentEgoId();
@@ -410,6 +416,8 @@ public class FamilyLegacyFrame extends JFrame{
 			case SUGIYAMA_GRAPH -> ProjectionType.SUGIYAMA_GRAPH;
 			case EGO_NETWORK -> ProjectionType.EGO_NETWORK;
 			case CHRONOMAP -> ProjectionType.CHRONOMAP;
+			case TEMPORAL -> ProjectionType.TEMPORAL;
+			case SOCIAL_NETWORK -> ProjectionType.SOCIAL_NETWORK;
 		};
 
 		switcher.setProjection(projection);

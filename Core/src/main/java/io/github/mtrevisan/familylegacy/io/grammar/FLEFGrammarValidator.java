@@ -100,9 +100,16 @@ public final class FLEFGrammarValidator{
 		}
 
 		final String context = "file " + fileDef.name();
-		validateTypeUsage(fileDef.headerField().type(), context + ".header");
 		validateTypeUsage(fileDef.recordsField().type(), context + ".records");
 
+		if(fileDef.headerField() == null){
+			if(grammar.getHeaderType() == null)
+				errors.add(context + ": the record union has no 'header' arm");
+
+			return;
+		}
+
+		validateTypeUsage(fileDef.headerField().type(), context + ".header");
 		if(fileDef.recordsField().cardinality() != Cardinality.ZERO_OR_MORE)
 			warnings.add(context + ": 'records' field usually has cardinality '*' (zero or more)");
 		if(fileDef.headerField().cardinality() != Cardinality.REQUIRED)

@@ -26,7 +26,6 @@ package io.github.mtrevisan.familylegacy.ui.components.projections.menus;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.ui.components.projections.common.ProjectionMutator;
-import io.github.mtrevisan.familylegacy.ui.components.projections.common.TreeOperation;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.EntityListener;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.EntityPopupMenuFactory;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualData;
@@ -42,8 +41,11 @@ import io.github.mtrevisan.familylegacy.ui.tools.ToolContexts;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolDispatcher;
 import io.github.mtrevisan.familylegacy.ui.tools.individuals.AddChildTool;
 import io.github.mtrevisan.familylegacy.ui.tools.individuals.AddIndividualTool;
+import io.github.mtrevisan.familylegacy.ui.tools.individuals.ConnectChildTool;
+import io.github.mtrevisan.familylegacy.ui.tools.individuals.ConnectIndividualTool;
 import io.github.mtrevisan.familylegacy.ui.tools.individuals.DeleteIndividualTool;
 import io.github.mtrevisan.familylegacy.ui.tools.individuals.EditIndividualTool;
+import io.github.mtrevisan.familylegacy.ui.tools.individuals.IndividualCareerTool;
 import io.github.mtrevisan.familylegacy.ui.tools.individuals.PasteIndividualTool;
 import io.github.mtrevisan.familylegacy.ui.tools.individuals.RelocateIndividualTool;
 import io.github.mtrevisan.familylegacy.ui.tools.individuals.UnlinkIndividualRelationshipsTool;
@@ -74,6 +76,7 @@ public class EntityTreePopupMenuFactory implements EntityPopupMenuFactory<Indivi
 		final JMenuItem deleteItem = new JMenuItem(I18N.t("menu.individual.delete"), 'D');
 		deleteItem.setAccelerator(ShortcutRegistry.EDIT_DELETE_INDIVIDUAL.keyStroke());
 		final JMenuItem unlinkItem = new JMenuItem(I18N.t("menu.individual.unlink.relationships"), 'U');
+		final JMenuItem careerItem = new JMenuItem(I18N.t("menu.individual.group_career"));
 
 		final JPopupMenu popup = new JPopupMenu();
 		popup.addPopupMenuListener(new PopupMenuAdapter(){
@@ -106,6 +109,7 @@ public class EntityTreePopupMenuFactory implements EntityPopupMenuFactory<Indivi
 				relocateItem.setEnabled(hasData);
 				deleteItem.setEnabled(hasData);
 				unlinkItem.setEnabled(hasRelations);
+				careerItem.setEnabled(hasData);
 			}
 		});
 
@@ -120,16 +124,22 @@ public class EntityTreePopupMenuFactory implements EntityPopupMenuFactory<Indivi
 			new AddIndividualTool()
 				.run(context);
 		});
-		PopupMenuHelper.addMenuItem(popup, connectItem, panel,
-			record -> listener.onIndividualAddOrConnect(panel, TreeOperation.CONNECT));
+		PopupMenuHelper.addMenuItem(popup, connectItem, panel, record -> {
+			final ToolContext context = ToolContexts.withMutator(model, listener, panel, (record != null? record.getId(): null));
+			new ConnectIndividualTool()
+				.run(context);
+		});
 		popup.addSeparator();
 		PopupMenuHelper.addMenuItem(popup, addChildItem, panel, record -> {
 			final ToolContext context = ToolContexts.withMutator(model, listener, panel, record.getId());
 			new AddChildTool()
 				.run(context);
 		});
-		PopupMenuHelper.addMenuItem(popup, connectChildItem, panel,
-			record -> listener.onChildAddOrConnect(panel, TreeOperation.CONNECT));
+		PopupMenuHelper.addMenuItem(popup, connectChildItem, panel, record -> {
+			final ToolContext context = ToolContexts.withMutator(model, listener, panel, (record != null? record.getId(): null));
+			new ConnectChildTool()
+				.run(context);
+		});
 		popup.addSeparator();
 		PopupMenuHelper.addMenuItem(popup, relocateItem, panel, record -> {
 			final ToolContext context = ToolContexts.withMutator(model, listener, panel, record.getId());
@@ -150,6 +160,12 @@ public class EntityTreePopupMenuFactory implements EntityPopupMenuFactory<Indivi
 		PopupMenuHelper.addMenuItem(popup, unlinkItem, panel, record -> {
 			final ToolContext context = ToolContexts.withMutator(model, listener, panel, record.getId());
 			new UnlinkIndividualRelationshipsTool()
+				.run(context);
+		});
+		popup.addSeparator();
+		PopupMenuHelper.addMenuItem(popup, careerItem, panel, record -> {
+			final ToolContext context = ToolContexts.withMutator(model, listener, panel, record.getId());
+			new IndividualCareerTool()
 				.run(context);
 		});
 

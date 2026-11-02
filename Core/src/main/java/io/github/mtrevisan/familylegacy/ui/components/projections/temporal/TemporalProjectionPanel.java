@@ -57,7 +57,11 @@ import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 
 /*
@@ -105,10 +109,16 @@ public final class TemporalProjectionPanel extends JPanel implements TreeChangeL
 	private final HeaderCanvas headerCanvas;
 	private final AxisStripCanvas axisStripCanvas;
 
+	/** Gives the model to show when it is not the one of the whole file; {@code null} for the whole file. */
+	private Supplier<TemporalProjectionModel> modelSource;
 	private TemporalProjectionModel model = TemporalProjectionModel.empty();
+	/** The rows of the model by entity (looked for at every paint, for every row: a list made it quadratic). */
+	private Map<TemporalEntityRef, TemporalRow> rowsByEntity = Map.of();
 	private TemporalAxis axis = new TemporalAxis(null, null);
 
 	private TemporalEntityRef selectedEntity;
+	/** Told when an individual or a group is selected; {@code null} when nobody listens. */
+	private Consumer<String> selectionCallback;
 
 
 	public TemporalProjectionPanel(final FLEFModel flefModel){
@@ -146,14 +156,24 @@ public final class TemporalProjectionPanel extends JPanel implements TreeChangeL
 			return;
 		}
 
-		model = service.build();
+		if(modelSource != null)
+			//the model is given (a group timeline): the toolbar filter does not apply
+			model = modelSource.get();
+		else{
+			model = service.build();
 
-		// Determine the entity filter from the toolbar.
-		final TemporalProjectionToolbar.EntityFilter filter = toolbar.getEntityFilter();
-		if(filter != TemporalProjectionToolbar.EntityFilter.ALL){
-			// Rebuild with the entity filter applied.
-			model = service.build(entity -> matchesFilter(entity, filter));
+			// Determine the entity filter from the toolbar.
+			final TemporalProjectionToolbar.EntityFilter filter = toolbar.getEntityFilter();
+			if(filter != TemporalProjectionToolbar.EntityFilter.ALL){
+				// Rebuild with the entity filter applied.
+				model = service.build(entity -> matchesFilter(entity, filter));
+			}
 		}
+
+		final Map<TemporalEntityRef, TemporalRow> index = new HashMap<>(model.rows().size() * 2);
+		for(final TemporalRow row : model.rows())
+			index.putIfAbsent(row.entity(), row);
+		rowsByEntity = index;
 
 		layout.compute(model);
 
@@ -176,6 +196,21 @@ public final class TemporalProjectionPanel extends JPanel implements TreeChangeL
 	}
 
 	/**
+	 * Makes the panel show the model given by the supplier instead of the whole file (used by the group timeline). The supplier is
+	 * called at every {@link #loadProjection()}, so that a refresh shows the current data.
+	 *
+	 * @param source	The supplier of the model to show, or {@code null} for the projection of the whole file.
+	 * @return	This panel.
+	 */
+	public TemporalProjectionPanel withModelSource(final Supplier<TemporalProjectionModel> source){
+		modelSource = source;
+		//what the toolbar chooses (layers, entities) is not a choice of a view with its own model
+		toolbar.setContentControlsVisible(source == null);
+
+		return this;
+	}
+
+	/**
 	 * Refreshes the projection after the underlying model has changed.
 	 */
 	public void refreshProjection(){
@@ -188,6 +223,25 @@ public final class TemporalProjectionPanel extends JPanel implements TreeChangeL
 	 */
 	public TemporalEntityRef getSelectedEntity(){
 		return selectedEntity;
+	}
+
+	/**
+	 * Registers a callback invoked with the id of an individual or a group when its row, or one of its entries, is selected.
+	 *
+	 * @param callback	The callback, {@code null} to remove it.
+	 */
+	public TemporalProjectionPanel withSelectionCallback(final Consumer<String> callback){
+		selectionCallback = callback;
+
+		return this;
+	}
+
+	private void select(final TemporalEntityRef entity){
+		selectedEntity = entity;
+
+		if(entity != null && selectionCallback != null
+				&& (entity.type() == TemporalEntityType.INDIVIDUAL || entity.type() == TemporalEntityType.GROUP))
+			selectionCallback.accept(entity.id());
 	}
 
 
@@ -240,12 +294,12 @@ public final class TemporalProjectionPanel extends JPanel implements TreeChangeL
 
 				// Update selection based on the hit element.
 				if(ref instanceof TemporalProjectionRef.EntryRef entryRef){
-					selectedEntity = entryRef.rowEntity();
+					select(entryRef.rowEntity());
 
 					repaint();
 				}
 				else if(ref instanceof TemporalProjectionRef.RowRef rowRef){
-					selectedEntity = rowRef.entity();
+					select(rowRef.entity());
 
 					repaint();
 				}
@@ -279,7 +333,7 @@ public final class TemporalProjectionPanel extends JPanel implements TreeChangeL
 				if(e.getClickCount() == 2)
 					openEditDialogFor(new TemporalProjectionRef.RowRef(entity));
 				else{
-					selectedEntity = entity;
+					select(entity);
 
 					repaint();
 				}
@@ -472,8 +526,12 @@ public final class TemporalProjectionPanel extends JPanel implements TreeChangeL
 					TemporalRowRenderer.drawRowSelectionBackground(g2, selectedRow, bounds, true);
 			}
 
-			// Entries per row
+			// Entries per row: only the rows that the clip shows (a scroll repaints the viewport at every step)
+			final Rectangle clip = g2.getClipBounds();
 			for(final TemporalProjectionLayout.RowLayout rowLayout : layout.rows()){
+				if(clip != null && (rowLayout.bottom() < clip.y || rowLayout.y() > clip.y + clip.height))
+					continue;
+
 				final TemporalRow row = findRow(rowLayout.entity());
 				if(row == null || row.collapsed())
 					continue;
@@ -516,7 +574,11 @@ public final class TemporalProjectionPanel extends JPanel implements TreeChangeL
 				return;
 
 			final Rectangle bounds = new Rectangle(0, 0, getWidth(), getHeight());
+			final Rectangle clip = g2.getClipBounds();
 			for(final TemporalProjectionLayout.RowLayout rowLayout : layout.rows()){
+				if(clip != null && (rowLayout.bottom() < clip.y || rowLayout.y() > clip.y + clip.height))
+					continue;
+
 				final TemporalRow row = findRow(rowLayout.entity());
 				if(row == null)
 					continue;
@@ -551,11 +613,7 @@ public final class TemporalProjectionPanel extends JPanel implements TreeChangeL
 	 * ====================================================================== */
 
 	private TemporalRow findRow(final TemporalEntityRef entity){
-		final List<TemporalRow> rows = model.rows();
-		for(final TemporalRow row : rows)
-			if(row.entity().equals(entity))
-				return row;
-		return null;
+		return rowsByEntity.get(entity);
 	}
 
 

@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.io.merger;
 
+import io.github.mtrevisan.familylegacy.io.model.readers.ConclusionResolution;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import org.apache.commons.lang3.StringUtils;
 
@@ -46,6 +47,7 @@ final class ProtocolCleanup{
 	private static final String TAG_CONFIDENCE = "confidence";
 	private static final String TAG_RESOLVES = "resolves";
 	private static final String TAG_PREFERRED = "preferred";
+	private static final String TAG_PROOF_STATUS = "proof_status";
 	private static final Set<String> BIOLOGICAL_PARENT_TYPES = Set.of("child", "biological_child");
 	private static final int MAX_BIOLOGICAL_PARENTS = 2;
 
@@ -192,16 +194,19 @@ final class ProtocolCleanup{
 	}
 
 	/**
-	 * Whether a ConclusionRecord applies to the competing records: its RESOLVES contains at least two of them and its PREFERRED is
-	 * one of them.
+	 * Whether a ConclusionRecord settles the conflict between the competing records: the definition is the one of the Conclusion
+	 * Assistant ({@link ConclusionResolution}), so that what the merger warns about is what the assistant reports.
 	 */
 	private boolean isResolved(final Set<String> competing){
 		for(final FLEFRecord conclusion : session.records(ProtocolRules.KIND_CONCLUSION)){
-			int resolved = 0;
-			for(final FLEFRecord target : FieldMerger.children(conclusion, TAG_RESOLVES))
-				if(competing.contains(ModelIndex.armValue(target)))
-					resolved ++;
-			if(resolved >= 2 && competing.contains(ModelIndex.armValue(FieldMerger.first(conclusion, TAG_PREFERRED))))
+			final Set<String> resolves = new HashSet<>();
+			for(final FLEFRecord target : FieldMerger.children(conclusion, TAG_RESOLVES)){
+				final String id = ModelIndex.armValue(target);
+				if(id != null)
+					resolves.add(id);
+			}
+			if(ConclusionResolution.settles(competing, new ConclusionResolution.Evaluation(resolves,
+					ModelIndex.armValue(FieldMerger.first(conclusion, TAG_PREFERRED)), ModelIndex.value(conclusion, TAG_PROOF_STATUS))))
 				return true;
 		}
 		return false;

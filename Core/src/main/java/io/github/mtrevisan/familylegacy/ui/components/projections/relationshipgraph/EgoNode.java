@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections.relationshipgraph;
 
+import io.github.mtrevisan.familylegacy.consanguinity.ConsanguinityReport;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualData;
 
@@ -73,6 +74,7 @@ public final class EgoNode{
 	private final IndividualData egoData;
 
 	private final List<RelationInfo> relationsWithEgo = new ArrayList<>();
+	private ConsanguinityReport.ConsanguineousUnion consanguineousUnion;
 
 	private final Map<RelationshipCategory, Set<EgoNode>> relatedNodesMap = new EnumMap<>(RelationshipCategory.class);
 	private final Set<FLEFRecord> groupRecords = new LinkedHashSet<>();
@@ -114,6 +116,20 @@ public final class EgoNode{
 	 */
 	public List<RelationInfo> getRelationsWithEgo(){
 		return relationsWithEgo;
+	}
+
+	/**
+	 * Marks the union between the ego and this node as consanguineous (the partners are related).
+	 *
+	 * @param union	The union as found by the detector, or {@code null} to clear the mark.
+	 */
+	public void setConsanguineousUnion(final ConsanguinityReport.ConsanguineousUnion union){
+		consanguineousUnion = union;
+	}
+
+	/** @return	The consanguineous union between the ego and this node, {@code null} if there is none. */
+	public ConsanguinityReport.ConsanguineousUnion getConsanguineousUnion(){
+		return consanguineousUnion;
 	}
 
 	public void addRelatedNode(final RelationshipCategory category, final EgoNode node){

@@ -33,6 +33,9 @@ import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.ui.components.lists.PrivacyBadge;
 import io.github.mtrevisan.familylegacy.ui.dialogs.api.RecordDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.records.ConclusionRecordDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.records.ResearchActivityRecordDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.records.ResearchTaskRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.ConclusionHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.ResearchActivityHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.ResearchQuestionHandler;
@@ -77,7 +80,9 @@ import java.util.Enumeration;
  * <p>
  * The tree is built by {@link ResearchTreeBuilder}. Selecting a node shows the details of its record on the right;
  * double-clicking it (or pressing <em>Edit</em>) opens the usual record editor, and the tree is rebuilt after a save,
- * keeping the selection. The filter field keeps only the branches whose text matches.
+ * keeping the selection. With a question (or one of its records) selected, <em>New &gt; Activity/Task/Conclusion of the
+ * selected question</em> opens a new record whose question is already filled. The filter field keeps only the branches
+ * whose text matches.
  * <p>
  * The dialog does not replace the management dialogs of the {@code Research} menu: those remain the tabular way to
  * browse and delete records of one type.
@@ -142,7 +147,19 @@ public final class ResearchBoardDialog extends JDialog{
 		newMenu.add(newItem("Research activity", ResearchTreeBuilder.Kind.ACTIVITY));
 		newMenu.add(newItem("Research task", ResearchTreeBuilder.Kind.TASK));
 		newMenu.add(newItem("Conclusion", ResearchTreeBuilder.Kind.CONCLUSION));
-		newButton.addActionListener(e -> newMenu.show(newButton, 0, newButton.getHeight()));
+		final JMenuItem[] selectedQuestionItems = {
+			selectedQuestionItem("menu.item.selected_question_activity", ResearchTreeBuilder.Kind.ACTIVITY),
+			selectedQuestionItem("menu.item.selected_question_task", ResearchTreeBuilder.Kind.TASK),
+			selectedQuestionItem("menu.item.selected_question_conclusion", ResearchTreeBuilder.Kind.CONCLUSION)
+		};
+		for(final JMenuItem item : selectedQuestionItems)
+			newMenu.add(item);
+		newButton.addActionListener(e -> {
+			final boolean questionSelected = (selectedQuestion() != null);
+			for(final JMenuItem item : selectedQuestionItems)
+				item.setEnabled(questionSelected);
+			newMenu.show(newButton, 0, newButton.getHeight());
+		});
 		toolbar.add(newButton);
 
 		final JButton editButton = new JButton(I18N.t("button.edit"));
@@ -163,6 +180,12 @@ public final class ResearchBoardDialog extends JDialog{
 	private JMenuItem newItem(final String text, final ResearchTreeBuilder.Kind kind){
 		final JMenuItem item = new JMenuItem(text);
 		item.addActionListener(e -> openEditor(kind, null));
+		return item;
+	}
+
+	private JMenuItem selectedQuestionItem(final String key, final ResearchTreeBuilder.Kind kind){
+		final JMenuItem item = new JMenuItem(I18N.t(key));
+		item.addActionListener(e -> openNewForQuestion(kind, selectedQuestion()));
 		return item;
 	}
 
@@ -287,6 +310,47 @@ public final class ResearchBoardDialog extends JDialog{
 			openEditor(node.kind(), node.record());
 	}
 
+	/** The selected question, or the question of the selected activity, task or conclusion; {@code null} if none. */
+	private FLEFRecord selectedQuestion(){
+		final TreePath path = tree.getSelectionPath();
+		if(path == null)
+			return null;
+
+		for(int i = path.getPathCount() - 1; i >= 0; i --)
+			if(path.getPathComponent(i) instanceof DefaultMutableTreeNode treeNode
+					&& treeNode.getUserObject() instanceof ResearchTreeBuilder.Node node
+					&& node.kind() == ResearchTreeBuilder.Kind.QUESTION)
+				return node.record();
+		return null;
+	}
+
+	private void openNewForQuestion(final ResearchTreeBuilder.Kind kind, final FLEFRecord question){
+		if(question == null)
+			return;
+
+		final FLEFModel model = context.model();
+		final RecordDialog dialog = switch(kind){
+			case ACTIVITY -> ResearchActivityRecordDialog.createNew(this, model)
+				.withQuestion(question);
+			case TASK -> ResearchTaskRecordDialog.createNew(this, model)
+				.withQuestion(question);
+			case CONCLUSION -> ConclusionRecordDialog.createNew(this, model)
+				.withQuestion(question);
+			case QUESTION, ORPHANS -> null;
+		};
+		show(dialog);
+	}
+
+	private void show(final RecordDialog dialog){
+		if(dialog == null)
+			return;
+
+		dialog.setVisible(true);
+
+		if(dialog.isSaved())
+			reload();
+	}
+
 	private void openEditor(final ResearchTreeBuilder.Kind kind, final FLEFRecord record){
 		final FLEFModel model = context.model();
 		final RecordDialog dialog = switch(kind){
@@ -304,13 +368,7 @@ public final class ResearchBoardDialog extends JDialog{
 				: ConclusionHandler.getInstance().createEditDialog(this, model, record));
 			case ORPHANS -> null;
 		};
-		if(dialog == null)
-			return;
-
-		dialog.setVisible(true);
-
-		if(dialog.isSaved())
-			reload();
+		show(dialog);
 	}
 
 

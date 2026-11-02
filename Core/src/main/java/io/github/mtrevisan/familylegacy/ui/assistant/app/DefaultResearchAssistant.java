@@ -36,6 +36,7 @@ import io.github.mtrevisan.familylegacy.ui.assistant.gap.GapAssistantContributor
 import io.github.mtrevisan.familylegacy.ui.assistant.identity.IdentityAssistantContributor;
 import io.github.mtrevisan.familylegacy.ui.assistant.place.PlaceAssistantContributor;
 import io.github.mtrevisan.familylegacy.ui.assistant.planner.PlannerAssistantContributor;
+import io.github.mtrevisan.familylegacy.ui.assistant.consanguinity.ConsanguinityAssistantContributor;
 import io.github.mtrevisan.familylegacy.ui.assistant.relationship.RelationshipAssistantContributor;
 
 import java.util.ServiceLoader;
@@ -70,6 +71,7 @@ public final class DefaultResearchAssistant{
 		service.register(new ChronologyAssistantContributor());
 		service.register(new ConclusionAssistantContributor());
 		service.register(new RelationshipAssistantContributor());
+		service.register(new ConsanguinityAssistantContributor());
 		service.register(new IdentityAssistantContributor());
 		service.register(new GapAssistantContributor());
 		service.register(new CitationAssistantContributor());

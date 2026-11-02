@@ -39,10 +39,8 @@ import io.github.mtrevisan.familylegacy.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolContexts;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolDispatcher;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolOperation;
-import io.github.mtrevisan.familylegacy.ui.tools.groups.DeleteGroupTool;
 import io.github.mtrevisan.familylegacy.ui.tools.groups.PasteGroupTool;
 import io.github.mtrevisan.familylegacy.ui.tools.groups.RelocateGroupTool;
-import io.github.mtrevisan.familylegacy.ui.tools.individuals.DeleteIndividualTool;
 import io.github.mtrevisan.familylegacy.ui.tools.individuals.PasteIndividualTool;
 import io.github.mtrevisan.familylegacy.ui.tools.individuals.RelocateIndividualTool;
 import org.slf4j.Logger;
@@ -146,27 +144,8 @@ public final class EgoNetworkListener implements IndividualListener, GroupListen
 		if(record == null)
 			return;
 
-		final ToolContext context = ToolContexts.custom(model, record.getId(), component,
-			new ToolDispatcher(){
-				@Override
-				public void removeEntity(final String id){
-					networkMutator.removeEntity(record, id);
-				}
-
-				@Override
-				public void loadRoot(final String id){
-					onRootEntitySelected(id);
-				}
-
-				@Override
-				public ProjectionMutator getMutator(){
-					return networkMutator;
-				}
-			});
-		final ToolOperation tool = (IndividualHandler.isOfType(record)
-			? new DeleteIndividualTool()
-			: new DeleteGroupTool());
-		tool.run(context);
+		//the confirmation belongs to DeleteIndividualTool / DeleteGroupTool, which end up here: only remove, as the tree listener does
+		networkMutator.removeEntity(record, record.getId());
 	}
 
 	@Override
@@ -257,13 +236,10 @@ public final class EgoNetworkListener implements IndividualListener, GroupListen
 					return networkMutator;
 				}
 			});
-		final ToolOperation tool = (IndividualHandler.isOfType(context.getSelectedEntity())
+		final ToolOperation tool = (selectedPanel instanceof IndividualPanel
 			? new PasteIndividualTool()
 			: new PasteGroupTool());
 		tool.run(context);
-
-		new PasteIndividualTool()
-			.run(context);
 	}
 
 	private void executePaste(final JPanel selectedPanel){

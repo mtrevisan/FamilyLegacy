@@ -43,6 +43,12 @@ public interface ToolDispatcher{
 
 	default void paste(){}
 
+	/** Connects an existing individual to the selected (empty) individual box. */
+	default void connectIndividual(){}
+
+	/** Connects an existing individual as a child of the selected individual. */
+	default void connectChild(){}
+
 	default void removeEntity(final String id){}
 
 	default void loadRoot(final String id){}

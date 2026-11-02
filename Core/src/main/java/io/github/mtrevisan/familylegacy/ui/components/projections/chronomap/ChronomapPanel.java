@@ -128,6 +128,10 @@ public class ChronomapPanel extends JPanel{
 
 	/** Radius in pixels within which a click is considered a marker hit. */
 	private static final int MARKER_HIT_RADIUS_PX = 10;
+	/** Zoom level (2D map, smaller is closer) used to center on an individual. */
+	private static final int FOCUS_ZOOM = 4;
+	/** Minimum globe radius, as a fraction of the smaller side of the viewport, used to center on an individual. */
+	private static final double FOCUS_GLOBE_RADIUS_FACTOR = 1.5;
 
 	/** Opacity of the historical map overlay on top of the modern base map. */
 	private static final float HISTORICAL_OVERLAY_ALPHA = 0.85f;
@@ -203,6 +207,7 @@ public class ChronomapPanel extends JPanel{
 
 	private final JButton resetButton = new JButton(I18N.t("button.reset_view"));
 	private final JButton geocodeButton = new JButton(I18N.t("button.geocode_places"));
+	private final GeocodingProgressPanel geocodingProgress = new GeocodingProgressPanel();
 	private SwingWorker<Integer, ?> geocodingWorker;
 
 
@@ -314,7 +319,7 @@ public class ChronomapPanel extends JPanel{
 		if(geocodingWorker != null && !geocodingWorker.isDone())
 			return;
 
-		geocodingWorker = GeocodingWorker.start(this, placeResolver, () -> {
+		geocodingWorker = GeocodingWorker.start(geocodingProgress, placeResolver, () -> {
 			index.rebuild();
 
 			mapViewer.repaint();
@@ -365,6 +370,9 @@ public class ChronomapPanel extends JPanel{
 			mapViewer.repaint();
 		});
 
+		// Request made outside (e.g. "Center on map" in the agora): center and zoom on the individual.
+		selection.addFocusListener(this::focusOnIndividual);
+
 		// Click on the map: hit-test markers and select the closest one.
 		mapViewer.addMouseListener(new MouseAdapter(){
 			@Override
@@ -379,6 +387,40 @@ public class ChronomapPanel extends JPanel{
 					selection.select(hit);
 			}
 		});
+	}
+
+	/**
+	 * Centers the view on the position of the individual at the current time, and zooms in (never out) to a regional level.
+	 * Does nothing if the individual cannot be placed (no anchors, or not alive at the current time).
+	 */
+	private void focusOnIndividual(final String id){
+		final List<ChronomapIndex.GeoAnchor> anchors = index.anchorsOf(id);
+		if(anchors.isEmpty() || !index.isAliveAt(id, timeline.getCurrentTime()))
+			return;
+
+		final ChronomapOverlayPainter.InterpolatedPosition state = ChronomapOverlayPainter.interpolatePosition(null, anchors,
+			timeline.getCurrentTime());
+		if(state == null)
+			return;
+
+		final GeoCoordinate pos = state.coordinate();
+		if(pos == null || !Double.isFinite(pos.latitude()) || !Double.isFinite(pos.longitude())
+				|| Math.abs(pos.latitude()) > 90. || Math.abs(pos.longitude()) > 180.)
+			return;
+
+		if(globeModeActive){
+			globePanel.setCenter(pos.latitude(), pos.longitude());
+			final int viewportMin = Math.min(getWidth(), getHeight());
+			globePanel.setRadius(Math.max(globePanel.getRadius(), viewportMin * FOCUS_GLOBE_RADIUS_FACTOR));
+
+			refreshGlobeMarkers();
+			globePanel.repaint();
+		}
+		else{
+			mapViewer.setAddressLocation(new GeoPosition(pos.latitude(), pos.longitude()));
+			//a smaller zoom value is a closer view
+			mapViewer.setZoom(Math.min(mapViewer.getZoom(), FOCUS_ZOOM));
+		}
 	}
 
 	/**
@@ -717,7 +759,12 @@ public class ChronomapPanel extends JPanel{
 		toolbar.add(showUncertaintyCheckBox);
 
 		add(mapViewer, BorderLayout.CENTER);
-		add(toolbar, BorderLayout.NORTH);
+
+		//the progress of the geocoding is shown under the toolbar, and it can be stopped from there
+		final JPanel north = new JPanel(new BorderLayout());
+		north.add(toolbar, BorderLayout.NORTH);
+		north.add(geocodingProgress, BorderLayout.SOUTH);
+		add(north, BorderLayout.NORTH);
 	}
 
 

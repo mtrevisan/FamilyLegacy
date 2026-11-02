@@ -29,9 +29,13 @@ import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import java.awt.BasicStroke;
+import java.awt.Color;
 import java.awt.Component;
+import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.Point;
+import java.awt.RenderingHints;
 import java.awt.Stroke;
 import java.util.Map;
 import java.util.Set;
@@ -50,6 +54,9 @@ import java.util.Set;
  * When a satellite is reached through several relations with different
  * statuses, the "strongest" one wins: active beats ended, ended beats
  * unknown.
+ * <p>
+ * The edge to a partner that is related to the ego (see {@link EgoNode#getConsanguineousUnion()}) carries a badge "C" in the middle.
+ * It is a possibility to look into, as in the consanguinity report: the explanation is in the tooltip of the partner.
  */
 final class EgoNetworkRenderer{
 
@@ -58,6 +65,13 @@ final class EgoNetworkRenderer{
 		10f, new float[]{6f, 4f}, 0f);
 	private static final Stroke STROKE_UNKNOWN = new BasicStroke(1.2f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND,
 		10f, new float[]{2f, 4f}, 0f);
+
+
+	private static final int BADGE_RADIUS = 8;
+	private static final Stroke BADGE_STROKE = new BasicStroke(1.2f);
+	private static final Color BADGE_FILL = new Color(0xFFC107);
+	private static final Color BADGE_BORDER = new Color(0x5D4037);
+	private static final String BADGE_TEXT = "C";
 
 
 	private EgoNetworkRenderer(){}
@@ -111,6 +125,9 @@ final class EgoNetworkRenderer{
 			if(targetPanel != null){
 				final Point targetPoint = getPanelCenter(targetPanel, container);
 				drawOrthogonalLine(g2, centerPoint, targetPoint, STROKE_UNKNOWN);
+				//only partners carry a union mark
+				if(node.getConsanguineousUnion() != null)
+					drawConsanguinityBadge(g2, lineMidpoint(centerPoint, targetPoint));
 			}
 		}
 	}
@@ -129,6 +146,43 @@ final class EgoNetworkRenderer{
 	private static Point getPanelCenter(final JPanel panel, final Component container){
 		final Point localCenter = new Point(panel.getWidth() / 2, panel.getHeight() / 2);
 		return SwingUtilities.convertPoint(panel, localCenter, container);
+	}
+
+	/** @return	The middle of the line drawn by {@link #drawOrthogonalLine}: on its vertical segment. */
+	private static Point lineMidpoint(final Point start, final Point end){
+		return new Point((start.x + end.x) / 2, (start.y + end.y) / 2);
+	}
+
+	/** Draws the badge that signals a consanguineous union: a small amber disc with a "C". */
+	private static void drawConsanguinityBadge(final Graphics2D g2, final Point center){
+		final Object antialiasing = g2.getRenderingHint(RenderingHints.KEY_ANTIALIASING);
+		final Font originalFont = g2.getFont();
+		final Color originalColor = g2.getColor();
+		final Stroke originalStroke = g2.getStroke();
+		try{
+			g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+			final int x = center.x - BADGE_RADIUS;
+			final int y = center.y - BADGE_RADIUS;
+			final int diameter = 2 * BADGE_RADIUS;
+
+			g2.setStroke(BADGE_STROKE);
+			g2.setColor(BADGE_FILL);
+			g2.fillOval(x, y, diameter, diameter);
+			g2.setColor(BADGE_BORDER);
+			g2.drawOval(x, y, diameter, diameter);
+
+			g2.setFont(originalFont.deriveFont(Font.BOLD, BADGE_RADIUS + 1f));
+			final FontMetrics metrics = g2.getFontMetrics();
+			g2.drawString(BADGE_TEXT, center.x - metrics.stringWidth(BADGE_TEXT) / 2,
+				center.y + (metrics.getAscent() - metrics.getDescent()) / 2);
+		}
+		finally{
+			g2.setStroke(originalStroke);
+			g2.setColor(originalColor);
+			g2.setFont(originalFont);
+			g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+				(antialiasing != null? antialiasing: RenderingHints.VALUE_ANTIALIAS_DEFAULT));
+		}
 	}
 
 	/**

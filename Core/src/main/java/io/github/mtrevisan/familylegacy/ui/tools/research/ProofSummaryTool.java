@@ -25,13 +25,10 @@
 package io.github.mtrevisan.familylegacy.ui.tools.research;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.readers.ConclusionReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
-import io.github.mtrevisan.familylegacy.ui.tools.ReportDialog;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolOperation;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -73,8 +70,12 @@ public final class ProofSummaryTool implements ToolOperation{
 				.add(conclusion);
 		}
 
-		ReportDialog.showHtml(context.owner(), "Proof Summary",
-			buildReport(byStatus));
+		final List<String> statuses = new ArrayList<>(DECLARED_STATUSES);
+		for(final String status : byStatus.keySet())
+			if(!statuses.contains(status))
+				statuses.add(status);
+		new ProofSummaryDialog(context.owner(), model, byStatus, statuses)
+			.setVisible(true);
 	}
 
 
@@ -85,70 +86,6 @@ public final class ProofSummaryTool implements ToolOperation{
 		"proven",
 		"disproven"
 	);
-
-	private static String buildReport(final Map<String, List<FLEFRecord>> byStatus){
-		final StringBuilder body = new StringBuilder();
-		body.append("<h1>Proof Summary</h1>");
-
-		int total = 0;
-		for(final List<FLEFRecord> list : byStatus.values())
-			total += list.size();
-		body.append("<p>Total conclusions: <b>").append(total).append("</b></p>");
-
-		if(total == 0){
-			body.append("<p class='hint'>No conclusion has been recorded yet.</p>");
-			return ReportDialog.document(body.toString());
-		}
-
-		// Counts per status, in declared order first, then any custom one.
-		body.append("<h2>Status distribution</h2>");
-		body.append("<table>");
-		body.append("<tr><th>Status</th><th>Conclusions</th></tr>");
-		for(final String status : DECLARED_STATUSES){
-			final int count = byStatus.getOrDefault(status, List.of()).size();
-			body.append("<tr><td>").append(ReportDialog.escape(status)).append("</td>")
-				.append("<td>").append(count).append("</td></tr>");
-		}
-		for(final Map.Entry<String, List<FLEFRecord>> e : byStatus.entrySet()){
-			if(DECLARED_STATUSES.contains(e.getKey()))
-				continue;
-			body.append("<tr><td>").append(ReportDialog.escape(e.getKey())).append("</td>")
-				.append("<td>").append(e.getValue().size()).append("</td></tr>");
-		}
-		body.append("</table>");
-
-		// Detail per status.
-		for(final String status : DECLARED_STATUSES)
-			appendStatusDetail(body, status, byStatus.getOrDefault(status, List.of()));
-		for(final Map.Entry<String, List<FLEFRecord>> e : byStatus.entrySet()){
-			if(DECLARED_STATUSES.contains(e.getKey()))
-				continue;
-			appendStatusDetail(body, e.getKey(), e.getValue());
-		}
-
-		return ReportDialog.document(body.toString());
-	}
-
-	private static void appendStatusDetail(final StringBuilder body, final String status,
-		final List<FLEFRecord> conclusions){
-		body.append("<h2>").append(ReportDialog.escape(status)).append("</h2>");
-		if(conclusions.isEmpty()){
-			body.append("<p class='hint'>No conclusion with this status.</p>");
-			return;
-		}
-		body.append("<table>");
-		body.append("<tr><th>Conclusion</th><th>Issue</th><th>Narrative</th></tr>");
-		for(final FLEFRecord c : conclusions){
-			body.append("<tr>");
-			body.append("<td>").append(ReportDialog.escape(c.getId())).append("</td>");
-			final String issue = ResearchHelper.conclusionIssue(c);
-			body.append("<td>").append(ReportDialog.escape(issue != null? issue: StringUtils.EMPTY)).append("</td>");
-			final String narrative = ResearchHelper.firstTextValue(c, ConclusionReader.TAG_NARRATIVE);
-			body.append("<td>").append(ReportDialog.escape(narrative != null? narrative: StringUtils.EMPTY)).append("</td>");
-			body.append("</tr>");
-		}
-		body.append("</table>");
-	}
 
 	@Override
 	public boolean isEnabled(final ToolContext context){

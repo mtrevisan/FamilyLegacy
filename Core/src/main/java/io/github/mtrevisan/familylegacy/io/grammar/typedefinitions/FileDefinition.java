@@ -25,6 +25,18 @@
 package io.github.mtrevisan.familylegacy.io.grammar.typedefinitions;
 
 
+/**
+ * The {@code file} statement of a grammar.
+ * <p>
+ * The file is a plain list of records ({@code file Name { Record+ }}), the header being one of the records (the {@code header} arm
+ * of the record union): in this case {@code headerField} is {@code null}. Older grammars declare the header and the records as two
+ * separate fields.
+ * </p>
+ *
+ * @param name	The name of the file definition.
+ * @param headerField	The field of the header, or {@code null} if the header is one of the records.
+ * @param recordsField	The field of the records.
+ */
 public record FileDefinition(String name, FieldDefinition headerField, FieldDefinition recordsField){
 
 }

@@ -43,7 +43,9 @@ import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
@@ -196,6 +198,9 @@ public final class AgoraPanel extends JPanel{
 		buildUI();
 		configureTimeline();
 		wireSelection();
+
+		//the places geocoded (or the data edited) change who can be placed on the map
+		index.addRebuildListener(() -> SwingUtilities.invokeLater(this.refreshTimer::restart));
 
 		final long[] range = index.computeGlobalDateRange();
 		if(range != null && range[0] < range[1]){
@@ -418,6 +423,52 @@ public final class AgoraPanel extends JPanel{
 			}
 		});
 
+		// Right-click on a row: popup menu with "Center on map", that selects the individual
+		// and asks the map views (through the shared selection) to center and zoom on it.
+		final JPopupMenu rowMenu = new JPopupMenu();
+		final JMenuItem centerItem = new JMenuItem(I18N.t("button.center_on_map"));
+		rowMenu.add(centerItem);
+		centerItem.setEnabled(selection != null);
+		final String[] menuRowId = new String[1];
+		centerItem.addActionListener(e -> {
+			if(menuRowId[0] == null || selection == null)
+				return;
+
+			//select the individual (forced, so the dossier follows even if it was already the selected one), then center the map
+			selection.reselect(menuRowId[0]);
+			selection.requestFocus(menuRowId[0]);
+		});
+		table.addMouseListener(new MouseAdapter(){
+			@Override
+			public void mousePressed(final MouseEvent e){
+				showRowMenu(e);
+			}
+
+			@Override
+			public void mouseReleased(final MouseEvent e){
+				showRowMenu(e);
+			}
+
+			private void showRowMenu(final MouseEvent e){
+				if(!e.isPopupTrigger())
+					return;
+
+				final int viewRow = table.rowAtPoint(e.getPoint());
+				if(viewRow < 0)
+					return;
+
+				table.setRowSelectionInterval(viewRow, viewRow);
+				final AgoraRow row = tableModel.getRow(table.convertRowIndexToModel(viewRow));
+				if(row == null)
+					return;
+
+				menuRowId[0] = row.id();
+				//the map can center only on valid coordinates
+				centerItem.setEnabled(selection != null && hasValidCoordinates(row));
+				rowMenu.show(table, e.getX(), e.getY());
+			}
+		});
+
 		// Scroll pane with a visible outer border, so the table does not
 		// look like it ends abruptly at the last row.
 		final JScrollPane scroll = new JScrollPane(table);
@@ -502,6 +553,10 @@ public final class AgoraPanel extends JPanel{
 	 * of the living.
 	 */
 	private AgoraRow evaluate(final String id, final List<GeoAnchor> anchors, final long t){
+		//people with no anchors cannot be placed on the map: exclude them
+		if(anchors == null || anchors.isEmpty())
+			return null;
+
 		if(!index.isAliveAt(id, t))
 			return null;
 
@@ -554,8 +609,14 @@ public final class AgoraPanel extends JPanel{
 				place = (last.placeName() != null? last.placeName(): StringUtils.EMPTY);
 			}
 			else{
-				reason = "in transit";
-				place = "between " + describeGap(anchors, t);
+				//every anchor starts after t: alive but no known place yet, show the first one
+				GeoAnchor first = null;
+				for(final GeoAnchor a : anchors)
+					if(first == null || a.startJdn() < first.startJdn())
+						first = a;
+
+				reason = "before first known place";
+				place = (first != null && first.placeName() != null? first.placeName(): StringUtils.EMPTY);
 			}
 		}
 
@@ -580,18 +641,11 @@ public final class AgoraPanel extends JPanel{
 		return earliest;
 	}
 
-	private static String describeGap(final List<GeoAnchor> anchors, final long t){
-		GeoAnchor before = null;
-		GeoAnchor after = null;
-		for(final GeoAnchor a : anchors){
-			if(a.endJdn() < t && (before == null || a.endJdn() > before.endJdn()))
-				before = a;
-			if(a.startJdn() > t && (after == null || a.startJdn() < after.startJdn()))
-				after = a;
-		}
-		final String b = (before != null && before.placeName() != null? before.placeName(): "?");
-		final String a = (after != null && after.placeName() != null? after.placeName(): "?");
-		return b + " and " + a;
+	/** @return	Whether the row has a finite latitude in [-90, 90] and a finite longitude in [-180, 180]. */
+	private static boolean hasValidCoordinates(final AgoraRow row){
+		final double lat = row.latitude();
+		final double lon = row.longitude();
+		return (Double.isFinite(lat) && Double.isFinite(lon) && Math.abs(lat) <= 90. && Math.abs(lon) <= 180.);
 	}
 
 	private static String describeKind(final String kind){

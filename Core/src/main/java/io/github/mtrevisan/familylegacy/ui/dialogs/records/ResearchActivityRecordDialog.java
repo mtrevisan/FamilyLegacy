@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextArea;
 import io.github.mtrevisan.familylegacy.ui.components.fields.EntityField;
+import io.github.mtrevisan.familylegacy.ui.components.lists.EntityListPanel;
 import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.PanelKey;
 import io.github.mtrevisan.familylegacy.ui.dialogs.RecordDialogBuilder;
@@ -182,6 +183,19 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 		finalizeDialog(parent);
 	}
 
+
+	/**
+	 * Prepares a new activity of the given research question: the question is already in the list of questions.
+	 *
+	 * @param question	The research question (it must already be in the model).
+	 * @return	This dialog.
+	 */
+	public ResearchActivityRecordDialog withQuestion(final FLEFRecord question){
+		((EntityListPanel)components.getPanel(PanelKey.RESEARCH_QUESTION))
+			.addItemDirectly(question);
+
+		return this;
+	}
 
 	@Override
 	protected JPanel createPropertiesPanel(){

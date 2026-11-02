@@ -145,8 +145,11 @@ public class FLEFValidator{
 		final List<ValidationError> errors = new ArrayList<>();
 
 		// Header: no record id to attach, the header is not a record.
-		if(fileDef.headerField() != null && model.getHeader() != null){
-			final TypeDefinition headerType = grammar.getType(fileDef.headerField().type().getName());
+		final TypeDefinition headerTypeRef = grammar.getHeaderType();
+		if(headerTypeRef != null && model.getHeader() != null){
+			final TypeDefinition headerType = (grammar.hasType(headerTypeRef.getName())
+				? grammar.getType(headerTypeRef.getName())
+				: headerTypeRef);
 			if(headerType != null){
 				for(final String msg : collect(em -> headerType.validate(FIELD_HEADER,
 					model.getHeader(), model, grammar, em)))

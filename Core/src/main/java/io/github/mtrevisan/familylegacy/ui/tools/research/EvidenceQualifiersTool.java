@@ -30,14 +30,12 @@ import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
-import io.github.mtrevisan.familylegacy.ui.tools.ReportDialog;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolOperation;
 
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 
 
 /**
@@ -94,9 +92,9 @@ public final class EvidenceQualifiersTool implements ToolOperation{
 			}
 		}
 
-		ReportDialog.showHtml(context.owner(), "Evidence Qualifiers",
-			buildReport(sourceTypes, informationTypes, evidenceTypes,
-				withQualifiers, withoutQualifiers));
+		new EvidenceQualifiersDialog(context.owner(), sourceTypes, informationTypes, evidenceTypes, withQualifiers,
+			withoutQualifiers)
+			.setVisible(true);
 	}
 
 
@@ -115,48 +113,6 @@ public final class EvidenceQualifiersTool implements ToolOperation{
 	private static void merge(final Map<String, Integer> map, final String value){
 		final String key = (value != null && !value.isBlank()? value: "(not set)");
 		map.merge(key, 1, Integer::sum);
-	}
-
-	private static String buildReport(final Map<String, Integer> sourceTypes,
-		final Map<String, Integer> informationTypes,
-		final Map<String, Integer> evidenceTypes,
-		final int withQualifiers, final int withoutQualifiers){
-		final StringBuilder body = new StringBuilder();
-		body.append("<h1>Evidence Qualifiers</h1>");
-
-		body.append("<h2>Summary</h2>");
-		body.append("<table>");
-		body.append("<tr><td>Records with qualifiers</td><td>").append(withQualifiers).append("</td></tr>");
-		body.append("<tr><td>Records without qualifiers</td><td>").append(withoutQualifiers).append("</td></tr>");
-		body.append("</table>");
-
-		appendDimension(body, "Source type", sourceTypes);
-		appendDimension(body, "Information type", informationTypes);
-		appendDimension(body, "Evidence type", evidenceTypes);
-
-		if(withoutQualifiers > 0)
-			body.append("<p class='hint'>Records without qualifiers are those whose "
-				+ "evidence has not yet been assessed. Their count is not an error: "
-				+ "it is a measure of how much of the model remains to be reviewed.</p>");
-
-		return ReportDialog.document(body.toString());
-	}
-
-	private static void appendDimension(final StringBuilder body, final String title,
-		final Map<String, Integer> counts){
-		body.append("<h2>").append(title).append("</h2>");
-		if(counts.isEmpty()){
-			body.append("<p class='hint'>No value recorded.</p>");
-			return;
-		}
-		body.append("<table>");
-		body.append("<tr><th>Value</th><th>Count</th></tr>");
-		final Map<String, Integer> sorted = new TreeMap<>(counts);
-		for(final Map.Entry<String, Integer> e : sorted.entrySet()){
-			body.append("<tr><td>").append(ReportDialog.escape(e.getKey()))
-				.append("</td><td>").append(e.getValue()).append("</td></tr>");
-		}
-		body.append("</table>");
 	}
 
 }

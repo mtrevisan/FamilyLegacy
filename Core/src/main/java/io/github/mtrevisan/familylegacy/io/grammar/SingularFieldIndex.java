@@ -80,15 +80,14 @@ public final class SingularFieldIndex{
 			return;
 
 		final TypeDefinition type = (record.getId() == null && isHeader(current, record)
-			? current.getFileDefinition().headerField().type()
+			? current.getHeaderType()
 			: recordType(current, record.getTag()));
 		if(resolve(current, type) instanceof StructType struct)
 			mergeStruct(current, record, struct);
 	}
 
 	private static boolean isHeader(final FLEFGrammar grammar, final FLEFRecord record){
-		return (grammar.getFileDefinition() != null && grammar.getFileDefinition().headerField() != null
-			&& grammar.getFileDefinition().headerField().name().equals(record.getTag()));
+		return (grammar.getHeaderType() != null && FLEFGrammarParser.FIELD_HEADER.equals(record.getTag()));
 	}
 
 	private static TypeDefinition recordType(final FLEFGrammar grammar, final String kind){

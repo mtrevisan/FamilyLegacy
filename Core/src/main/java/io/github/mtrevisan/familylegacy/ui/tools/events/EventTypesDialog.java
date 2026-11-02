@@ -28,7 +28,6 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
-import io.github.mtrevisan.familylegacy.ui.tools.ReportDialog;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolDialogs;
 import org.apache.commons.lang3.StringUtils;
@@ -205,32 +204,8 @@ public final class EventTypesDialog extends JDialog{
 		}
 		final String type = tableModel.getRow(table.convertRowIndexToModel(viewRow))
 			.type();
-		final StringBuilder body = new StringBuilder();
-		body.append("<h1>Events of type <code>").append(ReportDialog.escape(type)).append("</code></h1>");
-		int count = 0;
-		body.append("<table>");
-		body.append("<tr><th>Event</th><th>Date</th><th>Place</th><th>Description</th></tr>");
-		final FLEFModel model = context.model();
-		for(final FLEFRecord event : EventHelper.listAllEvents(model)){
-			if(!type.equalsIgnoreCase(EventHelper.eventType(event)))
-				continue;
-			count ++;
-			body.append("<tr>");
-			body.append("<td>").append(ReportDialog.escape(event.getId())).append("</td>");
-			final String date = EventHelper.eventDateRaw(event);
-			body.append("<td>").append(ReportDialog.escape(date != null? date: StringUtils.EMPTY)).append("</td>");
-			final String placeId = EventHelper.eventPlaceId(event);
-			body.append("<td>").append(ReportDialog.escape(placeId != null? placeId: StringUtils.EMPTY)).append("</td>");
-			final String desc = EventHelper.eventDescription(event);
-			body.append("<td>").append(ReportDialog.escape(desc != null? desc: StringUtils.EMPTY)).append("</td>");
-			body.append("</tr>");
-		}
-		body.append("</table>");
-		if(count == 0)
-			body.append("<p class='hint'>No event uses this type.</p>");
-
-		ReportDialog.showHtml(this, "Events — " + type,
-			ReportDialog.document(body.toString()));
+		new EventsOfTypeDialog(this, context.model(), type)
+			.setVisible(true);
 	}
 
 	private void updateStatus(final int count){

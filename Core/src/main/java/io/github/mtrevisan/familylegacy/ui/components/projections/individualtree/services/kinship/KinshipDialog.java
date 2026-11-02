@@ -344,7 +344,7 @@ public class KinshipDialog extends JDialog{
 				.append(c.distanceFromA())
 				.append(", dB=")
 				.append(c.distanceFromB())
-				.append(", contribution=")
+				.append(", term (1/2)^(dA+dB)=")
 				.append(String.format(Locale.ROOT, "%.5f", c.contribution()))
 				.append(')')
 				.append(StringUtils.LF);

@@ -25,10 +25,12 @@
 package io.github.mtrevisan.familylegacy.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.AuditReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.MediaReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.record.RecordChangeSummary;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextField;
 import io.github.mtrevisan.familylegacy.ui.components.ImageCarouselPanel;
@@ -62,6 +64,9 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -589,7 +594,13 @@ public abstract class BaseRecordDialog extends JDialog implements RecordDialog{
 	 */
 	public final void save(){
 		if(validData()){
+			//a new record has no previous version to compare with: its creation is already recorded by the audit
+			final FLEFRecord previous = (!isNew && handler.isTopLevelEntity()? copyOf(record): null);
+
 			saveData();
+
+			if(previous != null)
+				recordChanges(previous);
 
 			if(isNew && handler.isTopLevelEntity())
 				model.addRecord(record);
@@ -599,6 +610,35 @@ public abstract class BaseRecordDialog extends JDialog implements RecordDialog{
 
 			dispose();
 		}
+	}
+
+	private static FLEFRecord copyOf(final FLEFRecord source){
+		final FLEFRecord copy = FLEFRecord.createEmpty();
+		source.deepCopyTo(copy);
+		return copy;
+	}
+
+	/**
+	 * Adds an update to the audit of the record, whose comment tells what was changed, added or removed.
+	 * <p>
+	 * Nothing is added if nothing changed, or if the record has no audit.
+	 * </p>
+	 *
+	 * @param previous	The record as it was before the save.
+	 */
+	private void recordChanges(final FLEFRecord previous){
+		final FLEFRecord audit = FLEFRecordHelper.findChild(record, "audit");
+		if(audit == null)
+			return;
+
+		final List<String> changes = RecordChangeSummary.describe(previous, record);
+		if(changes.isEmpty())
+			return;
+
+		final String date = DateTimeFormatter.ISO_INSTANT.format(Instant.now().truncatedTo(ChronoUnit.SECONDS));
+		audit.addChild(FLEFRecord.createChildWithTag(AuditReader.TAG_UPDATE)
+			.addChild(FLEFRecord.createChildWithTagAndValue(AuditReader.TAG_DATE, date))
+			.addChild(FLEFRecord.createChildWithTagAndValue(AuditReader.TAG_COMMENT, String.join("\n", changes))));
 	}
 
 	/**

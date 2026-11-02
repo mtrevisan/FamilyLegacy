@@ -151,13 +151,14 @@ alias Int = int
 // ============================================================
 
 file FamilyLegacyFile {
-  header: Header
-  records*: Record
+  Record+
 }
 
 // Top-level record container. Every record type appearing in a file must be represented through this union.
 // Every record has an implicit mandatory identifier of type Id, written after the record kind (see Instance syntax).
 Record = oneof {
+  header: HeaderRecord
+
   individual: IndividualRecord
   group: GroupRecord
   event: EventRecord
@@ -186,7 +187,8 @@ Record = oneof {
 // ============================================================
 
 // metadata
-struct Header {
+// The header block MUST be the first record in the file and MUST appear exactly once.
+record HeaderRecord {
   protocol: struct {
     name: Text        // the name of the protocol; MUST be `Family LEgacy Format`
     version: SemVer   // the version of the protocol. It is defined and changed by the creators of the product.

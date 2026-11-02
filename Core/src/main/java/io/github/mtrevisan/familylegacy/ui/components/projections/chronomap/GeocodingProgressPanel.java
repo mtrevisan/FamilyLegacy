@@ -22,82 +22,68 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.ui.dialogs;
+package io.github.mtrevisan.familylegacy.ui.components.projections.chronomap;
 
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.AbstractAction;
-import javax.swing.ActionMap;
-import javax.swing.InputMap;
 import javax.swing.JButton;
-import javax.swing.JComponent;
-import javax.swing.JDialog;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.JProgressBar;
-import javax.swing.JRootPane;
 import javax.swing.SwingUtilities;
-import java.awt.Dimension;
-import java.awt.Window;
-import java.awt.event.ActionEvent;
 
 
-public final class GeocodingProgressDialog extends JDialog{
-
-	private static final String ACTION_CANCEL_GEOCODING = "cancelGeocoding";
-
+/**
+ * Strip embedded in the chronomap, showing the progress of the geocoding and allowing to stop it.
+ * <p>
+ * It is hidden until the geocoding starts, and hidden again when it ends.
+ * </p>
+ */
+final class GeocodingProgressPanel extends JPanel{
 
 	private final JLabel statusLabel = new JLabel();
 	private final JProgressBar progressBar = new JProgressBar(0, 100);
-	private final JButton cancelButton = new JButton(I18N.t("button.cancel"));
+	private final JButton stopButton = new JButton(I18N.t("button.cancel"));
 
 	private Runnable cancelAction;
 
 
-	public GeocodingProgressDialog(final Window owner, final String title, final Runnable cancelAction){
-		super(owner, title, ModalityType.MODELESS);
-		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-
-		this.cancelAction = cancelAction;
-
-		initComponents();
-		setupEscapeKey();
-
-		pack();
-		setMinimumSize(new Dimension(380, 130));
-		setLocationRelativeTo(owner);
-	}
-
-	private void initComponents(){
-		setLayout(new MigLayout("ins 12,fill", "[grow,fill]", "[][][]"));
+	GeocodingProgressPanel(){
+		super(new MigLayout("ins 2 8 2 8,fillx", "[][grow,fill][]", "[]"));
 
 		statusLabel.setText(I18N.t("dialog.geocoding.status.starting"));
-		add(statusLabel, "wmax 350,wrap");
+		//fixed width, so that the progress bar does not resize when the text changes (a longer text is clipped)
+		add(statusLabel, "w 300!");
 
 		progressBar.setStringPainted(true);
+		add(progressBar, "growx");
+
+		stopButton.addActionListener(e -> stop());
+		add(stopButton);
+
+		setVisible(false);
+	}
+
+
+	/**
+	 * Shows the strip, resetting it.
+	 *
+	 * @param cancelAction	What to do when the user stops the geocoding.
+	 */
+	void begin(final Runnable cancelAction){
+		this.cancelAction = cancelAction;
+
 		progressBar.setValue(0);
-		add(progressBar, "growx,wrap");
-
-		cancelButton.addActionListener(e -> cancel());
-		add(cancelButton, "right");
+		progressBar.setString(null);
+		statusLabel.setText(I18N.t("dialog.geocoding.status.starting"));
+		stopButton.setEnabled(true);
+		setVisible(true);
 	}
 
-	private void setupEscapeKey(){
-		final JRootPane rootPane1 = getRootPane();
-		final InputMap inputMap = rootPane1.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
-		inputMap.put(GUIHelper.ESCAPE_STROKE, ACTION_CANCEL_GEOCODING);
-		final ActionMap actionMap = rootPane1.getActionMap();
-		actionMap.put(ACTION_CANCEL_GEOCODING, new AbstractAction(){
-				@Override
-				public void actionPerformed(final ActionEvent e){
-					cancel();
-				}
-			});
-	}
-
-	public void updateProgress(final int current, final int total, final String currentPlace){
+	void updateProgress(final int current, final int total, final String currentPlace){
 		SwingUtilities.invokeLater(() -> {
 			final int percent = (total > 0? (int)((current / (double)total) * 100): 0);
 			progressBar.setValue(percent);
@@ -105,16 +91,24 @@ public final class GeocodingProgressDialog extends JDialog{
 
 			final String safePlaceName = (currentPlace != null? GUIHelper.limitTextLength(currentPlace): StringUtils.EMPTY);
 			statusLabel.setText(I18N.tf("dialog.geocoding.status.resolving", safePlaceName));
+			statusLabel.setToolTipText(statusLabel.getText());
 		});
 	}
 
-	public void cancel(){
-		if(cancelAction != null){
-			cancelAction.run();
-			cancelAction = null;
-		}
+	/** Hides the strip: the geocoding is over. */
+	void end(){
+		cancelAction = null;
 
-		dispose();
+		setVisible(false);
+	}
+
+	private void stop(){
+		stopButton.setEnabled(false);
+
+		final Runnable action = cancelAction;
+		cancelAction = null;
+		if(action != null)
+			action.run();
 	}
 
 }

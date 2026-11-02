@@ -176,6 +176,19 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 
 
 	/**
+	 * Prepares a new conclusion of the given research question: the question is already in the list of questions.
+	 *
+	 * @param question	The research question (it must already be in the model).
+	 * @return	This dialog.
+	 */
+	public ConclusionRecordDialog withQuestion(final FLEFRecord question){
+		((EntityListPanel)components.getPanel(PanelKey.RESEARCH_QUESTION))
+			.addItemDirectly(question);
+
+		return this;
+	}
+
+	/**
 	 * Prepares a new conclusion that resolves the given record: the record is added to the resolved targets, the issue is
 	 * suggested if still empty, and the research questions that have the record as target are linked.
 	 *

@@ -156,7 +156,8 @@ public final class ResearchAssistantService{
 				result.addAll(provider.diagnose(context));
 			}
 			catch(final RuntimeException re){
-				LOGGER.warn("Diagnostic provider {} failed", provider.getClass().getName(), re);
+				LOGGER.warn("Diagnostic provider {} failed: {}", provider.getClass().getName(), re.toString());
+				LOGGER.debug("Diagnostic provider failure", re);
 			}
 		}
 		//the most serious first; among the same severity, the ones that matter more (e.g. the more likely duplicates), then by title

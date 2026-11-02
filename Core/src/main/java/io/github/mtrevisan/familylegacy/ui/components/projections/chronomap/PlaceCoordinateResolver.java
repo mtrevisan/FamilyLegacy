@@ -136,7 +136,8 @@ public final class PlaceCoordinateResolver{
 
 
 	private final FLEFModel model;
-	private final Map<String, Resolved> cache = new HashMap<>();
+	/** Written by the geocoding thread while the UI thread reads it to show the places as they are resolved. */
+	private final Map<String, Resolved> cache = new java.util.concurrent.ConcurrentHashMap<>();
 	/** The place that contains each place (the street is in the town, the town in the province, ...). */
 	private final Map<String, String> containerOf = new HashMap<>();
 	private final Properties diskCache = new Properties();

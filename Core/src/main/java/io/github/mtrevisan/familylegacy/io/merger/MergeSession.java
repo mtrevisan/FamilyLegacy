@@ -145,8 +145,8 @@ final class MergeSession implements RecordStore{
 			return;
 		}
 
-		final StructType headerType = (flefGrammar.getFileDefinition() != null
-			&& grammar.resolve(flefGrammar.getFileDefinition().headerField().type()) instanceof StructType struct? struct: null);
+		final StructType headerType = (flefGrammar.getHeaderType() != null
+			&& grammar.resolve(flefGrammar.getHeaderType()) instanceof StructType struct? struct: null);
 		if(headerType != null)
 			// differences in the singular fields (protocol, source, date) are expected between two files: they are not conflicts
 			fields.mergeStructure(header, incomingHeader, headerType, "header", new ArrayList<>());

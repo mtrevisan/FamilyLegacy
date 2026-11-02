@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.dialogs;
 
+import io.github.mtrevisan.familylegacy.io.grammar.FLEFGrammarParser;
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.AlternationType;
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.FLEFGrammar;
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.FieldDefinition;
@@ -139,10 +140,9 @@ public final class RecordNormalizer{
 				&& union.getChoices().containsKey(record.getTag()))
 			return resolve(union.getChoices().get(record.getTag()), grammar);
 
-		final FieldDefinition headerField = grammar.getFileDefinition()
-			.headerField();
-		if(headerField != null && Strings.CI.equals(headerField.name(), record.getTag()))
-			return resolve(grammar.getType(headerField.type().getName()), grammar);
+		final TypeDefinition headerType = grammar.getHeaderType();
+		if(headerType != null && Strings.CI.equals(FLEFGrammarParser.FIELD_HEADER, record.getTag()))
+			return resolve(grammar.getType(headerType.getName()), grammar);
 		return null;
 	}
 

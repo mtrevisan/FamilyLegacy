@@ -29,10 +29,8 @@ import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
-import io.github.mtrevisan.familylegacy.ui.tools.ReportDialog;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolOperation;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -90,9 +88,9 @@ public final class CitationAnalysisTool implements ToolOperation{
 				uncited.put(type, count);
 		}
 
-		ReportDialog.showHtml(context.owner(), "Citation Analysis",
-			buildReport(unusedSources, unusedDocuments, uncited,
-				sourceUsage.size(), docUsage.size()));
+		new CitationAnalysisDialog(context.owner(), model, unusedSources, unusedDocuments, uncited, sourceUsage.size(),
+			docUsage.size())
+			.setVisible(true);
 	}
 
 
@@ -112,77 +110,6 @@ public final class CitationAnalysisTool implements ToolOperation{
 			if(SourceHandler.isOfType(child))
 				return true;
 		return false;
-	}
-
-	private static String buildReport(final List<FLEFRecord> unusedSources,
-			final List<FLEFRecord> unusedDocuments,
-			final Map<String, Integer> uncited,
-			final int citedSourceCount, final int referencedDocumentCount){
-		final StringBuilder body = new StringBuilder();
-		body.append("<h1>Citation Analysis</h1>");
-
-		// Unused sources.
-		body.append("<h2>Unused sources</h2>");
-		if(unusedSources.isEmpty())
-			body.append("<p class='ok'>Every source is cited at least once.</p>");
-		else{
-			body.append("<p class='warn'><b>").append(unusedSources.size())
-				.append("</b> sources are not cited by any record.</p>");
-			body.append("<table>");
-			body.append("<tr><th>Source</th><th>Title</th></tr>");
-			for(final FLEFRecord source : unusedSources){
-				body.append("<tr>");
-				body.append("<td>").append(ReportDialog.escape(source.getId())).append("</td>");
-				body.append("<td>").append(ReportDialog.escape(SourceHelper.sourceTitle(source))).append("</td>");
-				body.append("</tr>");
-			}
-			body.append("</table>");
-		}
-
-		// Unused documents.
-		body.append("<h2>Unused documents</h2>");
-		if(unusedDocuments.isEmpty())
-			body.append("<p class='ok'>Every document is referenced at least once.</p>");
-		else{
-			body.append("<p class='warn'><b>").append(unusedDocuments.size())
-				.append("</b> documents are not referenced by any source or extract.</p>");
-			body.append("<table>");
-			body.append("<tr><th>Document</th><th>URI</th></tr>");
-			for(final FLEFRecord doc : unusedDocuments){
-				body.append("<tr>");
-				body.append("<td>").append(ReportDialog.escape(doc.getId())).append("</td>");
-				final String uri = SourceHelper.documentUri(doc);
-				body.append("<td>").append(ReportDialog.escape(uri != null? uri: StringUtils.EMPTY)).append("</td>");
-				body.append("</tr>");
-			}
-			body.append("</table>");
-		}
-
-		// Uncited assertions.
-		body.append("<h2>Uncited assertions</h2>");
-		if(uncited.isEmpty())
-			body.append("<p class='ok'>Every assertion of the analysed types carries at least one citation.</p>");
-		else{
-			body.append("<p class='warn'>The following record types contain assertions with no citation:</p>");
-			body.append("<table>");
-			body.append("<tr><th>Type</th><th>Uncited records</th></tr>");
-			for(final Map.Entry<String, Integer> e : uncited.entrySet()){
-				body.append("<tr>");
-				body.append("<td>").append(ReportDialog.escape(e.getKey())).append("</td>");
-				body.append("<td>").append(e.getValue()).append("</td>");
-				body.append("</tr>");
-			}
-			body.append("</table>");
-		}
-
-		// Summary.
-		body.append("<h2>Summary</h2>");
-		body.append("<table>");
-		body.append("<tr><td>Sources cited</td><td>").append(citedSourceCount).append("</td></tr>");
-		body.append("<tr><td>Documents referenced</td><td>").append(referencedDocumentCount).append("</td></tr>");
-		body.append("</table>");
-
-		return ReportDialog.document(body.toString());
 	}
 
 	@Override

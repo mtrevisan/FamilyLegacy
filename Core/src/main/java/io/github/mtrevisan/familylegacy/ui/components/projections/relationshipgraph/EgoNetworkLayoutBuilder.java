@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections.relationshipgraph;
 
+import io.github.mtrevisan.familylegacy.consanguinity.ConsanguinityReport;
+import io.github.mtrevisan.familylegacy.consanguinity.ConsanguinityReportText;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.components.projections.common.BoxPanelType;
@@ -113,7 +115,7 @@ class EgoNetworkLayoutBuilder{
 
 		for(final EgoNode node : nodes){
 			final JPanel panel = createCardPanel(node, BoxPanelType.SECONDARY, model, individualListener, groupListener);
-			final String tooltipText = buildTooltipText(node.getRelationsWithEgo());
+			final String tooltipText = withConsanguinity(buildTooltipText(node.getRelationsWithEgo()), node.getConsanguineousUnion());
 			if(tooltipText != null)
 				panel.setToolTipText(tooltipText);
 
@@ -188,6 +190,26 @@ class EgoNetworkLayoutBuilder{
 		}
 		sb.append("</html>");
 		return sb.toString();
+	}
+
+	/** Adds to the tooltip (an HTML text, or {@code null}) the note about a consanguineous union (the badge "C" on the edge). */
+	private static String withConsanguinity(final String tooltipText, final ConsanguinityReport.ConsanguineousUnion union){
+		if(union == null)
+			return tooltipText;
+
+		final StringBuilder sb = new StringBuilder("<b>Possible consanguineous union</b><br>Kinship ")
+			.append(ConsanguinityReportText.percent(union.kinship()))
+			.append(", relationship R ")
+			.append(ConsanguinityReportText.decimal(union.relationship()));
+		final String term = union.term();
+		if(!term.isEmpty())
+			sb.append("<br>").append(escapeHtml(term));
+		sb.append("<br><i>From the recorded ancestry: to be verified</i>");
+
+		if(tooltipText == null)
+			return "<html>" + sb + "</html>";
+		//insert before the closing tag of the existing HTML text
+		return tooltipText.substring(0, tooltipText.length() - "</html>".length()) + "<hr>" + sb + "</html>";
 	}
 
 	private static String escapeHtml(final String text){

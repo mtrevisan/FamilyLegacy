@@ -36,6 +36,12 @@ import io.github.mtrevisan.familylegacy.ui.tools.PopupMenuHelper;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolContexts;
 import io.github.mtrevisan.familylegacy.ui.tools.groups.AddMemberTool;
+import io.github.mtrevisan.familylegacy.ui.tools.groups.DeleteGroupTool;
+import io.github.mtrevisan.familylegacy.ui.tools.groups.EditGroupTool;
+import io.github.mtrevisan.familylegacy.ui.tools.groups.GroupNetworkTool;
+import io.github.mtrevisan.familylegacy.ui.tools.groups.GroupTimelineTool;
+import io.github.mtrevisan.familylegacy.ui.tools.groups.PasteGroupTool;
+import io.github.mtrevisan.familylegacy.ui.tools.groups.UnlinkGroupRelationshipsTool;
 
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
@@ -55,6 +61,8 @@ public class EgoNetworkGroupPopupMenuFactory implements EntityPopupMenuFactory<G
 		final JMenuItem deleteItem = new JMenuItem(I18N.t("menu.group.delete"), 'D');
 		final JMenuItem pasteItem = new JMenuItem(I18N.t("menu.group.paste"), 'P');
 		final JMenuItem unlinkItem = new JMenuItem(I18N.t("menu.group.unlink.relationships"), 'U');
+		final JMenuItem timelineItem = new JMenuItem(I18N.t("menu.group.timeline"));
+		final JMenuItem networkItem = new JMenuItem(I18N.t("menu.group.network"));
 
 		final JPopupMenu popup = new JPopupMenu();
 		popup.addPopupMenuListener(new PopupMenuAdapter(){
@@ -78,10 +86,16 @@ public class EgoNetworkGroupPopupMenuFactory implements EntityPopupMenuFactory<G
 				addMemberItem.setEnabled(hasData);
 				deleteItem.setEnabled(hasData);
 				unlinkItem.setEnabled(hasData);
+				timelineItem.setEnabled(hasData);
+				networkItem.setEnabled(hasData);
 			}
 		});
 
-		PopupMenuHelper.addMenuItem(popup, editItem, panel, listener::onEntityEdit);
+		PopupMenuHelper.addMenuItem(popup, editItem, panel, record -> {
+			final ToolContext context = ToolContexts.withMutator(model, listener, panel, record.getId());
+			new EditGroupTool()
+				.run(context);
+		});
 		popup.addSeparator();
 		PopupMenuHelper.addMenuItem(popup, addMemberItem, panel, record -> {
 			final ToolContext context = ToolContexts.withMutator(model, listener, panel, record.getId());
@@ -89,12 +103,34 @@ public class EgoNetworkGroupPopupMenuFactory implements EntityPopupMenuFactory<G
 				.run(context);
 		});
 		popup.addSeparator();
-		PopupMenuHelper.addMenuItem(popup, deleteItem, panel, listener::onEntityRemove);
+		PopupMenuHelper.addMenuItem(popup, deleteItem, panel, record -> {
+			final ToolContext context = ToolContexts.withMutator(model, listener, panel, record.getId());
+			new DeleteGroupTool()
+				.run(context);
+		});
 		popup.addSeparator();
-		popup.add(pasteItem);
-		pasteItem.addActionListener(e -> listener.onGroupPaste(panel));
+		PopupMenuHelper.addMenuItem(popup, pasteItem, panel, record -> {
+			final ToolContext context = ToolContexts.withMutator(model, listener, panel, null);
+			new PasteGroupTool()
+				.run(context);
+		});
 		popup.addSeparator();
-		PopupMenuHelper.addMenuItem(popup, unlinkItem, panel, record -> listener.onGroupUnlink(panel, record));
+		PopupMenuHelper.addMenuItem(popup, unlinkItem, panel, record -> {
+			final ToolContext context = ToolContexts.withMutator(model, listener, panel, record.getId());
+			new UnlinkGroupRelationshipsTool()
+				.run(context);
+		});
+		popup.addSeparator();
+		PopupMenuHelper.addMenuItem(popup, timelineItem, panel, record -> {
+			final ToolContext context = ToolContexts.withMutator(model, listener, panel, record.getId());
+			new GroupTimelineTool()
+				.run(context);
+		});
+		PopupMenuHelper.addMenuItem(popup, networkItem, panel, record -> {
+			final ToolContext context = ToolContexts.withMutator(model, listener, panel, record.getId());
+			new GroupNetworkTool()
+				.run(context);
+		});
 
 		return popup;
 	}

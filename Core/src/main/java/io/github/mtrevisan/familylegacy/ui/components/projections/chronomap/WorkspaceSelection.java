@@ -46,6 +46,8 @@ public final class WorkspaceSelection{
 
 	private final List<Consumer<String>> listeners = new ArrayList<>();
 
+	private final List<Consumer<String>> focusListeners = new ArrayList<>();
+
 	private String selectedId;
 
 
@@ -73,6 +75,22 @@ public final class WorkspaceSelection{
 	}
 
 
+	/**
+	 * Sets the selection and notifies the listeners even if the individual is already selected, so that the views that follow the
+	 * selection (the dossier, ...) are aligned to it also when they have drifted away from it in the meantime.
+	 *
+	 * @param id	The identifier to select.
+	 */
+	public void reselect(final String id){
+		if(id == null)
+			return;
+
+		selectedId = id;
+		for(final Consumer<String> l : new ArrayList<>(listeners))
+			l.accept(id);
+	}
+
+
 	/** Clears the selection. */
 	public void clear(){
 		select(null);
@@ -87,6 +105,27 @@ public final class WorkspaceSelection{
 	public void addListener(final Consumer<String> listener){
 		if(listener != null && !listeners.contains(listener))
 			listeners.add(listener);
+	}
+
+
+	/**
+	 * Asks the views that show a map to center and zoom on the given individual. Unlike {@link #select(String)} it is notified
+	 * even if the individual is already selected, because it is an action, not a state.
+	 *
+	 * @param id	The identifier of the individual to center on.
+	 */
+	public void requestFocus(final String id){
+		if(id == null)
+			return;
+
+		for(final Consumer<String> l : focusListeners)
+			l.accept(id);
+	}
+
+	/** Registers a listener that is notified whenever a view is asked to center on an individual. */
+	public void addFocusListener(final Consumer<String> listener){
+		if(listener != null && !focusListeners.contains(listener))
+			focusListeners.add(listener);
 	}
 
 

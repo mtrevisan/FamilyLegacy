@@ -83,7 +83,7 @@ import java.util.List;
  * @param furthestCommonAncestor  the furthest common ancestor, or {@code null}
  * @param allCommonAncestors      the full list of common ancestors
  * @param relationshipDescription the natural-language description
- * @param relationshipCoefficient the Wright's relationship coefficient
+ * @param relationshipCoefficient the Wright's relationship coefficient (exact, from {@code ConsanguinityCalculator})
  * @param directLine              whether one of the two is an ancestor of the other
  * @param civilDegree             the civil (Roman) degree
  * @param canonicalDegree         the canonical degree
@@ -121,7 +121,8 @@ record KinshipResult(
 	 * @param display       the display name
 	 * @param distanceFromA number of generations from A up to this ancestor
 	 * @param distanceFromB number of generations from B up to this ancestor
-	 * @param contribution  the term {@code (1/2)^(distanceFromA + distanceFromB)}
+	 * @param contribution  the term {@code (1/2)^(distanceFromA + distanceFromB)} (an indication: the coefficient of the result
+	 *                      is exact and is not the sum of these)
 	 */
 	record CommonAncestorInfo(String id, String display, int distanceFromA, int distanceFromB, double contribution){}
 

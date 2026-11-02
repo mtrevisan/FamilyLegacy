@@ -38,7 +38,6 @@ import java.awt.Desktop;
 import java.awt.Font;
 import java.awt.Window;
 import java.nio.file.Path;
-import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
 
@@ -61,49 +60,8 @@ import java.util.Map;
  */
 public final class AppearanceMenu{
 
-	/** The languages offered in the Language submenu. */
-	private static final Map<String, Locale> LANGUAGES = new LinkedHashMap<>();
-	static{
-		// TODO read from available internationalization files
-		// The languages exposed in the UI. Add more here as translations
-		// become available. Order is the order in the menu.
-		LANGUAGES.put("English", Locale.ENGLISH);
-		LANGUAGES.put("Italiano", Locale.ITALIAN);
-		LANGUAGES.put("Deutsch", Locale.GERMAN);
-		LANGUAGES.put("Français", Locale.FRENCH);
-		LANGUAGES.put("Español", Locale.of("es"));
-		LANGUAGES.put("Português", Locale.of("pt"));
-		LANGUAGES.put("Nederlands", Locale.of("nl"));
-		LANGUAGES.put("Polski", Locale.of("pl"));
-		LANGUAGES.put("Čeština", Locale.of("cs"));
-		LANGUAGES.put("Magyar", Locale.of("hu"));
-		LANGUAGES.put("Română", Locale.of("ro"));
-		LANGUAGES.put("Русский", Locale.of("ru"));
-		LANGUAGES.put("Українська", Locale.of("uk"));
-		LANGUAGES.put("Ελληνικά", Locale.of("el"));
-		LANGUAGES.put("العربية", Locale.of("ar"));
-		LANGUAGES.put("עברית", Locale.of("he"));
-		LANGUAGES.put("Türkçe", Locale.of("tr"));
-		LANGUAGES.put("فارسی", Locale.of("fa"));
-		LANGUAGES.put("हिन्दी", Locale.of("hi"));
-		LANGUAGES.put("বাংলা", Locale.of("bn"));
-		LANGUAGES.put("اردو", Locale.of("ur"));
-		LANGUAGES.put("தமிழ்", Locale.of("ta"));
-		LANGUAGES.put("తెలుగు", Locale.of("te"));
-		LANGUAGES.put("मराठी", Locale.of("mr"));
-		LANGUAGES.put("ગુજરાતી", Locale.of("gu"));
-		LANGUAGES.put("ਪੰਜਾਬੀ", Locale.of("pa"));
-		LANGUAGES.put("Bahasa Indonesia", Locale.of("id"));
-		LANGUAGES.put("Tiếng Việt", Locale.of("vi"));
-		LANGUAGES.put("ไทย", Locale.of("th"));
-		LANGUAGES.put("Tagalog", Locale.of("tl"));
-		LANGUAGES.put("简体中文", Locale.of("zh", "CN"));
-		LANGUAGES.put("繁體中文", Locale.of("zh", "TW"));
-		LANGUAGES.put("日本語", Locale.of("ja"));
-		LANGUAGES.put("한국어", Locale.of("ko"));
-		LANGUAGES.put("Kiswahili", Locale.of("sw"));
-		LANGUAGES.put("Hausa", Locale.of("ha"));
-	}
+	/** The languages offered in the Language submenu: the ones for which there are internationalization files. */
+	private static final Map<String, Locale> LANGUAGES = AvailableLanguages.find();
 
 
 	private AppearanceMenu(){

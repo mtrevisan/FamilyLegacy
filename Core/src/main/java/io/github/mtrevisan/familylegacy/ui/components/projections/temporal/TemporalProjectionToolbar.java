@@ -84,6 +84,8 @@ public final class TemporalProjectionToolbar extends JPanel{
 	private final JCheckBox showConnectionsCheck = new JCheckBox(I18N.t("checkbox.connections"), true);
 	private final JCheckBox showImpactLinksCheck = new JCheckBox(I18N.t("checkbox.impacts"), true);
 	private final JComboBox<EntityFilter> entityFilterCombo = new JComboBox<>(EntityFilter.values());
+	private final JLabel showLabel = new JLabel("  Show:");
+	private final JLabel entitiesLabel = new JLabel("  Entities:");
 	private final Listener listener;
 
 
@@ -116,6 +118,23 @@ public final class TemporalProjectionToolbar extends JPanel{
 	}
 
 
+	/**
+	 * Shows or hides the controls that choose what the projection of the whole file shows: the layers (bands, connections, impact links)
+	 * and the type of entity. A view that is given its own model (the group views) has none of those to choose, and the controls would do
+	 * nothing: it hides them. The zoom controls stay.
+	 *
+	 * @param visible	Whether to show the layer toggles and the entity filter.
+	 */
+	public void setContentControlsVisible(final boolean visible){
+		showLabel.setVisible(visible);
+		showBandsCheck.setVisible(visible);
+		showConnectionsCheck.setVisible(visible);
+		showImpactLinksCheck.setVisible(visible);
+		entitiesLabel.setVisible(visible);
+		entityFilterCombo.setVisible(visible);
+	}
+
+
 	/* ======================================================================
 	 *                          Setup
 	 * ====================================================================== */
@@ -128,11 +147,11 @@ public final class TemporalProjectionToolbar extends JPanel{
 		content.add(zoomOutBtn);
 		content.add(zoomInBtn);
 		content.add(fitBtn);
-		content.add(new JLabel("  Show:"));
+		content.add(showLabel);
 		content.add(showBandsCheck);
 		content.add(showConnectionsCheck);
 		content.add(showImpactLinksCheck);
-		content.add(new JLabel("  Entities:"));
+		content.add(entitiesLabel);
 		content.add(entityFilterCombo);
 
 		add(content, BorderLayout.WEST);

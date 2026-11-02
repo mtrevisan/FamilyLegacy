@@ -25,23 +25,21 @@
 package io.github.mtrevisan.familylegacy.ui.components.projections.chronomap;
 
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
-import io.github.mtrevisan.familylegacy.ui.dialogs.GeocodingProgressDialog;
-import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
-import java.awt.Component;
-import java.awt.Window;
 import java.util.List;
 
 /**
- * Background geocoding of the places that are not yet resolved, with a progress dialog.
+ * Background geocoding of the places that are not yet resolved, reporting the progress on an embedded strip.
  */
 final class GeocodingWorker{
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(GeocodingWorker.class);
+
+	/** Minimum interval between two refreshes of the map while the geocoding is running. */
+	private static final long INCREMENTAL_REFRESH_MS = 3_000L;
 
 	private record ProgressData(int current, int total, String placeName){}
 
@@ -55,10 +53,10 @@ final class GeocodingWorker{
 	 * {@link PlaceCoordinateResolver#extractMissingPlaces()}, which
 	 * checks both the in-memory cache and the on-disk cache. When every
 	 * place is already resolved (a typical second run on the same file),
-	 * the method returns without showing the progress dialog or
+	 * the method returns without showing the progress strip or
 	 * scheduling any background task.
 	 */
-	static SwingWorker<Integer, ?> start(final Component owner, final PlaceCoordinateResolver placeResolver,
+	static SwingWorker<Integer, ?> start(final GeocodingProgressPanel progressPanel, final PlaceCoordinateResolver placeResolver,
 			final Runnable onResolved){
 		final List<FLEFRecord> placesToGeocode = placeResolver.extractMissingPlaces();
 		if(placesToGeocode.isEmpty()){
@@ -70,7 +68,9 @@ final class GeocodingWorker{
 		LOGGER.debug("Geocoding {} places not present in the cache", placesToGeocode.size());
 
 		final SwingWorker<Integer, ProgressData> worker = new SwingWorker<>(){
-			private GeocodingProgressDialog dialog;
+			private int lastShownCount = placeResolver.cachedCount();
+			private long lastShownMs = System.currentTimeMillis();
+
 
 			@Override
 			protected Integer doInBackground(){
@@ -87,22 +87,22 @@ final class GeocodingWorker{
 					return;
 
 				final ProgressData latest = chunks.getLast();
-				if(dialog == null){
-					final Window windowOwner = SwingUtilities.getWindowAncestor(owner);
-					dialog = new GeocodingProgressDialog(
-						windowOwner,
-						I18N.t("dialog.geocoding.title"),
-						() -> cancel(true)
-					);
-					dialog.setVisible(true);
+				progressPanel.updateProgress(latest.current(), latest.total(), latest.placeName());
+
+				//show the places already resolved without waiting for the end (the index rebuild is throttled)
+				final long now = System.currentTimeMillis();
+				final int resolvedNow = placeResolver.cachedCount();
+				if(resolvedNow != lastShownCount && now - lastShownMs >= INCREMENTAL_REFRESH_MS){
+					lastShownCount = resolvedNow;
+					lastShownMs = now;
+
+					onResolved.run();
 				}
-				dialog.updateProgress(latest.current(), latest.total(), latest.placeName());
 			}
 
 			@Override
 			protected void done(){
-				if(dialog != null)
-					dialog.dispose();
+				progressPanel.end();
 
 				if(isCancelled()){
 					//the places resolved before the cancellation are already cached: show them
@@ -123,6 +123,7 @@ final class GeocodingWorker{
 			}
 		};
 
+		progressPanel.begin(() -> worker.cancel(true));
 		worker.execute();
 		return worker;
 	}

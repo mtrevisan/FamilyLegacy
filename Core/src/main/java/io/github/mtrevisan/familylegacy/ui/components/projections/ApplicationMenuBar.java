@@ -318,7 +318,9 @@ final class ApplicationMenuBar{
 					case BIOLOGICAL_TREE -> treeItem.setSelected(true);
 					case SUGIYAMA_GRAPH -> graphItem.setSelected(true);
 					case EGO_NETWORK -> egoItem.setSelected(true);
-				case CHRONOMAP -> chronomapItem.setSelected(true);
+					case CHRONOMAP -> chronomapItem.setSelected(true);
+					//the temporal projection and the social network have no menu item for now (see ProjectionType)
+					case TEMPORAL, SOCIAL_NETWORK -> {}
 				}
 			}
 

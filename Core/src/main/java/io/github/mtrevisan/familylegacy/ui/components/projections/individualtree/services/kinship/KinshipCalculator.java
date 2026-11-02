@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.services.kinship;
 
+import io.github.mtrevisan.familylegacy.consanguinity.AncestryGraph;
+import io.github.mtrevisan.familylegacy.consanguinity.ConsanguinityCalculator;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
@@ -61,12 +63,11 @@ import java.util.Set;
  *   <li>a natural-language description of the relationship, following the
  *       standard genealogy vocabulary (father, uncle, first cousin once
  *       removed, and so on);</li>
- *   <li>the Wright's relationship coefficient, computed as
- *       {@code R = sum (1/2)^(dA + dB)} over all common ancestors, with
- *       {@code dA} and {@code dB} the generation distances from A and B
- *       to that ancestor. This ignores the inbreeding coefficient of the
- *       ancestors themselves, which is the standard approximation used by
- *       non-specialist tools.</li>
+ *   <li>the Wright's relationship coefficient, computed exactly by
+ *       {@link ConsanguinityCalculator} (all the paths through the common
+ *       ancestors, and the inbreeding of the ancestors themselves). The
+ *       per-ancestor term {@code (1/2)^(dA + dB)} reported with each common
+ *       ancestor is only an indication.</li>
  * </ul>
  *
  * <p>The calculator can be built either from a {@link TreeService} (so it
@@ -241,19 +242,17 @@ public final class KinshipCalculator{
 		if(commonIds.isEmpty())
 			return KinshipResult.notRelated(idA, labelOf(idA), idB, labelOf(idB));
 
-		// Build the common-ancestor list and accumulate the Wright
-		// coefficient. Each common ancestor contributes a term
-		// (1/2)^(dA + dB), where dA and dB are its generation distances
-		// from A and B respectively.
+		// Build the common-ancestor list. The term (1/2)^(dA + dB) of each
+		// one (dA and dB are its generation distances from A and B) is
+		// only informative: the coefficient R is computed exactly below.
 		final List<KinshipResult.CommonAncestorInfo> commons = new ArrayList<>(commonIds.size());
-		double coefficient = 0.;
 		for(final String ancestorId : commonIds){
 			final int dA = ancestorsA.get(ancestorId);
 			final int dB = ancestorsB.get(ancestorId);
 			final double contribution = Math.pow(0.5, dA + dB);
 			commons.add(new KinshipResult.CommonAncestorInfo(ancestorId, labelOf(ancestorId), dA, dB, contribution));
-			coefficient += contribution;
 		}
+		final double coefficient = relationshipCoefficient(idA, idB, ancestorsA.keySet(), ancestorsB.keySet());
 
 		// Sort by total distance ascending, then by distance from A. The
 		// first element is the MRCA, the last is the furthest one.
@@ -302,6 +301,29 @@ public final class KinshipCalculator{
 		return new KinshipResult(idA, labelOf(idA), idB, labelOf(idB),
 			sexA, sexB, chainA, chainB, mrca, furthest, commons, description, coefficient,
 			directLine, civilDegree, canonicalDegree, chineseGeneration);
+	}
+
+
+	/**
+	 * The exact coefficient of relationship of Wright, through {@link ConsanguinityCalculator} (every path through every common
+	 * ancestor counts, and so does the inbreeding of the ancestors). The ancestry is the one of the parent provider, limited to the
+	 * ancestors of the two individuals (all that matters), with at most two parents each.
+	 */
+	private double relationshipCoefficient(final String idA, final String idB, final Set<String> ancestorsOfA,
+			final Set<String> ancestorsOfB){
+		final Set<String> ids = new HashSet<>(ancestorsOfA);
+		ids.addAll(ancestorsOfB);
+		final Map<String, List<String>> parentsByChild = new HashMap<>(ids.size());
+		for(final String id : ids){
+			final List<String> parentIds = new ArrayList<>(2);
+			for(final FLEFRecord parent : parents.getParents(id))
+				if(parent.getId() != null)
+					parentIds.add(parent.getId());
+			if(!parentIds.isEmpty())
+				parentsByChild.put(id, parentIds);
+		}
+		return new ConsanguinityCalculator(new AncestryGraph(parentsByChild))
+			.relationship(idA, idB);
 	}
 
 

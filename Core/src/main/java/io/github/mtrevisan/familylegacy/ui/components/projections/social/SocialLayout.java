@@ -37,6 +37,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 
 /**
@@ -82,7 +83,7 @@ public final class SocialLayout{
 	public static final int CENTER_NODE_HEIGHT = 80;
 
 	/** Minimum gap, in pixels, between two consecutive rings. */
-	public static final int MIN_RING_STEP = 140;
+	public static final int MIN_RING_STEP = NODE_WIDTH + 40;
 
 	/** Minimum gap, in pixels, between two nodes on the same ring. */
 	public static final int MIN_NODE_GAP = 40;
@@ -91,7 +92,7 @@ public final class SocialLayout{
 	public static final int CONTENT_PADDING = 80;
 
 	/** Minimum radius, in pixels, of the first ring. */
-	public static final int MIN_FIRST_RING_RADIUS = 200;
+	public static final int MIN_FIRST_RING_RADIUS = CENTER_NODE_WIDTH / 2 + 40 + NODE_WIDTH / 2;
 
 	private static final double TWO_PI = 2. * Math.PI;
 
@@ -289,7 +290,7 @@ public final class SocialLayout{
 			previousRadius = radius;
 		}
 
-		return buildLayout(positions, center);
+		return buildLayout(positions, center, SocialLayoutMode.CONCENTRIC);
 	}
 
 
@@ -309,33 +310,53 @@ public final class SocialLayout{
 		// each node, including the node itself).
 		final Map<SocialNodeRef, Integer> subtreeWeight = computeSubtreeWeights(center, childrenByParent);
 
-		// Recursively assign angular sectors.
+		// Recursively assign angular sectors: first the angle of every node, then the radius of every generation, that has to be
+		// large enough for its nodes not to touch (the sector of a node is proportional to its subtree: a narrow one needs a big circle).
+		final Map<SocialNodeRef, Double> angles = new HashMap<>();
+		final Map<SocialNodeRef, Integer> depths = new HashMap<>();
 		final double rootWeight = subtreeWeight.getOrDefault(center, 1);
-		assignRadial(center, 0., -Math.PI / 2., TWO_PI, (int)rootWeight, childrenByParent, subtreeWeight, positions);
+		assignAngles(center, 0, -Math.PI / 2., TWO_PI, (int)rootWeight, childrenByParent, subtreeWeight, angles, depths);
 
-		return buildLayout(positions, center);
+		final Map<Integer, List<SocialNodeRef>> byDepth = new TreeMap<>();
+		for(final Map.Entry<SocialNodeRef, Integer> entry : depths.entrySet())
+			byDepth.computeIfAbsent(entry.getValue(), k -> new ArrayList<>())
+				.add(entry.getKey());
+
+		double previousRadius = 0.;
+		for(final Map.Entry<Integer, List<SocialNodeRef>> entry : byDepth.entrySet()){
+			final List<SocialNodeRef> nodes = entry.getValue();
+			nodes.sort(Comparator.comparingDouble(angles::get));
+
+			double minimumGap = TWO_PI;
+			for(int i = 0; i < nodes.size(); i ++){
+				final double next = (i + 1 < nodes.size()? angles.get(nodes.get(i + 1)): angles.get(nodes.get(0)) + TWO_PI);
+				if(nodes.size() > 1)
+					minimumGap = Math.min(minimumGap, next - angles.get(nodes.get(i)));
+			}
+			final double requiredRadius = (nodes.size() > 1? (NODE_WIDTH + MIN_NODE_GAP) / minimumGap: 0.);
+			final double radius = Math.max(requiredRadius,
+				(previousRadius == 0.? MIN_FIRST_RING_RADIUS: previousRadius + MIN_RING_STEP));
+			for(final SocialNodeRef node : nodes)
+				positions.put(node, new Point2D.Double(radius * Math.cos(angles.get(node)), radius * Math.sin(angles.get(node))));
+			previousRadius = radius;
+		}
+
+		return buildLayout(positions, center, SocialLayoutMode.RADIAL_TREE);
 	}
 
-	private static void assignRadial(final SocialNodeRef node, final double parentRadius, final double startAngle,
+	private static void assignAngles(final SocialNodeRef node, final int depth, final double startAngle,
 		final double sector, final int weight, final Map<SocialNodeRef, List<SocialNodeRef>> childrenByParent,
-		final Map<SocialNodeRef, Integer> subtreeWeight, final Map<SocialNodeRef, Point2D> positions){
+		final Map<SocialNodeRef, Integer> subtreeWeight, final Map<SocialNodeRef, Double> angles,
+		final Map<SocialNodeRef, Integer> depths){
 		final List<SocialNodeRef> children = childrenByParent.getOrDefault(node, List.of());
-		if(children.isEmpty())
-			return;
-
-		final double childRadius = parentRadius + MIN_RING_STEP;
 		double angle = startAngle;
-
 		for(final SocialNodeRef child : children){
 			final int childWeight = subtreeWeight.getOrDefault(child, 1);
 			final double childSector = sector * ((double)childWeight / (double)weight);
-			final double midAngle = angle + childSector / 2.;
-			final double x = childRadius * Math.cos(midAngle);
-			final double y = childRadius * Math.sin(midAngle);
-			positions.put(child, new Point2D.Double(x, y));
+			angles.put(child, angle + childSector / 2.);
+			depths.put(child, depth + 1);
 
-			assignRadial(child, childRadius, angle, childSector, childWeight, childrenByParent, subtreeWeight,
-				positions);
+			assignAngles(child, depth + 1, angle, childSector, childWeight, childrenByParent, subtreeWeight, angles, depths);
 
 			angle += childSector;
 		}
@@ -426,7 +447,8 @@ public final class SocialLayout{
 	 * origin) into a positive coordinate system, computes the bounding box
 	 * of every node, and assembles the final layout.
 	 */
-	private static SocialLayout buildLayout(final Map<SocialNodeRef, Point2D> positions, final SocialNodeRef center){
+	private static SocialLayout buildLayout(final Map<SocialNodeRef, Point2D> positions, final SocialNodeRef center,
+			final SocialLayoutMode mode){
 		// Compute raw bounds centered at the origin.
 		double minX = Double.POSITIVE_INFINITY;
 		double minY = Double.POSITIVE_INFINITY;
@@ -466,7 +488,7 @@ public final class SocialLayout{
 		final Rectangle contentBounds = new Rectangle(0, 0, Math.max(1, contentWidth),
 			Math.max(1, contentHeight));
 
-		return new SocialLayout(bounds, contentBounds, SocialLayoutMode.CONCENTRIC);
+		return new SocialLayout(bounds, contentBounds, mode);
 	}
 
 }

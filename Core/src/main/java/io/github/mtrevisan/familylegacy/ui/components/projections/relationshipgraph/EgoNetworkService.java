@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections.relationshipgraph;
 
+import io.github.mtrevisan.familylegacy.consanguinity.ConsanguineousUnionDetector;
+import io.github.mtrevisan.familylegacy.consanguinity.ConsanguinityReport;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
@@ -39,6 +41,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 
 /**
@@ -52,6 +55,8 @@ public class EgoNetworkService{
 
 	private final Map<String, List<FLEFRecord>> relationshipsByEntityId = new HashMap<>();
 	private boolean relationshipsIndexed;
+	/** The consanguineous unions of the model by couple, computed on first use (the report is costly) and dropped on changes. */
+	private Map<String, ConsanguinityReport.ConsanguineousUnion> consanguineousUnions;
 
 
 	public EgoNetworkService(final GenealogyRepository repository, final FLEFModel model){
@@ -108,7 +113,34 @@ public class EgoNetworkService{
 			}
 		}
 
+		markConsanguineousUnions(egoNode);
+
 		return egoNode;
+	}
+
+	/** Marks the partners of the ego that are related to the ego (the badge on the edge is drawn from this). */
+	private void markConsanguineousUnions(final EgoNode egoNode){
+		final Set<EgoNode> partners = egoNode.getRelatedNodes(EgoNode.RelationshipCategory.PARTNER);
+		if(partners.isEmpty())
+			return;
+
+		if(consanguineousUnions == null)
+			consanguineousUnions = indexUnions(ConsanguineousUnionDetector.detect(model));
+
+		final String egoId = egoNode.getEgoId();
+		for(final EgoNode partner : partners)
+			partner.setConsanguineousUnion(consanguineousUnions.get(unionKey(egoId, partner.getEgoId())));
+	}
+
+	private static Map<String, ConsanguinityReport.ConsanguineousUnion> indexUnions(final ConsanguinityReport report){
+		final Map<String, ConsanguinityReport.ConsanguineousUnion> unions = new HashMap<>();
+		for(final ConsanguinityReport.ConsanguineousUnion union : report.unions())
+			unions.put(unionKey(union.firstId(), union.secondId()), union);
+		return unions;
+	}
+
+	private static String unionKey(final String a, final String b){
+		return (a.compareTo(b) <= 0? a + '\u0000' + b: b + '\u0000' + a);
 	}
 
 	private static String normalizeStatus(final String raw){
@@ -240,6 +272,7 @@ public class EgoNetworkService{
 		repository.invalidateIndices();
 		relationshipsByEntityId.clear();
 		relationshipsIndexed = false;
+		consanguineousUnions = null;
 	}
 
 }

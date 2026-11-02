@@ -84,6 +84,7 @@ public final class ChronomapIndex{
 
 	/** Not final: rebuilt after a background geocoding pass. */
 	private Map<String, List<GeoAnchor>> anchorsByOwner;
+	private final List<Runnable> rebuildListeners = new java.util.concurrent.CopyOnWriteArrayList<>();
 
 	/**
 	 * Earliest birth event per owner, or absent. Populated at build time
@@ -144,6 +145,14 @@ public final class ChronomapIndex{
 		anchorsByOwner = build();
 
 		buildLifeEventIndex();
+
+		for(final Runnable listener : rebuildListeners)
+			listener.run();
+	}
+
+	/** Registers a listener called (on the thread that rebuilds) every time the index is rebuilt. */
+	public void addRebuildListener(final Runnable listener){
+		rebuildListeners.add(listener);
 	}
 
 	/**

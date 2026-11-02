@@ -24,7 +24,6 @@
  */
 package io.github.mtrevisan.familylegacy.io;
 
-import io.github.mtrevisan.familylegacy.io.grammar.FLEFGrammarParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import org.apache.commons.lang3.StringUtils;
@@ -41,7 +40,6 @@ import java.nio.file.Path;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
-import java.util.Objects;
 import java.util.zip.GZIPOutputStream;
 
 
@@ -220,7 +218,6 @@ public class FLEFWriter{
 			done ++;
 		}
 
-		// TODO claude: the protocol says that each record lies under the top-level block `records`, not at top-level
 		// Write the records, each as a top-level block `<record_kind> <Id> { … }`, as defined by the protocol
 		for(int i = 0, size = records.size(); i < size; i ++){
 			if(i > 0 || hasHeader)
@@ -231,28 +228,6 @@ public class FLEFWriter{
 			done ++;
 			reportProgress(done, total);
 		}
-		// TODO claude: before it was like this:
-//		// Write top-level records
-//		if(!records.isEmpty()){
-//			if(model.getHeader() != null)
-//				writer.write(StringUtils.LF);
-//			writer.write(FLEFGrammarParser.FIELD_RECORDS);
-//			writer.write(StringUtils.SPACE);
-//			writer.write(TAG_OPEN_CURLY_BRACE);
-//			writer.write(StringUtils.LF);
-//			for(int i = 0, size = records.size(); i < size; i ++){
-//				final FLEFRecord record = records.get(i);
-//
-//				writeRecord(record, writer, 1);
-//				if(i < records.size() - 1)
-//					writer.write(StringUtils.LF);
-//
-//				done ++;
-//				reportProgress(done, total);
-//			}
-//			writer.write(TAG_CLOSE_CURLY_BRACE);
-//			writer.write(StringUtils.LF);
-//		}
 
 		writer.flush();
 

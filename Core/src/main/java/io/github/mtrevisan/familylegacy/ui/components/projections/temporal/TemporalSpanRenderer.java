@@ -59,9 +59,9 @@ import java.awt.geom.Path2D;
  *       (actual duration).</li>
  *   <li>{@link TemporalSpan#isApproximate()} — a soft halo behind the
  *       marker or bar.</li>
- *   <li>{@link TemporalSpan#status()} — the fill alpha and the outline
- *       stroke vary: {@code active} solid, {@code ended} dashed,
- *       {@code unknown} dotted.</li>
+ *   <li>{@link TemporalSpan#status()} — a bar of a span that has {@code ended} is fainter and has a dashed
+ *       outline; {@code active} and {@code unknown} (the status of events and attributes) are drawn as they
+ *       always were, so a point marker is never changed.</li>
  *   <li>negative evidence ({@code evidence_type = negative}) — the body is
  *       faded and crossed out: a diagonal hatch over bars, an X over point
  *       markers, so that "the sources attest the absence" is not read as a
@@ -82,6 +82,7 @@ public final class TemporalSpanRenderer{
 	private static final int HALO_PADDING = 4;
 	private static final int FADE_WIDTH = 12;
 	private static final int NEGATIVE_ALPHA = 90;
+	private static final int ENDED_ALPHA = 150;
 	private static final int HATCH_SPACING = 5;
 
 
@@ -119,7 +120,8 @@ public final class TemporalSpanRenderer{
 			return;
 
 		final Color color = (selected? COLOR_SELECTED: baseColor);
-		final Color bodyColor = (negative? withAlpha(color, NEGATIVE_ALPHA): color);
+		final boolean ended = TemporalSpan.STATUS_ENDED.equals(span.status());
+		final Color bodyColor = (negative? withAlpha(color, NEGATIVE_ALPHA): (ended? withAlpha(color, ENDED_ALPHA): color));
 
 		final Paint originalPaint = g.getPaint();
 		final Stroke originalStroke = g.getStroke();
@@ -140,7 +142,11 @@ public final class TemporalSpanRenderer{
 				case SPANNING -> drawSpanningBar(g, rect, bodyColor);
 			}
 
-			// 3. Negative evidence (crossed out, on top of the body)
+			// 3. Ended: dashed outline over the bar
+			if(ended && !(span.kind() == TemporalSpanKind.POINT && !span.start().isReduced()))
+				drawEndedOutline(g, rect, color);
+
+			// 4. Negative evidence (crossed out, on top of the body)
 			if(negative){
 				if(span.kind() == TemporalSpanKind.POINT && !span.start().isReduced())
 					drawNegativeCross(g, rect, color);
@@ -223,6 +229,12 @@ public final class TemporalSpanRenderer{
 		g.setColor(darken(color, 0.7f));
 		g.setStroke(new BasicStroke(1f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND,
 			10f, new float[]{4f, 3f}, 0f));
+		g.drawRoundRect(rect.x, rect.y, rect.width, rect.height, CORNER_ARC, CORNER_ARC);
+	}
+
+	private static void drawEndedOutline(final Graphics2D g, final Rectangle rect, final Color color){
+		g.setColor(darken(withAlpha(color, 255), 0.6f));
+		g.setStroke(new BasicStroke(1.2f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND, 10f, new float[]{5f, 3f}, 0f));
 		g.drawRoundRect(rect.x, rect.y, rect.width, rect.height, CORNER_ARC, CORNER_ARC);
 	}
 

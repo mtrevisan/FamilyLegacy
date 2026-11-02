@@ -67,7 +67,9 @@ public final class GroupToolRegistry{
 	/** Navigation tools. */
 	public static List<ToolOperation> navigationTools(){
 		return List.of(
-			new SetAsRootTool()
+			new SetAsRootTool(),
+			new GroupTimelineTool(),
+			new GroupNetworkTool()
 		);
 	}
 

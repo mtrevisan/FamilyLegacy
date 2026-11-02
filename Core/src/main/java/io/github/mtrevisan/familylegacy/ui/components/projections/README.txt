@@ -4,24 +4,78 @@ Elenco di ciò che manca per sfruttare appieno il protocollo FLEF. Legenda: DONE
 presente, PARZIALE = presente solo in parte o altrove. Per le viste specializzate vedere anche
 `temporal/README.txt` (punto 1) e `social/README.txt` (punto 2).
 
-Stato verificato sul codice (ottobre 2026).
+Stato verificato sul codice (2 novembre 2026). Revisione: DONE/TODO ricontrollati; per ogni TODO è indicato se vale la pena
+farlo ("Utile", "Bassa priorità").
 
 
 ## Viste oggi raggiungibili
 
-`ProjectionType` espone tre proiezioni: albero biologico, grafo Sugiyama, ego network.
-Altre viste raggiungibili: dossier individuo/gruppo, chronomap + Agorà, strip delle vite (`MultiLifespanStripPanel`),
+`ProjectionType` espone quattro proiezioni offerte all'utente: albero biologico (Ctrl+1), grafo Sugiyama (Ctrl+2), ego network (Ctrl+3),
+chronomap (Ctrl+4). La proiezione temporale e il social network sono nello switcher (`ProjectionType.TEMPORAL` e
+`SOCIAL_NETWORK`, `setProjection`, segnalibri) ma NASCOSTI per ora: niente bottone, voce di menu, Ctrl+5 / Ctrl+6 né aiuto
+(2 novembre 2026, su richiesta). Per riattivarli vedi il commento di `ProjectionType`.
+Altre viste raggiungibili: dossier individuo/gruppo, Agorà, strip delle vite (`MultiLifespanStripPanel`),
 timeline globale degli eventi (sotto l'ego network), gerarchia dei luoghi (`PlaceHierarchyPanel`), kinship dialog e
 pedigree collapse (albero).
 
-**Scollegate:** `TemporalProjectionPanel` (punto 1) e `SocialNetworkPanel` (punto 2) sono implementate ma non istanziate
-da nessuna parte. TODO aggiungerle a `ProjectionType` / `ProjectionSwitcherPanel`.
+DONE `TemporalProjectionPanel` (punto 1) e `SocialNetworkPanel` (punto 2) sono collegati allo switcher (novembre 2026): enum,
+segnalibri, `TemporalAndSocialProjectionTest`; l'accesso dall'interfaccia (toolbar, menu, scorciatoie, aiuto) è tolto per ora. Vedi `temporal/README.txt` e
+`social/README.txt`. Restano TODO: i filtri per tipo di relazione dell'ego network si possono riusare da `SocialFilters`; la
+strip e la timeline globale non compaiono sotto le due nuove viste (hanno la loro asse).
 
 
 ## Punto 4 - Viste di gruppo (Group / Community View)
 
-TODO Non iniziato. Esistono solo `GroupPanel`, `GroupData`, `GroupListener`, il dossier di gruppo (`GroupDossier*`) e gli
-strumenti di gestione dei gruppi. Nessuna delle classi `Group*Timeline`, `Group*Network`, `IndividualCareer*` esiste.
+DONE (novembre 2026): le tre viste A, C e B sono complete e raggiungibili dall'interfaccia (vedi sotto), con i TODO chiusi. Era il
+lavoro più grosso. Esistono `GroupPanel`, `GroupData`, `GroupListener`, il dossier di gruppo (`GroupDossier*`), gli strumenti
+di gestione dei gruppi e i package `grouptimeline` (Viste A e C) e `groupnetwork` (Vista B).
+
+DONE Vista A (`grouptimeline`: `GroupTimelineBuilder`, `GroupTimelinePanel`; `GroupTimelineTest`). Non è una vista a sé: il builder
+produce un `TemporalProjectionModel` e lo mostra `TemporalProjectionPanel` (nuovo `withModelSource`), quindi asse, zoom, pan,
+tooltip e click sono quelli della proiezione temporale. Righe: il gruppo (eventi, attributi, contesto), i sottogruppi (`part_of`),
+i membri (`group_member`), questi dal più antico. Sottogruppi e membri hanno un solo track `MEMBERSHIP` (nuovo in
+`TemporalTrackType`) con una barra per appartenenza (da `valid_from` a `valid_to`), etichettata e colorata per ruolo
+(`TemporalRoleColors`: stesso ruolo, stesso colore, senza maiuscole); chi ha più ruoli nel tempo ha più barre sulla stessa riga. Un'appartenenza
+senza date non si scarta: barra su tutto l'asse, "(dates unknown)", e non allarga l'asse. Privacy applicata.
+Scelta: nessuna banda di contesto (il contesto del gruppo sta nel suo track CONTEXT).
+DONE Accesso dall'interfaccia (a differenza delle viste temporale e social, che restano nascoste): menu Gruppo > "Group Timeline…"
+(`GroupTimelineTool`, nel registro `GroupToolRegistry.navigationTools`) e voce nel menu contestuale del gruppo nell'ego network
+(`EgoNetworkGroupPopupMenuFactory`); dialogo `GroupViewDialog` (modale, ESC la chiude).
+DONE Legenda dei ruoli (`GroupRoleLegend`, sotto le Viste A e C): un quadrato del colore e il nome per ogni ruolo presente nella
+vista, in ordine alfabetico senza maiuscole (un ruolo scritto in più modi è uno, con la prima grafia), poi le appartenenze senza
+ruolo; nascosta se non ci sono appartenenze. La palette dei colori è passata da 8 a 12, ma due ruoli possono ancora avere lo stesso
+colore (il colore dipende dal ruolo, non dalla vista: stesso ruolo, stesso colore ovunque). Test in `GroupTimelineTest`.
+DONE Filtro per ruolo dalla legenda (Viste A e C): ogni ruolo è una casella (quadrato pieno se mostrato, solo contorno se
+nascosto) e togliere la spunta nasconde le barre di quel ruolo; "Show all" le rimette tutte. Una riga di membro o gruppo che resta
+senza barre sparisce, la riga del gruppo o della persona (con eventi e attributi) resta; l'asse si ricalcola su ciò che rimane.
+La legenda elenca sempre i ruoli dell'intera vista, anche quelli nascosti, per poterli riaccendere. Cambiando gruppo o persona il
+filtro si azzera (altri ruoli). `GroupRoleLegend.filter` (statico, testato) e `withListener`; test in `GroupRoleFilterTest`.
+Il filtro tiene il ruolo per chiave (senza maiuscole né spazi; `""` = senza ruolo).
+DONE Stato `active/ended` (Viste A e C): `GroupTimelineBuilder.statusOf` legge `status` della relazione e lo mette nello span; nel
+renderer (`TemporalSpanRenderer`, che prima ignorava lo stato) una barra `ended` è più tenue con contorno tratteggiato e l'etichetta
+ha "(ended)"; `active` e `unknown` (anche tutti gli eventi e gli attributi) restano come prima, i punti non cambiano.
+DONE Chiusura dei TODO delle Viste A e C (novembre 2026):
+- Filtro per anno (`GroupYearControl` sopra la vista, `GroupYearFilter`): una barra con date che non copre l'anno è tolta, una senza
+  date o aperta da un lato resta; le righe rimaste senza barre spariscono (`GroupMembershipFilter`, lo stesso del filtro per ruolo);
+  l'anno è gregoriano e resta cambiando gruppo o persona (è una scelta sul tempo), il filtro per ruolo no. Ordine: prima l'anno, poi i ruoli;
+  la legenda elenca i ruoli delle barre dell'anno.
+- Asse sempre definito (`GroupTimelineBuilder.domain`): una appartenenza senza fine dura fino a oggi (o un anno dopo l'inizio se è nel
+  futuro), una senza inizio comincia un secolo prima della fine, una vista senza alcuna data mostra l'ultimo secolo; prima, con le
+  sole appartenenze aperte o senza date, la vista restava vuota.
+- Timeline di un gruppo: oltre a sottogruppi e membri ci sono i gruppi di cui è parte (`part_of` come soggetto), una riga ciascuno,
+  sotto la riga del gruppo.
+- Il modello non si ricostruisce a ogni clic su un filtro (`GroupViewFilters`): si riusa quello costruito; si ricostruisce solo a
+  `refresh()` o a un nuovo gruppo o persona.
+DONE Correzione dello zoom (novembre 2026, segnalata dall'uso): `TemporalAxis.spanToRect` chiamava `Math.clamp` con gli argomenti
+scambiati e lanciava `IllegalArgumentException` appena una barra finiva oltre il bordo destro della finestra (con lo zoom succede
+sempre), interrompendo il disegno: le barre non si ridimensionavano. Ora la barra è tagliata al bordo, una tutta fuori è omessa (prima
+una tutta a sinistra diventava una barretta di 1 pixel sul bordo). Il difetto era nella proiezione temporale generale, non solo
+nelle viste di gruppo. Inoltre: l'asse prosegue oltre l'inizio di una barra aperta (senza fine) di un quinto di ciò che è datato, almeno
+un anno, altrimenti la barra restava fuori finestra; nelle viste di gruppo la barra degli strumenti nasconde "Show" (Bands,
+Connections, Impacts) e "Entities", che non hanno effetto (`TemporalProjectionToolbar.setContentControlsVisible`). Test:
+`GroupViewZoomTest` (asse, rotella Ctrl sul pannello vero in una finestra, disegno a ogni passo).
+Scelta (non un TODO): la Vista C non propaga l'appartenenza lungo la gerarchia (chi è membro di un sottogruppo non risulta membro del
+gruppo che lo contiene): sarebbe un'inferenza non scritta nei dati; i gruppi sono quelli dei `group_member` espliciti.
 
 FLEF fornisce già tutto il necessario: `GroupRecord`, appartenenza (`RelationshipRecord` `group_member` con `role`,
 `valid_from` / `valid_to` / `status`), gerarchia (`part_of`), associazioni (`associate`), `GroupAttributeRecord`,
@@ -51,13 +105,44 @@ Classi previste (nessuna esiste ancora):
 Ordine consigliato: enum e record -> `GroupIndices` -> `GroupFilters` -> `GroupProfileService` -> timeline (Vista A, la
 più riusabile) -> carriera (Vista C) -> rete (Vista B) -> pannello contenitore.
 
+DONE Vista C, carriera di una persona nei gruppi (`IndividualCareerBuilder`, `IndividualCareerPanel`; `GroupTimelineTest`). Stessa
+impostazione della A (modello temporale mostrato da `TemporalProjectionPanel`, stessi helper di `GroupTimelineBuilder`). Righe: la
+persona (eventi, attributi, contesto: per leggere la carriera contro la vita), poi un gruppo per riga (`group_member`), il più
+antico prima; più barre per più periodi o ruoli, colorate per ruolo (`TemporalRoleColors`); appartenenza senza date: barra su tutto
+l'asse, "(dates unknown)". Se la persona non ha eventi o attributi datati né gruppi, la vista è vuota. Accesso: menu Individuo >
+"Group Career…" (`IndividualCareerTool`, `IndividualToolRegistry.navigationTools`) e menu contestuali dell'individuo, nell'albero
+(`EntityTreePopupMenuFactory`) e nell'ego network (`EgoNetworkIndividualPopupMenuFactory`).
+Vista C: nessun TODO aperto (vedi la chiusura dei TODO sopra: filtro per anno, asse sempre definito).
+
+DONE Vista B, rete dei gruppi (package `groupnetwork`: `GroupNetwork`, `GroupNetworkBuilder`, `GroupNetworkLayout`, `GroupNetworkPanel`;
+`GroupNetworkTest`). Nodi = gruppi, archi `part_of` (linea spessa; il tutto sopra la parte) e `associate` (tratteggiata); badge col
+numero di membri. È sempre filtrata: l'intorno di un gruppo, a "Levels" relazioni di distanza (2 di default, da 0 a 6) e, a
+richiesta, per anno ("Year"): una relazione o appartenenza con date che non copre l'anno è esclusa, una senza date resta. Layout
+`GroupNetworkLayout`, deterministico e non generico: livello dalle relazioni `part_of` (sotto il gruppo di cui è parte; un ciclo di
+`part_of`, errore nei dati, non va in loop), un gruppo senza `part_of` prende il livello dell'associato più vicino al centro,
+ordine sotto i genitori poi per nome, livelli centrati. Un clic seleziona un gruppo, un doppio clic lo mette al centro. Accesso:
+menu Gruppo > "Group Network…" (`GroupNetworkTool`) e menu contestuale del gruppo nell'ego network; `GroupViewDialog.forNetwork`.
+DONE Chiusura dei TODO della Vista B (novembre 2026), `GroupNetworkFeaturesTest`:
+- Legenda delle linee in fondo (linea spessa = parte di, tratteggiata = associato, badge = membri, riquadro giallo = centro).
+- Zoom (pulsanti -, +, adatta; Ctrl + rotella, da 0.3 a 3) e pan (trascinamento, `ViewportPanSupport`); il clic e il tooltip
+  tengono conto dello zoom.
+- Etichette lunghe su due righe, spezzate allo spazio più vicino a metà; ciò che non entra è tagliato con "…" (il tooltip ha il nome intero).
+- Filtro per tipo di relazione ("Part of", "Associated"): un tipo tolto non si disegna e non si segue nel calcolo dell'intorno.
+- Il tooltip su un arco dice che cos'è ("X is part of Y" / "X is associated with Y"), il ruolo e le date (`GroupNetwork.Edge.dates`,
+  da `DateService`); su un gruppo, nome, membri e identificativo.
+- Casella "Members of the subgroups": il badge conta anche gli individui dei gruppi che ne sono parte, direttamente o no, ciascuno una
+  volta (un ciclo non si segue); i `part_of` in effetto contano anche se il tipo è nascosto.
+- Anno: stesso controllo delle Viste A e C (`GroupYearControl`), anche per il conteggio dei membri e per i `part_of`.
+Scelte (non TODO): un gruppo parte di più gruppi sta un livello sotto il più basso dei suoi genitori; l'anno è gregoriano; un'appartenenza
+non si propaga lungo la gerarchia (vedi sopra), il conteggio dei sottogruppi è un'opzione esplicita.
+
 Da non fare: JTree/JTable come vista di esplorazione, duplicare l'indicizzazione di `TemporalIndices`, un motore di layout
 generico di grafi, mostrare tutti i gruppi insieme.
 
 
 ## Punto 5 - Parentela estesa ed endogamia (Pedigree Collapse / Consanguinity)
 
-PARZIALE.
+PARZIALE (novembre 2026: F, R, report e diagnostica fatti; restano le viste).
 
 DONE
 - Albero con layout Sugiyama (`individualtree/layout/sugiyama`).
@@ -65,13 +150,39 @@ DONE
 - Calcolo della parentela fra due individui: `KinshipCalculator`, `KinshipResult` (catene fino all'antenato comune più
   recente), `KinshipDialog`, `KinshipCalculatorTool`.
 
+- Coefficiente di inbreeding di Wright `F` e coefficiente di relazione `R`: package `consanguinity` (puro, senza UI):
+  `AncestryGraph` (solo legami `child` / `biological_child`, al massimo due genitori, privacy applicata),
+  `ConsanguinityCalculator` (`inbreeding`, `kinship`, `relationship`, `closestCommonAncestors`). Calcolo esatto con la
+  ricorsione del coefficiente di parentela `phi` (tutti i cammini, anche l'inbreeding degli antenati; nessun troncamento a
+  `(1/2)^8`, che non serve: i rami senza antenati in comune si scartano subito con gli insiemi di antenati in cache). Verificato
+  su fratelli, genitore-figlio, zio-nipote, cugini primi (R = 1/2, 1/2, 1/4, 1/8), figli di fratelli (F = 1/4), di mezzi fratelli
+  (1/8), di cugini primi (1/16), doppi cugini, e con l'inbreeding dell'antenato (R = 0.75 / sqrt(1.25)): `ConsanguinityCalculatorTest`.
+- Report delle unioni consanguinee: `ConsanguineousUnionDetector` (coppie = unioni, fidanzamento escluso, + genitori dello stesso
+  figlio anche senza unione; soglia di parentela 1/256 = cugini di terzo grado, di inbreeding 1/64) e `ConsanguinityReport`;
+  testo in `ConsanguinityReportText`; menu Strumenti > "Consanguinity Report" (`ConsanguinityReportTool`,
+  `ConsanguinityReportDialog`); nell'assistente di ricerca (categoria Relationships, `ui/assistant/consanguinity`): un
+  avviso per le coppie di cugini primi o più vicini (kinship >= 1/16, convenzione), informazione per le altre, al massimo 25
+  coppie una per una e poi una sintesi, una sintesi degli individui inbred. Mai modifiche ai dati: solo "possibilità da
+  verificare". `ConsanguineousUnionDetectorTest`, `ConsanguinityCheckerTest`.
+
 TODO
-- Coefficiente di inbreeding di Wright `F` e coefficiente di relazione `R` (nessun `InbreedingCalculator` /
-  `RelationshipCalculator`).
-- Report delle unioni consanguinee (`ConsanguineousUnionDetector`, `ConsanguinityReport*`).
-- Grafo DAG unificato con archi di unione, heatmap dell'endogamia, anelli di consanguineità.
-- Vista di ascendenza proiettata con duplicati collegati ("stesso individuo").
-- Segnalazione delle unioni consanguinee nell'ego network.
+- DONE Allineare `KinshipResult` / `KinshipDialog`: il coefficiente `R` ora è quello esatto di `ConsanguinityCalculator`
+  (`KinshipCalculator.relationshipCoefficient`, sugli antenati dei due individui, al massimo due genitori ciascuno; i genitori
+  sono quelli del `ParentProvider`/`TreeService`, non solo biologici); il termine `(1/2)^(dA+dB)` per antenato resta solo come
+  indicazione. `KinshipCalculatorTest`.
+- TODO Non misurato su un file grande (decine di migliaia di individui); il rapporto si calcola sul thread dell'interfaccia
+  quando si apre il dialogo, nell'assistente fuori dall'EDT.
+- TODO Le soglie (1/256, 1/64, 1/16 per l'avviso) non sono configurabili. Nessuna distinzione fra parentela per sangue e per
+  adozione/affido (esclusi), e un genitore ignoto vale "non imparentato": i valori sono limiti inferiori.
+- Bassa priorità: grafo DAG unificato con archi di unione, heatmap dell'endogamia, anelli di consanguineità (il pedigree
+  collapse e il Sugiyama coprono gran parte del bisogno).
+- Bassa priorità: vista di ascendenza proiettata con duplicati collegati ("stesso individuo").
+- DONE Segnalazione delle unioni consanguinee nell'ego network: l'arco verso un partner imparentato con l'ego porta un badge
+  "C" ambra (`EgoNetworkRenderer`), il tooltip del partner dà parentela, R e grado (`EgoNetworkLayoutBuilder`). Il rapporto
+  `ConsanguineousUnionDetector.detect` è calcolato da `EgoNetworkService` alla prima apertura di un ego con partner e tenuto
+  in cache fino a `invalidateIndices`; `EgoNode.getConsanguineousUnion`. `EgoNetworkConsanguinityTest`. TODO: su un file
+  grande il primo calcolo avviene sul thread dell'interfaccia (vedi sopra); solo i partner con unione o figli in comune, non
+  i fidanzamenti.
 
 Indicazioni di progetto (ancora valide):
 - F e R si calcolano con una passata topologica (antenati prima dei discendenti) e memoizzazione delle distanze di
@@ -95,12 +206,16 @@ Swing, sui valori classici) -> detector -> report -> viste.
 Stato rispetto alle idee originali:
 - Eventi: DONE timeline globale (`GlobalEventTimelinePanel`, `TimelineViewDialog`), life map per individuo
   (`MultiLifespanStripPanel`).
-- Attributi: PARZIALE bande di validità nella strip; TODO carriera (Gantt), matrice comparativa.
-- Fonti: TODO source tree, provenance delle citazioni, galleria documenti con crop, citation network
-  (esistono gli editor, `CitationAnalysisTool` e le gestioni di fonti/repository/media).
-- Luoghi: DONE albero della gerarchia (`PlaceHierarchyPanel`, `PlaceHierarchyService`); TODO timeline delle giurisdizioni.
-- Contesto: DONE vista ad albero (`ContextBoardDialog`); TODO impact network, timeline contestuale.
-- Meta-informazioni: TODO badge di evidenza (`EvidenceQualifiers`), icone di privacy, tooltip di audit sui box.
+- Attributi: PARZIALE bande di validità nella strip; TODO carriera (Gantt: coperta dalla Vista C dei gruppi e dal
+  `TemporalProjectionPanel` una volta collegato), TODO matrice comparativa (bassa priorità).
+- Fonti: TODO source tree, provenance delle citazioni, galleria documenti con crop, citation network (esistono gli editor,
+  `CitationAnalysisTool` e le gestioni di fonti/repository/media). Bassa priorità, tranne la provenance delle citazioni.
+- Luoghi: DONE albero della gerarchia (`PlaceHierarchyPanel`, `PlaceHierarchyService`); TODO timeline delle giurisdizioni
+  (Utile: si appoggia sui `valid_from`/`valid_to` delle relazioni fra luoghi, già nel protocollo).
+- Contesto: DONE vista ad albero (`ContextBoardDialog`); TODO impact network (bassa priorità), timeline contestuale (la banda
+  c'è già, `TemporalContextBand`: basta collegare il `TemporalProjectionPanel`).
+- Meta-informazioni: DONE icone di privacy (`PrivacyBadge`); TODO badge di evidenza (`EvidenceQualifiers`) e tooltip di audit
+  sui box (Utile, economico).
 
 
 ## Per coprire il protocollo FLEF
@@ -109,8 +224,9 @@ Stato rispetto alle idee originali:
    `RepositoryRecordDialog`, `SourceCitationDialog`, `MediaPartListPanel`, `ImageCropDialog`).
 2. DONE Vista "Research": `ResearchBoardDialog` (menu Ricerca > "Research Board") mostra question -> activity -> task con le
    conclusioni accanto, filtro testuale, dettaglio del record e apertura dell'editor (doppio click); l'albero è costruito da
-   `ResearchTreeBuilder` (testato). I record senza domanda stanno sotto "(no question)". Non c'è ancora la creazione di un
-   record già collegato alla domanda selezionata né la timeline delle attività.
+   `ResearchTreeBuilder` (testato). I record senza domanda stanno sotto "(no question)". DONE "New > Activity / Task / Conclusion of the
+   selected question" apre il nuovo record con la domanda già collegata (come "Impact of the selected context" nella Context
+   Board; `withQuestion` nei tre dialog). TODO Bassa priorità: timeline delle attività.
 3. DONE Vista "Place" (`PlaceHierarchyPanel`, `PlaceRelationshipRecordDialog`).
 4. DONE Vista "Context": `ContextBoardDialog` (menu Eventi > "Context Board") mostra eventi storici e norme culturali con
    gli impatti di ciascuno (`ContextImpactRecord`, con bersaglio e tipo d'impatto), filtro testuale, dettaglio del record e
@@ -141,8 +257,8 @@ Stato rispetto alle idee originali:
    e i contatti del submitter non esplicitamente pubblici. Anello ambra/rosso sui segni degli eventi (strip, timeline) e sui
    marker del chronomap (`PrivacyBadge.paintRing`); filtro anche negli helper degli strumenti di gestione (individui,
    gruppi, eventi, fonti) e nella ricerca dei duplicati: per gestire i record nascosti si porta la policy su "Show All"
-   (gli editor aperti esplicitamente mostrano sempre tutto; consistenza e menu restano non filtrati). TODO: contatore dei
-   record nascosti nella barra di stato. Il filtro non è una misura di sicurezza: il file resta in chiaro.
+   (gli editor aperti esplicitamente mostrano sempre tutto; consistenza e menu restano non filtrati). Il filtro non è una
+   misura di sicurezza: il file resta in chiaro.
 8. DONE Validation report: `ValidateFileTool` + `ValidationReportDialog` con "Open record" per ogni violazione.
 9. DONE Audit viewer: `AuditPanel` nei dialog dei record (creation e update).
 
@@ -150,7 +266,9 @@ Stato rispetto alle idee originali:
 ## Per usabilità generale
 
 1. PARZIALE Ricerca globale: `JumpToIndividualDialog` (Ctrl+J) cerca solo individui e gruppi; non c'è Ctrl+F né ricerca
-   per luogo, fonte, id su tutti i tipi di record.
+   per luogo, fonte, id su tutti i tipi di record. TODO Utile (alta priorità): esiste già `components/searches`
+   (`SearchCriteria`, `SearchMatcher`, `RecordFilterPanel`) e la palette dell'assistente (`FuzzyMatcher`): riusarli invece di
+   scrivere una terza ricerca.
 2. DONE Cronologia di navigazione (`NavigationHistory`, Ctrl+Left / Ctrl+Right, "Cancella cronologia").
 3. DONE Segnalibri / viste salvate (`bookmarks`, menu Segnalibri).
 4. DONE Undo/redo applicativo: oggi Ctrl+Z / Ctrl+Y agiscono solo dentro ai dialog dei record (`UndoController` in
@@ -158,12 +276,13 @@ Stato rispetto alle idee originali:
 5. DONE Pannello "Modifiche recenti" (menu Modifica, `RecentChangesDialog`): elenco non modale dei record toccati a ogni passo di
    `ModelHistory` (aggiunto/modificato/rimosso, ora, applicato/annullato); doppio clic apre l'editor del record.
 6. DONE Confronto affiancato di due record (`RecordDiffDialog`, `MergeFieldComparisonDialog`).
-7. TODO? Filtri sul dossier (sezioni, tipo di evento, intervallo, presenza di fonte).
-8. PARZIALE Tooltip arricchiti: presenti in `IndividualPanel`, strip, timeline, ego network (layout); da verificare su
-   albero e Sugiyama.
-9. DONE Scorciatoie da tastiera: F2 modifica, Canc elimina, Ctrl+X sposta, Ctrl+Z/Y, Ctrl+1/2/3 cambio proiezione, Ctrl+L,
-   Ctrl+T, Ctrl+J, F11, F1, frecce per navigare nel grafo (`SpatialNavigation`). Mancano Ctrl+F e Ctrl+S (c'è solo
-   "Salva con nome").
+7. TODO Bassa priorità: filtri sul dossier (sezioni, tipo di evento, intervallo, presenza di fonte). Se si fa, solo tipo di
+   evento e intervallo; il resto è già nelle sezioni.
+8. DONE Tooltip arricchiti: presenti in `IndividualPanel` (usato da albero e Sugiyama tramite `PartnersPanel`/`SiblingsPanel`),
+   strip, timeline, ego network (layout); verificato su albero e Sugiyama. Resta commentato il tooltip dell'unione
+   (`PartnersData.marriageTooltip`).
+9. DONE Scorciatoie da tastiera: F2 modifica, Canc elimina, Ctrl+X sposta, Ctrl+Z/Y, Ctrl+1/2/3/4 cambio proiezione, Ctrl+L,
+   Ctrl+T, Ctrl+J, Ctrl+Shift+A (assistente), F11, F1, frecce per navigare nel grafo (`SpatialNavigation`). TODO Mancano Ctrl+F (vedi sopra), Ctrl+Shift+S): Utile, ma prima verificare come funziona oggi il salvataggio.
 10. DONE tooltip sui campi non ovvi di Confidence, EvidenceQualifiers, ContextImpact, Conclusion (preferred assertion),
    IdentityHypothesis, CulturalNorm, ResearchActivity (result, search_scope, ...), ResearchQuestion/Task, e "quando usare
    questo record?" sulla prima scheda dei dialog e nella lista dei tipi di `RecordSelectionDialog` (chiavi `record.usage.*`).
@@ -174,32 +293,51 @@ Stato rispetto alle idee originali:
 
 ## Per le viste grafiche
 
-1. PARZIALE Albero: il collasso del pedigree c'è; manca filtri/espansione di rami.
-2. TODO EgoNetwork: filtro per tipo di relazione e toggle gruppi.
+1. PARZIALE Albero: il collasso del pedigree c'è; TODO filtri/espansione di rami (Utile solo per alberi grandi).
+2. TODO Utile: EgoNetwork, filtro per tipo di relazione e toggle gruppi (esiste `SocialFilters` nel social network: valutare
+   se riusarlo).
 3. DONE Lifespan strip: bande per secolo, evidenziazione delle vite sovrapposte all'hover, click su banda/marker.
-4. DONE Chronomap: layer multipli (`ChronomapLayerManager`, mappe storiche), traiettorie (great circle) e marker animato.
-   Il filtro per tipo di evento non è stato verificato.
+4. DONE Chronomap (Ctrl+4, quarta proiezione): layer multipli (`ChronomapLayerManager`, mappe storiche), traiettorie (great circle) e marker animato.
+   TODO verificare il filtro per tipo di evento.
 5. DONE Vista "Agorà" (`AgoraPanel`).
 
 
 ## Import/export
 
-1. PARZIALE Export PDF: i report (`PdfReportRenderer`: antenati, discendenti, vita individuale, gruppi, fonti, ...); non
-   c'è un export diretto del dossier.
-2. TODO Export immagine (PNG/SVG) di una vista.
-3. TODO Export GEDCOM (`ExportGedcom551Tool` / `ExportGedcom7Tool` sono commentati in `FileToolRegistry`); esiste solo
-   l'import (GEDCOM, Gramps XML) e l'export FLEF.
-4. TODO Export CSV di sottoinsiemi.
-5. TODO Stampa di dossier o viste.
+1. PARZIALE Export dei report: `ReportRenderer` ha PDF, DOCX, HTML, Markdown e testo (antenati, discendenti, vita individuale,
+   gruppi, fonti, ...); TODO Bassa priorità: export diretto del dossier (basta un report che lo usi).
+2. TODO Utile: export immagine (PNG/SVG) di una vista (`ExportImageTool` è commentato in `FileToolRegistry` e la classe non
+   esiste; per il PNG basta dipingere il pannello su un `BufferedImage`).
+3. TODO Utile (alta priorità, interoperabilità): export GEDCOM (`ExportGedcom551Tool` / `ExportGedcom7Tool` sono commentati in
+   `FileToolRegistry` e le classi non esistono); esiste solo l'import (GEDCOM, Gramps XML) e l'export FLEF. Va dichiarato cosa
+   si perde (conclusioni, ricerca, contesto, privacy) e applicato `PrivacyExporter`.
+4. TODO Bassa priorità: export CSV di sottoinsiemi (`ExportExcelTool` è commentato; fare solo CSV).
 
 
 ## Priorità
 
-1. Collegare `TemporalProjectionPanel` e `SocialNetworkPanel` allo switcher: il lavoro c'è, manca l'accesso.
-2. Privacy enforcement e undo/redo applicativo: sono i due casi in cui l'app può mostrare o produrre dati incoerenti.
-3. Ricerca globale (Ctrl+F) su tutti i tipi di record.
-4. Calcolo di F/R e report delle unioni consanguinee (logica pura, testabile senza UI).
-5. Viste di gruppo (Vista A, poi C, poi B).
+1. DONE Collegare `TemporalProjectionPanel` e `SocialNetworkPanel` allo switcher.
+2. Ricerca globale (Ctrl+F) su tutti i tipi di record, riusando `components/searches`.
+3. Export GEDCOM (poi PNG di una vista).
+4. DONE Calcolo di F/R e report delle unioni consanguinee.
+5. Filtri dell'ego network.
+6. Viste di gruppo (Viste A, C e B DONE, con i TODO chiusi).
+
+(Privacy enforcement e undo/redo applicativo, prima in cima, sono DONE.)
+
+
+## Altri TODO emersi dalla revisione
+
+- TODO Spostare da questo file il dettaglio dell'assistente di ricerca (sezione "TODO Improvements", ~800 righe) in
+  `ui/assistant/README.txt`: è quasi tutto DONE e nasconde il backlog delle viste.
+- TODO Lettura del modello da parte degli assistenti fuori dall'EDT mentre l'utente può modificarlo: un unico snapshot (o read
+  lock) condiviso, invece di una nota per assistente.
+- DONE Un'unica definizione di "conclusione risolta": `io.model.readers.ConclusionResolution` (valutazione che risolve almeno due
+  record in conflitto e prende posizione: preferred fra essi, oppure proof status `conflicting_evidence` / `disproven`). La usano
+  `ConclusionChecker` (assistente) e `ProtocolCleanup` (merger); prima il merger accettava solo `preferred`, quindi avvisava
+  di conflitti che l'assistente considerava risolti. `ConclusionResolutionTest`; `FLEFMergerTest` e `ConclusionCheckerTest`
+  invariati.
+- TODO Test di round-trip per l'export GEDCOM, una volta scritto.
 
 
 ## Separazione fra dati e presentazione (ordine di figli e partner)
@@ -923,8 +1061,7 @@ Still to do:
   audit dates), a candidate that is not an individual (place, source, repository).
 - The consistency of the conclusions themselves: a `preferred` that is not in RESOLVES, `proven` with a single source, RESOLVES that
   point to records that no longer exist.
-- "Settled" is defined here and in `ProtocolCleanup.isResolved` (the merger requires a preferred assertion, the assistant also accepts
-  conflicting_evidence and disproven): the two should share one definition.
+- DONE "Settled" has one definition, `ConclusionResolution`, shared with the merger (`ProtocolCleanup`); see the top of this file.
 - Same limits as the Chronology Assistant: the whole model is read at each opening, away from the event dispatch thread while the
   user may be editing; English messages only.
 

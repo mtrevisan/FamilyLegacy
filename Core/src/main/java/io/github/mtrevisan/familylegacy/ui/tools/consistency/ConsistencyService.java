@@ -29,7 +29,6 @@ import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RelationshipHandler;
-import io.github.mtrevisan.familylegacy.ui.tools.ReportDialog;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -73,33 +72,6 @@ public final class ConsistencyService{
 
 		public boolean isClean(){
 			return issues.isEmpty();
-		}
-
-		public String toHtml(){
-			final StringBuilder body = new StringBuilder();
-			body.append("<h1>Consistency Check</h1>");
-			body.append("<p>Individuals checked: <b>").append(individualsChecked).append("</b></p>");
-			body.append("<p>Relationships checked: <b>").append(relationshipsChecked).append("</b></p>");
-
-			if(isClean()){
-				body.append("<p class='ok'><b>✓ No structural inconsistency found.</b></p>");
-				return ReportDialog.document(body.toString());
-			}
-
-			body.append("<p class='warn'><b>Issues found: ").append(issues.size()).append("</b></p>");
-			body.append("<table>");
-			body.append("<tr><th>Severity</th><th>Record</th><th>Description</th></tr>");
-			for(final Issue issue : issues){
-				final String cls = (issue.severity() == Severity.ERROR? "err": "warn");
-				body.append("<tr>");
-				body.append("<td class='").append(cls).append("'>").append(issue.severity()).append("</td>");
-				body.append("<td>").append(ReportDialog.escape(issue.recordId())).append("</td>");
-				body.append("<td>").append(ReportDialog.escape(issue.message())).append("</td>");
-				body.append("</tr>");
-			}
-			body.append("</table>");
-
-			return ReportDialog.document(body.toString());
 		}
 	}
 

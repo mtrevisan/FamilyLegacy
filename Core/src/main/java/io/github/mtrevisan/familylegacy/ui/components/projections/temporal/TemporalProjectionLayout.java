@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.date.TemporalSpan;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -79,6 +80,8 @@ public final class TemporalProjectionLayout{
 
 
 	private List<RowLayout> rows = List.of();
+	/** The rows by entity: the connections and the impacts look for the row of an entity at every paint. */
+	private Map<TemporalEntityRef, RowLayout> rowsByEntity = Map.of();
 	private int totalHeight;
 
 
@@ -95,6 +98,7 @@ public final class TemporalProjectionLayout{
 	public void compute(final TemporalProjectionModel model){
 		if(model == null || model.isEmpty()){
 			rows = List.of();
+			rowsByEntity = Map.of();
 			totalHeight = 0;
 			return;
 		}
@@ -112,6 +116,10 @@ public final class TemporalProjectionLayout{
 			y -= ROW_GAP;
 
 		this.rows = computedRows;
+		final Map<TemporalEntityRef, RowLayout> index = new HashMap<>(computedRows.size() * 2);
+		for(final RowLayout rowLayout : computedRows)
+			index.putIfAbsent(rowLayout.entity(), rowLayout);
+		rowsByEntity = index;
 		totalHeight = Math.max(0, y);
 	}
 
@@ -219,10 +227,7 @@ public final class TemporalProjectionLayout{
 	 * @return the matching row layout, or {@code null}
 	 */
 	public RowLayout findRow(final TemporalEntityRef entity){
-		for(final RowLayout row : rows)
-			if(row.entity().equals(entity))
-				return row;
-		return null;
+		return rowsByEntity.get(entity);
 	}
 
 	/**

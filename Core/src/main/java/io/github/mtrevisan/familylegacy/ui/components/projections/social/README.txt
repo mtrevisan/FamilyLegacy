@@ -9,11 +9,10 @@ Stato verificato sul codice (ottobre 2026).
 
 ## Stato
 
-Il package `social` contiene quasi tutto il progetto originale. **Il pannello però non è collegato a nessuna
-schermata**: `ProjectionType` espone solo `BIOLOGICAL_TREE`, `SUGIYAMA_GRAPH` ed `EGO_NETWORK`, e `SocialNetworkPanel` non
-è istanziato da nessuna parte.
-
-TODO collegare `SocialNetworkPanel` al `ProjectionSwitcherPanel` (nuovo `ProjectionType`, voce di menu, shortcut).
+Il package `social` contiene quasi tutto il progetto originale. DONE **Il pannello è collegato** (novembre
+2026) a `ProjectionSwitcherPanel` (`ProjectionType.SOCIAL_NETWORK`, segnalibro `BookmarkType.SOCIAL_NETWORK`), ma
+**nascosto all'utente per ora** (niente bottone, menu, Ctrl+6: vedi `ProjectionType`). `ProjectionSwitcherPanel` lo crea alla prima apertura e lo mette a fuoco sull'individuo o sul
+gruppo della vista precedente; un clic su un nodo avvisa il dossier (individuo o gruppo). Test: `TemporalAndSocialProjectionTest`.
 
 Già disponibile fuori dal package: `EgoNetworkPanel` (relazioni di 1° grado con `EgoNode.RelationInfo(type, role,
 isInverse)`, tooltip con tipo, ruolo e `(Inverse)`).

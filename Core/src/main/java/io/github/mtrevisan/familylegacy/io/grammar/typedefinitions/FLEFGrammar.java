@@ -44,6 +44,9 @@ public final class FLEFGrammar{
 	public static final Set<String> PRIMITIVE_TYPES = Set.of("string", "bool", "int");
 
 
+	private static final String HEADER_TAG = "header";
+
+
 	private final FileDefinition fileDefinition;
 	private final Map<String, TypeDefinition> types;
 	private final List<String> parseWarnings;
@@ -59,6 +62,24 @@ public final class FLEFGrammar{
 
 	public FileDefinition getFileDefinition(){
 		return fileDefinition;
+	}
+
+	/**
+	 * The type of the header: the type of the legacy {@code header} field of the file, or else the {@code header} arm of the record
+	 * union.
+	 *
+	 * @return	The (possibly not yet resolved) type of the header, or {@code null} if the grammar does not define it.
+	 */
+	public TypeDefinition getHeaderType(){
+		if(fileDefinition == null)
+			return null;
+		if(fileDefinition.headerField() != null)
+			return fileDefinition.headerField().type();
+
+		final FieldDefinition recordsField = fileDefinition.recordsField();
+		return (recordsField != null && types.get(recordsField.type().getName()) instanceof UnionType union
+			? union.getChoices().get(HEADER_TAG)
+			: null);
 	}
 
 	public TypeDefinition getType(final String name){

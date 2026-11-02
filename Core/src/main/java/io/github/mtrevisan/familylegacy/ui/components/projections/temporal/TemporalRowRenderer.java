@@ -224,7 +224,9 @@ public final class TemporalRowRenderer{
 				if(rect == null)
 					continue;
 				rect.x += contentBounds.x;
-				TemporalSpanRenderer.drawSpan(g, rect, entry.span(), baseColor, selected, entry.hasNegativeEvidence());
+				//a membership is colored by its role
+				final Color color = (trackType == TemporalTrackType.MEMBERSHIP? TemporalRoleColors.of(entry.role()): baseColor);
+				TemporalSpanRenderer.drawSpan(g, rect, entry.span(), color, selected, entry.hasNegativeEvidence());
 			}
 		}
 	}
@@ -245,6 +247,7 @@ public final class TemporalRowRenderer{
 			case EVENT -> COLOR_EVENT;
 			case ATTRIBUTE -> COLOR_ATTRIBUTE;
 			case CONTEXT -> COLOR_CONTEXT;
+			case MEMBERSHIP -> TemporalRoleColors.NO_ROLE;
 		};
 	}
 

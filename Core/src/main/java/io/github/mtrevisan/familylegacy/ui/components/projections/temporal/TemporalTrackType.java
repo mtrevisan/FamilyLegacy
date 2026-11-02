@@ -36,6 +36,8 @@ package io.github.mtrevisan.familylegacy.ui.components.projections.temporal;
  *       {@code GroupAttributeRecord} instances owned by the row entity.</li>
  *   <li>{@link #CONTEXT} — {@code ContextImpactRecord} instances whose
  *       target is the row entity (or one of its entries).</li>
+ *   <li>{@link #MEMBERSHIP} — the {@code group_member} / {@code part_of} relationships of a member or
+ *       subgroup with the group of a group timeline (bars colored by role).</li>
  * </ul>
  * Tracks are ordered on the row by {@link #getSortOrder()}.
  */
@@ -48,7 +50,9 @@ public enum TemporalTrackType{
 	ATTRIBUTE(1),
 
 	/** Contextual influences affecting the row entity. */
-	CONTEXT(2);
+	CONTEXT(2),
+	/** Memberships of a group (members or subgroups) with their role, shown by the group timeline. */
+	MEMBERSHIP(3);
 
 
 	private final int sortOrder;

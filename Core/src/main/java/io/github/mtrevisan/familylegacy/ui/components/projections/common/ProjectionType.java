@@ -48,7 +48,18 @@ public enum ProjectionType{
 	EGO_NETWORK("menu.view.ego_network"),
 
 	/** Map, list and timeline of the individuals that have a date and a place. */
-	CHRONOMAP("menu.view.chronomap");
+	CHRONOMAP("menu.view.chronomap"),
+
+	/**
+	 * Every entity of the file on a common time axis. Implemented and tested, but not offered to the user for now: no toolbar button,
+	 * menu item or shortcut. {@code ProjectionSwitcherPanel.setProjection} still shows it, and bookmarks know it: to offer it again
+	 * add what {@link #CHRONOMAP} has (the button in {@code ToolBarBuilder}, the item in {@code ApplicationMenuBar}, a shortcut in
+	 * {@code ShortcutRegistry} bound in the switcher, a line in the help); the i18n keys are already there.
+	 */
+	TEMPORAL("menu.view.temporal"),
+
+	/** Social network around an individual or a group. Not offered to the user for now, like {@link #TEMPORAL}. */
+	SOCIAL_NETWORK("menu.view.social_network");
 
 
 	private final String displayKey;

@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.assistant.conclusion;
 
+import io.github.mtrevisan.familylegacy.io.model.readers.ConclusionResolution;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SexType;
 import io.github.mtrevisan.familylegacy.ui.assistant.AssistantCategory;
@@ -70,7 +71,6 @@ final class ConclusionChecker{
 	/** The relationships that make a person a descendant of another one: a cycle of them is impossible. */
 	private static final Set<String> LINEAGE_TYPES = Set.of(RelationshipReader.ENUM_TYPE_CHILD,
 		RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD, RelationshipReader.ENUM_TYPE_ADOPTIVE_CHILD);
-	private static final Set<String> NO_PREVAILING_STATUSES = Set.of("conflicting_evidence", "disproven");
 	private static final Map<String, Integer> CONFIDENCE_RANK = Map.of("low", 1, "medium", 2, "high", 3);
 
 
@@ -96,16 +96,12 @@ final class ConclusionChecker{
 	}
 
 
-	/** Whether a conclusion evaluates the competing assertions. */
+	/** Whether a conclusion evaluates the competing assertions (the definition is shared with the merger: {@link ConclusionResolution}). */
 	static boolean isResolved(final Set<String> competing, final List<ConclusionData.Conclusion> conclusions){
-		for(final ConclusionData.Conclusion conclusion : conclusions){
-			final long evaluated = conclusion.resolves().stream()
-				.filter(competing::contains)
-				.count();
-			if(evaluated >= 2 && (competing.contains(conclusion.preferred())
-					|| (conclusion.proofStatus() != null && NO_PREVAILING_STATUSES.contains(conclusion.proofStatus()))))
+		for(final ConclusionData.Conclusion conclusion : conclusions)
+			if(ConclusionResolution.settles(competing,
+					new ConclusionResolution.Evaluation(conclusion.resolves(), conclusion.preferred(), conclusion.proofStatus())))
 				return true;
-		}
 		return false;
 	}
 

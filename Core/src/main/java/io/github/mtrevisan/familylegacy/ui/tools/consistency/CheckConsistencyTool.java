@@ -26,7 +26,6 @@ package io.github.mtrevisan.familylegacy.ui.tools.consistency;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
-import io.github.mtrevisan.familylegacy.ui.tools.ReportDialog;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolOperation;
 
@@ -43,7 +42,8 @@ public final class CheckConsistencyTool implements ToolOperation{
 	public void run(final ToolContext context){
 		final FLEFModel model = context.model();
 		final ConsistencyService.Report report = ConsistencyService.check(model);
-		ReportDialog.showHtml(context.owner(), "Consistency Check", report.toHtml());
+		new ConsistencyCheckDialog(context.owner(), model, report)
+			.setVisible(true);
 	}
 
 }

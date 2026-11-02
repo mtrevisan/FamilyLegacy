@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.ui.tools.tools;
 
 import io.github.mtrevisan.familylegacy.ui.tools.ToolOperation;
+import io.github.mtrevisan.familylegacy.ui.tools.consanguinity.ConsanguinityReportTool;
 import io.github.mtrevisan.familylegacy.ui.tools.placeholder.PlaceholderTool;
 import io.github.mtrevisan.familylegacy.ui.tools.statistics.StatisticsTool;
 import io.github.mtrevisan.familylegacy.ui.tools.validate.ValidateFileTool;
@@ -61,7 +62,8 @@ public final class ToolToolRegistry{
 
 	public static List<ToolOperation> analysisTools(){
 		return List.of(
-			new StatisticsTool());
+			new StatisticsTool(),
+			new ConsanguinityReportTool());
 	}
 
 	public static List<ToolOperation> chartPlaceholders(){

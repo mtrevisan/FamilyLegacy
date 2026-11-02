@@ -70,7 +70,8 @@ public final class IndividualToolRegistry{
 	public static List<ToolOperation> navigationTools(final GenealogyRepository repository){
 		return List.of(
 			new SetAsRootTool(),
-			new KinshipCalculatorTool(repository)
+			new KinshipCalculatorTool(repository),
+			new IndividualCareerTool()
 		);
 	}
 

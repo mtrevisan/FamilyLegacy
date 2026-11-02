@@ -122,6 +122,8 @@ public final class ToolBarBuilder{
 			case SUGIYAMA_GRAPH -> btnGraphLayout.setSelected(true);
 			case EGO_NETWORK -> btnEgoLayout.setSelected(true);
 			case CHRONOMAP -> btnChronomap.setSelected(true);
+			//the temporal projection and the social network have no button for now (see ProjectionType)
+			case TEMPORAL, SOCIAL_NETWORK -> {}
 		}
 	}
 
