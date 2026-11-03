@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>io.github.mtrevisan</groupId>
 		<artifactId>FamilyLegacy</artifactId>
-		<version>0.0.0-SNAPSHOT</version>
+		<version>1.0.0</version>
 	</parent>
 
 	<artifactId>Ephemeris</artifactId>
@@ -97,6 +97,110 @@
 										<!-- jpackage leaves the output read-only, which makes "mvn clean" fail -->
 										<attrib readonly="false">
 											<fileset dir="${package.coreTarget}/windows-exe"/>
+										</attrib>
+									</target>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		<profile>
+			<id>windows-standalone</id>
+			<!-- mvn clean package -Pwindows-standalone -DskipTests
+                 Crea un'immagine applicativa stand-alone (cartella con .exe + runtime incorporato)
+                 in Core/target/windows-standalone/FamilyLegacy/. Nessun installer, nessuna
+                 richiesta di WiX. Distribuisci l'intera cartella FamilyLegacy/ -->
+			<properties>
+				<package.type>app-image</package.type>
+				<package.name>FamilyLegacy</package.name>
+				<package.version>1.0.0</package.version>
+				<package.mainClass>io.github.mtrevisan.familylegacy.FamilyLegacyApplication</package.mainClass>
+				<package.coreTarget>${project.basedir}/../Core/target</package.coreTarget>
+			</properties>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>exec-maven-plugin</artifactId>
+						<version>3.5.0</version>
+						<executions>
+							<execution>
+								<id>jdeps-modules</id>
+								<!-- eseguito dopo lo shade (package) ma prima di jpackage (anch'esso package) -->
+								<phase>package</phase>
+								<goals><goal>exec</goal></goals>
+								<configuration>
+									<executable>${java.home}/bin/jdeps</executable>
+									<arguments>
+										<argument>--print-module-deps</argument>
+										<argument>--ignore-missing-deps</argument>
+										<argument>${package.coreTarget}/jpackage-input/Core.jar</argument>
+									</arguments>
+									<outputFile>${project.build.directory}/jdeps-modules.txt</outputFile>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-antrun-plugin</artifactId>
+						<version>${maven-antrun-plugin.version}</version>
+						<executions>
+							<execution>
+								<id>plugin-into-standalone</id>
+								<phase>package</phase>
+								<goals><goal>run</goal></goals>
+								<configuration>
+									<target>
+										<!-- 1. Copia il plugin shaded in jpackage-input/plugins/ -->
+										<copy file="${project.build.directory}/ephemeris-shaded.jar"
+											  tofile="${package.coreTarget}/jpackage-input/plugins/ephemeris.jar"
+											  overwrite="true"/>
+
+										<!-- 2. Rimuovi l'output precedente (l'antivirus può tenerlo lockato) -->
+										<retry retrycount="10" retrydelay="3000">
+											<delete dir="${package.coreTarget}/windows-standalone"/>
+										</retry>
+
+										<!-- 3. jpackage: app-image (niente opzioni \-\-win-*) -->
+										<exec executable="${java.home}/bin/jpackage" failonerror="true">
+											<arg value="--type"/>
+											<arg value="${package.type}"/>
+											<arg value="--name"/>
+											<arg value="${package.name}"/>
+											<arg value="--app-version"/>
+											<arg value="${package.version}"/>
+											<arg value="--vendor"/>
+											<arg value="Mauro Trevisan"/>
+											<arg value="--input"/>
+											<arg value="${package.coreTarget}/jpackage-input"/>
+											<arg value="--main-jar"/>
+											<arg value="Core.jar"/>
+											<arg value="--main-class"/>
+											<arg value="${package.mainClass}"/>
+											<!-- Lista moduli: aggiornala con l'output di target/jdeps-modules.txt -->
+											<arg value="--add-modules"/>
+											<arg value="java.base,java.compiler,java.desktop,java.naming,java.net.http,java.prefs,java.rmi,java.scripting,java.security.jgss,java.sql,java.xml.crypto,jdk.xml.dom"/>
+											<arg value="--jlink-options"/>
+											<arg value="--strip-native-commands --strip-debug --no-man-pages --no-header-files --compress=zip-9"/>
+											<arg value="--java-options"/>
+											<arg value="-Dfile.encoding=UTF-8"/>
+											<arg value="--java-options"/>
+											<arg value="--module-path=$APPDIR/modules"/>
+											<arg value="--java-options"/>
+											<arg value="--add-modules=io.github.mtrevisan.calendars"/>
+											<arg value="--java-options"/>
+											<arg value="-Dcalendars.plugins.dir=$APPDIR/plugins"/>
+											<arg value="--dest"/>
+											<arg value="${package.coreTarget}/windows-standalone"/>
+											<arg value="--verbose"/>
+										</exec>
+
+										<!-- jpackage lascia l'output read-only: "mvn clean" fallirebbe -->
+										<attrib readonly="false">
+											<fileset dir="${package.coreTarget}/windows-standalone"/>
 										</attrib>
 									</target>
 								</configuration>

@@ -65,7 +65,6 @@ public final class EphemerisEngineFactory{
 		try(final Stream<Path> stream = Files.list(pluginsPath)){
 			final Path[] jarPaths = stream
 				.filter(p -> p.toString().endsWith(".jar"))
-				.filter(p -> !p.getFileName().toString().toLowerCase().contains("copy"))
 				.toArray(Path[]::new);
 
 			if(jarPaths.length == 0)

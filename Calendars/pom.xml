@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>io.github.mtrevisan</groupId>
 		<artifactId>FamilyLegacy</artifactId>
-		<version>0.0.0-SNAPSHOT</version>
+		<version>1.0.0</version>
 	</parent>
 
 	<!-- Conversion of historical calendar expressions into Julian Day Numbers, and the SPI of the astronomical engine -->

@@ -6,99 +6,14 @@
 	<parent>
 		<groupId>io.github.mtrevisan</groupId>
 		<artifactId>FamilyLegacy</artifactId>
-		<version>0.0.0-SNAPSHOT</version>
+		<version>1.0.0</version>
 	</parent>
 
 	<artifactId>Core</artifactId>
 	<packaging>jar</packaging>
 
-	<profiles>
-		<profile>
-			<!-- mvn clean package -Pwindows-exe -DskipTests -->
-			<!-- This module only stages the input of jpackage (Core/target/jpackage-input); the Ephemeris module, which is built last,
-				adds its plugin and runs jpackage (see its POM) -->
-			<id>windows-exe</id>
-			<build>
-				<plugins>
-					<!-- The plugins' host module (Calendars) and its dependency go on the module path, so that the plugins (Ephemeris),
-						which are JPMS modules loaded from app/plugins, can be resolved against them -->
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-dependency-plugin</artifactId>
-						<version>${maven-dependency-plugin.version}</version>
-						<executions>
-							<execution>
-								<id>copy-host-modules</id>
-								<phase>package</phase>
-								<goals>
-									<goal>copy-dependencies</goal>
-								</goals>
-								<configuration>
-									<includeArtifactIds>Calendars,commons-lang3</includeArtifactIds>
-									<outputDirectory>${project.build.directory}/jpackage-input/modules</outputDirectory>
-									<stripVersion>true</stripVersion>
-								</configuration>
-							</execution>
-						</executions>
-					</plugin>
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-antrun-plugin</artifactId>
-						<version>${maven-antrun-plugin.version}</version>
-						<executions>
-							<execution>
-								<id>jpackage-windows</id>
-								<!-- after the shade plugin (declared before in this POM, same phase) -->
-								<phase>package</phase>
-								<goals>
-									<goal>run</goal>
-								</goals>
-								<configuration>
-									<target>
-										<mkdir dir="${project.build.directory}/jpackage-input"/>
-										<copy file="${project.build.directory}/${project.artifactId}-${project.version}-shaded.jar"
-											tofile="${project.build.directory}/jpackage-input/${project.artifactId}.jar"/>
-									</target>
-								</configuration>
-							</execution>
-						</executions>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
-	</profiles>
-
 	<build>
 		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-surefire-plugin</artifactId>
-				<configuration>
-					<argLine>@${project.basedir}/surefire-opens.args</argLine>
-				</configuration>
-			</plugin>
-			<!-- Jar: the shaded jar is made from this one. Leave out what only the development entry points use (test data, specifications,
-				old grammars): it stays in target/classes, so the IDE still finds it -->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-jar-plugin</artifactId>
-				<configuration>
-					<excludes>
-						<exclude>tests/**</exclude>
-						<exclude>ged/**</exclude>
-						<exclude>docs/**</exclude>
-						<exclude>test.ged</exclude>
-						<exclude>*.rar</exclude>
-						<exclude>gedg/flef_0.0.*</exclude>
-						<exclude>gedg/flef_0.1.*</exclude>
-						<exclude>gedg/gedcom_*</exclude>
-						<exclude>gedg/treebard/**</exclude>
-						<exclude>gedg/example.gramps</exclude>
-						<exclude>gedg/*.md</exclude>
-						<exclude>gedg/*.txt</exclude>
-					</excludes>
-				</configuration>
-			</plugin>
 			<!-- Shade -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -137,6 +52,18 @@
 										<exclude>com/ibm/icu/impl/data/icudata/unames.icu</exclude>
 									</excludes>
 								</filter>
+								<filter>
+									<artifact>xml-apis:xml-apis</artifact>
+									<excludes>
+										<exclude>**</exclude>
+									</excludes>
+								</filter>
+								<filter>
+									<artifact>xml-apis:xml-apis-ext</artifact>
+									<excludes>
+										<exclude>**</exclude>
+									</excludes>
+								</filter>
 							</filters>
 							<transformers>
 								<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
@@ -150,6 +77,49 @@
 									</manifestEntries>
 								</transformer>
 							</transformers>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<version>${maven-antrun-plugin.version}</version>
+				<executions>
+					<execution>
+						<id>jpackage-windows</id>
+						<!-- after the shade plugin (declared before in this POM, same phase) -->
+						<phase>package</phase>
+						<goals>
+							<goal>run</goal>
+						</goals>
+						<configuration>
+							<target>
+								<mkdir dir="${project.build.directory}/jpackage-input"/>
+								<copy file="${project.build.directory}/${project.artifactId}-${project.version}-shaded.jar"
+									  tofile="${project.build.directory}/jpackage-input/${project.artifactId}.jar"/>
+							</target>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<!-- The plugins' host module (Calendars) and its dependency go on the module path, so that the plugins (Ephemeris),
+                which are JPMS modules loaded from app/plugins, can be resolved against them -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<version>${maven-dependency-plugin.version}</version>
+				<executions>
+					<execution>
+						<id>copy-host-modules</id>
+						<phase>package</phase>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+						<configuration>
+							<includeArtifactIds>Calendars,commons-lang3</includeArtifactIds>
+							<outputDirectory>${project.build.directory}/jpackage-input/modules</outputDirectory>
+							<stripVersion>true</stripVersion>
 						</configuration>
 					</execution>
 				</executions>

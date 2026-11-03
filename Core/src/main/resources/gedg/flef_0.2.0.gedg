@@ -135,14 +135,14 @@
 // ============================================================
 
 alias Text = string
-alias Id = string   // record identifier, matching [A-Za-z][A-Za-z0-9_-]*, unique within a file; written as the token after the record kind (e.g. `individual I12 { … }`)
-alias DateTime = string   // ISO 8601 date and time with mandatory UTC offset (YYYY-MM-DDThh:mm:ss±hh:mm or YYYY-MM-DDThh:mm:ssZ), as defined by ISO 8601, https://en.wikipedia.org/wiki/ISO_8601
+alias Id = string               // record identifier, matching [A-Za-z][A-Za-z0-9_-]*, unique within a file; written as the token after the record kind (e.g. `individual I12 { … }`)
+alias DateTime = string         // date and time with mandatory UTC offset (YYYY-MM-DDThh:mm:ss±hh:mm or YYYY-MM-DDThh:mm:ssZ), as defined by ISO 8601, https://en.wikipedia.org/wiki/ISO_8601
 alias HistoricalDate = string   // historical date in the notation of the declared CALENDAR.
-alias Duration = string   // duration, as defined by ISO 8601, https://en.wikipedia.org/wiki/ISO_8601#Durations (e.g. "P2Y")
-alias Uri = string   // resource URI, following RFC 3986 specifications, https://datatracker.ietf.org/doc/html/rfc3986
-alias LocaleCode = string   // locale identifier; use private-use subtags (x-...) for varieties without a registered code; as defined by IETF BCP 47, https://tools.ietf.org/html/bcp47
-alias SemVer = string   // as defined by Semantic Versioning, https://semver.org
-alias Coord = string   // geographic coordinates, as defined by ISO 6709, https://en.wikipedia.org/wiki/ISO_6709
+alias Duration = string         // duration, as defined by ISO 8601, https://en.wikipedia.org/wiki/ISO_8601#Durations (e.g. "P2Y")
+alias Uri = string              // resource URI, as defined by RFC 3986 specifications, https://datatracker.ietf.org/doc/html/rfc3986
+alias LocaleCode = string       // locale identifier; use private-use subtags (x-...) for varieties without a registered code; as defined by IETF BCP 47, https://tools.ietf.org/html/bcp47
+alias SemVer = string           // version, as defined by Semantic Versioning, https://semver.org
+alias Coord = string            // geographic coordinates, as defined by ISO 6709, https://en.wikipedia.org/wiki/ISO_6709
 alias Int = int
 
 
@@ -219,7 +219,7 @@ record IndividualRecord {
   note*: NoteStructure           // free-text notes about this individual
   preferred_image?: struct {
     media: Xref<MediaRecord>   // Resource pointing to a preferred image of this individual.
-    crop?: CropRect   // specifies the portion of the image that should be displayed as the preferred representation
+    crop?: CropRect            // specifies the portion of the image that should be displayed as the preferred representation
   }
   privacy?: PrivacyStructure
   audit: AuditStructure
@@ -283,61 +283,61 @@ struct NamePartStructure {
 record EventRecord {
   type: enum {                    // The type of event. Custom types are permitted.
     // life
-    birth,                // The exiting of the womb.
-    adoption,             // The creation of a parent-child relationship not associated with birth.
-    death,                // The end of life.
-    cremation,            // The burning of the body (in whole or in part) of the deceased.
-    burial,               // The depositing of the body (in whole or in part) of the deceased.
-    coroner_report,       // The act of including an individual in a report by a coroner, a public official, on the investigation into the causes and circumstances of any death which occurred through violence or suddenly with marks of suspicion.
-    illness,              // An illness suffered by the individual.
-    hospitalization,      // The admission of the individual to a hospital.
-    medical_procedure,    // A medical procedure, treatment, or surgery undergone by the individual.
+    birth,                  // The exiting of the womb.
+    adoption,               // The creation of a parent-child relationship not associated with birth.
+    death,                  // The end of life.
+    cremation,              // The burning of the body (in whole or in part) of the deceased.
+    burial,                 // The depositing of the body (in whole or in part) of the deceased.
+    coroner_report,         // The act of including an individual in a report by a coroner, a public official, on the investigation into the causes and circumstances of any death which occurred through violence or suddenly with marks of suspicion.
+    illness,                // An illness suffered by the individual.
+    hospitalization,        // The admission of the individual to a hospital.
+    medical_procedure,      // A medical procedure, treatment, or surgery undergone by the individual.
     // family
-    engagement,           // The agreement of a couple to enter into a marriage in the future.
-    marriage_bann,        // A public notice of an intent to marry.
-    marriage_contract,    // A formal contractual agreement to marry.
-    marriage_license,     // Obtaining a legal license to marry.
-    marriage_settlement,  // A legal arrangement to modify property rights upon marriage.
-    marriage,             // The creation of a family unit via a legal, religious, customary, common-law, or other form of union.
-    separation,           // The separation of a married couple without the dissolution of the marriage.
-    divorce_filed,        // The legal action expressing intent to divorce.
-    divorce_decree,       // An individual's participation in a decree of a court marking the legal separation of a man and woman, totally dissolving the marriage relation.
-    divorce,              // The ending of a marriage between still-living individuals.
-    annulment,            // Declaring a marriage to be invalid, as though it had never occurred.
+    engagement,             // The agreement of a couple to enter into a marriage in the future.
+    marriage_bann,          // A public notice of an intent to marry.
+    marriage_contract,      // A formal contractual agreement to marry.
+    marriage_license,       // Obtaining a legal license to marry.
+    marriage_settlement,    // A legal arrangement to modify property rights upon marriage.
+    marriage,               // The creation of a family unit via a legal, religious, customary, common-law, or other form of union.
+    separation,             // The separation of a married couple without the dissolution of the marriage.
+    divorce_filed,          // The legal action expressing intent to divorce.
+    divorce_decree,         // An individual's participation in a decree of a court marking the legal separation of a man and woman, totally dissolving the marriage relation.
+    divorce,                // The ending of a marriage between still-living individuals.
+    annulment,              // Declaring a marriage to be invalid, as though it had never occurred.
     // achievements
-    education,            // Participation in a course of study, educational program, or formal training.
-    graduation,           // The conclusion of formal education.
-    retirement,           // The cessation of gainful employment, typically because sufficient wealth has been accumulated to no longer necessitate such.
-    military_induction,   // The enlistment, conscription, or induction of the individual into military service.
-    military_muster_roll, // The inclusion of the individual in a military muster roll (a list of the members of a military unit).
-    military_service,     // A period of service in the military by the individual.
-    military_award,       // A military award, decoration, or medal conferred upon the individual.
-    military_release,     // The release of the individual from military service (e.g. to the reserve).
-    military_discharge,   // The discharge of the individual from military service.
-    military_resignation, // The resignation of the individual from a military commission or office.
-    military_retirement,  // The retirement of the individual from military service.
-    prison,               // Imprisonment or incarceration of the individual.
-    pardon,               // The remission of a penalty or punishment granted to the individual by a competent authority.
-    jury_duty,            // The service of the individual as a member of a jury.
-    honor,                // An honor, distinction, or recognition bestowed upon the individual.
-    bankruptcy,           // The legal declaration of the individual's insolvency, or the proceedings arising from it.
+    education,              // Participation in a course of study, educational program, or formal training.
+    graduation,             // The conclusion of formal education.
+    retirement,             // The cessation of gainful employment, typically because sufficient wealth has been accumulated to no longer necessitate such.
+    military_induction,     // The enlistment, conscription, or induction of the individual into military service.
+    military_muster_roll,   // The inclusion of the individual in a military muster roll (a list of the members of a military unit).
+    military_service,       // A period of service in the military by the individual.
+    military_award,         // A military award, decoration, or medal conferred upon the individual.
+    military_release,       // The release of the individual from military service (e.g. to the reserve).
+    military_discharge,     // The discharge of the individual from military service.
+    military_resignation,   // The resignation of the individual from a military commission or office.
+    military_retirement,    // The retirement of the individual from military service.
+    prison,                 // Imprisonment or incarceration of the individual.
+    pardon,                 // The remission of a penalty or punishment granted to the individual by a competent authority.
+    jury_duty,              // The service of the individual as a member of a jury.
+    honor,                  // An honor, distinction, or recognition bestowed upon the individual.
+    bankruptcy,             // The legal declaration of the individual's insolvency, or the proceedings arising from it.
     // national / government
-    immigration,          // The event of entering into a new locality with the intent of residing there.
-    naturalization,       // Obtaining a (new) citizenship.
-    emigration,           // The event of leaving one's homeland with the intent of residing elsewhere.
-    deportation,          // The forced removal of the individual from a country or locality.
-    internment,           // The confinement of the individual in a camp or other place, typically in wartime, without trial.
-    liberation,           // The release or liberation of an individual from imprisonment, internment, captivity, or other involuntary confinement.
-    emancipation,         // The emancipation of a minor child by its parents, involving the entire surrender of the right to care, custody, and earnings of such child.
-    relocation,           // A change of residence of the individual to another place within the same country or region.
-    census,               // Enumeration of individuals, households, or population carried out by a civil, ecclesiastical, or other authority.
+    immigration,            // The event of entering into a new locality with the intent of residing there.
+    naturalization,         // Obtaining a (new) citizenship.
+    emigration,             // The event of leaving one's homeland with the intent of residing elsewhere.
+    deportation,            // The forced removal of the individual from a country or locality.
+    internment,             // The confinement of the individual in a camp or other place, typically in wartime, without trial.
+    liberation,             // The release or liberation of an individual from imprisonment, internment, captivity, or other involuntary confinement.
+    emancipation,           // The emancipation of a minor child by its parents, involving the entire surrender of the right to care, custody, and earnings of such child.
+    relocation,             // A change of residence of the individual to another place within the same country or region.
+    census,                 // Enumeration of individuals, households, or population carried out by a civil, ecclesiastical, or other authority.
     // possessions and titles
-    deed,                 // The judicial actions associated with the transferring of title to a property.
-    escrow,               // A deed, bond, or other property held by a third party until the fulfillment of a condition.
-    chancery,             // The resolution through impartial justice between two parties whose claims conflict.
-    will,                 // The creation of a legal document regarding the disposition of a person's estate upon death.
-    probate,              // The judicial actions associated with the disposition of the estate of the deceased.
-    guardianship          // The act of legally appointing an individual to take care of the affairs of someone who is young or cannot take care of themselves.
+    deed,                   // The judicial actions associated with the transferring of title to a property.
+    escrow,                 // A deed, bond, or other property held by a third party until the fulfillment of a condition.
+    chancery,               // The resolution through impartial justice between two parties whose claims conflict.
+    will,                   // The creation of a legal document regarding the disposition of a person's estate upon death.
+    probate,                // The judicial actions associated with the disposition of the estate of the deceased.
+    guardianship            // The act of legally appointing an individual to take care of the affairs of someone who is young or cannot take care of themselves.
   } | Text
   description?: Text              // Human-readable description of the event when a structured representation is insufficient.
   date?: DateStructure            // the date of the event
@@ -763,9 +763,9 @@ struct NoteStructure {
 // primary record
 // A representation of where a source or set of sources is located. May be formal, like a library, or informal, like the owner of a family book.
 record RepositoryRecord {
-  name+: NameStructure                 // the official name of the archive in which the stated source material is stored
-  custodian?: Agent                    // the current custodian of the repository or of its material
-  place?: PlaceCitation                // the location of the repository
+  name+: NameStructure         // the official name of the archive in which the stated source material is stored
+  custodian?: Agent            // the current custodian of the repository or of its material
+  place?: PlaceCitation        // the location of the repository
   contact*: ContactStructure
   note*: NoteStructure
   privacy?: PrivacyStructure
