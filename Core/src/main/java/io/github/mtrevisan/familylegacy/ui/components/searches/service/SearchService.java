@@ -120,6 +120,19 @@ public class SearchService{
 
 
 	/**
+	 * @return	The types of record that can be searched, in the order to offer them: the people and their groups first, then the
+	 * 	events, places and sources, the research, the context. Every type with a strategy is there, and only those.
+	 */
+	@SuppressWarnings("unchecked")
+	public static List<Class<? extends RecordTypeHandler<?>>> searchableHandlers(){
+		return List.of(
+			IndividualHandler.class, GroupHandler.class, EventHandler.class, PlaceHandler.class, SourceHandler.class,
+			RepositoryHandler.class, MediaHandler.class, RelationshipHandler.class, PlaceRelationshipHandler.class,
+			ConclusionHandler.class, IdentityHypothesisHandler.class, ResearchQuestionHandler.class, ResearchActivityHandler.class,
+			ResearchTaskHandler.class, HistoricEventHandler.class, CulturalNormHandler.class);
+	}
+
+	/**
 	 * A record that passed the text stage, together with the score that
 	 * determines its position in the result list.
 	 */

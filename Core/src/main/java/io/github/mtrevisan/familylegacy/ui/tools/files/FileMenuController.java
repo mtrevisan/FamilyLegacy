@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.io.FLEFWriter;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.ui.dialogs.ProgressDialog;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
+import io.github.mtrevisan.familylegacy.ui.preferences.MediaPathDisplay;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -128,6 +129,7 @@ public final class FileMenuController{
 
 		modelReplacer.accept(new FLEFModel());
 		currentFile = null;
+		MediaPathDisplay.setDocumentFile(null);
 	}
 
 	/** Opens a file through a chooser. */
@@ -176,6 +178,7 @@ public final class FileMenuController{
 
 					modelReplacer.accept(model);
 					currentFile = file;
+					MediaPathDisplay.setDocumentFile(file);
 					lastDirectory = file.getParentFile();
 					recentFiles.add(file);
 				}
@@ -219,6 +222,7 @@ public final class FileMenuController{
 
 		if(writeTo(target)){
 			currentFile = target;
+			MediaPathDisplay.setDocumentFile(target);
 			lastDirectory = target.getParentFile();
 			recentFiles.add(target);
 			return true;

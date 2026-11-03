@@ -90,7 +90,7 @@ public final class ContextBoardDialog extends JDialog{
 
 
 	public ContextBoardDialog(final ToolContext context){
-		super(context.owner(), "Context Board", ModalityType.APPLICATION_MODAL);
+		super(context.owner(), I18N.t("dialog.context_board.title"), ModalityType.APPLICATION_MODAL);
 
 		this.context = context;
 

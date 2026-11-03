@@ -79,7 +79,7 @@ public final class AddCitationDialog extends JDialog{
 
 
 	public AddCitationDialog(final ToolContext context){
-		super(context.owner(), "Add Citation", ModalityType.APPLICATION_MODAL);
+		super(context.owner(), I18N.t("dialog.add_citation.title"), ModalityType.APPLICATION_MODAL);
 
 		this.context = context;
 

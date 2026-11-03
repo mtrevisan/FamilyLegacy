@@ -99,7 +99,7 @@ final class CitationAnalysisDialog extends JDialog{
 		sourcesTable = createRecordTable(unusedSources, I18N.t("column.id"), I18N.t("column.title"), I18N.t("column.author"),
 			SourceHelper::sourceTitle, SourceHelper::sourceAuthor);
 		documentsTable = createRecordTable(unusedDocuments, I18N.t("column.id"), I18N.t("column.uri"),
-			I18N.t("column.description"), SourceHelper::documentUri, SourceHelper::documentDescription);
+			I18N.t("column.description"), SourceHelper::documentDisplayUri, SourceHelper::documentDescription);
 
 		tabs.addTab(tabTitle("tab.title.unused_sources", unusedSources.size()),
 			ToolDialogs.createVerdictTab(unusedSources.isEmpty(), I18N.t("text.citation_analysis.sources.ok"),
@@ -213,7 +213,7 @@ final class CitationAnalysisDialog extends JDialog{
 	private void copyToClipboard(){
 		final StringBuilder sb = new StringBuilder();
 		appendSection(sb, tabs.getTitleAt(0), unusedSources, SourceHelper::sourceTitle);
-		appendSection(sb, tabs.getTitleAt(1), unusedDocuments, SourceHelper::documentUri);
+		appendSection(sb, tabs.getTitleAt(1), unusedDocuments, SourceHelper::documentDisplayUri);
 		sb.append(tabs.getTitleAt(2))
 			.append(StringUtils.LF);
 		for(final Map.Entry<String, Integer> e : uncited.entrySet())

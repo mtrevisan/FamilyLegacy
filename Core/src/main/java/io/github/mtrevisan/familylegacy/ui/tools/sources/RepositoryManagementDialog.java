@@ -76,7 +76,7 @@ public final class RepositoryManagementDialog extends JDialog{
 
 
 	public RepositoryManagementDialog(final ToolContext context){
-		super(context.owner(), "Manage Repositories", ModalityType.APPLICATION_MODAL);
+		super(context.owner(), I18N.t("search.title.manage.repositories"), ModalityType.APPLICATION_MODAL);
 
 		this.context = context;
 

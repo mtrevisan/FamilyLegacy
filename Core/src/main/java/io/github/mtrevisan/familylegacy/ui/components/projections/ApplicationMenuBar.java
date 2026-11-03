@@ -687,6 +687,11 @@ final class ApplicationMenuBar{
 		jumpTo.addActionListener(e -> openJumpToDialog());
 		menu.add(jumpTo);
 
+		final JMenuItem findRecord = new JMenuItem(ShortcutRegistry.NAV_FIND_RECORD.action(), KeyEvent.VK_R);
+		findRecord.setAccelerator(ShortcutRegistry.NAV_FIND_RECORD.keyStroke());
+		findRecord.addActionListener(e -> frame.openFindDialog());
+		menu.add(findRecord);
+
 		menu.add(new JSeparator());
 
 		final JMenuItem clearHistory = new JMenuItem(I18N.t("menu.navigate.clear.history"), KeyEvent.VK_C);

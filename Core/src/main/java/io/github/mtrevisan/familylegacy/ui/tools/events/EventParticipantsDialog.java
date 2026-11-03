@@ -88,7 +88,7 @@ public final class EventParticipantsDialog extends JDialog{
 
 
 	public EventParticipantsDialog(final ToolContext context){
-		super(context.owner(), "Manage Participants", ModalityType.APPLICATION_MODAL);
+		super(context.owner(), I18N.t("dialog.event_participants.title"), ModalityType.APPLICATION_MODAL);
 
 		this.context = context;
 

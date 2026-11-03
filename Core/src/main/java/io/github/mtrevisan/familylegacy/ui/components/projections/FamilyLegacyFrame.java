@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.grammar.FLEFGrammarParser;
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.FLEFGrammar;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.ModelHistory;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.ui.components.projections.bookmarks.Bookmark;
@@ -40,7 +41,11 @@ import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree
 import io.github.mtrevisan.familylegacy.ui.components.projections.repository.GenealogyRepository;
 import io.github.mtrevisan.familylegacy.ui.components.projections.services.DossierManager;
 import io.github.mtrevisan.familylegacy.ui.components.projections.services.ModelUtils;
+import io.github.mtrevisan.familylegacy.ui.components.searches.service.FindRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.components.searches.service.JumpToIndividualDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.api.RecordDialog;
+import io.github.mtrevisan.familylegacy.ui.handlers.GroupHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.DialogEscapeSupport;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import io.github.mtrevisan.familylegacy.ui.preferences.AppearanceManager;
@@ -267,6 +272,28 @@ public class FamilyLegacyFrame extends JFrame{
 		final String id = JumpToIndividualDialog.showAndGet(this, model, projectionType);
 		if(id != null)
 			loadRoot(id);
+	}
+
+	/**
+	 * Finds a record of any type (Ctrl+F). An individual is shown in the views, as Ctrl+J does, and so is a group in the ego network;
+	 * any other record is opened in its editor, and the views are built again if it is saved.
+	 */
+	void openFindDialog(){
+		final FindRecordDialog.Found found = FindRecordDialog.showAndGet(this, model);
+		if(found == null)
+			return;
+
+		final FLEFRecord record = found.record();
+		final boolean ego = (switcher.getCurrentProjectionType() == ProjectionType.EGO_NETWORK);
+		if(IndividualHandler.isOfType(record) || ego && GroupHandler.isOfType(record)){
+			loadRoot(record.getId());
+			return;
+		}
+
+		final RecordDialog dialog = found.handler().createEditDialog(this, model, record);
+		dialog.setVisible(true);
+		if(dialog.isSaved())
+			SwingUtilities.invokeLater(this::rebuildViews);
 	}
 
 	public boolean isFullScreen(){
@@ -505,6 +532,9 @@ public class FamilyLegacyFrame extends JFrame{
 			final FamilyLegacyFrame frame = new FamilyLegacyFrame(treeType, model);
 			frame.loadRoot(rootIndividualId);
 			frame.setVisible(true);
+
+			//after the window is shown, so it does not interfere with the creation of the UI fonts
+			SwingUtilities.invokeLater(AppearanceManager::preloadFontFamilies);
 		});
 	}
 

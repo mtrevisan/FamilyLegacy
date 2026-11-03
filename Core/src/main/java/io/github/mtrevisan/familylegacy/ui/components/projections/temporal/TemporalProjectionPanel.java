@@ -303,6 +303,12 @@ public final class TemporalProjectionPanel extends JPanel implements TreeChangeL
 
 					repaint();
 				}
+				else if(ref instanceof TemporalProjectionRef.BandRef && selectedEntity != null){
+					//the background is not a row
+					selectedEntity = null;
+
+					repaint();
+				}
 
 				// Double-click opens the edit dialog of the underlying record.
 				if(e.getClickCount() == 2)
@@ -370,6 +376,9 @@ public final class TemporalProjectionPanel extends JPanel implements TreeChangeL
 			return;
 
 		final RecordTypeHandler<?> handler = handlerForTag(record.getTag());
+		if(handler == null)
+			return;
+
 		final Window parent = SwingUtilities.getWindowAncestor(this);
 		final RecordDialog dialog = handler.createEditDialog(parent, flefModel, record);
 		dialog.setVisible(true);
@@ -388,6 +397,8 @@ public final class TemporalProjectionPanel extends JPanel implements TreeChangeL
 			return connectionRef.connection().sourceRecord();
 		if(ref instanceof TemporalProjectionRef.RowRef rowRef)
 			return rowRef.entity().record();
+		if(ref instanceof TemporalProjectionRef.BandRef bandRef)
+			return bandRef.band().entity().record();
 		return null;
 	}
 
@@ -422,8 +433,10 @@ public final class TemporalProjectionPanel extends JPanel implements TreeChangeL
 	private TemporalProjectionRef hitTest(final MouseEvent e){
 		final Rectangle contentBounds = new Rectangle(0, 0, contentCanvas.getWidth(),
 			contentCanvas.getHeight());
-		return TemporalInteractionHandler.hitTest(e.getX(), e.getY(), model, layout, axis,
+		final TemporalProjectionRef ref = TemporalInteractionHandler.hitTest(e.getX(), e.getY(), model, layout, axis,
 			contentBounds);
+		//the bands that are not drawn are not there
+		return (ref instanceof TemporalProjectionRef.BandRef && !toolbar.isShowBands()? null: ref);
 	}
 
 

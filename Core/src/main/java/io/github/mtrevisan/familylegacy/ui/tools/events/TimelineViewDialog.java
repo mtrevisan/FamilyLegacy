@@ -85,7 +85,7 @@ public final class TimelineViewDialog extends JDialog{
 
 
 	public TimelineViewDialog(final ToolContext context){
-		super(context.owner(), "Timeline View", ModalityType.APPLICATION_MODAL);
+		super(context.owner(), I18N.t("dialog.timeline_view.title"), ModalityType.APPLICATION_MODAL);
 
 		this.context = context;
 

@@ -97,7 +97,7 @@ public final class ResearchBoardDialog extends JDialog{
 
 
 	public ResearchBoardDialog(final ToolContext context){
-		super(context.owner(), "Research Board", ModalityType.APPLICATION_MODAL);
+		super(context.owner(), I18N.t("dialog.research_board.title"), ModalityType.APPLICATION_MODAL);
 
 		this.context = context;
 

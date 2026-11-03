@@ -25,7 +25,13 @@
 package io.github.mtrevisan.familylegacy.ui.components.projections.grouptimeline;
 
 import io.github.mtrevisan.familylegacy.ui.components.projections.temporal.TemporalProjectionModel;
+import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 
+import javax.swing.JCheckBox;
+import javax.swing.JPanel;
+import java.awt.FlowLayout;
+
+import java.util.List;
 import java.util.function.Supplier;
 
 
@@ -40,12 +46,24 @@ final class GroupViewFilters{
 
 	private final GroupYearControl yearControl = new GroupYearControl();
 	private final GroupRoleLegend legend = new GroupRoleLegend();
+	private final JCheckBox contextBox = new JCheckBox(I18N.t("checkbox.context"), true);
+	private final JPanel topBar = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
 
 	/** The whole model built last, before the filters. */
 	private TemporalProjectionModel whole;
 	/** Whether the next {@link #apply(Supplier)} can use the model built last: only a filter has changed. */
 	private boolean reuse;
 
+
+	GroupViewFilters(){
+		topBar.add(yearControl);
+		topBar.add(contextBox);
+	}
+
+	/** @return	The bar above the view: the choice of the year, and the box of the historical context. */
+	JPanel topBar(){
+		return topBar;
+	}
 
 	GroupYearControl yearControl(){
 		return yearControl;
@@ -68,6 +86,7 @@ final class GroupViewFilters{
 		};
 		yearControl.withListener(onlyAFilterChanged);
 		legend.withListener(onlyAFilterChanged);
+		contextBox.addActionListener(e -> onlyAFilterChanged.run());
 	}
 
 	/**
@@ -82,7 +101,9 @@ final class GroupViewFilters{
 
 		final TemporalProjectionModel inYear = GroupYearFilter.filter(built, yearControl.getYear());
 		legend.update(inYear);
-		return legend.filter(inYear);
+		final TemporalProjectionModel byRole = legend.filter(inYear);
+		return (contextBox.isSelected() || byRole.bands().isEmpty()? byRole: new TemporalProjectionModel(byRole.rows(), byRole.connections(),
+			List.of(), byRole.impactLinks(), byRole.domainStart(), byRole.domainEnd()));
 	}
 
 	/** Forgets the roles that were hidden: a new view has other roles. The year stays, it is a choice about the time. */

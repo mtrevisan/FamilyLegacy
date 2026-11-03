@@ -56,7 +56,8 @@ import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
  *     religion,          // Religion, denomination, faith, or spiritual affiliation.
  *     language,          // Language spoken, written, understood, or otherwise associated with the individual.
  *     literacy,          // Ability to read and/or write (e.g. "illiterate", "literate", "signature only").
- *     education          // Educational attainment, schooling level, degree, qualification, or academic status (e.g. "elementary", "secondary", "university", "doctorate").
+ *     education,         // Educational attainment, schooling level, degree, qualification, or academic status (e.g. "elementary", "secondary", "university", "doctorate").
+ *     apprenticeship     // Apprenticeship, trainee status, or participation in a master-apprentice relationship over a period of time.
  *   } | Text
  *   value?: Text                         // The value of the attribute.
  *   valid_from?: DateStructure           // The date from which this attribute is known or believed to have been valid.
@@ -94,7 +95,7 @@ public final class IndividualAttributeReader{
 	public static final String[] TYPES = new String[]{
 		ENUM_TYPE_CHARACTERISTIC, ENUM_TYPE_RESIDENCE, ENUM_TYPE_OCCUPATION, "possession", "military_rank", "caste",
 		"social_class", "ethnicity", "citizenship", "nationality", "national_id", ENUM_TYPE_TITLE, "children_count",
-		"marriages_count", "religion", "language", "literacy", "education"
+		"marriages_count", "religion", "language", "literacy", "education", "apprenticeship"
 	};
 
 

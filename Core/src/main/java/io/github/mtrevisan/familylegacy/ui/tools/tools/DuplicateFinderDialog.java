@@ -99,7 +99,7 @@ public final class DuplicateFinderDialog extends JDialog{
 
 
 	public DuplicateFinderDialog(final ToolContext context){
-		super(context.owner(), "Detect Duplicates", ModalityType.APPLICATION_MODAL);
+		super(context.owner(), I18N.t("dialog.duplicates.title"), ModalityType.APPLICATION_MODAL);
 
 		this.context = context;
 

@@ -999,7 +999,7 @@ public final class MultiLifespanStripPanel extends JPanel{
 		final String t = type.toLowerCase(Locale.ROOT);
 		if(t.contains("residence") || t.contains("citizenship") || t.contains("nationality"))
 			return new Color(120, 170, 220, 200);
-		if(t.contains("occupation") || t.contains("education") || t.contains("literacy") || t.contains("title")
+		if(t.contains("occupation") || t.contains("education") || t.contains("literacy") || t.contains("apprenticeship") || t.contains("title")
 			|| t.contains("military"))
 			return new Color(140, 200, 140, 200);
 		if(t.contains("religion") || t.contains("caste") || t.contains("ethnicity") || t.contains("social"))

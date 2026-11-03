@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.dialogs.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.MediaHandler;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
+import io.github.mtrevisan.familylegacy.ui.preferences.MediaPathDisplay;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolDialogs;
 import org.apache.commons.lang3.StringUtils;
@@ -268,7 +269,7 @@ public final class MediaManagementDialog extends JDialog{
 		}
 		else{
 			previewLabel.setIcon(null);
-			previewLabel.setText(uri != null? "<html><center>" + escape(uri) + "</center></html>"
+			previewLabel.setText(uri != null? "<html><center>" + escape(MediaPathDisplay.display(uri)) + "</center></html>"
 				: "<html><center>No URI</center></html>");
 		}
 	}

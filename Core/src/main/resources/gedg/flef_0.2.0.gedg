@@ -150,15 +150,11 @@ alias Int = int
 // File
 // ============================================================
 
-file FamilyLegacyFile {
-  Record+
-}
+// A FLEF file consists of exactly one HeaderRecord followed by zero or more Record instances.
+FamilyLegacyFile := HeaderRecord Record*
 
-// Top-level record container. Every record type appearing in a file must be represented through this union.
 // Every record has an implicit mandatory identifier of type Id, written after the record kind (see Instance syntax).
 Record = oneof {
-  header: HeaderRecord
-
   individual: IndividualRecord
   group: GroupRecord
   event: EventRecord
@@ -187,7 +183,6 @@ Record = oneof {
 // ============================================================
 
 // metadata
-// The header block MUST be the first record in the file and MUST appear exactly once.
 record HeaderRecord {
   protocol: struct {
     name: Text        // the name of the protocol; MUST be `Family LEgacy Format`
@@ -288,15 +283,61 @@ struct NamePartStructure {
 record EventRecord {
   type: enum {                    // The type of event. Custom types are permitted.
     // life
-    birth, adoption, death, cremation, burial, coroner_report, illness, hospitalization, medical_procedure,
+    birth,                // The exiting of the womb.
+    adoption,             // The creation of a parent-child relationship not associated with birth.
+    death,                // The end of life.
+    cremation,            // The burning of the body (in whole or in part) of the deceased.
+    burial,               // The depositing of the body (in whole or in part) of the deceased.
+    coroner_report,       // The act of including an individual in a report by a coroner, a public official, on the investigation into the causes and circumstances of any death which occurred through violence or suddenly with marks of suspicion.
+    illness,              // An illness suffered by the individual.
+    hospitalization,      // The admission of the individual to a hospital.
+    medical_procedure,    // A medical procedure, treatment, or surgery undergone by the individual.
     // family
-    engagement, marriage_bann, marriage_contract, marriage_license, marriage_settlement, marriage, divorce_filed, divorce_decree, divorce, annulment,
+    engagement,           // The agreement of a couple to enter into a marriage in the future.
+    marriage_bann,        // A public notice of an intent to marry.
+    marriage_contract,    // A formal contractual agreement to marry.
+    marriage_license,     // Obtaining a legal license to marry.
+    marriage_settlement,  // A legal arrangement to modify property rights upon marriage.
+    marriage,             // The creation of a family unit via a legal, religious, customary, common-law, or other form of union.
+    separation,           // The separation of a married couple without the dissolution of the marriage.
+    divorce_filed,        // The legal action expressing intent to divorce.
+    divorce_decree,       // An individual's participation in a decree of a court marking the legal separation of a man and woman, totally dissolving the marriage relation.
+    divorce,              // The ending of a marriage between still-living individuals.
+    annulment,            // Declaring a marriage to be invalid, as though it had never occurred.
     // achievements
-    education, graduation, retirement, military_induction, military_muster_roll, military_service, military_award, military_release, military_discharge, military_resignation, military_retirement, prison, pardon, jury_duty, honor, bankruptcy,
+    education,            // Participation in a course of study, educational program, or formal training.
+    graduation,           // The conclusion of formal education.
+    retirement,           // The cessation of gainful employment, typically because sufficient wealth has been accumulated to no longer necessitate such.
+    military_induction,   // The enlistment, conscription, or induction of the individual into military service.
+    military_muster_roll, // The inclusion of the individual in a military muster roll (a list of the members of a military unit).
+    military_service,     // A period of service in the military by the individual.
+    military_award,       // A military award, decoration, or medal conferred upon the individual.
+    military_release,     // The release of the individual from military service (e.g. to the reserve).
+    military_discharge,   // The discharge of the individual from military service.
+    military_resignation, // The resignation of the individual from a military commission or office.
+    military_retirement,  // The retirement of the individual from military service.
+    prison,               // Imprisonment or incarceration of the individual.
+    pardon,               // The remission of a penalty or punishment granted to the individual by a competent authority.
+    jury_duty,            // The service of the individual as a member of a jury.
+    honor,                // An honor, distinction, or recognition bestowed upon the individual.
+    bankruptcy,           // The legal declaration of the individual's insolvency, or the proceedings arising from it.
     // national / government
-    immigration, naturalization, emigration, deportation, internment, liberation, emancipation, relocation, census,
+    immigration,          // The event of entering into a new locality with the intent of residing there.
+    naturalization,       // Obtaining a (new) citizenship.
+    emigration,           // The event of leaving one's homeland with the intent of residing elsewhere.
+    deportation,          // The forced removal of the individual from a country or locality.
+    internment,           // The confinement of the individual in a camp or other place, typically in wartime, without trial.
+    liberation,           // The release or liberation of an individual from imprisonment, internment, captivity, or other involuntary confinement.
+    emancipation,         // The emancipation of a minor child by its parents, involving the entire surrender of the right to care, custody, and earnings of such child.
+    relocation,           // A change of residence of the individual to another place within the same country or region.
+    census,               // Enumeration of individuals, households, or population carried out by a civil, ecclesiastical, or other authority.
     // possessions and titles
-    deed, escrow, chancery, will, probate, guardianship
+    deed,                 // The judicial actions associated with the transferring of title to a property.
+    escrow,               // A deed, bond, or other property held by a third party until the fulfillment of a condition.
+    chancery,             // The resolution through impartial justice between two parties whose claims conflict.
+    will,                 // The creation of a legal document regarding the disposition of a person's estate upon death.
+    probate,              // The judicial actions associated with the disposition of the estate of the deceased.
+    guardianship          // The act of legally appointing an individual to take care of the affairs of someone who is young or cannot take care of themselves.
   } | Text
   description?: Text              // Human-readable description of the event when a structured representation is insufficient.
   date?: DateStructure            // the date of the event
@@ -312,41 +353,6 @@ record EventRecord {
   privacy?: PrivacyStructure
   audit: AuditStructure
 }
-
-// --- Informational note: taxonomy of EVENT/ATTRIBUTE types ---
-// Sources: https://wiki.phpgedview.net/en/index.php/Facts_and_Events
-//          http://www.gencom.org.nz/GEDCOM_tags.html
-//
-// Life related types are: BIRTH (the exiting of the womb), ADOPTION (the creation of a parent-child relationship not associated with birth), CHARACTERISTIC
-// (physical characteristics of a person, in the format `key1: value1, key2: value2`), DEATH (the end of life), CHILDREN_COUNT (the reported number of
-// children associated with a family or household group, regardless of whether the associated children are represented in the corresponding structure; this
-// is not necessarily the count of children listed in a group structure), MARRIAGES_COUNT, CORONER_REPORT (the act of including an individual in a
-// report by a coroner, a public official, on the investigation into the causes and circumstances of any death which occurred through violence or suddenly
-// with marks of suspicion), BURIAL (the depositing of the body (in whole or in part) of the deceased), CREMATION (the burning of the body (in whole or in
-// part) of the deceased).
-// Family related types are: ENGAGEMENT (the agreement of a couple to enter into a marriage in the future), MARRIAGE_BANN (a public notice of an intent to
-// marry), MARRIAGE_CONTRACT (a formal contractual agreement to marry), MARRIAGE_LICENSE (obtaining a legal license to marry), MARRIAGE_SETTLEMENT (a
-// legal arrangement to modify property rights upon marriage), MARRIAGE (the creation of a family unit via a legal, religious, customary, common-law, or
-// other form of union), DIVORCE_FILED (the legal action expressing intent to divorce), DIVORCE_DECREE (an individual's participation in a decree of a
-// court marking the legal separation of a man and woman, totally dissolving the marriage relation), DIVORCE (the ending of a marriage between still-living
-// individuals), ANNULMENT (declaring a marriage to be invalid, as though it had never occurred).
-// Achievements related types are: RESIDENCE, EDUCATION (an educational degree or attainment), GRADUATION (the conclusion of formal education), OCCUPATION
-// (what this person does as a livelihood), RETIREMENT (the cessation of gainful employment, typically because sufficient wealth has been accumulated
-// to no longer necessitate such), MILITARY_AWARD, MILITARY_DISCHARGE, MILITARY_INDUCTION, MILITARY_MUSTER_ROLL, MILITARY_SERVICE, MILITARY_RANK,
-// MILITARY_RELEASE, MILITARY_RESIGNATION, MILITARY_RETIREMENT, PRISON (the act of punishment imposed by law or otherwise in the course of administration of
-// justice), PARDON, MEMBERSHIP, JURY_DUTY, MEDICAL, HOSPITALIZATION, ILLNESS, HONOR, LIBERATION (the liberation of the Holocaust survivor from place of
-// internment), DEPORTATION, INTERNMENT, EMANCIPATION (the emancipation of a minor child by its parents, involving the entire surrender of the right to
-// care, custody, and earnings of such child), BANKRUPTCY.
-// National/government related types are: CASTE (the social, religious, or racial caste to which an individual belongs), ETHNICITY (an ethnic, tribal,
-// cultural, or ancestral group with which a person is associated), CITIZENSHIP (the legal nationality or citizenship status held by a person within a state,
-// nation, or political entity), EMIGRATION, IMMIGRATION, NATURALIZATION, CENSUS, NATIONAL_ID.
-// Possessions and titles related types are: POSSESSION (a list of objects or land owned by the person), TITLE (a title associated with a local or
-// national notion of nobility or royalty), WILL (the creation of a legal document regarding the disposition of a person's estate upon death), PROBATE
-// (the judicial actions associated with the disposition of the estate of the deceased), DEED (the judicial actions associated with the transferring of
-// title to a property), GUARDIANSHIP (the act of legally appointing an individual to take care of the affairs of someone who is young or cannot
-// take care of her/himself), ESCROW, CHANCERY (the resolution through impartial justice between two parties whose claims conflict).
-// Religious and social related types are: RELIGION (the name of a religion with which the event was affiliated).
-// Custom type: a token matching [a-z0-9_]+ (see Instance syntax).
 
 
 // ============================================================
@@ -378,7 +384,8 @@ record IndividualAttributeRecord {
     religion,          // Religion, denomination, faith, or spiritual affiliation.
     language,          // Language spoken, written, understood, or otherwise associated with the individual.
     literacy,          // Ability to read and/or write (e.g. "illiterate", "literate", "signature only").
-    education          // Educational attainment, schooling level, degree, qualification, or academic status (e.g. "elementary", "secondary", "university", "doctorate").
+    education,         // Educational attainment, schooling level, degree, qualification, or academic status (e.g. "elementary", "secondary", "university", "doctorate").
+    apprenticeship     // Apprenticeship, trainee status, or participation in a master-apprentice relationship over a period of time.
   } | Text
   value?: Text                         // The value of the attribute. When the value is a place (e.g. RESIDENCE), it is given by PLACE and VALUE MAY only add details not represented by the place record (e.g. "with his uncle", "as a servant").
   valid_from?: DateStructure           // The date from which this attribute is known or believed to have been valid.

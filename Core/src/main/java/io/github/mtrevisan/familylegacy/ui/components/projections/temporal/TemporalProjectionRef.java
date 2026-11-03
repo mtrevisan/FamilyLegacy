@@ -39,7 +39,8 @@ package io.github.mtrevisan.familylegacy.ui.components.projections.temporal;
  * sealed type possible.
  */
 public sealed interface TemporalProjectionRef
-	permits TemporalProjectionRef.RowRef, TemporalProjectionRef.EntryRef, TemporalProjectionRef.ConnectionRef{
+	permits TemporalProjectionRef.RowRef, TemporalProjectionRef.EntryRef, TemporalProjectionRef.ConnectionRef,
+		TemporalProjectionRef.BandRef{
 
 	/**
 	 * Returns the row entity that anchors this reference. For row references
@@ -102,6 +103,23 @@ public sealed interface TemporalProjectionRef
 		@Override
 		public TemporalEntityRef anchorEntity(){
 			return connection.sourceRow();
+		}
+	}
+
+	/**
+	 * A reference to a {@link TemporalContextBand}: a historic event or a cultural norm drawn behind the rows. Its anchor is the
+	 * context entity itself.
+	 */
+	record BandRef(TemporalContextBand band) implements TemporalProjectionRef{
+
+		public BandRef{
+			if(band == null)
+				throw new IllegalArgumentException("Band must not be null");
+		}
+
+		@Override
+		public TemporalEntityRef anchorEntity(){
+			return band.entity();
 		}
 	}
 

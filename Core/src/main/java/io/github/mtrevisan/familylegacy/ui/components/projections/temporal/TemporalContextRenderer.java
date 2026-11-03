@@ -26,6 +26,8 @@ package io.github.mtrevisan.familylegacy.ui.components.projections.temporal;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.Stroke;
@@ -58,6 +60,12 @@ public final class TemporalContextRenderer{
 	/** Color of the impact link connectors. */
 	public static final Color COLOR_IMPACT_LINE = new Color(160, 120, 60, 140);
 
+	/** Color of the label of a band. */
+	public static final Color COLOR_BAND_LABEL = new Color(110, 100, 80);
+
+	private static final int LABEL_MIN_WIDTH = 24;
+	private static final int LABEL_LINES = 3;
+
 
 	private TemporalContextRenderer(){
 	}
@@ -77,6 +85,7 @@ public final class TemporalContextRenderer{
 		if(g == null || bands == null || bands.isEmpty() || axis == null || contentBounds == null)
 			return;
 
+		int index = 0;
 		for(final TemporalContextBand band : bands){
 			final Rectangle rect = axis.spanToRect(band.span(), contentBounds.y, contentBounds.height);
 			if(rect == null)
@@ -89,6 +98,33 @@ public final class TemporalContextRenderer{
 			g.setColor(COLOR_BAND_BORDER);
 			g.setStroke(new BasicStroke(1f));
 			g.drawRect(rect.x, rect.y, rect.width, rect.height);
+
+			drawLabel(g, band, rect, index ++);
+		}
+	}
+
+	/** The name of the band, at its top, on one of a few lines so that the names of bands that overlap can be read. */
+	private static void drawLabel(final Graphics2D g, final TemporalContextBand band, final Rectangle rect, final int index){
+		final String label = (band.label().isEmpty()? band.kind(): band.label());
+		if(label.isEmpty() || rect.width < LABEL_MIN_WIDTH)
+			return;
+
+		final Font original = g.getFont();
+		try{
+			g.setFont(original.deriveFont(Font.ITALIC, 10f));
+			final FontMetrics fm = g.getFontMetrics();
+			final int maxWidth = rect.width - 6;
+			String text = label;
+			while(text.length() > 1 && fm.stringWidth(text) > maxWidth)
+				text = text.substring(0, text.length() - 1);
+			if(text.length() < label.length())
+				text = text.substring(0, Math.max(0, text.length() - 1)) + "…";
+
+			g.setColor(COLOR_BAND_LABEL);
+			g.drawString(text, rect.x + 3, rect.y + fm.getAscent() + 1 + (index % LABEL_LINES) * fm.getHeight());
+		}
+		finally{
+			g.setFont(original);
 		}
 	}
 

@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.GroupReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyResolver;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
+import io.github.mtrevisan.familylegacy.ui.components.projections.common.RecordTooltips;
 import io.github.mtrevisan.familylegacy.ui.components.projections.common.BoxPanelType;
 import io.github.mtrevisan.familylegacy.ui.components.projections.common.PlaceholderImages;
 import io.github.mtrevisan.familylegacy.ui.helpers.AsyncResourceLoader;
@@ -109,6 +110,7 @@ public final class GroupData{
 		}
 		else
 			nameText = NO_DATA;
+		nameTooltip = RecordTooltips.append(nameTooltip, RecordTooltips.audit(group));
 
 		final String rawType = GroupReader.extractType(group);
 		type = (rawType != null? rawType.replace('_', ' '): StringUtils.EMPTY);

@@ -35,6 +35,7 @@ import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.ui.handlers.MediaHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RepositoryHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.SourceHandler;
+import io.github.mtrevisan.familylegacy.ui.preferences.MediaPathDisplay;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.LinkedHashMap;
@@ -141,6 +142,11 @@ public final class SourceHelper{
 
 	public static String documentUri(final FLEFRecord document){
 		return firstTextValue(document, MediaReader.TAG_URI);
+	}
+
+	/** The location of the media as the user wants to see it (see {@link MediaPathDisplay}): never use it to open the file. */
+	public static String documentDisplayUri(final FLEFRecord document){
+		return MediaPathDisplay.display(documentUri(document));
 	}
 
 	public static String documentDescription(final FLEFRecord document){
@@ -327,7 +333,7 @@ public final class SourceHelper{
 		final String id = document.getId();
 		return new DocumentRow(
 			id,
-			documentUri(document),
+			documentDisplayUri(document),
 			documentDescription(document),
 			firstTextValue(document, MediaReader.TAG_MAPPING),
 			referenceCounts.getOrDefault(id, 0)

@@ -92,7 +92,7 @@ public final class CalendarConverterDialog extends JDialog{
 
 
 	public CalendarConverterDialog(final ToolContext context){
-		super(context.owner(), "Calendar Converter", ModalityType.APPLICATION_MODAL);
+		super(context.owner(), I18N.t("dialog.calendar_converter.title"), ModalityType.APPLICATION_MODAL);
 
 		resultField.setEditable(false);
 

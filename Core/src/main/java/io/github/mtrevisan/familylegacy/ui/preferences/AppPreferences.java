@@ -76,6 +76,9 @@ public final class AppPreferences{
 	// view preferences: how the views order children and partners (presentation only, never genealogical data)
 	public static final String KEY_CHILDREN_ORDER = "view.order.children";
 	public static final String KEY_PARTNER_ORDER = "view.order.partners";
+	// view preferences: how the location of the media is shown, and the directory it is relative to (presentation only)
+	public static final String KEY_MEDIA_PATH_DISPLAY = "view.media.path";
+	public static final String KEY_MEDIA_BASE_DIRECTORY = "view.media.base_directory";
 	// the findings of the Research Assistant ignored by the user, for each file (a presentation choice, never genealogical data)
 	private static final String KEY_IGNORED_FINDINGS_PREFIX = "assistant.ignored.";
 
@@ -203,6 +206,32 @@ public final class AppPreferences{
 	/** Persists the findings the user ignored for a file (a view preference: they are not stored in the genealogy). */
 	public synchronized void setIgnoredFindings(final String scope, final Set<String> findings){
 		put(KEY_IGNORED_FINDINGS_PREFIX + scope, String.join(",", new TreeSet<>(findings)));
+	}
+
+	/** Returns how the location of the media is shown, or the default (the whole location) when unset or unknown. */
+	public MediaPathDisplay mediaPathDisplay(){
+		try{
+			return MediaPathDisplay.valueOf(properties.getProperty(KEY_MEDIA_PATH_DISPLAY, MediaPathDisplay.FULL.name()));
+		}
+		catch(final IllegalArgumentException ignored){
+			return MediaPathDisplay.FULL;
+		}
+	}
+
+	/** Persists how the location of the media is shown (a view preference: it is not stored in the genealogy). */
+	public void setMediaPathDisplay(final MediaPathDisplay display){
+		put(KEY_MEDIA_PATH_DISPLAY, Objects.requireNonNull(display, "display").name());
+	}
+
+	/** Returns the base directory the media paths are shown relative to, or {@code null} when unset. */
+	public String mediaBaseDirectory(){
+		final String v = properties.getProperty(KEY_MEDIA_BASE_DIRECTORY);
+		return (StringUtils.isBlank(v)? null: v);
+	}
+
+	/** Persists the base directory the media paths are shown relative to; {@code null} clears it. */
+	public void setMediaBaseDirectory(final String directory){
+		put(KEY_MEDIA_BASE_DIRECTORY, directory);
 	}
 
 	/** Persists the UI font size, in points. */

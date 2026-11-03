@@ -83,12 +83,37 @@ class FLEFGrammarFileDefinitionTest{
 	}
 
 	@Test
-	void theProtocolGrammarIsAPlainListOfRecords() throws IOException{
+	void aFileDefinedAsAHeaderFollowedByRecords(){
+		final FLEFGrammar grammar = FLEFGrammarParser.parse("""
+			F := Header Record*
+			Record = oneof {
+			  note: NoteRecord
+			}
+			record Header {
+			  version: string
+			}
+			record NoteRecord {
+			  text: string
+			}
+			""");
+
+		Assertions.assertEquals("F", grammar.getFileDefinition().name());
+		Assertions.assertEquals("Header", grammar.getFileDefinition().headerField().type().getName());
+		Assertions.assertEquals(Cardinality.REQUIRED, grammar.getFileDefinition().headerField().cardinality());
+		Assertions.assertEquals("Record", grammar.getFileDefinition().recordsField().type().getName());
+		Assertions.assertEquals(Cardinality.ZERO_OR_MORE, grammar.getFileDefinition().recordsField().cardinality());
+		Assertions.assertEquals("Header", grammar.getHeaderType().getName());
+	}
+
+	@Test
+	void theProtocolGrammarIsAHeaderFollowedByRecords() throws IOException{
 		try(final InputStream stream = getClass().getResourceAsStream("/gedg/flef_0.2.0.gedg")){
 			final FLEFGrammar grammar = FLEFGrammarParser.parse(stream);
 
-			Assertions.assertNull(grammar.getFileDefinition().headerField());
+			Assertions.assertEquals("FamilyLegacyFile", grammar.getFileDefinition().name());
 			Assertions.assertEquals("HeaderRecord", grammar.getHeaderType().getName());
+			Assertions.assertEquals("Record", grammar.getFileDefinition().recordsField().type().getName());
+			Assertions.assertEquals(Cardinality.ZERO_OR_MORE, grammar.getFileDefinition().recordsField().cardinality());
 			Assertions.assertNotNull(grammar.getType("HeaderRecord"));
 		}
 	}

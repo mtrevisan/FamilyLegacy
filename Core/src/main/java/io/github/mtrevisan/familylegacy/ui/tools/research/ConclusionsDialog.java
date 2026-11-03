@@ -76,7 +76,7 @@ public final class ConclusionsDialog extends JDialog{
 
 
 	public ConclusionsDialog(final ToolContext context){
-		super(context.owner(), "Conclusions", ModalityType.APPLICATION_MODAL);
+		super(context.owner(), I18N.t("dialog.conclusions.title"), ModalityType.APPLICATION_MODAL);
 
 		this.context = context;
 

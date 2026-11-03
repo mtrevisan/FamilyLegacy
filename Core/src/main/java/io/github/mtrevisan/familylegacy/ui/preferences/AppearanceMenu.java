@@ -28,14 +28,16 @@ import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import org.apache.commons.lang3.Strings;
 
 import javax.swing.ButtonGroup;
+import javax.swing.JFileChooser;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JSeparator;
+import javax.swing.event.MenuEvent;
+import javax.swing.event.MenuListener;
 import java.awt.Desktop;
-import java.awt.Font;
 import java.awt.Window;
 import java.nio.file.Path;
 import java.util.Locale;
@@ -83,6 +85,7 @@ public final class AppearanceMenu{
 		final JMenu menu = new JMenu(I18N.t("menu.appearance"));
 		menu.add(createLanguageMenu(owner));
 		menu.add(createFontMenu(owner));
+		menu.add(createMediaPathsMenu(owner));
 		menu.add(new JSeparator());
 		menu.add(createOpenPreferencesItem(owner));
 		return menu;
@@ -133,34 +136,75 @@ public final class AppearanceMenu{
 	 *                          Font submenu
 	 * ====================================================================== */
 
-	private static JMenu createFontMenu(final Window owner){
-		final JMenu fontMenu = new JMenu(I18N.t("menu.appearance.font"));
+	/* ======================================================================
+	 *                          Media paths submenu
+	 * ====================================================================== */
+
+	private static JMenu createMediaPathsMenu(final Window owner){
+		final JMenu menu = new JMenu(I18N.t("menu.appearance.media_paths"));
+		final MediaPathDisplay current = AppPreferences.getInstance().mediaPathDisplay();
 		final ButtonGroup group = new ButtonGroup();
 
-		// "Default" restores the L&F font.
-		final Font saved = AppearanceManager.savedFont();
-		final JRadioButtonMenuItem defaultItem =
-			new JRadioButtonMenuItem(I18N.t("checkbox.default"), saved == null);
-		defaultItem.addActionListener(a -> AppearanceManager.applyFont(null));
-		group.add(defaultItem);
-		fontMenu.add(defaultItem);
+		addMediaPathItem(menu, group, owner, MediaPathDisplay.FULL, "menu.appearance.media_paths.full", current);
+		addMediaPathItem(menu, group, owner, MediaPathDisplay.FILE_NAME, "menu.appearance.media_paths.file_name", current);
+		addMediaPathItem(menu, group, owner, MediaPathDisplay.RELATIVE_TO_BASE, "menu.appearance.media_paths.relative", current);
 
-		fontMenu.add(new JSeparator());
+		menu.add(new JSeparator());
+		final JMenuItem baseDirectory = new JMenuItem(I18N.t("menu.appearance.media_paths.base_directory"));
+		baseDirectory.addActionListener(a -> chooseMediaBaseDirectory(owner));
+		menu.add(baseDirectory);
+		final JMenuItem fileDirectory = new JMenuItem(I18N.t("menu.appearance.media_paths.file_directory"));
+		fileDirectory.addActionListener(a -> AppPreferences.getInstance().setMediaBaseDirectory(null));
+		menu.add(fileDirectory);
 
-		final String savedFamily = (saved != null? saved.getFamily(): null);
-		final String[] families = AppearanceManager.availableFontFamilies();
+		//tell which directory is in use, every time the submenu is opened
+		menu.addMenuListener(new MenuListener(){
+			@Override
+			public void menuSelected(final MenuEvent e){
+				final String chosen = AppPreferences.getInstance().mediaBaseDirectory();
+				final String inUse = MediaPathDisplay.baseDirectory();
+				baseDirectory.setToolTipText(inUse != null
+					? I18N.tf((chosen != null? "menu.appearance.media_paths.in_use.chosen": "menu.appearance.media_paths.in_use.file"),
+					inUse)
+					: I18N.t("menu.appearance.media_paths.in_use.none"));
+				fileDirectory.setEnabled(chosen != null);
+			}
 
-		for(final String family : families){
-			final Font preview = new Font(family, Font.PLAIN, 12);
-			final JRadioButtonMenuItem item =
-				new JRadioButtonMenuItem(family, family.equalsIgnoreCase(savedFamily));
-			// Preview the font by setting it on the menu item itself.
-			item.setFont(preview);
-			item.addActionListener(a -> AppearanceManager.applyFont(preview));
-			group.add(item);
-			fontMenu.add(item);
-		}
-		return fontMenu;
+			@Override
+			public void menuDeselected(final MenuEvent e){}
+
+			@Override
+			public void menuCanceled(final MenuEvent e){}
+		});
+		return menu;
+	}
+
+	private static void addMediaPathItem(final JMenu menu, final ButtonGroup group, final Window owner,
+			final MediaPathDisplay display, final String key, final MediaPathDisplay current){
+		final JRadioButtonMenuItem item = new JRadioButtonMenuItem(I18N.t(key), display == current);
+		item.addActionListener(a -> {
+			AppPreferences.getInstance().setMediaPathDisplay(display);
+			//the paths are relative to something: ask for it only if there is no open file to take it from
+			if(display == MediaPathDisplay.RELATIVE_TO_BASE && MediaPathDisplay.baseDirectory() == null)
+				chooseMediaBaseDirectory(owner);
+		});
+		group.add(item);
+		menu.add(item);
+	}
+
+	private static void chooseMediaBaseDirectory(final Window owner){
+		final JFileChooser chooser = new JFileChooser(MediaPathDisplay.baseDirectory());
+		chooser.setDialogTitle(I18N.t("menu.appearance.media_paths.base_directory.title"));
+		chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+		if(chooser.showOpenDialog(owner) == JFileChooser.APPROVE_OPTION)
+			AppPreferences.getInstance().setMediaBaseDirectory(chooser.getSelectedFile().getAbsolutePath());
+	}
+
+
+	private static JMenuItem createFontMenu(final Window owner){
+		final JMenuItem item = new JMenuItem(I18N.t("menu.appearance.font") + "...");
+		item.addActionListener(a -> FontChooserDialog.show(owner));
+		return item;
 	}
 
 

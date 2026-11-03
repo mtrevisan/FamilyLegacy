@@ -29,6 +29,9 @@ import io.github.mtrevisan.familylegacy.io.model.readers.date.TemporalSpan;
 import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Rectangle;
+import java.time.LocalDate;
+import java.time.YearMonth;
+import java.time.temporal.JulianFields;
 import java.util.List;
 import java.util.Map;
 
@@ -46,6 +49,8 @@ public final class TemporalInteractionHandler{
 
 	/** Tolerance, in pixels, applied to connection hit testing. */
 	private static final int CONNECTION_HIT_TOLERANCE = 4;
+	/** Tolerance, in pixels, on each side of a band: a historic event with a single date is a line. */
+	private static final int BAND_HIT_TOLERANCE = 2;
 
 
 	private TemporalInteractionHandler(){
@@ -86,7 +91,7 @@ public final class TemporalInteractionHandler{
 					if(rect == null)
 						continue;
 					rect.x += contentBounds.x;
-					if(rect.contains(x, y))
+					if(TemporalSpanRenderer.hitBounds(rect, candidate.span()).contains(x, y))
 						return new TemporalProjectionRef.EntryRef(row.entity(), candidate);
 				}
 			}
@@ -99,7 +104,21 @@ public final class TemporalInteractionHandler{
 				return new TemporalProjectionRef.ConnectionRef(connection);
 		}
 
-		return null;
+		// 3. Context bands (the background): the narrowest one if more overlap
+		TemporalContextBand narrowest = null;
+		long narrowestWidth = Long.MAX_VALUE;
+		for(final TemporalContextBand band : model.bands()){
+			final Rectangle rect = axis.spanToRect(band.span(), contentBounds.y, contentBounds.height);
+			if(rect == null)
+				continue;
+			rect.x += contentBounds.x;
+			rect.grow(BAND_HIT_TOLERANCE, 0);
+			if(rect.contains(x, y) && rect.width < narrowestWidth){
+				narrowest = band;
+				narrowestWidth = rect.width;
+			}
+		}
+		return (narrowest != null? new TemporalProjectionRef.BandRef(narrowest): null);
 	}
 
 	/**
@@ -133,6 +152,15 @@ public final class TemporalInteractionHandler{
 				sb.append("<br>Role: ").append(connection.role());
 			sb.append("<br>Status: ").append(connection.span().status());
 			sb.append("<br>").append(describeSpan(connection.span()));
+			sb.append("<br><i>Double-click to edit</i>");
+			return sb.append("</html>").toString();
+		}
+		if(ref instanceof TemporalProjectionRef.BandRef bandRef){
+			final TemporalContextBand band = bandRef.band();
+			sb.append("<b>").append(band.label().isEmpty()? band.kind(): band.label()).append("</b>");
+			if(!band.kind().isEmpty() && !band.kind().equals(band.label()))
+				sb.append("<br>Type: ").append(band.kind());
+			sb.append("<br>").append(describeSpan(band.span()));
 			sb.append("<br><i>Double-click to edit</i>");
 			return sb.append("</html>").toString();
 		}
@@ -180,15 +208,33 @@ public final class TemporalInteractionHandler{
 		if(span == null)
 			return StringUtils.EMPTY;
 
-		if(span.isPoint()){
-			final NormalizedDate start = span.start();
-			final String calendar = (start.isGregorian()? StringUtils.EMPTY: " (" + start.calendar() + ")");
-			final String approx = (start.approximate()? " ~": StringUtils.EMPTY);
-			return "Date: " + start.jdn() + approx + calendar;
-		}
-		final String startText = (span.start() != null? Long.toString(span.start().jdn()): "(open)");
-		final String endText = (span.end() != null? Long.toString(span.end().jdn()): "(open)");
+		if(span.isPoint())
+			return "Date: " + formatDate(span.start());
+
+		final String startText = (span.start() != null && span.start().jdn() != Long.MIN_VALUE? formatDate(span.start()): "(open)");
+		final String endText = (span.end() != null && span.end().jdn() != Long.MAX_VALUE? formatDate(span.end()): "(open)");
 		return span.kind() + ": " + startText + " .. " + endText + " [" + span.status() + "]";
+	}
+
+	/** @return	The date as it was written, if known, otherwise as the Gregorian date at its precision (year, month or day). */
+	static String formatDate(final NormalizedDate date){
+		String text = date.originalText();
+		if(StringUtils.isBlank(text)){
+			final long jdn = date.jdn();
+			if(jdn <= -1_000_000_000L || jdn >= 1_000_000_000L)
+				text = Long.toString(jdn);
+			else{
+				final LocalDate day = LocalDate.MIN.with(JulianFields.JULIAN_DAY, jdn);
+				text = switch(date.precision()){
+					case DAY -> day.toString();
+					case MONTH -> YearMonth.from(day).toString();
+					case YEAR -> Integer.toString(day.getYear());
+					case DECADE -> (Math.floorDiv(day.getYear(), 10) * 10) + "s";
+					case CENTURY -> (Math.floorDiv(day.getYear(), 100) + 1) + "th century";
+				};
+			}
+		}
+		return text + (date.approximate()? " ~": StringUtils.EMPTY) + (date.isGregorian()? StringUtils.EMPTY: " (" + date.calendar() + ")");
 	}
 
 }

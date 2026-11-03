@@ -78,7 +78,7 @@ public final class EventManagementDialog extends JDialog{
 
 
 	public EventManagementDialog(final ToolContext context){
-		super(context.owner(), "Manage Events", ModalityType.APPLICATION_MODAL);
+		super(context.owner(), I18N.t("dialog.events.title"), ModalityType.APPLICATION_MODAL);
 
 		this.context = context;
 

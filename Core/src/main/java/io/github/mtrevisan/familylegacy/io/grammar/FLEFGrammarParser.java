@@ -70,6 +70,7 @@ import java.util.Map;
  * <pre>
  * grammar      := (fileDef | aliasDef | enumDef | structDef | recordDef | oneofAliasDef)*
  * fileDef      := 'file' IDENT '{' IDENT ('*' | '+')? '}'
+ *               | IDENT ':=' IDENT IDENT ('*' | '+' | '?')?   (a header followed by the records)
  *               | 'file' IDENT structBody   (legacy layout, with the fields 'header' and 'records')
  * aliasDef     := 'alias' IDENT '=' type
  * enumDef      := 'enum' IDENT '{' identList '}' ('|' IDENT)?
@@ -111,6 +112,7 @@ public final class FLEFGrammarParser{
 	private static final String TAG_COMMA = ",";
 	private static final String TAG_COLON = ":";
 	private static final String TAG_EQUALS = "=";
+	private static final String TAG_DEFINED_AS = ":=";
 	private static final String TAG_PIPE = "|";
 	private static final String TAG_CARDINALITY_ZERO_OR_ONE = "?";
 	private static final String TAG_CARDINALITY_ZERO_OR_MORE = "*";
@@ -227,7 +229,7 @@ public final class FLEFGrammarParser{
 				}
 				else if(SINGLE_CHAR_TOKENS.indexOf(c) != -1){
 					final String twoChars = line.substring(i, Math.min(i + 2, length));
-					if(twoChars.equals(NOT_EQUALS) || twoChars.equals(GREATER_THAN_OR_EQUALS)
+					if(twoChars.equals(NOT_EQUALS) || twoChars.equals(TAG_DEFINED_AS) || twoChars.equals(GREATER_THAN_OR_EQUALS)
 							|| twoChars.equals(LESS_THAN_OR_EQUALS) || twoChars.equals(EQUALS)){
 						result.add(new Token(twoChars, lineNumber));
 
@@ -335,7 +337,17 @@ public final class FLEFGrammarParser{
 				case TAG_ENUM -> parseTopLevelEnum(types);
 				case TAG_STRUCT -> parseTopLevelStruct(types);
 				case TAG_RECORD -> parseTopLevelRecord(types);
-				default -> parseIdentifierLedStatement(types);
+				default -> {
+					//`FileName := HeaderType RecordType*`
+					if(position + 1 < tokens.size() && TAG_DEFINED_AS.equals(tokens.get(position + 1).text())){
+						if(fileDef != null)
+							warnings.add("Line " + peekToken().line() + ": multiple file definitions found, keeping the last one");
+
+						fileDef = parseFileProduction();
+					}
+					else
+						parseIdentifierLedStatement(types);
+				}
 			}
 		}
 
@@ -362,6 +374,33 @@ public final class FLEFGrammarParser{
 			// Be lenient: treat `Name = <type>` as an alias even without the `alias` keyword.
 			putType(types, nameTok.text(), parseType(), nameTok.line());
 	}
+
+	// `FileName := HeaderType RecordType ('*' | '+')?`: exactly one header followed by the records
+	private FileDefinition parseFileProduction(){
+		final String name = next();
+		expect(TAG_DEFINED_AS);
+		final TypeDefinition headerType = parseType();
+		final TypeDefinition recordType = parseType();
+		Cardinality cardinality = Cardinality.REQUIRED;
+		if(peekIs(TAG_CARDINALITY_ZERO_OR_MORE)){
+			next();
+
+			cardinality = Cardinality.ZERO_OR_MORE;
+		}
+		else if(peekIs(TAG_CARDINALITY_ONE_OR_MORE)){
+			next();
+
+			cardinality = Cardinality.ONE_OR_MORE;
+		}
+		else if(peekIs(TAG_CARDINALITY_ZERO_OR_ONE)){
+			next();
+
+			cardinality = Cardinality.OPTIONAL;
+		}
+		return new FileDefinition(name, new FieldDefinition(FIELD_HEADER, headerType, Cardinality.REQUIRED),
+			new FieldDefinition(FIELD_RECORDS, recordType, cardinality));
+	}
+
 
 	// `file FileName { Record+ }` (a plain list of records, the header being one of them), or the legacy
 	// `file FileName { header: Header, records*: Record }`

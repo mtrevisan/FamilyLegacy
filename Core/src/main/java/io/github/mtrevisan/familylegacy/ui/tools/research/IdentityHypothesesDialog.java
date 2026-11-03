@@ -76,7 +76,7 @@ public final class IdentityHypothesesDialog extends JDialog{
 
 
 	public IdentityHypothesesDialog(final ToolContext context){
-		super(context.owner(), "Identity Hypothesis", ModalityType.APPLICATION_MODAL);
+		super(context.owner(), I18N.t("dialog.identity_hypothesis.title"), ModalityType.APPLICATION_MODAL);
 
 		this.context = context;
 

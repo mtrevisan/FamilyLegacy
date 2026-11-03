@@ -81,7 +81,7 @@ public final class ResearchActivitiesDialog extends JDialog{
 
 
 	public ResearchActivitiesDialog(final ToolContext context){
-		super(context.owner(), "Research Activities", ModalityType.APPLICATION_MODAL);
+		super(context.owner(), I18N.t("dialog.research_activities.title"), ModalityType.APPLICATION_MODAL);
 
 		this.context = context;
 

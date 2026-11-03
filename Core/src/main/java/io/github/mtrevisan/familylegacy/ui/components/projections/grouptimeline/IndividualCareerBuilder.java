@@ -25,15 +25,21 @@
 package io.github.mtrevisan.familylegacy.ui.components.projections.grouptimeline;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.NormalizedDate;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.TemporalSpan;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.ui.components.projections.temporal.TemporalEntityRef;
 import io.github.mtrevisan.familylegacy.ui.components.projections.temporal.TemporalEntityType;
+import io.github.mtrevisan.familylegacy.ui.components.projections.temporal.TemporalEntry;
 import io.github.mtrevisan.familylegacy.ui.components.projections.temporal.TemporalExtractor;
 import io.github.mtrevisan.familylegacy.ui.components.projections.temporal.TemporalIndices;
 import io.github.mtrevisan.familylegacy.ui.components.projections.temporal.TemporalProjectionModel;
 import io.github.mtrevisan.familylegacy.ui.components.projections.temporal.TemporalRow;
+import io.github.mtrevisan.familylegacy.ui.components.projections.temporal.TemporalTrack;
+import io.github.mtrevisan.familylegacy.ui.components.projections.temporal.TemporalTrackType;
 import io.github.mtrevisan.familylegacy.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RelationshipHandler;
@@ -56,7 +62,8 @@ import java.util.Map;
  * </ol>
  * A group row has a single {@link io.github.mtrevisan.familylegacy.ui.components.projections.temporal.TemporalTrackType#MEMBERSHIP}
  * track with a bar for each period (more than one if the individual left and came back, or changed role), labeled and colored by the
- * role. A membership with no date is kept along the whole axis, labeled "dates unknown".
+ * role. A side of a membership that has no date is the limit of the life of the individual (birth, death), as far as it is known: a
+ * membership with no date at all spans the whole life, and is labeled "dates unknown".
  * <p>
  * Records that are not visible under the current privacy policy are left out.
  */
@@ -100,19 +107,101 @@ public final class IndividualCareerBuilder{
 			GroupTimelineBuilder.label(IndividualHandler.getInstance(), model, individual));
 		final TemporalRow individualRow = new TemporalRow(individualRef, extractor.extractTracks(individualRef), 0, false);
 
-		final List<TemporalRow> rows = new ArrayList<>();
+		final List<TemporalRow> all = new ArrayList<>();
 		if(individualRow.hasEntries())
-			rows.add(individualRow);
-		rows.addAll(GroupTimelineBuilder.toRows(groups));
-		if(rows.isEmpty())
+			all.add(individualRow);
+		all.addAll(GroupTimelineBuilder.toRows(groups));
+		if(all.isEmpty())
 			return TemporalProjectionModel.empty();
+
+		final List<TemporalRow> rows = withinLife(all, individualRow);
 
 		final List<TemporalRow> ordered = new ArrayList<>(rows.size());
 		for(int i = 0; i < rows.size(); i ++)
 			ordered.add(rows.get(i)
 				.withSortOrder(i));
-		return new TemporalProjectionModel(ordered, List.of(), List.of(), List.of(), GroupTimelineBuilder.domainStart(ordered),
-			GroupTimelineBuilder.domainEnd(ordered));
+		final NormalizedDate start = GroupTimelineBuilder.domainStart(ordered);
+		final NormalizedDate end = GroupTimelineBuilder.domainEnd(ordered);
+		return new TemporalProjectionModel(ordered, List.of(), GroupTimelineBuilder.contextBands(model, start, end), List.of(), start, end);
+	}
+
+	/**
+	 * A side of a membership that no date tells is the limit of the life of the individual: it cannot begin before the birth nor go on
+	 * after the death. A side with no such limit (no birth, or no death, known) is left as it is.
+	 */
+	private static List<TemporalRow> withinLife(final List<TemporalRow> rows, final TemporalRow individualRow){
+		NormalizedDate birth = null;
+		NormalizedDate death = null;
+		for(final TemporalTrack track : individualRow.tracks())
+			for(final TemporalEntry entry : track.entries()){
+				if(birth == null && entry.hasType(EventReader.ENUM_TYPE_BIRTH))
+					birth = entry.span().start();
+				else if(death == null && entry.hasType(EventReader.ENUM_TYPE_DEATH))
+					death = entry.span().effectiveEnd();
+			}
+		//with no known birth (death) the life is taken as beginning (ending) with the earliest (latest) date known of the individual
+		if(birth == null || death == null){
+			NormalizedDate earliest = null;
+			NormalizedDate latest = null;
+			for(final TemporalTrack track : individualRow.tracks()){
+				if(track.type() == TemporalTrackType.CONTEXT)
+					continue;
+
+				for(final TemporalEntry entry : track.entries()){
+					final NormalizedDate start = entry.span().start();
+					final NormalizedDate end = entry.span().effectiveEnd();
+					if(isDated(start) && (earliest == null || start.compareTo(earliest) < 0))
+						earliest = start;
+					if(isDated(end) && (latest == null || end.compareTo(latest) > 0))
+						latest = end;
+					if(isDated(start) && (latest == null || start.compareTo(latest) > 0))
+						latest = start;
+				}
+			}
+			if(birth == null)
+				birth = earliest;
+			if(death == null)
+				death = latest;
+		}
+		if(birth == null && death == null)
+			return rows;
+
+		final List<TemporalRow> result = new ArrayList<>(rows.size());
+		for(final TemporalRow row : rows){
+			final List<TemporalTrack> tracks = new ArrayList<>(row.tracks().size());
+			for(final TemporalTrack track : row.tracks()){
+				final List<TemporalEntry> entries = new ArrayList<>(track.entries().size());
+				for(final TemporalEntry entry : track.entries())
+					//the historical context is not of the individual
+					entries.add(track.type() == TemporalTrackType.CONTEXT || entry.hasType(EventReader.ENUM_TYPE_BIRTH)
+						|| entry.hasType(EventReader.ENUM_TYPE_DEATH)? entry: withinLife(entry, birth, death));
+				tracks.add(new TemporalTrack(track.type(), entries, track.label()));
+			}
+			result.add(new TemporalRow(row.entity(), tracks, row.sortOrder(), row.collapsed()));
+		}
+		return result;
+	}
+
+	private static TemporalEntry withinLife(final TemporalEntry entry, final NormalizedDate birth, final NormalizedDate death){
+		final TemporalSpan span = entry.span();
+		if(span.isPoint())
+			return entry;
+
+		NormalizedDate start = span.start();
+		NormalizedDate end = span.end();
+		if(birth != null && !isDated(start))
+			start = birth;
+		if(death != null && !isDated(end))
+			end = death;
+		if((start == span.start() && end == span.end()) || (start != null && end != null && start.compareTo(end) > 0))
+			return entry;
+
+		return new TemporalEntry(new TemporalSpan(span.kind(), start, end, span.status()), entry.label(), entry.type(), entry.role(),
+			entry.sourceRecord(), entry.evidence());
+	}
+
+	private static boolean isDated(final NormalizedDate date){
+		return (date != null && date.jdn() != Long.MIN_VALUE && date.jdn() != Long.MAX_VALUE);
 	}
 
 }

@@ -84,7 +84,7 @@ public final class DateCalculatorDialog extends JDialog{
 
 
 	public DateCalculatorDialog(final ToolContext context){
-		super(context.owner(), "Date Calculator", ModalityType.APPLICATION_MODAL);
+		super(context.owner(), I18N.t("dialog.date_calculator.title"), ModalityType.APPLICATION_MODAL);
 
 		ageResultField.setEditable(false);
 		intervalResultField.setEditable(false);

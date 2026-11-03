@@ -250,9 +250,8 @@ public final class StatisticsDialog extends JDialog{
 		final JTable sourcesTable = new JTable(sourcesModel);
 		sourcesTable.setRowHeight(22);
 		final TableColumnModel sourcesColumnModel = sourcesTable.getColumnModel();
-		sourcesColumnModel.getColumn(0).setPreferredWidth(80);
-		sourcesColumnModel.getColumn(1).setPreferredWidth(560);
-		sourcesColumnModel.getColumn(2).setPreferredWidth(80);
+		sourcesColumnModel.getColumn(0).setPreferredWidth(560);
+		sourcesColumnModel.getColumn(1).setPreferredWidth(80);
 		sourcesTable.setDefaultRenderer(Object.class, new LinkCellRenderer(true));
 		sourcesTable.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
 		attachSelectionSummary(sourcesTable, COUNT_COLUMN_SOURCES, stats.coverage().totalCitations());
@@ -270,8 +269,7 @@ public final class StatisticsDialog extends JDialog{
 		final JScrollPane coverageScroll = new JScrollPane(coverageTable);
 		coverageScroll.setBorder(BorderFactory.createTitledBorder(I18N.t("border.coverage")));
 		final JScrollPane sourcesScroll = new JScrollPane(sourcesTable);
-		sourcesScroll.setBorder(BorderFactory.createTitledBorder(
-			"Most cited sources (double-click to open)"));
+		sourcesScroll.setBorder(BorderFactory.createTitledBorder("Most cited sources (double-click to open)"));
 
 		final JPanel tables = new JPanel(new GridLayout(2, 1, 8, 8));
 		tables.add(coverageScroll);
@@ -509,7 +507,7 @@ public final class StatisticsDialog extends JDialog{
 
 	private static final class SourceUseTableModel extends AbstractTableModel{
 
-		private static final String[] COLUMNS = {"Id", "Source", "Citations"};
+		private static final String[] COLUMNS = {"Source", "Citations"};
 		private final List<Statistics.SourceUse> rows;
 
 		SourceUseTableModel(final List<Statistics.SourceUse> rows){
@@ -539,9 +537,8 @@ public final class StatisticsDialog extends JDialog{
 		public Object getValueAt(final int r, final int c){
 			final Statistics.SourceUse s = rows.get(r);
 			return switch(c){
-				case 0 -> s.sourceId();
-				case 1 -> s.displayName();
-				case 2 -> GUIHelper.format("%,d", s.count());
+				case 0 -> s.displayName();
+				case 1 -> GUIHelper.format("%,d", s.count());
 				default -> null;
 			};
 		}

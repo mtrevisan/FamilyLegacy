@@ -61,7 +61,7 @@ public final class IndividualCareerPanel extends JPanel{
 		filters.onChange(projectionPanel::loadProjection);
 
 		setLayout(new BorderLayout());
-		add(filters.yearControl(), BorderLayout.NORTH);
+		add(filters.topBar(), BorderLayout.NORTH);
 		add(projectionPanel, BorderLayout.CENTER);
 		add(filters.legend(), BorderLayout.SOUTH);
 	}

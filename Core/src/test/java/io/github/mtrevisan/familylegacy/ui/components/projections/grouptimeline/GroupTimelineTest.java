@@ -33,6 +33,11 @@ import io.github.mtrevisan.familylegacy.ui.components.projections.temporal.Tempo
 import io.github.mtrevisan.familylegacy.ui.components.projections.temporal.TemporalProjectionModel;
 import io.github.mtrevisan.familylegacy.ui.components.projections.temporal.TemporalRoleColors;
 import io.github.mtrevisan.familylegacy.ui.components.projections.temporal.TemporalRow;
+import io.github.mtrevisan.familylegacy.ui.components.projections.temporal.TemporalContextBand;
+import io.github.mtrevisan.familylegacy.ui.components.projections.temporal.TemporalEntityRef;
+import io.github.mtrevisan.familylegacy.ui.components.projections.temporal.TemporalEntityType;
+import io.github.mtrevisan.familylegacy.ui.components.projections.temporal.TemporalInteractionHandler;
+import io.github.mtrevisan.familylegacy.ui.components.projections.temporal.TemporalProjectionRef;
 import io.github.mtrevisan.familylegacy.ui.components.projections.temporal.TemporalSpanRenderer;
 import io.github.mtrevisan.familylegacy.ui.components.projections.temporal.TemporalTrackType;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
@@ -234,6 +239,103 @@ class GroupTimelineTest{
 	}
 
 	@Test
+	void aSideOfAMembershipWithNoDateIsTheLimitOfTheLifeOfTheIndividual(){
+		final FLEFModel model = new FLEFParser().parse(HEADER + person("I1", "Elena") + group("G1", "Club") + group("G2", "Choir")
+			+ lifeEvent("E1", "birth", "1850-03-04") + lifeEvent("E2", "death", "1920-05-06")
+			+ lifeParticipation("EP1", "E1") + lifeParticipation("EP2", "E2")
+			+ "individual_attribute A1 {\n\tindividual.individual I1\n\ttype relocation\n\tvalue Venezia\n\tvalid_from.value.point.value.full_date 1890-01-01\n}\n"
+			+ membership("R1", "individual I1", "G1", "group_member", "child", null, null)
+			+ membership("R2", "individual I1", "G2", "group_member", "singer", "1880-01-01", null));
+
+		final TemporalProjectionModel career = IndividualCareerBuilder.build(model, "I1");
+
+		final TemporalEntry undated = memberships(row(career, "G1")).getFirst();
+		final long birth = undated.span().start().jdn();
+		final long death = undated.span().end().jdn();
+		Assertions.assertTrue(birth > Long.MIN_VALUE && death < Long.MAX_VALUE, "limited by the life, not unbounded: " + undated.span());
+		Assertions.assertTrue(undated.label().contains(GroupTimelineBuilder.DATES_UNKNOWN), "it is still said that the dates are unknown");
+
+		final TemporalEntry open = memberships(row(career, "G2")).getFirst();
+		Assertions.assertTrue(open.span().start().jdn() > birth, "the start that is told is kept");
+		Assertions.assertEquals(death, open.span().end().jdn(), "the open end is the death");
+
+		final TemporalEntry relocation = row(career, "I1").findTrack(TemporalTrackType.ATTRIBUTE).entries().getFirst();
+		Assertions.assertEquals(death, relocation.span().end().jdn(), "an attribute with no end lasts to the death too");
+	}
+
+	private static String historicEvent(final String id, final String title, final String date){
+		return "historic_event " + id + " {\n\ttype war\n\ttitle " + title + "\n\tdate.value.point.value.full_date " + date + "\n}\n";
+	}
+
+	@Test
+	void theViewsShowTheHistoricalContextThatOverlapsTheirAxis(){
+		final FLEFModel model = new FLEFParser().parse(FLEF + historicEvent("H1", "Great War", "1905-06-01")
+			+ historicEvent("H2", "Old War", "1500-01-01"));
+
+		final TemporalProjectionModel timeline = GroupTimelineBuilder.build(model, "G1");
+		final TemporalProjectionModel career = IndividualCareerBuilder.build(model, "I1");
+
+		Assertions.assertEquals(List.of("Great War"), timeline.bands().stream().map(band -> band.label()).toList(),
+			"the one inside the axis, not the one centuries before it");
+		Assertions.assertEquals(List.of("Great War"), career.bands().stream().map(band -> band.label()).toList());
+		Assertions.assertEquals(GroupTimelineBuilder.domainStart(timeline.rows()).jdn(), timeline.domainStart().jdn(),
+			"the context does not stretch the axis");
+	}
+
+	@Test
+	void theContextCanBeHiddenAndComesBackWithTheModel() throws InvocationTargetException, InterruptedException{
+		final FLEFModel model = new FLEFParser().parse(FLEF + historicEvent("H1", "Great War", "1905-06-01"));
+
+		final GroupViewFilters filters = new GroupViewFilters();
+		final TemporalProjectionModel shown = filters.apply(() -> GroupTimelineBuilder.build(model, "G1"));
+		Assertions.assertEquals(1, shown.bands().size());
+
+		javax.swing.JCheckBox box = null;
+		for(final java.awt.Component component : filters.topBar().getComponents())
+			if(component instanceof javax.swing.JCheckBox check)
+				box = check;
+		Assertions.assertNotNull(box, "the box of the context is in the bar above the view");
+		box.doClick();
+		Assertions.assertTrue(filters.apply(() -> GroupTimelineBuilder.build(model, "G1")).bands().isEmpty());
+		box.doClick();
+		Assertions.assertEquals(1, filters.apply(() -> GroupTimelineBuilder.build(model, "G1")).bands().size());
+	}
+
+	@Test
+	void aBandHasATooltipAndIsHitWhereItIsDrawn(){
+		final FLEFModel model = new FLEFParser().parse(FLEF + historicEvent("H1", "Great War", "1905-06-01"));
+		final TemporalContextBand band = GroupTimelineBuilder.build(model, "G1").bands().getFirst();
+
+		final String text = TemporalInteractionHandler.buildTooltip(new TemporalProjectionRef.BandRef(band));
+
+		Assertions.assertTrue(text.contains("Great War") && text.contains("1905-06-01"), text);
+	}
+
+	@Test
+	void withoutADateOfDeathTheBarsEndWithTheLastDateKnown(){
+		final FLEFModel model = new FLEFParser().parse(HEADER + person("I1", "Elena") + group("G1", "Club")
+			+ lifeEvent("E1", "birth", "1850-03-04") + lifeEvent("E2", "marriage", "1880-05-06")
+			+ "event E3 {\n\ttype death\n}\n"
+			+ lifeParticipation("EP1", "E1") + lifeParticipation("EP2", "E2") + lifeParticipation("EP3", "E3")
+			+ membership("R1", "individual I1", "G1", "group_member", "wife", null, null));
+
+		final TemporalProjectionModel career = IndividualCareerBuilder.build(model, "I1");
+
+		final TemporalEntry undated = memberships(row(career, "G1")).getFirst();
+		final TemporalEntry marriage = row(career, "I1").findTrack(TemporalTrackType.EVENT).entries().stream()
+			.filter(entry -> entry.hasType("marriage")).findFirst().orElseThrow();
+		Assertions.assertEquals(marriage.span().start().jdn(), undated.span().end().jdn(), "it ends with the last date known");
+	}
+
+	private static String lifeEvent(final String id, final String type, final String date){
+		return "event " + id + " {\n\ttype " + type + "\n\tdate.value.point.value.full_date " + date + "\n}\n";
+	}
+
+	private static String lifeParticipation(final String id, final String eventId){
+		return "event_participation " + id + " {\n\tevent " + eventId + "\n\tparticipant.individual I1\n\trole principal\n}\n";
+	}
+
+	@Test
 	void theCareerOfWhatIsNotAnIndividualOrHasNoGroupIsEmpty(){
 		final FLEFModel model = new FLEFParser().parse(FLEF);
 
@@ -371,6 +473,30 @@ class GroupTimelineTest{
 
 		Assertions.assertEquals(TemporalSpan.STATUS_ENDED,
 			memberships(row(IndividualCareerBuilder.build(model, "I1"), "G1")).getFirst().span().status());
+	}
+
+	@Test
+	void aDiamondCanBePointedAtWhereItIsDrawn(){
+		final TemporalSpan point = TemporalSpan.point(NormalizedDate.exact(2_415_021L, DatePrecision.DAY));
+		final java.awt.Rectangle rect = new java.awt.Rectangle(100, 20, 1, 14);
+
+		final java.awt.Rectangle hit = TemporalSpanRenderer.hitBounds(rect, point);
+
+		Assertions.assertTrue(hit.contains(100 + 4, 27), "beside the one pixel of the day, still on the diamond");
+		Assertions.assertTrue(hit.contains(100, 27 - 5));
+		Assertions.assertFalse(hit.contains(100 + 40, 27));
+		Assertions.assertSame(rect, TemporalSpanRenderer.hitBounds(rect, TemporalSpan.spanning(NormalizedDate.exact(2_415_021L,
+			DatePrecision.DAY), NormalizedDate.exact(2_416_000L, DatePrecision.DAY))), "a bar is as the axis gives it");
+	}
+
+	@Test
+	void theTooltipOfADateTellsTheDateNotTheDayNumber(){
+		final String text = TemporalInteractionHandler.buildTooltip(new TemporalProjectionRef.EntryRef(
+			TemporalEntityRef.of(TemporalEntityType.INDIVIDUAL, new FLEFParser().parse(FLEF).getRecordById("I1"), "Anna"),
+			new TemporalEntry(TemporalSpan.point(NormalizedDate.exact(2_415_021L, DatePrecision.DAY)), "birth", "birth", "child", null, null)));
+
+		Assertions.assertTrue(text.contains("1900-01-01"), text);
+		Assertions.assertFalse(text.contains("2415021"), text);
 	}
 
 	@Test

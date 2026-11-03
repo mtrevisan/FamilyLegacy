@@ -40,6 +40,7 @@ import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyResolver;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
+import io.github.mtrevisan.familylegacy.ui.components.projections.common.RecordTooltips;
 import io.github.mtrevisan.familylegacy.ui.components.projections.common.BoxPanelType;
 import io.github.mtrevisan.familylegacy.ui.components.projections.common.PlaceholderImages;
 import io.github.mtrevisan.familylegacy.ui.handlers.ConclusionHandler;
@@ -154,6 +155,7 @@ public final class IndividualData{
 		}
 		else
 			nameText = NO_DATA;
+		nameTooltip = RecordTooltips.append(nameTooltip, RecordTooltips.audit(individual));
 
 		// Check for parent relationships
 		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
@@ -262,7 +264,9 @@ public final class IndividualData{
 			tooltip.add(deathInfo != null? deathInfo.date(): NO_DATA);
 		}
 		infoText = sj.toString();
-		infoTooltip = tooltip.toString();
+		infoTooltip = RecordTooltips.appendParagraph(tooltip.toString(),
+			evidenceLine("tooltip.evidence.birth", birthInfo),
+			evidenceLine("tooltip.evidence.death", deathInfo));
 		this.birthDate = normalizedBirthDate;
 
 		extractPreferredImage(individual, model);
@@ -392,7 +396,7 @@ public final class IndividualData{
 		final NormalizedDate representativeDate = (temporalSpan != null? temporalSpan.representativeDate(): null);
 		final String place = PlaceCitationReader.extractPlace(event, model);
 		final String cause = (EventReader.isTypeDeath(type)? EventReader.extractCauseReason(event): null);
-		return new EventInfo(type, dateOriginalText, date, year, representativeDate, place, cause, eventId);
+		return new EventInfo(type, dateOriginalText, date, year, representativeDate, place, cause, eventId, event);
 	}
 
 	/**
@@ -464,6 +468,11 @@ public final class IndividualData{
 	}
 
 
+	private static String evidenceLine(final String key, final EventInfo info){
+		final String evidence = (info != null? RecordTooltips.evidence(info.record()): null);
+		return (evidence != null? I18N.tf(key, evidence): null);
+	}
+
 	private record EventInfo(
 		String type,
 		String rawDate,
@@ -472,7 +481,8 @@ public final class IndividualData{
 		NormalizedDate representativeDate,
 		String place,
 		String deathCause,
-		String eventId
+		String eventId,
+		FLEFRecord record
 	){
 		public boolean matchesId(final String id){
 			return eventId != null && eventId.equals(id);

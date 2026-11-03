@@ -212,10 +212,14 @@ Stato rispetto alle idee originali:
   `CitationAnalysisTool` e le gestioni di fonti/repository/media). Bassa priorità, tranne la provenance delle citazioni.
 - Luoghi: DONE albero della gerarchia (`PlaceHierarchyPanel`, `PlaceHierarchyService`); TODO timeline delle giurisdizioni
   (Utile: si appoggia sui `valid_from`/`valid_to` delle relazioni fra luoghi, già nel protocollo).
-- Contesto: DONE vista ad albero (`ContextBoardDialog`); TODO impact network (bassa priorità), timeline contestuale (la banda
-  c'è già, `TemporalContextBand`: basta collegare il `TemporalProjectionPanel`).
-- Meta-informazioni: DONE icone di privacy (`PrivacyBadge`); TODO badge di evidenza (`EvidenceQualifiers`) e tooltip di audit
-  sui box (Utile, economico).
+- Contesto: DONE vista ad albero (`ContextBoardDialog`); DONE timeline contestuale: le viste di gruppo (Group timeline e Group career)
+  disegnano dietro le righe gli eventi storici e le norme culturali che si sovrappongono all'asse (`GroupTimelineBuilder.contextBands`),
+  con il nome sulla banda, un tooltip (doppio clic apre l'editor) e la casella "Context" per nasconderle; non allargano l'asse.
+  Senza filtro per luogo: una banda con luogo appare per chiunque. TODO impact network (bassa priorità).
+- Meta-informazioni: DONE icone di privacy (`PrivacyBadge`); DONE tooltip di audit (creazione e ultima modifica) sul nome di
+  individui e gruppi e tooltip delle date con le qualifiche di evidenza (`EvidenceQualifiers`: tipo di informazione, di fonte, di
+  prova) della nascita e della morte (`RecordTooltips`, `IndividualData`, `GroupData`; `RecordTooltipsTest`). TODO un badge
+  grafico (icona) per l'evidenza: oggi è solo testo del tooltip, e solo per nascita e morte.
 
 
 ## Per coprire il protocollo FLEF
@@ -265,10 +269,12 @@ Stato rispetto alle idee originali:
 
 ## Per usabilità generale
 
-1. PARZIALE Ricerca globale: `JumpToIndividualDialog` (Ctrl+J) cerca solo individui e gruppi; non c'è Ctrl+F né ricerca
-   per luogo, fonte, id su tutti i tipi di record. TODO Utile (alta priorità): esiste già `components/searches`
-   (`SearchCriteria`, `SearchMatcher`, `RecordFilterPanel`) e la palette dell'assistente (`FuzzyMatcher`): riusarli invece di
-   scrivere una terza ricerca.
+1. DONE Ricerca globale: Ctrl+J (`JumpToIndividualDialog`) cerca individui e gruppi; Ctrl+F, menu Navigazione > "Find record"
+   (`FindRecordDialog`, `FamilyLegacyFrame.openFindDialog`) cerca in tutti i tipi con una strategia di ricerca
+   (`SearchService.searchableHandlers()`: 16 tipi, con i filtri propri di ciascuno, nel `RecordSelectionDialog` già esistente).
+   Un individuo (e un gruppo nell'ego network) si mostra nelle viste, come Ctrl+J; ogni altro record si apre nel suo editor e, se
+   salvato, le viste si ricostruiscono. `FindRecordTest`. TODO Non cerca nel testo di note, citazioni, nomi di luoghi annidati (solo
+   il testo che le strategie già confrontano).
 2. DONE Cronologia di navigazione (`NavigationHistory`, Ctrl+Left / Ctrl+Right, "Cancella cronologia").
 3. DONE Segnalibri / viste salvate (`bookmarks`, menu Segnalibri).
 4. DONE Undo/redo applicativo: oggi Ctrl+Z / Ctrl+Y agiscono solo dentro ai dialog dei record (`UndoController` in
@@ -282,7 +288,7 @@ Stato rispetto alle idee originali:
    strip, timeline, ego network (layout); verificato su albero e Sugiyama. Resta commentato il tooltip dell'unione
    (`PartnersData.marriageTooltip`).
 9. DONE Scorciatoie da tastiera: F2 modifica, Canc elimina, Ctrl+X sposta, Ctrl+Z/Y, Ctrl+1/2/3/4 cambio proiezione, Ctrl+L,
-   Ctrl+T, Ctrl+J, Ctrl+Shift+A (assistente), F11, F1, frecce per navigare nel grafo (`SpatialNavigation`). TODO Mancano Ctrl+F (vedi sopra), Ctrl+Shift+S): Utile, ma prima verificare come funziona oggi il salvataggio.
+   Ctrl+T, Ctrl+J, Ctrl+Shift+A (assistente), F11, F1, frecce per navigare nel grafo (`SpatialNavigation`). DONE Ctrl+F (ricerca globale). TODO Manca Ctrl+Shift+S: Utile, ma prima verificare come funziona oggi il salvataggio.
 10. DONE tooltip sui campi non ovvi di Confidence, EvidenceQualifiers, ContextImpact, Conclusion (preferred assertion),
    IdentityHypothesis, CulturalNorm, ResearchActivity (result, search_scope, ...), ResearchQuestion/Task, e "quando usare
    questo record?" sulla prima scheda dei dialog e nella lista dei tipi di `RecordSelectionDialog` (chiavi `record.usage.*`).
@@ -317,7 +323,7 @@ Stato rispetto alle idee originali:
 ## Priorità
 
 1. DONE Collegare `TemporalProjectionPanel` e `SocialNetworkPanel` allo switcher.
-2. Ricerca globale (Ctrl+F) su tutti i tipi di record, riusando `components/searches`.
+2. DONE Ricerca globale (Ctrl+F, "Find record") su tutti i tipi di record, riusando `components/searches`.
 3. Export GEDCOM (poi PNG di una vista).
 4. DONE Calcolo di F/R e report delle unioni consanguinee.
 5. Filtri dell'ego network.

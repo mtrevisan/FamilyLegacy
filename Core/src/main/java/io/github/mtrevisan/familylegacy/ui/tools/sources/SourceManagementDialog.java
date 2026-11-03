@@ -77,7 +77,7 @@ public final class SourceManagementDialog extends JDialog{
 
 
 	public SourceManagementDialog(final ToolContext context){
-		super(context.owner(), "Manage Sources", ModalityType.APPLICATION_MODAL);
+		super(context.owner(), I18N.t("search.title.manage.sources"), ModalityType.APPLICATION_MODAL);
 
 		this.context = context;
 

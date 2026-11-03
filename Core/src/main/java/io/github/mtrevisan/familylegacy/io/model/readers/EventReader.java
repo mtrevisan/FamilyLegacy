@@ -40,7 +40,7 @@ import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
  *     // life
  *     birth, adoption, death, cremation, burial, coroner_report, illness, hospitalization, medical_procedure,
  *     // family
- *     engagement, marriage_bann, marriage_contract, marriage_license, marriage_settlement, marriage, divorce_filed, divorce_decree, divorce, annulment,
+ *     engagement, marriage_bann, marriage_contract, marriage_license, marriage_settlement, marriage, separation, divorce_filed, divorce_decree, divorce, annulment,
  *     // achievements
  *     education, graduation, retirement, military_induction, military_muster_roll, military_service, military_award, military_release, military_discharge, military_resignation, military_retirement, prison, pardon, jury_duty, honor, bankruptcy,
  *     // national / government
@@ -92,6 +92,7 @@ public final class EventReader{
 	public static final String ENUM_TYPE_MARRIAGE_LICENSE = "marriage_license";
 	public static final String ENUM_TYPE_MARRIAGE_SETTLEMENT = "marriage_settlement";
 	public static final String ENUM_TYPE_MARRIAGE = "marriage";
+	public static final String ENUM_TYPE_SEPARATION = "separation";
 	public static final String ENUM_TYPE_DIVORCE_FILED = "divorce_filed";
 	public static final String ENUM_TYPE_DIVORCE_DECREE = "divorce_decree";
 	public static final String ENUM_TYPE_DIVORCE = "divorce";
@@ -112,7 +113,7 @@ public final class EventReader{
 		// Family
 		"engagement",
 		ENUM_TYPE_MARRIAGE_BANN, ENUM_TYPE_MARRIAGE_CONTRACT, ENUM_TYPE_MARRIAGE_LICENSE, ENUM_TYPE_MARRIAGE_SETTLEMENT,
-		ENUM_TYPE_MARRIAGE, ENUM_TYPE_DIVORCE_FILED, ENUM_TYPE_DIVORCE_DECREE,
+		ENUM_TYPE_MARRIAGE, ENUM_TYPE_SEPARATION, ENUM_TYPE_DIVORCE_FILED, ENUM_TYPE_DIVORCE_DECREE,
 		ENUM_TYPE_DIVORCE, ENUM_TYPE_ANNULMENT,
 		// Achievements
 		"education", "graduation", "retirement",
@@ -128,7 +129,7 @@ public final class EventReader{
 	};
 
 	public static final String[] DIVORCE_TYPES = {
-		ENUM_TYPE_DIVORCE_FILED, ENUM_TYPE_DIVORCE_DECREE, ENUM_TYPE_DIVORCE, ENUM_TYPE_ANNULMENT
+		ENUM_TYPE_SEPARATION, ENUM_TYPE_DIVORCE_FILED, ENUM_TYPE_DIVORCE_DECREE, ENUM_TYPE_DIVORCE, ENUM_TYPE_ANNULMENT
 	};
 
 	/** Core life cycle events. */

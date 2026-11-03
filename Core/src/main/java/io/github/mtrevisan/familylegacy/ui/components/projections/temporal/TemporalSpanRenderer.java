@@ -165,6 +165,22 @@ public final class TemporalSpanRenderer{
 	 *                          Bodies
 	 * ====================================================================== */
 
+	/**
+	 * @param rect  The rectangle of the span, as the axis gives it.
+	 * @param span  The span.
+	 * @return	The area that answers to the mouse: the one drawn (a diamond is wider than the day it marks, that is one pixel or so), so
+	 * 	that every marker can be pointed at.
+	 */
+	public static Rectangle hitBounds(final Rectangle rect, final TemporalSpan span){
+		if(span == null || !span.isPoint() || span.start().isReduced())
+			return rect;
+
+		final int half = Math.max(MARKER_MIN_SIZE, rect.height / 2);
+		final int cx = rect.x + rect.width / 2;
+		final int cy = rect.y + rect.height / 2;
+		return new Rectangle(cx - half, cy - half, 2 * half + 1, 2 * half + 1);
+	}
+
 	private static void drawPointMarker(final Graphics2D g, final Rectangle rect, final Color color){
 		final int cx = rect.x + rect.width / 2;
 		final int cy = rect.y + rect.height / 2;

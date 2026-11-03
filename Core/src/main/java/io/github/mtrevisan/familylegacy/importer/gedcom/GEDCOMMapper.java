@@ -55,7 +55,7 @@ public final class GEDCOMMapper{
 	// ---- Tipi di evento definiti da FLEF (EventRecord.type) ----
 	private static final Set<String> FLEF_EVENT_TYPES = Set.of("birth", "adoption", "death", "cremation", "burial",
 		"coroner_report", "illness", "hospitalization", "medical_procedure", "engagement", "marriage_bann", "marriage_contract",
-		"marriage_license", "marriage_settlement", "marriage", "divorce_filed", "divorce_decree", "divorce", "annulment", "education",
+		"marriage_license", "marriage_settlement", "marriage", "separation", "divorce_filed", "divorce_decree", "divorce", "annulment", "education",
 		"graduation", "retirement", "military_induction", "military_muster_roll", "military_service", "military_award",
 		"military_release", "military_discharge", "military_resignation", "military_retirement", "prison", "pardon", "jury_duty",
 		"honor", "bankruptcy", "immigration", "naturalization", "emigration", "deportation", "internment", "liberation",
@@ -75,6 +75,7 @@ public final class GEDCOMMapper{
 		Map.entry("marriage_banns", "marriage_bann"),
 		Map.entry("engaged", "engagement"),
 		Map.entry("divorce_filing", "divorce_filed"),
+		Map.entry("separated", "separation"),
 		Map.entry("award", "honor"),
 		Map.entry("decoration", "honor"),
 		Map.entry("incarceration", "prison"),
@@ -113,7 +114,8 @@ public final class GEDCOMMapper{
 		Map.entry("marriages_count", "marriages_count"),
 		Map.entry("religion", "religion"),
 		Map.entry("language", "language"),
-		Map.entry("literacy", "literacy"));
+		Map.entry("literacy", "literacy"),
+		Map.entry("apprenticeship", "apprenticeship"));
 	/** EVEN types of a family that are attributes of the family: they become a {@code GroupAttributeRecord} of this type. */
 	public static final Map<String, String> GROUP_ATTRIBUTE_FACT_TYPES = Map.of(
 		"family_address", "residence",

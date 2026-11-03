@@ -65,7 +65,7 @@ import java.io.IOException;
  *     deportation, internment, liberation, emancipation, relocation, emigration,
  *     census, deed, escrow, chancery, will, probate,
  *     engagement, marriage_bann, marriage_contract, marriage_license, marriage_settlement,
- *     marriage, divorce_filed, divorce_decree, divorce, annulment
+ *     marriage, separation, divorce_filed, divorce_decree, divorce, annulment
  *   } | Text
  *   description?: Text
  *   date?: DateStructure

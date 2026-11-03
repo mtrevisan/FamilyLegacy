@@ -37,6 +37,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 
 /**
@@ -181,6 +182,28 @@ public final class AppearanceManager{
 	 * sorted alphabetically. Useful to populate the font chooser.
 	 */
 	public static String[] availableFontFamilies(){
+		return preloadFontFamilies().join().clone();
+	}
+
+	private static CompletableFuture<String[]> fontFamilies;
+
+	/**
+	 * Starts enumerating the installed fonts in a background thread (idempotent). Call it once the main
+	 * window is visible: enumerating the fonts while the look-and-feel is still creating its own fonts
+	 * changes which faces the menus and labels get (they turned bold).
+	 */
+	public static synchronized CompletableFuture<String[]> preloadFontFamilies(){
+		if(fontFamilies == null)
+			fontFamilies = CompletableFuture.supplyAsync(AppearanceManager::enumerateFontFamilies,
+				runnable -> {
+					final Thread thread = new Thread(runnable, "font-preload");
+					thread.setDaemon(true);
+					thread.start();
+				});
+		return fontFamilies;
+	}
+
+	private static String[] enumerateFontFamilies(){
 		final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
 		final Set<String> names = new HashSet<>(Arrays.asList(
 			ge.getAvailableFontFamilyNames(Locale.ROOT)));

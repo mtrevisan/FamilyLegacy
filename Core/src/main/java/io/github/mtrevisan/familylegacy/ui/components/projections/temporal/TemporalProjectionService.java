@@ -375,6 +375,11 @@ public final class TemporalProjectionService{
 	 *                       Bands
 	 * ====================================================================== */
 
+	/** @return	The bands of the visible historic events and cultural norms that have a date, in any order. */
+	public List<TemporalContextBand> contextBands(){
+		return buildBands();
+	}
+
 	private List<TemporalContextBand> buildBands(){
 		final List<TemporalContextBand> bands = new ArrayList<>();
 		collectHistoricEventBands(bands);

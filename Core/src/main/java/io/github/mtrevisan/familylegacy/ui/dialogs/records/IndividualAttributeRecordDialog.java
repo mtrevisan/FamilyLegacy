@@ -62,7 +62,8 @@ import java.io.IOException;
  *   individual: Xref&lt;IndividualRecord&gt;
  *   type: enum {
  *     characteristic, residence, occupation, possession, military_rank, caste, social_class, ethnicity, citizenship,
- *     nationality, national_id, title, children_count, marriages_count, religion, language, literacy, education
+ *     nationality, national_id, title, children_count, marriages_count, religion, language, literacy, education,
+ *     apprenticeship
  *   } | Text
  *   value?: Text
  *   valid_from?: DateStructure

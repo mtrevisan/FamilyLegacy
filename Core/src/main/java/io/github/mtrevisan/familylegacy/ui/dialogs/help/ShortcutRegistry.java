@@ -98,6 +98,7 @@ public final class ShortcutRegistry{
 	public static final ShortcutDefinition NAV_FORWARD = register(I18N.t("menu.navigate"), I18N.t("menu.navigate.forward"), KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, MENU_MASK), "Ctrl+Right");
 	public static final ShortcutDefinition NAV_JUMP_TO_INDIVIDUAL = register(I18N.t("menu.navigate"), I18N.t("menu.navigate.jump.to.individual"), KeyStroke.getKeyStroke(KeyEvent.VK_J, MENU_MASK), "Ctrl+J");
 	public static final ShortcutDefinition NAV_JUMP_TO_INDIVIDUAL_OR_GROUP = register(I18N.t("menu.navigate"), I18N.t("menu.navigate.jump.to.individual.or.group"), KeyStroke.getKeyStroke(KeyEvent.VK_J, MENU_MASK), "Ctrl+J");
+	public static final ShortcutDefinition NAV_FIND_RECORD = register(I18N.t("menu.navigate"), I18N.t("menu.navigate.find.record"), KeyStroke.getKeyStroke(KeyEvent.VK_F, MENU_MASK), "Ctrl+F");
 
 	public static final ShortcutDefinition TREE_TOGGLE_LAYOUT = register(I18N.t("menu.view.biological_tree"), I18N.t("menu.view.biological_tree.toggle.layout"), KeyStroke.getKeyStroke(KeyEvent.VK_L, MENU_MASK), "Ctrl+L");
 	public static final ShortcutDefinition TREE_TOGGLE_LIFESPAN_EVENTS_STRIP = register(I18N.t("menu.view.biological_tree"), I18N.t("menu.view.biological_tree.toggle.lifespan.strip"), KeyStroke.getKeyStroke(KeyEvent.VK_T, MENU_MASK), "Ctrl+T");

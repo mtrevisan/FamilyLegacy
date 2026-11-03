@@ -33,12 +33,14 @@ import io.github.mtrevisan.familylegacy.io.model.readers.date.TemporalSpan;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
+import io.github.mtrevisan.familylegacy.ui.components.projections.temporal.TemporalContextBand;
 import io.github.mtrevisan.familylegacy.ui.components.projections.temporal.TemporalEntityRef;
 import io.github.mtrevisan.familylegacy.ui.components.projections.temporal.TemporalEntityType;
 import io.github.mtrevisan.familylegacy.ui.components.projections.temporal.TemporalEntry;
 import io.github.mtrevisan.familylegacy.ui.components.projections.temporal.TemporalExtractor;
 import io.github.mtrevisan.familylegacy.ui.components.projections.temporal.TemporalIndices;
 import io.github.mtrevisan.familylegacy.ui.components.projections.temporal.TemporalProjectionModel;
+import io.github.mtrevisan.familylegacy.ui.components.projections.temporal.TemporalProjectionService;
 import io.github.mtrevisan.familylegacy.ui.components.projections.temporal.TemporalRow;
 import io.github.mtrevisan.familylegacy.ui.components.projections.temporal.TemporalTrack;
 import io.github.mtrevisan.familylegacy.ui.components.projections.temporal.TemporalTrackType;
@@ -169,7 +171,9 @@ public final class GroupTimelineBuilder{
 		for(int i = 0; i < rows.size(); i ++)
 			ordered.add(rows.get(i)
 				.withSortOrder(i));
-		return new TemporalProjectionModel(ordered, List.of(), List.of(), List.of(), domainStart(ordered), domainEnd(ordered));
+		final NormalizedDate start = domainStart(ordered);
+		final NormalizedDate end = domainEnd(ordered);
+		return new TemporalProjectionModel(ordered, List.of(), contextBands(model, start, end), List.of(), start, end);
 	}
 
 
@@ -236,6 +240,29 @@ public final class GroupTimelineBuilder{
 			//the identifier will do
 		}
 		return record.getId();
+	}
+
+
+	/**
+	 * The historical context of the view: the historic events and the cultural norms that overlap the axis, the earliest first. They are
+	 * the background of the bars and do not stretch the axis.
+	 *
+	 * @param model  the model
+	 * @param start  the first date of the axis ({@code null} if there is none)
+	 * @param end    the last date of the axis
+	 * @return	The bands to draw behind the rows.
+	 */
+	static List<TemporalContextBand> contextBands(final FLEFModel model, final NormalizedDate start, final NormalizedDate end){
+		if(start == null || end == null)
+			return List.of();
+
+		final List<TemporalContextBand> bands = new ArrayList<>();
+		for(final TemporalContextBand band : new TemporalProjectionService(model).contextBands())
+			if(band.span().maxJdn() >= start.jdn() && band.span().minJdn() <= end.jdn())
+				bands.add(band);
+		bands.sort(Comparator.comparingLong((TemporalContextBand band) -> band.span().minJdn())
+			.thenComparing(TemporalContextBand::label, String.CASE_INSENSITIVE_ORDER));
+		return bands;
 	}
 
 
