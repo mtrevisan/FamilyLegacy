@@ -107,3 +107,6 @@
 --add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.ui.components.searches.service=ALL-UNNAMED
 --add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.ui.components.searches.service=org.junit.platform.commons
 --add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.ui.components.searches.service=org.junit.jupiter.api
+--add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.ui.tools.reports=ALL-UNNAMED
+--add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.ui.tools.reports=org.junit.platform.commons
+--add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.ui.tools.reports=org.junit.jupiter.api

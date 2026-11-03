@@ -103,6 +103,9 @@ final class IndividualLifeStorySection implements SectionBuilder{
 	/* ----- Preferred image ------------------------------------------------- */
 
 	private void writePreferredImage(final List<ReportSection> out){
+		if(!ctx.config.includePictures())
+			return;
+
 		final FLEFRecord preferred = FLEFRecordHelper.findChild(ctx.root, IndividualReader.TAG_PREFERRED_IMAGE);
 		if(preferred == null)
 			return;
@@ -407,7 +410,9 @@ final class IndividualLifeStorySection implements SectionBuilder{
 		for(final FLEFRecord rel : declared)
 			writeRelationship(out, rel);
 
-		final List<FLEFRecord> memberships = ctx.index.groupMembershipsOf(ctx.root);
+		final List<FLEFRecord> memberships = (ctx.config.groups()
+			? ctx.index.groupMembershipsOf(ctx.root)
+			: List.of());
 		if(!memberships.isEmpty()){
 			out.add(new ReportSection.Heading(3, ctx.labels.sections().groupMemberships()));
 			final List<String> items = new ArrayList<>();

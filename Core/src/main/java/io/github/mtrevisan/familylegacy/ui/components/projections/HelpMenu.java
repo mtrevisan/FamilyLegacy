@@ -25,7 +25,8 @@
 package io.github.mtrevisan.familylegacy.ui.components.projections;
 
 import io.github.mtrevisan.familylegacy.ui.dialogs.help.DiagnosticsDialog;
-import io.github.mtrevisan.familylegacy.ui.dialogs.help.HelpViewerDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.help.HelpBrowserDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.help.HelpTopics;
 import io.github.mtrevisan.familylegacy.ui.dialogs.help.KeyboardShortcutsDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.help.ShortcutRegistry;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
@@ -58,7 +59,7 @@ final class HelpMenu{
 
 		final JMenuItem helpContents = new JMenuItem(ShortcutRegistry.HELP_CONTENTS.action(), KeyEvent.VK_H);
 		helpContents.setAccelerator(ShortcutRegistry.HELP_CONTENTS.keyStroke());
-		helpContents.addActionListener(e -> HelpViewerDialog.show(frame, I18N.t("menu.help.help.contents"), HelpContent.HELP_CONTENTS_HTML));
+		helpContents.addActionListener(e -> HelpBrowserDialog.show(frame, HelpTopics.INDEX));
 		menu.add(helpContents);
 
 		final JMenuItem shortcuts = new JMenuItem(I18N.t("menu.help.keyboard.shortcuts"), KeyEvent.VK_K);
@@ -66,11 +67,6 @@ final class HelpMenu{
 		menu.add(shortcuts);
 
 		menu.add(new JSeparator());
-
-		final JMenuItem userGuide = new JMenuItem(I18N.t("menu.help.user.guide"), KeyEvent.VK_G);
-		userGuide.addActionListener(e -> HelpViewerDialog.show(frame,
-			I18N.t("menu.help.user.guide.title"), HelpContent.USER_GUIDE_HTML));
-		menu.add(userGuide);
 
 		final JMenuItem onlineDocs = new JMenuItem(I18N.t("menu.help.online.documentation"), KeyEvent.VK_D);
 		onlineDocs.addActionListener(e -> openUrl(HelpContent.DOCUMENTATION_URL));

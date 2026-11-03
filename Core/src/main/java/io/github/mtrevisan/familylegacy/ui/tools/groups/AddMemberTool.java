@@ -34,13 +34,11 @@ import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolOperation;
 
-import javax.swing.JOptionPane;
-import java.awt.Component;
 import java.awt.Window;
 
 
 /**
- * Opens the "add member" workflow for the currently selected group.
+ * Opens the editor of the currently selected group on the memberships it has, where the member is added.
  */
 public final class AddMemberTool implements ToolOperation{
 
@@ -62,74 +60,11 @@ public final class AddMemberTool implements ToolOperation{
 		if(!dialog.isSaved())
 			return;
 
-		final FLEFRecord memberRecord = dialog.getRecord();
-		if(memberRecord == null)
-			return;
-
-		final Component sourcePanel = context.selectedComponent();
-		final String targetId = context.selectedEntityId();
+		//the memberships were saved by the editor (the member is added in the "Group Memberships" panel): the tree has only to be
+		//rebuilt from the updated model, keeping the current root and scroll position
 		final ProjectionMutator mutator = context.mutator();
-		executeAddMemberWorkflow(owner, model, sourcePanel, targetId, memberRecord, mutator);
-	}
-
-	public static void executeAddMemberWorkflow(final Window owner, final FLEFModel model,
-			final Component sourcePanel, final String targetId, final FLEFRecord memberRecord,
-			final ProjectionMutator mutator){
-		if(memberRecord == null || memberRecord.getId() == null)
-			return;
-
-		final String memberId = memberRecord.getId();
-		if(memberId.equals(targetId)){
-			JOptionPane.showMessageDialog(owner,
-				I18N.t("confirmation.add.member.message"),
-				I18N.t("confirmation.add.member.title"), JOptionPane.WARNING_MESSAGE);
-
-			return;
-		}
-
-//		final List<RelationshipTypeSelectionDialog.Item> items = new ArrayList<>();
-//		final FLEFRecord targetRecord = model.getRecordById(targetId);
-//		final String targetLabel = (targetRecord != null
-//			? GroupReader.extractPrimaryFullname(targetRecord) + " [" + targetId + "]"
-//			: targetId);
-//		items.add(new RelationshipTypeSelectionDialog.Item(targetId, targetLabel,
-//			RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD));
-//
-//		final String partnerId = findShownPartner(sourcePanel, targetId);
-//		if(partnerId != null){
-//			final FLEFRecord partnerRecord = model.getRecordById(partnerId);
-//			final String partnerLabel = (partnerRecord != null
-//				? GroupReader.extractPrimaryFullname(partnerRecord) + " [" + partnerId + "]"
-//				: partnerId);
-//			items.add(new RelationshipTypeSelectionDialog.Item(partnerId, partnerLabel,
-//				RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD));
-//		}
-//
-//		final List<String> selectedTypes = RelationshipTypeSelectionDialog.selectRelationshipType(
-//			owner, items, RelationshipReader.FAMILY, null, model);
-//		if(selectedTypes == null || selectedTypes.isEmpty())
-//			return;
-//
-//		// Route the mutation through the projection mutator, so that the
-//		// shared repository and the tree service caches are invalidated
-//		// (notifyRelationshipAdded) and the incremental update path is
-//		// exercised. Writing through the model directly would leave the
-//		// caches stale and the tree would keep showing the old structure.
-//		final String firstType = selectedTypes.get(0);
-//		if(mutator != null)
-//			mutator.createRelationship(memberId, targetId, firstType);
-//		else
-//			GroupHelper.createRelationship(memberId, targetId, firstType, RelationshipHandler.ID_PREFIX, model);
-//
-//		if(partnerId != null && selectedTypes.size() > 1){
-//			final String secondType = selectedTypes.get(1);
-//			mutator.createRelationship(memberId, partnerId, secondType);
-//		}
-//
-//		// Force the tree to rebuild from the updated model. The focus id is
-//		// the target that the user acted on; passing it keeps the current
-//		// root and scroll position stable.
-//		mutator.invalidateAndNotifyTreeChanged(targetId);
+		if(mutator != null)
+			mutator.invalidateAndNotifyTreeChanged(context.selectedEntityId());
 	}
 
 	@Override

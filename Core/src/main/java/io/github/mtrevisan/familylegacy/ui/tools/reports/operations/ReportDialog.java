@@ -528,7 +528,8 @@ public final class ReportDialog extends JDialog{
 	 */
 	private static ReportConfig tailorConfigFor(final ReportType type, final ReportConfig base){
 		return switch(type){
-			case INDIVIDUAL, GROUP, ANCESTOR, DESCENDANT, RELATIONSHIP -> base;
+			case INDIVIDUAL, GROUP, ANCESTOR, DESCENDANT -> base;
+			case RELATIONSHIP -> withNarrative(base, base.introduction(), false, false, false, true, true);
 			case BIBLIOGRAPHY -> withSourcesFocus(base);
 			case RESEARCH_PROGRESS -> withResearchFocus(base);
 		};
@@ -573,7 +574,6 @@ public final class ReportDialog extends JDialog{
 			base.historicEvents(),
 			base.repositories(),
 			base.eventFullParticipants(),
-			base.dateProvenance(),
 			base.coverageReport(),
 			base.timeline(),
 			base.indexIndividuals(),
@@ -616,7 +616,6 @@ public final class ReportDialog extends JDialog{
 			/*historicEvents*/        false,
 			/*repositories*/          true,
 			/*eventFullParticipants*/ false,
-			/*dateProvenance*/        true,
 			/*coverageReport*/        base.coverageReport(),
 			/*timeline*/              false,
 			/*indexIndividuals*/      false,
@@ -659,7 +658,6 @@ public final class ReportDialog extends JDialog{
 			/*historicEvents*/        true,
 			/*repositories*/          true,
 			/*eventFullParticipants*/ false,
-			/*dateProvenance*/        true,
 			/*coverageReport*/        true,
 			/*timeline*/              base.timeline(),
 			/*indexIndividuals*/      true,

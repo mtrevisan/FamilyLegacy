@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.ui.tools.tools;
 
 import io.github.mtrevisan.familylegacy.io.FLEFWriter;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.ui.helpers.AtomicFileWriter;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolOperation;
@@ -37,7 +38,6 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -98,7 +98,7 @@ public final class BackupTool implements ToolOperation{
 		try{
 			final String content = FLEFWriter.createCompact()
 				.writeToString(model);
-			Files.writeString(target.toPath(), content, StandardCharsets.UTF_8);
+			AtomicFileWriter.write(target.toPath(), content, StandardCharsets.UTF_8);
 
 			JOptionPane.showMessageDialog(context.owner(),
 				I18N.l("dialog.backup.saved") + StringUtils.LF + target.getAbsolutePath(), I18N.t("dialog.backup.title"), JOptionPane.INFORMATION_MESSAGE);

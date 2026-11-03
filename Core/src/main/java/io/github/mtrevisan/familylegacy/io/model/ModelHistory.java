@@ -103,6 +103,8 @@ public final class ModelHistory{
 
 	private FLEFModel model;
 	private Snapshot baseline;
+	/** The state last written to a file, or loaded from it ({@code null}: what is in memory is not on any file). */
+	private Snapshot saved;
 	private final Deque<Step> undoStack = new ArrayDeque<>();
 	private final Deque<Step> redoStack = new ArrayDeque<>();
 	/** Told when the model changes: a step recorded, an undo or a redo done, the model replaced. */
@@ -120,7 +122,24 @@ public final class ModelHistory{
 		undoStack.clear();
 		redoStack.clear();
 		baseline = capture(model, null);
+		//a model that has just been bound is the one of the file it was read from
+		saved = baseline;
 		fireChanged();
+	}
+
+	/** Tells that the content of the model is now on a file: from here on, {@link #isModified()} compares with it. */
+	public void markSaved(){
+		saved = capture(model, baseline);
+	}
+
+	/** Tells that what is in memory is not on any file (for instance, a backup that has just been restored). */
+	public void markUnsaved(){
+		saved = null;
+	}
+
+	/** @return	{@code true} if the model differs from what was last saved or loaded (also if an edit has not become a step yet). */
+	public boolean isModified(){
+		return (saved == null || !isUnchanged(saved, model));
 	}
 
 	public void checkpoint(){

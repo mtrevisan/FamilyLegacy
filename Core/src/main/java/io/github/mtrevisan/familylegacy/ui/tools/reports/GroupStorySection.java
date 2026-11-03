@@ -103,6 +103,9 @@ final class GroupStorySection implements SectionBuilder{
 	/* ----- Preferred image ------------------------------------------------- */
 
 	private void writePreferredImage(final List<ReportSection> out, final FLEFModel model){
+		if(!ctx.config.includePictures())
+			return;
+
 		final FLEFRecord preferred = FLEFRecordHelper.findChild(ctx.root, GroupReader.TAG_PREFERRED_IMAGE);
 		if(preferred == null)
 			return;

@@ -465,179 +465,6 @@ Still to do: none of the five assistants listed here; what remains is in the "St
 Chronology, Conclusion, Relationship, Identity and Research Gap assistants are done), the selected record in the context (the views do
 not expose it yet), a visible category filter.
 
-Goal
-----
-Provide a context-sensitive command palette that exposes genealogical tools and diagnostics without cluttering the UI with buttons.
-
-The Research Assistant should behave similarly to:
-- VS Code Command Palette
-- JetBrains Search Everywhere
-- Copilot contextual actions
-
-Activation
-----------
-- Keyboard shortcut: Ctrl+Shift+A.
-- Accessible from anywhere in the application.
-- Opens as a modal/palette overlay.
-- Focus is immediately placed in a search input.
-- User can navigate entirely with the keyboard.
-
-Core Principle
---------------
-The Research Assistant is context-sensitive.
-
-It must inspect the current application context, including:
-- active view/panel
-- selected record
-- active editor
-- focused field
-- current record type
-- current selection
-
-and automatically offer only the most relevant actions.
-
-Architecture
-------------
-Create a pluggable action framework.
-
-Each assistant action should declare:
-- id
-- title
-- description
-- applicable contexts
-- execution handler
-
-The assistant must dynamically assemble the list of available actions.
-
-Categories
-----------
-Actions should be grouped by category:
-
-- Dates
-- Identity
-- Places
-- Sources
-- Relationships
-- Research
-- Conclusions
-- Context
-- Diagnostics
-
-The assistant should support:
-- fuzzy search
-- keyboard navigation
-- category filtering
-- action ranking based on context relevance
-
-Diagnostics Section
--------------------
-The assistant must also surface passive findings.
-
-Examples:
-
-Error:
-- Child born before parent.
-- Event after death.
-
-Warning:
-- Multiple birth events.
-- Possible duplicate individual.
-- Missing death information.
-
-Information:
-- Possible CulturalNorm applies.
-- Existing unresolved identity hypothesis.
-
-Diagnostics must be searchable alongside actions.
-
-Context Examples
-----------------
-
-When a DateStructure editor is active:
-
-Suggested actions:
-- Historical Date Assistant
-- Liturgical Date Calculator
-- Roman Calendar Converter
-- Venetian Calendar Converter
-- Florentine Calendar Converter
-- Pisan Calendar Converter
-- Relative Date Calculator
-- Age Estimator
-
-When an IndividualRecord is selected:
-
-Suggested actions:
-- Find Possible Duplicates
-- Check Chronology
-- Find Research Gaps
-- Find Conflicting Assertions
-- Create Conclusion Draft
-
-When a PlaceRecord is selected:
-
-Suggested actions:
-- Find Duplicate Places
-- Suggest Hierarchy
-- Suggest Successor Place
-- Suggest Place Relationships
-
-When a SourceCitation editor is active:
-
-Suggested actions:
-- Build Citation
-- Generate Extract
-- Open Crop Tool
-- Analyze Contradictory Evidence
-
-When a ConclusionRecord is selected:
-
-Suggested actions:
-- Analyze Evidence
-- Review Preferred Assertion
-- Find Related Conflicts
-
-Initial Assistant Actions
--------------------------
-
-Implement the following as independent actions:
-
-1. Historical Date Assistant
-2. Identity Assistant
-3. Research Gap Assistant
-4. Chronology Assistant
-5. Conclusion Assistant
-6. Research Planner Assistant
-7. Place Assistant
-8. Source Citation Assistant
-9. Context Assistant
-10. Relationship Assistant
-
-User Experience
----------------
-The assistant should present two sections:
-
-Actions
-- commands the user can execute
-
-Diagnostics
-- problems, warnings, and suggestions
-
-Example:
-
-Research Assistant
-────────────────────────
-
-Actions
-✓ Find Possible Duplicates
-✓ Create Conclusion Draft
-✓ Estimate Birth Year
-
-Diagnostics
-⚠ Multiple Birth Events
-⚠ Missing Death Event
-⚠ Unresolved Identity Hypothesis
-
 Data Safety Rules
 -----------------
 The assistant must never:
@@ -678,29 +505,6 @@ applied unless the user asks, the replacement of an existing date is confirmed, 
 Still to do: natural-language interpreter (Roman Kalends/Nones/Ides, "more veneto", "one hour after sunset" as text), age with a known
 birth to estimate the death date, regnal years.
 
-Goal:
-Help genealogists interpret historical date expressions and convert them into normalized FLEF dates.
-
-Capabilities:
-- Liturgical date interpretation.
-- Feast day interpretation.
-- Roman calendar expressions (Kalendae, Nonae, Idus).
-- Historical calendar conversion.
-- Venetian, Florentine and Pisan style support.
-- Easter-based calculations.
-- Relative date calculations.
-- Sunrise/sunset reasoning.
-- Age-based birth/death estimation.
-
-Requirements:
-- Never modify data automatically.
-- Present one or more candidate interpretations.
-- Explain assumptions and reasoning.
-- Allow applying the result to the current DateStructure.
-- Allow copying the explanation into notes.
-
-The assistant is an aid for historical interpretation, not an authority.
-
 ### DONE (core checks) Create an Identity Assistant for duplicate detection.
 
 Status: `ui/assistant/identity`. A diagnostic provider of the Research Assistant (category Identity): `IdentityChecker` (pure: turns
@@ -740,29 +544,6 @@ Still to do:
   people" action that starts the disproving conclusion is not there.
 - "Compare Side by Side" is not tested (it is a modal dialog); the rest of the actions is.
 
-Goal:
-Help the researcher discover possible identity hypotheses.
-
-Capabilities:
-- Compare names.
-- Compare locations.
-- Compare dates.
-- Compare relationships.
-- Compare occupations and attributes.
-- Compare source citations.
-
-Output:
-- Confidence score.
-- Similarity explanation.
-- Candidate records.
-
-Actions:
-- Create IdentityHypothesisRecord.
-- Ignore candidate.
-- Open side-by-side comparison.
-
-The assistant must never merge records automatically.
-The researcher always decides.
 
 ### DONE (core checks) Create a Research Gap Assistant.
 
@@ -810,49 +591,7 @@ Still to do:
   question to the tasks and activities that would follow.
 - The thresholds of the aggregation (25 findings, 200 listed) are not configurable.
 
-Goal:
-Identify likely missing information and incomplete research.
-
-Examples:
-- Person has birth but no death.
-- Children exist but no marriage is known.
-- Place is known but birth record is missing.
-- Census exists but residence history is incomplete.
-- Research question has no activities.
-- Identity hypothesis has no conclusion.
-
-Output:
-- Ranked list of potential research gaps.
-- Explanation for each suggestion.
-- Estimated usefulness.
-
-Actions:
-- Create ResearchTaskRecord.
-- Create ResearchQuestionRecord.
-- Ignore suggestion.
-
-This assistant must never create data automatically.
-
 ### DONE (core) Create a Source Citation Assistant.
-
-Goal:
-Reduce manual effort when creating citations.
-
-Capabilities:
-- Suggest repository citations.
-- Suggest locators.
-- Extract citation information from media metadata.
-- Build source citations from archival references.
-
-Examples:
-- Volume / page.
-- Film / frame.
-- Shelf mark.
-- Folio.
-- Entry number.
-
-Output:
-A pre-filled SourceCitation draft.
 
 Done (package `ui.assistant.citation`):
 - It is a contextual action (Ctrl+Shift+A in the editor of a source or repository citation, `CitationHost`), not a diagnostic provider.
@@ -867,8 +606,6 @@ Done (package `ui.assistant.citation`):
 Still to do: media metadata (EXIF, PDF properties, ISBN), suggesting whole repository citations (repository + locator) from the
 reference, a locator per kind of source (tuned on the media_type), learning the abbreviations of the user, a draft of the whole
 SourceCitation (extracts, stance).
-
-The user always confirms before saving.
 
 ### DONE (core checks) Create a Relationship Assistant.
 
@@ -914,24 +651,6 @@ Still to do:
 - The generic `spouse` is accepted between individuals, but `RelationshipReader.getValidTypes` (what the editor offers) does not list
   it: an imported marriage with the generic type has to be given a type to be saved again from the editor.
 
-Goal:
-Help researchers choose the correct relationship type.
-
-Capabilities:
-- Analyze participating individuals.
-- Analyze supporting evidence.
-- Detect possible conflicts.
-- Suggest child vs biological_child vs adoptive_child.
-- Suggest spouse vs civil_spouse vs religious_spouse.
-
-Warnings:
-- Existing conflicting parentage.
-- More than two biological parents.
-- Chronological inconsistencies.
-
-The assistant only suggests.
-It never creates relationships automatically.
-
 ### DONE (core checks) Create a Chronology Assistant.
 
 Status: `ui/assistant/chronology`. It is a diagnostic provider of the Research Assistant (category Diagnostics): `ChronologyChecker`
@@ -963,42 +682,7 @@ Still to do:
   snapshot (or a read lock) would be safer. No cache: a large file is read again at each opening.
 - Messages are English only (the UI bundle has no per-locale files yet).
 
-Goal:
-Detect chronological inconsistencies.
-
-Checks:
-- Child born before parent.
-- Parent too young.
-- Event after death.
-- Marriage before birth.
-- Impossible timelines.
-- Overlapping incompatible events.
-
-Output:
-- Error.
-- Warning.
-- Informational notice.
-
-The assistant must explain the reasoning behind each finding.
-
 ### DONE (core checks) Create a Place Assistant.
-
-Goal:
-Help normalize, deduplicate, and contextualize places.
-
-Capabilities:
-- Detect possible duplicate places.
-- Suggest place relationships.
-- Suggest administrative hierarchies.
-- Suggest successor_of relationships.
-- Suggest place citations.
-
-Examples:
-- Treviso -> Veneto.
-- Parish -> Diocese.
-- Historical jurisdiction changes.
-
-The assistant never modifies PlaceRecords automatically.
 
 Status: `ui/assistant/place`. A diagnostic provider of the Research Assistant (category Places): `PlaceChecker` (pure rules),
 `PlaceDataLoader`, `PlaceAssistantContributor`. Tested on hand-built data and on a model converted from GEDCOM.
@@ -1071,44 +755,8 @@ Still to do:
 - Same limits as the Chronology Assistant: the whole model is read at each opening, away from the event dispatch thread while the
   user may be editing; English messages only.
 
-Goal:
-Help researchers identify unresolved conflicts.
-
-Detect:
-- Multiple birth events.
-- Multiple death events.
-- Competing parentage.
-- Conflicting attributes.
-- Conflicting relationships.
-- Unresolved identity hypotheses.
-
-Suggest:
-- Creation of ConclusionRecord.
-- Candidate preferred assertion.
-- Records participating in the conflict.
-
-The generated conclusion is always a draft.
-The researcher must review and confirm it.
 
 ### DONE (core checks) Create a Context Assistant.
-
-Goal:
-Help researchers link cultural norms and historical events to conclusions.
-
-Capabilities:
-- Suggest relevant HistoricEventRecords.
-- Suggest relevant CulturalNormRecords.
-- Explain possible impacts.
-
-Examples:
-- War-related migrations.
-- Napoleonic legal reforms.
-- Naming conventions.
-- Inheritance customs.
-
-Suggest ContextImpactRecord drafts.
-
-Never create records automatically.
 
 Status: `ui/assistant/context`. A diagnostic provider of the Research Assistant (category Context): `ContextChecker` (pure rules),
 `ContextDataLoader`, `ContextAssistantContributor`. Tested on hand-built data and on a model converted from GEDCOM with a historic event
@@ -1134,26 +782,6 @@ and residences); a catalog of historic events and norms to import; the cultural 
 the weights are not calibrated.
 
 ### DONE (core checks) Create a Research Planner Assistant.
-
-Goal:
-Help researchers plan next steps.
-
-Input:
-- ResearchQuestion.
-- Existing sources.
-- Existing conclusions.
-- Existing activities.
-
-Output:
-Suggested ResearchTaskRecords.
-
-Examples:
-- Search marriage records.
-- Review parish baptisms.
-- Examine census records.
-- Contact archive.
-
-Tasks should be prioritized and justified.
 
 Status: `ui/assistant/planner`. A diagnostic provider of the Research Assistant (category Research): `PlannerChecker` (pure rules, on the
 data of the Gap Assistant: `GapData`, `GapDataLoader`, `GapDraft` and `CreateResearchDraftAction` are now public, and a question carries

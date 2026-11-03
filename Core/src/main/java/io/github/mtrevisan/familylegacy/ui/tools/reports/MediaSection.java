@@ -72,6 +72,9 @@ final class MediaSection implements SectionBuilder{
 
 
 	private void appendPreferredImage(final List<ReportSection> out){
+		if(!ctx.config.includePictures())
+			return;
+
 		final FLEFRecord preferred = FLEFRecordHelper.findChild(ctx.root, "preferred_image");
 		if(preferred == null)
 			return;
@@ -100,14 +103,19 @@ final class MediaSection implements SectionBuilder{
 			final String description = FLEFRecordHelper.getChildValue(doc, MediaReader.TAG_DESCRIPTION);
 			final String mapping = FLEFRecordHelper.getChildValue(doc, MediaReader.TAG_MAPPING);
 
-			try{
-				out.add(new ReportSection.Image(Path.of(uri),
-					description != null? description: docId));
+			//without pictures, the document is listed as a link to its file
+			final String link = "[" + ReportFormatters.escape(docId) + "](" + uri + ")";
+			if(ctx.config.includePictures()){
+				try{
+					out.add(new ReportSection.Image(Path.of(uri),
+						description != null? description: docId));
+				}
+				catch(final Exception ignored){
+					out.add(new ReportSection.Paragraph(link));
+				}
 			}
-			catch(final Exception ignored){
-				out.add(new ReportSection.Paragraph(
-					"[" + ReportFormatters.escape(docId) + "](" + uri + ")"));
-			}
+			else
+				out.add(new ReportSection.Paragraph(link));
 
 			if(ctx.config.includeDescriptions() && (description != null || mapping != null)){
 				final List<String> rows = new ArrayList<>();

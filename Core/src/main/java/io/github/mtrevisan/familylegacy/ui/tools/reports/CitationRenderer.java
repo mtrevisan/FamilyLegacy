@@ -41,8 +41,7 @@ import java.util.List;
 
 /**
  * Renders the "extra info" blocks attached to any record: notes, source
- * citations, evidence qualifiers, date provenance, privacy block and the
- * audit trail.
+ * citations, evidence qualifiers, privacy block and the audit trail.
  *
  * <p>Every method respects the report's {@link PrivacyPolicy} — including
  * the privacy declared on the citation node itself — and the

@@ -56,6 +56,23 @@ public interface ToolDispatcher{
 	default void replaceModel(final FLEFModel newModel){}
 
 	/**
+	 * Replaces the model with the content of a backup: unlike {@link #replaceModel(FLEFModel)} the document loses the name of its file
+	 * (a save must not overwrite it with the restored data) and counts as having unsaved changes.
+	 */
+	default void restoreModel(final FLEFModel restoredModel){
+		replaceModel(restoredModel);
+	}
+
+	/**
+	 * Asks the user what to do with the unsaved changes of the open document, before something replaces it.
+	 *
+	 * @return	{@code false} if the user cancelled (or saving failed): the operation must not go on.
+	 */
+	default boolean confirmDiscardChanges(){
+		return true;
+	}
+
+	/**
 	 * Saves a model imported from another format as a new FLEF file, chosen by the user, and opens it.
 	 *
 	 * @param source	The file the model was imported from.

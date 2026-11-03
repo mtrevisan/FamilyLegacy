@@ -104,7 +104,7 @@ public final class HelpViewerDialog extends JDialog{
 	}
 
 
-	private static void openExternal(final String url){
+	static void openExternal(final String url){
 		if(url == null || !Desktop.isDesktopSupported())
 			return;
 		final Desktop desktop = Desktop.getDesktop();

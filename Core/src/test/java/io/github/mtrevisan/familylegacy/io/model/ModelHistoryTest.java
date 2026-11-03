@@ -92,6 +92,75 @@ class ModelHistoryTest{
 	}
 
 	@Test
+	void aModelJustBoundIsNotModified(){
+		final ModelHistory history = new ModelHistory(model());
+
+		Assertions.assertFalse(history.isModified());
+	}
+
+	@Test
+	void anEditMakesTheModelModifiedBeforeItBecomesAStep(){
+		final FLEFModel model = model();
+		final ModelHistory history = new ModelHistory(model);
+
+		model.addRecord(FLEFRecord.createMainRecord("P2", "place"));
+
+		Assertions.assertTrue(history.isModified());
+	}
+
+	@Test
+	void savingMakesTheModelNotModifiedAndAnUndoAfterTheSaveModifiesItAgain(){
+		final FLEFModel model = model();
+		final ModelHistory history = new ModelHistory(model);
+		model.addRecord(FLEFRecord.createMainRecord("P2", "place"));
+		history.checkpoint();
+
+		history.markSaved();
+		Assertions.assertFalse(history.isModified());
+
+		//the file has P2, the memory does not
+		history.undo();
+		Assertions.assertTrue(history.isModified());
+
+		//back to what is on the file
+		history.redo();
+		Assertions.assertFalse(history.isModified());
+	}
+
+	@Test
+	void anEditThatIsRevertedByHandIsNotAChange(){
+		final FLEFModel model = model();
+		final ModelHistory history = new ModelHistory(model);
+		final FLEFRecord name = model.getRecordById("P1").getChildren().getFirst();
+
+		name.setValue("Venezia");
+		Assertions.assertTrue(history.isModified());
+		name.setValue("Treviso");
+		Assertions.assertFalse(history.isModified());
+	}
+
+	@Test
+	void whatIsNotOnAnyFileIsModified(){
+		final ModelHistory history = new ModelHistory(model());
+
+		history.markUnsaved();
+		Assertions.assertTrue(history.isModified());
+
+		history.markSaved();
+		Assertions.assertFalse(history.isModified());
+	}
+
+	@Test
+	void resettingBindsTheNewModelAsSaved(){
+		final ModelHistory history = new ModelHistory(model());
+		history.markUnsaved();
+
+		history.reset(model());
+
+		Assertions.assertFalse(history.isModified());
+	}
+
+	@Test
 	void childrenOrderIsAChange(){
 		final FLEFModel model = model();
 		final FLEFRecord record = model.getRecordById("P1");

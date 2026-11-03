@@ -31,11 +31,15 @@ import io.github.mtrevisan.familylegacy.ui.tools.reports.index.CollateralScope;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.BorderFactory;
+import javax.swing.DefaultListCellRenderer;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JPanel;
+import java.awt.Component;
 import java.awt.GridLayout;
+import java.util.Locale;
 
 
 /**
@@ -66,7 +70,7 @@ public final class ReportOptionsPanel extends JPanel{
 	 *                          Privacy
 	 * ====================================================================== */
 
-	private final JComboBox<PrivacyPolicy> privacyPolicy = new JComboBox<>(PrivacyPolicy.values());
+	private final JComboBox<PrivacyPolicy> privacyPolicy = createPrivacyPolicyCombo();
 	private final JCheckBox showPrivacyDetails = cb("Show privacy details");
 	private final JCheckBox audit = cb("Audit trail");
 	private final JCheckBox header = cb("Document header");
@@ -114,7 +118,6 @@ public final class ReportOptionsPanel extends JPanel{
 	 * ====================================================================== */
 
 	private final JCheckBox eventFull = cb("Full event participants");
-	private final JCheckBox dateProvenance = cb("Date provenance");
 	private final JCheckBox coverageReport = cb("Coverage report");
 	private final JCheckBox timeline = cb("Chronological timeline");
 
@@ -190,7 +193,6 @@ public final class ReportOptionsPanel extends JPanel{
 		groupAttributes.setSelected(initial.groupAttributes());
 
 		eventFull.setSelected(initial.eventFullParticipants());
-		dateProvenance.setSelected(initial.dateProvenance());
 		coverageReport.setSelected(initial.coverageReport());
 		timeline.setSelected(initial.timeline());
 
@@ -242,13 +244,28 @@ public final class ReportOptionsPanel extends JPanel{
 			historicEvents.isSelected(),
 			repositories.isSelected(),
 			eventFull.isSelected(),
-			dateProvenance.isSelected(),
 			coverageReport.isSelected(),
 			timeline.isSelected(),
 			idxIndividuals.isSelected(),
 			idxPlaces.isSelected(),
 			descriptions.isSelected(),
 			pictures.isSelected());
+	}
+
+
+	/** The list of the privacy policies, shown with the same names as the View > Privacy menu. */
+	private static JComboBox<PrivacyPolicy> createPrivacyPolicyCombo(){
+		final JComboBox<PrivacyPolicy> combo = new JComboBox<>(PrivacyPolicy.values());
+		combo.setRenderer(new DefaultListCellRenderer(){
+			@Override
+			public Component getListCellRendererComponent(final JList<?> list, final Object value, final int index,
+					final boolean isSelected, final boolean cellHasFocus){
+				final Object text = (value instanceof PrivacyPolicy policy
+					? I18N.t("menu.view.privacy." + policy.name().toLowerCase(Locale.ROOT)): value);
+				return super.getListCellRendererComponent(list, text, index, isSelected, cellHasFocus);
+			}
+		});
+		return combo;
 	}
 
 
@@ -317,7 +334,6 @@ public final class ReportOptionsPanel extends JPanel{
 		final JPanel p = new JPanel(new GridLayout(0, 2, 12, 2));
 		p.setBorder(BorderFactory.createTitledBorder(I18N.t("border.diagnostics")));
 		p.add(eventFull);
-		p.add(dateProvenance);
 		p.add(coverageReport);
 		p.add(timeline);
 		return p;

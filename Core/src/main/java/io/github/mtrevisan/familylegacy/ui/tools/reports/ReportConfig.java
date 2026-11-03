@@ -65,15 +65,14 @@ public record ReportConfig(
 	boolean historicEvents,
 	boolean repositories,
 	boolean eventFullParticipants,
-	boolean dateProvenance,
 	boolean coverageReport,
+	boolean timeline,
 	// Indexes
 	boolean indexIndividuals,
 	boolean indexPlaces,
 	// Style
 	boolean includeDescriptions,
-	boolean includePictures,
-	boolean timeline
+	boolean includePictures
 ){
 
 	public ReportConfig{
@@ -115,13 +114,12 @@ public record ReportConfig(
 			true,   // historicEvents
 			true,   // repositories
 			false,  // eventFullParticipants
-			false,  // dateProvenance
 			false,  // coverageReport
+			false,  // timeline
 			true,   // indexIndividuals
 			true,   // indexPlaces
 			true,   // includeDescriptions
-			false,  // includePictures
-			false   // includeTimeline
+			true    // includePictures
 		);
 	}
 

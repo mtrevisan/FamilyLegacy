@@ -84,6 +84,10 @@ public final class ImportGrampsXmlTool implements ToolOperation{
 		if(confirm != JOptionPane.YES_OPTION)
 			return;
 
+		//the import replaces the open document: offer to save its changes first
+		if(!context.confirmDiscardChanges())
+			return;
+
 		// Resolve the owner Window (JDialog needs a Window, not a Component).
 		final Window owner = (context.owner() instanceof Window w)
 			? w

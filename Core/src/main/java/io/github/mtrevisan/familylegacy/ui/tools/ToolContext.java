@@ -135,6 +135,16 @@ public record ToolContext(
 		dispatcher.replaceModel(newModel);
 	}
 
+	/** Replaces the model with the content of a backup, see {@link ToolDispatcher#restoreModel(FLEFModel)}. */
+	public void restoreModel(final FLEFModel restoredModel){
+		dispatcher.restoreModel(restoredModel);
+	}
+
+	/** @return	{@code false} if the user cancelled the operation when asked about the unsaved changes. */
+	public boolean confirmDiscardChanges(){
+		return dispatcher.confirmDiscardChanges();
+	}
+
 	public void openImported(final FLEFModel importedModel, final File source){
 		dispatcher.openImported(importedModel, source);
 	}

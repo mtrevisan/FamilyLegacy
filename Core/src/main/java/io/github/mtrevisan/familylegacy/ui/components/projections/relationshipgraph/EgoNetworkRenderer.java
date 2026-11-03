@@ -45,24 +45,14 @@ import java.util.Set;
  * Utility class for rendering orthogonal connection lines between the
  * central Ego node and satellite nodes.
  * <p>
- * The stroke style encodes the aggregate relationship status:
- * <ul>
- *   <li>{@code active} — solid line;</li>
- *   <li>{@code ended} — dashed line;</li>
- *   <li>{@code unknown} or mixed — dotted line.</li>
- * </ul>
- * When a satellite is reached through several relations with different
- * statuses, the "strongest" one wins: active beats ended, ended beats
- * unknown.
+ * Every line is dotted: FLEF does not record whether a relationship is still active, so the node carries no status that
+ * could choose another style.
  * <p>
  * The edge to a partner that is related to the ego (see {@link EgoNode#getConsanguineousUnion()}) carries a badge "C" in the middle.
  * It is a possibility to look into, as in the consanguinity report: the explanation is in the tooltip of the partner.
  */
 final class EgoNetworkRenderer{
 
-	private static final Stroke STROKE_ACTIVE = new BasicStroke(1.2f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
-	private static final Stroke STROKE_ENDED = new BasicStroke(1.2f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND,
-		10f, new float[]{6f, 4f}, 0f);
 	private static final Stroke STROKE_UNKNOWN = new BasicStroke(1.2f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND,
 		10f, new float[]{2f, 4f}, 0f);
 

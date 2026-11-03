@@ -124,7 +124,7 @@ public class FamilyLegacyFrame extends JFrame{
 		DialogEscapeSupport.install();
 		history = new ModelHistory(model);
 		switcher = new ProjectionSwitcherPanel(treeType, model);
-		fileController = new FileMenuController(this, this::model, this::replaceModel, () -> {});
+		fileController = new FileMenuController(this, this::model, this::replaceModel, history::markSaved, history::isModified);
 
 		split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, switcher, null);
 		split.setResizeWeight(1.);
@@ -367,12 +367,21 @@ public class FamilyLegacyFrame extends JFrame{
 	}
 
 	void replaceModel(final FLEFModel newModel){
+		replaceModel(newModel, false);
+	}
+
+	/**
+	 * @param modified	{@code true} if the model is not the content of a file (a restored backup): it counts as having unsaved changes.
+	 */
+	private void replaceModel(final FLEFModel newModel, final boolean modified){
 		if(newModel == null)
 			return;
 
 		SwingUtilities.invokeLater(() -> {
 			model = newModel;
 			history.reset(newModel);
+			if(modified)
+				history.markUnsaved();
 
 			switcher = new ProjectionSwitcherPanel(treeType, newModel);
 			switcher.setSelectionCallback(dossierManager::showIndividualDossier);
@@ -477,6 +486,18 @@ public class FamilyLegacyFrame extends JFrame{
 				@Override
 				public void replaceModel(final FLEFModel newModel){
 					FamilyLegacyFrame.this.replaceModel(newModel);
+				}
+
+				@Override
+				public void restoreModel(final FLEFModel restoredModel){
+					//the restored data is not the content of the open file: the next save must ask where to write
+					fileController.detachFile();
+					FamilyLegacyFrame.this.replaceModel(restoredModel, true);
+				}
+
+				@Override
+				public boolean confirmDiscardChanges(){
+					return fileController.confirmDiscardChanges();
 				}
 
 				@Override

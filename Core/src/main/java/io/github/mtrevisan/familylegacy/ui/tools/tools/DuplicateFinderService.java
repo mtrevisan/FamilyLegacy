@@ -170,7 +170,7 @@ public final class DuplicateFinderService{
 			? existingHypothesisPairs(model)
 			: Set.of());
 
-		final Map<String, Set<Profile>> blocks = buildBlocks(profiles.values());
+		final Map<String, Set<Profile>> blocks = buildBlocks(profiles.values(), options.requireSameSex);
 		final Set<String> seenPairs = new HashSet<>();
 		final List<Candidate> candidates = new ArrayList<>();
 
@@ -581,7 +581,7 @@ public final class DuplicateFinderService{
 	/**
 	 * Builds the blocking index. Each profile is placed under one block
 	 * for its given-name prefix and one for its family-name prefix,
-	 * together with its sex. Profiles that share neither a given-name
+	 * together with its sex (only if {@code separateBySex}). Profiles that share neither a given-name
 	 * prefix nor a family-name prefix are never compared.
 	 * <p>
 	 * Blocks are sets, not lists, because a profile can legitimately
@@ -593,10 +593,11 @@ public final class DuplicateFinderService{
 	 * block.
 	 */
 	private static Map<String, Set<Profile>> buildBlocks(
-		final Collection<Profile> profiles){
+		final Collection<Profile> profiles, final boolean separateBySex){
 		final Map<String, Set<Profile>> blocks = new LinkedHashMap<>();
 		for(final Profile p : profiles){
-			final String sex = (p.sex() != null? p.sex().toLowerCase(Locale.ROOT): "?");
+			//the sex is part of the key only when the pairs of different sex are not wanted: otherwise they would never be compared
+			final String sex = (!separateBySex? "": (p.sex() != null? p.sex().toLowerCase(Locale.ROOT): "?"));
 			for(final String given : p.givenTokens()){
 				final String prefix = (given.length() >= 2? given.substring(0, 2): given);
 				blocks.computeIfAbsent("g:" + sex + ":" + prefix, k -> new LinkedHashSet<>())

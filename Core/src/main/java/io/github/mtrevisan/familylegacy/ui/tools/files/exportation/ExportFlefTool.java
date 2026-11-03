@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.io.FLEFWriter;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyExporter;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyPolicy;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
+import io.github.mtrevisan.familylegacy.ui.helpers.AtomicFileWriter;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.tools.ToolOperation;
@@ -39,7 +40,6 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.util.Locale;
 
 
@@ -89,7 +89,7 @@ public final class ExportFlefTool implements ToolOperation{
 			final PrivacyExporter.Result result = PrivacyExporter.filter(context.model(), policy);
 			final String content = FLEFWriter.create()
 				.writeToString(result.model());
-			Files.writeString(target.toPath(), content, StandardCharsets.UTF_8);
+			AtomicFileWriter.write(target.toPath(), content, StandardCharsets.UTF_8);
 
 			if(result.omittedRecords() > 0 || result.omittedNodes() > 0)
 				JOptionPane.showMessageDialog(context.owner(),

@@ -112,7 +112,6 @@ public final class DescendantReportGenerator{
 			base.historicEvents(),
 			base.repositories(),
 			base.eventFullParticipants(),
-			base.dateProvenance(),
 			base.coverageReport(),
 			base.timeline(),
 			/*indexIndividuals*/      false,

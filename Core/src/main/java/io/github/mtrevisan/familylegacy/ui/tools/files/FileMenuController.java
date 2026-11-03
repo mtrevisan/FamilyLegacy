@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.FLEFWriter;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.ui.dialogs.ProgressDialog;
+import io.github.mtrevisan.familylegacy.ui.helpers.AtomicFileWriter;
 import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import io.github.mtrevisan.familylegacy.ui.preferences.MediaPathDisplay;
 import org.apache.commons.io.FilenameUtils;
@@ -42,8 +43,8 @@ import java.awt.Window;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.util.concurrent.ExecutionException;
+import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -58,14 +59,15 @@ import java.util.function.Supplier;
  * flag.
  * <p>
  * The controller delegates all the model-specific work to the enclosing
- * frame through three callbacks:
+ * frame through four callbacks:
  * <ul>
  *   <li>{@code currentModel} — returns the model currently loaded, or
  *       {@code null} when no document is open;</li>
  *   <li>{@code modelReplacer} — replaces the current model with a new
  *       one, rebuilding the frame's UI around it;</li>
  *   <li>{@code modelClean} — marks the current model as clean, called
- *       after a successful save.</li>
+ *       after a successful save;</li>
+ *   <li>{@code modelModified} — tells whether the model differs from what is on the file.</li>
  * </ul>
  * The controller is the single point that knows the current file and
  * the dirty flag; the frame only knows the model.
@@ -85,6 +87,7 @@ public final class FileMenuController{
 	private final Supplier<FLEFModel> currentModel;
 	private final Consumer<FLEFModel> modelReplacer;
 	private final Runnable modelClean;
+	private final BooleanSupplier modelModified;
 
 	private final RecentFilesManager recentFiles = new RecentFilesManager();
 
@@ -95,11 +98,13 @@ public final class FileMenuController{
 
 
 	public FileMenuController(final JFrame owner, final Supplier<FLEFModel> currentModel,
-			final Consumer<FLEFModel> modelReplacer, final Runnable modelClean){
+			final Consumer<FLEFModel> modelReplacer, final Runnable modelClean, final BooleanSupplier modelModified){
 		this.owner = owner;
 		this.currentModel = currentModel;
 		this.modelReplacer = modelReplacer;
 		this.modelClean = (modelClean != null? modelClean: () -> {});
+		//without a way to know, every change is assumed
+		this.modelModified = (modelModified != null? modelModified: () -> true);
 	}
 
 
@@ -110,6 +115,14 @@ public final class FileMenuController{
 	/** Returns the file currently open, or {@code null} for an unsaved document. */
 	public File currentFile(){
 		return currentFile;
+	}
+
+	/**
+	 * Forgets the file of the document, which then has no name: a save asks where to write. Used when the content of the document
+	 * no longer is the one of its file (a restored backup).
+	 */
+	public void detachFile(){
+		currentFile = null;
 	}
 
 	/** Returns the recent files manager, for the Recent submenu. */
@@ -342,7 +355,7 @@ public final class FileMenuController{
 				// The file write itself is a single blocking call, so we
 				// can only show it as an indeterminate step.
 				progress.update(-1, I18N.t("progress.writing_file"));
-				Files.writeString(file.toPath(), content, StandardCharsets.UTF_8);
+				AtomicFileWriter.write(file.toPath(), content, StandardCharsets.UTF_8);
 				return null;
 			}
 
@@ -351,7 +364,9 @@ public final class FileMenuController{
 				progress.close();
 				try{
 					get();
-					modelClean.run();
+					//only the open document is saved by this: an imported model, written to its new file, is not the open one
+					if(model == currentModel.get())
+						modelClean.run();
 					success[0] = true;
 				}
 				catch(final InterruptedException ex){
@@ -380,8 +395,8 @@ public final class FileMenuController{
 	 * model is clean, the user saved successfully, or the user chose to
 	 * discard the changes) and {@code false} when the user cancelled.
 	 */
-	private boolean confirmDiscardChanges(){
-		if(currentModel.get() == null)
+	public boolean confirmDiscardChanges(){
+		if(currentModel.get() == null || !modelModified.getAsBoolean())
 			return true;
 
 		final int choice = JOptionPane.showOptionDialog(owner,

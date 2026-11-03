@@ -36,8 +36,6 @@ import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 
 
 /**
@@ -45,11 +43,10 @@ import java.nio.file.Files;
  * with it. The change is immediate and irreversible: the tool asks for
  * confirmation before doing anything.
  * <p>
- * Unlike Open, which is a document-level operation, Restore is a
- * model-level operation: the current file path and the dirty flag are
- * not touched. The restored model becomes the new in-memory model, and
- * the user is expected to save it to a new file if they want to keep
- * it.
+ * The unsaved changes of the open document are offered for saving first. The file may be plain or compressed text, as with Open.
+ * <p>
+ * The restored model becomes the new in-memory model, but the document loses the name of its file, so that a save cannot overwrite
+ * the original file with the restored data: it asks where to write. The restored model counts as having unsaved changes.
  */
 public final class RestoreFromBackupTool implements ToolOperation{
 
@@ -81,13 +78,15 @@ public final class RestoreFromBackupTool implements ToolOperation{
 		if(choice != JOptionPane.YES_OPTION)
 			return;
 
+		//the open document is about to be replaced
+		if(!context.confirmDiscardChanges())
+			return;
+
 		try{
-			final String content = Files.readString(file.toPath(), StandardCharsets.UTF_8);
-
 			final FLEFParser parser = new FLEFParser();
-			final FLEFModel restored = parser.parse(content);
+			final FLEFModel restored = parser.parse(file.toPath());
 
-			context.replaceModel(restored);
+			context.restoreModel(restored);
 		}
 		catch(final IOException ex){
 			JOptionPane.showMessageDialog(context.owner(),
