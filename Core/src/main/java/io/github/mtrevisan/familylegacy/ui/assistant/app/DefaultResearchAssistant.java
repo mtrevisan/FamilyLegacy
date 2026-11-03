@@ -31,12 +31,12 @@ import io.github.mtrevisan.familylegacy.ui.assistant.ResearchAssistantService;
 import io.github.mtrevisan.familylegacy.ui.assistant.chronology.ChronologyAssistantContributor;
 import io.github.mtrevisan.familylegacy.ui.assistant.citation.CitationAssistantContributor;
 import io.github.mtrevisan.familylegacy.ui.assistant.conclusion.ConclusionAssistantContributor;
+import io.github.mtrevisan.familylegacy.ui.assistant.consanguinity.ConsanguinityAssistantContributor;
 import io.github.mtrevisan.familylegacy.ui.assistant.context.ContextAssistantContributor;
 import io.github.mtrevisan.familylegacy.ui.assistant.gap.GapAssistantContributor;
 import io.github.mtrevisan.familylegacy.ui.assistant.identity.IdentityAssistantContributor;
 import io.github.mtrevisan.familylegacy.ui.assistant.place.PlaceAssistantContributor;
 import io.github.mtrevisan.familylegacy.ui.assistant.planner.PlannerAssistantContributor;
-import io.github.mtrevisan.familylegacy.ui.assistant.consanguinity.ConsanguinityAssistantContributor;
 import io.github.mtrevisan.familylegacy.ui.assistant.relationship.RelationshipAssistantContributor;
 
 import java.util.ServiceLoader;

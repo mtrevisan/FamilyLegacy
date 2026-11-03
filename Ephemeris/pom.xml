@@ -12,6 +12,102 @@
 	<artifactId>Ephemeris</artifactId>
 	<packaging>jar</packaging>
 
+	<profiles>
+		<profile>
+			<!-- mvn clean package -Pwindows-exe -DskipTests
+				Builds the Windows installer, a single self-contained file (it bundles a Java runtime):
+				Core/target/windows-exe/FamilyLegacy-<version>.exe
+				Requires the WiX Toolset on the PATH. -Dpackage.type=msi builds an MSI instead.
+				This module is built after Core, which stages the input of jpackage (Core/target/jpackage-input): here the plugin is added to it
+				(it goes to app/plugins of the installed application), then jpackage runs. -->
+			<id>windows-exe</id>
+			<properties>
+				<package.type>exe</package.type>
+				<package.name>FamilyLegacy</package.name>
+				<package.version>1.0.0</package.version>
+				<package.mainClass>io.github.mtrevisan.familylegacy.FamilyLegacyApplication</package.mainClass>
+				<!-- must never change: it lets a new version upgrade the installed one -->
+				<package.upgradeUuid>5d3f2c1e-8a47-4b6e-9c1d-2f7a9e0b6c41</package.upgradeUuid>
+				<package.coreTarget>${project.basedir}/../Core/target</package.coreTarget>
+			</properties>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-antrun-plugin</artifactId>
+						<version>${maven-antrun-plugin.version}</version>
+						<executions>
+							<execution>
+								<id>plugin-into-windows-exe</id>
+								<phase>package</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<target>
+										<copy file="${project.build.directory}/ephemeris-shaded.jar"
+											tofile="${package.coreTarget}/jpackage-input/plugins/ephemeris.jar"
+											overwrite="true"/>
+										<!-- an antivirus may keep the previous output locked for a moment -->
+										<retry retrycount="10" retrydelay="3000">
+											<delete dir="${package.coreTarget}/windows-exe"/>
+										</retry>
+										<exec executable="${java.home}/bin/jpackage" failonerror="true">
+											<arg value="--type"/>
+											<arg value="${package.type}"/>
+											<arg value="--name"/>
+											<arg value="${package.name}"/>
+											<arg value="--app-version"/>
+											<arg value="${package.version}"/>
+											<arg value="--vendor"/>
+											<arg value="Mauro Trevisan"/>
+											<arg value="--input"/>
+											<arg value="${package.coreTarget}/jpackage-input"/>
+											<arg value="--main-jar"/>
+											<arg value="Core.jar"/>
+											<arg value="--main-class"/>
+											<arg value="${package.mainClass}"/>
+											<!-- the automatic detection of the modules does not see through a fat jar: the list is the one of
+												the print-module-deps output of jdeps on the shaded jar of Core, plus the ones that are
+												loaded dynamically (locale data, charsets, zip file system); update it if the code starts using other modules -->
+											<arg value="--add-modules"/>
+											<arg value="java.base,java.compiler,java.desktop,java.management,java.naming,java.net.http,java.prefs,java.rmi,java.scripting,java.security.jgss,java.sql,java.xml,java.xml.crypto,jdk.unsupported,jdk.localedata,jdk.charsets,jdk.zipfs"/>
+											<!-- the default options plus the compression of the runtime image -->
+											<arg value="--jlink-options"/>
+											<arg value="--strip-native-commands --strip-debug --no-man-pages --no-header-files --compress=zip-9"/>
+											<arg value="--java-options"/>
+											<arg value="-Dfile.encoding=UTF-8"/>
+											<!-- Calendars is the host of the plugins (JPMS modules): it must be a module for them to resolve against -->
+											<arg value="--java-options"/>
+											<arg value="--module-path=$APPDIR/modules"/>
+											<arg value="--java-options"/>
+											<arg value="--add-modules=io.github.mtrevisan.calendars"/>
+											<arg value="--java-options"/>
+											<arg value="-Dcalendars.plugins.dir=$APPDIR/plugins"/>
+											<arg value="--win-menu"/>
+											<arg value="--win-shortcut"/>
+											<arg value="--win-dir-chooser"/>
+											<!-- no administrator rights needed -->
+											<arg value="--win-per-user-install"/>
+											<arg value="--win-upgrade-uuid"/>
+											<arg value="${package.upgradeUuid}"/>
+											<arg value="--dest"/>
+											<arg value="${package.coreTarget}/windows-exe"/>
+										</exec>
+										<!-- jpackage leaves the output read-only, which makes "mvn clean" fail -->
+										<attrib readonly="false">
+											<fileset dir="${package.coreTarget}/windows-exe"/>
+										</attrib>
+									</target>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+
 	<build>
 		<plugins>
 			<plugin>

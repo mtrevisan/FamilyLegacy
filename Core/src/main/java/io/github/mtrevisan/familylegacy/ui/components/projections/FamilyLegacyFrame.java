@@ -28,8 +28,8 @@ import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.grammar.FLEFGrammarParser;
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.FLEFGrammar;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.ModelHistory;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.ui.components.projections.bookmarks.Bookmark;
 import io.github.mtrevisan.familylegacy.ui.components.projections.bookmarks.BookmarkStore;
@@ -356,6 +356,11 @@ public class FamilyLegacyFrame extends JFrame{
 
 	FileMenuController fileController(){
 		return fileController;
+	}
+
+	/** Opens the given FLEF file, as the File &gt; Open command does (with the progress dialog and the Recent files list). */
+	public void openFile(final java.io.File file){
+		fileController.openFile(file);
 	}
 
 	void editEntity(final String id){

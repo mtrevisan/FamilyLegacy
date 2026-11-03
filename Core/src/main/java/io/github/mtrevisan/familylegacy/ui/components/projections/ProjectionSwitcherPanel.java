@@ -39,11 +39,11 @@ import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree
 import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.layout.TreeLayoutEngine;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.layout.sugiyama.GraphLayoutEngine;
 import io.github.mtrevisan.familylegacy.ui.components.projections.relationshipgraph.EgoNetworkPanel;
+import io.github.mtrevisan.familylegacy.ui.components.projections.repository.GenealogyRepository;
 import io.github.mtrevisan.familylegacy.ui.components.projections.social.SocialNetworkPanel;
 import io.github.mtrevisan.familylegacy.ui.components.projections.temporal.TemporalEntityRef;
 import io.github.mtrevisan.familylegacy.ui.components.projections.temporal.TemporalEntityType;
 import io.github.mtrevisan.familylegacy.ui.components.projections.temporal.TemporalProjectionPanel;
-import io.github.mtrevisan.familylegacy.ui.components.projections.repository.GenealogyRepository;
 import io.github.mtrevisan.familylegacy.ui.dialogs.help.ShortcutRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;

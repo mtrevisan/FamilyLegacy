@@ -65,6 +65,8 @@
 		<maven-shade-plugin.version>3.6.2</maven-shade-plugin.version>
 		<!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-antrun-plugin -->
 		<maven-antrun-plugin.version>3.2.0</maven-antrun-plugin.version>
+		<!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-dependency-plugin -->
+		<maven-dependency-plugin.version>3.11.0</maven-dependency-plugin.version>
 
 		<!-- Apache -->
 		<!-- https://mvnrepository.com/artifact/org.apache.commons/commons-lang3 -->
