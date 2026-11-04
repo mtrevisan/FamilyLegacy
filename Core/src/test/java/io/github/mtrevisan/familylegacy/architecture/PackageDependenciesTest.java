@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.architecture;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -103,7 +104,7 @@ class PackageDependenciesTest{
 			texts.put(source, text);
 			packageOf.put(source, pkg);
 			DEPENDENCIES.computeIfAbsent(pkg, k -> new TreeSet<>());
-			classes.add(pkg + "." + StringUtils.removeEnd(source.getFileName().toString(), ".java"));
+			classes.add(pkg + "." + Strings.CS.removeEnd(source.getFileName().toString(), ".java"));
 		}
 
 		for(final Map.Entry<Path, String> entry : texts.entrySet()){
@@ -242,12 +243,12 @@ class PackageDependenciesTest{
 		if(pkg.equals(ROOT))
 			return "(root)";
 
-		final String[] parts = StringUtils.split(StringUtils.removeStart(pkg, ROOT + "."), '.');
+		final String[] parts = StringUtils.split(Strings.CS.removeStart(pkg, ROOT + "."), '.');
 		return StringUtils.join(parts, '.', 0, Math.min(depth, parts.length));
 	}
 
 	private static String shortName(final String pkg){
-		return StringUtils.removeStart(pkg, ROOT + ".");
+		return Strings.CS.removeStart(pkg, ROOT + ".");
 	}
 
 	private static List<List<String>> stronglyConnectedComponents(final Map<String, Set<String>> graph){
