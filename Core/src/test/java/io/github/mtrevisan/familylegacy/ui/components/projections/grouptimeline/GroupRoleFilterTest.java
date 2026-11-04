@@ -24,12 +24,14 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections.grouptimeline;
 
+import io.github.mtrevisan.familylegacy.groups.GroupTimelineBuilder;
+import io.github.mtrevisan.familylegacy.groups.IndividualCareerBuilder;
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.ui.components.projections.temporal.TemporalEntry;
-import io.github.mtrevisan.familylegacy.ui.components.projections.temporal.TemporalProjectionModel;
-import io.github.mtrevisan.familylegacy.ui.components.projections.temporal.TemporalRow;
-import io.github.mtrevisan.familylegacy.ui.components.projections.temporal.TemporalTrackType;
+import io.github.mtrevisan.familylegacy.temporal.TemporalEntry;
+import io.github.mtrevisan.familylegacy.temporal.TemporalProjectionModel;
+import io.github.mtrevisan.familylegacy.temporal.TemporalRow;
+import io.github.mtrevisan.familylegacy.temporal.TemporalTrackType;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;

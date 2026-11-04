@@ -24,7 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.assistant;
 
-import io.github.mtrevisan.familylegacy.ui.preferences.AppPreferences;
+import io.github.mtrevisan.familylegacy.preferences.AppPreferences;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;

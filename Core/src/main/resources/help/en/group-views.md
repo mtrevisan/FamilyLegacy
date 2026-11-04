@@ -15,9 +15,9 @@ Three windows show the life of a group, or the groups of a person, over time. Th
 
 Members and subgroups are sorted by the earliest start date, then by name; the ones without dates come last.
 
-**The bars.** Each membership is a bar from the *Valid From* to the *Valid To* of its relationship. The label is the role (or the type of the relationship if there is no role). A relationship that has ended is fainter and dashed and its label adds *(ended)*. A membership with no dates is kept and drawn along the whole axis, with *(dates unknown)*; a side without a date is open. A person who was a member several times has all the bars on one row.
+**The bars.** Each membership is a bar from the *Valid From* to the *Valid To* of its relationship. The label is the role (or the type of the relationship if there is no role). A relationship that has ended is fainter and dashed and its label adds *(ended)*. A membership with no end is still in force, so its bar ends **today** and never goes on beyond it, however far you zoom out: if it has a start its label adds *(ongoing)*; if it has no dates at all it is kept, begins at the left edge of the window and says *(dates unknown)*. The exception is a membership marked as ended but with no end date, whose end stays open, because it is not known. A person who was a member several times has all the bars on one row.
 
-**The axis** runs from the earliest to the latest date of the bars. An open end extends to today; if all the bars are undated, the last 100 years are shown.
+**The axis** runs from the earliest date of the bars to the latest one, or to today if some bar has no end. If all the bars are undated, the last 100 years are shown.
 
 **The controls**
 
@@ -57,3 +57,17 @@ Records hidden by the [privacy](privacy.md) policy are left out.
 - The view is empty if the person has no memberships and no dated events or attributes.
 
 The year filter, the role legend, the double-click to edit and the zoom work as in the timeline.
+
+## Jurisdiction Timeline
+
+**Place > Jurisdiction Timeline...** shows how a place changed jurisdiction in time. The place is the selected one if the selection is a place, otherwise you are asked to pick one. It works like the group timeline, and it has the same year control, **Context** box and zoom.
+
+**The rows**, from the top:
+
+1. the place itself, with the historical context that touches it (if any);
+2. the places it is related to: the ones it is part of (administratively, ecclesiastically, judicially, geographically, for the land registry) or that it succeeded;
+3. the places that are related to it the other way round (the ones that are part of it, or that succeeded it); their bars say *(incoming)*.
+
+**The bars.** Each place relationship is a bar from its *Valid From* to its *Valid To*. The colour and the label are the type of the relationship, for example *ecclesiastical_part_of*, so a parish that passed from one diocese to another has two bars, one after the other, on two rows. The legend at the bottom hides a type. A relationship with no end is still in force: its bar ends **today** and never goes on beyond it, however far you zoom out. If it has a start it says *(ongoing)*; if it has no dates at all it is kept, begins at the left edge of the window and says *(dates unknown)*. A double-click opens the editor of the relationship, or of the place if you click its name.
+
+Records hidden by the [privacy](privacy.md) policy are left out.

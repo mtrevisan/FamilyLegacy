@@ -24,10 +24,10 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.layout;
 
+import io.github.mtrevisan.familylegacy.tree.TreeNode;
 import io.github.mtrevisan.familylegacy.ui.components.projections.common.TreeLayout;
-import io.github.mtrevisan.familylegacy.ui.components.projections.partners.PartnersPanel;
-import io.github.mtrevisan.familylegacy.ui.components.projections.repository.TreeNode;
-import io.github.mtrevisan.familylegacy.ui.components.projections.siblings.SiblingsPanel;
+import io.github.mtrevisan.familylegacy.ui.components.projections.individual.PartnersPanel;
+import io.github.mtrevisan.familylegacy.ui.components.projections.individual.SiblingsPanel;
 
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;

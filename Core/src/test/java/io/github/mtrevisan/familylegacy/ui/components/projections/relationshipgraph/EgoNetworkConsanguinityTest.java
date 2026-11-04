@@ -24,7 +24,10 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections.relationshipgraph;
 
+import io.github.mtrevisan.familylegacy.consanguinity.ConsanguineousUnionDetector;
 import io.github.mtrevisan.familylegacy.consanguinity.ConsanguinityReport;
+import io.github.mtrevisan.familylegacy.ego.EgoNetworkService;
+import io.github.mtrevisan.familylegacy.ego.EgoNode;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMParser;
 import io.github.mtrevisan.familylegacy.importer.gedcom.converters.GEDCOMToFLEFConverter;
@@ -32,13 +35,16 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
-import io.github.mtrevisan.familylegacy.ui.components.projections.repository.GenealogyRepository;
+import io.github.mtrevisan.familylegacy.tree.GenealogyRepository;
+import io.github.mtrevisan.familylegacy.ui.assistant.SyntheticTree;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 /** The union between the ego and a partner that is a relative is marked on the ego network (the badge on the edge). */
@@ -172,6 +178,46 @@ class EgoNetworkConsanguinityTest{
 		service.invalidateIndices();
 
 		Assertions.assertNotNull(partnerOf(service.buildEgoNetwork(xavier), yvonne).getConsanguineousUnion());
+	}
+
+	/**
+	 * The ego network looks at the couples of the ego only, not at the whole file (the report of a big file takes minutes): what it
+	 * marks must be what the report of the whole file says, for every couple of a tree full of cousins that marry.
+	 */
+	@Test
+	void theMarksAreTheOnesOfTheReportOfTheWholeFile() throws IOException{
+		final FLEFModel model = SyntheticTree.model(600);
+		final ConsanguinityReport report = ConsanguineousUnionDetector.detect(model);
+		Assertions.assertFalse(report.unions().isEmpty(), "the tree has cousins that marry");
+		final Map<String, ConsanguinityReport.ConsanguineousUnion> expected = new HashMap<>();
+		for(final ConsanguinityReport.ConsanguineousUnion union : report.unions())
+			expected.put(union.firstId() + '|' + union.secondId(), union);
+
+		final EgoNetworkService service = service(model);
+		int marked = 0;
+		int partners = 0;
+		for(final FLEFRecord individual : model.getRecordsByType(IndividualReader.TYPE)){
+			final EgoNode ego = service.buildEgoNetwork(individual.getId());
+			for(final EgoNode partner : ego.getRelatedNodes(EgoNode.RelationshipCategory.PARTNER)){
+				partners ++;
+				final String first = (ego.getEgoId().compareTo(partner.getEgoId()) <= 0? ego.getEgoId(): partner.getEgoId());
+				final String second = (first.equals(ego.getEgoId())? partner.getEgoId(): ego.getEgoId());
+				final ConsanguinityReport.ConsanguineousUnion union = expected.get(first + '|' + second);
+				final ConsanguinityReport.ConsanguineousUnion found = partner.getConsanguineousUnion();
+
+				if(union == null)
+					Assertions.assertNull(found, ego.getEgoId() + " and " + partner.getEgoId());
+				else{
+					Assertions.assertNotNull(found, ego.getEgoId() + " and " + partner.getEgoId());
+					Assertions.assertEquals(union.kinship(), found.kinship(), 1e-12);
+					Assertions.assertEquals(union.relationship(), found.relationship(), 1e-12);
+					Assertions.assertEquals(union.commonAncestors(), found.commonAncestors());
+					marked ++;
+				}
+			}
+		}
+		Assertions.assertTrue(partners > 0);
+		Assertions.assertTrue(marked > 0, "some partners are related");
 	}
 
 }

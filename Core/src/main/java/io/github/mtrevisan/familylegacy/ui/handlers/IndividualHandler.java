@@ -24,15 +24,13 @@
  */
 package io.github.mtrevisan.familylegacy.ui.handlers;
 
+import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
-import io.github.mtrevisan.familylegacy.ui.dialogs.api.RecordDialog;
-import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
-import org.apache.commons.lang3.StringUtils;
+import io.github.mtrevisan.familylegacy.ui.api.RecordDialog;
 
 import java.awt.Window;
-import java.util.List;
 
 
 public class IndividualHandler extends AbstractRecordTypeHandler<RecordDialog>{
@@ -72,23 +70,7 @@ public class IndividualHandler extends AbstractRecordTypeHandler<RecordDialog>{
 
 	@Override
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
-		if(record == null)
-			return "--";
-
-		// Locate the first populated NAME structure
-		final List<String> names = IndividualReader.extractFullNames(record);
-		final String name = (!names.isEmpty()? names.getFirst(): null);
-
-		final String id = record.getId();
-		final StringBuilder sb = new StringBuilder();
-		if(StringUtils.isNotEmpty(name))
-			sb.append(name);
-		if(!sb.isEmpty())
-			sb.append(' ');
-		sb.append('[')
-			.append(id)
-			.append(']');
-		return sb.toString();
+		return IndividualReader.displayText(record);
 	}
 
 	@Override

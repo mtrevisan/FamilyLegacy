@@ -26,10 +26,10 @@ package io.github.mtrevisan.familylegacy.ui.assistant.consanguinity;
 
 import io.github.mtrevisan.familylegacy.consanguinity.ConsanguinityReport;
 import io.github.mtrevisan.familylegacy.consanguinity.ConsanguinityReportText;
+import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.ui.assistant.AssistantCategory;
 import io.github.mtrevisan.familylegacy.ui.assistant.Diagnostic;
 import io.github.mtrevisan.familylegacy.ui.assistant.DiagnosticKeys;
-import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.dialogs.records;
 
+import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SexType;
@@ -44,7 +45,6 @@ import io.github.mtrevisan.familylegacy.ui.handlers.PersonalNameHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RelationshipHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.ResearchQuestionHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
-import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 
 import javax.swing.JPanel;
 import java.awt.Window;
@@ -245,6 +245,11 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 		return components.getPanel(PanelKey.AUDIT);
 	}
 
+
+	@Override
+	public void presetSex(final SexType sex){
+		witSex(sex);
+	}
 
 	public IndividualRecordDialog witSex(final SexType sex){
 		if(sex != null){

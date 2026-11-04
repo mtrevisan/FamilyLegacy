@@ -24,10 +24,10 @@
  */
 package io.github.mtrevisan.familylegacy.ui.dialogs.help;
 
+import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
-import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
-import io.github.mtrevisan.familylegacy.ui.tools.ToolDialogs;
+import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JButton;
@@ -73,7 +73,7 @@ public final class DiagnosticsDialog extends JDialog{
 
 	private DiagnosticsDialog(final Window owner, final FLEFModel model){
 		super(owner, I18N.t("dialog.diagnostics.title"), ModalityType.APPLICATION_MODAL);
-		ToolDialogs.installEscapeToClose(this);
+		GUIHelper.installEscapeToClose(this);
 
 		final String report = buildReport(model);
 

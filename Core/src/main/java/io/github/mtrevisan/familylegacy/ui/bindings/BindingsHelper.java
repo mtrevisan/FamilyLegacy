@@ -24,9 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.ui.bindings;
 
+import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.ui.helpers.DualActionListEnhancer;
 import io.github.mtrevisan.familylegacy.ui.helpers.DualActionTextFieldEnhancer;
-import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.AbstractAction;

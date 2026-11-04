@@ -24,7 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.tools.places;
 
-import io.github.mtrevisan.familylegacy.ui.tools.ToolOperation;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolOperation;
 
 import java.util.List;
 
@@ -44,7 +44,8 @@ public final class PlaceToolRegistry{
 	public static List<ToolOperation> primaryTools(){
 		return List.of(
 			new PlaceManagerTool(),
-			new NewPlaceTool()
+			new NewPlaceTool(),
+			new JurisdictionTimelineTool()
 		);
 	}
 

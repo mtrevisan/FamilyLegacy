@@ -25,6 +25,10 @@
 package io.github.mtrevisan.familylegacy.ui.components.projections.temporal;
 
 import io.github.mtrevisan.familylegacy.io.model.readers.date.TemporalSpan;
+import io.github.mtrevisan.familylegacy.temporal.TemporalEntry;
+import io.github.mtrevisan.familylegacy.temporal.TemporalProjectionLayout;
+import io.github.mtrevisan.familylegacy.temporal.TemporalRow;
+import io.github.mtrevisan.familylegacy.temporal.TemporalTrackType;
 import org.apache.commons.lang3.StringUtils;
 
 import java.awt.BasicStroke;

@@ -24,7 +24,11 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections.social;
 
-import io.github.mtrevisan.familylegacy.ui.components.projections.temporal.TemporalEntityRef;
+import io.github.mtrevisan.familylegacy.social.SocialEdgeRef;
+import io.github.mtrevisan.familylegacy.social.SocialGraph;
+import io.github.mtrevisan.familylegacy.social.SocialNodeRef;
+import io.github.mtrevisan.familylegacy.social.SocialPath;
+import io.github.mtrevisan.familylegacy.temporal.TemporalEntityRef;
 
 import java.awt.Color;
 import java.awt.Graphics2D;

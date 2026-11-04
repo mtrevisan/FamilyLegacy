@@ -24,8 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.lists;
 
+import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
-import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import io.github.mtrevisan.familylegacy.ui.images.ScaledImage;
 import net.miginfocom.swing.MigLayout;
 import org.apache.pdfbox.Loader;

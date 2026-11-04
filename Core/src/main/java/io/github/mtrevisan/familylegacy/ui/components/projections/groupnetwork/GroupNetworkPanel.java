@@ -24,10 +24,12 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections.groupnetwork;
 
+import io.github.mtrevisan.familylegacy.groups.GroupNetwork;
+import io.github.mtrevisan.familylegacy.groups.GroupNetworkBuilder;
+import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.ui.components.projections.grouptimeline.GroupYearControl;
 import io.github.mtrevisan.familylegacy.ui.helpers.ViewportPanSupport;
-import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;

@@ -1,0 +1,3 @@
+io.github.mtrevisan.familylegacy.reports.renderers.TextReportRenderer
+io.github.mtrevisan.familylegacy.reports.renderers.MarkdownReportRenderer
+io.github.mtrevisan.familylegacy.reports.renderers.HtmlReportRenderer

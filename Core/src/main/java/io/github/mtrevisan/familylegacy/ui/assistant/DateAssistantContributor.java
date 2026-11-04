@@ -24,9 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.ui.assistant;
 
-import io.github.mtrevisan.familylegacy.ui.components.HistoricalDateAssistantDialog;
-import io.github.mtrevisan.familylegacy.ui.components.HistoricalDateAssistantHost;
-import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
+import io.github.mtrevisan.familylegacy.i18n.I18N;
+import io.github.mtrevisan.familylegacy.ui.components.dates.HistoricalDateAssistantDialog;
+import io.github.mtrevisan.familylegacy.ui.components.dates.HistoricalDateAssistantHost;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -24,17 +24,21 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections.dossier;
 
+import io.github.mtrevisan.familylegacy.dossier.DossierEntry;
+import io.github.mtrevisan.familylegacy.dossier.DossierSectionType;
+import io.github.mtrevisan.familylegacy.dossier.IndividualDossier;
+import io.github.mtrevisan.familylegacy.dossier.IndividualDossierService;
+import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyResolver;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
+import io.github.mtrevisan.familylegacy.ui.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.components.lists.PrivacyBadge;
-import io.github.mtrevisan.familylegacy.ui.dialogs.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
-import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -463,9 +467,9 @@ public class IndividualDossierPanel extends JPanel{
 			if(entry.hasProofStatus()){
 				final JLabel dot = new JLabel();
 				dot.setOpaque(true);
-				dot.setBackground(entry.proofStatus().color());
+				dot.setBackground(ProofStatusColors.of(entry.proofStatus()));
 				dot.setBorder(BorderFactory.createLineBorder(
-					entry.proofStatus().color().darker()));
+					ProofStatusColors.of(entry.proofStatus()).darker()));
 				dot.setPreferredSize(new Dimension(8, 8));
 				dot.setToolTipText(I18N.tf("tooltip.proof_status", entry.proofStatus().code()));
 				add(dot, "aligny center");

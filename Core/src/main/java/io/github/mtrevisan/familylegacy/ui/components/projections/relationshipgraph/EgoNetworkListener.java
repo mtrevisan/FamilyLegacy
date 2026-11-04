@@ -24,25 +24,28 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections.relationshipgraph;
 
+import io.github.mtrevisan.familylegacy.ego.EgoNetworkMutator;
+import io.github.mtrevisan.familylegacy.ego.EgoNetworkService;
+import io.github.mtrevisan.familylegacy.ego.EgoNode;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
-import io.github.mtrevisan.familylegacy.ui.components.projections.common.ProjectionMutator;
-import io.github.mtrevisan.familylegacy.ui.components.projections.common.TreeOperation;
+import io.github.mtrevisan.familylegacy.tree.ProjectionMutator;
+import io.github.mtrevisan.familylegacy.tree.TreeOperation;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContexts;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolDispatcher;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolOperation;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.groups.PasteGroupTool;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.groups.RelocateGroupTool;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.individuals.PasteIndividualTool;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.individuals.RelocateIndividualTool;
 import io.github.mtrevisan.familylegacy.ui.components.projections.group.GroupListener;
 import io.github.mtrevisan.familylegacy.ui.components.projections.group.GroupPanel;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualListener;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualPanel;
 import io.github.mtrevisan.familylegacy.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
-import io.github.mtrevisan.familylegacy.ui.tools.ToolContext;
-import io.github.mtrevisan.familylegacy.ui.tools.ToolContexts;
-import io.github.mtrevisan.familylegacy.ui.tools.ToolDispatcher;
-import io.github.mtrevisan.familylegacy.ui.tools.ToolOperation;
-import io.github.mtrevisan.familylegacy.ui.tools.groups.PasteGroupTool;
-import io.github.mtrevisan.familylegacy.ui.tools.groups.RelocateGroupTool;
-import io.github.mtrevisan.familylegacy.ui.tools.individuals.PasteIndividualTool;
-import io.github.mtrevisan.familylegacy.ui.tools.individuals.RelocateIndividualTool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -24,18 +24,18 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.layout.sugiyama;
 
+import io.github.mtrevisan.familylegacy.individual.IndividualSummary;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.SexType;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.tree.TreeNode;
 import io.github.mtrevisan.familylegacy.ui.components.projections.common.BoxPanelType;
 import io.github.mtrevisan.familylegacy.ui.components.projections.common.TreeLayout;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.EntityPopupMenuFactory;
-import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualData;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualListener;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualPanel;
+import io.github.mtrevisan.familylegacy.ui.components.projections.individual.SiblingsPanel;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.layout.IndividualTreeGraphListener;
-import io.github.mtrevisan.familylegacy.ui.components.projections.repository.TreeNode;
-import io.github.mtrevisan.familylegacy.ui.components.projections.siblings.SiblingsPanel;
 
 import javax.swing.BorderFactory;
 import javax.swing.JPanel;
@@ -81,7 +81,7 @@ final class ChildrenStripBuilder{
 		if(rootNode == null || rootNode.getBiologicalChildrenData() == null)
 			return false;
 
-		final List<IndividualData> children = rootNode.getBiologicalChildrenData()
+		final List<IndividualSummary> children = rootNode.getBiologicalChildrenData()
 			.getSiblings();
 		return (children != null && !children.isEmpty());
 	}
@@ -133,10 +133,10 @@ final class ChildrenStripBuilder{
 			return null;
 
 		FLEFRecord result = null;
-		final IndividualData individualData = rootNode.getIndividualData();
+		final IndividualSummary individualData = rootNode.getIndividualData();
 		if(individualData != null && individualData.getSex() == sex)
 			result = individualData.getIndividual();
-		final IndividualData partnerData = rootNode.getPartnerData();
+		final IndividualSummary partnerData = rootNode.getPartnerData();
 		if(partnerData != null && partnerData.getSex() == sex)
 			result = partnerData.getIndividual();
 		return result;

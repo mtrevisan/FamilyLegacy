@@ -24,13 +24,13 @@
  */
 package io.github.mtrevisan.familylegacy.ui.assistant.planner;
 
+import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.ui.assistant.AssistantCategory;
 import io.github.mtrevisan.familylegacy.ui.assistant.Diagnostic;
 import io.github.mtrevisan.familylegacy.ui.assistant.DiagnosticKeys;
 import io.github.mtrevisan.familylegacy.ui.assistant.gap.GapData;
 import io.github.mtrevisan.familylegacy.ui.assistant.gap.GapDraft;
-import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayDeque;

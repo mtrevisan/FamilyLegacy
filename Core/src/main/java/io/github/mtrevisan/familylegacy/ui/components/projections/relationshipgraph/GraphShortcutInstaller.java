@@ -24,7 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections.relationshipgraph;
 
-import io.github.mtrevisan.familylegacy.ui.dialogs.help.ShortcutRegistry;
+import io.github.mtrevisan.familylegacy.ui.helpers.ShortcutRegistry;
 
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;

@@ -53,7 +53,7 @@ class EveryDialogClosesWithEscTest{
 	/** A class that is a dialog. */
 	private static final Pattern DIALOG = Pattern.compile("extends\\s+(JDialog|BaseRecordDialog)\\b|new\\s+JDialog\\(");
 	/** What gives ESC a meaning: the helper of the tools, the button panels (their cancel), a binding of the key. */
-	private static final Pattern ESCAPE = Pattern.compile("ToolDialogs\\.installEscapeToClose|createButtonPanel|"
+	private static final Pattern ESCAPE = Pattern.compile("(ToolDialogs|GUIHelper)\\.installEscapeToClose|createButtonPanel|"
 		+ "createNewSelectCancelButtonPanel|ESCAPE_STROKE|VK_ESCAPE|extends\\s+BaseRecordDialog\\b");
 
 	/** The dialogs that must not be closed with ESC: they show a long operation that cannot be canceled. */

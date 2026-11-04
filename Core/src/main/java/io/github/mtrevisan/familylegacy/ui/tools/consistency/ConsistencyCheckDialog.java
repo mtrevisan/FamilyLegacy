@@ -24,11 +24,12 @@
  */
 package io.github.mtrevisan.familylegacy.ui.tools.consistency;
 
+import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.quality.ConsistencyService;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.RowTableModel;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolDialogs;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
-import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
-import io.github.mtrevisan.familylegacy.ui.tools.RowTableModel;
-import io.github.mtrevisan.familylegacy.ui.tools.ToolDialogs;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;

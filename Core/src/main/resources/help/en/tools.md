@@ -42,4 +42,5 @@ It lists the couples whose partners are related and the people who are the child
 
 - **Individual > Kinship Calculator...**: [Kinship and consanguinity](kinship.md).
 - **Group > Group Timeline...**, **Group > Group Network...** and **Individual > Group Career...**: [Group timeline, group network and group career](group-views.md).
+- **Place > Jurisdiction Timeline...**: how a place changed jurisdiction in time, in the same page.
 - **File > Backup...** and **Restore from Backup...**: see [Files](files.md#backup-and-restore).

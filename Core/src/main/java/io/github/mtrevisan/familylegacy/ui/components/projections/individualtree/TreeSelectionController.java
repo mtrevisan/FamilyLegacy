@@ -24,12 +24,12 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections.individualtree;
 
+import io.github.mtrevisan.familylegacy.individual.IndividualSummary;
+import io.github.mtrevisan.familylegacy.tree.TreeNode;
 import io.github.mtrevisan.familylegacy.ui.components.projections.common.SpatialNavigation;
-import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualData;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualPanel;
-import io.github.mtrevisan.familylegacy.ui.components.projections.partners.PartnersPanel;
-import io.github.mtrevisan.familylegacy.ui.components.projections.repository.TreeNode;
-import io.github.mtrevisan.familylegacy.ui.components.projections.siblings.SiblingsPanel;
+import io.github.mtrevisan.familylegacy.ui.components.projections.individual.PartnersPanel;
+import io.github.mtrevisan.familylegacy.ui.components.projections.individual.SiblingsPanel;
 
 import java.awt.Component;
 import java.awt.Rectangle;
@@ -101,12 +101,12 @@ public final class TreeSelectionController{
 				continue;
 
 			final IndividualPanel father = partners.getFatherPanel();
-			final IndividualData fatherData = father.getData();
+			final IndividualSummary fatherData = father.getData();
 			if(fatherData != null && selectedId.equals(fatherData.getId()))
 				return father;
 
 			final IndividualPanel mother = partners.getMotherPanel();
-			final IndividualData motherData = mother.getData();
+			final IndividualSummary motherData = mother.getData();
 			if(motherData != null && selectedId.equals(motherData.getId()))
 				return mother;
 		}
@@ -114,7 +114,7 @@ public final class TreeSelectionController{
 		if(childrenPanel != null){
 			for(final IndividualPanel siblingBox : childrenPanel.getSiblingBoxes()){
 				if(siblingBox != null){
-					final IndividualData siblingData = siblingBox.getData();
+					final IndividualSummary siblingData = siblingBox.getData();
 					if(siblingData != null && selectedId.equals(siblingData.getId()))
 						return siblingBox;
 				}
@@ -179,7 +179,7 @@ public final class TreeSelectionController{
 		if(panel == null)
 			return;
 
-		final IndividualData data = panel.getData();
+		final IndividualSummary data = panel.getData();
 		final boolean isSelected = (data != null && data.getId() != null && data.getId().equals(selectedId));
 		panel.withSelected(isSelected);
 	}

@@ -24,25 +24,19 @@
  */
 package io.github.mtrevisan.familylegacy.ui.tools.validate;
 
+import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.FLEFValidator;
-import io.github.mtrevisan.familylegacy.io.grammar.FLEFGrammarParser;
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.FLEFGrammar;
+import io.github.mtrevisan.familylegacy.io.merger.manual.MergeGrammar;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
-import io.github.mtrevisan.familylegacy.ui.tools.ToolContext;
-import io.github.mtrevisan.familylegacy.ui.tools.ToolOperation;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolOperation;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.swing.JOptionPane;
 import javax.swing.SwingWorker;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
@@ -61,8 +55,6 @@ public final class ValidateFileTool implements ToolOperation{
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ValidateFileTool.class);
 
-	private static final String GRAMMAR_CLASSPATH = "/gedg/flef_0.2.0.gedg";
-	private static final String GRAMMAR_FILE = "src/main/resources/gedg/flef_0.2.0.gedg";
 
 	private static volatile FLEFGrammar cachedGrammar;
 	private static volatile boolean grammarLoaded;
@@ -145,31 +137,10 @@ public final class ValidateFileTool implements ToolOperation{
 	}
 
 	private static FLEFGrammar loadGrammar(){
-		try(final InputStream is = ValidateFileTool.class
-			.getResourceAsStream(GRAMMAR_CLASSPATH)){
-			if(is != null){
-				LOGGER.info("Grammar loaded from classpath {}", GRAMMAR_CLASSPATH);
-				return FLEFGrammarParser.parse(
-					new String(is.readAllBytes(), StandardCharsets.UTF_8));
-			}
-		}
-		catch(final IOException ex){
-			LOGGER.warn("Classpath grammar read failed: {}", ex.getMessage());
-		}
-
-		try{
-			final Path path = Paths.get(GRAMMAR_FILE);
-			if(Files.exists(path)){
-				LOGGER.info("Grammar loaded from file {}", path.toAbsolutePath());
-				return FLEFGrammarParser.parse(path);
-			}
-		}
-		catch(final Exception ex){
-			LOGGER.error("Unable to load grammar from {}", GRAMMAR_FILE, ex);
-		}
-
-		LOGGER.error("Grammar not found: validation is disabled");
-		return null;
+		final FLEFGrammar grammar = MergeGrammar.instance();
+		if(grammar == null)
+			LOGGER.error("Grammar not found: validation is disabled");
+		return grammar;
 	}
 
 }

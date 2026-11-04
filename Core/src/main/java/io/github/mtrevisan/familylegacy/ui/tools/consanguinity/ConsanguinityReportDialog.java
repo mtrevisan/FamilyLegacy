@@ -26,8 +26,8 @@ package io.github.mtrevisan.familylegacy.ui.tools.consanguinity;
 
 import io.github.mtrevisan.familylegacy.consanguinity.ConsanguinityReport;
 import io.github.mtrevisan.familylegacy.consanguinity.ConsanguinityReportText;
-import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
-import io.github.mtrevisan.familylegacy.ui.tools.ToolDialogs;
+import io.github.mtrevisan.familylegacy.i18n.I18N;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolDialogs;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.BorderFactory;

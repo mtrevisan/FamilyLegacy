@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.ui.components.projections.individual;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.tree.EntityListener;
 
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;

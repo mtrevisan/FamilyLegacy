@@ -24,24 +24,24 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections.menus;
 
+import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.PopupMenuHelper;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContexts;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.groups.AddMemberTool;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.groups.DeleteGroupTool;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.groups.EditGroupTool;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.groups.GroupNetworkTool;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.groups.GroupTimelineTool;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.groups.PasteGroupTool;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.groups.UnlinkGroupRelationshipsTool;
 import io.github.mtrevisan.familylegacy.ui.components.projections.group.GroupData;
 import io.github.mtrevisan.familylegacy.ui.components.projections.group.GroupListener;
 import io.github.mtrevisan.familylegacy.ui.components.projections.group.GroupPanel;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.EntityPopupMenuFactory;
-import io.github.mtrevisan.familylegacy.ui.dialogs.help.ShortcutRegistry;
 import io.github.mtrevisan.familylegacy.ui.helpers.PopupMenuAdapter;
-import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
-import io.github.mtrevisan.familylegacy.ui.tools.PopupMenuHelper;
-import io.github.mtrevisan.familylegacy.ui.tools.ToolContext;
-import io.github.mtrevisan.familylegacy.ui.tools.ToolContexts;
-import io.github.mtrevisan.familylegacy.ui.tools.groups.AddMemberTool;
-import io.github.mtrevisan.familylegacy.ui.tools.groups.DeleteGroupTool;
-import io.github.mtrevisan.familylegacy.ui.tools.groups.EditGroupTool;
-import io.github.mtrevisan.familylegacy.ui.tools.groups.GroupNetworkTool;
-import io.github.mtrevisan.familylegacy.ui.tools.groups.GroupTimelineTool;
-import io.github.mtrevisan.familylegacy.ui.tools.groups.PasteGroupTool;
-import io.github.mtrevisan.familylegacy.ui.tools.groups.UnlinkGroupRelationshipsTool;
+import io.github.mtrevisan.familylegacy.ui.helpers.ShortcutRegistry;
 
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;

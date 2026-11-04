@@ -25,7 +25,7 @@
 package io.github.mtrevisan.familylegacy.ui.assistant;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.ui.dialogs.help.ShortcutRegistry;
+import io.github.mtrevisan.familylegacy.ui.helpers.ShortcutRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -73,6 +73,7 @@ public final class ResearchAssistantService{
 	private final IgnoredFindings ignoredFindings;
 
 	private Supplier<FLEFModel> modelSupplier = () -> null;
+	private Supplier<FLEFModel> snapshotSupplier;
 	private Supplier<String> scopeSupplier = () -> null;
 	private boolean installed;
 
@@ -143,7 +144,8 @@ public final class ResearchAssistantService{
 	 * Collects the diagnostics of every provider. A provider that fails is skipped: a bug in one assistant must not take the
 	 * others down.
 	 * <p>
-	 * It can be slow: call it away from the event dispatch thread.
+	 * It can be slow: call it away from the event dispatch thread, with the context given by {@link AssistantContext#forReading()}
+	 * (taken on that thread before leaving it): the user may be editing the model meanwhile.
 	 * </p>
 	 *
 	 * @param context where the user is
@@ -183,8 +185,20 @@ public final class ResearchAssistantService{
 	 * @param scopeSupplier gives what identifies the file being edited (its path), or {@code null} if it was never saved: the findings
 	 *                      the user ignores are kept for each file
 	 */
-	public synchronized void install(final Supplier<FLEFModel> modelSupplier, final Supplier<String> scopeSupplier){
+	public void install(final Supplier<FLEFModel> modelSupplier, final Supplier<String> scopeSupplier){
+		install(modelSupplier, null, scopeSupplier);
+	}
+
+	/**
+	 * As {@link #install(Supplier, Supplier)}, with the copy of the model the findings are computed on.
+	 *
+	 * @param snapshotSupplier gives a copy of the model as it is now that nobody changes (called on the event dispatch thread, see
+	 *                         {@link AssistantContext#forReading()}), or {@code null} to compute the findings on the model itself
+	 */
+	public synchronized void install(final Supplier<FLEFModel> modelSupplier, final Supplier<FLEFModel> snapshotSupplier,
+			final Supplier<String> scopeSupplier){
 		this.modelSupplier = modelSupplier;
+		this.snapshotSupplier = snapshotSupplier;
 		this.scopeSupplier = scopeSupplier;
 		if(installed)
 			return;
@@ -207,7 +221,7 @@ public final class ResearchAssistantService{
 		final Window window = (focusManager.getActiveWindow() != null
 			? focusManager.getActiveWindow()
 			: (focusOwner != null? SwingUtilities.getWindowAncestor(focusOwner): null));
-		open(new AssistantContext(window, focusOwner, modelSupplier.get(), scopeSupplier.get()));
+		open(new AssistantContext(window, focusOwner, modelSupplier.get(), scopeSupplier.get(), snapshotSupplier));
 	}
 
 	public void open(final AssistantContext context){
@@ -265,8 +279,10 @@ public final class ResearchAssistantService{
 		if(before == null)
 			return;
 
+		//the copy of the model is taken now, on the event dispatch thread and after the edit, and read away from it
+		final AssistantContext reading = context.forReading();
 		CompletableFuture
-			.supplyAsync(() -> recalculate(context, before))
+			.supplyAsync(() -> recalculate(reading, before))
 			.thenAccept(recalculation -> {
 				if(recalculation.isChanged())
 					SwingUtilities.invokeLater(() -> new ResearchAssistantPalette(this, context, recalculation, state).setVisible(true));

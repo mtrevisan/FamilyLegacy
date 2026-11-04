@@ -1,0 +1,119 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+package io.github.mtrevisan.familylegacy.search.strategies;
+
+import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.RecordDisplay;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceCitationReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryReader;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.search.SearchCriteria;
+import io.github.mtrevisan.familylegacy.search.SearchMode;
+import io.github.mtrevisan.familylegacy.search.SearchStrategy;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.Set;
+import java.util.StringJoiner;
+import java.util.function.Predicate;
+
+
+/**
+ * Search strategy for Repository records.
+ * Supports filtering by repository name, custodian reference, and location.
+ */
+public class RepositorySearchStrategy implements SearchStrategy{
+
+	private static final double FUZZY_THRESHOLD = 0.05;
+
+
+
+	private String name;
+	private String custodian;
+	private String place;
+	private Set<SearchMode> modes;
+
+
+	@Override
+	public Predicate<FLEFRecord> buildPredicate(final SearchCriteria criteria, final FLEFModel model){
+		name = criteria.getFilterFor(RepositoryReader.TAG_NAME);
+		custodian = criteria.getFilterFor(RepositoryReader.TAG_CUSTODIAN);
+		place = criteria.getFilterFor(RepositoryReader.TAG_PLACE);
+		modes = criteria.modes();
+
+		return repository -> {
+			// Name filter
+			if(!SearchHelper.matchesPlaceName(repository, name, modes, FUZZY_THRESHOLD))
+				return false;
+
+			// Custodian filter
+			if(StringUtils.isNotEmpty(custodian)){
+				final String custodianRef = RepositoryReader.extractCustodian(repository);
+				if(custodianRef != null){
+					final FLEFRecord custodianRecord = model.getRecordById(custodianRef);
+					if(custodianRecord != null){
+						final String custodianDisplayText = RecordDisplay.describe(custodianRecord, model);
+						if(!SearchHelper.matches(custodianDisplayText, custodian, modes))
+							return false;
+					}
+					else
+						return false;
+				}
+				else
+					return false;
+			}
+
+			// Place filter
+			if(StringUtils.isNotEmpty(place)){
+				final FLEFRecord placeCitation = FLEFRecordHelper.findChild(repository, PlaceReader.TYPE);
+				if(placeCitation != null){
+					final String placeId = placeCitation.getTheOnlyChild().getValue();
+					final FLEFRecord placeRecord = model.getRecordById(placeId);
+					final String place = RecordDisplay.describe(placeRecord, model);
+					return SearchHelper.matches(place, this.place, modes);
+				}
+			}
+
+			return true;
+		};
+	}
+
+	@Override
+	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
+		final String baseDisplayText = RecordDisplay.describe(record, model);
+
+		final String place = PlaceCitationReader.extractPlace(record, model);
+
+		final StringJoiner details = new StringJoiner(", ", " (", ")");
+		details.setEmptyValue(StringUtils.EMPTY);
+
+		if(StringUtils.isNotEmpty(place))
+			details.add(" - " + place);
+
+		return baseDisplayText + details;
+	}
+
+}

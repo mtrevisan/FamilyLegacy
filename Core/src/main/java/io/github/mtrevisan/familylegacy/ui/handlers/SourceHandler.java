@@ -24,14 +24,13 @@
  */
 package io.github.mtrevisan.familylegacy.ui.handlers;
 
+import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
-import io.github.mtrevisan.familylegacy.ui.dialogs.api.RecordDialog;
-import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
+import io.github.mtrevisan.familylegacy.ui.api.RecordDialog;
 
 import java.awt.Window;
-import java.util.List;
 
 
 /**
@@ -79,8 +78,7 @@ public class SourceHandler extends AbstractRecordTypeHandler<RecordDialog>{
 			return SourceCitationHandler.getInstance()
 				.getDisplayText(record, model);
 
-		final List<String> titles = SourceReader.extractTitles(record);
-		return (!titles.isEmpty()? titles.getFirst() + " [" + id + "]": "[" + id + "]");
+		return SourceReader.displayText(record);
 	}
 
 	@Override

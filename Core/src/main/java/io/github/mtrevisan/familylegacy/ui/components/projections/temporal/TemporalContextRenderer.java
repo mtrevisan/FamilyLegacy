@@ -24,6 +24,11 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections.temporal;
 
+import io.github.mtrevisan.familylegacy.temporal.ContextImpactLink;
+import io.github.mtrevisan.familylegacy.temporal.TemporalConnection;
+import io.github.mtrevisan.familylegacy.temporal.TemporalContextBand;
+import io.github.mtrevisan.familylegacy.temporal.TemporalProjectionLayout;
+import io.github.mtrevisan.familylegacy.temporal.TemporalProjectionRef;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;

@@ -24,12 +24,15 @@
  */
 package io.github.mtrevisan.familylegacy.ui.tools.files;
 
-import io.github.mtrevisan.familylegacy.ui.tools.ToolOperation;
-import io.github.mtrevisan.familylegacy.ui.tools.files.importation.ImportGedcomTool;
-import io.github.mtrevisan.familylegacy.ui.tools.files.importation.ImportGrampsXmlTool;
-import io.github.mtrevisan.familylegacy.ui.tools.tools.BackupTool;
-import io.github.mtrevisan.familylegacy.ui.tools.tools.RestoreFromBackupTool;
+import io.github.mtrevisan.familylegacy.importer.FileImporter;
+import io.github.mtrevisan.familylegacy.importer.FileImporters;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolOperation;
+import io.github.mtrevisan.familylegacy.ui.tools.files.importation.ImportFileTool;
+import io.github.mtrevisan.familylegacy.ui.tools.files.importation.ImportUnavailableTool;
+import io.github.mtrevisan.familylegacy.ui.tools.maintenance.BackupTool;
+import io.github.mtrevisan.familylegacy.ui.tools.maintenance.RestoreFromBackupTool;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -48,13 +51,21 @@ public final class FileToolRegistry{
 			new RestoreFromBackupTool());
 	}
 
+	/**
+	 * @return	One entry for each format that can be imported: the importers are plugins, so the ones that are installed give the
+	 * 	entries, and for the formats the application knows and whose plugin is not there an entry says so.
+	 */
 	public static List<ToolOperation> importTools(){
-		return List.of(
-			new ImportGedcomTool(),
-			new ImportGrampsXmlTool()//,
-			// TODO ?
-//			new ImportCsvTool()
-		);
+		final List<ToolOperation> tools = new ArrayList<>();
+		final List<String> found = new ArrayList<>();
+		for(final FileImporter importer : FileImporters.available()){
+			tools.add(new ImportFileTool(importer));
+			found.add(importer.id());
+		}
+		for(final String id : FileImporters.KNOWN_IDS)
+			if(!found.contains(id))
+				tools.add(new ImportUnavailableTool(id));
+		return tools;
 	}
 
 	public static List<ToolOperation> exportTools(){

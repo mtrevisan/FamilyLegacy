@@ -24,11 +24,11 @@
  */
 package io.github.mtrevisan.familylegacy.ui.dialogs;
 
+import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.FLEFWriter;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
-import io.github.mtrevisan.familylegacy.ui.helpers.DiffUtils;
-import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
-import io.github.mtrevisan.familylegacy.ui.tools.ToolDialogs;
+import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.util.DiffUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JButton;
@@ -128,7 +128,7 @@ public class RecordDiffDialog extends JDialog{
 	public RecordDiffDialog(final Window owner, final String title, final FLEFRecord before,
 		final FLEFRecord after, final boolean readOnly){
 		super(owner, title, ModalityType.APPLICATION_MODAL);
-		ToolDialogs.installEscapeToClose(this);
+		GUIHelper.installEscapeToClose(this);
 
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 

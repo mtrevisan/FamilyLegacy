@@ -24,9 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections.chronomap;
 
-import org.jxmapviewer.viewer.GeoPosition;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.jxmapviewer.viewer.GeoPosition;
 
 import java.io.IOException;
 import java.nio.file.Files;

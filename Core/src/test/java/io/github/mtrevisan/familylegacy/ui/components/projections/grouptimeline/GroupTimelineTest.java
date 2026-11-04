@@ -24,25 +24,27 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections.grouptimeline;
 
+import io.github.mtrevisan.familylegacy.groups.GroupTimelineBuilder;
+import io.github.mtrevisan.familylegacy.groups.IndividualCareerBuilder;
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DatePrecision;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.NormalizedDate;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.TemporalSpan;
-import io.github.mtrevisan.familylegacy.ui.components.projections.temporal.TemporalEntry;
-import io.github.mtrevisan.familylegacy.ui.components.projections.temporal.TemporalProjectionModel;
-import io.github.mtrevisan.familylegacy.ui.components.projections.temporal.TemporalRoleColors;
-import io.github.mtrevisan.familylegacy.ui.components.projections.temporal.TemporalRow;
-import io.github.mtrevisan.familylegacy.ui.components.projections.temporal.TemporalContextBand;
-import io.github.mtrevisan.familylegacy.ui.components.projections.temporal.TemporalEntityRef;
-import io.github.mtrevisan.familylegacy.ui.components.projections.temporal.TemporalEntityType;
+import io.github.mtrevisan.familylegacy.temporal.TemporalContextBand;
+import io.github.mtrevisan.familylegacy.temporal.TemporalEntityRef;
+import io.github.mtrevisan.familylegacy.temporal.TemporalEntityType;
+import io.github.mtrevisan.familylegacy.temporal.TemporalEntry;
+import io.github.mtrevisan.familylegacy.temporal.TemporalProjectionModel;
+import io.github.mtrevisan.familylegacy.temporal.TemporalProjectionRef;
+import io.github.mtrevisan.familylegacy.temporal.TemporalRow;
+import io.github.mtrevisan.familylegacy.temporal.TemporalTrackType;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.groups.GroupViewDialog;
 import io.github.mtrevisan.familylegacy.ui.components.projections.temporal.TemporalInteractionHandler;
-import io.github.mtrevisan.familylegacy.ui.components.projections.temporal.TemporalProjectionRef;
+import io.github.mtrevisan.familylegacy.ui.components.projections.temporal.TemporalRoleColors;
 import io.github.mtrevisan.familylegacy.ui.components.projections.temporal.TemporalSpanRenderer;
-import io.github.mtrevisan.familylegacy.ui.components.projections.temporal.TemporalTrackType;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
-import io.github.mtrevisan.familylegacy.ui.tools.ToolContext;
-import io.github.mtrevisan.familylegacy.ui.tools.groups.GroupViewDialog;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
@@ -53,11 +55,11 @@ import javax.swing.JDialog;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import java.awt.Color;
-import java.awt.GraphicsEnvironment;
 import java.awt.Graphics2D;
+import java.awt.GraphicsEnvironment;
 import java.awt.Rectangle;
-import java.awt.image.BufferedImage;
 import java.awt.event.ActionEvent;
+import java.awt.image.BufferedImage;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
@@ -143,13 +145,43 @@ class GroupTimelineTest{
 	}
 
 	@Test
+	void aMembershipThatHasBegunAndHasNoEndEndsToday(){
+		final long today = java.time.LocalDate.now().toEpochDay() + 2_440_588L;
+		final TemporalProjectionModel model = build("G1");
+
+		final TemporalEntry open = memberships(row(model, "I1")).stream().filter(entry -> entry.hasRole() && "member".equals(entry.role()))
+			.findFirst().orElseThrow();
+		Assertions.assertEquals(today, open.span().maxJdn(), "Anna is still a member");
+		Assertions.assertTrue(open.label().contains(GroupTimelineBuilder.ONGOING), open.label());
+		Assertions.assertEquals(today, memberships(row(model, "G2")).getFirst().span().maxJdn(), "the subgroup too");
+
+		final TemporalEntry closed = memberships(row(model, "I1")).stream().filter(entry -> "president".equals(entry.role()))
+			.findFirst().orElseThrow();
+		Assertions.assertTrue(closed.span().maxJdn() < today);
+		Assertions.assertFalse(closed.label().contains(GroupTimelineBuilder.ONGOING), closed.label());
+		Assertions.assertTrue(model.domainEnd().jdn() >= today);
+	}
+
+	@Test
+	void anEndedMembershipWithNoEndDateIsNotCarriedToToday(){
+		final FLEFModel model = new FLEFParser().parse(HEADER + person("I1", "Anna") + group("G1", "Club")
+			+ membership("R1", "individual I1", "G1", "group_member", "member", "1900-01-01", null).replace("\ttype group_member\n",
+				"\ttype group_member\n\tstatus ended\n"));
+
+		final TemporalEntry entry = memberships(row(GroupTimelineBuilder.build(model, "G1"), "I1")).getFirst();
+
+		Assertions.assertEquals(Long.MAX_VALUE, entry.span().maxJdn(), "it has ended, when is not known: the end stays open");
+		Assertions.assertFalse(entry.label().contains(GroupTimelineBuilder.ONGOING), entry.label());
+	}
+
+	@Test
 	void theBarOfARelationshipWithoutDatesIsKeptAndSaysSo(){
 		final TemporalProjectionModel model = build("G1");
 		final TemporalEntry entry = memberships(row(model, "I2")).getFirst();
 
 		Assertions.assertTrue(entry.label().contains(GroupTimelineBuilder.DATES_UNKNOWN), entry.label());
 		Assertions.assertEquals(Long.MIN_VALUE, entry.span().start().jdn());
-		Assertions.assertEquals(Long.MAX_VALUE, entry.span().end().jdn());
+		Assertions.assertEquals(java.time.LocalDate.now().toEpochDay() + 2_440_588L, entry.span().end().jdn(), "it has no end: it ends today, and does not go on beyond");
 	}
 
 	@Test

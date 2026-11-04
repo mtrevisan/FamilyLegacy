@@ -30,6 +30,7 @@ import javax.swing.SwingUtilities;
 import java.awt.Component;
 import java.awt.Window;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 
 /**
@@ -41,12 +42,35 @@ import java.util.Optional;
  * @param model      the model being edited (can be {@code null})
  * @param scope      what identifies the file being edited, to keep the choices of the user about it (the path of the file), or
  *                   {@code null} if it was never saved
+ * @param snapshots  gives a copy of the model that nobody changes (see {@link #forReading()}), or {@code null} if the model is read as
+ *                   it is
  */
-public record AssistantContext(Window window, Component focusOwner, FLEFModel model, String scope){
+public record AssistantContext(Window window, Component focusOwner, FLEFModel model, String scope, Supplier<FLEFModel> snapshots){
 
 	/** A context of a file that was never saved. */
 	public AssistantContext(final Window window, final Component focusOwner, final FLEFModel model){
 		this(window, focusOwner, model, null);
+	}
+
+	/** A context whose model is read as it is (it is not copied: use it where nobody edits the model meanwhile). */
+	public AssistantContext(final Window window, final Component focusOwner, final FLEFModel model, final String scope){
+		this(window, focusOwner, model, scope, null);
+	}
+
+	/**
+	 * The context for something that reads the model away from the event dispatch thread (the diagnostics), while the user may be
+	 * editing it: the same context, but with a copy of the model as it is now, that nobody changes. The model is changed in place, from
+	 * many places, so a reader that is not on the thread of the edits would see a half-changed model.
+	 * <p>
+	 * Call it on the event dispatch thread, before going away from it, and hand the result to the reader. It is for <b>reading</b>
+	 * only: an action must be given the original context, because it has to act on the model of the file and not on a copy. What a
+	 * finding says about a record is its identifier, so it is found again in the original model when the user acts on it.
+	 * </p>
+	 *
+	 * @return	This context if the model is read as it is.
+	 */
+	public AssistantContext forReading(){
+		return (snapshots == null || model == null? this: new AssistantContext(window, focusOwner, snapshots.get(), scope, null));
 	}
 
 	/**

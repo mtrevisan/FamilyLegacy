@@ -24,20 +24,20 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.layout.sugiyama;
 
+import io.github.mtrevisan.familylegacy.individual.IndividualSummary;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.tree.GenealogyRepository;
+import io.github.mtrevisan.familylegacy.tree.Side;
+import io.github.mtrevisan.familylegacy.tree.TreeNode;
 import io.github.mtrevisan.familylegacy.ui.components.projections.common.BoxPanelType;
 import io.github.mtrevisan.familylegacy.ui.components.projections.common.TreeLayout;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.EntityPopupMenuFactory;
-import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualData;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualListener;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualPanel;
+import io.github.mtrevisan.familylegacy.ui.components.projections.individual.PartnersPanel;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.layout.IndividualTreeGraphListener;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.layout.PartnerCycleHandler;
-import io.github.mtrevisan.familylegacy.ui.components.projections.partners.PartnersPanel;
-import io.github.mtrevisan.familylegacy.ui.components.projections.partners.Side;
-import io.github.mtrevisan.familylegacy.ui.components.projections.repository.GenealogyRepository;
-import io.github.mtrevisan.familylegacy.ui.components.projections.repository.TreeNode;
 
 
 /**
@@ -74,8 +74,8 @@ final class PartnersPanelFactory{
 			: BoxPanelType.SECONDARY);
 
 		final boolean isTopLayer = (layerIndex == 0);
-		final IndividualData fatherData = (fatherNode != null? fatherNode.getIndividualData(): null);
-		final IndividualData motherData = (motherNode != null? motherNode.getIndividualData(): null);
+		final IndividualSummary fatherData = (fatherNode != null? fatherNode.getIndividualData(): null);
+		final IndividualSummary motherData = (motherNode != null? motherNode.getIndividualData(): null);
 
 		final PartnersPanel panel = PartnersPanel.create(boxType, treeLayout, model, genealogyRepository)
 			.withShowAncestors(isTopLayer)

@@ -25,18 +25,18 @@
 package io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.layout.sugiyama;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.tree.GenealogyRepository;
+import io.github.mtrevisan.familylegacy.tree.TreeNode;
 import io.github.mtrevisan.familylegacy.ui.components.projections.common.TreeLayout;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.EntityPopupMenuFactory;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualListener;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualPanel;
+import io.github.mtrevisan.familylegacy.ui.components.projections.individual.PartnersPanel;
+import io.github.mtrevisan.familylegacy.ui.components.projections.individual.SiblingsPanel;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.layout.IndividualTreeGraphListener;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.layout.LayoutEngine;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.layout.LayoutRenderer;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.layout.PartnerCycleHandler;
-import io.github.mtrevisan.familylegacy.ui.components.projections.partners.PartnersPanel;
-import io.github.mtrevisan.familylegacy.ui.components.projections.repository.GenealogyRepository;
-import io.github.mtrevisan.familylegacy.ui.components.projections.repository.TreeNode;
-import io.github.mtrevisan.familylegacy.ui.components.projections.siblings.SiblingsPanel;
 
 import javax.swing.JPanel;
 import java.awt.geom.Path2D;

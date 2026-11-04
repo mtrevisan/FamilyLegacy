@@ -24,8 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.ui.assistant;
 
-import io.github.mtrevisan.familylegacy.ui.dialogs.help.ShortcutRegistry;
-import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
+import io.github.mtrevisan.familylegacy.i18n.I18N;
+import io.github.mtrevisan.familylegacy.ui.helpers.ShortcutRegistry;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JButton;
@@ -176,9 +176,11 @@ public final class AssistantIndicator{
 		running = true;
 		dirty = false;
 		update();
+		//a copy of the model as it is now, taken here on the event dispatch thread: the user may go on editing while it is read
+		final AssistantContext reading = context.forReading();
 		executor.execute(() -> {
 			final long start = clock.getAsLong();
-			final List<Diagnostic> found = service.diagnose(context);
+			final List<Diagnostic> found = service.diagnose(reading);
 			final long elapsed = clock.getAsLong() - start;
 			onEventThread.accept(() -> finish(found, elapsed));
 		});

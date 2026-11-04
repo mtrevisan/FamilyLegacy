@@ -24,18 +24,20 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections.chronomap;
 
+import io.github.mtrevisan.familylegacy.chronomap.ChronomapIndex;
+import io.github.mtrevisan.familylegacy.chronomap.ChronomapIndex.GeoAnchor;
+import io.github.mtrevisan.familylegacy.chronomap.PlaceCoordinateResolver;
+import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.GeoCoordinate;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.JulianDay;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
-import io.github.mtrevisan.familylegacy.ui.components.projections.chronomap.ChronomapIndex.GeoAnchor;
-import io.github.mtrevisan.familylegacy.ui.dialogs.api.RecordDialog;
+import io.github.mtrevisan.familylegacy.ui.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
-import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
-import io.github.mtrevisan.familylegacy.ui.tools.events.CalendarConverterDialog;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -671,7 +673,7 @@ public final class AgoraPanel extends JPanel{
 	}
 
 	private static String formatDate(final long jdn){
-		final int[] ymd = CalendarConverterDialog.jdnToGregorian(jdn);
+		final int[] ymd = JulianDay.toGregorian(jdn);
 		return ymd[2] + StringUtils.SPACE + MONTH_NAMES[ymd[1] - 1] + StringUtils.SPACE + ymd[0];
 	}
 

@@ -24,15 +24,33 @@
  */
 package io.github.mtrevisan.familylegacy;
 
+import io.github.mtrevisan.calendars.CalendarType;
+import io.github.mtrevisan.calendars.gregorian.GregorianCalendarParser;
+import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.ui.components.projections.FamilyLegacyFrame;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.DateReader;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.ui.components.projections.common.PlaceholderImages;
+import io.github.mtrevisan.familylegacy.ui.components.projections.common.TreeIcons;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.TreeType;
 import io.github.mtrevisan.familylegacy.ui.preferences.AppearanceManager;
+import io.github.mtrevisan.familylegacy.ui.shell.FamilyLegacyFrame;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.swing.BorderFactory;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JProgressBar;
+import javax.swing.JWindow;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
 import java.io.File;
 
 
@@ -50,6 +68,16 @@ public final class FamilyLegacyApplication{
 	private FamilyLegacyApplication(){}
 
 
+	/** Classes whose static initializers are slow (image decoding, locale tables): warmed up away from the event dispatch thread. */
+	private static final String[] WARM_UP_CLASSES = {
+		PlaceholderImages.class.getName(),
+		TreeIcons.class.getName(),
+		GregorianCalendarParser.class.getName(),
+		CalendarType.class.getName(),
+		DateReader.class.getName()
+	};
+
+
 	public static void main(final String[] args){
 		final File fileToOpen = (args.length > 0? new File(args[0]): null);
 
@@ -62,19 +90,76 @@ public final class FamilyLegacyApplication{
 			//apply persisted language and font before any window is created
 			AppearanceManager.applySaved();
 
-			final FamilyLegacyFrame frame = new FamilyLegacyFrame(TreeType.FAMILY, new FLEFModel());
-			frame.setVisible(true);
+			FLEFRecord.onMultipleChildren(record -> JOptionPane.showMessageDialog(null,
+				"Record with more than one child: " + record, I18N.t("error.title"), JOptionPane.ERROR_MESSAGE));
 
-			if(fileToOpen != null){
-				if(fileToOpen.isFile())
-					frame.openFile(fileToOpen);
-				else
-					LOGGER.warn("File not found, ignored: {}", fileToOpen);
-			}
+			final JProgressBar progress = new JProgressBar(0, WARM_UP_CLASSES.length);
+			final JWindow splash = createSplash(progress);
+			splash.setVisible(true);
 
-			//after the window is shown, so it does not interfere with the creation of the UI fonts
-			SwingUtilities.invokeLater(AppearanceManager::preloadFontFamilies);
+			warmUp(progress, () -> {
+				splash.dispose();
+				openFrame(fileToOpen);
+			});
 		});
+	}
+
+	private static JWindow createSplash(final JProgressBar progress){
+		final JLabel title = new JLabel("FamilyLegacy", SwingConstants.CENTER);
+		title.setFont(title.getFont().deriveFont(Font.BOLD, 22.f));
+		final JLabel message = new JLabel(I18N.t("splash.loading"), SwingConstants.CENTER);
+
+		final JPanel content = new JPanel(new BorderLayout(0, 10));
+		content.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(Color.GRAY),
+			BorderFactory.createEmptyBorder(24, 32, 24, 32)));
+		content.add(title, BorderLayout.NORTH);
+		content.add(message, BorderLayout.CENTER);
+		content.add(progress, BorderLayout.SOUTH);
+
+		final JWindow splash = new JWindow();
+		splash.setContentPane(content);
+		splash.setMinimumSize(new Dimension(360, 0));
+		splash.pack();
+		splash.setLocationRelativeTo(null);
+		return splash;
+	}
+
+	private static void openFrame(final File fileToOpen){
+		final FamilyLegacyFrame frame = new FamilyLegacyFrame(TreeType.FAMILY, new FLEFModel());
+		frame.setVisible(true);
+
+		if(fileToOpen != null){
+			if(fileToOpen.isFile())
+				frame.openFile(fileToOpen);
+			else
+				LOGGER.warn("File not found, ignored: {}", fileToOpen);
+		}
+
+		//after the window is shown, so it does not interfere with the creation of the UI fonts
+		SwingUtilities.invokeLater(AppearanceManager::preloadFontFamilies);
+	}
+
+	/**
+	 * Initializes the classes that would otherwise freeze the UI for seconds the first time an individual is shown, off the event
+	 * dispatch thread, advancing the progress bar after each one; then runs {@code onDone} on the event dispatch thread.
+	 */
+	private static void warmUp(final JProgressBar progress, final Runnable onDone){
+		final Thread thread = new Thread(() -> {
+			int done = 0;
+			for(final String className : WARM_UP_CLASSES){
+				try{
+					Class.forName(className, true, FamilyLegacyApplication.class.getClassLoader());
+				}
+				catch(final ClassNotFoundException | LinkageError e){
+					LOGGER.debug("Cannot warm up {}", className, e);
+				}
+				final int value = ++done;
+				SwingUtilities.invokeLater(() -> progress.setValue(value));
+			}
+			SwingUtilities.invokeLater(onDone);
+		}, "warm-up");
+		thread.setDaemon(true);
+		thread.start();
 	}
 
 }

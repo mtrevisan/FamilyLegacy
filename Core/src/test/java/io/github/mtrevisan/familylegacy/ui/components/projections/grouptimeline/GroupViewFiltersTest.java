@@ -24,9 +24,12 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections.grouptimeline;
 
+import io.github.mtrevisan.familylegacy.groups.GroupTimelineBuilder;
+import io.github.mtrevisan.familylegacy.groups.GroupYearFilter;
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.ui.components.projections.temporal.TemporalProjectionModel;
+import io.github.mtrevisan.familylegacy.temporal.TemporalProjectionModel;
+import io.github.mtrevisan.familylegacy.temporal.TemporalTrackType;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
@@ -155,8 +158,7 @@ class GroupViewFiltersTest{
 		final TemporalProjectionModel youth = GroupTimelineBuilder.build(model(), "G2");
 
 		Assertions.assertEquals(List.of("G1"), rowIds(youth), "the Club, that Youth is part of (Youth has no member)");
-		Assertions.assertEquals("part_of", youth.rows().getFirst().findTrack(io.github.mtrevisan.familylegacy.ui.components.projections
-			.temporal.TemporalTrackType.MEMBERSHIP).entries().getFirst().type());
+		Assertions.assertEquals("part_of", youth.rows().getFirst().findTrack(TemporalTrackType.MEMBERSHIP).entries().getFirst().type());
 		Assertions.assertFalse(rowIds(timeline()).contains("G1"), "a group is not part of itself");
 	}
 

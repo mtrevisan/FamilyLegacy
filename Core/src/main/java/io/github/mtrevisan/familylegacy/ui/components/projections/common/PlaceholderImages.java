@@ -36,7 +36,7 @@ import java.util.Map;
 /**
  * Shared cache of the placeholder images used when an individual or a
  * group has no preferred image, plus the sizing helpers that both
- * {@code IndividualData} and {@code GroupData} use for their real and
+ * {@code IndividualSummary} and {@code GroupData} use for their real and
  * placeholder photos.
  * <p>
  * The three source images (unknown / male / female) never change, and

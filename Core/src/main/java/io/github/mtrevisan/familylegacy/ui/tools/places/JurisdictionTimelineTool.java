@@ -1,0 +1,71 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+package io.github.mtrevisan.familylegacy.ui.tools.places;
+
+import io.github.mtrevisan.familylegacy.i18n.I18N;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolOperation;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.groups.GroupViewDialog;
+import io.github.mtrevisan.familylegacy.ui.components.searches.service.RecordSelectionDialog;
+import io.github.mtrevisan.familylegacy.ui.handlers.PlaceHandler;
+
+
+/**
+ * Shows the timeline of the jurisdictions of a place: the places it was part of, and the ones that were part of it, in time. The place is
+ * the selected one if the selection is a place, otherwise it is asked for.
+ */
+public final class JurisdictionTimelineTool implements ToolOperation{
+
+	@Override
+	public String getName(){
+		return I18N.t("menu.place.jurisdiction.timeline");
+	}
+
+	@Override
+	@SuppressWarnings("unchecked")
+	public void run(final ToolContext context){
+		String placeId = (context.hasSelectedEntity() && PlaceHandler.isOfType(context.getSelectedEntity())? context.selectedEntityId(): null);
+		if(placeId == null){
+			final RecordSelectionDialog dialog = RecordSelectionDialog.create(context.owner(), context.model(), (record, handler) -> {},
+				PlaceHandler.class);
+			dialog.setVisible(true);
+			final FLEFRecord selected = (dialog.isConfirmed()? dialog.getSelectedRecord(): null);
+			if(selected == null)
+				return;
+
+			placeId = selected.getId();
+		}
+
+		GroupViewDialog.forPlace(context, placeId)
+			.setVisible(true);
+	}
+
+	@Override
+	public boolean isEnabled(final ToolContext context){
+		return (context != null && context.hasAnyPlaces());
+	}
+
+}

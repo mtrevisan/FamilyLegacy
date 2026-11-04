@@ -25,13 +25,13 @@
 package io.github.mtrevisan.familylegacy.ui.components.projections.individualtree;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.tree.TreeNode;
+import io.github.mtrevisan.familylegacy.tree.pedigree.PedigreeCollapse;
+import io.github.mtrevisan.familylegacy.tree.pedigree.PedigreeCollapseDetector;
+import io.github.mtrevisan.familylegacy.tree.pedigree.PedigreePath;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualPanel;
-import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.services.pedigree.PedigreeCollapse;
-import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.services.pedigree.PedigreeCollapseDetector;
-import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.services.pedigree.PedigreeCollapseDialog;
-import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.services.pedigree.PedigreePath;
-import io.github.mtrevisan.familylegacy.ui.components.projections.partners.PartnersPanel;
-import io.github.mtrevisan.familylegacy.ui.components.projections.repository.TreeNode;
+import io.github.mtrevisan.familylegacy.ui.components.projections.individual.PartnersPanel;
+import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.services.PedigreeCollapseDialog;
 
 import java.awt.Window;
 import java.util.List;

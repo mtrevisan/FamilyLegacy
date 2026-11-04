@@ -24,7 +24,10 @@
  */
 package io.github.mtrevisan.familylegacy.ui.preferences;
 
-import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
+import io.github.mtrevisan.familylegacy.i18n.I18N;
+import io.github.mtrevisan.familylegacy.preferences.AppPreferences;
+import io.github.mtrevisan.familylegacy.preferences.AvailableLanguages;
+import io.github.mtrevisan.familylegacy.preferences.MediaPathDisplay;
 import org.apache.commons.lang3.Strings;
 
 import javax.swing.ButtonGroup;

@@ -24,8 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.searches.service;
 
+import io.github.mtrevisan.familylegacy.search.SearchCriteria;
 import io.github.mtrevisan.familylegacy.ui.components.searches.RecordFilterPanel;
-import io.github.mtrevisan.familylegacy.ui.components.searches.SearchCriteria;
 import io.github.mtrevisan.familylegacy.ui.components.searches.strategies.ConclusionFilterPanel;
 import io.github.mtrevisan.familylegacy.ui.components.searches.strategies.CulturalNormFilterPanel;
 import io.github.mtrevisan.familylegacy.ui.components.searches.strategies.EventFilterPanel;

@@ -24,16 +24,16 @@
  */
 package io.github.mtrevisan.familylegacy.ui.helpers;
 
+import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.FLEFValidator;
 import io.github.mtrevisan.familylegacy.io.FLEFWriter;
-import io.github.mtrevisan.familylegacy.io.grammar.FLEFGrammarParser;
 import io.github.mtrevisan.familylegacy.io.grammar.FLEFGrammarValidator;
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.FLEFGrammar;
+import io.github.mtrevisan.familylegacy.io.merger.manual.MergeGrammar;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
-import io.github.mtrevisan.familylegacy.ui.dialogs.api.RecordDialog;
-import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
+import io.github.mtrevisan.familylegacy.ui.api.RecordDialog;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -63,6 +63,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
 import javax.swing.TransferHandler;
 import javax.swing.UIManager;
+import javax.swing.WindowConstants;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.text.JTextComponent;
 import java.awt.Color;
@@ -794,12 +795,7 @@ public final class GUIHelper{
 	}
 
 	private static void validate(FLEFModel model) throws IOException{
-		final String grammarContent;
-		try(final InputStream is = GUIHelper.class.getResourceAsStream("/gedg/flef_0.2.0.gedg")){
-			grammarContent = new String(is.readAllBytes(), StandardCharsets.UTF_8);
-		}
-
-		final FLEFGrammar grammar = FLEFGrammarParser.parse(grammarContent);
+		final FLEFGrammar grammar = MergeGrammar.instance();
 		for(final String warning : grammar.getParseWarnings())
 			System.err.println(warning);
 
@@ -830,6 +826,27 @@ public final class GUIHelper{
 			dialog.setVisible(true);
 
 			System.out.println(FLEFWriter.createCompact().writeToString(model));
+		});
+	}
+
+
+	/**
+	 * Makes the escape key close the dialog (it is disposed as if the Cancel button had been clicked: any unsaved change is discarded).
+	 * The binding is registered on the root pane with {@link JComponent#WHEN_IN_FOCUSED_WINDOW}; the call is idempotent.
+	 *
+	 * @param dialog	The dialog to install the binding on.
+	 */
+	public static void installEscapeToClose(final JDialog dialog){
+		final JRootPane rootPane = dialog.getRootPane();
+		final InputMap inputMap = rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+		final ActionMap actionMap = rootPane.getActionMap();
+		dialog.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+		inputMap.put(ESCAPE_STROKE, "closeDialog");
+		actionMap.put("closeDialog", new AbstractAction(){
+			@Override
+			public void actionPerformed(final ActionEvent e){
+				dialog.dispose();
+			}
 		});
 	}
 

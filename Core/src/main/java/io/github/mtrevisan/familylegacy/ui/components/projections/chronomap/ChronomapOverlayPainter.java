@@ -24,11 +24,12 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections.chronomap;
 
+import io.github.mtrevisan.familylegacy.chronomap.ChronomapIndex;
+import io.github.mtrevisan.familylegacy.chronomap.ChronomapIndex.GeoAnchor;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.GeoCoordinate;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.ui.components.lists.PrivacyBadge;
-import io.github.mtrevisan.familylegacy.ui.components.projections.chronomap.ChronomapIndex.GeoAnchor;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import org.jxmapviewer.JXMapViewer;
 import org.jxmapviewer.viewer.GeoPosition;

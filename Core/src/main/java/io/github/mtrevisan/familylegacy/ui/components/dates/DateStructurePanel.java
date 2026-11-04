@@ -1,0 +1,360 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+package io.github.mtrevisan.familylegacy.ui.components.dates;
+
+import io.github.mtrevisan.calendars.assistant.DateSuggestion;
+import io.github.mtrevisan.familylegacy.i18n.I18N;
+import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.DateReader;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.ui.bindings.BindingManager;
+import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
+import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextField;
+import io.github.mtrevisan.familylegacy.ui.components.lists.EntityListPanel;
+import io.github.mtrevisan.familylegacy.ui.handlers.SourceCitationHandler;
+import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
+import net.miginfocom.swing.MigLayout;
+
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JTabbedPane;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+import java.awt.BorderLayout;
+import java.awt.Window;
+
+
+/**
+ * Panel for editing a {@code DATE_STRUCTURE} according to FLEF 0.2.0.
+ * <p>
+ * Structure:
+ * <pre>
+ * struct DateStructure {
+ *   value: DateValue
+ *   original_text?: Text
+ *   source*: SourceCitation
+ *   confidence?: Confidence
+ * }
+ *
+ * DateValue = oneof {
+ *   point: SingleDate
+ *   bounded: BoundedDate
+ *   spanning: SpanningDate
+ * }
+ * </pre>
+ */
+public class DateStructurePanel extends JPanel implements HistoricalDateAssistantHost{
+
+	private final FLEFModel model;
+	private final JTabbedPane tabbedPane = new JTabbedPane();
+
+	private final BindingManager bindingManager = new BindingManager();
+
+	private final SingleDatePanel pointDateValuePanel;
+	private final BoundedDatePanel boundedDateValuePanel;
+	private final SpanningDatePanel spanningDateValuePanel;
+
+	private final BoundTextField originalTextField;
+	private final EntityListPanel sourcePanel;
+	private final BoundComboBox<String> confidenceCombo;
+
+
+	public DateStructurePanel(final Window parent, final FLEFModel model){
+		this.model = model;
+
+		pointDateValuePanel = new SingleDatePanel(parent, model);
+		boundedDateValuePanel = new BoundedDatePanel(parent, model);
+		spanningDateValuePanel = new SpanningDatePanel(parent, model);
+
+		originalTextField = new BoundTextField(DateReader.TAG_ORIGINAL_TEXT);
+		sourcePanel = EntityListPanel.createForCitationWrapper(DateReader.TAG_SOURCE, parent, I18N.t("dialog.component.sources_with_citations"),
+			model, SourceCitationHandler.class);
+		confidenceCombo = new BoundComboBox<>(DateReader.TAG_CONFIDENCE, GUIHelper.fillCombo(ConfidenceReader.CONFIDENCES, null));
+		confidenceCombo.setI18NPrefix("enum.confidence");
+
+
+		initComponents();
+	}
+
+
+	private void initComponents(){
+		bindingManager.bind(originalTextField);
+		bindingManager.bind(confidenceCombo);
+
+
+		setLayout(new MigLayout("ins 0,fillx,wrap 2", "[][grow]", "[]5[]5[]5[]"));
+
+		// Tabbed pane for date types
+		final JPanel pointPanel = new JPanel(new MigLayout("ins 0,fillx"));
+		pointPanel.setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
+		final JPanel valueWrapper = GUIHelper.createLabelFieldPanel(7, "[]");
+		valueWrapper.setBorder(BorderFactory.createTitledBorder(I18N.t("border.date")));
+		GUIHelper.addComponent(valueWrapper, pointDateValuePanel);
+		pointPanel.add(valueWrapper, "growx");
+		tabbedPane.addTab(I18N.t("dialog.date.point"), pointPanel);
+		tabbedPane.addTab(I18N.t("dialog.date.bounded"), boundedDateValuePanel);
+		tabbedPane.addTab(I18N.t("dialog.date.spanning"), spanningDateValuePanel);
+
+		// When switching tabs, clear the other panels
+		tabbedPane.addChangeListener(e -> {
+			switch(tabbedPane.getSelectedIndex()){
+				case 0 -> {
+					boundedDateValuePanel.clear();
+					spanningDateValuePanel.clear();
+				}
+				case 1 -> {
+					pointDateValuePanel.clear();
+					spanningDateValuePanel.clear();
+				}
+				case 2 -> {
+					pointDateValuePanel.clear();
+					boundedDateValuePanel.clear();
+				}
+			}
+		});
+		add(tabbedPane, "span 2,growx");
+
+		final JLabel originalTextLabel = new JLabel(I18N.l("dialog.date.original_text"));
+		originalTextLabel.setLabelFor(originalTextField);
+		add(originalTextLabel, "align label");
+		add(originalTextField, "growx");
+
+		// source
+		add(sourcePanel, "span 2,growx");
+
+		// confidence
+		final JLabel confidenceLabel = new JLabel(I18N.l("dialog.component.confidence"));
+		confidenceLabel.setLabelFor(confidenceCombo);
+		add(confidenceLabel, "align label");
+		add(confidenceCombo, "growx");
+	}
+
+
+	/**
+	 * Loads data from a DATE wrapper record.
+	 *
+	 * @param record	the DATE record (wrapper), or {@code null}
+	 */
+	public void load(final FLEFRecord record){
+		clear();
+
+		if(record == null || record.isEmpty())
+			return;
+
+		// Load the date value: POINT, BOUNDED, or SPANNING
+		final FLEFRecord value = FLEFRecordHelper.extractStructures(record, DateReader.TAG_VALUE)
+			.getFirst();
+		final FLEFRecord point = FLEFRecordHelper.findChild(value, DateReader.TAG_POINT);
+		if(point != null){
+			tabbedPane.setSelectedIndex(0);
+
+			pointDateValuePanel.load(point);
+		}
+		else{
+			final FLEFRecord bounded = FLEFRecordHelper.findChild(value, DateReader.TAG_BOUNDED);
+			if(bounded != null){
+				tabbedPane.setSelectedIndex(1);
+
+				boundedDateValuePanel.load(bounded);
+			}
+			else{
+				final FLEFRecord spanning = FLEFRecordHelper.findChild(value, DateReader.TAG_SPANNING);
+				if(spanning != null){
+					tabbedPane.setSelectedIndex(2);
+
+					spanningDateValuePanel.load(spanning);
+				}
+			}
+		}
+
+		bindingManager.load(record);
+
+		// source
+		sourcePanel.load(record);
+	}
+
+	/**
+	 * Saves the current data into a DATE wrapper record.
+	 *
+	 * @return the DATE record, or {@code null} if no data
+	 */
+	public FLEFRecord save(){
+		if(!hasData())
+			return null;
+
+		final FLEFRecord record = FLEFRecord.createEmpty();
+
+		// date
+		switch(tabbedPane.getSelectedIndex()){
+			case 0 -> savePoint(record);
+			case 1 -> saveBounded(record);
+			case 2 -> saveSpanning(record);
+			default -> { /* do nothing */ }
+		}
+
+		bindingManager.save(record);
+
+		// source
+		sourcePanel.save(record);
+
+		return (record.hasData()? record: null);
+	}
+
+	public void clear(){
+		bindingManager.clear();
+
+		pointDateValuePanel.clear();
+		boundedDateValuePanel.clear();
+		spanningDateValuePanel.clear();
+		sourcePanel.clear();
+	}
+
+	public boolean hasData(){
+		return switch(tabbedPane.getSelectedIndex()){
+			case 0 -> pointDateValuePanel.hasData();
+			case 1 -> boundedDateValuePanel.hasData();
+			case 2 -> spanningDateValuePanel.hasData();
+			default -> false;
+		};
+	}
+
+	public boolean validateData(){
+		return switch(tabbedPane.getSelectedIndex()){
+			case 0 -> pointDateValuePanel.validateData();
+			case 1 -> boundedDateValuePanel.validateData();
+			case 2 -> spanningDateValuePanel.validateData();
+			default -> true;
+		};
+	}
+
+
+	@Override
+	public void openHistoricalDateAssistant(final HistoricalDateAssistantDialog.Tool tool){
+		final boolean point = (tabbedPane.getSelectedIndex() == 0);
+		new HistoricalDateAssistantDialog(SwingUtilities.getWindowAncestor(this), tool,
+			(point? pointDateValuePanel.getCalendar(): null), (point? pointDateValuePanel.getFullDateText(): null),
+			model, this::applySuggestion)
+			.setVisible(true);
+	}
+
+	/**
+	 * Applies a suggestion of the assistant, as a point date, after the user asked for it.
+	 * <p>
+	 * If a date is already present the user has to confirm the replacement.
+	 * </p>
+	 */
+	private void applySuggestion(final DateSuggestion suggestion){
+		if(!suggestion.isApplicable())
+			return;
+
+		if(hasData() && JOptionPane.showConfirmDialog(this, I18N.t("dialog.date_assistant.replace_confirm"),
+				I18N.t("dialog.date_assistant.title"), JOptionPane.YES_NO_OPTION) != JOptionPane.YES_OPTION)
+			return;
+
+		if(suggestion.isBounded()){
+			tabbedPane.setSelectedIndex(1);
+			boundedDateValuePanel.setRange(suggestion.calendarCode(), suggestion.notBefore(), suggestion.notAfter());
+		}
+		else{
+			tabbedPane.setSelectedIndex(0);
+			pointDateValuePanel.setFullDate(suggestion.calendarCode(), suggestion.normalizedDate());
+		}
+	}
+
+
+	/**
+	 * Saves a VALUE date.
+	 * Creates a VALUE node with children ISO/CENTURY/DECADE and APPROXIMATE.
+	 */
+	private void savePoint(final FLEFRecord parent){
+		if(!pointDateValuePanel.hasData())
+			return;
+
+		final FLEFRecord pointNode = pointDateValuePanel.save();
+		parent.addChild(pointNode);
+	}
+
+	/**
+	 * Saves a BOUNDED date.
+	 * The BoundedDatePanel returns a node with NOT_BEFORE and NOT_AFTER (each containing date tags).
+	 */
+	private void saveBounded(final FLEFRecord parent){
+		if(!boundedDateValuePanel.hasData())
+			return;
+
+		final FLEFRecord boundedNode = boundedDateValuePanel.save();
+		parent.addChild(boundedNode);
+	}
+
+	/**
+	 * Saves a SPANNING date.
+	 * The SpanningDatePanel returns a node with FROM and TO (each containing date tags).
+	 */
+	private void saveSpanning(final FLEFRecord parent){
+		if(!spanningDateValuePanel.hasData())
+			return;
+
+		final FLEFRecord spanningNode = spanningDateValuePanel.saveToRecord();
+		parent.addChild(spanningNode);
+	}
+
+
+	public static void main(final String[] args){
+		try{
+			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+		}
+		catch(Exception ignored){}
+
+		FLEFModel model = new FLEFModel();
+
+		SwingUtilities.invokeLater(() -> {
+			JFrame frame = new JFrame("DatePanel Test");
+			frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+			frame.setLayout(new BorderLayout());
+
+			DateStructurePanel panel = new DateStructurePanel(null, model);
+			frame.add(panel, BorderLayout.CENTER);
+
+			JButton printBtn = new JButton(I18N.t("button.print_record"));
+			printBtn.addActionListener(e -> {
+				FLEFRecord record = panel.save();
+				if(record != null)
+					System.out.println("=== Saved DATE ===");
+			});
+			frame.add(printBtn, BorderLayout.SOUTH);
+
+			frame.setSize(900, 800);
+			frame.setLocationRelativeTo(null);
+			frame.setVisible(true);
+		});
+	}
+
+}

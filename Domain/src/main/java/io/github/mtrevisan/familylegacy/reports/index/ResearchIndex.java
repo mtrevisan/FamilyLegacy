@@ -1,0 +1,166 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+package io.github.mtrevisan.familylegacy.reports.index;
+
+import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.ConclusionReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.ContextImpactReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.ResearchActivityReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.ResearchQuestionReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.ResearchTaskReader;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Predicate;
+
+
+public final class ResearchIndex{
+
+	private final Map<String, List<FLEFRecord>> questionToActivitiesMap = new HashMap<>();
+	private final Map<String, List<FLEFRecord>> questionToTasksMap = new HashMap<>();
+	private final Map<String, List<FLEFRecord>> questionToConclusionsMap = new HashMap<>();
+	private final Map<String, List<FLEFRecord>> activityToTasksMap = new HashMap<>();
+	private final Map<String, List<FLEFRecord>> contextImpactsByTarget = new HashMap<>();
+	private final Map<String, List<FLEFRecord>> researchQuestionsByTarget = new HashMap<>();
+
+	public ResearchIndex(final FLEFModel model, final Predicate<FLEFRecord> filter){
+		if(model == null)
+			return;
+
+		final List<FLEFRecord> researchActivities = model.getRecordsByType(ResearchActivityReader.TYPE);
+		for(final FLEFRecord researchActivity : researchActivities){
+			if(!filter.test(researchActivity))
+				continue;
+			for(final FLEFRecord qRef : FLEFRecordHelper.findChildren(researchActivity, "question"))
+				if(qRef.getValue() != null)
+					questionToActivitiesMap.computeIfAbsent(qRef.getValue(), k -> new ArrayList<>())
+						.add(researchActivity);
+		}
+
+		final List<FLEFRecord> researchTasks = model.getRecordsByType(ResearchTaskReader.TYPE);
+		for(final FLEFRecord researchTask : researchTasks){
+			if(!filter.test(researchTask))
+				continue;
+			for(final FLEFRecord qRef : FLEFRecordHelper.findChildren(researchTask, "question"))
+				if(qRef.getValue() != null)
+					questionToTasksMap.computeIfAbsent(qRef.getValue(), k -> new ArrayList<>())
+						.add(researchTask);
+			final String createdBy = FLEFRecordHelper.getChildValue(researchTask, "created_by");
+			if(createdBy != null)
+				activityToTasksMap.computeIfAbsent(createdBy, k -> new ArrayList<>())
+					.add(researchTask);
+		}
+
+		final List<FLEFRecord> conclusions = model.getRecordsByType(ConclusionReader.TYPE);
+		for(final FLEFRecord conclusion : conclusions){
+			if(!filter.test(conclusion))
+				continue;
+			for(final FLEFRecord qRef : FLEFRecordHelper.findChildren(conclusion, "research"))
+				if(qRef.getValue() != null)
+					questionToConclusionsMap.computeIfAbsent(qRef.getValue(), k -> new ArrayList<>())
+						.add(conclusion);
+		}
+
+		final List<FLEFRecord> contextImpacts = model.getRecordsByType(ContextImpactReader.TYPE);
+		for(final FLEFRecord contextImpact : contextImpacts){
+			if(!filter.test(contextImpact))
+				continue;
+
+			for(final FLEFRecord t : FLEFRecordHelper.findChildren(contextImpact, "target")){
+				final FLEFRecord ref = t.getTheOnlyChild();
+				if(ref == null)
+					continue;
+
+				final String id = ref.getValue();
+				if(id != null && !id.isBlank())
+					contextImpactsByTarget.computeIfAbsent(id, k -> new ArrayList<>())
+						.add(contextImpact);
+			}
+		}
+
+		final List<FLEFRecord> researchQuestions = model.getRecordsByType(ResearchQuestionReader.TYPE);
+		for(final FLEFRecord researchQuestion : researchQuestions){
+			if(!filter.test(researchQuestion))
+				continue;
+
+			for(final FLEFRecord t : FLEFRecordHelper.findChildren(researchQuestion, "target")){
+				final FLEFRecord ref = t.getTheOnlyChild();
+				if(ref == null)
+					continue;
+
+				final String id = ref.getValue();
+				if(id != null && !id.isBlank())
+					researchQuestionsByTarget.computeIfAbsent(id, k -> new ArrayList<>())
+						.add(researchQuestion);
+			}
+		}
+	}
+
+	public List<FLEFRecord> activitiesForQuestion(final FLEFRecord q){
+		return (q != null && q.getId() != null)? questionToActivitiesMap.getOrDefault(q.getId(), Collections.emptyList()): Collections.emptyList();
+	}
+
+	public List<FLEFRecord> tasksForQuestion(final FLEFRecord q){
+		return (q != null && q.getId() != null)? questionToTasksMap.getOrDefault(q.getId(), Collections.emptyList()): Collections.emptyList();
+	}
+
+	public List<FLEFRecord> conclusionsForQuestion(final FLEFRecord q){
+		return (q != null && q.getId() != null)? questionToConclusionsMap.getOrDefault(q.getId(), Collections.emptyList()): Collections.emptyList();
+	}
+
+	public List<FLEFRecord> tasksForActivity(final FLEFRecord activity){
+		if(activity == null || activity.getId() == null)
+			return Collections.emptyList();
+		return activityToTasksMap.getOrDefault(activity.getId(), Collections.emptyList());
+	}
+
+	public List<FLEFRecord> contextImpactsFor(final Set<String> targetIds){
+		final Set<String> seen = new HashSet<>();
+		final List<FLEFRecord> out = new ArrayList<>();
+		for(final String id : targetIds)
+			for(final FLEFRecord ci : contextImpactsByTarget.getOrDefault(id, Collections.emptyList()))
+				if(seen.add(ci.getId()))
+					out.add(ci);
+		return out;
+	}
+
+	public List<FLEFRecord> researchQuestionsFor(final Set<String> targetIds){
+		final Set<String> seen = new HashSet<>();
+		final List<FLEFRecord> out = new ArrayList<>();
+		for(final String id : targetIds)
+			for(final FLEFRecord q : researchQuestionsByTarget.getOrDefault(id, Collections.emptyList()))
+				if(seen.add(q.getId()))
+					out.add(q);
+		return out;
+	}
+
+}

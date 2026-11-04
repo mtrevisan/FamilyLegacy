@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections.chronomap;
 
+import io.github.mtrevisan.familylegacy.chronomap.ChronomapIndex;
+import io.github.mtrevisan.familylegacy.chronomap.PlaceCoordinateResolver;
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;

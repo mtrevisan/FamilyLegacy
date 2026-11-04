@@ -27,26 +27,27 @@ package io.github.mtrevisan.familylegacy.ui.components.searches.service;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
-import io.github.mtrevisan.familylegacy.ui.components.searches.SearchCriteria;
-import io.github.mtrevisan.familylegacy.ui.components.searches.SearchMatcher;
-import io.github.mtrevisan.familylegacy.ui.components.searches.SearchMode;
-import io.github.mtrevisan.familylegacy.ui.components.searches.SearchStrategy;
-import io.github.mtrevisan.familylegacy.ui.components.searches.strategies.ConclusionSearchStrategy;
-import io.github.mtrevisan.familylegacy.ui.components.searches.strategies.CulturalNormSearchStrategy;
-import io.github.mtrevisan.familylegacy.ui.components.searches.strategies.EventSearchStrategy;
-import io.github.mtrevisan.familylegacy.ui.components.searches.strategies.GroupSearchStrategy;
-import io.github.mtrevisan.familylegacy.ui.components.searches.strategies.HistoricEventSearchStrategy;
-import io.github.mtrevisan.familylegacy.ui.components.searches.strategies.IdentityHypothesisSearchStrategy;
-import io.github.mtrevisan.familylegacy.ui.components.searches.strategies.IndividualSearchStrategy;
-import io.github.mtrevisan.familylegacy.ui.components.searches.strategies.MediaSearchStrategy;
-import io.github.mtrevisan.familylegacy.ui.components.searches.strategies.PlaceRelationshipSearchStrategy;
-import io.github.mtrevisan.familylegacy.ui.components.searches.strategies.PlaceSearchStrategy;
-import io.github.mtrevisan.familylegacy.ui.components.searches.strategies.RelationshipSearchStrategy;
-import io.github.mtrevisan.familylegacy.ui.components.searches.strategies.RepositorySearchStrategy;
-import io.github.mtrevisan.familylegacy.ui.components.searches.strategies.ResearchActivitySearchStrategy;
-import io.github.mtrevisan.familylegacy.ui.components.searches.strategies.ResearchQuestionSearchStrategy;
-import io.github.mtrevisan.familylegacy.ui.components.searches.strategies.ResearchTaskSearchStrategy;
-import io.github.mtrevisan.familylegacy.ui.components.searches.strategies.SourceSearchStrategy;
+import io.github.mtrevisan.familylegacy.search.AttachedTextExtractor;
+import io.github.mtrevisan.familylegacy.search.SearchCriteria;
+import io.github.mtrevisan.familylegacy.search.SearchMatcher;
+import io.github.mtrevisan.familylegacy.search.SearchMode;
+import io.github.mtrevisan.familylegacy.search.SearchStrategy;
+import io.github.mtrevisan.familylegacy.search.strategies.ConclusionSearchStrategy;
+import io.github.mtrevisan.familylegacy.search.strategies.CulturalNormSearchStrategy;
+import io.github.mtrevisan.familylegacy.search.strategies.EventSearchStrategy;
+import io.github.mtrevisan.familylegacy.search.strategies.GroupSearchStrategy;
+import io.github.mtrevisan.familylegacy.search.strategies.HistoricEventSearchStrategy;
+import io.github.mtrevisan.familylegacy.search.strategies.IdentityHypothesisSearchStrategy;
+import io.github.mtrevisan.familylegacy.search.strategies.IndividualSearchStrategy;
+import io.github.mtrevisan.familylegacy.search.strategies.MediaSearchStrategy;
+import io.github.mtrevisan.familylegacy.search.strategies.PlaceRelationshipSearchStrategy;
+import io.github.mtrevisan.familylegacy.search.strategies.PlaceSearchStrategy;
+import io.github.mtrevisan.familylegacy.search.strategies.RelationshipSearchStrategy;
+import io.github.mtrevisan.familylegacy.search.strategies.RepositorySearchStrategy;
+import io.github.mtrevisan.familylegacy.search.strategies.ResearchActivitySearchStrategy;
+import io.github.mtrevisan.familylegacy.search.strategies.ResearchQuestionSearchStrategy;
+import io.github.mtrevisan.familylegacy.search.strategies.ResearchTaskSearchStrategy;
+import io.github.mtrevisan.familylegacy.search.strategies.SourceSearchStrategy;
 import io.github.mtrevisan.familylegacy.ui.handlers.ConclusionHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.CulturalNormHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventHandler;
@@ -170,7 +171,7 @@ public class SearchService{
 		if(criteria == null)
 			return List.of();
 
-		final RecordTypeHandler<?> handler = criteria.handler();
+		final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(criteria.recordType());
 		strategy = REGISTRY.get(handler.getClassType());
 
 		// Stage 1: structural filters (sex, event type, date range, place, ...).
@@ -191,8 +192,7 @@ public class SearchService{
 		// details) is only used for the final rendering, not for the
 		// text match, so that the behaviour of the search is unchanged.
 		final Set<SearchMode> modes = criteria.modes();
-		final boolean fuzzy = modes.contains(SearchMode.FUZZY);
-		final boolean wholeWord = modes.contains(SearchMode.WHOLE_WORD);
+		final boolean inNotes = modes.contains(SearchMode.NOTES_AND_CITATIONS);
 		final List<ScoredRecord> scored = new ArrayList<>();
 		final int totalRecords = records.size();
 		for(int i = 0; i < totalRecords; i ++){
@@ -202,7 +202,9 @@ public class SearchService{
 			final FLEFRecord record = records.get(i);
 			if(structuralFilter.test(record)){
 				final String displayText = handler.getDisplayText(record, model);
-				final SearchMatcher.MatchScore match = SearchMatcher.score(query, displayText, modes);
+				//with the notes included, the text of the notes is matched together with the display text
+				final String target = (inNotes? displayText + '\n' + AttachedTextExtractor.extract(record): displayText);
+				final SearchMatcher.MatchScore match = SearchMatcher.score(query, target, modes);
 				if(match.passes())
 					scored.add(new ScoredRecord(record, displayText, match));
 			}

@@ -24,13 +24,14 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections.grouptimeline;
 
-import io.github.mtrevisan.familylegacy.ui.components.projections.temporal.TemporalEntry;
-import io.github.mtrevisan.familylegacy.ui.components.projections.temporal.TemporalProjectionModel;
+import io.github.mtrevisan.familylegacy.groups.GroupMembershipFilter;
+import io.github.mtrevisan.familylegacy.i18n.I18N;
+import io.github.mtrevisan.familylegacy.temporal.TemporalEntry;
+import io.github.mtrevisan.familylegacy.temporal.TemporalProjectionModel;
+import io.github.mtrevisan.familylegacy.temporal.TemporalRow;
+import io.github.mtrevisan.familylegacy.temporal.TemporalTrack;
+import io.github.mtrevisan.familylegacy.temporal.TemporalTrackType;
 import io.github.mtrevisan.familylegacy.ui.components.projections.temporal.TemporalRoleColors;
-import io.github.mtrevisan.familylegacy.ui.components.projections.temporal.TemporalRow;
-import io.github.mtrevisan.familylegacy.ui.components.projections.temporal.TemporalTrack;
-import io.github.mtrevisan.familylegacy.ui.components.projections.temporal.TemporalTrackType;
-import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 

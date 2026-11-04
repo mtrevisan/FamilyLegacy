@@ -24,31 +24,31 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections.menus;
 
+import io.github.mtrevisan.familylegacy.i18n.I18N;
+import io.github.mtrevisan.familylegacy.individual.IndividualSummary;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.ui.components.projections.common.ProjectionMutator;
-import io.github.mtrevisan.familylegacy.ui.components.projections.individual.EntityListener;
+import io.github.mtrevisan.familylegacy.tree.EntityListener;
+import io.github.mtrevisan.familylegacy.tree.ProjectionMutator;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.PopupMenuHelper;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContexts;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolDispatcher;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.individuals.AddChildTool;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.individuals.AddIndividualTool;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.individuals.ConnectChildTool;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.individuals.ConnectIndividualTool;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.individuals.DeleteIndividualTool;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.individuals.EditIndividualTool;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.individuals.IndividualCareerTool;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.individuals.PasteIndividualTool;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.individuals.RelocateIndividualTool;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.individuals.UnlinkIndividualRelationshipsTool;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.EntityPopupMenuFactory;
-import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualData;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualListener;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualPanel;
-import io.github.mtrevisan.familylegacy.ui.dialogs.help.ShortcutRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.PopupMenuAdapter;
-import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
-import io.github.mtrevisan.familylegacy.ui.tools.PopupMenuHelper;
-import io.github.mtrevisan.familylegacy.ui.tools.ToolContext;
-import io.github.mtrevisan.familylegacy.ui.tools.ToolContexts;
-import io.github.mtrevisan.familylegacy.ui.tools.ToolDispatcher;
-import io.github.mtrevisan.familylegacy.ui.tools.individuals.AddChildTool;
-import io.github.mtrevisan.familylegacy.ui.tools.individuals.AddIndividualTool;
-import io.github.mtrevisan.familylegacy.ui.tools.individuals.ConnectChildTool;
-import io.github.mtrevisan.familylegacy.ui.tools.individuals.ConnectIndividualTool;
-import io.github.mtrevisan.familylegacy.ui.tools.individuals.DeleteIndividualTool;
-import io.github.mtrevisan.familylegacy.ui.tools.individuals.EditIndividualTool;
-import io.github.mtrevisan.familylegacy.ui.tools.individuals.IndividualCareerTool;
-import io.github.mtrevisan.familylegacy.ui.tools.individuals.PasteIndividualTool;
-import io.github.mtrevisan.familylegacy.ui.tools.individuals.RelocateIndividualTool;
-import io.github.mtrevisan.familylegacy.ui.tools.individuals.UnlinkIndividualRelationshipsTool;
+import io.github.mtrevisan.familylegacy.ui.helpers.ShortcutRegistry;
 
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
@@ -82,7 +82,7 @@ public class EntityTreePopupMenuFactory implements EntityPopupMenuFactory<Indivi
 		popup.addPopupMenuListener(new PopupMenuAdapter(){
 			@Override
 			public void popupMenuWillBecomeVisible(final PopupMenuEvent e){
-				final IndividualData data = panel.getData();
+				final IndividualSummary data = panel.getData();
 				final boolean hasData = (data != null && !data.isEmpty());
 				final boolean hasIndividuals = model.hasRecordsByType(IndividualHandler.TYPE);
 				final boolean hasParents = (hasData && data.hasParents());

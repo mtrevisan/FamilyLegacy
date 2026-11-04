@@ -24,7 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.bindings;
 
-import io.github.mtrevisan.familylegacy.ui.helpers.LocaleHelper;
+import io.github.mtrevisan.familylegacy.util.LocaleHelper;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.DefaultComboBoxModel;

@@ -24,11 +24,13 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections.groupnetwork;
 
+import io.github.mtrevisan.familylegacy.groups.GroupNetwork;
+import io.github.mtrevisan.familylegacy.groups.GroupNetworkBuilder;
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.groups.GroupViewDialog;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
-import io.github.mtrevisan.familylegacy.ui.tools.ToolContext;
-import io.github.mtrevisan.familylegacy.ui.tools.groups.GroupViewDialog;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
@@ -50,9 +52,9 @@ import java.util.stream.Collectors;
 
 
 /** The network of the groups around a group: the neighborhood, the filter by year, the members of each group and the layout. */
-class GroupNetworkTest{
+public class GroupNetworkTest{
 
-	static final String HEADER = """
+	public static final String HEADER = """
 		header {
 			protocol {
 				name Family LEgacy Format
@@ -65,7 +67,7 @@ class GroupNetworkTest{
 	//the Club (G2) is part of the Federation (G1) from 1900 to 1950; Youth (G3) is part of the Club from 1920; the Rivals (G4) are
 	//associated with the Club from 1930; Remote (G5) is associated with the Rivals, with no date
 	//Anna (I1) is a member of the Club from 1900 to 1910, Bruno (I2) with no date, Carla (I3) of Youth from 1925
-	static final String FLEF = HEADER
+	public static final String FLEF = HEADER
 		+ person("I1", "Anna") + person("I2", "Bruno") + person("I3", "Carla")
 		+ group("G1", "Federation") + group("G2", "Club") + group("G3", "Youth") + group("G4", "Rivals") + group("G5", "Remote")
 		+ relationship("R1", "group G2", "G1", "part_of", "1900-01-01", "1950-01-01")
@@ -77,15 +79,15 @@ class GroupNetworkTest{
 		+ relationship("R7", "individual I3", "G3", "group_member", "1925-01-01", null);
 
 
-	static String person(final String id, final String name){
+	public static String person(final String id, final String name){
 		return "individual " + id + " {\n\tname {\n\t\tpart {\n\t\t\ttype given\n\t\t\tvalue " + name + "\n\t\t}\n\t}\n}\n";
 	}
 
-	static String group(final String id, final String name){
+	public static String group(final String id, final String name){
 		return "group " + id + " {\n\tname {\n\t\ttype legal\n\t\tvalue " + name + "\n\t}\n}\n";
 	}
 
-	static String relationship(final String id, final String subject, final String target, final String type, final String from,
+	public static String relationship(final String id, final String subject, final String target, final String type, final String from,
 			final String to){
 		final StringBuilder sb = new StringBuilder("relationship " + id + " {\n\tsubject." + subject + "\n\ttarget.group " + target
 			+ "\n\ttype " + type + "\n");
@@ -96,17 +98,17 @@ class GroupNetworkTest{
 		return sb.append("}\n").toString();
 	}
 
-	static FLEFModel model(){
+	public static FLEFModel model(){
 		return new FLEFParser().parse(FLEF);
 	}
 
-	static Set<String> ids(final GroupNetwork network){
+	public static Set<String> ids(final GroupNetwork network){
 		return network.nodes().stream()
 			.map(GroupNetwork.Node::id)
 			.collect(Collectors.toSet());
 	}
 
-	static GroupNetwork.Node node(final GroupNetwork network, final String id){
+	public static GroupNetwork.Node node(final GroupNetwork network, final String id){
 		return network.nodes().stream()
 			.filter(node -> node.id().equals(id))
 			.findFirst()

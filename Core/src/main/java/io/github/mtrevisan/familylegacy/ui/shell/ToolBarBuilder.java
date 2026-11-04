@@ -1,0 +1,130 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+package io.github.mtrevisan.familylegacy.ui.shell;
+
+import io.github.mtrevisan.familylegacy.i18n.I18N;
+import io.github.mtrevisan.familylegacy.ui.components.projections.common.ProjectionType;
+import io.github.mtrevisan.familylegacy.ui.helpers.ShortcutRegistry;
+
+import javax.swing.ButtonGroup;
+import javax.swing.JButton;
+import javax.swing.JToggleButton;
+import javax.swing.JToolBar;
+import java.util.function.Consumer;
+
+
+/**
+ * Encapsulates the construction and action bindings of the main application toolbar.
+ */
+public final class ToolBarBuilder{
+
+	private final JToolBar toolBar = new JToolBar(I18N.t("toolbar.title"));
+	private JToggleButton btnTreeLayout;
+	private JToggleButton btnGraphLayout;
+	private JToggleButton btnEgoLayout;
+	private JToggleButton btnChronomap;
+	private JToggleButton btnToggleSidebar;
+
+
+	public JToolBar build(final Runnable onBack, final Runnable onForward, final Runnable onJump, final Runnable onEdit,
+			final Consumer<ProjectionType> onProjectionSelect, final Consumer<Boolean> onSidebarToggle,
+			final boolean initialSidebarVisible){
+		toolBar.setFloatable(false);
+
+		// Navigation
+		final JButton btnBack = new JButton("◄");
+		btnBack.setToolTipText(I18N.t("toolbar.navigate.back") + " (" + ShortcutRegistry.NAV_BACK.displayKeys() + ")");
+		btnBack.addActionListener(e -> onBack.run());
+
+		final JButton btnForward = new JButton("►");
+		btnForward.setToolTipText(I18N.t("toolbar.navigate.forward") + " (" + ShortcutRegistry.NAV_FORWARD.displayKeys() + ")");
+		btnForward.addActionListener(e -> onForward.run());
+
+		final JButton btnJump = new JButton(I18N.t("button.jump_to"));
+		btnJump.setToolTipText(I18N.t("toolbar.jump.to") + " (" + ShortcutRegistry.NAV_JUMP_TO_INDIVIDUAL_OR_GROUP.displayKeys() + ")");
+		btnJump.addActionListener(e -> onJump.run());
+
+		final JButton btnEdit = new JButton(I18N.t("button.edit"));
+		btnEdit.setToolTipText(I18N.t("toolbar.edit.selection") + " (" + ShortcutRegistry.EDIT_SELECTION_INDIVIDUAL.displayKeys() + ")");
+		btnEdit.addActionListener(e -> onEdit.run());
+
+		toolBar.add(btnBack);
+		toolBar.add(btnForward);
+		toolBar.add(btnJump);
+		toolBar.add(btnEdit);
+		toolBar.addSeparator();
+
+		// Projections
+		btnTreeLayout = new JToggleButton(I18N.t("toolbar.projection.biological_tree.layout"));
+		btnTreeLayout.setToolTipText(I18N.t("toolbar.projection.biological_tree.layout.tooltip") + " (" + ShortcutRegistry.VIEW_BIOLOGICAL_TREE.displayKeys() + ")");
+		btnTreeLayout.setSelected(true);
+		btnTreeLayout.addActionListener(e -> onProjectionSelect.accept(ProjectionType.BIOLOGICAL_TREE));
+
+		btnGraphLayout = new JToggleButton(I18N.t("toolbar.projection.sugiyama_graph"));
+		btnGraphLayout.setToolTipText(I18N.t("toolbar.projection.sugiyama_graph.tooltip") + " (" + ShortcutRegistry.VIEW_SUGIYAMA_GRAPH.displayKeys() + ")");
+		btnGraphLayout.addActionListener(e -> onProjectionSelect.accept(ProjectionType.SUGIYAMA_GRAPH));
+
+		btnEgoLayout = new JToggleButton(I18N.t("toolbar.projection.ego_network"));
+		btnEgoLayout.setToolTipText(I18N.t("toolbar.projection.ego_network.tooltip") + " (" + ShortcutRegistry.VIEW_EGO_NETWORK.displayKeys() + ")");
+		btnEgoLayout.addActionListener(e -> onProjectionSelect.accept(ProjectionType.EGO_NETWORK));
+
+		btnChronomap = new JToggleButton(I18N.t("toolbar.projection.chronomap"));
+		btnChronomap.setToolTipText(I18N.t("toolbar.projection.chronomap.tooltip") + " (" + ShortcutRegistry.VIEW_CHRONOMAP.displayKeys() + ")");
+		btnChronomap.addActionListener(e -> onProjectionSelect.accept(ProjectionType.CHRONOMAP));
+
+		final ButtonGroup projectionGroup = new ButtonGroup();
+		projectionGroup.add(btnTreeLayout);
+		projectionGroup.add(btnGraphLayout);
+		projectionGroup.add(btnEgoLayout);
+		projectionGroup.add(btnChronomap);
+
+		toolBar.add(btnTreeLayout);
+		toolBar.add(btnGraphLayout);
+		toolBar.add(btnEgoLayout);
+		toolBar.add(btnChronomap);
+		toolBar.addSeparator();
+
+		// Sidebar Toggle
+		btnToggleSidebar = new JToggleButton(I18N.t("toolbar.sidebar"), initialSidebarVisible);
+		btnToggleSidebar.setToolTipText(I18N.t("toolbar.sidebar.tooltip"));
+		btnToggleSidebar.addActionListener(e -> onSidebarToggle.accept(btnToggleSidebar.isSelected()));
+
+		toolBar.add(btnToggleSidebar);
+
+		return toolBar;
+	}
+
+	public void updateProjectionState(final ProjectionType type){
+		switch(type){
+			case BIOLOGICAL_TREE -> btnTreeLayout.setSelected(true);
+			case SUGIYAMA_GRAPH -> btnGraphLayout.setSelected(true);
+			case EGO_NETWORK -> btnEgoLayout.setSelected(true);
+			case CHRONOMAP -> btnChronomap.setSelected(true);
+			//the temporal projection and the social network have no button for now (see ProjectionType)
+			case TEMPORAL, SOCIAL_NETWORK -> {}
+		}
+	}
+
+}

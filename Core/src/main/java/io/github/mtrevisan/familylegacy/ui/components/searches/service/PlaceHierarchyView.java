@@ -25,7 +25,7 @@
 package io.github.mtrevisan.familylegacy.ui.components.searches.service;
 
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
-import io.github.mtrevisan.familylegacy.ui.components.searches.SearchMode;
+import io.github.mtrevisan.familylegacy.search.SearchMode;
 
 import javax.swing.JComponent;
 import java.util.Set;

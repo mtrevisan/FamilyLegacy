@@ -24,8 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.ui.dialogs.help;
 
-import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
-import io.github.mtrevisan.familylegacy.ui.tools.ToolDialogs;
+import io.github.mtrevisan.familylegacy.i18n.I18N;
+import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -59,7 +59,7 @@ public final class HelpViewerDialog extends JDialog{
 
 	private HelpViewerDialog(final Window owner, final String title, final String html){
 		super(owner, title, ModalityType.APPLICATION_MODAL);
-		ToolDialogs.installEscapeToClose(this);
+		GUIHelper.installEscapeToClose(this);
 
 		final JEditorPane editor = new JEditorPane();
 		editor.setContentType("text/html");

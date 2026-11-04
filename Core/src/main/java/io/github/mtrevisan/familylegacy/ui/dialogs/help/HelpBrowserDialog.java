@@ -24,8 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.ui.dialogs.help;
 
-import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
-import io.github.mtrevisan.familylegacy.ui.tools.ToolDialogs;
+import io.github.mtrevisan.familylegacy.i18n.I18N;
+import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 
@@ -84,7 +84,7 @@ public final class HelpBrowserDialog extends JDialog{
 	private HelpBrowserDialog(final Window owner){
 		super(owner, I18N.t("dialog.help.title"), ModalityType.MODELESS);
 
-		ToolDialogs.installEscapeToClose(this);
+		GUIHelper.installEscapeToClose(this);
 		addWindowListener(new WindowAdapter(){
 			@Override
 			public void windowClosed(final WindowEvent e){

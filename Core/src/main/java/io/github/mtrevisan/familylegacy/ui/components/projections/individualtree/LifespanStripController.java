@@ -25,7 +25,7 @@
 package io.github.mtrevisan.familylegacy.ui.components.projections.individualtree;
 
 import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.services.CollapsibleBar;
-import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.services.lifespan.MultiLifespanStripPanel;
+import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.services.MultiLifespanStripPanel;
 
 import java.awt.Component;
 import java.util.Set;

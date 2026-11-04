@@ -24,8 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.ui.helpers;
 
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolDialogs;
 import io.github.mtrevisan.familylegacy.ui.components.projections.chronomap.ChronomapTimeline;
-import io.github.mtrevisan.familylegacy.ui.tools.ToolDialogs;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;

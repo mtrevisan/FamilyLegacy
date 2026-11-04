@@ -24,20 +24,20 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.layout;
 
+import io.github.mtrevisan.familylegacy.individual.IndividualSummary;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.tree.GenealogyRepository;
+import io.github.mtrevisan.familylegacy.tree.SiblingsData;
+import io.github.mtrevisan.familylegacy.tree.Side;
+import io.github.mtrevisan.familylegacy.tree.TreeNode;
 import io.github.mtrevisan.familylegacy.ui.components.projections.common.BoxPanelType;
 import io.github.mtrevisan.familylegacy.ui.components.projections.common.TreeLayout;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.EntityPopupMenuFactory;
-import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualData;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualListener;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualPanel;
-import io.github.mtrevisan.familylegacy.ui.components.projections.partners.PartnersPanel;
-import io.github.mtrevisan.familylegacy.ui.components.projections.partners.Side;
-import io.github.mtrevisan.familylegacy.ui.components.projections.repository.GenealogyRepository;
-import io.github.mtrevisan.familylegacy.ui.components.projections.repository.TreeNode;
-import io.github.mtrevisan.familylegacy.ui.components.projections.siblings.SiblingsData;
-import io.github.mtrevisan.familylegacy.ui.components.projections.siblings.SiblingsPanel;
+import io.github.mtrevisan.familylegacy.ui.components.projections.individual.PartnersPanel;
+import io.github.mtrevisan.familylegacy.ui.components.projections.individual.SiblingsPanel;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -331,8 +331,8 @@ public final class TreeLayoutBuilder{
 					(motherFather != null? motherFather.getIndividual(): null),
 					(motherMother != null? motherMother.getIndividual(): null));
 
-			final IndividualData fatherData = (father != null? father.getIndividualData(): null);
-			final IndividualData motherData = (mother != null? mother.getIndividualData(): null);
+			final IndividualSummary fatherData = (father != null? father.getIndividualData(): null);
+			final IndividualSummary motherData = (mother != null? mother.getIndividualData(): null);
 			panel.withBiologicalParents(fatherData, motherData);
 		}
 

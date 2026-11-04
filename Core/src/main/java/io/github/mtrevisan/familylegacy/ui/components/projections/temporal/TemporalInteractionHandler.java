@@ -26,6 +26,14 @@ package io.github.mtrevisan.familylegacy.ui.components.projections.temporal;
 
 import io.github.mtrevisan.familylegacy.io.model.readers.date.NormalizedDate;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.TemporalSpan;
+import io.github.mtrevisan.familylegacy.temporal.TemporalConnection;
+import io.github.mtrevisan.familylegacy.temporal.TemporalContextBand;
+import io.github.mtrevisan.familylegacy.temporal.TemporalEntry;
+import io.github.mtrevisan.familylegacy.temporal.TemporalProjectionLayout;
+import io.github.mtrevisan.familylegacy.temporal.TemporalProjectionModel;
+import io.github.mtrevisan.familylegacy.temporal.TemporalProjectionRef;
+import io.github.mtrevisan.familylegacy.temporal.TemporalRow;
+import io.github.mtrevisan.familylegacy.temporal.TemporalTrackType;
 import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Rectangle;

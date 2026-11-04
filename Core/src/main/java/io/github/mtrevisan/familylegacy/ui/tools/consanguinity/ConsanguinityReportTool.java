@@ -26,17 +26,33 @@ package io.github.mtrevisan.familylegacy.ui.tools.consanguinity;
 
 import io.github.mtrevisan.familylegacy.consanguinity.ConsanguineousUnionDetector;
 import io.github.mtrevisan.familylegacy.consanguinity.ConsanguinityReport;
+import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
-import io.github.mtrevisan.familylegacy.ui.tools.ToolContext;
-import io.github.mtrevisan.familylegacy.ui.tools.ToolOperation;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolOperation;
+import io.github.mtrevisan.familylegacy.ui.dialogs.ProgressDialog;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.swing.JOptionPane;
+import javax.swing.SwingWorker;
+import java.util.concurrent.ExecutionException;
 
 
 /**
  * Opens the report of the consanguinity of the file: the couples whose partners are related, and the individuals whose parents are
  * related. It reads the model and never changes it.
+ * <p>
+ * The report looks at the whole ancestry, so on a big file it can take minutes: it is computed in a background worker, behind a
+ * modal progress dialog (the user cannot edit the model meanwhile, so the worker reads it safely), and the event dispatch thread
+ * stays free.
+ * </p>
  */
 public final class ConsanguinityReportTool implements ToolOperation{
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(ConsanguinityReportTool.class);
+
 
 	@Override
 	public String getName(){
@@ -49,9 +65,39 @@ public final class ConsanguinityReportTool implements ToolOperation{
 			return;
 
 		final FLEFModel model = context.model();
-		final ConsanguinityReport report = ConsanguineousUnionDetector.detect(model);
-		new ConsanguinityReportDialog(context.owner(), report, id -> ConsanguineousUnionDetector.nameOf(model, id))
-			.setVisible(true);
+		final ProgressDialog progress = new ProgressDialog(context.owner(), I18N.t("dialog.consanguinity_report.title"),
+			I18N.t("progress.consanguinity.computing"));
+
+		final SwingWorker<ConsanguinityReport, Void> worker = new SwingWorker<>(){
+			@Override
+			protected ConsanguinityReport doInBackground(){
+				return ConsanguineousUnionDetector.detect(model);
+			}
+
+			@Override
+			protected void done(){
+				progress.close();
+				try{
+					final ConsanguinityReport report = get();
+					new ConsanguinityReportDialog(context.owner(), report, id -> ConsanguineousUnionDetector.nameOf(model, id))
+						.setVisible(true);
+				}
+				catch(final InterruptedException ie){
+					Thread.currentThread().interrupt();
+				}
+				catch(final ExecutionException ee){
+					LOGGER.error("Consanguinity report failed", ee);
+					final Throwable cause = (ee.getCause() != null? ee.getCause(): ee);
+					JOptionPane.showMessageDialog(context.owner(),
+						I18N.t("dialog.consanguinity_report.error") + StringUtils.LF + cause.getMessage(),
+						I18N.t("dialog.consanguinity_report.title"), JOptionPane.ERROR_MESSAGE);
+				}
+			}
+		};
+
+		worker.execute();
+		//modal: it blocks the caller until done() disposes the dialog
+		progress.setVisible(true);
 	}
 
 	@Override

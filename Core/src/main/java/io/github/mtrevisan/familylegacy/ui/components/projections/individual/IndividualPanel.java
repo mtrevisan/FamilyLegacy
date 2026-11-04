@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections.individual;
 
+import io.github.mtrevisan.familylegacy.individual.IndividualSummary;
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
@@ -121,7 +122,8 @@ public class IndividualPanel extends JPanel{
 
 	private final FLEFModel model;
 
-	private IndividualData data;
+	private IndividualSummary data;
+	private IndividualImage image;
 
 	private String preferredImageKey;
 
@@ -336,8 +338,9 @@ public class IndividualPanel extends JPanel{
 		return this;
 	}
 
-	public IndividualPanel withIndividualData(final IndividualData data){
+	public IndividualPanel withIndividualData(final IndividualSummary data){
 		this.data = data;
+		image = (data != null? IndividualImage.of(data, model): null);
 
 		setBoxPreferredSize();
 
@@ -437,8 +440,8 @@ public class IndividualPanel extends JPanel{
 
 			// Set the default image/placeholder
 			imageLabel.setIcon(boxType == BoxPanelType.PRIMARY
-				? data.getImagePrimary()
-				: data.getImageSecondary());
+				? image.getImagePrimary()
+				: image.getImageSecondary());
 
 			// Calculate the maximum width for the text panel
 			final int boxWidth = (isPrimaryBox()? BOX_DIMENSION_PRIMARY.width: BOX_DIMENSION_SECONDARY.width);
@@ -449,8 +452,8 @@ public class IndividualPanel extends JPanel{
 			nameLabel.setMaxWidth(maxTextWidth);
 
 			// Register the current key on the panel and start asynchronous image loading
-			preferredImageKey = data.getPreferredImageKey();
-			data.loadPreferredImageAsync((key, images) -> {
+			preferredImageKey = image.getPreferredImageKey();
+			image.loadPreferredImageAsync((key, images) -> {
 				if(images != null && Objects.equals(preferredImageKey, key))
 					imageLabel.setIcon(boxType == BoxPanelType.PRIMARY? images[0]: images[1]);
 			});
@@ -509,7 +512,7 @@ public class IndividualPanel extends JPanel{
 		EntityMouseListeners.attachRecursive(this, new PopupMouseAdapter(popup, this));
 	}
 
-	public IndividualData getData(){
+	public IndividualSummary getData(){
 		return data;
 	}
 
@@ -636,7 +639,7 @@ public class IndividualPanel extends JPanel{
 
 		SwingUtilities.invokeLater(() -> {
 			final FLEFRecord individualRecord = model.getRecordById(recordId);
-			final IndividualData data = IndividualData.create(individualRecord, null, model);
+			final IndividualSummary data = IndividualSummary.create(individualRecord, null, model);
 			final IndividualPanel panel = IndividualPanel.create(BoxPanelType.PRIMARY, model)
 				.withIndividualData(data);
 

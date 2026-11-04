@@ -48,6 +48,20 @@
 										<copy file="${project.build.directory}/ephemeris-shaded.jar"
 											tofile="${package.coreTarget}/jpackage-input/plugins/ephemeris.jar"
 											overwrite="true"/>
+										<!-- the report formats that are plugins, built by their modules (before Core, so not in the way of its clean) -->
+										<copy file="${project.basedir}/../ReportPdf/target/ReportPdf-${project.version}-plugin.jar"
+											tofile="${package.coreTarget}/jpackage-input/plugins/report-pdf.jar" overwrite="true"/>
+										<copy file="${project.basedir}/../ReportDocx/target/ReportDocx-${project.version}-plugin.jar"
+											tofile="${package.coreTarget}/jpackage-input/plugins/report-docx.jar" overwrite="true"/>
+										<copy file="${project.basedir}/../ReportEpub/target/ReportEpub-${project.version}-plugin.jar"
+											tofile="${package.coreTarget}/jpackage-input/plugins/report-epub.jar" overwrite="true"/>
+										<copy file="${project.basedir}/../ReportSite/target/ReportSite-${project.version}-plugin.jar"
+											tofile="${package.coreTarget}/jpackage-input/plugins/report-site.jar" overwrite="true"/>
+										<!-- the importers, plugins too (the one of Gramps needs the one of GEDCOM: they are read by the same class loader) -->
+										<copy file="${project.basedir}/../ImporterGedcom/target/ImporterGedcom-${project.version}-plugin.jar"
+											tofile="${package.coreTarget}/jpackage-input/plugins/importer-gedcom.jar" overwrite="true"/>
+										<copy file="${project.basedir}/../ImporterGramps/target/ImporterGramps-${project.version}-plugin.jar"
+											tofile="${package.coreTarget}/jpackage-input/plugins/importer-gramps.jar" overwrite="true"/>
 										<!-- an antivirus may keep the previous output locked for a moment -->
 										<retry retrycount="10" retrydelay="3000">
 											<delete dir="${package.coreTarget}/windows-exe"/>
@@ -81,7 +95,7 @@
 											<arg value="--java-options"/>
 											<arg value="--module-path=$APPDIR/modules"/>
 											<arg value="--java-options"/>
-											<arg value="--add-modules=io.github.mtrevisan.calendars"/>
+											<arg value="--add-modules=io.github.mtrevisan.calendars,io.github.mtrevisan.reports"/>
 											<arg value="--java-options"/>
 											<arg value="-Dcalendars.plugins.dir=$APPDIR/plugins"/>
 											<arg value="--win-menu"/>
@@ -158,6 +172,20 @@
 										<copy file="${project.build.directory}/ephemeris-shaded.jar"
 											  tofile="${package.coreTarget}/jpackage-input/plugins/ephemeris.jar"
 											  overwrite="true"/>
+										<!-- the report formats that are plugins, built by their modules (before Core, so not in the way of its clean) -->
+										<copy file="${project.basedir}/../ReportPdf/target/ReportPdf-${project.version}-plugin.jar"
+											tofile="${package.coreTarget}/jpackage-input/plugins/report-pdf.jar" overwrite="true"/>
+										<copy file="${project.basedir}/../ReportDocx/target/ReportDocx-${project.version}-plugin.jar"
+											tofile="${package.coreTarget}/jpackage-input/plugins/report-docx.jar" overwrite="true"/>
+										<copy file="${project.basedir}/../ReportEpub/target/ReportEpub-${project.version}-plugin.jar"
+											tofile="${package.coreTarget}/jpackage-input/plugins/report-epub.jar" overwrite="true"/>
+										<copy file="${project.basedir}/../ReportSite/target/ReportSite-${project.version}-plugin.jar"
+											tofile="${package.coreTarget}/jpackage-input/plugins/report-site.jar" overwrite="true"/>
+										<!-- the importers, plugins too (the one of Gramps needs the one of GEDCOM: they are read by the same class loader) -->
+										<copy file="${project.basedir}/../ImporterGedcom/target/ImporterGedcom-${project.version}-plugin.jar"
+											tofile="${package.coreTarget}/jpackage-input/plugins/importer-gedcom.jar" overwrite="true"/>
+										<copy file="${project.basedir}/../ImporterGramps/target/ImporterGramps-${project.version}-plugin.jar"
+											tofile="${package.coreTarget}/jpackage-input/plugins/importer-gramps.jar" overwrite="true"/>
 
 										<!-- 2. Rimuovi l'output precedente (l'antivirus può tenerlo lockato) -->
 										<retry retrycount="10" retrydelay="3000">
@@ -190,7 +218,7 @@
 											<arg value="--java-options"/>
 											<arg value="--module-path=$APPDIR/modules"/>
 											<arg value="--java-options"/>
-											<arg value="--add-modules=io.github.mtrevisan.calendars"/>
+											<arg value="--add-modules=io.github.mtrevisan.calendars,io.github.mtrevisan.reports"/>
 											<arg value="--java-options"/>
 											<arg value="-Dcalendars.plugins.dir=$APPDIR/plugins"/>
 											<arg value="--dest"/>

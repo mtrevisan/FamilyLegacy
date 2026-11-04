@@ -14,6 +14,16 @@
 
 	<build>
 		<plugins>
+			<!-- The tests are patched into the module: it has to read JUnit and the importers (plugins, here as test dependencies, they build the
+				fixtures) and to open the packages of the tests to JUnit. Maven arranges the latter by itself, an IDE does not: they are in the
+				argument file, that the IDE reads from here -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<argLine>@${project.basedir}/surefire-opens.args</argLine>
+				</configuration>
+			</plugin>
 			<!-- Shade -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -52,20 +62,47 @@
 										<exclude>com/ibm/icu/impl/data/icudata/unames.icu</exclude>
 									</excludes>
 								</filter>
+								<!-- development-only resources (test data, docs, old grammars): not needed at runtime -->
+								<filter>
+									<artifact>${project.groupId}:${project.artifactId}</artifact>
+									<excludes>
+										<exclude>tests/**</exclude>
+										<exclude>docs/**</exclude>
+										<exclude>ged/**</exclude>
+										<exclude>gedg/flef_0.0.*</exclude>
+										<exclude>gedg/flef_0.1.*</exclude>
+										<exclude>gedg/gedcom_*</exclude>
+										<exclude>gedg/*.md</exclude>
+										<exclude>gedg/*.txt</exclude>
+										<exclude>gedg/*.gramps</exclude>
+										<exclude>gedg/*.dtd</exclude>
+										<exclude>gedg/treebard/**</exclude>
+									</excludes>
+								</filter>
+								<!-- the old grammars and the documents of the grammar (the domain has them): not needed at runtime -->
+								<filter>
+									<artifact>${project.groupId}:Domain</artifact>
+									<excludes>
+										<exclude>gedg/flef_0.0.*</exclude>
+										<exclude>gedg/flef_0.1.*</exclude>
+										<exclude>gedg/gedcom_*</exclude>
+										<exclude>gedg/*.md</exclude>
+										<exclude>gedg/*.txt</exclude>
+										<exclude>gedg/*.gramps</exclude>
+										<exclude>gedg/*.dtd</exclude>
+										<exclude>gedg/treebard/**</exclude>
+									</excludes>
+								</filter>
 								<filter>
 									<artifact>xml-apis:xml-apis</artifact>
 									<excludes>
 										<exclude>**</exclude>
 									</excludes>
 								</filter>
-								<filter>
-									<artifact>xml-apis:xml-apis-ext</artifact>
-									<excludes>
-										<exclude>**</exclude>
-									</excludes>
-								</filter>
+								<!-- xml-apis-ext is not excluded: it holds the SVG DOM (org.w3c.dom.svg) that Batik needs, and the JDK has not -->
 							</filters>
 							<transformers>
+								<transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
 								<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
 									<manifestEntries>
 										<X-Compile-Source-JDK>${maven.compiler.release}</X-Compile-Source-JDK>
@@ -117,7 +154,7 @@
 							<goal>copy-dependencies</goal>
 						</goals>
 						<configuration>
-							<includeArtifactIds>Calendars,commons-lang3</includeArtifactIds>
+							<includeArtifactIds>Calendars,ReportApi,commons-lang3</includeArtifactIds>
 							<outputDirectory>${project.build.directory}/jpackage-input/modules</outputDirectory>
 							<stripVersion>true</stripVersion>
 						</configuration>
@@ -128,21 +165,69 @@
 	</build>
 
 	<dependencies>
+		<!-- The model and the logic (the UI of Core depends on it, not vice versa) -->
+		<dependency>
+			<groupId>io.github.mtrevisan</groupId>
+			<artifactId>Domain</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
 		<!-- Calendars -->
 		<dependency>
 			<groupId>io.github.mtrevisan</groupId>
 			<artifactId>Calendars</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>io.github.mtrevisan</groupId>
+			<artifactId>ReportApi</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<!-- The PDF and Word formats are plugins (Core/plugins/report-*.jar, built by their modules): here only for the tests -->
+		<dependency>
+			<groupId>io.github.mtrevisan</groupId>
+			<artifactId>ReportPdf</artifactId>
+			<version>${project.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>io.github.mtrevisan</groupId>
+			<artifactId>ReportDocx</artifactId>
+			<version>${project.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>io.github.mtrevisan</groupId>
+			<artifactId>ReportEpub</artifactId>
+			<version>${project.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>io.github.mtrevisan</groupId>
+			<artifactId>ReportSite</artifactId>
+			<version>${project.version}</version>
+			<scope>test</scope>
+		</dependency>
+
+		<!-- The importers (GEDCOM, Gramps) are plugins (Core/plugins/importer-*.jar, built by their modules): here only for the tests -->
+		<dependency>
+			<groupId>io.github.mtrevisan</groupId>
+			<artifactId>ImporterGedcom</artifactId>
+			<version>${project.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>io.github.mtrevisan</groupId>
+			<artifactId>ImporterGramps</artifactId>
+			<version>${project.version}</version>
+			<scope>test</scope>
+		</dependency>
 
 		<!-- Apache -->
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-lang3</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>commons-validator</groupId>
-			<artifactId>commons-validator</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.tika</groupId>
@@ -153,27 +238,22 @@
 			<artifactId>commons-text</artifactId>
 		</dependency>
 
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.pdfbox</groupId>
+			<artifactId>pdfbox</artifactId>
+		</dependency>
+
 		<!-- Thumbnailator -->
 		<dependency>
 			<groupId>net.coobird</groupId>
 			<artifactId>thumbnailator</artifactId>
 		</dependency>
 
-		<!-- Jakarta -->
-		<dependency>
-			<groupId>jakarta.persistence</groupId>
-			<artifactId>jakarta.persistence-api</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>jakarta.transaction</groupId>
-			<artifactId>jakarta.transaction-api</artifactId>
-		</dependency>
-
 		<!-- Date -->
-		<dependency>
-			<groupId>org.threeten</groupId>
-			<artifactId>threeten-extra</artifactId>
-		</dependency>
 		<dependency>
 			<groupId>com.ibm.icu</groupId>
 			<artifactId>icu4j</artifactId>
@@ -183,10 +263,6 @@
 		<dependency>
 			<groupId>com.miglayout</groupId>
 			<artifactId>miglayout-swing</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.swinglabs.swingx</groupId>
-			<artifactId>swingx-core</artifactId>
 		</dependency>
 
 		<!-- Image processing -->
@@ -242,35 +318,11 @@
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-tiff</artifactId>
 		</dependency>
-		<dependency>
-			<groupId>org.graphstream</groupId>
-			<artifactId>gs-core</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.graphstream</groupId>
-			<artifactId>gs-ui-swing</artifactId>
-		</dependency>
 
 		<!-- Map -->
 		<dependency>
 			<groupId>org.jxmapviewer</groupId>
 			<artifactId>jxmapviewer2</artifactId>
-		</dependency>
-
-		<!-- Reports -->
-		<!-- PDF support -->
-		<dependency>
-			<groupId>com.github.librepdf</groupId>
-			<artifactId>openpdf</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.vladsch.flexmark</groupId>
-			<artifactId>flexmark-all</artifactId>
-		</dependency>
-		<!-- DOCX support -->
-		<dependency>
-			<groupId>org.apache.poi</groupId>
-			<artifactId>poi-ooxml</artifactId>
 		</dependency>
 
 		<!-- Logger -->

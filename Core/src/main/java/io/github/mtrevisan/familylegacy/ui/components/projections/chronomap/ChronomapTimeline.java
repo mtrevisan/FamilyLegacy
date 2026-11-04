@@ -24,7 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections.chronomap;
 
-import io.github.mtrevisan.familylegacy.ui.tools.events.CalendarConverterDialog;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.JulianDay;
 
 import javax.swing.AbstractAction;
 import javax.swing.JComponent;
@@ -555,7 +555,7 @@ public final class ChronomapTimeline extends JPanel{
 	}
 
 	private static String formatYear(final long jdn){
-		return Integer.toString(CalendarConverterDialog.jdnToGregorian(jdn)[0]);
+		return Integer.toString(JulianDay.toGregorian(jdn)[0]);
 	}
 
 }

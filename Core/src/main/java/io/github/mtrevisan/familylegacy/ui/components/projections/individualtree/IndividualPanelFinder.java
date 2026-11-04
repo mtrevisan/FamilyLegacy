@@ -24,7 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections.individualtree;
 
-import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualData;
+import io.github.mtrevisan.familylegacy.individual.IndividualSummary;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualPanel;
 
 import java.awt.Component;
@@ -73,7 +73,7 @@ public final class IndividualPanelFinder{
 	public static Set<String> collectIds(final Component root){
 		final Set<String> ids = new LinkedHashSet<>();
 		visit(root, panel -> {
-			final IndividualData data = panel.getData();
+			final IndividualSummary data = panel.getData();
 			if(data != null && !data.isEmpty() && data.getId() != null)
 				ids.add(data.getId());
 		});
@@ -96,7 +96,7 @@ public final class IndividualPanelFinder{
 	public static Map<String, Rectangle> collectScreenBounds(final Component root){
 		final Map<String, Rectangle> result = new LinkedHashMap<>();
 		visit(root, panel -> {
-			final IndividualData data = panel.getData();
+			final IndividualSummary data = panel.getData();
 			if(data == null || data.isEmpty() || data.getId() == null)
 				return;
 

@@ -25,6 +25,10 @@
 package io.github.mtrevisan.familylegacy.ui.components.projections.social;
 
 import io.github.mtrevisan.familylegacy.io.model.readers.date.TemporalSpan;
+import io.github.mtrevisan.familylegacy.social.SocialEdgeRef;
+import io.github.mtrevisan.familylegacy.social.SocialGraph;
+import io.github.mtrevisan.familylegacy.social.SocialNodeRef;
+import io.github.mtrevisan.familylegacy.social.SocialPath;
 
 import java.awt.BasicStroke;
 import java.awt.Color;

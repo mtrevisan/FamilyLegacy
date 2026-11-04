@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections.groupnetwork;
 
+import io.github.mtrevisan.familylegacy.groups.GroupNetwork;
 import java.awt.Dimension;
 import java.awt.Rectangle;
 import java.util.ArrayDeque;

@@ -26,6 +26,14 @@
 
 	<modules>
 		<module>Calendars</module>
+		<module>ReportApi</module>
+		<module>ReportPdf</module>
+		<module>ReportDocx</module>
+		<module>ReportEpub</module>
+		<module>ReportSite</module>
+		<module>Domain</module>
+		<module>ImporterGedcom</module>
+		<module>ImporterGramps</module>
 		<module>Core</module>
 		<module>Ephemeris</module>
 	</modules>

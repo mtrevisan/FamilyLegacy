@@ -25,7 +25,7 @@
 package io.github.mtrevisan.familylegacy.ui.helpers;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.ui.dialogs.api.RecordDialog;
+import io.github.mtrevisan.familylegacy.ui.api.RecordDialog;
 
 import java.awt.Window;
 

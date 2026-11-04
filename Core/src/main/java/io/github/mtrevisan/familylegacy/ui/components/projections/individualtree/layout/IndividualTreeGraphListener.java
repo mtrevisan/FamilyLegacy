@@ -24,26 +24,26 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.layout;
 
+import io.github.mtrevisan.familylegacy.individual.IndividualSummary;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.SexType;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
-import io.github.mtrevisan.familylegacy.ui.components.projections.common.ProjectionMutator;
-import io.github.mtrevisan.familylegacy.ui.components.projections.common.TreeOperation;
-import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualData;
+import io.github.mtrevisan.familylegacy.tree.ProjectionMutator;
+import io.github.mtrevisan.familylegacy.tree.Side;
+import io.github.mtrevisan.familylegacy.tree.TreeMutator;
+import io.github.mtrevisan.familylegacy.tree.TreeNode;
+import io.github.mtrevisan.familylegacy.tree.TreeOperation;
+import io.github.mtrevisan.familylegacy.tree.TreeService;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContexts;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolDispatcher;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.individuals.UnlinkIndividualRelationshipsTool;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualListener;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualPanel;
-import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.services.relationship.RelationshipOperationCoordinator;
-import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.services.relationship.TreeContextHelper;
-import io.github.mtrevisan.familylegacy.ui.components.projections.partners.PartnersPanel;
-import io.github.mtrevisan.familylegacy.ui.components.projections.partners.Side;
-import io.github.mtrevisan.familylegacy.ui.components.projections.repository.TreeMutator;
-import io.github.mtrevisan.familylegacy.ui.components.projections.repository.TreeNode;
-import io.github.mtrevisan.familylegacy.ui.components.projections.repository.TreeService;
+import io.github.mtrevisan.familylegacy.ui.components.projections.individual.PartnersPanel;
+import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.services.RelationshipOperationCoordinator;
+import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.services.TreeContextHelper;
 import io.github.mtrevisan.familylegacy.ui.helpers.RelationClipboard;
-import io.github.mtrevisan.familylegacy.ui.tools.ToolContext;
-import io.github.mtrevisan.familylegacy.ui.tools.ToolContexts;
-import io.github.mtrevisan.familylegacy.ui.tools.ToolDispatcher;
-import io.github.mtrevisan.familylegacy.ui.tools.individuals.UnlinkIndividualRelationshipsTool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -192,8 +192,8 @@ public final class IndividualTreeGraphListener implements IndividualListener{
 		if(child == null)
 			return;
 
-		final IndividualData fatherData = ctx.partnerPanel.getFatherData();
-		final IndividualData motherData = ctx.partnerPanel.getMotherData();
+		final IndividualSummary fatherData = ctx.partnerPanel.getFatherData();
+		final IndividualSummary motherData = ctx.partnerPanel.getMotherData();
 		final FLEFRecord targetFather = (fatherData != null? fatherData.getIndividual(): null);
 		final FLEFRecord targetMother = (motherData != null? motherData.getIndividual(): null);
 		if(targetFather == null && targetMother == null)

@@ -27,14 +27,14 @@ package io.github.mtrevisan.familylegacy.ui.components.searches.service;
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
-import io.github.mtrevisan.familylegacy.ui.components.searches.SearchCriteria;
-import io.github.mtrevisan.familylegacy.ui.components.searches.SearchMode;
-import io.github.mtrevisan.familylegacy.ui.dialogs.help.ShortcutRegistry;
+import io.github.mtrevisan.familylegacy.search.SearchCriteria;
+import io.github.mtrevisan.familylegacy.search.SearchMode;
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.SourceHandler;
+import io.github.mtrevisan.familylegacy.ui.helpers.ShortcutRegistry;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -90,7 +90,7 @@ class FindRecordTest{
 
 		for(final Class<? extends RecordTypeHandler<?>> type : SearchService.searchableHandlers())
 			Assertions.assertDoesNotThrow(() -> new SearchService(model)
-				.search(new SearchCriteria(HandlerRegistry.getHandler(type), "", Set.of(SearchMode.FUZZY))), type.getSimpleName());
+				.search(new SearchCriteria(HandlerRegistry.getHandler(type).getType(), "", Set.of(SearchMode.FUZZY))), type.getSimpleName());
 	}
 
 	@Test
@@ -98,13 +98,87 @@ class FindRecordTest{
 		final FLEFModel model = new FLEFParser().parse(FLEF);
 		final SearchService service = new SearchService(model);
 
-		final List<FLEFRecord> people = service.search(new SearchCriteria(IndividualHandler.getInstance(), "Anna", Set.of(SearchMode.FUZZY)));
-		final List<FLEFRecord> places = service.search(new SearchCriteria(PlaceHandler.getInstance(), "Treviso", Set.of(SearchMode.FUZZY)));
-		final List<FLEFRecord> sources = service.search(new SearchCriteria(SourceHandler.getInstance(), "register", Set.of(SearchMode.FUZZY)));
+		final List<FLEFRecord> people = service.search(new SearchCriteria(IndividualHandler.getInstance().getType(), "Anna", Set.of(SearchMode.FUZZY)));
+		final List<FLEFRecord> places = service.search(new SearchCriteria(PlaceHandler.getInstance().getType(), "Treviso", Set.of(SearchMode.FUZZY)));
+		final List<FLEFRecord> sources = service.search(new SearchCriteria(SourceHandler.getInstance().getType(), "register", Set.of(SearchMode.FUZZY)));
 
 		Assertions.assertEquals(List.of("I1"), people.stream().map(FLEFRecord::getId).toList());
 		Assertions.assertEquals(List.of("P1"), places.stream().map(FLEFRecord::getId).toList());
 		Assertions.assertEquals(List.of("S1"), sources.stream().map(FLEFRecord::getId).toList());
+	}
+
+	@Test
+	void theTextOfTheNotesIsSearchedOnlyWhenAsked(){
+		final String flef = """
+			header {
+				protocol {
+					name Family LEgacy Format
+					version 0.2.0
+				}
+				date 2026-01-01T00:00:00Z
+			}
+			individual I1 {
+				name {
+					part {
+						type given
+						value Anna
+					}
+				}
+				note {
+					title Emigration
+					text Left for Argentina in the spring
+				}
+			}
+			individual I2 {
+				name {
+					part {
+						type given
+						value Berta
+					}
+				}
+				note {
+					text Nothing to say
+					translation {
+						text Partita per l'Argentina
+					}
+				}
+			}
+			individual I3 {
+				name {
+					part {
+						type given
+						value Carla
+					}
+				}
+				source {
+					source S1
+					locator Folio 12 verso
+					extract {
+						text Battezzata il giorno di Pasqua
+					}
+				}
+			}
+			""";
+		final FLEFModel model = new FLEFParser().parse(flef);
+		final SearchService service = new SearchService(model);
+		final String type = IndividualHandler.getInstance().getType();
+
+		Assertions.assertEquals(List.of(), service.search(new SearchCriteria(type, "Argentina", Set.of())),
+			"without the option the notes are not read");
+		Assertions.assertEquals(List.of("I1", "I2"), service.search(new SearchCriteria(type, "Argentina", Set.of(SearchMode.NOTES_AND_CITATIONS)))
+			.stream().map(FLEFRecord::getId).sorted().toList(), "the text of a note, and of a translation");
+		Assertions.assertEquals(List.of("I3"), service.search(new SearchCriteria(type, "pasqua", Set.of(SearchMode.NOTES_AND_CITATIONS)))
+			.stream().map(FLEFRecord::getId).toList(), "the text of an extract of a citation");
+		Assertions.assertEquals(List.of("I3"), service.search(new SearchCriteria(type, "verso", Set.of(SearchMode.NOTES_AND_CITATIONS)))
+			.stream().map(FLEFRecord::getId).toList(), "the locator of a citation");
+		Assertions.assertEquals(List.of(), service.search(new SearchCriteria(type, "pasqua", Set.of())), "not without the option");
+		Assertions.assertEquals(List.of("I1"), service.search(new SearchCriteria(type, "emigration", Set.of(SearchMode.NOTES_AND_CITATIONS)))
+			.stream().map(FLEFRecord::getId).toList(), "the title of a note");
+		Assertions.assertEquals(List.of("I1", "I2"), service.search(new SearchCriteria(type, "Argentna spring",
+				Set.of(SearchMode.NOTES_AND_CITATIONS, SearchMode.FUZZY, SearchMode.WHOLE_WORD)))
+			.stream().map(FLEFRecord::getId).toList(), "together with the fuzzy and whole word modes (a typo, ranked by tokens)");
+		Assertions.assertEquals(List.of("I1"), service.search(new SearchCriteria(type, "Anna argentina", Set.of(SearchMode.NOTES_AND_CITATIONS)))
+			.stream().map(FLEFRecord::getId).toList().subList(0, 1), "a name and a note together rank first");
 	}
 
 	@Test

@@ -25,9 +25,11 @@
 package io.github.mtrevisan.familylegacy.ui.components.projections.temporal;
 
 import io.github.mtrevisan.calendars.CalendarType;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.JulianDay;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.NormalizedDate;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.TemporalSpan;
-import io.github.mtrevisan.familylegacy.ui.tools.events.CalendarConverterDialog;
+import io.github.mtrevisan.familylegacy.temporal.TemporalProjectionModel;
+import io.github.mtrevisan.familylegacy.temporal.TemporalZoomLevel;
 import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Rectangle;
@@ -394,7 +396,7 @@ public final class TemporalAxis{
 		while(intervalMonths < 1_000_000 && spanDays / 30 / intervalMonths > MAX_TICKS)
 			intervalMonths *= 2;
 
-		final int[] gregorian = CalendarConverterDialog.jdnToGregorian(visibleStartJdn);
+		final int[] gregorian = JulianDay.toGregorian(visibleStartJdn);
 		int year = gregorian[0];
 		int month = gregorian[1];
 		// Defensive: never start from an out-of-range month.
@@ -442,7 +444,7 @@ public final class TemporalAxis{
 			if(j < visibleStartJdn)
 				continue;
 
-			final int[] gregorian = CalendarConverterDialog.jdnToGregorian(j);
+			final int[] gregorian = JulianDay.toGregorian(j);
 			// Defensive: skip ticks whose reverse Gregorian conversion falls
 			// outside the valid month range.
 			if(gregorian[1] < 1 || gregorian[1] > 12)
@@ -511,7 +513,7 @@ public final class TemporalAxis{
 	 * proleptic Gregorian year of the given Julian Day Number.
 	 */
 	private static int jdnToGregorianYear(final long jdn){
-		return CalendarConverterDialog.jdnToGregorian(jdn)[0];
+		return JulianDay.toGregorian(jdn)[0];
 	}
 
 }

@@ -24,7 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.dialogs;
 
-import io.github.mtrevisan.familylegacy.ui.components.searches.projections.ProjectionSelectionViews;
+import io.github.mtrevisan.familylegacy.ui.components.projections.selection.ProjectionSelectionViews;
 import io.github.mtrevisan.familylegacy.ui.components.searches.service.SelectionViewProvider;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;

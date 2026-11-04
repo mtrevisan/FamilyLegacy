@@ -24,9 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections.bookmarks;
 
+import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
-import io.github.mtrevisan.familylegacy.ui.tools.ToolDialogs;
+import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -60,7 +60,7 @@ public final class BookmarkManagerDialog extends JDialog{
 
 	public BookmarkManagerDialog(final Window owner, final BookmarkStore store, final Supplier<FLEFModel> modelSupplier){
 		super(owner, "Manage bookmarks", ModalityType.APPLICATION_MODAL);
-		ToolDialogs.installEscapeToClose(this);
+		GUIHelper.installEscapeToClose(this);
 
 		this.store = store;
 		this.modelSupplier = modelSupplier;

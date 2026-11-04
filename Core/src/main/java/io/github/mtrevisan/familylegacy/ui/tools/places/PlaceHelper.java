@@ -30,7 +30,6 @@ import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.Map;
 import java.util.Set;
@@ -57,22 +56,7 @@ public final class PlaceHelper{
 	 * returned so the display stays readable.
 	 */
 	public static String displayName(final FLEFRecord place){
-		if(place == null)
-			return StringUtils.EMPTY;
-
-		for(final FLEFRecord child : place.getChildren()){
-			if(!PlaceReader.TAG_NAME.equalsIgnoreCase(child.getTag()))
-				continue;
-
-			final String value = PlaceReader.extractPrimaryName(child);
-			if(value != null && !value.isBlank())
-				return value;
-
-			final FLEFRecord onlyChild = child.getTheOnlyChild();
-			if(onlyChild != null && onlyChild.getValue() != null && !onlyChild.getValue().isBlank())
-				return onlyChild.getValue();
-		}
-		return place.getId() != null? place.getId(): StringUtils.EMPTY;
+		return PlaceReader.displayName(place);
 	}
 
 	/** Returns the coordinates of a place, or {@code null} when missing. */

@@ -25,7 +25,6 @@
 package io.github.mtrevisan.familylegacy.ui.components.searches.service;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.ui.components.projections.common.ProjectionType;
 import io.github.mtrevisan.familylegacy.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
@@ -48,15 +47,13 @@ public final class JumpToIndividualDialog{
 	/**
 	 * @param owner      the parent window; may be {@code null}
 	 * @param model      the model to search in
-	 * @param projection the active projection; only
-	 *                   {@link ProjectionType#EGO_NETWORK} adds groups
-	 *                   to the record types offered
+	 * @param withGroups whether the groups are offered too (the ego network shows them)
 	 * @return the chosen record id, or {@code null} if cancelled
 	 */
-	public static String showAndGet(final Window owner, final FLEFModel model, final ProjectionType projection){
+	public static String showAndGet(final Window owner, final FLEFModel model, final boolean withGroups){
 		final List<Class<? extends RecordTypeHandler<?>>> handlerList = new ArrayList<>();
 		handlerList.add(IndividualHandler.class);
-		if(projection == ProjectionType.EGO_NETWORK)
+		if(withGroups)
 			handlerList.add(GroupHandler.class);
 
 		@SuppressWarnings("unchecked")

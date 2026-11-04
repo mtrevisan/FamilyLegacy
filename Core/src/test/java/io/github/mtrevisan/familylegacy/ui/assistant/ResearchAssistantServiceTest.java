@@ -25,8 +25,8 @@
 package io.github.mtrevisan.familylegacy.ui.assistant;
 
 import io.github.mtrevisan.familylegacy.ui.assistant.app.DefaultResearchAssistant;
-import io.github.mtrevisan.familylegacy.ui.components.HistoricalDateAssistantDialog;
-import io.github.mtrevisan.familylegacy.ui.components.HistoricalDateAssistantHost;
+import io.github.mtrevisan.familylegacy.ui.components.dates.HistoricalDateAssistantDialog;
+import io.github.mtrevisan.familylegacy.ui.components.dates.HistoricalDateAssistantHost;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 

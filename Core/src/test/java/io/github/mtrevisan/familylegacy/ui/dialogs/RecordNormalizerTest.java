@@ -24,16 +24,13 @@
  */
 package io.github.mtrevisan.familylegacy.ui.dialogs;
 
-import io.github.mtrevisan.familylegacy.io.grammar.FLEFGrammarParser;
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.FLEFGrammar;
+import io.github.mtrevisan.familylegacy.io.merger.manual.MergeGrammar;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 
@@ -43,10 +40,8 @@ class RecordNormalizerTest{
 
 
 	@BeforeAll
-	static void loadGrammar() throws IOException{
-		try(final InputStream is = RecordNormalizerTest.class.getResourceAsStream("/gedg/flef_0.2.0.gedg")){
-			grammar = FLEFGrammarParser.parse(new String(is.readAllBytes(), StandardCharsets.UTF_8));
-		}
+	static void loadGrammar(){
+		grammar = MergeGrammar.instance();
 	}
 
 

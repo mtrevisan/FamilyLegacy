@@ -24,8 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.ui.assistant;
 
-import io.github.mtrevisan.familylegacy.ui.dialogs.help.ShortcutRegistry;
-import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
+import io.github.mtrevisan.familylegacy.i18n.I18N;
+import io.github.mtrevisan.familylegacy.ui.helpers.ShortcutRegistry;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -240,8 +240,10 @@ final class ResearchAssistantPalette extends JDialog{
 
 	/** Computes the findings away from the event dispatch thread: a provider can inspect the whole model. */
 	private void loadDiagnostics(){
+		//a copy of the model, taken here on the event dispatch thread: the actions keep the context with the model itself
+		final AssistantContext reading = context.forReading();
 		CompletableFuture
-			.supplyAsync(() -> service.diagnose(context))
+			.supplyAsync(() -> service.diagnose(reading))
 			.exceptionally(e -> List.of())
 			.thenAccept(found -> SwingUtilities.invokeLater(() -> {
 				diagnostics = found;

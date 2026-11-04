@@ -24,8 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components;
 
+import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.ui.helpers.ResourceHelper;
-import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListCellRenderer;

@@ -24,17 +24,18 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.searches.service;
 
+import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceRelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.search.SearchCriteria;
+import io.github.mtrevisan.familylegacy.search.SearchMode;
+import io.github.mtrevisan.familylegacy.ui.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.bindings.BindingsHelper;
 import io.github.mtrevisan.familylegacy.ui.bindings.Debouncer;
 import io.github.mtrevisan.familylegacy.ui.bindings.FilteredComboBox;
 import io.github.mtrevisan.familylegacy.ui.components.searches.RecordFilterPanel;
-import io.github.mtrevisan.familylegacy.ui.components.searches.SearchCriteria;
-import io.github.mtrevisan.familylegacy.ui.components.searches.SearchMode;
-import io.github.mtrevisan.familylegacy.ui.dialogs.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.MediaHandler;
@@ -43,7 +44,6 @@ import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RepositoryHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
-import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -166,6 +166,7 @@ public class RecordSelectionDialog extends JDialog{
 	// search mode, computed by currentMode().
 	private final JCheckBox fuzzyCheckBox = new JCheckBox(I18N.t("search.mode.fuzzy"), false);
 	private final JCheckBox wholeWordCheckBox = new JCheckBox(I18N.t("search.mode.whole_word"), false);
+	private final JCheckBox notesCheckBox = new JCheckBox(I18N.t("search.mode.notes_and_citations"), false);
 
 	private final JPanel filterPanelHolder = new JPanel(new BorderLayout());
 
@@ -326,10 +327,13 @@ public class RecordSelectionDialog extends JDialog{
 		// documented on the class.
 		topPanel.add(wholeWordCheckBox, "span 2,left");
 		topPanel.add(fuzzyCheckBox, "span 2,left");
+		// Not a way to match a token: it widens the text the query is looked for in, to the notes of the record.
+		topPanel.add(notesCheckBox, "span 2,left");
 
-		// Every change to either checkbox reschedules the search.
+		// Every change to a checkbox reschedules the search.
 		fuzzyCheckBox.addActionListener(e -> scheduleSearch());
 		wholeWordCheckBox.addActionListener(e -> scheduleSearch());
+		notesCheckBox.addActionListener(e -> scheduleSearch());
 
 		add(topPanel, "growx,wrap");
 
@@ -504,6 +508,8 @@ public class RecordSelectionDialog extends JDialog{
 			modes.add(SearchMode.FUZZY);
 		if(wholeWordCheckBox.isSelected())
 			modes.add(SearchMode.WHOLE_WORD);
+		if(notesCheckBox.isSelected())
+			modes.add(SearchMode.NOTES_AND_CITATIONS);
 
 		return modes;
 	}
@@ -576,6 +582,7 @@ public class RecordSelectionDialog extends JDialog{
 		filterPanelHolder.setVisible(true);
 		wholeWordCheckBox.setVisible(true);
 		fuzzyCheckBox.setVisible(true);
+		notesCheckBox.setVisible(true);
 	}
 
 	private void rebuildDynamicFilterPanel(final RecordTypeHandler<?> handler){
@@ -609,7 +616,7 @@ public class RecordSelectionDialog extends JDialog{
 			currentWorker.cancel(true);
 
 		final RecordTypeHandler<?> handler = getSelectedHandler();
-		criteria = new SearchCriteria(handler, searchField.getText().trim(), currentMode());
+		criteria = new SearchCriteria(handler.getType(), searchField.getText().trim(), currentMode());
 
 		initialFilters.forEach(criteria::withFilter);
 

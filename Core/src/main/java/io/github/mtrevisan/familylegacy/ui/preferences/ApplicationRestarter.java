@@ -24,7 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.preferences;
 
-import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
+import io.github.mtrevisan.familylegacy.i18n.I18N;
 
 import javax.swing.JOptionPane;
 import java.awt.Window;

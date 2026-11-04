@@ -25,7 +25,7 @@
 package io.github.mtrevisan.familylegacy.ui.assistant;
 
 import io.github.mtrevisan.familylegacy.ui.assistant.app.FrameAssistantPort;
-import io.github.mtrevisan.familylegacy.ui.components.projections.ResearchAssistantPort;
+import io.github.mtrevisan.familylegacy.ui.shell.ResearchAssistantPort;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 

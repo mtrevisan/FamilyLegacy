@@ -1,0 +1,290 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+package io.github.mtrevisan.familylegacy.preferences;
+
+
+import org.apache.commons.lang3.StringUtils;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.Objects;
+import java.util.Properties;
+import java.util.Set;
+import java.util.TreeSet;
+
+
+/**
+ * Persistent user preferences for the application's visual appearance.
+ *
+ * <p>Backed by a properties file stored under the user's home directory, so
+ * the settings survive across runs and can be inspected or reset by hand
+ * without touching the application.</p>
+ *
+ * <p>Only two preferences are currently persisted:</p>
+ * <ul>
+ *   <li>{@code ui.language} — the BCP 47 language tag of the UI locale
+ *       (e.g. {@code "it"}, {@code "en-US"}, {@code "zh-CN"});</li>
+ *   <li>{@code ui.font.family} — the family name of the UI font;</li>
+ *   <li>{@code ui.font.size} — the point size of the UI font.</li>
+ * </ul>
+ *
+ * <p>The class is a singleton and is thread-safe for reads; writes are
+ * serialized by the underlying file system and can be triggered at any
+ * time from the Event Dispatch Thread.</p>
+ */
+public final class AppPreferences{
+
+	/** Directory under the user's home where the preferences file is stored. */
+	private static final Path CONFIG_DIR =
+		Path.of(System.getProperty("user.home"), ".familylegacy");
+
+	/** Full path to the preferences file. */
+	private static final Path CONFIG_FILE = CONFIG_DIR.resolve("preferences.properties");
+
+	/* ----- Property keys --------------------------------------------------- */
+
+	public static final String KEY_LANGUAGE = "ui.language";
+	public static final String KEY_FONT_FAMILY = "ui.font.family";
+	public static final String KEY_FONT_SIZE = "ui.font.size";
+	public static final String KEY_PRIVACY_POLICY = "privacy.policy";
+	// view preferences: how the views order children and partners (presentation only, never genealogical data)
+	public static final String KEY_CHILDREN_ORDER = "view.order.children";
+	public static final String KEY_PARTNER_ORDER = "view.order.partners";
+	// view preferences: how the location of the media is shown, and the directory it is relative to (presentation only)
+	public static final String KEY_MEDIA_PATH_DISPLAY = "view.media.path";
+	public static final String KEY_MEDIA_BASE_DIRECTORY = "view.media.base_directory";
+	// the findings of the Research Assistant ignored by the user, for each file (a presentation choice, never genealogical data)
+	private static final String KEY_IGNORED_FINDINGS_PREFIX = "assistant.ignored.";
+
+	/* ----- Defaults -------------------------------------------------------- */
+
+	/** Default UI language tag when nothing is persisted. */
+	private static final String DEFAULT_LANGUAGE = "en";
+
+	/** Default UI font size, in points, when nothing is persisted. */
+	private static final int DEFAULT_FONT_SIZE = 12;
+
+
+	private static final AppPreferences INSTANCE = new AppPreferences();
+
+
+	private final Properties properties = new Properties();
+
+
+	private AppPreferences(){
+		load();
+	}
+
+
+	public static AppPreferences getInstance(){
+		return INSTANCE;
+	}
+
+
+	/* ======================================================================
+	 *                          Accessors
+	 * ====================================================================== */
+
+	/** Returns the persisted UI language tag, or the default when unset. */
+	public String languageTag(){
+		return properties.getProperty(KEY_LANGUAGE, DEFAULT_LANGUAGE);
+	}
+
+	/** Returns the persisted UI font family, or {@code null} for the system default. */
+	public String fontFamily(){
+		final String v = properties.getProperty(KEY_FONT_FAMILY);
+		return (StringUtils.isEmpty(v)? null: v);
+	}
+
+	/** Returns the persisted UI font size, or the default when unset. */
+	public int fontSize(){
+		final String v = properties.getProperty(KEY_FONT_SIZE);
+		if(StringUtils.isEmpty(v))
+			return DEFAULT_FONT_SIZE;
+		try{
+			return Integer.parseInt(v.trim());
+		}
+		catch(final NumberFormatException ignored){
+			return DEFAULT_FONT_SIZE;
+		}
+	}
+
+
+	/* ======================================================================
+	 *                          Mutators
+	 * ====================================================================== */
+
+	/** Persists the UI language tag. */
+	public void setLanguageTag(final String tag){
+		put(KEY_LANGUAGE, Objects.requireNonNull(tag, "tag"));
+	}
+
+	/** Persists the UI font family. Passing {@code null} resets to system default. */
+	public void setFontFamily(final String family){
+		if(StringUtils.isEmpty(family))
+			properties.remove(KEY_FONT_FAMILY);
+		else
+			properties.setProperty(KEY_FONT_FAMILY, family);
+		save();
+	}
+
+	/** Returns the persisted name of the privacy policy, or {@code null} when unset (the privacy package knows what the names mean). */
+	public String privacyPolicyName(){
+		return properties.getProperty(KEY_PRIVACY_POLICY);
+	}
+
+	/** Persists the name of the privacy policy. */
+	public void setPrivacyPolicyName(final String name){
+		put(KEY_PRIVACY_POLICY, Objects.requireNonNull(name, "name"));
+	}
+
+	/** Returns the persisted display order of the children, or the default (by birth date) when unset or unknown. */
+	public ChildrenOrder childrenOrder(){
+		try{
+			return ChildrenOrder.valueOf(properties.getProperty(KEY_CHILDREN_ORDER, ChildrenOrder.BIRTH_DATE.name()));
+		}
+		catch(final IllegalArgumentException ignored){
+			return ChildrenOrder.BIRTH_DATE;
+		}
+	}
+
+	/** Persists the display order of the children (a view preference: it is not stored in the genealogy). */
+	public void setChildrenOrder(final ChildrenOrder order){
+		put(KEY_CHILDREN_ORDER, Objects.requireNonNull(order, "order").name());
+	}
+
+	/** Returns the persisted display order of the partners, or the default (union chronology) when unset or unknown. */
+	public PartnerOrder partnerOrder(){
+		try{
+			return PartnerOrder.valueOf(properties.getProperty(KEY_PARTNER_ORDER, PartnerOrder.UNION_CHRONOLOGY.name()));
+		}
+		catch(final IllegalArgumentException ignored){
+			return PartnerOrder.UNION_CHRONOLOGY;
+		}
+	}
+
+	/** Persists the display order of the partners (a view preference: it is not stored in the genealogy). */
+	public void setPartnerOrder(final PartnerOrder order){
+		put(KEY_PARTNER_ORDER, Objects.requireNonNull(order, "order").name());
+	}
+
+	/**
+	 * @param scope	the digest of the file the findings are about
+	 * @return	the digests of the findings the user ignored for the file
+	 */
+	public synchronized Set<String> ignoredFindings(final String scope){
+		final String value = properties.getProperty(KEY_IGNORED_FINDINGS_PREFIX + scope, "");
+		return (value.isEmpty()? Set.of(): Set.copyOf(Arrays.asList(StringUtils.split(value, ','))));
+	}
+
+	/** Persists the findings the user ignored for a file (a view preference: they are not stored in the genealogy). */
+	public synchronized void setIgnoredFindings(final String scope, final Set<String> findings){
+		put(KEY_IGNORED_FINDINGS_PREFIX + scope, String.join(",", new TreeSet<>(findings)));
+	}
+
+	/** Returns how the location of the media is shown, or the default (the whole location) when unset or unknown. */
+	public MediaPathDisplay mediaPathDisplay(){
+		try{
+			return MediaPathDisplay.valueOf(properties.getProperty(KEY_MEDIA_PATH_DISPLAY, MediaPathDisplay.FULL.name()));
+		}
+		catch(final IllegalArgumentException ignored){
+			return MediaPathDisplay.FULL;
+		}
+	}
+
+	/** Persists how the location of the media is shown (a view preference: it is not stored in the genealogy). */
+	public void setMediaPathDisplay(final MediaPathDisplay display){
+		put(KEY_MEDIA_PATH_DISPLAY, Objects.requireNonNull(display, "display").name());
+	}
+
+	/** Returns the base directory the media paths are shown relative to, or {@code null} when unset. */
+	public String mediaBaseDirectory(){
+		final String v = properties.getProperty(KEY_MEDIA_BASE_DIRECTORY);
+		return (StringUtils.isBlank(v)? null: v);
+	}
+
+	/** Persists the base directory the media paths are shown relative to; {@code null} clears it. */
+	public void setMediaBaseDirectory(final String directory){
+		put(KEY_MEDIA_BASE_DIRECTORY, directory);
+	}
+
+	/** Persists the UI font size, in points. */
+	public void setFontSize(final int size){
+		put(KEY_FONT_SIZE, Integer.toString(size));
+	}
+
+	/** Returns the file path of the preferences file (may not exist yet). */
+	public static Path filePath(){
+		return CONFIG_FILE;
+	}
+
+
+	/* ======================================================================
+	 *                          Storage
+	 * ====================================================================== */
+
+	private void put(final String key, final String value){
+		if(StringUtils.isEmpty(value))
+			properties.remove(key);
+		else
+			properties.setProperty(key, value);
+		save();
+	}
+
+
+	private void load(){
+		if(!Files.exists(CONFIG_FILE))
+			return;
+
+		try(final InputStream in = Files.newInputStream(CONFIG_FILE)){
+			properties.load(in);
+		}
+		catch(final IOException ignored){
+			// A corrupted or unreadable file is treated as "no preferences":
+			// the application starts with defaults. The user can delete the
+			// file to reset everything.
+		}
+	}
+
+
+	private void save(){
+		try{
+			Files.createDirectories(CONFIG_DIR);
+			try(OutputStream out = Files.newOutputStream(CONFIG_FILE)){
+				properties.store(out, "Family Legacy — user preferences");
+			}
+		}
+		catch(final IOException ignored){
+			// If writing fails (read-only home, disk full), the preference
+			// applies to the current session but is not persisted. The
+			// application keeps working; only the persistence is lost.
+		}
+	}
+
+}

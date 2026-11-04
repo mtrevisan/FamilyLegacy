@@ -24,8 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections.individualtree;
 
-import io.github.mtrevisan.familylegacy.ui.dialogs.help.ShortcutRegistry;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.ui.helpers.ShortcutRegistry;
 
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;

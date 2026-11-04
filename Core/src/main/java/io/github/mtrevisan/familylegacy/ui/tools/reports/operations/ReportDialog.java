@@ -24,35 +24,30 @@
  */
 package io.github.mtrevisan.familylegacy.ui.tools.reports.operations;
 
+import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
-import io.github.mtrevisan.familylegacy.ui.components.lists.MediaPartListPanel;
+import io.github.mtrevisan.familylegacy.reports.AncestorReportGenerator;
+import io.github.mtrevisan.familylegacy.reports.DescendantReportGenerator;
+import io.github.mtrevisan.familylegacy.reports.ReportConfig;
+import io.github.mtrevisan.familylegacy.reports.ReportGenerator;
+import io.github.mtrevisan.familylegacy.reports.ReportProgressListener;
+import io.github.mtrevisan.familylegacy.reports.ReportType;
+import io.github.mtrevisan.familylegacy.reports.i18n.ReportLanguage;
+import io.github.mtrevisan.familylegacy.reports.index.CollateralScope;
+import io.github.mtrevisan.familylegacy.reports.renderers.ReportRenderers;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolDialogs;
 import io.github.mtrevisan.familylegacy.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
-import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
-import io.github.mtrevisan.familylegacy.ui.tools.ToolContext;
-import io.github.mtrevisan.familylegacy.ui.tools.ToolDialogs;
-import io.github.mtrevisan.familylegacy.ui.tools.reports.AncestorReportGenerator;
-import io.github.mtrevisan.familylegacy.ui.tools.reports.DescendantReportGenerator;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.ProgressDialog;
-import io.github.mtrevisan.familylegacy.ui.tools.reports.ReportConfig;
-import io.github.mtrevisan.familylegacy.ui.tools.reports.ReportDocument;
-import io.github.mtrevisan.familylegacy.ui.tools.reports.ReportGenerator;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.ReportOptionsPanel;
-import io.github.mtrevisan.familylegacy.ui.tools.reports.ReportProgressListener;
-import io.github.mtrevisan.familylegacy.ui.tools.reports.ReportSection;
-import io.github.mtrevisan.familylegacy.ui.tools.reports.ReportType;
-import io.github.mtrevisan.familylegacy.ui.tools.reports.i18n.ReportLanguage;
-import io.github.mtrevisan.familylegacy.ui.tools.reports.index.CollateralScope;
-import io.github.mtrevisan.familylegacy.ui.tools.reports.renderers.DocxReportRenderer;
-import io.github.mtrevisan.familylegacy.ui.tools.reports.renderers.HtmlReportRenderer;
-import io.github.mtrevisan.familylegacy.ui.tools.reports.renderers.MarkdownReportRenderer;
-import io.github.mtrevisan.familylegacy.ui.tools.reports.renderers.PdfReportRenderer;
-import io.github.mtrevisan.familylegacy.ui.tools.reports.renderers.ReportRenderer;
-import io.github.mtrevisan.familylegacy.ui.tools.reports.renderers.TextReportRenderer;
+import io.github.mtrevisan.reports.ReportDocument;
+import io.github.mtrevisan.reports.ReportRenderer;
+import io.github.mtrevisan.reports.ReportSection;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -108,11 +103,7 @@ public final class ReportDialog extends JDialog{
 	private final ReportOptionsPanel optionsPanel;
 	private FLEFRecord selectedEntity;
 
-	private JCheckBox cbMarkdown;
-	private JCheckBox cbText;
-	private JCheckBox cbHtml;
-	private JCheckBox cbDocx;
-	private JCheckBox cbPdf;
+	private final Map<ReportRenderer, JCheckBox> formatBoxes = new LinkedHashMap<>();
 
 	private final JComboBox<ReportLanguage> language = new JComboBox<>(ReportLanguage.values());
 
@@ -218,20 +209,31 @@ public final class ReportDialog extends JDialog{
 	}
 
 	private JPanel createFormatSelectionPanel(){
-		final JPanel panel = new JPanel(new GridLayout(2, 3, 8, 4));
+		final Map<String, ReportRenderer> available = new LinkedHashMap<>();
+		for(final ReportRenderer renderer : ReportRenderers.available())
+			available.put(renderer.id(), renderer);
+		//the formats the application knows are always listed, the ones whose plugin is missing are disabled; a format
+		//that only a plugin knows is listed when the plugin is there
+		final List<String> ids = new ArrayList<>(ReportRenderers.KNOWN_IDS);
+		available.keySet().stream()
+			.filter(id -> !ids.contains(id))
+			.forEach(ids::add);
+
+		final JPanel panel = new JPanel(new GridLayout(Math.max(1, (ids.size() + 2) / 3), 3, 8, 4));
 		panel.setBorder(BorderFactory.createTitledBorder(I18N.t("border.output_formats")));
 
-		cbText = new JCheckBox(I18N.t("checkbox.format_text"), false);
-		cbMarkdown = new JCheckBox(I18N.t("checkbox.format_markdown"), true);
-		cbHtml = new JCheckBox(I18N.t("checkbox.format_html"), false);
-		cbDocx = new JCheckBox(I18N.t("checkbox.format_docx"), false);
-		cbPdf = new JCheckBox(I18N.t("checkbox.format_pdf"), false);
-
-		panel.add(cbText);
-		panel.add(cbMarkdown);
-		panel.add(cbHtml);
-		panel.add(cbDocx);
-		panel.add(cbPdf);
+		for(final String id : ids){
+			final ReportRenderer renderer = available.get(id);
+			final String label = I18N.t("checkbox.format_" + id, (renderer != null? renderer.displayName(): id));
+			final JCheckBox checkBox = new JCheckBox(label, renderer != null && ReportRenderers.DEFAULT_ID.equals(id));
+			if(renderer != null)
+				formatBoxes.put(renderer, checkBox);
+			else{
+				checkBox.setEnabled(false);
+				checkBox.setToolTipText(I18N.tf("tooltip.format_unavailable", ReportRenderers.pluginFileName(id)));
+			}
+			panel.add(checkBox);
+		}
 
 		return panel;
 	}
@@ -249,16 +251,9 @@ public final class ReportDialog extends JDialog{
 		final String baseName = reportType.name()
 			.toLowerCase() + "_report";
 
-		if(cbMarkdown.isSelected())
-			renderers.put(baseName + ".md", new MarkdownReportRenderer());
-		if(cbText.isSelected())
-			renderers.put(baseName + ".txt", new TextReportRenderer());
-		if(cbHtml.isSelected())
-			renderers.put(baseName + ".html", new HtmlReportRenderer());
-		if(cbDocx.isSelected())
-			renderers.put(baseName + ".docx", new DocxReportRenderer());
-		if(cbPdf.isSelected())
-			renderers.put(baseName + MediaPartListPanel.EXTENSION_PDF, new PdfReportRenderer());
+		for(final Map.Entry<ReportRenderer, JCheckBox> entry : formatBoxes.entrySet())
+			if(entry.getValue().isSelected())
+				renderers.put(baseName + entry.getKey().extension(), entry.getKey());
 
 		return renderers;
 	}

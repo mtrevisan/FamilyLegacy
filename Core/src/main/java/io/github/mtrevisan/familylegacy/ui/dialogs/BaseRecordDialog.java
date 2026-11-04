@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.dialogs;
 
+import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.AuditReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.MediaReader;
@@ -32,15 +33,17 @@ import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.io.model.record.RecordChangeSummary;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
+import io.github.mtrevisan.familylegacy.ui.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextField;
 import io.github.mtrevisan.familylegacy.ui.components.ImageCarouselPanel;
 import io.github.mtrevisan.familylegacy.ui.components.lists.EntityListPanel;
-import io.github.mtrevisan.familylegacy.ui.dialogs.api.RecordDialog;
-import io.github.mtrevisan.familylegacy.ui.dialogs.help.ShortcutRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
-import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
+import io.github.mtrevisan.familylegacy.ui.helpers.ShortcutRegistry;
+import io.github.mtrevisan.familylegacy.ui.undo.ComboBoxUndoSelectionListener;
+import io.github.mtrevisan.familylegacy.ui.undo.EditableComboAdapter;
+import io.github.mtrevisan.familylegacy.ui.undo.UndoController;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -350,6 +353,11 @@ public abstract class BaseRecordDialog extends JDialog implements RecordDialog{
 					return true;
 				}
 		return false;
+	}
+
+	@Override
+	public void showRelationshipsAsObject(){
+		showSelectedTabAndComponent(TAB_NAME_RELATIONSHIPS, PanelKey.RELATIONSHIP_ON_OBJECT);
 	}
 
 	public boolean showSelectedTabAndComponent(final String tabName, final PanelKey componentKey){

@@ -59,6 +59,14 @@ DONE Chiusura dei TODO delle Viste A e C (novembre 2026):
   date o aperta da un lato resta; le righe rimaste senza barre spariscono (`GroupMembershipFilter`, lo stesso del filtro per ruolo);
   l'anno è gregoriano e resta cambiando gruppo o persona (è una scelta sul tempo), il filtro per ruolo no. Ordine: prima l'anno, poi i ruoli;
   la legenda elenca i ruoli delle barre dell'anno.
+- Fine "oggi" (novembre 2026, `GroupTimelineBuilder.ongoing`): un'appartenenza senza fine, non marcata `ended` e che non comincia dopo
+  oggi è ancora in vigore, quindi la sua barra termina oggi davvero (la fine del `TemporalSpan` è oggi, non il bordo della finestra): con
+  l'asse allontanato con lo zoom la barra non supera oggi (prima, una barra aperta o senza date arrivava al bordo della finestra, anche
+  a 2900). Se ha un inizio l'etichetta aggiunge "ongoing"; senza alcuna data comincia al bordo sinistro della finestra (inizio
+  sentinella) e dice "dates unknown". Un'appartenenza `ended` senza `valid_to` resta aperta (la fine non si sa). Ne segue che l'asse
+  arriva a oggi da solo (la fine è una data) e che il filtro per un anno futuro toglie le barre ancora in corso. Solo nella Timeline di
+  un gruppo e in quella delle giurisdizioni: la Vista C (carriera) tiene la regola "una fine mancante è la morte", perché legge la
+  vita della persona.
 - Asse sempre definito (`GroupTimelineBuilder.domain`): una appartenenza senza fine dura fino a oggi (o un anno dopo l'inizio se è nel
   futuro), una senza inizio comincia un secolo prima della fine, una vista senza alcuna data mostra l'ultimo secolo; prima, con le
   sole appartenenze aperte o senza date, la vista restava vuota.
@@ -170,8 +178,19 @@ TODO
   (`KinshipCalculator.relationshipCoefficient`, sugli antenati dei due individui, al massimo due genitori ciascuno; i genitori
   sono quelli del `ParentProvider`/`TreeService`, non solo biologici); il termine `(1/2)^(dA+dB)` per antenato resta solo come
   indicazione. `KinshipCalculatorTest`.
-- TODO Non misurato su un file grande (decine di migliaia di individui); il rapporto si calcola sul thread dell'interfaccia
-  quando si apre il dialogo, nell'assistente fuori dall'EDT.
+- DONE Misurato su un file grande (novembre 2026, `LargeFileBenchmark`, a richiesta con `-Dfamilylegacy.benchmark=true`: 30000
+  individui, 325000 record, una comunità chiusa che si sposa dentro il proprio villaggio, cioè il caso peggiore per `F` e `R`: 7200
+  unioni e 11600 individui inbred). Il rapporto di tutto il file costa ~140-150 s (la parentela di due individui 0.1 s): su un file
+  vero, meno chiuso, molto meno, ma è un lavoro da fuori EDT. Quindi: il dialogo `ConsanguinityReportTool` calcola in un
+  `SwingWorker` dietro un `ProgressDialog` modale (mentre l'utente non può modificare il modello); l'ego network non calcola più il
+  rapporto di tutto il file ma solo le coppie dell'ego (`ConsanguineousUnionDetector.unionsOf` / `couplesByIndividual`, un
+  `ConsanguinityCalculator` tenuto fino a `invalidateIndices`): la prima apertura di un ego con partner è passata da 154 s sul
+  thread dell'interfaccia a 0.9 s (il costo che resta è `AncestryGraph.of` e l'elenco delle coppie, lineare), le successive 0.1 s;
+  `EgoNetworkConsanguinityTest` confronta ogni partner con il rapporto di tutto il file su un albero pieno di cugini sposati.
+  TODO Il rapporto di tutto il file e l'assistente della consanguineità (140 s a ogni calcolo, fuori EDT) restano lenti nel caso
+  estremo: `ConsanguinityCalculator.ancestorsOf` tiene per ogni individuo l'insieme (con mappa) di tutti gli antenati, che con molto
+  collasso è la memoria e il tempo; insiemi di bit su indici interi lo renderebbero molto più leggero. Non fatto: serve solo con file
+  chiusi su se stessi.
 - TODO Le soglie (1/256, 1/64, 1/16 per l'avviso) non sono configurabili. Nessuna distinzione fra parentela per sangue e per
   adozione/affido (esclusi), e un genitore ignoto vale "non imparentato": i valori sono limiti inferiori.
 - Bassa priorità: grafo DAG unificato con archi di unione, heatmap dell'endogamia, anelli di consanguineità (il pedigree
@@ -180,9 +199,8 @@ TODO
 - DONE Segnalazione delle unioni consanguinee nell'ego network: l'arco verso un partner imparentato con l'ego porta un badge
   "C" ambra (`EgoNetworkRenderer`), il tooltip del partner dà parentela, R e grado (`EgoNetworkLayoutBuilder`). Il rapporto
   `ConsanguineousUnionDetector.detect` è calcolato da `EgoNetworkService` alla prima apertura di un ego con partner e tenuto
-  in cache fino a `invalidateIndices`; `EgoNode.getConsanguineousUnion`. `EgoNetworkConsanguinityTest`. TODO: su un file
-  grande il primo calcolo avviene sul thread dell'interfaccia (vedi sopra); solo i partner con unione o figli in comune, non
-  i fidanzamenti.
+  in cache fino a `invalidateIndices`; `EgoNode.getConsanguineousUnion`. `EgoNetworkConsanguinityTest`. Il calcolo è per ego (vedi
+  sopra: non più sul rapporto di tutto il file); solo i partner con unione o figli in comune, non i fidanzamenti.
 
 Indicazioni di progetto (ancora valide):
 - F e R si calcolano con una passata topologica (antenati prima dei discendenti) e memoizzazione delle distanze di
@@ -210,8 +228,17 @@ Stato rispetto alle idee originali:
   `TemporalProjectionPanel` una volta collegato), TODO matrice comparativa (bassa priorità).
 - Fonti: TODO source tree, provenance delle citazioni, galleria documenti con crop, citation network (esistono gli editor,
   `CitationAnalysisTool` e le gestioni di fonti/repository/media). Bassa priorità, tranne la provenance delle citazioni.
-- Luoghi: DONE albero della gerarchia (`PlaceHierarchyPanel`, `PlaceHierarchyService`); TODO timeline delle giurisdizioni
-  (Utile: si appoggia sui `valid_from`/`valid_to` delle relazioni fra luoghi, già nel protocollo).
+- Luoghi: DONE albero della gerarchia (`PlaceHierarchyPanel`, `PlaceHierarchyService`); DONE timeline delle giurisdizioni (novembre 2026)
+  (`JurisdictionTimelineBuilder`, `JurisdictionTimelinePanel`, `JurisdictionTimelineTool`; `JurisdictionTimelineTest`). Stessa impostazione
+  delle viste di gruppo: modello temporale mostrato da `TemporalProjectionPanel`, stessi filtri (`GroupViewFilters`: anno, contesto,
+  legenda), stessi helper di `GroupTimelineBuilder`. Righe: il luogo (con il contesto storico), poi i luoghi di cui è parte o che ha
+  succeduto (`place_relationship` con il luogo come soggetto), poi quelli collegati nell'altro verso (il luogo come bersaglio: barre
+  "incoming"); una barra per relazione, da `valid_from` a `valid_to`, colorata e con etichetta per tipo (il tipo fa da "ruolo", quindi
+  la legenda nasconde un tipo di giurisdizione); una relazione senza fine termina oggi ("ongoing" se ha un inizio, come nelle viste di
+  gruppo: `GroupTimelineBuilder.ongoing`); una relazione senza date comincia al bordo sinistro e finisce oggi, "dates unknown". Il cambio di
+  diocesi di una parrocchia sono due barre in due righe, una dopo l'altra. Accesso: menu Luogo > "Jurisdiction Timeline…" (il luogo
+  selezionato, se la selezione è un luogo, altrimenti si sceglie con `RecordSelectionDialog`); `GroupViewDialog.forPlace`.
+  Scelta (non TODO): i `place_relationship` hanno `valid_from`/`valid_to` ma non `status` né `role`, quindi nessuna barra "ended".
 - Contesto: DONE vista ad albero (`ContextBoardDialog`); DONE timeline contestuale: le viste di gruppo (Group timeline e Group career)
   disegnano dietro le righe gli eventi storici e le norme culturali che si sovrappongono all'asse (`GroupTimelineBuilder.contextBands`),
   con il nome sulla banda, un tooltip (doppio clic apre l'editor) e la casella "Context" per nasconderle; non allargano l'asse.
@@ -273,8 +300,15 @@ Stato rispetto alle idee originali:
    (`FindRecordDialog`, `FamilyLegacyFrame.openFindDialog`) cerca in tutti i tipi con una strategia di ricerca
    (`SearchService.searchableHandlers()`: 16 tipi, con i filtri propri di ciascuno, nel `RecordSelectionDialog` già esistente).
    Un individuo (e un gruppo nell'ego network) si mostra nelle viste, come Ctrl+J; ogni altro record si apre nel suo editor e, se
-   salvato, le viste si ricostruiscono. `FindRecordTest`. TODO Non cerca nel testo di note, citazioni, nomi di luoghi annidati (solo
-   il testo che le strategie già confrontano).
+   salvato, le viste si ricostruiscono. `FindRecordTest`.
+   DONE Ricerca nel testo di note e citazioni (novembre 2026): casella "Search in notes and citations" del `RecordSelectionDialog`
+   (quindi anche in Ctrl+F), `SearchMode.NOTES_AND_CITATIONS`. Con la casella accesa il testo cercato è il testo mostrato del record più
+   quello delle sue note e citazioni (`AttachedTextExtractor`: le strutture `note` a qualunque profondità, di ciascuna titolo, testo e
+   testo delle traduzioni, per un record NOTE il suo; le strutture `source`, di ciascuna il `locator` e il testo e le `remark` degli
+   `extract`). Stesso matcher, quindi sottostringa / parola intera / fuzzy e il ranking per numero di token valgono anche qui.
+   Si trova il record che possiede la nota o la citazione (non la nota): quelle di un altro record (gli eventi di un individuo) si
+   trovano come record di quell'altro. Il risultato non dice dove c'è il testo (si apre l'editor e si guarda). Spenta di default.
+   TODO Non cerca nei nomi di luoghi annidati (solo il testo che le strategie già confrontano).
 2. DONE Cronologia di navigazione (`NavigationHistory`, Ctrl+Left / Ctrl+Right, "Cancella cronologia").
 3. DONE Segnalibri / viste salvate (`bookmarks`, menu Segnalibri).
 4. DONE Undo/redo applicativo: oggi Ctrl+Z / Ctrl+Y agiscono solo dentro ai dialog dei record (`UndoController` in
@@ -310,6 +344,17 @@ Stato rispetto alle idee originali:
 
 ## Import/export
 
+0. DONE Gli importatori sono plugin, come i formati dei report e il motore astronomico (novembre 2026). L'SPI è `FileImporter` /
+   `FileImporters` (Domain, package `importer`; la ricerca dei jar è in `util.PluginLoader`, usato anche da `ReportRenderers`); ogni
+   formato è un modulo che produce un jar in `Core/plugins`: `ImporterGedcom` (`importer-gedcom.jar`, GEDCOM 5.5.x / 7.0, package
+   `importer.gedcom`) e `ImporterGramps` (`importer-gramps.jar`, Gramps XML e pacchetti, package `importer.gramps`). Il menu File >
+   Importa lo costruisce `FileToolRegistry.importTools()`: un `ImportFileTool` (lo stesso per tutti) per ogni importatore trovato, e
+   per i formati noti senza jar (`FileImporters.KNOWN_IDS`) una voce `ImportUnavailableTool` disabilitata ("... (plugin not installed)"): l'import è possibile solo se il jar `importer-<id>.jar` c'è. Gramps usa gli
+   helper del convertitore GEDCOM (identificatori, luoghi, deduplicazione), quindi ha bisogno anche di `importer-gedcom.jar` (stesso class
+   loader). Per un nuovo formato: un modulo `Importer<Nome>` come questi, con `META-INF/services/...FileImporter` e un
+   `importer-<id>.jar`. I test degli importatori stanno nei loro moduli; Core li ha come dipendenze di test (`--add-reads` nella
+   configurazione di surefire, e in `surefire-opens.args` per l'IDE). `AuditStamp` (Domain) dà l'`audit` di un record creato a mano.
+   TODO Esportare GEDCOM, quando si farà, sarà un plugin allo stesso modo (`FileExporter`).
 1. PARZIALE Export dei report: `ReportRenderer` ha PDF, DOCX, HTML, Markdown e testo (antenati, discendenti, vita individuale,
    gruppi, fonti, ...); TODO Bassa priorità: export diretto del dossier (basta un report che lo usi).
 2. TODO Utile: export immagine (PNG/SVG) di una vista (`ExportImageTool` è commentato in `FileToolRegistry` e la classe non
@@ -336,8 +381,18 @@ Stato rispetto alle idee originali:
 
 - TODO Spostare da questo file il dettaglio dell'assistente di ricerca (sezione "TODO Improvements", ~800 righe) in
   `ui/assistant/README.txt`: è quasi tutto DONE e nasconde il backlog delle viste.
-- TODO Lettura del modello da parte degli assistenti fuori dall'EDT mentre l'utente può modificarlo: un unico snapshot (o read
-  lock) condiviso, invece di una nota per assistente.
+- DONE Lettura del modello da parte degli assistenti fuori dall'EDT mentre l'utente può modificarlo (novembre 2026): un unico
+  snapshot condiviso. Il modello viene modificato sul posto da molti punti, quindi un lock non si può imporre: `ModelHistory.readOnlyView()`
+  dà una copia che nessuno cambia (i record non modificati sono quelli degli snapshot della cronologia, che non sono mai cambiati;
+  costa quanto è cambiato, non quanto è grande, e finché il modello non cambia è la stessa copia per tutti; non registra passi della
+  cronologia). `AssistantContext.forReading()` (da chiamare sull'EDT prima di uscirne) dà il contesto con la copia, usato per calcolare i
+  risultati (`AssistantIndicator`, `ResearchAssistantPalette`, `ResearchAssistantService.reopenIfChanged`); le azioni ricevono sempre il
+  contesto con il modello vero (un risultato dice i record con l'identificatore, che le azioni ritrovano nel modello vero). Il
+  `PrivacyService` tiene fino a 3 resolver (il modello vero e le copie), altrimenti i due thread si butterebbero via la cache a ogni
+  chiamata. Provato da `ModelHistoryReadOnlyViewTest` e `ReadingSnapshotTest` (una modifica dopo la copia non arriva a chi legge).
+  Costo misurato (30000 individui): la prima copia 0.9 s (sull'EDT, una volta), quella dopo una modifica quanto è cambiato.
+  Non cambia: gli assistenti sono lenti su file molto grandi (sulla stessa tabella: cronologia 40-65 s, relazioni 55-60 s,
+  consanguineità 140 s, identità 30 s, gli altri sotto 5 s), ma stanno fuori dall'EDT con il ritmo dell'indicatore (4 volte la durata).
 - DONE Un'unica definizione di "conclusione risolta": `io.model.readers.ConclusionResolution` (valutazione che risolve almeno due
   record in conflitto e prende posizione: preferred fra essi, oppure proof status `conflicting_evidence` / `disproven`). La usano
   `ConclusionChecker` (assistente) e `ProtocolCleanup` (merger); prima il merger accettava solo `preferred`, quindi avvisava
@@ -432,7 +487,7 @@ Design decisions that refine the text below:
   An action finds the editor with `focusedAncestor(SomeInterface.class)`: the editor implements a small host interface (e.g.
   `HistoricalDateAssistantHost`), so the assistant never depends on the Swing panels.
 - Three extension points: actions, context (through the host interfaces) and diagnostics. The built-in assistants are registered in
-  `ResearchAssistantService.createDefault()` (one line each, like `ToolToolRegistry`); the other ones are `ServiceLoader` providers
+  `ResearchAssistantService.createDefault()` (one line each, like `MaintenanceToolRegistry`); the other ones are `ServiceLoader` providers
   (`uses AssistantContributor` in module-info), so a plugin never changes the code of the assistant.
 - Diagnostics are computed away from the event dispatch thread (a provider can inspect the whole model, and must not touch Swing);
   a provider that fails is skipped.
@@ -444,10 +499,11 @@ Design decisions that refine the text below:
 - Every action must respect the data safety rules below; a test cannot enforce this, so it is a review rule.
 
 - Showing the record in its view (selecting the individual in the tree) is not done: only the editors are opened.
-- The indicator computes all the assistants at each change (the identity one compares the whole model): it is not measured on a big file,
-  and it cannot be turned off, nor limited to some assistants. The model is read away from the event dispatch thread (see above) while the
-  user may be editing: it waits for a modal dialog to close, but not for an edit made without one. It is not colored by severity, and it
-  does not blink on a new error.
+- The indicator computes all the assistants at each change (the identity one compares the whole model): it is measured on a big file (see
+  above: from a few seconds to a couple of minutes for each assistant, away from the event dispatch thread), and it cannot be turned off,
+  nor limited to some assistants. The model is read away from the event dispatch thread on a copy of it taken before leaving the thread
+  (`AssistantContext.forReading`, `ModelHistory.readOnlyView`), so the user can go on editing, with or without a modal dialog. It is not
+  colored by severity, and it does not blink on a new error.
 - Not tested: the real click that opens the palette, and the look of the button (the wiring in the window, the counting, the pacing, the
   ignoring and the model signal are: `AssistantIndicatorTest`, `AssistantIndicatorInFrameTest`, `ModelHistoryListenerTest`).
 - The palette opens again whenever the findings changed after an action, even if the edit was not about the finding the user acted on
@@ -678,8 +734,8 @@ Still to do:
   findings on it; for now the whole model is checked each time the palette opens.
 - Age limits and the gestation limit configurable by the user (preferences); today only `Rules.DEFAULT`.
 - Dates in a calendar the normalizer cannot read are skipped silently; they could be reported as "date not checked".
-- The model is read away from the event dispatch thread while the user may be editing it: a provider that fails is skipped, but a
-  snapshot (or a read lock) would be safer. No cache: a large file is read again at each opening.
+- The model is read away from the event dispatch thread on a copy of it (`AssistantContext.forReading`), so a half-edited model is never
+  seen. No cache of the findings: a large file is read again at each opening.
 - Messages are English only (the UI bundle has no per-locale files yet).
 
 ### DONE (core checks) Create a Place Assistant.

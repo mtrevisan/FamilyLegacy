@@ -24,8 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections.grouptimeline;
 
+import io.github.mtrevisan.familylegacy.groups.IndividualCareerBuilder;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.ui.components.projections.temporal.TemporalProjectionModel;
+import io.github.mtrevisan.familylegacy.temporal.TemporalProjectionModel;
 import io.github.mtrevisan.familylegacy.ui.components.projections.temporal.TemporalProjectionPanel;
 
 import javax.swing.JPanel;

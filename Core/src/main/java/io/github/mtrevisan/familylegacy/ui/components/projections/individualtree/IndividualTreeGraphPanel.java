@@ -24,39 +24,39 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections.individualtree;
 
+import io.github.mtrevisan.familylegacy.individual.IndividualSummary;
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SexType;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
-import io.github.mtrevisan.familylegacy.ui.components.projections.common.ProjectionMutator;
-import io.github.mtrevisan.familylegacy.ui.components.projections.common.ProjectionType;
+import io.github.mtrevisan.familylegacy.tree.GenealogyRepository;
+import io.github.mtrevisan.familylegacy.tree.ProjectionMutator;
+import io.github.mtrevisan.familylegacy.tree.Side;
+import io.github.mtrevisan.familylegacy.tree.TreeChangeListener;
+import io.github.mtrevisan.familylegacy.tree.TreeMutator;
+import io.github.mtrevisan.familylegacy.tree.TreeNode;
+import io.github.mtrevisan.familylegacy.tree.TreeService;
 import io.github.mtrevisan.familylegacy.ui.components.projections.common.SpatialNavigation;
 import io.github.mtrevisan.familylegacy.ui.components.projections.common.TreeLayout;
+import io.github.mtrevisan.familylegacy.ui.components.projections.dialogs.KinshipDialog;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.EntityPopupMenuFactory;
-import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualData;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualListener;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualPanel;
+import io.github.mtrevisan.familylegacy.ui.components.projections.individual.PartnersPanel;
+import io.github.mtrevisan.familylegacy.ui.components.projections.individual.SiblingsPanel;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.layout.IndividualDialogProvider;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.layout.IndividualTreeGraphListener;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.layout.LayoutEngine;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.layout.TreeLayoutBuilder;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.layout.sugiyama.GraphLayoutEngine;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.services.CollapsibleBar;
-import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.services.kinship.KinshipDialog;
-import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.services.lifespan.MultiLifespanStripPanel;
-import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.services.relationship.RelationshipOperationCoordinator;
+import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.services.MultiLifespanStripPanel;
+import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.services.RelationshipOperationCoordinator;
 import io.github.mtrevisan.familylegacy.ui.components.projections.menus.EntityTreePopupMenuFactory;
-import io.github.mtrevisan.familylegacy.ui.components.projections.partners.PartnersPanel;
-import io.github.mtrevisan.familylegacy.ui.components.projections.partners.Side;
-import io.github.mtrevisan.familylegacy.ui.components.projections.repository.GenealogyRepository;
-import io.github.mtrevisan.familylegacy.ui.components.projections.repository.TreeChangeListener;
-import io.github.mtrevisan.familylegacy.ui.components.projections.repository.TreeMutator;
-import io.github.mtrevisan.familylegacy.ui.components.projections.repository.TreeNode;
-import io.github.mtrevisan.familylegacy.ui.components.projections.repository.TreeService;
-import io.github.mtrevisan.familylegacy.ui.components.projections.siblings.SiblingsPanel;
 import io.github.mtrevisan.familylegacy.ui.components.searches.service.JumpToIndividualDialog;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.ui.helpers.ViewportCentering;
 import io.github.mtrevisan.familylegacy.ui.helpers.ViewportPanSupport;
 
 import javax.swing.JFrame;
@@ -72,6 +72,7 @@ import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GridBagLayout;
+import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.Window;
 import java.awt.geom.Path2D;
@@ -156,6 +157,8 @@ public class IndividualTreeGraphPanel extends JPanel implements TreeChangeListen
 	private Consumer<String> selectionCallback;
 	private Consumer<String> navigationCallback;
 	private boolean suppressNavigationNotification;
+	/** What the tree shown last was centered for (the root, the layout, the engine): another one is centered again. */
+	private String centeredKey;
 
 
 	public IndividualTreeGraphPanel(final TreeLayout treeLayout, final LayoutEngine layoutEngine,
@@ -386,7 +389,7 @@ public class IndividualTreeGraphPanel extends JPanel implements TreeChangeListen
 		final Window owner = SwingUtilities.getWindowAncestor(this);
 		// Here the panel is either the tree or the Sugiyama graph; both
 		// offer only individuals, so ProjectionType.TREE is fine.
-		final String chosen = JumpToIndividualDialog.showAndGet(owner, model, ProjectionType.BIOLOGICAL_TREE);
+		final String chosen = JumpToIndividualDialog.showAndGet(owner, model, false);
 		if(chosen != null)
 			load(chosen, currentMaxAncestors);
 	}
@@ -435,7 +438,7 @@ public class IndividualTreeGraphPanel extends JPanel implements TreeChangeListen
 
 			rootNode = rootIndividualNode;
 			if(rootIndividualNode != null && showPartner){
-				final IndividualData partnerData = rootIndividualNode.getPartnerData();
+				final IndividualSummary partnerData = rootIndividualNode.getPartnerData();
 				final String partnerId = (partnerData != null? partnerData.getId(): null);
 				final TreeNode partnerNode = (partnerId != null
 					? treeService.buildTree(partnerId, null, false, currentMaxAncestors)
@@ -483,6 +486,14 @@ public class IndividualTreeGraphPanel extends JPanel implements TreeChangeListen
 		treeCanvas.repaint();
 		revalidate();
 		repaint();
+
+		//a tree starts centered horizontally (the layout centers it when it is narrower than the window, the scroll pane would start from
+		//the left edge when it is wider); an edit that keeps the same tree does not take the user's position away
+		final String centeringKey = currentRootIndividualId + "|" + treeLayout + "|" + layoutEngine.getClass().getName() + "|" + showPartner;
+		if(!centeringKey.equals(centeredKey)){
+			centeredKey = centeringKey;
+			ViewportCentering.centerWhenReady(treeScroll, () -> treeCanvas, true, false);
+		}
 
 		SwingUtilities.invokeLater(() -> {
 			cachedTreePath = layoutEngine.buildTreePath(treeLayout, rootNode, nodeToPanelMap, childrenPanel, treeCanvas);
@@ -557,6 +568,9 @@ public class IndividualTreeGraphPanel extends JPanel implements TreeChangeListen
 		treeCanvas.revalidate();
 		treeCanvas.repaint();
 
+		//the other layout is another tree to the eye: it starts centered too
+		ViewportCentering.centerWhenReady(treeScroll, () -> treeCanvas, true, false);
+
 		SwingUtilities.invokeLater(() -> {
 			cachedTreePath = layoutEngine.buildTreePath(treeLayout, rootNode, nodeToPanelMap, childrenPanel, treeCanvas);
 
@@ -570,7 +584,7 @@ public class IndividualTreeGraphPanel extends JPanel implements TreeChangeListen
 	 * biological pairing, so changing their partner would have no structural
 	 * meaning.
 	 */
-	private void handlePartnerCycle(final TreeNode anchorNode, final Side side, final IndividualData newPartner){
+	private void handlePartnerCycle(final TreeNode anchorNode, final Side side, final IndividualSummary newPartner){
 		if(anchorNode == null || newPartner == null)
 			return;
 
@@ -622,6 +636,15 @@ public class IndividualTreeGraphPanel extends JPanel implements TreeChangeListen
 		TreeCanvas(){
 			setBackground(BACKGROUND_COLOR);
 			setOpaque(true);
+		}
+
+		/**
+		 * The views start centered and the user moves them: nothing else does. A text field of a panel that gets its text (the caret
+		 * asks to be shown) would carry the window to itself, and the view would start wherever the last panel was filled.
+		 */
+		@Override
+		public void scrollRectToVisible(final Rectangle rect){
+			//ignored on purpose
 		}
 
 		@Override

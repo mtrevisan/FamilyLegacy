@@ -24,10 +24,10 @@
  */
 package io.github.mtrevisan.familylegacy.ui.tools.research;
 
+import io.github.mtrevisan.familylegacy.i18n.I18N;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.RowTableModel;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolDialogs;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
-import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
-import io.github.mtrevisan.familylegacy.ui.tools.RowTableModel;
-import io.github.mtrevisan.familylegacy.ui.tools.ToolDialogs;
 
 import javax.swing.JDialog;
 import javax.swing.JPanel;

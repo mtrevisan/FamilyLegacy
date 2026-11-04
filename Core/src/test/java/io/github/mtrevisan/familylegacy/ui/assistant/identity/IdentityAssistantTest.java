@@ -28,9 +28,9 @@ import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMParser;
 import io.github.mtrevisan.familylegacy.importer.gedcom.converters.GEDCOMToFLEFConverter;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.ui.assistant.AssistantCategory;
 import io.github.mtrevisan.familylegacy.ui.assistant.AssistantContext;
 import io.github.mtrevisan.familylegacy.ui.assistant.Diagnostic;
@@ -105,9 +105,9 @@ class IdentityAssistantTest{
 	@Test
 	void theDatesOfTheEventsCountInTheSimilarity() throws IOException{
 		//a regression: the duplicate finder did not read the years of the dates of the protocol, and scored the name only
-		final List<io.github.mtrevisan.familylegacy.ui.tools.tools.DuplicateFinderService.Candidate> candidates
-			= io.github.mtrevisan.familylegacy.ui.tools.tools.DuplicateFinderService.find(convert(),
-				new io.github.mtrevisan.familylegacy.ui.tools.tools.DuplicateFinderService.Options());
+		final List<io.github.mtrevisan.familylegacy.quality.DuplicateFinderService.Candidate> candidates
+			= io.github.mtrevisan.familylegacy.quality.DuplicateFinderService.find(convert(),
+				new io.github.mtrevisan.familylegacy.quality.DuplicateFinderService.Options());
 
 		Assertions.assertEquals(1, candidates.size());
 		final var candidate = candidates.getFirst();
@@ -167,8 +167,8 @@ class IdentityAssistantTest{
 	void aDraftIsSavedOnlyIfTheResearcherSavesIt() throws IOException{
 		Assumptions.assumeFalse(GraphicsEnvironment.isHeadless(), "The editor needs a display");
 		final FLEFModel model = convert();
-		final IdentityFinding finding = IdentityChecker.findings(io.github.mtrevisan.familylegacy.ui.tools.tools.DuplicateFinderService
-			.find(model, new io.github.mtrevisan.familylegacy.ui.tools.tools.DuplicateFinderService.Options())).getFirst();
+		final IdentityFinding finding = IdentityChecker.findings(io.github.mtrevisan.familylegacy.quality.DuplicateFinderService
+			.find(model, new io.github.mtrevisan.familylegacy.quality.DuplicateFinderService.Options())).getFirst();
 		final FLEFRecord first = model.getRecordById(finding.draft().leftId());
 		final FLEFRecord second = model.getRecordById(finding.draft().rightId());
 

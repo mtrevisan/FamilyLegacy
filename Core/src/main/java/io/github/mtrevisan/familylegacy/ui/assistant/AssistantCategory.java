@@ -24,7 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.assistant;
 
-import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
+import io.github.mtrevisan.familylegacy.i18n.I18N;
 
 
 /** The group an assistant action or diagnostic belongs to, shown in the palette and usable to filter it. */

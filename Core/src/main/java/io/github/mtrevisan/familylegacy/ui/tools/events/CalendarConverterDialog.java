@@ -24,9 +24,10 @@
  */
 package io.github.mtrevisan.familylegacy.ui.tools.events;
 
-import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
-import io.github.mtrevisan.familylegacy.ui.tools.ToolContext;
-import io.github.mtrevisan.familylegacy.ui.tools.ToolDialogs;
+import io.github.mtrevisan.familylegacy.i18n.I18N;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.JulianDay;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolDialogs;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -282,7 +283,7 @@ public final class CalendarConverterDialog extends JDialog{
 	}
 
 	private static String fromJdnIso(final long jdn){
-		final int[] ymd = CalendarConverterDialog.jdnToGregorian(jdn);
+		final int[] ymd = JulianDay.toGregorian(jdn);
 		try{
 			return LocalDate.of(ymd[0], ymd[1], ymd[2]).format(ISO);
 		}
@@ -341,7 +342,7 @@ public final class CalendarConverterDialog extends JDialog{
 	}
 
 	private static String fromJdnToChrono(final long jdn, final String calendar){
-		final int[] ymd = CalendarConverterDialog.jdnToGregorian(jdn);
+		final int[] ymd = JulianDay.toGregorian(jdn);
 		final LocalDate iso;
 		try{
 			iso = LocalDate.of(ymd[0], ymd[1], ymd[2]);
@@ -382,23 +383,6 @@ public final class CalendarConverterDialog extends JDialog{
 		final int y = year + 4800 - a;
 		final int m = month + 12 * a - 3;
 		return day + (153L * m + 2) / 5 + 365L * y + y / 4 - y / 100 + y / 400 - 32045L;
-	}
-
-	/**
-	 * Reverse Gregorian conversion (Fliegel–Van Flandern), returning
-	 * {@code [year, month, day]}.
-	 */
-	public static int[] jdnToGregorian(final long jdn){
-		final long a = jdn + 32044;
-		final long b = (4 * a + 3) / 146097;
-		final long c = a - (146097 * b) / 4;
-		final long d = (4 * c + 3) / 1461;
-		final long e = c - (1461 * d) / 4;
-		final long m = (5 * e + 2) / 153;
-		final int day = (int)(e - (153 * m + 2) / 5 + 1);
-		final int month = (int)(m + 3 - 12 * (m / 10));
-		final int year = (int)(100 * b + d - 4800 + m / 10);
-		return new int[]{year, month, day};
 	}
 
 	/**

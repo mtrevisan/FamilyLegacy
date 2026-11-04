@@ -24,18 +24,21 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections.relationshipgraph;
 
+import io.github.mtrevisan.familylegacy.ego.EgoNetworkMutator;
+import io.github.mtrevisan.familylegacy.ego.EgoNetworkService;
+import io.github.mtrevisan.familylegacy.ego.EgoNode;
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.tree.GenealogyRepository;
+import io.github.mtrevisan.familylegacy.tree.TreeChangeListener;
 import io.github.mtrevisan.familylegacy.ui.components.projections.common.SpatialNavigation;
 import io.github.mtrevisan.familylegacy.ui.components.projections.common.TreeLayout;
+import io.github.mtrevisan.familylegacy.ui.components.projections.individual.PartnersPanel;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.services.CollapsibleBar;
-import io.github.mtrevisan.familylegacy.ui.components.projections.partners.PartnersPanel;
-import io.github.mtrevisan.familylegacy.ui.components.projections.relationshipgraph.services.lifespan.GlobalEventTimelinePanel;
-import io.github.mtrevisan.familylegacy.ui.components.projections.repository.GenealogyRepository;
-import io.github.mtrevisan.familylegacy.ui.components.projections.repository.TreeChangeListener;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.ui.helpers.ViewportCentering;
 import io.github.mtrevisan.familylegacy.ui.helpers.ViewportPanSupport;
 
 import javax.swing.JFrame;
@@ -53,7 +56,6 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.Window;
@@ -271,7 +273,12 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener{
 		networkCanvas.revalidate();
 		networkCanvas.repaint();
 
-		networkScrollPane.getViewport().setViewPosition(new Point(0, 0));
+		//the network starts with the ego in the middle of the window, in both directions (when the content is smaller than the window it
+		//is already centered by the layout)
+		ViewportCentering.centerWhenReady(networkScrollPane, () -> {
+			final JPanel egoPanel = nodeToPanelMap.get(rootEgoNode);
+			return (egoPanel != null? egoPanel: networkCanvas);
+		}, true, true);
 
 		revalidate();
 		repaint();
@@ -363,6 +370,15 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener{
 		NetworkCanvas(){
 			setBackground(BACKGROUND_COLOR);
 			setOpaque(true);
+		}
+
+		/**
+		 * The views start centered and the user moves them: nothing else does. A text field of a panel that gets its text (the caret
+		 * asks to be shown) would carry the window to itself, and the view would start wherever the last panel was filled.
+		 */
+		@Override
+		public void scrollRectToVisible(final Rectangle rect){
+			//ignored on purpose
 		}
 
 		@Override

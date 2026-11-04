@@ -24,6 +24,10 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections.temporal;
 
+import io.github.mtrevisan.familylegacy.temporal.TemporalEntityRef;
+import io.github.mtrevisan.familylegacy.temporal.TemporalProjectionLayout;
+import io.github.mtrevisan.familylegacy.temporal.TemporalProjectionModel;
+import io.github.mtrevisan.familylegacy.temporal.TemporalRow;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;

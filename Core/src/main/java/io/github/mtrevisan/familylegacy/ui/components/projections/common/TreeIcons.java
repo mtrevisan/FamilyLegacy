@@ -36,8 +36,8 @@ import java.util.Map;
 
 /**
  * Shared cache of the small navigation arrows used by the tree panels
- * ({@link io.github.mtrevisan.familylegacy.ui.components.projections.partners.PartnersPanel}
- * and {@link io.github.mtrevisan.familylegacy.ui.components.projections.siblings.SiblingsPanel}).
+ * ({@link io.github.mtrevisan.familylegacy.ui.components.projections.individual.PartnersPanel}
+ * and {@link io.github.mtrevisan.familylegacy.ui.components.projections.individual.SiblingsPanel}).
  * <p>
  * Two arrows are needed, one for each direction of the tree:
  * <ul>

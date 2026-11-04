@@ -1,0 +1,206 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+package io.github.mtrevisan.familylegacy.ui.components.dates;
+
+import io.github.mtrevisan.familylegacy.i18n.I18N;
+import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.DateReader;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
+import io.github.mtrevisan.familylegacy.ui.components.lists.EntityListPanel;
+import io.github.mtrevisan.familylegacy.ui.handlers.CulturalNormHandler;
+import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
+import org.apache.commons.lang3.StringUtils;
+
+import javax.swing.BorderFactory;
+import javax.swing.JCheckBox;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+import java.awt.Window;
+
+
+/**
+ * Panel for editing the APPROXIMATE structure of a date.
+ * <p>
+ * Structure:
+ * <pre>
+ * struct Approximate {
+ *   basis?: enum {
+ *     stated,
+ *     calculated,
+ *     conventional,
+ *     unspecified
+ *   }
+ *   cultural_norm*: Xref&lt;CulturalNormRecord&gt;
+ *   margin?: Duration
+ *   require if basis == conventional: cultural_norm
+ * }
+ * </pre>
+ */
+public class ApproximatePanel extends JPanel{
+
+	private String path;
+
+	private final JCheckBox approximateCheck = new JCheckBox(I18N.tf("dialog.date.approximate"));
+	private BoundComboBox<String> basisCombo;
+	private final EntityListPanel culturalNormPanel;
+	private final JTextField marginField = new JTextField(null);
+
+
+	public ApproximatePanel(String path, Window parent, FLEFModel model){
+		this.path = path;
+
+		culturalNormPanel = EntityListPanel.createForEntityReference(DateReader.TAG_CULTURAL_NORM, parent, I18N.tf("dialog.name.cultural.norms"),
+			model, CulturalNormHandler.class);
+
+
+		initComponents();
+	}
+
+
+	private void initComponents(){
+		setLayout(GUIHelper.createLabelFieldLayout(0, "[]5[]"));
+		setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
+
+		GUIHelper.addComponent(this, approximateCheck);
+
+		// basis
+		final JPanel basisPanel = GUIHelper.createLabelFieldPanel(0, "[]");
+		basisCombo = new BoundComboBox<>(DateReader.TAG_BASIS, DateReader.BASES);
+		basisCombo.setI18NPrefix("enum.date.basis");
+		GUIHelper.addLabeledComponent(basisPanel, I18N.l("dialog.date.basis"), basisCombo);
+		GUIHelper.addComponent(this, basisPanel);
+
+		// cultural norm
+		GUIHelper.addComponent(this, culturalNormPanel);
+
+		// margin
+		final JPanel marginPanel = GUIHelper.createLabelFieldPanel(0, "[]");
+		GUIHelper.addLabeledComponent(marginPanel, I18N.l("dialog.date.margin"), marginField);
+		marginField.setToolTipText(I18N.t("dialog.date.margin.tooltip"));
+		GUIHelper.addComponent(this, marginPanel);
+
+		approximateCheck.addActionListener(e -> updateEnabled());
+
+		updateEnabled();
+	}
+
+	private void updateEnabled(){
+		boolean enabled = approximateCheck.isSelected();
+		basisCombo.setEnabled(enabled);
+		marginField.setEnabled(enabled);
+	}
+
+	public void setPath(final String path){
+		this.path = path;
+	}
+
+	public void loadFromRecord(final FLEFRecord record){
+		clear();
+
+		final FLEFRecord approxRecord = FLEFRecordHelper.findChild(record, path);
+		if(approxRecord == null)
+			return;
+
+		approximateCheck.setSelected(true);
+
+		final String basis = DateReader.extractBasis(approxRecord);
+		basisCombo.setSelectedItem(StringUtils.defaultString(basis));
+
+		culturalNormPanel.load(approxRecord);
+
+		String margin = DateReader.extractMargin(approxRecord);
+		marginField.setText(margin);
+
+		updateEnabled();
+	}
+
+	/**
+	 * Saves the approximate data into an APPROXIMATE child of the given parent record.
+	 * If the checkbox is not selected, it does nothing.
+	 *
+	 * @param parent	the parent record (e.g., VALUE, NOT_BEFORE, etc.)
+	 */
+	public void saveToRecord(final FLEFRecord parent){
+		if(!approximateCheck.isSelected())
+			return;
+
+		// Create an APPROXIMATE node as a child of parent
+		final FLEFRecord approx = FLEFRecord.createChildWithTag(path);
+
+		final String basis = (String)basisCombo.getSelectedItem();
+		if(StringUtils.isNotEmpty(basis))
+			FLEFRecordHelper.updateChildValue(approx, DateReader.TAG_BASIS, basis);
+
+		culturalNormPanel.save(parent);
+
+		final String margin = marginField.getText()
+			.trim();
+		if(!margin.isEmpty())
+			FLEFRecordHelper.updateChildValue(approx, DateReader.TAG_MARGIN, margin);
+
+		parent.addChild(approx);
+	}
+
+	public void clear(){
+		approximateCheck.setSelected(false);
+		basisCombo.setSelectedIndex(0);
+		culturalNormPanel.clear();
+		marginField.setText(StringUtils.EMPTY);
+
+		updateEnabled();
+	}
+
+	public boolean hasData(){
+		return approximateCheck.isSelected();
+	}
+
+	public boolean validateData(){
+		if(approximateCheck.isSelected()){
+			String basis = (String)basisCombo.getSelectedItem();
+			if(StringUtils.isEmpty(basis)){
+				JOptionPane.showMessageDialog(this,
+					I18N.tf("validation.required", I18N.t("dialog.date.basis")),
+					I18N.t("validation.title"), JOptionPane.ERROR_MESSAGE);
+
+				return false;
+			}
+
+			if(DateReader.ENUM_BASIS_CONVENTIONAL.equals(basis) && culturalNormPanel.isEmpty()){
+				JOptionPane.showMessageDialog(this,
+					I18N.tf("validation.required_when_is", I18N.t("dialog.name.cultural.norms"),
+						I18N.t("dialog.date.basis"), I18N.t("enum.date.basis.conventional")),
+					I18N.t("validation.title"), JOptionPane.ERROR_MESSAGE);
+
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+}

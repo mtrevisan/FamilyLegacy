@@ -25,6 +25,7 @@
 package io.github.mtrevisan.calendars.astronomy;
 
 import java.lang.module.Configuration;
+import java.lang.module.FindException;
 import java.lang.module.ModuleFinder;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
@@ -63,8 +64,11 @@ public final class EphemerisEngineFactory{
 			return loadFromClasspath();
 
 		try(final Stream<Path> stream = Files.list(pluginsPath)){
+			//the other plugins of the application (report formats, importers) live in the same directory: a jar that cannot be read as a
+			//module (for instance its name is not a valid name of a module) is left out, it must not take the engine down with it
 			final Path[] jarPaths = stream
 				.filter(p -> p.toString().endsWith(".jar"))
+				.filter(EphemerisEngineFactory::isReadableModule)
 				.toArray(Path[]::new);
 
 			if(jarPaths.length == 0)
@@ -105,6 +109,15 @@ public final class EphemerisEngineFactory{
 		catch(final Exception ignored){}
 
 		return loadFromClasspath();
+	}
+
+	private static boolean isReadableModule(final Path jar){
+		try{
+			return !ModuleFinder.of(jar).findAll().isEmpty();
+		}
+		catch(final FindException ignored){
+			return false;
+		}
 	}
 
 	/**

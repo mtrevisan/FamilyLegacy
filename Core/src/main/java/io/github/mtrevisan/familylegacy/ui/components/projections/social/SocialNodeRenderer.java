@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections.social;
 
+import io.github.mtrevisan.familylegacy.social.SocialNodeRef;
+import io.github.mtrevisan.familylegacy.social.SocialRelationCategory;
 import org.apache.commons.lang3.StringUtils;
 
 import java.awt.BasicStroke;

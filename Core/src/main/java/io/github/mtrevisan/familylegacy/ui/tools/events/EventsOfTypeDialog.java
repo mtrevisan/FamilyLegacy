@@ -24,12 +24,13 @@
  */
 package io.github.mtrevisan.familylegacy.ui.tools.events;
 
+import io.github.mtrevisan.familylegacy.events.EventHelper;
+import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.RowTableModel;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolDialogs;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
-import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
-import io.github.mtrevisan.familylegacy.ui.tools.RowTableModel;
-import io.github.mtrevisan.familylegacy.ui.tools.ToolDialogs;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;

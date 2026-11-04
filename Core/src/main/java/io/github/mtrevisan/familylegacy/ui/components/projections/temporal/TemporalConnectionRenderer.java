@@ -25,6 +25,8 @@
 package io.github.mtrevisan.familylegacy.ui.components.projections.temporal;
 
 import io.github.mtrevisan.familylegacy.io.model.readers.date.TemporalSpan;
+import io.github.mtrevisan.familylegacy.temporal.TemporalConnection;
+import io.github.mtrevisan.familylegacy.temporal.TemporalProjectionLayout;
 
 import java.awt.BasicStroke;
 import java.awt.Color;

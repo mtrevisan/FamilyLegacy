@@ -24,10 +24,11 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.layout.sugiyama;
 
-import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualData;
+import io.github.mtrevisan.familylegacy.individual.IndividualSummary;
+import io.github.mtrevisan.familylegacy.tree.TreeNode;
+import io.github.mtrevisan.familylegacy.tree.layout.Graph;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualPanel;
-import io.github.mtrevisan.familylegacy.ui.components.projections.partners.PartnersPanel;
-import io.github.mtrevisan.familylegacy.ui.components.projections.repository.TreeNode;
+import io.github.mtrevisan.familylegacy.ui.components.projections.individual.PartnersPanel;
 
 import java.util.HashMap;
 import java.util.List;
@@ -111,7 +112,7 @@ final class ParentPanelIndex{
 		if(parentPanel == null)
 			return;
 
-		final IndividualData data = parentPanel.getData();
+		final IndividualSummary data = parentPanel.getData();
 		if(data != null && data.getId() != null)
 			byParentId.put(data.getId(), panel);
 	}

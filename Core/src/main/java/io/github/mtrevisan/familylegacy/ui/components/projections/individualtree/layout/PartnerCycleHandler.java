@@ -24,9 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.layout;
 
-import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualData;
-import io.github.mtrevisan.familylegacy.ui.components.projections.partners.Side;
-import io.github.mtrevisan.familylegacy.ui.components.projections.repository.TreeNode;
+import io.github.mtrevisan.familylegacy.individual.IndividualSummary;
+import io.github.mtrevisan.familylegacy.tree.Side;
+import io.github.mtrevisan.familylegacy.tree.TreeNode;
 
 
 /**
@@ -39,6 +39,6 @@ import io.github.mtrevisan.familylegacy.ui.components.projections.repository.Tre
 @FunctionalInterface
 public interface PartnerCycleHandler{
 
-	void onPartnerCycled(TreeNode anchorNode, Side side, IndividualData newPartner);
+	void onPartnerCycled(TreeNode anchorNode, Side side, IndividualSummary newPartner);
 
 }

@@ -1,0 +1,717 @@
+/**
+ * Copyright (c) 2020-2022 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+package io.github.mtrevisan.familylegacy.ui.components.projections.individual;
+
+import io.github.mtrevisan.familylegacy.i18n.I18N;
+import io.github.mtrevisan.familylegacy.individual.IndividualSummary;
+import io.github.mtrevisan.familylegacy.io.FLEFParser;
+import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.tree.GenealogyRepository;
+import io.github.mtrevisan.familylegacy.tree.PartnerCycleListener;
+import io.github.mtrevisan.familylegacy.tree.Side;
+import io.github.mtrevisan.familylegacy.ui.components.projections.common.BoxPanelType;
+import io.github.mtrevisan.familylegacy.ui.components.projections.common.ConnectionStrokes;
+import io.github.mtrevisan.familylegacy.ui.components.projections.common.TreeIcons;
+import io.github.mtrevisan.familylegacy.ui.components.projections.common.TreeLayout;
+import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
+import net.miginfocom.swing.MigLayout;
+import org.apache.commons.lang3.StringUtils;
+
+import javax.swing.BorderFactory;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.EventQueue;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.RenderingHints;
+import java.awt.Stroke;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.Objects;
+
+
+/**
+ * Panel representing a couple (two partners) with their biological parent
+ * information.
+ * <p>
+ * The panel is built from three visual pieces: a father panel, a mother
+ * panel, and a central group panel between them. Arrow rows above each
+ * partner carry navigation shortcuts.
+ * <p>
+ * <b>Placeholder mode.</b> When the constructor receives a {@code null}
+ * model, the panel is built as a placeholder: it uses
+ * {@link IndividualPanel#createEmpty(BoxPanelType)} for both partners and
+ * skips every data-dependent update. The result is a panel with exactly
+ * the same preferred size as a real one, but with no individual data and
+ * no listeners. This is what allows empty ancestor slots in the tree to
+ * keep the same height as populated slots, so the root individual stays at
+ * a fixed vertical position regardless of how many generations of
+ * ancestors are actually present in the data.
+ */
+public class PartnersPanel extends JPanel{
+
+	private static final String PROPERTY_PARTNERS_CYCLE_ENABLED = "enabled";
+
+	// Colors
+	private static final Color GROUP_BACKGROUND = Color.WHITE;
+	private static final Color BORDER_COLOR = Color.BLACK;
+
+	// Dimensions
+	private static final int ASCENDANTS_HEIGHT = 12;
+	private static final double ASCENDANTS_ASPECT_RATIO = 3501. / 2662.;
+	private static final Dimension ASCENDANTS_SIZE = new Dimension((int)((float)ASCENDANTS_HEIGHT / ASCENDANTS_ASPECT_RATIO), ASCENDANTS_HEIGHT);
+
+	/** Distance between descendants arrow and box. */
+	public static final int NAVIGATION_ARROW_SEPARATION = ConnectionStrokes.NAVIGATION_ARROW_SEPARATION;
+	public static final int ARROW_HEIGHT = (int)(ASCENDANTS_SIZE.getHeight() + NAVIGATION_ARROW_SEPARATION);
+
+	/** Height of the group line from the bottom of the individual panel [px]. */
+	private static final int GROUP_CONNECTION_HEIGHT = 15;
+	private static final Dimension GROUP_PANEL_DIMENSION = new Dimension(12, 12);
+	public static final int GROUP_EXITING_HEIGHT = GROUP_CONNECTION_HEIGHT - GROUP_PANEL_DIMENSION.height / 2;
+	private static final int HALF_PARTNER_SEPARATION = 6;
+	public static final int GROUP_SEPARATION = HALF_PARTNER_SEPARATION + GROUP_PANEL_DIMENSION.width
+		+ HALF_PARTNER_SEPARATION;
+//	/** Distance between ascendants arrow and box. */
+//	private static final int NAVIGATION_ASCENDANTS_ARROW_SEPARATION = (NAVIGATION_ARROW_SEPARATION << 1) + 3;
+
+	public static final Stroke CONNECTION_STROKE = ConnectionStrokes.CONNECTION_STROKE;
+	public static final Stroke CONNECTION_STROKE_ADOPTED = ConnectionStrokes.CONNECTION_STROKE_ADOPTED;
+
+
+	// State
+	private JPanel groupPanel;
+	private IndividualPanel fatherPanel;
+	private IndividualPanel motherPanel;
+	private JLabel fatherAncestorsLabel;
+	private JPanel arrowFatherPanel;
+	private JLabel motherAncestorsLabel;
+	private JPanel arrowMotherPanel;
+
+	private final GenealogyRepository genealogyRepository;
+
+	private PartnerCycleListener partnerCycleListener;
+
+	// State (partner cycling)
+	/** {@code true} when the partner label can be clicked to cycle. */
+	private boolean partnerCycleEnabled;
+	private JLabel fatherPartnersLabel;
+	private JLabel motherPartnersLabel;
+	private List<String> fatherPartnerIds = List.of();
+	private List<String> motherPartnerIds = List.of();
+	private int fatherPartnerIndex = -1;
+	private int motherPartnerIndex = -1;
+
+	private final BoxPanelType boxType;
+	private TreeLayout treeLayout;
+	private boolean showAncestors;
+
+	private IndividualSummary father;
+	private IndividualSummary mother;
+
+	private final FLEFModel model;
+
+
+	public static PartnersPanel create(final BoxPanelType boxType, final TreeLayout treeLayout, final FLEFModel model,
+			final GenealogyRepository genealogyRepository){
+		return new PartnersPanel(boxType, treeLayout, model, genealogyRepository);
+	}
+
+	/**
+	 * Creates a placeholder panel with no model, no data, and no listeners.
+	 * The panel has exactly the same preferred size as a real one, so it can
+	 * fill an empty ancestor slot without collapsing the row height.
+	 *
+	 * @param boxType    the panel type (PRIMARY or SECONDARY)
+	 * @param treeLayout the tree orientation
+	 * @return a placeholder panel
+	 */
+	public static PartnersPanel createEmpty(final BoxPanelType boxType, final TreeLayout treeLayout){
+		return new PartnersPanel(boxType, treeLayout, null, null);
+	}
+
+
+	private PartnersPanel(final BoxPanelType boxType, final TreeLayout treeLayout, final FLEFModel model,
+			final GenealogyRepository genealogyRepository){
+		this.boxType = boxType;
+		this.treeLayout = treeLayout;
+
+		this.model = model;
+		this.genealogyRepository = genealogyRepository;
+
+		initComponents();
+
+//		attachPopupMenu();
+
+//		installMouseListeners();
+	}
+
+
+	private void initComponents(){
+		// When no model is provided, use empty individual panels for both
+		// partners. The rest of the layout is built identically, so the
+		// placeholder ends up with the same preferred size as a real panel.
+		if(model == null){
+			final boolean isVertical = (treeLayout == TreeLayout.VERTICAL);
+
+			// Combine layout constraints dynamically based on direction
+			final String colConstraints = (isVertical? "[grow,fill]": "[left]");
+			final String rowConstraints = (isVertical
+				? (TreeIcons.ARROW_SIZE.getHeight() + NAVIGATION_ARROW_SEPARATION) + "[bottom]"
+				: "[bottom,grow]");
+
+			setLayout(new MigLayout("ins 0", colConstraints, rowConstraints));
+			setOpaque(false);
+
+			// Direct addition of the empty component
+			final JLabel label = new JLabel();
+			final Dimension size = IndividualPanel.getDimension(boxType);
+			label.setPreferredSize(size);
+			label.setMaximumSize(size);
+			add(label, (isVertical? "right": StringUtils.EMPTY));
+
+			return;
+		}
+
+
+		fatherPanel = IndividualPanel.create(boxType, model);
+		motherPanel = IndividualPanel.create(boxType, model);
+
+		groupPanel = new JPanel();
+		groupPanel.setMinimumSize(GROUP_PANEL_DIMENSION);
+		groupPanel.setMaximumSize(GROUP_PANEL_DIMENSION);
+		groupPanel.setBackground(GROUP_BACKGROUND);
+		groupPanel.setBorder(BorderFactory.createDashedBorder(BORDER_COLOR));
+
+		fatherPartnersLabel = new JLabel();
+		fatherPartnersLabel.setPreferredSize(TreeIcons.ARROW_SIZE);
+		fatherPartnersLabel.setHorizontalAlignment(SwingConstants.CENTER);
+		fatherPartnersLabel.setFont(fatherPartnersLabel.getFont().deriveFont(Font.PLAIN, 9f));
+		fatherPartnersLabel.setVisible(false);
+		fatherAncestorsLabel = new JLabel();
+		fatherAncestorsLabel.setPreferredSize(TreeIcons.ARROW_SIZE);
+		final JPanel arrow1Panel = new JPanel(new MigLayout("ins 0,hidemode 3",
+			"[]" + NAVIGATION_ARROW_SEPARATION + "[right,grow]", "[]"));
+		arrow1Panel.add(fatherPartnersLabel, "left");
+		arrow1Panel.add(fatherAncestorsLabel, "right");
+		arrow1Panel.setOpaque(false);
+
+		attachCycleHandler(fatherPartnersLabel, Side.LEFT);
+
+		arrowFatherPanel = new JPanel(new MigLayout("ins 0",
+			"[grow,fill]",
+			"[" + TreeIcons.ARROW_SIZE.height + "]" + NAVIGATION_ARROW_SEPARATION + "[]"));
+		arrowFatherPanel.add(arrow1Panel, "wrap");
+		arrowFatherPanel.add(fatherPanel, "right");
+		arrowFatherPanel.setOpaque(false);
+
+		motherPartnersLabel = new JLabel();
+		motherPartnersLabel.setPreferredSize(TreeIcons.ARROW_SIZE);
+		motherPartnersLabel.setHorizontalAlignment(SwingConstants.CENTER);
+		motherPartnersLabel.setFont(motherPartnersLabel.getFont().deriveFont(Font.PLAIN, 9f));
+		motherPartnersLabel.setVisible(false);
+		motherAncestorsLabel = new JLabel();
+		motherAncestorsLabel.setPreferredSize(TreeIcons.ARROW_SIZE);
+		final JPanel arrow2Panel = new JPanel(new MigLayout("ins 0,hidemode 3",
+			"[]" + NAVIGATION_ARROW_SEPARATION + "[right,grow]", "[]"));
+		arrow2Panel.add(motherAncestorsLabel);
+		arrow2Panel.add(motherPartnersLabel, "right");
+		arrow2Panel.setOpaque(false);
+
+		attachCycleHandler(motherPartnersLabel, Side.RIGHT);
+
+		arrowMotherPanel = new JPanel(new MigLayout("ins 0",
+			"[grow,fill]",
+			"[" + TreeIcons.ARROW_SIZE.height + "]" + NAVIGATION_ARROW_SEPARATION + "[]"));
+		arrowMotherPanel.add(arrow2Panel, "wrap");
+		arrowMotherPanel.add(motherPanel, "left");
+		arrowMotherPanel.setOpaque(false);
+
+		setOpaque(false);
+
+		applyLayoutConstraints();
+	}
+
+	private void attachCycleHandler(final JLabel label, final Side side){
+		label.addMouseListener(new MouseAdapter(){
+			@Override
+			public void mouseClicked(final MouseEvent e){
+				if(SwingUtilities.isLeftMouseButton(e)
+						&& label.getClientProperty(PROPERTY_PARTNERS_CYCLE_ENABLED) == Boolean.TRUE)
+					cyclePartner(side);
+			}
+		});
+	}
+
+	/**
+	 * Returns the IDs of every partner of {@code person}, across all spouse /
+	 * union relationship types. Handles both subject and object directions
+	 * and de-duplicates the result, since the same couple may appear with
+	 * several relationship types (e.g. civil_spouse + religious_spouse).
+	 */
+	private List<String> findPartnerIds(final IndividualSummary person){
+		if(person == null || person.isEmpty() || genealogyRepository == null)
+			return List.of();
+
+		return genealogyRepository.getPartnerIds(person.getId());
+	}
+
+	private void updatePartnerLists(){
+		if(model == null || fatherPartnersLabel == null)
+			return;
+
+		fatherPartnerIds = findPartnerIds(father);
+		motherPartnerIds = findPartnerIds(mother);
+
+		fatherPartnerIndex = indexOf(fatherPartnerIds, mother);
+		motherPartnerIndex = indexOf(motherPartnerIds, father);
+
+		updatePartnerLabel(fatherPartnersLabel, fatherPartnerIds, fatherPartnerIndex);
+		updatePartnerLabel(motherPartnersLabel, motherPartnerIds, motherPartnerIndex);
+	}
+
+	private static int indexOf(final List<String> ids, final IndividualSummary target){
+		if(target == null)
+			return -1;
+
+		final String targetId = target.getId();
+		for(int i = 0, size = ids.size(); i < size; i ++)
+			if(Objects.equals(targetId, ids.get(i)))
+				return i;
+		return -1;
+	}
+
+	private void updatePartnerLabel(final JLabel label, final List<String> ids, final int index){
+		final boolean canCycle = (index >= 0 && ids.size() > 1);
+		label.putClientProperty(PROPERTY_PARTNERS_CYCLE_ENABLED, canCycle);
+		label.setCursor(Cursor.getPredefinedCursor(partnerCycleEnabled && canCycle? Cursor.HAND_CURSOR: Cursor.DEFAULT_CURSOR));
+
+		if(canCycle){
+			label.setText((index + 1) + "/" + ids.size());
+			label.setToolTipText(I18N.tf((partnerCycleEnabled? "panel.partners.cycle.click.tooltip": "panel.partners.cycle.tooltip"), ids.size()));
+			label.setVisible(true);
+		}
+		else{
+			label.setText(StringUtils.EMPTY);
+			label.setToolTipText(null);
+			label.setVisible(false);
+		}
+	}
+
+	private void cyclePartner(final Side anchorSide){
+		if(!partnerCycleEnabled)
+			return;
+
+		final List<String> ids = (anchorSide == Side.LEFT? fatherPartnerIds: motherPartnerIds);
+		final int currentIndex = (anchorSide == Side.LEFT? fatherPartnerIndex: motherPartnerIndex);
+		if(ids.size() <= 1 || currentIndex < 0)
+			return;
+
+		final int nextIndex = (currentIndex + 1) % ids.size();
+		final IndividualSummary newPartner = genealogyRepository.getIndividualData(ids.get(nextIndex));
+		if(newPartner == null)
+			return;
+
+		if(partnerCycleListener != null)
+			partnerCycleListener.onPartnerCycled(anchorSide, newPartner);
+	}
+
+	private void applyLayoutConstraints(){
+		if(model == null)
+			return;
+
+		removeAll();
+
+		if(treeLayout == TreeLayout.VERTICAL){
+			setLayout(new MigLayout("ins 0,hidemode 3",
+				"[right,grow]" + HALF_PARTNER_SEPARATION + "[center,grow]" + HALF_PARTNER_SEPARATION + "[left,grow]",
+				"[bottom]"));
+			add(arrowFatherPanel, "right,grow");
+			add(groupPanel, "gapbottom " + GROUP_EXITING_HEIGHT);
+			add(arrowMotherPanel, "left,grow");
+		}
+		else{
+			// In horizontal orientation the mother panel has the navigation
+			// arrows above the box, so the top of the box sits ARROW_HEIGHT
+			// pixels below the top of the panel. To center the group square
+			// between the two boxes (not between the two panels) we shift it
+			// down by half the arrow height: the gap above the square grows by
+			// ARROW_HEIGHT/2 and the gap below shrinks by the same amount,
+			// keeping the total distance between the two boxes unchanged.
+			// MigLayout allows negative row gaps: the small overlap here falls
+			// in the empty arrow region of the mother panel and is not visible.
+			final int halfArrows = ARROW_HEIGHT / 2;
+			final int gapAbove = HALF_PARTNER_SEPARATION + halfArrows;
+			final int gapBelow = HALF_PARTNER_SEPARATION - halfArrows;
+
+			setLayout(new MigLayout("ins 0,hidemode 3",
+				"[left]",
+				"[bottom,grow]" + gapAbove + "[center]" + gapBelow + "[top,grow]"));
+			add(arrowFatherPanel, "wrap");
+			add(groupPanel, "gapleft " + GROUP_EXITING_HEIGHT + ",wrap");
+			add(arrowMotherPanel, "grow");
+		}
+	}
+
+	@Override
+	protected final void paintComponent(final Graphics g){
+		if(groupPanel == null || !groupPanel.isVisible())
+			return;
+
+		if(g instanceof Graphics2D && arrowFatherPanel != null && arrowMotherPanel != null){
+			final Graphics2D g2 = (Graphics2D)g.create();
+			g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+			g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+			g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+
+			g2.setStroke(CONNECTION_STROKE);
+
+			if(treeLayout == TreeLayout.VERTICAL){
+				final int xFrom = arrowFatherPanel.getX() + arrowFatherPanel.getWidth();
+				final int xTo = arrowMotherPanel.getX();
+				final int y = arrowFatherPanel.getY() + arrowFatherPanel.getHeight() - GROUP_CONNECTION_HEIGHT;
+
+				// Horizontal connection line between partners
+				g2.drawLine(xFrom, y,
+					xTo, y);
+			}
+			else{
+				final int x = arrowFatherPanel.getX() + GROUP_CONNECTION_HEIGHT;
+				final int yFrom = arrowFatherPanel.getY() + arrowFatherPanel.getHeight();
+				final int yTo = arrowMotherPanel.getY() + ARROW_HEIGHT;
+
+				// Vertical connection line between partners
+				g2.drawLine(x, yFrom,
+					x, yTo);
+			}
+
+			//for test purposes
+//			pointTest(g2);
+
+			g2.dispose();
+		}
+	}
+
+	private void pointTest(final Graphics2D g2){
+		final Point enterPoint1 = getPaintingFatherEnterPoint();
+		GUIHelper.drawX(g2, enterPoint1);
+
+		final Point enterPoint2 = getPaintingMotherEnterPoint();
+		GUIHelper.drawX(g2, enterPoint2);
+
+		final Point exitPoint = getPaintingExitPoint();
+		GUIHelper.drawX(g2, exitPoint);
+	}
+
+
+	public final IndividualPanel getFatherPanel(){
+		return fatherPanel;
+	}
+
+	public IndividualSummary getFatherData(){
+		return fatherPanel.getData();
+	}
+
+	public final IndividualPanel getMotherPanel(){
+		return motherPanel;
+	}
+
+	public IndividualSummary getMotherData(){
+		return motherPanel.getData();
+	}
+
+
+	/**
+	 * Attaches the given listener and popup factory to both partner panels.
+	 * <p>
+	 * On a placeholder (no model), this method is a no-op, because
+	 * placeholders have no interactive content and no backing records.
+	 */
+	public PartnersPanel withListener(final IndividualListener listener,
+			final EntityPopupMenuFactory<IndividualPanel, IndividualListener> factory){
+		if(model == null)
+			return this;
+
+		fatherPanel.withListener(listener, factory);
+		motherPanel.withListener(listener, factory);
+
+		return this;
+	}
+
+	public PartnersPanel withPartnerCycleListener(final PartnerCycleListener listener){
+		this.partnerCycleListener = listener;
+
+		return this;
+	}
+
+	/**
+	 * Enables or disables the partner-cycle interaction. When disabled, the
+	 * partner label is hidden, no hand cursor is set, and a click on it does
+	 * nothing. Typically {@code true} only on the root couple of the tree.
+	 *
+	 * @param enabled the desired state
+	 * @return this panel, for chaining
+	 */
+	public PartnersPanel withPartnerCycleEnabled(final boolean enabled){
+		if(partnerCycleEnabled != enabled){
+			partnerCycleEnabled = enabled;
+
+			updatePartnerLists();
+		}
+
+		return this;
+	}
+
+	public PartnersPanel withTreeLayout(final TreeLayout treeLayout){
+		if(this.treeLayout != treeLayout){
+			this.treeLayout = treeLayout;
+
+			applyLayoutConstraints();
+
+			updateData();
+		}
+		return this;
+	}
+
+	/**
+	 * Sets the biological parents of this couple.
+	 * <p>
+	 * On a placeholder (no model), this method is a no-op.
+	 */
+	public PartnersPanel withBiologicalParents(final IndividualSummary father, final IndividualSummary mother){
+		this.father = father;
+		this.mother = mother;
+
+		updateData();
+
+		return this;
+	}
+
+	/**
+	 * Configures whether ancestor arrows should be displayed above the partner panels.
+	 *
+	 * @param showAncestors {@code true} to display ancestor arrows if parents exist, {@code false} to hide them
+	 * @return this panel, for chaining
+	 */
+	public PartnersPanel withShowAncestors(final boolean showAncestors){
+		this.showAncestors = showAncestors;
+
+		return this;
+	}
+
+	/**
+	 * Configures whether the collapse badge should be suppressed and never displayed.
+	 *
+	 * @param suppressCollapseBadge {@code true} to hide the badge regardless of occurrence count
+	 * @return this panel, for chaining
+	 */
+	public PartnersPanel withSuppressCollapseBadge(final boolean suppressCollapseBadge){
+		fatherPanel.withSuppressCollapseBadge(suppressCollapseBadge);
+		motherPanel.withSuppressCollapseBadge(suppressCollapseBadge);
+
+		revalidate();
+		repaint();
+
+		return this;
+	}
+
+	private void updateData(){
+		if(model == null)
+			return;
+
+		fatherPanel.withIndividualData(father);
+		motherPanel.withIndividualData(mother);
+
+
+		updatePartnerLists();
+
+
+//		final String marriageTooltip = data.getMarriageTooltip();
+//		groupPanel.setToolTipText(marriageTooltip);
+
+//		groupPanel.setBorder(StringUtils.isNotEmpty(marriageTooltip)? BorderFactory.createLineBorder(BORDER_COLOR):
+//			BorderFactory.createDashedBorder(BORDER_COLOR));
+		groupPanel.setBorder(BorderFactory.createLineBorder(BORDER_COLOR));
+
+
+		final boolean fatherHasAncestors = (showAncestors && father != null && father.hasParents());
+		final boolean motherHasAncestors = (showAncestors && mother != null && mother.hasParents());
+		fatherAncestorsLabel.setIcon(fatherHasAncestors? TreeIcons.ancestors(treeLayout): null);
+		motherAncestorsLabel.setIcon(motherHasAncestors? TreeIcons.ancestors(treeLayout): null);
+
+		if(isPrimaryBox()){
+			final boolean hasFather = (father != null && !father.isEmpty());
+			final boolean hasMother = (mother != null && !mother.isEmpty());
+			final boolean hasChildren = (hasFather && fatherPanel.getData().hasChildren()
+				|| hasMother && motherPanel.getData().hasChildren());
+			if(!hasChildren){
+				if(!hasFather)
+					fatherPanel.setVisible(false);
+				if(!hasMother)
+					motherPanel.setVisible(false);
+
+				// Hide empty partner panels so hidemode 3 collapses their layout space
+				arrowFatherPanel.setVisible(hasFather);
+				arrowMotherPanel.setVisible(hasMother);
+
+				// Hide group connector if there isn't a couple
+				groupPanel.setVisible(hasFather && hasMother);
+
+				if(hasFather && hasMother)
+					setLayout(new MigLayout("ins 0,hidemode 3",
+						"[right]" + HALF_PARTNER_SEPARATION + "[center]" + HALF_PARTNER_SEPARATION + "[left]",
+						"[bottom]"));
+				else
+					setLayout(new MigLayout("ins 0,hidemode 3",
+						"[center,shrink 0]",
+						"[bottom]"));
+			}
+		}
+	}
+
+
+	/**
+	 * Finds the nearest PartnersPanel ancestor, if any.
+	 *
+	 * @param parent the component to start searching from
+	 * @return the PartnersPanel ancestor, or {@code null} if none
+	 */
+	public static PartnersPanel findContainingPartnersPanel(Component parent){
+		while(parent != null && !(parent instanceof PartnersPanel))
+			parent = parent.getParent();
+		return (PartnersPanel)parent;
+	}
+
+
+	private boolean isPrimaryBox(){
+		return (boxType == BoxPanelType.PRIMARY);
+	}
+
+	public final Point getPaintingFatherEnterPoint(){
+		final Point p;
+		if(treeLayout == TreeLayout.VERTICAL)
+			p = fatherPanel.getPaintingVerticalEnterPoint();
+		else
+			p = new Point(fatherPanel.getWidth(), (fatherPanel.getHeight() - 1) / 2);
+		return SwingUtilities.convertPoint(fatherPanel, p, this);
+	}
+
+	public final Point getPaintingMotherEnterPoint(){
+		final Point p;
+		if(treeLayout == TreeLayout.VERTICAL)
+			p = motherPanel.getPaintingVerticalEnterPoint();
+		else
+			p = new Point(motherPanel.getWidth(), (motherPanel.getHeight() - 1) / 2);
+		return SwingUtilities.convertPoint(motherPanel, p, this);
+	}
+
+	public final Point getPaintingExitPoint(){
+		if(treeLayout == TreeLayout.VERTICAL){
+			Point p1 = fatherPanel.getPaintingVerticalEnterPoint();
+			p1 = SwingUtilities.convertPoint(fatherPanel, p1, this);
+			Point p2 = motherPanel.getPaintingVerticalEnterPoint();
+			p2 = SwingUtilities.convertPoint(motherPanel, p2, this);
+			return new Point((p1.x + p2.x) / 2, getHeight() - GROUP_EXITING_HEIGHT - 1);
+		}
+
+		Point p1 = fatherPanel.getPaintingHorizontalEnterPoint();
+		p1 = SwingUtilities.convertPoint(fatherPanel, p1, this);
+		Point p2 = motherPanel.getPaintingHorizontalEnterPoint();
+		p2 = SwingUtilities.convertPoint(motherPanel, p2, this);
+		return new Point(GROUP_EXITING_HEIGHT, (p1.y + p2.y - 1) / 2);
+	}
+
+
+	public Side getSideOf(final IndividualPanel panel){
+		if(panel == fatherPanel)
+			return Side.LEFT;
+		if(panel == motherPanel)
+			return Side.RIGHT;
+		return null;
+	}
+
+	public boolean isEmpty(){
+		return (father == null && mother == null);
+	}
+
+	@Override
+	public String toString(){
+		return (father != null? father.getId(): "<null>")
+			+ "+"
+			+ (mother != null? mother.getId(): "<null>");
+	}
+
+
+	public static void main(String[] args) throws IOException{
+		try{
+			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+		}
+		catch(final Exception ignored){}
+
+		String modelUri = "/tests/TGMZ.flef";
+		String recordId = "I1";
+
+		final String content;
+		try(final InputStream is = PartnersPanel.class.getResourceAsStream(modelUri)){
+			content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+		}
+
+		final FLEFParser parser = new FLEFParser();
+		final FLEFModel model = parser.parse(content);
+
+
+		EventQueue.invokeLater(() -> {
+			final PartnersPanel panel = PartnersPanel.create(BoxPanelType.PRIMARY, TreeLayout.VERTICAL, model,
+				null);
+//			panel.withBiologicalParents(recordId);
+//			panel.setGroupListener(groupListener);
+//			panel.setPersonListener(personListener);
+
+			final JFrame frame = new JFrame();
+			frame.setLayout(new BorderLayout());
+			frame.add(panel, BorderLayout.NORTH);
+			frame.pack();
+			frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+			frame.setLocationRelativeTo(null);
+			frame.setVisible(true);
+		});
+	}
+
+}

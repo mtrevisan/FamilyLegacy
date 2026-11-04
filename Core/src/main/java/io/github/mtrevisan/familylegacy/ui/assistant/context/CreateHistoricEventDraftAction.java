@@ -24,11 +24,11 @@
  */
 package io.github.mtrevisan.familylegacy.ui.assistant.context;
 
+import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.ui.assistant.AssistantContext;
 import io.github.mtrevisan.familylegacy.ui.assistant.DiagnosticAction;
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.HistoricEventRecordDialog;
-import io.github.mtrevisan.familylegacy.ui.i18n.I18N;
 
 
 /**

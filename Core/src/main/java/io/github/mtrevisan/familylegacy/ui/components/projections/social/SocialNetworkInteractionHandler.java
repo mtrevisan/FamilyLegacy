@@ -25,6 +25,9 @@
 package io.github.mtrevisan.familylegacy.ui.components.projections.social;
 
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.social.SocialEdgeRef;
+import io.github.mtrevisan.familylegacy.social.SocialGraph;
+import io.github.mtrevisan.familylegacy.social.SocialNodeRef;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;

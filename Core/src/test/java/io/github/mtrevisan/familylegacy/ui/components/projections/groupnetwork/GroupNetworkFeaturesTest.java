@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections.groupnetwork;
 
+import io.github.mtrevisan.familylegacy.groups.GroupNetwork;
+import io.github.mtrevisan.familylegacy.groups.GroupNetworkBuilder;
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import org.junit.jupiter.api.Assertions;
