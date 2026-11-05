@@ -38,7 +38,8 @@ class IdentityCheckerTest{
 
 	private static DuplicateFinderService.Profile profile(final String id, final String name){
 		return new DuplicateFinderService.Profile(id, name, "M", Set.of(), Set.of(), Set.of(), 1850, null, Set.of(), Set.of(),
-			Set.of(), Set.of(), Set.of(), Set.of(), Set.of(), Set.of());
+			Set.of(), Set.of(), Set.of(), Set.of(), Set.of(), Set.of(), Set.of(), Set.of(), Set.of(), Set.of(), Set.of(),
+			java.util.Map.of(), Set.of());
 	}
 
 	private static DuplicateFinderService.Candidate candidate(final String leftId, final String rightId, final int score){

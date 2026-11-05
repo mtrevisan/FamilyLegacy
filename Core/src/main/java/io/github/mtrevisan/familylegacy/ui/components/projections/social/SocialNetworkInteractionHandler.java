@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections.social;
 
+import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.social.SocialEdgeRef;
 import io.github.mtrevisan.familylegacy.social.SocialGraph;
@@ -80,19 +81,18 @@ public final class SocialNetworkInteractionHandler{
 		final StringBuilder sb = new StringBuilder("<html>");
 		sb.append("<b>").append(escape(node.entity()
 			.displayLabel())).append("</b>");
-		sb.append("<br>Degree: ").append(node.degree());
-		sb.append("<br>Primary role: ").append(escape(node.primaryCategory()
+		sb.append("<br>").append(I18N.l("tooltip.field.degree")).append(StringUtils.SPACE).append(node.degree());
+		sb.append("<br>").append(I18N.l("tooltip.field.primary_role")).append(StringUtils.SPACE).append(escape(node.primaryCategory()
 			.getDisplayLabel()));
 
 		final List<SocialEdgeRef> incident = graph.edgesOf(node.id());
 		if(!incident.isEmpty()){
-			sb.append("<br><i>").append(incident.size())
-				.append(incident.size() == 1? " relationship": " relationships")
+			sb.append("<br><i>").append(I18N.tf("text.tip.relationships", incident.size()))
 				.append("</i>");
 		}
 
 		if(!node.isCenter())
-			sb.append("<br><i>Double-click to edit, right-click for actions</i>");
+			sb.append("<br><i>").append(I18N.t("text.tip.edit_double_right")).append("</i>");
 
 		return sb.append("</html>").toString();
 	}
@@ -112,13 +112,13 @@ public final class SocialNetworkInteractionHandler{
 		final StringBuilder sb = new StringBuilder("<html>");
 		sb.append("<b>").append(escape(edge.relationshipType())).append("</b>");
 		if(edge.hasRole())
-			sb.append("<br>Role: ").append(escape(edge.role()));
-		sb.append("<br>Category: ").append(escape(edge.category()
+			sb.append("<br>").append(I18N.l("tooltip.field.role")).append(StringUtils.SPACE).append(escape(edge.role()));
+		sb.append("<br>").append(I18N.l("tooltip.field.category")).append(StringUtils.SPACE).append(escape(edge.category()
 			.getDisplayLabel()));
-		sb.append("<br>Status: ").append(escape(edge.span()
+		sb.append("<br>").append(I18N.l("tooltip.field.status")).append(StringUtils.SPACE).append(escape(edge.span()
 			.status()));
 		if(edge.isDirected())
-			sb.append("<br>Direction: subject → target");
+			sb.append("<br>").append(I18N.l("tooltip.field.direction")).append(StringUtils.SPACE).append(I18N.t("text.tip.direction_value"));
 		return sb.append("</html>").toString();
 	}
 

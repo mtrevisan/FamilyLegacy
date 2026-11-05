@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections.individualtree;
 
+import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.tree.TreeNode;
 import io.github.mtrevisan.familylegacy.tree.pedigree.PedigreeCollapse;
@@ -104,11 +105,10 @@ public final class PedigreeCollapseController{
 
 
 	private static String buildTooltip(final PedigreeCollapse collapse){
-		final StringBuilder sb = new StringBuilder("<html><b>Pedigree collapse</b><br>");
-		sb.append("This individual appears ")
-			.append(collapse.occurrenceCount())
-			.append(" times in the tree.<br><br>");
-		sb.append("<b>Paths from the root:</b><br>");
+		final StringBuilder sb = new StringBuilder("<html><b>").append(I18N.t("text.pedigree_collapse.title")).append("</b><br>");
+		sb.append(I18N.tf("text.pedigree_collapse.appears", collapse.occurrenceCount()))
+			.append("<br><br>");
+		sb.append("<b>").append(I18N.l("text.pedigree_collapse.paths")).append("</b><br>");
 		for(final PedigreePath path : collapse.paths())
 			sb.append("&nbsp;&nbsp;").append(path.code())
 				.append(" — ").append(path.describe())

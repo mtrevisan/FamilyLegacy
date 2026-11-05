@@ -56,8 +56,10 @@ public final class EvidenceQualifiersReader{
 	public static final String TAG_INFORMATION_TYPE = "information_type";
 	public static final String TAG_EVIDENCE_TYPE = "evidence_type";
 
+	public static final String ENUM_SOURCE_TYPE_ORIGINAL = "original";
+	public static final String ENUM_SOURCE_TYPE_DERIVED = "derived";
 	public static final String[] SOURCE_TYPES = {
-		"original", "derived"
+		ENUM_SOURCE_TYPE_ORIGINAL, ENUM_SOURCE_TYPE_DERIVED
 	};
 
 	public static final String INFORMATION_TYPE_PRIMARY = "primary";
@@ -68,8 +70,10 @@ public final class EvidenceQualifiersReader{
 	};
 
 	public static final String EVIDENCE_TYPE_NEGATIVE = "negative";
+	public static final String ENUM_EVIDENCE_TYPE_DIRECT = "direct";
+	public static final String ENUM_EVIDENCE_TYPE_INDIRECT = "indirect";
 	public static final String[] EVIDENCE_TYPES = {
-		"direct", "indirect", EVIDENCE_TYPE_NEGATIVE
+		ENUM_EVIDENCE_TYPE_DIRECT, ENUM_EVIDENCE_TYPE_INDIRECT, EVIDENCE_TYPE_NEGATIVE
 	};
 
 

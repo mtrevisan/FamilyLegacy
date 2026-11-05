@@ -24,7 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.assistant.gap;
 
-import io.github.mtrevisan.familylegacy.ui.assistant.chronology.DateRange;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.DateRange;
 
 import java.time.LocalDate;
 import java.util.List;

@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.io.model.RecordDisplay;
 import io.github.mtrevisan.familylegacy.io.model.readers.ConclusionReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.research.ResearchSummary;
 import io.github.mtrevisan.familylegacy.search.SearchCriteria;
 import io.github.mtrevisan.familylegacy.search.SearchMatcher;
 import io.github.mtrevisan.familylegacy.search.SearchMode;
@@ -138,7 +139,9 @@ public class ConclusionSearchStrategy implements SearchStrategy{
 		if(StringUtils.isNotEmpty(status))
 			details.add(I18N.t("dialog.conclusion.proof_status") + ": " + status);
 
-		return baseDisplayText + details;
+		details.add(ResearchSummary.resolves(record));
+		final String narrative = ResearchSummary.shorten(ConclusionReader.extractNarrative(record));
+		return baseDisplayText + details + (narrative != null? " \u2013 " + narrative: StringUtils.EMPTY);
 	}
 
 }

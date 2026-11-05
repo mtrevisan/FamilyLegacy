@@ -7,7 +7,7 @@
 - **What a step is.** The application keeps a copy of the whole file after each action. A step is closed when you start the next action (a click, a key, a menu), or when the last dialog you used closes. Record windows opened one from the other, such as a name inside a person, that you save one after the other, count as **one** step.
 - **How far back.** Up to **100** steps; the older ones are dropped. A new change after an undo discards what you could have redone.
 - **What is covered.** Any change to the data: edits from the views and the menus, adding, editing and deleting in the record editors, the header, and the tools that change the file, such as a merge. **Not covered:** the preferences, the bookmarks, the view settings, the current root and selection, and the files on disk.
-- **Save does not erase the history**: you can undo after saving. But the undo changes only what is in memory: **save again** to write it to the file.
+- **Saving does not erase the history**: every change is written to the file by itself, and you can still undo it. An undo or a redo is written to the file like any other change.
 - If the step to undo comes from a record window that has since been closed, you are asked *The last change was saved from a record window that has since been closed. Undo it anyway?*
 
 **The history is cleared, and cannot be undone**, whenever the whole file is replaced: **File > New**, **File > Open** (also from the recent files), **File > Import** and **Restore from Backup**. Nothing can undo an import or a restore. Make a copy first with **File > Backup...**.

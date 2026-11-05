@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections.chronomap;
 
+import io.github.mtrevisan.familylegacy.i18n.I18N;
 import org.jxmapviewer.JXMapViewer;
 import org.jxmapviewer.viewer.GeoPosition;
 
@@ -88,7 +89,7 @@ public final class ChronomapImageOverlayLayer implements ChronomapLayer{
 
 	@Override
 	public String getName(){
-		return "Image overlays";
+		return I18N.t("text.chronomap.image_overlays");
 	}
 
 	@Override

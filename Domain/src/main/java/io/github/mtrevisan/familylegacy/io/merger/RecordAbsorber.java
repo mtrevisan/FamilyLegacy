@@ -322,6 +322,74 @@ public final class RecordAbsorber{
 	public record Candidate(String recordId, double probability, String rationale){}
 
 	/**
+	 * A pair of records of the same kind that may describe the same entity.
+	 *
+	 * @param kind         the kind of the two records
+	 * @param firstId      the first record (the smaller identifier)
+	 * @param secondId     the other one
+	 * @param probability  the match probability
+	 * @param rationale    the evidence for and against the identity
+	 */
+	public record DuplicatePair(String kind, String firstId, String secondId, double probability, String rationale){}
+
+	/** The most records of a block that are compared: a block of namesakes larger than this says nothing about any two of them. */
+	private static final int MAX_BLOCK_SIZE = 300;
+
+	/**
+	 * The pairs of records that may describe the same entity, for the given kinds, with the comparison of the automatic merge (see
+	 * {@link FLEFMerger}): the whole model is indexed once, the records are compared only within the blocks they share, and the pairs the
+	 * researcher has disproven with a conclusion are left out. It never changes the model.
+	 *
+	 * @param model          the model
+	 * @param kinds          the kinds to look at; the ones that cannot be the subject of an identity hypothesis are ignored
+	 * @param minProbability the probability below which a pair is left out
+	 * @param maxPerKind     the most pairs given for each kind (the most likely ones)
+	 * @return the pairs, the kinds in the order given and the most likely first inside each
+	 */
+	public List<DuplicatePair> duplicatePairs(final FLEFModel model, final java.util.Collection<String> kinds, final double minProbability,
+			final int maxPerKind){
+		final List<DuplicatePair> result = new ArrayList<>();
+		final EntityMatcher matcher = new EntityMatcher(new ModelIndex(model.getRecords(), references), signature, false);
+		for(final String kind : kinds){
+			if(!EntityMatcher.MATCHABLE_KINDS.contains(kind))
+				continue;
+
+			final Map<String, List<FLEFRecord>> blocks = new HashMap<>();
+			for(final FLEFRecord record : model.getRecordsByType(kind))
+				for(final String key : matcher.blockingKeys(record))
+					blocks.computeIfAbsent(key, k -> new ArrayList<>())
+						.add(record);
+
+			final Set<String> seen = new java.util.HashSet<>();
+			final List<DuplicatePair> pairs = new ArrayList<>();
+			for(final List<FLEFRecord> block : blocks.values()){
+				if(block.size() > MAX_BLOCK_SIZE)
+					continue;
+
+				for(int i = 0; i < block.size(); i ++)
+					for(int j = i + 1; j < block.size(); j ++){
+						final FLEFRecord a = block.get(i);
+						final FLEFRecord b = block.get(j);
+						final boolean ordered = (a.getId().compareTo(b.getId()) <= 0);
+						final FLEFRecord first = (ordered? a: b);
+						final FLEFRecord second = (ordered? b: a);
+						if(!seen.add(first.getId() + "|" + second.getId()))
+							continue;
+
+						final MatchScore score = matcher.compare(first, second);
+						if(!score.isVetoed() && score.probability() >= minProbability)
+							pairs.add(new DuplicatePair(kind, first.getId(), second.getId(), score.probability(), score.describe()));
+					}
+			}
+			pairs.sort(Comparator.comparingDouble(DuplicatePair::probability).reversed()
+				.thenComparing(DuplicatePair::firstId)
+				.thenComparing(DuplicatePair::secondId));
+			result.addAll(pairs.size() > maxPerKind? pairs.subList(0, maxPerKind): pairs);
+		}
+		return result;
+	}
+
+	/**
 	 * The records of the model that may describe the same entity as the given one, most likely first, with the comparison of the
 	 * automatic merge (see {@link FLEFMerger}). Pairs that cannot be the same entity (e.g. places linked by succession) are left out.
 	 *

@@ -30,6 +30,9 @@ import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.ArrayList;
+import java.util.List;
+
 
 /**
  * Converts a FLEF {@code DateStructure} into a {@link TemporalSpan} ready
@@ -75,6 +78,79 @@ public final class DateNormalizer{
 			return normalizeSpanning(spanning, originalText);
 
 		return null;
+	}
+
+
+	/** Why a date could not be turned into days. */
+	public enum Problem{
+		/** Nothing is wrong: the date is read, or there is nothing in it to read. */
+		NONE,
+		/** The date is not valid in the notation of its calendar (or the calendar is not one that exists): it is a problem of the file. */
+		INVALID,
+		/** The calendar needs the Ephemeris plugin, which is not there: it is not a problem of the file, the date is not checked. */
+		NEEDS_PLUGIN
+	}
+
+	/**
+	 * Tells why a date structure is not read by {@link #normalize(FLEFRecord)}, which gives {@code null} for both a date that is wrong and
+	 * a date it cannot read because the plugin of its calendar is missing: the two are not the same to the user.
+	 *
+	 * @param dateStructure	The date ({@code null} is nothing to read).
+	 * @return	The first problem found in the days of the date (a point, the ends of a bounded or spanning one).
+	 */
+	public static Problem problem(final FLEFRecord dateStructure){
+		final FLEFRecord value = (dateStructure != null? FLEFRecordHelper.findChild(dateStructure, DateReader.TAG_VALUE): null);
+		if(value == null)
+			return Problem.NONE;
+
+		final List<FLEFRecord> singles = new ArrayList<>();
+		final FLEFRecord point = FLEFRecordHelper.findChild(value, DateReader.TAG_POINT);
+		final FLEFRecord bounded = FLEFRecordHelper.findChild(value, DateReader.TAG_BOUNDED);
+		final FLEFRecord spanning = FLEFRecordHelper.findChild(value, DateReader.TAG_SPANNING);
+		if(point != null)
+			singles.add(point);
+		if(bounded != null){
+			singles.add(FLEFRecordHelper.findChild(bounded, DateReader.TAG_NOT_BEFORE));
+			singles.add(FLEFRecordHelper.findChild(bounded, DateReader.TAG_NOT_AFTER));
+		}
+		if(spanning != null){
+			singles.add(FLEFRecordHelper.findChild(spanning, DateReader.TAG_FROM));
+			singles.add(FLEFRecordHelper.findChild(spanning, DateReader.TAG_TO));
+		}
+		for(final FLEFRecord single : singles){
+			final Problem problem = (single != null? singleDateProblem(single): Problem.NONE);
+			if(problem != Problem.NONE)
+				return problem;
+		}
+		return Problem.NONE;
+	}
+
+	private static Problem singleDateProblem(final FLEFRecord singleDate){
+		final FLEFRecord container = FLEFRecordHelper.findChild(singleDate, DateReader.TAG_VALUE);
+		if(container == null)
+			return Problem.NONE;
+
+		final String calendar = defaultCalendar(FLEFRecordHelper.getChildValue(singleDate, DateReader.TAG_CALENDAR));
+		try{
+			final CalendarType type = CalendarType.fromCode(calendar);
+			final FLEFRecord fullDate = FLEFRecordHelper.findChild(container, DateReader.TAG_FULL_DATE);
+			if(fullDate != null && StringUtils.isNotBlank(fullDate.getValue()))
+				type.parseToJdn(fullDate.getValue());
+			final FLEFRecord decade = FLEFRecordHelper.findChild(container, DateReader.TAG_DECADE);
+			if(decade != null && decade.getValue() != null)
+				type.parseToJdn(Integer.toString(Integer.parseInt(decade.getValue().trim())));
+			final FLEFRecord century = FLEFRecordHelper.findChild(container, DateReader.TAG_CENTURY);
+			final String ordinal = (century != null? FLEFRecordHelper.getChildValue(century, DateReader.TAG_ORDINAL): null);
+			if(ordinal != null)
+				type.parseToJdn(Integer.toString((Integer.parseInt(ordinal.trim()) - 1) * 100 + 1));
+			return Problem.NONE;
+		}
+		catch(final UnsupportedOperationException ignored){
+			return Problem.NEEDS_PLUGIN;
+		}
+		catch(final IllegalArgumentException ignored){
+			return Problem.INVALID;
+		}
 	}
 
 

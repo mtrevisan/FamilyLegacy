@@ -28,23 +28,30 @@ import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IdentityHypothesisReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.ui.api.LinkRole;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextArea;
 import io.github.mtrevisan.familylegacy.ui.components.fields.EntityField;
+import io.github.mtrevisan.familylegacy.ui.components.lists.EntityListPanel;
 import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.PanelKey;
 import io.github.mtrevisan.familylegacy.ui.dialogs.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.ui.dialogs.RecordDiffDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.ConclusionHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.ContextImpactHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.CulturalNormHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.GroupHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.HistoricEventHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IdentityHypothesisHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.MediaHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.PlaceHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.RepositoryHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.ResearchQuestionHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 
 import javax.swing.JButton;
@@ -118,9 +125,11 @@ public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]");
 
 		identity1Field = EntityField.createForRecordFromOneofReference(IdentityHypothesisReader.TAG_IDENTITY, this, model)
-			.withHandlerTypes(IndividualHandler.class, GroupHandler.class, PlaceHandler.class);
+			.withHandlerTypes(IndividualHandler.class, GroupHandler.class, PlaceHandler.class, SourceHandler.class,
+				RepositoryHandler.class, MediaHandler.class, CulturalNormHandler.class, HistoricEventHandler.class);
 		identity2Field = EntityField.createForRecordFromOneofReference(IdentityHypothesisReader.TAG_IDENTITY, this, model)
-			.withHandlerTypes(IndividualHandler.class, GroupHandler.class, PlaceHandler.class);
+			.withHandlerTypes(IndividualHandler.class, GroupHandler.class, PlaceHandler.class, SourceHandler.class,
+				RepositoryHandler.class, MediaHandler.class, CulturalNormHandler.class, HistoricEventHandler.class);
 		rationaleArea = new BoundTextArea(IdentityHypothesisReader.TAG_RATIONALE, 3, 30);
 		confidenceCombo = new BoundComboBox<>(IdentityHypothesisReader.TAG_CONFIDENCE, GUIHelper.fillCombo(ConfidenceReader.CONFIDENCES, null));
 		confidenceCombo.setI18NPrefix("enum.confidence");
@@ -243,7 +252,8 @@ public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 			SwingUtilities.getWindowAncestor(this),
 			I18N.t("dialog.identity_hypothesis.comparison.title"),
 			identity1,
-			identity2);
+			identity2,
+			model);
 	}
 
 
@@ -284,6 +294,28 @@ public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 			rationaleArea.setText(rationale);
 		if(confidence != null)
 			confidenceCombo.setSelectedItem(confidence);
+
+		return this;
+	}
+
+	/**
+	 * Starts the new hypothesis with the sources it rests on, as citations that support it. Only the ones that exist are added; the
+	 * hypothesis is not saved: the user completes it, and decides whether to save it.
+	 *
+	 * @param sourceIds	The identifiers of the sources (they must already be in the model).
+	 * @return	This dialog.
+	 */
+	public IdentityHypothesisRecordDialog withSources(final List<String> sourceIds){
+		boolean added = false;
+		for(final String sourceId : sourceIds)
+			if(model.getRecordById(sourceId) != null){
+				record.addChild(FLEFRecord.createChildWithTag(IdentityHypothesisReader.TAG_SOURCE)
+					.addChild(FLEFRecord.createChildWithTagAndValue(SourceCitationReader.TAG_SOURCE, sourceId))
+					.addChild(FLEFRecord.createChildWithTagAndValue(SourceCitationReader.TAG_STANCE, SourceCitationReader.STANCE_SUPPORTS)));
+				added = true;
+			}
+		if(added)
+			((EntityListPanel)components.getPanel(PanelKey.SOURCE)).withConclusions().load(record);
 
 		return this;
 	}

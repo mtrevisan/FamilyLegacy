@@ -38,6 +38,7 @@ import io.github.mtrevisan.familylegacy.ui.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
+import io.github.mtrevisan.familylegacy.ui.helpers.TimeLabels;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -127,11 +128,6 @@ public final class AgoraPanel extends JPanel{
 			return this;
 		}
 	}
-
-	private static final String[] MONTH_NAMES = {
-		"Jan", "Feb", "Mar", "Apr", "May", "Jun",
-		"Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
-	};
 
 	public record AgoraRow(String id, String name, String place, double latitude, double longitude, String reason,
 		Integer age){}
@@ -536,7 +532,7 @@ public final class AgoraPanel extends JPanel{
 
 		rows.sort(Comparator.comparing(AgoraRow::name, String.CASE_INSENSITIVE_ORDER));
 		tableModel.setRows(rows);
-		countLabel.setText(rows.size() + (rows.size() == 1? " person alive": " people alive"));
+		countLabel.setText(I18N.tf("text.agora.alive", rows.size()));
 	}
 
 	/**
@@ -607,7 +603,7 @@ public final class AgoraPanel extends JPanel{
 					last = a;
 
 			if(last != null){
-				reason = "last: " + describeKind(last.kind());
+				reason = I18N.tf("text.agora.last", describeKind(last.kind()));
 				place = (last.placeName() != null? last.placeName(): StringUtils.EMPTY);
 			}
 			else{
@@ -617,7 +613,7 @@ public final class AgoraPanel extends JPanel{
 					if(first == null || a.startJdn() < first.startJdn())
 						first = a;
 
-				reason = "before first known place";
+				reason = I18N.t("text.agora.before_first");
 				place = (first != null && first.placeName() != null? first.placeName(): StringUtils.EMPTY);
 			}
 		}
@@ -674,7 +670,7 @@ public final class AgoraPanel extends JPanel{
 
 	private static String formatDate(final long jdn){
 		final int[] ymd = JulianDay.toGregorian(jdn);
-		return ymd[2] + StringUtils.SPACE + MONTH_NAMES[ymd[1] - 1] + StringUtils.SPACE + ymd[0];
+		return ymd[2] + StringUtils.SPACE + TimeLabels.monthShort(ymd[1]) + StringUtils.SPACE + ymd[0];
 	}
 
 	/**
@@ -709,7 +705,7 @@ public final class AgoraPanel extends JPanel{
 
 	private static final class AgoraTableModel extends AbstractTableModel{
 
-		private static final String[] COLUMNS = {"Name", "Place", "Reason", "Age"};
+		private static final String[] COLUMNS = {I18N.t("column.name"), I18N.t("column.place"), I18N.t("column.reason"), I18N.t("column.age")};
 
 		private List<AgoraRow> rows = List.of();
 

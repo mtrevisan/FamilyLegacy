@@ -98,7 +98,7 @@ public final class StatisticsDialog extends JDialog{
 
 
 	public StatisticsDialog(final Window owner, final Statistics stats, final FLEFModel model){
-		super(owner, "Statistics", ModalityType.APPLICATION_MODAL);
+		super(owner, I18N.t("dialog.statistics.title"), ModalityType.APPLICATION_MODAL);
 		ToolDialogs.installEscapeToClose(this);
 		this.model = model;
 
@@ -270,7 +270,7 @@ public final class StatisticsDialog extends JDialog{
 		final JScrollPane coverageScroll = new JScrollPane(coverageTable);
 		coverageScroll.setBorder(BorderFactory.createTitledBorder(I18N.t("border.coverage")));
 		final JScrollPane sourcesScroll = new JScrollPane(sourcesTable);
-		sourcesScroll.setBorder(BorderFactory.createTitledBorder("Most cited sources (double-click to open)"));
+		sourcesScroll.setBorder(BorderFactory.createTitledBorder(I18N.t("border.statistics.most_cited")));
 
 		final JPanel tables = new JPanel(new GridLayout(2, 1, 8, 8));
 		tables.add(coverageScroll);
@@ -285,7 +285,7 @@ public final class StatisticsDialog extends JDialog{
 	private void openSource(final Statistics.SourceUse source){
 		if(source == null)
 			return;
-		new MissingRecordsDialog(this, "Source " + source.sourceId(), model,
+		new MissingRecordsDialog(this, I18N.tf("text.statistics.source", source.sourceId()), model,
 			List.of(model.getRecordById(source.sourceId())))
 			.setVisible(true);
 	}
@@ -391,7 +391,7 @@ public final class StatisticsDialog extends JDialog{
 
 	private static final class CompletenessTableModel extends AbstractTableModel{
 
-		private static final String[] COLUMNS = {"Category", "Count"};
+		private static final String[] COLUMNS = {I18N.t("column.category"), I18N.t("column.count")};
 		private final List<Statistics.Completeness.Category> rows;
 
 		CompletenessTableModel(final Statistics.Completeness completeness){
@@ -435,7 +435,7 @@ public final class StatisticsDialog extends JDialog{
 
 	private static final class NameTableModel extends AbstractTableModel{
 
-		private static final String[] COLUMNS = {"Canonical", "Variants", "Total"};
+		private static final String[] COLUMNS = {I18N.t("column.canonical"), I18N.t("column.variants"), I18N.t("column.total")};
 		private final List<Statistics.NameGroup> rows;
 
 		NameTableModel(final List<Statistics.NameGroup> rows){
@@ -471,7 +471,7 @@ public final class StatisticsDialog extends JDialog{
 
 	private static final class CoverageTableModel extends AbstractTableModel{
 
-		private static final String[] COLUMNS = {"Record type", "Total", "Cited", "Coverage"};
+		private static final String[] COLUMNS = {I18N.t("column.record_type"), I18N.t("column.total"), I18N.t("column.cited"), I18N.t("column.coverage")};
 		private final List<Statistics.TypeCoverage> rows;
 
 		CoverageTableModel(final List<Statistics.TypeCoverage> rows){
@@ -508,7 +508,7 @@ public final class StatisticsDialog extends JDialog{
 
 	private static final class SourceUseTableModel extends AbstractTableModel{
 
-		private static final String[] COLUMNS = {"Source", "Citations"};
+		private static final String[] COLUMNS = {I18N.t("column.source"), I18N.t("column.citations")};
 		private final List<Statistics.SourceUse> rows;
 
 		SourceUseTableModel(final List<Statistics.SourceUse> rows){

@@ -29,17 +29,19 @@ import io.github.mtrevisan.familylegacy.io.FLEFWriter;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolOperation;
+import io.github.mtrevisan.familylegacy.ui.dialogs.ProgressDialog;
 import io.github.mtrevisan.familylegacy.util.AtomicFileWriter;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
+import javax.swing.SwingWorker;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.io.File;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.concurrent.ExecutionException;
 
 
 /**
@@ -52,6 +54,8 @@ import java.time.format.DateTimeFormatter;
  * recent files list. The model is written exactly as it is, without
  * running the validator: if the model has errors, they are preserved,
  * so a backup can be used to recover from a bad edit.
+ * <p>
+ * The file is written in the background, with a progress dialog, as Save does.
  */
 public final class BackupTool implements ToolOperation{
 
@@ -60,7 +64,7 @@ public final class BackupTool implements ToolOperation{
 
 	@Override
 	public String getName(){
-		return I18N.t("menu.tools.backup");
+		return I18N.t("menu.file.backup");
 	}
 
 	@Override
@@ -77,8 +81,8 @@ public final class BackupTool implements ToolOperation{
 		}
 
 		final JFileChooser chooser = new JFileChooser();
-		chooser.setDialogTitle("Save backup");
-		chooser.setFileFilter(new FileNameExtensionFilter("FLEF backup (*.flef)", "flef"));
+		chooser.setDialogTitle(I18N.t("dialog.backup.choose"));
+		chooser.setFileFilter(new FileNameExtensionFilter(I18N.t("file.filter.backup"), "flef"));
 		chooser.setSelectedFile(new File("backup-" + TS.format(LocalDateTime.now()) + ".flef"));
 		if(chooser.showSaveDialog(context.owner()) != JFileChooser.APPROVE_OPTION)
 			return;
@@ -95,18 +99,51 @@ public final class BackupTool implements ToolOperation{
 				return;
 		}
 
-		try{
-			final String content = FLEFWriter.createCompact()
-				.writeToString(model);
-			AtomicFileWriter.write(target.toPath(), content, StandardCharsets.UTF_8);
+		write(context, model, target);
+	}
 
-			JOptionPane.showMessageDialog(context.owner(),
-				I18N.l("dialog.backup.saved") + StringUtils.LF + target.getAbsolutePath(), I18N.t("dialog.backup.title"), JOptionPane.INFORMATION_MESSAGE);
-		}
-		catch(final IOException ex){
-			JOptionPane.showMessageDialog(context.owner(),
-				I18N.l("dialog.backup.error") + StringUtils.LF + ex.getMessage(), I18N.t("dialog.backup.title"), JOptionPane.ERROR_MESSAGE);
-		}
+	private static void write(final ToolContext context, final FLEFModel model, final File target){
+		final ProgressDialog progress = new ProgressDialog(context.owner(), I18N.t("dialog.backup.title"),
+			I18N.tf("dialog.file.save.progress", target.getName()));
+
+		final SwingWorker<Void, Void> worker = new SwingWorker<>(){
+			@Override
+			protected Void doInBackground() throws Exception{
+				progress.update(0, I18N.t("progress.serializing"));
+				final String content = FLEFWriter.createCompact()
+					.writeToString(model, progress::update);
+
+				progress.update(-1, I18N.t("progress.writing_file"));
+				AtomicFileWriter.write(target.toPath(), content, StandardCharsets.UTF_8);
+				return null;
+			}
+
+			@Override
+			protected void done(){
+				progress.close();
+
+				try{
+					get();
+
+					JOptionPane.showMessageDialog(context.owner(),
+						I18N.l("dialog.backup.saved") + StringUtils.LF + target.getAbsolutePath(), I18N.t("dialog.backup.title"),
+						JOptionPane.INFORMATION_MESSAGE);
+				}
+				catch(final InterruptedException ex){
+					Thread.currentThread().interrupt();
+				}
+				catch(final ExecutionException ex){
+					final Throwable cause = (ex.getCause() != null? ex.getCause(): ex);
+					JOptionPane.showMessageDialog(context.owner(),
+						I18N.l("dialog.backup.error") + StringUtils.LF + cause.getMessage(), I18N.t("dialog.backup.title"),
+						JOptionPane.ERROR_MESSAGE);
+				}
+			}
+		};
+
+		worker.execute();
+		//modal: blocks the caller until done() disposes the dialog
+		progress.setVisible(true);
 	}
 
 	@Override

@@ -10,11 +10,11 @@ The **Reports** menu produces documents from the data of the file. All seven rep
 | **Descendant Report...** | an individual is selected | the selected individual |
 | **Group Sheet...** | a group is selected | the selected group |
 | **Individual Summary...** | an individual is selected | the selected individual |
-| **Relationship Report...** | the file is not empty | the selected individual |
-| **Bibliography...** | the file has a source or a media record | the selected record |
-| **Research Progress...** | the file has a research question or a task | the selected record |
+| **Relationship Report...** | an individual is selected | the selected individual |
+| **Bibliography...** | the file has a source or a media record, and a record is selected | the selected record |
+| **Research Progress...** | the file has a research question or a task, and a record is selected | the selected record |
 
-Select the person or group you want in the tree **before** you open the report. The first line of the dialog, *Target Subject*, tells which record it will use. Without a suitable record the report is still written, but it contains only a note saying that no target record is available.
+Select the person or group you want in the tree **before** you open the report. The first line of the dialog, *Target Subject*, tells which record it will use. Every report is about a record, so the commands stay greyed out until one is selected, and **Generate...** refuses to write a report without a subject. The *Bibliography* lists the sources cited by that record (by its events, attributes and relationships), not those of the whole file.
 
 ## The dialog
 
@@ -30,7 +30,7 @@ The options start from their default values every time: nothing is remembered be
 
 ### Where the files go
 
-**Generate...** asks for a **folder** (there is no file-name prompt). The files are written there as `ancestor_report`, `descendant_report`, `group_report`, `individual_report`, `relationship_report`, `bibliography_report` or `research_progress_report`, with the extension of the format. **A file with the same name is overwritten without asking.** A progress window with a **Cancel** button follows, and at the end a message lists the files written, with **Open Directory** to see them in the file manager. The reports are not opened for you.
+**Generate...** asks for a **folder** (there is no file-name prompt). The files are written there as `ancestor_report`, `descendant_report`, `group_report`, `individual_report`, `relationship_report`, `bibliography_report` or `research_progress_report`, with the extension of the format. **If a file with the same name is already there, you are asked before it is overwritten.** A progress window with a **Cancel** button follows, and at the end a message lists the files written, with **Open Directory** to see them in the file manager. The reports are not opened for you.
 
 Images are never copied into that folder: Markdown and HTML refer to the original media files (with paths relative to the folder, when possible), so keep the media where they are; Word and PDF embed the images when the report is made.
 
@@ -47,11 +47,11 @@ Images are never copied into that folder: Markdown and HTML refer to the origina
 
 - **Introduction**, **Descendants**, **Paternal ancestry**, **Maternal ancestry**, **Direct relations** (on by default) and **Indirect relations** (off).
 - **Collaterals** decides who is included besides the direct line, for the ancestor and descendant reports only:
-  - *NONE* (default): the direct line only.
-  - *SPOUSES*: plus the spouses.
-  - *SIBLINGS*: for ancestors, plus the siblings of the ancestors (uncles and aunts) and their spouses; for descendants, plus step-children.
-  - *COUSINS*: plus the descendants of those siblings (or of the step-children).
-  - *EXTENDED*: everyone connected by any documented relationship, associates included.
+  - *none* (default): the direct line only.
+  - *spouses*: plus the spouses.
+  - *siblings*: for ancestors, plus the siblings of the ancestors (uncles and aunts) and their spouses; for descendants, plus step-children.
+  - *cousins*: plus the descendants of those siblings (or of the step-children).
+  - *extended*: everyone connected by any documented relationship, associates included.
 
 **Content sections**: **Notes**, **Sources**, **Media**, **Historic events**, **Repositories** (on), and **Historic context & research**, **Cultural norms**, **Evidence qualifiers** (off).
 
@@ -76,7 +76,7 @@ There is no option for how many generations to include: the ancestors and the de
 1. the *Document information* and the title (*Ancestors of ...*, *Descendants of ...*);
 2. how many individuals the report covers;
 3. the **Ancestor tree** (or **Descendant tree**), drawn in text, direct line only;
-4. the **Collateral relatives**, if *Collaterals* is not *NONE*, each with its kinship and path;
+4. the **Collateral relatives**, if *Collaterals* is not *none*, each with its kinship and path;
 5. the **Index of individuals**, if on;
 6. then, for each person, on a new page, the introduction and the life story.
 
@@ -92,6 +92,8 @@ The per-person pages contain only what is written inside the life story (notes a
 ## Language
 
 The **Language** list offers 46 languages, each in its own name. The texts that belong to the report (the section titles, the labels, the narrative sentences, the dates and the numbers) are translated for these 21: English (also UK and US), Arabic, Bengali, German, Spanish, Persian, French, Hindi, Indonesian, Italian, Japanese, Korean, Portuguese, Russian, Swahili, Thai, Turkish, Urdu, Vietnamese and simplified Chinese. The other languages in the list have no translation yet, and the report is probably written in English.
+
+The **kinship terms** that follow a name (*uncle*, *grandmother*, *first cousin*, ...) are in the language of the report, with the form for the sex of the person, in **Italian, German, French, Spanish and Portuguese**. In the other languages they are written in English, even if the rest of the report is translated.
 
 What you wrote in the records (names, notes, titles, places) is never translated.
 

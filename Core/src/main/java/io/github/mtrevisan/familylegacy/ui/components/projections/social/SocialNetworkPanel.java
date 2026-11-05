@@ -410,7 +410,7 @@ public final class SocialNetworkPanel extends JPanel implements TreeChangeListen
 
 	private void updateFocusLabel(){
 		if(graph.isEmpty() || graph.center() == null){
-			toolbar.setFocusLabel("(none)");
+			toolbar.setFocusLabel(I18N.t("text.none"));
 			return;
 		}
 		toolbar.setFocusLabel(graph.center()

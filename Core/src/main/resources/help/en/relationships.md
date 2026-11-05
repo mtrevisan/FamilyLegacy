@@ -25,7 +25,7 @@ The subject is the entity whose role the type describes, and the target is the o
 | **group member** | individual (subject) to group (target) | Membership of a group. |
 | **part of** | group (subject) to group (target) | The subject group is part of the larger target group. |
 
-A file imported from elsewhere can also hold the generic types **spouse** and **child**. The editor does not offer **spouse** for new relationships; choose one of the specific types instead.
+The generic types **spouse** and **child** are for the ties whose nature the evidence does not state (an import writes them to every marriage or child that says nothing more). The editor offers both, so such a relationship can be saved again as it is; replace them with a specific type when you know it. The [Research Assistant](assistant.md) says when the evidence suggests one.
 
 ## The relationship editor
 
@@ -38,6 +38,12 @@ The editor opens when you add a relationship from a person or a group (see below
 - **Confidence**: low, medium or high.
 
 The other tabs are *Context*, *Research*, *Sources*, *Notes*, *Privacy* and *Audit*.
+
+### What the Research Assistant does with the relationships
+The Relationships findings are suggestions: nothing is created or changed until you save the editor that the action opens.
+- **Change type**: when the evidence points to another type (an adoption that both took part in, a parent married to the other after the child was born, the banns or the license of a marriage), the action opens the relationship with the suggested type already chosen. It is chosen only if the editor offers it for the two, and cancelling leaves the relationship as it was.
+- **Create Relationship Draft**: for a marriage event with no relationship, the new relationship starts with the **date of the marriage** as *Valid from* and the **sources of the event**; for the partner of a parent who has no relationship with the child, and for the informant of a birth who has none with the child, it starts with the two individuals and no type (the partner may be a parent or a step-parent, the informant a parent, a relative or a neighbour: the choice is yours), the informant's draft with the sources of the birth.
+- **Siblings** have no type: they are written as an *associate* relationship with a role such as *brother* or *half-brother*. The assistant checks that role against the biological parents (full siblings have both in common, half-siblings one) when both individuals have parents. A role that says a parent, a child or a spouse, for which there are types, and an association between two individuals already linked by a family relationship, are reported as information.
 
 On Save the editor refuses a relationship with no subject, no target or no type, and one whose subject and target are the same entity. Everything else is not blocked: contradictions are reported by the [Research Assistant](assistant.md) as findings.
 

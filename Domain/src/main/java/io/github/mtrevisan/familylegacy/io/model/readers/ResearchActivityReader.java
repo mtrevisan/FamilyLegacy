@@ -114,8 +114,12 @@ public final class ResearchActivityReader{
 	public static final String[] TYPES = new String[]{
 		"search", "review", "analysis", "correspondence", "interview", "hypothesis"
 	};
+	public static final String ENUM_STATUS_PLANNED = "planned";
+	public static final String ENUM_STATUS_IN_PROGRESS = "in_progress";
+	public static final String ENUM_STATUS_COMPLETED = "completed";
+	public static final String ENUM_STATUS_ABANDONED = "abandoned";
 	public static final String[] STATUSES = new String[]{
-		"planned", "in_progress", "completed", "abandoned"
+		ENUM_STATUS_PLANNED, ENUM_STATUS_IN_PROGRESS, ENUM_STATUS_COMPLETED, ENUM_STATUS_ABANDONED
 	};
 	public static final String[] SEARCH_SCOPES = new String[]{
 		"entire_source",

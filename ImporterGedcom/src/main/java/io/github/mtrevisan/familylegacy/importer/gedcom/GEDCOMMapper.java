@@ -33,6 +33,14 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
+import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualAttributeReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PrivacyReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.TextValueVariantReader;
 
 
 /**
@@ -53,13 +61,13 @@ public final class GEDCOMMapper{
 		"MARL", "MARS", "EVEN", "SLGS");
 
 	// ---- Tipi di evento definiti da FLEF (EventRecord.type) ----
-	private static final Set<String> FLEF_EVENT_TYPES = Set.of("birth", "adoption", "death", "cremation", "burial",
-		"coroner_report", "illness", "hospitalization", "medical_procedure", "engagement", "marriage_bann", "marriage_contract",
-		"marriage_license", "marriage_settlement", "marriage", "separation", "divorce_filed", "divorce_decree", "divorce", "annulment", "education",
-		"graduation", "retirement", "military_induction", "military_muster_roll", "military_service", "military_award",
-		"military_release", "military_discharge", "military_resignation", "military_retirement", "prison", "pardon", "jury_duty",
-		"honor", "bankruptcy", "immigration", "naturalization", "emigration", "deportation", "internment", "liberation",
-		"emancipation", "relocation", "census", "deed", "escrow", "chancery", "will", "probate", "guardianship");
+	private static final Set<String> FLEF_EVENT_TYPES = Set.of(EventReader.ENUM_TYPE_BIRTH, EventReader.ENUM_TYPE_ADOPTION, EventReader.ENUM_TYPE_DEATH, EventReader.ENUM_TYPE_CREMATION, EventReader.ENUM_TYPE_BURIAL,
+		EventReader.ENUM_TYPE_CORONER_REPORT, EventReader.ENUM_TYPE_ILLNESS, EventReader.ENUM_TYPE_HOSPITALIZATION, EventReader.ENUM_TYPE_MEDICAL_PROCEDURE, EventReader.ENUM_TYPE_ENGAGEMENT, EventReader.ENUM_TYPE_MARRIAGE_BANN, EventReader.ENUM_TYPE_MARRIAGE_CONTRACT,
+		EventReader.ENUM_TYPE_MARRIAGE_LICENSE, EventReader.ENUM_TYPE_MARRIAGE_SETTLEMENT, EventReader.ENUM_TYPE_MARRIAGE, EventReader.ENUM_TYPE_SEPARATION, EventReader.ENUM_TYPE_DIVORCE_FILED, EventReader.ENUM_TYPE_DIVORCE_DECREE, EventReader.ENUM_TYPE_DIVORCE, EventReader.ENUM_TYPE_ANNULMENT, EventReader.ENUM_TYPE_EDUCATION,
+		EventReader.ENUM_TYPE_GRADUATION, EventReader.ENUM_TYPE_RETIREMENT, EventReader.ENUM_TYPE_MILITARY_INDUCTION, EventReader.ENUM_TYPE_MILITARY_MUSTER_ROLL, EventReader.ENUM_TYPE_MILITARY_SERVICE, EventReader.ENUM_TYPE_MILITARY_AWARD,
+		EventReader.ENUM_TYPE_MILITARY_RELEASE, EventReader.ENUM_TYPE_MILITARY_DISCHARGE, EventReader.ENUM_TYPE_MILITARY_RESIGNATION, EventReader.ENUM_TYPE_MILITARY_RETIREMENT, EventReader.ENUM_TYPE_PRISON, EventReader.ENUM_TYPE_PARDON, EventReader.ENUM_TYPE_JURY_DUTY,
+		EventReader.ENUM_TYPE_HONOR, EventReader.ENUM_TYPE_BANKRUPTCY, EventReader.ENUM_TYPE_IMMIGRATION, EventReader.ENUM_TYPE_NATURALIZATION, EventReader.ENUM_TYPE_EMIGRATION, EventReader.ENUM_TYPE_DEPORTATION, EventReader.ENUM_TYPE_INTERNMENT, EventReader.ENUM_TYPE_LIBERATION,
+		EventReader.ENUM_TYPE_EMANCIPATION, EventReader.ENUM_TYPE_RELOCATION, EventReader.ENUM_TYPE_CENSUS, EventReader.ENUM_TYPE_DEED, EventReader.ENUM_TYPE_ESCROW, EventReader.ENUM_TYPE_CHANCERY, EventReader.ENUM_TYPE_WILL, EventReader.ENUM_TYPE_PROBATE, EventReader.ENUM_TYPE_GUARDIANSHIP);
 	// ---- Sinonimi del TYPE di EVEN verso i tipi di evento FLEF ----
 	private static final Map<String, String> EVENT_TYPE_SYNONYMS = Map.ofEntries(
 		Map.entry("move", "relocation"),
@@ -67,17 +75,17 @@ public final class GEDCOMMapper{
 		Map.entry("military_enlistment", "military_induction"),
 		Map.entry("enlistment", "military_induction"),
 		Map.entry("military", "military_service"),
-		Map.entry("hospitalisation", "hospitalization"),
-		Map.entry("medical", "medical_procedure"),
-		Map.entry("surgery", "medical_procedure"),
-		Map.entry("imprisonment", "prison"),
-		Map.entry("banns", "marriage_bann"),
-		Map.entry("marriage_banns", "marriage_bann"),
-		Map.entry("engaged", "engagement"),
-		Map.entry("divorce_filing", "divorce_filed"),
-		Map.entry("separated", "separation"),
-		Map.entry("award", "honor"),
-		Map.entry("decoration", "honor"),
+		Map.entry("hospitalisation", EventReader.ENUM_TYPE_HOSPITALIZATION),
+		Map.entry("medical", EventReader.ENUM_TYPE_MEDICAL_PROCEDURE),
+		Map.entry("surgery", EventReader.ENUM_TYPE_MEDICAL_PROCEDURE),
+		Map.entry("imprisonment", EventReader.ENUM_TYPE_PRISON),
+		Map.entry("banns", EventReader.ENUM_TYPE_MARRIAGE_BANN),
+		Map.entry("marriage_banns", EventReader.ENUM_TYPE_MARRIAGE_BANN),
+		Map.entry("engaged", EventReader.ENUM_TYPE_ENGAGEMENT),
+		Map.entry("divorce_filing", EventReader.ENUM_TYPE_DIVORCE_FILED),
+		Map.entry("separated", EventReader.ENUM_TYPE_SEPARATION),
+		Map.entry("award", EventReader.ENUM_TYPE_HONOR),
+		Map.entry("decoration", EventReader.ENUM_TYPE_HONOR),
 		Map.entry("incarceration", "prison"),
 		Map.entry("degree", "graduation"),
 		Map.entry("probate", "probate"));
@@ -91,38 +99,38 @@ public final class GEDCOMMapper{
 	 * they become an {@code IndividualAttributeRecord} of this type.
 	 */
 	public static final Map<String, String> ATTRIBUTE_FACT_TYPES = Map.ofEntries(
-		Map.entry("family_address", "residence"),
-		Map.entry("address", "residence"),
-		Map.entry("residence", "residence"),
-		Map.entry("characteristic", "characteristic"),
-		Map.entry("physical_description", "characteristic"),
-		Map.entry("description", "characteristic"),
-		Map.entry("occupation", "occupation"),
-		Map.entry("profession", "occupation"),
-		Map.entry("possession", "possession"),
-		Map.entry("property", "possession"),
-		Map.entry("military_rank", "military_rank"),
-		Map.entry("caste", "caste"),
-		Map.entry("social_class", "social_class"),
-		Map.entry("ethnicity", "ethnicity"),
-		Map.entry("citizenship", "citizenship"),
-		Map.entry("nationality", "nationality"),
-		Map.entry("national_id", "national_id"),
-		Map.entry("title", "title"),
-		Map.entry("nobility_title", "title"),
-		Map.entry("children_count", "children_count"),
-		Map.entry("marriages_count", "marriages_count"),
-		Map.entry("religion", "religion"),
-		Map.entry("language", "language"),
-		Map.entry("literacy", "literacy"),
-		Map.entry("apprenticeship", "apprenticeship"));
+		Map.entry("family_address", IndividualAttributeReader.ENUM_TYPE_RESIDENCE),
+		Map.entry("address", IndividualAttributeReader.ENUM_TYPE_RESIDENCE),
+		Map.entry("residence", IndividualAttributeReader.ENUM_TYPE_RESIDENCE),
+		Map.entry("characteristic", IndividualAttributeReader.ENUM_TYPE_CHARACTERISTIC),
+		Map.entry("physical_description", IndividualAttributeReader.ENUM_TYPE_CHARACTERISTIC),
+		Map.entry("description", IndividualAttributeReader.ENUM_TYPE_CHARACTERISTIC),
+		Map.entry("occupation", IndividualAttributeReader.ENUM_TYPE_OCCUPATION),
+		Map.entry("profession", IndividualAttributeReader.ENUM_TYPE_OCCUPATION),
+		Map.entry("possession", IndividualAttributeReader.ENUM_TYPE_POSSESSION),
+		Map.entry("property", IndividualAttributeReader.ENUM_TYPE_POSSESSION),
+		Map.entry("military_rank", IndividualAttributeReader.ENUM_TYPE_MILITARY_RANK),
+		Map.entry("caste", IndividualAttributeReader.ENUM_TYPE_CASTE),
+		Map.entry("social_class", IndividualAttributeReader.ENUM_TYPE_SOCIAL_CLASS),
+		Map.entry("ethnicity", IndividualAttributeReader.ENUM_TYPE_ETHNICITY),
+		Map.entry("citizenship", IndividualAttributeReader.ENUM_TYPE_CITIZENSHIP),
+		Map.entry("nationality", IndividualAttributeReader.ENUM_TYPE_NATIONALITY),
+		Map.entry("national_id", IndividualAttributeReader.ENUM_TYPE_NATIONAL_ID),
+		Map.entry("title", IndividualAttributeReader.ENUM_TYPE_TITLE),
+		Map.entry("nobility_title", IndividualAttributeReader.ENUM_TYPE_TITLE),
+		Map.entry("children_count", IndividualAttributeReader.ENUM_TYPE_CHILDREN_COUNT),
+		Map.entry("marriages_count", IndividualAttributeReader.ENUM_TYPE_MARRIAGES_COUNT),
+		Map.entry("religion", IndividualAttributeReader.ENUM_TYPE_RELIGION),
+		Map.entry("language", IndividualAttributeReader.ENUM_TYPE_LANGUAGE),
+		Map.entry("literacy", IndividualAttributeReader.ENUM_TYPE_LITERACY),
+		Map.entry("apprenticeship", IndividualAttributeReader.ENUM_TYPE_APPRENTICESHIP));
 	/** EVEN types of a family that are attributes of the family: they become a {@code GroupAttributeRecord} of this type. */
 	public static final Map<String, String> GROUP_ATTRIBUTE_FACT_TYPES = Map.of(
-		"family_address", "residence",
-		"address", "residence",
-		"residence", "residence",
-		"religion", "religion",
-		"language", "language",
+		"family_address", IndividualAttributeReader.ENUM_TYPE_RESIDENCE,
+		"address", IndividualAttributeReader.ENUM_TYPE_RESIDENCE,
+		"residence", IndividualAttributeReader.ENUM_TYPE_RESIDENCE,
+		"religion", IndividualAttributeReader.ENUM_TYPE_RELIGION,
+		"language", IndividualAttributeReader.ENUM_TYPE_LANGUAGE,
 		"social_class", "social_class");
 
 	private static final Pattern PATTERN_NON_TOKEN = Pattern.compile("[^a-z0-9]+");
@@ -148,12 +156,12 @@ public final class GEDCOMMapper{
 		// Eventi (EVENT_MAP)
 		// ------------------------------
 		// religious events have no FLEF type: they are written as custom types
-		EVENT_MAP.put("BIRT", "birth");
+		EVENT_MAP.put("BIRT", EventReader.ENUM_TYPE_BIRTH);
 		EVENT_MAP.put("CHR", "christening");
-		EVENT_MAP.put("DEAT", "death");
-		EVENT_MAP.put("BURI", "burial");
-		EVENT_MAP.put("CREM", "cremation");
-		EVENT_MAP.put("ADOP", "adoption");
+		EVENT_MAP.put("DEAT", EventReader.ENUM_TYPE_DEATH);
+		EVENT_MAP.put("BURI", EventReader.ENUM_TYPE_BURIAL);
+		EVENT_MAP.put("CREM", EventReader.ENUM_TYPE_CREMATION);
+		EVENT_MAP.put("ADOP", EventReader.ENUM_TYPE_ADOPTION);
 		EVENT_MAP.put("BAPM", "baptism");
 		EVENT_MAP.put("BARM", "bar_mitzvah");
 		EVENT_MAP.put("BASM", "bat_mitzvah");
@@ -162,23 +170,23 @@ public final class GEDCOMMapper{
 		EVENT_MAP.put("CONF", "confirmation");
 		EVENT_MAP.put("FCOM", "first_communion");
 		EVENT_MAP.put("ORDN", "ordination");
-		EVENT_MAP.put("NATU", "naturalization");
-		EVENT_MAP.put("EMIG", "emigration");
-		EVENT_MAP.put("IMMI", "immigration");
-		EVENT_MAP.put("CENS", "census");
-		EVENT_MAP.put("PROB", "probate");
-		EVENT_MAP.put("WILL", "will");
-		EVENT_MAP.put("GRAD", "graduation");
-		EVENT_MAP.put("RETI", "retirement");
-		EVENT_MAP.put("MARR", "marriage");
-		EVENT_MAP.put("DIV", "divorce");
-		EVENT_MAP.put("DIVF", "divorce_filed");
-		EVENT_MAP.put("ANUL", "annulment");
-		EVENT_MAP.put("ENGA", "engagement");
-		EVENT_MAP.put("MARB", "marriage_bann");
-		EVENT_MAP.put("MARC", "marriage_contract");
-		EVENT_MAP.put("MARL", "marriage_license");
-		EVENT_MAP.put("MARS", "marriage_settlement");
+		EVENT_MAP.put("NATU", EventReader.ENUM_TYPE_NATURALIZATION);
+		EVENT_MAP.put("EMIG", EventReader.ENUM_TYPE_EMIGRATION);
+		EVENT_MAP.put("IMMI", EventReader.ENUM_TYPE_IMMIGRATION);
+		EVENT_MAP.put("CENS", EventReader.ENUM_TYPE_CENSUS);
+		EVENT_MAP.put("PROB", EventReader.ENUM_TYPE_PROBATE);
+		EVENT_MAP.put("WILL", EventReader.ENUM_TYPE_WILL);
+		EVENT_MAP.put("GRAD", EventReader.ENUM_TYPE_GRADUATION);
+		EVENT_MAP.put("RETI", EventReader.ENUM_TYPE_RETIREMENT);
+		EVENT_MAP.put("MARR", EventReader.ENUM_TYPE_MARRIAGE);
+		EVENT_MAP.put("DIV", EventReader.ENUM_TYPE_DIVORCE);
+		EVENT_MAP.put("DIVF", EventReader.ENUM_TYPE_DIVORCE_FILED);
+		EVENT_MAP.put("ANUL", EventReader.ENUM_TYPE_ANNULMENT);
+		EVENT_MAP.put("ENGA", EventReader.ENUM_TYPE_ENGAGEMENT);
+		EVENT_MAP.put("MARB", EventReader.ENUM_TYPE_MARRIAGE_BANN);
+		EVENT_MAP.put("MARC", EventReader.ENUM_TYPE_MARRIAGE_CONTRACT);
+		EVENT_MAP.put("MARL", EventReader.ENUM_TYPE_MARRIAGE_LICENSE);
+		EVENT_MAP.put("MARS", EventReader.ENUM_TYPE_MARRIAGE_SETTLEMENT);
 		// LDS ordinances
 		EVENT_MAP.put("BAPL", "lds_baptism");
 		EVENT_MAP.put("CONL", "lds_confirmation");
@@ -191,28 +199,28 @@ public final class GEDCOMMapper{
 		// ------------------------------
 		// Attributi (ATTRIBUTE_MAP)
 		// ------------------------------
-		ATTRIBUTE_MAP.put("CAST", "caste");
-		ATTRIBUTE_MAP.put("DSCR", "characteristic");
-		ATTRIBUTE_MAP.put("EDUC", "education");
-		ATTRIBUTE_MAP.put("IDNO", "national_id");
-		ATTRIBUTE_MAP.put("NATI", "nationality");
-		ATTRIBUTE_MAP.put("NCHI", "children_count");
-		ATTRIBUTE_MAP.put("NMR", "marriages_count");
-		ATTRIBUTE_MAP.put("OCCU", "occupation");
-		ATTRIBUTE_MAP.put("PROP", "possession");
-		ATTRIBUTE_MAP.put("RELI", "religion");
-		ATTRIBUTE_MAP.put("RESI", "residence");
-		ATTRIBUTE_MAP.put("SSN", "national_id");
-		ATTRIBUTE_MAP.put("TITL", "title");
+		ATTRIBUTE_MAP.put("CAST", IndividualAttributeReader.ENUM_TYPE_CASTE);
+		ATTRIBUTE_MAP.put("DSCR", IndividualAttributeReader.ENUM_TYPE_CHARACTERISTIC);
+		ATTRIBUTE_MAP.put("EDUC", IndividualAttributeReader.ENUM_TYPE_EDUCATION);
+		ATTRIBUTE_MAP.put("IDNO", IndividualAttributeReader.ENUM_TYPE_NATIONAL_ID);
+		ATTRIBUTE_MAP.put("NATI", IndividualAttributeReader.ENUM_TYPE_NATIONALITY);
+		ATTRIBUTE_MAP.put("NCHI", IndividualAttributeReader.ENUM_TYPE_CHILDREN_COUNT);
+		ATTRIBUTE_MAP.put("NMR", IndividualAttributeReader.ENUM_TYPE_MARRIAGES_COUNT);
+		ATTRIBUTE_MAP.put("OCCU", IndividualAttributeReader.ENUM_TYPE_OCCUPATION);
+		ATTRIBUTE_MAP.put("PROP", IndividualAttributeReader.ENUM_TYPE_POSSESSION);
+		ATTRIBUTE_MAP.put("RELI", IndividualAttributeReader.ENUM_TYPE_RELIGION);
+		ATTRIBUTE_MAP.put("RESI", IndividualAttributeReader.ENUM_TYPE_RESIDENCE);
+		ATTRIBUTE_MAP.put("SSN", IndividualAttributeReader.ENUM_TYPE_NATIONAL_ID);
+		ATTRIBUTE_MAP.put("TITL", IndividualAttributeReader.ENUM_TYPE_TITLE);
 		ATTRIBUTE_MAP.put(TAG_GENERIC_FACT, "fact");
 
 		// ------------------------------
 		// Sesso
 		// ------------------------------
-		SEX_MAP.put("M", "male");
-		SEX_MAP.put("F", "female");
-		SEX_MAP.put("U", "unknown");
-		SEX_MAP.put("X", "unknown");
+		SEX_MAP.put("M", IndividualReader.ENUM_SEX_MALE);
+		SEX_MAP.put("F", IndividualReader.ENUM_SEX_FEMALE);
+		SEX_MAP.put("U", IndividualReader.ENUM_SEX_UNKNOWN);
+		SEX_MAP.put("X", IndividualReader.ENUM_SEX_UNKNOWN);
 
 		// ------------------------------
 		// Media type
@@ -234,9 +242,9 @@ public final class GEDCOMMapper{
 		// ------------------------------
 		// Roles
 		// ------------------------------
-		ROLE_MAP.put("CHILD", "principal");
-		ROLE_MAP.put("PARENT", "principal");
-		ROLE_MAP.put("SPOUSE", "principal");
+		ROLE_MAP.put("CHILD", EventParticipationReader.ENUM_ROLE_PRINCIPAL);
+		ROLE_MAP.put("PARENT", EventParticipationReader.ENUM_ROLE_PRINCIPAL);
+		ROLE_MAP.put("SPOUSE", EventParticipationReader.ENUM_ROLE_PRINCIPAL);
 		ROLE_MAP.put("SPONSOR", "sponsor");
 		ROLE_MAP.put("POWER_OF_ATTORNEY", "power_of_attorney");
 		ROLE_MAP.put("PRISONER", "prisoner");
@@ -260,12 +268,12 @@ public final class GEDCOMMapper{
 		// ------------------------------
 		// Privacy level
 		// ------------------------------
-		PRIVACY_LEVEL_MAP.put("PUBLIC", "public");
-		PRIVACY_LEVEL_MAP.put("RESTRICTED", "restricted");
-		PRIVACY_LEVEL_MAP.put("PRIVACY", "restricted");         // RESN privacy: dati personali riservati
-		PRIVACY_LEVEL_MAP.put("PRIVATE", "restricted");         // RESN privacy: dati personali riservati
+		PRIVACY_LEVEL_MAP.put("PUBLIC", PrivacyReader.ENUM_LEVEL_PUBLIC);
+		PRIVACY_LEVEL_MAP.put("RESTRICTED", PrivacyReader.ENUM_LEVEL_RESTRICTED);
+		PRIVACY_LEVEL_MAP.put("PRIVACY", PrivacyReader.ENUM_LEVEL_RESTRICTED);         // RESN privacy: dati personali riservati
+		PRIVACY_LEVEL_MAP.put("PRIVATE", PrivacyReader.ENUM_LEVEL_RESTRICTED);         // RESN privacy: dati personali riservati
 		// RESN locked impedisce le modifiche, non la diffusione: non ha corrispondente in FLEF
-		PRIVACY_LEVEL_MAP.put("CONFIDENTIAL", "confidential"); // RESN confidential (estensione standard GEDCOM)
+		PRIVACY_LEVEL_MAP.put("CONFIDENTIAL", PrivacyReader.ENUM_LEVEL_CONFIDENTIAL); // RESN confidential (estensione standard GEDCOM)
 	}
 
 	// ---- Metodi pubblici ----
@@ -343,14 +351,14 @@ public final class GEDCOMMapper{
 	 */
 	public static String mapPedigree(final String gedcomPedigree){
 		if(StringUtils.isBlank(gedcomPedigree))
-			return "biological_child";
+			return RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD;
 
 		return switch(gedcomPedigree.trim().toUpperCase(Locale.ROOT)){
-			case "ADOPTED" -> "adoptive_child";
-			case "FOSTER" -> "foster_child";
+			case "ADOPTED" -> RelationshipReader.ENUM_TYPE_ADOPTIVE_CHILD;
+			case "FOSTER" -> RelationshipReader.ENUM_TYPE_FOSTER_CHILD;
 			//a sealing does not tell the nature of the relationship
-			case "SEALING", "SEALED" -> "child";
-			default -> "biological_child";
+			case "SEALING", "SEALED" -> RelationshipReader.ENUM_TYPE_CHILD;
+			default -> RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD;
 		};
 	}
 
@@ -365,8 +373,8 @@ public final class GEDCOMMapper{
 			return null;
 
 		return switch(gedcomStatus.trim().toUpperCase(Locale.ROOT)){
-			case "CHALLENGED", "DISPROVEN" -> "low";
-			case "PROVEN" -> "high";
+			case "CHALLENGED", "DISPROVEN" -> ConfidenceReader.ENUM_LOW;
+			case "PROVEN" -> ConfidenceReader.ENUM_HIGH;
 			default -> null;
 		};
 	}
@@ -436,24 +444,24 @@ public final class GEDCOMMapper{
 		// the script, when given, tells the writing system the name was converted to
 		if(subtags.length > 1 && subtags[1].length() == 4){
 			final String script = switch(subtags[1].toLowerCase(Locale.ROOT)){
-				case "latn" -> "romanized";
-				case "cyrl" -> "cyrillized";
-				case "arab" -> "arabized";
-				case "hebr" -> "hebraized";
-				case "grek" -> "hellenized";
+				case "latn" -> TextValueVariantReader.ENUM_TRANSCRIPTION_TYPE_ROMANIZED;
+				case "cyrl" -> TextValueVariantReader.ENUM_TRANSCRIPTION_TYPE_CYRILLIZED;
+				case "arab" -> TextValueVariantReader.ENUM_TRANSCRIPTION_TYPE_ARABIZED;
+				case "hebr" -> TextValueVariantReader.ENUM_TRANSCRIPTION_TYPE_HEBRAIZED;
+				case "grek" -> TextValueVariantReader.ENUM_TRANSCRIPTION_TYPE_HELLENIZED;
 				default -> null;
 			};
 			if(script != null)
 				return script;
 		}
 		return switch(subtags[0].toLowerCase(Locale.ROOT)){
-			case "en" -> "anglicized";
-			case "fr" -> "francized";
-			case "de" -> "germanized";
-			case "it" -> "italianized";
-			case "es" -> "hispanicized";
-			case "pt" -> "lusitanized";
-			case "la" -> "latinized";
+			case "en" -> TextValueVariantReader.ENUM_TRANSCRIPTION_TYPE_ANGLICIZED;
+			case "fr" -> TextValueVariantReader.ENUM_TRANSCRIPTION_TYPE_FRANCIZED;
+			case "de" -> TextValueVariantReader.ENUM_TRANSCRIPTION_TYPE_GERMANIZED;
+			case "it" -> TextValueVariantReader.ENUM_TRANSCRIPTION_TYPE_ITALIANIZED;
+			case "es" -> TextValueVariantReader.ENUM_TRANSCRIPTION_TYPE_HISPANICIZED;
+			case "pt" -> TextValueVariantReader.ENUM_TRANSCRIPTION_TYPE_LUSITANIZED;
+			case "la" -> TextValueVariantReader.ENUM_TRANSCRIPTION_TYPE_LATINIZED;
 			default -> null;
 		};
 	}
@@ -473,9 +481,9 @@ public final class GEDCOMMapper{
 
 	public static String mapSex(String gedcomSex){
 		if(gedcomSex == null){
-			return "unknown";
+			return IndividualReader.ENUM_SEX_UNKNOWN;
 		}
-		return SEX_MAP.getOrDefault(gedcomSex.toUpperCase(Locale.ROOT), "unknown");
+		return SEX_MAP.getOrDefault(gedcomSex.toUpperCase(Locale.ROOT), IndividualReader.ENUM_SEX_UNKNOWN);
 	}
 
 	public static String mapMediaType(String gedcomMedia){
@@ -539,7 +547,7 @@ public final class GEDCOMMapper{
 		String level = null;
 		for(final String value : StringUtils.split(gedcomLevel.trim().toUpperCase(Locale.ROOT), ", ")){
 			final String mapped = PRIVACY_LEVEL_MAP.get(value);
-			if(mapped != null && (level == null || "confidential".equals(mapped)))
+			if(mapped != null && (level == null || PrivacyReader.ENUM_LEVEL_CONFIDENTIAL.equals(mapped)))
 				level = mapped;
 		}
 		return level;

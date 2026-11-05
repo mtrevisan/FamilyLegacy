@@ -25,11 +25,14 @@
 package io.github.mtrevisan.familylegacy.ui.tools.events;
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
+import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolOperation;
+import io.github.mtrevisan.familylegacy.ui.components.searches.service.RecordSelectionDialog;
+import io.github.mtrevisan.familylegacy.ui.handlers.EventParticipationHandler;
 
 
-/** Opens the participant management dialog. */
+/** Opens the participant management dialog (the same search dialog used for events, sources, places and repositories). */
 public final class ManageParticipantsTool implements ToolOperation{
 
 	@Override
@@ -39,12 +42,15 @@ public final class ManageParticipantsTool implements ToolOperation{
 
 	@Override
 	public void run(final ToolContext context){
-		final EventParticipantsDialog dialog = new EventParticipantsDialog(context);
+		final FLEFModel model = context.model();
+		final RecordSelectionDialog dialog = RecordSelectionDialog.createForManagement(context.owner(), model,
+			EventParticipationHandler.class);
 		dialog.setVisible(true);
 	}
 
 	@Override
 	public boolean isEnabled(final ToolContext context){
+		//also with no participations: the first one can be created from the dialog
 		return (context != null && context.hasAnyEvents());
 	}
 

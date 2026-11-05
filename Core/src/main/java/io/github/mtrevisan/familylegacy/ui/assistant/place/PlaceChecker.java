@@ -43,6 +43,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceRelationshipReader;
 
 
 /**
@@ -68,9 +69,9 @@ final class PlaceChecker{
 	/** Places farther than this are not the same place, whatever their names say (km). */
 	static final double FAR_KM = 50.;
 
-	private static final Set<String> PART_OF = Set.of("administrative_part_of", "geographic_part_of", "ecclesiastical_part_of",
-		"judicial_part_of", "cadastral_part_of");
-	private static final Set<String> TERRITORIAL = Set.of("administrative_part_of", "geographic_part_of");
+	private static final Set<String> PART_OF = Set.of(PlaceRelationshipReader.ENUM_TYPE_ADMINISTRATIVE_PART_OF, PlaceRelationshipReader.ENUM_TYPE_GEOGRAPHIC_PART_OF, PlaceRelationshipReader.ENUM_TYPE_ECCLESIASTICAL_PART_OF,
+		PlaceRelationshipReader.ENUM_TYPE_JUDICIAL_PART_OF, PlaceRelationshipReader.ENUM_TYPE_CADASTRAL_PART_OF);
+	private static final Set<String> TERRITORIAL = Set.of(PlaceRelationshipReader.ENUM_TYPE_ADMINISTRATIVE_PART_OF, PlaceRelationshipReader.ENUM_TYPE_GEOGRAPHIC_PART_OF);
 	private static final Set<String> SUCCESSION = Set.of("successor_of", "merged_from", "split_from", "received_territory_from");
 	private static final String ECCLESIASTICAL = "ecclesiastical_part_of";
 
@@ -390,7 +391,7 @@ final class PlaceChecker{
 				continue;
 
 			final PlaceDraft draft = new PlaceDraft(place.id(), (container != null? container.id(): null),
-				"administrative_part_of");
+				PlaceRelationshipReader.ENUM_TYPE_ADMINISTRATIVE_PART_OF);
 			final List<String> ids = (container != null? List.of(place.id(), container.id()): List.of(place.id()));
 			findings.add(finding(Diagnostic.Severity.INFORMATION, "place.no_parent", ids,
 				I18N.tf("place.no_parent.title", label(place)),

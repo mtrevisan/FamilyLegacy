@@ -17,7 +17,7 @@ Menu entries that make no sense in the current situation are greyed out: for exa
 1. Choose **File > Open file...** (`Ctrl+O`) and pick a `.flef` file. To start from data kept in another program, use **File > Import** instead (see [Files](files.md)).
 2. The tree shows the family around the root individual. Click a name to make that person the new root, or press `Ctrl+J` to jump to anybody by name.
 3. Select a person and press `F2` (or double-click the box) to open the editor. See [Editing people, groups and places](editing.md).
-4. Save with **File > Save as...** (`Ctrl+Shift+S`).
+4. There is nothing to save: every change is written to the file by itself. (A new document asks you where to create its file.)
 
 ## How the data is organised
 

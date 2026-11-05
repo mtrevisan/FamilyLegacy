@@ -72,8 +72,17 @@ public final class ContactReader{
 	public static final String TAG_NAME_VALUE = FLEFRecordHelper.composePath(TAG_NAME, TAG_VALUE);
 	public static final String TAG_NAME_VARIANT = FLEFRecordHelper.composePath(TAG_NAME, TAG_VARIANT);
 
+	public static final String ENUM_TYPE_EMAIL = "email";
+	public static final String ENUM_TYPE_PHONE = "phone";
+	public static final String ENUM_TYPE_MOBILE = "mobile";
+	public static final String ENUM_TYPE_FAX = "fax";
+	public static final String ENUM_TYPE_WEBSITE = "website";
+	public static final String ENUM_TYPE_BLOG = "blog";
+	public static final String ENUM_TYPE_SOCIAL = "social";
+	public static final String ENUM_TYPE_POSTAL = "postal";
+	public static final String ENUM_TYPE_MESSAGING = "messaging";
 	public static final String[] TYPES = {
-		"email", "phone", "mobile", "fax", "website", "blog", "social", "postal", "messaging"
+		ENUM_TYPE_EMAIL, ENUM_TYPE_PHONE, ENUM_TYPE_MOBILE, ENUM_TYPE_FAX, ENUM_TYPE_WEBSITE, ENUM_TYPE_BLOG, ENUM_TYPE_SOCIAL, ENUM_TYPE_POSTAL, ENUM_TYPE_MESSAGING
 	};
 
 

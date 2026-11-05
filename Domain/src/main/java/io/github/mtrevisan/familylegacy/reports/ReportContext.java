@@ -390,7 +390,7 @@ public final class ReportContext{
 	 * ====================================================================== */
 
 	public KinshipCalculator kinship(){
-		if(kinship == null) kinship = KinshipCalculator.forModel(model);
+		if(kinship == null) kinship = KinshipCalculator.forModel(model).withVocabulary(labels.kinship());
 		return kinship;
 	}
 

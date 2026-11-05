@@ -251,7 +251,7 @@ public class IndividualDossierPanel extends JPanel{
 		final StringBuilder subtitle = new StringBuilder();
 		final List<DossierEntry> identity = dossier.entriesOf(DossierSectionType.IDENTITY);
 		for(final DossierEntry e : identity)
-			if("Vital".equals(e.label()) && !e.value()
+			if(I18N.t("text.dossier.vital").equals(e.label()) && !e.value()
 				.isEmpty()){
 				subtitle.append(e.value());
 				break;

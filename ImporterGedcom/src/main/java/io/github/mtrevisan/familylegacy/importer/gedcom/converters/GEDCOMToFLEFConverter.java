@@ -24,11 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.importer.gedcom.converters;
 
-import io.github.mtrevisan.familylegacy.importer.gedcom.Deduplicator;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOM7Normalizer;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.importer.gedcom.IDGenerator;
-import io.github.mtrevisan.familylegacy.importer.gedcom.PlaceCache;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 

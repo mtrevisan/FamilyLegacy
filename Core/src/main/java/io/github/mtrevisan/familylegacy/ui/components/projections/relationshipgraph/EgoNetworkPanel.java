@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.ui.components.projections.relationshipg
 import io.github.mtrevisan.familylegacy.ego.EgoNetworkMutator;
 import io.github.mtrevisan.familylegacy.ego.EgoNetworkService;
 import io.github.mtrevisan.familylegacy.ego.EgoNode;
+import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
@@ -108,7 +109,7 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener{
 	/** Collapsible event timeline, filtered to the visible entities. */
 	private final GlobalEventTimelinePanel timeline;
 	/** Collapsible bar at the bottom that toggles the timeline. */
-	private final CollapsibleBar toggleBar = new CollapsibleBar("Events");
+	private final CollapsibleBar toggleBar = new CollapsibleBar(I18N.t("button.events"));
 	/** Whether the timeline is currently expanded. */
 	private boolean timelineVisible;
 

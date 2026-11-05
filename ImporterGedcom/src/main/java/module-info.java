@@ -33,7 +33,8 @@ open module io.github.mtrevisan.importers.gedcom {
 
 	exports io.github.mtrevisan.familylegacy.importer.gedcom;
 	exports io.github.mtrevisan.familylegacy.importer.gedcom.converters;
+	exports io.github.mtrevisan.familylegacy.importer.gedcom.fileimporter;
 
 	provides io.github.mtrevisan.familylegacy.importer.FileImporter
-		with io.github.mtrevisan.familylegacy.importer.gedcom.GedcomFileImporter;
+		with io.github.mtrevisan.familylegacy.importer.gedcom.fileimporter.GedcomFileImporter;
 }

@@ -26,15 +26,18 @@ package io.github.mtrevisan.familylegacy.ui.components.projections.bookmarks;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
+import io.github.mtrevisan.familylegacy.util.AtomicFileWriter;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -62,9 +65,12 @@ public final class BookmarkStore{
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(BookmarkStore.class);
 
+	/** The property that ties a bookmark to the file it was made in. */
+	public static final String FILE_PROPERTY = "file";
+
 	private static final String PREFIX = "bookmark.";
-	private static final Path DEFAULT_FILE = Path.of(
-		System.getProperty("user.home"), ".familylegacy", "bookmarks.properties");
+	/** The system property that gives another file for the bookmarks (the tests give their own: the bookmarks of the user are left alone). */
+	public static final String FILE_PROPERTY_NAME = "familylegacy.bookmarks.file";
 
 
 	private final Path file;
@@ -72,7 +78,14 @@ public final class BookmarkStore{
 
 
 	public BookmarkStore(){
-		this(DEFAULT_FILE);
+		this(defaultFile());
+	}
+
+	private static Path defaultFile(){
+		final String custom = System.getProperty(FILE_PROPERTY_NAME);
+		return (custom != null && !custom.isBlank()
+			? Path.of(custom)
+			: Path.of(System.getProperty("user.home"), ".familylegacy", "bookmarks.properties"));
 	}
 
 	public BookmarkStore(final Path file){
@@ -100,11 +113,30 @@ public final class BookmarkStore{
 	 * @param model	The model the root ids refer to.
 	 * @return	The bookmarks, ordered by creation time (oldest first).
 	 */
-	public List<Bookmark> visible(final FLEFModel model){
+	public List<Bookmark> visible(final FLEFModel model, final String filePath){
 		return all().stream()
+			.filter(bookmark -> belongsToDocument(bookmark, filePath))
 			.filter(bookmark -> bookmark.rootId().isEmpty()
 				|| !PrivacyService.isHidden(model, model.getRecordById(bookmark.rootId())))
 			.toList();
+	}
+
+	/**
+	 * A bookmark refers to the identifier of a record, and the same identifier is another record in another file: it belongs to the file
+	 * it was made in, and is shown only there. One that is tied to no file (made before they were) belongs to none, and is not shown.
+	 */
+	private static boolean belongsToDocument(final Bookmark bookmark, final String filePath){
+		final String file = bookmark.property(FILE_PROPERTY);
+		return (file != null && filePath != null && samePath(file, filePath));
+	}
+
+	private static boolean samePath(final String a, final String b){
+		try{
+			return Path.of(a).equals(Path.of(b));
+		}
+		catch(final InvalidPathException ignored){
+			return a.equals(b);
+		}
 	}
 
 	public boolean isEmpty(){
@@ -209,7 +241,6 @@ public final class BookmarkStore{
 
 	private void save(){
 		final Properties props = new Properties();
-		props.setProperty("#", "FamilyLegacy bookmarks");
 		for(final Bookmark b : bookmarks.values()){
 			final String p = PREFIX + b.id() + ".";
 			props.setProperty(p + "name", b.name());
@@ -222,9 +253,10 @@ public final class BookmarkStore{
 
 		try{
 			Files.createDirectories(file.getParent());
-			try(final OutputStream os = Files.newOutputStream(file)){
-				props.store(os, "FamilyLegacy bookmarks");
-			}
+			//written through a temporary file, so that a crash does not leave half of the bookmarks
+			final ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+			props.store(bytes, "FamilyLegacy bookmarks");
+			AtomicFileWriter.write(file, bytes.toString(StandardCharsets.ISO_8859_1), StandardCharsets.ISO_8859_1);
 		}
 		catch(final IOException e){
 			LOGGER.warn("Could not save bookmarks to {}: {}", file, e.getMessage());

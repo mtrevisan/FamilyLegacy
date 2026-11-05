@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.ui.components.projections.chronomap;
 
 import io.github.mtrevisan.familylegacy.chronomap.ChronomapIndex;
 import io.github.mtrevisan.familylegacy.chronomap.ChronomapIndex.GeoAnchor;
+import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.GeoCoordinate;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
@@ -143,7 +144,7 @@ public final class ChronomapOverlayPainter implements ChronomapLayer{
 
 	@Override
 	public String getName(){
-		return "Markers";
+		return I18N.t("text.chronomap.markers");
 	}
 
 	@Override
@@ -166,7 +167,7 @@ public final class ChronomapOverlayPainter implements ChronomapLayer{
 		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
 		for(final String id : visibleIds){
-			final List<GeoAnchor> anchors = filter(index.anchorsOf(id));
+			final List<GeoAnchor> anchors = anchorsOf(id);
 			if(anchors.isEmpty())
 				continue;
 
@@ -464,26 +465,33 @@ public final class ChronomapOverlayPainter implements ChronomapLayer{
 		}
 	}
 
-	private List<GeoAnchor> filter(final List<GeoAnchor> anchors){
-		if(enabledEventTypes == null)
+	/**
+	 * The anchors of an individual that pass the event type filter. Every consumer of the anchors (2D markers, 3D globe, hit test,
+	 * view fitting) must use this and not the index directly, or the filter is ignored there.
+	 *
+	 * @param id	The identifier of the individual.
+	 * @return	The anchors to take into account.
+	 */
+	public List<GeoAnchor> anchorsOf(final String id){
+		return filterAnchors(index.anchorsOf(id), enabledEventTypes);
+	}
+
+	/**
+	 * @param anchors	The anchors.
+	 * @param enabledTypes	The event types to keep: {@code null} keeps everything, an empty set removes every event.
+	 * @return	The anchors that are not events, plus the events of an enabled type.
+	 */
+	static List<GeoAnchor> filterAnchors(final List<GeoAnchor> anchors, final Set<String> enabledTypes){
+		if(enabledTypes == null)
 			return anchors;
 
 		final List<GeoAnchor> result = new ArrayList<>(anchors.size());
-		for(final GeoAnchor a : anchors)
-			if(isEventEnabled(a))
+		for(final GeoAnchor a : anchors){
+			final String kind = a.kind();
+			if(!kind.startsWith("event:") || enabledTypes.contains(kind.substring("event:".length())))
 				result.add(a);
+		}
 		return result;
-	}
-
-	private boolean isEventEnabled(final GeoAnchor a){
-		if(enabledEventTypes == null)
-			return true;
-
-		final String kind = a.kind();
-		if(!kind.startsWith("event:"))
-			return true;
-
-		return enabledEventTypes.contains(kind.substring("event:".length()));
 	}
 
 	private static double[] slerp(final double lat1, final double lon1,

@@ -48,7 +48,7 @@ The baptism says 12 March 1841, the military record says 1842.
 
 1. Select the person at the end of the line in the tree. Check what the tree shows with the [views](views.md).
 2. **Reports > Ancestor Report...**. Tick *Markdown*, *HTML*, *Word* or *PDF* (see the note on PDF fonts in [Reports](reports.md#the-formats)).
-3. Choose the **privacy**: *Hide Restricted and Confidential* leaves out the people who may be alive. Leave *Collaterals* on *NONE* for the direct line, or choose *SIBLINGS* to add uncles and aunts.
+3. Choose the **privacy**: *Hide Restricted and Confidential* leaves out the people who may be alive. Leave *Collaterals* on *none* for the direct line, or choose *siblings* to add uncles and aunts.
 4. Choose the **language** and press **Generate...**, choosing a **folder**: the file is written there as `ancestor_report` with the extension of the format. Remember that HTML and Markdown refer to your images where they are, and an existing report with the same name is replaced.
 
 ## 6. Before sharing
@@ -65,6 +65,6 @@ At the end of a work session:
 1. **Tools > Validate File...** and fix the errors.
 2. Look at the **Assistant** indicator in the toolbar (errors, warnings, notes) and at the new findings.
 3. **File > Backup...** with the suggested dated name.
-4. **File > Save as...** (or save over the open file if you are sure).
+4. There is nothing to save: the changes are already in the file. **File > Save as...** is for continuing on another file.
 
 From time to time: **Tools > Statistics...** to see what is missing (individuals with no birth, no parents, no source), **Source > Citation Analysis...** for the unused sources and the uncited assertions, and **Tools > Consanguinity Report...** if the tree is closed in on itself.

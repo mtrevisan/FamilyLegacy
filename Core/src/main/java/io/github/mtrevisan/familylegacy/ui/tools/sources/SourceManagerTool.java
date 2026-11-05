@@ -43,10 +43,7 @@ public final class SourceManagerTool implements ToolOperation{
 	@Override
 	public void run(final ToolContext context){
 		final FLEFModel model = context.model();
-		@SuppressWarnings("unchecked")
-		final RecordSelectionDialog dialog = RecordSelectionDialog.createWithAllowRecordCreation(context.owner(), model,
-			(record, handler) -> {},
-			SourceHandler.class);
+		final RecordSelectionDialog dialog = RecordSelectionDialog.createForManagement(context.owner(), model, SourceHandler.class);
 		dialog.setVisible(true);
 	}
 

@@ -251,7 +251,7 @@ final class RecentChangesDialog extends JDialog{
 			return;
 
 		RecordDiffDialog.showComparison(this, I18N.tf("recent_changes.diff_title", row.typeLabel(), row.name()),
-			row.change().before(), row.change().after());
+			row.change().before(), row.change().after(), modelSupplier.get());
 	}
 
 	private void openRecord(final Row row){

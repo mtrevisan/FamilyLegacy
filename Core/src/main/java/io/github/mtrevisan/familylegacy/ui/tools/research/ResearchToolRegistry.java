@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.ui.tools.research;
 
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolOperation;
+import io.github.mtrevisan.familylegacy.ui.tools.context.ContextBoardTool;
 
 import java.util.List;
 
@@ -47,6 +48,11 @@ public final class ResearchToolRegistry{
 			new ManageResearchActivitiesTool(),
 			new ManageResearchTasksTool()
 		);
+	}
+
+	/** The context (historic events, cultural norms and their impacts) the records are read in. */
+	public static List<ToolOperation> contextTools(){
+		return List.of(new ContextBoardTool());
 	}
 
 	/** Analysis tools. */

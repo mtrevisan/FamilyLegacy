@@ -29,7 +29,7 @@ import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.ui.assistant.AssistantCategory;
 import io.github.mtrevisan.familylegacy.ui.assistant.Diagnostic;
 import io.github.mtrevisan.familylegacy.ui.assistant.DiagnosticKeys;
-import io.github.mtrevisan.familylegacy.ui.assistant.chronology.DateRange;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.DateRange;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -38,6 +38,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.CulturalNormReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.HistoricEventReader;
 
 
 /**
@@ -70,9 +74,9 @@ final class ContextChecker{
 	static final int MEDIUM_USEFULNESS = 45;
 
 	private static final Set<String> CRISIS_TYPES = Set.of("epidemic", "pandemic", "famine", "war", "natural_disaster");
-	private static final Set<String> DEATH_EVENTS = Set.of("death", "burial");
-	private static final Set<String> MARRIAGE_EVENTS = Set.of("marriage", "marriage_contract", "marriage_settlement", "marriage_bann",
-		"marriage_license", "engagement");
+	private static final Set<String> DEATH_EVENTS = Set.of(EventReader.ENUM_TYPE_DEATH, EventReader.ENUM_TYPE_BURIAL);
+	private static final Set<String> MARRIAGE_EVENTS = Set.of(EventReader.ENUM_TYPE_MARRIAGE, EventReader.ENUM_TYPE_MARRIAGE_CONTRACT, EventReader.ENUM_TYPE_MARRIAGE_SETTLEMENT, EventReader.ENUM_TYPE_MARRIAGE_BANN,
+		EventReader.ENUM_TYPE_MARRIAGE_LICENSE, EventReader.ENUM_TYPE_ENGAGEMENT);
 
 	/**
 	 * What a kind of historic event or cultural norm can influence.
@@ -84,41 +88,41 @@ final class ContextChecker{
 	private record Rule(Set<String> eventTypes, String impact, String hint){}
 
 	private static final Map<String, Rule> HISTORIC = Map.ofEntries(
-		Map.entry("war", new Rule(Set.of("death", "burial", "emigration", "immigration", "relocation", "military_service",
-			"military_induction", "deportation", "internment"), "influences", "war")),
-		Map.entry("epidemic", new Rule(DEATH_EVENTS, "explains", "epidemic")),
-		Map.entry("pandemic", new Rule(DEATH_EVENTS, "explains", "epidemic")),
-		Map.entry("famine", new Rule(DEATH_EVENTS, "explains", "famine")),
-		Map.entry("natural_disaster", new Rule(Set.of("death", "burial", "relocation"), "explains", "disaster")),
-		Map.entry("migration", new Rule(Set.of("emigration", "immigration", "relocation"), "explains", "migration")),
-		Map.entry("legal_reform", new Rule(Set.of("marriage", "birth", "will", "probate", "guardianship", "adoption", "naturalization"),
+		Map.entry(HistoricEventReader.ENUM_TYPE_WAR, new Rule(Set.of(EventReader.ENUM_TYPE_DEATH, EventReader.ENUM_TYPE_BURIAL, EventReader.ENUM_TYPE_EMIGRATION, EventReader.ENUM_TYPE_IMMIGRATION, EventReader.ENUM_TYPE_RELOCATION, EventReader.ENUM_TYPE_MILITARY_SERVICE,
+			EventReader.ENUM_TYPE_MILITARY_INDUCTION, EventReader.ENUM_TYPE_DEPORTATION, EventReader.ENUM_TYPE_INTERNMENT), "influences", "war")),
+		Map.entry(HistoricEventReader.ENUM_TYPE_EPIDEMIC, new Rule(DEATH_EVENTS, "explains", "epidemic")),
+		Map.entry(HistoricEventReader.ENUM_TYPE_PANDEMIC, new Rule(DEATH_EVENTS, "explains", "epidemic")),
+		Map.entry(HistoricEventReader.ENUM_TYPE_FAMINE, new Rule(DEATH_EVENTS, "explains", "famine")),
+		Map.entry(HistoricEventReader.ENUM_TYPE_NATURAL_DISASTER, new Rule(Set.of(EventReader.ENUM_TYPE_DEATH, EventReader.ENUM_TYPE_BURIAL, EventReader.ENUM_TYPE_RELOCATION), "explains", "disaster")),
+		Map.entry(HistoricEventReader.ENUM_TYPE_MIGRATION, new Rule(Set.of(EventReader.ENUM_TYPE_EMIGRATION, EventReader.ENUM_TYPE_IMMIGRATION, EventReader.ENUM_TYPE_RELOCATION), "explains", "migration")),
+		Map.entry(HistoricEventReader.ENUM_TYPE_LEGAL_REFORM, new Rule(Set.of(EventReader.ENUM_TYPE_MARRIAGE, EventReader.ENUM_TYPE_BIRTH, EventReader.ENUM_TYPE_WILL, EventReader.ENUM_TYPE_PROBATE, EventReader.ENUM_TYPE_GUARDIANSHIP, EventReader.ENUM_TYPE_ADOPTION, EventReader.ENUM_TYPE_NATURALIZATION),
 			"influences", "law")),
-		Map.entry("political_change", new Rule(Set.of("emigration", "immigration", "naturalization", "deportation"), "influences",
+		Map.entry(HistoricEventReader.ENUM_TYPE_POLITICAL_CHANGE, new Rule(Set.of(EventReader.ENUM_TYPE_EMIGRATION, EventReader.ENUM_TYPE_IMMIGRATION, EventReader.ENUM_TYPE_NATURALIZATION, EventReader.ENUM_TYPE_DEPORTATION), "influences",
 			"politics")),
-		Map.entry("territorial_change", new Rule(Set.of("birth", "marriage", "relocation", "naturalization"), "influences",
+		Map.entry(HistoricEventReader.ENUM_TYPE_TERRITORIAL_CHANGE, new Rule(Set.of(EventReader.ENUM_TYPE_BIRTH, EventReader.ENUM_TYPE_MARRIAGE, EventReader.ENUM_TYPE_RELOCATION, EventReader.ENUM_TYPE_NATURALIZATION), "influences",
 			"territory")),
-		Map.entry("economic_crisis", new Rule(Set.of("emigration", "relocation", "bankruptcy"), "motivates", "economy")),
-		Map.entry("religious_reform", new Rule(Set.of("marriage", "birth", "burial"), "influences", "religion")));
+		Map.entry(HistoricEventReader.ENUM_TYPE_ECONOMIC_CRISIS, new Rule(Set.of(EventReader.ENUM_TYPE_EMIGRATION, EventReader.ENUM_TYPE_RELOCATION, EventReader.ENUM_TYPE_BANKRUPTCY), "motivates", "economy")),
+		Map.entry(HistoricEventReader.ENUM_TYPE_RELIGIOUS_REFORM, new Rule(Set.of(EventReader.ENUM_TYPE_MARRIAGE, EventReader.ENUM_TYPE_BIRTH, EventReader.ENUM_TYPE_BURIAL), "influences", "religion")));
 
 	private static final Map<String, Rule> NORMS = Map.ofEntries(
-		Map.entry("marriage_minimum_age", new Rule(MARRIAGE_EVENTS, "constrains", "marriage_age")),
-		Map.entry("marriage_practice", new Rule(MARRIAGE_EVENTS, "explains", "marriage")),
-		Map.entry("dowry_practice", new Rule(MARRIAGE_EVENTS, "explains", "marriage")),
-		Map.entry("marriage_prohibited_degree", new Rule(MARRIAGE_EVENTS, "constrains", "marriage")),
-		Map.entry("widowhood_rule", new Rule(MARRIAGE_EVENTS, "explains", "marriage")),
-		Map.entry("baptism_age", new Rule(Set.of("birth"), "explains", "baptism")),
-		Map.entry("confirmation_age", new Rule(Set.of("birth"), "explains", "baptism")),
-		Map.entry("naming_convention", new Rule(Set.of("birth"), "explains", "naming")),
-		Map.entry("surname_transmission", new Rule(Set.of("birth"), "explains", "naming")),
-		Map.entry("patronymic_system", new Rule(Set.of("birth"), "explains", "naming")),
-		Map.entry("matronymic_system", new Rule(Set.of("birth"), "explains", "naming")),
-		Map.entry("legitimacy_rule", new Rule(Set.of("birth"), "explains", "legitimacy")),
-		Map.entry("adoption_practice", new Rule(Set.of("adoption"), "explains", "adoption")),
-		Map.entry("burial_practice", new Rule(DEATH_EVENTS, "explains", "burial")),
-		Map.entry("inheritance_rule", new Rule(Set.of("death", "will", "probate", "guardianship"), "influences", "inheritance")),
-		Map.entry("succession_rule", new Rule(Set.of("death", "will", "probate", "guardianship"), "influences", "inheritance")),
-		Map.entry("guardianship_rule", new Rule(Set.of("death", "will", "probate", "guardianship"), "influences", "inheritance")),
-		Map.entry("military_service_age", new Rule(Set.of("military_induction", "military_service"), "constrains", "military")));
+		Map.entry(CulturalNormReader.ENUM_TYPE_MARRIAGE_MINIMUM_AGE, new Rule(MARRIAGE_EVENTS, "constrains", "marriage_age")),
+		Map.entry(CulturalNormReader.ENUM_TYPE_MARRIAGE_PRACTICE, new Rule(MARRIAGE_EVENTS, "explains", "marriage")),
+		Map.entry(CulturalNormReader.ENUM_TYPE_DOWRY_PRACTICE, new Rule(MARRIAGE_EVENTS, "explains", "marriage")),
+		Map.entry(CulturalNormReader.ENUM_TYPE_MARRIAGE_PROHIBITED_DEGREE, new Rule(MARRIAGE_EVENTS, "constrains", "marriage")),
+		Map.entry(CulturalNormReader.ENUM_TYPE_WIDOWHOOD_RULE, new Rule(MARRIAGE_EVENTS, "explains", "marriage")),
+		Map.entry(CulturalNormReader.ENUM_TYPE_BAPTISM_AGE, new Rule(Set.of(EventReader.ENUM_TYPE_BIRTH), "explains", "baptism")),
+		Map.entry(CulturalNormReader.ENUM_TYPE_CONFIRMATION_AGE, new Rule(Set.of(EventReader.ENUM_TYPE_BIRTH), "explains", "baptism")),
+		Map.entry(CulturalNormReader.ENUM_TYPE_NAMING_CONVENTION, new Rule(Set.of(EventReader.ENUM_TYPE_BIRTH), "explains", "naming")),
+		Map.entry(CulturalNormReader.ENUM_TYPE_SURNAME_TRANSMISSION, new Rule(Set.of(EventReader.ENUM_TYPE_BIRTH), "explains", "naming")),
+		Map.entry(CulturalNormReader.ENUM_TYPE_PATRONYMIC_SYSTEM, new Rule(Set.of(EventReader.ENUM_TYPE_BIRTH), "explains", "naming")),
+		Map.entry(CulturalNormReader.ENUM_TYPE_MATRONYMIC_SYSTEM, new Rule(Set.of(EventReader.ENUM_TYPE_BIRTH), "explains", "naming")),
+		Map.entry(CulturalNormReader.ENUM_TYPE_LEGITIMACY_RULE, new Rule(Set.of(EventReader.ENUM_TYPE_BIRTH), "explains", "legitimacy")),
+		Map.entry(CulturalNormReader.ENUM_TYPE_ADOPTION_PRACTICE, new Rule(Set.of(EventReader.ENUM_TYPE_ADOPTION), "explains", "adoption")),
+		Map.entry(CulturalNormReader.ENUM_TYPE_BURIAL_PRACTICE, new Rule(DEATH_EVENTS, "explains", "burial")),
+		Map.entry(CulturalNormReader.ENUM_TYPE_INHERITANCE_RULE, new Rule(Set.of(EventReader.ENUM_TYPE_DEATH, EventReader.ENUM_TYPE_WILL, EventReader.ENUM_TYPE_PROBATE, EventReader.ENUM_TYPE_GUARDIANSHIP), "influences", "inheritance")),
+		Map.entry(CulturalNormReader.ENUM_TYPE_SUCCESSION_RULE, new Rule(Set.of(EventReader.ENUM_TYPE_DEATH, EventReader.ENUM_TYPE_WILL, EventReader.ENUM_TYPE_PROBATE, EventReader.ENUM_TYPE_GUARDIANSHIP), "influences", "inheritance")),
+		Map.entry(CulturalNormReader.ENUM_TYPE_GUARDIANSHIP_RULE, new Rule(Set.of(EventReader.ENUM_TYPE_DEATH, EventReader.ENUM_TYPE_WILL, EventReader.ENUM_TYPE_PROBATE, EventReader.ENUM_TYPE_GUARDIANSHIP), "influences", "inheritance")),
+		Map.entry(CulturalNormReader.ENUM_TYPE_MILITARY_SERVICE_AGE, new Rule(Set.of(EventReader.ENUM_TYPE_MILITARY_INDUCTION, EventReader.ENUM_TYPE_MILITARY_SERVICE), "constrains", "military")));
 
 
 	private ContextChecker(){}
@@ -138,8 +142,8 @@ final class ContextChecker{
 	/** @return how useful a suggestion with that estimated usefulness is: high, medium or low */
 	static String level(final int usefulness){
 		if(usefulness >= HIGH_USEFULNESS)
-			return "high";
-		return (usefulness >= MEDIUM_USEFULNESS? "medium": "low");
+			return ConfidenceReader.ENUM_HIGH;
+		return (usefulness >= MEDIUM_USEFULNESS? ConfidenceReader.ENUM_MEDIUM: ConfidenceReader.ENUM_LOW);
 	}
 
 

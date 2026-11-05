@@ -25,10 +25,11 @@
 package io.github.mtrevisan.familylegacy.ui.tools.files;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
@@ -73,10 +74,54 @@ public final class RecentFilesManager{
 		load();
 	}
 
+	/** @param preferences	Where the list is kept (a test gives its own). */
+	RecentFilesManager(final Preferences preferences){
+		this.preferences = preferences;
 
-	/** Returns the list of recent files, most recent first. */
+		load();
+	}
+
+	/**
+	 * @return	The file as the list knows it: absolute, without {@code .} and {@code ..}, and, if it exists, as the file system writes it
+	 * 	(links resolved, capitals as they are). The same file reached through different paths is a single entry of the list.
+	 */
+	public static File normalized(final File file){
+		Path path = file.toPath().toAbsolutePath().normalize();
+		try{
+			if(Files.exists(path))
+				path = path.toRealPath();
+		}
+		catch(final IOException | SecurityException ignored){
+			//the path as it is
+		}
+		return path.toFile();
+	}
+
+	/**
+	 * @param file	A file of the list.
+	 * @param all	The files of the list.
+	 * @return	The text of its menu entry: the name of the file, and the folder too when another file of the list has the same name
+	 * 	(two different files can be called the same).
+	 */
+	public static String label(final File file, final List<File> all){
+		final boolean ambiguous = all.stream()
+			.anyMatch(other -> other != file && other.getName().equals(file.getName()) && !same(other, file));
+		return (ambiguous && file.getParentFile() != null? file.getName() + " (" + file.getParent() + ")": file.getName());
+	}
+
+	private static boolean same(final File a, final File b){
+		return normalized(a).toPath().equals(normalized(b).toPath());
+	}
+
+
+	/** Returns the list of recent files, most recent first, with no file twice. */
 	public List<File> list(){
 		return List.copyOf(files);
+	}
+
+	/** @return	Whether the file is in the list, whichever path it is written with. */
+	public boolean contains(final File file){
+		return file != null && files.stream().anyMatch(existing -> same(existing, file));
 	}
 
 
@@ -89,14 +134,9 @@ public final class RecentFilesManager{
 		if(file == null)
 			return;
 
-		final Set<File> set = new LinkedHashSet<>();
-		set.add(file);
-		for(final File existing : files)
-			if(!existing.equals(file))
-				set.add(existing);
-
-		files.clear();
-		files.addAll(set);
+		final File entry = normalized(file);
+		files.removeIf(existing -> same(existing, entry));
+		files.addFirst(entry);
 
 		while(files.size() > MAX_ENTRIES)
 			files.remove(files.size() - 1);
@@ -106,7 +146,7 @@ public final class RecentFilesManager{
 
 	/** Removes the given file from the list, if present. */
 	public void remove(final File file){
-		if(file != null && files.remove(file))
+		if(file != null && files.removeIf(existing -> same(existing, file)))
 			save();
 	}
 
@@ -139,9 +179,15 @@ public final class RecentFilesManager{
 			final int count = preferences.getInt(KEY_COUNT, 0);
 			for(int i = 0; i < count; i ++){
 				final String path = preferences.get(KEY_PREFIX + i, null);
-				if(path != null && !path.isBlank())
-					files.add(new File(path));
+				if(path != null && !path.isBlank()){
+					final File file = new File(path);
+					//a list written by an older version can have a file twice
+					if(files.stream().noneMatch(existing -> same(existing, file)))
+						files.add(normalized(file));
+				}
 			}
+			if(files.size() != count)
+				save();
 		}
 		catch(final SecurityException ignored){
 			// The store is not readable: leave the in-memory list empty.

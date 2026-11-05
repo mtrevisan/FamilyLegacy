@@ -32,6 +32,8 @@ import io.github.mtrevisan.familylegacy.importer.gedcom.converters.GEDCOMToFLEFC
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.reports.i18n.ReportLabels;
+import io.github.mtrevisan.familylegacy.reports.i18n.ReportLanguage;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -104,6 +106,64 @@ class KinshipCalculatorTest{
 		throw new IllegalArgumentException(firstName);
 	}
 
+
+	@Test
+	void theRelationshipIsDescribedWithTheNamesAndTheTermsOfTheSex() throws IOException{
+		final FLEFModel model = convert();
+		final KinshipCalculator calculator = KinshipCalculator.forModel(model);
+		final String franco = idOf(model, "Franco");
+		final String aldo = idOf(model, "Aldo");
+		final String berta = idOf(model, "Berta");
+		final String elio = idOf(model, "Elio");
+		final String dino = idOf(model, "Dino");
+
+		final String father = calculator.calculate(franco, aldo).relationshipDescription();
+		Assertions.assertTrue(father.contains("Franco") && father.contains(" is the father of ") && father.contains("Aldo"), father);
+		final String brothers = calculator.calculate(aldo, elio).relationshipDescription();
+		Assertions.assertTrue(brothers.contains(" are full brothers"), brothers);
+		final String uncle = calculator.calculate(aldo, dino).relationshipDescription();
+		Assertions.assertTrue(uncle.contains("Aldo") && uncle.contains(" is the uncle of ") && uncle.contains("Dino"), uncle);
+		final String aunt = calculator.calculate(dino, berta).relationshipDescription();
+		Assertions.assertTrue(aunt.contains("Berta") && aunt.contains(" is the aunt of ") && aunt.contains("Dino"), aunt);
+
+		Assertions.assertEquals("uncle", calculator.shortTerm(aldo, dino));
+		Assertions.assertEquals("nephew", calculator.shortTerm(dino, aldo));
+		Assertions.assertEquals("brother", calculator.shortTerm(aldo, elio));
+		Assertions.assertEquals("unrelated", calculator.shortTerm(aldo, null));
+	}
+
+	/** What the reports ask: the terms in the language of the report, not in the one of the interface. */
+	private static KinshipCalculator inLanguageOf(final FLEFModel model, final ReportLanguage language){
+		return KinshipCalculator.forModel(model)
+			.withVocabulary(new ReportLabels(language).kinship());
+	}
+
+	@Test
+	void theTermsOfAReportAreInTheLanguageOfTheReport() throws IOException{
+		final FLEFModel model = convert();
+		final String aldo = idOf(model, "Aldo");
+		final String berta = idOf(model, "Berta");
+		final String elio = idOf(model, "Elio");
+		final String dino = idOf(model, "Dino");
+		final String carlo = idOf(model, "Carlo");
+
+		final KinshipCalculator italian = inLanguageOf(model, ReportLanguage.ITALIAN);
+		Assertions.assertEquals("zio", italian.shortTerm(aldo, dino));
+		Assertions.assertEquals("zia", italian.shortTerm(berta, dino));
+		Assertions.assertEquals("nipote", italian.shortTerm(dino, aldo));
+		Assertions.assertEquals("fratello", italian.shortTerm(aldo, elio));
+		Assertions.assertEquals("cugino di primo grado", italian.shortTerm(dino, carlo));
+
+		Assertions.assertEquals("Onkel", inLanguageOf(model, ReportLanguage.GERMAN).shortTerm(aldo, dino));
+		Assertions.assertEquals("oncle", inLanguageOf(model, ReportLanguage.FRENCH).shortTerm(aldo, dino));
+		Assertions.assertEquals("t\u00edo", inLanguageOf(model, ReportLanguage.SPANISH).shortTerm(aldo, dino));
+		Assertions.assertEquals("tio", inLanguageOf(model, ReportLanguage.PORTUGUESE).shortTerm(aldo, dino));
+
+		//a language with no words of its own says them in English, as the rest of the report does
+		Assertions.assertEquals("uncle", inLanguageOf(model, ReportLanguage.JAPANESE).shortTerm(aldo, dino));
+		//and the calculator of the interface is not changed by the report
+		Assertions.assertEquals("uncle", KinshipCalculator.forModel(model).shortTerm(aldo, dino));
+	}
 
 	@Test
 	void siblingsHaveOneHalf() throws IOException{

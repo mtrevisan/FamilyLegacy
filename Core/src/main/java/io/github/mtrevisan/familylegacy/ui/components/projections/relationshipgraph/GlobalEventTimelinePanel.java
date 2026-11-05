@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections.relationshipgraph;
 
+import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.JulianDay;
@@ -36,6 +37,7 @@ import io.github.mtrevisan.familylegacy.ui.components.lists.PrivacyBadge;
 import io.github.mtrevisan.familylegacy.ui.components.projections.temporal.TemporalAxis;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.ui.helpers.TimeLabels;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JFrame;
@@ -128,11 +130,6 @@ public class GlobalEventTimelinePanel extends JPanel{
 	private static final Color GRID = new Color(225, 220, 210);
 	private static final Color LABEL = new Color(50, 40, 30);
 	private static final Color SELECTED = new Color(220, 100, 60);
-
-	private static final String[] MONTH_NAMES = {
-		"Jan", "Feb", "Mar", "Apr", "May", "Jun",
-		"Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
-	};
 
 
 	private final FLEFModel model;
@@ -569,18 +566,18 @@ public class GlobalEventTimelinePanel extends JPanel{
 			if(hit.hasDate())
 				sb.append(" — ").append(escape(formatDate(hit.date())));
 			if(hit.hasPlace())
-				sb.append("<br>Place: ").append(escape(hit.placeName()));
+				sb.append("<br>").append(I18N.l("tooltip.field.place")).append(StringUtils.SPACE).append(escape(hit.placeName()));
 			if(!hit.participants().isEmpty()){
-				sb.append("<br>Participants:");
+				sb.append("<br>").append(I18N.l("tooltip.field.participants"));
 				for(final EventIndex.Participant p : hit.participants())
 					sb.append("<br>&nbsp;&nbsp;• ").append(escape(p.name()))
-						.append(p.isIndividual()? StringUtils.EMPTY: " (group)");
+						.append(p.isIndividual()? StringUtils.EMPTY: StringUtils.SPACE + I18N.t("text.tip.group"));
 			}
 			final String privacy = PrivacyBadge.tooltip(PrivacyService.resolver(model)
 				.describe(model.getRecordById(hit.id())));
 			if(privacy != null)
-				sb.append("<br>Privacy: ").append(escape(privacy));
-			sb.append("<br><i>Double-click to edit</i></html>");
+				sb.append("<br>").append(I18N.l("tooltip.field.privacy")).append(StringUtils.SPACE).append(escape(privacy));
+			sb.append("<br><i>").append(I18N.t("text.tip.edit_double")).append("</i></html>");
 			return sb.toString();
 		}
 
@@ -711,11 +708,11 @@ public class GlobalEventTimelinePanel extends JPanel{
 
 		final int[] ymd = JulianDay.toGregorian(date.jdn());
 		return switch(date.precision()){
-			case DAY -> ymd[2] + StringUtils.SPACE + MONTH_NAMES[ymd[1] - 1] + StringUtils.SPACE + ymd[0];
-			case MONTH -> MONTH_NAMES[ymd[1] - 1] + StringUtils.SPACE + ymd[0];
+			case DAY -> ymd[2] + StringUtils.SPACE + TimeLabels.monthShort(ymd[1]) + StringUtils.SPACE + ymd[0];
+			case MONTH -> TimeLabels.monthShort(ymd[1]) + StringUtils.SPACE + ymd[0];
 			case YEAR -> Integer.toString(ymd[0]);
 			case DECADE -> (ymd[0] / 10 * 10) + "s";
-			case CENTURY -> (ymd[0] / 100 + 1) + "th century";
+			case CENTURY -> TimeLabels.century(ymd[0] / 100 + 1);
 		};
 	}
 

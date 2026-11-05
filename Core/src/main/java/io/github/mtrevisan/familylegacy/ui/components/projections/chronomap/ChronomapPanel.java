@@ -176,6 +176,7 @@ public class ChronomapPanel extends JPanel{
 	private final JCheckBox showUncertaintyCheckBox = new JCheckBox(I18N.t("checkbox.show_uncertainty"), true);
 
 	private final Map<String, JCheckBoxMenuItem> eventTypeItems = new LinkedHashMap<>();
+	private final JPopupMenu eventsMenu = new JPopupMenu();
 
 	/* ======================================================================
 	 *                          View mode
@@ -396,7 +397,7 @@ public class ChronomapPanel extends JPanel{
 	 * Does nothing if the individual cannot be placed (no anchors, or not alive at the current time).
 	 */
 	private void focusOnIndividual(final String id){
-		final List<ChronomapIndex.GeoAnchor> anchors = index.anchorsOf(id);
+		final List<ChronomapIndex.GeoAnchor> anchors = markerLayer.anchorsOf(id);
 		if(anchors.isEmpty() || !index.isAliveAt(id, timeline.getCurrentTime()))
 			return;
 
@@ -440,7 +441,7 @@ public class ChronomapPanel extends JPanel{
 		double bestDistance = MARKER_HIT_RADIUS_PX;
 
 		for(final String id : markerLayer.getVisibleIndividuals()){
-			final List<ChronomapIndex.GeoAnchor> anchors = index.anchorsOf(id);
+			final List<ChronomapIndex.GeoAnchor> anchors = markerLayer.anchorsOf(id);
 			if(anchors.isEmpty())
 				continue;
 
@@ -480,10 +481,14 @@ public class ChronomapPanel extends JPanel{
 		resetView();
 	}
 
+	/**
+	 * @param types	The event types to show: {@code null} shows all of them, an empty set none (only the attributes remain).
+	 */
 	public void setEnabledEventTypes(final Set<String> types){
-		final Set<String> enabled = (types == null || types.isEmpty()? null: Set.copyOf(types));
-		markerLayer.setEnabledEventTypes(enabled);
+		markerLayer.setEnabledEventTypes(types);
 
+		if(globeModeActive)
+			refreshGlobeMarkers();
 		mapViewer.repaint();
 	}
 
@@ -516,7 +521,7 @@ public class ChronomapPanel extends JPanel{
 
 		// Collect current position at 'now' for all visible individuals
 		for(final String id : markerLayer.getVisibleIndividuals()){
-			final List<ChronomapIndex.GeoAnchor> anchors = index.anchorsOf(id);
+			final List<ChronomapIndex.GeoAnchor> anchors = markerLayer.anchorsOf(id);
 			if(anchors.isEmpty())
 				continue;
 			if(!index.isAliveAt(id, now))
@@ -710,7 +715,7 @@ public class ChronomapPanel extends JPanel{
 		final List<Pseudo3DGlobePanel.GlobeMarker> markers = new ArrayList<>();
 
 		for(final String id : markerLayer.getVisibleIndividuals()){
-			final List<ChronomapIndex.GeoAnchor> anchors = index.anchorsOf(id);
+			final List<ChronomapIndex.GeoAnchor> anchors = markerLayer.anchorsOf(id);
 			if(anchors.isEmpty())
 				continue;
 			if(!index.isAliveAt(id, now))
@@ -972,24 +977,38 @@ public class ChronomapPanel extends JPanel{
 
 	private JButton createEventsButton(){
 		final JButton button = new JButton(I18N.t("button.events"));
-		final JPopupMenu menu = new JPopupMenu();
 
+		populateEventTypeMenu();
+		//the geocoding adds the events of the newly placed places: their types must appear in the menu
+		index.addRebuildListener(() -> SwingUtilities.invokeLater(this::populateEventTypeMenu));
+
+		button.addActionListener(e -> eventsMenu.show(button, 0, button.getHeight()));
+		return button;
+	}
+
+	/** Fills the menu with the event types of the index, keeping unchecked the ones that were unchecked. */
+	private void populateEventTypeMenu(){
+		final Set<String> hidden = new LinkedHashSet<>();
+		for(final Map.Entry<String, JCheckBoxMenuItem> e : eventTypeItems.entrySet())
+			if(!e.getValue().isSelected())
+				hidden.add(e.getKey());
+
+		eventsMenu.removeAll();
 		eventTypeItems.clear();
 		for(final String type : index.eventTypes()){
-			final JCheckBoxMenuItem item = new JCheckBoxMenuItem(type, true);
+			final JCheckBoxMenuItem item = new JCheckBoxMenuItem(type, !hidden.contains(type));
 			item.addActionListener(e -> applyEventFilterFromUi());
 			eventTypeItems.put(type, item);
-			menu.add(item);
+			eventsMenu.add(item);
 		}
 
 		if(eventTypeItems.isEmpty()){
-			final JCheckBoxMenuItem empty = new JCheckBoxMenuItem("(no events)");
+			final JCheckBoxMenuItem empty = new JCheckBoxMenuItem(I18N.t("text.chronomap.no_events"));
 			empty.setEnabled(false);
-			menu.add(empty);
+			eventsMenu.add(empty);
 		}
 
-		button.addActionListener(e -> menu.show(button, 0, button.getHeight()));
-		return button;
+		applyEventFilterFromUi();
 	}
 
 	private void applyEventFilterFromUi(){

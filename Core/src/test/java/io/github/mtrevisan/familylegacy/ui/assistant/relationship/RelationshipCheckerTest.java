@@ -28,7 +28,7 @@ import io.github.mtrevisan.calendars.CalendarType;
 import io.github.mtrevisan.familylegacy.io.model.readers.SexType;
 import io.github.mtrevisan.familylegacy.ui.assistant.AssistantCategory;
 import io.github.mtrevisan.familylegacy.ui.assistant.Diagnostic;
-import io.github.mtrevisan.familylegacy.ui.assistant.chronology.DateRange;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.DateRange;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -84,6 +84,11 @@ class RelationshipCheckerTest{
 			for(final String person : people)
 				participants.add(new RelationshipData.Participant(person, true));
 			events.add(new RelationshipData.Event(id, type, null, "date of " + id, participants));
+			return this;
+		}
+
+		Builder eventWithRoles(final String id, final String type, final RelationshipData.Participant... participants){
+			events.add(new RelationshipData.Event(id, type, null, "date of " + id, List.of(participants)));
 			return this;
 		}
 
@@ -326,7 +331,10 @@ class RelationshipCheckerTest{
 		for(int i = 0; i < 3; i ++)
 			builder.relationship("kid", "a" + i, "child");
 
-		final List<Diagnostic> findings = builder.check();
+		//the partners of the parents of the kid are asked about on their own, and are not what is tested here
+		final List<Diagnostic> findings = builder.check().stream()
+			.filter(f -> !f.title().startsWith("Partner of a parent"))
+			.toList();
 
 		Assertions.assertEquals(2, findings.size(), titles(findings).toString());
 		Assertions.assertEquals("40 marriage(s) with the generic type spouse", findings.get(0).title());
@@ -353,10 +361,164 @@ class RelationshipCheckerTest{
 			.relationship("p", "q", "spouse")
 			.event("E1", "adoption", "c", "p")
 			.event("E2", "marriage_bann", "p", "q")
-			.check();
+			.check().stream()
+			.filter(f -> !f.title().startsWith("Partner of a parent"))
+			.toList();
 
 		Assertions.assertEquals(2, findings.size(), titles(findings).toString());
 		Assertions.assertTrue(findings.stream().noneMatch(f -> f.title().contains("generic type")));
+	}
+
+	@Test
+	void theFindingsThatSuggestAnotherTypeCarryTheChangeOfType(){
+		final RelationshipFinding adoptive = family()
+			.relationship("c", "p", "child")
+			.event("E1", "adoption", "c", "p")
+			.findings().getFirst();
+		Assertions.assertEquals(new RelationshipTypeChange("R1", "adoptive_child"), adoptive.typeChange());
+		Assertions.assertNull(adoptive.draft());
+
+		final RelationshipFinding conflict = family()
+			.relationship("c", "p", "biological_child")
+			.event("E1", "adoption", "c", "p")
+			.findings().getFirst();
+		Assertions.assertEquals(new RelationshipTypeChange("R1", "adoptive_child"), conflict.typeChange());
+
+		final RelationshipFinding step = family()
+			.relationship("c", "q", "biological_child")
+			.relationship("c", "p", "child")
+			.relationship("p", "q", "civil_spouse", null, "1 June 1875", null, false)
+			.findings().getFirst();
+		Assertions.assertEquals(new RelationshipTypeChange("R2", "step_child"), step.typeChange());
+
+		final RelationshipFinding spouse = family()
+			.relationship("p", "q", "spouse")
+			.event("E1", "marriage_bann", "p", "q")
+			.findings().getFirst();
+		Assertions.assertEquals(new RelationshipTypeChange("R1", "religious_spouse"), spouse.typeChange());
+
+		//a finding that is not about the type has none
+		Assertions.assertNull(family().relationship("c", "c", "child").findings().getFirst().typeChange());
+	}
+
+	@Test
+	void thePartnerOfAParentWithoutARelationshipWithTheChildIsAQuestionWithADraft(){
+		final List<RelationshipFinding> findings = family()
+			.relationship("c", "p", "biological_child")
+			.relationship("p", "q", "civil_spouse", null, "1 June 1865", null, false)
+			.findings();
+
+		Assertions.assertEquals(1, findings.size(), titles(findings.stream().map(RelationshipFinding::diagnostic).toList()).toString());
+		final RelationshipFinding finding = findings.getFirst();
+		Assertions.assertEquals(Diagnostic.Severity.INFORMATION, finding.diagnostic().severity());
+		Assertions.assertTrue(finding.diagnostic().title().startsWith("Partner of a parent without a relationship: Person c and Person q"));
+		Assertions.assertTrue(finding.diagnostic().recordIds().containsAll(List.of("c", "q", "p", "R2")));
+		//the draft starts the relationship between the child and the partner, and leaves the type to the researcher
+		Assertions.assertEquals("c", finding.draft().subjectId());
+		Assertions.assertEquals("q", finding.draft().targetId());
+		Assertions.assertNull(finding.draft().type());
+	}
+
+	@Test
+	void thePartnerOfAParentIsNotAskedAboutIfTheChildIsLinkedToThemOrTheUnionEndedBeforeTheBirth(){
+		//the partner is already a parent
+		Assertions.assertTrue(family()
+			.relationship("c", "p", "biological_child")
+			.relationship("c", "q", "biological_child")
+			.relationship("p", "q", "civil_spouse", null, "1 June 1865", null, false)
+			.check().isEmpty());
+		//the partner is already a step-parent
+		Assertions.assertTrue(family()
+			.relationship("c", "p", "biological_child")
+			.relationship("c", "q", "step_child")
+			.relationship("p", "q", "civil_spouse", null, "1 June 1875", null, false)
+			.check().isEmpty());
+		//the union ended before the child was born (1 June 1870)
+		Assertions.assertTrue(family()
+			.relationship("c", "p", "biological_child")
+			.relationship("p", "q", "civil_spouse", null, "1 June 1860", "1 June 1865", true)
+			.check().isEmpty());
+	}
+
+	@Test
+	void aHalfSiblingRoleThatTheParentsDoNotSupportIsAWarning(){
+		//a and b are written as half-siblings, but have no parent in common
+		final List<Diagnostic> none = family()
+			.person("a", "1 June 1870").person("b", "1 June 1872")
+			.relationship("a", "p", "biological_child").relationship("b", "q", "biological_child")
+			.relationship("a", "b", "associate", "half-brother", null, null, false)
+			.check();
+		final Diagnostic finding = only(none);
+		Assertions.assertEquals(Diagnostic.Severity.WARNING, finding.severity());
+		Assertions.assertTrue(finding.title().startsWith("Sibling role that the parents do not support: Person a and Person b"));
+		Assertions.assertTrue(finding.explanation().contains("no biological parent in common"));
+
+		//both parents in common: they are full siblings, not half-siblings
+		final Diagnostic full = only(family()
+			.person("a", "1 June 1870").person("b", "1 June 1872")
+			.relationship("a", "p", "biological_child").relationship("a", "q", "biological_child")
+			.relationship("b", "p", "biological_child").relationship("b", "q", "biological_child")
+			.relationship("a", "b", "associate", "half-brother", null, null, false)
+			.check());
+		Assertions.assertTrue(full.explanation().contains("both biological parents in common"));
+	}
+
+	@Test
+	void aSiblingRoleThatTheParentsSupportOrCannotJudgeIsNotReported(){
+		//a full sibling with both parents in common, a half-sibling with one in common
+		Assertions.assertTrue(family()
+			.person("a", "1 June 1870").person("b", "1 June 1872")
+			.relationship("a", "p", "biological_child").relationship("a", "q", "biological_child")
+			.relationship("b", "p", "biological_child").relationship("b", "q", "biological_child")
+			.relationship("a", "b", "associate", "sister", null, null, false)
+			.check().isEmpty());
+		Assertions.assertTrue(family()
+			.person("a", "1 June 1870").person("b", "1 June 1872").person("r", "1 June 1846")
+			.relationship("a", "p", "biological_child").relationship("a", "q", "biological_child")
+			.relationship("b", "p", "biological_child").relationship("b", "r", "biological_child")
+			.relationship("a", "b", "associate", "fratellastro", null, null, false)
+			.check().isEmpty());
+		//one of them has no recorded parent: nothing can be said
+		Assertions.assertTrue(family()
+			.person("a", "1 June 1870").person("b", "1 June 1872")
+			.relationship("a", "p", "biological_child")
+			.relationship("a", "b", "associate", "brother", null, null, false)
+			.check().isEmpty());
+		//a step-sibling is not a sibling by blood
+		Assertions.assertTrue(family()
+			.person("a", "1 June 1870").person("b", "1 June 1872")
+			.relationship("a", "p", "biological_child").relationship("b", "q", "biological_child")
+			.relationship("a", "b", "associate", "step-brother", null, null, false)
+			.check().isEmpty());
+	}
+
+	@Test
+	void anAssociationThatSaysAFamilyTieTheProtocolHasATypeForIsReported(){
+		final Diagnostic finding = only(family()
+			.relationship("c", "p", "associate", "father", null, null, false)
+			.check());
+
+		Assertions.assertEquals(Diagnostic.Severity.INFORMATION, finding.severity());
+		Assertions.assertTrue(finding.title().startsWith("Association that says a family tie: Person c and Person p"));
+		Assertions.assertTrue(finding.explanation().contains("the type child"));
+		Assertions.assertTrue(only(family().relationship("c", "p", "associate", "wife", null, null, false).check())
+			.explanation().contains("the type spouse"));
+		//a godfather, a grandfather, a father-in-law, a servant: not the plain tie, or not a tie the types have
+		for(final String role : List.of("godfather", "grandfather", "father-in-law", "step father", "servant"))
+			Assertions.assertTrue(family().relationship("c", "p", "associate", role, null, null, false).check().isEmpty(), role);
+	}
+
+	@Test
+	void anAssociationBetweenRelativesAddsNothing(){
+		final Diagnostic finding = only(family()
+			.relationship("c", "p", "biological_child")
+			.relationship("p", "c", "associate", "mentor", null, null, false)
+			.check());
+
+		Assertions.assertTrue(finding.title().startsWith("Association between relatives: Person p and Person c"));
+		Assertions.assertTrue(finding.explanation().contains("biological_child"));
+		//between two that are not relatives it is what it should be
+		Assertions.assertTrue(family().relationship("c", "q", "associate", "mentor", null, null, false).check().isEmpty());
 	}
 
 	@Test
@@ -373,6 +535,62 @@ class RelationshipCheckerTest{
 		Assertions.assertEquals("q", finding.draft().targetId());
 		//the evidence does not tell the type: the researcher chooses
 		Assertions.assertNull(finding.draft().type());
+	}
+
+	@Test
+	void theDraftOfAMarriageStartsFromTheEventThatIsItsEvidence(){
+		final RelationshipDraft draft = family()
+			.event("E1", "marriage", "p", "q")
+			.findings().getFirst().draft();
+
+		//the date of the marriage is where the relationship begins, and its sources are the evidence
+		Assertions.assertEquals("E1", draft.eventId());
+		Assertions.assertTrue(draft.copyDate());
+	}
+
+	@Test
+	void theInformantOfABirthWithoutARelationshipWithTheChildIsAQuestionWithADraft(){
+		final List<RelationshipFinding> findings = family()
+			.eventWithRoles("E1", "birth", new RelationshipData.Participant("c", true, "principal"),
+				new RelationshipData.Participant("p", false, "informant"))
+			.findings();
+
+		Assertions.assertEquals(1, findings.size());
+		final RelationshipFinding finding = findings.getFirst();
+		Assertions.assertEquals(Diagnostic.Severity.INFORMATION, finding.diagnostic().severity());
+		Assertions.assertTrue(finding.diagnostic().title().startsWith("Informant of a birth without a relationship: Person c and Person p"));
+		Assertions.assertEquals(List.of("c", "p", "E1"), finding.diagnostic().recordIds());
+		//the draft starts the relationship with no type, cites what the birth cites, and does not take the date of the birth
+		Assertions.assertEquals("c", finding.draft().subjectId());
+		Assertions.assertEquals("p", finding.draft().targetId());
+		Assertions.assertNull(finding.draft().type());
+		Assertions.assertEquals("E1", finding.draft().eventId());
+		Assertions.assertFalse(finding.draft().copyDate());
+	}
+
+	@Test
+	void theInformantOfABirthIsNotAskedAboutWhenTheRoleSaysNothingOrTheyAreLinkedOrCertainlyBornLater(){
+		//a witness or an officiant says nothing about kinship, and without a role there is no informant
+		Assertions.assertTrue(family()
+			.eventWithRoles("E1", "birth", new RelationshipData.Participant("c", true, "principal"),
+				new RelationshipData.Participant("p", false, "witness"), new RelationshipData.Participant("q", false, "officiant"))
+			.check().isEmpty());
+		//the informant is already related to the child
+		Assertions.assertTrue(family()
+			.relationship("c", "p", "step_child")
+			.eventWithRoles("E1", "birth", new RelationshipData.Participant("c", true, "principal"),
+				new RelationshipData.Participant("p", false, "informant"))
+			.check().isEmpty());
+		//the informant was born (1900) after the child (1 June 1870): not a parent, but nothing wrong either
+		Assertions.assertTrue(new Builder().person("c", "1 June 1870").person("y", "1 June 1900")
+			.eventWithRoles("E1", "birth", new RelationshipData.Participant("c", true, "principal"),
+				new RelationshipData.Participant("y", false, "informant"))
+			.check().isEmpty());
+		//the informant of another event is not the declarant of a birth
+		Assertions.assertTrue(family()
+			.eventWithRoles("E1", "death", new RelationshipData.Participant("c", true, "principal"),
+				new RelationshipData.Participant("p", false, "informant"))
+			.check().isEmpty());
 	}
 
 	@Test

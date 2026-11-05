@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.research;
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.grammar.FLEFGrammarParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -107,7 +108,7 @@ class ContextTreeBuilderTest{
 		Assertions.assertEquals(ContextTreeBuilder.Kind.HISTORIC_EVENT, plague.kind());
 		Assertions.assertEquals("H1", plague.record().getId());
 		Assertions.assertTrue(plague.label().contains("Plague"));
-		Assertions.assertTrue(plague.label().endsWith("(2I)"));
+		Assertions.assertTrue(plague.label().endsWith("(2 impacts)"));
 		Assertions.assertEquals(2, plague.children().size());
 		Assertions.assertEquals(ContextTreeBuilder.Kind.IMPACT, plague.children().get(0).kind());
 		Assertions.assertEquals("CI1", plague.children().get(0).record().getId());
@@ -144,6 +145,42 @@ class ContextTreeBuilderTest{
 		Assertions.assertEquals(ContextTreeBuilder.Kind.HISTORIC_EVENTS, roots.get(0).kind());
 		Assertions.assertEquals("H2", roots.get(0).children().get(0).record().getId());
 		Assertions.assertEquals("H1", roots.get(0).children().get(1).record().getId());
+	}
+
+	private static FLEFRecord point(final String tag, final String fullDate){
+		return FLEFRecord.createChildWithTag(tag)
+			.addChild(FLEFRecord.createChildWithTag("value")
+				.addChild(FLEFRecord.createChildWithTag("point")
+					.addChild(FLEFRecord.createChildWithTag("value")
+						.addChild(FLEFRecord.createChildWithTagAndValue("full_date", fullDate)))
+					.addChild(FLEFRecord.createChildWithTagAndValue("calendar", "gregorian"))));
+	}
+
+	@Test
+	void historicEventsAreInChronologicalOrderAndTheLabelHasTheDateAndThePlaceNotTheirIds(){
+		final FLEFModel model = new FLEFModel();
+		model.addRecord(FLEFRecord.createMainRecord("P1", "PLACE")
+			.addChild(FLEFRecord.createChildWithTag("name").addChild(FLEFRecord.createChildWithTagAndValue("value", "Treviso"))));
+		model.addRecord(FLEFRecord.createMainRecord("H1", "HISTORIC_EVENT")
+			.addChild(FLEFRecord.createChildWithTagAndValue("title", "Alpha"))
+			.addChild(point("date", "1 JAN 1900"))
+			.addChild(FLEFRecord.createChildWithTag("place").addChild(FLEFRecord.createChildWithTagAndValue("place", "P1"))));
+		model.addRecord(FLEFRecord.createMainRecord("H2", "HISTORIC_EVENT")
+			.addChild(FLEFRecord.createChildWithTagAndValue("title", "Beta"))
+			.addChild(point("date", "1 JAN 1800")));
+		model.addRecord(FLEFRecord.createMainRecord("H3", "HISTORIC_EVENT")
+			.addChild(FLEFRecord.createChildWithTagAndValue("title", "Gamma")));
+
+		final ContextTreeBuilder.Node events = ContextTreeBuilder.build(model).get(0);
+
+		//by date and not by title; the one without a date last
+		Assertions.assertEquals("H2", events.children().get(0).record().getId());
+		Assertions.assertEquals("H1", events.children().get(1).record().getId());
+		Assertions.assertEquals("H3", events.children().get(2).record().getId());
+		final String label = events.children().get(1).label();
+		Assertions.assertTrue(label.contains("1900"), label);
+		Assertions.assertTrue(label.contains("Treviso"), label);
+		Assertions.assertFalse(label.contains("P1"), label);
 	}
 
 	@Test

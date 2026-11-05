@@ -79,10 +79,23 @@ public final class SourceReader{
 	public static final String TAG_PRIVACY = "privacy";
 	public static final String TAG_AUDIT = "audit";
 
+	public static final String ENUM_MEDIA_TYPE_AUDIO = "audio";
+	public static final String ENUM_MEDIA_TYPE_BOOK = "book";
+	public static final String ENUM_MEDIA_TYPE_CARD = "card";
+	public static final String ENUM_MEDIA_TYPE_ELECTRONIC = "electronic";
+	public static final String ENUM_MEDIA_TYPE_FICHE = "fiche";
+	public static final String ENUM_MEDIA_TYPE_FILM = "film";
+	public static final String ENUM_MEDIA_TYPE_MAGAZINE = "magazine";
+	public static final String ENUM_MEDIA_TYPE_MANUSCRIPT = "manuscript";
+	public static final String ENUM_MEDIA_TYPE_MAP = "map";
+	public static final String ENUM_MEDIA_TYPE_NEWSPAPER = "newspaper";
+	public static final String ENUM_MEDIA_TYPE_PHOTO = "photo";
+	public static final String ENUM_MEDIA_TYPE_TOMBSTONE = "tombstone";
+	public static final String ENUM_MEDIA_TYPE_VIDEO = "video";
 	public static final String[] MEDIA_TYPES = new String[]{
-		"audio", "book", "card", "electronic", "fiche", "film",
-		"magazine", "manuscript", "map", "newspaper", "photo",
-		"tombstone", "video"
+		ENUM_MEDIA_TYPE_AUDIO, ENUM_MEDIA_TYPE_BOOK, ENUM_MEDIA_TYPE_CARD, ENUM_MEDIA_TYPE_ELECTRONIC, ENUM_MEDIA_TYPE_FICHE, ENUM_MEDIA_TYPE_FILM,
+		ENUM_MEDIA_TYPE_MAGAZINE, ENUM_MEDIA_TYPE_MANUSCRIPT, ENUM_MEDIA_TYPE_MAP, ENUM_MEDIA_TYPE_NEWSPAPER, ENUM_MEDIA_TYPE_PHOTO,
+		ENUM_MEDIA_TYPE_TOMBSTONE, ENUM_MEDIA_TYPE_VIDEO
 	};
 
 

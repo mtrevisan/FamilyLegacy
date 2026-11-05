@@ -36,7 +36,6 @@ import io.github.mtrevisan.familylegacy.ui.handlers.SourceHandler;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 
 
 /**
@@ -62,9 +61,19 @@ public final class CitationAnalysisTool implements ToolOperation{
 		return I18N.t("menu.source_citation.analysis");
 	}
 
+	/** What the analysis found: the sources and the documents nobody uses, the assertions with no citation, and the totals. */
+	record Analysis(List<FLEFRecord> unusedSources, List<FLEFRecord> unusedDocuments, List<FLEFRecord> uncited, int citedSourceCount,
+		int referencedDocumentCount){}
+
+
 	@Override
 	public void run(final ToolContext context){
-		final FLEFModel model = context.model();
+		new CitationAnalysisDialog(context.owner(), context.model())
+			.setVisible(true);
+	}
+
+	/** Reads the model: it is called again after a record has been edited, so that the report is what the file is now. */
+	static Analysis analyze(final FLEFModel model){
 		final Map<String, Integer> sourceUsage = SourceHelper.countCitationsPerSource(model);
 		final Map<String, Integer> docUsage = SourceHelper.countDocumentReferences(model);
 
@@ -78,22 +87,14 @@ public final class CitationAnalysisTool implements ToolOperation{
 			if(docUsage.getOrDefault(doc.getId(), 0) == 0)
 				unusedDocuments.add(doc);
 
-		final Map<String, Integer> uncited = new TreeMap<>();
-		for(final String type : ASSERTION_TYPES){
-			int count = 0;
-			final List<FLEFRecord> records = PrivacyService.visible(model, model.getRecordsByType(type));
-			for(final FLEFRecord record : records)
+		final List<FLEFRecord> uncited = new ArrayList<>();
+		for(final String type : ASSERTION_TYPES)
+			for(final FLEFRecord record : PrivacyService.visible(model, model.getRecordsByType(type)))
 				if(!hasCitation(record))
-					count ++;
-			if(count > 0)
-				uncited.put(type, count);
-		}
+					uncited.add(record);
 
-		new CitationAnalysisDialog(context.owner(), model, unusedSources, unusedDocuments, uncited, sourceUsage.size(),
-			docUsage.size())
-			.setVisible(true);
+		return new Analysis(unusedSources, unusedDocuments, uncited, sourceUsage.size(), docUsage.size());
 	}
-
 
 	/**
 	 * Record types that represent genealogical assertions and are
@@ -115,7 +116,8 @@ public final class CitationAnalysisTool implements ToolOperation{
 
 	@Override
 	public boolean isEnabled(final ToolContext context){
-		return (context != null && context.hasAnySources());
+		//a file with no source at all has something to report too: its assertions are all uncited
+		return (context != null && context.hasModel());
 	}
 
 }

@@ -24,6 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.searches.service;
 
+import io.github.mtrevisan.familylegacy.events.EventSummary;
+import io.github.mtrevisan.familylegacy.research.ResearchSummary;
+import io.github.mtrevisan.familylegacy.sources.SourceUsage;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
@@ -36,12 +39,20 @@ import io.github.mtrevisan.familylegacy.ui.bindings.BindingsHelper;
 import io.github.mtrevisan.familylegacy.ui.bindings.Debouncer;
 import io.github.mtrevisan.familylegacy.ui.bindings.FilteredComboBox;
 import io.github.mtrevisan.familylegacy.ui.components.searches.RecordFilterPanel;
+import io.github.mtrevisan.familylegacy.ui.handlers.ConclusionHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.EventHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.EventParticipationHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
+import io.github.mtrevisan.familylegacy.ui.handlers.IdentityHypothesisHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.MediaHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.PlaceRelationshipHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RepositoryHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.ResearchActivityHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.ResearchQuestionHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.ResearchTaskHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
@@ -199,6 +210,8 @@ public class RecordSelectionDialog extends JDialog{
 	private String selectedType;
 	private FLEFRecord selectedRecord;
 	private final boolean allowCreation;
+	//the dialog manages the records instead of picking one
+	private final boolean manageMode;
 
 	private SearchCriteria criteria;
 
@@ -214,7 +227,17 @@ public class RecordSelectionDialog extends JDialog{
 	public static RecordSelectionDialog createWithAllowRecordCreation(final Window parent, final FLEFModel model,
 			final BiConsumer<FLEFRecord, RecordTypeHandler<?>> onSelect,
 			final Class<? extends RecordTypeHandler<?>>... handlerTypes){
-		return new RecordSelectionDialog(parent, model, onSelect, true, handlerTypes);
+		return new RecordSelectionDialog(parent, model, onSelect, true, false, handlerTypes);
+	}
+
+	/**
+	 * Creates the dialog used to manage the records of a type (Manage Sources, Manage Places, ...): nothing is picked, so there is no
+	 * Select button, the dialog stays open after a record has been created, a double click edits the record, and the dialog is
+	 * closed with Close.
+	 */
+	public static RecordSelectionDialog createForManagement(final Window parent, final FLEFModel model,
+			final Class<? extends RecordTypeHandler<?>> handlerType){
+		return new RecordSelectionDialog(parent, model, (record, handler) -> {}, true, true, handlerType);
 	}
 
 
@@ -222,19 +245,20 @@ public class RecordSelectionDialog extends JDialog{
 	private RecordSelectionDialog(final Window parent, final FLEFModel model,
 			final BiConsumer<FLEFRecord, RecordTypeHandler<?>> onSelect,
 			final Class<? extends RecordTypeHandler<?>>... handlerTypes){
-		this(parent, model, onSelect, false, handlerTypes);
+		this(parent, model, onSelect, false, false, handlerTypes);
 	}
 
 	@SafeVarargs
 	private RecordSelectionDialog(final Window parent, final FLEFModel model,
 			final BiConsumer<FLEFRecord, RecordTypeHandler<?>> onSelect,
-			final boolean allowCreation, final Class<? extends RecordTypeHandler<?>>... handlerTypes){
+			final boolean allowCreation, final boolean manageMode, final Class<? extends RecordTypeHandler<?>>... handlerTypes){
 		super(parent, I18N.t("search.title.select_record"), ModalityType.APPLICATION_MODAL);
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
 		this.model = model;
 		this.onSelect = onSelect;
 		this.allowCreation = allowCreation;
+		this.manageMode = manageMode;
 		defaultType = (handlerTypes.length == 1? HandlerRegistry.getHandler(handlerTypes[0]): null);
 
 		searchService = new SearchService(model);
@@ -377,7 +401,7 @@ public class RecordSelectionDialog extends JDialog{
 		final JButton editButton = new JButton(I18N.t("button.edit"));
 		final JButton unlinkButton = new JButton(I18N.t("button.unlink"));
 		final JButton deleteButton = new JButton(I18N.t("button.delete"));
-		final JButton cancelButton = new JButton(I18N.t("button.cancel"));
+		final JButton cancelButton = new JButton(I18N.t(manageMode? "button.close": "button.cancel"));
 
 		selectButton.addActionListener(e -> selectResult());
 		editButton.addActionListener(e -> editRecord());
@@ -401,7 +425,8 @@ public class RecordSelectionDialog extends JDialog{
 
 		// Right column (Select and Cancel buttons pushed to the right edge)
 		final JPanel rightPanel = new JPanel(new MigLayout("ins 0", "[]10[]"));
-		rightPanel.add(selectButton);
+		if(!manageMode)
+			rightPanel.add(selectButton);
 		rightPanel.add(cancelButton);
 		bottomPanel.add(rightPanel, "right");
 
@@ -429,8 +454,12 @@ public class RecordSelectionDialog extends JDialog{
 		resultList.addMouseListener(new MouseAdapter(){
 			@Override
 			public void mouseClicked(final MouseEvent e){
-				if(e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e))
-					selectResult();
+				if(e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e)){
+					if(manageMode)
+						editRecord();
+					else
+						selectResult();
+				}
 			}
 		});
 
@@ -466,6 +495,20 @@ public class RecordSelectionDialog extends JDialog{
 		final String title;
 		if(desc instanceof IndividualHandler)
 			title = I18N.t("search.title.select_record");
+		else if(desc instanceof EventHandler)
+			title = I18N.t("search.title.manage.events");
+		else if(desc instanceof EventParticipationHandler)
+			title = I18N.t("search.title.manage.participants");
+		else if(desc instanceof ResearchQuestionHandler)
+			title = I18N.t("search.title.manage.research_questions");
+		else if(desc instanceof ResearchActivityHandler)
+			title = I18N.t("search.title.manage.research_activities");
+		else if(desc instanceof ResearchTaskHandler)
+			title = I18N.t("search.title.manage.research_tasks");
+		else if(desc instanceof ConclusionHandler)
+			title = I18N.t("search.title.manage.conclusions");
+		else if(desc instanceof IdentityHypothesisHandler)
+			title = I18N.t("search.title.manage.identity_hypotheses");
 		else if(desc instanceof PlaceRelationshipHandler)
 			title = I18N.t("search.title.manage.places");
 		else if(desc instanceof SourceHandler)
@@ -475,8 +518,16 @@ public class RecordSelectionDialog extends JDialog{
 		else if(desc instanceof MediaHandler)
 			title = I18N.t("search.title.manage.media");
 		else
-			title = "--";
+			title = selectionTitle(desc);
 		setTitle(title);
+	}
+
+	/**
+	 * @param handler	The handler of the type the user is choosing from (none if the type is not chosen yet).
+	 * @return	"Select Place", "Select Group"..., for the types that have no title of their own: never a placeholder.
+	 */
+	static String selectionTitle(final RecordTypeHandler<?> handler){
+		return (handler != null? I18N.tf("search.title.select_type", handler.getLabel()): I18N.t("search.title.select_record"));
 	}
 
 	private RecordTypeHandler<?> getSelectedHandler(){
@@ -614,6 +665,11 @@ public class RecordSelectionDialog extends JDialog{
 
 		if(currentWorker != null && !currentWorker.isDone())
 			currentWorker.cancel(true);
+
+		//the model may have changed since the last search: the shared indexes of the event description are read again
+		EventSummary.invalidate();
+		ResearchSummary.invalidate();
+		SourceUsage.invalidate();
 
 		final RecordTypeHandler<?> handler = getSelectedHandler();
 		criteria = new SearchCriteria(handler.getType(), searchField.getText().trim(), currentMode());
@@ -769,6 +825,16 @@ public class RecordSelectionDialog extends JDialog{
 		if(dialog.isSaved()){
 			final FLEFRecord newRecord = dialog.getRecord();
 			if(newRecord != null){
+				if(manageMode){
+					//nothing to pick: the new record is in the list, the dialog stays open
+					if(isPlaceRelationshipHandler())
+						placeHierarchyPanel.reload();
+					else
+						performSearch();
+
+					return;
+				}
+
 				selectedType = handler.getType();
 				selectedRecord = newRecord;
 				confirmed = true;

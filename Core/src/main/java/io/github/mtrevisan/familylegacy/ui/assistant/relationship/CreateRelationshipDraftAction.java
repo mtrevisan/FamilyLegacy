@@ -67,8 +67,11 @@ final class CreateRelationshipDraftAction implements DiagnosticAction{
 		if(subject == null || target == null)
 			return;
 
+		//the evidence the draft starts from (the event may have been deleted since: then there is none)
+		final FLEFRecord evidence = (draft.eventId() != null? model.getRecordById(draft.eventId()): null);
 		RelationshipRecordDialog.createNew(context.owner(), model)
 			.withParticipants(subject, target, draft.type())
+			.withEvidenceOf(evidence, draft.copyDate())
 			.setVisible(true);
 	}
 

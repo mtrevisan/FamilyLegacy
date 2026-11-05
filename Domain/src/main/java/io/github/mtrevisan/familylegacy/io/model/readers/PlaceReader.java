@@ -76,10 +76,31 @@ public final class PlaceReader{
 	public static final String TAG_LOCATION_SOURCE = FLEFRecordHelper.composePath(TAG_LOCATION, TAG_SOURCE);
 	public static final String TAG_LOCATION_CONFIDENCE = FLEFRecordHelper.composePath(TAG_LOCATION, TAG_CONFIDENCE);
 
+	public static final String ENUM_TYPE_ADDRESS = "address";
+	public static final String ENUM_TYPE_BUILDING = "building";
+	public static final String ENUM_TYPE_STREET = "street";
+	public static final String ENUM_TYPE_HAMLET = "hamlet";
+	public static final String ENUM_TYPE_VILLAGE = "village";
+	public static final String ENUM_TYPE_TOWN = "town";
+	public static final String ENUM_TYPE_MUNICIPALITY = "municipality";
+	public static final String ENUM_TYPE_CITY = "city";
+	public static final String ENUM_TYPE_METROPOLITAN_AREA = "metropolitan_area";
+	public static final String ENUM_TYPE_COUNTY = "county";
+	public static final String ENUM_TYPE_PROVINCE = "province";
+	public static final String ENUM_TYPE_DEPARTMENT = "department";
+	public static final String ENUM_TYPE_DISTRICT = "district";
+	public static final String ENUM_TYPE_REGION = "region";
+	public static final String ENUM_TYPE_MACRO_REGION = "macro_region";
+	public static final String ENUM_TYPE_COUNTRY = "country";
+	public static final String ENUM_TYPE_EMPIRE = "empire";
+	public static final String ENUM_TYPE_PARISH = "parish";
+	public static final String ENUM_TYPE_DIOCESE = "diocese";
+	public static final String ENUM_TYPE_ARCHDIOCESE = "archdiocese";
+	public static final String ENUM_TYPE_CEMETERY = "cemetery";
 	public static final String[] TYPES = new String[]{
-		"address", "building", "street", "hamlet", "village", "town", "municipality", "city", "metropolitan_area",
-		"county", "province", "department", "district", "region", "macro_region", "country", "empire", "parish",
-		"diocese", "archdiocese", "cemetery"
+		ENUM_TYPE_ADDRESS, ENUM_TYPE_BUILDING, ENUM_TYPE_STREET, ENUM_TYPE_HAMLET, ENUM_TYPE_VILLAGE, ENUM_TYPE_TOWN, ENUM_TYPE_MUNICIPALITY, ENUM_TYPE_CITY, ENUM_TYPE_METROPOLITAN_AREA,
+		ENUM_TYPE_COUNTY, ENUM_TYPE_PROVINCE, ENUM_TYPE_DEPARTMENT, ENUM_TYPE_DISTRICT, ENUM_TYPE_REGION, ENUM_TYPE_MACRO_REGION, ENUM_TYPE_COUNTRY, ENUM_TYPE_EMPIRE, ENUM_TYPE_PARISH,
+		ENUM_TYPE_DIOCESE, ENUM_TYPE_ARCHDIOCESE, ENUM_TYPE_CEMETERY
 	};
 
 

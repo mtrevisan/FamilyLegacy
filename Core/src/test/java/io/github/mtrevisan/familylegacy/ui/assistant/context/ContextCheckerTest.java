@@ -27,7 +27,7 @@ package io.github.mtrevisan.familylegacy.ui.assistant.context;
 import io.github.mtrevisan.calendars.CalendarType;
 import io.github.mtrevisan.familylegacy.ui.assistant.AssistantCategory;
 import io.github.mtrevisan.familylegacy.ui.assistant.Diagnostic;
-import io.github.mtrevisan.familylegacy.ui.assistant.chronology.DateRange;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.DateRange;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 

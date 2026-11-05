@@ -102,18 +102,18 @@ public final class RelationshipReader{
 	public static final String ENUM_TYPE_CHILD = "child";
 	public static final String ENUM_TYPE_BIOLOGICAL_CHILD = "biological_child";
 	public static final String ENUM_TYPE_ADOPTIVE_CHILD = "adoptive_child";
-	private static final String ENUM_TYPE_FOSTER_CHILD = "foster_child";
-	private static final String ENUM_TYPE_GUARDED_CHILD = "guarded_child";
-	private static final String ENUM_TYPE_STEP_CHILD = "step_child";
-	private static final String ENUM_TYPE_SPOUSE = "spouse";
-	private static final String ENUM_TYPE_CIVIL_SPOUSE = "civil_spouse";
-	private static final String ENUM_TYPE_RELIGIOUS_SPOUSE = "religious_spouse";
-	private static final String ENUM_TYPE_CUSTOMARY_SPOUSE = "customary_spouse";
-	private static final String ENUM_TYPE_COHABITING_PARTNER = "cohabiting_partner";
-	private static final String ENUM_TYPE_ENGAGED_PARTNER = "engaged_partner";
+	public static final String ENUM_TYPE_FOSTER_CHILD = "foster_child";
+	public static final String ENUM_TYPE_GUARDED_CHILD = "guarded_child";
+	public static final String ENUM_TYPE_STEP_CHILD = "step_child";
+	public static final String ENUM_TYPE_SPOUSE = "spouse";
+	public static final String ENUM_TYPE_CIVIL_SPOUSE = "civil_spouse";
+	public static final String ENUM_TYPE_RELIGIOUS_SPOUSE = "religious_spouse";
+	public static final String ENUM_TYPE_CUSTOMARY_SPOUSE = "customary_spouse";
+	public static final String ENUM_TYPE_COHABITING_PARTNER = "cohabiting_partner";
+	public static final String ENUM_TYPE_ENGAGED_PARTNER = "engaged_partner";
 	public static final String ENUM_TYPE_GROUP_MEMBER = "group_member";
-	private static final String ENUM_TYPE_ASSOCIATE = "associate";
-	private static final String ENUM_TYPE_PART_OF = "part_of";
+	public static final String ENUM_TYPE_ASSOCIATE = "associate";
+	public static final String ENUM_TYPE_PART_OF = "part_of";
 	public static final String[] TYPES = new String[]{
 		ENUM_TYPE_CHILD, ENUM_TYPE_BIOLOGICAL_CHILD, ENUM_TYPE_ADOPTIVE_CHILD, ENUM_TYPE_FOSTER_CHILD,
 		ENUM_TYPE_GUARDED_CHILD, ENUM_TYPE_STEP_CHILD, ENUM_TYPE_SPOUSE, ENUM_TYPE_CIVIL_SPOUSE,
@@ -124,22 +124,23 @@ public final class RelationshipReader{
 		ENUM_TYPE_CHILD, ENUM_TYPE_BIOLOGICAL_CHILD, ENUM_TYPE_ADOPTIVE_CHILD, ENUM_TYPE_FOSTER_CHILD,
 		ENUM_TYPE_GUARDED_CHILD, ENUM_TYPE_STEP_CHILD
 	};
-	private static final String[] INDIVIDUAL_TO_INDIVIDUAL_TYPES = new String[]{
+	public static final String[] INDIVIDUAL_TO_INDIVIDUAL_TYPES = new String[]{
 		ENUM_TYPE_CHILD, ENUM_TYPE_BIOLOGICAL_CHILD, ENUM_TYPE_ADOPTIVE_CHILD, ENUM_TYPE_FOSTER_CHILD,
 		ENUM_TYPE_GUARDED_CHILD, ENUM_TYPE_STEP_CHILD,
-		"civil_spouse", "religious_spouse", "customary_spouse", "cohabiting_partner", "engaged_partner",
-		"associate"
+		//the generic spouse is what an import writes to a marriage that says nothing more: it must stay valid to be saved again
+		ENUM_TYPE_SPOUSE, ENUM_TYPE_CIVIL_SPOUSE, ENUM_TYPE_RELIGIOUS_SPOUSE, ENUM_TYPE_CUSTOMARY_SPOUSE,
+		ENUM_TYPE_COHABITING_PARTNER, ENUM_TYPE_ENGAGED_PARTNER, ENUM_TYPE_ASSOCIATE
 	};
 	public static final String[] INDIVIDUAL_TO_INDIVIDUAL_SOCIAL_TYPES = new String[]{
-		"civil_spouse", "religious_spouse", "customary_spouse", "cohabiting_partner", "engaged_partner",
-		"associate"
+		ENUM_TYPE_CIVIL_SPOUSE, ENUM_TYPE_RELIGIOUS_SPOUSE, ENUM_TYPE_CUSTOMARY_SPOUSE, ENUM_TYPE_COHABITING_PARTNER,
+		ENUM_TYPE_ENGAGED_PARTNER, ENUM_TYPE_ASSOCIATE
 	};
 	// Relationship types considered social
 	public static final Set<String> SOCIAL_RELATIONSHIP_TYPES = Set.of(
-		"associate", "group_member", "part_of"
+		ENUM_TYPE_ASSOCIATE, ENUM_TYPE_GROUP_MEMBER, ENUM_TYPE_PART_OF
 	);
-	public static final String[] INDIVIDUAL_TO_GROUP_TYPES = new String[]{"group_member", "associate"};
-	public static final String[] GROUP_TO_GROUP_TYPES = new String[]{"part_of", "associate"};
+	public static final String[] INDIVIDUAL_TO_GROUP_TYPES = new String[]{ENUM_TYPE_GROUP_MEMBER, ENUM_TYPE_ASSOCIATE};
+	public static final String[] GROUP_TO_GROUP_TYPES = new String[]{ENUM_TYPE_PART_OF, ENUM_TYPE_ASSOCIATE};
 	private static final String[] GROUP_TO_INDIVIDUAL_TYPES = new String[0];
 	private static final String[] EMPTY_TYPES = new String[0];
 	public static final Set<String> CHILD_TYPES = new HashSet<>(List.of(ENUM_TYPE_CHILD, ENUM_TYPE_BIOLOGICAL_CHILD,
@@ -216,7 +217,7 @@ public final class RelationshipReader{
 				return INDIVIDUAL_TO_GROUP_TYPES;
 		}
 
-		if(GroupReader.isOfType(subject))
+		if(GroupReader.isOfType(subject) && GroupReader.isOfType(target))
 			return GROUP_TO_GROUP_TYPES;
 
 		return GROUP_TO_INDIVIDUAL_TYPES;

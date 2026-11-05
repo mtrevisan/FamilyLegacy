@@ -42,9 +42,13 @@ import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
 import java.awt.Desktop;
 import java.awt.Window;
+import java.io.File;
 import java.nio.file.Path;
+import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.function.BooleanSupplier;
+import java.util.function.Supplier;
 
 
 /**
@@ -82,13 +86,17 @@ public final class AppearanceMenu{
 	 *
 	 * @param owner the window that will own any dialog shown by the menu
 	 *              (e.g. the restart prompt); may be {@code null}
+	 * @param saveBeforeRestart writes what the document has still to write, before the application is closed to be started again: {@code false}
+	 *                          if it could not be done and the user gave up
+	 * @param openFile gives the file of the document, that the application opens again when it starts; {@code null} if it has none
 	 * @return the menu, never {@code null}
 	 */
-	public static JMenu create(final Window owner){
+	public static JMenu create(final Window owner, final BooleanSupplier saveBeforeRestart, final Supplier<File> openFile){
 		final JMenu menu = new JMenu(I18N.t("menu.appearance"));
-		menu.add(createLanguageMenu(owner));
+		menu.add(createLanguageMenu(owner, saveBeforeRestart, openFile));
 		menu.add(createFontMenu(owner));
 		menu.add(createMediaPathsMenu(owner));
+		menu.add(createIdentityItem(owner));
 		menu.add(new JSeparator());
 		menu.add(createOpenPreferencesItem(owner));
 		return menu;
@@ -99,34 +107,55 @@ public final class AppearanceMenu{
 	 *                          Language submenu
 	 * ====================================================================== */
 
-	private static JMenu createLanguageMenu(final Window owner){
+	private static JMenu createLanguageMenu(final Window owner, final BooleanSupplier saveBeforeRestart, final Supplier<File> openFile){
 		final JMenu language = new JMenu(I18N.t("menu.appearance.language"));
 		final Locale current = AppearanceManager.savedLocale();
 		final ButtonGroup group = new ButtonGroup();
+		final Map<Locale, JRadioButtonMenuItem> items = new LinkedHashMap<>();
 
 		for(final Map.Entry<String, Locale> e : LANGUAGES.entrySet()){
 			final Locale locale = e.getValue();
 			final JRadioButtonMenuItem item = new JRadioButtonMenuItem(e.getKey(), sameLanguage(locale, current));
-			item.addActionListener(a -> onLanguageSelected(owner, locale));
+			item.addActionListener(a -> onLanguageSelected(owner, locale, saveBeforeRestart, openFile));
 			group.add(item);
 			language.add(item);
+			items.put(locale, item);
 		}
+
+		//the choice is the one in use each time the submenu is opened (a change that was given up leaves the old one)
+		language.addMenuListener(new MenuListener(){
+			@Override
+			public void menuSelected(final MenuEvent e){
+				final Locale saved = AppearanceManager.savedLocale();
+				items.forEach((locale, item) -> item.setSelected(sameLanguage(locale, saved)));
+			}
+
+			@Override
+			public void menuDeselected(final MenuEvent e){}
+
+			@Override
+			public void menuCanceled(final MenuEvent e){}
+		});
 		return language;
 	}
 
-	private static void onLanguageSelected(final Window owner, final Locale locale){
+	private static void onLanguageSelected(final Window owner, final Locale locale, final BooleanSupplier saveBeforeRestart,
+			final Supplier<File> openFile){
 		final Locale current = AppearanceManager.savedLocale();
 		if(sameLanguage(locale, current))
+			return;
+
+		//the application is closed to be started again: what the document has still to write is written before, and if that cannot be done
+		//the language is left as it is
+		if(!saveBeforeRestart.getAsBoolean())
 			return;
 
 		// Persist first, so the new process picks it up on startup.
 		AppearanceManager.applyLanguage(locale);
 
 		// The locale change only takes full effect after restarting, because
-		// some labels are baked into components at construction time.
-		ApplicationRestarter.restart(owner,
-			"The interface language has been changed to "
-				+ locale.getDisplayLanguage(locale) + ".");
+		// some labels are baked into components at construction time. The document that is open is opened again.
+		ApplicationRestarter.restart(owner, I18N.tf("dialog.restart.language_changed", locale.getDisplayLanguage(locale)), openFile.get());
 	}
 
 	private static boolean sameLanguage(final Locale a, final Locale b){
@@ -204,8 +233,15 @@ public final class AppearanceMenu{
 	}
 
 
+	private static JMenuItem createIdentityItem(final Window owner){
+		final JMenuItem item = new JMenuItem(I18N.t("menu.appearance.identity"));
+		item.addActionListener(a -> IdentitySettingsDialog.show(owner));
+		return item;
+	}
+
+
 	private static JMenuItem createFontMenu(final Window owner){
-		final JMenuItem item = new JMenuItem(I18N.t("menu.appearance.font") + "...");
+		final JMenuItem item = new JMenuItem(I18N.t("menu.appearance.font.dialog"));
 		item.addActionListener(a -> FontChooserDialog.show(owner));
 		return item;
 	}
@@ -216,16 +252,23 @@ public final class AppearanceMenu{
 	 * ====================================================================== */
 
 	private static JMenuItem createOpenPreferencesItem(final Window owner){
-		final JMenuItem item = new JMenuItem(I18N.t("menu.item.open_preferences_file"));
+		final JMenuItem item = new JMenuItem(I18N.t("menu.item.open_preferences_folder"));
 		item.addActionListener(a -> onOpenPreferences(owner));
 		return item;
 	}
 
 	private static void onOpenPreferences(final Window owner){
 		try{
-			final Path path = AppPreferences.filePath();
-			if(Desktop.isDesktopSupported())
-				Desktop.getDesktop().open(path.getParent().toFile());
+			final Path folder = AppPreferences.filePath().getParent();
+			if(!Desktop.isDesktopSupported() || !Desktop.getDesktop().isSupported(Desktop.Action.OPEN)){
+				//the folder cannot be opened from here: at least the user is told where it is
+				JOptionPane.showMessageDialog(owner, I18N.tf("message.preferences_folder.unsupported", folder),
+					I18N.t("error.title"), JOptionPane.INFORMATION_MESSAGE);
+
+				return;
+			}
+
+			Desktop.getDesktop().open(folder.toFile());
 		}
 		catch(final Exception ex){
 			JOptionPane.showMessageDialog(owner,

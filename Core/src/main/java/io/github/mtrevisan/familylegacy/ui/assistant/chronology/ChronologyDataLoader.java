@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.assistant.chronology;
 
+import io.github.mtrevisan.familylegacy.io.model.readers.date.DateRange;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
@@ -60,7 +61,7 @@ final class ChronologyDataLoader{
 	/** A relationship of a child with the parent it descends from: the generic "child" is taken as biological. */
 	private static final Set<String> BIOLOGICAL_TYPES = Set.of(RelationshipReader.ENUM_TYPE_CHILD,
 		RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD);
-	private static final Set<String> MARRIAGE_UNION_TYPES = Set.of("spouse", "civil_spouse", "religious_spouse", "customary_spouse");
+	private static final Set<String> MARRIAGE_UNION_TYPES = Set.of(RelationshipReader.ENUM_TYPE_SPOUSE, RelationshipReader.ENUM_TYPE_CIVIL_SPOUSE, RelationshipReader.ENUM_TYPE_RELIGIOUS_SPOUSE, RelationshipReader.ENUM_TYPE_CUSTOMARY_SPOUSE);
 
 
 	private ChronologyDataLoader(){}

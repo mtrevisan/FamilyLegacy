@@ -39,6 +39,7 @@ import javax.swing.JCheckBox;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
 import javax.swing.JSplitPane;
@@ -93,6 +94,8 @@ public final class DuplicateFinderDialog extends JDialog{
 	private final JCheckBox sameSexCheck = new JCheckBox(I18N.t("checkbox.same_sex_only"), true);
 	private final JCheckBox skipExistingCheck = new JCheckBox(I18N.t("checkbox.skip_existing"), true);
 	private final JLabel statusLabel = new JLabel(StringUtils.SPACE);
+	/** How far the search is, so that the user knows when the data will be there: shown only while it runs. */
+	private final JProgressBar progressBar = new JProgressBar(0, 100);
 	private final JTextArea detailsArea = new JTextArea();
 
 	private List<DuplicateFinderService.Candidate> allCandidates = List.of();
@@ -222,6 +225,9 @@ public final class DuplicateFinderDialog extends JDialog{
 		compare.addActionListener(e -> compareSelected());
 		footer.add(compare);
 
+		progressBar.setStringPainted(true);
+		progressBar.setVisible(false);
+		footer.add(progressBar);
 		footer.add(statusLabel);
 
 		final JButton close = new JButton(I18N.t("button.close"));
@@ -243,7 +249,10 @@ public final class DuplicateFinderDialog extends JDialog{
 		options.requireSameSex = sameSexCheck.isSelected();
 		options.skipExistingHypotheses = skipExistingCheck.isSelected();
 
-		statusLabel.setText(I18N.t("text.searching"));
+		//the bar says it, with its percentage: the status line has nothing to add while the search runs
+		statusLabel.setText(StringUtils.SPACE);
+		progressBar.setValue(0);
+		progressBar.setVisible(true);
 		tableModel.setRows(List.of());
 
 		final FLEFModel model = context.model();
@@ -253,7 +262,8 @@ public final class DuplicateFinderDialog extends JDialog{
 		searchWorker = new SwingWorker<>(){
 			@Override
 			protected List<DuplicateFinderService.Candidate> doInBackground(){
-				return DuplicateFinderService.find(model, options);
+				//setProgress is safe from this thread: the listener below receives the values on the event dispatch thread
+				return DuplicateFinderService.find(model, options, fraction -> setProgress((int)Math.round(fraction * 100.)));
 			}
 
 			@Override
@@ -261,6 +271,7 @@ public final class DuplicateFinderDialog extends JDialog{
 				if(isCancelled())
 					return;
 
+				progressBar.setVisible(false);
 				try{
 					allCandidates = get();
 					tableModel.setRows(allCandidates);
@@ -273,6 +284,11 @@ public final class DuplicateFinderDialog extends JDialog{
 				}
 			}
 		};
+		searchWorker.addPropertyChangeListener(event -> {
+			if("progress".equals(event.getPropertyName()) && searchWorker != null && event.getSource() == searchWorker){
+				progressBar.setValue((Integer)event.getNewValue());
+			}
+		});
 		searchWorker.execute();
 	}
 
@@ -336,18 +352,21 @@ public final class DuplicateFinderDialog extends JDialog{
 		}
 
 		final StringBuilder sb = new StringBuilder();
-		sb.append("Score: ")
+		sb.append(I18N.l("column.score"))
+			.append(StringUtils.SPACE)
 			.append(c.score())
 			.append(StringUtils.LF)
 			.append(StringUtils.LF);
-		sb.append("Left:  ")
+		sb.append(I18N.l("column.left"))
+			.append(StringUtils.SPACE)
 			.append(c.left().displayName())
 			.append(StringUtils.SPACE)
 			.append('[')
 			.append(c.left().id())
 			.append(']')
 			.append(StringUtils.LF);
-		sb.append("Right: ")
+		sb.append(I18N.l("column.right"))
+			.append(StringUtils.SPACE)
 			.append(c.right().displayName())
 			.append(StringUtils.SPACE)
 			.append('[')
@@ -356,7 +375,7 @@ public final class DuplicateFinderDialog extends JDialog{
 			.append(StringUtils.LF)
 			.append(StringUtils.LF);
 
-		sb.append("Matched features:")
+		sb.append(I18N.l("text.duplicates.matched_features"))
 			.append(StringUtils.LF);
 		for(final DuplicateFinderService.FeatureMatch m : c.matches())
 			sb.append("  +").append(m.score()).append("  ")
@@ -367,7 +386,7 @@ public final class DuplicateFinderDialog extends JDialog{
 
 		if(!c.differences().isEmpty()){
 			sb.append(StringUtils.LF)
-				.append("Differences:")
+				.append(I18N.l("column.differences"))
 				.append(StringUtils.LF);
 			for(final String d : c.differences())
 				sb.append("  - ")
@@ -397,8 +416,8 @@ public final class DuplicateFinderDialog extends JDialog{
 		if(left == null || right == null)
 			return;
 		RecordDiffDialog.showComparison(this,
-			"Compare " + c.left().displayName() + " vs " + c.right().displayName(),
-			left, right);
+			I18N.tf("text.duplicates.compare", c.left().displayName(), c.right().displayName()),
+			left, right, model);
 	}
 
 
@@ -408,7 +427,8 @@ public final class DuplicateFinderDialog extends JDialog{
 
 	private static final class CandidateTableModel extends AbstractTableModel{
 
-		private static final String[] COLUMNS = {"Score", "Left", "Right", "Matched", "Differences"};
+		private static final String[] COLUMNS = {I18N.t("column.score"), I18N.t("column.left"), I18N.t("column.right"), I18N.t("column.matched"),
+			I18N.t("column.differences")};
 
 		private final List<DuplicateFinderService.Candidate> rows = new ArrayList<>();
 

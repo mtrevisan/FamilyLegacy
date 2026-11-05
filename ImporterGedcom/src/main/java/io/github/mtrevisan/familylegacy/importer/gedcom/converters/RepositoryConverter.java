@@ -24,11 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.importer.gedcom.converters;
 
-import io.github.mtrevisan.familylegacy.importer.gedcom.AuditBuilder;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMHelper;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.importer.gedcom.IDGenerator;
-import io.github.mtrevisan.familylegacy.importer.gedcom.PlaceCache;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
@@ -90,19 +88,19 @@ public class RepositoryConverter{
 			.addChild(FLEFRecord.createChildWithTagAndValue("value", (name != null? name: "Repository " + xref))));
 
 		// ---- 2. PLAC (place: PlaceCitation) ----
-		GEDCOMHelper.attachPlaceCitation(repository, model, GEDCOMHelper.findFirstChild(repoNode, "PLAC"), null, noteRawMap,
+		GEDCOMRecordBuilder.attachPlaceCitation(repository, model, GEDCOMHelper.findFirstChild(repoNode, "PLAC"), null, noteRawMap,
 			placeCache);
 
 		// ---- 3. ADDRESS_STRUCTURE (ADDR, PHON, EMAIL, FAX, WWW) ----
-		GEDCOMHelper.attachContacts(repository, repoNode, null);
+		GEDCOMRecordBuilder.attachContacts(repository, repoNode, null);
 
 		// ---- Notes (GEDCOM NOTE) – inline structs ----
 		for(GEDCOMNode noteNode : GEDCOMHelper.findChildren(repoNode, "NOTE")){
-			GEDCOMHelper.attachNote(repository, noteNode, noteRawMap);
+			GEDCOMRecordBuilder.attachNote(repository, noteNode, noteRawMap);
 		}
 
 		// ---- Privacy (RESN, an extension of some programs) ----
-		GEDCOMHelper.attachRestriction(repository, repoNode);
+		GEDCOMRecordBuilder.attachRestriction(repository, repoNode);
 
 		// ---- Audit (required) ----
 		repository.addChild(AuditBuilder.build(repoNode));

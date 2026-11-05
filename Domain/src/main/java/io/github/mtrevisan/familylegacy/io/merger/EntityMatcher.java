@@ -40,6 +40,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
 
 
 /**
@@ -61,12 +64,12 @@ final class EntityMatcher{
 	static final List<String> RELATIONAL_KINDS = List.of(ModelIndex.KIND_INDIVIDUAL, ModelIndex.KIND_GROUP, ModelIndex.KIND_PLACE,
 		ModelIndex.KIND_SOURCE);
 
-	private static final Set<String> BIRTH_TYPES = Set.of("birth");
+	private static final Set<String> BIRTH_TYPES = Set.of(EventReader.ENUM_TYPE_BIRTH);
 	private static final Set<String> BIRTH_PROXY_TYPES = Set.of("baptism", "christening");
-	private static final Set<String> DEATH_TYPES = Set.of("death");
-	private static final Set<String> DEATH_PROXY_TYPES = Set.of("burial", "cremation");
+	private static final Set<String> DEATH_TYPES = Set.of(EventReader.ENUM_TYPE_DEATH);
+	private static final Set<String> DEATH_PROXY_TYPES = Set.of(EventReader.ENUM_TYPE_BURIAL, EventReader.ENUM_TYPE_CREMATION);
 	/** Events compared on their own: the others are compared only as being the same event. */
-	private static final Set<String> OWN_EVENT_TYPES = Set.of("birth", "baptism", "christening", "death", "burial", "cremation");
+	private static final Set<String> OWN_EVENT_TYPES = Set.of(EventReader.ENUM_TYPE_BIRTH, "baptism", "christening", EventReader.ENUM_TYPE_DEATH, EventReader.ENUM_TYPE_BURIAL, EventReader.ENUM_TYPE_CREMATION);
 
 	private static final String TAG_NAME = "name";
 	private static final String TAG_PART = "part";
@@ -87,8 +90,8 @@ final class EntityMatcher{
 	private static final String TAG_SEX = "sex";
 	private static final String AGENT_TEXT = "text";
 	private static final String PART_GIVEN = "given";
-	private static final String PART_FAMILY = "family";
-	private static final Set<String> KNOWN_SEXES = Set.of("male", "female");
+	private static final String PART_FAMILY = NameReader.ENUM_PART_TYPE_FAMILY;
+	private static final Set<String> KNOWN_SEXES = Set.of(IndividualReader.ENUM_SEX_MALE, IndividualReader.ENUM_SEX_FEMALE);
 
 	private static final double DAYS_PER_YEAR = 365.2425;
 	private static final double MAX_LIFESPAN_YEARS = 120.;

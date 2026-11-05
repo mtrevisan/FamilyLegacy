@@ -50,6 +50,28 @@ class ModelHistoryTest{
 
 
 	@Test
+	void aSaveMarksOnlyWhatWasWrittenAndNotWhatWasChangedAfterwards(){
+		final FLEFModel model = model();
+		final ModelHistory history = new ModelHistory(model);
+		Assertions.assertFalse(history.isModified());
+
+		model.addRecord(FLEFRecord.createMainRecord("P2", "place"));
+		Assertions.assertTrue(history.isModified());
+
+		//the model is written from a copy, while the user goes on editing
+		final ModelHistory.SaveTicket ticket = history.prepareSave();
+		Assertions.assertEquals(2, ticket.view().getRecordCount());
+		model.addRecord(FLEFRecord.createMainRecord("P3", "place"));
+		Assertions.assertEquals(2, ticket.view().getRecordCount());
+
+		history.markSaved(ticket);
+		Assertions.assertTrue(history.isModified(), "P3 is not on the file");
+
+		history.markSaved(history.prepareSave());
+		Assertions.assertFalse(history.isModified());
+	}
+
+	@Test
 	void undoAndRedoRestoreTheModel(){
 		final FLEFModel model = model();
 		final ModelHistory history = new ModelHistory(model);

@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.ui.components.searches.RecordFilterPanel
 import io.github.mtrevisan.familylegacy.ui.components.searches.strategies.ConclusionFilterPanel;
 import io.github.mtrevisan.familylegacy.ui.components.searches.strategies.CulturalNormFilterPanel;
 import io.github.mtrevisan.familylegacy.ui.components.searches.strategies.EventFilterPanel;
+import io.github.mtrevisan.familylegacy.ui.components.searches.strategies.EventParticipationFilterPanel;
 import io.github.mtrevisan.familylegacy.ui.components.searches.strategies.GroupFilterPanel;
 import io.github.mtrevisan.familylegacy.ui.components.searches.strategies.HistoricEventFilterPanel;
 import io.github.mtrevisan.familylegacy.ui.components.searches.strategies.IdentityHypothesisFilterPanel;
@@ -45,6 +46,7 @@ import io.github.mtrevisan.familylegacy.ui.components.searches.strategies.Source
 import io.github.mtrevisan.familylegacy.ui.handlers.ConclusionHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.CulturalNormHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.EventParticipationHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.HistoricEventHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IdentityHypothesisHandler;
@@ -78,6 +80,7 @@ public class FilterPanelFactory{
 		REGISTRY.put(CulturalNormHandler.class, CulturalNormFilterPanel::new);
 		REGISTRY.put(MediaHandler.class, MediaFilterPanel::new);
 		REGISTRY.put(EventHandler.class, EventFilterPanel::new);
+		REGISTRY.put(EventParticipationHandler.class, EventParticipationFilterPanel::new);
 		REGISTRY.put(GroupHandler.class, GroupFilterPanel::new);
 		REGISTRY.put(HistoricEventHandler.class, HistoricEventFilterPanel::new);
 		REGISTRY.put(IdentityHypothesisHandler.class, IdentityHypothesisFilterPanel::new);

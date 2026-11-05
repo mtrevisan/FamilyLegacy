@@ -34,7 +34,10 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IdentityHypothesisReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceRelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.DateNormalizer;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.DateRange;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import org.apache.commons.lang3.StringUtils;
@@ -46,9 +49,11 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.function.DoubleConsumer;
 
 
 /**
@@ -69,6 +74,23 @@ public class FLEFValidator{
 
 	private static final String FIELD_HEADER = "header";
 
+	/** The share of the work that the schema is, and the share done when the integrity is: the business rules are the rest. */
+	private static final double PROGRESS_SCHEMA = 0.7;
+	private static final double PROGRESS_INTEGRITY = 0.85;
+	/** The records validated between two reports of the progress. */
+	private static final int PROGRESS_RECORDS = 50;
+
+	/** The kind of the issue of a relationship that ends before it begins. */
+	public static final String KIND_VALIDITY = "validity_dates";
+
+	/** How serious a validation issue is. */
+	public enum Severity{
+		/** Something to look at: the file is still valid. */
+		WARNING,
+		/** Something wrong: the file is not valid. */
+		ERROR
+	}
+
 
 	/**
 	 * A single validation issue.
@@ -79,11 +101,27 @@ public class FLEFValidator{
 	 *                 specific record (e.g. a header-level error, or an
 	 *                 unresolved cross-reference whose target does not
 	 *                 exist)
+	 * @param severity how serious it is: an {@link Severity#ERROR error} makes the file invalid, a {@link Severity#WARNING warning}
+	 *                 is something to look at (e.g. an individual without a name)
+	 * @param kind     what kind of problem it is, a stable key ({@code circular_parentage}...) that the report groups by; empty when
+	 *                 it is not known (what the grammar finds: the report then groups by the type of the record)
 	 */
-	public record ValidationError(String message, String recordId){
+	public record ValidationError(String message, String recordId, Severity severity, String kind){
 
 		public ValidationError{
 			Objects.requireNonNull(message, "message must not be null");
+			Objects.requireNonNull(severity, "severity must not be null");
+			kind = (kind != null? kind: "");
+		}
+
+		/** An issue of an unknown kind. */
+		public ValidationError(final String message, final String recordId, final Severity severity){
+			this(message, recordId, severity, "");
+		}
+
+		/** An error: what the grammar says is wrong is an error. */
+		public ValidationError(final String message, final String recordId){
+			this(message, recordId, Severity.ERROR);
 		}
 
 		/** {@code true} when the error can be opened in the editor. */
@@ -116,16 +154,33 @@ public class FLEFValidator{
 	 * @return the issues, never {@code null}
 	 */
 	public List<ValidationError> validateAllStructured(final FLEFModel model){
+		return validateAllStructured(model, fraction -> {});
+	}
+
+	/**
+	 * The same, telling how far it got. The progress is the share of the work done, from 0 to 1, and never goes back: the schema, which
+	 * visits every record, is the first 70 % (by the number of records), the integrity 15 %, the business rules the rest. It is called
+	 * from the thread that validates. If that thread is interrupted the validation stops with what it found.
+	 *
+	 * @param model    the model to validate; may be {@code null}
+	 * @param progress told, from time to time, the share of the work done (0 to 1)
+	 * @return the issues, never {@code null}
+	 */
+	public List<ValidationError> validateAllStructured(final FLEFModel model, final DoubleConsumer progress){
 		final List<ValidationError> errors = new ArrayList<>();
 
-		errors.addAll(validateSchemaStructured(model));
+		errors.addAll(validateSchemaStructured(model, fraction -> progress.accept(fraction * PROGRESS_SCHEMA)));
+		progress.accept(PROGRESS_SCHEMA);
 
-		if(errors.isEmpty())
+		if(errors.isEmpty() && !Thread.currentThread().isInterrupted()){
 			errors.addAll(validateIntegrityStructured(model));
+			progress.accept(PROGRESS_INTEGRITY);
+		}
 
-		if(errors.isEmpty())
+		if(errors.isEmpty() && !Thread.currentThread().isInterrupted())
 			errors.addAll(validateBusinessRulesStructured(model));
 
+		progress.accept(1.);
 		return errors;
 	}
 
@@ -138,6 +193,11 @@ public class FLEFValidator{
 	 * @return the issues, never {@code null}
 	 */
 	public List<ValidationError> validateSchemaStructured(final FLEFModel model){
+		return validateSchemaStructured(model, fraction -> {});
+	}
+
+	/** The same, telling how far it got through the records (0 to 1). */
+	public List<ValidationError> validateSchemaStructured(final FLEFModel model, final DoubleConsumer progress){
 		if(model == null)
 			return List.of(new ValidationError("Model is null", null));
 
@@ -167,7 +227,11 @@ public class FLEFValidator{
 			final TypeDefinition recordsType = grammar.getType(fileDef.recordsField().type().getName());
 			if(recordsType != null){
 				final List<FLEFRecord> records = model.getRecords();
+				int done = 0;
 				for(final FLEFRecord record : records){
+					if(Thread.currentThread().isInterrupted())
+						break;
+
 					final String contextPath = FLEFRecordHelper.composePath(FLEFGrammarParser.FIELD_RECORDS, record.getTag());
 					final String recordId = record.getId();
 
@@ -178,6 +242,10 @@ public class FLEFValidator{
 					for(final String msg : collect(em -> validateConstraints(contextPath,
 						record, model, grammar, em)))
 						errors.add(new ValidationError(msg, recordId));
+
+					done ++;
+					if(done % PROGRESS_RECORDS == 0)
+						progress.accept((double)done / records.size());
 				}
 			}
 		}
@@ -218,13 +286,15 @@ public class FLEFValidator{
 			final String contextPath = "records." + tag;
 			final String recordId = record.getId();
 
-			if(IndividualReader.isOfType(record))
-				for(final String msg : collect(em -> validateIndividualDates(record, contextPath, em)))
-					errors.add(new ValidationError(msg, recordId));
-
 			if(RelationshipReader.isOfType(record))
-				for(final String msg : collect(em -> validateRelationshipDates(record, contextPath, em)))
-					errors.add(new ValidationError(msg, recordId));
+				for(final String msg : collect(em -> validateValidity(record, RelationshipReader.TAG_VALID_FROM,
+						RelationshipReader.TAG_VALID_TO, contextPath, em)))
+					errors.add(new ValidationError(msg, recordId, Severity.ERROR, KIND_VALIDITY));
+
+			if(PlaceRelationshipReader.isOfType(record))
+				for(final String msg : collect(em -> validateValidity(record, PlaceRelationshipReader.TAG_VALID_FROM,
+						PlaceRelationshipReader.TAG_VALID_TO, contextPath, em)))
+					errors.add(new ValidationError(msg, recordId, Severity.ERROR, KIND_VALIDITY));
 
 			if(IdentityHypothesisReader.isOfType(record))
 				for(final String msg : collect(em -> validateIdentityHypothesis(record, contextPath, model, em)))
@@ -385,22 +455,28 @@ public class FLEFValidator{
 	 *                          Internal — business rules
 	 * ====================================================================== */
 
-	private void validateIndividualDates(final FLEFRecord individual, final String contextPath,
-			final List<String> errors){
-		// Placeholder: the complex check requires traversing the model
-		// through event participations. Left empty for now.
-	}
-
-	private void validateRelationshipDates(final FLEFRecord relationship, final String contextPath,
+	/**
+	 * A relationship that ends before it begins: every day that {@code valid_to} may stand for is before every day that
+	 * {@code valid_from} may stand for. The dates are normalized, whatever their calendar and precision (a year, an approximate date, a
+	 * bounded one), and a date that cannot be read is not judged: the comparison is of the days, not of the text, which gave a wrong
+	 * answer for two dates written in two ways.
+	 */
+	private void validateValidity(final FLEFRecord record, final String fromTag, final String toTag, final String contextPath,
 		final List<String> errors){
-		final String validFrom = FLEFRecordHelper.getChildValue(relationship, "VALID_FROM");
-		final String validTo = FLEFRecordHelper.getChildValue(relationship, "VALID_TO");
+		final FLEFRecord from = FLEFRecordHelper.findChild(record, fromTag);
+		final FLEFRecord to = FLEFRecordHelper.findChild(record, toTag);
+		if(from == null || to == null)
+			return;
 
-		if(validFrom != null && validTo != null){
-			if(validFrom.compareTo(validTo) > 0)
-				errors.add(String.format(
-					"Constraint violation at '%s': VALID_FROM (%s) must be before VALID_TO (%s)",
-					contextPath, validFrom, validTo));
+		try{
+			final DateRange validFrom = DateRange.of(DateNormalizer.normalize(from));
+			final DateRange validTo = DateRange.of(DateNormalizer.normalize(to));
+			if(validFrom != null && validTo != null && validTo.isBefore(validFrom))
+				errors.add(String.format("Constraint violation at '%s': %s must not be before %s", contextPath,
+					toTag.toUpperCase(Locale.ROOT), fromTag.toUpperCase(Locale.ROOT)));
+		}
+		catch(final RuntimeException ignored){
+			//a date that cannot be normalized is checked where it is edited, not here
 		}
 	}
 

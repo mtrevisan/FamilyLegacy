@@ -24,11 +24,11 @@
  */
 package io.github.mtrevisan.familylegacy.importer.gramps;
 
-import io.github.mtrevisan.familylegacy.importer.gedcom.Deduplicator;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMMapper;
 import io.github.mtrevisan.familylegacy.importer.gedcom.IDGenerator;
-import io.github.mtrevisan.familylegacy.importer.gedcom.PlaceCache;
+import io.github.mtrevisan.familylegacy.importer.gedcom.converters.Deduplicator;
 import io.github.mtrevisan.familylegacy.importer.gedcom.converters.GEDCOMToFLEFConverter;
+import io.github.mtrevisan.familylegacy.importer.gedcom.converters.PlaceCache;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
@@ -66,6 +66,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Pattern;
+import io.github.mtrevisan.familylegacy.io.model.readers.PrivacyReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
 
 
 /**
@@ -90,8 +92,8 @@ public final class GrampsXMLToFLEFConverter{
 	private static final String PROTOCOL_NAME = "Family LEgacy Format";
 	private static final String PROTOCOL_VERSION = "0.2.0";
 
-	private static final String ROLE_PRINCIPAL = "principal";
-	private static final String PRIVACY_RESTRICTED = "restricted";
+	private static final String ROLE_PRINCIPAL = EventParticipationReader.ENUM_ROLE_PRINCIPAL;
+	private static final String PRIVACY_RESTRICTED = PrivacyReader.ENUM_LEVEL_RESTRICTED;
 	private static final String TYPE_UNKNOWN = "unknown";
 
 	/** The identifiers that can be kept: they must begin with a letter, and have only letters and digits. */
@@ -100,20 +102,20 @@ public final class GrampsXMLToFLEFConverter{
 
 	/** The GEDCOM tag of the types of event of Gramps (lowercase), whose FLEF type is given by the mapper of GEDCOM. */
 	private static final Map<String, String> EVENT_TAGS = Map.ofEntries(
-		Map.entry("birth", "BIRT"), Map.entry("death", "DEAT"), Map.entry("baptism", "BAPM"), Map.entry("burial", "BURI"),
-		Map.entry("christening", "CHR"), Map.entry("cremation", "CREM"), Map.entry("adopted", "ADOP"),
+		Map.entry(EventReader.ENUM_TYPE_BIRTH, "BIRT"), Map.entry(EventReader.ENUM_TYPE_DEATH, "DEAT"), Map.entry("baptism", "BAPM"), Map.entry(EventReader.ENUM_TYPE_BURIAL, "BURI"),
+		Map.entry("christening", "CHR"), Map.entry(EventReader.ENUM_TYPE_CREMATION, "CREM"), Map.entry("adopted", "ADOP"),
 		Map.entry("bar mitzvah", "BARM"), Map.entry("bas mitzvah", "BASM"), Map.entry("blessing", "BLES"),
 		Map.entry("adult christening", "CHRA"), Map.entry("confirmation", "CONF"), Map.entry("first communion", "FCOM"),
-		Map.entry("ordination", "ORDN"), Map.entry("naturalization", "NATU"), Map.entry("emigration", "EMIG"),
-		Map.entry("immigration", "IMMI"), Map.entry("census", "CENS"), Map.entry("probate", "PROB"), Map.entry("will", "WILL"),
-		Map.entry("graduation", "GRAD"), Map.entry("retirement", "RETI"),
-		Map.entry("occupation", "OCCU"), Map.entry("residence", "RESI"), Map.entry("education", "EDUC"),
+		Map.entry("ordination", "ORDN"), Map.entry(EventReader.ENUM_TYPE_NATURALIZATION, "NATU"), Map.entry(EventReader.ENUM_TYPE_EMIGRATION, "EMIG"),
+		Map.entry(EventReader.ENUM_TYPE_IMMIGRATION, "IMMI"), Map.entry(EventReader.ENUM_TYPE_CENSUS, "CENS"), Map.entry(EventReader.ENUM_TYPE_PROBATE, "PROB"), Map.entry(EventReader.ENUM_TYPE_WILL, "WILL"),
+		Map.entry(EventReader.ENUM_TYPE_GRADUATION, "GRAD"), Map.entry(EventReader.ENUM_TYPE_RETIREMENT, "RETI"),
+		Map.entry(IndividualAttributeReader.ENUM_TYPE_OCCUPATION, "OCCU"), Map.entry(IndividualAttributeReader.ENUM_TYPE_RESIDENCE, "RESI"), Map.entry(IndividualAttributeReader.ENUM_TYPE_EDUCATION, "EDUC"),
 		Map.entry("religion", "RELI"), Map.entry("nationality", "NATI"), Map.entry("property", "PROP"),
 		Map.entry("caste", "CAST"), Map.entry("physical description", "DSCR"), Map.entry("number of children", "NCHI"),
 		Map.entry("number of marriages", "NMR"), Map.entry("social security number", "SSN"),
 		Map.entry("nobility title", "TITL"), Map.entry("identification number", "IDNO"),
-		Map.entry("marriage", "MARR"), Map.entry("divorce", "DIV"), Map.entry("annulment", "ANUL"),
-		Map.entry("engagement", "ENGA"), Map.entry("marriage banns", "MARB"), Map.entry("marriage contract", "MARC"),
+		Map.entry(EventReader.ENUM_TYPE_MARRIAGE, "MARR"), Map.entry(EventReader.ENUM_TYPE_DIVORCE, "DIV"), Map.entry(EventReader.ENUM_TYPE_ANNULMENT, "ANUL"),
+		Map.entry(EventReader.ENUM_TYPE_ENGAGEMENT, "ENGA"), Map.entry("marriage banns", "MARB"), Map.entry("marriage contract", "MARC"),
 		Map.entry("marriage license", "MARL"), Map.entry("marriage settlement", "MARS"), Map.entry("divorce filing", "DIVF"));
 	/** The tags that are attributes of an individual (they are not events). */
 	private static final Set<String> ATTRIBUTE_TAGS = Set.of("OCCU", "RESI", "EDUC", "RELI", "NATI", "PROP", "CAST", "DSCR",
@@ -136,8 +138,8 @@ public final class GrampsXMLToFLEFConverter{
 		Map.entry("groom", ROLE_PRINCIPAL), Map.entry("clergy", "officiant"), Map.entry("celebrant", "officiant"),
 		Map.entry("witness", "witness"), Map.entry("informant", "informant"), Map.entry("godparent", "sponsor"));
 	private static final Map<String, String> CHILD_RELATIONSHIPS = Map.of(
-		"birth", RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD, "adopted", "adoptive_child", "stepchild", "step_child",
-		"foster", "foster_child");
+		"birth", RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD, "adopted", RelationshipReader.ENUM_TYPE_ADOPTIVE_CHILD, "stepchild", RelationshipReader.ENUM_TYPE_STEP_CHILD,
+		"foster", RelationshipReader.ENUM_TYPE_FOSTER_CHILD);
 
 	/** The way an event is written. */
 	private record EventKind(String type, String description, String attributeType, String typeNote){}
@@ -938,8 +940,8 @@ public final class GrampsXMLToFLEFConverter{
 
 		final String gender = StringUtils.defaultString(GrampsXML.childText(element, "gender")).toUpperCase(Locale.ROOT);
 		switch(gender){
-			case "M" -> individual.addChild(child("sex", "male"));
-			case "F" -> individual.addChild(child("sex", "female"));
+			case "M" -> individual.addChild(child("sex", IndividualReader.ENUM_SEX_MALE));
+			case "F" -> individual.addChild(child("sex", IndividualReader.ENUM_SEX_FEMALE));
 			case "U" -> individual.addChild(child("sex", TYPE_UNKNOWN));
 			default -> {}
 		}
@@ -977,7 +979,7 @@ public final class GrampsXMLToFLEFConverter{
 			final String text = GrampsXML.text(surname);
 			final String value = StringUtils.trimToNull(StringUtils.defaultString(prefix) + " " + StringUtils.defaultString(text));
 			final String derivation = StringUtils.defaultString(GrampsXML.attribute(surname, "derivation")).toLowerCase(Locale.ROOT);
-			part(structure, SURNAME_DERIVATIONS.getOrDefault(derivation, "family"), value);
+			part(structure, SURNAME_DERIVATIONS.getOrDefault(derivation, NameReader.ENUM_PART_TYPE_FAMILY), value);
 		}
 		part(structure, "family_nickname", GrampsXML.childText(name, "familynick"));
 		part(structure, "suffix", GrampsXML.childText(name, "suffix"));
@@ -1057,7 +1059,7 @@ public final class GrampsXMLToFLEFConverter{
 				.addChild(child("individual", id(associate))))
 			.addChild(FLEFRecord.createChildWithTag("target")
 				.addChild(child("individual", id(person))))
-			.addChild(child("type", "associate"))
+			.addChild(child("type", RelationshipReader.ENUM_TYPE_ASSOCIATE))
 			.addChild(child("role", GrampsXML.attribute(reference, "rel")));
 		citations(relationship, reference);
 		notes(relationship, reference);
@@ -1083,7 +1085,7 @@ public final class GrampsXMLToFLEFConverter{
 			: (fatherName != null? fatherName: "?") + " and " + (motherName != null? motherName: "?") + " family");
 		group.addChild(FLEFRecord.createChildWithTag("name")
 			.addChild(child("value", name)));
-		group.addChild(child("type", "family"));
+		group.addChild(child("type", GroupReader.ENUM_TYPE_FAMILY));
 		citations(group, element);
 		notes(group, element);
 		media(group, element);
@@ -1100,7 +1102,7 @@ public final class GrampsXMLToFLEFConverter{
 			if(offspring == null)
 				continue;
 
-			membership(offspring, group, "child", element);
+			membership(offspring, group, RelationshipReader.ENUM_TYPE_CHILD, element);
 			if(father != null)
 				parentChild(offspring, father, GrampsXML.attribute(reference, "frel"), reference, element);
 			if(mother != null)
@@ -1148,14 +1150,14 @@ public final class GrampsXMLToFLEFConverter{
 	private void parentChild(final Element child, final Element parent, final String kind, final Element reference,
 			final Element family){
 		final String key = Objects.toString(kind, "Birth").toLowerCase(Locale.ROOT);
-		final String type = CHILD_RELATIONSHIPS.getOrDefault(key, "child");
+		final String type = CHILD_RELATIONSHIPS.getOrDefault(key, RelationshipReader.ENUM_TYPE_CHILD);
 		final FLEFRecord relationship = FLEFRecord.createMainRecord(nextId(RelationshipReader.ID_PREFIX), RelationshipReader.TYPE)
 			.addChild(FLEFRecord.createChildWithTag("subject")
 				.addChild(child("individual", id(child))))
 			.addChild(FLEFRecord.createChildWithTag("target")
 				.addChild(child("individual", id(parent))))
 			.addChild(child("type", type));
-		if("child".equals(type) && !CHILD_RELATIONSHIPS.containsKey(key))
+		if(RelationshipReader.ENUM_TYPE_CHILD.equals(type) && !CHILD_RELATIONSHIPS.containsKey(key))
 			relationship.addChild(note("Relationship", kind, family));
 		citations(relationship, reference);
 		notes(relationship, reference);
@@ -1168,9 +1170,9 @@ public final class GrampsXMLToFLEFConverter{
 	private void spouses(final Element family, final Element father, final Element mother){
 		final String kind = Objects.toString(GrampsXML.attribute(GrampsXML.child(family, "rel"), "type"), TYPE_UNKNOWN);
 		final String type = switch(kind.toLowerCase(Locale.ROOT)){
-			case "civil union" -> "civil_spouse";
-			case "unmarried" -> "cohabiting_partner";
-			default -> "spouse";
+			case "civil union" -> RelationshipReader.ENUM_TYPE_CIVIL_SPOUSE;
+			case "unmarried" -> RelationshipReader.ENUM_TYPE_COHABITING_PARTNER;
+			default -> RelationshipReader.ENUM_TYPE_SPOUSE;
 		};
 
 		final FLEFRecord relationship = FLEFRecord.createMainRecord(nextId(RelationshipReader.ID_PREFIX), RelationshipReader.TYPE)
@@ -1183,12 +1185,12 @@ public final class GrampsXMLToFLEFConverter{
 		for(final Element reference : GrampsXML.children(family, "eventref")){
 			final Element event = target(reference, "event");
 			final String eventType = (event != null? StringUtils.defaultString(GrampsXML.childText(event, "type")).toLowerCase(Locale.ROOT): "");
-			if("marriage".equals(eventType) && FLEFRecordHelper.findChild(relationship, "valid_from") == null)
+			if(EventReader.ENUM_TYPE_MARRIAGE.equals(eventType) && FLEFRecordHelper.findChild(relationship, "valid_from") == null)
 				date(relationship, "valid_from", dateOf(event), event);
-			else if(("divorce".equals(eventType) || "annulment".equals(eventType)) && FLEFRecordHelper.findChild(relationship, "valid_to") == null)
+			else if((EventReader.ENUM_TYPE_DIVORCE.equals(eventType) || EventReader.ENUM_TYPE_ANNULMENT.equals(eventType)) && FLEFRecordHelper.findChild(relationship, "valid_to") == null)
 				date(relationship, "valid_to", dateOf(event), event);
 		}
-		if("spouse".equals(type) && !List.of("married", TYPE_UNKNOWN).contains(kind.toLowerCase(Locale.ROOT)))
+		if(RelationshipReader.ENUM_TYPE_SPOUSE.equals(type) && !List.of("married", TYPE_UNKNOWN).contains(kind.toLowerCase(Locale.ROOT)))
 			relationship.addChild(note("Relationship type", kind, family));
 		relationship.addChild(audit(isoOf(family)));
 		Deduplicator.getDeduplicatedRecordId(model, relationship);

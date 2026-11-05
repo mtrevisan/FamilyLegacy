@@ -77,7 +77,7 @@ import java.util.List;
  * <pre>
  * record ConclusionRecord {
  *   issue: Text
- *   proof_status: enum { unresearched, conflicting_evidence, supported, proven, disproven }
+ *   proof_status: enum { conflicting_evidence, supported, proven, disproven }
  *   narrative?: Text
  *   resolves*: ConclusionTarget
  *   preferred?: ConclusionTarget

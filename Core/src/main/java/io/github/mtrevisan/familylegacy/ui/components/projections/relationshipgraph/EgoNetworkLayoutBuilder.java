@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.ui.components.projections.relationshipg
 import io.github.mtrevisan.familylegacy.consanguinity.ConsanguinityReport;
 import io.github.mtrevisan.familylegacy.consanguinity.ConsanguinityReportText;
 import io.github.mtrevisan.familylegacy.ego.EgoNode;
+import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.components.projections.common.BoxPanelType;
@@ -178,14 +179,14 @@ class EgoNetworkLayoutBuilder{
 			if(i > 0)
 				sb.append("<hr>");
 			if(info.isInverse())
-				sb.append(" <i>(Inverse)</i><br>");
+				sb.append(" <i>").append(I18N.t("text.tip.inverse")).append("</i><br>");
 			if(info.type() != null)
-				sb.append("<b>Type:</b> ")
+				sb.append("<b>").append(I18N.l("tooltip.field.type")).append("</b> ")
 					.append(escapeHtml(info.type()));
 			if(info.role() != null){
 				if(info.type() != null)
 					sb.append("<br>");
-				sb.append("<b>Role:</b> ")
+				sb.append("<b>").append(I18N.l("tooltip.field.role")).append("</b> ")
 					.append(escapeHtml(info.role()));
 			}
 		}
@@ -198,14 +199,13 @@ class EgoNetworkLayoutBuilder{
 		if(union == null)
 			return tooltipText;
 
-		final StringBuilder sb = new StringBuilder("<b>Possible consanguineous union</b><br>Kinship ")
-			.append(ConsanguinityReportText.percent(union.kinship()))
-			.append(", relationship R ")
-			.append(ConsanguinityReportText.decimal(union.relationship()));
+		final StringBuilder sb = new StringBuilder("<b>").append(I18N.t("text.tip.consanguinity")).append("</b><br>")
+			.append(I18N.tf("text.tip.kinship", ConsanguinityReportText.percent(union.kinship()),
+				ConsanguinityReportText.decimal(union.relationship())));
 		final String term = union.term();
 		if(!term.isEmpty())
 			sb.append("<br>").append(escapeHtml(term));
-		sb.append("<br><i>From the recorded ancestry: to be verified</i>");
+		sb.append("<br><i>").append(I18N.t("text.tip.consanguinity_note")).append("</i>");
 
 		if(tooltipText == null)
 			return "<html>" + sb + "</html>";

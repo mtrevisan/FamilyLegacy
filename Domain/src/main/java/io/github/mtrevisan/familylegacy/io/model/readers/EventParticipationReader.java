@@ -80,50 +80,69 @@ public final class EventParticipationReader{
 	public static final String TAG_PRIVACY = "privacy";
 	public static final String TAG_AUDIT = "audit";
 
+	public static final String ENUM_ROLE_PRINCIPAL = "principal";
+	public static final String ENUM_ROLE_OFFICIANT = "officiant";
+	public static final String ENUM_ROLE_WITNESS = "witness";
+	public static final String ENUM_ROLE_INFORMANT = "informant";
+	public static final String ENUM_ROLE_SPONSOR = "sponsor";
+	public static final String ENUM_ROLE_POWER_OF_ATTORNEY = "power_of_attorney";
+	public static final String ENUM_ROLE_PRISONER = "prisoner";
+	public static final String ENUM_ROLE_EXECUTOR = "executor";
+	public static final String ENUM_ROLE_GRANTOR = "grantor";
+	public static final String ENUM_ROLE_GRANTEE = "grantee";
+	public static final String ENUM_ROLE_LANDLORD = "landlord";
+	public static final String ENUM_ROLE_TENANT = "tenant";
+	public static final String ENUM_ROLE_SOLDIER = "soldier";
+	public static final String ENUM_ROLE_COMMANDER = "commander";
+	public static final String ENUM_ROLE_VICTIM = "victim";
+	public static final String ENUM_ROLE_SURVIVOR = "survivor";
+	public static final String ENUM_ROLE_ACCUSED = "accused";
+	public static final String ENUM_ROLE_JUDGE = "judge";
+	public static final String ENUM_ROLE_PROPERTY = "property";
 	public static final String[] ROLES = new String[]{
-		"principal",
-		"officiant",
-		"witness",
-		"informant",
-		"sponsor",
-		"power_of_attorney",
-		"prisoner",
-		"executor",
-		"grantor", "grantee",
-		"landlord", "tenant",
-		"soldier", "commander",
-		"victim", "survivor",
-		"accused", "judge",
-		"property"
+		ENUM_ROLE_PRINCIPAL,
+		ENUM_ROLE_OFFICIANT,
+		ENUM_ROLE_WITNESS,
+		ENUM_ROLE_INFORMANT,
+		ENUM_ROLE_SPONSOR,
+		ENUM_ROLE_POWER_OF_ATTORNEY,
+		ENUM_ROLE_PRISONER,
+		ENUM_ROLE_EXECUTOR,
+		ENUM_ROLE_GRANTOR, ENUM_ROLE_GRANTEE,
+		ENUM_ROLE_LANDLORD, ENUM_ROLE_TENANT,
+		ENUM_ROLE_SOLDIER, ENUM_ROLE_COMMANDER,
+		ENUM_ROLE_VICTIM, ENUM_ROLE_SURVIVOR,
+		ENUM_ROLE_ACCUSED, ENUM_ROLE_JUDGE,
+		ENUM_ROLE_PROPERTY
 	};
 
 	// Roles carried by EventParticipationRecord that express a social link.
 	public static final Set<String> RELATIONAL_EVENT_ROLES = Set.of(
-		"power_of_attorney",
-		"witness",
-		"officiant", "informant",
-		"executor",
-		"grantor", "grantee",
-		"landlord", "tenant",
-		"accused", "judge"
+		ENUM_ROLE_POWER_OF_ATTORNEY,
+		ENUM_ROLE_WITNESS,
+		ENUM_ROLE_OFFICIANT, ENUM_ROLE_INFORMANT,
+		ENUM_ROLE_EXECUTOR,
+		ENUM_ROLE_GRANTOR, ENUM_ROLE_GRANTEE,
+		ENUM_ROLE_LANDLORD, ENUM_ROLE_TENANT,
+		ENUM_ROLE_ACCUSED, ENUM_ROLE_JUDGE
 	);
 
 	public static final String[] INDIVIDUAL_OR_GROUP_ROLES = new String[]{
-		"principal", "sponsor",
-		"power_of_attorney",
-		"prisoner",
-		"witness",
-		"officiant", "informant",
-		"executor",
-		"grantor", "grantee",
-		"landlord", "tenant",
-		"soldier", "commander",
-		"victim", "survivor",
-		"accused", "judge"
+		ENUM_ROLE_PRINCIPAL, ENUM_ROLE_SPONSOR,
+		ENUM_ROLE_POWER_OF_ATTORNEY,
+		ENUM_ROLE_PRISONER,
+		ENUM_ROLE_WITNESS,
+		ENUM_ROLE_OFFICIANT, ENUM_ROLE_INFORMANT,
+		ENUM_ROLE_EXECUTOR,
+		ENUM_ROLE_GRANTOR, ENUM_ROLE_GRANTEE,
+		ENUM_ROLE_LANDLORD, ENUM_ROLE_TENANT,
+		ENUM_ROLE_SOLDIER, ENUM_ROLE_COMMANDER,
+		ENUM_ROLE_VICTIM, ENUM_ROLE_SURVIVOR,
+		ENUM_ROLE_ACCUSED, ENUM_ROLE_JUDGE
 	};
 
 	public static final String[] PLACE_ROLES = new String[]{
-		"property"
+		ENUM_ROLE_PROPERTY
 	};
 
 

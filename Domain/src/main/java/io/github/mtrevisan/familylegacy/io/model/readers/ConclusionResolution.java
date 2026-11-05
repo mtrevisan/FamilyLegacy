@@ -35,7 +35,7 @@ import java.util.Set;
  * A conflict is settled when a conclusion <em>evaluates</em> it, that is it resolves at least two of the competing records, and it
  * takes a position: it prefers one of them, or its proof status says that none prevails ({@code conflicting_evidence}: the researcher
  * looked and the evidence does not decide; {@code disproven}: none of them holds). A conclusion that only lists the records, with no
- * preferred assertion and a status that decides nothing (e.g. {@code unresearched}), is a draft, and does not settle anything.
+ * preferred assertion and no status or a status that decides nothing (e.g. {@code supported} without a preferred assertion), is a draft, and does not settle anything.
  * </p>
  * The assertions are never changed by a conclusion: this only tells whether the researcher already judged them.
  */

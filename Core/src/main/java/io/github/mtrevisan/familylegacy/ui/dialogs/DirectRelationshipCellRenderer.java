@@ -67,10 +67,10 @@ public class DirectRelationshipCellRenderer extends DefaultListCellRenderer{
 			final String categoryTag = switch(type){
 				case RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD -> "[Biological]";
 				case RelationshipReader.ENUM_TYPE_ADOPTIVE_CHILD -> "[Adoptive]";
-				case "foster_child" -> "[Custody]";
-				case "guarded_child" -> "[Legal Protection]";
-				case "step_child" -> "[Step child]";
-				case "group_member" -> "[Group]";
+				case RelationshipReader.ENUM_TYPE_FOSTER_CHILD -> "[Custody]";
+				case RelationshipReader.ENUM_TYPE_GUARDED_CHILD -> "[Legal Protection]";
+				case RelationshipReader.ENUM_TYPE_STEP_CHILD -> "[Step child]";
+				case RelationshipReader.ENUM_TYPE_GROUP_MEMBER -> "[Group]";
 				default -> "[Other]";
 			};
 

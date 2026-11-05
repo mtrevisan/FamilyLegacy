@@ -49,10 +49,7 @@ public final class PlaceManagerTool implements ToolOperation{
 	@Override
 	public void run(final ToolContext context){
 		final FLEFModel model = context.model();
-		@SuppressWarnings("unchecked")
-		final RecordSelectionDialog dialog = RecordSelectionDialog.createWithAllowRecordCreation(context.owner(), model,
-			(record, handler) -> {},
-			PlaceRelationshipHandler.class);
+		final RecordSelectionDialog dialog = RecordSelectionDialog.createForManagement(context.owner(), model, PlaceRelationshipHandler.class);
 		dialog.setVisible(true);
 	}
 

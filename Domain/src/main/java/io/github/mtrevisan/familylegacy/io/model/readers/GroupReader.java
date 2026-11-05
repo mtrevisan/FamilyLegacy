@@ -73,9 +73,18 @@ public final class GroupReader{
 	public static final String TAG_PRIVACY = "privacy";
 	public static final String TAG_AUDIT = "audit";
 
+	public static final String ENUM_TYPE_FAMILY = "family";
+	public static final String ENUM_TYPE_HOUSEHOLD = "household";
+	public static final String ENUM_TYPE_NEIGHBORHOOD = "neighborhood";
+	public static final String ENUM_TYPE_FRATERNITY = "fraternity";
+	public static final String ENUM_TYPE_CLUB = "club";
+	public static final String ENUM_TYPE_LITERARY_SOCIETY = "literary_society";
+	public static final String ENUM_TYPE_ASSOCIATION = "association";
+	public static final String ENUM_TYPE_ORGANIZATION = "organization";
+	public static final String ENUM_TYPE_TRIBE = "tribe";
 	public static final String[] TYPES = new String[]{
-		"family", "household", "neighbourhood", "fraternity", "club", "literary_society",
-		"association", "organisation", "tribe"
+		ENUM_TYPE_FAMILY, ENUM_TYPE_HOUSEHOLD, ENUM_TYPE_NEIGHBORHOOD, ENUM_TYPE_FRATERNITY, ENUM_TYPE_CLUB, ENUM_TYPE_LITERARY_SOCIETY,
+		ENUM_TYPE_ASSOCIATION, ENUM_TYPE_ORGANIZATION, ENUM_TYPE_TRIBE
 	};
 
 

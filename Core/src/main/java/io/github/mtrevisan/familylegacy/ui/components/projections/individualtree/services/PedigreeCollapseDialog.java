@@ -73,7 +73,7 @@ public class PedigreeCollapseDialog extends JDialog{
 	 * @param collapses  the collapse list (must not be {@code null})
 	 */
 	public PedigreeCollapseDialog(final Window owner, final List<PedigreeCollapse> collapses){
-		super(owner, "Pedigree collapse report", ModalityType.APPLICATION_MODAL);
+		super(owner, I18N.t("dialog.pedigree_collapse.title"), ModalityType.APPLICATION_MODAL);
 		GUIHelper.installEscapeToClose(this);
 
 		if(collapses == null)
@@ -131,16 +131,12 @@ public class PedigreeCollapseDialog extends JDialog{
 	 * ====================================================================== */
 
 	private String buildHeaderText(){
-		if(collapses.isEmpty())
-			return "No pedigree collapse detected in the current tree.";
-		if(collapses.size() == 1)
-			return "1 pedigree collapse detected in the current tree.";
-		return collapses.size() + " pedigree collapses detected in the current tree.";
+		return I18N.tf("text.pedigree_collapse.detected", collapses.size());
 	}
 
 	private String buildReportText(){
 		if(collapses.isEmpty())
-			return "All ancestors appear exactly once. The tree is fully expanded.";
+			return I18N.t("text.pedigree_collapse.none");
 
 		final StringBuilder sb = new StringBuilder();
 		for(int i = 0; i < collapses.size(); i ++){
@@ -148,9 +144,9 @@ public class PedigreeCollapseDialog extends JDialog{
 			if(i > 0)
 				sb.append(StringUtils.LF);
 			sb.append(String.format(Locale.ROOT, "[%d] %s%n", i + 1, collapse.displayName()));
-			sb.append(String.format(Locale.ROOT, "    Occurrences: %d%n", collapse.occurrenceCount()));
-			sb.append(String.format(Locale.ROOT, "    Deepest generation reached: %d%n", collapse.maxGeneration()));
-			sb.append("    Paths from the root:")
+			sb.append(String.format(Locale.ROOT, "    %s %d%n", I18N.l("text.pedigree_collapse.occurrences"), collapse.occurrenceCount()));
+			sb.append(String.format(Locale.ROOT, "    %s %d%n", I18N.l("text.pedigree_collapse.deepest"), collapse.maxGeneration()));
+			sb.append("    ").append(I18N.l("text.pedigree_collapse.paths"))
 				.append(StringUtils.LF);
 			for(final PedigreePath path : collapse.paths())
 				sb.append(String.format(Locale.ROOT, "      %-10s  %s%n",

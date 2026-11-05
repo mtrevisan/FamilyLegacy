@@ -32,5 +32,13 @@ package io.github.mtrevisan.familylegacy.ui.assistant.relationship;
  * @param subjectId the individual to put as the subject
  * @param targetId  the individual to put as the target
  * @param type      the type the evidence points to, or {@code null} if it does not tell (the researcher chooses)
+ * @param eventId   the event that is the evidence of the relationship (its sources are the ones the draft starts with), or {@code null}
+ * @param copyDate  whether the date of the event is the date from which the relationship is valid (a marriage is, the birth of a
+ *                  child is not the date of the tie with whoever declared it)
  */
-record RelationshipDraft(String subjectId, String targetId, String type){}
+record RelationshipDraft(String subjectId, String targetId, String type, String eventId, boolean copyDate){
+
+	RelationshipDraft(final String subjectId, final String targetId, final String type){
+		this(subjectId, targetId, type, null, false);
+	}
+}

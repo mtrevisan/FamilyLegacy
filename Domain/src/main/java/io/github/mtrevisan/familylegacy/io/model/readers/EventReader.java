@@ -99,6 +99,41 @@ public final class EventReader{
 	public static final String ENUM_TYPE_ANNULMENT = "annulment";
 	public static final String ENUM_TYPE_EMIGRATION = "emigration";
 	public static final String ENUM_TYPE_IMMIGRATION = "immigration";
+	public static final String ENUM_TYPE_ADOPTION = "adoption";
+	public static final String ENUM_TYPE_CORONER_REPORT = "coroner_report";
+	public static final String ENUM_TYPE_ILLNESS = "illness";
+	public static final String ENUM_TYPE_HOSPITALIZATION = "hospitalization";
+	public static final String ENUM_TYPE_MEDICAL_PROCEDURE = "medical_procedure";
+	public static final String ENUM_TYPE_ENGAGEMENT = "engagement";
+	public static final String ENUM_TYPE_EDUCATION = "education";
+	public static final String ENUM_TYPE_GRADUATION = "graduation";
+	public static final String ENUM_TYPE_RETIREMENT = "retirement";
+	public static final String ENUM_TYPE_MILITARY_INDUCTION = "military_induction";
+	public static final String ENUM_TYPE_MILITARY_MUSTER_ROLL = "military_muster_roll";
+	public static final String ENUM_TYPE_MILITARY_SERVICE = "military_service";
+	public static final String ENUM_TYPE_MILITARY_AWARD = "military_award";
+	public static final String ENUM_TYPE_MILITARY_RELEASE = "military_release";
+	public static final String ENUM_TYPE_MILITARY_DISCHARGE = "military_discharge";
+	public static final String ENUM_TYPE_MILITARY_RESIGNATION = "military_resignation";
+	public static final String ENUM_TYPE_MILITARY_RETIREMENT = "military_retirement";
+	public static final String ENUM_TYPE_PRISON = "prison";
+	public static final String ENUM_TYPE_PARDON = "pardon";
+	public static final String ENUM_TYPE_JURY_DUTY = "jury_duty";
+	public static final String ENUM_TYPE_HONOR = "honor";
+	public static final String ENUM_TYPE_BANKRUPTCY = "bankruptcy";
+	public static final String ENUM_TYPE_NATURALIZATION = "naturalization";
+	public static final String ENUM_TYPE_DEPORTATION = "deportation";
+	public static final String ENUM_TYPE_INTERNMENT = "internment";
+	public static final String ENUM_TYPE_LIBERATION = "liberation";
+	public static final String ENUM_TYPE_EMANCIPATION = "emancipation";
+	public static final String ENUM_TYPE_RELOCATION = "relocation";
+	public static final String ENUM_TYPE_CENSUS = "census";
+	public static final String ENUM_TYPE_DEED = "deed";
+	public static final String ENUM_TYPE_ESCROW = "escrow";
+	public static final String ENUM_TYPE_CHANCERY = "chancery";
+	public static final String ENUM_TYPE_WILL = "will";
+	public static final String ENUM_TYPE_PROBATE = "probate";
+	public static final String ENUM_TYPE_GUARDIANSHIP = "guardianship";
 	/**
 	 * Event types declared by the protocol, in a stable order.
 	 * <p>
@@ -108,24 +143,24 @@ public final class EventReader{
 	 */
 	public static final String[] TYPES = new String[]{
 		// Life
-		ENUM_TYPE_BIRTH, "adoption", ENUM_TYPE_DEATH, ENUM_TYPE_CREMATION, ENUM_TYPE_BURIAL,
-		"coroner_report", "illness", "hospitalization", "medical_procedure",
+		ENUM_TYPE_BIRTH, ENUM_TYPE_ADOPTION, ENUM_TYPE_DEATH, ENUM_TYPE_CREMATION, ENUM_TYPE_BURIAL,
+		ENUM_TYPE_CORONER_REPORT, ENUM_TYPE_ILLNESS, ENUM_TYPE_HOSPITALIZATION, ENUM_TYPE_MEDICAL_PROCEDURE,
 		// Family
-		"engagement",
+		ENUM_TYPE_ENGAGEMENT,
 		ENUM_TYPE_MARRIAGE_BANN, ENUM_TYPE_MARRIAGE_CONTRACT, ENUM_TYPE_MARRIAGE_LICENSE, ENUM_TYPE_MARRIAGE_SETTLEMENT,
 		ENUM_TYPE_MARRIAGE, ENUM_TYPE_SEPARATION, ENUM_TYPE_DIVORCE_FILED, ENUM_TYPE_DIVORCE_DECREE,
 		ENUM_TYPE_DIVORCE, ENUM_TYPE_ANNULMENT,
 		// Achievements
-		"education", "graduation", "retirement",
-		"military_induction", "military_muster_roll", "military_service",
-		"military_award", "military_release", "military_discharge",
-		"military_resignation", "military_retirement",
-		"prison", "pardon", "jury_duty", "honor", "bankruptcy",
+		ENUM_TYPE_EDUCATION, ENUM_TYPE_GRADUATION, ENUM_TYPE_RETIREMENT,
+		ENUM_TYPE_MILITARY_INDUCTION, ENUM_TYPE_MILITARY_MUSTER_ROLL, ENUM_TYPE_MILITARY_SERVICE,
+		ENUM_TYPE_MILITARY_AWARD, ENUM_TYPE_MILITARY_RELEASE, ENUM_TYPE_MILITARY_DISCHARGE,
+		ENUM_TYPE_MILITARY_RESIGNATION, ENUM_TYPE_MILITARY_RETIREMENT,
+		ENUM_TYPE_PRISON, ENUM_TYPE_PARDON, ENUM_TYPE_JURY_DUTY, ENUM_TYPE_HONOR, ENUM_TYPE_BANKRUPTCY,
 		// National / government
-		ENUM_TYPE_EMIGRATION, ENUM_TYPE_IMMIGRATION, "naturalization", "deportation",
-		"internment", "liberation", "emancipation", "relocation", "census",
+		ENUM_TYPE_EMIGRATION, ENUM_TYPE_IMMIGRATION, ENUM_TYPE_NATURALIZATION, ENUM_TYPE_DEPORTATION,
+		ENUM_TYPE_INTERNMENT, ENUM_TYPE_LIBERATION, ENUM_TYPE_EMANCIPATION, ENUM_TYPE_RELOCATION, ENUM_TYPE_CENSUS,
 		// Possessions and titles
-		"deed", "escrow", "chancery", "will", "probate", "guardianship"
+		ENUM_TYPE_DEED, ENUM_TYPE_ESCROW, ENUM_TYPE_CHANCERY, ENUM_TYPE_WILL, ENUM_TYPE_PROBATE, ENUM_TYPE_GUARDIANSHIP
 	};
 
 	public static final String[] DIVORCE_TYPES = {

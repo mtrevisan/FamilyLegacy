@@ -186,7 +186,7 @@ public class ResearchTaskRecordDialog extends BaseRecordDialog{
 			final java.util.List<FLEFRecord> questions){
 		if(descriptionArea.isEmpty() && description != null && !description.isBlank())
 			descriptionArea.setText(description);
-		statusCombo.setSelectedItem("open");
+		statusCombo.setSelectedItem(ResearchTaskReader.ENUM_STATUS_OPEN);
 		if(priority != null)
 			priorityCombo.setSelectedItem(priority);
 

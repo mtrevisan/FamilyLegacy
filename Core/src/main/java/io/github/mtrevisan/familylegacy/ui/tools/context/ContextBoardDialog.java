@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.ui.tools.context;
 
+import io.github.mtrevisan.familylegacy.events.EventHelper;
+import io.github.mtrevisan.familylegacy.events.EventSummary;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.ContextImpactReader;
@@ -48,6 +50,7 @@ import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
@@ -70,6 +73,7 @@ import java.awt.FlowLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Enumeration;
+import java.util.Locale;
 
 
 /**
@@ -137,9 +141,9 @@ public final class ContextBoardDialog extends JDialog{
 
 		final JButton newButton = new JButton(I18N.t("button.new"));
 		final JPopupMenu newMenu = new JPopupMenu();
-		newMenu.add(newItem("Historic event", ContextTreeBuilder.Kind.HISTORIC_EVENT));
-		newMenu.add(newItem("Cultural norm", ContextTreeBuilder.Kind.CULTURAL_NORM));
-		newMenu.add(newItem("Context impact", ContextTreeBuilder.Kind.IMPACT));
+		newMenu.add(newItem(I18N.t("confirmation.exist_record.historic_event"), ContextTreeBuilder.Kind.HISTORIC_EVENT));
+		newMenu.add(newItem(I18N.t("confirmation.exist_record.cultural_norm"), ContextTreeBuilder.Kind.CULTURAL_NORM));
+		newMenu.add(newItem(I18N.t("confirmation.exist_record.context_impact"), ContextTreeBuilder.Kind.IMPACT));
 		final JMenuItem selectedContextItem = new JMenuItem(I18N.t("menu.item.selected_impact"));
 		selectedContextItem.addActionListener(e -> openNewImpact(selectedContext()));
 		newMenu.add(selectedContextItem);
@@ -152,6 +156,10 @@ public final class ContextBoardDialog extends JDialog{
 		final JButton editButton = new JButton(I18N.t("button.edit"));
 		editButton.addActionListener(e -> openEditor(selectedNode()));
 		toolbar.add(editButton);
+
+		final JButton deleteButton = new JButton(I18N.t("button.delete"));
+		deleteButton.addActionListener(e -> deleteSelected());
+		toolbar.add(deleteButton);
 
 		final JButton expandButton = new JButton(I18N.t("button.expand_all"));
 		expandButton.addActionListener(e -> expandAll());
@@ -239,7 +247,7 @@ public final class ContextBoardDialog extends JDialog{
 		if(selectedId != null)
 			select(root, selectedId);
 
-		statusLabel.setText(contexts + (contexts == 1? " context": " contexts"));
+		statusLabel.setText(I18N.tf("status.contexts", contexts));
 		showDetails(selectedNode());
 	}
 
@@ -328,6 +336,27 @@ public final class ContextBoardDialog extends JDialog{
 				.withContext(contextRecord));
 	}
 
+	private void deleteSelected(){
+		final ContextTreeBuilder.Node node = selectedNode();
+		if(node == null || node.record() == null)
+			return;
+
+		final FLEFRecord record = node.record();
+		String message = I18N.tf("confirmation.delete.context_record.message",
+			I18N.t("confirmation.exist_record." + record.getTag().toLowerCase(Locale.ROOT)), node.label());
+		//the impacts of a context are not deleted with it: they are left under "(no context)"
+		if(node.kind().isContext() && !node.children().isEmpty())
+			message += "\n\n" + I18N.tf("confirmation.delete.context_record.orphaned", node.children().size());
+		final int confirm = JOptionPane.showConfirmDialog(this, message, I18N.t("confirmation.delete.record.title"),
+			JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+		if(confirm != JOptionPane.YES_OPTION)
+			return;
+
+		context.model().removeRecord(record.getId());
+
+		reload();
+	}
+
 	private void show(final RecordDialog dialog){
 		if(dialog == null)
 			return;
@@ -348,51 +377,67 @@ public final class ContextBoardDialog extends JDialog{
 		details.setCaretPosition(0);
 	}
 
-	private static String describe(final ContextTreeBuilder.Node node){
+	private String describe(final ContextTreeBuilder.Node node){
 		if(node == null)
-			return StringUtils.EMPTY;
+			return (tree.getRowCount() == 0 && searchField.getText().isBlank()? I18N.t("text.context.empty"): StringUtils.EMPTY);
 		final FLEFRecord record = node.record();
 		if(record == null)
 			return switch(node.kind()){
-				case ORPHANS -> "Context impacts that cite no existing historic event or cultural norm.";
-				case HISTORIC_EVENTS -> "Events of the past that may explain or influence what the records document.";
-				default -> "Customs, laws, and rules that may explain or constrain what the records document.";
+				case ORPHANS -> I18N.t("text.context.description.orphans");
+				case HISTORIC_EVENTS -> I18N.t("text.context.description.historic_events");
+				default -> I18N.t("text.context.description.cultural_norms");
 			};
+
+		final FLEFModel model = context.model();
 
 		final StringBuilder sb = new StringBuilder();
 		switch(node.kind()){
 			case HISTORIC_EVENT -> {
-				append(sb, "Title", HistoricEventReader.extractTitle(record));
-				append(sb, "Type", HistoricEventReader.extractType(record));
-				append(sb, "Date", ResearchHelper.firstTextValue(record, HistoricEventReader.TAG_DATE));
-				append(sb, "Place", ResearchHelper.firstTextValue(record, HistoricEventReader.TAG_PLACE));
-				append(sb, "Confidence", ResearchHelper.firstTextValue(record, HistoricEventReader.TAG_CONFIDENCE));
-				append(sb, "Impacts", Integer.toString(node.children().size()));
+				append(sb, "title", HistoricEventReader.extractTitle(record));
+				append(sb, "type", HistoricEventReader.extractType(record));
+				append(sb, "date", EventHelper.dateText(record, HistoricEventReader.TAG_DATE));
+				append(sb, "place", EventSummary.placeName(record, model));
+				append(sb, "confidence", ResearchHelper.firstTextValue(record, HistoricEventReader.TAG_CONFIDENCE));
+				appendImpacts(sb, node);
 			}
 			case CULTURAL_NORM -> {
-				append(sb, "Title", CulturalNormReader.extractTitle(record));
-				append(sb, "Type", CulturalNormReader.extractType(record));
-				append(sb, "Place", ResearchHelper.firstTextValue(record, CulturalNormReader.TAG_PLACE));
-				append(sb, "Valid from", ResearchHelper.firstTextValue(record, CulturalNormReader.TAG_VALID_FROM));
-				append(sb, "Valid to", ResearchHelper.firstTextValue(record, CulturalNormReader.TAG_VALID_TO));
-				append(sb, "Confidence", ResearchHelper.firstTextValue(record, CulturalNormReader.TAG_CONFIDENCE));
-				append(sb, "Impacts", Integer.toString(node.children().size()));
+				append(sb, "title", CulturalNormReader.extractTitle(record));
+				append(sb, "type", CulturalNormReader.extractType(record));
+				append(sb, "place", EventSummary.placeName(record, model));
+				append(sb, "valid_from", EventHelper.dateText(record, CulturalNormReader.TAG_VALID_FROM));
+				append(sb, "valid_to", EventHelper.dateText(record, CulturalNormReader.TAG_VALID_TO));
+				append(sb, "confidence", ResearchHelper.firstTextValue(record, CulturalNormReader.TAG_CONFIDENCE));
+				appendImpacts(sb, node);
 			}
 			case IMPACT -> {
-				append(sb, "Impact", node.label());
-				append(sb, "Impact type", ContextImpactReader.extractImpactType(record));
-				append(sb, "Rationale", ResearchHelper.firstTextValue(record, ContextImpactReader.TAG_RATIONALE));
-				append(sb, "Confidence", ResearchHelper.firstTextValue(record, ContextImpactReader.TAG_CONFIDENCE));
+				append(sb, "impact", node.label());
+				append(sb, "impact_type", ContextImpactReader.extractImpactType(record));
+				append(sb, "rationale", ResearchHelper.firstTextValue(record, ContextImpactReader.TAG_RATIONALE));
+				append(sb, "confidence", ResearchHelper.firstTextValue(record, ContextImpactReader.TAG_CONFIDENCE));
 			}
 			case HISTORIC_EVENTS, CULTURAL_NORMS, ORPHANS -> {}
 		}
-		append(sb, "Id", record.getId());
+		append(sb, "id", record.getId());
 		return sb.toString();
 	}
 
-	private static void append(final StringBuilder sb, final String name, final String value){
+	/** The records a context acts on, one per line: what the user wants to know of a context besides its own data. */
+	private static void appendImpacts(final StringBuilder sb, final ContextTreeBuilder.Node node){
+		if(node.children().isEmpty())
+			return;
+
+		sb.append(I18N.l("text.context.field.impacts"))
+			.append(StringUtils.LF);
+		for(final ContextTreeBuilder.Node impact : node.children())
+			sb.append("\u2022 ")
+				.append(impact.label())
+				.append(StringUtils.LF);
+		sb.append(StringUtils.LF);
+	}
+
+	private static void append(final StringBuilder sb, final String field, final String value){
 		if(StringUtils.isNotBlank(value))
-			sb.append(name)
+			sb.append(I18N.l("text.context.field." + field))
 				.append(": ")
 				.append(value)
 				.append("\n\n");
@@ -415,7 +460,7 @@ public final class ContextBoardDialog extends JDialog{
 			super.getTreeCellRendererComponent(tree, value, selected, expanded, leaf, row, hasFocus);
 
 			if(value instanceof DefaultMutableTreeNode treeNode && treeNode.getUserObject() instanceof ContextTreeBuilder.Node node){
-				setText("[" + node.kind().symbol() + "] " + node.label());
+				setText(node.label());
 				//a padlock signals a restricted or confidential record
 				setIcon(PrivacyBadge.of(PrivacyService.resolver(model)
 					.describe(node.record())));

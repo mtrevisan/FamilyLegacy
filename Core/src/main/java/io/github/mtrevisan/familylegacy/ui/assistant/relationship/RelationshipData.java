@@ -25,7 +25,7 @@
 package io.github.mtrevisan.familylegacy.ui.assistant.relationship;
 
 import io.github.mtrevisan.familylegacy.io.model.readers.SexType;
-import io.github.mtrevisan.familylegacy.ui.assistant.chronology.DateRange;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.DateRange;
 
 import java.util.List;
 import java.util.Map;
@@ -85,7 +85,13 @@ record RelationshipData(Map<String, Person> persons, Map<String, String> groups,
 	/**
 	 * @param personId  the individual
 	 * @param principal whether the event is about them (not a witness or an officiant)
+	 * @param role      the role they have in the event, or {@code null} if it does not say
 	 */
-	record Participant(String personId, boolean principal){}
+	record Participant(String personId, boolean principal, String role){
+
+		Participant(final String personId, final boolean principal){
+			this(personId, principal, null);
+		}
+	}
 
 }

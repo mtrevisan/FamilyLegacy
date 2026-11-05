@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.ui.tools.sources;
 
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolOperation;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.provenance.ProvenanceTool;
 
 import java.util.List;
 
@@ -68,7 +69,8 @@ public final class SourceToolRegistry{
 	public static List<ToolOperation> citationTools(){
 		return List.of(
 			new AddCitationTool(),
-			new CitationAnalysisTool()
+			new CitationAnalysisTool(),
+			new ProvenanceTool()
 		);
 	}
 

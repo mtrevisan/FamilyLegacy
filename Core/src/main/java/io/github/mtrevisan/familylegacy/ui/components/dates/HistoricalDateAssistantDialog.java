@@ -137,7 +137,8 @@ public class HistoricalDateAssistantDialog extends JDialog{
 	 * @param calendarCode the calendar currently entered, used to prefill the tools (can be {@code null})
 	 * @param dateText     the date currently entered, used to prefill the tools (can be {@code null})
 	 * @param model        the model, to choose the events the date is relative to (can be {@code null})
-	 * @param applier      called when the user applies a suggestion
+	 * @param applier      called when the user applies a suggestion; {@code null} when there is no date to apply it to (the assistant
+	 *                     opened from a menu): the suggestions can only be read and copied
 	 */
 	public HistoricalDateAssistantDialog(final Window parent, final Tool initialTool, final String calendarCode, final String dateText,
 			final FLEFModel model, final Consumer<DateSuggestion> applier){
@@ -203,7 +204,8 @@ public class HistoricalDateAssistantDialog extends JDialog{
 		showSelected();
 
 		final JPanel buttons = new JPanel(new MigLayout("ins 0", "[][][]"));
-		buttons.add(applyButton);
+		if(applier != null)
+			buttons.add(applyButton);
 		buttons.add(copyButton);
 		buttons.add(dismissButton);
 
@@ -400,7 +402,9 @@ public class HistoricalDateAssistantDialog extends JDialog{
 		if(optional)
 			combo.addItem(null);
 		events.forEach(combo::addItem);
-		combo.setSelectedIndex(0);
+		//a file without dated events has nothing to choose from
+		if(combo.getItemCount() > 0)
+			combo.setSelectedIndex(0);
 		combo.setRenderer((list, value, index, selected, focus) -> {
 			final JLabel label = new JLabel(value != null? value.label(): I18N.t("dialog.date_assistant.event.manual"));
 			label.setOpaque(true);

@@ -29,20 +29,19 @@ import io.github.mtrevisan.familylegacy.io.FLEFValidator;
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.FLEFGrammar;
 import io.github.mtrevisan.familylegacy.io.merger.manual.MergeGrammar;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.preferences.MediaPathDisplay;
+import io.github.mtrevisan.familylegacy.quality.FileValidation;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolOperation;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.swing.JOptionPane;
-import javax.swing.SwingWorker;
-import java.util.List;
-import java.util.concurrent.ExecutionException;
 
 
 /**
- * Runs the full FLEF validation on the current model and shows the
+ * Runs the full validation of the current model (the grammar of FLEF, and the structural checks of {@link FileValidation}: circular
+ * parentage, a relationship with itself, an individual without a name) and shows the
  * report dialog. The validation runs in a background worker so even a
  * large model does not freeze the UI.
  * <p>
@@ -84,34 +83,12 @@ public final class ValidateFileTool implements ToolOperation{
 			return;
 		}
 
-		final SwingWorker<List<FLEFValidator.ValidationError>, Void> worker = new SwingWorker<>(){
-			private final FLEFValidator validator = new FLEFValidator(grammar);
-
-			@Override
-			protected List<FLEFValidator.ValidationError> doInBackground(){
-				return validator.validateAllStructured(model);
-			}
-
-			@Override
-			protected void done(){
-				try{
-					final List<FLEFValidator.ValidationError> errors = get();
-					new ValidationReportDialog(context.owner(), model,
-						() -> validator.validateAllStructured(model))
-							.setVisible(true);
-				}
-				catch(final InterruptedException ex){
-					Thread.currentThread().interrupt();
-				}
-				catch(final ExecutionException ex){
-					LOGGER.error("Validation failed", ex);
-					final Throwable cause = (ex.getCause() != null? ex.getCause(): ex);
-					JOptionPane.showMessageDialog(context.owner(),
-						I18N.l("dialog.validate.error") + StringUtils.LF + cause.getMessage(), I18N.t("dialog.validate.title"), JOptionPane.ERROR_MESSAGE);
-				}
-			}
-		};
-		worker.execute();
+		//the report opens at once, with a progress bar, and validates in the background: the model is read by another thread while the
+		//user may be editing it, so a copy that nobody changes is read (the dialog takes a new one for every validation)
+		final FLEFValidator validator = new FLEFValidator(grammar);
+		ValidationReportDialog.validating(context.owner(), model, context::readOnlyModel,
+				(view, progress) -> FileValidation.run(validator, view, MediaPathDisplay.baseDirectory(), progress))
+			.setVisible(true);
 	}
 
 	@Override

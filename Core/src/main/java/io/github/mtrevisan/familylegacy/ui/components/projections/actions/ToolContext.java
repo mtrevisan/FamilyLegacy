@@ -123,6 +123,15 @@ public record ToolContext(
 		dispatcher.connectChild();
 	}
 
+	/**
+	 * @return	A copy of the model as it is now that nobody changes: what a tool does in the background reads this, not the model that the
+	 * 	user may be editing. Call it on the event dispatch thread. The model itself if the application has no such copy.
+	 */
+	public FLEFModel readOnlyModel(){
+		final FLEFModel view = dispatcher.readOnlyModel();
+		return (view != null? view: model);
+	}
+
 	public void performRemove(final String id){
 		dispatcher.removeEntity(id);
 	}

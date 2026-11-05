@@ -56,6 +56,7 @@ import javax.swing.JPanel;
 import java.awt.Window;
 import java.io.IOException;
 import java.util.function.Consumer;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 
 
 /**
@@ -263,7 +264,7 @@ public class ContextImpactRecordDialog extends BaseRecordDialog{
 		culturalNorm.addChild(FLEFRecord.createChildWithTagAndValue("NAME", "Primogeniture"));
 
 		final FLEFRecord individual = FLEFRecord.createMainRecord("I1", IndividualHandler.TYPE);
-		individual.addChild(FLEFRecord.createChildWithTagAndValue("SEX", "male"));
+		individual.addChild(FLEFRecord.createChildWithTagAndValue("SEX", IndividualReader.ENUM_SEX_MALE));
 
 		final FLEFRecord contextImpact = FLEFRecord.createMainRecord("CI1", ContextImpactHandler.TYPE);
 		contextImpact.addChild(FLEFRecord.createChildWithTag("CONTEXT")

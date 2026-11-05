@@ -27,7 +27,7 @@ package io.github.mtrevisan.familylegacy.ui.assistant.gap;
 import io.github.mtrevisan.calendars.CalendarType;
 import io.github.mtrevisan.familylegacy.ui.assistant.AssistantCategory;
 import io.github.mtrevisan.familylegacy.ui.assistant.Diagnostic;
-import io.github.mtrevisan.familylegacy.ui.assistant.chronology.DateRange;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.DateRange;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -346,7 +346,7 @@ class GapCheckerTest{
 		Assertions.assertEquals(45., only(new Builder().question("q", "on_hold", false).check()).rank());
 		Assertions.assertTrue(new Builder().question("q", "resolved", false).check().isEmpty());
 		Assertions.assertTrue(new Builder().question("q", "disproven", false).check().isEmpty());
-		Assertions.assertTrue(new Builder().question("q", "closed", false).check().isEmpty());
+		Assertions.assertTrue(new Builder().question("q", "abandoned", false).check().isEmpty());
 	}
 
 	@Test

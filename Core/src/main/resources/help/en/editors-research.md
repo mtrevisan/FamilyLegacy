@@ -80,7 +80,6 @@ Use it when your sources disagree: it records which assertion you judge to be th
 
 | Value | Meaning |
 |---|---|
-| unresearched | Nothing has been researched yet on this issue. |
 | conflicting evidence | The evidence is conflicting and none prevails: the issue stays open. |
 | supported | A preponderance of the evidence supports the preferred assertion, but without absolute certainty. |
 | proven | Proven according to the Genealogical Proof Standard: a reasonably exhaustive search, complete citations, sound analysis, conflicts resolved, and a soundly reasoned conclusion. |

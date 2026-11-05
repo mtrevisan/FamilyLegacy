@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.consanguinity;
 
+import io.github.mtrevisan.familylegacy.reports.i18n.ReportLabels;
+import io.github.mtrevisan.familylegacy.reports.i18n.ReportLanguage;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -214,6 +216,32 @@ class ConsanguinityCalculatorTest{
 
 	@Test
 	void theKinshipHasAName(){
+		Assertions.assertEquals("first cousins", KinshipTerms.cousins(1, 0));
+		Assertions.assertEquals("second cousins once removed", KinshipTerms.cousins(2, 1));
+		Assertions.assertEquals("third cousins 2 times removed", KinshipTerms.cousins(3, 2));
+		Assertions.assertEquals("first cousin once removed", KinshipTerms.cousin(1, 1));
+		Assertions.assertEquals("ninth", KinshipTerms.ordinal(9));
+		Assertions.assertEquals("10th", KinshipTerms.ordinal(10));
+		Assertions.assertEquals("21st", KinshipTerms.ordinal(21));
+		Assertions.assertEquals("3-times-great-grandparent and descendant", KinshipTerms.describe(0, 5));
+		Assertions.assertEquals("collateral relatives, 4 generations apart", KinshipTerms.describe(1, 5));
+		Assertions.assertEquals("the same individual", KinshipTerms.describe(0, 0));
+		final KinshipVocabulary french = new ReportLabels(ReportLanguage.FRENCH).kinship();
+		final KinshipVocabulary spanish = new ReportLabels(ReportLanguage.SPANISH).kinship();
+		final KinshipVocabulary italian = new ReportLabels(ReportLanguage.ITALIAN).kinship();
+		final KinshipVocabulary german = new ReportLabels(ReportLanguage.GERMAN).kinship();
+		Assertions.assertEquals("arri\u00e8re-arri\u00e8re-grand-p\u00e8re", french.text("kinship.term.ancestor.male", 4, 2));
+		Assertions.assertEquals("anc\u00eatre de 6e g\u00e9n\u00e9ration", french.text("kinship.term.ancestor.male", 6, 4));
+		Assertions.assertEquals("cousine germaine", KinshipTerms.cousin(french, 1, 0, true));
+		Assertions.assertEquals("cousin au troisi\u00e8me degr\u00e9", KinshipTerms.cousin(french, 3, 0, false));
+		Assertions.assertEquals("prima hermana", KinshipTerms.cousin(spanish, 1, 0, true));
+		Assertions.assertEquals("prima segunda", KinshipTerms.cousin(spanish, 2, 0, true));
+		Assertions.assertEquals("primo hermano, con una generaci\u00f3n de diferencia", KinshipTerms.cousin(spanish, 1, 1, false));
+		Assertions.assertEquals("cugina di secondo grado, con 2 generazioni di differenza", KinshipTerms.cousin(italian, 2, 2, true));
+		Assertions.assertEquals("avo di 6\u00ba grado", italian.text("kinship.term.ancestor.male", 6, 4));
+		Assertions.assertEquals("Cousine zweiten Grades, eine Generation versetzt", KinshipTerms.cousin(german, 2, 1, true));
+		//the interface has its own vocabulary: the same terms, from its own messages
+		Assertions.assertEquals("great-grandfather", KinshipVocabulary.ui().text("kinship.term.ancestor.male", 3, 1));
 		Assertions.assertEquals("siblings", KinshipTerms.describe(1, 1));
 		Assertions.assertEquals("parent and child", KinshipTerms.describe(0, 1));
 		Assertions.assertEquals("parent and child", KinshipTerms.describe(1, 0));

@@ -35,7 +35,7 @@ Two tools answer the question *how are these two people related?*, and a third f
 7. **Marriage prohibitions** under the Italian civil law (prohibited in a direct line, and in a collateral line within the 4th degree), the Catholic canon law (prohibited in a direct line; a dispensation is required within the 4th canonical degree if the sexes are opposite; not applicable to the same sex) and the PRC Marriage Law (prohibited in a direct line, and in a collateral line within three generations). They are a reading aid, not legal advice.
 8. **All common ancestors**, each with its distances and its share in the coefficient.
 
-**How the relationship is worded.** Only the most recent common ancestor decides the wording: father, mother, grandfather, grandmother, great-grandfather (and so on) in a direct line; full or half brothers, sisters or siblings; uncle or aunt and nephew or niece; grand-uncle; and for the rest first, second, third cousins, with "once removed", "twice removed" for the difference of generations. When there are several common ancestors (double cousins, for example), the others appear in the list and in the coefficient.
+**How the relationship is worded.** Only the most recent common ancestor decides the wording: father, mother, grandfather, grandmother, great-grandfather (and so on) in a direct line; full or half brothers, sisters or siblings; uncle or aunt and nephew or niece; grand-uncle; and for the rest first, second, third cousins, with "once removed", "2 times removed" for the difference of generations. The whole text of the calculator (the headings, the words for the kinship and the sentences) is in the language of the application. When there are several common ancestors (double cousins, for example), the others appear in the list and in the coefficient.
 
 **Examples**
 
@@ -61,4 +61,15 @@ For each couple the report gives:
 
 **Inbred individuals**: every person with two known biological parents is checked, and is reported when their coefficient of inbreeding is at least 1/64 (1.56%, the child of second cousins). Each entry gives F, how the parents are related and their closest common ancestors.
 
+Every reference in the report is a link (blue, underlined, with a hand cursor): the names of the partners, of the common ancestors and of the inbred individuals, the identifiers of the unions, of the children and of the individuals. A click opens the editor of that record; when you close it the report is written again, so a corrected name is shown corrected. A reference to a record that is no longer in the file is written, but is not a link.
+
 Both lists are sorted from the strongest kinship down. The thresholds are fixed. Note that the calculator uses the links the tree uses, which can include adoptive links, while this report uses only biological ones, so the two can differ.
+
+## Consanguinity Loops
+
+**Individual > Consanguinity Loops...** (also in the menu of an individual in the tree and in the ego network) explains *why* the selected individual is inbred, not only how much. Each row is a **loop**: a common ancestor of the two parents and the two lines of descent that lead from it to them, one through each parent, with no one in common but the ancestor. The lines are written from the ancestor down to the individual, for example *Anna > Bruno > Carlo > Dario*, and the *Generations* column gives the length of each line (*2 + 2* for a child of first cousins).
+
+- A child of first cousins has two loops, one for each grandparent the cousins share; a child of siblings has two loops of one generation each; a parent that is also the grandparent has a line of zero generations.
+- *Contribution* is what the loop adds to the coefficient of inbreeding: (1/2)^(n1 + n2 + 1), times (1 + the ancestor's own inbreeding). The loops that weigh the most come first, and at most 100 are listed (the dialog says so when there are more). The coefficient in the header is the exact one; the sum of the rows can be smaller when farther common ancestors contribute too.
+- Double-click a row, or *Open ancestor*, to open the common ancestor.
+- Only biological links count, and an unknown parent counts as unrelated, so the values are lower bounds. An individual without two known parents cannot be inbred, and the dialog says so.

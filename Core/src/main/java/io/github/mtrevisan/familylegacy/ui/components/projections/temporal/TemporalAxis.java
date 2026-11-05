@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.date.NormalizedDate;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.TemporalSpan;
 import io.github.mtrevisan.familylegacy.temporal.TemporalProjectionModel;
 import io.github.mtrevisan.familylegacy.temporal.TemporalZoomLevel;
+import io.github.mtrevisan.familylegacy.ui.helpers.TimeLabels;
 import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Rectangle;
@@ -60,11 +61,6 @@ import java.util.List;
 public final class TemporalAxis{
 
 	private static final int MAX_TICKS = 200;
-	private static final String[] MONTH_NAMES = {
-		"Jan", "Feb", "Mar", "Apr", "May", "Jun",
-		"Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
-	};
-
 
 	private final boolean empty;
 	private final long domainStartJdn;
@@ -489,7 +485,7 @@ public final class TemporalAxis{
 	private static String formatMonth(final int year, final int month){
 		if(month < 1 || month > 12)
 			return Integer.toString(year);
-		return MONTH_NAMES[month - 1] + StringUtils.SPACE + year;
+		return TimeLabels.monthShort(month) + StringUtils.SPACE + year;
 	}
 
 	/**
@@ -500,7 +496,7 @@ public final class TemporalAxis{
 		final int month = gregorian[1];
 		if(month < 1 || month > 12)
 			return Integer.toString(gregorian[0]);
-		return gregorian[2] + StringUtils.SPACE + MONTH_NAMES[month - 1];
+		return gregorian[2] + StringUtils.SPACE + TimeLabels.monthShort(month);
 	}
 
 

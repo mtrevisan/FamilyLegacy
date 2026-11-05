@@ -177,7 +177,7 @@ public final class IndividualDossierService{
 					final String type = FLEFRecordHelper.getChildValue(nameStruct, NameReader.TAG_TYPE);
 					final String label = (StringUtils.isNotEmpty(type)
 						? type.replace('_', ' ')
-						: "Name");
+						: I18N.t("text.dossier.name"));
 					entries.add(DossierEntry.of(label, value, individual));
 				}
 			}
@@ -186,18 +186,18 @@ public final class IndividualDossierService{
 		// Preferred image.
 		final String uri = IndividualReader.extractPreferredImageUri(individual, model);
 		if(StringUtils.isNotEmpty(uri))
-			entries.add(DossierEntry.of("Photo", uri, individual));
+			entries.add(DossierEntry.of(I18N.t("text.dossier.photo"), uri, individual));
 
 		// Sex.
 		final String sex = IndividualReader.extractRawSex(individual);
 		if(StringUtils.isNotEmpty(sex))
-			entries.add(DossierEntry.of("Sex", sex, individual));
+			entries.add(DossierEntry.of(I18N.t("text.dossier.sex"), sex, individual));
 
 		// Vital dates.
 		if(data != null && !data.isEmpty()){
 			final String info = data.getInfoText();
 			if(StringUtils.isNotEmpty(info))
-				entries.add(DossierEntry.of("Vital", info, individual));
+				entries.add(DossierEntry.of(I18N.t("text.dossier.vital"), info, individual));
 		}
 
 		// Privacy.
@@ -205,7 +205,7 @@ public final class IndividualDossierService{
 		if(privacy != null){
 			final String level = FLEFRecordHelper.getChildValue(privacy, PrivacyReader.TAG_LEVEL);
 			if(StringUtils.isNotEmpty(level))
-				entries.add(DossierEntry.of("Privacy", level, individual));
+				entries.add(DossierEntry.of(I18N.t("text.dossier.privacy"), level, individual));
 		}
 
 		return entries;
@@ -260,7 +260,7 @@ public final class IndividualDossierService{
 		final String eventType = FLEFRecordHelper.getChildValue(event, EventReader.TAG_TYPE);
 		final String label = (StringUtils.isNotEmpty(eventType)
 			? eventType.replace('_', ' ')
-			: "Event");
+			: I18N.t("text.dossier.event"));
 
 		final String date = formatting.formatDate(event);
 		final String place = formatting.resolvePlaceName(event);
@@ -311,7 +311,7 @@ public final class IndividualDossierService{
 		final String type = FLEFRecordHelper.getChildValue(individualAttribute, IndividualAttributeReader.TAG_TYPE);
 		final String label = (StringUtils.isNotEmpty(type)
 			? type.replace('_', ' ')
-			: "Attribute");
+			: I18N.t("text.dossier.attribute"));
 		final String value = FLEFRecordHelper.getChildValue(individualAttribute, IndividualAttributeReader.TAG_VALUE);
 
 		final String validity = formatting.formatValidity(individualAttribute, IndividualAttributeReader.TAG_VALID_FROM,
@@ -356,7 +356,7 @@ public final class IndividualDossierService{
 		final String type = RelationshipReader.extractType(relationship);
 		final String typeLabel = (StringUtils.isNotEmpty(type)
 			? type.replace('_', ' ')
-			: "Relationship");
+			: I18N.t("text.dossier.relationship"));
 
 		final String otherId = (isSubject
 			? EventParticipationReader.extractParticipantRef(relationship, RelationshipReader.TAG_TARGET)
@@ -396,13 +396,13 @@ public final class IndividualDossierService{
 		collectSources(individual, IndividualReader.TYPE, entries, seenSourceIds);
 
 		for(final FLEFRecord event : eventMap.getOrDefault(individualId, List.of()))
-			collectSources(event, "Event", entries, seenSourceIds);
+			collectSources(event, I18N.t("text.dossier.event"), entries, seenSourceIds);
 
 		final List<FLEFRecord> attributes = PrivacyService.visible(model, model.getRecordsByType(IndividualAttributeReader.TYPE));
 		for(final FLEFRecord attribute : attributes){
 			final String ownerId = FLEFRecordHelper.getChildValue(attribute, IndividualReader.TYPE);
 			if(individualId.equals(ownerId))
-				collectSources(attribute, "Attribute", entries, seenSourceIds);
+				collectSources(attribute, I18N.t("text.dossier.attribute"), entries, seenSourceIds);
 		}
 
 		final List<FLEFRecord> relationships = PrivacyService.visible(model, model.getRecordsByType(RelationshipReader.TYPE));
@@ -410,14 +410,14 @@ public final class IndividualDossierService{
 			final String subjectId = EventParticipationReader.extractParticipantRef(relationship, RelationshipReader.TAG_SUBJECT);
 			final String objectId = EventParticipationReader.extractParticipantRef(relationship, RelationshipReader.TAG_TARGET);
 			if(individualId.equals(subjectId) || individualId.equals(objectId))
-				collectSources(relationship, "Relationship", entries, seenSourceIds);
+				collectSources(relationship, I18N.t("text.dossier.relationship"), entries, seenSourceIds);
 		}
 
 		final List<FLEFRecord> impacts = PrivacyService.visible(model, model.getRecordsByType(ContextImpactReader.TYPE));
 		for(final FLEFRecord impact : impacts){
 			final String targetId = extractRef(impact, ContextImpactReader.TAG_TARGET);
 			if(individualId.equals(targetId))
-				collectSources(impact, "Context", entries, seenSourceIds);
+				collectSources(impact, I18N.t("text.dossier.context"), entries, seenSourceIds);
 		}
 
 		return entries;
@@ -536,7 +536,7 @@ public final class IndividualDossierService{
 			final String otherName = (otherId != null? resolveParticipantName(otherId): "?");
 			final String comment = FLEFRecordHelper.getChildValue(hypothesis, IdentityHypothesisReader.TAG_RATIONALE);
 
-			entries.add(new DossierEntry("Possible duplicate",
+			entries.add(new DossierEntry(I18N.t("text.dossier.possible_duplicate"),
 				(otherName != null? otherName: otherId),
 				(comment != null? comment: StringUtils.EMPTY),
 				buildEvidenceBadge(hypothesis), hypothesis, DossierEntry.Kind.NORMAL,
@@ -577,7 +577,7 @@ public final class IndividualDossierService{
 				subtitle.append(questionText);
 			}
 
-			entries.add(new DossierEntry("Research question",
+			entries.add(new DossierEntry(I18N.t("text.dossier.research_question"),
 				(StringUtils.isNotEmpty(title)? title: questionText),
 				subtitle.toString(), StringUtils.EMPTY, question, DossierEntry.Kind.NORMAL,
 				proofStatusFor(question)));
@@ -598,7 +598,7 @@ public final class IndividualDossierService{
 
 			final String issue = FLEFRecordHelper.getChildValue(conclusion, "issue");
 			final String proof = FLEFRecordHelper.getChildValue(conclusion, ConclusionReader.TAG_PROOF_STATUS);
-			entries.add(new DossierEntry("Conclusion",
+			entries.add(new DossierEntry(I18N.t("text.dossier.conclusion"),
 				(StringUtils.isNotEmpty(issue)? issue: "?"),
 				(proof != null? proof: StringUtils.EMPTY), StringUtils.EMPTY, conclusion, DossierEntry.Kind.NORMAL,
 				ProofStatus.valueOf(proof)));
@@ -618,13 +618,13 @@ public final class IndividualDossierService{
 		collectNotes(individual, IndividualReader.TYPE, entries);
 
 		for(final FLEFRecord event : eventMap.getOrDefault(individualId, List.of()))
-			collectNotes(event, "Event", entries);
+			collectNotes(event, I18N.t("text.dossier.event"), entries);
 
 		final List<FLEFRecord> attributes = PrivacyService.visible(model, model.getRecordsByType(IndividualAttributeReader.TYPE));
 		for(final FLEFRecord attribute : attributes){
 			final String ownerId = FLEFRecordHelper.getChildValue(attribute, IndividualReader.TYPE);
 			if(individualId.equals(ownerId))
-				collectNotes(attribute, "Attribute", entries);
+				collectNotes(attribute, I18N.t("text.dossier.attribute"), entries);
 		}
 
 		final List<FLEFRecord> relationships = PrivacyService.visible(model, model.getRecordsByType(RelationshipReader.TYPE));
@@ -632,14 +632,14 @@ public final class IndividualDossierService{
 			final String subjectId = EventParticipationReader.extractParticipantRef(relationship, RelationshipReader.TAG_SUBJECT);
 			final String objectId = EventParticipationReader.extractParticipantRef(relationship, RelationshipReader.TAG_TARGET);
 			if(individualId.equals(subjectId) || individualId.equals(objectId))
-				collectNotes(relationship, "Relationship", entries);
+				collectNotes(relationship, I18N.t("text.dossier.relationship"), entries);
 		}
 
 		final List<FLEFRecord> impacts = PrivacyService.visible(model, model.getRecordsByType(ContextImpactReader.TYPE));
 		for(final FLEFRecord impact : impacts){
 			final String targetId = extractRef(impact, ContextImpactReader.TAG_TARGET);
 			if(individualId.equals(targetId))
-				collectNotes(impact, "Context", entries);
+				collectNotes(impact, I18N.t("text.dossier.context"), entries);
 		}
 
 		final List<FLEFRecord> hypotheses = PrivacyService.visible(model, model.getRecordsByType(IdentityHypothesisReader.TYPE));
@@ -651,7 +651,7 @@ public final class IndividualDossierService{
 					break;
 				}
 			if(targets)
-				collectNotes(hypothesis, "Identity hypothesis", entries);
+				collectNotes(hypothesis, I18N.t("text.dossier.identity_hypothesis"), entries);
 		}
 
 		final List<FLEFRecord> questions = PrivacyService.visible(model, model.getRecordsByType(ResearchQuestionReader.TYPE));
@@ -663,7 +663,7 @@ public final class IndividualDossierService{
 					break;
 				}
 			if(targets)
-				collectNotes(question, "Research question", entries);
+				collectNotes(question, I18N.t("text.dossier.research_question"), entries);
 		}
 
 		final List<FLEFRecord> conclusions = PrivacyService.visible(model, model.getRecordsByType(ConclusionReader.TYPE));
@@ -677,7 +677,7 @@ public final class IndividualDossierService{
 			if(!targets && individualId.equals(extractRef(conclusion, ConclusionReader.TAG_PREFERRED)))
 				targets = true;
 			if(targets)
-				collectNotes(conclusion, "Conclusion", entries);
+				collectNotes(conclusion, I18N.t("text.dossier.conclusion"), entries);
 		}
 
 		return entries;

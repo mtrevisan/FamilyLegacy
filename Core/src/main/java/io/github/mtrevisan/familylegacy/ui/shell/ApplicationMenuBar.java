@@ -34,17 +34,17 @@ import io.github.mtrevisan.familylegacy.tree.OrderPreferences;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolOperation;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.groups.GroupToolRegistry;
-import io.github.mtrevisan.familylegacy.ui.components.projections.actions.individuals.DeleteIndividualTool;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.individuals.IndividualToolRegistry;
-import io.github.mtrevisan.familylegacy.ui.components.projections.actions.individuals.RelocateIndividualTool;
 import io.github.mtrevisan.familylegacy.ui.components.projections.bookmarks.BookmarkMenu;
 import io.github.mtrevisan.familylegacy.ui.components.projections.common.ProjectionType;
 import io.github.mtrevisan.familylegacy.ui.components.searches.service.JumpToIndividualDialog;
 import io.github.mtrevisan.familylegacy.ui.helpers.ShortcutRegistry;
 import io.github.mtrevisan.familylegacy.ui.preferences.AppearanceMenu;
+import io.github.mtrevisan.familylegacy.ui.tools.dates.DateToolRegistry;
 import io.github.mtrevisan.familylegacy.ui.tools.events.EventToolRegistry;
 import io.github.mtrevisan.familylegacy.ui.tools.files.FileMenuController;
 import io.github.mtrevisan.familylegacy.ui.tools.files.FileToolRegistry;
+import io.github.mtrevisan.familylegacy.ui.tools.files.RecentFilesManager;
 import io.github.mtrevisan.familylegacy.ui.tools.maintenance.MaintenanceToolRegistry;
 import io.github.mtrevisan.familylegacy.ui.tools.places.PlaceToolRegistry;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.AncestorReportOperation;
@@ -139,7 +139,7 @@ final class ApplicationMenuBar{
 		bar.add(createToolsMenu());
 		bar.add(createNavigateMenu());
 		bar.add(createBookmarkMenu());
-		bar.add(AppearanceMenu.create(frame));
+		bar.add(AppearanceMenu.create(frame, frame.fileController()::confirmDiscardChanges, frame.fileController()::currentFile));
 		bar.add(new HelpMenu(frame).create());
 		return bar;
 	}
@@ -176,7 +176,10 @@ final class ApplicationMenuBar{
 
 		menu.add(new JSeparator());
 
-		addToolsToMenu(menu, FileToolRegistry.maintenanceTools(), null);
+		//the backup needs a model: enabled or not each time the menu is opened
+		final List<ToolItemBinding> fileBindings = new ArrayList<>();
+		addToolsToMenu(menu, FileToolRegistry.maintenanceTools(), fileBindings);
+		bindDynamicEnablement(menu, fileBindings);
 
 		menu.add(new JSeparator());
 
@@ -202,7 +205,7 @@ final class ApplicationMenuBar{
 
 		final JMenuItem exit = new JMenuItem(ShortcutRegistry.FILE_EXIT.action(), ShortcutRegistry.FILE_EXIT.keyStrokeCode());
 		exit.setAccelerator(ShortcutRegistry.FILE_EXIT.keyStroke());
-		exit.addActionListener(e -> fileController.exit());
+		exit.addActionListener(e -> frame.exitApplication());
 		menu.add(exit);
 
 		return menu;
@@ -233,9 +236,9 @@ final class ApplicationMenuBar{
 				}
 
 				for(final File file : recent){
-					final JMenuItem item = new JMenuItem(file.getName());
+					final JMenuItem item = new JMenuItem(RecentFilesManager.label(file, recent));
 					item.setToolTipText(file.getAbsolutePath());
-					item.addActionListener(a -> fileController.openFile(file));
+					item.addActionListener(a -> fileController.openRecent(file));
 					menu.add(item);
 				}
 
@@ -261,21 +264,13 @@ final class ApplicationMenuBar{
 		final JMenu menu = new JMenu(I18N.t("menu.edit"));
 		menu.setMnemonic(KeyEvent.VK_E);
 
-		final List<ToolItemBinding> bindings = new ArrayList<>();
-
 		menu.add(historyItem(ShortcutRegistry.EDIT_UNDO, frame::undo));
 		menu.add(historyItem(ShortcutRegistry.EDIT_REDO, frame::redo));
 		final JMenuItem recentChanges = new JMenuItem(I18N.t("menu.edit.recent_changes"));
 		recentChanges.addActionListener(e -> frame.showRecentChanges());
 		menu.add(recentChanges);
-		menu.add(new JSeparator());
 
-		addToolsToMenu(menu, List.of(
-			new RelocateIndividualTool(),
-			new DeleteIndividualTool()
-		), bindings);
-
-		bindDynamicEnablement(menu, bindings);
+		//what is done to an individual, a group or a place (relocate, delete, ...) is in the menu of each of them, not here
 
 		return menu;
 	}
@@ -584,6 +579,8 @@ final class ApplicationMenuBar{
 
 		addToolsToMenu(menu, ResearchToolRegistry.planningTools(), bindings);
 		menu.add(new JSeparator());
+		addToolsToMenu(menu, ResearchToolRegistry.contextTools(), bindings);
+		menu.add(new JSeparator());
 		addToolsToMenu(menu, ResearchToolRegistry.analysisTools(), bindings);
 		menu.add(new JSeparator());
 		addToolsToMenu(menu, ResearchToolRegistry.reportTools(), bindings);
@@ -640,6 +637,8 @@ final class ApplicationMenuBar{
 		addToolsToMenu(menu, MaintenanceToolRegistry.validationTools(), bindings);
 		menu.add(new JSeparator());
 		addToolsToMenu(menu, MaintenanceToolRegistry.analysisTools(), bindings);
+		menu.add(new JSeparator());
+		addToolsToMenu(menu, DateToolRegistry.tools(), bindings);
 
 		final ResearchAssistantPort assistant = frame.assistant();
 		if(assistant != null){
@@ -696,10 +695,8 @@ final class ApplicationMenuBar{
 
 		final JMenuItem clearHistory = new JMenuItem(I18N.t("menu.navigate.clear.history"), KeyEvent.VK_C);
 		clearHistory.addActionListener(e -> {
+			//the entry is grey from now on: nothing else to say
 			frame.switcher().clearHistory();
-			JOptionPane.showMessageDialog(frame,
-				I18N.t("menu.navigate.cleared.history.message"),
-				I18N.t("menu.navigate.cleared.history.title"), JOptionPane.INFORMATION_MESSAGE);
 		});
 		menu.add(clearHistory);
 
@@ -750,7 +747,7 @@ final class ApplicationMenuBar{
 
 	private JMenu createBookmarkMenu(){
 		//the menu rebuilds its items every time it is opened, so that it follows the bookmarks and the privacy policy
-		final BookmarkMenu menu = new BookmarkMenu(frame, frame.bookmarkStore(), frame::model, frame::captureCurrentState,
+		final BookmarkMenu menu = new BookmarkMenu(frame, frame.bookmarkStore(), frame::model, frame::bookmarkFilePath, frame::captureCurrentState,
 			frame::applyBookmark);
 		menu.setText(I18N.t("menu.bookmarks"));
 		menu.setMnemonic(KeyEvent.VK_B);

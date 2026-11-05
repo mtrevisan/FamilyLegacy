@@ -26,10 +26,9 @@ package io.github.mtrevisan.familylegacy.ui.tools.files;
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolDialogs;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
-import org.apache.commons.lang3.StringUtils;
+import io.github.mtrevisan.familylegacy.ui.helpers.ReportText;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -50,9 +49,6 @@ import java.io.InputStream;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
 
 
 /**
@@ -71,7 +67,7 @@ public final class FilePropertiesDialog extends JDialog{
 
 
 	private FilePropertiesDialog(final Window owner, final File file, final FLEFModel model){
-		super(owner, "File Properties", ModalityType.APPLICATION_MODAL);
+		super(owner, I18N.t("dialog.file_properties.title"), ModalityType.APPLICATION_MODAL);
 		ToolDialogs.installEscapeToClose(this);
 
 		final String report = buildReport(file, model);
@@ -121,82 +117,43 @@ public final class FilePropertiesDialog extends JDialog{
 	private static String buildReport(final File file, final FLEFModel model){
 		final StringBuilder sb = new StringBuilder();
 
-		sb.append("=== File Properties ===")
-			.append(StringUtils.LF)
-			.append(StringUtils.LF);
+		ReportText.heading(sb, I18N.t("dialog.file_properties.title"));
 		appendFileInfo(sb, file);
-		appendModelInfo(sb, model);
+		ReportText.section(sb, "text.report.section.model");
+		ReportText.modelStatistics(sb, model);
 
 		return sb.toString();
 	}
 
 	private static void appendFileInfo(final StringBuilder sb, final File file){
-		sb.append("--- File ---")
-			.append(StringUtils.LF);
+		ReportText.section(sb, "text.report.section.file");
 		if(file == null){
-			sb.append("Name:           (unsaved)")
-				.append(StringUtils.LF);
-			sb.append("Location:       —")
-				.append(StringUtils.LF);
-			sb.append("Size:           —")
-				.append(StringUtils.LF);
-			sb.append("Last modified:  —")
-				.append(StringUtils.LF);
-			sb.append("Readable:       —")
-				.append(StringUtils.LF);
-			sb.append("Writable:       —")
-				.append(StringUtils.LF);
-			sb.append("Encoding:       ")
-				.append(detectEncoding(null))
-				.append(StringUtils.LF);
-			sb.append(StringUtils.LF);
+			final String none = "\u2014";
+			ReportText.line(sb, "text.report.name", I18N.t("text.report.unsaved"));
+			ReportText.line(sb, "text.report.location", none);
+			ReportText.line(sb, "text.report.size", none);
+			ReportText.line(sb, "text.report.last_modified", none);
+			ReportText.line(sb, "text.report.readable", none);
+			ReportText.line(sb, "text.report.writable", none);
+			ReportText.line(sb, "text.report.encoding", detectEncoding(null));
+			ReportText.blank(sb);
 
 			return;
 		}
-		sb.append("Name:           ").append(file.getName()).append(StringUtils.LF);
-		sb.append("Location:       ").append(file.getAbsolutePath()).append(StringUtils.LF);
-		sb.append("Size:           ").append(formatBytes(file.length())).append(StringUtils.LF);
-		sb.append("Last modified:  ").append(TIMESTAMP_FORMAT.format(
-			Instant.ofEpochMilli(file.lastModified()))).append(StringUtils.LF);
-		sb.append("Readable:       ").append(file.canRead()? "yes": "no").append(StringUtils.LF);
-		sb.append("Writable:       ").append(file.canWrite()? "yes": "no").append(StringUtils.LF);
-		sb.append("Encoding:       ").append(detectEncoding(file)).append(StringUtils.LF);
-		sb.append(StringUtils.LF);
-	}
 
-	private static void appendModelInfo(final StringBuilder sb, final FLEFModel model){
-		sb.append("--- Model ---")
-			.append(StringUtils.LF);
-		if(model == null){
-			sb.append("No model loaded.")
-				.append(StringUtils.LF);
-			return;
-		}
-		try{
-			final List<FLEFRecord> all = model.getRecords();
-			sb.append("Total records:  ").append(all.size()).append(StringUtils.LF);
-			sb.append(StringUtils.LF);
-			sb.append("By tag:")
-				.append(StringUtils.LF);
-
-			final Map<String, Long> byTag = new TreeMap<>();
-			for(final FLEFRecord r : all)
-				if(r.getTag() != null)
-					byTag.merge(r.getTag(), 1L, Long::sum);
-
-			for(final Map.Entry<String, Long> e : byTag.entrySet())
-				sb.append(String.format("  %-24s %d%n", e.getKey(), e.getValue()));
-		}
-		catch(final RuntimeException ex){
-			sb.append("Unable to compute model statistics: ")
-				.append(ex.getMessage())
-				.append(StringUtils.LF);
-		}
+		ReportText.line(sb, "text.report.name", file.getName());
+		ReportText.line(sb, "text.report.location", file.getAbsolutePath());
+		ReportText.line(sb, "text.report.size", formatBytes(file.length()));
+		ReportText.line(sb, "text.report.last_modified", TIMESTAMP_FORMAT.format(Instant.ofEpochMilli(file.lastModified())));
+		ReportText.line(sb, "text.report.readable", I18N.t(file.canRead()? "text.report.yes": "text.report.no"));
+		ReportText.line(sb, "text.report.writable", I18N.t(file.canWrite()? "text.report.yes": "text.report.no"));
+		ReportText.line(sb, "text.report.encoding", detectEncoding(file));
+		ReportText.blank(sb);
 	}
 
 	private static String detectEncoding(final File file){
 		if(file == null)
-			return "UTF-8 (new document)";
+			return I18N.t("text.report.new_document");
 		if(!file.exists())
 			return "UTF-8";
 
@@ -216,7 +173,11 @@ public final class FilePropertiesDialog extends JDialog{
 		return "UTF-8";
 	}
 
+	/** @return	The size, in the unit that keeps the number readable: a file of a few bytes is not "0 KB". */
 	private static String formatBytes(final long bytes){
+		if(bytes < 1024L)
+			return bytes + " B";
+
 		final long kb = bytes / 1024L;
 		if(kb < 1024L)
 			return kb + " KB";

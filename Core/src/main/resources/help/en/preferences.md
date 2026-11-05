@@ -6,7 +6,7 @@ None of these preferences is stored in the genealogy: they change how the data i
 
 ## Language
 
-**Appearance > Language** lists the languages the application has been translated into. Choosing one is saved at once, and the application offers to restart, because some labels are only set when a window is created.
+**Appearance > Language** lists the languages the application has been translated into. Choosing one is saved at once, and the application restarts, because some labels are only set when a window is created. Before it closes, what the document has still to write is written; when it starts again it **opens the file that was open**. If that cannot be done (the file cannot be written and you do not want to go on) the language is left as it was.
 
 ## Font
 
@@ -37,3 +37,17 @@ Details:
 
 - **View > Privacy**: what the views show, according to the privacy of each record. See [Navigating the tree](navigating.md#privacy).
 - **View > Order of Children and Partners**: how children and partners are sorted. See [Navigating the tree](navigating.md#order-of-children-and-partners).
+
+## Identity Assistant
+
+**Appearance > Identity Assistant...** sets what the [Identity Assistant](assistant.md) proposes. It changes only which possible duplicates are shown, never the data; the values are conventions that are not calibrated on real data, which is why you can change them.
+
+| Setting | Default | Meaning |
+|---|---|---|
+| Similarity from which a pair of individuals is proposed | 60 | The score of the duplicate search (see [Finding duplicates](merging.md)); lower it to see weaker candidates. |
+| Most pairs of individuals proposed | 100 | The ones with the highest score. |
+| Similarity of a strong candidate (high confidence) | 90 | From this score a pair is a warning and the confidence proposed for its hypothesis is high. |
+| Similarity of medium confidence | 70 | From this score the confidence proposed is medium; below it, low. It cannot be above the previous one. |
+| Match probability (%) from which other records are proposed | 70 | For groups, places, sources, repositories, media, cultural norms and historic events. From 50 to 99. |
+
+**Defaults** restores the values of the table. The new values are used the next time the findings are computed.

@@ -25,6 +25,8 @@
 package io.github.mtrevisan.familylegacy.ui.components.projections.actions.groups;
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
+import io.github.mtrevisan.familylegacy.io.model.RecordDisplay;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolDialogs;
 import io.github.mtrevisan.familylegacy.ui.components.projections.groupnetwork.GroupNetworkPanel;
@@ -74,7 +76,7 @@ public final class GroupViewDialog extends JDialog{
 	public static GroupViewDialog forGroup(final ToolContext context, final String groupId){
 		final GroupTimelinePanel panel = new GroupTimelinePanel(context.model());
 		panel.showGroup(groupId);
-		return new GroupViewDialog(context, I18N.t("dialog.group.timeline"), panel);
+		return new GroupViewDialog(context, titleOf(context, "dialog.group.timeline", groupId), panel);
 	}
 
 	/**
@@ -85,7 +87,7 @@ public final class GroupViewDialog extends JDialog{
 	public static GroupViewDialog forNetwork(final ToolContext context, final String groupId){
 		final GroupNetworkPanel panel = new GroupNetworkPanel(context.model());
 		panel.showGroup(groupId);
-		return new GroupViewDialog(context, I18N.t("dialog.group.network"), panel);
+		return new GroupViewDialog(context, titleOf(context, "dialog.group.network", groupId), panel);
 	}
 
 	/**
@@ -96,7 +98,7 @@ public final class GroupViewDialog extends JDialog{
 	public static GroupViewDialog forPlace(final ToolContext context, final String placeId){
 		final JurisdictionTimelinePanel panel = new JurisdictionTimelinePanel(context.model());
 		panel.showPlace(placeId);
-		return new GroupViewDialog(context, I18N.t("dialog.place.jurisdiction.timeline"), panel);
+		return new GroupViewDialog(context, titleOf(context, "dialog.place.jurisdiction.timeline", placeId), panel);
 	}
 
 	/**
@@ -107,7 +109,14 @@ public final class GroupViewDialog extends JDialog{
 	public static GroupViewDialog forIndividual(final ToolContext context, final String individualId){
 		final IndividualCareerPanel panel = new IndividualCareerPanel(context.model());
 		panel.showIndividual(individualId);
-		return new GroupViewDialog(context, I18N.t("dialog.individual.group_career"), panel);
+		return new GroupViewDialog(context, titleOf(context, "dialog.individual.group_career", individualId), panel);
+	}
+
+
+	/** @return	The title of the dialog: what it shows and of which record ("Jurisdiction timeline: Treviso"), so that it says what it is about. */
+	private static String titleOf(final ToolContext context, final String key, final String recordId){
+		final FLEFRecord record = (recordId != null? context.model().getRecordById(recordId): null);
+		return (record != null? I18N.tf("dialog.group_view.title", I18N.t(key), RecordDisplay.describe(record, context.model())): I18N.t(key));
 	}
 
 

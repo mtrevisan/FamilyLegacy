@@ -29,6 +29,8 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.RecordDisplay;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchTaskReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.research.ResearchHelper;
+import io.github.mtrevisan.familylegacy.research.ResearchSummary;
 import io.github.mtrevisan.familylegacy.search.SearchCriteria;
 import io.github.mtrevisan.familylegacy.search.SearchMode;
 import io.github.mtrevisan.familylegacy.search.SearchStrategy;
@@ -109,7 +111,11 @@ public class ResearchTaskSearchStrategy implements SearchStrategy{
 		if(StringUtils.isNotEmpty(priority))
 			details.add(I18N.t("dialog.research_task.priority") + ": " + priority);
 
-		return baseDisplayText + details;
+		final String due = ResearchHelper.firstTextValue(record, ResearchTaskReader.TAG_DUE_DATE);
+		if(StringUtils.isNotEmpty(due))
+			details.add(I18N.tf("text.research.due", due));
+		final String question = ResearchSummary.questionOf(record, model);
+		return baseDisplayText + details + (question != null? " \u2013 " + I18N.l("text.research.question") + " " + question: StringUtils.EMPTY);
 	}
 
 }

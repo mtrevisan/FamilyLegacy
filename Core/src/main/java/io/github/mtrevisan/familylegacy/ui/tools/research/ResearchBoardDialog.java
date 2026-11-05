@@ -52,6 +52,7 @@ import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
@@ -145,10 +146,10 @@ public final class ResearchBoardDialog extends JDialog{
 
 		final JButton newButton = new JButton(I18N.t("button.new"));
 		final JPopupMenu newMenu = new JPopupMenu();
-		newMenu.add(newItem("Research question", ResearchTreeBuilder.Kind.QUESTION));
-		newMenu.add(newItem("Research activity", ResearchTreeBuilder.Kind.ACTIVITY));
-		newMenu.add(newItem("Research task", ResearchTreeBuilder.Kind.TASK));
-		newMenu.add(newItem("Conclusion", ResearchTreeBuilder.Kind.CONCLUSION));
+		newMenu.add(newItem(I18N.t("confirmation.exist_record.research_question"), ResearchTreeBuilder.Kind.QUESTION));
+		newMenu.add(newItem(I18N.t("confirmation.exist_record.research_activity"), ResearchTreeBuilder.Kind.ACTIVITY));
+		newMenu.add(newItem(I18N.t("confirmation.exist_record.research_task"), ResearchTreeBuilder.Kind.TASK));
+		newMenu.add(newItem(I18N.t("confirmation.exist_record.conclusion"), ResearchTreeBuilder.Kind.CONCLUSION));
 		final JMenuItem[] selectedQuestionItems = {
 			selectedQuestionItem("menu.item.selected_question_activity", ResearchTreeBuilder.Kind.ACTIVITY),
 			selectedQuestionItem("menu.item.selected_question_task", ResearchTreeBuilder.Kind.TASK),
@@ -167,6 +168,10 @@ public final class ResearchBoardDialog extends JDialog{
 		final JButton editButton = new JButton(I18N.t("button.edit"));
 		editButton.addActionListener(e -> openEditor(selectedNode()));
 		toolbar.add(editButton);
+
+		final JButton deleteButton = new JButton(I18N.t("button.delete"));
+		deleteButton.addActionListener(e -> deleteSelected());
+		toolbar.add(deleteButton);
 
 		final JButton expandButton = new JButton(I18N.t("button.expand_all"));
 		expandButton.addActionListener(e -> expandAll());
@@ -378,6 +383,29 @@ public final class ResearchBoardDialog extends JDialog{
 	 *                          Details
 	 * ====================================================================== */
 
+	private void deleteSelected(){
+		final ResearchTreeBuilder.Node node = selectedNode();
+		if(node == null || node.record() == null)
+			return;
+
+		final FLEFRecord record = node.record();
+		String message = I18N.tf("confirmation.delete.context_record.message",
+			I18N.t("confirmation.exist_record." + record.getTag().toLowerCase(java.util.Locale.ROOT)), node.label());
+		//the activities and the tasks of a question are not deleted with it: they are left under "(no question)"
+		if(node.kind() == ResearchTreeBuilder.Kind.QUESTION && (node.count(ResearchTreeBuilder.Kind.ACTIVITY) > 0
+				|| node.count(ResearchTreeBuilder.Kind.TASK) > 0))
+			message += "\n\n" + I18N.tf("confirmation.delete.research_record.orphaned",
+				node.count(ResearchTreeBuilder.Kind.ACTIVITY) + node.count(ResearchTreeBuilder.Kind.TASK));
+		final int confirm = JOptionPane.showConfirmDialog(this, message, I18N.t("confirmation.delete.record.title"),
+			JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+		if(confirm != JOptionPane.YES_OPTION)
+			return;
+
+		context.model().removeRecord(record.getId());
+
+		reload();
+	}
+
 	private void showDetails(final ResearchTreeBuilder.Node node){
 		details.setText(describe(node));
 		details.setCaretPosition(0);
@@ -388,54 +416,54 @@ public final class ResearchBoardDialog extends JDialog{
 			return StringUtils.EMPTY;
 		final FLEFRecord record = node.record();
 		if(record == null)
-			return "Records that reference no existing research question.";
+			return I18N.t("text.research.description.orphans");
 
 		final StringBuilder sb = new StringBuilder();
 		switch(node.kind()){
 			case QUESTION -> {
-				append(sb, "Question", ResearchHelper.questionTitle(record));
-				append(sb, "Text", ResearchHelper.questionText(record));
-				append(sb, "Status", ResearchHelper.status(record));
-				append(sb, "Rationale", ResearchHelper.firstTextValue(record, ResearchQuestionReader.TAG_RATIONALE));
-				append(sb, "Closed on", ResearchHelper.firstTextValue(record, ResearchQuestionReader.TAG_CLOSED_DATE));
-				append(sb, "Conclusion", ResearchHelper.firstTextValue(record, ResearchQuestionReader.TAG_CONCLUSION));
-				append(sb, "Confidence", ResearchHelper.firstTextValue(record, ResearchQuestionReader.TAG_CONCLUSION_CONFIDENCE));
-				append(sb, "Activities", Integer.toString(node.count(ResearchTreeBuilder.Kind.ACTIVITY)));
-				append(sb, "Tasks", Integer.toString(node.count(ResearchTreeBuilder.Kind.TASK)));
-				append(sb, "Conclusions", Integer.toString(node.count(ResearchTreeBuilder.Kind.CONCLUSION)));
+				append(sb, "question", ResearchHelper.questionTitle(record));
+				append(sb, "text", ResearchHelper.questionText(record));
+				append(sb, "status", ResearchHelper.status(record));
+				append(sb, "rationale", ResearchHelper.firstTextValue(record, ResearchQuestionReader.TAG_RATIONALE));
+				append(sb, "closed_on", ResearchHelper.firstTextValue(record, ResearchQuestionReader.TAG_CLOSED_DATE));
+				append(sb, "conclusion", ResearchHelper.firstTextValue(record, ResearchQuestionReader.TAG_CONCLUSION));
+				append(sb, "confidence", ResearchHelper.firstTextValue(record, ResearchQuestionReader.TAG_CONCLUSION_CONFIDENCE));
+				append(sb, "activities", Integer.toString(node.count(ResearchTreeBuilder.Kind.ACTIVITY)));
+				append(sb, "tasks", Integer.toString(node.count(ResearchTreeBuilder.Kind.TASK)));
+				append(sb, "conclusions", Integer.toString(node.count(ResearchTreeBuilder.Kind.CONCLUSION)));
 			}
 			case ACTIVITY -> {
-				append(sb, "Type", ResearchHelper.activityType(record));
-				append(sb, "Action", ResearchHelper.action(record));
-				append(sb, "Status", ResearchHelper.status(record));
-				append(sb, "Result", ResearchHelper.activityResult(record));
-				append(sb, "Observation", ResearchHelper.firstTextValue(record, ResearchActivityReader.TAG_OBSERVATION));
-				append(sb, "Conclusion", ResearchHelper.firstTextValue(record, ResearchActivityReader.TAG_CONCLUSION));
-				append(sb, "Confidence", ResearchHelper.firstTextValue(record, ResearchActivityReader.TAG_CONCLUSION_CONFIDENCE));
-				append(sb, "Tasks created", Integer.toString(node.count(ResearchTreeBuilder.Kind.TASK)));
+				append(sb, "type", ResearchHelper.activityType(record));
+				append(sb, "action", ResearchHelper.action(record));
+				append(sb, "status", ResearchHelper.status(record));
+				append(sb, "result", ResearchHelper.activityResult(record));
+				append(sb, "observation", ResearchHelper.firstTextValue(record, ResearchActivityReader.TAG_OBSERVATION));
+				append(sb, "conclusion", ResearchHelper.firstTextValue(record, ResearchActivityReader.TAG_CONCLUSION));
+				append(sb, "confidence", ResearchHelper.firstTextValue(record, ResearchActivityReader.TAG_CONCLUSION_CONFIDENCE));
+				append(sb, "tasks_created", Integer.toString(node.count(ResearchTreeBuilder.Kind.TASK)));
 			}
 			case TASK -> {
-				append(sb, "Description", ResearchHelper.taskDescription(record));
-				append(sb, "Status", ResearchHelper.status(record));
-				append(sb, "Priority", ResearchHelper.taskPriority(record));
-				append(sb, "Due", ResearchHelper.firstTextValue(record, ResearchTaskReader.TAG_DUE_DATE));
-				append(sb, "Outcome", ResearchHelper.firstTextValue(record, ResearchTaskReader.TAG_OUTCOME));
+				append(sb, "description", ResearchHelper.taskDescription(record));
+				append(sb, "status", ResearchHelper.status(record));
+				append(sb, "priority", ResearchHelper.taskPriority(record));
+				append(sb, "due", ResearchHelper.firstTextValue(record, ResearchTaskReader.TAG_DUE_DATE));
+				append(sb, "outcome", ResearchHelper.firstTextValue(record, ResearchTaskReader.TAG_OUTCOME));
 			}
 			case CONCLUSION -> {
-				append(sb, "Issue", ResearchHelper.conclusionIssue(record));
-				append(sb, "Proof status", ResearchHelper.proofStatus(record));
-				append(sb, "Narrative", ResearchHelper.firstTextValue(record, ConclusionReader.TAG_NARRATIVE));
+				append(sb, "issue", ResearchHelper.conclusionIssue(record));
+				append(sb, "proof_status", ResearchHelper.proofStatus(record));
+				append(sb, "narrative", ResearchHelper.firstTextValue(record, ConclusionReader.TAG_NARRATIVE));
 			}
 			case ORPHANS -> {}
 		}
-		append(sb, "Id", record.getId());
+		append(sb, "id", record.getId());
 		return sb.toString();
 	}
 
-	private static void append(final StringBuilder sb, final String name, final String value){
+	private static void append(final StringBuilder sb, final String field, final String value){
 		if(StringUtils.isNotBlank(value))
-			sb.append(name)
-				.append(": ")
+			sb.append(I18N.l("text.research.field." + field))
+				.append(StringUtils.SPACE)
 				.append(value)
 				.append("\n\n");
 	}
@@ -457,7 +485,7 @@ public final class ResearchBoardDialog extends JDialog{
 			super.getTreeCellRendererComponent(tree, value, selected, expanded, leaf, row, hasFocus);
 
 			if(value instanceof DefaultMutableTreeNode treeNode && treeNode.getUserObject() instanceof ResearchTreeBuilder.Node node){
-				setText("[" + node.kind().symbol() + "] " + node.label());
+				setText(node.label());
 				//a padlock signals a restricted or confidential record
 				setIcon(PrivacyBadge.of(PrivacyService.resolver(model)
 					.describe(node.record())));

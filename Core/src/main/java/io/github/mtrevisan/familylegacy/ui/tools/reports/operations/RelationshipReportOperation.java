@@ -39,7 +39,7 @@ public final class RelationshipReportOperation implements ToolOperation{
 
 	@Override
 	public boolean isEnabled(final ToolContext context){
-		return (context != null && context.hasModel() && !context.model().isEmpty());
+		return (context != null && context.hasSelectedIndividual());
 	}
 
 	@Override

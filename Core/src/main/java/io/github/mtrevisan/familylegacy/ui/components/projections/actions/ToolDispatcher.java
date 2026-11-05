@@ -80,6 +80,14 @@ public interface ToolDispatcher{
 	default void openImported(final FLEFModel importedModel, final File source){}
 
 	/**
+	 * @return	A copy of the model as it is now that nobody changes, to be read from another thread while the user goes on editing (call it
+	 * 	on the event dispatch thread); {@code null} if the dispatcher has none.
+	 */
+	default FLEFModel readOnlyModel(){
+		return null;
+	}
+
+	/**
 	 * Returns the ProjectionMutator for the active projection view, if available.
 	 */
 	default ProjectionMutator getMutator(){

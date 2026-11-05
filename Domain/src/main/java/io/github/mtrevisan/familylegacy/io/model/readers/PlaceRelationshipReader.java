@@ -77,9 +77,18 @@ public final class PlaceRelationshipReader{
 	public static final String TAG_AUDIT = "audit";
 
 	public static final String ENUM_TYPE_ADMINISTRATIVE_PART_OF = "administrative_part_of";
+	public static final String ENUM_TYPE_GEOGRAPHIC_PART_OF = "geographic_part_of";
+	public static final String ENUM_TYPE_ECCLESIASTICAL_PART_OF = "ecclesiastical_part_of";
+	public static final String ENUM_TYPE_JUDICIAL_PART_OF = "judicial_part_of";
+	public static final String ENUM_TYPE_CADASTRAL_PART_OF = "cadastral_part_of";
+	public static final String ENUM_TYPE_SUCCESSOR_OF = "successor_of";
+	public static final String ENUM_TYPE_MERGED_FROM = "merged_from";
+	public static final String ENUM_TYPE_SPLIT_FROM = "split_from";
+	public static final String ENUM_TYPE_RECEIVED_TERRITORY_FROM = "received_territory_from";
 	public static final String[] TYPES = new String[]{
-		ENUM_TYPE_ADMINISTRATIVE_PART_OF, "geographic_part_of", "ecclesiastical_part_of", "judicial_part_of",
-		"cadastral_part_of", "successor_of", "merged_from", "split_from", "received_territory_from"
+		ENUM_TYPE_ADMINISTRATIVE_PART_OF, ENUM_TYPE_GEOGRAPHIC_PART_OF, ENUM_TYPE_ECCLESIASTICAL_PART_OF,
+		ENUM_TYPE_JUDICIAL_PART_OF, ENUM_TYPE_CADASTRAL_PART_OF, ENUM_TYPE_SUCCESSOR_OF, ENUM_TYPE_MERGED_FROM,
+		ENUM_TYPE_SPLIT_FROM, ENUM_TYPE_RECEIVED_TERRITORY_FROM
 	};
 
 

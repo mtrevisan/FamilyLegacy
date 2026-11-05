@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.consanguinity;
 
+import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import org.apache.commons.lang3.StringUtils;
 
@@ -143,7 +144,7 @@ public record KinshipResult(
 	public static KinshipResult notRelated(final String idA, final String displayA, final String idB, final String displayB){
 		return new KinshipResult(idA, displayA, idB, displayB, StringUtils.EMPTY, StringUtils.EMPTY,
 			List.of(), List.of(), null, null, List.of(),
-			"No common ancestor found in the current data.", 0.,
+			I18N.t("kinship.result.not_related"), 0.,
 			false, 0, 0, 0);
 	}
 
@@ -158,7 +159,7 @@ public record KinshipResult(
 		final ChainEntry self = new ChainEntry(id, display, 0);
 		return new KinshipResult(id, display, id, display, StringUtils.EMPTY, StringUtils.EMPTY,
 			List.of(self), List.of(self), null, null, List.of(),
-			"The two individuals are the same person.", 1.,
+			I18N.t("kinship.result.same_individual"), 1.,
 			false, 0, 0, 0);
 	}
 

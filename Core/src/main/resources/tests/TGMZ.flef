@@ -447346,7 +447346,6 @@ event_participation EP6101 {
 
 event E6102 {
 	type birth
-	description AI generated
 	date.value.bounded {
 		not_before {
 			value.full_date 1472
@@ -458696,7 +458695,6 @@ event_participation EP6355 {
 
 event E6356 {
 	type birth
-	description AI generated
 	date.value.point {
 		value.full_date 1485
 		calendar julian
@@ -459313,7 +459311,6 @@ event_participation EP6364 {
 
 event E6365 {
 	type birth
-	description AI generated
 	date.value.point {
 		value.full_date 1488
 		calendar julian
@@ -465287,7 +465284,6 @@ event_participation EP6454 {
 
 event E6455 {
 	type birth
-	description AI generated
 	date.value.point {
 		value.full_date 1483
 		calendar julian
@@ -466090,7 +466086,6 @@ event_participation EP6467 {
 
 event E6468 {
 	type birth
-	description AI generated
 	date.value.bounded {
 		not_before {
 			value.full_date 1400
@@ -466779,7 +466774,6 @@ event_participation EP6476 {
 
 event E6477 {
 	type birth
-	description AI generated
 	date.value.point {
 		value.full_date 1490
 		calendar julian
@@ -467095,7 +467089,6 @@ event_participation EP6482 {
 
 event E6483 {
 	type birth
-	description AI generated
 	date.value.bounded {
 		not_before {
 			value.full_date 1454
@@ -468062,7 +468055,6 @@ event_participation EP6501 {
 
 event E6502 {
 	type birth
-	description AI generated
 	date.value.point {
 		value.full_date 1482
 		calendar julian
@@ -468346,7 +468338,6 @@ event_participation EP6507 {
 
 event E6508 {
 	type birth
-	description AI generated
 	date.value.point {
 		value.full_date 1479
 		calendar julian
@@ -468672,7 +468663,6 @@ event_participation EP6513 {
 
 event E6514 {
 	type birth
-	description AI generated
 	date.value.point {
 		value.full_date 1484
 		calendar julian
@@ -468927,7 +468917,6 @@ event_participation EP6520 {
 
 event E6521 {
 	type birth
-	description AI generated
 	date.value.point {
 		value.full_date 1471
 		calendar julian
@@ -468945,7 +468934,6 @@ event_participation EP6521 {
 
 event E6522 {
 	type birth
-	description AI generated
 	date.value.point {
 		value.full_date 1476
 		calendar julian
@@ -469270,7 +469258,6 @@ event_participation EP6527 {
 
 event E6528 {
 	type birth
-	description AI generated
 	date.value.bounded {
 		not_before {
 			value.full_date 1454
@@ -478773,7 +478760,6 @@ event_participation EP6717 {
 
 event E6718 {
 	type birth
-	description AI generated
 	date.value.bounded {
 		not_before {
 			value.full_date 1365
@@ -494385,7 +494371,6 @@ individual I3139 {
 
 event E7062 {
 	type birth
-	description AI generated
 	date.value.bounded {
 		not_before {
 			value.full_date 1310
@@ -499820,7 +499805,6 @@ event_participation EP7201 {
 
 event E7202 {
 	type birth
-	description AI generated
 	date.value.bounded {
 		not_before {
 			value.full_date 1450
@@ -499921,7 +499905,6 @@ event_participation EP7204 {
 
 event E7205 {
 	type birth
-	description AI generated
 	date.value.point {
 		value.full_date 1482
 		calendar julian
@@ -500002,7 +499985,6 @@ event_participation EP7207 {
 
 event E7208 {
 	type birth
-	description AI generated
 	date.value.point {
 		value.full_date 1486
 		calendar julian
@@ -500083,7 +500065,6 @@ event_participation EP7210 {
 
 event E7211 {
 	type birth
-	description AI generated
 	date.value.point {
 		value.full_date 1781
 		calendar gregorian
@@ -500338,7 +500319,6 @@ event_participation EP7218 {
 
 event E7219 {
 	type birth
-	description AI generated
 	date.value.bounded {
 		not_before {
 			value.full_date 1424

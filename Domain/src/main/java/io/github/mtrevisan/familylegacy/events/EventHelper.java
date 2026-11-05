@@ -28,13 +28,12 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceCitationReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
+import org.apache.commons.lang3.StringUtils;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -81,52 +80,34 @@ public final class EventHelper{
 	}
 
 	/**
-	 * Returns the raw value of the {@code DateStructure} of the event,
-	 * or {@code null} when the date is missing.
+	 * Returns the text of the {@code DateStructure} of the event, or {@code null} when the date is missing.
 	 * <p>
-	 * The value is used as-is, without parsing: a genealogical date can
-	 * be a single point, a bounded interval, or a spanning interval, and
-	 * the tools in this package do not need to distinguish them.
+	 * The date is not parsed: a genealogical date can be a single point, a bounded interval, or a spanning interval, and the tools
+	 * in this package do not need to distinguish them. The text is the one shown to the user for the date; when the date has no
+	 * usable value, the text as written in the source ({@code original_text}) is used.
 	 */
 	public static String eventDateRaw(final FLEFRecord event){
-		if(event == null)
-			return null;
-
-		final FLEFRecord dateStruct = FLEFRecordHelper.findChild(event, EventReader.TAG_DATE);
-		if(dateStruct == null)
-			return null;
-
-		final String value = FLEFRecordHelper.getChildValue(dateStruct, DateReader.TAG_VALUE);
-		if(value != null)
-			return value;
-		final FLEFRecord onlyChild = dateStruct.getTheOnlyChild();
-		return (onlyChild != null? onlyChild.getValue(): null);
+		return dateText(event, EventReader.TAG_DATE);
 	}
 
 	/**
-	 * Attempts to interpret the event date as a {@link LocalDate}.
-	 * Returns {@code null} when the value is missing, unparseable, or
-	 * reduced-precision (only a year, only a year-month, …).
-	 * <p>
-	 * The method is intentionally conservative: it only accepts the
-	 * {@code YYYY-MM-DD} form, which is what the protocol uses for a
-	 * complete date. Partial dates are ignored by the timeline and by
-	 * the calculators, because they cannot be placed on a precise
-	 * timeline.
+	 * Returns the text of the {@code DateStructure} found under the tag of the record (an event, a historic event, the validity of a
+	 * cultural norm, ...), as {@link #eventDateRaw(FLEFRecord)} does, or {@code null} when there is none.
 	 */
-	public static LocalDate eventDate(final FLEFRecord event){
-		final String raw = eventDateRaw(event);
-		if(raw == null)
+	public static String dateText(final FLEFRecord record, final String tag){
+		if(record == null)
 			return null;
-		final String s = raw.trim();
-		if(s.length() != 10)
+
+		final FLEFRecord dateStruct = FLEFRecordHelper.findChild(record, tag);
+		if(dateStruct == null)
 			return null;
-		try{
-			return LocalDate.parse(s);
-		}
-		catch(final Exception ignored){
-			return null;
-		}
+
+		final String text = DateReader.extractPrettyPrintDate(dateStruct);
+		if(StringUtils.isNotBlank(text))
+			return text;
+
+		final String originalText = DateReader.extractOriginalText(dateStruct);
+		return (StringUtils.isNotBlank(originalText)? originalText: null);
 	}
 
 	/** Returns the referenced place id of the event, or {@code null}. */
@@ -226,19 +207,6 @@ public final class EventHelper{
 	}
 
 
-	/* ======================================================================
-	 *                          Row models
-	 * ====================================================================== */
-
-	/** Row for the event management table. */
-	public record EventRow(
-		String id,
-		String type,
-		String date,
-		String placeName,
-		int participantCount,
-		String description){}
-
 	/**
 	 * Builds the participation index once, keyed by event id.
 	 * <p>
@@ -256,34 +224,6 @@ public final class EventHelper{
 					.add(p);
 		}
 		return result;
-	}
-
-	/**
-	 * Builds a display row for the management table.
-	 * <p>
-	 * The method takes precomputed indexes instead of the model, so it can
-	 * be called in a tight loop over every event without re-scanning the
-	 * whole participation list on each call.
-	 */
-	public static EventRow toRow(final FLEFRecord event,
-			final Map<String, FLEFRecord> placesById,
-			final Map<String, List<Participation>> participationsByEvent){
-		final String id = event.getId();
-		final String type = eventType(event);
-		final String date = eventDateRaw(event);
-		final String description = eventDescription(event);
-
-		final String placeId = eventPlaceId(event);
-		String placeName = null;
-		if(placeId != null && placesById.containsKey(placeId))
-			placeName = PlaceReader.displayName(placesById.get(placeId));
-		else if(placeId != null)
-			placeName = placeId;
-
-		final int participants = participationsByEvent
-			.getOrDefault(id, List.of()).size();
-
-		return new EventRow(id, type, date, placeName, participants, description);
 	}
 
 }

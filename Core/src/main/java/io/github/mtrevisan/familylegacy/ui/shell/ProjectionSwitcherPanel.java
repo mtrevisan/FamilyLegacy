@@ -527,17 +527,17 @@ public final class ProjectionSwitcherPanel extends JPanel{
 
 	/** Returns {@code true} when there is at least one previous entry. */
 	public boolean canGoBack(){
-		return navigationHistory.canGoBack();
+		return navigationHistory.canGoBack(this::exists);
 	}
 
 	/** Returns {@code true} when there is at least one next entry. */
 	public boolean canGoForward(){
-		return navigationHistory.canGoForward();
+		return navigationHistory.canGoForward(this::exists);
 	}
 
 	/** Moves the navigation history one step back and applies the previous entry. */
 	public void navigateBack(){
-		final String id = navigationHistory.goBack();
+		final String id = navigationHistory.goBack(this::exists);
 		if(id == null)
 			return;
 
@@ -547,7 +547,7 @@ public final class ProjectionSwitcherPanel extends JPanel{
 
 	/** Moves the navigation history one step forward and applies the next entry. */
 	public void navigateForward(){
-		final String id = navigationHistory.goForward();
+		final String id = navigationHistory.goForward(this::exists);
 		if(id == null)
 			return;
 
@@ -562,6 +562,11 @@ public final class ProjectionSwitcherPanel extends JPanel{
 	 */
 	public void clearHistory(){
 		navigationHistory.clear();
+	}
+
+	/** Whether the record of an entry of the history is still in the model: one that was deleted is skipped by Back and Forward. */
+	private boolean exists(final String id){
+		return model.hasRecord(id);
 	}
 
 

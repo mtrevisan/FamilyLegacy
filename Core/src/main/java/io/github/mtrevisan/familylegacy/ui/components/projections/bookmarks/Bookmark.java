@@ -24,6 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections.bookmarks;
 
+import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.RecordDisplay;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Map;
@@ -66,6 +69,16 @@ public record Bookmark(
 		properties = (properties != null? Map.copyOf(properties): Map.of());
 	}
 
+
+	/**
+	 * @param model	The model the root refers to.
+	 * @return	What the root is called (the text of its record), to show instead of its identifier; the identifier if the record is not
+	 * 	in the model.
+	 */
+	public String rootLabel(final FLEFModel model){
+		final FLEFRecord record = (model != null && !rootId.isEmpty()? model.getRecordById(rootId): null);
+		return (record != null? RecordDisplay.describe(record, model): rootId);
+	}
 
 	/** Returns a copy of this bookmark with a new name. The id is preserved. */
 	public Bookmark withName(final String newName){

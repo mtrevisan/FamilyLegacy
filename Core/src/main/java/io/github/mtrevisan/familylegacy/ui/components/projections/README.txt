@@ -4,8 +4,106 @@ Elenco di ciò che manca per sfruttare appieno il protocollo FLEF. Legenda: DONE
 presente, PARZIALE = presente solo in parte o altrove. Per le viste specializzate vedere anche
 `temporal/README.txt` (punto 1) e `social/README.txt` (punto 2).
 
-Stato verificato sul codice (2 novembre 2026). Revisione: DONE/TODO ricontrollati; per ogni TODO è indicato se vale la pena
+Stato verificato sul codice. Revisione: DONE/TODO ricontrollati; per ogni TODO è indicato se vale la pena
 farlo ("Utile", "Bassa priorità").
+
+
+## TODO aperti, per priorità
+
+Elenco di tutti e soli i TODO ancora aperti di questo file (i DONE e le scelte "non TODO" sono nelle sezioni sotto). Priorità: ALTA,
+MEDIA, BASSA. Dove il testo originale la dichiarava ("Utile", "alta priorità", "Bassa priorità") è stata mantenuta; per gli altri è una
+stima (marcata con "~"). I TODO specifici delle viste temporale e social stanno in `temporal/README.txt` e `social/README.txt`.
+
+### Menu da verificarne la completezza
+- Research
+- Reports
+- Help | Keyboard Shortcuts, Help | Check for Updates, Help | Report a Bug, Help | Diagnostics
+
+### ALTA
+- Export GEDCOM 5.5.1 / 7.0 (`ExportGedcom551Tool` / `ExportGedcom7Tool`, commentati in `FileToolRegistry`, classi inesistenti): oggi
+  esistono solo import ed export FLEF. Va dichiarato cosa si perde (conclusioni, ricerca, contesto, privacy) e applicato
+  `PrivacyExporter`. Sarà un plugin come gli importatori (`FileExporter`).
+- Test di round-trip per l'export GEDCOM, una volta scritto.
+
+### MEDIA
+- Export immagine (PNG/SVG) di una vista (`ExportImageTool` commentato, classe inesistente; per il PNG basta dipingere il pannello su
+  un `BufferedImage`).
+- Ego network: filtro per tipo di relazione e toggle dei gruppi (valutare il riuso di `SocialFilters`).
+- ~ Badge grafico (icona) per l'evidenza (`EvidenceQualifiers`): oggi solo testo del tooltip, e solo per nascita e morte.
+- ~ Albero: filtri e espansione di rami (utile solo per alberi grandi).
+- Rete di parentela, ascendenza proiettata con duplicati collegati ("stesso individuo"): lo stesso antenato che compare più volte è
+  marcato e collegato; `PedigreeCollapseDetector` dice già chi è duplicato. Partire dalla versione economica: evidenziare tutte le
+  occorrenze al passaggio del mouse o al clic.
+
+### BASSA
+- Rete di parentela, heatmap dell'endogamia: ascendenza a griglia (generazione x posizione) colorata per F o per numero di occorrenze
+  dell'antenato; solo per un individuo e N generazioni, calcolo fuori EDT. Valore basso, il costo pesa sui file grandi.
+- Rete di parentela, grafo DAG unificato con archi di unione: serve un layout per DAG con nodi di unione (il Sugiyama lo fa in parte);
+  da fare solo come filtro sull'intorno di un individuo, mai sull'intero file, e solo se le altre viste non bastano.
+- Consanguineità: rapporto di tutto il file e assistente lenti nel caso estremo (140 s, fuori EDT): sostituire gli insiemi di antenati di
+  `ConsanguinityCalculator.ancestorsOf` con insiemi di bit su indici interi (serve solo con file chiusi su se stessi).
+- ~ Consanguineità: soglie (1/256, 1/64, 1/16) non configurabili; nessuna distinzione fra parentela per sangue e per adozione/affido
+  (esclusi); un genitore ignoto vale "non imparentato" (i valori sono limiti inferiori).
+- Viste sulle fonti: source tree, galleria documenti con crop, citation network.
+- Matrice comparativa degli attributi.
+- Contesto: impact network (vista per bersaglio).
+- Research Board: timeline delle attività.
+- Dossier: filtri (solo tipo di evento e intervallo; il resto è già nelle sezioni).
+- Export diretto del dossier (basta un report che lo usi).
+- Export CSV di sottoinsiemi (`ExportExcelTool` commentato; fare solo CSV).
+- ~ Ricerca in note e citazioni: non cerca nei nomi di luoghi annidati.
+- ~ Tooltip dell'unione (`PartnersData.marriageTooltip`) ancora commentato.
+- ~ Viste temporale e social (nascoste): riusare i filtri per tipo di relazione di `SocialFilters`; strip e timeline globale non
+  compaiono sotto le due viste.
+
+### Assistente di ricerca (`ui/assistant`): "Still to do" di ogni assistente (tutti ~BASSA salvo dove indicato)
+- Framework: ~MEDIA il record selezionato nel contesto (le viste non lo espongono ancora; serve anche a "Check Chronology" per un
+  individuo); un filtro visibile per categoria; mostrare il record nella sua vista (oggi si aprono solo gli editor).
+- Date (Historical Date Assistant): interprete del linguaggio naturale (calende/none/idi romane, "more veneto", "un'ora dopo il
+  tramonto"), età con nascita nota per stimare la morte, anni di regno.
+- Research Gap: "luogo noto ma manca l'atto di nascita"; storia delle residenze incompleta tra due censimenti; muri di mattoni (spetta
+  al Planner); pesi non calibrati né configurabili e senza importanza dell'individuo/periodo/archivi; età per morte mancante (110/90) è
+  una convenzione, chi non ha anno di nascita non è mai segnalato; fonti cercate solo sull'evento (non su partecipazione o
+  individuo), battesimi e sepolture non sono eventi vitali; bozze in inglese, senza suggerimento di dove cercare, scadenza o
+  collegamento ai compiti; soglie di aggregazione (25, 200) non configurabili.
+- Source Citation: metadati dei media (EXIF, proprietà PDF, ISBN); repository citation intere (repository + locator) dal riferimento;
+  locator per tipo di fonte (media_type); apprendere le abbreviazioni dell'utente; bozza dell'intera SourceCitation (extract, stance).
+- Relationship (Assistant), per priorità:
+  - MEDIA, più evidenza per il tipo: se l'evidenza non decide resta un finding generico. Soluzioni, una alla volta e solo come
+    indizi dell'assistente (mai regole della validazione): officiante e luogo del matrimonio (il più affidabile, si parte da qui),
+    qualificatori delle fonti, età dei genitori (con i limiti di Chronology), cognome del padre (debole, solo corrispondenza esatta,
+    niente tabelle di nomi); matrimoni consuetudinari, affido e tutela non sono deducibili: solo una domanda al ricercatore.
+- Chronology (Assistant): restano solo le convenzioni, come avvisi dell'assistente e mai della validazione: figli della stessa
+  madre a meno di ~9 mesi (gemelli esclusi), età al matrimonio troppo bassa, coniuge più vecchio della durata della vita; eventi e
+  attributi sovrapposti incompatibili (non dimostrabili: solo un avviso); date non leggibili come finding dell'assistente (la
+  validazione le segnala già); "Check Chronology" per un individuo selezionato; limiti di età e gestazione configurabili; niente
+  cache; messaggi solo in inglese. Già fatti nella validazione: `valid_to` prima di `valid_from` e il parto dopo la morte.
+- Place: suggerimenti `successor_of` da nomi e date; date di validità delle relazioni (`valid_from` dopo `valid_to`, relazioni fuori
+  dalla vita del luogo); luoghi senza fonte; luoghi senza coordinate o tipo (tipo dal nome: "Diocesi di", "Parrocchia di"); uso dei
+  luoghi da record diversi dagli eventi; gerarchia dai nomi in più parti; genitore suggerito dai luoghi vicini.
+- Conclusion: bozza costruita dal modello all'apertura della palette (un record cambiato o cancellato dopo è saltato, uno ora risolto
+  non è rilevato), narrativa solo in inglese; l'editor non è un wizard, la bozza per un'ipotesi di identità risolve un solo bersaglio;
+  il candidato preferito dovrebbe pesare i qualificatori di evidenza (e valere oltre nascite e morti); altre asserzioni a valore unico
+  (luogo di nascita/morte, sepoltura, battesimo, sesso, tipo di relazione); attributi che cambiano nel tempo (residenza, occupazione,
+  cittadinanza, religione) con `valid_from`/`valid_to` e `children_count`/`marriages_count` contro l'albero; relazioni (coppia
+  figlio-genitore che è anche coppia di coniugi, matrimoni civile e religioso con date diverse, filiazione da coppie diverse in fonti
+  diverse); ipotesi di identità: conclusione obsoleta (date di audit) e candidato non individuo; coerenza delle conclusioni (`preferred`
+  fuori da RESOLVES, `proven` con una sola fonte, RESOLVES verso record inesistenti); modello letto intero a ogni apertura.
+- Context: data e luogo della bozza di evento storico; migrazioni (individuo in due luoghi lontani) ed eventi storici del luogo di
+  origine; convenzioni di nome contro i nomi dell'albero (patronimici); regole di età delle norme contro le età dei coniugi; eventi
+  dell'individuo diversi da quelli dell'albero (attributi e residenze); catalogo importabile di eventi storici e norme; norme che si
+  applicano a una conclusione o relazione; pesi non calibrati.
+- Research Planner: luoghi e periodi (quale parrocchia, quale archivio, quali registri per gli anni: servono repository e luoghi
+  dell'individuo); fonti già nell'albero (le citazioni dell'individuo oltre gli eventi); conclusioni della domanda; scadenza; ordine dei
+  passi come piano con dipendenze; domande su luoghi e famiglie; pesi non calibrati né configurabili.
+- Indicatore e ricalcolo (limiti noti, non lavori pianificati): nessuna opzione per spegnere la riapertura della palette, niente
+  ignora "tutti di questo tipo / di questo individuo", i risultati ignorati sono per percorso del file e per utente; non testati: il
+  clic reale che apre la palette, l'aspetto del pulsante, il riapertura con avviso, l'adattatore di `AppPreferences` e i tasti
+  Ctrl+D / Ctrl+I.
+
+### Test non verificati
+- ESC sui dialog degli strumenti uno a uno (servono argomenti: è testato solo l'helper, e la scansione verifica che lo usino) e la
+  pressione reale del tasto su un focus reale.
 
 
 ## Viste oggi raggiungibili
@@ -13,12 +111,12 @@ farlo ("Utile", "Bassa priorità").
 `ProjectionType` espone quattro proiezioni offerte all'utente: albero biologico (Ctrl+1), grafo Sugiyama (Ctrl+2), ego network (Ctrl+3),
 chronomap (Ctrl+4). La proiezione temporale e il social network sono nello switcher (`ProjectionType.TEMPORAL` e
 `SOCIAL_NETWORK`, `setProjection`, segnalibri) ma NASCOSTI per ora: niente bottone, voce di menu, Ctrl+5 / Ctrl+6 né aiuto
-(2 novembre 2026, su richiesta). Per riattivarli vedi il commento di `ProjectionType`.
+(su richiesta). Per riattivarli vedi il commento di `ProjectionType`.
 Altre viste raggiungibili: dossier individuo/gruppo, Agorà, strip delle vite (`MultiLifespanStripPanel`),
 timeline globale degli eventi (sotto l'ego network), gerarchia dei luoghi (`PlaceHierarchyPanel`), kinship dialog e
 pedigree collapse (albero).
 
-DONE `TemporalProjectionPanel` (punto 1) e `SocialNetworkPanel` (punto 2) sono collegati allo switcher (novembre 2026): enum,
+DONE `TemporalProjectionPanel` (punto 1) e `SocialNetworkPanel` (punto 2) sono collegati allo switcher: enum,
 segnalibri, `TemporalAndSocialProjectionTest`; l'accesso dall'interfaccia (toolbar, menu, scorciatoie, aiuto) è tolto per ora. Vedi `temporal/README.txt` e
 `social/README.txt`. Restano TODO: i filtri per tipo di relazione dell'ego network si possono riusare da `SocialFilters`; la
 strip e la timeline globale non compaiono sotto le due nuove viste (hanno la loro asse).
@@ -26,7 +124,7 @@ strip e la timeline globale non compaiono sotto le due nuove viste (hanno la lor
 
 ## Punto 4 - Viste di gruppo (Group / Community View)
 
-DONE (novembre 2026): le tre viste A, C e B sono complete e raggiungibili dall'interfaccia (vedi sotto), con i TODO chiusi. Era il
+DONE: le tre viste A, C e B sono complete e raggiungibili dall'interfaccia (vedi sotto), con i TODO chiusi. Era il
 lavoro più grosso. Esistono `GroupPanel`, `GroupData`, `GroupListener`, il dossier di gruppo (`GroupDossier*`), gli strumenti
 di gestione dei gruppi e i package `grouptimeline` (Viste A e C) e `groupnetwork` (Vista B).
 
@@ -54,12 +152,12 @@ Il filtro tiene il ruolo per chiave (senza maiuscole né spazi; `""` = senza ruo
 DONE Stato `active/ended` (Viste A e C): `GroupTimelineBuilder.statusOf` legge `status` della relazione e lo mette nello span; nel
 renderer (`TemporalSpanRenderer`, che prima ignorava lo stato) una barra `ended` è più tenue con contorno tratteggiato e l'etichetta
 ha "(ended)"; `active` e `unknown` (anche tutti gli eventi e gli attributi) restano come prima, i punti non cambiano.
-DONE Chiusura dei TODO delle Viste A e C (novembre 2026):
+DONE Chiusura dei TODO delle Viste A e C:
 - Filtro per anno (`GroupYearControl` sopra la vista, `GroupYearFilter`): una barra con date che non copre l'anno è tolta, una senza
   date o aperta da un lato resta; le righe rimaste senza barre spariscono (`GroupMembershipFilter`, lo stesso del filtro per ruolo);
   l'anno è gregoriano e resta cambiando gruppo o persona (è una scelta sul tempo), il filtro per ruolo no. Ordine: prima l'anno, poi i ruoli;
   la legenda elenca i ruoli delle barre dell'anno.
-- Fine "oggi" (novembre 2026, `GroupTimelineBuilder.ongoing`): un'appartenenza senza fine, non marcata `ended` e che non comincia dopo
+- Fine "oggi" (`GroupTimelineBuilder.ongoing`): un'appartenenza senza fine, non marcata `ended` e che non comincia dopo
   oggi è ancora in vigore, quindi la sua barra termina oggi davvero (la fine del `TemporalSpan` è oggi, non il bordo della finestra): con
   l'asse allontanato con lo zoom la barra non supera oggi (prima, una barra aperta o senza date arrivava al bordo della finestra, anche
   a 2900). Se ha un inizio l'etichetta aggiunge "ongoing"; senza alcuna data comincia al bordo sinistro della finestra (inizio
@@ -74,7 +172,7 @@ DONE Chiusura dei TODO delle Viste A e C (novembre 2026):
   sotto la riga del gruppo.
 - Il modello non si ricostruisce a ogni clic su un filtro (`GroupViewFilters`): si riusa quello costruito; si ricostruisce solo a
   `refresh()` o a un nuovo gruppo o persona.
-DONE Correzione dello zoom (novembre 2026, segnalata dall'uso): `TemporalAxis.spanToRect` chiamava `Math.clamp` con gli argomenti
+DONE Correzione dello zoom (segnalata dall'uso): `TemporalAxis.spanToRect` chiamava `Math.clamp` con gli argomenti
 scambiati e lanciava `IllegalArgumentException` appena una barra finiva oltre il bordo destro della finestra (con lo zoom succede
 sempre), interrompendo il disegno: le barre non si ridimensionavano. Ora la barra è tagliata al bordo, una tutta fuori è omessa (prima
 una tutta a sinistra diventava una barretta di 1 pixel sul bordo). Il difetto era nella proiezione temporale generale, non solo
@@ -130,7 +228,7 @@ richiesta, per anno ("Year"): una relazione o appartenenza con date che non copr
 `part_of`, errore nei dati, non va in loop), un gruppo senza `part_of` prende il livello dell'associato più vicino al centro,
 ordine sotto i genitori poi per nome, livelli centrati. Un clic seleziona un gruppo, un doppio clic lo mette al centro. Accesso:
 menu Gruppo > "Group Network…" (`GroupNetworkTool`) e menu contestuale del gruppo nell'ego network; `GroupViewDialog.forNetwork`.
-DONE Chiusura dei TODO della Vista B (novembre 2026), `GroupNetworkFeaturesTest`:
+DONE Chiusura dei TODO della Vista B, `GroupNetworkFeaturesTest`:
 - Legenda delle linee in fondo (linea spessa = parte di, tratteggiata = associato, badge = membri, riquadro giallo = centro).
 - Zoom (pulsanti -, +, adatta; Ctrl + rotella, da 0.3 a 3) e pan (trascinamento, `ViewportPanSupport`); il clic e il tooltip
   tengono conto dello zoom.
@@ -150,7 +248,7 @@ generico di grafi, mostrare tutti i gruppi insieme.
 
 ## Punto 5 - Parentela estesa ed endogamia (Pedigree Collapse / Consanguinity)
 
-PARZIALE (novembre 2026: F, R, report e diagnostica fatti; restano le viste).
+PARZIALE (F, R, report e diagnostica fatti; restano le viste).
 
 DONE
 - Albero con layout Sugiyama (`individualtree/layout/sugiyama`).
@@ -178,7 +276,7 @@ TODO
   (`KinshipCalculator.relationshipCoefficient`, sugli antenati dei due individui, al massimo due genitori ciascuno; i genitori
   sono quelli del `ParentProvider`/`TreeService`, non solo biologici); il termine `(1/2)^(dA+dB)` per antenato resta solo come
   indicazione. `KinshipCalculatorTest`.
-- DONE Misurato su un file grande (novembre 2026, `LargeFileBenchmark`, a richiesta con `-Dfamilylegacy.benchmark=true`: 30000
+- DONE Misurato su un file grande (`LargeFileBenchmark`, a richiesta con `-Dfamilylegacy.benchmark=true`: 30000
   individui, 325000 record, una comunità chiusa che si sposa dentro il proprio villaggio, cioè il caso peggiore per `F` e `R`: 7200
   unioni e 11600 individui inbred). Il rapporto di tutto il file costa ~140-150 s (la parentela di due individui 0.1 s): su un file
   vero, meno chiuso, molto meno, ma è un lavoro da fuori EDT. Quindi: il dialogo `ConsanguinityReportTool` calcola in un
@@ -193,9 +291,21 @@ TODO
   chiusi su se stessi.
 - TODO Le soglie (1/256, 1/64, 1/16 per l'avviso) non sono configurabili. Nessuna distinzione fra parentela per sangue e per
   adozione/affido (esclusi), e un genitore ignoto vale "non imparentato": i valori sono limiti inferiori.
-- Bassa priorità: grafo DAG unificato con archi di unione, heatmap dell'endogamia, anelli di consanguineità (il pedigree
-  collapse e il Sugiyama coprono gran parte del bisogno).
-- Bassa priorità: vista di ascendenza proiettata con duplicati collegati ("stesso individuo").
+- Rete di parentela (il pedigree collapse e il Sugiyama coprono già gran parte del bisogno), in quattro punti:
+  1. DONE Anelli di consanguineità: menu Individuo > "Consanguinity Loops…" (`ConsanguinityLoopsTool`,
+     `ConsanguinityLoopsDialog`, package `actions.individuals`) e menu contestuali dell'individuo (albero, ego network). Per un
+     individuo con due genitori noti mostra perché è inbred: una riga per anello, cioè per antenato comune più vicino dei genitori
+     (`ConsanguinityCalculator.closestCommonAncestors`) e per coppia di linee di discendenza che lo uniscono ai due genitori senza
+     altri individui in comune (cammini di Wright); le linee sono scritte dall'antenato giù fino all'individuo, con generazioni e
+     contributo `(1/2)^(n1+n2+1) (1+F(antenato))`, i più pesanti prima, al massimo 100 (`ConsanguinityLoops.MAX_LOOPS`, il dialogo dice
+     se ce ne sono altri). Il coefficiente nell'intestazione è quello esatto del calcolatore: la somma delle righe può essere minore
+     se contribuiscono anche antenati più lontani. Logica pura in `ConsanguinityLoops` (Domain), sola lettura; doppio clic o "Open
+     ancestor" apre l'antenato. Test su figli di cugini primi, fratelli, zio-nipote, genitore-figlio, antenato inbred:
+     `ConsanguinityLoopsTest`, `ConsanguinityLoopsDialogTest`. Non fatto (era nella proposta): l'evidenziazione degli anelli sul
+     Sugiyama, che non ha un layout né un punto di aggancio per evidenziare una selezione di antenati.
+  2. MEDIA Ascendenza con duplicati collegati (vedi la lista in cima).
+  3. BASSA Heatmap dell'endogamia.
+  4. BASSA Grafo DAG unificato con archi di unione.
 - DONE Segnalazione delle unioni consanguinee nell'ego network: l'arco verso un partner imparentato con l'ego porta un badge
   "C" ambra (`EgoNetworkRenderer`), il tooltip del partner dà parentela, R e grado (`EgoNetworkLayoutBuilder`). Il rapporto
   `ConsanguineousUnionDetector.detect` è calcolato da `EgoNetworkService` alla prima apertura di un ego con partner e tenuto
@@ -226,9 +336,19 @@ Stato rispetto alle idee originali:
   (`MultiLifespanStripPanel`).
 - Attributi: PARZIALE bande di validità nella strip; TODO carriera (Gantt: coperta dalla Vista C dei gruppi e dal
   `TemporalProjectionPanel` una volta collegato), TODO matrice comparativa (bassa priorità).
-- Fonti: TODO source tree, provenance delle citazioni, galleria documenti con crop, citation network (esistono gli editor,
-  `CitationAnalysisTool` e le gestioni di fonti/repository/media). Bassa priorità, tranne la provenance delle citazioni.
-- Luoghi: DONE albero della gerarchia (`PlaceHierarchyPanel`, `PlaceHierarchyService`); DONE timeline delle giurisdizioni (novembre 2026)
+- Fonti: TODO source tree, galleria documenti con crop, citation network (esistono gli editor, `CitationAnalysisTool` e le
+  gestioni di fonti/repository/media). Bassa priorità.
+  DONE provenance delle citazioni: menu Fonte > "Provenance…" (`ProvenanceTool`, `ProvenanceDialog`, package `actions.provenance`: sta in `components` e non in `tools.sources` perché i menu
+  contestuali lo usano, e `tools` -> `components` -> `tools` sarebbe un ciclo) e menu contestuali
+  dell'individuo (albero, ego network). Una riga per citazione, con fonte (e repository che la conserva), locator, stance (una citazione
+  che contraddice è in rosso), estratto ed evidenza scritta in testo. Dal record: le sue citazioni; per un individuo la casella "Include
+  events, attributes and relationships" aggiunge quelle di eventi (partecipazioni), attributi e relazioni (off di default); per una
+  fonte il verso opposto, tutto ciò che la cita. Logica pura in `ProvenanceService` (Domain, `sources`), privacy applicata, sola
+  lettura; "Open record" / "Open source" aprono gli editor e la lista si rilegge. `ProvenanceTest`. Correzione fatta strada facendo:
+  `SourceHelper.repositoryName` e `sourceTitle` passavano il nodo del nome invece del record a `extractPrimaryName` /
+  `extractPrimaryTitle`, quindi il nome di un repository risultava sempre il suo identificatore (e un titolo con più figli
+  pure). TODO (bassa priorità): provenance di un individuo a livello di dossier/report; evidenza come badge grafico (vedi sopra).
+- Luoghi: DONE albero della gerarchia (`PlaceHierarchyPanel`, `PlaceHierarchyService`); DONE timeline delle giurisdizioni
   (`JurisdictionTimelineBuilder`, `JurisdictionTimelinePanel`, `JurisdictionTimelineTool`; `JurisdictionTimelineTest`). Stessa impostazione
   delle viste di gruppo: modello temporale mostrato da `TemporalProjectionPanel`, stessi filtri (`GroupViewFilters`: anno, contesto,
   legenda), stessi helper di `GroupTimelineBuilder`. Righe: il luogo (con il contesto storico), poi i luoghi di cui è parte o che ha
@@ -301,7 +421,7 @@ Stato rispetto alle idee originali:
    (`SearchService.searchableHandlers()`: 16 tipi, con i filtri propri di ciascuno, nel `RecordSelectionDialog` già esistente).
    Un individuo (e un gruppo nell'ego network) si mostra nelle viste, come Ctrl+J; ogni altro record si apre nel suo editor e, se
    salvato, le viste si ricostruiscono. `FindRecordTest`.
-   DONE Ricerca nel testo di note e citazioni (novembre 2026): casella "Search in notes and citations" del `RecordSelectionDialog`
+   DONE Ricerca nel testo di note e citazioni: casella "Search in notes and citations" del `RecordSelectionDialog`
    (quindi anche in Ctrl+F), `SearchMode.NOTES_AND_CITATIONS`. Con la casella accesa il testo cercato è il testo mostrato del record più
    quello delle sue note e citazioni (`AttachedTextExtractor`: le strutture `note` a qualunque profondità, di ciascuna titolo, testo e
    testo delle traduzioni, per un record NOTE il suo; le strutture `source`, di ciascuna il `locator` e il testo e le `remark` degli
@@ -322,7 +442,7 @@ Stato rispetto alle idee originali:
    strip, timeline, ego network (layout); verificato su albero e Sugiyama. Resta commentato il tooltip dell'unione
    (`PartnersData.marriageTooltip`).
 9. DONE Scorciatoie da tastiera: F2 modifica, Canc elimina, Ctrl+X sposta, Ctrl+Z/Y, Ctrl+1/2/3/4 cambio proiezione, Ctrl+L,
-   Ctrl+T, Ctrl+J, Ctrl+Shift+A (assistente), F11, F1, frecce per navigare nel grafo (`SpatialNavigation`). DONE Ctrl+F (ricerca globale). TODO Manca Ctrl+Shift+S: Utile, ma prima verificare come funziona oggi il salvataggio.
+   Ctrl+T, Ctrl+J, Ctrl+Shift+A (assistente), F11, F1, frecce per navigare nel grafo (`SpatialNavigation`). DONE Ctrl+F (ricerca globale). Ctrl+Shift+S non è previsto (salvataggio automatico: scelta, non TODO).
 10. DONE tooltip sui campi non ovvi di Confidence, EvidenceQualifiers, ContextImpact, Conclusion (preferred assertion),
    IdentityHypothesis, CulturalNorm, ResearchActivity (result, search_scope, ...), ResearchQuestion/Task, e "quando usare
    questo record?" sulla prima scheda dei dialog e nella lista dei tipi di `RecordSelectionDialog` (chiavi `record.usage.*`).
@@ -338,13 +458,16 @@ Stato rispetto alle idee originali:
    se riusarlo).
 3. DONE Lifespan strip: bande per secolo, evidenziazione delle vite sovrapposte all'hover, click su banda/marker.
 4. DONE Chronomap (Ctrl+4, quarta proiezione): layer multipli (`ChronomapLayerManager`, mappe storiche), traiettorie (great circle) e marker animato.
-   TODO verificare il filtro per tipo di evento.
+   DONE filtro per tipo di evento (verificato e corretto): `ChronomapOverlayPainter.anchorsOf` è l'unico punto che applica
+   il filtro, usato da marker 2D, globo 3D, clic, centratura e adattamento della vista (prima valeva solo per il disegno 2D); togliere
+   la spunta a tutti i tipi non mostra più tutto ma nessun evento (restano gli attributi); il menu si ricostruisce dopo la geocodifica
+   (nuovi tipi) tenendo i tipi già tolti. `EventTypeFilterTest`.
 5. DONE Vista "Agorà" (`AgoraPanel`).
 
 
 ## Import/export
 
-0. DONE Gli importatori sono plugin, come i formati dei report e il motore astronomico (novembre 2026). L'SPI è `FileImporter` /
+0. DONE Gli importatori sono plugin, come i formati dei report e il motore astronomico. L'SPI è `FileImporter` /
    `FileImporters` (Domain, package `importer`; la ricerca dei jar è in `util.PluginLoader`, usato anche da `ReportRenderers`); ogni
    formato è un modulo che produce un jar in `Core/plugins`: `ImporterGedcom` (`importer-gedcom.jar`, GEDCOM 5.5.x / 7.0, package
    `importer.gedcom`) e `ImporterGramps` (`importer-gramps.jar`, Gramps XML e pacchetti, package `importer.gramps`). Il menu File >
@@ -379,9 +502,9 @@ Stato rispetto alle idee originali:
 
 ## Altri TODO emersi dalla revisione
 
-- TODO Spostare da questo file il dettaglio dell'assistente di ricerca (sezione "TODO Improvements", ~800 righe) in
-  `ui/assistant/README.txt`: è quasi tutto DONE e nasconde il backlog delle viste.
-- DONE Lettura del modello da parte degli assistenti fuori dall'EDT mentre l'utente può modificarlo (novembre 2026): un unico
+- DONE Il dettaglio dell'assistente di ricerca (sezione "TODO Improvements", ~430 righe) è stato spostato in
+  `ui/assistant/README.txt`; i suoi "Still to do" restano riassunti nella sezione "TODO aperti" in cima.
+- DONE Lettura del modello da parte degli assistenti fuori dall'EDT mentre l'utente può modificarlo: un unico
   snapshot condiviso. Il modello viene modificato sul posto da molti punti, quindi un lock non si può imporre: `ModelHistory.readOnlyView()`
   dà una copia che nessuno cambia (i record non modificati sono quelli degli snapshot della cronologia, che non sono mai cambiati;
   costa quanto è cambiato, non quanto è grande, e finché il modello non cambia è la stessa copia per tutti; non registra passi della
@@ -416,6 +539,114 @@ Stato rispetto alle idee originali:
   figli o partner deve passare da `PresentationOrder`, e non salvare mai l'ordine nei record.
 
 
+## One validation: the grammar and the structure (Tools > Validate File)
+
+- `CheckConsistencyTool` (never in the Tools menu until it was added by hand) was merged into `ValidateFileTool`: two controls for
+  "is the file right" told the user to run both. `FileValidation.run(validator, model)` = the grammar (`FLEFValidator`, which stops at the
+  first stage that fails) + the structural checks of `ConsistencyService`, that always run (they only read the records they
+  understand; a failure of them is a warning, not a crash). `ConsistencyCheckDialog` and its texts are gone.
+- `FLEFValidator.ValidationError` has a severity (`ERROR`, `WARNING`; the two-argument constructor is an error). The report dialog has
+  a severity column, colors it, and says "1 error, 2 warnings"; a file with warnings only is valid.
+- Improved checks: a circle of parentage is reported ONCE with all its members (strongly connected groups, Tarjan without recursion:
+  60 000 ancestors in a line do not overflow the stack), where before every member got its own error (the `reported` set was never filled);
+  a relationship with itself is found for every kind of record (it was individuals only) and for the place relationships; an
+  individual is unnamed if its name is empty, not only if it has no `name` child; the texts are in the bundle. The grammar does NOT
+  require a name (an individual without one passed the validation), so the warning is not a repeat.
+  More than two biological parents is a check of the validation too (error, once for the individual, the parents named): that the
+  Conclusion Assistant says it as well does not matter, the file is invalid either way. Two biological mothers or two biological fathers
+  is an error too: the two parents of an individual both recorded with the same sex. A missing or `unknown` sex is not checked (it
+  would be the opposite of the other parent, or it cannot be said); a wrong sex is not told from a wrong parentage, so the message
+  says either may be wrong. With more than two parents only the number is reported. `FileValidationTest`. Not done: the cycles of the
+  hierarchy of the groups: now done (below).
+- More checks, done: a conclusion whose `preferred` is not among its `resolves` is an error (the protocol says MUST;
+  the grammar did not enforce `require preferred member_of resolves`), a `disproven` conclusion with fewer than two `resolves`, or with
+  a `preferred`, is a warning (SHOULD); a relationship type that is not valid between the kinds of its two records is an error (the
+  generic `spouse` is valid between individuals although the editor does not offer it); circles in the hierarchy of the groups
+  (`part_of`) and of the places (the five `*_part_of` types together) are errors, in the succession of the places a warning, each once;
+  the same relationship twice is a warning (a couple or two associates from both sides are one; a child and a parent are not);
+  `valid_to` certainly before `valid_from` is an error for relationships and place relationships. The last one used to compare the two
+  dates as text, which was wrong for dates written in two ways: it normalizes them now and compares the days (`DateRange`, moved from
+  the chronology assistant to `io.model.readers.date`, public). Each group of circles or of duplicates is one issue naming the
+  records. `FileValidationTest`.
+
+- Validate File, DONE: an event with no participants is a warning, and so is a birth, baptism, christening, death,
+  burial or cremation whose participants all have a role and none is `principal` (a participant with no role says nothing: the role is
+  optional; a marriage is not judged, the other spouse may be unknown); a media whose file is not found is a warning
+  (`MediaFiles`, `FileValidation.run(validator, model, baseDirectory)`): a web address is not looked for, a relative path is looked for
+  under the base directory of the user (Appearance > Media paths, or the folder of the open file) and with none it is not judged. It
+  reads the filesystem, so it runs where the validation already runs, away from the EDT (the tool and the Re-run). Not done: a check
+  that a file is of the kind the record says (an image that is a PDF), and the cost on a network drive is not measured.
+  `FileValidationTest`.
+
+- Validation report grouped by kind, not by severity: a file is corrected one kind of problem at a time, and the
+  kinds that make hundreds of rows (the media not found) must not bury the others; the severity is a column, the order of the groups
+  (the ones with errors first, then warnings only, the smaller before the larger in each) and a filter (errors only / warnings only).
+  `FLEFValidator.ValidationError` has a `kind` (a stable key; empty if not known), `ConsistencyService.Issue` and `MediaFiles` set it
+  (the end of the key of the message: `cycle`, `parents`, `media_missing`...), the relationship dates that end before they begin
+  have `validity_dates`. What the grammar finds has no kind: the report groups it by the type of the record, or "the file as a
+  whole" if it is about none (an approximation: the messages are free text). The line of a group closes or opens it (arrow, count).
+  The text of each kind is `text.validate.kind.<kind>`; a kind with no text is shown by its key. `ValidationGroupingTest`.
+
+- Validate File, the dates, `DateConsistency`: errors that hold for EVERY day the dates may stand for (`DateRange`:
+  year 366 days, decade 3653, century 36525, an approximate date with its margin or two years, a bounded one between its days, an
+  open end): a death before the birth; an event after the death or before the birth of a participant (a birth and a death of the
+  individual as principal are the reference, not judged; burial, cremation, probate, deed... may follow the death); a child before a
+  biological parent; born after the death of the mother, or more than 300 days after the death of the father (or of a parent of
+  unknown sex); a union before a partner's birth or after a death. With several births the days they all cover are used; a date that
+  cannot be read is not judged. The ages and the length of a life are conventions: warnings of the Chronology Assistant, not here.
+  The rules of the provable subset are written twice (here and in `ChronologyChecker`, which makes Diagnostics with its own data
+  records); only `DateRange` is shared. A year is judged conservatively: the last day of a year of 366 days overlaps the first of the
+  next, so a death in 1849 is not 'certainly before' a birth in 1850 (the same limit as the assistant). The empty
+  `FLEFValidator.validateIndividualDates` is removed. `DateConsistencyTest`.
+- The groups of the report are CLOSED when it opens (the kinds and their sizes first); what the user opens stays open on Re-run.
+
+- Validate File opens its report AT ONCE, with a progress bar (before, nothing was seen until the validation was done, and only then the
+  dialog appeared). `ValidationReportDialog.validating(owner, model, viewSupplier, Validation)`: the dialog starts the validation in the
+  background, shows the bar and `Validating...`, disables Re-run, and fills the groups when done; closing the dialog cancels the
+  worker (interrupts the thread: the validation checks it and stops). Progress: `FileValidation.run(validator, model, base,
+  DoubleConsumer)`: the grammar 85 % (the schema 70 % of it by records, the integrity 15 %, the business rules the rest), the structural
+  checks and the files of the media the other 15 %; never goes back. `FLEFValidator.validateAllStructured(model, progress)`,
+  `MediaFiles.missing(model, base, progress)`. Not done: the structural checks of the records (`ConsistencyService.check`) are one step,
+  not by record (they are fast next to the grammar). `ValidationProgressTest`.
+
+- Validate File, the dates that cannot be read: `DateNormalizer.problem` says why `normalize` gave null, which it did
+  both for a date that is wrong (not valid in the notation of its calendar: `date_invalid`) and for one whose calendar needs the
+  Ephemeris plugin, missing (`date_not_checked`, not a problem of the file). Both are warnings, in two groups of the report, for the
+  dates of the events and of the relationships (and place relationships). A calendar code that does not exist is read as the
+  Gregorian (`CalendarType.fromCode`), so it is not told. Not done: the dates of the attributes, and the same warnings in the
+  Chronology Assistant. `DateConsistencyTest`.
+
+## Progress of the long calculations
+
+- Detect Duplicates and the Research Assistant tell how far they are (a progress bar and the percentage), so that the user knows when
+  the data will come. `DuplicateFinderService.find(model, options, DoubleConsumer)`: the first 30 % is the description of each
+  individual (by number), the rest the comparison of the pairs of the blocks (by number of pairs, known beforehand); never goes back;
+  an interrupted search stops and gives nothing (a newer one replaces it). The dialog uses `SwingWorker.setProgress`.
+  `ResearchAssistantService.diagnose(context, DoubleConsumer)`: every provider is an equal share, and a provider that can tell
+  overrides `DiagnosticProvider.diagnose(context, progress)` (the identity of the individuals does, being the slowest); the palette
+  has a determinate bar of 1000 steps. `ProgressTest`. Not covered: the other providers, that are done when they return, so the bar
+  can wait on one that is slow (the others of the same size are fast); the indicator of the window, that recomputes in the
+  background, has no bar.
+
+## Consanguinity report: every reference is a link
+
+- `ConsanguinityReportText.segments` writes the report as pieces of text, some standing for a record (the partners, the common
+  ancestors, the unions, the children, the inbred individuals and their identifiers); `format` is their concatenation, unchanged.
+  `ConsanguinityReportDialog` shows them in a `JTextPane` (blue, underlined, hand cursor) and a click opens the editor of the record
+  (`ToolDialogs.openRecordEditor`), then the text is written again. A record that is not in the model is not a link. The names of the
+  partners and of the inbred individuals are those of the report (computed once); those of the ancestors are read again.
+  `ConsanguinityReportLinksTest` (a real click opens `IndividualRecordDialog`).
+
+## Modal dialogs: centered, and not taller than the screen
+
+- Every modal dialog opens centered over its owner (over the screen if it has none, or the owner is not on the screen), and is brought to
+  85 % of the height and 95 % of the width of the usable area of the screen at most, so that the rest scrolls: `DialogPlacement`
+  (installed once by the main frame, like `DialogEscapeSupport`), which acts when the dialog is opened. It does not depend on each
+  constructor: a dialog that is packed, or whose minimum size is set, after `setLocationRelativeTo` ended with its corner where the
+  center should be (the consanguinity report did, and a text area with all the text asks for the height of all of it). The pure
+  calculation is tested (`DialogPlacementTest`), and so are two real dialogs, one of them the report with 300 couples.
+- A dialog that wants a size of its own sets it (the report: a text of 760 x 380, the rest scrolls); the screen is only the limit.
+
 ## Dialogs and ESC
 
 - Every dialog closes with ESC, and only itself: the dialogs below it (the ones it was opened from, one from the other) stay as they
@@ -433,430 +664,3 @@ Stato rispetto alle idee originali:
   assistants (`DialogsEscapeTest`, `AssistantDialogsEscapeTest`); the held key is tested on its own (`DialogEscapeSupportTest`).
 - Not verified by a test: the dialogs of the tools one by one (they need arguments: only the helper they use is tested, and the scan
   checks that they use it), and a real key press on a real focus (the tests run the bound action, and the gate on synthetic events).
-
-## TODO Improvements
-
-### IN PROGRESS Implement a global "Research Assistant" system for the genealogy application.
-
-Status: the framework and the first assistant (dates) are implemented, in `ui/assistant`.
-- `ResearchAssistantService`: registry of the assistants, search, diagnostics, global shortcut.
-- `ResearchAssistantPalette`: the palette (Ctrl+Shift+A, also Tools > Research Assistant...).
-- `AssistantAction` / `AssistantContributor` / `DiagnosticProvider` / `Diagnostic`, `AssistantContext`, `AssistantCategory`.
-- `FuzzyMatcher`, `DateAssistantContributor` (the Historical Date Assistant, see below).
-- `DiagnosticAction`: what the user can do about a finding (Enter on it in the palette), e.g. start the draft of a conclusion.
-- `DiagnosticActions`, `OpenRecordsAction`, `RecordChooserDialog`: every finding about records can open them. Enter runs the first
-  action of the finding (the one it carries, e.g. the draft of a conclusion, otherwise the opening of its records), Ctrl+Enter
-  (Cmd+Enter on a Mac) the second one; the keys are shown under the explanation. A finding about one record opens its usual editor
-  (`HandlerRegistry`, `createEditDialog`); about several, a list that stays open while an editor is, to open them one after the
-  other and compare them. ESC closes the list. Records that no longer exist are left out. Nothing changes unless the user edits a
-  record and saves it in its editor.
-- A finding can carry more than one action of its own (`Diagnostic.alternatives`, after the main one): the keys are Enter, Ctrl+Enter and
-  Ctrl+Shift+Enter, and the opening of the records is always the last. `Diagnostic.rank` orders the findings of the same severity (the
-  higher first); the severity still comes first.
-- `AssistantIndicator`, `FindingCounts`: the indicator of the main window, a button at the right end of the toolbar: "Assistant" and
-  the findings to look at by severity (`✖ 1  ⚠ 3  ℹ 12`, or a tick when there are none, `…` while it is checking); the tooltip says it
-  in words and gives the shortcut; a click opens the palette. The ignored findings are not counted. It exists because the assistant is
-  always available with Ctrl+Shift+A, and the way to learn it is to see that it has something to say; an icon in every dialog (grey
-  where it does not apply) was not done: the assistant is available everywhere, what varies is the actions, and a grey icon says
-  "disabled".
-  - Up to date without getting in the way: the findings are computed away from the event dispatch thread, only when the model
-    changes (`ModelHistory.addChangeListener`: a step recorded, an undo, a redo, another file), 2 s after the last change, never while a
-    modal dialog is open, one computation at a time (a change that comes meanwhile asks for another afterward). A computation that took
-    long is not repeated at once: the wait is 4 times how long it took, at least 5 s, so on a big file it does not keep the processor
-    busy. Ignoring a finding (or showing it again) only recounts the findings already computed (`IgnoredFindings.addListener`).
-- `IgnoredFindings`, `DiagnosticKeys`: Ctrl+D (Cmd+D on a Mac) on a finding ignores it, Ctrl+I shows the ignored findings (Ctrl+D
-  there shows one again); the palette tells how many are ignored. The keys are not Delete (it edits the search field). Ignoring is a
-  presentation choice of the user, like the order of the children: it lives in the user preferences (`AppPreferences`, one entry per
-  file, by the path of the file) and NEVER in the records: nothing is created, modified, deleted or exported. A finding is ignored
-  through its `Diagnostic.key()`, built from its kind, its records and the data it reports (names, dates as written, counts: never
-  localized text), so it is the same in every language and it comes back by itself when the data changes (the date is corrected and the
-  finding is still there, a record is added to the conflict), but not when only the suggestion changes. The preferences keep digests
-  (16 hex characters of a SHA-256) of the path and of the keys, not names or dates. A file never saved has no identity: its ignored
-  findings last for the session. The tests use an in-memory store, never the preferences of whoever runs them.
-- `ResearchAssistantService.recalculate`, `reopenIfChanged`: after the user runs an action on a finding (the editors it opens are
-  modal) and finishes with it, the findings are computed again away from the event dispatch thread and compared with the previous ones by
-  `identity` (the key, or title and records for a finding without one). If they changed, the palette opens again where it was (same
-  search, same view, the same finding selected or the one that took its place) with a notice "N resolved, M new"; if nothing changed,
-  nothing opens and the user is left to their work. Ignoring (Ctrl+D) is not an edit and does not recalculate. What the user ignored
-  stays ignored across the recalculation, because the ignored findings are told by their key.
-
-Design decisions that refine the text below:
-- The shortcut is a global KeyEventDispatcher, not a menu accelerator: the editors of the dates live in modal dialogs that have no
-  menu bar, so an accelerator would not fire exactly where the assistant is most useful.
-- The context is a snapshot (`AssistantContext`: window, focused component, model) captured BEFORE the palette takes the focus.
-  An action finds the editor with `focusedAncestor(SomeInterface.class)`: the editor implements a small host interface (e.g.
-  `HistoricalDateAssistantHost`), so the assistant never depends on the Swing panels.
-- Three extension points: actions, context (through the host interfaces) and diagnostics. The built-in assistants are registered in
-  `ResearchAssistantService.createDefault()` (one line each, like `MaintenanceToolRegistry`); the other ones are `ServiceLoader` providers
-  (`uses AssistantContributor` in module-info), so a plugin never changes the code of the assistant.
-- Diagnostics are computed away from the event dispatch thread (a provider can inspect the whole model, and must not touch Swing);
-  a provider that fails is skipped.
-- Search is fuzzy over title, category name and description, so typing a category name filters by category. Without a query the
-  order is the relevance in the context, with a query it is the match score.
-- Tools that are variants of one another are one action with a selector: the Venetian, Florentine and Pisan converters are the
-  `Calendar Conversion` tool of the Historical Date Assistant (a calendar combo), not separate entries. The Roman calendar
-  converter will come with the natural-language interpreter.
-- Every action must respect the data safety rules below; a test cannot enforce this, so it is a review rule.
-
-- Showing the record in its view (selecting the individual in the tree) is not done: only the editors are opened.
-- The indicator computes all the assistants at each change (the identity one compares the whole model): it is measured on a big file (see
-  above: from a few seconds to a couple of minutes for each assistant, away from the event dispatch thread), and it cannot be turned off,
-  nor limited to some assistants. The model is read away from the event dispatch thread on a copy of it taken before leaving the thread
-  (`AssistantContext.forReading`, `ModelHistory.readOnlyView`), so the user can go on editing, with or without a modal dialog. It is not
-  colored by severity, and it does not blink on a new error.
-- Not tested: the real click that opens the palette, and the look of the button (the wiring in the window, the counting, the pacing, the
-  ignoring and the model signal are: `AssistantIndicatorTest`, `AssistantIndicatorInFrameTest`, `ModelHistoryListenerTest`).
-- The palette opens again whenever the findings changed after an action, even if the edit was not about the finding the user acted on
-  (e.g. they fixed another record in the list): there is no preference to turn it off. The reopening itself (the notice, the selection)
-  is not tested, it needs the interface; the comparison is (`RecalculationTest`).
-- The findings are not refreshed by edits made while the palette is closed: they are computed at each opening. They are computed once
-  after an action, not live.
-- Ignoring is by finding: there is no "ignore all the findings of this kind" nor "of this individual". The ignored findings are per
-  file path (a renamed or moved file loses them) and per user (not shared between machines).
-- The adapter of `AppPreferences` (two methods) and the keys of the palette (Ctrl+D, Ctrl+I) are not tested: the first would write the
-  preferences of whoever runs the tests, the second needs the interface. The logic is tested with an in-memory store.
-
-Open the records of a finding: done for every assistant (see `OpenRecordsAction` above).
-Still to do: none of the five assistants listed here; what remains is in the "Still to do" of each, the diagnostic providers of those (the
-Chronology, Conclusion, Relationship, Identity and Research Gap assistants are done), the selected record in the context (the views do
-not expose it yet), a visible category filter.
-
-Data Safety Rules
------------------
-The assistant must never:
-
-- automatically merge records
-- automatically create conclusions
-- automatically modify assertions
-- automatically resolve conflicts
-
-The assistant may:
-- generate drafts
-- propose fixes
-- create suggestions
-- open dedicated workflows
-
-All genealogical decisions remain under researcher control.
-
-Implementation Notes
---------------------
-- Create a reusable ResearchAssistantService.
-- Context providers should be extensible.
-- Action providers should be extensible.
-- Diagnostics providers should be extensible.
-- Future assistants must be registerable without modifying core assistant code.
-- Add clear comments explaining that the assistant is a research aid and never an authority.
-
-The long-term objective is to make the Research Assistant the primary entry point for advanced genealogy tools while keeping the main user interface simple and uncluttered.
-
-### DONE (except the natural-language interpreter) Create a Historical Date Assistant accessible from every DateStructure editor.
-
-Status: `HistoricalDateAssistantDialog` (Core, `ui/components`) over the engine in `io.github.mtrevisan.calendars.assistant`
-(Calendars module). It opens from the Research Assistant (Ctrl+Shift+A in a date editor; category Dates, one action per
-tool). Tools: calendar conversion, liturgical calendar (movable feasts, feast references, distance from Easter, Julian computus,
-Gregorian reform by country), sunrise/sunset with equal and temporal hours and the readings of the day boundary, relative date,
-date relative to an event of the tree, age to estimated birth (completed years or Nth year of life; range or exact).
-Every result is a `DateSuggestion` (meaning, assumptions, calendar, steps, a date or a not-before/not-after range): nothing is
-applied unless the user asks, the replacement of an existing date is confirmed, and the explanation can be copied.
-Still to do: natural-language interpreter (Roman Kalends/Nones/Ides, "more veneto", "one hour after sunset" as text), age with a known
-birth to estimate the death date, regnal years.
-
-### DONE (core checks) Create an Identity Assistant for duplicate detection.
-
-Status: `ui/assistant/identity`. A diagnostic provider of the Research Assistant (category Identity): `IdentityChecker` (pure: turns
-the pairs into findings), `IdentityAssistantContributor`, `CreateIdentityHypothesisDraftAction`, `CompareRecordsAction`. It does not
-have a comparison of its own: it uses `DuplicateFinderService`, the one of Tools > Detect Duplicates (names, parents, children, spouses,
-siblings, years of birth and death with a tolerance, events, attributes, sources, places; blocking by name, sex as a hard filter).
-Done:
-- Proposes the pairs of individuals with a similarity score of 60 or more, the 100 best. A pair of 90 or more is a warning, the others
-  information; the findings are listed by score (`Diagnostic.rank`). A pair that already has an identity hypothesis is not proposed
-  again.
-- Each finding gives the score, the confidence it suggests (90 and more high, 70 and more medium, else low: conventions), what makes
-  the two look alike (feature by feature, with its weight) and what makes them differ, and the two records. It says that it is a
-  possibility, not a probability, and that nothing is merged.
-- Three actions (Enter, Ctrl+Enter, Ctrl+Shift+Enter): "Create Identity Hypothesis Draft" (the editor of a new IdentityHypothesisRecord
-  with the two individuals, the reasons as the start of the rationale and the confidence; only a draft: nothing is saved unless the
-  researcher confirms, cancelling leaves the model as it was; once saved the pair is not proposed again, and the palette, reopened by
-  the recalculation, shows the finding as resolved), "Compare Side by Side" (the read-only comparison of the application), and the
-  opening of the two records.
-- Ignore the candidate: Ctrl+D, like every finding. The key is the pair of records, not the score: a pair the user ignored does not come
-  back because a source raised its score. To say that two records are different people for good, the protocol's way is a conclusion that
-  disproves the hypothesis (a pair disproven is never proposed again by the merger).
-- Fixed on the way (a bug of the duplicate finder, not of the assistant): the years of birth and death were never read from the dates of
-  the protocol (it looked for a field called `value` holding a string, but a date is value > point > value > full_date), so the finder
-  scored the name only and ignored 25 points of dates, in the assistant and in Tools > Detect Duplicates. It now uses the date normalizer
-  (the text reading stays as a fallback). `IdentityAssistantTest` has the regression.
-Still to do:
-- Only individuals: the other kinds a hypothesis can be about (groups, places, sources, repositories, media, cultural norms, historic
-  events) need their own comparison (places are for the Place Assistant).
-- The relatives, the places, the sources and the attributes are compared by the records they share, not by similarity: two imports of the
-  same tree share none, so a duplicated tree is scored on the name and the dates only (65 at most with the names alone and the dates).
-  A second pass that compares the parents and the spouses by name, the places by name and the occupations by text would find them, and
-  the matcher of the merger (`EntityMatcher`, `TextSimilarity`) already knows how.
-- Names: no historical spellings and no variants by language (Giovanni, Johann, Jean), no patronymics.
-- The thresholds (score 60, 100 pairs, 90 and 70 for the confidence) are not configurable, and are not calibrated on real data; the whole
-  model is compared at each opening and after each action (the blocking keeps it cheap, but it is not measured on a big file).
-- The draft copies neither the sources of the two individuals nor an explanation by feature in the narrative of a conclusion; a "different
-  people" action that starts the disproving conclusion is not there.
-- "Compare Side by Side" is not tested (it is a modal dialog); the rest of the actions is.
-
-
-### DONE (core checks) Create a Research Gap Assistant.
-
-Status: `ui/assistant/gap`. A diagnostic provider of the Research Assistant (category Research): `GapChecker` (pure rules, with the
-date of today as an input), `GapDataLoader` (reads the model, leaves out what privacy hides), `GapAssistantContributor`,
-`CreateResearchDraftAction`. Tested on hand-built data, on a model converted from GEDCOM with research records added by hand, and on the
-two real editors.
-What the other assistants report is not repeated: an identity hypothesis with no conclusion is a finding of the Conclusion Assistant.
-Done:
-- Missing from the tree, with the draft of a research QUESTION (what to find out, about whom; the question is only started):
-  - no death for an individual born 110 years ago or more (certainly dead, usefulness 85) or 90 years ago or more (probably, 55);
-  - no birth for an individual with children or events (45, 55 with children, +5 with events);
-  - children whose two parents are linked by no union and no marriage event (45 + 5 for each child, 70 at most).
-- Where the research is thin, with the draft of a research TASK:
-  - vital events (birth, death, marriage) that no source cites: one finding for all (70);
-  - individuals in a census with no residence recorded: one finding for all (40);
-  - an open question that no activity works on (75; 45 if on hold); an open question whose activities are all over, with no task
-    open and no conclusion (65); a completed search that found nothing, was inconclusive or could not be done, with no follow-up and no
-    activity that originated from it (50); the completed activities with no result: one finding for all (25, no draft);
-  - a task not done and past its due date (a warning, 70, +15 high priority, +5 normal; no draft: the task is there already).
-- Each finding has an estimated usefulness (0-100, high from 70, medium from 45), given in the explanation with the warning that it is
-  by rules of thumb and not a judgement of the research, and used as the rank that orders the findings.
-- The gaps that are about each individual (no death, no birth, no marriage) are one finding for each up to 25, and one finding for all
-  beyond: an imported tree with hundreds of ancestors with no death would bury every other finding and fill the indicator. The aggregate
-  has the usefulness of the most useful, lists up to 200 records and has a task for all.
-- "Create Research Question Draft" / "Create Research Task Draft": the editor of a new ResearchQuestionRecord (title, question, the
-  individuals it is about) or ResearchTaskRecord (description, priority, status open, the questions it supports), through
-  `ResearchQuestionRecordDialog.withDraft` and `ResearchTaskRecordDialog.withDraft`. Only a draft: nothing is saved unless the researcher
-  confirms, cancelling leaves the model as it was. The gap stays until the research fills it: a question is not an answer.
-- Fixed on the way (a defect that the gap messages showed, not specific to them): a year given to a message as a number came out with
-  the separator of the thousands ("born 1,900"). Years are given as text.
-Still to do:
-- Missing in the example of this section and not done: "a place is known but the birth record is missing" (needs the places of the
-  residences and events against the birth), and a residence history that is incomplete beyond having none at all (the years between
-  two censuses).
-- Parents unknown (the brick walls) are not reported: there are as many as ancestors at the edge of the tree; it is the job of the
-  Research Planner Assistant to choose which to work on.
-- The usefulness is a rule of thumb: the weights are not calibrated on real research and not configurable, and it does not know how
-  important the individual is (a direct ancestor of the root, or a collateral), the period or the archives that exist.
-- The age for a missing death (110 and 90 years) is a convention; living people could be taken for dead in a tree with no dates of
-  death, and a person with no year of birth is never reported.
-- The sources of the vital events are looked for on the event only (not on the participation, nor on the individual), and baptisms and
-  burials are not vital events here.
-- The drafts are in English and plain: no suggestion of where to look (repositories, sources, places), no due date, no link of a
-  question to the tasks and activities that would follow.
-- The thresholds of the aggregation (25 findings, 200 listed) are not configurable.
-
-### DONE (core) Create a Source Citation Assistant.
-
-Done (package `ui.assistant.citation`):
-- It is a contextual action (Ctrl+Shift+A in the editor of a source or repository citation, `CitationHost`), not a diagnostic provider.
-- `ArchivalReferenceParser` turns free text (vol. 3, p. 45, n. 12 / Libro 2 pag. 143 atto 17 / FHL film 1234567, frame 245 / busta 123, fol. 12v /
-  Registro dei nati 1850, n. 12 / segnatura A.3.12 / pp. 45-47) into the locator "Label: value, ..." in a canonical order. Keywords in
-  Italian, English, French, German, Spanish and Latin; recto/verso normalized; leading zeros dropped except for film, box and file;
-  "c. 1850" is read as circa; duplicate labels keep the first and say so; what is not understood is shown, never guessed.
-- `CitationHints`: the file names and descriptions of the media of the cited source are read as references (film1234567_frame245.jpg);
-  repositories named in the reference (by name or acronym) are offered to a repository citation.
-- `CitationAssistantDialog`: reference text (starting from the current locator), editable locator draft, clues, repositories; it is
-  written in the editor only with Apply (asks before replacing a locator), ESC closes it and only it; tests in `CitationAssistantTest`.
-Still to do: media metadata (EXIF, PDF properties, ISBN), suggesting whole repository citations (repository + locator) from the
-reference, a locator per kind of source (tuned on the media_type), learning the abbreviations of the user, a draft of the whole
-SourceCitation (extracts, stance).
-
-### DONE (core checks) Create a Relationship Assistant.
-
-Status: `ui/assistant/relationship`. A diagnostic provider of the Research Assistant (category Relationships): `RelationshipChecker`
-(pure rules), `RelationshipDataLoader` (reads the model, leaves out what privacy hides), `RelationshipAssistantContributor`,
-`CreateRelationshipDraftAction`. Tested on hand-built data, on a model converted from GEDCOM with relationships added by hand, and on
-the real editor.
-What the other assistants already report is not repeated here: conflicting parentage, more than two biological parents and descent
-cycles are findings of the Conclusion Assistant, the ages of the parents (and the dates of the events) of the Chronology Assistant.
-Done:
-- Suggests the type from the evidence, says what the evidence is, and leaves the choice to the researcher (the suggested type is only
-  text in the explanation; the type is changed in the usual editor, opened with Enter or Ctrl+Enter):
-  - a generic `child` whose parent took part, with the child, in an `adoption` event: adoptive_child; recorded as `biological_child`
-    in the same case: a conflict (warning);
-  - a generic `child` whose parent is married to another (biological) parent of the child, with a date of the marriage certainly after
-    the birth of the child: step_child;
-  - the generic `spouse` (what an import from GEDCOM gives a marriage without a type): religious_spouse if the couple has marriage
-    banns and no license, civil_spouse if it has a license and no banns; both or none do not decide;
-  - the generic types that the evidence does not help to specify are ONE finding each (spouse, child), not one for each, with the
-    first 200 relationships listed.
-- Missing: a `marriage` event of exactly two individuals (the principals; a witness does not count) that no relationship of marriage
-  (spouse, civil, religious, customary) links, one finding per couple, with "Create Relationship Draft": the editor of a new
-  relationship with the two individuals already in it (and the type, only if the banns or the license point to one and it is valid for
-  the participants). Only a draft: nothing is saved unless the researcher confirms, cancelling leaves the model as it was
-  (`RelationshipRecordDialog.withParticipants`).
-- Inconsistent: a relationship of an individual with itself (error); a type that does not fit what it links (a spouse that is a group,
-  a membership between individuals, a group that is part of an individual); the same relationship more than once (a couple written
-  from both sides is the same relationship; a civil and a religious marriage of the same couple are not); a relationship that ends
-  before it begins (error); a role on a relationship of the family, where the type says it all; an engagement with no end although
-  the couple married.
-- Every finding explains why, lists its records, can be opened, ignored and is recalculated like the others.
-Still to do:
-- More evidence for the type: the officiant (a priest) and the place (a church) of the marriage for religious_spouse, the evidence
-  qualifiers of the sources (a parish register or a civil registry), the ages of the parents (too young or too old to be biological),
-  the names (the surname of the father), customary marriages, foster and guarded children (nothing in the research tells them).
-- The banns mean religious and the license civil: it is a convention that changes with country and period, there is no way to
-  tune it yet.
-- Drafts for other missing relationships (a child of the spouse of a parent, the parents named in a birth record); the draft does not
-  copy the date of the marriage into valid_from nor the sources of the event.
-- "Change the type" is the opening of the editor: there is no action that opens it with the suggested type already chosen.
-- Other checks: siblings and half-siblings that contradict the parents, the spouse of a parent that is not linked, the memberships of a
-  group against the lifespan of the member, the associates.
-- The generic `spouse` is accepted between individuals, but `RelationshipReader.getValidTypes` (what the editor offers) does not list
-  it: an imported marriage with the generic type has to be given a type to be saved again from the editor.
-
-### DONE (core checks) Create a Chronology Assistant.
-
-Status: `ui/assistant/chronology`. It is a diagnostic provider of the Research Assistant (category Diagnostics): `ChronologyChecker`
-(pure rules, tested without a model), `ChronologyDataLoader` (reads the model, leaves out the individuals hidden by privacy),
-`DateRange` (the days a date may stand for), `ChronologyAssistantContributor`. Tested on hand-built data and on a model converted
-from GEDCOM.
-Done:
-- Child born before the parent (biological links only: an adopted, foster, guarded or step child can be older).
-- Parent too young (mother 12, father 14) and too old (mother 55, father 90): warnings, the limits are conventions (`Rules`).
-- Child born after the death of the mother, or more than 300 days after the death of the father.
-- Event after the death (posthumous types are exempt: death, burial, cremation, coroner report, probate, honor, pardon, deed,
-  escrow, chancery) and event before the birth, marriage events reported as "marriage before birth".
-- Union (relationship `valid_from`) before the birth, or after the death, of a partner.
-- Death before birth, lifespan over 120 years.
-- Overlapping marriages (information, not error: polygamy exists), one marriage per couple, an end known without a date is not a
-  claim.
-- A finding is reported only when it holds for every day the dates may stand for (year precision, approximate margin, bounded
-  and open dates): an uncertain date never raises a false alarm. Every finding explains its reasoning and lists the records.
-Still to do:
-- Other overlapping incompatible events (residence, military service, prison, hospitalization) and overlapping attributes.
-- Children of the same mother born less than about 9 months apart (twins excepted), a mother who gives birth after her death in
-  childbirth, age at marriage too young, a spouse older than the lifespan.
-- A relationship `valid_to` before its `valid_from`; events of groups; events whose participant is not an individual.
-- The "Check Chronology" action for a selected individual (needs the selected record in `AssistantContext`) and the filtering of the
-  findings on it; for now the whole model is checked each time the palette opens.
-- Age limits and the gestation limit configurable by the user (preferences); today only `Rules.DEFAULT`.
-- Dates in a calendar the normalizer cannot read are skipped silently; they could be reported as "date not checked".
-- The model is read away from the event dispatch thread on a copy of it (`AssistantContext.forReading`), so a half-edited model is never
-  seen. No cache of the findings: a large file is read again at each opening.
-- Messages are English only (the UI bundle has no per-locale files yet).
-
-### DONE (core checks) Create a Place Assistant.
-
-Status: `ui/assistant/place`. A diagnostic provider of the Research Assistant (category Places): `PlaceChecker` (pure rules),
-`PlaceDataLoader`, `PlaceAssistantContributor`. Tested on hand-built data and on a model converted from GEDCOM.
-Done:
-- Possible duplicate places: same name (ignoring case, accents and punctuation), same type (a missing type makes it only an
-  information; a city and a province with the same name are different places), not already related, not in different places (same
-  name in different parents, or coordinates more than 50 km apart, is not a duplicate). Ranked by how much the places are used.
-  The action is the side-by-side comparison; nothing is ever merged.
-- A place that is part of nothing: if its name says where it is (Treviso, Veneto) and one larger place has that name, the draft of the
-  relationship names it; with no candidate it is reported only if events happen there (the draft leaves the target to choose).
-- A parish that is part of no diocese (draft of an ecclesiastical_part_of; the diocese is proposed only if it is the only one).
-- Territorial relationships (administrative, geographic) where the subject is larger than the target (a province in a city), by a
-  scale of the types; the ones of ecclesiastical, judicial and cadastral kind and the types off the scale are not judged.
-- A place related to itself (error); places that are part of each other in a circle (error) or that succeed each other in a circle
-  (warning), reported once per circle.
-- More than 25 findings of a kind: the most used are listed and one finding sums up the others.
-- "Create Place Relationship Draft": Enter on a finding opens `PlaceRelationshipRecordDialog.withDraft`; saved only if confirmed.
-Still to do: successor_of suggestions from the names and dates of places (historical jurisdiction changes), the validity dates of
-relationships (valid_from after valid_to, relationships outside the lifetime of a place), place citations (places with no source),
-places with no coordinates or type (suggest the type from the name: Diocesi di, Parrocchia di), the usage of places by other records
-than events, hierarchy by the names written with several parts, suggestions of the parent from the places near it.
-
-### DONE (core checks) Create a Conclusion Assistant.
-
-Status: `ui/assistant/conclusion`. A diagnostic provider of the Research Assistant (category Conclusions): `ConclusionChecker` (pure
-rules), `ConclusionDataLoader` (reads the model, leaves out the individuals hidden by privacy), `ConclusionAssistantContributor`.
-Tested on hand-built data and on a model converted from GEDCOM, with a ConclusionRecord added to it.
-Done:
-- Several birth or death events of an individual: a warning if their dates cannot all be right (no common day), an information if
-  they agree (corroboration or duplicates).
-- Competing parentage: more than two biological parents, two biological mothers (or fathers); adoptive, foster, guarded and step
-  links do not count.
-- Conflicting relationships: the same child-parent pair both biological and adoptive/foster/guarded/step.
-- An individual that is their own ancestor through the relationships of descent (an error; reported once per cycle).
-- Conflicting attributes: more than one value of an attribute that can have only one (`national_id`), compared ignoring case,
-  spaces and hyphens.
-- Unresolved identity hypotheses between individuals (no conclusion evaluates them, whatever its outcome).
-- A conflict is settled when a ConclusionRecord evaluates it: RESOLVES contains at least two of the competing records (events, or
-  the participations of the individual in them, or relationships, or attributes) and it prefers one of them, or its proof status
-  says that none prevails (conflicting_evidence) or that all are false (disproven). The assertions are never changed.
-- Each finding lists the records of the conflict, explains why, and suggests the draft of a ConclusionRecord; for events it names the
-  candidate preferred assertion (higher confidence, then more sources) only when one is better supported than all the others, and
-  otherwise says there is none. It is a suggestion with its reason: the researcher judges the sources.
-- "Create Conclusion Draft": Enter on a finding of the Conclusion Assistant (the palette shows the action in the detail line) opens
-  the editor of a new ConclusionRecord, through `ConclusionRecordDialog.createNew(...).withDraft(...).withResolvedTarget(...)`: the
-  competing records are already in RESOLVES (and the research questions that target them are linked), the issue is filled
-  (`birth_date`, `parentage`, `relationship_type`, `national_id`, `identity`, ...), the narrative starts with the description of the
-  conflict. It is only a draft: proof status `unresearched`, NO preferred assertion (the candidate is only named in the narrative),
-  nothing saved unless the researcher completes it and confirms, cancelling leaves the model untouched. A draft saved as it is does not
-  settle the conflict (a conclusion needs a preferred assertion, or conflicting_evidence or disproven). The mechanism is generic:
-  `Diagnostic.action()` (`DiagnosticAction`) is what the user can do about any finding, run only when chosen.
-Still to do:
-- The draft is built from the model as it was when the palette opened: a record changed or deleted since is skipped, a record that is
-  now settled is not detected. The narrative is English and is not translated.
-- The editor is not a wizard: the preferred assertion, the proof status and the reasoning are chosen in the usual tabs. A draft for
-  an identity hypothesis resolves one target only (a disproven conclusion normally has two).
-- The candidate preferred assertion looks only at confidence and the number of sources: it should weigh the evidence qualifiers
-  (information type, original or derivative source, direct or indirect evidence). It is given only for births and deaths.
-- Other single-valued assertions: the place of birth or death that differs, the burial, the baptism, the sex (several values after a
-  merge), the type of a relationship that differs between sources.
-- Attributes that change in time (residence, occupation, citizenship, religion) need a comparison aware of `valid_from` and
-  `valid_to`, to tell a change from a conflict; the reported `children_count` and `marriages_count` against the tree.
-- Relationships: a child-parent pair that is also a spouse pair, civil and religious marriages of the same couple that differ in date,
-  parentage of a child by different couples in different sources.
-- Identity hypotheses: only "no conclusion" is checked; a hypothesis evaluated before new evidence arrived (a stale conclusion, by the
-  audit dates), a candidate that is not an individual (place, source, repository).
-- The consistency of the conclusions themselves: a `preferred` that is not in RESOLVES, `proven` with a single source, RESOLVES that
-  point to records that no longer exist.
-- DONE "Settled" has one definition, `ConclusionResolution`, shared with the merger (`ProtocolCleanup`); see the top of this file.
-- Same limits as the Chronology Assistant: the whole model is read at each opening, away from the event dispatch thread while the
-  user may be editing; English messages only.
-
-
-### DONE (core checks) Create a Context Assistant.
-
-Status: `ui/assistant/context`. A diagnostic provider of the Research Assistant (category Context): `ContextChecker` (pure rules),
-`ContextDataLoader`, `ContextAssistantContributor`. Tested on hand-built data and on a model converted from GEDCOM with a historic event
-and a cultural norm added by hand. The catalog of historic events and norms is the one of the model: the assistant does not bring any.
-Done:
-- A historic event or a cultural norm of the model that may have influenced an event of the tree: the dates overlap, the place is the
-  same or contains the place of the event (by the territorial relationships, at any depth), the kind of context can influence that type
-  of event (a war and a death or a conscription, an epidemic and a death, a marriage law and a marriage, a naming custom and a birth,
-  an inheritance rule and a death or a will...). Usefulness 55 with the place, 35 without, +10 if the event is entirely inside the
-  period. Events with no date, no bounded date or a date wider than 5 years are not used; a historic event needs a date, a norm a date
-  limit or a place; an impact that exists already is not proposed again; 3 events at most for each context, 25 in all.
-- Every finding says why (the period, the place) and how the context may matter (a hint for each kind), with the usefulness, and the
-  draft of a ContextImpactRecord (the context, the event, the type of impact: explains, influences, constrains or motivates, and the start
-  of the explanation) in the usual editor, through `ContextImpactRecordDialog.withDraft`. The sources are for the researcher to give.
-- Several deaths (or burials) of different individuals in the same place within two years (3 or more), that no historic event of the
-  model of the kind of a crisis (epidemic, pandemic, famine, war, natural disaster) covers in that place and period: a finding with the
-  draft of a HistoricEventRecord (type epidemic as a first guess, title with the place and the years), through
-  `HistoricEventRecordDialog.withDraft`.
-Still to do: the date and the place of the draft of a historic event; migrations (an individual in two distant places) and the
-historic events of the place of origin; naming conventions checked against the names of the tree (patronymics); the age rules of the
-norms (minimum age of marriage against the ages of the spouses); events of the individual other than the events of the tree (attributes
-and residences); a catalog of historic events and norms to import; the cultural norms that apply to a conclusion or a relationship;
-the weights are not calibrated.
-
-### DONE (core checks) Create a Research Planner Assistant.
-
-Status: `ui/assistant/planner`. A diagnostic provider of the Research Assistant (category Research): `PlannerChecker` (pure rules, on the
-data of the Gap Assistant: `GapData`, `GapDataLoader`, `GapDraft` and `CreateResearchDraftAction` are now public, and a question carries
-its targets), `PlannerAssistantContributor`. Tested on hand-built data and on a model converted from GEDCOM with a question added.
-Done:
-- Next steps of an open question with no conclusion (the individuals it targets, or the principals of the events it targets, up to 3):
-  the birth or baptism record (no birth: 80; no source cites it: 65), the marriage record that names the parents (parents unknown: 75;
-  marriage unrecorded or uncited: 60), the baptisms of the years around the birth (parents unknown, year known: 55), the death or burial
-  record (born 80 years ago or more, death missing or uncited: 55), the census (born 1700-1950, in none: 40), contacting the archive (two
-  searches of the question completed with no positive result: 50). +5 if nobody started the question.
-- A step is left out if a task or an activity of the question (not abandoned) already says it does it (by words, in several languages);
-  at most 3 steps for each question and 25 in all, the others summed up in one finding.
-- Brick walls: individuals with no known parents and at least one descendant, ranked by how many descendants depend on them (40 + 3 for
-  each, at most 30; +10 year of birth, +5 events; 85 at most); not proposed if an open question already targets them; 10 at most, the
-  others summed up in one finding. The draft is a research QUESTION ("Who were the parents of X, born Y?").
-- Every suggestion says why and gives its usefulness (high, medium, low; a rule of thumb, as for the gaps); a step is the draft of a research
-  TASK (description, priority from the usefulness, supports the question) in the usual editor, saved only if the researcher confirms.
-Still to do: the places and the periods (which parish, which archive keeps the records, which registers exist for the years: needs
-the repositories and the places of the individual), the sources already in the tree (the steps do not read the citations of the
-individual beyond the events), the conclusions of the question, a due date, the order of the steps as a plan (dependencies: the marriage
-before the baptisms), questions about places and families, the weights are not calibrated nor configurable.
-

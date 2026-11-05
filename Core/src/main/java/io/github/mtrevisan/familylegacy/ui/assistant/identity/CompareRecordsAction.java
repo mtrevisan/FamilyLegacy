@@ -61,7 +61,7 @@ public final class CompareRecordsAction implements DiagnosticAction{
 		final FLEFRecord left = model.getRecordById(leftId);
 		final FLEFRecord right = model.getRecordById(rightId);
 		if(left != null && right != null)
-			RecordDiffDialog.showComparison(context.owner(), title, left, right);
+			RecordDiffDialog.showComparison(context.owner(), title, left, right, model);
 	}
 
 }

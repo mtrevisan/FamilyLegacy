@@ -310,8 +310,8 @@ public final class SocialNetworkService{
 	private static SocialRelationCategory classifyRelationship(final String type, final String role){
 		final String normalizedType = type.toLowerCase();
 		final SocialRelationCategory emptyRoleFallback = switch(normalizedType){
-			case "group_member" -> SocialRelationCategory.COMMUNITY;
-			case "part_of" -> SocialRelationCategory.COMMUNITY;
+			case RelationshipReader.ENUM_TYPE_GROUP_MEMBER -> SocialRelationCategory.COMMUNITY;
+			case RelationshipReader.ENUM_TYPE_PART_OF -> SocialRelationCategory.COMMUNITY;
 			default -> SocialRelationCategory.OTHER;
 		};
 		return SocialRoleClassifier.classify(role, emptyRoleFallback);
@@ -319,7 +319,7 @@ public final class SocialNetworkService{
 
 	private static SocialEdgeDirection directionOf(final String type){
 		return switch(type.toLowerCase()){
-			case "group_member", "part_of" -> SocialEdgeDirection.DIRECTED;
+			case RelationshipReader.ENUM_TYPE_GROUP_MEMBER, RelationshipReader.ENUM_TYPE_PART_OF -> SocialEdgeDirection.DIRECTED;
 			default -> SocialEdgeDirection.UNDIRECTED;
 		};
 	}

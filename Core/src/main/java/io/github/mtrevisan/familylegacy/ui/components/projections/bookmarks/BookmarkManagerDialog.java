@@ -54,16 +54,19 @@ public final class BookmarkManagerDialog extends JDialog{
 
 	private final BookmarkStore store;
 	private final Supplier<FLEFModel> modelSupplier;
+	private final Supplier<String> filePathSupplier;
 	private final DefaultListModel<Bookmark> model = new DefaultListModel<>();
 	private final JList<Bookmark> list = new JList<>(model);
 
 
-	public BookmarkManagerDialog(final Window owner, final BookmarkStore store, final Supplier<FLEFModel> modelSupplier){
-		super(owner, "Manage bookmarks", ModalityType.APPLICATION_MODAL);
+	public BookmarkManagerDialog(final Window owner, final BookmarkStore store, final Supplier<FLEFModel> modelSupplier,
+			final Supplier<String> filePathSupplier){
+		super(owner, I18N.t("dialog.bookmarks.title"), ModalityType.APPLICATION_MODAL);
 		GUIHelper.installEscapeToClose(this);
 
 		this.store = store;
 		this.modelSupplier = modelSupplier;
+		this.filePathSupplier = filePathSupplier;
 
 		buildUI();
 		reload();
@@ -86,7 +89,7 @@ public final class BookmarkManagerDialog extends JDialog{
 			title.setFont(l.getFont().deriveFont(Font.BOLD));
 			title.setForeground(isSelected? l.getSelectionForeground(): l.getForeground());
 
-			final JLabel subtitle = new JLabel(value.type().displayName() + " — " + value.rootId());
+			final JLabel subtitle = new JLabel(value.type().displayName() + " — " + value.rootLabel(modelSupplier.get()));
 			subtitle.setFont(l.getFont().deriveFont(Font.PLAIN, l.getFont().getSize() - 1f));
 			subtitle.setForeground(isSelected? l.getSelectionForeground(): Color.GRAY);
 
@@ -119,7 +122,7 @@ public final class BookmarkManagerDialog extends JDialog{
 	private void reload(){
 		model.clear();
 		//the bookmarks of the records hidden by the privacy policy are not listed
-		final List<Bookmark> all = store.visible(modelSupplier.get());
+		final List<Bookmark> all = store.visible(modelSupplier.get(), filePathSupplier.get());
 		for(final Bookmark b : all)
 			model.addElement(b);
 	}
@@ -130,10 +133,20 @@ public final class BookmarkManagerDialog extends JDialog{
 			return;
 
 		final String newName = JOptionPane.showInputDialog(this, I18N.l("dialog.bookmark.rename.prompt"), selected.name());
-		if(StringUtils.isEmpty(newName))
+		if(StringUtils.isBlank(newName))
 			return;
 
-		store.rename(selected.id(), newName.trim());
+		final String trimmed = newName.trim();
+		final boolean taken = store.visible(modelSupplier.get(), filePathSupplier.get()).stream()
+			.anyMatch(other -> !other.id().equals(selected.id()) && other.name().equalsIgnoreCase(trimmed));
+		if(taken){
+			JOptionPane.showMessageDialog(this, I18N.tf("dialog.bookmark.duplicate.message", trimmed),
+				I18N.t("dialog.bookmark.replace.title"), JOptionPane.INFORMATION_MESSAGE);
+
+			return;
+		}
+
+		store.rename(selected.id(), trimmed);
 		reload();
 	}
 

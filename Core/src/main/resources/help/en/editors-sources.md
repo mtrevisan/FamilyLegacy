@@ -9,7 +9,7 @@ Open it with **Source > New Source...** or **Source > Manage Sources...**, or fr
 | Field | Meaning |
 |---|---|
 | **Title** | The title, in one or more [names](editors-people.md#name). |
-| **Author** | The person, agency or entity that created the record (author, compiler, transcriber, abstractor, editor, or a church, an agency, a private organisation). Each entry is an [agent](#agent). |
+| **Author** | The person, agency or entity that created the record (author, compiler, transcriber, abstractor, editor, or a church, an agency, a private organization). Each entry is an [agent](#agent). |
 | **Publisher** | Text. |
 | **Date** | A [date field](dates.md). |
 | **Place** | Where the source was made. |

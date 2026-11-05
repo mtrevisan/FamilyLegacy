@@ -24,7 +24,6 @@
  */
 package io.github.mtrevisan.familylegacy.importer.gedcom.converters;
 
-import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMDateConverter;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMHelper;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
@@ -85,8 +84,8 @@ public class HeaderConverter{
 			final String name = ObjectUtils.firstNonNull(GEDCOMHelper.findFirstValue(sourNode, "NAME"), sourNode.getValue());
 			if(name != null)
 				source.addChild(FLEFRecord.createChildWithTagAndValue("name", name.trim()));
-			GEDCOMHelper.transferValue(source, "version", GEDCOMHelper.findFirstChild(sourNode, "VERS"));
-			GEDCOMHelper.transferValue(source, "organization", GEDCOMHelper.findFirstChild(sourNode, "CORP"));
+			GEDCOMRecordBuilder.transferValue(source, "version", GEDCOMHelper.findFirstChild(sourNode, "VERS"));
+			GEDCOMRecordBuilder.transferValue(source, "organization", GEDCOMHelper.findFirstChild(sourNode, "CORP"));
 			header.addChild(source);
 		}
 
@@ -98,7 +97,7 @@ public class HeaderConverter{
 
 		// ---- Copyright ----
 		GEDCOMNode coprNode = GEDCOMHelper.findFirstChild(headNode, "COPR");
-		GEDCOMHelper.transferValue(header, "copyright", coprNode);
+		GEDCOMRecordBuilder.transferValue(header, "copyright", coprNode);
 
 		// ---- Submitter ----
 		final String submitterId = GEDCOMHelper.pointer(GEDCOMHelper.findFirstValue(headNode, "SUBM"));
@@ -108,7 +107,7 @@ public class HeaderConverter{
 
 		// ---- Scope (from NOTE) ----
 		GEDCOMNode noteNode = GEDCOMHelper.findFirstChild(headNode, "NOTE");
-		final String scope = StringUtils.trimToNull(GEDCOMHelper.extractFullText(GEDCOMHelper.resolveNote(noteNode, noteRawMap)));
+		final String scope = StringUtils.trimToNull(GEDCOMHelper.extractFullText(GEDCOMRecordBuilder.resolveNote(noteNode, noteRawMap)));
 		if(scope != null)
 			header.addChild(FLEFRecord.createChildWithTagAndValue("scope", scope));
 

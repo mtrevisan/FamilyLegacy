@@ -27,12 +27,15 @@ package io.github.mtrevisan.familylegacy.ui.dialogs.records;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.ui.api.LinkRole;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextField;
 import io.github.mtrevisan.familylegacy.ui.components.fields.EntityField;
+import io.github.mtrevisan.familylegacy.ui.components.lists.EntityListPanel;
 import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.PanelKey;
 import io.github.mtrevisan.familylegacy.ui.dialogs.RecordDialogBuilder;
@@ -176,7 +179,51 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 		targetField.setEntity(target);
 		updateSubjectTypeCombo();
 
-		if(type != null && List.of(RelationshipReader.getValidTypes(subject, target)).contains(type))
+		return withType(type);
+	}
+
+	/**
+	 * Starts the relationship from the evidence of an event: the sources the event cites and, if asked, its date as the date from which
+	 * the relationship is valid (what the event was about may be the beginning of the relationship, as a marriage is). They are copies, put
+	 * only where still empty: the event is not touched and nothing is saved until the user saves the relationship.
+	 *
+	 * @param event	The event that is the evidence (it may be {@code null}: nothing is done).
+	 * @param copyDate	Whether the date of the event is the date from which the relationship is valid.
+	 * @return	This dialog.
+	 */
+	public RelationshipRecordDialog withEvidenceOf(final FLEFRecord event, final boolean copyDate){
+		if(event == null)
+			return this;
+
+		final FLEFRecord eventDate = FLEFRecordHelper.findChild(event, EventReader.TAG_DATE);
+		if(copyDate && eventDate != null && eventDate.hasChildren() && !validFromField.hasData()){
+			final FLEFRecord copy = FLEFRecord.createEmpty();
+			eventDate.deepCopyTo(copy);
+			final FLEFRecord validFrom = FLEFRecord.createChildWithTag(RelationshipReader.TAG_VALID_FROM);
+			validFrom.addChildren(copy.getChildren());
+			validFromField.setRecord(validFrom);
+		}
+
+		final EntityListPanel sources = (EntityListPanel)components.getPanel(PanelKey.SOURCE);
+		if(sources != null && sources.isEmpty())
+			for(final FLEFRecord citation : FLEFRecordHelper.findChildren(event, EventReader.TAG_SOURCE)){
+				final FLEFRecord copy = FLEFRecord.createEmpty();
+				citation.deepCopyTo(copy);
+				sources.addItemDirectly(copy);
+			}
+
+		return this;
+	}
+
+	/**
+	 * Proposes a type for the relationship in the editor. The relationship is not changed: the user decides whether to save it.
+	 *
+	 * @param type	The type to propose (it is used only if valid for the participants, otherwise the choice is left to the user).
+	 * @return	This dialog.
+	 */
+	public RelationshipRecordDialog withType(final String type){
+		if(type != null
+				&& List.of(RelationshipReader.getValidTypes(subjectField.getEntity(), targetField.getEntity())).contains(type))
 			subjectTypeCombo.setSelectedItem(type);
 
 		return this;

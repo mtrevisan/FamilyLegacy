@@ -29,12 +29,12 @@ import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolCo
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolOperation;
 
 
-/** Opens the context board: historic events, cultural norms, and their impacts in a single tree. */
+/** Opens the context board (Research menu): historic events, cultural norms, and their impacts in a single tree. */
 public final class ContextBoardTool implements ToolOperation{
 
 	@Override
 	public String getName(){
-		return I18N.t("menu.event.context.board");
+		return I18N.t("menu.research.context_board");
 	}
 
 	@Override

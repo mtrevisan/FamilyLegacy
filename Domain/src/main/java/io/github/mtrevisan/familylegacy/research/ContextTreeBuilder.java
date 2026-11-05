@@ -24,6 +24,10 @@
  */
 package io.github.mtrevisan.familylegacy.research;
 
+import io.github.mtrevisan.familylegacy.events.EventHelper;
+import io.github.mtrevisan.familylegacy.events.EventSummary;
+import io.github.mtrevisan.familylegacy.events.EventTimeline;
+import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.RecordDisplay;
 import io.github.mtrevisan.familylegacy.io.model.readers.ContextImpactReader;
@@ -48,7 +52,8 @@ import java.util.function.Function;
 /**
  * Builds the {@code context -> impact} tree shown by {@link ContextBoardDialog}.
  * <p>
- * There are two sections, <em>Historic events</em> and <em>Cultural norms</em>; under each context (sorted by title) are the
+ * There are two sections, <em>Historic events</em> (in chronological order, those with no date last) and <em>Cultural norms</em>
+ * (sorted by title); under each context are the
  * context impacts that cite it, labelled with the affected target and the impact type. Impacts whose context cannot be
  * found are collected under a synthetic {@link Kind#ORPHANS} node, so nothing is silently dropped. An impact that cites
  * more than one context appears under each of them.
@@ -170,8 +175,7 @@ public final class ContextTreeBuilder{
 	 * 	existing context.
 	 */
 	public static List<Node> build(final FLEFModel model){
-		final List<FLEFRecord> events = sortedByTitle(PrivacyService.visible(model, model.getRecordsByType(HistoricEventReader.TYPE)),
-			HistoricEventReader::extractTitle);
+		final List<FLEFRecord> events = sortedByDate(PrivacyService.visible(model, model.getRecordsByType(HistoricEventReader.TYPE)));
 		final List<FLEFRecord> norms = sortedByTitle(PrivacyService.visible(model, model.getRecordsByType(CulturalNormReader.TYPE)),
 			CulturalNormReader::extractTitle);
 		final List<FLEFRecord> impacts = PrivacyService.visible(model, model.getRecordsByType(ContextImpactReader.TYPE));
@@ -185,21 +189,21 @@ public final class ContextTreeBuilder{
 		final Set<String> placed = new HashSet<>();
 		final List<Node> roots = new ArrayList<>();
 
-		final Node eventsNode = new Node(Kind.HISTORIC_EVENTS, null, "Historic events (" + events.size() + ")");
+		final Node eventsNode = new Node(Kind.HISTORIC_EVENTS, null, I18N.tf("text.context.section.historic_events", events.size()));
 		for(final FLEFRecord event : events)
-			eventsNode.children.add(contextNode(Kind.HISTORIC_EVENT, event, historicEventLabel(event), impactsByContext, model,
+			eventsNode.children.add(contextNode(Kind.HISTORIC_EVENT, event, historicEventLabel(event, model), impactsByContext, model,
 				placed));
 		if(!events.isEmpty())
 			roots.add(eventsNode);
 
-		final Node normsNode = new Node(Kind.CULTURAL_NORMS, null, "Cultural norms (" + norms.size() + ")");
+		final Node normsNode = new Node(Kind.CULTURAL_NORMS, null, I18N.tf("text.context.section.cultural_norms", norms.size()));
 		for(final FLEFRecord norm : norms)
-			normsNode.children.add(contextNode(Kind.CULTURAL_NORM, norm, culturalNormLabel(norm), impactsByContext, model,
+			normsNode.children.add(contextNode(Kind.CULTURAL_NORM, norm, culturalNormLabel(norm, model), impactsByContext, model,
 				placed));
 		if(!norms.isEmpty())
 			roots.add(normsNode);
 
-		final Node orphans = new Node(Kind.ORPHANS, null, "(no context)");
+		final Node orphans = new Node(Kind.ORPHANS, null, I18N.t("text.context.no_context"));
 		for(final FLEFRecord impact : impacts)
 			if(!placed.contains(impact.getId()))
 				orphans.children.add(new Node(Kind.IMPACT, impact, impactLabel(impact, model)));
@@ -213,12 +217,25 @@ public final class ContextTreeBuilder{
 			final Map<String, List<FLEFRecord>> impactsByContext, final FLEFModel model, final Set<String> placed){
 		final List<FLEFRecord> contextImpacts = impactsByContext.getOrDefault(context.getId(), List.of());
 
-		final Node node = new Node(kind, context, label + " (" + contextImpacts.size() + "I)");
+		final Node node = new Node(kind, context, label + " (" + I18N.tf("text.context.impacts", contextImpacts.size()) + ")");
 		for(final FLEFRecord impact : contextImpacts){
 			node.children.add(new Node(Kind.IMPACT, impact, impactLabel(impact, model)));
 			placed.add(impact.getId());
 		}
 		return node;
+	}
+
+	/** The historic events by the first day of their date (the ones with no usable date last), then by title. */
+	private static List<FLEFRecord> sortedByDate(final List<FLEFRecord> records){
+		final List<FLEFRecord> sorted = new ArrayList<>(records);
+		sorted.sort(Comparator.comparing((FLEFRecord record) -> {
+				final EventTimeline.DayRange range = EventTimeline.dayRange(record);
+				return (range != null? range.sortKey(): Long.MAX_VALUE);
+			})
+			.thenComparing((FLEFRecord record) -> StringUtils.defaultString(HistoricEventReader.extractTitle(record))
+				.toLowerCase(Locale.ROOT))
+			.thenComparing(FLEFRecord::getId));
+		return sorted;
 	}
 
 	private static List<FLEFRecord> sortedByTitle(final List<FLEFRecord> records, final Function<FLEFRecord, String> title){
@@ -234,25 +251,26 @@ public final class ContextTreeBuilder{
 	 *                          Labels
 	 * ====================================================================== */
 
-	private static String historicEventLabel(final FLEFRecord event){
+	private static String historicEventLabel(final FLEFRecord event, final FLEFModel model){
 		final String title = HistoricEventReader.extractTitle(event);
 		return withDetails((StringUtils.isNotBlank(title)? title: event.getId()), HistoricEventReader.extractType(event),
-			ResearchHelper.firstTextValue(event, HistoricEventReader.TAG_DATE));
+			EventHelper.dateText(event, HistoricEventReader.TAG_DATE), EventSummary.placeName(event, model));
 	}
 
-	private static String culturalNormLabel(final FLEFRecord norm){
+	private static String culturalNormLabel(final FLEFRecord norm, final FLEFModel model){
 		final String title = CulturalNormReader.extractTitle(norm);
-		final String from = ResearchHelper.firstTextValue(norm, CulturalNormReader.TAG_VALID_FROM);
-		final String to = ResearchHelper.firstTextValue(norm, CulturalNormReader.TAG_VALID_TO);
+		final String from = EventHelper.dateText(norm, CulturalNormReader.TAG_VALID_FROM);
+		final String to = EventHelper.dateText(norm, CulturalNormReader.TAG_VALID_TO);
 		final String validity = (StringUtils.isNotBlank(from) || StringUtils.isNotBlank(to)
 			? StringUtils.defaultString(from) + "–" + StringUtils.defaultString(to)
 			: null);
-		return withDetails((StringUtils.isNotBlank(title)? title: norm.getId()), CulturalNormReader.extractType(norm), validity);
+		return withDetails((StringUtils.isNotBlank(title)? title: norm.getId()), CulturalNormReader.extractType(norm), validity,
+			EventSummary.placeName(norm, model));
 	}
 
 	private static String impactLabel(final FLEFRecord impact, final FLEFModel model){
 		final String target = targetText(impact, model);
-		return withDetails("→ " + (StringUtils.isNotBlank(target)? target: "(no target)"),
+		return withDetails("→ " + (StringUtils.isNotBlank(target)? target: I18N.t("text.context.no_target")),
 			ContextImpactReader.extractImpactType(impact),
 			ResearchHelper.firstTextValue(impact, ContextImpactReader.TAG_CONFIDENCE));
 	}

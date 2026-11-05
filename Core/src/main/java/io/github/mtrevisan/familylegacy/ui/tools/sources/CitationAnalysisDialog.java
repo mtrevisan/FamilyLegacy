@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.ui.tools.sources;
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.RecordDisplay;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.sources.SourceHelper;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolDialogs;
@@ -53,7 +54,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
+import java.util.Locale;
 import java.util.function.Function;
 
 
@@ -62,55 +63,28 @@ import java.util.function.Function;
  * <ul>
  *   <li><b>Unused sources</b>: sources that no record cites;</li>
  *   <li><b>Unused documents</b>: documents that no source or extract references;</li>
- *   <li><b>Uncited assertions</b>: how many records of each type carry no citation.</li>
+ *   <li><b>Uncited assertions</b>: the records (by name) of the analysed types that carry no citation.</li>
  * </ul>
- * The rows of the first two tabs can be opened (double-click, or "Open record") to fix the problem on the spot.
+ * The rows can be opened (double-click, or "Open record") to fix the problem on the spot; the analysis is made again afterwards, so
+ * the lists are what the file is now.
  */
 final class CitationAnalysisDialog extends JDialog{
 
-
-
 	private final FLEFModel model;
-	private final List<FLEFRecord> unusedSources;
-	private final List<FLEFRecord> unusedDocuments;
-	private final Map<String, Integer> uncited;
 
 	private final JTabbedPane tabs = new JTabbedPane();
-	private final JTable sourcesTable;
-	private final JTable documentsTable;
 	private final JButton openRecord = new JButton(I18N.t("button.open_record"));
+	private final JLabel summary = new JLabel(StringUtils.SPACE);
+	private final List<JTable> tables = new ArrayList<>();
 
 
-	CitationAnalysisDialog(final Window owner, final FLEFModel model, final List<FLEFRecord> unusedSources,
-			final List<FLEFRecord> unusedDocuments, final Map<String, Integer> uncited, final int citedSourceCount,
-			final int referencedDocumentCount){
+	CitationAnalysisDialog(final Window owner, final FLEFModel model){
 		super(owner, I18N.t("dialog.citation_analysis.title"), ModalityType.APPLICATION_MODAL);
 		ToolDialogs.installEscapeToClose(this);
 		this.model = model;
-		this.unusedSources = unusedSources;
-		this.unusedDocuments = unusedDocuments;
-		this.uncited = uncited;
 
-		sourcesTable = createRecordTable(unusedSources, I18N.t("column.id"), I18N.t("column.title"), I18N.t("column.author"),
-			SourceHelper::sourceTitle, SourceHelper::sourceAuthor);
-		documentsTable = createRecordTable(unusedDocuments, I18N.t("column.id"), I18N.t("column.uri"),
-			I18N.t("column.description"), SourceHelper::documentDisplayUri, SourceHelper::documentDescription);
-
-		tabs.addTab(tabTitle("tab.title.unused_sources", unusedSources.size()),
-			ToolDialogs.createVerdictTab(unusedSources.isEmpty(), I18N.t("text.citation_analysis.sources.ok"),
-				I18N.tf("text.citation_analysis.sources.warn", unusedSources.size()), sourcesTable));
-		tabs.addTab(tabTitle("tab.title.unused_documents", unusedDocuments.size()),
-			ToolDialogs.createVerdictTab(unusedDocuments.isEmpty(), I18N.t("text.citation_analysis.documents.ok"),
-				I18N.tf("text.citation_analysis.documents.warn", unusedDocuments.size()), documentsTable));
-		tabs.addTab(tabTitle("tab.title.uncited_assertions", uncited.values().stream().mapToInt(Integer::intValue).sum()),
-			createUncitedTab());
 		tabs.setPreferredSize(new Dimension(820, 520));
 		tabs.addChangeListener(e -> updateOpenButton());
-
-		sourcesTable.getSelectionModel()
-			.addListSelectionListener(e -> updateOpenButton());
-		documentsTable.getSelectionModel()
-			.addListSelectionListener(e -> updateOpenButton());
 
 		openRecord.addActionListener(e -> openSelected());
 		final JButton copy = new JButton(I18N.t("button.copy_all"));
@@ -125,46 +99,78 @@ final class CitationAnalysisDialog extends JDialog{
 
 		final JPanel footer = new JPanel(new BorderLayout(8, 0));
 		footer.setBorder(BorderFactory.createEmptyBorder(2, 8, 6, 6));
-		footer.add(new JLabel(GUIHelper.format(I18N.t("text.citation_analysis.summary"), citedSourceCount, referencedDocumentCount)),
-			BorderLayout.WEST);
+		footer.add(summary, BorderLayout.WEST);
 		footer.add(buttons, BorderLayout.EAST);
 
 		setLayout(new BorderLayout(8, 8));
 		add(tabs, BorderLayout.CENTER);
 		add(footer, BorderLayout.SOUTH);
 
-		updateOpenButton();
+		reload();
 
 		pack();
 		setLocationRelativeTo(owner);
 	}
 
 
+	/** Reads the model again and builds the tabs, keeping the one in view. */
+	private void reload(){
+		final CitationAnalysisTool.Analysis analysis = CitationAnalysisTool.analyze(model);
+
+		final int selectedTab = Math.max(tabs.getSelectedIndex(), 0);
+		tabs.removeAll();
+		tables.clear();
+
+		final List<FLEFRecord> unusedSources = analysis.unusedSources();
+		final List<FLEFRecord> unusedDocuments = analysis.unusedDocuments();
+		final List<FLEFRecord> uncited = analysis.uncited();
+		final JTable sourcesTable = createRecordTable(unusedSources, I18N.t("column.id"), I18N.t("column.title"), I18N.t("column.author"),
+			SourceHelper::sourceTitle, SourceHelper::sourceAuthor);
+		final JTable documentsTable = createRecordTable(unusedDocuments, I18N.t("column.id"), I18N.t("column.uri"),
+			I18N.t("column.description"), SourceHelper::documentDisplayUri, SourceHelper::documentDescription);
+		final JTable uncitedTable = createRecordTable(uncited, I18N.t("column.id"), I18N.t("column.record_type"),
+			I18N.t("column.record"), CitationAnalysisDialog::typeLabel, record -> RecordDisplay.describe(record, model));
+		tables.add(sourcesTable);
+		tables.add(documentsTable);
+		tables.add(uncitedTable);
+
+		tabs.addTab(tabTitle("tab.title.unused_sources", unusedSources.size()),
+			ToolDialogs.createVerdictTab(unusedSources.isEmpty(), I18N.t("text.citation_analysis.sources.ok"),
+				I18N.tf("text.citation_analysis.sources.warn", unusedSources.size()), sourcesTable));
+		tabs.addTab(tabTitle("tab.title.unused_documents", unusedDocuments.size()),
+			ToolDialogs.createVerdictTab(unusedDocuments.isEmpty(), I18N.t("text.citation_analysis.documents.ok"),
+				I18N.tf("text.citation_analysis.documents.warn", unusedDocuments.size()), documentsTable));
+		tabs.addTab(tabTitle("tab.title.uncited_assertions", uncited.size()),
+			ToolDialogs.createVerdictTab(uncited.isEmpty(), I18N.t("text.citation_analysis.assertions.ok"),
+				I18N.tf("text.citation_analysis.assertions.warn", uncited.size()), uncitedTable));
+		tabs.setSelectedIndex(Math.min(selectedTab, tabs.getTabCount() - 1));
+
+		summary.setText(GUIHelper.format(I18N.t("text.citation_analysis.summary"), analysis.citedSourceCount(),
+			analysis.referencedDocumentCount()));
+		updateOpenButton();
+	}
+
 	private static String tabTitle(final String key, final int count){
 		return I18N.t(key) + " (" + count + ")";
 	}
 
-	private JPanel createUncitedTab(){
-		final JTable table = new JTable(new UncitedTableModel(uncited));
-		table.setRowHeight(22);
-		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		final TableColumnModel columns = table.getColumnModel();
-		columns.getColumn(0).setPreferredWidth(500);
-		columns.getColumn(1).setPreferredWidth(120);
-
-		return ToolDialogs.createVerdictTab(uncited.isEmpty(), I18N.t("text.citation_analysis.assertions.ok"),
-			I18N.t("text.citation_analysis.assertions.warn"), table);
+	/** The type of a record as the user reads it ("individual attribute"), not as it is written in the file. */
+	private static String typeLabel(final FLEFRecord record){
+		return I18N.t("confirmation.exist_record." + record.getTag().toLowerCase(Locale.ROOT), record.getTag());
 	}
 
 	private JTable createRecordTable(final List<FLEFRecord> records, final String idColumn, final String firstColumn,
 			final String secondColumn, final Function<FLEFRecord, String> first, final Function<FLEFRecord, String> second){
 		final JTable table = new JTable(new RecordTableModel(records, new String[]{idColumn, firstColumn, secondColumn}, first, second));
 		table.setRowHeight(22);
+		table.setAutoCreateRowSorter(true);
 		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		final TableColumnModel columns = table.getColumnModel();
 		columns.getColumn(0).setPreferredWidth(110);
 		columns.getColumn(1).setPreferredWidth(420);
 		columns.getColumn(2).setPreferredWidth(220);
+		table.getSelectionModel()
+			.addListSelectionListener(e -> updateOpenButton());
 		table.addMouseListener(new MouseAdapter(){
 			@Override
 			public void mouseClicked(final MouseEvent e){
@@ -180,10 +186,10 @@ final class CitationAnalysisDialog extends JDialog{
 	 *                          Open record
 	 * ====================================================================== */
 
-	/** @return	The table of the tab in view, if its rows are records that can be opened. */
+	/** @return	The table of the tab in view. */
 	private JTable activeRecordTable(){
 		final int index = tabs.getSelectedIndex();
-		return (index == 0? sourcesTable: (index == 1? documentsTable: null));
+		return (index >= 0 && index < tables.size()? tables.get(index): null);
 	}
 
 	private void updateOpenButton(){
@@ -198,6 +204,8 @@ final class CitationAnalysisDialog extends JDialog{
 
 		final FLEFRecord record = ((RecordTableModel)table.getModel()).recordAt(table.convertRowIndexToModel(table.getSelectedRow()));
 		ToolDialogs.openRecordEditor(this, model, record);
+
+		reload();
 	}
 
 
@@ -207,12 +215,16 @@ final class CitationAnalysisDialog extends JDialog{
 
 	private void copyToClipboard(){
 		final StringBuilder sb = new StringBuilder();
-		appendSection(sb, tabs.getTitleAt(0), unusedSources, SourceHelper::sourceTitle);
-		appendSection(sb, tabs.getTitleAt(1), unusedDocuments, SourceHelper::documentDisplayUri);
-		sb.append(tabs.getTitleAt(2))
-			.append(StringUtils.LF);
-		for(final Map.Entry<String, Integer> e : uncited.entrySet())
-			sb.append("  ").append(e.getKey()).append(": ").append(e.getValue()).append(StringUtils.LF);
+		for(int i = 0; i < tables.size(); i ++){
+			final RecordTableModel records = (RecordTableModel)tables.get(i).getModel();
+			sb.append(tabs.getTitleAt(i))
+				.append(StringUtils.LF);
+			for(int row = 0; row < records.getRowCount(); row ++)
+				sb.append("  ").append(records.getValueAt(row, 0)).append("  ").append(records.getValueAt(row, 1)).append("  ")
+					.append(records.getValueAt(row, 2))
+					.append(StringUtils.LF);
+			sb.append(StringUtils.LF);
+		}
 
 		final StringSelection selection = new StringSelection(sb.toString());
 		Toolkit.getDefaultToolkit()
@@ -220,19 +232,9 @@ final class CitationAnalysisDialog extends JDialog{
 			.setContents(selection, selection);
 	}
 
-	private static void appendSection(final StringBuilder sb, final String title, final List<FLEFRecord> records,
-			final Function<FLEFRecord, String> text){
-		sb.append(title)
-			.append(StringUtils.LF);
-		for(final FLEFRecord record : records)
-			sb.append("  ").append(record.getId()).append("  ").append(StringUtils.defaultString(text.apply(record)))
-				.append(StringUtils.LF);
-		sb.append(StringUtils.LF);
-	}
-
 
 	/* ======================================================================
-	 *                          Table models
+	 *                          Table model
 	 * ====================================================================== */
 
 	private static final class RecordTableModel extends AbstractTableModel{
@@ -278,44 +280,6 @@ final class CitationAnalysisDialog extends JDialog{
 				case 1 -> StringUtils.defaultString(first.apply(record));
 				default -> StringUtils.defaultString(second.apply(record));
 			};
-		}
-
-	}
-
-
-	private static final class UncitedTableModel extends AbstractTableModel{
-
-		private final List<Map.Entry<String, Integer>> rows;
-
-
-		UncitedTableModel(final Map<String, Integer> uncited){
-			rows = new ArrayList<>(uncited.entrySet());
-		}
-
-		@Override
-		public int getRowCount(){
-			return rows.size();
-		}
-
-		@Override
-		public int getColumnCount(){
-			return 2;
-		}
-
-		@Override
-		public String getColumnName(final int column){
-			return (column == 0? I18N.t("column.record_type"): I18N.t("column.uncited_records"));
-		}
-
-		@Override
-		public Class<?> getColumnClass(final int column){
-			return (column == 0? String.class: Integer.class);
-		}
-
-		@Override
-		public Object getValueAt(final int row, final int column){
-			final Map.Entry<String, Integer> entry = rows.get(row);
-			return (column == 0? entry.getKey(): entry.getValue());
 		}
 
 	}

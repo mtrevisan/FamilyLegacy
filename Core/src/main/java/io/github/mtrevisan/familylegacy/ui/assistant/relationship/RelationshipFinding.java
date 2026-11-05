@@ -33,5 +33,18 @@ import io.github.mtrevisan.familylegacy.ui.assistant.Diagnostic;
  *
  * @param diagnostic the finding
  * @param draft      the start of the relationship, or {@code null}
+ * @param typeChange the type that the evidence suggests for an existing relationship, or {@code null}
  */
-record RelationshipFinding(Diagnostic diagnostic, RelationshipDraft draft){}
+record RelationshipFinding(Diagnostic diagnostic, RelationshipDraft draft, RelationshipTypeChange typeChange){
+
+	RelationshipFinding(final Diagnostic diagnostic, final RelationshipDraft draft){
+		this(diagnostic, draft, null);
+	}
+
+
+	/** @return this finding, with the change of type that would settle it */
+	RelationshipFinding withTypeChange(final RelationshipTypeChange change){
+		return new RelationshipFinding(diagnostic, draft, change);
+	}
+
+}

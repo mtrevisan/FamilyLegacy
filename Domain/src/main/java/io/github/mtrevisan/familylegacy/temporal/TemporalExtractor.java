@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.temporal;
 
+import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.ContextImpactReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.CulturalNormReader;
@@ -93,9 +94,9 @@ public final class TemporalExtractor{
 		final List<TemporalEntry> contexts = extractContextEntries(entity);
 
 		final List<TemporalTrack> tracks = new ArrayList<>(3);
-		tracks.add(new TemporalTrack(TemporalTrackType.EVENT, events, "Events"));
-		tracks.add(new TemporalTrack(TemporalTrackType.ATTRIBUTE, attributes, "Attributes"));
-		tracks.add(new TemporalTrack(TemporalTrackType.CONTEXT, contexts, "Context"));
+		tracks.add(new TemporalTrack(TemporalTrackType.EVENT, events, I18N.t("text.temporal.track.events")));
+		tracks.add(new TemporalTrack(TemporalTrackType.ATTRIBUTE, attributes, I18N.t("text.temporal.track.attributes")));
+		tracks.add(new TemporalTrack(TemporalTrackType.CONTEXT, contexts, I18N.t("text.temporal.track.context")));
 		return tracks;
 	}
 
@@ -288,7 +289,7 @@ public final class TemporalExtractor{
 
 			final String type = FLEFRecordHelper.getChildValue(record, HistoricEventReader.TAG_TYPE);
 			final String title = FLEFRecordHelper.getChildValue(record, HistoricEventReader.TAG_TITLE);
-			final String label = (title != null? title: type != null? type: "historic event");
+			final String label = (title != null? title: type != null? type: I18N.t("text.temporal.historic_event"));
 			output.add(new TemporalEntry(span, label, type, StringUtils.EMPTY, record, evidenceOf(record)));
 		}
 	}
@@ -303,7 +304,7 @@ public final class TemporalExtractor{
 
 			final String ruleType = FLEFRecordHelper.getChildValue(record, CulturalNormReader.TAG_TYPE);
 			final String title = FLEFRecordHelper.getChildValue(record, CulturalNormReader.TAG_TITLE);
-			final String label = (title != null? title: ruleType != null? ruleType: "cultural norm");
+			final String label = (title != null? title: ruleType != null? ruleType: I18N.t("text.temporal.cultural_norm"));
 			output.add(new TemporalEntry(span, label, ruleType, StringUtils.EMPTY, record, evidenceOf(record)));
 		}
 	}

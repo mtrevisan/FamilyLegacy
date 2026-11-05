@@ -2,8 +2,9 @@
 
 ## Before anything else
 
-- **Keep copies.** Saving is done through a temporary file that replaces the real one only when it is complete, so an interrupted save (a full disk, a crash, a locked file) leaves the previous version of the file as it was. Even so, a save replaces the old version for good: make a copy with **File > Backup...** before a long session of editing, and before an import, a restore or a merge. Name them with the date: the suggested name already has it.
-- **The question "Save before proceeding?"** appears when you start something that replaces the document (New, Open, Exit, Import) and the document has **unsaved changes**, that is, differs from what is on the file. Answer *Save* when in doubt; *Discard* throws the changes away; *Cancel* (or a save that fails) stops what you were doing.
+- **Keep copies.** Every change is written to the file by itself, through a temporary file that replaces the real one only when it is complete, so an interrupted write (a full disk, a crash, a locked file) leaves the previous version of the file as it was. Even so, each write replaces the old version for good, so **there is no way back to the file as it was yesterday** except a copy: make a copy with **File > Backup...** before a long session of editing, and before an import, a restore or a merge. Name them with the date: the suggested name already has it.
+- **There are no unsaved changes**, so the application never asks whether to save. The only question of this kind is for the document that has **no file yet** (the empty one the application starts with, if you cancelled the choice of its file): *Save* lets you choose a file, *Discard* throws the changes away, *Cancel* stops what you were doing.
+- **"Unable to save the changes automatically"** is shown once when a write fails; the application tries again at the next change. Fix the cause (free some space, close the program that locks the file) and make any change, or use **Save as...** to another place.
 
 ## Opening and saving
 
@@ -11,7 +12,7 @@
 |---|---|
 | **Unable to open the file** | The file cannot be read: it does not exist, you have no permission, or a compressed file is damaged. The open document stays as it is. |
 | **The file is not a valid FLEF document** | The text is not valid FLEF. The reason follows, with the **position** (the number of the character) where the reader stopped. See below. |
-| **Unable to save the file** | The disk is full or read-only, the file is locked by another program, or you have no permission. The previous version of the file is left as it was. Use **Save as...** to another place, and do not close the application until a save works. |
+| **Unable to save the file** | The disk is full or read-only, the file is locked by another program, or you have no permission. The previous version of the file is left as it was. Use **Save as...** to another place. If you close the application while the file cannot be written you are asked whether to go on anyway, because the latest changes would be lost. |
 | **The file already exists. Overwrite it?** | Asked by Save as, Backup and import when the name is taken. |
 
 A file is read as UTF-8 text, or as compressed text (it is recognised by itself). **What the reason after "not a valid FLEF document" means:**
@@ -30,7 +31,7 @@ In every case, open the last backup. A file with correct syntax but wrong conten
 ## Backup and restore
 
 - **Backup...** writes the file as it is, without validating it. If the file has errors, the backup has them too, which makes it a good recovery copy.
-- **Restore from Backup...** replaces the data in memory with that file, plain or compressed (it asks first, with the file name, and then about unsaved changes). The restored data counts as unsaved and the document **loses the name of its file**, so the next save asks where to write and cannot overwrite the original by mistake. It cannot be undone.
+- **Restore from Backup...** replaces the data in memory with that file, plain or compressed (it asks first, with the file name). The content of **the file of the open document** is replaced with it, because the restored data is saved like every change, so make a backup of the current content first if you may need it. It cannot be undone.
 
 ## Tools > Validate File
 
@@ -50,7 +51,7 @@ The check is **staged**: first the structure, and only if that is clean the refe
 | *VALID_FROM must be before VALID_TO* | The validity range of a relationship is reversed (compared as text). |
 | *IDENTITY must be present twice* / *IDENTITIES must be different records* | An identity hypothesis lacks its two candidates, or names the same record twice. |
 
-The validation does **not** check dates: a date is checked in the date editor, see [Entering dates](dates.md#what-the-application-tells-you).
+The validation checks the dates against each other when they cannot be right whatever the day they stand for (a death before the birth, a child before the parent, an event after the death, a relationship that ends before it begins), judging each date by all the days it may stand for, so an approximate date, a decade or a century never raises a false alarm. A date is checked in itself in the date editor, see [Entering dates](dates.md#what-the-application-tells-you), and the conventions (ages, the length of a life) are findings of the Chronology Assistant.
 
 ## Messages in the editors
 
@@ -92,7 +93,7 @@ In the folder `.familylegacy` of your home directory:
 
 | File | What it is for |
 |---|---|
-| `preferences.properties` | Language, font, privacy policy, order of children and partners, how media paths are shown, and the findings you ignored in the Research Assistant for each file. **Deleting it restores every default.** *Appearance > Open preferences file...* opens its folder. |
+| `preferences.properties` | Language, font, privacy policy, order of children and partners, how media paths are shown, and the findings you ignored in the Research Assistant for each file. **Deleting it restores every default.** *Appearance > Open preferences folder...* opens its folder (if the system cannot open it from here, a message gives its path). |
 | `bookmarks.properties` | The [bookmarks](searching.md#bookmarks); a text file you can edit by hand. |
 | `geocoding.properties` | The coordinates already found for places, for the [Chronomap](chronomap.md). |
 | `historical-maps.properties` | The catalogue of historical maps found for each area, valid for 30 days. |

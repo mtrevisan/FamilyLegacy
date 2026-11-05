@@ -68,10 +68,10 @@ public final class ResearchTaskReader{
 	public static final String TAG_PRIVACY = "privacy";
 	public static final String TAG_AUDIT = "audit";
 
-	private static final String ENUM_STATUS_OPEN = "open";
-	private static final String ENUM_STATUS_IN_PROGRESS = "in_progress";
-	private static final String ENUM_STATUS_COMPLETED = "completed";
-	private static final String ENUM_STATUS_ABANDONED = "abandoned";
+	public static final String ENUM_STATUS_OPEN = "open";
+	public static final String ENUM_STATUS_IN_PROGRESS = "in_progress";
+	public static final String ENUM_STATUS_COMPLETED = "completed";
+	public static final String ENUM_STATUS_ABANDONED = "abandoned";
 	public static final String[] STATUSES = {
 		ENUM_STATUS_OPEN,
 		ENUM_STATUS_IN_PROGRESS,
@@ -79,9 +79,9 @@ public final class ResearchTaskReader{
 		ENUM_STATUS_ABANDONED
 	};
 
-	private static final String ENUM_PRIORITY_LOW = "low";
-	private static final String ENUM_PRIORITY_NORMAL = "normal";
-	private static final String ENUM_PRIORITY_HIGH = "high";
+	public static final String ENUM_PRIORITY_LOW = "low";
+	public static final String ENUM_PRIORITY_NORMAL = "normal";
+	public static final String ENUM_PRIORITY_HIGH = "high";
 	public static final String[] PRIORITIES = {
 		StringUtils.EMPTY,
 		ENUM_PRIORITY_LOW,

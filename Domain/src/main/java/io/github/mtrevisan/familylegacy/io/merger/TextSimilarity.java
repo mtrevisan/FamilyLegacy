@@ -40,12 +40,12 @@ import java.util.regex.Pattern;
  * <p>
  * Texts are compared after removing diacritics, case, and punctuation, so that {@code Nicolò} and {@code NICOLO'} agree.
  */
-final class TextSimilarity{
+public final class TextSimilarity{
 
 	/**
 	 * Level of agreement between two texts, from the strongest.
 	 */
-	enum Agreement{
+	public enum Agreement{
 		/** Equal after normalization. */
 		EXACT,
 		/** The words of one are among the words of the other, or are their initials (e.g. {@code Giovanni} and {@code Giovanni Battista}, {@code G. B.}). */
@@ -54,7 +54,7 @@ final class TextSimilarity{
 		SIMILAR,
 		DIFFERENT;
 
-		boolean isAtLeast(final Agreement other){
+		public boolean isAtLeast(final Agreement other){
 			return (ordinal() <= other.ordinal());
 		}
 	}
@@ -71,7 +71,7 @@ final class TextSimilarity{
 	private TextSimilarity(){}
 
 
-	static String normalize(final String text){
+	public static String normalize(final String text){
 		if(text == null)
 			return StringUtils.EMPTY;
 
@@ -87,7 +87,7 @@ final class TextSimilarity{
 	 *
 	 * @return the agreement, or {@code null} if either text is empty (nothing to compare)
 	 */
-	static Agreement compareNormalized(final String a, final String b){
+	public static Agreement compareNormalized(final String a, final String b){
 		if(a.isEmpty() || b.isEmpty())
 			return null;
 		if(a.equals(b))
@@ -113,7 +113,7 @@ final class TextSimilarity{
 	 *
 	 * @return the agreement, or {@code null} if either text is empty
 	 */
-	static Agreement comparePlaceNormalized(final String a, final String b){
+	public static Agreement comparePlaceNormalized(final String a, final String b){
 		final Agreement agreement = compareNormalized(a, b);
 		if(agreement != Agreement.SUBSET && agreement != Agreement.SIMILAR)
 			return agreement;

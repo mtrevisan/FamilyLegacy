@@ -35,6 +35,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PrivacyReader;
 
 
 /**
@@ -61,9 +63,9 @@ final class FieldMerger{
 	private static final String TAG_LEVEL = "level";
 	private static final String TAG_EXPIRES = "expires";
 	private static final String TAG_SEX = "sex";
-	private static final String SEX_UNKNOWN = "unknown";
+	private static final String SEX_UNKNOWN = IndividualReader.ENUM_SEX_UNKNOWN;
 
-	private static final List<String> PRIVACY_LEVELS = List.of("public", "restricted", "confidential");
+	private static final List<String> PRIVACY_LEVELS = List.of(PrivacyReader.ENUM_LEVEL_PUBLIC, PrivacyReader.ENUM_LEVEL_RESTRICTED, PrivacyReader.ENUM_LEVEL_CONFIDENTIAL);
 
 
 	private final GrammarSupport grammar;

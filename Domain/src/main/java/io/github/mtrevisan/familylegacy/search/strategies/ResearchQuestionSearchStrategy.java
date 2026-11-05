@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.RecordDisplay;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchQuestionReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.research.ResearchSummary;
 import io.github.mtrevisan.familylegacy.search.SearchCriteria;
 import io.github.mtrevisan.familylegacy.search.SearchMode;
 import io.github.mtrevisan.familylegacy.search.SearchStrategy;
@@ -47,6 +48,7 @@ import java.util.function.Predicate;
 public class ResearchQuestionSearchStrategy implements SearchStrategy{
 
 	private static final double FUZZY_THRESHOLD = 0.05;
+	private static final String SEPARATOR = " \u2013 ";
 
 
 
@@ -113,7 +115,7 @@ public class ResearchQuestionSearchStrategy implements SearchStrategy{
 		if(StringUtils.isNotEmpty(confidence))
 			details.add(I18N.t("dialog.component.confidence") + ": " + confidence);
 
-		return baseDisplayText + details;
+		return baseDisplayText + details + SEPARATOR + ResearchSummary.counts(record, model);
 	}
 
 }

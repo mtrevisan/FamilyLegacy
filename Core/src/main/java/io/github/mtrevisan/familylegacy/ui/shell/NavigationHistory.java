@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.ui.shell;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 
 
 /**
@@ -97,6 +98,54 @@ public final class NavigationHistory{
 		cursor ++;
 
 		return entries.get(cursor);
+	}
+
+	/** @param exists	Tells whether an entry still can be shown (a record that was deleted cannot). */
+	public boolean canGoBack(final Predicate<String> exists){
+		for(int i = cursor - 1; i >= 0; i --)
+			if(exists.test(entries.get(i)))
+				return true;
+		return false;
+	}
+
+	/** @param exists	Tells whether an entry still can be shown (a record that was deleted cannot). */
+	public boolean canGoForward(final Predicate<String> exists){
+		for(int i = cursor + 1; i < entries.size(); i ++)
+			if(exists.test(entries.get(i)))
+				return true;
+		return false;
+	}
+
+	/**
+	 * Moves the cursor back to the nearest entry that still can be shown, skipping the others.
+	 *
+	 * @param exists	Tells whether an entry still can be shown.
+	 * @return	The entry, or {@code null} (and the cursor does not move) when there is none.
+	 */
+	public String goBack(final Predicate<String> exists){
+		for(int i = cursor - 1; i >= 0; i --)
+			if(exists.test(entries.get(i))){
+				cursor = i;
+
+				return entries.get(i);
+			}
+		return null;
+	}
+
+	/**
+	 * Moves the cursor forward to the nearest entry that still can be shown, skipping the others.
+	 *
+	 * @param exists	Tells whether an entry still can be shown.
+	 * @return	The entry, or {@code null} (and the cursor does not move) when there is none.
+	 */
+	public String goForward(final Predicate<String> exists){
+		for(int i = cursor + 1; i < entries.size(); i ++)
+			if(exists.test(entries.get(i))){
+				cursor = i;
+
+				return entries.get(i);
+			}
+		return null;
 	}
 
 	/** Returns the current entry, or {@code null} when the history is empty. */

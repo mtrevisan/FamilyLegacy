@@ -36,13 +36,11 @@ import io.github.mtrevisan.familylegacy.ui.dialogs.records.ConclusionRecordDialo
  * "Create Conclusion Draft": opens the editor of a new ConclusionRecord with the competing records of the finding already in its
  * RESOLVES and the description of the conflict as the start of the narrative.
  * <p>
- * It is a draft, and only a draft: the proof status is {@code unresearched}, no assertion is preferred, and nothing is saved unless
+ * It is a draft, and only a draft: the proof status is left blank for the researcher to choose, no assertion is preferred, and nothing is saved unless
  * the researcher completes the conclusion and confirms it. Cancelling the editor leaves the model untouched.
  * </p>
  */
 final class CreateConclusionDraftAction implements DiagnosticAction{
-
-	private static final String PROOF_STATUS_UNRESEARCHED = "unresearched";
 
 	private final ConclusionDraft draft;
 
@@ -64,7 +62,7 @@ final class CreateConclusionDraftAction implements DiagnosticAction{
 			return;
 
 		final ConclusionRecordDialog dialog = ConclusionRecordDialog.createNew(context.owner(), model)
-			.withDraft(PROOF_STATUS_UNRESEARCHED, draft.narrative());
+			.withDraft(null, draft.narrative());
 		//the records of the finding may have changed since it was computed: the ones that are gone are left out
 		for(final String id : draft.resolves()){
 			final FLEFRecord record = model.getRecordById(id);

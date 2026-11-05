@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.tools.maintenance.merge;
 
+import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.merger.manual.TagSuggester;
 import io.github.mtrevisan.familylegacy.io.merger.manual.TagSuggester.Context;
 import io.github.mtrevisan.familylegacy.io.merger.manual.TagSuggester.ValueKind;
@@ -288,7 +289,7 @@ public final class TagHighlighter{
 		final String fullText = textFor.apply(area);
 		final int fullOffset = offsetFor.apply(area) + offset;
 		final String hint = suggester.valueHintAt(fullText, fullOffset);
-		return (hint != null? "Expected value: " + hint: null);
+		return (hint != null? I18N.tf("text.merge.expected_value", hint): null);
 	}
 
 

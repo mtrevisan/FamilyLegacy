@@ -108,6 +108,109 @@ class RelationshipDraftDialogTest{
 		dialog.dispose();
 	}
 
+	private static FLEFRecord marriageEvent(final FLEFModel model){
+		model.addRecord(FLEFRecord.createMainRecord("S1", "source")
+			.addChild(FLEFRecord.createChildWithTagAndValue("title", "Parish register")));
+		final FLEFRecord event = FLEFRecord.createMainRecord("E1", "event")
+			.addChild(FLEFRecord.createChildWithTagAndValue("type", "marriage"))
+			.addChild(FLEFRecord.createChildWithTag("date").addChild(FLEFRecord.createChildWithTag("value")
+				.addChild(FLEFRecord.createChildWithTag("point").addChild(FLEFRecord.createChildWithTag("value")
+					.addChild(FLEFRecord.createChildWithTagAndValue("full_date", "1865-06-01"))))))
+			.addChild(FLEFRecord.createChildWithTag("source")
+				.addChild(FLEFRecord.createChildWithTagAndValue("source", "S1")));
+		model.addRecord(event);
+		return event;
+	}
+
+	@Test
+	void theDraftStartsFromTheDateAndTheSourcesOfTheMarriageThatIsItsEvidence() throws IOException{
+		Assumptions.assumeFalse(GraphicsEnvironment.isHeadless(), "The editor needs a display");
+		final FLEFModel model = convert();
+		final List<FLEFRecord> individuals = model.getRecordsByType("individual");
+		final FLEFRecord event = marriageEvent(model);
+
+		final RelationshipRecordDialog dialog = RelationshipRecordDialog.createNew(null, model)
+			.withParticipants(individuals.get(0), individuals.get(1), "civil_spouse")
+			.withEvidenceOf(event, true);
+		dialog.save();
+
+		final FLEFRecord relationship = relationships(model).getFirst();
+		Assertions.assertEquals("1865-06-01", FLEFRecordHelper.getChildValue(relationship, "valid_from.value.point.value.full_date"));
+		Assertions.assertEquals("S1", FLEFRecordHelper.getChildValue(relationship, "source.source"));
+		//the event is untouched, and its own date and source are not the ones of the relationship (they are copies)
+		Assertions.assertEquals(1, FLEFRecordHelper.findChildren(event, "source").size());
+		Assertions.assertNotSame(FLEFRecordHelper.findChild(event, "source"), FLEFRecordHelper.findChild(relationship, "source"));
+		Assertions.assertEquals("1865-06-01", FLEFRecordHelper.getChildValue(event, "date.value.point.value.full_date"));
+	}
+
+	@Test
+	void theDateOfTheEventIsNotTheDateOfTheRelationshipUnlessTheDraftSaysSo() throws IOException{
+		Assumptions.assumeFalse(GraphicsEnvironment.isHeadless(), "The editor needs a display");
+		final FLEFModel model = convert();
+		final List<FLEFRecord> individuals = model.getRecordsByType("individual");
+		final FLEFRecord event = marriageEvent(model);
+
+		final RelationshipRecordDialog dialog = RelationshipRecordDialog.createNew(null, model)
+			.withParticipants(individuals.get(0), individuals.get(1), "civil_spouse")
+			.withEvidenceOf(event, false);
+		dialog.save();
+
+		final FLEFRecord relationship = relationships(model).getFirst();
+		Assertions.assertNull(FLEFRecordHelper.findChild(relationship, "valid_from"));
+		Assertions.assertEquals("S1", FLEFRecordHelper.getChildValue(relationship, "source.source"));
+	}
+
+	@Test
+	void theGenericSpouseCanBeSavedFromTheEditor() throws IOException{
+		Assumptions.assumeFalse(GraphicsEnvironment.isHeadless(), "The editor needs a display");
+		final FLEFModel model = convert();
+		final List<FLEFRecord> individuals = model.getRecordsByType("individual");
+
+		//the type an import gives to a marriage that says nothing more is offered by the editor, so it is not lost when saving
+		final RelationshipRecordDialog dialog = RelationshipRecordDialog.createNew(null, model)
+			.withParticipants(individuals.get(0), individuals.get(1), "spouse");
+		dialog.save();
+
+		Assertions.assertTrue(dialog.isSaved());
+		Assertions.assertEquals("spouse", FLEFRecordHelper.getChildValue(relationships(model).getFirst(), "type"));
+	}
+
+	@Test
+	void theSuggestedTypeIsChosenInTheEditorOfTheRelationshipButNothingChangesUntilItIsSaved() throws IOException{
+		Assumptions.assumeFalse(GraphicsEnvironment.isHeadless(), "The editor needs a display");
+		final FLEFModel model = convert();
+		final List<FLEFRecord> individuals = model.getRecordsByType("individual");
+		final RelationshipRecordDialog creation = RelationshipRecordDialog.createNew(null, model)
+			.withParticipants(individuals.get(0), individuals.get(1), "spouse");
+		creation.save();
+		final FLEFRecord relationship = relationships(model).getFirst();
+
+		//what the "Change type" action does, but for showing the editor
+		final RelationshipRecordDialog dialog = RelationshipRecordDialog.createEdit(null, model, relationship)
+			.withType("civil_spouse");
+		Assertions.assertEquals("spouse", FLEFRecordHelper.getChildValue(relationship, "type"));
+		dialog.save();
+
+		Assertions.assertEquals("civil_spouse", FLEFRecordHelper.getChildValue(relationship, "type"));
+	}
+
+	@Test
+	void aSuggestedTypeThatTheEditorDoesNotOfferForTheParticipantsIsNotChosen() throws IOException{
+		Assumptions.assumeFalse(GraphicsEnvironment.isHeadless(), "The editor needs a display");
+		final FLEFModel model = convert();
+		final List<FLEFRecord> individuals = model.getRecordsByType("individual");
+		final RelationshipRecordDialog creation = RelationshipRecordDialog.createNew(null, model)
+			.withParticipants(individuals.get(0), individuals.get(1), "spouse");
+		creation.save();
+		final FLEFRecord relationship = relationships(model).getFirst();
+
+		final RelationshipRecordDialog dialog = RelationshipRecordDialog.createEdit(null, model, relationship)
+			.withType("part_of");
+		dialog.save();
+
+		Assertions.assertEquals("spouse", FLEFRecordHelper.getChildValue(relationship, "type"));
+	}
+
 	@Test
 	void cancellingTheDraftLeavesTheModelAsItWas() throws IOException{
 		Assumptions.assumeFalse(GraphicsEnvironment.isHeadless(), "The editor needs a display");

@@ -44,6 +44,7 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.RowFilter;
+import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.table.AbstractTableModel;
@@ -53,12 +54,16 @@ import javax.swing.text.Document;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 
 /**
@@ -72,7 +77,10 @@ import java.util.Set;
  */
 public final class EventTypesDialog extends JDialog{
 
-	private final static Set<String> EVENT_TYPES = Set.of(EventReader.TYPES);
+	//compared without regard to case, like the events of a type are listed
+	private static final Set<String> EVENT_TYPES = Arrays.stream(EventReader.TYPES)
+		.map(type -> type.toLowerCase(Locale.ROOT))
+		.collect(Collectors.toSet());
 
 
 	private final ToolContext context;
@@ -132,6 +140,14 @@ public final class EventTypesDialog extends JDialog{
 		columnModel.getColumn(1).setPreferredWidth(100);
 		columnModel.getColumn(2).setPreferredWidth(100);
 
+		table.addMouseListener(new MouseAdapter(){
+			@Override
+			public void mouseClicked(final MouseEvent e){
+				if(e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e) && table.getSelectedRow() >= 0)
+					showEventsOfSelectedType();
+			}
+		});
+
 		final JScrollPane scroll = new JScrollPane(table);
 		scroll.setBorder(BorderFactory.createTitledBorder(I18N.t("border.event_types")));
 		return scroll;
@@ -149,12 +165,17 @@ public final class EventTypesDialog extends JDialog{
 
 
 	private void reload(){
+		//"Birth" and "birth" are the same type: counted together, shown as first written
+		final Map<String, String> labels = new LinkedHashMap<>();
 		final Map<String, Integer> counts = new LinkedHashMap<>();
 
 		// Pre-populate with the declared types so the user sees them even
 		// when unused.
-		for(final String declared : EventReader.TYPES)
-			counts.put(declared, 0);
+		for(final String declared : EventReader.TYPES){
+			final String key = declared.toLowerCase(Locale.ROOT);
+			labels.put(key, declared);
+			counts.put(key, 0);
+		}
 
 		// Count the events by type. Custom types appear here for the
 		// first time.
@@ -163,12 +184,14 @@ public final class EventTypesDialog extends JDialog{
 			final String type = EventHelper.eventType(event);
 			if(StringUtils.isEmpty(type))
 				continue;
-			counts.merge(type, 1, Integer::sum);
+			final String key = type.toLowerCase(Locale.ROOT);
+			labels.putIfAbsent(key, type);
+			counts.merge(key, 1, Integer::sum);
 		}
 
 		final List<TypeRow> rows = new ArrayList<>();
 		for(final Map.Entry<String, Integer> entry : counts.entrySet())
-			rows.add(new TypeRow(entry.getKey(), entry.getValue(), EVENT_TYPES.contains(entry.getKey())));
+			rows.add(new TypeRow(labels.get(entry.getKey()), entry.getValue(), EVENT_TYPES.contains(entry.getKey())));
 		tableModel.setRows(rows);
 		updateStatus(rows.size());
 	}
@@ -210,7 +233,7 @@ public final class EventTypesDialog extends JDialog{
 	}
 
 	private void updateStatus(final int count){
-		statusLabel.setText(count + (count == 1? " type": " types"));
+		statusLabel.setText(I18N.tf("status.event_types", count));
 	}
 
 
@@ -219,7 +242,7 @@ public final class EventTypesDialog extends JDialog{
 
 	private static final class TypeTableModel extends AbstractTableModel{
 
-		private static final String[] COLUMNS = {"Type", "Events", "Declared"};
+		private static final String[] COLUMNS = {I18N.t("column.type"), I18N.t("column.events"), I18N.t("column.declared")};
 
 		private final List<TypeRow> rows = new ArrayList<>();
 
@@ -243,7 +266,7 @@ public final class EventTypesDialog extends JDialog{
 			return switch(columnIndex){
 				case 0 -> row.type();
 				case 1 -> row.eventCount();
-				case 2 -> row.declared()? "yes": "custom";
+				case 2 -> I18N.t(row.declared()? "text.event_type.declared": "text.event_type.custom");
 				default -> StringUtils.EMPTY;
 			};
 		}

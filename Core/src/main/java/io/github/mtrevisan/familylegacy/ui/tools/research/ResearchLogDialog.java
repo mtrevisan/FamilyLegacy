@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchActivityReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.research.ResearchHelper;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolDialogs;
@@ -62,10 +63,9 @@ import java.util.Map;
 /**
  * Chronological view of every research activity.
  * <p>
- * Unlike the activity management dialog, which is designed for editing,
- * this view is read-only and ordered by the activity's creation date
- * when one is available. Activities without a date are placed at the
- * end, in a stable order, so nothing is silently dropped.
+ * Unlike the activity management dialog, this view is ordered by the activity's creation date (the oldest first), as a log is
+ * read. Activities without a date are placed at the end, in a stable order, so nothing is silently dropped. A double-click (or
+ * "Open record") opens the activity; the log is made again after it has been edited.
  * <p>
  * The question titles are resolved through a precomputed index, and the
  * activities are sorted with a comparator that does not re-query the
@@ -78,6 +78,7 @@ public final class ResearchLogDialog extends JDialog{
 	private final JTable table = new JTable(tableModel);
 	private final JTextField searchField = new JTextField(24);
 	private final JLabel statusLabel = new JLabel(StringUtils.SPACE);
+	private final JButton openRecord = new JButton(I18N.t("button.open_record"));
 
 
 	public ResearchLogDialog(final ToolContext context){
@@ -130,12 +131,22 @@ public final class ResearchLogDialog extends JDialog{
 		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		table.setRowHeight(22);
 		table.setAutoCreateRowSorter(true);
+		table.addMouseListener(new java.awt.event.MouseAdapter(){
+			@Override
+			public void mouseClicked(final java.awt.event.MouseEvent e){
+				if(e.getClickCount() == 2)
+					openSelected();
+			}
+		});
+		table.getSelectionModel()
+			.addListSelectionListener(e -> openRecord.setEnabled(table.getSelectedRow() >= 0));
 		final TableColumnModel columnModel = table.getColumnModel();
-		columnModel.getColumn(0).setPreferredWidth(240);
-		columnModel.getColumn(1).setPreferredWidth(110);
-		columnModel.getColumn(2).setPreferredWidth(110);
-		columnModel.getColumn(3).setPreferredWidth(320);
-		columnModel.getColumn(4).setPreferredWidth(120);
+		columnModel.getColumn(0).setPreferredWidth(90);
+		columnModel.getColumn(1).setPreferredWidth(230);
+		columnModel.getColumn(2).setPreferredWidth(100);
+		columnModel.getColumn(3).setPreferredWidth(100);
+		columnModel.getColumn(4).setPreferredWidth(300);
+		columnModel.getColumn(5).setPreferredWidth(120);
 
 		final JScrollPane scroll = new JScrollPane(table);
 		scroll.setBorder(BorderFactory.createTitledBorder(I18N.t("border.research_log")));
@@ -145,7 +156,10 @@ public final class ResearchLogDialog extends JDialog{
 	private JPanel createFooter(){
 		final JPanel footer = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 		footer.setBorder(BorderFactory.createEmptyBorder(2, 6, 6, 6));
+		openRecord.setEnabled(false);
+		openRecord.addActionListener(e -> openSelected());
 		footer.add(statusLabel);
+		footer.add(openRecord);
 		final JButton close = new JButton(I18N.t("button.close"));
 		close.addActionListener(e -> dispose());
 		footer.add(close);
@@ -161,36 +175,47 @@ public final class ResearchLogDialog extends JDialog{
 		for(final FLEFRecord activity : ResearchHelper.listActivities(model)){
 			final String questionId = ResearchHelper.firstTextValue(activity, ResearchActivityReader.TAG_QUESTION);
 			final FLEFRecord q = (questionId != null? questionsById.get(questionId): null);
-			rows.add(new LogRow(
+			rows.add(new LogRow(activity.getId(), creationDate(activity),
 				q != null? ResearchHelper.questionTitle(q): questionId,
-				ResearchHelper.activityType(activity),
-				ResearchHelper.status(activity),
+				label("type", ResearchHelper.activityType(activity)),
+				label("status", ResearchHelper.status(activity)),
 				ResearchHelper.action(activity),
 				ResearchHelper.activityResult(activity)
 			));
 		}
 
-		// Stable sort: by status first (in_progress before planned before
-		// completed before abandoned), then by question title. The order
-		// is deterministic and does not require a date.
+		//chronological, the oldest first; the undated ones last, by identifier (the sort is stable, so the order is always the same)
 		rows.sort(Comparator
-			.comparingInt((LogRow r) -> statusOrder(r.status()))
-			.thenComparing(r -> r.question() != null? r.question(): StringUtils.EMPTY));
+			.comparing((LogRow r) -> r.date() == null, Boolean::compare)
+			.thenComparing(r -> r.date() != null? r.date(): StringUtils.EMPTY)
+			.thenComparing(LogRow::id));
 
 		tableModel.setRows(rows);
 		updateStatus(rows.size());
 	}
 
-	private static int statusOrder(final String status){
-		if(status == null)
-			return 4;
-		return switch(status.toLowerCase(Locale.ROOT)){
-			case "in_progress" -> 0;
-			case "planned" -> 1;
-			case "completed" -> 2;
-			case "abandoned" -> 3;
-			default -> 4;
-		};
+	/** The date the activity was created ({@code audit.creation.date}), or {@code null}. */
+	private static String creationDate(final FLEFRecord activity){
+		final FLEFRecord audit = FLEFRecordHelper.findChild(activity, "audit");
+		final FLEFRecord creation = (audit != null? FLEFRecordHelper.findChild(audit, "creation"): null);
+		final String date = (creation != null? ResearchHelper.firstTextValue(creation, "date"): null);
+		return (StringUtils.isNotBlank(date)? date: null);
+	}
+
+	/** The value as the user reads it ("in progress"), not as it is written in the file. */
+	private static String label(final String kind, final String value){
+		return (StringUtils.isBlank(value)? value: I18N.t("enum.research_activity." + kind + "." + value, value));
+	}
+
+	private void openSelected(){
+		final int selected = table.getSelectedRow();
+		if(selected < 0)
+			return;
+
+		final LogRow row = tableModel.getRow(table.convertRowIndexToModel(selected));
+		ToolDialogs.openRecordEditor(this, context.model(), context.model().getRecordById(row.id()));
+
+		reload();
 	}
 
 	private void applyFilter(){
@@ -207,7 +232,8 @@ public final class ResearchLogDialog extends JDialog{
 				@Override
 				public boolean include(final Entry<? extends LogTableModel, ? extends Integer> entry){
 					final LogRow row = tableModel.getRow(entry.getIdentifier());
-					return contains(row.question(), needle)
+					return contains(row.date(), needle)
+						|| contains(row.question(), needle)
 						|| contains(row.activityType(), needle)
 						|| contains(row.status(), needle)
 						|| contains(row.action(), needle)
@@ -223,17 +249,17 @@ public final class ResearchLogDialog extends JDialog{
 	}
 
 	private void updateStatus(final int count){
-		statusLabel.setText(count + (count == 1? " entry": " entries"));
+		statusLabel.setText(I18N.tf("text.research_log.entries", count));
 	}
 
 
-	private record LogRow(String question, String activityType, String status,
-								 String action, String result){}
+	private record LogRow(String id, String date, String question, String activityType, String status, String action, String result){}
 
 
 	private static final class LogTableModel extends AbstractTableModel{
 
-		private static final String[] COLUMNS = {"Question", "Type", "Status", "Action", "Result"};
+		private static final String[] COLUMNS = {I18N.t("column.date"), I18N.t("column.question"), I18N.t("column.type"), I18N.t("column.status"), I18N.t("column.action"),
+			I18N.t("column.result")};
 
 		private final List<LogRow> rows = new ArrayList<>();
 
@@ -255,11 +281,12 @@ public final class ResearchLogDialog extends JDialog{
 		public Object getValueAt(final int rowIndex, final int columnIndex){
 			final LogRow row = rows.get(rowIndex);
 			return switch(columnIndex){
-				case 0 -> row.question();
-				case 1 -> row.activityType();
-				case 2 -> row.status();
-				case 3 -> row.action();
-				case 4 -> row.result();
+				case 0 -> row.date();
+				case 1 -> row.question();
+				case 2 -> row.activityType();
+				case 3 -> row.status();
+				case 4 -> row.action();
+				case 5 -> row.result();
 				default -> StringUtils.EMPTY;
 			};
 		}

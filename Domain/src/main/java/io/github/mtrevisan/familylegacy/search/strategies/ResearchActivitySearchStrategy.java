@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.RecordDisplay;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchActivityReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.research.ResearchSummary;
 import io.github.mtrevisan.familylegacy.search.SearchCriteria;
 import io.github.mtrevisan.familylegacy.search.SearchMode;
 import io.github.mtrevisan.familylegacy.search.SearchStrategy;
@@ -121,7 +122,8 @@ public class ResearchActivitySearchStrategy implements SearchStrategy{
 		if(StringUtils.isNotEmpty(result))
 			details.add(I18N.t("dialog.research_activity.result") + ": " + result);
 
-		return baseDisplayText + details;
+		final String question = ResearchSummary.questionOf(record, model);
+		return baseDisplayText + details + (question != null? " \u2013 " + I18N.l("text.research.question") + " " + question: StringUtils.EMPTY);
 	}
 
 }

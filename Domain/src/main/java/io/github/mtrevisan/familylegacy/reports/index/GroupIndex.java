@@ -75,11 +75,11 @@ public final class GroupIndex{
 			final String objectGroup = FLEFRecordHelper.getChildValue(relationship, RelationshipReader.TAG_TARGET + DOT + GroupReader.TYPE);
 			final String subjectGroup = FLEFRecordHelper.getChildValue(relationship, RelationshipReader.TAG_SUBJECT + DOT + GroupReader.TYPE);
 
-			if("group_member".equalsIgnoreCase(type) && objectGroup != null){
+			if(RelationshipReader.ENUM_TYPE_GROUP_MEMBER.equalsIgnoreCase(type) && objectGroup != null){
 				groupToMembersMap.computeIfAbsent(objectGroup, k -> new ArrayList<>())
 					.add(relationship);
 			}
-			else if("part_of".equalsIgnoreCase(type) && subjectGroup != null && objectGroup != null){
+			else if(RelationshipReader.ENUM_TYPE_PART_OF.equalsIgnoreCase(type) && subjectGroup != null && objectGroup != null){
 				groupToParentGroupsMap.computeIfAbsent(subjectGroup, k -> new ArrayList<>())
 					.add(relationship);
 				groupToChildGroupsMap.computeIfAbsent(objectGroup, k -> new ArrayList<>())

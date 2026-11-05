@@ -4,7 +4,7 @@
 
 ## Before you start
 
-- The import replaces the current document. After you confirm, you are asked whether to **save** the open document, **discard** its changes or **cancel** the import, as with New and Open.
+- The import replaces the current document. After you confirm, the changes of the open document are written to its file first, as with New and Open.
 - The original file is never modified. The import never merges into the open document.
 - There is no report at the end of the import: the data that has no counterpart is dropped silently. Some data that cannot be converted is kept as a **note** on the record instead (this page says where). After an import, look at the notes of the people, events and relationships to see what the conversion could not express.
 

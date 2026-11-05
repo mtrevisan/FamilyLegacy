@@ -39,7 +39,7 @@ public final class ResearchProgressOperation implements ToolOperation{
 
 	@Override
 	public boolean isEnabled(final ToolContext context){
-		return (context != null && context.hasModel() && context.hasResearchData());
+		return (context != null && context.hasModel() && context.hasResearchData() && context.hasSelectedEntity());
 	}
 
 	@Override

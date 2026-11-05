@@ -121,37 +121,68 @@ public final class NameReader{
 	public static final String TAG_SOURCE = "source";
 	public static final String TAG_NOTE = "note";
 
+	public static final String ENUM_PERSONAL_TYPE_OFFICIAL = "official";
+	public static final String ENUM_PERSONAL_TYPE_RELIGIOUS = "religious";
+	public static final String ENUM_PERSONAL_TYPE_BIRTH = "birth";
+	public static final String ENUM_PERSONAL_TYPE_MARRIED = "married";
+	public static final String ENUM_PERSONAL_TYPE_MAIDEN = "maiden";
+	public static final String ENUM_PERSONAL_TYPE_DIVORCE = "divorce";
+	public static final String ENUM_PERSONAL_TYPE_ADOPTION = "adoption";
+	public static final String ENUM_PERSONAL_TYPE_FOSTERING = "fostering";
+	public static final String ENUM_PERSONAL_TYPE_LEGAL = "legal";
+	public static final String ENUM_PERSONAL_TYPE_IMMIGRANT = "immigrant";
+	public static final String ENUM_PERSONAL_TYPE_ADAPTED = "adapted";
+	public static final String ENUM_PERSONAL_TYPE_ALIAS = "alias";
+	public static final String ENUM_PERSONAL_TYPE_NICKNAME = "nickname";
+	public static final String ENUM_PERSONAL_TYPE_ARTISTIC = "artistic";
+	public static final String ENUM_PERSONAL_TYPE_PROFESSIONAL = "professional";
+	public static final String ENUM_PERSONAL_TYPE_REGNAL = "regnal";
+	public static final String ENUM_PERSONAL_TYPE_SLAVE_NAME = "slave_name";
 	public static final String[] PERSONAL_TYPES = {
 		// marital status and origins at birth
-		"official", "religious", "birth",
+		ENUM_PERSONAL_TYPE_OFFICIAL, ENUM_PERSONAL_TYPE_RELIGIOUS, ENUM_PERSONAL_TYPE_BIRTH,
 		// changes in marital status and family events
-		"married", "maiden", "divorce", "adoption", "fostering",
+		ENUM_PERSONAL_TYPE_MARRIED, ENUM_PERSONAL_TYPE_MAIDEN, ENUM_PERSONAL_TYPE_DIVORCE, ENUM_PERSONAL_TYPE_ADOPTION, ENUM_PERSONAL_TYPE_FOSTERING,
 		// legal, immigration, and naturalization changes
-		"legal", "immigrant", "adapted",
+		ENUM_PERSONAL_TYPE_LEGAL, ENUM_PERSONAL_TYPE_IMMIGRANT, ENUM_PERSONAL_TYPE_ADAPTED,
 		// informal, stage, and social names
-		"alias", "nickname", "artistic", "professional",
+		ENUM_PERSONAL_TYPE_ALIAS, ENUM_PERSONAL_TYPE_NICKNAME, ENUM_PERSONAL_TYPE_ARTISTIC, ENUM_PERSONAL_TYPE_PROFESSIONAL,
 		// historical and dynastic contexts
-		"regnal", "slave_name"
+		ENUM_PERSONAL_TYPE_REGNAL, ENUM_PERSONAL_TYPE_SLAVE_NAME
 	};
 
 	public static final String ENUM_TYPE_OFFICIAL = "official";
+	public static final String ENUM_TYPE_LEGAL = "legal";
+	public static final String ENUM_TYPE_COLONIAL = "colonial";
+	public static final String ENUM_TYPE_INDIGENOUS = "indigenous";
+	public static final String ENUM_TYPE_TRADITIONAL = "traditional";
+	public static final String ENUM_TYPE_TRANSLATED = "translated";
+	public static final String ENUM_TYPE_TRANSCRIBED = "transcribed";
+	public static final String ENUM_TYPE_HISTORIC = "historic";
+	public static final String ENUM_TYPE_COMMON = "common";
+	public static final String ENUM_TYPE_COLLOQUIAL = "colloquial";
+	public static final String ENUM_TYPE_ABBREVIATED = "abbreviated";
+	public static final String ENUM_TYPE_ACRONYM = "acronym";
+	public static final String ENUM_TYPE_RELIGIOUS = "religious";
+	public static final String ENUM_TYPE_ADMINISTRATIVE = "administrative";
+	public static final String ENUM_TYPE_ARCHIVAL = "archival";
 	public static final String[] TYPES = {
 		// official and legal names
-		ENUM_TYPE_OFFICIAL, "legal",
+		ENUM_TYPE_OFFICIAL, ENUM_TYPE_LEGAL,
 		// historical naming traditions
-		"colonial", "indigenous", "traditional",
+		ENUM_TYPE_COLONIAL, ENUM_TYPE_INDIGENOUS, ENUM_TYPE_TRADITIONAL,
 		// language and localization variants
-		"translated", "transcribed",
+		ENUM_TYPE_TRANSLATED, ENUM_TYPE_TRANSCRIBED,
 		// historical variants
-		"historic",
+		ENUM_TYPE_HISTORIC,
 		// common usage
-		"common", "colloquial",
+		ENUM_TYPE_COMMON, ENUM_TYPE_COLLOQUIAL,
 		// abbreviated forms
-		"abbreviated", "acronym",
+		ENUM_TYPE_ABBREVIATED, ENUM_TYPE_ACRONYM,
 		// religious and ecclesiastical forms
-		"religious",
+		ENUM_TYPE_RELIGIOUS,
 		// administrative and archival forms
-		"administrative", "archival"
+		ENUM_TYPE_ADMINISTRATIVE, ENUM_TYPE_ARCHIVAL
 	};
 
 
@@ -161,19 +192,40 @@ public final class NameReader{
 	public static final String TAG_VALID_FROM = "valid_from";
 	public static final String TAG_VALID_TO = "valid_to";
 
+	public static final String ENUM_PART_TYPE_GIVEN = "given";
+	public static final String ENUM_PART_TYPE_GENERATION = "generation";
+	public static final String ENUM_PART_TYPE_PATRONYMIC = "patronymic";
+	public static final String ENUM_PART_TYPE_MATRONYMIC = "matronymic";
+	public static final String ENUM_PART_TYPE_KUNYA = "kunya";
+	public static final String ENUM_PART_TYPE_FAMILY = "family";
+	public static final String ENUM_PART_TYPE_FAMILY_NICKNAME = "family_nickname";
+	public static final String ENUM_PART_TYPE_LINEAGE = "lineage";
+	public static final String ENUM_PART_TYPE_HOUSE = "house";
+	public static final String ENUM_PART_TYPE_CLAN = "clan";
+	public static final String ENUM_PART_TYPE_TRIBAL = "tribal";
+	public static final String ENUM_PART_TYPE_CASTE = "caste";
+	public static final String ENUM_PART_TYPE_TOPONYMIC = "toponymic";
+	public static final String ENUM_PART_TYPE_TITLE = "title";
+	public static final String ENUM_PART_TYPE_OCCUPATIONAL = "occupational";
+	public static final String ENUM_PART_TYPE_PREFIX = "prefix";
+	public static final String ENUM_PART_TYPE_SUFFIX = "suffix";
+	public static final String ENUM_PART_TYPE_NICKNAME = "nickname";
+	public static final String ENUM_PART_TYPE_REGNAL = "regnal";
+	public static final String ENUM_PART_TYPE_RELIGIOUS = "religious";
+	public static final String ENUM_PART_TYPE_POSTHUMOUS = "posthumous";
 	public static final String[] PART_TYPES = {
-		"given", "generation",
-		"patronymic", "matronymic", "kunya",
-		"family", "family_nickname", "lineage", "house", "clan", "tribal", "caste",
-		"toponymic",
-		"title", "occupational", "prefix", "suffix",
-		"nickname", "regnal", "religious", "posthumous"
+		ENUM_PART_TYPE_GIVEN, ENUM_PART_TYPE_GENERATION,
+		ENUM_PART_TYPE_PATRONYMIC, ENUM_PART_TYPE_MATRONYMIC, ENUM_PART_TYPE_KUNYA,
+		ENUM_PART_TYPE_FAMILY, ENUM_PART_TYPE_FAMILY_NICKNAME, ENUM_PART_TYPE_LINEAGE, ENUM_PART_TYPE_HOUSE, ENUM_PART_TYPE_CLAN, ENUM_PART_TYPE_TRIBAL, ENUM_PART_TYPE_CASTE,
+		ENUM_PART_TYPE_TOPONYMIC,
+		ENUM_PART_TYPE_TITLE, ENUM_PART_TYPE_OCCUPATIONAL, ENUM_PART_TYPE_PREFIX, ENUM_PART_TYPE_SUFFIX,
+		ENUM_PART_TYPE_NICKNAME, ENUM_PART_TYPE_REGNAL, ENUM_PART_TYPE_RELIGIOUS, ENUM_PART_TYPE_POSTHUMOUS
 	};
 
 	public static final Set<String> EXCLUDED_PART_TYPES = Set.of(
-		"family_nickname",
-		"title", "occupational", "prefix", "suffix",
-		"nickname", "regnal", "religious", "posthumous"
+		ENUM_PART_TYPE_FAMILY_NICKNAME,
+		ENUM_PART_TYPE_TITLE, ENUM_PART_TYPE_OCCUPATIONAL, ENUM_PART_TYPE_PREFIX, ENUM_PART_TYPE_SUFFIX,
+		ENUM_PART_TYPE_NICKNAME, ENUM_PART_TYPE_REGNAL, ENUM_PART_TYPE_RELIGIOUS, ENUM_PART_TYPE_POSTHUMOUS
 	);
 
 

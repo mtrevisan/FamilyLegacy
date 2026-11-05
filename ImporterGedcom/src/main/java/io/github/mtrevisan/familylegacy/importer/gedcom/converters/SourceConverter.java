@@ -24,12 +24,10 @@
  */
 package io.github.mtrevisan.familylegacy.importer.gedcom.converters;
 
-import io.github.mtrevisan.familylegacy.importer.gedcom.AuditBuilder;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMHelper;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMMapper;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.importer.gedcom.IDGenerator;
-import io.github.mtrevisan.familylegacy.importer.gedcom.PlaceCache;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
@@ -138,12 +136,12 @@ public class SourceConverter {
 			final String period = GEDCOMHelper.findFirstValue(evenNode, "DATE");
 			final GEDCOMNode placNode = GEDCOMHelper.findFirstChild(evenNode, "PLAC");
 			if(source.getChildren().stream().noneMatch(child -> "date".equals(child.getTag())))
-				GEDCOMHelper.attachDate(source, "date", period);
+				GEDCOMRecordBuilder.attachDate(source, "date", period);
 			else if(period != null)
 				sb.append(", ").append(period);
 			if(placNode != null && StringUtils.isNotBlank(placNode.getValue())){
 				if(source.getChildren().stream().noneMatch(child -> "place".equals(child.getTag())))
-					GEDCOMHelper.attachPlaceCitation(source, model, placNode, null, noteRawMap, placeCache);
+					GEDCOMRecordBuilder.attachPlaceCitation(source, model, placNode, null, noteRawMap, placeCache);
 				else
 					sb.append(", ").append(placNode.getValue().trim());
 			}
@@ -198,23 +196,23 @@ public class SourceConverter {
 
 		// ---- 6. Multimedia (OBJE) ----
 		for(GEDCOMNode multimediaLinkNode : GEDCOMHelper.findChildren(sourNode, "OBJE")){
-			GEDCOMHelper.attachMultimediaLink(source, model, multimediaLinkNode, noteRawMap);
+			GEDCOMRecordBuilder.attachMultimediaLink(source, model, multimediaLinkNode, noteRawMap);
 		}
 
 		// ---- 7. Notes (NOTE, DATA.NOTE, events recorded, TEXT) – inline structs ----
 		for(GEDCOMNode noteNode : GEDCOMHelper.findChildren(sourNode, "NOTE")){
-			GEDCOMHelper.attachNote(source, noteNode, noteRawMap);
+			GEDCOMRecordBuilder.attachNote(source, noteNode, noteRawMap);
 		}
 		for(GEDCOMNode noteNode : GEDCOMHelper.findChildren(dataNode, "NOTE")){
-			GEDCOMHelper.attachNote(source, noteNode, noteRawMap);
+			GEDCOMRecordBuilder.attachNote(source, noteNode, noteRawMap);
 		}
 		if(!eventsRecorded.isEmpty())
-			source.addChild(GEDCOMHelper.createNoteStruct("Events recorded", String.join(StringUtils.LF, eventsRecorded), dataNode));
-		source.addChild(GEDCOMHelper.createNoteStruct("Text from source",
+			source.addChild(GEDCOMRecordBuilder.createNoteStruct("Events recorded", String.join(StringUtils.LF, eventsRecorded), dataNode));
+		source.addChild(GEDCOMRecordBuilder.createNoteStruct("Text from source",
 			GEDCOMHelper.extractFullText(GEDCOMHelper.findFirstChild(sourNode, "TEXT")), sourNode));
 
 		// ---- Privacy (RESN) ----
-		GEDCOMHelper.attachRestriction(source, sourNode);
+		GEDCOMRecordBuilder.attachRestriction(source, sourNode);
 
 		// ---- Audit ----
 		source.addChild(AuditBuilder.build(sourNode));

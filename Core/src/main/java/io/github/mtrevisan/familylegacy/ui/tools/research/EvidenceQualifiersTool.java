@@ -34,6 +34,7 @@ import io.github.mtrevisan.familylegacy.research.ResearchHelper;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolOperation;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -76,14 +77,14 @@ public final class EvidenceQualifiersTool implements ToolOperation{
 		final Map<String, Integer> informationTypes = new LinkedHashMap<>();
 		final Map<String, Integer> evidenceTypes = new LinkedHashMap<>();
 		int withQualifiers = 0;
-		int withoutQualifiers = 0;
+		final List<FLEFRecord> missing = new ArrayList<>();
 
 		for(final String type : SCANNED_TYPES){
 			final List<FLEFRecord> records = PrivacyService.visible(model, model.getRecordsByType(type));
 			for(final FLEFRecord record : records){
 				final FLEFRecord qualifiers = FLEFRecordHelper.findChild(record, TAG_EVIDENCE);
 				if(qualifiers == null){
-					withoutQualifiers ++;
+					missing.add(record);
 					continue;
 				}
 				withQualifiers ++;
@@ -93,8 +94,7 @@ public final class EvidenceQualifiersTool implements ToolOperation{
 			}
 		}
 
-		new EvidenceQualifiersDialog(context.owner(), sourceTypes, informationTypes, evidenceTypes, withQualifiers,
-			withoutQualifiers)
+		new EvidenceQualifiersDialog(context.owner(), model, sourceTypes, informationTypes, evidenceTypes, withQualifiers, missing)
 			.setVisible(true);
 	}
 
@@ -112,7 +112,7 @@ public final class EvidenceQualifiersTool implements ToolOperation{
 	};
 
 	private static void merge(final Map<String, Integer> map, final String value){
-		final String key = (value != null && !value.isBlank()? value: "(not set)");
+		final String key = (value != null && !value.isBlank()? value: I18N.t("text.evidence_qualifiers.not_set"));
 		map.merge(key, 1, Integer::sum);
 	}
 

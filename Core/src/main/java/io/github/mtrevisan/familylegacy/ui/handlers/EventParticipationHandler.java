@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.handlers;
 
+import io.github.mtrevisan.familylegacy.events.EventSummary;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
@@ -97,7 +98,7 @@ public class EventParticipationHandler extends AbstractRecordTypeHandler<RecordD
 			final FLEFRecord eventRecord = model.getRecordById(eventRef);
 			if(eventRecord != null)
 				sb.append(" in ")
-					.append(EventHandler.getInstance().getDisplayText(eventRecord, model));
+					.append(EventSummary.describeWithoutParticipants(eventRecord, model));
 		}
 
 		final String id = record.getId();

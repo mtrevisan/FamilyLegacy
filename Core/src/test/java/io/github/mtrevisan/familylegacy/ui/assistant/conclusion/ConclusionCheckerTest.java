@@ -28,7 +28,7 @@ import io.github.mtrevisan.calendars.CalendarType;
 import io.github.mtrevisan.familylegacy.io.model.readers.SexType;
 import io.github.mtrevisan.familylegacy.ui.assistant.AssistantCategory;
 import io.github.mtrevisan.familylegacy.ui.assistant.Diagnostic;
-import io.github.mtrevisan.familylegacy.ui.assistant.chronology.DateRange;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.DateRange;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -446,8 +446,8 @@ class ConclusionCheckerTest{
 
 	@Test
 	void aDraftSavedAsItIsDoesNotSettleTheConflict(){
-		//the draft has no preferred assertion and the proof status unresearched: until the researcher judges, the conflict is open
-		Assertions.assertEquals(1, twoBirths().conclusion("draft", Set.of("b1", "b2"), null, "unresearched").check().size());
+		//the draft has no preferred assertion and no proof status: until the researcher judges, the conflict is open
+		Assertions.assertEquals(1, twoBirths().conclusion("draft", Set.of("b1", "b2"), null, null).check().size());
 		Assertions.assertEquals(1, new Builder()
 			.person("a", SexType.MALE).person("b", SexType.MALE).hypothesis("h", "a", "b")
 			.check().size());

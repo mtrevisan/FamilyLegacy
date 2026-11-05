@@ -42,6 +42,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.DoubleConsumer;
 import java.util.function.Supplier;
 
 
@@ -152,15 +153,35 @@ public final class ResearchAssistantService{
 	 * @return the findings, the most serious first
 	 */
 	public List<Diagnostic> diagnose(final AssistantContext context){
+		return diagnose(context, fraction -> {});
+	}
+
+	/**
+	 * The same, telling how far it got, so that the user knows when the findings will be there: every provider is an equal share of the
+	 * work, and a provider that can tell how far it is (the one of the identity is the slowest) fills its share little by little. The
+	 * progress never goes back. It is called from the thread that computes, so a listener that touches Swing has to hand over to the
+	 * event dispatch thread.
+	 *
+	 * @param context where the user is
+	 * @param progress told, from time to time, the share of the work done (0 to 1)
+	 * @return the findings, the most serious first
+	 */
+	public List<Diagnostic> diagnose(final AssistantContext context, final DoubleConsumer progress){
 		final List<Diagnostic> result = new ArrayList<>();
+		final int count = diagnosticProviders.size();
+		int done = 0;
+		progress.accept(0.);
 		for(final DiagnosticProvider provider : diagnosticProviders){
+			final int index = done;
 			try{
-				result.addAll(provider.diagnose(context));
+				result.addAll(provider.diagnose(context, fraction -> progress.accept((index + Math.max(0., Math.min(1., fraction))) / count)));
 			}
 			catch(final RuntimeException re){
 				LOGGER.warn("Diagnostic provider {} failed: {}", provider.getClass().getName(), re.toString());
 				LOGGER.debug("Diagnostic provider failure", re);
 			}
+			done ++;
+			progress.accept((double)done / count);
 		}
 		//the most serious first; among the same severity, the ones that matter more (e.g. the more likely duplicates), then by title
 		result.sort(Comparator.comparing(Diagnostic::severity).thenComparing(Diagnostic::rank, Comparator.reverseOrder())

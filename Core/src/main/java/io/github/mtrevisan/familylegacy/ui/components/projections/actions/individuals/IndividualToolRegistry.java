@@ -71,7 +71,8 @@ public final class IndividualToolRegistry{
 		return List.of(
 			new SetAsRootTool(),
 			new KinshipCalculatorTool(repository),
-			new IndividualCareerTool()
+			new IndividualCareerTool(),
+			new ConsanguinityLoopsTool()
 		);
 	}
 

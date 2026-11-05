@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections.temporal;
 
+import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
@@ -583,7 +584,7 @@ public final class TemporalProjectionPanel extends JPanel implements TreeChangeL
 
 		@Override
 		public String getToolTipText(final MouseEvent event){
-			return (findRowEntityAt(event.getY()) != null? "Double-click to edit": null);
+			return (findRowEntityAt(event.getY()) != null? I18N.t("text.tip.edit_double"): null);
 		}
 
 		@Override

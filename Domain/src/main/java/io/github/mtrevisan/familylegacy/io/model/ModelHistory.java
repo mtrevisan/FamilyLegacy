@@ -167,6 +167,46 @@ public final class ModelHistory{
 		saved = capture(model, baseline);
 	}
 
+	/**
+	 * What a write of the model to a file needs: a copy of the model that nobody changes (so that it can be written from a thread other
+	 * than the one that edits), and the mark to give to the history once it is written, so that edits made in the meantime are not
+	 * taken for saved.
+	 */
+	public static final class SaveTicket{
+
+		private final FLEFModel view;
+		private final Snapshot snapshot;
+
+
+		private SaveTicket(final FLEFModel view, final Snapshot snapshot){
+			this.view = view;
+			this.snapshot = snapshot;
+		}
+
+
+		/** @return	The model as it was when the ticket was made, to be only read. */
+		public FLEFModel view(){
+			return view;
+		}
+
+	}
+
+	/**
+	 * Prepares the write of the model as it is now. Call it from the thread that edits the model; give the ticket back to
+	 * {@link #markSaved(SaveTicket)} when the file has been written.
+	 *
+	 * @return	The ticket.
+	 */
+	public SaveTicket prepareSave(){
+		final FLEFModel copy = readOnlyView();
+		return new SaveTicket(copy, viewSource);
+	}
+
+	/** Tells that the content the ticket was made of is now on a file (what was changed after it is not). */
+	public void markSaved(final SaveTicket ticket){
+		saved = ticket.snapshot;
+	}
+
 	/** Tells that what is in memory is not on any file (for instance, a backup that has just been restored). */
 	public void markUnsaved(){
 		saved = null;

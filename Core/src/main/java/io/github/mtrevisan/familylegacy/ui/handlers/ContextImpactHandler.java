@@ -78,14 +78,14 @@ public class ContextImpactHandler extends AbstractRecordTypeHandler<RecordDialog
 		final FLEFRecord context = FLEFRecordHelper.findChild(record, ContextImpactReader.TAG_CONTEXT);
 		String contextDisplay = extractReferenceDisplay(record, model, context);
 		if(StringUtils.isEmpty(contextDisplay))
-			contextDisplay = "Unknown Context";
+			contextDisplay = I18N.t("text.context_impact.unknown_context");
 		sb.append(contextDisplay);
 
 		// Extract the target reference (oneof: many possible types)
 		final FLEFRecord target = FLEFRecordHelper.findChild(record, ContextImpactReader.TAG_TARGET);
 		String targetDisplay = extractReferenceDisplay(record, model, target);
 		if(StringUtils.isEmpty(targetDisplay))
-			targetDisplay = "Unknown Target";
+			targetDisplay = I18N.t("text.context_impact.unknown_target");
 		sb.append(" → ")
 			.append(targetDisplay);
 

@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchActivityReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.research.ResearchSummary;
 import io.github.mtrevisan.familylegacy.ui.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
@@ -84,7 +85,8 @@ public class ResearchActivityHandler extends AbstractRecordTypeHandler<RecordDia
 			String display = GUIHelper.limitTextLength(StringUtils.replaceChars(action, '\n', '|'));
 			if(StringUtils.isNotEmpty(type))
 				display += " [" + type + "]";
-			return display;
+			final String question = ResearchSummary.questionOf(record, model);
+			return (question != null? display + " \u2013 " + question: display);
 		}
 		return "[" + record.getId() + "]";
 	}

@@ -85,24 +85,52 @@ public final class CulturalNormReader{
 
 	public static final String TAG_PLACE_EVIDENCE = FLEFRecordHelper.composePath(TAG_PLACE, TAG_EVIDENCE);
 
+	public static final String ENUM_TYPE_AGE_OF_MAJORITY = "age_of_majority";
+	public static final String ENUM_TYPE_MARRIAGE_MINIMUM_AGE = "marriage_minimum_age";
+	public static final String ENUM_TYPE_BAPTISM_AGE = "baptism_age";
+	public static final String ENUM_TYPE_CONFIRMATION_AGE = "confirmation_age";
+	public static final String ENUM_TYPE_MILITARY_SERVICE_AGE = "military_service_age";
+	public static final String ENUM_TYPE_RETIREMENT_AGE = "retirement_age";
+	public static final String ENUM_TYPE_NAMING_CONVENTION = "naming_convention";
+	public static final String ENUM_TYPE_SURNAME_TRANSMISSION = "surname_transmission";
+	public static final String ENUM_TYPE_PATRONYMIC_SYSTEM = "patronymic_system";
+	public static final String ENUM_TYPE_MATRONYMIC_SYSTEM = "matronymic_system";
+	public static final String ENUM_TYPE_TITLE_USAGE = "title_usage";
+	public static final String ENUM_TYPE_INHERITANCE_RULE = "inheritance_rule";
+	public static final String ENUM_TYPE_SUCCESSION_RULE = "succession_rule";
+	public static final String ENUM_TYPE_DOWRY_PRACTICE = "dowry_practice";
+	public static final String ENUM_TYPE_GUARDIANSHIP_RULE = "guardianship_rule";
+	public static final String ENUM_TYPE_ADOPTION_PRACTICE = "adoption_practice";
+	public static final String ENUM_TYPE_MARRIAGE_PRACTICE = "marriage_practice";
+	public static final String ENUM_TYPE_MARRIAGE_PROHIBITED_DEGREE = "marriage_prohibited_degree";
+	public static final String ENUM_TYPE_WIDOWHOOD_RULE = "widowhood_rule";
+	public static final String ENUM_TYPE_RESIDENCE_PATTERN = "residence_pattern";
+	public static final String ENUM_TYPE_HOUSEHOLD_STRUCTURE = "household_structure";
+	public static final String ENUM_TYPE_SOCIAL_CLASSIFICATION = "social_classification";
+	public static final String ENUM_TYPE_RELIGIOUS_PRACTICE = "religious_practice";
+	public static final String ENUM_TYPE_BURIAL_PRACTICE = "burial_practice";
+	public static final String ENUM_TYPE_CITIZENSHIP_RULE = "citizenship_rule";
+	public static final String ENUM_TYPE_LEGITIMACY_RULE = "legitimacy_rule";
+	public static final String ENUM_TYPE_AGE_DIFFERENCE_CONVENTION = "age_difference_convention";
+	public static final String ENUM_TYPE_GENERATIONAL_INTERVAL = "generational_interval";
 	public static final String[] TYPES = new String[]{
 		// Lifecycle and age-related customs:
-		"age_of_majority", "marriage_minimum_age", "baptism_age", "confirmation_age", "military_service_age",
-		"retirement_age",
+		ENUM_TYPE_AGE_OF_MAJORITY, ENUM_TYPE_MARRIAGE_MINIMUM_AGE, ENUM_TYPE_BAPTISM_AGE, ENUM_TYPE_CONFIRMATION_AGE, ENUM_TYPE_MILITARY_SERVICE_AGE,
+		ENUM_TYPE_RETIREMENT_AGE,
 		// Naming practices:
-		"naming_convention", "surname_transmission", "patronymic_system", "matronymic_system", "title_usage",
+		ENUM_TYPE_NAMING_CONVENTION, ENUM_TYPE_SURNAME_TRANSMISSION, ENUM_TYPE_PATRONYMIC_SYSTEM, ENUM_TYPE_MATRONYMIC_SYSTEM, ENUM_TYPE_TITLE_USAGE,
 		// Family and household customs:
-		"inheritance_rule", "succession_rule", "dowry_practice", "guardianship_rule", "adoption_practice",
+		ENUM_TYPE_INHERITANCE_RULE, ENUM_TYPE_SUCCESSION_RULE, ENUM_TYPE_DOWRY_PRACTICE, ENUM_TYPE_GUARDIANSHIP_RULE, ENUM_TYPE_ADOPTION_PRACTICE,
 		// Marriage customs:
-		"marriage_practice", "marriage_prohibited_degree", "widowhood_rule",
+		ENUM_TYPE_MARRIAGE_PRACTICE, ENUM_TYPE_MARRIAGE_PROHIBITED_DEGREE, ENUM_TYPE_WIDOWHOOD_RULE,
 		// Residence and social organization:
-		"residence_pattern", "household_structure", "social_classification",
+		ENUM_TYPE_RESIDENCE_PATTERN, ENUM_TYPE_HOUSEHOLD_STRUCTURE, ENUM_TYPE_SOCIAL_CLASSIFICATION,
 		// Religious and ecclesiastical customs:
-		"religious_practice", "burial_practice",
+		ENUM_TYPE_RELIGIOUS_PRACTICE, ENUM_TYPE_BURIAL_PRACTICE,
 		// Legal and citizenship rules:
-		"citizenship_rule", "legitimacy_rule",
+		ENUM_TYPE_CITIZENSHIP_RULE, ENUM_TYPE_LEGITIMACY_RULE,
 		// Genealogical inference rules:
-		"age_difference_convention", "generational_interval"
+		ENUM_TYPE_AGE_DIFFERENCE_CONVENTION, ENUM_TYPE_GENERATIONAL_INTERVAL
 	};
 
 

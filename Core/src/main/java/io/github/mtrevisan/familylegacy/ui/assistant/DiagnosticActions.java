@@ -37,13 +37,14 @@ public final class DiagnosticActions{
 	/**
 	 * The actions of a finding: the one it carries (e.g. start the draft of a conclusion), the other ones it carries (e.g. compare
 	 * two records), then the opening of its records, which every finding about records has. The first one is run with Enter, the
-	 * second one with Ctrl+Enter, the third one with Ctrl+Shift+Enter.
+	 * second one with Ctrl+Enter, the third one with Ctrl+Shift+Enter, the fourth one with Ctrl+Alt+Enter (a finding has no more than
+	 * four actions).
 	 *
 	 * @param diagnostic the finding
 	 * @return the actions, the most relevant first (empty if there is nothing to do)
 	 */
 	public static List<DiagnosticAction> of(final Diagnostic diagnostic){
-		final List<DiagnosticAction> actions = new ArrayList<>(3);
+		final List<DiagnosticAction> actions = new ArrayList<>(4);
 		if(diagnostic.action() != null)
 			actions.add(diagnostic.action());
 		actions.addAll(diagnostic.alternatives());

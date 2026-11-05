@@ -24,14 +24,12 @@
  */
 package io.github.mtrevisan.familylegacy.ui.handlers;
 
+import io.github.mtrevisan.familylegacy.events.EventSummary;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.date.DateReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.ui.api.RecordDialog;
-import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Window;
 
@@ -73,27 +71,8 @@ public class EventHandler extends AbstractRecordTypeHandler<RecordDialog>{
 
 	@Override
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
-		final String type = EventReader.extractType(record);
-		final FLEFRecord date = FLEFRecordHelper.findChild(record, EventReader.TAG_DATE);
-		final String rawDate = DateReader.extractPrettyPrintDate(date);
-		final String id = record.getId();
-		final StringBuilder sb = new StringBuilder();
-		if(type != null)
-			sb.append(type);
-		if(StringUtils.isNotEmpty(rawDate)){
-			if(!sb.isEmpty())
-				sb.append(StringUtils.SPACE);
-			sb.append('(')
-				.append(rawDate)
-				.append(')');
-		}
-		if(sb.isEmpty())
-			sb.append("Event");
-		sb.append(StringUtils.SPACE)
-			.append('[')
-			.append(id)
-			.append(']');
-		return sb.toString();
+		//type, date, complete place and participants: the text is also the one the search matches, so an event is found by any of them
+		return EventSummary.describe(record, model);
 	}
 
 	@Override

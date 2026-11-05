@@ -25,12 +25,15 @@
 package io.github.mtrevisan.familylegacy.quality;
 
 import io.github.mtrevisan.calendars.CalendarType;
+import io.github.mtrevisan.familylegacy.i18n.I18N;
+import io.github.mtrevisan.familylegacy.io.merger.TextSimilarity;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IdentityHypothesisReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualAttributeReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateNormalizer;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.NormalizedDate;
@@ -38,6 +41,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.date.TemporalSpan;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
+import io.github.mtrevisan.familylegacy.sources.SourceHelper;
 import org.apache.commons.lang3.StringUtils;
 
 import java.text.Normalizer;
@@ -53,6 +57,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.DoubleConsumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -93,9 +98,20 @@ public final class DuplicateFinderService{
 	// Feature weights. They sum to more than 100 on purpose, because a
 	// strong match on one dimension should be able to overcome a weak
 	// match on another. The threshold is calibrated against real data.
+	/** The share of the work that the description of the individuals is: the comparison of the pairs is the rest. */
+	private static final double PROFILES_SHARE = 0.3;
+	/** The comparisons between two reports of the progress. */
+	private static final int PROGRESS_PAIRS = 2_000;
+	/** The individuals described between two reports of the progress. */
+	private static final int PROGRESS_INDIVIDUALS = 200;
+
 	private static final int W_NAME_FULL = 40;
 	private static final int W_NAME_PARTIAL = 25;
 	private static final int W_NAME_TOKEN = 10;
+	// the names that agree by the similarity of the letters (see NameSimilarity): less than the same names
+	private static final int W_NAME_SIMILAR = 20;
+	private static final int W_NAME_INITIAL = 15;
+	private static final int W_NAME_TOKEN_SIMILAR = 6;
 	private static final int W_PARENTS_ALL = 20;
 	private static final int W_PARENTS_SOME = 12;
 	private static final int W_CHILDREN_SOME = 12;
@@ -107,6 +123,15 @@ public final class DuplicateFinderService{
 	private static final int W_ATTRIBUTE_OVERLAP = 5;
 	private static final int W_SOURCE_OVERLAP = 5;
 	private static final int W_PLACE_OVERLAP = 5;
+	// Second pass: the same facts compared by name, for the records that do not share an identifier (a tree imported twice has no
+	// parent, spouse, place in common, only ones with the same name). Smaller than the weights of the shared records.
+	private static final int W_PARENTS_NAMES = 12;
+	private static final int W_SPOUSES_NAMES = 8;
+	private static final int W_PLACES_NAMES = 4;
+	private static final int W_OCCUPATIONS = 4;
+	private static final int W_CHILDREN_NAMES = 8;
+	private static final int W_ATTRIBUTE_TEXTS = 3;
+	private static final int W_SOURCE_TITLES = 3;
 
 
 	/** Tunable parameters of the search. */
@@ -135,7 +160,21 @@ public final class DuplicateFinderService{
 		Set<String> eventIds,
 		Set<String> attributeKeys,
 		Set<String> sourceIds,
-		Set<String> placeIds){}
+		Set<String> placeIds,
+		/** The names of the parents (normalized), to compare the parents that do not share an identifier. */
+		Set<String> parentNames,
+		/** The names of the spouses (normalized). */
+		Set<String> spouseNames,
+		/** The names of the places of the events (normalized). */
+		Set<String> placeNames,
+		/** The occupations (normalized). */
+		Set<String> occupations,
+		/** The names of the children (normalized). */
+		Set<String> childNames,
+		/** The text of the attributes other than the occupations (residence, religion, ...), by type (normalized). */
+		Map<String, Set<String>> attributeTexts,
+		/** The titles of the cited sources (normalized). */
+		Set<String> sourceTitles){}
 
 	/** One matched feature, with its contribution to the total score. */
 	public record FeatureMatch(String feature, int score, String detail){}
@@ -161,9 +200,30 @@ public final class DuplicateFinderService{
 	 *         {@code null}
 	 */
 	public static List<Candidate> find(final FLEFModel model, final Options options){
-		final Map<String, Profile> profiles = buildProfiles(model);
-		if(profiles.size() < 2)
+		return find(model, options, fraction -> {});
+	}
+
+	/**
+	 * Finds duplicate candidates in the model, telling how far it got, so that the user knows when the data will be there.
+	 * <p>
+	 * The progress is the share of the work done, from 0 to 1, and it never goes back: the first third is the description of each
+	 * individual (the cost is the number of individuals), the rest is the comparison of the pairs that share a block (the cost is the
+	 * number of those pairs, known before the first one is compared). It is called from the thread that runs the search, so a listener
+	 * that touches Swing has to hand over to the event dispatch thread. If that thread is interrupted the search stops and gives
+	 * nothing: a newer search replaces it.
+	 * </p>
+	 *
+	 * @param model    the model; must not be {@code null}
+	 * @param options  the search parameters; must not be {@code null}
+	 * @param progress told, from time to time, the share of the work done (0 to 1); must not be {@code null}
+	 * @return the candidate list, sorted by descending score; never {@code null}
+	 */
+	public static List<Candidate> find(final FLEFModel model, final Options options, final DoubleConsumer progress){
+		final Map<String, Profile> profiles = buildProfiles(model, fraction -> progress.accept(fraction * PROFILES_SHARE));
+		if(profiles.size() < 2){
+			progress.accept(1.);
 			return List.of();
+		}
 
 		final Set<String> existingHypotheses = (options.skipExistingHypotheses
 			? existingHypothesisPairs(model)
@@ -173,7 +233,17 @@ public final class DuplicateFinderService{
 		final Set<String> seenPairs = new HashSet<>();
 		final List<Candidate> candidates = new ArrayList<>();
 
+		long totalPairs = 0L;
+		for(final Set<Profile> blockSet : blocks.values())
+			totalPairs += (long)blockSet.size() * (blockSet.size() - 1) / 2;
+		long donePairs = 0L;
+		long reportedPairs = 0L;
+		progress.accept(PROFILES_SHARE);
+
 		for(final Set<Profile> blockSet : blocks.values()){
+			if(Thread.currentThread().isInterrupted())
+				return List.of();
+
 			// Materialize the block as a list for indexed iteration. The set
 			// has already removed duplicate entries of the same profile, but
 			// the explicit identity guard below is kept as a second line of
@@ -202,9 +272,19 @@ public final class DuplicateFinderService{
 					if(c != null)
 						candidates.add(c);
 				}
+
+				//the pairs of this row are done
+				donePairs += size - 1 - i;
+				if(donePairs - reportedPairs >= PROGRESS_PAIRS || i == size - 1){
+					reportedPairs = donePairs;
+					progress.accept(PROFILES_SHARE + (1. - PROFILES_SHARE) * donePairs / Math.max(1L, totalPairs));
+				}
+				if((i & 63) == 0 && Thread.currentThread().isInterrupted())
+					return List.of();
 			}
 		}
 
+		progress.accept(1.);
 		candidates.sort(Comparator
 			.comparingInt(Candidate::score).reversed()
 			.thenComparing(c -> c.left().id())
@@ -220,7 +300,7 @@ public final class DuplicateFinderService{
 	 *                          Profile building
 	 * ====================================================================== */
 
-	private static Map<String, Profile> buildProfiles(final FLEFModel model){
+	private static Map<String, Profile> buildProfiles(final FLEFModel model, final DoubleConsumer progress){
 		final List<FLEFRecord> individuals = PrivacyService.visible(model, model.getRecordsByType(IndividualReader.TYPE));
 
 		// Index relationships once. Each relationship is stored under
@@ -288,14 +368,49 @@ public final class DuplicateFinderService{
 					.add(child);
 		}
 
+		//the names of the individuals and of the places, to compare by name what has no identifier in common
+		final Map<String, Set<String>> individualNames = new HashMap<>();
+		for(final FLEFRecord individual : individuals)
+			if(individual.getId() != null)
+				individualNames.put(individual.getId(), extractNames(individual).fullNameVariants());
+		final Map<String, Set<String>> placeNames = new HashMap<>();
+		for(final FLEFRecord place : PrivacyService.visible(model, model.getRecordsByType(PlaceReader.TYPE)))
+			if(place.getId() != null){
+				final Set<String> names = new LinkedHashSet<>();
+				for(final String name : PlaceReader.extractNames(place)){
+					final String normalized = TextSimilarity.normalize(name);
+					if(!normalized.isEmpty())
+						names.add(normalized);
+				}
+				placeNames.put(place.getId(), names);
+			}
+
+		final Map<String, String> sourceTitles = new HashMap<>();
+		for(final FLEFRecord source : SourceHelper.listAllSources(model))
+			if(source.getId() != null){
+				final String title = TextSimilarity.normalize(SourceHelper.sourceTitle(source));
+				if(!title.isEmpty() && !title.equals(TextSimilarity.normalize(source.getId())))
+					sourceTitles.put(source.getId(), title);
+			}
+
 		final Map<String, Profile> profiles = new LinkedHashMap<>();
+		//the indexes above are a tenth of the description of the individuals, each of these is the rest
+		progress.accept(0.1);
+		int built = 0;
 		for(final FLEFRecord individual : individuals){
 			if(individual.getId() == null)
 				continue;
 			profiles.put(individual.getId(), buildProfile(individual,
 				relationshipsByEndpoint, participationsByIndividual,
-				attributesByIndividual, eventsById, childrenByParent));
+				attributesByIndividual, eventsById, childrenByParent, individualNames, placeNames, sourceTitles));
+			built ++;
+			if(built % PROGRESS_INDIVIDUALS == 0){
+				progress.accept(0.1 + 0.9 * built / individuals.size());
+				if(Thread.currentThread().isInterrupted())
+					return profiles;
+			}
 		}
+		progress.accept(1.);
 		return profiles;
 	}
 
@@ -304,7 +419,10 @@ public final class DuplicateFinderService{
 		final Map<String, List<FLEFRecord>> participationsByIndividual,
 		final Map<String, List<FLEFRecord>> attributesByIndividual,
 		final Map<String, FLEFRecord> eventsById,
-		final Map<String, Set<String>> childrenByParent){
+		final Map<String, Set<String>> childrenByParent,
+		final Map<String, Set<String>> individualNames,
+		final Map<String, Set<String>> placeNamesById,
+		final Map<String, String> sourceTitlesById){
 		final String id = individual.getId();
 		final String sex = FLEFRecordHelper.getChildValue(individual, "sex");
 		final NameTokens names = extractNames(individual);
@@ -364,17 +482,30 @@ public final class DuplicateFinderService{
 				continue;
 			final String type = eventType.toLowerCase(Locale.ROOT);
 			final Integer year = extractYearFromEvent(event);
-			if("birth".equals(type) && birthYear == null)
+			if(EventReader.ENUM_TYPE_BIRTH.equals(type) && birthYear == null)
 				birthYear = year;
-			else if("death".equals(type) && deathYear == null)
+			else if(EventReader.ENUM_TYPE_DEATH.equals(type) && deathYear == null)
 				deathYear = year;
 		}
 
 		// Attributes.
 		final Set<String> attributeKeys = new LinkedHashSet<>();
+		final Set<String> occupations = new LinkedHashSet<>();
+		final Map<String, Set<String>> attributeTexts = new LinkedHashMap<>();
 		for(final FLEFRecord attr : attributesByIndividual.getOrDefault(id, List.of())){
 			final String type = FLEFRecordHelper.getChildValue(attr, "type");
 			final String value = FLEFRecordHelper.getChildValue(attr, "value");
+			if(IndividualAttributeReader.ENUM_TYPE_OCCUPATION.equals(type) && value != null){
+				final String occupation = TextSimilarity.normalize(value);
+				if(!occupation.isEmpty())
+					occupations.add(occupation);
+			}
+			else if(type != null && value != null){
+				final String text = TextSimilarity.normalize(value);
+				if(!text.isEmpty())
+					attributeTexts.computeIfAbsent(type, k -> new LinkedHashSet<>())
+						.add(text);
+			}
 			if(type != null)
 				attributeKeys.add(type + ":" + (value != null? normalize(value): StringUtils.EMPTY));
 		}
@@ -412,7 +543,38 @@ public final class DuplicateFinderService{
 			names.givenTokens, names.familyTokens, names.fullNameVariants,
 			birthYear, deathYear,
 			parents, children, siblings, spouses,
-			eventIds, attributeKeys, sourceIds, placeIds);
+			eventIds, attributeKeys, sourceIds, placeIds,
+			namesOf(parents, individualNames), namesOf(spouses, individualNames), placeNamesOf(placeIds, placeNamesById), occupations,
+			namesOf(children, individualNames), attributeTexts, titlesOf(sourceIds, sourceTitlesById));
+	}
+
+	private static Set<String> namesOf(final Set<String> ids, final Map<String, Set<String>> namesById){
+		final Set<String> names = new LinkedHashSet<>();
+		for(final String id : ids){
+			for(final String name : namesById.getOrDefault(id, Set.of())){
+				final String normalized = TextSimilarity.normalize(name);
+				if(!normalized.isEmpty())
+					names.add(normalized);
+			}
+		}
+		return names;
+	}
+
+	private static Set<String> titlesOf(final Set<String> sourceIds, final Map<String, String> titlesById){
+		final Set<String> titles = new LinkedHashSet<>();
+		for(final String sourceId : sourceIds){
+			final String title = titlesById.get(sourceId);
+			if(title != null)
+				titles.add(title);
+		}
+		return titles;
+	}
+
+	private static Set<String> placeNamesOf(final Set<String> placeIds, final Map<String, Set<String>> namesById){
+		final Set<String> names = new LinkedHashSet<>();
+		for(final String placeId : placeIds)
+			names.addAll(namesById.getOrDefault(placeId, Set.of()));
+		return names;
 	}
 
 
@@ -607,8 +769,22 @@ public final class DuplicateFinderService{
 				blocks.computeIfAbsent("f:" + sex + ":" + prefix, k -> new LinkedHashSet<>())
 					.add(p);
 			}
+			//the spellings that differ in the first letter or in the vowels (Catarina, Katarina) meet by the consonants
+			for(final String name : p.givenTokens())
+				addSkeletonBlock(blocks, "sg:" + sex + ":", name, p);
+			for(final String name : p.familyTokens())
+				addSkeletonBlock(blocks, "sf:" + sex + ":", name, p);
 		}
 		return blocks;
+	}
+
+	private static void addSkeletonBlock(final Map<String, Set<Profile>> blocks, final String prefix, final String name,
+			final Profile profile){
+		final String skeleton = NameSimilarity.skeleton(name);
+		//a skeleton of one or two letters puts together too many names
+		if(skeleton.length() >= 3)
+			blocks.computeIfAbsent(prefix + skeleton.substring(0, 3), k -> new LinkedHashSet<>())
+				.add(profile);
 	}
 
 	private static String pairKey(final String a, final String b){
@@ -671,11 +847,20 @@ public final class DuplicateFinderService{
 				final int c = (common == a.parentIds().size() && common == b.parentIds().size()
 					? W_PARENTS_ALL: W_PARENTS_SOME);
 				score += c;
-				matches.add(new FeatureMatch("Parents", c,
-					common + " shared (" + compact(a.parentIds()) + " / " + compact(b.parentIds()) + ")"));
+				matches.add(new FeatureMatch(I18N.t("text.duplicates.feature.parents"), c,
+					I18N.tf("text.duplicates.detail.parents", common, compact(a.parentIds()), compact(b.parentIds()))));
 			}
-			else
-				differences.add("different parents");
+			else{
+				//no parent in common: two imports of the same tree have parents with the same name, not the same record
+				final String[] pair = agreeingNames(a.parentNames(), b.parentNames(), NameKind.PERSON);
+				if(pair != null){
+					score += W_PARENTS_NAMES;
+					matches.add(new FeatureMatch(I18N.t("text.duplicates.feature.parents_names"), W_PARENTS_NAMES,
+						I18N.tf("text.duplicates.detail.similar_names", pair[0], pair[1])));
+				}
+				else
+					differences.add(I18N.t("text.duplicates.diff.parents"));
+			}
 		}
 
 		// Children.
@@ -683,11 +868,19 @@ public final class DuplicateFinderService{
 			final int common = intersectionSize(a.childIds(), b.childIds());
 			if(common > 0){
 				score += W_CHILDREN_SOME;
-				matches.add(new FeatureMatch("Children", W_CHILDREN_SOME,
-					common + " shared"));
+				matches.add(new FeatureMatch(I18N.t("text.duplicates.feature.children"), W_CHILDREN_SOME,
+					I18N.tf("text.duplicates.detail.shared", common)));
 			}
-			else
-				differences.add("different children");
+			else{
+				final String[] pair = agreeingNames(a.childNames(), b.childNames(), NameKind.PERSON);
+				if(pair != null){
+					score += W_CHILDREN_NAMES;
+					matches.add(new FeatureMatch(I18N.t("text.duplicates.feature.children_names"), W_CHILDREN_NAMES,
+						I18N.tf("text.duplicates.detail.similar_names", pair[0], pair[1])));
+				}
+				else
+					differences.add(I18N.t("text.duplicates.diff.children"));
+			}
 		}
 
 		// Spouses.
@@ -695,11 +888,19 @@ public final class DuplicateFinderService{
 			final int common = intersectionSize(a.spouseIds(), b.spouseIds());
 			if(common > 0){
 				score += W_SPOUSES_SOME;
-				matches.add(new FeatureMatch("Spouses", W_SPOUSES_SOME,
-					common + " shared"));
+				matches.add(new FeatureMatch(I18N.t("text.duplicates.feature.spouses"), W_SPOUSES_SOME,
+					I18N.tf("text.duplicates.detail.shared", common)));
 			}
-			else
-				differences.add("different spouses");
+			else{
+				final String[] pair = agreeingNames(a.spouseNames(), b.spouseNames(), NameKind.PERSON);
+				if(pair != null){
+					score += W_SPOUSES_NAMES;
+					matches.add(new FeatureMatch(I18N.t("text.duplicates.feature.spouses_names"), W_SPOUSES_NAMES,
+						I18N.tf("text.duplicates.detail.similar_names", pair[0], pair[1])));
+				}
+				else
+					differences.add(I18N.t("text.duplicates.diff.spouses"));
+			}
 		}
 
 		// Siblings.
@@ -707,8 +908,8 @@ public final class DuplicateFinderService{
 			final int common = intersectionSize(a.siblingIds(), b.siblingIds());
 			if(common > 0){
 				score += W_SIBLINGS_SOME;
-				matches.add(new FeatureMatch("Siblings", W_SIBLINGS_SOME,
-					common + " shared"));
+				matches.add(new FeatureMatch(I18N.t("text.duplicates.feature.siblings"), W_SIBLINGS_SOME,
+					I18N.tf("text.duplicates.detail.shared", common)));
 			}
 		}
 
@@ -717,11 +918,11 @@ public final class DuplicateFinderService{
 			final int diff = Math.abs(a.birthYear() - b.birthYear());
 			if(diff <= YEAR_TOLERANCE){
 				score += W_BIRTH_NEAR;
-				matches.add(new FeatureMatch("Birth year", W_BIRTH_NEAR,
+				matches.add(new FeatureMatch(I18N.t("text.duplicates.feature.birth_year"), W_BIRTH_NEAR,
 					a.birthYear() + " / " + b.birthYear() + " (Δ " + diff + ")"));
 			}
 			else
-				differences.add("birth year " + a.birthYear() + " vs " + b.birthYear());
+				differences.add(I18N.tf("text.duplicates.diff.birth_year", a.birthYear(), b.birthYear()));
 		}
 
 		// Death year.
@@ -729,20 +930,51 @@ public final class DuplicateFinderService{
 			final int diff = Math.abs(a.deathYear() - b.deathYear());
 			if(diff <= YEAR_TOLERANCE){
 				score += W_DEATH_NEAR;
-				matches.add(new FeatureMatch("Death year", W_DEATH_NEAR,
+				matches.add(new FeatureMatch(I18N.t("text.duplicates.feature.death_year"), W_DEATH_NEAR,
 					a.deathYear() + " / " + b.deathYear() + " (Δ " + diff + ")"));
 			}
 		}
 
 		// Events, attributes, sources, places.
 		score += overlapBonus(a.eventIds(), b.eventIds(), W_EVENT_OVERLAP,
-			"Events", matches);
+			I18N.t("text.duplicates.feature.events"), matches);
 		score += overlapBonus(a.attributeKeys(), b.attributeKeys(), W_ATTRIBUTE_OVERLAP,
-			"Attributes", matches);
+			I18N.t("text.duplicates.feature.attributes"), matches);
 		score += overlapBonus(a.sourceIds(), b.sourceIds(), W_SOURCE_OVERLAP,
-			"Sources", matches);
-		score += overlapBonus(a.placeIds(), b.placeIds(), W_PLACE_OVERLAP,
-			"Places", matches);
+			I18N.t("text.duplicates.feature.sources"), matches);
+		final int placesInCommon = overlapBonus(a.placeIds(), b.placeIds(), W_PLACE_OVERLAP,
+			I18N.t("text.duplicates.feature.places"), matches);
+		score += placesInCommon;
+
+		// Second pass, by name: places and occupations that are the same words in different records.
+		if(placesInCommon == 0){
+			final String[] pair = agreeingNames(a.placeNames(), b.placeNames(), NameKind.PLACE);
+			if(pair != null){
+				score += W_PLACES_NAMES;
+				matches.add(new FeatureMatch(I18N.t("text.duplicates.feature.places_names"), W_PLACES_NAMES,
+					I18N.tf("text.duplicates.detail.similar_names", pair[0], pair[1])));
+			}
+		}
+		final String[] attributeText = agreeingAttributeTexts(a.attributeTexts(), b.attributeTexts());
+		if(attributeText != null){
+			score += W_ATTRIBUTE_TEXTS;
+			matches.add(new FeatureMatch(I18N.t("text.duplicates.feature.attribute_texts"), W_ATTRIBUTE_TEXTS,
+				I18N.tf("text.duplicates.detail.similar_attributes", attributeText[0], attributeText[1], attributeText[2])));
+		}
+		if(!matches.stream().anyMatch(match -> match.feature().equals(I18N.t("text.duplicates.feature.sources")))){
+			final String[] title = agreeingNames(a.sourceTitles(), b.sourceTitles(), NameKind.TITLE);
+			if(title != null){
+				score += W_SOURCE_TITLES;
+				matches.add(new FeatureMatch(I18N.t("text.duplicates.feature.source_titles"), W_SOURCE_TITLES,
+					I18N.tf("text.duplicates.detail.similar_names", title[0], title[1])));
+			}
+		}
+		final String[] occupations = agreeingNames(a.occupations(), b.occupations(), NameKind.TEXT);
+		if(occupations != null){
+			score += W_OCCUPATIONS;
+			matches.add(new FeatureMatch(I18N.t("text.duplicates.feature.occupations"), W_OCCUPATIONS,
+				I18N.tf("text.duplicates.detail.similar_names", occupations[0], occupations[1])));
+		}
 
 		if(score < options.threshold)
 			return null;
@@ -756,25 +988,51 @@ public final class DuplicateFinderService{
 			final Set<String> intersection = new HashSet<>(a.fullNameVariants());
 			intersection.retainAll(b.fullNameVariants());
 			if(!intersection.isEmpty()){
-				matches.add(new FeatureMatch("Name", W_NAME_FULL,
-					"exact match: " + intersection.iterator().next()));
+				matches.add(new FeatureMatch(I18N.t("text.duplicates.feature.name"), W_NAME_FULL,
+					I18N.tf("text.duplicates.detail.exact", intersection.iterator().next())));
 				return W_NAME_FULL;
 			}
 		}
 		final boolean givenShared = !Collections.disjoint(a.givenTokens(), b.givenTokens());
 		final boolean familyShared = !Collections.disjoint(a.familyTokens(), b.familyTokens());
 		if(givenShared && familyShared){
-			matches.add(new FeatureMatch("Name", W_NAME_PARTIAL,
-				"shared given and family tokens"));
+			matches.add(new FeatureMatch(I18N.t("text.duplicates.feature.name"), W_NAME_PARTIAL,
+				I18N.t("text.duplicates.detail.given_family")));
 			return W_NAME_PARTIAL;
 		}
+
+		//what is not the same name may be the same name spelled in another way: the similarity of the letters decides, with no list of names
+		final NameSimilarity.Match given = NameSimilarity.best(a.givenTokens(), b.givenTokens());
+		NameSimilarity.Match family = NameSimilarity.best(a.familyTokens(), b.familyTokens());
+		//an initial is a given name: a family name that is only an initial says nothing
+		if(family.level() == NameSimilarity.Level.INITIAL)
+			family = new NameSimilarity.Match(NameSimilarity.Level.NONE, null, null);
+		if(given.agrees() && family.agrees()){
+			final boolean initial = (given.level() == NameSimilarity.Level.INITIAL);
+			final int weight = (initial? W_NAME_INITIAL: W_NAME_SIMILAR);
+			matches.add(new FeatureMatch(I18N.t("text.duplicates.feature.name"), weight,
+				I18N.tf("text.duplicates.detail.similar_given_family", describe(given), describe(family))));
+			return weight;
+		}
 		if(givenShared || familyShared){
-			matches.add(new FeatureMatch("Name", W_NAME_TOKEN,
-				givenShared? "shared given token": "shared family token"));
+			matches.add(new FeatureMatch(I18N.t("text.duplicates.feature.name"), W_NAME_TOKEN,
+				I18N.t(givenShared? "text.duplicates.detail.given": "text.duplicates.detail.family")));
 			return W_NAME_TOKEN;
 		}
-		differences.add("no shared name token");
+		final NameSimilarity.Match one = (family.level() == NameSimilarity.Level.SIMILAR? family
+			: (given.level() == NameSimilarity.Level.SIMILAR? given: null));
+		if(one != null){
+			matches.add(new FeatureMatch(I18N.t("text.duplicates.feature.name"), W_NAME_TOKEN_SIMILAR,
+				I18N.tf("text.duplicates.detail.similar_token", describe(one))));
+			return W_NAME_TOKEN_SIMILAR;
+		}
+		differences.add(I18N.t("text.duplicates.diff.no_name"));
 		return 0;
+	}
+
+	/** @return	The two names of a match, as they are shown ({@code giovanni / giovani}). */
+	private static String describe(final NameSimilarity.Match match){
+		return (match.first().equals(match.second())? match.first(): match.first() + " / " + match.second());
 	}
 
 	private static int overlapBonus(final Set<String> a, final Set<String> b,
@@ -784,8 +1042,66 @@ public final class DuplicateFinderService{
 		final int common = intersectionSize(a, b);
 		if(common <= 0)
 			return 0;
-		matches.add(new FeatureMatch(feature, weight, common + " shared"));
+		matches.add(new FeatureMatch(feature, weight, I18N.tf("text.duplicates.detail.shared", common)));
 		return weight;
+	}
+
+	/**
+	 * Looks for an attribute type that both have, with a text of the first that agrees with a text of the second.
+	 *
+	 * @return	{type, text of the first, text of the second}, {@code null} if none agrees.
+	 */
+	public static String[] agreeingAttributeTexts(final Map<String, Set<String>> first, final Map<String, Set<String>> second){
+		for(final Map.Entry<String, Set<String>> entry : first.entrySet()){
+			final Set<String> other = second.get(entry.getKey());
+			if(other == null)
+				continue;
+
+			final String[] pair = agreeingNames(entry.getValue(), other, NameKind.TEXT);
+			if(pair != null)
+				return new String[]{entry.getKey(), pair[0], pair[1]};
+		}
+		return null;
+	}
+
+	/** What the texts compared by name are: the rules of agreement differ. */
+	public enum NameKind{
+		/** Names of people: a name with more words agrees only if the shorter one has at least two ("Giovanni" is not "Giovanni Rossi"). */
+		PERSON,
+		/** Names of places: a name with more words is another place ("San Martino" is not "San Martino di Lupari"). */
+		PLACE,
+		/** Free text, such as an occupation: it agrees if the words of one are among the words of the other. */
+		TEXT,
+		/** Titles of works: they agree if they are equal or a spelling variant, never because one is part of the other. */
+		TITLE
+	}
+
+	/**
+	 * Looks for a name of the first group that agrees with a name of the second: equal, a spelling variant, or (by the rules of the kind)
+	 * one contained in the other. The texts are already normalized.
+	 *
+	 * @return	The two names that agree (the equal ones first), {@code null} if none does or a group is empty.
+	 */
+	public static String[] agreeingNames(final Set<String> first, final Set<String> second, final NameKind kind){
+		String[] found = null;
+		for(final String a : first)
+			for(final String b : second){
+				final TextSimilarity.Agreement agreement = (kind == NameKind.PLACE
+					? TextSimilarity.comparePlaceNormalized(a, b)
+					: TextSimilarity.compareNormalized(a, b));
+				if(agreement == null || agreement == TextSimilarity.Agreement.DIFFERENT)
+					continue;
+				if(agreement == TextSimilarity.Agreement.EXACT)
+					return new String[]{a, b};
+				if(kind == NameKind.TITLE && agreement == TextSimilarity.Agreement.SUBSET)
+					continue;
+				if(found == null && agreement == TextSimilarity.Agreement.SUBSET && kind == NameKind.PERSON
+						&& Math.min(StringUtils.split(a).length, StringUtils.split(b).length) < 2)
+					continue;
+				if(found == null)
+					found = new String[]{a, b};
+			}
+		return found;
 	}
 
 	private static int intersectionSize(final Set<String> a, final Set<String> b){

@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.ui.assistant;
 
 import java.util.List;
+import java.util.function.DoubleConsumer;
 
 
 /**
@@ -39,5 +40,17 @@ public interface DiagnosticProvider{
 	 * @return the findings relevant in the context
 	 */
 	List<Diagnostic> diagnose(AssistantContext context);
+
+	/**
+	 * The same, telling how far it got. A provider that is slow and can tell overrides it; the others do not, and are taken as done
+	 * when they return.
+	 *
+	 * @param context where the user is
+	 * @param progress told, from time to time, the share of the work done (0 to 1); it may be called from the thread of the provider
+	 * @return the findings relevant in the context
+	 */
+	default List<Diagnostic> diagnose(final AssistantContext context, final DoubleConsumer progress){
+		return diagnose(context);
+	}
 
 }

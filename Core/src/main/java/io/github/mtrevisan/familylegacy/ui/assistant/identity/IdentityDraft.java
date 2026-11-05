@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.ui.assistant.identity;
 
+import java.util.List;
+
 
 /**
  * What the Identity Assistant prepares for a pair of individuals that may be the same person: the start of an IdentityHypothesisRecord,
@@ -33,5 +35,9 @@ package io.github.mtrevisan.familylegacy.ui.assistant.identity;
  * @param rightId    the other individual
  * @param rationale  why they may be the same person, as the first text of the rationale of the hypothesis
  * @param confidence the confidence to propose ({@code low}, {@code medium}, {@code high})
+ * @param similarities  what makes them look alike, one line for each feature ("Name: exact match: mario rossi (+40)")
+ * @param differences   what makes them differ, one line for each feature
+ * @param sharedSourceIds  the sources that both individuals cite: the evidence the hypothesis starts from
  */
-record IdentityDraft(String leftId, String rightId, String rationale, String confidence){}
+record IdentityDraft(String leftId, String rightId, String rationale, String confidence, List<String> similarities,
+		List<String> differences, List<String> sharedSourceIds){}

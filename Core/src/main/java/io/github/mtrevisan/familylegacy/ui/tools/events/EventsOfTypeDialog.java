@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.ui.tools.events;
 
 import io.github.mtrevisan.familylegacy.events.EventHelper;
+import io.github.mtrevisan.familylegacy.events.EventSummary;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
@@ -64,7 +65,7 @@ final class EventsOfTypeDialog extends JDialog{
 		final List<Object[]> rows = new ArrayList<>();
 		for(final FLEFRecord event : EventHelper.listAllEvents(model))
 			if(type.equalsIgnoreCase(EventHelper.eventType(event)))
-				rows.add(new Object[]{event.getId(), EventHelper.eventDateRaw(event), EventHelper.eventPlaceId(event),
+				rows.add(new Object[]{event.getId(), EventHelper.eventDateRaw(event), EventSummary.placeName(event, model),
 					EventHelper.eventDescription(event)});
 		final RowTableModel tableModel = new RowTableModel(new String[]{I18N.t("column.event"), I18N.t("column.date"),
 			I18N.t("column.place"), I18N.t("column.description")}, rows);

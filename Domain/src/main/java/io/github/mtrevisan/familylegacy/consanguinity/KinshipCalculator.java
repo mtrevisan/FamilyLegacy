@@ -96,6 +96,7 @@ public final class KinshipCalculator{
 
 	private final FLEFModel model;
 	private final ParentProvider parents;
+	private final KinshipVocabulary vocabulary;
 
 	/**
 	 * Cache of the ancestor-distance maps, keyed by individual ID.
@@ -113,11 +114,24 @@ public final class KinshipCalculator{
 	 * @param parents the parent provider (must not be {@code null})
 	 */
 	public KinshipCalculator(final FLEFModel model, final ParentProvider parents){
+		this(model, parents, KinshipVocabulary.ui());
+	}
+
+	private KinshipCalculator(final FLEFModel model, final ParentProvider parents, final KinshipVocabulary vocabulary){
 		if(parents == null)
 			throw new IllegalArgumentException("Parent provider must not be null");
 
 		this.model = model;
 		this.parents = parents;
+		this.vocabulary = vocabulary;
+	}
+
+	/**
+	 * @param vocabulary	Where the words of the terms and of the descriptions come from (by default, the messages of the interface).
+	 * @return	A calculator on the same model that says the terms in the language of the vocabulary; a report uses the one of its language.
+	 */
+	public KinshipCalculator withVocabulary(final KinshipVocabulary vocabulary){
+		return new KinshipCalculator(model, parents, vocabulary);
 	}
 
 
@@ -406,40 +420,38 @@ public final class KinshipCalculator{
 	 *                          Description
 	 * ====================================================================== */
 
-	private static String describe(final KinshipResult.CommonAncestorInfo mrca,
+	private String describe(final KinshipResult.CommonAncestorInfo mrca,
 		final List<KinshipResult.CommonAncestorInfo> commons, final String nameA, final String nameB,
 		final String sexA, final String sexB){
 		final int na = mrca.distanceFromA();
 		final int nb = mrca.distanceFromB();
 
 		if(na == 0)
-			return nameA + " is the " + ancestorTerm(nb, sexA) + " of " + nameB;
+			return vocabulary.text("kinship.sentence.is_the", nameA, ancestorTerm(nb, sexA), nameB);
 		if(nb == 0)
-			return nameB + " is the " + ancestorTerm(na, sexB) + " of " + nameA;
+			return vocabulary.text("kinship.sentence.is_the", nameB, ancestorTerm(na, sexB), nameA);
 
 		if(na == 1 && nb == 1){
 			final long sharedParents = commons.stream()
 				.filter(c -> c.distanceFromA() == 1 && c.distanceFromB() == 1)
 				.count();
-			final String siblingTerm = siblingTerm(sexA, sexB);
-			return (sharedParents >= 2
-				? nameA + " and " + nameB + " are full " + siblingTerm
-				: nameA + " and " + nameB + " are half-" + siblingTerm);
+			return vocabulary.text((sharedParents >= 2? "kinship.sentence.full_siblings": "kinship.sentence.half_siblings"), nameA, nameB,
+				siblingTerm(sexA, sexB));
 		}
 
 		if(na == 1 && nb == 2)
-			return nameA + " is the " + uncleTerm(sexA, false) + " of " + nameB;
+			return vocabulary.text("kinship.sentence.is_the", nameA, uncleTerm(sexA, false), nameB);
 		if(na == 2 && nb == 1)
-			return nameB + " is the " + uncleTerm(sexB, false) + " of " + nameA;
+			return vocabulary.text("kinship.sentence.is_the", nameB, uncleTerm(sexB, false), nameA);
 
 		if(na == 1 && nb == 3)
-			return nameA + " is the grand-" + uncleTerm(sexA, false) + " of " + nameB;
+			return vocabulary.text("kinship.sentence.is_the", nameA, uncleTerm(sexA, true), nameB);
 		if(na == 3 && nb == 1)
-			return nameB + " is the grand-" + uncleTerm(sexB, false) + " of " + nameA;
+			return vocabulary.text("kinship.sentence.is_the", nameB, uncleTerm(sexB, true), nameA);
 
 		final int degree = Math.min(na, nb) - 1;
 		final int removed = Math.abs(na - nb);
-		return nameA + " and " + nameB + " are " + cousinTerm(degree, removed);
+		return vocabulary.text("kinship.sentence.are", nameA, nameB, KinshipTerms.cousins(vocabulary, degree, removed));
 	}
 
 
@@ -448,7 +460,7 @@ public final class KinshipCalculator{
 	 * {@code na},{@code nb} distances from the MRCA is related to the other.
 	 * {@code sexA} is the sex of the individual whose role is described.
 	 */
-	private static String termFor(final int na, final int nb, final String sexA){
+	private String termFor(final int na, final int nb, final String sexA){
 		if(na == 0)
 			return ancestorTerm(nb, sexA);
 		if(nb == 0)
@@ -458,79 +470,55 @@ public final class KinshipCalculator{
 		if(na == 1 && nb == 2)
 			return uncleTerm(sexA, false);
 		if(na == 2 && nb == 1)
-			return nephewTerm(sexA);
+			return nephewTerm(sexA, false);
 		if(na == 1 && nb == 3)
-			return "grand-" + uncleTerm(sexA, false);
+			return uncleTerm(sexA, true);
 		if(na == 3 && nb == 1)
-			return "grand-" + nephewTerm(sexA);
+			return nephewTerm(sexA, true);
 
-		final int degree = Math.min(na, nb) - 1;
-		final int removed = Math.abs(na - nb);
-		final String base = cousinTerm(degree, removed);
-		// cousinTerm returns a plural form ("first cousins"); drop the
-		// trailing "s" for the singular term used from one perspective.
-		return (base.endsWith("s")? base.substring(0, base.length() - 1): base);
+		return KinshipTerms.cousin(vocabulary, Math.min(na, nb) - 1, Math.abs(na - nb), IndividualReader.isSexFemale(sexA));
 	}
 
 
-	private static String ancestorTerm(final int distance, final String sex){
-		final String base = (IndividualReader.isSexMale(sex)? "father": (IndividualReader.isSexFemale(sex)? "mother": "unknown"));
-		if(distance == 1)
-			return base;
-		if(distance == 2)
-			return (IndividualReader.isSexMale(sex)? "grandfather": (IndividualReader.isSexFemale(sex)? "grandmother": "unknown"));
-
-		final String prefix = (distance == 3? "great-grand": (distance - 2) + "x great-grand");
-		return prefix + base;
+	/** The word for the sex: the one of the male, the one of the female, or "unknown" when the sex is not known. */
+	private String bySex(final String sex, final String maleKey, final String femaleKey, final Object... args){
+		if(IndividualReader.isSexMale(sex))
+			return vocabulary.text(maleKey, args);
+		if(IndividualReader.isSexFemale(sex))
+			return vocabulary.text(femaleKey, args);
+		return vocabulary.text("kinship.term.unknown");
 	}
 
-	private static String descendantTerm(final int distance, final String sex){
-		final String base = (IndividualReader.isSexMale(sex)? "son": (IndividualReader.isSexFemale(sex)? "daughter": "unknown"));
-		if(distance == 1)
-			return base;
-		if(distance == 2)
-			return (IndividualReader.isSexMale(sex)? "grandson": (IndividualReader.isSexFemale(sex)? "granddaughter": "unknown"));
-
-		final String prefix = (distance == 3? "great-grand": (distance - 2) + "x great-grand");
-		return prefix + base;
+	private String ancestorTerm(final int distance, final String sex){
+		return bySex(sex, "kinship.term.ancestor.male", "kinship.term.ancestor.female", distance, distance - 2);
 	}
 
-	private static String uncleTerm(final String sex, final boolean grand){
-		final String base = (IndividualReader.isSexMale(sex)? "uncle": (IndividualReader.isSexFemale(sex)? "aunt": "unknown"));
-		return (grand? "grand-" + base: base);
+	private String descendantTerm(final int distance, final String sex){
+		return bySex(sex, "kinship.term.descendant.male", "kinship.term.descendant.female", distance, distance - 2);
 	}
 
-	private static String nephewTerm(final String sex){
-		return (IndividualReader.isSexMale(sex)? "nephew": (IndividualReader.isSexFemale(sex)? "niece": "unknown"));
+	private String uncleTerm(final String sex, final boolean grand){
+		return (grand
+			? bySex(sex, "kinship.term.great_uncle.male", "kinship.term.great_uncle.female")
+			: bySex(sex, "kinship.term.uncle.male", "kinship.term.uncle.female"));
 	}
 
-	private static String siblingTerm(final String sexA, final String sexB){
+	private String nephewTerm(final String sex, final boolean grand){
+		return (grand
+			? bySex(sex, "kinship.term.great_nephew.male", "kinship.term.great_nephew.female")
+			: bySex(sex, "kinship.term.nephew.male", "kinship.term.nephew.female"));
+	}
+
+	private String siblingTerm(final String sexA, final String sexB){
 		if(IndividualReader.isSexMale(sexA) && IndividualReader.isSexMale(sexB))
-			return "brothers";
+			return vocabulary.text("kinship.term.brothers");
 		if(IndividualReader.isSexFemale(sexA) && IndividualReader.isSexFemale(sexB))
-			return "sisters";
-		return "siblings";
+			return vocabulary.text("kinship.term.sisters");
+		return vocabulary.text("kinship.term.siblings");
 	}
 
-	private static String siblingSingularTerm(final String sex){
-		return (IndividualReader.isSexMale(sex)? "brother": (IndividualReader.isSexFemale(sex)? "sister": "unknown"));
-	}
-
-	private static String cousinTerm(final int degree, final int removed){
-		final String degreeLabel = switch(degree){
-			case 1 -> "first";
-			case 2 -> "second";
-			case 3 -> "third";
-			case 4 -> "fourth";
-			case 5 -> "fifth";
-			default -> degree + "th";
-		};
-		final String base = degreeLabel + " cousin";
-		if(removed == 0)
-			return base + "s";
-		if(removed == 1)
-			return base + "s once removed";
-		return base + "s " + removed + " times removed";
+	private String siblingSingularTerm(final String sex){
+		return bySex(sex, "kinship.term.sibling.male", "kinship.term.sibling.female");
 	}
 
 
@@ -590,7 +578,7 @@ public final class KinshipCalculator{
 			if(subject == null || object == null)
 				continue;
 
-			final boolean childRel = t.equals("child") || t.endsWith("_child");
+			final boolean childRel = t.equals(RelationshipReader.ENUM_TYPE_CHILD) || t.endsWith("_child");
 			final boolean parentRel = t.endsWith("_parent");
 			if(!childRel && !parentRel)
 				continue;

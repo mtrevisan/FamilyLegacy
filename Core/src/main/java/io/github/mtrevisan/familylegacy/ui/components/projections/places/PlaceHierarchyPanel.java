@@ -159,7 +159,7 @@ public final class PlaceHierarchyPanel extends JPanel implements PlaceHierarchyV
 	 */
 	private FLEFRecord selectedPlaceRecord;
 
-	private DefaultMutableTreeNode treeRoot = new DefaultMutableTreeNode("Places");
+	private DefaultMutableTreeNode treeRoot = new DefaultMutableTreeNode(I18N.t("text.places"));
 	private final DefaultTreeModel treeModel = new DefaultTreeModel(treeRoot);
 	private final JTree tree = new JTree(treeModel){
 		{
@@ -348,7 +348,7 @@ public final class PlaceHierarchyPanel extends JPanel implements PlaceHierarchyV
 		rebuildWorker = new SwingWorker<>(){
 			@Override
 			protected DefaultMutableTreeNode doInBackground(){
-				final DefaultMutableTreeNode newRoot = new DefaultMutableTreeNode("Places");
+				final DefaultMutableTreeNode newRoot = new DefaultMutableTreeNode(I18N.t("text.places"));
 				for(final String rootId : hierarchy.rootIds()){
 					if(isCancelled()) return newRoot;
 
@@ -804,7 +804,7 @@ public final class PlaceHierarchyPanel extends JPanel implements PlaceHierarchyV
 			boolean hasMeta = false;
 			final StringBuilder metaSb = new StringBuilder();
 			if(StringUtils.isNotBlank(place.type())){
-				metaSb.append("Type: ").append(escape(place.type()));
+				metaSb.append(I18N.l("tooltip.field.type")).append(StringUtils.SPACE).append(escape(place.type()));
 				hasMeta = true;
 			}
 			if(StringUtils.isNotBlank(place.coordinates())){
@@ -817,11 +817,11 @@ public final class PlaceHierarchyPanel extends JPanel implements PlaceHierarchyV
 					// Escape & to &amp; to prevent the HTML parser from choking
 					final String safeUrl = mapUrl.replace("&", "&amp;");
 					metaSb.append("<a href='").append(safeUrl).append("' style='color: #0066cc; text-decoration: underline;'>")
-						.append("Coordinates: ").append(escape(place.coordinates()))
+						.append(I18N.l("dialog.place.location.coordinates")).append(StringUtils.SPACE).append(escape(place.coordinates()))
 						.append("</a>");
 				}
 				else
-					metaSb.append("Coordinates: ").append(escape(place.coordinates()));
+					metaSb.append(I18N.l("dialog.place.location.coordinates")).append(StringUtils.SPACE).append(escape(place.coordinates()));
 
 				hasMeta = true;
 			}
@@ -832,7 +832,7 @@ public final class PlaceHierarchyPanel extends JPanel implements PlaceHierarchyV
 
 			// --- Parents Section ---
 			final List<PlaceHierarchyService.PlaceRelation> parents = hierarchy.parentsOf(place.id());
-			sb.append("<div style='font-size: 11px; font-weight: bold; color: #888888; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 12px; margin-bottom: 8px; border-bottom: 1px solid #eaeaea; padding-bottom: 4px;'>Parents</div>");
+			sb.append("<div style='font-size: 11px; font-weight: bold; color: #888888; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 12px; margin-bottom: 8px; border-bottom: 1px solid #eaeaea; padding-bottom: 4px;'>" + I18N.t("text.place.parents") + "</div>");
 			if(!parents.isEmpty()){
 				for(final PlaceHierarchyService.PlaceRelation rel : parents){
 					final PlaceHierarchyService.PlaceReference parent = hierarchy.places().get(rel.parentId());
@@ -840,11 +840,11 @@ public final class PlaceHierarchyPanel extends JPanel implements PlaceHierarchyV
 				}
 			}
 			else
-				sb.append("<div style='color: #999999; font-style: italic;'>No parent declared.</div>");
+				sb.append("<div style='color: #999999; font-style: italic;'>" + I18N.t("text.place.no_parent") + "</div>");
 
 			// --- Children Section ---
 			final List<PlaceHierarchyService.PlaceRelation> children = hierarchy.childrenOf(place.id());
-			sb.append("<div style='font-size: 11px; font-weight: bold; color: #888888; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 12px; margin-bottom: 8px; border-bottom: 1px solid #eaeaea; padding-bottom: 4px;'>Children</div>");
+			sb.append("<div style='font-size: 11px; font-weight: bold; color: #888888; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 12px; margin-bottom: 8px; border-bottom: 1px solid #eaeaea; padding-bottom: 4px;'>" + I18N.t("text.place.children") + "</div>");
 			if(!children.isEmpty()){
 				for(final PlaceHierarchyService.PlaceRelation rel : children){
 					final PlaceHierarchyService.PlaceReference child = hierarchy.places().get(rel.childId());
@@ -852,11 +852,11 @@ public final class PlaceHierarchyPanel extends JPanel implements PlaceHierarchyV
 				}
 			}
 			else
-				sb.append("<div style='color: #999999; font-style: italic;'>No child declared.</div>");
+				sb.append("<div style='color: #999999; font-style: italic;'>" + I18N.t("text.place.no_child") + "</div>");
 
 			// --- Notes Section ---
 			if(!place.notes().isEmpty()){
-				sb.append("<div style='font-size: 11px; font-weight: bold; color: #888888; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 12px; margin-bottom: 8px; border-bottom: 1px solid #eaeaea; padding-bottom: 4px;'>Notes</div>");
+				sb.append("<div style='font-size: 11px; font-weight: bold; color: #888888; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 12px; margin-bottom: 8px; border-bottom: 1px solid #eaeaea; padding-bottom: 4px;'>" + I18N.t("text.place.notes") + "</div>");
 				for(final String note : place.notes())
 					sb.append("<div style='margin-bottom: 6px; line-height: 1.4;'>").append(escape(note)).append("</div>");
 			}

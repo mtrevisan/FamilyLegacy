@@ -92,10 +92,25 @@ public final class IndividualAttributeReader{
 	public static final String ENUM_TYPE_RESIDENCE = "residence";
 	public static final String ENUM_TYPE_OCCUPATION = "occupation";
 	public static final String ENUM_TYPE_TITLE = "title";
+	public static final String ENUM_TYPE_POSSESSION = "possession";
+	public static final String ENUM_TYPE_MILITARY_RANK = "military_rank";
+	public static final String ENUM_TYPE_CASTE = "caste";
+	public static final String ENUM_TYPE_SOCIAL_CLASS = "social_class";
+	public static final String ENUM_TYPE_ETHNICITY = "ethnicity";
+	public static final String ENUM_TYPE_CITIZENSHIP = "citizenship";
+	public static final String ENUM_TYPE_NATIONALITY = "nationality";
+	public static final String ENUM_TYPE_NATIONAL_ID = "national_id";
+	public static final String ENUM_TYPE_CHILDREN_COUNT = "children_count";
+	public static final String ENUM_TYPE_MARRIAGES_COUNT = "marriages_count";
+	public static final String ENUM_TYPE_RELIGION = "religion";
+	public static final String ENUM_TYPE_LANGUAGE = "language";
+	public static final String ENUM_TYPE_LITERACY = "literacy";
+	public static final String ENUM_TYPE_EDUCATION = "education";
+	public static final String ENUM_TYPE_APPRENTICESHIP = "apprenticeship";
 	public static final String[] TYPES = new String[]{
-		ENUM_TYPE_CHARACTERISTIC, ENUM_TYPE_RESIDENCE, ENUM_TYPE_OCCUPATION, "possession", "military_rank", "caste",
-		"social_class", "ethnicity", "citizenship", "nationality", "national_id", ENUM_TYPE_TITLE, "children_count",
-		"marriages_count", "religion", "language", "literacy", "education", "apprenticeship"
+		ENUM_TYPE_CHARACTERISTIC, ENUM_TYPE_RESIDENCE, ENUM_TYPE_OCCUPATION, ENUM_TYPE_POSSESSION, ENUM_TYPE_MILITARY_RANK, ENUM_TYPE_CASTE,
+		ENUM_TYPE_SOCIAL_CLASS, ENUM_TYPE_ETHNICITY, ENUM_TYPE_CITIZENSHIP, ENUM_TYPE_NATIONALITY, ENUM_TYPE_NATIONAL_ID, ENUM_TYPE_TITLE, ENUM_TYPE_CHILDREN_COUNT,
+		ENUM_TYPE_MARRIAGES_COUNT, ENUM_TYPE_RELIGION, ENUM_TYPE_LANGUAGE, ENUM_TYPE_LITERACY, ENUM_TYPE_EDUCATION, ENUM_TYPE_APPRENTICESHIP
 	};
 
 

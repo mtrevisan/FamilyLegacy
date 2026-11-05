@@ -10,7 +10,7 @@ Stato verificato sul codice (ottobre 2026).
 ## Stato della General Temporal Projection
 
 Il package `temporal` contiene tutti i layer (modello, estrattore, indici, layout, renderer, asse, zoom, toolbar,
-`TemporalProjectionPanel`). DONE **Il pannello è collegato** (novembre 2026) a `ProjectionSwitcherPanel` (`ProjectionType.TEMPORAL`, segnalibro
+`TemporalProjectionPanel`). DONE **Il pannello è collegato** a `ProjectionSwitcherPanel` (`ProjectionType.TEMPORAL`, segnalibro
 `BookmarkType.TEMPORAL`), ma **nascosto all'utente per ora** (niente bottone, menu, Ctrl+5: vedi `ProjectionType`); `ProjectionSwitcherPanel` lo crea alla prima apertura e, non avendo una
 radice propria, tiene l'ultimo individuo (`lastRootId`) per le altre viste. Un clic su una riga di individuo o gruppo avvisa il
 dossier. Test: `TemporalAndSocialProjectionTest`.

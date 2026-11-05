@@ -59,8 +59,6 @@ class ConclusionResolutionTest{
 	@Test
 	void aDraftDoesNotSettleAnything(){
 		Assertions.assertFalse(ConclusionResolution.isResolved(COMPETING,
-			List.of(evaluation(Set.of("E1", "E2"), null, "unresearched"))));
-		Assertions.assertFalse(ConclusionResolution.isResolved(COMPETING,
 			List.of(evaluation(Set.of("E1", "E2"), null, null))));
 	}
 

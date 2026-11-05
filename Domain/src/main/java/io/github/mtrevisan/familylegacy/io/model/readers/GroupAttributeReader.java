@@ -78,9 +78,18 @@ public final class GroupAttributeReader{
 	public static final String TAG_AUDIT = "audit";
 
 	public static final String ENUM_TYPE_RESIDENCE = "residence";
+	public static final String ENUM_TYPE_MEMBER_COUNT = "member_count";
+	public static final String ENUM_TYPE_CHILDREN_COUNT = "children_count";
+	public static final String ENUM_TYPE_SOCIAL_CLASS = "social_class";
+	public static final String ENUM_TYPE_ETHNICITY = "ethnicity";
+	public static final String ENUM_TYPE_RELIGION = "religion";
+	public static final String ENUM_TYPE_LANGUAGE = "language";
+	public static final String ENUM_TYPE_WEALTH = "wealth";
+	public static final String ENUM_TYPE_LAND_HOLDING = "land_holding";
+	public static final String ENUM_TYPE_PRIMARY_INCOME_SOURCE = "primary_income_source";
 	public static final String[] TYPES = new String[]{
-		ENUM_TYPE_RESIDENCE, "member_count", "children_count", "social_class", "ethnicity", "religion", "language",
-		"wealth", "land_holding", "primary_income_source"
+		ENUM_TYPE_RESIDENCE, ENUM_TYPE_MEMBER_COUNT, ENUM_TYPE_CHILDREN_COUNT, ENUM_TYPE_SOCIAL_CLASS, ENUM_TYPE_ETHNICITY, ENUM_TYPE_RELIGION, ENUM_TYPE_LANGUAGE,
+		ENUM_TYPE_WEALTH, ENUM_TYPE_LAND_HOLDING, ENUM_TYPE_PRIMARY_INCOME_SOURCE
 	};
 
 

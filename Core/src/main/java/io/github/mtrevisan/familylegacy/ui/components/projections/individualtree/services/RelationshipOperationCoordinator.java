@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.services;
 
+import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.tree.TreeMutator;
@@ -151,10 +152,10 @@ public final class RelationshipOperationCoordinator{
 
 		final String fatherLabel = (father != null
 			? handler.getDisplayText(father, model)
-			: "Father");
+			: I18N.t("text.father"));
 		final String motherLabel = (mother != null
 			? handler.getDisplayText(mother, model)
-			: "Mother");
+			: I18N.t("text.mother"));
 
 		if(father != null)
 			items.add(new RelationshipTypeSelectionDialog.Item(father.getId(), fatherLabel, allowedTypes[0]));

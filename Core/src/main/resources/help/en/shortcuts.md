@@ -17,6 +17,13 @@ The same list, always up to date, is in **Help > Keyboard Shortcuts...**.
 |---|---|
 | `Ctrl+Z` | Undo |
 | `Ctrl+Y` or `Ctrl+Shift+Z` | Redo |
+
+## Individual and group
+
+These commands are in the **Individual** and **Group** menus (and in the **Place** menu for a place): the Edit menu has only Undo, Redo and Recent Changes.
+
+| Shortcut | Command |
+|---|---|
 | `F2` | Edit the selected individual or group |
 | `Ctrl+X` | Relocate the selected individual or group |
 | `Del` | Delete the selected individual, group or place |

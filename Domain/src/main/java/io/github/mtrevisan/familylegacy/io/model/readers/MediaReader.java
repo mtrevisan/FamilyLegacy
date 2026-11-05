@@ -81,9 +81,15 @@ public final class MediaReader{
 	public static final String ENUM_KIND_VIDEO = "video";
 	public static final String[] KINDS = new String[]{ENUM_KIND_IMAGE, ENUM_KIND_DOCUMENT, ENUM_KIND_AUDIO, ENUM_KIND_VIDEO};
 
+	public static final String ENUM_MAPPING_PLANAR = "planar";
+	public static final String ENUM_MAPPING_SPHERICAL_EQUIRECTANGULAR = "spherical_equirectangular";
+	public static final String ENUM_MAPPING_SPHERICAL_UV = "spherical_uv";
+	public static final String ENUM_MAPPING_CUBEMAP = "cubemap";
+	public static final String ENUM_MAPPING_CYLINDRICAL_EQUIRECTANGULAR_HORIZONTAL = "cylindrical_equirectangular_horizontal";
+	public static final String ENUM_MAPPING_CYLINDRICAL_EQUIRECTANGULAR_VERTICAL = "cylindrical_equirectangular_vertical";
 	public static final String[] MAPPINGS = new String[]{
-		"planar", "spherical_equirectangular", "spherical_uv", "cubemap", "cylindrical_equirectangular_horizontal",
-		"cylindrical_equirectangular_vertical"};
+		ENUM_MAPPING_PLANAR, ENUM_MAPPING_SPHERICAL_EQUIRECTANGULAR, ENUM_MAPPING_SPHERICAL_UV, ENUM_MAPPING_CUBEMAP, ENUM_MAPPING_CYLINDRICAL_EQUIRECTANGULAR_HORIZONTAL,
+		ENUM_MAPPING_CYLINDRICAL_EQUIRECTANGULAR_VERTICAL};
 
 	private static final Set<String> IMAGE_EXTENSIONS = Set.of("jpg", "jpeg", "jpe", "jfif", "png", "gif", "bmp", "tif", "tiff",
 		"webp", "heic", "heif", "svg", "ico", "jp2", "pcx", "psd");

@@ -73,9 +73,9 @@ public final class IndividualReader{
 	public static final String TAG_PRIVACY = "privacy";
 	public static final String TAG_AUDIT = "audit";
 
-	static final String ENUM_SEX_MALE = "male";
-	static final String ENUM_SEX_FEMALE = "female";
-	static final String ENUM_SEX_UNKNOWN = "unknown";
+	public static final String ENUM_SEX_MALE = "male";
+	public static final String ENUM_SEX_FEMALE = "female";
+	public static final String ENUM_SEX_UNKNOWN = "unknown";
 	public static final String[] SEXES = {
 		ENUM_SEX_MALE,
 		ENUM_SEX_FEMALE,

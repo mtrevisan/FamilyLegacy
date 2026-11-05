@@ -79,7 +79,7 @@ public final class ConsanguinityReportTool implements ToolOperation{
 				progress.close();
 				try{
 					final ConsanguinityReport report = get();
-					new ConsanguinityReportDialog(context.owner(), report, id -> ConsanguineousUnionDetector.nameOf(model, id))
+					new ConsanguinityReportDialog(context.owner(), model, report, id -> ConsanguineousUnionDetector.nameOf(model, id))
 						.setVisible(true);
 				}
 				catch(final InterruptedException ie){

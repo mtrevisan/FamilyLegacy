@@ -24,13 +24,10 @@
  */
 package io.github.mtrevisan.familylegacy.search.strategies;
 
-import io.github.mtrevisan.familylegacy.i18n.I18N;
+import io.github.mtrevisan.familylegacy.events.EventSummary;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.RecordDisplay;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.PlaceCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.date.DateService;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.search.SearchCriteria;
@@ -40,7 +37,6 @@ import io.github.mtrevisan.familylegacy.search.TextSearchHelper;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Set;
-import java.util.StringJoiner;
 import java.util.function.Predicate;
 
 
@@ -93,7 +89,7 @@ public class EventSearchStrategy implements SearchStrategy{
 				return false;
 
 			// Place filter
-			if(!SearchHelper.matchesPlace(event, place, model, modes, FUZZY_THRESHOLD))
+			if(!SearchHelper.matchesEventPlace(event, place, model, modes, FUZZY_THRESHOLD))
 				return false;
 
 			// Cause Reason filter
@@ -109,24 +105,7 @@ public class EventSearchStrategy implements SearchStrategy{
 
 	@Override
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
-		final String baseDisplayText = RecordDisplay.describe(record, model);
-
-		final String type = EventReader.extractType(record);
-		final FLEFRecord dateRecord = FLEFRecordHelper.findChild(record, EventReader.TAG_DATE);
-		final String date = DateService.getDateDisplayText(dateRecord);
-		final String place = PlaceCitationReader.extractPlace(record, model);
-
-		final StringJoiner details = new StringJoiner(", ", " (", ")");
-		details.setEmptyValue(StringUtils.EMPTY);
-
-		if(StringUtils.isNotEmpty(type))
-			details.add(I18N.t("dialog.event.type") + ": " + type);
-		if(StringUtils.isNotEmpty(date))
-			details.add(date);
-		if(StringUtils.isNotEmpty(place))
-			details.add(place);
-
-		return baseDisplayText + details;
+		return EventSummary.describe(record, model);
 	}
 
 }

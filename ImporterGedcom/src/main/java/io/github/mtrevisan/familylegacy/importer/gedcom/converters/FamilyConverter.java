@@ -24,13 +24,10 @@
  */
 package io.github.mtrevisan.familylegacy.importer.gedcom.converters;
 
-import io.github.mtrevisan.familylegacy.importer.gedcom.AuditBuilder;
-import io.github.mtrevisan.familylegacy.importer.gedcom.Deduplicator;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMHelper;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMMapper;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.importer.gedcom.IDGenerator;
-import io.github.mtrevisan.familylegacy.importer.gedcom.PlaceCache;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.GroupAttributeReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.GroupReader;
@@ -185,16 +182,16 @@ public class FamilyConverter{
 
 		// Sources (SOUR) – attach directly to group
 		for(GEDCOMNode sourNode : GEDCOMHelper.findChildren(famNode, "SOUR")){
-			GEDCOMHelper.attachSource(group, model, sourNode, noteRawMap);
+			GEDCOMRecordBuilder.attachSource(group, model, sourNode, noteRawMap);
 		}
 
 		// Notes – inline structs
 		for(GEDCOMNode noteNode : GEDCOMHelper.findChildren(famNode, "NOTE")){
-			GEDCOMHelper.attachNote(group, noteNode, noteRawMap);
+			GEDCOMRecordBuilder.attachNote(group, noteNode, noteRawMap);
 		}
 		// Non-events (NO, GEDCOM 7) – notes
 		for(GEDCOMNode noNode : GEDCOMHelper.findChildren(famNode, "NO")){
-			GEDCOMHelper.attachNonEvent(group, noNode, model, noteRawMap);
+			GEDCOMRecordBuilder.attachNonEvent(group, noNode, model, noteRawMap);
 		}
 
 		// Associates of the family (ASSO, GEDCOM 7)
@@ -204,11 +201,11 @@ public class FamilyConverter{
 
 		// Multimedia (OBJE) – attach directly to group
 		for(GEDCOMNode multimediaLinkNode : GEDCOMHelper.findChildren(famNode, "OBJE")){
-			GEDCOMHelper.attachMultimediaLink(group, model, multimediaLinkNode, noteRawMap);
+			GEDCOMRecordBuilder.attachMultimediaLink(group, model, multimediaLinkNode, noteRawMap);
 		}
 
 		// Restriction notice -> privacy
-		GEDCOMHelper.attachRestriction(group, famNode);
+		GEDCOMRecordBuilder.attachRestriction(group, famNode);
 
 		// Audit
 		group.addChild(AuditBuilder.build(famNode));
@@ -258,7 +255,7 @@ public class FamilyConverter{
 				createGroupMembership(link.wifeId, group.getId(), "wife", link.famNode);
 			for(String childId : link.childrenIds)
 				if(individualMap.containsKey(childId))
-					createGroupMembership(childId, group.getId(), "child", link.famNode);
+					createGroupMembership(childId, group.getId(), RelationshipReader.ENUM_TYPE_CHILD, link.famNode);
 
 			// ---- Spouse relationship (Inter-individual) ----
 			if(individualMap.containsKey(link.husbandId) && individualMap.containsKey(link.wifeId))
@@ -268,7 +265,7 @@ public class FamilyConverter{
 			for(String childId : link.childrenIds){
 				if(individualMap.containsKey(childId)){
 					final GEDCOMNode famcNode = childFamilyLinks.get(IndividualConverter.childFamilyKey(childId, link.familyId));
-					final Set<String> biologicalParents = GEDCOMHelper.biologicalParents(recordsById.get(childId), recordsById);
+					final Set<String> biologicalParents = GEDCOMRecordBuilder.biologicalParents(recordsById.get(childId), recordsById);
 					if(individualMap.containsKey(link.husbandId))
 						createParentChild(childId, link.husbandId, famcNode, link.famNode, biologicalParents);
 					if(individualMap.containsKey(link.wifeId))
@@ -284,17 +281,17 @@ public class FamilyConverter{
 				if(typeToken != null && GEDCOMMapper.GROUP_ATTRIBUTE_FACT_TYPES.containsKey(typeToken))
 					createGroupAttribute(child, group, GEDCOMMapper.GROUP_ATTRIBUTE_FACT_TYPES.get(typeToken));
 				else if(GEDCOMMapper.FAMILY_EVENT_TAGS.contains(child.getTag())){
-					final FLEFRecord event = GEDCOMHelper.createEvent(model, child, noteRawMap, placeCache);
+					final FLEFRecord event = GEDCOMRecordBuilder.createEvent(model, child, noteRawMap, placeCache);
 					// The event is about the family and about each spouse
-					GEDCOMHelper.attachEventParticipation(event.getId(), "group", group.getId(), ROLE_PRINCIPAL, null, child,
+					GEDCOMRecordBuilder.attachEventParticipation(event.getId(), "group", group.getId(), ROLE_PRINCIPAL, null, child,
 						model);
 					if(individualMap.containsKey(link.husbandId))
-						GEDCOMHelper.attachEventParticipation(event.getId(), "individual", link.husbandId, ROLE_PRINCIPAL,
+						GEDCOMRecordBuilder.attachEventParticipation(event.getId(), "individual", link.husbandId, ROLE_PRINCIPAL,
 							GEDCOMHelper.findFirstValue(GEDCOMHelper.findFirstChild(child, "HUSB"), "AGE"), child, model);
 					if(individualMap.containsKey(link.wifeId))
-						GEDCOMHelper.attachEventParticipation(event.getId(), "individual", link.wifeId, ROLE_PRINCIPAL,
+						GEDCOMRecordBuilder.attachEventParticipation(event.getId(), "individual", link.wifeId, ROLE_PRINCIPAL,
 							GEDCOMHelper.findFirstValue(GEDCOMHelper.findFirstChild(child, "WIFE"), "AGE"), child, model);
-					GEDCOMHelper.attachEventAssociates(event.getId(), child, model, noteRawMap, recordsById);
+					GEDCOMRecordBuilder.attachEventAssociates(event.getId(), child, model, noteRawMap, recordsById);
 				}
 				else if("RESI".equals(child.getTag()))
 					createGroupAttribute(child, group, GEDCOMMapper.mapAttribute(child.getTag(), child.getTag()));
@@ -367,7 +364,7 @@ public class FamilyConverter{
 		if(("civil".equalsIgnoreCase(marriageType) || "religious".equalsIgnoreCase(marriageType)))
 			relationship.addChild(FLEFRecord.createChildWithTagAndValue("type", marriageType.toLowerCase(Locale.ROOT) + "_spouse"));
 		else{
-			relationship.addChild(FLEFRecord.createChildWithTagAndValue("type", "spouse"));
+			relationship.addChild(FLEFRecord.createChildWithTagAndValue("type", RelationshipReader.ENUM_TYPE_SPOUSE));
 			note = FLEFRecord.createChildWithTag("note")
 				.addChild(FLEFRecord.createChildWithTagAndValue("text",
 					(StringUtils.isNotEmpty(marriageType)? marriageType + " -- ": StringUtils.EMPTY)
@@ -377,9 +374,9 @@ public class FamilyConverter{
 
 		// The relationship lasts from the marriage to the divorce (or annulment)
 		if(marriageNode != null)
-			GEDCOMHelper.attachDate(relationship, "valid_from", GEDCOMHelper.findFirstValue(marriageNode, "DATE"));
+			GEDCOMRecordBuilder.attachDate(relationship, "valid_from", GEDCOMHelper.findFirstValue(marriageNode, "DATE"));
 		if(endNode != null)
-			GEDCOMHelper.attachDate(relationship, "valid_to", GEDCOMHelper.findFirstValue(endNode, "DATE"));
+			GEDCOMRecordBuilder.attachDate(relationship, "valid_to", GEDCOMHelper.findFirstValue(endNode, "DATE"));
 
 		relationship.addChild(note);
 		relationship.addChild(AuditBuilder.build(link.famNode));
@@ -412,9 +409,9 @@ public class FamilyConverter{
 			.addChild(FLEFRecord.createChildWithTagAndValue("type", type));
 		final String status = GEDCOMHelper.findFirstValue(famcNode, "STAT");
 		for(GEDCOMNode noteNode : GEDCOMHelper.findChildren(famcNode, "NOTE"))
-			GEDCOMHelper.attachNote(relationship, noteNode, noteRawMap);
+			GEDCOMRecordBuilder.attachNote(relationship, noteNode, noteRawMap);
 		if(status != null)
-			relationship.addChild(GEDCOMHelper.createNoteStruct("Linkage status", status, famcNode));
+			relationship.addChild(GEDCOMRecordBuilder.createNoteStruct("Linkage status", status, famcNode));
 		final String confidence = GEDCOMMapper.mapChildLinkageStatus(status);
 		if(confidence != null)
 			relationship.addChild(FLEFRecord.createChildWithTagAndValue("confidence", confidence));
@@ -442,15 +439,15 @@ public class FamilyConverter{
 				.addChild(FLEFRecord.createChildWithTagAndValue("individual", associateId)))
 			.addChild(FLEFRecord.createChildWithTag("target")
 				.addChild(FLEFRecord.createChildWithTagAndValue("group", group.getId())))
-			.addChild(FLEFRecord.createChildWithTagAndValue("type", "associate"));
+			.addChild(FLEFRecord.createChildWithTagAndValue("type", RelationshipReader.ENUM_TYPE_ASSOCIATE));
 		final String role = GEDCOMMapper.mapAssociationRoleLabel(GEDCOMHelper.findFirstValue(assoNode, "ROLE"));
 		if(role != null)
 			relationship.addChild(FLEFRecord.createChildWithTagAndValue("role", role));
 
 		for(GEDCOMNode sourNode : GEDCOMHelper.findChildren(assoNode, "SOUR"))
-			GEDCOMHelper.attachSource(relationship, model, sourNode, noteRawMap);
+			GEDCOMRecordBuilder.attachSource(relationship, model, sourNode, noteRawMap);
 		for(GEDCOMNode noteNode : GEDCOMHelper.findChildren(assoNode, "NOTE"))
-			GEDCOMHelper.attachNote(relationship, noteNode, noteRawMap);
+			GEDCOMRecordBuilder.attachNote(relationship, noteNode, noteRawMap);
 		relationship.addChild(AuditBuilder.build(famNode));
 
 		Deduplicator.getDeduplicatedRecordId(model, relationship);
@@ -472,29 +469,29 @@ public class FamilyConverter{
 			groupAttribute.addChild(FLEFRecord.createChildWithTagAndValue("value", value.trim()));
 
 		// Date (valid_from / valid_to)
-		GEDCOMHelper.attachValidity(groupAttribute, GEDCOMHelper.findFirstValue(attrNode, "DATE"));
+		GEDCOMRecordBuilder.attachValidity(groupAttribute, GEDCOMHelper.findFirstValue(attrNode, "DATE"));
 
 		// Place
-		GEDCOMHelper.attachPlaceCitation(groupAttribute, model, GEDCOMHelper.findFirstChild(attrNode, "PLAC"),
+		GEDCOMRecordBuilder.attachPlaceCitation(groupAttribute, model, GEDCOMHelper.findFirstChild(attrNode, "PLAC"),
 			GEDCOMHelper.findFirstChild(attrNode, "ADDR"), noteRawMap, placeCache);
 
 		// Sources
 		for(GEDCOMNode sourNode : GEDCOMHelper.findChildren(attrNode, "SOUR")){
-			GEDCOMHelper.attachSource(groupAttribute, model, sourNode, noteRawMap);
+			GEDCOMRecordBuilder.attachSource(groupAttribute, model, sourNode, noteRawMap);
 		}
 
 		// Notes
 		for(GEDCOMNode noteNode : GEDCOMHelper.findChildren(attrNode, "NOTE")){
-			GEDCOMHelper.attachNote(groupAttribute, noteNode, noteRawMap);
+			GEDCOMRecordBuilder.attachNote(groupAttribute, noteNode, noteRawMap);
 		}
 
 		// Multimedia
 		for(GEDCOMNode multimediaLinkNode : GEDCOMHelper.findChildren(attrNode, "OBJE")){
-			GEDCOMHelper.attachMultimediaLink(groupAttribute, model, multimediaLinkNode, noteRawMap);
+			GEDCOMRecordBuilder.attachMultimediaLink(groupAttribute, model, multimediaLinkNode, noteRawMap);
 		}
 
 		// Restriction
-		GEDCOMHelper.attachRestriction(groupAttribute, attrNode);
+		GEDCOMRecordBuilder.attachRestriction(groupAttribute, attrNode);
 
 		// Audit
 		groupAttribute.addChild(AuditBuilder.build(attrNode));

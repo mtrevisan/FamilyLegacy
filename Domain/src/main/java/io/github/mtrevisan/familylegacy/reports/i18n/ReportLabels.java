@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.reports.i18n;
 
 import com.ibm.icu.text.MessageFormat;
+import io.github.mtrevisan.familylegacy.consanguinity.KinshipVocabulary;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -82,6 +83,16 @@ public final class ReportLabels{
 
 	public String getString(final String key){
 		return bundle.getString(key);
+	}
+
+	/**
+	 * @return	The words of the kinship terms in the language of the report: the {@code kinship.*} keys of the calculator are the keys of
+	 * 	the messages in upper case with underscores ({@code kinship.term.uncle.male} is {@code KINSHIP_TERM_UNCLE_MALE}). A word the
+	 * 	language does not have is said in English, as every other text of the report.
+	 */
+	public KinshipVocabulary kinship(){
+		return (key, args) -> new MessageFormat(getString(key.toUpperCase(Locale.ROOT).replace('.', '_')), language.locale())
+			.format(args);
 	}
 
 

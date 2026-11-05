@@ -54,21 +54,26 @@ public final class PrivacyReader{
 	public static final String TAG_REASON = "reason";
 	public static final String TAG_EXPIRES = "expires";
 
-	private static final String ENUM_LEVEL_PUBLIC = "public";
-	private static final String ENUM_LEVEL_RESTRICTED = "restricted";
-	private static final String ENUM_LEVEL_CONFIDENTIAL = "confidential";
+	public static final String ENUM_LEVEL_PUBLIC = "public";
+	public static final String ENUM_LEVEL_RESTRICTED = "restricted";
+	public static final String ENUM_LEVEL_CONFIDENTIAL = "confidential";
 	public static final String[] LEVELS = {
 		ENUM_LEVEL_PUBLIC,
 		ENUM_LEVEL_RESTRICTED,
 		ENUM_LEVEL_CONFIDENTIAL
 	};
 
+	public static final String ENUM_REASON_LIVING_PERSON = "living_person";
+	public static final String ENUM_REASON_PRIVACY_LAW = "privacy_law";
+	public static final String ENUM_REASON_COPYRIGHT = "copyright";
+	public static final String ENUM_REASON_REPOSITORY_LICENSE = "repository_license";
+	public static final String ENUM_REASON_SENSITIVE_INFORMATION = "sensitive_information";
 	public static final String[] REASONS = {
-		"living_person",
-		"privacy_law",
-		"copyright",
-		"repository_license",
-		"sensitive_information"
+		ENUM_REASON_LIVING_PERSON,
+		ENUM_REASON_PRIVACY_LAW,
+		ENUM_REASON_COPYRIGHT,
+		ENUM_REASON_REPOSITORY_LICENSE,
+		ENUM_REASON_SENSITIVE_INFORMATION
 	};
 
 

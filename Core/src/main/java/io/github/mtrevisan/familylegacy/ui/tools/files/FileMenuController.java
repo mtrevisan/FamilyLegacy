@@ -28,23 +28,30 @@ import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.FLEFWriter;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.ModelHistory;
 import io.github.mtrevisan.familylegacy.preferences.MediaPathDisplay;
 import io.github.mtrevisan.familylegacy.ui.dialogs.ProgressDialog;
 import io.github.mtrevisan.familylegacy.util.AtomicFileWriter;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
+import javax.swing.Timer;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import java.awt.Cursor;
 import java.awt.Window;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ExecutionException;
-import java.util.function.BooleanSupplier;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -55,56 +62,70 @@ import java.util.function.Supplier;
  * The menu is different from the other menus of the application: it
  * does not operate on the model, it operates on the <b>document</b>
  * (the file the model came from). The controller therefore owns a
- * shared state that no other menu has: the current file and the dirty
- * flag.
+ * shared state that no other menu has: the current file.
+ * <p>
+ * <b>There are no unsaved changes.</b> Every change to the model is written to the file of the document by itself, a fraction of a
+ * second after it is made (see {@link #documentChanged()}): the file is always, but for that moment, what is in memory, and no
+ * command asks whether to save. What replaces the document or ends the application (New, Open, Exit, Import, Restore) first
+ * writes what is still pending ({@link #confirmDiscardChanges()}).
+ * <p>
+ * The only document that has no file is the empty one the application starts with. At the first change the user is asked where to
+ * write it, and from then on it is saved as the others. If the user declines, the document stays in memory, and the changes are lost
+ * unless the user chooses a file when closing or replacing it (the question is asked then).
  * <p>
  * The controller delegates all the model-specific work to the enclosing
- * frame through four callbacks:
- * <ul>
- *   <li>{@code currentModel} — returns the model currently loaded, or
- *       {@code null} when no document is open;</li>
- *   <li>{@code modelReplacer} — replaces the current model with a new
- *       one, rebuilding the frame's UI around it;</li>
- *   <li>{@code modelClean} — marks the current model as clean, called
- *       after a successful save;</li>
- *   <li>{@code modelModified} — tells whether the model differs from what is on the file.</li>
- * </ul>
- * The controller is the single point that knows the current file and
- * the dirty flag; the frame only knows the model.
- * <p>
- * <b>Unsaved changes.</b> Every operation that discards the current
- * document (New, Open, Exit) prompts the user when the model is dirty.
- * The prompt offers three choices: save, discard, cancel. The
- * controller returns {@code false} to cancel the operation when the
- * user chooses cancel, or when the save fails.
+ * frame through the callbacks and the {@link ModelHistory}, that tells whether the model differs from what is on the file.
  */
 public final class FileMenuController{
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(FileMenuController.class);
+
 	private static final String FLEF_EXTENSION = "flef";
+	/** How long a change waits for others before it is written, so that a burst of edits makes a single write. */
+	private static final int AUTOSAVE_DELAY = 600;
 
 
 	private final JFrame owner;
 	private final Supplier<FLEFModel> currentModel;
 	private final Consumer<FLEFModel> modelReplacer;
-	private final Runnable modelClean;
-	private final BooleanSupplier modelModified;
+	private final ModelHistory history;
 
 	private final RecentFilesManager recentFiles = new RecentFilesManager();
+
+	private final Timer autosaveTimer;
+	/** One thread writes, so that the writes are in the order the changes were made. */
+	private final ExecutorService writer = Executors.newSingleThreadExecutor(runnable -> {
+		final Thread thread = new Thread(runnable, "autosave");
+		thread.setDaemon(true);
+		return thread;
+	});
 
 	private File currentFile;
 
 	/** Last directory used by a file chooser, so the next one opens there. */
 	private File lastDirectory;
 
+	/** The user did not choose a file for the document that has none: no more asking until it is closed or replaced. */
+	private boolean saveDeclined;
+	/** An automatic save failed and the user knows: no more asking until one succeeds. */
+	private boolean failureReported;
 
-	public FileMenuController(final JFrame owner, final Supplier<FLEFModel> currentModel,
-			final Consumer<FLEFModel> modelReplacer, final Runnable modelClean, final BooleanSupplier modelModified){
+
+	/**
+	 * @param owner	The window of the application.
+	 * @param currentModel	The model that is open.
+	 * @param modelReplacer	Replaces the open model (and the history) with another.
+	 * @param history	The history of the open model: it knows whether what is in memory is what is on the file.
+	 */
+	public FileMenuController(final JFrame owner, final Supplier<FLEFModel> currentModel, final Consumer<FLEFModel> modelReplacer,
+			final ModelHistory history){
 		this.owner = owner;
 		this.currentModel = currentModel;
 		this.modelReplacer = modelReplacer;
-		this.modelClean = (modelClean != null? modelClean: () -> {});
-		//without a way to know, every change is assumed
-		this.modelModified = (modelModified != null? modelModified: () -> true);
+		this.history = history;
+
+		autosaveTimer = new Timer(AUTOSAVE_DELAY, e -> autoSave());
+		autosaveTimer.setRepeats(false);
 	}
 
 
@@ -112,17 +133,9 @@ public final class FileMenuController{
 	 *                          State queries
 	 * ====================================================================== */
 
-	/** Returns the file currently open, or {@code null} for an unsaved document. */
+	/** Returns the file currently open, or {@code null} for a document that has none yet. */
 	public File currentFile(){
 		return currentFile;
-	}
-
-	/**
-	 * Forgets the file of the document, which then has no name: a save asks where to write. Used when the content of the document
-	 * no longer is the one of its file (a restored backup).
-	 */
-	public void detachFile(){
-		currentFile = null;
 	}
 
 	/** Returns the recent files manager, for the Recent submenu. */
@@ -130,19 +143,178 @@ public final class FileMenuController{
 		return recentFiles;
 	}
 
+	private void setCurrentFile(final File file){
+		currentFile = file;
+		saveDeclined = false;
+		failureReported = false;
+		MediaPathDisplay.setDocumentFile(file);
+		if(file != null){
+			lastDirectory = file.getParentFile();
+			recentFiles.add(file);
+		}
+	}
+
+
+	/* ======================================================================
+	 *                          Saving by itself
+	 * ====================================================================== */
+
+	/**
+	 * Tells that the model may have changed (a step of the history, an undo, a redo, a restored backup): if it differs from the file,
+	 * it is written soon. Call it on the event dispatch thread; it is quick.
+	 */
+	public void documentChanged(){
+		if(!history.isModified())
+			return;
+
+		if(currentFile == null){
+			//not here: this is called while an event is being dispatched
+			if(!saveDeclined)
+				SwingUtilities.invokeLater(this::askWhereToSave);
+
+			return;
+		}
+
+		autosaveTimer.restart();
+	}
+
+	/** Writes the changes to the file, in the background, from the copy of the model that the history gives. */
+	private void autoSave(){
+		if(currentFile == null || !history.isModified())
+			return;
+
+		final File target = currentFile;
+		final ModelHistory.SaveTicket ticket = history.prepareSave();
+		writer.execute(() -> {
+			try{
+				write(target, ticket.view());
+
+				SwingUtilities.invokeLater(() -> {
+					failureReported = false;
+					//a file the document has left in the meantime (Save as) is not the one that is up to date
+					if(target.equals(currentFile))
+						history.markSaved(ticket);
+				});
+			}
+			catch(final IOException | RuntimeException e){
+				SwingUtilities.invokeLater(() -> reportAutosaveFailure(e));
+			}
+		});
+	}
+
+	private void reportAutosaveFailure(final Exception e){
+		LOGGER.warn("Automatic save of {} failed", currentFile, e);
+
+		//it is tried again at the next change; the user is told once
+		if(failureReported)
+			return;
+
+		failureReported = true;
+		showError(I18N.t("error.file.autosave"), e);
+	}
+
+	/** Asks where to write a document that has no file, once it has something to write. */
+	private void askWhereToSave(){
+		if(currentFile != null || saveDeclined || !history.isModified())
+			return;
+
+		final File target = chooseSaveTarget(I18N.t("dialog.file.autosave.title"), lastDirectory, null);
+		if(target == null){
+			saveDeclined = true;
+			return;
+		}
+
+		if(writeTo(target))
+			setCurrentFile(target);
+	}
+
+	/**
+	 * Writes what is still pending, now, before the document is replaced or the application ends.
+	 *
+	 * @return	{@code true} if nothing is lost and the operation can go on; {@code false} if the user cancelled it, because the document
+	 * 	has no file and the user did not want to choose one, or because the changes could not be written.
+	 */
+	public boolean confirmDiscardChanges(){
+		autosaveTimer.stop();
+		if(currentModel.get() == null)
+			return true;
+
+		if(currentFile == null)
+			return history.isModified()? askWhatToDoWithTheDocument(): true;
+
+		//what is being written in the background first, then what is left
+		try{
+			writer.submit(() -> {})
+				.get();
+		}
+		catch(final InterruptedException ex){
+			Thread.currentThread().interrupt();
+
+			return false;
+		}
+		catch(final ExecutionException ignored){
+			//nothing was being written that matters here: what is left is written below
+		}
+		if(!history.isModified())
+			return true;
+
+		final Cursor cursor = owner.getCursor();
+		owner.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+		try{
+			final ModelHistory.SaveTicket ticket = history.prepareSave();
+			write(currentFile, ticket.view());
+			history.markSaved(ticket);
+			return true;
+		}
+		catch(final IOException | RuntimeException e){
+			return JOptionPane.showConfirmDialog(owner,
+				I18N.tf("confirmation.autosave_failed.message", e.getMessage()), I18N.t("confirmation.autosave_failed.title"),
+				JOptionPane.YES_NO_OPTION, JOptionPane.ERROR_MESSAGE) == JOptionPane.YES_OPTION;
+		}
+		finally{
+			owner.setCursor(cursor);
+		}
+	}
+
+	/** The document has changes and no file: choose one, lose them, or give up what was being done. */
+	private boolean askWhatToDoWithTheDocument(){
+		final int choice = JOptionPane.showOptionDialog(owner,
+			I18N.t("dialog.unsaved.message"), I18N.t("dialog.unsaved.title"),
+			JOptionPane.YES_NO_CANCEL_OPTION,
+			JOptionPane.WARNING_MESSAGE,
+			null,
+			new Object[]{I18N.t("button.save"), I18N.t("button.discard"), I18N.t("button.cancel")},
+			I18N.t("button.save"));
+
+		if(choice == 2 || choice == JOptionPane.CLOSED_OPTION)
+			return false;
+		if(choice == 0)
+			return saveAs();
+
+		// choice == 1: discard
+		return true;
+	}
+
 
 	/* ======================================================================
 	 *                          New / Open
 	 * ====================================================================== */
 
-	/** Creates a new empty document. */
+	/** Creates a new empty document: the user chooses the file it is written to. */
 	public void newFile(){
 		if(!confirmDiscardChanges())
 			return;
 
-		modelReplacer.accept(new FLEFModel());
-		currentFile = null;
-		MediaPathDisplay.setDocumentFile(null);
+		final File target = chooseSaveTarget(I18N.t("dialog.file.new.title"), lastDirectory, null);
+		if(target == null)
+			return;
+
+		final FLEFModel model = new FLEFModel();
+		if(!writeTo(target, model))
+			return;
+
+		modelReplacer.accept(model);
+		setCurrentFile(target);
 	}
 
 	/** Opens a file through a chooser. */
@@ -151,18 +323,43 @@ public final class FileMenuController{
 			return;
 
 		final JFileChooser chooser = new JFileChooser(lastDirectory);
-		chooser.setDialogTitle("Open FLEF file");
-		chooser.setFileFilter(new FileNameExtensionFilter("FLEF files (*.flef)", FLEF_EXTENSION));
+		chooser.setDialogTitle(I18N.t("dialog.file.open.title"));
+		chooser.setFileFilter(new FileNameExtensionFilter(I18N.t("file.filter.flef"), FLEF_EXTENSION));
 		if(chooser.showOpenDialog(owner) != JFileChooser.APPROVE_OPTION)
 			return;
 
 		openFile(chooser.getSelectedFile());
 	}
 
-	/** Opens the given file directly, without a chooser. */
-	public void openFile(final File file){
-		if(file == null || !file.exists())
+	/**
+	 * Opens a file of the recent files list. A file that is not there any more is not opened, and the user is asked whether to remove
+	 * it from the list.
+	 */
+	public void openRecent(final File file){
+		if(file == null)
 			return;
+
+		if(!file.exists()){
+			reportMissingFile(file);
+
+			return;
+		}
+
+		if(!confirmDiscardChanges())
+			return;
+
+		openFile(file);
+	}
+
+	/** Opens the given file directly, without a chooser (and without writing what is pending: the callers do). */
+	public void openFile(final File file){
+		if(file == null)
+			return;
+		if(!file.exists()){
+			reportMissingFile(file);
+
+			return;
+		}
 
 		final Window ownerWindow = owner;
 
@@ -190,10 +387,7 @@ public final class FileMenuController{
 					final FLEFModel model = get();
 
 					modelReplacer.accept(model);
-					currentFile = file;
-					MediaPathDisplay.setDocumentFile(file);
-					lastDirectory = file.getParentFile();
-					recentFiles.add(file);
+					setCurrentFile(file);
 				}
 				catch(final InterruptedException ex){
 					Thread.currentThread().interrupt();
@@ -214,30 +408,41 @@ public final class FileMenuController{
 		progress.setVisible(true);
 	}
 
+	/**
+	 * Tells the user that the file is not there. If it is in the recent files, asks whether to remove it from the list (the list
+	 * keeps the files that were opened, and one can be moved or deleted in the meantime).
+	 */
+	private void reportMissingFile(final File file){
+		if(!recentFiles.contains(file)){
+			JOptionPane.showMessageDialog(owner, I18N.tf("error.file.not_found", file.getAbsolutePath()), I18N.t("error.file.title"),
+				JOptionPane.ERROR_MESSAGE);
 
-	/* ======================================================================
-	 *                          Save
-	 * ====================================================================== */
+			return;
+		}
 
-	/** Saves the current document. If it has no file yet, prompts for one. */
-	public boolean save(){
-		if(currentFile == null)
-			return saveAs();
-
-		return writeTo(currentFile);
+		final int remove = JOptionPane.showConfirmDialog(owner,
+			I18N.tf("confirmation.recent_file_missing.message", file.getAbsolutePath()),
+			I18N.t("confirmation.recent_file_missing.title"), JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+		if(remove == JOptionPane.YES_OPTION)
+			recentFiles.remove(file);
 	}
 
-	/** Saves the current document under a new file, chosen by the user. */
+
+	/* ======================================================================
+	 *                          Save as
+	 * ====================================================================== */
+
+	/**
+	 * Writes the document to a file chosen by the user, which becomes the file of the document: the changes are saved to it from now
+	 * on, and the previous file is left as it was last written.
+	 */
 	public boolean saveAs(){
-		final File target = chooseSaveTarget("Save FLEF file", lastDirectory, currentFile);
+		final File target = chooseSaveTarget(I18N.t("dialog.file.save.title"), lastDirectory, currentFile);
 		if(target == null)
 			return false;
 
 		if(writeTo(target)){
-			currentFile = target;
-			MediaPathDisplay.setDocumentFile(target);
-			lastDirectory = target.getParentFile();
-			recentFiles.add(target);
+			setCurrentFile(target);
 			return true;
 		}
 		return false;
@@ -260,7 +465,7 @@ public final class FileMenuController{
 	public void openImported(final FLEFModel importedModel, final File source){
 		final File suggested = new File(source.getParentFile(),
 			FilenameUtils.getBaseName(source.getName()) + "." + FLEF_EXTENSION);
-		final File target = chooseSaveTarget("Save imported file as FLEF", source.getParentFile(), suggested);
+		final File target = chooseSaveTarget(I18N.t("dialog.file.save_imported.title"), source.getParentFile(), suggested);
 		if(target == null)
 			return;
 
@@ -281,7 +486,7 @@ public final class FileMenuController{
 	private File chooseSaveTarget(final String title, final File directory, final File suggested){
 		final JFileChooser chooser = new JFileChooser(directory);
 		chooser.setDialogTitle(title);
-		chooser.setFileFilter(new FileNameExtensionFilter("FLEF files (*.flef)", FLEF_EXTENSION));
+		chooser.setFileFilter(new FileNameExtensionFilter(I18N.t("file.filter.flef"), FLEF_EXTENSION));
 		if(suggested != null)
 			chooser.setSelectedFile(suggested);
 		if(chooser.showSaveDialog(owner) != JFileChooser.APPROVE_OPTION)
@@ -309,11 +514,17 @@ public final class FileMenuController{
 	 *                          Exit
 	 * ====================================================================== */
 
-	/** Closes the application, prompting for unsaved changes first. */
-	public void exit(){
+	/**
+	 * Closes the window of the application, after what is pending has been written.
+	 *
+	 * @return	Whether the window was closed: {@code false} if the user cancelled, or the changes could not be written.
+	 */
+	public boolean exit(){
 		if(!confirmDiscardChanges())
-			return;
+			return false;
+
 		owner.dispose();
+		return true;
 	}
 
 
@@ -335,6 +546,7 @@ public final class FileMenuController{
 		return writeTo(file, currentModel.get());
 	}
 
+	/** Writes the model with a progress window (a user asked for it, and waits for it). */
 	private boolean writeTo(final File file, final FLEFModel model){
 		if(model == null)
 			return false;
@@ -366,7 +578,7 @@ public final class FileMenuController{
 					get();
 					//only the open document is saved by this: an imported model, written to its new file, is not the open one
 					if(model == currentModel.get())
-						modelClean.run();
+						history.markSaved();
 					success[0] = true;
 				}
 				catch(final InterruptedException ex){
@@ -389,31 +601,11 @@ public final class FileMenuController{
 		return success[0];
 	}
 
-	/**
-	 * Prompts the user when the current document has unsaved changes.
-	 * Returns {@code true} when the operation can proceed (either the
-	 * model is clean, the user saved successfully, or the user chose to
-	 * discard the changes) and {@code false} when the user cancelled.
-	 */
-	public boolean confirmDiscardChanges(){
-		if(currentModel.get() == null || !modelModified.getAsBoolean())
-			return true;
-
-		final int choice = JOptionPane.showOptionDialog(owner,
-			I18N.t("dialog.unsaved.message"), I18N.t("dialog.unsaved.title"),
-			JOptionPane.YES_NO_CANCEL_OPTION,
-			JOptionPane.WARNING_MESSAGE,
-			null,
-			new Object[]{I18N.t("button.save"), I18N.t("button.discard"), I18N.t("button.cancel")},
-			I18N.t("button.save"));
-
-		if(choice == 2 || choice == JOptionPane.CLOSED_OPTION)
-			return false;
-		if(choice == 0)
-			return save();
-
-		// choice == 1: discard
-		return true;
+	/** Writes the model, on the calling thread. */
+	private static void write(final File file, final FLEFModel model) throws IOException{
+		final String content = FLEFWriter.createCompact()
+			.writeToString(model);
+		AtomicFileWriter.write(file.toPath(), content, StandardCharsets.UTF_8);
 	}
 
 	private void showError(final String message, final Exception ex){

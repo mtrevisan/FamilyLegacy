@@ -88,7 +88,7 @@ public class RelationshipTypeSelectionDialog extends JDialog{
 	 */
 	public RelationshipTypeSelectionDialog(final Window owner, final List<Item> items,
 			final String[] allowedTypes, final IndividualListener listener, final FLEFModel model){
-		super(owner, "Select Relationship Types", ModalityType.APPLICATION_MODAL);
+		super(owner, I18N.t("dialog.relationship_types.title"), ModalityType.APPLICATION_MODAL);
 
 		if(items == null || items.isEmpty())
 			throw new IllegalArgumentException("Items list must not be empty");

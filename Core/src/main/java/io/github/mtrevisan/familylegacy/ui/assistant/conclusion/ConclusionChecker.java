@@ -31,7 +31,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.SexType;
 import io.github.mtrevisan.familylegacy.ui.assistant.AssistantCategory;
 import io.github.mtrevisan.familylegacy.ui.assistant.Diagnostic;
 import io.github.mtrevisan.familylegacy.ui.assistant.DiagnosticKeys;
-import io.github.mtrevisan.familylegacy.ui.assistant.chronology.DateRange;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.DateRange;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayDeque;
@@ -48,6 +48,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
 
 
 /**
@@ -71,7 +72,7 @@ final class ConclusionChecker{
 	/** The relationships that make a person a descendant of another one: a cycle of them is impossible. */
 	private static final Set<String> LINEAGE_TYPES = Set.of(RelationshipReader.ENUM_TYPE_CHILD,
 		RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD, RelationshipReader.ENUM_TYPE_ADOPTIVE_CHILD);
-	private static final Map<String, Integer> CONFIDENCE_RANK = Map.of("low", 1, "medium", 2, "high", 3);
+	private static final Map<String, Integer> CONFIDENCE_RANK = Map.of(ConfidenceReader.ENUM_LOW, 1, ConfidenceReader.ENUM_MEDIUM, 2, ConfidenceReader.ENUM_HIGH, 3);
 
 
 	private ConclusionChecker(){}

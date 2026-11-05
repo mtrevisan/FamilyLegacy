@@ -65,8 +65,8 @@ public final class ExportFlefTool implements ToolOperation{
 			return;
 
 		final JFileChooser chooser = new JFileChooser();
-		chooser.setDialogTitle("Export FLEF file");
-		chooser.setFileFilter(new FileNameExtensionFilter("FLEF files (*.flef)", "flef"));
+		chooser.setDialogTitle(I18N.t("dialog.export_flef.title"));
+		chooser.setFileFilter(new FileNameExtensionFilter(I18N.t("text.file_filter.flef"), "flef"));
 		if(chooser.showSaveDialog(context.owner()) != JFileChooser.APPROVE_OPTION)
 			return;
 

@@ -57,7 +57,7 @@ public final class ConsanguineousUnionDetector{
 	/** The coefficient of inbreeding from which an individual is reported: the child of second cousins (1/64) and closer. */
 	public static final double DEFAULT_MINIMUM_INBREEDING = 1. / 64.;
 
-	private static final String TYPE_ENGAGED_PARTNER = "engaged_partner";
+	private static final String TYPE_ENGAGED_PARTNER = RelationshipReader.ENUM_TYPE_ENGAGED_PARTNER;
 
 
 	/**

@@ -94,12 +94,15 @@ public final class ConclusionReader{
 	public static final String TAG_PRIVACY = "privacy";
 	public static final String TAG_AUDIT = "audit";
 
+	public static final String ENUM_PROOF_STATUS_CONFLICTING_EVIDENCE = "conflicting_evidence";
+	public static final String ENUM_PROOF_STATUS_SUPPORTED = "supported";
+	public static final String ENUM_PROOF_STATUS_PROVEN = "proven";
+	public static final String ENUM_PROOF_STATUS_DISPROVEN = "disproven";
 	public static final String[] PROOF_STATUSES = new String[]{
-		"unresearched",
-		"conflicting_evidence",
-		"supported",
-		"proven",
-		"disproven"
+		ENUM_PROOF_STATUS_CONFLICTING_EVIDENCE,
+		ENUM_PROOF_STATUS_SUPPORTED,
+		ENUM_PROOF_STATUS_PROVEN,
+		ENUM_PROOF_STATUS_DISPROVEN
 	};
 
 

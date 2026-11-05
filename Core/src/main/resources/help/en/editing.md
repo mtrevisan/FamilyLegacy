@@ -25,7 +25,7 @@ A date of birth is not a field of the individual: it belongs to the **birth even
 3. Open that event. In its *Properties* tab, change **Date** (the same tab holds the type, description, place and confidence).
 4. Save the event, then the participation if you changed it.
 
-A shorter way is **Event > Manage Events...**: it lists every event with its date, place and number of participants, and you can search for the birth and edit it directly. In the sidebar, the **Events** section of the individual shows the same events.
+A shorter way is **Event > Manage Events...**: it lists every event with its date, its place and the people who took part, and you can search for the birth (by the name of the person, the place or the date) and edit it directly. In the sidebar, the **Events** section of the individual shows the same events.
 
 Two cautions:
 
@@ -57,5 +57,5 @@ A group is a set of individuals (a family, a household, a congregation...). Memb
 
 ## Places
 
-- **Place > New Place...** creates a place; **Manage Places...** lists and edits them; **Delete** removes the selected one.
+- **Place > New Place...** creates a place; **Manage Places...** lists and edits them (see [Manage dialogs](searching.md#manage-dialogs)); **Delete** removes the selected one.
 - Places form a hierarchy (a town in a province in a country), and a place can sit under more than one parent.

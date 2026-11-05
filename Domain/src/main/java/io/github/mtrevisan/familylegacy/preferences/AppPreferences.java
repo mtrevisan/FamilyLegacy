@@ -79,6 +79,12 @@ public final class AppPreferences{
 	// view preferences: how the location of the media is shown, and the directory it is relative to (presentation only)
 	public static final String KEY_MEDIA_PATH_DISPLAY = "view.media.path";
 	public static final String KEY_MEDIA_BASE_DIRECTORY = "view.media.base_directory";
+	// the Identity Assistant: from which similarity a pair is proposed, how many, and the scores of the confidence (see IdentitySettings)
+	public static final String KEY_IDENTITY_THRESHOLD = "assistant.identity.threshold";
+	public static final String KEY_IDENTITY_MAX_PAIRS = "assistant.identity.max_pairs";
+	public static final String KEY_IDENTITY_HIGH_SCORE = "assistant.identity.high_score";
+	public static final String KEY_IDENTITY_MEDIUM_SCORE = "assistant.identity.medium_score";
+	public static final String KEY_IDENTITY_OTHER_PERCENT = "assistant.identity.other_percent";
 	// the findings of the Research Assistant ignored by the user, for each file (a presentation choice, never genealogical data)
 	private static final String KEY_IGNORED_FINDINGS_PREFIX = "assistant.ignored.";
 
@@ -232,6 +238,28 @@ public final class AppPreferences{
 	/** Persists the base directory the media paths are shown relative to; {@code null} clears it. */
 	public void setMediaBaseDirectory(final String directory){
 		put(KEY_MEDIA_BASE_DIRECTORY, directory);
+	}
+
+	/**
+	 * @param key	The key of a whole number.
+	 * @param defaultValue	The value when nothing is persisted or it is not a number.
+	 * @return	The persisted number, or the default.
+	 */
+	public synchronized int intValue(final String key, final int defaultValue){
+		final String v = properties.getProperty(key);
+		if(StringUtils.isBlank(v))
+			return defaultValue;
+		try{
+			return Integer.parseInt(v.trim());
+		}
+		catch(final NumberFormatException ignored){
+			return defaultValue;
+		}
+	}
+
+	/** Persists a whole number. */
+	public synchronized void setIntValue(final String key, final int value){
+		put(key, Integer.toString(value));
 	}
 
 	/** Persists the UI font size, in points. */

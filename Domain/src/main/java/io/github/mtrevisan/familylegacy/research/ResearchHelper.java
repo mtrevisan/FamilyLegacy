@@ -27,14 +27,12 @@ package io.github.mtrevisan.familylegacy.research;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.ConclusionReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IdentityHypothesisReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchActivityReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchQuestionReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchTaskReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -221,65 +219,8 @@ public final class ResearchHelper{
 	 *                          Row models
 	 * ====================================================================== */
 
-	/** Row for the research question table. */
-	public record QuestionRow(String id, String title, String status, int activityCount, int taskCount,
-		int conclusionCount){}
-
-	/** Row for the research activity table. */
-	public record ActivityRow(String id, String questionId, String questionTitle, String activityType, String status,
-		String action, String result){}
-
-	/** Row for the research task table. */
-	public record TaskRow(String id, String questionId, String description, String status, String priority,
-		String dueDate){}
-
 	/** Row for the conclusion table. */
 	public record ConclusionRow(String id, String issue, String proofStatus, int resolvesCount, String narrative){}
-
-	/** Row for the identity hypothesis table. */
-	public record IdentityRow(String id, String firstCandidate, String secondCandidate, String comment){}
-
-
-	public static QuestionRow toQuestionRow(final FLEFRecord question,
-		final Map<String, Integer> activityCountByQuestion,
-		final Map<String, Integer> taskCountByQuestion,
-		final Map<String, Integer> conclusionCountByQuestion){
-		final String id = question.getId();
-		return new QuestionRow(
-			id,
-			questionTitle(question),
-			status(question),
-			activityCountByQuestion.getOrDefault(id, 0),
-			taskCountByQuestion.getOrDefault(id, 0),
-			conclusionCountByQuestion.getOrDefault(id, 0)
-		);
-	}
-
-	public static ActivityRow toActivityRow(final FLEFRecord activity, final Map<String, FLEFRecord> questionsById){
-		final String questionId = firstTextValue(activity, ResearchActivityReader.TAG_QUESTION);
-		final FLEFRecord q = (questionId != null? questionsById.get(questionId): null);
-		return new ActivityRow(
-			activity.getId(),
-			questionId,
-			q != null? questionTitle(q): null,
-			activityType(activity),
-			status(activity),
-			action(activity),
-			activityResult(activity)
-		);
-	}
-
-	public static TaskRow toTaskRow(final FLEFRecord task, final Map<String, FLEFRecord> questionsById){
-		final String questionId = firstTextValue(task, ResearchTaskReader.TAG_QUESTION);
-		return new TaskRow(
-			task.getId(),
-			questionId,
-			taskDescription(task),
-			status(task),
-			taskPriority(task),
-			firstTextValue(task, ResearchTaskReader.TAG_DUE_DATE)
-		);
-	}
 
 	public static ConclusionRow toConclusionRow(final FLEFRecord conclusion){
 		final int resolvesCount = conclusion.getChildren().stream()
@@ -293,32 +234,6 @@ public final class ResearchHelper{
 			resolvesCount,
 			firstTextValue(conclusion, ConclusionReader.TAG_NARRATIVE)
 		);
-	}
-
-	/**
-	 * Builds a row for an identity hypothesis. The two candidates are
-	 * the two {@code identity} children; each contains a oneof block
-	 * whose only child is the referenced id.
-	 */
-	public static IdentityRow toIdentityRow(final FLEFRecord hypothesis, final FLEFModel model){
-		final List<String> candidates = new ArrayList<>();
-		for(final FLEFRecord child : hypothesis.getChildren()){
-			if(!IdentityHypothesisReader.TAG_IDENTITY.equalsIgnoreCase(child.getTag()))
-				continue;
-
-			final FLEFRecord oneof = child.getTheOnlyChild();
-			if(oneof == null)
-				continue;
-			final FLEFRecord ref = oneof.getTheOnlyChild();
-			final String id = (ref != null? ref.getValue(): oneof.getValue());
-			if(id != null)
-				candidates.add(id);
-		}
-		final String first = (!candidates.isEmpty()? candidates.get(0): StringUtils.EMPTY);
-		final String second = (candidates.size() > 1? candidates.get(1): StringUtils.EMPTY);
-		final String firstLabel = (StringUtils.isNotEmpty(first)? IndividualReader.displayText(model.getRecordById(first)): first);
-		final String secondLabel = (StringUtils.isNotEmpty(second)? IndividualReader.displayText(model.getRecordById(second)): first);
-		return new IdentityRow(hypothesis.getId(), firstLabel, secondLabel, identityComment(hypothesis));
 	}
 
 }

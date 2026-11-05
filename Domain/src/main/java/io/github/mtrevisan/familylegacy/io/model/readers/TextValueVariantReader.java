@@ -91,26 +91,60 @@ public final class TextValueVariantReader{
 	public static final String TAG_TRANSCRIPTION_TYPE = "type";
 	public static final String TAG_TRANSCRIPTION_VALUE = "value";
 
+	public static final String ENUM_TRANSCRIPTION_SYSTEM_ROMAJI = "romaji";
+	public static final String ENUM_TRANSCRIPTION_SYSTEM_HEPBURN = "hepburn";
+	public static final String ENUM_TRANSCRIPTION_SYSTEM_KUNREISHIKI = "kunreishiki";
+	public static final String ENUM_TRANSCRIPTION_SYSTEM_NIHONSHIKI = "nihonshiki";
+	public static final String ENUM_TRANSCRIPTION_SYSTEM_PINYIN = "pinyin";
+	public static final String ENUM_TRANSCRIPTION_SYSTEM_WADEGILES = "wadegiles";
+	public static final String ENUM_TRANSCRIPTION_SYSTEM_BGN_PCGN = "bgn_pcgn";
+	public static final String ENUM_TRANSCRIPTION_SYSTEM_ISO9 = "iso9";
+	public static final String ENUM_TRANSCRIPTION_SYSTEM_ALA_LC = "ala_lc";
+	public static final String ENUM_TRANSCRIPTION_SYSTEM_DMG = "dmg";
+	public static final String ENUM_TRANSCRIPTION_SYSTEM_BUCKWALTER = "buckwalter";
+	public static final String ENUM_TRANSCRIPTION_SYSTEM_ISO233 = "iso233";
+	public static final String ENUM_TRANSCRIPTION_SYSTEM_ISO259 = "iso259";
+	public static final String ENUM_TRANSCRIPTION_SYSTEM_IAST = "iast";
+	public static final String ENUM_TRANSCRIPTION_SYSTEM_ISO15919 = "iso15919";
+	public static final String ENUM_TRANSCRIPTION_SYSTEM_HUNTERIAN = "hunterian";
+	public static final String ENUM_TRANSCRIPTION_SYSTEM_MCCUNE_REISCHAUER = "mccune_reischauer";
+	public static final String ENUM_TRANSCRIPTION_SYSTEM_REVISED_KOREAN = "revised_korean";
+	public static final String ENUM_TRANSCRIPTION_SYSTEM_SCIENTIFIC = "scientific";
 	public static final String[] TRANSCRIPTION_SYSTEMS = {
 		StringUtils.EMPTY,
-		"romaji", "hepburn", "kunreishiki", "nihonshiki",
-		"pinyin", "wadegiles",
-		"bgn_pcgn",
-		"iso9",
-		"ala_lc",
-		"dmg",
-		"buckwalter",
-		"iso233",
-		"iso259",
-		"iast",
-		"iso15919", "hunterian",
-		"mccune_reischauer", "revised_korean",
-		"scientific"
+		ENUM_TRANSCRIPTION_SYSTEM_ROMAJI, ENUM_TRANSCRIPTION_SYSTEM_HEPBURN, ENUM_TRANSCRIPTION_SYSTEM_KUNREISHIKI, ENUM_TRANSCRIPTION_SYSTEM_NIHONSHIKI,
+		ENUM_TRANSCRIPTION_SYSTEM_PINYIN, ENUM_TRANSCRIPTION_SYSTEM_WADEGILES,
+		ENUM_TRANSCRIPTION_SYSTEM_BGN_PCGN,
+		ENUM_TRANSCRIPTION_SYSTEM_ISO9,
+		ENUM_TRANSCRIPTION_SYSTEM_ALA_LC,
+		ENUM_TRANSCRIPTION_SYSTEM_DMG,
+		ENUM_TRANSCRIPTION_SYSTEM_BUCKWALTER,
+		ENUM_TRANSCRIPTION_SYSTEM_ISO233,
+		ENUM_TRANSCRIPTION_SYSTEM_ISO259,
+		ENUM_TRANSCRIPTION_SYSTEM_IAST,
+		ENUM_TRANSCRIPTION_SYSTEM_ISO15919, ENUM_TRANSCRIPTION_SYSTEM_HUNTERIAN,
+		ENUM_TRANSCRIPTION_SYSTEM_MCCUNE_REISCHAUER, ENUM_TRANSCRIPTION_SYSTEM_REVISED_KOREAN,
+		ENUM_TRANSCRIPTION_SYSTEM_SCIENTIFIC
 	};
+	public static final String ENUM_TRANSCRIPTION_TYPE_ROMANIZED = "romanized";
+	public static final String ENUM_TRANSCRIPTION_TYPE_LATINIZED = "latinized";
+	public static final String ENUM_TRANSCRIPTION_TYPE_ANGLICIZED = "anglicized";
+	public static final String ENUM_TRANSCRIPTION_TYPE_FRANCIZED = "francized";
+	public static final String ENUM_TRANSCRIPTION_TYPE_GERMANIZED = "germanized";
+	public static final String ENUM_TRANSCRIPTION_TYPE_ITALIANIZED = "italianized";
+	public static final String ENUM_TRANSCRIPTION_TYPE_HISPANICIZED = "hispanicized";
+	public static final String ENUM_TRANSCRIPTION_TYPE_LUSITANIZED = "lusitanized";
+	public static final String ENUM_TRANSCRIPTION_TYPE_CYRILLIZED = "cyrillized";
+	public static final String ENUM_TRANSCRIPTION_TYPE_ARABIZED = "arabized";
+	public static final String ENUM_TRANSCRIPTION_TYPE_HEBRAIZED = "hebraized";
+	public static final String ENUM_TRANSCRIPTION_TYPE_HELLENIZED = "hellenized";
+	public static final String ENUM_TRANSCRIPTION_TYPE_GAIRAIGIZED = "gairaigized";
+	public static final String ENUM_TRANSCRIPTION_TYPE_MODERNIZED = "modernized";
+	public static final String ENUM_TRANSCRIPTION_TYPE_NORMALIZED = "normalized";
 	public static final String[] TRANSCRIPTION_TYPES = {
 		StringUtils.EMPTY,
-		"romanized", "latinized", "anglicized", "francized", "germanized", "italianized", "hispanicized",
-		"lusitanized", "cyrillized", "arabized", "hebraized", "hellenized", "gairaigized", "modernized", "normalized"
+		ENUM_TRANSCRIPTION_TYPE_ROMANIZED, ENUM_TRANSCRIPTION_TYPE_LATINIZED, ENUM_TRANSCRIPTION_TYPE_ANGLICIZED, ENUM_TRANSCRIPTION_TYPE_FRANCIZED, ENUM_TRANSCRIPTION_TYPE_GERMANIZED, ENUM_TRANSCRIPTION_TYPE_ITALIANIZED, ENUM_TRANSCRIPTION_TYPE_HISPANICIZED,
+		ENUM_TRANSCRIPTION_TYPE_LUSITANIZED, ENUM_TRANSCRIPTION_TYPE_CYRILLIZED, ENUM_TRANSCRIPTION_TYPE_ARABIZED, ENUM_TRANSCRIPTION_TYPE_HEBRAIZED, ENUM_TRANSCRIPTION_TYPE_HELLENIZED, ENUM_TRANSCRIPTION_TYPE_GAIRAIGIZED, ENUM_TRANSCRIPTION_TYPE_MODERNIZED, ENUM_TRANSCRIPTION_TYPE_NORMALIZED
 	};
 
 

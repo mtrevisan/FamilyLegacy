@@ -25,8 +25,11 @@
 package io.github.mtrevisan.familylegacy.ui.tools.research;
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
+import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolOperation;
+import io.github.mtrevisan.familylegacy.ui.components.searches.service.RecordSelectionDialog;
+import io.github.mtrevisan.familylegacy.ui.handlers.ResearchQuestionHandler;
 
 
 /** Opens the research question management dialog. */
@@ -39,13 +42,15 @@ public final class ManageResearchQuestionsTool implements ToolOperation{
 
 	@Override
 	public void run(final ToolContext context){
-		final ResearchQuestionsDialog dialog = new ResearchQuestionsDialog(context);
+		final FLEFModel model = context.model();
+		final RecordSelectionDialog dialog = RecordSelectionDialog.createForManagement(context.owner(), model, ResearchQuestionHandler.class);
 		dialog.setVisible(true);
 	}
 
 	@Override
 	public boolean isEnabled(final ToolContext context){
-		return (context != null && context.hasAnyResearchQuestions());
+		//also with none: the first one can be created from the dialog
+		return (context != null && context.model() != null);
 	}
 
 }

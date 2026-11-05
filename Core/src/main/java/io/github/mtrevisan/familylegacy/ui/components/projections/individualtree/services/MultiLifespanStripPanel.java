@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.services;
 
 import io.github.mtrevisan.familylegacy.chronomap.TemporalAttributeIndex;
+import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.JulianDay;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.NormalizedDate;
@@ -39,6 +40,7 @@ import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.ui.helpers.TimeLabels;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JPanel;
@@ -157,11 +159,6 @@ public final class MultiLifespanStripPanel extends JPanel{
 	private static final Color OVERLAP_STRIP = new Color(90, 140, 210, 220);
 	/** White overlay used to dim rows that do not overlap the hovered row. */
 	private static final Color DIM_OVERLAY = new Color(252, 250, 245, 200);
-
-	private static final String[] MONTH_NAMES = {
-		"Jan", "Feb", "Mar", "Apr", "May", "Jun",
-		"Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
-	};
 
 
 	/**
@@ -704,9 +701,7 @@ public final class MultiLifespanStripPanel extends JPanel{
 			final int row = rowAt(event.getY());
 			if(row < 0)
 				// Empty axis area: help the user discover the zoom gestures.
-				return "<html>Ctrl + wheel: zoom<br>"
-					+ "Drag: pan<br>"
-					+ "Click: reset zoom</html>";
+				return I18N.t("text.tip.zoom");
 
 			// Attribute band first: it is at the top of the row.
 			final int localY = event.getY() - (AXIS_HEIGHT + row * ROW_HEIGHT);
@@ -722,14 +717,14 @@ public final class MultiLifespanStripPanel extends JPanel{
 					if(a.hasFrom() || a.hasTo()){
 						sb.append("<br>");
 						if(a.hasFrom())
-							sb.append("from ").append(escape(formatDate(a.fromJdn())));
+							sb.append(I18N.tf("text.tip.from", escape(formatDate(a.fromJdn()))));
 						if(a.hasTo()){
 							if(a.hasFrom())
 								sb.append(StringUtils.SPACE);
-							sb.append("until ").append(escape(formatDate(a.toJdn())));
+							sb.append(I18N.tf("text.tip.until", escape(formatDate(a.toJdn()))));
 						}
 					}
-					sb.append("<br><i>Click to edit</i></html>");
+					sb.append("<br><i>").append(I18N.t("text.tip.edit_click")).append("</i></html>");
 					return sb.toString();
 				}
 			}
@@ -745,12 +740,12 @@ public final class MultiLifespanStripPanel extends JPanel{
 			if(e.hasDate())
 				sb.append(" — ").append(escape(formatDate(e.date())));
 			if(e.hasPlace())
-				sb.append("<br>Place: ").append(escape(e.placeName()));
+				sb.append("<br>").append(I18N.l("tooltip.field.place")).append(StringUtils.SPACE).append(escape(e.placeName()));
 			final String privacy = PrivacyBadge.tooltip(PrivacyService.resolver(model)
 				.describe(model.getRecordById(e.id())));
 			if(privacy != null)
-				sb.append("<br>Privacy: ").append(escape(privacy));
-			sb.append("<br><i>Double-click to edit</i></html>");
+				sb.append("<br>").append(I18N.l("tooltip.field.privacy")).append(StringUtils.SPACE).append(escape(privacy));
+			sb.append("<br><i>").append(I18N.t("text.tip.edit_double")).append("</i></html>");
 			return sb.toString();
 		}
 
@@ -787,7 +782,7 @@ public final class MultiLifespanStripPanel extends JPanel{
 			g2.setFont(EMPTY_FONT);
 			g2.setColor(EMPTY_MESSAGE);
 			final FontMetrics fm = g2.getFontMetrics();
-			final String msg = "No dated events for the individuals in this view.";
+			final String msg = I18N.t("text.lifespan.no_events");
 			final int tw = fm.stringWidth(msg);
 			g2.drawString(msg, (width - tw) / 2, height / 2 + fm.getAscent() / 2);
 		}
@@ -1026,17 +1021,17 @@ public final class MultiLifespanStripPanel extends JPanel{
 
 		final int[] ymd = JulianDay.toGregorian(date.jdn());
 		return switch(date.precision()){
-			case DAY -> ymd[2] + StringUtils.SPACE + MONTH_NAMES[ymd[1] - 1] + StringUtils.SPACE + ymd[0];
-			case MONTH -> MONTH_NAMES[ymd[1] - 1] + StringUtils.SPACE + ymd[0];
+			case DAY -> ymd[2] + StringUtils.SPACE + TimeLabels.monthShort(ymd[1]) + StringUtils.SPACE + ymd[0];
+			case MONTH -> TimeLabels.monthShort(ymd[1]) + StringUtils.SPACE + ymd[0];
 			case YEAR -> Integer.toString(ymd[0]);
 			case DECADE -> (ymd[0] / 10 * 10) + "s";
-			case CENTURY -> (ymd[0] / 100 + 1) + "th c.";
+			case CENTURY -> TimeLabels.centuryShort(ymd[0] / 100 + 1);
 		};
 	}
 
 	private static String formatDate(final long jdn){
 		final int[] ymd = JulianDay.toGregorian(jdn);
-		return ymd[2] + StringUtils.SPACE + MONTH_NAMES[ymd[1] - 1] + StringUtils.SPACE + ymd[0];
+		return ymd[2] + StringUtils.SPACE + TimeLabels.monthShort(ymd[1]) + StringUtils.SPACE + ymd[0];
 	}
 
 	private static String truncate(final FontMetrics fm, final String text, final int maxWidth){

@@ -67,8 +67,8 @@ public final class SocialNetworkPathFinderDialog extends JDialog{
 	private FLEFRecord toEntity;
 	private boolean accepted;
 
-	private final JLabel fromLabel = new JLabel("(none)");
-	private final JLabel toLabel = new JLabel("(none)");
+	private final JLabel fromLabel = new JLabel(I18N.t("text.none"));
+	private final JLabel toLabel = new JLabel(I18N.t("text.none"));
 	private final JButton fromBtn = new JButton(I18N.t("button.pick"));
 	private final JButton toBtn = new JButton(I18N.t("button.pick"));
 	private final JButton okBtn = new JButton(I18N.t("button.find_path"));
@@ -77,7 +77,7 @@ public final class SocialNetworkPathFinderDialog extends JDialog{
 
 	public SocialNetworkPathFinderDialog(final Window owner, final FLEFModel model, final FLEFRecord initialFromEntity,
 			final FLEFRecord initialToEntity){
-		super(owner, "Find social path", ModalityType.APPLICATION_MODAL);
+		super(owner, I18N.t("dialog.social_path.title"), ModalityType.APPLICATION_MODAL);
 		GUIHelper.installEscapeToClose(this);
 
 		this.model = model;
@@ -193,8 +193,8 @@ public final class SocialNetworkPathFinderDialog extends JDialog{
 	}
 
 	private void updateLabels(){
-		fromLabel.setText(fromEntity != null? extractLabel(fromEntity): "(none)");
-		toLabel.setText(toEntity != null? extractLabel(toEntity): "(none)");
+		fromLabel.setText(fromEntity != null? extractLabel(fromEntity): I18N.t("text.none"));
+		toLabel.setText(toEntity != null? extractLabel(toEntity): I18N.t("text.none"));
 	}
 
 	private String extractLabel(final FLEFRecord record){

@@ -79,10 +79,23 @@ public final class HistoricEventReader{
 	public static final String TAG_CONFIDENCE = "confidence";
 	public static final String TAG_AUDIT = "audit";
 
+	public static final String ENUM_TYPE_WAR = "war";
+	public static final String ENUM_TYPE_EPIDEMIC = "epidemic";
+	public static final String ENUM_TYPE_FAMINE = "famine";
+	public static final String ENUM_TYPE_MIGRATION = "migration";
+	public static final String ENUM_TYPE_LEGAL_REFORM = "legal_reform";
+	public static final String ENUM_TYPE_POLITICAL_CHANGE = "political_change";
+	public static final String ENUM_TYPE_TERRITORIAL_CHANGE = "territorial_change";
+	public static final String ENUM_TYPE_NATURAL_DISASTER = "natural_disaster";
+	public static final String ENUM_TYPE_ECONOMIC_CRISIS = "economic_crisis";
+	public static final String ENUM_TYPE_SCIENTIFIC_DISCOVERY = "scientific_discovery";
+	public static final String ENUM_TYPE_RELIGIOUS_REFORM = "religious_reform";
+	public static final String ENUM_TYPE_SOCIAL_MOVEMENT = "social_movement";
+	public static final String ENUM_TYPE_PANDEMIC = "pandemic";
 	public static final String[] TYPES = new String[]{
-		"war", "epidemic", "famine", "migration", "legal_reform", "political_change", "territorial_change",
-		"natural_disaster", "economic_crisis", "scientific_discovery", "religious_reform", "social_movement",
-		"pandemic"
+		ENUM_TYPE_WAR, ENUM_TYPE_EPIDEMIC, ENUM_TYPE_FAMINE, ENUM_TYPE_MIGRATION, ENUM_TYPE_LEGAL_REFORM, ENUM_TYPE_POLITICAL_CHANGE, ENUM_TYPE_TERRITORIAL_CHANGE,
+		ENUM_TYPE_NATURAL_DISASTER, ENUM_TYPE_ECONOMIC_CRISIS, ENUM_TYPE_SCIENTIFIC_DISCOVERY, ENUM_TYPE_RELIGIOUS_REFORM, ENUM_TYPE_SOCIAL_MOVEMENT,
+		ENUM_TYPE_PANDEMIC
 	};
 
 

@@ -227,11 +227,11 @@ public final class MergeFieldComparisonDialog extends JDialog{
 			targetArea.setBackground(targetColor());
 
 			leftArrow = createActionButton("\u2192",
-				"Replace the result of this row with the source content");
+				I18N.t("tooltip.merge.use_source"));
 			rightArrow = createActionButton("\u2190",
-				"Replace the result of this row with the target content");
+				I18N.t("tooltip.merge.use_target"));
 			clearButton = createActionButton("\u2715",
-				"Remove this row from the result");
+				I18N.t("tooltip.merge.remove_row"));
 
 			final Document document = resultArea.getDocument();
 			document.addDocumentListener(new DocumentListener(){
@@ -356,7 +356,7 @@ public final class MergeFieldComparisonDialog extends JDialog{
 
 	public MergeFieldComparisonDialog(final Window owner, final MergeField field,
 		final FLEFRecord targetRecord, final FLEFModel model){
-		super(owner, "Merge field: " + field.tag(), ModalityType.APPLICATION_MODAL);
+		super(owner, I18N.tf("dialog.merge.field.title", field.tag()), ModalityType.APPLICATION_MODAL);
 		ToolDialogs.installEscapeToClose(this);
 
 		this.field = field;
@@ -375,9 +375,9 @@ public final class MergeFieldComparisonDialog extends JDialog{
 		resultColumn = buildResultColumn();
 		targetColumn = buildTargetColumn();
 
-		sourceScroll = createScrollPane(sourceColumn, "Source (deleted)");
-		resultScroll = createScrollPane(resultColumn, "Result (kept)");
-		targetScroll = createScrollPane(targetColumn, "Target (existing)");
+		sourceScroll = createScrollPane(sourceColumn, I18N.t("dialog.merge.field.source"));
+		resultScroll = createScrollPane(resultColumn, I18N.t("dialog.merge.field.result"));
+		targetScroll = createScrollPane(targetColumn, I18N.t("dialog.merge.field.target"));
 
 		syncVerticalScroll(sourceScroll, resultScroll, targetScroll);
 

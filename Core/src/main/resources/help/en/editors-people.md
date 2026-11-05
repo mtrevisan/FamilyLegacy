@@ -49,7 +49,7 @@ Open it with **Group > Edit Group...**; **Group > Add Group...** creates one.
 
 - The **preferred image**, as for an individual.
 - **Name**: the list of the names of the group. Each opens the [name editor](#name).
-- **Type**: editable. One of: family, household, neighbourhood, fraternity, club, literary society, association, organisation, tribe.
+- **Type**: editable. One of: family, household, neighborhood, fraternity, club, literary society, association, organization, tribe.
 
 The **Relationships** tab shows *Group Memberships* (who belongs to the group) and *Inverse Relationships*. The **Attributes** tab lists the *Group Attributes*. Nothing is checked on Save.
 

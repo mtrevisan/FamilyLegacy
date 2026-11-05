@@ -116,7 +116,7 @@ public class ResearchQuestionStatusPanel extends JPanel{
 			case ResearchQuestionReader.ENUM_STATUS_OPEN -> I18N.t("dialog.research_question.status.open");
 			case ResearchQuestionReader.ENUM_STATUS_ON_HOLD -> I18N.t("dialog.research_question.status.on_hold");
 			case ResearchQuestionReader.ENUM_STATUS_RESOLVED -> I18N.tf("dialog.research_question.status.resolved_on", !closedDate.isEmpty(), closedDate.getText());
-			case ResearchQuestionReader.ENUM_STATUS_CLOSED -> I18N.tf("dialog.research_question.status.abandoned_on", !closedDate.isEmpty(), closedDate.getText());
+			case ResearchQuestionReader.ENUM_STATUS_ABANDONED -> I18N.tf("dialog.research_question.status.abandoned_on", !closedDate.isEmpty(), closedDate.getText());
 			default -> I18N.t("dialog.research_question.status.unknown");
 		};
 		statusIcon.setToolTipText(tooltip);

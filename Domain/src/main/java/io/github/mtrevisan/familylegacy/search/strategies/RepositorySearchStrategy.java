@@ -34,6 +34,7 @@ import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.search.SearchCriteria;
 import io.github.mtrevisan.familylegacy.search.SearchMode;
 import io.github.mtrevisan.familylegacy.search.SearchStrategy;
+import io.github.mtrevisan.familylegacy.sources.SourceUsage;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Set;
@@ -113,7 +114,7 @@ public class RepositorySearchStrategy implements SearchStrategy{
 		if(StringUtils.isNotEmpty(place))
 			details.add(" - " + place);
 
-		return baseDisplayText + details;
+		return baseDisplayText + details + " – " + SourceUsage.sources(record, model);
 	}
 
 }

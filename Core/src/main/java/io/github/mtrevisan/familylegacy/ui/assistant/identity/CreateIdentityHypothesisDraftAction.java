@@ -70,6 +70,7 @@ final class CreateIdentityHypothesisDraftAction implements DiagnosticAction{
 
 		IdentityHypothesisRecordDialog.createNew(context.owner(), model)
 			.withCandidates(left, right, draft.rationale(), draft.confidence())
+			.withSources(draft.sharedSourceIds())
 			.setVisible(true);
 	}
 

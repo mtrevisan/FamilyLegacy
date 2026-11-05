@@ -34,6 +34,7 @@ import io.github.mtrevisan.familylegacy.search.SearchMode;
 import io.github.mtrevisan.familylegacy.search.SearchStrategy;
 import io.github.mtrevisan.familylegacy.search.strategies.ConclusionSearchStrategy;
 import io.github.mtrevisan.familylegacy.search.strategies.CulturalNormSearchStrategy;
+import io.github.mtrevisan.familylegacy.search.strategies.EventParticipationSearchStrategy;
 import io.github.mtrevisan.familylegacy.search.strategies.EventSearchStrategy;
 import io.github.mtrevisan.familylegacy.search.strategies.GroupSearchStrategy;
 import io.github.mtrevisan.familylegacy.search.strategies.HistoricEventSearchStrategy;
@@ -51,6 +52,7 @@ import io.github.mtrevisan.familylegacy.search.strategies.SourceSearchStrategy;
 import io.github.mtrevisan.familylegacy.ui.handlers.ConclusionHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.CulturalNormHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.EventParticipationHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.HistoricEventHandler;
@@ -105,6 +107,7 @@ public class SearchService{
 		REGISTRY.put(CulturalNormHandler.class, new CulturalNormSearchStrategy());
 		REGISTRY.put(MediaHandler.class, new MediaSearchStrategy());
 		REGISTRY.put(EventHandler.class, new EventSearchStrategy());
+		REGISTRY.put(EventParticipationHandler.class, new EventParticipationSearchStrategy());
 		REGISTRY.put(GroupHandler.class, new GroupSearchStrategy());
 		REGISTRY.put(HistoricEventHandler.class, new HistoricEventSearchStrategy());
 		REGISTRY.put(IdentityHypothesisHandler.class, new IdentityHypothesisSearchStrategy());
@@ -127,7 +130,7 @@ public class SearchService{
 	@SuppressWarnings("unchecked")
 	public static List<Class<? extends RecordTypeHandler<?>>> searchableHandlers(){
 		return List.of(
-			IndividualHandler.class, GroupHandler.class, EventHandler.class, PlaceHandler.class, SourceHandler.class,
+			IndividualHandler.class, GroupHandler.class, EventHandler.class, EventParticipationHandler.class, PlaceHandler.class, SourceHandler.class,
 			RepositoryHandler.class, MediaHandler.class, RelationshipHandler.class, PlaceRelationshipHandler.class,
 			ConclusionHandler.class, IdentityHypothesisHandler.class, ResearchQuestionHandler.class, ResearchActivityHandler.class,
 			ResearchTaskHandler.class, HistoricEventHandler.class, CulturalNormHandler.class);

@@ -131,7 +131,7 @@ public final class StatisticsCalculator{
 			if(type == null)
 				continue;
 
-			if(!type.toLowerCase(Locale.ROOT).equals("child") && !type.toLowerCase(Locale.ROOT).endsWith("_child"))
+			if(!type.toLowerCase(Locale.ROOT).equals(RelationshipReader.ENUM_TYPE_CHILD) && !type.toLowerCase(Locale.ROOT).endsWith("_child"))
 				continue;
 
 			final String subj = relationship.extractReferencedId(RelationshipReader.TAG_SUBJECT, IndividualReader.TYPE);
@@ -167,11 +167,11 @@ public final class StatisticsCalculator{
 				noSex.add(ind);
 		}
 
-		categories.add(new Statistics.Completeness.Category("Without birth date", List.copyOf(noBirth)));
-		categories.add(new Statistics.Completeness.Category("Without death date", List.copyOf(noDeath)));
-		categories.add(new Statistics.Completeness.Category("Without parents", List.copyOf(noParents)));
-		categories.add(new Statistics.Completeness.Category("Without source citation", List.copyOf(noSource)));
-		categories.add(new Statistics.Completeness.Category("Without recorded sex", List.copyOf(noSex)));
+		categories.add(new Statistics.Completeness.Category(I18N.t("text.statistics.no_birth"), List.copyOf(noBirth)));
+		categories.add(new Statistics.Completeness.Category(I18N.t("text.statistics.no_death"), List.copyOf(noDeath)));
+		categories.add(new Statistics.Completeness.Category(I18N.t("text.statistics.no_parents"), List.copyOf(noParents)));
+		categories.add(new Statistics.Completeness.Category(I18N.t("text.statistics.no_source"), List.copyOf(noSource)));
+		categories.add(new Statistics.Completeness.Category(I18N.t("text.statistics.no_sex"), List.copyOf(noSex)));
 
 		final List<FLEFRecord> sources = PrivacyService.visible(model, model.getRecordsByType(SourceReader.TYPE));
 		final Statistics.Completeness completeness = new Statistics.Completeness(

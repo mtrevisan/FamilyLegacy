@@ -4,7 +4,7 @@ Two entries for the same person are common, especially after an [import](import.
 
 ## Detect Duplicates
 
-**Tools > Detect Duplicates...** looks for individuals that may be the same person. It needs at least two individuals, and it starts searching as soon as it opens (the search runs in the background; the status says *Searching...*). Only individuals are examined, and the ones hidden by the current [privacy](privacy.md) policy are left out.
+**Tools > Detect Duplicates...** looks for individuals that may be the same person. It needs at least two individuals, and it starts searching as soon as it opens (the search runs in the background; a progress bar in the footer, with its percentage, shows how far it is, so that you know when the candidates will appear). Only individuals are examined, and the ones hidden by the current [privacy](privacy.md) policy are left out.
 
 **The controls**
 
@@ -23,7 +23,7 @@ Two entries for the same person are common, especially after an [import](import.
 
 | Feature | Points |
 |---|---|
-| Name | 40 for a full name that matches exactly; 25 if a given name and a family name are both shared; 10 if only one is. Names are compared without capitals, accents and punctuation. |
+| Name | 40 for a full name that matches exactly; 25 if a given name and a family name are both shared; 10 if only one is. Names are compared without capitals, accents and punctuation. A name written in another *spelling* also counts, by the similarity of the letters (no list of names is kept): *Giovanni* and *Giovani*, *Catarina* and *Katarina* are 20 if both names agree this way (6 if only one does), an initial (*G.* and *Giovanni*) is 15; a name of fewer than 4 letters must be the same, and *Marco* is not *Mario*. A name written in another *language* (*Giovanni*, *Johann*) is a different name here. |
 | Parents (biological links) | 20 if the parents are the same; 12 if some are shared. |
 | Children | 12 if some are shared. |
 | Spouses | 10 if some are shared. |
@@ -31,6 +31,7 @@ Two entries for the same person are common, especially after an [import](import.
 | Birth year | 15 if within 3 years. |
 | Death year | 10 if within 3 years. |
 | Shared events, attributes, sources, places | 5 for each kind that has something in common. |
+| Parents, spouses, children, places, occupations, other attributes and source titles **by name** | Only when the two individuals have no record in common of that kind (a tree that is in the file twice shares none, only records with the same name). Parents: 12 if a parent has the same name, or a spelling variant of it; spouses: 8; children: 8; places of the events: 4; occupations: 4; other attributes of the same type (residence, religion...): 3; titles of the sources: 3 (a title agrees only if it is equal or a spelling variant, never because it is part of another). A name with a single word does not agree with a longer one (*Giovanni* is not *Giovanni Rossi*), a place with more words is another place (*San Martino* is not *San Martino di Lupari*), and an occupation agrees if its words are among the words of the other (*farmer*, *farmer day laborer*). |
 
 Each difference (different parents, different children, different spouses, different birth year) is listed but does not take points away.
 

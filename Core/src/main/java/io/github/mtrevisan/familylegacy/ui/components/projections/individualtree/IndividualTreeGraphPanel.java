@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections.individualtree;
 
+import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.individual.IndividualSummary;
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
@@ -181,7 +182,7 @@ public class IndividualTreeGraphPanel extends JPanel implements TreeChangeListen
 		collapses = new PedigreeCollapseController(model);
 
 		final MultiLifespanStripPanel strip = new MultiLifespanStripPanel(model);
-		final CollapsibleBar toggleBar = new CollapsibleBar("Lifespans");
+		final CollapsibleBar toggleBar = new CollapsibleBar(I18N.t("text.lifespans"));
 		lifespanStrip = new LifespanStripController(strip, toggleBar, this::revalidate);
 		toggleBar.withListener(lifespanStrip::toggle);
 

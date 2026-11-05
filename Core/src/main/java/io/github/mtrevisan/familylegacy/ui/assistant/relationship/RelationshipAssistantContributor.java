@@ -54,9 +54,12 @@ public final class RelationshipAssistantContributor implements AssistantContribu
 			return RelationshipChecker.findings(RelationshipDataLoader.load(context.model())).stream()
 				.map(finding -> {
 					final Diagnostic diagnostic = finding.diagnostic();
-					return (finding.draft() != null
-						? diagnostic.withAction(new CreateRelationshipDraftAction(finding.draft()))
-						: diagnostic);
+					if(finding.draft() != null)
+						return diagnostic.withAction(new CreateRelationshipDraftAction(finding.draft()));
+					//a finding that suggests another type comes with the action that opens the editor with it
+					if(finding.typeChange() != null)
+						return diagnostic.withAction(new ChangeRelationshipTypeAction(finding.typeChange()));
+					return diagnostic;
 				})
 				.toList();
 		});

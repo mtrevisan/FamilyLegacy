@@ -697,15 +697,15 @@ public final class GUIHelper{
 
 	public static File selectDocumentFile(final Component parentComponent, final String currentUriPath){
 		final JFileChooser fileChooser = new JFileChooser();
-		fileChooser.setDialogTitle("Select Image File");
+		fileChooser.setDialogTitle(I18N.t("dialog.select_image.title"));
 		final String[] imageExtensions = ImageIO.getReaderFileSuffixes();
 		fileChooser.addChoosableFileFilter(
 			new FileNameExtensionFilter(
-				"Images (" + String.join(", ", imageExtensions) + ")",
+				I18N.tf("text.file_filter.images", String.join(", ", imageExtensions)),
 				imageExtensions)
 		);
 		fileChooser.addChoosableFileFilter(
-			new FileNameExtensionFilter("PDF Documents (pdf)", "pdf")
+			new FileNameExtensionFilter(I18N.t("text.file_filter.pdf"), "pdf")
 		);
 		fileChooser.setAccessory(new ImagePreviewAccessory(fileChooser));
 

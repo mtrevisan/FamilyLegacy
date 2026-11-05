@@ -40,8 +40,11 @@ package io.github.mtrevisan.familylegacy.io.model.readers;
  */
 public final class ConfidenceReader{
 
+	public static final String ENUM_LOW = "low";
+	public static final String ENUM_MEDIUM = "medium";
+	public static final String ENUM_HIGH = "high";
 	public static final String[] CONFIDENCES = new String[]{
-		"low", "medium", "high"
+		ENUM_LOW, ENUM_MEDIUM, ENUM_HIGH
 	};
 
 

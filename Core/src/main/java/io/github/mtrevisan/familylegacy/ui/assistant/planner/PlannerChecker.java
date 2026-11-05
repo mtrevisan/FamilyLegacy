@@ -44,6 +44,10 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.ResearchActivityReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.ResearchQuestionReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.ResearchTaskReader;
 
 
 /**
@@ -131,15 +135,15 @@ final class PlannerChecker{
 	/** @return how useful a suggestion with that estimated usefulness is: high, medium or low */
 	static String level(final int usefulness){
 		if(usefulness >= HIGH_USEFULNESS)
-			return "high";
-		return (usefulness >= MEDIUM_USEFULNESS? "medium": "low");
+			return ConfidenceReader.ENUM_HIGH;
+		return (usefulness >= MEDIUM_USEFULNESS? ConfidenceReader.ENUM_MEDIUM: ConfidenceReader.ENUM_LOW);
 	}
 
 	/** @return the priority to propose for a task with that estimated usefulness */
 	static String priority(final int usefulness){
 		if(usefulness >= HIGH_USEFULNESS)
-			return "high";
-		return (usefulness >= MEDIUM_USEFULNESS? "normal": "low");
+			return ResearchTaskReader.ENUM_PRIORITY_HIGH;
+		return (usefulness >= MEDIUM_USEFULNESS? ResearchTaskReader.ENUM_PRIORITY_NORMAL: ResearchTaskReader.ENUM_PRIORITY_LOW);
 	}
 
 
@@ -170,7 +174,7 @@ final class PlannerChecker{
 	}
 
 	private static boolean isOpen(final GapData.Question question){
-		return (question.status() == null || question.status().isBlank() || "open".equals(question.status()));
+		return (question.status() == null || question.status().isBlank() || ResearchQuestionReader.ENUM_STATUS_OPEN.equals(question.status()));
 	}
 
 	/** @return the individuals a question is about: the ones it targets, and the principals of the events it targets */
@@ -193,10 +197,10 @@ final class PlannerChecker{
 	private static String coveredText(final GapData.Question question, final GapData data){
 		final StringBuilder sb = new StringBuilder();
 		for(final GapData.Task task : data.tasks())
-			if(task.questionIds().contains(question.id()) && !"abandoned".equals(task.status()) && task.description() != null)
+			if(task.questionIds().contains(question.id()) && !ResearchTaskReader.ENUM_STATUS_ABANDONED.equals(task.status()) && task.description() != null)
 				sb.append(task.description().toLowerCase(Locale.ROOT)).append('\n');
 		for(final GapData.Activity activity : data.activities())
-			if(activity.questionIds().contains(question.id()) && !"abandoned".equals(activity.status()) && activity.action() != null)
+			if(activity.questionIds().contains(question.id()) && !ResearchActivityReader.ENUM_STATUS_ABANDONED.equals(activity.status()) && activity.action() != null)
 				sb.append(activity.action().toLowerCase(Locale.ROOT)).append('\n');
 		return sb.toString();
 	}
@@ -251,7 +255,7 @@ final class PlannerChecker{
 	private static void addArchive(final GapData.Question question, final GapData.Person person, final GapData data,
 			final List<Candidate> candidates){
 		final long fruitless = data.activities().stream()
-			.filter(activity -> activity.questionIds().contains(question.id()) && "completed".equals(activity.status())
+			.filter(activity -> activity.questionIds().contains(question.id()) && ResearchActivityReader.ENUM_STATUS_COMPLETED.equals(activity.status())
 				&& activity.result() != null && !"positive".equals(activity.result()))
 			.count();
 		if(fruitless >= FRUITLESS_SEARCHES)
@@ -287,7 +291,7 @@ final class PlannerChecker{
 		}
 		final Set<String> worked = new HashSet<>();
 		for(final GapData.Question question : data.questions())
-			if(isOpen(question) || "on_hold".equals(question.status()))
+			if(isOpen(question) || ResearchQuestionReader.ENUM_STATUS_ON_HOLD.equals(question.status()))
 				worked.addAll(question.targets());
 
 		final List<PlannerFinding> findings = new ArrayList<>();

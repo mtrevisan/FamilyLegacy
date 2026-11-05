@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.search.strategies;
 
 import io.github.mtrevisan.calendars.CalendarType;
+import io.github.mtrevisan.familylegacy.events.EventSummary;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.RecordDisplay;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
@@ -163,6 +164,19 @@ public class SearchHelper{
 			return (year != null && year <= end.jdn());
 
 		return SearchHelper.isDateInRange(dateRecord, null, null, year, year);
+	}
+
+	/**
+	 * Matches the text against the complete name of the place of the event ("Borgo, Treviso, Veneto"), so that an event can be
+	 * found by the name of any of the places that contain its place. An event with no place does not match.
+	 */
+	public static boolean matchesEventPlace(final FLEFRecord event, final String targetPlace, final FLEFModel model,
+			final Set<SearchMode> modes, final double fuzzyThreshold){
+		if(StringUtils.isEmpty(targetPlace))
+			return true;
+
+		final String place = EventSummary.placeName(event, model);
+		return (place != null && TextSearchHelper.matchesText(place, targetPlace, modes, fuzzyThreshold));
 	}
 
 	public static boolean matchesPlace(final FLEFRecord event, final String targetPlace, final FLEFModel model,

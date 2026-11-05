@@ -97,12 +97,17 @@ public final class ContextImpactReader{
 	public static final String TAG_CONFIDENCE = "confidence";
 	public static final String TAG_AUDIT = "audit";
 
+	public static final String ENUM_IMPACT_TYPE_EXPLAINS = "explains";
+	public static final String ENUM_IMPACT_TYPE_INFLUENCES = "influences";
+	public static final String ENUM_IMPACT_TYPE_CONSTRAINS = "constrains";
+	public static final String ENUM_IMPACT_TYPE_MOTIVATES = "motivates";
+	public static final String ENUM_IMPACT_TYPE_CAUSES = "causes";
 	public static final String[] IMPACT_TYPES = new String[]{
-		"explains",
-		"influences",
-		"constrains",
-		"motivates",
-		"causes"
+		ENUM_IMPACT_TYPE_EXPLAINS,
+		ENUM_IMPACT_TYPE_INFLUENCES,
+		ENUM_IMPACT_TYPE_CONSTRAINS,
+		ENUM_IMPACT_TYPE_MOTIVATES,
+		ENUM_IMPACT_TYPE_CAUSES
 	};
 
 

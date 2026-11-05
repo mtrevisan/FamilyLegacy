@@ -72,71 +72,71 @@ public final class ReportOptionsPanel extends JPanel{
 	 * ====================================================================== */
 
 	private final JComboBox<PrivacyPolicy> privacyPolicy = createPrivacyPolicyCombo();
-	private final JCheckBox showPrivacyDetails = cb("Show privacy details");
-	private final JCheckBox audit = cb("Audit trail");
-	private final JCheckBox header = cb("Document header");
+	private final JCheckBox showPrivacyDetails = cb("show_privacy_details");
+	private final JCheckBox audit = cb("audit_trail");
+	private final JCheckBox header = cb("document_header");
 
 
 	/* ======================================================================
 	 *                          Narrative
 	 * ====================================================================== */
 
-	private final JCheckBox introduction = cb("Introduction");
-	private final JCheckBox paternal = cb("Paternal ancestry");
-	private final JCheckBox maternal = cb("Maternal ancestry");
-	private final JCheckBox descendants = cb("Descendants");
-	private final JCheckBox directRel = cb("Direct relations");
-	private final JCheckBox indirectRel = cb("Indirect relations");
-	private final JComboBox<CollateralScope> collaterals = new JComboBox<>(CollateralScope.values());
+	private final JCheckBox introduction = cb("introduction");
+	private final JCheckBox paternal = cb("paternal_ancestry");
+	private final JCheckBox maternal = cb("maternal_ancestry");
+	private final JCheckBox descendants = cb("descendants");
+	private final JCheckBox directRel = cb("direct_relations");
+	private final JCheckBox indirectRel = cb("indirect_relations");
+	private final JComboBox<CollateralScope> collaterals = createCollateralCombo();
 
 
 	/* ======================================================================
 	 *                          Content sections
 	 * ====================================================================== */
 
-	private final JCheckBox notes = cb("Notes");
-	private final JCheckBox sources = cb("Sources");
-	private final JCheckBox media = cb("Media");
-	private final JCheckBox evidence = cb("Evidence qualifiers");
-	private final JCheckBox contextResearch = cb("Historic context & research");
-	private final JCheckBox culturalNorms = cb("Cultural norms");
-	private final JCheckBox historicEvents = cb("Historic events");
-	private final JCheckBox repositories = cb("Repositories");
+	private final JCheckBox notes = cb("notes");
+	private final JCheckBox sources = cb("sources");
+	private final JCheckBox media = cb("media");
+	private final JCheckBox evidence = cb("evidence_qualifiers");
+	private final JCheckBox contextResearch = cb("historic_context_research");
+	private final JCheckBox culturalNorms = cb("cultural_norms");
+	private final JCheckBox historicEvents = cb("historic_events");
+	private final JCheckBox repositories = cb("repositories");
 
 
 	/* ======================================================================
 	 *                          Groups
 	 * ====================================================================== */
 
-	private final JCheckBox groups = cb("Groups and memberships");
-	private final JCheckBox groupMembers = cb("Show group members");
-	private final JCheckBox groupSubgroups = cb("Show subgroups");
-	private final JCheckBox groupAttributes = cb("Show group attributes");
+	private final JCheckBox groups = cb("groups_and_memberships");
+	private final JCheckBox groupMembers = cb("show_group_members");
+	private final JCheckBox groupSubgroups = cb("show_subgroups");
+	private final JCheckBox groupAttributes = cb("show_group_attributes");
 
 
 	/* ======================================================================
 	 *                          Diagnostics
 	 * ====================================================================== */
 
-	private final JCheckBox eventFull = cb("Full event participants");
-	private final JCheckBox coverageReport = cb("Coverage report");
-	private final JCheckBox timeline = cb("Chronological timeline");
+	private final JCheckBox eventFull = cb("full_event_participants");
+	private final JCheckBox coverageReport = cb("coverage_report");
+	private final JCheckBox timeline = cb("chronological_timeline");
 
 
 	/* ======================================================================
 	 *                          Indexes
 	 * ====================================================================== */
 
-	private final JCheckBox idxIndividuals = cb("Index of individuals");
-	private final JCheckBox idxPlaces = cb("Index of places");
+	private final JCheckBox idxIndividuals = cb("index_of_individuals");
+	private final JCheckBox idxPlaces = cb("index_of_places");
 
 
 	/* ======================================================================
 	 *                          Style
 	 * ====================================================================== */
 
-	private final JCheckBox descriptions = cb("Include descriptions");
-	private final JCheckBox pictures = cb("Include pictures");
+	private final JCheckBox descriptions = cb("include_descriptions");
+	private final JCheckBox pictures = cb("include_pictures");
 
 
 	/* ======================================================================
@@ -254,6 +254,21 @@ public final class ReportOptionsPanel extends JPanel{
 	}
 
 
+	/** The collateral scopes by name ("none", "spouses", ...), in the language of the user. */
+	private static JComboBox<CollateralScope> createCollateralCombo(){
+		final JComboBox<CollateralScope> combo = new JComboBox<>(CollateralScope.values());
+		combo.setRenderer(new DefaultListCellRenderer(){
+			@Override
+			public Component getListCellRendererComponent(final JList<?> list, final Object value, final int index,
+					final boolean isSelected, final boolean cellHasFocus){
+				final Object text = (value instanceof CollateralScope scope
+					? I18N.t("enum.collateral_scope." + scope.name().toLowerCase(Locale.ROOT)): value);
+				return super.getListCellRendererComponent(list, text, index, isSelected, cellHasFocus);
+			}
+		});
+		return combo;
+	}
+
 	/** The list of the privacy policies, shown with the same names as the View > Privacy menu. */
 	private static JComboBox<PrivacyPolicy> createPrivacyPolicyCombo(){
 		final JComboBox<PrivacyPolicy> combo = new JComboBox<>(PrivacyPolicy.values());
@@ -363,8 +378,8 @@ public final class ReportOptionsPanel extends JPanel{
 	 *                          Helpers
 	 * ====================================================================== */
 
-	private static JCheckBox cb(final String text){
-		return new JCheckBox(text);
+	private static JCheckBox cb(final String key){
+		return new JCheckBox(I18N.t("checkbox.report." + key));
 	}
 
 }

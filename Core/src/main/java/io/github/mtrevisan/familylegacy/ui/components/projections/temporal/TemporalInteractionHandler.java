@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections.temporal;
 
+import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.NormalizedDate;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.TemporalSpan;
 import io.github.mtrevisan.familylegacy.temporal.TemporalConnection;
@@ -34,6 +35,7 @@ import io.github.mtrevisan.familylegacy.temporal.TemporalProjectionModel;
 import io.github.mtrevisan.familylegacy.temporal.TemporalProjectionRef;
 import io.github.mtrevisan.familylegacy.temporal.TemporalRow;
 import io.github.mtrevisan.familylegacy.temporal.TemporalTrackType;
+import io.github.mtrevisan.familylegacy.ui.helpers.TimeLabels;
 import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Rectangle;
@@ -144,32 +146,32 @@ public final class TemporalInteractionHandler{
 			final TemporalEntry entry = entryRef.entry();
 			sb.append("<b>").append(entry.label()).append("</b>");
 			if(!entry.type().isEmpty())
-				sb.append("<br>Type: ").append(entry.type());
+				sb.append("<br>").append(I18N.l("tooltip.field.type")).append(StringUtils.SPACE).append(entry.type());
 			if(entry.hasRole())
-				sb.append("<br>Role: ").append(entry.role());
+				sb.append("<br>").append(I18N.l("tooltip.field.role")).append(StringUtils.SPACE).append(entry.role());
 			sb.append("<br>").append(describeSpan(entry.span()));
 			if(entry.hasNegativeEvidence())
-				sb.append("<br><i>Negative evidence: the sources attest the absence of this assertion</i>");
-			sb.append("<br><i>Double-click to edit</i>");
+				sb.append("<br><i>").append(I18N.t("text.tip.negative_evidence")).append("</i>");
+			sb.append("<br><i>").append(I18N.t("text.tip.edit_double")).append("</i>");
 			return sb.append("</html>").toString();
 		}
 		if(ref instanceof TemporalProjectionRef.ConnectionRef connectionRef){
 			final TemporalConnection connection = connectionRef.connection();
 			sb.append("<b>").append(connection.relationshipType()).append("</b>");
 			if(connection.hasRole())
-				sb.append("<br>Role: ").append(connection.role());
-			sb.append("<br>Status: ").append(connection.span().status());
+				sb.append("<br>").append(I18N.l("tooltip.field.role")).append(StringUtils.SPACE).append(connection.role());
+			sb.append("<br>").append(I18N.l("tooltip.field.status")).append(StringUtils.SPACE).append(connection.span().status());
 			sb.append("<br>").append(describeSpan(connection.span()));
-			sb.append("<br><i>Double-click to edit</i>");
+			sb.append("<br><i>").append(I18N.t("text.tip.edit_double")).append("</i>");
 			return sb.append("</html>").toString();
 		}
 		if(ref instanceof TemporalProjectionRef.BandRef bandRef){
 			final TemporalContextBand band = bandRef.band();
 			sb.append("<b>").append(band.label().isEmpty()? band.kind(): band.label()).append("</b>");
 			if(!band.kind().isEmpty() && !band.kind().equals(band.label()))
-				sb.append("<br>Type: ").append(band.kind());
+				sb.append("<br>").append(I18N.l("tooltip.field.type")).append(StringUtils.SPACE).append(band.kind());
 			sb.append("<br>").append(describeSpan(band.span()));
-			sb.append("<br><i>Double-click to edit</i>");
+			sb.append("<br><i>").append(I18N.t("text.tip.edit_double")).append("</i>");
 			return sb.append("</html>").toString();
 		}
 		if(ref instanceof TemporalProjectionRef.RowRef rowRef)
@@ -217,10 +219,10 @@ public final class TemporalInteractionHandler{
 			return StringUtils.EMPTY;
 
 		if(span.isPoint())
-			return "Date: " + formatDate(span.start());
+			return I18N.l("tooltip.field.date") + StringUtils.SPACE + formatDate(span.start());
 
-		final String startText = (span.start() != null && span.start().jdn() != Long.MIN_VALUE? formatDate(span.start()): "(open)");
-		final String endText = (span.end() != null && span.end().jdn() != Long.MAX_VALUE? formatDate(span.end()): "(open)");
+		final String startText = (span.start() != null && span.start().jdn() != Long.MIN_VALUE? formatDate(span.start()): I18N.t("text.tip.open_ended"));
+		final String endText = (span.end() != null && span.end().jdn() != Long.MAX_VALUE? formatDate(span.end()): I18N.t("text.tip.open_ended"));
 		return span.kind() + ": " + startText + " .. " + endText + " [" + span.status() + "]";
 	}
 
@@ -238,7 +240,7 @@ public final class TemporalInteractionHandler{
 					case MONTH -> YearMonth.from(day).toString();
 					case YEAR -> Integer.toString(day.getYear());
 					case DECADE -> (Math.floorDiv(day.getYear(), 10) * 10) + "s";
-					case CENTURY -> (Math.floorDiv(day.getYear(), 100) + 1) + "th century";
+					case CENTURY -> TimeLabels.century(Math.floorDiv(day.getYear(), 100) + 1);
 				};
 			}
 		}

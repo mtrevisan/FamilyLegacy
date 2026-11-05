@@ -97,7 +97,7 @@ public final class SocialNetworkToolbar extends JPanel{
 
 
 	private final JButton focusBtn = new JButton(I18N.t("button.pick_focus"));
-	private final JLabel focusLabel = new JLabel("(none)");
+	private final JLabel focusLabel = new JLabel(I18N.t("text.none"));
 	private final JSpinner maxDegreeSpinner = new JSpinner(new SpinnerNumberModel(1, 0, 6, 1));
 	private final JComboBox<SocialLayoutMode> layoutCombo = new JComboBox<>(SocialLayoutMode.values());
 	private final JCheckBox includeInactiveCheck = new JCheckBox(I18N.t("checkbox.ended"));
@@ -122,7 +122,7 @@ public final class SocialNetworkToolbar extends JPanel{
 	 * ====================================================================== */
 
 	public void setFocusLabel(final String text){
-		focusLabel.setText(text != null && !text.isBlank()? text: "(none)");
+		focusLabel.setText(text != null && !text.isBlank()? text: I18N.t("text.none"));
 	}
 
 	public int getMaxDegree(){
@@ -169,14 +169,14 @@ public final class SocialNetworkToolbar extends JPanel{
 		final JPanel content = new JPanel(new MigLayout("ins 6,gapx 6", "[]", "[]"));
 		content.add(focusBtn);
 		content.add(focusLabel);
-		content.add(new JLabel("  Degree:"));
+		content.add(new JLabel("  " + I18N.l("label.toolbar.degree")));
 		content.add(maxDegreeSpinner);
-		content.add(new JLabel("  Layout:"));
+		content.add(new JLabel("  " + I18N.l("label.toolbar.layout")));
 		content.add(layoutCombo);
-		content.add(new JLabel("  Show:"));
+		content.add(new JLabel("  " + I18N.l("label.toolbar.show")));
 		content.add(includeInactiveCheck);
 		content.add(includeEmptyRoleCheck);
-		content.add(new JLabel("  Dates:"));
+		content.add(new JLabel("  " + I18N.l("label.toolbar.dates")));
 		content.add(temporalFilterCheck);
 		content.add(fromDateSpinner);
 		content.add(new JLabel("–"));

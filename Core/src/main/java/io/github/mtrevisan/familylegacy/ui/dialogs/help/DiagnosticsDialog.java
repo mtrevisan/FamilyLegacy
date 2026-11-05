@@ -26,9 +26,8 @@ package io.github.mtrevisan.familylegacy.ui.dialogs.help;
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
-import org.apache.commons.lang3.StringUtils;
+import io.github.mtrevisan.familylegacy.ui.helpers.ReportText;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -44,11 +43,7 @@ import java.awt.Window;
 import java.awt.datatransfer.StringSelection;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
 import java.util.Locale;
-import java.util.Map;
-import java.util.TreeMap;
-import java.util.stream.Collectors;
 
 
 /**
@@ -122,110 +117,45 @@ public final class DiagnosticsDialog extends JDialog{
 	private static String buildReport(final FLEFModel model){
 		final StringBuilder sb = new StringBuilder();
 
-		sb.append("=== Family Legacy Diagnostics ===")
-			.append(StringUtils.LF);
-		sb.append("Generated: ")
-			.append(LocalDateTime.now().format(TIMESTAMP_FORMAT))
-			.append(StringUtils.LF);
-		sb.append(StringUtils.LF);
+		ReportText.heading(sb, I18N.t("text.diagnostics.heading"));
+		ReportText.line(sb, "text.diagnostics.generated", LocalDateTime.now().format(TIMESTAMP_FORMAT));
+		ReportText.blank(sb);
 
 		appendRuntime(sb);
 		appendMemory(sb);
-		appendModel(sb, model);
+		ReportText.section(sb, "text.report.section.model");
+		ReportText.modelStatistics(sb, model);
 
 		return sb.toString();
 	}
 
 	private static void appendRuntime(final StringBuilder sb){
-		sb.append("--- Runtime ---")
-			.append(StringUtils.LF);
-		sb.append("Java version:   ")
-			.append(System.getProperty("java.version"))
-			.append(StringUtils.LF);
-		sb.append("Java vendor:    ")
-			.append(System.getProperty("java.vendor"))
-			.append(StringUtils.LF);
-		sb.append("Java home:      ")
-			.append(System.getProperty("java.home"))
-			.append(StringUtils.LF);
-		sb.append("VM name:        ")
-			.append(System.getProperty("java.vm.name"))
-			.append(StringUtils.LF);
-		sb.append("VM version:     ")
-			.append(System.getProperty("java.vm.version"))
-			.append(StringUtils.LF);
-		sb.append("OS name:        ")
-			.append(System.getProperty("os.name"))
-			.append(StringUtils.LF);
-		sb.append("OS version:     ")
-			.append(System.getProperty("os.version"))
-			.append(StringUtils.LF);
-		sb.append("OS arch:        ")
-			.append(System.getProperty("os.arch"))
-			.append(StringUtils.LF);
-		sb.append("Locale:         ")
-			.append(Locale.getDefault())
-			.append(StringUtils.LF);
-		sb.append("File encoding:  ")
-			.append(System.getProperty("file.encoding"))
-			.append(StringUtils.LF);
-		sb.append("Processors:     ")
-			.append(Runtime.getRuntime()
-				.availableProcessors())
-			.append(StringUtils.LF);
-		sb.append(StringUtils.LF);
+		ReportText.section(sb, "text.diagnostics.section.runtime");
+		ReportText.line(sb, "text.diagnostics.java_version", System.getProperty("java.version"));
+		ReportText.line(sb, "text.diagnostics.java_vendor", System.getProperty("java.vendor"));
+		ReportText.line(sb, "text.diagnostics.java_home", System.getProperty("java.home"));
+		ReportText.line(sb, "text.diagnostics.vm_name", System.getProperty("java.vm.name"));
+		ReportText.line(sb, "text.diagnostics.vm_version", System.getProperty("java.vm.version"));
+		ReportText.line(sb, "text.diagnostics.os_name", System.getProperty("os.name"));
+		ReportText.line(sb, "text.diagnostics.os_version", System.getProperty("os.version"));
+		ReportText.line(sb, "text.diagnostics.os_arch", System.getProperty("os.arch"));
+		ReportText.line(sb, "text.diagnostics.locale", Locale.getDefault());
+		ReportText.line(sb, "text.diagnostics.file_encoding", System.getProperty("file.encoding"));
+		ReportText.line(sb, "text.diagnostics.processors", Runtime.getRuntime().availableProcessors());
+		ReportText.blank(sb);
 	}
 
 	private static void appendMemory(final StringBuilder sb){
 		final Runtime rt = Runtime.getRuntime();
-		final long max = rt.maxMemory();
 		final long total = rt.totalMemory();
 		final long free = rt.freeMemory();
-		final long used = total - free;
 
-		sb.append("--- Memory ---")
-			.append(StringUtils.LF);
-		sb.append("Heap max:       ").append(formatBytes(max))
-			.append(StringUtils.LF);
-		sb.append("Heap allocated: ").append(formatBytes(total))
-			.append(StringUtils.LF);
-		sb.append("Heap used:      ").append(formatBytes(used))
-			.append(StringUtils.LF);
-		sb.append("Heap free:      ").append(formatBytes(free))
-			.append(StringUtils.LF);
-		sb.append(StringUtils.LF);
-	}
-
-	private static void appendModel(final StringBuilder sb, final FLEFModel model){
-		sb.append("--- Model ---")
-			.append(StringUtils.LF);
-		if(model == null){
-			sb.append("No model loaded.")
-				.append(StringUtils.LF);
-			return;
-		}
-		try{
-			final List<FLEFRecord> all = model.getRecords();
-			sb.append("Total records:  ")
-				.append(all.size())
-				.append(StringUtils.LF);
-			sb.append(StringUtils.LF);
-			sb.append("By tag:")
-				.append(StringUtils.LF);
-
-			final Map<String, Long> byTag = all.stream()
-				.filter(r -> r.getTag() != null)
-				.collect(Collectors.groupingBy(FLEFRecord::getTag,
-					TreeMap::new, Collectors.counting()));
-
-			for(final Map.Entry<String, Long> entry : byTag.entrySet())
-				sb.append(String.format("  %-24s %d%n", entry.getKey(), entry.getValue()));
-		}
-		catch(final RuntimeException e){
-			sb.append("Unable to compute model statistics: ")
-				.append(e.getMessage())
-				.append(StringUtils.LF);
-		}
+		ReportText.section(sb, "text.diagnostics.section.memory");
+		ReportText.line(sb, "text.diagnostics.heap_max", formatBytes(rt.maxMemory()));
+		ReportText.line(sb, "text.diagnostics.heap_allocated", formatBytes(total));
+		ReportText.line(sb, "text.diagnostics.heap_used", formatBytes(total - free));
+		ReportText.line(sb, "text.diagnostics.heap_free", formatBytes(free));
+		ReportText.blank(sb);
 	}
 
 	private static String formatBytes(final long bytes){

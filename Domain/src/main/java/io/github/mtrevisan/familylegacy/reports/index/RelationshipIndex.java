@@ -80,7 +80,7 @@ public final class RelationshipIndex{
 				final FLEFRecord objeRec = model.getRecordById(objectId);
 
 				if(subjRec != null && objeRec != null && filter.test(subjRec) && filter.test(objeRec)){
-					if(t.equals("spouse") || t.endsWith("_spouse") || t.endsWith("_partner")){
+					if(t.equals(RelationshipReader.ENUM_TYPE_SPOUSE) || t.endsWith("_spouse") || t.endsWith("_partner")){
 						personToSpousesMap.computeIfAbsent(subjectId, k -> new ArrayList<>())
 							.add(objeRec);
 						personToSpousesMap.computeIfAbsent(objectId, k -> new ArrayList<>())

@@ -84,8 +84,8 @@ public final class TemporalProjectionToolbar extends JPanel{
 	private final JCheckBox showConnectionsCheck = new JCheckBox(I18N.t("checkbox.connections"), true);
 	private final JCheckBox showImpactLinksCheck = new JCheckBox(I18N.t("checkbox.impacts"), true);
 	private final JComboBox<EntityFilter> entityFilterCombo = new JComboBox<>(EntityFilter.values());
-	private final JLabel showLabel = new JLabel("  Show:");
-	private final JLabel entitiesLabel = new JLabel("  Entities:");
+	private final JLabel showLabel = new JLabel("  " + I18N.l("label.toolbar.show"));
+	private final JLabel entitiesLabel = new JLabel("  " + I18N.l("label.toolbar.entities"));
 	private final Listener listener;
 
 

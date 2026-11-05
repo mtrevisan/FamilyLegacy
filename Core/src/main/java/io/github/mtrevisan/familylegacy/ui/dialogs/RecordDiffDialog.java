@@ -26,7 +26,10 @@ package io.github.mtrevisan.familylegacy.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.FLEFWriter;
+import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
+import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.util.DiffUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -47,16 +50,20 @@ import javax.swing.text.DefaultHighlighter;
 import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GridLayout;
+import java.awt.Point;
 import java.awt.RenderingHints;
 import java.awt.Shape;
 import java.awt.Window;
 import java.awt.event.AdjustmentListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -64,6 +71,9 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 
 
 /**
@@ -101,8 +111,18 @@ public class RecordDiffDialog extends JDialog{
 	/** Distance between two hatch lines, in pixels. */
 	private static final int HATCH_SPACING = 9;
 
+	/** What an identifier of a record looks like: letters and a number (I12, IH3, S1). Only the ones that are records of the model are links. */
+	private static final Pattern IDENTIFIER = Pattern.compile("\\b[A-Za-z]{1,4}\\d+\\b");
+	/** The color of the underline of a link. */
+	private static final Color COLOR_LINK = new Color(0x0645AD);
+
 	private final DiffTextArea leftArea;
 	private final DiffTextArea rightArea;
+
+	/** The model the references are records of ({@code null}: there are no links). */
+	private final FLEFModel model;
+	private final FLEFRecord before;
+	private final FLEFRecord after;
 
 	private boolean accepted;
 	// true = keep right (after), false = keep left (before)
@@ -127,26 +147,34 @@ public class RecordDiffDialog extends JDialog{
 	 */
 	public RecordDiffDialog(final Window owner, final String title, final FLEFRecord before,
 		final FLEFRecord after, final boolean readOnly){
+		this(owner, title, before, after, readOnly, null);
+	}
+
+	/**
+	 * Constructs a RecordDiffDialog whose references are links.
+	 *
+	 * @param readOnly when {@code true}, the accept buttons are hidden and the dialog only shows the diff
+	 * @param model    the model the records are in: every identifier in the text that is a record of it is a link that opens the
+	 *                 editor of that record; {@code null} for no links
+	 */
+	public RecordDiffDialog(final Window owner, final String title, final FLEFRecord before,
+		final FLEFRecord after, final boolean readOnly, final FLEFModel model){
 		super(owner, title, ModalityType.APPLICATION_MODAL);
 		GUIHelper.installEscapeToClose(this);
 
+		this.model = model;
+		this.before = before;
+		this.after = after;
+
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-
-		final FLEFWriter writer = FLEFWriter.createCompact();
-
-		// Normalize both records before serializing them. Without this,
-		// two records that carry the same information but list their
-		// children in different orders would be shown as different: a
-		// diff line would appear for every block whose position changed,
-		// even though the content is unchanged.
-		final String leftText = (before != null? writer.writeToString(RecordNormalizer.normalize(before)): StringUtils.EMPTY);
-		final String rightText = (after != null? writer.writeToString(RecordNormalizer.normalize(after)): StringUtils.EMPTY);
 
 		leftArea = createTextArea();
 		rightArea = createTextArea();
 
 		// Compute the diff and rebuild both text areas with aligned rows.
-		applyDiff(leftText, rightText);
+		showDiff();
+		enableLinks(leftArea);
+		enableLinks(rightArea);
 
 		// Setup synchronized scrolling.
 		final JScrollPane leftScroll = new JScrollPane(leftArea);
@@ -208,6 +236,17 @@ public class RecordDiffDialog extends JDialog{
 
 
 	/**
+	 * Opens the dialog in read-only comparison mode, with the references as links.
+	 *
+	 * @param model	The model the records are in: every identifier that is a record of it opens its editor.
+	 */
+	public static void showComparison(final Window owner, final String title, final FLEFRecord left, final FLEFRecord right,
+			final FLEFModel model){
+		new RecordDiffDialog(owner, title, left, right, true, model)
+			.setVisible(true);
+	}
+
+	/**
 	 * Opens the dialog in read-only comparison mode: no accept button is
 	 * shown, the diff is highlighted, and the dialog is closed only with
 	 * the Close button or the window close action.
@@ -216,6 +255,86 @@ public class RecordDiffDialog extends JDialog{
 		final FLEFRecord left, final FLEFRecord right){
 		final RecordDiffDialog dialog = new RecordDiffDialog(owner, title, left, right, true);
 		dialog.setVisible(true);
+	}
+
+
+	/* ======================================================================
+	 *                          Links
+	 * ====================================================================== */
+
+	/** Writes the two records and compares them. */
+	private void showDiff(){
+		final FLEFWriter writer = FLEFWriter.createCompact();
+
+		// Normalize both records before serializing them. Without this,
+		// two records that carry the same information but list their
+		// children in different orders would be shown as different: a
+		// diff line would appear for every block whose position changed,
+		// even though the content is unchanged.
+		final String leftText = (before != null? writer.writeToString(RecordNormalizer.normalize(before)): StringUtils.EMPTY);
+		final String rightText = (after != null? writer.writeToString(RecordNormalizer.normalize(after)): StringUtils.EMPTY);
+		applyDiff(leftText, rightText);
+		findLinks(leftArea);
+		findLinks(rightArea);
+	}
+
+	/**
+	 * @param text	A text of a record.
+	 * @param model	The model, {@code null} for none.
+	 * @return	The places of the text that are an identifier of a record of the model: {start, end (excluded)}, in order; the identifier is
+	 * 	the text between them.
+	 */
+	static List<int[]> linkRanges(final String text, final FLEFModel model){
+		final List<int[]> ranges = new ArrayList<>();
+		if(model == null)
+			return ranges;
+
+		final Matcher matcher = IDENTIFIER.matcher(text);
+		while(matcher.find())
+			if(model.hasRecord(matcher.group()))
+				ranges.add(new int[]{matcher.start(), matcher.end()});
+		return ranges;
+	}
+
+	private void findLinks(final DiffTextArea area){
+		area.setLinks(linkRanges(area.getText(), model));
+	}
+
+	private void enableLinks(final DiffTextArea area){
+		if(model == null)
+			return;
+
+		area.setToolTipText(I18N.t("dialog.record_diff.links.tooltip"));
+		area.addMouseListener(new MouseAdapter(){
+			@Override
+			public void mouseClicked(final MouseEvent e){
+				if(SwingUtilities.isLeftMouseButton(e))
+					openLinkAt(area, e.getPoint());
+			}
+		});
+		area.addMouseMotionListener(new MouseAdapter(){
+			@Override
+			public void mouseMoved(final MouseEvent e){
+				area.setCursor(area.recordIdAt(e.getPoint()) != null? Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
+					: Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR));
+			}
+		});
+	}
+
+	/** Opens the editor of the record that the text at the point refers to, then compares the records again: they may have changed. */
+	private void openLinkAt(final DiffTextArea area, final Point point){
+		final String recordId = area.recordIdAt(point);
+		if(recordId == null)
+			return;
+
+		final var record = model.getRecordById(recordId);
+		final RecordTypeHandler<?> handler = (record != null? HandlerRegistry.getHandler(record.getTag()): null);
+		if(handler == null)
+			return;
+
+		handler.createEditDialog(this, model, record)
+			.setVisible(true);
+		showDiff();
 	}
 
 
@@ -451,9 +570,25 @@ public class RecordDiffDialog extends JDialog{
 	private static final class DiffTextArea extends JTextArea{
 
 		private final Set<Integer> placeholderLines = new HashSet<>();
+		/** The links: {start, end (excluded)} in the text. */
+		private List<int[]> links = List.of();
 
 		DiffTextArea(){
 			super();
+		}
+
+		void setLinks(final List<int[]> links){
+			this.links = List.copyOf(links);
+			repaint();
+		}
+
+		/** @return	The identifier of the record that the text at the point is a link to; {@code null} if it is not a link. */
+		String recordIdAt(final Point point){
+			final int offset = viewToModel2D(point);
+			for(final int[] link : links)
+				if(offset >= link[0] && offset < link[1])
+					return getText().substring(link[0], link[1]);
+			return null;
 		}
 
 		void setPlaceholderLines(final Set<Integer> lines){
@@ -464,10 +599,36 @@ public class RecordDiffDialog extends JDialog{
 			repaint();
 		}
 
+		/** Underlines the links in the color of a link: a text area has one color for all its text. */
+		private void paintLinks(final Graphics g){
+			if(links.isEmpty())
+				return;
+
+			final Graphics2D g2 = (Graphics2D)g.create();
+			try{
+				g2.setColor(COLOR_LINK);
+				for(final int[] link : links){
+					final Rectangle2D start = modelToView2D(link[0]);
+					final Rectangle2D end = modelToView2D(link[1]);
+					if(start != null && end != null && start.getY() == end.getY()){
+						final int y = (int)start.getMaxY() - 2;
+						g2.drawLine((int)start.getX(), y, (int)end.getX(), y);
+					}
+				}
+			}
+			catch(final BadLocationException ignored){
+				//the links are the ones of the text just written: it cannot happen
+			}
+			finally{
+				g2.dispose();
+			}
+		}
+
 		@Override
 		protected void paintComponent(final Graphics g){
 			super.paintComponent(g);
 
+			paintLinks(g);
 			if(placeholderLines.isEmpty())
 				return;
 
@@ -621,14 +782,14 @@ public class RecordDiffDialog extends JDialog{
 			final FLEFRecord before = FLEFRecord.createChildWithTag("individual");
 			before.setId("I1");
 			before.addChild(FLEFRecord.createChildWithTagAndValue("name", "John Doe"));
-			before.addChild(FLEFRecord.createChildWithTagAndValue("sex", "male"));
+			before.addChild(FLEFRecord.createChildWithTagAndValue("sex", IndividualReader.ENUM_SEX_MALE));
 			before.addChild(FLEFRecord.createChildWithTagAndValue("birth", "2000-01-01"));
 			before.addChild(FLEFRecord.createChildWithTagAndValue("ill", "2010-01-01"));
 
 			final FLEFRecord after = FLEFRecord.createChildWithTag("individual");
 			after.setId("I1");
 			after.addChild(FLEFRecord.createChildWithTagAndValue("name", "John Doe"));
-			after.addChild(FLEFRecord.createChildWithTagAndValue("sex", "male"));
+			after.addChild(FLEFRecord.createChildWithTagAndValue("sex", IndividualReader.ENUM_SEX_MALE));
 			after.addChild(FLEFRecord.createChildWithTagAndValue("birth", "2000-01-02"));
 			after.addChild(FLEFRecord.createChildWithTagAndValue("death", "2024-12-31"));
 

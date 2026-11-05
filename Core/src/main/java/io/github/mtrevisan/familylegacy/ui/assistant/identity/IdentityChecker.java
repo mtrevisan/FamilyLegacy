@@ -26,12 +26,12 @@ package io.github.mtrevisan.familylegacy.ui.assistant.identity;
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.quality.DuplicateFinderService;
+import io.github.mtrevisan.familylegacy.quality.IdentitySettings;
 import io.github.mtrevisan.familylegacy.ui.assistant.AssistantCategory;
 import io.github.mtrevisan.familylegacy.ui.assistant.Diagnostic;
 import io.github.mtrevisan.familylegacy.ui.assistant.DiagnosticKeys;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 
 /**
@@ -48,13 +48,10 @@ import java.util.stream.Collectors;
 final class IdentityChecker{
 
 	/** The similarity score from which a pair is a strong candidate (a warning), and the confidence proposed for its hypothesis is high. */
-	static final int HIGH_SCORE = 90;
+	static final int HIGH_SCORE = IdentitySettings.DEFAULT_HIGH_SCORE;
 	/** The similarity score from which the confidence proposed for the hypothesis is medium; below it, low. */
-	static final int MEDIUM_SCORE = 70;
+	static final int MEDIUM_SCORE = IdentitySettings.DEFAULT_MEDIUM_SCORE;
 
-	private static final String CONFIDENCE_HIGH = "high";
-	private static final String CONFIDENCE_MEDIUM = "medium";
-	private static final String CONFIDENCE_LOW = "low";
 
 
 	private IdentityChecker(){}
@@ -72,42 +69,55 @@ final class IdentityChecker{
 	 * @return a finding for each pair, with the draft of the hypothesis that would record it
 	 */
 	static List<IdentityFinding> findings(final List<DuplicateFinderService.Candidate> candidates){
+		return findings(candidates, IdentitySettings.DEFAULTS);
+	}
+
+	/**
+	 * @param candidates the pairs of individuals that may be the same person
+	 * @param settings what the user decided about the scores of the confidence
+	 * @return a finding for each pair, with the draft of the hypothesis that would record it
+	 */
+	static List<IdentityFinding> findings(final List<DuplicateFinderService.Candidate> candidates, final IdentitySettings settings){
 		return candidates.stream()
-			.map(IdentityChecker::finding)
+			.map(candidate -> finding(candidate, settings))
 			.toList();
 	}
 
 	/** @return the confidence proposed for the hypothesis of a pair with that similarity score */
 	static String confidence(final int score){
-		if(score >= HIGH_SCORE)
-			return CONFIDENCE_HIGH;
-		return (score >= MEDIUM_SCORE? CONFIDENCE_MEDIUM: CONFIDENCE_LOW);
+		return IdentitySettings.DEFAULTS.confidence(score);
 	}
 
 
-	private static IdentityFinding finding(final DuplicateFinderService.Candidate candidate){
+	private static IdentityFinding finding(final DuplicateFinderService.Candidate candidate, final IdentitySettings settings){
 		final String leftId = candidate.left().id();
 		final String rightId = candidate.right().id();
 		final String left = candidate.left().displayName();
 		final String right = candidate.right().displayName();
 		final int score = candidate.score();
-		final String confidence = confidence(score);
+		final String confidence = settings.confidence(score);
 
-		final String similarities = candidate.matches().stream()
+		final List<String> similarityLines = candidate.matches().stream()
 			.map(m -> m.feature() + ": " + m.detail() + " (+" + m.score() + ")")
-			.collect(Collectors.joining("; "));
+			.toList();
+		final String similarities = String.join("; ", similarityLines);
 		final String differences = String.join("; ", candidate.differences());
 		final String why = (similarities.isEmpty()? "-": similarities);
 		final String differ = (differences.isEmpty()? "-": differences);
 
 		//the key is the pair: ignoring a candidate is about the two records, not about how well they score today
-		final Diagnostic diagnostic = new Diagnostic((score >= HIGH_SCORE? Diagnostic.Severity.WARNING: Diagnostic.Severity.INFORMATION),
+		final Diagnostic diagnostic = new Diagnostic((score >= settings.highScore()? Diagnostic.Severity.WARNING: Diagnostic.Severity.INFORMATION),
 			AssistantCategory.IDENTITY, I18N.tf("identity.possible_duplicate.title", left, right, score),
 			I18N.tf("identity.possible_duplicate.explanation", left, right, score, I18N.t("enum.confidence." + confidence), why, differ),
 			List.of(leftId, rightId), null, DiagnosticKeys.of("identity.possible_duplicate", List.of(leftId, rightId)),
 			List.of(), score);
 		final String rationale = I18N.tf("identity.rationale", score, why, differ);
-		return new IdentityFinding(diagnostic, new IdentityDraft(leftId, rightId, rationale, confidence));
+		final List<String> sharedSources = candidate.left().sourceIds().stream()
+			.filter(candidate.right().sourceIds()::contains)
+			.sorted()
+			.toList();
+		return new IdentityFinding(diagnostic, new IdentityDraft(leftId, rightId, rationale, confidence, similarityLines,
+			List.copyOf(candidate.differences()), sharedSources));
 	}
 
 }

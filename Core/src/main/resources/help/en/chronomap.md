@@ -39,7 +39,7 @@ Where a person is at the playhead is worked out in this order: an event exactly 
 | **2D** and **3D** | Flat map, or a pseudo-3D globe (drag to rotate, wheel to zoom). The centre is kept when you switch. |
 | **Historical Map** | See below. |
 | **Layers** | **Markers**, **Image overlays**, and one entry for each historical map shown. |
-| **Events** | One check box for each event type in the data, to hide the anchors of that type. Attributes are never filtered. |
+| **Events** | One check box for each event type in the data, to hide the anchors of that type, in the 2D map and in the 3D globe. Unchecking all of them hides every event. Attributes are never filtered. |
 | **Show uncertainty** | On by default. Draws a translucent dashed orange circle for the uncertainty of the position of a place. |
 
 On the map, drag to move and use the wheel to zoom; **a click on a marker selects that person**. There is no double-click and no context menu on the map.

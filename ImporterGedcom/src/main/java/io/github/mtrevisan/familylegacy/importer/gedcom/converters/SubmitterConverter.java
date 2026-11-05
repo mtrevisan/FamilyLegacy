@@ -75,7 +75,7 @@ public class SubmitterConverter{
 		FLEFRecord submitter = FLEFRecord.createChildWithTag("submitter");
 
 		final String name = GEDCOMHelper.findFirstValue(subNode, "NAME");
-		GEDCOMHelper.attachContacts(submitter, subNode, name);
+		GEDCOMRecordBuilder.attachContacts(submitter, subNode, name);
 
 		final List<String> remarks = new ArrayList<>();
 		if(name != null && !submitter.hasChildren())

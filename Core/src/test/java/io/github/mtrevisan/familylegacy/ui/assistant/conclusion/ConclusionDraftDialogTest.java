@@ -72,7 +72,7 @@ class ConclusionDraftDialogTest{
 
 		//what the action does, but for showing the editor
 		final ConclusionRecordDialog dialog = ConclusionRecordDialog.createNew(null, model)
-			.withDraft("unresearched", finding.draft().narrative());
+			.withDraft(null, finding.draft().narrative());
 		for(final String id : finding.draft().resolves())
 			dialog.withResolvedTarget(model.getRecordById(id), finding.draft().issue());
 
@@ -81,7 +81,8 @@ class ConclusionDraftDialogTest{
 		Assertions.assertFalse(dialog.isSaved());
 		Assertions.assertEquals(1, ConclusionChecker.check(ConclusionDataLoader.load(model)).size());
 
-		//the researcher saves it as it is
+		//the researcher picks a proof status, without preferring any assertion, and saves
+		dialog.withDraft("supported", null);
 		dialog.save();
 
 		Assertions.assertTrue(dialog.isSaved());
@@ -89,7 +90,7 @@ class ConclusionDraftDialogTest{
 		Assertions.assertEquals(1, conclusions.size());
 		final FLEFRecord conclusion = conclusions.getFirst();
 		Assertions.assertEquals("birth_date", FLEFRecordHelper.getChildValue(conclusion, "issue"));
-		Assertions.assertEquals("unresearched", FLEFRecordHelper.getChildValue(conclusion, "proof_status"));
+		Assertions.assertEquals("supported", FLEFRecordHelper.getChildValue(conclusion, "proof_status"));
 		Assertions.assertTrue(FLEFRecordHelper.getChildValue(conclusion, "narrative").startsWith("Conflicting birth dates: Anna"));
 		Assertions.assertEquals(2, FLEFRecordHelper.findChildren(conclusion, "resolves").size());
 		Assertions.assertNull(FLEFRecordHelper.findChild(conclusion, "preferred"));

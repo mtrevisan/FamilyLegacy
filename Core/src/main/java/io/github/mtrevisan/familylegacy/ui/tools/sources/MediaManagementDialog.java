@@ -349,7 +349,7 @@ public final class MediaManagementDialog extends JDialog{
 	}
 
 	private void updateStatus(final int count){
-		statusLabel.setText(count + (count == 1? " document": " documents"));
+		statusLabel.setText(I18N.tf("text.media.documents", count));
 	}
 
 	private static String escape(final String s){
@@ -359,7 +359,7 @@ public final class MediaManagementDialog extends JDialog{
 
 	private static final class DocumentTableModel extends AbstractTableModel{
 
-		private static final String[] COLUMNS = {"URI", "Description", "Mapping", "Refs"};
+		private static final String[] COLUMNS = {I18N.t("column.uri"), I18N.t("column.description"), I18N.t("column.mapping"), I18N.t("column.references")};
 
 		private final List<SourceHelper.DocumentRow> rows = new ArrayList<>();
 

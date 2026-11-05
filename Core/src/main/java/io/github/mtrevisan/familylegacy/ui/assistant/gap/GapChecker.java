@@ -37,6 +37,11 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.ResearchActivityReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.ResearchQuestionReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.ResearchTaskReader;
 
 
 /**
@@ -74,11 +79,11 @@ final class GapChecker{
 	/** The Julian Day Number of 1970-01-01, to turn a day into a Julian Day Number. */
 	private static final long UNIX_EPOCH_JDN = 2_440_588L;
 
-	private static final Set<String> VITAL_EVENTS = Set.of("birth", "death", "marriage");
-	private static final Set<String> OPEN_QUESTIONS = Set.of("open", "on_hold");
-	private static final Set<String> FINISHED_ACTIVITIES = Set.of("completed", "abandoned");
+	private static final Set<String> VITAL_EVENTS = Set.of(EventReader.ENUM_TYPE_BIRTH, EventReader.ENUM_TYPE_DEATH, EventReader.ENUM_TYPE_MARRIAGE);
+	private static final Set<String> OPEN_QUESTIONS = Set.of(ResearchQuestionReader.ENUM_STATUS_OPEN, ResearchQuestionReader.ENUM_STATUS_ON_HOLD);
+	private static final Set<String> FINISHED_ACTIVITIES = Set.of(ResearchActivityReader.ENUM_STATUS_COMPLETED, ResearchActivityReader.ENUM_STATUS_ABANDONED);
 	private static final Set<String> UNSUCCESSFUL_RESULTS = Set.of("negative", "inconclusive", "unavailable");
-	private static final Set<String> ACTIVE_TASKS = Set.of("open", "in_progress");
+	private static final Set<String> ACTIVE_TASKS = Set.of(ResearchTaskReader.ENUM_STATUS_OPEN, ResearchTaskReader.ENUM_STATUS_IN_PROGRESS);
 
 
 	private GapChecker(){}
@@ -111,8 +116,8 @@ final class GapChecker{
 	/** @return how useful it would be to fill a gap with that estimated usefulness: high, medium or low */
 	static String level(final int usefulness){
 		if(usefulness >= HIGH_USEFULNESS)
-			return "high";
-		return (usefulness >= MEDIUM_USEFULNESS? "medium": "low");
+			return ConfidenceReader.ENUM_HIGH;
+		return (usefulness >= MEDIUM_USEFULNESS? ConfidenceReader.ENUM_MEDIUM: ConfidenceReader.ENUM_LOW);
 	}
 
 
@@ -179,7 +184,7 @@ final class GapChecker{
 		final Set<String> married = new HashSet<>();
 		data.unions().forEach(u -> married.add(pair(u.firstId(), u.secondId())));
 		for(final GapData.Event event : data.events())
-			if("marriage".equals(event.type()))
+			if(EventReader.ENUM_TYPE_MARRIAGE.equals(event.type()))
 				for(int i = 0; i < event.principals().size(); i ++)
 					for(int j = i + 1; j < event.principals().size(); j ++)
 						married.add(pair(event.principals().get(i), event.principals().get(j)));
@@ -213,7 +218,7 @@ final class GapChecker{
 			return;
 
 		findings.add(finding(Diagnostic.Severity.INFORMATION, "unsourced_vital_events", unsourced.stream().limit(MAX_LISTED).toList(), 70,
-			new GapDraft(GapDraft.Kind.TASK, "", I18N.tf("gap.draft.sources.task", unsourced.size()), List.of(), "normal"),
+			new GapDraft(GapDraft.Kind.TASK, "", I18N.tf("gap.draft.sources.task", unsourced.size()), List.of(), ResearchTaskReader.ENUM_PRIORITY_NORMAL),
 			unsourced.size(), Math.min(unsourced.size(), MAX_LISTED)));
 	}
 
@@ -228,7 +233,7 @@ final class GapChecker{
 
 		findings.add(finding(Diagnostic.Severity.INFORMATION, "census_without_residence",
 			withoutResidence.stream().limit(MAX_LISTED).toList(), 40,
-			new GapDraft(GapDraft.Kind.TASK, "", I18N.tf("gap.draft.census.task", withoutResidence.size()), List.of(), "low"),
+			new GapDraft(GapDraft.Kind.TASK, "", I18N.tf("gap.draft.census.task", withoutResidence.size()), List.of(), ResearchTaskReader.ENUM_PRIORITY_LOW),
 			withoutResidence.size(), Math.min(withoutResidence.size(), MAX_LISTED)));
 	}
 
@@ -243,9 +248,9 @@ final class GapChecker{
 				.toList();
 			if(activities.isEmpty()){
 				findings.add(finding(Diagnostic.Severity.INFORMATION, "question_without_activities", List.of(question.id()),
-					("open".equals(question.status())? 75: 45),
+					(ResearchQuestionReader.ENUM_STATUS_OPEN.equals(question.status())? 75: 45),
 					new GapDraft(GapDraft.Kind.TASK, "", I18N.tf("gap.draft.activity.task", question.title()),
-						List.of(question.id()), "normal"),
+						List.of(question.id()), ResearchTaskReader.ENUM_PRIORITY_NORMAL),
 					question.title(), question.status()));
 				continue;
 			}
@@ -253,10 +258,10 @@ final class GapChecker{
 			final boolean allOver = activities.stream().allMatch(a -> FINISHED_ACTIVITIES.contains(a.status()));
 			final boolean somethingPlanned = data.tasks().stream()
 				.anyMatch(t -> t.questionIds().contains(question.id()) && ACTIVE_TASKS.contains(t.status()));
-			if("open".equals(question.status()) && allOver && !somethingPlanned && !question.hasConclusion())
+			if(ResearchQuestionReader.ENUM_STATUS_OPEN.equals(question.status()) && allOver && !somethingPlanned && !question.hasConclusion())
 				findings.add(finding(Diagnostic.Severity.INFORMATION, "question_stalled", List.of(question.id()), 65,
 					new GapDraft(GapDraft.Kind.TASK, "", I18N.tf("gap.draft.stalled.task", question.title()),
-						List.of(question.id()), "normal"),
+						List.of(question.id()), ResearchTaskReader.ENUM_PRIORITY_NORMAL),
 					question.title(), activities.size()));
 		}
 	}
@@ -268,7 +273,7 @@ final class GapChecker{
 
 		final List<String> withoutResult = new ArrayList<>();
 		for(final GapData.Activity activity : data.activities()){
-			if(!"completed".equals(activity.status()))
+			if(!ResearchActivityReader.ENUM_STATUS_COMPLETED.equals(activity.status()))
 				continue;
 
 			if(activity.result() == null){
@@ -283,7 +288,7 @@ final class GapChecker{
 				ids.addAll(activity.questionIds());
 				findings.add(finding(Diagnostic.Severity.INFORMATION, "no_follow_up", ids, 50,
 					new GapDraft(GapDraft.Kind.TASK, "", I18N.tf("gap.draft.follow_up.task", activity.action(), activity.result()),
-						activity.questionIds(), "normal"),
+						activity.questionIds(), ResearchTaskReader.ENUM_PRIORITY_NORMAL),
 					activity.action(), activity.result()));
 			}
 		}
@@ -302,7 +307,7 @@ final class GapChecker{
 				continue;
 
 			final long days = today - task.due().max();
-			final int bonus = ("high".equals(task.priority())? 15: ("normal".equals(task.priority())? 5: 0));
+			final int bonus = ("high".equals(task.priority())? 15: (ResearchTaskReader.ENUM_PRIORITY_NORMAL.equals(task.priority())? 5: 0));
 			final List<String> ids = new ArrayList<>(List.of(task.id()));
 			ids.addAll(task.questionIds());
 			findings.add(finding(Diagnostic.Severity.WARNING, "overdue_task", ids, 70 + bonus, null, task.description(), days));
@@ -332,7 +337,7 @@ final class GapChecker{
 			.toList();
 		final int usefulness = (int)group.stream().mapToDouble(f -> f.diagnostic().rank()).max().orElse(0);
 		findings.add(finding(Diagnostic.Severity.INFORMATION, aggregateKey, ids, usefulness,
-			new GapDraft(GapDraft.Kind.TASK, "", I18N.tf(taskKey, group.size()), List.of(), "normal"),
+			new GapDraft(GapDraft.Kind.TASK, "", I18N.tf(taskKey, group.size()), List.of(), ResearchTaskReader.ENUM_PRIORITY_NORMAL),
 			group.size(), Math.min(group.size(), MAX_LISTED)));
 	}
 

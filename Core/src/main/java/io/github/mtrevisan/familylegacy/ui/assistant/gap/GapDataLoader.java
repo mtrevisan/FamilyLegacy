@@ -38,7 +38,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.date.DateNormalizer;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
-import io.github.mtrevisan.familylegacy.ui.assistant.chronology.DateRange;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.DateRange;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventParticipationHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualAttributeHandler;
@@ -65,7 +65,7 @@ import java.util.Set;
  */
 public final class GapDataLoader{
 
-	private static final String ROLE_PRINCIPAL = "principal";
+	private static final String ROLE_PRINCIPAL = EventParticipationReader.ENUM_ROLE_PRINCIPAL;
 	private static final String TYPE_RESIDENCE = "residence";
 	private static final String EVENT_CENSUS = "census";
 	private static final String TAG_FOLLOW_UP = ResearchActivityReader.TAG_FOLLOW_UP;

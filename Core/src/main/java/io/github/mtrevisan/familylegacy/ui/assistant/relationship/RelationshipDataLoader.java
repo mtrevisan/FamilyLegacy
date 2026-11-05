@@ -35,7 +35,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.date.DateReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
-import io.github.mtrevisan.familylegacy.ui.assistant.chronology.DateRange;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.DateRange;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventParticipationHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.GroupHandler;
@@ -98,7 +98,7 @@ final class RelationshipDataLoader{
 
 			final String role = FLEFRecordHelper.getChildValue(participation, EventParticipationReader.TAG_ROLE);
 			participants.computeIfAbsent(eventId, k -> new ArrayList<>())
-				.add(new RelationshipData.Participant(personId, role == null || ROLE_PRINCIPAL.equals(role)));
+				.add(new RelationshipData.Participant(personId, role == null || ROLE_PRINCIPAL.equals(role), role));
 		}
 
 		final List<RelationshipData.Event> events = new ArrayList<>();

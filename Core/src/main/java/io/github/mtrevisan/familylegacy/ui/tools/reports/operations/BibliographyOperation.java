@@ -39,7 +39,7 @@ public final class BibliographyOperation implements ToolOperation{
 
 	@Override
 	public boolean isEnabled(final ToolContext context){
-		return (context != null && context.hasModel() && context.hasSourcesOrDocuments());
+		return (context != null && context.hasModel() && context.hasSourcesOrDocuments() && context.hasSelectedEntity());
 	}
 
 	@Override

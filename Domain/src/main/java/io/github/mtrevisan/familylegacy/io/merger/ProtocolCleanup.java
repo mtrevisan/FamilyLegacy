@@ -34,6 +34,9 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 
 
 /**
@@ -48,7 +51,7 @@ final class ProtocolCleanup{
 	private static final String TAG_RESOLVES = "resolves";
 	private static final String TAG_PREFERRED = "preferred";
 	private static final String TAG_PROOF_STATUS = "proof_status";
-	private static final Set<String> BIOLOGICAL_PARENT_TYPES = Set.of("child", "biological_child");
+	private static final Set<String> BIOLOGICAL_PARENT_TYPES = Set.of(RelationshipReader.ENUM_TYPE_CHILD, RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD);
 	private static final int MAX_BIOLOGICAL_PARENTS = 2;
 
 
@@ -140,8 +143,8 @@ final class ProtocolCleanup{
 
 	private static String confidence(final double probability){
 		if(probability >= 0.85)
-			return "high";
-		return (probability >= 0.7? "medium": "low");
+			return ConfidenceReader.ENUM_HIGH;
+		return (probability >= 0.7? ConfidenceReader.ENUM_MEDIUM: ConfidenceReader.ENUM_LOW);
 	}
 
 	/**
@@ -161,7 +164,7 @@ final class ProtocolCleanup{
 
 		final ModelIndex index = new ModelIndex(session.records(), session.references);
 		for(final String individualId : survivors){
-			for(final String type : List.of("birth", "death")){
+			for(final String type : List.of(EventReader.ENUM_TYPE_BIRTH, EventReader.ENUM_TYPE_DEATH)){
 				final List<FLEFRecord> events = index.principalEvents(individualId, Set.of(type));
 				if(events.size() < 2)
 					continue;

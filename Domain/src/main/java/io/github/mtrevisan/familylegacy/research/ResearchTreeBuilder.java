@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.research;
 
+import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.ConclusionReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchActivityReader;
@@ -217,7 +218,7 @@ public final class ResearchTreeBuilder{
 			placed.add(question.getId());
 		}
 
-		final Node orphans = new Node(Kind.ORPHANS, null, "(no question)");
+		final Node orphans = new Node(Kind.ORPHANS, null, I18N.t("text.research.no_question"));
 		for(final FLEFRecord activity : activities)
 			if(!placed.contains(activity.getId()))
 				orphans.children.add(new Node(Kind.ACTIVITY, activity, activityLabel(activity)));
@@ -286,8 +287,9 @@ public final class ResearchTreeBuilder{
 	/** Returns the question node with the counts of its activities, tasks, and conclusions appended to the label. */
 	private static Node withCounts(final Node questionNode){
 		final Node node = new Node(questionNode.kind, questionNode.record,
-			questionNode.label + " (" + questionNode.count(Kind.ACTIVITY) + "A " + questionNode.count(Kind.TASK) + "T "
-				+ questionNode.count(Kind.CONCLUSION) + "C)");
+			questionNode.label + " (" + I18N.tf("text.research.activities", questionNode.count(Kind.ACTIVITY)) + ", "
+				+ I18N.tf("text.research.tasks", questionNode.count(Kind.TASK)) + ", "
+				+ I18N.tf("text.research.conclusions", questionNode.count(Kind.CONCLUSION)) + ")");
 		node.children.addAll(questionNode.children);
 		return node;
 	}
@@ -304,7 +306,7 @@ public final class ResearchTreeBuilder{
 	private static String activityLabel(final FLEFRecord activity){
 		final String type = ResearchHelper.activityType(activity);
 		final String action = ResearchHelper.action(activity);
-		final String text = (StringUtils.isNotBlank(type)? type: "activity")
+		final String text = (StringUtils.isNotBlank(type)? type: I18N.t("text.research.activity"))
 			+ (StringUtils.isNotBlank(action)? ": " + action: StringUtils.EMPTY);
 		return withDetails(text, ResearchHelper.status(activity), ResearchHelper.activityResult(activity));
 	}

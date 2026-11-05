@@ -102,13 +102,13 @@ public final class SourceHelper{
 		if(source == null)
 			return StringUtils.EMPTY;
 
+		final String title = SourceReader.extractPrimaryTitle(source);
+		if(StringUtils.isNotEmpty(title))
+			return title;
+
 		for(final FLEFRecord child : source.getChildren()){
 			if(!SourceReader.TAG_TITLE.equalsIgnoreCase(child.getTag()))
 				continue;
-
-			final String title = SourceReader.extractPrimaryTitle(child);
-			if(StringUtils.isNotEmpty(title))
-				return title;
 
 			final FLEFRecord onlyChild = child.getTheOnlyChild();
 			if(onlyChild != null && onlyChild.getValue() != null && !onlyChild.getValue().isBlank())
@@ -126,14 +126,9 @@ public final class SourceHelper{
 		if(repository == null)
 			return StringUtils.EMPTY;
 
-		for(final FLEFRecord child : repository.getChildren()){
-			if(!RepositoryReader.TAG_NAME.equalsIgnoreCase(child.getTag()))
-				continue;
-
-			final String name = RepositoryReader.extractPrimaryName(child);
-			if(StringUtils.isNotEmpty(name))
-				return name;
-		}
+		final String name = RepositoryReader.extractPrimaryName(repository);
+		if(StringUtils.isNotEmpty(name))
+			return name;
 		return (repository.getId() != null? repository.getId(): StringUtils.EMPTY);
 	}
 
@@ -243,7 +238,7 @@ public final class SourceHelper{
 		}
 	}
 
-	private static String extractReferencedId(final FLEFRecord sourceBlock){
+	public static String extractReferencedId(final FLEFRecord sourceBlock){
 		final String direct = FLEFRecordHelper.getChildValue(sourceBlock, SourceReader.TYPE);
 		if(direct != null)
 			return direct;
@@ -261,7 +256,7 @@ public final class SourceHelper{
 	 * Returns every record type that can carry a {@code source} child,
 	 * i.e. every type that can cite a source.
 	 */
-	private static List<String> allSourceCitingTypes(){
+	public static List<String> allSourceCitingTypes(){
 		return List.of(
 			"individual", "group", "event", "individual_attribute",
 			"event_participation", "group_attribute", "relationship",

@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.quality.IdentitySettings;
 import io.github.mtrevisan.familylegacy.ui.assistant.AssistantCategory;
 import io.github.mtrevisan.familylegacy.ui.assistant.AssistantContext;
 import io.github.mtrevisan.familylegacy.ui.assistant.Diagnostic;
@@ -88,7 +89,7 @@ class IdentityAssistantTest{
 	}
 
 	private static List<Diagnostic> found(final FLEFModel model){
-		return new IdentityAssistantContributor().diagnosticProviders().getFirst()
+		return new IdentityAssistantContributor(() -> IdentitySettings.DEFAULTS).diagnosticProviders().getFirst()
 			.diagnose(new AssistantContext(null, null, model));
 	}
 
@@ -144,8 +145,9 @@ class IdentityAssistantTest{
 
 		final List<io.github.mtrevisan.familylegacy.ui.assistant.DiagnosticAction> actions = DiagnosticActions.of(finding);
 
-		//Enter, Ctrl+Enter, Ctrl+Shift+Enter
-		Assertions.assertEquals(List.of("Create Identity Hypothesis Draft…", "Compare Side by Side…", "Open the Records…"),
+		//Enter, Ctrl+Enter, Ctrl+Shift+Enter, Ctrl+Alt+Enter
+		Assertions.assertEquals(List.of("Create Identity Hypothesis Draft…", "Compare Side by Side…", "Record as Different People…",
+			"Open the Records…"),
 			actions.stream().map(io.github.mtrevisan.familylegacy.ui.assistant.DiagnosticAction::title).toList());
 	}
 

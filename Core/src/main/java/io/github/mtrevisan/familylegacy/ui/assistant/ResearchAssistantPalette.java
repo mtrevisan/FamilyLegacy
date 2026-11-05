@@ -84,8 +84,11 @@ final class ResearchAssistantPalette extends JDialog{
 	private static final String ACTION_PREVIOUS = "previous";
 	private static final String ACTION_NEXT = "next";
 	private static final String ACTION_RUN = "run";
+	/** The steps of the bar of the progress: finer than a percent, so that a long provider is seen moving. */
+	private static final int PROGRESS_STEPS = 1_000;
 	private static final String ACTION_RUN_OTHER = "runOther";
 	private static final String ACTION_RUN_THIRD = "runThird";
+	private static final String ACTION_RUN_FOURTH = "runFourth";
 	private static final String ACTION_IGNORE = "ignore";
 	private static final String ACTION_TOGGLE_IGNORED = "toggleIgnored";
 	private static final String ACTION_CLOSE = "close";
@@ -194,8 +197,10 @@ final class ResearchAssistantPalette extends JDialog{
 		content.add(new JScrollPane(rowsList));
 		content.add(detailLabel);
 		content.add(statusLabel);
+		//the bar says how far the computation is, and the status line the percentage: the findings appear when it is full
+		loadingBar.setMaximum(PROGRESS_STEPS);
 		loadingBar.setIndeterminate(true);
-		content.add(loadingBar, "h 4!");
+		content.add(loadingBar, "h 8!");
 		setContentPane(content);
 	}
 
@@ -208,6 +213,8 @@ final class ResearchAssistantPalette extends JDialog{
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()), ACTION_RUN_OTHER);
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER,
 			Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx() | InputEvent.SHIFT_DOWN_MASK), ACTION_RUN_THIRD);
+		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER,
+			Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx() | InputEvent.ALT_DOWN_MASK), ACTION_RUN_FOURTH);
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_D, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()), ACTION_IGNORE);
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_I, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()),
 			ACTION_TOGGLE_IGNORED);
@@ -219,6 +226,7 @@ final class ResearchAssistantPalette extends JDialog{
 		actionMap.put(ACTION_RUN, new SimpleAction(() -> runSelected(0)));
 		actionMap.put(ACTION_RUN_OTHER, new SimpleAction(() -> runSelected(1)));
 		actionMap.put(ACTION_RUN_THIRD, new SimpleAction(() -> runSelected(2)));
+		actionMap.put(ACTION_RUN_FOURTH, new SimpleAction(() -> runSelected(3)));
 		actionMap.put(ACTION_CLOSE, new SimpleAction(this::dispose));
 	}
 
@@ -243,12 +251,28 @@ final class ResearchAssistantPalette extends JDialog{
 		//a copy of the model, taken here on the event dispatch thread: the actions keep the context with the model itself
 		final AssistantContext reading = context.forReading();
 		CompletableFuture
-			.supplyAsync(() -> service.diagnose(reading))
+			.supplyAsync(() -> service.diagnose(reading, this::showProgress))
 			.exceptionally(e -> List.of())
 			.thenAccept(found -> SwingUtilities.invokeLater(() -> {
 				diagnostics = found;
 				refresh();
 			}));
+	}
+
+	/** Shows how far the computation is (it is told from the thread that computes, so it hands over to the event dispatch thread). */
+	private void showProgress(final double fraction){
+		final int step = (int)Math.round(Math.max(0., Math.min(1., fraction)) * PROGRESS_STEPS);
+		SwingUtilities.invokeLater(() -> {
+			//the findings may have arrived while this was waiting
+			if(diagnostics != null)
+				return;
+
+			loadingBar.setIndeterminate(false);
+			//never back: the updates are handed over in order, but one that is late must not move the bar back
+			if(step > loadingBar.getValue())
+				loadingBar.setValue(step);
+			statusLabel.setText(I18N.tf("assistant.loading.progress", loadingBar.getValue() / (PROGRESS_STEPS / 100)));
+		});
 	}
 
 	private void refresh(){
@@ -279,7 +303,7 @@ final class ResearchAssistantPalette extends JDialog{
 		loadingBar.setVisible(loading);
 		statusLabel.setText(loading? I18N.t("assistant.loading"): (status.isEmpty()? StringUtils.SPACE: status));
 		if(loading && rowsModel.isEmpty())
-			detailLabel.setText(I18N.t("assistant.loading.detail"));
+			detailLabel.setText(null);
 		else if(rowsModel.isEmpty())
 			detailLabel.setText(I18N.t(showIgnored? "assistant.ignored.none": "assistant.no_results"));
 		else
@@ -367,7 +391,7 @@ final class ResearchAssistantPalette extends JDialog{
 	}
 
 	/**
-	 * Runs an action of the selected row: the first one with Enter, the second one (if any) with Ctrl+Enter, the third one with Ctrl+Shift+Enter. A command has only
+	 * Runs an action of the selected row: the first one with Enter, the second one (if any) with Ctrl+Enter, the third one with Ctrl+Shift+Enter, the fourth one with Ctrl+Alt+Enter. A command has only
 	 * the first one, a finding has the ones of {@link DiagnosticActions}.
 	 */
 	private void runSelected(final int index){
@@ -423,7 +447,7 @@ final class ResearchAssistantPalette extends JDialog{
 	 */
 	private String keyHints(final Diagnostic diagnostic){
 		final List<DiagnosticAction> actions = DiagnosticActions.of(diagnostic);
-		final String[] keys = {"Enter", shortcut("Enter"), shortcut("Shift+Enter")};
+		final String[] keys = {"Enter", shortcut("Enter"), shortcut("Shift+Enter"), shortcut("Alt+Enter")};
 		final StringBuilder hints = new StringBuilder();
 		for(int i = 0; i < actions.size(); i ++)
 			hints.append("<br><b>").append(escape(I18N.tf("assistant.diagnostic.key", keys[i], actions.get(i).title()))).append("</b>");

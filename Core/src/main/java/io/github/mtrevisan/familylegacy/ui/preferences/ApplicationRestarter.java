@@ -28,9 +28,11 @@ import io.github.mtrevisan.familylegacy.i18n.I18N;
 
 import javax.swing.JOptionPane;
 import java.awt.Window;
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 
 
@@ -76,11 +78,23 @@ public final class ApplicationRestarter{
 	 * @param reason a short sentence explaining why the restart is needed
 	 */
 	public static void restart(final Window owner, final String reason){
+		restart(owner, reason, null);
+	}
+
+	/**
+	 * The same as {@link #restart(Window, String)}, and the application opens the given file when it starts again, in the place of the one
+	 * it was launched with.
+	 *
+	 * @param owner  the window that owns the dialog; may be {@code null}
+	 * @param reason a short sentence explaining why the restart is needed
+	 * @param file   the file the document is on, to open again; {@code null} if the document has none
+	 */
+	public static void restart(final Window owner, final String reason, final File file){
 		JOptionPane.showMessageDialog(owner,
 			reason + "\n\n" + I18N.t("dialog.restart.message"), I18N.t("dialog.restart.title"),
 			JOptionPane.INFORMATION_MESSAGE);
 
-		if(!tryRestart())
+		if(!tryRestart(file))
 			JOptionPane.showMessageDialog(owner,
 				I18N.t("dialog.restart.failed.message"), I18N.t("dialog.restart.failed.title"),
 				JOptionPane.WARNING_MESSAGE);
@@ -91,10 +105,27 @@ public final class ApplicationRestarter{
 	 *                          Internals
 	 * ====================================================================== */
 
-	private static boolean tryRestart(){
-		final List<String> command = resolveLaunchCommand();
-		if(command.isEmpty())
+	/**
+	 * @param command	The command line the application was started with.
+	 * @param file	The file to open when it starts again, or {@code null}.
+	 * @return	The command line with the file in the place of the one the application was launched with (a last argument that is a FLEF
+	 * 	file): without it, the application would start with an empty document, or with the file it was launched with, not the open one.
+	 */
+	static List<String> withFile(final List<String> command, final File file){
+		final List<String> result = new ArrayList<>(command);
+		if(!result.isEmpty() && result.getLast().toLowerCase(Locale.ROOT).endsWith(".flef"))
+			result.removeLast();
+		if(file != null)
+			result.add(file.getAbsolutePath());
+		return result;
+	}
+
+	private static boolean tryRestart(final File file){
+		final List<String> launch = resolveLaunchCommand();
+		if(launch.isEmpty())
 			return false;
+
+		final List<String> command = withFile(launch, file);
 
 		try{
 			final ProcessBuilder pb = new ProcessBuilder(command)

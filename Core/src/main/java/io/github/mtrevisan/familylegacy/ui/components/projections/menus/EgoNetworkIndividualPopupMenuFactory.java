@@ -34,6 +34,7 @@ import io.github.mtrevisan.familylegacy.ui.components.projections.actions.indivi
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.individuals.ConnectChildTool;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.individuals.DeleteIndividualTool;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.individuals.EditIndividualTool;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.individuals.ConsanguinityLoopsTool;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.individuals.IndividualCareerTool;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.individuals.PasteIndividualTool;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.individuals.UnlinkIndividualRelationshipsTool;
@@ -43,6 +44,7 @@ import io.github.mtrevisan.familylegacy.ui.components.projections.individual.Ind
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.PopupMenuAdapter;
 import io.github.mtrevisan.familylegacy.ui.helpers.ShortcutRegistry;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.provenance.ProvenanceTool;
 
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
@@ -82,6 +84,8 @@ public class EgoNetworkIndividualPopupMenuFactory implements EntityPopupMenuFact
 		final JMenuItem pasteItem = new JMenuItem(I18N.t("menu.individual.paste"), 'P');
 		final JMenuItem unlinkItem = new JMenuItem(I18N.t("menu.individual.unlink.relationships"), 'U');
 		final JMenuItem careerItem = new JMenuItem(I18N.t("menu.individual.group_career"));
+		final JMenuItem provenanceItem = new JMenuItem(I18N.t("menu.source_citation.provenance"));
+		final JMenuItem loopsItem = new JMenuItem(I18N.t("menu.individual.consanguinity_loops"));
 
 		// Evaluate item states right before display
 		final JPopupMenu popup = new JPopupMenu();
@@ -156,6 +160,16 @@ public class EgoNetworkIndividualPopupMenuFactory implements EntityPopupMenuFact
 		PopupMenuHelper.addMenuItem(popup, careerItem, panel, record -> {
 			final ToolContext context = ToolContexts.withMutator(model, listener, panel, record.getId());
 			new IndividualCareerTool()
+				.run(context);
+		});
+		PopupMenuHelper.addMenuItem(popup, provenanceItem, panel, record -> {
+			final ToolContext context = ToolContexts.withMutator(model, listener, panel, record.getId());
+			new ProvenanceTool()
+				.run(context);
+		});
+		PopupMenuHelper.addMenuItem(popup, loopsItem, panel, record -> {
+			final ToolContext context = ToolContexts.withMutator(model, listener, panel, record.getId());
+			new ConsanguinityLoopsTool()
 				.run(context);
 		});
 

@@ -93,9 +93,9 @@ public final class KinshipResolver{
 		return switch(relationshipType.toLowerCase(Locale.ROOT)){
 			case RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD -> 10;
 			case RelationshipReader.ENUM_TYPE_ADOPTIVE_CHILD -> 20;
-			case "foster_child" -> 30;
-			case "guarded_child" -> 40;
-			case "step_child" -> 50;
+			case RelationshipReader.ENUM_TYPE_FOSTER_CHILD -> 30;
+			case RelationshipReader.ENUM_TYPE_GUARDED_CHILD -> 40;
+			case RelationshipReader.ENUM_TYPE_STEP_CHILD -> 50;
 			default -> 60;
 		};
 	}

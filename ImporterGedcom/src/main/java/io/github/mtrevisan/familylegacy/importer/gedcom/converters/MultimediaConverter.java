@@ -87,9 +87,9 @@ public class MultimediaConverter{
 
 		final FLEFRecord media = FLEFRecord.createMainRecord(xref, MediaReader.TYPE);
 		final List<GEDCOMNode> fileNodes = GEDCOMHelper.findChildren(objNode, "FILE");
-		GEDCOMHelper.fillMediaRecord(media, objNode, (!fileNodes.isEmpty()? fileNodes.getFirst(): null), noteRawMap);
+		GEDCOMRecordBuilder.fillMediaRecord(media, objNode, (!fileNodes.isEmpty()? fileNodes.getFirst(): null), noteRawMap);
 		for(int i = 1; i < fileNodes.size(); i ++){
-			final FLEFRecord note = GEDCOMHelper.createNoteStruct("Additional file", fileNodes.get(i).getValue(), objNode);
+			final FLEFRecord note = GEDCOMRecordBuilder.createNoteStruct("Additional file", fileNodes.get(i).getValue(), objNode);
 			// notes go before privacy and audit, the last fields of a MediaRecord
 			media.getChildren()
 				.add(media.getChildren().size() - 1, note);

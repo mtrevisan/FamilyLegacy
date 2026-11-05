@@ -204,9 +204,9 @@ public final class NarrativeFormatter{
 		return switch(type.toLowerCase(Locale.ROOT)){
 			case RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD -> "REL_BIOLOGICAL_CHILD";
 			case RelationshipReader.ENUM_TYPE_ADOPTIVE_CHILD -> "REL_ADOPTIVE_CHILD";
-			case "foster_child" -> "REL_FOSTER_CHILD";
-			case "guarded_child" -> "REL_GUARDED_CHILD";
-			case "step_child" -> "REL_STEP_CHILD";
+			case RelationshipReader.ENUM_TYPE_FOSTER_CHILD -> "REL_FOSTER_CHILD";
+			case RelationshipReader.ENUM_TYPE_GUARDED_CHILD -> "REL_GUARDED_CHILD";
+			case RelationshipReader.ENUM_TYPE_STEP_CHILD -> "REL_STEP_CHILD";
 			default -> "REL_CHILD";
 		};
 	}

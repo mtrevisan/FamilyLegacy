@@ -49,8 +49,10 @@ import io.github.mtrevisan.familylegacy.ui.components.searches.service.JumpToInd
 import io.github.mtrevisan.familylegacy.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.DialogEscapeSupport;
+import io.github.mtrevisan.familylegacy.ui.helpers.DialogPlacement;
 import io.github.mtrevisan.familylegacy.ui.preferences.AppearanceManager;
 import io.github.mtrevisan.familylegacy.ui.tools.files.FileMenuController;
+import io.github.mtrevisan.familylegacy.ui.tools.files.RecentFilesManager;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.Box;
@@ -70,6 +72,7 @@ import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
+import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
@@ -101,6 +104,7 @@ public class FamilyLegacyFrame extends JFrame{
 	private ProjectionSwitcherPanel switcher;
 	private final BookmarkStore bookmarkStore = new BookmarkStore();
 	private final FileMenuController fileController;
+	private Runnable terminator = () -> System.exit(0);
 	private final JSplitPane split;
 
 	private final JToolBar toolBar;
@@ -118,9 +122,12 @@ public class FamilyLegacyFrame extends JFrame{
 		if(assistant != null)
 			assistant.install(this::model, this::readOnlyModel, this::currentFilePath);
 		DialogEscapeSupport.install();
+		DialogPlacement.install();
 		history = new ModelHistory(model);
 		switcher = new ProjectionSwitcherPanel(treeType, model);
-		fileController = new FileMenuController(this, this::model, this::replaceModel, history::markSaved, history::isModified);
+		fileController = new FileMenuController(this, this::model, this::replaceModel, history);
+		//there are no unsaved changes: every change of the model is written to the file by itself
+		history.addChangeListener(fileController::documentChanged);
 
 		split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, switcher, null);
 		split.setResizeWeight(1.);
@@ -170,7 +177,14 @@ public class FamilyLegacyFrame extends JFrame{
 
 		setSize(SWITCHER_WIDTH + DOSSIER_WIDTH, 800);
 		setMinimumSize(new Dimension(900, 500));
-		setDefaultCloseOperation(EXIT_ON_CLOSE);
+		//the window is closed by exitApplication(), that asks what to do with the unsaved changes first
+		setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+		addWindowListener(new WindowAdapter(){
+			@Override
+			public void windowClosing(final WindowEvent e){
+				exitApplication();
+			}
+		});
 		setLocationRelativeTo(null);
 
 		GlobalKeyboardController.install(this, switcher);
@@ -233,6 +247,20 @@ public class FamilyLegacyFrame extends JFrame{
 			if(window instanceof JDialog dialog && dialog.isModal() && dialog.isShowing())
 				return true;
 		return false;
+	}
+
+	/**
+	 * Closes the application, as the Exit command and the close button of the window do: the user is asked what to do with the
+	 * unsaved changes, and can cancel.
+	 */
+	void exitApplication(){
+		if(fileController.exit())
+			terminator.run();
+	}
+
+	/** Replaces what ends the process once the window is closed (the tests do not end theirs). */
+	void setTerminator(final Runnable terminator){
+		this.terminator = terminator;
 	}
 
 	void undo(){
@@ -380,7 +408,7 @@ public class FamilyLegacyFrame extends JFrame{
 	}
 
 	/**
-	 * @param modified	{@code true} if the model is not the content of a file (a restored backup): it counts as having unsaved changes.
+	 * @param modified	{@code true} if the model is not the content of the file (a restored backup): it is written to the file.
 	 */
 	private void replaceModel(final FLEFModel newModel, final boolean modified){
 		if(newModel == null)
@@ -389,8 +417,11 @@ public class FamilyLegacyFrame extends JFrame{
 		SwingUtilities.invokeLater(() -> {
 			model = newModel;
 			history.reset(newModel);
-			if(modified)
+			if(modified){
 				history.markUnsaved();
+				//what is in memory is not what is on the file: it is written to it
+				fileController.documentChanged();
+			}
 
 			switcher = new ProjectionSwitcherPanel(treeType, newModel);
 			switcher.setSelectionCallback(dossierManager::showIndividualDossier);
@@ -448,11 +479,33 @@ public class FamilyLegacyFrame extends JFrame{
 			return null;
 		}
 
+		//the bookmark is of the file it was made in: the identifiers of another file are other records. A document with no file has no
+		//bookmarks: one made here would belong to none, and would never be listed
+		final String file = bookmarkFilePath();
+		if(file == null)
+			return null;
+
+		props.put(BookmarkStore.FILE_PROPERTY, file);
+
 		return new Bookmark(BookmarkStore.newId(), name, bookmarkType, rootId, props, System.currentTimeMillis());
+	}
+
+	/** @return	The path the bookmarks are tied to (the file of the document, in its normal form), or {@code null} if it has none. */
+	String bookmarkFilePath(){
+		final java.io.File file = fileController.currentFile();
+		return (file != null? RecentFilesManager.normalized(file).getAbsolutePath(): null);
 	}
 
 	void applyBookmark(final Bookmark bookmark){
 		if(bookmark == null){
+			return;
+		}
+
+		//the root can be gone (deleted since the bookmark was made)
+		if(!bookmark.rootId().isEmpty() && !model.hasRecord(bookmark.rootId())){
+			JOptionPane.showMessageDialog(this, I18N.tf("dialog.bookmark.missing_root.message", bookmark.name()),
+				I18N.t("dialog.bookmark.missing_root.title"), JOptionPane.INFORMATION_MESSAGE);
+
 			return;
 		}
 
@@ -499,8 +552,6 @@ public class FamilyLegacyFrame extends JFrame{
 
 				@Override
 				public void restoreModel(final FLEFModel restoredModel){
-					//the restored data is not the content of the open file: the next save must ask where to write
-					fileController.detachFile();
 					FamilyLegacyFrame.this.replaceModel(restoredModel, true);
 				}
 
@@ -517,6 +568,11 @@ public class FamilyLegacyFrame extends JFrame{
 				@Override
 				public void removeEntity(final String id){
 					switcher.removeEntity(id);
+				}
+
+				@Override
+				public FLEFModel readOnlyModel(){
+					return FamilyLegacyFrame.this.readOnlyModel();
 				}
 
 				@Override

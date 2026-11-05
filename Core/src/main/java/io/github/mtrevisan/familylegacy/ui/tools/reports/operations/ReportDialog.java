@@ -47,7 +47,6 @@ import io.github.mtrevisan.familylegacy.ui.tools.reports.ProgressDialog;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.ReportOptionsPanel;
 import io.github.mtrevisan.reports.ReportDocument;
 import io.github.mtrevisan.reports.ReportRenderer;
-import io.github.mtrevisan.reports.ReportSection;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -71,6 +70,7 @@ import java.awt.GridLayout;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -109,7 +109,6 @@ public final class ReportDialog extends JDialog{
 
 
 	private ReportDialog(final ToolContext context, final ReportType reportType){
-		// TODO i18n
 		super(context.owner(), reportType.getTitle(), ModalityType.APPLICATION_MODAL);
 		ToolDialogs.installEscapeToClose(this);
 
@@ -168,13 +167,13 @@ public final class ReportDialog extends JDialog{
 			"ins 10,wrap 1,fillx", "[grow,fill]", "[]10[]20[]10[]"));
 
 		// 1. Header panel displaying report type and targeted root entity
-		String targetText = "Global / Entire Dataset";
+		String targetText = I18N.t("text.report.no_subject");
 		if(selectedEntity != null){
 			final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(selectedEntity.getTag());
 			targetText = handler.getDisplayText(selectedEntity, context.model());
 		}
 		final JPanel headerPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-		headerPanel.add(new JLabel("<html><b>Target Subject:</b> " + targetText + "</html>"));
+		headerPanel.add(new JLabel("<html><b>" + I18N.l("label.target_subject") + "</b> " + escapeHtml(targetText) + "</html>"));
 		mainPanel.add(headerPanel);
 
 		// 2. Format selection panel
@@ -259,9 +258,8 @@ public final class ReportDialog extends JDialog{
 	}
 
 	private void onGenerate(){
-		if(selectedEntity == null && (reportType == ReportType.ANCESTOR
-			|| reportType == ReportType.DESCENDANT
-			|| reportType == ReportType.INDIVIDUAL)){
+		//every report is about a record: without one nothing is written (it would be a file with a note and nothing else)
+		if(selectedEntity == null){
 			JOptionPane.showMessageDialog(this,
 				I18N.tf("dialog.report.missing_subject.message", reportType.getTitle()), I18N.t("dialog.report.missing_subject.title"), JOptionPane.WARNING_MESSAGE);
 
@@ -277,7 +275,7 @@ public final class ReportDialog extends JDialog{
 		}
 
 		final JFileChooser chooser = new JFileChooser();
-		chooser.setDialogTitle("Select Output Directory");
+		chooser.setDialogTitle(I18N.t("dialog.report.output_directory.title"));
 		chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 
 		if(chooser.showSaveDialog(this) != JFileChooser.APPROVE_OPTION)
@@ -288,10 +286,31 @@ public final class ReportDialog extends JDialog{
 			return;
 
 		final Path outDir = selectedDir.toPath();
+		if(!confirmOverwrite(outDir, renderers))
+			return;
+
 		final ReportLanguage selectedLang = (ReportLanguage)language.getSelectedItem();
 		final ReportConfig config = optionsPanel.toConfig(selectedLang);
 
 		runWithProgress(outDir, renderers, config);
+	}
+
+
+	/** Asks before overwriting: the report is written with a fixed name, so a previous one in the same folder would be lost. */
+	private boolean confirmOverwrite(final Path outDir, final Map<String, ReportRenderer> renderers){
+		final List<String> existing = renderers.keySet().stream()
+			.filter(name -> Files.exists(outDir.resolve(name)))
+			.toList();
+		if(existing.isEmpty())
+			return true;
+
+		return (JOptionPane.showConfirmDialog(this,
+			I18N.l("dialog.report.overwrite.message") + StringUtils.LF + " \u2022 " + String.join(StringUtils.LF + " \u2022 ", existing),
+			I18N.t("dialog.report.overwrite.title"), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) == JOptionPane.YES_OPTION);
+	}
+
+	private static String escapeHtml(final String text){
+		return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
 	}
 
 
@@ -325,7 +344,7 @@ public final class ReportDialog extends JDialog{
 					};
 
 					// ----- Phase 1: build the document (0..50%) ---------
-					listener.onProgress(0, "Building report…");
+					listener.onProgress(0, I18N.t("text.report.building"));
 					final ReportProgressListener documentListener = scale(listener, 0, 50);
 					final ReportDocument doc = buildReportDocument(config, documentListener);
 
@@ -344,9 +363,9 @@ public final class ReportDialog extends JDialog{
 
 						i ++;
 						listener.onProgress(50 + (i * 50) / n,
-							"Writing " + entry.getKey());
+							I18N.tf("text.report.writing", entry.getKey()));
 					}
-					listener.onProgress(100, "Done");
+					listener.onProgress(100, I18N.t("text.report.done"));
 					return new GenerationResult(outDir, generatedFiles);
 				}
 
@@ -436,9 +455,6 @@ public final class ReportDialog extends JDialog{
 	 * @return the assembled document, never {@code null}
 	 */
 	private ReportDocument buildReportDocument(final ReportConfig userConfig, final ReportProgressListener listener){
-		if(selectedEntity == null)
-			return placeholderDocument(reportType);
-
 		final ReportConfig tailored = tailorConfigFor(reportType, userConfig);
 
 		return switch(reportType){
@@ -659,24 +675,6 @@ public final class ReportDialog extends JDialog{
 			/*indexPlaces*/           false,
 			base.includeDescriptions(),
 			base.includePictures());
-	}
-
-
-	/* ----- Placeholder ----------------------------------------------------- */
-
-	/**
-	 * Builds a minimal document explaining why the report could not be
-	 * produced, used when no root record can be resolved (e.g. an empty
-	 * model). The dialog still writes the file so the user is not left
-	 * without feedback.
-	 */
-	private static ReportDocument placeholderDocument(final ReportType type){
-		final List<ReportSection> sections = new ArrayList<>();
-		sections.add(new ReportSection.Heading(1, type.getTitle()));
-		sections.add(new ReportSection.Paragraph(
-			"No target record is available for this report. "
-				+ "Select an individual or a group in the editor and try again."));
-		return new ReportDocument(type.getTitle(), null, sections);
 	}
 
 
