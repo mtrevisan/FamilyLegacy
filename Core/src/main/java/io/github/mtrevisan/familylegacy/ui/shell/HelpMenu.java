@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.ui.dialogs.help.DiagnosticsDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.help.HelpBrowserDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.help.HelpTopics;
 import io.github.mtrevisan.familylegacy.ui.dialogs.help.KeyboardShortcutsDialog;
+import io.github.mtrevisan.familylegacy.ui.helpers.ProjectInfo;
 import io.github.mtrevisan.familylegacy.ui.helpers.ShortcutRegistry;
 
 import javax.swing.JMenu;
@@ -50,8 +51,11 @@ final class HelpMenu{
 
 	private final FamilyLegacyFrame frame;
 
+	private final UpdateFlow updateFlow;
+
 	HelpMenu(final FamilyLegacyFrame frame){
 		this.frame = frame;
+		updateFlow = new UpdateFlow(frame);
 	}
 
 	JMenu create(){
@@ -76,7 +80,7 @@ final class HelpMenu{
 		menu.add(new JSeparator());
 
 		final JMenuItem checkUpdates = new JMenuItem(I18N.t("menu.help.chek.updates"), KeyEvent.VK_U);
-		checkUpdates.addActionListener(e -> checkForUpdates());
+		checkUpdates.addActionListener(e -> updateFlow.start());
 		menu.add(checkUpdates);
 
 		final JMenuItem reportBug = new JMenuItem(I18N.t("menu.help.bug.report"), KeyEvent.VK_B);
@@ -127,20 +131,8 @@ final class HelpMenu{
 			I18N.t("error.not_supported.title"), JOptionPane.WARNING_MESSAGE);
 	}
 
-	private void checkForUpdates(){
-		final Object[] options = {I18N.t("menu.help.check.updates.open"), I18N.t("menu.help.check.updates.close")};
-		final int choice = JOptionPane.showOptionDialog(frame,
-			I18N.tf("menu.help.check.updates.message", HelpContent.APPLICATION_VERSION),
-			I18N.t("menu.help.check.updates.title"),
-			JOptionPane.DEFAULT_OPTION,
-			JOptionPane.INFORMATION_MESSAGE,
-			null, options, options[0]);
-		if(choice == 0)
-			openUrl(HelpContent.RELEASES_URL);
-	}
-
 	private void showAboutDialog(){
-		JOptionPane.showMessageDialog(frame, I18N.tf("menu.help.about.message", HelpContent.APPLICATION_VERSION),
+		JOptionPane.showMessageDialog(frame, I18N.tf("menu.help.about.message", ProjectInfo.getAppVersion()),
 			I18N.t("menu.help.about.title"), JOptionPane.INFORMATION_MESSAGE);
 	}
 

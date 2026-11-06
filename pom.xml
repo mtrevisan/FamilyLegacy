@@ -32,6 +32,7 @@
 		<module>ReportEpub</module>
 		<module>ReportSite</module>
 		<module>Domain</module>
+		<module>Updater</module>
 		<module>ImporterGedcom</module>
 		<module>ImporterGramps</module>
 		<module>Core</module>

@@ -26,20 +26,16 @@ package io.github.mtrevisan.familylegacy.ui.shell;
 
 
 /**
- * Static content used by the Help menu: URLs and version. The pages of the help are Markdown files
+ * Static content used by the Help menu: URLs. The pages of the help are Markdown files
  * (see {@link io.github.mtrevisan.familylegacy.ui.dialogs.help.HelpTopics}).
  */
 final class HelpContent{
 
 	// TODO i18n
 	/** Base URL of the online documentation. */
-	static final String DOCUMENTATION_URL = "https://github.com/mtrevisan/family-legacy/wiki";
+	static final String DOCUMENTATION_URL = "https://github.com/mtrevisan/FamilyLegacy/wiki";
 	/** URL of the issue tracker, with a prefilled "new issue" form. */
-	static final String ISSUE_TRACKER_URL = "https://github.com/mtrevisan/family-legacy/issues/new";
-	/** URL of the release page. */
-	static final String RELEASES_URL = "https://github.com/mtrevisan/family-legacy/releases";
-	/** Version shown in the About dialog and in "Check for Updates". */
-	static final String APPLICATION_VERSION = "2.0.0 (development)";
+	static final String ISSUE_TRACKER_URL = "https://github.com/mtrevisan/FamilyLegacy/issues/new";
 
 
 	private HelpContent(){

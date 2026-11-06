@@ -34,7 +34,7 @@ Family Legacy is a genealogical data manager built on the **Family LEgacy Format
 - [The Research Assistant](assistant.md) points out what is missing or doubtful, and helps with dates, places and citations.
 - [The Source Citation Assistant](citation-assistant.md): how to turn an archival reference into a locator.
 - [Undo, redo and recent changes](undo.md): how far back you can go, and what cannot be undone.
-- [When something goes wrong](troubleshooting.md): messages, causes and remedies, the files the application writes, and how to report a problem.
+- [When something goes wrong](troubleshooting.md): messages, causes and remedies, how to update the application, the files the application writes, and how to report a problem.
 - [Reports](reports.md) produce documents (Markdown, text, HTML, DOCX, PDF).
 - [Tools](tools.md): validation, statistics and the other commands of the Tools menu.
 - [Finding duplicates and merging people](merging.md): how the duplicate search scores, and what a merge does.

@@ -184,6 +184,13 @@
 			<version>${project.version}</version>
 		</dependency>
 
+		<!-- The check for a newer release, the download and the start of its installer -->
+		<dependency>
+			<groupId>io.github.mtrevisan</groupId>
+			<artifactId>Updater</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
 		<!-- The PDF and Word formats are plugins (Core/plugins/report-*.jar, built by their modules): here only for the tests -->
 		<dependency>
 			<groupId>io.github.mtrevisan</groupId>

@@ -29,6 +29,7 @@ module io.github.mtrevisan.familylegacy.core {
 	requires io.github.mtrevisan.familylegacy.domain;
 	requires io.github.mtrevisan.calendars;
 	requires io.github.mtrevisan.reports;
+	requires io.github.mtrevisan.updater;
 	requires org.apache.commons.lang3;
 	requires java.desktop;
 	requires com.miglayout.swing;

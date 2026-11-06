@@ -81,6 +81,7 @@ import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.function.BooleanSupplier;
 
 
 /**
@@ -255,6 +256,17 @@ public class FamilyLegacyFrame extends JFrame{
 	 */
 	void exitApplication(){
 		if(fileController.exit())
+			terminator.run();
+	}
+
+	/**
+	 * Closes the application as {@link #exitApplication()} does, and runs the action just before the process ends (it is what starts the
+	 * installer of an update).
+	 *
+	 * @param beforeExit	The action; returns whether the application can end (if not, it stays open).
+	 */
+	void exitApplicationAndRun(final BooleanSupplier beforeExit){
+		if(fileController.exit() && beforeExit.getAsBoolean())
 			terminator.run();
 	}
 

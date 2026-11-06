@@ -87,6 +87,16 @@ The diagnostics do not contain your data, the file path or the contents of the l
 
 **Logs.** By default the application writes its log only to the console of the program that started it, so you see it only if you start the application from a terminal. A rolling log file is prepared in the configuration but switched off.
 
+## Updating the application
+
+**Help > Check for Updates...** looks on GitHub, in the [releases of Family Legacy](https://github.com/mtrevisan/FamilyLegacy/releases), for a version newer than the one you are running (shown by **Help > About Family Legacy**). It needs an internet connection; the rest of the application does not.
+
+- If you are up to date, a message says so.
+- If a newer version is published, a window shows its number and its release notes. **Download and Install** downloads the installer (a progress bar shows how much has arrived; **Cancel**, `Esc` or the close button of the window stop it and delete what was downloaded), then asks you to confirm. **Close and Install** closes the application and starts the installer, which replaces the installed version: your files, preferences and bookmarks are not touched. **Open Release Page** shows the release in the browser instead, and **Later** does nothing.
+- Downloading and installing from the application works on Windows. On other systems the window offers only the release page.
+
+If the installer publishes a SHA-256 checksum, the downloaded file is checked against it and discarded if it does not match. Messages you may meet: *Unable to check for updates* (no connection, or GitHub refused the request: wait a few minutes and try again), *Unable to download the update* (the connection dropped, or the file did not match its checksum), *Unable to start the installer* (the message gives the folder where the installer was saved, so you can run it by hand).
+
 ## The files the application writes
 
 In the folder `.familylegacy` of your home directory:
